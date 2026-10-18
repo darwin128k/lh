@@ -786,8 +786,8 @@ lh_memory_std_find_sse2(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, lh_
     const __m128i last = _mm_set1_epi8(lh_cast_static(char, needle[m - 1U]));
     lh_usize_t off = 0U;
 
-    /* The block at off tests candidates off..off+15; its last-byte load covers
-     * off+m-1 .. off+m+14, inside the haystack while n - off >= m + 15. */
+    /* Exact cmpeq on both ends: two vector compares are cheaper here than a
+     * scalar false-positive walk. The scalar path filters on one end only. */
     while (n - off >= m + 15U)
     {
         const __m128i a = _mm_loadu_si128(lh_ptr_rcast(const __m128i, hay + off));

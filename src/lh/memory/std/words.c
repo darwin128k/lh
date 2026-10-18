@@ -10,8 +10,8 @@ lh_memory_std_copy_tiny(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
     if (n >= 8U)
     {
-        const lh_u64_t first = *lh_ptr_rcast(const lh_u64_t, src);
-        const lh_u64_t last = *lh_ptr_rcast(const lh_u64_t, src + n - 8U);
+        const lh_u64_t first = lh_ptr_deref(lh_ptr_rcast(const lh_u64_t, src));
+        const lh_u64_t last = lh_ptr_deref(lh_ptr_rcast(const lh_u64_t, src + n - 8U));
         lh_ptr_deref(lh_ptr_rcast(lh_u64_t, dst)) = first;
         lh_ptr_deref(lh_ptr_rcast(lh_u64_t, dst + n - 8U)) = last;
         return;
@@ -19,8 +19,8 @@ lh_memory_std_copy_tiny(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 
     if (n >= 4U)
     {
-        const lh_u32_t first = *lh_ptr_rcast(const lh_u32_t, src);
-        const lh_u32_t last = *lh_ptr_rcast(const lh_u32_t, src + n - 4U);
+        const lh_u32_t first = lh_ptr_deref(lh_ptr_rcast(const lh_u32_t, src));
+        const lh_u32_t last = lh_ptr_deref(lh_ptr_rcast(const lh_u32_t, src + n - 4U));
         lh_ptr_deref(lh_ptr_rcast(lh_u32_t, dst)) = first;
         lh_ptr_deref(lh_ptr_rcast(lh_u32_t, dst + n - 4U)) = last;
         return;
@@ -28,8 +28,8 @@ lh_memory_std_copy_tiny(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 
     if (n >= 2U)
     {
-        const lh_u16_t first = *lh_ptr_rcast(const lh_u16_t, src);
-        const lh_u16_t last = *lh_ptr_rcast(const lh_u16_t, src + n - 2U);
+        const lh_u16_t first = lh_ptr_deref(lh_ptr_rcast(const lh_u16_t, src));
+        const lh_u16_t last = lh_ptr_deref(lh_ptr_rcast(const lh_u16_t, src + n - 2U));
         lh_ptr_deref(lh_ptr_rcast(lh_u16_t, dst)) = first;
         lh_ptr_deref(lh_ptr_rcast(lh_u16_t, dst + n - 2U)) = last;
         return;
@@ -54,7 +54,7 @@ lh_memory_std_copy_bytes(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 
     do
     {
-        lh_ptr_deref(lh_ptr_rcast(lh_u64_t, dst)) = *lh_ptr_rcast(const lh_u64_t, src);
+        lh_ptr_deref(lh_ptr_rcast(lh_u64_t, dst)) = lh_ptr_deref(lh_ptr_rcast(const lh_u64_t, src));
         dst += 8;
         src += 8;
         n -= 8U;
@@ -70,8 +70,8 @@ lh_memory_std_copy_rev_tiny(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
     if (n >= 8U)
     {
-        const lh_u64_t first = lh_bit_bswap_u64(*lh_ptr_rcast(const lh_u64_t, src));
-        const lh_u64_t last = lh_bit_bswap_u64(*lh_ptr_rcast(const lh_u64_t, src + n - 8U));
+        const lh_u64_t first = lh_bit_bswap_u64(lh_ptr_deref(lh_ptr_rcast(const lh_u64_t, src)));
+        const lh_u64_t last = lh_bit_bswap_u64(lh_ptr_deref(lh_ptr_rcast(const lh_u64_t, src + n - 8U)));
         lh_ptr_deref(lh_ptr_rcast(lh_u64_t, dst + n - 8U)) = first;
         lh_ptr_deref(lh_ptr_rcast(lh_u64_t, dst)) = last;
         return;
@@ -79,8 +79,8 @@ lh_memory_std_copy_rev_tiny(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 
     if (n >= 4U)
     {
-        const lh_u32_t first = lh_bit_bswap_u32(*lh_ptr_rcast(const lh_u32_t, src));
-        const lh_u32_t last = lh_bit_bswap_u32(*lh_ptr_rcast(const lh_u32_t, src + n - 4U));
+        const lh_u32_t first = lh_bit_bswap_u32(lh_ptr_deref(lh_ptr_rcast(const lh_u32_t, src)));
+        const lh_u32_t last = lh_bit_bswap_u32(lh_ptr_deref(lh_ptr_rcast(const lh_u32_t, src + n - 4U)));
         lh_ptr_deref(lh_ptr_rcast(lh_u32_t, dst + n - 4U)) = first;
         lh_ptr_deref(lh_ptr_rcast(lh_u32_t, dst)) = last;
         return;
@@ -88,8 +88,8 @@ lh_memory_std_copy_rev_tiny(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 
     if (n >= 2U)
     {
-        const lh_u16_t first_rev = lh_bit_bswap_u16(*lh_ptr_rcast(const lh_u16_t, src));
-        const lh_u16_t last_rev = lh_bit_bswap_u16(*lh_ptr_rcast(const lh_u16_t, src + n - 2U));
+        const lh_u16_t first_rev = lh_bit_bswap_u16(lh_ptr_deref(lh_ptr_rcast(const lh_u16_t, src)));
+        const lh_u16_t last_rev = lh_bit_bswap_u16(lh_ptr_deref(lh_ptr_rcast(const lh_u16_t, src + n - 2U)));
         lh_ptr_deref(lh_ptr_rcast(lh_u16_t, dst + n - 2U)) = first_rev;
         lh_ptr_deref(lh_ptr_rcast(lh_u16_t, dst)) = last_rev;
         return;
@@ -115,7 +115,7 @@ lh_memory_std_copy_rev_bytes(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
         {
             d_end -= 8;
             lh_ptr_deref(lh_ptr_rcast(lh_u64_t, d_end)) =
-                lh_bit_bswap_u64(*lh_ptr_rcast(const lh_u64_t, src));
+                lh_bit_bswap_u64(lh_ptr_deref(lh_ptr_rcast(const lh_u64_t, src)));
             src += 8;
             n -= 8U;
         } while (n >= 8U);
@@ -133,7 +133,7 @@ lh_memory_std_copy_rev_bytes(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
         {
             d_end -= 4;
             lh_ptr_deref(lh_ptr_rcast(lh_u32_t, d_end)) =
-                lh_bit_bswap_u32(*lh_ptr_rcast(const lh_u32_t, src));
+                lh_bit_bswap_u32(lh_ptr_deref(lh_ptr_rcast(const lh_u32_t, src)));
             src += 4;
             n -= 4U;
         }
@@ -149,8 +149,8 @@ lh_memory_std_rcopy_tiny(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
     if (n >= 8U)
     {
-        const lh_u64_t first = *lh_ptr_rcast(const lh_u64_t, src);
-        const lh_u64_t last = *lh_ptr_rcast(const lh_u64_t, src + n - 8U);
+        const lh_u64_t first = lh_ptr_deref(lh_ptr_rcast(const lh_u64_t, src));
+        const lh_u64_t last = lh_ptr_deref(lh_ptr_rcast(const lh_u64_t, src + n - 8U));
         lh_ptr_deref(lh_ptr_rcast(lh_u64_t, dst + n - 8U)) = last;
         lh_ptr_deref(lh_ptr_rcast(lh_u64_t, dst)) = first;
         return;
@@ -158,8 +158,8 @@ lh_memory_std_rcopy_tiny(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 
     if (n >= 4U)
     {
-        const lh_u32_t first = *lh_ptr_rcast(const lh_u32_t, src);
-        const lh_u32_t last = *lh_ptr_rcast(const lh_u32_t, src + n - 4U);
+        const lh_u32_t first = lh_ptr_deref(lh_ptr_rcast(const lh_u32_t, src));
+        const lh_u32_t last = lh_ptr_deref(lh_ptr_rcast(const lh_u32_t, src + n - 4U));
         lh_ptr_deref(lh_ptr_rcast(lh_u32_t, dst + n - 4U)) = last;
         lh_ptr_deref(lh_ptr_rcast(lh_u32_t, dst)) = first;
         return;
@@ -167,8 +167,8 @@ lh_memory_std_rcopy_tiny(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 
     if (n >= 2U)
     {
-        const lh_u16_t first = *lh_ptr_rcast(const lh_u16_t, src);
-        const lh_u16_t last = *lh_ptr_rcast(const lh_u16_t, src + n - 2U);
+        const lh_u16_t first = lh_ptr_deref(lh_ptr_rcast(const lh_u16_t, src));
+        const lh_u16_t last = lh_ptr_deref(lh_ptr_rcast(const lh_u16_t, src + n - 2U));
         lh_ptr_deref(lh_ptr_rcast(lh_u16_t, dst + n - 2U)) = last;
         lh_ptr_deref(lh_ptr_rcast(lh_u16_t, dst)) = first;
         return;
@@ -195,7 +195,7 @@ lh_memory_std_rcopy_bytes(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
         {
             d -= 8;
             s -= 8;
-            lh_ptr_deref(lh_ptr_rcast(lh_u64_t, d)) = *lh_ptr_rcast(const lh_u64_t, s);
+            lh_ptr_deref(lh_ptr_rcast(lh_u64_t, d)) = lh_ptr_deref(lh_ptr_rcast(const lh_u64_t, s));
             n -= 8U;
         } while (n >= 8U);
 
@@ -216,7 +216,7 @@ lh_memory_std_rcopy_bytes(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
         while (n >= w)
         {
             n -= w;
-            lh_ptr_deref(lh_ptr_rcast(lh_usize_t, dst + n)) = *lh_ptr_rcast(const lh_usize_t, src + n);
+            lh_ptr_deref(lh_ptr_rcast(lh_usize_t, dst + n)) = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, src + n));
         }
         while (n > 0U)
         {
@@ -350,10 +350,10 @@ lh_memory_std_compare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
     while (n >= w * 2U)
     {
-        const lh_usize_t a0 = *lh_ptr_rcast(const lh_usize_t, l);
-        const lh_usize_t b0 = *lh_ptr_rcast(const lh_usize_t, r);
-        const lh_usize_t a1 = *lh_ptr_rcast(const lh_usize_t, l + w);
-        const lh_usize_t b1 = *lh_ptr_rcast(const lh_usize_t, r + w);
+        const lh_usize_t a0 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, l));
+        const lh_usize_t b0 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, r));
+        const lh_usize_t a1 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, l + w));
+        const lh_usize_t b1 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, r + w));
 
         if (a0 != b0)
         {
@@ -370,7 +370,8 @@ lh_memory_std_compare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
     if (n >= w)
     {
-        if (*lh_ptr_rcast(const lh_usize_t, l) != *lh_ptr_rcast(const lh_usize_t, r))
+        if (lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, l)) !=
+            lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, r)))
         {
             return lh_memory_std_compare_word_byte(l, r);
         }
@@ -416,10 +417,26 @@ lh_memory_std_rcompare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
         }
     }
 
-    while (n >= w)
+    while (n >= w * 2U)
+    {
+        n -= w * 2U;
+        if (lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, l + n + w)) !=
+            lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, r + n + w)))
+        {
+            return lh_memory_std_rcompare_word_byte(l + n + w, r + n + w, w);
+        }
+        if (lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, l + n)) !=
+            lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, r + n)))
+        {
+            return lh_memory_std_rcompare_word_byte(l + n, r + n, w);
+        }
+    }
+
+    if (n >= w)
     {
         n -= w;
-        if (*lh_ptr_rcast(const lh_usize_t, l + n) != *lh_ptr_rcast(const lh_usize_t, r + n))
+        if (lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, l + n)) !=
+            lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, r + n)))
         {
             return lh_memory_std_rcompare_word_byte(l + n, r + n, w);
         }
@@ -451,12 +468,10 @@ lh_memory_std_copy_words(lh_ptr dst, const lh_ptr src, lh_usize_t n)
     lh_byte_ptr d = lh_ptr_cast(lh_byte_t, dst);
     lh_byte_cptr s = lh_ptr_ccast(lh_byte_t, src);
 
-    /* The two pointers advance together, so stepping one byte at a time until
-       each sits on a word boundary aligns the source and the destination in the
-       same pass — neither is ever touched through a misaligned pointer, which is
-       the access a strict-alignment target faults on. */
-    while (n > 0U && (!lh_math_is_multiple_of(lh_ptr_to_uaddr(d), w) ||
-                      !lh_math_is_multiple_of(lh_ptr_to_uaddr(s), w)))
+    /* Lockstep byte peel until both sit on a word boundary — never touch either
+       through a misaligned word pointer (strict-alignment targets fault on that).
+       Alignment is a mask, not ::lh_math_is_multiple_of: that path is a modulo. */
+    while (n > 0U && ((lh_ptr_to_uaddr(d) | lh_ptr_to_uaddr(s)) & (w - 1U)) != 0U)
     {
         lh_ptr_deref(d++) = lh_ptr_deref(s++);
         --n;
@@ -464,7 +479,7 @@ lh_memory_std_copy_words(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 
     while (n >= w)
     {
-        lh_ptr_deref(lh_ptr_rcast(lh_usize_t, d)) = *lh_ptr_rcast(const lh_usize_t, s);
+        lh_ptr_deref(lh_ptr_rcast(lh_usize_t, d)) = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, s));
         d += w;
         s += w;
         n -= w;
@@ -486,7 +501,7 @@ lh_memory_std_fill_words(lh_ptr dst, lh_usize_t word, lh_usize_t n)
     const lh_byte_t byte = lh_cast_static(lh_byte_t, word);
     lh_byte_ptr d = lh_ptr_cast(lh_byte_t, dst);
 
-    while (n > 0U && !lh_math_is_multiple_of(lh_ptr_to_uaddr(d), w))
+    while (n > 0U && (lh_ptr_to_uaddr(d) & (w - 1U)) != 0U)
     {
         lh_ptr_deref(d++) = byte;
         --n;
@@ -544,7 +559,7 @@ lh_memory_std_xor_bytes(lh_byte_ptr dst, lh_byte_cptr lhs, lh_byte_cptr rhs, lh_
     while (n >= w)
     {
         lh_ptr_deref(lh_ptr_rcast(lh_usize_t, dst)) =
-            *lh_ptr_rcast(const lh_usize_t, lhs) ^ *lh_ptr_rcast(const lh_usize_t, rhs);
+            lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, lhs)) ^ lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, rhs));
         dst += w;
         lhs += w;
         rhs += w;
@@ -571,13 +586,23 @@ lh_memory_std_rcompare_scalar(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 }
 #endif
 
-/** Whether @p cand matches @p needle between its first and last byte (already checked). */
+/** Whether @p cand matches @p needle between its first and last byte (already checked).
+ *  Short middles stay local: routing a one-byte gap through ::lh_memory_std_compare
+ *  pays the public entry for nothing. */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
 lh_memory_std_find_is_match(lh_byte_cptr cand, lh_byte_cptr needle, lh_usize_t m)
 {
-    return lh_cast_static(
-        lh_bool_t, m <= 2U || lh_null_eq(lh_memory_std_compare(cand + 1, needle + 1, m - 2U)));
+    if (m <= 2U)
+    {
+        return lh_bool_true;
+    }
+    if (m == 3U)
+    {
+        return lh_cast_static(lh_bool_t, cand[1] == needle[1]);
+    }
+    return lh_cast_static(lh_bool_t,
+                          lh_null_eq(lh_memory_std_compare_bytes(cand + 1, needle + 1, m - 2U)));
 }
 
 /** True when the candidate at @p off has the needle's first byte, last byte, and middle. */
@@ -601,49 +626,23 @@ lh_memory_std_find_lane_bit(lh_usize_t lane)
     return ((lh_usize_t)0x80U) << (lane << 3);
 }
 
-/** Lanes of a machine word whose first and last needle bytes both compare equal.
+/** Lanes of a machine word whose bytes equal the filter broadcast in @p byte_word.
  *  A lit lane is not proof: the subtract can light a neighbor, so the caller rechecks
- *  those two bytes. @p ones is 0x0101... and @p high is 0x8080... */
+ *  the candidate. @p ones is 0x0101... and @p high is 0x8080... */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_usize_t
-lh_memory_std_find_word_mask(lh_byte_cptr at_first, lh_byte_cptr at_last, lh_usize_t ones,
-                             lh_usize_t high, lh_usize_t first_word, lh_usize_t last_word)
+lh_memory_std_find_byte_mask(lh_byte_cptr at, lh_usize_t ones, lh_usize_t high,
+                             lh_usize_t byte_word)
 {
-    const lh_usize_t xa = (*lh_ptr_rcast(const lh_usize_t, at_first)) ^ first_word;
-    const lh_usize_t xb = (*lh_ptr_rcast(const lh_usize_t, at_last)) ^ last_word;
+    const lh_usize_t x = (lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, at))) ^ byte_word;
 
-    return (xa - ones) & ~xa & (xb - ones) & ~xb & high;
-}
-
-/** First match among the word of candidates at @p off, lowest address first. */
-LH_ATTRIBUTE_FORCE_INLINE
-const lh_ptr
-lh_memory_std_find_word(lh_byte_cptr hay, lh_usize_t off, lh_byte_cptr needle, lh_usize_t m,
-                        lh_byte_t first, lh_byte_t last, lh_usize_t ones, lh_usize_t high,
-                        lh_usize_t first_word, lh_usize_t last_word)
-{
-    const lh_usize_t mask =
-        lh_memory_std_find_word_mask(hay + off, hay + off + (m - 1U), ones, high, first_word,
-                                     last_word);
-    lh_usize_t lane;
-
-    if (mask == 0U)
-    {
-        return lh_null;
-    }
-    for (lane = 0U; lane < sizeof(lh_usize_t); ++lane)
-    {
-        if (((mask & lh_memory_std_find_lane_bit(lane)) != 0U) &&
-            lh_memory_std_find_at(hay, off + lane, needle, m, first, last))
-        {
-            return hay + off + lane;
-        }
-    }
-    return lh_null;
+    return (x - ones) & ~x & high;
 }
 
 /** Scalar ::lh_memory_std_find from offset @p off.
- *  Full words of candidates move by sizeof(::lh_usize_t); the tail steps one byte. */
+ *  Full words of candidates move by sizeof(::lh_usize_t); the tail steps one byte.
+ *  The word filter watches one needle end only: the last byte when @p m > 1 (so a
+ *  repeated first byte does not light every lane), otherwise the single byte. */
 static const lh_ptr
 lh_memory_std_find_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, lh_usize_t m,
                           lh_usize_t off)
@@ -658,17 +657,27 @@ lh_memory_std_find_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, l
     {
         const lh_usize_t ones = (~(lh_usize_t)0) / 0xFFU;
         const lh_usize_t high = ones << 7;
-        const lh_usize_t first_word = ones * first;
-        const lh_usize_t last_word = ones * last;
+        const lh_usize_t filter = ones * (m > 1U ? last : first);
+        const lh_usize_t filter_off = m > 1U ? (m - 1U) : 0U;
         const lh_usize_t word_limit = n - (m + w - 1U);
 
         while (off <= word_limit)
         {
-            const lh_ptr found = lh_memory_std_find_word(hay, off, needle, m, first, last, ones,
-                                                         high, first_word, last_word);
-            if (found != lh_null)
+            const lh_usize_t mask =
+                lh_memory_std_find_byte_mask(hay + off + filter_off, ones, high, filter);
+
+            if (mask != 0U)
             {
-                return found;
+                lh_usize_t lane;
+
+                for (lane = 0U; lane < w; ++lane)
+                {
+                    if (((mask & lh_memory_std_find_lane_bit(lane)) != 0U) &&
+                        lh_memory_std_find_at(hay, off + lane, needle, m, first, last))
+                    {
+                        return hay + off + lane;
+                    }
+                }
             }
             off += w;
         }
@@ -684,7 +693,7 @@ lh_memory_std_find_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, l
     return lh_null;
 }
 
-/** Scalar ::lh_memory_std_rfind: same word filter, highest candidate first. */
+/** Scalar ::lh_memory_std_rfind: same single-end word filter, highest candidate first. */
 static const lh_ptr
 lh_memory_std_rfind_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, lh_usize_t m)
 {
@@ -698,10 +707,10 @@ lh_memory_std_rfind_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, 
     {
         const lh_usize_t ones = (~(lh_usize_t)0) / 0xFFU;
         const lh_usize_t high = ones << 7;
-        const lh_usize_t first_word = ones * first;
-        const lh_usize_t last_word = ones * last;
+        const lh_usize_t filter = ones * (m > 1U ? last : first);
+        const lh_usize_t filter_off = m > 1U ? (m - 1U) : 0U;
         const lh_usize_t word_limit = n - (m + w - 1U);
-        const lh_usize_t block = word_limit - (word_limit % w);
+        const lh_usize_t block = word_limit & ~(w - 1U);
 
         if (max_start >= block + w)
         {
@@ -722,11 +731,12 @@ lh_memory_std_rfind_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, 
         for (;;)
         {
             const lh_usize_t mask =
-                lh_memory_std_find_word_mask(hay + off, hay + off + (m - 1U), ones, high,
-                                             first_word, last_word);
+                lh_memory_std_find_byte_mask(hay + off + filter_off, ones, high, filter);
+
             if (mask != 0U)
             {
                 lh_usize_t lane = w;
+
                 while (lane-- != 0U)
                 {
                     if (((mask & lh_memory_std_find_lane_bit(lane)) != 0U) &&

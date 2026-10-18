@@ -10,10 +10,13 @@
 #ifndef LH_UTIL_STR_PTR_H
 #define LH_UTIL_STR_PTR_H
 
+#include <lh/attribute/force_inline.h>
+#include <lh/bool.h>
+#include <lh/byte/ptr.h>
+#include <lh/cast/static.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
 #include <lh/size/limits.h>
-#include <lh/bool.h>
 #include <lh/str/ptr.h>
 #include <lh/util/array/ptr.h>
 
@@ -150,19 +153,39 @@ lh_str_ptr_put_chars(lh_str_ptr str, lh_usize_t pos, const lh_str_ptr chars, lh_
 lh_usize_t
 lh_str_ptr_put_run(lh_str_ptr str, lh_usize_t pos, lh_char_t ch, lh_usize_t n);
 
+#ifndef LH_STR_PTR_CHAR_SET_BYTES
 /**
- * @brief Fill the 256-entry membership map @p set: 1 for every byte value in
- *        @p chars, 0 for the rest.
+ * @def LH_STR_PTR_CHAR_SET_BYTES
+ * @brief Size of the bitset filled by ::lh_str_ptr_fill_char_set (256 bits).
+ */
+#    define LH_STR_PTR_CHAR_SET_BYTES 32U
+#endif /* LH_STR_PTR_CHAR_SET_BYTES */
+
+/**
+ * @brief Fill a 256-bit membership bitset @p set (32 bytes): bit @c b set iff
+ *        byte value @c b appears in @p chars.
  *
  * What find_of_chars / find_not_of_chars (and the reverse ones) test against:
- * membership becomes one load per haystack byte instead of a scan of @p chars.
+ * membership is one bit test per haystack byte instead of a scan of @p chars.
  *
- * @param set        256 bytes to fill.
+ * @param set        ::LH_STR_PTR_CHAR_SET_BYTES bytes to fill.
  * @param chars      The characters of the set.
  * @param chars_size Number of characters in @p chars.
  */
 lh_void
 lh_str_ptr_fill_char_set(lh_byte_t *set, const lh_str_ptr chars, lh_usize_t chars_size);
+
+/**
+ * @brief True if byte value of @p ch is set in a map from ::lh_str_ptr_fill_char_set.
+ */
+LH_ATTRIBUTE_FORCE_INLINE
+lh_bool_t
+lh_str_ptr_char_set_has(const lh_byte_t *set, lh_char_t ch)
+{
+    const lh_byte_t b = lh_cast_static(lh_byte_t, ch);
+    return lh_cast_static(lh_bool_t,
+                          (set[b >> 3] & lh_cast_static(lh_byte_t, 1U << (b & 7U))) != 0);
+}
 
 /**
  * @brief Find the first ::lh_char_t equal to @p ch
@@ -195,21 +218,18 @@ const lh_str_ptr
 lh_str_ptr_rfind_of_char(const lh_str_ptr str, lh_usize_t size, lh_char_t ch);
 
 /**
- * @brief Find the first null terminator (`'\\0'`)
- *        in @p str within a bounded scan range.
+ * @brief Find the first null terminator (`'\\0'`) in a NUL-terminated @p str.
  *
- * Delegates to ::lh_memory_scan with a one-byte NUL needle. The bound is the
- * remaining address space from @p str (see ::lh_memory_scan); callers do not
- * pass @c SIZE_MAX. If no NUL appears in that prefix, returns ::lh_null.
+ * Page-safe aligned word walk (same rule as ::lh_memory_scan): an aligned
+ * machine word never crosses a page boundary. @p str must be NUL-terminated;
+ * without a terminator the scan does not return.
  *
- * @param str String to scan
- *            (typically non-null; behaviour is defined only for valid pointers).
+ * @param str NUL-terminated string (non-null under runtime checks).
  *
- * @return Pointer to the terminating NUL byte,
- *         or ::lh_null if none was found in range.
+ * @return Pointer to the terminating NUL byte.
  *
  * @see lh_str_ptr_find_of_null_terminator_by_size
- * @see lh_memory_scan
+ * @see lh_str_ptr_len
  */
 const lh_str_ptr
 lh_str_ptr_find_of_null_terminator(const lh_str_ptr str);
@@ -723,8 +743,10 @@ lh_str_ptr_contains_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_
                             lh_usize_t src_size, lh_bool_t ignore_case);
 
 /**
- * @brief NUL-terminated prefix compare using ::lh_str_ptr_compare
- *        on lengths from ::lh_str_ptr_len.
+ * @brief NUL-terminated prefix compare.
+ *
+ * Walks only the prefix (no strlen). With @p ignore_case ::lh_bool_true, folds
+ * each pair via ::lh_char_fold_case.
  *
  * Both arguments must be NUL-terminated.
  *
@@ -764,7 +786,8 @@ lh_str_ptr_ends_with(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignor
 /**
  * @brief NUL-terminated string equality.
  *
- * Lengths from ::lh_str_ptr_len must match; then ::lh_str_ptr_compare on the full length.
+ * With @p ignore_case ::lh_bool_false, ::lh_memory_bytes_eq_cstr (aligned SWAR).
+ * With ::lh_bool_true, a paired ::lh_char_fold_case walk (no double strlen).
  * Both arguments must be NUL-terminated.
  *
  * @param str          First string.
@@ -829,7 +852,9 @@ lh_str_ptr_ltrim_set(lh_str_ptr str, const lh_str_ptr whitespace_chars, lh_usize
 /**
  * @brief NUL-terminated leftmost substring index.
  *
- * Uses ::lh_str_ptr_len on both strings, then ::lh_str_ptr_find.
+ * With a single-byte needle and @p ignore_case ::lh_bool_false, walks until the
+ * match or NUL (no full haystack strlen). Otherwise lengths from ::lh_str_ptr_len
+ * then ::lh_str_ptr_find.
  *
  * @param str          Haystack (NUL-terminated).
  * @param src          Needle (NUL-terminated).
@@ -908,7 +933,8 @@ lh_str_ptr_rtrim(lh_str_ptr str);
 /**
  * @brief NUL-terminated substring search.
  *
- * Uses ::lh_str_ptr_len on both arguments, then ::lh_str_ptr_find.
+ * Delegates to ::lh_str_ptr_index_of (single-byte needles avoid a full haystack
+ * strlen when @p ignore_case is ::lh_bool_false).
  * Both arguments must be NUL-terminated.
  *
  * @param str          Haystack.

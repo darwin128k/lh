@@ -45,7 +45,7 @@ lh_bool_t
 lh_str_ptr_format_text_get_value(const lh_str_scanf_spec_t *spec, va_list *args, lh_str_ptr buf,
                                  lh_str_cptr *content, lh_usize_t *size)
 {
-    const lh_str_scanf_spec_kind_t kind = lh_str_scanf_spec_get_kind(spec);
+    const lh_str_scanf_spec_kind_t kind = spec->kind;
     lh_usize_t n = 0U;
 
     lh_ptr_deref(content) = buf;
@@ -68,16 +68,15 @@ lh_str_ptr_format_text_get_value(const lh_str_scanf_spec_t *spec, va_list *args,
                                    LH_STR_FORMAT_TEXT_VALUE_BUF_MAX);
         break;
     case lh_str_scanf_spec_kind_hex:
-        n = lh_str_ptr_format_hex(va_arg(lh_ptr_deref(args), lh_uint_t),
-                                  lh_str_scanf_spec_get_uppercase(spec), buf,
+        n = lh_str_ptr_format_hex(va_arg(lh_ptr_deref(args), lh_uint_t), spec->uppercase, buf,
                                   LH_STR_FORMAT_TEXT_VALUE_BUF_MAX);
         break;
     case lh_str_scanf_spec_kind_str:
         lh_ptr_deref(content) = va_arg(lh_ptr_deref(args), lh_str_cptr);
         n = lh_str_ptr_len(lh_ptr_deref(content));
-        if (lh_str_scanf_spec_get_have_precision(spec))
+        if (spec->have_precision)
         {
-            n = lh_math_min(n, lh_cast_static(lh_usize_t, lh_str_scanf_spec_get_precision(spec)));
+            n = lh_math_min(n, lh_cast_static(lh_usize_t, spec->precision));
         }
         break;
     default:
@@ -92,34 +91,46 @@ lh_str_ptr_format_text_put_field(lh_str_ptr str, lh_usize_t str_size, lh_usize_t
                                  const lh_str_scanf_spec_t *spec, lh_str_cptr content,
                                  lh_usize_t size)
 {
-    const lh_usize_t pad = lh_str_scanf_spec_get_pad(spec, size);
-    const lh_bool_t has_sign =
-        lh_math_gt(size, 0U) && lh_math_eq(content[0], lh_char_map_minus);
+    const lh_usize_t width = lh_cast_static(lh_usize_t, spec->width);
+    const lh_usize_t pad = lh_math_gt(width, size) ? lh_math_sub(width, size) : 0U;
     lh_usize_t at = lh_ptr_deref(pos);
 
     /* All or nothing: room for the whole field first, then its pieces. */
     lh_return_if(lh_ptr_is_set(str) && lh_math_gt(lh_math_add(pad, size), lh_math_sub(str_size, at)),
                  lh_bool_false);
 
-    if (lh_str_scanf_spec_get_left_justify(spec))
+    /* Common path: no width padding — one copy, no put_run(0). */
+    if (lh_math_is_zero(pad))
     {
         lh_str_ptr_format_text_put_text(str, str_size, lh_addr_of(at), content, size);
-        lh_str_ptr_format_text_put_run(str, str_size, lh_addr_of(at), lh_char_map_space, pad);
+        lh_ptr_deref(pos) = at;
+        return lh_bool_true;
     }
-    else if (lh_str_scanf_spec_get_zero_pad(spec) && has_sign)
+
     {
-        lh_str_ptr_format_text_put_text(str, str_size, lh_addr_of(at), content, 1U);
-        lh_str_ptr_format_text_put_run(str, str_size, lh_addr_of(at), lh_char_map_digit_0, pad);
-        lh_str_ptr_format_text_put_text(str, str_size, lh_addr_of(at),
-                                        lh_ptr_add_by_offset_unsafe(const lh_char_t, content, 1U),
-                                        lh_math_sub_one(size));
-    }
-    else
-    {
-        lh_str_ptr_format_text_put_run(
-            str, str_size, lh_addr_of(at),
-            lh_str_scanf_spec_get_zero_pad(spec) ? lh_char_map_digit_0 : lh_char_map_space, pad);
-        lh_str_ptr_format_text_put_text(str, str_size, lh_addr_of(at), content, size);
+        const lh_bool_t has_sign =
+            lh_math_gt(size, 0U) && lh_math_eq(content[0], lh_char_map_minus);
+
+        if (spec->left_justify)
+        {
+            lh_str_ptr_format_text_put_text(str, str_size, lh_addr_of(at), content, size);
+            lh_str_ptr_format_text_put_run(str, str_size, lh_addr_of(at), lh_char_map_space, pad);
+        }
+        else if (spec->zero_pad && has_sign)
+        {
+            lh_str_ptr_format_text_put_text(str, str_size, lh_addr_of(at), content, 1U);
+            lh_str_ptr_format_text_put_run(str, str_size, lh_addr_of(at), lh_char_map_digit_0, pad);
+            lh_str_ptr_format_text_put_text(str, str_size, lh_addr_of(at),
+                                            lh_ptr_add_by_offset_unsafe(const lh_char_t, content, 1U),
+                                            lh_math_sub_one(size));
+        }
+        else
+        {
+            lh_str_ptr_format_text_put_run(str, str_size, lh_addr_of(at),
+                                            spec->zero_pad ? lh_char_map_digit_0 : lh_char_map_space,
+                                            pad);
+            lh_str_ptr_format_text_put_text(str, str_size, lh_addr_of(at), content, size);
+        }
     }
     lh_ptr_deref(pos) = at;
     return lh_bool_true;
@@ -133,24 +144,22 @@ lh_str_ptr_format_text_walk(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt
     lh_usize_t out_pos = 0U;
     lh_usize_t fmt_pos = 0U;
     lh_str_scanf_spec_t spec;
+    lh_char_t buf[LH_STR_FORMAT_TEXT_VALUE_BUF_MAX];
     va_list ap;
 
     va_copy(ap, args);
     while (lh_str_ptr_scanf_next(fmt, lh_addr_of(fmt_pos), lh_addr_of(spec)))
     {
-        const lh_str_scanf_spec_kind_t kind = lh_str_scanf_spec_get_kind(lh_addr_of(spec));
-        lh_char_t buf[LH_STR_FORMAT_TEXT_VALUE_BUF_MAX];
         lh_str_cptr content;
         lh_usize_t size;
         lh_bool_t ok;
 
-        if (lh_math_eq(kind, lh_str_scanf_spec_kind_literal))
+        if (lh_math_eq(spec.kind, lh_str_scanf_spec_kind_literal))
         {
-            ok = lh_str_ptr_format_text_put_text(
-                str, str_size, lh_addr_of(out_pos), lh_str_scanf_spec_get_literal(lh_addr_of(spec)),
-                lh_str_scanf_spec_get_literal_size(lh_addr_of(spec)));
+            ok = lh_str_ptr_format_text_put_text(str, str_size, lh_addr_of(out_pos), spec.literal,
+                                                 spec.literal_size);
         }
-        else if (lh_math_eq(kind, lh_str_scanf_spec_kind_invalid) ||
+        else if (lh_math_eq(spec.kind, lh_str_scanf_spec_kind_invalid) ||
                  !lh_str_ptr_format_text_get_value(lh_addr_of(spec), lh_addr_of(ap), buf,
                                                    lh_addr_of(content), lh_addr_of(size)))
         {

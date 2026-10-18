@@ -14,11 +14,11 @@ lh_str_ptr_parse_text_literal(lh_str_cptr str, lh_usize_t str_size, lh_usize_t *
                               const lh_str_scanf_spec_t *spec)
 {
     const lh_usize_t at = lh_ptr_deref(pos);
-    const lh_usize_t size = lh_str_scanf_spec_get_literal_size(spec);
+    const lh_usize_t size = spec->literal_size;
 
     lh_return_if(lh_math_gt(size, lh_math_sub(str_size, at)), lh_bool_false);
     lh_return_if(lh_ptr_is_set(lh_memory_std_compare(lh_ptr_add_by_offset_unsafe(const lh_char_t, str, at),
-                                                      lh_str_scanf_spec_get_literal(spec), size)),
+                                                      spec->literal, size)),
                  lh_bool_false);
     lh_ptr_deref(pos) = lh_math_add(at, size);
     return lh_bool_true;
@@ -168,10 +168,11 @@ lh_str_ptr_parse_text_field(lh_str_cptr str, lh_usize_t str_size, lh_usize_t *po
                             const lh_str_scanf_spec_t *spec, lh_str_cptr fmt, lh_usize_t fmt_pos,
                             va_list *args)
 {
+    const lh_usize_t remaining = lh_math_sub(str_size, lh_ptr_deref(pos));
     const lh_usize_t limit =
-        lh_str_scanf_spec_get_limit(spec, lh_math_sub(str_size, lh_ptr_deref(pos)));
+        (spec->width > 0U && spec->width < remaining) ? spec->width : remaining;
 
-    switch (lh_str_scanf_spec_get_kind(spec))
+    switch (spec->kind)
     {
     case lh_str_scanf_spec_kind_literal:
         return lh_str_ptr_parse_text_literal(str, str_size, pos, spec);

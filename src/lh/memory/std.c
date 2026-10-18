@@ -66,10 +66,6 @@
         (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_MEMORY_STD_ERMS_COPY_THRESHOLD))
 #endif
 
-/** @brief Block size of the branchless compare / find scan. */
-#define LH_MEMORY_STD_SCAN_BLOCK                                                                   \
-    (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK))
-
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 #    define LH_MEMORY_STD_KIND_AVX2 1U
 #    define LH_MEMORY_STD_KIND_SSE2 2U

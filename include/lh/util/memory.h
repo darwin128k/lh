@@ -4,10 +4,10 @@
  *
  * Remaining length (::lh_memory_size_rest) and the address-space bound
  * (::lh_memory_scan_bound) are macros — they are expressions.
- * Byte predicates (::lh_memory_bytes_eq, ::lh_memory_bytes_any_eq,
- * ::lh_memory_bytes_any_ne) are loops, so they are
- * ::LH_ATTRIBUTE_FORCE_INLINE in this header rather than a `#define`.
- * Operation entry points stay in ::lh/memory.h.
+ * Byte predicates (::lh_memory_bytes_eq, ::lh_memory_bytes_eq_cstr,
+ * ::lh_memory_bytes_find, ::lh_memory_bytes_any_eq, ::lh_memory_bytes_any_ne)
+ * are force-inlined here rather than a `#define`. Operation entry points stay
+ * in ::lh/memory.h.
  */
 
 #ifndef LH_UTIL_MEMORY_H
@@ -87,41 +87,179 @@ lh_memory_bytes_eq(const lh_byte_ptr lhs, const lh_byte_ptr rhs, lh_usize_t n)
 }
 
 /**
- * @brief Branchless: true if any of the first @p n bytes of @p lhs equals @p val.
+ * @brief True if two NUL-terminated byte strings are equal.
  *
- * No early exit, so the compiler can vectorize the block walk in
- * ::lh_memory_find_step. Zero @p n is not a hit.
+ * Byte prologue until @p lhs is word-aligned, then SWAR words when @p rhs is
+ * aligned too (same zero-byte mask as ::lh_memory_bytes_any_eq). Aligned word
+ * reads stay inside a page. Differing alignments fall back to a byte walk.
+ *
+ * @param lhs First NUL-terminated string.
+ * @param rhs Second NUL-terminated string.
+ *
+ * @return ::lh_bool_true if both match through a shared NUL, else ::lh_bool_false.
+ *
+ * @see lh_memory_bytes_eq
+ * @see lh_str_ptr_equals
+ */
+LH_ATTRIBUTE_FORCE_INLINE
+lh_bool_t
+lh_memory_bytes_eq_cstr(const lh_byte_ptr lhs, const lh_byte_ptr rhs)
+{
+    const lh_usize_t w = sizeof(lh_usize_t);
+    lh_byte_cptr a = lhs;
+    lh_byte_cptr b = rhs;
+
+    while ((lh_ptr_to_uaddr(a) & (w - 1U)) != 0U)
+    {
+        const lh_byte_t ac = lh_ptr_deref(a);
+        const lh_byte_t bc = lh_ptr_deref(b);
+
+        if (ac != bc)
+        {
+            return lh_bool_false;
+        }
+        if (ac == 0U)
+        {
+            return lh_bool_true;
+        }
+        ++a;
+        ++b;
+    }
+
+    if ((lh_ptr_to_uaddr(b) & (w - 1U)) == 0U)
+    {
+        const lh_usize_t ones = (~(lh_usize_t)0) / 0xFFU;
+        const lh_usize_t high = ones << 7;
+
+        for (;;)
+        {
+            const lh_usize_t wa = *lh_ptr_rcast(const lh_usize_t, a);
+            const lh_usize_t wb = *lh_ptr_rcast(const lh_usize_t, b);
+
+            if (wa != wb)
+            {
+                break;
+            }
+            if (((wa - ones) & ~wa & high) != 0U)
+            {
+                return lh_bool_true;
+            }
+            a += w;
+            b += w;
+        }
+    }
+
+    for (;;)
+    {
+        const lh_byte_t ac = lh_ptr_deref(a);
+        const lh_byte_t bc = lh_ptr_deref(b);
+
+        if (ac != bc)
+        {
+            return lh_bool_false;
+        }
+        if (ac == 0U)
+        {
+            return lh_bool_true;
+        }
+        ++a;
+        ++b;
+    }
+}
+
+/**
+ * @brief First of the first @p n bytes of @p lhs equal to @p val, or ::lh_null.
+ *
+ * Machine words first (same SWAR family as ::lh_memory_std_find), then a byte
+ * tail. A lit lane is rechecked: the subtract can light a neighbor. Zero @p n
+ * is not a hit.
  *
  * @param lhs Buffer to scan.
  * @param n   Number of bytes.
  * @param val Byte to look for.
  *
- * @return ::lh_bool_true if @p val occurs, ::lh_bool_false otherwise.
+ * @return Pointer to the first match, or ::lh_null.
  *
- * @see lh_memory_bytes_eq
+ * @see lh_memory_bytes_any_eq
+ * @see lh_memory_find_step
+ */
+LH_ATTRIBUTE_FORCE_INLINE
+const lh_byte_t *
+lh_memory_bytes_find(const lh_byte_ptr lhs, lh_usize_t n, lh_byte_t val)
+{
+    const lh_usize_t w = sizeof(lh_usize_t);
+    lh_byte_cptr p = lhs;
+
+    while (n > 0U && (lh_ptr_to_uaddr(p) & (w - 1U)) != 0U)
+    {
+        if (lh_ptr_deref(p) == val)
+        {
+            return p;
+        }
+        ++p;
+        --n;
+    }
+
+    if (n >= w)
+    {
+        const lh_usize_t ones = (~(lh_usize_t)0) / 0xFFU;
+        const lh_usize_t high = ones << 7;
+        const lh_usize_t vw = ones * val;
+
+        do
+        {
+            const lh_usize_t x = (*lh_ptr_rcast(const lh_usize_t, p)) ^ vw;
+            const lh_usize_t mask = (x - ones) & ~x & high;
+
+            if (mask != 0U)
+            {
+                lh_usize_t lane;
+
+                for (lane = 0U; lane < w; ++lane)
+                {
+                    if (p[lane] == val)
+                    {
+                        return p + lane;
+                    }
+                }
+            }
+            p += w;
+            n -= w;
+        } while (n >= w);
+    }
+
+    while (n > 0U)
+    {
+        if (lh_ptr_deref(p) == val)
+        {
+            return p;
+        }
+        ++p;
+        --n;
+    }
+    return lh_null;
+}
+
+/**
+ * @brief True if any of the first @p n bytes of @p lhs equals @p val.
+ *
+ * @see lh_memory_bytes_find
  * @see lh_memory_find_step
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
 lh_memory_bytes_any_eq(const lh_byte_ptr lhs, lh_usize_t n, lh_byte_t val)
 {
-    lh_bool_t hit = lh_bool_false;
-    lh_usize_t i;
-    for (i = 0; i < n; ++i)
-    {
-        hit = lh_cast_static(lh_bool_t, (hit | (lhs[i] == val)));
-    }
-    return hit;
+    return lh_null_ne(lh_memory_bytes_find(lhs, n, val));
 }
 
 /**
- * @brief Branchless: true if any @p rhs_size-byte unit of @p lhs matches @p rhs
- *        on a @p step grid.
+ * @brief True if any @p rhs_size-byte unit of @p lhs matches @p rhs on a @p step grid.
  *
  * Used by the wchar / unit path of ::lh_memory_find_step over a scan block.
  * Callers must pass a span where each candidate @c i, @c i+step, … has
  * @p rhs_size bytes in range (block size a multiple of @p step, @p rhs_size
- * equal to @p step).
+ * equal to @p step). The first needle byte is checked before a full unit compare.
  *
  * @param lhs       Haystack.
  * @param n         Bytes available at @p lhs.
@@ -139,19 +277,22 @@ lh_bool_t
 lh_memory_bytes_any_eq_step(const lh_byte_ptr lhs, lh_usize_t n, const lh_byte_ptr rhs,
                             lh_usize_t rhs_size, lh_usize_t step)
 {
-    lh_bool_t hit = lh_bool_false;
+    const lh_byte_t first = lh_ptr_deref(rhs);
     lh_usize_t i;
+
     for (i = 0; i < n; i += step)
     {
-        hit = lh_cast_static(lh_bool_t, (hit | lh_memory_bytes_eq(lhs + i, rhs, rhs_size)));
+        if (lhs[i] == first && lh_memory_bytes_eq(lhs + i, rhs, rhs_size))
+        {
+            return lh_bool_true;
+        }
     }
-    return hit;
+    return lh_bool_false;
 }
 
 /**
- * @brief Branchless: true if any of the first @p n bytes of @p lhs and @p rhs differ.
+ * @brief True if any of the first @p n bytes of @p lhs and @p rhs differ.
  *
- * No early exit — same shape as the block walk in ::lh_memory_std_compare.
  * Zero @p n is not a difference.
  *
  * @param lhs First buffer.
@@ -166,13 +307,16 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
 lh_memory_bytes_any_ne(const lh_byte_ptr lhs, const lh_byte_ptr rhs, lh_usize_t n)
 {
-    lh_bool_t hit = lh_bool_false;
     lh_usize_t i;
+
     for (i = 0; i < n; ++i)
     {
-        hit = lh_cast_static(lh_bool_t, (hit | (lhs[i] != rhs[i])));
+        if (lhs[i] != rhs[i])
+        {
+            return lh_bool_true;
+        }
     }
-    return hit;
+    return lh_bool_false;
 }
 
 LH_COMPILER_EXTERN_C_END
