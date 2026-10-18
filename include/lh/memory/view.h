@@ -22,6 +22,7 @@
 #define LH_MEMORY_VIEW_H
 
 #include <lh/bool.h>
+#include <lh/byte.h>
 #include <lh/size.h>
 #include <lh/offset.h>
 #include <lh/compiler/extern/c.h>
@@ -71,9 +72,20 @@ const lh_ptr
 lh_memory_view_get_data(const lh_memory_view_t *self);
 
 /**
+ * @brief Return @c size without validating the view range.
+ * @param self View to read.
+ * @return Stored size in bytes.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+lh_usize_t
+lh_memory_view_get_size(const lh_memory_view_t *self);
+
+/**
  * @brief Return the exclusive end @c begin + @c size without validating the view range.
  * @param self View to read.
- * @return Stored exclusive end pointer.
+ * @return Exclusive end pointer.
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
@@ -133,10 +145,7 @@ const lh_ptr
 lh_memory_view_get_end_v(const lh_memory_view_t *self);
 
 /**
- * @brief Return half-open view size in bytes.
- *
- * For valid views this is @c size.
- *
+ * @brief Return @c size after validating @p self.
  * @param self Valid view to read.
  * @return Number of bytes covered by the half-open interval.
  *
@@ -146,7 +155,7 @@ lh_memory_view_get_end_v(const lh_memory_view_t *self);
  *        @p self is not valid, including an uninitialized view.
  */
 lh_usize_t
-lh_memory_view_get_size(const lh_memory_view_t *self);
+lh_memory_view_get_size_v(const lh_memory_view_t *self);
 
 /**
  * @brief True if @p self is uninitialized or has zero size.
@@ -157,8 +166,6 @@ lh_memory_view_get_size(const lh_memory_view_t *self);
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_range
- *        @p self is invalid and not uninitialized.
  */
 lh_bool_t
 lh_memory_view_is_empty(const lh_memory_view_t *self);
@@ -668,6 +675,24 @@ lh_memory_view_equals(const lh_memory_view_t *self, const lh_memory_view_t *othe
 /* -- raw byte operations --------------------------------------------------- */
 
 /**
+ * @brief Find the first occurrence of <tt>[data, data + size)</tt> inside @p self.
+ *
+ * The brick the <tt>[begin, end)</tt> and view-operand forms are built on.
+ *
+ * @param self Valid view.
+ * @param data First byte of the other range.
+ * @param size Number of bytes in the other range.
+ * @return Pointer to the first match, or ::lh_null when no match exists.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self or @p data is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+const lh_ptr
+lh_memory_view_find_by_size(const lh_memory_view_t *self, const lh_ptr data, lh_usize_t size);
+
+/**
  * @brief Find the first occurrence of <tt>[begin, end)</tt> inside @p self.
  *
  * @param self  Valid view used as the haystack.
@@ -678,7 +703,7 @@ lh_memory_view_equals(const lh_memory_view_t *self, const lh_memory_view_t *othe
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
- *        @p self is not valid.
+ *        @p self or <tt>[begin, end)</tt> is not valid.
  */
 const lh_ptr
 lh_memory_view_find_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
@@ -701,6 +726,24 @@ const lh_ptr
 lh_memory_view_find(const lh_memory_view_t *self, const lh_memory_view_t *other);
 
 /**
+ * @brief Find the last occurrence of <tt>[data, data + size)</tt> inside @p self.
+ *
+ * The brick the <tt>[begin, end)</tt> and view-operand forms are built on.
+ *
+ * @param self Valid view.
+ * @param data First byte of the other range.
+ * @param size Number of bytes in the other range.
+ * @return Pointer to the last match, or ::lh_null when no match exists.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self or @p data is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+const lh_ptr
+lh_memory_view_rfind_by_size(const lh_memory_view_t *self, const lh_ptr data, lh_usize_t size);
+
+/**
  * @brief Find the last occurrence of <tt>[begin, end)</tt> inside @p self.
  *
  * @param self  Valid view used as the haystack.
@@ -711,7 +754,7 @@ lh_memory_view_find(const lh_memory_view_t *self, const lh_memory_view_t *other)
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
- *        @p self is not valid.
+ *        @p self or <tt>[begin, end)</tt> is not valid.
  */
 const lh_ptr
 lh_memory_view_rfind_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
@@ -734,6 +777,25 @@ const lh_ptr
 lh_memory_view_rfind(const lh_memory_view_t *self, const lh_memory_view_t *other);
 
 /**
+ * @brief Compare @p self with <tt>[data, data + size)</tt> up to the smaller size.
+ *
+ * The brick the <tt>[begin, end)</tt> and view-operand forms are built on.
+ *
+ * @param self Valid view.
+ * @param data First byte of the other range.
+ * @param size Number of bytes in the other range.
+ * @return Pointer to the first differing byte in @p self, or ::lh_null when
+ *         the compared bytes are equal.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self or @p data is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+const lh_ptr
+lh_memory_view_compare_by_size(const lh_memory_view_t *self, const lh_ptr data, lh_usize_t size);
+
+/**
  * @brief Compare @p self with half-open range <tt>[begin, end)</tt>.
  *
  * Delegates to ::lh_memory_raw_compare and compares up to the smaller size.
@@ -747,7 +809,7 @@ lh_memory_view_rfind(const lh_memory_view_t *self, const lh_memory_view_t *other
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
- *        @p self is not valid.
+ *        @p self or <tt>[begin, end)</tt> is not valid.
  */
 const lh_ptr
 lh_memory_view_compare_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
@@ -771,6 +833,25 @@ const lh_ptr
 lh_memory_view_compare(const lh_memory_view_t *self, const lh_memory_view_t *other);
 
 /**
+ * @brief Compare suffixes of @p self and <tt>[data, data + size)</tt>.
+ *
+ * The brick the <tt>[begin, end)</tt> and view-operand forms are built on.
+ *
+ * @param self Valid view.
+ * @param data First byte of the other range.
+ * @param size Number of bytes in the other range.
+ * @return Pointer to the differing byte in @p self, or ::lh_null when the
+ *         compared suffixes are equal.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self or @p data is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+const lh_ptr
+lh_memory_view_rcompare_by_size(const lh_memory_view_t *self, const lh_ptr data, lh_usize_t size);
+
+/**
  * @brief Compare suffixes of @p self and <tt>[begin, end)</tt>.
  *
  * Delegates to ::lh_memory_raw_rcompare.
@@ -784,7 +865,7 @@ lh_memory_view_compare(const lh_memory_view_t *self, const lh_memory_view_t *oth
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
- *        @p self is not valid.
+ *        @p self or <tt>[begin, end)</tt> is not valid.
  */
 const lh_ptr
 lh_memory_view_rcompare_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
@@ -889,6 +970,34 @@ lh_memory_view_swap_v(lh_memory_view_t *self, lh_memory_view_t *other);
  */
 lh_void
 lh_memory_view_swap_and_clear(lh_memory_view_t *self, lh_memory_view_t *other);
+
+/**
+ * @brief Store @p begin in @p self, keeping @c size.
+ *
+ * @param self  View to update.
+ * @param begin New @c begin.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ *
+ * @warning Unsafe — no range validation. Caller assumes full responsibility.
+ */
+lh_void
+lh_memory_view_set_begin(lh_memory_view_t *self, const lh_ptr begin);
+
+/**
+ * @brief Store @p size in @p self, keeping @c begin.
+ *
+ * @param self View to update.
+ * @param size New @c size in bytes.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ *
+ * @warning Unsafe — no range validation. Caller assumes full responsibility.
+ */
+lh_void
+lh_memory_view_set_size(lh_memory_view_t *self, lh_usize_t size);
 
 /**
  * @brief Store @p begin and @p end in @p self without range validation.

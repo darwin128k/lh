@@ -3,7 +3,7 @@
  * @brief Helpers for ::lh_memory_bounds_allocated_t — heap-owning memory bounds.
  *
  * ::lh_memory_bounds_allocated_t is layout-identical to ::lh_memory_bounds_t, but
- * every function in this header treats the stored @c first endpoint as a block
+ * every function in this header treats the stored @c begin as a block
  * previously obtained from ::lh_runtime_allocator_alloc / ::lh_runtime_allocator_realloc,
  * and manages it accordingly (freeing it on clear/resize/exchange).
  *
@@ -20,28 +20,13 @@
  * @brief Half-open memory bounds owning a heap-allocated block.
  *
  * ::lh_memory_bounds_allocated_t is a typedef of ::lh_memory_bounds_t used to mark
- * that the @c first endpoint (when set) was obtained from the runtime allocator
+ * that @c begin (when set) was obtained from the runtime allocator
  * and must be released through the functions declared in this header rather
  * than through the plain ::lh_memory_bounds_t API.
  */
 typedef lh_memory_bounds_t lh_memory_bounds_allocated_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
-
-/**
- * @brief Return the size in bytes of the owned block, or @c 0 when uninitialized.
- *
- * Unlike ::lh_memory_bounds_get_size, this does not require @p self to be
- * valid — an uninitialized (empty) allocated bounds simply reports size @c 0.
- *
- * @param self Allocated bounds to inspect.
- * @return Size in bytes of the owned block, or @c 0.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- */
-lh_usize_t
-lh_memory_bounds_allocated_get_size(const lh_memory_bounds_allocated_t *self);
 
 /**
  * @brief Free the owned block and reset @p self to empty bounds.

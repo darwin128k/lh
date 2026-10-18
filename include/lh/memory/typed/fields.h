@@ -12,8 +12,8 @@
  * @def lh_memory_typed_fields(bounds_type)
  * @brief Declares `bounds`, `type_size`, and `size` members for typed-memory structs.
  *
- * @param bounds_type Type of the @c bounds field — a struct with two pointer
- *        fields named @c first and @c second (for example ::lh_memory_bounds_t,
+ * @param bounds_type Type of the @c bounds field — a struct declared with
+ *        ::lh_memory_bounds_fields (for example ::lh_memory_bounds_t,
  *        ::lh_memory_view_t).
  *
  * Example usage — creates a typed wrapper around lh_memory_bounds_t:
@@ -36,8 +36,7 @@
  * Example usage — creates a typed wrapper around a custom bounds type:
  * @code{.c}
  * struct my_bounds {
- *     void *begin;
- *     void *end;
+ *     lh_memory_bounds_fields(void);
  * };
  * typedef struct my_bounds my_bounds_t;
  *

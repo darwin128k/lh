@@ -199,15 +199,13 @@ lh_str_view_get_data(const lh_str_view_t *self);
 /**
  * @brief Return the number of characters in @p self.
  *
- * For valid views this is @c second @c - @c first.
+ * The stored size, without validating the view.
  *
- * @param self Valid view to read.
+ * @param self View to read.
  * @return Number of ::lh_char_t elements covered by the half-open interval.
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_range
- *        @p self is not valid.
  */
 lh_usize_t
 lh_str_view_get_size(const lh_str_view_t *self);
