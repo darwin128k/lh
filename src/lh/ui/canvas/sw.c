@@ -475,15 +475,15 @@ sw_soften(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t blur
           lh_u8_t *scratch, lh_usize_t bytes, const lh_ui_rect_t *shape, lh_ui_scalar_t corner)
 {
     lh_ui_rect_t cut;
-    lh_ui_rect_intersection(rect, &self->limit, lh_addr_of(cut));
+    lh_ui_rect_intersection(rect, lh_addr_of(self->limit), lh_addr_of(cut));
     const lh_s32_t radius = blur_radius > 0 ? lh_ui_scalar_floor_s32(blur_radius) : 0;
 
-    lh_return_if(lh_ui_rect_is_empty(&cut), lh_bool_false);
-    lh_return_if(lh_null_eq(scratch) || lh_ui_blur_scratch_size(&cut, radius) > bytes,
+    lh_return_if(lh_ui_rect_is_empty(lh_addr_of(cut)), lh_bool_false);
+    lh_return_if(lh_null_eq(scratch) || lh_ui_blur_scratch_size(lh_addr_of(cut), radius) > bytes,
                  lh_bool_false);
     lh_return_if(radius <= 0, lh_bool_true);
-    lh_ui_blur_rows(&self->pixmap, &cut, radius, scratch);
-    lh_ui_blur_columns(&self->pixmap, &cut, radius, scratch, shape, corner);
+    lh_ui_blur_rows(lh_addr_of(self->pixmap), lh_addr_of(cut), radius, scratch);
+    lh_ui_blur_columns(lh_addr_of(self->pixmap), lh_addr_of(cut), radius, scratch, shape, corner);
     return lh_bool_true;
 }
 

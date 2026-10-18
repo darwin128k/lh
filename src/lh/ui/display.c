@@ -45,7 +45,7 @@ lh_ui_display_init(lh_ui_display_t *self)
     self->format = lh_ui_pixmap_format_argb8888;
     lh_ui_pixmap_init_empty(lh_addr_of(self->pixmap));
     lh_ui_canvas_sw_init(lh_addr_of(self->sw));
-    lh_ui_canvas_init(lh_addr_of(self->canvas), &lh_ui_canvas_backend_sw, lh_addr_of(self->sw));
+    lh_ui_canvas_init(lh_addr_of(self->canvas), lh_addr_of(lh_ui_canvas_backend_sw), lh_addr_of(self->sw));
     for (i = 0; i < (lh_u32_t)LH_UI_PRESENT_SINKS_MAX; ++i)
     {
         lh_ui_present_sink_init(lh_addr_of(self->sinks[i]), lh_null, lh_null, lh_null);

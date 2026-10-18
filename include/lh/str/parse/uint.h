@@ -53,6 +53,29 @@ lh_bool_t
 lh_str_ptr_parse_uint(const lh_str_ptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out);
 
 /**
+ * @brief Next @p delim-separated field, parsed as a padded unsigned integer.
+ *
+ * ::lh_str_ptr_split_next then ::lh_str_ptr_parse_uint_digits. Date and time
+ * parse walk `Y/M/D` and `H:M:S` through this: middle fields pass
+ * ::lh_bool_true for @p want_delim, the last field ::lh_bool_false.
+ *
+ * @param str        Buffer to scan.
+ * @param str_size   Total characters in @p str.
+ * @param delim      Field delimiter (`/` or `:`).
+ * @param pos        In/out cursor. Start at `0` for the first field.
+ * @param max        Inclusive maximum for this field.
+ * @param out        Receives the parsed value on success.
+ * @param want_delim Whether a delimiter must follow this field.
+ *
+ * @return ::lh_bool_true if a field was split, parsed, and ended as
+ *         @p want_delim requires.
+ */
+lh_bool_t
+lh_str_ptr_split_next_uint_digits(const lh_str_ptr str, lh_usize_t str_size, lh_char_t delim,
+                                  lh_usize_t *pos, lh_uint_t max, lh_uint_t *out,
+                                  lh_bool_t want_delim);
+
+/**
  * @brief Parse the unsigned decimal integer at the start of @p str and
  *        report how many characters it took.
  *
@@ -81,29 +104,6 @@ lh_str_ptr_parse_uint(const lh_str_ptr str, lh_usize_t str_size, lh_uint_t max, 
 lh_usize_t
 lh_str_ptr_parse_uint_prefix(const lh_str_ptr str, lh_usize_t str_size, lh_uint_t max,
                              lh_uint_t *out);
-
-/**
- * @brief Next @p delim-separated field, parsed as a padded unsigned integer.
- *
- * ::lh_str_ptr_split_next then ::lh_str_ptr_parse_uint_digits. Date and time
- * parse walk `Y/M/D` and `H:M:S` through this: middle fields pass
- * ::lh_bool_true for @p want_delim, the last field ::lh_bool_false.
- *
- * @param str        Buffer to scan.
- * @param str_size   Total characters in @p str.
- * @param delim      Field delimiter (`/` or `:`).
- * @param pos        In/out cursor. Start at `0` for the first field.
- * @param max        Inclusive maximum for this field.
- * @param out        Receives the parsed value on success.
- * @param want_delim Whether a delimiter must follow this field.
- *
- * @return ::lh_bool_true if a field was split, parsed, and ended as
- *         @p want_delim requires.
- */
-lh_bool_t
-lh_str_ptr_split_next_uint_digits(const lh_str_ptr str, lh_usize_t str_size, lh_char_t delim,
-                                  lh_usize_t *pos, lh_uint_t max, lh_uint_t *out,
-                                  lh_bool_t want_delim);
 
 LH_COMPILER_EXTERN_C_END
 

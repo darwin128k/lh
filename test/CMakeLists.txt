@@ -179,6 +179,7 @@ lh_add_test_core(lh_test_net
 )
 
 lh_add_test_core(lh_test_numeric
+        ${LH_TEST_SRC_PATH}/lh/numeric/big.cpp
         ${LH_TEST_SRC_PATH}/lh/numeric/float.cpp
         ${LH_TEST_SRC_PATH}/lh/numeric/parse/bytes.cpp
         ${LH_TEST_SRC_PATH}/lh/size/ops.cpp

@@ -10,7 +10,7 @@ lh_time_second_set(lh_time_second_t *self, lh_uint_t value)
     lh_uint_t overflow;
 
     lh_assert_runtime_ref(self);
-    overflow = lh_interval_closed_wrap_set(&cur, lh_cast_static(lh_ullong_t, value), 0,
+    overflow = lh_interval_closed_wrap_set(lh_addr_of(cur), lh_cast_static(lh_ullong_t, value), 0,
                                            lh_cast_static(lh_ullong_t, LH_TIME_SECOND_MAX));
     lh_ptr_deref(self) = lh_cast_static(lh_time_second_t, cur);
     return overflow;
@@ -36,7 +36,7 @@ lh_time_second_add(lh_time_second_t *self, lh_uint_t value)
     lh_ullong_t cur = lh_cast_static(lh_ullong_t, lh_time_second_get(self));
     lh_uint_t overflow;
 
-    overflow = lh_interval_closed_wrap_add(&cur, lh_cast_static(lh_ullong_t, value), 0,
+    overflow = lh_interval_closed_wrap_add(lh_addr_of(cur), lh_cast_static(lh_ullong_t, value), 0,
                                            lh_cast_static(lh_ullong_t, LH_TIME_SECOND_MAX));
     lh_ptr_deref(self) = lh_cast_static(lh_time_second_t, cur);
     return overflow;
@@ -48,7 +48,7 @@ lh_time_second_sub(lh_time_second_t *self, lh_uint_t value)
     lh_ullong_t cur = lh_cast_static(lh_ullong_t, lh_time_second_get(self));
     lh_uint_t overflow;
 
-    overflow = lh_interval_closed_wrap_sub(&cur, lh_cast_static(lh_ullong_t, value), 0,
+    overflow = lh_interval_closed_wrap_sub(lh_addr_of(cur), lh_cast_static(lh_ullong_t, value), 0,
                                            lh_cast_static(lh_ullong_t, LH_TIME_SECOND_MAX));
     lh_ptr_deref(self) = lh_cast_static(lh_time_second_t, cur);
     return overflow;

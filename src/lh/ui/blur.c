@@ -140,17 +140,17 @@ blur_row_x(const lh_ui_pixmap_t *pixmap, lh_s32_t y, lh_s32_t left, lh_s32_t wid
         lh_ui_color_t pixel;
         lh_ui_pixmap_get_pixel(pixmap, x, y, lh_addr_of(pixel));
 
-        lh_ui_blur_window_take(&sum, &pixel);
+        lh_ui_blur_window_take(lh_addr_of(sum), lh_addr_of(pixel));
     }
     for (x = left; x < left + width; ++x)
     {
         lh_s32_t next0 = x + 1 - radius;
         lh_s32_t next1 = x + 1 + radius + 1;
 
-        out[0] = lh_ui_blur_window_average(&sum, 0, win1 - win0);
-        out[1] = lh_ui_blur_window_average(&sum, 1, win1 - win0);
-        out[2] = lh_ui_blur_window_average(&sum, 2, win1 - win0);
-        out[3] = lh_ui_blur_window_average(&sum, 3, win1 - win0);
+        out[0] = lh_ui_blur_window_average(lh_addr_of(sum), 0, win1 - win0);
+        out[1] = lh_ui_blur_window_average(lh_addr_of(sum), 1, win1 - win0);
+        out[2] = lh_ui_blur_window_average(lh_addr_of(sum), 2, win1 - win0);
+        out[3] = lh_ui_blur_window_average(lh_addr_of(sum), 3, win1 - win0);
         out += 4;
         if (next0 < read0)
         {
@@ -165,14 +165,14 @@ blur_row_x(const lh_ui_pixmap_t *pixmap, lh_s32_t y, lh_s32_t left, lh_s32_t wid
             lh_ui_color_t gone;
             lh_ui_pixmap_get_pixel(pixmap, win0, y, lh_addr_of(gone));
 
-            lh_ui_blur_window_drop(&sum, &gone);
+            lh_ui_blur_window_drop(lh_addr_of(sum), lh_addr_of(gone));
         }
         for (; win1 < next1; ++win1)
         {
             lh_ui_color_t in;
             lh_ui_pixmap_get_pixel(pixmap, win1, y, lh_addr_of(in));
 
-            lh_ui_blur_window_take(&sum, &in);
+            lh_ui_blur_window_take(lh_addr_of(sum), lh_addr_of(in));
         }
     }
 }
@@ -191,7 +191,7 @@ lh_ui_blur_rows(lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_s32_t radiu
     lh_s32_t y;
 
     lh_return_if(radius < 0 || lh_null_eq(scratch) || width <= 0 || height <= 0);
-    blur_band(pixmap, top, height, radius, &y0, &y1);
+    blur_band(pixmap, top, height, radius, lh_addr_of(y0), lh_addr_of(y1));
     for (y = y0; y < y1; ++y)
     {
         blur_row_x(pixmap, y, left, width, radius, scratch + (y - y0) * width * 4);
@@ -362,7 +362,7 @@ lh_ui_blur_rect(lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_ui_scalar_t
     lh_s32_t px;
 
     lh_return_if(lh_null_eq(pixmap) || lh_null_eq(rect) || radius <= 0 || lh_null_eq(scratch));
-    lh_ui_rect_intersection(rect, &bounds, lh_addr_of(cut));
+    lh_ui_rect_intersection(rect, lh_addr_of(bounds), lh_addr_of(cut));
     px = lh_ui_scalar_floor_s32(radius);
     lh_return_if(lh_ui_blur_scratch_size(lh_addr_of(cut), px) == 0);
     lh_ui_blur_rows(pixmap, lh_addr_of(cut), px, scratch);

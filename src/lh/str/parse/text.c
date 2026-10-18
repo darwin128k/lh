@@ -7,18 +7,6 @@
 #include <lh/util/str/ptr.h>
 #include <lh/math.h>
 
-static lh_usize_t
-lh_str_ptr_parse_text_limit(lh_usize_t remaining, const lh_str_scanf_spec_t *spec)
-{
-    lh_usize_t limit = remaining;
-
-    if (spec->width > 0U && spec->width < limit)
-    {
-        limit = spec->width;
-    }
-    return limit;
-}
-
 lh_usize_t
 lh_str_ptr_parse_text_v(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, va_list args)
 {
@@ -27,7 +15,6 @@ lh_str_ptr_parse_text_v(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, v
     lh_str_scanf_spec_t spec;
 
     lh_assert_runtime_ref(str);
-    lh_assert_runtime_ref(fmt);
 
     while (lh_str_ptr_scanf_next(fmt, lh_addr_of(fmt_pos), lh_addr_of(spec)))
     {
@@ -35,29 +22,29 @@ lh_str_ptr_parse_text_v(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, v
         lh_usize_t limit;
         lh_usize_t consumed;
 
-        if (spec.kind == lh_str_scanf_spec_kind_invalid)
+        if (lh_str_scanf_spec_get_kind(lh_addr_of(spec)) == lh_str_scanf_spec_kind_invalid)
         {
             return 0;
         }
 
         remaining = str_size - in_pos;
-        limit = lh_str_ptr_parse_text_limit(remaining, lh_addr_of(spec));
+        limit = lh_str_scanf_spec_get_limit(lh_addr_of(spec), remaining);
 
-        if (spec.kind == lh_str_scanf_spec_kind_literal)
+        if (lh_str_scanf_spec_get_kind(lh_addr_of(spec)) == lh_str_scanf_spec_kind_literal)
         {
-            if (spec.literal_size > remaining)
+            if (lh_str_scanf_spec_get_literal_size(lh_addr_of(spec)) > remaining)
             {
                 return 0;
             }
-            if (lh_memory_std_compare(str + in_pos, spec.literal, spec.literal_size) != lh_null)
+            if (lh_memory_std_compare(str + in_pos, lh_str_scanf_spec_get_literal(lh_addr_of(spec)), lh_str_scanf_spec_get_literal_size(lh_addr_of(spec))) != lh_null)
             {
                 return 0;
             }
-            in_pos += spec.literal_size;
+            in_pos += lh_str_scanf_spec_get_literal_size(lh_addr_of(spec));
             continue;
         }
 
-        switch (spec.kind)
+        switch (lh_str_scanf_spec_get_kind(lh_addr_of(spec)))
         {
         case lh_str_scanf_spec_kind_percent:
             if (remaining == 0U || str[in_pos] != '%')
@@ -89,16 +76,16 @@ lh_str_ptr_parse_text_v(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, v
 
             lh_assert_runtime_ref(out);
 
-            if (spec.have_precision && spec.precision < field_size)
+            if (lh_str_scanf_spec_get_have_precision(lh_addr_of(spec)) && lh_str_scanf_spec_get_precision(lh_addr_of(spec)) < field_size)
             {
-                field_size = spec.precision;
+                field_size = lh_str_scanf_spec_get_precision(lh_addr_of(spec));
             }
 
             if (lh_str_ptr_scanf_next(fmt, lh_addr_of(peek_pos), lh_addr_of(next)) &&
-                next.kind == lh_str_scanf_spec_kind_literal && next.literal_size > 0U)
+                lh_str_scanf_spec_get_kind(lh_addr_of(next)) == lh_str_scanf_spec_kind_literal && lh_str_scanf_spec_get_literal_size(lh_addr_of(next)) > 0U)
             {
-                const lh_str_ptr found = lh_str_ptr_find(str + in_pos, remaining, next.literal,
-                                                         next.literal_size, lh_bool_false);
+                const lh_str_ptr found = lh_str_ptr_find(str + in_pos, remaining, lh_str_scanf_spec_get_literal(lh_addr_of(next)),
+                                                         lh_str_scanf_spec_get_literal_size(lh_addr_of(next)), lh_bool_false);
                 lh_usize_t offset;
 
                 if (found == lh_null)

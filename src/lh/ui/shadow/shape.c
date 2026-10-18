@@ -49,7 +49,7 @@ lh_ui_shadow_shape_init(lh_ui_shadow_shape_t *self, const lh_ui_shadow_t *shadow
     self->spread = lh_cast_static(lh_s32_t, lh_ui_radius_to_fixed(lh_ui_shadow_get_spread(shadow)));
     self->peak = (self->spread <= 0 || lh_ui_rect_is_empty(rect))
                      ? 0
-                     : lh_cast_static(lh_s32_t, lh_ui_color_get_a(&color));
+                     : lh_cast_static(lh_s32_t, lh_ui_color_get_a(lh_addr_of(color)));
     /* The fade straddles the edge: the peak a spread inside it, nothing a spread
        outside, and a straight line between -- `peak * (spread - d) / (2 * spread)`,
        rounded, which is a start and a step once both are in 16.16. */
@@ -156,7 +156,7 @@ lh_ui_shadow_shape_span(const lh_ui_shadow_shape_t *self, const struct lh_ui_sha
        every other pixel short of it, so no pixel's coverage has to be asked. */
     if (y >= self->box_y0 && y < self->box_y1)
     {
-        lh_ui_radius_full_span(lh_addr_of(self->box), self->corner, y, &full0, &full1);
+        lh_ui_radius_full_span(lh_addr_of(self->box), self->corner, y, lh_addr_of(full0), lh_addr_of(full1));
     }
     for (x = x0; x < x1;)
     {

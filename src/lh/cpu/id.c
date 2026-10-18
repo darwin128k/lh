@@ -27,7 +27,7 @@ lh_cpu_id(lh_u32_t leaf, lh_u32_t subleaf, lh_u32_t regs[LH_CPU_ID_REGISTER_COUN
     unsigned edx;
 
     /* Checks the range's max leaf itself (leaf & 0x80000000). */
-    if (!__get_cpuid_count(leaf, subleaf, &eax, &ebx, &ecx, &edx))
+    if (!__get_cpuid_count(leaf, subleaf, lh_addr_of(eax), lh_addr_of(ebx), lh_addr_of(ecx), lh_addr_of(edx)))
     {
         return lh_bool_false;
     }

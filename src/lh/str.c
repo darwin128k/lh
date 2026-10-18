@@ -123,7 +123,6 @@ lh_str_format_v(lh_str_t *self, lh_str_cptr fmt, va_list args)
     va_list measure;
     lh_usize_t n;
 
-    lh_assert_runtime_ref(self);
     va_copy(measure, args);
     n = lh_str_ptr_format_text_size_v(fmt, measure);
     va_end(measure);

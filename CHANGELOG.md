@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_numeric_big_t` (`lh/numeric/big.h`, fields in `big/fields.h`): a 256-bit unsigned number with `lh_numeric_big_get_word` / `_set_word`, `_set_u32`, `_mul_u32`, `_shl`, `_compare`, `_sub` — the arithmetic `lh_str_ptr_format_float` used to keep to itself
+- `lh_str_ptr_format_put` (`lh/str/format/put.h`), the all-or-nothing write the formatters finish with; `lh_str_format_float_floor_log10_pow2` (`lh/str/format/float.h`); `lh_str_ptr_format_text_walk` (`lh/str/format/text.h`); `lh_str_ptr_format_bytes_hex_dump_line_size` (`lh/str/format/bytes.h`); `lh_str_ptr_fill_char_set` (`lh/util/str/ptr.h`) — public instead of file-local
+- Getters and setters for every field of `lh_str_scanf_spec_t` (`lh_str_scanf_spec_get_kind` / `_set_kind`, … `_literal_size`), `lh_str_scanf_spec_clear`, `_get_limit`, `_set_conversion` (`lh/str/scanf/spec.h`, fields in `spec/fields.h`), and the walker's steps `lh_str_ptr_scanf_next_literal`, `_flags`, `_number` (`lh/str/scanf/next.h`)
 - Public bricks that used to be file-local: `lh_str_write_terminator` / `lh_str_terminate` (`lh/str.h`) and the `lh_wstr_*` pair; `lh_str_list_get_chars`, `_get_chars_as_const`, `_get_spans`, `_get_spans_as_const`, `_get_span` (`lh/str/list.h`) and the `lh_wstr_list_*` ones; `lh_str_list_span_t` (`lh/str/list/span.h`, fields in `span/fields.h`), the one span type both lists share
 - `lh_array_set_size` and `lh_array_get_size_of_bytes` (`lh/array.h`): the raw element-count setter every `lh_array_*` function writes through, and the bytes in use
 - `lh_size_add` (`lh/size/ops.h`): `lh_usize_t` addition that fails with `lh_runtime_error_code_overflow` instead of wrapping; `lh_memory_sized_allocator_get_block_size` and `lh_memory_tree_get_block_size` are built on it

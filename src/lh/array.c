@@ -304,7 +304,6 @@ lh_array_insert(lh_array_t *self, lh_uindex_t index, const lh_ptr value)
 lh_uindex_t
 lh_array_index_of(const lh_array_t *self, const lh_ptr value)
 {
-    lh_assert_runtime_ref(value);
     lh_return_if(lh_array_is_empty(self), LH_ARRAY_INVALID);
 
     const lh_usize_t type_size = lh_array_get_type_size(self);
@@ -318,7 +317,6 @@ lh_array_index_of(const lh_array_t *self, const lh_ptr value)
 lh_void
 lh_array_fill(lh_array_t *self, const lh_ptr value)
 {
-    lh_assert_runtime_ref(value);
     lh_return_if(lh_array_is_empty(self));
 
     lh_memory_set_pattern(lh_array_get_begin(self), lh_array_get_size_of_bytes(self), value,

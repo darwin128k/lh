@@ -1,34 +1,14 @@
 #include <lh/str/format/bytes.h>
-#include <lh/attribute/static.h>
 #include <lh/byte/ptr.h>
 #include <lh/char/xdigit.h>
 #include <lh/math.h>
 #include <lh/size/limits.h>
 
-/* One dump line for @p count bytes: "hhhhhhhh: " + "xx " * count + "\n". */
-LH_ATTRIBUTE_STATIC
 lh_usize_t
 lh_str_ptr_format_bytes_hex_dump_line_size(lh_usize_t count)
 {
     return lh_math_add(lh_math_add(LH_STR_FORMAT_BYTES_HEX_DUMP_OFFSET_DIGITS, 2U),
                        lh_math_add_one(lh_math_mul(count, 3U)));
-}
-
-lh_usize_t
-lh_str_ptr_format_bytes_hex_dump_size(lh_usize_t data_size)
-{
-    const lh_usize_t full_lines = lh_math_div(data_size, LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH);
-    const lh_usize_t last = lh_math_mod(data_size, LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH);
-    const lh_usize_t full_size =
-        lh_str_ptr_format_bytes_hex_dump_line_size(LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH);
-
-    if (lh_math_gt(full_lines, lh_math_div(lh_math_sub(LH_USIZE_T_MAX, full_size), full_size)))
-    {
-        return 0U;
-    }
-    return lh_math_add(lh_math_mul(full_lines, full_size),
-                       lh_math_is_zero(last) ? 0U
-                                             : lh_str_ptr_format_bytes_hex_dump_line_size(last));
 }
 
 lh_usize_t
@@ -64,6 +44,23 @@ lh_str_ptr_format_bytes_hex(const lh_ptr data, lh_usize_t data_size, lh_bool_t u
             lh_char_from_xdigit(lh_cast_static(lh_byte_t, (bytes[i] & 0x0FU)), uppercase);
     }
     return needed;
+}
+
+lh_usize_t
+lh_str_ptr_format_bytes_hex_dump_size(lh_usize_t data_size)
+{
+    const lh_usize_t full_lines = lh_math_div(data_size, LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH);
+    const lh_usize_t last = lh_math_mod(data_size, LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH);
+    const lh_usize_t full_size =
+        lh_str_ptr_format_bytes_hex_dump_line_size(LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH);
+
+    if (lh_math_gt(full_lines, lh_math_div(lh_math_sub(LH_USIZE_T_MAX, full_size), full_size)))
+    {
+        return 0U;
+    }
+    return lh_math_add(lh_math_mul(full_lines, full_size),
+                       lh_math_is_zero(last) ? 0U
+                                             : lh_str_ptr_format_bytes_hex_dump_line_size(last));
 }
 
 lh_usize_t
