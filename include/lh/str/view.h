@@ -2,9 +2,10 @@
  * @file view.h
  * @brief Non-owning read-only string view (::lh_str_view_t) and helpers.
  *
- * ::lh_str_view_t is a direct typedef of ::lh_memory_view_t with @c const
- * @c lh_char_t endpoints. The half-open interval semantics are identical:
- * <tt>[first, second)</tt> where @c second is one past the last character.
+ * ::lh_str_view_t is a direct typedef of ::lh_memory_view_t: a @c begin
+ * pointer and a @c size in bytes, one byte per ::lh_char_t. The half-open
+ * interval semantics are identical: <tt>[begin, begin + size)</tt>, the end
+ * one past the last character.
  *
  * Because the type is layout-compatible with ::lh_memory_view_t, all
  * ::lh_memory_view functions accept an ::lh_str_view_t pointer without a cast.
@@ -42,8 +43,6 @@ typedef lh_memory_view_t lh_str_view_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* -- init ------------------------------------------------------------------ */
-
 /**
  * @brief Initialize @p self as a half-open string view starting at @p data.
  *
@@ -62,22 +61,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 lh_void
 lh_str_init_by_size(lh_str_view_t *self, const lh_str_ptr data, lh_usize_t size);
-
-/**
- * @brief Initialize @p self from a NUL-terminated string @p data.
- *
- * The view length is determined by the NUL terminator.
- *
- * @param self View to initialize.
- * @param data NUL-terminated string to view.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_argument
- *        @p data is ::lh_null.
- */
-lh_void
-lh_str_view_init(lh_str_view_t *self, const lh_str_ptr data);
 
 /**
  * @brief Initialize @p self with the empty view initializer.
@@ -130,33 +113,7 @@ lh_str_view_from_offset(const lh_str_view_t *self, lh_uoffset_t offset, lh_usize
                         lh_str_view_t *out);
 
 /**
- * @brief The characters of @p self from @p offset to its end.
- *
- * Empty when @p offset equals the size of @p self — including an empty
- * @p self with @p offset 0.
- *
- * Example usage:
- * @code{.c}
- * lh_str_view_t v = lh_str_view_lit("key=value");
- * lh_str_view_t value = lh_str_view_tail(&v, 4); // "value"
- * @endcode
- *
- * @param self   Source view.
- * @param offset Where the tail starts, in characters; at most the size of @p self.
- * @return Constructed tail view (shares the source text).
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- * @fails ::lh_runtime_error_code_out_of_range
- *        @p offset is greater than the size of @p self.
- */
-lh_void
-lh_str_view_tail(const lh_str_view_t *self, lh_uoffset_t offset, lh_str_view_t *out);
-
-/* -- getters --------------------------------------------------------------- */
-
-/**
- * @brief Return @c first as const lh_str_ptr after validating @p self.
+ * @brief Return @c begin as const lh_str_ptr after validating @p self.
  *
  * @param self Valid view to read.
  * @return Begin pointer cast to const lh_str_ptr.
@@ -170,9 +127,9 @@ const lh_str_ptr
 lh_str_view_get_begin(const lh_str_view_t *self);
 
 /**
- * @brief Return @c second as const lh_str_ptr after validating @p self.
+ * @brief Return the exclusive end as const lh_str_ptr after validating @p self.
  *
- * @c second is the exclusive end: one past the last character.
+ * The end is one past the last character.
  *
  * @param self Valid view to read.
  * @return End pointer cast to const lh_str_ptr.
@@ -186,9 +143,9 @@ const lh_str_ptr
 lh_str_view_get_end(const lh_str_view_t *self);
 
 /**
- * @brief Return @c first as const lh_str_ptr.
+ * @brief Return @c begin as const lh_str_ptr.
  * @param self View to read.
- * @return @c first cast to const lh_str_ptr.
+ * @return @c begin cast to const lh_str_ptr.
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
@@ -210,7 +167,84 @@ lh_str_view_get_data(const lh_str_view_t *self);
 lh_usize_t
 lh_str_view_get_size(const lh_str_view_t *self);
 
-/* -- state ----------------------------------------------------------------- */
+/**
+ * @brief Return the first character of @p self.
+ *
+ * @param self Valid view to read.
+ * @return Character at @c begin.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+lh_char_t
+lh_str_view_get_first_char(const lh_str_view_t *self);
+
+/**
+ * @brief Return the last character of @p self.
+ *
+ * @param self Valid view to read.
+ * @return The last character, one before the end.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+lh_char_t
+lh_str_view_get_last_char(const lh_str_view_t *self);
+
+/**
+ * @brief Return the character at @p offset from @c begin.
+ *
+ * @param self   Valid view to index.
+ * @param offset Character offset from the begin endpoint.
+ * @return Character at the requested position.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @fails ::lh_runtime_error_code_out_of_range
+ *        @p offset is outside @p self.
+ */
+lh_char_t
+lh_str_view_get_char_from_begin(const lh_str_view_t *self, lh_uoffset_t offset);
+
+/**
+ * @brief Return the character at @p offset from the last character, walking backward.
+ *
+ * @param self   Valid view to index.
+ * @param offset Character offset from the last character.
+ * @return Character at the requested position.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @fails ::lh_runtime_error_code_out_of_range
+ *        @p offset is outside @p self.
+ */
+lh_char_t
+lh_str_view_get_char_from_end(const lh_str_view_t *self, lh_uoffset_t offset);
+
+/**
+ * @brief Return the character at signed @p offset.
+ *
+ * @param self   Valid view to index.
+ * @param offset Signed character offset.
+ * @return Character at the requested position.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @fails ::lh_runtime_error_code_out_of_range
+ *        @p offset is outside @p self.
+ */
+lh_char_t
+lh_str_view_get_char_by_offset(const lh_str_view_t *self, lh_soffset_t offset);
 
 /**
  * @brief Return ::lh_bool_true if @p self covers zero characters.
@@ -223,7 +257,73 @@ lh_str_view_get_size(const lh_str_view_t *self);
 lh_bool_t
 lh_str_view_is_empty(const lh_str_view_t *self);
 
-/* -- find ------------------------------------------------------------------ */
+/**
+ * @brief Reset @p self to the uninitialized empty view.
+ *
+ * @param self View to clear.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+lh_void
+lh_str_view_clear(lh_str_view_t *self);
+
+/**
+ * @brief Copy endpoints from @p other to @p self.
+ *
+ * @param self  View to update.
+ * @param other Source view to copy from.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p other is not valid.
+ */
+lh_void
+lh_str_view_assign(lh_str_view_t *self, const lh_str_view_t *other);
+
+/**
+ * @brief Exchange the contents of @p self and @p other.
+ *
+ * @param self  First view.
+ * @param other Second view.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ */
+lh_void
+lh_str_view_swap(lh_str_view_t *self, lh_str_view_t *other);
+
+/**
+ * @brief Clear @p self, then swap it with @p other.
+ *
+ * Discards the current contents of @p self, then moves the contents of
+ * @p other into @p self, leaving @p other empty.
+ *
+ * @param self  View to clear and receive @p other's contents.
+ * @param other View whose contents are moved into @p self.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ */
+lh_void
+lh_str_view_swap_and_clear(lh_str_view_t *self, lh_str_view_t *other);
+
+/**
+ * @brief Initialize @p self from a NUL-terminated string @p data.
+ *
+ * The view length is determined by the NUL terminator.
+ *
+ * @param self View to initialize.
+ * @param data NUL-terminated string to view.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_argument
+ *        @p data is ::lh_null.
+ */
+lh_void
+lh_str_view_init(lh_str_view_t *self, const lh_str_ptr data);
 
 /**
  * @brief Find the first occurrence of @p ch in @p self.
@@ -302,21 +402,6 @@ lh_usize_t
 lh_str_view_rfind(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case);
 
 /**
- * @brief Return ::lh_bool_true if @p other occurs anywhere in @p self.
- *
- * @param self        Haystack view.
- * @param other       Needle view.
- * @param ignore_case ::lh_bool_false for exact bytes, ::lh_bool_true for case-folded match.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self or @p other is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_range
- *        @p self or @p other is not valid.
- */
-lh_bool_t
-lh_str_view_contains(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case);
-
-/**
  * @brief Find the first character of @p self that belongs to @p chars.
  *
  * @param self  Valid view to search.
@@ -376,8 +461,6 @@ lh_str_view_find_not_of(const lh_str_view_t *self, const lh_str_view_t *chars);
  */
 lh_usize_t
 lh_str_view_rfind_not_of(const lh_str_view_t *self, const lh_str_view_t *chars);
-
-/* -- compare --------------------------------------------------------------- */
 
 /**
  * @brief Compare the overlapping prefix of @p self and @p other (forward).
@@ -467,8 +550,6 @@ lh_str_view_starts_with(const lh_str_view_t *self, const lh_str_view_t *other,
 lh_bool_t
 lh_str_view_ends_with(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case);
 
-/* -- null terminator ------------------------------------------------------- */
-
 /**
  * @brief Find the offset of the first NUL character inside @p self.
  *
@@ -487,6 +568,45 @@ lh_usize_t
 lh_str_view_find_null_terminator(const lh_str_view_t *self);
 
 /**
+ * @brief The characters of @p self from @p offset to its end.
+ *
+ * Empty when @p offset equals the size of @p self — including an empty
+ * @p self with @p offset 0.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_str_view_t v = lh_str_view_lit("key=value");
+ * lh_str_view_t value = lh_str_view_tail(&v, 4); // "value"
+ * @endcode
+ *
+ * @param self   Source view.
+ * @param offset Where the tail starts, in characters; at most the size of @p self.
+ * @return Constructed tail view (shares the source text).
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @fails ::lh_runtime_error_code_out_of_range
+ *        @p offset is greater than the size of @p self.
+ */
+lh_void
+lh_str_view_tail(const lh_str_view_t *self, lh_uoffset_t offset, lh_str_view_t *out);
+
+/**
+ * @brief Return ::lh_bool_true if @p other occurs anywhere in @p self.
+ *
+ * @param self        Haystack view.
+ * @param other       Needle view.
+ * @param ignore_case ::lh_bool_false for exact bytes, ::lh_bool_true for case-folded match.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
+ */
+lh_bool_t
+lh_str_view_contains(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case);
+
+/**
  * @brief True if the view contains at least one NUL character.
  *
  * @param self Valid view to inspect.
@@ -498,141 +618,6 @@ lh_str_view_find_null_terminator(const lh_str_view_t *self);
  */
 lh_bool_t
 lh_str_view_is_null_terminated(const lh_str_view_t *self);
-
-/* -- character access ------------------------------------------------------ */
-
-/**
- * @brief Return the first character of @p self.
- *
- * @param self Valid view to read.
- * @return Character at @c first.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_range
- *        @p self is not valid.
- */
-lh_char_t
-lh_str_view_get_first_char(const lh_str_view_t *self);
-
-/**
- * @brief Return the last character of @p self.
- *
- * @param self Valid view to read.
- * @return Character at @c second - 1.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_range
- *        @p self is not valid.
- */
-lh_char_t
-lh_str_view_get_last_char(const lh_str_view_t *self);
-
-/**
- * @brief Return the character at @p offset from @c first.
- *
- * @param self   Valid view to index.
- * @param offset Character offset from the begin endpoint.
- * @return Character at the requested position.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_range
- *        @p self is not valid.
- * @fails ::lh_runtime_error_code_out_of_range
- *        @p offset is outside @p self.
- */
-lh_char_t
-lh_str_view_get_char_from_begin(const lh_str_view_t *self, lh_uoffset_t offset);
-
-/**
- * @brief Return the character at @p offset from the last character, walking backward.
- *
- * @param self   Valid view to index.
- * @param offset Character offset from the last character.
- * @return Character at the requested position.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_range
- *        @p self is not valid.
- * @fails ::lh_runtime_error_code_out_of_range
- *        @p offset is outside @p self.
- */
-lh_char_t
-lh_str_view_get_char_from_end(const lh_str_view_t *self, lh_uoffset_t offset);
-
-/**
- * @brief Return the character at signed @p offset.
- *
- * @param self   Valid view to index.
- * @param offset Signed character offset.
- * @return Character at the requested position.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_range
- *        @p self is not valid.
- * @fails ::lh_runtime_error_code_out_of_range
- *        @p offset is outside @p self.
- */
-lh_char_t
-lh_str_view_get_char_by_offset(const lh_str_view_t *self, lh_soffset_t offset);
-
-/* -- mutation -------------------------------------------------------------- */
-
-/**
- * @brief Reset @p self to the uninitialized empty view.
- *
- * @param self View to clear.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- */
-lh_void
-lh_str_view_clear(lh_str_view_t *self);
-
-/**
- * @brief Copy endpoints from @p other to @p self.
- *
- * @param self  View to update.
- * @param other Source view to copy from.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self or @p other is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_range
- *        @p other is not valid.
- */
-lh_void
-lh_str_view_assign(lh_str_view_t *self, const lh_str_view_t *other);
-
-/**
- * @brief Exchange the contents of @p self and @p other.
- *
- * @param self  First view.
- * @param other Second view.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self or @p other is ::lh_null.
- */
-lh_void
-lh_str_view_swap(lh_str_view_t *self, lh_str_view_t *other);
-
-/**
- * @brief Clear @p self, then swap it with @p other.
- *
- * Discards the current contents of @p self, then moves the contents of
- * @p other into @p self, leaving @p other empty.
- *
- * @param self  View to clear and receive @p other's contents.
- * @param other View whose contents are moved into @p self.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self or @p other is ::lh_null.
- */
-lh_void
-lh_str_view_swap_and_clear(lh_str_view_t *self, lh_str_view_t *other);
 
 LH_COMPILER_EXTERN_C_END
 

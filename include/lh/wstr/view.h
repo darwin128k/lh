@@ -2,9 +2,10 @@
  * @file view.h
  * @brief Non-owning read-only wide string view (::lh_wstr_view_t) and helpers.
  *
- * ::lh_wstr_view_t is a direct typedef of ::lh_memory_view_t with @c const
- * @c lh_wchar_t endpoints. The half-open interval is <tt>[first, second)</tt>
- * in address space; ::lh_wstr_view_get_size reports ::lh_wchar_t units, not bytes.
+ * ::lh_wstr_view_t is a direct typedef of ::lh_memory_view_t: a @c begin
+ * pointer and a @c size in bytes. The half-open interval is
+ * <tt>[begin, begin + size)</tt> in address space; ::lh_wstr_view_get_size
+ * reports ::lh_wchar_t units, not bytes.
  *
  * Because the type is layout-compatible with ::lh_memory_view_t, all
  * ::lh_memory_view functions accept an ::lh_wstr_view_t pointer without a cast.
@@ -33,8 +34,6 @@ typedef lh_memory_view_t lh_wstr_view_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* -- init ------------------------------------------------------------------ */
-
 /**
  * @brief Initialize @p self as a half-open wide view starting at @p data.
  *
@@ -54,23 +53,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 lh_void
 lh_wstr_view_init_by_size(lh_wstr_view_t *self, const lh_wstr_ptr data, lh_usize_t size);
-
-/**
- * @brief Initialize @p self from a NUL-terminated wide string @p data.
- *
- * The view length is determined by the wide NUL terminator
- * (::lh_wstr_ptr_len).
- *
- * @param self View to initialize.
- * @param data NUL-terminated wide string to view.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_argument
- *        @p data is ::lh_null.
- */
-lh_void
-lh_wstr_view_init(lh_wstr_view_t *self, const lh_wstr_ptr data);
 
 /**
  * @brief Initialize @p self with the empty view initializer.
@@ -123,33 +105,7 @@ lh_wstr_view_from_offset(const lh_wstr_view_t *self, lh_uoffset_t offset, lh_usi
                          lh_wstr_view_t *out);
 
 /**
- * @brief The wide characters of @p self from @p offset to its end.
- *
- * Empty when @p offset equals the size of @p self — including an empty
- * @p self with @p offset 0.
- *
- * Example usage:
- * @code{.c}
- * lh_wstr_view_t v = lh_wstr_view_lit(L"key=value");
- * lh_wstr_view_t value = lh_wstr_view_tail(&v, 4); // "value"
- * @endcode
- *
- * @param self   Source view.
- * @param offset Where the tail starts, in wide characters; at most the size of @p self.
- * @return Constructed tail view (shares the source text).
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- * @fails ::lh_runtime_error_code_out_of_range
- *        @p offset is greater than the size of @p self.
- */
-lh_void
-lh_wstr_view_tail(const lh_wstr_view_t *self, lh_uoffset_t offset, lh_wstr_view_t *out);
-
-/* -- getters --------------------------------------------------------------- */
-
-/**
- * @brief Return @c first as const lh_wstr_ptr after validating @p self.
+ * @brief Return @c begin as const lh_wstr_ptr after validating @p self.
  *
  * @param self Valid view to read.
  * @return Begin pointer cast to const lh_wstr_ptr.
@@ -163,9 +119,9 @@ const lh_wstr_ptr
 lh_wstr_view_get_begin(const lh_wstr_view_t *self);
 
 /**
- * @brief Return @c second as const lh_wstr_ptr after validating @p self.
+ * @brief Return the exclusive end as const lh_wstr_ptr after validating @p self.
  *
- * @c second is the exclusive end: one past the last wide character.
+ * The end is one past the last wide character.
  *
  * @param self Valid view to read.
  * @return End pointer cast to const lh_wstr_ptr.
@@ -179,9 +135,9 @@ const lh_wstr_ptr
 lh_wstr_view_get_end(const lh_wstr_view_t *self);
 
 /**
- * @brief Return @c first as const lh_wstr_ptr.
+ * @brief Return @c begin as const lh_wstr_ptr.
  * @param self View to read.
- * @return @c first cast to const lh_wstr_ptr.
+ * @return @c begin cast to const lh_wstr_ptr.
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
@@ -204,8 +160,6 @@ lh_wstr_view_get_data(const lh_wstr_view_t *self);
 lh_usize_t
 lh_wstr_view_get_size(const lh_wstr_view_t *self);
 
-/* -- state ----------------------------------------------------------------- */
-
 /**
  * @brief Return ::lh_bool_true if @p self covers zero wide characters.
  *
@@ -218,6 +172,47 @@ lh_wstr_view_get_size(const lh_wstr_view_t *self);
  */
 lh_bool_t
 lh_wstr_view_is_empty(const lh_wstr_view_t *self);
+
+/**
+ * @brief Initialize @p self from a NUL-terminated wide string @p data.
+ *
+ * The view length is determined by the wide NUL terminator
+ * (::lh_wstr_ptr_len).
+ *
+ * @param self View to initialize.
+ * @param data NUL-terminated wide string to view.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_argument
+ *        @p data is ::lh_null.
+ */
+lh_void
+lh_wstr_view_init(lh_wstr_view_t *self, const lh_wstr_ptr data);
+
+/**
+ * @brief The wide characters of @p self from @p offset to its end.
+ *
+ * Empty when @p offset equals the size of @p self — including an empty
+ * @p self with @p offset 0.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_wstr_view_t v = lh_wstr_view_lit(L"key=value");
+ * lh_wstr_view_t value = lh_wstr_view_tail(&v, 4); // "value"
+ * @endcode
+ *
+ * @param self   Source view.
+ * @param offset Where the tail starts, in wide characters; at most the size of @p self.
+ * @return Constructed tail view (shares the source text).
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @fails ::lh_runtime_error_code_out_of_range
+ *        @p offset is greater than the size of @p self.
+ */
+lh_void
+lh_wstr_view_tail(const lh_wstr_view_t *self, lh_uoffset_t offset, lh_wstr_view_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

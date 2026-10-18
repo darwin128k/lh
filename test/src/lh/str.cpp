@@ -21,6 +21,20 @@ TEST(str_init, starts_empty_and_terminated)
     lh_str_deinit(&s);
 }
 
+TEST(str_terminate, writes_the_nul_only_when_there_is_a_buffer)
+{
+    lh_str_t s;
+    lh_str_init(&s);
+    lh_str_terminate(&s); // no buffer yet: nothing to write, no crash
+
+    lh_str_append(&s, "abc", 3);
+    lh_array_set_size(&s, 2);
+    lh_str_write_terminator(&s);
+    EXPECT_EQ(std::strcmp(lh_str_get_data(&s), "ab"), 0);
+
+    lh_str_deinit(&s);
+}
+
 TEST(str_push_back, appends_chars_and_stays_terminated)
 {
     lh_str_t s;

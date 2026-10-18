@@ -18,6 +18,7 @@
 
 #include <lh/str.h>
 #include <lh/str/list/fields.h>
+#include <lh/str/list/span.h>
 
 /**
  * @struct lh_str_list
@@ -33,6 +34,31 @@ struct lh_str_list
 typedef struct lh_str_list lh_str_list_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
+
+/** @brief The shared character buffer. */
+lh_str_t *
+lh_str_list_get_chars(lh_str_list_t *self);
+
+/** @brief The shared character buffer, read-only. */
+const lh_str_t *
+lh_str_list_get_chars_as_const(const lh_str_list_t *self);
+
+/** @brief The table of ::lh_str_list_span_t, one per element. */
+lh_array_t *
+lh_str_list_get_spans(lh_str_list_t *self);
+
+/** @brief The table of ::lh_str_list_span_t, read-only. */
+const lh_array_t *
+lh_str_list_get_spans_as_const(const lh_str_list_t *self);
+
+/**
+ * @brief Write where element @p index sits in the buffer to @p out.
+ *
+ * @fails ::lh_runtime_error_code_out_of_range
+ *        @p index is not below ::lh_str_list_get_size.
+ */
+lh_void
+lh_str_list_get_span(const lh_str_list_t *self, lh_uindex_t index, lh_str_list_span_t *out);
 
 /**
  * @brief Empty list. Allocates nothing until the first element.
@@ -65,6 +91,20 @@ lh_usize_t
 lh_str_list_get_size(const lh_str_list_t *self);
 
 /**
+ * @brief Append a copy of @p text as a new element.
+ * @return Index of the new element.
+ */
+lh_uindex_t
+lh_str_list_push_back(lh_str_list_t *self, lh_str_view_t text);
+
+/**
+ * @brief Make @p self a copy of @p other (two buffer copies, no per-element
+ *        work).
+ */
+lh_void
+lh_str_list_assign(lh_str_list_t *self, const lh_str_list_t *other);
+
+/**
  * @brief Element @p index as a view into the shared buffer (empty view for
  *        an empty element).
  *
@@ -85,25 +125,11 @@ const lh_str_ptr
 lh_str_list_get_data(const lh_str_list_t *self, lh_uindex_t index);
 
 /**
- * @brief Append a copy of @p text as a new element.
- * @return Index of the new element.
- */
-lh_uindex_t
-lh_str_list_push_back(lh_str_list_t *self, lh_str_view_t text);
-
-/**
  * @brief Append a copy of @p value as a new element.
  * @return Index of the new element.
  */
 lh_uindex_t
 lh_str_list_push_back_str(lh_str_list_t *self, const lh_str_t *value);
-
-/**
- * @brief Make @p self a copy of @p other (two buffer copies, no per-element
- *        work).
- */
-lh_void
-lh_str_list_assign(lh_str_list_t *self, const lh_str_list_t *other);
 
 /**
  * @brief Append copies of every element of @p other to @p self.
@@ -112,12 +138,6 @@ lh_str_list_assign(lh_str_list_t *self, const lh_str_list_t *other);
  */
 lh_void
 lh_str_list_append(lh_str_list_t *self, const lh_str_list_t *other);
-
-/**
- * @brief Append every element of @p self to @p out, separated by @p sep.
- */
-lh_void
-lh_str_list_join(const lh_str_list_t *self, lh_str_t *out, lh_char_t sep);
 
 /**
  * @brief Split @p text on any of @p delims, appending one element to
@@ -132,6 +152,12 @@ lh_str_list_join(const lh_str_list_t *self, lh_str_t *out, lh_char_t sep);
 lh_void
 lh_str_list_split_of(lh_str_list_t *self, lh_str_view_t text, const lh_str_ptr delims,
                      lh_usize_t delim_count);
+
+/**
+ * @brief Append every element of @p self to @p out, separated by @p sep.
+ */
+lh_void
+lh_str_list_join(const lh_str_list_t *self, lh_str_t *out, lh_char_t sep);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -1,19 +1,8 @@
 #include <lh/str/list.h>
 #include <lh/assert.h>
-#include <lh/attribute/static.h>
 #include <lh/char/map.h>
 #include <lh/math.h>
 
-/** Where one element sits in the shared buffer; its NUL follows at
-   offset + size. */
-struct lh_str_list_span
-{
-    lh_usize_t offset; /**< where the element starts */
-    lh_usize_t size;   /**< its length, without the NUL */
-};
-typedef struct lh_str_list_span lh_str_list_span_t;
-
-LH_ATTRIBUTE_STATIC
 lh_str_t *
 lh_str_list_get_chars(lh_str_list_t *self)
 {
@@ -21,7 +10,6 @@ lh_str_list_get_chars(lh_str_list_t *self)
     return lh_addr_of(self->chars);
 }
 
-LH_ATTRIBUTE_STATIC
 const lh_str_t *
 lh_str_list_get_chars_as_const(const lh_str_list_t *self)
 {
@@ -29,7 +17,6 @@ lh_str_list_get_chars_as_const(const lh_str_list_t *self)
     return lh_addr_of(self->chars);
 }
 
-LH_ATTRIBUTE_STATIC
 lh_array_t *
 lh_str_list_get_spans(lh_str_list_t *self)
 {
@@ -37,7 +24,6 @@ lh_str_list_get_spans(lh_str_list_t *self)
     return lh_addr_of(self->spans);
 }
 
-LH_ATTRIBUTE_STATIC
 const lh_array_t *
 lh_str_list_get_spans_as_const(const lh_str_list_t *self)
 {
@@ -45,7 +31,6 @@ lh_str_list_get_spans_as_const(const lh_str_list_t *self)
     return lh_addr_of(self->spans);
 }
 
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_str_list_get_span(const lh_str_list_t *self, lh_uindex_t index, lh_str_list_span_t *out)
 {
@@ -87,6 +72,32 @@ lh_str_list_get_size(const lh_str_list_t *self)
     return lh_array_get_size(lh_str_list_get_spans_as_const(self));
 }
 
+lh_uindex_t
+lh_str_list_push_back(lh_str_list_t *self, lh_str_view_t text)
+{
+    lh_str_t *chars;
+    lh_str_list_span_t span;
+
+    chars = lh_str_list_get_chars(self);
+    span.offset = lh_str_get_size(chars);
+    span.size =
+        lh_str_view_is_empty(lh_addr_of(text)) ? 0U : lh_str_view_get_size(lh_addr_of(text));
+    lh_str_append_view(chars, text);
+    lh_str_push_back(chars, lh_char_map_nul);
+    return lh_array_push_back(lh_str_list_get_spans(self), lh_addr_of(span));
+}
+
+lh_void
+lh_str_list_assign(lh_str_list_t *self, const lh_str_list_t *other)
+{
+    if (lh_math_eq(self, other))
+    {
+        return;
+    }
+    lh_str_assign(lh_str_list_get_chars(self), lh_str_list_get_chars_as_const(other));
+    lh_array_assign(lh_str_list_get_spans(self), lh_str_list_get_spans_as_const(other));
+}
+
 lh_void
 lh_str_list_get(const lh_str_list_t *self, lh_uindex_t index, lh_str_view_t *out)
 {
@@ -119,37 +130,11 @@ lh_str_list_get_data(const lh_str_list_t *self, lh_uindex_t index)
 }
 
 lh_uindex_t
-lh_str_list_push_back(lh_str_list_t *self, lh_str_view_t text)
-{
-    lh_str_t *chars;
-    lh_str_list_span_t span;
-
-    chars = lh_str_list_get_chars(self);
-    span.offset = lh_str_get_size(chars);
-    span.size =
-        lh_str_view_is_empty(lh_addr_of(text)) ? 0U : lh_str_view_get_size(lh_addr_of(text));
-    lh_str_append_view(chars, text);
-    lh_str_push_back(chars, lh_char_map_nul);
-    return lh_array_push_back(lh_str_list_get_spans(self), lh_addr_of(span));
-}
-
-lh_uindex_t
 lh_str_list_push_back_str(lh_str_list_t *self, const lh_str_t *value)
 {
     lh_str_view_t view;
     lh_str_as_view(value, lh_addr_of(view));
     return lh_str_list_push_back(self, view);
-}
-
-lh_void
-lh_str_list_assign(lh_str_list_t *self, const lh_str_list_t *other)
-{
-    if (lh_math_eq(self, other))
-    {
-        return;
-    }
-    lh_str_assign(lh_str_list_get_chars(self), lh_str_list_get_chars_as_const(other));
-    lh_array_assign(lh_str_list_get_spans(self), lh_str_list_get_spans_as_const(other));
 }
 
 lh_void
@@ -173,6 +158,24 @@ lh_str_list_append(lh_str_list_t *self, const lh_str_list_t *other)
 }
 
 lh_void
+lh_str_list_split_of(lh_str_list_t *self, lh_str_view_t text, lh_str_cptr delims,
+                     lh_usize_t delim_count)
+{
+    lh_usize_t pos = 0U;
+    lh_str_view_t piece;
+    lh_bool_t had_delim;
+
+    while (lh_str_view_split_next_of(lh_addr_of(text), delims, delim_count, lh_addr_of(pos),
+                                     lh_addr_of(piece), lh_addr_of(had_delim)))
+    {
+        if (!lh_str_view_is_empty(lh_addr_of(piece)))
+        {
+            lh_str_list_push_back(self, piece);
+        }
+    }
+}
+
+lh_void
 lh_str_list_join(const lh_str_list_t *self, lh_str_t *out, lh_char_t sep)
 {
     lh_usize_t n;
@@ -188,23 +191,5 @@ lh_str_list_join(const lh_str_list_t *self, lh_str_t *out, lh_char_t sep)
         lh_str_view_t view;
         lh_str_list_get(self, i, lh_addr_of(view));
         lh_str_append_view(out, view);
-    }
-}
-
-lh_void
-lh_str_list_split_of(lh_str_list_t *self, lh_str_view_t text, lh_str_cptr delims,
-                     lh_usize_t delim_count)
-{
-    lh_usize_t pos = 0U;
-    lh_str_view_t piece;
-    lh_bool_t had_delim;
-
-    while (lh_str_view_split_next_of(lh_addr_of(text), delims, delim_count, lh_addr_of(pos),
-                                     lh_addr_of(piece), lh_addr_of(had_delim)))
-    {
-        if (!lh_str_view_is_empty(lh_addr_of(piece)))
-        {
-            lh_str_list_push_back(self, piece);
-        }
     }
 }
