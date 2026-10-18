@@ -13,31 +13,6 @@ lh_memory_allocator_set_realloc_cb(lh_memory_allocator_t *self,
 }
 
 lh_void
-lh_memory_allocator_set_alloc_cb(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb alloc_cb)
-{
-    lh_assert_runtime_ref(self);
-    self->alloc_cb = alloc_cb;
-    lh_memory_allocator_set_realloc_cb(self, lh_null); /* would no longer match the heap */
-}
-
-lh_void
-lh_memory_allocator_set_dealloc_cb(lh_memory_allocator_t *self,
-                                   lh_memory_allocator_dealloc_cb dealloc_cb)
-{
-    lh_assert_runtime_ref(self);
-    self->dealloc_cb = dealloc_cb;
-    lh_memory_allocator_set_realloc_cb(self, lh_null); /* would no longer match the heap */
-}
-
-lh_void
-lh_memory_allocator_set(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb alloc_cb,
-                        lh_memory_allocator_dealloc_cb dealloc_cb)
-{
-    lh_memory_allocator_set_alloc_cb(self, alloc_cb);
-    lh_memory_allocator_set_dealloc_cb(self, dealloc_cb);
-}
-
-lh_void
 lh_memory_allocator_set_context(lh_memory_allocator_t *self, lh_ptr context)
 {
     lh_assert_runtime_ref(self);
@@ -49,21 +24,6 @@ lh_memory_allocator_get_context(const lh_memory_allocator_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->context;
-}
-
-lh_void
-lh_memory_allocator_init(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb alloc_cb,
-                         lh_memory_allocator_dealloc_cb dealloc_cb)
-{
-    lh_memory_allocator_set(self, alloc_cb, dealloc_cb);
-    lh_memory_allocator_set_context(self, lh_null);
-}
-
-lh_void
-lh_memory_allocator_deinit(lh_memory_allocator_t *self)
-{
-    lh_memory_allocator_set(self, lh_null, lh_null);
-    lh_memory_allocator_set_context(self, lh_null);
 }
 
 lh_memory_allocator_alloc_cb
@@ -88,12 +48,20 @@ lh_memory_allocator_get_realloc_cb(const lh_memory_allocator_t *self)
 }
 
 lh_void
-lh_memory_allocator_assign(lh_memory_allocator_t *self, const lh_memory_allocator_t *other)
+lh_memory_allocator_set_alloc_cb(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb alloc_cb)
 {
-    lh_memory_allocator_set(self, lh_memory_allocator_get_alloc_cb(other),
-                            lh_memory_allocator_get_dealloc_cb(other));
-    lh_memory_allocator_set_realloc_cb(self, lh_memory_allocator_get_realloc_cb(other));
-    lh_memory_allocator_set_context(self, lh_memory_allocator_get_context(other));
+    lh_assert_runtime_ref(self);
+    self->alloc_cb = alloc_cb;
+    lh_memory_allocator_set_realloc_cb(self, lh_null); /* would no longer match the heap */
+}
+
+lh_void
+lh_memory_allocator_set_dealloc_cb(lh_memory_allocator_t *self,
+                                   lh_memory_allocator_dealloc_cb dealloc_cb)
+{
+    lh_assert_runtime_ref(self);
+    self->dealloc_cb = dealloc_cb;
+    lh_memory_allocator_set_realloc_cb(self, lh_null); /* would no longer match the heap */
 }
 
 lh_ptr
@@ -121,6 +89,14 @@ lh_memory_allocator_dealloc(lh_memory_allocator_t *self, lh_ptr ptr)
     lh_runtime_check_ifn(dealloc_cb, lh_runtime_error_code_deallocator_function_not_initialized);
 
     dealloc_cb(lh_memory_allocator_get_context(self), ptr);
+}
+
+lh_void
+lh_memory_allocator_set(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb alloc_cb,
+                        lh_memory_allocator_dealloc_cb dealloc_cb)
+{
+    lh_memory_allocator_set_alloc_cb(self, alloc_cb);
+    lh_memory_allocator_set_dealloc_cb(self, dealloc_cb);
 }
 
 lh_ptr
@@ -159,4 +135,28 @@ lh_memory_allocator_realloc(lh_memory_allocator_t *self, lh_ptr old_ptr, lh_usiz
     lh_memory_allocator_dealloc(self, old_ptr);
 
     return new_ptr;
+}
+
+lh_void
+lh_memory_allocator_init(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb alloc_cb,
+                         lh_memory_allocator_dealloc_cb dealloc_cb)
+{
+    lh_memory_allocator_set(self, alloc_cb, dealloc_cb);
+    lh_memory_allocator_set_context(self, lh_null);
+}
+
+lh_void
+lh_memory_allocator_deinit(lh_memory_allocator_t *self)
+{
+    lh_memory_allocator_set(self, lh_null, lh_null);
+    lh_memory_allocator_set_context(self, lh_null);
+}
+
+lh_void
+lh_memory_allocator_assign(lh_memory_allocator_t *self, const lh_memory_allocator_t *other)
+{
+    lh_memory_allocator_set(self, lh_memory_allocator_get_alloc_cb(other),
+                            lh_memory_allocator_get_dealloc_cb(other));
+    lh_memory_allocator_set_realloc_cb(self, lh_memory_allocator_get_realloc_cb(other));
+    lh_memory_allocator_set_context(self, lh_memory_allocator_get_context(other));
 }

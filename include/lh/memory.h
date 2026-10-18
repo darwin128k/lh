@@ -150,107 +150,6 @@ const lh_ptr
 lh_memory_rcompare(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size);
 
 /**
- * @brief Find the leftmost offset in @p lhs where bytes
- *        match @p rhs under ::lh_memory_compare.
- *
- * Equivalent to ::lh_memory_find_step with @p step @c 1: every byte offset is tried.
- * For fixed-size elements (e.g. ::lh_wchar_t) use ::lh_memory_find_step with
- * @p step equal to @p rhs_size so matches are not reported starting mid-element.
- *
- * Each candidate position uses the remaining length
- * of @p lhs versus @p rhs_size (minimum wins),
- * same rule as ::lh_memory_compare.
- *
- * @param lhs       Haystack.
- * @param lhs_size  Size of @p lhs in bytes.
- * @param rhs       Needle.
- * @param rhs_size  Size of @p rhs in bytes.
- *
- * @return Pointer to the start of the first match,
- *         or ::lh_null if none.
- *
- * @see lh_memory_find_step
- */
-const lh_ptr
-lh_memory_find(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size);
-
-/**
- * @brief Like ::lh_memory_find, but only tries start offsets @c base, @c base+step,
- * @c base+2*step, … relative to @p lhs (byte offsets into the haystack).
- *
- * @param lhs       Haystack.
- * @param lhs_size  Size of @p lhs in bytes.
- * @param rhs       Needle.
- * @param rhs_size  Size of @p rhs in bytes.
- * @param step      Byte distance between candidate starts; must be non-zero.
- *                  Use @p rhs_size to search aligned fixed-size records (e.g. wide characters).
- *
- * @return Pointer to the start of the first match, or ::lh_null if none.
- */
-const lh_ptr
-lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size,
-                    lh_usize_t step);
-
-/**
- * @brief Sentinel scan: find the leftmost match of @p rhs starting at @p lhs,
- *        with no caller-supplied haystack length.
- *
- * The scan bound is the remaining address space from @p lhs
- * (<code>::LH_USIZE_T_MAX - ::lh_ptr_to_uaddr(lhs)</code> bytes). Equivalent to
- * ::lh_memory_scan_step with @p step @c 1.
- *
- * @param lhs       Haystack start.
- * @param rhs       Needle.
- * @param rhs_size  Size of @p rhs in bytes.
- *
- * @return Pointer to the start of the first match, or ::lh_null if none
- *         before the address-space bound.
- *
- * @see lh_memory_scan_step
- * @see lh_memory_find
- */
-const lh_ptr
-lh_memory_scan(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t rhs_size);
-
-/**
- * @brief Like ::lh_memory_scan, but only tries start offsets on a @p step grid.
- *
- * Use @p step equal to @p rhs_size for fixed-size units (e.g. ::lh_wchar_t).
- * The bound is remaining bytes from @p lhs, not a fake element count.
- *
- * @param lhs       Haystack start.
- * @param rhs       Needle.
- * @param rhs_size  Size of @p rhs in bytes.
- * @param step      Byte distance between candidate starts; must be non-zero.
- *
- * @return Pointer to the start of the first match, or ::lh_null if none
- *         before the address-space bound.
- *
- * @see lh_memory_find_step
- */
-const lh_ptr
-lh_memory_scan_step(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t rhs_size, lh_usize_t step);
-
-/**
- * @brief Find the rightmost offset in @p lhs
- * where a suffix matches @p rhs under ::lh_memory_rcompare.
- *
- * Equivalent to ::lh_memory_rfind_step with @p step @c 1.
- *
- * @param lhs       Haystack.
- * @param lhs_size  Size of @p lhs in bytes.
- * @param rhs       Needle.
- * @param rhs_size  Size of @p rhs in bytes.
- *
- * @return Pointer to the start of the last matching occurrence,
- *         or ::lh_null if none.
- *
- * @see lh_memory_rfind_step
- */
-const lh_ptr
-lh_memory_rfind(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size);
-
-/**
  * @brief Like ::lh_memory_rfind, but only considers start offsets on the same @p step grid
  *        as ::lh_memory_find_step.
  *
@@ -282,6 +181,107 @@ lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh
  */
 lh_ptr
 lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size);
+
+/**
+ * @brief Like ::lh_memory_find, but only tries start offsets @c base, @c base+step,
+ * @c base+2*step, … relative to @p lhs (byte offsets into the haystack).
+ *
+ * @param lhs       Haystack.
+ * @param lhs_size  Size of @p lhs in bytes.
+ * @param rhs       Needle.
+ * @param rhs_size  Size of @p rhs in bytes.
+ * @param step      Byte distance between candidate starts; must be non-zero.
+ *                  Use @p rhs_size to search aligned fixed-size records (e.g. wide characters).
+ *
+ * @return Pointer to the start of the first match, or ::lh_null if none.
+ */
+const lh_ptr
+lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size,
+                    lh_usize_t step);
+
+/**
+ * @brief Find the rightmost offset in @p lhs
+ * where a suffix matches @p rhs under ::lh_memory_rcompare.
+ *
+ * Equivalent to ::lh_memory_rfind_step with @p step @c 1.
+ *
+ * @param lhs       Haystack.
+ * @param lhs_size  Size of @p lhs in bytes.
+ * @param rhs       Needle.
+ * @param rhs_size  Size of @p rhs in bytes.
+ *
+ * @return Pointer to the start of the last matching occurrence,
+ *         or ::lh_null if none.
+ *
+ * @see lh_memory_rfind_step
+ */
+const lh_ptr
+lh_memory_rfind(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size);
+
+/**
+ * @brief Find the leftmost offset in @p lhs where bytes
+ *        match @p rhs under ::lh_memory_compare.
+ *
+ * Equivalent to ::lh_memory_find_step with @p step @c 1: every byte offset is tried.
+ * For fixed-size elements (e.g. ::lh_wchar_t) use ::lh_memory_find_step with
+ * @p step equal to @p rhs_size so matches are not reported starting mid-element.
+ *
+ * Each candidate position uses the remaining length
+ * of @p lhs versus @p rhs_size (minimum wins),
+ * same rule as ::lh_memory_compare.
+ *
+ * @param lhs       Haystack.
+ * @param lhs_size  Size of @p lhs in bytes.
+ * @param rhs       Needle.
+ * @param rhs_size  Size of @p rhs in bytes.
+ *
+ * @return Pointer to the start of the first match,
+ *         or ::lh_null if none.
+ *
+ * @see lh_memory_find_step
+ */
+const lh_ptr
+lh_memory_find(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size);
+
+/**
+ * @brief Like ::lh_memory_scan, but only tries start offsets on a @p step grid.
+ *
+ * Use @p step equal to @p rhs_size for fixed-size units (e.g. ::lh_wchar_t).
+ * The bound is remaining bytes from @p lhs, not a fake element count.
+ *
+ * @param lhs       Haystack start.
+ * @param rhs       Needle.
+ * @param rhs_size  Size of @p rhs in bytes.
+ * @param step      Byte distance between candidate starts; must be non-zero.
+ *
+ * @return Pointer to the start of the first match, or ::lh_null if none
+ *         before the address-space bound.
+ *
+ * @see lh_memory_find_step
+ */
+const lh_ptr
+lh_memory_scan_step(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t rhs_size, lh_usize_t step);
+
+/**
+ * @brief Sentinel scan: find the leftmost match of @p rhs starting at @p lhs,
+ *        with no caller-supplied haystack length.
+ *
+ * The scan bound is the remaining address space from @p lhs
+ * (<code>::LH_USIZE_T_MAX - ::lh_ptr_to_uaddr(lhs)</code> bytes). Equivalent to
+ * ::lh_memory_scan_step with @p step @c 1.
+ *
+ * @param lhs       Haystack start.
+ * @param rhs       Needle.
+ * @param rhs_size  Size of @p rhs in bytes.
+ *
+ * @return Pointer to the start of the first match, or ::lh_null if none
+ *         before the address-space bound.
+ *
+ * @see lh_memory_scan_step
+ * @see lh_memory_find
+ */
+const lh_ptr
+lh_memory_scan(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t rhs_size);
 
 LH_COMPILER_EXTERN_C_END
 

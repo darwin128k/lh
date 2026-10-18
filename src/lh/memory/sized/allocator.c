@@ -36,6 +36,15 @@ lh_memory_sized_allocator_set_size(lh_ptr ptr, lh_usize_t size)
     lh_ptr_deref_of(lh_usize_t, lh_memory_sized_allocator_get_block(ptr)) = size;
 }
 
+lh_void
+lh_memory_sized_allocator_dealloc(lh_memory_sized_allocator_t *self, lh_ptr ptr)
+{
+    lh_return_ifn(ptr);
+    lh_assert_runtime_ref(self);
+
+    lh_memory_allocator_dealloc(self, lh_memory_sized_allocator_get_block(ptr));
+}
+
 lh_ptr
 lh_memory_sized_allocator_alloc(lh_memory_sized_allocator_t *self, lh_usize_t size)
 {
@@ -45,15 +54,6 @@ lh_memory_sized_allocator_alloc(lh_memory_sized_allocator_t *self, lh_usize_t si
     lh_ptr data = lh_memory_sized_allocator_get_data(block);
     lh_memory_sized_allocator_set_size(data, size);
     return data;
-}
-
-lh_void
-lh_memory_sized_allocator_dealloc(lh_memory_sized_allocator_t *self, lh_ptr ptr)
-{
-    lh_return_ifn(ptr);
-    lh_assert_runtime_ref(self);
-
-    lh_memory_allocator_dealloc(self, lh_memory_sized_allocator_get_block(ptr));
 }
 
 lh_ptr

@@ -87,20 +87,6 @@ lh_void
 lh_memory_tree_free(lh_ptr ptr);
 
 /**
- * @brief Resize @p ptr to @p new_size bytes, keeping its place in the tree.
- *
- * The leading bytes are kept; the block may move, and its parent, children
- * and destructor move with it. A @p new_size of 0 keeps an empty block (use
- * ::lh_memory_tree_free to free).
- *
- * @param ptr      A tree block (not ::lh_null).
- * @param new_size Requested size in bytes.
- * @return The block's (possibly moved) user data.
- */
-lh_ptr
-lh_memory_tree_realloc(lh_ptr ptr, lh_usize_t new_size);
-
-/**
  * @brief Size, in bytes, @p ptr was last allocated or resized to.
  * @param ptr A tree block (not ::lh_null).
  */
@@ -158,6 +144,20 @@ lh_memory_tree_get_next_sibling(const lh_ptr ptr);
  */
 lh_void
 lh_memory_tree_set_destructor(lh_ptr ptr, lh_memory_tree_destructor_cb destructor);
+
+/**
+ * @brief Resize @p ptr to @p new_size bytes, keeping its place in the tree.
+ *
+ * The leading bytes are kept; the block may move, and its parent, children
+ * and destructor move with it. A @p new_size of 0 keeps an empty block (use
+ * ::lh_memory_tree_free to free).
+ *
+ * @param ptr      A tree block (not ::lh_null).
+ * @param new_size Requested size in bytes.
+ * @return The block's (possibly moved) user data.
+ */
+lh_ptr
+lh_memory_tree_realloc(lh_ptr ptr, lh_usize_t new_size);
 
 /**
  * @brief ::lh_memory_allocator_alloc_fn of a tree allocator: a child of the
