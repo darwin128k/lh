@@ -28,7 +28,16 @@ typedef lh_array_t lh_wstr_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* -- init / deinit --------------------------------------------------------- */
+/**
+ * @brief Write the NUL after the last character.
+ *
+ * Only for a string that owns a buffer: every buffer is sized for size + 1,
+ * so the slot exists.
+ *
+ * @param self String with a buffer.
+ */
+lh_void
+lh_wstr_write_terminator(lh_wstr_t *self);
 
 /**
  * @brief Initialize @p self as an empty, NUL-terminated wide string.
@@ -42,8 +51,6 @@ lh_wstr_init(lh_wstr_t *self);
  */
 lh_void
 lh_wstr_deinit(lh_wstr_t *self);
-
-/* -- accessors ------------------------------------------------------------- */
 
 /**
  * @brief Return a pointer to the NUL-terminated character data.
@@ -63,13 +70,14 @@ lh_wstr_get_size(const lh_wstr_t *self);
 lh_bool_t
 lh_wstr_is_empty(const lh_wstr_t *self);
 
-/* -- mutation -------------------------------------------------------------- */
-
 /**
- * @brief Append @p ch to the end of @p self, growing it if needed.
+ * @brief ::lh_wstr_write_terminator, for a string that may never have grown
+ *        (no buffer: nothing to write).
+ *
+ * @param self String to terminate.
  */
 lh_void
-lh_wstr_push_back(lh_wstr_t *self, lh_wchar_t ch);
+lh_wstr_terminate(lh_wstr_t *self);
 
 /**
  * @brief Append @p count characters from @p text to the end of @p self.
@@ -78,38 +86,25 @@ lh_void
 lh_wstr_append(lh_wstr_t *self, const lh_wstr_ptr text, lh_usize_t count);
 
 /**
+ * @brief Return a non-owning view over @p self's current contents.
+ *
+ * The view is only valid as long as @p self is not mutated or deinitialized
+ * afterwards.
+ */
+lh_void
+lh_wstr_as_view(const lh_wstr_t *self, lh_wstr_view_t *out);
+
+/**
+ * @brief Append @p ch to the end of @p self, growing it if needed.
+ */
+lh_void
+lh_wstr_push_back(lh_wstr_t *self, lh_wchar_t ch);
+
+/**
  * @brief Append the characters of @p view to @p self.
  */
 lh_void
 lh_wstr_append_view(lh_wstr_t *self, lh_wstr_view_t view);
-
-/**
- * @brief Append the characters of @p other to @p self.
- */
-lh_void
-lh_wstr_append_str(lh_wstr_t *self, const lh_wstr_t *other);
-
-/**
- * @brief Replace @p self with a copy of @p other.
- *
- * No-op when @p self is @p other.
- */
-lh_void
-lh_wstr_assign(lh_wstr_t *self, const lh_wstr_t *other);
-
-/**
- * @brief Replace @p self with a copy of @p view.
- */
-lh_void
-lh_wstr_assign_view(lh_wstr_t *self, lh_wstr_view_t view);
-
-/**
- * @brief Replace @p self with @p count views glued by @p sep.
- *
- * Empty views are kept (two empties yield a lone separator).
- */
-lh_void
-lh_wstr_join(lh_wstr_t *self, const lh_wstr_view_t *parts, lh_usize_t count, lh_wchar_t sep);
 
 /**
  * @brief Empty @p self without releasing its buffer.
@@ -126,16 +121,33 @@ lh_wstr_clear(lh_wstr_t *self);
 lh_void
 lh_wstr_truncate(lh_wstr_t *self, lh_usize_t n);
 
-/* -- view ------------------------------------------------------------------ */
-
 /**
- * @brief Return a non-owning view over @p self's current contents.
- *
- * The view is only valid as long as @p self is not mutated or deinitialized
- * afterwards.
+ * @brief Replace @p self with a copy of @p view.
  */
 lh_void
-lh_wstr_as_view(const lh_wstr_t *self, lh_wstr_view_t *out);
+lh_wstr_assign_view(lh_wstr_t *self, lh_wstr_view_t view);
+
+/**
+ * @brief Replace @p self with @p count views glued by @p sep.
+ *
+ * Empty views are kept (two empties yield a lone separator).
+ */
+lh_void
+lh_wstr_join(lh_wstr_t *self, const lh_wstr_view_t *parts, lh_usize_t count, lh_wchar_t sep);
+
+/**
+ * @brief Append the characters of @p other to @p self.
+ */
+lh_void
+lh_wstr_append_str(lh_wstr_t *self, const lh_wstr_t *other);
+
+/**
+ * @brief Replace @p self with a copy of @p other.
+ *
+ * No-op when @p self is @p other.
+ */
+lh_void
+lh_wstr_assign(lh_wstr_t *self, const lh_wstr_t *other);
 
 LH_COMPILER_EXTERN_C_END
 

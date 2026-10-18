@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Public bricks that used to be file-local: `lh_str_write_terminator` / `lh_str_terminate` (`lh/str.h`) and the `lh_wstr_*` pair; `lh_str_list_get_chars`, `_get_chars_as_const`, `_get_spans`, `_get_spans_as_const`, `_get_span` (`lh/str/list.h`) and the `lh_wstr_list_*` ones; `lh_str_list_span_t` (`lh/str/list/span.h`, fields in `span/fields.h`), the one span type both lists share
 - `lh_array_set_size` and `lh_array_get_size_of_bytes` (`lh/array.h`): the raw element-count setter every `lh_array_*` function writes through, and the bytes in use
 - `lh_size_add` (`lh/size/ops.h`): `lh_usize_t` addition that fails with `lh_runtime_error_code_overflow` instead of wrapping; `lh_memory_sized_allocator_get_block_size` and `lh_memory_tree_get_block_size` are built on it
 - `lh_memory_tree_get_block_size` and the tree allocator callbacks `lh_memory_tree_allocator_alloc` / `_dealloc` / `_realloc` (`lh/memory/tree.h`), public instead of file-local; the tree header's fields go through library-private getters and setters (`src/lh/memory/tree/header.c`)
@@ -99,6 +100,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- `lh/str/view/fields.h` and `lh/wstr/view/fields.h` (`lh_str_view_fields`, `lh_wstr_view_fields`): nothing used them — both views are typedefs of `lh_memory_view_t`
 - `lh_memory_bounds_make_v`, `_make_by_size`, `_make_empty` and the out-parameter `lh_memory_bounds_return_v` / `_return_by_size` / `_return_empty` they had turned into: the same as `lh_memory_bounds_init` / `_init_by_size` / `_init_empty` with the arguments reordered. `lh_memory_bounds_from_*`, `_take_*`, `_drop_*`, `_trim` and `_between` write straight into `out` through the view functions, so nothing turns a read-only view back into writable bounds
 - `lh_memory_bounds_allocated_get_size` (`lh/memory/bounds/allocated.h`): it only existed to get `0` for uninitialized bounds past the validating `lh_memory_bounds_get_size`, which now returns the stored `0` itself
 - Endpoint flags and direction, which `begin` + `size` has no use for: `lh_memory_view_get_flags`, `_get_direction`, `_is_initialized`, `_is_forward`, `_is_backward` and the same `lh_memory_bounds_*` functions, and the types `lh_memory_view_slice_flags_t` / `lh_memory_view_slice_direction_t` with their `lh_memory_view_slice_flags_*` / `_direction_*` values and headers `lh/memory/view/slice/flags.h` / `direction.h`. Use `_is_uninitialized` and `_is_valid`

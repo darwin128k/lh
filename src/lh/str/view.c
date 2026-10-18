@@ -9,23 +9,6 @@ lh_str_init_by_size(lh_str_view_t *self, lh_str_cptr data, lh_usize_t size)
 }
 
 lh_void
-lh_str_view_init(lh_str_view_t *self, lh_str_cptr data)
-{
-    const lh_usize_t size = lh_str_ptr_len(data);
-
-    /* An empty string is a present value: "" is not a null pointer. by_size
-       rejects size 0, so the endpoints are stored here instead, which is exactly
-       what lh_str_view_lit("") yields — initialized and empty, not uninitialized.
-       A null data pointer dies in ptr_len above: null is an error, not empty. */
-    if (lh_math_is_zero(size))
-    {
-        lh_memory_view_set(self, data, data);
-        return;
-    }
-    lh_str_init_by_size(self, data, size);
-}
-
-lh_void
 lh_str_view_init_empty(lh_str_view_t *self)
 {
     lh_memory_view_init_empty(self);
@@ -68,6 +51,83 @@ lh_str_view_get_size(const lh_str_view_t *self)
     return lh_memory_view_get_size(self);
 }
 
+lh_char_t
+lh_str_view_get_first_char(const lh_str_view_t *self)
+{
+    return lh_cast_static(lh_char_t, lh_memory_view_get_first_value(self));
+}
+
+lh_char_t
+lh_str_view_get_last_char(const lh_str_view_t *self)
+{
+    return lh_cast_static(lh_char_t, lh_memory_view_get_last_value(self));
+}
+
+lh_char_t
+lh_str_view_get_char_from_begin(const lh_str_view_t *self, lh_uoffset_t offset)
+{
+    return lh_cast_static(lh_char_t, lh_memory_view_get_value_from_begin(self, offset));
+}
+
+lh_char_t
+lh_str_view_get_char_from_end(const lh_str_view_t *self, lh_uoffset_t offset)
+{
+    return lh_cast_static(lh_char_t, lh_memory_view_get_value_from_end(self, offset));
+}
+
+lh_char_t
+lh_str_view_get_char_by_offset(const lh_str_view_t *self, lh_soffset_t offset)
+{
+    return lh_cast_static(lh_char_t, lh_memory_view_get_value(self, offset));
+}
+
+lh_bool_t
+lh_str_view_is_empty(const lh_str_view_t *self)
+{
+    return lh_memory_view_is_empty(self);
+}
+
+lh_void
+lh_str_view_clear(lh_str_view_t *self)
+{
+    lh_memory_view_clear(self);
+}
+
+lh_void
+lh_str_view_assign(lh_str_view_t *self, const lh_str_view_t *other)
+{
+    lh_memory_view_assign_v(self, other);
+}
+
+lh_void
+lh_str_view_swap(lh_str_view_t *self, lh_str_view_t *other)
+{
+    lh_memory_view_swap(self, other);
+}
+
+lh_void
+lh_str_view_swap_and_clear(lh_str_view_t *self, lh_str_view_t *other)
+{
+    lh_memory_view_swap_and_clear(self, other);
+}
+
+lh_void
+lh_str_view_init(lh_str_view_t *self, lh_str_cptr data)
+{
+    const lh_usize_t size = lh_str_ptr_len(data);
+
+    /* An empty string is a present value: "" is not a null pointer. by_size
+       rejects size 0, so the endpoints are stored here instead, which is exactly
+       what lh_str_view_lit("") yields — initialized and empty, not uninitialized.
+       A null data pointer dies in ptr_len above: null is an error, not empty. */
+    if (lh_math_is_zero(size))
+    {
+        lh_memory_view_set(self, data, data);
+        return;
+    }
+    lh_str_init_by_size(self, data, size);
+}
+
 lh_usize_t
 lh_str_view_find_char(const lh_str_view_t *self, lh_char_t ch)
 {
@@ -108,12 +168,6 @@ lh_str_view_rfind(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool
         lh_str_ptr_rfind(data, lh_str_view_get_size(self), lh_str_view_get_data(other),
                          lh_str_view_get_size(other), ignore_case);
     return lh_ptr_is_set(ptr) ? lh_ptr_udiff(ptr, data) : LH_STR_VIEW_INVALID;
-}
-
-lh_bool_t
-lh_str_view_contains(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case)
-{
-    return lh_str_view_find(self, other, ignore_case) != LH_STR_VIEW_INVALID;
 }
 
 lh_usize_t
@@ -204,48 +258,6 @@ lh_str_view_find_null_terminator(const lh_str_view_t *self)
     return lh_ptr_is_set(ptr) ? lh_ptr_udiff(ptr, data) : LH_STR_VIEW_INVALID;
 }
 
-lh_bool_t
-lh_str_view_is_null_terminated(const lh_str_view_t *self)
-{
-    return lh_str_view_find_null_terminator(self) != LH_STR_VIEW_INVALID;
-}
-
-lh_char_t
-lh_str_view_get_first_char(const lh_str_view_t *self)
-{
-    return lh_cast_static(lh_char_t, lh_memory_view_get_first_value(self));
-}
-
-lh_char_t
-lh_str_view_get_last_char(const lh_str_view_t *self)
-{
-    return lh_cast_static(lh_char_t, lh_memory_view_get_last_value(self));
-}
-
-lh_char_t
-lh_str_view_get_char_from_begin(const lh_str_view_t *self, lh_uoffset_t offset)
-{
-    return lh_cast_static(lh_char_t, lh_memory_view_get_value_from_begin(self, offset));
-}
-
-lh_char_t
-lh_str_view_get_char_from_end(const lh_str_view_t *self, lh_uoffset_t offset)
-{
-    return lh_cast_static(lh_char_t, lh_memory_view_get_value_from_end(self, offset));
-}
-
-lh_char_t
-lh_str_view_get_char_by_offset(const lh_str_view_t *self, lh_soffset_t offset)
-{
-    return lh_cast_static(lh_char_t, lh_memory_view_get_value(self, offset));
-}
-
-lh_bool_t
-lh_str_view_is_empty(const lh_str_view_t *self)
-{
-    return lh_memory_view_is_empty(self);
-}
-
 lh_void
 lh_str_view_tail(const lh_str_view_t *self, lh_uoffset_t offset, lh_str_view_t *out)
 {
@@ -265,26 +277,14 @@ lh_str_view_tail(const lh_str_view_t *self, lh_uoffset_t offset, lh_str_view_t *
     lh_str_view_from_offset(self, offset, lh_math_sub(size, offset), out);
 }
 
-lh_void
-lh_str_view_clear(lh_str_view_t *self)
+lh_bool_t
+lh_str_view_contains(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case)
 {
-    lh_memory_view_clear(self);
+    return lh_str_view_find(self, other, ignore_case) != LH_STR_VIEW_INVALID;
 }
 
-lh_void
-lh_str_view_assign(lh_str_view_t *self, const lh_str_view_t *other)
+lh_bool_t
+lh_str_view_is_null_terminated(const lh_str_view_t *self)
 {
-    lh_memory_view_assign_v(self, other);
-}
-
-lh_void
-lh_str_view_swap(lh_str_view_t *self, lh_str_view_t *other)
-{
-    lh_memory_view_swap(self, other);
-}
-
-lh_void
-lh_str_view_swap_and_clear(lh_str_view_t *self, lh_str_view_t *other)
-{
-    lh_memory_view_swap_and_clear(self, other);
+    return lh_str_view_find_null_terminator(self) != LH_STR_VIEW_INVALID;
 }

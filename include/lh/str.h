@@ -57,7 +57,16 @@ typedef lh_array_t lh_str_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* -- init / deinit --------------------------------------------------------- */
+/**
+ * @brief Write the NUL after the last character.
+ *
+ * Only for a string that owns a buffer: every buffer is sized for size + 1,
+ * so the slot exists.
+ *
+ * @param self String with a buffer.
+ */
+lh_void
+lh_str_write_terminator(lh_str_t *self);
 
 /**
  * @brief Initialize @p self as an empty, NUL-terminated string. Allocates
@@ -68,23 +77,11 @@ lh_void
 lh_str_init(lh_str_t *self);
 
 /**
- * @brief Initialize @p self as a copy of @p view.
- *
- * Same as ::lh_str_init followed by ::lh_str_append_view.
- * @param self String to initialize.
- * @param view Text to copy; may be empty.
- */
-lh_void
-lh_str_init_by_view(lh_str_t *self, lh_str_view_t view);
-
-/**
  * @brief Free the buffer owned by @p self and reset it to empty.
  * @param self String to deinitialize.
  */
 lh_void
 lh_str_deinit(lh_str_t *self);
-
-/* -- accessors ------------------------------------------------------------- */
 
 /**
  * @brief Return a pointer to the NUL-terminated character data.
@@ -107,80 +104,6 @@ lh_str_get_size(const lh_str_t *self);
 lh_bool_t
 lh_str_is_empty(const lh_str_t *self);
 
-/* -- mutation -------------------------------------------------------------- */
-
-/**
- * @brief Append @p ch to the end of @p self, growing it if needed.
- * @param self String to append to.
- * @param ch   Character to append.
- */
-lh_void
-lh_str_push_back(lh_str_t *self, lh_char_t ch);
-
-/**
- * @brief Append @p count characters from @p text to the end of @p self.
- *
- * @param self  String to append to.
- * @param text  Pointer to @p count contiguous characters (not null unless
- *              @p count is 0); their bytes are copied.
- * @param count Number of characters to append.
- */
-lh_void
-lh_str_append(lh_str_t *self, const lh_str_ptr text, lh_usize_t count);
-
-/**
- * @brief Append the characters of @p view to @p self.
- *
- * Empty @p view is a no-op.
- */
-lh_void
-lh_str_append_view(lh_str_t *self, lh_str_view_t view);
-
-/**
- * @brief Append the characters of @p other to @p self.
- */
-lh_void
-lh_str_append_str(lh_str_t *self, const lh_str_t *other);
-
-/**
- * @brief Replace @p self with a copy of @p other.
- *
- * No-op when @p self is @p other.
- */
-lh_void
-lh_str_assign(lh_str_t *self, const lh_str_t *other);
-
-/**
- * @brief Replace @p self with a copy of @p view.
- */
-lh_void
-lh_str_assign_view(lh_str_t *self, lh_str_view_t view);
-
-/**
- * @brief Replace @p self with @p count views glued by @p sep.
- *
- * Empty views are kept (two empties yield a lone separator).
- */
-lh_void
-lh_str_join(lh_str_t *self, const lh_str_view_t *parts, lh_usize_t count, lh_char_t sep);
-
-/**
- * @brief Format @p fmt into @p self, replacing current contents.
- *
- * Same conversions as ::lh_str_ptr_format_text. On a malformed mask @p self
- * is left unchanged and 0 is returned. An empty mask clears @p self.
- *
- * @return Characters written, or 0 on failure.
- */
-lh_usize_t
-lh_str_format_v(lh_str_t *self, const lh_str_ptr fmt, va_list args);
-
-/**
- * @brief Variadic wrapper for ::lh_str_format_v.
- */
-lh_usize_t
-lh_str_format(lh_str_t *self, const lh_str_ptr fmt, ...);
-
 /**
  * @brief Make room for at least @p count characters (plus the terminator)
  *        without reallocating along the way.
@@ -194,6 +117,64 @@ lh_str_format(lh_str_t *self, const lh_str_ptr fmt, ...);
  */
 lh_void
 lh_str_reserve(lh_str_t *self, lh_usize_t count);
+
+/**
+ * @brief ::lh_str_write_terminator, for a string that may never have grown
+ *        (no buffer: nothing to write).
+ *
+ * @param self String to terminate.
+ */
+lh_void
+lh_str_terminate(lh_str_t *self);
+
+/**
+ * @brief Append @p count characters from @p text to the end of @p self.
+ *
+ * @param self  String to append to.
+ * @param text  Pointer to @p count contiguous characters (not null unless
+ *              @p count is 0); their bytes are copied.
+ * @param count Number of characters to append.
+ */
+lh_void
+lh_str_append(lh_str_t *self, const lh_str_ptr text, lh_usize_t count);
+
+/**
+ * @brief Return a non-owning view over @p self's current contents.
+ *
+ * The view is only valid as long as @p self is not mutated or deinitialized
+ * afterwards (same lifetime rule as any pointer into @p self's buffer).
+ *
+ * @param self String to view.
+ */
+lh_void
+lh_str_as_view(const lh_str_t *self, lh_str_view_t *out);
+
+/**
+ * @brief Append @p ch to the end of @p self, growing it if needed.
+ * @param self String to append to.
+ * @param ch   Character to append.
+ */
+lh_void
+lh_str_push_back(lh_str_t *self, lh_char_t ch);
+
+/**
+ * @brief Append the characters of @p view to @p self.
+ *
+ * Empty @p view is a no-op.
+ */
+lh_void
+lh_str_append_view(lh_str_t *self, lh_str_view_t view);
+
+/**
+ * @brief Format @p fmt into @p self, replacing current contents.
+ *
+ * Same conversions as ::lh_str_ptr_format_text. On a malformed mask @p self
+ * is left unchanged and 0 is returned. An empty mask clears @p self.
+ *
+ * @return Characters written, or 0 on failure.
+ */
+lh_usize_t
+lh_str_format_v(lh_str_t *self, const lh_str_ptr fmt, va_list args);
 
 /**
  * @brief Empty @p self without releasing its buffer.
@@ -211,18 +192,49 @@ lh_str_clear(lh_str_t *self);
 lh_void
 lh_str_truncate(lh_str_t *self, lh_usize_t n);
 
-/* -- view ------------------------------------------------------------------ */
-
 /**
- * @brief Return a non-owning view over @p self's current contents.
+ * @brief Initialize @p self as a copy of @p view.
  *
- * The view is only valid as long as @p self is not mutated or deinitialized
- * afterwards (same lifetime rule as any pointer into @p self's buffer).
- *
- * @param self String to view.
+ * Same as ::lh_str_init followed by ::lh_str_append_view.
+ * @param self String to initialize.
+ * @param view Text to copy; may be empty.
  */
 lh_void
-lh_str_as_view(const lh_str_t *self, lh_str_view_t *out);
+lh_str_init_by_view(lh_str_t *self, lh_str_view_t view);
+
+/**
+ * @brief Variadic wrapper for ::lh_str_format_v.
+ */
+lh_usize_t
+lh_str_format(lh_str_t *self, const lh_str_ptr fmt, ...);
+
+/**
+ * @brief Replace @p self with a copy of @p view.
+ */
+lh_void
+lh_str_assign_view(lh_str_t *self, lh_str_view_t view);
+
+/**
+ * @brief Replace @p self with @p count views glued by @p sep.
+ *
+ * Empty views are kept (two empties yield a lone separator).
+ */
+lh_void
+lh_str_join(lh_str_t *self, const lh_str_view_t *parts, lh_usize_t count, lh_char_t sep);
+
+/**
+ * @brief Append the characters of @p other to @p self.
+ */
+lh_void
+lh_str_append_str(lh_str_t *self, const lh_str_t *other);
+
+/**
+ * @brief Replace @p self with a copy of @p other.
+ *
+ * No-op when @p self is @p other.
+ */
+lh_void
+lh_str_assign(lh_str_t *self, const lh_str_t *other);
 
 LH_COMPILER_EXTERN_C_END
 

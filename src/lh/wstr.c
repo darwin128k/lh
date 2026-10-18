@@ -1,31 +1,14 @@
 #include <lh/wstr.h>
 #include <lh/assert.h>
-#include <lh/attribute/static.h>
 #include <lh/math.h>
 
 /* What an empty string with no buffer of its own reads as. */
 static const lh_wchar_t m_wstr_empty[1] = {0};
 
-/* Write the NUL after the last character. Only for a string that owns a
-   buffer: every buffer is sized for size + 1, so the slot exists. */
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_wstr_write_terminator(lh_wstr_t *self)
 {
     lh_ptr_deref_of(lh_wchar_t, lh_array_get_end(self)) = 0;
-}
-
-/* Same, for callers that may run on a string that never grew (no buffer,
-   nothing to write). */
-LH_ATTRIBUTE_STATIC
-lh_void
-lh_wstr_terminate(lh_wstr_t *self)
-{
-    if (lh_math_is_zero(lh_array_get_capacity(self)))
-    {
-        return;
-    }
-    lh_wstr_write_terminator(self);
 }
 
 lh_void
@@ -63,6 +46,16 @@ lh_wstr_is_empty(const lh_wstr_t *self)
 }
 
 lh_void
+lh_wstr_terminate(lh_wstr_t *self)
+{
+    if (lh_math_is_zero(lh_array_get_capacity(self)))
+    {
+        return;
+    }
+    lh_wstr_write_terminator(self);
+}
+
+lh_void
 lh_wstr_append(lh_wstr_t *self, lh_wstr_cptr text, lh_usize_t count)
 {
     lh_usize_t needed;
@@ -82,6 +75,23 @@ lh_wstr_append(lh_wstr_t *self, lh_wstr_cptr text, lh_usize_t count)
     }
     lh_array_push_back_of(self, text, count);
     lh_wstr_write_terminator(self);
+}
+
+lh_void
+lh_wstr_as_view(const lh_wstr_t *self, lh_wstr_view_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_wstr_view_t view;
+
+    /* A sized view rejects size 0; an empty string is the empty view. */
+    if (lh_wstr_is_empty(self))
+    {
+        lh_wstr_view_init_empty(lh_addr_of(view));
+        lh_ptr_deref(out) = view;
+        return;
+    }
+    lh_wstr_view_init_by_size(lh_addr_of(view), lh_wstr_get_data(self), lh_wstr_get_size(self));
+    lh_ptr_deref(out) = view;
 }
 
 lh_void
@@ -105,6 +115,15 @@ lh_void
 lh_wstr_clear(lh_wstr_t *self)
 {
     lh_array_clear(self);
+    lh_wstr_terminate(self);
+}
+
+lh_void
+lh_wstr_truncate(lh_wstr_t *self, lh_usize_t n)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_if(n > lh_wstr_get_size(self), lh_runtime_error_code_invalid_range);
+    lh_array_resize(self, n);
     lh_wstr_terminate(self);
 }
 
@@ -133,32 +152,6 @@ lh_wstr_join(lh_wstr_t *self, const lh_wstr_view_t *parts, lh_usize_t count, lh_
         }
         lh_wstr_append_view(self, parts[i]);
     }
-}
-
-lh_void
-lh_wstr_truncate(lh_wstr_t *self, lh_usize_t n)
-{
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_if(n > lh_wstr_get_size(self), lh_runtime_error_code_invalid_range);
-    lh_array_resize(self, n);
-    lh_wstr_terminate(self);
-}
-
-lh_void
-lh_wstr_as_view(const lh_wstr_t *self, lh_wstr_view_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_wstr_view_t view;
-
-    /* A sized view rejects size 0; an empty string is the empty view. */
-    if (lh_wstr_is_empty(self))
-    {
-        lh_wstr_view_init_empty(lh_addr_of(view));
-        lh_ptr_deref(out) = view;
-        return;
-    }
-    lh_wstr_view_init_by_size(lh_addr_of(view), lh_wstr_get_data(self), lh_wstr_get_size(self));
-    lh_ptr_deref(out) = view;
 }
 
 lh_void
