@@ -7,6 +7,7 @@
 #include <lh/util/return.h>
 #include <lh/util/swap.h>
 #include <lh/offset/limits.h>
+#include <lh/addr/limits.h>
 #include <lh/assert.h>
 #include <lh/math.h>
 
@@ -31,71 +32,19 @@ lh_memory_view_get_end(const lh_memory_view_t *self)
     return lh_ptr_add_by_offset_unsafe(const lh_void, self->begin, self->size);
 }
 
-lh_memory_view_flags_t
-lh_memory_view_get_flags(const lh_memory_view_t *self)
-{
-    lh_memory_view_flags_t flags = lh_memory_view_flags_uninitialized;
-
-    if (lh_ptr_is_set(lh_memory_view_get_begin(self)))
-    {
-        lh_bit_set(flags, lh_memory_view_flags_initialized_begin);
-    }
-
-    if (lh_ptr_is_set(lh_memory_view_get_end(self)))
-    {
-        lh_bit_set(flags, lh_memory_view_flags_initialized_end);
-    }
-
-    return flags;
-}
-
 lh_bool_t
 lh_memory_view_is_uninitialized(const lh_memory_view_t *self)
 {
-    return lh_memory_view_get_flags(self) == lh_memory_view_flags_uninitialized;
-}
-
-lh_bool_t
-lh_memory_view_is_initialized(const lh_memory_view_t *self)
-{
-    return lh_memory_view_get_flags(self) == lh_memory_view_flags_initialized;
-}
-
-lh_memory_view_direction_t
-lh_memory_view_get_direction(const lh_memory_view_t *self)
-{
-    lh_memory_view_direction_t direction = lh_memory_view_direction_unknown;
-    if (lh_memory_view_is_initialized(self))
-    {
-        if (lh_interval_ropen_is_valid(lh_ptr_to_uaddr(lh_memory_view_get_begin(self)),
-                                       lh_ptr_to_uaddr(lh_memory_view_get_end(self))))
-        {
-            direction = lh_memory_view_direction_forward;
-        }
-        else
-        {
-            direction = lh_memory_view_direction_backward;
-        }
-    }
-    return direction;
-}
-
-lh_bool_t
-lh_memory_view_is_forward(const lh_memory_view_t *self)
-{
-    return lh_memory_view_get_direction(self) == lh_memory_view_direction_forward;
-}
-
-lh_bool_t
-lh_memory_view_is_backward(const lh_memory_view_t *self)
-{
-    return lh_memory_view_get_direction(self) == lh_memory_view_direction_backward;
+    return lh_ptr_is_null(lh_memory_view_get_begin(self));
 }
 
 lh_bool_t
 lh_memory_view_is_valid(const lh_memory_view_t *self)
 {
-    return lh_memory_view_is_forward(self);
+    const lh_ptr begin = lh_memory_view_get_begin(self);
+    /* begin + size within the address space: the end is at or after begin. */
+    return lh_ptr_is_set(begin) &&
+           lh_math_le(self->size, lh_math_sub(LH_UADDR_T_MAX, lh_ptr_to_uaddr(begin)));
 }
 
 const lh_ptr

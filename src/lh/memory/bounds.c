@@ -28,46 +28,11 @@ lh_memory_bounds_get_end(const lh_memory_bounds_t *self)
     return lh_cast_const(lh_ptr, lh_memory_view_get_end(s));
 }
 
-lh_memory_view_flags_t
-lh_memory_bounds_get_flags(const lh_memory_bounds_t *self)
-{
-    const lh_memory_view_t *s = lh_ptr_ccast(lh_memory_view_t, self);
-    return lh_memory_view_get_flags(s);
-}
-
 lh_bool_t
 lh_memory_bounds_is_uninitialized(const lh_memory_bounds_t *self)
 {
     const lh_memory_view_t *s = lh_ptr_ccast(lh_memory_view_t, self);
     return lh_memory_view_is_uninitialized(s);
-}
-
-lh_bool_t
-lh_memory_bounds_is_initialized(const lh_memory_bounds_t *self)
-{
-    const lh_memory_view_t *s = lh_ptr_ccast(lh_memory_view_t, self);
-    return lh_memory_view_is_initialized(s);
-}
-
-lh_memory_view_direction_t
-lh_memory_bounds_get_direction(const lh_memory_bounds_t *self)
-{
-    const lh_memory_view_t *s = lh_ptr_ccast(lh_memory_view_t, self);
-    return lh_memory_view_get_direction(s);
-}
-
-lh_bool_t
-lh_memory_bounds_is_forward(const lh_memory_bounds_t *self)
-{
-    const lh_memory_view_t *s = lh_ptr_ccast(lh_memory_view_t, self);
-    return lh_memory_view_is_forward(s);
-}
-
-lh_bool_t
-lh_memory_bounds_is_backward(const lh_memory_bounds_t *self)
-{
-    const lh_memory_view_t *s = lh_ptr_ccast(lh_memory_view_t, self);
-    return lh_memory_view_is_backward(s);
 }
 
 lh_bool_t

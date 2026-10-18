@@ -36,28 +36,26 @@ TEST(memory_bounds_classification, distinguishes_states)
 
     lh_memory_bounds_t empty = bounds(lh_null, lh_null);
     EXPECT_TRUE(lh_memory_bounds_is_uninitialized(&empty));
-    EXPECT_FALSE(lh_memory_bounds_is_initialized(&empty));
+    EXPECT_FALSE(lh_memory_bounds_is_valid(&empty));
     EXPECT_TRUE(lh_memory_bounds_is_empty(&empty));
 
-    lh_memory_bounds_t unknown = bounds(p(buf), lh_null);
-    EXPECT_EQ(lh_memory_bounds_get_direction(&unknown), lh_memory_view_direction_unknown);
+    // A null end leaves begin + size wrapping: set, but not valid.
+    lh_memory_bounds_t null_end = bounds(p(buf), lh_null);
+    EXPECT_FALSE(lh_memory_bounds_is_uninitialized(&null_end));
+    EXPECT_FALSE(lh_memory_bounds_is_valid(&null_end));
 
     lh_memory_bounds_t forward = bounds(p(buf), p(buf + 4));
-    EXPECT_TRUE(lh_memory_bounds_is_initialized(&forward));
-    EXPECT_EQ(lh_memory_bounds_get_direction(&forward), lh_memory_view_direction_forward);
-    EXPECT_TRUE(lh_memory_bounds_is_forward(&forward));
+    EXPECT_FALSE(lh_memory_bounds_is_uninitialized(&forward));
     EXPECT_TRUE(lh_memory_bounds_is_valid(&forward));
 
-    // [x, x) is the empty range - valid and forward, not a reversed/corrupted state.
+    // [x, x) is the empty range - valid, not a reversed/corrupted state.
     lh_memory_bounds_t equal = bounds(p(buf), p(buf));
-    EXPECT_EQ(lh_memory_bounds_get_direction(&equal), lh_memory_view_direction_forward);
-    EXPECT_TRUE(lh_memory_bounds_is_forward(&equal));
     EXPECT_TRUE(lh_memory_bounds_is_valid(&equal));
     EXPECT_TRUE(lh_memory_bounds_is_empty(&equal));
 
+    // An end before begin leaves begin + size wrapping too.
     lh_memory_bounds_t backward = bounds(p(buf + 4), p(buf));
-    EXPECT_EQ(lh_memory_bounds_get_direction(&backward), lh_memory_view_direction_backward);
-    EXPECT_TRUE(lh_memory_bounds_is_backward(&backward));
+    EXPECT_FALSE(lh_memory_bounds_is_uninitialized(&backward));
     EXPECT_FALSE(lh_memory_bounds_is_valid(&backward));
 }
 
