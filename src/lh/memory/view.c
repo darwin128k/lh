@@ -681,34 +681,24 @@ lh_void
 lh_memory_view_take_first(const lh_ptr begin, const lh_ptr end, lh_usize_t n, lh_memory_view_t *out)
 {
     lh_assert_runtime_ref(out);
-    if (lh_math_is_zero(n))
-    {
-        lh_memory_view_return_empty(out);
-        return;
-    }
-
     lh_memory_view_t base;
     lh_memory_view_init(lh_addr_of(base), begin, end);
     lh_assert_runtime_ifn(lh_math_le(n, lh_memory_view_get_size(lh_addr_of(base))),
                           lh_runtime_error_code_out_of_range);
-    lh_memory_view_return_init_by_size(begin, n, out);
+    /* n == 0 is [begin, begin): empty, but still at begin. */
+    lh_memory_view_return_init_v(begin, lh_ptr_add_by_offset_unsafe(const lh_void, begin, n), out);
 }
 
 lh_void
 lh_memory_view_take_last(const lh_ptr begin, const lh_ptr end, lh_usize_t n, lh_memory_view_t *out)
 {
     lh_assert_runtime_ref(out);
-    if (lh_math_is_zero(n))
-    {
-        lh_memory_view_return_empty(out);
-        return;
-    }
-
     lh_memory_view_t base;
     lh_memory_view_init(lh_addr_of(base), begin, end);
     lh_assert_runtime_ifn(lh_math_le(n, lh_memory_view_get_size(lh_addr_of(base))),
                           lh_runtime_error_code_out_of_range);
-    lh_memory_view_return_init_by_size(lh_ptr_sub_by_offset_unsafe(const lh_void, end, n), n, out);
+    /* n == 0 is [end, end): empty, but still at end. */
+    lh_memory_view_return_init_v(lh_ptr_sub_by_offset_unsafe(const lh_void, end, n), end, out);
 }
 
 lh_void
@@ -741,16 +731,14 @@ lh_memory_view_from_offset(const lh_memory_view_t *self, lh_uoffset_t offset, lh
     lh_assert_runtime_ref(out);
     const lh_usize_t total = lh_memory_view_get_size(self);
     lh_assert_runtime_ifn(lh_math_le(offset, total), lh_runtime_error_code_out_of_range);
-
-    if (lh_math_is_zero(size))
-    {
-        lh_memory_view_return_empty(out);
-        return;
-    }
-
     lh_assert_runtime_ifn(lh_math_le(size, lh_math_sub(total, offset)),
                           lh_runtime_error_code_out_of_range);
-    lh_memory_view_return_init_by_size(lh_memory_view_get_ptr_from_begin(self, offset), size, out);
+
+    /* offset may be total when size is 0: [end, end), past every byte but still inside. */
+    const lh_ptr begin =
+        lh_ptr_add_by_offset_unsafe(const lh_void, lh_memory_view_get_begin(self), offset);
+    lh_memory_view_return_init_v(begin, lh_ptr_add_by_offset_unsafe(const lh_void, begin, size),
+                                 out);
 }
 
 lh_void

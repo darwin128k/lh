@@ -1232,13 +1232,12 @@ lh_memory_bounds_swap_and_clear(lh_memory_bounds_t *self, lh_memory_bounds_t *ot
  * @brief Build bounds containing the first @p n bytes of a valid half-open range.
  *
  * The source range is <tt>[begin, end)</tt>. If @p n is zero, the returned
- * bounds is empty.
+ * bounds is the empty <tt>[begin, begin)</tt>, still at @p begin.
  *
  * @param begin Source range begin pointer.
  * @param end   Source range exclusive end pointer.
  * @param n     Number of bytes to keep from the beginning.
- * @return Bounds <tt>[begin, begin + n)</tt>, or empty bounds when @p n is
- *         zero.
+ * @return Bounds <tt>[begin, begin + n)</tt>.
  *
  * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not valid bounds.
@@ -1252,12 +1251,12 @@ lh_memory_bounds_take_first(lh_ptr begin, lh_ptr end, lh_usize_t n, lh_memory_bo
  * @brief Build bounds containing the last @p n bytes of a valid half-open range.
  *
  * The source range is <tt>[begin, end)</tt>. If @p n is zero, the returned
- * bounds is empty.
+ * bounds is the empty <tt>[end, end)</tt>, still at @p end.
  *
  * @param begin Source range begin pointer.
  * @param end   Source range exclusive end pointer.
  * @param n     Number of bytes to keep from the end.
- * @return Bounds <tt>[end - n, end)</tt>, or empty bounds when @p n is zero.
+ * @return Bounds <tt>[end - n, end)</tt>.
  *
  * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not valid bounds.
@@ -1270,7 +1269,7 @@ lh_memory_bounds_take_last(lh_ptr begin, lh_ptr end, lh_usize_t n, lh_memory_bou
 /**
  * @brief Build bounds containing the first @p size bytes of @p self.
  *
- * If @p size is zero, the returned bounds is empty.
+ * If @p size is zero, the returned bounds is empty, at the source begin.
  *
  * @param self Source bounds.
  * @param size Number of bytes to keep from the beginning.
@@ -1290,7 +1289,7 @@ lh_memory_bounds_from_begin(const lh_memory_bounds_t *self, lh_usize_t size,
 /**
  * @brief Build bounds containing the last @p size bytes of @p self.
  *
- * If @p size is zero, the returned bounds is empty.
+ * If @p size is zero, the returned bounds is empty, at the source end.
  *
  * @param self Source bounds.
  * @param size Number of bytes to keep from the end.
@@ -1328,12 +1327,13 @@ lh_memory_bounds_between(const lh_memory_bounds_t *self, lh_ptr begin, lh_ptr en
 /**
  * @brief Build sub-bounds starting at @p offset with @p size bytes.
  *
- * If @p size is zero, the returned bounds is empty.
+ * If @p size is zero, the returned bounds is empty, at @p offset, which may then
+ * equal the source size.
  *
  * @param self   Source bounds.
  * @param offset Offset from the source beginning.
  * @param size   Number of bytes in the returned bounds.
- * @return Constructed sub-bounds, or empty bounds when @p size is zero.
+ * @return Bounds <tt>[begin + offset, begin + offset + size)</tt>.
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
@@ -1349,7 +1349,7 @@ lh_memory_bounds_from_offset(const lh_memory_bounds_t *self, lh_uoffset_t offset
 /**
  * @brief Build bounds with @p n bytes removed from the beginning.
  *
- * If @p n equals the source size, the returned bounds is empty.
+ * If @p n equals the source size, the returned bounds is empty, at the source end.
  *
  * @param self Source bounds.
  * @param n    Number of bytes to remove from the beginning.
@@ -1368,7 +1368,8 @@ lh_memory_bounds_drop_first(const lh_memory_bounds_t *self, lh_usize_t n, lh_mem
 /**
  * @brief Build bounds with @p n bytes removed from the end.
  *
- * If @p n equals the source size, the returned bounds is empty.
+ * If @p n equals the source size, the returned bounds is empty, at the source
+ * begin.
  *
  * @param self Source bounds.
  * @param n    Number of bytes to remove from the end.
@@ -1387,7 +1388,8 @@ lh_memory_bounds_drop_last(const lh_memory_bounds_t *self, lh_usize_t n, lh_memo
 /**
  * @brief Build bounds with bytes removed from both sides.
  *
- * If @p left + @p right equals the source size, the returned bounds is empty.
+ * If @p left + @p right equals the source size, the returned bounds is empty,
+ * @p left bytes past the source begin.
  *
  * @param self  Source bounds.
  * @param left  Number of bytes to remove from the beginning.

@@ -254,9 +254,9 @@ TEST(memory_view_empty_range, reports_zero_size_and_no_containment)
     EXPECT_EQ(lh_memory_view_find_range(&other, p(buf + 1), p(buf + 1)), lh_null);
 
     lh_memory_view_t taken = lh_test::out(lh_memory_view_take_first, p(buf), p(buf), 0);
-    EXPECT_TRUE(lh_memory_view_is_uninitialized(&taken));
+    EXPECT_TRUE(lh_memory_view_equals_of(&taken, p(buf), p(buf)));
     lh_memory_view_t dropped = lh_test::out(lh_memory_view_drop_first, &empty, 0);
-    EXPECT_TRUE(lh_memory_view_is_uninitialized(&dropped));
+    EXPECT_TRUE(lh_memory_view_equals_of(&dropped, p(buf), p(buf)));
 }
 
 TEST(memory_view_one_byte, shifts_end_offsets_by_one)
@@ -319,14 +319,33 @@ TEST(memory_view_sub_range, takes_and_drops_bytes)
     EXPECT_TRUE(lh_memory_view_equals_of(&trimmed, p(buf + 1), p(buf + 4)));
 }
 
-TEST(memory_view_drop_first, returns_uninitialized_when_all_removed)
+TEST(memory_view_empty_result, stays_where_it_was_taken)
 {
     const unsigned char buf[3] = {10, 20, 30};
     lh_memory_view_t v = view(p(buf), p(buf + 3));
 
-    lh_memory_view_t dropped = lh_test::out(lh_memory_view_drop_first, &v, 3);
+    lh_memory_view_t first = lh_test::out(lh_memory_view_take_first, p(buf), p(buf + 3), 0);
+    EXPECT_TRUE(lh_memory_view_equals_of(&first, p(buf), p(buf)));
 
-    EXPECT_TRUE(lh_memory_view_equals_of(&dropped, lh_null, lh_null));
+    lh_memory_view_t last = lh_test::out(lh_memory_view_take_last, p(buf), p(buf + 3), 0);
+    EXPECT_TRUE(lh_memory_view_equals_of(&last, p(buf + 3), p(buf + 3)));
+
+    lh_memory_view_t middle = lh_test::out(lh_memory_view_from_offset, &v, 1, 0);
+    EXPECT_TRUE(lh_memory_view_equals_of(&middle, p(buf + 1), p(buf + 1)));
+
+    lh_memory_view_t at_end = lh_test::out(lh_memory_view_from_offset, &v, 3, 0);
+    EXPECT_TRUE(lh_memory_view_equals_of(&at_end, p(buf + 3), p(buf + 3)));
+
+    lh_memory_view_t dropped_first = lh_test::out(lh_memory_view_drop_first, &v, 3);
+    EXPECT_TRUE(lh_memory_view_equals_of(&dropped_first, p(buf + 3), p(buf + 3)));
+
+    lh_memory_view_t dropped_last = lh_test::out(lh_memory_view_drop_last, &v, 3);
+    EXPECT_TRUE(lh_memory_view_equals_of(&dropped_last, p(buf), p(buf)));
+
+    lh_memory_view_t trimmed = lh_test::out(lh_memory_view_trim, &v, 2, 1);
+    EXPECT_TRUE(lh_memory_view_equals_of(&trimmed, p(buf + 2), p(buf + 2)));
+    EXPECT_TRUE(lh_memory_view_is_empty(&trimmed));
+    EXPECT_FALSE(lh_memory_view_is_uninitialized(&trimmed));
 }
 
 TEST(memory_view_uninitialized, safe_queries)
