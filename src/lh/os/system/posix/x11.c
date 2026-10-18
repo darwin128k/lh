@@ -6,6 +6,7 @@
 #include <lh/os/system/posix/x11.h>
 
 #include <lh/null.h>
+#include <lh/util/addr.h>
 
 #include <dlfcn.h>
 
@@ -38,7 +39,7 @@ static int lh_os_system_posix_xrender_state;
         {                                                                                          \
             return lh_null;                                                                        \
         }                                                                                          \
-        *(void **)(&(table).name) = symbol;                                                        \
+        *(void **)(lh_addr_of((table).name)) = symbol;                                             \
     } while (0)
 #define LH_OS_SYSTEM_POSIX_X11_LOAD(name)                                                          \
     LH_OS_SYSTEM_POSIX_X11_LOAD_INTO(lh_os_system_posix_x11, name)
@@ -108,7 +109,7 @@ lh_os_system_posix_x11_open(void)
     LH_OS_SYSTEM_POSIX_X11_LOAD(XIconifyWindow);
     LH_OS_SYSTEM_POSIX_X11_LOAD(XSetErrorHandler);
     /* The library stays open: every pointer above points into it. */
-    return &lh_os_system_posix_x11;
+    return lh_addr_of(lh_os_system_posix_x11);
 }
 
 const lh_os_system_posix_x11_t *
@@ -118,7 +119,7 @@ lh_os_system_posix_x11_load(void)
     {
         lh_os_system_posix_x11_state = lh_null_ne(lh_os_system_posix_x11_open()) ? 1 : -1;
     }
-    return lh_os_system_posix_x11_state > 0 ? &lh_os_system_posix_x11 : lh_null;
+    return lh_os_system_posix_x11_state > 0 ? lh_addr_of(lh_os_system_posix_x11) : lh_null;
 }
 
 /** Load libXext (MIT-SHM, SHAPE); ::lh_null when it is not there. */
@@ -142,7 +143,7 @@ lh_os_system_posix_xext_open(void)
     LH_OS_SYSTEM_POSIX_XEXT_LOAD(XShmAttach);
     LH_OS_SYSTEM_POSIX_XEXT_LOAD(XShmDetach);
     LH_OS_SYSTEM_POSIX_XEXT_LOAD(XShmPutImage);
-    return &lh_os_system_posix_xext;
+    return lh_addr_of(lh_os_system_posix_xext);
 }
 
 const lh_os_system_posix_xext_t *
@@ -152,7 +153,7 @@ lh_os_system_posix_xext_load(void)
     {
         lh_os_system_posix_xext_state = lh_null_ne(lh_os_system_posix_xext_open()) ? 1 : -1;
     }
-    return lh_os_system_posix_xext_state > 0 ? &lh_os_system_posix_xext : lh_null;
+    return lh_os_system_posix_xext_state > 0 ? lh_addr_of(lh_os_system_posix_xext) : lh_null;
 }
 
 /** Load libXrender; ::lh_null when it is not there. */
@@ -176,7 +177,7 @@ lh_os_system_posix_xrender_open(void)
     LH_OS_SYSTEM_POSIX_XRENDER_LOAD(XRenderFreePicture);
     LH_OS_SYSTEM_POSIX_XRENDER_LOAD(XRenderComposite);
     LH_OS_SYSTEM_POSIX_XRENDER_LOAD(XRenderFillRectangles);
-    return &lh_os_system_posix_xrender;
+    return lh_addr_of(lh_os_system_posix_xrender);
 }
 
 const lh_os_system_posix_xrender_t *
@@ -186,5 +187,5 @@ lh_os_system_posix_xrender_load(void)
     {
         lh_os_system_posix_xrender_state = lh_null_ne(lh_os_system_posix_xrender_open()) ? 1 : -1;
     }
-    return lh_os_system_posix_xrender_state > 0 ? &lh_os_system_posix_xrender : lh_null;
+    return lh_os_system_posix_xrender_state > 0 ? lh_addr_of(lh_os_system_posix_xrender) : lh_null;
 }

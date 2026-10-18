@@ -94,6 +94,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/numeric/fixed/types.c
         ${LH_LIB_SRC_PATH}/numeric/fixed/limits.c
         ${LH_LIB_SRC_PATH}/numeric/parse/bytes.c
+        ${LH_LIB_SRC_PATH}/numeric/big.c
 
         ${LH_LIB_SRC_PATH}/cpu/cache.c
         ${LH_LIB_SRC_PATH}/cpu/id.c
@@ -158,6 +159,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/wstr.c
         ${LH_LIB_SRC_PATH}/str/format/uint.c
         ${LH_LIB_SRC_PATH}/str/format/ullong.c
+        ${LH_LIB_SRC_PATH}/str/format/put.c
         ${LH_LIB_SRC_PATH}/str/format/float.c
         ${LH_LIB_SRC_PATH}/str/format/sint.c
         ${LH_LIB_SRC_PATH}/str/format/hex.c
@@ -167,6 +169,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/str/parse/uint.c
         ${LH_LIB_SRC_PATH}/str/parse/hex.c
         ${LH_LIB_SRC_PATH}/str/split/next.c
+        ${LH_LIB_SRC_PATH}/str/scanf/spec.c
         ${LH_LIB_SRC_PATH}/str/scanf/next.c
         ${LH_LIB_SRC_PATH}/str/list.c
         ${LH_LIB_SRC_PATH}/wstr/list.c

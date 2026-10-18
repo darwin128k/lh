@@ -1,130 +1,124 @@
 #include <lh/str/scanf/next.h>
+#include <lh/assert.h>
 #include <lh/char/digit.h>
+#include <lh/char/map.h>
+#include <lh/math.h>
 
-lh_bool_t
-lh_str_ptr_scanf_next(lh_str_cptr fmt, lh_usize_t *pos, lh_str_scanf_spec_t *out)
+lh_void
+lh_str_ptr_scanf_next_literal(lh_str_cptr fmt, lh_usize_t *pos, lh_str_scanf_spec_t *out)
 {
-    lh_usize_t fmt_pos;
-    lh_char_t spec;
-
     lh_assert_runtime_ref(fmt);
     lh_assert_runtime_ref(pos);
-    lh_assert_runtime_ref(out);
+    const lh_usize_t run_start = lh_ptr_deref(pos);
+    lh_usize_t fmt_pos = run_start;
 
-    fmt_pos = lh_ptr_deref(pos);
-
-    out->kind = lh_str_scanf_spec_kind_invalid;
-    out->zero_pad = lh_bool_false;
-    out->left_justify = lh_bool_false;
-    out->uppercase = lh_bool_false;
-    out->width = 0;
-    out->have_precision = lh_bool_false;
-    out->precision = 0;
-    out->literal = fmt;
-    out->literal_size = 0;
-
-    if (fmt[fmt_pos] == '\0')
+    while (lh_math_ne(fmt[fmt_pos], lh_char_map_nul) && lh_math_ne(fmt[fmt_pos], lh_char_map_percent))
     {
-        return lh_bool_false;
+        fmt_pos = lh_math_add_one(fmt_pos);
     }
+    lh_str_scanf_spec_set_kind(out, lh_str_scanf_spec_kind_literal);
+    lh_str_scanf_spec_set_literal(out, lh_ptr_add_by_offset_unsafe(const lh_char_t, fmt, run_start));
+    lh_str_scanf_spec_set_literal_size(out, lh_math_sub(fmt_pos, run_start));
+    lh_ptr_deref(pos) = fmt_pos;
+}
 
-    if (fmt[fmt_pos] != '%')
-    {
-        lh_usize_t run_start = fmt_pos;
-        while (fmt[fmt_pos] != '\0' && fmt[fmt_pos] != '%')
-        {
-            fmt_pos++;
-        }
-        out->kind = lh_str_scanf_spec_kind_literal;
-        out->literal = fmt + run_start;
-        out->literal_size = fmt_pos - run_start;
-        lh_ptr_deref(pos) = fmt_pos;
-        return lh_bool_true;
-    }
-
-    fmt_pos++; /* consume '%' */
+lh_void
+lh_str_ptr_scanf_next_flags(lh_str_cptr fmt, lh_usize_t *pos, lh_str_scanf_spec_t *out)
+{
+    lh_assert_runtime_ref(fmt);
+    lh_assert_runtime_ref(pos);
+    lh_usize_t fmt_pos = lh_ptr_deref(pos);
 
     for (;;)
     {
-        if (fmt[fmt_pos] == '0')
+        if (lh_math_eq(fmt[fmt_pos], lh_char_map_digit_0))
         {
-            out->zero_pad = lh_bool_true;
-            fmt_pos++;
+            lh_str_scanf_spec_set_zero_pad(out, lh_bool_true);
         }
-        else if (fmt[fmt_pos] == '-')
+        else if (lh_math_eq(fmt[fmt_pos], lh_char_map_minus))
         {
-            out->left_justify = lh_bool_true;
-            fmt_pos++;
+            lh_str_scanf_spec_set_left_justify(out, lh_bool_true);
         }
         else
         {
             break;
         }
+        fmt_pos = lh_math_add_one(fmt_pos);
     }
+    lh_ptr_deref(pos) = fmt_pos;
+}
+
+lh_bool_t
+lh_str_ptr_scanf_next_number(lh_str_cptr fmt, lh_usize_t *pos, lh_uint_t *value)
+{
+    lh_assert_runtime_ref(fmt);
+    lh_assert_runtime_ref(pos);
+    lh_assert_runtime_ref(value);
+    lh_usize_t fmt_pos = lh_ptr_deref(pos);
+    lh_uint_t number = 0U;
+    lh_bool_t fits = lh_bool_true;
 
     while (lh_char_is_digit(fmt[fmt_pos]))
     {
-        if (!lh_char_digit_accumulate(lh_addr_of(out->width), lh_char_to_digit(fmt[fmt_pos])))
+        if (!lh_char_digit_accumulate(lh_addr_of(number), lh_char_to_digit(fmt[fmt_pos])))
+        {
+            fits = lh_bool_false;
+            break;
+        }
+        fmt_pos = lh_math_add_one(fmt_pos);
+    }
+    lh_ptr_deref(value) = number;
+    lh_ptr_deref(pos) = fmt_pos;
+    return fits;
+}
+
+lh_bool_t
+lh_str_ptr_scanf_next(lh_str_cptr fmt, lh_usize_t *pos, lh_str_scanf_spec_t *out)
+{
+    lh_assert_runtime_ref(fmt);
+    lh_assert_runtime_ref(pos);
+    lh_usize_t fmt_pos = lh_ptr_deref(pos);
+    lh_uint_t number;
+
+    lh_str_scanf_spec_clear(out, fmt);
+    if (lh_math_eq(fmt[fmt_pos], lh_char_map_nul))
+    {
+        return lh_bool_false;
+    }
+    if (lh_math_ne(fmt[fmt_pos], lh_char_map_percent))
+    {
+        lh_str_ptr_scanf_next_literal(fmt, pos, out);
+        return lh_bool_true;
+    }
+
+    fmt_pos = lh_math_add_one(fmt_pos); /* consume '%' */
+    lh_str_ptr_scanf_next_flags(fmt, lh_addr_of(fmt_pos), out);
+
+    if (!lh_str_ptr_scanf_next_number(fmt, lh_addr_of(fmt_pos), lh_addr_of(number)))
+    {
+        lh_ptr_deref(pos) = fmt_pos;
+        return lh_bool_true; /* kind stays invalid */
+    }
+    lh_str_scanf_spec_set_width(out, number);
+
+    if (lh_math_eq(fmt[fmt_pos], lh_char_map_period))
+    {
+        fmt_pos = lh_math_add_one(fmt_pos);
+        lh_str_scanf_spec_set_have_precision(out, lh_bool_true);
+        if (!lh_str_ptr_scanf_next_number(fmt, lh_addr_of(fmt_pos), lh_addr_of(number)))
         {
             lh_ptr_deref(pos) = fmt_pos;
-            return lh_bool_true; /* kind stays invalid */
+            return lh_bool_true;
         }
-        fmt_pos++;
+        lh_str_scanf_spec_set_precision(out, number);
     }
 
-    if (fmt[fmt_pos] == '.')
-    {
-        fmt_pos++;
-        out->have_precision = lh_bool_true;
-        while (lh_char_is_digit(fmt[fmt_pos]))
-        {
-            if (!lh_char_digit_accumulate(lh_addr_of(out->precision),
-                                          lh_char_to_digit(fmt[fmt_pos])))
-            {
-                lh_ptr_deref(pos) = fmt_pos;
-                return lh_bool_true;
-            }
-            fmt_pos++;
-        }
-    }
-
-    spec = fmt[fmt_pos];
-    if (spec == '\0')
+    if (lh_math_eq(fmt[fmt_pos], lh_char_map_nul))
     {
         lh_ptr_deref(pos) = fmt_pos;
         return lh_bool_true; /* '%' at the end, no conversion */
     }
-    fmt_pos++;
-
-    switch (spec)
-    {
-    case '%':
-        out->kind = lh_str_scanf_spec_kind_percent;
-        break;
-    case 'c':
-        out->kind = lh_str_scanf_spec_kind_char;
-        break;
-    case 's':
-        out->kind = lh_str_scanf_spec_kind_str;
-        break;
-    case 'u':
-        out->kind = lh_str_scanf_spec_kind_uint;
-        break;
-    case 'd':
-    case 'i':
-        out->kind = lh_str_scanf_spec_kind_sint;
-        break;
-    case 'x':
-        out->kind = lh_str_scanf_spec_kind_hex;
-        break;
-    case 'X':
-        out->kind = lh_str_scanf_spec_kind_hex;
-        out->uppercase = lh_bool_true;
-        break;
-    default:
-        break; /* kind stays invalid */
-    }
-
-    lh_ptr_deref(pos) = fmt_pos;
+    lh_str_scanf_spec_set_conversion(out, fmt[fmt_pos]);
+    lh_ptr_deref(pos) = lh_math_add_one(fmt_pos);
     return lh_bool_true;
 }

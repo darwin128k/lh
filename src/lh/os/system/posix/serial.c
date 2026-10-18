@@ -88,7 +88,7 @@ lh_os_system_serial_open(lh_str_cptr name, lh_u32_t baud, lh_os_serial_parity_t 
         lh_os_system_error_capture();
         return LH_OS_SYSTEM_SERIAL_HANDLE_INVALID;
     }
-    if (tcgetattr(fd, &tty) != 0)
+    if (tcgetattr(fd, lh_addr_of(tty)) != 0)
     {
         lh_os_system_error_capture();
         (void)close(fd);
@@ -122,8 +122,8 @@ lh_os_system_serial_open(lh_str_cptr name, lh_u32_t baud, lh_os_serial_parity_t 
     /* A read returns what there is, at once: no minimum count, no wait. */
     tty.c_cc[VMIN] = 0;
     tty.c_cc[VTIME] = 0;
-    if (cfsetispeed(&tty, speed) != 0 || cfsetospeed(&tty, speed) != 0 ||
-        tcsetattr(fd, TCSANOW, &tty) != 0)
+    if (cfsetispeed(lh_addr_of(tty), speed) != 0 || cfsetospeed(lh_addr_of(tty), speed) != 0 ||
+        tcsetattr(fd, TCSANOW, lh_addr_of(tty)) != 0)
     {
         lh_os_system_error_capture();
         (void)close(fd);

@@ -625,7 +625,6 @@ lh_memory_view_from_end(const lh_memory_view_t *self, lh_usize_t size, lh_memory
 lh_void
 lh_memory_view_drop_first(const lh_memory_view_t *self, lh_usize_t n, lh_memory_view_t *out)
 {
-    lh_assert_runtime_ref(out);
     const lh_usize_t total = lh_memory_view_get_size_v(self);
     lh_assert_runtime_ifn(lh_math_le(n, total), lh_runtime_error_code_out_of_range);
     lh_memory_view_from_offset(self, n, lh_math_sub(total, n), out);
@@ -654,7 +653,6 @@ lh_memory_view_seek_value(const lh_memory_view_t *self, const lh_ptr ptr)
 lh_void
 lh_memory_view_drop_last(const lh_memory_view_t *self, lh_usize_t n, lh_memory_view_t *out)
 {
-    lh_assert_runtime_ref(out);
     const lh_usize_t total = lh_memory_view_get_size_v(self);
     lh_assert_runtime_ifn(lh_math_le(n, total), lh_runtime_error_code_out_of_range);
     lh_memory_view_from_begin(self, lh_math_sub(total, n), out);
@@ -680,8 +678,7 @@ lh_void
 lh_memory_view_trim(const lh_memory_view_t *self, lh_usize_t left, lh_usize_t right,
                     lh_memory_view_t *out)
 {
-    lh_assert_runtime_ref(out);
     lh_memory_view_t dropped;
     lh_memory_view_drop_first(self, left, lh_addr_of(dropped));
-    lh_memory_view_drop_last(&dropped, right, out);
+    lh_memory_view_drop_last(lh_addr_of(dropped), right, out);
 }

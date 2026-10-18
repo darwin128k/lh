@@ -40,7 +40,7 @@ lh_ui_present_run(const lh_ui_present_sink_t *sinks, lh_u32_t count, lh_u32_t en
     {
         if ((enable & (1u << i)) != 0u)
         {
-            lh_ui_present_sink_run(&sinks[i], pixels, drawn);
+            lh_ui_present_sink_run(lh_addr_of(sinks[i]), pixels, drawn);
         }
     }
 }

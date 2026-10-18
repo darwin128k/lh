@@ -9,7 +9,7 @@ lh_os_system_timestamp_now(lh_timestamp_t *out)
     lh_os_system_win_filetime_t ft;
 
     lh_assert_runtime_ref(out);
-    GetSystemTimeAsFileTime(&ft);
-    lh_ptr_deref(out) = lh_os_system_timestamp_from_filetime(&ft);
+    GetSystemTimeAsFileTime(lh_addr_of(ft));
+    lh_ptr_deref(out) = lh_os_system_timestamp_from_filetime(lh_addr_of(ft));
     return lh_bool_true;
 }

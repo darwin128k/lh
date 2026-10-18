@@ -30,6 +30,20 @@
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
+ * @brief The engine both forms run on: format @p fmt with @p args into @p str,
+ *        or, when @p str is ::lh_null, only count the characters it would take.
+ *
+ * @param str      Destination, or ::lh_null to count.
+ * @param str_size Capacity of @p str (ignored when counting).
+ * @param fmt      NUL-terminated format mask.
+ * @param args     The values, in mask order.
+ * @return Characters written (or needed); @c 0 when they do not fit, and
+ *         ::LH_STR_PTR_INVALID for a malformed mask when counting.
+ */
+lh_usize_t
+lh_str_ptr_format_text_walk(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr fmt, va_list args);
+
+/**
  * @brief Format @p fmt and @p args into @p str (the `va_list` primitive;
  *        see ::lh_str_ptr_format_text for the variadic wrapper).
  *
@@ -49,6 +63,15 @@ lh_usize_t
 lh_str_ptr_format_text_v(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr fmt, va_list args);
 
 /**
+ * @brief Characters ::lh_str_ptr_format_text_v would write for @p fmt.
+ *
+ * Does not write. On a malformed mask returns ::LH_USIZE_T_MAX.
+ * A valid empty mask returns 0.
+ */
+lh_usize_t
+lh_str_ptr_format_text_size_v(const lh_str_ptr fmt, va_list args);
+
+/**
  * @brief Format @p fmt and the following arguments into @p str.
  *
  * @param str      Destination buffer.
@@ -60,15 +83,6 @@ lh_str_ptr_format_text_v(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr f
  */
 lh_usize_t
 lh_str_ptr_format_text(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr fmt, ...);
-
-/**
- * @brief Characters ::lh_str_ptr_format_text_v would write for @p fmt.
- *
- * Does not write. On a malformed mask returns ::LH_USIZE_T_MAX.
- * A valid empty mask returns 0.
- */
-lh_usize_t
-lh_str_ptr_format_text_size_v(const lh_str_ptr fmt, va_list args);
 
 /**
  * @brief Variadic wrapper for ::lh_str_ptr_format_text_size_v.

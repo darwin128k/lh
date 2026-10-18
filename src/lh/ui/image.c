@@ -132,8 +132,8 @@ lh_ui_image_get_origin(const lh_ui_image_t *self, lh_ui_point_t *out)
     /* The corner of the box, moved in by the padding: the picture is not
        aligned and not scaled, so this is the whole of where it goes. */
     lh_ui_point_init(lh_addr_of(origin),
-                     lh_ui_point_get_x(&corner) + lh_ui_insets_get_left(&padding),
-                     lh_ui_point_get_y(&corner) + lh_ui_insets_get_top(&padding));
+                     lh_ui_point_get_x(lh_addr_of(corner)) + lh_ui_insets_get_left(lh_addr_of(padding)),
+                     lh_ui_point_get_y(lh_addr_of(corner)) + lh_ui_insets_get_top(lh_addr_of(padding)));
     lh_ptr_deref(out) = origin;
 }
 
@@ -169,7 +169,7 @@ lh_ui_image_on_measure(const lh_ui_image_t *self, const lh_ui_entity_event_t *ev
        measures as. */
     lh_ui_image_get_origin(self, lh_addr_of(origin));
     lh_ui_image_get_size(self, lh_addr_of(size));
-    lh_ui_rect_init(lh_addr_of(picture), lh_ui_point_get_x(&origin), lh_ui_point_get_y(&origin),
+    lh_ui_rect_init(lh_addr_of(picture), lh_ui_point_get_x(lh_addr_of(origin)), lh_ui_point_get_y(lh_addr_of(origin)),
                     lh_ui_size_get_width(lh_addr_of(size)),
                     lh_ui_size_get_height(lh_addr_of(size)));
     lh_ui_rect_union(bounds, lh_addr_of(picture), bounds);

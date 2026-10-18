@@ -14,7 +14,6 @@ lh_memory_tree_get_block_size(lh_usize_t size)
 lh_ptr
 lh_memory_tree_alloc(lh_memory_sized_allocator_t *allocator, lh_usize_t size)
 {
-    lh_assert_runtime_ref(allocator);
     return lh_memory_tree_header_get_data(lh_memory_tree_header_new(allocator, lh_null, size));
 }
 

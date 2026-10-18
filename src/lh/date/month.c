@@ -27,7 +27,7 @@ lh_date_month_add(lh_date_month_t *self, lh_uint_t value)
         return 0;
     }
     index = lh_date_month_to_index(lh_ptr_deref(self));
-    years = lh_date_month_index_add(&index, value);
+    years = lh_date_month_index_add(lh_addr_of(index), value);
     lh_ptr_deref(self) = lh_date_month_from_index(index);
     return years;
 }
@@ -44,7 +44,7 @@ lh_date_month_sub(lh_date_month_t *self, lh_uint_t value)
         return 0;
     }
     index = lh_date_month_to_index(lh_ptr_deref(self));
-    years = lh_date_month_index_sub(&index, value);
+    years = lh_date_month_index_sub(lh_addr_of(index), value);
     lh_ptr_deref(self) = lh_date_month_from_index(index);
     return years;
 }

@@ -12,7 +12,7 @@
  * buffer entirely and is copied straight from the caller's argument. */
 #define LH_STR_FORMAT_TEXT_VALUE_BUF_MAX 16U
 
-static lh_usize_t
+lh_usize_t
 lh_str_ptr_format_text_walk(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, va_list args)
 {
     const lh_bool_t counting = lh_null_eq(str);
@@ -20,7 +20,6 @@ lh_str_ptr_format_text_walk(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt
     lh_usize_t fmt_pos = 0;
     lh_str_scanf_spec_t spec;
 
-    lh_assert_runtime_ref(fmt);
 
     while (lh_str_ptr_scanf_next(fmt, lh_addr_of(fmt_pos), lh_addr_of(spec)))
     {
@@ -28,28 +27,28 @@ lh_str_ptr_format_text_walk(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt
         lh_str_cptr content = value_buf;
         lh_usize_t content_len = 0;
 
-        if (spec.kind == lh_str_scanf_spec_kind_invalid)
+        if (lh_str_scanf_spec_get_kind(lh_addr_of(spec)) == lh_str_scanf_spec_kind_invalid)
         {
             return counting ? LH_STR_PTR_INVALID : 0;
         }
 
-        if (spec.kind == lh_str_scanf_spec_kind_literal)
+        if (lh_str_scanf_spec_get_kind(lh_addr_of(spec)) == lh_str_scanf_spec_kind_literal)
         {
             if (counting)
             {
-                out_pos += spec.literal_size;
+                out_pos += lh_str_scanf_spec_get_literal_size(lh_addr_of(spec));
                 continue;
             }
-            if (out_pos + spec.literal_size > str_size)
+            if (out_pos + lh_str_scanf_spec_get_literal_size(lh_addr_of(spec)) > str_size)
             {
                 return 0;
             }
-            lh_memory_std_copy(str + out_pos, spec.literal, spec.literal_size);
-            out_pos += spec.literal_size;
+            lh_memory_std_copy(str + out_pos, lh_str_scanf_spec_get_literal(lh_addr_of(spec)), lh_str_scanf_spec_get_literal_size(lh_addr_of(spec)));
+            out_pos += lh_str_scanf_spec_get_literal_size(lh_addr_of(spec));
             continue;
         }
 
-        switch (spec.kind)
+        switch (lh_str_scanf_spec_get_kind(lh_addr_of(spec)))
         {
         case lh_str_scanf_spec_kind_percent:
             value_buf[0] = '%';
@@ -68,29 +67,29 @@ lh_str_ptr_format_text_walk(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt
                                                  LH_STR_FORMAT_TEXT_VALUE_BUF_MAX);
             break;
         case lh_str_scanf_spec_kind_hex:
-            content_len = lh_str_ptr_format_hex(va_arg(args, lh_uint_t), spec.uppercase, value_buf,
+            content_len = lh_str_ptr_format_hex(va_arg(args, lh_uint_t), lh_str_scanf_spec_get_uppercase(lh_addr_of(spec)), value_buf,
                                                 LH_STR_FORMAT_TEXT_VALUE_BUF_MAX);
             break;
         case lh_str_scanf_spec_kind_str:
             content = va_arg(args, lh_str_cptr);
             content_len = lh_str_ptr_len(content);
-            if (spec.have_precision && spec.precision < content_len)
+            if (lh_str_scanf_spec_get_have_precision(lh_addr_of(spec)) && lh_str_scanf_spec_get_precision(lh_addr_of(spec)) < content_len)
             {
-                content_len = spec.precision;
+                content_len = lh_str_scanf_spec_get_precision(lh_addr_of(spec));
             }
             break;
         default:
             return counting ? LH_STR_PTR_INVALID : 0;
         }
 
-        if (content_len == 0 && spec.kind != lh_str_scanf_spec_kind_str)
+        if (content_len == 0 && lh_str_scanf_spec_get_kind(lh_addr_of(spec)) != lh_str_scanf_spec_kind_str)
         {
             return counting ? LH_STR_PTR_INVALID : 0;
         }
 
         {
             lh_bool_t has_sign = content_len > 0 && content[0] == '-';
-            lh_usize_t pad_len = spec.width > content_len ? spec.width - content_len : 0U;
+            lh_usize_t pad_len = lh_str_scanf_spec_get_width(lh_addr_of(spec)) > content_len ? lh_str_scanf_spec_get_width(lh_addr_of(spec)) - content_len : 0U;
 
             if (counting)
             {
@@ -98,7 +97,7 @@ lh_str_ptr_format_text_walk(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt
                 continue;
             }
 
-            if (spec.left_justify)
+            if (lh_str_scanf_spec_get_left_justify(lh_addr_of(spec)))
             {
                 if (out_pos + content_len + pad_len > str_size)
                 {
@@ -109,7 +108,7 @@ lh_str_ptr_format_text_walk(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt
                 lh_memory_std_set(str + out_pos, lh_cast_static(lh_byte_t, ' '), pad_len);
                 out_pos += pad_len;
             }
-            else if (spec.zero_pad && has_sign)
+            else if (lh_str_scanf_spec_get_zero_pad(lh_addr_of(spec)) && has_sign)
             {
                 if (out_pos + 1U + pad_len + (content_len - 1U) > str_size)
                 {
@@ -123,7 +122,7 @@ lh_str_ptr_format_text_walk(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt
             }
             else
             {
-                lh_char_t pad_char = spec.zero_pad ? '0' : ' ';
+                lh_char_t pad_char = lh_str_scanf_spec_get_zero_pad(lh_addr_of(spec)) ? '0' : ' ';
                 if (out_pos + pad_len + content_len > str_size)
                 {
                     return 0;
@@ -147,6 +146,12 @@ lh_str_ptr_format_text_v(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, v
 }
 
 lh_usize_t
+lh_str_ptr_format_text_size_v(lh_str_cptr fmt, va_list args)
+{
+    return lh_str_ptr_format_text_walk(lh_null, 0, fmt, args);
+}
+
+lh_usize_t
 lh_str_ptr_format_text(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, ...)
 {
     lh_usize_t result;
@@ -157,12 +162,6 @@ lh_str_ptr_format_text(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, ...
     va_end(args);
 
     return result;
-}
-
-lh_usize_t
-lh_str_ptr_format_text_size_v(lh_str_cptr fmt, va_list args)
-{
-    return lh_str_ptr_format_text_walk(lh_null, 0, fmt, args);
 }
 
 lh_usize_t

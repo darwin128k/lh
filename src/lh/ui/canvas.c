@@ -597,15 +597,15 @@ lh_ui_canvas_shadow_fallback(lh_ui_canvas_t *self, const lh_ui_rect_t *bounds,
     x1 = lh_ui_point_get_x(cut_origin) + lh_ui_size_get_width(cut_size);
     y1 = lh_ui_point_get_y(cut_origin) + lh_ui_size_get_height(cut_size);
 
-    lh_ui_shadow_shape_init(&shape, shadow, target, radius);
+    lh_ui_shadow_shape_init(lh_addr_of(shape), shadow, target, radius);
     for (y = lh_ui_point_get_y(cut_origin); y < y1; ++y)
     {
-        const lh_s32_t row = lh_ui_shadow_shape_row(&shape, y);
+        const lh_s32_t row = lh_ui_shadow_shape_row(lh_addr_of(shape), y);
         lh_s32_t x;
 
         for (x = lh_ui_point_get_x(cut_origin); x < x1; ++x)
         {
-            const lh_byte_t alpha = lh_ui_shadow_shape_alpha(&shape, row, x, y);
+            const lh_byte_t alpha = lh_ui_shadow_shape_alpha(lh_addr_of(shape), row, x, y);
             lh_ui_rect_t pixel;
             lh_ui_color_t color;
 
@@ -614,10 +614,10 @@ lh_ui_canvas_shadow_fallback(lh_ui_canvas_t *self, const lh_ui_rect_t *bounds,
                 continue;
             }
             lh_ui_shadow_get_color(shadow, lh_addr_of(color));
-            lh_ui_color_set_a(&color, alpha);
+            lh_ui_color_set_a(lh_addr_of(color), alpha);
             lh_ui_rect_init(lh_addr_of(pixel), lh_ui_scalar_of(x), lh_ui_scalar_of(y),
                             lh_ui_scalar(1), lh_ui_scalar(1));
-            lh_ui_canvas_fill_target_rect(self, lh_addr_of(pixel), &color);
+            lh_ui_canvas_fill_target_rect(self, lh_addr_of(pixel), lh_addr_of(color));
         }
     }
 }
@@ -635,9 +635,9 @@ lh_ui_canvas_shadow(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, lh_ui_scalar
     lh_assert_runtime_ref(rect);
     lh_assert_runtime_ref(shadow);
     lh_ui_canvas_state_to_target(lh_addr_of(self->state), rect, lh_addr_of(target));
-    outset = lh_ui_shadow_get_outset(shadow, &target);
+    outset = lh_ui_shadow_get_outset(shadow, lh_addr_of(target));
     lh_return_if(outset <= 0, lh_bool_false);
-    corner = lh_ui_radius_clamp(&target, radius);
+    corner = lh_ui_radius_clamp(lh_addr_of(target), radius);
     lh_ui_rect_inset(lh_addr_of(target), lh_ui_scalar_of(lh_math_neg(outset)),
                      lh_ui_scalar_of(lh_math_neg(outset)), lh_addr_of(bounds));
     lh_ui_canvas_add_damage(self, lh_addr_of(bounds));
@@ -648,7 +648,7 @@ lh_ui_canvas_shadow(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, lh_ui_scalar
     lh_return_if(!lh_ui_canvas_shows(self, lh_addr_of(bounds)), lh_bool_false);
 
     if (!lh_null_eq(self->backend) && !lh_null_eq(self->backend->shadow) &&
-        self->backend->shadow(self->context, &target, corner, shadow))
+        self->backend->shadow(self->context, lh_addr_of(target), corner, shadow))
     {
         return lh_bool_true;
     }

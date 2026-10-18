@@ -29,6 +29,18 @@ LH_COMPILER_EXTERN_C_BEGIN
 #define LH_STR_FORMAT_FLOAT_DIGITS_MAX 9U
 
 /**
+ * @brief Floor of @p x * log10(2): the decimal exponent of 2^@p x.
+ *
+ * log10(2) is taken as 78913 / 2^18, exact enough for |@p x| < 200 — every
+ * binary exponent a single-precision float has.
+ *
+ * @param x Binary exponent.
+ * @return floor(@p x * log10(2)).
+ */
+lh_sint_t
+lh_str_format_float_floor_log10_pow2(lh_sint_t x);
+
+/**
  * @brief Format @p value with @p digits significant digits, `%.{digits}g` style.
  *
  * - Fixed notation when the decimal exponent is in `[-4, digits)`, otherwise

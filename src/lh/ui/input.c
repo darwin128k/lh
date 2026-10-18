@@ -225,7 +225,7 @@ lh_ui_input_insert(lh_ui_input_t *self, lh_u32_t code)
     {
         self->buffer[at] = self->buffer[at - 1U];
     }
-    lh_ui_text_encode_code(&self->buffer[self->caret],
+    lh_ui_text_encode_code(lh_addr_of(self->buffer[self->caret]),
                            lh_cast_static(lh_u32_t, self->capacity - self->caret), code);
     self->used = lh_cast_static(lh_u16_t, self->used + size);
     self->caret = lh_cast_static(lh_u16_t, self->caret + size);
@@ -331,7 +331,7 @@ lh_ui_input_on_press(const lh_ui_input_t *self, const lh_ui_entity_event_t *even
     /* The walk is in **advances**, not in repeated widths of the whole prefix: a
        field of 64 characters measured once per character is 4096 glyph lookups for
        one press, and the field is exactly where somebody holds the pointer down. */
-    end = &self->buffer[self->used];
+    end = lh_addr_of(self->buffer[self->used]);
     cursor = self->buffer;
     caret = self->used;
     for (; cursor < end;)

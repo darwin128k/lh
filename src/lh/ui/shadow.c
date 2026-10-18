@@ -12,7 +12,7 @@ lh_void
 lh_ui_shadow_init(lh_ui_shadow_t *self)
 {
     lh_assert_runtime_ref(self);
-    lh_ui_color_init(&self->color, 0, 0, 0, 0);
+    lh_ui_color_init(lh_addr_of(self->color), 0, 0, 0, 0);
     self->spread = 0;
     self->offset_x = 0;
     self->offset_y = 0;
@@ -30,7 +30,7 @@ lh_bool_t
 lh_ui_shadow_is_empty(const lh_ui_shadow_t *self)
 {
     lh_assert_runtime_ref(self);
-    return self->spread <= 0 || lh_ui_color_get_a(&self->color) == 0 ? lh_bool_true : lh_bool_false;
+    return self->spread <= 0 || lh_ui_color_get_a(lh_addr_of(self->color)) == 0 ? lh_bool_true : lh_bool_false;
 }
 
 lh_void
@@ -84,7 +84,7 @@ lh_ui_shadow_get_outset(const lh_ui_shadow_t *self, const lh_ui_rect_t *rect)
 
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(rect);
-    if (self->spread <= 0 || lh_ui_rect_is_empty(rect) || lh_ui_color_get_a(&self->color) == 0)
+    if (self->spread <= 0 || lh_ui_rect_is_empty(rect) || lh_ui_color_get_a(lh_addr_of(self->color)) == 0)
     {
         return 0;
     }
@@ -198,7 +198,7 @@ lh_ui_shadow_alpha_at(const lh_ui_shadow_t *self, lh_ui_scalar_t x, lh_ui_scalar
 {
     const lh_ui_size_t *size;
     const lh_ui_point_t *origin;
-    const lh_byte_t peak = lh_ui_color_get_a(&self->color);
+    const lh_byte_t peak = lh_ui_color_get_a(lh_addr_of(self->color));
     const lh_s32_t corner = lh_ui_radius_clamp(rect, radius);
     lh_ui_rect_t shifted;
 
@@ -230,8 +230,8 @@ lh_ui_shadow_alpha_at(const lh_ui_shadow_t *self, lh_ui_scalar_t x, lh_ui_scalar
     /* ::lh_ui_rect_offset hands back the moved rect: it does not move its argument.
        Calling it for its effect left every shadow where its box was, whatever offset
        the style gave it. */
-    lh_ui_rect_offset(&shifted, self->offset_x, self->offset_y, lh_addr_of(shifted));
-    return lh_ui_shadow_falloff(lh_ui_shadow_distance(x, y, &shifted, corner), self->spread, peak);
+    lh_ui_rect_offset(lh_addr_of(shifted), self->offset_x, self->offset_y, lh_addr_of(shifted));
+    return lh_ui_shadow_falloff(lh_ui_shadow_distance(x, y, lh_addr_of(shifted), corner), self->spread, peak);
 }
 
 lh_byte_t
@@ -245,6 +245,6 @@ lh_ui_shadow_alpha_at_pixel(const lh_ui_shadow_t *self, lh_s32_t x, lh_s32_t y,
     /* The one reading of a shadow (::lh_ui_shadow_shape_t), so a backend that draws a
        whole shadow through the shape and the canvas that asks pixel by pixel give the
        same alpha. */
-    lh_ui_shadow_shape_init(&shape, self, rect, radius);
-    return lh_ui_shadow_shape_alpha(&shape, lh_ui_shadow_shape_row(&shape, y), x, y);
+    lh_ui_shadow_shape_init(lh_addr_of(shape), self, rect, radius);
+    return lh_ui_shadow_shape_alpha(lh_addr_of(shape), lh_ui_shadow_shape_row(lh_addr_of(shape), y), x, y);
 }

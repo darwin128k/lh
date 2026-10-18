@@ -26,6 +26,13 @@
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
+ * @brief Characters of one hex dump line for @p count bytes: the offset,
+ *        a colon and a space, three characters per byte and the newline.
+ */
+lh_usize_t
+lh_str_ptr_format_bytes_hex_dump_line_size(lh_usize_t count);
+
+/**
  * @brief Format @p data as contiguous hex digits — two characters per byte,
  *        no separators, no `0x` prefix, no NUL terminator appended.
  *
