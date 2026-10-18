@@ -16,6 +16,8 @@
 #define LH_STR_FORMAT_FLOAT_H
 
 #include <lh/compiler/extern/c.h>
+#include <lh/bool.h>
+#include <lh/numeric/big.h>
 #include <lh/numeric/float.h>
 #include <lh/size.h>
 #include <lh/str/ptr.h>
@@ -39,6 +41,61 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 lh_sint_t
 lh_str_format_float_floor_log10_pow2(lh_sint_t x);
+
+/** @brief The significant digits to print: @p digits, 0 meaning the default, at most the maximum. */
+lh_usize_t
+lh_str_format_float_get_precision(lh_usize_t digits);
+
+/**
+ * @brief Write the text of a value that is not a finite non-zero number —
+ *        `nan`, `inf` / `-inf`, `0` / `-0` — at @p str.
+ *
+ * @param bits The float's bits.
+ * @param str  Room for four characters.
+ * @return Characters written, or @c 0 for a finite non-zero value.
+ */
+lh_usize_t
+lh_str_format_float_put_special(lh_u32_t bits, lh_str_ptr str);
+
+/**
+ * @brief Set @p num / @p den to the finite non-zero float @p bits divided by
+ *        10^d10, landing in [1, 10).
+ * @return d10, the decimal exponent of the value.
+ */
+lh_sint_t
+lh_str_format_float_scale(lh_u32_t bits, lh_numeric_big_t *num, lh_numeric_big_t *den);
+
+/**
+ * @brief Write @p precision decimal digits of @p num / @p den (in [1, 10)) at
+ *        @p digits, rounded to nearest, ties to even.
+ * @return ::lh_bool_true when rounding carried past the first digit
+ *         (9.99 → 10.0): the exponent grows by one.
+ */
+lh_bool_t
+lh_str_format_float_get_digits(lh_numeric_big_t *num, const lh_numeric_big_t *den,
+                               lh_usize_t precision, lh_str_ptr digits);
+
+/** @brief How many of the @p precision digits are left without trailing zeros (at least 1). */
+lh_usize_t
+lh_str_format_float_trim(const lh_str_ptr digits, lh_usize_t precision);
+
+/**
+ * @brief Write @p nd digits with decimal exponent @p d10 in positional form
+ *        (`123.45`, `0.00123`) at @p str from position @p n.
+ * @return Position after the last character written.
+ */
+lh_usize_t
+lh_str_format_float_put_fixed(const lh_str_ptr digits, lh_usize_t nd, lh_sint_t d10, lh_str_ptr str,
+                              lh_usize_t n);
+
+/**
+ * @brief Write @p nd digits with decimal exponent @p d10 in exponent form
+ *        (`1.2345e+02`) at @p str from position @p n.
+ * @return Position after the last character written.
+ */
+lh_usize_t
+lh_str_format_float_put_exponent(const lh_str_ptr digits, lh_usize_t nd, lh_sint_t d10, lh_str_ptr str,
+                                 lh_usize_t n);
 
 /**
  * @brief Format @p value with @p digits significant digits, `%.{digits}g` style.

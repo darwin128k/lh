@@ -130,6 +130,27 @@
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
+ * @brief Write @p ch at @p str[@p pos], unchecked.
+ * @return @p pos + 1, where the next character goes.
+ */
+lh_usize_t
+lh_str_ptr_put_char(lh_str_ptr str, lh_usize_t pos, lh_char_t ch);
+
+/**
+ * @brief Write the @p n characters of @p chars at @p str from @p pos, unchecked.
+ * @return @p pos + @p n.
+ */
+lh_usize_t
+lh_str_ptr_put_chars(lh_str_ptr str, lh_usize_t pos, const lh_str_ptr chars, lh_usize_t n);
+
+/**
+ * @brief Write @p n copies of @p ch at @p str from @p pos, unchecked.
+ * @return @p pos + @p n.
+ */
+lh_usize_t
+lh_str_ptr_put_run(lh_str_ptr str, lh_usize_t pos, lh_char_t ch, lh_usize_t n);
+
+/**
  * @brief Fill the 256-entry membership map @p set: 1 for every byte value in
  *        @p chars, 0 for the rest.
  *

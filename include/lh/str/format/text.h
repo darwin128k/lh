@@ -24,10 +24,73 @@
 #include <lh/size.h>
 #include <lh/size/limits.h>
 #include <lh/str/ptr.h>
+#include <lh/str/format/uint.h>
+#include <lh/str/scanf/spec.h>
+#include <lh/math/ops.h>
 
 #include <stdarg.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief Bytes of the local buffer one value conversion is built in: a sign
+ *        and the longest ::lh_uint_t, so the most negative ::lh_sint_t fits
+ *        whatever `int`'s width. `%s` never goes through it.
+ */
+#define LH_STR_FORMAT_TEXT_VALUE_BUF_MAX lh_math_add_one(LH_STR_FORMAT_UINT_DIGITS_MAX)
+
+/**
+ * @brief Write @p n characters of @p text at `*pos` and move `*pos` past them.
+ *
+ * With a ::lh_null @p str nothing is written: `*pos` only counts.
+ *
+ * @return ::lh_bool_false, writing nothing, when they do not fit in @p str_size.
+ */
+lh_bool_t
+lh_str_ptr_format_text_put_text(lh_str_ptr str, lh_usize_t str_size, lh_usize_t *pos,
+                                const lh_str_ptr text, lh_usize_t n);
+
+/**
+ * @brief Write @p n copies of @p ch at `*pos` and move `*pos` past them.
+ *
+ * With a ::lh_null @p str nothing is written: `*pos` only counts.
+ *
+ * @return ::lh_bool_false, writing nothing, when they do not fit in @p str_size.
+ */
+lh_bool_t
+lh_str_ptr_format_text_put_run(lh_str_ptr str, lh_usize_t str_size, lh_usize_t *pos, lh_char_t ch,
+                               lh_usize_t n);
+
+/**
+ * @brief The text one conversion token turns its argument into.
+ *
+ * Numbers and characters are built in @p buf; a `%s` argument is used in
+ * place, cut to the precision.
+ *
+ * @param spec     A conversion token (not a literal).
+ * @param args     The remaining arguments; the token's one is taken.
+ * @param buf      ::LH_STR_FORMAT_TEXT_VALUE_BUF_MAX bytes to build in.
+ * @param content  Receives where the text is.
+ * @param size     Receives its length.
+ * @return ::lh_bool_false for a conversion the engine does not know, or one
+ *         that came out empty (anything but `%s`).
+ */
+lh_bool_t
+lh_str_ptr_format_text_get_value(const lh_str_scanf_spec_t *spec, va_list *args, lh_str_ptr buf,
+                                 const lh_str_ptr *content, lh_usize_t *size);
+
+/**
+ * @brief Write @p content padded to the token's width, the way its flags say:
+ *        `-` pads on the right, `0` pads with zeros after a sign.
+ *
+ * With a ::lh_null @p str nothing is written: `*pos` only counts.
+ *
+ * @return ::lh_bool_false, writing nothing, when the field does not fit.
+ */
+lh_bool_t
+lh_str_ptr_format_text_put_field(lh_str_ptr str, lh_usize_t str_size, lh_usize_t *pos,
+                                 const lh_str_scanf_spec_t *spec, const lh_str_ptr content,
+                                 lh_usize_t size);
 
 /**
  * @brief The engine both forms run on: format @p fmt with @p args into @p str,

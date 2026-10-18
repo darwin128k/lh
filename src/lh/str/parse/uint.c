@@ -2,6 +2,7 @@
 #include <lh/char/digit.h>
 #include <lh/str/split/next.h>
 #include <lh/math.h>
+#include <lh/char/map.h>
 
 lh_bool_t
 lh_str_ptr_parse_uint_digits(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out)
@@ -12,25 +13,25 @@ lh_str_ptr_parse_uint_digits(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max
     lh_assert_runtime_ref(str);
     lh_assert_runtime_ref(out);
 
-    if (str_size == 0)
+    if (lh_math_is_zero(str_size))
     {
         return lh_bool_false;
     }
 
-    while (pos < str_size && lh_char_is_digit(str[pos]))
+    while (lh_math_lt(pos, str_size) && lh_char_is_digit(str[pos]))
     {
         if (!lh_char_digit_accumulate(lh_addr_of(value), lh_char_to_digit(str[pos])))
         {
             return lh_bool_false;
         }
-        if (value > max)
+        if (lh_math_gt(value, max))
         {
             return lh_bool_false;
         }
-        pos++;
+        pos = lh_math_add_one(pos);
     }
 
-    if (pos != str_size)
+    if (lh_math_ne(pos, str_size))
     {
         return lh_bool_false;
     }
@@ -43,9 +44,8 @@ lh_bool_t
 lh_str_ptr_parse_uint(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out)
 {
     lh_assert_runtime_ref(str);
-    lh_assert_runtime_ref(out);
 
-    if (str_size > 1U && str[0] == '0')
+    if (lh_math_gt(str_size, 1U) && lh_math_eq(str[0], lh_char_map_digit_0))
     {
         return lh_bool_false;
     }
@@ -72,7 +72,7 @@ lh_str_ptr_split_next_uint_digits(lh_str_cptr str, lh_usize_t str_size, lh_char_
         return lh_bool_false;
     }
 
-    return lh_cast_static(lh_bool_t, had_delim == want_delim);
+    return lh_cast_static(lh_bool_t, lh_math_eq(had_delim, want_delim));
 }
 
 lh_usize_t

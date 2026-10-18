@@ -10,6 +10,8 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
 #include <lh/str/ptr.h>
+#include <lh/numeric/fixed/types.h>
+#include <lh/void.h>
 
 /**
  * @def LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH
@@ -31,6 +33,42 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 lh_usize_t
 lh_str_ptr_format_bytes_hex_dump_line_size(lh_usize_t count);
+
+/**
+ * @brief Write @p byte as two hex digits at @p str, high nibble first.
+ *
+ * @param byte      Value to write.
+ * @param uppercase ::lh_bool_true for `A`-`F`, ::lh_bool_false for `a`-`f`.
+ * @param str       Room for two characters.
+ */
+lh_void
+lh_str_ptr_format_bytes_hex_byte(lh_byte_t byte, lh_bool_t uppercase, lh_str_ptr str);
+
+/**
+ * @brief Write @p offset as the ::LH_STR_FORMAT_BYTES_HEX_DUMP_OFFSET_DIGITS
+ *        hex digits a dump line starts with.
+ *
+ * @param offset    Offset of the line's first byte.
+ * @param uppercase ::lh_bool_true for `A`-`F`, ::lh_bool_false for `a`-`f`.
+ * @param str       Room for the digits.
+ */
+lh_void
+lh_str_ptr_format_bytes_hex_dump_offset(lh_u32_t offset, lh_bool_t uppercase, lh_str_ptr str);
+
+/**
+ * @brief Write one dump line — offset, `": "`, each byte as `"xx "`, the
+ *        newline — for the @p count bytes at @p data.
+ *
+ * @param data      The line's bytes.
+ * @param count     How many (at most ::LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH).
+ * @param offset    Offset of the first of them.
+ * @param uppercase ::lh_bool_true for `A`-`F`, ::lh_bool_false for `a`-`f`.
+ * @param str       Room for ::lh_str_ptr_format_bytes_hex_dump_line_size(@p count).
+ * @return Characters written.
+ */
+lh_usize_t
+lh_str_ptr_format_bytes_hex_dump_line(const lh_ptr data, lh_usize_t count, lh_u32_t offset,
+                                      lh_bool_t uppercase, lh_str_ptr str);
 
 /**
  * @brief Format @p data as contiguous hex digits — two characters per byte,

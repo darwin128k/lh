@@ -11,25 +11,25 @@ lh_str_ptr_parse_hex(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_uin
     lh_assert_runtime_ref(str);
     lh_assert_runtime_ref(out);
 
-    if (str_size == 0)
+    if (lh_math_is_zero(str_size))
     {
         return lh_bool_false;
     }
 
-    while (pos < str_size && lh_char_is_xdigit(str[pos]))
+    while (lh_math_lt(pos, str_size) && lh_char_is_xdigit(str[pos]))
     {
         if (!lh_char_xdigit_accumulate(lh_addr_of(value), lh_char_to_xdigit(str[pos])))
         {
             return lh_bool_false;
         }
-        if (value > max)
+        if (lh_math_gt(value, max))
         {
             return lh_bool_false;
         }
-        pos++;
+        pos = lh_math_add_one(pos);
     }
 
-    if (pos != str_size)
+    if (lh_math_ne(pos, str_size))
     {
         return lh_bool_false;
     }

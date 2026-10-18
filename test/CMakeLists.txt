@@ -235,7 +235,7 @@ if (LH_TEST_OS_SOURCES)
     lh_add_test_core(lh_test_os ${LH_TEST_OS_SOURCES})
 endif ()
 
-lh_add_test_core(lh_test_str
+set(LH_TEST_STR_SOURCES
         ${LH_TEST_SRC_PATH}/lh/str.cpp
         ${LH_TEST_SRC_PATH}/lh/str/format/bytes.cpp
         ${LH_TEST_SRC_PATH}/lh/str/format/hex.cpp
@@ -255,6 +255,13 @@ lh_add_test_core(lh_test_str
         ${LH_TEST_SRC_PATH}/lh/wstr/list.cpp
         ${LH_TEST_SRC_PATH}/lh/wstr/view.cpp
 )
+set(LH_TEST_STR_FPU_SOURCES ${LH_TEST_SRC_PATH}/lh/str/format/float.cpp)
+if (LH_LIBRARY_OPTION_MATH_FPU)
+    list(APPEND LH_TEST_STR_SOURCES ${LH_TEST_STR_FPU_SOURCES})
+else ()
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_STR_FPU_SOURCES})
+endif ()
+lh_add_test_core(lh_test_str ${LH_TEST_STR_SOURCES})
 
 lh_add_test_core(lh_test_time
         ${LH_TEST_SRC_PATH}/lh/date.cpp

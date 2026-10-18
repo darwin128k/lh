@@ -7,8 +7,17 @@
 #define LH_STR_FORMAT_UINT_H
 
 #include <lh/compiler/extern/c.h>
+#include <lh/numeric/limits.h>
 #include <lh/size.h>
 #include <lh/str/ptr.h>
+
+/**
+ * @def LH_STR_FORMAT_UINT_DIGITS_MAX
+ * @brief Room for the longest decimal form of an ::lh_uint_t, whatever its
+ *        width on the target: every byte adds at most three digits
+ *        (256^k < 10^3k) — 12 for a 32-bit `int`, 6 for a 16-bit one.
+ */
+#define LH_STR_FORMAT_UINT_DIGITS_MAX (LH_UINT_T_SIZE * 3U)
 
 LH_COMPILER_EXTERN_C_BEGIN
 

@@ -1,5 +1,6 @@
 #include <lh/str/scanf/spec.h>
 #include <lh/assert.h>
+#include <lh/math.h>
 
 lh_str_scanf_spec_kind_t
 lh_str_scanf_spec_get_kind(const lh_str_scanf_spec_t *self)
@@ -146,6 +147,13 @@ lh_str_scanf_spec_get_limit(const lh_str_scanf_spec_t *self, lh_usize_t remainin
 {
     const lh_uint_t width = lh_str_scanf_spec_get_width(self);
     return width > 0U && width < remaining ? width : remaining;
+}
+
+lh_usize_t
+lh_str_scanf_spec_get_pad(const lh_str_scanf_spec_t *self, lh_usize_t size)
+{
+    const lh_usize_t width = lh_cast_static(lh_usize_t, lh_str_scanf_spec_get_width(self));
+    return lh_math_gt(width, size) ? lh_math_sub(width, size) : 0U;
 }
 
 lh_void

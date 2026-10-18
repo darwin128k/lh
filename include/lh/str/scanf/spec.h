@@ -121,6 +121,13 @@ lh_usize_t
 lh_str_scanf_spec_get_limit(const lh_str_scanf_spec_t *self, lh_usize_t remaining);
 
 /**
+ * @brief Padding a field of @p size characters needs to reach the width:
+ *        width - @p size, or 0 when it is already as wide.
+ */
+lh_usize_t
+lh_str_scanf_spec_get_pad(const lh_str_scanf_spec_t *self, lh_usize_t size);
+
+/**
  * @brief Store the conversion character @p conversion as kind and case
  *        (`%X` is hex, upper case); anything else leaves the kind invalid.
  */
