@@ -1,11 +1,9 @@
 #include <lh/memory.h>
 #include <lh/memory/std.h>
-#include <lh/attribute/static.h>
 #include <lh/assert.h>
 #include <lh/math.h>
 
-LH_ATTRIBUTE_STATIC
-lh_uaddr_t
+lh_usize_t
 lh_memory_raw_get_size(const lh_ptr begin, const lh_ptr end)
 {
     lh_assert_runtime_ref(end);

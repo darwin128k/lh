@@ -413,6 +413,14 @@ add_library(${PROJECT_NAME} STATIC ${LH_LIB_SOURCES})
 set_target_properties(${PROJECT_NAME} PROPERTIES
         POSITION_INDEPENDENT_CODE ${LH_POSITION_INDEPENDENT_CODE})
 
+# Under -fPIC GCC treats every exported function as interposable and so never
+# inlines one, not even into its own file. lh is a static archive, nothing
+# interposes it: let the API calls between the bricks inline as without PIC
+# (Clang assumes this already).
+if (LH_POSITION_INDEPENDENT_CODE AND CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(${PROJECT_NAME} PRIVATE -fno-semantic-interposition)
+endif ()
+
 # Expose generated and public include directories to consumers.
 # The generated one comes FIRST on purpose: `#include <lh/config.h>` has to find
 # this build tree's header, not one that happens to sit in the source tree.

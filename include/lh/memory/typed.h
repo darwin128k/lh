@@ -8,12 +8,12 @@
 /**
  * @struct lh_memory_typed
  * @brief Raw memory bounds read as an array of equally sized elements: the
- *        bounds, the size of one element and the element count.
+ *        fields of ::lh_memory_bounds_t and the size of one element.
  */
 struct lh_memory_typed
 {
     /** Members: ::lh_memory_typed_fields. */
-    lh_memory_typed_fields(lh_memory_bounds_t);
+    lh_memory_typed_fields(lh_void);
 };
 /** @copybrief lh_memory_typed */
 typedef struct lh_memory_typed lh_memory_typed_t;
@@ -26,6 +26,12 @@ lh_memory_typed_get_bounds(lh_memory_typed_t *self);
 const lh_memory_bounds_t *
 lh_memory_typed_get_bounds_as_const(const lh_memory_typed_t *self);
 
+lh_usize_t
+lh_memory_typed_get_type_size(const lh_memory_typed_t *self);
+
+lh_void
+lh_memory_typed_set_type_size(lh_memory_typed_t *self, lh_usize_t type_size);
+
 lh_ptr
 lh_memory_typed_get_begin(const lh_memory_typed_t *self);
 
@@ -36,22 +42,19 @@ lh_ptr
 lh_memory_typed_get_end(const lh_memory_typed_t *self);
 
 lh_usize_t
-lh_memory_typed_get_type_size(const lh_memory_typed_t *self);
-
-lh_usize_t
 lh_memory_typed_get_size_of_bytes(const lh_memory_typed_t *self);
-
-lh_bool_t
-lh_memory_typed_is_multiple_of(const lh_memory_typed_t *self);
-
-lh_bool_t
-lh_memory_typed_is_valid(const lh_memory_typed_t *self);
 
 lh_bool_t
 lh_memory_typed_is_empty(const lh_memory_typed_t *self);
 
+lh_bool_t
+lh_memory_typed_is_multiple_of(const lh_memory_typed_t *self);
+
 lh_usize_t
 lh_memory_typed_get_size(const lh_memory_typed_t *self);
+
+lh_bool_t
+lh_memory_typed_is_valid(const lh_memory_typed_t *self);
 
 lh_bool_t
 lh_memory_typed_is_valid_index(const lh_memory_typed_t *self, lh_uindex_t index);
@@ -87,6 +90,12 @@ lh_uindex_t
 lh_memory_typed_get_index_from_ptr(const lh_memory_typed_t *self, const lh_ptr ptr);
 
 lh_void
+lh_memory_typed_clear(lh_memory_typed_t *self);
+
+lh_void
+lh_memory_typed_init_empty(lh_memory_typed_t *self, lh_usize_t type_size);
+
+lh_void
 lh_memory_typed_set(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usize_t type_size);
 
 lh_void
@@ -106,15 +115,6 @@ lh_memory_typed_swap(lh_memory_typed_t *self, lh_memory_typed_t *other);
 
 lh_void
 lh_memory_typed_swap_v(lh_memory_typed_t *self, lh_memory_typed_t *other);
-
-lh_void
-lh_memory_typed_retype(lh_memory_typed_t *self, lh_usize_t type_size);
-
-lh_void
-lh_memory_typed_clear(lh_memory_typed_t *self);
-
-lh_void
-lh_memory_typed_init_empty(lh_memory_typed_t *self, lh_usize_t type_size);
 
 lh_void
 lh_memory_typed_get_value_bounds(const lh_memory_typed_t *self, lh_uindex_t index,

@@ -59,6 +59,19 @@ protected:
     lh_memory_sized_allocator_t sized;
 };
 
+TEST(memory_sized_allocator_bricks, map_data_and_block_both_ways)
+{
+    alignas(16) lh_byte_t block[LH_MEMORY_SIZED_ALLOCATOR_HEADER_SIZE + 8] = {};
+
+    lh_ptr data = lh_memory_sized_allocator_get_data(block);
+    EXPECT_EQ(static_cast<lh_byte_t *>(data), block + LH_MEMORY_SIZED_ALLOCATOR_HEADER_SIZE);
+    EXPECT_EQ(lh_memory_sized_allocator_get_block(data), static_cast<lh_ptr>(block));
+
+    lh_memory_sized_allocator_set_size(data, 8);
+    EXPECT_EQ(lh_memory_sized_allocator_get_size(data), 8u);
+    EXPECT_EQ(lh_memory_sized_allocator_get_block_size(8), 8u + LH_MEMORY_SIZED_ALLOCATOR_HEADER_SIZE);
+}
+
 TEST_F(SizedAllocator, remembers_the_size)
 {
     lh_ptr p = lh_memory_sized_allocator_alloc(&sized, 100);

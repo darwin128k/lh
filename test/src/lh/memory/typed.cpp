@@ -16,6 +16,23 @@ struct IntTyped
     }
 };
 
+TEST(memory_typed_fields, are_bounds_plus_type_size)
+{
+    IntTyped t;
+
+    EXPECT_EQ(lh_memory_bounds_get_begin(lh_memory_typed_get_bounds(&t.typed)), static_cast<lh_ptr>(t.buf));
+    EXPECT_EQ(lh_memory_typed_get_size_of_bytes(&t.typed), sizeof(t.buf));
+    EXPECT_EQ(lh_memory_typed_get_size(&t.typed), 8u);
+
+    // The element count follows type_size: it is not stored.
+    lh_memory_typed_set_type_size(&t.typed, 2 * sizeof(int));
+    EXPECT_EQ(lh_memory_typed_get_type_size(&t.typed), 2 * sizeof(int));
+    EXPECT_EQ(lh_memory_typed_get_size(&t.typed), 4u);
+
+    lh_memory_typed_clear(&t.typed);
+    EXPECT_EQ(lh_memory_typed_get_size(&t.typed), 0u);
+}
+
 TEST(memory_typed_set_value, writes_value_at_index)
 {
     IntTyped t;

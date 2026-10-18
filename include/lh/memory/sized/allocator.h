@@ -48,6 +48,61 @@ typedef lh_memory_allocator_t lh_memory_sized_allocator_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
+ * @brief The block start in front of the user data @p ptr.
+ *
+ * @param ptr Pointer returned by a sized allocator.
+ * @return Start of the block, ::LH_MEMORY_SIZED_ALLOCATOR_HEADER_SIZE bytes before @p ptr.
+ */
+lh_ptr
+lh_memory_sized_allocator_get_block(const lh_ptr ptr);
+
+/**
+ * @brief The user data of the block starting at @p block.
+ *
+ * @param block Start of a block.
+ * @return ::LH_MEMORY_SIZED_ALLOCATOR_HEADER_SIZE bytes after @p block.
+ */
+lh_ptr
+lh_memory_sized_allocator_get_data(const lh_ptr block);
+
+/**
+ * @brief Bytes the allocation callbacks are asked for to hold @p size bytes:
+ *        the header plus @p size.
+ *
+ * @param size Bytes the caller needs.
+ * @return @p size plus ::LH_MEMORY_SIZED_ALLOCATOR_HEADER_SIZE.
+ * @fails ::lh_runtime_error_code_overflow
+ *        The sum does not fit in ::lh_usize_t.
+ */
+lh_usize_t
+lh_memory_sized_allocator_get_block_size(lh_usize_t size);
+
+/**
+ * @brief Size, in bytes, the block at @p ptr was last allocated or resized to.
+ *
+ * @param ptr Pointer returned by a sized allocator (not ::lh_null).
+ * @return The block's size.
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p ptr is ::lh_null.
+ */
+lh_usize_t
+lh_memory_sized_allocator_get_size(const lh_ptr ptr);
+
+/**
+ * @brief Store @p size in the header of the block at @p ptr.
+ *
+ * @param ptr  User data of a block (not ::lh_null).
+ * @param size Size to remember.
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p ptr is ::lh_null.
+ *
+ * @warning Unsafe — the size must match the block, or later resizes copy
+ *          the wrong amount.
+ */
+lh_void
+lh_memory_sized_allocator_set_size(lh_ptr ptr, lh_usize_t size);
+
+/**
  * @brief Allocate @p size bytes and remember @p size.
  *
  * A @p size of 0 is allowed: the block holds only its header and the returned
@@ -96,17 +151,6 @@ lh_memory_sized_allocator_dealloc(lh_memory_sized_allocator_t *self, lh_ptr ptr)
 lh_ptr
 lh_memory_sized_allocator_realloc(lh_memory_sized_allocator_t *self, lh_ptr ptr,
                                   lh_usize_t new_size);
-
-/**
- * @brief Size, in bytes, the block at @p ptr was last allocated or resized to.
- *
- * @param ptr Pointer returned by a sized allocator (not ::lh_null).
- * @return The block's size.
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p ptr is ::lh_null.
- */
-lh_usize_t
-lh_memory_sized_allocator_get_size(const lh_ptr ptr);
 
 LH_COMPILER_EXTERN_C_END
 

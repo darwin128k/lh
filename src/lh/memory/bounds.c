@@ -1,6 +1,5 @@
 #include <lh/memory/bounds.h>
 #include <lh/memory/std.h>
-#include <lh/attribute/static.h>
 #include <lh/memory/bounds/initializer.h>
 #include <lh/memory/raw.h>
 #include <lh/cast/const.h>
@@ -545,42 +544,6 @@ lh_memory_bounds_set_v(lh_memory_bounds_t *self, lh_ptr begin, lh_ptr end)
     lh_memory_view_set_v(s, begin, end);
 }
 
-LH_ATTRIBUTE_STATIC
-lh_void
-lh_memory_bounds_return_of_view(const lh_memory_view_t *view, lh_memory_bounds_t *out)
-{
-    lh_assert_runtime_ref(out);
-    const lh_ptr begin = lh_memory_view_get_begin(view);
-    lh_ptr_deref(out) =
-        lh_initializer_of(lh_memory_bounds_t, lh_memory_bounds_initializer, lh_cast_const(lh_ptr, begin),
-                          lh_ptr_udiff(lh_memory_view_get_end(view), begin));
-}
-
-lh_void
-lh_memory_bounds_return_v(lh_ptr begin, lh_ptr end, lh_memory_bounds_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_memory_view_t view;
-    lh_memory_view_init(lh_addr_of(view), begin, end);
-    lh_memory_bounds_return_of_view(lh_addr_of(view), out);
-}
-
-lh_void
-lh_memory_bounds_return_by_size(lh_ptr begin, lh_usize_t size, lh_memory_bounds_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_memory_view_t view;
-    lh_memory_view_init_by_size(lh_addr_of(view), begin, size);
-    lh_memory_bounds_return_of_view(lh_addr_of(view), out);
-}
-
-lh_void
-lh_memory_bounds_return_empty(lh_memory_bounds_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_ptr_deref(out) = lh_initializer_of(lh_memory_bounds_t, lh_memory_bounds_empty_initializer);
-}
-
 lh_void
 lh_memory_bounds_swap(lh_memory_bounds_t *self, lh_memory_bounds_t *other)
 {
@@ -652,18 +615,14 @@ lh_void
 lh_memory_bounds_take_first(lh_ptr begin, lh_ptr end, lh_usize_t n, lh_memory_bounds_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_memory_view_t view;
-    lh_memory_view_take_first(begin, end, n, lh_addr_of(view));
-    lh_memory_bounds_return_of_view(lh_addr_of(view), out);
+    lh_memory_view_take_first(begin, end, n, lh_ptr_cast(lh_memory_view_t, out));
 }
 
 lh_void
 lh_memory_bounds_take_last(lh_ptr begin, lh_ptr end, lh_usize_t n, lh_memory_bounds_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_memory_view_t view;
-    lh_memory_view_take_last(begin, end, n, lh_addr_of(view));
-    lh_memory_bounds_return_of_view(lh_addr_of(view), out);
+    lh_memory_view_take_last(begin, end, n, lh_ptr_cast(lh_memory_view_t, out));
 }
 
 lh_void
@@ -672,9 +631,7 @@ lh_memory_bounds_from_begin(const lh_memory_bounds_t *self, lh_usize_t size,
 {
     lh_assert_runtime_ref(out);
     const lh_memory_view_t *s = lh_ptr_ccast(lh_memory_view_t, self);
-    lh_memory_view_t view;
-    lh_memory_view_from_begin(s, size, lh_addr_of(view));
-    lh_memory_bounds_return_of_view(lh_addr_of(view), out);
+    lh_memory_view_from_begin(s, size, lh_ptr_cast(lh_memory_view_t, out));
 }
 
 lh_void
@@ -682,9 +639,7 @@ lh_memory_bounds_from_end(const lh_memory_bounds_t *self, lh_usize_t size, lh_me
 {
     lh_assert_runtime_ref(out);
     const lh_memory_view_t *s = lh_ptr_ccast(lh_memory_view_t, self);
-    lh_memory_view_t view;
-    lh_memory_view_from_end(s, size, lh_addr_of(view));
-    lh_memory_bounds_return_of_view(lh_addr_of(view), out);
+    lh_memory_view_from_end(s, size, lh_ptr_cast(lh_memory_view_t, out));
 }
 
 lh_void
@@ -693,9 +648,7 @@ lh_memory_bounds_between(const lh_memory_bounds_t *self, lh_ptr begin, lh_ptr en
 {
     lh_assert_runtime_ref(out);
     const lh_memory_view_t *s = lh_ptr_ccast(lh_memory_view_t, self);
-    lh_memory_view_t view;
-    lh_memory_view_between(s, begin, end, lh_addr_of(view));
-    lh_memory_bounds_return_of_view(lh_addr_of(view), out);
+    lh_memory_view_between(s, begin, end, lh_ptr_cast(lh_memory_view_t, out));
 }
 
 lh_void
@@ -704,9 +657,7 @@ lh_memory_bounds_from_offset(const lh_memory_bounds_t *self, lh_uoffset_t offset
 {
     lh_assert_runtime_ref(out);
     const lh_memory_view_t *s = lh_ptr_ccast(lh_memory_view_t, self);
-    lh_memory_view_t view;
-    lh_memory_view_from_offset(s, offset, size, lh_addr_of(view));
-    lh_memory_bounds_return_of_view(lh_addr_of(view), out);
+    lh_memory_view_from_offset(s, offset, size, lh_ptr_cast(lh_memory_view_t, out));
 }
 
 lh_void
@@ -714,9 +665,7 @@ lh_memory_bounds_drop_first(const lh_memory_bounds_t *self, lh_usize_t n, lh_mem
 {
     lh_assert_runtime_ref(out);
     const lh_memory_view_t *s = lh_ptr_ccast(lh_memory_view_t, self);
-    lh_memory_view_t view;
-    lh_memory_view_drop_first(s, n, lh_addr_of(view));
-    lh_memory_bounds_return_of_view(lh_addr_of(view), out);
+    lh_memory_view_drop_first(s, n, lh_ptr_cast(lh_memory_view_t, out));
 }
 
 lh_void
@@ -724,9 +673,7 @@ lh_memory_bounds_drop_last(const lh_memory_bounds_t *self, lh_usize_t n, lh_memo
 {
     lh_assert_runtime_ref(out);
     const lh_memory_view_t *s = lh_ptr_ccast(lh_memory_view_t, self);
-    lh_memory_view_t view;
-    lh_memory_view_drop_last(s, n, lh_addr_of(view));
-    lh_memory_bounds_return_of_view(lh_addr_of(view), out);
+    lh_memory_view_drop_last(s, n, lh_ptr_cast(lh_memory_view_t, out));
 }
 
 lh_void
@@ -735,9 +682,7 @@ lh_memory_bounds_trim(const lh_memory_bounds_t *self, lh_usize_t left, lh_usize_
 {
     lh_assert_runtime_ref(out);
     const lh_memory_view_t *s = lh_ptr_ccast(lh_memory_view_t, self);
-    lh_memory_view_t view;
-    lh_memory_view_trim(s, left, right, lh_addr_of(view));
-    lh_memory_bounds_return_of_view(lh_addr_of(view), out);
+    lh_memory_view_trim(s, left, right, lh_ptr_cast(lh_memory_view_t, out));
 }
 
 lh_void
@@ -745,9 +690,9 @@ lh_memory_bounds_as_view(const lh_memory_bounds_t *self, lh_memory_view_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_memory_view_t view;
-    lh_memory_view_set(lh_addr_of(view), lh_memory_bounds_get_begin(self),
-                       lh_memory_bounds_get_end(self));
-    /* A reinterpretation of the same endpoints, so raw set: init would validate
-       and reject the null, null pair an empty bounds reinterprets to. */
+    /* The same fields, so raw setters: init would validate and reject the
+       uninitialized bounds an empty one reinterprets to. */
+    lh_memory_view_set_begin(lh_addr_of(view), lh_memory_bounds_get_begin(self));
+    lh_memory_view_set_size(lh_addr_of(view), lh_memory_bounds_get_size(self));
     lh_ptr_deref(out) = view;
 }

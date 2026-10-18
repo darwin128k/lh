@@ -8,6 +8,13 @@
 namespace
 {
 
+TEST(memory_raw_get_size, measures_half_open_span)
+{
+    unsigned char buf[5] = {};
+    EXPECT_EQ(lh_memory_raw_get_size(buf, buf + 5), 5u);
+    EXPECT_EQ(lh_memory_raw_get_size(buf + 2, buf + 2), 0u);
+}
+
 TEST(memory_raw_copy, destination_smaller_truncates)
 {
     lh_byte_t dst[2] = {};
