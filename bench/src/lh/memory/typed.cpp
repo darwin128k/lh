@@ -10,7 +10,7 @@ BM_memory_typed_get_size(benchmark::State &state)
 {
     std::vector<int> buf(1024);
     lh_memory_typed_t t =
-        lh_memory_typed_initializer(buf.data(), buf.data() + buf.size(), sizeof(int));
+        lh_memory_typed_initializer(buf.data(), buf.size() * sizeof(int), sizeof(int));
     for (auto _ : state)
     {
         benchmark::DoNotOptimize(t);
@@ -24,7 +24,7 @@ BM_memory_typed_get_ptr_from_begin(benchmark::State &state)
 {
     std::vector<int> buf(1024);
     lh_memory_typed_t t =
-        lh_memory_typed_initializer(buf.data(), buf.data() + buf.size(), sizeof(int));
+        lh_memory_typed_initializer(buf.data(), buf.size() * sizeof(int), sizeof(int));
     lh_usize_t index = 512;
     for (auto _ : state)
     {
@@ -40,7 +40,7 @@ BM_memory_typed_is_valid_index(benchmark::State &state)
 {
     std::vector<int> buf(1024);
     lh_memory_typed_t t =
-        lh_memory_typed_initializer(buf.data(), buf.data() + buf.size(), sizeof(int));
+        lh_memory_typed_initializer(buf.data(), buf.size() * sizeof(int), sizeof(int));
     lh_usize_t index = 512;
     for (auto _ : state)
     {
@@ -56,7 +56,7 @@ BM_memory_typed_set_value(benchmark::State &state)
 {
     std::vector<int> buf(1024, 0);
     lh_memory_typed_t t =
-        lh_memory_typed_initializer(buf.data(), buf.data() + buf.size(), sizeof(int));
+        lh_memory_typed_initializer(buf.data(), buf.size() * sizeof(int), sizeof(int));
     int value = 42;
     for (auto _ : state)
     {
@@ -71,7 +71,7 @@ BM_memory_typed_set_values_64(benchmark::State &state)
     std::vector<int> buf(1024, 0);
     std::vector<int> values(64, 7);
     lh_memory_typed_t t =
-        lh_memory_typed_initializer(buf.data(), buf.data() + buf.size(), sizeof(int));
+        lh_memory_typed_initializer(buf.data(), buf.size() * sizeof(int), sizeof(int));
     for (auto _ : state)
     {
         lh_memory_typed_set_values(&t, 100, values.data(), values.size());

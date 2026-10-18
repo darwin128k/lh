@@ -10,21 +10,21 @@
 #include <lh/util/wstr/ptr.h>
 
 /**
- * @def lh_wstr_view_initializer(begin, end)
- * @brief Brace-enclosed initializer for ::lh_wstr_view_t as <tt>[begin, end)</tt>.
+ * @def lh_wstr_view_initializer(begin, size)
+ * @brief Brace-enclosed initializer for ::lh_wstr_view_t as <tt>[begin, begin + size)</tt>.
  *
  * Delegates to ::lh_memory_view_initializer.
  *
- * @param begin Inclusive begin pointer (const lh_wstr_ptr).
- * @param end   Exclusive end pointer (one past the last payload ::lh_wchar_t).
+ * @param begin First wide character (const lh_wstr_ptr).
+ * @param size  Length in bytes, not in ::lh_wchar_t: the count times ::LH_WCHAR_T_SIZE.
  *
  * @see lh_memory_view_initializer
  */
-#define lh_wstr_view_initializer(begin, end) lh_memory_view_initializer(begin, end)
+#define lh_wstr_view_initializer(begin, size) lh_memory_view_initializer(begin, size)
 
 /**
  * @def lh_wstr_view_empty_initializer()
- * @brief Uninitialized / empty view (::lh_null, ::lh_null).
+ * @brief Uninitialized / empty view (::lh_null, 0).
  *
  * Delegates to ::lh_memory_view_empty_initializer.
  *
@@ -36,7 +36,7 @@
  * @def lh_wstr_view_empty()
  * @brief Typed empty ::lh_wstr_view_t for function arguments.
  *
- * Same endpoints as ::lh_wstr_view_empty_initializer. No scan.
+ * Same fields as ::lh_wstr_view_empty_initializer. No scan.
  *
  * Example usage:
  * @code{.c}
@@ -52,8 +52,8 @@
  * @def lh_wstr_view_initializer_lit(s)
  * @brief Brace-enclosed view over a wide string literal @p s, length at compile time.
  *
- * Endpoints are ::lh_wstr_ptr_get_begin(@p s) and ::lh_wstr_ptr_get_end(@p s).
- * Payload length is ::lh_wstr_ptr_get_size (array capacity minus the stored @c L'\\0').
+ * Begin is ::lh_wstr_ptr_get_begin(@p s), size is ::lh_wstr_ptr_get_size(@p s)
+ * (array capacity minus the stored @c L'\\0') times ::LH_WCHAR_T_SIZE.
  * @p s must be a wide string literal or a `wchar_t` array object, not a decayed pointer.
  *
  * Example usage:
@@ -65,13 +65,13 @@
  * @see lh_wstr_ptr_get_size
  */
 #define lh_wstr_view_initializer_lit(s)                                                            \
-    lh_wstr_view_initializer(lh_wstr_ptr_get_begin(s), lh_wstr_ptr_get_end(s))
+    lh_wstr_view_initializer(lh_wstr_ptr_get_begin(s), lh_wstr_ptr_get_size(s) * LH_WCHAR_T_SIZE)
 
 /**
  * @def lh_wstr_view_lit(s)
  * @brief Compound literal ::lh_wstr_view_t over wide string literal @p s.
  *
- * Same endpoints as ::lh_wstr_view_initializer_lit, as a typed value for
+ * Same fields as ::lh_wstr_view_initializer_lit, as a typed value for
  * function arguments. No runtime scan of @p s.
  *
  * Example usage:

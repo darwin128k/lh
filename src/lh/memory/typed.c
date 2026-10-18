@@ -227,8 +227,7 @@ lh_memory_typed_init_empty(lh_memory_typed_t *self, lh_usize_t type_size)
 lh_void
 lh_memory_typed_set(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usize_t type_size)
 {
-    const lh_memory_bounds_t bounds = lh_memory_bounds_initializer(begin, end);
-    lh_memory_bounds_assign(lh_memory_typed_get_bounds(self), lh_addr_of(bounds));
+    lh_memory_bounds_set(lh_memory_typed_get_bounds(self), begin, end);
     lh_memory_typed_retype(self, type_size);
 }
 
@@ -255,7 +254,8 @@ lh_memory_typed_assign_v(lh_memory_typed_t *self, const lh_memory_typed_t *other
 lh_void
 lh_memory_typed_set_v(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usize_t type_size)
 {
-    const lh_memory_typed_t typed = lh_memory_typed_initializer(begin, end, type_size);
+    const lh_memory_typed_t typed =
+        lh_memory_typed_initializer(begin, lh_ptr_udiff(end, begin), type_size);
     lh_memory_typed_assign_v(self, lh_addr_of(typed));
 }
 
