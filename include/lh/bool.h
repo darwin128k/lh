@@ -32,4 +32,13 @@
  */
 typedef lh_byte_t lh_bool_t;
 
+/**
+ * @def lh_bool_eq(a, b)
+ * @brief `1` when @p a and @p b are both true or both false, else `0`.
+ *
+ * Not `a == b`: any nonzero ::lh_bool_t is true, so `2` and `1` are equal as
+ * booleans even though they differ as numbers.
+ */
+#define lh_bool_eq(a, b) (!(a) == !(b))
+
 #endif /* LH_BOOL_H */

@@ -12,16 +12,29 @@
 #include <lh/assert.h>
 
 static const lh_char_t m_whitespace_chars[] = {lh_char_map_space, lh_char_map_lf, lh_char_map_cr,
-                                               lh_char_map_ht,    lh_char_map_vt, lh_char_map_nul};
+                                               lh_char_map_ht,    lh_char_map_vt, lh_char_map_ff,
+                                               lh_char_map_nul};
 
 static const lh_usize_t m_whitespace_size = lh_str_ptr_get_size(m_whitespace_chars);
 
-/* Bitset for m_whitespace_chars[0..m_whitespace_size): HT LF VT CR SP (NUL is the array sentinel).
+/* Bitset for m_whitespace_chars[0..m_whitespace_size): HT LF VT FF CR SP (NUL is the array sentinel).
  */
 static const lh_byte_t m_whitespace_set[LH_STR_PTR_CHAR_SET_BYTES] = {
-    [1] = 0x2Eu, /* HT|LF|VT|CR */
+    [1] = 0x3Eu, /* HT|LF|VT|FF|CR */
     [4] = 0x01u, /* SP */
 };
+
+lh_str_cptr
+lh_str_ptr_get_whitespace(lh_void)
+{
+    return m_whitespace_chars;
+}
+
+lh_usize_t
+lh_str_ptr_get_whitespace_size(lh_void)
+{
+    return m_whitespace_size;
+}
 
 /** Default whitespace bitset, or a filled local when @p chars is custom. */
 LH_ATTRIBUTE_FORCE_INLINE const lh_byte_t *
