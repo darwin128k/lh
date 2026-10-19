@@ -46,10 +46,10 @@ typedef struct lh_ui_canvas_web_glyphs
 typedef struct lh_ui_canvas_web
 {
     lh_ui_web_buf_t buf; /**< The caller's bytes; failed once they ran out. */
-    unsigned width;      /**< Frame width in pixels. */
-    unsigned height;     /**< Frame height in pixels. */
-    unsigned ops;        /**< Ops recorded so far. */
-    int comma;           /**< Non-zero when the next op needs a separating comma. */
+    lh_uint_t width;     /**< Frame width in pixels. */
+    lh_uint_t height;    /**< Frame height in pixels. */
+    lh_uint_t ops;       /**< Ops recorded so far. */
+    lh_bool_t comma;     /**< True when the next op needs a separating comma. */
     lh_ui_canvas_web_glyphs_t
         *glyphs;            /**< Which covers the reader has; ::lh_null = this frame's own. */
     lh_bool_t glyphs_owned; /**< @c glyphs was allocated here and is freed on close. */
@@ -65,8 +65,8 @@ extern const lh_ui_canvas_backend_t lh_ui_canvas_backend_web;
  * ::lh_os_fs_file_write.
  */
 lh_bool_t
-lh_ui_canvas_web_open_mem(lh_ui_canvas_web_t *self, char *buf, lh_usize_t cap, unsigned width,
-                          unsigned height);
+lh_ui_canvas_web_open_mem(lh_ui_canvas_web_t *self, lh_str_ptr buf, lh_usize_t cap, lh_uint_t width,
+                          lh_uint_t height);
 
 /** Forget every cover @p self says was sent: the next frame carries them again. */
 lh_void
@@ -88,7 +88,7 @@ lh_bool_t
 lh_ui_canvas_web_close(lh_ui_canvas_web_t *self);
 
 /** Bytes of JSON after a successful close, else "". */
-const char *
+const lh_str_ptr
 lh_ui_canvas_web_bytes(const lh_ui_canvas_web_t *self);
 
 /** How many of those bytes. */
