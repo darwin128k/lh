@@ -320,6 +320,7 @@ set(LH_TEST_UI_SOURCES
         ${LH_TEST_SRC_PATH}/lh/ui/canvas/sw.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/canvas/web.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/host.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/web/html.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/page.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/ws.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/viewport3d.cpp

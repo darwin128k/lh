@@ -56,73 +56,50 @@ lh_ui_web_html_tag(const lh_str_ptr name, const lh_ui_web_html_attr_t *attrs, lh
     lh_ptr_deref(out) = n;
 }
 
-/** Append @p s as element text: `&`, `<` and `>` escaped. */
-static lh_void
-html_put_esc_text(lh_ui_web_buf_t *out, const lh_str_ptr s)
+const lh_str_ptr
+lh_ui_web_html_entity_of(lh_char_t c, lh_bool_t in_attr)
 {
-    if (s == lh_null)
+    switch (c)
+    {
+    case '&':
+        return "&amp;";
+    case '<':
+        return "&lt;";
+    case '>':
+        return in_attr ? lh_null : "&gt;";
+    case '"':
+        return in_attr ? "&quot;" : lh_null;
+    default:
+        return lh_null;
+    }
+}
+
+lh_void
+lh_ui_web_html_put_escaped(lh_ui_web_buf_t *out, const lh_str_ptr s, lh_bool_t in_attr)
+{
+    lh_str_cptr at = s;
+
+    if (lh_null_eq(at))
     {
         return;
     }
-    while (lh_ptr_deref(s) != '\0')
+    for (; lh_ptr_deref(at) != '\0'; ++at)
     {
-        lh_char_t c;
+        const lh_str_cptr entity = lh_ui_web_html_entity_of(lh_ptr_deref(at), in_attr);
 
-        c = lh_ptr_deref(s++);
-        if (c == '&')
+        if (lh_null_ne(entity))
         {
-            lh_ui_web_buf_lit(out, "&amp;", 5u);
-        }
-        else if (c == '<')
-        {
-            lh_ui_web_buf_lit(out, "&lt;", 4u);
-        }
-        else if (c == '>')
-        {
-            lh_ui_web_buf_lit(out, "&gt;", 4u);
+            lh_ui_web_buf_raw(out, entity);
         }
         else
         {
-            lh_ui_web_buf_lit(out, lh_addr_of(c), 1u);
+            lh_ui_web_buf_lit(out, at, 1u);
         }
     }
 }
 
-/** Append @p s as an attribute value: `&`, `"` and `<` escaped. */
-static lh_void
-html_put_esc_attr(lh_ui_web_buf_t *out, const lh_str_ptr s)
-{
-    if (s == lh_null)
-    {
-        return;
-    }
-    while (lh_ptr_deref(s) != '\0')
-    {
-        lh_char_t c;
-
-        c = lh_ptr_deref(s++);
-        if (c == '&')
-        {
-            lh_ui_web_buf_lit(out, "&amp;", 5u);
-        }
-        else if (c == '"')
-        {
-            lh_ui_web_buf_lit(out, "&quot;", 6u);
-        }
-        else if (c == '<')
-        {
-            lh_ui_web_buf_lit(out, "&lt;", 4u);
-        }
-        else
-        {
-            lh_ui_web_buf_lit(out, lh_addr_of(c), 1u);
-        }
-    }
-}
-
-/** Append @p n attributes as ` name="value"` (or bare ` name`). */
-static lh_void
-html_put_attrs(lh_ui_web_buf_t *out, const lh_ui_web_html_attr_t *attrs, lh_u16_t n)
+lh_void
+lh_ui_web_html_put_attrs(lh_ui_web_buf_t *out, const lh_ui_web_html_attr_t *attrs, lh_u16_t n)
 {
     lh_u16_t i;
 
@@ -133,20 +110,10 @@ html_put_attrs(lh_ui_web_buf_t *out, const lh_ui_web_html_attr_t *attrs, lh_u16_
         if (attrs[i].value != lh_null)
         {
             lh_ui_web_buf_lit(out, "=\"", 2u);
-            html_put_esc_attr(out, attrs[i].value);
+            lh_ui_web_html_put_escaped(out, attrs[i].value, lh_bool_true);
             lh_ui_web_buf_lit(out, "\"", 1u);
         }
     }
-}
-
-/** Append the opening tag of @p node with its attributes. */
-static lh_void
-html_open_tag(lh_ui_web_buf_t *out, const lh_ui_web_html_t *node)
-{
-    lh_ui_web_buf_lit(out, "<", 1u);
-    lh_ui_web_buf_raw(out, node->u.tag.name);
-    html_put_attrs(out, node->u.tag.attrs, node->u.tag.nattrs);
-    lh_ui_web_buf_lit(out, ">", 1u);
 }
 
 lh_void
@@ -157,7 +124,10 @@ lh_ui_web_html_open(lh_ui_web_buf_t *out, const lh_ui_web_html_t *node)
         lh_ui_web_buf_fail(out);
         return;
     }
-    html_open_tag(out, node);
+    lh_ui_web_buf_lit(out, "<", 1u);
+    lh_ui_web_buf_raw(out, node->u.tag.name);
+    lh_ui_web_html_put_attrs(out, node->u.tag.attrs, node->u.tag.nattrs);
+    lh_ui_web_buf_lit(out, ">", 1u);
 }
 
 lh_void
@@ -193,13 +163,13 @@ lh_ui_web_html_emit(lh_ui_web_buf_t *out, const lh_ui_web_html_t *node)
         lh_ui_web_buf_lit(out, "<!doctype html>", 15u);
         break;
     case lh_ui_web_html_kind_text:
-        html_put_esc_text(out, node->u.text);
+        lh_ui_web_html_put_escaped(out, node->u.text, lh_bool_false);
         break;
     case lh_ui_web_html_kind_raw:
         lh_ui_web_buf_raw(out, node->u.raw);
         break;
     case lh_ui_web_html_kind_tag:
-        html_open_tag(out, node);
+        lh_ui_web_html_open(out, node);
         if (node->u.tag.void_el)
         {
             break;
