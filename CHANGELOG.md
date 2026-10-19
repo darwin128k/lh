@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Pull INI parser `lh_ini_parser_t` (`lh/ini/parser.h`, umbrella `lh/ini.h`): one entry at a time as `lh_ini_entry_t` (section header or key/value), dialect with `;`/`#` full-line comments, `[section]`, `key = value`, UTF-8 BOM skip; `lh_ini_error_t` / `lh_ini_parser_get_line` on a bad line
+- `lh_value_t` (`lh/value.h`): tagged none / bool / sint / uint / real / str / ptr; `lh_pair_t` (`lh/pair.h`) of two values for INI keys
+- `LH_LIBRARY_OPTION_REAL` (`DOUBLE` / `FLOAT` / `NONE`): chooses `lh_real_t` in `lh/real.h`; `NONE` drops the real kind from `lh_value_t` so soft-float stays out of the image
+- Line helpers: `lh_str_view_split_next_line` / `lh_str_view_split_once` (`lh/str/split/`), `lh_str_line_reader_t` (`lh/str/line/reader.h`)
+- `lh_str_view_trim` / `_ltrim` / `_rtrim`, `_skip_bom`, `_contains_of`, `_get_whitespace` (`lh/str/view.h`); `lh_char_is_whitespace` (`lh/char/space.h`); whitespace accessors on `lh/util/str/ptr.h` (set includes `\f`)
+- `lh_bool_eq` (`lh/bool.h`)
+- CMake `LH_STATIC_LIBGCC` (`OFF`): INTERFACE `-static-libgcc` / `-static-libstdc++` for GCC/Clang dependents (hosts with an old `libgcc_s`, e.g. HLDS)
 - `lh_numeric_big_t` (`lh/numeric/big.h`, fields in `big/fields.h`): a 256-bit unsigned number with `lh_numeric_big_get_word` / `_set_word`, `_set_u32`, `_mul_u32`, `_shl`, `_compare`, `_sub` — the arithmetic `lh_str_ptr_format_float` used to keep to itself
 - `lh_str_ptr_format_put` (`lh/str/format/put.h`), the all-or-nothing write the formatters finish with; `lh_str_format_float_floor_log10_pow2` (`lh/str/format/float.h`); `lh_str_ptr_format_text_walk` (`lh/str/format/text.h`); `lh_str_ptr_format_bytes_hex_dump_line_size` (`lh/str/format/bytes.h`); `lh_str_ptr_fill_char_set` (`lh/util/str/ptr.h`) — public instead of file-local
 - Getters and setters for every field of `lh_str_scanf_spec_t` (`lh_str_scanf_spec_get_kind` / `_set_kind`, … `_literal_size`), `lh_str_scanf_spec_clear`, `_get_limit`, `_set_conversion` (`lh/str/scanf/spec.h`, fields in `spec/fields.h`), and the walker's steps `lh_str_ptr_scanf_next_literal`, `_flags`, `_number` (`lh/str/scanf/next.h`)

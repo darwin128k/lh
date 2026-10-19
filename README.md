@@ -88,6 +88,7 @@ Details are in [scripts/README.md](scripts/README.md).
 | `LH_BUILD_BENCH` | `OFF` | Build Google Benchmark microbenchmarks (`bench/lib/benchmark` submodule) |
 | `LH_DOCS_GRAPHS` | `ON` | Include Graphviz dependency graphs |
 | `LH_ENABLE_RELEASE_MAX_OPT` | `ON` | Aggressive Release optimizations for the library (`-O3`, section GC; `/O2 /Oi /Ot /Gy` on MSVC) |
+| `LH_STATIC_LIBGCC` | `OFF` | GCC/Clang: pass `-static-libgcc` and `-static-libstdc++` to dependents (INTERFACE). For hosts that ship an older `libgcc_s` (e.g. HLDS) |
 | `LH_OS_WINDOWS_VERSION` | `0x0501` | Windows only: `WINVER` / `_WIN32_WINNT` for lh's C and C++ (`0x0501` = XP, `0x0600` = Vista; four hex digits, `0x0501` or newer). The `scripts/build-windows-*.bat` wrappers set it |
 | `LH_LIBRARY_OPTION_LTO` | `FAT` | Release LTO of the static library: `OFF` (machine code, links anywhere), `ON` (IR only, host must link with LTO and the same compiler), `FAT` (IR + machine code, links with or without LTO; falls back to `ON` on MSVC / Clang < 17) |
 
@@ -112,6 +113,7 @@ Manual (no-CMake) builds set the same names directly in `config.h` or via `-D`.
 | `LH_LIBRARY_OPTION_OS` | `ON` | Compile the OS layer (files, directories, sockets, clock); `OFF` for freestanding / bare-metal builds |
 | `LH_LIBRARY_OPTION_OS_WERROR` | `ON` on Windows, else `OFF` | OS last-error slot uses `lh_werror_t` / `FormatMessageW` instead of `lh_error_t` / `FormatMessageA` |
 | `LH_LIBRARY_OPTION_MATH_FPU` | `OFF` | `ON`: compile float math (`fpoint` / `fsize` / `frect`, `vec` / `quat` / `mat4`) on `lh_math_fscalar_t`; UI aliases those. `OFF`: UI aliases `lh_math_scalar_t` / `point` / `size` / `rect` |
+| `LH_LIBRARY_OPTION_REAL` | `DOUBLE` | `lh_real_t` for `lh_value_t`: `DOUBLE`, `FLOAT`, or `NONE` (no real kind, no soft-float from values) |
 | `LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB` | `ON` | Default `lh_runtime_terminate` handler is `abort()` and the default check handler prints to `stderr`; `OFF` leaves both to the host |
 | `LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT` | `FULL` | What a failed runtime check reports (`lh_exception_origin_t`): `NONE` (error code only), `LOCATION` (+ file, line, message), `FULL` (+ function and condition text) |
 | `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB` | `ON` | Seed the runtime allocator with the default functions below at startup; `OFF` leaves it null until `lh_memory_allocator_set()` is called |
@@ -360,7 +362,7 @@ How to build a tree of them — by hand or from a stylesheet with
 
 ## Version
 
-Current version: **0.3.0** — history and release notes in [CHANGELOG](CHANGELOG.md).
+Current version: **0.4.0** — history and release notes in [CHANGELOG](CHANGELOG.md).
 
 Documentation for tools is in [tools/README.md](tools/README.md).
 
