@@ -7,6 +7,7 @@
 #define LH_SRC_OS_SYSTEM_POSIX_SURFACE_RGB565_H
 
 #include <lh/attribute/force_inline.h>
+#include <lh/bit/ops.h>
 #include <lh/cast/static.h>
 #include <lh/numeric/fixed/types.h>
 
@@ -18,11 +19,14 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_u32_t
 lh_os_system_posix_surface_from_565(lh_u16_t pixel)
 {
-    const lh_u32_t r = lh_cast_static(lh_u32_t, (pixel >> 11)) & 0x1fU;
-    const lh_u32_t g = lh_cast_static(lh_u32_t, (pixel >> 5)) & 0x3fU;
-    const lh_u32_t b = lh_cast_static(lh_u32_t, pixel) & 0x1fU;
+    const lh_u32_t r = lh_bit_and(lh_bit_shr(lh_cast_static(lh_u32_t, pixel), 11), 0x1fU);
+    const lh_u32_t g = lh_bit_and(lh_bit_shr(lh_cast_static(lh_u32_t, pixel), 5), 0x3fU);
+    const lh_u32_t b = lh_bit_and(lh_cast_static(lh_u32_t, pixel), 0x1fU);
 
-    return ((r << 3 | r >> 2) << 16) | ((g << 2 | g >> 4) << 8) | (b << 3 | b >> 2);
+    return lh_bit_or(
+        lh_bit_or(lh_bit_shl(lh_bit_or(lh_bit_shl(r, 3), lh_bit_shr(r, 2)), 16),
+                  lh_bit_shl(lh_bit_or(lh_bit_shl(g, 2), lh_bit_shr(g, 4)), 8)),
+        lh_bit_or(lh_bit_shl(b, 3), lh_bit_shr(b, 2)));
 }
 
 #endif /* LH_SRC_OS_SYSTEM_POSIX_SURFACE_RGB565_H */

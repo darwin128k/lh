@@ -67,7 +67,7 @@ lh_os_system_posix_input_wheel_of(lh_u32_t xbutton, lh_s32_t *dx, lh_s32_t *dy)
     }
     lh_ptr_deref(dx) = x;
     lh_ptr_deref(dy) = y;
-    return lh_type_cast(lh_bool_t, x != 0 || y != 0);
+    return lh_type_cast(lh_bool_t, !lh_math_is_zero(x) || !lh_math_is_zero(y));
 }
 
 lh_os_input_mods_t
@@ -75,33 +75,51 @@ lh_os_system_posix_input_mods_of(lh_u32_t state)
 {
     return lh_type_cast(
         lh_os_input_mods_t,
-        lh_os_input_mods_if((state & LH_OS_SYSTEM_POSIX_X_SHIFT_MASK) != 0U, LH_OS_INPUT_MODS_SHIFT) |
-            lh_os_input_mods_if((state & LH_OS_SYSTEM_POSIX_X_CONTROL_MASK) != 0U,
-                                LH_OS_INPUT_MODS_CONTROL) |
-            lh_os_input_mods_if((state & LH_OS_SYSTEM_POSIX_X_MOD1_MASK) != 0U, LH_OS_INPUT_MODS_ALT) |
-            lh_os_input_mods_if((state & LH_OS_SYSTEM_POSIX_X_MOD4_MASK) != 0U, LH_OS_INPUT_MODS_META) |
-            lh_os_input_mods_if((state & LH_OS_SYSTEM_POSIX_X_LOCK_MASK) != 0U,
-                                LH_OS_INPUT_MODS_CAPS_LOCK) |
-            lh_os_input_mods_if((state & LH_OS_SYSTEM_POSIX_X_MOD2_MASK) != 0U,
-                                LH_OS_INPUT_MODS_NUM_LOCK));
+        lh_bit_or(
+            lh_os_input_mods_if(
+                !lh_math_is_zero(lh_bit_and(state, LH_OS_SYSTEM_POSIX_X_SHIFT_MASK)),
+                LH_OS_INPUT_MODS_SHIFT),
+            lh_bit_or(
+                lh_os_input_mods_if(
+                    !lh_math_is_zero(lh_bit_and(state, LH_OS_SYSTEM_POSIX_X_CONTROL_MASK)),
+                    LH_OS_INPUT_MODS_CONTROL),
+                lh_bit_or(
+                    lh_os_input_mods_if(
+                        !lh_math_is_zero(lh_bit_and(state, LH_OS_SYSTEM_POSIX_X_MOD1_MASK)),
+                        LH_OS_INPUT_MODS_ALT),
+                    lh_bit_or(
+                        lh_os_input_mods_if(
+                            !lh_math_is_zero(lh_bit_and(state, LH_OS_SYSTEM_POSIX_X_MOD4_MASK)),
+                            LH_OS_INPUT_MODS_META),
+                        lh_bit_or(
+                            lh_os_input_mods_if(
+                                !lh_math_is_zero(lh_bit_and(state, LH_OS_SYSTEM_POSIX_X_LOCK_MASK)),
+                                LH_OS_INPUT_MODS_CAPS_LOCK),
+                            lh_os_input_mods_if(
+                                !lh_math_is_zero(lh_bit_and(state, LH_OS_SYSTEM_POSIX_X_MOD2_MASK)),
+                                LH_OS_INPUT_MODS_NUM_LOCK)))))));
 }
 
 lh_u32_t
 lh_os_system_posix_input_buttons_of(lh_u32_t state)
 {
-    return lh_os_input_button_mask_if((state & LH_OS_SYSTEM_POSIX_X_BUTTON1_MASK) != 0U,
-                                      lh_os_input_button_primary) |
-           lh_os_input_button_mask_if((state & LH_OS_SYSTEM_POSIX_X_BUTTON2_MASK) != 0U,
-                                      lh_os_input_button_middle) |
-           lh_os_input_button_mask_if((state & LH_OS_SYSTEM_POSIX_X_BUTTON3_MASK) != 0U,
-                                      lh_os_input_button_secondary);
+    return lh_bit_or(
+        lh_os_input_button_mask_if(
+            !lh_math_is_zero(lh_bit_and(state, LH_OS_SYSTEM_POSIX_X_BUTTON1_MASK)),
+            lh_os_input_button_primary),
+        lh_bit_or(lh_os_input_button_mask_if(
+                      !lh_math_is_zero(lh_bit_and(state, LH_OS_SYSTEM_POSIX_X_BUTTON2_MASK)),
+                      lh_os_input_button_middle),
+                  lh_os_input_button_mask_if(
+                      !lh_math_is_zero(lh_bit_and(state, LH_OS_SYSTEM_POSIX_X_BUTTON3_MASK)),
+                      lh_os_input_button_secondary)));
 }
 
 lh_u32_t
 lh_os_system_posix_input_buttons_held(lh_u32_t state, lh_u32_t side_held)
 {
-    const lh_u32_t side = lh_os_input_button_to_mask(lh_os_input_button_back) |
-                          lh_os_input_button_to_mask(lh_os_input_button_forward);
+    const lh_u32_t side = lh_bit_or(lh_os_input_button_to_mask(lh_os_input_button_back),
+                                    lh_os_input_button_to_mask(lh_os_input_button_forward));
 
-    return lh_os_system_posix_input_buttons_of(state) | (side_held & side);
+    return lh_bit_or(lh_os_system_posix_input_buttons_of(state), lh_bit_and(side_held, side));
 }

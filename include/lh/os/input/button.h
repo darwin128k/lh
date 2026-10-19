@@ -72,7 +72,7 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_u32_t
 lh_os_input_button_mask_if(lh_bool_t held, lh_os_input_button_t button)
 {
-    return held ? lh_os_input_button_to_mask(button) : 0U;
+    return held ? lh_os_input_button_to_mask(button) : lh_type_cast(lh_u32_t, 0U);
 }
 
 LH_COMPILER_EXTERN_C_END
