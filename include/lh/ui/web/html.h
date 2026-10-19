@@ -86,6 +86,28 @@ lh_ui_web_html_tag(const lh_str_ptr name, const lh_ui_web_html_attr_t *attrs, lh
                    const lh_ui_web_html_t *const *kids, lh_u16_t nkids, lh_bool_t void_el,
                    lh_ui_web_html_t *out);
 
+/**
+ * @brief The entity that stands for @p c in HTML, or ::lh_null when @p c goes as is.
+ *
+ * Element text escapes `&`, `<` and `>`; an attribute value (@p in_attr) escapes
+ * `&`, `<` and `"`.
+ */
+const lh_str_ptr
+lh_ui_web_html_entity_of(lh_char_t c, lh_bool_t in_attr);
+
+/**
+ * @brief Append NUL-terminated @p s with ::lh_ui_web_html_entity_of applied:
+ *        as element text, or as an attribute value when @p in_attr.
+ *
+ * ::lh_null @p s appends nothing.
+ */
+lh_void
+lh_ui_web_html_put_escaped(lh_ui_web_buf_t *out, const lh_str_ptr s, lh_bool_t in_attr);
+
+/** Append @p n attributes as ` name="value"` (or bare ` name`), values escaped. */
+lh_void
+lh_ui_web_html_put_attrs(lh_ui_web_buf_t *out, const lh_ui_web_html_attr_t *attrs, lh_u16_t n);
+
 /** Serialize a full node (doctype / text / raw / element with kids). */
 lh_void
 lh_ui_web_html_emit(lh_ui_web_buf_t *out, const lh_ui_web_html_t *node);
