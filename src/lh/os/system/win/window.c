@@ -12,6 +12,8 @@
 #include <lh/os/system/win/kernel32.h>
 #include <lh/os/system/win/key.h>
 #include <lh/os/system/win/user32.h>
+#include <lh/os/system/win/window/glue.h>
+#include <lh/os/system/win/window/map.h>
 #include <lh/os/system/window.h>
 #include <lh/os/tick.h>
 #include <lh/os/window.h>
@@ -26,14 +28,9 @@
 /** The shortest period a Windows timer can be relied on to keep: USER_TIMER_MINIMUM. */
 #define LH_OS_SYSTEM_WIN_TIMER_FLOOR_MS 10U
 
-/** The window procedure of every window of ours: Win32 messages to the window's callbacks. */
-static lh_os_system_win_lresult_t LH_OS_SYSTEM_WIN_CALL
-lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint_t msg,
-                             lh_os_system_win_wparam_t wparam, lh_os_system_win_lparam_t lparam);
+/* -- Input / hit map ------------------------------------------------------- */
 
-/** What ::lh_os_window_zone_t means to Windows. The one table, so a zone added to the
-   portable enum cannot be forgotten here. */
-static lh_s32_t
+lh_s32_t
 lh_os_system_win_window_hit(lh_os_window_zone_t zone)
 {
     switch (zone)
@@ -62,18 +59,14 @@ lh_os_system_win_window_hit(lh_os_window_zone_t zone)
     }
 }
 
-/* -- Input ----------------------------------------------------------------- */
-
-/** The client point packed in a mouse message's @p lparam, as an event coordinate. */
-static lh_os_input_coord_t
+lh_os_input_coord_t
 lh_os_system_win_window_coord_x(lh_os_system_win_lparam_t lparam)
 {
     return lh_os_input_coord_from_int(
         lh_type_cast(int, lh_type_cast(lh_sshort_t, LH_OS_SYSTEM_WIN_LOWORD(lparam))));
 }
 
-/** The y of ::lh_os_system_win_window_coord_x. */
-static lh_os_input_coord_t
+lh_os_input_coord_t
 lh_os_system_win_window_coord_y(lh_os_system_win_lparam_t lparam)
 {
     return lh_os_input_coord_from_int(
@@ -84,7 +77,7 @@ lh_os_system_win_window_coord_y(lh_os_system_win_lparam_t lparam)
    @p lparam, with the buttons in @p wparam held after it. Pointer `0` whatever made it:
    a mouse message the system made out of a touch contact or a pen (Windows 7, or no
    pointer API) says so in its device kind. */
-static lh_void
+lh_void
 lh_os_system_win_window_send_pointer(lh_os_window_t *window, lh_os_input_kind_t kind,
                                      lh_os_input_button_t button, lh_os_system_win_wparam_t wparam,
                                      lh_os_system_win_lparam_t lparam)
@@ -102,7 +95,7 @@ lh_os_system_win_window_send_pointer(lh_os_window_t *window, lh_os_input_kind_t 
 
 /** A button message: the capture follows the buttons, so a drag that leaves the
    window still ends here -- taken on the first press, let go once none is held. */
-static lh_void
+lh_void
 lh_os_system_win_window_send_button(lh_os_window_t *window, lh_os_system_win_hwnd_t hwnd,
                                     lh_os_system_win_uint_t msg, lh_os_system_win_wparam_t wparam,
                                     lh_os_system_win_lparam_t lparam)
@@ -123,7 +116,7 @@ lh_os_system_win_window_send_button(lh_os_window_t *window, lh_os_system_win_hwn
 }
 
 /** A wheel message: its point is on the screen, the event's in the client. */
-static lh_void
+lh_void
 lh_os_system_win_window_send_wheel(lh_os_window_t *window, lh_os_system_win_hwnd_t hwnd,
                                    lh_os_system_win_uint_t msg, lh_os_system_win_wparam_t wparam,
                                    lh_os_system_win_lparam_t lparam)
@@ -163,9 +156,7 @@ static lh_os_system_win_get_pointer_info_proc_t lh_os_system_win_window_get_poin
 static lh_os_input_contacts_t lh_os_system_win_window_contacts =
     lh_os_input_contacts_empty_initializer();
 
-/** True when this system sends pointer messages (Windows 8 and later); the API is
-   looked up on the first call. */
-static lh_bool_t
+lh_bool_t
 lh_os_system_win_window_has_pointer_api(lh_void)
 {
     if (!lh_os_system_win_window_pointer_api_looked_up)
@@ -184,11 +175,7 @@ lh_os_system_win_window_has_pointer_api(lh_void)
     return lh_null_ne(lh_ptr_rcast(lh_void, lh_os_system_win_window_get_pointer_type));
 }
 
-/** True when the mouse message being handled is one the system made out of a pen or a
-   touch contact that the pointer messages already delivered as itself. Where there is
-   no pointer API (Windows 7, XP) such a message is all there is of the contact, so it
-   stays, as pointer `0` with the device kind it came from. */
-static lh_bool_t
+lh_bool_t
 lh_os_system_win_window_is_contact_echo(lh_void)
 {
     return lh_type_cast(lh_bool_t,
@@ -196,11 +183,7 @@ lh_os_system_win_window_is_contact_echo(lh_void)
                             lh_os_system_win_input_is_promoted_mouse(GetMessageExtraInfo()));
 }
 
-/** What the system says of pointer @p pointer_id at the current message: its device
-   kind, its flags and its point on the screen. `GetPointerInfo` when it answers, else
-   `GetPointerType` with the flags of @p wparam and the point of @p lparam. False, the
-   outs untouched, when the system no longer knows the pointer. */
-static lh_bool_t
+lh_bool_t
 lh_os_system_win_window_read_pointer(lh_os_system_win_pointer_id_t pointer_id,
                                      lh_os_system_win_wparam_t wparam,
                                      lh_os_system_win_lparam_t lparam,
@@ -229,10 +212,7 @@ lh_os_system_win_window_read_pointer(lh_os_system_win_pointer_id_t pointer_id,
     return lh_bool_true;
 }
 
-/** The pointer id the contact of @p kind goes by, into @p pointer: a press takes the
-   lowest free one, anything else finds the one its press took. False when there is
-   none -- every id taken, or a contact never seen going down (a pen hovering). */
-static lh_bool_t
+lh_bool_t
 lh_os_system_win_window_contact_pointer(lh_os_system_win_pointer_id_t pointer_id,
                                         lh_os_input_kind_t kind,
                                         lh_os_input_device_kind_t device_kind,
@@ -250,7 +230,7 @@ lh_os_system_win_window_contact_pointer(lh_os_system_win_pointer_id_t pointer_id
    point. True when the message is taken. False for one that is left to
    `DefWindowProc`: no pointer API, a mouse or a touchpad (their mouse messages
    follow), a pointer the system and the table both no longer know. */
-static lh_bool_t
+lh_bool_t
 lh_os_system_win_window_send_contact(lh_os_window_t *window, lh_os_system_win_hwnd_t hwnd,
                                      lh_os_system_win_uint_t msg, lh_os_system_win_wparam_t wparam,
                                      lh_os_system_win_lparam_t lparam)
@@ -318,7 +298,7 @@ lh_os_system_win_window_send_contact(lh_os_window_t *window, lh_os_system_win_hw
 
 /** A key message, plain or with Alt (`WM_SYS*`); the virtual key goes along as the
    scancode, so a key ::lh_os_key_t has no name for can still be told apart. */
-static lh_void
+lh_void
 lh_os_system_win_window_send_key(lh_os_window_t *window, lh_os_system_win_uint_t msg,
                                  lh_os_system_win_wparam_t wparam, lh_os_system_win_lparam_t lparam)
 {
@@ -334,17 +314,7 @@ lh_os_system_win_window_send_key(lh_os_window_t *window, lh_os_system_win_uint_t
     lh_os_window_on_native_input(window, lh_addr_of(event));
 }
 
-/** Where a window opens. Win32 has exactly one answer for this — `CW_USEDEFAULT`,
-   a cascade from the top-left corner — and no call that means "in the middle of
-   what the user is looking at", so that half is ours: the work area of the monitor
-   the window opens on, which is the area the system itself calls usable.
-
-   A modal child centres on the monitor its owner is on, because a dialog that
-   lands on the other screen is not near the thing it belongs to. A window larger
-   than that work area keeps its top-left corner inside it: the size the caller
-   asked for is the size it gets, but a title bar off the edge is a window nobody
-   can move. */
-static lh_void
+lh_void
 lh_os_system_win_window_centered_origin(const lh_os_system_win_rect_t *window_rect,
                                         lh_os_system_win_hwnd_t owner_hwnd, int *x, int *y)
 {
@@ -434,7 +404,7 @@ lh_os_system_window_set_corner_radius(lh_os_system_window_handle_t handle, int r
     SetWindowRgn(hwnd, region, LH_OS_SYSTEM_WIN_TRUE);
 }
 
-static lh_os_system_win_lresult_t LH_OS_SYSTEM_WIN_CALL
+lh_os_system_win_lresult_t LH_OS_SYSTEM_WIN_CALL
 lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint_t msg,
                              lh_os_system_win_wparam_t wparam, lh_os_system_win_lparam_t lparam)
 {
@@ -647,7 +617,7 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
 }
 
 /** Register the window class once per process; its atom, or 0 on failure. */
-static lh_os_system_win_atom_t
+lh_os_system_win_atom_t
 lh_os_system_win_window_register_class(lh_os_system_win_hinstance_t instance)
 {
     lh_os_system_win_wndclassexa_t wc;
