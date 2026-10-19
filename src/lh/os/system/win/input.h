@@ -125,4 +125,10 @@ lh_os_system_win_input_device_kind_of_mouse(lh_os_system_win_lparam_t extra);
  */
 lh_os_input_mods_t lh_os_system_win_input_get_mods(lh_void);
 
+/**
+ * @brief True when virtual key @p vk is down, or (with @p toggled) toggled on.
+ */
+lh_bool_t
+lh_os_system_win_input_vk_held(lh_int_t vk, lh_bool_t toggled);
+
 #endif /* LH_SRC_OS_SYSTEM_WIN_INPUT_H */

@@ -14,15 +14,13 @@
 
 #include <lh/assert/runtime.h>
 #include <lh/os/system/error/capture.h>
+#include <lh/os/system/posix/serial.h>
 
 #include <errno.h>
 #include <fcntl.h>
-#include <termios.h>
 #include <unistd.h>
 
-/** A rate is a constant on POSIX, not a number: `B9600`, not 9600. Only the ones
-   this platform defines are listed, and a rate that is not here is refused. */
-static speed_t
+speed_t
 lh_os_system_serial_speed(lh_u32_t baud)
 {
     switch (baud)

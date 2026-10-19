@@ -52,4 +52,11 @@ lh_os_system_posix_input_mods_of(lh_u32_t state);
 lh_u32_t
 lh_os_system_posix_input_buttons_of(lh_u32_t state);
 
+/**
+ * @brief Buttons held after an X event: ::lh_os_system_posix_input_buttons_of(@p state)
+ *        plus any side buttons still in @p side_held (back/forward — X has no mask bit).
+ */
+lh_u32_t
+lh_os_system_posix_input_buttons_held(lh_u32_t state, lh_u32_t side_held);
+
 #endif /* LH_SRC_OS_SYSTEM_POSIX_INPUT_H */

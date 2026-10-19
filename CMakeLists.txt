@@ -263,6 +263,7 @@ if (LH_LIBRARY_OPTION_OS)
         list(APPEND LH_LIB_SOURCES
                 ${LH_LIB_SRC_PATH}/os/app.c
                 ${LH_LIB_SRC_PATH}/os/window.c
+                ${LH_LIB_SRC_PATH}/os/window/corner.c
         )
         if (WIN32)
             list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/window.c)

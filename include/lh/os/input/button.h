@@ -6,7 +6,10 @@
 #ifndef LH_OS_INPUT_BUTTON_H
 #define LH_OS_INPUT_BUTTON_H
 
+#include <lh/attribute/force_inline.h>
 #include <lh/bit/ops.h>
+#include <lh/bool.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/util/type.h>
 
@@ -56,5 +59,22 @@ typedef enum lh_os_input_button
  * @endcode
  */
 #define lh_os_input_button_to_mask(button) lh_bit_shl(lh_type_cast(lh_u32_t, 1U), (button))
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief ::lh_os_input_button_to_mask(@p button) when @p held, else `0`.
+ *
+ * Shared by backends that fold a platform bit (X `state`, Win `MK_*`, …) into
+ * an event's buttons mask.
+ */
+LH_ATTRIBUTE_FORCE_INLINE
+lh_u32_t
+lh_os_input_button_mask_if(lh_bool_t held, lh_os_input_button_t button)
+{
+    return held ? lh_os_input_button_to_mask(button) : 0U;
+}
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_INPUT_BUTTON_H */

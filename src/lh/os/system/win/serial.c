@@ -10,20 +10,19 @@
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/str.h>
 #include <lh/os/system/win/kernel32.h>
+#include <lh/os/system/win/serial.h>
 #include <lh/util/return.h>
 
 /** Room for `\\.\` and a port name; nothing longer is a port. */
 #define LH_OS_SYSTEM_WIN_SERIAL_NAME_MAX 64
 
-/** @p handle as the Win32 `HANDLE` it is. */
-static lh_os_system_win_handle_t
+lh_os_system_win_handle_t
 lh_os_system_serial_native(lh_os_system_serial_handle_t handle)
 {
     return lh_cast_reinterpret(lh_os_system_win_handle_t, handle);
 }
 
-/** @p size as a `DWORD`, clamped to ::LH_OS_SYSTEM_WIN_MAXDWORD. */
-static lh_os_system_win_dword_t
+lh_os_system_win_dword_t
 lh_os_system_serial_size(lh_usize_t size)
 {
     return size > lh_cast_static(lh_usize_t, LH_OS_SYSTEM_WIN_MAXDWORD)
@@ -31,8 +30,7 @@ lh_os_system_serial_size(lh_usize_t size)
                : lh_cast_static(lh_os_system_win_dword_t, size);
 }
 
-/** Set up an opened port: the line, and timeouts that make a read return at once. */
-static lh_bool_t
+lh_bool_t
 lh_os_system_serial_setup(lh_os_system_win_handle_t port, lh_u32_t baud,
                           lh_os_serial_parity_t parity, lh_u8_t stop_bits)
 {

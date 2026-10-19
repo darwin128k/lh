@@ -20,7 +20,8 @@
 #include <lh/os/alloc.h>
 #include <lh/os/system/posix/connection.h>
 #include <lh/os/system/posix/paint.h>
-#include <lh/os/system/posix/surface/fields.h>
+#include <lh/os/system/posix/surface.h>
+#include <lh/os/system/posix/surface/rgb565.h>
 #include <lh/os/system/surface.h>
 #include <lh/runtime/allocator.h>
 #include <lh/util/return.h>
@@ -28,25 +29,12 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
-/** @brief A surface: its pixels and what they look like. */
-struct lh_os_system_posix_surface
-{
-    /** Members: ::lh_os_system_posix_surface_fields. */
-    lh_os_system_posix_surface_fields;
-};
-/** @copybrief lh_os_system_posix_surface */
-typedef struct lh_os_system_posix_surface lh_os_system_posix_surface_t;
-
 /** -1 not tried yet, 0 the server cannot read our memory, 1 it can. Learned once:
    a server that refused one segment refuses them all, and every refusal costs a
    round trip. */
 static int lh_os_system_posix_surface_shm = -1;
 
-/** Put @p surface's pixels in a segment the server is attached to, or say it
-   cannot be done. The segment is marked for removal as soon as both sides hold
-   it, so it goes away with the last of them even if this process does not end
-   cleanly -- a leaked segment outlives the program that made it. */
-static lh_bool_t
+lh_bool_t
 lh_os_system_posix_surface_share(lh_os_system_posix_surface_t *surface, lh_usize_t bytes)
 {
     lh_os_system_posix_display_t *display = lh_os_system_posix_connection_get_display();
@@ -95,8 +83,7 @@ lh_os_system_posix_surface_share(lh_os_system_posix_surface_t *surface, lh_usize
     return lh_bool_true;
 }
 
-/** Wait until the server has read what the last present gave it. */
-static lh_void
+lh_void
 lh_os_system_posix_surface_settle(lh_os_system_posix_surface_t *surface)
 {
     if (surface->pending)
@@ -203,21 +190,7 @@ lh_os_system_surface_get_dc(lh_os_system_surface_handle_t handle)
     return lh_null;
 }
 
-/** RGB565 to the 0x00RRGGBB a 24-bit window takes, with each channel's top bits
-   repeated into its bottom ones so that full scale stays full scale. */
-static lh_u32_t
-lh_os_system_posix_surface_from_565(lh_u16_t pixel)
-{
-    const lh_u32_t r = lh_cast_static(lh_u32_t, (pixel >> 11)) & 0x1fU;
-    const lh_u32_t g = lh_cast_static(lh_u32_t, (pixel >> 5)) & 0x3fU;
-    const lh_u32_t b = lh_cast_static(lh_u32_t, pixel) & 0x1fU;
-
-    return ((r << 3 | r >> 2) << 16) | ((g << 2 | g >> 4) << 8) | (b << 3 | b >> 2);
-}
-
-/** The rows of a 16-bit surface that a present covers, widened into the staging
-   buffer. Grown, never shrunk: a window presents the same sizes frame after frame. */
-static lh_u32_t *
+lh_u32_t *
 lh_os_system_posix_surface_widen(lh_os_system_posix_surface_t *surface, int src_x, int src_y,
                                  int width, int height)
 {

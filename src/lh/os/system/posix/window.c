@@ -22,11 +22,15 @@
 #include <lh/os/system/posix/input.h>
 #include <lh/os/system/posix/key.h>
 #include <lh/os/system/posix/paint.h>
+#include <lh/os/system/posix/window/corner.h>
 #include <lh/os/system/posix/window/fields.h>
+#include <lh/os/system/posix/window/glue.h>
+#include <lh/os/system/posix/window/pump.h>
 #include <lh/os/system/posix/x11.h>
 #include <lh/os/system/window.h>
 #include <lh/os/tick.h>
 #include <lh/os/window.h>
+#include <lh/os/window/corner.h>
 #include <lh/runtime/allocator.h>
 #include <lh/util/return.h>
 
@@ -101,7 +105,7 @@ static lh_os_system_posix_xid_t lh_os_system_posix_atom_motif_wm_hints;
 /** Xlib's default error handler prints and calls exit(). A window that is already
    gone when a request about it arrives -- the window manager closed it a moment
    before -- is not a reason to end the program, so errors are dropped here. */
-static int
+int
 lh_os_system_posix_on_error(lh_os_system_posix_display_t *display,
                             lh_os_system_posix_xerror_event_t *error)
 {
@@ -127,7 +131,7 @@ lh_os_system_posix_connection_take_error(void)
 }
 
 /** Open the X connection once per process, and intern the atoms; false without a server. */
-static lh_bool_t
+lh_bool_t
 lh_os_system_posix_connect(void)
 {
     const lh_os_system_posix_x11_t *x;
@@ -174,7 +178,7 @@ lh_os_system_posix_connect(void)
    nothing, rather than reading freed memory. */
 
 /** Our window behind @p handle, or ::lh_null when it is not (or no longer) one. */
-static lh_os_system_posix_window_t *
+lh_os_system_posix_window_t *
 lh_os_system_posix_window_find(lh_os_system_window_handle_t handle)
 {
     lh_os_system_posix_window_t *window;
@@ -187,7 +191,7 @@ lh_os_system_posix_window_find(lh_os_system_window_handle_t handle)
 }
 
 /** Our window with X id @p xid, or ::lh_null. */
-static lh_os_system_posix_window_t *
+lh_os_system_posix_window_t *
 lh_os_system_posix_window_find_xid(lh_os_system_posix_xid_t xid)
 {
     lh_os_system_posix_window_t *window;
@@ -200,7 +204,7 @@ lh_os_system_posix_window_find_xid(lh_os_system_posix_xid_t xid)
 }
 
 /** Take @p self out of the list of open windows. */
-static lh_void
+lh_void
 lh_os_system_posix_window_unlist(lh_os_system_posix_window_t *self)
 {
     lh_os_system_posix_window_t **at;
@@ -219,7 +223,7 @@ lh_os_system_posix_window_unlist(lh_os_system_posix_window_t *self)
 /** Add a rectangle to what waits to be painted, clipped to the window. Windows
    keeps the update region itself; here it is the bounding box of what was asked
    for, which is what a paint on Windows is handed too (`rcPaint`). */
-static lh_void
+lh_void
 lh_os_system_posix_window_damage(lh_os_system_posix_window_t *self, int left, int top, int right,
                                  int bottom)
 {
@@ -243,33 +247,7 @@ lh_os_system_posix_window_damage(lh_os_system_posix_window_t *self, int left, in
     self->dirty_bottom = bottom > self->dirty_bottom ? bottom : self->dirty_bottom;
 }
 
-/** How far in from the side row @p row of a corner of @p radius starts: the first
-   pixel whose centre is inside the circle. In half pixels, so that it is all
-   integers -- the same cut CreateRoundRectRgn makes on Windows, near enough that
-   the two cannot be told apart at the radii a UI uses. */
-static int
-lh_os_system_posix_corner_inset(int radius, int row)
-{
-    const long dy = 2L * radius - 2L * row - 1L;
-    int inset;
-
-    for (inset = 0; inset < radius; ++inset)
-    {
-        const long dx = 2L * radius - 2L * inset - 1L;
-
-        lh_return_if(dx * dx + dy * dy <= 4L * radius * radius, inset);
-    }
-    return radius;
-}
-
-/** The largest radius cut, which is far past any corner a UI draws and keeps the
-   rectangles on the stack. */
-#define LH_OS_SYSTEM_POSIX_CORNER_MAX 128
-
-/** The rows of a round-rect of @p radius over @p width x @p height: one rectangle
-   per row of the top corners and the bottom ones, and one for everything between.
-   Returns how many. */
-static int
+int
 lh_os_system_posix_corner_rows(lh_os_system_posix_xrectangle_t *rows, int width, int height,
                                int radius)
 {
@@ -278,7 +256,7 @@ lh_os_system_posix_corner_rows(lh_os_system_posix_xrectangle_t *rows, int width,
 
     for (row = 0; row < radius; ++row)
     {
-        const int inset = lh_os_system_posix_corner_inset(radius, row);
+        const int inset = lh_os_window_corner_inset(radius, row);
 
         rows[count].x = lh_cast_static(short, inset);
         rows[count].y = lh_cast_static(short, row);
@@ -298,18 +276,6 @@ lh_os_system_posix_corner_rows(lh_os_system_posix_xrectangle_t *rows, int width,
     return count + 1;
 }
 
-/** The radius the window is cut at now: none while maximized, and never more than
-   half the window or the most this backend cuts. */
-static int
-lh_os_system_posix_window_radius(const lh_os_system_posix_window_t *self)
-{
-    int radius = self->maximized ? 0 : self->corner;
-
-    radius = radius < self->width / 2 ? radius : self->width / 2;
-    radius = radius < self->height / 2 ? radius : self->height / 2;
-    return radius < LH_OS_SYSTEM_POSIX_CORNER_MAX ? radius : LH_OS_SYSTEM_POSIX_CORNER_MAX;
-}
-
 /** Cut the window's corners round, or give it back its rectangle. The shape is the
    window's, of the size it was cut at, so it is cut again on every resize -- and
    taken off while the window is maximized, as a maximized window has no corners
@@ -321,12 +287,13 @@ lh_os_system_posix_window_radius(const lh_os_system_posix_window_t *self)
    transparent at every paint as well (::lh_os_system_posix_window_paint). A new cut
    repaints the window, because a corner that is smaller now has pixels to show
    that were transparent a moment ago. */
-static lh_void
+lh_void
 lh_os_system_posix_window_cut(lh_os_system_posix_window_t *self)
 {
     const lh_os_system_posix_xext_t *ext = lh_os_system_posix_xext_load();
-    lh_os_system_posix_xrectangle_t rows[2 * LH_OS_SYSTEM_POSIX_CORNER_MAX + 1];
-    const int radius = lh_os_system_posix_window_radius(self);
+    lh_os_system_posix_xrectangle_t rows[2 * LH_OS_WINDOW_CORNER_MAX + 1];
+    const int radius =
+        lh_os_window_corner_clamp(self->corner, self->width, self->height, self->maximized);
 
     if (self->backing != LH_OS_SYSTEM_POSIX_X_NONE)
     {
@@ -358,9 +325,7 @@ lh_os_system_posix_window_cut(lh_os_system_posix_window_t *self)
         LH_OS_SYSTEM_POSIX_X_SHAPE_SET, LH_OS_SYSTEM_POSIX_X_SHAPE_UNSORTED);
 }
 
-/** The rows of the corners that are outside a round-rect of @p radius: on the left
-   and the right of every row of the cut. Returns how many. */
-static int
+int
 lh_os_system_posix_corner_outside(lh_os_system_posix_xrectangle_t *rows, int width, int height,
                                   int radius)
 {
@@ -369,7 +334,7 @@ lh_os_system_posix_corner_outside(lh_os_system_posix_xrectangle_t *rows, int wid
 
     for (row = 0; row < radius; ++row)
     {
-        const int inset = lh_os_system_posix_corner_inset(radius, row);
+        const int inset = lh_os_window_corner_inset(radius, row);
 
         if (inset > 0)
         {
@@ -392,7 +357,7 @@ lh_os_system_posix_corner_outside(lh_os_system_posix_xrectangle_t *rows, int wid
 /** The pixmap a paint goes into, the size of the window: made when the window is,
    and made again when its size changes. What was in the old one is not kept: a
    window of another size is painted again whole. */
-static lh_void
+lh_void
 lh_os_system_posix_window_back(lh_os_system_posix_window_t *self)
 {
     const lh_os_system_posix_x11_t *x = lh_os_system_posix_x;
@@ -418,7 +383,7 @@ lh_os_system_posix_window_back(lh_os_system_posix_window_t *self)
 }
 
 /** Paint the dirty rectangle of @p self through the app, then show it. */
-static lh_void
+lh_void
 lh_os_system_posix_window_paint(lh_os_system_posix_window_t *self)
 {
     lh_os_system_posix_paint_t paint;
@@ -444,7 +409,8 @@ lh_os_system_posix_window_paint(lh_os_system_posix_window_t *self)
         self->backing != LH_OS_SYSTEM_POSIX_X_NONE)
     {
         const lh_os_system_posix_xrender_t *render = lh_os_system_posix_xrender_load();
-        const int radius = lh_os_system_posix_window_radius(self);
+        const int radius =
+            lh_os_window_corner_clamp(self->corner, self->width, self->height, self->maximized);
 
         render->XRenderComposite(lh_os_system_posix_display, LH_OS_SYSTEM_POSIX_X_PICT_OP_SRC,
                                  self->backing_picture, LH_OS_SYSTEM_POSIX_X_NONE,
@@ -454,7 +420,7 @@ lh_os_system_posix_window_paint(lh_os_system_posix_window_t *self)
         if (radius > 0)
         {
             const lh_os_system_posix_xrender_color_t transparent = {0U, 0U, 0U, 0U};
-            lh_os_system_posix_xrectangle_t rows[4 * LH_OS_SYSTEM_POSIX_CORNER_MAX];
+            lh_os_system_posix_xrectangle_t rows[4 * LH_OS_WINDOW_CORNER_MAX];
 
             render->XRenderFillRectangles(
                 lh_os_system_posix_display, LH_OS_SYSTEM_POSIX_X_PICT_OP_SRC, self->window_picture,
@@ -466,7 +432,7 @@ lh_os_system_posix_window_paint(lh_os_system_posix_window_t *self)
 
 /** Whether the window manager has the window maximized: both halves of
    `_NET_WM_STATE_MAXIMIZED` in its `_NET_WM_STATE`. */
-static lh_bool_t
+lh_bool_t
 lh_os_system_posix_window_read_maximized(const lh_os_system_posix_window_t *self)
 {
     const lh_os_system_posix_x11_t *x = lh_os_system_posix_x;
@@ -505,7 +471,7 @@ lh_os_system_posix_window_read_maximized(const lh_os_system_posix_window_t *self
 
 /** The usable part of the screen -- without panels and docks -- from
    `_NET_WORKAREA`, or the whole screen when the window manager does not say. */
-static lh_void
+lh_void
 lh_os_system_posix_workarea(int *x, int *y, int *width, int *height)
 {
     const lh_os_system_posix_x11_t *xlib = lh_os_system_posix_x;
@@ -549,7 +515,7 @@ lh_os_system_posix_workarea(int *x, int *y, int *width, int *height)
    resizes the window as if its own frame had been pressed. The press already
    grabbed the pointer for us, and the window manager cannot take it while we
    hold it. */
-static lh_bool_t
+lh_bool_t
 lh_os_system_posix_window_begin_moveresize(lh_os_system_posix_window_t *self,
                                            lh_os_window_zone_t zone, int x_root, int y_root)
 {
@@ -612,7 +578,7 @@ lh_os_system_posix_window_begin_moveresize(lh_os_system_posix_window_t *self,
    event is a press of the same key at the same moment. Windows repeats a held key
    as presses with no releases between them, and an event stream does the same: the
    release is dropped and the press is marked ::LH_OS_INPUT_FLAG_REPEAT. */
-static lh_bool_t
+lh_bool_t
 lh_os_system_posix_is_repeat(const lh_os_system_posix_xevent_t *release)
 {
     lh_os_system_posix_xevent_t next;
@@ -628,7 +594,7 @@ lh_os_system_posix_is_repeat(const lh_os_system_posix_xevent_t *release)
 }
 
 /** Whether the top-left corner of the window is anywhere a person could see it. */
-static lh_bool_t
+lh_bool_t
 lh_os_system_posix_window_is_placed(const lh_os_system_posix_window_t *self)
 {
     const lh_os_system_posix_x11_t *x = lh_os_system_posix_x;
@@ -656,7 +622,7 @@ lh_os_system_posix_window_is_placed(const lh_os_system_posix_window_t *self)
 
    Only the window's own MapNotify is taken off the queue; everything else stays
    there for the pump. */
-static lh_void
+lh_void
 lh_os_system_posix_window_wait_placed(lh_os_system_posix_window_t *self)
 {
     const lh_u64_t until =
@@ -1019,20 +985,8 @@ lh_os_system_window_close(lh_os_system_window_handle_t handle)
 
 /* -- Input ----------------------------------------------------------------- */
 
-/** The buttons held, from an X @p state and the side buttons this window last heard
-   go down: X keeps a bit for the first three and none for the back and forward. */
-static lh_u32_t
-lh_os_system_posix_window_buttons_held(const lh_os_system_posix_window_t *self, lh_u32_t state)
-{
-    const lh_u32_t side = lh_os_input_button_to_mask(lh_os_input_button_back) |
-                          lh_os_input_button_to_mask(lh_os_input_button_forward);
-
-    return lh_os_system_posix_input_buttons_of(state) |
-           (lh_os_window_get_pressed_buttons(self->user) & side);
-}
-
 /** A wheel notch as a wheel event; false, and nothing sent, for any other button. */
-static lh_bool_t
+lh_bool_t
 lh_os_system_posix_window_send_wheel(lh_os_system_posix_window_t *self,
                                      const lh_os_system_posix_xevent_t *event)
 {
@@ -1047,7 +1001,9 @@ lh_os_system_posix_window_send_wheel(lh_os_system_posix_window_t *self,
                                  lh_os_input_coord_from_int(event->button.y), dx, dy,
                                  lh_os_tick_ms());
     lh_os_input_event_set_buttons(
-        lh_addr_of(input), lh_os_system_posix_window_buttons_held(self, event->button.state));
+        lh_addr_of(input),
+        lh_os_system_posix_input_buttons_held(event->button.state,
+                                              lh_os_window_get_pressed_buttons(self->user)));
     lh_os_input_event_set_mods(lh_addr_of(input),
                                lh_os_system_posix_input_mods_of(event->button.state));
     lh_os_window_on_native_input(self->user, lh_addr_of(input));
@@ -1056,14 +1012,15 @@ lh_os_system_posix_window_send_wheel(lh_os_system_posix_window_t *self,
 
 /** A button going @p down or up. X's `state` is what was held *before* the event, so
    the button itself is added or taken away to say what is held after it. */
-static lh_void
+lh_void
 lh_os_system_posix_window_send_button(lh_os_system_posix_window_t *self,
                                       const lh_os_system_posix_xevent_t *event, lh_bool_t down)
 {
     lh_os_input_event_t input;
     const lh_os_input_button_t button = lh_os_system_posix_input_button_of(event->button.button);
     const lh_u32_t mask = lh_os_input_button_to_mask(button);
-    const lh_u32_t held = lh_os_system_posix_window_buttons_held(self, event->button.state);
+    const lh_u32_t held = lh_os_system_posix_input_buttons_held(
+        event->button.state, lh_os_window_get_pressed_buttons(self->user));
 
     lh_os_input_event_init_pointer(
         lh_addr_of(input), down ? lh_os_input_kind_pointer_down : lh_os_input_kind_pointer_up,
@@ -1077,7 +1034,7 @@ lh_os_system_posix_window_send_button(lh_os_system_posix_window_t *self,
 
 /** A key going down or up, and the text a press types. The keycode goes along as the
    scancode, so a key ::lh_os_key_t has no name for can still be told apart. */
-static lh_void
+lh_void
 lh_os_system_posix_window_send_key(lh_os_system_posix_window_t *self,
                                    lh_os_system_posix_xevent_t *event)
 {
@@ -1127,7 +1084,7 @@ lh_os_system_posix_window_send_key(lh_os_system_posix_window_t *self,
 }
 
 /** Hand one X event to the window it is for. */
-static lh_void
+lh_void
 lh_os_system_posix_dispatch(lh_os_system_posix_xevent_t *event)
 {
     lh_os_system_posix_window_t *self = lh_os_system_posix_window_find_xid(event->any.window);
@@ -1220,7 +1177,9 @@ lh_os_system_posix_dispatch(lh_os_system_posix_xevent_t *event)
             lh_os_input_button_none, lh_os_input_coord_from_int(event->motion.x),
             lh_os_input_coord_from_int(event->motion.y), lh_os_tick_ms());
         lh_os_input_event_set_buttons(
-            lh_addr_of(input), lh_os_system_posix_window_buttons_held(self, event->motion.state));
+            lh_addr_of(input),
+            lh_os_system_posix_input_buttons_held(event->motion.state,
+                                                  lh_os_window_get_pressed_buttons(self->user)));
         lh_os_input_event_set_mods(lh_addr_of(input),
                                    lh_os_system_posix_input_mods_of(event->motion.state));
         lh_os_window_on_native_input(self->user, lh_addr_of(input));
@@ -1256,7 +1215,7 @@ lh_os_system_posix_dispatch(lh_os_system_posix_xevent_t *event)
 /** The first window that waits to be painted, the first whose tick is due. Asked
    afresh after every callback, because a callback can close any window, its own
    included, and a list walked across that is a list of freed memory. */
-static lh_os_system_posix_window_t *
+lh_os_system_posix_window_t *
 lh_os_system_posix_first_dirty(void)
 {
     lh_os_system_posix_window_t *window;
@@ -1269,7 +1228,7 @@ lh_os_system_posix_first_dirty(void)
 }
 
 /** The first window whose tick is due at @p now, or ::lh_null. */
-static lh_os_system_posix_window_t *
+lh_os_system_posix_window_t *
 lh_os_system_posix_first_due(lh_u64_t now)
 {
     lh_os_system_posix_window_t *window;
@@ -1282,7 +1241,7 @@ lh_os_system_posix_first_due(lh_u64_t now)
 }
 
 /** Milliseconds until the earliest tick, or -1 for none. */
-static int
+int
 lh_os_system_posix_until_tick(lh_u64_t now)
 {
     const lh_os_system_posix_window_t *window;

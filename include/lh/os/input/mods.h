@@ -6,8 +6,12 @@
 #ifndef LH_OS_INPUT_MODS_H
 #define LH_OS_INPUT_MODS_H
 
+#include <lh/attribute/force_inline.h>
 #include <lh/bit/ops.h>
+#include <lh/bool.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
+#include <lh/util/type.h>
 
 /**
  * @typedef lh_os_input_mods_t
@@ -29,5 +33,22 @@ typedef lh_u16_t lh_os_input_mods_t;
 #define LH_OS_INPUT_MODS_CAPS_LOCK lh_bit_mask(4)
 /** @brief Num Lock is on. */
 #define LH_OS_INPUT_MODS_NUM_LOCK lh_bit_mask(5)
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief @p mod when @p held, else ::LH_OS_INPUT_MODS_NONE.
+ *
+ * Shared by every backend that folds a platform bit (X `state`, Win `GetKeyState`,
+ * …) into an ::lh_os_input_mods_t mask.
+ */
+LH_ATTRIBUTE_FORCE_INLINE
+lh_os_input_mods_t
+lh_os_input_mods_if(lh_bool_t held, lh_os_input_mods_t mod)
+{
+    return held ? mod : lh_type_cast(lh_os_input_mods_t, LH_OS_INPUT_MODS_NONE);
+}
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_INPUT_MODS_H */
