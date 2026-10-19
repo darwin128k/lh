@@ -73,6 +73,12 @@ lh_u16_t
 lh_mb_encode(lh_mb_framing_t framing, lh_u8_t unit, lh_u16_t tx, const lh_byte_ptr pdu,
              lh_u16_t pdu_length, lh_byte_ptr out, lh_u16_t cap);
 
+/** How long an RTU answer is, from its function code: a read says how many bytes
+   in its third byte, a write echoes its request, and an exception is five. 125
+   registers is the most, so 255 bytes is the most a read answer can be. */
+lh_u16_t
+lh_mb_rtu_frame_length(const lh_byte_ptr frame, lh_u16_t have, lh_u8_t fc);
+
 /**
  * @brief How many bytes a whole frame of @p framing takes, or 0 if it cannot.
  *
@@ -306,6 +312,27 @@ lh_mb_link_set_fc(lh_mb_link_t *self, lh_u8_t fc);
 /** @brief The function code this link asks, ::LH_MB_FC_READ_HOLDING by default. */
 lh_u8_t
 lh_mb_link_get_fc(const lh_mb_link_t *self);
+
+/** The stream is gone: the peer closed it, it failed, or it took half a request. A
+   frame boundary cannot be found on it again, so nothing held is kept, and the
+   reason says so -- the app opens a new stream and hands it to
+   ::lh_mb_link_set_stream. */
+lh_mb_link_state_t
+lh_mb_link_lose(lh_mb_link_t *self);
+
+/** Drop the first @p n bytes held. Over MBAP what follows them is the start of the
+   next frame and is kept: TCP is a stream, a recv hands over whatever has arrived,
+   and an answer and the frame behind it come in one piece as often as not. Over RTU
+   there is no length to find the next frame by, so everything goes. */
+lh_void
+lh_mb_link_consume(lh_mb_link_t *self, lh_u16_t n);
+
+/** Everything after the PDU is the same for a read and a write: the envelope, the send,
+   and the bookkeeping that makes the answer this question's. @p fc is the code the
+   answer will carry, and ::lh_mb_link_poll reads it by that. */
+lh_bool_t
+lh_mb_link_send(lh_mb_link_t *self, const lh_byte_ptr pdu, lh_u16_t pdu_length, lh_u16_t address,
+                lh_u16_t count, lh_u8_t fc);
 
 /**
  * @brief Ask for @p count registers at @p address, if nothing else is in flight.

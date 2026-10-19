@@ -16,7 +16,6 @@
 static const lh_char_t m_fs_path_posix_seps[] = {lh_char_map_slash};
 static const lh_char_t m_fs_path_windows_seps[] = {lh_char_map_slash, lh_char_map_backslash};
 
-LH_ATTRIBUTE_STATIC
 lh_usize_t
 lh_fs_path_root_len(lh_fs_path_root_kind_t kind)
 {
@@ -27,7 +26,6 @@ lh_fs_path_root_len(lh_fs_path_root_kind_t kind)
     return lh_math_eq(kind, lh_fs_path_root_kind_posix) ? 1U : 0U;
 }
 
-LH_ATTRIBUTE_STATIC
 const lh_str_t *
 lh_fs_path_get_text(const lh_fs_path_t *self)
 {
@@ -35,7 +33,6 @@ lh_fs_path_get_text(const lh_fs_path_t *self)
     return lh_addr_of(self->text);
 }
 
-LH_ATTRIBUTE_STATIC
 lh_str_t *
 lh_fs_path_get_text_mut(lh_fs_path_t *self)
 {
@@ -43,7 +40,6 @@ lh_fs_path_get_text_mut(lh_fs_path_t *self)
     return lh_addr_of(self->text);
 }
 
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_fs_path_set_root_kind(lh_fs_path_t *self, lh_fs_path_root_kind_t kind)
 {
@@ -79,7 +75,6 @@ lh_fs_path_get_root_kind(const lh_fs_path_t *self)
 }
 
 /* The segments part of `text`, root prefix dropped. */
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_fs_path_get_rest(const lh_fs_path_t *self, lh_str_view_t *out)
 {
@@ -251,7 +246,6 @@ lh_fs_path_is_drive(lh_str_view_t part)
 /* Recognize the root at the start of `text` (non-empty); write its
    canonical prefix into `self` and return how many input characters it
    consumed. */
-LH_ATTRIBUTE_STATIC
 lh_usize_t
 lh_fs_path_take_root(lh_fs_path_t *self, const lh_str_view_t *text, lh_fs_path_style_t style)
 {

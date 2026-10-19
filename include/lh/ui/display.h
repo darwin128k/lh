@@ -40,6 +40,11 @@ typedef struct lh_ui_display lh_ui_display_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/** Point the pixmap at @p bits, sized to the panel or the strip; empty when there is nothing to
+ * bind. */
+lh_void
+lh_ui_display_rebind_pixmap(lh_ui_display_t *self, lh_byte_ptr bits, lh_s32_t stride);
+
 /**
  * @brief Empty display: no bits, no sinks, panel zero, ARGB8888.
  */

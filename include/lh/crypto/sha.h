@@ -11,6 +11,7 @@
 #define LH_CRYPTO_SHA_H
 
 #include <lh/bool.h>
+#include <lh/byte/ptr.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/crypto/sha/kind.h>
 #include <lh/ptr.h>
@@ -81,6 +82,10 @@ typedef struct lh_crypto_sha lh_crypto_sha_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/** True for the 64-bit-word kinds, SHA-384 and SHA-512. */
+lh_bool_t
+lh_crypto_sha_kind_is_wide(lh_crypto_sha_kind_t kind);
+
 /**
  * @brief Digest length in bytes for @p kind.
  *
@@ -98,6 +103,26 @@ lh_crypto_sha_digest_size(lh_crypto_sha_kind_t kind);
  */
 lh_usize_t
 lh_crypto_sha_block_size(lh_crypto_sha_kind_t kind);
+
+/** Fold one 64-byte @p block into the SHA-1 state of @p self. */
+lh_void
+lh_crypto_sha_process_1(lh_crypto_sha_t *self, const lh_byte_ptr block);
+
+/** Fold one 64-byte @p block into the SHA-224/256 state of @p self. */
+lh_void
+lh_crypto_sha_process_256(lh_crypto_sha_t *self, const lh_byte_ptr block);
+
+/** Fold one 128-byte @p block into the SHA-384/512 state of @p self. */
+lh_void
+lh_crypto_sha_process_512(lh_crypto_sha_t *self, const lh_byte_ptr block);
+
+/** Fold one @p block into @p self with the compression function of its kind. */
+lh_void
+lh_crypto_sha_process(lh_crypto_sha_t *self, const lh_byte_ptr block);
+
+/** Add @p byte_count bytes to the 128-bit message length of @p self. */
+lh_void
+lh_crypto_sha_add_bits(lh_crypto_sha_t *self, lh_usize_t byte_count);
 
 /**
  * @brief Initialise @p self for @p kind. Must be called before update/finish.

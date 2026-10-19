@@ -6,10 +6,8 @@
 #include <lh/byte/ptr.h>
 #include <lh/math.h>
 
-/** Point the pixmap at @p bits, sized to the panel or the strip; empty when there is nothing to
- * bind. */
-static lh_void
-display_rebind_pixmap(lh_ui_display_t *self, lh_byte_ptr bits, lh_s32_t stride)
+lh_void
+lh_ui_display_rebind_pixmap(lh_ui_display_t *self, lh_byte_ptr bits, lh_s32_t stride)
 {
     lh_s32_t w = lh_cast_static(lh_s32_t, lh_ui_size_get_width(lh_addr_of(self->panel)));
     lh_s32_t h = lh_cast_static(lh_s32_t, lh_ui_size_get_height(lh_addr_of(self->panel)));
@@ -45,7 +43,8 @@ lh_ui_display_init(lh_ui_display_t *self)
     self->format = lh_ui_pixmap_format_argb8888;
     lh_ui_pixmap_init_empty(lh_addr_of(self->pixmap));
     lh_ui_canvas_sw_init(lh_addr_of(self->sw));
-    lh_ui_canvas_init(lh_addr_of(self->canvas), lh_addr_of(lh_ui_canvas_backend_sw), lh_addr_of(self->sw));
+    lh_ui_canvas_init(lh_addr_of(self->canvas), lh_addr_of(lh_ui_canvas_backend_sw),
+                      lh_addr_of(self->sw));
     for (i = 0; i < (lh_u32_t)LH_UI_PRESENT_SINKS_MAX; ++i)
     {
         lh_ui_present_sink_init(lh_addr_of(self->sinks[i]), lh_null, lh_null, lh_null);
@@ -76,7 +75,7 @@ lh_ui_display_set_strip_height(lh_ui_display_t *self, lh_ui_scalar_t height)
 lh_void
 lh_ui_display_set_buffer(lh_ui_display_t *self, lh_byte_ptr bits, lh_s32_t stride)
 {
-    display_rebind_pixmap(self, bits, stride);
+    lh_ui_display_rebind_pixmap(self, bits, stride);
 }
 
 lh_void

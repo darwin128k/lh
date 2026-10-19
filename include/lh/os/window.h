@@ -61,6 +61,10 @@ typedef struct lh_os_window lh_os_window_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/** Take @p self out of its app's window list and forget its app, parent and modal state. */
+lh_void
+lh_os_window_unlink(lh_os_window_t *self);
+
 /**
  * @brief Set @p self to the empty (not-yet-open) state.
  *
@@ -384,6 +388,24 @@ lh_os_window_get_controller(const lh_os_window_t *self);
 lh_u32_t
 lh_os_window_get_pressed_buttons(const lh_os_window_t *self);
 
+/** When the recognizer of @p self's controller next has something to send, into @p out;
+   false, @p out untouched, with no controller, a disabled one, no gestures or nothing
+   waiting on time. A disabled controller does not advance on update, so a deadline it
+   cannot meet yet must not keep a 1 ms timer spinning. */
+lh_bool_t
+lh_os_window_get_controller_deadline(lh_os_window_t *self, lh_tick_t *out);
+
+/** The window timer of @p self for its controller, when no `on_tick` period runs it: armed
+   for the recognizer's next deadline -- again when @p rearm, else only when it is not
+   running yet -- and stopped once nothing waits on time. */
+lh_void
+lh_os_window_arm_controller(lh_os_window_t *self, lh_bool_t rearm);
+
+/** The controller's timers at @p self's tick: what is due by now, then the timer for the
+   next deadline. */
+lh_void
+lh_os_window_update_controller(lh_os_window_t *self);
+
 /**
  * @brief Notify @p on_tick every @p ms (::lh_os_window_on_tick_fn), or @p ms `0` to
  *        stop.
@@ -503,6 +525,17 @@ lh_os_window_zone_at(lh_os_window_t *self, int x, int y);
  */
 lh_void
 lh_os_window_on_native_resize(lh_os_window_t *self, int width, int height, lh_bool_t maximized);
+
+/** The mouse buttons @p event leaves held over @p self: an event of pointer `0` says, its
+   cancel or a focus loss lets go of all of them, anything else -- a touch contact
+   included -- leaves them as they were. */
+lh_void
+lh_os_window_track_buttons(lh_os_window_t *self, const lh_os_input_event_ptr event);
+
+/** @p event to @p self's controller, if any: fed, the whole controller cancelled after a
+   focus loss, and its timer armed for a deadline the event may have set. */
+lh_void
+lh_os_window_feed_controller(lh_os_window_t *self, const lh_os_input_event_ptr event);
 
 /**
  * @brief Called from the native backend with one input event.

@@ -175,6 +175,19 @@ lh_ui_layout_get_wrap(const lh_ui_layout_t *self);
 lh_ui_scalar_t
 lh_ui_layout_get_line_gap(const lh_ui_layout_t *self);
 
+/** How deep @p child is across the flow, margins and all: its own size, or -- for one
+   that stretches across -- only its minimum, since the line it is in decides the rest. */
+lh_ui_scalar_t
+lh_ui_layout_depth(const lh_ui_layout_t *self, lh_ui_entity_t *child);
+
+/** The child after the last one that fits on the line starting at @p first in @p room
+   along the flow (::lh_null when every one does), and in @p depth how deep the line is.
+   A line always takes its first child, so a child longer than the room is a line on
+   its own rather than none. */
+lh_ui_entity_t *
+lh_ui_layout_line_end(const lh_ui_layout_t *self, lh_ui_entity_t *parent, lh_ui_entity_t *first,
+                      lh_ui_scalar_t room, lh_ui_scalar_t *depth);
+
 /**
  * @brief Place every shown child of @p parent by @p self, from the top-left of
  *        its content box (rect inside the style padding).
@@ -185,6 +198,34 @@ lh_ui_layout_get_line_gap(const lh_ui_layout_t *self);
  */
 lh_void
 lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent);
+
+/** What one child wants along the flow, before anything is shared out: its own
+   length, or its content, or nothing at all for a child that wants to fill —
+   that one is decided once every other child has said. A `wrap` child with no
+   content asks for nothing, and that is what makes an empty label collapse.
+
+   Held between the child's minimum and maximum: a fixed length or a content that
+   is out of bounds is what the bounds are for. A fill is held when its share is
+   known, in the second pass. */
+lh_ui_scalar_t
+lh_ui_layout_wants(const lh_ui_layout_t *self, lh_ui_entity_t *child);
+
+/** How much of the fill a filling child weighs. Its length is read by nothing when
+   it fills, so that is where the weight lives, and a fill that says nothing weighs
+   one: every fill that was written before there were weights takes an equal share,
+   as it always did. */
+lh_ui_scalar_t
+lh_ui_layout_weight(const lh_ui_place_t *place);
+
+/** The margin a child keeps on either side of it along the flow, together. */
+lh_ui_scalar_t
+lh_ui_layout_margin_along(const lh_ui_layout_t *self, const lh_ui_place_t *place);
+
+/** The room a child is placed in across the flow: the content box, less the margin
+   the child keeps on either side of it across. */
+lh_void
+lh_ui_layout_slot(const lh_ui_layout_t *self, const lh_ui_place_t *place,
+                  const lh_ui_rect_t *content, lh_ui_rect_t *out);
 
 /**
  * @brief Slot start, own length, slot length and margin offset of @p child
@@ -206,6 +247,19 @@ lh_ui_layout_cross_fit(const lh_ui_layout_t *self, lh_ui_entity_t *child,
 lh_ui_scalar_t
 lh_ui_layout_cross_at(const lh_ui_layout_cross_t *fit, lh_ui_place_align_t align,
                       lh_ui_scalar_t base, lh_ui_scalar_t line);
+
+/** A child across the flow keeps the size it has and is put where it asked; only
+   `fill` takes the whole cross side of the room it is placed in, held between its
+   minimum and maximum.
+
+   @p line is where the row's baseline sits, measured down from the cross origin
+   of the content box, or -1 when the row has none. It is measured before this pass
+   because a child's own place depends on the line and the line is the deepest of
+   the children's: measured the other way round each child would be setting a line
+   and sitting on it at once. */
+lh_void
+lh_ui_layout_across(const lh_ui_layout_t *self, lh_ui_entity_t *child, const lh_ui_rect_t *content,
+                    lh_ui_scalar_t line, lh_ui_scalar_t *start, lh_ui_scalar_t *length);
 
 /**
  * @brief The baseline row @p child would set for its line, down from the cross

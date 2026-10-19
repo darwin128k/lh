@@ -16,6 +16,14 @@
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/** L3 size in bytes from Intel's deterministic cache leaf (CPUID 4); `0` when not reported. */
+lh_usize_t
+lh_cpu_cache_l3_size_intel(void);
+
+/** L3 size in bytes from AMD's extended leaf 0x80000006; `0` when not reported. */
+lh_usize_t
+lh_cpu_cache_l3_size_amd(void);
+
 /**
  * @brief Size of this CPU's last-level (L3) cache, in bytes.
  * The whole L3 as CPUID reports it, not a per-core share: Intel's leaf 4 L3

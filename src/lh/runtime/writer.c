@@ -5,7 +5,7 @@
 #if (LH_LIBRARY_OPTION_RUNTIME_IO_USE_STDLIB == LH_LIBRARY_OPTION_ON)
 #    include <stdio.h>
 
-static lh_ssize_t
+lh_ssize_t
 lh_runtime_writer_stdout(lh_self_ptr self, const lh_ptr buf, lh_usize_t size)
 {
     size_t n;

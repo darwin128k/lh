@@ -6,7 +6,6 @@
 
 /* -- accessors ------------------------------------------------------------- */
 
-LH_ATTRIBUTE_STATIC
 lh_os_shared_t *
 lh_os_module_get_image(lh_os_module_t *self)
 {
@@ -46,7 +45,6 @@ lh_os_module_is_started(const lh_os_module_t *self)
     return self->started;
 }
 
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_os_module_set_started(lh_os_module_t *self, lh_bool_t started)
 {
@@ -124,7 +122,6 @@ lh_os_module_get_loader(const lh_os_module_t *self)
     return self->loader;
 }
 
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_os_module_set_loader(lh_os_module_t *self, lh_os_loader_t *loader)
 {
@@ -177,7 +174,6 @@ lh_os_module_grant_loader(lh_os_module_t *self, lh_str_cptr entry)
 }
 
 /* Children go before their parent: they may still use what it provides. */
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_os_module_revoke_loader(lh_os_module_t *self)
 {

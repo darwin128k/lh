@@ -218,6 +218,15 @@ lh_os_net_socket_get_writer(lh_os_net_socket_t *self, lh_io_writer_t *out)
     lh_ptr_deref(out) = writer;
 }
 
+lh_bool_t
+lh_os_net_socket_send_all(lh_os_net_socket_t *self, const lh_ptr buf, lh_usize_t size)
+{
+    lh_io_writer_t writer;
+
+    lh_os_net_socket_get_writer(self, lh_addr_of(writer));
+    return lh_io_writer_write_all(lh_addr_of(writer), buf, size);
+}
+
 lh_void
 lh_os_net_socket_get_stream(lh_os_net_socket_t *self, lh_io_stream_t *out)
 {

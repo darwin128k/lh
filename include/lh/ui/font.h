@@ -40,6 +40,17 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 const lh_ui_font_t *lh_ui_font_get_default(lh_void);
 
+/** Whether the runs are in order and none of them overlaps the one before.
+
+   The lookup walks them in order and takes the first run that holds the code, so an
+   overlap is not a wrong answer but **two**: the glyph drawn is one and the advance
+   measured can be the other, and which of the two a test sees depends on which table
+   the test read. That is the same shape as two functions that agree with each other
+   and disagree with the protocol, and it is caught here where the table is given over
+   rather than on a screen. */
+lh_bool_t
+lh_ui_font_runs_are_a_runs(const lh_ui_font_range_t *ranges, lh_u32_t count);
+
 /**
  * @brief Fill @p self over @p glyphs, @p advances and @p tops: one entry per
  *        glyph, placed by @p ranges, line @p line_height with @p ascent and a

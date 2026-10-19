@@ -1,5 +1,4 @@
 #include <lh/runtime/check.h>
-#include <lh/attribute/static.h>
 #include <lh/attribute/thread_local.h>
 #include <lh/exception/initializer.h>
 #include <lh/runtime/error/initializer.h>
@@ -14,7 +13,6 @@
    code alone rather than being cut. */
 #    define LH_RUNTIME_CHECK_REPORT_TEXT_MAX 1024U
 
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_runtime_check_fail_default(const lh_exception_t *exception)
 {
@@ -35,7 +33,6 @@ lh_runtime_check_fail_default(const lh_exception_t *exception)
     (void)fflush(stderr);
 }
 #else
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_runtime_check_fail_default(const lh_exception_t *exception)
 {

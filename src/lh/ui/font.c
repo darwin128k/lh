@@ -22,16 +22,8 @@ lh_ui_font_get_default(lh_void)
 #endif
 }
 
-/** Whether the runs are in order and none of them overlaps the one before.
-
-   The lookup walks them in order and takes the first run that holds the code, so an
-   overlap is not a wrong answer but **two**: the glyph drawn is one and the advance
-   measured can be the other, and which of the two a test sees depends on which table
-   the test read. That is the same shape as two functions that agree with each other
-   and disagree with the protocol, and it is caught here where the table is given over
-   rather than on a screen. */
-static lh_bool_t
-font_runs_are_a_runs(const lh_ui_font_range_t *ranges, lh_u32_t count)
+lh_bool_t
+lh_ui_font_runs_are_a_runs(const lh_ui_font_range_t *ranges, lh_u32_t count)
 {
     lh_u32_t i;
 
@@ -66,7 +58,7 @@ lh_ui_font_init(lh_ui_font_t *self, const lh_ui_mask_t *glyphs, lh_byte_cptr adv
     lh_assert_runtime_ref(ranges);
     lh_assert_runtime_ifn(range_count > 0U && line_height >= 0 && ascent >= 0 &&
                               ascent <= line_height && cap_height >= 0 && cap_height <= ascent &&
-                              font_runs_are_a_runs(ranges, range_count),
+                              lh_ui_font_runs_are_a_runs(ranges, range_count),
                           lh_runtime_error_code_invalid_argument);
     self->glyphs = glyphs;
     self->advances = advances;

@@ -140,6 +140,11 @@ lh_ui_label_as_container(lh_ui_label_t *self);
 const lh_char_t *
 lh_ui_label_get_text(const lh_ui_label_t *self);
 
+/** The ink of the current text, relative to the label's own origin, so it stays right
+   when the label moves before its text changes again. */
+lh_void
+lh_ui_label_get_ink_reach(lh_ui_label_t *self, lh_ui_rect_t *out);
+
 /**
  * @brief Point @p self at @p text. @p text is not copied.
  *
@@ -181,6 +186,33 @@ lh_ui_label_get_text_color(const lh_ui_label_t *self);
 lh_void
 lh_ui_label_get_text_origin(const lh_ui_label_t *self, lh_ui_point_t *out);
 
+/** How wide the lines of the text may be: the padded box when the style wraps, and 0
+   -- no width, lines end at line breaks only -- when it does not. */
+lh_ui_scalar_t
+lh_ui_label_get_wrap_width(const lh_ui_label_t *self);
+
+/** Where each line of a wrapped text sits inside the widest: the alignment the text
+   is placed by. */
+lh_ui_text_align_h_t
+lh_ui_label_get_line_align(const lh_ui_label_t *self);
+
+/** True when @p a and @p b keep the same distances off every edge. */
+lh_bool_t
+lh_ui_label_same_insets(const lh_ui_insets_t *a, const lh_ui_insets_t *b);
+
+/** @p self with what its text measures worked out: from the metrics fields when
+   nothing they were worked out from has changed, else measured again and kept.
+
+   Measuring is laying the text out glyph by glyph, wrapped or not, and every frame
+   asks for it several times over -- whether the label shows at all, where its text
+   starts, where its line is, what its ink covers -- of every label, drawn or not.
+   It is the same answer each time until the text (::lh_ui_label_set_text drops it),
+   the font, the box, the padding, the alignment or the wrapping width changes, and
+   those are what is compared here. The label is const to its callers because none
+   of this is what it looks like; only the remembering writes. */
+const lh_ui_label_t *
+lh_ui_label_measured(const lh_ui_label_t *self);
+
 /**
  * @brief First ink row of the text of @p self below the top of its first line
  *        box (::lh_ui_text_get_ink_top_wrapped), measured once with its size.
@@ -199,6 +231,18 @@ lh_ui_label_get_text_rect(const lh_ui_label_t *self, lh_ui_rect_t *out);
  */
 lh_bool_t
 lh_ui_label_can_draw_text(const lh_ui_label_t *self, const lh_ui_canvas_t *canvas);
+
+/** The longest start of @p text that fits in @p room with an ellipsis after it, written
+   into @p out with the ellipsis, or `lh_bool_false` when the whole line fits and is to
+   be drawn as it is.
+
+   The ellipsis is the font's own `…` when it has one and three dots when it does not:
+   a box of a glyph nobody baked is worse than three full stops. The cut is between
+   code points, never inside one, and a start that would not fit in @p out is cut
+   shorter rather than written past it. */
+lh_bool_t
+lh_ui_label_shorten(const lh_ui_font_t *font, const lh_char_t *text, lh_s32_t room, lh_char_t *out,
+                    lh_u32_t size);
 
 /**
  * @brief Draw the text of @p self inside ::lh_ui_entity_push_children (scroll

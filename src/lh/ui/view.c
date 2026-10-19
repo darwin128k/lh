@@ -517,19 +517,14 @@ lh_ui_view_get_thumb_start_at(const lh_ui_scrollbar_t *bar, lh_ui_point_t point)
     return lh_ui_scrollbar_get_thumb_start_at(bar, point1);
 }
 
-/** The session of pointer @p id in @p self, or ::lh_null for an id the view does
-   not follow. */
-static lh_ui_view_pointer_t *
+lh_ui_view_pointer_t *
 lh_ui_view_get_slot(lh_ui_view_t *self, lh_os_input_pointer_id_t id)
 {
     lh_return_if(id >= LH_OS_INPUT_POINTER_MAX, lh_null);
     return lh_addr_of(self->pointers[id]);
 }
 
-/** True when a pointer of @p self other than @p pointer drives @p box: drags its
-   content or holds the thumb of a bar that scrolls it. A box is one pointer's at a
-   time -- two fingers pulling one list two ways is no scroll anybody meant. */
-static lh_bool_t
+lh_bool_t
 lh_ui_view_is_driven_by_other(const lh_ui_view_t *self, const lh_ui_view_pointer_t *pointer,
                               const lh_ui_container_t *box)
 {
@@ -550,9 +545,7 @@ lh_ui_view_is_driven_by_other(const lh_ui_view_t *self, const lh_ui_view_pointer
     return lh_bool_false;
 }
 
-/** True when a pointer of @p self other than @p pointer went down on @p entity
-   and has not let go of it. */
-static lh_bool_t
+lh_bool_t
 lh_ui_view_is_held_by_other(const lh_ui_view_t *self, const lh_ui_view_pointer_t *pointer,
                             const lh_ui_entity_t *entity)
 {
@@ -571,9 +564,7 @@ lh_ui_view_is_held_by_other(const lh_ui_view_t *self, const lh_ui_view_pointer_t
     return lh_bool_false;
 }
 
-/** Close the scroll gesture of @p self as @p pointer lets go, unless another
-   pointer still drives the container it is about: that one's gesture is not over. */
-static lh_void
+lh_void
 lh_ui_view_end_scroll_of(lh_ui_view_t *self, const lh_ui_view_pointer_t *pointer)
 {
     lh_return_if(lh_ui_view_is_driven_by_other(self, pointer, self->scrolling));
@@ -602,13 +593,7 @@ lh_ui_view_get_drag_box(lh_ui_entity_t *hit)
     return lh_ui_entity_find_container(hit);
 }
 
-/** The rect plus whichever of two looks reaches further with its shadow. Both
-   looks and not the current one: a shadow reaches past its own box, so anything
-   less leaves the fringe of the look that is being dropped on the surface. The
-   two are the resting and pressed looks of a press (::lh_ui_view_damage_shape)
-   and the resting and hot looks of a hover (::lh_ui_view_set_hot); either may
-   be ::lh_null, which is a look that casts nothing. */
-static lh_void
+lh_void
 lh_ui_view_damage_looks(lh_ui_view_t *self, const lh_ui_entity_t *entity,
                         const lh_ui_style_t *first, const lh_ui_style_t *second)
 {
@@ -658,12 +643,7 @@ lh_ui_view_damage_shape(lh_ui_view_t *self, const lh_ui_entity_t *entity)
 
 /* -- Pointer session ------------------------------------------------------- */
 
-/** A click may change what the thing clicked looks like — a toggle flips, a row
-   re-styles itself — and it happens after the release damaged the looks the
-   target had then. So the target is damaged once more, now: the same rect, and
-   the union grows only as far as the *new* look reaches. One rect union per
-   click, and no extra pixels unless a look really did reach further. */
-static lh_ui_entity_t *
+lh_ui_entity_t *
 lh_ui_view_click_plain(lh_ui_view_t *self, lh_ui_point_t point)
 {
     lh_ui_entity_t *clicked = lh_ui_entity_click(self->root, point);
@@ -704,9 +684,7 @@ lh_ui_view_set_pressed(lh_ui_view_t *self, lh_ui_entity_t *entity, lh_bool_t pre
     lh_ui_entity_set_pressed(entity, pressed);
 }
 
-/** Let go of the entity @p pointer went down on, unless another pointer of @p self
-   still presses it: the pressed look is the last finger's to end. */
-static lh_void
+lh_void
 lh_ui_view_unpress_target(lh_ui_view_t *self, const lh_ui_view_pointer_t *pointer)
 {
     lh_ui_entity_t *target = lh_ui_view_pointer_get_target(pointer);
@@ -987,8 +965,7 @@ lh_ui_view_text(lh_ui_view_t *self, lh_u32_t code)
     return lh_ui_view_send_input(self, lh_addr_of(input));
 }
 
-/** The slot @p entity is in flight in, or ::lh_null. */
-static lh_ui_transition_t *
+lh_ui_transition_t *
 lh_ui_view_slot_of(const lh_ui_view_t *self, const lh_ui_entity_t *entity)
 {
     int i;
@@ -1003,8 +980,7 @@ lh_ui_view_slot_of(const lh_ui_view_t *self, const lh_ui_entity_t *entity)
     return lh_null;
 }
 
-/** Point the entity of @p slot at its target and free the slot. */
-static lh_void
+lh_void
 lh_ui_view_land(lh_ui_transition_t *slot)
 {
     lh_ui_entity_t *entity = lh_ui_transition_get_entity(slot);
@@ -1070,8 +1046,7 @@ lh_ui_view_cancel(lh_ui_view_t *self)
     }
 }
 
-/** Where @p event happened, in whole view units. */
-static lh_ui_point_t
+lh_ui_point_t
 lh_ui_view_point_of(lh_os_input_event_cptr event)
 {
     lh_ui_point_t point;
@@ -1083,10 +1058,7 @@ lh_ui_view_point_of(lh_os_input_event_cptr event)
     return point;
 }
 
-/** Content units one wheel notch scrolls: the system's step
-   (::lh_os_input_get_wheel_step), or ::LH_UI_VIEW_WHEEL_STEP where there is no OS layer
-   to ask. */
-static lh_s32_t
+lh_s32_t
 lh_ui_view_wheel_step(lh_void)
 {
 #if LH_LIBRARY_OPTION_OS
@@ -1096,16 +1068,13 @@ lh_ui_view_wheel_step(lh_void)
 #endif
 }
 
-/** A wheel distance in 1/120 notch (positive up / left) as content units to
-   scroll by (positive down / right), @p step units a notch. */
-static lh_ui_scalar_t
+lh_ui_scalar_t
 lh_ui_view_wheel_distance(lh_s32_t notch_120, lh_s32_t step)
 {
     return lh_type_cast(lh_ui_scalar_t, lh_math_neg(notch_120) * step / LH_OS_INPUT_WHEEL_NOTCH);
 }
 
-/** The wheel case of ::lh_ui_view_input: both axes by one step, asked once. */
-static lh_bool_t
+lh_bool_t
 lh_ui_view_input_wheel(lh_ui_view_t *self, lh_os_input_event_cptr event)
 {
     const lh_s32_t step = lh_ui_view_wheel_step();
@@ -1115,17 +1084,14 @@ lh_ui_view_input_wheel(lh_ui_view_t *self, lh_os_input_event_cptr event)
                             lh_ui_view_wheel_distance(lh_os_input_event_get_dy(event), step));
 }
 
-/** True when @p event is a button of the first pointer that the view presses with. */
-static lh_bool_t
+lh_bool_t
 lh_ui_view_is_primary_press(lh_os_input_event_cptr event)
 {
     return lh_type_cast(lh_bool_t,
                         lh_os_input_event_get_button(event) == lh_os_input_button_primary);
 }
 
-/** The pointer half of ::lh_ui_view_input: each pointer the view follows to its own
-   session. */
-static lh_bool_t
+lh_bool_t
 lh_ui_view_input_pointer(lh_ui_view_t *self, lh_os_input_event_cptr event)
 {
     const lh_os_input_pointer_id_t id = lh_os_input_event_get_pointer(event);

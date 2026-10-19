@@ -15,16 +15,18 @@
 #define LH_UI_CANVAS_WEB_H
 
 #include <lh/ui/canvas/backend.h>
+#include <lh/ui/canvas/web/atlas.h>
+#include <lh/str/lit.h>
 #include <lh/ui/web/buf.h>
 
 #if !LH_LIBRARY_OPTION_UI
 #    error "lh/ui/canvas/web.h requires LH_LIBRARY_OPTION_UI"
 #endif
 
-LH_COMPILER_EXTERN_C_BEGIN
+/** Append string literal @p s to the ops of @p self, its length taken at compile time. */
+#define lh_ui_canvas_web_put_lit(self, s) lh_ui_web_buf_lit(lh_addr_of((self)->buf), lh_str_lit(s))
 
-/** How many distinct glyph covers the process-wide intern table holds. */
-#define LH_UI_CANVAS_WEB_GLYPHS_MAX 1024u
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Which interned covers a reader has already been sent.
@@ -57,6 +59,86 @@ typedef struct lh_ui_canvas_web
 
 /** The table ::lh_ui_canvas_init wants. */
 extern const lh_ui_canvas_backend_t lh_ui_canvas_backend_web;
+
+/** One number, without a format string to parse: a frame is mostly numbers. */
+lh_void
+lh_ui_canvas_web_put_int(lh_ui_canvas_web_t *self, lh_sint_t v);
+
+/** Append the JSON array `[a,b,c,d]`. */
+lh_void
+lh_ui_canvas_web_put_quad(lh_ui_canvas_web_t *self, lh_sint_t a, lh_sint_t b, lh_sint_t c,
+                          lh_sint_t d);
+
+/** Append @p n bytes of @p px as lower-case hex. */
+lh_void
+lh_ui_canvas_web_put_hex(lh_ui_canvas_web_t *self, const lh_byte_ptr px, lh_usize_t n);
+
+/** Start an op: the separating comma when one is due, and count it. */
+lh_void
+lh_ui_canvas_web_begin_op(lh_ui_canvas_web_t *self);
+
+/** Append @p color as `[r,g,b,a]`. */
+lh_void
+lh_ui_canvas_web_put_color(lh_ui_canvas_web_t *self, const lh_ui_color_t *color);
+
+/** Append @p rect as `[x,y,w,h]`. */
+lh_void
+lh_ui_canvas_web_put_rect(lh_ui_canvas_web_t *self, const lh_ui_rect_t *rect);
+
+/** Which covers the reader holds: the caller's set, or one owned by this frame. */
+lh_ui_canvas_web_glyphs_t *
+lh_ui_canvas_web_get_glyphs(lh_ui_canvas_web_t *self);
+
+/** Free the set ::lh_ui_canvas_web_get_glyphs made for this frame, if it made one. */
+lh_void
+lh_ui_canvas_web_free_glyphs(lh_ui_canvas_web_t *self);
+
+/** The id of @p px, and whether the reader still needs its cover. -1 when the
+ * table is full: the caller sends the cover inline, every time. */
+lh_sint_t
+lh_ui_canvas_web_intern(lh_ui_canvas_web_t *self, const lh_byte_ptr px, lh_s32_t w, lh_s32_t h,
+                        lh_bool_t *is_new);
+
+/** Empty @p self: no buffer, no ops, sized @p width x @p height. */
+lh_void
+lh_ui_canvas_web_reset(lh_ui_canvas_web_t *self, lh_uint_t width, lh_uint_t height);
+
+/** Append the frame header and open the `ops` array. */
+lh_void
+lh_ui_canvas_web_put_head(lh_ui_canvas_web_t *self);
+
+/** Backend `clear`: record a `clear` op. */
+lh_void
+lh_ui_canvas_web_clear(lh_ptr context, const lh_ui_color_t *color);
+
+/** Backend `fill_rect`: record a `fill_rect` op. */
+lh_void
+lh_ui_canvas_web_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t *color);
+
+/** Backend `fill_round_rect`: record a `fill_round_rect` op. */
+lh_bool_t
+lh_ui_canvas_web_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
+                                 const lh_ui_color_t *color);
+
+/** Backend `set_clip`: ignored, the ops already arrive cut by the canvas. */
+lh_void
+lh_ui_canvas_web_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *clip);
+
+/** Backend `shadow`: record a `shadow` op. */
+lh_bool_t
+lh_ui_canvas_web_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
+                        const lh_ui_shadow_t *shadow);
+
+/** A mask too big for the intern table: its coverage goes inline, a row at a time. */
+lh_void
+lh_ui_canvas_web_put_cover(lh_ui_canvas_web_t *self, const lh_ui_mask_t *mask, lh_s32_t w,
+                           lh_s32_t h);
+
+/** Backend `fill_mask`: a `fill_mask` op with an interned cover id, and the cover
+ * when the reader lacks it. */
+lh_bool_t
+lh_ui_canvas_web_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *mask,
+                           const lh_ui_color_t *color);
 
 /**
  * @brief Start a buffer of ops. @p buf is the caller's and is not freed here.

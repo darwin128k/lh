@@ -338,6 +338,14 @@ lh_ui_view_hit_test(lh_ui_view_t *self, lh_ui_point_t point);
 lh_ui_entity_t *
 lh_ui_view_click(lh_ui_view_t *self, lh_ui_point_t point);
 
+/** A click may change what the thing clicked looks like — a toggle flips, a row
+   re-styles itself — and it happens after the release damaged the looks the
+   target had then. So the target is damaged once more, now: the same rect, and
+   the union grows only as far as the *new* look reaches. One rect union per
+   click, and no extra pixels unless a look really did reach further. */
+lh_ui_entity_t *
+lh_ui_view_click_plain(lh_ui_view_t *self, lh_ui_point_t point);
+
 /**
  * @brief ::lh_ui_entity_click on the root; when @p box is not ::lh_null (the
  *        container a hit scrollbar drives), record its scroll damage if the
@@ -422,6 +430,14 @@ lh_ui_view_tick(lh_ui_view_t *self);
 lh_bool_t
 lh_ui_view_advance(lh_ui_view_t *self, lh_u16_t ms);
 
+/** The slot @p entity is in flight in, or ::lh_null. */
+lh_ui_transition_t *
+lh_ui_view_slot_of(const lh_ui_view_t *self, const lh_ui_entity_t *entity);
+
+/** Point the entity of @p slot at its target and free the slot. */
+lh_void
+lh_ui_view_land(lh_ui_transition_t *slot);
+
 /**
  * @brief Send @p entity towards @p to over @p to's time (::lh_ui_style_get_transition),
  *        from the look it has now -- a look in flight included.
@@ -480,6 +496,29 @@ lh_ui_view_get_pointer(const lh_ui_view_t *self, lh_os_input_pointer_id_t id);
 lh_ui_scalar_t
 lh_ui_view_get_thumb_start_at(const lh_ui_scrollbar_t *bar, lh_ui_point_t point);
 
+/** The session of pointer @p id in @p self, or ::lh_null for an id the view does
+   not follow. */
+lh_ui_view_pointer_t *
+lh_ui_view_get_slot(lh_ui_view_t *self, lh_os_input_pointer_id_t id);
+
+/** True when a pointer of @p self other than @p pointer drives @p box: drags its
+   content or holds the thumb of a bar that scrolls it. A box is one pointer's at a
+   time -- two fingers pulling one list two ways is no scroll anybody meant. */
+lh_bool_t
+lh_ui_view_is_driven_by_other(const lh_ui_view_t *self, const lh_ui_view_pointer_t *pointer,
+                              const lh_ui_container_t *box);
+
+/** True when a pointer of @p self other than @p pointer went down on @p entity
+   and has not let go of it. */
+lh_bool_t
+lh_ui_view_is_held_by_other(const lh_ui_view_t *self, const lh_ui_view_pointer_t *pointer,
+                            const lh_ui_entity_t *entity);
+
+/** Close the scroll gesture of @p self as @p pointer lets go, unless another
+   pointer still drives the container it is about: that one's gesture is not over. */
+lh_void
+lh_ui_view_end_scroll_of(lh_ui_view_t *self, const lh_ui_view_pointer_t *pointer);
+
 /**
  * @brief @p pointer grabs @p bar when @p point (root space) is on its thumb;
  *        nothing for a ::lh_null @p bar, a point off the thumb, or a bar whose
@@ -503,6 +542,11 @@ lh_ui_view_drag_thumb(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_s
  */
 lh_ui_container_t *
 lh_ui_view_get_drag_box(lh_ui_entity_t *hit);
+
+/** Let go of the entity @p pointer went down on, unless another pointer of @p self
+   still presses it: the pressed look is the last finger's to end. */
+lh_void
+lh_ui_view_unpress_target(lh_ui_view_t *self, const lh_ui_view_pointer_t *pointer);
 
 /**
  * @brief Begin the session of @p pointer at @p point: stop a glide, let go of a
@@ -533,6 +577,16 @@ lh_ui_view_press_on(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_ent
  */
 lh_void
 lh_ui_view_set_pressed(lh_ui_view_t *self, lh_ui_entity_t *entity, lh_bool_t pressed);
+
+/** The rect plus whichever of two looks reaches further with its shadow. Both
+   looks and not the current one: a shadow reaches past its own box, so anything
+   less leaves the fringe of the look that is being dropped on the surface. The
+   two are the resting and pressed looks of a press (::lh_ui_view_damage_shape)
+   and the resting and hot looks of a hover (::lh_ui_view_set_hot); either may
+   be ::lh_null, which is a look that casts nothing. */
+lh_void
+lh_ui_view_damage_looks(lh_ui_view_t *self, const lh_ui_entity_t *entity,
+                        const lh_ui_style_t *first, const lh_ui_style_t *second);
 
 /**
  * @brief Record in the canvas damage the rect of @p entity grown by whichever of
@@ -716,6 +770,33 @@ lh_ui_view_text(lh_ui_view_t *self, lh_u32_t code);
  */
 lh_void
 lh_ui_view_cancel(lh_ui_view_t *self);
+
+/** Where @p event happened, in whole view units. */
+lh_ui_point_t
+lh_ui_view_point_of(const lh_os_input_event_ptr event);
+
+/** Content units one wheel notch scrolls: the system's step
+   (::lh_os_input_get_wheel_step), or ::LH_UI_VIEW_WHEEL_STEP where there is no OS layer
+   to ask. */
+lh_s32_t lh_ui_view_wheel_step(lh_void);
+
+/** A wheel distance in 1/120 notch (positive up / left) as content units to
+   scroll by (positive down / right), @p step units a notch. */
+lh_ui_scalar_t
+lh_ui_view_wheel_distance(lh_s32_t notch_120, lh_s32_t step);
+
+/** The wheel case of ::lh_ui_view_input: both axes by one step, asked once. */
+lh_bool_t
+lh_ui_view_input_wheel(lh_ui_view_t *self, const lh_os_input_event_ptr event);
+
+/** True when @p event is a button of the first pointer that the view presses with. */
+lh_bool_t
+lh_ui_view_is_primary_press(const lh_os_input_event_ptr event);
+
+/** The pointer half of ::lh_ui_view_input: each pointer the view follows to its own
+   session. */
+lh_bool_t
+lh_ui_view_input_pointer(lh_ui_view_t *self, const lh_os_input_event_ptr event);
 
 /**
  * @brief One input event, to the pointer session or the focus.

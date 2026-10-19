@@ -353,6 +353,17 @@ lh_void
 lh_os_net_socket_get_writer(lh_os_net_socket_t *self, lh_io_writer_t *out);
 
 /**
+ * @brief Send every byte of @p buf, stopping early only when the socket fails.
+ *
+ * Delegates to ::lh_io_writer_write_all, so a non-blocking socket that says
+ * "not now" ends it too.
+ *
+ * @return ::lh_bool_true when all @p size bytes were sent (including @p size of 0).
+ */
+lh_bool_t
+lh_os_net_socket_send_all(lh_os_net_socket_t *self, const lh_ptr buf, lh_usize_t size);
+
+/**
  * @brief Build an ::lh_io_stream_t (reader + writer) over @p self.
  *
  * This is the point of ::lh_io_stream_t: everything above this call sees a

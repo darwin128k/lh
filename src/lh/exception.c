@@ -31,7 +31,6 @@ lh_exception_get_origin(const lh_exception_t *self)
 /* One part of the report at @p pos: counted when @p str is lh_null, written
    otherwise (the caller checked the whole report fits). Returns the position
    after it — so counting and writing can never disagree. */
-LH_ATTRIBUTE_STATIC
 lh_usize_t
 lh_exception_format_put(lh_str_ptr str, lh_usize_t str_size, lh_usize_t pos, lh_str_cptr fmt, ...)
 {
@@ -47,7 +46,6 @@ lh_exception_format_put(lh_str_ptr str, lh_usize_t str_size, lh_usize_t pos, lh_
 }
 
 /* The whole report: its size when @p str is lh_null, else written into @p str. */
-LH_ATTRIBUTE_STATIC
 lh_usize_t
 lh_exception_format_walk(const lh_exception_t *self, lh_str_ptr str, lh_usize_t str_size)
 {

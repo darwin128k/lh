@@ -37,6 +37,14 @@ typedef struct lh_ui_viewport3d_backend lh_ui_viewport3d_backend_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/** `begin` of ::lh_ui_viewport3d_backend_null: does nothing. */
+lh_void
+lh_ui_viewport3d_null_begin(lh_ptr context, const lh_ui_rect_t *rect);
+
+/** `end` of ::lh_ui_viewport3d_backend_null: does nothing. */
+lh_void
+lh_ui_viewport3d_null_end(lh_ptr context);
+
 /** Accepts every call and draws nothing. */
 extern const lh_ui_viewport3d_backend_t lh_ui_viewport3d_backend_null;
 

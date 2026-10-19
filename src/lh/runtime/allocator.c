@@ -9,14 +9,14 @@
    vPortFree) take no context, so they are wrapped rather than cast to the
    callback types: calling a function through a pointer of another type is
    undefined behavior. */
-static lh_ptr
+lh_ptr
 lh_runtime_allocator_default_alloc(lh_self_ptr self, lh_usize_t size)
 {
     (void)self;
     return LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC(size);
 }
 
-static lh_void
+lh_void
 lh_runtime_allocator_default_dealloc(lh_self_ptr self, lh_ptr ptr)
 {
     (void)self;
@@ -24,7 +24,7 @@ lh_runtime_allocator_default_dealloc(lh_self_ptr self, lh_ptr ptr)
 }
 
 #    if LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_HAS_REALLOC
-static lh_ptr
+lh_ptr
 lh_runtime_allocator_default_realloc(lh_self_ptr self, lh_ptr ptr, lh_usize_t old_size,
                                      lh_usize_t new_size)
 {

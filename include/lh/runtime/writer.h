@@ -24,6 +24,10 @@
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/** The default writer callback: `stdout`. */
+lh_ssize_t
+lh_runtime_writer_stdout(lh_self_ptr self, const lh_ptr buf, lh_usize_t size);
+
 /**
  * @brief Return address of the runtime writer instance.
  * @return Pointer to the internal ::lh_io_writer_t (never null).

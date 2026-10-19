@@ -92,17 +92,38 @@ lh_os_loader_destroy(lh_os_loader_t *self);
 lh_void
 lh_os_loader_unload(lh_os_loader_t *self);
 
+/** The list of modules @p self has loaded. */
+lh_list_t *
+lh_os_loader_get_modules(lh_os_loader_t *self);
+
+/** The list of modules @p self has loaded, read-only. */
+const lh_list_t *
+lh_os_loader_get_modules_as_const(const lh_os_loader_t *self);
+
 /**
  * @brief The module holding this privilege.
  */
 lh_os_module_t *
 lh_os_loader_get_owner(const lh_os_loader_t *self);
 
+/** The module @p self loads children for. */
+lh_void
+lh_os_loader_set_owner(lh_os_loader_t *self, lh_os_module_t *owner);
+
+/** The entry symbol name of @p self, to change. */
+lh_str_t *
+lh_os_loader_get_entry_mut(lh_os_loader_t *self);
+
 /**
  * @brief Name a child exports its method table under.
  */
 const lh_str_ptr
 lh_os_loader_get_entry(const lh_os_loader_t *self);
+
+/** Open @p child from @p path under @p self, find its entry table and start it; false for a plain
+ * shared library or a failure. */
+lh_bool_t
+lh_os_loader_bring_up(lh_os_loader_t *self, lh_os_module_t *child, const lh_fs_path_t *path);
 
 /**
  * @brief Open @p path, take its method table, start it, keep it.

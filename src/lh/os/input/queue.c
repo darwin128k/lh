@@ -7,8 +7,7 @@
 #include <lh/os/input/queue.h>
 #include <lh/util/return.h>
 
-/** The position after @p index on a ring of @p capacity, counting in `[0, 2 * capacity)`. */
-static lh_u16_t
+lh_u16_t
 lh_os_input_queue_next(lh_u16_t capacity, lh_u16_t index)
 {
     const lh_u16_t next = lh_type_cast(lh_u16_t, index + 1U);
@@ -16,16 +15,14 @@ lh_os_input_queue_next(lh_u16_t capacity, lh_u16_t index)
     return next == lh_type_cast(lh_u16_t, capacity * 2U) ? lh_type_cast(lh_u16_t, 0U) : next;
 }
 
-/** The position before @p index on a ring of @p capacity. */
-static lh_u16_t
+lh_u16_t
 lh_os_input_queue_previous(lh_u16_t capacity, lh_u16_t index)
 {
     return index == 0U ? lh_type_cast(lh_u16_t, capacity * 2U - 1U)
                        : lh_type_cast(lh_u16_t, index - 1U);
 }
 
-/** The storage slot of the position @p index. */
-static lh_u16_t
+lh_u16_t
 lh_os_input_queue_slot(lh_u16_t capacity, lh_u16_t index)
 {
     return index < capacity ? index : lh_type_cast(lh_u16_t, index - capacity);
@@ -81,9 +78,7 @@ lh_os_input_queue_is_empty(lh_os_input_queue_cptr self)
     return lh_type_cast(lh_bool_t, lh_os_input_queue_get_count(self) == 0U);
 }
 
-/** True when @p event is a pointer move that can replace @p last: the same pointer of the same
-   device, nothing but the position changed in between. */
-static lh_bool_t
+lh_bool_t
 lh_os_input_queue_can_fold(lh_os_input_event_cptr last, lh_os_input_event_cptr event)
 {
     return lh_type_cast(
@@ -95,8 +90,7 @@ lh_os_input_queue_can_fold(lh_os_input_event_cptr last, lh_os_input_event_cptr e
             lh_os_input_event_get_buttons(last) == lh_os_input_event_get_buttons(event));
 }
 
-/** Full: fold @p event into the move just before it, or drop and count it. */
-static lh_bool_t
+lh_bool_t
 lh_os_input_queue_push_full(lh_os_input_queue_t *self, lh_os_input_event_cptr event)
 {
     const lh_u16_t capacity = lh_os_input_queue_get_capacity(self);

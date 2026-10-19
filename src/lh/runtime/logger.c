@@ -14,7 +14,7 @@
    than one that is silently lost. */
 #    define LH_RUNTIME_LOGGER_LINE 1024u
 
-static lh_ssize_t
+lh_ssize_t
 lh_runtime_logger_stderr(lh_self_ptr self, lh_logger_level_t level, lh_str_cptr fmt, va_list args)
 {
     char line[LH_RUNTIME_LOGGER_LINE];

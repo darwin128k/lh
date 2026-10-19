@@ -28,6 +28,13 @@
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
+ * @brief The handler a thread starts with: the report on `stderr` when the C
+ *        library is there to print it, nothing otherwise.
+ */
+lh_void
+lh_runtime_check_fail_default(const lh_exception_t *exception);
+
+/**
  * @brief Current handler for failed runtime checks (never ::lh_null).
  */
 lh_runtime_check_fail_cb

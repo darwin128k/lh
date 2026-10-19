@@ -78,8 +78,7 @@ lh_bool_t
 lh_char_is_radix_digit(lh_char_t ch, lh_uint_t radix)
 {
     lh_assert_runtime_if(radix > LH_CHAR_XDIGIT_RADIX, lh_runtime_error_code_invalid_argument);
-    return (lh_char_is_xdigit(ch) && lh_char_to_xdigit(ch) < radix) ? lh_bool_true
-                                                                      : lh_bool_false;
+    return (lh_char_is_xdigit(ch) && lh_char_to_xdigit(ch) < radix) ? lh_bool_true : lh_bool_false;
 }
 
 /**

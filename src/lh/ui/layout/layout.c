@@ -72,16 +72,8 @@ lh_ui_layout_set_justify(lh_ui_layout_t *self, lh_ui_justify_t justify)
 
 /* -- The pass -------------------------------------------------------------- */
 
-/** What one child wants along the flow, before anything is shared out: its own
-   length, or its content, or nothing at all for a child that wants to fill —
-   that one is decided once every other child has said. A `wrap` child with no
-   content asks for nothing, and that is what makes an empty label collapse.
-
-   Held between the child's minimum and maximum: a fixed length or a content that
-   is out of bounds is what the bounds are for. A fill is held when its share is
-   known, in the second pass. */
-static lh_ui_scalar_t
-layout_wants(const lh_ui_layout_t *self, lh_ui_entity_t *child)
+lh_ui_scalar_t
+lh_ui_layout_wants(const lh_ui_layout_t *self, lh_ui_entity_t *child)
 {
     const lh_ui_place_t *place = lh_ui_entity_get_place(child);
     lh_ui_rect_t content;
@@ -100,32 +92,25 @@ layout_wants(const lh_ui_layout_t *self, lh_ui_entity_t *child)
         lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(content)), self->axis));
 }
 
-/** How much of the fill a filling child weighs. Its length is read by nothing when
-   it fills, so that is where the weight lives, and a fill that says nothing weighs
-   one: every fill that was written before there were weights takes an equal share,
-   as it always did. */
-static lh_ui_scalar_t
-layout_weight(const lh_ui_place_t *place)
+lh_ui_scalar_t
+lh_ui_layout_weight(const lh_ui_place_t *place)
 {
     const lh_ui_scalar_t weight = lh_ui_place_get_size(place);
 
     return weight > lh_ui_scalar(0) ? weight : lh_ui_scalar(1);
 }
 
-/** The margin a child keeps on either side of it along the flow, together. */
-static lh_ui_scalar_t
-layout_margin_along(const lh_ui_layout_t *self, const lh_ui_place_t *place)
+lh_ui_scalar_t
+lh_ui_layout_margin_along(const lh_ui_layout_t *self, const lh_ui_place_t *place)
 {
     const lh_ui_insets_t *margin = lh_ui_place_get_margin(place);
 
     return lh_ui_insets_get_start(margin, self->axis) + lh_ui_insets_get_end(margin, self->axis);
 }
 
-/** The room a child is placed in across the flow: the content box, less the margin
-   the child keeps on either side of it across. */
-static lh_void
-layout_slot(const lh_ui_layout_t *self, const lh_ui_place_t *place, const lh_ui_rect_t *content,
-            lh_ui_rect_t *out)
+lh_void
+lh_ui_layout_slot(const lh_ui_layout_t *self, const lh_ui_place_t *place,
+                  const lh_ui_rect_t *content, lh_ui_rect_t *out)
 {
     lh_assert_runtime_ref(out);
     const lh_ui_axis_t cross = lh_ui_axis_get_cross(self->axis);
@@ -150,7 +135,7 @@ lh_ui_layout_cross_fit(const lh_ui_layout_t *self, lh_ui_entity_t *child,
 
     lh_assert_runtime_ref(out);
     lh_ui_entity_get_rect(child, lh_addr_of(rect));
-    layout_slot(self, lh_ui_entity_get_place(child), content, lh_addr_of(slot));
+    lh_ui_layout_slot(self, lh_ui_entity_get_place(child), content, lh_addr_of(slot));
     out->start = lh_ui_point_get_along(lh_ui_rect_get_origin_as_const(lh_addr_of(slot)), cross);
     out->own = lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(rect)), cross);
     out->room = lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(slot)), cross);
@@ -192,18 +177,9 @@ lh_ui_layout_cross_at(const lh_ui_layout_cross_t *fit, lh_ui_place_align_t align
                : lh_ui_scalar_centre(fit->room, fit->own);
 }
 
-/** A child across the flow keeps the size it has and is put where it asked; only
-   `fill` takes the whole cross side of the room it is placed in, held between its
-   minimum and maximum.
-
-   @p line is where the row's baseline sits, measured down from the cross origin
-   of the content box, or -1 when the row has none. It is measured before this pass
-   because a child's own place depends on the line and the line is the deepest of
-   the children's: measured the other way round each child would be setting a line
-   and sitting on it at once. */
-static lh_void
-layout_across(const lh_ui_layout_t *self, lh_ui_entity_t *child, const lh_ui_rect_t *content,
-              lh_ui_scalar_t line, lh_ui_scalar_t *start, lh_ui_scalar_t *length)
+lh_void
+lh_ui_layout_across(const lh_ui_layout_t *self, lh_ui_entity_t *child, const lh_ui_rect_t *content,
+                    lh_ui_scalar_t line, lh_ui_scalar_t *start, lh_ui_scalar_t *length)
 {
     const lh_ui_place_t *place = lh_ui_entity_get_place(child);
     const lh_ui_place_align_t align = lh_ui_place_get_align(place);
@@ -268,16 +244,16 @@ lh_ui_layout_run_measure_child(const lh_ui_layout_t *self, lh_ui_layout_run_t *r
 {
     const lh_ui_place_t *place = lh_ui_entity_get_place(child);
     const lh_bool_t fills_too = lh_ui_place_get_size_mode(place) == lh_ui_place_size_fill;
-    const lh_ui_scalar_t margin = layout_margin_along(self, place);
+    const lh_ui_scalar_t margin = lh_ui_layout_margin_along(self, place);
     lh_ui_scalar_t wants;
 
     lh_assert_runtime_ref(run);
     lh_return_if(lh_ui_entity_is_hidden(child));
     if (fills_too)
     {
-        run->weights += layout_weight(place);
+        run->weights += lh_ui_layout_weight(place);
     }
-    wants = layout_wants(self, child);
+    wants = lh_ui_layout_wants(self, child);
     /* A child that asked to fill has room to take even before anyone has said
        how much, so it counts for a gap; one that asked for nothing does not,
        and neither does one that is not there to be seen. A margin is room too. */
@@ -387,9 +363,9 @@ lh_ui_layout_run_length(const lh_ui_layout_t *self, const lh_ui_layout_run_t *ru
     lh_assert_runtime_ref(run);
     if (lh_ui_place_get_size_mode(place) != lh_ui_place_size_fill)
     {
-        return layout_wants(self, child);
+        return lh_ui_layout_wants(self, child);
     }
-    lh_ui_scalar_trunc(run->left * layout_weight(place) / run->weights, lh_addr_of(share));
+    lh_ui_scalar_trunc(run->left * lh_ui_layout_weight(place) / run->weights, lh_addr_of(share));
     return lh_ui_place_clamp(place, self->axis, share);
 }
 
@@ -412,8 +388,8 @@ lh_ui_layout_run_place_child(const lh_ui_layout_t *self, lh_ui_layout_run_t *run
     lh_assert_runtime_ref(run);
     lh_return_if(lh_ui_entity_is_hidden(child));
     wants = lh_ui_layout_run_length(self, run, child);
-    layout_across(self, child, content, run->line, lh_addr_of(across_start),
-                  lh_addr_of(across_length));
+    lh_ui_layout_across(self, child, content, run->line, lh_addr_of(across_start),
+                        lh_addr_of(across_length));
     lh_ui_rect_init_along(lh_addr_of(placed), lh_addr_of(nowhere), self->axis, run->along + before,
                           wants);
     lh_ui_rect_init_along(lh_addr_of(placed), lh_addr_of(placed), lh_ui_axis_get_cross(self->axis),
@@ -455,10 +431,8 @@ lh_ui_layout_run(const lh_ui_layout_t *self, lh_ui_entity_t *parent, lh_ui_entit
     lh_ui_layout_run_place(self, lh_addr_of(run), parent, first, end, lh_addr_of(content));
 }
 
-/** How deep @p child is across the flow, margins and all: its own size, or -- for one
-   that stretches across -- only its minimum, since the line it is in decides the rest. */
-static lh_ui_scalar_t
-layout_depth(const lh_ui_layout_t *self, lh_ui_entity_t *child)
+lh_ui_scalar_t
+lh_ui_layout_depth(const lh_ui_layout_t *self, lh_ui_entity_t *child)
 {
     const lh_ui_axis_t cross = lh_ui_axis_get_cross(self->axis);
     const lh_ui_place_t *place = lh_ui_entity_get_place(child);
@@ -473,13 +447,9 @@ layout_depth(const lh_ui_layout_t *self, lh_ui_entity_t *child)
     return own + lh_ui_insets_get_start(margin, cross) + lh_ui_insets_get_end(margin, cross);
 }
 
-/** The child after the last one that fits on the line starting at @p first in @p room
-   along the flow (::lh_null when every one does), and in @p depth how deep the line is.
-   A line always takes its first child, so a child longer than the room is a line on
-   its own rather than none. */
-static lh_ui_entity_t *
-layout_line_end(const lh_ui_layout_t *self, lh_ui_entity_t *parent, lh_ui_entity_t *first,
-                lh_ui_scalar_t room, lh_ui_scalar_t *depth)
+lh_ui_entity_t *
+lh_ui_layout_line_end(const lh_ui_layout_t *self, lh_ui_entity_t *parent, lh_ui_entity_t *first,
+                      lh_ui_scalar_t room, lh_ui_scalar_t *depth)
 {
     lh_ui_scalar_t used = lh_ui_scalar(0);
     int count = 0;
@@ -494,14 +464,15 @@ layout_line_end(const lh_ui_layout_t *self, lh_ui_entity_t *parent, lh_ui_entity
         {
             continue;
         }
-        size = layout_wants(self, child) + layout_margin_along(self, lh_ui_entity_get_place(child));
+        size = lh_ui_layout_wants(self, child) +
+               lh_ui_layout_margin_along(self, lh_ui_entity_get_place(child));
         if (count > 0 && used + self->gap + size > room)
         {
             return child;
         }
         used += (count > 0 ? self->gap : lh_ui_scalar(0)) + size;
         ++count;
-        lh_ptr_deref(depth) = lh_math_max(lh_ptr_deref(depth), layout_depth(self, child));
+        lh_ptr_deref(depth) = lh_math_max(lh_ptr_deref(depth), lh_ui_layout_depth(self, child));
     }
     return lh_null;
 }
@@ -540,7 +511,7 @@ lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent)
        shared between them, which is CSS's `align-content: stretch`. */
     for (first = lh_ui_entity_get_first_child(parent); lh_null_ne(first); first = end)
     {
-        end = layout_line_end(self, parent, first, room, lh_addr_of(depth));
+        end = lh_ui_layout_line_end(self, parent, first, room, lh_addr_of(depth));
         depths += depth;
         ++lines;
     }
@@ -554,7 +525,7 @@ lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent)
     {
         lh_ui_rect_t band;
 
-        end = layout_line_end(self, parent, first, room, lh_addr_of(depth));
+        end = lh_ui_layout_line_end(self, parent, first, room, lh_addr_of(depth));
         lh_ui_rect_init_along(lh_addr_of(band), lh_addr_of(content), cross, at, depth + extra);
         lh_ui_layout_run(self, parent, first, end, lh_addr_of(band));
         at += depth + extra + self->line_gap;

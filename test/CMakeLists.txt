@@ -242,6 +242,7 @@ endif ()
 set(LH_TEST_STR_SOURCES
         ${LH_TEST_SRC_PATH}/lh/str.cpp
         ${LH_TEST_SRC_PATH}/lh/str/format/bytes.cpp
+        ${LH_TEST_SRC_PATH}/lh/str/format/base64.cpp
         ${LH_TEST_SRC_PATH}/lh/str/format/hex.cpp
         ${LH_TEST_SRC_PATH}/lh/str/format/sint.cpp
         ${LH_TEST_SRC_PATH}/lh/str/format/text.cpp

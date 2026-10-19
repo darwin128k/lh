@@ -54,10 +54,8 @@ static const page_key_t page_keys[] = {
 lh_assert_static(PAGE_KEY_COUNT == lh_cast_static(lh_usize_t, lh_os_key_alt),
                  "page_keys must name every lh_os_key_t but lh_os_key_other");
 
-/** `var <name>={'<e.key>':<lh_os_key_t>,...};` from ::page_keys, only the modifiers when
-   @p modifiers_only. Fails @p j when the table would not fit ::PAGE_KEY_TABLE_CAP. */
-static lh_void
-page_emit_key_table(lh_ui_web_buf_t *j, lh_str_cptr name, lh_bool_t modifiers_only)
+lh_void
+lh_ui_web_page_emit_key_table(lh_ui_web_buf_t *j, lh_str_cptr name, lh_bool_t modifiers_only)
 {
     lh_char_t table[PAGE_KEY_TABLE_CAP];
     lh_usize_t len = 0u;
@@ -795,8 +793,8 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     /* A key goes as `k <key> 1` down and `k <key> 0` up, and a key that also types (Space)
        sends its text after it, as the desktop's key-down and character messages do. A modifier
        keeps the browser's default; every other key the player takes. */
-    page_emit_key_table(j, "keys", lh_bool_false);
-    page_emit_key_table(j, "mods", lh_bool_true);
+    lh_ui_web_page_emit_key_table(j, "keys", lh_bool_false);
+    lh_ui_web_page_emit_key_table(j, "mods", lh_bool_true);
     lh_ui_web_js_assign(j, "document.onkeydown",
                         "function(e){var k=keys[e.key],m=mods[e.key];"
                         "var t=e.key&&e.key.length===1&&!e.ctrlKey&&!e.altKey&&!e.metaKey;"

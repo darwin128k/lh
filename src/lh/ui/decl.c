@@ -7,8 +7,7 @@
 #include <lh/byte/ptr.h>
 #include <lh/util/return.h>
 
-/** Record @p code at row @p index in @p fault, when the caller asked for one. */
-static lh_void
+lh_void
 lh_ui_decl_fault(lh_ui_decl_fault_t *fault, lh_ui_decl_error_t code, lh_u32_t index)
 {
     if (lh_null_ne(fault))
@@ -18,8 +17,7 @@ lh_ui_decl_fault(lh_ui_decl_fault_t *fault, lh_ui_decl_error_t code, lh_u32_t in
     }
 }
 
-/** Bytes the widget of @p kind takes in the pool. */
-static lh_u32_t
+lh_u32_t
 lh_ui_decl_size_of(lh_ui_decl_kind_t kind)
 {
     switch (kind)
@@ -45,10 +43,7 @@ lh_ui_decl_size_of(lh_ui_decl_kind_t kind)
     }
 }
 
-/** Everything a row can be wrong on its own, before a single widget is placed: what
-   it is, whether a slot can hold it, and what it points at. A build that stopped
-   half way through would leave a tree that looks finished and is not. */
-static lh_ui_decl_error_t
+lh_ui_decl_error_t
 lh_ui_decl_check(const lh_ui_decl_t *decls, lh_u32_t index)
 {
     const lh_ui_decl_t *row = lh_addr_of(decls[index]);
@@ -75,10 +70,7 @@ lh_ui_decl_check(const lh_ui_decl_t *decls, lh_u32_t index)
     return lh_ui_decl_error_none;
 }
 
-/** One row into one slot: the component its kind names and that kind's own fields,
-   and nothing of any other kind. The style and the place are the caller's, because
-   they are the same whatever the widget is. */
-static lh_ui_entity_t *
+lh_ui_entity_t *
 lh_ui_decl_place_row(const lh_ui_decl_t *row, lh_byte_ptr slot, lh_ui_entity_t **nodes)
 {
     lh_ui_rect_t rect;

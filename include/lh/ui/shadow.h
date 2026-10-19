@@ -157,6 +157,15 @@ lh_ui_shadow_distance(lh_ui_scalar_t x, lh_ui_scalar_t y, const lh_ui_rect_t *re
 lh_byte_t
 lh_ui_shadow_falloff(lh_s32_t distance, lh_ui_scalar_t spread, lh_byte_t peak);
 
+/** Signed distance, in the same fixed point as ::lh_ui_radius_coverage, from the
+   sample (@p px, @p py) to the rounded edge. The centre is the middle of the
+   two edges, not `width / 2` of a truncated corner: an odd width then leans a
+   pixel to one side, and the shadow on the right of a box is heavier than the
+   shadow on the left of it. */
+lh_s64_t
+lh_ui_shadow_signed_distance(lh_s64_t px, lh_s64_t py, const lh_ui_rect_t *rect,
+                             lh_ui_scalar_t radius);
+
 /**
  * @brief ::lh_ui_shadow_falloff in fixed point: @p distance and @p spread share one
  *        fixed-point scale, and the result is rounded instead of truncated (what a

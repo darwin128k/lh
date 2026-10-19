@@ -112,10 +112,11 @@ lh_os_controller_set_enabled(lh_os_controller_t *self, lh_bool_t enabled)
 
     lh_os_controller_set_flags(
         self,
-        lh_type_cast(lh_os_controller_flags_t,
-                     enabled ? lh_bit_or(flags, lh_os_controller_flags_enabled)
-                             : lh_bit_and(flags, lh_bit_not(lh_type_cast(lh_os_controller_flags_t,
-                                                                         lh_os_controller_flags_enabled)))));
+        lh_type_cast(
+            lh_os_controller_flags_t,
+            enabled ? lh_bit_or(flags, lh_os_controller_flags_enabled)
+                    : lh_bit_and(flags, lh_bit_not(lh_type_cast(lh_os_controller_flags_t,
+                                                                lh_os_controller_flags_enabled)))));
 }
 
 lh_void
@@ -128,8 +129,8 @@ lh_os_controller_init(lh_os_controller_t *self, lh_os_controller_handlers_handle
     lh_os_controller_set_context(self, context);
     lh_os_input_recognizer_init(lh_os_controller_get_recognizer(self), config);
     lh_os_controller_set_flags(
-        self, lh_type_cast(lh_os_controller_flags_t,
-                           lh_bit_or(lh_os_controller_flags_enabled, lh_os_controller_flags_gestures)));
+        self, lh_type_cast(lh_os_controller_flags_t, lh_bit_or(lh_os_controller_flags_enabled,
+                                                               lh_os_controller_flags_gestures)));
 }
 
 /* -- Events ---------------------------------------------------------------- */
@@ -158,9 +159,7 @@ typedef struct lh_os_controller_dispatch lh_os_controller_dispatch_t;
 #define lh_os_controller_dispatch_initializer(controller)                                          \
     lh_initializer((controller), lh_bool_false)
 
-/** An ::lh_os_input_sink_fn for the recognizer: @p event to the controller's handler, and
-   @p self (an ::lh_os_controller_dispatch_t) remembers when the handler acted. */
-static lh_void
+lh_void
 lh_os_controller_dispatch_sink(lh_self_ptr self, lh_os_input_event_cptr event)
 {
     lh_os_controller_dispatch_t *dispatch = lh_ptr_rcast(lh_os_controller_dispatch_t, self);
@@ -207,9 +206,7 @@ lh_os_controller_update(lh_os_controller_t *self, lh_tick_t now)
     return dispatch.handled;
 }
 
-/** Every gesture of @p self dropped without a word: the recognizer starts over with the
-   thresholds it had. */
-static lh_void
+lh_void
 lh_os_controller_forget_gestures(lh_os_controller_t *self)
 {
     lh_os_input_recognizer_ptr recognizer = lh_os_controller_get_recognizer(self);

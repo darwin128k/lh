@@ -30,6 +30,66 @@ LH_COMPILER_EXTERN_C_BEGIN
 /** @brief Most significant digits that mean anything for a single-precision float. */
 #define LH_STR_FORMAT_FLOAT_DIGITS_MAX 9U
 
+/** Set @p self to @p value. */
+lh_void
+lh_str_format_float_big_set_u64(lh_numeric_big_t *self, lh_u64_t value);
+
+/** @p self into @p out when it fits 64 bits; false otherwise. */
+lh_bool_t
+lh_str_format_float_big_as_u64(const lh_numeric_big_t *self, lh_u64_t *out);
+
+/** @p *x *= 10^@p k when the product fits in u64. */
+lh_bool_t
+lh_str_format_float_u64_mul_pow10(lh_u64_t *x, lh_usize_t k);
+
+/**
+ * Unpack a finite non-zero float into mantissa and binary exponent such that
+ * value = mantissa * 2^e (mantissa has the implicit 1 for normals).
+ */
+lh_void
+lh_str_format_float_unpack(lh_u32_t bits, lh_u32_t *mantissa, lh_sint_t *e);
+
+/** @p *x *= 10^@p k when the product fits in u32. */
+lh_bool_t
+lh_str_format_float_u32_mul_pow10(lh_u32_t *x, lh_usize_t k);
+
+/**
+ * Round @p digits of a [1,10) ratio after the last remainder compare @p order.
+ * Shared by the u32 / u64 digit extractors.
+ */
+lh_bool_t
+lh_str_format_float_round_digits(lh_sint_t order, lh_usize_t precision, lh_str_ptr digits);
+
+/**
+ * Scale into [1, 10) using only u32 (hardware UDIV on Cortex-M).
+ * Covers typical magnitudes such as ±pi.
+ */
+lh_bool_t
+lh_str_format_float_scale_u32(lh_u32_t mantissa, lh_sint_t e, lh_u32_t *num, lh_u32_t *den,
+                              lh_sint_t *d10_out);
+
+/** The first @p precision decimal digits of @p num / @p den into @p digits, rounded half to even;
+ * ::lh_str_format_float_get_digits_u64 in 32 bits. */
+lh_bool_t
+lh_str_format_float_get_digits_u32(lh_u32_t num, lh_u32_t den, lh_usize_t precision,
+                                   lh_str_ptr digits);
+
+/**
+ * Scale @p mantissa * 2^@p e into num/den in [1, 10) as u64.
+ * @return lh_bool_true and writes @p *d10, @p *num, @p *den on success.
+ */
+lh_bool_t
+lh_str_format_float_scale_u64(lh_u32_t mantissa, lh_sint_t e, lh_u64_t *num, lh_u64_t *den,
+                              lh_sint_t *d10_out);
+
+/**
+ * Digits of @p num / @p den in [1, 10) via native u64 divide.
+ * @return lh_bool_true when rounding carried into a new leading 1.
+ */
+lh_bool_t
+lh_str_format_float_get_digits_u64(lh_u64_t num, lh_u64_t den, lh_usize_t precision,
+                                   lh_str_ptr digits);
+
 /**
  * @brief Floor of @p x * log10(2): the decimal exponent of 2^@p x.
  *
@@ -42,7 +102,8 @@ LH_COMPILER_EXTERN_C_BEGIN
 lh_sint_t
 lh_str_format_float_floor_log10_pow2(lh_sint_t x);
 
-/** @brief The significant digits to print: @p digits, 0 meaning the default, at most the maximum. */
+/** @brief The significant digits to print: @p digits, 0 meaning the default, at most the maximum.
+ */
 lh_usize_t
 lh_str_format_float_get_precision(lh_usize_t digits);
 
@@ -94,8 +155,8 @@ lh_str_format_float_put_fixed(const lh_str_ptr digits, lh_usize_t nd, lh_sint_t 
  * @return Position after the last character written.
  */
 lh_usize_t
-lh_str_format_float_put_exponent(const lh_str_ptr digits, lh_usize_t nd, lh_sint_t d10, lh_str_ptr str,
-                                 lh_usize_t n);
+lh_str_format_float_put_exponent(const lh_str_ptr digits, lh_usize_t nd, lh_sint_t d10,
+                                 lh_str_ptr str, lh_usize_t n);
 
 /**
  * @brief Format @p value with @p digits significant digits, `%.{digits}g` style.

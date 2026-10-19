@@ -110,6 +110,24 @@ extern const lh_ui_entity_class_t lh_ui_input_class;
 lh_void
 lh_ui_input_event(const struct lh_ui_entity *self, const lh_ui_entity_event_t *event);
 
+/** @brief The start of the code point before byte @p caret, or 0 at the start. */
+lh_u16_t
+lh_ui_input_boundary_before(const lh_ui_input_t *self, lh_u16_t caret);
+
+/**
+ * @brief Is byte @p at the start of a code point of @p self?
+ *
+ * The byte that decides it is the one **at** @p at, not the one before it: a position is
+ * the start of a character when the byte it stands on is a lead byte rather than a
+ * continuation. Asking about the byte before asks the same question about the
+ * character *ending* there, which is a different character -- so every position in a
+ * field of ASCII said yes (no byte in ASCII is a continuation), which is why a caret
+ * could sit between the two halves of a Cyrillic letter and every test with plain
+ * letters stayed green over it.
+ */
+lh_bool_t
+lh_ui_input_is_boundary(const lh_ui_input_t *self, lh_u16_t at);
+
 /**
  * @brief On ::lh_ui_entity_event_focus and ::lh_ui_entity_event_defocus: remember
  *        which of the two it was. A derived class may call it directly.
@@ -288,6 +306,16 @@ lh_ui_input_home(lh_ui_input_t *self);
 /** @brief Put the caret after the last character. */
 lh_void
 lh_ui_input_end(lh_ui_input_t *self);
+
+/** The top of the font's line the text stands on, in the field's own space.
+
+   With text it is the label's own baseline, so the caret stands on the line the letters
+   do. Without text there is no run to centre, so the baseline is the one a run of
+   capitals would get: a block one cap height tall, aligned the way the style says.
+   Digits and capitals are what a field of addresses and numbers holds, so the caret
+   does not move when the first character is typed. */
+lh_ui_scalar_t
+lh_ui_input_get_line_top(const lh_ui_input_t *self, const lh_ui_font_t *font);
 
 /**
  * @brief Where the caret is drawn: a column on the text's own line, from the top of

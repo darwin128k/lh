@@ -6,12 +6,13 @@
 #include <lh/ui/web/ws.h>
 
 #include <lh/byte/ptr.h>
+#include <lh/math.h>
 
-/** Whether @p opcode is one RFC 6455 defines: data 0..2 or control 8..10. */
-static unsigned
-ws_ok_opcode(unsigned opcode)
+lh_bool_t
+lh_ui_web_ws_is_ok_opcode(lh_uint_t opcode)
 {
-    return opcode <= 2u || (opcode >= 8u && opcode <= 10u);
+    return lh_cast_static(lh_bool_t, lh_math_le(opcode, 2U) ||
+                                         (lh_math_ge(opcode, 8U) && lh_math_le(opcode, 10U)));
 }
 
 lh_usize_t
@@ -29,7 +30,7 @@ lh_ui_web_ws_frame_size(lh_usize_t payload_len)
 }
 
 lh_usize_t
-lh_ui_web_ws_write(lh_byte_ptr out, lh_usize_t cap, unsigned opcode, lh_bool_t fin,
+lh_ui_web_ws_write(lh_byte_ptr out, lh_usize_t cap, lh_uint_t opcode, lh_bool_t fin,
                    const void *payload, lh_usize_t payload_len)
 {
     const lh_usize_t need = lh_ui_web_ws_frame_size(payload_len);
@@ -37,7 +38,7 @@ lh_ui_web_ws_write(lh_byte_ptr out, lh_usize_t cap, unsigned opcode, lh_bool_t f
     lh_usize_t i;
     lh_usize_t off;
 
-    if (out == lh_null || !ws_ok_opcode(opcode) || need == 0u || need > cap)
+    if (out == lh_null || !lh_ui_web_ws_is_ok_opcode(opcode) || need == 0u || need > cap)
     {
         return 0;
     }
@@ -75,15 +76,15 @@ lh_ui_web_ws_write(lh_byte_ptr out, lh_usize_t cap, unsigned opcode, lh_bool_t f
 }
 
 lh_usize_t
-lh_ui_web_ws_read(lh_byte_cptr p, lh_usize_t n, unsigned *opcode, lh_bool_t *fin,
+lh_ui_web_ws_read(lh_byte_cptr p, lh_usize_t n, lh_uint_t *opcode, lh_bool_t *fin,
                   lh_byte_cptr *payload, lh_usize_t *payload_len, lh_byte_cptr *mask)
 {
-    unsigned masked;
-    unsigned len7;
+    lh_uint_t masked;
+    lh_uint_t len7;
     lh_usize_t off = 2u;
     lh_usize_t plen;
     lh_u64_t wide;
-    unsigned i;
+    lh_uint_t i;
 
     if (p == lh_null || n < 2u)
     {
@@ -91,18 +92,18 @@ lh_ui_web_ws_read(lh_byte_cptr p, lh_usize_t n, unsigned *opcode, lh_bool_t *fin
     }
     if (opcode != lh_null)
     {
-        lh_ptr_deref(opcode) = lh_cast_static(unsigned, (p[0] & 0x0fu));
+        lh_ptr_deref(opcode) = lh_cast_static(lh_uint_t, (p[0] & 0x0fu));
     }
     if (fin != lh_null)
     {
         lh_ptr_deref(fin) = (p[0] & 0x80u) ? lh_bool_true : lh_bool_false;
     }
-    if (!ws_ok_opcode(lh_cast_static(unsigned, (p[0] & 0x0fu))))
+    if (!lh_ui_web_ws_is_ok_opcode(lh_cast_static(lh_uint_t, (p[0] & 0x0fu))))
     {
         return (lh_usize_t)-1;
     }
-    masked = lh_cast_static(unsigned, (p[1] & 0x80u));
-    len7 = lh_cast_static(unsigned, (p[1] & 0x7fu));
+    masked = lh_cast_static(lh_uint_t, (p[1] & 0x80u));
+    len7 = lh_cast_static(lh_uint_t, (p[1] & 0x7fu));
     if (len7 == 126u)
     {
         if (n < 4u)

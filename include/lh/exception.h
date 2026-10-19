@@ -97,6 +97,16 @@ lh_exception_get_origin(const lh_exception_t *self);
 lh_usize_t
 lh_exception_format(const lh_exception_t *self, lh_str_ptr str, lh_usize_t str_size);
 
+/** Format @p fmt at @p pos of @p str (or only measure it when @p str is ::lh_null); the position
+ * after it. */
+lh_usize_t
+lh_exception_format_put(lh_str_ptr str, lh_usize_t str_size, lh_usize_t pos, const lh_str_ptr fmt,
+                        ...);
+
+/** The report of @p self written into @p str (or measured when @p str is ::lh_null); its length. */
+lh_usize_t
+lh_exception_format_walk(const lh_exception_t *self, lh_str_ptr str, lh_usize_t str_size);
+
 /**
  * @brief Characters ::lh_exception_format writes for @p self (no terminator).
  *

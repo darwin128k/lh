@@ -66,11 +66,8 @@ lh_mb_encode(lh_mb_framing_t framing, lh_u8_t unit, lh_u16_t tx, lh_byte_cptr pd
     return (lh_u16_t)(3 + pdu_length);
 }
 
-/** How long an RTU answer is, from its function code: a read says how many bytes
-   in its third byte, a write echoes its request, and an exception is five. 125
-   registers is the most, so 255 bytes is the most a read answer can be. */
-static lh_u16_t
-rtu_length(lh_byte_cptr frame, lh_u16_t have, lh_u8_t fc)
+lh_u16_t
+lh_mb_rtu_frame_length(lh_byte_cptr frame, lh_u16_t have, lh_u8_t fc)
 {
     if (have < 3)
     {
@@ -141,7 +138,7 @@ lh_mb_frame_length(lh_mb_framing_t framing, lh_byte_cptr frame, lh_u16_t have, l
            on bytes that had all arrived. */
         return (lh_u16_t)(LH_MB_MBAP_HEAD + length - 1);
     }
-    return rtu_length(frame, have, fc);
+    return lh_mb_rtu_frame_length(frame, have, fc);
 }
 
 lh_bool_t
@@ -250,11 +247,7 @@ lh_mb_link_set_stream(lh_mb_link_t *self, const lh_io_stream_t *stream)
     self->reason = lh_mb_status_ok;
 }
 
-/** The stream is gone: the peer closed it, it failed, or it took half a request. A
-   frame boundary cannot be found on it again, so nothing held is kept, and the
-   reason says so -- the app opens a new stream and hands it to
-   ::lh_mb_link_set_stream. */
-static lh_mb_link_state_t
+lh_mb_link_state_t
 lh_mb_link_lose(lh_mb_link_t *self)
 {
     self->held = 0;
@@ -264,11 +257,7 @@ lh_mb_link_lose(lh_mb_link_t *self)
     return lh_mb_link_failed;
 }
 
-/** Drop the first @p n bytes held. Over MBAP what follows them is the start of the
-   next frame and is kept: TCP is a stream, a recv hands over whatever has arrived,
-   and an answer and the frame behind it come in one piece as often as not. Over RTU
-   there is no length to find the next frame by, so everything goes. */
-static lh_void
+lh_void
 lh_mb_link_consume(lh_mb_link_t *self, lh_u16_t n)
 {
     if (self->framing != lh_mb_framing_mbap || n >= self->held)
@@ -281,10 +270,7 @@ lh_mb_link_consume(lh_mb_link_t *self, lh_u16_t n)
     self->held = lh_cast_static(lh_u16_t, (self->held - n));
 }
 
-/** Everything after the PDU is the same for a read and a write: the envelope, the send,
-   and the bookkeeping that makes the answer this question's. @p fc is the code the
-   answer will carry, and ::lh_mb_link_poll reads it by that. */
-static lh_bool_t
+lh_bool_t
 lh_mb_link_send(lh_mb_link_t *self, lh_byte_cptr pdu, lh_u16_t pdu_length, lh_u16_t address,
                 lh_u16_t count, lh_u8_t fc)
 {

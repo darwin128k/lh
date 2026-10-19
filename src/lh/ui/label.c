@@ -111,9 +111,7 @@ lh_ui_label_get_text_color(const lh_ui_label_t *self)
     return lh_null_eq(style) ? lh_null : lh_ui_style_get_text_color(style);
 }
 
-/** How wide the lines of the text may be: the padded box when the style wraps, and 0
-   -- no width, lines end at line breaks only -- when it does not. */
-static lh_ui_scalar_t
+lh_ui_scalar_t
 lh_ui_label_get_wrap_width(const lh_ui_label_t *self)
 {
     const lh_ui_entity_t *entity = lh_addr_of(self->container.entity);
@@ -131,9 +129,7 @@ lh_ui_label_get_wrap_width(const lh_ui_label_t *self)
     return lh_math_max(width, lh_ui_scalar(1));
 }
 
-/** Where each line of a wrapped text sits inside the widest: the alignment the text
-   is placed by. */
-static lh_ui_text_align_h_t
+lh_ui_text_align_h_t
 lh_ui_label_get_line_align(const lh_ui_label_t *self)
 {
     const lh_ui_style_t *style = lh_ui_entity_get_style(lh_addr_of(self->container.entity));
@@ -141,8 +137,7 @@ lh_ui_label_get_line_align(const lh_ui_label_t *self)
     return lh_null_eq(style) ? lh_ui_text_align_h_left : lh_ui_style_get_align_h(style);
 }
 
-/** True when @p a and @p b keep the same distances off every edge. */
-static lh_bool_t
+lh_bool_t
 lh_ui_label_same_insets(const lh_ui_insets_t *a, const lh_ui_insets_t *b)
 {
     return lh_ui_insets_get_left(a) == lh_ui_insets_get_left(b) &&
@@ -153,17 +148,7 @@ lh_ui_label_same_insets(const lh_ui_insets_t *a, const lh_ui_insets_t *b)
                : lh_bool_false;
 }
 
-/** @p self with what its text measures worked out: from the metrics fields when
-   nothing they were worked out from has changed, else measured again and kept.
-
-   Measuring is laying the text out glyph by glyph, wrapped or not, and every frame
-   asks for it several times over -- whether the label shows at all, where its text
-   starts, where its line is, what its ink covers -- of every label, drawn or not.
-   It is the same answer each time until the text (::lh_ui_label_set_text drops it),
-   the font, the box, the padding, the alignment or the wrapping width changes, and
-   those are what is compared here. The label is const to its callers because none
-   of this is what it looks like; only the remembering writes. */
-static const lh_ui_label_t *
+const lh_ui_label_t *
 lh_ui_label_measured(const lh_ui_label_t *self)
 {
     lh_ui_label_t *label = lh_ptr_rcast(lh_ui_label_t, self);
@@ -315,9 +300,7 @@ lh_ui_label_on_measure(const lh_ui_label_t *self, const lh_ui_entity_event_t *ev
     lh_ui_rect_union(bounds, lh_addr_of(text), bounds);
 }
 
-/** The ink of the current text, relative to the label's own origin, so it stays right
-   when the label moves before its text changes again. */
-static lh_void
+lh_void
 lh_ui_label_get_ink_reach(lh_ui_label_t *self, lh_ui_rect_t *out)
 {
     lh_assert_runtime_ref(out);
@@ -389,15 +372,7 @@ lh_ui_label_can_draw_text(const lh_ui_label_t *self, const lh_ui_canvas_t *canva
                : lh_bool_false;
 }
 
-/** The longest start of @p text that fits in @p room with an ellipsis after it, written
-   into @p out with the ellipsis, or `lh_bool_false` when the whole line fits and is to
-   be drawn as it is.
-
-   The ellipsis is the font's own `…` when it has one and three dots when it does not:
-   a box of a glyph nobody baked is worse than three full stops. The cut is between
-   code points, never inside one, and a start that would not fit in @p out is cut
-   shorter rather than written past it. */
-static lh_bool_t
+lh_bool_t
 lh_ui_label_shorten(const lh_ui_font_t *font, const lh_char_t *text, lh_s32_t room, lh_char_t *out,
                     lh_u32_t size)
 {

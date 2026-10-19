@@ -42,9 +42,7 @@ lh_ui_radii_get_min(const lh_ui_radii_t *self)
                        lh_math_min(self->bottom_right, self->bottom_left));
 }
 
-/** @p radius times @p num / @p den when @p num < @p den, else @p radius: the CSS factor,
-   kept in the scalar type so a build with no FPU rounds down rather than up. */
-static lh_ui_scalar_t
+lh_ui_scalar_t
 lh_ui_radii_scale(lh_ui_scalar_t radius, lh_ui_scalar_t num, lh_ui_scalar_t den)
 {
     if (den <= lh_ui_scalar(0) || num >= den)
