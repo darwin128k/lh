@@ -41,18 +41,6 @@ lh_os_system_net_socket_result(int result)
     return lh_cast_static(lh_ssize_t, result);
 }
 
-LH_ATTRIBUTE_STATIC
-lh_bool_t
-lh_os_system_net_socket_ok(int result)
-{
-    if (lh_math_ne(result, 0))
-    {
-        lh_os_system_error_capture();
-        return lh_bool_false;
-    }
-    return lh_bool_true;
-}
-
 lh_os_system_net_socket_handle_t
 lh_os_system_net_socket_open(lh_os_system_net_socket_type_t type)
 {
@@ -88,7 +76,7 @@ lh_os_system_net_socket_connect(lh_os_system_net_socket_handle_t handle,
 
     lh_assert_runtime_ref(addr);
     lh_os_system_net_socket_native_addr_from_ip4(lh_addr_of(native_addr), addr);
-    return lh_os_system_net_socket_ok(connect(
+    return lh_os_system_error_check_zero(connect(
         lh_os_system_net_socket_native(handle),
         lh_ptr_rcast(lh_os_system_win_sockaddr_t, lh_addr_of(native_addr)), sizeof(native_addr)));
 }
@@ -98,9 +86,9 @@ lh_os_system_net_socket_set_blocking(lh_os_system_net_socket_handle_t handle, lh
 {
     lh_ulong_t non_blocking = blocking ? 0UL : 1UL;
 
-    return lh_os_system_net_socket_ok(ioctlsocket(lh_os_system_net_socket_native(handle),
-                                                  LH_OS_SYSTEM_WIN_FIONBIO,
-                                                  lh_addr_of(non_blocking)));
+    return lh_os_system_error_check_zero(ioctlsocket(lh_os_system_net_socket_native(handle),
+                                                     LH_OS_SYSTEM_WIN_FIONBIO,
+                                                     lh_addr_of(non_blocking)));
 }
 
 lh_ssize_t
@@ -148,7 +136,7 @@ lh_os_system_net_socket_connect_wait(lh_os_system_net_socket_handle_t handle, lh
     {
         return LH_OS_RESULT_PENDING;
     }
-    if (!lh_os_system_net_socket_ok(
+    if (!lh_os_system_error_check_zero(
             getsockopt(native, LH_OS_SYSTEM_WIN_SOL_SOCKET, LH_OS_SYSTEM_WIN_SO_ERROR,
                        lh_ptr_cast(char, lh_addr_of(error)), lh_addr_of(error_size))))
     {
@@ -173,7 +161,7 @@ lh_os_system_net_socket_bind(lh_os_system_net_socket_handle_t handle,
 
     lh_assert_runtime_ref(addr);
     lh_os_system_net_socket_native_addr_from_ip4(lh_addr_of(native_addr), addr);
-    return lh_os_system_net_socket_ok(bind(
+    return lh_os_system_error_check_zero(bind(
         lh_os_system_net_socket_native(handle),
         lh_ptr_rcast(lh_os_system_win_sockaddr_t, lh_addr_of(native_addr)), sizeof(native_addr)));
 }
@@ -182,7 +170,7 @@ lh_bool_t
 lh_os_system_net_socket_listen(lh_os_system_net_socket_handle_t handle, lh_int_t backlog)
 {
     lh_assert_runtime_if(lh_math_is_negative(backlog), lh_runtime_error_code_invalid_argument);
-    return lh_os_system_net_socket_ok(listen(lh_os_system_net_socket_native(handle), backlog));
+    return lh_os_system_error_check_zero(listen(lh_os_system_net_socket_native(handle), backlog));
 }
 
 lh_os_system_net_socket_handle_t
@@ -215,7 +203,7 @@ lh_os_system_net_socket_get_local_addr(lh_os_system_net_socket_handle_t handle,
 
     lh_assert_runtime_ref(out);
     lh_memory_set(lh_addr_of(native_addr), sizeof(native_addr), 0);
-    if (!lh_os_system_net_socket_ok(
+    if (!lh_os_system_error_check_zero(
             getsockname(lh_os_system_net_socket_native(handle),
                         lh_ptr_rcast(lh_os_system_win_sockaddr_t, lh_addr_of(native_addr)),
                         lh_addr_of(addr_len))))
@@ -231,7 +219,7 @@ lh_os_system_net_socket_set_reuse_addr(lh_os_system_net_socket_handle_t handle, 
 {
     const int value = enabled ? 1 : 0;
 
-    return lh_os_system_net_socket_ok(
+    return lh_os_system_error_check_zero(
         setsockopt(lh_os_system_net_socket_native(handle), LH_OS_SYSTEM_WIN_SOL_SOCKET,
                    LH_OS_SYSTEM_WIN_SO_REUSEADDR, lh_ptr_ccast(char, lh_addr_of(value)),
                    lh_cast_static(int, sizeof(value))));
@@ -242,7 +230,7 @@ lh_os_system_net_socket_set_no_delay(lh_os_system_net_socket_handle_t handle, lh
 {
     const int value = enabled ? 1 : 0;
 
-    return lh_os_system_net_socket_ok(
+    return lh_os_system_error_check_zero(
         setsockopt(lh_os_system_net_socket_native(handle), LH_OS_SYSTEM_WIN_IPPROTO_TCP,
                    LH_OS_SYSTEM_WIN_TCP_NODELAY, lh_ptr_ccast(char, lh_addr_of(value)),
                    lh_cast_static(int, sizeof(value))));
@@ -314,8 +302,8 @@ lh_os_system_net_socket_pending(lh_os_system_net_socket_handle_t handle)
 {
     lh_ulong_t pending = 0UL;
 
-    if (!lh_os_system_net_socket_ok(ioctlsocket(lh_os_system_net_socket_native(handle),
-                                                LH_OS_SYSTEM_WIN_FIONREAD, lh_addr_of(pending))))
+    if (!lh_os_system_error_check_zero(ioctlsocket(lh_os_system_net_socket_native(handle),
+                                                   LH_OS_SYSTEM_WIN_FIONREAD, lh_addr_of(pending))))
     {
         return LH_OS_RESULT_INVALID;
     }

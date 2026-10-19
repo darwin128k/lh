@@ -19,6 +19,7 @@
 #define LH_OS_SYSTEM_ERROR_CAPTURE_H
 
 #include <lh/void.h>
+#include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/os/error/desc.h>
@@ -82,6 +83,25 @@ lh_os_system_error_get_native_code(void);
  */
 lh_void
 lh_os_system_error_capture(void);
+
+/**
+ * @brief ::lh_os_system_error_capture when a native call failed.
+ *
+ * @param ok Whether the native call succeeded.
+ * @return @p ok, so a call site reads `return lh_os_system_error_check(...)`.
+ */
+lh_bool_t
+lh_os_system_error_check(lh_bool_t ok);
+
+/**
+ * @brief ::lh_os_system_error_check for a native call that returns `0` on
+ *        success (`connect`, `bind`, `listen`, `setsockopt`, ...).
+ *
+ * @param result What the native call returned.
+ * @return ::lh_bool_true for `0`, else ::lh_bool_false with the error captured.
+ */
+lh_bool_t
+lh_os_system_error_check_zero(lh_sint_t result);
 
 LH_COMPILER_EXTERN_C_END
 
