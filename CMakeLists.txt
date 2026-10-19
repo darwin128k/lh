@@ -459,6 +459,27 @@ if (LH_LIBRARY_OPTION_OS AND LH_OS_SYSTEM_LINK_LIBS)
     target_link_libraries(${PROJECT_NAME} PUBLIC ${LH_OS_SYSTEM_LINK_LIBS})
 endif ()
 
+# ---------------------------------------------------------------------------
+# Option: LH_STATIC_LIBGCC
+#
+# Hosts that ship an older libgcc_s (HLDS is the usual case) reject a module
+# built against a newer GCC with `version GCC_7.0.0 not found`. Linking the
+# runtime into the dependent with -static-libgcc / -static-libstdc++ avoids
+# that. lh itself is a static archive; INTERFACE forwards the flags to whoever
+# links it (e.g. authum_mm.so). No effect on MSVC.
+# ---------------------------------------------------------------------------
+option(LH_STATIC_LIBGCC
+        "Pass -static-libgcc and -static-libstdc++ to dependents (GCC/Clang). For hosts with an older libgcc_s."
+        OFF)
+if (LH_STATIC_LIBGCC)
+    if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+        target_link_options(${PROJECT_NAME} INTERFACE -static-libgcc -static-libstdc++)
+        message(STATUS "LH_STATIC_LIBGCC=ON: dependents get -static-libgcc -static-libstdc++")
+    else ()
+        message(STATUS "LH_STATIC_LIBGCC=ON ignored on ${CMAKE_C_COMPILER_ID}")
+    endif ()
+endif ()
+
 # Strong release optimizations for the core library (optional; Release only).
 if (LH_ENABLE_RELEASE_MAX_OPT)
     if (MSVC)
