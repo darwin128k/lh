@@ -101,6 +101,36 @@ lh_ptr
 lh_memory_set(lh_ptr dst, lh_usize_t size, lh_byte_t val);
 
 /**
+ * @brief Set @p count 16-bit words from @p dst to @p val.
+ *
+ * ::lh_memory_set for a two-byte value: a row of RGB565 pixels, for one.
+ * Unrolled eight words a turn, which the compiler vectorizes at -O2.
+ *
+ * @param dst   First word (aligned for ::lh_u16_t).
+ * @param count Number of words to write.
+ * @param val   Word value.
+ *
+ * @return Pointer one past the last word written.
+ */
+lh_ptr
+lh_memory_set_u16(lh_u16_t *dst, lh_usize_t count, lh_u16_t val);
+
+/**
+ * @brief Set @p count 32-bit words from @p dst to @p val.
+ *
+ * ::lh_memory_set for a four-byte value: a row of ARGB8888 pixels, for one.
+ * Unrolled eight words a turn, which the compiler vectorizes at -O2.
+ *
+ * @param dst   First word (aligned for ::lh_u32_t).
+ * @param count Number of words to write.
+ * @param val   Word value.
+ *
+ * @return Pointer one past the last word written.
+ */
+lh_ptr
+lh_memory_set_u32(lh_u32_t *dst, lh_usize_t count, lh_u32_t val);
+
+/**
  * @brief XOR the first @c min(dst_size, lhs_size, rhs_size) bytes
  *        of @p lhs and @p rhs into @p dst (see ::lh_memory_std_xor).
  *

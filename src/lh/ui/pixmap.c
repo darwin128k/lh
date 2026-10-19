@@ -185,37 +185,6 @@ lh_ui_pixmap_set_pixel(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, const lh_ui
     lh_ui_pixmap_write_word(self, x, y, lh_ui_pixmap_pack(self, color));
 }
 
-lh_void
-lh_ui_pixmap_store_words32(lh_u32_t *at, lh_usize_t count, lh_u32_t word)
-{
-    /* Eight per turn: cheap loop overhead unoptimized, still vectorized at -O2/-O3.
-       Measured on this machine, both this and a machine-word variant land on the
-       same ~25 GB/s fill bandwidth, so the store is not what a frame waits on. */
-    for (; count >= 8U; count -= 8U, at += 8)
-    {
-        at[0] = word, at[1] = word, at[2] = word, at[3] = word;
-        at[4] = word, at[5] = word, at[6] = word, at[7] = word;
-    }
-    for (; count > 0U; --count, ++at)
-    {
-        lh_ptr_deref(at) = word;
-    }
-}
-
-lh_void
-lh_ui_pixmap_store_words16(lh_u16_t *at, lh_usize_t count, lh_u16_t word)
-{
-    for (; count >= 8U; count -= 8U, at += 8)
-    {
-        at[0] = word, at[1] = word, at[2] = word, at[3] = word;
-        at[4] = word, at[5] = word, at[6] = word, at[7] = word;
-    }
-    for (; count > 0U; --count, ++at)
-    {
-        lh_ptr_deref(at) = word;
-    }
-}
-
 /* -- Spans and boxes ------------------------------------------------------- */
 
 lh_void
@@ -226,12 +195,11 @@ lh_ui_pixmap_store_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t
     lh_return_if(x1 <= x0);
     if (lh_ui_pixmap_format_is_16(self->format))
     {
-        lh_ui_pixmap_store_words16(lh_ptr_rcast(lh_u16_t, at), lh_cast_static(lh_usize_t, x1 - x0),
-                                   lh_cast_static(lh_u16_t, word));
+        lh_memory_set_u16(lh_ptr_rcast(lh_u16_t, at), lh_cast_static(lh_usize_t, x1 - x0),
+                          lh_cast_static(lh_u16_t, word));
         return;
     }
-    lh_ui_pixmap_store_words32(lh_ptr_rcast(lh_u32_t, at), lh_cast_static(lh_usize_t, x1 - x0),
-                               word);
+    lh_memory_set_u32(lh_ptr_rcast(lh_u32_t, at), lh_cast_static(lh_usize_t, x1 - x0), word);
 }
 
 lh_u32_t
