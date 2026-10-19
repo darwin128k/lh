@@ -254,7 +254,7 @@ lh_os_system_posix_corner_rows(lh_os_system_posix_xrectangle_t *rows, int width,
     int count = 0;
     int row;
 
-    for (row = 0; row < radius; ++row)
+    for (row = 0; lh_math_lt(row, radius); ++row)
     {
         const int inset = lh_os_window_corner_inset(radius, row);
 
@@ -332,11 +332,11 @@ lh_os_system_posix_corner_outside(lh_os_system_posix_xrectangle_t *rows, int wid
     int count = 0;
     int row;
 
-    for (row = 0; row < radius; ++row)
+    for (row = 0; lh_math_lt(row, radius); ++row)
     {
         const int inset = lh_os_window_corner_inset(radius, row);
 
-        if (inset > 0)
+        if (lh_math_is_positive(inset))
         {
             rows[count].x = 0;
             rows[count].y = lh_cast_static(short, row);

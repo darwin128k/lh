@@ -45,23 +45,32 @@ lh_os_system_win_input_buttons_of(lh_os_system_win_wparam_t wparam)
 {
     const lh_u32_t mk = LH_OS_SYSTEM_WIN_LOWORD(wparam);
 
-    return lh_os_input_button_mask_if((mk & LH_OS_SYSTEM_WIN_MK_LBUTTON) != 0U,
-                                      lh_os_input_button_primary) |
-           lh_os_input_button_mask_if((mk & LH_OS_SYSTEM_WIN_MK_RBUTTON) != 0U,
-                                      lh_os_input_button_secondary) |
-           lh_os_input_button_mask_if((mk & LH_OS_SYSTEM_WIN_MK_MBUTTON) != 0U,
-                                      lh_os_input_button_middle) |
-           lh_os_input_button_mask_if((mk & LH_OS_SYSTEM_WIN_MK_XBUTTON1) != 0U,
-                                      lh_os_input_button_back) |
-           lh_os_input_button_mask_if((mk & LH_OS_SYSTEM_WIN_MK_XBUTTON2) != 0U,
-                                      lh_os_input_button_forward);
+    return lh_bit_or(
+        lh_os_input_button_mask_if(!lh_math_is_zero(lh_bit_and(mk, LH_OS_SYSTEM_WIN_MK_LBUTTON)),
+                                   lh_os_input_button_primary),
+        lh_bit_or(
+            lh_os_input_button_mask_if(
+                !lh_math_is_zero(lh_bit_and(mk, LH_OS_SYSTEM_WIN_MK_RBUTTON)),
+                lh_os_input_button_secondary),
+            lh_bit_or(
+                lh_os_input_button_mask_if(
+                    !lh_math_is_zero(lh_bit_and(mk, LH_OS_SYSTEM_WIN_MK_MBUTTON)),
+                    lh_os_input_button_middle),
+                lh_bit_or(lh_os_input_button_mask_if(
+                              !lh_math_is_zero(lh_bit_and(mk, LH_OS_SYSTEM_WIN_MK_XBUTTON1)),
+                              lh_os_input_button_back),
+                          lh_os_input_button_mask_if(
+                              !lh_math_is_zero(lh_bit_and(mk, LH_OS_SYSTEM_WIN_MK_XBUTTON2)),
+                              lh_os_input_button_forward)))));
 }
 
 lh_bool_t
 lh_os_system_win_input_is_repeat(lh_os_system_win_lparam_t lparam)
 {
     return lh_type_cast(
-        lh_bool_t, (lh_type_cast(lh_usize_t, lparam) & (lh_type_cast(lh_usize_t, 1U) << 30)) != 0U);
+        lh_bool_t,
+        !lh_math_is_zero(lh_bit_and(lh_type_cast(lh_usize_t, lparam),
+                                    lh_bit_shl(lh_type_cast(lh_usize_t, 1U), 30))));
 }
 
 lh_void
@@ -125,8 +134,8 @@ lh_os_system_win_input_pointer_flags_of(lh_os_system_win_wparam_t wparam)
 lh_os_input_kind_t
 lh_os_system_win_input_pointer_kind_of(lh_u32_t msg, lh_os_system_win_pointer_flags_t flags)
 {
-    const lh_bool_t cancelled =
-        lh_type_cast(lh_bool_t, (flags & LH_OS_SYSTEM_WIN_POINTER_FLAG_CANCELED) != 0U);
+    const lh_bool_t cancelled = lh_type_cast(
+        lh_bool_t, !lh_math_is_zero(lh_bit_and(flags, LH_OS_SYSTEM_WIN_POINTER_FLAG_CANCELED)));
 
     switch (msg)
     {
@@ -148,8 +157,9 @@ lh_os_system_win_input_is_promoted_mouse(lh_os_system_win_lparam_t extra)
 {
     const lh_u32_t signature = lh_type_cast(lh_u32_t, lh_type_cast(lh_usize_t, extra));
 
-    return lh_type_cast(lh_bool_t, (signature & LH_OS_SYSTEM_WIN_MI_WP_SIGNATURE_MASK) ==
-                                       LH_OS_SYSTEM_WIN_MI_WP_SIGNATURE);
+    return lh_type_cast(
+        lh_bool_t, lh_math_eq(lh_bit_and(signature, LH_OS_SYSTEM_WIN_MI_WP_SIGNATURE_MASK),
+                              LH_OS_SYSTEM_WIN_MI_WP_SIGNATURE));
 }
 
 lh_os_input_device_kind_t
@@ -158,8 +168,9 @@ lh_os_system_win_input_device_kind_of_mouse(lh_os_system_win_lparam_t extra)
     const lh_u32_t signature = lh_type_cast(lh_u32_t, lh_type_cast(lh_usize_t, extra));
 
     lh_return_if(!lh_os_system_win_input_is_promoted_mouse(extra), lh_os_input_device_kind_mouse);
-    return (signature & LH_OS_SYSTEM_WIN_MI_WP_TOUCH) != 0U ? lh_os_input_device_kind_touch
-                                                            : lh_os_input_device_kind_pen;
+    return !lh_math_is_zero(lh_bit_and(signature, LH_OS_SYSTEM_WIN_MI_WP_TOUCH))
+               ? lh_os_input_device_kind_touch
+               : lh_os_input_device_kind_pen;
 }
 
 lh_bool_t
@@ -168,7 +179,7 @@ lh_os_system_win_input_vk_held(lh_int_t vk, lh_bool_t toggled)
     const lh_u16_t state = lh_type_cast(lh_u16_t, GetKeyState(vk));
     const lh_u16_t bit = toggled ? 0x0001U : 0x8000U;
 
-    return lh_type_cast(lh_bool_t, (state & bit) != 0U);
+    return lh_type_cast(lh_bool_t, !lh_math_is_zero(lh_bit_and(state, bit)));
 }
 
 lh_os_input_mods_t
@@ -176,21 +187,34 @@ lh_os_system_win_input_get_mods(lh_void)
 {
     return lh_type_cast(
         lh_os_input_mods_t,
-        lh_os_input_mods_if(lh_os_system_win_input_vk_held(LH_OS_SYSTEM_WIN_VK_SHIFT, lh_bool_false),
-                            LH_OS_INPUT_MODS_SHIFT) |
+        lh_bit_or(
             lh_os_input_mods_if(
-                lh_os_system_win_input_vk_held(LH_OS_SYSTEM_WIN_VK_CONTROL, lh_bool_false),
-                LH_OS_INPUT_MODS_CONTROL) |
-            lh_os_input_mods_if(lh_os_system_win_input_vk_held(LH_OS_SYSTEM_WIN_VK_MENU, lh_bool_false),
-                                LH_OS_INPUT_MODS_ALT) |
-            lh_os_input_mods_if(lh_os_system_win_input_vk_held(LH_OS_SYSTEM_WIN_VK_LWIN, lh_bool_false),
-                                LH_OS_INPUT_MODS_META) |
-            lh_os_input_mods_if(lh_os_system_win_input_vk_held(LH_OS_SYSTEM_WIN_VK_RWIN, lh_bool_false),
-                                LH_OS_INPUT_MODS_META) |
-            lh_os_input_mods_if(
-                lh_os_system_win_input_vk_held(LH_OS_SYSTEM_WIN_VK_CAPITAL, lh_bool_true),
-                LH_OS_INPUT_MODS_CAPS_LOCK) |
-            lh_os_input_mods_if(
-                lh_os_system_win_input_vk_held(LH_OS_SYSTEM_WIN_VK_NUMLOCK, lh_bool_true),
-                LH_OS_INPUT_MODS_NUM_LOCK));
+                lh_os_system_win_input_vk_held(LH_OS_SYSTEM_WIN_VK_SHIFT, lh_bool_false),
+                LH_OS_INPUT_MODS_SHIFT),
+            lh_bit_or(
+                lh_os_input_mods_if(
+                    lh_os_system_win_input_vk_held(LH_OS_SYSTEM_WIN_VK_CONTROL, lh_bool_false),
+                    LH_OS_INPUT_MODS_CONTROL),
+                lh_bit_or(
+                    lh_os_input_mods_if(
+                        lh_os_system_win_input_vk_held(LH_OS_SYSTEM_WIN_VK_MENU, lh_bool_false),
+                        LH_OS_INPUT_MODS_ALT),
+                    lh_bit_or(
+                        lh_os_input_mods_if(
+                            lh_os_system_win_input_vk_held(LH_OS_SYSTEM_WIN_VK_LWIN, lh_bool_false),
+                            LH_OS_INPUT_MODS_META),
+                        lh_bit_or(
+                            lh_os_input_mods_if(
+                                lh_os_system_win_input_vk_held(LH_OS_SYSTEM_WIN_VK_RWIN,
+                                                               lh_bool_false),
+                                LH_OS_INPUT_MODS_META),
+                            lh_bit_or(
+                                lh_os_input_mods_if(
+                                    lh_os_system_win_input_vk_held(LH_OS_SYSTEM_WIN_VK_CAPITAL,
+                                                                   lh_bool_true),
+                                    LH_OS_INPUT_MODS_CAPS_LOCK),
+                                lh_os_input_mods_if(
+                                    lh_os_system_win_input_vk_held(LH_OS_SYSTEM_WIN_VK_NUMLOCK,
+                                                                   lh_bool_true),
+                                    LH_OS_INPUT_MODS_NUM_LOCK))))))));
 }
