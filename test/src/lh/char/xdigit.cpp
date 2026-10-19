@@ -61,6 +61,28 @@ TEST(char_xdigit_accumulate, rejects_overflow)
     EXPECT_EQ(value, 4294967295U);
 }
 
+TEST(char_is_radix_digit, digits_below_the_base_only)
+{
+    EXPECT_TRUE(lh_char_is_radix_digit('1', 2U));
+    EXPECT_FALSE(lh_char_is_radix_digit('2', 2U));
+    EXPECT_TRUE(lh_char_is_radix_digit('9', 10U));
+    EXPECT_FALSE(lh_char_is_radix_digit('a', 10U));
+    EXPECT_TRUE(lh_char_is_radix_digit('F', 16U));
+    EXPECT_FALSE(lh_char_is_radix_digit('g', 16U));
+    EXPECT_FALSE(lh_char_is_radix_digit(' ', 16U));
+}
+
+TEST(char_digit_accumulate_radix, builds_value_in_base)
+{
+    lh_uint_t value = 0;
+    ASSERT_TRUE(lh_char_digit_accumulate_radix(&value, 1, 8U));
+    ASSERT_TRUE(lh_char_digit_accumulate_radix(&value, 7, 8U));
+    EXPECT_EQ(value, 017U);
+    value = 4294967295U;
+    EXPECT_FALSE(lh_char_digit_accumulate_radix(&value, 0, 2U));
+    EXPECT_EQ(value, 4294967295U);
+}
+
 TEST(char_xdigit, roundtrips)
 {
     for (lh_byte_t d = 0; d <= 15; d++)
