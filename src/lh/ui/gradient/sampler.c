@@ -43,23 +43,6 @@ static const lh_u32_t lh_ui_gradient_sampler_reach[256] = {
     2047761U, 2064969U, 2082249U, 2096704U,
 };
 
-/** `a / b` rounded down, for @p b above zero, and what is left over in @p rest
-   (`0 .. b - 1`). */
-static lh_s64_t
-lh_ui_gradient_sampler_floor_div(lh_s64_t a, lh_s64_t b, lh_s64_t *rest)
-{
-    lh_s64_t quotient = a / b;
-    lh_s64_t remainder = a % b;
-
-    if (remainder < 0)
-    {
-        --quotient;
-        remainder += b;
-    }
-    lh_ptr_deref(rest) = remainder;
-    return quotient;
-}
-
 lh_void
 lh_ui_gradient_sampler_lerp_init(lh_ui_gradient_sampler_lerp_t *self, const lh_ui_color_t *from,
                                  const lh_ui_color_t *to, lh_s32_t span, lh_s32_t at)
@@ -215,8 +198,10 @@ lh_ui_gradient_sampler_radial_run(const lh_ui_gradient_sampler_t *self, lh_s32_t
     lh_s32_t x;
 
     lh_return_if(x1 <= x0);
-    quotient = lh_ui_gradient_sampler_floor_div(along, self->width, lh_addr_of(rest));
-    step = lh_ui_gradient_sampler_floor_div(2048, self->width, lh_addr_of(step_rest));
+    quotient = lh_math_floor_div(along, self->width);
+    rest = lh_math_floor_mod(along, self->width);
+    step = lh_math_floor_div(2048, self->width);
+    step_rest = lh_math_floor_mod(2048, self->width);
     for (x = x0; x < x1; ++x)
     {
         const lh_s64_t ux = (along < 0 && rest != 0) ? quotient + 1 : quotient;
@@ -303,12 +288,11 @@ lh_ui_gradient_sampler_linear_run(const lh_ui_gradient_sampler_t *self, lh_s64_t
        remainder. Where ::lh_ui_gradient_frac_at cuts toward zero instead the two
        differ only below zero, and both are then the first step. */
     const lh_s64_t divisor = 2 * self->length;
-    lh_s64_t rest;
-    lh_s64_t quotient = lh_ui_gradient_sampler_floor_div(
-        (2 * (dx * self->sine - dy * self->cosine) + self->length) * 255, divisor,
-        lh_addr_of(rest));
-    lh_s64_t step_rest;
-    const lh_s64_t step = lh_ui_gradient_sampler_floor_div(move, divisor, lh_addr_of(step_rest));
+    const lh_s64_t at = (2 * (dx * self->sine - dy * self->cosine) + self->length) * 255;
+    lh_s64_t quotient = lh_math_floor_div(at, divisor);
+    lh_s64_t rest = lh_math_floor_mod(at, divisor);
+    const lh_s64_t step = lh_math_floor_div(move, divisor);
+    const lh_s64_t step_rest = lh_math_floor_mod(move, divisor);
     lh_s32_t i;
 
     for (i = 0; i < count; ++i)
