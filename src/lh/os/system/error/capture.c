@@ -1,5 +1,6 @@
 #include <lh/os/system/error/capture.h>
 #include <lh/attribute/thread_local.h>
+#include <lh/math.h>
 #include <lh/os/system.h>
 #include <lh/util/addr.h>
 
@@ -21,4 +22,20 @@ lh_os_system_error_capture(void)
         lh_addr_of(err), code,
         lh_os_system_error_format(code, m_os_system_error_buffer, LH_OS_SYSTEM_ERROR_BUFFER_SIZE));
     lh_os_system_set_last_error(err);
+}
+
+lh_bool_t
+lh_os_system_error_check(lh_bool_t ok)
+{
+    if (!ok)
+    {
+        lh_os_system_error_capture();
+    }
+    return ok;
+}
+
+lh_bool_t
+lh_os_system_error_check_zero(lh_sint_t result)
+{
+    return lh_os_system_error_check(lh_cast_static(lh_bool_t, lh_math_is_zero(result)));
 }
