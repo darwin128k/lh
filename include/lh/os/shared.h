@@ -58,6 +58,10 @@ lh_os_shared_init(lh_os_shared_t *self);
 lh_void
 lh_os_shared_deinit(lh_os_shared_t *self);
 
+/** The native handle @p self holds. */
+lh_void
+lh_os_shared_set_handle(lh_os_shared_t *self, lh_os_system_shared_handle_t handle);
+
 /**
  * @brief True when @p self holds an image.
  */
@@ -70,12 +74,20 @@ lh_os_shared_is_open(const lh_os_shared_t *self);
 lh_os_system_shared_handle_t
 lh_os_shared_get_handle(const lh_os_shared_t *self);
 
+/** The path of the image @p self holds, to change. */
+lh_fs_path_t *
+lh_os_shared_get_path(lh_os_shared_t *self);
+
 /**
  * @brief Path of the image. Written only by open / bind, so it always names
  *        the image behind the handle.
  */
 const lh_fs_path_t *
 lh_os_shared_get_path_as_const(const lh_os_shared_t *self);
+
+/** True when @p self holds no image yet; otherwise sets the last OS error to "already open". */
+lh_bool_t
+lh_os_shared_is_free(const lh_os_shared_t *self);
 
 /**
  * @brief Load the image at @p path (or take another reference to it, if it
@@ -86,6 +98,11 @@ lh_os_shared_get_path_as_const(const lh_os_shared_t *self);
  */
 lh_bool_t
 lh_os_shared_open(lh_os_shared_t *self, const lh_fs_path_t *path);
+
+/** Take @p handle into @p self with the path the OS reports for it; closes @p handle and returns
+ * false when there is none. */
+lh_bool_t
+lh_os_shared_adopt(lh_os_shared_t *self, lh_os_system_shared_handle_t handle);
 
 /**
  * @brief Take the already-loaded image that contains @p addr. Its path comes

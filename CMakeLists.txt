@@ -140,6 +140,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/os/input/queue.c
         ${LH_LIB_SRC_PATH}/os/input/recognizer.c
         ${LH_LIB_SRC_PATH}/os/input/recognizer/config.c
+        ${LH_LIB_SRC_PATH}/os/input/recognizer/pointer.c
         ${LH_LIB_SRC_PATH}/os/input/wheel.c
         ${LH_LIB_SRC_PATH}/os/controller.c
         ${LH_LIB_SRC_PATH}/error.c
@@ -165,6 +166,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/str/format/hex.c
         ${LH_LIB_SRC_PATH}/str/format/text.c
         ${LH_LIB_SRC_PATH}/str/format/bytes.c
+        ${LH_LIB_SRC_PATH}/str/format/base64.c
         ${LH_LIB_SRC_PATH}/str/parse/text.c
         ${LH_LIB_SRC_PATH}/str/parse/uint.c
         ${LH_LIB_SRC_PATH}/str/parse/hex.c
@@ -342,6 +344,7 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/pixmap.c
             ${LH_LIB_SRC_PATH}/ui/canvas/sw.c
             ${LH_LIB_SRC_PATH}/ui/canvas/web.c
+            ${LH_LIB_SRC_PATH}/ui/canvas/web/atlas.c
             ${LH_LIB_SRC_PATH}/ui/present.c
             ${LH_LIB_SRC_PATH}/ui/present/sink.c
             ${LH_LIB_SRC_PATH}/ui/display.c

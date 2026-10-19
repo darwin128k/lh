@@ -6,7 +6,6 @@
 
 /* -- accessors ------------------------------------------------------------- */
 
-LH_ATTRIBUTE_STATIC
 lh_list_t *
 lh_os_loader_get_modules(lh_os_loader_t *self)
 {
@@ -14,7 +13,6 @@ lh_os_loader_get_modules(lh_os_loader_t *self)
     return lh_addr_of(self->modules);
 }
 
-LH_ATTRIBUTE_STATIC
 const lh_list_t *
 lh_os_loader_get_modules_as_const(const lh_os_loader_t *self)
 {
@@ -29,7 +27,6 @@ lh_os_loader_get_owner(const lh_os_loader_t *self)
     return self->owner;
 }
 
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_os_loader_set_owner(lh_os_loader_t *self, lh_os_module_t *owner)
 {
@@ -38,7 +35,6 @@ lh_os_loader_set_owner(lh_os_loader_t *self, lh_os_module_t *owner)
     self->owner = owner;
 }
 
-LH_ATTRIBUTE_STATIC
 lh_str_t *
 lh_os_loader_get_entry_mut(lh_os_loader_t *self)
 {
@@ -119,7 +115,6 @@ lh_os_loader_destroy(lh_os_loader_t *self)
 
 /* Open, take the method table the image exports under `entry`, start. The
    owner is set before start runs, so start may already reach its parent. */
-LH_ATTRIBUTE_STATIC
 lh_bool_t
 lh_os_loader_bring_up(lh_os_loader_t *self, lh_os_module_t *child, const lh_fs_path_t *path)
 {

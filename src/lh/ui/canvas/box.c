@@ -21,9 +21,7 @@
 /** How many pixels of a row are coloured before they are sent. */
 #define LH_UI_CANVAS_BOX_RUN 256
 
-/** True when the colour of @p paint does not change across a row (solid, or a
-   gradient that runs straight up or down). */
-static lh_bool_t
+lh_bool_t
 lh_ui_canvas_box_rows_are_one_colour(const lh_ui_paint_t *paint)
 {
     const lh_ui_gradient_t *gradient = lh_ui_paint_get_gradient(paint);
@@ -35,9 +33,7 @@ lh_ui_canvas_box_rows_are_one_colour(const lh_ui_paint_t *paint)
                : lh_bool_false;
 }
 
-/** True when the colour of @p paint does not change down a column (a gradient that
-   runs straight across). */
-static lh_bool_t
+lh_bool_t
 lh_ui_canvas_box_columns_are_one_colour(const lh_ui_paint_t *paint)
 {
     const lh_ui_gradient_t *gradient = lh_ui_paint_get_gradient(paint);
@@ -49,9 +45,7 @@ lh_ui_canvas_box_columns_are_one_colour(const lh_ui_paint_t *paint)
                : lh_bool_false;
 }
 
-/** The colours of pixels @p x0 .. @p x1 - 1 of row @p y into @p out: the gradient's
-   when there is @p sampler, else the paint's one colour. */
-static lh_void
+lh_void
 lh_ui_canvas_box_paint_row(const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t *sampler,
                            lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_ui_color_t *out)
 {
@@ -68,8 +62,7 @@ lh_ui_canvas_box_paint_row(const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t 
     }
 }
 
-/** The one colour of row @p y of a paint whose rows are one colour each. */
-static lh_void
+lh_void
 lh_ui_canvas_box_row_colour(const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t *sampler,
                             lh_s32_t x, lh_s32_t y, lh_ui_color_t *out)
 {
@@ -85,9 +78,7 @@ lh_ui_canvas_box_row_colour(const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t
     lh_ptr_deref(out) = colour;
 }
 
-/** Pixels @p x0 .. @p x1 - 1 of row @p y in one colour @p colour, each at its
-   coverage by the corner @p corner (::lh_ui_radius_run_init). */
-static lh_void
+lh_void
 lh_ui_canvas_box_corner(lh_ui_canvas_t *self, const lh_ui_color_t *colour,
                         const struct lh_ui_radius_run *corner, lh_s32_t x0, lh_s32_t x1, lh_s32_t y)
 {
@@ -108,12 +99,7 @@ lh_ui_canvas_box_corner(lh_ui_canvas_t *self, const lh_ui_color_t *colour,
     }
 }
 
-/** Pixels @p x0 .. @p x1 - 1 of row @p y; those left of @p near_end are cut by the
-   corner @p near and those from @p far_start on by the corner @p far, each the
-   corner of a box rounded all round by its radius (::lh_ui_radius_run_init). A row
-   of one colour sends its corners as colours and the middle as one span; any other
-   goes out whole as a row of colours. */
-static lh_void
+lh_void
 lh_ui_canvas_box_row(lh_ui_canvas_t *self, const lh_ui_paint_t *paint,
                      lh_ui_gradient_sampler_t *sampler, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
                      lh_s32_t near_end, const struct lh_ui_radius_run *near, lh_s32_t far_start,
@@ -165,10 +151,7 @@ lh_ui_canvas_box_row(lh_ui_canvas_t *self, const lh_ui_paint_t *paint,
     }
 }
 
-/** Rows @p y0 .. @p y1 - 1, which no corner reaches: one box when the paint is one
-   colour, one box of a colour a row or a colour a column when it changes only one
-   way, else a row of colours a row. */
-static lh_void
+lh_void
 lh_ui_canvas_box_band(lh_ui_canvas_t *self, const lh_ui_paint_t *paint,
                       lh_ui_gradient_sampler_t *sampler, lh_s32_t x0, lh_s32_t x1, lh_s32_t y0,
                       lh_s32_t y1)

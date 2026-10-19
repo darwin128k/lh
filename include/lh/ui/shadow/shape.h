@@ -54,6 +54,11 @@ lh_ui_shadow_shape_init(lh_ui_shadow_shape_t *self, const lh_ui_shadow_t *shadow
 lh_s32_t
 lh_ui_shadow_shape_row(const lh_ui_shadow_shape_t *self, lh_s32_t y);
 
+/** The alpha @p distance past the edge: the peak a spread inside it, nothing a spread
+   outside, and the fade between. */
+lh_byte_t
+lh_ui_shadow_shape_fade(const lh_ui_shadow_shape_t *self, lh_s32_t distance);
+
 /**
  * @brief The alpha of the shadow at pixel (@p x, @p y), whose row is @p row
  *        (::lh_ui_shadow_shape_row): `0` where the fill covers the pixel wholly and

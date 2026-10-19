@@ -23,6 +23,20 @@
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/** The default allocation callback: ::LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC. */
+lh_ptr
+lh_runtime_allocator_default_alloc(lh_self_ptr self, lh_usize_t size);
+
+/** The default release callback: ::LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_DEALLOC. */
+lh_void
+lh_runtime_allocator_default_dealloc(lh_self_ptr self, lh_ptr ptr);
+
+/** The default resize callback: ::LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_REALLOC; @p old_size
+ * is unused. */
+lh_ptr
+lh_runtime_allocator_default_realloc(lh_self_ptr self, lh_ptr ptr, lh_usize_t old_size,
+                                     lh_usize_t new_size);
+
 /**
  * @brief Return address of the internal runtime allocator instance.
  *

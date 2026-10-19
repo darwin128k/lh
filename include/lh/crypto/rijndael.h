@@ -19,6 +19,7 @@
 #define LH_CRYPTO_RIJNDAEL_H
 
 #include <lh/bool.h>
+#include <lh/byte/ptr.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/crypto/rijndael/mode.h>
@@ -103,6 +104,12 @@ typedef struct lh_crypto_rijndael lh_crypto_rijndael_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/** Encrypt (or, with @p decrypt, decrypt) one block @p in into @p out; AES-NI for 16-byte blocks
+ * when the CPU has it. */
+lh_void
+lh_crypto_rijndael_cipher(const lh_crypto_rijndael_t *self, const lh_byte_ptr in, lh_byte_ptr out,
+                          lh_bool_t decrypt);
+
 /**
  * @brief Expand @p key and arm @p self for encrypt/decrypt of @p block_size
  *        blocks in @p mode.
@@ -156,6 +163,52 @@ lh_crypto_rijndael_encrypt_block(lh_crypto_rijndael_t *self, const lh_ptr in, lh
  */
 lh_bool_t
 lh_crypto_rijndael_decrypt_block(lh_crypto_rijndael_t *self, const lh_ptr in, lh_ptr out);
+
+/** True for a key or block size Rijndael takes: 16, 24 or 32 bytes. */
+lh_bool_t
+lh_crypto_rijndael_size_ok(lh_usize_t n);
+
+/** @p x times 2 in GF(2^8), reduced by the AES polynomial. */
+lh_byte_t
+lh_crypto_rijndael_xtime(lh_byte_t x);
+
+/** @p a times @p b in GF(2^8). */
+lh_byte_t
+lh_crypto_rijndael_gf_mul(lh_byte_t a, lh_byte_t b);
+
+/** How far ShiftRows moves rows 1, 2 and 3 for a block of @p nb columns. */
+lh_void
+lh_crypto_rijndael_shift_offsets(lh_usize_t nb, lh_usize_t *c1, lh_usize_t *c2, lh_usize_t *c3);
+
+/** Rotate row @p row of @p state (@p nb columns) by @p shift, the other way when @p inverse. */
+lh_void
+lh_crypto_rijndael_shift_row(lh_byte_ptr state, lh_usize_t nb, lh_usize_t row, lh_usize_t shift,
+                             lh_bool_t inverse);
+
+/** ShiftRows (or its inverse) on @p state of @p nb columns. */
+lh_void
+lh_crypto_rijndael_shift_rows(lh_byte_ptr state, lh_usize_t nb, lh_bool_t inverse);
+
+/** SubBytes (or its inverse) on the @p block_size bytes of @p state. */
+lh_void
+lh_crypto_rijndael_sub_bytes(lh_byte_ptr state, lh_usize_t block_size, lh_bool_t inverse);
+
+/** MixColumns (or its inverse) on @p state of @p nb columns. */
+lh_void
+lh_crypto_rijndael_mix_columns(lh_byte_ptr state, lh_usize_t nb, lh_bool_t inverse);
+
+/** The S-box applied to each byte of @p w. */
+lh_u32_t
+lh_crypto_rijndael_sub_word(lh_u32_t w);
+
+/** The round keys of @p key (@p key_size bytes) into @p self. */
+lh_void
+lh_crypto_rijndael_expand_key(lh_crypto_rijndael_t *self, const lh_byte_ptr key,
+                              lh_usize_t key_size);
+
+/** Block size of @p self in bytes. */
+lh_usize_t
+lh_crypto_rijndael_get_block_size(const lh_crypto_rijndael_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

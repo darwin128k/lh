@@ -57,6 +57,11 @@ lh_ui_radii_is_uniform(const lh_ui_radii_t *self);
 lh_ui_scalar_t
 lh_ui_radii_get_min(const lh_ui_radii_t *self);
 
+/** @p radius times @p num / @p den when @p num < @p den, else @p radius: the CSS factor,
+   kept in the scalar type so a build with no FPU rounds down rather than up. */
+lh_ui_scalar_t
+lh_ui_radii_scale(lh_ui_scalar_t radius, lh_ui_scalar_t num, lh_ui_scalar_t den);
+
 /**
  * @brief @p self made to fit @p rect, as CSS fits them: when two corners on one side
  *        add up to more than the side, every radius is scaled down by the same

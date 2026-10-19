@@ -41,7 +41,7 @@ static const lh_u64_t m_k512[80] = {
     0x28DB77F523047D84ULL, 0x32CAAB7B40C72493ULL, 0x3C9EBE0A15C9BEBCULL, 0x431D67C49C100D4CULL,
     0x4CC5D4BECB3E42B6ULL, 0x597F299CFC657E2AULL, 0x5FCB6FAB3AD6FAECULL, 0x6C44198C4A475817ULL};
 
-static lh_bool_t
+lh_bool_t
 lh_crypto_sha_kind_is_wide(lh_crypto_sha_kind_t kind)
 {
     return (kind == lh_crypto_sha_kind_384 || kind == lh_crypto_sha_kind_512) ? lh_bool_true
@@ -79,7 +79,7 @@ lh_crypto_sha_block_size(lh_crypto_sha_kind_t kind)
                                             : LH_CRYPTO_SHA_BLOCK_SIZE_32;
 }
 
-static lh_void
+lh_void
 lh_crypto_sha_process_1(lh_crypto_sha_t *self, lh_byte_cptr block)
 {
     lh_u32_t w[80];
@@ -147,7 +147,7 @@ lh_crypto_sha_process_1(lh_crypto_sha_t *self, lh_byte_cptr block)
     self->state[4] = lh_cast_static(lh_u32_t, self->state[4]) + e;
 }
 
-static lh_void
+lh_void
 lh_crypto_sha_process_256(lh_crypto_sha_t *self, lh_byte_cptr block)
 {
     lh_u32_t w[64];
@@ -214,7 +214,7 @@ lh_crypto_sha_process_256(lh_crypto_sha_t *self, lh_byte_cptr block)
     self->state[7] = lh_cast_static(lh_u32_t, self->state[7]) + h;
 }
 
-static lh_void
+lh_void
 lh_crypto_sha_process_512(lh_crypto_sha_t *self, lh_byte_cptr block)
 {
     lh_u64_t w[80];
@@ -281,7 +281,7 @@ lh_crypto_sha_process_512(lh_crypto_sha_t *self, lh_byte_cptr block)
     self->state[7] += h;
 }
 
-static lh_void
+lh_void
 lh_crypto_sha_process(lh_crypto_sha_t *self, lh_byte_cptr block)
 {
     if (self->kind == lh_crypto_sha_kind_1)
@@ -298,7 +298,7 @@ lh_crypto_sha_process(lh_crypto_sha_t *self, lh_byte_cptr block)
     }
 }
 
-static lh_void
+lh_void
 lh_crypto_sha_add_bits(lh_crypto_sha_t *self, lh_usize_t byte_count)
 {
     lh_u64_t bits = lh_cast_static(lh_u64_t, byte_count) << 3;

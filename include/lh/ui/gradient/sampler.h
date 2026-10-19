@@ -84,6 +84,23 @@ lh_s32_t
 lh_ui_gradient_sampler_segment_at(const lh_ui_gradient_t *gradient, lh_s32_t segment,
                                   lh_s32_t frac);
 
+/** The colour of every step of the axis, as ::lh_ui_gradient_color_at has it. Between
+   two stops each channel is `(from * (span - at) + to * at) / span`, and one step on
+   adds `to - from` to what is divided: the quotient and its remainder are carried
+   instead of dividing again (::lh_ui_gradient_sampler_lerp_t). A step before its
+   stop's start -- stops out of order -- is asked of ::lh_ui_gradient_color_at itself. */
+lh_void
+lh_ui_gradient_sampler_fill(lh_ui_gradient_sampler_t *self);
+
+/** The colours of pixels @p x0 .. @p x1 - 1 of a radial gradient's row whose doubled
+   distance from the middle is @p dy: `dx * 1024 / w` cut toward zero, carried from
+   pixel to pixel as a quotient rounded down and its remainder. The squared distance
+   then crosses the steps of the axis at ::lh_ui_gradient_sampler_reach, and the step
+   is walked to from the last pixel's. */
+lh_void
+lh_ui_gradient_sampler_radial_run(const lh_ui_gradient_sampler_t *self, lh_s32_t x0, lh_s32_t x1,
+                                  lh_s64_t dy, lh_ui_color_t *out);
+
 /**
  * @brief @p gradient laid over @p rect. @p gradient is read as rows are asked for, so
  *        it has to outlive @p self unchanged.

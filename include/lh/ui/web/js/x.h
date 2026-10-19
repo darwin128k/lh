@@ -18,6 +18,22 @@
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/** Append @p n in decimal. */
+lh_void
+lh_ui_web_js_put_s64(lh_ui_web_buf_t *self, lh_s64_t n);
+
+/** Append @p s as a single-quoted JavaScript string literal, escaped. */
+lh_void
+lh_ui_web_js_put_str_lit(lh_ui_web_buf_t *self, const lh_str_ptr s);
+
+/** Append an argument list `(a,b,...)` of @p n expressions. */
+lh_void
+lh_ui_web_js_emit_args(lh_ui_web_buf_t *self, const lh_ui_web_x_t *const *args, lh_u16_t n);
+
+/** Append expression node @p x as JavaScript, parenthesised so precedence never matters. */
+lh_void
+lh_ui_web_js_emit_x(lh_ui_web_buf_t *self, const lh_ui_web_x_t *x);
+
 /** Emit a ::lh_ui_web_x expression (no trailing semicolon). */
 lh_void
 lh_ui_web_js_x(lh_ui_web_buf_t *self, const lh_ui_web_x_t *x);

@@ -315,6 +315,12 @@ typedef struct lh_mb_read
  */
 #define LH_MB_GAP_MAX (lh_cast_static(lh_u16_t, 8))
 
+/** How far a run that currently ends at `end` reaches once `next` is folded in, or
+   0 when it must not be — the two reasons being a gap worth crossing and a run
+   longer than one read may ask for. */
+lh_u16_t
+lh_mb_reach(lh_u16_t start, lh_u16_t end, const lh_mb_want_t *next);
+
 /**
  * @brief Turn a sorted list of wants into the fewest requests that cover them.
  *

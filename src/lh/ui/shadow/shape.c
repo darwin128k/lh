@@ -75,9 +75,7 @@ lh_ui_shadow_shape_row(const lh_ui_shadow_shape_t *self, lh_s32_t y)
     return (py > self->cy ? py - self->cy : self->cy - py) - self->hy;
 }
 
-/** The alpha @p distance past the edge: the peak a spread inside it, nothing a spread
-   outside, and the fade between. */
-static lh_byte_t
+lh_byte_t
 lh_ui_shadow_shape_fade(const lh_ui_shadow_shape_t *self, lh_s32_t distance)
 {
     lh_s64_t fade;
@@ -156,7 +154,8 @@ lh_ui_shadow_shape_span(const lh_ui_shadow_shape_t *self, const struct lh_ui_sha
        every other pixel short of it, so no pixel's coverage has to be asked. */
     if (y >= self->box_y0 && y < self->box_y1)
     {
-        lh_ui_radius_full_span(lh_addr_of(self->box), self->corner, y, lh_addr_of(full0), lh_addr_of(full1));
+        lh_ui_radius_full_span(lh_addr_of(self->box), self->corner, y, lh_addr_of(full0),
+                               lh_addr_of(full1));
     }
     for (x = x0; x < x1;)
     {

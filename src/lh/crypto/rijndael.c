@@ -64,19 +64,19 @@ static const lh_byte_t m_inv_sbox[256] = {
     0xBBU, 0x3CU, 0x83U, 0x53U, 0x99U, 0x61U, 0x17U, 0x2BU, 0x04U, 0x7EU, 0xBAU, 0x77U, 0xD6U,
     0x26U, 0xE1U, 0x69U, 0x14U, 0x63U, 0x55U, 0x21U, 0x0CU, 0x7DU};
 
-static lh_bool_t
+lh_bool_t
 lh_crypto_rijndael_size_ok(lh_usize_t n)
 {
     return (n == 16U || n == 24U || n == 32U) ? lh_bool_true : lh_bool_false;
 }
 
-static lh_byte_t
+lh_byte_t
 lh_crypto_rijndael_xtime(lh_byte_t x)
 {
     return lh_cast_static(lh_byte_t, ((x << 1) ^ ((x & 0x80U) ? 0x1BU : 0U)));
 }
 
-static lh_byte_t
+lh_byte_t
 lh_crypto_rijndael_gf_mul(lh_byte_t a, lh_byte_t b)
 {
     lh_byte_t p = 0;
@@ -94,7 +94,7 @@ lh_crypto_rijndael_gf_mul(lh_byte_t a, lh_byte_t b)
     return p;
 }
 
-static lh_void
+lh_void
 lh_crypto_rijndael_shift_offsets(lh_usize_t nb, lh_usize_t *c1, lh_usize_t *c2, lh_usize_t *c3)
 {
     if (nb == 8U)
@@ -111,7 +111,7 @@ lh_crypto_rijndael_shift_offsets(lh_usize_t nb, lh_usize_t *c1, lh_usize_t *c2, 
     }
 }
 
-static lh_void
+lh_void
 lh_crypto_rijndael_shift_row(lh_byte_ptr state, lh_usize_t nb, lh_usize_t row, lh_usize_t shift,
                              lh_bool_t inverse)
 {
@@ -130,7 +130,7 @@ lh_crypto_rijndael_shift_row(lh_byte_ptr state, lh_usize_t nb, lh_usize_t row, l
     }
 }
 
-static lh_void
+lh_void
 lh_crypto_rijndael_shift_rows(lh_byte_ptr state, lh_usize_t nb, lh_bool_t inverse)
 {
     lh_usize_t c1;
@@ -143,7 +143,7 @@ lh_crypto_rijndael_shift_rows(lh_byte_ptr state, lh_usize_t nb, lh_bool_t invers
     lh_crypto_rijndael_shift_row(state, nb, 3U, c3, inverse);
 }
 
-static lh_void
+lh_void
 lh_crypto_rijndael_sub_bytes(lh_byte_ptr state, lh_usize_t block_size, lh_bool_t inverse)
 {
     lh_byte_cptr box = inverse ? m_inv_sbox : m_sbox;
@@ -155,7 +155,7 @@ lh_crypto_rijndael_sub_bytes(lh_byte_ptr state, lh_usize_t block_size, lh_bool_t
     }
 }
 
-static lh_void
+lh_void
 lh_crypto_rijndael_mix_columns(lh_byte_ptr state, lh_usize_t nb, lh_bool_t inverse)
 {
     lh_usize_t c;
@@ -202,7 +202,7 @@ lh_crypto_rijndael_mix_columns(lh_byte_ptr state, lh_usize_t nb, lh_bool_t inver
     }
 }
 
-static lh_u32_t
+lh_u32_t
 lh_crypto_rijndael_sub_word(lh_u32_t w)
 {
     return (lh_cast_static(lh_u32_t, m_sbox[(w >> 24) & 0xFFU]) << 24) |
@@ -211,7 +211,7 @@ lh_crypto_rijndael_sub_word(lh_u32_t w)
            lh_cast_static(lh_u32_t, m_sbox[w & 0xFFU]);
 }
 
-static lh_void
+lh_void
 lh_crypto_rijndael_expand_key(lh_crypto_rijndael_t *self, lh_byte_cptr key, lh_usize_t key_size)
 {
     lh_usize_t nk = key_size / 4U;
@@ -255,7 +255,7 @@ lh_crypto_rijndael_expand_key(lh_crypto_rijndael_t *self, lh_byte_cptr key, lh_u
    Saying so lets the compiler bound every block-sized xor/copy below: once
    lh_memory_std_xor has a large-size tier, LTO otherwise warns that
    block_size bytes may overflow the 32-byte state/chain buffers. */
-static lh_usize_t
+lh_usize_t
 lh_crypto_rijndael_get_block_size(const lh_crypto_rijndael_t *self)
 {
     const lh_usize_t block_size = self->block_size;
@@ -383,7 +383,7 @@ lh_crypto_rijndael_aesni_setup(lh_crypto_rijndael_t *self)
 
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_AESNI */
 
-static lh_void
+lh_void
 lh_crypto_rijndael_cipher(const lh_crypto_rijndael_t *self, lh_byte_cptr in, lh_byte_ptr out,
                           lh_bool_t decrypt)
 {

@@ -343,6 +343,13 @@ lh_bool_t
 lh_ui_canvas_sw_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
                        const lh_ui_shadow_t *shadow);
 
+/** Blur @p rect in place, cut to the limit; with a @p shape, only where its rounded
+ * corners cover. */
+lh_bool_t
+lh_ui_canvas_sw_soften(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect,
+                       lh_ui_scalar_t blur_radius, lh_u8_t *scratch, lh_usize_t bytes,
+                       const lh_ui_rect_t *shape, lh_ui_scalar_t corner);
+
 /**
  * @brief Backend `blur`: ::lh_ui_blur_rect over the rect, cut to the limit.
  *

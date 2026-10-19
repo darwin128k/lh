@@ -63,6 +63,11 @@ typedef struct lh_os_input_recognizer lh_os_input_recognizer_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/** @p event to @p sink with @p flags added. */
+lh_void
+lh_os_input_recognizer_send(lh_os_input_event_t *event, lh_os_input_flags_t flags,
+                            lh_os_input_sink_cb sink, lh_ptr context);
+
 /**
  * @brief Make @p self a recognizer with nothing held, using a copy of
  *        @p config (::lh_null for the defaults).
@@ -70,6 +75,38 @@ LH_COMPILER_EXTERN_C_BEGIN
 lh_void
 lh_os_input_recognizer_init(lh_os_input_recognizer_t *self,
                             const lh_os_input_recognizer_config_ptr config);
+
+/** A pointer down: the first button down on an idle pointer starts a press. */
+lh_void
+lh_os_input_recognizer_on_down(lh_os_input_recognizer_pointer_ptr state,
+                               const lh_os_input_event_ptr event);
+
+/** A pointer move: past the slop a press becomes a drag; a drag reports how far it went. */
+lh_void
+lh_os_input_recognizer_on_move(lh_os_input_recognizer_t *self,
+                               lh_os_input_recognizer_pointer_ptr state,
+                               const lh_os_input_event_ptr event, lh_os_input_sink_cb sink,
+                               lh_ptr context);
+
+/** An up of the button that started the press: a click from a press, a drag end from a drag,
+   nothing after a long press. */
+lh_void
+lh_os_input_recognizer_on_up(lh_os_input_recognizer_t *self,
+                             lh_os_input_recognizer_pointer_ptr state,
+                             const lh_os_input_event_ptr event, lh_os_input_sink_cb sink,
+                             lh_ptr context);
+
+/** What a pointer event does to the gesture of its pointer. */
+lh_void
+lh_os_input_recognizer_on_pointer(lh_os_input_recognizer_t *self, const lh_os_input_event_ptr event,
+                                  lh_os_input_sink_cb sink, lh_ptr context);
+
+/** A vertical wheel with Shift held, turned sideways when the config says so: true when it
+   was, and went to @p sink. */
+lh_bool_t
+lh_os_input_recognizer_send_shifted_wheel(lh_os_input_recognizer_t *self,
+                                          const lh_os_input_event_ptr event,
+                                          lh_os_input_sink_cb sink, lh_ptr context);
 
 /**
  * @brief Hand @p event to @p sink, then the gestures it completes.
@@ -92,6 +129,18 @@ lh_void
 lh_os_input_recognizer_update(lh_os_input_recognizer_t *self, lh_tick_t now,
                               lh_os_input_sink_cb sink, lh_ptr context);
 
+/** Pointer @p pointer of @p state let go of without finishing its gesture at @p time: a drag
+   ends cancelled, and the series of clicks is over. */
+lh_void
+lh_os_input_recognizer_abandon(lh_os_input_recognizer_pointer_ptr state, lh_u8_t pointer,
+                               lh_tick_t time, lh_os_input_sink_cb sink, lh_ptr context);
+
+/** Every pointer still down is taken away at @p time: a synthesized pointer cancel for it,
+   then what ::lh_os_input_recognizer_abandon sends. */
+lh_void
+lh_os_input_recognizer_cancel_all(lh_os_input_recognizer_t *self, lh_tick_t time,
+                                  lh_os_input_sink_cb sink, lh_ptr context);
+
 /**
  * @brief Cancel every gesture at @p now: a synthesized pointer cancel for each
  *        pointer down, a cancelled drag end for each drag, and no click series
@@ -101,6 +150,13 @@ lh_void
 lh_os_input_recognizer_reset(lh_os_input_recognizer_t *self, lh_tick_t now,
                              lh_os_input_sink_cb sink, lh_ptr context);
 
+/** When the press of @p state turns into a long press, into @p out; false when it never will
+   (not pending, or long presses are off). */
+lh_bool_t
+lh_os_input_recognizer_get_long_press_due(const lh_os_input_recognizer_ptr self,
+                                          const lh_os_input_recognizer_pointer_ptr state,
+                                          lh_tick_t *out);
+
 /**
  * @brief When ::lh_os_input_recognizer_update next has something to send,
  *        into @p out.
@@ -109,6 +165,14 @@ lh_os_input_recognizer_reset(lh_os_input_recognizer_t *self, lh_tick_t now,
  */
 lh_bool_t
 lh_os_input_recognizer_get_next_deadline(const lh_os_input_recognizer_ptr self, lh_tick_t *out);
+
+/** The state of @p pointer, or ::lh_null for an id with no gestures. */
+lh_os_input_recognizer_pointer_ptr
+lh_os_input_recognizer_find(lh_os_input_recognizer_t *self, lh_u8_t pointer);
+
+/** The read-only state of @p pointer, or ::lh_null for an id with no gestures. */
+const lh_os_input_recognizer_pointer_ptr
+lh_os_input_recognizer_find_const(const lh_os_input_recognizer_ptr self, lh_u8_t pointer);
 
 /**
  * @brief Where @p pointer is in its gesture;

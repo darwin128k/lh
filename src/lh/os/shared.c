@@ -7,7 +7,6 @@
 
 /* -- accessors ------------------------------------------------------------- */
 
-LH_ATTRIBUTE_STATIC
 lh_fs_path_t *
 lh_os_shared_get_path(lh_os_shared_t *self)
 {
@@ -29,7 +28,6 @@ lh_os_shared_get_handle(const lh_os_shared_t *self)
     return self->handle;
 }
 
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_os_shared_set_handle(lh_os_shared_t *self, lh_os_system_shared_handle_t handle)
 {
@@ -53,7 +51,6 @@ lh_os_shared_init(lh_os_shared_t *self)
 }
 
 /* Open, bind and bind_executable all need a closed image. */
-LH_ATTRIBUTE_STATIC
 lh_bool_t
 lh_os_shared_is_free(const lh_os_shared_t *self)
 {
@@ -91,7 +88,6 @@ lh_os_shared_open(lh_os_shared_t *self, const lh_fs_path_t *path)
 
 /* Keep a handle the OS just handed out for an already-loaded image; its path
    comes from the OS too. On failure the handle's reference is given back. */
-LH_ATTRIBUTE_STATIC
 lh_bool_t
 lh_os_shared_adopt(lh_os_shared_t *self, lh_os_system_shared_handle_t handle)
 {

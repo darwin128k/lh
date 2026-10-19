@@ -9,13 +9,7 @@
 const lh_ui_entity_class_t lh_ui_toggle_class = {lh_ui_toggle_event,
                                                  lh_addr_of(lh_ui_button_class)};
 
-/** The looks of the state @p self is in, put on the button — which re-aims the
-   entity by itself: ::lh_ui_button_set_style puts the resting one back when the
-   pointer is elsewhere, and ::lh_ui_button_set_hot_style puts the hovered one
-   while it is there. That is why a flip under the pointer keeps the hot look:
-   the pointer asked the button, not the state. Every setter below ends here, so
-   there is one place that decides what a state change means. */
-static lh_void
+lh_void
 lh_ui_toggle_push_looks(lh_ui_toggle_t *self)
 {
     lh_ui_button_t *button = lh_addr_of(self->button);

@@ -16,7 +16,8 @@ static const lh_char_t m_whitespace_chars[] = {lh_char_map_space, lh_char_map_lf
 
 static const lh_usize_t m_whitespace_size = lh_str_ptr_get_size(m_whitespace_chars);
 
-/* Bitset for m_whitespace_chars[0..m_whitespace_size): HT LF VT CR SP (NUL is the array sentinel). */
+/* Bitset for m_whitespace_chars[0..m_whitespace_size): HT LF VT CR SP (NUL is the array sentinel).
+ */
 static const lh_byte_t m_whitespace_set[LH_STR_PTR_CHAR_SET_BYTES] = {
     [1] = 0x2Eu, /* HT|LF|VT|CR */
     [4] = 0x01u, /* SP */
@@ -51,7 +52,8 @@ lh_str_ptr_put_chars(lh_str_ptr str, lh_usize_t pos, const lh_str_ptr chars, lh_
 lh_usize_t
 lh_str_ptr_put_run(lh_str_ptr str, lh_usize_t pos, lh_char_t ch, lh_usize_t n)
 {
-    lh_memory_std_set(lh_ptr_add_by_offset_unsafe(lh_char_t, str, pos), lh_cast_static(lh_byte_t, ch), n);
+    lh_memory_std_set(lh_ptr_add_by_offset_unsafe(lh_char_t, str, pos),
+                      lh_cast_static(lh_byte_t, ch), n);
     return lh_math_add(pos, n);
 }
 
@@ -83,12 +85,7 @@ static const lh_usize_t lh_str_ptr_swar_ramp = 0x03020100UL;
 #    endif
 #endif
 
-/**
- * True when @p chars is an ascending contiguous run (e.g. "abc", "0"-"9", "a"-"z").
- * Avoids building a bitset for the common alphabet / digit class scans.
- * Contiguity is checked with machine words of an arithmetic ramp, not one byte at a time.
- */
-static lh_bool_t
+lh_bool_t
 lh_str_ptr_chars_ascending_range(const lh_str_ptr chars, lh_usize_t chars_size, lh_byte_t *lo,
                                  lh_byte_t *hi)
 {
@@ -195,11 +192,7 @@ lh_str_ptr_swar_last_marked_lane(lh_usize_t out)
 #endif
 }
 
-/**
- * First byte of @p n at @p p outside inclusive [@p lo, @p hi], or ::lh_null.
- * Word path uses hasless/hasmore SWAR (valid while @p hi < 128).
- */
-static const lh_str_ptr
+const lh_str_ptr
 lh_str_ptr_find_byte_not_in_range(lh_byte_cptr p, lh_usize_t n, lh_byte_t lo, lh_byte_t hi)
 {
     const lh_usize_t w = sizeof(lh_usize_t);
@@ -269,11 +262,7 @@ lh_str_ptr_find_byte_not_in_range(lh_byte_cptr p, lh_usize_t n, lh_byte_t lo, lh
     return lh_null;
 }
 
-/**
- * First byte of @p n at @p p inside inclusive [@p lo, @p hi], or ::lh_null.
- * When a whole word is in-range the SWAR out-mask is 0 and the first lane wins.
- */
-static const lh_str_ptr
+const lh_str_ptr
 lh_str_ptr_find_byte_in_range(lh_byte_cptr p, lh_usize_t n, lh_byte_t lo, lh_byte_t hi)
 {
     const lh_usize_t w = sizeof(lh_usize_t);
@@ -332,11 +321,7 @@ lh_str_ptr_find_byte_in_range(lh_byte_cptr p, lh_usize_t n, lh_byte_t lo, lh_byt
     return lh_null;
 }
 
-/**
- * Last byte of @p n at @p base outside inclusive [@p lo, @p hi], or ::lh_null.
- * @p n must be non-zero.
- */
-static const lh_str_ptr
+const lh_str_ptr
 lh_str_ptr_rfind_byte_not_in_range(lh_byte_cptr base, lh_usize_t n, lh_byte_t lo, lh_byte_t hi)
 {
     const lh_usize_t w = sizeof(lh_usize_t);
@@ -411,11 +396,7 @@ lh_str_ptr_rfind_byte_not_in_range(lh_byte_cptr base, lh_usize_t n, lh_byte_t lo
     return lh_null;
 }
 
-/**
- * Last byte of @p n at @p base inside inclusive [@p lo, @p hi], or ::lh_null.
- * @p n must be non-zero.
- */
-static const lh_str_ptr
+const lh_str_ptr
 lh_str_ptr_rfind_byte_in_range(lh_byte_cptr base, lh_usize_t n, lh_byte_t lo, lh_byte_t hi)
 {
     const lh_usize_t w = sizeof(lh_usize_t);
@@ -1067,9 +1048,8 @@ lh_str_ptr_copy_except(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src
     for (si = 0; si < src_size && di < str_size; ++si)
     {
         const lh_char_t c = src[si];
-        const lh_bool_t hit =
-            single ? lh_cast_static(lh_bool_t, c == only)
-                   : (except_size > 0U && lh_str_ptr_char_set_has(set, c));
+        const lh_bool_t hit = single ? lh_cast_static(lh_bool_t, c == only)
+                                     : (except_size > 0U && lh_str_ptr_char_set_has(set, c));
 
         if (hit)
         {

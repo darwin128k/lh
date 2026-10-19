@@ -188,6 +188,35 @@ lh_str_ptr_char_set_has(const lh_byte_t *set, lh_char_t ch)
 }
 
 /**
+ * First byte of @p n at @p p outside inclusive [@p lo, @p hi], or ::lh_null.
+ * Word path uses hasless/hasmore SWAR (valid while @p hi < 128).
+ */
+const lh_str_ptr
+lh_str_ptr_find_byte_not_in_range(const lh_byte_ptr p, lh_usize_t n, lh_byte_t lo, lh_byte_t hi);
+
+/**
+ * First byte of @p n at @p p inside inclusive [@p lo, @p hi], or ::lh_null.
+ * When a whole word is in-range the SWAR out-mask is 0 and the first lane wins.
+ */
+const lh_str_ptr
+lh_str_ptr_find_byte_in_range(const lh_byte_ptr p, lh_usize_t n, lh_byte_t lo, lh_byte_t hi);
+
+/**
+ * Last byte of @p n at @p base outside inclusive [@p lo, @p hi], or ::lh_null.
+ * @p n must be non-zero.
+ */
+const lh_str_ptr
+lh_str_ptr_rfind_byte_not_in_range(const lh_byte_ptr base, lh_usize_t n, lh_byte_t lo,
+                                   lh_byte_t hi);
+
+/**
+ * Last byte of @p n at @p base inside inclusive [@p lo, @p hi], or ::lh_null.
+ * @p n must be non-zero.
+ */
+const lh_str_ptr
+lh_str_ptr_rfind_byte_in_range(const lh_byte_ptr base, lh_usize_t n, lh_byte_t lo, lh_byte_t hi);
+
+/**
  * @brief Find the first ::lh_char_t equal to @p ch
  *        in the first @p size elements of @p str.
  *
@@ -999,6 +1028,15 @@ lh_str_ptr_to_lower(lh_str_ptr str, lh_usize_t size);
  */
 lh_str_ptr
 lh_str_ptr_to_upper(lh_str_ptr str, lh_usize_t size);
+
+/**
+ * True when @p chars is an ascending contiguous run (e.g. "abc", "0"-"9", "a"-"z").
+ * Avoids building a bitset for the common alphabet / digit class scans.
+ * Contiguity is checked with machine words of an arithmetic ramp, not one byte at a time.
+ */
+lh_bool_t
+lh_str_ptr_chars_ascending_range(const lh_str_ptr chars, lh_usize_t chars_size, lh_byte_t *lo,
+                                 lh_byte_t *hi);
 
 LH_COMPILER_EXTERN_C_END
 

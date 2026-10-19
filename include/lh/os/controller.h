@@ -175,6 +175,11 @@ lh_os_controller_set_enabled(lh_os_controller_t *self, lh_bool_t enabled);
 lh_bool_t
 lh_os_controller_handle(lh_os_controller_t *self, const lh_os_input_event_ptr event);
 
+/** An ::lh_os_input_sink_fn for the recognizer: @p event to the controller's handler, and
+   @p self (an ::lh_os_controller_dispatch_t) remembers when the handler acted. */
+lh_void
+lh_os_controller_dispatch_sink(lh_self_ptr self, const lh_os_input_event_ptr event);
+
 /**
  * @brief One event from the source.
  *
@@ -203,6 +208,11 @@ lh_os_controller_feed(lh_os_controller_t *self, const lh_os_input_event_ptr even
  */
 lh_bool_t
 lh_os_controller_update(lh_os_controller_t *self, lh_tick_t now);
+
+/** Every gesture of @p self dropped without a word: the recognizer starts over with the
+   thresholds it had. */
+lh_void
+lh_os_controller_forget_gestures(lh_os_controller_t *self);
 
 /**
  * @brief Drop every gesture in progress, then call `cancel_cb`, if any.

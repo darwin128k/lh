@@ -39,6 +39,15 @@ LH_COMPILER_EXTERN_C_BEGIN
 lh_void
 lh_ui_text_line_init(lh_ui_text_line_t *self);
 
+/** Add the rows the glyph at @p index inks to the ink of @p self. */
+lh_void
+lh_ui_text_line_take_ink(lh_ui_text_line_t *self, const lh_ui_font_t *font, lh_u32_t index);
+
+/** Where the line after the one ending at @p end starts: past the line end, past
+    the spaces a wrapped line broke at, or at @p end for a word cut in two. */
+const lh_char_t *
+lh_ui_text_line_next_of(const lh_char_t *end, lh_ui_scalar_t width);
+
 /**
  * @brief Lay out the line of @p text that starts at @p text, broken at @p width.
  *

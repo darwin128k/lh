@@ -5,24 +5,22 @@
 
 #include <lh/ui/viewport3d.h>
 
-/** `begin` of ::lh_ui_viewport3d_backend_null: does nothing. */
-static lh_void
-viewport3d_null_begin(lh_ptr context, const lh_ui_rect_t *rect)
+lh_void
+lh_ui_viewport3d_null_begin(lh_ptr context, const lh_ui_rect_t *rect)
 {
     (void)context;
     (void)rect;
 }
 
-/** `end` of ::lh_ui_viewport3d_backend_null: does nothing. */
-static lh_void
-viewport3d_null_end(lh_ptr context)
+lh_void
+lh_ui_viewport3d_null_end(lh_ptr context)
 {
     (void)context;
 }
 
 const lh_ui_viewport3d_backend_t lh_ui_viewport3d_backend_null = {
-    viewport3d_null_begin,
-    viewport3d_null_end,
+    lh_ui_viewport3d_null_begin,
+    lh_ui_viewport3d_null_end,
 };
 
 lh_void

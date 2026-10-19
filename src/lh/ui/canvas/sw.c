@@ -468,11 +468,10 @@ lh_ui_canvas_sw_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t 
     return lh_bool_true;
 }
 
-/** Blur @p rect in place, cut to the limit; with a @p shape, only where its rounded
- * corners cover. */
-static lh_bool_t
-sw_soften(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t blur_radius,
-          lh_u8_t *scratch, lh_usize_t bytes, const lh_ui_rect_t *shape, lh_ui_scalar_t corner)
+lh_bool_t
+lh_ui_canvas_sw_soften(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect,
+                       lh_ui_scalar_t blur_radius, lh_u8_t *scratch, lh_usize_t bytes,
+                       const lh_ui_rect_t *shape, lh_ui_scalar_t corner)
 {
     lh_ui_rect_t cut;
     lh_ui_rect_intersection(rect, lh_addr_of(self->limit), lh_addr_of(cut));
@@ -493,8 +492,8 @@ lh_ui_canvas_sw_blur(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t bl
 {
     /* The buffer is the caller's, so a blur too big for it is one we cannot
        draw — and saying so beats writing past what we were given. */
-    return sw_soften(lh_ui_canvas_sw_from(context), rect, blur_radius, scratch, bytes, lh_null,
-                     lh_ui_scalar(0));
+    return lh_ui_canvas_sw_soften(lh_ui_canvas_sw_from(context), rect, blur_radius, scratch, bytes,
+                                  lh_null, lh_ui_scalar(0));
 }
 
 lh_bool_t
@@ -505,8 +504,8 @@ lh_ui_canvas_sw_glass(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t c
     /* The blur is written only where the rounded panel covers. A square corner
        the arc misses stays the picture that was there; blurring it first and
        tinting the arc afterwards leaves that corner smeared. */
-    lh_return_if(!sw_soften(lh_ui_canvas_sw_from(context), rect, blur_radius, scratch, bytes,
-                            corner > lh_ui_scalar(0) ? rect : lh_null, corner),
+    lh_return_if(!lh_ui_canvas_sw_soften(lh_ui_canvas_sw_from(context), rect, blur_radius, scratch,
+                                         bytes, corner > lh_ui_scalar(0) ? rect : lh_null, corner),
                  lh_bool_false);
     lh_ui_canvas_sw_fill_round_rect(context, rect, corner, tint);
     return lh_bool_true;

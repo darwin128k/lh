@@ -272,6 +272,14 @@ lh_ui_entity_note_rect(const lh_ui_entity_t *self, const lh_ui_rect_t *rect);
 
 /* -- Tree ------------------------------------------------------------------ */
 
+/** Whether @p self and every ancestor of it are shown. */
+lh_bool_t
+lh_ui_entity_chain_shown(const lh_ui_entity_t *self);
+
+/** The view of the topmost ancestor of @p self, or ::lh_null outside any view. */
+struct lh_ui_view *
+lh_ui_entity_own_view(const lh_ui_entity_t *self);
+
 /**
  * @brief Parent of @p self, or ::lh_null for a root.
  */
@@ -654,6 +662,17 @@ lh_ui_entity_shows_on(const lh_ui_entity_t *self, const lh_ui_canvas_t *canvas);
  */
 lh_bool_t
 lh_ui_entity_shows_children_on(const lh_ui_entity_t *self, const lh_ui_canvas_t *canvas);
+
+/** Fill one straight edge strip of a box; nothing when it is empty. */
+lh_void
+lh_ui_entity_fill_edge(lh_ui_canvas_t *canvas, lh_ui_scalar_t x, lh_ui_scalar_t y,
+                       lh_ui_scalar_t width, lh_ui_scalar_t height, const lh_ui_color_t *color);
+
+/** The edge is a straight strip, not a stroke that follows the radius. The rows
+   it replaces were filled rectangles one pixel tall laid across the box, and a
+   rounded card's top pixel was already that strip sitting on the arc. */
+lh_void
+lh_ui_entity_draw_border(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas);
 
 /**
  * @brief ::lh_ui_entity_draw on each child of @p self, in child order.

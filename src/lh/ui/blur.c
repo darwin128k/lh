@@ -90,11 +90,9 @@ lh_ui_blur_scratch_size(const lh_ui_rect_t *rect, lh_s32_t radius)
     return (lh_usize_t)lh_ui_size_get_width(size) * lh_cast_static(lh_usize_t, rows) * 4U;
 }
 
-/** Rows the column pass has to already hold: the rect, and up to @p radius rows
-   past it on each side, cut to the pixmap. The scratch is addressed from @p y0. */
-static lh_void
-blur_band(const lh_ui_pixmap_t *pixmap, lh_s32_t top, lh_s32_t height, lh_s32_t radius,
-          lh_s32_t *y0, lh_s32_t *y1)
+lh_void
+lh_ui_blur_band(const lh_ui_pixmap_t *pixmap, lh_s32_t top, lh_s32_t height, lh_s32_t radius,
+                lh_s32_t *y0, lh_s32_t *y1)
 {
     const lh_s32_t pix_h = lh_ui_pixmap_get_height(pixmap);
     lh_s32_t last = top + height + (radius > 0 ? radius : 0);
@@ -107,11 +105,9 @@ blur_band(const lh_ui_pixmap_t *pixmap, lh_s32_t top, lh_s32_t height, lh_s32_t 
     lh_ptr_deref(y1) = last;
 }
 
-/** One row, blurred across. The window reads the pixmap, out to @p radius past
-   the rect and no further than the pixmap; @p out receives only the rect. */
-static lh_void
-blur_row_x(const lh_ui_pixmap_t *pixmap, lh_s32_t y, lh_s32_t left, lh_s32_t width, lh_s32_t radius,
-           lh_u8_t *out)
+lh_void
+lh_ui_blur_row_x(const lh_ui_pixmap_t *pixmap, lh_s32_t y, lh_s32_t left, lh_s32_t width,
+                 lh_s32_t radius, lh_u8_t *out)
 {
     const lh_s32_t pix_w = lh_ui_pixmap_get_width(pixmap);
     const lh_s32_t read0 = radius > 0 && left > radius ? left - radius : 0;
@@ -191,18 +187,16 @@ lh_ui_blur_rows(lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_s32_t radiu
     lh_s32_t y;
 
     lh_return_if(radius < 0 || lh_null_eq(scratch) || width <= 0 || height <= 0);
-    blur_band(pixmap, top, height, radius, lh_addr_of(y0), lh_addr_of(y1));
+    lh_ui_blur_band(pixmap, top, height, radius, lh_addr_of(y0), lh_addr_of(y1));
     for (y = y0; y < y1; ++y)
     {
-        blur_row_x(pixmap, y, left, width, radius, scratch + (y - y0) * width * 4);
+        lh_ui_blur_row_x(pixmap, y, left, width, radius, scratch + (y - y0) * width * 4);
     }
 }
 
-/** Write a blurred pixel, cut to the rounded @p shape when there is one: kept out of its square
- * corners, blended on its edge. */
-static lh_void
-blur_put(lh_ui_pixmap_t *pixmap, lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color,
-         const lh_ui_rect_t *shape, lh_ui_scalar_t corner)
+lh_void
+lh_ui_blur_put(lh_ui_pixmap_t *pixmap, lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color,
+               const lh_ui_rect_t *shape, lh_ui_scalar_t corner)
 {
     lh_byte_t cover;
 
@@ -297,7 +291,8 @@ lh_ui_blur_pass_init(const lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_
     out->shape = out->corner > lh_ui_scalar(0) ? shape : lh_null;
     lh_return_if(radius < 0 || lh_null_eq(scratch) || out->width <= 0 || out->height <= 0,
                  lh_bool_false);
-    blur_band(pixmap, out->top, out->height, radius, lh_addr_of(out->y0), lh_addr_of(out->y1));
+    lh_ui_blur_band(pixmap, out->top, out->height, radius, lh_addr_of(out->y0),
+                    lh_addr_of(out->y1));
     return lh_bool_true;
 }
 
@@ -323,7 +318,7 @@ lh_ui_blur_column(lh_ui_pixmap_t *pixmap, const lh_ui_blur_pass_t *pass, lh_s32_
     for (y = pass->top; y < pass->top + pass->height; ++y)
     {
         lh_ui_blur_window_average_color(lh_addr_of(sum), win1 - win0, lh_addr_of(out));
-        blur_put(pixmap, pass->left + x, y, lh_addr_of(out), pass->shape, pass->corner);
+        lh_ui_blur_put(pixmap, pass->left + x, y, lh_addr_of(out), pass->shape, pass->corner);
         lh_ui_blur_window_span(y + 1, pass->radius, pass->y0, pass->y1, lh_addr_of(next0),
                                lh_addr_of(next1));
         lh_ui_blur_window_drop_samples(

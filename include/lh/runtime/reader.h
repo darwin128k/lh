@@ -20,6 +20,10 @@
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/** The default reader callback: `stdin`. */
+lh_ssize_t
+lh_runtime_reader_stdin(lh_self_ptr self, lh_ptr buf, lh_usize_t size);
+
 /**
  * @brief Return address of the runtime reader instance.
  * @return Pointer to the internal ::lh_io_reader_t (never null).

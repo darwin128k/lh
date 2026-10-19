@@ -37,6 +37,18 @@ typedef struct lh_os_input_queue lh_os_input_queue_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/** The position after @p index on a ring of @p capacity, counting in `[0, 2 * capacity)`. */
+lh_u16_t
+lh_os_input_queue_next(lh_u16_t capacity, lh_u16_t index);
+
+/** The position before @p index on a ring of @p capacity. */
+lh_u16_t
+lh_os_input_queue_previous(lh_u16_t capacity, lh_u16_t index);
+
+/** The storage slot of the position @p index. */
+lh_u16_t
+lh_os_input_queue_slot(lh_u16_t capacity, lh_u16_t index);
+
 /**
  * @brief Make @p self an empty queue over @p storage of @p capacity events.
  *
@@ -44,6 +56,15 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 lh_void
 lh_os_input_queue_init(lh_os_input_queue_t *self, lh_os_input_event_t *storage, lh_u16_t capacity);
+
+/** True when @p event is a pointer move that can replace @p last: the same pointer of the same
+   device, nothing but the position changed in between. */
+lh_bool_t
+lh_os_input_queue_can_fold(const lh_os_input_event_ptr last, const lh_os_input_event_ptr event);
+
+/** Full: fold @p event into the move just before it, or drop and count it. */
+lh_bool_t
+lh_os_input_queue_push_full(lh_os_input_queue_t *self, const lh_os_input_event_ptr event);
 
 /**
  * @brief Copy @p event in at the end (the producer's side).

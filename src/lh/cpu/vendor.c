@@ -17,7 +17,7 @@
 #define LH_CPU_VENDOR_AMD_EDX (lh_cast_static(lh_u32_t, 0x69746e65)) /* "enti" */
 #define LH_CPU_VENDOR_AMD_ECX (lh_cast_static(lh_u32_t, 0x444d4163)) /* "cAMD" */
 
-static lh_bool_t
+lh_bool_t
 lh_cpu_vendor_matches(lh_u32_t want_ebx, lh_u32_t want_edx, lh_u32_t want_ecx)
 {
     lh_u32_t regs[LH_CPU_ID_REGISTER_COUNT];

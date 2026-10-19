@@ -11,18 +11,18 @@
 #ifndef LH_UI_WEB_PAGE_H
 #define LH_UI_WEB_PAGE_H
 
-#include <lh/bool.h>
-#include <lh/byte/ptr.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/util/ptr.h>
-#include <lh/config.h>
-#include <lh/size.h>
+#include <lh/ui/web/buf.h>
 
 #if !LH_LIBRARY_OPTION_UI
 #    error "lh/ui/web/page.h requires LH_LIBRARY_OPTION_UI"
 #endif
 
 LH_COMPILER_EXTERN_C_BEGIN
+
+/** `var <name>={'<e.key>':<lh_os_key_t>,...};` from ::page_keys, only the modifiers when
+   @p modifiers_only. Fails @p j when the table would not fit ::PAGE_KEY_TABLE_CAP. */
+lh_void
+lh_ui_web_page_emit_key_table(lh_ui_web_buf_t *j, const lh_str_ptr name, lh_bool_t modifiers_only);
 
 /**
  * @brief Write the player document into @p mem.

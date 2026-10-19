@@ -358,16 +358,13 @@ lh_mb_parse_read(lh_byte_cptr adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc, lh
    device map is sorted for exactly this reason, and sorting it here would put a
    second pass on the one path that runs for every device.
 
-   The rule for merging is written once, in `mb_reach`, because the planner and the
+   The rule for merging is written once, in `lh_mb_reach`, because the planner and the
    counter have to agree: a counter that disagrees with the planner is a number on
    a slide that the code does not produce, and nobody finds out which of the two is
    wrong until a device is asked for something it was never sent. */
 
-/** How far a run that currently ends at `end` reaches once `next` is folded in, or
-   0 when it must not be — the two reasons being a gap worth crossing and a run
-   longer than one read may ask for. */
-static lh_u16_t
-mb_reach(lh_u16_t start, lh_u16_t end, const lh_mb_want_t *next)
+lh_u16_t
+lh_mb_reach(lh_u16_t start, lh_u16_t end, const lh_mb_want_t *next)
 {
     const lh_u16_t next_end =
         lh_cast_static(lh_u16_t, (next->address + (next->registers ? next->registers : 1)));
@@ -404,7 +401,7 @@ lh_mb_plan_reads(const lh_mb_want_t *wants, lh_u16_t count, lh_mb_read_t *reads,
         /* Take every want this request can carry for free. */
         while (j + 1 < count)
         {
-            const lh_u16_t reach = mb_reach(start, end, lh_addr_of(wants[j + 1]));
+            const lh_u16_t reach = lh_mb_reach(start, end, lh_addr_of(wants[j + 1]));
 
             if (reach == 0)
             {
@@ -443,7 +440,7 @@ lh_mb_count_requests(const lh_mb_want_t *wants, lh_u16_t count)
 
         while (j + 1 < count)
         {
-            const lh_u16_t reach = mb_reach(start, end, lh_addr_of(wants[j + 1]));
+            const lh_u16_t reach = lh_mb_reach(start, end, lh_addr_of(wants[j + 1]));
 
             if (reach == 0)
             {

@@ -25,6 +25,11 @@
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/** The default logger callback: one line to `stderr`. */
+lh_ssize_t
+lh_runtime_logger_stderr(lh_self_ptr self, lh_logger_level_t level, const lh_str_ptr fmt,
+                         va_list args);
+
 /**
  * @brief Return address of the runtime logger instance.
  *

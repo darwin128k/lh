@@ -2,8 +2,8 @@
  * @file path.h
  * @brief A filesystem path (::lh_fs_path_t): root plus segments.
  *
- * Pure value type — no clock, no OS, one buffer of its own. Builds and runs anywhere ::lh itself does, including without
- * an OS (see `lh/os/fs` for the actual filesystem I/O contract — open,
+ * Pure value type — no clock, no OS, one buffer of its own. Builds and runs anywhere ::lh itself
+ * does, including without an OS (see `lh/os/fs` for the actual filesystem I/O contract — open,
  * stat, list — which does depend on the platform and takes an
  * ::lh_fs_path_t as input). Same split as ::lh_net_ip4_t (`lh/net/ip.h`)
  * vs `lh/os/net`.
@@ -43,6 +43,23 @@ typedef struct lh_fs_path lh_fs_path_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/** Characters the root of @p kind takes at the start of the text: `3` for `C:/`, `1` for `/`, `0`
+ * for none. */
+lh_usize_t
+lh_fs_path_root_len(lh_fs_path_root_kind_t kind);
+
+/** The whole text of @p self, root included. */
+const lh_str_t *
+lh_fs_path_get_text(const lh_fs_path_t *self);
+
+/** The whole text of @p self, to change. */
+lh_str_t *
+lh_fs_path_get_text_mut(lh_fs_path_t *self);
+
+/** Record that the text of @p self starts with a root of @p kind. */
+lh_void
+lh_fs_path_set_root_kind(lh_fs_path_t *self, lh_fs_path_root_kind_t kind);
+
 /**
  * @brief Empty, relative path (no root, no segments). Does not touch the OS.
  */
@@ -60,6 +77,10 @@ lh_fs_path_deinit(lh_fs_path_t *self);
  */
 lh_void
 lh_fs_path_clear(lh_fs_path_t *self);
+
+/** The text of @p self after its root, into @p out. */
+lh_void
+lh_fs_path_get_rest(const lh_fs_path_t *self, lh_str_view_t *out);
 
 /**
  * @brief Copy @p other into @p self (root and segments).
@@ -138,6 +159,11 @@ lh_fs_path_is_root(const lh_fs_path_t *self);
 lh_bool_t
 lh_fs_path_is_hidden(const lh_fs_path_t *self);
 
+/** Write the root that @p text starts with in @p style (drive or `/`) into @p self and record its
+ * kind. */
+lh_usize_t
+lh_fs_path_take_root(lh_fs_path_t *self, const lh_str_view_t *text, lh_fs_path_style_t style);
+
 /**
  * @brief Parse @p text into @p self's root and segments, replacing its
  *        current contents.
@@ -181,7 +207,8 @@ lh_fs_path_to_cstr(const lh_fs_path_t *self, lh_fs_path_style_t style, lh_str_t 
 
 /**
  * @brief Join @p dir and @p name into @p self by appending @p name's
- *        segments (one append of @p name's text). @p name's own root (if any) is ignored — @p self keeps
+ *        segments (one append of @p name's text). @p name's own root (if any) is ignored — @p self
+ * keeps
  *        @p dir's root.
  *
  * @p self may alias @p dir and/or @p name.

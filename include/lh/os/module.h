@@ -60,6 +60,9 @@ LH_COMPILER_EXTERN_C_BEGIN
 
 /* -- init / deinit --------------------------------------------------------- */
 
+lh_void
+lh_os_module_set_loader(lh_os_module_t *self, struct lh_os_loader *loader);
+
 /**
  * @brief Empty module: no image, no methods, no owner, no loader. Does not
  *        touch the OS.
@@ -100,6 +103,9 @@ lh_os_module_destroy(lh_os_module_t *self);
 
 /* -- accessors ------------------------------------------------------------- */
 
+lh_os_shared_t *
+lh_os_module_get_image(lh_os_module_t *self);
+
 /**
  * @brief The module's image. Read-only: the module opens and closes it,
  *        so the image never changes under a started module.
@@ -130,6 +136,10 @@ lh_os_module_is_loaded(const lh_os_module_t *self);
  */
 lh_bool_t
 lh_os_module_is_started(const lh_os_module_t *self);
+
+/** Record whether @p self has been started. */
+lh_void
+lh_os_module_set_started(lh_os_module_t *self, lh_bool_t started);
 
 /**
  * @brief The module's own methods, or ::lh_null if it has none.
@@ -270,6 +280,9 @@ lh_bool_t
 lh_os_module_close(lh_os_module_t *self);
 
 /* -- lifecycle ------------------------------------------------------------- */
+
+lh_void
+lh_os_module_revoke_loader(lh_os_module_t *self);
 
 /**
  * @brief Run the module's start. No methods, or no start: started as is.

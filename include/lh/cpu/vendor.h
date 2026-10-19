@@ -17,6 +17,11 @@
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/** True when the CPUID vendor string (EBX, EDX, ECX of leaf 0) is @p want_ebx, @p want_edx, @p
+ * want_ecx. */
+lh_bool_t
+lh_cpu_vendor_matches(lh_u32_t want_ebx, lh_u32_t want_edx, lh_u32_t want_ecx);
+
 /**
  * @brief Whether this CPU identifies itself as a genuine Intel part.
  *

@@ -25,7 +25,7 @@
 
 #define LH_CPU_CACHE_LEVEL_L3 3U
 
-static lh_usize_t
+lh_usize_t
 lh_cpu_cache_l3_size_intel(void)
 {
     lh_u32_t regs[4];
@@ -62,7 +62,7 @@ lh_cpu_cache_l3_size_intel(void)
     return 0U;
 }
 
-static lh_usize_t
+lh_usize_t
 lh_cpu_cache_l3_size_amd(void)
 {
     lh_u32_t regs[4];

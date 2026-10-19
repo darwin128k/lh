@@ -14,8 +14,7 @@
 #    include <lh/ui/frame/stats.h>
 #endif
 
-/** Take @p self out of its app's window list and forget its app, parent and modal state. */
-static lh_void
+lh_void
 lh_os_window_unlink(lh_os_window_t *self)
 {
     if (lh_list_node_is_linked(lh_addr_of(self->link)))
@@ -229,11 +228,7 @@ lh_os_window_get_pressed_buttons(const lh_os_window_t *self)
 
 /* -- Controller timer ------------------------------------------------------ */
 
-/** When the recognizer of @p self's controller next has something to send, into @p out;
-   false, @p out untouched, with no controller, a disabled one, no gestures or nothing
-   waiting on time. A disabled controller does not advance on update, so a deadline it
-   cannot meet yet must not keep a 1 ms timer spinning. */
-static lh_bool_t
+lh_bool_t
 lh_os_window_get_controller_deadline(lh_os_window_t *self, lh_tick_t *out)
 {
     lh_os_controller_t *controller = lh_os_window_get_controller(self);
@@ -246,10 +241,7 @@ lh_os_window_get_controller_deadline(lh_os_window_t *self, lh_tick_t *out)
                                                     out);
 }
 
-/** The window timer of @p self for its controller, when no `on_tick` period runs it: armed
-   for the recognizer's next deadline -- again when @p rearm, else only when it is not
-   running yet -- and stopped once nothing waits on time. */
-static lh_void
+lh_void
 lh_os_window_arm_controller(lh_os_window_t *self, lh_bool_t rearm)
 {
     lh_tick_t deadline = 0U;
@@ -274,9 +266,7 @@ lh_os_window_arm_controller(lh_os_window_t *self, lh_bool_t rearm)
     self->controller_armed = lh_bool_true;
 }
 
-/** The controller's timers at @p self's tick: what is due by now, then the timer for the
-   next deadline. */
-static lh_void
+lh_void
 lh_os_window_update_controller(lh_os_window_t *self)
 {
     lh_os_controller_t *controller = lh_os_window_get_controller(self);
@@ -549,10 +539,7 @@ lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr paint_dc, int left, in
     self->paint_bottom = 0;
 }
 
-/** The mouse buttons @p event leaves held over @p self: an event of pointer `0` says, its
-   cancel or a focus loss lets go of all of them, anything else -- a touch contact
-   included -- leaves them as they were. */
-static lh_void
+lh_void
 lh_os_window_track_buttons(lh_os_window_t *self, lh_os_input_event_cptr event)
 {
     lh_return_if(lh_os_input_event_is_pointer(event) && lh_os_input_event_get_pointer(event) != 0U);
@@ -572,9 +559,7 @@ lh_os_window_track_buttons(lh_os_window_t *self, lh_os_input_event_cptr event)
     }
 }
 
-/** @p event to @p self's controller, if any: fed, the whole controller cancelled after a
-   focus loss, and its timer armed for a deadline the event may have set. */
-static lh_void
+lh_void
 lh_os_window_feed_controller(lh_os_window_t *self, lh_os_input_event_cptr event)
 {
     lh_os_controller_t *controller = lh_os_window_get_controller(self);

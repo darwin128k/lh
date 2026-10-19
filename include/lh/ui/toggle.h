@@ -76,6 +76,15 @@ lh_ui_toggle_on_click(const lh_ui_toggle_t *self, const lh_ui_entity_event_t *ev
 
 /* -- Lifetime and fields --------------------------------------------------- */
 
+/** The looks of the state @p self is in, put on the button — which re-aims the
+   entity by itself: ::lh_ui_button_set_style puts the resting one back when the
+   pointer is elsewhere, and ::lh_ui_button_set_hot_style puts the hovered one
+   while it is there. That is why a flip under the pointer keeps the hot look:
+   the pointer asked the button, not the state. Every setter below ends here, so
+   there is one place that decides what a state change means. */
+lh_void
+lh_ui_toggle_push_looks(lh_ui_toggle_t *self);
+
 /**
  * @brief A toggle at @p rect: no styles, off, not hovered, no callback.
  */

@@ -20,8 +20,7 @@ lh_ui_text_line_init(lh_ui_text_line_t *self)
     self->inked = lh_bool_false;
 }
 
-/** Add the rows the glyph at @p index inks to the ink of @p self. */
-static lh_void
+lh_void
 lh_ui_text_line_take_ink(lh_ui_text_line_t *self, const lh_ui_font_t *font, lh_u32_t index)
 {
     const lh_ui_scalar_t at = lh_cast_static(
@@ -42,9 +41,7 @@ lh_ui_text_line_take_ink(lh_ui_text_line_t *self, const lh_ui_font_t *font, lh_u
     self->inked = lh_bool_true;
 }
 
-/** Where the line after the one ending at @p end starts: past the line end, past
-    the spaces a wrapped line broke at, or at @p end for a word cut in two. */
-static const lh_char_t *
+const lh_char_t *
 lh_ui_text_line_next_of(const lh_char_t *end, lh_ui_scalar_t width)
 {
     const lh_char_t *cursor = end;
