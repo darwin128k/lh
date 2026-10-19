@@ -84,7 +84,8 @@ lh_ui_web_buf_raw(lh_ui_web_buf_t *self, const lh_str_ptr s)
 lh_void
 lh_ui_web_buf_finish(lh_ui_web_buf_t *self)
 {
-    if (self == lh_null || !self->ok || self->mem == lh_null)
+    /* A failed buffer is terminated too: every write keeps one byte free for this. */
+    if (self == lh_null || self->mem == lh_null)
     {
         return;
     }

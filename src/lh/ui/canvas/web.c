@@ -5,28 +5,18 @@
 
 #include <lh/ui/canvas/web.h>
 
-#include <lh/byte/ptr.h>
 #include <lh/cast/const.h>
+#include <lh/math.h>
 #include <lh/memory.h>
 #include <lh/runtime/allocator.h>
+#include <lh/str/format/bytes.h>
 #include <lh/str/format/sint.h>
 
-/** Every write goes through here. A buffer always keeps one byte free, so close
- * can terminate it without a check of its own. */
+/** Every write goes through here. */
 static lh_void
 web_put(lh_ui_canvas_web_t *self, const char *p, lh_usize_t n)
 {
-    if (!self->ok)
-    {
-        return;
-    }
-    if (self->mem == lh_null || n >= self->cap - self->len)
-    {
-        self->ok = lh_bool_false;
-        return;
-    }
-    lh_memory_copy(self->mem + self->len, self->cap - self->len, lh_cast_const(lh_ptr, p), n);
-    self->len += n;
+    lh_ui_web_buf_lit(lh_addr_of(self->buf), p, n);
 }
 
 /** Append string literal @p s, its length taken at compile time. */
@@ -60,29 +50,24 @@ web_quad(lh_ui_canvas_web_t *self, long a, long b, long c, long d)
 static lh_void
 web_hex(lh_ui_canvas_web_t *self, lh_byte_cptr px, unsigned n)
 {
-    static const char digits[] = "0123456789abcdef";
     char buf[256];
-    unsigned i;
-    unsigned o = 0;
+    lh_usize_t i;
 
-    for (i = 0; i < n; ++i)
+    for (i = 0; lh_math_lt(i, n); i = lh_math_add(i, lh_math_div(sizeof(buf), 2U)))
     {
-        buf[o++] = digits[px[i] >> 4];
-        buf[o++] = digits[px[i] & 15u];
-        if (o == sizeof(buf))
-        {
-            web_put(self, buf, lh_cast_static(lh_usize_t, o));
-            o = 0;
-        }
+        const lh_usize_t chunk = lh_math_min(lh_math_sub(lh_cast_static(lh_usize_t, n), i),
+                                             lh_math_div(sizeof(buf), 2U));
+
+        web_put(self, buf,
+                lh_str_ptr_format_bytes_hex(px + i, chunk, lh_bool_false, buf, sizeof(buf)));
     }
-    web_put(self, buf, lh_cast_static(lh_usize_t, o));
 }
 
 /** Start an op: the separating comma when one is due, and count it. */
 static lh_void
 web_comma(lh_ui_canvas_web_t *self)
 {
-    if (!self->ok)
+    if (!lh_ui_web_buf_ok(lh_addr_of(self->buf)))
     {
         return;
     }
@@ -271,14 +256,11 @@ web_atlas_intern(lh_ui_canvas_web_t *self, lh_byte_cptr px, int w, int h, int *i
 static lh_void
 web_reset(lh_ui_canvas_web_t *self, unsigned width, unsigned height)
 {
-    self->mem = lh_null;
-    self->cap = 0;
-    self->len = 0;
+    lh_ui_web_buf_init(lh_addr_of(self->buf), lh_null, 0);
     self->width = width;
     self->height = height;
     self->ops = 0;
     self->comma = 0;
-    self->ok = lh_bool_false;
     self->glyphs = lh_null;
     self->glyphs_owned = lh_bool_false;
 }
@@ -490,35 +472,22 @@ lh_ui_canvas_web_open_mem(lh_ui_canvas_web_t *self, char *buf, lh_usize_t cap, u
     }
     lh_memory_set(self, sizeof(lh_ptr_deref(self)), 0);
     web_reset(self, width, height);
-    self->mem = buf;
-    self->cap = cap;
-    self->ok = lh_bool_true;
+    lh_ui_web_buf_init(lh_addr_of(self->buf), lh_ptr_cast(lh_byte_t, buf), cap);
     web_head(self);
-    return self->ok;
+    return lh_ui_web_buf_ok(lh_addr_of(self->buf));
 }
 
 lh_bool_t
 lh_ui_canvas_web_close(lh_ui_canvas_web_t *self)
 {
-    lh_bool_t ok;
-
     if (self == lh_null)
     {
         return lh_bool_false;
     }
-    ok = self->ok;
-    if (ok)
-    {
-        web_lit(self, "]}");
-        ok = self->ok;
-    }
-    if (self->mem != lh_null)
-    {
-        self->mem[self->len] = 0;
-    }
+    web_lit(self, "]}");
+    lh_ui_web_buf_finish(lh_addr_of(self->buf));
     web_glyphs_free(self);
-    self->ok = ok;
-    return ok;
+    return lh_ui_web_buf_ok(lh_addr_of(self->buf));
 }
 
 lh_void
@@ -544,11 +513,11 @@ lh_ui_canvas_web_set_glyphs(lh_ui_canvas_web_t *self, lh_ui_canvas_web_glyphs_t 
 const char *
 lh_ui_canvas_web_bytes(const lh_ui_canvas_web_t *self)
 {
-    if (self == lh_null || self->mem == lh_null)
+    if (self == lh_null || lh_ui_web_buf_bytes(lh_addr_of(self->buf)) == lh_null)
     {
         return "";
     }
-    return self->mem;
+    return lh_ptr_ccast(char, lh_ui_web_buf_bytes(lh_addr_of(self->buf)));
 }
 
 lh_usize_t
@@ -558,5 +527,5 @@ lh_ui_canvas_web_length(const lh_ui_canvas_web_t *self)
     {
         return 0;
     }
-    return self->len;
+    return lh_ui_web_buf_len(lh_addr_of(self->buf));
 }

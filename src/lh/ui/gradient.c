@@ -125,33 +125,6 @@ lh_ui_gradient_get_stop(lh_ui_gradient_t *self, lh_ui_gradient_stop_count_t inde
 
 /* -- Over a box ------------------------------------------------------------ */
 
-/** The integer square root of @p v: the largest r with r * r <= v. */
-static lh_s64_t
-lh_ui_gradient_isqrt(lh_s64_t v)
-{
-    lh_s64_t r = 0;
-    lh_s64_t bit = lh_cast_static(lh_s64_t, 1) << 40;
-
-    while (bit > v)
-    {
-        bit >>= 2;
-    }
-    while (bit != 0)
-    {
-        if (v >= r + bit)
-        {
-            v -= r + bit;
-            r = (r >> 1) + bit;
-        }
-        else
-        {
-            r >>= 1;
-        }
-        bit >>= 2;
-    }
-    return r;
-}
-
 lh_void
 lh_ui_gradient_set_linear(lh_ui_gradient_t *self, lh_s32_t degrees)
 {
@@ -209,7 +182,9 @@ lh_ui_gradient_frac_at(const lh_ui_gradient_t *self, const lh_ui_rect_t *rect, l
         const lh_s64_t ux = dx * 1024 / w;
         const lh_s64_t uy = dy * 1024 / h;
 
-        frac = lh_ui_gradient_isqrt(ux * ux + uy * uy) * 255 / 1448;
+        const lh_u64_t square = lh_cast_static(lh_u64_t, ux * ux + uy * uy);
+
+        frac = lh_cast_static(lh_s64_t, lh_math_isqrt_u64(square)) * 255 / 1448;
     }
     else
     {
