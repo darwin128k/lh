@@ -98,12 +98,6 @@ lh_str_format_float_u64_mul_pow10(lh_u64_t *x, lh_usize_t k)
     return lh_bool_true;
 }
 
-static lh_bool_t
-lh_str_format_float_u64_mul10(lh_u64_t *x)
-{
-    return lh_str_format_float_u64_mul_pow10(x, 1U);
-}
-
 /**
  * Unpack a finite non-zero float into mantissa and binary exponent such that
  * value = mantissa * 2^e (mantissa has the implicit 1 for normals).
@@ -349,7 +343,7 @@ lh_str_format_float_scale_u64(lh_u32_t mantissa, lh_sint_t e, lh_u64_t *num, lh_
     }
     while (ok && lh_math_lt(n, d))
     {
-        ok = lh_str_format_float_u64_mul10(lh_addr_of(n));
+        ok = lh_str_format_float_u64_mul_pow10(lh_addr_of(n), 1U);
         if (!ok)
         {
             return lh_bool_false;

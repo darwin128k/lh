@@ -211,12 +211,6 @@ lh_crypto_rijndael_sub_word(lh_u32_t w)
            lh_cast_static(lh_u32_t, m_sbox[w & 0xFFU]);
 }
 
-static lh_u32_t
-lh_crypto_rijndael_rot_word(lh_u32_t w)
-{
-    return lh_bit_rotate_left_u32(w, 8U);
-}
-
 static lh_void
 lh_crypto_rijndael_expand_key(lh_crypto_rijndael_t *self, lh_byte_cptr key, lh_usize_t key_size)
 {
@@ -239,7 +233,7 @@ lh_crypto_rijndael_expand_key(lh_crypto_rijndael_t *self, lh_byte_cptr key, lh_u
 
         if (lh_math_is_multiple_of(i, nk))
         {
-            temp = lh_crypto_rijndael_sub_word(lh_crypto_rijndael_rot_word(temp)) ^ rcon;
+            temp = lh_crypto_rijndael_sub_word(lh_bit_rotate_left_u32(temp, 8U)) ^ rcon;
             rcon = lh_cast_static(lh_u32_t,
                                   lh_crypto_rijndael_xtime(lh_cast_static(lh_byte_t, rcon >> 24)))
                    << 24;

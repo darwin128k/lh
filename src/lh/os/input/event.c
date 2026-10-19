@@ -285,6 +285,12 @@ lh_os_input_event_has_mods(lh_os_input_event_cptr self, lh_os_input_mods_t mods)
 }
 
 lh_bool_t
+lh_os_input_event_has_flag(lh_os_input_event_cptr self, lh_os_input_flags_t flag)
+{
+    return lh_type_cast(lh_bool_t, (lh_os_input_event_get_flags(self) & flag) != 0U);
+}
+
+lh_bool_t
 lh_os_input_event_is_pointer(lh_os_input_event_cptr self)
 {
     const lh_os_input_kind_t kind = lh_os_input_event_get_kind(self);
@@ -310,13 +316,6 @@ lh_os_input_event_is_controller(lh_os_input_event_cptr self)
 
     return lh_type_cast(lh_bool_t, kind >= lh_os_input_kind_controller_button_down &&
                                        kind <= lh_os_input_kind_controller_axis);
-}
-
-/** True when @p flag is in the flags of @p self. */
-static lh_bool_t
-lh_os_input_event_has_flag(lh_os_input_event_cptr self, lh_os_input_flags_t flag)
-{
-    return lh_type_cast(lh_bool_t, (lh_os_input_event_get_flags(self) & flag) != 0U);
 }
 
 lh_bool_t

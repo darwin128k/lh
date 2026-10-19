@@ -8,19 +8,6 @@
 #include <lh/ui/surface.h>
 #include <lh/util/return.h>
 
-/**
- * @brief Bits one pixel of @p format takes.
- *
- * The one place the UI asks how wide a pixel is: the OS is asked for this many
- * bits per pixel, and the pixmap row is the same number divided by eight times the
- * width.
- */
-static int
-lh_ui_surface_format_bits(lh_ui_pixmap_format_t format)
-{
-    return format == lh_ui_pixmap_format_argb8888 ? 32 : 16;
-}
-
 lh_void
 lh_ui_surface_init(lh_ui_surface_t *self)
 {
@@ -96,7 +83,7 @@ lh_ui_surface_set_size(lh_ui_surface_t *self, lh_ui_size_t size)
     self->size = size;
     lh_return_if(width <= 0 || height <= 0, lh_bool_false);
     self->handle =
-        lh_os_system_surface_create(width, height, lh_ui_surface_format_bits(self->format));
+        lh_os_system_surface_create(width, height, lh_ui_pixmap_format_get_bits(self->format));
     return lh_ui_surface_is_valid(self);
 }
 
@@ -109,7 +96,8 @@ lh_ui_surface_get_pixmap(const lh_ui_surface_t *self, lh_ui_pixmap_t *pixmap)
     lh_return_if(lh_null_eq(bits), lh_bool_false);
     lh_ui_pixmap_init(pixmap, bits, width,
                       lh_cast_static(lh_s32_t, lh_ui_size_get_height(lh_addr_of(self->size))),
-                      width * (lh_ui_surface_format_bits(self->format) / 8), self->format);
+                      lh_math_mul(width, lh_ui_pixmap_format_get_bytes(self->format)),
+                      self->format);
     return lh_bool_true;
 }
 
