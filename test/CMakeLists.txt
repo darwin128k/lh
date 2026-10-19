@@ -112,6 +112,10 @@ lh_add_test_core(lh_test_crypto
         ${LH_TEST_SRC_PATH}/lh/crypto/sha.cpp
 )
 
+lh_add_test_core(lh_test_hash
+        ${LH_TEST_SRC_PATH}/lh/hash/fnv.cpp
+)
+
 lh_add_test_core(lh_test_fs
         ${LH_TEST_SRC_PATH}/lh/fs/path.cpp
         ${LH_TEST_SRC_PATH}/lh/fs/path/style.cpp

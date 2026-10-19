@@ -104,6 +104,16 @@ lh_void
 lh_ui_label_on_measure(const lh_ui_label_t *self, const lh_ui_entity_event_t *event);
 
 /**
+ * @brief The FNV-1a hash of @p text and its length in @p length: what a label
+ *        compares to tell whether new text is the text it already shows.
+ *
+ * Two short strings that collide on both are not a case a label meets. A
+ * ::lh_null @p text is the empty string.
+ */
+lh_u32_t
+lh_ui_label_hash_text(const lh_char_t *text, lh_u32_t *length);
+
+/**
  * @brief Fill @p self so it covers @p rect and shows @p text.
  *
  * @p text is not copied. ::lh_null shows nothing. Style starts as ::lh_null,

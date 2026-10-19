@@ -3,10 +3,12 @@
  * @brief Implementation of `lh/ui/label.h`.
  */
 
+#include <lh/hash/fnv.h>
 #include <lh/math.h>
 #include <lh/ui/label.h>
 #include <lh/ui/text.h>
 #include <lh/util/return.h>
+#include <lh/util/str/ptr.h>
 
 /* -- Class ----------------------------------------------------------------- */
 
@@ -33,23 +35,13 @@ lh_ui_label_on_children(const lh_ui_label_t *self, const lh_ui_entity_event_t *e
     lh_ui_entity_transform_set_clip(transform, lh_bool_false);
 }
 
-/** FNV-1a over the bytes, with the length beside it: two short strings that collide on
-   both are not a case a label meets. */
-static lh_u32_t
-lh_ui_label_hash(const lh_char_t *text, lh_u32_t *length)
+lh_u32_t
+lh_ui_label_hash_text(const lh_char_t *text, lh_u32_t *length)
 {
-    lh_u32_t hash = 2166136261U;
-    lh_u32_t n = 0U;
+    const lh_usize_t size = lh_null_ne(text) ? lh_str_ptr_len(text) : 0U;
 
-    if (lh_null_ne(text))
-    {
-        for (; text[n] != '\0'; ++n)
-        {
-            hash = (hash ^ lh_cast_static(lh_u32_t, lh_cast_static(lh_u8_t, text[n]))) * 16777619U;
-        }
-    }
-    lh_ptr_deref(length) = n;
-    return hash;
+    lh_ptr_deref(length) = lh_cast_static(lh_u32_t, size);
+    return lh_hash_fnv1a_32(text, size);
 }
 
 lh_ui_entity_t *
@@ -68,7 +60,7 @@ lh_ui_label_init(lh_ui_label_t *self, lh_ui_rect_t rect, const lh_char_t *text)
     self->metrics_ready = lh_bool_false;
     /* Hashed from the start, so a refresh that sets the text the label was built with
        records nothing. Nothing is noted here: the label is in no tree yet. */
-    self->text_hash = lh_ui_label_hash(text, lh_addr_of(self->text_length));
+    self->text_hash = lh_ui_label_hash_text(text, lh_addr_of(self->text_length));
     self->text_hashed = lh_bool_true;
     lh_ui_rect_init_empty(lh_addr_of(self->text_noted));
     lh_ui_entity_set_class(lh_ui_label_as_entity(self), lh_addr_of(lh_ui_label_class));
@@ -354,7 +346,7 @@ lh_ui_label_set_text(lh_ui_label_t *self, const lh_char_t *text)
     lh_u32_t hash;
 
     lh_assert_runtime_ref(self);
-    hash = lh_ui_label_hash(text, lh_addr_of(length));
+    hash = lh_ui_label_hash_text(text, lh_addr_of(length));
     if (self->text_hashed && hash == self->text_hash && length == self->text_length)
     {
         /* The same bytes, perhaps at a new address: nothing on screen changes. */
