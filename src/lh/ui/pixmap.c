@@ -36,6 +36,12 @@ lh_ui_pixmap_format_get_bytes(lh_ui_pixmap_format_t format)
     return lh_ui_pixmap_format_is_16(format) ? 2 : 4;
 }
 
+lh_s32_t
+lh_ui_pixmap_format_get_bits(lh_ui_pixmap_format_t format)
+{
+    return lh_math_mul(lh_ui_pixmap_format_get_bytes(format), 8);
+}
+
 lh_void
 lh_ui_pixmap_init(lh_ui_pixmap_t *self, lh_byte_ptr bits, lh_s32_t width, lh_s32_t height,
                   lh_s32_t stride, lh_ui_pixmap_format_t format)

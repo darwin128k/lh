@@ -164,6 +164,8 @@ TEST(os_input_event, setters_and_flag_queries)
     EXPECT_EQ(lh_os_input_event_get_count(&event), 2U);
     EXPECT_EQ(lh_os_input_event_get_dx(&event), 3);
     EXPECT_EQ(lh_os_input_event_get_dy(&event), -4);
+    EXPECT_TRUE(lh_os_input_event_has_flag(&event, LH_OS_INPUT_FLAG_SYNTHESIZED));
+    EXPECT_FALSE(lh_os_input_event_has_flag(&event, LH_OS_INPUT_FLAG_REPEAT));
     EXPECT_TRUE(lh_os_input_event_is_synthesized(&event));
     EXPECT_TRUE(lh_os_input_event_is_cancelled(&event));
     EXPECT_FALSE(lh_os_input_event_is_repeat(&event));

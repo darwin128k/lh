@@ -34,6 +34,18 @@ TEST(util_memory_bytes_eq, zero_length)
     EXPECT_TRUE(lh_memory_bytes_eq(a, a, 0));
 }
 
+TEST(util_memory_bytes_starts_with, prefix_fits_and_matches)
+{
+    const lh_byte_t a[] = {1, 2, 3};
+    const lh_byte_t p[] = {1, 2};
+    const lh_byte_t q[] = {1, 3};
+    EXPECT_TRUE(lh_memory_bytes_starts_with(a, 3, p, 2));
+    EXPECT_FALSE(lh_memory_bytes_starts_with(a, 3, q, 2));
+    EXPECT_FALSE(lh_memory_bytes_starts_with(p, 2, a, 3));
+    EXPECT_TRUE(lh_memory_bytes_starts_with(a, 3, p, 0));
+    EXPECT_TRUE(lh_memory_bytes_starts_with(a, 0, p, 0));
+}
+
 TEST(util_memory_bytes_any_eq, finds_value_in_block)
 {
     const lh_byte_t a[] = {1, 2, 3, 4};

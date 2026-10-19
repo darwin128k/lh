@@ -212,6 +212,10 @@ lh_os_input_event_get_flags(const lh_os_input_event_ptr self);
 lh_bool_t
 lh_os_input_event_has_mods(const lh_os_input_event_ptr self, lh_os_input_mods_t mods);
 
+/** @brief True when @p flag (one `LH_OS_INPUT_FLAG_*`) is set. */
+lh_bool_t
+lh_os_input_event_has_flag(const lh_os_input_event_ptr self, lh_os_input_flags_t flag);
+
 /**
  * @brief True for an event at a position: the pointer kinds, the wheel and
  *        the pointer gestures (click to drag end).

@@ -72,6 +72,9 @@ TEST(ui_pixmap, format_sizes)
 {
     EXPECT_EQ(lh_ui_pixmap_format_get_bytes(lh_ui_pixmap_format_argb8888), 4);
     EXPECT_EQ(lh_ui_pixmap_format_get_bytes(lh_ui_pixmap_format_rgb565), 2);
+    EXPECT_EQ(lh_ui_pixmap_format_get_bits(lh_ui_pixmap_format_argb8888), 32);
+    EXPECT_EQ(lh_ui_pixmap_format_get_bits(lh_ui_pixmap_format_rgb565), 16);
+    EXPECT_EQ(lh_ui_pixmap_format_get_bits(lh_ui_pixmap_format_rgb565_swapped), 16);
 }
 
 TEST(ui_pixmap, set_and_get_pixel_round_trip_through_argb)

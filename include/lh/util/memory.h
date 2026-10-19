@@ -17,6 +17,7 @@
 #include <lh/bool.h>
 #include <lh/byte/ptr.h>
 #include <lh/compiler/extern/c.h>
+#include <lh/math/ops.h>
 #include <lh/size.h>
 #include <lh/size/limits.h>
 #include <lh/util/ptr.h>
@@ -84,6 +85,29 @@ lh_memory_bytes_eq(const lh_byte_ptr lhs, const lh_byte_ptr rhs, lh_usize_t n)
         }
     }
     return lh_bool_true;
+}
+
+/**
+ * @brief True if the @p size bytes at @p bytes begin with the @p prefix_size bytes of @p prefix.
+ *
+ * An empty prefix is a prefix of anything; a prefix longer than @p bytes is not.
+ *
+ * @param bytes       Buffer to look at.
+ * @param size        Bytes in @p bytes.
+ * @param prefix      Bytes it should start with.
+ * @param prefix_size Bytes in @p prefix.
+ *
+ * @return ::lh_bool_true if @p bytes starts with @p prefix, ::lh_bool_false otherwise.
+ *
+ * @see lh_memory_bytes_eq
+ */
+LH_ATTRIBUTE_FORCE_INLINE
+lh_bool_t
+lh_memory_bytes_starts_with(const lh_byte_ptr bytes, lh_usize_t size, const lh_byte_ptr prefix,
+                            lh_usize_t prefix_size)
+{
+    return lh_math_ge(size, prefix_size) ? lh_memory_bytes_eq(bytes, prefix, prefix_size)
+                                         : lh_bool_false;
 }
 
 /**

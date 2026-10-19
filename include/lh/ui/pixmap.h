@@ -60,6 +60,12 @@ lh_s32_t
 lh_ui_pixmap_format_get_bytes(lh_ui_pixmap_format_t format);
 
 /**
+ * @brief Bits one pixel of @p format takes: 32 or 16.
+ */
+lh_s32_t
+lh_ui_pixmap_format_get_bits(lh_ui_pixmap_format_t format);
+
+/**
  * @brief Fill @p self over @p bits: @p height rows @p stride bytes apart,
  *        @p width pixels of @p format in each. The bytes are not copied.
  *

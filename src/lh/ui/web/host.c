@@ -21,6 +21,7 @@
 #include <lh/str/parse/text.h>
 #include <lh/ui/canvas/web.h>
 #include <lh/ui/view/controller.h>
+#include <lh/util/memory.h>
 #include <lh/util/return.h>
 
 /** WebSocket clients served at once; one more is closed on arrival. */
@@ -132,16 +133,6 @@ host_reply_text(lh_os_net_socket_t *client, unsigned code, const char *text, lh_
     host_reply(client, code, "text/plain; charset=utf-8", text, len);
 }
 
-/** Does @p p (of @p len bytes) start with @p lit? */
-static lh_bool_t
-host_starts(const char *p, lh_usize_t len, const char *lit, lh_usize_t lit_len)
-{
-    return (len >= lit_len && lh_memory_compare(lh_cast_const(lh_ptr, p), lit_len,
-                                                lh_cast_const(lh_ptr, lit), lit_len) == lh_null)
-               ? lh_bool_true
-               : lh_bool_false;
-}
-
 /** The first whole @p needle in @p p, or lh_null. lh_memory_find compares a
    shortened needle at the tail, so a match running past the end is no match. */
 static const char *
@@ -159,13 +150,16 @@ host_find(const char *p, lh_usize_t len, const char *needle, lh_usize_t needle_l
 static lh_bool_t
 host_route(const char *req, lh_usize_t len, const char *path, lh_usize_t path_len)
 {
-    if (host_starts(req, len, host_lit("GET ")))
+    const lh_byte_cptr bytes = lh_ptr_rcast(const lh_byte_t, req);
+    const lh_byte_cptr route = lh_ptr_rcast(const lh_byte_t, path);
+
+    if (lh_memory_bytes_starts_with(bytes, len, lh_ptr_rcast(const lh_byte_t, "GET "), 4u))
     {
-        return host_starts(req + 4u, len - 4u, path, path_len);
+        return lh_memory_bytes_starts_with(bytes + 4u, len - 4u, route, path_len);
     }
-    if (host_starts(req, len, host_lit("POST ")))
+    if (lh_memory_bytes_starts_with(bytes, len, lh_ptr_rcast(const lh_byte_t, "POST "), 5u))
     {
-        return host_starts(req + 5u, len - 5u, path, path_len);
+        return lh_memory_bytes_starts_with(bytes + 5u, len - 5u, route, path_len);
     }
     return lh_bool_false;
 }
