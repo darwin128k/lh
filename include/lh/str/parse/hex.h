@@ -21,8 +21,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * ::lh_str_ptr_parse_uint, leading zeros are allowed — padded hex (`00FF`)
  * is the usual written form. No `0x` prefix.
  *
- * Safe against ::lh_uint_t overflow regardless of @p max. Digit fold lives
- * in `lh/char/xdigit.h`.
+ * Safe against ::lh_uint_t overflow regardless of @p max. Base 16 of
+ * ::lh_str_ptr_parse_radix.
  *
  * @param str      Buffer to parse (not required to be NUL-terminated).
  * @param str_size Number of characters available in @p str.

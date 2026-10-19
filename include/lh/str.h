@@ -39,6 +39,7 @@
 #include <lh/str/format/uint.h>
 #include <lh/str/format/ullong.h>
 #include <lh/str/parse/hex.h>
+#include <lh/str/parse/radix.h>
 #include <lh/str/parse/text.h>
 #include <lh/str/parse/uint.h>
 #include <lh/str/scanf/next.h>

@@ -249,6 +249,7 @@ set(LH_TEST_STR_SOURCES
         ${LH_TEST_SRC_PATH}/lh/str/format/ullong.cpp
         ${LH_TEST_SRC_PATH}/lh/str/list.cpp
         ${LH_TEST_SRC_PATH}/lh/str/parse/hex.cpp
+        ${LH_TEST_SRC_PATH}/lh/str/parse/radix.cpp
         ${LH_TEST_SRC_PATH}/lh/str/parse/text.cpp
         ${LH_TEST_SRC_PATH}/lh/str/parse/uint.cpp
         ${LH_TEST_SRC_PATH}/lh/str/scanf/next.cpp

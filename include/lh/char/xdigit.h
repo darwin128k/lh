@@ -66,6 +66,23 @@ lh_char_to_xdigit(lh_char_t ch)
 }
 
 /**
+ * @brief Test whether @p ch is a digit of base @p radix (`2`..`16`): `0`-`9`
+ *        then `a`/`A` for ten and up, as far as the base goes.
+ *
+ * @param ch    Character to test.
+ * @param radix Base, at most ::LH_CHAR_XDIGIT_RADIX.
+ * @return ::lh_bool_true if @p ch is a digit below @p radix, ::lh_bool_false otherwise.
+ */
+LH_ATTRIBUTE_FORCE_INLINE
+lh_bool_t
+lh_char_is_radix_digit(lh_char_t ch, lh_uint_t radix)
+{
+    lh_assert_runtime_if(radix > LH_CHAR_XDIGIT_RADIX, lh_runtime_error_code_invalid_argument);
+    return (lh_char_is_xdigit(ch) && lh_char_to_xdigit(ch) < radix) ? lh_bool_true
+                                                                      : lh_bool_false;
+}
+
+/**
  * @brief Convert a numeric value to its ASCII hexadecimal digit.
  *
  * @param digit     Value in `[0, 15]`.
@@ -99,15 +116,7 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
 lh_char_xdigit_accumulate(lh_uint_t *value, lh_byte_t digit)
 {
-    lh_assert_runtime_ref(value);
-    lh_assert_runtime_if(digit > 15U, lh_runtime_error_code_invalid_argument);
-
-    if (*value > (lh_numeric_limit_max(lh_uint_t) - digit) / LH_CHAR_XDIGIT_RADIX)
-    {
-        return lh_bool_false;
-    }
-    *value = *value * LH_CHAR_XDIGIT_RADIX + digit;
-    return lh_bool_true;
+    return lh_char_digit_accumulate_radix(value, digit, LH_CHAR_XDIGIT_RADIX);
 }
 
 LH_COMPILER_EXTERN_C_END

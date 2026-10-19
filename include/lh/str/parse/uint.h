@@ -21,7 +21,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * ::lh_uint_t overflow regardless of @p max.
  *
  * The digit loop shared by date/time (`09/05`) and by ::lh_str_ptr_parse_uint
- * (which then rejects padding). Digit accumulate itself lives in `lh/char/digit.h`.
+ * (which then rejects padding). Base 10 of ::lh_str_ptr_parse_radix.
  *
  * @param str      Buffer to parse (not required to be NUL-terminated).
  * @param str_size Number of characters available in @p str.
