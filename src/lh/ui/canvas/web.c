@@ -12,15 +12,9 @@
 #include <lh/str/format/bytes.h>
 #include <lh/str/format/sint.h>
 
-/** Every write goes through here. */
-static lh_void
-web_put(lh_ui_canvas_web_t *self, const char *p, lh_usize_t n)
-{
-    lh_ui_web_buf_lit(lh_addr_of(self->buf), p, n);
-}
-
 /** Append string literal @p s, its length taken at compile time. */
-#define web_lit(self, s) web_put((self), (s), lh_cast_static(lh_usize_t, (sizeof(s) - 1u)))
+#define web_lit(self, s)                                                                           \
+    lh_ui_web_buf_lit(lh_addr_of((self)->buf), (s), lh_cast_static(lh_usize_t, (sizeof(s) - 1u)))
 
 /** One number, without a format string to parse: a frame is mostly numbers. */
 static lh_void
@@ -28,7 +22,8 @@ web_int(lh_ui_canvas_web_t *self, long v)
 {
     char buf[24];
 
-    web_put(self, buf, lh_str_ptr_format_sint(lh_cast_static(lh_sint_t, v), buf, sizeof(buf)));
+    lh_ui_web_buf_lit(lh_addr_of(self->buf), buf,
+                      lh_str_ptr_format_sint(lh_cast_static(lh_sint_t, v), buf, sizeof(buf)));
 }
 
 /** Append the JSON array `[a,b,c,d]`. */
@@ -57,9 +52,10 @@ web_hex(lh_ui_canvas_web_t *self, lh_byte_cptr px, unsigned n)
     {
         const lh_usize_t chunk = lh_math_min(lh_math_sub(lh_cast_static(lh_usize_t, n), i),
                                              lh_math_div(sizeof(buf), 2U));
+        const lh_usize_t len =
+            lh_str_ptr_format_bytes_hex(px + i, chunk, lh_bool_false, buf, sizeof(buf));
 
-        web_put(self, buf,
-                lh_str_ptr_format_bytes_hex(px + i, chunk, lh_bool_false, buf, sizeof(buf)));
+        lh_ui_web_buf_lit(lh_addr_of(self->buf), buf, len);
     }
 }
 
