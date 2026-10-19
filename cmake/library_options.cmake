@@ -171,6 +171,23 @@ set(LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT "FULL" CACHE STRING
 set_property(CACHE LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT PROPERTY STRINGS NONE LOCATION FULL)
 
 # -----------------------------------------------------------------------------
+# Option: LH_LIBRARY_OPTION_REAL
+#
+# What lh_real_t is (include/lh/real.h), and so whether lh uses floating
+# point at all in ::lh_value_t:
+#
+#   DOUBLE — double: desktop and any target with a double-precision FPU.
+#   FLOAT  — float: single-precision FPUs (Cortex-M4F, M33), where double is
+#            emulated in software.
+#   NONE   — no floating point in lh_value_t (Cortex-M0/M3, AVR): lh_real_t
+#            does not exist and lh_value_t has no real kind, so no soft-float
+#            code is linked in for values.
+# -----------------------------------------------------------------------------
+set(LH_LIBRARY_OPTION_REAL "DOUBLE" CACHE STRING
+        "Floating point type of lh_real_t: DOUBLE, FLOAT or NONE.")
+set_property(CACHE LH_LIBRARY_OPTION_REAL PROPERTY STRINGS DOUBLE FLOAT NONE)
+
+# -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_LTO
 #
 # Link-time optimization of the library in Release builds. lh is a static

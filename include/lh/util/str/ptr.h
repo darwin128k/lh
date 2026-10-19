@@ -936,6 +936,23 @@ lh_str_ptr
 lh_str_ptr_ltrim_auto(lh_str_ptr str, const lh_str_ptr whitespace_chars);
 
 /**
+ * @brief The default whitespace set: space, `\n`, `\r`, `\t`, `\v`, `\f`
+ *        (what C `isspace` accepts in the "C" locale).
+ *
+ * The one definition every trim in lh uses (C strings here, string views in
+ * ::lh_str_view_trim). NUL-terminated; its length is
+ * ::lh_str_ptr_get_whitespace_size.
+ */
+lh_str_cptr
+lh_str_ptr_get_whitespace(lh_void);
+
+/**
+ * @brief Number of characters in ::lh_str_ptr_get_whitespace (no NUL).
+ */
+lh_usize_t
+lh_str_ptr_get_whitespace_size(lh_void);
+
+/**
  * @brief Left trim using the built-in default whitespace set.
  *
  * @param str NUL-terminated target string.

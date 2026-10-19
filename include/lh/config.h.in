@@ -157,6 +157,13 @@
 #define LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT @ValRtCheckReport@
 
 /**
+ * @def LH_LIBRARY_OPTION_REAL
+ * @brief What ::lh_real_t is: `0` none (no floating point in lh values), `1`
+ *        `float`, `2` `double` (::LH_REAL_NONE / _FLOAT / _DOUBLE).
+ */
+#define LH_LIBRARY_OPTION_REAL @ValReal@
+
+/**
  * @def LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB
  * @brief Default runtime allocator uses `malloc`/`free`
  *        from the C library (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).

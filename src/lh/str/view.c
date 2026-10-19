@@ -179,6 +179,12 @@ lh_str_view_find_of(const lh_str_view_t *self, const lh_str_view_t *chars)
     return lh_ptr_is_set(ptr) ? lh_ptr_udiff(ptr, data) : LH_STR_VIEW_INVALID;
 }
 
+lh_bool_t
+lh_str_view_contains_of(const lh_str_view_t *self, const lh_str_view_t *chars)
+{
+    return lh_str_view_find_of(self, chars) != LH_STR_VIEW_INVALID;
+}
+
 lh_usize_t
 lh_str_view_rfind_of(const lh_str_view_t *self, const lh_str_view_t *chars)
 {
@@ -287,4 +293,85 @@ lh_bool_t
 lh_str_view_is_null_terminated(const lh_str_view_t *self)
 {
     return lh_str_view_find_null_terminator(self) != LH_STR_VIEW_INVALID;
+}
+
+lh_str_view_t
+lh_str_view_get_whitespace(lh_void)
+{
+    lh_str_view_t out;
+
+    lh_str_init_by_size(lh_addr_of(out), lh_str_ptr_get_whitespace(),
+                        lh_str_ptr_get_whitespace_size());
+    return out;
+}
+
+/* Nothing left is the empty view: lh views reject size 0 (see tail). */
+lh_void
+lh_str_view_ltrim(lh_str_view_t *self)
+{
+    lh_str_view_t whitespace;
+    lh_usize_t first;
+    lh_str_view_t trimmed;
+
+    if (lh_str_view_is_empty(self))
+    {
+        return;
+    }
+    whitespace = lh_str_view_get_whitespace();
+    first = lh_str_view_find_not_of(self, lh_addr_of(whitespace));
+
+    if (lh_math_eq(first, LH_STR_VIEW_INVALID))
+    {
+        lh_str_view_clear(self);
+        return;
+    }
+    lh_str_view_tail(self, first, lh_addr_of(trimmed));
+    lh_str_view_assign(self, lh_addr_of(trimmed));
+}
+
+lh_void
+lh_str_view_rtrim(lh_str_view_t *self)
+{
+    lh_str_view_t whitespace;
+    lh_usize_t last;
+    lh_str_view_t trimmed;
+
+    if (lh_str_view_is_empty(self))
+    {
+        return;
+    }
+    whitespace = lh_str_view_get_whitespace();
+    last = lh_str_view_rfind_not_of(self, lh_addr_of(whitespace));
+
+    if (lh_math_eq(last, LH_STR_VIEW_INVALID))
+    {
+        lh_str_view_clear(self);
+        return;
+    }
+    lh_str_view_from_offset(self, 0U, lh_math_add_one(last), lh_addr_of(trimmed));
+    lh_str_view_assign(self, lh_addr_of(trimmed));
+}
+
+lh_void
+lh_str_view_trim(lh_str_view_t *self)
+{
+    lh_str_view_ltrim(self);
+    lh_str_view_rtrim(self);
+}
+
+lh_void
+lh_str_view_skip_bom(lh_str_view_t *self)
+{
+    const lh_str_view_t bom = lh_str_view_lit("\xEF\xBB\xBF");
+    lh_str_view_t rest;
+
+    if (lh_str_view_is_empty(self) ||
+        !lh_str_view_starts_with(self, lh_addr_of(bom), lh_bool_false))
+    {
+        return;
+    }
+    /* Not assign: the rest of a text that is only the mark is the empty view,
+       and assign rejects empty sources. */
+    lh_str_view_tail(self, lh_str_view_get_size(lh_addr_of(bom)), lh_addr_of(rest));
+    lh_ptr_deref(self) = rest;
 }

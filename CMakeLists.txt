@@ -115,6 +115,11 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/memory.c
         ${LH_LIB_SRC_PATH}/array.c
         ${LH_LIB_SRC_PATH}/list.c
+        ${LH_LIB_SRC_PATH}/value.c
+        ${LH_LIB_SRC_PATH}/pair.c
+        ${LH_LIB_SRC_PATH}/ini/entry.c
+        ${LH_LIB_SRC_PATH}/ini/error.c
+        ${LH_LIB_SRC_PATH}/ini/parser.c
         ${LH_LIB_SRC_PATH}/list/node.c
 
         ${LH_LIB_SRC_PATH}/math/point.c
@@ -172,6 +177,9 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/str/parse/hex.c
         ${LH_LIB_SRC_PATH}/str/parse/radix.c
         ${LH_LIB_SRC_PATH}/str/split/next.c
+        ${LH_LIB_SRC_PATH}/str/split/line.c
+        ${LH_LIB_SRC_PATH}/str/split/once.c
+        ${LH_LIB_SRC_PATH}/str/line/reader.c
         ${LH_LIB_SRC_PATH}/str/scanf/spec.c
         ${LH_LIB_SRC_PATH}/str/scanf/next.c
         ${LH_LIB_SRC_PATH}/str/list.c

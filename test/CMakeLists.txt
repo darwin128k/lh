@@ -73,6 +73,10 @@ lh_add_test_core(lh_test_core
         ${LH_TEST_SRC_PATH}/lh/foreach.cpp
         ${LH_TEST_SRC_PATH}/lh/list.cpp
         ${LH_TEST_SRC_PATH}/lh/logger.cpp
+        ${LH_TEST_SRC_PATH}/lh/value.cpp
+        ${LH_TEST_SRC_PATH}/lh/pair.cpp
+        ${LH_TEST_SRC_PATH}/lh/ini/entry.cpp
+        ${LH_TEST_SRC_PATH}/lh/ini/parser.cpp
         ${LH_TEST_SRC_PATH}/lh/version.cpp
         ${LH_TEST_SRC_PATH}/lh/werror.cpp
 )
@@ -255,6 +259,9 @@ set(LH_TEST_STR_SOURCES
         ${LH_TEST_SRC_PATH}/lh/str/parse/uint.cpp
         ${LH_TEST_SRC_PATH}/lh/str/scanf/next.cpp
         ${LH_TEST_SRC_PATH}/lh/str/split/next.cpp
+        ${LH_TEST_SRC_PATH}/lh/str/split/line.cpp
+        ${LH_TEST_SRC_PATH}/lh/str/split/once.cpp
+        ${LH_TEST_SRC_PATH}/lh/str/line/reader.cpp
         ${LH_TEST_SRC_PATH}/lh/str/view.cpp
         ${LH_TEST_SRC_PATH}/lh/wchar/case/map.cpp
         ${LH_TEST_SRC_PATH}/lh/wstr.cpp

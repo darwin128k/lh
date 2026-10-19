@@ -417,6 +417,27 @@ lh_usize_t
 lh_str_view_find_of(const lh_str_view_t *self, const lh_str_view_t *chars);
 
 /**
+ * @brief Return ::lh_bool_true if any character of @p self belongs to @p chars.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_str_view_t name = lh_str_view_lit("a]b");
+ * lh_str_view_t brackets = lh_str_view_lit("[]");
+ * lh_str_view_contains_of(&name, &brackets); // true
+ * @endcode
+ *
+ * @param self  Valid view to search.
+ * @param chars Valid view used as the character set.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self or @p chars is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p self or @p chars is not valid.
+ */
+lh_bool_t
+lh_str_view_contains_of(const lh_str_view_t *self, const lh_str_view_t *chars);
+
+/**
  * @brief Find the last character of @p self that belongs to @p chars.
  *
  * @param self  Valid view to search.
@@ -618,6 +639,51 @@ lh_str_view_contains(const lh_str_view_t *self, const lh_str_view_t *other, lh_b
  */
 lh_bool_t
 lh_str_view_is_null_terminated(const lh_str_view_t *self);
+
+/**
+ * @brief The default whitespace set as a view: ::lh_str_ptr_get_whitespace.
+ *
+ * What every trim strips; pass it to ::lh_str_view_find_of,
+ * ::lh_str_view_find_not_of or ::lh_str_view_contains_of when a parser
+ * needs the same notion of whitespace. For one character,
+ * ::lh_char_is_whitespace.
+ */
+lh_str_view_t
+lh_str_view_get_whitespace(lh_void);
+
+/**
+ * @brief Narrow @p self past leading whitespace. The text is not touched.
+ *
+ * Whitespace is the set ::lh_str_ptr_trim uses: space, `\n`, `\r`, `\t`, `\v`, `\f`.
+ *
+ * @param self View to narrow; all whitespace leaves it empty.
+ */
+lh_void
+lh_str_view_ltrim(lh_str_view_t *self);
+
+/**
+ * @brief Narrow @p self before trailing whitespace. See ::lh_str_view_ltrim.
+ */
+lh_void
+lh_str_view_rtrim(lh_str_view_t *self);
+
+/**
+ * @brief ::lh_str_view_ltrim and ::lh_str_view_rtrim.
+ */
+lh_void
+lh_str_view_trim(lh_str_view_t *self);
+
+/**
+ * @brief Narrow @p self past a leading UTF-8 byte order mark (`EF BB BF`),
+ *        if it has one. The text is not touched.
+ *
+ * Editors on Windows put the mark at the start of text files; call this on
+ * what was read before looking at the content.
+ *
+ * @param self View to narrow; a view that is only the mark is left empty.
+ */
+lh_void
+lh_str_view_skip_bom(lh_str_view_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

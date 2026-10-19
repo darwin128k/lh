@@ -626,6 +626,77 @@ TEST(str_view_make, empty_string_matches_the_literal_spelling)
     EXPECT_EQ(lh_str_view_get_end(&v), lh_str_view_get_end(&lit));
 }
 
+TEST(str_view_skip_bom, drops_leading_mark)
+{
+    lh_str_view_t v = lh_str_view_lit("\xEF\xBB\xBFkey");
+    lh_str_view_skip_bom(&v);
+
+    EXPECT_EQ(lh_str_view_get_size(&v), 3u);
+    EXPECT_EQ(lh_str_view_get_first_char(&v), 'k');
+}
+
+TEST(str_view_skip_bom, leaves_text_without_mark)
+{
+    lh_str_view_t v = lh_str_view_lit("key\xEF\xBB\xBF");
+    lh_str_view_t partial = lh_str_view_lit("\xEF\xBBkey");
+    lh_str_view_t empty = lh_str_view_empty();
+
+    lh_str_view_skip_bom(&v);
+    lh_str_view_skip_bom(&partial);
+    lh_str_view_skip_bom(&empty);
+
+    EXPECT_EQ(lh_str_view_get_size(&v), 6u);
+    EXPECT_EQ(lh_str_view_get_size(&partial), 5u);
+    EXPECT_TRUE(lh_str_view_is_empty(&empty));
+}
+
+TEST(str_view_skip_bom, only_mark_leaves_empty)
+{
+    lh_str_view_t v = lh_str_view_lit("\xEF\xBB\xBF");
+    lh_str_view_skip_bom(&v);
+
+    EXPECT_TRUE(lh_str_view_is_empty(&v));
+}
+
+TEST(str_view_contains_of, true_when_any_char_in_set)
+{
+    lh_str_view_t v = make("a]b");
+    lh_str_view_t brackets = make("[]");
+    lh_str_view_t vowels = make("eiou");
+    EXPECT_TRUE(lh_str_view_contains_of(&v, &brackets));
+    EXPECT_FALSE(lh_str_view_contains_of(&v, &vowels));
+}
+
+TEST(str_view_trim, whitespace_only_becomes_empty)
+{
+    lh_str_view_t v = make(" \t\r\n ");
+    lh_str_view_t w = make("  a b  ");
+
+    lh_str_view_trim(&v);
+    lh_str_view_trim(&w);
+    EXPECT_TRUE(lh_str_view_is_empty(&v));
+    EXPECT_EQ(lh_str_view_get_size(&w), 3u);
+}
+
+TEST(str_view_get_whitespace, is_the_trim_set)
+{
+    const lh_str_view_t ws = lh_str_view_get_whitespace();
+    lh_str_view_t line = make("\t key");
+
+    EXPECT_EQ(lh_str_view_get_size(&ws), lh_str_ptr_get_whitespace_size());
+    EXPECT_EQ(lh_str_view_get_data(&ws), lh_str_ptr_get_whitespace());
+    EXPECT_EQ(lh_str_view_find_not_of(&line, &ws), 2u);
+}
+
+TEST(str_view_trim, strips_vertical_tab_and_form_feed)
+{
+    lh_str_view_t v = make("\v\fkey\f\v");
+
+    lh_str_view_trim(&v);
+    EXPECT_EQ(lh_str_view_get_size(&v), 3u);
+    EXPECT_EQ(lh_str_view_get_first_char(&v), 'k');
+}
+
 #if LH_TEST_EXPECT_DEATH_ENABLED
 TEST(str_view_make_tail_death, offset_past_end)
 {
