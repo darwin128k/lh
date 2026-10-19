@@ -18,17 +18,16 @@
 
 /** One number, without a format string to parse: a frame is mostly numbers. */
 static lh_void
-web_int(lh_ui_canvas_web_t *self, long v)
+web_int(lh_ui_canvas_web_t *self, lh_sint_t v)
 {
-    char buf[24];
+    lh_char_t buf[24];
 
-    lh_ui_web_buf_lit(lh_addr_of(self->buf), buf,
-                      lh_str_ptr_format_sint(lh_cast_static(lh_sint_t, v), buf, sizeof(buf)));
+    lh_ui_web_buf_lit(lh_addr_of(self->buf), buf, lh_str_ptr_format_sint(v, buf, sizeof(buf)));
 }
 
 /** Append the JSON array `[a,b,c,d]`. */
 static lh_void
-web_quad(lh_ui_canvas_web_t *self, long a, long b, long c, long d)
+web_quad(lh_ui_canvas_web_t *self, lh_sint_t a, lh_sint_t b, lh_sint_t c, lh_sint_t d)
 {
     web_lit(self, "[");
     web_int(self, a);
@@ -43,15 +42,14 @@ web_quad(lh_ui_canvas_web_t *self, long a, long b, long c, long d)
 
 /** Append @p n bytes of @p px as lower-case hex. */
 static lh_void
-web_hex(lh_ui_canvas_web_t *self, lh_byte_cptr px, unsigned n)
+web_hex(lh_ui_canvas_web_t *self, lh_byte_cptr px, lh_usize_t n)
 {
-    char buf[256];
+    lh_char_t buf[256];
     lh_usize_t i;
 
     for (i = 0; lh_math_lt(i, n); i = lh_math_add(i, lh_math_div(sizeof(buf), 2U)))
     {
-        const lh_usize_t chunk = lh_math_min(lh_math_sub(lh_cast_static(lh_usize_t, n), i),
-                                             lh_math_div(sizeof(buf), 2U));
+        const lh_usize_t chunk = lh_math_min(lh_math_sub(n, i), lh_math_div(sizeof(buf), 2U));
         const lh_usize_t len =
             lh_str_ptr_format_bytes_hex(px + i, chunk, lh_bool_false, buf, sizeof(buf));
 
@@ -71,7 +69,7 @@ web_comma(lh_ui_canvas_web_t *self)
     {
         web_lit(self, ",");
     }
-    self->comma = 1;
+    self->comma = lh_bool_true;
     ++self->ops;
 }
 
@@ -79,10 +77,10 @@ web_comma(lh_ui_canvas_web_t *self)
 static lh_void
 web_color(lh_ui_canvas_web_t *self, const lh_ui_color_t *color)
 {
-    web_quad(self, lh_cast_static(long, lh_ui_color_get_r(color)),
-             lh_cast_static(long, lh_ui_color_get_g(color)),
-             lh_cast_static(long, lh_ui_color_get_b(color)),
-             lh_cast_static(long, lh_ui_color_get_a(color)));
+    web_quad(self, lh_cast_static(lh_sint_t, lh_ui_color_get_r(color)),
+             lh_cast_static(lh_sint_t, lh_ui_color_get_g(color)),
+             lh_cast_static(lh_sint_t, lh_ui_color_get_b(color)),
+             lh_cast_static(lh_sint_t, lh_ui_color_get_a(color)));
 }
 
 /** Append @p rect as `[x,y,w,h]`. */
@@ -92,10 +90,10 @@ web_rect(lh_ui_canvas_web_t *self, const lh_ui_rect_t *rect)
     const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
     const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
 
-    web_quad(self, lh_cast_static(long, lh_ui_point_get_x(origin)),
-             lh_cast_static(long, lh_ui_point_get_y(origin)),
-             lh_cast_static(long, lh_ui_size_get_width(size)),
-             lh_cast_static(long, lh_ui_size_get_height(size)));
+    web_quad(self, lh_cast_static(lh_sint_t, lh_ui_point_get_x(origin)),
+             lh_cast_static(lh_sint_t, lh_ui_point_get_y(origin)),
+             lh_cast_static(lh_sint_t, lh_ui_size_get_width(size)),
+             lh_cast_static(lh_sint_t, lh_ui_size_get_height(size)));
 }
 
 /** Distinct glyph covers the process-wide table holds. */
@@ -108,25 +106,25 @@ web_rect(lh_ui_canvas_web_t *self, const lh_ui_rect_t *rect)
 /** Every distinct glyph cover sent so far, by id, with a hash index over them. */
 typedef struct web_atlas
 {
-    unsigned n;                    /**< covers held */
-    int w[WEB_ATLAS_MAX];          /**< width of each cover */
-    int h[WEB_ATLAS_MAX];          /**< height of each cover */
-    unsigned len[WEB_ATLAS_MAX];   /**< bytes of each cover */
-    unsigned hash[WEB_ATLAS_MAX];  /**< content hash of each cover */
-    lh_byte_ptr px[WEB_ATLAS_MAX]; /**< the coverage bytes of each cover (owned) */
-    int slot[WEB_ATLAS_SLOTS];     /**< open addressing by content hash: id + 1, 0 = empty */
-} web_atlas_t;                     /**< Every distinct glyph cover sent so far. */
+    lh_uint_t n;                    /**< covers held */
+    lh_s32_t w[WEB_ATLAS_MAX];      /**< width of each cover */
+    lh_s32_t h[WEB_ATLAS_MAX];      /**< height of each cover */
+    lh_uint_t len[WEB_ATLAS_MAX];   /**< bytes of each cover */
+    lh_u32_t hash[WEB_ATLAS_MAX];   /**< content hash of each cover */
+    lh_byte_ptr px[WEB_ATLAS_MAX];  /**< the coverage bytes of each cover (owned) */
+    lh_sint_t slot[WEB_ATLAS_SLOTS]; /**< open addressing by content hash: id + 1, 0 = empty */
+} web_atlas_t;                      /**< Every distinct glyph cover sent so far. */
 
 /** Cover identity is process-wide so `m` does not reshuffle when the tree
  * changes. `self->glyphs` is only which ids the reader already holds. */
 static web_atlas_t g_web_atlas;
 
 /** FNV-1a hash of a cover's size and pixels. */
-static unsigned
-web_atlas_hash(lh_byte_cptr px, unsigned n, int w, int h)
+static lh_u32_t
+web_atlas_hash(lh_byte_cptr px, lh_uint_t n, lh_s32_t w, lh_s32_t h)
 {
-    unsigned x = 2166136261u ^ (lh_cast_static(unsigned, w) * 131u + lh_cast_static(unsigned, h));
-    unsigned i;
+    lh_u32_t x = 2166136261u ^ (lh_cast_static(lh_u32_t, w) * 131u + lh_cast_static(lh_u32_t, h));
+    lh_uint_t i;
 
     for (i = 0; i < n; ++i)
     {
@@ -136,15 +134,15 @@ web_atlas_hash(lh_byte_cptr px, unsigned n, int w, int h)
 }
 
 /** The id of these pixels, or -1 with @p slot the empty place they would go. */
-static int
-web_atlas_find(const web_atlas_t *atlas, lh_byte_cptr px, unsigned n, int w, int h, unsigned hash,
-               unsigned *slot)
+static lh_sint_t
+web_atlas_find(const web_atlas_t *atlas, lh_byte_cptr px, lh_uint_t n, lh_s32_t w, lh_s32_t h,
+               lh_u32_t hash, lh_uint_t *slot)
 {
-    unsigned s = hash & (WEB_ATLAS_SLOTS - 1u);
+    lh_uint_t s = hash & (WEB_ATLAS_SLOTS - 1u);
 
     for (;;)
     {
-        const int id = atlas->slot[s] - 1;
+        const lh_sint_t id = atlas->slot[s] - 1;
 
         if (id < 0)
         {
@@ -162,11 +160,11 @@ web_atlas_find(const web_atlas_t *atlas, lh_byte_cptr px, unsigned n, int w, int
 }
 
 /** Copy a new cover into the table at hash @p slot; its id, or -1 when the table is full. */
-static int
-web_atlas_add(web_atlas_t *atlas, lh_byte_cptr px, unsigned n, int w, int h, unsigned hash,
-              unsigned slot)
+static lh_sint_t
+web_atlas_add(web_atlas_t *atlas, lh_byte_cptr px, lh_uint_t n, lh_s32_t w, lh_s32_t h,
+              lh_u32_t hash, lh_uint_t slot)
 {
-    const unsigned id = atlas->n;
+    const lh_uint_t id = atlas->n;
 
     if (id >= WEB_ATLAS_MAX)
     {
@@ -182,9 +180,9 @@ web_atlas_add(web_atlas_t *atlas, lh_byte_cptr px, unsigned n, int w, int h, uns
     atlas->h[id] = h;
     atlas->len[id] = n;
     atlas->hash[id] = hash;
-    atlas->slot[slot] = lh_cast_static(int, id) + 1;
+    atlas->slot[slot] = lh_cast_static(lh_sint_t, id) + 1;
     ++atlas->n;
-    return (int)id;
+    return lh_cast_static(lh_sint_t, id);
 }
 
 /** Which covers the reader holds: the caller's set, or one owned by this frame. */
@@ -215,17 +213,18 @@ web_glyphs_free(lh_ui_canvas_web_t *self)
 
 /** The id of @p px, and whether the reader still needs its cover. -1 when the
  * table is full: the caller sends the cover inline, every time. */
-static int
-web_atlas_intern(lh_ui_canvas_web_t *self, lh_byte_cptr px, int w, int h, int *is_new)
+static lh_sint_t
+web_atlas_intern(lh_ui_canvas_web_t *self, lh_byte_cptr px, lh_s32_t w, lh_s32_t h,
+                 lh_bool_t *is_new)
 {
-    const unsigned n = lh_cast_static(unsigned, w) * lh_cast_static(unsigned, h);
-    const unsigned hash = web_atlas_hash(px, n, w, h);
+    const lh_uint_t n = lh_cast_static(lh_uint_t, w) * lh_cast_static(lh_uint_t, h);
+    const lh_u32_t hash = web_atlas_hash(px, n, w, h);
     web_atlas_t *atlas = lh_addr_of(g_web_atlas);
     lh_ui_canvas_web_glyphs_t *glyphs;
-    unsigned slot = 0;
-    int id;
+    lh_uint_t slot = 0;
+    lh_sint_t id;
 
-    lh_ptr_deref(is_new) = 1;
+    lh_ptr_deref(is_new) = lh_bool_true;
     id = web_atlas_find(atlas, px, n, w, h, hash, lh_addr_of(slot));
     if (id < 0)
     {
@@ -242,7 +241,7 @@ web_atlas_intern(lh_ui_canvas_web_t *self, lh_byte_cptr px, int w, int h, int *i
     }
     if (glyphs->sent[id] != 0u)
     {
-        lh_ptr_deref(is_new) = 0;
+        lh_ptr_deref(is_new) = lh_bool_false;
     }
     glyphs->sent[id] = 1u;
     return id;
@@ -250,13 +249,13 @@ web_atlas_intern(lh_ui_canvas_web_t *self, lh_byte_cptr px, int w, int h, int *i
 
 /** Empty @p self: no buffer, no ops, sized @p width x @p height. */
 static lh_void
-web_reset(lh_ui_canvas_web_t *self, unsigned width, unsigned height)
+web_reset(lh_ui_canvas_web_t *self, lh_uint_t width, lh_uint_t height)
 {
     lh_ui_web_buf_init(lh_addr_of(self->buf), lh_null, 0);
     self->width = width;
     self->height = height;
     self->ops = 0;
-    self->comma = 0;
+    self->comma = lh_bool_false;
     self->glyphs = lh_null;
     self->glyphs_owned = lh_bool_false;
 }
@@ -266,9 +265,9 @@ static lh_void
 web_head(lh_ui_canvas_web_t *self)
 {
     web_lit(self, "{\"kind\":\"lh_ui_canvas\",\"width\":");
-    web_int(self, lh_cast_static(long, self->width));
+    web_int(self, lh_cast_static(lh_sint_t, self->width));
     web_lit(self, ",\"height\":");
-    web_int(self, lh_cast_static(long, self->height));
+    web_int(self, lh_cast_static(lh_sint_t, self->height));
     web_lit(self, ",\"ops\":[");
 }
 
@@ -324,7 +323,7 @@ web_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t rad
     web_lit(self, "{\"op\":\"fill_round_rect\",\"rect\":");
     web_rect(self, rect);
     web_lit(self, ",\"radius\":");
-    web_int(self, lh_cast_static(long, radius));
+    web_int(self, lh_cast_static(lh_sint_t, radius));
     web_lit(self, ",\"color\":");
     web_color(self, color);
     web_lit(self, "}");
@@ -352,13 +351,13 @@ web_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
     web_lit(self, "{\"op\":\"shadow\",\"rect\":");
     web_rect(self, rect);
     web_lit(self, ",\"radius\":");
-    web_int(self, lh_cast_static(long, radius));
+    web_int(self, lh_cast_static(lh_sint_t, radius));
     web_lit(self, ",\"spread\":");
-    web_int(self, lh_cast_static(long, lh_ui_shadow_get_spread(shadow)));
+    web_int(self, lh_cast_static(lh_sint_t, lh_ui_shadow_get_spread(shadow)));
     web_lit(self, ",\"offset\":[");
-    web_int(self, lh_cast_static(long, lh_ui_shadow_get_offset_x(shadow)));
+    web_int(self, lh_cast_static(lh_sint_t, lh_ui_shadow_get_offset_x(shadow)));
     web_lit(self, ",");
-    web_int(self, lh_cast_static(long, lh_ui_shadow_get_offset_y(shadow)));
+    web_int(self, lh_cast_static(lh_sint_t, lh_ui_shadow_get_offset_y(shadow)));
     web_lit(self, "],\"color\":");
     web_color(self, lh_addr_of(color));
     web_lit(self, "}");
@@ -367,20 +366,20 @@ web_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
 
 /** A mask too big for the intern table: its coverage goes inline, a row at a time. */
 static lh_void
-web_cover_inline(lh_ui_canvas_web_t *self, const lh_ui_mask_t *mask, int w, int h)
+web_cover_inline(lh_ui_canvas_web_t *self, const lh_ui_mask_t *mask, lh_s32_t w, lh_s32_t h)
 {
     lh_byte_t row[WEB_ATLAS_PIX];
-    int x0;
-    int y;
+    lh_s32_t x0;
+    lh_s32_t y;
 
     for (y = 0; y < h; ++y)
     {
         for (x0 = 0; x0 < w; x0 += WEB_ATLAS_PIX)
         {
-            const int x1 = (w - x0 > WEB_ATLAS_PIX) ? x0 + WEB_ATLAS_PIX : w;
+            const lh_s32_t x1 = (w - x0 > WEB_ATLAS_PIX) ? x0 + WEB_ATLAS_PIX : w;
 
             lh_ui_mask_coverage_run(mask, x0, x1, y, row);
-            web_hex(self, row, lh_cast_static(unsigned, (x1 - x0)));
+            web_hex(self, row, lh_cast_static(lh_usize_t, x1 - x0));
         }
     }
 }
@@ -392,27 +391,27 @@ web_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *m
               const lh_ui_color_t *color)
 {
     lh_ui_canvas_web_t *self = lh_ptr_rcast(lh_ui_canvas_web_t, context);
-    const int w = lh_cast_static(int, lh_ui_mask_get_width(mask));
-    const int h = lh_cast_static(int, lh_ui_mask_get_height(mask));
-    const unsigned n =
-        (w > 0 && h > 0) ? lh_cast_static(unsigned, w) * lh_cast_static(unsigned, h) : 0u;
+    const lh_s32_t w = lh_ui_mask_get_width(mask);
+    const lh_s32_t h = lh_ui_mask_get_height(mask);
+    const lh_uint_t n =
+        (w > 0 && h > 0) ? lh_cast_static(lh_uint_t, w) * lh_cast_static(lh_uint_t, h) : 0u;
     lh_byte_t px[WEB_ATLAS_PIX];
-    int is_new = 1;
-    int id = -1;
-    int y;
+    lh_bool_t is_new = lh_bool_true;
+    lh_sint_t id = -1;
+    lh_s32_t y;
 
     web_comma(self);
     web_lit(self, "{\"op\":\"fill_mask\",\"origin\":[");
-    web_int(self, lh_cast_static(long, lh_ui_point_get_x(origin)));
+    web_int(self, lh_cast_static(lh_sint_t, lh_ui_point_get_x(origin)));
     web_lit(self, ",");
-    web_int(self, lh_cast_static(long, lh_ui_point_get_y(origin)));
+    web_int(self, lh_cast_static(lh_sint_t, lh_ui_point_get_y(origin)));
     web_lit(self, "],\"size\":[");
-    web_int(self, lh_cast_static(long, w));
+    web_int(self, w);
     web_lit(self, ",");
-    web_int(self, lh_cast_static(long, h));
+    web_int(self, h);
     web_lit(self, "],\"color\":");
     web_color(self, color);
-    if (n == 0u || n > lh_cast_static(unsigned, WEB_ATLAS_PIX))
+    if (n == 0u || n > lh_cast_static(lh_uint_t, WEB_ATLAS_PIX))
     {
         web_lit(self, ",\"cover\":\"");
         if (n != 0u)
@@ -425,13 +424,13 @@ web_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *m
     for (y = 0; y < h; ++y)
     {
         lh_ui_mask_coverage_run(mask, 0, w, y,
-                                px + lh_cast_static(unsigned, y) * lh_cast_static(unsigned, w));
+                                px + lh_cast_static(lh_uint_t, y) * lh_cast_static(lh_uint_t, w));
     }
     id = web_atlas_intern(self, px, w, h, lh_addr_of(is_new));
     if (id >= 0)
     {
         web_lit(self, ",\"m\":");
-        web_int(self, lh_cast_static(long, id));
+        web_int(self, id);
     }
     if (id < 0 || is_new)
     {
@@ -459,8 +458,8 @@ const lh_ui_canvas_backend_t lh_ui_canvas_backend_web = {
 };
 
 lh_bool_t
-lh_ui_canvas_web_open_mem(lh_ui_canvas_web_t *self, char *buf, lh_usize_t cap, unsigned width,
-                          unsigned height)
+lh_ui_canvas_web_open_mem(lh_ui_canvas_web_t *self, lh_str_ptr buf, lh_usize_t cap, lh_uint_t width,
+                          lh_uint_t height)
 {
     if (self == lh_null || buf == lh_null || cap < 64u)
     {
@@ -506,14 +505,14 @@ lh_ui_canvas_web_set_glyphs(lh_ui_canvas_web_t *self, lh_ui_canvas_web_glyphs_t 
     self->glyphs = glyphs;
 }
 
-const char *
+lh_str_cptr
 lh_ui_canvas_web_bytes(const lh_ui_canvas_web_t *self)
 {
     if (self == lh_null || lh_ui_web_buf_bytes(lh_addr_of(self->buf)) == lh_null)
     {
         return "";
     }
-    return lh_ptr_ccast(char, lh_ui_web_buf_bytes(lh_addr_of(self->buf)));
+    return lh_ptr_ccast(lh_char_t, lh_ui_web_buf_bytes(lh_addr_of(self->buf)));
 }
 
 lh_usize_t
