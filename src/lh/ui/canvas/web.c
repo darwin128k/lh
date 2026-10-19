@@ -6,6 +6,7 @@
 #include <lh/ui/canvas/web.h>
 
 #include <lh/cast/const.h>
+#include <lh/hash/fnv.h>
 #include <lh/math.h>
 #include <lh/memory.h>
 #include <lh/runtime/allocator.h>
@@ -119,20 +120,6 @@ typedef struct web_atlas
  * changes. `self->glyphs` is only which ids the reader already holds. */
 static web_atlas_t g_web_atlas;
 
-/** FNV-1a hash of a cover's size and pixels. */
-static lh_u32_t
-web_atlas_hash(lh_byte_cptr px, lh_uint_t n, lh_s32_t w, lh_s32_t h)
-{
-    lh_u32_t x = 2166136261u ^ (lh_cast_static(lh_u32_t, w) * 131u + lh_cast_static(lh_u32_t, h));
-    lh_uint_t i;
-
-    for (i = 0; i < n; ++i)
-    {
-        x = (x ^ px[i]) * 16777619u;
-    }
-    return x;
-}
-
 /** The id of these pixels, or -1 with @p slot the empty place they would go. */
 static lh_sint_t
 web_atlas_find(const web_atlas_t *atlas, lh_byte_cptr px, lh_uint_t n, lh_s32_t w, lh_s32_t h,
@@ -218,7 +205,11 @@ web_atlas_intern(lh_ui_canvas_web_t *self, lh_byte_cptr px, lh_s32_t w, lh_s32_t
                  lh_bool_t *is_new)
 {
     const lh_uint_t n = lh_cast_static(lh_uint_t, w) * lh_cast_static(lh_uint_t, h);
-    const lh_u32_t hash = web_atlas_hash(px, n, w, h);
+    /* The size seeds the hash: two covers of the same bytes in another shape differ. */
+    const lh_u32_t seed = lh_bit_xor(
+        LH_HASH_FNV1A_32_OFFSET,
+        lh_math_add(lh_math_mul(lh_cast_static(lh_u32_t, w), 131U), lh_cast_static(lh_u32_t, h)));
+    const lh_u32_t hash = lh_hash_fnv1a_32_update(seed, px, n);
     web_atlas_t *atlas = lh_addr_of(g_web_atlas);
     lh_ui_canvas_web_glyphs_t *glyphs;
     lh_uint_t slot = 0;

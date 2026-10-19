@@ -183,6 +183,8 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/crypto/sha.c
         ${LH_LIB_SRC_PATH}/crypto/rijndael.c
 
+        ${LH_LIB_SRC_PATH}/hash/fnv.c
+
         ${LH_LIB_SRC_PATH}/net/ip.c
         ${LH_LIB_SRC_PATH}/net/port.c
         ${LH_LIB_SRC_PATH}/net/socket/addr/ip4.c
