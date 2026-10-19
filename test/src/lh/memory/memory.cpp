@@ -87,6 +87,33 @@ TEST(memory_set, fills_range)
     }
 }
 
+/* 19 words: two unrolled turns of eight and a tail of three; the guard after stays. */
+TEST(memory_set_u16, fills_words_and_stops)
+{
+    lh_u16_t block[20] = {};
+    lh_ptr end = lh_memory_set_u16(block, 19, 0xABCD);
+    EXPECT_EQ(end, static_cast<lh_ptr>(block + 19));
+    for (lh_usize_t i = 0; i < 19; ++i)
+    {
+        EXPECT_EQ(block[i], 0xABCD);
+    }
+    EXPECT_EQ(block[19], 0);
+    EXPECT_EQ(lh_memory_set_u16(block, 0, 1), static_cast<lh_ptr>(block));
+}
+
+TEST(memory_set_u32, fills_words_and_stops)
+{
+    lh_u32_t block[20] = {};
+    lh_ptr end = lh_memory_set_u32(block, 19, 0x12345678U);
+    EXPECT_EQ(end, static_cast<lh_ptr>(block + 19));
+    for (lh_usize_t i = 0; i < 19; ++i)
+    {
+        EXPECT_EQ(block[i], 0x12345678U);
+    }
+    EXPECT_EQ(block[19], 0U);
+    EXPECT_EQ(lh_memory_set_u32(block, 0, 1U), static_cast<lh_ptr>(block));
+}
+
 TEST(memory_set_pattern, repeats_pattern)
 {
     lh_byte_t dst[7] = {};

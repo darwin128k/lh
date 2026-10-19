@@ -11,8 +11,8 @@
  * A pixel is read and written as a format word (::lh_ui_pixmap_pack /
  * ::lh_ui_pixmap_unpack). Writes come in two kinds: store (the pixel becomes
  * the color) and blend (::lh_ui_color_over the pixel). Stored runs go
- * through one typed store loop per row (::lh_ui_pixmap_store_words32 /
- * `16`), not a call per pixel.
+ * through one typed store loop per row (::lh_memory_set_u32 /
+ * ::lh_memory_set_u16), not a call per pixel.
  */
 
 #ifndef LH_UI_PIXMAP_H
@@ -186,18 +186,6 @@ lh_ui_pixmap_cover_pixel(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, const lh_
                          lh_byte_t coverage);
 
 /* -- Spans and boxes ------------------------------------------------------- */
-
-/**
- * @brief Store @p word in @p count 32-bit words from @p at, eight per turn.
- */
-lh_void
-lh_ui_pixmap_store_words32(lh_u32_t *at, lh_usize_t count, lh_u32_t word);
-
-/**
- * @brief Store @p word in @p count 16-bit words from @p at, eight per turn.
- */
-lh_void
-lh_ui_pixmap_store_words16(lh_u16_t *at, lh_usize_t count, lh_u16_t word);
 
 /**
  * @brief Store @p word in pixels `x0 .. x1 - 1` of row @p y (the low 16 bits
