@@ -332,7 +332,7 @@ lh_ui_canvas_begin_area(lh_ui_canvas_t *self, const lh_ui_rect_t *area)
         (void)lh_ui_canvas_begin(self);
         return;
     }
-    at = lh_ui_rect_get_origin_as_const(area);
+    at = lh_ui_rect_get_origin(area);
     self->frame_at = lh_ptr_deref(at);
     /* (0, 0) of the buffer is the area corner, so the space the backend draws
        in is the target space moved by minus the area origin. */
@@ -592,8 +592,8 @@ lh_ui_canvas_shadow_fallback(lh_ui_canvas_t *self, const lh_ui_rect_t *bounds,
        strips clips it once per strip. */
     lh_ui_canvas_state_cut(lh_addr_of(self->state), bounds, lh_addr_of(cut));
     lh_return_if(lh_ui_rect_is_empty(lh_addr_of(cut)));
-    cut_origin = lh_ui_rect_get_origin_as_const(lh_addr_of(cut));
-    cut_size = lh_ui_rect_get_size_as_const(lh_addr_of(cut));
+    cut_origin = lh_ui_rect_get_origin(lh_addr_of(cut));
+    cut_size = lh_ui_rect_get_size(lh_addr_of(cut));
     x1 = lh_ui_point_get_x(cut_origin) + lh_ui_size_get_width(cut_size);
     y1 = lh_ui_point_get_y(cut_origin) + lh_ui_size_get_height(cut_size);
 

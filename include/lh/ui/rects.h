@@ -76,7 +76,7 @@ lh_ui_rects_get_count(const lh_ui_rects_t *self);
  * @brief Rect @p index of @p self, ::lh_null when there is no such rect.
  */
 const lh_ui_rect_t *
-lh_ui_rects_get_as_const(const lh_ui_rects_t *self, lh_u32_t index);
+lh_ui_rects_get(const lh_ui_rects_t *self, lh_u32_t index);
 
 /**
  * @brief Whether @p a and @p b can become one rect without covering a pixel

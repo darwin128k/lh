@@ -126,7 +126,7 @@ lh_ui_image_get_origin(const lh_ui_image_t *self, lh_ui_point_t *out)
     lh_ui_entity_get_rect(entity, lh_addr_of(rect));
     lh_ui_insets_t padding;
     lh_ui_entity_get_padding(entity, lh_addr_of(padding));
-    const lh_ui_point_t corner = lh_ptr_deref(lh_ui_rect_get_origin_as_const(lh_addr_of(rect)));
+    const lh_ui_point_t corner = lh_ptr_deref(lh_ui_rect_get_origin(lh_addr_of(rect)));
     lh_ui_point_t origin;
 
     /* The corner of the box, moved in by the padding: the picture is not

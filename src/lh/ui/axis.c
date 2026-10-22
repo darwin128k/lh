@@ -67,7 +67,7 @@ lh_ui_rect_init_along(lh_ui_rect_t *self, const lh_ui_rect_t *base, lh_ui_axis_t
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(base);
     lh_ptr_deref(self) = lh_ptr_deref(base);
-    origin = lh_ui_rect_get_origin(self);
+    origin = lh_ui_rect_get_origin_mut(self);
     lh_ui_point_set_along(origin, axis, lh_ui_point_get_along(origin, axis) + start);
-    lh_ui_size_set_along(lh_ui_rect_get_size(self), axis, length);
+    lh_ui_size_set_along(lh_ui_rect_get_size_mut(self), axis, length);
 }

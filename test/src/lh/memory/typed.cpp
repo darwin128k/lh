@@ -20,7 +20,8 @@ TEST(memory_typed_fields, are_bounds_plus_type_size)
 {
     IntTyped t;
 
-    EXPECT_EQ(lh_memory_bounds_get_begin(lh_memory_typed_get_bounds(&t.typed)), static_cast<lh_ptr>(t.buf));
+    EXPECT_EQ(lh_memory_bounds_get_begin(lh_memory_typed_get_bounds_mut(&t.typed)),
+              static_cast<lh_ptr>(t.buf));
     EXPECT_EQ(lh_memory_typed_get_size_of_bytes(&t.typed), sizeof(t.buf));
     EXPECT_EQ(lh_memory_typed_get_size(&t.typed), 8u);
 

@@ -79,8 +79,8 @@ lh_ui_canvas_web_put_color(lh_ui_canvas_web_t *self, const lh_ui_color_t *color)
 lh_void
 lh_ui_canvas_web_put_rect(lh_ui_canvas_web_t *self, const lh_ui_rect_t *rect)
 {
-    const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
-    const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
+    const lh_ui_point_t *origin = lh_ui_rect_get_origin(rect);
+    const lh_ui_size_t *size = lh_ui_rect_get_size(rect);
 
     lh_ui_canvas_web_put_quad(self, lh_cast_static(lh_sint_t, lh_ui_point_get_x(origin)),
                               lh_cast_static(lh_sint_t, lh_ui_point_get_y(origin)),

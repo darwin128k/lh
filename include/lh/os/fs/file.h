@@ -77,25 +77,25 @@ lh_os_fs_file_set_path(lh_os_fs_file_t *self, const lh_fs_path_t *path);
  * @brief Stored path of @p self, after validating the pointer.
  */
 lh_fs_path_t *
-lh_os_fs_file_get_path(lh_os_fs_file_t *self);
+lh_os_fs_file_get_path_mut(lh_os_fs_file_t *self);
 
 /**
- * @brief `const` counterpart to ::lh_os_fs_file_get_path.
+ * @brief `const` counterpart to ::lh_os_fs_file_get_path_mut.
  */
 const lh_fs_path_t *
-lh_os_fs_file_get_path_as_const(const lh_os_fs_file_t *self);
+lh_os_fs_file_get_path(const lh_os_fs_file_t *self);
 
 /**
  * @brief Stored handle of @p self, after validating the pointer.
  */
 lh_os_system_fs_file_handle_t *
-lh_os_fs_file_get_handle(lh_os_fs_file_t *self);
+lh_os_fs_file_get_handle_mut(lh_os_fs_file_t *self);
 
 /**
- * @brief `const` counterpart to ::lh_os_fs_file_get_handle.
+ * @brief `const` counterpart to ::lh_os_fs_file_get_handle_mut.
  */
 const lh_os_system_fs_file_handle_t *
-lh_os_fs_file_get_handle_as_const(const lh_os_fs_file_t *self);
+lh_os_fs_file_get_handle(const lh_os_fs_file_t *self);
 
 /**
  * @brief True when @p self currently holds an open handle.

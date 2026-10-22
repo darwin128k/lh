@@ -114,8 +114,8 @@ lh_bool_t
 lh_ui_surface_present_part(const lh_ui_surface_t *self, lh_ptr dest, const lh_ui_rect_t *part,
                            lh_ui_point_t at)
 {
-    const lh_ui_point_t *from = lh_ui_rect_get_origin_as_const(part);
-    const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(part);
+    const lh_ui_point_t *from = lh_ui_rect_get_origin(part);
+    const lh_ui_size_t *size = lh_ui_rect_get_size(part);
     /* The part sits inside the surface, so its own corner is added to where the
        surface goes: `at` is where (0, 0) of the surface lands, and a pixel at
        (px, py) of it lands at `at` + (px, py). */
@@ -143,9 +143,8 @@ lh_ui_surface_present_rects(const lh_ui_surface_t *self, lh_ptr dest, const lh_u
     lh_assert_runtime_ref(rects);
     for (i = 0u; i < lh_ui_rects_get_count(rects); ++i)
     {
-        lh_return_if(
-            !lh_ui_surface_present_part(self, dest, lh_ui_rects_get_as_const(rects, i), at),
-            lh_bool_false);
+        lh_return_if(!lh_ui_surface_present_part(self, dest, lh_ui_rects_get(rects, i), at),
+                     lh_bool_false);
     }
     return lh_bool_true;
 }

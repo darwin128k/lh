@@ -436,7 +436,7 @@ lh_ui_input_get_line_top(const lh_ui_input_t *self, const lh_ui_font_t *font)
 
     if (own >= lh_ui_scalar(0))
     {
-        baseline = lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(box)) + own;
+        baseline = lh_ui_point_get_y(lh_ui_rect_get_origin(box)) + own;
     }
     else
     {
@@ -559,7 +559,7 @@ lh_ui_input_on_draw_caret(const lh_ui_input_t *self, const lh_ui_entity_event_t 
 
         lh_ui_color_init_argb(lh_addr_of(white), 0xFFFFFFFFU);
         (void)lh_ui_text_draw_code(canvas, font, lh_ui_text_next_code(lh_addr_of(at)),
-                                   lh_ptr_deref(lh_ui_rect_get_origin_as_const(lh_addr_of(caret))),
+                                   lh_ptr_deref(lh_ui_rect_get_origin(lh_addr_of(caret))),
                                    lh_null_eq(under) ? lh_addr_of(white) : under);
     }
 }

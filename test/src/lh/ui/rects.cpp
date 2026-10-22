@@ -17,7 +17,7 @@ TEST(ui_rects, a_fresh_list_holds_nothing)
     lh_ui_rects_init(lh_addr_of(rects));
     EXPECT_TRUE(lh_ui_rects_is_empty(lh_addr_of(rects)));
     EXPECT_EQ(lh_ui_rects_get_count(lh_addr_of(rects)), 0u);
-    EXPECT_EQ(lh_ui_rects_get_as_const(lh_addr_of(rects), 0), lh_null);
+    EXPECT_EQ(lh_ui_rects_get(lh_addr_of(rects), 0), lh_null);
 }
 
 TEST(ui_rects, rects_apart_are_kept_apart)
@@ -34,9 +34,9 @@ TEST(ui_rects, rects_apart_are_kept_apart)
     lh_ui_rects_add(lh_addr_of(rects), lh_addr_of(right));
 
     EXPECT_EQ(lh_ui_rects_get_count(lh_addr_of(rects)), 2u);
-    EXPECT_EQ(lh_ui_rects_get_as_const(lh_addr_of(rects), 0), &rects.rects[0]);
-    EXPECT_EQ(lh_ui_rects_get_as_const(lh_addr_of(rects), 1), &rects.rects[1]);
-    EXPECT_EQ(lh_ui_rects_get_as_const(lh_addr_of(rects), 2), lh_null);
+    EXPECT_EQ(lh_ui_rects_get(lh_addr_of(rects), 0), &rects.rects[0]);
+    EXPECT_EQ(lh_ui_rects_get(lh_addr_of(rects), 1), &rects.rects[1]);
+    EXPECT_EQ(lh_ui_rects_get(lh_addr_of(rects), 2), lh_null);
 }
 
 TEST(ui_rects, an_overlapping_rect_becomes_one)
@@ -53,8 +53,8 @@ TEST(ui_rects, an_overlapping_rect_becomes_one)
     lh_ui_rects_add(lh_addr_of(rects), lh_addr_of(part));
 
     EXPECT_EQ(lh_ui_rects_get_count(lh_addr_of(rects)), 1u);
-    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_addr_of(rects.rects[0]))), 25);
-    EXPECT_EQ(lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(rects.rects[0]))), 15);
+    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size(lh_addr_of(rects.rects[0]))), 25);
+    EXPECT_EQ(lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(rects.rects[0]))), 15);
 }
 
 /* Sharing an edge is sharing nothing: the two rects already cover every pixel
@@ -73,7 +73,7 @@ TEST(ui_rects, rects_that_share_an_edge_become_one)
     lh_ui_rects_add(lh_addr_of(rects), lh_addr_of(right));
 
     EXPECT_EQ(lh_ui_rects_get_count(lh_addr_of(rects)), 1u);
-    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_addr_of(rects.rects[0]))), 20);
+    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size(lh_addr_of(rects.rects[0]))), 20);
     EXPECT_TRUE(lh_ui_rects_touch(lh_addr_of(left), lh_addr_of(right)));
 }
 
@@ -97,7 +97,7 @@ TEST(ui_rects, a_rect_touching_two_others_pulls_both_in)
     lh_ui_rects_add(lh_addr_of(rects), lh_addr_of(middle));
 
     EXPECT_EQ(lh_ui_rects_get_count(lh_addr_of(rects)), 1u);
-    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_addr_of(rects.rects[0]))), 40);
+    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size(lh_addr_of(rects.rects[0]))), 40);
 }
 
 TEST(ui_rects, an_empty_rect_adds_nothing)
@@ -139,7 +139,7 @@ TEST(ui_rects, a_hand_filled_list_is_not_a_region_until_it_is_closed)
     rects.count = 2u;
     lh_ui_rects_close(lh_addr_of(rects));
     EXPECT_EQ(lh_ui_rects_get_count(lh_addr_of(rects)), 1u);
-    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_addr_of(rects.rects[0]))), 30);
+    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size(lh_addr_of(rects.rects[0]))), 30);
 }
 
 /* Past the table the answer stops being the region exactly, and the only thing
@@ -167,7 +167,7 @@ TEST(ui_rects, a_full_list_keeps_every_rect_it_was_given)
         for (j = 0u; j < lh_ui_rects_get_count(lh_addr_of(rects)); ++j)
         {
             covered = covered || lh_ui_rect_intersects(lh_addr_of(rect),
-                                                        lh_ui_rects_get_as_const(lh_addr_of(rects), j))
+                                                       lh_ui_rects_get(lh_addr_of(rects), j))
                           ? lh_bool_true
                           : lh_bool_false;
         }
@@ -194,7 +194,7 @@ TEST(ui_rects, the_pair_that_wastes_least_is_the_one_that_merges)
     lh_ui_rects_add(lh_addr_of(rects), lh_addr_of(rect));
 
     EXPECT_EQ(lh_ui_rects_get_count(lh_addr_of(rects)), (lh_u32_t)LH_UI_RECTS_MAX);
-    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_addr_of(rects.rects[0]))), 14);
+    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size(lh_addr_of(rects.rects[0]))), 14);
 }
 
 TEST(ui_rects, waste_is_the_hull_that_nobody_asked_for)
@@ -228,8 +228,10 @@ TEST(ui_rects, drop_closes_the_gap_it_leaves)
 
     lh_ui_rects_drop(lh_addr_of(rects), 0u);
     EXPECT_EQ(lh_ui_rects_get_count(lh_addr_of(rects)), 2u);
-    EXPECT_EQ(lh_ui_point_get_x(lh_ui_rect_get_origin_as_const(lh_addr_of(rects.rects[0]))), lh_ui_scalar(40));
-    EXPECT_EQ(lh_ui_point_get_x(lh_ui_rect_get_origin_as_const(lh_addr_of(rects.rects[1]))), lh_ui_scalar(80));
+    EXPECT_EQ(lh_ui_point_get_x(lh_ui_rect_get_origin(lh_addr_of(rects.rects[0]))),
+              lh_ui_scalar(40));
+    EXPECT_EQ(lh_ui_point_get_x(lh_ui_rect_get_origin(lh_addr_of(rects.rects[1]))),
+              lh_ui_scalar(80));
     lh_ui_rects_drop(lh_addr_of(rects), 5u);
     EXPECT_EQ(lh_ui_rects_get_count(lh_addr_of(rects)), 2u);
 }

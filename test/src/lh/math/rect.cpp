@@ -64,10 +64,10 @@ TEST(math_rect, init_origin_size_fills_self)
 {
     lh_math_rect_t r;
     lh_math_rect_init_origin_size(&r, ([&]() { lh_math_point_t _v; lh_math_point_init(lh_addr_of(_v), 1, 2); return _v; })(), ([&]() { lh_math_size_t _v; lh_math_size_init(lh_addr_of(_v), 3, 4); return _v; })());
-    EXPECT_EQ(lh_math_point_get_x(lh_math_rect_get_origin_as_const(&r)), 1);
-    EXPECT_EQ(lh_math_point_get_y(lh_math_rect_get_origin_as_const(&r)), 2);
-    EXPECT_EQ(lh_math_size_get_width(lh_math_rect_get_size_as_const(&r)), 3);
-    EXPECT_EQ(lh_math_size_get_height(lh_math_rect_get_size_as_const(&r)), 4);
+    EXPECT_EQ(lh_math_point_get_x(lh_math_rect_get_origin(&r)), 1);
+    EXPECT_EQ(lh_math_point_get_y(lh_math_rect_get_origin(&r)), 2);
+    EXPECT_EQ(lh_math_size_get_width(lh_math_rect_get_size(&r)), 3);
+    EXPECT_EQ(lh_math_size_get_height(lh_math_rect_get_size(&r)), 4);
 }
 
 TEST(math_rect, intersection_and_union)
@@ -106,9 +106,9 @@ TEST(math_rect, offset_and_inset)
 
     lh_math_rect_init(lh_addr_of(r), 0, 0, 10, 8);
     const lh_math_rect_t moved = lh_test::out(lh_math_rect_offset, &r, 3, -2);
-    EXPECT_EQ(lh_math_point_get_x(lh_math_rect_get_origin_as_const(&moved)), 3);
-    EXPECT_EQ(lh_math_point_get_y(lh_math_rect_get_origin_as_const(&moved)), -2);
-    EXPECT_EQ(lh_math_size_get_width(lh_math_rect_get_size_as_const(&moved)), 10);
+    EXPECT_EQ(lh_math_point_get_x(lh_math_rect_get_origin(&moved)), 3);
+    EXPECT_EQ(lh_math_point_get_y(lh_math_rect_get_origin(&moved)), -2);
+    EXPECT_EQ(lh_math_size_get_width(lh_math_rect_get_size(&moved)), 10);
 
     const lh_math_rect_t inner = lh_test::out(lh_math_rect_inset, &r, 1, 2);
     lh_math_rect_t expected;

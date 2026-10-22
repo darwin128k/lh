@@ -48,9 +48,8 @@ TEST_F(str_list, get_span_locates_each_element_in_the_shared_buffer)
     lh_str_list_get_span(&list, 1, &span);
     EXPECT_EQ(span.offset, 3u); // "ab" and its NUL come first
     EXPECT_EQ(span.size, 3u);
-    EXPECT_EQ(lh_array_get_size(lh_str_list_get_spans_as_const(&list)), 2u);
-    EXPECT_EQ(std::strcmp(lh_str_get_data(lh_str_list_get_chars_as_const(&list)) + span.offset, "cde"),
-              0);
+    EXPECT_EQ(lh_array_get_size(lh_str_list_get_spans(&list)), 2u);
+    EXPECT_EQ(std::strcmp(lh_str_get_data(lh_str_list_get_chars(&list)) + span.offset, "cde"), 0);
 }
 
 TEST_F(str_list, starts_empty_without_allocating)

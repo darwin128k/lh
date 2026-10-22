@@ -78,13 +78,13 @@ lh_ui_gradient_get_stop_count(const lh_ui_gradient_t *self);
  * @brief Const pointer to stop @p index (`0 .. count - 1`).
  */
 const lh_ui_gradient_stop_t *
-lh_ui_gradient_get_stop_as_const(const lh_ui_gradient_t *self, lh_ui_gradient_stop_count_t index);
+lh_ui_gradient_get_stop(const lh_ui_gradient_t *self, lh_ui_gradient_stop_count_t index);
 
 /**
  * @brief Mutable pointer to stop @p index (`0 .. count - 1`).
  */
 lh_ui_gradient_stop_t *
-lh_ui_gradient_get_stop(lh_ui_gradient_t *self, lh_ui_gradient_stop_count_t index);
+lh_ui_gradient_get_stop_mut(lh_ui_gradient_t *self, lh_ui_gradient_stop_count_t index);
 
 /**
  * @brief Lay @p self along a line at @p degrees: 0 up, 90 right, 180 down, as CSS.

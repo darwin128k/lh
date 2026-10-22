@@ -39,19 +39,19 @@ LH_COMPILER_EXTERN_C_BEGIN
 
 /** @brief The shared character buffer. */
 lh_wstr_t *
-lh_wstr_list_get_chars(lh_wstr_list_t *self);
+lh_wstr_list_get_chars_mut(lh_wstr_list_t *self);
 
 /** @brief The shared character buffer, read-only. */
 const lh_wstr_t *
-lh_wstr_list_get_chars_as_const(const lh_wstr_list_t *self);
+lh_wstr_list_get_chars(const lh_wstr_list_t *self);
 
 /** @brief The table of ::lh_str_list_span_t, one per element. */
 lh_array_t *
-lh_wstr_list_get_spans(lh_wstr_list_t *self);
+lh_wstr_list_get_spans_mut(lh_wstr_list_t *self);
 
 /** @brief The table of ::lh_str_list_span_t, read-only. */
 const lh_array_t *
-lh_wstr_list_get_spans_as_const(const lh_wstr_list_t *self);
+lh_wstr_list_get_spans(const lh_wstr_list_t *self);
 
 /**
  * @brief Write where element @p index sits in the buffer to @p out.

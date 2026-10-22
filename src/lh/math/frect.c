@@ -11,28 +11,28 @@
 /* -- Constructors ---------------------------------------------------------- */
 
 lh_math_fpoint_t *
-lh_math_frect_get_origin(lh_math_frect_t *self)
+lh_math_frect_get_origin_mut(lh_math_frect_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->origin);
 }
 
 const lh_math_fpoint_t *
-lh_math_frect_get_origin_as_const(const lh_math_frect_t *self)
+lh_math_frect_get_origin(const lh_math_frect_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->origin);
 }
 
 lh_math_fsize_t *
-lh_math_frect_get_size(lh_math_frect_t *self)
+lh_math_frect_get_size_mut(lh_math_frect_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->size);
 }
 
 const lh_math_fsize_t *
-lh_math_frect_get_size_as_const(const lh_math_frect_t *self)
+lh_math_frect_get_size(const lh_math_frect_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->size);
@@ -44,14 +44,14 @@ lh_void
 lh_math_frect_set_origin(lh_math_frect_t *self, lh_math_fpoint_t origin)
 {
     lh_assert_runtime_ref(self);
-    lh_ptr_deref(lh_math_frect_get_origin(self)) = origin;
+    lh_ptr_deref(lh_math_frect_get_origin_mut(self)) = origin;
 }
 
 lh_void
 lh_math_frect_set_size(lh_math_frect_t *self, lh_math_fsize_t size)
 {
     lh_assert_runtime_ref(self);
-    lh_ptr_deref(lh_math_frect_get_size(self)) = size;
+    lh_ptr_deref(lh_math_frect_get_size_mut(self)) = size;
 }
 
 lh_void
@@ -104,8 +104,7 @@ lh_void
 lh_math_frect_far(const lh_math_frect_t *self, lh_math_fpoint_t *out)
 {
     lh_assert_runtime_ref(self);
-    lh_math_fpoint_offset_size(lh_math_frect_get_origin_as_const(self),
-                               lh_math_frect_get_size_as_const(self), out);
+    lh_math_fpoint_offset_size(lh_math_frect_get_origin(self), lh_math_frect_get_size(self), out);
 }
 
 lh_void
@@ -113,8 +112,7 @@ lh_math_frect_origin_min(const lh_math_frect_t *a, const lh_math_frect_t *b, lh_
 {
     lh_assert_runtime_ref(a);
     lh_assert_runtime_ref(b);
-    lh_math_fpoint_min(lh_math_frect_get_origin_as_const(a), lh_math_frect_get_origin_as_const(b),
-                       out);
+    lh_math_fpoint_min(lh_math_frect_get_origin(a), lh_math_frect_get_origin(b), out);
 }
 
 lh_void
@@ -122,8 +120,7 @@ lh_math_frect_origin_max(const lh_math_frect_t *a, const lh_math_frect_t *b, lh_
 {
     lh_assert_runtime_ref(a);
     lh_assert_runtime_ref(b);
-    lh_math_fpoint_max(lh_math_frect_get_origin_as_const(a), lh_math_frect_get_origin_as_const(b),
-                       out);
+    lh_math_fpoint_max(lh_math_frect_get_origin(a), lh_math_frect_get_origin(b), out);
 }
 
 lh_void
@@ -160,12 +157,11 @@ lh_math_frect_to_rect(lh_math_frect_t self, lh_math_rect_t *out)
     lh_assert_runtime_ref(out);
     lh_math_rect_t r;
     lh_math_point_t point;
-    lh_math_fpoint_to_point(lh_ptr_deref(lh_math_frect_get_origin_as_const(lh_addr_of(self))),
+    lh_math_fpoint_to_point(lh_ptr_deref(lh_math_frect_get_origin(lh_addr_of(self))),
                             lh_addr_of(point));
     lh_math_rect_set_origin(lh_addr_of(r), point);
     lh_math_size_t size;
-    lh_math_fsize_to_size(lh_ptr_deref(lh_math_frect_get_size_as_const(lh_addr_of(self))),
-                          lh_addr_of(size));
+    lh_math_fsize_to_size(lh_ptr_deref(lh_math_frect_get_size(lh_addr_of(self))), lh_addr_of(size));
     lh_math_rect_set_size(lh_addr_of(r), size);
     lh_ptr_deref(out) = r;
 }
@@ -176,12 +172,11 @@ lh_math_rect_to_frect(lh_math_rect_t self, lh_math_frect_t *out)
     lh_assert_runtime_ref(out);
     lh_math_frect_t r;
     lh_math_fpoint_t fpoint;
-    lh_math_point_to_fpoint(lh_ptr_deref(lh_math_rect_get_origin_as_const(lh_addr_of(self))),
+    lh_math_point_to_fpoint(lh_ptr_deref(lh_math_rect_get_origin(lh_addr_of(self))),
                             lh_addr_of(fpoint));
     lh_math_frect_set_origin(lh_addr_of(r), fpoint);
     lh_math_fsize_t fsize;
-    lh_math_size_to_fsize(lh_ptr_deref(lh_math_rect_get_size_as_const(lh_addr_of(self))),
-                          lh_addr_of(fsize));
+    lh_math_size_to_fsize(lh_ptr_deref(lh_math_rect_get_size(lh_addr_of(self))), lh_addr_of(fsize));
     lh_math_frect_set_size(lh_addr_of(r), fsize);
     lh_ptr_deref(out) = r;
 }
@@ -192,7 +187,7 @@ lh_bool_t
 lh_math_frect_is_empty(const lh_math_frect_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_math_fsize_is_empty(lh_math_frect_get_size_as_const(self));
+    return lh_math_fsize_is_empty(lh_math_frect_get_size(self));
 }
 
 lh_bool_t
@@ -205,7 +200,7 @@ lh_math_frect_contains_point(const lh_math_frect_t *self, lh_math_fpoint_t point
         return lh_bool_false;
     }
     lh_math_frect_far(self, lh_addr_of(far));
-    return lh_math_fpoint_in_extent(lh_addr_of(point), lh_math_frect_get_origin_as_const(self),
+    return lh_math_fpoint_in_extent(lh_addr_of(point), lh_math_frect_get_origin(self),
                                     lh_addr_of(far));
 }
 
@@ -215,9 +210,8 @@ lh_math_frect_eq(const lh_math_frect_t *a, const lh_math_frect_t *b)
     lh_return_if(a == b, lh_bool_true);
     lh_assert_runtime_ref(a);
     lh_assert_runtime_ref(b);
-    return lh_math_fpoint_eq(lh_math_frect_get_origin_as_const(a),
-                             lh_math_frect_get_origin_as_const(b)) &&
-           lh_math_fsize_eq(lh_math_frect_get_size_as_const(a), lh_math_frect_get_size_as_const(b));
+    return lh_math_fpoint_eq(lh_math_frect_get_origin(a), lh_math_frect_get_origin(b)) &&
+           lh_math_fsize_eq(lh_math_frect_get_size(a), lh_math_frect_get_size(b));
 }
 
 lh_bool_t
@@ -234,8 +228,8 @@ lh_math_frect_is_at_least(const lh_math_frect_t *self, const lh_math_frect_t *mi
 
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(minimum);
-    self_origin = lh_math_frect_get_origin_as_const(self);
-    minimum_origin = lh_math_frect_get_origin_as_const(minimum);
+    self_origin = lh_math_frect_get_origin(self);
+    minimum_origin = lh_math_frect_get_origin(minimum);
     if (!lh_math_fpoint_is_at_least(self_origin, minimum_origin))
     {
         return lh_bool_false;
@@ -244,8 +238,7 @@ lh_math_frect_is_at_least(const lh_math_frect_t *self, const lh_math_frect_t *mi
     {
         return lh_bool_true;
     }
-    return lh_math_fsize_is_at_least(lh_math_frect_get_size_as_const(self),
-                                     lh_math_frect_get_size_as_const(minimum));
+    return lh_math_fsize_is_at_least(lh_math_frect_get_size(self), lh_math_frect_get_size(minimum));
 }
 
 lh_bool_t
@@ -323,9 +316,9 @@ lh_math_frect_offset(const lh_math_frect_t *self, lh_math_fscalar_t dx, lh_math_
     lh_assert_runtime_ref(self);
     lh_math_frect_t result;
     lh_math_fpoint_t fpoint;
-    lh_math_fpoint_offset(lh_math_frect_get_origin_as_const(self), dx, dy, lh_addr_of(fpoint));
+    lh_math_fpoint_offset(lh_math_frect_get_origin(self), dx, dy, lh_addr_of(fpoint));
     lh_math_frect_init_origin_size(lh_addr_of(result), fpoint,
-                                   lh_ptr_deref(lh_math_frect_get_size_as_const(self)));
+                                   lh_ptr_deref(lh_math_frect_get_size(self)));
     lh_ptr_deref(out) = result;
 }
 
@@ -337,9 +330,9 @@ lh_math_frect_inset(const lh_math_frect_t *self, lh_math_fscalar_t dx, lh_math_f
     lh_assert_runtime_ref(self);
     lh_math_frect_t result;
     lh_math_fsize_t fsize;
-    lh_math_fsize_inset(lh_math_frect_get_size_as_const(self), dx, dy, lh_addr_of(fsize));
+    lh_math_fsize_inset(lh_math_frect_get_size(self), dx, dy, lh_addr_of(fsize));
     lh_math_fpoint_t fpoint;
-    lh_math_fpoint_offset(lh_math_frect_get_origin_as_const(self), dx, dy, lh_addr_of(fpoint));
+    lh_math_fpoint_offset(lh_math_frect_get_origin(self), dx, dy, lh_addr_of(fpoint));
     lh_math_frect_init_origin_size(lh_addr_of(result), fpoint, fsize);
     lh_ptr_deref(out) = result;
 }

@@ -236,9 +236,9 @@ f4ve_lh_present(lh_ptr context, const lh_ui_pixmap_t *pixels, const lh_ui_rects_
     n = lh_ui_rects_get_count(drawn);
     for (i = 0; i < n; ++i)
     {
-        const lh_ui_rect_t *r = lh_ui_rects_get_as_const(drawn, i);
-        const lh_ui_point_t *o = lh_ui_rect_get_origin_as_const(r);
-        const lh_ui_size_t *s = lh_ui_rect_get_size_as_const(r);
+        const lh_ui_rect_t *r = lh_ui_rects_get(drawn, i);
+        const lh_ui_point_t *o = lh_ui_rect_get_origin(r);
+        const lh_ui_size_t *s = lh_ui_rect_get_size(r);
 
         flush_rect(pixels, lh_ui_point_get_x(o), lh_ui_point_get_y(o),
                    lh_ui_size_get_width(s), lh_ui_size_get_height(s), strip_y);

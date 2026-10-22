@@ -75,25 +75,25 @@ lh_math_frect_init_empty(lh_math_frect_t *self);
  * @brief Pointer to the top-left corner of @p self.
  */
 lh_math_fpoint_t *
-lh_math_frect_get_origin(lh_math_frect_t *self);
+lh_math_frect_get_origin_mut(lh_math_frect_t *self);
 
 /**
  * @brief Const pointer to the top-left corner of @p self.
  */
 const lh_math_fpoint_t *
-lh_math_frect_get_origin_as_const(const lh_math_frect_t *self);
+lh_math_frect_get_origin(const lh_math_frect_t *self);
 
 /**
  * @brief Pointer to the size of @p self.
  */
 lh_math_fsize_t *
-lh_math_frect_get_size(lh_math_frect_t *self);
+lh_math_frect_get_size_mut(lh_math_frect_t *self);
 
 /**
  * @brief Const pointer to the size of @p self.
  */
 const lh_math_fsize_t *
-lh_math_frect_get_size_as_const(const lh_math_frect_t *self);
+lh_math_frect_get_size(const lh_math_frect_t *self);
 
 /**
  * @brief Replace the origin of @p self with @p origin.

@@ -77,7 +77,7 @@ lh_ui_container_get_viewport_size(const lh_ui_container_t *self, lh_ui_size_t *o
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    lh_ptr_deref(out) = lh_ptr_deref(lh_ui_rect_get_size_as_const(lh_addr_of(self->entity.rect)));
+    lh_ptr_deref(out) = lh_ptr_deref(lh_ui_rect_get_size(lh_addr_of(self->entity.rect)));
 }
 
 lh_void
@@ -101,8 +101,7 @@ lh_ui_container_get_content_far(const lh_ui_container_t *self, lh_ui_point_t *ou
     lh_ui_entity_get_content_bounds(lh_addr_of(self->entity), lh_addr_of(bounds));
     if (lh_ui_rect_is_empty(lh_addr_of(bounds)))
     {
-        lh_ptr_deref(out) =
-            lh_ptr_deref(lh_ui_rect_get_origin_as_const(lh_addr_of(self->entity.rect)));
+        lh_ptr_deref(out) = lh_ptr_deref(lh_ui_rect_get_origin(lh_addr_of(self->entity.rect)));
         return;
     }
     {
@@ -120,7 +119,7 @@ lh_ui_container_get_content_size(const lh_ui_container_t *self, lh_ui_size_t *ou
     lh_ui_point_t corner;
 
     lh_assert_runtime_ref(self);
-    origin = lh_ui_rect_get_origin_as_const(lh_addr_of(self->entity.rect));
+    origin = lh_ui_rect_get_origin(lh_addr_of(self->entity.rect));
     lh_ui_container_get_content_far(self, lh_addr_of(corner));
     lh_ui_point_max(lh_addr_of(corner), origin, lh_addr_of(corner));
     lh_ui_size_from_extent(origin, lh_addr_of(corner), out);

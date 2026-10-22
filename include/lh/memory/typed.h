@@ -21,10 +21,10 @@ typedef struct lh_memory_typed lh_memory_typed_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 lh_memory_bounds_t *
-lh_memory_typed_get_bounds(lh_memory_typed_t *self);
+lh_memory_typed_get_bounds_mut(lh_memory_typed_t *self);
 
 const lh_memory_bounds_t *
-lh_memory_typed_get_bounds_as_const(const lh_memory_typed_t *self);
+lh_memory_typed_get_bounds(const lh_memory_typed_t *self);
 
 lh_usize_t
 lh_memory_typed_get_type_size(const lh_memory_typed_t *self);

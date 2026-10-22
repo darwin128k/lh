@@ -12,13 +12,13 @@
 lh_s32_t
 lh_ui_canvas_round_left(const lh_ui_rect_t *rect)
 {
-    return lh_ui_scalar_floor_s32(lh_ui_point_get_x(lh_ui_rect_get_origin_as_const(rect)));
+    return lh_ui_scalar_floor_s32(lh_ui_point_get_x(lh_ui_rect_get_origin(rect)));
 }
 
 lh_s32_t
 lh_ui_canvas_round_top(const lh_ui_rect_t *rect)
 {
-    return lh_ui_scalar_floor_s32(lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(rect)));
+    return lh_ui_scalar_floor_s32(lh_ui_point_get_y(lh_ui_rect_get_origin(rect)));
 }
 
 lh_s32_t

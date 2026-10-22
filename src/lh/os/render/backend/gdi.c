@@ -160,9 +160,8 @@ lh_os_render_backend_gdi_begin_area(lh_ptr context, const lh_ui_rect_t *area)
     /* The surface is the area and nothing more: a whole frame of 800x600 is
        960 KB of RGB565 DIB, a 32-row strip is 48 KB, and the pixels that did not
        change are never cleared, drawn or blitted at all. */
-    gdi->present_at = lh_ptr_deref(lh_ui_rect_get_origin_as_const(area));
-    (void)lh_ui_surface_set_size(lh_addr_of(gdi->surface),
-                                 lh_ptr_deref(lh_ui_rect_get_size_as_const(area)));
+    gdi->present_at = lh_ptr_deref(lh_ui_rect_get_origin(area));
+    (void)lh_ui_surface_set_size(lh_addr_of(gdi->surface), lh_ptr_deref(lh_ui_rect_get_size(area)));
     lh_ui_pixmap_init_empty(lh_addr_of(pixmap));
     (void)lh_ui_surface_get_pixmap(lh_addr_of(gdi->surface), lh_addr_of(pixmap));
     lh_ui_canvas_sw_set_pixmap(lh_addr_of(gdi->sw), lh_addr_of(pixmap));

@@ -8,14 +8,14 @@
 
 /* A typed struct starts with the fields of memory bounds, so it is its own bounds. */
 lh_memory_bounds_t *
-lh_memory_typed_get_bounds(lh_memory_typed_t *self)
+lh_memory_typed_get_bounds_mut(lh_memory_typed_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_ptr_cast(lh_memory_bounds_t, self);
 }
 
 const lh_memory_bounds_t *
-lh_memory_typed_get_bounds_as_const(const lh_memory_typed_t *self)
+lh_memory_typed_get_bounds(const lh_memory_typed_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_ptr_ccast(lh_memory_bounds_t, self);
@@ -48,44 +48,44 @@ lh_memory_typed_swap(lh_memory_typed_t *self, lh_memory_typed_t *other)
 lh_ptr
 lh_memory_typed_get_begin(const lh_memory_typed_t *self)
 {
-    return lh_memory_bounds_get_begin(lh_memory_typed_get_bounds_as_const(self));
+    return lh_memory_bounds_get_begin(lh_memory_typed_get_bounds(self));
 }
 
 lh_ptr
 lh_memory_typed_get_end(const lh_memory_typed_t *self)
 {
-    return lh_memory_bounds_get_end(lh_memory_typed_get_bounds_as_const(self));
+    return lh_memory_bounds_get_end(lh_memory_typed_get_bounds(self));
 }
 
 lh_usize_t
 lh_memory_typed_get_size_of_bytes(const lh_memory_typed_t *self)
 {
-    return lh_memory_bounds_get_size(lh_memory_typed_get_bounds_as_const(self));
+    return lh_memory_bounds_get_size(lh_memory_typed_get_bounds(self));
 }
 
 lh_bool_t
 lh_memory_typed_is_empty(const lh_memory_typed_t *self)
 {
-    return lh_memory_bounds_is_empty(lh_memory_typed_get_bounds_as_const(self));
+    return lh_memory_bounds_is_empty(lh_memory_typed_get_bounds(self));
 }
 
 lh_bool_t
 lh_memory_typed_is_multiple_of(const lh_memory_typed_t *self)
 {
     const lh_usize_t type_size = lh_memory_typed_get_type_size(self);
-    return lh_memory_bounds_is_multiple_of(lh_memory_typed_get_bounds_as_const(self), type_size);
+    return lh_memory_bounds_is_multiple_of(lh_memory_typed_get_bounds(self), type_size);
 }
 
 lh_void
 lh_memory_typed_clear(lh_memory_typed_t *self)
 {
-    lh_memory_bounds_clear(lh_memory_typed_get_bounds(self));
+    lh_memory_bounds_clear(lh_memory_typed_get_bounds_mut(self));
 }
 
 lh_void
 lh_memory_typed_set(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usize_t type_size)
 {
-    lh_memory_bounds_set(lh_memory_typed_get_bounds(self), begin, end);
+    lh_memory_bounds_set(lh_memory_typed_get_bounds_mut(self), begin, end);
     lh_memory_typed_set_type_size(self, type_size);
 }
 
@@ -94,8 +94,8 @@ lh_memory_typed_assign(lh_memory_typed_t *self, const lh_memory_typed_t *other)
 {
     lh_return_if(lh_math_eq(self, other));
 
-    lh_memory_bounds_assign(lh_memory_typed_get_bounds(self),
-                            lh_memory_typed_get_bounds_as_const(other));
+    lh_memory_bounds_assign(lh_memory_typed_get_bounds_mut(self),
+                            lh_memory_typed_get_bounds(other));
     lh_memory_typed_set_type_size(self, lh_memory_typed_get_type_size(other));
 }
 
@@ -118,7 +118,7 @@ lh_memory_typed_get_size(const lh_memory_typed_t *self)
 lh_bool_t
 lh_memory_typed_is_valid(const lh_memory_typed_t *self)
 {
-    return lh_memory_bounds_is_valid(lh_memory_typed_get_bounds_as_const(self)) &&
+    return lh_memory_bounds_is_valid(lh_memory_typed_get_bounds(self)) &&
            lh_memory_typed_is_multiple_of(self);
 }
 
@@ -194,7 +194,7 @@ lh_memory_typed_set_v(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usiz
 lh_ptr
 lh_memory_typed_get_ptr_from_begin(const lh_memory_typed_t *self, lh_uindex_t index)
 {
-    const lh_memory_bounds_t *bounds = lh_memory_typed_get_bounds_as_const(self);
+    const lh_memory_bounds_t *bounds = lh_memory_typed_get_bounds(self);
     return lh_memory_bounds_get_ptr_from_begin(bounds,
                                                lh_memory_typed_get_offset_from_index(self, index));
 }
@@ -212,7 +212,7 @@ lh_memory_typed_get_index_from_end(const lh_memory_typed_t *self, lh_uindex_t in
 lh_uindex_t
 lh_memory_typed_get_index_from_ptr(const lh_memory_typed_t *self, const lh_ptr ptr)
 {
-    const lh_memory_bounds_t *bounds = lh_memory_typed_get_bounds_as_const(self);
+    const lh_memory_bounds_t *bounds = lh_memory_typed_get_bounds(self);
     const lh_uoffset_t offset = lh_memory_bounds_get_offset_from_begin(bounds, ptr);
     return lh_memory_typed_get_index_from_offset(self, offset);
 }

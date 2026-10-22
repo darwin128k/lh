@@ -50,8 +50,8 @@ TEST(timer_priority, compare_suite)
     EXPECT_EQ(lh_timer_priority_is_greater(lh_addr_of(high), lh_addr_of(low)), lh_bool_true);
     EXPECT_EQ(lh_timer_priority_is_at_least(lh_addr_of(high), lh_addr_of(low)), lh_bool_true);
     EXPECT_EQ(lh_timer_priority_is_at_least(lh_addr_of(low), lh_addr_of(high)), lh_bool_false);
-    EXPECT_LT(lh_timer_cmp_priority(lh_timer_get_node(lh_addr_of(high)),
-                                    lh_timer_get_node(lh_addr_of(low)), lh_null),
+    EXPECT_LT(lh_timer_cmp_priority(lh_timer_get_node_mut(lh_addr_of(high)),
+                                    lh_timer_get_node_mut(lh_addr_of(low)), lh_null),
               0);
 
     lh_timer_deinit(lh_addr_of(low));

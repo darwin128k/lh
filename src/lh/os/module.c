@@ -7,35 +7,35 @@
 /* -- accessors ------------------------------------------------------------- */
 
 lh_os_shared_t *
-lh_os_module_get_image(lh_os_module_t *self)
+lh_os_module_get_image_mut(lh_os_module_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->image);
 }
 
 const lh_os_shared_t *
-lh_os_module_get_image_as_const(const lh_os_module_t *self)
+lh_os_module_get_image(const lh_os_module_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->image);
 }
 
 const lh_fs_path_t *
-lh_os_module_get_path_as_const(const lh_os_module_t *self)
+lh_os_module_get_path(const lh_os_module_t *self)
 {
-    return lh_os_shared_get_path_as_const(lh_os_module_get_image_as_const(self));
+    return lh_os_shared_get_path(lh_os_module_get_image(self));
 }
 
 lh_os_system_shared_handle_t
 lh_os_module_get_handle(const lh_os_module_t *self)
 {
-    return lh_os_shared_get_handle(lh_os_module_get_image_as_const(self));
+    return lh_os_shared_get_handle(lh_os_module_get_image(self));
 }
 
 lh_bool_t
 lh_os_module_is_loaded(const lh_os_module_t *self)
 {
-    return lh_os_shared_is_open(lh_os_module_get_image_as_const(self));
+    return lh_os_shared_is_open(lh_os_module_get_image(self));
 }
 
 lh_bool_t
@@ -134,7 +134,7 @@ lh_os_module_set_loader(lh_os_module_t *self, lh_os_loader_t *loader)
 lh_void
 lh_os_module_init(lh_os_module_t *self)
 {
-    lh_os_shared_init(lh_os_module_get_image(self));
+    lh_os_shared_init(lh_os_module_get_image_mut(self));
     lh_os_module_set_started(self, lh_bool_false);
     lh_os_module_set_ops(self, lh_null);
     lh_os_module_set_data(self, lh_null);
@@ -228,13 +228,13 @@ lh_os_module_stop(lh_os_module_t *self)
 lh_bool_t
 lh_os_module_open(lh_os_module_t *self, const lh_fs_path_t *path)
 {
-    return lh_os_shared_open(lh_os_module_get_image(self), path);
+    return lh_os_shared_open(lh_os_module_get_image_mut(self), path);
 }
 
 lh_bool_t
 lh_os_module_bind(lh_os_module_t *self, lh_ptr addr)
 {
-    return lh_os_shared_bind(lh_os_module_get_image(self), addr);
+    return lh_os_shared_bind(lh_os_module_get_image_mut(self), addr);
 }
 
 /* -- image ----------------------------------------------------------------- */
@@ -242,7 +242,7 @@ lh_os_module_bind(lh_os_module_t *self, lh_ptr addr)
 lh_bool_t
 lh_os_module_bind_executable(lh_os_module_t *self)
 {
-    return lh_os_shared_bind_executable(lh_os_module_get_image(self));
+    return lh_os_shared_bind_executable(lh_os_module_get_image_mut(self));
 }
 
 lh_bool_t
@@ -250,7 +250,7 @@ lh_os_module_close(lh_os_module_t *self)
 {
     /* The methods live inside the image: stop while it is still mapped. */
     lh_os_module_stop(self);
-    const lh_bool_t ok = lh_os_shared_close(lh_os_module_get_image(self));
+    const lh_bool_t ok = lh_os_shared_close(lh_os_module_get_image_mut(self));
 
     /* The table normally lives in the image just released. */
     lh_os_module_set_ops(self, lh_null);
@@ -265,7 +265,7 @@ lh_os_module_deinit(lh_os_module_t *self)
         lh_list_node_is_linked(lh_os_module_get_node(self)), lh_runtime_error_code_invalid_argument,
         "module is still held by its loader: unload it with lh_os_loader_unload_child");
     lh_os_module_close(self);
-    lh_os_shared_deinit(lh_os_module_get_image(self));
+    lh_os_shared_deinit(lh_os_module_get_image_mut(self));
 }
 
 lh_void
@@ -280,11 +280,11 @@ lh_os_module_destroy(lh_os_module_t *self)
 lh_ptr
 lh_os_module_get_sym(const lh_os_module_t *self, lh_str_cptr name)
 {
-    return lh_os_shared_get_sym(lh_os_module_get_image_as_const(self), name);
+    return lh_os_shared_get_sym(lh_os_module_get_image(self), name);
 }
 
 lh_bool_t
 lh_os_module_has_sym(const lh_os_module_t *self, lh_str_cptr name)
 {
-    return lh_os_shared_has_sym(lh_os_module_get_image_as_const(self), name);
+    return lh_os_shared_has_sym(lh_os_module_get_image(self), name);
 }

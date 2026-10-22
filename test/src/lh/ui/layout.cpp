@@ -24,10 +24,10 @@ rect_at(const lh_ui_entity_t *entity, int x, int y, int w, int h)
     if (!rect_is(got, rect_of(x, y, w, h)))
     {
         fprintf(stderr, "        got (%d,%d %dx%d), wanted (%d,%d %dx%d)\n",
-                (int)lh_ui_point_get_x(lh_ui_rect_get_origin_as_const(lh_addr_of(got))),
-                (int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(got))),
-                (int)lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_addr_of(got))),
-                (int)lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(got))), x, y, w, h);
+                (int)lh_ui_point_get_x(lh_ui_rect_get_origin(lh_addr_of(got))),
+                (int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(got))),
+                (int)lh_ui_size_get_width(lh_ui_rect_get_size(lh_addr_of(got))),
+                (int)lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(got))), x, y, w, h);
         return false;
     }
     return true;
@@ -352,7 +352,7 @@ TEST(ui_layout, a_child_that_wraps_to_nothing_collapses_and_leaves_no_gap)
     /* 16 of picture in a 224 wide box, centred on its own: x 108 + (224 - 16) / 2,
        and 16 tall in a 144 tall box: y 58 + (144 - 16) / 2. */
     EXPECT_TRUE(rect_at(&f.picture, 212, 122, 16, 16));
-    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_addr_of(caption_rect))), 0)
+    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size(lh_addr_of(caption_rect))), 0)
         << "the empty caption took room";
 }
 
@@ -370,10 +370,10 @@ TEST(ui_layout, the_same_flow_centres_the_row_once_the_caption_has_text)
        the picture is no longer in the middle of the button. */
     picture_rect = lh_test::out(lh_ui_entity_get_rect, &f.picture);
     caption_rect = lh_test::out(lh_ui_entity_get_rect, lh_ui_label_as_entity(&f.caption));
-    picture_at = *lh_ui_rect_get_origin_as_const(lh_addr_of(picture_rect));
+    picture_at = *lh_ui_rect_get_origin(lh_addr_of(picture_rect));
 
     EXPECT_LT(lh_ui_point_get_x(&picture_at), 212) << "the picture did not move aside";
-    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_addr_of(caption_rect))), 7)
+    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size(lh_addr_of(caption_rect))), 7)
         << "the caption did not wrap to its text";
 }
 
@@ -540,17 +540,15 @@ TEST(ui_layout, an_icon_and_a_caption_in_a_row_stand_on_one_line)
 
     icon_rect = lh_test::out(lh_ui_entity_get_rect, lh_ui_image_as_entity(&f.icon));
     caption_rect = lh_test::out(lh_ui_entity_get_rect, lh_ui_label_as_entity(&f.caption));
-    icon_bottom = (int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(icon_rect))) +
-                  (int)lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(icon_rect)));
-    caption_baseline =
-        (int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(caption_rect))) +
-        (int)lh_ui_font_get_cap_height(tiny_font());
+    icon_bottom = (int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(icon_rect))) +
+                  (int)lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(icon_rect)));
+    caption_baseline = (int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(caption_rect))) +
+                       (int)lh_ui_font_get_cap_height(tiny_font());
 
     /* The row prints the numbers, because "they look aligned" is not a
        measurement and a failure here has to say what it got. */
-    fprintf(stderr,
-            "        icon %d..%d, caption %d..%d baseline %d\n", icon_bottom - 1, icon_bottom,
-            (int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(caption_rect))),
+    fprintf(stderr, "        icon %d..%d, caption %d..%d baseline %d\n", icon_bottom - 1,
+            icon_bottom, (int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(caption_rect))),
             caption_baseline - 1, caption_baseline);
     EXPECT_EQ(icon_bottom, caption_baseline)
         << "the icon and the caption are not on one line";
@@ -585,10 +583,10 @@ TEST(ui_layout, the_line_is_the_deepest_baseline_and_not_the_first_child)
 
     a = lh_test::out(lh_ui_entity_get_rect, lh_ui_label_as_entity(&icon_first.caption));
     b = lh_test::out(lh_ui_entity_get_rect, lh_ui_label_as_entity(&caption_first.caption));
-    y = (int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(b)));
+    y = (int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(b)));
     fprintf(stderr, "        caption at y %d icon first, y %d caption first\n",
-            (int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(a))), y);
-    EXPECT_EQ((int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(a))), y)
+            (int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(a))), y);
+    EXPECT_EQ((int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(a))), y)
         << "adding the icon first put the caption on another line";
 }
 
@@ -644,10 +642,10 @@ TEST(ui_layout, a_vertical_flow_has_no_line_to_line_up_on)
     EXPECT_TRUE(rect_at(lh_ui_image_as_entity(&f.icon), 20, 2, 1, 1));
     EXPECT_TRUE(rect_at(lh_ui_label_as_entity(&f.caption), 19, 3, 3, 2));
     icon_rect = lh_test::out(lh_ui_entity_get_rect, lh_ui_image_as_entity(&f.icon));
-    EXPECT_EQ((int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(icon_rect))), 2);
+    EXPECT_EQ((int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(icon_rect))), 2);
     /* The caption goes under it, in its own 2-row box. */
     caption_rect = lh_test::out(lh_ui_entity_get_rect, lh_ui_label_as_entity(&f.caption));
-    EXPECT_EQ((int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(caption_rect))), 3);
+    EXPECT_EQ((int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(caption_rect))), 3);
 }
 /* A row sized by what it holds, holding a caption stretched across it and centred in
    it: the row's height is the caption's ink, and where the ink is depends on the

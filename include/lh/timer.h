@@ -45,27 +45,27 @@ lh_timer_deinit(lh_timer_t *self);
  * For ::lh_timer_group_t; a timer never walks the group through this.
  */
 lh_list_node_t *
-lh_timer_get_node(lh_timer_t *self);
+lh_timer_get_node_mut(lh_timer_t *self);
 
 /**
  * @brief Const intrusive list link of @p self in its group.
  */
 const lh_list_node_t *
-lh_timer_get_node_as_const(const lh_timer_t *self);
+lh_timer_get_node(const lh_timer_t *self);
 
 /**
  * @brief The timer whose link is @p node, or ::lh_null if @p node is
- *        ::lh_null. The reverse of ::lh_timer_get_node.
+ *        ::lh_null. The reverse of ::lh_timer_get_node_mut.
  */
 lh_timer_t *
-lh_timer_get_by_node(lh_list_node_t *node);
+lh_timer_get_by_node_mut(lh_list_node_t *node);
 
 /**
  * @brief Const timer whose link is @p node, or ::lh_null if @p node is
- *        ::lh_null. The reverse of ::lh_timer_get_node_as_const.
+ *        ::lh_null. The reverse of ::lh_timer_get_node.
  */
 const lh_timer_t *
-lh_timer_get_by_node_as_const(const lh_list_node_t *node);
+lh_timer_get_by_node(const lh_list_node_t *node);
 
 /**
  * @brief Arm @p self on @p group.

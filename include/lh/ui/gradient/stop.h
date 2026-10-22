@@ -33,13 +33,13 @@ lh_ui_gradient_stop_init(lh_ui_gradient_stop_t *self, lh_ui_color_t color, lh_by
  * @brief Color of @p self.
  */
 const lh_ui_color_t *
-lh_ui_gradient_stop_get_color_as_const(const lh_ui_gradient_stop_t *self);
+lh_ui_gradient_stop_get_color(const lh_ui_gradient_stop_t *self);
 
 /**
  * @brief Mutable color of @p self.
  */
 lh_ui_color_t *
-lh_ui_gradient_stop_get_color(lh_ui_gradient_stop_t *self);
+lh_ui_gradient_stop_get_color_mut(lh_ui_gradient_stop_t *self);
 
 /**
  * @brief Position of @p self on the `0..255` axis.

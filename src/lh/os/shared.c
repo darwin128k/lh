@@ -8,14 +8,14 @@
 /* -- accessors ------------------------------------------------------------- */
 
 lh_fs_path_t *
-lh_os_shared_get_path(lh_os_shared_t *self)
+lh_os_shared_get_path_mut(lh_os_shared_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->path);
 }
 
 const lh_fs_path_t *
-lh_os_shared_get_path_as_const(const lh_os_shared_t *self)
+lh_os_shared_get_path(const lh_os_shared_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->path);
@@ -46,7 +46,7 @@ lh_os_shared_is_open(const lh_os_shared_t *self)
 lh_void
 lh_os_shared_init(lh_os_shared_t *self)
 {
-    lh_fs_path_init(lh_os_shared_get_path(self));
+    lh_fs_path_init(lh_os_shared_get_path_mut(self));
     lh_os_shared_set_handle(self, LH_OS_SYSTEM_SHARED_HANDLE_INVALID);
 }
 
@@ -82,7 +82,7 @@ lh_os_shared_open(lh_os_shared_t *self, const lh_fs_path_t *path)
         return lh_bool_false;
     }
     lh_os_shared_set_handle(self, handle);
-    lh_fs_path_assign(lh_os_shared_get_path(self), path);
+    lh_fs_path_assign(lh_os_shared_get_path_mut(self), path);
     return lh_bool_true;
 }
 
@@ -103,7 +103,7 @@ lh_os_shared_adopt(lh_os_shared_t *self, lh_os_system_shared_handle_t handle)
     {
         lh_str_view_t view;
         lh_str_as_view(lh_addr_of(text), lh_addr_of(view));
-        lh_fs_path_set(lh_os_shared_get_path(self), view, lh_os_system_fs_path_style_native());
+        lh_fs_path_set(lh_os_shared_get_path_mut(self), view, lh_os_system_fs_path_style_native());
         lh_os_shared_set_handle(self, handle);
     }
     else
@@ -151,7 +151,7 @@ lh_void
 lh_os_shared_deinit(lh_os_shared_t *self)
 {
     lh_os_shared_close(self);
-    lh_fs_path_deinit(lh_os_shared_get_path(self));
+    lh_fs_path_deinit(lh_os_shared_get_path_mut(self));
 }
 
 /* -- symbols --------------------------------------------------------------- */

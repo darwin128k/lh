@@ -53,7 +53,7 @@ struct partial_probe
 bool
 partial_probe_is_inside(const partial_probe *probe, const lh_ui_rect_t *buffer)
 {
-    const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(lh_addr_of(probe->area));
+    const lh_ui_size_t *size = lh_ui_rect_get_size(lh_addr_of(probe->area));
     lh_ui_rect_t window;
     lh_ui_rect_t part;
 
@@ -66,7 +66,7 @@ partial_probe_is_inside(const partial_probe *probe, const lh_ui_rect_t *buffer)
 void
 partial_probe_place(lh_ui_rect_t *placed, const lh_ui_rect_t *buffer, partial_probe *probe)
 {
-    const lh_ui_point_t *at = lh_ui_rect_get_origin_as_const(lh_addr_of(probe->area));
+    const lh_ui_point_t *at = lh_ui_rect_get_origin(lh_addr_of(probe->area));
 
     if (!partial_probe_is_inside(probe, buffer))
     {

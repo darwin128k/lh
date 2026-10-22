@@ -5,14 +5,14 @@
 #include <lh/math.h>
 
 lh_list_node_t *
-lh_list_get_head(lh_list_t *self)
+lh_list_get_head_mut(lh_list_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->head);
 }
 
 const lh_list_node_t *
-lh_list_get_head_as_const(const lh_list_t *self)
+lh_list_get_head(const lh_list_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->head);
@@ -21,43 +21,43 @@ lh_list_get_head_as_const(const lh_list_t *self)
 lh_list_node_t *
 lh_list_as_element(const lh_list_t *self, lh_list_node_t *node)
 {
-    return lh_ptr_eq(node, lh_list_get_head_as_const(self)) ? lh_null : node;
+    return lh_ptr_eq(node, lh_list_get_head(self)) ? lh_null : node;
 }
 
 lh_void
 lh_list_init(lh_list_t *self)
 {
-    lh_list_node_init(lh_list_get_head(self));
+    lh_list_node_init(lh_list_get_head_mut(self));
 }
 
 lh_bool_t
 lh_list_is_empty(const lh_list_t *self)
 {
-    return lh_cast_static(lh_bool_t, !lh_list_node_is_linked(lh_list_get_head_as_const(self)));
+    return lh_cast_static(lh_bool_t, !lh_list_node_is_linked(lh_list_get_head(self)));
 }
 
 lh_void
 lh_list_push_front(lh_list_t *self, lh_list_node_t *node)
 {
-    lh_list_node_insert_after(node, lh_list_get_head(self));
+    lh_list_node_insert_after(node, lh_list_get_head_mut(self));
 }
 
 lh_void
 lh_list_push_back(lh_list_t *self, lh_list_node_t *node)
 {
-    lh_list_node_insert_before(node, lh_list_get_head(self));
+    lh_list_node_insert_before(node, lh_list_get_head_mut(self));
 }
 
 lh_list_node_t *
 lh_list_get_first(const lh_list_t *self)
 {
-    return lh_list_as_element(self, lh_list_node_get_next(lh_list_get_head_as_const(self)));
+    return lh_list_as_element(self, lh_list_node_get_next(lh_list_get_head(self)));
 }
 
 lh_list_node_t *
 lh_list_get_last(const lh_list_t *self)
 {
-    return lh_list_as_element(self, lh_list_node_get_prev(lh_list_get_head_as_const(self)));
+    return lh_list_as_element(self, lh_list_node_get_prev(lh_list_get_head(self)));
 }
 
 lh_list_node_t *
@@ -184,7 +184,7 @@ lh_void
 lh_list_sort(lh_list_t *self, lh_list_cmp_cb cmp, lh_ptr context)
 {
     lh_assert_runtime_ref(cmp);
-    lh_list_node_t *const head = lh_list_get_head(self);
+    lh_list_node_t *const head = lh_list_get_head_mut(self);
     lh_list_node_t *chain = lh_list_get_first(self);
 
     if (lh_ptr_is_null(chain))
@@ -271,7 +271,7 @@ lh_void
 lh_list_splice_back(lh_list_t *self, lh_list_t *other)
 {
     lh_assert_runtime_if(lh_ptr_eq(self, other), lh_runtime_error_code_invalid_argument);
-    lh_list_node_t *const head = lh_list_get_head(self);
+    lh_list_node_t *const head = lh_list_get_head_mut(self);
 
     lh_list_splice_between(other, lh_list_node_get_prev(head), head);
 }
@@ -280,7 +280,7 @@ lh_void
 lh_list_splice_front(lh_list_t *self, lh_list_t *other)
 {
     lh_assert_runtime_if(lh_ptr_eq(self, other), lh_runtime_error_code_invalid_argument);
-    lh_list_node_t *const head = lh_list_get_head(self);
+    lh_list_node_t *const head = lh_list_get_head_mut(self);
 
     lh_list_splice_between(other, head, lh_list_node_get_next(head));
 }

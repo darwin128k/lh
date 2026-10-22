@@ -428,8 +428,8 @@ TEST(entity_input, the_caret_sits_where_the_text_before_it_ends)
 
     /* The tiny font gives 'A' an advance of 3 and the field no padding, so the caret
        after one character is three columns from the text's own corner. */
-    EXPECT_EQ(lh_ui_rect_get_origin_as_const(lh_addr_of(caret))->x, 3);
-    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_addr_of(caret))), 1);
+    EXPECT_EQ(lh_ui_rect_get_origin(lh_addr_of(caret))->x, 3);
+    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size(lh_addr_of(caret))), 1);
 }
 
 namespace
@@ -451,19 +451,19 @@ cap_field(field *f, lh_ui_style_t *style)
 lh_ui_scalar_t
 top_of(const lh_ui_rect_t *r)
 {
-    return lh_ui_rect_get_origin_as_const(r)->y;
+    return lh_ui_rect_get_origin(r)->y;
 }
 
 lh_ui_scalar_t
 height_of(const lh_ui_rect_t *r)
 {
-    return lh_ui_size_get_height(lh_ui_rect_get_size_as_const(r));
+    return lh_ui_size_get_height(lh_ui_rect_get_size(r));
 }
 
 lh_ui_scalar_t
 width_of(const lh_ui_rect_t *r)
 {
-    return lh_ui_size_get_width(lh_ui_rect_get_size_as_const(r));
+    return lh_ui_size_get_width(lh_ui_rect_get_size(r));
 }
 } // namespace
 
@@ -531,7 +531,7 @@ TEST(entity_input, a_block_caret_is_as_wide_as_the_character_under_it)
     lh_ui_input_set_caret(lh_addr_of(f.input), 1);
     caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
     EXPECT_EQ(width_of(lh_addr_of(caret)), 5) << "over 'e'";
-    EXPECT_EQ(lh_ui_rect_get_origin_as_const(lh_addr_of(caret))->x, 6) << "after the 'f'";
+    EXPECT_EQ(lh_ui_rect_get_origin(lh_addr_of(caret))->x, 6) << "after the 'f'";
 }
 
 TEST(entity_input, a_bar_caret_is_one_column)

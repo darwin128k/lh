@@ -44,20 +44,20 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Return a pointer to the @c typed field, after validating @p self.
  *
  * The single validation point for @c typed: every other function that needs
- * it goes through this (or ::lh_array_get_typed_as_const) instead of
+ * it goes through this (or ::lh_array_get_typed) instead of
  * checking @p self again and reaching into the field directly.
  *
  * @param self Array to inspect.
  */
 lh_memory_typed_allocated_t *
-lh_array_get_typed(lh_array_t *self);
+lh_array_get_typed_mut(lh_array_t *self);
 
 /**
- * @brief `const` counterpart to ::lh_array_get_typed.
+ * @brief `const` counterpart to ::lh_array_get_typed_mut.
  * @param self Array to inspect.
  */
 const lh_memory_typed_allocated_t *
-lh_array_get_typed_as_const(const lh_array_t *self);
+lh_array_get_typed(const lh_array_t *self);
 
 /**
  * @brief Return the number of elements currently in use.

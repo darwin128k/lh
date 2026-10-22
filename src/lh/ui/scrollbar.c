@@ -153,8 +153,7 @@ lh_ui_scalar_t
 lh_ui_scrollbar_get_track_length(const lh_ui_scrollbar_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(self->entity.rect)),
-                                self->axis);
+    return lh_ui_size_get_along(lh_ui_rect_get_size(lh_addr_of(self->entity.rect)), self->axis);
 }
 
 lh_ui_scalar_t
@@ -206,7 +205,7 @@ lh_ui_scrollbar_get_thumb_start_at(const lh_ui_scrollbar_t *self, lh_ui_point_t 
     const lh_ui_point_t *origin;
 
     lh_assert_runtime_ref(self);
-    origin = lh_ui_rect_get_origin_as_const(lh_addr_of(self->entity.rect));
+    origin = lh_ui_rect_get_origin(lh_addr_of(self->entity.rect));
     return lh_ui_point_get_along(lh_addr_of(point), self->axis) -
            lh_ui_point_get_along(origin, self->axis);
 }
@@ -289,8 +288,7 @@ lh_ui_scrollbar_get_page_toward(const lh_ui_scrollbar_t *self, lh_ui_point_t poi
 
     lh_return_if(lh_ui_rect_contains_point(lh_addr_of(thumb), point), lh_ui_scalar(0));
     return lh_ui_point_get_along(lh_addr_of(point), self->axis) <
-                   lh_ui_point_get_along(lh_ui_rect_get_origin_as_const(lh_addr_of(thumb)),
-                                         self->axis)
+                   lh_ui_point_get_along(lh_ui_rect_get_origin(lh_addr_of(thumb)), self->axis)
                ? lh_math_neg(page)
                : page;
 }

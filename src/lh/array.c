@@ -7,14 +7,14 @@
 #include <lh/assert.h>
 
 lh_memory_typed_allocated_t *
-lh_array_get_typed(lh_array_t *self)
+lh_array_get_typed_mut(lh_array_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->typed);
 }
 
 const lh_memory_typed_allocated_t *
-lh_array_get_typed_as_const(const lh_array_t *self)
+lh_array_get_typed(const lh_array_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->typed);
@@ -48,19 +48,19 @@ lh_array_get_grown_capacity(lh_usize_t capacity, lh_usize_t min_capacity)
 lh_usize_t
 lh_array_get_capacity(const lh_array_t *self)
 {
-    return lh_memory_typed_get_size(lh_array_get_typed_as_const(self));
+    return lh_memory_typed_get_size(lh_array_get_typed(self));
 }
 
 lh_usize_t
 lh_array_get_type_size(const lh_array_t *self)
 {
-    return lh_memory_typed_get_type_size(lh_array_get_typed_as_const(self));
+    return lh_memory_typed_get_type_size(lh_array_get_typed(self));
 }
 
 lh_ptr
 lh_array_get_begin(const lh_array_t *self)
 {
-    return lh_memory_typed_get_begin(lh_array_get_typed_as_const(self));
+    return lh_memory_typed_get_begin(lh_array_get_typed(self));
 }
 
 lh_bool_t
@@ -78,21 +78,21 @@ lh_array_clear(lh_array_t *self)
 lh_void
 lh_array_init(lh_array_t *self, lh_usize_t type_size)
 {
-    lh_memory_typed_init_empty(lh_array_get_typed(self), type_size);
+    lh_memory_typed_init_empty(lh_array_get_typed_mut(self), type_size);
     lh_array_set_size(self, 0);
 }
 
 lh_void
 lh_array_deinit(lh_array_t *self)
 {
-    lh_memory_typed_allocated_clear(lh_array_get_typed(self));
+    lh_memory_typed_allocated_clear(lh_array_get_typed_mut(self));
     lh_array_set_size(self, 0);
 }
 
 lh_void
 lh_array_reserve(lh_array_t *self, lh_usize_t min_capacity)
 {
-    lh_memory_typed_allocated_t *typed = lh_array_get_typed(self);
+    lh_memory_typed_allocated_t *typed = lh_array_get_typed_mut(self);
     lh_return_if(lh_memory_typed_get_size(typed) >= min_capacity);
     lh_memory_typed_allocated_resize(typed, min_capacity);
 }
@@ -115,7 +115,7 @@ lh_array_erase_of(lh_array_t *self, lh_uindex_t index, lh_usize_t count)
     const lh_usize_t tail_count = lh_math_sub(size, tail_index);
     if (lh_math_is_positive(tail_count))
     {
-        lh_memory_typed_move_within(lh_array_get_typed(self), index, tail_index, tail_count);
+        lh_memory_typed_move_within(lh_array_get_typed_mut(self), index, tail_index, tail_count);
     }
 
     lh_array_set_size(self, lh_math_sub(size, count));
@@ -150,11 +150,11 @@ lh_array_insert_of(lh_array_t *self, lh_uindex_t index, const lh_ptr values, lh_
 
     if (index < size)
     {
-        lh_memory_typed_move_within(lh_array_get_typed(self), lh_math_add(index, count), index,
+        lh_memory_typed_move_within(lh_array_get_typed_mut(self), lh_math_add(index, count), index,
                                     lh_math_sub(size, index));
     }
 
-    lh_memory_typed_set_values(lh_array_get_typed(self), index, values, count);
+    lh_memory_typed_set_values(lh_array_get_typed_mut(self), index, values, count);
 
     lh_array_set_size(self, new_size);
 }
@@ -177,7 +177,7 @@ lh_array_pop_back(lh_array_t *self, lh_ptr dst)
     const lh_usize_t last_index = lh_math_sub_one(lh_array_get_size(self));
     if (lh_ptr_is_set(dst))
     {
-        lh_memory_typed_get_value_into(lh_array_get_typed(self), last_index, dst);
+        lh_memory_typed_get_value_into(lh_array_get_typed_mut(self), last_index, dst);
     }
     lh_array_set_size(self, last_index);
 }
@@ -189,7 +189,7 @@ lh_array_erase(lh_array_t *self, lh_uindex_t index, lh_ptr dst)
 
     if (lh_ptr_is_set(dst))
     {
-        lh_memory_typed_get_value_into(lh_array_get_typed(self), index, dst);
+        lh_memory_typed_get_value_into(lh_array_get_typed_mut(self), index, dst);
     }
 
     lh_array_erase_of(self, index, 1);
@@ -443,7 +443,8 @@ lh_array_merge(lh_array_t *self, lh_array_t *other)
 
     if (lh_array_is_empty(self))
     {
-        lh_memory_typed_allocated_exchange(lh_array_get_typed(self), lh_array_get_typed(other));
+        lh_memory_typed_allocated_exchange(lh_array_get_typed_mut(self),
+                                           lh_array_get_typed_mut(other));
         lh_array_set_size(self, lh_array_get_size(other));
         lh_array_set_size(other, 0);
         return;
