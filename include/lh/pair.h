@@ -24,10 +24,12 @@
  * @struct lh_pair
  * @brief `first` and `second`, both ::lh_value_t. Fields via ::lh_pair_fields.
  */
-typedef struct lh_pair
+struct lh_pair
 {
     lh_pair_fields(lh_value_t, lh_value_t);
-} lh_pair_t;
+};
+/** @copybrief lh_pair */
+typedef struct lh_pair lh_pair_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

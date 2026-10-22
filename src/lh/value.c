@@ -1,6 +1,5 @@
 #include <lh/value.h>
 #include <lh/assert.h>
-#include <lh/attribute/static.h>
 #include <lh/cast/static.h>
 #include <lh/math/ops.h>
 #include <lh/null.h>
@@ -15,7 +14,6 @@ lh_value_get_kind(const lh_value_t *self)
     return self->kind;
 }
 
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_value_set_kind(lh_value_t *self, lh_value_kind_t kind)
 {
@@ -23,7 +21,6 @@ lh_value_set_kind(lh_value_t *self, lh_value_kind_t kind)
     self->kind = kind;
 }
 
-LH_ATTRIBUTE_STATIC
 lh_value_data_t *
 lh_value_get_data_mut(lh_value_t *self)
 {
@@ -31,14 +28,20 @@ lh_value_get_data_mut(lh_value_t *self)
     return lh_addr_of(self->data);
 }
 
+const lh_value_data_t *
+lh_value_get_data(const lh_value_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->data);
+}
+
 /* The storage of @p self after checking it holds a @p kind. */
-LH_ATTRIBUTE_STATIC
 const lh_value_data_t *
 lh_value_get_data_of(const lh_value_t *self, lh_value_kind_t kind)
 {
     lh_assert_runtime_if(!lh_value_has_kind(self, kind), lh_runtime_error_code_invalid_argument,
                          "value holds another kind");
-    return lh_addr_of(self->data);
+    return lh_value_get_data(self);
 }
 
 lh_bool_t
@@ -65,9 +68,8 @@ lh_value_init(lh_value_t *self)
 lh_void
 lh_value_assign(lh_value_t *self, const lh_value_t *other)
 {
-    lh_assert_runtime_ref(other);
     lh_value_set_kind(self, lh_value_get_kind(other));
-    lh_ptr_deref(lh_value_get_data_mut(self)) = other->data;
+    lh_ptr_deref(lh_value_get_data_mut(self)) = lh_ptr_deref(lh_value_get_data(other));
 }
 
 lh_value_t

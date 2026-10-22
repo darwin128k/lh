@@ -1,6 +1,5 @@
 #include <lh/ini/parser.h>
 #include <lh/assert.h>
-#include <lh/attribute/static.h>
 #include <lh/cast/static.h>
 #include <lh/char/map.h>
 #include <lh/math/ops.h>
@@ -11,7 +10,6 @@
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
 
-LH_ATTRIBUTE_STATIC
 lh_str_line_reader_t *
 lh_ini_parser_get_reader_mut(lh_ini_parser_t *self)
 {
@@ -33,7 +31,6 @@ lh_ini_parser_get_section(const lh_ini_parser_t *self)
     return self->section;
 }
 
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_ini_parser_set_section(lh_ini_parser_t *self, lh_str_view_t section)
 {
@@ -48,7 +45,6 @@ lh_ini_parser_get_error(const lh_ini_parser_t *self)
     return self->error;
 }
 
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_ini_parser_set_error(lh_ini_parser_t *self, lh_ini_error_t error)
 {
@@ -57,7 +53,6 @@ lh_ini_parser_set_error(lh_ini_parser_t *self, lh_ini_error_t error)
 }
 
 /* Stop on @p error: this and every later next returns false. */
-LH_ATTRIBUTE_STATIC
 lh_bool_t
 lh_ini_parser_fail(lh_ini_parser_t *self, lh_ini_error_t error)
 {
@@ -88,7 +83,6 @@ lh_ini_parser_init(lh_ini_parser_t *self, lh_str_view_t text)
 static const lh_char_t m_ini_parser_comments[] = {lh_char_map_semicolon, lh_char_map_hash};
 
 /* An empty line or a whole-line comment: nothing to read. @p line is trimmed. */
-LH_ATTRIBUTE_STATIC
 lh_bool_t
 lh_ini_parser_is_skipped(const lh_str_view_t *line)
 {
@@ -100,10 +94,8 @@ lh_ini_parser_is_skipped(const lh_str_view_t *line)
 }
 
 /* `[name]`: @p line is trimmed and starts with `[`. */
-LH_ATTRIBUTE_STATIC
 lh_bool_t
-lh_ini_parser_read_section(lh_ini_parser_t *self, const lh_str_view_t *line,
-                           lh_ini_entry_t *entry)
+lh_ini_parser_read_section(lh_ini_parser_t *self, const lh_str_view_t *line, lh_ini_entry_t *entry)
 {
     const lh_usize_t size = lh_str_view_get_size(line);
     lh_str_view_t name;
@@ -132,7 +124,6 @@ lh_ini_parser_read_section(lh_ini_parser_t *self, const lh_str_view_t *line,
 }
 
 /* `key = value`: @p line is trimmed, not empty and not a header. */
-LH_ATTRIBUTE_STATIC
 lh_bool_t
 lh_ini_parser_read_pair(lh_ini_parser_t *self, const lh_str_view_t *line, lh_ini_entry_t *entry)
 {

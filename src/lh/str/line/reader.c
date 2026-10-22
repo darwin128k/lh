@@ -1,12 +1,10 @@
 #include <lh/str/line/reader.h>
 #include <lh/assert.h>
-#include <lh/attribute/static.h>
 #include <lh/math/ops.h>
 #include <lh/str/split/line.h>
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
 
-LH_ATTRIBUTE_STATIC
 const lh_str_view_t *
 lh_str_line_reader_get_text(const lh_str_line_reader_t *self)
 {
@@ -14,7 +12,6 @@ lh_str_line_reader_get_text(const lh_str_line_reader_t *self)
     return lh_addr_of(self->text);
 }
 
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_str_line_reader_set_text(lh_str_line_reader_t *self, lh_str_view_t text)
 {
@@ -22,7 +19,6 @@ lh_str_line_reader_set_text(lh_str_line_reader_t *self, lh_str_view_t text)
     self->text = text;
 }
 
-LH_ATTRIBUTE_STATIC
 lh_usize_t *
 lh_str_line_reader_get_pos_mut(lh_str_line_reader_t *self)
 {
@@ -30,7 +26,6 @@ lh_str_line_reader_get_pos_mut(lh_str_line_reader_t *self)
     return lh_addr_of(self->pos);
 }
 
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_str_line_reader_set_pos(lh_str_line_reader_t *self, lh_usize_t pos)
 {
@@ -45,7 +40,6 @@ lh_str_line_reader_get_number(const lh_str_line_reader_t *self)
     return self->number;
 }
 
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_str_line_reader_set_number(lh_str_line_reader_t *self, lh_usize_t number)
 {
