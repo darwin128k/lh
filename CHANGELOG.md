@@ -137,6 +137,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- 32-bit Unix builds define `_FILE_OFFSET_BITS=64`: `readdir()` / `stat()` failed with `EOVERFLOW` on file systems with 64-bit inode numbers (XFS inode64, btrfs, NFS, WSL drvfs), so `lh_os_fs_dir_read` returned an error on the first entry and a directory looked empty
+
 - `lh_os_controller_update` on a disabled controller advanced the recognizer and then dropped the gesture, so a long press that came due while muted was lost and the later release was no click. It now leaves the recognizer where it is, as `lh_os_controller_feed` does; `update_cb` still runs. A window does not keep a timer armed for a deadline that controller cannot meet yet
 - A Win32 touch or pen contact gave its pointer id back before the up or cancel was delivered. A handler that pumped messages could hand that id to the next contact, and the outer up released the new one. The id is freed after `lh_os_window_on_native_input` returns
 - Roboto copyright year in `lh/ui/font/roboto.h`, `src/lh/ui/font/roboto.c` and the `scripts/README.md` font example: 2015, matching the font file (was 2011)
