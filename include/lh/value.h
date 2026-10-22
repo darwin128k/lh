@@ -30,12 +30,50 @@
  * @struct lh_value
  * @brief Kind plus storage. Fields via ::lh_value_fields.
  */
-typedef struct lh_value
+struct lh_value
 {
     lh_value_fields(lh_value_kind_t, lh_value_data_t);
-} lh_value_t;
+};
+/** @copybrief lh_value */
+typedef struct lh_value lh_value_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
+
+/* ── accessors ───────────────────────────────────────────────────────────── */
+
+/**
+ * @brief What @p self holds.
+ */
+lh_value_kind_t
+lh_value_get_kind(const lh_value_t *self);
+
+/** Make @p kind what @p self holds. The storage is not touched. */
+void
+lh_value_set_kind(lh_value_t *self, lh_value_kind_t kind);
+
+/** The storage of @p self, to change, whatever kind it holds. */
+lh_value_data_t *
+lh_value_get_data_mut(lh_value_t *self);
+
+/** The storage of @p self, whatever kind it holds. */
+const lh_value_data_t *
+lh_value_get_data(const lh_value_t *self);
+
+/** The storage of @p self. Not a @p kind: runtime check failure. */
+const lh_value_data_t *
+lh_value_get_data_of(const lh_value_t *self, lh_value_kind_t kind);
+
+/**
+ * @brief True when @p self holds a @p kind.
+ */
+lh_bool_t
+lh_value_has_kind(const lh_value_t *self, lh_value_kind_t kind);
+
+/**
+ * @brief True when @p self holds nothing.
+ */
+lh_bool_t
+lh_value_is_none(const lh_value_t *self);
 
 /* ── init / make ─────────────────────────────────────────────────────────── */
 
@@ -80,26 +118,6 @@ lh_value_make_str(lh_str_view_t value);
 /** @brief A value holding @p value. What it points at must outlive the value. */
 lh_value_t
 lh_value_make_ptr(lh_ptr value);
-
-/* ── kind ────────────────────────────────────────────────────────────────── */
-
-/**
- * @brief What @p self holds.
- */
-lh_value_kind_t
-lh_value_get_kind(const lh_value_t *self);
-
-/**
- * @brief True when @p self holds a @p kind.
- */
-lh_bool_t
-lh_value_has_kind(const lh_value_t *self, lh_value_kind_t kind);
-
-/**
- * @brief True when @p self holds nothing.
- */
-lh_bool_t
-lh_value_is_none(const lh_value_t *self);
 
 /* ── read (kind checked) ─────────────────────────────────────────────────── */
 

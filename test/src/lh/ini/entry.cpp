@@ -42,7 +42,7 @@ TEST(ini_entry_make_pair, holds_key_and_value_as_str_values)
     EXPECT_EQ(text(lh_ini_entry_get_key(&e)), "port");
     EXPECT_EQ(text(lh_ini_entry_get_value(&e)), "27015");
 
-    const lh_pair_t *pair = lh_ini_entry_get_pair(&e);
+    const lh_pair_t *pair = lh_ini_entry_get_pair_v(&e);
     EXPECT_TRUE(lh_value_has_kind(lh_pair_get_first(pair), lh_value_kind_str));
     EXPECT_TRUE(lh_value_has_kind(lh_pair_get_second(pair), lh_value_kind_str));
 }

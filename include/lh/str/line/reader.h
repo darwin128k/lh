@@ -24,12 +24,44 @@
  * @struct lh_str_line_reader
  * @brief Text plus position. Fields via ::lh_str_line_reader_fields.
  */
-typedef struct lh_str_line_reader
+struct lh_str_line_reader
 {
     lh_str_line_reader_fields(lh_str_view_t, lh_usize_t);
-} lh_str_line_reader_t;
+};
+/** @copybrief lh_str_line_reader */
+typedef struct lh_str_line_reader lh_str_line_reader_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
+
+/* ── accessors ───────────────────────────────────────────────────────────── */
+
+/** The whole text @p self reads. */
+const lh_str_view_t *
+lh_str_line_reader_get_text(const lh_str_line_reader_t *self);
+
+/** Make @p text the whole text @p self reads. Does not move the position. */
+lh_void
+lh_str_line_reader_set_text(lh_str_line_reader_t *self, lh_str_view_t text);
+
+/** The offset in the text where the next line starts, to change. */
+lh_usize_t *
+lh_str_line_reader_get_pos_mut(lh_str_line_reader_t *self);
+
+/** Make @p pos the offset in the text where the next line starts. */
+lh_void
+lh_str_line_reader_set_pos(lh_str_line_reader_t *self, lh_usize_t pos);
+
+/**
+ * @brief The 1-based number of the last line read; `0` before the first.
+ */
+lh_usize_t
+lh_str_line_reader_get_number(const lh_str_line_reader_t *self);
+
+/** Make @p number the number of the last line read. */
+lh_void
+lh_str_line_reader_set_number(lh_str_line_reader_t *self, lh_usize_t number);
+
+/* ── read ────────────────────────────────────────────────────────────────── */
 
 /**
  * @brief Start reading @p text from its first line.
@@ -56,12 +88,6 @@ lh_str_line_reader_init(lh_str_line_reader_t *self, lh_str_view_t text);
  */
 lh_bool_t
 lh_str_line_reader_next(lh_str_line_reader_t *self, lh_str_view_t *line);
-
-/**
- * @brief The 1-based number of the last line read; `0` before the first.
- */
-lh_usize_t
-lh_str_line_reader_get_number(const lh_str_line_reader_t *self);
 
 LH_COMPILER_EXTERN_C_END
 
