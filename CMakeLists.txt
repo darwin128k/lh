@@ -32,6 +32,13 @@ if (NOT LH_OS_WINDOWS_VERSION MATCHES "^0x0(50[1-9A-Fa-f]|5[1-9A-Fa-f][0-9A-Fa-f
 endif ()
 if (WIN32)
     add_compile_definitions(WINVER=${LH_OS_WINDOWS_VERSION} _WIN32_WINNT=${LH_OS_WINDOWS_VERSION})
+else ()
+    # 64-bit off_t / ino_t on 32-bit Unix (a no-op on 64-bit). Without it readdir()
+    # and stat() fail with EOVERFLOW on file systems that hand out 64-bit inode
+    # numbers (XFS inode64, btrfs, NFS, WSL drvfs): lh_os_fs_dir_read() reports an
+    # error and the directory looks empty. No public header uses off_t or struct
+    # stat, so dependents need not match.
+    add_compile_definitions(_FILE_OFFSET_BITS=64)
 endif ()
 
 # ---------------------------------------------------------------------------
