@@ -1,6 +1,7 @@
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/os.h>
+#include <lh/memory.h>
 #include <lh/os/error/code.h>
 #include <lh/os/system/fs/path.h>
 #include <lh/os/system/shared.h>
@@ -171,4 +172,16 @@ lh_bool_t
 lh_os_shared_has_sym(const lh_os_shared_t *self, lh_str_cptr name)
 {
     return lh_cast_static(lh_bool_t, lh_null_ne(lh_os_shared_get_sym(self, name)));
+}
+
+lh_os_shared_fn_t
+lh_os_shared_get_fn(const lh_os_shared_t *self, lh_str_cptr name)
+{
+    const lh_ptr sym = lh_os_shared_get_sym(self, name);
+    lh_os_shared_fn_t fn = lh_null;
+
+    /* The bytes of the address, not a cast: what POSIX specifies for dlsym's
+       result, and the only conversion ISO C leaves defined. */
+    lh_memory_copy(lh_addr_of(fn), sizeof(fn), lh_addr_of(sym), sizeof(sym));
+    return fn;
 }

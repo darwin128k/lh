@@ -74,9 +74,16 @@ lh_add_test_core(lh_test_core
         ${LH_TEST_SRC_PATH}/lh/list.cpp
         ${LH_TEST_SRC_PATH}/lh/logger.cpp
         ${LH_TEST_SRC_PATH}/lh/value.cpp
+        ${LH_TEST_SRC_PATH}/lh/real.cpp
         ${LH_TEST_SRC_PATH}/lh/pair.cpp
         ${LH_TEST_SRC_PATH}/lh/ini/entry.cpp
         ${LH_TEST_SRC_PATH}/lh/ini/parser.cpp
+        ${LH_TEST_SRC_PATH}/lh/json/node.cpp
+        ${LH_TEST_SRC_PATH}/lh/json/minify.cpp
+        ${LH_TEST_SRC_PATH}/lh/json/reader.cpp
+        ${LH_TEST_SRC_PATH}/lh/json/writer.cpp
+        ${LH_TEST_SRC_PATH}/lh/sql/db.cpp
+        ${LH_TEST_SRC_PATH}/lh/sql/mysql/query.cpp
         ${LH_TEST_SRC_PATH}/lh/version.cpp
         ${LH_TEST_SRC_PATH}/lh/werror.cpp
 )
@@ -189,6 +196,7 @@ lh_add_test_core(lh_test_net
 lh_add_test_core(lh_test_numeric
         ${LH_TEST_SRC_PATH}/lh/numeric/big.cpp
         ${LH_TEST_SRC_PATH}/lh/numeric/float.cpp
+        ${LH_TEST_SRC_PATH}/lh/numeric/mul.cpp
         ${LH_TEST_SRC_PATH}/lh/numeric/parse/bytes.cpp
         ${LH_TEST_SRC_PATH}/lh/size/ops.cpp
 )
@@ -198,7 +206,9 @@ set(LH_TEST_OS_SOURCES
         ${LH_TEST_SRC_PATH}/lh/os/net/modbus_tcp.cpp
         ${LH_TEST_SRC_PATH}/lh/os/net/socket.cpp
         ${LH_TEST_SRC_PATH}/lh/os/serial.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/shared.cpp
         ${LH_TEST_SRC_PATH}/lh/os/tick.cpp
+        ${LH_TEST_SRC_PATH}/lh/sql/mysql.cpp
         ${LH_TEST_SRC_PATH}/lh/os/window.cpp
         ${LH_TEST_SRC_PATH}/lh/os/render/backend/gdi.cpp
         ${LH_TEST_SRC_PATH}/lh/os/system/posix/input.cpp
@@ -217,6 +227,10 @@ if (NOT LH_LIBRARY_OPTION_OS)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/net/socket.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/serial.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/serial.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/shared.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/shared.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/sql/mysql.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/sql/mysql.cpp)
 endif ()
 if (NOT (LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW))
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/window.cpp)
@@ -249,6 +263,7 @@ set(LH_TEST_STR_SOURCES
         ${LH_TEST_SRC_PATH}/lh/str/format/base64.cpp
         ${LH_TEST_SRC_PATH}/lh/str/format/hex.cpp
         ${LH_TEST_SRC_PATH}/lh/str/format/sint.cpp
+        ${LH_TEST_SRC_PATH}/lh/str/format/sllong.cpp
         ${LH_TEST_SRC_PATH}/lh/str/format/text.cpp
         ${LH_TEST_SRC_PATH}/lh/str/format/uint.cpp
         ${LH_TEST_SRC_PATH}/lh/str/format/ullong.cpp
@@ -257,10 +272,13 @@ set(LH_TEST_STR_SOURCES
         ${LH_TEST_SRC_PATH}/lh/str/parse/radix.cpp
         ${LH_TEST_SRC_PATH}/lh/str/parse/text.cpp
         ${LH_TEST_SRC_PATH}/lh/str/parse/uint.cpp
+        ${LH_TEST_SRC_PATH}/lh/str/parse/ullong.cpp
+        ${LH_TEST_SRC_PATH}/lh/str/parse/sllong.cpp
         ${LH_TEST_SRC_PATH}/lh/str/scanf/next.cpp
         ${LH_TEST_SRC_PATH}/lh/str/split/next.cpp
         ${LH_TEST_SRC_PATH}/lh/str/split/line.cpp
         ${LH_TEST_SRC_PATH}/lh/str/split/once.cpp
+        ${LH_TEST_SRC_PATH}/lh/str/utf8.cpp
         ${LH_TEST_SRC_PATH}/lh/str/line/reader.cpp
         ${LH_TEST_SRC_PATH}/lh/str/view.cpp
         ${LH_TEST_SRC_PATH}/lh/wchar/case/map.cpp
@@ -384,6 +402,13 @@ if (LH_LIBRARY_OPTION_UI)
 else ()
     list(REMOVE_ITEM LH_TEST_UI_SOURCES ${LH_TEST_SRC_PATH}/lh/ui/surface.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_UI_SOURCES})
+endif ()
+
+# The SQLite backend exists only with LH_LIBRARY_OPTION_SQL_SQLITE.
+if (LH_LIBRARY_OPTION_SQL_SQLITE)
+    lh_add_test_core(lh_test_sql ${LH_TEST_SRC_PATH}/lh/sql/sqlite.cpp)
+else ()
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/sql/sqlite.cpp)
 endif ()
 
 # scripts/css2decl.py, run the two ways it can go wrong: its self-test asks whether it

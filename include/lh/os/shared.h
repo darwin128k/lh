@@ -33,6 +33,16 @@
 #endif
 
 /**
+ * @typedef lh_os_shared_fn_t
+ * @brief Any function an image exports, before it is cast to its real type.
+ *
+ * C does not convert an object pointer (what the OS hands out for a symbol)
+ * to a function pointer; ::lh_os_shared_get_fn does it the way POSIX blesses
+ * for `dlsym`, so the caller only casts between function pointer types.
+ */
+typedef lh_void (*lh_os_shared_fn_t)(lh_void);
+
+/**
  * @struct lh_os_shared
  * @brief Path plus handle. Fields via ::lh_os_shared_fields.
  */
@@ -141,6 +151,13 @@ lh_os_shared_get_sym(const lh_os_shared_t *self, const lh_str_ptr name);
  */
 lh_bool_t
 lh_os_shared_has_sym(const lh_os_shared_t *self, const lh_str_ptr name);
+
+/**
+ * @brief Exported function @p name, or ::lh_null if closed / missing; cast
+ *        the result to the function's own type.
+ */
+lh_os_shared_fn_t
+lh_os_shared_get_fn(const lh_os_shared_t *self, const lh_str_ptr name);
 
 LH_COMPILER_EXTERN_C_END
 

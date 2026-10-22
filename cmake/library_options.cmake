@@ -308,6 +308,23 @@ option(LH_LIBRARY_OPTION_UI
         ON)
 
 # -----------------------------------------------------------------------------
+# Option: LH_LIBRARY_OPTION_SQL_SQLITE
+#
+# The SQLite backend of lh/sql (include/lh/sql/sqlite.h), with SQLite itself
+# (lib/sqlite, the 3.46.1 amalgamation) compiled into the lh archive.
+#
+#   ON  — compile SQLite and the backend; dependents get the sqlite3_*
+#         symbols too, so they must not link a second SQLite.
+#   OFF — leave both out (default): ~600 KB of code nobody asked for.
+#
+# lh/sql itself (the driver table, lh_sql_db_t, lh_sql_stmt_t) is always
+# compiled; it needs a backend to talk to a database.
+# -----------------------------------------------------------------------------
+option(LH_LIBRARY_OPTION_SQL_SQLITE
+        "Compile SQLite (lib/sqlite) and the lh/sql SQLite backend into lh."
+        OFF)
+
+# -----------------------------------------------------------------------------
 # LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS
 #
 # Fixed capacity of lh_ui_gradient_t::stops. Same role as LVGL's

@@ -4,6 +4,7 @@
  */
 
 #include <lh/math.h>
+#include <lh/str/utf8.h>
 #include <lh/ui/input.h>
 #include <lh/util/return.h>
 #include <lh/util/str/ptr.h>
@@ -158,7 +159,8 @@ lh_ui_input_set_text(lh_ui_input_t *self, const lh_char_t *text)
 
         while (at < used)
         {
-            const lh_u32_t size = lh_ui_text_lead_size(lh_cast_static(lh_byte_t, self->buffer[at]));
+            const lh_u32_t size =
+                lh_str_utf8_get_lead_size(lh_cast_static(lh_byte_t, self->buffer[at]));
 
             if (size == 0U || lh_cast_static(lh_u32_t, at) + size > lh_cast_static(lh_u32_t, used))
             {
@@ -198,7 +200,7 @@ lh_ui_input_get_length(const lh_ui_input_t *self)
 lh_bool_t
 lh_ui_input_insert(lh_ui_input_t *self, lh_u32_t code)
 {
-    const lh_u32_t size = lh_ui_text_encoded_size(code);
+    const lh_u32_t size = lh_str_utf8_get_encoded_size(code);
     lh_u16_t at;
 
     lh_assert_runtime_ref(self);
@@ -213,8 +215,8 @@ lh_ui_input_insert(lh_ui_input_t *self, lh_u32_t code)
     {
         self->buffer[at] = self->buffer[at - 1U];
     }
-    lh_ui_text_encode_code(lh_addr_of(self->buffer[self->caret]),
-                           lh_cast_static(lh_u32_t, self->capacity - self->caret), code);
+    lh_str_utf8_encode(lh_addr_of(self->buffer[self->caret]),
+                       lh_cast_static(lh_u32_t, self->capacity - self->caret), code);
     self->used = lh_cast_static(lh_u16_t, self->used + size);
     self->caret = lh_cast_static(lh_u16_t, self->caret + size);
     self->buffer[self->used] = '\0';
@@ -247,7 +249,7 @@ lh_bool_t
 lh_ui_input_delete_forward(lh_ui_input_t *self)
 {
     const lh_u32_t size =
-        lh_ui_text_lead_size(lh_cast_static(lh_byte_t, self->buffer[self->caret]));
+        lh_str_utf8_get_lead_size(lh_cast_static(lh_byte_t, self->buffer[self->caret]));
     lh_u16_t at;
 
     lh_assert_runtime_ref(self);
@@ -400,7 +402,7 @@ lh_ui_input_on_key(const lh_ui_input_t *self, const lh_ui_entity_event_t *event)
     {
         const lh_u32_t size =
             self->caret < self->used
-                ? lh_ui_text_lead_size(lh_cast_static(lh_byte_t, self->buffer[self->caret]))
+                ? lh_str_utf8_get_lead_size(lh_cast_static(lh_byte_t, self->buffer[self->caret]))
                 : 0U;
 
         return size == 0U
