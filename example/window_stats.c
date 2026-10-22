@@ -120,8 +120,8 @@ static lh_void
 on_frame(const lh_ui_frame_t *frame, lh_ptr context)
 {
     (void)context;
-    const lh_math_point_t *origin = lh_math_rect_get_origin_as_const(&frame->drawn);
-    const lh_math_size_t *size = lh_math_rect_get_size_as_const(&frame->drawn);
+    const lh_math_point_t *origin = lh_math_rect_get_origin(&frame->drawn);
+    const lh_math_size_t *size = lh_math_rect_get_size(&frame->drawn);
     long long x = (long long)lh_math_point_get_x(origin);
     long long y = (long long)lh_math_point_get_y(origin);
     long long w = (long long)lh_math_size_get_width(size);

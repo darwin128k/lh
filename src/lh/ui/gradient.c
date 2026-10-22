@@ -14,14 +14,14 @@
 /* -- Stop ------------------------------------------------------------------ */
 
 const lh_ui_color_t *
-lh_ui_gradient_stop_get_color_as_const(const lh_ui_gradient_stop_t *self)
+lh_ui_gradient_stop_get_color(const lh_ui_gradient_stop_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->color);
 }
 
 lh_ui_color_t *
-lh_ui_gradient_stop_get_color(lh_ui_gradient_stop_t *self)
+lh_ui_gradient_stop_get_color_mut(lh_ui_gradient_stop_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->color);
@@ -38,7 +38,7 @@ lh_void
 lh_ui_gradient_stop_set_color(lh_ui_gradient_stop_t *self, lh_ui_color_t color)
 {
     lh_assert_runtime_ref(self);
-    lh_ptr_deref(lh_ui_gradient_stop_get_color(self)) = color;
+    lh_ptr_deref(lh_ui_gradient_stop_get_color_mut(self)) = color;
 }
 
 lh_void
@@ -108,7 +108,7 @@ lh_ui_gradient_get_stop_count(const lh_ui_gradient_t *self)
 }
 
 const lh_ui_gradient_stop_t *
-lh_ui_gradient_get_stop_as_const(const lh_ui_gradient_t *self, lh_ui_gradient_stop_count_t index)
+lh_ui_gradient_get_stop(const lh_ui_gradient_t *self, lh_ui_gradient_stop_count_t index)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ifn(index < self->stops_count, lh_runtime_error_code_invalid_argument);
@@ -116,7 +116,7 @@ lh_ui_gradient_get_stop_as_const(const lh_ui_gradient_t *self, lh_ui_gradient_st
 }
 
 lh_ui_gradient_stop_t *
-lh_ui_gradient_get_stop(lh_ui_gradient_t *self, lh_ui_gradient_stop_count_t index)
+lh_ui_gradient_get_stop_mut(lh_ui_gradient_t *self, lh_ui_gradient_stop_count_t index)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ifn(index < self->stops_count, lh_runtime_error_code_invalid_argument);
@@ -159,8 +159,8 @@ lh_byte_t
 lh_ui_gradient_frac_at(const lh_ui_gradient_t *self, const lh_ui_rect_t *rect, lh_s32_t x,
                        lh_s32_t y)
 {
-    const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
-    const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
+    const lh_ui_point_t *origin = lh_ui_rect_get_origin(rect);
+    const lh_ui_size_t *size = lh_ui_rect_get_size(rect);
     const lh_s64_t w = lh_ui_scalar_floor_s32(lh_ui_size_get_width(size));
     const lh_s64_t h = lh_ui_scalar_floor_s32(lh_ui_size_get_height(size));
     /* The pixel's centre from the middle of the box, both doubled so no half is lost. */
@@ -217,16 +217,15 @@ lh_ui_gradient_color_at(const lh_ui_gradient_t *self, lh_byte_t frac, lh_ui_colo
     }
     if (self->stops_count == 1 || frac <= lh_ui_gradient_stop_get_frac(lh_addr_of(self->stops[0])))
     {
-        lh_ptr_deref(out) =
-            lh_ptr_deref(lh_ui_gradient_stop_get_color_as_const(lh_addr_of(self->stops[0])));
+        lh_ptr_deref(out) = lh_ptr_deref(lh_ui_gradient_stop_get_color(lh_addr_of(self->stops[0])));
         return;
     }
     for (i = 1; i < self->stops_count; ++i)
     {
         const lh_ui_gradient_stop_t *a = lh_addr_of(self->stops[i - 1]);
         const lh_ui_gradient_stop_t *b = lh_addr_of(self->stops[i]);
-        const lh_ui_color_t *from = lh_ui_gradient_stop_get_color_as_const(a);
-        const lh_ui_color_t *to = lh_ui_gradient_stop_get_color_as_const(b);
+        const lh_ui_color_t *from = lh_ui_gradient_stop_get_color(a);
+        const lh_ui_color_t *to = lh_ui_gradient_stop_get_color(b);
         const lh_s32_t start = lh_ui_gradient_stop_get_frac(a);
         const lh_s32_t end = lh_ui_gradient_stop_get_frac(b);
 
@@ -260,6 +259,6 @@ lh_ui_gradient_color_at(const lh_ui_gradient_t *self, lh_byte_t frac, lh_ui_colo
             return;
         }
     }
-    lh_ptr_deref(out) = lh_ptr_deref(
-        lh_ui_gradient_stop_get_color_as_const(lh_addr_of(self->stops[self->stops_count - 1])));
+    lh_ptr_deref(out) =
+        lh_ptr_deref(lh_ui_gradient_stop_get_color(lh_addr_of(self->stops[self->stops_count - 1])));
 }

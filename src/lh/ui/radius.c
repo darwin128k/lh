@@ -27,7 +27,7 @@ lh_ui_radius_pixel_center(lh_s32_t i)
 lh_ui_scalar_t
 lh_ui_radius_get_max(const lh_ui_rect_t *rect)
 {
-    return lh_math_max(lh_ui_size_min_side(lh_ui_rect_get_size_as_const(rect)) / lh_ui_scalar(2),
+    return lh_math_max(lh_ui_size_min_side(lh_ui_rect_get_size(rect)) / lh_ui_scalar(2),
                        lh_ui_scalar(0));
 }
 
@@ -92,8 +92,8 @@ lh_ui_radius_cover_from_square(lh_s64_t r, lh_s64_t d2)
 lh_byte_t
 lh_ui_radius_coverage(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t x, lh_s32_t y)
 {
-    const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
-    const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
+    const lh_ui_point_t *origin = lh_ui_rect_get_origin(rect);
+    const lh_ui_size_t *size = lh_ui_rect_get_size(rect);
     const lh_s64_t r = lh_ui_radius_to_fixed(radius);
     const lh_s64_t dx = lh_ui_radius_axis_distance(
         lh_ui_radius_pixel_center(x), lh_ui_point_get_x(origin), lh_ui_size_get_width(size), r);
@@ -121,8 +121,8 @@ lh_void
 lh_ui_radius_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y,
                        lh_s32_t *out_x0, lh_s32_t *out_x1)
 {
-    const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
-    const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
+    const lh_ui_point_t *origin = lh_ui_rect_get_origin(rect);
+    const lh_ui_size_t *size = lh_ui_rect_get_size(rect);
     const lh_s32_t left = lh_ui_scalar_floor_s32(lh_ui_point_get_x(origin));
     const lh_s32_t right = left + lh_ui_scalar_ceil_s32(lh_ui_size_get_width(size));
     const lh_s64_t r = lh_ui_radius_to_fixed(radius);
@@ -180,8 +180,8 @@ lh_void
 lh_ui_radius_run_init(struct lh_ui_radius_run *self, const lh_ui_rect_t *rect,
                       lh_ui_scalar_t radius)
 {
-    const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
-    const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
+    const lh_ui_point_t *origin = lh_ui_rect_get_origin(rect);
+    const lh_ui_size_t *size = lh_ui_rect_get_size(rect);
 
     lh_assert_runtime_ref(self);
     self->radius = radius;

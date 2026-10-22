@@ -83,7 +83,7 @@ TEST(ui_text, the_ink_is_shorter_than_the_line_and_starts_below_its_top)
               lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_line_height(font)));
     EXPECT_GT(lh_ui_text_get_ink_top(font, "Hide panel"), lh_ui_scalar(0));
     /* @p origin is where the ink goes, and the rect says so. */
-    EXPECT_EQ(lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(ink))),
+    EXPECT_EQ(lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(ink))),
               lh_ui_point_get_y(lh_addr_of(origin)));
 }
 
@@ -108,11 +108,11 @@ TEST(ui_text, the_size_is_the_cap_line_to_the_baseline_and_not_the_ink)
     /* A descender hangs below the box instead of pushing it: the box is where the
        letters stand, and the ink is bigger than the box says. */
     EXPECT_LT(lh_ui_size_get_height(lh_addr_of(with_tail)),
-              lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(tail_ink))));
+              lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(tail_ink))));
     /* With no descender the two are the same, which is what keeps the box honest
        for the many strings that have none. */
     EXPECT_EQ(lh_ui_size_get_height(lh_addr_of(without)),
-              lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(ink))));
+              lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(ink))));
     /* The width is still the pen's either way. */
     EXPECT_EQ(lh_ui_size_get_width(lh_addr_of(with_tail)),
               lh_ui_text_get_line_width(font, "Hide panel"));
@@ -152,8 +152,8 @@ TEST(ui_text, the_pixels_land_where_the_ink_rect_says)
     ASSERT_GT(log.mask_count, 0);
     for (i = 0; i < log.mask_count; ++i)
     {
-        const lh_ui_point_t *at = lh_ui_rect_get_origin_as_const(lh_addr_of(log.masks[i]));
-        const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(lh_addr_of(log.masks[i]));
+        const lh_ui_point_t *at = lh_ui_rect_get_origin(lh_addr_of(log.masks[i]));
+        const lh_ui_size_t *size = lh_ui_rect_get_size(lh_addr_of(log.masks[i]));
         const lh_s32_t y = static_cast<lh_s32_t>(lh_ui_point_get_y(at));
         const lh_s32_t tail = y + static_cast<lh_s32_t>(lh_ui_size_get_height(size));
 
@@ -162,10 +162,13 @@ TEST(ui_text, the_pixels_land_where_the_ink_rect_says)
     }
     /* Measure and draw are one rule: the pixels span the measured rect exactly,
        top to bottom. Drawing from the line box would start them rows higher. */
-    EXPECT_EQ(top, lh_cast_static(lh_s32_t, lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(ink)))));
+    EXPECT_EQ(top,
+              lh_cast_static(lh_s32_t, lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(ink)))));
     EXPECT_EQ(bottom,
-              lh_cast_static(lh_s32_t, lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(ink))) +
-                  lh_cast_static(lh_s32_t, lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(ink))))));
+              lh_cast_static(lh_s32_t,
+                             lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(ink))) +
+                                 lh_cast_static(lh_s32_t, lh_ui_size_get_height(lh_ui_rect_get_size(
+                                                              lh_addr_of(ink))))));
 }
 
 TEST(ui_text, draw_places_each_glyph_at_the_pen)
@@ -331,13 +334,14 @@ TEST(ui_text, roboto_16_has_the_metrics_the_measured_numbers_come_from)
             (int)lh_ui_mask_get_height(lh_addr_of(cap_mask)), (int)lh_ui_font_get_top(font, 'x'),
             (int)lh_ui_font_get_ink_top(font, 'x'), (int)lh_ui_font_get_ink_bottom(font, 'x'),
             (int)lh_ui_mask_get_height(lh_addr_of(x_mask)),
-            (int)lh_ui_size_get_width(lh_addr_of(size)), (int)lh_ui_size_get_height(lh_addr_of(size)),
-            (int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(ink))),
-            (int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(ink))) +
-                (int)lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(ink))),
+            (int)lh_ui_size_get_width(lh_addr_of(size)),
+            (int)lh_ui_size_get_height(lh_addr_of(size)),
+            (int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(ink))),
+            (int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(ink))) +
+                (int)lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(ink))),
             (int)lh_ui_text_get_ink_top(font, text));
 
-    EXPECT_EQ(lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(ink))), 15)
+    EXPECT_EQ(lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(ink))), 15)
         << "the run has no ink, so nothing below it means anything";
 
     /* These are the numbers the project's own measurements are written in — the
@@ -403,20 +407,20 @@ TEST(ui_text, russian_is_measured_and_drawn_and_not_skipped)
     {
         const lh_ui_rect_t *mask = lh_addr_of(log.masks[i]);
 
-        EXPECT_GT(lh_cast_static(int, lh_ui_size_get_width(lh_ui_rect_get_size_as_const(mask))), 0)
+        EXPECT_GT(lh_cast_static(int, lh_ui_size_get_width(lh_ui_rect_get_size(mask))), 0)
             << "letter " << i << " drew a mask with no width";
-        EXPECT_GT(lh_cast_static(int, lh_ui_size_get_height(lh_ui_rect_get_size_as_const(mask))), 0)
+        EXPECT_GT(lh_cast_static(int, lh_ui_size_get_height(lh_ui_rect_get_size(mask))), 0)
             << "letter " << i << " drew a mask with no height";
         if (i > 0)
         {
-            EXPECT_GT(lh_cast_static(int, lh_ui_rect_get_origin_as_const(mask)->x),
-                      lh_cast_static(int, lh_ui_rect_get_origin_as_const(lh_addr_of(log.masks[i - 1]))->x))
+            EXPECT_GT(lh_cast_static(int, lh_ui_rect_get_origin(mask)->x),
+                      lh_cast_static(int, lh_ui_rect_get_origin(lh_addr_of(log.masks[i - 1]))->x))
                 << "letter " << i << " did not move the pen";
         }
     }
-    EXPECT_EQ(lh_cast_static(int, lh_ui_point_get_x(lh_ui_rect_get_origin_as_const(
-                                  lh_addr_of(log.masks[5]))) +
-                              lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_addr_of(log.masks[5])))),
+    EXPECT_EQ(lh_cast_static(
+                  int, lh_ui_point_get_x(lh_ui_rect_get_origin(lh_addr_of(log.masks[5]))) +
+                           lh_ui_size_get_width(lh_ui_rect_get_size(lh_addr_of(log.masks[5])))),
               10 + summed)
         << "the pen ended somewhere other than the width the text measured";
 }
@@ -491,7 +495,7 @@ TEST(ui_text, wrapped_lines_are_drawn_and_a_centred_line_is_centred_on_its_own)
     lh_ui_text_draw_wrapped(lh_addr_of(canvas), font, "AAA A", origin, lh_addr_of(color), lh_ui_scalar(10),
                             lh_ui_text_align_h_center);
     ASSERT_EQ(log.mask_count, 4);
-    EXPECT_EQ((int)lh_ui_point_get_x(lh_ui_rect_get_origin_as_const(lh_addr_of(log.masks[0]))), 0);
-    EXPECT_EQ((int)lh_ui_point_get_x(lh_ui_rect_get_origin_as_const(lh_addr_of(log.masks[3]))), 3)
+    EXPECT_EQ((int)lh_ui_point_get_x(lh_ui_rect_get_origin(lh_addr_of(log.masks[0]))), 0);
+    EXPECT_EQ((int)lh_ui_point_get_x(lh_ui_rect_get_origin(lh_addr_of(log.masks[3]))), 3)
         << "the one-letter line is centred under the three-letter one";
 }

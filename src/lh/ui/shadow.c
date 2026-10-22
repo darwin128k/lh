@@ -101,8 +101,8 @@ lh_s64_t
 lh_ui_shadow_signed_distance(lh_s64_t px, lh_s64_t py, const lh_ui_rect_t *rect,
                              lh_ui_scalar_t radius)
 {
-    const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
-    const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
+    const lh_ui_point_t *origin = lh_ui_rect_get_origin(rect);
+    const lh_ui_size_t *size = lh_ui_rect_get_size(rect);
     const lh_s64_t r = lh_ui_radius_to_fixed(lh_ui_radius_clamp(rect, radius));
     const lh_s64_t lo_x = lh_ui_radius_to_fixed(lh_ui_point_get_x(origin));
     const lh_s64_t hi_x = lo_x + lh_ui_radius_to_fixed(lh_ui_size_get_width(size));
@@ -203,13 +203,13 @@ lh_ui_shadow_alpha_at(const lh_ui_shadow_t *self, lh_ui_scalar_t x, lh_ui_scalar
 
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(rect);
-    size = lh_ui_rect_get_size_as_const(rect);
+    size = lh_ui_rect_get_size(rect);
     if (self->spread <= 0 || peak == 0 || lh_ui_rect_is_empty(rect))
     {
         return 0;
     }
 
-    origin = lh_ui_rect_get_origin_as_const(rect);
+    origin = lh_ui_rect_get_origin(rect);
     /* Inside the box the fill owns the pixel, but the edge itself is not the
        fill's: a square box is half-open, and a rounded one asks the distance and
        compares it strictly, so the pixel the edge runs through carries the shadow

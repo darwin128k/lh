@@ -16,7 +16,7 @@
  * ::lh_os_module_close stops first: the methods live inside the image and
  * must never run after it is unmapped.
  *
- * The image is an ::lh_os_shared_t (::lh_os_module_get_image_as_const):
+ * The image is an ::lh_os_shared_t (::lh_os_module_get_image):
  * opening it, holding its one OS reference and giving that back is its job.
  * The image functions here (open, bind, get_sym, …) hand over to it and add
  * only what the lifecycle needs — close stops first.
@@ -104,20 +104,20 @@ lh_os_module_destroy(lh_os_module_t *self);
 /* -- accessors ------------------------------------------------------------- */
 
 lh_os_shared_t *
-lh_os_module_get_image(lh_os_module_t *self);
+lh_os_module_get_image_mut(lh_os_module_t *self);
 
 /**
  * @brief The module's image. Read-only: the module opens and closes it,
  *        so the image never changes under a started module.
  */
 const lh_os_shared_t *
-lh_os_module_get_image_as_const(const lh_os_module_t *self);
+lh_os_module_get_image(const lh_os_module_t *self);
 
 /**
- * @brief Path of the module's image (::lh_os_shared_get_path_as_const).
+ * @brief Path of the module's image (::lh_os_shared_get_path).
  */
 const lh_fs_path_t *
-lh_os_module_get_path_as_const(const lh_os_module_t *self);
+lh_os_module_get_path(const lh_os_module_t *self);
 
 /**
  * @brief Raw handle, or ::LH_OS_SYSTEM_SHARED_HANDLE_INVALID when no image is open.

@@ -39,7 +39,7 @@ lh_ui_frame_area(const lh_ui_rect_t *rect)
     lh_s64_t h;
 
     lh_assert_runtime_ref(rect);
-    size = lh_ui_rect_get_size_as_const(rect);
+    size = lh_ui_rect_get_size(rect);
     w = lh_cast_static(lh_s64_t, lh_ui_size_get_width(size));
     h = lh_cast_static(lh_s64_t, lh_ui_size_get_height(size));
     lh_return_if(w <= 0 || h <= 0, 0U);

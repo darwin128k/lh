@@ -76,14 +76,14 @@ lh_os_shared_get_handle(const lh_os_shared_t *self);
 
 /** The path of the image @p self holds, to change. */
 lh_fs_path_t *
-lh_os_shared_get_path(lh_os_shared_t *self);
+lh_os_shared_get_path_mut(lh_os_shared_t *self);
 
 /**
  * @brief Path of the image. Written only by open / bind, so it always names
  *        the image behind the handle.
  */
 const lh_fs_path_t *
-lh_os_shared_get_path_as_const(const lh_os_shared_t *self);
+lh_os_shared_get_path(const lh_os_shared_t *self);
 
 /** True when @p self holds no image yet; otherwise sets the last OS error to "already open". */
 lh_bool_t

@@ -27,8 +27,8 @@ lh_ui_shadow_shape_init(lh_ui_shadow_shape_t *self, const lh_ui_shadow_t *shadow
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(shadow);
     lh_assert_runtime_ref(rect);
-    origin = lh_ui_rect_get_origin_as_const(rect);
-    size = lh_ui_rect_get_size_as_const(rect);
+    origin = lh_ui_rect_get_origin(rect);
+    size = lh_ui_rect_get_size(rect);
     self->box = lh_ptr_deref(rect);
     self->corner = lh_ui_radius_clamp(rect, radius);
     self->box_x0 = lh_ui_canvas_round_left(rect);

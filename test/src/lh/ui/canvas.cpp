@@ -167,10 +167,10 @@ TEST(ui_canvas, a_sheet_across_the_strip_line_is_refused_until_the_part_holds_it
     /* And the sheet reaches the slot whole, in the buffer's own space. */
     EXPECT_EQ(log.glass, 1);
     EXPECT_TRUE(lh_test::rect_is(log.at, lh_test::rect_of(360, 16, 240, 40)))
-        << "at " << (int)lh_ui_point_get_x(lh_ui_rect_get_origin_as_const(lh_addr_of(log.at))) << ","
-        << (int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(log.at))) << " size "
-        << (int)lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_addr_of(log.at))) << "x"
-        << (int)lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(log.at)));
+        << "at " << (int)lh_ui_point_get_x(lh_ui_rect_get_origin(lh_addr_of(log.at))) << ","
+        << (int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(log.at))) << " size "
+        << (int)lh_ui_size_get_width(lh_ui_rect_get_size(lh_addr_of(log.at))) << "x"
+        << (int)lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(log.at)));
 }
 
 /* Two kinds of slot, one clip. A rounded box is a shape: the backend may have it
@@ -328,14 +328,13 @@ TEST(ui_canvas, end_is_handed_the_clips_the_frame_was_cut_to)
     lh_ui_canvas_end(lh_addr_of(canvas));
 
     EXPECT_EQ(lh_ui_rects_get_count(lh_addr_of(log.drawn)), lh_u32_t(2));
-    EXPECT_TRUE(lh_test::rect_is(*lh_ui_rects_get_as_const(lh_addr_of(log.drawn), 0), first_in_buffer))
+    EXPECT_TRUE(lh_test::rect_is(*lh_ui_rects_get(lh_addr_of(log.drawn), 0), first_in_buffer))
         << "the first cut, in the buffer's own space";
-    EXPECT_TRUE(lh_test::rect_is(*lh_ui_rects_get_as_const(lh_addr_of(log.drawn), 1), second_in_buffer))
+    EXPECT_TRUE(lh_test::rect_is(*lh_ui_rects_get(lh_addr_of(log.drawn), 1), second_in_buffer))
         << "the second cut, in the buffer's own space";
     /* The gap between them is not in either entry, and nothing in the frame drew
        it: the union of the two would be 240 wide. */
-    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_ui_rects_get_as_const(
-                 lh_addr_of(log.drawn), 0))),
+    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size(lh_ui_rects_get(lh_addr_of(log.drawn), 0))),
               lh_ui_scalar(80));
     /* Both pops were forwarded: an absent clip is a value the slot accepts, not a
        call it misses. */
@@ -429,8 +428,8 @@ lh_void
 target_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t *color)
 {
     alpha_target *target = lh_ptr_rcast(alpha_target, context);
-    const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
-    const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
+    const lh_ui_point_t *origin = lh_ui_rect_get_origin(rect);
+    const lh_ui_size_t *size = lh_ui_rect_get_size(rect);
     const int x0 = static_cast<int>(lh_ui_point_get_x(origin));
     const int y0 = static_cast<int>(lh_ui_point_get_y(origin));
     const int w = static_cast<int>(lh_ui_size_get_width(size));

@@ -80,8 +80,7 @@ lh_ui_view_fit_canvas(lh_ui_view_t *self)
 
     lh_return_if(lh_null_eq(self->root));
     lh_ui_entity_get_rect(self->root, lh_addr_of(rect));
-    lh_ui_canvas_set_size(self->canvas,
-                          lh_ptr_deref(lh_ui_rect_get_size_as_const(lh_addr_of(rect))));
+    lh_ui_canvas_set_size(self->canvas, lh_ptr_deref(lh_ui_rect_get_size(lh_addr_of(rect))));
 }
 
 lh_void

@@ -109,7 +109,7 @@ TEST(entity_scrollbar, thumb_never_gets_shorter_than_the_minimum)
     bar_fixture f(10000);
 
     const lh_ui_rect_t thumb = thumb_of(f);
-    EXPECT_EQ(lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(thumb))),
+    EXPECT_EQ(lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(thumb))),
               LH_UI_SCROLLBAR_THUMB_MIN);
 }
 

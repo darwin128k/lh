@@ -28,7 +28,7 @@ BM_math_rect_intersects(benchmark::State &state)
     for (auto _ : state)
     {
         benchmark::DoNotOptimize(lh_math_rect_intersects(lh_addr_of(a), lh_addr_of(b)));
-        lh_math_point_t *origin = lh_math_rect_get_origin(lh_addr_of(b));
+        lh_math_point_t *origin = lh_math_rect_get_origin_mut(lh_addr_of(b));
         lh_math_point_set_x(origin, static_cast<lh_math_scalar_t>((lh_math_point_get_x(origin) + 1) % 150));
     }
 }
@@ -44,7 +44,7 @@ BM_math_rect_intersection(benchmark::State &state)
     {
         lh_math_rect_t out = lh_math_rect_intersection(lh_addr_of(a), lh_addr_of(b));
         benchmark::DoNotOptimize(out);
-        lh_math_point_t *origin = lh_math_rect_get_origin(lh_addr_of(b));
+        lh_math_point_t *origin = lh_math_rect_get_origin_mut(lh_addr_of(b));
         lh_math_point_set_x(origin, static_cast<lh_math_scalar_t>((lh_math_point_get_x(origin) + 1) % 150));
     }
 }
@@ -60,7 +60,7 @@ BM_math_rect_union(benchmark::State &state)
     {
         lh_math_rect_t out = lh_math_rect_union(lh_addr_of(a), lh_addr_of(b));
         benchmark::DoNotOptimize(out);
-        lh_math_point_t *origin = lh_math_rect_get_origin(lh_addr_of(b));
+        lh_math_point_t *origin = lh_math_rect_get_origin_mut(lh_addr_of(b));
         lh_math_point_set_x(origin, static_cast<lh_math_scalar_t>((lh_math_point_get_x(origin) + 1) % 150));
     }
 }

@@ -238,10 +238,10 @@ TEST(entity_image, a_wrap_place_gets_the_picture_its_own_width)
     /* Along the row the picture is as long as what it shows. Across the row a
        child keeps the size it was given — that is the flow's rule, not the
        image's, so the height here is the 3 it was handed. */
-    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size_as_const(&picture_rect)), 4)
+    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size(&picture_rect)), 4)
         << "the flow stretched the picture to the box it was given";
-    EXPECT_EQ(lh_ui_size_get_height(lh_ui_rect_get_size_as_const(&picture_rect)), 3);
-    EXPECT_EQ(lh_ui_point_get_x(lh_ui_rect_get_origin_as_const(&caption_rect)), start + 4 + 4)
+    EXPECT_EQ(lh_ui_size_get_height(lh_ui_rect_get_size(&picture_rect)), 3);
+    EXPECT_EQ(lh_ui_point_get_x(lh_ui_rect_get_origin(&caption_rect)), start + 4 + 4)
         << "the caption did not follow the picture";
 }
 

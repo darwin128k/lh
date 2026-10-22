@@ -43,13 +43,13 @@ lh_timer_group_deinit(lh_timer_group_t *self);
  * @brief Intrusive list of running timers. Owns no timer memory.
  */
 lh_list_t *
-lh_timer_group_get_timers(lh_timer_group_t *self);
+lh_timer_group_get_timers_mut(lh_timer_group_t *self);
 
 /**
  * @brief Const intrusive list of running timers. Owns no timer memory.
  */
 const lh_list_t *
-lh_timer_group_get_timers_as_const(const lh_timer_group_t *self);
+lh_timer_group_get_timers(const lh_timer_group_t *self);
 
 /**
  * @brief Fire every due timer for @p now.

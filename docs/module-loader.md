@@ -199,7 +199,7 @@ lh gives the pieces to build such a policy portably:
 
 | Need                                   | Use                                              |
 |----------------------------------------|--------------------------------------------------|
-| Where the program itself lives          | `lh_os_module_get_path_as_const(&root)`          |
+| Where the program itself lives          | `lh_os_module_get_path(&root)`          |
 | The directory of a file                 | `lh_fs_path_parent`                              |
 | Build a path                            | `lh_fs_path_join`                                |
 | List a directory                        | `lh_os_fs_dir_t` (`open` / `read` / `close`)      |
@@ -346,7 +346,7 @@ on every OS. On Windows the backend talks to the kernel only through the
 `...W` functions and converts UTF-8 ⇄ UTF-16 at that boundary; the `...A`
 functions are never used, because they read the ANSI code page (cp1251,
 cp1252, …) rather than UTF-8. So `Папка-日本/модуль.dll` loads the same on a
-Russian, an English or a Japanese Windows, and `lh_os_module_get_path_as_const`
+Russian, an English or a Japanese Windows, and `lh_os_module_get_path`
 returns it byte for byte. With `LH_LIBRARY_OPTION_OS_WERROR` on, native error
 messages are UTF-16 instead (that option's purpose).
 

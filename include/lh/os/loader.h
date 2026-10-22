@@ -94,11 +94,11 @@ lh_os_loader_unload(lh_os_loader_t *self);
 
 /** The list of modules @p self has loaded. */
 lh_list_t *
-lh_os_loader_get_modules(lh_os_loader_t *self);
+lh_os_loader_get_modules_mut(lh_os_loader_t *self);
 
 /** The list of modules @p self has loaded, read-only. */
 const lh_list_t *
-lh_os_loader_get_modules_as_const(const lh_os_loader_t *self);
+lh_os_loader_get_modules(const lh_os_loader_t *self);
 
 /**
  * @brief The module holding this privilege.

@@ -929,7 +929,7 @@ TEST(entity, root_offset_and_local_follow_every_scrolled_ancestor)
     EXPECT_EQ(lh_ui_point_get_y(lh_addr_of(point)), lh_ui_scalar(30));
 
     rect = lh_test::out(lh_ui_entity_get_root_rect, lh_addr_of(leaf));
-    EXPECT_EQ(lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(rect))), lh_ui_scalar(20));
+    EXPECT_EQ(lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(rect))), lh_ui_scalar(20));
 }
 
 TEST(entity, add_damage_puts_the_rect_in_the_root_space)

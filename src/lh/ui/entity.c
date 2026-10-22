@@ -790,7 +790,7 @@ lh_ui_entity_move_by(lh_ui_entity_t *self, lh_ui_scalar_t dx, lh_ui_scalar_t dy)
 lh_void
 lh_ui_entity_move_to(lh_ui_entity_t *self, lh_ui_point_t origin)
 {
-    const lh_ui_point_t *from = lh_ui_rect_get_origin_as_const(lh_addr_of(self->rect));
+    const lh_ui_point_t *from = lh_ui_rect_get_origin(lh_addr_of(self->rect));
 
     lh_ui_entity_move_by(self, lh_ui_point_get_x(lh_addr_of(origin)) - lh_ui_point_get_x(from),
                          lh_ui_point_get_y(lh_addr_of(origin)) - lh_ui_point_get_y(from));
@@ -894,8 +894,8 @@ lh_ui_entity_draw_border(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
     color = lh_ui_paint_get_color(lh_ui_style_get_border_fill(style));
     lh_return_if(lh_null_eq(color));
     lh_ui_entity_get_rect(self, lh_addr_of(rect));
-    origin = lh_ui_rect_get_origin_as_const(lh_addr_of(rect));
-    size = lh_ui_rect_get_size_as_const(lh_addr_of(rect));
+    origin = lh_ui_rect_get_origin(lh_addr_of(rect));
+    size = lh_ui_rect_get_size(lh_addr_of(rect));
     x = lh_ui_point_get_x(origin);
     y = lh_ui_point_get_y(origin);
     width = lh_ui_size_get_width(size);

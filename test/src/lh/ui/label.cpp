@@ -213,9 +213,9 @@ TEST(entity_label, centring_puts_the_cap_line_on_the_middle_of_the_box)
     EXPECT_EQ(lh_ui_point_get_y(lh_addr_of(origin)) + lh_ui_size_get_height(lh_addr_of(size)) / 2, middle);
     /* And the two are genuinely different things, so a pass here cannot be the ink
        passing: the tail of the 'p' hangs below the box. */
-    EXPECT_GT(lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(ink))),
+    EXPECT_GT(lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(ink))),
               lh_ui_size_get_height(lh_addr_of(size)));
-    EXPECT_EQ(lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(ink))),
+    EXPECT_EQ(lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(ink))),
               lh_ui_point_get_y(lh_addr_of(origin)));
 }
 
@@ -265,8 +265,8 @@ TEST(entity_label, the_ink_is_not_cut_by_the_box_the_text_is_centred_in)
     lh_ui_style_set_text(lh_addr_of(style), lh_addr_of(text_paint));
     lh_ui_entity_set_style(lh_ui_label_as_entity(lh_addr_of(label)), lh_addr_of(style));
     ink = lh_test::out(lh_ui_label_get_text_rect, lh_addr_of(label));
-    box_bottom = lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(box))) +
-                 lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(box)));
+    box_bottom = lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(box))) +
+                 lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(box)));
 
     lh_ui_canvas_begin(lh_addr_of(canvas));
     lh_ui_entity_draw(lh_ui_label_as_entity(lh_addr_of(label)), lh_addr_of(canvas));
@@ -274,8 +274,8 @@ TEST(entity_label, the_ink_is_not_cut_by_the_box_the_text_is_centred_in)
 
     /* Denominator first: the tail has to reach below the box, or nothing below it
        would prove anything. */
-    EXPECT_GT(lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(ink))) +
-                  lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(ink))),
+    EXPECT_GT(lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(ink))) +
+                  lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(ink))),
               box_bottom);
     lit_below = lh_ui_scalar(0);
     for (int y = static_cast<int>(box_bottom); y < 40; ++y)
@@ -318,10 +318,10 @@ TEST(entity_label, a_label_shows_on_a_clip_that_catches_only_the_ink_below_its_b
 
     /* Denominator first: the tail has to be under the box, or the clip below
        catches the box too and the whole test would pass on its own. */
-    box_bottom = lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(box))) +
-                 lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(box)));
-    ink_bottom = lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(ink))) +
-                 lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(ink)));
+    box_bottom = lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(box))) +
+                 lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(box)));
+    ink_bottom = lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(ink))) +
+                 lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(ink)));
     EXPECT_GT(ink_bottom, box_bottom);
 
     lh_ui_rect_init(lh_addr_of(tail), 0, box_bottom, 132, ink_bottom - box_bottom);
@@ -532,8 +532,8 @@ struct label_in_view
     static lh_ui_scalar_t
     right_of(const lh_ui_rect_t *r)
     {
-        return lh_ui_point_get_x(lh_ui_rect_get_origin_as_const(r)) +
-               lh_ui_size_get_width(lh_ui_rect_get_size_as_const(r));
+        return lh_ui_point_get_x(lh_ui_rect_get_origin(r)) +
+               lh_ui_size_get_width(lh_ui_rect_get_size(r));
     }
 
     lh_ui_scalar_t
@@ -638,8 +638,8 @@ TEST(ui_label, a_label_that_wraps_breaks_its_text_at_its_padded_width)
     lh_ui_label_drop_metrics(&label);
     const lh_ui_rect_t three = lh_test::out(lh_ui_label_get_text_rect, &label);
 
-    EXPECT_EQ(lh_ui_size_get_height(lh_ui_rect_get_size_as_const(&three)),
-              lh_ui_size_get_height(lh_ui_rect_get_size_as_const(&one)) +
+    EXPECT_EQ(lh_ui_size_get_height(lh_ui_rect_get_size(&three)),
+              lh_ui_size_get_height(lh_ui_rect_get_size(&one)) +
                   2 * lh_ui_scalar_of(lh_ui_font_get_line_height(font)));
-    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size_as_const(&three)), lh_ui_scalar(6));
+    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size(&three)), lh_ui_scalar(6));
 }

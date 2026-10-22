@@ -75,7 +75,7 @@ lh_ui_blur_window_average(const lh_ui_blur_window_t *self, lh_s32_t channel, lh_
 lh_usize_t
 lh_ui_blur_scratch_size(const lh_ui_rect_t *rect, lh_s32_t radius)
 {
-    const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
+    const lh_ui_size_t *size = lh_ui_rect_get_size(rect);
     lh_s32_t rows;
 
     if (lh_ui_rect_is_empty(rect))
@@ -176,8 +176,8 @@ lh_ui_blur_row_x(const lh_ui_pixmap_t *pixmap, lh_s32_t y, lh_s32_t left, lh_s32
 lh_void
 lh_ui_blur_rows(lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_s32_t radius, lh_u8_t *scratch)
 {
-    const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
-    const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
+    const lh_ui_point_t *origin = lh_ui_rect_get_origin(rect);
+    const lh_ui_size_t *size = lh_ui_rect_get_size(rect);
     const lh_s32_t left = lh_ui_point_get_x(origin);
     const lh_s32_t top = lh_ui_point_get_y(origin);
     const lh_s32_t width = lh_ui_size_get_width(size);
@@ -276,8 +276,8 @@ lh_ui_blur_pass_init(const lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_
                      const lh_u8_t *scratch, const lh_ui_rect_t *shape, lh_ui_scalar_t corner,
                      lh_ui_blur_pass_t *out)
 {
-    const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
-    const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
+    const lh_ui_point_t *origin = lh_ui_rect_get_origin(rect);
+    const lh_ui_size_t *size = lh_ui_rect_get_size(rect);
 
     lh_assert_runtime_ref(out);
     out->scratch = scratch;

@@ -29,7 +29,7 @@ lh_ui_rects_get_count(const lh_ui_rects_t *self)
 }
 
 const lh_ui_rect_t *
-lh_ui_rects_get_as_const(const lh_ui_rects_t *self, lh_u32_t index)
+lh_ui_rects_get(const lh_ui_rects_t *self, lh_u32_t index)
 {
     lh_assert_runtime_ref(self);
     lh_return_if(index >= self->count, lh_null);
@@ -42,7 +42,7 @@ lh_ui_rects_area(const lh_ui_rect_t *rect)
     const lh_ui_size_t *size;
 
     lh_assert_runtime_ref(rect);
-    size = lh_ui_rect_get_size_as_const(rect);
+    size = lh_ui_rect_get_size(rect);
     return lh_ui_size_get_width(size) * lh_ui_size_get_height(size);
 }
 

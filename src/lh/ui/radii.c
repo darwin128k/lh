@@ -69,7 +69,7 @@ lh_ui_radii_clamp(const lh_ui_radii_t *self, const lh_ui_rect_t *rect, lh_ui_rad
 
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(rect);
-    size = lh_ui_rect_get_size_as_const(rect);
+    size = lh_ui_rect_get_size(rect);
     width = lh_ui_size_get_width(size);
     height = lh_ui_size_get_height(size);
     result = lh_ptr_deref(self);
@@ -113,8 +113,8 @@ lh_ui_radii_clamp(const lh_ui_radii_t *self, const lh_ui_rect_t *rect, lh_ui_rad
 lh_ui_scalar_t
 lh_ui_radii_get_at(const lh_ui_radii_t *self, const lh_ui_rect_t *rect, lh_s32_t x, lh_s32_t y)
 {
-    const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
-    const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
+    const lh_ui_point_t *origin = lh_ui_rect_get_origin(rect);
+    const lh_ui_size_t *size = lh_ui_rect_get_size(rect);
     /* Pixel centres against the middle, both doubled, so an odd box has no half. */
     const lh_bool_t left = lh_cast_static(lh_ui_scalar_t, (2 * x + 1)) <
                                    2 * lh_ui_point_get_x(origin) + lh_ui_size_get_width(size)

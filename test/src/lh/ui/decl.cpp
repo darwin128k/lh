@@ -314,16 +314,15 @@ TEST(ui_decl, a_tree_from_a_table_is_the_tree_written_by_hand)
         {
             const lh_ui_rect_t *a = &hand.rects[i];
             const lh_ui_rect_t *b = &from_decl.rects[i];
-            fprintf(stderr,
-                    "        row %d: hand (%d,%d %dx%d), declared (%d,%d %dx%d)\n", i,
-                    (int)lh_ui_point_get_x(lh_ui_rect_get_origin_as_const(lh_addr_of(lh_ptr_deref(a)))),
-                    (int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(lh_ptr_deref(a)))),
-                    (int)lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_addr_of(lh_ptr_deref(a)))),
-                    (int)lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(lh_ptr_deref(a)))),
-                    (int)lh_ui_point_get_x(lh_ui_rect_get_origin_as_const(lh_addr_of(lh_ptr_deref(b)))),
-                    (int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(lh_ptr_deref(b)))),
-                    (int)lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_addr_of(lh_ptr_deref(b)))),
-                    (int)lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(lh_ptr_deref(b)))));
+            fprintf(stderr, "        row %d: hand (%d,%d %dx%d), declared (%d,%d %dx%d)\n", i,
+                    (int)lh_ui_point_get_x(lh_ui_rect_get_origin(lh_addr_of(lh_ptr_deref(a)))),
+                    (int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(lh_ptr_deref(a)))),
+                    (int)lh_ui_size_get_width(lh_ui_rect_get_size(lh_addr_of(lh_ptr_deref(a)))),
+                    (int)lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(lh_ptr_deref(a)))),
+                    (int)lh_ui_point_get_x(lh_ui_rect_get_origin(lh_addr_of(lh_ptr_deref(b)))),
+                    (int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(lh_ptr_deref(b)))),
+                    (int)lh_ui_size_get_width(lh_ui_rect_get_size(lh_addr_of(lh_ptr_deref(b)))),
+                    (int)lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(lh_ptr_deref(b)))));
             ADD_FAILURE() << "row " << i << " is not where the hand-written tree put it";
         }
     }

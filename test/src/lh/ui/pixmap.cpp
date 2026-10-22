@@ -64,8 +64,8 @@ TEST(ui_pixmap, init_keeps_shape_and_rows_follow_the_stride)
     EXPECT_EQ(lh_ui_pixmap_get_row(lh_addr_of(f.pixmap), 2), lh_ptr_rcast(lh_byte_t, f.words) + 2 * 20);
     EXPECT_EQ(lh_ui_pixmap_get_address(lh_addr_of(f.pixmap), 3, 1), lh_ptr_rcast(lh_byte_t, f.words) + 20 + 12);
     const lh_ui_rect_t bounds = lh_test::out(lh_ui_pixmap_get_bounds, lh_addr_of(f.pixmap));
-    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_addr_of(bounds))), 4);
-    EXPECT_EQ(lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(bounds))), 3);
+    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size(lh_addr_of(bounds))), 4);
+    EXPECT_EQ(lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(bounds))), 3);
 }
 
 TEST(ui_pixmap, format_sizes)

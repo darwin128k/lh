@@ -14,11 +14,11 @@
 
 /** @brief The head node of @p self. */
 lh_list_node_t *
-lh_list_get_head(lh_list_t *self);
+lh_list_get_head_mut(lh_list_t *self);
 
 /** @brief The head node of @p self, read-only. */
 const lh_list_node_t *
-lh_list_get_head_as_const(const lh_list_t *self);
+lh_list_get_head(const lh_list_t *self);
 
 /** @brief @p node as an element of @p self: ::lh_null for the head, where walking stops. */
 lh_list_node_t *

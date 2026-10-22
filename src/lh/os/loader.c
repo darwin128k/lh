@@ -7,14 +7,14 @@
 /* -- accessors ------------------------------------------------------------- */
 
 lh_list_t *
-lh_os_loader_get_modules(lh_os_loader_t *self)
+lh_os_loader_get_modules_mut(lh_os_loader_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->modules);
 }
 
 const lh_list_t *
-lh_os_loader_get_modules_as_const(const lh_os_loader_t *self)
+lh_os_loader_get_modules(const lh_os_loader_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->modules);
@@ -55,7 +55,7 @@ lh_void
 lh_os_loader_init(lh_os_loader_t *self, lh_os_module_t *owner, lh_str_cptr entry)
 {
     lh_assert_runtime_ref(entry);
-    lh_list_init(lh_os_loader_get_modules(self));
+    lh_list_init(lh_os_loader_get_modules_mut(self));
     lh_os_loader_set_owner(self, owner);
     lh_str_view_t view;
     lh_str_view_init(lh_addr_of(view), entry);
@@ -65,7 +65,7 @@ lh_os_loader_init(lh_os_loader_t *self, lh_os_module_t *owner, lh_str_cptr entry
 lh_void
 lh_os_loader_unload(lh_os_loader_t *self)
 {
-    lh_list_t *const modules = lh_os_loader_get_modules(self);
+    lh_list_t *const modules = lh_os_loader_get_modules_mut(self);
 
     /* Last loaded first: a later child may depend on an earlier one. */
     for (lh_os_module_t *child = lh_os_module_get_by_node(lh_list_pop_back(modules));
@@ -147,7 +147,7 @@ lh_os_loader_load(lh_os_loader_t *self, const lh_fs_path_t *path)
         lh_os_module_destroy(child);
         return lh_null;
     }
-    lh_list_push_back(lh_os_loader_get_modules(self), lh_os_module_get_node(child));
+    lh_list_push_back(lh_os_loader_get_modules_mut(self), lh_os_module_get_node(child));
     return child;
 }
 
@@ -156,24 +156,24 @@ lh_os_loader_load(lh_os_loader_t *self, const lh_fs_path_t *path)
 lh_usize_t
 lh_os_loader_get_loaded(const lh_os_loader_t *self)
 {
-    return lh_list_get_size(lh_os_loader_get_modules_as_const(self));
+    return lh_list_get_size(lh_os_loader_get_modules(self));
 }
 
 lh_os_module_t *
 lh_os_loader_get_first(const lh_os_loader_t *self)
 {
-    return lh_os_module_get_by_node(lh_list_get_first(lh_os_loader_get_modules_as_const(self)));
+    return lh_os_module_get_by_node(lh_list_get_first(lh_os_loader_get_modules(self)));
 }
 
 lh_os_module_t *
 lh_os_loader_get_next(const lh_os_loader_t *self, lh_os_module_t *child)
 {
     return lh_os_module_get_by_node(
-        lh_list_get_next(lh_os_loader_get_modules_as_const(self), lh_os_module_get_node(child)));
+        lh_list_get_next(lh_os_loader_get_modules(self), lh_os_module_get_node(child)));
 }
 
 lh_os_module_t *
 lh_os_loader_get_at(const lh_os_loader_t *self, lh_uindex_t index)
 {
-    return lh_os_module_get_by_node(lh_list_get_at(lh_os_loader_get_modules_as_const(self), index));
+    return lh_os_module_get_by_node(lh_list_get_at(lh_os_loader_get_modules(self), index));
 }

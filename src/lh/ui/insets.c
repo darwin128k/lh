@@ -78,8 +78,8 @@ lh_void
 lh_ui_insets_shrink(const lh_ui_insets_t *self, const lh_ui_rect_t *rect, lh_ui_rect_t *out)
 {
     lh_assert_runtime_ref(out);
-    const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
-    const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
+    const lh_ui_point_t *origin = lh_ui_rect_get_origin(rect);
+    const lh_ui_size_t *size = lh_ui_rect_get_size(rect);
     lh_ui_rect_t inner;
 
     lh_assert_runtime_ref(self);

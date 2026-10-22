@@ -103,8 +103,8 @@ lh_ui_gradient_sampler_lerp_color(const lh_ui_gradient_sampler_lerp_t *self, lh_
 lh_s32_t
 lh_ui_gradient_sampler_stop_frac(const lh_ui_gradient_t *gradient, lh_s32_t index)
 {
-    return lh_ui_gradient_stop_get_frac(lh_ui_gradient_get_stop_as_const(
-        gradient, lh_cast_static(lh_ui_gradient_stop_count_t, index)));
+    return lh_ui_gradient_stop_get_frac(
+        lh_ui_gradient_get_stop(gradient, lh_cast_static(lh_ui_gradient_stop_count_t, index)));
 }
 
 lh_s32_t
@@ -158,9 +158,9 @@ lh_ui_gradient_sampler_fill(lh_ui_gradient_sampler_t *self)
         {
             lh_ui_gradient_sampler_lerp_init(
                 lh_addr_of(lerp),
-                lh_ui_gradient_stop_get_color_as_const(lh_ui_gradient_get_stop_as_const(
+                lh_ui_gradient_stop_get_color(lh_ui_gradient_get_stop(
                     gradient, lh_cast_static(lh_ui_gradient_stop_count_t, (segment - 1)))),
-                lh_ui_gradient_stop_get_color_as_const(lh_ui_gradient_get_stop_as_const(
+                lh_ui_gradient_stop_get_color(lh_ui_gradient_get_stop(
                     gradient, lh_cast_static(lh_ui_gradient_stop_count_t, segment))),
                 span, frac - start);
             carried = segment;
@@ -227,8 +227,8 @@ lh_ui_gradient_sampler_init(lh_ui_gradient_sampler_t *self, const lh_ui_gradient
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(gradient);
     lh_assert_runtime_ref(rect);
-    origin = lh_ui_rect_get_origin_as_const(rect);
-    size = lh_ui_rect_get_size_as_const(rect);
+    origin = lh_ui_rect_get_origin(rect);
+    size = lh_ui_rect_get_size(rect);
     self->gradient = gradient;
     lh_ui_gradient_sampler_fill(self);
     self->shape = lh_ui_gradient_get_shape(gradient);
