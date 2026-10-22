@@ -224,6 +224,13 @@
 #define LH_LIBRARY_OPTION_UI @ValUi@
 
 /**
+ * @def LH_LIBRARY_OPTION_SQL_SQLITE
+ * @brief Compile SQLite and the lh/sql SQLite backend (`lh/sql/sqlite.h`)
+ *        into lh (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).
+ */
+#define LH_LIBRARY_OPTION_SQL_SQLITE @ValSqlSqlite@
+
+/**
  * @def LH_LIBRARY_OPTION_UI_FONT_ROBOTO
  * @brief `1` when Roboto 16 px is baked in (`lh/ui/font/roboto.h`) and is the
  *        font a new ::lh_ui_style_t starts with (::LH_LIBRARY_OPTION_ON).

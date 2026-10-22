@@ -5,6 +5,7 @@
 
 #include <lh/hash/fnv.h>
 #include <lh/math.h>
+#include <lh/str/utf8.h>
 #include <lh/ui/label.h>
 #include <lh/ui/text.h>
 #include <lh/util/return.h>
@@ -411,7 +412,7 @@ lh_ui_label_shorten(const lh_ui_font_t *font, const lh_char_t *text, lh_s32_t ro
     }
     if (has_ellipsis)
     {
-        used += lh_ui_text_encode_code(out + used, size - used, 0x2026U);
+        used += lh_str_utf8_encode(out + used, size - used, 0x2026U);
     }
     else
     {

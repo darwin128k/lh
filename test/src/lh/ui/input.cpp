@@ -11,6 +11,7 @@
 #include <gtest/gtest.h>
 
 #include <lh/test/ui/tiny_font.h>
+#include <lh/str/utf8.h>
 #include <lh/ui/input.h>
 #include <lh/test/out.h>
 
@@ -228,7 +229,7 @@ TEST(entity_input, set_text_that_does_not_fit_keeps_whole_characters)
        `D0 9A`, and writing it as `code >> 8` and `code & 0xFF` gives `04 1A`,
        which is not the character at all. A constant in a test that you remembered is
        not a reference. */
-    ASSERT_EQ(lh_ui_text_encode_code(&text[2], 4U, k_cyrillic), 2U);
+    ASSERT_EQ(lh_str_utf8_encode(&text[2], 4U, k_cyrillic), 2U);
     text[4] = '\0';
 
     EXPECT_EQ(lh_ui_input_set_text(lh_addr_of(f.input), text), lh_bool_true);
@@ -242,7 +243,7 @@ TEST(entity_input, a_three_byte_character_deletes_as_a_whole_and_not_as_two_byte
     field f;
     /* U+20AC, the euro sign: a three-byte character. Its lead byte is `0xE0`, and
        `0xE0` **as a code point** is below `0x800` -- so a walk over the buffer that
-       asked `lh_ui_text_encoded_size` what a code point takes would answer two, cut
+       asked `lh_str_utf8_get_encoded_size` what a code point takes would answer two, cut
        two of the three, and leave the third behind to be read as the next character.
        Every Cyrillic letter agrees with that wrong answer, which is why a suite
        written with Cyrillic in it stays green over it. */
@@ -623,52 +624,6 @@ TEST(entity_input, a_press_counts_a_multi_byte_character_as_the_one_step_it_is)
     EXPECT_EQ(lh_ui_input_get_caret(lh_addr_of(f.input)), 3);
 }
 
-TEST(ui_text, a_code_that_is_not_encodable_is_refused)
-{
-    lh_char_t out[4];
-
-    EXPECT_EQ(lh_ui_text_encoded_size(0), 0U);                    /* the terminator */
-    EXPECT_EQ(lh_ui_text_encoded_size(0xD800U), 0U);             /* a surrogate half */
-    EXPECT_EQ(lh_ui_text_encoded_size(0xDFFFU), 0U);
-    EXPECT_EQ(lh_ui_text_encoded_size(0x110000U), 0U);           /* above the last one */
-    EXPECT_EQ(lh_ui_text_encode_code(out, 4U, 0xD800U), 0U);
-    /* A code point that does not fit is refused whole, never half of one. */
-    EXPECT_EQ(lh_ui_text_encode_code(out, 1U, k_cyrillic), 0U);
-    EXPECT_EQ(lh_ui_text_encoded_size(k_cyrillic), 2U);
-    EXPECT_EQ(lh_ui_text_encoded_size(0x41U), 1U);
-    EXPECT_EQ(lh_ui_text_encoded_size(0x800U), 3U);
-    EXPECT_EQ(lh_ui_text_encoded_size(0x10000U), 4U);
-}
-
-TEST(ui_text, the_size_of_a_character_is_read_off_its_lead_byte_and_not_off_its_code)
-{
-    /* The two questions, side by side, because answering one with the other is the
-       bug: `0xD0` and `0xE0` are the lead bytes of a two-byte and a three-byte
-       character, and **as code points both are below 0x800**, so the wrong function
-       says 2 for both. It is right about the Cyrillic one and wrong about the euro. */
-    EXPECT_EQ(lh_ui_text_lead_size(0x41U), 1U);   /* 'A' */
-    EXPECT_EQ(lh_ui_text_lead_size(0x7FU), 1U);   /* DEL, still one byte */
-    EXPECT_EQ(lh_ui_text_lead_size(0xD0U), 2U);   /* U+041A */
-    EXPECT_EQ(lh_ui_text_lead_size(0xE0U), 3U);   /* U+20AC */
-    EXPECT_EQ(lh_ui_text_lead_size(0xEDU), 3U);   /* U+D000 range, still three */
-    EXPECT_EQ(lh_ui_text_lead_size(0xF0U), 4U);   /* U+1F600 */
-    EXPECT_EQ(lh_ui_text_lead_size(0xF4U), 4U);
-
-    /* A continuation byte, a stray byte above the range and a zero are one byte:
-       the walk is one byte at a time over these, and skipping more would step over a
-       character somebody can see. */
-    EXPECT_EQ(lh_ui_text_lead_size(0x80U), 1U);
-    EXPECT_EQ(lh_ui_text_lead_size(0xBFU), 1U);
-    EXPECT_EQ(lh_ui_text_lead_size(0xF8U), 1U);
-    EXPECT_EQ(lh_ui_text_lead_size(0x00U), 1U);
-
-    /* And the honest disagreement, spelled out: what the two functions say about the
-       three bytes that are not ASCII. */
-    EXPECT_EQ(lh_ui_text_encoded_size(0xD0U), 2U); /* agrees by coincidence */
-    EXPECT_EQ(lh_ui_text_encoded_size(0xE0U), 2U); /* **wrong**, and the reason */
-    EXPECT_EQ(lh_ui_text_lead_size(0xE0U), 3U);    /* the answer */
-}
-
 TEST(ui_text, an_encoded_code_reads_back_as_the_same_code)
 {
     const lh_u32_t codes[] = {0x41U, 0x7FU, 0x80U, 0x800U, 0xFFFFU, 0x10000U, 0x10FFFFU, k_cyrillic};
@@ -677,9 +632,9 @@ TEST(ui_text, an_encoded_code_reads_back_as_the_same_code)
     {
         lh_char_t out[8];
         const lh_char_t *cursor = out;
-        const lh_u32_t written = lh_ui_text_encode_code(out, 8U, code);
+        const lh_u32_t written = lh_str_utf8_encode(out, 8U, code);
 
-        ASSERT_EQ(written, lh_ui_text_encoded_size(code));
+        ASSERT_EQ(written, lh_str_utf8_get_encoded_size(code));
         out[written] = '\0';
         EXPECT_EQ(lh_ui_text_next_code(lh_addr_of(cursor)), code);
         EXPECT_EQ(lh_ui_text_next_code(lh_addr_of(cursor)), 0U);

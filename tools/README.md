@@ -82,3 +82,18 @@ Unicode data files in `data/unicode/`:
 - `UnicodeData-16.0.0.txt`
 
 Download from [unicode.org](https://www.unicode.org/Public/UCD/latest/) (UCD Database). Refresh when bumping UCD version.
+
+## Number Conversion Tables
+
+Computes the two tables `lh/real` converts numbers with, in exact Python integers
+(nothing to download), and writes their initializers into the `.c` files:
+
+- `m_real_power5` — 128-bit powers of five for Eisel–Lemire (`lh_str_ptr_parse_real`),
+  the same table as fast_float's;
+- `m_real_cached` — cached powers of ten for Grisu2 (`lh_str_ptr_format_real`),
+  the same table as RapidJSON's.
+
+```sh
+python3 gen_real_tables.py
+```
+Writes to `src/lh/real/power5.c` and `src/lh/real/cached.c`.

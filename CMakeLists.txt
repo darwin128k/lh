@@ -95,6 +95,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/numeric/fixed/limits.c
         ${LH_LIB_SRC_PATH}/numeric/parse/bytes.c
         ${LH_LIB_SRC_PATH}/numeric/big.c
+        ${LH_LIB_SRC_PATH}/numeric/mul.c
 
         ${LH_LIB_SRC_PATH}/cpu/cache.c
         ${LH_LIB_SRC_PATH}/cpu/id.c
@@ -116,10 +117,26 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/array.c
         ${LH_LIB_SRC_PATH}/list.c
         ${LH_LIB_SRC_PATH}/value.c
+        ${LH_LIB_SRC_PATH}/real/bits.c
+        ${LH_LIB_SRC_PATH}/real/cached.c
+        ${LH_LIB_SRC_PATH}/real/decimal.c
+        ${LH_LIB_SRC_PATH}/real/diy.c
+        ${LH_LIB_SRC_PATH}/real/grisu.c
+        ${LH_LIB_SRC_PATH}/real/lemire.c
+        ${LH_LIB_SRC_PATH}/real/power5.c
         ${LH_LIB_SRC_PATH}/pair.c
         ${LH_LIB_SRC_PATH}/ini/entry.c
         ${LH_LIB_SRC_PATH}/ini/error.c
         ${LH_LIB_SRC_PATH}/ini/parser.c
+        ${LH_LIB_SRC_PATH}/sql/db.c
+        ${LH_LIB_SRC_PATH}/sql/driver.c
+        ${LH_LIB_SRC_PATH}/sql/mysql/query.c
+        ${LH_LIB_SRC_PATH}/sql/stmt.c
+        ${LH_LIB_SRC_PATH}/json/error.c
+        ${LH_LIB_SRC_PATH}/json/node.c
+        ${LH_LIB_SRC_PATH}/json/minify.c
+        ${LH_LIB_SRC_PATH}/json/reader.c
+        ${LH_LIB_SRC_PATH}/json/writer.c
         ${LH_LIB_SRC_PATH}/list/node.c
 
         ${LH_LIB_SRC_PATH}/math/point.c
@@ -168,17 +185,23 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/str/format/put.c
         ${LH_LIB_SRC_PATH}/str/format/float.c
         ${LH_LIB_SRC_PATH}/str/format/sint.c
+        ${LH_LIB_SRC_PATH}/str/format/sllong.c
+        ${LH_LIB_SRC_PATH}/str/format/real.c
         ${LH_LIB_SRC_PATH}/str/format/hex.c
         ${LH_LIB_SRC_PATH}/str/format/text.c
         ${LH_LIB_SRC_PATH}/str/format/bytes.c
         ${LH_LIB_SRC_PATH}/str/format/base64.c
         ${LH_LIB_SRC_PATH}/str/parse/text.c
         ${LH_LIB_SRC_PATH}/str/parse/uint.c
+        ${LH_LIB_SRC_PATH}/str/parse/ullong.c
+        ${LH_LIB_SRC_PATH}/str/parse/sllong.c
+        ${LH_LIB_SRC_PATH}/str/parse/real.c
         ${LH_LIB_SRC_PATH}/str/parse/hex.c
         ${LH_LIB_SRC_PATH}/str/parse/radix.c
         ${LH_LIB_SRC_PATH}/str/split/next.c
         ${LH_LIB_SRC_PATH}/str/split/line.c
         ${LH_LIB_SRC_PATH}/str/split/once.c
+        ${LH_LIB_SRC_PATH}/str/utf8.c
         ${LH_LIB_SRC_PATH}/str/line/reader.c
         ${LH_LIB_SRC_PATH}/str/scanf/spec.c
         ${LH_LIB_SRC_PATH}/str/scanf/next.c
@@ -236,6 +259,10 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/shared.c
             ${LH_LIB_SRC_PATH}/os/module.c
             ${LH_LIB_SRC_PATH}/os/loader.c
+            ${LH_LIB_SRC_PATH}/sql/mysql.c
+            ${LH_LIB_SRC_PATH}/sql/mysql/api.c
+            ${LH_LIB_SRC_PATH}/sql/mysql/conn.c
+            ${LH_LIB_SRC_PATH}/sql/mysql/prepared.c
     )
     # Kernel backend: the only sources that call Win32 / POSIX directly.
     # Each backend also names the system libraries it links against.
@@ -296,6 +323,20 @@ if (LH_LIBRARY_OPTION_OS)
 endif ()
 
 # UI model (color, paint, style, canvas, entity tree). OFF leaves it out.
+# SQLite and its lh/sql backend (LH_LIBRARY_OPTION_SQL_SQLITE). The amalgamation
+# is someone else's code: built with its own defines and without warnings.
+set(LH_SQLITE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/sqlite)
+if (LH_LIBRARY_OPTION_SQL_SQLITE)
+    list(APPEND LH_LIB_SOURCES
+            ${LH_LIB_SRC_PATH}/sql/sqlite.c
+            ${LH_SQLITE_PATH}/sqlite3.c
+    )
+    set_source_files_properties(${LH_SQLITE_PATH}/sqlite3.c PROPERTIES
+            COMPILE_DEFINITIONS "SQLITE_OMIT_LOAD_EXTENSION;SQLITE_THREADSAFE=1"
+            COMPILE_OPTIONS "$<IF:$<C_COMPILER_ID:MSVC>,/w,-w>"
+    )
+endif ()
+
 if (LH_LIBRARY_OPTION_UI)
     list(APPEND LH_LIB_SOURCES
             ${LH_LIB_SRC_PATH}/ui/axis.c
@@ -457,6 +498,16 @@ target_include_directories(
 # Kernel backend's system libraries (chosen with LH_OS_SYSTEM_BACKEND above).
 if (LH_LIBRARY_OPTION_OS AND LH_OS_SYSTEM_LINK_LIBS)
     target_link_libraries(${PROJECT_NAME} PUBLIC ${LH_OS_SYSTEM_LINK_LIBS})
+endif ()
+
+# SQLite: its header for the backend, and threads for SQLITE_THREADSAFE=1 on
+# POSIX (Windows threads come with the C runtime).
+if (LH_LIBRARY_OPTION_SQL_SQLITE)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${LH_SQLITE_PATH})
+    if (NOT WIN32)
+        find_package(Threads REQUIRED)
+        target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
+    endif ()
 endif ()
 
 # ---------------------------------------------------------------------------

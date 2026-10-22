@@ -125,6 +125,34 @@ lh_char_digit_accumulate(lh_uint_t *value, lh_byte_t digit)
 }
 
 /**
+ * @brief ::lh_char_digit_accumulate for a 64-bit accumulator:
+ *        `*value = *value * ::LH_CHAR_DIGIT_RADIX + digit`.
+ *
+ * The step under ::lh_str_ptr_parse_ullong, for numbers that do not fit
+ * ::lh_uint_t (a JSON id, a file size).
+ *
+ * @param value Accumulator, updated in place on success; left unmodified on
+ *              overflow.
+ * @param digit Next digit, `[0, 9]`.
+ * @return ::lh_bool_true if it fit in ::lh_ullong_t, ::lh_bool_false if it
+ *         would have overflowed (@p value is then left unmodified).
+ */
+LH_ATTRIBUTE_FORCE_INLINE
+lh_bool_t
+lh_char_digit_accumulate_ullong(lh_ullong_t *value, lh_byte_t digit)
+{
+    lh_assert_runtime_ref(value);
+    lh_assert_runtime_if(digit >= LH_CHAR_DIGIT_RADIX, lh_runtime_error_code_invalid_argument);
+
+    if (*value > (lh_numeric_limit_max(lh_ullong_t) - digit) / LH_CHAR_DIGIT_RADIX)
+    {
+        return lh_bool_false; /* would overflow lh_ullong_t */
+    }
+    *value = *value * LH_CHAR_DIGIT_RADIX + digit;
+    return lh_bool_true;
+}
+
+/**
  * @brief Pull the next (least significant) digit out of @p value in base
  *        @p radix — the inverse of ::lh_char_digit_accumulate_radix, for anything
  *        that builds a number's text right-to-left (::lh_str_ptr_format_uint
