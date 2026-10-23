@@ -29,7 +29,7 @@ which remains under its own license.
 
 - Version: 2.001047 (2015)
 - Copyright 2015 Google Inc. All Rights Reserved.
-- License: Apache License, Version 2.0 (see `LICENSES/Apache-2.0.txt`,
+- License: Apache License, Version 2.0 (see `licenses/Apache-2.0.txt`,
   or https://www.apache.org/licenses/LICENSE-2.0)
 - File: `fonts/Roboto-Regular.ttf`
 - Used by: `src/lh/ui/font/roboto.c` (glyph bitmaps generated from the font by
@@ -39,6 +39,6 @@ which remains under its own license.
 
 - Version: 16.0.0 (`UnicodeData-16.0.0.txt`, `CaseFolding-16.0.0.txt`)
 - Copyright © 1991-2024 Unicode, Inc.
-- License: Unicode License v3 (see `LICENSES/Unicode-3.0.txt`,
+- License: Unicode License v3 (see `licenses/Unicode-3.0.txt`,
   or https://www.unicode.org/license.txt)
 - Files: `tools/data/unicode/` (used to generate the library's Unicode tables)

@@ -9,16 +9,12 @@
 include/lh/config.h
 
 build
-build-h
-build-rel
-build-fpu
-build-static
-build-bench
-build-bench-static
-build-msvc
-build-debug
 cmake-build-debug
 cmake-build-release
+
+# Per-configuration build trees, named for what they were configured to prove,
+# e.g. build-test (with tests) or build-bare (OS off, no libc allocator).
+build-*
 
 docs/html
 docs/latex
