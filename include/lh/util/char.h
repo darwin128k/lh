@@ -16,7 +16,6 @@
 #include <lh/cast/static.h>
 #include <lh/char.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/uchar.h>
 
 /** @brief Code of character @p c as type @p T. */
 #define lh_char_ord_to(T, c) lh_cast_static(T, c)

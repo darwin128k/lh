@@ -442,15 +442,19 @@ option(LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE
 #   OFF — binary search over the full sorted sparse pair table (~1.4k entries per
 #         direction). O(log n) per character (~11 comparisons).
 #
-# Unlike LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE, this is not really a size/speed
-# trade-off: each OFF pair entry is two lh_uchar32_t (8 bytes) — the existing sparse
-# table alone already costs ~23KB (both directions); the ON stage-1/stage-2 tables plus
-# their much-smaller supplementary-plane fallback cost about the same, ~23.5KB. ON is
-# close to a strict win here; kept as an option mainly for code-size (less lookup logic)
-# on the very tightest targets, and for symmetry with the narrow option above.
+# Size depends on the lh_wchar_t width (each OFF pair entry is two lh_wchar_t, and the
+# supplementary-plane rows are compiled out on a 16-bit one). Both directions together:
+#
+#   32-bit wchar_t (POSIX) — OFF ~23KB, ON ~23.5KB (~19KB stage-1/stage-2 + ~4.5KB
+#                            supplementary-plane fallback): ON is close to a strict win.
+#   16-bit wchar_t (Win)   — OFF ~9.5KB, ON ~19KB: a real size/speed trade-off, like
+#                            LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE.
+#
+# Kept as an option for size on tight targets (notably 16-bit wchar_t) and for symmetry
+# with the narrow option above.
 # -----------------------------------------------------------------------------
 option(LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE
-        "lh_wstr_ptr_to_lower/_to_upper use a two-level BMP block table (ON, faster, ~same size) instead of binary search over the full sparse pair table (OFF, simpler code)."
+        "lh_wstr_ptr_to_lower/_to_upper use a two-level BMP block table (ON, faster) instead of binary search over the full sparse pair table (OFF, simpler code, half the size on 16-bit wchar_t)."
         ON)
 
 # -----------------------------------------------------------------------------
