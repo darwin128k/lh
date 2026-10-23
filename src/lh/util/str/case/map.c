@@ -13,6 +13,7 @@
 
 #include <lh/util/interval.h>
 #include <lh/attribute/force_inline.h>
+#include <lh/bit/swar.h>
 #include <lh/byte/ptr.h>
 #include <lh/char/case/pair.h>
 #include <lh/assert.h>
@@ -237,33 +238,32 @@ lh_str_ptr_to_lower(lh_str_ptr str, lh_usize_t n)
         const lh_usize_t w = sizeof(lh_usize_t);
         lh_byte_ptr p = lh_ptr_cast(lh_byte_t, str);
         lh_byte_ptr end = p + n;
-        const lh_usize_t high = ((~(lh_usize_t)0) / 0xFFU) << 7;
 
-        while (p < end && (lh_ptr_to_uaddr(p) & (w - 1U)) != 0U)
+        while (p < end && !lh_ptr_is_aligned(p, w))
         {
             lh_ptr_deref(lh_ptr_rcast(lh_char_t, p)) =
                 lh_str_ptr_map_lower_one(lh_ptr_deref(lh_ptr_rcast(lh_char_t, p)));
             ++p;
         }
         {
-            const lh_usize_t ones = (~(lh_usize_t)0) / 0xFFU;
-            const lh_usize_t sub_a = ones * 65U;
-            const lh_usize_t add_z = ones * (127U - 90U);
+            const lh_usize_t sub_a = lh_bit_swar_broadcast(65U); /* 'A' */
+            const lh_usize_t add_z = lh_bit_swar_broadcast(127U - 90U); /* 'Z' */
 
             while (p + (w + w) <= end)
             {
                 const lh_usize_t v0 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p));
                 const lh_usize_t v1 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p + w));
 
-                if (((v0 | v1) & high) == 0U)
+                if (lh_math_is_zero(lh_bit_and(lh_bit_or(v0, v1), LH_BIT_SWAR_HIGH)))
                 {
-                    const lh_usize_t not0 =
-                        ((v0 - sub_a) & ~v0 & high) | (((v0 + add_z) | v0) & high);
-                    const lh_usize_t not1 =
-                        ((v1 - sub_a) & ~v1 & high) | (((v1 + add_z) | v1) & high);
+                    /* 0x20, the ASCII case bit, in the lanes that hold a letter. */
+                    const lh_usize_t case0 = lh_bit_shr(
+                        lh_bit_swar_unmarked(lh_bit_swar_outside_mask(v0, sub_a, add_z)), 2U);
+                    const lh_usize_t case1 = lh_bit_shr(
+                        lh_bit_swar_unmarked(lh_bit_swar_outside_mask(v1, sub_a, add_z)), 2U);
 
-                    lh_ptr_deref(lh_ptr_rcast(lh_usize_t, p)) = v0 | (((~not0) & high) >> 2);
-                    lh_ptr_deref(lh_ptr_rcast(lh_usize_t, p + w)) = v1 | (((~not1) & high) >> 2);
+                    lh_ptr_deref(lh_ptr_rcast(lh_usize_t, p)) = lh_bit_or(v0, case0);
+                    lh_ptr_deref(lh_ptr_rcast(lh_usize_t, p + w)) = lh_bit_or(v1, case1);
                     p += w + w;
                     continue;
                 }
@@ -274,12 +274,12 @@ lh_str_ptr_to_lower(lh_str_ptr str, lh_usize_t n)
                 const lh_usize_t v = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p));
                 lh_usize_t lane;
 
-                if ((v & high) == 0U)
+                if (lh_math_is_zero(lh_bit_and(v, LH_BIT_SWAR_HIGH)))
                 {
-                    const lh_usize_t not_az =
-                        ((v - sub_a) & ~v & high) | (((v + add_z) | v) & high);
+                    const lh_usize_t case_bits = lh_bit_shr(
+                        lh_bit_swar_unmarked(lh_bit_swar_outside_mask(v, sub_a, add_z)), 2U);
 
-                    lh_ptr_deref(lh_ptr_rcast(lh_usize_t, p)) = v | (((~not_az) & high) >> 2);
+                    lh_ptr_deref(lh_ptr_rcast(lh_usize_t, p)) = lh_bit_or(v, case_bits);
                 }
                 else
                 {
@@ -327,33 +327,32 @@ lh_str_ptr_to_upper(lh_str_ptr str, lh_usize_t n)
         const lh_usize_t w = sizeof(lh_usize_t);
         lh_byte_ptr p = lh_ptr_cast(lh_byte_t, str);
         lh_byte_ptr end = p + n;
-        const lh_usize_t high = ((~(lh_usize_t)0) / 0xFFU) << 7;
 
-        while (p < end && (lh_ptr_to_uaddr(p) & (w - 1U)) != 0U)
+        while (p < end && !lh_ptr_is_aligned(p, w))
         {
             lh_ptr_deref(lh_ptr_rcast(lh_char_t, p)) =
                 lh_str_ptr_map_upper_one(lh_ptr_deref(lh_ptr_rcast(lh_char_t, p)));
             ++p;
         }
         {
-            const lh_usize_t ones = (~(lh_usize_t)0) / 0xFFU;
-            const lh_usize_t sub_a = ones * 97U;
-            const lh_usize_t add_z = ones * (127U - 122U);
+            const lh_usize_t sub_a = lh_bit_swar_broadcast(97U); /* 'a' */
+            const lh_usize_t add_z = lh_bit_swar_broadcast(127U - 122U); /* 'z' */
 
             while (p + (w + w) <= end)
             {
                 const lh_usize_t v0 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p));
                 const lh_usize_t v1 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p + w));
 
-                if (((v0 | v1) & high) == 0U)
+                if (lh_math_is_zero(lh_bit_and(lh_bit_or(v0, v1), LH_BIT_SWAR_HIGH)))
                 {
-                    const lh_usize_t not0 =
-                        ((v0 - sub_a) & ~v0 & high) | (((v0 + add_z) | v0) & high);
-                    const lh_usize_t not1 =
-                        ((v1 - sub_a) & ~v1 & high) | (((v1 + add_z) | v1) & high);
+                    /* 0x20, the ASCII case bit, in the lanes that hold a letter. */
+                    const lh_usize_t case0 = lh_bit_shr(
+                        lh_bit_swar_unmarked(lh_bit_swar_outside_mask(v0, sub_a, add_z)), 2U);
+                    const lh_usize_t case1 = lh_bit_shr(
+                        lh_bit_swar_unmarked(lh_bit_swar_outside_mask(v1, sub_a, add_z)), 2U);
 
-                    lh_ptr_deref(lh_ptr_rcast(lh_usize_t, p)) = v0 & ~(((~not0) & high) >> 2);
-                    lh_ptr_deref(lh_ptr_rcast(lh_usize_t, p + w)) = v1 & ~(((~not1) & high) >> 2);
+                    lh_ptr_deref(lh_ptr_rcast(lh_usize_t, p)) = lh_bit_and(v0, lh_bit_not(case0));
+                    lh_ptr_deref(lh_ptr_rcast(lh_usize_t, p + w)) = lh_bit_and(v1, lh_bit_not(case1));
                     p += w + w;
                     continue;
                 }
@@ -364,12 +363,12 @@ lh_str_ptr_to_upper(lh_str_ptr str, lh_usize_t n)
                 const lh_usize_t v = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p));
                 lh_usize_t lane;
 
-                if ((v & high) == 0U)
+                if (lh_math_is_zero(lh_bit_and(v, LH_BIT_SWAR_HIGH)))
                 {
-                    const lh_usize_t not_az =
-                        ((v - sub_a) & ~v & high) | (((v + add_z) | v) & high);
+                    const lh_usize_t case_bits = lh_bit_shr(
+                        lh_bit_swar_unmarked(lh_bit_swar_outside_mask(v, sub_a, add_z)), 2U);
 
-                    lh_ptr_deref(lh_ptr_rcast(lh_usize_t, p)) = v & ~(((~not_az) & high) >> 2);
+                    lh_ptr_deref(lh_ptr_rcast(lh_usize_t, p)) = lh_bit_and(v, lh_bit_not(case_bits));
                 }
                 else
                 {

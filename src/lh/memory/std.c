@@ -16,6 +16,8 @@
 #include <lh/bit/bswap.h>
 #include <lh/bit/ops.h>
 #include <lh/bit/scan.h>
+#include <lh/bit/swar.h>
+#include <lh/util/addr.h>
 #include <lh/util/memory.h>
 
 #if LH_LIBRARY_OPTION_MEMORY_STD_BACKEND_LIBC

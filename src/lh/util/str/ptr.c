@@ -1,5 +1,5 @@
 #include <lh/util/str/ptr.h>
-#include <lh/bit/scan.h>
+#include <lh/bit/swar.h>
 #include <lh/char/limits.h>
 #include <lh/char/map.h>
 #include <lh/memory.h>
@@ -82,29 +82,11 @@ lh_str_ptr_fill_char_set(lh_byte_t *set, const lh_str_ptr chars, lh_usize_t char
     }
 }
 
-/** 0x0101… and address-ordered 0,1,2,… lane ramp for ascending-charset word checks. */
-static const lh_usize_t lh_str_ptr_swar_ones = (~(lh_usize_t)0) / 0xFFU;
-#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-#    if defined(__SIZEOF_SIZE_T__) && __SIZEOF_SIZE_T__ == 8
-static const lh_usize_t lh_str_ptr_swar_ramp = 0x0001020304050607ULL;
-#    else
-static const lh_usize_t lh_str_ptr_swar_ramp = 0x00010203UL;
-#    endif
-#else
-#    if defined(__SIZEOF_SIZE_T__) && __SIZEOF_SIZE_T__ == 8
-static const lh_usize_t lh_str_ptr_swar_ramp = 0x0706050403020100ULL;
-#    else
-static const lh_usize_t lh_str_ptr_swar_ramp = 0x03020100UL;
-#    endif
-#endif
-
 lh_bool_t
 lh_str_ptr_chars_ascending_range(const lh_str_ptr chars, lh_usize_t chars_size, lh_byte_t *lo,
                                  lh_byte_t *hi)
 {
     const lh_usize_t w = sizeof(lh_usize_t);
-    const lh_usize_t ones = lh_str_ptr_swar_ones;
-    const lh_usize_t ramp = lh_str_ptr_swar_ramp;
     lh_byte_cptr p;
     lh_byte_t first;
     lh_usize_t i;
@@ -126,7 +108,10 @@ lh_str_ptr_chars_ascending_range(const lh_str_ptr chars, lh_usize_t chars_size, 
     i = 0U;
     while (i + w <= chars_size)
     {
-        const lh_usize_t expect = (lh_cast_static(lh_usize_t, first) + i) * ones + ramp;
+        /* Ascending from first + i, one per lane. */
+        const lh_usize_t expect = lh_math_add(
+            lh_math_mul(lh_math_add(lh_cast_static(lh_usize_t, first), i), LH_BIT_SWAR_ONES),
+            LH_BIT_SWAR_RAMP);
 
         if (lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p + i)) != expect)
         {
@@ -149,62 +134,6 @@ lh_str_ptr_chars_ascending_range(const lh_str_ptr chars, lh_usize_t chars_size, 
     return lh_bool_true;
 }
 
-/**
- * hasless/hasmore out-of-range mask; @p hi must be < 128.
- * @p high is 0x80…, @p sub_lo is ones*lo (0 when lo==0), @p add_hi is ones*(127-hi).
- */
-LH_ATTRIBUTE_FORCE_INLINE lh_usize_t
-lh_str_ptr_swar_out_of_range_mask_pre(lh_usize_t v, lh_usize_t high, lh_usize_t sub_lo,
-                                      lh_usize_t add_hi)
-{
-    lh_usize_t out = 0U;
-
-    if (lh_math_ne(sub_lo, 0U))
-    {
-        out |= (v - sub_lo) & ~v & high;
-    }
-    out |= ((v + add_hi) | v) & high;
-    return out;
-}
-
-/** Address-ordered first lane with a 0x80 marker bit in @p out (nonzero). */
-LH_ATTRIBUTE_FORCE_INLINE lh_usize_t
-lh_str_ptr_swar_first_marked_lane(lh_usize_t out)
-{
-#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-#    if defined(__SIZEOF_SIZE_T__) && __SIZEOF_SIZE_T__ == 8
-    return lh_bit_shr(lh_math_sub(63U, lh_bit_scan_reverse_u64(out)), 3U);
-#    else
-    return lh_bit_shr(lh_math_sub(31U, lh_bit_scan_reverse_u32(lh_cast_static(lh_u32_t, out))), 3U);
-#    endif
-#else
-#    if defined(__SIZEOF_SIZE_T__) && __SIZEOF_SIZE_T__ == 8
-    return lh_bit_shr(lh_bit_scan_forward_u64(out), 3U);
-#    else
-    return lh_bit_shr(lh_bit_scan_forward_u32(lh_cast_static(lh_u32_t, out)), 3U);
-#    endif
-#endif
-}
-
-/** Address-ordered last lane with a 0x80 marker bit in @p out (nonzero). */
-LH_ATTRIBUTE_FORCE_INLINE lh_usize_t
-lh_str_ptr_swar_last_marked_lane(lh_usize_t out)
-{
-#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-#    if defined(__SIZEOF_SIZE_T__) && __SIZEOF_SIZE_T__ == 8
-    return lh_bit_shr(lh_bit_scan_forward_u64(out), 3U);
-#    else
-    return lh_bit_shr(lh_bit_scan_forward_u32(lh_cast_static(lh_u32_t, out)), 3U);
-#    endif
-#else
-#    if defined(__SIZEOF_SIZE_T__) && __SIZEOF_SIZE_T__ == 8
-    return lh_bit_shr(lh_bit_scan_reverse_u64(out), 3U);
-#    else
-    return lh_bit_shr(lh_bit_scan_reverse_u32(lh_cast_static(lh_u32_t, out)), 3U);
-#    endif
-#endif
-}
-
 const lh_str_ptr
 lh_str_ptr_find_byte_not_in_range(lh_byte_cptr p, lh_usize_t n, lh_byte_t lo, lh_byte_t hi)
 {
@@ -212,7 +141,7 @@ lh_str_ptr_find_byte_not_in_range(lh_byte_cptr p, lh_usize_t n, lh_byte_t lo, lh
     lh_byte_cptr end = p + n;
     const lh_bool_t swar = lh_cast_static(lh_bool_t, hi < 128U);
 
-    while (p < end && (lh_ptr_to_uaddr(p) & (w - 1U)) != 0U)
+    while (p < end && !lh_ptr_is_aligned(p, w))
     {
         const lh_byte_t b = lh_ptr_deref(p);
 
@@ -225,25 +154,23 @@ lh_str_ptr_find_byte_not_in_range(lh_byte_cptr p, lh_usize_t n, lh_byte_t lo, lh
 
     if (swar)
     {
-        const lh_usize_t ones = lh_str_ptr_swar_ones;
-        const lh_usize_t high = ones << 7;
-        const lh_usize_t sub_lo = lo != 0U ? ones * lo : 0U;
-        const lh_usize_t add_hi = ones * (127U - hi);
+        const lh_usize_t sub_lo = lh_bit_swar_broadcast(lo);
+        const lh_usize_t add_hi = lh_bit_swar_broadcast(127U - hi);
 
         while (p + (w + w) <= end)
         {
             const lh_usize_t v0 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p));
             const lh_usize_t v1 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p + w));
-            const lh_usize_t m0 = lh_str_ptr_swar_out_of_range_mask_pre(v0, high, sub_lo, add_hi);
-            const lh_usize_t m1 = lh_str_ptr_swar_out_of_range_mask_pre(v1, high, sub_lo, add_hi);
+            const lh_usize_t m0 = lh_bit_swar_outside_mask(v0, sub_lo, add_hi);
+            const lh_usize_t m1 = lh_bit_swar_outside_mask(v1, sub_lo, add_hi);
 
             if (lh_math_ne(m0, 0U))
             {
-                return lh_ptr_cast(lh_char_t, p + lh_str_ptr_swar_first_marked_lane(m0));
+                return lh_ptr_cast(lh_char_t, p + lh_bit_swar_first_lane(m0));
             }
             if (lh_math_ne(m1, 0U))
             {
-                return lh_ptr_cast(lh_char_t, p + w + lh_str_ptr_swar_first_marked_lane(m1));
+                return lh_ptr_cast(lh_char_t, p + w + lh_bit_swar_first_lane(m1));
             }
             p += w + w;
         }
@@ -251,11 +178,11 @@ lh_str_ptr_find_byte_not_in_range(lh_byte_cptr p, lh_usize_t n, lh_byte_t lo, lh
         while (p + w <= end)
         {
             const lh_usize_t v = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p));
-            const lh_usize_t out = lh_str_ptr_swar_out_of_range_mask_pre(v, high, sub_lo, add_hi);
+            const lh_usize_t out = lh_bit_swar_outside_mask(v, sub_lo, add_hi);
 
             if (lh_math_ne(out, 0U))
             {
-                return lh_ptr_cast(lh_char_t, p + lh_str_ptr_swar_first_marked_lane(out));
+                return lh_ptr_cast(lh_char_t, p + lh_bit_swar_first_lane(out));
             }
             p += w;
         }
@@ -282,7 +209,7 @@ lh_str_ptr_find_byte_in_range(lh_byte_cptr p, lh_usize_t n, lh_byte_t lo, lh_byt
     lh_byte_cptr end = p + n;
     const lh_bool_t swar = lh_cast_static(lh_bool_t, hi < 128U);
 
-    while (p < end && (lh_ptr_to_uaddr(p) & (w - 1U)) != 0U)
+    while (p < end && !lh_ptr_is_aligned(p, w))
     {
         const lh_byte_t b = lh_ptr_deref(p);
 
@@ -295,15 +222,13 @@ lh_str_ptr_find_byte_in_range(lh_byte_cptr p, lh_usize_t n, lh_byte_t lo, lh_byt
 
     if (swar)
     {
-        const lh_usize_t ones = lh_str_ptr_swar_ones;
-        const lh_usize_t high = ones << 7;
-        const lh_usize_t sub_lo = lo != 0U ? ones * lo : 0U;
-        const lh_usize_t add_hi = ones * (127U - hi);
+        const lh_usize_t sub_lo = lh_bit_swar_broadcast(lo);
+        const lh_usize_t add_hi = lh_bit_swar_broadcast(127U - hi);
 
         while (p + w <= end)
         {
             const lh_usize_t v = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p));
-            const lh_usize_t out = lh_str_ptr_swar_out_of_range_mask_pre(v, high, sub_lo, add_hi);
+            const lh_usize_t out = lh_bit_swar_outside_mask(v, sub_lo, add_hi);
             lh_usize_t in;
 
             if (lh_math_is_zero(out))
@@ -311,10 +236,10 @@ lh_str_ptr_find_byte_in_range(lh_byte_cptr p, lh_usize_t n, lh_byte_t lo, lh_byt
                 return lh_ptr_cast(lh_char_t, p);
             }
             /* Lanes in range: high bits clear in out. Find first clear 0x80. */
-            in = ~out & high;
+            in = lh_bit_swar_unmarked(out);
             if (lh_math_ne(in, 0U))
             {
-                return lh_ptr_cast(lh_char_t, p + lh_str_ptr_swar_first_marked_lane(in));
+                return lh_ptr_cast(lh_char_t, p + lh_bit_swar_first_lane(in));
             }
             p += w;
         }
@@ -341,7 +266,7 @@ lh_str_ptr_rfind_byte_not_in_range(lh_byte_cptr base, lh_usize_t n, lh_byte_t lo
     lh_byte_cptr p = base + n;
     const lh_bool_t swar = lh_cast_static(lh_bool_t, hi < 128U);
 
-    while (p > base && (lh_ptr_to_uaddr(p) & (w - 1U)) != 0U)
+    while (p > base && !lh_ptr_is_aligned(p, w))
     {
         --p;
         {
@@ -356,26 +281,24 @@ lh_str_ptr_rfind_byte_not_in_range(lh_byte_cptr base, lh_usize_t n, lh_byte_t lo
 
     if (swar)
     {
-        const lh_usize_t ones = lh_str_ptr_swar_ones;
-        const lh_usize_t high = ones << 7;
-        const lh_usize_t sub_lo = lo != 0U ? ones * lo : 0U;
-        const lh_usize_t add_hi = ones * (127U - hi);
+        const lh_usize_t sub_lo = lh_bit_swar_broadcast(lo);
+        const lh_usize_t add_hi = lh_bit_swar_broadcast(127U - hi);
 
         while (p >= base + (w + w))
         {
             const lh_usize_t v1 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p - w));
             const lh_usize_t v0 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p - (w + w)));
-            const lh_usize_t m1 = lh_str_ptr_swar_out_of_range_mask_pre(v1, high, sub_lo, add_hi);
-            const lh_usize_t m0 = lh_str_ptr_swar_out_of_range_mask_pre(v0, high, sub_lo, add_hi);
+            const lh_usize_t m1 = lh_bit_swar_outside_mask(v1, sub_lo, add_hi);
+            const lh_usize_t m0 = lh_bit_swar_outside_mask(v0, sub_lo, add_hi);
 
             p -= w + w;
             if (lh_math_ne(m1, 0U))
             {
-                return lh_ptr_cast(lh_char_t, p + w + lh_str_ptr_swar_last_marked_lane(m1));
+                return lh_ptr_cast(lh_char_t, p + w + lh_bit_swar_last_lane(m1));
             }
             if (lh_math_ne(m0, 0U))
             {
-                return lh_ptr_cast(lh_char_t, p + lh_str_ptr_swar_last_marked_lane(m0));
+                return lh_ptr_cast(lh_char_t, p + lh_bit_swar_last_lane(m0));
             }
         }
 
@@ -384,11 +307,11 @@ lh_str_ptr_rfind_byte_not_in_range(lh_byte_cptr base, lh_usize_t n, lh_byte_t lo
             lh_usize_t out;
 
             p -= w;
-            out = lh_str_ptr_swar_out_of_range_mask_pre(
-                lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p)), high, sub_lo, add_hi);
+            out = lh_bit_swar_outside_mask(
+                lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p)), sub_lo, add_hi);
             if (lh_math_ne(out, 0U))
             {
-                return lh_ptr_cast(lh_char_t, p + lh_str_ptr_swar_last_marked_lane(out));
+                return lh_ptr_cast(lh_char_t, p + lh_bit_swar_last_lane(out));
             }
         }
     }
@@ -416,7 +339,7 @@ lh_str_ptr_rfind_byte_in_range(lh_byte_cptr base, lh_usize_t n, lh_byte_t lo, lh
     lh_byte_cptr p = base + n;
     const lh_bool_t swar = lh_cast_static(lh_bool_t, hi < 128U);
 
-    while (p > base && (lh_ptr_to_uaddr(p) & (w - 1U)) != 0U)
+    while (p > base && !lh_ptr_is_aligned(p, w))
     {
         --p;
         {
@@ -431,10 +354,8 @@ lh_str_ptr_rfind_byte_in_range(lh_byte_cptr base, lh_usize_t n, lh_byte_t lo, lh
 
     if (swar)
     {
-        const lh_usize_t ones = lh_str_ptr_swar_ones;
-        const lh_usize_t high = ones << 7;
-        const lh_usize_t sub_lo = lo != 0U ? ones * lo : 0U;
-        const lh_usize_t add_hi = ones * (127U - hi);
+        const lh_usize_t sub_lo = lh_bit_swar_broadcast(lo);
+        const lh_usize_t add_hi = lh_bit_swar_broadcast(127U - hi);
 
         while (p >= base + w)
         {
@@ -442,16 +363,16 @@ lh_str_ptr_rfind_byte_in_range(lh_byte_cptr base, lh_usize_t n, lh_byte_t lo, lh
             lh_usize_t in;
 
             p -= w;
-            out = lh_str_ptr_swar_out_of_range_mask_pre(
-                lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p)), high, sub_lo, add_hi);
+            out = lh_bit_swar_outside_mask(
+                lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p)), sub_lo, add_hi);
             if (lh_math_is_zero(out))
             {
                 return lh_ptr_cast(lh_char_t, p + (w - 1U));
             }
-            in = ~out & high;
+            in = lh_bit_swar_unmarked(out);
             if (lh_math_ne(in, 0U))
             {
-                return lh_ptr_cast(lh_char_t, p + lh_str_ptr_swar_last_marked_lane(in));
+                return lh_ptr_cast(lh_char_t, p + lh_bit_swar_last_lane(in));
             }
         }
     }
@@ -491,12 +412,10 @@ lh_str_ptr_find_of_null_terminator(const lh_str_ptr str)
      * Avoids ::lh_memory_scan's address-space bound and size_rest on every step. */
     const lh_usize_t w = sizeof(lh_usize_t);
     lh_byte_cptr p = lh_ptr_cast(const lh_byte_t, str);
-    const lh_usize_t ones = (~(lh_usize_t)0) / 0xFFU;
-    const lh_usize_t high = ones << 7;
 
     lh_assert_runtime_ref(str);
 
-    while ((lh_ptr_to_uaddr(p) & (w - 1U)) != 0U)
+    while (!lh_ptr_is_aligned(p, w))
     {
         if (lh_ptr_deref(p) == 0U)
         {
@@ -509,7 +428,7 @@ lh_str_ptr_find_of_null_terminator(const lh_str_ptr str)
     {
         const lh_usize_t v = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p));
 
-        if (((v - ones) & ~v & high) != 0U)
+        if (lh_math_ne(lh_bit_swar_zero_mask(v), 0U))
         {
             lh_usize_t lane;
 
@@ -777,13 +696,11 @@ lh_str_ptr_find_of_null_terminator_by_size(const lh_str_ptr str, lh_usize_t size
     const lh_usize_t w = sizeof(lh_usize_t);
     lh_byte_cptr p = lh_ptr_cast(const lh_byte_t, str);
     lh_byte_cptr end = p + size;
-    const lh_usize_t ones = (~(lh_usize_t)0) / 0xFFU;
-    const lh_usize_t high = ones << 7;
 
     lh_assert_runtime_ref(str);
     lh_return_ifn(size, lh_null);
 
-    while (p < end && (lh_ptr_to_uaddr(p) & (w - 1U)) != 0U)
+    while (p < end && !lh_ptr_is_aligned(p, w))
     {
         if (lh_ptr_deref(p) == 0U)
         {
@@ -796,7 +713,7 @@ lh_str_ptr_find_of_null_terminator_by_size(const lh_str_ptr str, lh_usize_t size
     {
         const lh_usize_t v = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p));
 
-        if (((v - ones) & ~v & high) != 0U)
+        if (lh_math_ne(lh_bit_swar_zero_mask(v), 0U))
         {
             lh_usize_t lane;
 
