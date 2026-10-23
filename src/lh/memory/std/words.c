@@ -10,28 +10,28 @@ lh_memory_std_copy_tiny(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
     if (n >= 8U)
     {
-        const lh_u64_t first = lh_ptr_deref(lh_ptr_rcast(const lh_u64_t, src));
-        const lh_u64_t last = lh_ptr_deref(lh_ptr_rcast(const lh_u64_t, src + n - 8U));
-        lh_ptr_deref(lh_ptr_rcast(lh_u64_t, dst)) = first;
-        lh_ptr_deref(lh_ptr_rcast(lh_u64_t, dst + n - 8U)) = last;
+        const lh_u64_t first = lh_memory_load_u64(src);
+        const lh_u64_t last = lh_memory_load_u64(src + n - 8U);
+        lh_memory_store_u64(dst, first);
+        lh_memory_store_u64(dst + n - 8U, last);
         return;
     }
 
     if (n >= 4U)
     {
-        const lh_u32_t first = lh_ptr_deref(lh_ptr_rcast(const lh_u32_t, src));
-        const lh_u32_t last = lh_ptr_deref(lh_ptr_rcast(const lh_u32_t, src + n - 4U));
-        lh_ptr_deref(lh_ptr_rcast(lh_u32_t, dst)) = first;
-        lh_ptr_deref(lh_ptr_rcast(lh_u32_t, dst + n - 4U)) = last;
+        const lh_u32_t first = lh_memory_load_u32(src);
+        const lh_u32_t last = lh_memory_load_u32(src + n - 4U);
+        lh_memory_store_u32(dst, first);
+        lh_memory_store_u32(dst + n - 4U, last);
         return;
     }
 
     if (n >= 2U)
     {
-        const lh_u16_t first = lh_ptr_deref(lh_ptr_rcast(const lh_u16_t, src));
-        const lh_u16_t last = lh_ptr_deref(lh_ptr_rcast(const lh_u16_t, src + n - 2U));
-        lh_ptr_deref(lh_ptr_rcast(lh_u16_t, dst)) = first;
-        lh_ptr_deref(lh_ptr_rcast(lh_u16_t, dst + n - 2U)) = last;
+        const lh_u16_t first = lh_memory_load_u16(src);
+        const lh_u16_t last = lh_memory_load_u16(src + n - 2U);
+        lh_memory_store_u16(dst, first);
+        lh_memory_store_u16(dst + n - 2U, last);
         return;
     }
 
@@ -54,7 +54,7 @@ lh_memory_std_copy_bytes(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 
     do
     {
-        lh_ptr_deref(lh_ptr_rcast(lh_u64_t, dst)) = lh_ptr_deref(lh_ptr_rcast(const lh_u64_t, src));
+        lh_memory_store_u64(dst, lh_memory_load_u64(src));
         dst += 8;
         src += 8;
         n -= 8U;
@@ -70,28 +70,28 @@ lh_memory_std_copy_rev_tiny(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
     if (n >= 8U)
     {
-        const lh_u64_t first = lh_bit_bswap_u64(lh_ptr_deref(lh_ptr_rcast(const lh_u64_t, src)));
-        const lh_u64_t last = lh_bit_bswap_u64(lh_ptr_deref(lh_ptr_rcast(const lh_u64_t, src + n - 8U)));
-        lh_ptr_deref(lh_ptr_rcast(lh_u64_t, dst + n - 8U)) = first;
-        lh_ptr_deref(lh_ptr_rcast(lh_u64_t, dst)) = last;
+        const lh_u64_t first = lh_bit_bswap_u64(lh_memory_load_u64(src));
+        const lh_u64_t last = lh_bit_bswap_u64(lh_memory_load_u64(src + n - 8U));
+        lh_memory_store_u64(dst + n - 8U, first);
+        lh_memory_store_u64(dst, last);
         return;
     }
 
     if (n >= 4U)
     {
-        const lh_u32_t first = lh_bit_bswap_u32(lh_ptr_deref(lh_ptr_rcast(const lh_u32_t, src)));
-        const lh_u32_t last = lh_bit_bswap_u32(lh_ptr_deref(lh_ptr_rcast(const lh_u32_t, src + n - 4U)));
-        lh_ptr_deref(lh_ptr_rcast(lh_u32_t, dst + n - 4U)) = first;
-        lh_ptr_deref(lh_ptr_rcast(lh_u32_t, dst)) = last;
+        const lh_u32_t first = lh_bit_bswap_u32(lh_memory_load_u32(src));
+        const lh_u32_t last = lh_bit_bswap_u32(lh_memory_load_u32(src + n - 4U));
+        lh_memory_store_u32(dst + n - 4U, first);
+        lh_memory_store_u32(dst, last);
         return;
     }
 
     if (n >= 2U)
     {
-        const lh_u16_t first_rev = lh_bit_bswap_u16(lh_ptr_deref(lh_ptr_rcast(const lh_u16_t, src)));
-        const lh_u16_t last_rev = lh_bit_bswap_u16(lh_ptr_deref(lh_ptr_rcast(const lh_u16_t, src + n - 2U)));
-        lh_ptr_deref(lh_ptr_rcast(lh_u16_t, dst + n - 2U)) = first_rev;
-        lh_ptr_deref(lh_ptr_rcast(lh_u16_t, dst)) = last_rev;
+        const lh_u16_t first_rev = lh_bit_bswap_u16(lh_memory_load_u16(src));
+        const lh_u16_t last_rev = lh_bit_bswap_u16(lh_memory_load_u16(src + n - 2U));
+        lh_memory_store_u16(dst + n - 2U, first_rev);
+        lh_memory_store_u16(dst, last_rev);
         return;
     }
 
@@ -114,8 +114,7 @@ lh_memory_std_copy_rev_bytes(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
         do
         {
             d_end -= 8;
-            lh_ptr_deref(lh_ptr_rcast(lh_u64_t, d_end)) =
-                lh_bit_bswap_u64(lh_ptr_deref(lh_ptr_rcast(const lh_u64_t, src)));
+            lh_memory_store_u64(d_end, lh_bit_bswap_u64(lh_memory_load_u64(src)));
             src += 8;
             n -= 8U;
         } while (n >= 8U);
@@ -132,8 +131,7 @@ lh_memory_std_copy_rev_bytes(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
         while (n >= 4U)
         {
             d_end -= 4;
-            lh_ptr_deref(lh_ptr_rcast(lh_u32_t, d_end)) =
-                lh_bit_bswap_u32(lh_ptr_deref(lh_ptr_rcast(const lh_u32_t, src)));
+            lh_memory_store_u32(d_end, lh_bit_bswap_u32(lh_memory_load_u32(src)));
             src += 4;
             n -= 4U;
         }
@@ -149,28 +147,28 @@ lh_memory_std_rcopy_tiny(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
     if (n >= 8U)
     {
-        const lh_u64_t first = lh_ptr_deref(lh_ptr_rcast(const lh_u64_t, src));
-        const lh_u64_t last = lh_ptr_deref(lh_ptr_rcast(const lh_u64_t, src + n - 8U));
-        lh_ptr_deref(lh_ptr_rcast(lh_u64_t, dst + n - 8U)) = last;
-        lh_ptr_deref(lh_ptr_rcast(lh_u64_t, dst)) = first;
+        const lh_u64_t first = lh_memory_load_u64(src);
+        const lh_u64_t last = lh_memory_load_u64(src + n - 8U);
+        lh_memory_store_u64(dst + n - 8U, last);
+        lh_memory_store_u64(dst, first);
         return;
     }
 
     if (n >= 4U)
     {
-        const lh_u32_t first = lh_ptr_deref(lh_ptr_rcast(const lh_u32_t, src));
-        const lh_u32_t last = lh_ptr_deref(lh_ptr_rcast(const lh_u32_t, src + n - 4U));
-        lh_ptr_deref(lh_ptr_rcast(lh_u32_t, dst + n - 4U)) = last;
-        lh_ptr_deref(lh_ptr_rcast(lh_u32_t, dst)) = first;
+        const lh_u32_t first = lh_memory_load_u32(src);
+        const lh_u32_t last = lh_memory_load_u32(src + n - 4U);
+        lh_memory_store_u32(dst + n - 4U, last);
+        lh_memory_store_u32(dst, first);
         return;
     }
 
     if (n >= 2U)
     {
-        const lh_u16_t first = lh_ptr_deref(lh_ptr_rcast(const lh_u16_t, src));
-        const lh_u16_t last = lh_ptr_deref(lh_ptr_rcast(const lh_u16_t, src + n - 2U));
-        lh_ptr_deref(lh_ptr_rcast(lh_u16_t, dst + n - 2U)) = last;
-        lh_ptr_deref(lh_ptr_rcast(lh_u16_t, dst)) = first;
+        const lh_u16_t first = lh_memory_load_u16(src);
+        const lh_u16_t last = lh_memory_load_u16(src + n - 2U);
+        lh_memory_store_u16(dst + n - 2U, last);
+        lh_memory_store_u16(dst, first);
         return;
     }
 
@@ -195,7 +193,7 @@ lh_memory_std_rcopy_bytes(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
         {
             d -= 8;
             s -= 8;
-            lh_ptr_deref(lh_ptr_rcast(lh_u64_t, d)) = lh_ptr_deref(lh_ptr_rcast(const lh_u64_t, s));
+            lh_memory_store_u64(d, lh_memory_load_u64(s));
             n -= 8U;
         } while (n >= 8U);
 
@@ -216,7 +214,7 @@ lh_memory_std_rcopy_bytes(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
         while (n >= w)
         {
             n -= w;
-            lh_ptr_deref(lh_ptr_rcast(lh_usize_t, dst + n)) = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, src + n));
+            lh_memory_word_store(dst + n, lh_memory_word_load(src + n));
         }
         while (n > 0U)
         {
@@ -238,14 +236,14 @@ lh_memory_std_set_bytes(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
         const lh_u64_t v = lh_cast_static(lh_u64_t, val) * 0x0101010101010101ULL;
         do
         {
-            lh_ptr_deref(lh_ptr_rcast(lh_u64_t, dst)) = v;
+            lh_memory_store_u64(dst, v);
             dst += 8;
             n -= 8U;
         } while (n >= 8U);
 
         if (n != 0U)
         {
-            lh_ptr_deref(lh_ptr_rcast(lh_u64_t, dst + n - 8U)) = v;
+            lh_memory_store_u64(dst + n - 8U, v);
         }
         return;
     }
@@ -253,16 +251,16 @@ lh_memory_std_set_bytes(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
     if (n >= 4U)
     {
         const lh_u32_t v = lh_cast_static(lh_u32_t, val) * 0x01010101U;
-        lh_ptr_deref(lh_ptr_rcast(lh_u32_t, dst)) = v;
-        lh_ptr_deref(lh_ptr_rcast(lh_u32_t, dst + n - 4U)) = v;
+        lh_memory_store_u32(dst, v);
+        lh_memory_store_u32(dst + n - 4U, v);
         return;
     }
 
     if (n >= 2U)
     {
         const lh_u16_t v = lh_cast_static(lh_u16_t, lh_cast_static(lh_u16_t, val) * 0x0101U);
-        lh_ptr_deref(lh_ptr_rcast(lh_u16_t, dst)) = v;
-        lh_ptr_deref(lh_ptr_rcast(lh_u16_t, dst + n - 2U)) = v;
+        lh_memory_store_u16(dst, v);
+        lh_memory_store_u16(dst + n - 2U, v);
         return;
     }
 
@@ -280,14 +278,14 @@ lh_memory_std_set_bytes(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 
             do
             {
-                lh_ptr_deref(lh_ptr_rcast(lh_usize_t, dst)) = v;
+                lh_memory_store_usize(dst, v);
                 dst += w;
                 n -= w;
             } while (n >= w);
 
             if (n != 0U)
             {
-                lh_ptr_deref(lh_ptr_rcast(lh_usize_t, dst + n - w)) = v;
+                lh_memory_store_usize(dst + n - w, v);
             }
             return;
         }
@@ -350,10 +348,10 @@ lh_memory_std_compare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
     while (n >= w * 2U)
     {
-        const lh_usize_t a0 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, l));
-        const lh_usize_t b0 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, r));
-        const lh_usize_t a1 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, l + w));
-        const lh_usize_t b1 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, r + w));
+        const lh_usize_t a0 = lh_memory_word_load(l);
+        const lh_usize_t b0 = lh_memory_word_load(r);
+        const lh_usize_t a1 = lh_memory_word_load(l + w);
+        const lh_usize_t b1 = lh_memory_word_load(r + w);
 
         if (a0 != b0)
         {
@@ -370,8 +368,8 @@ lh_memory_std_compare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
     if (n >= w)
     {
-        if (lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, l)) !=
-            lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, r)))
+        if (lh_memory_word_load(l) !=
+            lh_memory_word_load(r))
         {
             return lh_memory_std_compare_word_byte(l, r);
         }
@@ -420,13 +418,13 @@ lh_memory_std_rcompare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
     while (n >= w * 2U)
     {
         n -= w * 2U;
-        if (lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, l + n + w)) !=
-            lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, r + n + w)))
+        if (lh_memory_word_load(l + n + w) !=
+            lh_memory_word_load(r + n + w))
         {
             return lh_memory_std_rcompare_word_byte(l + n + w, r + n + w, w);
         }
-        if (lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, l + n)) !=
-            lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, r + n)))
+        if (lh_memory_word_load(l + n) !=
+            lh_memory_word_load(r + n))
         {
             return lh_memory_std_rcompare_word_byte(l + n, r + n, w);
         }
@@ -435,8 +433,8 @@ lh_memory_std_rcompare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
     if (n >= w)
     {
         n -= w;
-        if (lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, l + n)) !=
-            lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, r + n)))
+        if (lh_memory_word_load(l + n) !=
+            lh_memory_word_load(r + n))
         {
             return lh_memory_std_rcompare_word_byte(l + n, r + n, w);
         }
@@ -479,7 +477,7 @@ lh_memory_std_copy_words(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 
     while (n >= w)
     {
-        lh_ptr_deref(lh_ptr_rcast(lh_usize_t, d)) = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, s));
+        lh_memory_word_store(d, lh_memory_word_load(s));
         d += w;
         s += w;
         n -= w;
@@ -509,7 +507,7 @@ lh_memory_std_fill_words(lh_ptr dst, lh_usize_t word, lh_usize_t n)
 
     while (n >= w)
     {
-        lh_ptr_deref(lh_ptr_rcast(lh_usize_t, d)) = word;
+        lh_memory_word_store(d, word);
         d += w;
         n -= w;
     }
@@ -558,8 +556,7 @@ lh_memory_std_xor_bytes(lh_byte_ptr dst, lh_byte_cptr lhs, lh_byte_cptr rhs, lh_
     }
     while (n >= w)
     {
-        lh_ptr_deref(lh_ptr_rcast(lh_usize_t, dst)) =
-            lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, lhs)) ^ lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, rhs));
+        lh_memory_word_store(dst, lh_memory_word_load(lhs) ^ lh_memory_word_load(rhs));
         dst += w;
         lhs += w;
         rhs += w;
@@ -640,7 +637,7 @@ lh_memory_std_find_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, l
             /* Lanes whose byte equals the filter byte. A lit lane is not proof: the
              * subtract can light a neighbor, so each candidate is rechecked. */
             const lh_usize_t mask = lh_bit_swar_zero_mask(lh_bit_xor(
-                lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, hay + off + filter_off)), filter));
+                lh_memory_load_usize(hay + off + filter_off), filter));
 
             if (mask != 0U)
             {
@@ -705,7 +702,7 @@ lh_memory_std_rfind_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, 
         for (;;)
         {
             const lh_usize_t mask = lh_bit_swar_zero_mask(lh_bit_xor(
-                lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, hay + off + filter_off)), filter));
+                lh_memory_load_usize(hay + off + filter_off), filter));
 
             if (mask != 0U)
             {

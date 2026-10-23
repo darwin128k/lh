@@ -6,6 +6,7 @@
 #include <lh/math.h>
 #include <lh/util/memory.h>
 #include <lh/util/return.h>
+#include <lh/memory/word.h>
 
 #define LH_MEMORY_SCAN_BLOCK (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK))
 
@@ -273,7 +274,7 @@ lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usiz
 
             while (n >= w)
             {
-                lh_ptr_deref(lh_ptr_rcast(lh_usize_t, out)) = rep;
+                lh_memory_word_store(out, rep);
                 out += w;
                 n -= w;
             }

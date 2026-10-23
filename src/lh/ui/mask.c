@@ -10,6 +10,7 @@
 #include <lh/math.h>
 #include <lh/ui/mask.h>
 #include <lh/util/return.h>
+#include <lh/memory/word.h>
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
 #    include <immintrin.h>
@@ -146,7 +147,7 @@ lh_ui_mask_get_coverage_8(const lh_ui_mask_t *self, lh_s32_t x, lh_s32_t y)
            the CPU cannot forward, and it cost more than the pass. */
         if (left >= 8)
         {
-            bytes = lh_ptr_rcast(const lh_u64_t, row + at)[0];
+            bytes = lh_memory_load_u64(row + at);
         }
         else
         {
@@ -162,7 +163,7 @@ lh_ui_mask_get_coverage_8(const lh_ui_mask_t *self, lh_s32_t x, lh_s32_t y)
     }
 #endif
     lh_ui_mask_coverage_run(self, x, x + 8, y, run);
-    return lh_ptr_rcast(const lh_u64_t, run)[0];
+    return lh_memory_load_u64(run);
 }
 
 lh_void
@@ -222,7 +223,7 @@ lh_ui_mask_coverage_run(const lh_ui_mask_t *self, lh_s32_t x0, lh_s32_t x1, lh_s
 
             if (count == 8)
             {
-                lh_ptr_rcast(lh_u64_t, out + (x - x0))[0] = cover;
+                lh_memory_store_u64(out + (x - x0), cover);
             }
             else
             {

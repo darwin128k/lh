@@ -17,6 +17,7 @@
 #include <lh/bit/ops.h>
 #include <lh/bit/scan.h>
 #include <lh/bit/swar.h>
+#include <lh/memory/word.h>
 #include <lh/util/addr.h>
 #include <lh/util/memory.h>
 

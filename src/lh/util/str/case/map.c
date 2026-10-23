@@ -14,6 +14,7 @@
 #include <lh/util/interval.h>
 #include <lh/attribute/force_inline.h>
 #include <lh/bit/swar.h>
+#include <lh/memory/word.h>
 #include <lh/byte/ptr.h>
 #include <lh/char/case/pair.h>
 #include <lh/assert.h>
@@ -251,8 +252,8 @@ lh_str_ptr_to_lower(lh_str_ptr str, lh_usize_t n)
 
             while (p + (w + w) <= end)
             {
-                const lh_usize_t v0 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p));
-                const lh_usize_t v1 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p + w));
+                const lh_usize_t v0 = lh_memory_word_load(p);
+                const lh_usize_t v1 = lh_memory_word_load(p + w);
 
                 if (lh_math_is_zero(lh_bit_and(lh_bit_or(v0, v1), LH_BIT_SWAR_HIGH)))
                 {
@@ -262,8 +263,8 @@ lh_str_ptr_to_lower(lh_str_ptr str, lh_usize_t n)
                     const lh_usize_t case1 = lh_bit_shr(
                         lh_bit_swar_unmarked(lh_bit_swar_outside_mask(v1, sub_a, add_z)), 2U);
 
-                    lh_ptr_deref(lh_ptr_rcast(lh_usize_t, p)) = lh_bit_or(v0, case0);
-                    lh_ptr_deref(lh_ptr_rcast(lh_usize_t, p + w)) = lh_bit_or(v1, case1);
+                    lh_memory_word_store(p, lh_bit_or(v0, case0));
+                    lh_memory_word_store(p + w, lh_bit_or(v1, case1));
                     p += w + w;
                     continue;
                 }
@@ -271,7 +272,7 @@ lh_str_ptr_to_lower(lh_str_ptr str, lh_usize_t n)
             }
             while (p + w <= end)
             {
-                const lh_usize_t v = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p));
+                const lh_usize_t v = lh_memory_word_load(p);
                 lh_usize_t lane;
 
                 if (lh_math_is_zero(lh_bit_and(v, LH_BIT_SWAR_HIGH)))
@@ -279,7 +280,7 @@ lh_str_ptr_to_lower(lh_str_ptr str, lh_usize_t n)
                     const lh_usize_t case_bits = lh_bit_shr(
                         lh_bit_swar_unmarked(lh_bit_swar_outside_mask(v, sub_a, add_z)), 2U);
 
-                    lh_ptr_deref(lh_ptr_rcast(lh_usize_t, p)) = lh_bit_or(v, case_bits);
+                    lh_memory_word_store(p, lh_bit_or(v, case_bits));
                 }
                 else
                 {
@@ -340,8 +341,8 @@ lh_str_ptr_to_upper(lh_str_ptr str, lh_usize_t n)
 
             while (p + (w + w) <= end)
             {
-                const lh_usize_t v0 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p));
-                const lh_usize_t v1 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p + w));
+                const lh_usize_t v0 = lh_memory_word_load(p);
+                const lh_usize_t v1 = lh_memory_word_load(p + w);
 
                 if (lh_math_is_zero(lh_bit_and(lh_bit_or(v0, v1), LH_BIT_SWAR_HIGH)))
                 {
@@ -351,8 +352,8 @@ lh_str_ptr_to_upper(lh_str_ptr str, lh_usize_t n)
                     const lh_usize_t case1 = lh_bit_shr(
                         lh_bit_swar_unmarked(lh_bit_swar_outside_mask(v1, sub_a, add_z)), 2U);
 
-                    lh_ptr_deref(lh_ptr_rcast(lh_usize_t, p)) = lh_bit_and(v0, lh_bit_not(case0));
-                    lh_ptr_deref(lh_ptr_rcast(lh_usize_t, p + w)) = lh_bit_and(v1, lh_bit_not(case1));
+                    lh_memory_word_store(p, lh_bit_and(v0, lh_bit_not(case0)));
+                    lh_memory_word_store(p + w, lh_bit_and(v1, lh_bit_not(case1)));
                     p += w + w;
                     continue;
                 }
@@ -360,7 +361,7 @@ lh_str_ptr_to_upper(lh_str_ptr str, lh_usize_t n)
             }
             while (p + w <= end)
             {
-                const lh_usize_t v = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p));
+                const lh_usize_t v = lh_memory_word_load(p);
                 lh_usize_t lane;
 
                 if (lh_math_is_zero(lh_bit_and(v, LH_BIT_SWAR_HIGH)))
@@ -368,7 +369,7 @@ lh_str_ptr_to_upper(lh_str_ptr str, lh_usize_t n)
                     const lh_usize_t case_bits = lh_bit_shr(
                         lh_bit_swar_unmarked(lh_bit_swar_outside_mask(v, sub_a, add_z)), 2U);
 
-                    lh_ptr_deref(lh_ptr_rcast(lh_usize_t, p)) = lh_bit_and(v, lh_bit_not(case_bits));
+                    lh_memory_word_store(p, lh_bit_and(v, lh_bit_not(case_bits)));
                 }
                 else
                 {

@@ -1,5 +1,7 @@
 #include <lh/util/str/ptr.h>
+#include <lh/attribute/no_sanitize_address.h>
 #include <lh/bit/swar.h>
+#include <lh/memory/word.h>
 #include <lh/char/limits.h>
 #include <lh/char/map.h>
 #include <lh/memory.h>
@@ -113,7 +115,7 @@ lh_str_ptr_chars_ascending_range(const lh_str_ptr chars, lh_usize_t chars_size, 
             lh_math_mul(lh_math_add(lh_cast_static(lh_usize_t, first), i), LH_BIT_SWAR_ONES),
             LH_BIT_SWAR_RAMP);
 
-        if (lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p + i)) != expect)
+        if (lh_memory_load_usize(p + i) != expect)
         {
             return lh_bool_false;
         }
@@ -159,8 +161,8 @@ lh_str_ptr_find_byte_not_in_range(lh_byte_cptr p, lh_usize_t n, lh_byte_t lo, lh
 
         while (p + (w + w) <= end)
         {
-            const lh_usize_t v0 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p));
-            const lh_usize_t v1 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p + w));
+            const lh_usize_t v0 = lh_memory_word_load(p);
+            const lh_usize_t v1 = lh_memory_word_load(p + w);
             const lh_usize_t m0 = lh_bit_swar_outside_mask(v0, sub_lo, add_hi);
             const lh_usize_t m1 = lh_bit_swar_outside_mask(v1, sub_lo, add_hi);
 
@@ -177,7 +179,7 @@ lh_str_ptr_find_byte_not_in_range(lh_byte_cptr p, lh_usize_t n, lh_byte_t lo, lh
 
         while (p + w <= end)
         {
-            const lh_usize_t v = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p));
+            const lh_usize_t v = lh_memory_word_load(p);
             const lh_usize_t out = lh_bit_swar_outside_mask(v, sub_lo, add_hi);
 
             if (lh_math_ne(out, 0U))
@@ -227,7 +229,7 @@ lh_str_ptr_find_byte_in_range(lh_byte_cptr p, lh_usize_t n, lh_byte_t lo, lh_byt
 
         while (p + w <= end)
         {
-            const lh_usize_t v = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p));
+            const lh_usize_t v = lh_memory_word_load(p);
             const lh_usize_t out = lh_bit_swar_outside_mask(v, sub_lo, add_hi);
             lh_usize_t in;
 
@@ -286,8 +288,8 @@ lh_str_ptr_rfind_byte_not_in_range(lh_byte_cptr base, lh_usize_t n, lh_byte_t lo
 
         while (p >= base + (w + w))
         {
-            const lh_usize_t v1 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p - w));
-            const lh_usize_t v0 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p - (w + w)));
+            const lh_usize_t v1 = lh_memory_word_load(p - w);
+            const lh_usize_t v0 = lh_memory_word_load(p - (w + w));
             const lh_usize_t m1 = lh_bit_swar_outside_mask(v1, sub_lo, add_hi);
             const lh_usize_t m0 = lh_bit_swar_outside_mask(v0, sub_lo, add_hi);
 
@@ -308,7 +310,7 @@ lh_str_ptr_rfind_byte_not_in_range(lh_byte_cptr base, lh_usize_t n, lh_byte_t lo
 
             p -= w;
             out = lh_bit_swar_outside_mask(
-                lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p)), sub_lo, add_hi);
+                lh_memory_word_load(p), sub_lo, add_hi);
             if (lh_math_ne(out, 0U))
             {
                 return lh_ptr_cast(lh_char_t, p + lh_bit_swar_last_lane(out));
@@ -364,7 +366,7 @@ lh_str_ptr_rfind_byte_in_range(lh_byte_cptr base, lh_usize_t n, lh_byte_t lo, lh
 
             p -= w;
             out = lh_bit_swar_outside_mask(
-                lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p)), sub_lo, add_hi);
+                lh_memory_word_load(p), sub_lo, add_hi);
             if (lh_math_is_zero(out))
             {
                 return lh_ptr_cast(lh_char_t, p + (w - 1U));
@@ -405,6 +407,10 @@ lh_str_ptr_rfind_of_char(const lh_str_ptr str, lh_usize_t size, lh_char_t ch)
     return lh_memory_rfind(str, size, lh_addr_of(ch), LH_CHAR_T_SIZE);
 }
 
+/* The word loop reads up to w - 1 bytes past the terminator: never past the
+ * aligned word, so never into the next page, but AddressSanitizer would report
+ * it as an overflow. */
+LH_ATTRIBUTE_NO_SANITIZE_ADDRESS
 const lh_str_ptr
 lh_str_ptr_find_of_null_terminator(const lh_str_ptr str)
 {
@@ -426,7 +432,7 @@ lh_str_ptr_find_of_null_terminator(const lh_str_ptr str)
 
     for (;;)
     {
-        const lh_usize_t v = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p));
+        const lh_usize_t v = lh_memory_word_load(p);
 
         if (lh_math_ne(lh_bit_swar_zero_mask(v), 0U))
         {
@@ -711,7 +717,7 @@ lh_str_ptr_find_of_null_terminator_by_size(const lh_str_ptr str, lh_usize_t size
 
     while (p + w <= end)
     {
-        const lh_usize_t v = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p));
+        const lh_usize_t v = lh_memory_word_load(p);
 
         if (lh_math_ne(lh_bit_swar_zero_mask(v), 0U))
         {
