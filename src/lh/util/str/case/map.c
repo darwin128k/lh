@@ -19,7 +19,6 @@
 #include <lh/cast/static.h>
 #include <lh/config.h>
 #include <lh/foreach.h>
-#include <lh/uchar.h>
 #include <lh/util/ptr.h>
 #include <lh/util/str/ptr.h>
 
