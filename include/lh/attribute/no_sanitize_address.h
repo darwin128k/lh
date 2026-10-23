@@ -1,0 +1,17 @@
+/**
+ * @file no_sanitize_address.h
+ * @brief Alias for ::LH_COMPILER_ATTRIBUTE_NO_SANITIZE_ADDRESS.
+ */
+
+#ifndef LH_ATTRIBUTE_NO_SANITIZE_ADDRESS_H
+#define LH_ATTRIBUTE_NO_SANITIZE_ADDRESS_H
+
+#include <lh/compiler/attribute/no_sanitize_address.h>
+
+/**
+ * @def LH_ATTRIBUTE_NO_SANITIZE_ADDRESS
+ * @brief @copybrief LH_COMPILER_ATTRIBUTE_NO_SANITIZE_ADDRESS
+ */
+#define LH_ATTRIBUTE_NO_SANITIZE_ADDRESS LH_COMPILER_ATTRIBUTE_NO_SANITIZE_ADDRESS
+
+#endif /* LH_ATTRIBUTE_NO_SANITIZE_ADDRESS_H */
