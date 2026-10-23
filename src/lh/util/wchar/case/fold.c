@@ -6,8 +6,8 @@
  *
  * Unicode data copyright Unicode, Inc.; see https://www.unicode.org/terms_of_use.html
  *
- * Lookup: lh_interval_ropen_binary_search() in lh/util/interval.h
- * (lh_math_gt vs LH_WCHAR_T_MAX for mapped scalar).
+ * Lookup: lh_interval_ropen_binary_search() in lh/util/interval.h.
+ * Supplementary-plane rows are compiled only when LH_WCHAR_T_MAX > 0xFFFF.
  */
 
 #include <lh/util/wchar.h>
@@ -1220,6 +1220,7 @@ static const lh_wchar_case_pair_t m_wchar_case_fold_table[] = {
     { 65336U, 65368U },
     { 65337U, 65369U },
     { 65338U, 65370U },
+#if LH_WCHAR_T_MAX > 0xFFFF
     { 66560U, 66600U },
     { 66561U, 66601U },
     { 66562U, 66602U },
@@ -1502,6 +1503,7 @@ static const lh_wchar_case_pair_t m_wchar_case_fold_table[] = {
     { 125215U, 125249U },
     { 125216U, 125250U },
     { 125217U, 125251U },
+#endif /* LH_WCHAR_T_MAX > 0xFFFF */
     /* clang-format on */
 };
 static const lh_usize_t m_wchar_case_fold_table_size =
@@ -1515,17 +1517,7 @@ lh_wchar_fold_case(lh_wchar_t c)
     lh_bool_t is_founded;
 
     lh_interval_ropen_binary_search(lh_usize_t, m_wchar_case_fold_table,
-                                    m_wchar_case_fold_table_size, lh_cast_static(lh_uchar32_t, c),
-                                    first, result, is_founded);
+                                    m_wchar_case_fold_table_size, c, first, result, is_founded);
 
-    if (is_founded)
-    {
-        const lh_uchar32_t mapped = result.second;
-        if (lh_math_gt(mapped, lh_cast_static(lh_uchar32_t, LH_WCHAR_T_MAX)))
-        {
-            return c;
-        }
-        return lh_cast_static(lh_wchar_t, mapped);
-    }
-    return c;
+    return is_founded ? result.second : c;
 }

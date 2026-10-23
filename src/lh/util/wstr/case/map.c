@@ -2430,6 +2430,7 @@ static const lh_wchar_case_pair_t m_wchar_to_lower_table[] = {
     { 65336U, 65368U },
     { 65337U, 65369U },
     { 65338U, 65370U },
+#    if LH_WCHAR_T_MAX > 0xFFFF
     { 66560U, 66600U },
     { 66561U, 66601U },
     { 66562U, 66602U },
@@ -2712,6 +2713,7 @@ static const lh_wchar_case_pair_t m_wchar_to_lower_table[] = {
     { 125215U, 125249U },
     { 125216U, 125250U },
     { 125217U, 125251U },
+#    endif /* LH_WCHAR_T_MAX > 0xFFFF */
     /* clang-format on */
 };
 
@@ -3912,6 +3914,7 @@ static const lh_wchar_case_pair_t m_wchar_to_upper_table[] = {
     { 65368U, 65336U },
     { 65369U, 65337U },
     { 65370U, 65338U },
+#    if LH_WCHAR_T_MAX > 0xFFFF
     { 66600U, 66560U },
     { 66601U, 66561U },
     { 66602U, 66562U },
@@ -4194,6 +4197,7 @@ static const lh_wchar_case_pair_t m_wchar_to_upper_table[] = {
     { 125249U, 125215U },
     { 125250U, 125216U },
     { 125251U, 125217U },
+#    endif /* LH_WCHAR_T_MAX > 0xFFFF */
     /* clang-format on */
 };
 

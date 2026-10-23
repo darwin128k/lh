@@ -6,8 +6,9 @@ Uses only mappings where the folded form is a single code point (excludes full "
 like ß -> ss). Omits status "T" (Turkic) by default — same as common non-Turkic case fold.
 
 lh_wchar_fold_case uses lh_interval_ropen_binary_search() from lh/util/interval.h on the
-sorted table (same interval search as wstr case map), then lh_math_gt vs LH_WCHAR_T_MAX before returning
-the mapped scalar as lh_wchar_t.
+sorted table (same interval search as wstr case map). Table rows are lh_wchar_t pairs; the
+supplementary-plane tail is guarded by #if LH_WCHAR_T_MAX > 0xFFFF (no fold crosses the BMP
+boundary — the script aborts if that ever stops holding).
 
 Input: tools/data/unicode/CaseFolding-16.0.0.txt (vendored; refresh from unicode.org when bumping UCD).
 Output: src/lh/util/wchar/case/fold.c
@@ -19,6 +20,8 @@ import argparse
 import os
 import re
 import sys
+
+BMP_MAX = 0xFFFF
 
 LINE_RE = re.compile(
     r"^([0-9A-Fa-f]+)\s*;\s*([CSTF])\s*;\s*([^;#]+?)\s*(?:;.*)?$"
@@ -45,6 +48,11 @@ def parse_case_folding(text: str) -> list[tuple[int, int]]:
         folded = int(parts[0], 16)
         if folded == code:
             continue
+        if (code > BMP_MAX) != (folded > BMP_MAX):
+            raise SystemExit(
+                f"fold ({code:#x} -> {folded:#x}) crosses the BMP boundary — lh_wchar_case_pair_t "
+                "on a 16-bit lh_wchar_t cannot represent it; review before proceeding."
+            )
         pairs[code] = folded
     out = sorted(pairs.items(), key=lambda kv: kv[0])
     return out
@@ -61,8 +69,8 @@ def emit_c(pairs: list[tuple[int, int]], unicode_version: str, out_path: str) ->
         " *",
         " * Unicode data copyright Unicode, Inc.; see https://www.unicode.org/terms_of_use.html",
         " *",
-        " * Lookup: lh_interval_ropen_binary_search() in lh/util/interval.h",
-        " * (lh_math_gt vs LH_WCHAR_T_MAX for mapped scalar).",
+        " * Lookup: lh_interval_ropen_binary_search() in lh/util/interval.h.",
+        " * Supplementary-plane rows are compiled only when LH_WCHAR_T_MAX > 0xFFFF.",
         " */",
         "",
         "#include <lh/util/wchar.h>",
@@ -74,8 +82,11 @@ def emit_c(pairs: list[tuple[int, int]], unicode_version: str, out_path: str) ->
         "static const lh_wchar_case_pair_t m_wchar_case_fold_table[] = {",
         "    /* clang-format off */",
     ]
-    elems = [f"    {{ {a}U, {b}U }}" for a, b in pairs]
-    lines.append(",\n".join(elems) + ",")
+    # Supplementary-plane rows (sorted last) only fit a 32-bit lh_wchar_t.
+    lines.extend(f"    {{ {a}U, {b}U }}," for a, b in pairs if a <= BMP_MAX)
+    lines.append("#if LH_WCHAR_T_MAX > 0xFFFF")
+    lines.extend(f"    {{ {a}U, {b}U }}," for a, b in pairs if a > BMP_MAX)
+    lines.append("#endif /* LH_WCHAR_T_MAX > 0xFFFF */")
     lines.append("    /* clang-format on */")
     lines.append("};")
     lines.extend(
@@ -87,17 +98,10 @@ def emit_c(pairs: list[tuple[int, int]], unicode_version: str, out_path: str) ->
             "    lh_wchar_case_pair_t result;",
             "    lh_bool_t is_founded;",
             "",
-            "    lh_interval_ropen_binary_search(lh_usize_t, m_wchar_case_fold_table, n,",
-            "                                    lh_cast_static(lh_uchar32_t, c), first, result, is_founded);",
+            "    lh_interval_ropen_binary_search(lh_usize_t, m_wchar_case_fold_table, n, c, first, result,",
+            "                                    is_founded);",
             "",
-            "    if (is_founded) {",
-            "        const lh_uchar32_t mapped = result.second;",
-            "        if (lh_math_gt(mapped, lh_cast_static(lh_uchar32_t, LH_WCHAR_T_MAX))) {",
-            "            return c;",
-            "        }",
-            "        return lh_cast_static(lh_wchar_t, mapped);",
-            "    }",
-            "    return c;",
+            "    return is_founded ? result.second : c;",
             "}",
             "",
         ]
