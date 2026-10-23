@@ -1,6 +1,6 @@
 /**
- * @file no_sanitize_address.h
- * @brief Compiler-portable attribute that exempts a function from AddressSanitizer.
+ * @file sanitize.h
+ * @brief Compiler-portable attributes that exempt a function from a sanitizer.
  *
  * Some fast paths read bytes the sanitizer counts as out of bounds while the
  * hardware does not: a word-wide string scan reads up to a word past the
@@ -11,8 +11,8 @@
  * Outside an ASan build the attribute changes nothing.
  */
 
-#ifndef LH_COMPILER_ATTRIBUTE_NO_SANITIZE_ADDRESS_H
-#define LH_COMPILER_ATTRIBUTE_NO_SANITIZE_ADDRESS_H
+#ifndef LH_COMPILER_ATTRIBUTE_SANITIZE_H
+#define LH_COMPILER_ATTRIBUTE_SANITIZE_H
 
 #include <lh/compiler/type.h>
 
@@ -41,4 +41,4 @@
 #    error "Compiler does not support a no-sanitize-address attribute"
 #endif
 
-#endif /* LH_COMPILER_ATTRIBUTE_NO_SANITIZE_ADDRESS_H */
+#endif /* LH_COMPILER_ATTRIBUTE_SANITIZE_H */

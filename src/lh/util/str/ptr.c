@@ -1,5 +1,5 @@
 #include <lh/util/str/ptr.h>
-#include <lh/attribute/no_sanitize_address.h>
+#include <lh/attribute/sanitize.h>
 #include <lh/bit/swar.h>
 #include <lh/memory/word.h>
 #include <lh/char/limits.h>
