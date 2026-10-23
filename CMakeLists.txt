@@ -489,6 +489,20 @@ if (LH_POSITION_INDEPENDENT_CODE AND CMAKE_C_COMPILER_ID STREQUAL "GNU")
     target_compile_options(${PROJECT_NAME} PRIVATE -fno-semantic-interposition)
 endif ()
 
+# No identical code folding. lh has many one-line accessors that compile to the
+# same instructions on different types — lh_list_node_get_prev and
+# lh_memory_tree_header_get_parent both load a pointer at offset 4. GCC's IPA-ICF
+# merges such functions; GCC 11 with LTO then inlines the merged body with the
+# other type's alias set, so a list-node access reads as a tree-header access
+# that "cannot" overlap the list. In lh_memory_tree_realloc that dropped the loop
+# re-parenting the children: they kept pointing at the freed block (seen with
+# GCC 11.4 -O3 + LTO, i386; not with GCC 16). Known class of GCC bugs: PR 113907,
+# PR 106921, PR 118924. The flag is read per function at compile time, so it
+# also holds when lh is folded into a consumer's LTO link.
+if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(${PROJECT_NAME} PRIVATE -fno-ipa-icf)
+endif ()
+
 # Expose generated and public include directories to consumers.
 # The generated one comes FIRST on purpose: `#include <lh/config.h>` has to find
 # this build tree's header, not one that happens to sit in the source tree.
