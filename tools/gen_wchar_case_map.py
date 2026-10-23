@@ -21,7 +21,9 @@ by #if LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE:
          on a platform where LH_WCHAR_T_MAX already can't exceed 0xFFFF.
   - OFF: the original single sorted sparse pair table covering every code point, via
          lh_interval_ropen_binary_search() from lh/util/interval.h. O(log n) per
-         character (~11 comparisons for the current ~1.4k entries per direction).
+         character (~11 comparisons for the current ~1.4k entries per direction). The
+         supplementary-plane tail of each table is guarded by #if LH_WCHAR_T_MAX > 0xFFFF,
+         since lh_wchar_case_pair_t holds lh_wchar_t.
 
 Every code point in the current UCD data maps within its own plane (no BMP source has a
 supplementary-plane target or vice versa) — verified when splitting, not assumed; the
@@ -110,9 +112,19 @@ def emit_u16_table(name: str, values: list[int]) -> list[str]:
     return lines
 
 
-def emit_sparse_table(name: str, pairs: list[tuple[int, int]]) -> list[str]:
+def emit_sparse_table(
+    name: str, pairs: list[tuple[int, int]], guard_smp: bool = False
+) -> list[str]:
+    """guard_smp wraps the supplementary-plane tail (sorted last) in
+    #if LH_WCHAR_T_MAX > 0xFFFF, since those rows only fit a 32-bit lh_wchar_t."""
     lines = [f"static const lh_wchar_case_pair_t {name}[] = {{", "    /* clang-format off */"]
-    lines.append(",\n".join(f"    {{ {a}U, {b}U }}" for a, b in pairs) + ",")
+    if guard_smp:
+        lines.extend(f"    {{ {a}U, {b}U }}," for a, b in pairs if a <= BMP_MAX)
+        lines.append("#if LH_WCHAR_T_MAX > 0xFFFF")
+        lines.extend(f"    {{ {a}U, {b}U }}," for a, b in pairs if a > BMP_MAX)
+        lines.append("#endif /* LH_WCHAR_T_MAX > 0xFFFF */")
+    else:
+        lines.extend(f"    {{ {a}U, {b}U }}," for a, b in pairs)
     lines.append("    /* clang-format on */")
     lines.append("};")
     return lines
@@ -239,9 +251,9 @@ def emit_c(
     lines.append("")
     lines.extend(emit_two_level_direction("upper", upper_bmp, upper_smp))
     lines.extend(["", "#else /* !LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE */", ""])
-    lines.extend(emit_sparse_table("m_wchar_to_lower_table", to_lower))
+    lines.extend(emit_sparse_table("m_wchar_to_lower_table", to_lower, guard_smp=True))
     lines.append("")
-    lines.extend(emit_sparse_table("m_wchar_to_upper_table", to_upper))
+    lines.extend(emit_sparse_table("m_wchar_to_upper_table", to_upper, guard_smp=True))
     lines.extend(["", "#endif /* LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE */", ""])
 
     lines.append("#if LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE")
