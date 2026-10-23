@@ -276,7 +276,7 @@ lh_memory_std_set_bytes(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 
         if (n >= w)
         {
-            const lh_usize_t v = ((~(lh_usize_t)0) / 0xFFU) * val;
+            const lh_usize_t v = lh_bit_swar_broadcast(val);
 
             do
             {
@@ -501,7 +501,7 @@ lh_memory_std_fill_words(lh_ptr dst, lh_usize_t word, lh_usize_t n)
     const lh_byte_t byte = lh_cast_static(lh_byte_t, word);
     lh_byte_ptr d = lh_ptr_cast(lh_byte_t, dst);
 
-    while (n > 0U && (lh_ptr_to_uaddr(d) & (w - 1U)) != 0U)
+    while (n > 0U && !lh_ptr_is_aligned(d, w))
     {
         lh_ptr_deref(d++) = byte;
         --n;
@@ -615,30 +615,6 @@ lh_memory_std_find_at(lh_byte_cptr hay, lh_usize_t off, lh_byte_cptr needle, lh_
                                          lh_memory_std_find_is_match(hay + off, needle, m));
 }
 
-/** High bit of address-ordered lane @p lane inside a machine word. Lane 0 is the lowest address. */
-LH_ATTRIBUTE_FORCE_INLINE
-lh_usize_t
-lh_memory_std_find_lane_bit(lh_usize_t lane)
-{
-#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-    lane = sizeof(lh_usize_t) - 1U - lane;
-#endif
-    return ((lh_usize_t)0x80U) << (lane << 3);
-}
-
-/** Lanes of a machine word whose bytes equal the filter broadcast in @p byte_word.
- *  A lit lane is not proof: the subtract can light a neighbor, so the caller rechecks
- *  the candidate. @p ones is 0x0101... and @p high is 0x8080... */
-LH_ATTRIBUTE_FORCE_INLINE
-lh_usize_t
-lh_memory_std_find_byte_mask(lh_byte_cptr at, lh_usize_t ones, lh_usize_t high,
-                             lh_usize_t byte_word)
-{
-    const lh_usize_t x = (lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, at))) ^ byte_word;
-
-    return (x - ones) & ~x & high;
-}
-
 /** Scalar ::lh_memory_std_find from offset @p off.
  *  Full words of candidates move by sizeof(::lh_usize_t); the tail steps one byte.
  *  The word filter watches one needle end only: the last byte when @p m > 1 (so a
@@ -655,16 +631,16 @@ lh_memory_std_find_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, l
     /* Below 32 bytes the byte scan is shorter than the word prologue. */
     if (n >= 32U && n >= m + w - 1U)
     {
-        const lh_usize_t ones = (~(lh_usize_t)0) / 0xFFU;
-        const lh_usize_t high = ones << 7;
-        const lh_usize_t filter = ones * (m > 1U ? last : first);
+        const lh_usize_t filter = lh_bit_swar_broadcast(m > 1U ? last : first);
         const lh_usize_t filter_off = m > 1U ? (m - 1U) : 0U;
         const lh_usize_t word_limit = n - (m + w - 1U);
 
         while (off <= word_limit)
         {
-            const lh_usize_t mask =
-                lh_memory_std_find_byte_mask(hay + off + filter_off, ones, high, filter);
+            /* Lanes whose byte equals the filter byte. A lit lane is not proof: the
+             * subtract can light a neighbor, so each candidate is rechecked. */
+            const lh_usize_t mask = lh_bit_swar_zero_mask(lh_bit_xor(
+                lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, hay + off + filter_off)), filter));
 
             if (mask != 0U)
             {
@@ -672,7 +648,7 @@ lh_memory_std_find_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, l
 
                 for (lane = 0U; lane < w; ++lane)
                 {
-                    if (((mask & lh_memory_std_find_lane_bit(lane)) != 0U) &&
+                    if (lh_math_ne(lh_bit_and(mask, lh_bit_swar_lane_bit(lane)), 0U) &&
                         lh_memory_std_find_at(hay, off + lane, needle, m, first, last))
                     {
                         return hay + off + lane;
@@ -705,12 +681,10 @@ lh_memory_std_rfind_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, 
 
     if (n >= 32U && n >= m + w - 1U)
     {
-        const lh_usize_t ones = (~(lh_usize_t)0) / 0xFFU;
-        const lh_usize_t high = ones << 7;
-        const lh_usize_t filter = ones * (m > 1U ? last : first);
+        const lh_usize_t filter = lh_bit_swar_broadcast(m > 1U ? last : first);
         const lh_usize_t filter_off = m > 1U ? (m - 1U) : 0U;
         const lh_usize_t word_limit = n - (m + w - 1U);
-        const lh_usize_t block = word_limit & ~(w - 1U);
+        const lh_usize_t block = lh_addr_align_down(word_limit, w);
 
         if (max_start >= block + w)
         {
@@ -730,8 +704,8 @@ lh_memory_std_rfind_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, 
         off = block;
         for (;;)
         {
-            const lh_usize_t mask =
-                lh_memory_std_find_byte_mask(hay + off + filter_off, ones, high, filter);
+            const lh_usize_t mask = lh_bit_swar_zero_mask(lh_bit_xor(
+                lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, hay + off + filter_off)), filter));
 
             if (mask != 0U)
             {
@@ -739,7 +713,7 @@ lh_memory_std_rfind_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, 
 
                 while (lane-- != 0U)
                 {
-                    if (((mask & lh_memory_std_find_lane_bit(lane)) != 0U) &&
+                    if (lh_math_ne(lh_bit_and(mask, lh_bit_swar_lane_bit(lane)), 0U) &&
                         lh_memory_std_find_at(hay, off + lane, needle, m, first, last))
                     {
                         return hay + off + lane;
