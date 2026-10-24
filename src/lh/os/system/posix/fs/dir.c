@@ -8,6 +8,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <limits.h>
+#include <sys/stat.h>
 
 #ifndef NAME_MAX
 #    define NAME_MAX 255
@@ -92,4 +93,16 @@ lh_usize_t
 lh_os_system_fs_dir_name_max(void)
 {
     return lh_cast_static(lh_usize_t, NAME_MAX);
+}
+
+lh_bool_t
+lh_os_system_fs_dir_create(lh_str_cptr path)
+{
+    lh_assert_runtime_ref(path);
+    if (lh_math_ne(mkdir(path, 0777), 0))
+    {
+        lh_os_system_error_capture();
+        return lh_bool_false;
+    }
+    return lh_bool_true;
 }

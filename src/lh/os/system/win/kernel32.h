@@ -235,6 +235,10 @@ GetFileAttributesExW(lh_wstr_cptr lpFileName,
 
 /* Directories. */
 
+/** Create one directory. Present since Windows NT 3.1. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+CreateDirectoryW(lh_wstr_cptr lpPathName, lh_ptr lpSecurityAttributes);
+
 /** Start listing a directory; the first entry. Present since Windows NT 3.1. */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
 FindFirstFileW(lh_wstr_cptr lpFileName, lh_os_system_win_find_data_t *lpFindFileData);
@@ -261,6 +265,11 @@ LoadLibraryW(lh_wstr_cptr lpLibFileName);
 /** Release a DLL loaded by ::LoadLibraryW. Present since Windows 95. */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 FreeLibrary(lh_os_system_win_handle_t hLibModule);
+
+/** Change the protection of committed pages. Present since Windows NT 3.1. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+VirtualProtect(lh_ptr lpAddress, lh_usize_t dwSize, lh_os_system_win_dword_t flNewProtect,
+               lh_os_system_win_dword_t *lpflOldProtect);
 
 /** Address of an exported function. Present since Windows 95. */
 LH_OS_SYSTEM_WIN_IMPORT lh_ptr LH_OS_SYSTEM_WIN_CALL

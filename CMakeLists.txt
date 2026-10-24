@@ -257,6 +257,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/timestamp.c
             ${LH_LIB_SRC_PATH}/os/tick.c
             ${LH_LIB_SRC_PATH}/os/env.c
+            ${LH_LIB_SRC_PATH}/os/memory.c
             ${LH_LIB_SRC_PATH}/os/input.c
             ${LH_LIB_SRC_PATH}/os/fs/path.c
             ${LH_LIB_SRC_PATH}/os/fs/stat.c
@@ -264,6 +265,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/fs/dir.c
             ${LH_LIB_SRC_PATH}/os/net.c
             ${LH_LIB_SRC_PATH}/os/net/socket.c
+            ${LH_LIB_SRC_PATH}/os/net/interface.c
             ${LH_LIB_SRC_PATH}/os/serial.c
             ${LH_LIB_SRC_PATH}/os/shared.c
             ${LH_LIB_SRC_PATH}/os/module.c
@@ -277,7 +279,7 @@ if (LH_LIBRARY_OPTION_OS)
     # Each backend also names the system libraries it links against.
     if (WIN32)
         set(LH_OS_SYSTEM_BACKEND win)
-        set(LH_OS_SYSTEM_LINK_LIBS ws2_32)
+        set(LH_OS_SYSTEM_LINK_LIBS ws2_32 iphlpapi)
     else ()
         set(LH_OS_SYSTEM_BACKEND posix)
         set(LH_OS_SYSTEM_LINK_LIBS ${CMAKE_DL_LIBS})
@@ -287,12 +289,14 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/error/kind.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/timestamp.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/env.c
+            ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/memory.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/fs/path.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/fs/file.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/fs/dir.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/fs/stat.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/net.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/net/socket.c
+            ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/net/interface.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/serial.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/shared.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/str.c

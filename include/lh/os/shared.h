@@ -9,7 +9,8 @@
  * A library that is not a plugin (load it, call a function) needs only this.
  *
  * An open image holds exactly one OS reference, taken by ::lh_os_shared_open,
- * ::lh_os_shared_bind or ::lh_os_shared_bind_executable and given back by
+ * ::lh_os_shared_bind, ::lh_os_shared_bind_name or ::lh_os_shared_bind_executable
+ * and given back by
  * ::lh_os_shared_close. Whoever else loaded the same image keeps their own
  * references: closing this one never unloads it from under them.
  *
@@ -128,6 +129,15 @@ lh_bool_t
 lh_os_shared_bind_executable(lh_os_shared_t *self);
 
 /**
+ * @brief Take the already-loaded image whose file is @p name (`cs.so`,
+ *        `mp.dll`) — never loads it. Its path comes from the OS.
+ *
+ * @return ::lh_bool_false when no such image is loaded (or @p self is not free).
+ */
+lh_bool_t
+lh_os_shared_bind_name(lh_os_shared_t *self, const lh_str_ptr name);
+
+/**
  * @brief Give the reference back and forget the handle. The path is kept.
  *
  * Safe on a closed image.
@@ -145,6 +155,17 @@ lh_os_shared_close(lh_os_shared_t *self);
  */
 lh_ptr
 lh_os_shared_get_sym(const lh_os_shared_t *self, const lh_str_ptr name);
+
+/**
+ * @brief Symbol @p name from the image's own symbol table, or ::lh_null.
+ *
+ * Finds what the image keeps to itself — static functions, hidden symbols —
+ * by reading the ELF `.symtab` of its file, so the file must not be
+ * stripped. Windows has no such table in the image (locals live in the
+ * `.pdb`): always ::lh_null there.
+ */
+lh_ptr
+lh_os_shared_get_local_sym(const lh_os_shared_t *self, const lh_str_ptr name);
 
 /**
  * @brief True if open and @p name is exported.

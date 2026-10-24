@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_os_fs_dir_create` (`lh/os/fs/dir.h`): creates one directory level; true when the path is a directory afterwards, created now or already there
+- Page protection (`lh/os/memory.h`): `lh_os_memory_protect` gives a range's pages `lh_os_memory_access_read` / `_write` / `_execute` (`lh/os/memory/access.h`), widened to page boundaries — `mprotect` / `VirtualProtect`. New `lh_os_error_code_empty_range` for a null or zero-length range
+- `lh_os_shared_bind_name` (`lh/os/shared.h`): takes an image that is already loaded by its file name (`cs.so`, `mp.dll`) and never loads it; on POSIX an image loaded by a full path without that SONAME is still found, by its file name among the loaded ones
+- `lh_os_shared_get_local_sym`: a symbol from the image's own ELF `.symtab` — static and hidden symbols, which `dlsym` cannot see; the file must not be stripped. Always null on Windows (locals live in the `.pdb`)
+- `lh_os_net_interface_each_ip4` (`lh/os/net/interface.h`): every IPv4 address of the machine's interfaces as `lh_net_ip4_t`, loopback and aliases included — `getifaddrs` / `GetIpAddrTable` (links `iphlpapi` on Windows)
 - Ed25519 signatures (`lh/crypto/ed25519.h`, RFC 8032): `lh_crypto_ed25519_key_pair` (derives the pair from a 32-byte seed and wipes the seed), `lh_crypto_ed25519_sign` (deterministic), `lh_crypto_ed25519_check`. The arithmetic is Monocypher 4.0.2, vendored in `lib/monocypher` (BSD-2-Clause / CC0-1.0 — `licenses/Monocypher.txt`) and compiled into lh; dependents get the `crypto_*` symbols from lh and must not link a second Monocypher. RFC 8032 known answers in `test/src/lh/crypto/ed25519.cpp`
 - `lh_crypto_wipe` (`lh/crypto/wipe.h`): zeroes a secret through a volatile pointer, so the stores are not dropped as dead
 - Pull INI parser `lh_ini_parser_t` (`lh/ini/parser.h`, umbrella `lh/ini.h`): one entry at a time as `lh_ini_entry_t` (section header or key/value), dialect with `;`/`#` full-line comments, `[section]`, `key = value`, UTF-8 BOM skip; `lh_ini_error_t` / `lh_ini_parser_get_line` on a bad line

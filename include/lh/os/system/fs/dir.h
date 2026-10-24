@@ -19,6 +19,7 @@
 #ifndef LH_OS_SYSTEM_FS_DIR_H
 #define LH_OS_SYSTEM_FS_DIR_H
 
+#include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/fs/kind.h>
@@ -69,6 +70,16 @@ lh_os_system_fs_dir_read(lh_os_system_fs_dir_handle_t handle, const lh_str_ptr *
  */
 lh_usize_t
 lh_os_system_fs_dir_name_max(void);
+
+/**
+ * @brief Create the directory at @p path (one level).
+ *
+ * @param path Native, NUL-terminated directory path text.
+ * @return ::lh_bool_true when the OS created it; ::lh_bool_false (error
+ *         captured) otherwise — including when something already exists there.
+ */
+lh_bool_t
+lh_os_system_fs_dir_create(const lh_str_ptr path);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -129,3 +129,21 @@ lh_os_system_fs_dir_name_max(void)
 {
     return lh_cast_static(lh_usize_t, lh_math_mul(lh_math_sub(LH_OS_SYSTEM_WIN_MAX_PATH, 1), 3));
 }
+
+lh_bool_t
+lh_os_system_fs_dir_create(lh_str_cptr path)
+{
+    lh_os_str_t os_path;
+
+    lh_assert_runtime_ref(path);
+    const lh_bool_t ok = lh_os_system_str_init_by_utf8(lh_addr_of(os_path), path);
+    const lh_bool_t created = lh_cast_static(
+        lh_bool_t, ok && lh_math_ne(CreateDirectoryW(lh_os_str_get_data(lh_addr_of(os_path)), lh_null), 0));
+    lh_os_str_deinit(lh_addr_of(os_path));
+    /* A failed conversion already set its own error. */
+    if (ok && !created)
+    {
+        lh_os_system_error_capture();
+    }
+    return created;
+}
