@@ -223,6 +223,8 @@ set(LH_LIB_SOURCES
 
         ${LH_LIB_SRC_PATH}/crypto/sha.c
         ${LH_LIB_SRC_PATH}/crypto/rijndael.c
+        ${LH_LIB_SRC_PATH}/crypto/ed25519.c
+        ${LH_LIB_SRC_PATH}/crypto/wipe.c
 
         ${LH_LIB_SRC_PATH}/hash/fnv.c
 
@@ -328,6 +330,19 @@ if (LH_LIBRARY_OPTION_OS)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/render/backend/gdi.c)
     endif ()
 endif ()
+
+# Monocypher, the arithmetic behind lh/crypto/ed25519.h. Someone else's code,
+# like SQLite below: built without warnings, its header private to lh.
+set(LH_MONOCYPHER_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/monocypher)
+list(APPEND LH_LIB_SOURCES
+        ${LH_MONOCYPHER_PATH}/monocypher.c
+        ${LH_MONOCYPHER_PATH}/monocypher-ed25519.c
+)
+set_source_files_properties(
+        ${LH_MONOCYPHER_PATH}/monocypher.c
+        ${LH_MONOCYPHER_PATH}/monocypher-ed25519.c
+        PROPERTIES COMPILE_OPTIONS "$<IF:$<C_COMPILER_ID:MSVC>,/w,-w>"
+)
 
 # UI model (color, paint, style, canvas, entity tree). OFF leaves it out.
 # SQLite and its lh/sql backend (LH_LIBRARY_OPTION_SQL_SQLITE). The amalgamation
@@ -517,6 +532,8 @@ target_include_directories(
 )
 
 # Kernel backend's system libraries (chosen with LH_OS_SYSTEM_BACKEND above).
+target_include_directories(${PROJECT_NAME} PRIVATE ${LH_MONOCYPHER_PATH})
+
 if (LH_LIBRARY_OPTION_OS AND LH_OS_SYSTEM_LINK_LIBS)
     target_link_libraries(${PROJECT_NAME} PUBLIC ${LH_OS_SYSTEM_LINK_LIBS})
 endif ()
