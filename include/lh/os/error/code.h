@@ -56,6 +56,12 @@
 #define lh_os_error_code_already_open 0x06
 
 /**
+ * @def lh_os_error_code_empty_range
+ * @brief A memory range was null or zero bytes long.
+ */
+#define lh_os_error_code_empty_range 0x07
+
+/**
  * @typedef lh_os_error_code_t
  * @brief Same representation as ::lh_error_code_t for OS-layer last-error codes.
  */

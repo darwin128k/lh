@@ -124,3 +124,37 @@ lh_os_system_shared_get_path(lh_os_system_shared_handle_t handle, lh_str_t *out)
     lh_os_set_last_error_lit(lh_os_error_code_name_too_long, "image path is too long");
     return lh_bool_false;
 }
+
+lh_os_system_shared_handle_t
+lh_os_system_shared_get_by_name(lh_str_cptr name)
+{
+    lh_os_str_t os_name;
+    lh_os_system_win_handle_t native = lh_null;
+
+    lh_assert_runtime_ref(name);
+    const lh_bool_t ok = lh_os_system_str_init_by_utf8(lh_addr_of(os_name), name);
+    /* Flags 0: take a reference, released by lh_os_system_shared_close. */
+    const lh_bool_t found = lh_cast_static(
+        lh_bool_t, ok && lh_math_ne(GetModuleHandleExW(0UL, lh_os_str_get_data(lh_addr_of(os_name)),
+                                                       lh_addr_of(native)),
+                                    0));
+    lh_os_str_deinit(lh_addr_of(os_name));
+    if (!found)
+    {
+        if (ok)
+        {
+            lh_os_system_error_capture();
+        }
+        return LH_OS_SYSTEM_SHARED_HANDLE_INVALID;
+    }
+    return native;
+}
+
+lh_ptr
+lh_os_system_shared_get_local_sym(lh_os_system_shared_handle_t handle, lh_str_cptr name)
+{
+    /* PE images carry no symbol table of their own; locals live in the .pdb. */
+    (void)handle;
+    (void)name;
+    return lh_null;
+}

@@ -203,7 +203,10 @@ lh_add_test_core(lh_test_numeric
 )
 
 set(LH_TEST_OS_SOURCES
+        ${LH_TEST_SRC_PATH}/lh/os/fs/dir.cpp
         ${LH_TEST_SRC_PATH}/lh/os/input.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/memory.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/net/interface.cpp
         ${LH_TEST_SRC_PATH}/lh/os/net/modbus_tcp.cpp
         ${LH_TEST_SRC_PATH}/lh/os/net/socket.cpp
         ${LH_TEST_SRC_PATH}/lh/os/serial.cpp
@@ -218,6 +221,12 @@ set(LH_TEST_OS_SOURCES
         ${LH_TEST_SRC_PATH}/lh/os/system/win/input.cpp
 )
 if (NOT LH_LIBRARY_OPTION_OS)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/fs/dir.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/fs/dir.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/memory.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/memory.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/net/interface.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/net/interface.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/input.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/input.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/tick.cpp)

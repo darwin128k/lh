@@ -1,6 +1,7 @@
 #include <lh/assert.h>
 #include <lh/os.h>
 #include <lh/os/error/code.h>
+#include <lh/os/fs/stat.h>
 #include <lh/os/system/fs/dir.h>
 #include <lh/math.h>
 #include <lh/util/str/ptr/dot.h>
@@ -95,4 +96,25 @@ lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_str_view_t *name, lh_os_fs_dir_entry_
         lh_ptr_deref(kind) = entry_kind;
     }
     return n;
+}
+
+lh_bool_t
+lh_os_fs_dir_create(const lh_fs_path_t *path)
+{
+    lh_str_t buf;
+    lh_fs_stat_t info;
+
+    lh_str_cptr const cstr = lh_os_fs_path_to_cstr(path, lh_addr_of(buf));
+    const lh_bool_t created =
+        lh_cast_static(lh_bool_t, lh_null_ne(cstr) && lh_os_system_fs_dir_create(cstr));
+    lh_str_deinit(lh_addr_of(buf));
+    if (created)
+    {
+        return lh_bool_true;
+    }
+    /* Already there is fine — as long as it is a directory. */
+    lh_fs_stat_init(lh_addr_of(info));
+    return lh_cast_static(lh_bool_t, lh_os_fs_stat(path, lh_addr_of(info)) &&
+                                         lh_math_eq(lh_fs_stat_get_kind(lh_addr_of(info)),
+                                                    lh_fs_kind_dir));
 }

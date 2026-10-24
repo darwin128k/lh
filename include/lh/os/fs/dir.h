@@ -106,6 +106,17 @@ lh_os_fs_dir_is_valid(const lh_os_fs_dir_t *self);
 lh_ssize_t
 lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_str_view_t *name, lh_os_fs_dir_entry_kind_t *kind);
 
+/**
+ * @brief Create the directory @p path — one level: its parent must exist.
+ *
+ * @param path Directory to create.
+ * @return ::lh_bool_true when @p path is a directory afterwards, created now
+ *         or already there; ::lh_bool_false otherwise (a file in the way, no
+ *         parent, no rights), with the OS error set.
+ */
+lh_bool_t
+lh_os_fs_dir_create(const lh_fs_path_t *path);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_FS_DIR_H */

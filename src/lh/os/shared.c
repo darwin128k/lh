@@ -185,3 +185,25 @@ lh_os_shared_get_fn(const lh_os_shared_t *self, lh_str_cptr name)
     lh_memory_copy(lh_addr_of(fn), sizeof(fn), lh_addr_of(sym), sizeof(sym));
     return fn;
 }
+
+lh_bool_t
+lh_os_shared_bind_name(lh_os_shared_t *self, lh_str_cptr name)
+{
+    if (!lh_os_shared_is_free(self) || lh_null_eq(name))
+    {
+        return lh_bool_false;
+    }
+    return lh_os_shared_adopt(self, lh_os_system_shared_get_by_name(name));
+}
+
+lh_ptr
+lh_os_shared_get_local_sym(const lh_os_shared_t *self, lh_str_cptr name)
+{
+    if (!lh_os_shared_is_open(self))
+    {
+        lh_os_set_last_error_lit(lh_os_error_code_not_open, "image not open");
+        return lh_null;
+    }
+    return lh_null_eq(name) ? lh_null
+                            : lh_os_system_shared_get_local_sym(lh_os_shared_get_handle(self), name);
+}

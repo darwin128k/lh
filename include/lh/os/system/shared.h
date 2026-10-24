@@ -96,6 +96,24 @@ lh_os_system_shared_handle_t
 lh_os_system_shared_get_by_addr(lh_ptr addr);
 
 /**
+ * @brief Handle of the already-loaded image whose file is @p name.
+ *
+ * Windows: `GetModuleHandleEx`; POSIX: `dlopen(RTLD_NOLOAD)`. Never loads;
+ * takes a reference like ::lh_os_system_shared_get_by_addr.
+ *
+ * @return Handle (close it), or ::LH_OS_SYSTEM_SHARED_HANDLE_INVALID.
+ */
+lh_os_system_shared_handle_t
+lh_os_system_shared_get_by_name(const lh_str_ptr name);
+
+/**
+ * @brief Symbol @p name from the on-disk symbol table of @p handle's image,
+ *        or ::lh_null (always on Windows).
+ */
+lh_ptr
+lh_os_system_shared_get_local_sym(lh_os_system_shared_handle_t handle, const lh_str_ptr name);
+
+/**
  * @brief Native path of @p handle into @p out (replacing its contents).
  *
  * Buffer sizing is the backend's business: the caller gets the whole path
