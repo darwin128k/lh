@@ -119,6 +119,7 @@ lh_add_test_core(lh_test_cpu
 )
 
 lh_add_test_core(lh_test_crypto
+        ${LH_TEST_SRC_PATH}/lh/crypto/ed25519.cpp
         ${LH_TEST_SRC_PATH}/lh/crypto/rijndael.cpp
         ${LH_TEST_SRC_PATH}/lh/crypto/sha.cpp
 )

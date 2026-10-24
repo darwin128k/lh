@@ -42,3 +42,12 @@ which remains under its own license.
 - License: Unicode License v3 (see `licenses/Unicode-3.0.txt`,
   or https://www.unicode.org/license.txt)
 - Files: `tools/data/unicode/` (used to generate the library's Unicode tables)
+
+### Monocypher
+
+- Version: 4.0.2
+- Copyright (c) 2017-2023 Loup Vaillant, Michael Savage, Fabio Scotoni
+- License: BSD 2-Clause or CC0 1.0, at the user's choice (see
+  `licenses/Monocypher.txt`, or https://monocypher.org/)
+- Files: `lib/monocypher/`
+- Used by: `src/lh/crypto/ed25519.c` (Ed25519 key pairs, signing, verification)
