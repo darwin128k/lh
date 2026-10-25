@@ -36,6 +36,7 @@ lh_sql_mysql_api_get_image_mut(lh_sql_mysql_api_t *self)
 lh_void
 lh_sql_mysql_api_init(lh_sql_mysql_api_t *self)
 {
+    self->options = lh_null;
     lh_os_shared_init(lh_sql_mysql_api_get_image_mut(self));
     self->init = lh_null;
     self->real_connect = lh_null;
@@ -79,6 +80,7 @@ lh_bool_t
 lh_sql_mysql_api_bind(lh_sql_mysql_api_t *self)
 {
     const lh_os_shared_t *image = lh_sql_mysql_api_get_image_mut(self);
+    self->options = lh_cast_static(lh_sql_mysql_options_fn *, lh_os_shared_get_fn(image, "mysql_options"));
 
     self->init = lh_cast_static(lh_sql_mysql_init_fn *, lh_os_shared_get_fn(image, "mysql_init"));
     self->real_connect = lh_cast_static(lh_sql_mysql_real_connect_fn *,

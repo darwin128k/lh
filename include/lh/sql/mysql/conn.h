@@ -23,6 +23,7 @@
  */
 struct lh_sql_mysql_conn
 {
+    lh_bool_t broken;
     lh_sql_mysql_conn_fields(const lh_sql_mysql_api_t *, lh_ptr, lh_str_t, lh_uint_t);
 };
 /** @copybrief lh_sql_mysql_conn */

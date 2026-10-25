@@ -86,6 +86,7 @@ lh_sql_mysql_conn_create(const lh_sql_mysql_api_t *api, lh_ptr native, lh_str_vi
         lh_ptr_cast(lh_sql_mysql_conn_t, lh_runtime_allocator_alloc(sizeof(lh_sql_mysql_conn_t)));
 
     lh_sql_mysql_conn_set_api(self, api);
+    self->broken = lh_bool_false;
     lh_sql_mysql_conn_set_native(self, native);
     lh_str_init_by_view(lh_addr_of(self->host), host);
     lh_str_init_by_view(lh_addr_of(self->user), user);
