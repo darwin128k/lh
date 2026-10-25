@@ -41,6 +41,9 @@ typedef lh_void(lh_sql_mysql_close_fn)(lh_ptr mysql);
 /** `const char *mysql_error(MYSQL *)`. */
 typedef const lh_char_t *(lh_sql_mysql_error_fn)(lh_ptr mysql);
 
+/** `unsigned int mysql_errno(MYSQL *)`: the number of the last failure, `0` after a success. */
+typedef lh_uint_t(lh_sql_mysql_error_code_fn)(lh_ptr mysql);
+
 /** `int mysql_real_query(MYSQL *, const char *, unsigned long)`. */
 typedef lh_sint_t(lh_sql_mysql_real_query_fn)(lh_ptr mysql, const lh_char_t *query,
                                               lh_ulong_t length);
@@ -82,7 +85,7 @@ struct lh_sql_mysql_api
 {
     lh_sql_mysql_api_fields(lh_os_shared_t, lh_sql_mysql_init_fn, lh_sql_mysql_real_connect_fn,
                             lh_sql_mysql_close_fn, lh_sql_mysql_error_fn,
-                            lh_sql_mysql_real_query_fn, lh_sql_mysql_store_result_fn,
+                            lh_sql_mysql_error_code_fn, lh_sql_mysql_real_query_fn, lh_sql_mysql_store_result_fn,
                             lh_sql_mysql_free_result_fn, lh_sql_mysql_fetch_row_fn,
                             lh_sql_mysql_fetch_lengths_fn, lh_sql_mysql_num_fields_fn,
                             lh_sql_mysql_field_count_fn, lh_sql_mysql_insert_id_fn,
@@ -159,6 +162,10 @@ lh_sql_mysql_api_close(const lh_sql_mysql_api_t *self, lh_ptr mysql);
 /** `mysql_error`, as a view; empty when the client has none. */
 lh_str_view_t
 lh_sql_mysql_api_error(const lh_sql_mysql_api_t *self, lh_ptr mysql);
+
+/** `mysql_errno`: the number of the last failure, `0` when there is none. */
+lh_uint_t
+lh_sql_mysql_api_error_code(const lh_sql_mysql_api_t *self, lh_ptr mysql);
 
 /** `mysql_real_query`; ::lh_bool_true on success. */
 lh_bool_t

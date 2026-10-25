@@ -11,6 +11,16 @@
  * ::lh_sql_db_exec runs one statement: the client is connected without
  * `CLIENT_MULTI_STATEMENTS`, as `;`-joined input is how injection spreads.
  *
+ * The server says nothing when it drops a connection — idle past its
+ * `wait_timeout`, restarted — so the backend finds out from the statement
+ * that hits it. When the client says that statement never reached a live
+ * server (::LH_SQL_MYSQL_ERROR_SERVER_GONE, ::LH_SQL_MYSQL_ERROR_IDLE_TIMEOUT),
+ * the backend connects again to the same address and sends it once more;
+ * the caller sees one statement that ran. A connection lost while a
+ * statement ran (::LH_SQL_MYSQL_ERROR_SERVER_LOST) is reported, not resent:
+ * the statement may have taken effect. The next one finds the connection
+ * gone and reconnects.
+ *
  * Requires ::LH_LIBRARY_OPTION_OS.
  */
 
@@ -26,6 +36,18 @@
 
 /** @brief Characters the longest 64-bit integer literal takes: a sign and 20 digits. */
 #define LH_SQL_MYSQL_INTEGER_DIGITS_MAX 21U
+
+/** @brief `CR_SERVER_GONE_ERROR`: the connection was gone before the statement was sent. */
+#define LH_SQL_MYSQL_ERROR_SERVER_GONE 2006U
+
+/** @brief `CR_SERVER_LOST`: the connection broke while a statement ran. */
+#define LH_SQL_MYSQL_ERROR_SERVER_LOST 2013U
+
+/**
+ * @brief `ER_CLIENT_INTERACTION_TIMEOUT` (MySQL 8.0.24+): the server closed the
+ *        connection as idle, and said so, before it read the statement.
+ */
+#define LH_SQL_MYSQL_ERROR_IDLE_TIMEOUT 4031U
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -54,6 +76,27 @@ lh_sql_mysql_fail(lh_sql_db_t *db);
 /** Write @p text as a quoted, escaped SQL string literal into @p out (replacing it). */
 lh_void
 lh_sql_mysql_quote(const lh_sql_db_t *db, lh_str_view_t text, lh_str_t *out);
+
+/**
+ * @brief Open a new connection of @p db to the address it was opened with
+ *        and put it in place of the old one, which is closed. Statements
+ *        prepared on @p db stay usable.
+ *
+ * @return ::lh_bool_false, with the error set, when the server refuses or
+ *         cannot be reached; @p db then keeps the old connection, so the
+ *         next statement finds it gone and tries again.
+ */
+lh_bool_t
+lh_sql_mysql_reconnect(lh_sql_db_t *db);
+
+/**
+ * @brief Send @p sql (`mysql_real_query`); when it never reached a live
+ *        server, reconnect and send it once more.
+ *
+ * @return ::lh_bool_false, with the error set, when it failed.
+ */
+lh_bool_t
+lh_sql_mysql_send(lh_sql_db_t *db, lh_str_view_t sql);
 
 /* ── driver callbacks ────────────────────────────────────────────────────── */
 
@@ -133,6 +176,18 @@ lh_sql_mysql_get_driver(void);
  */
 const lh_char_t *
 lh_sql_mysql_to_cstr(lh_str_t *storage, lh_str_view_t text);
+
+/**
+ * @brief A client connection to database @p name on @p host:@p port as
+ *        @p user through @p api, speaking utf8mb4 (utf8 on old servers).
+ *
+ * @return ::lh_null, with the error set on @p db, when the server refuses
+ *         or cannot be reached.
+ */
+lh_ptr
+lh_sql_mysql_connect(lh_sql_db_t *db, const lh_sql_mysql_api_t *api, lh_str_view_t host,
+                     lh_str_view_t user, lh_str_view_t password, lh_str_view_t name,
+                     lh_uint_t port);
 
 /**
  * @brief Connect @p db to database @p name on @p host:@p port as @p user

@@ -53,6 +53,53 @@ lh_sql_mysql_quote(const lh_sql_db_t *db, lh_str_view_t text, lh_str_t *out)
     lh_str_push_back(out, lh_char_map_squote);
 }
 
+lh_bool_t
+lh_sql_mysql_reconnect(lh_sql_db_t *db)
+{
+    lh_sql_mysql_conn_t *conn = lh_sql_mysql_get_conn(db);
+    const lh_sql_mysql_api_t *api = lh_sql_mysql_conn_get_api(conn);
+    lh_ptr native = lh_sql_mysql_connect(
+        db, api, lh_sql_mysql_conn_get_host(conn), lh_sql_mysql_conn_get_user(conn),
+        lh_sql_mysql_conn_get_password(conn), lh_sql_mysql_conn_get_name(conn),
+        lh_sql_mysql_conn_get_port(conn));
+
+    if (lh_null_eq(native))
+    {
+        return lh_bool_false;
+    }
+    lh_sql_mysql_api_close(api, lh_sql_mysql_conn_get_native(conn));
+    lh_sql_mysql_conn_set_native(conn, native);
+    lh_sql_db_clear_error(db);
+    return lh_bool_true;
+}
+
+lh_bool_t
+lh_sql_mysql_send(lh_sql_db_t *db, lh_str_view_t sql)
+{
+    lh_uint_t code;
+
+    if (lh_sql_mysql_api_real_query(lh_sql_mysql_get_api(db), lh_sql_mysql_get_native(db), sql))
+    {
+        return lh_bool_true;
+    }
+    code = lh_sql_mysql_api_error_code(lh_sql_mysql_get_api(db), lh_sql_mysql_get_native(db));
+    /* Never reached a live server, so nothing ran: safe to send again. */
+    if (lh_math_ne(code, LH_SQL_MYSQL_ERROR_SERVER_GONE) &&
+        lh_math_ne(code, LH_SQL_MYSQL_ERROR_IDLE_TIMEOUT))
+    {
+        return lh_sql_mysql_fail(db);
+    }
+    if (!lh_sql_mysql_reconnect(db))
+    {
+        return lh_bool_false;
+    }
+    if (!lh_sql_mysql_api_real_query(lh_sql_mysql_get_api(db), lh_sql_mysql_get_native(db), sql))
+    {
+        return lh_sql_mysql_fail(db);
+    }
+    return lh_bool_true;
+}
+
 /* ── driver callbacks ────────────────────────────────────────────────────── */
 
 lh_void
@@ -66,22 +113,21 @@ lh_bool_t
 lh_sql_mysql_exec(lh_sql_db_t *db, lh_str_view_t sql)
 {
     const lh_sql_mysql_api_t *api = lh_sql_mysql_get_api(db);
-    lh_ptr native = lh_sql_mysql_get_native(db);
     lh_ptr result;
 
-    if (!lh_sql_mysql_api_real_query(api, native, sql))
+    if (!lh_sql_mysql_send(db, sql))
     {
-        return lh_sql_mysql_fail(db);
+        return lh_bool_false;
     }
     /* Rows nobody asked for still have to be taken off the connection, or
        the next query is "out of sync". No result where one was due is an
        error of its own. */
-    result = lh_sql_mysql_api_store_result(api, native);
+    result = lh_sql_mysql_api_store_result(api, lh_sql_mysql_get_native(db));
     if (lh_null_ne(result))
     {
         lh_sql_mysql_api_free_result(api, result);
     }
-    else if (!lh_math_is_zero(lh_sql_mysql_api_field_count(api, native)))
+    else if (!lh_math_is_zero(lh_sql_mysql_api_field_count(api, lh_sql_mysql_get_native(db))))
     {
         return lh_sql_mysql_fail(db);
     }
@@ -169,7 +215,6 @@ lh_sql_mysql_execute(lh_sql_stmt_t *stmt)
     lh_sql_db_t *db = lh_sql_stmt_get_db_mut(stmt);
     lh_sql_mysql_prepared_t *prepared = lh_sql_mysql_get_prepared(stmt);
     const lh_sql_mysql_api_t *api = lh_sql_mysql_get_api(db);
-    lh_ptr native = lh_sql_mysql_get_native(db);
     lh_str_t query;
     lh_str_view_t text;
     lh_bool_t sent;
@@ -182,15 +227,17 @@ lh_sql_mysql_execute(lh_sql_stmt_t *stmt)
         return lh_sql_db_fail(db, lh_str_view_lit("a parameter is not bound"));
     }
     lh_str_as_view(lh_addr_of(query), lh_addr_of(text));
-    sent = lh_sql_mysql_api_real_query(api, native, text);
+    sent = lh_sql_mysql_send(db, text);
     lh_str_deinit(lh_addr_of(query));
     if (!sent)
     {
-        return lh_sql_mysql_fail(db);
+        return lh_bool_false;
     }
 
-    result = lh_sql_mysql_api_store_result(api, native);
-    if (lh_null_eq(result) && !lh_math_is_zero(lh_sql_mysql_api_field_count(api, native)))
+    /* The connection may be a new one now: ask the one the text went to. */
+    result = lh_sql_mysql_api_store_result(api, lh_sql_mysql_get_native(db));
+    if (lh_null_eq(result) &&
+        !lh_math_is_zero(lh_sql_mysql_api_field_count(api, lh_sql_mysql_get_native(db))))
     {
         return lh_sql_mysql_fail(db);
     }
@@ -331,10 +378,10 @@ lh_sql_mysql_to_cstr(lh_str_t *storage, lh_str_view_t text)
     return lh_str_is_empty(storage) ? "" : lh_str_get_data(storage);
 }
 
-lh_bool_t
-lh_sql_db_open_mysql_with(lh_sql_db_t *db, const lh_sql_mysql_api_t *api, lh_str_view_t host,
-                          lh_str_view_t user, lh_str_view_t password, lh_str_view_t name,
-                          lh_uint_t port)
+lh_ptr
+lh_sql_mysql_connect(lh_sql_db_t *db, const lh_sql_mysql_api_t *api, lh_str_view_t host,
+                     lh_str_view_t user, lh_str_view_t password, lh_str_view_t name,
+                     lh_uint_t port)
 {
     lh_str_t host_text;
     lh_str_t user_text;
@@ -344,24 +391,18 @@ lh_sql_db_open_mysql_with(lh_sql_db_t *db, const lh_sql_mysql_api_t *api, lh_str
     lh_ptr connected;
     lh_bool_t charset;
 
-    lh_sql_db_close(db);
-    lh_sql_db_clear_error(db);
-    if (lh_null_eq(api) || !lh_sql_mysql_api_is_loaded(api))
-    {
-        return lh_sql_db_fail(db, lh_str_view_lit("MySQL client library not found"));
-    }
     native = lh_sql_mysql_api_init_native(api);
     if (lh_null_eq(native))
     {
-        return lh_sql_db_fail(db, lh_str_view_lit("mysql_init failed"));
+        lh_sql_db_set_error(db, lh_str_view_lit("mysql_init failed"));
+        return lh_null;
     }
 
     connected = lh_sql_mysql_api_real_connect(
         api, native, lh_sql_mysql_to_cstr(lh_addr_of(host_text), host),
         lh_sql_mysql_to_cstr(lh_addr_of(user_text), user),
         lh_sql_mysql_to_cstr(lh_addr_of(password_text), password),
-        lh_sql_mysql_to_cstr(lh_addr_of(name_text), name),
-        lh_math_is_zero(port) ? LH_SQL_MYSQL_PORT_DEFAULT : port);
+        lh_sql_mysql_to_cstr(lh_addr_of(name_text), name), port);
     lh_str_deinit(lh_addr_of(host_text));
     lh_str_deinit(lh_addr_of(user_text));
     lh_str_deinit(lh_addr_of(password_text));
@@ -381,10 +422,36 @@ lh_sql_db_open_mysql_with(lh_sql_db_t *db, const lh_sql_mysql_api_t *api, lh_str
                                     ? lh_str_view_lit("cannot connect to MySQL")
                                     : message);
         lh_sql_mysql_api_close(api, native);
+        return lh_null;
+    }
+    return native;
+}
+
+lh_bool_t
+lh_sql_db_open_mysql_with(lh_sql_db_t *db, const lh_sql_mysql_api_t *api, lh_str_view_t host,
+                          lh_str_view_t user, lh_str_view_t password, lh_str_view_t name,
+                          lh_uint_t port)
+{
+    lh_ptr native;
+
+    lh_sql_db_close(db);
+    lh_sql_db_clear_error(db);
+    if (lh_null_eq(api) || !lh_sql_mysql_api_is_loaded(api))
+    {
+        return lh_sql_db_fail(db, lh_str_view_lit("MySQL client library not found"));
+    }
+    if (lh_math_is_zero(port))
+    {
+        port = LH_SQL_MYSQL_PORT_DEFAULT;
+    }
+    native = lh_sql_mysql_connect(db, api, host, user, password, name, port);
+    if (lh_null_eq(native))
+    {
         return lh_bool_false;
     }
 
-    lh_sql_db_set_handle(db, lh_sql_mysql_conn_create(api, native));
+    lh_sql_db_set_handle(db,
+                         lh_sql_mysql_conn_create(api, native, host, user, password, name, port));
     lh_sql_db_set_driver(db, lh_sql_mysql_get_driver());
     return lh_bool_true;
 }
