@@ -41,6 +41,7 @@ lh_sql_mysql_api_init(lh_sql_mysql_api_t *self)
     self->real_connect = lh_null;
     self->close = lh_null;
     self->error = lh_null;
+    self->error_code = lh_null;
     self->real_query = lh_null;
     self->store_result = lh_null;
     self->free_result = lh_null;
@@ -67,7 +68,7 @@ lh_sql_mysql_api_is_loaded(const lh_sql_mysql_api_t *self)
     return lh_cast_static(
         lh_bool_t, lh_null_ne(self->init) && lh_null_ne(self->real_connect) &&
                        lh_null_ne(self->close) && lh_null_ne(self->error) &&
-                       lh_null_ne(self->real_query) && lh_null_ne(self->store_result) &&
+                       lh_null_ne(self->error_code) && lh_null_ne(self->real_query) && lh_null_ne(self->store_result) &&
                        lh_null_ne(self->free_result) && lh_null_ne(self->fetch_row) &&
                        lh_null_ne(self->fetch_lengths) && lh_null_ne(self->num_fields) &&
                        lh_null_ne(self->field_count) && lh_null_ne(self->insert_id) &&
@@ -86,6 +87,8 @@ lh_sql_mysql_api_bind(lh_sql_mysql_api_t *self)
         lh_cast_static(lh_sql_mysql_close_fn *, lh_os_shared_get_fn(image, "mysql_close"));
     self->error =
         lh_cast_static(lh_sql_mysql_error_fn *, lh_os_shared_get_fn(image, "mysql_error"));
+    self->error_code =
+        lh_cast_static(lh_sql_mysql_error_code_fn *, lh_os_shared_get_fn(image, "mysql_errno"));
     self->real_query = lh_cast_static(lh_sql_mysql_real_query_fn *,
                                       lh_os_shared_get_fn(image, "mysql_real_query"));
     self->store_result = lh_cast_static(lh_sql_mysql_store_result_fn *,
@@ -202,6 +205,13 @@ lh_sql_mysql_api_error(const lh_sql_mysql_api_t *self, lh_ptr mysql)
     }
     lh_str_view_init(lh_addr_of(view), text);
     return view;
+}
+
+lh_uint_t
+lh_sql_mysql_api_error_code(const lh_sql_mysql_api_t *self, lh_ptr mysql)
+{
+    lh_assert_runtime_ref(self);
+    return self->error_code(mysql);
 }
 
 lh_bool_t

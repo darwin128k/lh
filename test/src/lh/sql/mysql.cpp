@@ -20,12 +20,16 @@ struct fake_server
     std::vector<row> rows;
     size_t columns = 0;
     std::string error;
+    lh_uint_t error_code = 0;
     std::string connect;
     bool refuse_connect = false;
     bool reject_utf8mb4 = false;
     bool reject_charsets = false;
     bool fail_query = false;
+    /* The client's code for the next statement, once: the connection is gone. */
+    lh_uint_t drop = 0;
     bool pending = false;
+    int connects = 0;
     int closes = 0;
     int frees = 0;
     unsigned long long insert_id = 0;
@@ -55,9 +59,11 @@ fake_real_connect(lh_ptr mysql, const lh_char_t *host, const lh_char_t *user,
 {
     g_server->connect =
         std::string(host) + " " + user + " " + password + " " + db + " " + std::to_string(port);
+    ++g_server->connects;
     if (g_server->refuse_connect)
     {
         g_server->error = "Access denied for user";
+        g_server->error_code = 1045;
         return nullptr;
     }
     return mysql;
@@ -75,16 +81,32 @@ fake_error(lh_ptr)
     return g_server->error.c_str();
 }
 
+lh_uint_t
+fake_error_code(lh_ptr)
+{
+    return g_server->error_code;
+}
+
 lh_sint_t
 fake_real_query(lh_ptr, const lh_char_t *query, lh_ulong_t length)
 {
     const std::string text(query, length);
     g_server->queries.push_back(text);
+    if (g_server->drop != 0)
+    {
+        g_server->error_code = g_server->drop;
+        g_server->error = "MySQL server has gone away";
+        g_server->drop = 0;
+        return 1;
+    }
     if (g_server->fail_query)
     {
         g_server->error = "You have an error in your SQL syntax";
+        g_server->error_code = 1064;
         return 1;
     }
+    g_server->error.clear();
+    g_server->error_code = 0;
     g_server->pending = text.rfind("SELECT", 0) == 0;
     return 0;
 }
@@ -226,6 +248,7 @@ struct sql_mysql : ::testing::Test
         api.real_connect = fake_real_connect;
         api.close = fake_close;
         api.error = fake_error;
+        api.error_code = fake_error_code;
         api.real_query = fake_real_query;
         api.store_result = fake_store_result;
         api.free_result = fake_free_result;
@@ -403,6 +426,64 @@ TEST_F(sql_mysql, a_failing_statement_reports_the_server_error)
 
     EXPECT_FALSE(lh_sql_db_prepare(&db, &stmt, lh_str_view_lit("")));
     lh_sql_stmt_finalize(&stmt);
+}
+
+TEST_F(sql_mysql, a_dropped_connection_is_reopened_and_the_statement_sent_again)
+{
+    ASSERT_TRUE(open(3307));
+    server.insert_id = 7;
+    lh_sql_stmt_t stmt;
+    ASSERT_TRUE(lh_sql_db_prepare(&db, &stmt, lh_str_view_lit("INSERT INTO t VALUES (?)")));
+    EXPECT_TRUE(lh_sql_stmt_bind_str(&stmt, 1, lh_str_view_lit("a")));
+
+    server.drop = LH_SQL_MYSQL_ERROR_SERVER_GONE; /* idle past wait_timeout overnight */
+    server.connect.clear();
+    EXPECT_EQ(lh_sql_stmt_step(&stmt), lh_sql_step_done) << text(lh_sql_db_get_error(&db));
+    EXPECT_EQ(text(lh_sql_db_get_error(&db)), "");
+    EXPECT_EQ(server.queries,
+              (std::vector<std::string>{"INSERT INTO t VALUES ('a')", "INSERT INTO t VALUES ('a')"}));
+    EXPECT_EQ(server.connects, 2);
+    EXPECT_EQ(server.connect, "db.host hlds  authum 3307"); /* the same address, port kept */
+    EXPECT_EQ(server.charsets, (std::vector<std::string>{"utf8mb4", "utf8mb4"}));
+    EXPECT_EQ(server.closes, 1); /* the dead one */
+    EXPECT_EQ(lh_sql_db_get_last_insert_id(&db), 7);
+    lh_sql_stmt_finalize(&stmt);
+}
+
+TEST_F(sql_mysql, exec_and_a_server_idle_timeout_reconnect_too)
+{
+    ASSERT_TRUE(open());
+    server.drop = LH_SQL_MYSQL_ERROR_IDLE_TIMEOUT;
+    EXPECT_TRUE(lh_sql_db_exec(&db, lh_str_view_lit("DELETE FROM t")))
+        << text(lh_sql_db_get_error(&db));
+    EXPECT_EQ(server.queries, (std::vector<std::string>{"DELETE FROM t", "DELETE FROM t"}));
+    EXPECT_EQ(server.connects, 2);
+}
+
+TEST_F(sql_mysql, a_connection_lost_mid_statement_is_not_sent_again)
+{
+    ASSERT_TRUE(open());
+    server.drop = LH_SQL_MYSQL_ERROR_SERVER_LOST; /* it may have run */
+    EXPECT_FALSE(lh_sql_db_exec(&db, lh_str_view_lit("UPDATE t SET n = n + 1")));
+    EXPECT_EQ(text(lh_sql_db_get_error(&db)), "MySQL server has gone away");
+    EXPECT_EQ(server.queries.size(), 1U);
+    EXPECT_EQ(server.connects, 1);
+}
+
+TEST_F(sql_mysql, a_failed_reconnect_says_why_and_the_next_statement_tries_again)
+{
+    ASSERT_TRUE(open());
+    server.drop = LH_SQL_MYSQL_ERROR_SERVER_GONE;
+    server.refuse_connect = true;
+    EXPECT_FALSE(lh_sql_db_exec(&db, lh_str_view_lit("SELECT 1")));
+    EXPECT_EQ(text(lh_sql_db_get_error(&db)), "Access denied for user");
+    EXPECT_TRUE(lh_sql_db_is_open(&db));
+    EXPECT_EQ(server.closes, 1); /* only the refused attempt */
+
+    server.drop = LH_SQL_MYSQL_ERROR_SERVER_GONE; /* still gone */
+    server.refuse_connect = false;
+    EXPECT_TRUE(lh_sql_db_exec(&db, lh_str_view_lit("SELECT 1"))) << text(lh_sql_db_get_error(&db));
+    EXPECT_EQ(server.connects, 3);
 }
 
 TEST_F(sql_mysql, deinit_closes_the_connection_once)
