@@ -470,6 +470,17 @@ TEST_F(sql_mysql, a_connection_lost_mid_statement_is_not_sent_again)
     EXPECT_EQ(server.connects, 1);
 }
 
+TEST_F(sql_mysql, after_an_ambiguous_failure_the_next_statement_gets_a_new_connection)
+{
+    ASSERT_TRUE(open());
+    server.drop = LH_SQL_MYSQL_ERROR_SERVER_LOST;
+    EXPECT_FALSE(lh_sql_db_exec(&db, lh_str_view_lit("UPDATE t SET n = n + 1")));
+    EXPECT_EQ(server.queries.size(), 1U); /* no unsafe replay */
+    EXPECT_TRUE(lh_sql_db_exec(&db, lh_str_view_lit("SELECT 1")));
+    EXPECT_EQ(server.connects, 2);
+    EXPECT_EQ(server.queries, (std::vector<std::string>{"UPDATE t SET n = n + 1", "SELECT 1"}));
+}
+
 TEST_F(sql_mysql, a_failed_reconnect_says_why_and_the_next_statement_tries_again)
 {
     ASSERT_TRUE(open());
