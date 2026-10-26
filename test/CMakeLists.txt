@@ -7,6 +7,17 @@ set(LH_TEST_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 set(LH_TEST_SRC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(LH_TEST_INCLUDE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
+# The HTTP brick must work without a full LH runtime, OS backend or GoogleTest.
+add_executable(lh_test_http_parser http/parser.c "${LH_LIB_SRC_PATH}/http/parser.c")
+target_include_directories(lh_test_http_parser PRIVATE
+        "$<TARGET_PROPERTY:${LH_CORE_TARGET},INTERFACE_INCLUDE_DIRECTORIES>")
+option(LH_HTTP_PARSER_SANITIZE "Sanitize the standalone HTTP parser test" OFF)
+if(LH_HTTP_PARSER_SANITIZE AND NOT MSVC)
+    target_compile_options(lh_test_http_parser PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
+    target_link_options(lh_test_http_parser PRIVATE -fsanitize=address,undefined)
+endif()
+add_test(NAME lh_http_parser COMMAND lh_test_http_parser)
+
 # Skip test targets if googletest submodule is not initialized.
 if (NOT EXISTS "${LH_TEST_LIB_PATH}/googletest/CMakeLists.txt")
     message(WARNING

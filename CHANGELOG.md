@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Portable HTTP/1 message-head parser (`lh/http.h`): caller-owned byte views and
+  header storage, request and response syntax, complete/incomplete/error results,
+  strict CRLF, configurable head/line budgets and error offsets. No OS, allocator,
+  locale, global state or platform intrinsics. Available in `lh` and separately
+  as the `lh::http_parser` CMake target. Body framing and server policy remain
+  outside this brick. Standalone C tests run without GoogleTest or the LH runtime.
+
 - `lh_os_fs_dir_create` (`lh/os/fs/dir.h`): creates one directory level; true when the path is a directory afterwards, created now or already there
 - Page protection (`lh/os/memory.h`): `lh_os_memory_protect` gives a range's pages `lh_os_memory_access_read` / `_write` / `_execute` (`lh/os/memory/access.h`), widened to page boundaries — `mprotect` / `VirtualProtect`. New `lh_os_error_code_empty_range` for a null or zero-length range
 - `lh_os_shared_bind_name` (`lh/os/shared.h`): takes an image that is already loaded by its file name (`cs.so`, `mp.dll`) and never loads it; on POSIX an image loaded by a full path without that SONAME is still found, by its file name among the loaded ones
