@@ -19,6 +19,12 @@ endif()
 add_test(NAME lh_http_parser COMMAND lh_test_http_parser)
 
 # Skip test targets if googletest submodule is not initialized.
+if (LH_LIBRARY_OPTION_UI AND LH_LIBRARY_OPTION_MATH_FPU)
+    add_executable(lh_test_renderer3d renderer3d.c)
+    target_link_libraries(lh_test_renderer3d PRIVATE ${LH_CORE_TARGET})
+    add_test(NAME lh_renderer3d COMMAND lh_test_renderer3d)
+endif ()
+
 if (NOT EXISTS "${LH_TEST_LIB_PATH}/googletest/CMakeLists.txt")
     message(WARNING
             "googletest not found — tests disabled.\n"

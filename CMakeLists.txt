@@ -435,6 +435,9 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/web/html/attr.c
             ${LH_LIB_SRC_PATH}/ui/web/page.c
     )
+    if (LH_LIBRARY_OPTION_MATH_FPU)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/renderer3d.c)
+    endif ()
     if (LH_LIBRARY_OPTION_OS)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host.c)
     endif ()

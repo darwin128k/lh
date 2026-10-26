@@ -42,6 +42,9 @@
 #include <lh/ui/view.h>
 #include <lh/ui/view/controller.h>
 #include <lh/ui/viewport3d.h>
+#if LH_LIBRARY_OPTION_MATH_FPU
+#    include <lh/ui/renderer3d.h>
+#endif
 #include <lh/ui/web/html.h>
 #include <lh/ui/web/js.h>
 #include <lh/ui/web/js/x.h>
