@@ -135,6 +135,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/ini/entry.c
         ${LH_LIB_SRC_PATH}/ini/error.c
         ${LH_LIB_SRC_PATH}/ini/parser.c
+        ${LH_LIB_SRC_PATH}/http/parser.c
         ${LH_LIB_SRC_PATH}/sql/db.c
         ${LH_LIB_SRC_PATH}/sql/driver.c
         ${LH_LIB_SRC_PATH}/sql/mysql/query.c
@@ -536,6 +537,12 @@ target_include_directories(
 )
 
 # Kernel backend's system libraries (chosen with LH_OS_SYSTEM_BACKEND above).
+# A separately linkable protocol brick: no LH runtime or OS link dependencies.
+add_library(lh_http_parser STATIC "${LH_LIB_SRC_PATH}/http/parser.c")
+target_include_directories(lh_http_parser PUBLIC
+        "${CMAKE_CURRENT_BINARY_DIR}/include" "${LH_LIB_INCLUDE_PATH}")
+add_library(lh::http_parser ALIAS lh_http_parser)
+
 target_include_directories(${PROJECT_NAME} PRIVATE ${LH_MONOCYPHER_PATH})
 
 if (LH_LIBRARY_OPTION_OS AND LH_OS_SYSTEM_LINK_LIBS)
