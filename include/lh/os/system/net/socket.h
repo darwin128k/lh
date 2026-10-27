@@ -62,6 +62,21 @@ lh_os_system_net_socket_handle_t
 lh_os_system_net_socket_open_nonblocking(lh_os_system_net_socket_type_t type);
 
 /**
+ * @brief Create two connected non-blocking, non-inheritable byte-stream endpoints.
+ *
+ * POSIX uses a local socket pair; Windows verifies a loopback TCP connection.
+ * Network initialization must have succeeded. Both outputs stay untouched on
+ * failure and acquired handles are closed. Closing either endpoint gives EOF
+ * on the other after its queued bytes have been read.
+ *
+ * @param pair Output array with room for two handles; must not be null.
+ * @param timeout_ms Maximum wait per Windows connect/accept phase; ignored on POSIX.
+ * @return True on success, false with captured native error on failure.
+ */
+lh_bool_t
+lh_os_system_net_socket_pair(lh_os_system_net_socket_handle_t *pair, lh_u32_t timeout_ms);
+
+/**
  * @brief Release @p handle. The close result is not reported.
  *
  * @param handle Open handle; must not be ::LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID.
@@ -214,6 +229,24 @@ lh_os_system_net_socket_wait(const lh_os_system_net_socket_handle_t *read, lh_us
                              lh_u32_t timeout_ms);
 
 /**
+ * @brief Wait for readiness on up to ::LH_OS_NET_SOCKET_POLL_MAX borrowed sockets.
+ *
+ * Invalid handles are ignored; ready is cleared before waiting. Empty/all-invalid
+ * lists return pending immediately. Input masks contain read/write bits only.
+ * Error/hangup are output-only and backend dependent; EOF is always readable.
+ * Interrupted waits return pending without overwriting the captured error slot.
+ *
+ * @param entries Caller-owned array, not null when count is nonzero.
+ * @param count Number of entries, including ignored ones.
+ * @param timeout_ms Maximum wait; zero only inspects readiness.
+ * @return Number of ready entries, ::LH_OS_RESULT_PENDING on timeout/interruption,
+ *         or ::LH_OS_RESULT_INVALID with captured native error on failure.
+ */
+lh_ssize_t
+lh_os_system_net_socket_poll(lh_os_net_socket_poll_t *entries, lh_usize_t count,
+                             lh_u32_t timeout_ms);
+
+/**
  * @brief Send up to @p size bytes from @p buf on a connected @p handle.
  *
  * One native call; may send fewer bytes than asked (also when @p size
@@ -226,6 +259,28 @@ lh_os_system_net_socket_wait(const lh_os_system_net_socket_handle_t *read, lh_us
 lh_ssize_t
 lh_os_system_net_socket_send(lh_os_system_net_socket_handle_t handle, const lh_ptr buf,
                              lh_usize_t size);
+
+/**
+ * @brief Send part of a readable regular file at an explicit byte offset.
+ *
+ * Advances offset only by bytes actually sent. A zero-size call returns zero;
+ * otherwise zero means file EOF. Partial transfers are normal. No allocation
+ * occurs, but reading a regular file can wait for disk I/O. Coordinate access
+ * to the source: the Windows fallback may change its current file position.
+ * Linux uses sendfile; other backends use a bounded read/send buffer.
+ * The calling Linux thread must block/ignore SIGPIPE, just as for native sendfile.
+ *
+ * @param handle Connected socket; may be non-blocking.
+ * @param file Readable regular file (synchronous handle on Windows).
+ * @param offset Non-null unsigned 64-bit file position, at most signed 64-bit max.
+ * @param size Maximum bytes to send in this call.
+ * @return Bytes sent, zero at EOF/zero request, ::LH_OS_RESULT_PENDING when retry
+ *         is needed, or ::LH_OS_RESULT_INVALID with captured native error.
+ */
+lh_ssize_t
+lh_os_system_net_socket_send_file(lh_os_system_net_socket_handle_t handle,
+                                  lh_os_system_fs_file_handle_t file, lh_u64_t *offset,
+                                  lh_usize_t size);
 
 /**
  * @brief Receive up to @p size bytes into @p buf from a connected @p handle.
@@ -276,61 +331,6 @@ lh_os_system_net_socket_pending(lh_os_system_net_socket_handle_t handle);
 lh_ssize_t
 lh_os_system_net_socket_recvfrom(lh_os_system_net_socket_handle_t handle, lh_ptr buf,
                                  lh_usize_t size, lh_net_ip4_socket_addr_t *addr);
-
-/**
- * @brief Wait for readiness on up to ::LH_OS_NET_SOCKET_POLL_MAX borrowed sockets.
- *
- * Invalid handles are ignored; ready is cleared before waiting. Empty/all-invalid
- * lists return pending immediately. Input masks contain read/write bits only.
- * Error/hangup are output-only and backend dependent; EOF is always readable.
- * Interrupted waits return pending without overwriting the captured error slot.
- *
- * @param entries Caller-owned array, not null when count is nonzero.
- * @param count Number of entries, including ignored ones.
- * @param timeout_ms Maximum wait; zero only inspects readiness.
- * @return Number of ready entries, ::LH_OS_RESULT_PENDING on timeout/interruption,
- *         or ::LH_OS_RESULT_INVALID with captured native error on failure.
- */
-lh_ssize_t
-lh_os_system_net_socket_poll(lh_os_net_socket_poll_t *entries, lh_usize_t count,
-                             lh_u32_t timeout_ms);
-
-/**
- * @brief Create two connected non-blocking, non-inheritable byte-stream endpoints.
- *
- * POSIX uses a local socket pair; Windows verifies a loopback TCP connection.
- * Network initialization must have succeeded. Both outputs stay untouched on
- * failure and acquired handles are closed. Closing either endpoint gives EOF
- * on the other after its queued bytes have been read.
- *
- * @param pair Output array with room for two handles; must not be null.
- * @param timeout_ms Maximum wait per Windows connect/accept phase; ignored on POSIX.
- * @return True on success, false with captured native error on failure.
- */
-lh_bool_t
-lh_os_system_net_socket_pair(lh_os_system_net_socket_handle_t *pair, lh_u32_t timeout_ms);
-
-/**
- * @brief Send part of a readable regular file at an explicit byte offset.
- *
- * Advances offset only by bytes actually sent. A zero-size call returns zero;
- * otherwise zero means file EOF. Partial transfers are normal. No allocation
- * occurs, but reading a regular file can wait for disk I/O. Coordinate access
- * to the source: the Windows fallback may change its current file position.
- * Linux uses sendfile; other backends use a bounded read/send buffer.
- * The calling Linux thread must block/ignore SIGPIPE, just as for native sendfile.
- *
- * @param handle Connected socket; may be non-blocking.
- * @param file Readable regular file (synchronous handle on Windows).
- * @param offset Non-null unsigned 64-bit file position, at most signed 64-bit max.
- * @param size Maximum bytes to send in this call.
- * @return Bytes sent, zero at EOF/zero request, ::LH_OS_RESULT_PENDING when retry
- *         is needed, or ::LH_OS_RESULT_INVALID with captured native error.
- */
-lh_ssize_t
-lh_os_system_net_socket_send_file(lh_os_system_net_socket_handle_t handle,
-                                  lh_os_system_fs_file_handle_t file, lh_u64_t *offset,
-                                  lh_usize_t size);
 
 LH_COMPILER_EXTERN_C_END
 

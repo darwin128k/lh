@@ -299,6 +299,13 @@ lh_os_net_socket_wait(lh_os_net_socket_t *const *read, lh_usize_t read_count,
                       lh_u32_t timeout_ms);
 
 /**
+ * @brief Wait for per-entry readiness on borrowed socket handles.
+ * @copydetails lh_os_system_net_socket_poll
+ */
+lh_ssize_t
+lh_os_net_socket_poll(lh_os_net_socket_poll_t *entries, lh_usize_t count, lh_u32_t timeout_ms);
+
+/**
  * @brief ::lh_io_writer_write_fn backed by @p context's socket.
  *
  * @param self An ::lh_os_net_socket_t* (passed as the writer's context).
@@ -455,13 +462,6 @@ lh_os_net_socket_get_dgram_writer(lh_os_net_socket_t *self, lh_io_dgram_writer_t
  */
 lh_void
 lh_os_net_socket_get_dgram(lh_os_net_socket_t *self, lh_io_dgram_t *out);
-
-/**
- * @brief Wait for per-entry readiness on borrowed socket handles.
- * @copydetails lh_os_system_net_socket_poll
- */
-lh_ssize_t
-lh_os_net_socket_poll(lh_os_net_socket_poll_t *entries, lh_usize_t count, lh_u32_t timeout_ms);
 
 LH_COMPILER_EXTERN_C_END
 
