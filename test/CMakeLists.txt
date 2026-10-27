@@ -18,6 +18,13 @@ if(LH_HTTP_PARSER_SANITIZE AND NOT MSVC)
 endif()
 add_test(NAME lh_http_parser COMMAND lh_test_http_parser)
 
+if (LH_LIBRARY_OPTION_OS)
+    add_executable(lh_test_os_concurrency os/concurrency.c)
+    target_link_libraries(lh_test_os_concurrency PRIVATE ${LH_CORE_TARGET})
+    add_test(NAME lh_os_concurrency COMMAND lh_test_os_concurrency)
+    set_tests_properties(lh_os_concurrency PROPERTIES TIMEOUT 30)
+endif ()
+
 # Skip test targets if googletest submodule is not initialized.
 if (LH_LIBRARY_OPTION_UI AND LH_LIBRARY_OPTION_MATH_FPU)
     add_executable(lh_test_renderer3d renderer3d.c)

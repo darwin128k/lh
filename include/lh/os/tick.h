@@ -1,6 +1,6 @@
 /**
  * @file tick.h
- * @brief Monotonic-ish clocks for timers: ::lh_os_tick_ms and ::lh_os_tick_us.
+ * @brief Monotonic clocks for timers and background work.
  *
  * Milliseconds feed ::lh_timer_group_handler. Microseconds are for frame /
  * paint timing. Not wall-clock UTC (::lh_os_timestamp_now).
@@ -23,7 +23,7 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Milliseconds from an arbitrary origin (wraps as ::lh_tick_t).
  *
- * Windows: `GetTickCount`. POSIX: `CLOCK_MONOTONIC` when available.
+ * Truncated form of ::lh_os_tick_ms64; wraps every approximately 49.7 days.
  */
 lh_tick_t
 lh_os_tick_ms(void);
@@ -31,11 +31,16 @@ lh_os_tick_ms(void);
 /**
  * @brief Microseconds from an arbitrary origin.
  *
- * Windows: `QueryPerformanceCounter` / frequency (cached once). POSIX:
- * `CLOCK_MONOTONIC` when available. Returns 0 when the clock is missing.
+ * Windows: QueryPerformanceCounter. POSIX: CLOCK_MONOTONIC. Thread-safe.
+ * Returns 0 on failure, with the native error captured. For a checked call
+ * that preserves output on failure, use lh_os_system_tick_us.
  */
 lh_u64_t
 lh_os_tick_us(void);
+
+/** 64-bit monotonic milliseconds, same origin as ::lh_os_tick_us. */
+lh_u64_t
+lh_os_tick_ms64(void);
 
 LH_COMPILER_EXTERN_C_END
 

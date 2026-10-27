@@ -257,6 +257,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/system/str.c
             ${LH_LIB_SRC_PATH}/os/timestamp.c
             ${LH_LIB_SRC_PATH}/os/tick.c
+            ${LH_LIB_SRC_PATH}/os/concurrency.c
             ${LH_LIB_SRC_PATH}/os/env.c
             ${LH_LIB_SRC_PATH}/os/memory.c
             ${LH_LIB_SRC_PATH}/os/input.c
@@ -289,6 +290,8 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/error/capture.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/error/kind.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/timestamp.c
+            ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/tick.c
+            ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/concurrency.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/env.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/memory.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/fs/path.c
@@ -552,14 +555,14 @@ if (LH_LIBRARY_OPTION_OS AND LH_OS_SYSTEM_LINK_LIBS)
     target_link_libraries(${PROJECT_NAME} PUBLIC ${LH_OS_SYSTEM_LINK_LIBS})
 endif ()
 
-# SQLite: its header for the backend, and threads for SQLITE_THREADSAFE=1 on
-# POSIX (Windows threads come with the C runtime).
+# Both OS workers and SQLite need the POSIX thread runtime independently.
+if (NOT WIN32 AND (LH_LIBRARY_OPTION_OS OR LH_LIBRARY_OPTION_SQL_SQLITE))
+    find_package(Threads REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
+endif ()
+
 if (LH_LIBRARY_OPTION_SQL_SQLITE)
     target_include_directories(${PROJECT_NAME} PRIVATE ${LH_SQLITE_PATH})
-    if (NOT WIN32)
-        find_package(Threads REQUIRED)
-        target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
-    endif ()
 endif ()
 
 # ---------------------------------------------------------------------------
