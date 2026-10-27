@@ -28,6 +28,7 @@
 #include <lh/io/dgram.h>
 #include <lh/io/stream.h>
 #include <lh/os/result.h>
+#include <lh/os/net/socket/poll.h>
 #include <lh/os/system/net/socket/handle.h>
 #include <lh/os/system/net/socket/type.h>
 
@@ -73,6 +74,21 @@ lh_os_net_socket_init(lh_os_net_socket_t *self);
  */
 lh_bool_t
 lh_os_net_socket_open(lh_os_net_socket_t *self, lh_os_system_net_socket_type_t type);
+
+/**
+ * @brief Open a non-blocking IPv4 socket with child-execution inheritance disabled.
+ *
+ * Network initialization must have succeeded before use. Linux sets both properties
+ * atomically at creation; other backends configure the handle before returning it.
+ * POSIX closes the socket on exec; Windows disables handle inheritance.
+ * On failure all acquired resources are released and the native error is captured.
+ *
+ * @param self Empty socket; unchanged on failure.
+ * @param type TCP or UDP socket type.
+ * @return ::lh_bool_true on success; ::lh_bool_false on failure.
+ */
+lh_bool_t
+lh_os_net_socket_open_nonblocking(lh_os_net_socket_t *self, lh_os_system_net_socket_type_t type);
 
 /**
  * @brief Close @p self's handle (if open) and return it to the empty state.
@@ -203,6 +219,24 @@ lh_os_net_socket_listen(lh_os_net_socket_t *self, lh_int_t backlog);
 lh_bool_t
 lh_os_net_socket_accept(lh_os_net_socket_t *self, lh_os_net_socket_t *client,
                         lh_net_ip4_socket_addr_t *peer);
+
+/**
+ * @brief Accept a connection with non-blocking I/O and child-execution inheritance disabled.
+ *
+ * The listening socket must itself be non-blocking to avoid waiting for a peer.
+ * Linux sets both properties atomically at accept; other backends configure the
+ * accepted handle before returning it. No connection yet, or an interrupted
+ * accept, leaves the last-error slot untouched. Native failures are captured.
+ * The peer address is written only on success.
+ *
+ * @param self Non-blocking listening TCP socket.
+ * @param client Empty destination socket; unchanged on failure.
+ * @param peer Receives the remote address; must not be null.
+ * @return ::lh_bool_true on success; ::lh_bool_false otherwise.
+ */
+lh_bool_t
+lh_os_net_socket_accept_nonblocking(lh_os_net_socket_t *self, lh_os_net_socket_t *client,
+                                    lh_net_ip4_socket_addr_t *peer);
 
 /**
  * @brief Read the local IPv4 address currently bound to @p self.
@@ -421,6 +455,13 @@ lh_os_net_socket_get_dgram_writer(lh_os_net_socket_t *self, lh_io_dgram_writer_t
  */
 lh_void
 lh_os_net_socket_get_dgram(lh_os_net_socket_t *self, lh_io_dgram_t *out);
+
+/**
+ * @brief Wait for per-entry readiness on borrowed socket handles.
+ * @copydetails lh_os_system_net_socket_poll
+ */
+lh_ssize_t
+lh_os_net_socket_poll(lh_os_net_socket_poll_t *entries, lh_usize_t count, lh_u32_t timeout_ms);
 
 LH_COMPILER_EXTERN_C_END
 

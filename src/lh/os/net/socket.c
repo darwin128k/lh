@@ -276,3 +276,37 @@ lh_os_net_socket_get_dgram(lh_os_net_socket_t *self, lh_io_dgram_t *out)
     lh_io_dgram_init(lh_addr_of(dgram), lh_addr_of(reader), lh_addr_of(writer));
     lh_ptr_deref(out) = dgram;
 }
+
+lh_bool_t
+lh_os_net_socket_open_nonblocking(lh_os_net_socket_t *self, lh_os_system_net_socket_type_t type)
+{
+    lh_assert_runtime_ref(self);
+    const lh_os_system_net_socket_handle_t handle = lh_os_system_net_socket_open_nonblocking(type);
+    if (lh_math_eq(handle, LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID))
+    {
+        return lh_bool_false;
+    }
+    self->handle = handle;
+    return lh_bool_true;
+}
+
+lh_bool_t
+lh_os_net_socket_accept_nonblocking(lh_os_net_socket_t *self, lh_os_net_socket_t *client,
+                                    lh_net_ip4_socket_addr_t *peer)
+{
+    lh_assert_runtime_ref(client);
+    const lh_os_system_net_socket_handle_t handle =
+        lh_os_system_net_socket_accept_nonblocking(lh_os_net_socket_get_handle(self), peer);
+    if (lh_math_eq(handle, LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID))
+    {
+        return lh_bool_false;
+    }
+    client->handle = handle;
+    return lh_bool_true;
+}
+
+lh_ssize_t
+lh_os_net_socket_poll(lh_os_net_socket_poll_t *entries, lh_usize_t count, lh_u32_t timeout_ms)
+{
+    return lh_os_system_net_socket_poll(entries, count, timeout_ms);
+}

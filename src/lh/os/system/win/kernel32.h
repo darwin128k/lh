@@ -183,6 +183,14 @@ FormatMessageW(lh_os_system_win_dword_t dwFlags, const lh_ptr lpSource,
                lh_os_system_win_dword_t dwMessageId, lh_os_system_win_dword_t dwLanguageId,
                lh_wstr_ptr lpBuffer, lh_os_system_win_dword_t nSize, lh_ptr Arguments);
 
+/** Handle inheritance flag accepted by SetHandleInformation. */
+#define LH_OS_SYSTEM_WIN_HANDLE_FLAG_INHERIT 0x00000001UL
+
+/** Change handle flags. Available since Windows XP. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+SetHandleInformation(lh_os_system_win_handle_t hObject, lh_os_system_win_dword_t dwMask,
+                     lh_os_system_win_dword_t dwFlags);
+
 /* Files. `lpSecurityAttributes` / `lpOverlapped` are always null here, so
    they are plain pointers rather than mirrored structs. */
 
@@ -307,6 +315,15 @@ typedef union lh_os_system_win_large_integer
     } u;                                  /**< The value as two halves. */
     lh_s64_t QuadPart;                    /**< The value as one 64-bit integer. */
 } lh_os_system_win_large_integer_t;
+
+/** Set the byte position in a synchronous file. Present since Windows XP. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+SetFilePointerEx(lh_os_system_win_handle_t hFile, lh_os_system_win_large_integer_t liDistanceToMove,
+                 lh_os_system_win_large_integer_t *lpNewFilePointer,
+                 lh_os_system_win_dword_t dwMoveMethod);
+
+/** File position measured from the beginning. */
+#define LH_OS_SYSTEM_WIN_FILE_BEGIN 0UL
 
 /** High-resolution tick. Present since Windows XP (NT 3.5+). */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL

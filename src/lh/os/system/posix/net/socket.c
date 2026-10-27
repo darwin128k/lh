@@ -1,9 +1,14 @@
+#ifndef _GNU_SOURCE
+#    define _GNU_SOURCE
+#endif
+
 #include <lh/os/system/net/socket.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/memory.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/math.h>
+#include <lh/size/limits.h>
 #include <lh/util/return.h>
 
 #include <errno.h>
@@ -15,6 +20,9 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#if defined(__linux__)
+#    include <sys/sendfile.h>
+#endif
 
 /* A send to a peer that has gone raises SIGPIPE, whose default is to end the
    process. A client that keeps connections to many devices cannot have one device
@@ -43,7 +51,7 @@ lh_os_system_net_socket_result(lh_ssize_t result)
 {
     if (lh_math_is_negative(result))
     {
-        if (errno == EAGAIN || errno == EWOULDBLOCK)
+        if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
         {
             return LH_OS_RESULT_PENDING;
         }
@@ -301,17 +309,24 @@ lh_ssize_t
 lh_os_system_net_socket_send(lh_os_system_net_socket_handle_t handle, const lh_ptr buf,
                              lh_usize_t size)
 {
-    return lh_os_system_net_socket_result(lh_cast_static(
-        lh_ssize_t, send(lh_os_system_net_socket_native(handle), buf, lh_cast_static(size_t, size),
-                         LH_OS_SYSTEM_POSIX_SEND_FLAGS)));
+    ssize_t result;
+    do
+    {
+        result = send(lh_os_system_net_socket_native(handle), buf, lh_cast_static(size_t, size),
+                      LH_OS_SYSTEM_POSIX_SEND_FLAGS);
+    } while (result < 0 && errno == EINTR);
+    return lh_os_system_net_socket_result(lh_cast_static(lh_ssize_t, result));
 }
 
 lh_ssize_t
 lh_os_system_net_socket_recv(lh_os_system_net_socket_handle_t handle, lh_ptr buf, lh_usize_t size)
 {
-    return lh_os_system_net_socket_result(
-        lh_cast_static(lh_ssize_t, recv(lh_os_system_net_socket_native(handle), buf,
-                                        lh_cast_static(size_t, size), 0)));
+    ssize_t result;
+    do
+    {
+        result = recv(lh_os_system_net_socket_native(handle), buf, lh_cast_static(size_t, size), 0);
+    } while (result < 0 && errno == EINTR);
+    return lh_os_system_net_socket_result(lh_cast_static(lh_ssize_t, result));
 }
 
 lh_ssize_t
@@ -358,6 +373,233 @@ lh_os_system_net_socket_recvfrom(lh_os_system_net_socket_handle_t handle, lh_ptr
     if (!lh_math_is_negative(result))
     {
         lh_os_system_net_socket_ip4_from_native_addr(addr, lh_addr_of(native_addr));
+    }
+    return result;
+}
+
+#if !defined(__linux__)
+/** @brief Configure a newly acquired handle before exposing it to its caller. */
+LH_ATTRIBUTE_STATIC
+lh_bool_t
+lh_os_system_net_socket_configure_nonblocking(lh_os_system_net_socket_handle_t handle)
+{
+    const int native = lh_os_system_net_socket_native(handle);
+    const int flags = fcntl(native, F_GETFD, 0);
+    if (lh_math_is_negative(flags))
+    {
+        lh_os_system_error_capture();
+        return lh_bool_false;
+    }
+    return lh_os_system_error_check_zero(fcntl(native, F_SETFD, flags | FD_CLOEXEC)) &&
+           lh_os_system_net_socket_set_blocking(handle, lh_bool_false);
+}
+#endif
+
+lh_os_system_net_socket_handle_t
+lh_os_system_net_socket_open_nonblocking(lh_os_system_net_socket_type_t type)
+{
+#if defined(__linux__)
+    lh_assert_runtime_if(lh_math_ne(type, lh_os_system_net_socket_type_tcp) &&
+                             lh_math_ne(type, lh_os_system_net_socket_type_udp),
+                         lh_runtime_error_code_invalid_argument);
+    const int native_type =
+        lh_math_eq(type, lh_os_system_net_socket_type_tcp) ? SOCK_STREAM : SOCK_DGRAM;
+    const int native = socket(AF_INET, native_type | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
+    if (lh_math_is_negative(native))
+    {
+        lh_os_system_error_capture();
+        return LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID;
+    }
+    return lh_cast_static(lh_os_system_net_socket_handle_t, native);
+#else
+    const lh_os_system_net_socket_handle_t handle = lh_os_system_net_socket_open(type);
+    if (lh_math_eq(handle, LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID))
+    {
+        return handle;
+    }
+    if (!lh_os_system_net_socket_configure_nonblocking(handle))
+    {
+        lh_os_system_net_socket_close(handle);
+        return LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID;
+    }
+    return handle;
+#endif
+}
+
+lh_os_system_net_socket_handle_t
+lh_os_system_net_socket_accept_nonblocking(lh_os_system_net_socket_handle_t handle,
+                                           lh_net_ip4_socket_addr_t *peer)
+{
+    struct sockaddr_in native_addr;
+    socklen_t addr_len = sizeof(native_addr);
+    lh_assert_runtime_ref(peer);
+    lh_memory_set(lh_addr_of(native_addr), sizeof(native_addr), 0);
+#if defined(__linux__)
+    const int native = accept4(lh_os_system_net_socket_native(handle),
+                               lh_ptr_rcast(struct sockaddr, lh_addr_of(native_addr)),
+                               lh_addr_of(addr_len), SOCK_NONBLOCK | SOCK_CLOEXEC);
+#else
+    const int native =
+        accept(lh_os_system_net_socket_native(handle),
+               lh_ptr_rcast(struct sockaddr, lh_addr_of(native_addr)), lh_addr_of(addr_len));
+#endif
+    if (lh_math_is_negative(native))
+    {
+        if (errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR)
+        {
+            lh_os_system_error_capture();
+        }
+        return LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID;
+    }
+    const lh_os_system_net_socket_handle_t accepted =
+        lh_cast_static(lh_os_system_net_socket_handle_t, native);
+#if !defined(__linux__)
+    if (!lh_os_system_net_socket_configure_nonblocking(accepted))
+    {
+        lh_os_system_net_socket_close(accepted);
+        return LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID;
+    }
+#endif
+    lh_os_system_net_socket_ip4_from_native_addr(peer, lh_addr_of(native_addr));
+    return accepted;
+}
+
+lh_ssize_t
+lh_os_system_net_socket_poll(lh_os_net_socket_poll_t *entries, lh_usize_t count,
+                             lh_u32_t timeout_ms)
+{
+    struct pollfd native[LH_OS_NET_SOCKET_POLL_MAX];
+    lh_usize_t active = 0;
+    lh_assert_runtime_if(count > LH_OS_NET_SOCKET_POLL_MAX, lh_runtime_error_code_invalid_argument);
+    if (count)
+    {
+        lh_assert_runtime_ref(entries);
+    }
+    for (lh_usize_t i = 0; i < count; ++i)
+    {
+        lh_assert_runtime_if(entries[i].events &
+                                 ~(lh_os_net_socket_poll_read | lh_os_net_socket_poll_write),
+                             lh_runtime_error_code_invalid_argument);
+        entries[i].ready = 0;
+        native[i].fd = lh_os_system_net_socket_native(entries[i].handle);
+        native[i].events = ((entries[i].events & lh_os_net_socket_poll_read) ? POLLIN : 0) |
+                           ((entries[i].events & lh_os_net_socket_poll_write) ? POLLOUT : 0);
+        native[i].revents = 0;
+        if (native[i].fd >= 0)
+        {
+            ++active;
+        }
+    }
+    if (!active)
+    {
+        return LH_OS_RESULT_PENDING;
+    }
+    const int result = poll(
+        native, lh_cast_static(nfds_t, count),
+        timeout_ms > lh_cast_static(lh_u32_t, INT_MAX) ? INT_MAX : lh_cast_static(int, timeout_ms));
+    if (result < 0)
+    {
+        if (errno == EINTR)
+        {
+            return LH_OS_RESULT_PENDING;
+        }
+        lh_os_system_error_capture();
+        return LH_OS_RESULT_INVALID;
+    }
+    lh_ssize_t ready = 0;
+    for (lh_usize_t i = 0; i < count; ++i)
+    {
+        if (native[i].revents & POLLIN)
+        {
+            entries[i].ready |= lh_os_net_socket_poll_read;
+        }
+        if (native[i].revents & POLLOUT)
+        {
+            entries[i].ready |= lh_os_net_socket_poll_write;
+        }
+        if (native[i].revents & (POLLERR | POLLNVAL))
+        {
+            entries[i].ready |= lh_os_net_socket_poll_error;
+        }
+        if (native[i].revents & POLLHUP)
+        {
+            entries[i].ready |= lh_os_net_socket_poll_hangup;
+        }
+        if (entries[i].ready)
+        {
+            ++ready;
+        }
+    }
+    return ready ? ready : LH_OS_RESULT_PENDING;
+}
+
+lh_bool_t
+lh_os_system_net_socket_pair(lh_os_system_net_socket_handle_t *pair, lh_u32_t timeout_ms)
+{
+    int native[2];
+    lh_assert_runtime_ref(pair);
+    (lh_void) timeout_ms;
+#if defined(__linux__)
+    const int result = socketpair(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0, native);
+#else
+    const int result = socketpair(AF_UNIX, SOCK_STREAM, 0, native);
+#endif
+    if (result < 0)
+    {
+        lh_os_system_error_capture();
+        return lh_bool_false;
+    }
+#if !defined(__linux__)
+    if (!lh_os_system_net_socket_configure_nonblocking(native[0]) ||
+        !lh_os_system_net_socket_configure_nonblocking(native[1]))
+    {
+        lh_os_system_net_socket_close(native[0]);
+        lh_os_system_net_socket_close(native[1]);
+        return lh_bool_false;
+    }
+#endif
+    pair[0] = lh_cast_static(lh_os_system_net_socket_handle_t, native[0]);
+    pair[1] = lh_cast_static(lh_os_system_net_socket_handle_t, native[1]);
+    return lh_bool_true;
+}
+
+lh_ssize_t
+lh_os_system_net_socket_send_file(lh_os_system_net_socket_handle_t handle,
+                                  lh_os_system_fs_file_handle_t file, lh_u64_t *offset,
+                                  lh_usize_t size)
+{
+    lh_assert_runtime_ref(offset);
+    if (!size)
+    {
+        return 0;
+    }
+    if (*offset > lh_cast_static(lh_u64_t, LH_S64_T_MAX))
+    {
+        errno = EOVERFLOW;
+        lh_os_system_error_capture();
+        return LH_OS_RESULT_INVALID;
+    }
+    const off_t position = lh_cast_static(off_t, *offset);
+#if defined(__linux__)
+    off_t next = position;
+    const lh_usize_t amount = lh_math_min(size, lh_cast_static(lh_usize_t, LH_SSIZE_T_MAX));
+    const ssize_t sent = sendfile(lh_os_system_net_socket_native(handle), lh_cast_static(int, file),
+                                  &next, lh_cast_static(size_t, amount));
+    const lh_ssize_t result = lh_os_system_net_socket_result(lh_cast_static(lh_ssize_t, sent));
+#else
+    lh_byte_t buffer[16384];
+    const ssize_t read_size =
+        pread(lh_cast_static(int, file), buffer, lh_math_min(size, sizeof buffer), position);
+    if (read_size <= 0)
+    {
+        return lh_os_system_net_socket_result(lh_cast_static(lh_ssize_t, read_size));
+    }
+    const lh_ssize_t result =
+        lh_os_system_net_socket_send(handle, buffer, lh_cast_static(lh_usize_t, read_size));
+#endif
+    if (result > 0)
+    {
+        *offset += lh_cast_static(lh_u64_t, result);
     }
     return result;
 }
