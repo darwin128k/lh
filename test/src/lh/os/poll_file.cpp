@@ -5,6 +5,8 @@
 #ifndef _GNU_SOURCE
 #    define _GNU_SOURCE
 #endif
+#include <gtest/gtest.h>
+
 #include <lh/os/net.h>
 #include <lh/os/net/socket.h>
 #include <lh/os/system/net/socket.h>
@@ -12,12 +14,10 @@
 #include <lh/os/wake.h>
 #include <lh/os/thread.h>
 #include <lh/os/tick.h>
-#include <gtest/gtest.h>
 #include <lh/test/os.h>
 #include <memory>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #if defined(_WIN32)
 #    include <io.h>
 #    include <windows.h>
@@ -185,11 +185,11 @@ TEST_F(socket_poll, transfers_file_with_explicit_offsets_and_preserves_offset_on
 #endif
     lh_char_t data[4096] = {0};
     lh_u64_t offset = 3;
-    std::unique_ptr<FILE, decltype(&fclose)> file_owner(tmpfile(), fclose);
-    FILE *file = file_owner.get();
+    std::unique_ptr<std::FILE, decltype(&std::fclose)> file_owner(std::tmpfile(), std::fclose);
+    std::FILE *file = file_owner.get();
     ASSERT_TRUE(file);
-    ASSERT_EQ(fwrite("0123456789abcdef", 1, 16, file), 16);
-    ASSERT_EQ(fflush(file), 0);
+    ASSERT_EQ(std::fwrite("0123456789abcdef", 1, 16, file), 16);
+    ASSERT_EQ(std::fflush(file), 0);
 #if defined(_WIN32)
     const lh_os_system_fs_file_handle_t source =
         lh_cast_static(lh_os_system_fs_file_handle_t, _get_osfhandle(_fileno(file)));
@@ -207,14 +207,14 @@ TEST_F(socket_poll, transfers_file_with_explicit_offsets_and_preserves_offset_on
         ASSERT_TRUE(sent > 0 && offset == before + lh_cast_static(lh_u64_t, sent));
     }
     ASSERT_NO_FATAL_FAILURE(read_exact(pair[0], data, 5));
-    ASSERT_EQ(memcmp(data, "34567", 5), 0);
+    ASSERT_EQ(std::memcmp(data, "34567", 5), 0);
     while (offset < 16)
     {
         const lh_ssize_t sent = lh_os_system_net_socket_send_file(pair[1], source, &offset, 64);
         ASSERT_GT(sent, 0);
     }
     ASSERT_NO_FATAL_FAILURE(read_exact(pair[0], data, 8));
-    ASSERT_EQ(memcmp(data, "89abcdef", 8), 0);
+    ASSERT_EQ(std::memcmp(data, "89abcdef", 8), 0);
     ASSERT_TRUE(lh_os_system_net_socket_send_file(pair[1], source, &offset, 64) == 0 &&
                 offset == 16);
     ASSERT_TRUE(lh_os_system_net_socket_send_file(pair[1], LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID,
@@ -233,11 +233,11 @@ TEST_F(socket_poll, transfers_file_with_explicit_offsets_and_preserves_offset_on
 #else
     offset = (lh_cast_static(lh_u64_t, 1) << 32) + 123;
     ASSERT_EQ(fseeko(file, lh_cast_static(off_t, offset), SEEK_SET), 0);
-    ASSERT_TRUE(fwrite("high", 1, 4, file) == 4 && fflush(file) == 0);
+    ASSERT_TRUE(std::fwrite("high", 1, 4, file) == 4 && std::fflush(file) == 0);
     ASSERT_EQ(lh_os_system_net_socket_send_file(pair[1], source, &offset, 4), 4);
     ASSERT_EQ(offset, (lh_cast_static(lh_u64_t, 1) << 32) + 127);
     ASSERT_NO_FATAL_FAILURE(read_exact(pair[0], data, 4));
-    ASSERT_EQ(memcmp(data, "high", 4), 0);
+    ASSERT_EQ(std::memcmp(data, "high", 4), 0);
 #endif
     /* Fill the stream without reading until a file send must retain its offset. */
     const lh_u64_t start = lh_os_tick_ms64();
@@ -261,7 +261,7 @@ TEST_F(socket_poll, transfers_file_with_explicit_offsets_and_preserves_offset_on
     }
     pair_owner.close(1);
     pair_owner.close(0);
-    EXPECT_EQ(fclose(file_owner.release()), 0);
+    EXPECT_EQ(std::fclose(file_owner.release()), 0);
 }
 
 #if !defined(_WIN32)
