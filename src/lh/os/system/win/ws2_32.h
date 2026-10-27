@@ -59,6 +59,15 @@ typedef lh_usize_t lh_os_system_win_socket_t;
    bytes a `recv` could return now. */
 #define LH_OS_SYSTEM_WIN_FIONREAD (lh_cast_static(lh_long_t, 0x4004667FUL))
 
+/** Interrupted Winsock call. */
+#define LH_OS_SYSTEM_WIN_WSAEINTR 10004
+
+/** Invalid socket argument. */
+#define LH_OS_SYSTEM_WIN_WSAEINVAL 10022
+
+/** A bounded connection phase timed out. */
+#define LH_OS_SYSTEM_WIN_WSAETIMEDOUT 10060
+
 /** `WSAEWOULDBLOCK`: a non-blocking call that cannot finish yet. A connect that is
    under way says it too, where POSIX says EINPROGRESS. */
 #define LH_OS_SYSTEM_WIN_WSAEWOULDBLOCK 10035

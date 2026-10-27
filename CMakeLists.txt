@@ -260,6 +260,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/timestamp.c
             ${LH_LIB_SRC_PATH}/os/tick.c
             ${LH_LIB_SRC_PATH}/os/concurrency.c
+            ${LH_LIB_SRC_PATH}/os/wake.c
             ${LH_LIB_SRC_PATH}/os/env.c
             ${LH_LIB_SRC_PATH}/os/memory.c
             ${LH_LIB_SRC_PATH}/os/input.c

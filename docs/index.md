@@ -25,6 +25,7 @@ One guide per subsystem that has behaviour worth stating in prose.
 | [ui.md](ui.md) | UI model (`lh/ui/`) | The entity tree, canvas and view, input, sinks, controllers, recipes per target |
 | [module-loader.md](module-loader.md) | Modules (`lh/os/module.h`) | The loader tree, loading and unloading, shared images, errors, writing a module |
 | [concurrency.md](concurrency.md) | OS threads (`lh/os/thread.h`) | Threads, mutexes, conditions, monotonic time, backend notes |
+| [net-sockets.md](net-sockets.md) | OS sockets (`lh/os/net/socket.h`) | Non-blocking servers, handle inheritance, pending I/O and backend guarantees |
 | [http.md](http.md) | HTTP/1 head parser (`lh/http.h`) | Parsing a message head, view lifetime, framing, syntax, limits |
 | [renderer3d.md](renderer3d.md) | Software 3D renderer (`lh/ui/renderer3d.h`) | Camera setup, drawing, limits, relation to the GPU sink |
 
