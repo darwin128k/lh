@@ -1,11 +1,6 @@
 /**
  * @file tick.h
  * @brief Monotonic clocks for timers and background work.
- *
- * Milliseconds feed ::lh_timer_group_handler. Microseconds are for frame /
- * paint timing. Not wall-clock UTC (::lh_os_timestamp_now).
- *
- * Requires ::LH_LIBRARY_OPTION_OS.
  */
 
 #ifndef LH_OS_TICK_H
@@ -21,24 +16,35 @@
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Milliseconds from an arbitrary origin (wraps as ::lh_tick_t).
+ * @brief Read wrapping 32-bit monotonic milliseconds.
  *
- * Truncated form of ::lh_os_tick_ms64; wraps every approximately 49.7 days.
+ * Truncates lh_os_tick_ms64 and wraps about every 49.7 days. Use wrap-aware timer
+ * arithmetic.
+ *
+ * @return Milliseconds modulo 2^32, or zero on native failure.
  */
 lh_tick_t
 lh_os_tick_ms(void);
 
 /**
- * @brief Microseconds from an arbitrary origin.
+ * @brief Read 64-bit monotonic microseconds.
  *
- * Windows: QueryPerformanceCounter. POSIX: CLOCK_MONOTONIC. Thread-safe.
- * Returns 0 on failure, with the native error captured. For a checked call
- * that preserves output on failure, use lh_os_system_tick_us.
+ * Thread-safe. Uses QueryPerformanceCounter on Windows and CLOCK_MONOTONIC on POSIX.
+ * Native failures are captured; lh_os_system_tick_us provides a checked output-preserving
+ * interface.
+ *
+ * @return Microseconds from an arbitrary origin, or zero on native failure.
  */
 lh_u64_t
 lh_os_tick_us(void);
 
-/** 64-bit monotonic milliseconds, same origin as ::lh_os_tick_us. */
+/**
+ * @brief Read 64-bit monotonic milliseconds.
+ *
+ * For elapsed intervals and deadlines, not UTC wall-clock display.
+ *
+ * @return Milliseconds from the same origin as lh_os_tick_us, or zero on failure.
+ */
 lh_u64_t
 lh_os_tick_ms64(void);
 

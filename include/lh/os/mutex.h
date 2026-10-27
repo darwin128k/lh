@@ -1,33 +1,84 @@
-/** @file mutex.h @brief OS mutex primitive, independent of game hosts.
- * Initialize before use. Live objects must not be copied or reinitialized.
- * Calls report native failures through lh_os_system_last_error, contract errors
- * through lh_os_last_error. Only lock/wait/signal operations may run concurrently;
- * opening/closing/joining require external lifetime coordination.
+/**
+ * @file mutex.h
+ * @brief OS mutex primitive, independent of game hosts.
+ *
+ * Initialize before use. Do not copy live objects. Native failures are reported through
+ * lh_os_system_last_error; contract failures through lh_os_last_error. Opening, closing
+ * and joining require external lifetime coordination.
  */
+
 #ifndef LH_OS_MUTEX_H
 #define LH_OS_MUTEX_H
+
 #include <lh/os/system/concurrency.h>
 #include <lh/os/mutex/fields.h>
 
+/**
+ * @brief Native-resource owner for one OS mutex.
+ */
 struct lh_os_mutex
 {
     lh_os_mutex_fields(lh_os_system_mutex_handle_t);
 };
+
+/** @copybrief lh_os_mutex */
 typedef struct lh_os_mutex lh_os_mutex_t;
+
 LH_COMPILER_EXTERN_C_BEGIN
-/** Initialize an empty object; no native resource is acquired. */
+
+/**
+ * @brief Initialize an empty mutex object.
+ *
+ * Initialization acquires no native resources. Do not reinitialize an open mutex.
+ *
+ * @param self Object to initialize; null is ignored.
+ */
 lh_void
 lh_os_mutex_init(lh_os_mutex_t *self);
+
+/**
+ * @brief Acquire a native mutex for an initialized, empty object.
+ *
+ * @param self Initialized object that does not own a mutex.
+ * @return ::lh_bool_true on success; ::lh_bool_false if invalid, already open or unavailable.
+ */
 lh_bool_t
 lh_os_mutex_open(lh_os_mutex_t *self);
-/** Close only when unlocked and no thread can use it again. */
+
+/**
+ * @brief Release an unused native mutex.
+ *
+ * The mutex must be unlocked and no other thread may access it. Closing an empty object
+ * succeeds.
+ *
+ * @param self Initialized mutex object with no concurrent users.
+ * @return ::lh_bool_true when closed; ::lh_bool_false with ownership retained on failure.
+ */
 lh_bool_t
 lh_os_mutex_close(lh_os_mutex_t *self);
-/** Do not lock recursively; unlock on the same thread. */
+
+/**
+ * @brief Acquire exclusive ownership of an open mutex.
+ *
+ * This call may block. Do not recursively lock the mutex; unlock it on the same thread.
+ *
+ * @param self Open mutex to lock.
+ * @return ::lh_bool_true with the lock held; ::lh_bool_false on failure.
+ */
 lh_bool_t
 lh_os_mutex_lock(lh_os_mutex_t *self);
+
+/**
+ * @brief Release a mutex held by the calling thread.
+ *
+ * The mutex and its shared state must remain alive until all users have finished.
+ *
+ * @param self Open mutex locked exactly once by the caller.
+ * @return ::lh_bool_true on success; ::lh_bool_false on failure.
+ */
 lh_bool_t
 lh_os_mutex_unlock(lh_os_mutex_t *self);
 
 LH_COMPILER_EXTERN_C_END
-#endif
+
+#endif /* LH_OS_MUTEX_H */

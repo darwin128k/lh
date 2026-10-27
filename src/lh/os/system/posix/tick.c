@@ -6,6 +6,9 @@
 #include <errno.h>
 #include <time.h>
 
+/**
+ * @brief Read the native monotonic clock without modifying output on failure.
+ */
 lh_bool_t
 lh_os_system_tick_us(lh_u64_t *out)
 {
@@ -24,6 +27,10 @@ lh_os_system_tick_us(lh_u64_t *out)
     *out = (lh_u64_t)now.tv_sec * 1000000U + (lh_u64_t)now.tv_nsec / 1000U;
     return lh_bool_true;
 }
+
+/**
+ * @brief Suspend the calling native thread for a finite interval.
+ */
 lh_bool_t
 lh_os_system_sleep_ms(lh_u32_t milliseconds)
 {

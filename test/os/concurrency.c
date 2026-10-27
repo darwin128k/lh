@@ -33,6 +33,9 @@ typedef struct group
     int waiting, permits, finished, counter;
 } group;
 
+/**
+ * @brief Exercise predicate-based waiting and one/all-waiter notification.
+ */
 static void
 wait_for_permit(void *user)
 {
@@ -49,6 +52,10 @@ wait_for_permit(void *user)
     CHECK(lh_os_condition_signal(&self->ready));
     CHECK(lh_os_mutex_unlock(&self->mutex));
 }
+
+/**
+ * @brief Exercise mutual exclusion by incrementing a shared counter from several workers.
+ */
 static void
 increment(void *user)
 {
@@ -60,6 +67,10 @@ increment(void *user)
         CHECK(lh_os_mutex_unlock(&self->mutex));
     }
 }
+
+/**
+ * @brief Record whether a worker callback executed, including rejected-start checks.
+ */
 static void
 count_callback(void *user)
 {
@@ -72,6 +83,10 @@ typedef struct self_join
     lh_os_thread_t thread;
     int refused;
 } self_join;
+
+/**
+ * @brief Verify that self-join fails without consuming the worker handle.
+ */
 static void
 refuse_self_join(void *user)
 {
@@ -85,6 +100,10 @@ typedef struct affinity_job
 {
     int expected, matched;
 } affinity_job;
+
+/**
+ * @brief Verify that an explicit CPU request is applied to the running worker.
+ */
 static void
 check_affinity(void *user)
 {
@@ -104,6 +123,9 @@ check_affinity(void *user)
 #endif
 }
 
+/**
+ * @brief Run the standalone clock, worker lifetime and synchronization checks.
+ */
 int
 main(void)
 {
