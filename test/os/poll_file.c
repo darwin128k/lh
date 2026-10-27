@@ -302,8 +302,15 @@ main(void)
     test_wake();
     test_large_batch();
     test_eof();
+#if !defined(_WIN32)
+    struct sigaction ignore_pipe = {0}, previous_pipe;
+    ignore_pipe.sa_handler = SIG_IGN;
+    sigemptyset(&ignore_pipe.sa_mask);
+    CHECK(sigaction(SIGPIPE, &ignore_pipe, &previous_pipe) == 0);
+#endif
     test_file();
 #if !defined(_WIN32)
+    CHECK(sigaction(SIGPIPE, &previous_pipe, NULL) == 0);
     test_interruption();
 #endif
     lh_os_net_deinit();
