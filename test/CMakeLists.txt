@@ -7,48 +7,11 @@ set(LH_TEST_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 set(LH_TEST_SRC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(LH_TEST_INCLUDE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
-# The HTTP brick must work without a full LH runtime, OS backend or GoogleTest.
-add_executable(lh_test_http_parser http/parser.c "${LH_LIB_SRC_PATH}/http/parser.c")
-target_include_directories(lh_test_http_parser PRIVATE
-        "$<TARGET_PROPERTY:${LH_CORE_TARGET},INTERFACE_INCLUDE_DIRECTORIES>")
-option(LH_HTTP_PARSER_SANITIZE "Sanitize the standalone HTTP parser test" OFF)
-if(LH_HTTP_PARSER_SANITIZE AND NOT MSVC)
-    target_compile_options(lh_test_http_parser PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
-    target_link_options(lh_test_http_parser PRIVATE -fsanitize=address,undefined)
-endif()
-add_test(NAME lh_http_parser COMMAND lh_test_http_parser)
-
-if (LH_LIBRARY_OPTION_OS)
-    add_executable(lh_test_poll_file os/poll_file.c)
-    target_link_libraries(lh_test_poll_file PRIVATE ${LH_CORE_TARGET})
-    add_test(NAME lh_poll_file COMMAND lh_test_poll_file)
-    set_tests_properties(lh_poll_file PROPERTIES TIMEOUT 40)
-    add_executable(lh_test_net_socket os/net_socket.c)
-    target_link_libraries(lh_test_net_socket PRIVATE ${LH_CORE_TARGET})
-    add_test(NAME lh_net_socket COMMAND lh_test_net_socket)
-    set_tests_properties(lh_net_socket PROPERTIES TIMEOUT 20)
-    add_executable(lh_test_worker_queue os/worker_queue.c)
-    target_link_libraries(lh_test_worker_queue PRIVATE ${LH_CORE_TARGET})
-    add_test(NAME lh_worker_queue COMMAND lh_test_worker_queue)
-    set_tests_properties(lh_worker_queue PROPERTIES TIMEOUT 30)
-    add_executable(lh_test_os_concurrency os/concurrency.c)
-    target_link_libraries(lh_test_os_concurrency PRIVATE ${LH_CORE_TARGET})
-    add_test(NAME lh_os_concurrency COMMAND lh_test_os_concurrency)
-    set_tests_properties(lh_os_concurrency PROPERTIES TIMEOUT 30)
-endif ()
-
-# Skip test targets if googletest submodule is not initialized.
-if (LH_LIBRARY_OPTION_UI AND LH_LIBRARY_OPTION_MATH_FPU)
-    add_executable(lh_test_renderer3d renderer3d.c)
-    target_link_libraries(lh_test_renderer3d PRIVATE ${LH_CORE_TARGET})
-    add_test(NAME lh_renderer3d COMMAND lh_test_renderer3d)
-endif ()
-
+# Test builds require the dependency already pinned by LH's submodule.
 if (NOT EXISTS "${LH_TEST_LIB_PATH}/googletest/CMakeLists.txt")
-    message(WARNING
-            "googletest not found — tests disabled.\n"
-            "Run: git submodule update --init --recursive")
-    return()
+    message(FATAL_ERROR
+            "GoogleTest is required with LH_BUILD_TESTS=ON. "
+            "Run git submodule update --init --recursive test/lib/googletest in the LH tree.")
 endif ()
 
 # Keep GoogleTest CRT consistent with this project on MSVC (/MD vs /MT).
@@ -81,18 +44,25 @@ if (LH_IPO_SUPPORTED)
     set(LH_TEST_IPO ${LH_TEST_IPO_SUPPORTED})
 endif ()
 
-# lh_add_test_core(<name> <sources...>): one executable, linked like the one it
+# lh_add_test_core(<name> [LIBRARY <target>] <sources...>): one executable, linked like the one it
 # replaces, and registered with CTest under the bare core name. It also records
 # what it was given, which is what the guard at the end of this file reads.
 function(lh_add_test_core name)
-    add_executable(${name} ${LH_TEST_RUNNER} ${ARGN})
+    cmake_parse_arguments(LH_TEST "" "LIBRARY" "" ${ARGN})
+    if (LH_TEST_LIBRARY)
+        set(LH_TEST_LIBRARY_TARGET ${LH_TEST_LIBRARY})
+    else ()
+        set(LH_TEST_LIBRARY_TARGET ${LH_CORE_TARGET})
+    endif ()
+    add_executable(${name} ${LH_TEST_RUNNER} ${LH_TEST_UNPARSED_ARGUMENTS})
+    target_compile_features(${name} PRIVATE cxx_std_17)
     if (LH_TEST_IPO)
         set_property(TARGET ${name} PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
     endif ()
     target_include_directories(${name} PRIVATE "${LH_TEST_INCLUDE_PATH}")
-    target_link_libraries(${name} PRIVATE ${LH_CORE_TARGET} gtest)
+    target_link_libraries(${name} PRIVATE ${LH_TEST_LIBRARY_TARGET} gtest)
     add_test(NAME ${name} COMMAND $<TARGET_FILE:${name}>)
-    set(LH_TEST_LISTED_SOURCES ${LH_TEST_LISTED_SOURCES} ${ARGN} PARENT_SCOPE)
+    set(LH_TEST_LISTED_SOURCES ${LH_TEST_LISTED_SOURCES} ${LH_TEST_UNPARSED_ARGUMENTS} PARENT_SCOPE)
 endfunction()
 
 # The path decides the core: a file under util/str belongs to util even though it
@@ -100,8 +70,19 @@ endfunction()
 # guard at the end unhappy, which is the point of the guard.
 set(LH_TEST_LISTED_SOURCES)
 
+# Keep the parser linked only to its isolated C library, with the common GTest runner.
+lh_add_test_core(lh_test_http_parser LIBRARY lh_http_parser ${LH_TEST_SRC_PATH}/lh/http/parser.cpp)
+option(LH_HTTP_PARSER_SANITIZE "Sanitize the HTTP parser GoogleTest target" OFF)
+if (LH_HTTP_PARSER_SANITIZE AND NOT MSVC)
+    target_compile_options(lh_http_parser PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
+    target_compile_options(lh_test_http_parser PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
+    target_link_options(lh_test_http_parser PRIVATE -fsanitize=address,undefined)
+    target_link_options(lh_http_parser INTERFACE -fsanitize=address,undefined)
+endif ()
+
 # Types, errors and the few pieces every core leans on.
 lh_add_test_core(lh_test_core
+        ${LH_TEST_SRC_PATH}/lh/spsc.cpp
         ${LH_TEST_SRC_PATH}/lh/array.cpp
         ${LH_TEST_SRC_PATH}/lh/error.cpp
         ${LH_TEST_SRC_PATH}/lh/exception.cpp
@@ -256,6 +237,17 @@ set(LH_TEST_OS_SOURCES
         ${LH_TEST_SRC_PATH}/lh/os/system/unix/input.cpp
         ${LH_TEST_SRC_PATH}/lh/os/system/win/input.cpp
 )
+set(LH_TEST_OS_PRIMITIVE_SOURCES
+        ${LH_TEST_SRC_PATH}/lh/os/concurrency.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/worker.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/net/nonblocking.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/poll_file.cpp
+)
+if (LH_LIBRARY_OPTION_OS)
+    list(APPEND LH_TEST_OS_SOURCES ${LH_TEST_OS_PRIMITIVE_SOURCES})
+else ()
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_OS_PRIMITIVE_SOURCES})
+endif ()
 if (NOT LH_LIBRARY_OPTION_OS)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/fs/dir.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/fs/dir.cpp)
@@ -301,6 +293,7 @@ endif ()
 if (LH_TEST_OS_SOURCES)
     # os is being rebuilt from scratch, one piece at a time.
     lh_add_test_core(lh_test_os ${LH_TEST_OS_SOURCES})
+    set_tests_properties(lh_test_os PROPERTIES TIMEOUT 120)
 endif ()
 
 set(LH_TEST_STR_SOURCES
@@ -433,6 +426,11 @@ set(LH_TEST_UI_SOURCES
         # source has.
         ${LH_TEST_SRC_PATH}/lh/ui/surface.cpp
 )
+if (LH_LIBRARY_OPTION_UI AND LH_LIBRARY_OPTION_MATH_FPU)
+    list(APPEND LH_TEST_UI_SOURCES ${LH_TEST_SRC_PATH}/lh/ui/renderer3d.cpp)
+else ()
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/ui/renderer3d.cpp)
+endif ()
 if (NOT LH_LIBRARY_OPTION_UI)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/ui/surface.cpp)
     list(REMOVE_ITEM LH_TEST_UI_SOURCES ${LH_TEST_SRC_PATH}/lh/ui/surface.cpp)

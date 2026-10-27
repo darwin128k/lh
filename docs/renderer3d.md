@@ -39,6 +39,6 @@ Navigation, agents and network protocols also remain outside LH.
 
 ## Tests
 
-`lh_test_renderer3d` is an independent C test executable: depth ordering,
-behind-camera rejection, near/side clipping, buffer bounds and camera validation.
-It is registered before the optional GoogleTest dependency check.
+The `renderer3d.*` GoogleTest cases belong to `lh_test_ui` when UI and MATH_FPU
+are enabled. They cover depth ordering, behind-camera rejection, near/side
+clipping, buffer bounds and camera validation.

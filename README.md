@@ -47,13 +47,24 @@ from Windows XP up, X11) and a browser — see [Usage](#usage).
 
 | Tool        | Minimum version |
 |-------------|-----------------|
-| CMake       | 3.12            |
+| CMake       | 3.12 (3.13 with tests) |
 | C compiler  | **C11** or later |
+| C++ compiler | **C++17** for tests |
 | Doxygen     | any (optional, for docs) |
 | Graphviz    | any (optional, for graphs) |
-| GoogleTest  | bundled via submodule (optional, for tests) |
+| GoogleTest  | bundled submodule; required with `LH_BUILD_TESTS=ON` |
 
 ## Building
+
+Initialize the pinned GoogleTest dependency before building with tests enabled:
+
+```sh
+git submodule update --init --recursive test/lib/googletest
+```
+
+All LH C/C++ unit tests use GoogleTest and the common runner under `test/src/`.
+A missing dependency is a configure error when `LH_BUILD_TESTS=ON`; use
+`-DLH_BUILD_TESTS=OFF` for a library-only build.
 
 ```sh
 cmake -S . -B build
@@ -97,7 +108,7 @@ lh is built as a static library only.
 Example — without docs, as plain machine code any host can link:
 
 ```sh
-cmake -S . -B build -DLH_BUILD_DOCS=OFF -DLH_LIBRARY_OPTION_LTO=OFF
+cmake -S . -B build -DLH_BUILD_DOCS=OFF -DLH_BUILD_TESTS=OFF -DLH_LIBRARY_OPTION_LTO=OFF
 cmake --build build
 ```
 
