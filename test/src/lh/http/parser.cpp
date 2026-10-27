@@ -36,7 +36,7 @@ TEST(http_parser, prefixes_complete_only_after_the_full_head)
     for (unsigned i = 0; i < sizeof valid / sizeof valid[0]; ++i)
     {
         SCOPED_TRACE(valid[i]);
-        lh_usize_t length = strlen(valid[i]);
+        lh_usize_t length = std::strlen(valid[i]);
         for (lh_usize_t prefix = 0; prefix < length; ++prefix)
         {
             EXPECT_EQ(lh_http_parser_request(&parser, view(valid[i], prefix), &request, headers, 4),
@@ -58,7 +58,7 @@ TEST(http_parser, prefixes_complete_only_after_the_full_head)
                                      headers, 4),
               lh_http_parse_complete);
     EXPECT_TRUE(equal(headers[0].value, "value"));
-    EXPECT_EQ(lh_http_parser_get_consumed(&parser), strstr(whitespace, "BODY") - whitespace);
+    EXPECT_EQ(lh_http_parser_get_consumed(&parser), std::strstr(whitespace, "BODY") - whitespace);
     const char high_byte[] = "GET / HTTP/1.1\r\nX: \x80\xff\r\n\r\n";
     ASSERT_EQ(lh_http_parser_request(&parser, view(high_byte, sizeof high_byte - 1), &request,
                                      headers, 4),
@@ -91,12 +91,12 @@ TEST(http_parser, rejects_invalid_request_syntax)
     for (unsigned i = 0; i < sizeof invalid / sizeof invalid[0]; ++i)
     {
         SCOPED_TRACE(invalid[i]);
-        EXPECT_EQ(lh_http_parser_request(&parser, view(invalid[i], strlen(invalid[i])), &request,
-                                         headers, 4),
+        EXPECT_EQ(lh_http_parser_request(&parser, view(invalid[i], std::strlen(invalid[i])),
+                                         &request, headers, 4),
                   lh_http_parse_error);
         EXPECT_NE(lh_http_parser_get_error(&parser), lh_http_error_none);
         EXPECT_EQ(lh_http_parser_get_consumed(&parser), 0);
-        EXPECT_LE(lh_http_parser_get_error_offset(&parser), strlen(invalid[i]));
+        EXPECT_LE(lh_http_parser_get_error_offset(&parser), std::strlen(invalid[i]));
     }
     const char nul[] = "GET / HTTP/1.1\r\nX: a\0b\r\n\r\n";
     EXPECT_EQ(lh_http_parser_request(&parser, view(nul, sizeof nul - 1), &request, headers, 4),
@@ -111,36 +111,44 @@ TEST(http_parser, enforces_limits_and_argument_contracts)
     lh_http_request_t request;
     lh_http_header_t header;
     lh_http_parser_init(&parser);
-    ASSERT_EQ(lh_http_parser_request(&parser, view(empty, strlen(empty)), &request, NULL, 0),
-              lh_http_parse_complete);
-    EXPECT_EQ(lh_http_parser_request(&parser, view(field, strlen(field)), &request, NULL, 0),
-              lh_http_parse_error);
+    ASSERT_EQ(
+        lh_http_parser_request(&parser, view(empty, std::strlen(empty)), &request, nullptr, 0),
+        lh_http_parse_complete);
+    EXPECT_EQ(
+        lh_http_parser_request(&parser, view(field, std::strlen(field)), &request, nullptr, 0),
+        lh_http_parse_error);
     EXPECT_EQ(lh_http_parser_get_error(&parser), lh_http_error_header_capacity);
-    EXPECT_EQ(lh_http_parser_request(&parser, view(field, strlen(field)), &request, NULL, 1),
-              lh_http_parse_error);
+    EXPECT_EQ(
+        lh_http_parser_request(&parser, view(field, std::strlen(field)), &request, nullptr, 1),
+        lh_http_parse_error);
     EXPECT_EQ(lh_http_parser_get_error(&parser), lh_http_error_argument);
-    EXPECT_EQ(lh_http_parser_request(&parser, view(NULL, 1), &request, &header, 1),
+    EXPECT_EQ(lh_http_parser_request(&parser, view(nullptr, 1), &request, &header, 1),
               lh_http_parse_error);
-    EXPECT_EQ(lh_http_parser_request(&parser, view(NULL, 0), &request, &header, 1),
+    EXPECT_EQ(lh_http_parser_request(&parser, view(nullptr, 0), &request, &header, 1),
               lh_http_parse_incomplete);
-    EXPECT_EQ(lh_http_parser_request(NULL, view(empty, strlen(empty)), &request, &header, 1),
+    EXPECT_EQ(
+        lh_http_parser_request(nullptr, view(empty, std::strlen(empty)), &request, &header, 1),
+        lh_http_parse_error);
+    EXPECT_EQ(lh_http_parser_request(&parser, view(empty, std::strlen(empty)), nullptr, &header, 1),
               lh_http_parse_error);
-    EXPECT_EQ(lh_http_parser_request(&parser, view(empty, strlen(empty)), NULL, &header, 1),
-              lh_http_parse_error);
-    lh_http_parser_set_limits(&parser, strlen(empty), 14);
-    ASSERT_EQ(lh_http_parser_request(&parser, view(empty, strlen(empty)), &request, &header, 1),
-              lh_http_parse_complete);
-    lh_http_parser_set_limits(&parser, strlen(empty) - 1, 14);
-    EXPECT_EQ(lh_http_parser_request(&parser, view(empty, strlen(empty)), &request, &header, 1),
-              lh_http_parse_error);
+    lh_http_parser_set_limits(&parser, std::strlen(empty), 14);
+    ASSERT_EQ(
+        lh_http_parser_request(&parser, view(empty, std::strlen(empty)), &request, &header, 1),
+        lh_http_parse_complete);
+    lh_http_parser_set_limits(&parser, std::strlen(empty) - 1, 14);
+    EXPECT_EQ(
+        lh_http_parser_request(&parser, view(empty, std::strlen(empty)), &request, &header, 1),
+        lh_http_parse_error);
     EXPECT_EQ(lh_http_parser_get_error(&parser), lh_http_error_head_size);
     lh_http_parser_set_limits(&parser, 8192, 13);
-    EXPECT_EQ(lh_http_parser_request(&parser, view(empty, strlen(empty)), &request, &header, 1),
-              lh_http_parse_error);
+    EXPECT_EQ(
+        lh_http_parser_request(&parser, view(empty, std::strlen(empty)), &request, &header, 1),
+        lh_http_parse_error);
     EXPECT_EQ(lh_http_parser_get_error(&parser), lh_http_error_line_size);
     lh_http_parser_set_limits(&parser, 0, 14);
-    EXPECT_EQ(lh_http_parser_request(&parser, view(empty, strlen(empty)), &request, &header, 1),
-              lh_http_parse_error);
+    EXPECT_EQ(
+        lh_http_parser_request(&parser, view(empty, std::strlen(empty)), &request, &header, 1),
+        lh_http_parse_error);
     EXPECT_EQ(lh_http_parser_get_error(&parser), lh_http_error_argument);
 }
 
@@ -151,13 +159,14 @@ TEST(http_parser, parses_responses_and_rejects_invalid_status_lines)
     lh_http_response_t response;
     lh_http_header_t headers[2];
     lh_http_parser_init(&parser);
-    for (lh_usize_t size = 0; size < strlen(text); ++size)
+    for (lh_usize_t size = 0; size < std::strlen(text); ++size)
     {
         EXPECT_EQ(lh_http_parser_response(&parser, view(text, size), &response, headers, 2),
                   lh_http_parse_incomplete);
     }
-    ASSERT_EQ(lh_http_parser_response(&parser, view(text, strlen(text)), &response, headers, 2),
-              lh_http_parse_complete);
+    ASSERT_EQ(
+        lh_http_parser_response(&parser, view(text, std::strlen(text)), &response, headers, 2),
+        lh_http_parse_complete);
     EXPECT_TRUE(response.status == 200 && response.version_minor == 1 &&
                 response.header_count == 1);
     EXPECT_TRUE(equal(response.reason, "OK"));
@@ -167,13 +176,14 @@ TEST(http_parser, parses_responses_and_rejects_invalid_status_lines)
                          "HTTP/1.1 200 Bad\x01\r\n\r\n"};
     for (unsigned i = 0; i < sizeof bad / sizeof bad[0]; ++i)
     {
-        EXPECT_EQ(
-            lh_http_parser_response(&parser, view(bad[i], strlen(bad[i])), &response, headers, 2),
-            lh_http_parse_error);
+        EXPECT_EQ(lh_http_parser_response(&parser, view(bad[i], std::strlen(bad[i])), &response,
+                                          headers, 2),
+                  lh_http_parse_error);
     }
     text = "HTTP/1.0 204 \r\n\r\n";
-    ASSERT_EQ(lh_http_parser_response(&parser, view(text, strlen(text)), &response, headers, 2),
-              lh_http_parse_complete);
+    ASSERT_EQ(
+        lh_http_parser_response(&parser, view(text, std::strlen(text)), &response, headers, 2),
+        lh_http_parse_complete);
     EXPECT_EQ(response.reason.size, 0);
 }
 
@@ -199,7 +209,7 @@ TEST(http_parser, arbitrary_bytes_preserve_bounds)
         for (unsigned i = 0; i < size; ++i)
         {
             seed = seed * 1664525U + 1013904223U;
-            input[i] = (char)(seed >> 24);
+            input[i] = static_cast<char>(seed >> 24);
         }
         guarded.before = guarded.after = 0x12345678U;
         lh_http_parse_status_t result =

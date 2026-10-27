@@ -19,12 +19,12 @@
 #endif
 namespace
 {
-typedef struct group
+struct group
 {
     lh_os_mutex_t mutex;
     lh_os_condition_t ready, wake;
     int waiting, permits, finished, counter;
-} group;
+};
 
 /**
  * @brief Exercise predicate-based waiting and one/all-waiter notification.
@@ -70,12 +70,12 @@ count_callback(void *user)
     static_cast<std::atomic_int *>(user)->fetch_add(1);
 }
 
-typedef struct self_join
+struct self_join
 {
     lh_os_mutex_t gate;
     lh_os_thread_t thread;
     int refused;
-} self_join;
+};
 
 /**
  * @brief Verify that self-join fails without consuming the worker handle.
@@ -89,10 +89,10 @@ refuse_self_join(void *user)
     self->refused = !lh_os_thread_join(&self->thread);
 }
 
-typedef struct affinity_job
+struct affinity_job
 {
     int expected, matched;
-} affinity_job;
+};
 
 /**
  * @brief Verify that an explicit CPU request is applied to the running worker.
@@ -129,7 +129,7 @@ TEST(os_clock, monotonic_sleep_and_invalid_output)
     ASSERT_TRUE(lh_os_thread_sleep(12));
     ASSERT_GE(lh_os_tick_us() - before, 12000);
     ASSERT_GE(lh_os_tick_ms64(), before / 1000);
-    ASSERT_FALSE(lh_os_system_tick_us(NULL));
+    ASSERT_FALSE(lh_os_system_tick_us(nullptr));
     ASSERT_NE(lh_os_system_get_last_error_code(), 0);
 }
 
@@ -139,7 +139,7 @@ TEST(os_thread, invalid_starts_never_run_callbacks_and_join_is_idempotent)
     lh_test::thread_owner owner;
     auto &thread = owner.value;
     ASSERT_TRUE(lh_os_thread_join(&thread));
-    ASSERT_FALSE(lh_os_thread_start(&thread, NULL, NULL, -1, 0));
+    ASSERT_FALSE(lh_os_thread_start(&thread, nullptr, nullptr, -1, 0));
     ASSERT_FALSE(lh_os_thread_start(&thread, count_callback, &callbacks, -2, 0));
     ASSERT_FALSE(lh_os_thread_start(&thread, count_callback, &callbacks, 1024, 0));
     ASSERT_FALSE(lh_os_thread_start(&thread, count_callback, &callbacks, -1, 128));
@@ -183,7 +183,7 @@ TEST(os_thread, self_join_preserves_worker_and_owner_error)
 TEST_P(os_condition, signal_broadcast_and_mutex_contention)
 {
     SCOPED_TRACE(GetParam());
-    group state = {0};
+    group state{};
     bool mutex_open = false, ready_open = false, wake_open = false, locked = false;
     lh_os_thread_t workers[4];
     for (auto &worker : workers)
