@@ -15,6 +15,9 @@ typedef struct lh_os_native_thread
     lh_ptr user;
 } lh_os_native_thread_t;
 
+/**
+ * @brief Capture a Win32 failure on this thread and return false.
+ */
 static lh_bool_t
 lh_os_concurrency_capture(DWORD code)
 {
@@ -22,6 +25,10 @@ lh_os_concurrency_capture(DWORD code)
     lh_os_system_error_capture();
     return lh_bool_false;
 }
+
+/**
+ * @brief Complete the startup handshake and invoke user code only when startup succeeds.
+ */
 static unsigned __stdcall lh_os_thread_native_run(void *arg)
 {
     lh_os_native_thread_t *self = arg;
@@ -31,6 +38,10 @@ static unsigned __stdcall lh_os_thread_native_run(void *arg)
     }
     return 0;
 }
+
+/**
+ * @brief Create a native worker and validate its startup options before user code runs.
+ */
 lh_os_system_thread_handle_t
 lh_os_system_thread_start(lh_os_thread_fn run, lh_ptr user, lh_s32_t cpu, lh_u32_t flags)
 {
@@ -87,6 +98,10 @@ lh_os_system_thread_start(lh_os_thread_fn run, lh_ptr user, lh_s32_t cpu, lh_u32
     SetEvent(self->gate);
     return self;
 }
+
+/**
+ * @brief Wait for a native worker and release its handle.
+ */
 lh_bool_t
 lh_os_system_thread_join(lh_os_system_thread_handle_t handle)
 {
@@ -114,6 +129,9 @@ lh_os_system_thread_join(lh_os_system_thread_handle_t handle)
     return lh_bool_true;
 }
 
+/**
+ * @brief Allocate and initialize one native mutex object.
+ */
 lh_os_system_mutex_handle_t
 lh_os_system_mutex_open(void)
 {
@@ -132,6 +150,10 @@ lh_os_system_mutex_open(void)
     }
     return self;
 }
+
+/**
+ * @brief Release a native mutex after its last use.
+ */
 lh_bool_t
 lh_os_system_mutex_close(lh_os_system_mutex_handle_t handle)
 {
@@ -143,6 +165,10 @@ lh_os_system_mutex_close(lh_os_system_mutex_handle_t handle)
     free(handle);
     return lh_bool_true;
 }
+
+/**
+ * @brief Lock a native mutex on the calling thread.
+ */
 lh_bool_t
 lh_os_system_mutex_lock(lh_os_system_mutex_handle_t handle)
 {
@@ -153,6 +179,10 @@ lh_os_system_mutex_lock(lh_os_system_mutex_handle_t handle)
     EnterCriticalSection(handle);
     return lh_bool_true;
 }
+
+/**
+ * @brief Unlock the native mutex held by the calling thread.
+ */
 lh_bool_t
 lh_os_system_mutex_unlock(lh_os_system_mutex_handle_t handle)
 {
@@ -176,6 +206,9 @@ typedef struct lh_os_native_condition
     lh_os_condition_wait_fn wait;
 } lh_os_native_condition_t;
 
+/**
+ * @brief Allocate and initialize one native condition object.
+ */
 lh_os_system_condition_handle_t
 lh_os_system_condition_open(void)
 {
@@ -216,6 +249,10 @@ lh_os_system_condition_open(void)
     init(&self->state);
     return self;
 }
+
+/**
+ * @brief Release a native condition after its last use.
+ */
 lh_bool_t
 lh_os_system_condition_close(lh_os_system_condition_handle_t handle)
 {
@@ -226,6 +263,10 @@ lh_os_system_condition_close(lh_os_system_condition_handle_t handle)
     free(handle);
     return lh_bool_true;
 }
+
+/**
+ * @brief Wait on a native condition, atomically releasing and reacquiring the mutex.
+ */
 lh_bool_t
 lh_os_system_condition_wait(lh_os_system_condition_handle_t handle,
                             lh_os_system_mutex_handle_t mutex)
@@ -241,6 +282,10 @@ lh_os_system_condition_wait(lh_os_system_condition_handle_t handle,
     }
     return lh_bool_true;
 }
+
+/**
+ * @brief Notify one native condition waiter, if any.
+ */
 lh_bool_t
 lh_os_system_condition_signal(lh_os_system_condition_handle_t handle)
 {
@@ -252,6 +297,10 @@ lh_os_system_condition_signal(lh_os_system_condition_handle_t handle)
     self->signal(&self->state);
     return lh_bool_true;
 }
+
+/**
+ * @brief Notify all current native condition waiters.
+ */
 lh_bool_t
 lh_os_system_condition_broadcast(lh_os_system_condition_handle_t handle)
 {

@@ -2,6 +2,9 @@
 #include <lh/os/system/error/capture.h>
 #include <windows.h>
 
+/**
+ * @brief Read the native monotonic clock without modifying output on failure.
+ */
 lh_bool_t
 lh_os_system_tick_us(lh_u64_t *out)
 {
@@ -29,6 +32,10 @@ lh_os_system_tick_us(lh_u64_t *out)
         (lh_u64_t)(counter.QuadPart % frequency.QuadPart) * 1000000U / (lh_u64_t)frequency.QuadPart;
     return lh_bool_true;
 }
+
+/**
+ * @brief Suspend the calling native thread for a finite interval.
+ */
 lh_bool_t
 lh_os_system_sleep_ms(lh_u32_t milliseconds)
 {
