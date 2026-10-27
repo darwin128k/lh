@@ -59,8 +59,8 @@ retries interrupted POSIX sleeps; it does not schedule game callbacks.
 
 ## Tests
 
-Standalone check (no GoogleTest required): build `lh_test_os_concurrency` and run
-`ctest -R lh_os_concurrency --output-on-failure`. Tests cover mutex contention,
+GoogleTest cases in `lh_test_os` cover the primitives. Build that target and run
+`ctest -R "^lh_test_os$" --output-on-failure`. Tests cover mutex contention,
 signal/broadcast with predicate loops, affinity, failed starts without callbacks,
 self-join rejection, error isolation, monotonic time and sleep. Authum separately
 tests module ownership, wake-all-before-join, cancellation and frame delivery.

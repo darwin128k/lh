@@ -68,6 +68,7 @@ the small `lh::http_parser` target when the rest of LH is unnecessary.
 
 ## Tests
 
-The standalone `lh_test_http_parser` target runs even without GoogleTest.
+The `lh_test_http_parser` GoogleTest target uses the common test runner and links
+only the isolated parser library. Initialize `test/lib/googletest` before building.
 `LH_HTTP_PARSER_SANITIZE=ON` enables ASan/UBSan for that test with supported
 desktop compilers. This is not an STM32 hardware certification.
