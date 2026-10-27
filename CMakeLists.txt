@@ -121,6 +121,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/memory/std.c
         ${LH_LIB_SRC_PATH}/memory/raw.c
         ${LH_LIB_SRC_PATH}/memory.c
+        ${LH_LIB_SRC_PATH}/spsc.c
         ${LH_LIB_SRC_PATH}/array.c
         ${LH_LIB_SRC_PATH}/list.c
         ${LH_LIB_SRC_PATH}/value.c
@@ -247,6 +248,7 @@ set(LH_LIB_SOURCES
 )
 
 if (LH_LIBRARY_OPTION_OS)
+    list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/worker.c)
     list(APPEND LH_LIB_SOURCES
             ${LH_LIB_SRC_PATH}/os.c
             ${LH_LIB_SRC_PATH}/os/error.c
