@@ -91,7 +91,7 @@ lh_wstr_view_init_by_other(lh_wstr_view_t *self, const lh_wstr_view_t *other);
  * @param self   Source view.
  * @param offset Offset from the source beginning, in wide characters.
  * @param size   Number of wide characters in the returned view.
- * @return Constructed sub-view (shares the source text).
+ * @param out    Receives the sub-view (shares the source text).
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
@@ -204,7 +204,7 @@ lh_wstr_view_init(lh_wstr_view_t *self, const lh_wstr_ptr data);
  *
  * @param self   Source view.
  * @param offset Where the tail starts, in wide characters; at most the size of @p self.
- * @return Constructed tail view (shares the source text).
+ * @param out    Receives the tail view (shares the source text).
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.

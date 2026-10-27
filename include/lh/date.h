@@ -242,7 +242,7 @@ lh_date_days_since_epoch(const lh_date_t *self);
  *        after 1970-01-01 (before it, if negative).
  *
  * @param days Epoch-day number.
- * @return Calendar date.
+ * @param out  Receives the calendar date.
  */
 lh_void
 lh_date_from_epoch_days(lh_s64_t days, lh_date_t *out);

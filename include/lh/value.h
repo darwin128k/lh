@@ -32,6 +32,7 @@
  */
 struct lh_value
 {
+    /** Members: ::lh_value_fields. */
     lh_value_fields(lh_value_kind_t, lh_value_data_t);
 };
 /** @copybrief lh_value */

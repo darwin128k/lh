@@ -1027,14 +1027,16 @@ lh_memory_view_rcompare_range(const lh_memory_view_t *self, const lh_ptr begin, 
 /**
  * @brief Build a view containing the first @p n bytes of a valid half-open range.
  *
- * The source range is <tt>[begin, end)</tt>. If @p n is zero, the returned
- * view is the empty <tt>[begin, begin)</tt>, still at @p begin.
+ * The source range is <tt>[begin, end)</tt>. If @p n is zero, the view written
+ * to @p out is the empty <tt>[begin, begin)</tt>, still at @p begin.
  *
  * @param begin Source range begin pointer.
  * @param end   Source range exclusive end pointer.
  * @param n     Number of bytes to keep from the beginning.
- * @return View <tt>[begin, begin + n)</tt>.
+ * @param out   Receives the view <tt>[begin, begin + n)</tt>; must not be null.
  *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p out is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not a valid view.
  * @fails ::lh_runtime_error_code_out_of_range
@@ -1047,14 +1049,16 @@ lh_memory_view_take_first(const lh_ptr begin, const lh_ptr end, lh_usize_t n,
 /**
  * @brief Build a view containing the last @p n bytes of a valid half-open range.
  *
- * The source range is <tt>[begin, end)</tt>. If @p n is zero, the returned
- * view is the empty <tt>[end, end)</tt>, still at @p end.
+ * The source range is <tt>[begin, end)</tt>. If @p n is zero, the view written
+ * to @p out is the empty <tt>[end, end)</tt>, still at @p end.
  *
  * @param begin Source range begin pointer.
  * @param end   Source range exclusive end pointer.
  * @param n     Number of bytes to keep from the end.
- * @return View <tt>[end - n, end)</tt>.
+ * @param out   Receives the view <tt>[end - n, end)</tt>; must not be null.
  *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p out is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not a valid view.
  * @fails ::lh_runtime_error_code_out_of_range
@@ -1069,10 +1073,10 @@ lh_memory_view_take_last(const lh_ptr begin, const lh_ptr end, lh_usize_t n, lh_
  * @param self  Source view that must contain the requested range.
  * @param begin Inner range begin pointer.
  * @param end   Inner range exclusive end pointer.
- * @return Constructed valid inner view.
+ * @param out   Receives the inner view <tt>[begin, end)</tt>; must not be null.
  *
  * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
+ *        @p self or @p out is ::lh_null.
  * @fails ::lh_runtime_error_code_out_of_range
  *        <tt>[begin, end)</tt> is not contained by @p self.
  * @fails ::lh_runtime_error_code_invalid_range
@@ -1085,16 +1089,17 @@ lh_memory_view_between(const lh_memory_view_t *self, const lh_ptr begin, const l
 /**
  * @brief Build a sub-view starting at @p offset with @p size bytes.
  *
- * If @p size is zero, the returned view is empty, at @p offset, which may then
- * equal the source size.
+ * If @p size is zero, the view written to @p out is empty, at @p offset, which
+ * may then equal the source size.
  *
  * @param self   Source view.
  * @param offset Offset from the source beginning.
- * @param size   Number of bytes in the returned view.
- * @return View <tt>[begin + offset, begin + offset + size)</tt>.
+ * @param size   Number of bytes in the view written to @p out.
+ * @param out    Receives the view <tt>[begin + offset, begin + offset + size)</tt>;
+ *               must not be null.
  *
  * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
+ *        @p self or @p out is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @fails ::lh_runtime_error_code_out_of_range
@@ -1148,14 +1153,14 @@ lh_memory_view_seek_ptr(const lh_memory_view_t *self, const lh_ptr ptr, lh_soffs
 /**
  * @brief Build a view containing the first @p size bytes of @p self.
  *
- * If @p size is zero, the returned view is empty, at the source begin.
+ * If @p size is zero, the view written to @p out is empty, at the source begin.
  *
  * @param self Source view.
  * @param size Number of bytes to keep from the beginning.
- * @return View taken from the beginning of @p self.
+ * @param out  Receives the view taken from the beginning of @p self; must not be null.
  *
  * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
+ *        @p self or @p out is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @fails ::lh_runtime_error_code_out_of_range
@@ -1167,14 +1172,14 @@ lh_memory_view_from_begin(const lh_memory_view_t *self, lh_usize_t size, lh_memo
 /**
  * @brief Build a view containing the last @p size bytes of @p self.
  *
- * If @p size is zero, the returned view is empty, at the source end.
+ * If @p size is zero, the view written to @p out is empty, at the source end.
  *
  * @param self Source view.
  * @param size Number of bytes to keep from the end.
- * @return View taken from the end of @p self.
+ * @param out  Receives the view taken from the end of @p self; must not be null.
  *
  * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
+ *        @p self or @p out is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @fails ::lh_runtime_error_code_out_of_range
@@ -1186,14 +1191,15 @@ lh_memory_view_from_end(const lh_memory_view_t *self, lh_usize_t size, lh_memory
 /**
  * @brief Build a view with @p n bytes removed from the beginning.
  *
- * If @p n equals the source size, the returned view is empty, at the source end.
+ * If @p n equals the source size, the view written to @p out is empty, at the
+ * source end.
  *
  * @param self Source view.
  * @param n    Number of bytes to remove from the beginning.
- * @return Source view without the first @p n bytes.
+ * @param out  Receives the source view without the first @p n bytes; must not be null.
  *
  * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
+ *        @p self or @p out is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @fails ::lh_runtime_error_code_out_of_range
@@ -1240,15 +1246,15 @@ lh_memory_view_seek_value(const lh_memory_view_t *self, const lh_ptr ptr);
 /**
  * @brief Build a view with @p n bytes removed from the end.
  *
- * If @p n equals the source size, the returned view is empty, at the source
- * begin.
+ * If @p n equals the source size, the view written to @p out is empty, at the
+ * source begin.
  *
  * @param self Source view.
  * @param n    Number of bytes to remove from the end.
- * @return Source view without the last @p n bytes.
+ * @param out  Receives the source view without the last @p n bytes; must not be null.
  *
  * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
+ *        @p self or @p out is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @fails ::lh_runtime_error_code_out_of_range
@@ -1286,16 +1292,16 @@ lh_memory_view_prev_value(const lh_memory_view_t *self, const lh_ptr ptr);
 /**
  * @brief Build a view with bytes removed from both sides.
  *
- * If @p left + @p right equals the source size, the returned view is empty,
- * @p left bytes past the source begin.
+ * If @p left + @p right equals the source size, the view written to @p out is
+ * empty, @p left bytes past the source begin.
  *
  * @param self  Source view.
  * @param left  Number of bytes to remove from the beginning.
  * @param right Number of bytes to remove from the end.
- * @return Trimmed source view.
+ * @param out   Receives the trimmed source view; must not be null.
  *
  * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
+ *        @p self or @p out is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @fails ::lh_runtime_error_code_out_of_range

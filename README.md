@@ -158,10 +158,17 @@ The HTML output is written to `docs/html/index.html`.
 
 ## Usage
 
-Integration guides by target — options, runtime wiring, display and UI:
+Every guide is indexed in [docs/index.md](docs/index.md). The integration
+guides by target — options, runtime wiring, display and UI:
 [docs/usage.md](docs/usage.md) (overview and option matrix),
 [microcontroller](docs/usage-embedded.md), [desktop window](docs/usage-desktop.md),
 [web host](docs/usage-web.md).
+
+The subsystem guides: [UI model](docs/ui.md),
+[modules and loaders](docs/module-loader.md),
+[OS threads and synchronization](docs/concurrency.md),
+[HTTP/1 head parser](docs/http.md),
+[software 3D renderer](docs/renderer3d.md).
 
 Umbrella header (version entry point):
 

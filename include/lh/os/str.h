@@ -87,14 +87,36 @@ typedef lh_wstr_view_t lh_os_str_view_t;
 #    include <lh/str/view.h>
 #    include <lh/util/str/ptr.h>
 
+/**
+ * @def LH_OS_STR_WIDE
+ * @brief `1` when ::lh_os_str_t is UTF-16 (Windows), `0` when it is UTF-8.
+ */
 #    define LH_OS_STR_WIDE 0
 
+/**
+ * @typedef lh_os_char_t
+ * @brief One code unit of OS text (::lh_wchar_t / ::lh_char_t).
+ */
 typedef lh_char_t lh_os_char_t;
+
+/**
+ * @typedef lh_os_str_t
+ * @brief Owning OS text (::lh_wstr_t / ::lh_str_t).
+ */
 typedef lh_str_t lh_os_str_t;
+
+/**
+ * @typedef lh_os_str_view_t
+ * @brief View of OS text (::lh_wstr_view_t / ::lh_str_view_t).
+ */
 typedef lh_str_view_t lh_os_str_view_t;
 
+/** @brief Mutable pointer to OS text (::lh_wstr_ptr / ::lh_str_ptr). */
 #    define lh_os_str_ptr lh_str_ptr
-/** @brief Read-only OS text for `.c` files; headers use `const lh_os_str_ptr`. */
+/** @brief Read-only OS text for `.c` files (::lh_wstr_cptr / ::lh_str_cptr).
+ *
+ * Headers use `const lh_os_str_ptr` instead.
+ */
 #    define lh_os_str_cptr lh_str_cptr
 
 /**

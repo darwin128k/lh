@@ -42,32 +42,55 @@ typedef enum lh_ui_web_html_kind
 typedef struct lh_ui_web_html
 {
     lh_ui_web_html_kind_t kind; /**< Which member of @c u is set. */
-    /** The content of the node, by @c kind. */
+    /** @brief The content of the node, by @c kind. */
     union
     {
+        /** @brief Text of the node, for ::lh_ui_web_html_kind_text. */
         const lh_str_ptr text;
+        /** @brief Markup of the node, for ::lh_ui_web_html_kind_raw. */
         const lh_str_ptr raw;
+        /** @brief Element of the node, for ::lh_ui_web_html_kind_tag. */
         struct
         {
+            /** @brief Tag name. */
             const lh_str_ptr name;
+            /** @brief Attributes, in order. */
             const lh_ui_web_html_attr_t *attrs;
+            /** @brief How many attributes @c attrs holds. */
             lh_u16_t nattrs;
+            /** @brief Child nodes, in order. */
             const struct lh_ui_web_html *const *kids;
+            /** @brief How many children @c kids holds. */
             lh_u16_t nkids;
+            /** @brief Whether the element is void: no children, no close tag. */
             lh_bool_t void_el;
         } tag;
     } u;
-} lh_ui_web_html_t;
+} lh_ui_web_html_t; /**< One markup node. */
 
-/** `<!doctype html>` */
+/**
+ * @brief A doctype node, written as `<!doctype html>`.
+ *
+ * @param out Receives the node.
+ */
 lh_void
 lh_ui_web_html_doctype(lh_ui_web_html_t *out);
 
-/** Text node — `&`, `<`, `>` escaped on emit. */
+/**
+ * @brief A text node; `&`, `<` and `>` are escaped on emit.
+ *
+ * @param s   NUL-terminated text. Not copied.
+ * @param out Receives the node.
+ */
 lh_void
 lh_ui_web_html_text(const lh_str_ptr s, lh_ui_web_html_t *out);
 
-/** Raw bytes inside a parent (e.g. CSS) — not escaped. */
+/**
+ * @brief A raw node, written as is.
+ *
+ * @param s   NUL-terminated text. Not copied.
+ * @param out Receives the node.
+ */
 lh_void
 lh_ui_web_html_raw(const lh_str_ptr s, lh_ui_web_html_t *out);
 
@@ -80,6 +103,7 @@ lh_ui_web_html_raw(const lh_str_ptr s, lh_ui_web_html_t *out);
  * @param kids    Child nodes, in order; may be ::lh_null when @p nkids is `0`.
  * @param nkids   How many children @p kids holds.
  * @param void_el When true, emit `<name …>` with no children and no close tag.
+ * @param out     Receives the node.
  */
 lh_void
 lh_ui_web_html_tag(const lh_str_ptr name, const lh_ui_web_html_attr_t *attrs, lh_u16_t nattrs,
@@ -91,6 +115,10 @@ lh_ui_web_html_tag(const lh_str_ptr name, const lh_ui_web_html_attr_t *attrs, lh
  *
  * Element text escapes `&`, `<` and `>`; an attribute value (@p in_attr) escapes
  * `&`, `<` and `"`.
+ *
+ * @param c      The character to look up.
+ * @param in_attr Whether the character stands in an attribute value.
+ * @return The entity text, or ::lh_null when @p c needs none.
  */
 const lh_str_ptr
 lh_ui_web_html_entity_of(lh_char_t c, lh_bool_t in_attr);
@@ -100,23 +128,55 @@ lh_ui_web_html_entity_of(lh_char_t c, lh_bool_t in_attr);
  *        as element text, or as an attribute value when @p in_attr.
  *
  * ::lh_null @p s appends nothing.
+ *
+ * @param out    Buffer to append to.
+ * @param s      NUL-terminated text. Not copied.
+ * @param in_attr Whether the text stands in an attribute value.
  */
 lh_void
 lh_ui_web_html_put_escaped(lh_ui_web_buf_t *out, const lh_str_ptr s, lh_bool_t in_attr);
 
-/** Append @p n attributes as ` name="value"` (or bare ` name`), values escaped. */
+/**
+ * @brief Append @p n attributes as ` name="value"` (or bare ` name`), values escaped.
+ *
+ * @param out   Buffer to append to.
+ * @param attrs Attributes, in order.
+ * @param n     How many attributes @p attrs holds.
+ */
 lh_void
 lh_ui_web_html_put_attrs(lh_ui_web_buf_t *out, const lh_ui_web_html_attr_t *attrs, lh_u16_t n);
 
-/** Serialize a full node (doctype / text / raw / element with kids). */
+/**
+ * @brief Serialize a full node (doctype / text / raw / element with kids).
+ *
+ * A null node fails the buffer; a null buffer is ignored.
+ *
+ * @param out  Buffer to append to.
+ * @param node Node to serialize.
+ */
 lh_void
 lh_ui_web_html_emit(lh_ui_web_buf_t *out, const lh_ui_web_html_t *node);
 
-/** Emit only `<tag attrs>` — for elements whose body is filled elsewhere (script). */
+/**
+ * @brief Emit only `<tag attrs>` — for elements whose body is filled elsewhere (script).
+ *
+ * A node that is not an element fails the buffer.
+ *
+ * @param out  Buffer to append to.
+ * @param node Element node to open.
+ */
 lh_void
 lh_ui_web_html_open(lh_ui_web_buf_t *out, const lh_ui_web_html_t *node);
 
-/** Emit `</tag>`. */
+/**
+ * @brief Emit `</tag>`.
+ *
+ * A void element has no close tag and writes nothing. A node that is not an element
+ * fails the buffer.
+ *
+ * @param out  Buffer to append to.
+ * @param node Element node to close.
+ */
 lh_void
 lh_ui_web_html_close(lh_ui_web_buf_t *out, const lh_ui_web_html_t *node);
 

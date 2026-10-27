@@ -60,6 +60,7 @@
  */
 struct lh_ini_parser
 {
+    /** Members: ::lh_ini_parser_fields. */
     lh_ini_parser_fields(lh_str_line_reader_t, lh_str_view_t, lh_ini_error_t);
 };
 /** @copybrief lh_ini_parser */

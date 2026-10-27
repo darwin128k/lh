@@ -338,6 +338,7 @@ lh_os_net_socket_recvfrom(lh_self_ptr self, lh_ptr buf, lh_usize_t size,
  * @brief Build an ::lh_io_reader_t that reads from @p self.
  *
  * @param self Socket to read from; must outlive the returned reader.
+ * @param out  Receives the reader; must not be null.
  * @return An ::lh_io_reader_t wired to ::lh_os_net_socket_recv.
  */
 lh_void
@@ -347,6 +348,7 @@ lh_os_net_socket_get_reader(lh_os_net_socket_t *self, lh_io_reader_t *out);
  * @brief Build an ::lh_io_writer_t that writes to @p self.
  *
  * @param self Socket to write to; must outlive the returned writer.
+ * @param out  Receives the writer; must not be null.
  * @return An ::lh_io_writer_t wired to ::lh_os_net_socket_send.
  */
 lh_void
@@ -376,6 +378,7 @@ lh_os_net_socket_send_all(lh_os_net_socket_t *self, const lh_ptr buf, lh_usize_t
  *
  * @param self Open, connected TCP socket to wrap; must outlive the
  *             returned stream.
+ * @param out  Receives the stream; must not be null.
  * @return An ::lh_io_stream_t backed by @p self.
  */
 lh_void
@@ -385,6 +388,7 @@ lh_os_net_socket_get_stream(lh_os_net_socket_t *self, lh_io_stream_t *out);
  * @brief Build an ::lh_io_dgram_reader_t that receives from @p self.
  *
  * @param self Socket to receive from; must outlive the returned reader.
+ * @param out  Receives the reader; must not be null.
  * @return An ::lh_io_dgram_reader_t wired to ::lh_os_net_socket_recvfrom.
  */
 lh_void
@@ -394,6 +398,7 @@ lh_os_net_socket_get_dgram_reader(lh_os_net_socket_t *self, lh_io_dgram_reader_t
  * @brief Build an ::lh_io_dgram_writer_t that sends through @p self.
  *
  * @param self Socket to send through; must outlive the returned writer.
+ * @param out  Receives the writer; must not be null.
  * @return An ::lh_io_dgram_writer_t wired to ::lh_os_net_socket_sendto.
  */
 lh_void
@@ -411,6 +416,7 @@ lh_os_net_socket_get_dgram_writer(lh_os_net_socket_t *self, lh_io_dgram_writer_t
  * datagram pair is for.
  *
  * @param self Open UDP socket to wrap; must outlive the returned dgram.
+ * @param out  Receives the datagram pair; must not be null.
  * @return An ::lh_io_dgram_t backed by @p self.
  */
 lh_void

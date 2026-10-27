@@ -27,6 +27,7 @@
  */
 struct lh_ini_entry
 {
+    /** Members: ::lh_ini_entry_fields. */
     lh_ini_entry_fields(lh_ini_entry_kind_t, lh_str_view_t, lh_pair_t);
 };
 /** @copybrief lh_ini_entry */

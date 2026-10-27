@@ -19,6 +19,7 @@
  */
 struct lh_os_condition
 {
+    /** Members: ::lh_os_condition_fields. */
     lh_os_condition_fields(lh_os_system_condition_handle_t);
 };
 

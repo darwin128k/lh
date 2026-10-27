@@ -36,6 +36,7 @@
  */
 struct lh_real_decimal
 {
+    /** Members: ::lh_real_decimal_fields. */
     lh_real_decimal_fields(lh_u64_t, lh_s64_t, lh_bool_t);
 };
 /** @copybrief lh_real_decimal */

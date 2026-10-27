@@ -60,6 +60,15 @@ LH_COMPILER_EXTERN_C_BEGIN
 
 /* -- init / deinit --------------------------------------------------------- */
 
+/**
+ * @brief Record the loader privilege of @p self.
+ *
+ * Internal bookkeeping for ::lh_os_module_grant_loader and
+ * ::lh_os_module_revoke_loader; it neither creates nor destroys the loader.
+ *
+ * @param self   Module to modify.
+ * @param loader Loader the module may load children with, or ::lh_null.
+ */
 lh_void
 lh_os_module_set_loader(lh_os_module_t *self, struct lh_os_loader *loader);
 
@@ -103,6 +112,14 @@ lh_os_module_destroy(lh_os_module_t *self);
 
 /* -- accessors ------------------------------------------------------------- */
 
+/**
+ * @brief The module's image, for the calls that open and close it.
+ *
+ * Mutable counterpart of ::lh_os_module_get_image.
+ *
+ * @param self Module to read from.
+ * @return The module's own image.
+ */
 lh_os_shared_t *
 lh_os_module_get_image_mut(lh_os_module_t *self);
 
@@ -281,6 +298,15 @@ lh_os_module_close(lh_os_module_t *self);
 
 /* -- lifecycle ------------------------------------------------------------- */
 
+/**
+ * @brief Destroy the loader privilege of @p self.
+ *
+ * Every child the loader loaded is unloaded first, then the loader itself is
+ * freed. A module without a loader is left alone. ::lh_os_module_stop calls
+ * this before the module's own stop runs.
+ *
+ * @param self Module whose loader to revoke.
+ */
 lh_void
 lh_os_module_revoke_loader(lh_os_module_t *self);
 

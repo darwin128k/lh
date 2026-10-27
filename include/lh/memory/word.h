@@ -39,16 +39,35 @@
 #if (LH_COMPILER_TYPE_IS_GCC_LIKE)
 /* may_alias: an access through this type may touch an object of any type.
    aligned(1): the address need not be aligned for the word. */
+
+/** @brief A 2-byte word type for accessing memory of any type at any address. */
 typedef lh_u16_t lh_memory_word_u16_t __attribute__((may_alias, aligned(1)));
+
+/** @brief A 4-byte word type for accessing memory of any type at any address. */
 typedef lh_u32_t lh_memory_word_u32_t __attribute__((may_alias, aligned(1)));
+
+/** @brief An 8-byte word type for accessing memory of any type at any address. */
 typedef lh_u64_t lh_memory_word_u64_t __attribute__((may_alias, aligned(1)));
+
+/** @brief A machine-word type for accessing memory of any type at any address. */
 typedef lh_usize_t lh_memory_word_usize_t __attribute__((may_alias, aligned(1)));
+
+/** @brief A machine-word type for accessing memory of any type at a word-aligned address. */
 typedef lh_usize_t lh_memory_word_t __attribute__((may_alias));
 #else
+/** @brief A 2-byte word type for accessing memory of any type at any address. */
 typedef lh_u16_t lh_memory_word_u16_t;
+
+/** @brief A 4-byte word type for accessing memory of any type at any address. */
 typedef lh_u32_t lh_memory_word_u32_t;
+
+/** @brief An 8-byte word type for accessing memory of any type at any address. */
 typedef lh_u64_t lh_memory_word_u64_t;
+
+/** @brief A machine-word type for accessing memory of any type at any address. */
 typedef lh_usize_t lh_memory_word_usize_t;
+
+/** @brief A machine-word type for accessing memory of any type at a word-aligned address. */
 typedef lh_usize_t lh_memory_word_t;
 #endif
 

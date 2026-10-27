@@ -27,7 +27,9 @@
 /** @brief Largest `q` for which a halfway tie can be exact: 23 or 10. */
 #        define LH_REAL_LEMIRE_ROUND_EVEN_MAX 23
 #    else
+/** @brief Smallest `q` for which a halfway tie can be exact: -4 or -17. */
 #        define LH_REAL_LEMIRE_ROUND_EVEN_MIN (-17)
+/** @brief Largest `q` for which a halfway tie can be exact: 23 or 10. */
 #        define LH_REAL_LEMIRE_ROUND_EVEN_MAX 10
 #    endif
 

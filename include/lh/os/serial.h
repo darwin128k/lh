@@ -96,6 +96,7 @@ lh_os_serial_write(lh_self_ptr self, const lh_ptr buf, lh_usize_t size);
  * @brief The port as a stream.
  *
  * @param self Port; must outlive the stream.
+ * @param out  Receives the stream; must not be null.
  */
 lh_void
 lh_os_serial_get_stream(lh_os_serial_t *self, lh_io_stream_t *out);

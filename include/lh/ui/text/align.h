@@ -21,9 +21,9 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 typedef enum lh_ui_text_align_h
 {
-    lh_ui_text_align_h_left = 0,
-    lh_ui_text_align_h_center = 1,
-    lh_ui_text_align_h_right = 2
+    lh_ui_text_align_h_left = 0,   /**< The text starts at the left of the padded box. */
+    lh_ui_text_align_h_center = 1, /**< The text is centred in the padded box. */
+    lh_ui_text_align_h_right = 2   /**< The text ends at the right of the padded box. */
 } lh_ui_text_align_h_t;
 
 /**
@@ -36,9 +36,9 @@ typedef enum lh_ui_text_align_h
  */
 typedef enum lh_ui_text_align_v
 {
-    lh_ui_text_align_v_top = 0,
-    lh_ui_text_align_v_center = 1,
-    lh_ui_text_align_v_bottom = 2
+    lh_ui_text_align_v_top = 0,    /**< The text starts at the top of the padded box. */
+    lh_ui_text_align_v_center = 1, /**< The text is centred in the padded box. */
+    lh_ui_text_align_v_bottom = 2  /**< The text ends at the bottom of the padded box. */
 } lh_ui_text_align_v_t;
 
 /**
@@ -55,11 +55,12 @@ typedef enum lh_ui_text_align_v
  * on 194.0, a 15-row caption centres on 193.5 or 194.5, and truncating put it on
  * the first — half a pixel high, which is visible as "a bit high".
  *
- * @param box The box to align inside; ::lh_null is read as an empty one.
- * @param padding Space kept off each side before aligning; ::lh_null is none.
- * @param size Measured size of the text, from ::lh_ui_text_get_size.
+ * @param box       The box to align inside; ::lh_null is read as an empty one.
+ * @param padding   Space kept off each side before aligning; ::lh_null is none.
+ * @param size      Measured size of the text, from ::lh_ui_text_get_size.
  * @param horizontal Horizontal alignment inside the padded box.
- * @param vertical Vertical alignment inside the padded box.
+ * @param vertical   Vertical alignment inside the padded box.
+ * @param out        Receives the point the text starts at.
  */
 lh_void
 lh_ui_text_align_get_origin(const lh_ui_rect_t *box, const lh_ui_insets_t *padding,

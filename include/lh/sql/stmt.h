@@ -34,6 +34,7 @@
  */
 struct lh_sql_stmt
 {
+    /** Members: ::lh_sql_stmt_fields. */
     lh_sql_stmt_fields(lh_sql_db_t *, lh_ptr);
 };
 /** @copybrief lh_sql_stmt */

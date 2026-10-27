@@ -19,6 +19,7 @@
  */
 struct lh_sql_mysql_prepared
 {
+    /** Members: ::lh_sql_mysql_prepared_fields. */
     lh_sql_mysql_prepared_fields(lh_str_t, lh_array_t, lh_ptr, lh_char_t **, lh_ulong_t *,
                                  lh_bool_t);
 };

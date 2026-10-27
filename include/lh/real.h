@@ -34,9 +34,18 @@
 /** @brief The floating point type of this build. */
 typedef double lh_real_t;
 #elif LH_LIBRARY_OPTION_REAL == LH_REAL_FLOAT
+/**
+ * @def LH_REAL_ENABLED
+ * @brief `1` when ::lh_real_t exists, `0` for ::LH_REAL_NONE.
+ */
 #    define LH_REAL_ENABLED 1
+/** @brief The floating point type of this build. */
 typedef float lh_real_t;
 #elif LH_LIBRARY_OPTION_REAL == LH_REAL_NONE
+/**
+ * @def LH_REAL_ENABLED
+ * @brief `1` when ::lh_real_t exists, `0` for ::LH_REAL_NONE.
+ */
 #    define LH_REAL_ENABLED 0
 #else
 #    error "LH_LIBRARY_OPTION_REAL must be LH_REAL_NONE, LH_REAL_FLOAT or LH_REAL_DOUBLE"

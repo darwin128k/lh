@@ -19,6 +19,8 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief ::lh_numeric_mul_u64_full from four 32-bit products, on any target.
  *
+ * @param a    First factor.
+ * @param b    Second factor.
  * @param high Receives the upper 64 bits.
  * @return The lower 64 bits.
  */
@@ -30,6 +32,8 @@ lh_numeric_mul_u64_full_halves(lh_u64_t a, lh_u64_t b, lh_u64_t *high);
  *        compiler has a 128-bit type, ::lh_numeric_mul_u64_full_halves
  *        elsewhere.
  *
+ * @param a    First factor.
+ * @param b    Second factor.
  * @param high Receives the upper 64 bits.
  * @return The lower 64 bits.
  */

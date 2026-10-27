@@ -85,6 +85,7 @@ typedef lh_str_view_t(lh_sql_column_str_fn)(const struct lh_sql_stmt *stmt, lh_u
  */
 struct lh_sql_driver
 {
+    /** Members: ::lh_sql_driver_fields. */
     lh_sql_driver_fields(lh_str_cptr, lh_sql_close_fn, lh_sql_exec_fn, lh_sql_last_insert_id_fn,
                          lh_sql_prepare_fn, lh_sql_finalize_fn, lh_sql_bind_null_fn,
                          lh_sql_bind_sint_fn, lh_sql_bind_str_fn, lh_sql_step_fn, lh_sql_reset_fn,

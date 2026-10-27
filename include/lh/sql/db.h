@@ -34,6 +34,7 @@
  */
 struct lh_sql_db
 {
+    /** Members: ::lh_sql_db_fields. */
     lh_sql_db_fields(const lh_sql_driver_t *, lh_ptr, lh_str_t);
 };
 /** @copybrief lh_sql_db */

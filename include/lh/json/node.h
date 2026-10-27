@@ -56,6 +56,7 @@
  */
 struct lh_json_node
 {
+    /** Members: ::lh_json_node_fields. */
     lh_json_node_fields(lh_list_node_t, lh_json_kind_t, lh_bool_t, lh_str_t, lh_list_t);
 };
 /** @copybrief lh_json_node */
