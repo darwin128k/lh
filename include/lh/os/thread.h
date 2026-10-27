@@ -18,6 +18,7 @@
  */
 struct lh_os_thread
 {
+    /** Members: ::lh_os_thread_fields. */
     lh_os_thread_fields(lh_os_system_thread_handle_t);
 };
 

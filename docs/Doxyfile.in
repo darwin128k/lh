@@ -9,16 +9,25 @@ OUTPUT_DIRECTORY       = @CMAKE_SOURCE_DIR@/docs
 #---------------------------------------------------------------------------
 # Input
 #---------------------------------------------------------------------------
-# The guides README.md links to are listed one by one: docs/ itself also holds
-# the generated html/, which must never be read back in.
+# Every guide is listed one by one: docs/ itself also holds the generated html/,
+# which must never be read back in. Keep this list equal to the guide set that
+# docs/index.md indexes — a guide missing here never reaches the HTML output.
+# docs/index.md cannot be called README.md: Doxygen keeps only one page per
+# file name and would drop the second README.md without a word.
 INPUT                  = @CMAKE_SOURCE_DIR@/README.md \
                          @CMAKE_SOURCE_DIR@/CHANGELOG.md \
                          @CMAKE_SOURCE_DIR@/LICENSE.md \
+                         @CMAKE_SOURCE_DIR@/docs/index.md \
                          @CMAKE_SOURCE_DIR@/docs/usage.md \
                          @CMAKE_SOURCE_DIR@/docs/usage-embedded.md \
                          @CMAKE_SOURCE_DIR@/docs/usage-desktop.md \
                          @CMAKE_SOURCE_DIR@/docs/usage-web.md \
+                         @CMAKE_SOURCE_DIR@/docs/ui.md \
                          @CMAKE_SOURCE_DIR@/docs/module-loader.md \
+                         @CMAKE_SOURCE_DIR@/docs/concurrency.md \
+                         @CMAKE_SOURCE_DIR@/docs/http.md \
+                         @CMAKE_SOURCE_DIR@/docs/renderer3d.md \
+                         @CMAKE_SOURCE_DIR@/bench/lvgl/RESULTS.md \
                          @CMAKE_SOURCE_DIR@/scripts/README.md \
                          @CMAKE_SOURCE_DIR@/tools/README.md \
                          @CMAKE_SOURCE_DIR@/include \
@@ -28,7 +37,14 @@ INPUT                  = @CMAKE_SOURCE_DIR@/README.md \
 IMAGE_PATH             = @CMAKE_SOURCE_DIR@/docs/assets
 FILE_PATTERNS          = *.h *.c *.md
 RECURSIVE              = YES
-EXCLUDE_PATTERNS       = */build/* */cmake-build-*/* */tools/*.py
+EXCLUDE_PATTERNS       = */build/* */cmake-build-*/* */tools/*.py \
+                         */src/lh/math/fpoint.c */src/lh/math/point.c
+# fpoint.c and point.c stay out of the reference: their @copydoc points at a
+# signature Doxygen cannot resolve (the header spells the parameter
+# `const struct lh_math_fsize *`, the definition `const lh_math_fsize_t *`).
+# Every public function of both files is declared and documented in
+# include/lh/math/fpoint.h and include/lh/math/point.h, so the reference
+# loses nothing.
 USE_MDFILE_AS_MAINPAGE = @CMAKE_SOURCE_DIR@/README.md
 # Heading ids as GitHub makes them, so README's [Performance](#performance)
 # resolves in both places.
@@ -45,14 +61,49 @@ EXPAND_ONLY_PREDEF     = YES
 # WCHAR_MIN / WCHAR_MAX come from <stdint.h>, which Doxygen does not read; without
 # them lh/wchar.h takes its #error branch and LH_WCHAR_T_MIN / _MAX vanish.
 # lh_assert_static(...) is a declaration-level check, not an API: hidden here.
+#
+# The pointer macros are the same problem, and it is bigger. A header may spell a
+# parameter `const lh_os_input_event_ptr` while its definition in the .c file
+# spells it `lh_os_input_event_cptr`. Both are the same type in C — the macros
+# expand to `struct lh_os_input_event *` and `const struct lh_os_input_event *`,
+# and the `const` in front of a `_ptr` macro binds to the struct, not to the
+# pointer. But Doxygen reads the two spellings as two different signatures, so it
+# never merges the declaration with its definition: the header's documentation
+# stays on the declaration, and the definition is reported as undocumented.
+# Expanding the macros here makes both sides spell the type the same way and
+# Doxygen merges them again.
 PREDEFINED             = LH_COMPILER_EXTERN_C_BEGIN= \
                          LH_COMPILER_EXTERN_C_END= \
                          "lh_assert_static(cond, msg)=" \
                          WCHAR_MIN \
                          WCHAR_MAX \
-                         "lh_byte_cptr=const lh_byte_ptr" \
-                         "lh_str_cptr=const lh_str_ptr" \
-                         "lh_wstr_cptr=const lh_wstr_ptr"
+                         "lh_ptr_of(T)=T *" \
+                         "lh_cptr_of(T)=const T *" \
+                         "lh_byte_ptr=lh_byte_t *" \
+                         "lh_byte_cptr=const lh_byte_t *" \
+                         "lh_str_ptr=lh_char_t *" \
+                         "lh_str_cptr=const lh_char_t *" \
+                         "lh_wstr_ptr=lh_wchar_t *" \
+                         "lh_wstr_cptr=const lh_wchar_t *" \
+                         "lh_ptr=void *" \
+                         "lh_void_ptr=void *" \
+                         "lh_self_ptr=void *" \
+                         "lh_error_desc_ptr=lh_char_t *" \
+                         "lh_werror_desc_ptr=lh_wchar_t *" \
+                         "lh_os_controller_ptr=struct lh_os_controller *" \
+                         "lh_os_controller_cptr=const struct lh_os_controller *" \
+                         "lh_os_input_contacts_ptr=struct lh_os_input_contacts *" \
+                         "lh_os_input_contacts_cptr=const struct lh_os_input_contacts *" \
+                         "lh_os_input_event_ptr=struct lh_os_input_event *" \
+                         "lh_os_input_event_cptr=const struct lh_os_input_event *" \
+                         "lh_os_input_queue_ptr=struct lh_os_input_queue *" \
+                         "lh_os_input_queue_cptr=const struct lh_os_input_queue *" \
+                         "lh_os_input_recognizer_config_ptr=struct lh_os_input_recognizer_config *" \
+                         "lh_os_input_recognizer_config_cptr=const struct lh_os_input_recognizer_config *" \
+                         "lh_os_input_recognizer_ptr=struct lh_os_input_recognizer *" \
+                         "lh_os_input_recognizer_cptr=const struct lh_os_input_recognizer *" \
+                         "lh_os_input_recognizer_pointer_ptr=struct lh_os_input_recognizer_pointer *" \
+                         "lh_os_input_recognizer_pointer_cptr=const struct lh_os_input_recognizer_pointer *"
 
 #---------------------------------------------------------------------------
 # Extraction
@@ -64,6 +115,19 @@ DISTRIBUTE_GROUP_DOC   = YES
 EXTRACT_STATIC         = YES
 HIDE_UNDOC_MEMBERS     = NO
 OPTIMIZE_OUTPUT_FOR_C  = YES
+# Implementation-only types. They live in src/, are not declared in any public
+# header, and are not part of the API — the reference is built from the headers,
+# so they only add noise (and undocumented-member warnings) there.
+EXCLUDE_SYMBOLS        = lh_os_native_thread \
+                         lh_os_native_condition \
+                         lh_os_system_shared_search \
+                         lh_os_controller_dispatch \
+                         lh_os_system_win_mib_ipaddrrow \
+                         lh_os_system_win_mib_ipaddrtable \
+                         lh_os_system_win_mib_ipaddrrow_t \
+                         lh_os_system_win_mib_ipaddrtable_t \
+                         lh_os_system_win_window_proc \
+                         vertex
 
 #---------------------------------------------------------------------------
 # Output
@@ -84,6 +148,11 @@ DOT_PATH               = @DOXYGEN_DOT_PATH@
 # One `dot` per graph, thousands of graphs: unbounded, they take every core and
 # the machine with them. Two at a time keeps it usable.
 DOT_NUM_THREADS        = 2
+# The default is 50 nodes, and this library is wider than that: bool.h is
+# included by 92 headers, lh/compiler/extern/c.h by 143. Doxygen then drops
+# those "included by" graphs without saying so, and warns about it. 200
+# covers the widest graph with room to grow.
+DOT_GRAPH_MAX_NODES    = 200
 
 INCLUDE_GRAPH          = @DOXYGEN_HAVE_DOT@
 INCLUDED_BY_GRAPH      = @DOXYGEN_HAVE_DOT@
@@ -104,6 +173,7 @@ ALIASES                = "fails=@par Fails (runtime check):^^"
 QUIET                  = NO
 WARNINGS               = YES
 WARN_IF_UNDOCUMENTED   = YES
-# The library documents parameters inline with @p in the @brief; a separate
-# @param / @return per function is not required.
+# Parameters are documented with @param and the result with @return. Older
+# headers still describe their parameters inline with @p in the @brief; those
+# are accepted, and a function without any @param at all is not reported.
 WARN_NO_PARAMDOC       = NO

@@ -1090,14 +1090,16 @@ lh_memory_bounds_init_by_other(lh_memory_bounds_t *self, const lh_memory_bounds_
 /**
  * @brief Build bounds containing the first @p n bytes of a valid half-open range.
  *
- * The source range is <tt>[begin, end)</tt>. If @p n is zero, the returned
- * bounds is the empty <tt>[begin, begin)</tt>, still at @p begin.
+ * The source range is <tt>[begin, end)</tt>. If @p n is zero, the bounds written
+ * to @p out is the empty <tt>[begin, begin)</tt>, still at @p begin.
  *
  * @param begin Source range begin pointer.
  * @param end   Source range exclusive end pointer.
  * @param n     Number of bytes to keep from the beginning.
- * @return Bounds <tt>[begin, begin + n)</tt>.
+ * @param out   Receives the bounds <tt>[begin, begin + n)</tt>; must not be null.
  *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p out is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not valid bounds.
  * @fails ::lh_runtime_error_code_out_of_range
@@ -1109,14 +1111,16 @@ lh_memory_bounds_take_first(lh_ptr begin, lh_ptr end, lh_usize_t n, lh_memory_bo
 /**
  * @brief Build bounds containing the last @p n bytes of a valid half-open range.
  *
- * The source range is <tt>[begin, end)</tt>. If @p n is zero, the returned
- * bounds is the empty <tt>[end, end)</tt>, still at @p end.
+ * The source range is <tt>[begin, end)</tt>. If @p n is zero, the bounds written
+ * to @p out is the empty <tt>[end, end)</tt>, still at @p end.
  *
  * @param begin Source range begin pointer.
  * @param end   Source range exclusive end pointer.
  * @param n     Number of bytes to keep from the end.
- * @return Bounds <tt>[end - n, end)</tt>.
+ * @param out   Receives the bounds <tt>[end - n, end)</tt>; must not be null.
  *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p out is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not valid bounds.
  * @fails ::lh_runtime_error_code_out_of_range
@@ -1128,14 +1132,14 @@ lh_memory_bounds_take_last(lh_ptr begin, lh_ptr end, lh_usize_t n, lh_memory_bou
 /**
  * @brief Build bounds containing the first @p size bytes of @p self.
  *
- * If @p size is zero, the returned bounds is empty, at the source begin.
+ * If @p size is zero, the bounds written to @p out is empty, at the source begin.
  *
  * @param self Source bounds.
  * @param size Number of bytes to keep from the beginning.
- * @return Bounds taken from the beginning of @p self.
+ * @param out  Receives the bounds taken from the beginning of @p self; must not be null.
  *
  * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
+ *        @p self or @p out is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @fails ::lh_runtime_error_code_out_of_range
@@ -1148,14 +1152,14 @@ lh_memory_bounds_from_begin(const lh_memory_bounds_t *self, lh_usize_t size,
 /**
  * @brief Build bounds containing the last @p size bytes of @p self.
  *
- * If @p size is zero, the returned bounds is empty, at the source end.
+ * If @p size is zero, the bounds written to @p out is empty, at the source end.
  *
  * @param self Source bounds.
  * @param size Number of bytes to keep from the end.
- * @return Bounds taken from the end of @p self.
+ * @param out  Receives the bounds taken from the end of @p self; must not be null.
  *
  * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
+ *        @p self or @p out is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @fails ::lh_runtime_error_code_out_of_range
@@ -1170,10 +1174,10 @@ lh_memory_bounds_from_end(const lh_memory_bounds_t *self, lh_usize_t size, lh_me
  * @param self  Source bounds that must contain the requested range.
  * @param begin Inner range begin pointer.
  * @param end   Inner range exclusive end pointer.
- * @return Constructed valid inner bounds.
+ * @param out   Receives the inner bounds <tt>[begin, end)</tt>; must not be null.
  *
  * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
+ *        @p self or @p out is ::lh_null.
  * @fails ::lh_runtime_error_code_out_of_range
  *        <tt>[begin, end)</tt> is not contained by @p self.
  * @fails ::lh_runtime_error_code_invalid_range
@@ -1186,16 +1190,17 @@ lh_memory_bounds_between(const lh_memory_bounds_t *self, lh_ptr begin, lh_ptr en
 /**
  * @brief Build sub-bounds starting at @p offset with @p size bytes.
  *
- * If @p size is zero, the returned bounds is empty, at @p offset, which may then
- * equal the source size.
+ * If @p size is zero, the bounds written to @p out is empty, at @p offset,
+ * which may then equal the source size.
  *
  * @param self   Source bounds.
  * @param offset Offset from the source beginning.
- * @param size   Number of bytes in the returned bounds.
- * @return Bounds <tt>[begin + offset, begin + offset + size)</tt>.
+ * @param size   Number of bytes in the bounds written to @p out.
+ * @param out    Receives the bounds <tt>[begin + offset, begin + offset + size)</tt>;
+ *               must not be null.
  *
  * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
+ *        @p self or @p out is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @fails ::lh_runtime_error_code_out_of_range
@@ -1208,14 +1213,15 @@ lh_memory_bounds_from_offset(const lh_memory_bounds_t *self, lh_uoffset_t offset
 /**
  * @brief Build bounds with @p n bytes removed from the beginning.
  *
- * If @p n equals the source size, the returned bounds is empty, at the source end.
+ * If @p n equals the source size, the bounds written to @p out is empty, at the
+ * source end.
  *
  * @param self Source bounds.
  * @param n    Number of bytes to remove from the beginning.
- * @return Source bounds without the first @p n bytes.
+ * @param out  Receives the source bounds without the first @p n bytes; must not be null.
  *
  * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
+ *        @p self or @p out is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @fails ::lh_runtime_error_code_out_of_range
@@ -1227,15 +1233,15 @@ lh_memory_bounds_drop_first(const lh_memory_bounds_t *self, lh_usize_t n, lh_mem
 /**
  * @brief Build bounds with @p n bytes removed from the end.
  *
- * If @p n equals the source size, the returned bounds is empty, at the source
- * begin.
+ * If @p n equals the source size, the bounds written to @p out is empty, at the
+ * source begin.
  *
  * @param self Source bounds.
  * @param n    Number of bytes to remove from the end.
- * @return Source bounds without the last @p n bytes.
+ * @param out  Receives the source bounds without the last @p n bytes; must not be null.
  *
  * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
+ *        @p self or @p out is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @fails ::lh_runtime_error_code_out_of_range
@@ -1247,16 +1253,16 @@ lh_memory_bounds_drop_last(const lh_memory_bounds_t *self, lh_usize_t n, lh_memo
 /**
  * @brief Build bounds with bytes removed from both sides.
  *
- * If @p left + @p right equals the source size, the returned bounds is empty,
- * @p left bytes past the source begin.
+ * If @p left + @p right equals the source size, the bounds written to @p out is
+ * empty, @p left bytes past the source begin.
  *
  * @param self  Source bounds.
  * @param left  Number of bytes to remove from the beginning.
  * @param right Number of bytes to remove from the end.
- * @return Trimmed source bounds.
+ * @param out   Receives the trimmed source bounds; must not be null.
  *
  * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
+ *        @p self or @p out is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @fails ::lh_runtime_error_code_out_of_range

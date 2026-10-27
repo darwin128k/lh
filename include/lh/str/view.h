@@ -99,7 +99,7 @@ lh_str_view_init_by_other(lh_str_view_t *self, const lh_str_view_t *other);
  * @param self   Source view.
  * @param offset Offset from the source beginning, in characters.
  * @param size   Number of characters in the returned view.
- * @return Constructed sub-view (shares the source text).
+ * @param out    Receives the sub-view (shares the source text).
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
@@ -602,7 +602,7 @@ lh_str_view_find_null_terminator(const lh_str_view_t *self);
  *
  * @param self   Source view.
  * @param offset Where the tail starts, in characters; at most the size of @p self.
- * @return Constructed tail view (shares the source text).
+ * @param out    Receives the tail view (shares the source text).
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.

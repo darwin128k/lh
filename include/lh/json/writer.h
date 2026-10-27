@@ -42,6 +42,7 @@
  */
 struct lh_json_writer
 {
+    /** Members: ::lh_json_writer_fields. */
     lh_json_writer_fields(lh_str_t *, lh_usize_t);
 };
 /** @copybrief lh_json_writer */

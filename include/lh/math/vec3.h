@@ -93,7 +93,7 @@ lh_math_vec3_set_z(lh_math_vec3_t *self, lh_math_fscalar_t z);
  *
  * @param v Vector to widen.
  * @param z Depth to add.
- * @return `(v.x, v.y, z)`.
+ * @param out Receives `(v.x, v.y, z)`.
  */
 lh_void
 lh_math_vec2_to_vec3(lh_math_vec2_t v, lh_math_fscalar_t z, lh_math_vec3_t *out);
@@ -105,7 +105,7 @@ lh_math_vec2_to_vec3(lh_math_vec2_t v, lh_math_fscalar_t z, lh_math_vec3_t *out)
  * in the `z = 0` plane.
  *
  * @param v Vector to widen.
- * @return `(v.x, v.y, 0)`.
+ * @param out Receives `(v.x, v.y, 0)`.
  */
 lh_void
 lh_math_vec2_to_vec3_z0(lh_math_vec2_t v, lh_math_vec3_t *out);
@@ -114,7 +114,7 @@ lh_math_vec2_to_vec3_z0(lh_math_vec2_t v, lh_math_vec3_t *out);
  * @brief Narrow @p v to the plane, dropping `z`.
  *
  * @param v Vector to narrow.
- * @return `(v.x, v.y)`.
+ * @param out Receives `(v.x, v.y)`.
  */
 lh_void
 lh_math_vec3_to_vec2(lh_math_vec3_t v, lh_math_vec2_t *out);

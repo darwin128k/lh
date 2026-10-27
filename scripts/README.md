@@ -192,6 +192,28 @@ The shapes are lucide's proportions drawn with distance functions and supersampl
 application's answer and the mask layout is not. `icons-preview.py` exists because a
 self-test over packing says nothing about whether the thing looks like a gear.
 
+## Checking the headers: `audit_headers.py`
+
+Doxygen cannot see everything in `include/lh/`, so it cannot be the only check.
+A header without a file documentation block (`@file` plus `@brief`) is not
+extracted at all: no file page, no members, no warning. And where a header has
+`#if` branches that each carry their own copy of a doc block, Doxygen sees one
+branch only — the undocumented one is the one that reaches the reference.
+
+`audit_headers.py` reads the headers themselves and reports every declaration
+that is not preceded by a Doxygen comment:
+
+```sh
+python scripts/audit_headers.py
+python scripts/audit_headers.py include/lh/memory/typed.h
+```
+
+It prints one line per header with the count and the names, then the totals.
+The count must be zero. It understands the house style: a `@name` group
+documents its members, a doc block above an `#if` chain documents every branch
+of it, a trailing `@return` on a `void` function is not a declaration, and a
+compile-time check (`lh_assert_static`) is not an API.
+
 ## Linux
 
 Use the POSIX shell wrapper:

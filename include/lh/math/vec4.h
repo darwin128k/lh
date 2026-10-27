@@ -105,7 +105,7 @@ lh_math_vec4_set_w(lh_math_vec4_t *self, lh_math_fscalar_t w);
  *
  * @param v Vector to widen.
  * @param w Homogeneous component; `1.0f` for a point, `0.0f` for a direction.
- * @return `(v.x, v.y, v.z, w)`.
+ * @param out Receives `(v.x, v.y, v.z, w)`.
  */
 lh_void
 lh_math_vec3_to_vec4(lh_math_vec3_t v, lh_math_fscalar_t w, lh_math_vec4_t *out);
@@ -117,7 +117,7 @@ lh_math_vec3_to_vec4(lh_math_vec3_t v, lh_math_fscalar_t w, lh_math_vec4_t *out)
  * must be divided by `w` first.
  *
  * @param v Vector to narrow.
- * @return `(v.x, v.y, v.z)`.
+ * @param out Receives `(v.x, v.y, v.z)`.
  */
 lh_void
 lh_math_vec4_to_vec3(lh_math_vec4_t v, lh_math_vec3_t *out);

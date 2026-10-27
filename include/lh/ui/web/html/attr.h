@@ -33,8 +33,7 @@ typedef struct lh_ui_web_html_attr
  *
  * @param name  Attribute name.
  * @param value Attribute value, or ::lh_null for a bare attribute.
- *
- * @return The attribute.
+ * @param out   Receives the attribute.
  */
 lh_void
 lh_ui_web_html_attr(const lh_str_ptr name, const lh_str_ptr value, lh_ui_web_html_attr_t *out);

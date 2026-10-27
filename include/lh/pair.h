@@ -26,6 +26,7 @@
  */
 struct lh_pair
 {
+    /** Members: ::lh_pair_fields. */
     lh_pair_fields(lh_value_t, lh_value_t);
 };
 /** @copybrief lh_pair */

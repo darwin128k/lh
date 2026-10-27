@@ -58,7 +58,7 @@ lh_io_dgram_assign(lh_io_dgram_t *self, const lh_io_dgram_t *other);
 /**
  * @brief The receive half of @p self.
  * @param self Pair to read from.
- * @return Current ::lh_io_dgram_reader_t.
+ * @param out  Receives a copy of the current ::lh_io_dgram_reader_t.
  */
 lh_void
 lh_io_dgram_get_reader(const lh_io_dgram_t *self, lh_io_dgram_reader_t *out);
@@ -74,7 +74,7 @@ lh_io_dgram_set_reader(lh_io_dgram_t *self, const lh_io_dgram_reader_t *reader);
 /**
  * @brief The send half of @p self.
  * @param self Pair to read from.
- * @return Current ::lh_io_dgram_writer_t.
+ * @param out  Receives a copy of the current ::lh_io_dgram_writer_t.
  */
 lh_void
 lh_io_dgram_get_writer(const lh_io_dgram_t *self, lh_io_dgram_writer_t *out);

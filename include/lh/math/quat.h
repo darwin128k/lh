@@ -123,6 +123,7 @@ lh_math_quat_identity(lh_math_quat_t *out);
  *
  * @param axis  Rotation axis; must be unit length (see ::lh_math_vec3_normalize).
  * @param angle Angle in radians.
+ * @param out   Receives the rotation.
  */
 lh_void
 lh_math_quat_from_axis_angle(lh_math_vec3_t axis, lh_math_fscalar_t angle, lh_math_quat_t *out);

@@ -26,6 +26,7 @@
  */
 struct lh_str_line_reader
 {
+    /** Members: ::lh_str_line_reader_fields. */
     lh_str_line_reader_fields(lh_str_view_t, lh_usize_t);
 };
 /** @copybrief lh_str_line_reader */

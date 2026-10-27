@@ -148,6 +148,7 @@ lh_str_append(lh_str_t *self, const lh_str_ptr text, lh_usize_t count);
  * afterwards (same lifetime rule as any pointer into @p self's buffer).
  *
  * @param self String to view.
+ * @param out  Receives the view over @p self's characters.
  */
 lh_void
 lh_str_as_view(const lh_str_t *self, lh_str_view_t *out);

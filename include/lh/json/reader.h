@@ -51,6 +51,7 @@
  */
 struct lh_json_reader
 {
+    /** Members: ::lh_json_reader_fields. */
     lh_json_reader_fields(lh_str_view_t, lh_usize_t, lh_json_error_t);
 };
 /** @copybrief lh_json_reader */

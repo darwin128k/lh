@@ -18,6 +18,7 @@
  */
 struct lh_os_mutex
 {
+    /** Members: ::lh_os_mutex_fields. */
     lh_os_mutex_fields(lh_os_system_mutex_handle_t);
 };
 

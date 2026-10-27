@@ -270,7 +270,7 @@ lh_time_seconds_of_day(const lh_time_t *self);
  *        after midnight.
  *
  * @param seconds Seconds since midnight (`0`–`86399`).
- * @return Time of day.
+ * @param out     Receives the time of day.
  */
 lh_void
 lh_time_from_seconds_of_day(lh_uint_t seconds, lh_time_t *out);

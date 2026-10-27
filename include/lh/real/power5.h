@@ -27,7 +27,9 @@
 /** @brief Largest `q` in the table: above it every nonzero decimal is infinite. */
 #        define LH_REAL_POWER5_MAX 308
 #    else
+/** @brief Smallest `q` in the table: below it every 19-digit decimal is zero. */
 #        define LH_REAL_POWER5_MIN (-65)
+/** @brief Largest `q` in the table: above it every nonzero decimal is infinite. */
 #        define LH_REAL_POWER5_MAX 38
 #    endif
 

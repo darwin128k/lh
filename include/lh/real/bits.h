@@ -33,9 +33,13 @@
 /** @brief Where the sign bit is: 63 or 31. */
 #        define LH_REAL_SIGN_SHIFT 63
 #    else
+/** @brief Stored fraction bits (the leading 1 is implicit): 52 or 23. */
 #        define LH_REAL_MANTISSA_BITS 23
+/** @brief What is subtracted from the stored exponent: 1023 or 127. */
 #        define LH_REAL_EXPONENT_BIAS 127
+/** @brief The stored exponent of infinity and NaN: `0x7FF` or `0xFF`. */
 #        define LH_REAL_EXPONENT_MAX 0xFF
+/** @brief Where the sign bit is: 63 or 31. */
 #        define LH_REAL_SIGN_SHIFT 31
 #    endif
 
