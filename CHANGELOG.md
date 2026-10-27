@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- OS thread, mutex and condition primitives with POSIX/Windows backends; 64-bit monotonic milliseconds and finite sleep.
+
 - Portable HTTP/1 message-head parser (`lh/http.h`): caller-owned byte views and
   header storage, request and response syntax, complete/incomplete/error results,
   strict CRLF, configurable head/line budgets and error offsets. No OS, allocator,
