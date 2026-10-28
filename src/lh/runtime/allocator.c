@@ -76,3 +76,33 @@ lh_runtime_allocator_realloc(lh_ptr old_ptr, lh_usize_t old_size, lh_usize_t new
 {
     return lh_memory_allocator_realloc(lh_runtime_allocator(), old_ptr, old_size, new_size);
 }
+
+lh_ptr
+lh_runtime_allocator_alloc_zero(lh_usize_t count, lh_usize_t item_size)
+{
+    return lh_memory_allocator_alloc_zero(lh_runtime_allocator(), count, item_size);
+}
+
+lh_ptr
+lh_runtime_allocator_try_alloc(lh_usize_t size)
+{
+    return lh_memory_allocator_try_alloc(lh_runtime_allocator(), size);
+}
+
+lh_ptr
+lh_runtime_allocator_try_alloc_zero(lh_usize_t count, lh_usize_t item_size)
+{
+    return lh_memory_allocator_try_alloc_zero(lh_runtime_allocator(), count, item_size);
+}
+
+lh_bool_t
+lh_runtime_allocator_try_free(lh_ptr ptr)
+{
+    return lh_memory_allocator_try_dealloc(lh_runtime_allocator(), ptr);
+}
+
+lh_ptr
+lh_runtime_allocator_try_realloc(lh_ptr old_ptr, lh_usize_t old_size, lh_usize_t new_size)
+{
+    return lh_memory_allocator_try_realloc(lh_runtime_allocator(), old_ptr, old_size, new_size);
+}

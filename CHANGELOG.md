@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Allocator bricks (`lh/memory/allocator.h`): `lh_memory_allocator_init_tail` (the zero-initialization policy, one place), `_try_dealloc`, `_try_resize` (native realloc only), `_try_move` (alloc/copy/release), `_realloc_needs_alloc`, `_try_alloc_zero` / `_alloc_zero`; runtime forms `lh_runtime_allocator_try_alloc`, `_try_alloc_zero`, `_try_free`, `_try_realloc`, `_alloc_zero`
+
 - OS thread, mutex and condition primitives with POSIX/Windows backends; 64-bit monotonic milliseconds and finite sleep.
 
 - Portable HTTP/1 message-head parser (`lh/http.h`): caller-owned byte views and
@@ -48,7 +50,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Getters and setters for every field of `lh_str_scanf_spec_t` (`lh_str_scanf_spec_get_kind` / `_set_kind`, … `_literal_size`), `lh_str_scanf_spec_clear`, `_get_limit`, `_set_conversion` (`lh/str/scanf/spec.h`, fields in `spec/fields.h`), and the walker's steps `lh_str_ptr_scanf_next_literal`, `_flags`, `_number` (`lh/str/scanf/next.h`)
 - Public bricks that used to be file-local: `lh_str_write_terminator` / `lh_str_terminate` (`lh/str.h`) and the `lh_wstr_*` pair; `lh_str_list_get_chars`, `_get_chars_as_const`, `_get_spans`, `_get_spans_as_const`, `_get_span` (`lh/str/list.h`) and the `lh_wstr_list_*` ones; `lh_str_list_span_t` (`lh/str/list/span.h`, fields in `span/fields.h`), the one span type both lists share
 - `lh_array_set_size` and `lh_array_get_size_of_bytes` (`lh/array.h`): the raw element-count setter every `lh_array_*` function writes through, and the bytes in use
-- `lh_size_add` (`lh/size/ops.h`): `lh_usize_t` addition that fails with `lh_runtime_error_code_overflow` instead of wrapping; `lh_memory_sized_allocator_get_block_size` and `lh_memory_tree_get_block_size` are built on it
 - `lh_memory_tree_get_block_size` and the tree allocator callbacks `lh_memory_tree_allocator_alloc` / `_dealloc` / `_realloc` (`lh/memory/tree.h`), public instead of file-local; the tree header's fields go through library-private getters and setters (`src/lh/memory/tree/header.c`)
 - Public bricks that used to be file-local: `lh_memory_raw_get_size` (`lh/memory/raw.h`), the size of `[begin, end)`; `lh_memory_sized_allocator_get_block`, `_get_data`, `_get_block_size`, `_set_size` (`lh/memory/sized/allocator.h`); `lh_memory_view_find_offset_from_ptr`, `lh_memory_view_swap_v_other`
 - `lh_memory_typed_set_type_size` (`lh/memory/typed.h`)
@@ -95,6 +96,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `scripts/audit_headers.py`: reads the public headers and reports every declaration that carries no Doxygen comment. Doxygen cannot be the only check: a header without a file documentation block is not extracted at all, and where an `#if` chain carries a doc block in each branch, Doxygen sees one branch only. The count must be zero
 - `docs/index.md`: the index of every guide — integration by target (microcontroller / desktop window / web host), subsystem (UI, modules, OS threads, HTTP, 3D renderer), project files — linked from the README
 ### Changed
+
+- `lh_memory_allocator_try_realloc` only dispatches to the bricks above; `lh_memory_allocator_alloc` / `_dealloc` / `_realloc` are their `try_` form plus a runtime check. `try_realloc` to zero size no longer dies on a missing release callback
 
 - Every public header under `include/lh/` documents its symbols: a `@brief` plus prose, a `@param` for every parameter, a `@return` for a value, and a short brief per struct member. The API reference is built from those headers, and `lh_docs` now builds with no warning at all
 - Every public header carries a file documentation block (`@file` plus `@brief`). Without it Doxygen does not extract the header at all: no file page, no members, no warning. `include/lh/memory/typed.h` had none, so its 46 functions were in no reference and Doxygen never reported them; `include/lh/http.h`, `include/lh/os/fs.h` and `include/lh/ui/font/roboto.h` had none either

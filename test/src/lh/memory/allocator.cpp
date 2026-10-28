@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <lh/attribute/unused.h>
+#include <lh/cast/const.h>
+#include <lh/size/limits.h>
 #include <lh/expect/death.h>
 #include <lh/config.h>
 #include <lh/memory/allocator.h>
@@ -468,6 +470,19 @@ TEST(memory_allocator_death, native_realloc_returns_null)
     lh_memory_allocator_dealloc(&a, p);
 }
 
+TEST(memory_allocator_death, alloc_zero_overflow)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_initializer(test_alloc_malloc, test_dealloc_free);
+    LH_EXPECT_CHECK_DEATH((void)lh_memory_allocator_alloc_zero(&a, LH_USIZE_T_MAX, 2));
+}
+
+TEST(memory_allocator_death, realloc_zero_size_without_dealloc_callback)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_empty_initializer();
+    int x = 0;
+    LH_EXPECT_CHECK_DEATH((void)lh_memory_allocator_realloc(&a, &x, sizeof x, 0));
+}
+
 #endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 TEST(memory_allocator_try, failures_preserve_the_original_block)
@@ -501,6 +516,62 @@ TEST(memory_allocator_try, fallback_resizes_and_zero_size_releases)
     EXPECT_STREQ(lh_cast_static(const char *, grown), "keep");
     EXPECT_EQ(lh_memory_allocator_try_realloc(&allocator, grown, 16U, 16U), grown);
     EXPECT_EQ(lh_memory_allocator_try_realloc(&allocator, grown, 16U, 0U), nullptr);
+}
+
+TEST(memory_allocator_try, alloc_zero_zeroes_and_rejects_overflow)
+{
+    lh_memory_allocator_t allocator;
+    lh_memory_allocator_init(&allocator, test_alloc_malloc, test_dealloc_free);
+    EXPECT_EQ(lh_memory_allocator_try_alloc_zero(&allocator, LH_USIZE_T_MAX, 2U), nullptr);
+    const lh_byte_t *block =
+        lh_cast_static(const lh_byte_t *, lh_memory_allocator_try_alloc_zero(&allocator, 4U, 3U));
+    ASSERT_NE(block, nullptr);
+    EXPECT_EQ(g_test_alloc_last_size, 12U);
+    for (lh_usize_t i = 0; i < 12U; ++i)
+    {
+        EXPECT_EQ(block[i], 0U) << "byte " << i;
+    }
+    lh_memory_allocator_dealloc(&allocator, lh_cast_const(lh_byte_t *, block));
+}
+
+TEST(memory_allocator_try, dealloc_reports_a_missing_callback)
+{
+    lh_memory_allocator_t allocator = lh_memory_allocator_empty_initializer();
+    int x = 0;
+    EXPECT_TRUE(lh_memory_allocator_try_dealloc(&allocator, nullptr));
+    EXPECT_FALSE(lh_memory_allocator_try_dealloc(&allocator, &x));
+    /* Without a release callback the fallback cannot hand the old block back. */
+    lh_memory_allocator_set_alloc_cb(&allocator, test_alloc_malloc);
+    const int before = g_test_alloc_calls;
+    EXPECT_EQ(lh_memory_allocator_try_move(&allocator, &x, sizeof x, 2U * sizeof x), nullptr);
+    EXPECT_EQ(g_test_alloc_calls, before);
+}
+
+TEST(memory_allocator_try, resize_needs_a_native_callback)
+{
+    lh_memory_allocator_t allocator;
+    lh_memory_allocator_init(&allocator, test_alloc_malloc, test_dealloc_free);
+    lh_ptr block = lh_memory_allocator_alloc(&allocator, 4U);
+    EXPECT_EQ(lh_memory_allocator_try_resize(&allocator, block, 4U, 8U), nullptr);
+    lh_memory_allocator_set_realloc_cb(&allocator, test_realloc);
+    const int before = g_test_realloc_calls;
+    block = lh_memory_allocator_try_resize(&allocator, block, 4U, 8U);
+    ASSERT_NE(block, nullptr);
+    EXPECT_EQ(g_test_realloc_calls, before + 1);
+    lh_memory_allocator_dealloc(&allocator, block);
+}
+
+TEST(memory_allocator_realloc_needs_alloc, follows_the_resize_path)
+{
+    lh_memory_allocator_t allocator;
+    lh_memory_allocator_init(&allocator, test_alloc_malloc, test_dealloc_free);
+    int x = 0;
+    EXPECT_FALSE(lh_memory_allocator_realloc_needs_alloc(&allocator, &x, 4U, 0U));
+    EXPECT_TRUE(lh_memory_allocator_realloc_needs_alloc(&allocator, nullptr, 0U, 4U));
+    EXPECT_FALSE(lh_memory_allocator_realloc_needs_alloc(&allocator, &x, 4U, 4U));
+    EXPECT_TRUE(lh_memory_allocator_realloc_needs_alloc(&allocator, &x, 4U, 8U));
+    lh_memory_allocator_set_realloc_cb(&allocator, test_realloc);
+    EXPECT_FALSE(lh_memory_allocator_realloc_needs_alloc(&allocator, &x, 4U, 8U));
 }
 
 } // namespace

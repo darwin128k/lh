@@ -13,13 +13,17 @@
  * pool over a static buffer on a heap-less target, an arena, a per-module
  * sandbox. Several such allocators can then exist at once.
  *
- * The API provides init/set/get helpers plus allocation/deallocation
- * calls that validate callback availability via runtime checks.
+ * Every operation comes in two forms built on the same bricks. A `try_`
+ * function reports failure as its result (::lh_null or ::lh_bool_false) and
+ * leaves the decision to the caller. Its counterpart without the prefix is
+ * the `try_` call followed by a runtime check: absent callbacks and failed
+ * allocations end in ::lh_runtime_check_fail.
  */
 
 #ifndef LH_MEMORY_ALLOCATOR_H
 #define LH_MEMORY_ALLOCATOR_H
 
+#include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/memory/allocator/alloc/cb.h>
 #include <lh/memory/allocator/dealloc/cb.h>
@@ -124,9 +128,26 @@ lh_ptr
 lh_memory_allocator_alloc(lh_memory_allocator_t *self, lh_usize_t size);
 
 /**
+ * @brief Allocate @p count zeroed items of @p item_size bytes.
+ *
+ * ::lh_memory_allocator_try_alloc_zero followed by runtime checks: fails when
+ * the allocation callback is not initialized, the size overflows or
+ * allocation fails.
+ *
+ * @param self Allocator object to use.
+ * @param count Number of items.
+ * @param item_size Size of one item in bytes.
+ * @return Pointer to the zeroed block.
+ */
+lh_ptr
+lh_memory_allocator_alloc_zero(lh_memory_allocator_t *self, lh_usize_t count,
+                               lh_usize_t item_size);
+
+/**
  * @brief Deallocate a memory block using deallocator callback.
  *
- * If @p ptr is null, function returns immediately.
+ * If @p ptr is null, function returns immediately. Fails with a runtime check
+ * when a nonnull @p ptr meets an uninitialized deallocation callback.
  *
  * @param self Allocator object to use.
  * @param ptr Pointer to memory block to free.
@@ -150,7 +171,10 @@ lh_memory_allocator_set(lh_memory_allocator_t *self, lh_memory_allocator_alloc_c
  *
  * If sizes are equal, returns @p old_ptr unchanged.
  * If @p old_ptr is null, behaves like ::lh_memory_allocator_alloc.
- * If @p new_size is zero, frees @p old_ptr and returns ::lh_null.
+ * If @p new_size is zero, frees @p old_ptr with ::lh_memory_allocator_dealloc
+ * and returns ::lh_null. Otherwise ::lh_memory_allocator_try_realloc followed
+ * by runtime checks: fails when a needed allocation callback is not
+ * initialized (::lh_memory_allocator_realloc_needs_alloc) or resizing fails.
  *
  * @param self Allocator object to use.
  * @param old_ptr Previously allocated block (or ::lh_null).
@@ -192,6 +216,21 @@ lh_void
 lh_memory_allocator_assign(lh_memory_allocator_t *self, const lh_memory_allocator_t *other);
 
 /**
+ * @brief Apply the zero-initialization policy to bytes [@p old_size, @p new_size).
+ *
+ * With ::LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED on, zeroes the
+ * bytes a block gained; otherwise does nothing. A null @p block or a
+ * @p new_size not above @p old_size is ignored. Allocation and native
+ * resizing call it for every block they return.
+ *
+ * @param block Block of at least @p new_size bytes (or ::lh_null).
+ * @param old_size Size of the prefix that is kept as is.
+ * @param new_size Current size of @p block in bytes.
+ */
+lh_void
+lh_memory_allocator_init_tail(lh_ptr block, lh_usize_t old_size, lh_usize_t new_size);
+
+/**
  * @brief Allocate without treating allocation failure as a runtime error.
  *
  * @p self must be initialized and have compatible alloc/dealloc callbacks.
@@ -204,12 +243,72 @@ lh_ptr
 lh_memory_allocator_try_alloc(lh_memory_allocator_t *self, lh_usize_t size);
 
 /**
+ * @brief Allocate @p count zeroed items of @p item_size bytes, or ::lh_null.
+ *
+ * Composed of ::lh_interval_closed_is_mul_overflow, ::lh_memory_allocator_try_alloc
+ * and ::lh_memory_std_set. Returns ::lh_null when count * item_size overflows
+ * ::lh_usize_t, the allocation callback is absent or allocation fails. The
+ * block is zeroed regardless of the zero-initialization policy. A zero
+ * product is passed to the allocator unchanged.
+ */
+lh_ptr
+lh_memory_allocator_try_alloc_zero(lh_memory_allocator_t *self, lh_usize_t count,
+                                   lh_usize_t item_size);
+
+/**
+ * @brief Release @p ptr without treating a missing callback as a runtime error.
+ *
+ * Null @p ptr is ignored and reports success.
+ *
+ * @return ::lh_bool_true when nothing had to be released or the block was
+ *         released; ::lh_bool_false when the deallocation callback is absent,
+ *         in which case @p ptr stays owned by the caller.
+ */
+lh_bool_t
+lh_memory_allocator_try_dealloc(lh_memory_allocator_t *self, lh_ptr ptr);
+
+/**
+ * @brief Resize @p old_ptr through the native reallocation callback only.
+ *
+ * Returns ::lh_null when no reallocation callback is set or it fails; the
+ * original block then stays owned by the caller. Bytes a successful block
+ * gained follow ::lh_memory_allocator_init_tail.
+ */
+lh_ptr
+lh_memory_allocator_try_resize(lh_memory_allocator_t *self, lh_ptr old_ptr, lh_usize_t old_size,
+                               lh_usize_t new_size);
+
+/**
+ * @brief Resize @p old_ptr by allocating, copying and releasing.
+ *
+ * Copies the first min(@p old_size, @p new_size) bytes into a new block and
+ * releases @p old_ptr. Returns ::lh_null without touching @p old_ptr when the
+ * deallocation callback is absent or allocation fails. @p old_ptr must be
+ * nonnull.
+ */
+lh_ptr
+lh_memory_allocator_try_move(lh_memory_allocator_t *self, lh_ptr old_ptr, lh_usize_t old_size,
+                             lh_usize_t new_size);
+
+/**
+ * @brief Whether resizing @p old_ptr to @p new_size calls the allocation callback.
+ *
+ * True for a positive @p new_size when @p old_ptr is null, or when the sizes
+ * differ and no native reallocation callback is set.
+ */
+lh_bool_t
+lh_memory_allocator_realloc_needs_alloc(const lh_memory_allocator_t *self, lh_ptr old_ptr,
+                                        lh_usize_t old_size, lh_usize_t new_size);
+
+/**
  * @brief Resize without treating allocation failure as a runtime error.
  *
  * @p old_ptr must belong to @p self and @p old_size must be its actual size.
- * Null input allocates; zero @p new_size releases a nonnull block and returns
- * ::lh_null. A native realloc callback is used when available; otherwise
- * alloc/copy/free preserves the first min(old_size, new_size) bytes.
+ * Null input allocates (::lh_memory_allocator_try_alloc); equal sizes return
+ * @p old_ptr; zero @p new_size releases a nonnull block
+ * (::lh_memory_allocator_try_dealloc) and returns ::lh_null. Otherwise
+ * ::lh_memory_allocator_try_resize when a native reallocation callback is set,
+ * else ::lh_memory_allocator_try_move.
  * On failure, returns ::lh_null and leaves the original block owned by the
  * caller and unchanged. The allocator and its context must remain valid.
  */
