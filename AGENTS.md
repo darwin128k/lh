@@ -60,6 +60,11 @@ every brick.
 
 ## 1. One file — one entity
 
+- `extern "C"` (`LH_COMPILER_EXTERN_C_BEGIN` / `_END`) wraps only what has
+  linkage: function declarations and function-type typedefs (a C++ function
+  type carries its language linkage). Structs, enums and plain typedefs have
+  no linkage and are declared **before** the block.
+
 - A header declares **one** thing: one struct, one typedef, one enum, or the
   API of one entity. Never bundle several typedefs, structs and enums into
   one file.
