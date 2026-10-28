@@ -2,6 +2,10 @@
 
 #include <lh/expect/death.h>
 #include <lh/memory.h>
+#include <lh/util/memory.h>
+
+#include <cstdlib>
+#include <cstring>
 
 namespace
 {
@@ -488,6 +492,110 @@ TEST(memory_xor, uses_the_smallest_of_three_sizes)
     EXPECT_EQ(dst[1], 3);
     EXPECT_EQ(dst[2], 2);
     EXPECT_EQ(dst[3], 0);
+}
+
+/* -- Find bricks ------------------------------------------------------------- */
+
+TEST(memory_is_unbounded, only_the_scan_bound)
+{
+    const unsigned char bytes[4] = {1, 2, 3, 4};
+    EXPECT_FALSE(lh_memory_is_unbounded(bytes, sizeof bytes));
+    EXPECT_TRUE(lh_memory_is_unbounded(bytes, lh_memory_scan_bound(bytes)));
+}
+
+TEST(memory_is_equal, answers_compare_as_yes_or_no)
+{
+    const unsigned char a[] = {1, 2, 3};
+    const unsigned char b[] = {1, 2, 4};
+    EXPECT_TRUE(lh_memory_is_equal(a, b, 2));
+    EXPECT_FALSE(lh_memory_is_equal(a, b, 3));
+    EXPECT_TRUE(lh_memory_is_equal(a, b, 0));
+}
+
+TEST(memory_find_byte_by_step, walks_the_grid)
+{
+    const unsigned char bytes[] = {7, 9, 7, 9, 5, 9};
+    EXPECT_EQ(lh_memory_find_byte_by_step(bytes, sizeof bytes, 9, 1), bytes + 1);
+    EXPECT_EQ(lh_memory_find_byte_by_step(bytes, sizeof bytes, 5, 2), bytes + 4);
+    EXPECT_EQ(lh_memory_find_byte_by_step(bytes, sizeof bytes, 9, 2), nullptr);
+}
+
+TEST(memory_find_unit_by_step, matches_whole_units_only)
+{
+    const unsigned short units[] = {0x0102, 0x0201, 0x0000};
+    const unsigned short nul = 0;
+    const unsigned short split = 0x0201;
+    EXPECT_EQ(lh_memory_find_unit_by_step(units, sizeof units, &nul, sizeof nul), units + 2);
+    EXPECT_EQ(lh_memory_find_unit_by_step(units, sizeof units, &split, sizeof split), units + 1);
+}
+
+TEST(memory_find_unit, agrees_with_the_unit_walk)
+{
+    unsigned int units[300];
+    for (unsigned int i = 0; i < 300; ++i)
+    {
+        units[i] = i + 1U;
+    }
+    for (unsigned int at : {0U, 3U, 17U, 64U, 299U})
+    {
+        const unsigned int want = at + 1U;
+        EXPECT_EQ(lh_memory_find_unit(units, sizeof units, &want, sizeof want),
+                  lh_memory_find_unit_by_step(units, sizeof units, &want, sizeof want))
+            << at;
+        EXPECT_EQ(lh_memory_find_unit(units, sizeof units, &want, sizeof want),
+                  units + at);
+    }
+    const unsigned int missing = 1000U;
+    EXPECT_EQ(lh_memory_find_unit(units, sizeof units, &missing, sizeof missing),
+              nullptr);
+}
+
+TEST(memory_find_needle_by_step, compares_only_where_the_first_byte_matches)
+{
+    const char text[] = "abcabdabe";
+    EXPECT_EQ(lh_memory_find_needle_by_step(text, 9, "abd", 3, 1), text + 3);
+    EXPECT_EQ(lh_memory_find_needle_by_step(text, 9, "abe", 3, 3), text + 6);
+    EXPECT_EQ(lh_memory_find_needle_by_step(text, 9, "abd", 3, 2), nullptr);
+}
+
+TEST(memory_find_unit, skips_hits_off_the_unit_grid)
+{
+    /* 0x0201 appears at byte offset 1, straddling two units, before its real place. */
+    const unsigned short units[] = {0x0100, 0x0002, 0x0201};
+    const unsigned short want = 0x0201;
+    EXPECT_EQ(lh_memory_find_unit(units, sizeof units, &want, sizeof want), units + 2);
+}
+
+TEST(memory_get_last_step_offset, rounds_down_to_the_grid)
+{
+    EXPECT_EQ(lh_memory_get_last_step_offset(10, 2, 1), 8u);
+    EXPECT_EQ(lh_memory_get_last_step_offset(10, 2, 4), 8u);
+    EXPECT_EQ(lh_memory_get_last_step_offset(10, 3, 3), 6u);
+}
+
+TEST(memory_rfind_needle_by_step, walks_back_on_the_grid)
+{
+    const char text[] = "abcabdabd";
+    EXPECT_EQ(lh_memory_rfind_needle_by_step(text, 9, "abd", 3, 1), text + 6);
+    EXPECT_EQ(lh_memory_rfind_needle_by_step(text, 9, "abc", 3, 3), text);
+    EXPECT_EQ(lh_memory_rfind_needle_by_step(text, 9, "abd", 3, 2), text + 6);
+    EXPECT_EQ(lh_memory_rfind_needle_by_step(text, 2, "abd", 3, 1), nullptr);
+}
+
+/* A sentinel scan must not read past its match: under AddressSanitizer an exact
+   heap block catches any word or block read beyond the sentinel. */
+TEST(memory_scan, reads_nothing_past_the_sentinel)
+{
+    for (std::size_t size = 1; size < 80; ++size)
+    {
+        unsigned char *block = static_cast<unsigned char *>(std::malloc(size));
+        ASSERT_NE(block, nullptr);
+        std::memset(block, 'x', size);
+        block[size - 1] = 0;
+        const unsigned char nul = 0;
+        EXPECT_EQ(lh_memory_scan(block, &nul, 1), block + size - 1) << size;
+        std::free(block);
+    }
 }
 
 } // namespace

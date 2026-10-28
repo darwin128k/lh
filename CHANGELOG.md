@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Find bricks (`lh/memory.h`): `lh_memory_is_unbounded` (a sentinel scan with no real length), `lh_memory_find_byte_by_step`, `lh_memory_find_unit_by_step`, `lh_memory_find_unit_by_blocks` (real length only), `lh_memory_find_needle_by_step`; `lh_memory_find_step` only dispatches to them
+
 - `lh_math_float_is_finite` (`lh/math/float/finite.h`) and `lh_math_float_tan` (`lh/math/float/tan.h`, sine over cosine of `lh_math_float_sin_cos`); `lh_math_vec3_is_finite` and `lh_math_vec3_try_normalize` (`lh/math/vec3.h`). Renderer bricks: `lh_ui_renderer3d_camera_is_usable`, `_camera_to_view` (`lh/ui/renderer3d/camera.h`), `lh_ui_renderer3d_plane_t` (`lh/ui/renderer3d/plane.h`), `lh_ui_renderer3d_clear`, `_get_plane_distance`, `_clip_plane`, `_project`, `_get_edge`, `_put_fragment`, `_raster`
 
 - Allocator bricks (`lh/memory/allocator.h`): `lh_memory_allocator_init_tail` (the zero-initialization policy, one place), `_try_dealloc`, `_try_resize` (native realloc only), `_try_move` (alloc/copy/release), `_realloc_needs_alloc`, `_try_alloc_zero` / `_alloc_zero`; runtime forms `lh_runtime_allocator_try_alloc`, `_try_alloc_zero`, `_try_free`, `_try_realloc`, `_alloc_zero`
@@ -181,6 +183,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `lh/uchar.h` with `lh_uchar16_t` / `lh_uchar32_t`: nothing used them once `lh_wchar_case_pair_t` moved to `lh_wchar_t`. Use `lh_u16_t` / `lh_u32_t` (`lh/numeric/fixed/types.h`)
 
 ### Fixed
+
+- Out-of-bounds reads found by AddressSanitizer: `lh_memory_scan` / `lh_memory_scan_step` read whole blocks past their match (the strlen-style page-safe walk), and `lh_memory_bytes_eq_cstr` (behind `lh_str_ptr_equals`) read machine words past the NUL. A sentinel scan now reads nothing past its match, and C-string equality goes byte by byte; a scan of known length still takes `lh_memory_std_find` and the block walk
 
 - 32-bit Unix builds define `_FILE_OFFSET_BITS=64`: `readdir()` / `stat()` failed with `EOVERFLOW` on file systems with 64-bit inode numbers (XFS inode64, btrfs, NFS, WSL drvfs), so `lh_os_fs_dir_read` returned an error on the first entry and a directory looked empty
 

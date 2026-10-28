@@ -4,6 +4,7 @@
  */
 
 #include <lh/ui/web/host.h>
+#include <lh/util/str/ptr.h>
 #include <lh/char/map.h>
 #include <lh/ui/web/page.h>
 
@@ -67,16 +68,13 @@ lh_ui_web_host_find(lh_str_cptr p, lh_usize_t len, lh_str_cptr needle, lh_usize_
 lh_bool_t
 lh_ui_web_host_route(lh_str_cptr req, lh_usize_t len, lh_str_cptr path, lh_usize_t path_len)
 {
-    const lh_byte_cptr bytes = lh_ptr_rcast(const lh_byte_t, req);
-    const lh_byte_cptr route = lh_ptr_rcast(const lh_byte_t, path);
-
-    if (lh_memory_bytes_starts_with(bytes, len, lh_ptr_rcast(const lh_byte_t, "GET "), 4u))
+    if (lh_str_ptr_starts_with_by_size(req, len, "GET ", 4u, lh_bool_false))
     {
-        return lh_memory_bytes_starts_with(bytes + 4u, len - 4u, route, path_len);
+        return lh_str_ptr_starts_with_by_size(req + 4u, len - 4u, path, path_len, lh_bool_false);
     }
-    if (lh_memory_bytes_starts_with(bytes, len, lh_ptr_rcast(const lh_byte_t, "POST "), 5u))
+    if (lh_str_ptr_starts_with_by_size(req, len, "POST ", 5u, lh_bool_false))
     {
-        return lh_memory_bytes_starts_with(bytes + 5u, len - 5u, route, path_len);
+        return lh_str_ptr_starts_with_by_size(req + 5u, len - 5u, path, path_len, lh_bool_false);
     }
     return lh_bool_false;
 }

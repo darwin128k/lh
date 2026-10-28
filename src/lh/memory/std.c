@@ -7,6 +7,7 @@
  */
 #include <lh/memory/std.h>
 #include <lh/assert.h>
+#include <lh/byte/ptr.h>
 #include <lh/compiler/arch/family.h>
 #include <lh/config.h>
 #include <lh/cpu/cache.h>

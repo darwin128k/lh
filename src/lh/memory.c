@@ -1,31 +1,11 @@
 #include <lh/memory.h>
 #include <lh/assert.h>
+#include <lh/byte/ptr.h>
 #include <lh/config.h>
 #include <lh/math.h>
 #include <lh/util/memory.h>
 #include <lh/util/return.h>
 #include <lh/memory/word.h>
-
-#define LH_MEMORY_SCAN_BLOCK (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK))
-
-/* The block scans in lh_memory_find_step read whole blocks, past the needle when
- * it sits early in one. With lh_memory_scan / lh_memory_scan_step the haystack
- * length is the address-space bound, so the real buffer may end anywhere after
- * the needle; an unaligned block could then run into the next, unmapped page and
- * fault. Blocks are therefore read only at block-aligned addresses: a page is a
- * multiple of the block size, so an aligned block never leaves the page holding
- * the needle (the rule glibc's strlen/memchr follow). That needs a power-of-two
- * block no larger than the smallest page size. */
-#if (LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK &                                                   \
-     (LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK - 1)) != 0 ||                                      \
-    LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK > 4096
-#    error "LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK must be a power of two no larger than 4096"
-#endif
-
-/* True while @p off still has @p base + @p off short of a block boundary. */
-#define lh_memory_scan_is_unaligned(base, off)                                                     \
-    ((lh_ptr_to_uaddr(lh_ptr_add_by_offset_unsafe(const lh_byte_t, (base), (off))) &               \
-      (LH_MEMORY_SCAN_BLOCK - 1U)) != 0U)
 
 lh_ptr
 lh_memory_copy(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size)
@@ -124,103 +104,6 @@ lh_memory_rcompare(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_u
     return lh_memory_std_rcompare(l, r, n);
 }
 
-const lh_ptr
-lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size,
-                     lh_usize_t step)
-{
-    lh_assert_runtime_ref(lhs);
-    lh_assert_runtime_ref(rhs);
-
-    lh_return_ifn(lhs_size, lh_null);
-    lh_return_ifn(rhs_size, lh_null);
-    lh_return_ifn(step, lh_null);
-
-    lh_byte_cptr base = lh_ptr_cast(const lh_byte_t, lhs);
-    if (lhs_size < rhs_size)
-    {
-        return lh_null;
-    }
-
-    const lh_usize_t max_start = lhs_size - rhs_size;
-    /* Power-of-two step (byte, wchar): mask. Otherwise the usual truncate-to-grid. */
-    lh_usize_t off = lh_math_is_power_of_two(step) ? (max_start & ~(step - 1U))
-                                                   : (max_start / step) * step;
-
-    if (rhs_size == 1)
-    {
-        /* Known length on a byte grid: the std word/SIMD kernel. Unbounded scan
-         * keeps the scalar walk below — std must not read past a page edge. */
-        if (step == 1U && lhs_size != lh_memory_scan_bound(lhs))
-        {
-            return lh_memory_std_rfind(lhs, lhs_size, rhs, 1U);
-        }
-
-        const lh_byte_t needle = *lh_ptr_cast(const lh_byte_t, rhs);
-        for (;;)
-        {
-            lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
-            if (lh_ptr_deref(cand) == needle)
-            {
-                return cand;
-            }
-            if (off < step)
-            {
-                break;
-            }
-            off -= step;
-        }
-        return lh_null;
-    }
-
-    if (rhs_size == step)
-    {
-        lh_byte_cptr needle = lh_ptr_cast(const lh_byte_t, rhs);
-        for (;;)
-        {
-            lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
-            if (lh_memory_bytes_eq(cand, needle, rhs_size))
-            {
-                return cand;
-            }
-            if (off < step)
-            {
-                break;
-            }
-            off -= step;
-        }
-        return lh_null;
-    }
-
-    /* Byte grid with a real haystack length: the same first/last filter as find. */
-    if (step == 1U && lhs_size != lh_memory_scan_bound(lhs))
-    {
-        return lh_memory_std_rfind(lhs, lhs_size, rhs, rhs_size);
-    }
-
-    {
-        lh_byte_cptr needle = lh_ptr_cast(const lh_byte_t, rhs);
-        const lh_byte_t first = needle[0];
-        const lh_byte_t last = needle[rhs_size - 1U];
-
-        for (;;)
-        {
-            lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
-            if (lh_ptr_deref(cand) == first && cand[rhs_size - 1U] == last &&
-                (rhs_size <= 2U ||
-                 lh_memory_std_compare(cand + 1, needle + 1, rhs_size - 2U) == lh_null))
-            {
-                return cand;
-            }
-            if (off < step)
-            {
-                break;
-            }
-            off -= step;
-        }
-    }
-    return lh_null;
-}
-
 lh_ptr
 lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size)
 {
@@ -312,165 +195,154 @@ lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usiz
     return d + dst_size;
 }
 
+lh_bool_t
+lh_memory_is_unbounded(const lh_ptr lhs, lh_usize_t lhs_size)
+{
+    return lhs_size == lh_memory_scan_bound(lhs);
+}
+
+lh_bool_t
+lh_memory_is_equal(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t size)
+{
+    return lh_null_eq(lh_memory_std_compare(lhs, rhs, size));
+}
+
+const lh_ptr
+lh_memory_find_byte_by_step(const lh_ptr lhs, lh_usize_t lhs_size, lh_byte_t byte, lh_usize_t step)
+{
+    lh_byte_cptr base = lh_ptr_cast(const lh_byte_t, lhs);
+    /* Offsets, not an end pointer: lhs_size may be the address-space bound. */
+    for (lh_usize_t off = 0; lh_math_ge(lh_memory_size_rest(lhs_size, off), 1);
+         off = lh_math_add(off, step))
+    {
+        lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
+        if (lh_ptr_deref(cand) == byte)
+        {
+            return cand;
+        }
+    }
+    return lh_null;
+}
+
+const lh_ptr
+lh_memory_find_unit_by_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr unit,
+                            lh_usize_t unit_size)
+{
+    lh_byte_cptr base = lh_ptr_cast(const lh_byte_t, lhs);
+    for (lh_usize_t off = 0; lh_math_ge(lh_memory_size_rest(lhs_size, off), unit_size);
+         off = lh_math_add(off, unit_size))
+    {
+        lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
+        if (lh_memory_is_equal(cand, unit, unit_size))
+        {
+            return cand;
+        }
+    }
+    return lh_null;
+}
+
+const lh_ptr
+lh_memory_find_unit(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr unit, lh_usize_t unit_size)
+{
+    lh_byte_cptr base = lh_ptr_cast(const lh_byte_t, lhs);
+    lh_usize_t off = 0;
+    /* The byte search of the kernel; a hit off the unit grid resumes at the next unit. */
+    while (lh_math_ge(lh_memory_size_rest(lhs_size, off), unit_size))
+    {
+        lh_byte_cptr hit = lh_memory_std_find(lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off),
+                                              lh_memory_size_rest(lhs_size, off), unit, unit_size);
+        lh_return_if(lh_null_eq(hit), lh_null);
+        const lh_usize_t at = lh_addr_diff(lh_ptr_to_uaddr(hit), lh_ptr_to_uaddr(base));
+        lh_return_if(lh_math_is_zero(at % unit_size), hit);
+        off = lh_math_add(at - at % unit_size, unit_size);
+    }
+    return lh_null;
+}
+
+const lh_ptr
+lh_memory_find_needle_by_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs,
+                              lh_usize_t rhs_size, lh_usize_t step)
+{
+    lh_byte_cptr base = lh_ptr_cast(const lh_byte_t, lhs);
+    const lh_byte_t first = *lh_ptr_cast(const lh_byte_t, rhs);
+    /* The first byte is tested in place; the full compare runs only where it matches. */
+    for (lh_usize_t off = 0; lh_math_ge(lh_memory_size_rest(lhs_size, off), rhs_size);
+         off = lh_math_add(off, step))
+    {
+        lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
+        if (lh_ptr_deref(cand) == first &&
+            !lh_memory_compare(cand, lh_memory_size_rest(lhs_size, off), rhs, rhs_size))
+        {
+            return cand;
+        }
+    }
+    return lh_null;
+}
+
 const lh_ptr
 lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size,
                     lh_usize_t step)
 {
     lh_assert_runtime_ref(lhs);
     lh_assert_runtime_ref(rhs);
-
     lh_return_ifn(lhs_size, lh_null);
     lh_return_ifn(rhs_size, lh_null);
     lh_return_ifn(step, lh_null);
+    if (!lh_memory_is_unbounded(lhs, lhs_size))
+    {
+        /* A real length: the kernel's search, on a byte grid or a unit grid. */
+        lh_return_if(step == 1U, lh_memory_std_find(lhs, lhs_size, rhs, rhs_size));
+        lh_return_if(rhs_size == step, lh_memory_find_unit(lhs, lhs_size, rhs, rhs_size));
+    }
+    /* A sentinel scan reads nothing past the match. */
+    lh_return_if(rhs_size == 1U,
+                 lh_memory_find_byte_by_step(lhs, lhs_size, *lh_ptr_cast(const lh_byte_t, rhs),
+                                             step));
+    lh_return_if(rhs_size == step, lh_memory_find_unit_by_step(lhs, lhs_size, rhs, rhs_size));
+    return lh_memory_find_needle_by_step(lhs, lhs_size, rhs, rhs_size, step);
+}
 
+lh_usize_t
+lh_memory_get_last_step_offset(lh_usize_t lhs_size, lh_usize_t rhs_size, lh_usize_t step)
+{
+    const lh_usize_t max_start = lh_math_sub(lhs_size, rhs_size);
+    /* Power-of-two step (byte, wchar): mask. Otherwise the usual truncate-to-grid. */
+    return lh_math_is_power_of_two(step) ? (max_start & ~(step - 1U)) : (max_start / step) * step;
+}
+
+const lh_ptr
+lh_memory_rfind_needle_by_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs,
+                               lh_usize_t rhs_size, lh_usize_t step)
+{
+    lh_return_if(lhs_size < rhs_size, lh_null);
     lh_byte_cptr base = lh_ptr_cast(const lh_byte_t, lhs);
-    lh_usize_t off = 0;
-
-    if (rhs_size == 1)
+    const lh_byte_t first = *lh_ptr_cast(const lh_byte_t, rhs);
+    lh_usize_t off = lh_memory_get_last_step_offset(lhs_size, rhs_size, step);
+    for (;;)
     {
-        /* Single-byte needle (lh_str_ptr_find_of_char, lh_str_view_find_char, ...).
-         * Known length on a byte grid goes to std. Unbounded scan keeps the
-         * page-safe aligned-block walk — std must not read past a page edge. */
-        if (step == 1U && lhs_size != lh_memory_scan_bound(lhs))
+        lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
+        if (lh_ptr_deref(cand) == first && lh_memory_is_equal(cand, rhs, rhs_size))
         {
-            return lh_memory_std_find(lhs, lhs_size, rhs, 1U);
+            return cand;
         }
-
-        const lh_byte_t needle = *lh_ptr_cast(const lh_byte_t, rhs);
-
-        if (step == 1)
-        {
-            /* Offset walk, not an end pointer: lhs_size may be the remaining address
-             * space from lh_memory_scan, and base+lhs_size would wrap. Byte by byte up
-             * to the first aligned block (see lh_memory_scan_is_unaligned) — only when
-             * a block can follow at all, so tiny haystacks (a 2-byte separator set in
-             * lh_str_ptr_find_of_chars) keep their plain loop. */
-            if (lh_math_ge(lh_memory_size_rest(lhs_size, off), LH_MEMORY_SCAN_BLOCK))
-            {
-                for (; lh_math_ge(lh_memory_size_rest(lhs_size, off), 1) &&
-                       lh_memory_scan_is_unaligned(base, off);
-                     off = lh_math_add(off, 1))
-                {
-                    lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
-                    if (lh_ptr_deref(cand) == needle)
-                    {
-                        return cand;
-                    }
-                }
-            }
-            while (lh_math_ge(lh_memory_size_rest(lhs_size, off), LH_MEMORY_SCAN_BLOCK))
-            {
-                lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
-                {
-                    const lh_byte_t *hit =
-                        lh_memory_bytes_find(cand, LH_MEMORY_SCAN_BLOCK, needle);
-                    if (lh_null_ne(hit))
-                    {
-                        return hit;
-                    }
-                }
-                off = lh_math_add(off, LH_MEMORY_SCAN_BLOCK);
-            }
-            for (; lh_math_ge(lh_memory_size_rest(lhs_size, off), 1); off = lh_math_add(off, 1))
-            {
-                lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
-                if (lh_ptr_deref(cand) == needle)
-                {
-                    return cand;
-                }
-            }
-            return lh_null;
-        }
-
-        for (; lh_math_ge(lh_memory_size_rest(lhs_size, off), 1); off = lh_math_add(off, step))
-        {
-            lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
-            if (lh_ptr_deref(cand) == needle)
-            {
-                return cand;
-            }
-        }
-        return lh_null;
+        lh_return_if(off < step, lh_null);
+        off -= step;
     }
+}
 
-    if (rhs_size == step)
-    {
-        /* Fixed-size unit grid (lh_wstr_ptr_find_char, wide NUL scan): compare the
-         * unit in-place. When the block size is a multiple of step, reuse the
-         * branchless block walk so wchar search hits the same fast path as bytes. */
-        lh_byte_cptr needle = lh_ptr_cast(const lh_byte_t, rhs);
-
-        if (lh_math_is_multiple_of(LH_MEMORY_SCAN_BLOCK, step))
-        {
-            /* Unit by unit up to the first aligned block (see
-             * lh_memory_scan_is_unaligned). A haystack that is not step-aligned never
-             * reaches one and is scanned unit by unit throughout. */
-            if (lh_math_ge(lh_memory_size_rest(lhs_size, off), LH_MEMORY_SCAN_BLOCK))
-            {
-                for (; lh_math_ge(lh_memory_size_rest(lhs_size, off), rhs_size) &&
-                       lh_memory_scan_is_unaligned(base, off);
-                     off = lh_math_add(off, step))
-                {
-                    lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
-                    if (lh_memory_bytes_eq(cand, needle, rhs_size))
-                    {
-                        return cand;
-                    }
-                }
-            }
-            while (lh_math_ge(lh_memory_size_rest(lhs_size, off), LH_MEMORY_SCAN_BLOCK))
-            {
-                lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
-                if (lh_memory_bytes_any_eq_step(cand, LH_MEMORY_SCAN_BLOCK, needle, rhs_size, step))
-                {
-                    break;
-                }
-                off = lh_math_add(off, LH_MEMORY_SCAN_BLOCK);
-            }
-        }
-
-        for (; lh_math_ge(lh_memory_size_rest(lhs_size, off), rhs_size);
-             off = lh_math_add(off, step))
-        {
-            lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
-            if (lh_memory_bytes_eq(cand, needle, rhs_size))
-            {
-                return cand;
-            }
-        }
-        return lh_null;
-    }
-
-    /* General needle: test its first byte in place and pay for the full
-     * lh_memory_compare call (itself a call into lh_memory_std_compare's dispatch)
-     * only where that byte matches — on ordinary text that skips nearly every
-     * candidate. No block pre-scan here, unlike the single-byte path: with
-     * lh_memory_scan, lhs_size is the address-space bound, and a block read could
-     * run past the real buffer where the needle's first byte never occurs; cand[0]
-     * is a byte the full compare would read anyway. */
-    /* Byte grid with a real haystack length: the vectorized first/last-byte search.
-     * Not for lh_memory_scan, whose lhs_size is the address-space bound (it would
-     * read up to 16 bytes past the match) — that keeps the scalar filter below. */
-    if (step == 1U && lhs_size != lh_memory_scan_bound(lhs))
-    {
-        return lh_memory_std_find(lhs, lhs_size, rhs, rhs_size);
-    }
-
-    {
-        const lh_byte_t first = *lh_ptr_cast(const lh_byte_t, rhs);
-
-        for (; lh_math_ge(lh_memory_size_rest(lhs_size, off), rhs_size);
-             off = lh_math_add(off, step))
-        {
-            lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
-            if (lh_ptr_deref(cand) == first &&
-                !lh_memory_compare(cand, lh_memory_size_rest(lhs_size, off), rhs, rhs_size))
-            {
-                return cand;
-            }
-        }
-    }
-    return lh_null;
+const lh_ptr
+lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size,
+                     lh_usize_t step)
+{
+    lh_assert_runtime_ref(lhs);
+    lh_assert_runtime_ref(rhs);
+    lh_return_ifn(lhs_size, lh_null);
+    lh_return_ifn(rhs_size, lh_null);
+    lh_return_ifn(step, lh_null);
+    /* A real length on a byte grid: the kernel's reverse search. */
+    lh_return_if(step == 1U && !lh_memory_is_unbounded(lhs, lhs_size),
+                 lh_memory_std_rfind(lhs, lhs_size, rhs, rhs_size));
+    return lh_memory_rfind_needle_by_step(lhs, lhs_size, rhs, rhs_size, step);
 }
 
 const lh_ptr
