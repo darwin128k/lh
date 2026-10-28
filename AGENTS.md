@@ -86,6 +86,10 @@ file of LH and of Authum — reads and writes through them. No exceptions.
 - Level 3 and up use the levels below: predicates, compare, find, copy, the
   `_v` (validated) forms. A function never skips a level to reach a field.
 - Headers and `.c` files are ordered by level: level 1 first, then 2, ...
+  `python tools/check-levels.py <file.c> <prefix>` prints the levels (and any
+  cycle), `--order` checks the file; `python tools/order-levels.py <file.c>
+  <file.h> <prefix>` sorts both, keeping the order inside a level. Done for
+  `lh_memory_view_*`, `lh_memory_bounds_*`, `lh_memory_typed_*`.
 - The fast forms have no suffix and no checks; `_v` adds validation where it
   is really needed — not a `_v` for every function, and no forms for private
   contracts (`_nonempty`, `_by_size` setters). The developer owns the

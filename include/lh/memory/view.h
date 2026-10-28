@@ -174,6 +174,15 @@ lh_void
 lh_memory_view_set(lh_memory_view_t *self, const lh_ptr begin, lh_usize_t size);
 
 /**
+ * @brief True if @p self and @p other store the same endpoints.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ */
+lh_bool_t
+lh_memory_view_equals(const lh_memory_view_t *self, const lh_memory_view_t *other);
+
+/**
  * @brief Return @c begin after validating @p self.
  * @param self Valid view to read.
  * @return Stored begin pointer.
@@ -315,15 +324,6 @@ lh_bool_t
 lh_memory_view_is_begin_aligned(const lh_memory_view_t *self, lh_usize_t align);
 
 /**
- * @brief True if @p self and @p other store the same endpoints.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self or @p other is ::lh_null.
- */
-lh_bool_t
-lh_memory_view_equals(const lh_memory_view_t *self, const lh_memory_view_t *other);
-
-/**
  * @brief Find the first occurrence of <tt>[data, data + size)</tt> inside @p self.
  *
  * The brick the view-operand form is built on.
@@ -437,6 +437,34 @@ lh_void
 lh_memory_view_assign_v(lh_memory_view_t *self, const lh_memory_view_t *other);
 
 /**
+ * @brief True if @p other lies completely inside @p self.
+ *
+ * Both operands are interpreted as half-open views. @p other is not
+ * validated.
+ *
+ * @param self  Valid outer view.
+ * @param other Inner view to test.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+lh_bool_t
+lh_memory_view_contains(const lh_memory_view_t *self, const lh_memory_view_t *other);
+
+/**
+ * @brief True if @p other overlaps @p self.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+lh_bool_t
+lh_memory_view_overlaps(const lh_memory_view_t *self, const lh_memory_view_t *other);
+
+/**
  * @brief Return byte offset of @p ptr from @c begin.
  *
  * @param self Valid view to inspect.
@@ -474,23 +502,6 @@ lh_uoffset_t
 lh_memory_view_get_offset_from_end(const lh_memory_view_t *self, const lh_ptr ptr);
 
 /**
- * @brief True if @p other lies completely inside @p self.
- *
- * Both operands are interpreted as half-open views. @p other is not
- * validated.
- *
- * @param self  Valid outer view.
- * @param other Inner view to test.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self or @p other is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_range
- *        @p self is not valid.
- */
-lh_bool_t
-lh_memory_view_contains(const lh_memory_view_t *self, const lh_memory_view_t *other);
-
-/**
  * @brief Return pointer at byte @p offset from @c begin.
  *
  * @param self   Valid view to index.
@@ -526,17 +537,6 @@ lh_memory_view_get_ptr_from_begin(const lh_memory_view_t *self, lh_uoffset_t off
  */
 const lh_ptr
 lh_memory_view_get_ptr_from_end(const lh_memory_view_t *self, lh_uoffset_t offset);
-
-/**
- * @brief True if @p other overlaps @p self.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self or @p other is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_range
- *        @p self is not valid.
- */
-lh_bool_t
-lh_memory_view_overlaps(const lh_memory_view_t *self, const lh_memory_view_t *other);
 
 /**
  * @brief True if both endpoints are aligned to @p align.
@@ -684,6 +684,17 @@ lh_bool_t
 lh_memory_view_contains_v(const lh_memory_view_t *self, const lh_memory_view_t *other);
 
 /**
+ * @brief True if valid @p other overlaps @p self.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
+ */
+lh_bool_t
+lh_memory_view_overlaps_v(const lh_memory_view_t *self, const lh_memory_view_t *other);
+
+/**
  * @brief Return pointer to the first byte.
  * @param self Valid view to index.
  * @return Pointer to @c begin.
@@ -765,17 +776,6 @@ lh_memory_view_get_value_from_begin(const lh_memory_view_t *self, lh_uoffset_t o
  */
 lh_byte_t
 lh_memory_view_get_value_from_end(const lh_memory_view_t *self, lh_uoffset_t offset);
-
-/**
- * @brief True if valid @p other overlaps @p self.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self or @p other is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_range
- *        @p self or @p other is not valid.
- */
-lh_bool_t
-lh_memory_view_overlaps_v(const lh_memory_view_t *self, const lh_memory_view_t *other);
 
 /**
  * @brief Initialize @p self with @p size bytes at @p begin; empty is allowed.
