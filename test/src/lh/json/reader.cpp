@@ -70,7 +70,7 @@ parse(const std::string &json)
     }
     else
     {
-        lh_str_init_by_size(&view, json.data(), json.size());
+        lh_str_view_init_by_size(&view, json.data(), json.size());
     }
 
     lh_json_reader_t reader;

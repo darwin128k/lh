@@ -52,7 +52,7 @@ TEST(json_minify, its_output_reads_like_the_input)
     text.resize(lh_json_minify(&text[0], text.size()));
 
     lh_str_view_t view;
-    lh_str_init_by_size(&view, text.data(), text.size());
+    lh_str_view_init_by_size(&view, text.data(), text.size());
     lh_json_reader_t reader;
     lh_json_node_t root;
     lh_json_node_init(&root);

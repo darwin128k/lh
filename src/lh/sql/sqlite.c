@@ -239,7 +239,7 @@ lh_sql_sqlite_get_column_str(const lh_sql_stmt_t *stmt, lh_usize_t index)
     {
         return lh_str_view_empty();
     }
-    lh_str_init_by_size(lh_addr_of(view), lh_ptr_cast(const lh_char_t, text),
+    lh_str_view_init_by_size(lh_addr_of(view), lh_ptr_cast(const lh_char_t, text),
                         lh_cast_static(lh_usize_t, size));
     return view;
 }

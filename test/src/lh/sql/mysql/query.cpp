@@ -18,7 +18,7 @@ view(const std::string &s)
     }
     else
     {
-        lh_str_init_by_size(&v, s.data(), s.size());
+        lh_str_view_init_by_size(&v, s.data(), s.size());
     }
     return v;
 }

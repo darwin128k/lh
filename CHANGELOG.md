@@ -104,6 +104,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `docs/index.md`: the index of every guide — integration by target (microcontroller / desktop window / web host), subsystem (UI, modules, OS threads, HTTP, 3D renderer), project files — linked from the README
 ### Changed
 
+- `lh_str_init_by_size` is `lh_str_view_init_by_size`: it builds an `lh_str_view_t`, declared in `lh/str/view.h`, beside `lh_wstr_view_init_by_size`. `lh_str_view_init`, `lh_wstr_view_init`, `lh_str_as_view` and `lh_wstr_as_view` lose their empty-string branch: a zero size is the empty view now. `lh_memory_*`, `lh_str_view_*` and `lh_wstr_view_*` are ordered by level in their headers and sources
+
 - `lh_memory_view_*` / `lh_memory_bounds_*` are built on `begin + size`, the layout they already had: `set`, `set_v` and `init` take `(begin, size)` instead of `(begin, end)` (no end is computed and turned back into a size), `set_by_size` / `init_by_size` are gone (`set` / `init` are those now), and `equals` / `contains` / `overlaps` work on the operand view directly. An empty view is valid wherever it points, null included; a null begin with a non-zero size is invalid. `lh_memory_typed_set` / `_set_v` / `_init` take an element count: `(begin, count, type_size)`
 
 - `lh/ui/renderer3d` runs on the LH math bricks: its private `vertex` type, ten `static` helpers and the libm calls (`isfinite`, `tanf`, `floorf`, `fminf`, ...) are gone; `lh_ui_renderer3d_triangle` and `_box` only compose the bricks above. The camera lives in `src/lh/ui/renderer3d/camera.c`. Output is bit-identical
