@@ -1,4 +1,5 @@
 #include <lh/os/system/fs/path.h>
+#include <lh/util/ptr.h>
 #include <lh/assert.h>
 #include <lh/os.h>
 #include <lh/os/error/code.h>
@@ -18,7 +19,7 @@ lh_os_system_fs_path_canonical(lh_str_cptr path, lh_str_t *out)
 {
     lh_assert_runtime_ref(path);
     lh_assert_runtime_ref(out);
-    if (!*path)
+    if (!lh_ptr_deref(path))
     {
         lh_os_set_last_error_lit(lh_os_error_code_path_empty, "path is empty");
         return lh_bool_false;

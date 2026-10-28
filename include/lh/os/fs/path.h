@@ -33,6 +33,18 @@ LH_COMPILER_EXTERN_C_BEGIN
 const lh_str_ptr
 lh_os_fs_path_to_cstr(const lh_fs_path_t *path, lh_str_t *scratch);
 
+/**
+ * @brief Resolve @p path to an absolute filesystem path, following symbolic links.
+ *
+ * @p path and @p out must be initialized and may be the same object.
+ * @p out is replaced only on success and remains owned by the caller.
+ * Missing, empty, inaccessible and unresolvable paths return ::lh_bool_false
+ * with @p out unchanged. Error slots are as for
+ * ::lh_os_system_fs_path_canonical; no lexical fallback is performed.
+ */
+lh_bool_t
+lh_os_fs_path_canonical(const lh_fs_path_t *path, lh_fs_path_t *out);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_FS_PATH_H */

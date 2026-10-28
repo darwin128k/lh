@@ -191,6 +191,32 @@ lh_memory_allocator_deinit(lh_memory_allocator_t *self);
 lh_void
 lh_memory_allocator_assign(lh_memory_allocator_t *self, const lh_memory_allocator_t *other);
 
+/**
+ * @brief Allocate without treating allocation failure as a runtime error.
+ *
+ * @p self must be initialized and have compatible alloc/dealloc callbacks.
+ * Returns ::lh_null if the allocation callback is absent or allocation fails.
+ * Successful blocks follow the configured zero-initialization policy and
+ * are owned by the caller; release them with ::lh_memory_allocator_dealloc
+ * on the same allocator. A zero size is passed to the allocator unchanged.
+ */
+lh_ptr
+lh_memory_allocator_try_alloc(lh_memory_allocator_t *self, lh_usize_t size);
+
+/**
+ * @brief Resize without treating allocation failure as a runtime error.
+ *
+ * @p old_ptr must belong to @p self and @p old_size must be its actual size.
+ * Null input allocates; zero @p new_size releases a nonnull block and returns
+ * ::lh_null. A native realloc callback is used when available; otherwise
+ * alloc/copy/free preserves the first min(old_size, new_size) bytes.
+ * On failure, returns ::lh_null and leaves the original block owned by the
+ * caller and unchanged. The allocator and its context must remain valid.
+ */
+lh_ptr
+lh_memory_allocator_try_realloc(lh_memory_allocator_t *self, lh_ptr old_ptr, lh_usize_t old_size,
+                                lh_usize_t new_size);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_MEMORY_ALLOCATOR_H */

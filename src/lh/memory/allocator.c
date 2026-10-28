@@ -1,4 +1,6 @@
 #include <lh/memory.h>
+#include <lh/math/ops.h>
+#include <lh/memory/std.h>
 #include <lh/math.h>
 #include <lh/util/return.h>
 #include <lh/assert.h>
@@ -67,17 +69,11 @@ lh_memory_allocator_set_dealloc_cb(lh_memory_allocator_t *self,
 lh_ptr
 lh_memory_allocator_alloc(lh_memory_allocator_t *self, lh_usize_t size)
 {
-    lh_memory_allocator_alloc_cb alloc_cb = lh_memory_allocator_get_alloc_cb(self);
-    lh_runtime_check_ifn(alloc_cb, lh_runtime_error_code_allocator_function_not_initialized);
-
-    lh_ptr ptr = alloc_cb(lh_memory_allocator_get_context(self), size);
-    lh_runtime_check_ifn(ptr, lh_runtime_error_code_memory_not_allocated);
-
-#if (LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED == LH_LIBRARY_OPTION_ON)
-    lh_memory_set(ptr, size, 0);
-#endif
-
-    return ptr;
+    lh_runtime_check_ifn(lh_memory_allocator_get_alloc_cb(self),
+                         lh_runtime_error_code_allocator_function_not_initialized);
+    lh_ptr block = lh_memory_allocator_try_alloc(self, size);
+    lh_runtime_check_ifn(block, lh_runtime_error_code_memory_not_allocated);
+    return block;
 }
 
 lh_void
@@ -103,38 +99,19 @@ lh_ptr
 lh_memory_allocator_realloc(lh_memory_allocator_t *self, lh_ptr old_ptr, lh_usize_t old_size,
                             lh_usize_t new_size)
 {
-    lh_return_if(old_size == new_size, old_ptr);
-    lh_return_ifn(old_ptr, lh_memory_allocator_alloc(self, new_size));
-
-    if (new_size == 0)
+    if (lh_math_is_positive(new_size) &&
+        (lh_null_eq(old_ptr) ||
+         (lh_math_ne(old_size, new_size) && lh_null_eq(lh_memory_allocator_get_realloc_cb(self)))))
     {
-        lh_memory_allocator_dealloc(self, old_ptr);
-        return lh_null;
+        lh_runtime_check_ifn(lh_memory_allocator_get_alloc_cb(self),
+                             lh_runtime_error_code_allocator_function_not_initialized);
     }
-
-    lh_memory_allocator_realloc_cb realloc_cb = lh_memory_allocator_get_realloc_cb(self);
-    if (lh_ptr_is_set(realloc_cb))
+    lh_ptr block = lh_memory_allocator_try_realloc(self, old_ptr, old_size, new_size);
+    if (lh_math_is_positive(new_size))
     {
-        /* Native realloc may extend the block in place — no copy at all. */
-        lh_ptr grown =
-            realloc_cb(lh_memory_allocator_get_context(self), old_ptr, old_size, new_size);
-        lh_runtime_check_ifn(grown, lh_runtime_error_code_memory_not_allocated);
-#if (LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED == LH_LIBRARY_OPTION_ON)
-        /* Same promise as lh_memory_allocator_alloc: new bytes read as zero. */
-        if (lh_math_gt(new_size, old_size))
-        {
-            lh_memory_set(lh_ptr_add_by_offset_unsafe(lh_void, grown, old_size),
-                          lh_math_sub(new_size, old_size), 0);
-        }
-#endif
-        return grown;
+        lh_runtime_check_ifn(block, lh_runtime_error_code_memory_not_allocated);
     }
-
-    lh_ptr new_ptr = lh_memory_allocator_alloc(self, new_size);
-    lh_memory_copy(new_ptr, new_size, old_ptr, old_size);
-    lh_memory_allocator_dealloc(self, old_ptr);
-
-    return new_ptr;
+    return block;
 }
 
 lh_void
@@ -159,4 +136,61 @@ lh_memory_allocator_assign(lh_memory_allocator_t *self, const lh_memory_allocato
                             lh_memory_allocator_get_dealloc_cb(other));
     lh_memory_allocator_set_realloc_cb(self, lh_memory_allocator_get_realloc_cb(other));
     lh_memory_allocator_set_context(self, lh_memory_allocator_get_context(other));
+}
+
+lh_ptr
+lh_memory_allocator_try_alloc(lh_memory_allocator_t *self, lh_usize_t size)
+{
+    lh_memory_allocator_alloc_cb const allocate = lh_memory_allocator_get_alloc_cb(self);
+    if (lh_null_eq(allocate))
+    {
+        return lh_null;
+    }
+    lh_ptr block = allocate(lh_memory_allocator_get_context(self), size);
+#if (lh_math_eq(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED, LH_LIBRARY_OPTION_ON))
+    if (lh_null_ne(block))
+    {
+        lh_memory_std_set(block, 0, size);
+    }
+#endif
+    return block;
+}
+
+lh_ptr
+lh_memory_allocator_try_realloc(lh_memory_allocator_t *self, lh_ptr old_ptr, lh_usize_t old_size,
+                                lh_usize_t new_size)
+{
+    if (lh_math_is_zero(new_size))
+    {
+        lh_memory_allocator_dealloc(self, old_ptr);
+        return lh_null;
+    }
+    if (lh_null_eq(old_ptr))
+    {
+        return lh_memory_allocator_try_alloc(self, new_size);
+    }
+    if (lh_math_eq(old_size, new_size))
+    {
+        return old_ptr;
+    }
+    lh_memory_allocator_realloc_cb const resize = lh_memory_allocator_get_realloc_cb(self);
+    if (lh_null_ne(resize))
+    {
+        lh_ptr block = resize(lh_memory_allocator_get_context(self), old_ptr, old_size, new_size);
+#if (lh_math_eq(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED, LH_LIBRARY_OPTION_ON))
+        if (lh_null_ne(block) && lh_math_gt(new_size, old_size))
+        {
+            lh_memory_std_set(lh_ptr_add_by_offset_unsafe(lh_void, block, old_size), 0,
+                              lh_math_sub(new_size, old_size));
+        }
+#endif
+        return block;
+    }
+    lh_ptr block = lh_memory_allocator_try_alloc(self, new_size);
+    if (lh_null_ne(block))
+    {
+        lh_memory_std_copy(block, old_ptr, lh_math_min(old_size, new_size));
+        lh_memory_allocator_dealloc(self, old_ptr);
+    }
+    return block;
 }

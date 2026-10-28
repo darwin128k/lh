@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <lh/os/system/fs/path.h>
+#include <lh/os/fs/path.h>
 #include <lh/util/str/ptr.h>
 
 #include <chrono>
@@ -137,4 +138,24 @@ TEST_F(os_fs_path, resolves_symbolic_links_to_their_targets)
     ASSERT_TRUE(canonical(directory / "alias"));
     EXPECT_EQ(lh_str_get_data(&result), expected);
 }
+TEST_F(os_fs_path, typed_canonicalization_supports_aliasing_and_preserves_output_on_failure)
+{
+    lh_fs_path_t path;
+    lh_fs_path_init(&path);
+    const auto native = (directory / "nested" / "..").u8string();
+    lh_str_view_t view;
+    lh_str_view_init(&view, lh_cast_reinterpret(lh_str_cptr, native.c_str()));
+    lh_fs_path_set(&path, view, lh_os_system_fs_path_style_native());
+    ASSERT_TRUE(lh_os_fs_path_canonical(&path, &path));
+    EXPECT_TRUE(lh_fs_path_is_absolute(&path));
+    const std::string before = lh_str_get_data(lh_fs_path_get_text(&path));
+    lh_fs_path_t missing;
+    lh_fs_path_init(&missing);
+    lh_fs_path_set(&missing, lh_str_view_lit("lh-canonical-missing/child"), lh_fs_path_style_posix);
+    EXPECT_FALSE(lh_os_fs_path_canonical(&missing, &path));
+    EXPECT_EQ(lh_str_get_data(lh_fs_path_get_text(&path)), before);
+    lh_fs_path_deinit(&missing);
+    lh_fs_path_deinit(&path);
+}
+
 } // namespace

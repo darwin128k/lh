@@ -4,6 +4,7 @@
 #endif
 
 #include <lh/os/system/shared.h>
+#include <lh/memory/std.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/os/alloc.h>
@@ -259,12 +260,14 @@ lh_os_system_shared_find_in_symtab(int fd, uintptr_t bias, lh_str_cptr name)
     size_t i;
 
     if (!lh_os_system_shared_read_at(fd, 0, lh_addr_of(ehdr), sizeof ehdr) ||
-        memcmp(ehdr.e_ident, ELFMAG, SELFMAG) != 0 || ehdr.e_shentsize != sizeof(ElfW(Shdr)))
+        lh_memory_std_compare(ehdr.e_ident, ELFMAG, SELFMAG) != 0 ||
+        ehdr.e_shentsize != sizeof(ElfW(Shdr)))
     {
         return lh_null;
     }
-    shdrs = lh_ptr_cast(ElfW(Shdr), lh_os_system_shared_read_alloc(
-                                         fd, (off_t)ehdr.e_shoff, sizeof(ElfW(Shdr)) * ehdr.e_shnum));
+    shdrs =
+        lh_ptr_cast(ElfW(Shdr), lh_os_system_shared_read_alloc(fd, (off_t)ehdr.e_shoff,
+                                                               sizeof(ElfW(Shdr)) * ehdr.e_shnum));
     for (i = 0U; lh_null_ne(shdrs) && i < ehdr.e_shnum && lh_null_eq(syms); ++i)
     {
         const ElfW(Shdr) *const symtab = shdrs + i;
@@ -276,8 +279,8 @@ lh_os_system_shared_find_in_symtab(int fd, uintptr_t bias, lh_str_cptr name)
         const ElfW(Shdr) *const strtab = shdrs + symtab->sh_link;
         syms = lh_ptr_cast(ElfW(Sym), lh_os_system_shared_read_alloc(fd, (off_t)symtab->sh_offset,
                                                                      symtab->sh_size));
-        strs = lh_ptr_cast(char, lh_os_system_shared_read_alloc(fd, (off_t)strtab->sh_offset,
-                                                                strtab->sh_size));
+        strs = lh_ptr_cast(
+            char, lh_os_system_shared_read_alloc(fd, (off_t)strtab->sh_offset, strtab->sh_size));
         const size_t count = symtab->sh_size / sizeof(ElfW(Sym));
         size_t j;
         for (j = 0U; lh_null_ne(syms) && lh_null_ne(strs) && j < count; ++j)
