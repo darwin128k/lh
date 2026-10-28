@@ -41,6 +41,8 @@ typedef struct lh_memory_tree_header lh_memory_tree_header_t;
 /* The header's fields go through these and only these; the header is
    library-private, so are they. */
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 /** @brief The header in front of the user data @p ptr. */
 lh_memory_tree_header_t *
 lh_memory_tree_header_of(const lh_ptr ptr);
@@ -105,5 +107,7 @@ lh_memory_tree_header_init(lh_memory_tree_header_t *header, lh_memory_sized_allo
 lh_memory_tree_header_t *
 lh_memory_tree_header_new(lh_memory_sized_allocator_t *allocator, lh_memory_tree_header_t *parent,
                           lh_usize_t size);
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_SRC_MEMORY_TREE_HEADER_H */

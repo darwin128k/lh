@@ -39,11 +39,11 @@ struct lh_sql_db
 /** @copybrief lh_sql_db */
 typedef struct lh_sql_db lh_sql_db_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 struct lh_sql_stmt;
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** The backend @p self is open on; ::lh_null while closed. */
 const lh_sql_driver_t *

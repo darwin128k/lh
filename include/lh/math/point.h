@@ -24,11 +24,7 @@
 #endif
 #include <lh/void.h>
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 struct lh_math_size;
-
-LH_COMPILER_EXTERN_C_END
 
 /**
  * @struct lh_math_point

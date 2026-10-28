@@ -12,6 +12,8 @@
 #include <lh/os/system/posix/x11.h>
 #include <lh/os/window/corner.h>
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 /**
  * @brief Rows of a round-rect of @p radius over @p width x @p height.
  *
@@ -36,5 +38,7 @@ lh_os_system_posix_corner_rows(lh_os_system_posix_xrectangle_t *rows, int width,
 int
 lh_os_system_posix_corner_outside(lh_os_system_posix_xrectangle_t *rows, int width, int height,
                                   int radius);
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_SRC_OS_SYSTEM_POSIX_WINDOW_CORNER_H */

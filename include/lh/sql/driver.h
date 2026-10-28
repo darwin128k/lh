@@ -20,10 +20,10 @@
 #include <lh/sql/step.h>
 #include <lh/str/view.h>
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 struct lh_sql_db;
 struct lh_sql_stmt;
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** @brief Close the backend handle of @p db and forget it. */
 typedef lh_void(lh_sql_close_fn)(struct lh_sql_db *db);

@@ -9,6 +9,9 @@
 #include <lh/bool.h>
 #include <lh/os/key.h>
 #include <lh/os/system/win/types.h>
+#include <lh/compiler/extern/c.h>
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** @brief Virtual-key codes ::lh_os_system_win_key_from_vk knows, in order. */
 extern const lh_u32_t lh_os_system_win_key_vks[];
@@ -36,5 +39,7 @@ lh_os_system_win_text_from_char(lh_u32_t ch);
  */
 lh_bool_t
 lh_os_system_win_is_text(lh_u32_t code);
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_SRC_OS_SYSTEM_WIN_KEY_H */

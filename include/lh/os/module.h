@@ -41,11 +41,7 @@
 #    error "lh/os/module.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
 #endif
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 struct lh_os_loader;
-
-LH_COMPILER_EXTERN_C_END
 
 /**
  * @struct lh_os_module

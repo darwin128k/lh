@@ -29,6 +29,8 @@ typedef struct sockaddr_in lh_os_system_net_socket_native_addr_t;
 #    define LH_OS_SYSTEM_NET_SOCKET_NATIVE_AF_INET AF_INET
 #endif
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 /** Fill @p native_addr from @p addr: family, address and port in network byte order. */
 LH_ATTRIBUTE_STATIC
 lh_void
@@ -74,5 +76,7 @@ lh_os_system_net_socket_ip4_from_native_addr(
     port = lh_bit_unpack_be16(lh_ptr_ccast(lh_byte_t, lh_addr_of(native_addr->sin_port)));
     lh_net_ip4_socket_addr_init(addr, lh_addr_of(ip), port);
 }
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_SRC_OS_SYSTEM_NET_SOCKET_ADDR_H */

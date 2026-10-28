@@ -15,6 +15,8 @@
 #include <lh/os/system/win/kernel32.h>
 #include <lh/math.h>
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 /** A reparse point is not necessarily a symlink (junctions, dedup, cloud
    placeholders are reparse points too): only its tag says so. The tag is in
    WIN32_FIND_DATA's dwReserved0. */
@@ -44,5 +46,7 @@ lh_os_system_fs_kind_from_attrs(lh_os_system_win_dword_t attrs, lh_bool_t is_sym
     }
     return lh_fs_kind_file;
 }
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_SRC_OS_SYSTEM_WIN_FS_KIND_H */

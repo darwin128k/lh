@@ -34,9 +34,9 @@ struct lh_ui_layout_run
 /** @brief Alias for ::lh_ui_layout_run. */
 typedef struct lh_ui_layout_run lh_ui_layout_run_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 struct lh_ui_layout;
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Start a line in @p content: `along` at its origin, `line` -1, the

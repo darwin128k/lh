@@ -63,7 +63,9 @@ every brick.
 - `extern "C"` (`LH_COMPILER_EXTERN_C_BEGIN` / `_END`) wraps only what has
   linkage: function declarations and function-type typedefs (a C++ function
   type carries its language linkage). Structs, enums and plain typedefs have
-  no linkage and are declared **before** the block.
+  no linkage and are declared **before** the block. `extern` objects have
+  linkage too and stay inside. Check with `python tools/check-extern-c.py`
+  (0 required; `--fix` rebuilds the blocks, keeping declaration order).
 
 - A header declares **one** thing: one struct, one typedef, one enum, or the
   API of one entity. Never bundle several typedefs, structs and enums into

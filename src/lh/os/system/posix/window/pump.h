@@ -11,9 +11,12 @@
 
 #include <lh/bool.h>
 #include <lh/os/system/posix/window/fields.h>
+#include <lh/compiler/extern/c.h>
 
 struct lh_os_system_posix_window;
 typedef struct lh_os_system_posix_window lh_os_system_posix_window_t;
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** First window that waits to be painted, or ::lh_null. */
 lh_os_system_posix_window_t *
@@ -34,5 +37,7 @@ lh_os_system_posix_workarea(int *x, int *y, int *width, int *height);
 /** True when `_NET_WM_STATE` says @p self is maximized. */
 lh_bool_t
 lh_os_system_posix_window_read_maximized(const lh_os_system_posix_window_t *self);
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_SRC_OS_SYSTEM_POSIX_WINDOW_PUMP_H */

@@ -10,9 +10,9 @@
 
 #include <lh/ui/entity/event.h>
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 struct lh_ui_entity;
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @typedef lh_ui_entity_face_fn

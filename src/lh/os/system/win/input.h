@@ -15,6 +15,8 @@
 #include <lh/os/input/event.h>
 #include <lh/os/system/win/user32.h>
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 /**
  * @brief The button a `WM_*BUTTONDOWN` / `WM_*BUTTONUP` @p msg is about;
  *        ::lh_os_input_button_none for any other message.
@@ -130,5 +132,7 @@ lh_os_input_mods_t lh_os_system_win_input_get_mods(lh_void);
  */
 lh_bool_t
 lh_os_system_win_input_vk_held(lh_int_t vk, lh_bool_t toggled);
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_SRC_OS_SYSTEM_WIN_INPUT_H */

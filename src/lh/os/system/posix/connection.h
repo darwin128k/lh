@@ -15,6 +15,8 @@
 #include <lh/bool.h>
 #include <lh/os/system/posix/x11.h>
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 /**
  * @brief The connection the windows are on, or `lh_null` before the first
  *        window has opened one.
@@ -32,5 +34,7 @@ lh_os_system_posix_connection_get_display(void);
  */
 lh_bool_t
 lh_os_system_posix_connection_take_error(void);
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_SRC_OS_SYSTEM_POSIX_CONNECTION_H */

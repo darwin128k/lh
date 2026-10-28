@@ -10,6 +10,9 @@
 #include <lh/bit/ops.h>
 #include <lh/cast/static.h>
 #include <lh/numeric/fixed/types.h>
+#include <lh/compiler/extern/c.h>
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief RGB565 @p pixel as 0x00RRGGBB, top bits of each channel repeated into
@@ -28,5 +31,7 @@ lh_os_system_posix_surface_from_565(lh_u16_t pixel)
                   lh_bit_shl(lh_bit_or(lh_bit_shl(g, 2), lh_bit_shr(g, 4)), 8)),
         lh_bit_or(lh_bit_shl(b, 3), lh_bit_shr(b, 2)));
 }
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_SRC_OS_SYSTEM_POSIX_SURFACE_RGB565_H */
