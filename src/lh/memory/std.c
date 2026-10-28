@@ -115,14 +115,19 @@ typedef const lh_ptr (*lh_memory_std_rcompare_fn)(const lh_ptr lhs, const lh_ptr
 
 static lh_void
 lh_memory_std_copy_simd_dispatch(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n);
+
 static lh_void
 lh_memory_std_copy_rev_simd_dispatch(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n);
+
 static lh_void
 lh_memory_std_rcopy_simd_dispatch(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n);
+
 static lh_void
 lh_memory_std_set_simd_dispatch(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n);
+
 static const lh_ptr
 lh_memory_std_compare_dispatch(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
+
 static const lh_ptr
 lh_memory_std_rcompare_dispatch(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
 

@@ -796,6 +796,7 @@ TEST(ui_canvas_sw, a_shadow_the_clip_cannot_see_paints_nothing_and_says_so)
 
     EXPECT_EQ(f.at(1, 1), sentinel);
 }
+
 /* A glass panel over a flat picture has to come out flat too: the blur is two
  * sliding windows over a picture that is one colour, so any column that comes out
  * different from its neighbour is the window reading something it should not. */
@@ -833,6 +834,7 @@ TEST(ui_canvas_sw, glass_over_a_flat_picture_stays_flat)
     EXPECT_EQ(odd, 0);
     EXPECT_NE(middle, sentinel);
 }
+
 /* The picture must not depend on how much of it was invalidated. A glass panel
  * drawn while the canvas clips to its own rect has to be the very same panel as
  * one drawn over a whole-target frame: a frame clears and redraws what it
@@ -895,6 +897,7 @@ TEST(ui_canvas_sw, glass_leaves_the_square_corner_of_a_round_panel)
     EXPECT_EQ(f.at(4, 4), 0xffffffffu);
     EXPECT_NE(f.at(12, 12), 0xff000000u);
 }
+
 TEST(ui_canvas_sw_bricks, shadow_pass_is_the_box_grown_by_the_outset)
 {
     sw_fixture f;

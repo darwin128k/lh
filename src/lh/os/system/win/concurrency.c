@@ -199,6 +199,7 @@ lh_os_system_mutex_unlock(lh_os_system_mutex_handle_t handle)
  * All calls use the Win32 calling convention, including on 32-bit Windows. */
 typedef VOID(WINAPI *lh_os_condition_change_fn)(PVOID state);
 typedef BOOL(WINAPI *lh_os_condition_wait_fn)(PVOID state, PCRITICAL_SECTION mutex, DWORD timeout);
+
 typedef struct lh_os_native_condition
 {
     PVOID state;

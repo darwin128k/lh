@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_math_float_is_finite` (`lh/math/float/finite.h`) and `lh_math_float_tan` (`lh/math/float/tan.h`, sine over cosine of `lh_math_float_sin_cos`); `lh_math_vec3_is_finite` and `lh_math_vec3_try_normalize` (`lh/math/vec3.h`). Renderer bricks: `lh_ui_renderer3d_camera_is_usable`, `_camera_to_view` (`lh/ui/renderer3d/camera.h`), `lh_ui_renderer3d_plane_t` (`lh/ui/renderer3d/plane.h`), `lh_ui_renderer3d_clear`, `_get_plane_distance`, `_clip_plane`, `_project`, `_get_edge`, `_put_fragment`, `_raster`
+
 - Allocator bricks (`lh/memory/allocator.h`): `lh_memory_allocator_init_tail` (the zero-initialization policy, one place), `_try_dealloc`, `_try_resize` (native realloc only), `_try_move` (alloc/copy/release), `_realloc_needs_alloc`, `_try_alloc_zero` / `_alloc_zero`; runtime forms `lh_runtime_allocator_try_alloc`, `_try_alloc_zero`, `_try_free`, `_try_realloc`, `_alloc_zero`
 
 - OS thread, mutex and condition primitives with POSIX/Windows backends; 64-bit monotonic milliseconds and finite sleep.
@@ -96,6 +98,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `scripts/audit_headers.py`: reads the public headers and reports every declaration that carries no Doxygen comment. Doxygen cannot be the only check: a header without a file documentation block is not extracted at all, and where an `#if` chain carries a doc block in each branch, Doxygen sees one branch only. The count must be zero
 - `docs/index.md`: the index of every guide — integration by target (microcontroller / desktop window / web host), subsystem (UI, modules, OS threads, HTTP, 3D renderer), project files — linked from the README
 ### Changed
+
+- `lh/ui/renderer3d` runs on the LH math bricks: its private `vertex` type, ten `static` helpers and the libm calls (`isfinite`, `tanf`, `floorf`, `fminf`, ...) are gone; `lh_ui_renderer3d_triangle` and `_box` only compose the bricks above. The camera lives in `src/lh/ui/renderer3d/camera.c`. Output is bit-identical
 
 - One file — one entity: enums and helper structs that shared a header with another entity now have their own, included by the old header so no include breaks. Enums: `lh_ui_entity_event_code` (`ui/entity/event/code.h`), `lh_ui_decl_kind` / `_error` (`ui/decl/`), `lh_ui_gradient_shape`, `lh_ui_input_caret_shape` (`ui/input/caret/shape.h`), `lh_ui_text_wrap` (`ui/text/wrap.h`), `lh_ui_text_align_h` / `_v` (`ui/text/align/`), `lh_ui_place_size` / `_align` (`ui/layout/place/`), `lh_ui_justify` (`ui/justify.h`), `lh_ui_web_x_kind`, `lh_ui_web_html_kind`, `lh_mb_status`, `lh_mb_framing`, `lh_mb_link_state`. Structs with their functions and sources: `lh_ui_blur_window`, `lh_ui_blur_pass`, `lh_ui_layout_cross`, `lh_ui_layout_run`, `lh_ui_canvas_clip_round`, `lh_ui_canvas_sw_shadow_pass`, `lh_ui_gradient_sampler_lerp`, `lh_ui_canvas_web_glyphs`; header only: `lh_ui_renderer3d_camera`, `lh_ui_view_focus_walk`, `lh_ui_web_host_frame` / `_client` / `_stream` / `_hooks`, `lh_mb_want`, `lh_mb_read`
 

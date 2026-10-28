@@ -27,6 +27,7 @@ namespace
 const char *const k_library = "kernel32.dll";
 const char *const k_function = "GetCurrentProcessId";
 typedef DWORD(WINAPI process_id_fn)(void);
+
 unsigned long
 direct_process_id()
 {
@@ -36,6 +37,7 @@ direct_process_id()
 const char *const k_library = "libc.so.6";
 const char *const k_function = "getpid";
 typedef pid_t(process_id_fn)(void);
+
 unsigned long
 direct_process_id()
 {

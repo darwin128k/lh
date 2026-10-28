@@ -47,6 +47,7 @@ struct net_started
         (void)lh_os_net_init();
     }
 };
+
 const net_started net_started_once;
 
 lh_net_ip4_socket_addr_t

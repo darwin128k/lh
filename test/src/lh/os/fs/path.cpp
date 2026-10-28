@@ -138,6 +138,7 @@ TEST_F(os_fs_path, resolves_symbolic_links_to_their_targets)
     ASSERT_TRUE(canonical(directory / "alias"));
     EXPECT_EQ(lh_str_get_data(&result), expected);
 }
+
 TEST_F(os_fs_path, typed_canonicalization_supports_aliasing_and_preserves_output_on_failure)
 {
     lh_fs_path_t path;

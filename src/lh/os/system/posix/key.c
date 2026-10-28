@@ -14,6 +14,7 @@ static const unsigned long lh_os_system_posix_key_keysyms[] = {
     0xff51UL, 0xff53UL, 0xff52UL, 0xff54UL, 0xff50UL, 0xff57UL, 0xff55UL, 0xff56UL,
     0xffe1UL, 0xffe2UL, 0xffe3UL, 0xffe4UL, 0xffe9UL, 0xffeaUL,
 };
+
 /** The portable key of each entry of ::lh_os_system_posix_key_keysyms, in the same order. */
 static const lh_os_key_t lh_os_system_posix_key_keys[] = {
     lh_os_key_tab,       lh_os_key_enter,  lh_os_key_enter, lh_os_key_escape,  lh_os_key_backspace,

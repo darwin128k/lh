@@ -1,288 +1,261 @@
 #include <lh/ui/renderer3d.h>
-#include <lh/ui/renderer3d/camera.h>
+#include <lh/assert.h>
+#include <lh/cast/reinterpret.h>
+#include <lh/math/float/finite.h>
+#include <lh/math/float/round.h>
+#include <lh/math/ops.h>
 #include <lh/memory/std.h>
-#include <math.h>
-#include <float.h>
-#include <string.h>
-typedef struct
+#include <lh/null.h>
+#include <lh/numeric/float.h>
+#include <lh/util/return.h>
+
+/* Vertices a triangle may grow to while it is clipped by the six planes. */
+enum
 {
-    float x, y, z;
-} vertex;
-static vertex
-vec(lh_math_vec3_t a)
-{
-    return (vertex){lh_math_vec3_get_x(&a), lh_math_vec3_get_y(&a), lh_math_vec3_get_z(&a)};
-}
-static lh_math_vec3_t
-out(vertex a)
-{
-    lh_math_vec3_t v;
-    lh_math_vec3_init(&v, a.x, a.y, a.z);
-    return v;
-}
-static float
-dot(vertex a, vertex b)
-{
-    return a.x * b.x + a.y * b.y + a.z * b.z;
-}
-static vertex
-cross(vertex a, vertex b)
-{
-    return (vertex){a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x};
-}
-static int
-finite3(vertex a)
-{
-    return isfinite(a.x) && isfinite(a.y) && isfinite(a.z);
-}
-static int
-normalize(vertex *a)
-{
-    float n = sqrtf(dot(*a, *a));
-    if (!isfinite(n) || n < 1e-6f)
-    {
-        return 0;
-    }
-    a->x /= n;
-    a->y /= n;
-    a->z /= n;
-    return 1;
-}
+    lh_ui_renderer3d_clip_capacity = 16
+};
+
 lh_bool_t
-lh_ui_renderer3d_camera_init(lh_ui_renderer3d_camera_t *s, lh_math_vec3_t pos, lh_math_vec3_t f,
-                             lh_math_vec3_t u, float fov, float near_z, float far_z)
+lh_ui_renderer3d_begin(lh_ui_renderer3d_t *self, lh_ui_pixmap_t *target, lh_math_fscalar_t *depth,
+                       lh_usize_t depth_count, const lh_ui_renderer3d_camera_t *camera,
+                       lh_u32_t background_argb)
 {
-    if (!s || !finite3(vec(pos)) || !finite3(vec(f)) || !finite3(vec(u)) || !isfinite(fov) ||
-        fov < .1f || fov > 3.f || !isfinite(near_z) || !isfinite(far_z) || near_z <= 0 ||
-        far_z <= near_z)
-    {
-        return 0;
-    }
-    vertex forward = vec(f), up = vec(u);
-    if (!normalize(&forward))
-    {
-        return 0;
-    }
-    vertex right = cross(forward, up);
-    if (!normalize(&right))
-    {
-        return 0;
-    }
-    up = cross(right, forward);
-    s->position = pos;
-    s->forward = out(forward);
-    s->right = out(right);
-    s->up = out(up);
-    s->tangent = tanf(fov * .5f);
-    s->near_plane = near_z;
-    s->far_plane = far_z;
-    return 1;
+    lh_return_if(lh_null_eq(self), lh_bool_false);
+    lh_memory_std_set(self, 0, sizeof *self);
+    lh_return_if(lh_null_eq(target) || lh_null_eq(depth) || lh_null_eq(camera) ||
+                     lh_ui_pixmap_get_format(target) != lh_ui_pixmap_format_argb8888,
+                 lh_bool_false);
+    const lh_s32_t width = lh_ui_pixmap_get_width(target);
+    const lh_s32_t height = lh_ui_pixmap_get_height(target);
+    lh_return_if(width < 1 || height < 1 || width > 8192 || height > 8192 ||
+                     (lh_usize_t)width * (lh_usize_t)height > depth_count ||
+                     !lh_ui_renderer3d_camera_is_usable(camera),
+                 lh_bool_false);
+    self->target = target;
+    self->depth = depth;
+    self->width = width;
+    self->height = height;
+    self->camera = *camera;
+    return lh_ui_renderer3d_clear(self, background_argb);
 }
 
 lh_bool_t
-lh_ui_renderer3d_begin(lh_ui_renderer3d_t *s, lh_ui_pixmap_t *target, float *depth,
-                       lh_usize_t count, const lh_ui_renderer3d_camera_t *cam, lh_u32_t bg)
+lh_ui_renderer3d_clear(lh_ui_renderer3d_t *self, lh_u32_t background_argb)
 {
-    if (!s)
+    lh_assert_runtime_ref(self);
+    for (lh_s32_t y = 0; y < self->height; y++)
     {
-        return 0;
-    }
-    lh_memory_std_set(s, 0, sizeof *s);
-    if (!target || !depth || !cam ||
-        lh_ui_pixmap_get_format(target) != lh_ui_pixmap_format_argb8888)
-    {
-        return 0;
-    }
-    int w = lh_ui_pixmap_get_width(target), h = lh_ui_pixmap_get_height(target);
-    if (w < 1 || h < 1 || w > 8192 || h > 8192 || (lh_usize_t)w * (lh_usize_t)h > count ||
-        !isfinite(cam->tangent) || cam->tangent <= 0 || cam->near_plane <= 0 ||
-        cam->far_plane <= cam->near_plane)
-    {
-        return 0;
-    }
-    s->target = target;
-    s->depth = depth;
-    s->width = w;
-    s->height = h;
-    s->camera = *cam;
-    for (int y = 0; y < h; y++)
-    {
-        lh_u32_t *row = (lh_u32_t *)lh_ui_pixmap_get_row(target, y);
-        if (!row)
+        lh_u32_t *row = lh_cast_reinterpret(lh_u32_t *, lh_ui_pixmap_get_row(self->target, y));
+        if (lh_null_eq(row))
         {
-            s->target = 0;
-            return 0;
+            self->target = lh_null;
+            return lh_bool_false;
         }
-        for (int x = 0; x < w; x++)
+        for (lh_s32_t x = 0; x < self->width; x++)
         {
-            row[x] = bg;
-            depth[(lh_usize_t)y * w + x] = FLT_MAX;
+            row[x] = background_argb;
+            self->depth[(lh_usize_t)y * self->width + x] = LH_FLOAT_T_MAX;
         }
     }
-    return 1;
+    return lh_bool_true;
 }
-static vertex
-transform(lh_ui_renderer3d_t *s, lh_math_vec3_t v)
+
+lh_math_fscalar_t
+lh_ui_renderer3d_get_plane_distance(const lh_ui_renderer3d_t *self, lh_math_vec3_t view,
+                                    lh_ui_renderer3d_plane_t plane)
 {
-    vertex p = vec(v), o = vec(s->camera.position);
-    p.x -= o.x;
-    p.y -= o.y;
-    p.z -= o.z;
-    return (vertex){dot(p, vec(s->camera.right)), dot(p, vec(s->camera.up)),
-                    dot(p, vec(s->camera.forward))};
-}
-static float
-distance_plane(vertex v, int plane, float tx, float ty, float near_z, float far_z)
-{
+    lh_assert_runtime_ref(self);
+    const lh_math_fscalar_t ty = self->camera.tangent;
+    const lh_math_fscalar_t tx = ty * self->width / self->height;
+    const lh_math_fscalar_t x = lh_math_vec3_get_x(&view);
+    const lh_math_fscalar_t y = lh_math_vec3_get_y(&view);
+    const lh_math_fscalar_t z = lh_math_vec3_get_z(&view);
     switch (plane)
     {
-    case 0:
-        return v.z - near_z;
-    case 1:
-        return far_z - v.z;
-    case 2:
-        return v.x + v.z * tx;
-    case 3:
-        return v.z * tx - v.x;
-    case 4:
-        return v.y + v.z * ty;
+    case lh_ui_renderer3d_plane_near:
+        return z - self->camera.near_plane;
+    case lh_ui_renderer3d_plane_far:
+        return self->camera.far_plane - z;
+    case lh_ui_renderer3d_plane_left:
+        return x + z * tx;
+    case lh_ui_renderer3d_plane_right:
+        return z * tx - x;
+    case lh_ui_renderer3d_plane_bottom:
+        return y + z * ty;
     default:
-        return v.z * ty - v.y;
+        return z * ty - y;
     }
 }
-static float
-edge(vertex a, vertex b, float x, float y)
+
+lh_s32_t
+lh_ui_renderer3d_clip_plane(const lh_ui_renderer3d_t *self, lh_ui_renderer3d_plane_t plane,
+                            const lh_math_vec3_t *in, lh_s32_t count, lh_math_vec3_t *out,
+                            lh_s32_t capacity)
 {
-    return (x - a.x) * (b.y - a.y) - (y - a.y) * (b.x - a.x);
-}
-static void
-raster(lh_ui_renderer3d_t *s, vertex a, vertex b, vertex c, lh_u32_t color)
-{
-    vertex p[3] = {a, b, c};
-    float f = s->height / (2 * s->camera.tangent);
-    for (int i = 0; i < 3; i++)
+    lh_return_if(count < 1, 0);
+    lh_s32_t written = 0;
+    lh_math_vec3_t previous = in[count - 1];
+    lh_math_fscalar_t previous_distance =
+        lh_ui_renderer3d_get_plane_distance(self, previous, plane);
+    for (lh_s32_t i = 0; i < count; i++)
     {
-        p[i].x = s->width * .5f + p[i].x * f / p[i].z;
-        p[i].y = s->height * .5f - p[i].y * f / p[i].z;
-        p[i].z = 1 / p[i].z;
-    }
-    a = p[0];
-    b = p[1];
-    c = p[2];
-    float area = edge(a, b, c.x, c.y);
-    if (!isfinite(area) || fabsf(area) < 1e-5f)
-    {
-        return;
-    }
-    int x0 = (int)fmaxf(0, floorf(fminf(a.x, fminf(b.x, c.x)))),
-        x1 = (int)fminf(s->width - 1, ceilf(fmaxf(a.x, fmaxf(b.x, c.x))));
-    int y0 = (int)fmaxf(0, floorf(fminf(a.y, fminf(b.y, c.y)))),
-        y1 = (int)fminf(s->height - 1, ceilf(fmaxf(a.y, fmaxf(b.y, c.y))));
-    s->triangles++;
-    for (int y = y0; y <= y1; y++)
-    {
-        lh_u32_t *row = (lh_u32_t *)lh_ui_pixmap_get_row(s->target, y);
-        for (int x = x0; x <= x1; x++)
+        const lh_math_vec3_t current = in[i];
+        const lh_math_fscalar_t distance =
+            lh_ui_renderer3d_get_plane_distance(self, current, plane);
+        if ((previous_distance >= 0) != (distance >= 0))
         {
-            float wa = edge(b, c, x + .5f, y + .5f) / area,
-                  wb = edge(c, a, x + .5f, y + .5f) / area, wc = 1 - wa - wb;
+            lh_return_if(written >= capacity, -1);
+            lh_math_vec3_lerp(previous, current,
+                              previous_distance / (previous_distance - distance),
+                              &out[written++]);
+        }
+        if (distance >= 0)
+        {
+            lh_return_if(written >= capacity, -1);
+            out[written++] = current;
+        }
+        previous = current;
+        previous_distance = distance;
+    }
+    return written;
+}
+
+lh_void
+lh_ui_renderer3d_project(const lh_ui_renderer3d_t *self, lh_math_vec3_t view,
+                         lh_math_vec3_t *out)
+{
+    lh_assert_runtime_ref(self);
+    const lh_math_fscalar_t focal = self->height / (2 * self->camera.tangent);
+    const lh_math_fscalar_t z = lh_math_vec3_get_z(&view);
+    lh_math_vec3_init(out, self->width * .5f + lh_math_vec3_get_x(&view) * focal / z,
+                      self->height * .5f - lh_math_vec3_get_y(&view) * focal / z, 1 / z);
+}
+
+lh_math_fscalar_t
+lh_ui_renderer3d_get_edge(lh_math_vec3_t a, lh_math_vec3_t b, lh_math_fscalar_t x,
+                          lh_math_fscalar_t y)
+{
+    const lh_math_fscalar_t ax = lh_math_vec3_get_x(&a);
+    const lh_math_fscalar_t ay = lh_math_vec3_get_y(&a);
+    return (x - ax) * (lh_math_vec3_get_y(&b) - ay) - (y - ay) * (lh_math_vec3_get_x(&b) - ax);
+}
+
+lh_bool_t
+lh_ui_renderer3d_put_fragment(lh_ui_renderer3d_t *self, lh_s32_t x, lh_s32_t y,
+                              lh_math_fscalar_t depth, lh_u32_t color_argb)
+{
+    lh_assert_runtime_ref(self);
+    const lh_usize_t i = (lh_usize_t)y * self->width + x;
+    lh_return_ifn(depth < self->depth[i], lh_bool_false);
+    self->depth[i] = depth;
+    lh_cast_reinterpret(lh_u32_t *, lh_ui_pixmap_get_row(self->target, y))[x] = color_argb;
+    return lh_bool_true;
+}
+
+lh_void
+lh_ui_renderer3d_raster(lh_ui_renderer3d_t *self, lh_math_vec3_t a, lh_math_vec3_t b,
+                        lh_math_vec3_t c, lh_u32_t color_argb)
+{
+    lh_assert_runtime_ref(self);
+    const lh_math_fscalar_t area =
+        lh_ui_renderer3d_get_edge(a, b, lh_math_vec3_get_x(&c), lh_math_vec3_get_y(&c));
+    lh_return_if(!lh_math_float_is_finite(area) || lh_math_abs(area) < 1e-5f);
+    const lh_math_fscalar_t ax = lh_math_vec3_get_x(&a);
+    const lh_math_fscalar_t bx = lh_math_vec3_get_x(&b);
+    const lh_math_fscalar_t cx = lh_math_vec3_get_x(&c);
+    const lh_math_fscalar_t ay = lh_math_vec3_get_y(&a);
+    const lh_math_fscalar_t by = lh_math_vec3_get_y(&b);
+    const lh_math_fscalar_t cy = lh_math_vec3_get_y(&c);
+    const lh_s32_t x0 =
+        lh_math_max(0, lh_math_float_floor_to_int(lh_math_min(ax, lh_math_min(bx, cx))));
+    const lh_s32_t x1 = lh_math_min(self->width - 1,
+                                    lh_math_float_ceil_to_int(lh_math_max(ax, lh_math_max(bx, cx))));
+    const lh_s32_t y0 =
+        lh_math_max(0, lh_math_float_floor_to_int(lh_math_min(ay, lh_math_min(by, cy))));
+    const lh_s32_t y1 = lh_math_min(self->height - 1,
+                                    lh_math_float_ceil_to_int(lh_math_max(ay, lh_math_max(by, cy))));
+    self->triangles++;
+    for (lh_s32_t y = y0; y <= y1; y++)
+    {
+        for (lh_s32_t x = x0; x <= x1; x++)
+        {
+            const lh_math_fscalar_t wa = lh_ui_renderer3d_get_edge(b, c, x + .5f, y + .5f) / area;
+            const lh_math_fscalar_t wb = lh_ui_renderer3d_get_edge(c, a, x + .5f, y + .5f) / area;
+            const lh_math_fscalar_t wc = 1 - wa - wb;
             if (wa < -.00001f || wb < -.00001f || wc < -.00001f)
             {
                 continue;
             }
-            float iz = wa * a.z + wb * b.z + wc * c.z;
-            if (iz <= 0)
+            const lh_math_fscalar_t inverse_depth = wa * lh_math_vec3_get_z(&a) +
+                                                    wb * lh_math_vec3_get_z(&b) +
+                                                    wc * lh_math_vec3_get_z(&c);
+            if (inverse_depth <= 0)
             {
                 continue;
             }
-            float z = 1 / iz;
-            lh_usize_t i = (lh_usize_t)y * s->width + x;
-            if (z < s->depth[i])
-            {
-                s->depth[i] = z;
-                row[x] = color;
-            }
+            lh_ui_renderer3d_put_fragment(self, x, y, 1 / inverse_depth, color_argb);
         }
     }
 }
+
 lh_void
-lh_ui_renderer3d_triangle(lh_ui_renderer3d_t *s, lh_math_vec3_t a, lh_math_vec3_t b,
-                          lh_math_vec3_t c, lh_u32_t color)
+lh_ui_renderer3d_triangle(lh_ui_renderer3d_t *self, lh_math_vec3_t a, lh_math_vec3_t b,
+                          lh_math_vec3_t c, lh_u32_t color_argb)
 {
-    if (!s || !s->target || !finite3(vec(a)) || !finite3(vec(b)) || !finite3(vec(c)))
+    lh_return_if(lh_null_eq(self) || lh_null_eq(self->target) || !lh_math_vec3_is_finite(a) ||
+                 !lh_math_vec3_is_finite(b) || !lh_math_vec3_is_finite(c));
+    lh_math_vec3_t polygon[2][lh_ui_renderer3d_clip_capacity];
+    lh_ui_renderer3d_camera_to_view(&self->camera, a, &polygon[0][0]);
+    lh_ui_renderer3d_camera_to_view(&self->camera, b, &polygon[0][1]);
+    lh_ui_renderer3d_camera_to_view(&self->camera, c, &polygon[0][2]);
+    lh_s32_t count = 3;
+    lh_s32_t from = 0;
+    for (lh_s32_t plane = 0; plane < lh_ui_renderer3d_plane_count && count > 0; plane++)
     {
-        return;
+        count = lh_ui_renderer3d_clip_plane(self, (lh_ui_renderer3d_plane_t)plane, polygon[from],
+                                            count, polygon[1 - from],
+                                            lh_ui_renderer3d_clip_capacity);
+        lh_return_if(count < 0);
+        from = 1 - from;
     }
-    vertex buf[2][16];
-    buf[0][0] = transform(s, a);
-    buf[0][1] = transform(s, b);
-    buf[0][2] = transform(s, c);
-    int n = 3, src = 0;
-    float ty = s->camera.tangent, tx = ty * s->width / s->height;
-    for (int plane = 0; plane < 6 && n; plane++)
+    for (lh_s32_t i = 0; i < count; i++)
     {
-        int m = 0;
-        vertex prev = buf[src][n - 1];
-        float dp = distance_plane(prev, plane, tx, ty, s->camera.near_plane, s->camera.far_plane);
-        for (int i = 0; i < n; i++)
-        {
-            vertex cur = buf[src][i];
-            float dc =
-                distance_plane(cur, plane, tx, ty, s->camera.near_plane, s->camera.far_plane);
-            if ((dp >= 0) != (dc >= 0))
-            {
-                float t = dp / (dp - dc);
-                if (m >= 16)
-                {
-                    return;
-                }
-                buf[1 - src][m++] =
-                    (vertex){prev.x + (cur.x - prev.x) * t, prev.y + (cur.y - prev.y) * t,
-                             prev.z + (cur.z - prev.z) * t};
-            }
-            if (dc >= 0)
-            {
-                if (m >= 16)
-                {
-                    return;
-                }
-                buf[1 - src][m++] = cur;
-            }
-            prev = cur;
-            dp = dc;
-        }
-        n = m;
-        src = 1 - src;
+        lh_ui_renderer3d_project(self, polygon[from][i], &polygon[from][i]);
     }
-    for (int i = 1; i + 1 < n; i++)
+    for (lh_s32_t i = 1; i + 1 < count; i++)
     {
-        raster(s, buf[src][0], buf[src][i], buf[src][i + 1], color);
+        lh_ui_renderer3d_raster(self, polygon[from][0], polygon[from][i], polygon[from][i + 1],
+                                color_argb);
     }
 }
+
 lh_void
-lh_ui_renderer3d_box(lh_ui_renderer3d_t *s, lh_math_vec3_t minimum, lh_math_vec3_t maximum,
-                     lh_u32_t color)
+lh_ui_renderer3d_box(lh_ui_renderer3d_t *self, lh_math_vec3_t minimum, lh_math_vec3_t maximum,
+                     lh_u32_t color_argb)
 {
-    vertex a = vec(minimum), b = vec(maximum);
-    if (!finite3(a) || !finite3(b) || a.x > b.x || a.y > b.y || a.z > b.z)
+    lh_return_if(!lh_math_vec3_is_finite(minimum) || !lh_math_vec3_is_finite(maximum) ||
+                 lh_math_vec3_get_x(&minimum) > lh_math_vec3_get_x(&maximum) ||
+                 lh_math_vec3_get_y(&minimum) > lh_math_vec3_get_y(&maximum) ||
+                 lh_math_vec3_get_z(&minimum) > lh_math_vec3_get_z(&maximum));
+    lh_math_vec3_t corner[8];
+    for (lh_s32_t i = 0; i < 8; i++)
     {
-        return;
+        lh_math_vec3_init(&corner[i], lh_math_vec3_get_x(i & 1 ? &maximum : &minimum),
+                          lh_math_vec3_get_y(i & 2 ? &maximum : &minimum),
+                          lh_math_vec3_get_z(i & 4 ? &maximum : &minimum));
     }
-    lh_math_vec3_t v[8];
-    for (int i = 0; i < 8; i++)
+    static const lh_u8_t faces[12][3] = {{0, 1, 3}, {0, 3, 2}, {4, 6, 7}, {4, 7, 5},
+                                         {0, 4, 5}, {0, 5, 1}, {2, 3, 7}, {2, 7, 6},
+                                         {0, 2, 6}, {0, 6, 4}, {1, 5, 7}, {1, 7, 3}};
+    for (lh_s32_t i = 0; i < 12; i++)
     {
-        v[i] = out((vertex){i & 1 ? b.x : a.x, i & 2 ? b.y : a.y, i & 4 ? b.z : a.z});
-    }
-    static const unsigned char faces[12][3] = {{0, 1, 3}, {0, 3, 2}, {4, 6, 7}, {4, 7, 5},
-                                               {0, 4, 5}, {0, 5, 1}, {2, 3, 7}, {2, 7, 6},
-                                               {0, 2, 6}, {0, 6, 4}, {1, 5, 7}, {1, 7, 3}};
-    for (int i = 0; i < 12; i++)
-    {
-        lh_ui_renderer3d_triangle(s, v[faces[i][0]], v[faces[i][1]], v[faces[i][2]], color);
+        lh_ui_renderer3d_triangle(self, corner[faces[i][0]], corner[faces[i][1]],
+                                  corner[faces[i][2]], color_argb);
     }
 }
+
 lh_u32_t
-lh_ui_renderer3d_get_triangles(const lh_ui_renderer3d_t *s)
+lh_ui_renderer3d_get_triangles(const lh_ui_renderer3d_t *self)
 {
-    return s ? s->triangles : 0;
+    return lh_null_ne(self) ? self->triangles : 0;
 }

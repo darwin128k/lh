@@ -20,6 +20,7 @@ const lh_u32_t lh_os_system_win_key_vks[] = {
     LH_OS_SYSTEM_WIN_VK_PRIOR,   LH_OS_SYSTEM_WIN_VK_NEXT,   LH_OS_SYSTEM_WIN_VK_SHIFT,
     LH_OS_SYSTEM_WIN_VK_CONTROL, LH_OS_SYSTEM_WIN_VK_MENU,
 };
+
 const lh_os_key_t lh_os_system_win_key_keys[] = {
     lh_os_key_tab,     lh_os_key_enter, lh_os_key_escape,  lh_os_key_backspace, lh_os_key_delete,
     lh_os_key_space,   lh_os_key_left,  lh_os_key_right,   lh_os_key_up,        lh_os_key_down,

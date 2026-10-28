@@ -26,6 +26,10 @@ consequence. Hidden implementation is what we avoid.
   function type and pointer), `<name>/initializer.h`, `<name>/kind.h` (enum).
   See `lh/memory/allocator/` and `lh/array/`.
 - Each piece stands on its own; together they form the mechanism.
+- Exception: a **type family** is one entity and stays in one file — the base
+  C types (`numeric/types.h`), the fixed widths `u8`…`u64` / `s8`…`s64`
+  (`numeric/fixed/types.h`), the same struct per width (`numeric/interval/`,
+  `char/interval/`), `char.h`, `memory/word.h`. Do not split them per width.
 
 ## 2. Decompose and delegate
 

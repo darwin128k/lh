@@ -26,6 +26,7 @@ check_flags(const lh_os_net_socket_t *self)
     EXPECT_NE(status & O_NONBLOCK, 0);
 #endif
 }
+
 lh_ssize_t
 receive_within(lh_os_net_socket_t *self, lh_char_t *byte)
 {
@@ -73,6 +74,7 @@ class nonblocking_socket : public lh_test::network_test
         lh_test::network_test::TearDown();
     }
 };
+
 using nonblocking_udp = lh_test::network_test;
 } // namespace
 TEST_F(nonblocking_udp, opens_with_noninheritable_handle)
@@ -81,6 +83,7 @@ TEST_F(nonblocking_udp, opens_with_noninheritable_handle)
     ASSERT_TRUE(lh_os_net_socket_open_nonblocking(&socket.value, lh_os_system_net_socket_type_udp));
     check_flags(&socket.value);
 }
+
 TEST_F(nonblocking_socket, empty_accept_preserves_destination_peer_and_error)
 {
     lh_os_system_error_set_code(lh_os_system_last_error(), 12345);
@@ -92,6 +95,7 @@ TEST_F(nonblocking_socket, empty_accept_preserves_destination_peer_and_error)
     lh_net_ip4_socket_addr_get_ip(&peer, &actual);
     EXPECT_TRUE(lh_net_ip4_equals(&actual, &ip));
 }
+
 TEST_F(nonblocking_socket, accepts_peer_with_nonblocking_io_and_bidirectional_data)
 {
     ASSERT_TRUE(lh_os_net_socket_open(&client.value, lh_os_system_net_socket_type_tcp));
@@ -118,6 +122,7 @@ TEST_F(nonblocking_socket, accepts_peer_with_nonblocking_io_and_bidirectional_da
     lh_os_net_socket_close(&client.value);
     EXPECT_EQ(receive_within(&accepted.value, &byte), 0);
 }
+
 TEST_F(nonblocking_socket, closed_listener_captures_failure_without_creating_destination)
 {
     lh_os_net_socket_close(&listener.value);
