@@ -205,9 +205,142 @@ lh_void
 lh_crypto_rijndael_expand_key(lh_crypto_rijndael_t *self, const lh_byte_ptr key,
                               lh_usize_t key_size);
 
-/** Block size of @p self in bytes. */
+/**
+ * @brief The block length in bytes: 16, 24 or 32 (level 1).
+ *
+ * Bounded for the compiler: a value past ::LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX is
+ * declared unreachable, so every block-sized copy and xor is known to fit the
+ * state and chain buffers. ::lh_crypto_rijndael_init is what checks it.
+ *
+ * @param self The session; not checked (the cipher's hot path reads it).
+ */
 lh_usize_t
 lh_crypto_rijndael_get_block_size(const lh_crypto_rijndael_t *self);
+
+/**
+ * @brief The chaining mode selected at init (level 1).
+ *
+ * @param self The session; checked by ::lh_assert_runtime_ref.
+ */
+lh_crypto_rijndael_mode_t
+lh_crypto_rijndael_get_mode(const lh_crypto_rijndael_t *self);
+
+/**
+ * @brief Store the chaining mode selected at init (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The session; checked by ::lh_assert_runtime_ref.
+ * @param mode The new value.
+ */
+lh_void
+lh_crypto_rijndael_set_mode(lh_crypto_rijndael_t *self, lh_crypto_rijndael_mode_t mode);
+
+/**
+ * @brief Store the block length in bytes: 16, 24 or 32 (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The session; checked by ::lh_assert_runtime_ref.
+ * @param block_size The new value.
+ */
+lh_void
+lh_crypto_rijndael_set_block_size(lh_crypto_rijndael_t *self, lh_usize_t block_size);
+
+/**
+ * @brief The number of rounds for this key and block (level 1).
+ *
+ * @param self The session; checked by ::lh_assert_runtime_ref.
+ */
+lh_usize_t
+lh_crypto_rijndael_get_round_count(const lh_crypto_rijndael_t *self);
+
+/**
+ * @brief Store the number of rounds for this key and block (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The session; checked by ::lh_assert_runtime_ref.
+ * @param round_count The new value.
+ */
+lh_void
+lh_crypto_rijndael_set_round_count(lh_crypto_rijndael_t *self, lh_usize_t round_count);
+
+/**
+ * @brief The round keys (level 1).
+ *
+ * An array of ::LH_CRYPTO_RIJNDAEL_EXPANDED_KEY_SIZE_MAX bytes.
+ *
+ * @param self The session; checked by ::lh_assert_runtime_ref.
+ */
+const lh_byte_t *
+lh_crypto_rijndael_get_expanded_key(const lh_crypto_rijndael_t *self);
+
+/**
+ * @brief The round keys, to fill in place (level 1).
+ *
+ * An array of ::LH_CRYPTO_RIJNDAEL_EXPANDED_KEY_SIZE_MAX bytes; nothing about the
+ * bounds is checked.
+ *
+ * @param self The session; checked by ::lh_assert_runtime_ref.
+ */
+lh_byte_t *
+lh_crypto_rijndael_get_expanded_key_mut(lh_crypto_rijndael_t *self);
+
+/**
+ * @brief The CBC / CFB chaining block (level 1).
+ *
+ * An array of ::LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX bytes.
+ *
+ * @param self The session; checked by ::lh_assert_runtime_ref.
+ */
+const lh_byte_t *
+lh_crypto_rijndael_get_chain(const lh_crypto_rijndael_t *self);
+
+/**
+ * @brief The CBC / CFB chaining block, to fill in place (level 1).
+ *
+ * An array of ::LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX bytes; nothing about the
+ * bounds is checked.
+ *
+ * @param self The session; checked by ::lh_assert_runtime_ref.
+ */
+lh_byte_t *
+lh_crypto_rijndael_get_chain_mut(lh_crypto_rijndael_t *self);
+
+#if LH_LIBRARY_OPTION_SIMD_HAVE_AESNI
+/**
+ * @brief The AESDEC round keys (AES-NI builds only) (level 1).
+ *
+ * An array of ::LH_CRYPTO_RIJNDAEL_AESNI_DEC_KEY_SIZE_MAX bytes.
+ *
+ * @param self The session; checked by ::lh_assert_runtime_ref.
+ */
+const lh_byte_t *
+lh_crypto_rijndael_get_aesni_dec_key(const lh_crypto_rijndael_t *self);
+
+/**
+ * @brief The AESDEC round keys (AES-NI builds only), to fill in place (level 1).
+ *
+ * An array of ::LH_CRYPTO_RIJNDAEL_AESNI_DEC_KEY_SIZE_MAX bytes; nothing about the
+ * bounds is checked.
+ *
+ * @param self The session; checked by ::lh_assert_runtime_ref.
+ */
+lh_byte_t *
+lh_crypto_rijndael_get_aesni_dec_key_mut(lh_crypto_rijndael_t *self);
+#endif
+
+/**
+ * @brief Level 2: the key of round @p round, one block long, in the expanded key.
+ *
+ * @p round is not checked: it must not exceed ::lh_crypto_rijndael_get_round_count.
+ *
+ * @param self  The session.
+ * @param round 0 for the key added first, the round count for the last.
+ */
+const lh_byte_t *
+lh_crypto_rijndael_get_round_key(const lh_crypto_rijndael_t *self, lh_usize_t round);
 
 LH_COMPILER_EXTERN_C_END
 

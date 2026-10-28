@@ -213,8 +213,8 @@ lh_void
 lh_crypto_rijndael_expand_key(lh_crypto_rijndael_t *self, lh_byte_cptr key, lh_usize_t key_size)
 {
     lh_usize_t nk = key_size / 4U;
-    lh_usize_t nb = self->block_size / 4U;
-    lh_usize_t nr = self->round_count;
+    lh_usize_t nb = lh_crypto_rijndael_get_block_size(self) / 4U;
+    lh_usize_t nr = lh_crypto_rijndael_get_round_count(self);
     lh_usize_t total = nb * (nr + 1U);
     lh_u32_t w[120];
     lh_usize_t i;
@@ -245,11 +245,11 @@ lh_crypto_rijndael_expand_key(lh_crypto_rijndael_t *self, lh_byte_cptr key, lh_u
 
     for (i = 0; i < total; ++i)
     {
-        lh_bit_pack_be32(w[i], self->expanded_key + 4U * i);
+        lh_bit_pack_be32(w[i], lh_crypto_rijndael_get_expanded_key_mut(self) + 4U * i);
     }
 }
 
-/* self->block_size is 16, 24 or 32 (lh_crypto_rijndael_init checks it).
+/* The block size is 16, 24 or 32 (lh_crypto_rijndael_init checks it).
    Saying so lets the compiler bound every block-sized xor/copy below: once
    lh_memory_std_xor has a large-size tier, LTO otherwise warns that
    block_size bytes may overflow the 32-byte state/chain buffers. */
@@ -302,15 +302,17 @@ LH_CRYPTO_RIJNDAEL_AESNI_TARGET
 static __m128i
 lh_crypto_rijndael_aesni_round_key(const lh_crypto_rijndael_t *self, lh_usize_t round)
 {
-    return _mm_loadu_si128(lh_ptr_rcast(
-        const __m128i, self->expanded_key + lh_crypto_rijndael_aesni_key_offset(round)));
+    const lh_byte_t *key =
+        lh_crypto_rijndael_get_expanded_key(self) + lh_crypto_rijndael_aesni_key_offset(round);
+
+    return _mm_loadu_si128(lh_ptr_rcast(const __m128i, key));
 }
 
 LH_CRYPTO_RIJNDAEL_AESNI_TARGET
 static lh_void
 lh_crypto_rijndael_aesni_encrypt(const lh_crypto_rijndael_t *self, lh_byte_cptr in, lh_byte_ptr out)
 {
-    const lh_usize_t nr = self->round_count;
+    const lh_usize_t nr = lh_crypto_rijndael_get_round_count(self);
     __m128i state = _mm_loadu_si128(lh_ptr_rcast(const __m128i, in));
     lh_usize_t round;
 
@@ -327,26 +329,31 @@ LH_CRYPTO_RIJNDAEL_AESNI_TARGET
 static __m128i
 lh_crypto_rijndael_aesni_dec_round_key(const lh_crypto_rijndael_t *self, lh_usize_t round)
 {
-    return _mm_loadu_si128(lh_ptr_rcast(
-        const __m128i, self->aesni_dec_key + lh_crypto_rijndael_aesni_key_offset(round)));
+    const lh_byte_t *key =
+        lh_crypto_rijndael_get_aesni_dec_key(self) + lh_crypto_rijndael_aesni_key_offset(round);
+
+    return _mm_loadu_si128(lh_ptr_rcast(const __m128i, key));
 }
 
 /* The equivalent inverse cipher (FIPS-197 5.3.5): AESDEC wants the middle round keys
    passed through InvMixColumns. AESIMC does that once here, at key setup, into
-   self->aesni_dec_key at the same round index; rounds 0 and nr are used unchanged
-   from self->expanded_key. */
+   the AESDEC key schedule (lh_crypto_rijndael_get_aesni_dec_key) at the same round index;
+   rounds 0 and nr are used unchanged from the expanded key. */
 LH_CRYPTO_RIJNDAEL_AESNI_TARGET
 static lh_void
 lh_crypto_rijndael_aesni_expand_dec_key(lh_crypto_rijndael_t *self)
 {
-    const lh_usize_t nr = self->round_count;
+    const lh_usize_t nr = lh_crypto_rijndael_get_round_count(self);
     lh_usize_t round;
 
     for (round = 1; round < nr; ++round)
     {
-        _mm_storeu_si128(
-            lh_ptr_rcast(__m128i, self->aesni_dec_key + lh_crypto_rijndael_aesni_key_offset(round)),
-            _mm_aesimc_si128(lh_crypto_rijndael_aesni_round_key(self, round)));
+        lh_byte_t *key = lh_crypto_rijndael_get_aesni_dec_key_mut(self);
+
+        key += lh_crypto_rijndael_aesni_key_offset(round);
+
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, key),
+                         _mm_aesimc_si128(lh_crypto_rijndael_aesni_round_key(self, round)));
     }
 }
 
@@ -354,7 +361,7 @@ LH_CRYPTO_RIJNDAEL_AESNI_TARGET
 static lh_void
 lh_crypto_rijndael_aesni_decrypt(const lh_crypto_rijndael_t *self, lh_byte_cptr in, lh_byte_ptr out)
 {
-    const lh_usize_t nr = self->round_count;
+    const lh_usize_t nr = lh_crypto_rijndael_get_round_count(self);
     __m128i state = _mm_loadu_si128(lh_ptr_rcast(const __m128i, in));
     lh_usize_t round;
 
@@ -367,13 +374,15 @@ lh_crypto_rijndael_aesni_decrypt(const lh_crypto_rijndael_t *self, lh_byte_cptr 
     _mm_storeu_si128(lh_ptr_rcast(__m128i, out), state);
 }
 
-/* Fills self->aesni_dec_key when the AES-NI decrypt path will be taken; done for every
+/* Fills the AESDEC key schedule when the AES-NI decrypt path will be taken; done for every
    key setup since it is cheap and init does not know whether decrypt follows. */
 static lh_void
 lh_crypto_rijndael_aesni_setup(lh_crypto_rijndael_t *self)
 {
-    lh_memory_std_set(self->aesni_dec_key, 0, LH_CRYPTO_RIJNDAEL_AESNI_DEC_KEY_SIZE_MAX);
-    if (self->block_size == LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MIN && lh_crypto_rijndael_has_aesni())
+    lh_memory_std_set(lh_crypto_rijndael_get_aesni_dec_key_mut(self), 0,
+                      LH_CRYPTO_RIJNDAEL_AESNI_DEC_KEY_SIZE_MAX);
+    if (lh_crypto_rijndael_get_block_size(self) == LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MIN &&
+        lh_crypto_rijndael_has_aesni())
     {
         lh_crypto_rijndael_aesni_expand_dec_key(self);
     }
@@ -388,7 +397,7 @@ lh_crypto_rijndael_cipher(const lh_crypto_rijndael_t *self, lh_byte_cptr in, lh_
     const lh_usize_t block_size = lh_crypto_rijndael_get_block_size(self);
     lh_byte_t state[LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX];
     lh_usize_t nb = block_size / 4U;
-    lh_usize_t nr = self->round_count;
+    lh_usize_t nr = lh_crypto_rijndael_get_round_count(self);
     lh_usize_t round;
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_AESNI
@@ -410,32 +419,33 @@ lh_crypto_rijndael_cipher(const lh_crypto_rijndael_t *self, lh_byte_cptr in, lh_
 
     if (!decrypt)
     {
-        lh_memory_std_xor(state, state, self->expanded_key, block_size);
+        lh_memory_std_xor(state, state, lh_crypto_rijndael_get_round_key(self, 0U), block_size);
         for (round = 1; round < nr; ++round)
         {
             lh_crypto_rijndael_sub_bytes(state, block_size, lh_bool_false);
             lh_crypto_rijndael_shift_rows(state, nb, lh_bool_false);
             lh_crypto_rijndael_mix_columns(state, nb, lh_bool_false);
-            lh_memory_std_xor(state, state, self->expanded_key + round * block_size, block_size);
+            lh_memory_std_xor(state, state, lh_crypto_rijndael_get_round_key(self, round),
+                              block_size);
         }
         lh_crypto_rijndael_sub_bytes(state, block_size, lh_bool_false);
         lh_crypto_rijndael_shift_rows(state, nb, lh_bool_false);
-        lh_memory_std_xor(state, state, self->expanded_key + nr * block_size, block_size);
+        lh_memory_std_xor(state, state, lh_crypto_rijndael_get_round_key(self, nr), block_size);
     }
     else
     {
-        lh_memory_std_xor(state, state, self->expanded_key + nr * block_size, block_size);
+        lh_memory_std_xor(state, state, lh_crypto_rijndael_get_round_key(self, nr), block_size);
         for (round = nr; round > 1U; --round)
         {
             lh_crypto_rijndael_shift_rows(state, nb, lh_bool_true);
             lh_crypto_rijndael_sub_bytes(state, block_size, lh_bool_true);
-            lh_memory_std_xor(state, state, self->expanded_key + (round - 1U) * block_size,
+            lh_memory_std_xor(state, state, lh_crypto_rijndael_get_round_key(self, round - 1U),
                               block_size);
             lh_crypto_rijndael_mix_columns(state, nb, lh_bool_true);
         }
         lh_crypto_rijndael_shift_rows(state, nb, lh_bool_true);
         lh_crypto_rijndael_sub_bytes(state, block_size, lh_bool_true);
-        lh_memory_std_xor(state, state, self->expanded_key, block_size);
+        lh_memory_std_xor(state, state, lh_crypto_rijndael_get_round_key(self, 0U), block_size);
     }
 
     lh_memory_std_copy(out, state, block_size);
@@ -472,11 +482,12 @@ lh_crypto_rijndael_init(lh_crypto_rijndael_t *self, const lh_ptr key, lh_usize_t
     nb = block_size / 4U;
     nr = (nk > nb ? nk : nb) + 6U;
 
-    self->mode = mode;
-    self->block_size = block_size;
-    self->round_count = nr;
-    lh_memory_std_set(self->expanded_key, 0, LH_CRYPTO_RIJNDAEL_EXPANDED_KEY_SIZE_MAX);
-    lh_memory_std_set(self->chain, 0, LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX);
+    lh_crypto_rijndael_set_mode(self, mode);
+    lh_crypto_rijndael_set_block_size(self, block_size);
+    lh_crypto_rijndael_set_round_count(self, nr);
+    lh_memory_std_set(lh_crypto_rijndael_get_expanded_key_mut(self), 0,
+                      LH_CRYPTO_RIJNDAEL_EXPANDED_KEY_SIZE_MAX);
+    lh_memory_std_set(lh_crypto_rijndael_get_chain_mut(self), 0, LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX);
     lh_crypto_rijndael_expand_key(self, lh_ptr_rcast(const lh_byte_t, key), key_size);
 #if LH_LIBRARY_OPTION_SIMD_HAVE_AESNI
     lh_crypto_rijndael_aesni_setup(self);
@@ -484,7 +495,8 @@ lh_crypto_rijndael_init(lh_crypto_rijndael_t *self, const lh_ptr key, lh_usize_t
 
     if (mode != lh_crypto_rijndael_mode_ecb)
     {
-        lh_memory_std_copy(self->chain, lh_ptr_rcast(const lh_byte_t, chain), block_size);
+        lh_memory_std_copy(lh_crypto_rijndael_get_chain_mut(self),
+                           lh_ptr_rcast(const lh_byte_t, chain), block_size);
     }
 
     return lh_bool_true;
@@ -506,24 +518,24 @@ lh_crypto_rijndael_encrypt_block(lh_crypto_rijndael_t *self, const lh_ptr in, lh
     in_bytes = lh_ptr_rcast(const lh_byte_t, in);
     out_bytes = lh_ptr_rcast(lh_byte_t, out);
 
-    if (self->mode == lh_crypto_rijndael_mode_ecb)
+    if (lh_crypto_rijndael_get_mode(self) == lh_crypto_rijndael_mode_ecb)
     {
         lh_crypto_rijndael_cipher(self, in_bytes, out_bytes, lh_bool_false);
         return lh_bool_true;
     }
 
-    if (self->mode == lh_crypto_rijndael_mode_cbc)
+    if (lh_crypto_rijndael_get_mode(self) == lh_crypto_rijndael_mode_cbc)
     {
-        lh_memory_std_xor(block, in_bytes, self->chain, block_size);
+        lh_memory_std_xor(block, in_bytes, lh_crypto_rijndael_get_chain(self), block_size);
         lh_crypto_rijndael_cipher(self, block, out_bytes, lh_bool_false);
-        lh_memory_std_copy(self->chain, out_bytes, block_size);
+        lh_memory_std_copy(lh_crypto_rijndael_get_chain_mut(self), out_bytes, block_size);
         return lh_bool_true;
     }
 
     /* CFB: encrypt chain, xor with plaintext, chain <- ciphertext */
-    lh_crypto_rijndael_cipher(self, self->chain, block, lh_bool_false);
+    lh_crypto_rijndael_cipher(self, lh_crypto_rijndael_get_chain(self), block, lh_bool_false);
     lh_memory_std_xor(out_bytes, in_bytes, block, block_size);
-    lh_memory_std_copy(self->chain, out_bytes, block_size);
+    lh_memory_std_copy(lh_crypto_rijndael_get_chain_mut(self), out_bytes, block_size);
     return lh_bool_true;
 }
 
@@ -544,25 +556,112 @@ lh_crypto_rijndael_decrypt_block(lh_crypto_rijndael_t *self, const lh_ptr in, lh
     in_bytes = lh_ptr_rcast(const lh_byte_t, in);
     out_bytes = lh_ptr_rcast(lh_byte_t, out);
 
-    if (self->mode == lh_crypto_rijndael_mode_ecb)
+    if (lh_crypto_rijndael_get_mode(self) == lh_crypto_rijndael_mode_ecb)
     {
         lh_crypto_rijndael_cipher(self, in_bytes, out_bytes, lh_bool_true);
         return lh_bool_true;
     }
 
-    if (self->mode == lh_crypto_rijndael_mode_cbc)
+    if (lh_crypto_rijndael_get_mode(self) == lh_crypto_rijndael_mode_cbc)
     {
         lh_memory_std_copy(saved, in_bytes, block_size);
         lh_crypto_rijndael_cipher(self, in_bytes, block, lh_bool_true);
-        lh_memory_std_xor(out_bytes, block, self->chain, block_size);
-        lh_memory_std_copy(self->chain, saved, block_size);
+        lh_memory_std_xor(out_bytes, block, lh_crypto_rijndael_get_chain(self), block_size);
+        lh_memory_std_copy(lh_crypto_rijndael_get_chain_mut(self), saved, block_size);
         return lh_bool_true;
     }
 
     /* CFB decrypt: encrypt chain, xor with ciphertext, chain <- ciphertext */
     lh_memory_std_copy(saved, in_bytes, block_size);
-    lh_crypto_rijndael_cipher(self, self->chain, block, lh_bool_false);
+    lh_crypto_rijndael_cipher(self, lh_crypto_rijndael_get_chain(self), block, lh_bool_false);
     lh_memory_std_xor(out_bytes, in_bytes, block, block_size);
-    lh_memory_std_copy(self->chain, saved, block_size);
+    lh_memory_std_copy(lh_crypto_rijndael_get_chain_mut(self), saved, block_size);
     return lh_bool_true;
+}
+
+lh_crypto_rijndael_mode_t
+lh_crypto_rijndael_get_mode(const lh_crypto_rijndael_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->mode;
+}
+
+lh_void
+lh_crypto_rijndael_set_mode(lh_crypto_rijndael_t *self, lh_crypto_rijndael_mode_t mode)
+{
+    lh_assert_runtime_ref(self);
+    self->mode = mode;
+}
+
+lh_void
+lh_crypto_rijndael_set_block_size(lh_crypto_rijndael_t *self, lh_usize_t block_size)
+{
+    lh_assert_runtime_ref(self);
+    self->block_size = block_size;
+}
+
+lh_usize_t
+lh_crypto_rijndael_get_round_count(const lh_crypto_rijndael_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->round_count;
+}
+
+lh_void
+lh_crypto_rijndael_set_round_count(lh_crypto_rijndael_t *self, lh_usize_t round_count)
+{
+    lh_assert_runtime_ref(self);
+    self->round_count = round_count;
+}
+
+const lh_byte_t *
+lh_crypto_rijndael_get_expanded_key(const lh_crypto_rijndael_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->expanded_key;
+}
+
+lh_byte_t *
+lh_crypto_rijndael_get_expanded_key_mut(lh_crypto_rijndael_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->expanded_key;
+}
+
+const lh_byte_t *
+lh_crypto_rijndael_get_chain(const lh_crypto_rijndael_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->chain;
+}
+
+lh_byte_t *
+lh_crypto_rijndael_get_chain_mut(lh_crypto_rijndael_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->chain;
+}
+
+#if LH_LIBRARY_OPTION_SIMD_HAVE_AESNI
+const lh_byte_t *
+lh_crypto_rijndael_get_aesni_dec_key(const lh_crypto_rijndael_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->aesni_dec_key;
+}
+
+lh_byte_t *
+lh_crypto_rijndael_get_aesni_dec_key_mut(lh_crypto_rijndael_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->aesni_dec_key;
+}
+#endif
+
+const lh_byte_t *
+lh_crypto_rijndael_get_round_key(const lh_crypto_rijndael_t *self, lh_usize_t round)
+{
+    const lh_usize_t offset = round * lh_crypto_rijndael_get_block_size(self);
+
+    return lh_crypto_rijndael_get_expanded_key(self) + offset;
 }

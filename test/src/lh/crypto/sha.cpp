@@ -84,4 +84,57 @@ TEST(crypto_sha, incremental_matches_oneshot)
               std::string(reinterpret_cast<char *>(b), 32));
 }
 
+/* 56 bytes leave no room for the 8-byte length in a 64-byte block: the padding
+   spills into a second block (FIPS 180-2 examples). */
+TEST(crypto_sha, padding_that_spills_into_a_second_block)
+{
+    const char *text = "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq";
+
+    EXPECT_EQ(digest_hex(lh_crypto_sha_kind_1, text), "84983e441c3bd26ebaae4aa1f95129e5e54670f1");
+    EXPECT_EQ(digest_hex(lh_crypto_sha_kind_256, text),
+              "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1");
+}
+
+/* 112 bytes leave no room for the 16-byte length in a 128-byte block. */
+TEST(crypto_sha, sha512_padding_that_spills_into_a_second_block)
+{
+    EXPECT_EQ(digest_hex(lh_crypto_sha_kind_512,
+                         "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmn"
+                         "hijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu"),
+              "8e959b75dae313da8cf4f72814fc143f8f7779c6eb9f7fa17299aeadb6889018"
+              "501d289e4900f7e4331b99dec4b5433ac7d329eeb6dd26545e96e55b874be909");
+}
+
+TEST(crypto_sha, add_state_word_32_wraps_at_32_bits)
+{
+    lh_crypto_sha_t hasher;
+
+    lh_crypto_sha_init(lh_addr_of(hasher), lh_crypto_sha_kind_256);
+    lh_crypto_sha_set_state_word(lh_addr_of(hasher), 0, 0xFFFFFFFFU);
+    lh_crypto_sha_add_state_word_32(lh_addr_of(hasher), 0, 2U);
+    EXPECT_EQ(lh_crypto_sha_get_state_word(lh_addr_of(hasher), 0), 1U);
+
+    lh_crypto_sha_set_state_word(lh_addr_of(hasher), 1, 0xFFFFFFFFU);
+    lh_crypto_sha_add_state_word(lh_addr_of(hasher), 1, 2U);
+    EXPECT_EQ(lh_crypto_sha_get_state_word(lh_addr_of(hasher), 1), 0x100000001ULL);
+}
+
+TEST(crypto_sha, fill_block_appends_and_moves_the_fill)
+{
+    lh_crypto_sha_t hasher;
+    const lh_byte_t bytes[3] = {1, 2, 3};
+
+    lh_crypto_sha_init(lh_addr_of(hasher), lh_crypto_sha_kind_256);
+    lh_crypto_sha_fill_block(lh_addr_of(hasher), bytes, 2);
+    lh_crypto_sha_fill_block(lh_addr_of(hasher), bytes + 2, 1);
+    EXPECT_EQ(lh_crypto_sha_get_block_fill(lh_addr_of(hasher)), 3U);
+    EXPECT_EQ(lh_crypto_sha_get_block(lh_addr_of(hasher))[2], 3U);
+    EXPECT_EQ(lh_crypto_sha_get_block_tail_mut(lh_addr_of(hasher)),
+              lh_crypto_sha_get_block_mut(lh_addr_of(hasher)) + 3);
+
+    lh_crypto_sha_zero_block_to(lh_addr_of(hasher), 8);
+    EXPECT_EQ(lh_crypto_sha_get_block(lh_addr_of(hasher))[7], 0U);
+    EXPECT_EQ(lh_crypto_sha_get_block_fill(lh_addr_of(hasher)), 3U) << "zeroing does not move the fill";
+}
+
 } // namespace

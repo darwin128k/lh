@@ -204,4 +204,19 @@ TEST(crypto_rijndael, rejects_bad_sizes)
                                          lh_crypto_rijndael_mode_ecb));
 }
 
+TEST(crypto_rijndael, round_key_is_one_block_per_round)
+{
+    lh_byte_t key[32] = {};
+    lh_crypto_rijndael_t cipher;
+
+    ASSERT_TRUE(lh_crypto_rijndael_init(lh_addr_of(cipher), key, 32, lh_null, 0, 24,
+                                        lh_crypto_rijndael_mode_ecb));
+    EXPECT_EQ(lh_crypto_rijndael_get_block_size(lh_addr_of(cipher)), 24U);
+    EXPECT_EQ(lh_crypto_rijndael_get_round_count(lh_addr_of(cipher)), 14U) << "max(8, 6) + 6";
+    EXPECT_EQ(lh_crypto_rijndael_get_round_key(lh_addr_of(cipher), 0),
+              lh_crypto_rijndael_get_expanded_key(lh_addr_of(cipher)));
+    EXPECT_EQ(lh_crypto_rijndael_get_round_key(lh_addr_of(cipher), 3),
+              lh_crypto_rijndael_get_expanded_key(lh_addr_of(cipher)) + 3 * 24);
+}
+
 } // namespace
