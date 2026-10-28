@@ -22,6 +22,7 @@
  * Incomplete input can become valid after appending bytes. An error requires
  * changing input/limits/storage, not blindly retrying the same bytes.
  */
+
 #ifndef LH_HTTP_PARSER_H
 #define LH_HTTP_PARSER_H
 

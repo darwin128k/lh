@@ -2,6 +2,7 @@
  * @file request.h
  * @brief HTTP/1 request-line views and parsed header count.
  */
+
 #ifndef LH_HTTP_REQUEST_H
 #define LH_HTTP_REQUEST_H
 

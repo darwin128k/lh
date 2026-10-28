@@ -5,6 +5,7 @@
  * One category per failed head. The byte offset of the offending input comes
  * from ::lh_http_parser_get_error_offset.
  */
+
 #ifndef LH_HTTP_ERROR_H
 #define LH_HTTP_ERROR_H
 

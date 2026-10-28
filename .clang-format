@@ -10,3 +10,8 @@ IndentWidth: 4
 TabWidth: 4
 UseTab: Never
 SortIncludes: false
+
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
+SeparateDefinitionBlocks: Always

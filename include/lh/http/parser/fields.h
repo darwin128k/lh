@@ -2,6 +2,7 @@
  * @file fields.h
  * @brief HTTP parser budgets and last-call diagnostics.
  */
+
 #ifndef LH_HTTP_PARSER_FIELDS_H
 #define LH_HTTP_PARSER_FIELDS_H
 
