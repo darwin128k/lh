@@ -78,6 +78,9 @@ typedef lh_sint_t(lh_sql_mysql_set_character_set_fn)(lh_ptr mysql, const lh_char
 /** `int mysql_options(MYSQL *, int option, const void *)`. */
 typedef lh_sint_t(lh_sql_mysql_options_fn)(lh_ptr mysql, lh_sint_t option, const lh_void *value);
 
+/** `void mysql_thread_end(void)`. */
+typedef lh_void(lh_sql_mysql_thread_end_fn)(lh_void);
+
 /**
  * @struct lh_sql_mysql_api
  * @brief The client image and its functions. Fields via
@@ -87,14 +90,17 @@ struct lh_sql_mysql_api
 {
     /** Optional for injected clients; mysql_options on real client libraries. */
     lh_sql_mysql_options_fn *options;
+    /** Optional current-thread cleanup; absent in some injected clients. */
+    lh_sql_mysql_thread_end_fn *thread_end;
     /** Members: ::lh_sql_mysql_api_fields. */
     lh_sql_mysql_api_fields(lh_os_shared_t, lh_sql_mysql_init_fn, lh_sql_mysql_real_connect_fn,
                             lh_sql_mysql_close_fn, lh_sql_mysql_error_fn,
-                            lh_sql_mysql_error_code_fn, lh_sql_mysql_real_query_fn, lh_sql_mysql_store_result_fn,
-                            lh_sql_mysql_free_result_fn, lh_sql_mysql_fetch_row_fn,
-                            lh_sql_mysql_fetch_lengths_fn, lh_sql_mysql_num_fields_fn,
-                            lh_sql_mysql_field_count_fn, lh_sql_mysql_insert_id_fn,
-                            lh_sql_mysql_real_escape_string_fn, lh_sql_mysql_set_character_set_fn);
+                            lh_sql_mysql_error_code_fn, lh_sql_mysql_real_query_fn,
+                            lh_sql_mysql_store_result_fn, lh_sql_mysql_free_result_fn,
+                            lh_sql_mysql_fetch_row_fn, lh_sql_mysql_fetch_lengths_fn,
+                            lh_sql_mysql_num_fields_fn, lh_sql_mysql_field_count_fn,
+                            lh_sql_mysql_insert_id_fn, lh_sql_mysql_real_escape_string_fn,
+                            lh_sql_mysql_set_character_set_fn);
 };
 /** @copybrief lh_sql_mysql_api */
 typedef struct lh_sql_mysql_api lh_sql_mysql_api_t;
@@ -163,6 +169,16 @@ lh_sql_mysql_api_real_connect(const lh_sql_mysql_api_t *self, lh_ptr mysql, cons
 /** `mysql_close`. */
 lh_void
 lh_sql_mysql_api_close(const lh_sql_mysql_api_t *self, lh_ptr mysql);
+
+/**
+ * @brief Release the client's state for the calling thread, when supported.
+ *
+ * Close all connections and results used by this thread before calling.
+ * The caller retains ownership of @p self and must keep its image loaded
+ * until this call returns. An absent optional callback is a no-op.
+ */
+lh_void
+lh_sql_mysql_api_thread_end(const lh_sql_mysql_api_t *self);
 
 /** `mysql_error`, as a view; empty when the client has none. */
 lh_str_view_t
