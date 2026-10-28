@@ -4,6 +4,7 @@
  */
 
 #include <lh/ui/web/html.h>
+#include <lh/char/map.h>
 #include <lh/assert/runtime.h>
 
 lh_void
@@ -61,13 +62,13 @@ lh_ui_web_html_entity_of(lh_char_t c, lh_bool_t in_attr)
 {
     switch (c)
     {
-    case '&':
+    case lh_char_map_ampersand:
         return "&amp;";
-    case '<':
+    case lh_char_map_less:
         return "&lt;";
-    case '>':
+    case lh_char_map_greater:
         return in_attr ? lh_null : "&gt;";
-    case '"':
+    case lh_char_map_dquot:
         return in_attr ? "&quot;" : lh_null;
     default:
         return lh_null;
@@ -83,7 +84,7 @@ lh_ui_web_html_put_escaped(lh_ui_web_buf_t *out, const lh_str_ptr s, lh_bool_t i
     {
         return;
     }
-    for (; lh_ptr_deref(at) != '\0'; ++at)
+    for (; lh_ptr_deref(at) != lh_char_map_nul; ++at)
     {
         const lh_str_cptr entity = lh_ui_web_html_entity_of(lh_ptr_deref(at), in_attr);
 

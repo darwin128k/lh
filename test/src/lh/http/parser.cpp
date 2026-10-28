@@ -223,3 +223,75 @@ TEST(http_parser, arbitrary_bytes_preserve_bounds)
         EXPECT_TRUE(guarded.before == 0x12345678U && guarded.after == 0x12345678U);
     }
 }
+
+/* -- Steps -------------------------------------------------------------------- */
+
+TEST(http_parser_fail, records_and_reports_an_error)
+{
+    lh_http_parser_t parser;
+    lh_http_parser_init(&parser);
+    EXPECT_EQ(lh_http_parser_fail(&parser, lh_http_error_header, 12), lh_http_parse_error);
+    EXPECT_EQ(lh_http_parser_get_error(&parser), lh_http_error_header);
+    EXPECT_EQ(lh_http_parser_get_error_offset(&parser), 12u);
+}
+
+TEST(http_parser_begin, clears_diagnostics_and_checks_arguments)
+{
+    lh_http_parser_t parser;
+    lh_http_request_t request;
+    lh_http_parser_init(&parser);
+    lh_http_parser_fail(&parser, lh_http_error_header, 3);
+    EXPECT_TRUE(lh_http_parser_begin(&parser, view("", 0), &request, nullptr, 0));
+    EXPECT_EQ(lh_http_parser_get_error(&parser), lh_http_error_none);
+    EXPECT_FALSE(lh_http_parser_begin(&parser, view("", 0), nullptr, nullptr, 0));
+    EXPECT_EQ(lh_http_parser_get_error(&parser), lh_http_error_argument);
+    EXPECT_FALSE(lh_http_parser_begin(&parser, view("", 0), &request, nullptr, 2));
+    EXPECT_FALSE(lh_http_parser_begin(nullptr, view("", 0), &request, nullptr, 0));
+}
+
+TEST(http_parser_find_line, finds_crlf_and_rejects_bare_endings)
+{
+    lh_http_parser_t parser;
+    lh_http_parser_init(&parser);
+    lh_usize_t end = 0;
+    EXPECT_EQ(lh_http_parser_find_line(&parser, view("ab\r\ncd", 6), 0, &end),
+              lh_http_parse_complete);
+    EXPECT_EQ(end, 2u);
+    EXPECT_EQ(lh_http_parser_find_line(&parser, view("ab\r", 3), 0, &end),
+              lh_http_parse_incomplete);
+    EXPECT_EQ(lh_http_parser_find_line(&parser, view("ab\ncd", 5), 0, &end), lh_http_parse_error);
+    EXPECT_EQ(lh_http_parser_get_error(&parser), lh_http_error_line_ending);
+    EXPECT_EQ(lh_http_parser_get_error_offset(&parser), 2u);
+}
+
+TEST(http_parser_parse_field, splits_name_and_trims_the_value)
+{
+    lh_http_parser_t parser;
+    lh_http_header_t header;
+    lh_http_parser_init(&parser);
+    const char line[] = "X-Name: \t value \t";
+    ASSERT_EQ(lh_http_parser_parse_field(&parser, view(line, sizeof line - 1), 0, sizeof line - 1,
+                                         &header),
+              lh_http_parse_complete);
+    EXPECT_TRUE(equal(header.name, "X-Name"));
+    EXPECT_TRUE(equal(header.value, "value"));
+    EXPECT_EQ(lh_http_parser_parse_field(&parser, view("Bad Name: v", 11), 0, 11, &header),
+              lh_http_parse_error);
+    EXPECT_EQ(lh_http_parser_get_error_offset(&parser), 3u);
+}
+
+TEST(http_parser_parse_status_line, reads_code_and_reason)
+{
+    lh_http_parser_t parser;
+    lh_http_response_t response;
+    lh_http_parser_init(&parser);
+    const char line[] = "HTTP/1.1 404 Not Found";
+    ASSERT_EQ(lh_http_parser_parse_status_line(&parser, view(line, sizeof line - 1),
+                                               sizeof line - 1, &response),
+              lh_http_parse_complete);
+    EXPECT_EQ(response.status, 404);
+    EXPECT_EQ(response.version_minor, 1);
+    EXPECT_TRUE(equal(response.reason, "Not Found"));
+    EXPECT_EQ(lh_http_parser_parse_status_line(&parser, view("HTTP/1.1 600 X", 14), 14, &response),
+              lh_http_parse_error);
+}

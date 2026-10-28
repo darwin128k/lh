@@ -4,6 +4,7 @@
  */
 
 #include <lh/math.h>
+#include <lh/char/map.h>
 #include <lh/ui/text.h>
 #include <lh/util/return.h>
 
@@ -49,13 +50,13 @@ lh_ui_text_line_next_of(const lh_char_t *end, lh_ui_scalar_t width)
 
     lh_return_if(code == 0U, lh_null);
     lh_return_if(lh_ui_text_is_line_end(code), cursor);
-    if (width > lh_ui_scalar(0) && code == lh_cast_static(lh_u32_t, ' '))
+    if (width > lh_ui_scalar(0) && code == lh_cast_static(lh_u32_t, lh_char_map_space))
     {
-        while (lh_ptr_deref(cursor) == ' ')
+        while (lh_ptr_deref(cursor) == lh_char_map_space)
         {
             ++cursor;
         }
-        lh_return_if(lh_ptr_deref(cursor) == '\0', lh_null);
+        lh_return_if(lh_ptr_deref(cursor) == lh_char_map_nul, lh_null);
         return cursor;
     }
     return end;
@@ -89,7 +90,7 @@ lh_ui_text_line_measure(lh_ui_text_line_t *self, const lh_ui_font_t *font, const
             break;
         }
         /* A space may hang past the edge: it is where the line breaks, not ink. */
-        if (width > lh_ui_scalar(0) && code != lh_cast_static(lh_u32_t, ' ') &&
+        if (width > lh_ui_scalar(0) && code != lh_cast_static(lh_u32_t, lh_char_map_space) &&
             self->width + advance > width)
         {
             if (has_space)
@@ -107,7 +108,7 @@ lh_ui_text_line_measure(lh_ui_text_line_t *self, const lh_ui_font_t *font, const
             self->end = before;
             break;
         }
-        if (code == lh_cast_static(lh_u32_t, ' '))
+        if (code == lh_cast_static(lh_u32_t, lh_char_map_space))
         {
             at_space = lh_ptr_deref(self);
             at_space.end = before;

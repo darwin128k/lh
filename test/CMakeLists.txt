@@ -70,15 +70,8 @@ endfunction()
 # guard at the end unhappy, which is the point of the guard.
 set(LH_TEST_LISTED_SOURCES)
 
-# Keep the parser linked only to its isolated C library, with the common GTest runner.
-lh_add_test_core(lh_test_http_parser LIBRARY lh_http_parser ${LH_TEST_SRC_PATH}/lh/http/parser.cpp)
-option(LH_HTTP_PARSER_SANITIZE "Sanitize the HTTP parser GoogleTest target" OFF)
-if (LH_HTTP_PARSER_SANITIZE AND NOT MSVC)
-    target_compile_options(lh_http_parser PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
-    target_compile_options(lh_test_http_parser PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
-    target_link_options(lh_test_http_parser PRIVATE -fsanitize=address,undefined)
-    target_link_options(lh_http_parser INTERFACE -fsanitize=address,undefined)
-endif ()
+lh_add_test_core(lh_test_http_parser ${LH_TEST_SRC_PATH}/lh/http/parser.cpp
+        ${LH_TEST_SRC_PATH}/lh/http/char.cpp ${LH_TEST_SRC_PATH}/lh/http/version.cpp)
 
 # Types, errors and the few pieces every core leans on.
 lh_add_test_core(lh_test_core
@@ -393,6 +386,7 @@ set(LH_TEST_UI_SOURCES
         ${LH_TEST_SRC_PATH}/lh/ui/canvas/web.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/host.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/html.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/web/js.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/page.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/ws.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/viewport3d.cpp

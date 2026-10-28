@@ -15,6 +15,7 @@
 #define LH_CHAR_XDIGIT_H
 
 #include <lh/char/digit.h>
+#include <lh/char/map.h>
 #include <lh/char/letter.h>
 
 /**
@@ -37,8 +38,8 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
 lh_char_is_xdigit(lh_char_t ch)
 {
-    return (lh_char_is_digit(ch) || (lh_char_is_lower(ch) && ch <= 'f') ||
-            (lh_char_is_upper(ch) && ch <= 'F'))
+    return (lh_char_is_digit(ch) || (lh_char_is_lower(ch) && ch <= lh_char_map_small_f) ||
+            (lh_char_is_upper(ch) && ch <= lh_char_map_capital_f))
                ? lh_bool_true
                : lh_bool_false;
 }
@@ -60,9 +61,9 @@ lh_char_to_xdigit(lh_char_t ch)
     }
     if (lh_char_is_lower(ch))
     {
-        return lh_cast_static(lh_byte_t, (lh_char_ord(ch) - lh_char_ord('a') + 10));
+        return lh_cast_static(lh_byte_t, (lh_char_ord(ch) - lh_char_ord(lh_char_map_small_a) + 10));
     }
-    return lh_cast_static(lh_byte_t, (lh_char_ord(ch) - lh_char_ord('A') + 10));
+    return lh_cast_static(lh_byte_t, (lh_char_ord(ch) - lh_char_ord(lh_char_map_capital_a) + 10));
 }
 
 /**
@@ -98,7 +99,7 @@ lh_char_from_xdigit(lh_byte_t digit, lh_bool_t uppercase)
         return lh_char_from_digit(digit);
     }
     return lh_char_ord_to(lh_char_t,
-                          (uppercase ? lh_char_ord('A') : lh_char_ord('a')) + (digit - 10U));
+                          (uppercase ? lh_char_ord(lh_char_map_capital_a) : lh_char_ord(lh_char_map_small_a)) + (digit - 10U));
 }
 
 /**

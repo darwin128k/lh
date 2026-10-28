@@ -1,4 +1,5 @@
 #include <lh/datetime.h>
+#include <lh/char/map.h>
 #include <lh/assert.h>
 #include <lh/memory/std.h>
 #include <lh/str/split/next.h>
@@ -160,7 +161,7 @@ lh_datetime_parse(lh_str_cptr str, lh_usize_t str_size, lh_datetime_t *out)
     lh_date_t date;
     lh_time_t time;
 
-    if (!lh_str_ptr_split_next(str, str_size, ' ', lh_addr_of(pos), lh_addr_of(date_field),
+    if (!lh_str_ptr_split_next(str, str_size, lh_char_map_space, lh_addr_of(pos), lh_addr_of(date_field),
                                lh_addr_of(date_size), lh_addr_of(had_delim)))
     {
         return lh_bool_false;
@@ -169,7 +170,7 @@ lh_datetime_parse(lh_str_cptr str, lh_usize_t str_size, lh_datetime_t *out)
     {
         return lh_bool_false;
     }
-    if (!lh_str_ptr_split_next(str, str_size, ' ', lh_addr_of(pos), lh_addr_of(time_field),
+    if (!lh_str_ptr_split_next(str, str_size, lh_char_map_space, lh_addr_of(pos), lh_addr_of(time_field),
                                lh_addr_of(time_size), lh_addr_of(had_delim)))
     {
         return lh_bool_false;
@@ -208,7 +209,7 @@ lh_datetime_format(const lh_datetime_t *self, lh_str_ptr str, lh_usize_t str_siz
     {
         return 0;
     }
-    scratch[date_len] = ' ';
+    scratch[date_len] = lh_char_map_space;
     time_len = lh_time_format(lh_addr_of(time), scratch + date_len + 1U, LH_TIME_TEXT_MAX);
     if (time_len == 0)
     {

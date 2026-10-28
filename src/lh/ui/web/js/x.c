@@ -4,38 +4,14 @@
  */
 
 #include <lh/ui/web/js/x.h>
+#include <lh/char/map.h>
+#include <lh/str/format/sllong.h>
 
 lh_void
 lh_ui_web_js_put_s64(lh_ui_web_buf_t *self, lh_s64_t n)
 {
-    lh_char_t dig[24];
-    lh_usize_t i;
-    lh_u64_t mag;
-    lh_bool_t neg;
-
-    if (n == 0)
-    {
-        lh_ui_web_buf_lit(self, "0", 1u);
-        return;
-    }
-    neg = n < 0 ? lh_bool_true : lh_bool_false;
-    mag = neg ? (lh_cast_static(lh_u64_t, 0) - lh_cast_static(lh_u64_t, n))
-              : lh_cast_static(lh_u64_t, n);
-    i = 0u;
-    while (mag != 0u && i < sizeof(dig))
-    {
-        dig[i++] = lh_cast_static(lh_char_t, '0' + (mag % 10u));
-        mag /= 10u;
-    }
-    if (neg)
-    {
-        lh_ui_web_buf_lit(self, "-", 1u);
-    }
-    while (i > 0u)
-    {
-        --i;
-        lh_ui_web_buf_lit(self, lh_addr_of(dig[i]), 1u);
-    }
+    lh_char_t text[24];
+    lh_ui_web_buf_lit(self, text, lh_str_ptr_format_sllong(n, text, sizeof text));
 }
 
 lh_void
@@ -44,25 +20,25 @@ lh_ui_web_js_put_str_lit(lh_ui_web_buf_t *self, const lh_str_ptr s)
     lh_ui_web_buf_lit(self, "'", 1u);
     if (s != lh_null)
     {
-        while (lh_ptr_deref(s) != '\0')
+        while (lh_ptr_deref(s) != lh_char_map_nul)
         {
             lh_char_t c;
 
             c = lh_ptr_deref(s++);
-            if (c == '\\' || c == '\'')
+            if (c == lh_char_map_backslash || c == lh_char_map_squote)
             {
                 lh_ui_web_buf_lit(self, "\\", 1u);
                 lh_ui_web_buf_lit(self, lh_addr_of(c), 1u);
             }
-            else if (c == '\n')
+            else if (c == lh_char_map_lf)
             {
                 lh_ui_web_buf_lit(self, "\\n", 2u);
             }
-            else if (c == '\r')
+            else if (c == lh_char_map_cr)
             {
                 lh_ui_web_buf_lit(self, "\\r", 2u);
             }
-            else if (c == '\t')
+            else if (c == lh_char_map_ht)
             {
                 lh_ui_web_buf_lit(self, "\\t", 2u);
             }

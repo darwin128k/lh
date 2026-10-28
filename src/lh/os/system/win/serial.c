@@ -4,6 +4,7 @@
  */
 
 #include <lh/os/system/serial.h>
+#include <lh/char/map.h>
 
 #include <lh/assert/runtime.h>
 #include <lh/memory.h>
@@ -84,20 +85,20 @@ lh_os_system_serial_open(lh_str_cptr name, lh_u32_t baud, lh_os_serial_parity_t 
                  LH_OS_SYSTEM_SERIAL_HANDLE_INVALID);
     /* COM1 to COM9 open by their names; COM10 and up only as \\.\COM10, and the
        long form works for all of them -- so a bare name gets it. */
-    if (!(name[0] == '\\' && name[1] == '\\'))
+    if (!(name[0] == lh_char_map_backslash && name[1] == lh_char_map_backslash))
     {
-        path[at++] = '\\';
-        path[at++] = '\\';
-        path[at++] = '.';
-        path[at++] = '\\';
+        path[at++] = lh_char_map_backslash;
+        path[at++] = lh_char_map_backslash;
+        path[at++] = lh_char_map_period;
+        path[at++] = lh_char_map_backslash;
     }
-    while (name[i] != '\0' &&
+    while (name[i] != lh_char_map_nul &&
            at + 1U < lh_cast_static(lh_usize_t, LH_OS_SYSTEM_WIN_SERIAL_NAME_MAX))
     {
         path[at++] = name[i++];
     }
-    lh_return_if(name[i] != '\0', LH_OS_SYSTEM_SERIAL_HANDLE_INVALID);
-    path[at] = '\0';
+    lh_return_if(name[i] != lh_char_map_nul, LH_OS_SYSTEM_SERIAL_HANDLE_INVALID);
+    path[at] = lh_char_map_nul;
 
     ok = lh_os_system_str_init_by_utf8(lh_addr_of(os_path), path);
     port = ok ? CreateFileW(lh_os_str_get_data(lh_addr_of(os_path)),

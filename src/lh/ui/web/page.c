@@ -7,6 +7,7 @@
  */
 
 #include <lh/ui/web/page.h>
+#include <lh/char/map.h>
 
 #include <lh/assert/static.h>
 #include <lh/byte/ptr.h>
@@ -61,7 +62,7 @@ lh_ui_web_page_emit_key_table(lh_ui_web_buf_t *j, lh_str_cptr name, lh_bool_t mo
     lh_usize_t len = 0u;
     lh_usize_t i;
 
-    table[len++] = '{';
+    table[len++] = lh_char_map_lbrace;
     for (i = 0u; i < PAGE_KEY_COUNT; ++i)
     {
         lh_usize_t n;
@@ -80,8 +81,8 @@ lh_ui_web_page_emit_key_table(lh_ui_web_buf_t *j, lh_str_cptr name, lh_bool_t mo
         }
         len += n;
     }
-    table[len++] = '}';
-    table[len] = '\0';
+    table[len++] = lh_char_map_rbrace;
+    table[len] = lh_char_map_nul;
     lh_ui_web_js_var(j, name, table);
 }
 

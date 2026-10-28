@@ -11,6 +11,7 @@
 #define LH_UTIL_WSTR_PTR_EMPTY_H
 
 #include <lh/attribute/force_inline.h>
+#include <lh/char/map.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/util/wstr/ptr.h>
@@ -27,7 +28,7 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
 lh_wstr_ptr_is_empty(const lh_wstr_ptr text)
 {
-    return (lh_null_eq(text) || lh_ptr_deref(text) == lh_wstr_ptr_cat('\0')) ? lh_bool_true
+    return (lh_null_eq(text) || lh_ptr_deref(text) == lh_wstr_ptr_cat_va(lh_char_map_nul)) ? lh_bool_true
                                                                              : lh_bool_false;
 }
 

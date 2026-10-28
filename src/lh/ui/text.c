@@ -4,6 +4,7 @@
  */
 
 #include <lh/math.h>
+#include <lh/char/map.h>
 #include <lh/ui/canvas/mask.h>
 #include <lh/ui/text.h>
 #include <lh/util/return.h>
@@ -72,7 +73,7 @@ lh_ui_text_next_code(const lh_char_t **cursor)
 lh_bool_t
 lh_ui_text_is_line_end(lh_u32_t code)
 {
-    return code == 0U || code == lh_cast_static(lh_u32_t, '\n') ? lh_bool_true : lh_bool_false;
+    return code == 0U || code == lh_cast_static(lh_u32_t, lh_char_map_lf) ? lh_bool_true : lh_bool_false;
 }
 
 const lh_char_t *

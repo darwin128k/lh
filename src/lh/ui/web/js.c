@@ -4,6 +4,7 @@
  */
 
 #include <lh/ui/web/js.h>
+#include <lh/char/map.h>
 
 lh_void
 lh_ui_web_js_var(lh_ui_web_buf_t *self, const lh_str_ptr name, const lh_str_ptr expr)
@@ -53,7 +54,7 @@ lh_void
 lh_ui_web_js_ret(lh_ui_web_buf_t *self, const lh_str_ptr expr)
 {
     lh_ui_web_buf_lit(self, "return", 6u);
-    if (expr != lh_null && expr[0] != '\0')
+    if (expr != lh_null && expr[0] != lh_char_map_nul)
     {
         lh_ui_web_buf_lit(self, " ", 1u);
         lh_ui_web_buf_raw(self, expr);

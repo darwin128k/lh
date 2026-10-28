@@ -1,4 +1,5 @@
 #include <lh/net/socket/addr/ip4.h>
+#include <lh/char/map.h>
 #include <lh/assert.h>
 #include <lh/memory/std.h>
 #include <lh/str/format/uint.h>
@@ -76,7 +77,7 @@ lh_net_ip4_socket_addr_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_ip4_so
     lh_assert_runtime_ref(str);
     lh_assert_runtime_ref(out);
 
-    if (!lh_str_ptr_split_next(str, str_size, ':', lh_addr_of(pos), lh_addr_of(field),
+    if (!lh_str_ptr_split_next(str, str_size, lh_char_map_colon, lh_addr_of(pos), lh_addr_of(field),
                                lh_addr_of(field_size), lh_addr_of(had_delim)))
     {
         return lh_bool_false;
@@ -123,7 +124,7 @@ lh_net_ip4_socket_addr_format(const lh_net_ip4_socket_addr_t *self, lh_str_ptr s
     {
         if (octet_index > 0)
         {
-            scratch[pos] = '.';
+            scratch[pos] = lh_char_map_period;
             pos++;
         }
 
@@ -137,7 +138,7 @@ lh_net_ip4_socket_addr_format(const lh_net_ip4_socket_addr_t *self, lh_str_ptr s
         pos += written;
     }
 
-    scratch[pos] = ':';
+    scratch[pos] = lh_char_map_colon;
     pos++;
 
     written =

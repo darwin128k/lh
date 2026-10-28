@@ -1,4 +1,5 @@
 #include <lh/runtime/check.h>
+#include <lh/char/map.h>
 #include <lh/attribute/thread_local.h>
 #include <lh/exception/initializer.h>
 #include <lh/runtime/error/initializer.h>
@@ -27,7 +28,7 @@ lh_runtime_check_fail_default(const lh_exception_t *exception)
     }
     else
     {
-        text[n] = '\0';
+        text[n] = lh_char_map_nul;
         (void)fputs(text, stderr);
     }
     (void)fflush(stderr);

@@ -4,6 +4,7 @@
  */
 
 #include <lh/hash/fnv.h>
+#include <lh/char/map.h>
 #include <lh/math.h>
 #include <lh/str/utf8.h>
 #include <lh/ui/label.h>
@@ -378,7 +379,7 @@ lh_ui_label_shorten(const lh_ui_font_t *font, const lh_char_t *text, lh_s32_t ro
 {
     const lh_bool_t has_ellipsis = lh_ui_font_has_code(font, 0x2026U);
     const lh_s32_t tail = has_ellipsis ? lh_ui_font_get_advance(font, 0x2026U)
-                                       : 3 * lh_ui_font_get_advance(font, (lh_u32_t)'.');
+                                       : 3 * lh_ui_font_get_advance(font, (lh_u32_t)lh_char_map_period);
     /* `…` is three bytes of UTF-8, and so are three dots. */
     const lh_u32_t tail_bytes = 3U;
     const lh_char_t *cursor = text;
@@ -388,9 +389,9 @@ lh_ui_label_shorten(const lh_ui_font_t *font, const lh_char_t *text, lh_s32_t ro
     lh_u32_t used;
 
     /* A line that fits, or text of several lines, is drawn as it is. */
-    for (cursor = text; lh_ptr_deref(cursor) != '\0'; ++cursor)
+    for (cursor = text; lh_ptr_deref(cursor) != lh_char_map_nul; ++cursor)
     {
-        lh_return_if(lh_ptr_deref(cursor) == '\n', lh_bool_false);
+        lh_return_if(lh_ptr_deref(cursor) == lh_char_map_lf, lh_bool_false);
     }
     lh_return_if(lh_ui_text_get_width(font, text) <= room, lh_bool_false);
 
@@ -416,11 +417,11 @@ lh_ui_label_shorten(const lh_ui_font_t *font, const lh_char_t *text, lh_s32_t ro
     }
     else
     {
-        out[used++] = '.';
-        out[used++] = '.';
-        out[used++] = '.';
+        out[used++] = lh_char_map_period;
+        out[used++] = lh_char_map_period;
+        out[used++] = lh_char_map_period;
     }
-    out[used] = '\0';
+    out[used] = lh_char_map_nul;
     return lh_bool_true;
 }
 

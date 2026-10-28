@@ -4,6 +4,7 @@
 #endif
 
 #include <lh/os/system/shared.h>
+#include <lh/char/map.h>
 #include <lh/memory/std.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
@@ -177,7 +178,7 @@ lh_os_system_shared_match(struct dl_phdr_info *info, size_t size, void *data)
     {
         return 0;
     }
-    lh_str_cptr const slash = strrchr(info->dlpi_name, '/');
+    lh_str_cptr const slash = strrchr(info->dlpi_name, lh_char_map_slash);
     lh_str_cptr const file = lh_null_eq(slash) ? info->dlpi_name : slash + 1;
     if (strcmp(file, search->name) != 0)
     {

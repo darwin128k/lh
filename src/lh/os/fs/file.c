@@ -1,4 +1,5 @@
 #include <lh/os/fs/file.h>
+#include <lh/char/map.h>
 #include <lh/assert.h>
 #include <lh/cast/const.h>
 #include <lh/os/fs/path.h>
@@ -203,7 +204,7 @@ lh_os_fs_file_print_v(lh_os_fs_file_t *self, lh_str_cptr fmt, va_list args)
 
     lh_str_init(lh_addr_of(text));
     n = lh_str_format_v(lh_addr_of(text), fmt, args);
-    if (n == 0u && fmt[0] != '\0')
+    if (n == 0u && fmt[0] != lh_char_map_nul)
     {
         lh_str_deinit(lh_addr_of(text));
         return lh_bool_false;

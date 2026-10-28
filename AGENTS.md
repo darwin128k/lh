@@ -16,6 +16,48 @@ More public API is better than less: many small bricks, including dangerous
 ones (`*_unsafe`, unchecked), are fine — a caller who misuses them owns the
 consequence. Hidden implementation is what we avoid.
 
+## 0. LH uses its own bricks — first rule
+
+> The owner: "Why did we create all these wrappers at all, if nobody uses
+> them — not even LH itself?"
+
+A brick that exists and is not used where it applies is a defect of the code
+that bypasses it, not an optional nicety. LH itself is the first user of
+every brick.
+
+- Before writing any line, search LH for the brick that already does it:
+  named characters (`lh/char/map.h`), character classes (`lh/char/*`),
+  set membership (`lh_str_ptr_contains_char`), sub-views
+  (`lh_str_view_from_offset`), trimming, number formatting and parsing
+  (`lh/str/format/*`, `lh/str/parse/*`), digit conversion
+  (`lh_char_to_digit` / `lh_char_from_digit`), min / max / abs (`lh/math`),
+  overflow (`lh_interval_*_is_*_overflow`), memory kernels, casts.
+- A hand-written loop, `switch`, range test or literal that duplicates a brick
+  is replaced by the brick — in the file being edited and, per section 8,
+  everywhere else it occurs.
+- If the brick does not fit, fix or extend the brick. Never write a local
+  copy "because it was quicker".
+- A new brick is used by LH right away: introduce it together with the code
+  that switches to it.
+
+## 0.1. From smaller to larger; no extra includes
+
+- Bricks are layered **from the smaller to the larger**. The smallest brick
+  includes nothing of LH; the next one includes only it; a third joins the
+  two; a fourth builds on the third. A header never includes anything above
+  its own layer, and nothing includes back down into a cycle.
+- **No extra includes.** A file includes an entity once: when a header it
+  already includes brings an entity in, the file does not include that
+  entity's header again. Add an include only for what nothing included so
+  far provides.
+- Exception: a source file keeps its own header first (`x/y.c` includes
+  `<lh/x/y.h>`), and an include inside `#if` never counts as provided — it may
+  be off in another build configuration.
+- Run `python tools/check-includes.py` (from the Authum root) after every
+  change; it must report 0. `--fix` removes the redundant lines one at a time.
+  Build every backend after a fix: Windows here, Linux through WSL
+  (`build-lh-concurrency`), since a POSIX source is not compiled on Windows.
+
 ## 1. One file — one entity
 
 - A header declares **one** thing: one struct, one typedef, one enum, or the
@@ -49,6 +91,12 @@ consequence. Hidden implementation is what we avoid.
   around it with a new wrapper, a second variant or a local re-implementation.
 - No wrappers that only rename an existing kernel (removed example:
   `lh/size/ops.h`, which only wrapped the `lh_interval_*_overflow` macros).
+- Characters: name them with `lh/char/map.h` (`lh_char_map_ht`, `_space`,
+  `_colon`, `_del`, ...), never bare `'	'` / `0x20` literals in code; test a
+  byte against a set with `lh_str_ptr_contains_char` (or the
+  `lh_str_ptr_fill_char_set` bitmap), with the set as an array of map names.
+  Literals stay in tests, where they are the expected data. A token-pasting
+  macro (`lh_wstr_ptr_cat`) takes its `_va` form so a map name expands first.
 - Memory: always LH kernels (`lh_memory_std_copy/move/set/compare`), never
   libc `mem*` / `str*`. The same applies to OS and FS: portable code uses
   LH kernels; native APIs and native types live only in the OS backend.

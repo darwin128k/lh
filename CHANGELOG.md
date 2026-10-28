@@ -17,10 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Portable HTTP/1 message-head parser (`lh/http.h`): caller-owned byte views and
   header storage, request and response syntax, complete/incomplete/error results,
-  strict CRLF, configurable head/line budgets and error offsets. No OS, allocator,
-  locale, global state or platform intrinsics. Available in `lh` and separately
-  as the `lh::http_parser` CMake target. Body framing and server policy remain
-  outside this brick. Standalone C tests run without GoogleTest or the LH runtime.
+  strict CRLF, configurable head/line budgets and error offsets. No allocation,
+  locale, global state or OS call. Built from public bricks: `lh_http_parser_begin`,
+  `_find_line`, `_parse_request_line`, `_parse_status_line`, `_parse_field`,
+  `_parse_fields`, `_fail`, `lh_http_parse_version` (`lh/http/version.h`) and the
+  byte classes `lh_http_is_token_char`, `_is_target_char`, `_is_field_char`
+  (`lh/http/char.h`), on `lh/char` and `lh/str/view`. Body framing and server
+  policy remain outside this brick
 
 - `lh_os_fs_dir_create` (`lh/os/fs/dir.h`): creates one directory level; true when the path is a directory afterwards, created now or already there
 - Page protection (`lh/os/memory.h`): `lh_os_memory_protect` gives a range's pages `lh_os_memory_access_read` / `_write` / `_execute` (`lh/os/memory/access.h`), widened to page boundaries — `mprotect` / `VirtualProtect`. New `lh_os_error_code_empty_range` for a null or zero-length range

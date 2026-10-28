@@ -4,6 +4,7 @@
  */
 
 #include <lh/ui/web/host.h>
+#include <lh/char/map.h>
 #include <lh/ui/web/page.h>
 
 #include <lh/cast/const.h>
@@ -96,12 +97,12 @@ lh_ui_web_host_query(lh_str_cptr req, lh_usize_t len, lh_str_cptr key, lh_usize_
             return 0u;
         }
         off = lh_cast_static(lh_usize_t, (at - req)) + key_len;
-        if (at == req || (at[-1] != '?' && at[-1] != '&'))
+        if (at == req || (at[-1] != lh_char_map_question && at[-1] != lh_char_map_ampersand))
         {
             continue;
         }
-        while (off + n < len && req[off + n] != '&' && req[off + n] != ' ' &&
-               req[off + n] != '\r' && req[off + n] != '\n')
+        while (off + n < len && req[off + n] != lh_char_map_ampersand && req[off + n] != lh_char_map_space &&
+               req[off + n] != lh_char_map_cr && req[off + n] != lh_char_map_lf)
         {
             ++n;
         }
@@ -296,11 +297,11 @@ lh_ui_web_host_ws_upgrade(lh_os_net_socket_t *client, lh_str_cptr req, lh_usize_
         return lh_bool_false;
     }
     k += sizeof("Sec-WebSocket-Key:") - 1u;
-    while (k < req + len && lh_ptr_deref(k) == ' ')
+    while (k < req + len && lh_ptr_deref(k) == lh_char_map_space)
     {
         ++k;
     }
-    while (k + n < req + len && k[n] != '\r' && k[n] != '\n' && n < sizeof(cat) - sizeof(guid))
+    while (k + n < req + len && k[n] != lh_char_map_cr && k[n] != lh_char_map_lf && n < sizeof(cat) - sizeof(guid))
     {
         cat[n] = k[n];
         ++n;
@@ -312,7 +313,7 @@ lh_ui_web_host_ws_upgrade(lh_os_net_socket_t *client, lh_str_cptr req, lh_usize_
     {
         return lh_bool_false;
     }
-    accept[lh_str_ptr_format_base64(digest, sizeof(digest), accept, sizeof(accept) - 1u)] = '\0';
+    accept[lh_str_ptr_format_base64(digest, sizeof(digest), accept, sizeof(accept) - 1u)] = lh_char_map_nul;
     h = lh_str_ptr_format_text(head, sizeof(head),
                                "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\n"
                                "Connection: Upgrade\r\nSec-WebSocket-Accept: %s\r\n\r\n",
