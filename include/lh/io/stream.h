@@ -29,9 +29,9 @@ struct lh_io_stream
 /** @copybrief lh_io_stream */
 typedef struct lh_io_stream lh_io_stream_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- construct / set ------------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Initialize @p self from a reader and a writer.

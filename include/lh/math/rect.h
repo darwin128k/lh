@@ -34,9 +34,9 @@ struct lh_math_rect
 /** @copybrief lh_math_rect */
 typedef struct lh_math_rect lh_math_rect_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- init / from ----------------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Build a `::lh_math_rect_t` from exclusive extent corners.

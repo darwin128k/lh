@@ -41,9 +41,9 @@ struct lh_real_decimal
 /** @copybrief lh_real_decimal */
 typedef struct lh_real_decimal lh_real_decimal_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* ── accessors ───────────────────────────────────────────────────────────── */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** The significant digits of @p self, as an integer. */
 lh_u64_t

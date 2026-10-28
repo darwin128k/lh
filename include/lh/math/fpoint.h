@@ -20,7 +20,11 @@
 #include <lh/math/point.h>
 #include <lh/math/fscalar.h>
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 struct lh_math_fsize;
+
+LH_COMPILER_EXTERN_C_END
 
 /**
  * @struct lh_math_fpoint

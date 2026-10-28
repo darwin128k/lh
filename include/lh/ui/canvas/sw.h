@@ -37,9 +37,9 @@ struct lh_ui_canvas_sw
 /** @copybrief lh_ui_canvas_sw */
 typedef struct lh_ui_canvas_sw lh_ui_canvas_sw_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- Lifetime -------------------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief No pixmap yet: every write is cut away.

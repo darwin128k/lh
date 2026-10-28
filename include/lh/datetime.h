@@ -21,8 +21,6 @@
  */
 #define LH_DATETIME_TEXT_MAX (LH_DATE_TEXT_MAX + 1U + LH_TIME_TEXT_MAX)
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /**
  * @struct lh_datetime
  * @brief Calendar date plus time of day.
@@ -40,6 +38,8 @@ struct lh_datetime
  * @brief Alias for `struct lh_datetime`.
  */
 typedef struct lh_datetime lh_datetime_t;
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Copy @p other into @p self.

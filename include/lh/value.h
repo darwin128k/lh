@@ -32,9 +32,9 @@ struct lh_value
 /** @copybrief lh_value */
 typedef struct lh_value lh_value_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* ── accessors ───────────────────────────────────────────────────────────── */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief What @p self holds.

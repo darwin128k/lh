@@ -37,9 +37,9 @@ struct lh_math_mat4
 /** @copybrief lh_math_mat4 */
 typedef struct lh_math_mat4 lh_math_mat4_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- Accessors ------------------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Column @p index (`0..3`) of @p self.

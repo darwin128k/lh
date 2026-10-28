@@ -28,8 +28,6 @@
 
 #include <lh/net/modbus/read.h>
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- The wire -------------------------------------------------------------- */
 
 /** @brief Function code: read holding registers. */
@@ -88,6 +86,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * that every conforming device turns down.
  */
 #define LH_MB_WRITE_MAX (lh_cast_static(lh_u16_t, 123))
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief CRC-16 as Modbus uses it: reflected, polynomial 0xA001.
@@ -257,6 +257,8 @@ lh_mb_parse_pdu_write_one(const lh_byte_ptr pdu, lh_u16_t length, lh_u16_t addre
 
 /* -- The plan -------------------------------------------------------------- */
 
+LH_COMPILER_EXTERN_C_END
+
 /**
  * @brief How many registers of a gap to cross for the sake of a wanted one.
  *
@@ -270,6 +272,8 @@ lh_mb_parse_pdu_write_one(const lh_byte_ptr pdu, lh_u16_t length, lh_u16_t addre
  * if a card turns out to be denser than the ones in the firmware.
  */
 #define LH_MB_GAP_MAX (lh_cast_static(lh_u16_t, 8))
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** How far a run that currently ends at `end` reaches once `next` is folded in, or
    0 when it must not be — the two reasons being a gap worth crossing and a run

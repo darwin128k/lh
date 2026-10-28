@@ -30,9 +30,9 @@ struct lh_ini_entry
 /** @copybrief lh_ini_entry */
 typedef struct lh_ini_entry lh_ini_entry_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* ── accessors ───────────────────────────────────────────────────────────── */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief What @p self is.

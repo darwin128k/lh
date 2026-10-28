@@ -20,10 +20,10 @@
 #include <lh/sql/step.h>
 #include <lh/str/view.h>
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 struct lh_sql_db;
 struct lh_sql_stmt;
-
-LH_COMPILER_EXTERN_C_BEGIN
 
 /** @brief Close the backend handle of @p db and forget it. */
 typedef lh_void(lh_sql_close_fn)(struct lh_sql_db *db);
@@ -73,6 +73,8 @@ typedef lh_sllong_t(lh_sql_column_sint_fn)(const struct lh_sql_stmt *stmt, lh_us
  */
 typedef lh_str_view_t(lh_sql_column_str_fn)(const struct lh_sql_stmt *stmt, lh_usize_t index);
 
+LH_COMPILER_EXTERN_C_END
+
 /**
  * @struct lh_sql_driver
  * @brief Function table for one backend. Usually a static const; not owned
@@ -91,6 +93,8 @@ struct lh_sql_driver
 typedef struct lh_sql_driver lh_sql_driver_t;
 
 /* ── dispatch: the one place each slot is read ───────────────────────────── */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** The name of the backend @p self is (`"sqlite"`, `"mysql"`). */
 lh_str_cptr

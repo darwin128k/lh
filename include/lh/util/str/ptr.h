@@ -152,6 +152,8 @@ lh_str_ptr_put_chars(lh_str_ptr str, lh_usize_t pos, const lh_str_ptr chars, lh_
 lh_usize_t
 lh_str_ptr_put_run(lh_str_ptr str, lh_usize_t pos, lh_char_t ch, lh_usize_t n);
 
+LH_COMPILER_EXTERN_C_END
+
 #ifndef LH_STR_PTR_CHAR_SET_BYTES
 /**
  * @def LH_STR_PTR_CHAR_SET_BYTES
@@ -159,6 +161,8 @@ lh_str_ptr_put_run(lh_str_ptr str, lh_usize_t pos, lh_char_t ch, lh_usize_t n);
  */
 #    define LH_STR_PTR_CHAR_SET_BYTES 32U
 #endif /* LH_STR_PTR_CHAR_SET_BYTES */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Fill a 256-bit membership bitset @p set (32 bytes): bit @c b set iff

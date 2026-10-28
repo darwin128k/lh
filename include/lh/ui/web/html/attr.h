@@ -16,8 +16,6 @@
 #    error "lh/ui/web/html/attr.h requires LH_LIBRARY_OPTION_UI"
 #endif
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /**
  * @struct lh_ui_web_html_attr
  * @brief `name="value"`, or bare `name` when `value` is ::lh_null.
@@ -37,7 +35,5 @@ typedef struct lh_ui_web_html_attr
  */
 lh_void
 lh_ui_web_html_attr(const lh_str_ptr name, const lh_str_ptr value, lh_ui_web_html_attr_t *out);
-
-LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_WEB_HTML_ATTR_H */

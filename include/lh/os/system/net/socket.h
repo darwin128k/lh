@@ -203,8 +203,12 @@ lh_os_system_net_socket_set_reuse_addr(lh_os_system_net_socket_handle_t handle, 
 lh_bool_t
 lh_os_system_net_socket_set_no_delay(lh_os_system_net_socket_handle_t handle, lh_bool_t enabled);
 
+LH_COMPILER_EXTERN_C_END
+
 /** How many handles one ::lh_os_system_net_socket_wait watches in each set at most. */
 #define LH_OS_SYSTEM_NET_SOCKET_WAIT_MAX 64U
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Wait at most @p timeout_ms until any of @p read is readable (or, for a

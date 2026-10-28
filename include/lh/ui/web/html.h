@@ -21,8 +21,6 @@
 #    error "lh/ui/web/html.h requires LH_LIBRARY_OPTION_UI"
 #endif
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /**
  * @brief One markup node.
  *
@@ -56,6 +54,8 @@ typedef struct lh_ui_web_html
         } tag;
     } u;
 } lh_ui_web_html_t; /**< One markup node. */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief A doctype node, written as `<!doctype html>`.

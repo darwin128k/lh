@@ -44,9 +44,9 @@ struct lh_io_writer
 /** @copybrief lh_io_writer */
 typedef struct lh_io_writer lh_io_writer_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- set / init ------------------------------------------------------------ */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Copy the writer state from @p other into @p self.

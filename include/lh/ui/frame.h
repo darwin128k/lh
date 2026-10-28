@@ -19,8 +19,6 @@
 
 #include <lh/ui/rect.h>
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /**
  * @struct lh_ui_frame
  * @brief One frame: what was drawn, what was asked for, and how long it took.
@@ -43,7 +41,5 @@ typedef struct lh_ui_frame
  */
 lh_u64_t
 lh_ui_frame_area(const lh_ui_rect_t *rect);
-
-LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_FRAME_H */

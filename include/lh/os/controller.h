@@ -83,9 +83,9 @@ struct lh_os_controller
 /** @copybrief lh_os_controller */
 typedef struct lh_os_controller lh_os_controller_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- Setting up ------------------------------------------------------------ */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Make @p self give its events to @p handle_cb on @p context, with a

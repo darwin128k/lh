@@ -32,9 +32,9 @@ struct lh_io_reader
 /** @copybrief lh_io_reader */
 typedef struct lh_io_reader lh_io_reader_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- set / init ------------------------------------------------------------ */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Copy the reader state from @p other into @p self.

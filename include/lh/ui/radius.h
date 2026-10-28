@@ -67,6 +67,8 @@ lh_ui_radius_axis_distance(lh_s64_t p, lh_ui_scalar_t start, lh_ui_scalar_t leng
 lh_byte_t
 lh_ui_radius_cover_from_distance(lh_s64_t r, lh_s64_t d);
 
+LH_COMPILER_EXTERN_C_END
+
 /**
  * @def LH_UI_RADIUS_HIT_COVERAGE
  * @brief Least coverage of the pixel under a point that counts as inside a
@@ -74,6 +76,8 @@ lh_ui_radius_cover_from_distance(lh_s64_t r, lh_s64_t d);
  *        than background).
  */
 #define LH_UI_RADIUS_HIT_COVERAGE 128
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief True when @p point lies in @p rect and, with @p radius (unclamped)
@@ -146,6 +150,8 @@ lh_void
 lh_ui_radius_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y,
                        lh_s32_t *out_x0, lh_s32_t *out_x1);
 
+LH_COMPILER_EXTERN_C_END
+
 /**
  * @brief Row of a rounded rect, prepared once for a run of rows.
  *
@@ -170,6 +176,8 @@ struct lh_ui_radius_run
     lh_ui_scalar_t height; /**< the rect's height */
     lh_ui_scalar_t radius; /**< the corner radius, as given */
 };
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Prepare @p self for the rows of the rounded @p rect.

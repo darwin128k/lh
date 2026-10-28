@@ -33,6 +33,8 @@
 #    error "lh/os/shared.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
 #endif
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 /**
  * @typedef lh_os_shared_fn_t
  * @brief Any function an image exports, before it is cast to its real type.
@@ -42,6 +44,8 @@
  * for `dlsym`, so the caller only casts between function pointer types.
  */
 typedef lh_void (*lh_os_shared_fn_t)(lh_void);
+
+LH_COMPILER_EXTERN_C_END
 
 /**
  * @struct lh_os_shared

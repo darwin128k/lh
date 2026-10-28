@@ -21,9 +21,9 @@
 #include <lh/os/shared.h>
 #include <lh/sql/mysql/api/fields.h>
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* ── the C API, as the client exports it ─────────────────────────────────── */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** `MYSQL *mysql_init(MYSQL *)`. */
 typedef lh_ptr(lh_sql_mysql_init_fn)(lh_ptr mysql);
@@ -81,6 +81,8 @@ typedef lh_sint_t(lh_sql_mysql_options_fn)(lh_ptr mysql, lh_sint_t option, const
 /** `void mysql_thread_end(void)`. */
 typedef lh_void(lh_sql_mysql_thread_end_fn)(lh_void);
 
+LH_COMPILER_EXTERN_C_END
+
 /**
  * @struct lh_sql_mysql_api
  * @brief The client image and its functions. Fields via
@@ -106,6 +108,8 @@ struct lh_sql_mysql_api
 typedef struct lh_sql_mysql_api lh_sql_mysql_api_t;
 
 /* ── load ────────────────────────────────────────────────────────────────── */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** Set @p self to no library and no functions. */
 lh_void

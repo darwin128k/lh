@@ -12,6 +12,8 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/ptr.h>
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 struct lh_ui_entity;
 
 /**
@@ -20,7 +22,6 @@ struct lh_ui_entity;
  *
  * Return ::lh_bool_true to go on, ::lh_bool_false to stop the whole walk.
  */
-LH_COMPILER_EXTERN_C_BEGIN
 typedef lh_bool_t(lh_ui_entity_visit_fn)(const struct lh_ui_entity *entity, lh_ptr context);
 
 LH_COMPILER_EXTERN_C_END

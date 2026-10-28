@@ -49,9 +49,9 @@
  */
 #define LH_SQL_MYSQL_ERROR_IDLE_TIMEOUT 4031U
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* ── state behind the handles ────────────────────────────────────────────── */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** The connection record of @p db, opened on MySQL. */
 lh_sql_mysql_conn_t *

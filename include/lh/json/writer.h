@@ -44,9 +44,9 @@ struct lh_json_writer
 /** @copybrief lh_json_writer */
 typedef struct lh_json_writer lh_json_writer_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* ── accessors ───────────────────────────────────────────────────────────── */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** The string @p self appends to, to change. */
 lh_str_t *

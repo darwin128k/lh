@@ -22,9 +22,9 @@
 
 #include <lh/sql/stmt.h>
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* ── driver callbacks ────────────────────────────────────────────────────── */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** Copy SQLite's message for the last failure on @p db into its error; ::lh_bool_false. */
 lh_bool_t

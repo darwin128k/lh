@@ -17,9 +17,9 @@
 #include <lh/ui/text/block.h>
 #include <lh/ui/text/line.h>
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- Reading --------------------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief The code at @p cursor, and @p cursor moved past it.

@@ -38,9 +38,9 @@ struct lh_os_system_error
 /** @copybrief lh_os_system_error */
 typedef struct lh_os_system_error lh_os_system_error_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- set ------------------------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Replace @p self with @p code and @p desc.

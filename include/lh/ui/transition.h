@@ -20,7 +20,11 @@
 #include <lh/ui/style.h>
 #include <lh/ui/transition/fields.h>
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 struct lh_ui_entity;
+
+LH_COMPILER_EXTERN_C_END
 
 /**
  * @struct lh_ui_transition

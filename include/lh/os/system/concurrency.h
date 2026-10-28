@@ -30,12 +30,16 @@ typedef lh_ptr lh_os_system_mutex_handle_t;
  */
 typedef lh_ptr lh_os_system_condition_handle_t;
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 /**
  * @brief Callback executed on a successfully created worker thread.
  *
  * @param user Borrowed state that remains alive until the callback returns.
  */
 typedef lh_void (*lh_os_thread_fn)(lh_ptr user);
+
+LH_COMPILER_EXTERN_C_END
 
 /**
  * @def lh_os_thread_block_sigpipe

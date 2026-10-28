@@ -57,8 +57,6 @@
  */
 #define LH_VERSION_TEXT_MAX 13U
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- struct ---------------------------------------------------------------- */
 
 /**
@@ -82,6 +80,8 @@ struct lh_version
 typedef struct lh_version lh_version_t;
 
 /* -- set ------------------------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Copy the version state from @p other into @p self.

@@ -12,8 +12,12 @@
 #include <lh/ui/entity/class/fields.h>
 #include <lh/ui/entity/face/cb.h>
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 struct lh_ui_entity;
 struct lh_ui_canvas;
+
+LH_COMPILER_EXTERN_C_END
 
 /**
  * @struct lh_ui_entity_class

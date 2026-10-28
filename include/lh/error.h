@@ -27,9 +27,9 @@ struct lh_error
 /** @copybrief lh_error */
 typedef struct lh_error lh_error_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- set ------------------------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Replace @p self with @p code and @p desc.

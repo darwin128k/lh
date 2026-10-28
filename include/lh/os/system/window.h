@@ -84,6 +84,8 @@ lh_os_system_window_set_enabled(lh_os_system_window_handle_t handle, lh_bool_t e
 lh_void
 lh_os_system_window_close(lh_os_system_window_handle_t handle);
 
+LH_COMPILER_EXTERN_C_END
+
 /**
  * @enum lh_os_system_window_pump_result
  * @brief Outcome of ::lh_os_system_window_pump_wait.
@@ -94,6 +96,8 @@ typedef enum lh_os_system_window_pump_result
     lh_os_system_window_pump_message = 1,
     lh_os_system_window_pump_timeout = 2
 } lh_os_system_window_pump_result_t; /**< Outcome of ::lh_os_system_window_pump_wait. */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Wait up to @p timeout_ms for input, then dispatch pending messages.

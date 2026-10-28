@@ -19,6 +19,7 @@
 #include <lh/ptr.h>
 
 typedef struct lh_spsc lh_spsc_t;
+
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**

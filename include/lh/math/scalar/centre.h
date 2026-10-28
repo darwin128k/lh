@@ -17,8 +17,6 @@
 #include <lh/math/ops.h>
 #include <lh/math/scalar.h>
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /**
  * @def lh_math_slack(room, own)
  * @brief `max(0, room - own)` for any arithmetic type; the one slack formula
@@ -34,6 +32,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  *        ::lh_ui_scalar_centre).
  */
 #define lh_math_centre_half(room, own) lh_math_div(lh_math_add(lh_math_sub((room), (own)), 1), 2)
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Non-negative leftover room: `max(0, room - own)`.

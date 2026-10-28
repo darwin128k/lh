@@ -73,6 +73,8 @@ lh_os_last_error(void);
 lh_void
 lh_os_set_last_error(lh_os_error_t error);
 
+LH_COMPILER_EXTERN_C_END
+
 /**
  * @def lh_os_set_last_error_lit(code, text)
  * @brief Store @p code with the literal @p text as the last OS-layer error.
@@ -91,6 +93,8 @@ lh_os_set_last_error(lh_os_error_t error);
 #define lh_os_set_last_error_lit(code, text)                                                       \
     lh_os_set_last_error(lh_initializer_of(lh_os_error_t, lh_os_error_initializer, code,           \
                                            lh_os_error_desc_lit(text)))
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Last error on this thread, as ::lh_os_error_t.

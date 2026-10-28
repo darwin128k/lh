@@ -16,9 +16,9 @@
 #include <lh/ui/color.h>
 #include <lh/ui/mask.h>
 
-struct lh_ui_canvas;
-
 LH_COMPILER_EXTERN_C_BEGIN
+
+struct lh_ui_canvas;
 
 /**
  * @brief Paint @p mask in @p color with its top-left pixel at @p origin
