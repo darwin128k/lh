@@ -213,6 +213,96 @@ lh_ptr
 lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size);
 
 /**
+ * @brief Whether @p lhs_size is the address-space bound of @p lhs
+ *        (::lh_memory_scan_bound): a sentinel scan with no real length.
+ *
+ * Such a haystack ends wherever its sentinel is, so nothing may be read past a
+ * match: the find bricks below take their element-by-element walk for it.
+ */
+lh_bool_t
+lh_memory_is_unbounded(const lh_ptr lhs, lh_usize_t lhs_size);
+
+/**
+ * @brief Whether the @p size bytes at @p lhs and @p rhs are the same.
+ *
+ * The yes/no question over ::lh_memory_std_compare, which answers where the
+ * first difference is. Zero @p size is equal.
+ *
+ * @param lhs  First block.
+ * @param rhs  Second block.
+ * @param size Bytes to compare.
+ */
+lh_bool_t
+lh_memory_is_equal(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t size);
+
+/**
+ * @brief First byte equal to @p byte at offsets 0, @p step, 2 * @p step, ... of @p lhs.
+ *
+ * Reads exactly the candidates up to the match, so it is safe for a sentinel
+ * scan (::lh_memory_is_unbounded).
+ *
+ * @param lhs      Haystack.
+ * @param lhs_size Size of @p lhs in bytes, or its address-space bound.
+ * @param byte     Byte to find.
+ * @param step     Byte distance between candidates; non-zero.
+ * @return The first match, or ::lh_null.
+ */
+const lh_ptr
+lh_memory_find_byte_by_step(const lh_ptr lhs, lh_usize_t lhs_size, lh_byte_t byte, lh_usize_t step);
+
+/**
+ * @brief First @p unit_size-byte unit of @p lhs equal to @p unit, unit by unit.
+ *
+ * Candidates are the whole units at offsets 0, @p unit_size, ...; each is read
+ * once, up to the match, so it is safe for a sentinel scan.
+ *
+ * @param lhs       Haystack.
+ * @param lhs_size  Size of @p lhs in bytes, or its address-space bound.
+ * @param unit      The unit to find (e.g. one ::lh_wchar_t).
+ * @param unit_size Size of @p unit in bytes; non-zero.
+ * @return The first match, or ::lh_null.
+ */
+const lh_ptr
+lh_memory_find_unit_by_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr unit,
+                            lh_usize_t unit_size);
+
+/**
+ * @brief First @p unit_size-byte unit of @p lhs equal to @p unit, on the unit grid.
+ *
+ * Composed of ::lh_memory_std_find: the kernel searches the bytes, and a hit
+ * that does not start on a unit boundary of @p lhs resumes the search at the
+ * next unit. The kernel reads whole words or vectors, so @p lhs_size must be
+ * the real haystack length: never use it for a sentinel scan
+ * (::lh_memory_is_unbounded) — that takes ::lh_memory_find_unit_by_step.
+ *
+ * @param lhs       Haystack.
+ * @param lhs_size  Real size of @p lhs in bytes.
+ * @param unit      The unit to find (e.g. one ::lh_wchar_t).
+ * @param unit_size Size of @p unit in bytes; non-zero.
+ * @return The first match, or ::lh_null.
+ */
+const lh_ptr
+lh_memory_find_unit(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr unit, lh_usize_t unit_size);
+
+/**
+ * @brief First match of a multi-byte needle at offsets 0, @p step, ... of @p lhs.
+ *
+ * Tests the needle's first byte in place and calls ::lh_memory_compare only
+ * where it matches. Reads at most the needle's length at a candidate, so it is
+ * safe for a sentinel scan that holds the needle.
+ *
+ * @param lhs      Haystack.
+ * @param lhs_size Size of @p lhs in bytes, or its address-space bound.
+ * @param rhs      Needle.
+ * @param rhs_size Size of @p rhs in bytes; non-zero.
+ * @param step     Byte distance between candidates; non-zero.
+ * @return The first match, or ::lh_null.
+ */
+const lh_ptr
+lh_memory_find_needle_by_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs,
+                              lh_usize_t rhs_size, lh_usize_t step);
+
+/**
  * @brief Like ::lh_memory_find, but only tries start offsets @c base, @c base+step,
  * @c base+2*step, … relative to @p lhs (byte offsets into the haystack).
  *
@@ -223,11 +313,46 @@ lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usiz
  * @param step      Byte distance between candidate starts; must be non-zero.
  *                  Use @p rhs_size to search aligned fixed-size records (e.g. wide characters).
  *
+ * Dispatches to the bricks above: with a real length ::lh_memory_std_find on a
+ * byte grid and ::lh_memory_find_unit on a unit grid; for a sentinel
+ * scan (::lh_memory_is_unbounded) only the walks that read nothing past the
+ * match.
+ *
  * @return Pointer to the start of the first match, or ::lh_null if none.
  */
 const lh_ptr
 lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size,
                     lh_usize_t step);
+
+/**
+ * @brief Offset of the last candidate on a @p step grid where @p rhs_size bytes fit.
+ *
+ * `lhs_size - rhs_size`, rounded down to a multiple of @p step (a mask when
+ * @p step is a power of two). The reverse walks start here.
+ *
+ * @param lhs_size Haystack size in bytes; at least @p rhs_size.
+ * @param rhs_size Needle size in bytes.
+ * @param step     Grid step; non-zero.
+ */
+lh_usize_t
+lh_memory_get_last_step_offset(lh_usize_t lhs_size, lh_usize_t rhs_size, lh_usize_t step);
+
+/**
+ * @brief Last match of @p rhs at offsets on a @p step grid of @p lhs, walking back.
+ *
+ * Starts at ::lh_memory_get_last_step_offset; tests the needle's first byte in
+ * place and compares the rest with ::lh_memory_std_compare only there.
+ *
+ * @param lhs      Haystack.
+ * @param lhs_size Size of @p lhs in bytes.
+ * @param rhs      Needle.
+ * @param rhs_size Size of @p rhs in bytes; non-zero.
+ * @param step     Byte distance between candidates; non-zero.
+ * @return The last match, or ::lh_null (also when @p rhs does not fit).
+ */
+const lh_ptr
+lh_memory_rfind_needle_by_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs,
+                               lh_usize_t rhs_size, lh_usize_t step);
 
 /**
  * @brief Find the rightmost offset in @p lhs

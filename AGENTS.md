@@ -39,6 +39,38 @@ every brick.
   copy "because it was quicker".
 - A new brick is used by LH right away: introduce it together with the code
   that switches to it.
+- **Everything goes down to its root.** When a function grows its own loop
+  because the root brick "is too slow" or "does not handle this case" (for
+  example `lh_memory_std_*` on small copies), the question is not to that
+  function but to the root: why does it not cope? Fix the root — a small-size
+  path in the kernel, a missing parameter — and delete the local copy.
+  Measure before and after (`bench/`), and write the reason and the numbers
+  into the root's documentation and `CHANGELOG.md`. An unexplained local
+  re-implementation is not allowed; nobody can later tell why it exists.
+
+## 0.1.1. What a kernel is; the OS is the whole, not the base
+
+- A **kernel** is a set of small universal implementations that everything
+  else uses; the more of them, the better. `lh_memory_std_*` is the main one.
+- The **OS is the most general whole**, composed of parts: the filesystem,
+  the network, threads, windows, input. A part does not depend on "the OS";
+  the OS is assembled from the parts. So the filesystem is not built on the
+  OS — the OS includes the filesystem. (Today the portable filesystem sits
+  under `lh/os/fs/`; moving the parts out from under `lh/os/` is tracked in
+  `docs/cleanup.md`.)
+
+## 0.2. The reference layering: native backend below, LH above
+
+The OS layer is the model for every subsystem that touches the platform:
+
+- `src/lh/os/system/<backend>/` (`win`, `posix`, ...) holds **only** the
+  platform's own calls and types, as they are — no LH portable wrappers, no
+  LH policy. It may use LH types and the small bricks it needs (bit ops),
+  nothing above them.
+- The portable LH API (`lh/os/*`, `lh/fs/*`, ...) is built **on top** of that
+  backend and never calls the platform directly.
+- A new platform feature first goes into each backend in the platform's own
+  terms, then gets one portable wrapper above them.
 
 ## 0.1. From smaller to larger; no extra includes
 
@@ -96,8 +128,13 @@ every brick.
   Extend an existing abstraction before introducing a new one.
 - If an existing brick is wrong or awkward, **fix that brick**. Never work
   around it with a new wrapper, a second variant or a local re-implementation.
-- No wrappers that only rename an existing kernel (removed example:
-  `lh/size/ops.h`, which only wrapped the `lh_interval_*_overflow` macros).
+- A brick may be a thin layer that **calls** another brick, under any name that
+  says what it answers (`lh_memory_is_equal` calls `lh_memory_std_compare`).
+  What is forbidden is **copying an implementation**: an `is_equal` that walks
+  the bytes itself instead of calling `compare` duplicates the kernel. Also
+  forbidden: a second brick with the same contract and a new name (removed
+  example: `lh/size/ops.h`, whose `lh_size_add` was
+  `lh_interval_closed_is_add_overflow` again).
 - Characters: name them with `lh/char/map.h` (`lh_char_map_ht`, `_space`,
   `_colon`, `_del`, ...), never bare `'	'` / `0x20` literals in code; test a
   byte against a set with `lh_str_ptr_contains_char` (or the

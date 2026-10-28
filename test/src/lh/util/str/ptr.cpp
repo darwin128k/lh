@@ -4,6 +4,9 @@
 #include <lh/expect/death.h>
 #include <lh/util/str/ptr.h>
 
+#include <cstdlib>
+#include <cstring>
+
 namespace
 {
 
@@ -681,6 +684,31 @@ TEST(str_raw_erase, writes_nul_at_index)
     EXPECT_EQ(s[0], 'a');
     EXPECT_EQ(s[1], lh_char_map_nul);
     EXPECT_EQ(lh_str_ptr_len(s), 1U);
+}
+
+/* Equality of two NUL-terminated strings must not read past either terminator:
+   under AddressSanitizer exact heap blocks catch any word-sized read beyond it. */
+TEST(str_raw_equals, reads_nothing_past_the_terminator)
+{
+    for (std::size_t size = 1; size < 40; ++size)
+    {
+        char *a = static_cast<char *>(std::malloc(size));
+        char *b = static_cast<char *>(std::malloc(size));
+        ASSERT_NE(a, nullptr);
+        ASSERT_NE(b, nullptr);
+        std::memset(a, 'q', size - 1);
+        std::memset(b, 'q', size - 1);
+        a[size - 1] = 0;
+        b[size - 1] = 0;
+        EXPECT_TRUE(lh_str_ptr_equals(a, b, lh_bool_false)) << size;
+        if (size > 1)
+        {
+            b[size - 2] = 'r';
+            EXPECT_FALSE(lh_str_ptr_equals(a, b, lh_bool_false)) << size;
+        }
+        std::free(a);
+        std::free(b);
+    }
 }
 
 #if LH_TEST_EXPECT_DEATH_ENABLED

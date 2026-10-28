@@ -818,7 +818,8 @@ lh_str_ptr_ends_with(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignor
 /**
  * @brief NUL-terminated string equality.
  *
- * With @p ignore_case ::lh_bool_false, ::lh_memory_bytes_eq_cstr (aligned SWAR).
+ * One paired walk up to the first difference or the shared NUL, folding case
+ * when @p ignore_case is set; nothing is read past either terminator.
  * With ::lh_bool_true, a paired ::lh_char_fold_case walk (no double strlen).
  * Both arguments must be NUL-terminated.
  *

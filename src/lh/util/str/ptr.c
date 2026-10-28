@@ -1144,30 +1144,16 @@ lh_str_ptr_ends_with(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignor
 lh_bool_t
 lh_str_ptr_equals(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case)
 {
-    if (!ignore_case)
+    /* One paired walk for both modes: neither length is known, so nothing is
+     * read past the first difference or the shared NUL. */
+    for (lh_usize_t i = 0;; i = lh_math_add_one(i))
     {
-        return lh_memory_bytes_eq_cstr(lh_ptr_cast(const lh_byte_t, str),
-                                       lh_ptr_cast(const lh_byte_t, src));
-    }
-
-    /* Paired fold walk — no double strlen. */
-    {
-        lh_usize_t i = 0;
-        for (;;)
-        {
-            const lh_char_t ac = str[i];
-            const lh_char_t bc = src[i];
-
-            if (lh_math_ne(lh_char_fold_case(ac), lh_char_fold_case(bc)))
-            {
-                return lh_bool_false;
-            }
-            if (lh_math_eq(ac, lh_char_map_nul))
-            {
-                return lh_math_eq(bc, lh_char_map_nul);
-            }
-            i = lh_math_add_one(i);
-        }
+        const lh_char_t ac = str[i];
+        const lh_char_t bc = src[i];
+        const lh_bool_t same =
+            ignore_case ? lh_math_eq(lh_char_fold_case(ac), lh_char_fold_case(bc)) : lh_math_eq(ac, bc);
+        lh_return_ifn(same, lh_bool_false);
+        lh_return_if(lh_math_eq(ac, lh_char_map_nul), lh_math_eq(bc, lh_char_map_nul));
     }
 }
 
