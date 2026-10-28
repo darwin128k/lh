@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Level-1 accessors for structs that had none, so no code outside them names a field: `lh_str_list_span_get_offset` / `_get_size` / `_set_offset` / `_set_size` / `_init` (`lh/str/list/span.h`); `lh_http_request_get_*` / `_set_*` (method, target, version_minor, header_count), `lh_http_response_get_*` / `_set_*` (reason, status, version_minor, header_count), `lh_http_header_get_*` / `_set_*` (name, value), `lh_http_parser_get_*` / `_set_*` (head_size_max, line_size_max, consumed, error_offset, error). The string lists and the HTTP parser use them; the lists lose their empty-element branches
+
 - Find bricks (`lh/memory.h`): `lh_memory_is_unbounded` (a sentinel scan with no real length), `lh_memory_find_byte_by_step`, `lh_memory_find_unit_by_step`, `lh_memory_find_unit_by_blocks` (real length only), `lh_memory_find_needle_by_step`; `lh_memory_find_step` only dispatches to them
 
 - `lh_math_float_is_finite` (`lh/math/float/finite.h`) and `lh_math_float_tan` (`lh/math/float/tan.h`, sine over cosine of `lh_math_float_sin_cos`); `lh_math_vec3_is_finite` and `lh_math_vec3_try_normalize` (`lh/math/vec3.h`). Renderer bricks: `lh_ui_renderer3d_camera_is_usable`, `_camera_to_view` (`lh/ui/renderer3d/camera.h`), `lh_ui_renderer3d_plane_t` (`lh/ui/renderer3d/plane.h`), `lh_ui_renderer3d_clear`, `_get_plane_distance`, `_clip_plane`, `_project`, `_get_edge`, `_put_fragment`, `_raster`

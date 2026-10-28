@@ -295,3 +295,50 @@ TEST(http_parser_parse_status_line, reads_code_and_reason)
     EXPECT_EQ(lh_http_parser_parse_status_line(&parser, view("HTTP/1.1 600 X", 14), 14, &response),
               lh_http_parse_error);
 }
+
+/* -- Accessors ---------------------------------------------------------------- */
+
+TEST(http_request_accessors, store_and_return_each_field)
+{
+    lh_http_request_t request;
+    lh_http_request_set_method(&request, view("GET", 3));
+    lh_http_request_set_target(&request, view("/a", 2));
+    lh_http_request_set_version_minor(&request, 1);
+    lh_http_request_set_header_count(&request, 4);
+    EXPECT_TRUE(equal(*lh_http_request_get_method(&request), "GET"));
+    EXPECT_TRUE(equal(*lh_http_request_get_target(&request), "/a"));
+    EXPECT_EQ(lh_http_request_get_version_minor(&request), 1);
+    EXPECT_EQ(lh_http_request_get_header_count(&request), 4u);
+}
+
+TEST(http_response_accessors, store_and_return_each_field)
+{
+    lh_http_response_t response;
+    lh_http_response_set_reason(&response, view("OK", 2));
+    lh_http_response_set_status(&response, 200);
+    lh_http_response_set_version_minor(&response, 0);
+    lh_http_response_set_header_count(&response, 2);
+    EXPECT_TRUE(equal(*lh_http_response_get_reason(&response), "OK"));
+    EXPECT_EQ(lh_http_response_get_status(&response), 200);
+    EXPECT_EQ(lh_http_response_get_version_minor(&response), 0);
+    EXPECT_EQ(lh_http_response_get_header_count(&response), 2u);
+}
+
+TEST(http_header_accessors, store_and_return_name_and_value)
+{
+    lh_http_header_t header;
+    lh_http_header_set_name(&header, view("Host", 4));
+    lh_http_header_set_value(&header, view("x", 1));
+    EXPECT_TRUE(equal(*lh_http_header_get_name(&header), "Host"));
+    EXPECT_TRUE(equal(*lh_http_header_get_value(&header), "x"));
+}
+
+TEST(http_parser_accessors, store_limits_and_diagnostics)
+{
+    lh_http_parser_t parser;
+    lh_http_parser_init(&parser);
+    EXPECT_EQ(lh_http_parser_get_head_size_max(&parser), 8192u);
+    EXPECT_EQ(lh_http_parser_get_line_size_max(&parser), 4096u);
+    lh_http_parser_set_consumed(&parser, 9);
+    EXPECT_EQ(lh_http_parser_get_consumed(&parser), 9u);
+}
