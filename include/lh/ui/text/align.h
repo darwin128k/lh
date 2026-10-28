@@ -8,38 +8,10 @@
 #define LH_UI_TEXT_ALIGN_H
 
 #include <lh/ui/insets.h>
+#include <lh/ui/text/align/h.h>
+#include <lh/ui/text/align/v.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
-
-/**
- * @brief Where the text sits across the box.
- *
- * The default, ::lh_ui_text_align_h_left, is what a label did before alignment
- * existed: the text starts at the padding. The other two move the text's left
- * edge to the middle or the right edge of the padded box; text wider than the box
- * starts at the left for all three, because there is nowhere else to start.
- */
-typedef enum lh_ui_text_align_h
-{
-    lh_ui_text_align_h_left = 0,   /**< The text starts at the left of the padded box. */
-    lh_ui_text_align_h_center = 1, /**< The text is centred in the padded box. */
-    lh_ui_text_align_h_right = 2   /**< The text ends at the right of the padded box. */
-} lh_ui_text_align_h_t;
-
-/**
- * @brief Where the text sits down the box.
- *
- * ::lh_ui_text_align_v_top is what a label did before alignment existed;
- * ::lh_ui_text_align_v_center and ::lh_ui_text_align_v_bottom move the text's top
- * edge to the middle or the bottom of the padded box, and text taller than the box
- * starts at the top for all three.
- */
-typedef enum lh_ui_text_align_v
-{
-    lh_ui_text_align_v_top = 0,    /**< The text starts at the top of the padded box. */
-    lh_ui_text_align_v_center = 1, /**< The text is centred in the padded box. */
-    lh_ui_text_align_v_bottom = 2  /**< The text ends at the bottom of the padded box. */
-} lh_ui_text_align_v_t;
 
 /**
  * @brief The point a text of @p size starts at inside @p box, with @p padding

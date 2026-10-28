@@ -376,11 +376,14 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/insets.c
             ${LH_LIB_SRC_PATH}/ui/key.c
             ${LH_LIB_SRC_PATH}/ui/layout/layout.c
+            ${LH_LIB_SRC_PATH}/ui/layout/run.c
+            ${LH_LIB_SRC_PATH}/ui/layout/cross.c
             ${LH_LIB_SRC_PATH}/ui/layout/place.c
             ${LH_LIB_SRC_PATH}/ui/color.c
             ${LH_LIB_SRC_PATH}/ui/paint.c
             ${LH_LIB_SRC_PATH}/ui/gradient.c
             ${LH_LIB_SRC_PATH}/ui/gradient/sampler.c
+            ${LH_LIB_SRC_PATH}/ui/gradient/sampler/lerp.c
             ${LH_LIB_SRC_PATH}/ui/gradient/sine.c
             ${LH_LIB_SRC_PATH}/ui/style.c
             ${LH_LIB_SRC_PATH}/ui/easing.c
@@ -393,12 +396,15 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/shadow/ramp.c
             ${LH_LIB_SRC_PATH}/ui/shadow/shape.c
             ${LH_LIB_SRC_PATH}/ui/blur.c
+            ${LH_LIB_SRC_PATH}/ui/blur/pass.c
+            ${LH_LIB_SRC_PATH}/ui/blur/window.c
             ${LH_LIB_SRC_PATH}/ui/range.c
             ${LH_LIB_SRC_PATH}/ui/canvas.c
             ${LH_LIB_SRC_PATH}/ui/canvas/state.c
             ${LH_LIB_SRC_PATH}/ui/canvas/round.c
             ${LH_LIB_SRC_PATH}/ui/canvas/box.c
             ${LH_LIB_SRC_PATH}/ui/canvas/clip.c
+            ${LH_LIB_SRC_PATH}/ui/canvas/clip/round.c
             ${LH_LIB_SRC_PATH}/ui/pen.c
             ${LH_LIB_SRC_PATH}/ui/entity.c
             ${LH_LIB_SRC_PATH}/ui/entity/class.c
@@ -425,7 +431,9 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/canvas/mask.c
             ${LH_LIB_SRC_PATH}/ui/pixmap.c
             ${LH_LIB_SRC_PATH}/ui/canvas/sw.c
+            ${LH_LIB_SRC_PATH}/ui/canvas/sw/shadow/pass.c
             ${LH_LIB_SRC_PATH}/ui/canvas/web.c
+            ${LH_LIB_SRC_PATH}/ui/canvas/web/glyphs.c
             ${LH_LIB_SRC_PATH}/ui/canvas/web/atlas.c
             ${LH_LIB_SRC_PATH}/ui/present.c
             ${LH_LIB_SRC_PATH}/ui/present/sink.c

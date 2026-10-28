@@ -15,24 +15,13 @@
 #include <lh/config.h>
 #include <lh/ui/web/buf.h>
 #include <lh/ui/web/html/attr.h>
+#include <lh/ui/web/html/kind.h>
 
 #if !LH_LIBRARY_OPTION_UI
 #    error "lh/ui/web/html.h requires LH_LIBRARY_OPTION_UI"
 #endif
 
 LH_COMPILER_EXTERN_C_BEGIN
-
-/**
- * @enum lh_ui_web_html_kind
- * @brief What an ::lh_ui_web_html_t node is, and so which member of its union is set.
- */
-typedef enum lh_ui_web_html_kind
-{
-    lh_ui_web_html_kind_doctype = 0, /**< `<!doctype html>`. */
-    lh_ui_web_html_kind_text,        /**< Text, HTML-escaped on emit. */
-    lh_ui_web_html_kind_raw,         /**< Markup written as is. */
-    lh_ui_web_html_kind_tag          /**< An element with attributes and children. */
-} lh_ui_web_html_kind_t;             /**< What an ::lh_ui_web_html_t node is. */
 
 /**
  * @brief One markup node.

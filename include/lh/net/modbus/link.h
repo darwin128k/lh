@@ -33,24 +33,12 @@
 #include <lh/byte/ptr.h>
 #include <lh/net/modbus.h>
 #include <lh/io/stream.h>
+#include <lh/net/modbus/framing.h>
+#include <lh/net/modbus/link/state.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 
 /* -- Framing --------------------------------------------------------------- */
-
-/**
- * @brief How a request is wrapped for the wire it goes out on.
- *
- * One PDU, two envelopes. A serial line has no header and ends a frame with a
- * CRC; a network has a seven-byte header with a length in it and no CRC. A
- * program that assumed one of them is a program that talks to half the devices
- * in the world.
- */
-typedef enum lh_mb_framing
-{
-    lh_mb_framing_rtu = 0, /**< unit, PDU, CRC low byte first — a COM port, or RTU over TCP */
-    lh_mb_framing_mbap = 1 /**< seven-byte header with a length, unit, PDU — Modbus TCP */
-} lh_mb_framing_t;
 
 /** @brief Bytes of MBAP header ahead of the unit and the PDU. */
 #define LH_MB_MBAP_HEAD (lh_cast_static(lh_u16_t, 7))
@@ -124,28 +112,6 @@ lh_mb_decode(lh_mb_framing_t framing, lh_u8_t unit, const lh_byte_ptr frame, lh_
 
 /** @brief How many words one link holds; the most a single read may ask for. */
 #define LH_MB_LINK_VALUES (lh_cast_static(lh_u16_t, LH_MB_READ_MAX))
-
-/**
- * @brief Where a link is with the device behind it.
- *
- * @note ::lh_mb_link_failed is a **result, not a resting place**. A question that
- *       timed out, came back with a bad CRC or came back as an exception puts the
- *       link straight back to ::lh_mb_link_idle and this poll reports the failure
- *       on its way. A link stayed in `failed` for the rest of the session, which
- *       meant a device that answers "illegal function" for one register bank was
- *       dropped for good, and a poll loop that keeps finding the link busy spins
- *       for ever instead of moving on to the next device. Whether a device is
- *       *off* rather than *slow* is the app's decision — only it knows how many
- *       failures in a row mean that — and ::lh_mb_link_counters_t.failed is what
- *       it counts them from.
- */
-typedef enum lh_mb_link_state
-{
-    lh_mb_link_idle = 0, /**< nothing in flight */
-    lh_mb_link_waiting,  /**< a question is out and no answer has come back yet */
-    lh_mb_link_answered, /**< an answer arrived and was parsed; ::lh_mb_link_take takes it */
-    lh_mb_link_failed    /**< the stream gave up, or the answer was not ours */
-} lh_mb_link_state_t;
 
 /**
  * @brief The numbers a bench reads and a status bar shows.
