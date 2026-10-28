@@ -6,6 +6,15 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+#include <limits.h>
+#include <sys/stat.h>
+#include <lh/os.h>
+#include <lh/os/error/code.h>
+#include <lh/util/str/ptr.h>
+
+#ifndef NAME_MAX
+#    define NAME_MAX 255
+#endif
 
 LH_ATTRIBUTE_STATIC
 int
@@ -75,4 +84,86 @@ lh_os_system_fs_file_write(lh_os_system_fs_file_handle_t handle, const lh_ptr bu
         lh_os_system_error_capture();
     }
     return result;
+}
+
+lh_os_system_fs_file_handle_t
+lh_os_system_fs_file_open_read_at(lh_os_system_fs_file_handle_t root, lh_str_cptr path,
+                                  lh_fs_size_t *size)
+{
+    lh_assert_runtime_ref(path);
+    lh_assert_runtime_ref(size);
+    if (lh_math_is_negative(root))
+    {
+        lh_os_set_last_error_lit(lh_os_error_code_invalid_argument, "expected an open directory");
+        return LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID;
+    }
+    /* Borrow root until the first component has been opened. Every subsequent
+     * directory is owned here, including on error paths. */
+    int directory = lh_os_system_fs_file_native(root);
+    lh_bool_t owned = lh_bool_false;
+    lh_str_cptr part = path;
+    for (;;)
+    {
+        lh_char_t name[NAME_MAX + 1];
+        lh_usize_t length = 0;
+        while (part[length] && part[length] != '/')
+        {
+            if (part[length] == '\\' || part[length] == ':' || length == NAME_MAX)
+            {
+                break;
+            }
+            ++length;
+        }
+        if (!length || (part[length] && part[length] != '/') || (length == 1U && part[0] == '.') ||
+            (length == 2U && part[0] == '.' && part[1] == '.'))
+        {
+            lh_os_set_last_error_lit(lh_os_error_code_invalid_argument,
+                                     "expected a relative file path without dot components");
+            if (owned)
+            {
+                (void)close(directory);
+            }
+            return LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID;
+        }
+        lh_str_ptr_copy(name, sizeof name, part, length);
+        name[length] = '\0';
+        const lh_bool_t more = lh_cast_static(lh_bool_t, part[length] == '/');
+        const int next =
+            openat(directory, name,
+                   O_RDONLY | O_CLOEXEC | O_NOFOLLOW | O_NONBLOCK | (more ? O_DIRECTORY : 0));
+        if (next < 0)
+        {
+            lh_os_system_error_capture();
+        }
+        if (owned)
+        {
+            (void)close(directory);
+        }
+        if (next < 0)
+        {
+            return LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID;
+        }
+        if (!more)
+        {
+            struct stat info;
+            if (fstat(next, lh_addr_of(info)))
+            {
+                lh_os_system_error_capture();
+                (void)close(next);
+                return LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID;
+            }
+            if (!S_ISREG(info.st_mode) || info.st_size < 0)
+            {
+                lh_os_set_last_error_lit(lh_os_error_code_invalid_argument,
+                                         "expected a regular file with nonnegative size");
+                (void)close(next);
+                return LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID;
+            }
+            lh_ptr_deref(size) = lh_cast_static(lh_fs_size_t, info.st_size);
+            return lh_cast_static(lh_os_system_fs_file_handle_t, next);
+        }
+        directory = next;
+        owned = lh_bool_true;
+        part += length + 1U;
+    }
 }
