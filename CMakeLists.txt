@@ -135,7 +135,10 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/ini/error.c
         ${LH_LIB_SRC_PATH}/ini/parser.c
         ${LH_LIB_SRC_PATH}/http/char.c
+        ${LH_LIB_SRC_PATH}/http/header.c
         ${LH_LIB_SRC_PATH}/http/parser.c
+        ${LH_LIB_SRC_PATH}/http/request.c
+        ${LH_LIB_SRC_PATH}/http/response.c
         ${LH_LIB_SRC_PATH}/http/version.c
         ${LH_LIB_SRC_PATH}/sql/db.c
         ${LH_LIB_SRC_PATH}/sql/driver.c
@@ -216,6 +219,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/str/scanf/next.c
         ${LH_LIB_SRC_PATH}/str/list.c
         ${LH_LIB_SRC_PATH}/wstr/list.c
+        ${LH_LIB_SRC_PATH}/str/list/span.c
 
         ${LH_LIB_SRC_PATH}/fs/path.c
         ${LH_LIB_SRC_PATH}/fs/path/style.c

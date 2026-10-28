@@ -48,31 +48,6 @@ typedef struct lh_http_parser lh_http_parser_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Initialize limits and clear diagnostics.
- *
- * Sets the default budgets: 8192 head bytes including the final CRLF, and 4096
- * bytes per physical line excluding it. No owned resources; no deinit needed.
- *
- * @param self Parser to initialize; null is ignored.
- */
-lh_void
-lh_http_parser_init(lh_http_parser_t *self);
-
-/**
- * @brief Set the head and line budgets.
- *
- * Both values are checked on the next parse; a zero budget is invalid and makes
- * that parse fail with ::lh_http_error_argument.
- *
- * @param self          Parser to change; null is ignored.
- * @param head_size_max Maximum head bytes, including the final CRLF.
- * @param line_size_max Maximum text bytes of one physical line, excluding CRLF.
- */
-lh_void
-lh_http_parser_set_limits(lh_http_parser_t *self, lh_usize_t head_size_max,
-                          lh_usize_t line_size_max);
-
-/**
  * @brief Bytes through the final CRLF of the last complete parse.
  *
  * @param self Parser to read from.
@@ -100,6 +75,48 @@ lh_http_parser_get_error(const lh_http_parser_t *self);
  */
 lh_usize_t
 lh_http_parser_get_error_offset(const lh_http_parser_t *self);
+
+/** @brief The @c head_size_max of @p self. */
+lh_usize_t
+lh_http_parser_get_head_size_max(const lh_http_parser_t *self);
+
+/** @brief Store @p head_size_max as the @c head_size_max of @p self. */
+lh_void
+lh_http_parser_set_head_size_max(lh_http_parser_t *self, lh_usize_t head_size_max);
+
+/** @brief The @c line_size_max of @p self. */
+lh_usize_t
+lh_http_parser_get_line_size_max(const lh_http_parser_t *self);
+
+/** @brief Store @p line_size_max as the @c line_size_max of @p self. */
+lh_void
+lh_http_parser_set_line_size_max(lh_http_parser_t *self, lh_usize_t line_size_max);
+
+/** @brief Store @p consumed as the @c consumed of @p self. */
+lh_void
+lh_http_parser_set_consumed(lh_http_parser_t *self, lh_usize_t consumed);
+
+/** @brief Store @p error_offset as the @c error_offset of @p self. */
+lh_void
+lh_http_parser_set_error_offset(lh_http_parser_t *self, lh_usize_t error_offset);
+
+/** @brief Store @p error as the @c error of @p self. */
+lh_void
+lh_http_parser_set_error(lh_http_parser_t *self, lh_http_error_t error);
+
+/**
+ * @brief Set the head and line budgets.
+ *
+ * Both values are checked on the next parse; a zero budget is invalid and makes
+ * that parse fail with ::lh_http_error_argument.
+ *
+ * @param self          Parser to change; null is ignored.
+ * @param head_size_max Maximum head bytes, including the final CRLF.
+ * @param line_size_max Maximum text bytes of one physical line, excluding CRLF.
+ */
+lh_void
+lh_http_parser_set_limits(lh_http_parser_t *self, lh_usize_t head_size_max,
+                          lh_usize_t line_size_max);
 
 /**
  * @brief Record a failure at @p offset and report it.
@@ -131,6 +148,17 @@ lh_http_parser_fail(lh_http_parser_t *self, lh_http_error_t error, lh_usize_t of
 lh_bool_t
 lh_http_parser_begin(lh_http_parser_t *self, lh_str_view_t input, const lh_void *output,
                      const lh_http_header_t *headers, lh_usize_t capacity);
+
+/**
+ * @brief Initialize limits and clear diagnostics.
+ *
+ * Sets the default budgets: 8192 head bytes including the final CRLF, and 4096
+ * bytes per physical line excluding it. No owned resources; no deinit needed.
+ *
+ * @param self Parser to initialize; null is ignored.
+ */
+lh_void
+lh_http_parser_init(lh_http_parser_t *self);
 
 /**
  * @brief Find the CRLF that ends the physical line starting at @p start.

@@ -23,6 +23,7 @@
 #ifndef LH_SRC_OS_SYSTEM_POSIX_X11_H
 #define LH_SRC_OS_SYSTEM_POSIX_X11_H
 
+#include <lh/compiler/extern/c.h>
 #include <lh/bit/ops.h>
 #include <lh/numeric/types.h>
 #include <lh/void.h>
@@ -413,7 +414,6 @@ lh_os_system_posix_xext_load(void);
 LH_COMPILER_EXTERN_C_END
 
 #include <lh/os/system/posix/x11/xrender/fields.h>
-#include <lh/compiler/extern/c.h>
 
 /**
  * @brief libXrender, opened at run time.

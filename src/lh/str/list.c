@@ -79,9 +79,7 @@ lh_str_list_push_back(lh_str_list_t *self, lh_str_view_t text)
     lh_str_list_span_t span;
 
     chars = lh_str_list_get_chars_mut(self);
-    span.offset = lh_str_get_size(chars);
-    span.size =
-        lh_str_view_is_empty(lh_addr_of(text)) ? 0U : lh_str_view_get_size(lh_addr_of(text));
+    lh_str_list_span_init(lh_addr_of(span), lh_str_get_size(chars), lh_str_view_get_size(lh_addr_of(text)));
     lh_str_append_view(chars, text);
     lh_str_push_back(chars, lh_char_map_nul);
     return lh_array_push_back(lh_str_list_get_spans_mut(self), lh_addr_of(span));
@@ -106,15 +104,9 @@ lh_str_list_get(const lh_str_list_t *self, lh_uindex_t index, lh_str_view_t *out
     lh_str_view_t chars;
 
     lh_str_list_get_span(self, index, lh_addr_of(span));
-    if (lh_math_is_zero(span.size))
-    {
-        lh_str_view_t _lh_tmp;
-        lh_str_view_init_empty(lh_addr_of(_lh_tmp));
-        lh_ptr_deref(out) = _lh_tmp;
-        return;
-    }
     lh_str_as_view(lh_str_list_get_chars(self), lh_addr_of(chars));
-    lh_str_view_from_offset(lh_addr_of(chars), span.offset, span.size, out);
+    lh_str_view_from_offset(lh_addr_of(chars), lh_str_list_span_get_offset(lh_addr_of(span)),
+                        lh_str_list_span_get_size(lh_addr_of(span)), out);
 }
 
 lh_str_cptr
@@ -126,7 +118,7 @@ lh_str_list_get_data(const lh_str_list_t *self, lh_uindex_t index)
     lh_str_list_get_span(self, index, lh_addr_of(span));
     lh_str_as_view(lh_str_list_get_chars(self), lh_addr_of(chars));
     return lh_ptr_cast(const lh_char_t,
-                       lh_memory_view_get_ptr_from_begin(lh_addr_of(chars), span.offset));
+                       lh_memory_view_get_ptr_from_begin(lh_addr_of(chars), lh_str_list_span_get_offset(lh_addr_of(span))));
 }
 
 lh_uindex_t
@@ -152,7 +144,8 @@ lh_str_list_append(lh_str_list_t *self, const lh_str_list_t *other)
     for (i = 0U; lh_math_lt(i, n); i = lh_math_add_one(i))
     {
         lh_str_list_get_span(other, i, lh_addr_of(span));
-        span.offset = lh_math_add(span.offset, base);
+        lh_str_list_span_set_offset(lh_addr_of(span),
+                                    lh_math_add(lh_str_list_span_get_offset(lh_addr_of(span)), base));
         lh_array_push_back(lh_str_list_get_spans_mut(self), lh_addr_of(span));
     }
 }
