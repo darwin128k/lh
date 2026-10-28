@@ -97,7 +97,6 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/exception.c
         ${LH_LIB_SRC_PATH}/exception/origin.c
 
-        ${LH_LIB_SRC_PATH}/size/ops.c
         ${LH_LIB_SRC_PATH}/numeric/fixed/types.c
         ${LH_LIB_SRC_PATH}/numeric/fixed/limits.c
         ${LH_LIB_SRC_PATH}/numeric/parse/bytes.c

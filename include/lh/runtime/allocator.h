@@ -96,6 +96,26 @@ lh_runtime_allocator_free(lh_ptr ptr);
 lh_ptr
 lh_runtime_allocator_realloc(lh_ptr old_ptr, lh_usize_t old_size, lh_usize_t new_size);
 
+/** Same semantics as ::lh_memory_allocator_alloc_zero(::lh_runtime_allocator(), ...). */
+lh_ptr
+lh_runtime_allocator_alloc_zero(lh_usize_t count, lh_usize_t item_size);
+
+/** Same semantics as ::lh_memory_allocator_try_alloc(::lh_runtime_allocator(), @p size). */
+lh_ptr
+lh_runtime_allocator_try_alloc(lh_usize_t size);
+
+/** Same semantics as ::lh_memory_allocator_try_alloc_zero(::lh_runtime_allocator(), ...). */
+lh_ptr
+lh_runtime_allocator_try_alloc_zero(lh_usize_t count, lh_usize_t item_size);
+
+/** Same semantics as ::lh_memory_allocator_try_dealloc(::lh_runtime_allocator(), @p ptr). */
+lh_bool_t
+lh_runtime_allocator_try_free(lh_ptr ptr);
+
+/** Same semantics as ::lh_memory_allocator_try_realloc(::lh_runtime_allocator(), ...). */
+lh_ptr
+lh_runtime_allocator_try_realloc(lh_ptr old_ptr, lh_usize_t old_size, lh_usize_t new_size);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_RUNTIME_ALLOCATOR_H */
