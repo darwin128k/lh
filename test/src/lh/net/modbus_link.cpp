@@ -175,7 +175,7 @@ setup(lh_test_link *self, lh_u8_t fc)
        here is transaction 1. An answer is only an answer to the question with its
        transaction id, and a test that asked transaction 0 would be testing what
        happens to somebody else's frame. */
-    self->link.tx = 1;
+    lh_mb_link_set_tx(&self->link, 1);
 }
 
 /* Put @p bytes after whatever the stream has not handed over yet: two frames in
@@ -427,7 +427,7 @@ TEST(lh_mb_link, an_input_answer_does_not_answer_a_holding_question)
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
     EXPECT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_failed)
         << "one byte of function code apart, and it is not our answer";
-    EXPECT_EQ(t.link.counters.done, (lh_u32_t)0);
+    EXPECT_EQ(lh_mb_link_counters_get_done(lh_mb_link_get_counters(&t.link)), (lh_u32_t)0);
 }
 
 TEST(lh_mb_link, a_holding_answer_answers_a_holding_question_in_both_banks)
@@ -463,10 +463,10 @@ TEST(lh_mb_link, the_answer_a_device_sent_is_the_answer_the_link_holds)
     EXPECT_EQ(values[0], (lh_u16_t)1);
     EXPECT_EQ(values[1], (lh_u16_t)1);
     EXPECT_EQ(values[2], (lh_u16_t)1);
-    EXPECT_EQ(t.link.counters.sent, (lh_u32_t)1);
-    EXPECT_EQ(t.link.counters.done, (lh_u32_t)1);
-    EXPECT_EQ(t.link.counters.failed, (lh_u32_t)0);
-    EXPECT_EQ(t.link.address, (lh_u16_t)10);
+    EXPECT_EQ(lh_mb_link_counters_get_sent(lh_mb_link_get_counters(&t.link)), (lh_u32_t)1);
+    EXPECT_EQ(lh_mb_link_counters_get_done(lh_mb_link_get_counters(&t.link)), (lh_u32_t)1);
+    EXPECT_EQ(lh_mb_link_counters_get_failed(lh_mb_link_get_counters(&t.link)), (lh_u32_t)0);
+    EXPECT_EQ(lh_mb_link_get_address(&t.link), (lh_u16_t)10);
 }
 
 TEST(lh_mb_link, an_answer_arriving_one_byte_at_a_time_is_the_same_answer)
@@ -509,11 +509,11 @@ TEST(lh_mb_link, a_timeout_leaves_the_link_able_to_be_asked_again)
 
     t.now_us += 2000000; /* two seconds later, nothing came back */
     EXPECT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_failed);
-    EXPECT_EQ(t.link.counters.failed, (lh_u32_t)1);
-    EXPECT_EQ(t.link.state, (lh_u8_t)lh_mb_link_idle) << "and idle, so the next pass can use it";
+    EXPECT_EQ(lh_mb_link_counters_get_failed(lh_mb_link_get_counters(&t.link)), (lh_u32_t)1);
+    EXPECT_EQ(lh_mb_link_get_state(&t.link), (lh_u8_t)lh_mb_link_idle) << "and idle, so the next pass can use it";
 
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 20, 3)) << "the same device, one question later";
-    EXPECT_EQ(t.link.counters.sent, (lh_u32_t)2);
+    EXPECT_EQ(lh_mb_link_counters_get_sent(lh_mb_link_get_counters(&t.link)), (lh_u32_t)2);
 }
 
 TEST(lh_mb_link, a_device_that_stops_answering_still_counts_as_failed)
@@ -525,10 +525,10 @@ TEST(lh_mb_link, a_device_that_stops_answering_still_counts_as_failed)
     t.now_us += 2000000;
 
     EXPECT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_failed);
-    EXPECT_EQ(t.link.counters.failed, (lh_u32_t)1);
-    EXPECT_EQ(t.link.counters.refused, (lh_u32_t)0)
+    EXPECT_EQ(lh_mb_link_counters_get_failed(lh_mb_link_get_counters(&t.link)), (lh_u32_t)1);
+    EXPECT_EQ(lh_mb_link_counters_get_refused(lh_mb_link_get_counters(&t.link)), (lh_u32_t)0)
         << "nothing came back at all, so there is nothing to have refused";
-    EXPECT_EQ(t.link.reason, lh_mb_status_short) << "not yet a frame, and never one";
+    EXPECT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_short) << "not yet a frame, and never one";
 }
 
 /* -- A refusal is an answer ------------------------------------------------
@@ -546,17 +546,17 @@ TEST(lh_mb_link, a_refusal_is_counted_as_a_refusal_and_not_as_a_failure)
        to send a question the protocol forbids, and this test is about what a
        refusal **looks like on the wire**, not about replaying its cause. The nine
        bytes are the device's. */
-    t.link.tx = 7; /* the captured refusal answers transaction 7 */
+    lh_mb_link_set_tx(&t.link, 7); /* the captured refusal answers transaction 7 */
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 30259, 125));
     feed(lh_addr_of(t), kRefusedByDevice, (lh_u16_t)sizeof(kRefusedByDevice));
 
     EXPECT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_failed)
         << "no registers came back, so this question produced no data";
-    EXPECT_EQ(t.link.reason, lh_mb_status_exception) << "and the device said exactly what it meant";
-    EXPECT_EQ(t.link.counters.refused, (lh_u32_t)1) << "it understood us and answered";
-    EXPECT_EQ(t.link.counters.failed, (lh_u32_t)0) << "a failure is a device that did not answer";
-    EXPECT_EQ(t.link.counters.done, (lh_u32_t)0) << "and this one carried no registers either";
-    EXPECT_EQ(t.link.state, (lh_u8_t)lh_mb_link_idle) << "idle, because it is not off";
+    EXPECT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_exception) << "and the device said exactly what it meant";
+    EXPECT_EQ(lh_mb_link_counters_get_refused(lh_mb_link_get_counters(&t.link)), (lh_u32_t)1) << "it understood us and answered";
+    EXPECT_EQ(lh_mb_link_counters_get_failed(lh_mb_link_get_counters(&t.link)), (lh_u32_t)0) << "a failure is a device that did not answer";
+    EXPECT_EQ(lh_mb_link_counters_get_done(lh_mb_link_get_counters(&t.link)), (lh_u32_t)0) << "and this one carried no registers either";
+    EXPECT_EQ(lh_mb_link_get_state(&t.link), (lh_u8_t)lh_mb_link_idle) << "idle, because it is not off";
 }
 
 TEST(lh_mb_link, eight_refusals_in_a_row_are_not_eight_failures)
@@ -572,14 +572,14 @@ TEST(lh_mb_link, eight_refusals_in_a_row_are_not_eight_failures)
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
     for (lh_u32_t i = 0; i < 8; ++i)
     {
-        t.link.tx = 7; /* the same captured refusal each time, so the same transaction */
+        lh_mb_link_set_tx(&t.link, 7); /* the same captured refusal each time, so the same transaction */
         ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), (lh_u16_t)(30259 + i), 125))
             << "still asking after refusal " << i << ": the device is talking, so it is still there";
         feed(lh_addr_of(t), kRefusedByDevice, (lh_u16_t)sizeof(kRefusedByDevice));
         EXPECT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_failed);
     }
-    EXPECT_EQ(t.link.counters.refused, (lh_u32_t)8);
-    EXPECT_EQ(t.link.counters.failed, (lh_u32_t)0)
+    EXPECT_EQ(lh_mb_link_counters_get_refused(lh_mb_link_get_counters(&t.link)), (lh_u32_t)8);
+    EXPECT_EQ(lh_mb_link_counters_get_failed(lh_mb_link_get_counters(&t.link)), (lh_u32_t)0)
         << "eight answers, zero failures. A run of failures is what takes a device off line and "
            "this device has not given us one";
 }
@@ -592,15 +592,15 @@ TEST(lh_mb_link, asking_again_clears_the_verdict_of_the_last_question)
        about the wrong question: an app that checks it after asking the next one
        reads a refusal for a request that has not been sent yet. */
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
-    t.link.tx = 7;
+    lh_mb_link_set_tx(&t.link, 7);
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 30259, 125));
     feed(lh_addr_of(t), kRefusedByDevice, (lh_u16_t)sizeof(kRefusedByDevice));
     ASSERT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_failed);
-    ASSERT_EQ(t.link.reason, lh_mb_status_exception);
+    ASSERT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_exception);
 
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
-    EXPECT_EQ(t.link.reason, lh_mb_status_ok) << "the next question has not been answered yet";
-    EXPECT_EQ(t.link.counters.refused, (lh_u32_t)1) << "and the old refusal is still counted";
+    EXPECT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_ok) << "the next question has not been answered yet";
+    EXPECT_EQ(lh_mb_link_counters_get_refused(lh_mb_link_get_counters(&t.link)), (lh_u32_t)1) << "and the old refusal is still counted";
 }
 
 TEST(lh_mb_link, a_socket_error_leaves_the_link_able_to_be_asked_again)
@@ -612,8 +612,8 @@ TEST(lh_mb_link, a_socket_error_leaves_the_link_able_to_be_asked_again)
 
     t.tcp.fail_next_recv = -1;
     EXPECT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_failed);
-    EXPECT_EQ(t.link.state, (lh_u8_t)lh_mb_link_idle);
-    EXPECT_EQ(t.link.reason, lh_mb_status_lost) << "a stream that failed is a stream to open again";
+    EXPECT_EQ(lh_mb_link_get_state(&t.link), (lh_u8_t)lh_mb_link_idle);
+    EXPECT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_lost) << "a stream that failed is a stream to open again";
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 20, 3));
 }
 
@@ -623,7 +623,7 @@ TEST(lh_mb_link, an_answer_to_the_other_question_is_not_an_answer_to_this_one)
 
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
     /* A holding answer arrives while the link is asking for input registers. */
-    t.link.fc = LH_MB_FC_READ_INPUT;
+    lh_mb_link_set_fc(&t.link, LH_MB_FC_READ_INPUT);
     feed(lh_addr_of(t), kRead3Holding, (lh_u16_t)sizeof(kRead3Holding));
 
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
@@ -669,7 +669,7 @@ TEST(lh_mb_link, the_timestamp_is_as_wide_as_the_clock_that_fills_it)
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
 
     /* If since_us were narrower than the clock, this is where it would differ. */
-    EXPECT_EQ((lh_u64_t)t.link.since_us, far_future)
+    EXPECT_EQ((lh_u64_t)lh_mb_link_get_since_us(&t.link), far_future)
         << "stored narrower than it was read: the difference is the whole bug";
     EXPECT_LT(far_future, 4294967296ull * 64u) << "the test value has to be past 32 bits to say"
                                                    " anything";
@@ -703,7 +703,7 @@ TEST(lh_mb_link, a_link_does_not_wait_for_an_answer_it_has_not_asked_for)
     feed(lh_addr_of(t), kRead3Holding, (lh_u16_t)sizeof(kRead3Holding));
     EXPECT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_idle)
         << "an idle link has nothing to poll and must not eat the answer waiting on the wire";
-    EXPECT_EQ(t.link.state, (lh_u8_t)lh_mb_link_idle);
+    EXPECT_EQ(lh_mb_link_get_state(&t.link), (lh_u8_t)lh_mb_link_idle);
 }
 
 /* -- RTU still holds -------------------------------------------------------
@@ -764,7 +764,7 @@ TEST(lh_mb_link, a_write_puts_the_captured_request_on_the_wire)
     const lh_u16_t values[] = {1, 2};
 
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
-    t.link.tx = 1; /* the captured request is transaction 1 */
+    lh_mb_link_set_tx(&t.link, 1); /* the captured request is transaction 1 */
     ASSERT_TRUE(lh_mb_link_write(lh_addr_of(t.link), 10, values, 2));
     ASSERT_EQ(t.tcp.out_size, (lh_u16_t)sizeof(kWrite2At10));
     EXPECT_EQ(memcmp(t.tcp.out, kWrite2At10, sizeof(kWrite2At10)), 0);
@@ -783,7 +783,7 @@ TEST(lh_mb_link, the_echo_of_a_write_answers_it_and_carries_no_values)
         << "twelve bytes, length field 6: the write's header echoed";
     EXPECT_NE(lh_mb_link_take(lh_addr_of(t.link), lh_addr_of(count)), lh_null);
     EXPECT_EQ(count, (lh_u16_t)0) << "a write's answer has no registers in it";
-    EXPECT_EQ(t.link.reason, lh_mb_status_ok);
+    EXPECT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_ok);
 }
 
 /* The echo is checked against what was written: an echo of another address is not this
@@ -797,7 +797,7 @@ TEST(lh_mb_link, the_echo_of_another_write_is_not_this_one)
     ASSERT_TRUE(lh_mb_link_write(lh_addr_of(t.link), 11, values, 2));
     feed(lh_addr_of(t), kWrite2At10Echo, (lh_u16_t)sizeof(kWrite2At10Echo));
     EXPECT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_failed);
-    EXPECT_EQ(t.link.reason, lh_mb_status_garbage);
+    EXPECT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_garbage);
 }
 
 TEST(lh_mb_link, a_refused_write_is_a_refusal_and_not_a_failure)
@@ -806,13 +806,13 @@ TEST(lh_mb_link, a_refused_write_is_a_refusal_and_not_a_failure)
     const lh_u16_t values[] = {1};
 
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
-    t.link.tx = 3; /* the captured refusal answers transaction 3 */
+    lh_mb_link_set_tx(&t.link, 3); /* the captured refusal answers transaction 3 */
     ASSERT_TRUE(lh_mb_link_write(lh_addr_of(t.link), 10, values, 1));
     feed(lh_addr_of(t), kWriteRefused, (lh_u16_t)sizeof(kWriteRefused));
     EXPECT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_failed);
-    EXPECT_EQ(t.link.reason, lh_mb_status_exception) << "0x90 0x03: the device said no";
-    EXPECT_EQ(t.link.counters.refused, (lh_u32_t)1);
-    EXPECT_EQ(t.link.counters.failed, (lh_u32_t)0);
+    EXPECT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_exception) << "0x90 0x03: the device said no";
+    EXPECT_EQ(lh_mb_link_counters_get_refused(lh_mb_link_get_counters(&t.link)), (lh_u32_t)1);
+    EXPECT_EQ(lh_mb_link_counters_get_failed(lh_mb_link_get_counters(&t.link)), (lh_u32_t)0);
 }
 
 /* A write does not change what the link reads: after it, the next question is a read
@@ -830,7 +830,7 @@ TEST(lh_mb_link, after_a_write_the_link_reads_with_its_own_code_again)
     lh_mb_link_release(lh_addr_of(t.link));
     EXPECT_EQ(lh_mb_link_get_fc(lh_addr_of(t.link)), LH_MB_FC_READ_HOLDING);
 
-    t.link.tx = 1; /* the captured read answers transaction 1, as the write did */
+    lh_mb_link_set_tx(&t.link, 1); /* the captured read answers transaction 1, as the write did */
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
     feed(lh_addr_of(t), kRead3Holding, (lh_u16_t)sizeof(kRead3Holding));
     ASSERT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_answered);
@@ -873,7 +873,7 @@ TEST(lh_mb_link, a_late_answer_is_not_the_answer_to_the_next_question)
     feed(lh_addr_of(t), kRead3Holding, (lh_u16_t)sizeof(kRead3Holding));
     EXPECT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_waiting)
         << "transaction 1's answer, whole and well formed, is not transaction 2's";
-    EXPECT_EQ(t.link.counters.done, (lh_u32_t)0);
+    EXPECT_EQ(lh_mb_link_counters_get_done(lh_mb_link_get_counters(&t.link)), (lh_u32_t)0);
 
     append(lh_addr_of(t), kRead3HoldingTx2, (lh_u16_t)sizeof(kRead3HoldingTx2));
     ASSERT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_answered);
@@ -920,7 +920,7 @@ TEST(lh_mb_link, half_a_late_answer_is_completed_and_stepped_over)
     EXPECT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_waiting);
     t.now_us += 2000000;
     ASSERT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_failed);
-    EXPECT_EQ(t.link.held, (lh_u16_t)9) << "nine bytes of a frame, kept";
+    EXPECT_EQ(lh_mb_link_get_held(&t.link), (lh_u16_t)9) << "nine bytes of a frame, kept";
 
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
     append(lh_addr_of(t), kRead3Holding + 9, (lh_u16_t)(sizeof(kRead3Holding) - 9));
@@ -929,7 +929,7 @@ TEST(lh_mb_link, half_a_late_answer_is_completed_and_stepped_over)
     values = lh_mb_link_take(lh_addr_of(t.link), lh_addr_of(count));
     ASSERT_NE(values, lh_null);
     EXPECT_EQ(values[0], (lh_u16_t)0x0A);
-    EXPECT_EQ(t.link.counters.failed, (lh_u32_t)1) << "only the timeout";
+    EXPECT_EQ(lh_mb_link_counters_get_failed(lh_mb_link_get_counters(&t.link)), (lh_u32_t)1) << "only the timeout";
 }
 
 TEST(lh_mb_link, the_bytes_after_an_answer_are_the_next_frame)
@@ -945,7 +945,7 @@ TEST(lh_mb_link, the_bytes_after_an_answer_are_the_next_frame)
     feed(lh_addr_of(t), kRead3Holding, (lh_u16_t)sizeof(kRead3Holding));
     append(lh_addr_of(t), kRead3HoldingTx2, (lh_u16_t)sizeof(kRead3HoldingTx2));
     ASSERT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_answered);
-    EXPECT_EQ(t.link.held, (lh_u16_t)sizeof(kRead3HoldingTx2)) << "the second frame, kept";
+    EXPECT_EQ(lh_mb_link_get_held(&t.link), (lh_u16_t)sizeof(kRead3HoldingTx2)) << "the second frame, kept";
     lh_mb_link_release(lh_addr_of(t.link));
 
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
@@ -954,7 +954,7 @@ TEST(lh_mb_link, the_bytes_after_an_answer_are_the_next_frame)
     values = lh_mb_link_take(lh_addr_of(t.link), lh_addr_of(count));
     ASSERT_NE(values, lh_null);
     EXPECT_EQ(values[0], (lh_u16_t)0x0A);
-    EXPECT_EQ(t.link.held, (lh_u16_t)0);
+    EXPECT_EQ(lh_mb_link_get_held(&t.link), (lh_u16_t)0);
 }
 
 TEST(lh_mb_link, another_units_frame_is_stepped_over_without_a_timeout)
@@ -974,7 +974,7 @@ TEST(lh_mb_link, another_units_frame_is_stepped_over_without_a_timeout)
     values = lh_mb_link_take(lh_addr_of(t.link), lh_addr_of(count));
     ASSERT_NE(values, lh_null);
     EXPECT_EQ(values[0], (lh_u16_t)1) << "unit 1's values, not unit 2's 7";
-    EXPECT_EQ(t.link.counters.failed, (lh_u32_t)0);
+    EXPECT_EQ(lh_mb_link_counters_get_failed(lh_mb_link_get_counters(&t.link)), (lh_u32_t)0);
 }
 
 TEST(lh_mb_link, a_header_that_is_not_modbus_fails_at_once)
@@ -990,10 +990,10 @@ TEST(lh_mb_link, a_header_that_is_not_modbus_fails_at_once)
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
     feed(lh_addr_of(t), frame, (lh_u16_t)sizeof(frame));
     EXPECT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_failed);
-    EXPECT_EQ(t.link.reason, lh_mb_status_garbage);
-    EXPECT_EQ(t.link.counters.failed, (lh_u32_t)1);
-    EXPECT_EQ(t.link.held, (lh_u16_t)0) << "nothing after a lost place can be framed";
-    EXPECT_EQ(t.link.state, (lh_u8_t)lh_mb_link_idle);
+    EXPECT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_garbage);
+    EXPECT_EQ(lh_mb_link_counters_get_failed(lh_mb_link_get_counters(&t.link)), (lh_u32_t)1);
+    EXPECT_EQ(lh_mb_link_get_held(&t.link), (lh_u16_t)0) << "nothing after a lost place can be framed";
+    EXPECT_EQ(lh_mb_link_get_state(&t.link), (lh_u8_t)lh_mb_link_idle);
 }
 
 TEST(lh_mb_link, a_length_no_frame_can_have_fails_at_once)
@@ -1012,7 +1012,7 @@ TEST(lh_mb_link, a_length_no_frame_can_have_fails_at_once)
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
     feed(lh_addr_of(t), frame, (lh_u16_t)sizeof(frame));
     EXPECT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_failed);
-    EXPECT_EQ(t.link.reason, lh_mb_status_garbage);
+    EXPECT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_garbage);
 }
 
 TEST(lh_mb_link, a_new_connection_starts_with_nothing_held)
@@ -1024,10 +1024,10 @@ TEST(lh_mb_link, a_new_connection_starts_with_nothing_held)
     feed(lh_addr_of(t), kRead3Holding, 9);
     t.now_us += 2000000;
     ASSERT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_failed);
-    ASSERT_EQ(t.link.held, (lh_u16_t)9);
+    ASSERT_EQ(lh_mb_link_get_held(&t.link), (lh_u16_t)9);
 
     lh_mb_link_set_stream(lh_addr_of(t.link), lh_addr_of(t.stream)); /* the connection, made again */
-    EXPECT_EQ(t.link.held, (lh_u16_t)0) << "half a frame from the old connection is not a frame";
+    EXPECT_EQ(lh_mb_link_get_held(&t.link), (lh_u16_t)0) << "half a frame from the old connection is not a frame";
 }
 
 TEST(lh_mb_link, an_rtu_frame_for_another_unit_is_not_ours)
@@ -1074,7 +1074,7 @@ TEST(lh_mb_link, the_echo_of_a_single_write_answers_it)
     ASSERT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_answered);
     EXPECT_NE(lh_mb_link_take(lh_addr_of(t.link), lh_addr_of(count)), lh_null);
     EXPECT_EQ(count, (lh_u16_t)0) << "a write's answer has no registers in it";
-    EXPECT_EQ(t.link.counters.done, (lh_u32_t)1);
+    EXPECT_EQ(lh_mb_link_counters_get_done(lh_mb_link_get_counters(&t.link)), (lh_u32_t)1);
 }
 
 TEST(lh_mb_link, the_echo_of_another_value_is_not_this_single_write)
@@ -1085,7 +1085,7 @@ TEST(lh_mb_link, the_echo_of_another_value_is_not_this_single_write)
     ASSERT_TRUE(lh_mb_link_write_one(lh_addr_of(t.link), 10, 0x4321));
     feed(lh_addr_of(t), kWriteOne1234At10, (lh_u16_t)sizeof(kWriteOne1234At10));
     EXPECT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_failed);
-    EXPECT_EQ(t.link.reason, lh_mb_status_garbage) << "asked to store 0x4321, it says it stored 0x1234";
+    EXPECT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_garbage) << "asked to store 0x4321, it says it stored 0x1234";
 }
 
 TEST(lh_mb_link, a_refused_single_write_is_a_refusal_and_not_a_failure)
@@ -1096,9 +1096,9 @@ TEST(lh_mb_link, a_refused_single_write_is_a_refusal_and_not_a_failure)
     ASSERT_TRUE(lh_mb_link_write_one(lh_addr_of(t.link), 10, 0x1234));
     feed(lh_addr_of(t), kWriteOneRefused, (lh_u16_t)sizeof(kWriteOneRefused));
     EXPECT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_failed);
-    EXPECT_EQ(t.link.reason, lh_mb_status_exception);
-    EXPECT_EQ(t.link.counters.refused, (lh_u32_t)1);
-    EXPECT_EQ(t.link.counters.failed, (lh_u32_t)0);
+    EXPECT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_exception);
+    EXPECT_EQ(lh_mb_link_counters_get_refused(lh_mb_link_get_counters(&t.link)), (lh_u32_t)1);
+    EXPECT_EQ(lh_mb_link_counters_get_failed(lh_mb_link_get_counters(&t.link)), (lh_u32_t)0);
 }
 
 TEST(lh_mb_link, after_a_single_write_the_link_reads_again)
@@ -1112,7 +1112,7 @@ TEST(lh_mb_link, after_a_single_write_the_link_reads_again)
     ASSERT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_answered);
     lh_mb_link_release(lh_addr_of(t.link));
 
-    t.link.tx = 1; /* the captured read answers transaction 1 */
+    lh_mb_link_set_tx(&t.link, 1); /* the captured read answers transaction 1 */
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
     feed(lh_addr_of(t), kRead3Holding, (lh_u16_t)sizeof(kRead3Holding));
     ASSERT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_answered);
@@ -1136,7 +1136,7 @@ TEST(lh_mb_link, nothing_yet_is_waiting_and_not_a_failure)
     {
         EXPECT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_waiting);
     }
-    EXPECT_EQ(t.link.counters.failed, (lh_u32_t)0);
+    EXPECT_EQ(lh_mb_link_counters_get_failed(lh_mb_link_get_counters(&t.link)), (lh_u32_t)0);
 }
 
 TEST(lh_mb_link, the_end_of_the_stream_is_a_lost_stream)
@@ -1147,9 +1147,9 @@ TEST(lh_mb_link, the_end_of_the_stream_is_a_lost_stream)
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
     t.tcp.closed = true;
     EXPECT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_failed);
-    EXPECT_EQ(t.link.reason, lh_mb_status_lost) << "the device closed the connection";
-    EXPECT_EQ(t.link.counters.failed, (lh_u32_t)1);
-    EXPECT_EQ(t.link.state, (lh_u8_t)lh_mb_link_idle);
+    EXPECT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_lost) << "the device closed the connection";
+    EXPECT_EQ(lh_mb_link_counters_get_failed(lh_mb_link_get_counters(&t.link)), (lh_u32_t)1);
+    EXPECT_EQ(lh_mb_link_get_state(&t.link), (lh_u8_t)lh_mb_link_idle);
 }
 
 TEST(lh_mb_link, a_full_send_buffer_is_not_a_failure)
@@ -1159,8 +1159,8 @@ TEST(lh_mb_link, a_full_send_buffer_is_not_a_failure)
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
     t.tcp.fail_next_send = LH_IO_PENDING;
     EXPECT_FALSE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3)) << "nothing went out";
-    EXPECT_EQ(t.link.counters.failed, (lh_u32_t)0) << "and nothing is wrong";
-    EXPECT_EQ(t.link.counters.sent, (lh_u32_t)0);
+    EXPECT_EQ(lh_mb_link_counters_get_failed(lh_mb_link_get_counters(&t.link)), (lh_u32_t)0) << "and nothing is wrong";
+    EXPECT_EQ(lh_mb_link_counters_get_sent(lh_mb_link_get_counters(&t.link)), (lh_u32_t)0);
     EXPECT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3)) << "the next pass asks again";
 }
 
@@ -1171,8 +1171,8 @@ TEST(lh_mb_link, half_a_request_out_is_a_lost_stream)
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
     t.tcp.fail_next_send = 5; /* five bytes of twelve */
     EXPECT_FALSE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
-    EXPECT_EQ(t.link.reason, lh_mb_status_lost) << "the device will read the next request as the rest of this one";
-    EXPECT_EQ(t.link.counters.failed, (lh_u32_t)1);
+    EXPECT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_lost) << "the device will read the next request as the rest of this one";
+    EXPECT_EQ(lh_mb_link_counters_get_failed(lh_mb_link_get_counters(&t.link)), (lh_u32_t)1);
 }
 
 TEST(lh_mb_link, a_new_stream_forgets_the_question_in_flight)
@@ -1188,12 +1188,12 @@ TEST(lh_mb_link, a_new_stream_forgets_the_question_in_flight)
     /* Reconnected: the same device, a new stream, asked again. */
     t.tcp.closed = false;
     lh_mb_link_set_stream(lh_addr_of(t.link), lh_addr_of(t.stream));
-    EXPECT_EQ(t.link.reason, lh_mb_status_ok);
-    t.link.tx = 1;
+    EXPECT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_ok);
+    lh_mb_link_set_tx(&t.link, 1);
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
     feed(lh_addr_of(t), kRead3Holding, (lh_u16_t)sizeof(kRead3Holding));
     ASSERT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_answered);
     EXPECT_NE(lh_mb_link_take(lh_addr_of(t.link), lh_addr_of(count)), lh_null);
     EXPECT_EQ(count, (lh_u16_t)3);
-    EXPECT_EQ(t.link.counters.failed, (lh_u32_t)1) << "the counters are the device's and are kept";
+    EXPECT_EQ(lh_mb_link_counters_get_failed(lh_mb_link_get_counters(&t.link)), (lh_u32_t)1) << "the counters are the device's and are kept";
 }

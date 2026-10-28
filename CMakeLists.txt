@@ -240,6 +240,9 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/net/socket/addr.c
         ${LH_LIB_SRC_PATH}/net/modbus.c
         ${LH_LIB_SRC_PATH}/net/modbus/link.c
+        ${LH_LIB_SRC_PATH}/net/modbus/link/counters.c
+        ${LH_LIB_SRC_PATH}/net/modbus/read.c
+        ${LH_LIB_SRC_PATH}/net/modbus/want.c
 
         ${LH_LIB_SRC_PATH}/io/reader.c
         ${LH_LIB_SRC_PATH}/io/writer.c

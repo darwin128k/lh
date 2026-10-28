@@ -48,6 +48,54 @@ lh_sql_mysql_conn_get_native(const lh_sql_mysql_conn_t *self);
 lh_void
 lh_sql_mysql_conn_set_native(lh_sql_mysql_conn_t *self, lh_ptr native);
 
+/** The server's port. */
+lh_uint_t
+lh_sql_mysql_conn_get_port(const lh_sql_mysql_conn_t *self);
+
+/** @brief The server host name, to change in place (level 1). */
+lh_str_t *
+lh_sql_mysql_conn_get_host_mut(lh_sql_mysql_conn_t *self);
+
+/** @brief The user name, to change in place (level 1). */
+lh_str_t *
+lh_sql_mysql_conn_get_user_mut(lh_sql_mysql_conn_t *self);
+
+/** @brief The password, to change in place (level 1). */
+lh_str_t *
+lh_sql_mysql_conn_get_password_mut(lh_sql_mysql_conn_t *self);
+
+/** @brief The database name, to change in place (level 1). */
+lh_str_t *
+lh_sql_mysql_conn_get_name_mut(lh_sql_mysql_conn_t *self);
+
+/** @brief Store the server port. Level-1 setter. */
+lh_void
+lh_sql_mysql_conn_set_port(lh_sql_mysql_conn_t *self, lh_uint_t port);
+
+/** @brief Whether the server dropped the connection, so it must be reopened. */
+lh_bool_t
+lh_sql_mysql_conn_get_broken(const lh_sql_mysql_conn_t *self);
+
+/** @brief Mark the connection broken (or repaired). Level-1 setter. */
+lh_void
+lh_sql_mysql_conn_set_broken(lh_sql_mysql_conn_t *self, lh_bool_t broken);
+
+/** @brief The server host name as the owned string it is stored in (level 1). */
+const lh_str_t *
+lh_sql_mysql_conn_get_host_str(const lh_sql_mysql_conn_t *self);
+
+/** @brief The user name as the owned string it is stored in (level 1). */
+const lh_str_t *
+lh_sql_mysql_conn_get_user_str(const lh_sql_mysql_conn_t *self);
+
+/** @brief The password as the owned string it is stored in (level 1). */
+const lh_str_t *
+lh_sql_mysql_conn_get_password_str(const lh_sql_mysql_conn_t *self);
+
+/** @brief The database name as the owned string it is stored in (level 1). */
+const lh_str_t *
+lh_sql_mysql_conn_get_name_str(const lh_sql_mysql_conn_t *self);
+
 /** The server's host. */
 lh_str_view_t
 lh_sql_mysql_conn_get_host(const lh_sql_mysql_conn_t *self);
@@ -63,10 +111,6 @@ lh_sql_mysql_conn_get_password(const lh_sql_mysql_conn_t *self);
 /** The database @p self uses. */
 lh_str_view_t
 lh_sql_mysql_conn_get_name(const lh_sql_mysql_conn_t *self);
-
-/** The server's port. */
-lh_uint_t
-lh_sql_mysql_conn_get_port(const lh_sql_mysql_conn_t *self);
 
 /**
  * @brief A new connection record for @p native on @p api, made to database

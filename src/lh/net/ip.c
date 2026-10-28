@@ -170,10 +170,8 @@ lh_net_ip4_equals(const lh_net_ip4_t *self, const lh_net_ip4_t *other)
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(other);
 
-    return lh_memory_compare(self->octets, LH_NET_IP4_OCTET_COUNT, other->octets,
-                             LH_NET_IP4_OCTET_COUNT) == lh_null
-               ? lh_bool_true
-               : lh_bool_false;
+    return lh_memory_is_equal(lh_net_ip4_get_octets(self), lh_net_ip4_get_octets(other),
+                              LH_NET_IP4_OCTET_COUNT);
 }
 
 lh_bool_t
@@ -208,4 +206,11 @@ lh_bool_t
 lh_net_ip4_is_greater(const lh_net_ip4_t *self, const lh_net_ip4_t *other)
 {
     return lh_net_ip4_is_less(other, self);
+}
+
+const lh_byte_t *
+lh_net_ip4_get_octets(const lh_net_ip4_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->octets;
 }

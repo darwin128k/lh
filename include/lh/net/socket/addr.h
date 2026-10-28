@@ -55,18 +55,34 @@ typedef struct lh_net_socket_addr lh_net_socket_addr_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Initialize @p self as an IPv4 socket address wrapper.
- */
-lh_void
-lh_net_socket_addr_init_ip4(lh_net_socket_addr_t *self, const lh_net_ip4_socket_addr_t *addr);
-
-/**
  * @brief Return which concrete address @p self holds.
  * @param self Address to read from.
  * @return One of the `lh_net_socket_addr_family_*` constants.
  */
 lh_net_socket_addr_family_t
 lh_net_socket_addr_get_family(const lh_net_socket_addr_t *self);
+
+/** @brief Store which member of the union is set. Level-1 setter: no validation. */
+lh_void
+lh_net_socket_addr_set_family(lh_net_socket_addr_t *self, lh_net_socket_addr_family_t family);
+
+/**
+ * @brief The IPv4 member of the union, whatever the family (level 1).
+ *
+ * ::lh_net_socket_addr_get_ip4 checks the family first.
+ */
+const lh_net_ip4_socket_addr_t *
+lh_net_socket_addr_get_as_ip4(const lh_net_socket_addr_t *self);
+
+/** @brief The IPv4 member of the union, to fill in place (level 1). */
+lh_net_ip4_socket_addr_t *
+lh_net_socket_addr_get_as_ip4_mut(lh_net_socket_addr_t *self);
+
+/**
+ * @brief Initialize @p self as an IPv4 socket address wrapper.
+ */
+lh_void
+lh_net_socket_addr_init_ip4(lh_net_socket_addr_t *self, const lh_net_ip4_socket_addr_t *addr);
 
 /**
  * @brief Return the ::lh_net_ip4_socket_addr_t held by @p self.

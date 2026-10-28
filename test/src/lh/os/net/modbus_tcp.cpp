@@ -227,7 +227,7 @@ TEST_F(os_net_modbus_tcp, a_poll_with_nothing_on_the_wire_does_not_wait)
         ASSERT_EQ(lh_mb_link_poll(&link, 1000000), lh_mb_link_waiting) << "nothing came, nothing broke";
     }
     EXPECT_LT(lh_os_tick_us() - before, 500000u) << "a hundred polls of an idle socket take no time";
-    EXPECT_EQ(link.counters.failed, 0u);
+    EXPECT_EQ(lh_mb_link_counters_get_failed(lh_mb_link_get_counters(&link)), 0u);
 
     lh_os_net_socket_close(&client);
 }
@@ -251,8 +251,8 @@ TEST_F(os_net_modbus_tcp, a_device_that_hangs_up_is_a_lost_stream_and_a_new_one_
        question from now on. */
     lh_os_net_socket_close(&client);
     EXPECT_EQ(poll_until_done(&link), lh_mb_link_failed);
-    EXPECT_EQ(link.reason, lh_mb_status_lost) << "said as a lost stream, so the app knows to reconnect";
-    EXPECT_EQ(link.counters.failed, 1u);
+    EXPECT_EQ(lh_mb_link_get_reason(&link), lh_mb_status_lost) << "said as a lost stream, so the app knows to reconnect";
+    EXPECT_EQ(lh_mb_link_counters_get_failed(lh_mb_link_get_counters(&link)), 1u);
 
     ASSERT_TRUE(to.open(loopback(dev.port), 1000)) << "the device is still there";
     dev.accept(&client);
@@ -329,7 +329,7 @@ TEST_F(os_net_modbus_tcp, eight_devices_answer_in_any_order_on_eight_connections
            polling them must not hold this one up. */
         for (int j = 0; j < k_devices; ++j)
         {
-            if (j != i && link[j].state == lh_mb_link_waiting)
+            if (j != i && lh_mb_link_get_state(&link[j]) == lh_mb_link_waiting)
             {
                 EXPECT_EQ(lh_mb_link_poll(&link[j], 1000000), lh_mb_link_waiting);
             }

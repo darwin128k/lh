@@ -365,10 +365,10 @@ lh_u16_t
 lh_mb_reach(lh_u16_t start, lh_u16_t end, const lh_mb_want_t *next)
 {
     const lh_u16_t next_end =
-        lh_cast_static(lh_u16_t, (next->address + (next->registers ? next->registers : 1)));
+        lh_cast_static(lh_u16_t, (lh_mb_want_get_address(next) + (lh_mb_want_get_registers(next) ? lh_mb_want_get_registers(next) : 1)));
     const lh_u16_t reach = next_end > end ? next_end : end;
 
-    if (next->address > end && next->address - end > LH_MB_GAP_MAX)
+    if (lh_mb_want_get_address(next) > end && lh_mb_want_get_address(next) - end > LH_MB_GAP_MAX)
     {
         return 0; /* nobody wants what is between, and there is a lot of it */
     }
@@ -410,10 +410,10 @@ lh_mb_plan_reads(const lh_mb_want_t *wants, lh_u16_t count, lh_mb_read_t *reads,
         }
 
         one = lh_addr_of(reads[made]);
-        one->start = start;
-        one->count = lh_cast_static(lh_u16_t, (end - start));
-        one->first = i;
-        one->last = j;
+        lh_mb_read_set_start(one, start);
+        lh_mb_read_set_count(one, lh_cast_static(lh_u16_t, (end - start)));
+        lh_mb_read_set_first(one, i);
+        lh_mb_read_set_last(one, j);
         ++made;
         i = lh_cast_static(lh_u16_t, (j + 1));
     }
