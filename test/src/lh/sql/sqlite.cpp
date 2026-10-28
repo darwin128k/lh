@@ -24,7 +24,7 @@ view(const std::string &s)
     }
     else
     {
-        lh_str_init_by_size(&v, s.data(), s.size());
+        lh_str_view_init_by_size(&v, s.data(), s.size());
     }
     return v;
 }
@@ -78,7 +78,7 @@ TEST(sql_sqlite, exec_does_not_need_a_nul_after_the_text)
     /* Only the first 23 characters are SQL; the rest is garbage after the view. */
     const std::string script = "CREATE TABLE ok(x INT);THIS IS NOT SQL";
     lh_str_view_t first;
-    lh_str_init_by_size(&first, script.data(), 23U);
+    lh_str_view_init_by_size(&first, script.data(), 23U);
     EXPECT_TRUE(lh_sql_db_exec(&m.db, first)) << text(lh_sql_db_get_error(&m.db));
 }
 

@@ -81,17 +81,7 @@ lh_void
 lh_wstr_as_view(const lh_wstr_t *self, lh_wstr_view_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_wstr_view_t view;
-
-    /* A sized view rejects size 0; an empty string is the empty view. */
-    if (lh_wstr_is_empty(self))
-    {
-        lh_wstr_view_init_empty(lh_addr_of(view));
-        lh_ptr_deref(out) = view;
-        return;
-    }
-    lh_wstr_view_init_by_size(lh_addr_of(view), lh_wstr_get_data(self), lh_wstr_get_size(self));
-    lh_ptr_deref(out) = view;
+    lh_wstr_view_init_by_size(out, lh_wstr_get_data(self), lh_wstr_get_size(self));
 }
 
 lh_void

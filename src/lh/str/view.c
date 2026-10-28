@@ -3,7 +3,7 @@
 #include <lh/math.h>
 
 lh_void
-lh_str_init_by_size(lh_str_view_t *self, lh_str_cptr data, lh_usize_t size)
+lh_str_view_init_by_size(lh_str_view_t *self, lh_str_cptr data, lh_usize_t size)
 {
     lh_memory_view_init(self, data, size);
 }
@@ -114,18 +114,8 @@ lh_str_view_swap_and_clear(lh_str_view_t *self, lh_str_view_t *other)
 lh_void
 lh_str_view_init(lh_str_view_t *self, lh_str_cptr data)
 {
-    const lh_usize_t size = lh_str_ptr_len(data);
-
-    /* An empty string is a present value: "" is not a null pointer. by_size
-       rejects size 0, so the endpoints are stored here instead, which is exactly
-       what lh_str_view_lit("") yields — initialized and empty, not uninitialized.
-       A null data pointer dies in ptr_len above: null is an error, not empty. */
-    if (lh_math_is_zero(size))
-    {
-        lh_memory_view_set(self, data, 0);
-        return;
-    }
-    lh_str_init_by_size(self, data, size);
+    /* "" is a present, empty value; a null data pointer dies in ptr_len. */
+    lh_str_view_init_by_size(self, data, lh_str_ptr_len(data));
 }
 
 lh_usize_t
@@ -177,12 +167,6 @@ lh_str_view_find_of(const lh_str_view_t *self, const lh_str_view_t *chars)
     lh_str_cptr ptr = lh_str_ptr_find_of_chars(
         data, lh_str_view_get_size(self), lh_str_view_get_data(chars), lh_str_view_get_size(chars));
     return lh_ptr_is_set(ptr) ? lh_ptr_udiff(ptr, data) : LH_STR_VIEW_INVALID;
-}
-
-lh_bool_t
-lh_str_view_contains_of(const lh_str_view_t *self, const lh_str_view_t *chars)
-{
-    return lh_str_view_find_of(self, chars) != LH_STR_VIEW_INVALID;
 }
 
 lh_usize_t
@@ -283,6 +267,22 @@ lh_str_view_tail(const lh_str_view_t *self, lh_uoffset_t offset, lh_str_view_t *
     lh_str_view_from_offset(self, offset, lh_math_sub(size, offset), out);
 }
 
+lh_str_view_t
+lh_str_view_get_whitespace(lh_void)
+{
+    lh_str_view_t out;
+
+    lh_str_view_init_by_size(lh_addr_of(out), lh_str_ptr_get_whitespace(),
+                        lh_str_ptr_get_whitespace_size());
+    return out;
+}
+
+lh_bool_t
+lh_str_view_contains_of(const lh_str_view_t *self, const lh_str_view_t *chars)
+{
+    return lh_str_view_find_of(self, chars) != LH_STR_VIEW_INVALID;
+}
+
 lh_bool_t
 lh_str_view_contains(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case)
 {
@@ -293,16 +293,6 @@ lh_bool_t
 lh_str_view_is_null_terminated(const lh_str_view_t *self)
 {
     return lh_str_view_find_null_terminator(self) != LH_STR_VIEW_INVALID;
-}
-
-lh_str_view_t
-lh_str_view_get_whitespace(lh_void)
-{
-    lh_str_view_t out;
-
-    lh_str_init_by_size(lh_addr_of(out), lh_str_ptr_get_whitespace(),
-                        lh_str_ptr_get_whitespace_size());
-    return out;
 }
 
 /* Nothing left is the empty view: lh views reject size 0 (see tail). */
@@ -353,13 +343,6 @@ lh_str_view_rtrim(lh_str_view_t *self)
 }
 
 lh_void
-lh_str_view_trim(lh_str_view_t *self)
-{
-    lh_str_view_ltrim(self);
-    lh_str_view_rtrim(self);
-}
-
-lh_void
 lh_str_view_skip_bom(lh_str_view_t *self)
 {
     const lh_str_view_t bom = lh_str_view_lit("\xEF\xBB\xBF");
@@ -374,4 +357,11 @@ lh_str_view_skip_bom(lh_str_view_t *self)
        and assign rejects empty sources. */
     lh_str_view_tail(self, lh_str_view_get_size(lh_addr_of(bom)), lh_addr_of(rest));
     lh_ptr_deref(self) = rest;
+}
+
+lh_void
+lh_str_view_trim(lh_str_view_t *self)
+{
+    lh_str_view_ltrim(self);
+    lh_str_view_rtrim(self);
 }

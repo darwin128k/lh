@@ -52,15 +52,17 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param data Pointer to the first character.
  * @param size Number of ::lh_char_t elements in the view.
  *
+ * Zero @p size is the empty view, wherever @p data points (null included).
+ * Built on ::lh_memory_view_init.
+ *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_argument
- *        @p data is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
- *        @p size is zero or the computed view is not valid.
+ *        @p data is ::lh_null with a non-zero @p size, or the view would run
+ *        past the address space.
  */
 lh_void
-lh_str_init_by_size(lh_str_view_t *self, const lh_str_ptr data, lh_usize_t size);
+lh_str_view_init_by_size(lh_str_view_t *self, const lh_str_ptr data, lh_usize_t size);
 
 /**
  * @brief Initialize @p self with the empty view initializer.
@@ -417,27 +419,6 @@ lh_usize_t
 lh_str_view_find_of(const lh_str_view_t *self, const lh_str_view_t *chars);
 
 /**
- * @brief Return ::lh_bool_true if any character of @p self belongs to @p chars.
- *
- * Example usage:
- * @code{.c}
- * lh_str_view_t name = lh_str_view_lit("a]b");
- * lh_str_view_t brackets = lh_str_view_lit("[]");
- * lh_str_view_contains_of(&name, &brackets); // true
- * @endcode
- *
- * @param self  Valid view to search.
- * @param chars Valid view used as the character set.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self or @p chars is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_range
- *        @p self or @p chars is not valid.
- */
-lh_bool_t
-lh_str_view_contains_of(const lh_str_view_t *self, const lh_str_view_t *chars);
-
-/**
  * @brief Find the last character of @p self that belongs to @p chars.
  *
  * @param self  Valid view to search.
@@ -613,6 +594,38 @@ lh_void
 lh_str_view_tail(const lh_str_view_t *self, lh_uoffset_t offset, lh_str_view_t *out);
 
 /**
+ * @brief The default whitespace set as a view: ::lh_str_ptr_get_whitespace.
+ *
+ * What every trim strips; pass it to ::lh_str_view_find_of,
+ * ::lh_str_view_find_not_of or ::lh_str_view_contains_of when a parser
+ * needs the same notion of whitespace. For one character,
+ * ::lh_char_is_whitespace.
+ */
+lh_str_view_t
+lh_str_view_get_whitespace(lh_void);
+
+/**
+ * @brief Return ::lh_bool_true if any character of @p self belongs to @p chars.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_str_view_t name = lh_str_view_lit("a]b");
+ * lh_str_view_t brackets = lh_str_view_lit("[]");
+ * lh_str_view_contains_of(&name, &brackets); // true
+ * @endcode
+ *
+ * @param self  Valid view to search.
+ * @param chars Valid view used as the character set.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self or @p chars is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p self or @p chars is not valid.
+ */
+lh_bool_t
+lh_str_view_contains_of(const lh_str_view_t *self, const lh_str_view_t *chars);
+
+/**
  * @brief Return ::lh_bool_true if @p other occurs anywhere in @p self.
  *
  * @param self        Haystack view.
@@ -641,17 +654,6 @@ lh_bool_t
 lh_str_view_is_null_terminated(const lh_str_view_t *self);
 
 /**
- * @brief The default whitespace set as a view: ::lh_str_ptr_get_whitespace.
- *
- * What every trim strips; pass it to ::lh_str_view_find_of,
- * ::lh_str_view_find_not_of or ::lh_str_view_contains_of when a parser
- * needs the same notion of whitespace. For one character,
- * ::lh_char_is_whitespace.
- */
-lh_str_view_t
-lh_str_view_get_whitespace(lh_void);
-
-/**
  * @brief Narrow @p self past leading whitespace. The text is not touched.
  *
  * Whitespace is the set ::lh_str_ptr_trim uses: space, `\n`, `\r`, `\t`, `\v`, `\f`.
@@ -668,12 +670,6 @@ lh_void
 lh_str_view_rtrim(lh_str_view_t *self);
 
 /**
- * @brief ::lh_str_view_ltrim and ::lh_str_view_rtrim.
- */
-lh_void
-lh_str_view_trim(lh_str_view_t *self);
-
-/**
  * @brief Narrow @p self past a leading UTF-8 byte order mark (`EF BB BF`),
  *        if it has one. The text is not touched.
  *
@@ -684,6 +680,12 @@ lh_str_view_trim(lh_str_view_t *self);
  */
 lh_void
 lh_str_view_skip_bom(lh_str_view_t *self);
+
+/**
+ * @brief ::lh_str_view_ltrim and ::lh_str_view_rtrim.
+ */
+lh_void
+lh_str_view_trim(lh_str_view_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

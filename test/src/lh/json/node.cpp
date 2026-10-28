@@ -21,7 +21,7 @@ make_number(const char *digits)
     lh_json_node_t *n = lh_json_node_create();
     lh_str_view_t view;
 
-    lh_str_init_by_size(&view, digits, std::strlen(digits));
+    lh_str_view_init_by_size(&view, digits, std::strlen(digits));
     lh_json_node_set_kind(n, lh_json_kind_number);
     lh_str_assign_view(lh_json_node_get_text_mut(n), view);
     return n;
@@ -320,8 +320,8 @@ TEST(json_node, equals_compares_values)
         lh_json_node_t y;
         lh_str_view_t va;
         lh_str_view_t vb;
-        lh_str_init_by_size(&va, a, std::strlen(a));
-        lh_str_init_by_size(&vb, b, std::strlen(b));
+        lh_str_view_init_by_size(&va, a, std::strlen(a));
+        lh_str_view_init_by_size(&vb, b, std::strlen(b));
         read(&x, va);
         read(&y, vb);
         const bool eq = lh_json_node_equals(&x, &y);

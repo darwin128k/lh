@@ -44,12 +44,14 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param data Pointer to the first wide character.
  * @param size Number of ::lh_wchar_t elements in the view.
  *
+ * Zero @p size is the empty view, wherever @p data points (null included).
+ * Built on ::lh_memory_view_init.
+ *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_argument
- *        @p data is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
- *        @p size is zero or the computed view is not valid.
+ *        @p data is ::lh_null with a non-zero @p size, or the view would run
+ *        past the address space.
  */
 lh_void
 lh_wstr_view_init_by_size(lh_wstr_view_t *self, const lh_wstr_ptr data, lh_usize_t size);

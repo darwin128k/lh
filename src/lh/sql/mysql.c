@@ -346,7 +346,7 @@ lh_sql_mysql_get_column_str(const lh_sql_stmt_t *stmt, lh_usize_t index)
     {
         return lh_str_view_empty();
     }
-    lh_str_init_by_size(lh_addr_of(view), lh_sql_mysql_prepared_get_row(prepared)[index], size);
+    lh_str_view_init_by_size(lh_addr_of(view), lh_sql_mysql_prepared_get_row(prepared)[index], size);
     return view;
 }
 

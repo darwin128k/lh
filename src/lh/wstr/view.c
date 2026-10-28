@@ -63,18 +63,8 @@ lh_wstr_view_is_empty(const lh_wstr_view_t *self)
 lh_void
 lh_wstr_view_init(lh_wstr_view_t *self, lh_wstr_cptr data)
 {
-    const lh_usize_t size = lh_wstr_ptr_len(data);
-
-    /* An empty wide string is a present value: L"" is not a null pointer. by_size
-       rejects size 0, so the endpoints are stored here instead, which is exactly
-       what lh_wstr_view_lit(L"") yields — initialized and empty, not uninitialized.
-       A null data pointer dies in ptr_len above: null is an error, not empty. */
-    if (lh_math_is_zero(size))
-    {
-        lh_memory_view_set(self, data, 0);
-        return;
-    }
-    lh_wstr_view_init_by_size(self, data, size);
+    /* L"" is a present, empty value; a null data pointer dies in ptr_len. */
+    lh_wstr_view_init_by_size(self, data, lh_wstr_ptr_len(data));
 }
 
 lh_void

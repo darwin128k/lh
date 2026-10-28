@@ -20,7 +20,7 @@ lh_str_view_t
 make_n(const lh_char_t *s, lh_usize_t n)
 {
     lh_str_view_t v;
-    lh_str_init_by_size(&v, s, n);
+    lh_str_view_init_by_size(&v, s, n);
     return v;
 }
 
@@ -51,7 +51,7 @@ TEST(str_view_init_by_size, uses_explicit_size)
 {
     const lh_char_t s[] = {'x', 'y', 'z', 'w'};
     lh_str_view_t v;
-    lh_str_init_by_size(&v, s, 2);
+    lh_str_view_init_by_size(&v, s, 2);
 
     EXPECT_EQ(lh_str_view_get_data(&v), s);
     EXPECT_EQ(lh_str_view_get_size(&v), 2u);

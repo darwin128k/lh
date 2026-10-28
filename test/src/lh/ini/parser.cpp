@@ -32,7 +32,7 @@ parse(const std::string &ini)
     }
     else
     {
-        lh_str_init_by_size(&view, ini.data(), ini.size());
+        lh_str_view_init_by_size(&view, ini.data(), ini.size());
     }
 
     lh_ini_parser_t parser;
@@ -185,7 +185,7 @@ TEST(ini_parser, stays_stopped_after_error)
 {
     const std::string ini = "[a]\nbad\nk=v\n";
     lh_str_view_t view;
-    lh_str_init_by_size(&view, ini.data(), ini.size());
+    lh_str_view_init_by_size(&view, ini.data(), ini.size());
     lh_ini_parser_t parser;
     lh_ini_parser_init(&parser, view);
     lh_ini_entry_t entry;
@@ -201,7 +201,7 @@ TEST(ini_parser, names_section_of_error)
 {
     const std::string ini = "[a]\nk=v\n[server]\nbad\n";
     lh_str_view_t view;
-    lh_str_init_by_size(&view, ini.data(), ini.size());
+    lh_str_view_init_by_size(&view, ini.data(), ini.size());
     lh_ini_parser_t parser;
     lh_ini_parser_init(&parser, view);
     lh_ini_entry_t entry;
@@ -220,7 +220,7 @@ TEST(ini_parser, counts_lines_and_tags_entries_with_section)
 {
     const std::string ini = "[a]\nk=v\n";
     lh_str_view_t view;
-    lh_str_init_by_size(&view, ini.data(), ini.size());
+    lh_str_view_init_by_size(&view, ini.data(), ini.size());
     lh_ini_parser_t parser;
     lh_ini_parser_init(&parser, view);
     lh_ini_entry_t entry;
