@@ -11,6 +11,7 @@
  * These macros are low-level pointer boundary helpers used by pointer utilities
  * and null abstractions across the library.
  */
+
 #ifndef LH_VOID_PTR_H
 #define LH_VOID_PTR_H
 

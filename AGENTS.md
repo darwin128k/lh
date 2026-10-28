@@ -91,8 +91,16 @@ consequence. Hidden implementation is what we avoid.
 
 ## 8. Formatting and changes
 
-- Format with LH's own `.clang-format`; inspect the diff by hand.
-  Formatting does not prove conformity with these rules.
+- Code must read easily. Top-level blocks are separated by one blank line:
+  the file comment, the include guard, the `#include` block, every type,
+  every declaration and every definition, every test. A struct keeps its own
+  `typedef` / `@copybrief` line attached. Never write a file as one dense block.
+- When something is pointed out in one file, check the whole tree for the
+  same problem; never fix only the file that was named.
+- Run `python tools/check-layout.py` (from the Authum root) after any change;
+  `--fix` inserts the missing blank lines. It must report 0 places.
+- Format with LH's own `.clang-format` (`SeparateDefinitionBlocks: Always`);
+  inspect the diff by hand. Formatting does not prove conformity with these rules.
 - Preserve line endings (the tree is CRLF on Windows checkouts).
 - Update `CHANGELOG.md` (`[Unreleased]`) for every public addition/removal.
 - Do not commit unless the owner asks. Commits carry no AI attribution.

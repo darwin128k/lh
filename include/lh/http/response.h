@@ -2,6 +2,7 @@
  * @file response.h
  * @brief HTTP/1 status-line views and parsed header count.
  */
+
 #ifndef LH_HTTP_RESPONSE_H
 #define LH_HTTP_RESPONSE_H
 

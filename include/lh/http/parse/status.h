@@ -2,6 +2,7 @@
  * @file status.h
  * @brief Result of parsing one growing HTTP input buffer.
  */
+
 #ifndef LH_HTTP_PARSE_STATUS_H
 #define LH_HTTP_PARSE_STATUS_H
 

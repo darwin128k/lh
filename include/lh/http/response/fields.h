@@ -2,6 +2,7 @@
  * @file fields.h
  * @brief Parsed HTTP/1 status-line metadata.
  */
+
 #ifndef LH_HTTP_RESPONSE_FIELDS_H
 #define LH_HTTP_RESPONSE_FIELDS_H
 

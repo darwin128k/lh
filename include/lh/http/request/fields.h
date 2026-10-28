@@ -2,6 +2,7 @@
  * @file fields.h
  * @brief Parsed HTTP/1 request-line metadata.
  */
+
 #ifndef LH_HTTP_REQUEST_FIELDS_H
 #define LH_HTTP_REQUEST_FIELDS_H
 

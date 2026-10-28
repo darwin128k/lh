@@ -4,6 +4,7 @@
  *
  * Provides a thin wrapper around the standard `offsetof` operator.
  */
+
 #ifndef LH_UTIL_OFFSET_H
 #define LH_UTIL_OFFSET_H
 

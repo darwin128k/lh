@@ -5,6 +5,7 @@
  * This header maps legacy/general pointer names to the canonical
  * ::lh_void_ptr definitions from `lh/void/ptr.h`.
  */
+
 #ifndef LH_PTR_H
 #define LH_PTR_H
 

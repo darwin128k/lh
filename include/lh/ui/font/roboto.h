@@ -10,6 +10,7 @@
  * Rows are packed high-bit first, the same way LVGL's font converter packs them.
  * Roboto is Copyright 2015 Google Inc. and licensed under the Apache License 2.0.
  */
+
 #ifndef LH_UI_FONT_ROBOTO_H
 #define LH_UI_FONT_ROBOTO_H
 
