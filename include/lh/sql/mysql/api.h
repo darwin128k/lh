@@ -111,52 +111,204 @@ typedef struct lh_sql_mysql_api lh_sql_mysql_api_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/** Set @p self to no library and no functions. */
-lh_void
-lh_sql_mysql_api_init(lh_sql_mysql_api_t *self);
-
-/** Close the library @p self loaded and forget its functions. */
-lh_void
-lh_sql_mysql_api_deinit(lh_sql_mysql_api_t *self);
-
 /** The library image of @p self, to change. */
 lh_os_shared_t *
 lh_sql_mysql_api_get_image_mut(lh_sql_mysql_api_t *self);
 
+/**
+ * @brief `mysql_init` as looked up in the client library, or ::lh_null
+ *        when the library lacks it (level 1).
+ */
+lh_sql_mysql_init_fn *
+lh_sql_mysql_api_get_init(const lh_sql_mysql_api_t *self);
+
+/** @brief Store `mysql_init` (::lh_null for none). Level-1 setter. */
+lh_void
+lh_sql_mysql_api_set_init(lh_sql_mysql_api_t *self, lh_sql_mysql_init_fn *init);
+
+/**
+ * @brief `mysql_real_connect` as looked up in the client library, or ::lh_null
+ *        when the library lacks it (level 1).
+ */
+lh_sql_mysql_real_connect_fn *
+lh_sql_mysql_api_get_real_connect(const lh_sql_mysql_api_t *self);
+
+/** @brief Store `mysql_real_connect` (::lh_null for none). Level-1 setter. */
+lh_void
+lh_sql_mysql_api_set_real_connect(lh_sql_mysql_api_t *self, lh_sql_mysql_real_connect_fn *real_connect);
+
+/**
+ * @brief `mysql_close` as looked up in the client library, or ::lh_null
+ *        when the library lacks it (level 1).
+ */
+lh_sql_mysql_close_fn *
+lh_sql_mysql_api_get_close(const lh_sql_mysql_api_t *self);
+
+/** @brief Store `mysql_close` (::lh_null for none). Level-1 setter. */
+lh_void
+lh_sql_mysql_api_set_close(lh_sql_mysql_api_t *self, lh_sql_mysql_close_fn *close);
+
+/**
+ * @brief `mysql_error` as looked up in the client library, or ::lh_null
+ *        when the library lacks it (level 1).
+ */
+lh_sql_mysql_error_fn *
+lh_sql_mysql_api_get_error(const lh_sql_mysql_api_t *self);
+
+/** @brief Store `mysql_error` (::lh_null for none). Level-1 setter. */
+lh_void
+lh_sql_mysql_api_set_error(lh_sql_mysql_api_t *self, lh_sql_mysql_error_fn *error);
+
+/**
+ * @brief `mysql_error_code` as looked up in the client library, or ::lh_null
+ *        when the library lacks it (level 1).
+ */
+lh_sql_mysql_error_code_fn *
+lh_sql_mysql_api_get_error_code(const lh_sql_mysql_api_t *self);
+
+/** @brief Store `mysql_error_code` (::lh_null for none). Level-1 setter. */
+lh_void
+lh_sql_mysql_api_set_error_code(lh_sql_mysql_api_t *self, lh_sql_mysql_error_code_fn *error_code);
+
+/**
+ * @brief `mysql_real_query` as looked up in the client library, or ::lh_null
+ *        when the library lacks it (level 1).
+ */
+lh_sql_mysql_real_query_fn *
+lh_sql_mysql_api_get_real_query(const lh_sql_mysql_api_t *self);
+
+/** @brief Store `mysql_real_query` (::lh_null for none). Level-1 setter. */
+lh_void
+lh_sql_mysql_api_set_real_query(lh_sql_mysql_api_t *self, lh_sql_mysql_real_query_fn *real_query);
+
+/**
+ * @brief `mysql_store_result` as looked up in the client library, or ::lh_null
+ *        when the library lacks it (level 1).
+ */
+lh_sql_mysql_store_result_fn *
+lh_sql_mysql_api_get_store_result(const lh_sql_mysql_api_t *self);
+
+/** @brief Store `mysql_store_result` (::lh_null for none). Level-1 setter. */
+lh_void
+lh_sql_mysql_api_set_store_result(lh_sql_mysql_api_t *self, lh_sql_mysql_store_result_fn *store_result);
+
+/**
+ * @brief `mysql_free_result` as looked up in the client library, or ::lh_null
+ *        when the library lacks it (level 1).
+ */
+lh_sql_mysql_free_result_fn *
+lh_sql_mysql_api_get_free_result(const lh_sql_mysql_api_t *self);
+
+/** @brief Store `mysql_free_result` (::lh_null for none). Level-1 setter. */
+lh_void
+lh_sql_mysql_api_set_free_result(lh_sql_mysql_api_t *self, lh_sql_mysql_free_result_fn *free_result);
+
+/**
+ * @brief `mysql_fetch_row` as looked up in the client library, or ::lh_null
+ *        when the library lacks it (level 1).
+ */
+lh_sql_mysql_fetch_row_fn *
+lh_sql_mysql_api_get_fetch_row(const lh_sql_mysql_api_t *self);
+
+/** @brief Store `mysql_fetch_row` (::lh_null for none). Level-1 setter. */
+lh_void
+lh_sql_mysql_api_set_fetch_row(lh_sql_mysql_api_t *self, lh_sql_mysql_fetch_row_fn *fetch_row);
+
+/**
+ * @brief `mysql_fetch_lengths` as looked up in the client library, or ::lh_null
+ *        when the library lacks it (level 1).
+ */
+lh_sql_mysql_fetch_lengths_fn *
+lh_sql_mysql_api_get_fetch_lengths(const lh_sql_mysql_api_t *self);
+
+/** @brief Store `mysql_fetch_lengths` (::lh_null for none). Level-1 setter. */
+lh_void
+lh_sql_mysql_api_set_fetch_lengths(lh_sql_mysql_api_t *self, lh_sql_mysql_fetch_lengths_fn *fetch_lengths);
+
+/**
+ * @brief `mysql_num_fields` as looked up in the client library, or ::lh_null
+ *        when the library lacks it (level 1).
+ */
+lh_sql_mysql_num_fields_fn *
+lh_sql_mysql_api_get_num_fields(const lh_sql_mysql_api_t *self);
+
+/** @brief Store `mysql_num_fields` (::lh_null for none). Level-1 setter. */
+lh_void
+lh_sql_mysql_api_set_num_fields(lh_sql_mysql_api_t *self, lh_sql_mysql_num_fields_fn *num_fields);
+
+/**
+ * @brief `mysql_field_count` as looked up in the client library, or ::lh_null
+ *        when the library lacks it (level 1).
+ */
+lh_sql_mysql_field_count_fn *
+lh_sql_mysql_api_get_field_count(const lh_sql_mysql_api_t *self);
+
+/** @brief Store `mysql_field_count` (::lh_null for none). Level-1 setter. */
+lh_void
+lh_sql_mysql_api_set_field_count(lh_sql_mysql_api_t *self, lh_sql_mysql_field_count_fn *field_count);
+
+/**
+ * @brief `mysql_insert_id` as looked up in the client library, or ::lh_null
+ *        when the library lacks it (level 1).
+ */
+lh_sql_mysql_insert_id_fn *
+lh_sql_mysql_api_get_insert_id(const lh_sql_mysql_api_t *self);
+
+/** @brief Store `mysql_insert_id` (::lh_null for none). Level-1 setter. */
+lh_void
+lh_sql_mysql_api_set_insert_id(lh_sql_mysql_api_t *self, lh_sql_mysql_insert_id_fn *insert_id);
+
+/**
+ * @brief `mysql_real_escape_string` as looked up in the client library, or ::lh_null
+ *        when the library lacks it (level 1).
+ */
+lh_sql_mysql_real_escape_string_fn *
+lh_sql_mysql_api_get_real_escape_string(const lh_sql_mysql_api_t *self);
+
+/** @brief Store `mysql_real_escape_string` (::lh_null for none). Level-1 setter. */
+lh_void
+lh_sql_mysql_api_set_real_escape_string(lh_sql_mysql_api_t *self, lh_sql_mysql_real_escape_string_fn *real_escape_string);
+
+/**
+ * @brief `mysql_set_character_set` as looked up in the client library, or ::lh_null
+ *        when the library lacks it (level 1).
+ */
+lh_sql_mysql_set_character_set_fn *
+lh_sql_mysql_api_get_set_character_set(const lh_sql_mysql_api_t *self);
+
+/** @brief Store `mysql_set_character_set` (::lh_null for none). Level-1 setter. */
+lh_void
+lh_sql_mysql_api_set_set_character_set(lh_sql_mysql_api_t *self, lh_sql_mysql_set_character_set_fn *set_character_set);
+
+/**
+ * @brief `mysql_options` as looked up in the client library, or ::lh_null
+ *        when the library lacks it (level 1).
+ */
+lh_sql_mysql_options_fn *
+lh_sql_mysql_api_get_options(const lh_sql_mysql_api_t *self);
+
+/** @brief Store `mysql_options` (::lh_null for none). Level-1 setter. */
+lh_void
+lh_sql_mysql_api_set_options(lh_sql_mysql_api_t *self, lh_sql_mysql_options_fn *options);
+
+/**
+ * @brief `mysql_thread_end` as looked up in the client library, or ::lh_null
+ *        when the library lacks it (level 1).
+ */
+lh_sql_mysql_thread_end_fn *
+lh_sql_mysql_api_get_thread_end(const lh_sql_mysql_api_t *self);
+
+/** @brief Store `mysql_thread_end` (::lh_null for none). Level-1 setter. */
+lh_void
+lh_sql_mysql_api_set_thread_end(lh_sql_mysql_api_t *self, lh_sql_mysql_thread_end_fn *thread_end);
+
+/** Set @p self to no library and no functions. */
+lh_void
+lh_sql_mysql_api_init(lh_sql_mysql_api_t *self);
+
 /** True when every function lh/sql needs is in @p self. */
 lh_bool_t
 lh_sql_mysql_api_is_loaded(const lh_sql_mysql_api_t *self);
-
-/**
- * @brief Look every function up in the image of @p self, which must be open.
- *
- * @return ::lh_bool_false, with the functions cleared, when one is missing:
- *         the image is not a MySQL client.
- */
-lh_bool_t
-lh_sql_mysql_api_bind(lh_sql_mysql_api_t *self);
-
-/**
- * @brief Open the library @p name (a file name the OS searches for, or a
- *        path) into @p self and bind its functions.
- */
-lh_bool_t
-lh_sql_mysql_api_load(lh_sql_mysql_api_t *self, lh_str_view_t name);
-
-/**
- * @brief Try the usual client names in turn — MariaDB's, then MySQL's, as
- *        Windows or Linux names them — until one loads.
- */
-lh_bool_t
-lh_sql_mysql_api_load_default(lh_sql_mysql_api_t *self);
-
-/**
- * @brief The process's client, loaded by ::lh_sql_mysql_api_load_default on
- *        the first call; ::lh_null when there is none. Later calls do not
- *        try again. Not thread safe on that first call.
- */
-const lh_sql_mysql_api_t *
-lh_sql_mysql_api_get_default(void);
 
 /* ── calls: the one place each slot is read ──────────────────────────────── */
 
@@ -236,6 +388,41 @@ lh_sql_mysql_api_escape(const lh_sql_mysql_api_t *self, lh_ptr mysql, lh_str_vie
 lh_bool_t
 lh_sql_mysql_api_set_character_set(const lh_sql_mysql_api_t *self, lh_ptr mysql,
                                    const lh_char_t *name);
+
+/** Close the library @p self loaded and forget its functions. */
+lh_void
+lh_sql_mysql_api_deinit(lh_sql_mysql_api_t *self);
+
+/**
+ * @brief Look every function up in the image of @p self, which must be open.
+ *
+ * @return ::lh_bool_false, with the functions cleared, when one is missing:
+ *         the image is not a MySQL client.
+ */
+lh_bool_t
+lh_sql_mysql_api_bind(lh_sql_mysql_api_t *self);
+
+/**
+ * @brief Open the library @p name (a file name the OS searches for, or a
+ *        path) into @p self and bind its functions.
+ */
+lh_bool_t
+lh_sql_mysql_api_load(lh_sql_mysql_api_t *self, lh_str_view_t name);
+
+/**
+ * @brief Try the usual client names in turn — MariaDB's, then MySQL's, as
+ *        Windows or Linux names them — until one loads.
+ */
+lh_bool_t
+lh_sql_mysql_api_load_default(lh_sql_mysql_api_t *self);
+
+/**
+ * @brief The process's client, loaded by ::lh_sql_mysql_api_load_default on
+ *        the first call; ::lh_null when there is none. Later calls do not
+ *        try again. Not thread safe on that first call.
+ */
+const lh_sql_mysql_api_t *
+lh_sql_mysql_api_get_default(void);
 
 LH_COMPILER_EXTERN_C_END
 

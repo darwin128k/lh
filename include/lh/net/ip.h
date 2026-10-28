@@ -223,6 +223,14 @@ lh_net_ip4_is_less(const lh_net_ip4_t *self, const lh_net_ip4_t *other);
 lh_bool_t
 lh_net_ip4_is_greater(const lh_net_ip4_t *self, const lh_net_ip4_t *other);
 
+/**
+ * @brief The four octets of @p self, most significant first (level 1).
+ *
+ * ::lh_net_ip4_get_octet reads one of them.
+ */
+const lh_byte_t *
+lh_net_ip4_get_octets(const lh_net_ip4_t *self);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_NET_IP_H */

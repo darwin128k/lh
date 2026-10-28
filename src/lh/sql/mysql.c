@@ -65,7 +65,7 @@ lh_sql_mysql_reconnect(lh_sql_db_t *db)
     }
     lh_sql_mysql_api_close(api, lh_sql_mysql_conn_get_native(conn));
     lh_sql_mysql_conn_set_native(conn, native);
-    conn->broken = lh_bool_false;
+    lh_sql_mysql_conn_set_broken(conn, lh_bool_false);
     lh_sql_db_clear_error(db);
     return lh_bool_true;
 }
@@ -76,7 +76,7 @@ lh_sql_mysql_send(lh_sql_db_t *db, lh_str_view_t sql)
     lh_uint_t code;
     lh_sql_mysql_conn_t *conn = lh_sql_mysql_get_conn(db);
 
-    if (conn->broken && !lh_sql_mysql_reconnect(db)) return lh_bool_false;
+    if (lh_sql_mysql_conn_get_broken(conn) && !lh_sql_mysql_reconnect(db)) return lh_bool_false;
 
     if (lh_sql_mysql_api_real_query(lh_sql_mysql_get_api(db), lh_sql_mysql_get_native(db), sql))
     {
@@ -87,7 +87,7 @@ lh_sql_mysql_send(lh_sql_db_t *db, lh_str_view_t sql)
      * broken connection for the NEXT independent statement either. */
     if (code == LH_SQL_MYSQL_ERROR_SERVER_LOST)
     {
-        conn->broken = lh_bool_true;
+        lh_sql_mysql_conn_set_broken(conn, lh_bool_true);
         return lh_sql_mysql_fail(db);
     }
     /* Never reached a live server, so nothing ran: safe to send again. */
@@ -405,13 +405,13 @@ lh_sql_mysql_connect(lh_sql_db_t *db, const lh_sql_mysql_api_t *api, lh_str_view
         return lh_null;
     }
 
-    if (api->options)
+    if (lh_sql_mysql_api_get_options(api))
     {
         const lh_uint_t seconds = 5U;
         /* Stable C client ABI: CONNECT_TIMEOUT, READ_TIMEOUT, WRITE_TIMEOUT.
          * Keep network failures bounded, including worker joins on unload. */
-        if (api->options(native, 0, &seconds) || api->options(native, 11, &seconds) ||
-            api->options(native, 12, &seconds))
+        if (lh_sql_mysql_api_get_options(api)(native, 0, &seconds) || lh_sql_mysql_api_get_options(api)(native, 11, &seconds) ||
+            lh_sql_mysql_api_get_options(api)(native, 12, &seconds))
         {
             lh_sql_db_set_error(db, lh_str_view_lit("cannot set MySQL I/O timeouts"));
             lh_sql_mysql_api_close(api, native);

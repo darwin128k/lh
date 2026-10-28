@@ -34,6 +34,9 @@
 #include <lh/io/stream.h>
 #include <lh/net/modbus/framing.h>
 #include <lh/net/modbus/link/state.h>
+#include <lh/net/modbus/link/counters.h>
+#include <lh/net/modbus/link/clock/cb.h>
+#include <lh/net/modbus/link/change/cb.h>
 
 /* -- Framing --------------------------------------------------------------- */
 
@@ -115,42 +118,6 @@ LH_COMPILER_EXTERN_C_END
 #define LH_MB_LINK_VALUES (lh_cast_static(lh_u16_t, LH_MB_READ_MAX))
 
 /**
- * @brief The numbers a bench reads and a status bar shows.
- *
- * Counted because "it is fast" is a claim and these are the evidence for it: how
- * many questions went out, how many answers came back whole, how many devices
- * stopped answering, and how long the answers took once they were in.
- */
-typedef struct lh_mb_link_counters
-{
-    lh_u32_t sent;   /**< requests written to the stream */
-    lh_u32_t done;   /**< answers parsed in full */
-    lh_u32_t failed; /**< timeouts and stream errors, and nothing else */
-    /** @brief Answers the device understood and refused: a Modbus exception.
-     *
-     *  **This is an answer, and it is the most useful one a device can give.** It
-     *  says the line is good, the framing is right, the function code was
-     *  understood, and this address is not on the device.
-     *
-     *  It used to be counted in ::failed, and that was a lie the app could not see
-     *  through: the counter's own words said "timeouts and transport errors", the
-     *  code counted exceptions there too, and a card that asked for one register
-     *  the device did not have looked exactly like a device that had stopped
-     *  answering. That is not a small difference here — the client's rule for
-     *  "this device is off line" is a count of failures in a row, so a **healthy**
-     *  controller with a card slightly wider than its firmware would be taken off
-     *  line by its own app while every other device kept being polled.
-     *
-     *  Against a real controller on a panel this is not a corner: a card is a
-     *  union of everything the family ever had, and asking a JL211 for a JL204C7
-     *  register is refused, politely, forever.
-     */
-    lh_u32_t refused; /**< answers that were Modbus exceptions: the device is talking */
-    lh_u32_t bytes;   /**< request and answer bytes both ways */
-    lh_u64_t us_busy; /**< microseconds a request spent in flight */
-} lh_mb_link_counters_t;
-
-/**
  * @brief One device: the question in flight, the answer, and what it cost.
  */
 typedef struct lh_mb_link
@@ -217,29 +184,436 @@ typedef struct lh_mb_link
     /* The clock, in microseconds. A link does not read the system clock itself:
        a test has to be able to move time by hand, and an app has to be able to
        decide what a microsecond is worth. */
-    lh_u64_t (*now_us)(lh_ptr self); /**< the clock; ::lh_null counts nothing */
-    lh_ptr clock;                    /**< passed to every ::now_us call */
+    lh_mb_link_clock_cb now_us; /**< the clock; ::lh_null counts nothing */
+    lh_ptr clock;               /**< passed to every ::now_us call */
     /** Not called by the link: a slot for the application's own notification. */
-    lh_void (*on_change)(lh_ptr self, lh_ptr link);
+    lh_mb_link_change_cb on_change;
     lh_ptr owner; /**< not read by the link: the application's own back pointer */
 } lh_mb_link_t;   /**< One device: the question in flight, the answer, and what it cost. */
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/** @brief The function code this link asks, ::LH_MB_FC_READ_HOLDING by default. */
+lh_u8_t
+lh_mb_link_get_fc(const lh_mb_link_t *self);
+
 /**
- * @brief Point @p self at @p stream and start empty.
+ * @brief The stream the bytes go through (level 1).
  *
- * @param self     Link to set up.
- * @param stream   What the bytes go through, non-blocking; copied, and what it
- *                 reads and writes must outlive the link.
- * @param framing  What the line carries.
- * @param unit     Slave address, 1..247.
- * @param now_us   The link's clock; `lh_null` means the link counts nothing.
- * @param clock    Passed to every @p now_us call.
+ * Replace it with ::lh_mb_link_set_stream, which also forgets what was held.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+const lh_io_stream_t *
+lh_mb_link_get_stream(const lh_mb_link_t *self);
+
+/**
+ * @brief The stream the bytes go through, to change in place (level 1).
+ *
+ * Replace it with ::lh_mb_link_set_stream, which also forgets what was held.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_io_stream_t *
+lh_mb_link_get_stream_mut(lh_mb_link_t *self);
+
+/**
+ * @brief What this link has cost so far (::lh_mb_link_counters_t) (level 1).
+ *
+ * The link counts through the counters' own bricks.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+const lh_mb_link_counters_t *
+lh_mb_link_get_counters(const lh_mb_link_t *self);
+
+/**
+ * @brief What this link has cost so far (::lh_mb_link_counters_t), to change in place (level 1).
+ *
+ * The link counts through the counters' own bricks.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_mb_link_counters_t *
+lh_mb_link_get_counters_mut(lh_mb_link_t *self);
+
+/**
+ * @brief What the line carries: MBAP over a network, RTU over a serial line (level 1).
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_mb_framing_t
+lh_mb_link_get_framing(const lh_mb_link_t *self);
+
+/**
+ * @brief Store what the line carries: MBAP over a network, RTU over a serial line (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @param framing The new value.
  */
 lh_void
-lh_mb_link_init(lh_mb_link_t *self, const lh_io_stream_t *stream, lh_mb_framing_t framing,
-                lh_u8_t unit, lh_u64_t (*now_us)(lh_ptr self), lh_ptr clock);
+lh_mb_link_set_framing(lh_mb_link_t *self, lh_mb_framing_t framing);
+
+/**
+ * @brief The slave address of the device this link asks (level 1).
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_u8_t
+lh_mb_link_get_unit(const lh_mb_link_t *self);
+
+/**
+ * @brief Store the slave address of the device this link asks (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @param unit The new value.
+ */
+lh_void
+lh_mb_link_set_unit(lh_mb_link_t *self, lh_u8_t unit);
+
+/**
+ * @brief The function code of the question in flight (level 1).
+ *
+ * The answer is parsed by this and not by ::lh_mb_link_get_fc: a write does not
+ * change what the link reads next.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_u8_t
+lh_mb_link_get_asked_fc(const lh_mb_link_t *self);
+
+/**
+ * @brief Store the function code of the question in flight (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @param asked_fc The new value.
+ */
+lh_void
+lh_mb_link_set_asked_fc(lh_mb_link_t *self, lh_u8_t asked_fc);
+
+/**
+ * @brief Where the question is, as an ::lh_mb_link_state_t stored in a byte (level 1).
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_u8_t
+lh_mb_link_get_state(const lh_mb_link_t *self);
+
+/**
+ * @brief Store where the question is, as an ::lh_mb_link_state_t stored in a byte (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @param state The new value.
+ */
+lh_void
+lh_mb_link_set_state(lh_mb_link_t *self, lh_u8_t state);
+
+/**
+ * @brief Why the last poll ended the way it did (::lh_mb_status_t) (level 1).
+ *
+ * The state says whether a question produced data; this says why not.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_mb_status_t
+lh_mb_link_get_reason(const lh_mb_link_t *self);
+
+/**
+ * @brief Store why the last poll ended the way it did (::lh_mb_status_t) (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @param reason The new value.
+ */
+lh_void
+lh_mb_link_set_reason(lh_mb_link_t *self, lh_mb_status_t reason);
+
+/**
+ * @brief The first register the question in flight asked for (level 1).
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_u16_t
+lh_mb_link_get_address(const lh_mb_link_t *self);
+
+/**
+ * @brief Store the first register the question in flight asked for (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @param address The new value.
+ */
+lh_void
+lh_mb_link_set_address(lh_mb_link_t *self, lh_u16_t address);
+
+/**
+ * @brief How many words the question in flight asked for (level 1).
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_u16_t
+lh_mb_link_get_expected(const lh_mb_link_t *self);
+
+/**
+ * @brief Store how many words the question in flight asked for (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @param expected The new value.
+ */
+lh_void
+lh_mb_link_set_expected(lh_mb_link_t *self, lh_u16_t expected);
+
+/**
+ * @brief How many words the last answer carried (level 1).
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_u16_t
+lh_mb_link_get_got(const lh_mb_link_t *self);
+
+/**
+ * @brief Store how many words the last answer carried (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @param got The new value.
+ */
+lh_void
+lh_mb_link_set_got(lh_mb_link_t *self, lh_u16_t got);
+
+/**
+ * @brief The word a "write one register" sent, which its echo has to carry back (level 1).
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_u16_t
+lh_mb_link_get_written(const lh_mb_link_t *self);
+
+/**
+ * @brief Store the word a "write one register" sent, which its echo has to carry back (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @param written The new value.
+ */
+lh_void
+lh_mb_link_set_written(lh_mb_link_t *self, lh_u16_t written);
+
+/**
+ * @brief How many bytes of ::lh_mb_link_get_frame are received and not yet consumed (level 1).
+ *
+ * Over MBAP they outlive a question: they may be the start of the next frame.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_u16_t
+lh_mb_link_get_held(const lh_mb_link_t *self);
+
+/**
+ * @brief Store how many bytes of ::lh_mb_link_get_frame are held (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @param held The new value.
+ */
+lh_void
+lh_mb_link_set_held(lh_mb_link_t *self, lh_u16_t held);
+
+/**
+ * @brief The transaction id the next MBAP question goes out with (level 1).
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_u16_t
+lh_mb_link_get_tx(const lh_mb_link_t *self);
+
+/**
+ * @brief Store the transaction id the next MBAP question goes out with (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @param tx The new value.
+ */
+lh_void
+lh_mb_link_set_tx(lh_mb_link_t *self, lh_u16_t tx);
+
+/**
+ * @brief The transaction id of the question in flight, for MBAP (level 1).
+ *
+ * The only thing that tells this answer from a late answer to the last question.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_u16_t
+lh_mb_link_get_asked_tx(const lh_mb_link_t *self);
+
+/**
+ * @brief Store the transaction id of the question in flight, for MBAP (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @param asked_tx The new value.
+ */
+lh_void
+lh_mb_link_set_asked_tx(lh_mb_link_t *self, lh_u16_t asked_tx);
+
+/**
+ * @brief When the question in flight went out, on the link's own clock (level 1).
+ *
+ * Microseconds since boot, 64 bits wide: 32 bits of them run out after 71 minutes.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_u64_t
+lh_mb_link_get_since_us(const lh_mb_link_t *self);
+
+/**
+ * @brief Store when the question in flight went out, on the link's own clock (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @param since_us The new value.
+ */
+lh_void
+lh_mb_link_set_since_us(lh_mb_link_t *self, lh_u64_t since_us);
+
+/**
+ * @brief The clock the link measures time with; ::lh_null counts no time (level 1).
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_mb_link_clock_cb
+lh_mb_link_get_now_us(const lh_mb_link_t *self);
+
+/**
+ * @brief Store the clock the link measures time with; ::lh_null counts no time (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @param now_us The new value.
+ */
+lh_void
+lh_mb_link_set_now_us(lh_mb_link_t *self, lh_mb_link_clock_cb now_us);
+
+/**
+ * @brief The value passed to every ::lh_mb_link_get_now_us call (level 1).
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_ptr
+lh_mb_link_get_clock(const lh_mb_link_t *self);
+
+/**
+ * @brief Store the value passed to every ::lh_mb_link_get_now_us call (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @param clock The new value.
+ */
+lh_void
+lh_mb_link_set_clock(lh_mb_link_t *self, lh_ptr clock);
+
+/**
+ * @brief The application's change callback; the link never calls it (level 1).
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_mb_link_change_cb
+lh_mb_link_get_on_change(const lh_mb_link_t *self);
+
+/**
+ * @brief Store the application's change callback; the link never calls it (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @param on_change The new value.
+ */
+lh_void
+lh_mb_link_set_on_change(lh_mb_link_t *self, lh_mb_link_change_cb on_change);
+
+/**
+ * @brief The application's own back pointer; the link never reads it (level 1).
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_ptr
+lh_mb_link_get_owner(const lh_mb_link_t *self);
+
+/**
+ * @brief Store the application's own back pointer; the link never reads it (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @param owner The new value.
+ */
+lh_void
+lh_mb_link_set_owner(lh_mb_link_t *self, lh_ptr owner);
+
+/**
+ * @brief The words of the last answer (level 1).
+ *
+ * An array of ::LH_MB_LINK_VALUES words; the first ::lh_mb_link_get_got of
+ * them are the answer. ::lh_mb_link_take is the checked way to read them.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+const lh_u16_t *
+lh_mb_link_get_values(const lh_mb_link_t *self);
+
+/**
+ * @brief The words of the last answer, to fill in place (level 1).
+ *
+ * An array of ::LH_MB_LINK_VALUES words. Nothing about the bounds is checked.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_u16_t *
+lh_mb_link_get_values_mut(lh_mb_link_t *self);
+
+/**
+ * @brief The receive buffer (level 1).
+ *
+ * An array of ::LH_MB_ADU_MAX bytes; the first ::lh_mb_link_get_held of them
+ * are live.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+const lh_byte_t *
+lh_mb_link_get_frame(const lh_mb_link_t *self);
+
+/**
+ * @brief The receive buffer, to fill in place (level 1).
+ *
+ * An array of ::LH_MB_ADU_MAX bytes. Nothing about the bounds is checked.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_byte_t *
+lh_mb_link_get_frame_mut(lh_mb_link_t *self);
 
 /**
  * @brief Carry on over a new @p stream: the connection was made again.
@@ -278,10 +652,6 @@ lh_mb_link_set_stream(lh_mb_link_t *self, const lh_io_stream_t *stream);
 lh_void
 lh_mb_link_set_fc(lh_mb_link_t *self, lh_u8_t fc);
 
-/** @brief The function code this link asks, ::LH_MB_FC_READ_HOLDING by default. */
-lh_u8_t
-lh_mb_link_get_fc(const lh_mb_link_t *self);
-
 /** The stream is gone: the peer closed it, it failed, or it took half a request. A
    frame boundary cannot be found on it again, so nothing held is kept, and the
    reason says so -- the app opens a new stream and hands it to
@@ -296,12 +666,68 @@ lh_mb_link_lose(lh_mb_link_t *self);
 lh_void
 lh_mb_link_consume(lh_mb_link_t *self, lh_u16_t n);
 
+/**
+ * @brief Take the answer, or say there is none.
+ *
+ * The words stay where they are and are not copied out: a poll of a few hundred
+ * registers per device per pass is a lot of copying, and the caller is reading
+ * them before the next pass anyway.
+ *
+ * @param self  Link to take from.
+ * @param count How many words arrived.
+ *
+ * @return The words, or `lh_null` when there is no answer to take.
+ */
+const lh_u16_t *
+lh_mb_link_take(lh_mb_link_t *self, lh_u16_t *count);
+
+/**
+ * @brief Hand the answer back and go idle.
+ *
+ * Separate from ::lh_mb_link_take on purpose: taking a value and giving the link
+ * back are different moments, and a caller that reads one register out of a
+ * hundred and then wants another device's turn should not have to give the link
+ * up first to get it.
+ */
+lh_void
+lh_mb_link_release(lh_mb_link_t *self);
+
+/**
+ * @brief Point @p self at @p stream and start empty.
+ *
+ * @param self     Link to set up.
+ * @param stream   What the bytes go through, non-blocking; copied, and what it
+ *                 reads and writes must outlive the link.
+ * @param framing  What the line carries.
+ * @param unit     Slave address, 1..247.
+ * @param now_us   The link's clock; `lh_null` means the link counts nothing.
+ * @param clock    Passed to every @p now_us call.
+ */
+lh_void
+lh_mb_link_init(lh_mb_link_t *self, const lh_io_stream_t *stream, lh_mb_framing_t framing,
+                lh_u8_t unit, lh_mb_link_clock_cb now_us, lh_ptr clock);
+
 /** Everything after the PDU is the same for a read and a write: the envelope, the send,
    and the bookkeeping that makes the answer this question's. @p fc is the code the
    answer will carry, and ::lh_mb_link_poll reads it by that. */
 lh_bool_t
 lh_mb_link_send(lh_mb_link_t *self, const lh_byte_ptr pdu, lh_u16_t pdu_length, lh_u16_t address,
                 lh_u16_t count, lh_u8_t fc);
+
+/**
+ * @brief Look for an answer without waiting for one.
+ *
+ * One read of the stream, then a decision: whole frame, not yet, or not
+ * ours. Never blocks, and never asks for anything new — sending is
+ * ::lh_mb_link_ask's job, so that a pass cannot turn into a stall.
+ *
+ * @param self Link to look at.
+ * @param timeout_us How long a question may stay unanswered.
+ *
+ * @return The state the link is in afterwards.
+ */
+lh_mb_link_state_t
+lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us);
 
 /**
  * @brief Ask for @p count registers at @p address, if nothing else is in flight.
@@ -341,47 +767,6 @@ lh_mb_link_write(lh_mb_link_t *self, lh_u16_t address, const lh_u16_t *values, l
  */
 lh_bool_t
 lh_mb_link_write_one(lh_mb_link_t *self, lh_u16_t address, lh_u16_t value);
-
-/**
- * @brief Look for an answer without waiting for one.
- *
- * One read of the stream, then a decision: whole frame, not yet, or not
- * ours. Never blocks, and never asks for anything new — sending is
- * ::lh_mb_link_ask's job, so that a pass cannot turn into a stall.
- *
- * @param self Link to look at.
- * @param timeout_us How long a question may stay unanswered.
- *
- * @return The state the link is in afterwards.
- */
-lh_mb_link_state_t
-lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us);
-
-/**
- * @brief Take the answer, or say there is none.
- *
- * The words stay where they are and are not copied out: a poll of a few hundred
- * registers per device per pass is a lot of copying, and the caller is reading
- * them before the next pass anyway.
- *
- * @param self  Link to take from.
- * @param count How many words arrived.
- *
- * @return The words, or `lh_null` when there is no answer to take.
- */
-const lh_u16_t *
-lh_mb_link_take(lh_mb_link_t *self, lh_u16_t *count);
-
-/**
- * @brief Hand the answer back and go idle.
- *
- * Separate from ::lh_mb_link_take on purpose: taking a value and giving the link
- * back are different moments, and a caller that reads one register out of a
- * hundred and then wants another device's turn should not have to give the link
- * up first to get it.
- */
-lh_void
-lh_mb_link_release(lh_mb_link_t *self);
 
 LH_COMPILER_EXTERN_C_END
 
