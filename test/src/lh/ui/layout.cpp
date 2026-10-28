@@ -647,6 +647,7 @@ TEST(ui_layout, a_vertical_flow_has_no_line_to_line_up_on)
     caption_rect = lh_test::out(lh_ui_entity_get_rect, lh_ui_label_as_entity(&f.caption));
     EXPECT_EQ((int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(caption_rect))), 3);
 }
+
 /* A row sized by what it holds, holding a caption stretched across it and centred in
    it: the row's height is the caption's ink, and where the ink is depends on the
    row's height. Placing the caption moved it, moving it asked every container above

@@ -434,6 +434,7 @@ TEST(ui_decl, an_unknown_kind_is_refused_with_its_row)
     EXPECT_EQ(fault.code, lh_ui_decl_error_kind);
     EXPECT_EQ(fault.index, 0u);
 }
+
 TEST(ui_decl, a_hidden_row_is_built_hidden_and_the_rest_are_not)
 {
     lh_ui_entity_t *nodes[2] = {};

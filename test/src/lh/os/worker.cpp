@@ -17,11 +17,13 @@ struct payload
     unsigned destroyed = 0;
     lh_os_worker_t *closing = nullptr;
 };
+
 void
 work(void *user)
 {
     ++static_cast<payload *>(user)->worked;
 }
+
 void
 dispose(void *user)
 {
@@ -32,6 +34,7 @@ dispose(void *user)
         EXPECT_FALSE(lh_os_worker_submit(state.closing, work, nullptr, nullptr, user));
     }
 }
+
 struct allocator_case
 {
     unsigned live = 0;
@@ -68,6 +71,7 @@ TEST(os_worker, rejects_zero_capacity)
 {
     EXPECT_EQ(lh_os_worker_create(0), nullptr);
 }
+
 TEST(os_worker, retains_completed_jobs_in_capacity_and_rejects_submission_during_teardown)
 {
     payload state;
@@ -88,6 +92,7 @@ TEST(os_worker, retains_completed_jobs_in_capacity_and_rejects_submission_during
     worker.reset();
     EXPECT_EQ(state.destroyed, 3u);
 }
+
 TEST(os_worker, preserves_allocator_ownership_and_allocation_failures_are_recoverable)
 {
     allocator_case state;

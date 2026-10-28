@@ -1,7 +1,9 @@
 #include <lh/assert/runtime.h>
 #include <lh/assert/static.h>
+#include <lh/math/float/finite.h>
 #include <lh/math/vec3.h>
 #include <lh/util/offset.h>
+#include <lh/util/return.h>
 
 lh_float_t
 lh_math_vec3_get_x(const lh_math_vec3_t *self)
@@ -255,4 +257,21 @@ lh_math_vec3_cross(lh_math_vec3_t a, lh_math_vec3_t b, lh_math_vec3_t *out)
                       lh_math_vec3_get_x(lh_addr_of(a)) * lh_math_vec3_get_y(lh_addr_of(b)) -
                           lh_math_vec3_get_y(lh_addr_of(a)) * lh_math_vec3_get_x(lh_addr_of(b)));
     lh_ptr_deref(out) = result;
+}
+
+lh_bool_t
+lh_math_vec3_is_finite(lh_math_vec3_t v)
+{
+    return lh_math_float_is_finite(lh_math_vec3_get_x(lh_addr_of(v))) &&
+           lh_math_float_is_finite(lh_math_vec3_get_y(lh_addr_of(v))) &&
+           lh_math_float_is_finite(lh_math_vec3_get_z(lh_addr_of(v)));
+}
+
+lh_bool_t
+lh_math_vec3_try_normalize(lh_math_vec3_t v, lh_float_t min_length, lh_math_vec3_t *out)
+{
+    const lh_float_t length = lh_math_vec3_length(v);
+    lh_return_if(!lh_math_float_is_finite(length) || length < min_length, lh_bool_false);
+    lh_math_vec3_normalize(v, out);
+    return lh_bool_true;
 }

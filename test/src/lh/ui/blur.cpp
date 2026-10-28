@@ -236,6 +236,7 @@ TEST(ui_blur, the_bottom_rows_are_blurred_and_not_read_past)
         EXPECT_GE(f.red_at(0, y), f.red_at(0, y - 1)) << y;
     }
 }
+
 /* The sharpest detector there is for a blur that reads past its own buffer: the
  * same picture, the same radius, and whatever memory follows the scratch filled
  * two different ways. A blur that stays inside its buffer cannot tell them
@@ -344,6 +345,7 @@ TEST(ui_blur, a_neighbour_outside_the_rect_still_counts)
     EXPECT_EQ(f.red_at(1, 3), 255);
     EXPECT_GT(f.red_at(3, 3), 0);
 }
+
 /* -- Column-pass bricks ---------------------------------------------------- */
 
 TEST(ui_blur_bricks, sample_color_reads_four_bytes)

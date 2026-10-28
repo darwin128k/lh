@@ -449,7 +449,8 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/web/page.c
     )
     if (LH_LIBRARY_OPTION_MATH_FPU)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/renderer3d.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/renderer3d.c
+             ${LH_LIB_SRC_PATH}/ui/renderer3d/camera.c)
     endif ()
     if (LH_LIBRARY_OPTION_OS)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host.c)
@@ -474,7 +475,7 @@ endif ()
 
 # Float math (vec, quat, mat4) is the FPU. OFF leaves it out of the library.
 #
-# lh/math/float (sqrt, sin_cos, round) is part of it: built only with the option ON,
+# lh/math/float (sqrt, sin_cos, tan, round, finite) is part of it: built only with the option ON,
 # like vec* and quat that call it, and point.c includes lh/math/float/round.h only
 # under the same option. With it OFF nothing in the library asks for a float
 # operation, so neither an FPU nor libm is needed.
@@ -483,6 +484,8 @@ if (LH_LIBRARY_OPTION_MATH_FPU)
             ${LH_LIB_SRC_PATH}/math/float/sqrt.c
             ${LH_LIB_SRC_PATH}/math/float/sin_cos.c
             ${LH_LIB_SRC_PATH}/math/float/round.c
+            ${LH_LIB_SRC_PATH}/math/float/finite.c
+            ${LH_LIB_SRC_PATH}/math/float/tan.c
             ${LH_LIB_SRC_PATH}/math/slice.c
             ${LH_LIB_SRC_PATH}/math/view.c
             ${LH_LIB_SRC_PATH}/math/fpoint.c

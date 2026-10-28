@@ -46,6 +46,7 @@
 #include <lh/os/thread.h>
 #include <lh/os/mutex.h>
 #include <lh/os/condition.h>
+
 /* app and window exist only where there is a window backend: Windows today.
    Including them unconditionally made the umbrella itself an #error on Linux,
    where library_options.cmake turns OS_WINDOW off. */

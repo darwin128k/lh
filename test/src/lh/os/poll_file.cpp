@@ -273,6 +273,7 @@ receive_signal(int signal_number)
     (void)signal_number;
     ++interrupted;
 }
+
 static lh_void
 interrupt_later(lh_ptr user)
 {
@@ -280,6 +281,7 @@ interrupt_later(lh_ptr user)
     ASSERT_TRUE(lh_os_thread_sleep(20));
     ASSERT_EQ(pthread_kill(main_thread, SIGUSR1), 0);
 }
+
 /** @brief Interrupted waits leave both output readiness and captured errors clear. */
 TEST_F(socket_poll, interruption_preserves_captured_error_and_clears_readiness)
 {

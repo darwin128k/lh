@@ -75,6 +75,7 @@ typedef lh_ulong_t(lh_sql_mysql_real_escape_string_fn)(lh_ptr mysql, lh_char_t *
 
 /** `int mysql_set_character_set(MYSQL *, const char *)`. */
 typedef lh_sint_t(lh_sql_mysql_set_character_set_fn)(lh_ptr mysql, const lh_char_t *name);
+
 /** `int mysql_options(MYSQL *, int option, const void *)`. */
 typedef lh_sint_t(lh_sql_mysql_options_fn)(lh_ptr mysql, lh_sint_t option, const lh_void *value);
 

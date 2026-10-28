@@ -201,6 +201,21 @@ lh_void
 lh_math_vec3_normalize(lh_math_vec3_t v, lh_math_vec3_t *out);
 
 /**
+ * @brief @p v scaled to length 1, or a refusal when it has no usable direction.
+ *
+ * Composed of ::lh_math_vec3_length, ::lh_math_float_is_finite and
+ * ::lh_math_vec3_normalize.
+ *
+ * @param v Vector to normalize.
+ * @param min_length Shortest length that still has a direction.
+ * @param out Receives the unit vector; untouched on failure.
+ * @return ::lh_bool_false when the length of @p v is not finite or is below
+ *         @p min_length.
+ */
+lh_bool_t
+lh_math_vec3_try_normalize(lh_math_vec3_t v, lh_math_fscalar_t min_length, lh_math_vec3_t *out);
+
+/**
  * @brief Linear interpolation: @p a at @p t = 0, @p b at @p t = 1.
  *
  * @p t is not clamped: values outside `[0, 1]` extrapolate along the line.
@@ -222,6 +237,15 @@ lh_math_vec3_near(lh_math_vec3_t a, lh_math_vec3_t b, lh_math_fscalar_t eps);
  */
 lh_bool_t
 lh_math_vec3_equals(lh_math_vec3_t self, lh_math_vec3_t other);
+
+/**
+ * @brief Whether every component of @p v is finite (::lh_math_float_is_finite).
+ *
+ * False when any component is NaN or an infinity: such a point has no place in
+ * space, and arithmetic on it only spreads the NaN.
+ */
+lh_bool_t
+lh_math_vec3_is_finite(lh_math_vec3_t v);
 
 /**
  * @brief Cross product @p a × @p b: perpendicular to both, of length

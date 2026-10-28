@@ -124,6 +124,7 @@ struct captioned_fixture
         g_clicked = lh_null;
     }
 };
+
 const lh_byte_t captioned_fixture::g_block[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 lh_ui_point_t

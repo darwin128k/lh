@@ -446,6 +446,7 @@ TEST(ui_text, a_code_the_font_has_no_glyph_for_draws_nothing_and_moves_nothing)
     lh_ui_text_draw(lh_addr_of(canvas), font, "\xC2\xAD", point_of(10, 20), lh_addr_of(color));
     EXPECT_EQ(log.mask_count, 0);
 }
+
 /* -- Lines a width breaks -------------------------------------------------- */
 
 /* The tiny font: 'A' 3 wide and inked, ' ' no glyph and no width. Three words of

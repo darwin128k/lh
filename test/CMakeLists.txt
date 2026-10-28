@@ -170,6 +170,8 @@ set(LH_TEST_MATH_FPU_SOURCES
         ${LH_TEST_SRC_PATH}/lh/math/float/sqrt.cpp
         ${LH_TEST_SRC_PATH}/lh/math/float/sin_cos.cpp
         ${LH_TEST_SRC_PATH}/lh/math/float/round.cpp
+        ${LH_TEST_SRC_PATH}/lh/math/float/finite.cpp
+        ${LH_TEST_SRC_PATH}/lh/math/float/tan.cpp
         ${LH_TEST_SRC_PATH}/lh/math/slice.cpp
         ${LH_TEST_SRC_PATH}/lh/math/view.cpp
 )

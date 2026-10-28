@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <limits>
+
 #include <lh/math/vec3.h>
 #include <lh/util/addr.h>
 #include <lh/test/out.h>
@@ -224,6 +226,32 @@ TEST(math_vec3_initializer, fills_components_in_order)
     EXPECT_FLOAT_EQ(value.x, 1.0f);
     EXPECT_FLOAT_EQ(value.y, 2.0f);
     EXPECT_FLOAT_EQ(value.z, 3.0f);
+}
+
+TEST(math_vec3_is_finite, any_nan_or_infinity_makes_it_false)
+{
+    EXPECT_TRUE(lh_math_vec3_is_finite(lh_math_vec3_initializer(1.0f, -2.0f, 0.0f)));
+    const float bad[] = {std::numeric_limits<float>::quiet_NaN(),
+                         std::numeric_limits<float>::infinity(),
+                         -std::numeric_limits<float>::infinity()};
+    for (float b : bad)
+    {
+        EXPECT_FALSE(lh_math_vec3_is_finite(lh_math_vec3_initializer(b, 0.0f, 0.0f)));
+        EXPECT_FALSE(lh_math_vec3_is_finite(lh_math_vec3_initializer(0.0f, b, 0.0f)));
+        EXPECT_FALSE(lh_math_vec3_is_finite(lh_math_vec3_initializer(0.0f, 0.0f, b)));
+    }
+}
+
+TEST(math_vec3_try_normalize, refuses_short_and_non_finite)
+{
+    lh_math_vec3_t out = lh_math_vec3_initializer(7.0f, 7.0f, 7.0f);
+    EXPECT_FALSE(lh_math_vec3_try_normalize(lh_math_vec3_initializer(0.0f, 0.0f, 0.0f), 1e-6f, &out));
+    EXPECT_FALSE(lh_math_vec3_try_normalize(
+        lh_math_vec3_initializer(std::numeric_limits<float>::infinity(), 0.0f, 0.0f), 1e-6f, &out));
+    EXPECT_FLOAT_EQ(out.x, 7.0f); /* untouched on failure */
+    ASSERT_TRUE(lh_math_vec3_try_normalize(lh_math_vec3_initializer(0.0f, 3.0f, 4.0f), 1e-6f, &out));
+    EXPECT_FLOAT_EQ(out.y, 0.6f);
+    EXPECT_FLOAT_EQ(out.z, 0.8f);
 }
 
 } // namespace

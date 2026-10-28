@@ -1,16 +1,19 @@
 /**
  * @file camera.h
  * @brief ::lh_ui_renderer3d_camera_t — where the camera stands, where it looks, and the frustum it cuts.
+ *
+ * The camera owns no memory. ::lh_ui_renderer3d_camera_init builds it from a
+ * position and two directions; ::lh_ui_renderer3d_camera_to_view takes a world
+ * point into its space, the space the renderer clips and projects in: `x` to
+ * the right, `y` up, `z` forward along the view.
  */
 
 #ifndef LH_UI_RENDERER3D_CAMERA_H
 #define LH_UI_RENDERER3D_CAMERA_H
 
-#include <lh/config.h>
-#include <lh/math/vec3.h>
-#include <lh/ui/pixmap.h>
-#include <lh/size.h>
+#include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
+#include <lh/math/vec3.h>
 
 /**
  * @struct lh_ui_renderer3d_camera
@@ -58,6 +61,32 @@ lh_ui_renderer3d_camera_init(lh_ui_renderer3d_camera_t *self, lh_math_vec3_t pos
                              lh_math_vec3_t forward, lh_math_vec3_t up,
                              lh_math_fscalar_t vertical_fov, lh_math_fscalar_t near_plane,
                              lh_math_fscalar_t far_plane);
+
+/**
+ * @brief Whether @p self can draw: a finite, positive tangent and
+ *        `0 < near_plane < far_plane`.
+ *
+ * True for every camera ::lh_ui_renderer3d_camera_init filled; a camera filled
+ * by hand is checked with it before a frame starts.
+ *
+ * @param self Camera to check; must not be null.
+ */
+lh_bool_t
+lh_ui_renderer3d_camera_is_usable(const lh_ui_renderer3d_camera_t *self);
+
+/**
+ * @brief @p world in the camera's space: `x` along right, `y` along up, `z`
+ *        along forward, measured from the eye.
+ *
+ * Composed of ::lh_math_vec3_sub and ::lh_math_vec3_dot.
+ *
+ * @param self Camera to look from; must not be null.
+ * @param world Point in world coordinates.
+ * @param out Receives the point in camera space.
+ */
+lh_void
+lh_ui_renderer3d_camera_to_view(const lh_ui_renderer3d_camera_t *self, lh_math_vec3_t world,
+                                lh_math_vec3_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -52,6 +52,7 @@ lh_ui_place_get_align(const lh_ui_place_t *self)
     lh_assert_runtime_ref(self);
     return self->align;
 }
+
 lh_void
 lh_ui_place_set_margin(lh_ui_place_t *self, const lh_ui_insets_t *margin)
 {

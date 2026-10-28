@@ -743,6 +743,7 @@ TEST(lh_mb_link, an_rtu_request_is_the_unit_the_pdu_and_two_crc_bytes)
                   answer_length);
     }
 }
+
 /* -- Writing ---------------------------------------------------------------
    Every frame below came off a socket from the write-capable copy of the emulator
    (a separate implementation that shares no code with this link): a write of 1 and 2

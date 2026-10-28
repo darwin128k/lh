@@ -16,6 +16,7 @@ struct producer_state
     lh_spsc_t *queue;
     std::atomic_bool stop{false};
 };
+
 void
 produce(void *user)
 {
