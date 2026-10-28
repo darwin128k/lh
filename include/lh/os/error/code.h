@@ -64,6 +64,9 @@
 /** Invalid concurrency object, callback or lifecycle state. */
 #define lh_os_error_code_invalid_argument 0x08
 
+/** The backend cannot provide the requested operation. */
+#define lh_os_error_code_not_supported 0x09
+
 /**
  * @typedef lh_os_error_code_t
  * @brief Same representation as ::lh_error_code_t for OS-layer last-error codes.

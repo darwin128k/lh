@@ -5,6 +5,8 @@
 #include <lh/os/system/str.h>
 #include <lh/os/system/win/kernel32.h>
 #include <lh/math.h>
+#include <lh/os.h>
+#include <lh/os/error/code.h>
 
 LH_ATTRIBUTE_STATIC
 lh_os_system_win_handle_t
@@ -112,4 +114,16 @@ lh_os_system_fs_file_write(lh_os_system_fs_file_handle_t handle, const lh_ptr bu
         return LH_OS_RESULT_INVALID;
     }
     return lh_cast_static(lh_ssize_t, result);
+}
+
+lh_os_system_fs_file_handle_t
+lh_os_system_fs_file_open_read_at(lh_os_system_fs_file_handle_t root, lh_str_cptr path,
+                                  lh_fs_size_t *size)
+{
+    lh_assert_runtime_ref(path);
+    lh_assert_runtime_ref(size);
+    (void)root;
+    lh_os_set_last_error_lit(lh_os_error_code_not_supported,
+                             "handle-relative file lookup is not supported by this backend");
+    return LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID;
 }

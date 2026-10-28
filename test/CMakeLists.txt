@@ -221,6 +221,7 @@ lh_add_test_core(lh_test_numeric
 
 set(LH_TEST_OS_SOURCES
         ${LH_TEST_SRC_PATH}/lh/os/fs/dir.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/fs/file.cpp
         ${LH_TEST_SRC_PATH}/lh/os/input.cpp
         ${LH_TEST_SRC_PATH}/lh/os/memory.cpp
         ${LH_TEST_SRC_PATH}/lh/os/net/interface.cpp
@@ -249,6 +250,8 @@ else ()
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_OS_PRIMITIVE_SOURCES})
 endif ()
 if (NOT LH_LIBRARY_OPTION_OS)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/fs/file.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/fs/file.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/fs/dir.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/fs/dir.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/memory.cpp)

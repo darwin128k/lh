@@ -24,6 +24,7 @@
 #include <lh/os/result.h>
 #include <lh/os/system/fs/file/handle.h>
 #include <lh/fs/file/mode.h>
+#include <lh/fs/size.h>
 #include <lh/str/ptr.h>
 
 #if !LH_LIBRARY_OPTION_OS
@@ -43,6 +44,32 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 lh_os_system_fs_file_handle_t
 lh_os_system_fs_file_open(const lh_str_ptr path, lh_fs_file_mode_t mode);
+
+/**
+ * @brief Open an existing regular file below the directory handle @p root for reading.
+ *
+ * @p path is a NUL-terminated relative path with `/` separators. Empty
+ * components, `.` and `..`, backslashes and colons are rejected. Symbolic
+ * links are never followed, including in intermediate components. The root
+ * must already refer to a trusted directory; it is borrowed and never closed.
+ * The lookup uses directory handles, without a separate path-based check.
+ * Mount points and hard links are not excluded by this operation.
+ *
+ * @param root Open directory, kept alive by the caller for this call.
+ * @param path Relative file name; not modified or retained.
+ * @param size Receives the nonnegative size of the opened file on success;
+ *             unchanged on failure. The file may change after this snapshot.
+ * @return Owned read handle (close with ::lh_os_system_fs_file_close), or
+ *         ::LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID on failure. Does not wait for
+ *         a FIFO writer. The returned handle is not inherited across exec.
+ *
+ * POSIX backend only for now; other backends fail closed with
+ * ::lh_os_error_code_not_supported. Native errors are captured in
+ * ::lh_os_system_last_error; invalid paths in ::lh_os_last_error.
+ */
+lh_os_system_fs_file_handle_t
+lh_os_system_fs_file_open_read_at(lh_os_system_fs_file_handle_t root, const lh_str_ptr path,
+                                  lh_fs_size_t *size);
 
 /**
  * @brief Release @p handle. The close result is not reported.
