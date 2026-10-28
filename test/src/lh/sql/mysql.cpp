@@ -440,8 +440,8 @@ TEST_F(sql_mysql, a_dropped_connection_is_reopened_and_the_statement_sent_again)
     server.connect.clear();
     EXPECT_EQ(lh_sql_stmt_step(&stmt), lh_sql_step_done) << text(lh_sql_db_get_error(&db));
     EXPECT_EQ(text(lh_sql_db_get_error(&db)), "");
-    EXPECT_EQ(server.queries,
-              (std::vector<std::string>{"INSERT INTO t VALUES ('a')", "INSERT INTO t VALUES ('a')"}));
+    EXPECT_EQ(server.queries, (std::vector<std::string>{"INSERT INTO t VALUES ('a')",
+                                                        "INSERT INTO t VALUES ('a')"}));
     EXPECT_EQ(server.connects, 2);
     EXPECT_EQ(server.connect, "db.host hlds  authum 3307"); /* the same address, port kept */
     EXPECT_EQ(server.charsets, (std::vector<std::string>{"utf8mb4", "utf8mb4"}));
@@ -523,6 +523,32 @@ TEST(sql_mysql_api, the_default_client_connects_or_says_why_not)
                                       lh_str_view_lit("p"), lh_str_view_lit("d"), 1));
     EXPECT_FALSE(text(lh_sql_db_get_error(&db)).empty());
     lh_sql_db_deinit(&db);
+}
+
+int thread_ends = 0;
+
+lh_void
+fake_thread_end(lh_void)
+{
+    ++thread_ends;
+}
+
+TEST(sql_mysql_api, thread_cleanup_is_optional_and_cleared_on_deinit)
+{
+    lh_sql_mysql_api_t api;
+    lh_sql_mysql_api_init(&api);
+    thread_ends = 0;
+    lh_sql_mysql_api_thread_end(&api);
+    EXPECT_EQ(thread_ends, 0);
+
+    api.thread_end = fake_thread_end;
+    lh_sql_mysql_api_thread_end(&api);
+    EXPECT_EQ(thread_ends, 1);
+
+    lh_sql_mysql_api_deinit(&api);
+    EXPECT_EQ(api.thread_end, nullptr);
+    lh_sql_mysql_api_thread_end(&api);
+    EXPECT_EQ(thread_ends, 1);
 }
 
 } // namespace

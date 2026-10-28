@@ -37,6 +37,7 @@ lh_void
 lh_sql_mysql_api_init(lh_sql_mysql_api_t *self)
 {
     self->options = lh_null;
+    self->thread_end = lh_null;
     lh_os_shared_init(lh_sql_mysql_api_get_image_mut(self));
     self->init = lh_null;
     self->real_connect = lh_null;
@@ -66,21 +67,26 @@ lh_bool_t
 lh_sql_mysql_api_is_loaded(const lh_sql_mysql_api_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_cast_static(
-        lh_bool_t, lh_null_ne(self->init) && lh_null_ne(self->real_connect) &&
-                       lh_null_ne(self->close) && lh_null_ne(self->error) &&
-                       lh_null_ne(self->error_code) && lh_null_ne(self->real_query) && lh_null_ne(self->store_result) &&
-                       lh_null_ne(self->free_result) && lh_null_ne(self->fetch_row) &&
-                       lh_null_ne(self->fetch_lengths) && lh_null_ne(self->num_fields) &&
-                       lh_null_ne(self->field_count) && lh_null_ne(self->insert_id) &&
-                       lh_null_ne(self->real_escape_string) && lh_null_ne(self->set_character_set));
+    return lh_cast_static(lh_bool_t,
+                          lh_null_ne(self->init) && lh_null_ne(self->real_connect) &&
+                              lh_null_ne(self->close) && lh_null_ne(self->error) &&
+                              lh_null_ne(self->error_code) && lh_null_ne(self->real_query) &&
+                              lh_null_ne(self->store_result) && lh_null_ne(self->free_result) &&
+                              lh_null_ne(self->fetch_row) && lh_null_ne(self->fetch_lengths) &&
+                              lh_null_ne(self->num_fields) && lh_null_ne(self->field_count) &&
+                              lh_null_ne(self->insert_id) && lh_null_ne(self->real_escape_string) &&
+                              lh_null_ne(self->set_character_set));
 }
 
 lh_bool_t
 lh_sql_mysql_api_bind(lh_sql_mysql_api_t *self)
 {
     const lh_os_shared_t *image = lh_sql_mysql_api_get_image_mut(self);
-    self->options = lh_cast_static(lh_sql_mysql_options_fn *, lh_os_shared_get_fn(image, "mysql_options"));
+    self->options =
+        lh_cast_static(lh_sql_mysql_options_fn *, lh_os_shared_get_fn(image, "mysql_options"));
+
+    self->thread_end = lh_cast_static(lh_sql_mysql_thread_end_fn *,
+                                      lh_os_shared_get_fn(image, "mysql_thread_end"));
 
     self->init = lh_cast_static(lh_sql_mysql_init_fn *, lh_os_shared_get_fn(image, "mysql_init"));
     self->real_connect = lh_cast_static(lh_sql_mysql_real_connect_fn *,
@@ -302,4 +308,14 @@ lh_sql_mysql_api_set_character_set(const lh_sql_mysql_api_t *self, lh_ptr mysql,
 {
     lh_assert_runtime_ref(self);
     return lh_cast_static(lh_bool_t, lh_math_is_zero(self->set_character_set(mysql, name)));
+}
+
+lh_void
+lh_sql_mysql_api_thread_end(const lh_sql_mysql_api_t *self)
+{
+    lh_assert_runtime_ref(self);
+    if (lh_null_ne(self->thread_end))
+    {
+        self->thread_end();
+    }
 }
