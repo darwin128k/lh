@@ -189,14 +189,17 @@ lh_void
 lh_memory_typed_clear(lh_memory_typed_t *self);
 
 /**
- * @brief Store @p begin, @p end and @p type_size in @p self without range validation.
+ * @brief Store @p count elements of @p type_size bytes at @p begin, without validation.
+ *
+ * The byte size kept in the bounds is <tt>count * type_size</tt>; every byte
+ * operation then goes through ::lh_memory_bounds_t.
  *
  * The caller is responsible for ensuring the resulting range is meaningful.
  * No range check is performed on @p begin or @p end.
  *
  * @param self      Typed memory to update.
  * @param begin     New @c begin.
- * @param end       New exclusive end; @c size becomes <tt>end - begin</tt>.
+ * @param count     Number of elements.
  * @param type_size New element size in bytes.
  *
  * @fails ::lh_runtime_error_code_null_pointer
@@ -205,7 +208,8 @@ lh_memory_typed_clear(lh_memory_typed_t *self);
  * @warning Unsafe — no range validation. Caller assumes full responsibility.
  */
 lh_void
-lh_memory_typed_set(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usize_t type_size);
+lh_memory_typed_set(lh_memory_typed_t *self, lh_ptr begin, lh_usize_t count,
+                    lh_usize_t type_size);
 
 /**
  * @brief Copy the endpoints and the element size from @p other to @p self.
@@ -384,7 +388,7 @@ lh_memory_typed_get_index_from_offset(const lh_memory_typed_t *self, lh_uoffset_
  *
  * @param self      Typed memory to update.
  * @param begin     New @c begin.
- * @param end       New exclusive end; @c size becomes <tt>end - begin</tt>.
+ * @param count     Number of elements.
  * @param type_size New element size in bytes.
  *
  * @fails ::lh_runtime_error_code_null_pointer
@@ -395,7 +399,8 @@ lh_memory_typed_get_index_from_offset(const lh_memory_typed_t *self, lh_uoffset_
  *        @p type_size is zero and the resulting bounds are valid.
  */
 lh_void
-lh_memory_typed_set_v(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usize_t type_size);
+lh_memory_typed_set_v(lh_memory_typed_t *self, lh_ptr begin, lh_usize_t count,
+                    lh_usize_t type_size);
 
 /**
  * @brief Return the pointer to the element at @p index, counting from the beginning.
@@ -453,7 +458,7 @@ lh_memory_typed_get_index_from_ptr(const lh_memory_typed_t *self, const lh_ptr p
  *
  * @param self      Typed memory to initialize.
  * @param begin     New @c begin.
- * @param end       New exclusive end; @c size becomes <tt>end - begin</tt>.
+ * @param count     Number of elements.
  * @param type_size New element size in bytes.
  *
  * @fails ::lh_runtime_error_code_null_pointer
@@ -464,7 +469,8 @@ lh_memory_typed_get_index_from_ptr(const lh_memory_typed_t *self, const lh_ptr p
  *        @p type_size is zero and the resulting bounds are valid.
  */
 lh_void
-lh_memory_typed_init(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usize_t type_size);
+lh_memory_typed_init(lh_memory_typed_t *self, lh_ptr begin, lh_usize_t count,
+                    lh_usize_t type_size);
 
 /**
  * @brief Return the pointer to the element @p index steps before the last one.

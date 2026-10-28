@@ -22,7 +22,7 @@ lh_memory_bounds_allocated_resize(lh_memory_bounds_allocated_t *self, lh_usize_t
     lh_ptr allocated = lh_runtime_allocator_realloc(begin, cur_size, size);
     if (lh_ptr_is_set(allocated))
     {
-        lh_memory_bounds_set_by_size(self, allocated, size);
+        lh_memory_bounds_set(self, allocated, size);
         return;
     }
 

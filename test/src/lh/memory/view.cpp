@@ -9,6 +9,57 @@
 namespace
 {
 
+/* The tests name a range by its two ends; the API takes begin and size. */
+lh_usize_t
+span_size(const void *begin, const void *end)
+{
+    return static_cast<lh_usize_t>(static_cast<const char *>(end) -
+                                   static_cast<const char *>(begin));
+}
+
+lh_memory_view_t
+span(const void *begin, const void *end)
+{
+    lh_memory_view_t out;
+    lh_memory_view_set(&out, begin, span_size(begin, end));
+    return out;
+}
+
+bool
+is_span(const lh_memory_view_t *self, const void *begin, const void *end)
+{
+    const lh_memory_view_t other = span((const void *)begin, (const void *)end);
+    return lh_memory_view_equals(self, &other);
+}
+
+bool
+contains_span(const lh_memory_view_t *self, const void *begin, const void *end)
+{
+    const lh_memory_view_t other = span((const void *)begin, (const void *)end);
+    return lh_memory_view_contains(self, &other);
+}
+
+bool
+overlaps_span(const lh_memory_view_t *self, const void *begin, const void *end)
+{
+    const lh_memory_view_t other = span((const void *)begin, (const void *)end);
+    return lh_memory_view_overlaps(self, &other);
+}
+
+void
+take_first_span(const void *begin, const void *end, lh_usize_t n, lh_memory_view_t *out)
+{
+    const lh_memory_view_t whole = span(begin, end);
+    lh_memory_view_from_begin(&whole, n, out);
+}
+
+void
+take_last_span(const void *begin, const void *end, lh_usize_t n, lh_memory_view_t *out)
+{
+    const lh_memory_view_t whole = span(begin, end);
+    lh_memory_view_from_end(&whole, n, out);
+}
+
 const lh_ptr
 p(const unsigned char *ptr)
 {
@@ -37,7 +88,7 @@ TEST(memory_view_classification, distinguishes_states)
 
     lh_memory_view_t empty = view(lh_null, lh_null);
     EXPECT_TRUE(lh_memory_view_is_uninitialized(&empty));
-    EXPECT_FALSE(lh_memory_view_is_valid(&empty));
+    EXPECT_TRUE(lh_memory_view_is_valid(&empty)); /* empty at null */
     EXPECT_TRUE(lh_memory_view_is_empty(&empty));
 
     // A null end leaves begin + size wrapping: set, but not valid.
@@ -95,8 +146,8 @@ TEST(memory_view_contains, uses_half_open_ranges)
     EXPECT_TRUE(lh_memory_view_contains_ptr(&outer, p(buf + 5)));
     EXPECT_FALSE(lh_memory_view_contains_ptr(&outer, p(buf + 6)));
 
-    EXPECT_TRUE(lh_memory_view_contains_of(&outer, p(buf + 2), p(buf + 5)));
-    EXPECT_FALSE(lh_memory_view_contains_of(&outer, p(buf), p(buf + 5)));
+    EXPECT_TRUE(contains_span(&outer, p(buf + 2), p(buf + 5)));
+    EXPECT_FALSE(contains_span(&outer, p(buf), p(buf + 5)));
     EXPECT_TRUE(lh_memory_view_contains(&outer, &inner));
 }
 
@@ -147,8 +198,8 @@ TEST(memory_view_overlap_alignment_and_equality, reports_expected_values)
     lh_memory_view_t touching = view(p(buf + 8), p(buf + 12));
     lh_memory_view_t overlapping = view(p(buf + 7), p(buf + 12));
 
-    EXPECT_TRUE(lh_memory_view_overlaps_of(&left, p(buf + 7), p(buf + 9)));
-    EXPECT_FALSE(lh_memory_view_overlaps_range(&left, p(buf + 8), p(buf + 12)));
+    EXPECT_TRUE(overlaps_span(&left, p(buf + 7), p(buf + 9)));
+    EXPECT_FALSE(overlaps_span(&left, p(buf + 8), p(buf + 12)));
     EXPECT_FALSE(lh_memory_view_overlaps(&left, &touching));
     EXPECT_TRUE(lh_memory_view_overlaps_v(&left, &overlapping));
 
@@ -157,8 +208,8 @@ TEST(memory_view_overlap_alignment_and_equality, reports_expected_values)
     EXPECT_TRUE(lh_memory_view_is_begin_aligned(&left, 16));
     EXPECT_FALSE(lh_memory_view_is_aligned(&left, 16));
 
-    EXPECT_TRUE(lh_memory_view_equals_of(&left, p(buf), p(buf + 8)));
-    EXPECT_TRUE(lh_memory_view_equals_range(&left, p(buf), p(buf + 8)));
+    EXPECT_TRUE(is_span(&left, p(buf), p(buf + 8)));
+    EXPECT_TRUE(is_span(&left, p(buf), p(buf + 8)));
     EXPECT_FALSE(lh_memory_view_equals(&left, &overlapping));
 }
 
@@ -171,14 +222,14 @@ TEST(memory_view_raw_search_and_compare, delegate_to_raw_operations)
     lh_memory_view_t needle_view = view(p(needle), p(needle + 2));
     lh_memory_view_t mismatch_view = view(p(mismatch), p(mismatch + 2));
 
-    EXPECT_EQ(lh_memory_view_find_range(&hay_view, p(needle), p(needle + 2)), p(hay));
+    EXPECT_EQ(lh_memory_view_find_by_size(&hay_view, p(needle), span_size(p(needle), p(needle + 2))), p(hay));
     EXPECT_EQ(lh_memory_view_find(&hay_view, &needle_view), p(hay));
-    EXPECT_EQ(lh_memory_view_rfind_range(&hay_view, p(needle), p(needle + 2)), p(hay + 2));
+    EXPECT_EQ(lh_memory_view_rfind_by_size(&hay_view, p(needle), span_size(p(needle), p(needle + 2))), p(hay + 2));
     EXPECT_EQ(lh_memory_view_rfind(&hay_view, &needle_view), p(hay + 2));
 
-    EXPECT_EQ(lh_memory_view_compare_range(&hay_view, p(needle), p(needle + 2)), lh_null);
+    EXPECT_EQ(lh_memory_view_compare_by_size(&hay_view, p(needle), span_size(p(needle), p(needle + 2))), lh_null);
     EXPECT_EQ(lh_memory_view_compare(&hay_view, &mismatch_view), p(hay + 1));
-    EXPECT_EQ(lh_memory_view_rcompare_range(&hay_view, p(needle), p(needle + 2)), p(hay + 4));
+    EXPECT_EQ(lh_memory_view_rcompare_by_size(&hay_view, p(needle), span_size(p(needle), p(needle + 2))), p(hay + 4));
     EXPECT_EQ(lh_memory_view_rcompare(&hay_view, &needle_view), p(hay + 4));
 }
 
@@ -192,19 +243,19 @@ TEST(memory_view_mutation, clears_assigns_sets_and_initializes)
     EXPECT_TRUE(lh_memory_view_equals(&v, &other));
 
     lh_memory_view_clear(&v);
-    EXPECT_TRUE(lh_memory_view_equals_of(&v, lh_null, lh_null));
+    EXPECT_TRUE(is_span(&v, lh_null, lh_null));
 
-    lh_memory_view_set_v(&v, p(buf), p(buf + 4));
-    EXPECT_TRUE(lh_memory_view_equals_of(&v, p(buf), p(buf + 4)));
+    lh_memory_view_set_v(&v, p(buf), span_size(p(buf), p(buf + 4)));
+    EXPECT_TRUE(is_span(&v, p(buf), p(buf + 4)));
 
-    lh_memory_view_set_by_size(&v, p(buf + 2), 3);
-    EXPECT_TRUE(lh_memory_view_equals_of(&v, p(buf + 2), p(buf + 5)));
+    lh_memory_view_set(&v, p(buf + 2), 3);
+    EXPECT_TRUE(is_span(&v, p(buf + 2), p(buf + 5)));
 
-    lh_memory_view_init(&v, p(buf), p(buf + 2));
-    EXPECT_TRUE(lh_memory_view_equals_of(&v, p(buf), p(buf + 2)));
+    lh_memory_view_init(&v, p(buf), span_size(p(buf), p(buf + 2)));
+    EXPECT_TRUE(is_span(&v, p(buf), p(buf + 2)));
 
-    lh_memory_view_init_by_size(&v, p(buf + 1), 2);
-    EXPECT_TRUE(lh_memory_view_equals_of(&v, p(buf + 1), p(buf + 3)));
+    lh_memory_view_init(&v, p(buf + 1), 2);
+    EXPECT_TRUE(is_span(&v, p(buf + 1), p(buf + 3)));
 
     lh_memory_view_init_empty(&v);
     EXPECT_TRUE(lh_memory_view_is_uninitialized(&v));
@@ -218,18 +269,17 @@ TEST(memory_view_make, returns_validated_values)
     const unsigned char buf[8] = {};
 
     lh_memory_view_t by_end;
-    lh_memory_view_init(lh_addr_of(by_end), p(buf), p(buf + 4));
-    EXPECT_TRUE(lh_memory_view_equals_of(&by_end, p(buf), p(buf + 4)));
+    lh_memory_view_init(lh_addr_of(by_end), p(buf), span_size(p(buf), p(buf + 4)));
+    EXPECT_TRUE(is_span(&by_end, p(buf), p(buf + 4)));
 
     lh_memory_view_t by_size;
-    lh_memory_view_init_by_size(lh_addr_of(by_size), p(buf + 1), 3);
-    EXPECT_TRUE(lh_memory_view_equals_of(&by_size, p(buf + 1), p(buf + 4)));
+    lh_memory_view_init(lh_addr_of(by_size), p(buf + 1), 3);
+    EXPECT_TRUE(is_span(&by_size, p(buf + 1), p(buf + 4)));
 
     lh_memory_view_t empty;
 
-
     lh_memory_view_init_empty(lh_addr_of(empty));
-    EXPECT_TRUE(lh_memory_view_equals_of(&empty, lh_null, lh_null));
+    EXPECT_TRUE(is_span(&empty, lh_null, lh_null));
 }
 
 TEST(memory_view_empty_range, reports_zero_size_and_no_containment)
@@ -243,18 +293,18 @@ TEST(memory_view_empty_range, reports_zero_size_and_no_containment)
     EXPECT_TRUE(lh_memory_view_is_empty(&empty));
     EXPECT_FALSE(lh_memory_view_is_valid_offset(&empty, 0));
     EXPECT_FALSE(lh_memory_view_contains_ptr(&empty, p(buf)));
-    EXPECT_TRUE(lh_memory_view_contains_of(&empty, p(buf), p(buf)));
+    EXPECT_TRUE(contains_span(&empty, p(buf), p(buf)));
     EXPECT_FALSE(lh_memory_view_contains(&empty, &other));
     EXPECT_FALSE(lh_memory_view_overlaps(&empty, &other));
-    EXPECT_FALSE(lh_memory_view_overlaps_of(&empty, p(buf), p(buf + 1)));
+    EXPECT_FALSE(overlaps_span(&empty, p(buf), p(buf + 1)));
     EXPECT_TRUE(lh_memory_view_is_multiple_of(&empty, 4));
-    EXPECT_EQ(lh_memory_view_find_range(&empty, p(buf), p(buf + 1)), lh_null);
-    EXPECT_EQ(lh_memory_view_find_range(&other, p(buf + 1), p(buf + 1)), lh_null);
+    EXPECT_EQ(lh_memory_view_find_by_size(&empty, p(buf), span_size(p(buf), p(buf + 1))), lh_null);
+    EXPECT_EQ(lh_memory_view_find_by_size(&other, p(buf + 1), span_size(p(buf + 1), p(buf + 1))), lh_null);
 
-    lh_memory_view_t taken = lh_test::out(lh_memory_view_take_first, p(buf), p(buf), 0);
-    EXPECT_TRUE(lh_memory_view_equals_of(&taken, p(buf), p(buf)));
+    lh_memory_view_t taken = lh_test::out(take_first_span, p(buf), p(buf), 0);
+    EXPECT_TRUE(is_span(&taken, p(buf), p(buf)));
     lh_memory_view_t dropped = lh_test::out(lh_memory_view_drop_first, &empty, 0);
-    EXPECT_TRUE(lh_memory_view_equals_of(&dropped, p(buf), p(buf)));
+    EXPECT_TRUE(is_span(&dropped, p(buf), p(buf)));
 }
 
 TEST(memory_view_one_byte, shifts_end_offsets_by_one)
@@ -275,17 +325,6 @@ TEST(memory_view_one_byte, shifts_end_offsets_by_one)
     EXPECT_TRUE(lh_memory_view_is_aligned(&empty, 16));
 }
 
-TEST(memory_view_between, keeps_empty_subrange)
-{
-    const unsigned char buf[4] = {};
-    lh_memory_view_t outer = view(p(buf), p(buf + 4));
-    lh_memory_view_t inner = lh_test::out(lh_memory_view_between, &outer, p(buf + 2), p(buf + 2));
-
-    EXPECT_TRUE(lh_memory_view_equals_of(&inner, p(buf + 2), p(buf + 2)));
-    EXPECT_TRUE(lh_memory_view_is_empty(&inner));
-    EXPECT_FALSE(lh_memory_view_is_uninitialized(&inner));
-}
-
 TEST(memory_view_seek, returns_null_past_either_end)
 {
     const unsigned char buf[4] = {10, 20, 30, 40};
@@ -302,19 +341,19 @@ TEST(memory_view_sub_range, takes_and_drops_bytes)
     lh_memory_view_t v = view(p(buf), p(buf + 6));
 
     lh_memory_view_t offset = lh_test::out(lh_memory_view_from_offset, &v, 2, 3);
-    EXPECT_TRUE(lh_memory_view_equals_of(&offset, p(buf + 2), p(buf + 5)));
+    EXPECT_TRUE(is_span(&offset, p(buf + 2), p(buf + 5)));
 
     lh_memory_view_t first = lh_test::out(lh_memory_view_from_begin, &v, 2);
-    EXPECT_TRUE(lh_memory_view_equals_of(&first, p(buf), p(buf + 2)));
+    EXPECT_TRUE(is_span(&first, p(buf), p(buf + 2)));
 
     lh_memory_view_t last = lh_test::out(lh_memory_view_from_end, &v, 2);
-    EXPECT_TRUE(lh_memory_view_equals_of(&last, p(buf + 4), p(buf + 6)));
+    EXPECT_TRUE(is_span(&last, p(buf + 4), p(buf + 6)));
 
     lh_memory_view_t dropped = lh_test::out(lh_memory_view_drop_last, &v, 2);
-    EXPECT_TRUE(lh_memory_view_equals_of(&dropped, p(buf), p(buf + 4)));
+    EXPECT_TRUE(is_span(&dropped, p(buf), p(buf + 4)));
 
     lh_memory_view_t trimmed = lh_test::out(lh_memory_view_trim, &v, 1, 2);
-    EXPECT_TRUE(lh_memory_view_equals_of(&trimmed, p(buf + 1), p(buf + 4)));
+    EXPECT_TRUE(is_span(&trimmed, p(buf + 1), p(buf + 4)));
 }
 
 TEST(memory_view_empty_result, stays_where_it_was_taken)
@@ -322,26 +361,26 @@ TEST(memory_view_empty_result, stays_where_it_was_taken)
     const unsigned char buf[3] = {10, 20, 30};
     lh_memory_view_t v = view(p(buf), p(buf + 3));
 
-    lh_memory_view_t first = lh_test::out(lh_memory_view_take_first, p(buf), p(buf + 3), 0);
-    EXPECT_TRUE(lh_memory_view_equals_of(&first, p(buf), p(buf)));
+    lh_memory_view_t first = lh_test::out(take_first_span, p(buf), p(buf + 3), 0);
+    EXPECT_TRUE(is_span(&first, p(buf), p(buf)));
 
-    lh_memory_view_t last = lh_test::out(lh_memory_view_take_last, p(buf), p(buf + 3), 0);
-    EXPECT_TRUE(lh_memory_view_equals_of(&last, p(buf + 3), p(buf + 3)));
+    lh_memory_view_t last = lh_test::out(take_last_span, p(buf), p(buf + 3), 0);
+    EXPECT_TRUE(is_span(&last, p(buf + 3), p(buf + 3)));
 
     lh_memory_view_t middle = lh_test::out(lh_memory_view_from_offset, &v, 1, 0);
-    EXPECT_TRUE(lh_memory_view_equals_of(&middle, p(buf + 1), p(buf + 1)));
+    EXPECT_TRUE(is_span(&middle, p(buf + 1), p(buf + 1)));
 
     lh_memory_view_t at_end = lh_test::out(lh_memory_view_from_offset, &v, 3, 0);
-    EXPECT_TRUE(lh_memory_view_equals_of(&at_end, p(buf + 3), p(buf + 3)));
+    EXPECT_TRUE(is_span(&at_end, p(buf + 3), p(buf + 3)));
 
     lh_memory_view_t dropped_first = lh_test::out(lh_memory_view_drop_first, &v, 3);
-    EXPECT_TRUE(lh_memory_view_equals_of(&dropped_first, p(buf + 3), p(buf + 3)));
+    EXPECT_TRUE(is_span(&dropped_first, p(buf + 3), p(buf + 3)));
 
     lh_memory_view_t dropped_last = lh_test::out(lh_memory_view_drop_last, &v, 3);
-    EXPECT_TRUE(lh_memory_view_equals_of(&dropped_last, p(buf), p(buf)));
+    EXPECT_TRUE(is_span(&dropped_last, p(buf), p(buf)));
 
     lh_memory_view_t trimmed = lh_test::out(lh_memory_view_trim, &v, 2, 1);
-    EXPECT_TRUE(lh_memory_view_equals_of(&trimmed, p(buf + 2), p(buf + 2)));
+    EXPECT_TRUE(is_span(&trimmed, p(buf + 2), p(buf + 2)));
     EXPECT_TRUE(lh_memory_view_is_empty(&trimmed));
     EXPECT_FALSE(lh_memory_view_is_uninitialized(&trimmed));
 }
@@ -375,28 +414,30 @@ TEST(memory_view_by_size, matches_range_and_view_forms)
     EXPECT_EQ(lh_memory_view_find_by_size(&v, p(buf + 1), 2), lh_memory_view_find(&v, &needle));
     EXPECT_EQ(lh_memory_view_rfind_by_size(&v, p(buf + 1), 2), p(buf + 4));
     EXPECT_EQ(lh_memory_view_rfind_by_size(&v, p(buf + 1), 2),
-              lh_memory_view_rfind_range(&v, p(buf + 1), p(buf + 3)));
+              lh_memory_view_rfind_by_size(&v, p(buf + 1), span_size(p(buf + 1), p(buf + 3))));
     EXPECT_EQ(lh_memory_view_compare_by_size(&v, p(buf + 3), 3), lh_null);
     EXPECT_EQ(lh_memory_view_compare_by_size(&v, p(buf + 1), 2), p(buf));
     EXPECT_EQ(lh_memory_view_rcompare_by_size(&v, p(buf), 3), lh_null);
 }
 
-TEST(memory_view_uninitialized, safe_queries)
+TEST(memory_view_uninitialized, is_a_valid_empty_view)
 {
     lh_memory_view_t v = view(lh_null, lh_null);
 
     EXPECT_TRUE(lh_memory_view_is_uninitialized(&v));
-    EXPECT_FALSE(lh_memory_view_is_valid(&v));
+    EXPECT_TRUE(lh_memory_view_is_valid(&v));
     EXPECT_TRUE(lh_memory_view_is_empty(&v));
+    EXPECT_EQ(lh_memory_view_get_end_v(&v), lh_null);
+    EXPECT_FALSE(lh_memory_view_is_valid_offset(&v, 0));
 }
 
 #if LH_TEST_EXPECT_DEATH_ENABLED
 
-TEST(memory_view_get_begin_v, rejects_uninitialized_death)
+TEST(memory_view_get_begin_v, accepts_empty_at_null)
 {
     lh_memory_view_t v = view(lh_null, lh_null);
 
-    LH_EXPECT_DEATH((void)lh_memory_view_get_begin_v(&v));
+    EXPECT_EQ(lh_memory_view_get_begin_v(&v), lh_null);
 }
 
 TEST(memory_view_make_v, rejects_invalid_range_death)
@@ -405,25 +446,34 @@ TEST(memory_view_make_v, rejects_invalid_range_death)
 
     LH_EXPECT_DEATH(([&] {
         lh_memory_view_t v;
-        lh_memory_view_init(lh_addr_of(v), p(buf + 1), p(buf));
+        lh_memory_view_init(lh_addr_of(v), nullptr, 4);
     }()));
 }
 
-TEST(memory_view_make_by_size, rejects_zero_size_death)
+TEST(memory_view_init, rejects_null_with_bytes_death)
 {
-    const unsigned char buf[1] = {};
-
     LH_EXPECT_DEATH(([&] {
         lh_memory_view_t v;
-        lh_memory_view_init_by_size(lh_addr_of(v), p(buf), 0);
+        lh_memory_view_init(lh_addr_of(v), lh_null, 4);
     }()));
+}
+
+TEST(memory_view_init, accepts_empty)
+{
+    unsigned char buf[1] = {};
+    lh_memory_view_t v;
+
+    lh_memory_view_init(lh_addr_of(v), p(buf), 0);
+    EXPECT_TRUE(lh_memory_view_is_empty(&v));
+    lh_memory_view_init(lh_addr_of(v), lh_null, 0);
+    EXPECT_TRUE(lh_memory_view_is_empty(&v));
 }
 
 TEST(memory_view_make_by_size, rejects_null_begin_death)
 {
     LH_EXPECT_DEATH(([&] {
         lh_memory_view_t v;
-        lh_memory_view_init_by_size(lh_addr_of(v), lh_null, 1);
+        lh_memory_view_init(lh_addr_of(v), lh_null, 1);
     }()));
 }
 
@@ -451,14 +501,6 @@ TEST(memory_view_get_offset_from_begin, rejects_ptr_at_end_death)
     LH_EXPECT_DEATH((void)lh_memory_view_get_offset_from_begin(&v, p(buf + 4)));
 }
 
-TEST(memory_view_between, rejects_out_of_bounds_ptrs_death)
-{
-    const unsigned char buf[6] = {10, 20, 30, 40, 50, 60};
-    lh_memory_view_t v = view(p(buf), p(buf + 4));
-
-    LH_EXPECT_DEATH((void)lh_test::out(lh_memory_view_between, &v, p(buf + 1), p(buf + 5)));
-}
-
 TEST(memory_view_next_value, rejects_end_boundary_death)
 {
     const unsigned char buf[2] = {1, 2};
@@ -474,7 +516,7 @@ TEST(memory_view_empty_range, rejects_indexed_access_death)
 
     LH_EXPECT_DEATH((void)lh_memory_view_get_ptr_from_end(&empty, 0));
     LH_EXPECT_DEATH((void)lh_memory_view_get_offset_from_end(&empty, p(buf)));
-    LH_EXPECT_DEATH((void)lh_test::out(lh_memory_view_take_first, p(buf), p(buf), 1));
+    LH_EXPECT_DEATH((void)lh_test::out(take_first_span, p(buf), p(buf), 1));
 }
 
 TEST(memory_view_get_size_v, rejects_backward_death)
@@ -485,26 +527,18 @@ TEST(memory_view_get_size_v, rejects_backward_death)
     LH_EXPECT_DEATH((void)lh_memory_view_get_size_v(&backward));
 }
 
-TEST(memory_view_get_size_v, rejects_uninitialized_death)
+TEST(memory_view_get_size_v, accepts_empty_at_null)
 {
     lh_memory_view_t v = view(lh_null, lh_null);
 
-    LH_EXPECT_DEATH((void)lh_memory_view_get_size_v(&v));
+    EXPECT_EQ(lh_memory_view_get_size_v(&v), 0u);
 }
 
-TEST(memory_view_find_range, rejects_backward_needle_death)
-{
-    const unsigned char buf[4] = {1, 2, 3, 4};
-    lh_memory_view_t v = view(p(buf), p(buf + 4));
-
-    LH_EXPECT_DEATH((void)lh_memory_view_find_range(&v, p(buf + 2), p(buf)));
-}
-
-TEST(memory_view_is_multiple_of, rejects_uninitialized_death)
+TEST(memory_view_is_multiple_of, holds_for_empty_at_null)
 {
     lh_memory_view_t v = view(lh_null, lh_null);
 
-    LH_EXPECT_DEATH((void)lh_memory_view_is_multiple_of(&v, 1));
+    EXPECT_TRUE(lh_memory_view_is_multiple_of(&v, 4));
 }
 
 TEST(memory_view_is_multiple_of, rejects_zero_alignment_death)
@@ -515,21 +549,15 @@ TEST(memory_view_is_multiple_of, rejects_zero_alignment_death)
     LH_EXPECT_DEATH((void)lh_memory_view_is_multiple_of(&v, 0));
 }
 
-TEST(memory_view_uninitialized, rejects_access_death)
+TEST(memory_view_uninitialized, rejects_element_access_death)
 {
-    const unsigned char buf[2] = {1, 2};
     lh_memory_view_t v = view(lh_null, lh_null);
-    lh_memory_view_t other = view(p(buf), p(buf + 2));
 
-    LH_EXPECT_DEATH((void)lh_memory_view_get_end_v(&v));
+    /* An empty view has no element: asking for one is an error. */
     LH_EXPECT_DEATH((void)lh_memory_view_get_first_ptr(&v));
     LH_EXPECT_DEATH((void)lh_memory_view_get_last_ptr(&v));
     LH_EXPECT_DEATH((void)lh_memory_view_get_value(&v, 0));
-    LH_EXPECT_DEATH((void)lh_memory_view_is_valid_offset(&v, 0));
-    LH_EXPECT_DEATH((void)lh_memory_view_contains_ptr(&v, p(buf)));
     LH_EXPECT_DEATH((void)lh_test::out(lh_memory_view_from_offset, &v, 0, 1));
-    LH_EXPECT_DEATH((void)lh_test::out(lh_memory_view_drop_first, &v, 0));
-    LH_EXPECT_DEATH((void)lh_memory_view_find(&v, &other));
 }
 
 #endif /* LH_TEST_EXPECT_DEATH_ENABLED */

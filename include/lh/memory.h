@@ -21,7 +21,6 @@
 /* Umbrella: the memory core. This header also carries the sized helpers
    (lh_memory_* in src/lh/memory.c), which is why its name and the directory
    lh/memory/ collide — see ARCHITECTURE.md. */
-#include <lh/memory/raw.h>
 #include <lh/memory/std.h>
 #include <lh/memory/tree.h>
 #include <lh/memory/typed/allocated.h>
