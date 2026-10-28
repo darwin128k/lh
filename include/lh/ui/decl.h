@@ -35,29 +35,14 @@
 #include <lh/ui/input.h>
 #include <lh/ui/scrollbar.h>
 #include <lh/ui/toggle.h>
+#include <lh/ui/decl/kind.h>
+#include <lh/ui/decl/error.h>
 
 /**
  * @brief @p parent of a row that is a root: no parent, and exactly one row of a
  *        declaration may say it.
  */
 #define LH_UI_DECL_ROOT (lh_cast_static(lh_s32_t, (-1)))
-
-/**
- * @enum lh_ui_decl_kind
- * @brief What a row builds. Each is the component of the same name, and each is
- *        the thing an app would have declared by hand.
- */
-typedef enum lh_ui_decl_kind
-{
-    lh_ui_decl_kind_entity = 0, /**< A plain ::lh_ui_entity_t: a fill and nothing else. */
-    lh_ui_decl_kind_container,  /**< ::lh_ui_container_t, with the flow that places its children. */
-    lh_ui_decl_kind_label,      /**< ::lh_ui_label_t and its text. */
-    lh_ui_decl_kind_button,     /**< ::lh_ui_button_t, its two looks and its click. */
-    lh_ui_decl_kind_toggle,     /**< ::lh_ui_toggle_t, both pairs of looks and its state. */
-    lh_ui_decl_kind_image,      /**< ::lh_ui_image_t, its mask and its tint. */
-    lh_ui_decl_kind_scrollbar,  /**< ::lh_ui_scrollbar_t over the container of another row. */
-    lh_ui_decl_kind_input       /**< ::lh_ui_input_t over a buffer the app owns. */
-} lh_ui_decl_kind_t;            /**< What a row builds. */
 
 /**
  * @struct lh_ui_decl
@@ -153,20 +138,6 @@ typedef struct lh_ui_decl
      */
     lh_bool_t hidden;
 } lh_ui_decl_t; /**< One row of a declared tree. */
-
-/**
- * @enum lh_ui_decl_error
- * @brief What a build refused, and the one question asked of every row.
- */
-typedef enum lh_ui_decl_error
-{
-    lh_ui_decl_error_none = 0, /**< It built. */
-    lh_ui_decl_error_kind,     /**< @c kind is not a widget this build knows. */
-    lh_ui_decl_error_parent,   /**< @c parent is out of range, or not lower than this row. */
-    lh_ui_decl_error_roots,    /**< Not exactly one row is a root. */
-    lh_ui_decl_error_box,    /**< A scrollbar names a row that is not a container, or is higher. */
-    lh_ui_decl_error_storage /**< The pool is too small for these rows. */
-} lh_ui_decl_error_t;        /**< What a build refused. */
 
 /**
  * @struct lh_ui_decl_fault

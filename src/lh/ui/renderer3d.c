@@ -1,4 +1,5 @@
 #include <lh/ui/renderer3d.h>
+#include <lh/ui/renderer3d/camera.h>
 #include <lh/memory/std.h>
 #include <math.h>
 #include <float.h>
@@ -77,6 +78,7 @@ lh_ui_renderer3d_camera_init(lh_ui_renderer3d_camera_t *s, lh_math_vec3_t pos, l
     s->far_plane = far_z;
     return 1;
 }
+
 lh_bool_t
 lh_ui_renderer3d_begin(lh_ui_renderer3d_t *s, lh_ui_pixmap_t *target, float *depth,
                        lh_usize_t count, const lh_ui_renderer3d_camera_t *cam, lh_u32_t bg)

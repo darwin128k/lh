@@ -30,6 +30,9 @@
 #include <lh/byte/ptr.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/util/ptr.h>
+#include <lh/net/modbus/status.h>
+#include <lh/net/modbus/want.h>
+#include <lh/net/modbus/read.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -135,23 +138,6 @@ lh_mb_build_read(lh_byte_ptr adu, lh_u16_t cap, lh_u8_t unit, lh_u8_t fc, lh_u16
 lh_u16_t
 lh_mb_build_write(lh_byte_ptr adu, lh_u16_t cap, lh_u8_t unit, lh_u16_t address,
                   const lh_u16_t *values, lh_u16_t count);
-
-/** @brief What came back. */
-typedef enum lh_mb_status
-{
-    lh_mb_status_ok = 0,     /**< the frame is an answer to what was asked */
-    lh_mb_status_partial,    /**< a good frame, but with fewer words than were asked for */
-    lh_mb_status_short,      /**< not a whole frame yet: ask for the rest */
-    lh_mb_status_crc,        /**< a whole frame with the wrong CRC: the line is noisy */
-    lh_mb_status_exception,  /**< the device understood and refused; `exception` says how */
-    lh_mb_status_wrong_unit, /**< somebody else's answer on a shared line */
-    lh_mb_status_wrong_code, /**< a different question than the one that was sent */
-    lh_mb_status_garbage,    /**< a whole frame that is not an answer at all */
-    /** @brief The stream is gone: the peer closed it, it failed, or half a request
-     *  went out. Nothing more can be read on it in step with the frames, and the
-     *  only way back is a new one (::lh_mb_link_set_stream). */
-    lh_mb_status_lost
-} lh_mb_status_t;
 
 /* The PDU — function code and data, no unit and no CRC — is the part of a frame
    that is the same on every line, and it is what `lh/net/modbus/link.h` hands to
@@ -276,30 +262,6 @@ lh_mb_parse_pdu_write_one(const lh_byte_ptr pdu, lh_u16_t length, lh_u16_t addre
                           lh_u8_t *exception);
 
 /* -- The plan -------------------------------------------------------------- */
-
-/**
- * @brief One register somebody wants.
- *
- * Address-ordered, which is what makes coalescing a single pass and what
- * ::lh_cfg_map_t already gives: a device map is sorted by address because a poll
- * reads it in order.
- */
-typedef struct lh_mb_want
-{
-    lh_u16_t address;   /**< first register wanted */
-    lh_u16_t registers; /**< how many from there */
-} lh_mb_want_t;
-
-/**
- * @brief One request that answers for a run of wants.
- */
-typedef struct lh_mb_read
-{
-    lh_u16_t start; /**< first register this request asks for */
-    lh_u16_t count; /**< how many registers it asks for */
-    lh_u16_t first; /**< index into the wants this one starts at */
-    lh_u16_t last;  /**< index of the last want it covers */
-} lh_mb_read_t;
 
 /**
  * @brief How many registers of a gap to cross for the sake of a wanted one.

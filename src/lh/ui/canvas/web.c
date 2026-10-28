@@ -370,15 +370,6 @@ lh_ui_canvas_web_close(lh_ui_canvas_web_t *self)
 }
 
 lh_void
-lh_ui_canvas_web_glyphs_reset(lh_ui_canvas_web_glyphs_t *self)
-{
-    if (self != lh_null)
-    {
-        lh_memory_set(self->sent, sizeof(self->sent), 0);
-    }
-}
-
-lh_void
 lh_ui_canvas_web_set_glyphs(lh_ui_canvas_web_t *self, lh_ui_canvas_web_glyphs_t *glyphs)
 {
     if (self == lh_null)
