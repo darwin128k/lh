@@ -23,6 +23,10 @@ lh_fs_path_root_len(lh_fs_path_root_kind_t kind)
     {
         return 3U; /* "C:/" */
     }
+    if (lh_math_eq(kind, lh_fs_path_root_kind_network))
+    {
+        return 2U;
+    }
     return lh_math_eq(kind, lh_fs_path_root_kind_posix) ? 1U : 0U;
 }
 
@@ -267,6 +271,14 @@ lh_fs_path_take_root(lh_fs_path_t *self, const lh_str_view_t *text, lh_fs_path_s
         lh_str_push_back(out, lh_char_map_colon);
         lh_str_push_back(out, lh_char_map_slash);
         return 2U; /* a separator after "C:" is skipped with the others */
+    }
+    if (lh_math_eq(style, lh_fs_path_style_windows) && lh_math_ge(lh_str_view_get_size(text), 2U) &&
+        lh_fs_path_style_is_sep(style, lh_str_view_get_char_from_begin(text, 0U)) &&
+        lh_fs_path_style_is_sep(style, lh_str_view_get_char_from_begin(text, 1U)))
+    {
+        lh_fs_path_set_root_kind(self, lh_fs_path_root_kind_network);
+        lh_str_append(out, "//", 2U);
+        return 2U;
     }
     if (lh_fs_path_style_is_sep(style, lh_str_view_get_first_char(text)))
     {

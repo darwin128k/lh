@@ -1,4 +1,5 @@
 #include <lh/ui/renderer3d.h>
+#include <lh/memory/std.h>
 #include <math.h>
 #include <float.h>
 #include <string.h>
@@ -84,7 +85,7 @@ lh_ui_renderer3d_begin(lh_ui_renderer3d_t *s, lh_ui_pixmap_t *target, float *dep
     {
         return 0;
     }
-    memset(s, 0, sizeof *s);
+    lh_memory_std_set(s, 0, sizeof *s);
     if (!target || !depth || !cam ||
         lh_ui_pixmap_get_format(target) != lh_ui_pixmap_format_argb8888)
     {

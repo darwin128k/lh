@@ -132,4 +132,27 @@ TEST(fs_path_parent, drops_the_last_segment)
     lh_fs_path_deinit(&path);
 }
 
+TEST(fs_path_network, preserves_windows_network_root_through_rendering)
+{
+    lh_fs_path_t path, copy;
+    lh_str_t text;
+    lh_fs_path_init(&path);
+    lh_fs_path_init(&copy);
+    lh_str_init(&text);
+    lh_fs_path_set(&path, lh_str_view_lit("//server/share/folder"), lh_fs_path_style_windows);
+    EXPECT_EQ(lh_fs_path_get_root_kind(&path), lh_fs_path_root_kind_network);
+    EXPECT_TRUE(lh_fs_path_is_absolute(&path));
+    EXPECT_EQ(lh_fs_path_get_segment_count(&path), 3U);
+    lh_fs_path_to_str(&path, lh_fs_path_style_windows, &text);
+    lh_str_view_t view;
+    lh_str_as_view(&text, &view);
+    lh_fs_path_set(&copy, view, lh_fs_path_style_windows);
+    EXPECT_TRUE(lh_fs_path_equals(&path, &copy, lh_bool_false));
+    lh_fs_path_to_str(&copy, lh_fs_path_style_posix, &text);
+    EXPECT_STREQ(lh_str_get_data(&text), "//server/share/folder");
+    lh_str_deinit(&text);
+    lh_fs_path_deinit(&copy);
+    lh_fs_path_deinit(&path);
+}
+
 } // namespace

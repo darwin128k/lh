@@ -43,8 +43,8 @@ typedef struct lh_fs_path lh_fs_path_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/** Characters the root of @p kind takes at the start of the text: `3` for `C:/`, `1` for `/`, `0`
- * for none. */
+/** Characters the root of @p kind takes at the start of the text: `3` for `C:/`, `2` for Windows
+ * `//`, `1` for `/`, `0` for none. */
 lh_usize_t
 lh_fs_path_root_len(lh_fs_path_root_kind_t kind);
 
@@ -169,7 +169,8 @@ lh_fs_path_take_root(lh_fs_path_t *self, const lh_str_view_t *text, lh_fs_path_s
  *        current contents.
  *
  * @p style decides which characters separate segments and whether a
- * leading `C:` is a drive (see ::lh_fs_path_style_t). A leading separator
+ * leading `C:` is a drive (see ::lh_fs_path_style_t). Windows network paths
+ * preserve their leading double separator; server/share remain name segments. A leading separator
  * becomes ::lh_fs_path_root_kind_posix; a drive letter becomes
  * ::lh_fs_path_root_kind_drive. Repeated and trailing separators produce no
  * empty segments.

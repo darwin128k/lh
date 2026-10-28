@@ -1,4 +1,8 @@
 #include <lh/os/system/fs/path.h>
+#include <lh/attribute/unused.h>
+#include <lh/char/map.h>
+#include <lh/math/ops.h>
+#include <lh/util/ptr.h>
 #include <lh/assert.h>
 #include <lh/os.h>
 #include <lh/os/error/code.h>
@@ -24,7 +28,7 @@ lh_os_system_fs_path_canonical(lh_str_cptr path, lh_str_t *out)
 {
     lh_assert_runtime_ref(path);
     lh_assert_runtime_ref(out);
-    if (!*path)
+    if (!lh_ptr_deref(path))
     {
         lh_os_set_last_error_lit(lh_os_error_code_path_empty, "path is empty");
         return lh_bool_false;
@@ -41,37 +45,37 @@ lh_os_system_fs_path_canonical(lh_str_cptr path, lh_str_t *out)
     lh_os_str_t native;
     const lh_bool_t converted = lh_os_system_str_init_by_utf8(lh_addr_of(native), path);
     const lh_os_system_win_handle_t file =
-        converted
-            ? CreateFileW(lh_os_str_get_data(lh_addr_of(native)), 0UL,
-                          LH_OS_SYSTEM_WIN_FILE_SHARE_READ | LH_OS_SYSTEM_WIN_FILE_SHARE_WRITE |
-                              LH_OS_SYSTEM_WIN_FILE_SHARE_DELETE,
-                          lh_null, LH_OS_SYSTEM_WIN_OPEN_EXISTING,
-                          LH_OS_SYSTEM_WIN_FILE_FLAG_BACKUP_SEMANTICS, lh_null)
-            : LH_OS_SYSTEM_WIN_INVALID_HANDLE;
-    if (converted && file == LH_OS_SYSTEM_WIN_INVALID_HANDLE)
+        converted ? CreateFileW(lh_os_str_get_data(lh_addr_of(native)), 0UL,
+                                lh_math_bit_or(lh_math_bit_or(LH_OS_SYSTEM_WIN_FILE_SHARE_READ,
+                                                              LH_OS_SYSTEM_WIN_FILE_SHARE_WRITE),
+                                               LH_OS_SYSTEM_WIN_FILE_SHARE_DELETE),
+                                lh_null, LH_OS_SYSTEM_WIN_OPEN_EXISTING,
+                                LH_OS_SYSTEM_WIN_FILE_FLAG_BACKUP_SEMANTICS, lh_null)
+                  : LH_OS_SYSTEM_WIN_INVALID_HANDLE;
+    if (converted && lh_math_eq(file, LH_OS_SYSTEM_WIN_INVALID_HANDLE))
     {
         lh_os_system_error_capture();
     }
     lh_os_str_deinit(lh_addr_of(native));
-    if (file == LH_OS_SYSTEM_WIN_INVALID_HANDLE)
+    if (lh_math_eq(file, LH_OS_SYSTEM_WIN_INVALID_HANDLE))
     {
         return lh_bool_false;
     }
     /* NT's maximum extended path length, in UTF-16 code units. */
     lh_wchar_t buffer[32768];
     const lh_os_system_win_dword_t capacity =
-        lh_cast_static(lh_os_system_win_dword_t, sizeof buffer / sizeof buffer[0]);
+        lh_cast_static(lh_os_system_win_dword_t, lh_math_div(sizeof buffer, sizeof buffer[0]));
     const lh_os_system_win_dword_t count = final_path(file, buffer, capacity, 0UL);
     if (!count)
     {
         lh_os_system_error_capture();
     }
-    (void)CloseHandle(file);
+    LH_ATTRIBUTE_UNUSED(CloseHandle(file));
     if (!count)
     {
         return lh_bool_false;
     }
-    if (count >= capacity)
+    if (lh_math_ge(count, capacity))
     {
         lh_os_set_last_error_lit(lh_os_error_code_name_too_long, "resolved path is too long");
         return lh_bool_false;
@@ -84,19 +88,27 @@ lh_os_system_fs_path_canonical(lh_str_cptr path, lh_str_t *out)
         lh_str_cptr text = lh_str_get_data(lh_addr_of(resolved));
         lh_usize_t size = lh_str_get_size(lh_addr_of(resolved));
         lh_str_clear(out);
-        if (size >= 8U && text[0] == '\\' && text[1] == '\\' && text[2] == '?' && text[3] == '\\' &&
-            text[4] == 'U' && text[5] == 'N' && text[6] == 'C' && text[7] == '\\')
+        if (lh_math_ge(size, 8U) && lh_math_eq(text[0], lh_char_map_backslash) &&
+            lh_math_eq(text[1], lh_char_map_backslash) &&
+            lh_math_eq(text[2], lh_char_map_question) &&
+            lh_math_eq(text[3], lh_char_map_backslash) &&
+            lh_math_eq(text[4], lh_char_map_capital_u) &&
+            lh_math_eq(text[5], lh_char_map_capital_n) &&
+            lh_math_eq(text[6], lh_char_map_capital_c) &&
+            lh_math_eq(text[7], lh_char_map_backslash))
         {
-            lh_str_push_back(out, '\\');
-            lh_str_push_back(out, '\\');
-            text += 8U;
-            size -= 8U;
+            lh_str_push_back(out, lh_char_map_backslash);
+            lh_str_push_back(out, lh_char_map_backslash);
+            text = lh_math_add(text, 8U);
+            size = lh_math_sub(size, 8U);
         }
-        else if (size >= 4U && text[0] == '\\' && text[1] == '\\' && text[2] == '?' &&
-                 text[3] == '\\')
+        else if (lh_math_ge(size, 4U) && lh_math_eq(text[0], lh_char_map_backslash) &&
+                 lh_math_eq(text[1], lh_char_map_backslash) &&
+                 lh_math_eq(text[2], lh_char_map_question) &&
+                 lh_math_eq(text[3], lh_char_map_backslash))
         {
-            text += 4U;
-            size -= 4U;
+            text = lh_math_add(text, 4U);
+            size = lh_math_sub(size, 4U);
         }
         lh_str_append(out, text, size);
     }

@@ -41,4 +41,7 @@ typedef lh_u8_t lh_fs_path_root_kind_t;
  */
 #define lh_fs_path_root_kind_drive 2U
 
+/** Windows network path, preserving the leading double separator (`//`). */
+#define lh_fs_path_root_kind_network 3U
+
 #endif /* LH_FS_PATH_ROOT_KIND_H */
