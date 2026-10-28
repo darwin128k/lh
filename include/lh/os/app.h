@@ -24,11 +24,7 @@
         "lh/os/app.h requires LH_LIBRARY_OPTION_OS_WINDOW (CMake: -DLH_LIBRARY_OPTION_OS_WINDOW=ON)"
 #endif
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 struct lh_os_window;
-
-LH_COMPILER_EXTERN_C_END
 
 /**
  * @struct lh_os_app

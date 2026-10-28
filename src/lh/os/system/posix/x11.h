@@ -371,6 +371,8 @@ struct lh_os_system_posix_x11
 /** @copybrief lh_os_system_posix_x11 */
 typedef struct lh_os_system_posix_x11 lh_os_system_posix_x11_t;
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 /**
  * @brief libX11, loaded on the first call and kept for the life of the process.
  *
@@ -380,6 +382,8 @@ typedef struct lh_os_system_posix_x11 lh_os_system_posix_x11_t;
  */
 const lh_os_system_posix_x11_t *
 lh_os_system_posix_x11_load(void);
+
+LH_COMPILER_EXTERN_C_END
 
 #include <lh/os/system/posix/x11/xext/fields.h>
 
@@ -394,6 +398,8 @@ struct lh_os_system_posix_xext
 /** @copybrief lh_os_system_posix_xext */
 typedef struct lh_os_system_posix_xext lh_os_system_posix_xext_t;
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 /**
  * @brief libXext, loaded on the first call and kept.
  *
@@ -404,7 +410,10 @@ typedef struct lh_os_system_posix_xext lh_os_system_posix_xext_t;
 const lh_os_system_posix_xext_t *
 lh_os_system_posix_xext_load(void);
 
+LH_COMPILER_EXTERN_C_END
+
 #include <lh/os/system/posix/x11/xrender/fields.h>
+#include <lh/compiler/extern/c.h>
 
 /**
  * @brief libXrender, opened at run time.
@@ -417,6 +426,8 @@ struct lh_os_system_posix_xrender
 /** @copybrief lh_os_system_posix_xrender */
 typedef struct lh_os_system_posix_xrender lh_os_system_posix_xrender_t;
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 /**
  * @brief libXrender, loaded on the first call and kept.
  *
@@ -425,5 +436,7 @@ typedef struct lh_os_system_posix_xrender lh_os_system_posix_xrender_t;
  */
 const lh_os_system_posix_xrender_t *
 lh_os_system_posix_xrender_load(void);
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_SRC_OS_SYSTEM_POSIX_X11_H */

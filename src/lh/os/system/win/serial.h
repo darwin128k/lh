@@ -10,6 +10,9 @@
 #include <lh/os/serial/parity.h>
 #include <lh/os/system/serial/handle.h>
 #include <lh/os/system/win/kernel32.h>
+#include <lh/compiler/extern/c.h>
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** @p handle as the Win32 `HANDLE` it is. */
 lh_os_system_win_handle_t
@@ -26,5 +29,7 @@ lh_os_system_serial_size(lh_usize_t size);
 lh_bool_t
 lh_os_system_serial_setup(lh_os_system_win_handle_t port, lh_u32_t baud,
                           lh_os_serial_parity_t parity, lh_u8_t stop_bits);
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_SRC_OS_SYSTEM_WIN_SERIAL_H */

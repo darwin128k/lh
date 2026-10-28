@@ -23,6 +23,8 @@
 /** FILETIME ticks per second (100 ns each). */
 #define LH_OS_SYSTEM_WIN_FILETIME_HZ 10000000LL
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 /** Seconds since the Unix epoch of @p time. A FILETIME before 1970 gives a
    negative timestamp, floored to whole seconds; every valid FILETIME
    (below 2^63 ticks) fits the signed arithmetic. */
@@ -37,5 +39,7 @@ lh_os_system_timestamp_from_filetime(const lh_os_system_win_filetime_t *time)
         lh_math_sub(lh_cast_static(lh_s64_t, ticks), LH_OS_SYSTEM_WIN_FILETIME_UNIX_EPOCH),
         LH_OS_SYSTEM_WIN_FILETIME_HZ);
 }
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_SRC_OS_SYSTEM_WIN_FILETIME_H */

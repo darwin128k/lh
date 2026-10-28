@@ -18,6 +18,8 @@
 struct lh_os_system_posix_window;
 typedef struct lh_os_system_posix_window lh_os_system_posix_window_t;
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 int
 lh_os_system_posix_on_error(lh_os_system_posix_display_t *display,
                             lh_os_system_posix_xerror_event_t *error);
@@ -74,5 +76,7 @@ lh_os_system_posix_window_send_key(lh_os_system_posix_window_t *self,
 
 lh_void
 lh_os_system_posix_dispatch(lh_os_system_posix_xevent_t *event);
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_SRC_OS_SYSTEM_POSIX_WINDOW_GLUE_H */

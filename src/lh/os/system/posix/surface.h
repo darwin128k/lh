@@ -9,6 +9,7 @@
 #include <lh/bool.h>
 #include <lh/os/system/posix/surface/fields.h>
 #include <lh/size.h>
+#include <lh/compiler/extern/c.h>
 
 /** @brief A surface: its pixels and what they look like. */
 struct lh_os_system_posix_surface
@@ -18,6 +19,8 @@ struct lh_os_system_posix_surface
 };
 /** @copybrief lh_os_system_posix_surface */
 typedef struct lh_os_system_posix_surface lh_os_system_posix_surface_t;
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Put @p surface's pixels in a segment the server is attached to.
@@ -37,5 +40,7 @@ lh_os_system_posix_surface_settle(lh_os_system_posix_surface_t *surface);
 lh_u32_t *
 lh_os_system_posix_surface_widen(lh_os_system_posix_surface_t *surface, int src_x, int src_y,
                                  int width, int height);
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_SRC_OS_SYSTEM_POSIX_SURFACE_H */

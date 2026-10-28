@@ -33,9 +33,9 @@ struct lh_ui_shadow_shape
 /** @copybrief lh_ui_shadow_shape */
 typedef struct lh_ui_shadow_shape lh_ui_shadow_shape_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 struct lh_ui_shadow_ramp;
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief @p shadow over @p rect, its corners rounded by @p radius (clamped here).

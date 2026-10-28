@@ -12,6 +12,8 @@
 #include <lh/os/system/win/user32.h>
 #include <lh/os/window.h>
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 lh_os_system_win_lresult_t LH_OS_SYSTEM_WIN_CALL
 lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint_t msg,
                              lh_os_system_win_wparam_t wparam, lh_os_system_win_lparam_t lparam);
@@ -42,5 +44,7 @@ lh_os_system_win_window_send_contact(lh_os_window_t *window, lh_os_system_win_hw
 lh_void
 lh_os_system_win_window_send_key(lh_os_window_t *window, lh_os_system_win_uint_t msg,
                                  lh_os_system_win_wparam_t wparam, lh_os_system_win_lparam_t lparam);
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_SRC_OS_SYSTEM_WIN_WINDOW_GLUE_H */

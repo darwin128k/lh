@@ -16,6 +16,9 @@
 #include <lh/os/input/pointer/id.h>
 #include <lh/os/system/win/user32.h>
 #include <lh/os/window/zone.h>
+#include <lh/compiler/extern/c.h>
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief What ::lh_os_window_zone_t means to Windows (`HT*`).
@@ -75,5 +78,7 @@ lh_os_system_win_window_contact_pointer(lh_os_system_win_pointer_id_t pointer_id
 lh_void
 lh_os_system_win_window_centered_origin(const lh_os_system_win_rect_t *window_rect,
                                         lh_os_system_win_hwnd_t owner_hwnd, int *x, int *y);
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_SRC_OS_SYSTEM_WIN_WINDOW_MAP_H */

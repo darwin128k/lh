@@ -13,6 +13,8 @@
 
 #include <lh/list/node.h>
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 /** @brief Point @p self's `next` at @p next. Nothing else changes. */
 lh_void
 lh_list_node_set_next(lh_list_node_t *self, lh_list_node_t *next);
@@ -24,5 +26,7 @@ lh_list_node_set_prev(lh_list_node_t *self, lh_list_node_t *prev);
 /** @brief Put unlinked @p self between neighbours @p prev and @p next. */
 lh_void
 lh_list_node_link(lh_list_node_t *self, lh_list_node_t *prev, lh_list_node_t *next);
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_SRC_LIST_NODE_LINK_H */

@@ -11,6 +11,8 @@
 
 #include <lh/os/input/event.h>
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 /**
  * @brief The button X numbers @p xbutton; ::lh_os_input_button_none for the wheel
  *        (4..7) and for any number past the side buttons.
@@ -58,5 +60,7 @@ lh_os_system_posix_input_buttons_of(lh_u32_t state);
  */
 lh_u32_t
 lh_os_system_posix_input_buttons_held(lh_u32_t state, lh_u32_t side_held);
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_SRC_OS_SYSTEM_POSIX_INPUT_H */

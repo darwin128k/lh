@@ -18,6 +18,7 @@
 #include <lh/os/system/win/ws2_32/timeval/fields.h>
 #include <lh/os/system/win/ws2_32/wsadata/fields.h>
 #include <lh/str/ptr.h>
+#include <lh/compiler/extern/c.h>
 
 /** @brief `SOCKET`: `UINT_PTR`, pointer-sized. */
 typedef lh_usize_t lh_os_system_win_socket_t;
@@ -133,6 +134,8 @@ typedef struct lh_os_system_win_sockaddr_in lh_os_system_win_sockaddr_in_t;
 
 /* Library setup. */
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 /** Start Winsock for this process; pairs with ::WSACleanup.
  * Present since Windows 95 / NT 4.0 (Winsock 2). */
 LH_OS_SYSTEM_WIN_IMPORT lh_int_t LH_OS_SYSTEM_WIN_CALL
@@ -214,5 +217,7 @@ sendto(lh_os_system_win_socket_t s, lh_str_cptr buf, lh_int_t len, lh_int_t flag
 LH_OS_SYSTEM_WIN_IMPORT lh_int_t LH_OS_SYSTEM_WIN_CALL
 recvfrom(lh_os_system_win_socket_t s, lh_str_ptr buf, lh_int_t len, lh_int_t flags,
          lh_os_system_win_sockaddr_t *from, lh_int_t *fromlen);
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_SRC_OS_SYSTEM_WIN_WS2_32_H */

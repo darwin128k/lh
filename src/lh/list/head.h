@@ -12,6 +12,8 @@
 
 #include <lh/list.h>
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 /** @brief The head node of @p self. */
 lh_list_node_t *
 lh_list_get_head_mut(lh_list_t *self);
@@ -28,5 +30,7 @@ lh_list_as_element(const lh_list_t *self, lh_list_node_t *node);
  *         in another list, then leave @p other empty. */
 lh_void
 lh_list_splice_between(lh_list_t *other, lh_list_node_t *prev, lh_list_node_t *next);
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_SRC_LIST_HEAD_H */

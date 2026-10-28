@@ -12,9 +12,9 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/ptr.h>
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 struct lh_ui_entity;
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @typedef lh_ui_entity_visit_fn
