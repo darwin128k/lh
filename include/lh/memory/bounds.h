@@ -1140,6 +1140,24 @@ lh_void
 lh_memory_bounds_as_view(const lh_memory_bounds_t *self, lh_memory_view_t *out);
 
 /**
+ * @brief Fill @p self by repeating bytes from @p other.
+ *
+ * Both operands are interpreted as half-open bounds.
+ *
+ * @param self  Valid destination bounds.
+ * @param other Valid pattern bounds.
+ * @return Pointer one past the last byte written, or ::lh_null when nothing is
+ *         written by the raw operation.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
+ */
+lh_ptr
+lh_memory_bounds_fill_pattern(lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
+
+/**
  * @brief Copy bytes from @p other into @p self.
  *
  * Both operands are interpreted as half-open bounds.
@@ -1172,24 +1190,6 @@ lh_memory_bounds_copy(lh_memory_bounds_t *self, const lh_memory_bounds_t *other)
  */
 lh_ptr
 lh_memory_bounds_move(lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
-
-/**
- * @brief Fill @p self by repeating bytes from @p other.
- *
- * Both operands are interpreted as half-open bounds.
- *
- * @param self  Valid destination bounds.
- * @param other Valid pattern bounds.
- * @return Pointer one past the last byte written, or ::lh_null when nothing is
- *         written by the raw operation.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self or @p other is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_range
- *        @p self or @p other is not valid.
- */
-lh_ptr
-lh_memory_bounds_fill_pattern(lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
 LH_COMPILER_EXTERN_C_END
 

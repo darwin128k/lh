@@ -527,6 +527,14 @@ lh_memory_bounds_as_view(const lh_memory_bounds_t *self, lh_memory_view_t *out)
 }
 
 lh_ptr
+lh_memory_bounds_fill_pattern(lh_memory_bounds_t *self, const lh_memory_bounds_t *other)
+{
+    return lh_memory_set_pattern(lh_memory_bounds_get_begin_v(self), lh_memory_bounds_get_size(self),
+                                 lh_memory_bounds_get_begin_v(other),
+                                 lh_memory_bounds_get_size(other));
+}
+
+lh_ptr
 lh_memory_bounds_copy(lh_memory_bounds_t *self, const lh_memory_bounds_t *other)
 {
     const lh_ptr other_begin = lh_memory_bounds_get_begin_v(other);
@@ -538,12 +546,4 @@ lh_memory_bounds_move(lh_memory_bounds_t *self, const lh_memory_bounds_t *other)
 {
     const lh_ptr other_begin = lh_memory_bounds_get_begin_v(other);
     return lh_memory_bounds_move_by_size(self, other_begin, lh_memory_bounds_get_size(other));
-}
-
-lh_ptr
-lh_memory_bounds_fill_pattern(lh_memory_bounds_t *self, const lh_memory_bounds_t *other)
-{
-    return lh_memory_set_pattern(lh_memory_bounds_get_begin_v(self), lh_memory_bounds_get_size(self),
-                                 lh_memory_bounds_get_begin_v(other),
-                                 lh_memory_bounds_get_size(other));
 }
