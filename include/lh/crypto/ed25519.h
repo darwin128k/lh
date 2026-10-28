@@ -12,7 +12,6 @@
 #define LH_CRYPTO_ED25519_H
 
 #include <lh/bool.h>
-#include <lh/byte.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
 #include <lh/void.h>

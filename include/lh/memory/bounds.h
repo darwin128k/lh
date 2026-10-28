@@ -21,7 +21,6 @@
 #ifndef LH_MEMORY_BOUNDS_H
 #define LH_MEMORY_BOUNDS_H
 
-#include <lh/memory/bounds/fields.h>
 #include <lh/memory/view.h>
 
 /**

@@ -1,13 +1,8 @@
 #include <lh/real/decimal.h>
 #include <lh/assert.h>
-#include <lh/cast/static.h>
 #include <lh/char/digit.h>
-#include <lh/char/map.h>
-#include <lh/math/ops.h>
-#include <lh/null.h>
 #include <lh/real/bits.h>
 #include <lh/real/lemire.h>
-#include <lh/runtime/error.h>
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
 

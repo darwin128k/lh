@@ -8,10 +8,8 @@
 
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/os/input/recognizer/config/fields.h>
 #include <lh/os/input/recognizer/config/ptr.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_os_input_recognizer_config

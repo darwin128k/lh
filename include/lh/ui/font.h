@@ -14,7 +14,6 @@
 #ifndef LH_UI_FONT_H
 #define LH_UI_FONT_H
 
-#include <lh/byte/ptr.h>
 #include <lh/ui/font/fields.h>
 #include <lh/ui/font/range.h>
 #include <lh/ui/mask.h>

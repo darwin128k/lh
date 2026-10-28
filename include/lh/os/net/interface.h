@@ -8,12 +8,8 @@
 #ifndef LH_OS_NET_INTERFACE_H
 #define LH_OS_NET_INTERFACE_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/net/ip.h>
-#include <lh/ptr.h>
-#include <lh/void.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/net/interface.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"

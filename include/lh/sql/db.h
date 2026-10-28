@@ -23,7 +23,6 @@
 #ifndef LH_SQL_DB_H
 #define LH_SQL_DB_H
 
-#include <lh/ptr.h>
 #include <lh/sql/db/fields.h>
 #include <lh/sql/driver.h>
 #include <lh/str.h>

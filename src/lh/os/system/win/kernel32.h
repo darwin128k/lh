@@ -17,7 +17,6 @@
 #include <lh/os/system/win/kernel32/file_attribute_data/fields.h>
 #include <lh/os/system/win/kernel32/filetime/fields.h>
 #include <lh/os/system/win/kernel32/find_data/fields.h>
-#include <lh/os/system/win/types.h>
 #include <lh/str/ptr.h>
 #include <lh/wstr/ptr.h>
 

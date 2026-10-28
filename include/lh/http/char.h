@@ -12,7 +12,6 @@
 #define LH_HTTP_CHAR_H
 
 #include <lh/bool.h>
-#include <lh/char.h>
 #include <lh/compiler/extern/c.h>
 
 LH_COMPILER_EXTERN_C_BEGIN

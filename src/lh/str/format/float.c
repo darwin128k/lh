@@ -1,16 +1,9 @@
 #include <lh/str/format/float.h>
-#include <lh/bit/ops.h>
-#include <lh/bit/scan.h>
-#include <lh/bool.h>
 #include <lh/char/digit.h>
-#include <lh/char/map.h>
 #include <lh/math.h>
 #include <lh/memory/std.h>
-#include <lh/numeric/big.h>
-#include <lh/numeric/fixed/limits.h>
 #include <lh/str/format/put.h>
 #include <lh/str/format/uint.h>
-#include <lh/util/ptr.h>
 #include <lh/util/str/ptr.h>
 
 /*

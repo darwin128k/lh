@@ -1,7 +1,6 @@
 #include <lh/str/split/next.h>
 #include <lh/assert.h>
 #include <lh/math.h>
-#include <lh/util/str/ptr.h>
 
 lh_bool_t
 lh_str_ptr_split_next_of(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr delims,

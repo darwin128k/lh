@@ -31,7 +31,6 @@
 
 #include <lh/config.h>
 #include <lh/os/controller.h>
-#include <lh/os/input/event.h>
 #include <lh/os/system/window/handle.h>
 #include <lh/os/window/fields.h>
 

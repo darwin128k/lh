@@ -25,7 +25,6 @@
 #define LH_SQL_STMT_H
 
 #include <lh/sql/db.h>
-#include <lh/sql/step.h>
 #include <lh/sql/stmt/fields.h>
 
 /**

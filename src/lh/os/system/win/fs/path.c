@@ -1,15 +1,12 @@
 #include <lh/os/system/fs/path.h>
 #include <lh/attribute/unused.h>
 #include <lh/char/map.h>
-#include <lh/math/ops.h>
-#include <lh/util/ptr.h>
 #include <lh/assert.h>
 #include <lh/os.h>
 #include <lh/os/error/code.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/str.h>
 #include <lh/os/system/win/kernel32.h>
-#include <lh/util/str/ptr.h>
 #include <lh/math.h>
 
 lh_fs_path_style_t

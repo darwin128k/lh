@@ -12,10 +12,7 @@
 #ifndef LH_JSON_H
 #define LH_JSON_H
 
-#include <lh/json/error.h>
-#include <lh/json/kind.h>
 #include <lh/json/minify.h>
-#include <lh/json/node.h>
 #include <lh/json/reader.h>
 #include <lh/json/writer.h>
 

@@ -7,7 +7,6 @@
 #define LH_JSON_ERROR_H
 
 #include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/str/ptr.h>
 
 /**

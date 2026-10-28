@@ -4,7 +4,6 @@
  */
 
 #include <lh/ui/decl.h>
-#include <lh/byte/ptr.h>
 #include <lh/util/return.h>
 
 lh_void

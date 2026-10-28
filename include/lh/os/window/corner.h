@@ -12,7 +12,6 @@
 
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
 
 /**
  * @def LH_OS_WINDOW_CORNER_MAX

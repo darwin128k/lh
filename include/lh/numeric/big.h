@@ -14,7 +14,6 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/big/fields.h>
 #include <lh/numeric/fixed/types.h>
-#include <lh/numeric/types.h>
 #include <lh/void.h>
 #include <lh/size.h>
 

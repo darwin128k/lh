@@ -1,4 +1,3 @@
-#include <lh/byte.h>
 #include <lh/crypto/wipe.h>
 #include <lh/null.h>
 

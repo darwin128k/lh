@@ -1,6 +1,4 @@
 #include <lh/memory.h>
-#include <lh/math/ops.h>
-#include <lh/memory/std.h>
 #include <lh/math.h>
 #include <lh/util/return.h>
 #include <lh/assert.h>
@@ -8,7 +6,6 @@
 #include <lh/size/limits.h>
 #include <lh/util/interval.h>
 #include <lh/attribute/unused.h>
-#include <lh/bool.h>
 
 lh_void
 lh_memory_allocator_set_realloc_cb(lh_memory_allocator_t *self,

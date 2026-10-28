@@ -9,7 +9,6 @@
 #include <lh/bool.h>
 #include <lh/byte/ptr.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/util/ptr.h>
 #include <lh/net/modbus/status.h>
 
 /**

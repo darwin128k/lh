@@ -6,7 +6,6 @@
 #ifndef LH_OS_CONTROLLER_INITIALIZER_H
 #define LH_OS_CONTROLLER_INITIALIZER_H
 
-#include <lh/initializer.h>
 #include <lh/os/controller/flags.h>
 #include <lh/os/controller/flags/value.h>
 #include <lh/os/controller/handlers/cancel/cb.h>

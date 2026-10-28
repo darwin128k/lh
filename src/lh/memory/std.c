@@ -7,18 +7,14 @@
  */
 #include <lh/memory/std.h>
 #include <lh/assert.h>
-#include <lh/byte/ptr.h>
 #include <lh/compiler/arch/family.h>
 #include <lh/config.h>
 #include <lh/cpu/cache.h>
 #include <lh/cpu/simd.h>
 #include <lh/cpu/vendor.h>
 #include <lh/bit/bswap.h>
-#include <lh/bit/ops.h>
-#include <lh/bit/scan.h>
 #include <lh/bit/swar.h>
 #include <lh/memory/word.h>
-#include <lh/util/addr.h>
 #include <lh/util/memory.h>
 
 #if LH_LIBRARY_OPTION_MEMORY_STD_BACKEND_LIBC

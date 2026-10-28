@@ -4,7 +4,6 @@
  */
 
 #include <lh/assert/runtime.h>
-#include <lh/byte/ptr.h>
 #include <lh/numeric/parse/bytes.h>
 
 lh_void

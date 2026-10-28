@@ -3,9 +3,7 @@
  * @brief Implementation of `lh/math/float/sin_cos.h`.
  */
 
-#include <lh/cast/static.h>
 #include <lh/math/float/sin_cos.h>
-#include <lh/numeric/types.h>
 #include <lh/util/ptr.h>
 
 lh_void

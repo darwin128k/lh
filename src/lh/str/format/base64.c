@@ -1,7 +1,6 @@
 #include <lh/str/format/base64.h>
 #include <lh/char/map.h>
 #include <lh/assert.h>
-#include <lh/bit/ops.h>
 #include <lh/math.h>
 
 /** The 64 digits, in value order. */

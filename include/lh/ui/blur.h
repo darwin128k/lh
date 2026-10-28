@@ -27,8 +27,6 @@
 #ifndef LH_UI_BLUR_H
 #define LH_UI_BLUR_H
 
-#include <lh/ui/pixmap.h>
-#include <lh/ui/blur/window.h>
 #include <lh/ui/blur/pass.h>
 
 #if !LH_LIBRARY_OPTION_UI

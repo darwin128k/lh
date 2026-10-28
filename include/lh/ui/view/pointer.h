@@ -18,13 +18,8 @@
 #ifndef LH_UI_VIEW_POINTER_H
 #define LH_UI_VIEW_POINTER_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/ui/point.h>
-#include <lh/ui/scalar.h>
 #include <lh/ui/scrollbar.h>
 #include <lh/ui/view/pointer/fields.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_ui_view_pointer

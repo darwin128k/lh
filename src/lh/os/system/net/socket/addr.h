@@ -11,7 +11,6 @@
 #define LH_SRC_OS_SYSTEM_NET_SOCKET_ADDR_H
 
 #include <lh/attribute/static.h>
-#include <lh/byte/ptr.h>
 #include <lh/memory.h>
 #include <lh/net/socket/addr/ip4.h>
 #include <lh/bit/endian.h>

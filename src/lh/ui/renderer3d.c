@@ -1,12 +1,8 @@
 #include <lh/ui/renderer3d.h>
 #include <lh/assert.h>
-#include <lh/cast/reinterpret.h>
 #include <lh/math/float/finite.h>
 #include <lh/math/float/round.h>
-#include <lh/math/ops.h>
 #include <lh/memory/std.h>
-#include <lh/null.h>
-#include <lh/numeric/float.h>
 #include <lh/util/return.h>
 
 /* Vertices a triangle may grow to while it is clipped by the six planes. */

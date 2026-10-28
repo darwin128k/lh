@@ -1,6 +1,5 @@
 #include <lh/str/line/reader.h>
 #include <lh/assert.h>
-#include <lh/math/ops.h>
 #include <lh/str/split/line.h>
 
 /* ── accessors ───────────────────────────────────────────────────────────── */

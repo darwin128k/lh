@@ -7,8 +7,6 @@
 #define LH_HTTP_RESPONSE_H
 
 #include <lh/str/view.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/size.h>
 #include <lh/http/response/fields.h>
 
 /**

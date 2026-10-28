@@ -1,9 +1,5 @@
 #include <lh/value.h>
 #include <lh/assert.h>
-#include <lh/cast/static.h>
-#include <lh/math/ops.h>
-#include <lh/null.h>
-#include <lh/runtime/error.h>
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
 

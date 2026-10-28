@@ -1,7 +1,5 @@
 #include <lh/sql/db.h>
 #include <lh/assert.h>
-#include <lh/cast/static.h>
-#include <lh/null.h>
 #include <lh/sql/stmt.h>
 
 /* ── accessors ───────────────────────────────────────────────────────────── */

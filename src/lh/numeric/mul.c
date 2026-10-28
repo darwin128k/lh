@@ -1,9 +1,6 @@
 #include <lh/numeric/mul.h>
 #include <lh/assert.h>
 #include <lh/bit.h>
-#include <lh/cast/static.h>
-#include <lh/compiler/type.h>
-#include <lh/math/ops.h>
 
 lh_u64_t
 lh_numeric_mul_u64_full_halves(lh_u64_t a, lh_u64_t b, lh_u64_t *high)

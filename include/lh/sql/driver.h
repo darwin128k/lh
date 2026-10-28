@@ -16,13 +16,8 @@
 #ifndef LH_SQL_DRIVER_H
 #define LH_SQL_DRIVER_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/types.h>
-#include <lh/size.h>
 #include <lh/sql/driver/fields.h>
 #include <lh/sql/step.h>
-#include <lh/str/ptr.h>
 #include <lh/str/view.h>
 
 struct lh_sql_db;

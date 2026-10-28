@@ -1,6 +1,5 @@
 #include <lh/os/net/interface.h>
 #include <lh/os/system/net/interface.h>
-#include <lh/null.h>
 
 lh_bool_t
 lh_os_net_interface_each_ip4(lh_os_net_interface_ip4_fn *fn, lh_ptr user)

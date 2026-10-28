@@ -1,7 +1,4 @@
 #include <lh/os.h>
-#include <lh/os/thread.h>
-#include <lh/os/mutex.h>
-#include <lh/os/condition.h>
 #include <lh/os/system/tick.h>
 #include <lh/os/error/code.h>
 

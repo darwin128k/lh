@@ -1,5 +1,4 @@
 #include <lh/str/utf8.h>
-#include <lh/cast/static.h>
 #include <lh/null.h>
 #include <lh/util/return.h>
 

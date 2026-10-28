@@ -4,8 +4,6 @@
  */
 
 #include <lh/assert/runtime.h>
-#include <lh/bit/ops.h>
-#include <lh/initializer.h>
 #include <lh/os/controller.h>
 #include <lh/util/return.h>
 

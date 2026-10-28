@@ -15,9 +15,6 @@
 #ifndef LH_PAIR_H
 #define LH_PAIR_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/pair/fields.h>
 #include <lh/value.h>
 
 /**

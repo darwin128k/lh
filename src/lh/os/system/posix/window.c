@@ -24,14 +24,11 @@
 #include <lh/os/system/posix/key.h>
 #include <lh/os/system/posix/paint.h>
 #include <lh/os/system/posix/window/corner.h>
-#include <lh/os/system/posix/window/fields.h>
 #include <lh/os/system/posix/window/glue.h>
 #include <lh/os/system/posix/window/pump.h>
-#include <lh/os/system/posix/x11.h>
 #include <lh/os/system/window.h>
 #include <lh/os/tick.h>
 #include <lh/os/window.h>
-#include <lh/os/window/corner.h>
 #include <lh/runtime/allocator.h>
 #include <lh/util/return.h>
 

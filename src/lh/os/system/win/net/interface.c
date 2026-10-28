@@ -5,7 +5,6 @@
 #include <lh/os/system/win/iphlpapi.h>
 #include <lh/runtime/allocator.h>
 #include <lh/math.h>
-#include <lh/util/ptr.h>
 
 /* The table can grow between the size query and the call: a few tries. */
 #define LH_OS_SYSTEM_NET_INTERFACE_TRIES 3U

@@ -14,12 +14,9 @@
 #ifndef LH_INI_ENTRY_H
 #define LH_INI_ENTRY_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/ini/entry/fields.h>
 #include <lh/ini/entry/kind.h>
 #include <lh/pair.h>
-#include <lh/str/view.h>
 
 /**
  * @struct lh_ini_entry

@@ -14,9 +14,6 @@
 #ifndef LH_STR_LINE_READER_H
 #define LH_STR_LINE_READER_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/size.h>
 #include <lh/str/line/reader/fields.h>
 #include <lh/str/view.h>
 

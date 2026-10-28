@@ -1,8 +1,6 @@
 #include <lh/str/format/bytes.h>
 #include <lh/assert.h>
-#include <lh/bit/ops.h>
 #include <lh/byte/ptr.h>
-#include <lh/char/map.h>
 #include <lh/char/xdigit.h>
 #include <lh/math.h>
 #include <lh/size/limits.h>

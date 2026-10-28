@@ -13,7 +13,6 @@
 #include <lh/attribute/static.h>
 #include <lh/fs/kind.h>
 #include <lh/os/system/win/kernel32.h>
-#include <lh/bit/ops.h>
 #include <lh/math.h>
 
 /** A reparse point is not necessarily a symlink (junctions, dedup, cloud

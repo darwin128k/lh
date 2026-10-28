@@ -1,7 +1,6 @@
 #include <lh/os/system/fs/file.h>
 #include <lh/attribute/unused.h>
 #include <lh/char/map.h>
-#include <lh/math/ops.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/os/system/error/capture.h>
@@ -13,7 +12,6 @@
 #include <sys/stat.h>
 #include <lh/os.h>
 #include <lh/os/error/code.h>
-#include <lh/util/str/ptr.h>
 
 #ifndef NAME_MAX
 #    define NAME_MAX 255

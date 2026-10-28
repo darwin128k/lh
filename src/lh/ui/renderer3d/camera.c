@@ -2,7 +2,6 @@
 #include <lh/assert.h>
 #include <lh/math/float/finite.h>
 #include <lh/math/float/tan.h>
-#include <lh/null.h>
 #include <lh/util/return.h>
 
 lh_bool_t

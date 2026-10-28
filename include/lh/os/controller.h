@@ -51,7 +51,6 @@
 #ifndef LH_OS_CONTROLLER_H
 #define LH_OS_CONTROLLER_H
 
-#include <lh/compiler/extern/c.h>
 #include <lh/os/controller/fields.h>
 #include <lh/os/controller/flags.h>
 #include <lh/os/controller/flags/value.h>

@@ -6,9 +6,6 @@
 #ifndef LH_UI_VIEW_POINTER_INITIALIZER_H
 #define LH_UI_VIEW_POINTER_INITIALIZER_H
 
-#include <lh/bool.h>
-#include <lh/initializer.h>
-#include <lh/null.h>
 #include <lh/ui/scalar.h>
 
 /**

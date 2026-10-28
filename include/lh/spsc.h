@@ -16,8 +16,6 @@
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
-#include <lh/numeric/types.h>
-#include <lh/void.h>
 #include <lh/ptr.h>
 
 typedef struct lh_spsc lh_spsc_t;

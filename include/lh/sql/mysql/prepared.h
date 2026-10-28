@@ -8,7 +8,6 @@
 #ifndef LH_SQL_MYSQL_PREPARED_H
 #define LH_SQL_MYSQL_PREPARED_H
 
-#include <lh/array.h>
 #include <lh/sql/mysql/api.h>
 #include <lh/sql/mysql/prepared/fields.h>
 

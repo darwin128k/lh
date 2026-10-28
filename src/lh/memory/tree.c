@@ -3,7 +3,6 @@
 #include <lh/memory/tree/header.h>
 #include <lh/math.h>
 #include <lh/util/return.h>
-#include <lh/size/limits.h>
 #include <lh/util/interval.h>
 
 lh_usize_t

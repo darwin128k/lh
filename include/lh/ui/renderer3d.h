@@ -18,9 +18,7 @@
 #define LH_UI_RENDERER3D_H
 
 #include <lh/config.h>
-#include <lh/math/vec3.h>
 #include <lh/ui/pixmap.h>
-#include <lh/size.h>
 #include <lh/ui/renderer3d/camera.h>
 #include <lh/ui/renderer3d/plane.h>
 

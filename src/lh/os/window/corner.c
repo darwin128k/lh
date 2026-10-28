@@ -3,7 +3,6 @@
  * @brief Implementation of `lh/os/window/corner.h`.
  */
 
-#include <lh/math/ops.h>
 #include <lh/os/window/corner.h>
 #include <lh/util/return.h>
 #include <lh/util/type.h>

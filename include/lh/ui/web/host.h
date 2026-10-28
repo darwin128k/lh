@@ -21,19 +21,6 @@
 #define LH_UI_WEB_HOST_H
 
 #include <lh/config.h>
-#include <lh/net/port.h>
-#include <lh/os/controller.h>
-#include <lh/os/input/sink/cb.h>
-#include <lh/os/net/socket.h>
-#include <lh/ui/canvas/web.h>
-#include <lh/ui/view.h>
-#include <lh/ui/web/host/client/fields.h>
-#include <lh/ui/web/host/frame/fields.h>
-#include <lh/ui/web/host/stream/fields.h>
-#include <lh/ui/web/ws.h>
-#include <lh/ui/web/host/frame.h>
-#include <lh/ui/web/host/client.h>
-#include <lh/ui/web/host/stream.h>
 #include <lh/ui/web/host/hooks.h>
 
 #if !LH_LIBRARY_OPTION_UI

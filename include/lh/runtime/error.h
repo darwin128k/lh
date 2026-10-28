@@ -15,7 +15,6 @@
 #ifndef LH_RUNTIME_ERROR_H
 #define LH_RUNTIME_ERROR_H
 
-#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/error/desc.h>

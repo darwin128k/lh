@@ -14,8 +14,6 @@
 #ifndef LH_OS_INPUT_EVENT_H
 #define LH_OS_INPUT_EVENT_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/os/input/axis.h>
 #include <lh/os/input/button.h>
 #include <lh/os/input/coord.h>
@@ -27,7 +25,6 @@
 #include <lh/os/input/mods.h>
 #include <lh/os/key.h>
 #include <lh/timer/tick.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_os_input_event

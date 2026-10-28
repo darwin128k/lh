@@ -3,7 +3,6 @@
 #include <lh/memory/std.h>
 #include <lh/str/format/hex.h>
 #include <lh/str/format/sint.h>
-#include <lh/str/format/uint.h>
 #include <lh/str/scanf/next.h>
 #include <lh/util/str/ptr.h>
 #include <lh/char/map.h>

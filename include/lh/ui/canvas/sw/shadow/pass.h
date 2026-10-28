@@ -6,13 +6,11 @@
 #ifndef LH_UI_CANVAS_SW_SHADOW_PASS_H
 #define LH_UI_CANVAS_SW_SHADOW_PASS_H
 
-#include <lh/byte/ptr.h>
 #include <lh/ui/canvas.h>
 #include <lh/ui/canvas/sw/fields.h>
 #include <lh/ui/pixmap.h>
 #include <lh/ui/radius.h>
 #include <lh/ui/shadow/ramp.h>
-#include <lh/compiler/extern/c.h>
 
 /**
  * @struct lh_ui_canvas_sw_shadow_pass

@@ -5,7 +5,6 @@
 #include <lh/util/return.h>
 #include <lh/util/swap.h>
 #include <lh/offset/limits.h>
-#include <lh/addr/limits.h>
 #include <lh/assert.h>
 #include <lh/math.h>
 

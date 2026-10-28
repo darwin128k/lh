@@ -7,7 +7,6 @@
 #define LH_MATH_SLICE_INITIALIZER_H
 
 #include <lh/null.h>
-#include <lh/interval/bounds/initializer.h>
 
 /**
  * @def lh_math_slice_initializer(first, last)

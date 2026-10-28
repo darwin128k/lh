@@ -16,8 +16,6 @@
 #ifndef LH_UI_GRADIENT_SAMPLER_H
 #define LH_UI_GRADIENT_SAMPLER_H
 
-#include <lh/ui/gradient.h>
-#include <lh/ui/gradient/sampler/fields.h>
 #include <lh/ui/gradient/sampler/lerp.h>
 
 /**

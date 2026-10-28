@@ -4,7 +4,6 @@
 #include <lh/os/error/code.h>
 #include <lh/assert.h>
 #include <lh/math.h>
-#include <lh/byte.h>
 
 lh_void
 lh_os_wake_init(lh_os_wake_t *self)

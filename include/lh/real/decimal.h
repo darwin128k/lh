@@ -15,7 +15,6 @@
 
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/real.h>
 #include <lh/real/decimal/fields.h>
 #include <lh/size.h>

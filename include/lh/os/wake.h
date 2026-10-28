@@ -17,7 +17,6 @@
 #include <lh/bool.h>
 #include <lh/void.h>
 #include <lh/config.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/compiler/extern/c.h>
 
 #if !LH_LIBRARY_OPTION_OS

@@ -25,7 +25,6 @@
 #include <lh/os/input/contacts/ptr.h>
 #include <lh/os/input/device/kind.h>
 #include <lh/os/input/pointer/id.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_os_input_contacts
