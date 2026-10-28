@@ -13,6 +13,7 @@
 #define LH_CHAR_LETTER_H
 
 #include <lh/attribute/force_inline.h>
+#include <lh/char/map.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 
@@ -28,7 +29,7 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
 lh_char_is_upper(lh_char_t ch)
 {
-    return (ch >= 'A' && ch <= 'Z') ? lh_bool_true : lh_bool_false;
+    return (ch >= lh_char_map_capital_a && ch <= lh_char_map_capital_z) ? lh_bool_true : lh_bool_false;
 }
 
 /**
@@ -41,7 +42,7 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
 lh_char_is_lower(lh_char_t ch)
 {
-    return (ch >= 'a' && ch <= 'z') ? lh_bool_true : lh_bool_false;
+    return (ch >= lh_char_map_small_a && ch <= lh_char_map_small_z) ? lh_bool_true : lh_bool_false;
 }
 
 /**

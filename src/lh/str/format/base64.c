@@ -1,4 +1,5 @@
 #include <lh/str/format/base64.h>
+#include <lh/char/map.h>
 #include <lh/assert.h>
 #include <lh/bit/ops.h>
 #include <lh/math.h>
@@ -25,8 +26,8 @@ lh_str_ptr_format_base64_block(lh_byte_cptr data, lh_usize_t count, lh_str_ptr s
                          lh_runtime_error_code_invalid_argument);
     str[0] = m_base64_alphabet[lh_bit_and(lh_bit_shr(n, 18U), 63U)];
     str[1] = m_base64_alphabet[lh_bit_and(lh_bit_shr(n, 12U), 63U)];
-    str[2] = lh_math_gt(count, 1U) ? m_base64_alphabet[lh_bit_and(lh_bit_shr(n, 6U), 63U)] : '=';
-    str[3] = lh_math_gt(count, 2U) ? m_base64_alphabet[lh_bit_and(n, 63U)] : '=';
+    str[2] = lh_math_gt(count, 1U) ? m_base64_alphabet[lh_bit_and(lh_bit_shr(n, 6U), 63U)] : lh_char_map_equals;
+    str[3] = lh_math_gt(count, 2U) ? m_base64_alphabet[lh_bit_and(n, 63U)] : lh_char_map_equals;
 }
 
 lh_usize_t

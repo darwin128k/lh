@@ -59,16 +59,27 @@ Storage capacity independently limits field count. Errors report a category
 and input offset. Header bytes already inspected before incomplete/error may
 have populated storage; those partial values are not a successful result.
 
-## Implementation notes
+## Bricks
 
-The implementation is original LH code, not a renamed vendored parser.
-It uses only LH types and local byte operations, without runtime/OS calls,
-allocation, locale, CPU intrinsics or mutable globals. Link normal `lh`, or
-the small `lh::http_parser` target when the rest of LH is unnecessary.
+The two parse calls only compose public steps, each usable and tested on its
+own:
+
+| Brick | Does |
+|-------|------|
+| `lh_http_parser_begin` | clears diagnostics, checks arguments and budgets |
+| `lh_http_parser_find_line` | finds the CRLF of one physical line within the budgets |
+| `lh_http_parser_parse_request_line` / `_status_line` | the start line |
+| `lh_http_parser_parse_field` | one `name: value` line |
+| `lh_http_parser_parse_fields` | field lines up to the empty line, records `consumed` |
+| `lh_http_parser_fail` | the one place an error is recorded |
+| `lh_http_parse_version` (`lh/http/version.h`) | the `HTTP/1.x` token |
+| `lh_http_is_token_char`, `_is_target_char`, `_is_field_char` (`lh/http/char.h`) | byte classes |
+
+Sub-views come from `lh_str_view_from_offset`, ASCII classes from `lh/char`,
+value trimming from `lh_str_view_trim`. The parser allocates nothing, keeps no
+global state and makes no OS call; it is part of the normal `lh` library.
 
 ## Tests
 
-The `lh_test_http_parser` GoogleTest target uses the common test runner and links
-only the isolated parser library. Initialize `test/lib/googletest` before building.
-`LH_HTTP_PARSER_SANITIZE=ON` enables ASan/UBSan for that test with supported
-desktop compilers. This is not an STM32 hardware certification.
+`lh_test_http_parser` (GoogleTest, common runner) covers the parse calls and
+every brick above.

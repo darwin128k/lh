@@ -1,4 +1,5 @@
 #include <lh/os/system/fs/dir.h>
+#include <lh/char/map.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/char/slash.h>
@@ -46,7 +47,7 @@ lh_os_system_fs_dir_pattern(lh_str_cptr path, lh_os_str_t *out)
     {
         lh_str_push_back(lh_addr_of(pattern), lh_char_map_backslash);
     }
-    lh_str_push_back(lh_addr_of(pattern), '*');
+    lh_str_push_back(lh_addr_of(pattern), lh_char_map_asterisk);
     const lh_bool_t ok = lh_os_system_str_init_by_utf8(out, lh_str_get_data(lh_addr_of(pattern)));
     lh_str_deinit(lh_addr_of(pattern));
     return ok;

@@ -20,6 +20,7 @@
 #define LH_CHAR_DIGIT_H
 
 #include <lh/assert/runtime.h>
+#include <lh/char/map.h>
 #include <lh/attribute/force_inline.h>
 #include <lh/util/char.h>
 
@@ -46,7 +47,7 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
 lh_char_is_digit(lh_char_t ch)
 {
-    return (ch >= '0' && ch <= '9') ? lh_bool_true : lh_bool_false;
+    return (ch >= lh_char_map_digit_0 && ch <= lh_char_map_digit_9) ? lh_bool_true : lh_bool_false;
 }
 
 /**
@@ -60,7 +61,7 @@ lh_byte_t
 lh_char_to_digit(lh_char_t ch)
 {
     lh_assert_runtime_if(!lh_char_is_digit(ch), lh_runtime_error_code_invalid_argument);
-    return lh_cast_static(lh_byte_t, (lh_char_ord(ch) - lh_char_ord('0')));
+    return lh_cast_static(lh_byte_t, (lh_char_ord(ch) - lh_char_ord(lh_char_map_digit_0)));
 }
 
 /**
@@ -74,7 +75,7 @@ lh_char_t
 lh_char_from_digit(lh_byte_t digit)
 {
     lh_assert_runtime_if(digit > 9U, lh_runtime_error_code_invalid_argument);
-    return lh_char_ord_to(lh_char_t, lh_char_ord('0') + digit);
+    return lh_char_ord_to(lh_char_t, lh_char_ord(lh_char_map_digit_0) + digit);
 }
 
 /**

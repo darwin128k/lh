@@ -15,6 +15,7 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/char/map.h>
 #include <lh/byte/ptr.h>
 #include <lh/memory.h>
 #include <lh/os/alloc.h>
@@ -786,7 +787,7 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     /* The title twice: WM_NAME for the window managers that read only that, and
        _NET_WM_NAME in UTF-8 for every current one -- WM_NAME is Latin-1, and a
        Russian title in it is not a Russian title. */
-    while (title[title_length] != '\0')
+    while (title[title_length] != lh_char_map_nul)
     {
         ++title_length;
     }

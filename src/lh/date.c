@@ -1,4 +1,5 @@
 #include <lh/date.h>
+#include <lh/char/map.h>
 #include <lh/assert.h>
 #include <lh/str/format/text.h>
 #include <lh/str/parse/uint.h>
@@ -287,17 +288,17 @@ lh_date_parse(lh_str_cptr str, lh_usize_t str_size, lh_date_t *out)
     lh_uint_t day;
     lh_usize_t pos = 0;
 
-    if (!lh_str_ptr_split_next_uint_digits(str, str_size, '/', lh_addr_of(pos), LH_DATE_YEAR_MAX,
+    if (!lh_str_ptr_split_next_uint_digits(str, str_size, lh_char_map_slash, lh_addr_of(pos), LH_DATE_YEAR_MAX,
                                            lh_addr_of(year), lh_bool_true))
     {
         return lh_bool_false;
     }
-    if (!lh_str_ptr_split_next_uint_digits(str, str_size, '/', lh_addr_of(pos), LH_DATE_MONTH_MAX,
+    if (!lh_str_ptr_split_next_uint_digits(str, str_size, lh_char_map_slash, lh_addr_of(pos), LH_DATE_MONTH_MAX,
                                            lh_addr_of(month), lh_bool_true))
     {
         return lh_bool_false;
     }
-    if (!lh_str_ptr_split_next_uint_digits(str, str_size, '/', lh_addr_of(pos), LH_DATE_DAY_MAX,
+    if (!lh_str_ptr_split_next_uint_digits(str, str_size, lh_char_map_slash, lh_addr_of(pos), LH_DATE_DAY_MAX,
                                            lh_addr_of(day), lh_bool_false))
     {
         return lh_bool_false;

@@ -1,4 +1,5 @@
 #include <lh/time.h>
+#include <lh/char/map.h>
 #include <lh/assert.h>
 #include <lh/str/format/text.h>
 #include <lh/str/parse/uint.h>
@@ -229,17 +230,17 @@ lh_time_parse(lh_str_cptr str, lh_usize_t str_size, lh_time_t *out)
     lh_uint_t second;
     lh_usize_t pos = 0;
 
-    if (!lh_str_ptr_split_next_uint_digits(str, str_size, ':', lh_addr_of(pos), LH_TIME_HOUR_MAX,
+    if (!lh_str_ptr_split_next_uint_digits(str, str_size, lh_char_map_colon, lh_addr_of(pos), LH_TIME_HOUR_MAX,
                                            lh_addr_of(hour), lh_bool_true))
     {
         return lh_bool_false;
     }
-    if (!lh_str_ptr_split_next_uint_digits(str, str_size, ':', lh_addr_of(pos), LH_TIME_MINUTE_MAX,
+    if (!lh_str_ptr_split_next_uint_digits(str, str_size, lh_char_map_colon, lh_addr_of(pos), LH_TIME_MINUTE_MAX,
                                            lh_addr_of(minute), lh_bool_true))
     {
         return lh_bool_false;
     }
-    if (!lh_str_ptr_split_next_uint_digits(str, str_size, ':', lh_addr_of(pos), LH_TIME_SECOND_MAX,
+    if (!lh_str_ptr_split_next_uint_digits(str, str_size, lh_char_map_colon, lh_addr_of(pos), LH_TIME_SECOND_MAX,
                                            lh_addr_of(second), lh_bool_false))
     {
         return lh_bool_false;

@@ -26,6 +26,7 @@
 #ifndef LH_HTTP_PARSER_H
 #define LH_HTTP_PARSER_H
 
+#include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
 #include <lh/str/view.h>
@@ -58,7 +59,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @param self Parser to initialize; null is ignored.
  */
-void
+lh_void
 lh_http_parser_init(lh_http_parser_t *self);
 
 /**
@@ -71,7 +72,7 @@ lh_http_parser_init(lh_http_parser_t *self);
  * @param head_size_max Maximum head bytes, including the final CRLF.
  * @param line_size_max Maximum text bytes of one physical line, excluding CRLF.
  */
-void
+lh_void
 lh_http_parser_set_limits(lh_http_parser_t *self, lh_usize_t head_size_max,
                           lh_usize_t line_size_max);
 
@@ -103,6 +104,123 @@ lh_http_parser_get_error(const lh_http_parser_t *self);
  */
 lh_usize_t
 lh_http_parser_get_error_offset(const lh_http_parser_t *self);
+
+/**
+ * @brief Record a failure at @p offset and report it.
+ *
+ * Every error of the parser is raised through this brick, so the diagnostics
+ * read by ::lh_http_parser_get_error and ::lh_http_parser_get_error_offset
+ * always come from one place.
+ *
+ * @param self Parser to record in; must not be null.
+ * @param error Category of the failure.
+ * @param offset Byte offset of the offending input.
+ * @return ::lh_http_parse_error.
+ */
+lh_http_parse_status_t
+lh_http_parser_fail(lh_http_parser_t *self, lh_http_error_t error, lh_usize_t offset);
+
+/**
+ * @brief Clear the diagnostics of @p self and check the arguments of a parse.
+ *
+ * @param self Parser that starts a parse; null fails.
+ * @param input Bytes to parse.
+ * @param output Request or response the parse fills.
+ * @param headers Field storage.
+ * @param capacity Number of entries @p headers holds.
+ * @return ::lh_bool_false (with ::lh_http_error_argument recorded when @p self
+ *         is not null) for a null @p output, an input with a size but no text,
+ *         a capacity without storage or a zero budget.
+ */
+lh_bool_t
+lh_http_parser_begin(lh_http_parser_t *self, lh_str_view_t input, const lh_void *output,
+                     const lh_http_header_t *headers, lh_usize_t capacity);
+
+/**
+ * @brief Find the CRLF that ends the physical line starting at @p start.
+ *
+ * Looks no further than the input or the head budget, whichever is shorter.
+ *
+ * @param self Parser whose budgets apply.
+ * @param input Bytes being parsed.
+ * @param start Offset of the first byte of the line.
+ * @param end Receives the offset of the line's CR on ::lh_http_parse_complete.
+ * @return ::lh_http_parse_complete; ::lh_http_parse_incomplete when the input
+ *         ends first; ::lh_http_parse_error for a bare LF or CR
+ *         (::lh_http_error_line_ending), a line over its budget
+ *         (::lh_http_error_line_size) or a head over its budget
+ *         (::lh_http_error_head_size).
+ */
+lh_http_parse_status_t
+lh_http_parser_find_line(lh_http_parser_t *self, lh_str_view_t input, lh_usize_t start,
+                         lh_usize_t *end);
+
+/**
+ * @brief Parse the request line `method SP target SP HTTP/1.x` in `[0, end)`.
+ *
+ * @param self Parser to record a failure in.
+ * @param input Bytes being parsed; the line starts at offset 0.
+ * @param end Offset of the line's CR (::lh_http_parser_find_line).
+ * @param request Receives method, target and minor version.
+ * @return ::lh_http_parse_complete, or ::lh_http_parse_error with
+ *         ::lh_http_error_start_line.
+ */
+lh_http_parse_status_t
+lh_http_parser_parse_request_line(lh_http_parser_t *self, lh_str_view_t input, lh_usize_t end,
+                                  lh_http_request_t *request);
+
+/**
+ * @brief Parse the status line `HTTP/1.x SP code SP reason` in `[0, end)`.
+ *
+ * The code must be 100..599; the reason phrase may be empty.
+ *
+ * @param self Parser to record a failure in.
+ * @param input Bytes being parsed; the line starts at offset 0.
+ * @param end Offset of the line's CR (::lh_http_parser_find_line).
+ * @param response Receives minor version, status code and reason.
+ * @return ::lh_http_parse_complete, or ::lh_http_parse_error with
+ *         ::lh_http_error_start_line.
+ */
+lh_http_parse_status_t
+lh_http_parser_parse_status_line(lh_http_parser_t *self, lh_str_view_t input, lh_usize_t end,
+                                 lh_http_response_t *response);
+
+/**
+ * @brief Parse one field line `name: value` in `[begin, end)`.
+ *
+ * The name is a token; the value loses its surrounding spaces and tabs.
+ *
+ * @param self Parser to record a failure in.
+ * @param input Bytes being parsed.
+ * @param begin Offset of the first byte of the line.
+ * @param end Offset of the line's CR.
+ * @param header Receives the name and value views.
+ * @return ::lh_http_parse_complete, or ::lh_http_parse_error with
+ *         ::lh_http_error_header.
+ */
+lh_http_parse_status_t
+lh_http_parser_parse_field(lh_http_parser_t *self, lh_str_view_t input, lh_usize_t begin,
+                           lh_usize_t end, lh_http_header_t *header);
+
+/**
+ * @brief Parse field lines from @p offset up to and including the empty line.
+ *
+ * Composed of ::lh_http_parser_find_line and ::lh_http_parser_parse_field. On
+ * success records the consumed byte count (::lh_http_parser_get_consumed).
+ *
+ * @param self Parser to use.
+ * @param input Bytes being parsed.
+ * @param offset Offset of the first field line.
+ * @param headers Caller-owned storage for the fields.
+ * @param capacity Number of entries @p headers holds.
+ * @param count Receives the number of fields on ::lh_http_parse_complete.
+ * @return ::lh_http_parse_complete, ::lh_http_parse_incomplete, or
+ *         ::lh_http_parse_error (::lh_http_error_header_capacity when the
+ *         storage is full, or a failure of the bricks above).
+ */
+lh_http_parse_status_t
+lh_http_parser_parse_fields(lh_http_parser_t *self, lh_str_view_t input, lh_usize_t offset,
+                            lh_http_header_t *headers, lh_usize_t capacity, lh_usize_t *count);
 
 /**
  * @brief Parse a request head from the beginning of @p input.
@@ -139,7 +257,7 @@ lh_http_parser_request(lh_http_parser_t *self, lh_str_view_t input, lh_http_requ
  *
  * The status code must be 100..599; the reason phrase may be empty. A null
  * parser or output, an input view with a size but no text, header capacity
- * without storage, or a zero budget is an error (:lh_http_error_argument).
+ * without storage, or a zero budget is an error (::lh_http_error_argument).
  *
  * @param self            Parser to use.
  * @param input           Bytes to parse; an empty view is incomplete.
@@ -155,4 +273,5 @@ lh_http_parser_response(lh_http_parser_t *self, lh_str_view_t input, lh_http_res
                         lh_http_header_t *headers, lh_usize_t header_capacity);
 
 LH_COMPILER_EXTERN_C_END
+
 #endif /* LH_HTTP_PARSER_H */

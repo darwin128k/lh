@@ -1,4 +1,5 @@
 #include <lh/net/ip.h>
+#include <lh/char/map.h>
 #include <lh/assert.h>
 #include <lh/memory.h>
 #include <lh/str/format/uint.h>
@@ -93,7 +94,7 @@ lh_net_ip4_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_ip4_t *out)
         lh_bool_t had_delim;
         lh_uint_t octet_value;
 
-        if (!lh_str_ptr_split_next(str, str_size, '.', lh_addr_of(pos), lh_addr_of(field),
+        if (!lh_str_ptr_split_next(str, str_size, lh_char_map_period, lh_addr_of(pos), lh_addr_of(field),
                                    lh_addr_of(field_size), lh_addr_of(had_delim)))
         {
             return lh_bool_false; /* ran out of string before all octets were read */
@@ -139,7 +140,7 @@ lh_net_ip4_format(const lh_net_ip4_t *self, lh_str_ptr str, lh_usize_t str_size)
 
         if (octet_index > 0)
         {
-            scratch[pos] = '.';
+            scratch[pos] = lh_char_map_period;
             pos++;
         }
 

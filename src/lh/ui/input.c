@@ -4,6 +4,7 @@
  */
 
 #include <lh/math.h>
+#include <lh/char/map.h>
 #include <lh/str/utf8.h>
 #include <lh/ui/input.h>
 #include <lh/util/return.h>
@@ -142,7 +143,7 @@ lh_ui_input_set_text(lh_ui_input_t *self, const lh_char_t *text)
        rather than read as "empty". */
     lh_return_if(lh_null_eq(text), lh_bool_false);
 
-    while (used < self->capacity && text[used] != '\0')
+    while (used < self->capacity && text[used] != lh_char_map_nul)
     {
         self->buffer[used] = text[used];
         ++used;
@@ -171,7 +172,7 @@ lh_ui_input_set_text(lh_ui_input_t *self, const lh_char_t *text)
         }
     }
     self->used = used;
-    self->buffer[used] = '\0';
+    self->buffer[used] = lh_char_map_nul;
     self->caret = used;
     lh_ui_label_drop_metrics(lh_ui_input_as_label(self));
     return lh_bool_true;
@@ -184,7 +185,7 @@ lh_ui_input_clear(lh_ui_input_t *self)
     lh_return_if(lh_null_eq(self->buffer));
     self->used = 0U;
     self->caret = 0U;
-    self->buffer[0] = '\0';
+    self->buffer[0] = lh_char_map_nul;
     lh_ui_label_drop_metrics(lh_ui_input_as_label(self));
 }
 
@@ -219,7 +220,7 @@ lh_ui_input_insert(lh_ui_input_t *self, lh_u32_t code)
                        lh_cast_static(lh_u32_t, self->capacity - self->caret), code);
     self->used = lh_cast_static(lh_u16_t, self->used + size);
     self->caret = lh_cast_static(lh_u16_t, self->caret + size);
-    self->buffer[self->used] = '\0';
+    self->buffer[self->used] = lh_char_map_nul;
     lh_ui_label_drop_metrics(lh_ui_input_as_label(self));
     return lh_bool_true;
 }
@@ -240,7 +241,7 @@ lh_ui_input_backspace(lh_ui_input_t *self)
     }
     self->used = lh_cast_static(lh_u16_t, self->used - (self->caret - from));
     self->caret = from;
-    self->buffer[self->used] = '\0';
+    self->buffer[self->used] = lh_char_map_nul;
     lh_ui_label_drop_metrics(lh_ui_input_as_label(self));
     return lh_bool_true;
 }
@@ -269,7 +270,7 @@ lh_ui_input_delete_forward(lh_ui_input_t *self)
         self->buffer[at] = self->buffer[at + size];
     }
     self->used = lh_cast_static(lh_u16_t, self->used - size);
-    self->buffer[self->used] = '\0';
+    self->buffer[self->used] = lh_char_map_nul;
     lh_ui_label_drop_metrics(lh_ui_input_as_label(self));
     return lh_bool_true;
 }
@@ -489,7 +490,7 @@ lh_ui_input_get_caret_rect(const lh_ui_input_t *self, lh_ui_rect_t *out)
        off, and the input owns what is in its buffer -- which is the whole reason it
        has one instead of the pointer a label keeps. */
     saved = self->buffer[self->caret];
-    self->buffer[self->caret] = '\0';
+    self->buffer[self->caret] = lh_char_map_nul;
     at = lh_ui_point_get_x(lh_addr_of(origin)) + lh_ui_text_get_width(font, self->buffer);
     self->buffer[self->caret] = saved;
 
@@ -499,12 +500,12 @@ lh_ui_input_get_caret_rect(const lh_ui_input_t *self, lh_ui_rect_t *out)
            nothing is a bar, and the end of the text is where a block sits most. */
         const lh_char_t *next = lh_addr_of(self->buffer[self->caret]);
         const lh_u32_t code =
-            self->caret < self->used ? lh_ui_text_next_code(lh_addr_of(next)) : '0';
+            self->caret < self->used ? lh_ui_text_next_code(lh_addr_of(next)) : lh_char_map_digit_0;
 
         width = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_advance(font, code));
         if (width <= lh_ui_scalar(0))
         {
-            width = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_advance(font, '0'));
+            width = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_advance(font, lh_char_map_digit_0));
         }
         if (width <= lh_ui_scalar(0))
         {

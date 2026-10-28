@@ -1,4 +1,5 @@
 #include <lh/runtime/logger.h>
+#include <lh/char/map.h>
 #include <lh/attribute/thread_local.h>
 #include <lh/config.h>
 
@@ -29,7 +30,7 @@ lh_runtime_logger_stderr(lh_self_ptr self, lh_logger_level_t level, lh_str_cptr 
         n = lh_str_ptr_len(fmt);
     }
     if (fwrite(text, 1u, lh_cast_static(size_t, n), stderr) != lh_cast_static(size_t, n) ||
-        fputc('\n', stderr) == EOF)
+        fputc(lh_char_map_lf, stderr) == EOF)
     {
         return -1;
     }

@@ -1,14 +1,15 @@
 #include <lh/str.h>
+#include <lh/char/map.h>
 #include <lh/assert.h>
 #include <lh/math.h>
 
 /* What an empty string with no buffer of its own reads as. */
-static const lh_char_t m_str_empty[1] = {'\0'};
+static const lh_char_t m_str_empty[1] = {lh_char_map_nul};
 
 lh_void
 lh_str_write_terminator(lh_str_t *self)
 {
-    lh_ptr_deref_of(lh_char_t, lh_array_get_end(self)) = '\0';
+    lh_ptr_deref_of(lh_char_t, lh_array_get_end(self)) = lh_char_map_nul;
 }
 
 lh_void

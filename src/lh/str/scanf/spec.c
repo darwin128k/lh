@@ -1,4 +1,5 @@
 #include <lh/str/scanf/spec.h>
+#include <lh/char/map.h>
 #include <lh/assert.h>
 #include <lh/math.h>
 #include <lh/util/ptr.h>
@@ -157,26 +158,26 @@ lh_str_scanf_spec_set_conversion(lh_str_scanf_spec_t *self, lh_char_t conversion
     lh_assert_runtime_ref(self);
     switch (conversion)
     {
-    case '%':
+    case lh_char_map_percent:
         self->kind = lh_str_scanf_spec_kind_percent;
         break;
-    case 'c':
+    case lh_char_map_small_c:
         self->kind = lh_str_scanf_spec_kind_char;
         break;
-    case 's':
+    case lh_char_map_small_s:
         self->kind = lh_str_scanf_spec_kind_str;
         break;
-    case 'u':
+    case lh_char_map_small_u:
         self->kind = lh_str_scanf_spec_kind_uint;
         break;
-    case 'd':
-    case 'i':
+    case lh_char_map_small_d:
+    case lh_char_map_small_i:
         self->kind = lh_str_scanf_spec_kind_sint;
         break;
-    case 'x':
+    case lh_char_map_small_x:
         self->kind = lh_str_scanf_spec_kind_hex;
         break;
-    case 'X':
+    case lh_char_map_capital_x:
         self->kind = lh_str_scanf_spec_kind_hex;
         self->uppercase = lh_bool_true;
         break;
