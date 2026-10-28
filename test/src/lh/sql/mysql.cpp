@@ -525,7 +525,7 @@ TEST(sql_mysql_api, the_default_client_connects_or_says_why_not)
     lh_sql_db_deinit(&db);
 }
 
-int thread_ends = 0;
+lh_uint_t thread_ends = 0;
 
 lh_void
 fake_thread_end(lh_void)
@@ -546,7 +546,7 @@ TEST(sql_mysql_api, thread_cleanup_is_optional_and_cleared_on_deinit)
     EXPECT_EQ(thread_ends, 1);
 
     lh_sql_mysql_api_deinit(&api);
-    EXPECT_EQ(api.thread_end, nullptr);
+    EXPECT_TRUE(lh_null_eq(api.thread_end));
     lh_sql_mysql_api_thread_end(&api);
     EXPECT_EQ(thread_ends, 1);
 }
