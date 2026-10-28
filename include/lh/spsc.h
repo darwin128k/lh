@@ -13,14 +13,120 @@
 #ifndef LH_SPSC_H
 #define LH_SPSC_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/size.h>
-#include <lh/ptr.h>
+#include <lh/memory/allocator.h>
 
 typedef struct lh_spsc lh_spsc_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief The allocator copy that owns the queue's metadata.
+ *
+ * Level-1 accessor: captured from the runtime allocator by ::lh_spsc_create and
+ * used by ::lh_spsc_destroy.
+ */
+lh_memory_allocator_t *
+lh_spsc_get_allocator_mut(lh_spsc_t *self);
+
+/** @brief The borrowed record storage: capacity * item_size bytes. */
+lh_byte_t *
+lh_spsc_get_storage(const lh_spsc_t *self);
+
+/** @brief Point the queue at @p storage. Level-1 setter: no validation. */
+lh_void
+lh_spsc_set_storage(lh_spsc_t *self, lh_byte_t *storage);
+
+/** @brief Number of record slots; a power of two. */
+lh_uint_t
+lh_spsc_get_capacity(const lh_spsc_t *self);
+
+/** @brief Store the slot count. Level-1 setter: no validation. */
+lh_void
+lh_spsc_set_capacity(lh_spsc_t *self, lh_uint_t capacity);
+
+/** @brief Bytes of one record. */
+lh_usize_t
+lh_spsc_get_item_size(const lh_spsc_t *self);
+
+/** @brief Store the record size. Level-1 setter: no validation. */
+lh_void
+lh_spsc_set_item_size(lh_spsc_t *self, lh_usize_t item_size);
+
+/**
+ * @brief Records pushed so far (wraps), read with acquire order.
+ *
+ * Acquire pairs with the release in ::lh_spsc_set_written: a consumer that sees
+ * the count also sees the record bytes written before it.
+ */
+lh_uint_t
+lh_spsc_get_written(lh_spsc_t *self);
+
+/** @brief Publish the pushed count with release order. Only the producer calls it. */
+lh_void
+lh_spsc_set_written(lh_spsc_t *self, lh_uint_t written);
+
+/**
+ * @brief Records released so far (wraps), read with acquire order.
+ *
+ * Acquire pairs with the release in ::lh_spsc_set_read: a producer that sees a
+ * slot released may overwrite it.
+ */
+lh_uint_t
+lh_spsc_get_read(lh_spsc_t *self);
+
+/** @brief Publish the released count with release order. Only the consumer calls it. */
+lh_void
+lh_spsc_set_read(lh_spsc_t *self, lh_uint_t read);
+
+/** @brief Start the pushed count at zero; before the queue is shared. */
+lh_void
+lh_spsc_init_written(lh_spsc_t *self);
+
+/** @brief Start the released count at zero; before the queue is shared. */
+lh_void
+lh_spsc_init_read(lh_spsc_t *self);
+
+/** @brief Whether the pushed count is a lock-free atomic on this target. */
+lh_bool_t
+lh_spsc_is_written_lock_free(const lh_spsc_t *self);
+
+/** @brief Whether the released count is a lock-free atomic on this target. */
+lh_bool_t
+lh_spsc_is_read_lock_free(const lh_spsc_t *self);
+
+/**
+ * @brief Whether @p storage, @p capacity and @p item_size can form a queue.
+ *
+ * Storage non-null; capacity a non-zero power of two up to LH_UINT_T_MAX / 2;
+ * item_size non-zero with capacity * item_size within ::lh_usize_t.
+ */
+lh_bool_t
+lh_spsc_is_valid_shape(lh_ptr storage, lh_uint_t capacity, lh_usize_t item_size);
+
+/** @brief Start both counters at zero; before the queue is shared. */
+lh_void
+lh_spsc_init_counters(lh_spsc_t *self);
+
+/** @brief Whether both counters are lock-free atomics on this target. */
+lh_bool_t
+lh_spsc_is_lock_free(const lh_spsc_t *self);
+
+/**
+ * @brief Address of the slot that counter value @p position maps to.
+ *
+ * `storage + (position mod capacity) * item_size`; the one formula push and peek
+ * share.
+ */
+lh_byte_t *
+lh_spsc_get_slot(const lh_spsc_t *self, lh_uint_t position);
+
+/**
+ * @brief Release queue metadata without releasing borrowed record storage.
+ *
+ * A null self is ignored. Producer and consumer must have stopped using the queue.
+ */
+lh_void
+lh_spsc_destroy(lh_spsc_t *self);
 
 /**
  * @brief Create a queue over borrowed fixed-record storage.
@@ -30,14 +136,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 lh_spsc_t *
 lh_spsc_create(lh_ptr storage, lh_uint_t capacity, lh_usize_t item_size);
-
-/**
- * @brief Release queue metadata without releasing borrowed record storage.
- *
- * A null self is ignored. Producer and consumer must have stopped using the queue.
- */
-lh_void
-lh_spsc_destroy(lh_spsc_t *self);
 
 /**
  * @brief Copy a record into the next available slot.

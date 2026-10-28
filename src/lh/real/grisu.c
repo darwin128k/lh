@@ -66,11 +66,11 @@ lh_real_grisu_digits(lh_real_diy_t w, lh_real_diy_t upper, lh_u64_t delta, lh_ch
 {
     /* upper.e is in [-60, -32]: the integer part of upper fits 32 bits, and
        the fraction has |e| bits. */
-    const lh_s32_t shift = lh_math_neg(upper.e);
+    const lh_s32_t shift = lh_math_neg(lh_real_diy_get_e(lh_addr_of(upper)));
     const lh_u64_t one = lh_math_bit_shl(1ULL, shift);
-    const lh_u64_t distance = lh_math_sub(upper.f, w.f);
-    lh_u32_t integral = lh_cast_static(lh_u32_t, lh_math_bit_shr(upper.f, shift));
-    lh_u64_t fraction = lh_math_bit_and(upper.f, lh_math_sub_one(one));
+    const lh_u64_t distance = lh_math_sub(lh_real_diy_get_f(lh_addr_of(upper)), lh_real_diy_get_f(lh_addr_of(w)));
+    lh_u32_t integral = lh_cast_static(lh_u32_t, lh_math_bit_shr(lh_real_diy_get_f(lh_addr_of(upper)), shift));
+    lh_u64_t fraction = lh_math_bit_and(lh_real_diy_get_f(lh_addr_of(upper)), lh_math_sub_one(one));
     lh_s32_t kappa = lh_cast_static(lh_s32_t, lh_real_grisu_count_digits(integral));
     lh_usize_t n = 0U;
 
@@ -142,7 +142,7 @@ lh_real_grisu(lh_real_t value, lh_char_t *digits, lh_usize_t *count, lh_s32_t *k
 
     lh_assert_runtime_ref(k);
     lh_real_diy_get_boundaries(value, lh_addr_of(minus), lh_addr_of(plus));
-    index = lh_real_cached_find(plus.e);
+    index = lh_real_cached_find(lh_real_diy_get_e(lh_addr_of(plus)));
     power = lh_real_cached_get(index);
     lh_ptr_deref(k) = lh_math_neg(lh_real_cached_get_k(index));
 
@@ -151,9 +151,9 @@ lh_real_grisu(lh_real_t value, lh_char_t *digits, lh_usize_t *count, lh_s32_t *k
     minus = lh_real_diy_mul(minus, power);
     /* One unit in from each boundary: the products are rounded, and a digit
        on the boundary itself might read back as the neighbour. */
-    plus.f = lh_math_sub_one(plus.f);
-    minus.f = lh_math_add_one(minus.f);
-    lh_real_grisu_digits(w, plus, lh_math_sub(plus.f, minus.f), digits, count, k);
+    lh_real_diy_set_f(lh_addr_of(plus), lh_math_sub_one(lh_real_diy_get_f(lh_addr_of(plus))));
+    lh_real_diy_set_f(lh_addr_of(minus), lh_math_add_one(lh_real_diy_get_f(lh_addr_of(minus))));
+    lh_real_grisu_digits(w, plus, lh_math_sub(lh_real_diy_get_f(lh_addr_of(plus)), lh_real_diy_get_f(lh_addr_of(minus))), digits, count, k);
 }
 
 #endif /* LH_REAL_ENABLED */

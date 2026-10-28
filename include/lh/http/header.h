@@ -25,19 +25,33 @@ typedef struct lh_http_header lh_http_header_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/** @brief The @c name of @p self. */
+/**
+ * @brief The field name, spelled as received (compare it without ASCII case).
+ * The view points into the parsed input and lives as long as that buffer.
+ */
 const lh_str_view_t *
 lh_http_header_get_name(const lh_http_header_t *self);
 
-/** @brief Store @p name as the @c name of @p self. */
+/**
+ * @brief Store the field name, spelled as received (compare it without ASCII case).
+ *
+ * Level-1 setter: no validation; the parser fills it.
+ */
 lh_void
 lh_http_header_set_name(lh_http_header_t *self, lh_str_view_t name);
 
-/** @brief The @c value of @p self. */
+/**
+ * @brief The field value without its leading and trailing spaces and tabs.
+ * The view points into the parsed input and lives as long as that buffer.
+ */
 const lh_str_view_t *
 lh_http_header_get_value(const lh_http_header_t *self);
 
-/** @brief Store @p value as the @c value of @p self. */
+/**
+ * @brief Store the field value without its leading and trailing spaces and tabs.
+ *
+ * Level-1 setter: no validation; the parser fills it.
+ */
 lh_void
 lh_http_header_set_value(lh_http_header_t *self, lh_str_view_t value);
 

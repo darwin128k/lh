@@ -25,6 +25,8 @@ struct lh_timer_group
 /** @copybrief lh_timer_group */
 typedef struct lh_timer_group lh_timer_group_t;
 
+struct lh_timer;
+
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
@@ -66,6 +68,15 @@ lh_timer_group_handler(lh_timer_group_t *self, lh_tick_t now);
  */
 lh_tick_t
 lh_timer_group_until_next(const lh_timer_group_t *self, lh_tick_t now);
+
+/**
+ * @brief Change the priority of @p timer; a running one is re-linked in @p group
+ *        so the group keeps firing in priority order.
+ *
+ * @p timer must belong to @p group when it is running.
+ */
+lh_void
+lh_timer_group_set_priority(lh_timer_group_t *group, struct lh_timer *timer, lh_u8_t priority);
 
 LH_COMPILER_EXTERN_C_END
 

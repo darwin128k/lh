@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- More level-1 accessors, and the code that bypassed them now calls them: `lh_logger_get_*_cb` / `_set_*_cb`, `_set_flags`, `_set_context`; `lh_spsc_get_*` / `_set_*` (storage, capacity, item_size, written, read — the counters with acquire / release order), `lh_spsc_init_written` / `_read`, `lh_spsc_is_*_lock_free`, `lh_spsc_is_valid_shape`, `lh_spsc_get_slot` (the one slot formula push and peek share); `lh_math_slice_set_begin` / `_set_end`; `lh_math_view_get_slice` / `_get_slice_mut` / `_get_stride` / `_set_stride` / `_set_count`; `lh_fs_stat_set_*`; `lh_real_diy_get_f` / `_get_e` / `_set_f` / `_set_e`; `lh_timer_get_*` / `_set_*` (period, last, repeat, paused, cb, context, priority). `lh_spsc_create` allocates through `lh_memory_allocator_try_alloc` instead of calling the callback itself. The formatter and the scanner use the `lh_str_scanf_spec_*` accessors, the big-number arithmetic `lh_numeric_big_get_word` / `_set_word`
+
 - Level-1 accessors for structs that had none, so no code outside them names a field: `lh_str_list_span_get_offset` / `_get_size` / `_set_offset` / `_set_size` / `_init` (`lh/str/list/span.h`); `lh_http_request_get_*` / `_set_*` (method, target, version_minor, header_count), `lh_http_response_get_*` / `_set_*` (reason, status, version_minor, header_count), `lh_http_header_get_*` / `_set_*` (name, value), `lh_http_parser_get_*` / `_set_*` (head_size_max, line_size_max, consumed, error_offset, error). The string lists and the HTTP parser use them; the lists lose their empty-element branches
 
 - Find bricks (`lh/memory.h`): `lh_memory_is_unbounded` (a sentinel scan with no real length), `lh_memory_find_byte_by_step`, `lh_memory_find_unit_by_step`, `lh_memory_find_unit_by_blocks` (real length only), `lh_memory_find_needle_by_step`; `lh_memory_find_step` only dispatches to them
@@ -105,6 +107,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `scripts/audit_headers.py`: reads the public headers and reports every declaration that carries no Doxygen comment. Doxygen cannot be the only check: a header without a file documentation block is not extracted at all, and where an `#if` chain carries a doc block in each branch, Doxygen sees one branch only. The count must be zero
 - `docs/index.md`: the index of every guide — integration by target (microcontroller / desktop window / web host), subsystem (UI, modules, OS threads, HTTP, 3D renderer), project files — linked from the README
 ### Changed
+
+- `lh_timer_set_priority(group, timer, priority)` is `lh_timer_group_set_priority` (`lh/timer/group.h`): it re-links the timer in its group. `lh_timer_set_priority(timer, priority)` is now the plain level-1 setter
 
 - `lh_str_init_by_size` is `lh_str_view_init_by_size`: it builds an `lh_str_view_t`, declared in `lh/str/view.h`, beside `lh_wstr_view_init_by_size`. `lh_str_view_init`, `lh_wstr_view_init`, `lh_str_as_view` and `lh_wstr_as_view` lose their empty-string branch: a zero size is the empty view now. `lh_memory_*`, `lh_str_view_*` and `lh_wstr_view_*` are ordered by level in their headers and sources
 

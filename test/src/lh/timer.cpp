@@ -154,7 +154,7 @@ TEST(timer_set_priority, relinks_while_running)
     lh_timer_start(lh_addr_of(group), lh_addr_of(high), 10, lh_bool_true, 2, on_fire,
                    lh_addr_of(log), 0);
 
-    lh_timer_set_priority(lh_addr_of(group), lh_addr_of(low), 9);
+    lh_timer_group_set_priority(lh_addr_of(group), lh_addr_of(low), 9);
     EXPECT_EQ(lh_timer_get_priority(lh_addr_of(low)), 9);
 
     lh_timer_group_handler(lh_addr_of(group), 10);

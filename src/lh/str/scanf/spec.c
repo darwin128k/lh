@@ -158,27 +158,27 @@ lh_str_scanf_spec_set_conversion(lh_str_scanf_spec_t *self, lh_char_t conversion
     switch (conversion)
     {
     case lh_char_map_percent:
-        self->kind = lh_str_scanf_spec_kind_percent;
+        lh_str_scanf_spec_set_kind(self, lh_str_scanf_spec_kind_percent);
         break;
     case lh_char_map_small_c:
-        self->kind = lh_str_scanf_spec_kind_char;
+        lh_str_scanf_spec_set_kind(self, lh_str_scanf_spec_kind_char);
         break;
     case lh_char_map_small_s:
-        self->kind = lh_str_scanf_spec_kind_str;
+        lh_str_scanf_spec_set_kind(self, lh_str_scanf_spec_kind_str);
         break;
     case lh_char_map_small_u:
-        self->kind = lh_str_scanf_spec_kind_uint;
+        lh_str_scanf_spec_set_kind(self, lh_str_scanf_spec_kind_uint);
         break;
     case lh_char_map_small_d:
     case lh_char_map_small_i:
-        self->kind = lh_str_scanf_spec_kind_sint;
+        lh_str_scanf_spec_set_kind(self, lh_str_scanf_spec_kind_sint);
         break;
     case lh_char_map_small_x:
-        self->kind = lh_str_scanf_spec_kind_hex;
+        lh_str_scanf_spec_set_kind(self, lh_str_scanf_spec_kind_hex);
         break;
     case lh_char_map_capital_x:
-        self->kind = lh_str_scanf_spec_kind_hex;
-        self->uppercase = lh_bool_true;
+        lh_str_scanf_spec_set_kind(self, lh_str_scanf_spec_kind_hex);
+        lh_str_scanf_spec_set_uppercase(self, lh_bool_true);
         break;
     default:
         break; /* kind stays invalid */

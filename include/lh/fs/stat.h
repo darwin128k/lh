@@ -37,12 +37,6 @@ typedef struct lh_fs_stat lh_fs_stat_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Zero @p self: kind `other`, empty perm/attr, times and size `0`.
- */
-lh_void
-lh_fs_stat_init(lh_fs_stat_t *self);
-
-/**
  * @brief Copy @p other into @p self.
  */
 lh_void
@@ -103,6 +97,36 @@ lh_fs_attr_t
 lh_fs_stat_get_attr(const lh_fs_stat_t *self);
 
 /**
+ * @brief Overwrite the extra flags of @p self. Other fields are untouched.
+ */
+lh_void
+lh_fs_stat_set_attr(lh_fs_stat_t *self, lh_fs_attr_t attr);
+
+/** @brief Store what the entry is (file, directory, link, ...). Level-1 setter: no validation. */
+lh_void
+lh_fs_stat_set_kind(lh_fs_stat_t *self, lh_fs_kind_t kind);
+
+/** @brief Store the permission bits. Level-1 setter: no validation. */
+lh_void
+lh_fs_stat_set_perm(lh_fs_stat_t *self, lh_fs_perm_t perm);
+
+/** @brief Store the size in bytes. Level-1 setter: no validation. */
+lh_void
+lh_fs_stat_set_size(lh_fs_stat_t *self, lh_fs_size_t size);
+
+/** @brief Store the last access time. Level-1 setter: no validation. */
+lh_void
+lh_fs_stat_set_atime(lh_fs_stat_t *self, lh_fs_time_t atime);
+
+/** @brief Store the last modification time. Level-1 setter: no validation. */
+lh_void
+lh_fs_stat_set_mtime(lh_fs_stat_t *self, lh_fs_time_t mtime);
+
+/** @brief Store the status change time (creation time on Windows). Level-1 setter: no validation. */
+lh_void
+lh_fs_stat_set_ctime(lh_fs_stat_t *self, lh_fs_time_t ctime);
+
+/**
  * @brief Overwrite every field of @p self.
  */
 lh_void
@@ -110,10 +134,10 @@ lh_fs_stat_set(lh_fs_stat_t *self, lh_fs_kind_t kind, lh_fs_perm_t perm, lh_fs_s
                lh_fs_time_t atime, lh_fs_time_t mtime, lh_fs_time_t ctime, lh_fs_attr_t attr);
 
 /**
- * @brief Overwrite the extra flags of @p self. Other fields are untouched.
+ * @brief Zero @p self: kind `other`, empty perm/attr, times and size `0`.
  */
 lh_void
-lh_fs_stat_set_attr(lh_fs_stat_t *self, lh_fs_attr_t attr);
+lh_fs_stat_init(lh_fs_stat_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

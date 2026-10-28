@@ -25,35 +25,57 @@ typedef struct lh_http_request lh_http_request_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/** @brief The @c method of @p self. */
+/**
+ * @brief The request method token, e.g. `GET`.
+ * The view points into the parsed input and lives as long as that buffer.
+ */
 const lh_str_view_t *
 lh_http_request_get_method(const lh_http_request_t *self);
 
-/** @brief Store @p method as the @c method of @p self. */
+/**
+ * @brief Store the request method token, e.g. `GET`.
+ *
+ * Level-1 setter: no validation; the parser fills it.
+ */
 lh_void
 lh_http_request_set_method(lh_http_request_t *self, lh_str_view_t method);
 
-/** @brief The @c target of @p self. */
+/**
+ * @brief The request target as raw URI text, e.g. `/maps/a.bsp?x=1`.
+ * The view points into the parsed input and lives as long as that buffer.
+ */
 const lh_str_view_t *
 lh_http_request_get_target(const lh_http_request_t *self);
 
-/** @brief Store @p target as the @c target of @p self. */
+/**
+ * @brief Store the request target as raw URI text, e.g. `/maps/a.bsp?x=1`.
+ *
+ * Level-1 setter: no validation; the parser fills it.
+ */
 lh_void
 lh_http_request_set_target(lh_http_request_t *self, lh_str_view_t target);
 
-/** @brief The @c version_minor of @p self. */
+/** @brief The minor digit of `HTTP/1.x` (0..9); which ones a service accepts is its policy. */
 lh_u8_t
 lh_http_request_get_version_minor(const lh_http_request_t *self);
 
-/** @brief Store @p version_minor as the @c version_minor of @p self. */
+/**
+ * @brief Store the minor digit of `HTTP/1.x` (0..9); which ones a service accepts is its policy.
+ *
+ * Level-1 setter: no validation; the parser fills it.
+ */
 lh_void
 lh_http_request_set_version_minor(lh_http_request_t *self, lh_u8_t version_minor);
 
-/** @brief The @c header_count of @p self. */
+/** @brief Number of header fields the parse stored in the caller's array. */
 lh_usize_t
 lh_http_request_get_header_count(const lh_http_request_t *self);
 
-/** @brief Store @p header_count as the @c header_count of @p self. */
+/**
+ * @brief Store number of header fields the parse stored in the caller's array.
+ *
+ * Level-1 setter: no validation; the parser fills it.
+ */
 lh_void
 lh_http_request_set_header_count(lh_http_request_t *self, lh_usize_t header_count);
 

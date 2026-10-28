@@ -49,11 +49,11 @@ static const lh_u64_t lh_str_format_float_pow10[20] = {
 lh_void
 lh_str_format_float_big_set_u64(lh_numeric_big_t *self, lh_u64_t value)
 {
-    self->words[0] = lh_cast_static(lh_u32_t, lh_bit_and(value, 0xFFFFFFFFULL));
-    self->words[1] = lh_cast_static(lh_u32_t, lh_bit_shr(value, 32U));
+    lh_numeric_big_set_word(self, 0, lh_cast_static(lh_u32_t, lh_bit_and(value, 0xFFFFFFFFULL)));
+    lh_numeric_big_set_word(self, 1, lh_cast_static(lh_u32_t, lh_bit_shr(value, 32U)));
     for (lh_usize_t i = 2U; lh_math_lt(i, LH_NUMERIC_BIG_WORDS); i = lh_math_add_one(i))
     {
-        self->words[i] = 0U;
+        lh_numeric_big_set_word(self, i, 0U);
     }
 }
 
@@ -62,13 +62,13 @@ lh_str_format_float_big_as_u64(const lh_numeric_big_t *self, lh_u64_t *out)
 {
     for (lh_usize_t i = 2U; lh_math_lt(i, LH_NUMERIC_BIG_WORDS); i = lh_math_add_one(i))
     {
-        if (lh_math_ne(self->words[i], 0U))
+        if (lh_math_ne(lh_numeric_big_get_word(self, i), 0U))
         {
             return lh_bool_false;
         }
     }
-    lh_ptr_deref(out) = lh_bit_or(lh_cast_static(lh_u64_t, self->words[0]),
-                                  lh_bit_shl(lh_cast_static(lh_u64_t, self->words[1]), 32U));
+    lh_ptr_deref(out) = lh_bit_or(lh_cast_static(lh_u64_t, lh_numeric_big_get_word(self, 0)),
+                                  lh_bit_shl(lh_cast_static(lh_u64_t, lh_numeric_big_get_word(self, 1)), 32U));
     return lh_bool_true;
 }
 

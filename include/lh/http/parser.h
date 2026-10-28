@@ -76,31 +76,51 @@ lh_http_parser_get_error(const lh_http_parser_t *self);
 lh_usize_t
 lh_http_parser_get_error_offset(const lh_http_parser_t *self);
 
-/** @brief The @c head_size_max of @p self. */
+/** @brief Head budget in bytes, the final CRLF included; zero is invalid. */
 lh_usize_t
 lh_http_parser_get_head_size_max(const lh_http_parser_t *self);
 
-/** @brief Store @p head_size_max as the @c head_size_max of @p self. */
+/**
+ * @brief Store head budget in bytes, the final CRLF included; zero is invalid.
+ *
+ * Level-1 setter: no validation; the parser fills it.
+ */
 lh_void
 lh_http_parser_set_head_size_max(lh_http_parser_t *self, lh_usize_t head_size_max);
 
-/** @brief The @c line_size_max of @p self. */
+/** @brief Budget of one physical line in bytes, CRLF excluded; zero is invalid. */
 lh_usize_t
 lh_http_parser_get_line_size_max(const lh_http_parser_t *self);
 
-/** @brief Store @p line_size_max as the @c line_size_max of @p self. */
+/**
+ * @brief Store budget of one physical line in bytes, CRLF excluded; zero is invalid.
+ *
+ * Level-1 setter: no validation; the parser fills it.
+ */
 lh_void
 lh_http_parser_set_line_size_max(lh_http_parser_t *self, lh_usize_t line_size_max);
 
-/** @brief Store @p consumed as the @c consumed of @p self. */
+/**
+ * @brief Store bytes through the final CRLF of the last complete parse.
+ *
+ * Level-1 setter: no validation; the parser fills it.
+ */
 lh_void
 lh_http_parser_set_consumed(lh_http_parser_t *self, lh_usize_t consumed);
 
-/** @brief Store @p error_offset as the @c error_offset of @p self. */
+/**
+ * @brief Store byte offset of the offending input of the last failed parse.
+ *
+ * Level-1 setter: no validation; the parser fills it.
+ */
 lh_void
 lh_http_parser_set_error_offset(lh_http_parser_t *self, lh_usize_t error_offset);
 
-/** @brief Store @p error as the @c error of @p self. */
+/**
+ * @brief Store category of the last parse (::lh_http_error_none when it did not fail).
+ *
+ * Level-1 setter: no validation; the parser fills it.
+ */
 lh_void
 lh_http_parser_set_error(lh_http_parser_t *self, lh_http_error_t error);
 
