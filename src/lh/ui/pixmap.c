@@ -5,7 +5,6 @@
 
 #include <lh/bit/bswap.h>
 #include <lh/byte/limits.h>
-#include <lh/byte/ptr.h>
 #include <lh/cpu/simd.h>
 #include <lh/math.h>
 #include <lh/memory.h>

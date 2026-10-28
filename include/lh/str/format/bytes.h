@@ -10,8 +10,6 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
 #include <lh/str/ptr.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/void.h>
 
 /**
  * @def LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH

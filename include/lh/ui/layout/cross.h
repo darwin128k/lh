@@ -9,7 +9,6 @@
 #include <lh/ui/entity.h>
 #include <lh/ui/layout/fields.h>
 #include <lh/ui/justify.h>
-#include <lh/compiler/extern/c.h>
 
 /**
  * @struct lh_ui_layout_cross

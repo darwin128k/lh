@@ -39,7 +39,6 @@
 #include <lh/json/kind.h>
 #include <lh/json/node/fields.h>
 #include <lh/list.h>
-#include <lh/numeric/types.h>
 #include <lh/real.h>
 #include <lh/str.h>
 

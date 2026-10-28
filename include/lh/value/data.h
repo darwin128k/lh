@@ -6,9 +6,6 @@
 #ifndef LH_VALUE_DATA_H
 #define LH_VALUE_DATA_H
 
-#include <lh/bool.h>
-#include <lh/numeric/types.h>
-#include <lh/ptr.h>
 #include <lh/real.h>
 #include <lh/str/view.h>
 

@@ -10,7 +10,6 @@
 #ifndef LH_OS_CONDITION_H
 #define LH_OS_CONDITION_H
 
-#include <lh/os/system/concurrency.h>
 #include <lh/os/condition/fields.h>
 #include <lh/os/mutex.h>
 

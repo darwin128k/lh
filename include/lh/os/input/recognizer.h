@@ -41,7 +41,6 @@
 #ifndef LH_OS_INPUT_RECOGNIZER_H
 #define LH_OS_INPUT_RECOGNIZER_H
 
-#include <lh/os/input/event.h>
 #include <lh/os/input/recognizer/config.h>
 #include <lh/os/input/recognizer/fields.h>
 #include <lh/os/input/recognizer/pointer.h>

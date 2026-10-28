@@ -13,9 +13,7 @@
 
 #include <lh/os/system/win/gdi32/bitmapinfoheader/fields.h>
 #include <lh/os/system/win/gdi32/bitmapv5header/fields.h>
-#include <lh/os/system/win/types.h>
 #include <lh/os/system/win/user32.h>
-#include <lh/ptr.h>
 
 /** `BITMAPINFOHEADER`. A 32-bit `BI_RGB` bitmap has no color table, so this
    header alone is what `CreateDIBSection` reads as its `BITMAPINFO`. */

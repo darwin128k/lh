@@ -1,12 +1,7 @@
 #include <lh/ini/parser.h>
 #include <lh/assert.h>
-#include <lh/cast/static.h>
 #include <lh/char/map.h>
-#include <lh/math/ops.h>
-#include <lh/null.h>
 #include <lh/str/split/once.h>
-#include <lh/util/array/ptr.h>
-#include <lh/util/str/ptr.h>
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
 

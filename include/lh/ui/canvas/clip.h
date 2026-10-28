@@ -17,8 +17,6 @@
 #ifndef LH_UI_CANVAS_CLIP_H
 #define LH_UI_CANVAS_CLIP_H
 
-#include <lh/ui/canvas/clip/fields.h>
-#include <lh/ui/rect.h>
 #include <lh/ui/canvas/clip/round.h>
 
 /**

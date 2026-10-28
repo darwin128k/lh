@@ -11,12 +11,10 @@
 #include <lh/os/system/win/input.h>
 #include <lh/os/system/win/kernel32.h>
 #include <lh/os/system/win/key.h>
-#include <lh/os/system/win/user32.h>
 #include <lh/os/system/win/window/glue.h>
 #include <lh/os/system/win/window/map.h>
 #include <lh/os/system/window.h>
 #include <lh/os/tick.h>
-#include <lh/os/window.h>
 #include <lh/util/return.h>
 
 /** The window class every window of ours is registered under. */

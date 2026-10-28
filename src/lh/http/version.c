@@ -1,6 +1,5 @@
 #include <lh/http/version.h>
 #include <lh/char/digit.h>
-#include <lh/str/view/initializer.h>
 #include <lh/util/return.h>
 
 lh_bool_t

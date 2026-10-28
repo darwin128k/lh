@@ -6,7 +6,6 @@
 #ifndef LH_OS_WORKER_FN_H
 #define LH_OS_WORKER_FN_H
 
-#include <lh/void.h>
 #include <lh/ptr.h>
 
 /**

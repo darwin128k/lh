@@ -23,7 +23,6 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/crypto/rijndael/mode.h>
-#include <lh/null.h>
 #include <lh/size.h>
 
 /* The session layout below depends on this option, so a config.h without it would

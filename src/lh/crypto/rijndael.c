@@ -1,10 +1,8 @@
 #include <lh/crypto/rijndael.h>
-#include <lh/byte/ptr.h>
 #include <lh/compiler/unreachable.h>
 #include <lh/memory/std.h>
 #include <lh/bit/endian.h>
 #include <lh/bit/rotate.h>
-#include <lh/math/ops.h>
 #include <lh/config.h>
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_AESNI

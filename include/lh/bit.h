@@ -19,7 +19,6 @@
 
 #include <lh/bit/bswap.h>
 #include <lh/bit/endian.h>
-#include <lh/bit/ops.h>
 #include <lh/bit/packed.h>
 #include <lh/bit/rotate.h>
 #include <lh/bit/scan.h>

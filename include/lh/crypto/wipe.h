@@ -9,7 +9,6 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/ptr.h>
 #include <lh/size.h>
-#include <lh/void.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

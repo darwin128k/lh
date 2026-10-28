@@ -12,7 +12,6 @@
 #ifndef LH_HASH_FNV_H
 #define LH_HASH_FNV_H
 
-#include <lh/byte.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/ptr.h>
 #include <lh/size.h>

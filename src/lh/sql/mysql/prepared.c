@@ -1,7 +1,5 @@
 #include <lh/sql/mysql/prepared.h>
 #include <lh/assert.h>
-#include <lh/math/ops.h>
-#include <lh/null.h>
 #include <lh/runtime/allocator.h>
 #include <lh/sql/mysql/query.h>
 

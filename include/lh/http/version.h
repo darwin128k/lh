@@ -9,9 +9,6 @@
 #ifndef LH_HTTP_VERSION_H
 #define LH_HTTP_VERSION_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/str/view.h>
 
 LH_COMPILER_EXTERN_C_BEGIN

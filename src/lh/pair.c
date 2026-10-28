@@ -1,6 +1,5 @@
 #include <lh/pair.h>
 #include <lh/assert.h>
-#include <lh/cast/static.h>
 
 const lh_value_t *
 lh_pair_get_first(const lh_pair_t *self)

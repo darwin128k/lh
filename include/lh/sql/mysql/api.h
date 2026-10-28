@@ -18,7 +18,6 @@
 #ifndef LH_SQL_MYSQL_API_H
 #define LH_SQL_MYSQL_API_H
 
-#include <lh/numeric/types.h>
 #include <lh/os/shared.h>
 #include <lh/sql/mysql/api/fields.h>
 

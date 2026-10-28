@@ -7,10 +7,8 @@
 #define LH_OS_INPUT_BUTTON_H
 
 #include <lh/attribute/force_inline.h>
-#include <lh/bit/ops.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/util/type.h>
 
 /**

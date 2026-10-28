@@ -19,13 +19,7 @@
 #ifndef LH_BIT_SWAR_H
 #define LH_BIT_SWAR_H
 
-#include <lh/attribute/force_inline.h>
-#include <lh/bit/ops.h>
 #include <lh/bit/scan.h>
-#include <lh/cast/static.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/size.h>
 
 /**
  * @def LH_BIT_SWAR_BIG_ENDIAN

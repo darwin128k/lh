@@ -1,11 +1,7 @@
 #include <lh/json/minify.h>
 #include <lh/assert.h>
-#include <lh/cast/static.h>
 #include <lh/char/map.h>
 #include <lh/json/reader.h>
-#include <lh/math/ops.h>
-#include <lh/null.h>
-#include <lh/runtime/error.h>
 
 lh_bool_t
 lh_json_minify_is_at(const lh_str_ptr text, lh_usize_t size, lh_usize_t pos, lh_char_t first,

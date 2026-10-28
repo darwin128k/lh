@@ -7,7 +7,6 @@
 #define LH_STR_FORMAT_UINT_H
 
 #include <lh/compiler/extern/c.h>
-#include <lh/numeric/limits.h>
 #include <lh/size.h>
 #include <lh/str/ptr.h>
 

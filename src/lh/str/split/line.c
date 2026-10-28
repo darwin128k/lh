@@ -1,9 +1,6 @@
 #include <lh/str/split/line.h>
 #include <lh/assert.h>
 #include <lh/char/map.h>
-#include <lh/math/ops.h>
-#include <lh/util/array/ptr.h>
-#include <lh/util/str/ptr.h>
 
 /* Every character that ends a line; `\r\n` is resolved after the hit. */
 static const lh_char_t m_str_split_line_ends[] = {lh_char_map_cr, lh_char_map_lf};

@@ -7,7 +7,6 @@
 #define LH_MEMORY_VIEW_INITIALIZER_H
 
 #include <lh/null.h>
-#include <lh/initializer.h>
 
 /**
  * @def lh_memory_view_initializer(begin, size)

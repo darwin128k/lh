@@ -7,7 +7,6 @@
 #define LH_UI_BLUR_WINDOW_H
 
 #include <lh/ui/pixmap.h>
-#include <lh/compiler/extern/c.h>
 
 /**
  * @struct lh_ui_blur_window

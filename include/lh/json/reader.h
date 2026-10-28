@@ -25,14 +25,9 @@
 #ifndef LH_JSON_READER_H
 #define LH_JSON_READER_H
 
-#include <lh/bool.h>
-#include <lh/char.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/json/error.h>
 #include <lh/json/node.h>
 #include <lh/json/reader/fields.h>
-#include <lh/size.h>
-#include <lh/str/view.h>
 
 #ifndef LH_JSON_READER_DEPTH_MAX
 /**

@@ -8,7 +8,6 @@
 
 #include <lh/config.h>
 #include <lh/bool.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/ptr.h>
 #include <lh/compiler/extern/c.h>
 

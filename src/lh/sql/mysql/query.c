@@ -1,8 +1,6 @@
 #include <lh/sql/mysql/query.h>
 #include <lh/assert.h>
-#include <lh/cast/static.h>
 #include <lh/char/map.h>
-#include <lh/math/ops.h>
 
 lh_usize_t
 lh_sql_mysql_query_skip_quoted(const lh_str_ptr text, lh_usize_t size, lh_usize_t pos)

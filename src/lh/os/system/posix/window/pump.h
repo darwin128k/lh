@@ -10,7 +10,6 @@
 #define LH_SRC_OS_SYSTEM_POSIX_WINDOW_PUMP_H
 
 #include <lh/bool.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/os/system/posix/window/fields.h>
 
 struct lh_os_system_posix_window;

@@ -22,7 +22,6 @@
 
 #include <lh/assert/runtime.h>
 #include <lh/bit/half.h>
-#include <lh/bit/ops.h>
 #include <lh/byte/ptr.h>
 
 LH_COMPILER_EXTERN_C_BEGIN

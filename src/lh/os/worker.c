@@ -4,7 +4,6 @@
 #include <lh/memory/std.h>
 #include <lh/assert.h>
 #include <lh/os/thread.h>
-#include <lh/os/mutex.h>
 #include <lh/os/condition.h>
 
 /**

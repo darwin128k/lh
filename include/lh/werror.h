@@ -17,7 +17,6 @@
 #ifndef LH_WERROR_H
 #define LH_WERROR_H
 
-#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/error/code.h>

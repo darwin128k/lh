@@ -22,8 +22,6 @@
 #define LH_MEMORY_VIEW_H
 
 #include <lh/bool.h>
-#include <lh/byte.h>
-#include <lh/size.h>
 #include <lh/offset.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/memory/view/fields.h>

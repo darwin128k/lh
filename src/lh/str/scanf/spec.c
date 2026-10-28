@@ -2,7 +2,6 @@
 #include <lh/char/map.h>
 #include <lh/assert.h>
 #include <lh/math.h>
-#include <lh/util/ptr.h>
 
 lh_str_scanf_spec_kind_t
 lh_str_scanf_spec_get_kind(const lh_str_scanf_spec_t *self)

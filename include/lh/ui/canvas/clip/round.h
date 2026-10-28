@@ -8,7 +8,6 @@
 
 #include <lh/ui/canvas/clip/fields.h>
 #include <lh/ui/rect.h>
-#include <lh/compiler/extern/c.h>
 
 /**
  * @struct lh_ui_canvas_clip_round

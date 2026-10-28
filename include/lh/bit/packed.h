@@ -16,7 +16,6 @@
 #define LH_BIT_PACKED_H
 
 #include <lh/attribute/force_inline.h>
-#include <lh/bit/ops.h>
 #include <lh/byte/ptr.h>
 #include <lh/compiler/extern/c.h>
 

@@ -29,7 +29,6 @@
 #include <lh/io/stream.h>
 #include <lh/os/result.h>
 #include <lh/os/net/socket/poll.h>
-#include <lh/os/system/net/socket/handle.h>
 #include <lh/os/system/net/socket/type.h>
 
 #if !LH_LIBRARY_OPTION_OS

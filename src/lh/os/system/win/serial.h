@@ -7,11 +7,9 @@
 #define LH_SRC_OS_SYSTEM_WIN_SERIAL_H
 
 #include <lh/bool.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/os/serial/parity.h>
 #include <lh/os/system/serial/handle.h>
 #include <lh/os/system/win/kernel32.h>
-#include <lh/size.h>
 
 /** @p handle as the Win32 `HANDLE` it is. */
 lh_os_system_win_handle_t

@@ -6,7 +6,6 @@
 #ifndef LH_EXCEPTION_ORIGIN_INITIALIZER_H
 #define LH_EXCEPTION_ORIGIN_INITIALIZER_H
 
-#include <lh/initializer.h>
 #include <lh/null.h>
 
 /**

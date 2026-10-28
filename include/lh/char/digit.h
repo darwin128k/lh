@@ -21,7 +21,6 @@
 
 #include <lh/assert/runtime.h>
 #include <lh/char/map.h>
-#include <lh/attribute/force_inline.h>
 #include <lh/util/char.h>
 
 /**

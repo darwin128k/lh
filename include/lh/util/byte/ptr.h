@@ -17,7 +17,6 @@
 #ifndef LH_UTIL_BYTE_PTR_H
 #define LH_UTIL_BYTE_PTR_H
 
-#include <lh/byte.h>
 #include <lh/util/ptr.h>
 
 /**

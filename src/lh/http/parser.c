@@ -1,10 +1,7 @@
 #include <lh/http/parser.h>
-#include <lh/char/map.h>
 #include <lh/char/digit.h>
 #include <lh/http/char.h>
 #include <lh/http/version.h>
-#include <lh/math/ops.h>
-#include <lh/null.h>
 #include <lh/util/return.h>
 
 lh_http_parse_status_t

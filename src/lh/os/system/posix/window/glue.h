@@ -14,7 +14,6 @@
 #include <lh/os/system/posix/x11.h>
 #include <lh/os/system/window/handle.h>
 #include <lh/os/window/zone.h>
-#include <lh/void.h>
 
 struct lh_os_system_posix_window;
 typedef struct lh_os_system_posix_window lh_os_system_posix_window_t;

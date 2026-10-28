@@ -6,9 +6,7 @@
 #ifndef LH_UI_BLUR_PASS_H
 #define LH_UI_BLUR_PASS_H
 
-#include <lh/ui/pixmap.h>
 #include <lh/ui/blur/window.h>
-#include <lh/compiler/extern/c.h>
 
 /**
  * @struct lh_ui_blur_pass

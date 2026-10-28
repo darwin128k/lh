@@ -1,6 +1,5 @@
 #include <lh/str/split/once.h>
 #include <lh/assert.h>
-#include <lh/math/ops.h>
 
 lh_bool_t
 lh_str_view_split_once(const lh_str_view_t *self, lh_char_t delim, lh_str_view_t *head,

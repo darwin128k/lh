@@ -1,5 +1,4 @@
 #include <lh/numeric/big.h>
-#include <lh/bit/ops.h>
 #include <lh/math.h>
 #include <lh/assert.h>
 

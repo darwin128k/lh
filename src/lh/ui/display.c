@@ -3,7 +3,6 @@
  * @brief ::lh_ui_display_t — host buffer + sw canvas + present sinks.
  */
 #include <lh/ui/display.h>
-#include <lh/byte/ptr.h>
 #include <lh/math.h>
 
 lh_void

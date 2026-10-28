@@ -14,9 +14,7 @@
 #define LH_STR_UTF8_H
 
 #include <lh/byte.h>
-#include <lh/char.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

@@ -45,14 +45,10 @@
 #ifndef LH_INI_PARSER_H
 #define LH_INI_PARSER_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/ini/entry.h>
 #include <lh/ini/error.h>
 #include <lh/ini/parser/fields.h>
-#include <lh/size.h>
 #include <lh/str/line/reader.h>
-#include <lh/str/view.h>
 
 /**
  * @struct lh_ini_parser

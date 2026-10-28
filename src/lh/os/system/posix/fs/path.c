@@ -1,10 +1,8 @@
 #include <lh/os/system/fs/path.h>
-#include <lh/util/ptr.h>
 #include <lh/assert.h>
 #include <lh/os.h>
 #include <lh/os/error/code.h>
 #include <lh/os/system/error/capture.h>
-#include <lh/util/str/ptr.h>
 #include <stdlib.h>
 #include <limits.h>
 

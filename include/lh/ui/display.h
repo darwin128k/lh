@@ -20,7 +20,6 @@
 #ifndef LH_UI_DISPLAY_H
 #define LH_UI_DISPLAY_H
 
-#include <lh/byte/ptr.h>
 #include <lh/ui/canvas/sw.h>
 #include <lh/ui/display/fields.h>
 #include <lh/ui/present.h>

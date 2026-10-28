@@ -12,16 +12,12 @@
  */
 
 #include <lh/util/interval.h>
-#include <lh/attribute/force_inline.h>
 #include <lh/bit/swar.h>
 #include <lh/memory/word.h>
-#include <lh/byte/ptr.h>
 #include <lh/char/case/pair.h>
 #include <lh/assert.h>
-#include <lh/cast/static.h>
 #include <lh/config.h>
 #include <lh/foreach.h>
-#include <lh/util/ptr.h>
 #include <lh/util/str/ptr.h>
 
 #if LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE

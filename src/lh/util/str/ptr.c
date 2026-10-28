@@ -2,11 +2,9 @@
 #include <lh/attribute/sanitize.h>
 #include <lh/bit/swar.h>
 #include <lh/memory/word.h>
-#include <lh/char/limits.h>
 #include <lh/char/map.h>
 #include <lh/memory.h>
 #include <lh/optional/ref.h>
-#include <lh/size/limits.h>
 #include <lh/util/char.h>
 #include <lh/util/memory.h>
 #include <lh/math.h>

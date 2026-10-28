@@ -1,7 +1,6 @@
 #include <lh/assert.h>
 #include <lh/os.h>
 #include <lh/os/error/code.h>
-#include <lh/os/fs/stat.h>
 #include <lh/os/system/fs/dir.h>
 #include <lh/math.h>
 #include <lh/util/str/ptr/dot.h>

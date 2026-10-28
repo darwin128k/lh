@@ -1,8 +1,6 @@
 #include <lh/http/char.h>
 #include <lh/char/digit.h>
 #include <lh/char/letter.h>
-#include <lh/char/map.h>
-#include <lh/util/array/ptr.h>
 #include <lh/util/str/ptr.h>
 
 /* The non-alphanumeric `tchar` of RFC 9110 section 5.6.2, in its order. */

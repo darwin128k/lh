@@ -12,7 +12,6 @@
 
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/limits.h>
 #include <lh/size.h>
 #include <lh/str/ptr.h>
 #include <lh/version/major.h>

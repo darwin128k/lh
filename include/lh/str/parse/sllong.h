@@ -11,7 +11,6 @@
 
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/numeric/types.h>
 #include <lh/size.h>
 #include <lh/str/ptr.h>
 

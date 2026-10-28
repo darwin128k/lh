@@ -10,10 +10,8 @@
 #include <lh/char/map.h>
 
 #include <lh/assert/static.h>
-#include <lh/byte/ptr.h>
 #include <lh/os/key.h>
 #include <lh/str/format/text.h>
-#include <lh/str/ptr.h>
 #include <lh/ui/web/html.h>
 #include <lh/ui/web/js.h>
 #include <lh/ui/web/js/x.h>

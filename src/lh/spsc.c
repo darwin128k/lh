@@ -2,7 +2,6 @@
 #include <stdatomic.h>
 #include <lh/runtime/allocator.h>
 #include <lh/memory/std.h>
-#include <lh/byte.h>
 #include <lh/size/limits.h>
 #include <lh/assert.h>
 #include <lh/cast/const.h>

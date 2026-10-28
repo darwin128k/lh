@@ -10,10 +10,8 @@
 #ifndef LH_UTIL_PTR_H
 #define LH_UTIL_PTR_H
 
-#include <lh/math/ops.h>
 #include <lh/null.h>
 #include <lh/util/addr.h>
-#include <lh/util/type.h>
 
 /**
  * @def lh_ptr_of(T)

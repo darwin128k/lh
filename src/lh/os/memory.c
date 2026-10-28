@@ -3,7 +3,6 @@
 #include <lh/os/error/code.h>
 #include <lh/os/system/memory.h>
 #include <lh/math.h>
-#include <lh/null.h>
 
 lh_bool_t
 lh_os_memory_protect(lh_ptr address, lh_usize_t size, lh_os_memory_access_t access)

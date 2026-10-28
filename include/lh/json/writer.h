@@ -29,12 +29,8 @@
 #ifndef LH_JSON_WRITER_H
 #define LH_JSON_WRITER_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/json/node.h>
 #include <lh/json/writer/fields.h>
-#include <lh/size.h>
-#include <lh/str.h>
 
 /**
  * @struct lh_json_writer

@@ -1,10 +1,6 @@
 #include <lh/json/writer.h>
 #include <lh/assert.h>
-#include <lh/cast/static.h>
-#include <lh/char/map.h>
 #include <lh/char/xdigit.h>
-#include <lh/math/ops.h>
-#include <lh/null.h>
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
 

@@ -1,9 +1,7 @@
 #include <lh/str/scanf/next.h>
 #include <lh/assert.h>
 #include <lh/char/digit.h>
-#include <lh/char/map.h>
 #include <lh/math.h>
-#include <lh/util/ptr.h>
 
 lh_void
 lh_str_ptr_scanf_next_literal(lh_str_cptr fmt, lh_usize_t *pos, lh_str_scanf_spec_t *out)

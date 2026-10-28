@@ -7,7 +7,6 @@
 #define LH_SRC_OS_SYSTEM_POSIX_SURFACE_H
 
 #include <lh/bool.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/os/system/posix/surface/fields.h>
 #include <lh/size.h>
 

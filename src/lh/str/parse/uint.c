@@ -2,7 +2,6 @@
 #include <lh/char/digit.h>
 #include <lh/str/split/next.h>
 #include <lh/math.h>
-#include <lh/char/map.h>
 
 lh_bool_t
 lh_str_ptr_parse_uint_digits(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out)

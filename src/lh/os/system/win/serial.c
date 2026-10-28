@@ -10,7 +10,6 @@
 #include <lh/memory.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/str.h>
-#include <lh/os/system/win/kernel32.h>
 #include <lh/os/system/win/serial.h>
 #include <lh/util/return.h>
 

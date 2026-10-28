@@ -6,7 +6,6 @@
 #ifndef LH_OS_INPUT_RECOGNIZER_INITIALIZER_H
 #define LH_OS_INPUT_RECOGNIZER_INITIALIZER_H
 
-#include <lh/initializer.h>
 #include <lh/os/input/recognizer/config/initializer.h>
 #include <lh/os/input/recognizer/pointer/initializer.h>
 

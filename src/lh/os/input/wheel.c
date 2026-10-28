@@ -3,7 +3,6 @@
  * @brief Implementation of `lh/os/input/wheel.h`.
  */
 
-#include <lh/math/ops.h>
 #include <lh/os/input/wheel.h>
 #include <lh/util/type.h>
 

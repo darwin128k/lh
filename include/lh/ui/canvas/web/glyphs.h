@@ -10,7 +10,6 @@
 #include <lh/ui/canvas/web/atlas.h>
 #include <lh/str/lit.h>
 #include <lh/ui/web/buf.h>
-#include <lh/compiler/extern/c.h>
 
 /**
  * @brief Which interned covers a reader has already been sent.

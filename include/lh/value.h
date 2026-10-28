@@ -16,12 +16,6 @@
 #ifndef LH_VALUE_H
 #define LH_VALUE_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/types.h>
-#include <lh/ptr.h>
-#include <lh/real.h>
-#include <lh/str/view.h>
 #include <lh/value/data.h>
 #include <lh/value/fields.h>
 #include <lh/value/kind.h>

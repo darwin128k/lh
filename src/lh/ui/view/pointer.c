@@ -3,7 +3,6 @@
  * @brief Implementation of `lh/ui/view/pointer.h`.
  */
 
-#include <lh/assert/runtime.h>
 #include <lh/math.h>
 #include <lh/ui/view.h>
 #include <lh/ui/view/pointer.h>

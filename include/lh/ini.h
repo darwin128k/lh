@@ -9,8 +9,6 @@
 #ifndef LH_INI_H
 #define LH_INI_H
 
-#include <lh/ini/entry.h>
-#include <lh/ini/error.h>
 #include <lh/ini/parser.h>
 
 #endif /* LH_INI_H */

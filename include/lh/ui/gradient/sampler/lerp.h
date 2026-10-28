@@ -8,7 +8,6 @@
 
 #include <lh/ui/gradient.h>
 #include <lh/ui/gradient/sampler/fields.h>
-#include <lh/compiler/extern/c.h>
 
 /**
  * @struct lh_ui_gradient_sampler_lerp

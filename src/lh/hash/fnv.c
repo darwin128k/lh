@@ -4,7 +4,6 @@
  */
 
 #include <lh/hash/fnv.h>
-#include <lh/bit/ops.h>
 #include <lh/byte/ptr.h>
 #include <lh/math.h>
 

@@ -7,9 +7,7 @@
 #define LH_UI_WEB_HOST_FRAME_H
 
 #include <lh/config.h>
-#include <lh/net/port.h>
 #include <lh/os/controller.h>
-#include <lh/os/input/sink/cb.h>
 #include <lh/os/net/socket.h>
 #include <lh/ui/canvas/web.h>
 #include <lh/ui/view.h>

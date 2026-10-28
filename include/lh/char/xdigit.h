@@ -15,7 +15,6 @@
 #define LH_CHAR_XDIGIT_H
 
 #include <lh/char/digit.h>
-#include <lh/char/map.h>
 #include <lh/char/letter.h>
 
 /**

@@ -30,7 +30,6 @@
 #ifndef LH_NET_MODBUS_LINK_H
 #define LH_NET_MODBUS_LINK_H
 
-#include <lh/byte/ptr.h>
 #include <lh/net/modbus.h>
 #include <lh/io/stream.h>
 #include <lh/net/modbus/framing.h>

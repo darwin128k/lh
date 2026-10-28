@@ -1,10 +1,8 @@
 #include <lh/str/parse/sllong.h>
 #include <lh/assert.h>
-#include <lh/cast/static.h>
 #include <lh/char/map.h>
 #include <lh/math.h>
 #include <lh/str/parse/ullong.h>
-#include <lh/util/numeric.h>
 
 lh_bool_t
 lh_str_ptr_parse_sllong(lh_str_cptr str, lh_usize_t str_size, lh_sllong_t min, lh_sllong_t max,

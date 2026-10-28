@@ -10,9 +10,6 @@
 #ifndef LH_STR_SPLIT_ONCE_H
 #define LH_STR_SPLIT_ONCE_H
 
-#include <lh/bool.h>
-#include <lh/char.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/str/view.h>
 
 LH_COMPILER_EXTERN_C_BEGIN

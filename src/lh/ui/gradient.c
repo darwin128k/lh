@@ -3,7 +3,6 @@
  * @brief Implementation of lh/ui/gradient.h and lh/ui/gradient/stop.h.
  */
 
-#include <lh/byte/ptr.h>
 #include <lh/math.h>
 #include <lh/byte/limits.h>
 #include <lh/config.h>

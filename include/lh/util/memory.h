@@ -17,10 +17,8 @@
 #include <lh/bool.h>
 #include <lh/byte/ptr.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/math/ops.h>
 #include <lh/size.h>
 #include <lh/size/limits.h>
-#include <lh/util/ptr.h>
 
 /**
  * @def lh_memory_size_rest(size, off)

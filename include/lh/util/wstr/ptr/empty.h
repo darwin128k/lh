@@ -12,8 +12,6 @@
 
 #include <lh/attribute/force_inline.h>
 #include <lh/char/map.h>
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/util/wstr/ptr.h>
 
 LH_COMPILER_EXTERN_C_BEGIN

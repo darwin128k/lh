@@ -11,8 +11,6 @@
 #ifndef LH_UI_RENDERER3D_CAMERA_H
 #define LH_UI_RENDERER3D_CAMERA_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/math/vec3.h>
 
 /**

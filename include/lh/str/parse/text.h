@@ -17,9 +17,6 @@
 #ifndef LH_STR_PARSE_TEXT_H
 #define LH_STR_PARSE_TEXT_H
 
-#include <lh/compiler/extern/c.h>
-#include <lh/size.h>
-#include <lh/str/ptr.h>
 #include <lh/str/scanf/spec.h>
 
 #include <stdarg.h>

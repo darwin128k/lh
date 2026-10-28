@@ -14,7 +14,6 @@
 #include <lh/byte/ptr.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/crypto/sha/kind.h>
-#include <lh/ptr.h>
 #include <lh/size.h>
 
 /**

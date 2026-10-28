@@ -14,10 +14,6 @@
 #ifndef LH_UI_CANVAS_WEB_H
 #define LH_UI_CANVAS_WEB_H
 
-#include <lh/ui/canvas/backend.h>
-#include <lh/ui/canvas/web/atlas.h>
-#include <lh/str/lit.h>
-#include <lh/ui/web/buf.h>
 #include <lh/ui/canvas/web/glyphs.h>
 
 #if !LH_LIBRARY_OPTION_UI

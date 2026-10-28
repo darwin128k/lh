@@ -1,7 +1,5 @@
 #include <lh/os/system/net/socket.h>
 #include <lh/assert.h>
-#include <lh/attribute/static.h>
-#include <lh/memory.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/net/socket/addr.h>
 #include <lh/os/system/win/ws2_32.h>

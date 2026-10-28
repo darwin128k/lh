@@ -41,12 +41,6 @@
 #define LH_UI_VIEW_H
 
 #include <lh/config.h>
-#include <lh/os/input/event.h>
-#include <lh/os/input/pointer/id.h>
-#include <lh/os/input/wheel.h>
-#include <lh/ui/button.h>
-#include <lh/ui/view/fields.h>
-#include <lh/ui/view/pointer.h>
 #include <lh/ui/view/focus/walk.h>
 
 #if !LH_LIBRARY_OPTION_UI

@@ -9,12 +9,8 @@
 #ifndef LH_SRC_OS_SYSTEM_WIN_WINDOW_GLUE_H
 #define LH_SRC_OS_SYSTEM_WIN_WINDOW_GLUE_H
 
-#include <lh/bool.h>
-#include <lh/os/input/button.h>
-#include <lh/os/input/kind.h>
 #include <lh/os/system/win/user32.h>
 #include <lh/os/window.h>
-#include <lh/void.h>
 
 lh_os_system_win_lresult_t LH_OS_SYSTEM_WIN_CALL
 lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint_t msg,

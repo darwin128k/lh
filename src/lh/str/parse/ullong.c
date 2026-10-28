@@ -1,6 +1,5 @@
 #include <lh/str/parse/ullong.h>
 #include <lh/char/digit.h>
-#include <lh/char/map.h>
 #include <lh/math.h>
 
 lh_bool_t

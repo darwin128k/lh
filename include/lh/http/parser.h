@@ -26,10 +26,6 @@
 #ifndef LH_HTTP_PARSER_H
 #define LH_HTTP_PARSER_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/size.h>
-#include <lh/str/view.h>
 #include <lh/http/header.h>
 #include <lh/http/request.h>
 #include <lh/http/response.h>

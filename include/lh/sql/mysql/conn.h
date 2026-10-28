@@ -15,7 +15,6 @@
 
 #include <lh/sql/mysql/api.h>
 #include <lh/sql/mysql/conn/fields.h>
-#include <lh/str.h>
 
 /**
  * @struct lh_sql_mysql_conn

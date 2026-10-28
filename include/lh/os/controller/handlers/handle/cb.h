@@ -7,7 +7,6 @@
 #define LH_OS_CONTROLLER_HANDLERS_HANDLE_CB_H
 
 #include <lh/os/controller/handlers/handle/fn.h>
-#include <lh/util/ptr.h>
 
 /**
  * @def lh_os_controller_handlers_handle_cb

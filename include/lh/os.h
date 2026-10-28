@@ -44,7 +44,6 @@
 #include <lh/os/tick.h>
 #include <lh/os/timestamp.h>
 #include <lh/os/thread.h>
-#include <lh/os/mutex.h>
 #include <lh/os/condition.h>
 
 /* app and window exist only where there is a window backend: Windows today.
