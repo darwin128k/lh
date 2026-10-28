@@ -199,6 +199,8 @@ lh_ui_decl_build(const lh_ui_decl_t *decls, lh_u32_t count, lh_ui_entity_t **nod
                  lh_byte_ptr storage, lh_u32_t bytes, lh_ui_entity_t **root,
                  lh_ui_decl_fault_t *fault);
 
+LH_COMPILER_EXTERN_C_END
+
 /**
  * @brief Bytes one row takes when it is any widget at all: the widest node, so an
  *        app that wants a static pool of a known row count can size it without
@@ -207,7 +209,5 @@ lh_ui_decl_build(const lh_ui_decl_t *decls, lh_u32_t count, lh_ui_entity_t **nod
 #define LH_UI_DECL_NODE_MAX                                                                        \
     (sizeof(lh_ui_toggle_t) > sizeof(lh_ui_input_t) ? sizeof(lh_ui_toggle_t)                       \
                                                     : sizeof(lh_ui_input_t))
-
-LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_DECL_H */

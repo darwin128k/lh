@@ -37,8 +37,6 @@
  */
 #define LH_TIME_SECONDS_PER_HOUR (LH_TIME_MINUTE_RADIX * LH_TIME_SECOND_RADIX)
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /**
  * @struct lh_time
  * @brief Time of day, 24-hour clock.
@@ -56,6 +54,8 @@ struct lh_time
  * @brief Alias for `struct lh_time`.
  */
 typedef struct lh_time lh_time_t;
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Copy @p other into @p self.

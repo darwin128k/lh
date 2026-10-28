@@ -35,6 +35,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 typedef lh_void (*lh_ui_frame_stats_on_frame_cb)(const lh_ui_frame_t *frame, lh_ptr context);
 
+LH_COMPILER_EXTERN_C_END
+
 /**
  * @struct lh_ui_frame_stats
  * @brief Running totals over frames. Read through the getters.
@@ -53,6 +55,8 @@ typedef struct lh_ui_frame_stats
     lh_ui_frame_stats_on_frame_cb on_frame;
     lh_ptr on_frame_context; /**< passed to ::on_frame */
 } lh_ui_frame_stats_t;       /**< Running totals over frames. */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** @brief Zero every total and drop the callback. */
 lh_void

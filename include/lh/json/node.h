@@ -61,9 +61,9 @@ struct lh_json_node
 /** @copybrief lh_json_node */
 typedef struct lh_json_node lh_json_node_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* ── accessors ───────────────────────────────────────────────────────────── */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** The link that puts @p self in its parent's children, to change. */
 lh_list_node_t *

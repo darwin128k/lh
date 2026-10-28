@@ -62,9 +62,9 @@ struct lh_ini_parser
 /** @copybrief lh_ini_parser */
 typedef struct lh_ini_parser lh_ini_parser_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* ── accessors ───────────────────────────────────────────────────────────── */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** The line reader under @p self, to change. */
 lh_str_line_reader_t *

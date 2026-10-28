@@ -76,9 +76,10 @@ typedef lh_math_scalar_t lh_ui_scalar_t;
  */
 #define lh_ui_scalar_of(v) lh_cast_static(lh_ui_scalar_t, (v))
 
+#if LH_LIBRARY_OPTION_MATH_FPU
+
 LH_COMPILER_EXTERN_C_BEGIN
 
-#if LH_LIBRARY_OPTION_MATH_FPU
 /**
  * @brief @p v with its fraction dropped, toward zero, into @p out.
  *
@@ -91,7 +92,13 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 lh_void
 lh_ui_scalar_trunc(lh_ui_scalar_t v, lh_ui_scalar_t *out);
+
+LH_COMPILER_EXTERN_C_END
+
 #else
+
+LH_COMPILER_EXTERN_C_BEGIN
+
 /**
  * @brief @p v with its fraction dropped, toward zero, into @p out.
  *
@@ -108,7 +115,12 @@ lh_ui_scalar_trunc(lh_ui_scalar_t v, lh_ui_scalar_t *out)
     lh_assert_runtime_ref(out);
     *out = v;
 }
+
+LH_COMPILER_EXTERN_C_END
+
 #endif
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Non-negative leftover room: `max(0, room - own)`.

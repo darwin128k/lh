@@ -16,9 +16,9 @@
 #include <lh/ui/axis.h>
 #include <lh/ui/color.h>
 
-struct lh_ui_canvas;
-
 LH_COMPILER_EXTERN_C_BEGIN
+
+struct lh_ui_canvas;
 
 /**
  * @brief First pixel column @p rect touches (floor of its left edge).

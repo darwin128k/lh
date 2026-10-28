@@ -39,9 +39,9 @@ struct lh_sql_stmt
 /** @copybrief lh_sql_stmt */
 typedef struct lh_sql_stmt lh_sql_stmt_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* ── accessors ───────────────────────────────────────────────────────────── */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** The database @p self runs on, to change. */
 lh_sql_db_t *

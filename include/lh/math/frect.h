@@ -35,9 +35,9 @@ struct lh_math_frect
 /** @copybrief lh_math_frect */
 typedef struct lh_math_frect lh_math_frect_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- Constructors ---------------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Make a `::lh_math_frect_t` from exclusive extent corners.

@@ -73,9 +73,9 @@ typedef struct lh_net_ip4 lh_net_ip4_t;
  */
 #define LH_NET_IP4_OCTET_MAX LH_U8_T_MAX
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- init / set ------------------------------------------------------------ */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Fill @p self from four octets.

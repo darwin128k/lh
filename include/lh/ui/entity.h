@@ -37,9 +37,9 @@ struct lh_ui_entity
 /** @copybrief lh_ui_entity */
 typedef struct lh_ui_entity lh_ui_entity_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- Lifetime and fields --------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Fill @p self so it covers @p rect with no style, parent, or children.

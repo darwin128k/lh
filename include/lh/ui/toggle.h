@@ -48,9 +48,9 @@ struct lh_ui_toggle
 /** @copybrief lh_ui_toggle */
 typedef struct lh_ui_toggle lh_ui_toggle_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- Class ----------------------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Class of ::lh_ui_toggle_t, derived from ::lh_ui_button_class.

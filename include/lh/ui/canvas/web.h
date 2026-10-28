@@ -23,8 +23,6 @@
 /** Append string literal @p s to the ops of @p self, its length taken at compile time. */
 #define lh_ui_canvas_web_put_lit(self, s) lh_ui_web_buf_lit(lh_addr_of((self)->buf), lh_str_lit(s))
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /**
  * @brief An open JSON array of canvas ops, in a buffer the caller owns.
  */
@@ -39,6 +37,8 @@ typedef struct lh_ui_canvas_web
         *glyphs;            /**< Which covers the reader has; ::lh_null = this frame's own. */
     lh_bool_t glyphs_owned; /**< @c glyphs was allocated here and is freed on close. */
 } lh_ui_canvas_web_t;
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** The table ::lh_ui_canvas_init wants. */
 extern const lh_ui_canvas_backend_t lh_ui_canvas_backend_web;

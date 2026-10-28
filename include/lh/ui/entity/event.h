@@ -12,8 +12,12 @@
 #include <lh/ui/rect.h>
 #include <lh/ui/entity/event/code.h>
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 struct lh_ui_canvas;
 struct lh_ui_entity_transform;
+
+LH_COMPILER_EXTERN_C_END
 
 /**
  * @struct lh_ui_entity_event

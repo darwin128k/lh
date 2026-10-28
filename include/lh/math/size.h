@@ -30,9 +30,9 @@ struct lh_math_size
 /** @copybrief lh_math_size */
 typedef struct lh_math_size lh_math_size_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- init ------------------------------------------------------------------ */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Fill @p self from explicit extents.

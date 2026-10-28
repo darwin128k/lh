@@ -29,6 +29,8 @@ LH_COMPILER_EXTERN_C_BEGIN
 typedef lh_void(lh_ui_present_fn)(lh_ptr context, const lh_ui_pixmap_t *pixels,
                                   const lh_ui_rects_t *drawn);
 
+LH_COMPILER_EXTERN_C_END
+
 /**
  * @struct lh_ui_present_sink
  * @brief Name + present slot + context. Not owned by the display.
@@ -40,6 +42,8 @@ struct lh_ui_present_sink
 };
 /** @copybrief lh_ui_present_sink */
 typedef struct lh_ui_present_sink lh_ui_present_sink_t;
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Fill @p self: @p name (may be ::lh_null), @p present (may be

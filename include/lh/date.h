@@ -23,8 +23,6 @@
  */
 #define LH_DATE_TEXT_MAX 11U
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /**
  * @struct lh_date
  * @brief Gregorian calendar date.
@@ -42,6 +40,8 @@ struct lh_date
  * @brief Alias for `struct lh_date`.
  */
 typedef struct lh_date lh_date_t;
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Copy @p other into @p self.

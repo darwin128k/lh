@@ -22,8 +22,6 @@
 #    error "lh/ui/web/buf.h requires LH_LIBRARY_OPTION_UI"
 #endif
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /**
  * @brief Scratch that accumulates text bytes.
  *
@@ -37,6 +35,8 @@ typedef struct lh_ui_web_buf
     lh_usize_t len;  /**< Bytes written so far. */
     lh_bool_t ok;    /**< False once a write did not fit; later writes are no-ops. */
 } lh_ui_web_buf_t;   /**< Scratch that accumulates text bytes. */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Start an empty buffer over @p mem.

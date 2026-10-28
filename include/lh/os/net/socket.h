@@ -46,9 +46,9 @@ struct lh_os_net_socket
 /** @copybrief lh_os_net_socket */
 typedef struct lh_os_net_socket lh_os_net_socket_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- construct / lifetime -------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Set @p self to the empty (not-yet-open) state.

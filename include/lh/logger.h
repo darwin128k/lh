@@ -118,9 +118,9 @@ struct lh_logger
 /** @copybrief lh_logger */
 typedef struct lh_logger lh_logger_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- set / init ------------------------------------------------------------ */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Copy logger state from @p other into @p self.

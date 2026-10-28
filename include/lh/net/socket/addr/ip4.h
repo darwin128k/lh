@@ -42,9 +42,9 @@ struct lh_net_ip4_socket_addr
 /** @copybrief lh_net_ip4_socket_addr */
 typedef struct lh_net_ip4_socket_addr lh_net_ip4_socket_addr_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- init / set ------------------------------------------------------------ */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Fill @p self from @p ip and @p port.

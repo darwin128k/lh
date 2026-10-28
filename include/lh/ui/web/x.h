@@ -22,8 +22,6 @@
 #    error "lh/ui/web/x.h requires LH_LIBRARY_OPTION_UI"
 #endif
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /**
  * @brief One JS expression node.
  *
@@ -119,6 +117,8 @@ typedef struct lh_ui_web_x
         } obj;
     } u;
 } lh_ui_web_x_t; /**< One JS expression node. */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Identifier @p name, written as is.

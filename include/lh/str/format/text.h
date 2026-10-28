@@ -26,14 +26,14 @@
 
 #include <stdarg.h>
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /**
  * @brief Bytes of the local buffer one value conversion is built in: a sign
  *        and the longest ::lh_uint_t, so the most negative ::lh_sint_t fits
  *        whatever `int`'s width. `%s` never goes through it.
  */
 #define LH_STR_FORMAT_TEXT_VALUE_BUF_MAX lh_math_add_one(LH_STR_FORMAT_UINT_DIGITS_MAX)
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Write @p n characters of @p text at `*pos` and move `*pos` past them.

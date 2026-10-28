@@ -40,9 +40,9 @@ struct lh_os_input_event
 /** @copybrief lh_os_input_event */
 typedef struct lh_os_input_event lh_os_input_event_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- Building -------------------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Clear @p self to an event of @p kind from a @p device_kind at @p time.

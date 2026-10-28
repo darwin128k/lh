@@ -34,9 +34,9 @@ struct lh_ui_canvas_sw_shadow_pass
 /** @brief Alias for ::lh_ui_canvas_sw_shadow_pass. */
 typedef struct lh_ui_canvas_sw_shadow_pass lh_ui_canvas_sw_shadow_pass_t;
 
-struct lh_ui_canvas_sw;
-
 LH_COMPILER_EXTERN_C_BEGIN
+
+struct lh_ui_canvas_sw;
 
 /**
  * @brief Prepare the shadow of @p rect rounded by @p radius on @p self into

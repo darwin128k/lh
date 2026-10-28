@@ -35,9 +35,9 @@ struct lh_werror
 /** @copybrief lh_werror */
 typedef struct lh_werror lh_werror_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- set ------------------------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Replace @p self with @p code and @p desc.

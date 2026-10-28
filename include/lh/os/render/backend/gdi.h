@@ -42,9 +42,9 @@ struct lh_os_render_backend_gdi_context
 /** @copybrief lh_os_render_backend_gdi_context */
 typedef struct lh_os_render_backend_gdi_context lh_os_render_backend_gdi_context_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- Context --------------------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Clear @p self: no window, no DC, empty surface, no pixels to draw.

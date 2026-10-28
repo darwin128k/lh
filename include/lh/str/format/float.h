@@ -20,13 +20,13 @@
 #include <lh/numeric/float.h>
 #include <lh/str/ptr.h>
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /** @brief Significant digits used when the caller passes 0 (the `%g` default). */
 #define LH_STR_FORMAT_FLOAT_DIGITS_DEFAULT 6U
 
 /** @brief Most significant digits that mean anything for a single-precision float. */
 #define LH_STR_FORMAT_FLOAT_DIGITS_MAX 9U
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** Set @p self to @p value. */
 lh_void

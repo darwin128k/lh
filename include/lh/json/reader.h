@@ -52,9 +52,9 @@ struct lh_json_reader
 /** @copybrief lh_json_reader */
 typedef struct lh_json_reader lh_json_reader_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* ── accessors ───────────────────────────────────────────────────────────── */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** The whole text @p self reads. */
 const lh_str_view_t *

@@ -43,9 +43,9 @@ struct lh_ui_pixmap
 /** @copybrief lh_ui_pixmap */
 typedef struct lh_ui_pixmap lh_ui_pixmap_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- Lifetime and shape ---------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief True for the 16-bit formats (RGB565, plain or swapped).

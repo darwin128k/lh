@@ -31,11 +31,11 @@ struct lh_ui_canvas_clip
 /** @copybrief lh_ui_canvas_clip */
 typedef struct lh_ui_canvas_clip lh_ui_canvas_clip_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- One rounded cut ------------------------------------------------------- */
 
 /* -- The clip -------------------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief @p rect, and @p count rounded cuts at @p rounds (not copied).

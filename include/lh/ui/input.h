@@ -76,9 +76,9 @@ struct lh_ui_input
 /** @copybrief lh_ui_input */
 typedef struct lh_ui_input lh_ui_input_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- Class ----------------------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** @brief Class of ::lh_ui_input_t, derived from ::lh_ui_label_class. */
 extern const lh_ui_entity_class_t lh_ui_input_class;

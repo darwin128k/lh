@@ -21,8 +21,6 @@
 
 #include <stdarg.h>
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /*
  * The steps ::lh_str_ptr_parse_text_v is built from. Each reads one token's
  * part of @p str at `*pos`, stores what it read through the token's argument
@@ -30,6 +28,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * input does not match and the whole parse fails. @p limit is how much the
  * token may take (::lh_str_scanf_spec_get_limit).
  */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** @brief Match the literal run of @p spec. */
 lh_bool_t

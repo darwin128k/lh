@@ -35,9 +35,9 @@ struct lh_runtime_error
 /** @copybrief lh_runtime_error */
 typedef struct lh_runtime_error lh_runtime_error_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- set ------------------------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Replace @p self with @p code and @p desc.

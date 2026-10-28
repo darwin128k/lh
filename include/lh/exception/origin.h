@@ -34,9 +34,9 @@ struct lh_exception_origin
 /** @copybrief lh_exception_origin */
 typedef struct lh_exception_origin lh_exception_origin_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- getters --------------------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Return the source file stored in @p self.

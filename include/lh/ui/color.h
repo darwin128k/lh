@@ -27,9 +27,9 @@ struct lh_ui_color
 /** @copybrief lh_ui_color */
 typedef struct lh_ui_color lh_ui_color_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- Constructors ---------------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Fill @p self from channels in `0..255`.

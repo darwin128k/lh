@@ -41,9 +41,9 @@ struct lh_ui_button
 /** @copybrief lh_ui_button */
 typedef struct lh_ui_button lh_ui_button_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- Class ----------------------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Class of ::lh_ui_button_t, derived from ::lh_ui_entity_class.

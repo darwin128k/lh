@@ -33,9 +33,9 @@ struct lh_ui_image
 /** @copybrief lh_ui_image */
 typedef struct lh_ui_image lh_ui_image_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- Class ----------------------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Class of ::lh_ui_image_t, derived from ::lh_ui_entity_class.

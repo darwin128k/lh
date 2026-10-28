@@ -30,9 +30,9 @@ struct lh_ui_layout_cross
 /** @brief Alias for ::lh_ui_layout_cross. */
 typedef struct lh_ui_layout_cross lh_ui_layout_cross_t;
 
-struct lh_ui_layout;
-
 LH_COMPILER_EXTERN_C_BEGIN
+
+struct lh_ui_layout;
 
 /**
  * @brief Slot start, own length, slot length and margin offset of @p child

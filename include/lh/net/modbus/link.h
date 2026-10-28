@@ -35,12 +35,12 @@
 #include <lh/net/modbus/framing.h>
 #include <lh/net/modbus/link/state.h>
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- Framing --------------------------------------------------------------- */
 
 /** @brief Bytes of MBAP header ahead of the unit and the PDU. */
 #define LH_MB_MBAP_HEAD (lh_cast_static(lh_u16_t, 7))
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Wrap @p pdu for @p framing.
@@ -108,6 +108,8 @@ lh_mb_decode(lh_mb_framing_t framing, lh_u8_t unit, const lh_byte_ptr frame, lh_
              lh_byte_ptr pdu, lh_u16_t *pdu_length);
 
 /* -- Link ------------------------------------------------------------------ */
+
+LH_COMPILER_EXTERN_C_END
 
 /** @brief How many words one link holds; the most a single read may ask for. */
 #define LH_MB_LINK_VALUES (lh_cast_static(lh_u16_t, LH_MB_READ_MAX))
@@ -221,6 +223,8 @@ typedef struct lh_mb_link
     lh_void (*on_change)(lh_ptr self, lh_ptr link);
     lh_ptr owner; /**< not read by the link: the application's own back pointer */
 } lh_mb_link_t;   /**< One device: the question in flight, the answer, and what it cost. */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Point @p self at @p stream and start empty.

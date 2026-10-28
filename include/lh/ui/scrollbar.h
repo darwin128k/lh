@@ -44,9 +44,9 @@ struct lh_ui_entity_scrollbar
 /** @copybrief lh_ui_entity_scrollbar */
 typedef struct lh_ui_entity_scrollbar lh_ui_scrollbar_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* -- Class ----------------------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Class of ::lh_ui_scrollbar_t, derived from ::lh_ui_entity_class.

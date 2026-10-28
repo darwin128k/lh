@@ -25,9 +25,9 @@ struct lh_sql_mysql_prepared
 /** @copybrief lh_sql_mysql_prepared */
 typedef struct lh_sql_mysql_prepared lh_sql_mysql_prepared_t;
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /* ── accessors ───────────────────────────────────────────────────────────── */
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** The statement text, to change. */
 lh_str_t *
