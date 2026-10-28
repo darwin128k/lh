@@ -5,7 +5,7 @@
 lh_void
 lh_wstr_view_init_by_size(lh_wstr_view_t *self, lh_wstr_cptr data, lh_usize_t size)
 {
-    lh_memory_view_init_by_size(self, data, size * lh_cast_static(lh_usize_t, LH_WCHAR_T_SIZE));
+    lh_memory_view_init(self, data, size * lh_cast_static(lh_usize_t, LH_WCHAR_T_SIZE));
 }
 
 lh_void
@@ -71,7 +71,7 @@ lh_wstr_view_init(lh_wstr_view_t *self, lh_wstr_cptr data)
        A null data pointer dies in ptr_len above: null is an error, not empty. */
     if (lh_math_is_zero(size))
     {
-        lh_memory_view_set(self, data, data);
+        lh_memory_view_set(self, data, 0);
         return;
     }
     lh_wstr_view_init_by_size(self, data, size);

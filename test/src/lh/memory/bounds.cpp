@@ -1,12 +1,50 @@
 #include <gtest/gtest.h>
 
 #include <lh/expect/death.h>
+#include <lh/memory.h>
 #include <lh/memory/bounds.h>
 #include <lh/memory/bounds/initializer.h>
 #include <lh/test/out.h>
 
 namespace
 {
+
+/* The tests name a range by its two ends; the API takes begin and size. */
+lh_usize_t
+span_size(const void *begin, const void *end)
+{
+    return static_cast<lh_usize_t>(static_cast<const char *>(end) -
+                                   static_cast<const char *>(begin));
+}
+
+lh_memory_bounds_t
+span(void *begin, void *end)
+{
+    lh_memory_bounds_t out;
+    lh_memory_bounds_set(&out, begin, span_size(begin, end));
+    return out;
+}
+
+bool
+is_span(const lh_memory_bounds_t *self, const void *begin, const void *end)
+{
+    const lh_memory_bounds_t other = span((void *)begin, (void *)end);
+    return lh_memory_bounds_equals(self, &other);
+}
+
+bool
+contains_span(const lh_memory_bounds_t *self, const void *begin, const void *end)
+{
+    const lh_memory_bounds_t other = span((void *)begin, (void *)end);
+    return lh_memory_bounds_contains(self, &other);
+}
+
+bool
+overlaps_span(const lh_memory_bounds_t *self, const void *begin, const void *end)
+{
+    const lh_memory_bounds_t other = span((void *)begin, (void *)end);
+    return lh_memory_bounds_overlaps(self, &other);
+}
 
 lh_ptr
 p(unsigned char *ptr)
@@ -69,7 +107,7 @@ TEST(memory_bounds_classification, distinguishes_states)
 
     lh_memory_bounds_t empty = bounds(lh_null, lh_null);
     EXPECT_TRUE(lh_memory_bounds_is_uninitialized(&empty));
-    EXPECT_FALSE(lh_memory_bounds_is_valid(&empty));
+    EXPECT_TRUE(lh_memory_bounds_is_valid(&empty)); /* empty at null */
     EXPECT_TRUE(lh_memory_bounds_is_empty(&empty));
 
     // A null end leaves begin + size wrapping: set, but not valid.
@@ -127,8 +165,8 @@ TEST(memory_bounds_contains, uses_half_open_ranges)
     EXPECT_TRUE(lh_memory_bounds_contains_ptr(&outer, p(buf + 5)));
     EXPECT_FALSE(lh_memory_bounds_contains_ptr(&outer, p(buf + 6)));
 
-    EXPECT_TRUE(lh_memory_bounds_contains_of(&outer, p(buf + 2), p(buf + 5)));
-    EXPECT_FALSE(lh_memory_bounds_contains_of(&outer, p(buf), p(buf + 5)));
+    EXPECT_TRUE(contains_span(&outer, p(buf + 2), p(buf + 5)));
+    EXPECT_FALSE(contains_span(&outer, p(buf), p(buf + 5)));
     EXPECT_TRUE(lh_memory_bounds_contains(&outer, &inner));
 }
 
@@ -189,8 +227,8 @@ TEST(memory_bounds_overlap_alignment_and_equality, reports_expected_values)
     lh_memory_bounds_t touching = bounds(p(buf + 8), p(buf + 12));
     lh_memory_bounds_t overlapping = bounds(p(buf + 7), p(buf + 12));
 
-    EXPECT_TRUE(lh_memory_bounds_overlaps_of(&left, p(buf + 7), p(buf + 9)));
-    EXPECT_FALSE(lh_memory_bounds_overlaps_range(&left, p(buf + 8), p(buf + 12)));
+    EXPECT_TRUE(overlaps_span(&left, p(buf + 7), p(buf + 9)));
+    EXPECT_FALSE(overlaps_span(&left, p(buf + 8), p(buf + 12)));
     EXPECT_FALSE(lh_memory_bounds_overlaps(&left, &touching));
     EXPECT_TRUE(lh_memory_bounds_overlaps_v(&left, &overlapping));
 
@@ -198,8 +236,8 @@ TEST(memory_bounds_overlap_alignment_and_equality, reports_expected_values)
     EXPECT_TRUE(lh_memory_bounds_is_begin_aligned(&left, 16));
     EXPECT_FALSE(lh_memory_bounds_is_aligned(&left, 16));
 
-    EXPECT_TRUE(lh_memory_bounds_equals_of(&left, p(buf), p(buf + 8)));
-    EXPECT_TRUE(lh_memory_bounds_equals_range(&left, p(buf), p(buf + 8)));
+    EXPECT_TRUE(is_span(&left, p(buf), p(buf + 8)));
+    EXPECT_TRUE(is_span(&left, p(buf), p(buf + 8)));
     EXPECT_FALSE(lh_memory_bounds_equals(&left, &overlapping));
 }
 
@@ -210,7 +248,7 @@ TEST(memory_bounds_raw_copy_and_move, delegate_to_raw_operations)
     lh_memory_bounds_t dst_bounds = bounds(p(dst), p(dst + 4));
     lh_memory_bounds_t src_bounds = bounds(p(src), p(src + 5));
 
-    EXPECT_EQ(lh_memory_bounds_copy_range(&dst_bounds, p(src), p(src + 5)), p(dst + 4));
+    EXPECT_EQ(lh_memory_bounds_copy_by_size(&dst_bounds, p(src), span_size(p(src), p(src + 5))), p(dst + 4));
     EXPECT_EQ(dst[0], 1);
     EXPECT_EQ(dst[3], 4);
 
@@ -222,7 +260,7 @@ TEST(memory_bounds_raw_copy_and_move, delegate_to_raw_operations)
 
     unsigned char moved_range[2] = {};
     lh_memory_bounds_t moved_range_bounds = bounds(p(moved_range), p(moved_range + 2));
-    EXPECT_EQ(lh_memory_bounds_move_range(&moved_range_bounds, p(src + 1), p(src + 4)),
+    EXPECT_EQ(lh_memory_bounds_move_by_size(&moved_range_bounds, p(src + 1), span_size(p(src + 1), p(src + 4))),
               p(moved_range + 2));
     EXPECT_EQ(moved_range[0], 2);
     EXPECT_EQ(moved_range[1], 3);
@@ -237,14 +275,14 @@ TEST(memory_bounds_raw_search_and_compare, delegate_to_raw_operations)
     lh_memory_bounds_t needle_bounds = bounds(p(needle), p(needle + 2));
     lh_memory_bounds_t mismatch_bounds = bounds(p(mismatch), p(mismatch + 2));
 
-    EXPECT_EQ(lh_memory_bounds_find_range(&hay_bounds, p(needle), p(needle + 2)), p(hay));
+    EXPECT_EQ(lh_memory_bounds_find_by_size(&hay_bounds, p(needle), span_size(p(needle), p(needle + 2))), p(hay));
     EXPECT_EQ(lh_memory_bounds_find(&hay_bounds, &needle_bounds), p(hay));
-    EXPECT_EQ(lh_memory_bounds_rfind_range(&hay_bounds, p(needle), p(needle + 2)), p(hay + 2));
+    EXPECT_EQ(lh_memory_bounds_rfind_by_size(&hay_bounds, p(needle), span_size(p(needle), p(needle + 2))), p(hay + 2));
     EXPECT_EQ(lh_memory_bounds_rfind(&hay_bounds, &needle_bounds), p(hay + 2));
 
-    EXPECT_EQ(lh_memory_bounds_compare_range(&hay_bounds, p(needle), p(needle + 2)), lh_null);
+    EXPECT_EQ(lh_memory_bounds_compare_by_size(&hay_bounds, p(needle), span_size(p(needle), p(needle + 2))), lh_null);
     EXPECT_EQ(lh_memory_bounds_compare(&hay_bounds, &mismatch_bounds), p(hay + 1));
-    EXPECT_EQ(lh_memory_bounds_rcompare_range(&hay_bounds, p(needle), p(needle + 2)), p(hay + 4));
+    EXPECT_EQ(lh_memory_bounds_rcompare_by_size(&hay_bounds, p(needle), span_size(p(needle), p(needle + 2))), p(hay + 4));
     EXPECT_EQ(lh_memory_bounds_rcompare(&hay_bounds, &needle_bounds), p(hay + 4));
 }
 
@@ -259,7 +297,7 @@ TEST(memory_bounds_raw_fill, fills_with_value_and_pattern)
     EXPECT_EQ(dst[0], 0x7E);
     EXPECT_EQ(dst[4], 0x7E);
 
-    EXPECT_EQ(lh_memory_bounds_fill_pattern_range(&dst_bounds, p(pattern), p(pattern + 2)),
+    EXPECT_EQ(lh_memory_set_pattern(lh_memory_bounds_get_begin(&dst_bounds), lh_memory_bounds_get_size(&dst_bounds), p(pattern), span_size(p(pattern), p(pattern + 2))),
               p(dst + 5));
     EXPECT_EQ(dst[0], 1);
     EXPECT_EQ(dst[1], 2);
@@ -280,19 +318,19 @@ TEST(memory_bounds_mutation, clears_assigns_sets_and_initializes)
     EXPECT_TRUE(lh_memory_bounds_equals(&b, &other));
 
     lh_memory_bounds_clear(&b);
-    EXPECT_TRUE(lh_memory_bounds_equals_of(&b, lh_null, lh_null));
+    EXPECT_TRUE(is_span(&b, lh_null, lh_null));
 
-    lh_memory_bounds_set_v(&b, p(buf), p(buf + 4));
-    EXPECT_TRUE(lh_memory_bounds_equals_of(&b, p(buf), p(buf + 4)));
+    lh_memory_bounds_set_v(&b, p(buf), span_size(p(buf), p(buf + 4)));
+    EXPECT_TRUE(is_span(&b, p(buf), p(buf + 4)));
 
-    lh_memory_bounds_set_by_size(&b, p(buf + 2), 3);
-    EXPECT_TRUE(lh_memory_bounds_equals_of(&b, p(buf + 2), p(buf + 5)));
+    lh_memory_bounds_set(&b, p(buf + 2), 3);
+    EXPECT_TRUE(is_span(&b, p(buf + 2), p(buf + 5)));
 
-    lh_memory_bounds_init(&b, p(buf), p(buf + 2));
-    EXPECT_TRUE(lh_memory_bounds_equals_of(&b, p(buf), p(buf + 2)));
+    lh_memory_bounds_init(&b, p(buf), span_size(p(buf), p(buf + 2)));
+    EXPECT_TRUE(is_span(&b, p(buf), p(buf + 2)));
 
-    lh_memory_bounds_init_by_size(&b, p(buf + 1), 2);
-    EXPECT_TRUE(lh_memory_bounds_equals_of(&b, p(buf + 1), p(buf + 3)));
+    lh_memory_bounds_init(&b, p(buf + 1), 2);
+    EXPECT_TRUE(is_span(&b, p(buf + 1), p(buf + 3)));
 
     lh_memory_bounds_init_empty(&b);
     EXPECT_TRUE(lh_memory_bounds_is_uninitialized(&b));
@@ -316,18 +354,17 @@ TEST(memory_bounds_make, returns_validated_values)
     unsigned char buf[8];
 
     lh_memory_bounds_t by_end;
-    lh_memory_bounds_init(lh_addr_of(by_end), p(buf), p(buf + 4));
-    EXPECT_TRUE(lh_memory_bounds_equals_of(&by_end, p(buf), p(buf + 4)));
+    lh_memory_bounds_init(lh_addr_of(by_end), p(buf), span_size(p(buf), p(buf + 4)));
+    EXPECT_TRUE(is_span(&by_end, p(buf), p(buf + 4)));
 
     lh_memory_bounds_t by_size;
-    lh_memory_bounds_init_by_size(lh_addr_of(by_size), p(buf + 1), 3);
-    EXPECT_TRUE(lh_memory_bounds_equals_of(&by_size, p(buf + 1), p(buf + 4)));
+    lh_memory_bounds_init(lh_addr_of(by_size), p(buf + 1), 3);
+    EXPECT_TRUE(is_span(&by_size, p(buf + 1), p(buf + 4)));
 
     lh_memory_bounds_t empty;
 
-
     lh_memory_bounds_init_empty(lh_addr_of(empty));
-    EXPECT_TRUE(lh_memory_bounds_equals_of(&empty, lh_null, lh_null));
+    EXPECT_TRUE(is_span(&empty, lh_null, lh_null));
 }
 
 TEST(memory_bounds_swap, swaps_and_clears)
@@ -337,21 +374,21 @@ TEST(memory_bounds_swap, swaps_and_clears)
     lh_memory_bounds_t b = bounds(p(buf + 4), p(buf + 8));
 
     lh_memory_bounds_swap_v(&a, &b);
-    EXPECT_TRUE(lh_memory_bounds_equals_of(&a, p(buf + 4), p(buf + 8)));
-    EXPECT_TRUE(lh_memory_bounds_equals_of(&b, p(buf), p(buf + 2)));
+    EXPECT_TRUE(is_span(&a, p(buf + 4), p(buf + 8)));
+    EXPECT_TRUE(is_span(&b, p(buf), p(buf + 2)));
 
     lh_memory_bounds_swap_and_clear(&a, &b);
-    EXPECT_TRUE(lh_memory_bounds_equals_of(&a, p(buf), p(buf + 2)));
-    EXPECT_TRUE(lh_memory_bounds_equals_of(&b, lh_null, lh_null));
+    EXPECT_TRUE(is_span(&a, p(buf), p(buf + 2)));
+    EXPECT_TRUE(is_span(&b, lh_null, lh_null));
 }
 
 #if LH_TEST_EXPECT_DEATH_ENABLED
 
-TEST(memory_bounds_get_begin_v, rejects_uninitialized_death)
+TEST(memory_bounds_get_begin_v, accepts_empty_at_null)
 {
-    lh_memory_bounds_t b = bounds(lh_null, lh_null);
+    lh_memory_bounds_t v = bounds(lh_null, lh_null);
 
-    LH_EXPECT_DEATH((void)lh_memory_bounds_get_begin_v(&b));
+    EXPECT_EQ(lh_memory_bounds_get_begin_v(&v), lh_null);
 }
 
 TEST(memory_bounds_make_v, rejects_invalid_range_death)
@@ -360,25 +397,34 @@ TEST(memory_bounds_make_v, rejects_invalid_range_death)
 
     LH_EXPECT_DEATH(([&] {
         lh_memory_bounds_t v;
-        lh_memory_bounds_init(lh_addr_of(v), p(buf + 1), p(buf));
+        lh_memory_bounds_init(lh_addr_of(v), nullptr, 4);
     }()));
 }
 
-TEST(memory_bounds_make_by_size, rejects_zero_size_death)
+TEST(memory_bounds_init, rejects_null_with_bytes_death)
 {
-    unsigned char buf[1];
-
     LH_EXPECT_DEATH(([&] {
         lh_memory_bounds_t v;
-        lh_memory_bounds_init_by_size(lh_addr_of(v), p(buf), 0);
+        lh_memory_bounds_init(lh_addr_of(v), lh_null, 4);
     }()));
+}
+
+TEST(memory_bounds_init, accepts_empty)
+{
+    unsigned char buf[1] = {};
+    lh_memory_bounds_t v;
+
+    lh_memory_bounds_init(lh_addr_of(v), p(buf), 0);
+    EXPECT_TRUE(lh_memory_bounds_is_empty(&v));
+    lh_memory_bounds_init(lh_addr_of(v), lh_null, 0);
+    EXPECT_TRUE(lh_memory_bounds_is_empty(&v));
 }
 
 TEST(memory_bounds_make_by_size, rejects_null_begin_death)
 {
     LH_EXPECT_DEATH(([&] {
         lh_memory_bounds_t v;
-        lh_memory_bounds_init_by_size(lh_addr_of(v), lh_null, 1);
+        lh_memory_bounds_init(lh_addr_of(v), lh_null, 1);
     }()));
 }
 
@@ -396,7 +442,7 @@ TEST(memory_bounds_as_view, same_memory_read_only)
 {
     lh_byte_t buf[16] = {7};
     lh_memory_bounds_t b;
-    lh_memory_bounds_init_by_size(lh_addr_of(b), buf, sizeof(buf));
+    lh_memory_bounds_init(lh_addr_of(b), buf, sizeof(buf));
     lh_memory_view_t v = lh_test::out(lh_memory_bounds_as_view, &b);
 
     EXPECT_EQ(lh_memory_view_get_begin(&v), static_cast<const void *>(buf));

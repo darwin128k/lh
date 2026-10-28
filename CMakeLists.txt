@@ -118,7 +118,6 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/memory/typed/allocated.c
         ${LH_LIB_SRC_PATH}/memory/view.c
         ${LH_LIB_SRC_PATH}/memory/std.c
-        ${LH_LIB_SRC_PATH}/memory/raw.c
         ${LH_LIB_SRC_PATH}/memory.c
         ${LH_LIB_SRC_PATH}/spsc.c
         ${LH_LIB_SRC_PATH}/array.c

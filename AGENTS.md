@@ -72,6 +72,25 @@ The OS layer is the model for every subsystem that touches the platform:
 - A new platform feature first goes into each backend in the platform's own
   terms, then gets one portable wrapper above them.
 
+## 0.0. No raw fields — everywhere, LH and Authum
+
+A struct's fields are touched **only** by that struct's own level-1 getters
+and setters. Every other function — in its own `.c` file too, in every other
+file of LH and of Authum — reads and writes through them. No exceptions.
+
+- Level 1: `get_<field>` / `set_<field>` read or write one field and call
+  nothing. They are the only code that names a field.
+- Level 2 uses only level 1: a computed value is composed, never stored or
+  re-derived by hand — `get_end` is `get_begin + get_size`; `set` is
+  `set_begin` + `set_size`.
+- Level 3 and up use the levels below: predicates, compare, find, copy, the
+  `_v` (validated) forms. A function never skips a level to reach a field.
+- Headers and `.c` files are ordered by level: level 1 first, then 2, ...
+- The fast forms have no suffix and no checks; `_v` adds validation where it
+  is really needed — not a `_v` for every function, and no forms for private
+  contracts (`_nonempty`, `_by_size` setters). The developer owns the
+  consequences of a fast form; its documentation says what it does not check.
+
 ## 0.1. From smaller to larger; no extra includes
 
 - Bricks are layered **from the smaller to the larger**. The smallest brick

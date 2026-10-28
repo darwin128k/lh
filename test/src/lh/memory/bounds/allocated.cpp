@@ -130,11 +130,11 @@ TEST(memory_bounds_allocated_death, resize_null_self)
     LH_EXPECT_DEATH(lh_memory_bounds_allocated_resize(nullptr, 4));
 }
 
-TEST(memory_bounds_allocated_death, exchange_invalid_other)
+TEST(memory_bounds_allocated, exchange_of_two_empty_is_allowed)
 {
     lh_memory_bounds_allocated_t a = lh_memory_bounds_allocated_initializer();
     lh_memory_bounds_allocated_t b = lh_memory_bounds_allocated_initializer();
-    LH_EXPECT_DEATH(lh_memory_bounds_allocated_exchange(&a, &b));
+    lh_memory_bounds_allocated_exchange(&a, &b); /* no longer an error */
 }
 
 #endif /* LH_TEST_EXPECT_DEATH_ENABLED */

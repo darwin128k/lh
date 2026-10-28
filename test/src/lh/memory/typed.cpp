@@ -12,7 +12,7 @@ struct IntTyped
 
     IntTyped()
     {
-        lh_memory_typed_init(&typed, buf, buf + 8, sizeof(int));
+        lh_memory_typed_init(&typed, buf, 8, sizeof(int));
     }
 };
 

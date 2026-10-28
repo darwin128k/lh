@@ -1,4 +1,6 @@
 #include <lh/memory/typed.h>
+#include <lh/size/limits.h>
+#include <lh/util/interval.h>
 #include <lh/memory/typed/initializer.h>
 #include <lh/util/return.h>
 #include <lh/math.h>
@@ -83,9 +85,9 @@ lh_memory_typed_clear(lh_memory_typed_t *self)
 }
 
 lh_void
-lh_memory_typed_set(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usize_t type_size)
+lh_memory_typed_set(lh_memory_typed_t *self, lh_ptr begin, lh_usize_t count, lh_usize_t type_size)
 {
-    lh_memory_bounds_set(lh_memory_typed_get_bounds_mut(self), begin, end);
+    lh_memory_bounds_set(lh_memory_typed_get_bounds_mut(self), begin, lh_math_mul(count, type_size));
     lh_memory_typed_set_type_size(self, type_size);
 }
 
@@ -183,11 +185,13 @@ lh_memory_typed_get_index_from_offset(const lh_memory_typed_t *self, lh_uoffset_
 }
 
 lh_void
-lh_memory_typed_set_v(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usize_t type_size)
+lh_memory_typed_set_v(lh_memory_typed_t *self, lh_ptr begin, lh_usize_t count, lh_usize_t type_size)
 {
     lh_memory_typed_t typed;
 
-    lh_memory_typed_set(lh_addr_of(typed), begin, end, type_size);
+    lh_assert_runtime_if(lh_interval_closed_is_mul_overflow(count, type_size, 0, LH_USIZE_T_MAX),
+                         lh_runtime_error_code_invalid_range);
+    lh_memory_typed_set(lh_addr_of(typed), begin, count, type_size);
     lh_memory_typed_assign_v(self, lh_addr_of(typed));
 }
 
@@ -218,9 +222,9 @@ lh_memory_typed_get_index_from_ptr(const lh_memory_typed_t *self, const lh_ptr p
 }
 
 lh_void
-lh_memory_typed_init(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usize_t type_size)
+lh_memory_typed_init(lh_memory_typed_t *self, lh_ptr begin, lh_usize_t count, lh_usize_t type_size)
 {
-    lh_memory_typed_set_v(self, begin, end, type_size);
+    lh_memory_typed_set_v(self, begin, count, type_size);
 }
 
 lh_ptr
@@ -242,7 +246,7 @@ lh_memory_typed_get_value_bounds(const lh_memory_typed_t *self, lh_uindex_t inde
 {
     lh_assert_runtime_ref(out);
     lh_ptr begin = lh_memory_typed_get_ptr_from_begin(self, index);
-    lh_memory_bounds_init_by_size(out, begin, lh_memory_typed_get_type_size(self));
+    lh_memory_bounds_init(out, begin, lh_memory_typed_get_type_size(self));
 }
 
 lh_void
@@ -254,14 +258,14 @@ lh_memory_typed_get_range_bounds(const lh_memory_typed_t *self, lh_uindex_t inde
                           lh_runtime_error_code_out_of_range);
 
     lh_ptr begin = lh_memory_typed_get_ptr_from_begin(self, index);
-    lh_memory_bounds_init_by_size(out, begin, lh_math_mul(count, lh_memory_typed_get_type_size(self)));
+    lh_memory_bounds_init(out, begin, lh_math_mul(count, lh_memory_typed_get_type_size(self)));
 }
 
 lh_void
 lh_memory_typed_get_value_into(const lh_memory_typed_t *self, lh_uindex_t index, lh_ptr dst)
 {
     lh_memory_bounds_t destination;
-    lh_memory_bounds_init_by_size(lh_addr_of(destination), dst, lh_memory_typed_get_type_size(self));
+    lh_memory_bounds_init(lh_addr_of(destination), dst, lh_memory_typed_get_type_size(self));
     lh_memory_bounds_copy_by_size(lh_addr_of(destination),
                                   lh_memory_typed_get_ptr_from_begin(self, index),
                                   lh_memory_typed_get_type_size(self));
