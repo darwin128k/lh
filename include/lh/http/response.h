@@ -25,35 +25,54 @@ typedef struct lh_http_response lh_http_response_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/** @brief The @c reason of @p self. */
+/**
+ * @brief The reason phrase; may be empty.
+ * The view points into the parsed input and lives as long as that buffer.
+ */
 const lh_str_view_t *
 lh_http_response_get_reason(const lh_http_response_t *self);
 
-/** @brief Store @p reason as the @c reason of @p self. */
+/**
+ * @brief Store the reason phrase; may be empty.
+ *
+ * Level-1 setter: no validation; the parser fills it.
+ */
 lh_void
 lh_http_response_set_reason(lh_http_response_t *self, lh_str_view_t reason);
 
-/** @brief The @c status of @p self. */
+/** @brief The three-digit status code, 100..599. */
 lh_u16_t
 lh_http_response_get_status(const lh_http_response_t *self);
 
-/** @brief Store @p status as the @c status of @p self. */
+/**
+ * @brief Store the three-digit status code, 100..599.
+ *
+ * Level-1 setter: no validation; the parser fills it.
+ */
 lh_void
 lh_http_response_set_status(lh_http_response_t *self, lh_u16_t status);
 
-/** @brief The @c version_minor of @p self. */
+/** @brief The minor digit of `HTTP/1.x` (0..9). */
 lh_u8_t
 lh_http_response_get_version_minor(const lh_http_response_t *self);
 
-/** @brief Store @p version_minor as the @c version_minor of @p self. */
+/**
+ * @brief Store the minor digit of `HTTP/1.x` (0..9).
+ *
+ * Level-1 setter: no validation; the parser fills it.
+ */
 lh_void
 lh_http_response_set_version_minor(lh_http_response_t *self, lh_u8_t version_minor);
 
-/** @brief The @c header_count of @p self. */
+/** @brief Number of header fields the parse stored in the caller's array. */
 lh_usize_t
 lh_http_response_get_header_count(const lh_http_response_t *self);
 
-/** @brief Store @p header_count as the @c header_count of @p self. */
+/**
+ * @brief Store number of header fields the parse stored in the caller's array.
+ *
+ * Level-1 setter: no validation; the parser fills it.
+ */
 lh_void
 lh_http_response_set_header_count(lh_http_response_t *self, lh_usize_t header_count);
 

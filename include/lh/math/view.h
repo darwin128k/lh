@@ -31,12 +31,38 @@ typedef struct lh_math_view lh_math_view_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/** @brief The slice the view walks: its first element is element 0 of the view. */
+const lh_math_slice_t *
+lh_math_view_get_slice(const lh_math_view_t *self);
+
+/** @brief The slice the view walks, to fill in place (::lh_math_view_init). */
+lh_math_slice_t *
+lh_math_view_get_slice_mut(lh_math_view_t *self);
+
+/** @brief Distance in elements between two neighbours of the view. */
+lh_usize_t
+lh_math_view_get_stride(const lh_math_view_t *self);
+
+/** @brief Store the distance between neighbours. Level-1 setter: no validation. */
+lh_void
+lh_math_view_set_stride(lh_math_view_t *self, lh_usize_t stride);
+
+/** @brief Store the number of elements (::lh_math_view_get_size reads it). Level-1 setter. */
+lh_void
+lh_math_view_set_count(lh_math_view_t *self, lh_usize_t count);
+
 /**
  * @brief How many elements of a slice @p count elements @p stride apart span:
  *        `(count - 1) * stride + 1`, or `0` for no elements.
  */
 lh_usize_t
 lh_math_view_get_span(lh_usize_t stride, lh_usize_t count);
+
+/**
+ * @brief How many elements the view has.
+ */
+lh_usize_t
+lh_math_view_get_size(const lh_math_view_t *self);
 
 /**
  * @brief A view of @p count elements of @p base, from element @p offset, each
@@ -48,18 +74,6 @@ lh_math_view_get_span(lh_usize_t stride, lh_usize_t count);
 lh_void
 lh_math_view_init(lh_math_view_t *self, const lh_math_slice_t *base, lh_usize_t offset,
                   lh_usize_t stride, lh_usize_t count);
-
-/**
- * @brief A view of every element of @p base (stride `1`).
- */
-lh_void
-lh_math_view_init_by_slice(lh_math_view_t *self, const lh_math_slice_t *base);
-
-/**
- * @brief How many elements the view has.
- */
-lh_usize_t
-lh_math_view_get_size(const lh_math_view_t *self);
 
 /**
  * @brief True when the view has no elements.
@@ -74,6 +88,12 @@ lh_math_view_is_empty(const lh_math_view_t *self);
  */
 lh_float_t
 lh_math_view_get_at(const lh_math_view_t *self, lh_usize_t index);
+
+/**
+ * @brief A view of every element of @p base (stride `1`).
+ */
+lh_void
+lh_math_view_init_by_slice(lh_math_view_t *self, const lh_math_slice_t *base);
 
 /**
  * @brief `a[0] * b[0] + a[1] * b[1] + ...`, added first to last starting from the

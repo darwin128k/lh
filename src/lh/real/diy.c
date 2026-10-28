@@ -1,4 +1,5 @@
 #include <lh/real/diy.h>
+#include <lh/assert.h>
 
 #if LH_REAL_ENABLED
 
@@ -8,14 +9,43 @@
 #    include <lh/math/ops.h>
 #    include <lh/numeric/mul.h>
 #    include <lh/real/bits.h>
+#endif /* LH_REAL_ENABLED */
+
+lh_u64_t
+lh_real_diy_get_f(const lh_real_diy_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->f;
+}
+
+lh_void
+lh_real_diy_set_f(lh_real_diy_t *self, lh_u64_t f)
+{
+    lh_assert_runtime_ref(self);
+    self->f = f;
+}
+
+lh_s32_t
+lh_real_diy_get_e(const lh_real_diy_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->e;
+}
+
+lh_void
+lh_real_diy_set_e(lh_real_diy_t *self, lh_s32_t e)
+{
+    lh_assert_runtime_ref(self);
+    self->e = e;
+}
 
 lh_real_diy_t
 lh_real_diy_make(lh_u64_t f, lh_s32_t e)
 {
     lh_real_diy_t self;
 
-    self.f = f;
-    self.e = e;
+    lh_real_diy_set_f(lh_addr_of(self), f);
+    lh_real_diy_set_e(lh_addr_of(self), e);
     return self;
 }
 
@@ -41,9 +71,9 @@ lh_real_diy_t
 lh_real_diy_normalize(lh_real_diy_t self)
 {
     const lh_s32_t shift =
-        lh_cast_static(lh_s32_t, lh_math_sub(63U, lh_bit_scan_reverse_u64(self.f)));
+        lh_cast_static(lh_s32_t, lh_math_sub(63U, lh_bit_scan_reverse_u64(lh_real_diy_get_f(lh_addr_of(self)))));
 
-    return lh_real_diy_make(lh_math_bit_shl(self.f, shift), lh_math_sub(self.e, shift));
+    return lh_real_diy_make(lh_math_bit_shl(lh_real_diy_get_f(lh_addr_of(self)), shift), lh_math_sub(lh_real_diy_get_e(lh_addr_of(self)), shift));
 }
 
 lh_real_diy_t
@@ -54,12 +84,29 @@ lh_real_diy_normalize_boundary(lh_real_diy_t self)
     const lh_u64_t top = lh_math_bit_shl(1ULL, LH_REAL_MANTISSA_BITS + 1);
     const lh_s32_t rest = 64 - LH_REAL_MANTISSA_BITS - 2;
 
-    while (lh_math_is_zero(lh_math_bit_and(self.f, top)))
+    while (lh_math_is_zero(lh_math_bit_and(lh_real_diy_get_f(lh_addr_of(self)), top)))
     {
-        self.f = lh_math_bit_shl(self.f, 1U);
-        self.e = lh_math_sub_one(self.e);
+        lh_real_diy_set_f(lh_addr_of(self), lh_math_bit_shl(lh_real_diy_get_f(lh_addr_of(self)), 1U));
+        lh_real_diy_set_e(lh_addr_of(self), lh_math_sub_one(lh_real_diy_get_e(lh_addr_of(self))));
     }
-    return lh_real_diy_make(lh_math_bit_shl(self.f, rest), lh_math_sub(self.e, rest));
+    return lh_real_diy_make(lh_math_bit_shl(lh_real_diy_get_f(lh_addr_of(self)), rest), lh_math_sub(lh_real_diy_get_e(lh_addr_of(self)), rest));
+}
+
+lh_real_diy_t
+lh_real_diy_sub(lh_real_diy_t a, lh_real_diy_t b)
+{
+    return lh_real_diy_make(lh_math_sub(lh_real_diy_get_f(lh_addr_of(a)), lh_real_diy_get_f(lh_addr_of(b))), lh_real_diy_get_e(lh_addr_of(a)));
+}
+
+lh_real_diy_t
+lh_real_diy_mul(lh_real_diy_t a, lh_real_diy_t b)
+{
+    lh_u64_t high;
+    const lh_u64_t low = lh_numeric_mul_u64_full(lh_real_diy_get_f(lh_addr_of(a)), lh_real_diy_get_f(lh_addr_of(b)), lh_addr_of(high));
+
+    /* Round to nearest on the bit below the kept 64. */
+    return lh_real_diy_make(lh_math_add(high, lh_math_bit_shr(low, 63U)),
+                            lh_math_add(lh_math_add(lh_real_diy_get_e(lh_addr_of(a)), lh_real_diy_get_e(lh_addr_of(b))), 64));
 }
 
 lh_void
@@ -68,37 +115,18 @@ lh_real_diy_get_boundaries(lh_real_t value, lh_real_diy_t *minus, lh_real_diy_t 
     const lh_real_diy_t v = lh_real_diy_from_real(value);
     const lh_u64_t hidden = lh_math_bit_shl(1ULL, LH_REAL_MANTISSA_BITS);
     const lh_real_diy_t upper = lh_real_diy_normalize_boundary(
-        lh_real_diy_make(lh_math_add_one(lh_math_bit_shl(v.f, 1U)), lh_math_sub_one(v.e)));
+        lh_real_diy_make(lh_math_add_one(lh_math_bit_shl(lh_real_diy_get_f(lh_addr_of(v)), 1U)), lh_math_sub_one(lh_real_diy_get_e(lh_addr_of(v)))));
     /* At a power of two the number below is half as far away, so the lower
        halfway point is a quarter step down instead of a half. */
     lh_real_diy_t lower =
-        lh_math_eq(v.f, hidden)
-            ? lh_real_diy_make(lh_math_sub_one(lh_math_bit_shl(v.f, 2U)), lh_math_sub(v.e, 2))
-            : lh_real_diy_make(lh_math_sub_one(lh_math_bit_shl(v.f, 1U)), lh_math_sub_one(v.e));
+        lh_math_eq(lh_real_diy_get_f(lh_addr_of(v)), hidden)
+            ? lh_real_diy_make(lh_math_sub_one(lh_math_bit_shl(lh_real_diy_get_f(lh_addr_of(v)), 2U)), lh_math_sub(lh_real_diy_get_e(lh_addr_of(v)), 2))
+            : lh_real_diy_make(lh_math_sub_one(lh_math_bit_shl(lh_real_diy_get_f(lh_addr_of(v)), 1U)), lh_math_sub_one(lh_real_diy_get_e(lh_addr_of(v))));
 
     lh_assert_runtime_ref(minus);
     lh_assert_runtime_ref(plus);
-    lower.f = lh_math_bit_shl(lower.f, lh_math_sub(lower.e, upper.e));
-    lower.e = upper.e;
+    lh_real_diy_set_f(lh_addr_of(lower), lh_math_bit_shl(lh_real_diy_get_f(lh_addr_of(lower)), lh_math_sub(lh_real_diy_get_e(lh_addr_of(lower)), lh_real_diy_get_e(lh_addr_of(upper)))));
+    lh_real_diy_set_e(lh_addr_of(lower), lh_real_diy_get_e(lh_addr_of(upper)));
     lh_ptr_deref(minus) = lower;
     lh_ptr_deref(plus) = upper;
 }
-
-lh_real_diy_t
-lh_real_diy_sub(lh_real_diy_t a, lh_real_diy_t b)
-{
-    return lh_real_diy_make(lh_math_sub(a.f, b.f), a.e);
-}
-
-lh_real_diy_t
-lh_real_diy_mul(lh_real_diy_t a, lh_real_diy_t b)
-{
-    lh_u64_t high;
-    const lh_u64_t low = lh_numeric_mul_u64_full(a.f, b.f, lh_addr_of(high));
-
-    /* Round to nearest on the bit below the kept 64. */
-    return lh_real_diy_make(lh_math_add(high, lh_math_bit_shr(low, 63U)),
-                            lh_math_add(lh_math_add(a.e, b.e), 64));
-}
-
-#endif /* LH_REAL_ENABLED */

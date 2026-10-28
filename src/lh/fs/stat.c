@@ -2,19 +2,6 @@
 #include <lh/assert.h>
 
 lh_void
-lh_fs_stat_init(lh_fs_stat_t *self)
-{
-    lh_assert_runtime_ref(self);
-    self->kind = lh_fs_kind_other;
-    self->perm = 0U;
-    self->size = 0U;
-    self->atime = 0;
-    self->mtime = 0;
-    self->ctime = 0;
-    self->attr = 0U;
-}
-
-lh_void
 lh_fs_stat_assign(lh_fs_stat_t *self, const lh_fs_stat_t *other)
 {
     lh_assert_runtime_ref(self);
@@ -72,22 +59,69 @@ lh_fs_stat_get_attr(const lh_fs_stat_t *self)
 }
 
 lh_void
-lh_fs_stat_set(lh_fs_stat_t *self, lh_fs_kind_t kind, lh_fs_perm_t perm, lh_fs_size_t size,
-               lh_fs_time_t atime, lh_fs_time_t mtime, lh_fs_time_t ctime, lh_fs_attr_t attr)
-{
-    lh_assert_runtime_ref(self);
-    self->kind = kind;
-    self->perm = perm;
-    self->size = size;
-    self->atime = atime;
-    self->mtime = mtime;
-    self->ctime = ctime;
-    self->attr = attr;
-}
-
-lh_void
 lh_fs_stat_set_attr(lh_fs_stat_t *self, lh_fs_attr_t attr)
 {
     lh_assert_runtime_ref(self);
     self->attr = attr;
+}
+
+lh_void
+lh_fs_stat_set_kind(lh_fs_stat_t *self, lh_fs_kind_t kind)
+{
+    lh_assert_runtime_ref(self);
+    self->kind = kind;
+}
+
+lh_void
+lh_fs_stat_set_perm(lh_fs_stat_t *self, lh_fs_perm_t perm)
+{
+    lh_assert_runtime_ref(self);
+    self->perm = perm;
+}
+
+lh_void
+lh_fs_stat_set_size(lh_fs_stat_t *self, lh_fs_size_t size)
+{
+    lh_assert_runtime_ref(self);
+    self->size = size;
+}
+
+lh_void
+lh_fs_stat_set_atime(lh_fs_stat_t *self, lh_fs_time_t atime)
+{
+    lh_assert_runtime_ref(self);
+    self->atime = atime;
+}
+
+lh_void
+lh_fs_stat_set_mtime(lh_fs_stat_t *self, lh_fs_time_t mtime)
+{
+    lh_assert_runtime_ref(self);
+    self->mtime = mtime;
+}
+
+lh_void
+lh_fs_stat_set_ctime(lh_fs_stat_t *self, lh_fs_time_t ctime)
+{
+    lh_assert_runtime_ref(self);
+    self->ctime = ctime;
+}
+
+lh_void
+lh_fs_stat_set(lh_fs_stat_t *self, lh_fs_kind_t kind, lh_fs_perm_t perm, lh_fs_size_t size,
+               lh_fs_time_t atime, lh_fs_time_t mtime, lh_fs_time_t ctime, lh_fs_attr_t attr)
+{
+    lh_fs_stat_set_kind(self, kind);
+    lh_fs_stat_set_perm(self, perm);
+    lh_fs_stat_set_size(self, size);
+    lh_fs_stat_set_atime(self, atime);
+    lh_fs_stat_set_mtime(self, mtime);
+    lh_fs_stat_set_ctime(self, ctime);
+    lh_fs_stat_set_attr(self, attr);
+}
+
+lh_void
+lh_fs_stat_init(lh_fs_stat_t *self)
+{
+    lh_fs_stat_set(self, lh_fs_kind_other, 0U, 0U, 0, 0, 0, 0U);
 }

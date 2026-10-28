@@ -14,6 +14,8 @@
 #define LH_REAL_DIY_H
 
 #include <lh/real.h>
+#include <lh/compiler/extern/c.h>
+#include <lh/void.h>
 
 #if LH_REAL_ENABLED
 
@@ -35,6 +37,22 @@ typedef struct lh_real_diy lh_real_diy_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/** @brief The significand: the number is `f × 2^e`. */
+lh_u64_t
+lh_real_diy_get_f(const lh_real_diy_t *self);
+
+/** @brief Store the significand. Level-1 setter: no normalization. */
+lh_void
+lh_real_diy_set_f(lh_real_diy_t *self, lh_u64_t f);
+
+/** @brief The binary exponent: the number is `f × 2^e`. */
+lh_s32_t
+lh_real_diy_get_e(const lh_real_diy_t *self);
+
+/** @brief Store the binary exponent. Level-1 setter. */
+lh_void
+lh_real_diy_set_e(lh_real_diy_t *self, lh_s32_t e);
+
 /** The number `f × 2^e`. */
 lh_real_diy_t
 lh_real_diy_make(lh_u64_t f, lh_s32_t e);
@@ -54,14 +72,6 @@ lh_real_diy_normalize(lh_real_diy_t self);
 lh_real_diy_t
 lh_real_diy_normalize_boundary(lh_real_diy_t self);
 
-/**
- * @brief The halfway points between @p value and its neighbours, both on
- *        the exponent of the upper one: every number strictly between them
- *        reads back as @p value.
- */
-lh_void
-lh_real_diy_get_boundaries(lh_real_t value, lh_real_diy_t *minus, lh_real_diy_t *plus);
-
 /** `a - b` for two numbers on the same exponent, `a >= b`. */
 lh_real_diy_t
 lh_real_diy_sub(lh_real_diy_t a, lh_real_diy_t b);
@@ -69,6 +79,14 @@ lh_real_diy_sub(lh_real_diy_t a, lh_real_diy_t b);
 /** `a × b`, the top 64 bits of the product, rounded. */
 lh_real_diy_t
 lh_real_diy_mul(lh_real_diy_t a, lh_real_diy_t b);
+
+/**
+ * @brief The halfway points between @p value and its neighbours, both on
+ *        the exponent of the upper one: every number strictly between them
+ *        reads back as @p value.
+ */
+lh_void
+lh_real_diy_get_boundaries(lh_real_t value, lh_real_diy_t *minus, lh_real_diy_t *plus);
 
 LH_COMPILER_EXTERN_C_END
 

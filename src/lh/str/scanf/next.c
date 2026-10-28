@@ -18,9 +18,9 @@ lh_str_ptr_scanf_next_literal(lh_str_cptr fmt, lh_usize_t *pos, lh_str_scanf_spe
         {
             fmt_pos = lh_math_add_one(fmt_pos);
         }
-        out->kind = lh_str_scanf_spec_kind_literal;
-        out->literal = lh_ptr_add_by_offset_unsafe(const lh_char_t, fmt, run_start);
-        out->literal_size = lh_math_sub(fmt_pos, run_start);
+        lh_str_scanf_spec_set_kind(out, lh_str_scanf_spec_kind_literal);
+        lh_str_scanf_spec_set_literal(out, lh_ptr_add_by_offset_unsafe(const lh_char_t, fmt, run_start));
+        lh_str_scanf_spec_set_literal_size(out, lh_math_sub(fmt_pos, run_start));
         lh_ptr_deref(pos) = fmt_pos;
     }
 }
@@ -38,11 +38,11 @@ lh_str_ptr_scanf_next_flags(lh_str_cptr fmt, lh_usize_t *pos, lh_str_scanf_spec_
         {
             if (lh_math_eq(fmt[fmt_pos], lh_char_map_digit_0))
             {
-                out->zero_pad = lh_bool_true;
+                lh_str_scanf_spec_set_zero_pad(out, lh_bool_true);
             }
             else if (lh_math_eq(fmt[fmt_pos], lh_char_map_minus))
             {
-                out->left_justify = lh_bool_true;
+                lh_str_scanf_spec_set_left_justify(out, lh_bool_true);
             }
             else
             {
@@ -93,7 +93,7 @@ lh_str_ptr_scanf_next(lh_str_cptr fmt, lh_usize_t *pos, lh_str_scanf_spec_t *out
 
         /* kind_invalid is 0; wipe + keep fmt as the default literal base. */
         lh_ptr_deref(out) = (lh_str_scanf_spec_t){0};
-        out->literal = fmt;
+        lh_str_scanf_spec_set_literal(out, fmt);
 
         ch = fmt[fmt_pos];
         if (lh_math_eq(ch, lh_char_map_nul))
@@ -129,18 +129,18 @@ lh_str_ptr_scanf_next(lh_str_cptr fmt, lh_usize_t *pos, lh_str_scanf_spec_t *out
             lh_ptr_deref(pos) = fmt_pos;
             return lh_bool_true; /* kind stays invalid */
         }
-        out->width = number;
+        lh_str_scanf_spec_set_width(out, number);
 
         if (lh_math_eq(fmt[fmt_pos], lh_char_map_period))
         {
             fmt_pos = lh_math_add_one(fmt_pos);
-            out->have_precision = lh_bool_true;
+            lh_str_scanf_spec_set_have_precision(out, lh_bool_true);
             if (!lh_str_ptr_scanf_next_number(fmt, lh_addr_of(fmt_pos), lh_addr_of(number)))
             {
                 lh_ptr_deref(pos) = fmt_pos;
                 return lh_bool_true;
             }
-            out->precision = number;
+            lh_str_scanf_spec_set_precision(out, number);
         }
 
         if (lh_math_eq(fmt[fmt_pos], lh_char_map_nul))

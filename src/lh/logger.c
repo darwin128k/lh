@@ -1,23 +1,193 @@
 #include <lh/logger.h>
 #include <lh/assert.h>
 
+lh_logger_level_flags_t
+lh_logger_get_flags(const lh_logger_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->flags;
+}
+
+lh_ptr
+lh_logger_get_context(const lh_logger_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->context;
+}
+
+/* lh_logger_emergency … lh_logger_debug are macros; see logger.h. */
+
+lh_void
+lh_logger_set_flags(lh_logger_t *self, lh_logger_level_flags_t flags)
+{
+    lh_assert_runtime_ref(self);
+    self->flags = flags;
+}
+
+lh_void
+lh_logger_set_context(lh_logger_t *self, lh_ptr context)
+{
+    lh_assert_runtime_ref(self);
+    self->context = context;
+}
+
+lh_logger_emit_cb
+lh_logger_get_emergency_cb(const lh_logger_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->emergency_cb;
+}
+
+lh_void
+lh_logger_set_emergency_cb(lh_logger_t *self, lh_logger_emit_cb emergency_cb)
+{
+    lh_assert_runtime_ref(self);
+    self->emergency_cb = emergency_cb;
+}
+
+lh_logger_emit_cb
+lh_logger_get_alert_cb(const lh_logger_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->alert_cb;
+}
+
+lh_void
+lh_logger_set_alert_cb(lh_logger_t *self, lh_logger_emit_cb alert_cb)
+{
+    lh_assert_runtime_ref(self);
+    self->alert_cb = alert_cb;
+}
+
+lh_logger_emit_cb
+lh_logger_get_critical_cb(const lh_logger_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->critical_cb;
+}
+
+lh_void
+lh_logger_set_critical_cb(lh_logger_t *self, lh_logger_emit_cb critical_cb)
+{
+    lh_assert_runtime_ref(self);
+    self->critical_cb = critical_cb;
+}
+
+lh_logger_emit_cb
+lh_logger_get_error_cb(const lh_logger_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->error_cb;
+}
+
+lh_void
+lh_logger_set_error_cb(lh_logger_t *self, lh_logger_emit_cb error_cb)
+{
+    lh_assert_runtime_ref(self);
+    self->error_cb = error_cb;
+}
+
+lh_logger_emit_cb
+lh_logger_get_warning_cb(const lh_logger_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->warning_cb;
+}
+
+lh_void
+lh_logger_set_warning_cb(lh_logger_t *self, lh_logger_emit_cb warning_cb)
+{
+    lh_assert_runtime_ref(self);
+    self->warning_cb = warning_cb;
+}
+
+lh_logger_emit_cb
+lh_logger_get_notice_cb(const lh_logger_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->notice_cb;
+}
+
+lh_void
+lh_logger_set_notice_cb(lh_logger_t *self, lh_logger_emit_cb notice_cb)
+{
+    lh_assert_runtime_ref(self);
+    self->notice_cb = notice_cb;
+}
+
+lh_logger_emit_cb
+lh_logger_get_info_cb(const lh_logger_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->info_cb;
+}
+
+lh_void
+lh_logger_set_info_cb(lh_logger_t *self, lh_logger_emit_cb info_cb)
+{
+    lh_assert_runtime_ref(self);
+    self->info_cb = info_cb;
+}
+
+lh_logger_emit_cb
+lh_logger_get_debug_cb(const lh_logger_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->debug_cb;
+}
+
+lh_void
+lh_logger_set_debug_cb(lh_logger_t *self, lh_logger_emit_cb debug_cb)
+{
+    lh_assert_runtime_ref(self);
+    self->debug_cb = debug_cb;
+}
+
 lh_void
 lh_logger_set(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_cb emergency_cb,
               lh_logger_emit_cb alert_cb, lh_logger_emit_cb critical_cb, lh_logger_emit_cb error_cb,
               lh_logger_emit_cb warning_cb, lh_logger_emit_cb notice_cb, lh_logger_emit_cb info_cb,
               lh_logger_emit_cb debug_cb, lh_ptr context)
 {
+    lh_logger_set_flags(self, flags);
+    lh_logger_set_emergency_cb(self, emergency_cb);
+    lh_logger_set_alert_cb(self, alert_cb);
+    lh_logger_set_critical_cb(self, critical_cb);
+    lh_logger_set_error_cb(self, error_cb);
+    lh_logger_set_warning_cb(self, warning_cb);
+    lh_logger_set_notice_cb(self, notice_cb);
+    lh_logger_set_info_cb(self, info_cb);
+    lh_logger_set_debug_cb(self, debug_cb);
+    lh_logger_set_context(self, context);
+}
+
+lh_logger_emit_cb
+lh_logger_get_emit_cb(const lh_logger_t *self, lh_logger_level_t level)
+{
     lh_assert_runtime_ref(self);
-    self->flags = flags;
-    self->emergency_cb = emergency_cb;
-    self->alert_cb = alert_cb;
-    self->critical_cb = critical_cb;
-    self->error_cb = error_cb;
-    self->warning_cb = warning_cb;
-    self->notice_cb = notice_cb;
-    self->info_cb = info_cb;
-    self->debug_cb = debug_cb;
-    self->context = context;
+    lh_assert_runtime_if(level > lh_logger_level_debug, lh_runtime_error_code_invalid_argument);
+
+    switch (level)
+    {
+    case lh_logger_level_emergency:
+        return lh_logger_get_emergency_cb(self);
+    case lh_logger_level_alert:
+        return lh_logger_get_alert_cb(self);
+    case lh_logger_level_critical:
+        return lh_logger_get_critical_cb(self);
+    case lh_logger_level_error:
+        return lh_logger_get_error_cb(self);
+    case lh_logger_level_warning:
+        return lh_logger_get_warning_cb(self);
+    case lh_logger_level_notice:
+        return lh_logger_get_notice_cb(self);
+    case lh_logger_level_info:
+        return lh_logger_get_info_cb(self);
+    case lh_logger_level_debug:
+        return lh_logger_get_debug_cb(self);
+    default:
+        return lh_null;
+    }
 }
 
 lh_void
@@ -32,61 +202,10 @@ lh_logger_init_of(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_em
 }
 
 lh_void
-lh_logger_init(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_cb emit_cb,
-               lh_ptr context)
-{
-    lh_logger_init_of(self, flags, emit_cb, emit_cb, emit_cb, emit_cb, emit_cb, emit_cb, emit_cb,
-                      emit_cb, context);
-}
-
-lh_void
 lh_logger_deinit(lh_logger_t *self)
 {
     lh_logger_set(self, lh_logger_level_flags_none, lh_null, lh_null, lh_null, lh_null, lh_null,
                   lh_null, lh_null, lh_null, lh_null);
-}
-
-lh_logger_level_flags_t
-lh_logger_get_flags(const lh_logger_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->flags;
-}
-
-lh_logger_emit_cb
-lh_logger_get_emit_cb(const lh_logger_t *self, lh_logger_level_t level)
-{
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_if(level > lh_logger_level_debug, lh_runtime_error_code_invalid_argument);
-
-    switch (level)
-    {
-    case lh_logger_level_emergency:
-        return self->emergency_cb;
-    case lh_logger_level_alert:
-        return self->alert_cb;
-    case lh_logger_level_critical:
-        return self->critical_cb;
-    case lh_logger_level_error:
-        return self->error_cb;
-    case lh_logger_level_warning:
-        return self->warning_cb;
-    case lh_logger_level_notice:
-        return self->notice_cb;
-    case lh_logger_level_info:
-        return self->info_cb;
-    case lh_logger_level_debug:
-        return self->debug_cb;
-    default:
-        return lh_null;
-    }
-}
-
-lh_ptr
-lh_logger_get_context(const lh_logger_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->context;
 }
 
 lh_void
@@ -112,7 +231,7 @@ lh_logger_log_v(lh_logger_t *self, lh_logger_level_t level, lh_str_cptr fmt, va_
     lh_assert_runtime_ref(fmt);
     lh_assert_runtime_if(level > lh_logger_level_debug, lh_runtime_error_code_invalid_argument);
 
-    if (lh_bit_disjoint(self->flags, lh_bit_mask(level)))
+    if (lh_bit_disjoint(lh_logger_get_flags(self), lh_bit_mask(level)))
     {
         return 0;
     }
@@ -126,6 +245,14 @@ lh_logger_log_v(lh_logger_t *self, lh_logger_level_t level, lh_str_cptr fmt, va_
     return emit_cb(lh_logger_get_context(self), level, fmt, args);
 }
 
+lh_void
+lh_logger_init(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_cb emit_cb,
+               lh_ptr context)
+{
+    lh_logger_init_of(self, flags, emit_cb, emit_cb, emit_cb, emit_cb, emit_cb, emit_cb, emit_cb,
+                      emit_cb, context);
+}
+
 lh_ssize_t
 lh_logger_log(lh_logger_t *self, lh_logger_level_t level, lh_str_cptr fmt, ...)
 {
@@ -136,5 +263,3 @@ lh_logger_log(lh_logger_t *self, lh_logger_level_t level, lh_str_cptr fmt, ...)
     va_end(args);
     return n;
 }
-
-/* lh_logger_emergency … lh_logger_debug are macros; see logger.h. */

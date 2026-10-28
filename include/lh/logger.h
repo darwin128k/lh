@@ -120,16 +120,164 @@ typedef struct lh_logger lh_logger_t;
 
 /* -- set / init ------------------------------------------------------------ */
 
+/* -- accessors ------------------------------------------------------------- */
+
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Copy logger state from @p other into @p self.
- *
- * @param self  Destination logger.
- * @param other Source logger.
+ * @brief Get the current level filter from @p self.
+ * @param self Logger to read from.
+ */
+lh_logger_level_flags_t
+lh_logger_get_flags(const lh_logger_t *self);
+
+/**
+ * @brief Get the userdata passed to callbacks.
+ * @param self Logger to read from.
+ */
+lh_ptr
+lh_logger_get_context(const lh_logger_t *self);
+
+/**
+ * @brief Set which levels @p self formats and emits; the others are skipped
+ *        before any formatting.
  */
 lh_void
-lh_logger_assign(lh_logger_t *self, const lh_logger_t *other);
+lh_logger_set_flags(lh_logger_t *self, lh_logger_level_flags_t flags);
+
+/**
+ * @brief Set the context handed to every callback of @p self (::lh_null for none).
+ */
+lh_void
+lh_logger_set_context(lh_logger_t *self, lh_ptr context);
+
+/**
+ * @brief Callback that receives the ::lh_logger_level_emergency records of @p self.
+ *
+ * ::lh_null means those records are dropped, whatever the flags say.
+ */
+lh_logger_emit_cb
+lh_logger_get_emergency_cb(const lh_logger_t *self);
+
+/**
+ * @brief Route the ::lh_logger_level_emergency records of @p self to @p emergency_cb.
+ *
+ * ::lh_null drops them. The flags still decide whether a record is formatted.
+ */
+lh_void
+lh_logger_set_emergency_cb(lh_logger_t *self, lh_logger_emit_cb emergency_cb);
+
+/**
+ * @brief Callback that receives the ::lh_logger_level_alert records of @p self.
+ *
+ * ::lh_null means those records are dropped, whatever the flags say.
+ */
+lh_logger_emit_cb
+lh_logger_get_alert_cb(const lh_logger_t *self);
+
+/**
+ * @brief Route the ::lh_logger_level_alert records of @p self to @p alert_cb.
+ *
+ * ::lh_null drops them. The flags still decide whether a record is formatted.
+ */
+lh_void
+lh_logger_set_alert_cb(lh_logger_t *self, lh_logger_emit_cb alert_cb);
+
+/**
+ * @brief Callback that receives the ::lh_logger_level_critical records of @p self.
+ *
+ * ::lh_null means those records are dropped, whatever the flags say.
+ */
+lh_logger_emit_cb
+lh_logger_get_critical_cb(const lh_logger_t *self);
+
+/**
+ * @brief Route the ::lh_logger_level_critical records of @p self to @p critical_cb.
+ *
+ * ::lh_null drops them. The flags still decide whether a record is formatted.
+ */
+lh_void
+lh_logger_set_critical_cb(lh_logger_t *self, lh_logger_emit_cb critical_cb);
+
+/**
+ * @brief Callback that receives the ::lh_logger_level_error records of @p self.
+ *
+ * ::lh_null means those records are dropped, whatever the flags say.
+ */
+lh_logger_emit_cb
+lh_logger_get_error_cb(const lh_logger_t *self);
+
+/**
+ * @brief Route the ::lh_logger_level_error records of @p self to @p error_cb.
+ *
+ * ::lh_null drops them. The flags still decide whether a record is formatted.
+ */
+lh_void
+lh_logger_set_error_cb(lh_logger_t *self, lh_logger_emit_cb error_cb);
+
+/**
+ * @brief Callback that receives the ::lh_logger_level_warning records of @p self.
+ *
+ * ::lh_null means those records are dropped, whatever the flags say.
+ */
+lh_logger_emit_cb
+lh_logger_get_warning_cb(const lh_logger_t *self);
+
+/**
+ * @brief Route the ::lh_logger_level_warning records of @p self to @p warning_cb.
+ *
+ * ::lh_null drops them. The flags still decide whether a record is formatted.
+ */
+lh_void
+lh_logger_set_warning_cb(lh_logger_t *self, lh_logger_emit_cb warning_cb);
+
+/**
+ * @brief Callback that receives the ::lh_logger_level_notice records of @p self.
+ *
+ * ::lh_null means those records are dropped, whatever the flags say.
+ */
+lh_logger_emit_cb
+lh_logger_get_notice_cb(const lh_logger_t *self);
+
+/**
+ * @brief Route the ::lh_logger_level_notice records of @p self to @p notice_cb.
+ *
+ * ::lh_null drops them. The flags still decide whether a record is formatted.
+ */
+lh_void
+lh_logger_set_notice_cb(lh_logger_t *self, lh_logger_emit_cb notice_cb);
+
+/**
+ * @brief Callback that receives the ::lh_logger_level_info records of @p self.
+ *
+ * ::lh_null means those records are dropped, whatever the flags say.
+ */
+lh_logger_emit_cb
+lh_logger_get_info_cb(const lh_logger_t *self);
+
+/**
+ * @brief Route the ::lh_logger_level_info records of @p self to @p info_cb.
+ *
+ * ::lh_null drops them. The flags still decide whether a record is formatted.
+ */
+lh_void
+lh_logger_set_info_cb(lh_logger_t *self, lh_logger_emit_cb info_cb);
+
+/**
+ * @brief Callback that receives the ::lh_logger_level_debug records of @p self.
+ *
+ * ::lh_null means those records are dropped, whatever the flags say.
+ */
+lh_logger_emit_cb
+lh_logger_get_debug_cb(const lh_logger_t *self);
+
+/**
+ * @brief Route the ::lh_logger_level_debug records of @p self to @p debug_cb.
+ *
+ * ::lh_null drops them. The flags still decide whether a record is formatted.
+ */
+lh_void
+lh_logger_set_debug_cb(lh_logger_t *self, lh_logger_emit_cb debug_cb);
 
 /**
  * @brief Reconfigure every field of an already-initialized logger at once.
@@ -155,6 +303,25 @@ lh_logger_set(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_c
               lh_logger_emit_cb alert_cb, lh_logger_emit_cb critical_cb, lh_logger_emit_cb error_cb,
               lh_logger_emit_cb warning_cb, lh_logger_emit_cb notice_cb, lh_logger_emit_cb info_cb,
               lh_logger_emit_cb debug_cb, lh_ptr context);
+
+/**
+ * @brief Get the callback stored for @p level.
+ *
+ * @param self  Logger to read from.
+ * @param level Slot to read (0–7).
+ * @return That slot's callback (may be ::lh_null).
+ */
+lh_logger_emit_cb
+lh_logger_get_emit_cb(const lh_logger_t *self, lh_logger_level_t level);
+
+/**
+ * @brief Copy logger state from @p other into @p self.
+ *
+ * @param self  Destination logger.
+ * @param other Source logger.
+ */
+lh_void
+lh_logger_assign(lh_logger_t *self, const lh_logger_t *other);
 
 /**
  * @brief Initialize a fresh logger with an explicit callback per level.
@@ -183,53 +350,12 @@ lh_logger_init_of(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_em
                   lh_logger_emit_cb debug_cb, lh_ptr context);
 
 /**
- * @brief Initialize a logger: @p emit_cb is stored in every level slot.
- *
- * Same callback on all eight fields is the usual case; use ::lh_logger_init_of
- * afterwards to null (or replace) individual slots.
- *
- * @param self    Logger to initialize.
- * @param flags   Level filter.
- * @param emit_cb Callback for every slot (may be ::lh_null).
- * @param context Userdata passed to @p emit_cb.
- */
-lh_void
-lh_logger_init(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_cb emit_cb,
-               lh_ptr context);
-
-/**
  * @brief Reset a logger (no flags, all slots null, null context).
  *
  * @param self Logger to reset.
  */
 lh_void
 lh_logger_deinit(lh_logger_t *self);
-
-/* -- accessors ------------------------------------------------------------- */
-
-/**
- * @brief Get the current level filter from @p self.
- * @param self Logger to read from.
- */
-lh_logger_level_flags_t
-lh_logger_get_flags(const lh_logger_t *self);
-
-/**
- * @brief Get the callback stored for @p level.
- *
- * @param self  Logger to read from.
- * @param level Slot to read (0–7).
- * @return That slot's callback (may be ::lh_null).
- */
-lh_logger_emit_cb
-lh_logger_get_emit_cb(const lh_logger_t *self, lh_logger_level_t level);
-
-/**
- * @brief Get the userdata passed to callbacks.
- * @param self Logger to read from.
- */
-lh_ptr
-lh_logger_get_context(const lh_logger_t *self);
 
 /* -- operation ------------------------------------------------------------- */
 
@@ -248,6 +374,21 @@ lh_logger_get_context(const lh_logger_t *self);
  */
 lh_ssize_t
 lh_logger_log_v(lh_logger_t *self, lh_logger_level_t level, const lh_str_ptr fmt, va_list args);
+
+/**
+ * @brief Initialize a logger: @p emit_cb is stored in every level slot.
+ *
+ * Same callback on all eight fields is the usual case; use ::lh_logger_init_of
+ * afterwards to null (or replace) individual slots.
+ *
+ * @param self    Logger to initialize.
+ * @param flags   Level filter.
+ * @param emit_cb Callback for every slot (may be ::lh_null).
+ * @param context Userdata passed to @p emit_cb.
+ */
+lh_void
+lh_logger_init(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_cb emit_cb,
+               lh_ptr context);
 
 /**
  * @brief Dispatch @p fmt at @p level, if flags and the slot allow.
