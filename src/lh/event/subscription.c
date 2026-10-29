@@ -76,7 +76,7 @@ lh_event_subscription_set_context(lh_event_subscription_t *self, lh_ptr value)
 }
 
 lh_bool_t
-lh_event_subscription_get_dead(const lh_event_subscription_t *self)
+lh_event_subscription_is_dead(const lh_event_subscription_t *self)
 {
     return self->dead;
 }

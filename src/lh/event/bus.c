@@ -100,8 +100,8 @@ lh_event_bus_find_id(const lh_event_bus_t *self, const lh_char_t *name)
     for (lh_event_id_t id = 1u; lh_math_le(id, count); id = lh_math_add_one(id))
     {
         lh_event_entry_t *entry = lh_event_bus_get_entry(self, id);
-        if (lh_math_eq(length, lh_event_entry_get_length(entry)) &&
-            lh_math_eq(lh_memory_std_compare(name, lh_event_entry_get_name(entry), length), 0))
+        if (lh_str_ptr_equals_by_size(name, length, lh_event_entry_get_name(entry),
+                                      lh_event_entry_get_length(entry), lh_bool_false))
         {
             return id;
         }
@@ -123,7 +123,7 @@ lh_event_bus_get_first(const lh_event_bus_t *self, lh_event_id_t id)
          node = lh_list_get_next(list, node))
     {
         lh_event_subscription_t *sub = lh_event_subscription_get_by_node(node);
-        if (!lh_event_subscription_get_dead(sub))
+        if (!lh_event_subscription_is_dead(sub))
         {
             return sub;
         }
@@ -140,7 +140,7 @@ lh_event_bus_get_next(const lh_event_bus_t *self, lh_event_id_t id,
          lh_ptr_is_set(node); node = lh_list_get_next(list, node))
     {
         lh_event_subscription_t *next = lh_event_subscription_get_by_node(node);
-        if (!lh_event_subscription_get_dead(next))
+        if (!lh_event_subscription_is_dead(next))
         {
             return next;
         }
@@ -174,7 +174,7 @@ lh_event_bus_try_subscribe(lh_event_bus_t *self, lh_event_id_t id, lh_ptr owner,
 lh_void
 lh_event_bus_remove(lh_event_bus_t *self, lh_event_subscription_t *sub)
 {
-    if (lh_event_subscription_get_dead(sub))
+    if (lh_event_subscription_is_dead(sub))
     {
         return;
     }
@@ -198,8 +198,8 @@ lh_event_bus_try_get_id(lh_event_bus_t *self, const lh_char_t *name)
         return id;
     }
     length = lh_str_ptr_len(name);
-    if (lh_math_eq(length, 0u) || lh_math_eq(length, LH_USIZE_T_MAX) ||
-        lh_math_eq(count, LH_USIZE_T_MAX))
+    /* An empty name and a length past the index space are refused by the entry itself. */
+    if (lh_math_eq(count, LH_USIZE_T_MAX))
     {
         return 0u;
     }
