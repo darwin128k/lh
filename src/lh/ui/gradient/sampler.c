@@ -86,7 +86,7 @@ lh_ui_gradient_sampler_fill(lh_ui_gradient_sampler_t *self)
         if (count <= 1 || frac <= lh_ui_gradient_sampler_stop_frac(gradient, 0) || segment >= count)
         {
             lh_ui_gradient_color_at(gradient, lh_cast_static(lh_byte_t, frac),
-                                    lh_addr_of(lh_ui_gradient_sampler_get_colors(self)[frac]));
+                                    lh_addr_of(lh_ui_gradient_sampler_get_colors_mut(self)[frac]));
             continue;
         }
         start = lh_ui_gradient_sampler_stop_frac(gradient, segment - 1);
@@ -94,7 +94,7 @@ lh_ui_gradient_sampler_fill(lh_ui_gradient_sampler_t *self)
         if (span <= 0 || frac - start < 0)
         {
             lh_ui_gradient_color_at(gradient, lh_cast_static(lh_byte_t, frac),
-                                    lh_addr_of(lh_ui_gradient_sampler_get_colors(self)[frac]));
+                                    lh_addr_of(lh_ui_gradient_sampler_get_colors_mut(self)[frac]));
             carried = 0;
             continue;
         }
@@ -113,7 +113,7 @@ lh_ui_gradient_sampler_fill(lh_ui_gradient_sampler_t *self)
         {
             lh_ui_gradient_sampler_lerp_next(lh_addr_of(lerp));
         }
-        lh_ui_gradient_sampler_lerp_color(lh_addr_of(lerp), lh_addr_of(lh_ui_gradient_sampler_get_colors(self)[frac]));
+        lh_ui_gradient_sampler_lerp_color(lh_addr_of(lerp), lh_addr_of(lh_ui_gradient_sampler_get_colors_mut(self)[frac]));
     }
 }
 

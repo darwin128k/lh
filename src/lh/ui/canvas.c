@@ -225,7 +225,7 @@ lh_ui_canvas_add_round(lh_ui_canvas_t *self, const lh_ui_rect_t *clip_rect, lh_u
 
     lh_return_if(lh_null_eq(clip_rect) || radius <= lh_ui_scalar(0));
     lh_ui_canvas_state_to_target(lh_ui_canvas_get_state_mut(self), clip_rect, lh_addr_of(target));
-    lh_ui_canvas_clip_round_init(lh_ui_canvas_get_rounds(self) + lh_ui_canvas_state_get_round_count(lh_ui_canvas_get_state(self)), lh_addr_of(target),
+    lh_ui_canvas_clip_round_init(lh_ui_canvas_get_rounds_mut(self) + lh_ui_canvas_state_get_round_count(lh_ui_canvas_get_state(self)), lh_addr_of(target),
                                  radius);
     lh_ui_canvas_state_set_round_count(lh_ui_canvas_get_state_mut(self), lh_ui_canvas_state_get_round_count(lh_ui_canvas_get_state_mut(self)) + 1);
 }

@@ -96,7 +96,7 @@ lh_ui_gradient_init_stops(lh_ui_gradient_t *self, const lh_ui_color_t *colors, l
         {
             frac = fracs[i];
         }
-        lh_ui_gradient_stop_init(lh_addr_of(lh_ui_gradient_get_stops(self)[i]), colors[i], frac);
+        lh_ui_gradient_stop_init(lh_addr_of(lh_ui_gradient_get_stops_mut(self)[i]), colors[i], frac);
     }
 }
 
@@ -120,7 +120,7 @@ lh_ui_gradient_get_stop_mut(lh_ui_gradient_t *self, lh_ui_gradient_stop_count_t 
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ifn(index < lh_ui_gradient_get_stops_count(self), lh_runtime_error_code_invalid_argument);
-    return lh_addr_of(lh_ui_gradient_get_stops(self)[index]);
+    return lh_addr_of(lh_ui_gradient_get_stops_mut(self)[index]);
 }
 
 /* -- Over a box ------------------------------------------------------------ */
