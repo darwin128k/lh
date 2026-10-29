@@ -81,6 +81,8 @@ else ()
 endif ()
 
 # Types, errors and the few pieces every core leans on.
+lh_add_test_core(lh_test_console ${LH_TEST_SRC_PATH}/lh/console/console.cpp)
+
 lh_add_test_core(lh_test_core
         ${LH_TEST_SRC_PATH}/lh/spsc.cpp
         ${LH_TEST_SRC_PATH}/lh/array.cpp
