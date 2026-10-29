@@ -9,8 +9,6 @@
 #define LH_OS_LOGGER_SINK_DROPPED_FN_H
 
 #include <lh/ptr.h>
-#include <lh/void.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/compiler/extern/c.h>
 
 LH_COMPILER_EXTERN_C_BEGIN

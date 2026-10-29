@@ -22,7 +22,6 @@
 #ifndef LH_LOGGER_H
 #define LH_LOGGER_H
 
-#include <lh/compiler/extern/c.h>
 #include <lh/logger/emit/cb.h>
 #include <lh/logger/fields.h>
 

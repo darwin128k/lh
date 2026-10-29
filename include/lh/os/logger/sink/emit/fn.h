@@ -9,7 +9,6 @@
 #define LH_OS_LOGGER_SINK_EMIT_FN_H
 
 #include <lh/os/logger/record.h>
-#include <lh/compiler/extern/c.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

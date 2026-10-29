@@ -295,6 +295,11 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/module/event/entry.c
             ${LH_LIB_SRC_PATH}/os/module/event/subscription.c
             ${LH_LIB_SRC_PATH}/os/module/event/bus.c
+            ${LH_LIB_SRC_PATH}/os/logger/record.c
+            ${LH_LIB_SRC_PATH}/os/logger/sink.c
+            ${LH_LIB_SRC_PATH}/os/logger/queue.c
+            ${LH_LIB_SRC_PATH}/os/logger/daily/channel.c
+            ${LH_LIB_SRC_PATH}/os/logger/daily.c
             ${LH_LIB_SRC_PATH}/os/loader.c
             ${LH_LIB_SRC_PATH}/sql/mysql.c
             ${LH_LIB_SRC_PATH}/sql/mysql/api.c

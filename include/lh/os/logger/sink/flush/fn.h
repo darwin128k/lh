@@ -9,7 +9,6 @@
 #define LH_OS_LOGGER_SINK_FLUSH_FN_H
 
 #include <lh/ptr.h>
-#include <lh/void.h>
 #include <lh/compiler/extern/c.h>
 
 LH_COMPILER_EXTERN_C_BEGIN

@@ -11,9 +11,10 @@
 
 #include <lh/os/logger/queue.h>
 #include <lh/assert/runtime.h>
-#include <lh/os/condition.h>
-#include <lh/os/mutex.h>
+#include <lh/attribute/unused.h>
+#include <lh/cast/const.h>
 #include <lh/os/thread.h>
+#include <lh/os/condition.h>
 #include <lh/os/tick.h>
 #include <lh/runtime/allocator.h>
 #include <lh/spsc.h>
@@ -332,8 +333,8 @@ lh_os_logger_queue_try_create(lh_uint_t capacity, lh_u32_t flush_ms,
     lh_os_condition_init(lh_os_logger_queue_get_wake_mut(self));
     lh_os_condition_init(lh_os_logger_queue_get_done_mut(self));
     lh_os_logger_queue_set_storage(
-        self, lh_ptr_rcast(lh_os_logger_record_t,
-                           lh_runtime_allocator_try_alloc(capacity, sizeof(lh_os_logger_record_t))));
+        self, lh_ptr_rcast(lh_os_logger_record_t, lh_runtime_allocator_try_alloc_zero(
+                                                      capacity, sizeof(lh_os_logger_record_t))));
     if (lh_null_ne(lh_os_logger_queue_get_storage(self)))
     {
         lh_os_logger_queue_set_records(self,

@@ -7,7 +7,6 @@
 #define LH_OS_LOGGER_SINK_EMIT_CB_H
 
 #include <lh/os/logger/sink/emit/fn.h>
-#include <lh/util/ptr.h>
 
 /** @brief Pointer to an ::lh_os_logger_sink_emit_fn. */
 #define lh_os_logger_sink_emit_cb lh_ptr_of(lh_os_logger_sink_emit_fn)

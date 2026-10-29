@@ -48,7 +48,7 @@ struct lh_os_logger_record
     lh_logger_level_t level;                      /**< a line's level */
     lh_bool_t raw;                                /**< an opened channel writes text only */
     lh_s32_t keep_days;                           /**< an opened channel's days to keep; 0 keeps all */
-    lh_timestamp_t time;                          /**< a line's moment, in UTC */
+    lh_timestamp_t time;                          /**< a line's or an opening's moment, UTC */
     lh_char_t tag[LH_OS_LOGGER_RECORD_TAG_SIZE];  /**< a line's tag; empty for none */
     lh_char_t text[LH_OS_LOGGER_RECORD_TEXT_SIZE]; /**< a line's text or a channel's directory */
 };
@@ -250,10 +250,11 @@ lh_os_logger_record_init_line(lh_os_logger_record_t *self, lh_u32_t channel,
  * @param dir       The directory its daily files go to; created when missing.
  * @param keep_days Days of files to keep; 0 keeps all.
  * @param raw       Whether its lines are written as text only, without time or level.
+ * @param time      The moment of the opening, in UTC: retention counts days from it.
  */
 lh_void
 lh_os_logger_record_init_open(lh_os_logger_record_t *self, lh_u32_t channel, const lh_char_t *dir,
-                              lh_s32_t keep_days, lh_bool_t raw);
+                              lh_s32_t keep_days, lh_bool_t raw, lh_timestamp_t time);
 
 /**
  * @brief Make @p self the closing of @p channel (level 3).
