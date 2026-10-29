@@ -9,10 +9,10 @@
 #define LH_EVENT_BUS_FIELDS_H
 
 /** @brief Declare bus state; type parameters follow the member order. */
-#define lh_event_bus_fields(type_0, type_1, type_2, type_3) \
-    type_0 entries; \
-    type_1 retired; \
-    type_2 depth; \
-    type_3 count
+#define lh_event_bus_fields(entries_type, retired_type, depth_type, count_type)                    \
+    entries_type entries;                                                                          \
+    retired_type retired;                                                                          \
+    depth_type depth;                                                                              \
+    count_type count
 
 #endif /* LH_EVENT_BUS_FIELDS_H */

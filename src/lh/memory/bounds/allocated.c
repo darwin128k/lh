@@ -11,13 +11,6 @@ lh_memory_bounds_allocated_clear(lh_memory_bounds_allocated_t *self)
     lh_memory_bounds_clear(self);
 }
 
-lh_void
-lh_memory_bounds_allocated_resize(lh_memory_bounds_allocated_t *self, lh_usize_t size)
-{
-    lh_runtime_check_ifn(lh_memory_bounds_allocated_try_resize(self, size),
-                          lh_runtime_error_code_memory_not_allocated);
-}
-
 lh_bool_t
 lh_memory_bounds_allocated_try_resize(lh_memory_bounds_allocated_t *self, lh_usize_t size)
 {
@@ -46,6 +39,13 @@ lh_memory_bounds_allocated_try_resize(lh_memory_bounds_allocated_t *self, lh_usi
 
     lh_memory_bounds_clear(self);
     return lh_bool_true;
+}
+
+lh_void
+lh_memory_bounds_allocated_resize(lh_memory_bounds_allocated_t *self, lh_usize_t size)
+{
+    lh_runtime_check_ifn(lh_memory_bounds_allocated_try_resize(self, size),
+                         lh_runtime_error_code_memory_not_allocated);
 }
 
 lh_void

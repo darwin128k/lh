@@ -89,13 +89,6 @@ lh_array_deinit(lh_array_t *self)
     lh_array_set_size(self, 0);
 }
 
-lh_void
-lh_array_reserve(lh_array_t *self, lh_usize_t min_capacity)
-{
-    lh_runtime_check_ifn(lh_array_try_reserve(self, min_capacity),
-                          lh_runtime_error_code_memory_not_allocated);
-}
-
 lh_bool_t
 lh_array_try_reserve(lh_array_t *self, lh_usize_t min_capacity)
 {
@@ -104,6 +97,13 @@ lh_array_try_reserve(lh_array_t *self, lh_usize_t min_capacity)
         return lh_bool_true;
     }
     return lh_memory_typed_allocated_try_resize(lh_array_get_typed_mut(self), min_capacity);
+}
+
+lh_void
+lh_array_reserve(lh_array_t *self, lh_usize_t min_capacity)
+{
+    lh_runtime_check_ifn(lh_array_try_reserve(self, min_capacity),
+                         lh_runtime_error_code_memory_not_allocated);
 }
 
 lh_bool_t

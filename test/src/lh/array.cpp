@@ -1,3 +1,7 @@
+#include <lh/runtime/allocator.h>
+#include <lh/size/limits.h>
+#include <functional>
+#include <memory>
 #include <gtest/gtest.h>
 
 #include <lh/array.h>
@@ -47,7 +51,8 @@ TEST(array_size, set_and_measured_in_bytes)
     lh_array_set_size(&a.v, 2);
     EXPECT_EQ(lh_array_get_size(&a.v), 2u);
     EXPECT_EQ(lh_array_get_size_of_bytes(&a.v), 2 * sizeof(int));
-    EXPECT_EQ(lh_array_get_end(&a.v), static_cast<lh_ptr>(static_cast<int *>(lh_array_get_begin(&a.v)) + 2));
+    EXPECT_EQ(lh_array_get_end(&a.v),
+              static_cast<lh_ptr>(static_cast<int *>(lh_array_get_begin(&a.v)) + 2));
 }
 
 TEST(array_push_back, appends_from_empty_and_grows)
@@ -335,3 +340,31 @@ TEST(array_filter, keeps_matching_in_order)
 }
 
 } // namespace
+
+TEST(array_try_reserve, failure_and_size_overflow_leave_array_intact)
+{
+    lh_array_t array;
+    lh_array_init(&array, sizeof(int));
+    auto cleanup = std::unique_ptr<lh_array_t, decltype(&lh_array_deinit)>(&array, lh_array_deinit);
+    int value = 42;
+    lh_array_push_back(&array, &value);
+    const auto capacity = lh_array_get_capacity(&array);
+    const auto begin = lh_array_get_begin(&array);
+    EXPECT_FALSE(lh_array_try_reserve(&array, LH_USIZE_T_MAX));
+    EXPECT_EQ(lh_array_get_capacity(&array), capacity);
+    EXPECT_EQ(lh_array_get_begin(&array), begin);
+    EXPECT_EQ(lh_array_get_size(&array), 1u);
+    EXPECT_EQ(*static_cast<int *>(lh_array_get_ptr(&array, 0)), 42);
+    lh_memory_allocator_t saved;
+    lh_memory_allocator_assign(&saved, lh_runtime_allocator());
+    auto restore =
+        std::unique_ptr<lh_memory_allocator_t, std::function<void(lh_memory_allocator_t *)>>(
+            &saved,
+            [](auto *allocator) { lh_memory_allocator_assign(lh_runtime_allocator(), allocator); });
+    lh_memory_allocator_set_alloc_cb(lh_runtime_allocator(), nullptr);
+    EXPECT_TRUE(lh_array_try_reserve(&array, capacity));
+    EXPECT_FALSE(lh_array_try_reserve(&array, capacity + 1));
+    EXPECT_EQ(lh_array_get_capacity(&array), capacity);
+    EXPECT_EQ(lh_array_get_begin(&array), begin);
+    EXPECT_EQ(*static_cast<int *>(lh_array_get_ptr(&array, 0)), 42);
+}

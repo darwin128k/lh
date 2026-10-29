@@ -1,3 +1,6 @@
+#include <lh/runtime/allocator.h>
+#include <functional>
+#include <memory>
 #include <gtest/gtest.h>
 
 #include <lh/expect/death.h>
@@ -140,3 +143,33 @@ TEST(memory_bounds_allocated, exchange_of_two_empty_is_allowed)
 #endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 } // namespace
+
+TEST(memory_bounds_allocated_try_resize, failure_and_refused_release_preserve_original_block)
+{
+    lh_memory_bounds_allocated_t block = lh_memory_bounds_allocated_initializer();
+    lh_memory_bounds_allocated_resize(&block, 8);
+    auto cleanup =
+        std::unique_ptr<lh_memory_bounds_allocated_t, decltype(&lh_memory_bounds_allocated_clear)>(
+            &block, lh_memory_bounds_allocated_clear);
+    auto *data = static_cast<unsigned char *>(lh_memory_bounds_get_begin(&block));
+    data[0] = 73;
+    lh_memory_allocator_t saved;
+    lh_memory_allocator_assign(&saved, lh_runtime_allocator());
+    auto restore =
+        std::unique_ptr<lh_memory_allocator_t, std::function<void(lh_memory_allocator_t *)>>(
+            &saved,
+            [](auto *allocator) { lh_memory_allocator_assign(lh_runtime_allocator(), allocator); });
+    lh_memory_allocator_set_alloc_cb(lh_runtime_allocator(), nullptr);
+    EXPECT_FALSE(lh_memory_bounds_allocated_try_resize(&block, 16));
+    EXPECT_EQ(lh_memory_bounds_get_begin(&block), data);
+    EXPECT_EQ(lh_memory_bounds_get_size(&block), 8u);
+    EXPECT_EQ(data[0], 73u);
+    lh_memory_allocator_set_dealloc_cb(lh_runtime_allocator(), nullptr);
+    EXPECT_FALSE(lh_memory_bounds_allocated_try_resize(&block, 0));
+    EXPECT_EQ(lh_memory_bounds_get_begin(&block), data);
+    EXPECT_EQ(lh_memory_bounds_get_size(&block), 8u);
+    lh_memory_allocator_assign(lh_runtime_allocator(), &saved);
+    EXPECT_TRUE(lh_memory_bounds_allocated_try_resize(&block, 0));
+    EXPECT_EQ(lh_memory_bounds_get_begin(&block), nullptr);
+    EXPECT_EQ(lh_memory_bounds_get_size(&block), 0u);
+}
