@@ -127,14 +127,30 @@ lh_os_logger_daily_channel_set_pruned_day(lh_os_logger_daily_channel_t *self, lh
     self->pruned_day = pruned_day;
 }
 
-lh_os_logger_daily_channel_t *
-lh_os_logger_daily_channel_try_create(lh_u32_t id)
+const lh_memory_allocator_t *
+lh_os_logger_daily_channel_get_allocator(const lh_os_logger_daily_channel_t *self)
 {
-    lh_os_logger_daily_channel_t *self =
-        lh_ptr_rcast(lh_os_logger_daily_channel_t,
-                     lh_runtime_allocator_try_alloc_zero(1U, sizeof(lh_ptr_deref(self))));
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->allocator);
+}
+
+lh_memory_allocator_t *
+lh_os_logger_daily_channel_get_allocator_mut(lh_os_logger_daily_channel_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->allocator);
+}
+
+lh_os_logger_daily_channel_t *
+lh_os_logger_daily_channel_try_create(const lh_memory_allocator_t *allocator, lh_u32_t id)
+{
+    lh_memory_allocator_t own = lh_ptr_deref(allocator);
+    lh_os_logger_daily_channel_t *self = lh_ptr_rcast(
+        lh_os_logger_daily_channel_t,
+        lh_memory_allocator_try_alloc_zero(lh_addr_of(own), 1U, sizeof(lh_ptr_deref(self))));
 
     lh_return_if(lh_null_eq(self), lh_null);
+    lh_memory_allocator_assign(lh_os_logger_daily_channel_get_allocator_mut(self), lh_addr_of(own));
     lh_list_node_init(lh_os_logger_daily_channel_get_node_mut(self));
     lh_os_logger_daily_channel_set_id(self, id);
     lh_fs_path_init(lh_os_logger_daily_channel_get_dir_mut(self));
@@ -157,5 +173,5 @@ lh_os_logger_daily_channel_destroy(lh_os_logger_daily_channel_t *self)
     lh_return_if(lh_null_eq(self));
     lh_os_fs_file_deinit(lh_os_logger_daily_channel_get_file_mut(self));
     lh_fs_path_deinit(lh_os_logger_daily_channel_get_dir_mut(self));
-    lh_runtime_allocator_free(self);
+    lh_memory_allocator_dealloc(lh_os_logger_daily_channel_get_allocator_mut(self), self);
 }

@@ -33,6 +33,24 @@ typedef struct lh_os_logger_daily lh_os_logger_daily_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
+ * @brief Copy into @p out the sink callbacks that write to @p self.
+ *
+ * @param self The sink.
+ * @param out  Receives the callbacks, for ::lh_os_logger_queue_try_create.
+ */
+lh_void
+lh_os_logger_daily_copy_sink(lh_os_logger_daily_t *self, lh_os_logger_sink_t *out);
+
+/**
+ * @brief Append @p text to @p out with one newline at its end, not two.
+ *
+ * @param out  Where the line goes.
+ * @param text The text; a newline it ends with is kept as the line's own.
+ */
+lh_void
+lh_os_logger_daily_append_text(lh_str_t *out, const lh_char_t *text);
+
+/**
  * @brief Create the sink, with no channel yet.
  *
  * @param format How a line reads, or ::lh_null for ::lh_os_logger_daily_format_standard.
@@ -45,13 +63,12 @@ lh_os_logger_daily_try_create(lh_os_logger_daily_format_cb format,
                               lh_os_logger_daily_clock_cb clock, lh_ptr user);
 
 /**
- * @brief Copy into @p out the sink callbacks that write to @p self.
- *
- * @param self The sink.
- * @param out  Receives the callbacks, for ::lh_os_logger_queue_try_create.
+ * @brief The default line: `YYYY-MM-DD HH:MM:SS [level] [tag] text`, local time, the tag
+ *        left out when empty (an ::lh_os_logger_daily_format_fn).
  */
 lh_void
-lh_os_logger_daily_copy_sink(lh_os_logger_daily_t *self, lh_os_logger_sink_t *out);
+lh_os_logger_daily_format_standard(lh_ptr user, const lh_os_logger_record_t *record,
+                                   lh_timestamp_t local, lh_str_t *out);
 
 /**
  * @brief Free the sink.
@@ -62,23 +79,6 @@ lh_os_logger_daily_copy_sink(lh_os_logger_daily_t *self, lh_os_logger_sink_t *ou
  */
 lh_void
 lh_os_logger_daily_destroy(lh_os_logger_daily_t *self);
-
-/**
- * @brief Append @p text to @p out with one newline at its end, not two.
- *
- * @param out  Where the line goes.
- * @param text The text; a newline it ends with is kept as the line's own.
- */
-lh_void
-lh_os_logger_daily_append_text(lh_str_t *out, const lh_char_t *text);
-
-/**
- * @brief The default line: `YYYY-MM-DD HH:MM:SS [level] [tag] text`, local time, the tag
- *        left out when empty (an ::lh_os_logger_daily_format_fn).
- */
-lh_void
-lh_os_logger_daily_format_standard(lh_ptr user, const lh_os_logger_record_t *record,
-                                   lh_timestamp_t local, lh_str_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

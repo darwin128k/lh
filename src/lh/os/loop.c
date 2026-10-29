@@ -2,10 +2,10 @@
  * @file loop.c
  * @brief ::lh_os_loop_t: a thread, a condition to sleep on and a pending-wake flag.
  *
- * A wake sets the flag and signals the condition without the mutex. The thread
- * clears the flag before its step and, under the mutex, sleeps only while the
- * flag is clear: a wake after the step is never lost, one that races the sleep
- * itself is caught by the period.
+ * The thread clears the pending flag before its step and, under the mutex, sleeps
+ * only while the flag is clear. A wake sets it under the mutex, so it is never
+ * lost; a hint sets it without, so one that races the sleep itself waits for the
+ * period.
  */
 
 #include <lh/os/loop.h>
@@ -22,6 +22,7 @@
 
 struct lh_os_loop
 {
+    lh_memory_allocator_t allocator;
     lh_os_loop_step_cb step;
     lh_ptr user;
     lh_u32_t period_ms;
@@ -36,6 +37,13 @@ struct lh_os_loop
 };
 
 /* -- Level 1: the fields ------------------------------------------------------ */
+
+static lh_memory_allocator_t *
+lh_os_loop_get_allocator_mut(lh_os_loop_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->allocator);
+}
 
 static lh_os_loop_step_cb
 lh_os_loop_get_step_fn(const lh_os_loop_t *self)
@@ -229,34 +237,6 @@ lh_os_loop_run(lh_ptr user)
     }
 }
 
-lh_os_loop_t *
-lh_os_loop_try_create(lh_u32_t period_ms, lh_os_loop_step_cb step, lh_ptr user)
-{
-    lh_os_loop_t *self;
-
-    lh_return_if(period_ms == 0U || lh_null_eq(step), lh_null);
-    self = lh_ptr_rcast(lh_os_loop_t,
-                        lh_runtime_allocator_try_alloc_zero(1U, sizeof(lh_ptr_deref(self))));
-    lh_return_if(lh_null_eq(self), lh_null);
-    lh_os_loop_set_step_fn(self, step);
-    lh_os_loop_set_user(self, user);
-    lh_os_loop_set_period_ms(self, period_ms);
-    lh_os_loop_set_started(self, lh_bool_false);
-    lh_os_loop_set_last_step(self, lh_bool_false);
-    lh_os_loop_init_flags(self);
-    lh_timer_group_init(lh_os_loop_get_timers_mut(self));
-    lh_os_thread_init(lh_os_loop_get_thread_mut(self));
-    lh_os_mutex_init(lh_os_loop_get_mutex_mut(self));
-    lh_os_condition_init(lh_os_loop_get_condition_mut(self));
-    if (!lh_os_mutex_open(lh_os_loop_get_mutex_mut(self)) ||
-        !lh_os_condition_open(lh_os_loop_get_condition_mut(self)))
-    {
-        lh_os_loop_destroy(self);
-        return lh_null;
-    }
-    return self;
-}
-
 lh_bool_t
 lh_os_loop_try_start(lh_os_loop_t *self)
 {
@@ -268,6 +248,15 @@ lh_os_loop_try_start(lh_os_loop_t *self)
 
 lh_void
 lh_os_loop_wake(lh_os_loop_t *self)
+{
+    LH_ATTRIBUTE_UNUSED(lh_os_mutex_lock(lh_os_loop_get_mutex_mut(self)));
+    lh_os_loop_set_pending(self);
+    LH_ATTRIBUTE_UNUSED(lh_os_condition_signal(lh_os_loop_get_condition_mut(self)));
+    LH_ATTRIBUTE_UNUSED(lh_os_mutex_unlock(lh_os_loop_get_mutex_mut(self)));
+}
+
+lh_void
+lh_os_loop_hint(lh_os_loop_t *self)
 {
     lh_os_loop_set_pending(self);
     LH_ATTRIBUTE_UNUSED(lh_os_condition_signal(lh_os_loop_get_condition_mut(self)));
@@ -288,5 +277,36 @@ lh_os_loop_destroy(lh_os_loop_t *self)
     lh_timer_group_deinit(lh_os_loop_get_timers_mut(self));
     LH_ATTRIBUTE_UNUSED(lh_os_condition_close(lh_os_loop_get_condition_mut(self)));
     LH_ATTRIBUTE_UNUSED(lh_os_mutex_close(lh_os_loop_get_mutex_mut(self)));
-    lh_runtime_allocator_free(self);
+    lh_memory_allocator_dealloc(lh_os_loop_get_allocator_mut(self), self);
+}
+
+lh_os_loop_t *
+lh_os_loop_try_create(lh_u32_t period_ms, lh_os_loop_step_cb step, lh_ptr user)
+{
+    lh_return_if(period_ms == 0U || lh_null_eq(step), lh_null);
+    lh_memory_allocator_t allocator = lh_ptr_deref(lh_runtime_allocator());
+    lh_os_loop_t *self = lh_ptr_rcast(
+        lh_os_loop_t, lh_memory_allocator_try_alloc_zero(lh_addr_of(allocator), 1U,
+                                                     sizeof(lh_ptr_deref(self))));
+
+    lh_return_if(lh_null_eq(self), lh_null);
+    /* Freed with the allocator it was made with, whatever the runtime one is then. */
+    lh_memory_allocator_assign(lh_os_loop_get_allocator_mut(self), lh_addr_of(allocator));
+    lh_os_loop_set_step_fn(self, step);
+    lh_os_loop_set_user(self, user);
+    lh_os_loop_set_period_ms(self, period_ms);
+    lh_os_loop_set_started(self, lh_bool_false);
+    lh_os_loop_set_last_step(self, lh_bool_false);
+    lh_os_loop_init_flags(self);
+    lh_timer_group_init(lh_os_loop_get_timers_mut(self));
+    lh_os_thread_init(lh_os_loop_get_thread_mut(self));
+    lh_os_mutex_init(lh_os_loop_get_mutex_mut(self));
+    lh_os_condition_init(lh_os_loop_get_condition_mut(self));
+    if (!lh_os_mutex_open(lh_os_loop_get_mutex_mut(self)) ||
+        !lh_os_condition_open(lh_os_loop_get_condition_mut(self)))
+    {
+        lh_os_loop_destroy(self);
+        return lh_null;
+    }
+    return self;
 }

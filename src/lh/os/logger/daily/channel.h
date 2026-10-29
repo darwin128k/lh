@@ -10,11 +10,13 @@
 #define LH_SRC_OS_LOGGER_DAILY_CHANNEL_H
 
 #include <lh/list/node.h>
+#include <lh/memory/allocator.h>
 #include <lh/os/fs/file.h>
 
 /** @brief One channel of daily files. */
 struct lh_os_logger_daily_channel
 {
+    lh_memory_allocator_t allocator; /**< what it was allocated with */
     lh_list_node_t node;  /**< the link in the sink's list */
     lh_u32_t id;          /**< the channel id records carry */
     lh_fs_path_t dir;     /**< the directory its files go to */
@@ -189,11 +191,12 @@ lh_os_logger_daily_channel_set_pruned_day(lh_os_logger_daily_channel_t *self, lh
 /**
  * @brief Allocate channel @p id with no directory and no file (level 2).
  *
- * @param id The channel id.
+ * @param allocator What to allocate it with; copied, and used again to free it.
+ * @param id        The channel id.
  * @return The channel, or ::lh_null when memory is short.
  */
 lh_os_logger_daily_channel_t *
-lh_os_logger_daily_channel_try_create(lh_u32_t id);
+lh_os_logger_daily_channel_try_create(const lh_memory_allocator_t *allocator, lh_u32_t id);
 
 /**
  * @brief Close the file of the day, if one is open (level 2).
@@ -210,6 +213,23 @@ lh_os_logger_daily_channel_close_file(lh_os_logger_daily_channel_t *self);
  */
 lh_void
 lh_os_logger_daily_channel_destroy(lh_os_logger_daily_channel_t *self);
+
+/**
+ * @brief The allocator it was made with (level 1).
+ *
+ * @param self The channel; checked by ::lh_assert_runtime_ref.
+ */
+const lh_memory_allocator_t *
+lh_os_logger_daily_channel_get_allocator(const lh_os_logger_daily_channel_t *self);
+
+/**
+ * @brief The allocator it was made with, to change in place (level 1).
+ *
+ * @param self The channel; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_memory_allocator_t *
+lh_os_logger_daily_channel_get_allocator_mut(lh_os_logger_daily_channel_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -117,3 +117,22 @@ TEST(os_loop, a_loop_never_started_is_just_freed)
     EXPECT_EQ(lh_os_loop_try_create(0U, count, &c), nullptr);
     EXPECT_EQ(lh_os_loop_try_create(10U, nullptr, &c), nullptr);
 }
+
+TEST(os_loop, a_hint_also_runs_a_step)
+{
+    counter c;
+    c.loop = lh_os_loop_try_create(60000U, count, &c);
+
+    ASSERT_NE(c.loop, nullptr);
+    ASSERT_TRUE(lh_os_loop_try_start(c.loop));
+    wait_for_steps(c, 1);
+    const int before = c.steps.load();
+    /* A missed hint waits for the period: repeat until one lands. */
+    for (int i = 0; i < 200 && c.steps.load() <= before; ++i)
+    {
+        lh_os_loop_hint(c.loop);
+        LH_ATTRIBUTE_UNUSED(lh_os_thread_sleep(5U));
+    }
+    EXPECT_GT(c.steps.load(), before);
+    lh_os_loop_destroy(c.loop);
+}

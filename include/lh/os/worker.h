@@ -2,6 +2,8 @@
  * @file worker.h
  * @brief Bounded serial background worker with caller-dispatched completions.
  *
+ * Runs on an ::lh_os_loop_t: the loop is the thread, running the jobs is its step.
+ *
  * Submit/take/stop/destroy require one externally coordinated caller thread.
  * Work runs on the worker; complete is never invoked by LH. A successful submit
  * transfers payload cleanup to the queue. Rejection leaves ownership with caller.
@@ -17,41 +19,13 @@
 #define LH_OS_WORKER_H
 
 #include <lh/os/worker/job.h>
-#include <lh/os/condition.h>
-#include <lh/os/thread.h>
+#include <lh/os/loop.h>
+#include <lh/os/mutex.h>
 
 /** @brief Opaque owner of a bounded serial background worker. */
 typedef struct lh_os_worker lh_os_worker_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
-
-/**
- * @brief Create a worker with a nonzero outstanding-job capacity.
- *
- * Returns ::lh_null on allocation or native startup failure. Captures the caller runtime allocator;
- * its context must outlive the worker and taken jobs.
- */
-lh_os_worker_t *
-lh_os_worker_create(lh_uint_t capacity);
-
-/**
- * @brief Transfer a job to the worker if capacity permits.
- *
- * Returns ::lh_bool_false without taking payload ownership on rejection. work must be non-null;
- * complete and destroy may be ::lh_null.
- */
-lh_bool_t
-lh_os_worker_submit(lh_os_worker_t *self, lh_os_worker_cb work, lh_os_worker_cb complete,
-                    lh_os_worker_cb destroy, lh_ptr user);
-
-/**
- * @brief Take the next completed job without waiting.
- *
- * Returns ::lh_null when no completion is ready. The caller owns a returned record and must dispose
- * it exactly once.
- */
-lh_os_worker_job_t *
-lh_os_worker_take(lh_os_worker_t *self);
 
 /**
  * @brief Invoke the optional payload destructor and release a taken record.
@@ -61,24 +35,6 @@ lh_os_worker_take(lh_os_worker_t *self);
  */
 lh_void
 lh_os_worker_dispose(lh_os_worker_job_t *job);
-
-/**
- * @brief Reject submissions and join running work.
- *
- * self must be non-null. May be repeated. Pending jobs never run after stop; they remain owned
- * until destroy. Do not call from the worker callback.
- */
-lh_void
-lh_os_worker_stop(lh_os_worker_t *self);
-
-/**
- * @brief Stop the worker and dispose all remaining jobs.
- *
- * A null self is ignored. Does not invoke completions. Payload destructors run before the stopped
- * worker and its synchronization objects are released.
- */
-lh_void
-lh_os_worker_destroy(lh_os_worker_t *self);
 
 /**
  * @brief the first job waiting to run; ::lh_null for none (level 1).
@@ -231,21 +187,23 @@ lh_memory_allocator_t *
 lh_os_worker_get_allocator_mut(lh_os_worker_t *self);
 
 /**
- * @brief The thread the work runs on (level 1).
+ * @brief The loop the work runs on; ::lh_null once stopped (level 1).
  *
  * @param self The worker; checked by ::lh_assert_runtime_ref.
  */
-const lh_os_thread_t *
-lh_os_worker_get_thread(const lh_os_worker_t *self);
+lh_os_loop_t *
+lh_os_worker_get_loop(const lh_os_worker_t *self);
 
 /**
- * @brief The thread the work runs on, to change in place (level 1).
+ * @brief Store the loop the work runs on (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
  *
  * @param self The worker; checked by ::lh_assert_runtime_ref.
- * @return The member itself, never ::lh_null.
+ * @param loop The new value.
  */
-lh_os_thread_t *
-lh_os_worker_get_thread_mut(lh_os_worker_t *self);
+lh_void
+lh_os_worker_set_loop(lh_os_worker_t *self, lh_os_loop_t *loop);
 
 /**
  * @brief The lock over the queues and the stop flag (level 1).
@@ -263,23 +221,6 @@ lh_os_worker_get_mutex(const lh_os_worker_t *self);
  */
 lh_os_mutex_t *
 lh_os_worker_get_mutex_mut(lh_os_worker_t *self);
-
-/**
- * @brief What the worker thread sleeps on (level 1).
- *
- * @param self The worker; checked by ::lh_assert_runtime_ref.
- */
-const lh_os_condition_t *
-lh_os_worker_get_wake(const lh_os_worker_t *self);
-
-/**
- * @brief What the worker thread sleeps on, to change in place (level 1).
- *
- * @param self The worker; checked by ::lh_assert_runtime_ref.
- * @return The member itself, never ::lh_null.
- */
-lh_os_condition_t *
-lh_os_worker_get_wake_mut(lh_os_worker_t *self);
 
 /**
  * @brief Where the first job waiting to run is linked in, to change in place (level 1).
@@ -304,6 +245,15 @@ lh_os_worker_job_t **
 lh_os_worker_get_done_mut(lh_os_worker_t *self);
 
 /**
+ * @brief Create a worker with a nonzero outstanding-job capacity.
+ *
+ * Returns ::lh_null on allocation or native startup failure. Captures the caller runtime allocator;
+ * its context must outlive the worker and taken jobs.
+ */
+lh_os_worker_t *
+lh_os_worker_create(lh_uint_t capacity);
+
+/**
  * @brief Level 2: take the lock of @p self; a failure terminates.
  *
  * @param self The worker.
@@ -318,16 +268,6 @@ lh_os_worker_lock(lh_os_worker_t *self);
  */
 lh_void
 lh_os_worker_unlock(lh_os_worker_t *self);
-
-/**
- * @brief Level 2: wake the worker thread after its queue or stop flag changed.
- *
- * Call it with the lock held; a failure terminates.
- *
- * @param self The worker.
- */
-lh_void
-lh_os_worker_wake(lh_os_worker_t *self);
 
 /**
  * @brief Level 3: queue @p job to run. Call it with the lock held.
@@ -366,14 +306,52 @@ lh_os_worker_job_t *
 lh_os_worker_pop_done(lh_os_worker_t *self);
 
 /**
- * @brief Level 4: the body of the worker thread: run jobs until told to stop.
+ * @brief Transfer a job to the worker if capacity permits.
  *
- * An ::lh_os_thread_fn; ::lh_os_worker_create starts it.
+ * Returns ::lh_bool_false without taking payload ownership on rejection. work must be non-null;
+ * complete and destroy may be ::lh_null.
+ */
+lh_bool_t
+lh_os_worker_submit(lh_os_worker_t *self, lh_os_worker_cb work, lh_os_worker_cb complete,
+                    lh_os_worker_cb destroy, lh_ptr user);
+
+/**
+ * @brief Take the next completed job without waiting.
+ *
+ * Returns ::lh_null when no completion is ready. The caller owns a returned record and must dispose
+ * it exactly once.
+ */
+lh_os_worker_job_t *
+lh_os_worker_take(lh_os_worker_t *self);
+
+/**
+ * @brief Reject submissions and join running work.
+ *
+ * self must be non-null. May be repeated. Pending jobs never run after stop; they remain owned
+ * until destroy. Do not call from the worker callback.
+ */
+lh_void
+lh_os_worker_stop(lh_os_worker_t *self);
+
+/**
+ * @brief Level 4: the step of the worker's loop: run the waiting jobs, one by one, until
+ *        none is left or a stop is asked.
+ *
+ * An ::lh_os_loop_step_fn; ::lh_os_worker_create gives it to the loop.
  *
  * @param self The worker, as ::lh_ptr.
  */
 lh_void
-lh_os_worker_run(lh_ptr self);
+lh_os_worker_step(lh_ptr self);
+
+/**
+ * @brief Stop the worker and dispose all remaining jobs.
+ *
+ * A null self is ignored. Does not invoke completions. Payload destructors run before the stopped
+ * worker and its synchronization objects are released.
+ */
+lh_void
+lh_os_worker_destroy(lh_os_worker_t *self);
 
 LH_COMPILER_EXTERN_C_END
 
