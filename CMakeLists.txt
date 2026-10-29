@@ -396,7 +396,7 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/frame/stats.c
             ${LH_LIB_SRC_PATH}/ui/insets.c
             ${LH_LIB_SRC_PATH}/ui/key.c
-            ${LH_LIB_SRC_PATH}/ui/layout/layout.c
+            ${LH_LIB_SRC_PATH}/ui/layout.c
             ${LH_LIB_SRC_PATH}/ui/layout/run.c
             ${LH_LIB_SRC_PATH}/ui/layout/cross.c
             ${LH_LIB_SRC_PATH}/ui/layout/place.c

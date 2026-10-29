@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `lh_ui_web_ws_write` encoded the 64-bit length of a frame over 64 KiB by shifting
+  a 32-bit `lh_usize_t` by up to 56 bits on 32-bit builds: the length came out wrong
+  and the peer rejected the frame. It is widened to `lh_u64_t` first.
+
 ### Added
 
 - `lh/console`: a registry of console commands (`lh_console_t`) answering to a scope
