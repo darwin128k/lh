@@ -151,7 +151,7 @@ lh_ui_image_get_tint(const lh_ui_image_t *self);
  * @brief Paint @p self's mask in @p tint from now on.
  */
 lh_void
-lh_ui_image_set_tint(lh_ui_image_t *self, const lh_ui_color_t *tint);
+lh_ui_image_set_tint_v(lh_ui_image_t *self, const lh_ui_color_t *tint);
 
 /**
  * @brief The size of the mask @p self shows — the picture itself, without the
@@ -169,6 +169,54 @@ lh_ui_image_get_size(const lh_ui_image_t *self, lh_ui_size_t *out);
  */
 lh_void
 lh_ui_image_get_origin(const lh_ui_image_t *self, lh_ui_point_t *out);
+
+/**
+ * @brief The entity the image is built on (level 1).
+ *
+ * @param self The image; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_entity_t *
+lh_ui_image_get_entity(const lh_ui_image_t *self);
+
+/**
+ * @brief The entity the image is built on, to change in place (level 1).
+ *
+ * @param self The image; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_entity_t *
+lh_ui_image_get_entity_mut(lh_ui_image_t *self);
+
+/**
+ * @brief Store the entity the image is built on (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The image; checked by ::lh_assert_runtime_ref.
+ * @param entity The new value.
+ */
+lh_void
+lh_ui_image_set_entity(lh_ui_image_t *self, lh_ui_entity_t entity);
+
+/**
+ * @brief The color the image is tinted with, to change in place (level 1).
+ *
+ * @param self The image; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_color_t *
+lh_ui_image_get_tint_mut(lh_ui_image_t *self);
+
+/**
+ * @brief Store the color the image is tinted with (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The image; checked by ::lh_assert_runtime_ref.
+ * @param tint The new value.
+ */
+lh_void
+lh_ui_image_set_tint(lh_ui_image_t *self, lh_ui_color_t tint);
 
 LH_COMPILER_EXTERN_C_END
 

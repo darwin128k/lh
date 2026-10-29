@@ -52,7 +52,7 @@ lh_ui_canvas_sw_init(lh_ui_canvas_sw_t *self);
  *        becomes its bounds, no clip.
  */
 lh_void
-lh_ui_canvas_sw_set_pixmap(lh_ui_canvas_sw_t *self, const lh_ui_pixmap_t *pixmap);
+lh_ui_canvas_sw_use_pixmap(lh_ui_canvas_sw_t *self, const lh_ui_pixmap_t *pixmap);
 
 /**
  * @brief The pixmap @p self draws into.
@@ -64,7 +64,7 @@ lh_ui_canvas_sw_get_pixmap(const lh_ui_canvas_sw_t *self);
  * @brief The rect every write is cut to: pixmap bounds ∩ clip rect.
  */
 lh_void
-lh_ui_canvas_sw_get_limit(const lh_ui_canvas_sw_t *self, lh_ui_rect_t *out);
+lh_ui_canvas_sw_copy_limit(const lh_ui_canvas_sw_t *self, lh_ui_rect_t *out);
 
 /**
  * @brief True when the clip of @p self has rounded cuts.
@@ -270,7 +270,7 @@ lh_ui_canvas_sw_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_
  *        and the rounded cuts are kept; ::lh_null clears both.
  */
 lh_void
-lh_ui_canvas_sw_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *clip);
+lh_ui_canvas_sw_use_clip(lh_ptr context, const lh_ui_canvas_clip_t *clip);
 
 /**
  * @brief Backend `fill_mask`: ::lh_ui_canvas_sw_cover_row for each row of
@@ -347,6 +347,82 @@ lh_ui_canvas_sw_fill_colors(lh_ptr context, lh_s32_t x, lh_s32_t y, lh_s32_t w, 
  *        set_clip, fill_mask, the effects and fill_colors; no begin / end.
  */
 extern const lh_ui_canvas_backend_t lh_ui_canvas_backend_sw;
+
+/**
+ * @brief The pixmap the canvas draws into, to change in place (level 1).
+ *
+ * @param self The software canvas; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_pixmap_t *
+lh_ui_canvas_sw_get_pixmap_mut(lh_ui_canvas_sw_t *self);
+
+/**
+ * @brief The area of the pixmap the frame may touch, to change in place (level 1).
+ *
+ * @param self The software canvas; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_rect_t *
+lh_ui_canvas_sw_get_limit_mut(lh_ui_canvas_sw_t *self);
+
+/**
+ * @brief Store the area of the pixmap the frame may touch (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The software canvas; checked by ::lh_assert_runtime_ref.
+ * @param limit The new value.
+ */
+lh_void
+lh_ui_canvas_sw_set_limit(lh_ui_canvas_sw_t *self, lh_ui_rect_t limit);
+
+/**
+ * @brief The clip in effect (level 1).
+ *
+ * @param self The software canvas; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_canvas_clip_t *
+lh_ui_canvas_sw_get_clip(const lh_ui_canvas_sw_t *self);
+
+/**
+ * @brief The clip in effect, to change in place (level 1).
+ *
+ * @param self The software canvas; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_canvas_clip_t *
+lh_ui_canvas_sw_get_clip_mut(lh_ui_canvas_sw_t *self);
+
+/**
+ * @brief The area of the pixmap the frame may touch (level 1).
+ *
+ * @param self The software canvas; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_rect_t *
+lh_ui_canvas_sw_get_limit(const lh_ui_canvas_sw_t *self);
+
+/**
+ * @brief Store the pixmap the canvas draws into (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The software canvas; checked by ::lh_assert_runtime_ref.
+ * @param pixmap The new value.
+ */
+lh_void
+lh_ui_canvas_sw_set_pixmap(lh_ui_canvas_sw_t *self, lh_ui_pixmap_t pixmap);
+
+/**
+ * @brief Store the clip in effect (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The software canvas; checked by ::lh_assert_runtime_ref.
+ * @param clip The new value.
+ */
+lh_void
+lh_ui_canvas_sw_set_clip(lh_ui_canvas_sw_t *self, lh_ui_canvas_clip_t clip);
 
 LH_COMPILER_EXTERN_C_END
 

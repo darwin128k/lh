@@ -168,7 +168,7 @@ lh_os_render_backend_gdi_begin_area(lh_ptr context, const lh_ui_rect_t *area)
     lh_ui_pixmap_init_empty(lh_addr_of(pixmap));
     (void)lh_ui_surface_get_pixmap(lh_os_render_backend_gdi_context_get_surface_mut(gdi),
                                    lh_addr_of(pixmap));
-    lh_ui_canvas_sw_set_pixmap(lh_os_render_backend_gdi_context_get_sw_mut(gdi),
+    lh_ui_canvas_sw_use_pixmap(lh_os_render_backend_gdi_context_get_sw_mut(gdi),
                                lh_addr_of(pixmap));
     /* Nothing of this frame is drawn yet, and the area is not necessarily all of
        it: a strip is handed the damage it carries, and only that is cleared and
@@ -294,7 +294,7 @@ lh_os_render_backend_gdi_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *cli
        be answering it a second time and differently from every other backend.
        Rounded cuts are inside the rect they come with, and un-clipping (a `pop`
        back to no clip) says nothing new about what was drawn. */
-    lh_ui_canvas_sw_set_clip(lh_os_render_backend_gdi_context_get_sw_mut(gdi), clip);
+    lh_ui_canvas_sw_use_clip(lh_os_render_backend_gdi_context_get_sw_mut(gdi), clip);
 }
 
 lh_bool_t

@@ -2,6 +2,7 @@
  * @file radii.c
  * @brief Implementation of `lh/ui/radii.h`.
  */
+#include <lh/assert.h>
 
 #include <lh/math.h>
 #include <lh/ui/radii.h>
@@ -12,10 +13,10 @@ lh_ui_radii_init(lh_ui_radii_t *self, lh_ui_scalar_t top_left, lh_ui_scalar_t to
                  lh_ui_scalar_t bottom_right, lh_ui_scalar_t bottom_left)
 {
     lh_assert_runtime_ref(self);
-    self->top_left = top_left;
-    self->top_right = top_right;
-    self->bottom_right = bottom_right;
-    self->bottom_left = bottom_left;
+    lh_ui_radii_set_top_left(self, top_left);
+    lh_ui_radii_set_top_right(self, top_right);
+    lh_ui_radii_set_bottom_right(self, bottom_right);
+    lh_ui_radii_set_bottom_left(self, bottom_left);
 }
 
 lh_void
@@ -28,8 +29,8 @@ lh_bool_t
 lh_ui_radii_is_uniform(const lh_ui_radii_t *self)
 {
     lh_assert_runtime_ref(self);
-    return (self->top_left == self->top_right && self->top_right == self->bottom_right &&
-            self->bottom_right == self->bottom_left)
+    return (lh_ui_radii_get_top_left(self) == lh_ui_radii_get_top_right(self) && lh_ui_radii_get_top_right(self) == lh_ui_radii_get_bottom_right(self) &&
+            lh_ui_radii_get_bottom_right(self) == lh_ui_radii_get_bottom_left(self))
                ? lh_bool_true
                : lh_bool_false;
 }
@@ -38,8 +39,8 @@ lh_ui_scalar_t
 lh_ui_radii_get_min(const lh_ui_radii_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_math_min(lh_math_min(self->top_left, self->top_right),
-                       lh_math_min(self->bottom_right, self->bottom_left));
+    return lh_math_min(lh_math_min(lh_ui_radii_get_top_left(self), lh_ui_radii_get_top_right(self)),
+                       lh_math_min(lh_ui_radii_get_bottom_right(self), lh_ui_radii_get_bottom_left(self)));
 }
 
 lh_ui_scalar_t
@@ -73,19 +74,19 @@ lh_ui_radii_clamp(const lh_ui_radii_t *self, const lh_ui_rect_t *rect, lh_ui_rad
     width = lh_ui_size_get_width(size);
     height = lh_ui_size_get_height(size);
     result = lh_ptr_deref(self);
-    result.top_left = lh_math_max(result.top_left, lh_ui_scalar(0));
-    result.top_right = lh_math_max(result.top_right, lh_ui_scalar(0));
-    result.bottom_right = lh_math_max(result.bottom_right, lh_ui_scalar(0));
-    result.bottom_left = lh_math_max(result.bottom_left, lh_ui_scalar(0));
+    lh_ui_radii_set_top_left(lh_addr_of(result), lh_math_max(lh_ui_radii_get_top_left(lh_addr_of(result)), lh_ui_scalar(0)));
+    lh_ui_radii_set_top_right(lh_addr_of(result), lh_math_max(lh_ui_radii_get_top_right(lh_addr_of(result)), lh_ui_scalar(0)));
+    lh_ui_radii_set_bottom_right(lh_addr_of(result), lh_math_max(lh_ui_radii_get_bottom_right(lh_addr_of(result)), lh_ui_scalar(0)));
+    lh_ui_radii_set_bottom_left(lh_addr_of(result), lh_math_max(lh_ui_radii_get_bottom_left(lh_addr_of(result)), lh_ui_scalar(0)));
     /* The side that is most over-full decides one factor for all four corners, so a
        rounded tab stays the same shape, smaller, rather than turning into another. */
-    sums[0] = result.top_left + result.top_right;
+    sums[0] = lh_ui_radii_get_top_left(lh_addr_of(result)) + lh_ui_radii_get_top_right(lh_addr_of(result));
     sides[0] = width;
-    sums[1] = result.bottom_left + result.bottom_right;
+    sums[1] = lh_ui_radii_get_bottom_left(lh_addr_of(result)) + lh_ui_radii_get_bottom_right(lh_addr_of(result));
     sides[1] = width;
-    sums[2] = result.top_left + result.bottom_left;
+    sums[2] = lh_ui_radii_get_top_left(lh_addr_of(result)) + lh_ui_radii_get_bottom_left(lh_addr_of(result));
     sides[2] = height;
-    sums[3] = result.top_right + result.bottom_right;
+    sums[3] = lh_ui_radii_get_top_right(lh_addr_of(result)) + lh_ui_radii_get_bottom_right(lh_addr_of(result));
     sides[3] = height;
     for (i = 0; i < 4; ++i)
     {
@@ -96,17 +97,17 @@ lh_ui_radii_clamp(const lh_ui_radii_t *self, const lh_ui_rect_t *rect, lh_ui_rad
             den = sums[i];
         }
     }
-    result.top_left = lh_ui_radii_scale(result.top_left, num, den);
-    result.top_right = lh_ui_radii_scale(result.top_right, num, den);
-    result.bottom_right = lh_ui_radii_scale(result.bottom_right, num, den);
-    result.bottom_left = lh_ui_radii_scale(result.bottom_left, num, den);
+    lh_ui_radii_set_top_left(lh_addr_of(result), lh_ui_radii_scale(lh_ui_radii_get_top_left(lh_addr_of(result)), num, den));
+    lh_ui_radii_set_top_right(lh_addr_of(result), lh_ui_radii_scale(lh_ui_radii_get_top_right(lh_addr_of(result)), num, den));
+    lh_ui_radii_set_bottom_right(lh_addr_of(result), lh_ui_radii_scale(lh_ui_radii_get_bottom_right(lh_addr_of(result)), num, den));
+    lh_ui_radii_set_bottom_left(lh_addr_of(result), lh_ui_radii_scale(lh_ui_radii_get_bottom_left(lh_addr_of(result)), num, den));
     /* And none past half the shorter side, where a corner would reach into the
        quarter of the box that belongs to its neighbour. */
     half = lh_ui_radius_get_max(rect);
-    result.top_left = lh_math_min(result.top_left, half);
-    result.top_right = lh_math_min(result.top_right, half);
-    result.bottom_right = lh_math_min(result.bottom_right, half);
-    result.bottom_left = lh_math_min(result.bottom_left, half);
+    lh_ui_radii_set_top_left(lh_addr_of(result), lh_math_min(lh_ui_radii_get_top_left(lh_addr_of(result)), half));
+    lh_ui_radii_set_top_right(lh_addr_of(result), lh_math_min(lh_ui_radii_get_top_right(lh_addr_of(result)), half));
+    lh_ui_radii_set_bottom_right(lh_addr_of(result), lh_math_min(lh_ui_radii_get_bottom_right(lh_addr_of(result)), half));
+    lh_ui_radii_set_bottom_left(lh_addr_of(result), lh_math_min(lh_ui_radii_get_bottom_left(lh_addr_of(result)), half));
     lh_ptr_deref(out) = result;
 }
 
@@ -128,7 +129,63 @@ lh_ui_radii_get_at(const lh_ui_radii_t *self, const lh_ui_rect_t *rect, lh_s32_t
     lh_assert_runtime_ref(self);
     if (top)
     {
-        return left ? self->top_left : self->top_right;
+        return left ? lh_ui_radii_get_top_left(self) : lh_ui_radii_get_top_right(self);
     }
-    return left ? self->bottom_left : self->bottom_right;
+    return left ? lh_ui_radii_get_bottom_left(self) : lh_ui_radii_get_bottom_right(self);
+}
+
+lh_ui_scalar_t
+lh_ui_radii_get_top_left(const lh_ui_radii_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->top_left;
+}
+
+lh_void
+lh_ui_radii_set_top_left(lh_ui_radii_t *self, lh_ui_scalar_t top_left)
+{
+    lh_assert_runtime_ref(self);
+    self->top_left = top_left;
+}
+
+lh_ui_scalar_t
+lh_ui_radii_get_top_right(const lh_ui_radii_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->top_right;
+}
+
+lh_void
+lh_ui_radii_set_top_right(lh_ui_radii_t *self, lh_ui_scalar_t top_right)
+{
+    lh_assert_runtime_ref(self);
+    self->top_right = top_right;
+}
+
+lh_ui_scalar_t
+lh_ui_radii_get_bottom_right(const lh_ui_radii_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->bottom_right;
+}
+
+lh_void
+lh_ui_radii_set_bottom_right(lh_ui_radii_t *self, lh_ui_scalar_t bottom_right)
+{
+    lh_assert_runtime_ref(self);
+    self->bottom_right = bottom_right;
+}
+
+lh_ui_scalar_t
+lh_ui_radii_get_bottom_left(const lh_ui_radii_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->bottom_left;
+}
+
+lh_void
+lh_ui_radii_set_bottom_left(lh_ui_radii_t *self, lh_ui_scalar_t bottom_left)
+{
+    lh_assert_runtime_ref(self);
+    self->bottom_left = bottom_left;
 }

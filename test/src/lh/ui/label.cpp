@@ -73,7 +73,7 @@ TEST(entity_label, draw_keeps_the_base_class_fill)
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
     lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(color));
     lh_ui_style_init(lh_addr_of(style));
-    lh_ui_style_set_fill(lh_addr_of(style), lh_addr_of(paint));
+    lh_ui_style_assign_fill(lh_addr_of(style), lh_addr_of(paint));
     lh_ui_label_init(lh_addr_of(label), rect, "x");
     lh_ui_entity_set_style(lh_ui_label_as_entity(lh_addr_of(label)), lh_addr_of(style));
     lh_test::fill_probe_init(lh_addr_of(probe), lh_addr_of(canvas), lh_test::fill_probe_backend(), rect,
@@ -93,7 +93,7 @@ TEST(entity_label, padding_moves_the_text_in_from_the_corner)
     lh_ui_rect_init(&rect, 10, 20, 100, 50);
     lh_ui_label_init(&label, rect, "x");
     lh_ui_style_init(&style);
-    lh_ui_style_set_padding(&style, lh_ui_scalar(6));
+    lh_ui_style_set_padding_all(&style, lh_ui_scalar(6));
     lh_ui_entity_set_style(lh_ui_label_as_entity(&label), &style);
 
     const lh_ui_point_t origin = lh_test::out(lh_ui_label_get_text_origin, &label);
@@ -112,7 +112,7 @@ TEST(entity_label, padding_sides_move_the_text_by_left_and_top)
     lh_ui_label_init(&label, rect, "x");
     lh_ui_style_init(&style);
     lh_ui_insets_init(&sides, 3, 5, 30, 50);
-    lh_ui_style_set_padding_insets(&style, &sides);
+    lh_ui_style_set_padding_v(&style, &sides);
     lh_ui_entity_set_style(lh_ui_label_as_entity(&label), &style);
 
     const lh_ui_point_t origin = lh_test::out(lh_ui_label_get_text_origin, &label);
@@ -152,7 +152,7 @@ TEST(entity_label, a_style_that_says_nothing_keeps_the_text_at_the_corner)
     lh_ui_insets_init(&sides, 6, 6, 6, 6);
     lh_ui_label_init(&label, rect, "x");
     lh_ui_style_init(&style);
-    lh_ui_style_set_padding_insets(&style, &sides);
+    lh_ui_style_set_padding_v(&style, &sides);
     lh_ui_entity_set_style(lh_ui_label_as_entity(&label), &style);
 
     const lh_ui_point_t origin = lh_test::out(lh_ui_label_get_text_origin, &label);
@@ -251,7 +251,7 @@ TEST(entity_label, the_ink_is_not_cut_by_the_box_the_text_is_centred_in)
     lh_ui_pixmap_init(lh_addr_of(pixmap), lh_ptr_rcast(lh_byte_t, words), lh_ui_scalar(64), lh_ui_scalar(40),
                       lh_ui_scalar_of(64 * 4), lh_ui_pixmap_format_argb8888);
     lh_ui_canvas_sw_init(lh_addr_of(sw));
-    lh_ui_canvas_sw_set_pixmap(lh_addr_of(sw), lh_addr_of(pixmap));
+    lh_ui_canvas_sw_use_pixmap(lh_addr_of(sw), lh_addr_of(pixmap));
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_sw), lh_addr_of(sw));
 
     lh_ui_rect_init(lh_addr_of(box), 0, 0, 132, 12);
@@ -262,7 +262,7 @@ TEST(entity_label, the_ink_is_not_cut_by_the_box_the_text_is_centred_in)
        draws no tail at all. */
     lh_ui_color_init(lh_addr_of(ink_color), 255, 255, 255, 255);
     lh_ui_paint_init_color(lh_addr_of(text_paint), lh_addr_of(ink_color));
-    lh_ui_style_set_text(lh_addr_of(style), lh_addr_of(text_paint));
+    lh_ui_style_assign_text(lh_addr_of(style), lh_addr_of(text_paint));
     lh_ui_entity_set_style(lh_ui_label_as_entity(lh_addr_of(label)), lh_addr_of(style));
     ink = lh_test::out(lh_ui_label_get_text_rect, lh_addr_of(label));
     box_bottom = lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(box))) +
@@ -457,7 +457,7 @@ TEST(entity_label, padding_moves_the_baseline_with_the_text)
     lh_ui_label_init(&label, rect, "A");
     lh_ui_style_init(&style);
     lh_ui_style_set_font(&style, lh_test::tiny_font());
-    lh_ui_style_set_padding(&style, lh_ui_scalar(5));
+    lh_ui_style_set_padding_all(&style, lh_ui_scalar(5));
     lh_ui_entity_set_style(lh_ui_label_as_entity(&label), &style);
 
     EXPECT_EQ(lh_ui_label_get_baseline(&label), lh_ui_scalar(7));
@@ -629,7 +629,7 @@ TEST(ui_label, a_label_that_wraps_breaks_its_text_at_its_padded_width)
     lh_ui_style_init(&style);
     lh_ui_style_set_font(&style, font);
     lh_ui_insets_init(&padding, lh_ui_scalar(2), lh_ui_scalar(0), lh_ui_scalar(2), lh_ui_scalar(0));
-    lh_ui_style_set_padding_insets(&style, &padding);
+    lh_ui_style_set_padding_v(&style, &padding);
     lh_ui_label_init(&label, lh_test::rect_of(0, 0, 11, 40), "AA AA AA");
     lh_ui_entity_set_style(lh_ui_label_as_entity(&label), &style);
 

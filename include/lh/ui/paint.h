@@ -82,6 +82,48 @@ lh_ui_paint_is_empty(const lh_ui_paint_t *self);
 const lh_ui_color_t *
 lh_ui_paint_get_color(const lh_ui_paint_t *self);
 
+/**
+ * @brief Store whether the paint is a color or a gradient (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The paint; checked by ::lh_assert_runtime_ref.
+ * @param kind The new value.
+ */
+lh_void
+lh_ui_paint_set_kind(lh_ui_paint_t *self, lh_ui_paint_kind_t kind);
+
+/**
+ * @brief The color of a color paint, to change in place (level 1).
+ *
+ * @param self The paint; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_color_t *
+lh_ui_paint_get_color_mut(lh_ui_paint_t *self);
+
+/**
+ * @brief Store the color of a color paint (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The paint; checked by ::lh_assert_runtime_ref.
+ * @param color The new value.
+ */
+lh_void
+lh_ui_paint_set_color(lh_ui_paint_t *self, lh_ui_color_t color);
+
+/**
+ * @brief Store the gradient of a gradient paint (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The paint; checked by ::lh_assert_runtime_ref.
+ * @param gradient The new value.
+ */
+lh_void
+lh_ui_paint_set_gradient(lh_ui_paint_t *self, const lh_ui_gradient_t * gradient);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_PAINT_H */

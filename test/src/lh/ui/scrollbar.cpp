@@ -170,8 +170,8 @@ TEST(entity_scrollbar, draw_fills_the_track_then_the_thumb)
     lh_ui_paint_init_color(lh_addr_of(thumb_paint), lh_addr_of(thumb_color));
     lh_ui_style_init(lh_addr_of(track_style));
     lh_ui_style_init(lh_addr_of(thumb_style));
-    lh_ui_style_set_fill(lh_addr_of(track_style), lh_addr_of(track_paint));
-    lh_ui_style_set_fill(lh_addr_of(thumb_style), lh_addr_of(thumb_paint));
+    lh_ui_style_assign_fill(lh_addr_of(track_style), lh_addr_of(track_paint));
+    lh_ui_style_assign_fill(lh_addr_of(thumb_style), lh_addr_of(thumb_paint));
     lh_ui_style_set_radius(lh_addr_of(thumb_style), LH_UI_RADIUS_CIRCLE);
     lh_ui_entity_set_style(f.bar_entity(), lh_addr_of(track_style));
     lh_ui_scrollbar_set_thumb_style(lh_addr_of(f.bar), lh_addr_of(thumb_style));
@@ -216,7 +216,7 @@ TEST_P(entity_scrollbar_mode, decides_draw_and_click)
     lh_ui_color_init(lh_addr_of(color), 1, 1, 1, 255);
     lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(color));
     lh_ui_style_init(lh_addr_of(style));
-    lh_ui_style_set_fill(lh_addr_of(style), lh_addr_of(paint));
+    lh_ui_style_assign_fill(lh_addr_of(style), lh_addr_of(paint));
     lh_ui_entity_set_style(f.bar_entity(), lh_addr_of(style));
     lh_ui_scrollbar_set_mode(lh_addr_of(f.bar), c.mode);
     lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), true, false);

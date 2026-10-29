@@ -225,7 +225,7 @@ lh_os_render_backend_gdi_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rec
                                          lh_ui_scalar_t radius, const lh_ui_color_t *color);
 
 /**
- * @brief Backend `set_clip`: counted, ::lh_ui_canvas_sw_set_clip, and the
+ * @brief Backend `set_clip`: counted, ::lh_ui_canvas_sw_use_clip, and the
  *        clip added to `drawn` — what `end` presents.
  */
 lh_void

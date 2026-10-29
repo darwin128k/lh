@@ -11,7 +11,7 @@
  * layouts and click callbacks are ordinary C that the app already has, and a row
  * points at them — that is deliberate. A markup language would have to invent a
  * spelling for a fill, a shadow and a radius, and then a parser for it; here a
- * style stays what it already is, a call to ::lh_ui_style_set_fill, and the thing
+ * style stays what it already is, a call to ::lh_ui_style_assign_fill, and the thing
  * being declared is the one part that is painful to write by hand: who is a child
  * of whom, where it sits, which flow places it.
  *

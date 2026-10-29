@@ -141,6 +141,34 @@ lh_ui_rects_drop(lh_ui_rects_t *self, lh_u32_t index);
 lh_void
 lh_ui_rects_squeeze(lh_ui_rects_t *self, const lh_ui_rect_t *rect);
 
+/**
+ * @brief The rectangles (level 1).
+ *
+ * @param self The rectangle list; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_rect_t *
+lh_ui_rects_get_rects(const lh_ui_rects_t *self);
+
+/**
+ * @brief The rectangles, to change in place (level 1).
+ *
+ * @param self The rectangle list; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_rect_t *
+lh_ui_rects_get_rects_mut(lh_ui_rects_t *self);
+
+/**
+ * @brief Store how many rectangles there are (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The rectangle list; checked by ::lh_assert_runtime_ref.
+ * @param count The new value.
+ */
+lh_void
+lh_ui_rects_set_count(lh_ui_rects_t *self, lh_u32_t count);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_RECTS_H */

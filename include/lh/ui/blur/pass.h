@@ -43,6 +43,196 @@ lh_ui_blur_pass_init(const lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_
                      const lh_u8_t *scratch, const lh_ui_rect_t *shape, lh_ui_scalar_t corner,
                      lh_ui_blur_pass_t *out);
 
+/**
+ * @brief The scratch row the pass sums into (level 1).
+ *
+ * @param self The blur pass; checked by ::lh_assert_runtime_ref.
+ */
+const lh_u8_t *
+lh_ui_blur_pass_get_scratch(const lh_ui_blur_pass_t *self);
+
+/**
+ * @brief Store the scratch row the pass sums into (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The blur pass; checked by ::lh_assert_runtime_ref.
+ * @param scratch The new value.
+ */
+lh_void
+lh_ui_blur_pass_set_scratch(lh_ui_blur_pass_t *self, const lh_u8_t * scratch);
+
+/**
+ * @brief The rectangle whose edge the blur follows (level 1).
+ *
+ * @param self The blur pass; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_rect_t *
+lh_ui_blur_pass_get_shape(const lh_ui_blur_pass_t *self);
+
+/**
+ * @brief Store the rectangle whose edge the blur follows (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The blur pass; checked by ::lh_assert_runtime_ref.
+ * @param shape The new value.
+ */
+lh_void
+lh_ui_blur_pass_set_shape(lh_ui_blur_pass_t *self, const lh_ui_rect_t * shape);
+
+/**
+ * @brief The corner radius of that rectangle (level 1).
+ *
+ * @param self The blur pass; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_scalar_t
+lh_ui_blur_pass_get_corner(const lh_ui_blur_pass_t *self);
+
+/**
+ * @brief Store the corner radius of that rectangle (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The blur pass; checked by ::lh_assert_runtime_ref.
+ * @param corner The new value.
+ */
+lh_void
+lh_ui_blur_pass_set_corner(lh_ui_blur_pass_t *self, lh_ui_scalar_t corner);
+
+/**
+ * @brief The left edge of the area blurred, in pixels (level 1).
+ *
+ * @param self The blur pass; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_blur_pass_get_left(const lh_ui_blur_pass_t *self);
+
+/**
+ * @brief Store the left edge of the area blurred, in pixels (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The blur pass; checked by ::lh_assert_runtime_ref.
+ * @param left The new value.
+ */
+lh_void
+lh_ui_blur_pass_set_left(lh_ui_blur_pass_t *self, lh_s32_t left);
+
+/**
+ * @brief The top edge of the area blurred, in pixels (level 1).
+ *
+ * @param self The blur pass; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_blur_pass_get_top(const lh_ui_blur_pass_t *self);
+
+/**
+ * @brief Store the top edge of the area blurred, in pixels (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The blur pass; checked by ::lh_assert_runtime_ref.
+ * @param top The new value.
+ */
+lh_void
+lh_ui_blur_pass_set_top(lh_ui_blur_pass_t *self, lh_s32_t top);
+
+/**
+ * @brief The width of the area blurred, in pixels (level 1).
+ *
+ * @param self The blur pass; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_blur_pass_get_width(const lh_ui_blur_pass_t *self);
+
+/**
+ * @brief Store the width of the area blurred, in pixels (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The blur pass; checked by ::lh_assert_runtime_ref.
+ * @param width The new value.
+ */
+lh_void
+lh_ui_blur_pass_set_width(lh_ui_blur_pass_t *self, lh_s32_t width);
+
+/**
+ * @brief The height of the area blurred, in pixels (level 1).
+ *
+ * @param self The blur pass; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_blur_pass_get_height(const lh_ui_blur_pass_t *self);
+
+/**
+ * @brief Store the height of the area blurred, in pixels (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The blur pass; checked by ::lh_assert_runtime_ref.
+ * @param height The new value.
+ */
+lh_void
+lh_ui_blur_pass_set_height(lh_ui_blur_pass_t *self, lh_s32_t height);
+
+/**
+ * @brief The blur radius in pixels (level 1).
+ *
+ * @param self The blur pass; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_blur_pass_get_radius(const lh_ui_blur_pass_t *self);
+
+/**
+ * @brief Store the blur radius in pixels (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The blur pass; checked by ::lh_assert_runtime_ref.
+ * @param radius The new value.
+ */
+lh_void
+lh_ui_blur_pass_set_radius(lh_ui_blur_pass_t *self, lh_s32_t radius);
+
+/**
+ * @brief The first row the pass writes (level 1).
+ *
+ * @param self The blur pass; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_blur_pass_get_y0(const lh_ui_blur_pass_t *self);
+
+/**
+ * @brief Store the first row the pass writes (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The blur pass; checked by ::lh_assert_runtime_ref.
+ * @param y0 The new value.
+ */
+lh_void
+lh_ui_blur_pass_set_y0(lh_ui_blur_pass_t *self, lh_s32_t y0);
+
+/**
+ * @brief The row after the last one the pass writes (level 1).
+ *
+ * @param self The blur pass; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_blur_pass_get_y1(const lh_ui_blur_pass_t *self);
+
+/**
+ * @brief Store the row after the last one the pass writes (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The blur pass; checked by ::lh_assert_runtime_ref.
+ * @param y1 The new value.
+ */
+lh_void
+lh_ui_blur_pass_set_y1(lh_ui_blur_pass_t *self, lh_s32_t y1);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_BLUR_PASS_H */

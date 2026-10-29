@@ -106,7 +106,7 @@ lh_ui_view_pointer_get_grab_offset(const lh_ui_view_pointer_t *self);
  *        it along the bar.
  */
 lh_void
-lh_ui_view_pointer_set_grab(lh_ui_view_pointer_t *self, lh_ui_scrollbar_t *grab,
+lh_ui_view_pointer_grab(lh_ui_view_pointer_t *self, lh_ui_scrollbar_t *grab,
                             lh_ui_scalar_t offset);
 
 /**
@@ -132,20 +132,20 @@ lh_ui_view_pointer_set_dragged(lh_ui_view_pointer_t *self, lh_bool_t dragged);
  * @brief Where the press of @p self went down, into @p out.
  */
 lh_void
-lh_ui_view_pointer_get_press_point(const lh_ui_view_pointer_t *self, lh_ui_point_t *out);
+lh_ui_view_pointer_copy_press_point(const lh_ui_view_pointer_t *self, lh_ui_point_t *out);
 
 /**
  * @brief Where @p self was last seen, into @p out.
  */
 lh_void
-lh_ui_view_pointer_get_last_point(const lh_ui_view_pointer_t *self, lh_ui_point_t *out);
+lh_ui_view_pointer_copy_last_point(const lh_ui_view_pointer_t *self, lh_ui_point_t *out);
 
 /**
  * @brief How fast the drag of @p self goes, per move, into @p out: the speed its
  *        release leaves the content gliding at.
  */
 lh_void
-lh_ui_view_pointer_get_velocity(const lh_ui_view_pointer_t *self, lh_ui_point_t *out);
+lh_ui_view_pointer_copy_velocity(const lh_ui_view_pointer_t *self, lh_ui_point_t *out);
 
 /**
  * @brief @p self moves to @p point: the last point follows and the velocity keeps
@@ -161,6 +161,123 @@ lh_ui_view_pointer_track(lh_ui_view_pointer_t *self, lh_ui_point_t point);
  */
 lh_bool_t
 lh_ui_view_pointer_is_past_threshold(const lh_ui_view_pointer_t *self, lh_ui_point_t point);
+
+/**
+ * @brief Store where on the scrollbar thumb the pointer grabbed it (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pointer session; checked by ::lh_assert_runtime_ref.
+ * @param grab_offset The new value.
+ */
+lh_void
+lh_ui_view_pointer_set_grab_offset(lh_ui_view_pointer_t *self, lh_ui_scalar_t grab_offset);
+
+/**
+ * @brief Where the pointer went down, to change in place (level 1).
+ *
+ * @param self The pointer session; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_point_t *
+lh_ui_view_pointer_get_press_point_mut(lh_ui_view_pointer_t *self);
+
+/**
+ * @brief Store where the pointer went down (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pointer session; checked by ::lh_assert_runtime_ref.
+ * @param press_point The new value.
+ */
+lh_void
+lh_ui_view_pointer_set_press_point(lh_ui_view_pointer_t *self, lh_ui_point_t press_point);
+
+/**
+ * @brief Where the pointer was last seen, to change in place (level 1).
+ *
+ * @param self The pointer session; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_point_t *
+lh_ui_view_pointer_get_last_point_mut(lh_ui_view_pointer_t *self);
+
+/**
+ * @brief Store where the pointer was last seen (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pointer session; checked by ::lh_assert_runtime_ref.
+ * @param last_point The new value.
+ */
+lh_void
+lh_ui_view_pointer_set_last_point(lh_ui_view_pointer_t *self, lh_ui_point_t last_point);
+
+/**
+ * @brief How fast the pointer moves, to change in place (level 1).
+ *
+ * @param self The pointer session; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_point_t *
+lh_ui_view_pointer_get_velocity_mut(lh_ui_view_pointer_t *self);
+
+/**
+ * @brief Store how fast the pointer moves (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pointer session; checked by ::lh_assert_runtime_ref.
+ * @param velocity The new value.
+ */
+lh_void
+lh_ui_view_pointer_set_velocity(lh_ui_view_pointer_t *self, lh_ui_point_t velocity);
+
+/**
+ * @brief Store whether the pointer is down (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pointer session; checked by ::lh_assert_runtime_ref.
+ * @param pressed The new value.
+ */
+lh_void
+lh_ui_view_pointer_set_pressed(lh_ui_view_pointer_t *self, lh_bool_t pressed);
+
+/**
+ * @brief Store the scrollbar whose thumb the pointer holds; ::lh_null for none (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pointer session; checked by ::lh_assert_runtime_ref.
+ * @param grab The new value.
+ */
+lh_void
+lh_ui_view_pointer_set_grab(lh_ui_view_pointer_t *self, lh_ui_scrollbar_t * grab);
+
+/**
+ * @brief Where the pointer went down (level 1).
+ *
+ * @param self The pointer session; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_point_t *
+lh_ui_view_pointer_get_press_point(const lh_ui_view_pointer_t *self);
+
+/**
+ * @brief Where the pointer was last seen (level 1).
+ *
+ * @param self The pointer session; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_point_t *
+lh_ui_view_pointer_get_last_point(const lh_ui_view_pointer_t *self);
+
+/**
+ * @brief How fast the pointer moves (level 1).
+ *
+ * @param self The pointer session; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_point_t *
+lh_ui_view_pointer_get_velocity(const lh_ui_view_pointer_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

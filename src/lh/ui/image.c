@@ -2,6 +2,7 @@
  * @file image.c
  * @brief Implementation of `lh/ui/image.h`.
  */
+#include <lh/assert.h>
 
 #include <lh/ui/canvas/mask.h>
 #include <lh/ui/image.h>
@@ -21,7 +22,7 @@ lh_ui_image_on_baseline(const lh_ui_image_t *self, const lh_ui_entity_event_t *e
 
     lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_baseline);
     answer = lh_ui_entity_event_get_baseline(lh_ptr_rcast(lh_ui_entity_event_t, event));
-    lh_ptr_deref(answer) = self->baseline;
+    lh_ptr_deref(answer) = lh_ui_image_get_baseline(self);
 }
 
 lh_void
@@ -44,13 +45,13 @@ lh_void
 lh_ui_image_init(lh_ui_image_t *self, lh_ui_rect_t rect, const lh_ui_mask_t *mask)
 {
     lh_assert_runtime_ref(self);
-    lh_ui_entity_init(lh_addr_of(self->entity), rect);
-    lh_ui_entity_set_class(lh_addr_of(self->entity), lh_addr_of(lh_ui_image_class));
-    self->mask = mask;
+    lh_ui_entity_init(lh_ui_image_get_entity_mut(self), rect);
+    lh_ui_entity_set_class(lh_ui_image_get_entity_mut(self), lh_addr_of(lh_ui_image_class));
+    lh_ui_image_set_mask(self, mask);
     /* A mask is cropped to ink and knows nothing about the type it came out of,
        so a picture has no line until somebody says where its is. */
-    self->baseline = lh_ui_scalar(-1);
-    lh_ui_color_init(lh_addr_of(self->tint), 255, 255, 255, 255);
+    lh_ui_image_set_baseline(self, lh_ui_scalar(-1));
+    lh_ui_color_init(lh_ui_image_get_tint_mut(self), 255, 255, 255, 255);
 }
 
 lh_ui_entity_t *
@@ -94,11 +95,11 @@ lh_ui_image_get_tint(const lh_ui_image_t *self)
 /* -- Picture --------------------------------------------------------------- */
 
 lh_void
-lh_ui_image_set_tint(lh_ui_image_t *self, const lh_ui_color_t *tint)
+lh_ui_image_set_tint_v(lh_ui_image_t *self, const lh_ui_color_t *tint)
 {
     lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(tint));
-    self->tint = lh_ptr_deref(tint);
+    lh_ui_image_set_tint(self, lh_ptr_deref(tint));
 }
 
 lh_void
@@ -109,10 +110,10 @@ lh_ui_image_get_size(const lh_ui_image_t *self, lh_ui_size_t *out)
 
     lh_assert_runtime_ref(self);
     lh_ui_size_init(lh_addr_of(size), lh_ui_scalar(0), lh_ui_scalar(0));
-    if (lh_null_ne(self->mask))
+    if (lh_null_ne(lh_ui_image_get_mask(self)))
     {
-        lh_ui_size_init(lh_addr_of(size), lh_ui_scalar_of(lh_ui_mask_get_width(self->mask)),
-                        lh_ui_scalar_of(lh_ui_mask_get_height(self->mask)));
+        lh_ui_size_init(lh_addr_of(size), lh_ui_scalar_of(lh_ui_mask_get_width(lh_ui_image_get_mask(self))),
+                        lh_ui_scalar_of(lh_ui_mask_get_height(lh_ui_image_get_mask(self))));
     }
     lh_ptr_deref(out) = size;
 }
@@ -123,7 +124,7 @@ lh_ui_image_get_origin(const lh_ui_image_t *self, lh_ui_point_t *out)
     lh_assert_runtime_ref(out);
     const lh_ui_entity_t *entity = lh_ui_image_as_entity(lh_ptr_rcast(lh_ui_image_t, self));
     lh_ui_rect_t rect;
-    lh_ui_entity_get_rect(entity, lh_addr_of(rect));
+    lh_ui_entity_copy_rect(entity, lh_addr_of(rect));
     lh_ui_insets_t padding;
     lh_ui_entity_get_padding(entity, lh_addr_of(padding));
     const lh_ui_point_t corner = lh_ptr_deref(lh_ui_rect_get_origin(lh_addr_of(rect)));
@@ -195,4 +196,39 @@ lh_ui_image_event(const lh_ui_entity_t *self, const lh_ui_entity_event_t *event)
     {
         lh_ui_image_on_baseline(image, event);
     }
+}
+
+const lh_ui_entity_t *
+lh_ui_image_get_entity(const lh_ui_image_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->entity);
+}
+
+lh_ui_entity_t *
+lh_ui_image_get_entity_mut(lh_ui_image_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->entity);
+}
+
+lh_void
+lh_ui_image_set_entity(lh_ui_image_t *self, lh_ui_entity_t entity)
+{
+    lh_assert_runtime_ref(self);
+    self->entity = entity;
+}
+
+lh_ui_color_t *
+lh_ui_image_get_tint_mut(lh_ui_image_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->tint);
+}
+
+lh_void
+lh_ui_image_set_tint(lh_ui_image_t *self, lh_ui_color_t tint)
+{
+    lh_assert_runtime_ref(self);
+    self->tint = tint;
 }

@@ -45,13 +45,13 @@ build_style(lh_ui_style_t *style, lh_byte_t grey, lh_ui_scalar_t spread)
     lh_ui_style_init(style);
     lh_ui_color_init(&color, grey, grey, grey, 255);
     lh_ui_paint_init_color(&paint, &color);
-    lh_ui_style_set_fill(style, &paint);
+    lh_ui_style_assign_fill(style, &paint);
     if (spread > lh_ui_scalar(0))
     {
         lh_ui_shadow_init(&shadow);
         lh_ui_shadow_set_color(&shadow, lh_ui_color_t{0, 0, 0, 200});
         lh_ui_shadow_set_spread(&shadow, spread);
-        lh_ui_style_set_shadow(style, &shadow);
+        lh_ui_style_set_shadow_v(style, &shadow);
     }
 }
 
@@ -82,8 +82,8 @@ build_toggle(lh_ui_toggle_t *toggle, looks &l)
 
     lh_ui_rect_init(&rect, 20, 20, 40, 20);
     lh_ui_toggle_init(toggle, rect);
-    lh_ui_toggle_set_off_style(toggle, &l.off, &l.off_hot);
-    lh_ui_toggle_set_on_style(toggle, &l.on, &l.on_hot);
+    lh_ui_toggle_set_off_styles(toggle, &l.off, &l.off_hot);
+    lh_ui_toggle_set_on_styles(toggle, &l.on, &l.on_hot);
 }
 
 void
@@ -191,10 +191,10 @@ TEST(entity_toggle, looks_declared_while_on_show_at_once)
     lh_ui_rect_init(&rect, 0, 0, 40, 20);
     lh_ui_toggle_init(&toggle, rect);
     lh_ui_toggle_set_checked(&toggle, lh_bool_true);
-    lh_ui_toggle_set_on_style(&toggle, &l.on, &l.on_hot);
+    lh_ui_toggle_set_on_styles(&toggle, &l.on, &l.on_hot);
     EXPECT_EQ(lh_ui_entity_get_style(lh_ui_toggle_as_entity(&toggle)), &l.on);
 
-    lh_ui_toggle_set_off_style(&toggle, &l.off, &l.off_hot);
+    lh_ui_toggle_set_off_styles(&toggle, &l.off, &l.off_hot);
     EXPECT_EQ(lh_ui_entity_get_style(lh_ui_toggle_as_entity(&toggle)), &l.on)
         << "the pair of the other state took over the entity";
 }
@@ -208,7 +208,7 @@ TEST(entity_toggle, a_state_with_no_hot_look_paints_the_resting_one)
 
     build_looks(l);
     build_toggle(&toggle, l);
-    lh_ui_toggle_set_on_style(&toggle, &l.on, lh_null);
+    lh_ui_toggle_set_on_styles(&toggle, &l.on, lh_null);
     lh_ui_toggle_set_checked(&toggle, lh_bool_true);
     lh_ui_button_set_hot(lh_ui_toggle_as_button(&toggle), lh_bool_true);
 

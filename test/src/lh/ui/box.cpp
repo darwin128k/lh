@@ -31,7 +31,7 @@ struct surface
         lh_ui_pixmap_init(&pixmap, lh_ptr_rcast(lh_byte_t, pixels), side, side, side * 4,
                           lh_ui_pixmap_format_argb8888);
         lh_ui_canvas_sw_init(&sw);
-        lh_ui_canvas_sw_set_pixmap(&sw, &pixmap);
+        lh_ui_canvas_sw_use_pixmap(&sw, &pixmap);
         lh_ui_canvas_init(&canvas, &lh_ui_canvas_backend_sw, &sw);
         lh_ui_size_init(&size, lh_ui_scalar_of(side), lh_ui_scalar_of(side));
         lh_ui_canvas_set_size(&canvas, size);

@@ -822,6 +822,189 @@ lh_ui_view_input_pointer(lh_ui_view_t *self, const lh_os_input_event_ptr event);
 lh_bool_t
 lh_ui_view_input(lh_ui_view_t *self, const lh_os_input_event_ptr event);
 
+/**
+ * @brief The session of each pointer (level 1).
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_view_pointer_t *
+lh_ui_view_get_pointers(const lh_ui_view_t *self);
+
+/**
+ * @brief The session of each pointer, to change in place (level 1).
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_view_pointer_t *
+lh_ui_view_get_pointers_mut(lh_ui_view_t *self);
+
+/**
+ * @brief The velocity of the last throw (level 1).
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_point_t *
+lh_ui_view_get_velocity(const lh_ui_view_t *self);
+
+/**
+ * @brief The velocity of the last throw, to change in place (level 1).
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_point_t *
+lh_ui_view_get_velocity_mut(lh_ui_view_t *self);
+
+/**
+ * @brief Store the velocity of the last throw (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ * @param velocity The new value.
+ */
+lh_void
+lh_ui_view_set_velocity(lh_ui_view_t *self, lh_ui_point_t velocity);
+
+/**
+ * @brief The container being scrolled; ::lh_null for none (level 1).
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_container_t *
+lh_ui_view_get_scrolling(const lh_ui_view_t *self);
+
+/**
+ * @brief Store the container being scrolled; ::lh_null for none (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ * @param scrolling The new value.
+ */
+lh_void
+lh_ui_view_set_scrolling(lh_ui_view_t *self, lh_ui_container_t * scrolling);
+
+/**
+ * @brief The container coasting after a throw; ::lh_null for none (level 1).
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_container_t *
+lh_ui_view_get_throwing(const lh_ui_view_t *self);
+
+/**
+ * @brief Store the container coasting after a throw; ::lh_null for none (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ * @param throwing The new value.
+ */
+lh_void
+lh_ui_view_set_throwing(lh_ui_view_t *self, lh_ui_container_t * throwing);
+
+/**
+ * @brief The areas that wait to be drawn (level 1).
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_rect_t *
+lh_ui_view_get_whole(const lh_ui_view_t *self);
+
+/**
+ * @brief The areas that wait to be drawn, to change in place (level 1).
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_rect_t *
+lh_ui_view_get_whole_mut(lh_ui_view_t *self);
+
+/**
+ * @brief How many areas wait to be drawn (level 1).
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ */
+lh_u32_t
+lh_ui_view_get_whole_count(const lh_ui_view_t *self);
+
+/**
+ * @brief Store how many areas wait to be drawn (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ * @param whole_count The new value.
+ */
+lh_void
+lh_ui_view_set_whole_count(lh_ui_view_t *self, lh_u32_t whole_count);
+
+/**
+ * @brief The area that waits to be drawn, as one rectangle (level 1).
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_rect_t *
+lh_ui_view_get_pending(const lh_ui_view_t *self);
+
+/**
+ * @brief The area that waits to be drawn, as one rectangle, to change in place (level 1).
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_rect_t *
+lh_ui_view_get_pending_mut(lh_ui_view_t *self);
+
+/**
+ * @brief Store the area that waits to be drawn, as one rectangle (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ * @param pending The new value.
+ */
+lh_void
+lh_ui_view_set_pending(lh_ui_view_t *self, lh_ui_rect_t pending);
+
+/**
+ * @brief Whether anything waits to be drawn (level 1).
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ */
+lh_bool_t
+lh_ui_view_is_has_pending(const lh_ui_view_t *self);
+
+/**
+ * @brief Store whether anything waits to be drawn (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ * @param has_pending The new value.
+ */
+lh_void
+lh_ui_view_set_has_pending(lh_ui_view_t *self, lh_bool_t has_pending);
+
+/**
+ * @brief The transitions running (level 1).
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_transition_t *
+lh_ui_view_get_transitions(const lh_ui_view_t *self);
+
+/**
+ * @brief The transitions running, to change in place (level 1).
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_transition_t *
+lh_ui_view_get_transitions_mut(lh_ui_view_t *self);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_VIEW_H */

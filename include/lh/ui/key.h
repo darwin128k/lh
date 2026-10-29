@@ -65,6 +65,39 @@ lh_ui_key_input_get_code(const lh_ui_key_input_t *self);
 lh_bool_t
 lh_ui_key_input_is_down(const lh_ui_key_input_t *self, lh_os_key_t key);
 
+/**
+ * @brief Store the key (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The key input; checked by ::lh_assert_runtime_ref.
+ * @param key The new value.
+ */
+lh_void
+lh_ui_key_input_set_key(lh_ui_key_input_t *self, lh_os_key_t key);
+
+/**
+ * @brief Store whether the key went down (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The key input; checked by ::lh_assert_runtime_ref.
+ * @param pressed The new value.
+ */
+lh_void
+lh_ui_key_input_set_pressed(lh_ui_key_input_t *self, lh_bool_t pressed);
+
+/**
+ * @brief Store the code point the key types; 0 for none (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The key input; checked by ::lh_assert_runtime_ref.
+ * @param code The new value.
+ */
+lh_void
+lh_ui_key_input_set_code(lh_ui_key_input_t *self, lh_u32_t code);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_KEY_H */

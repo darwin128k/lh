@@ -86,6 +86,56 @@ lh_void
 lh_ui_canvas_clip_split_row(const lh_ui_canvas_clip_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
                             lh_s32_t *mid0, lh_s32_t *mid1);
 
+/**
+ * @brief The clip rectangle, to change in place (level 1).
+ *
+ * @param self The clip; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_rect_t *
+lh_ui_canvas_clip_get_rect_mut(lh_ui_canvas_clip_t *self);
+
+/**
+ * @brief Store the clip rectangle (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The clip; checked by ::lh_assert_runtime_ref.
+ * @param rect The new value.
+ */
+lh_void
+lh_ui_canvas_clip_set_rect(lh_ui_canvas_clip_t *self, lh_ui_rect_t rect);
+
+/**
+ * @brief The rounded clips inside the rectangle (level 1).
+ *
+ * @param self The clip; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_canvas_clip_round_t *
+lh_ui_canvas_clip_get_rounds(const lh_ui_canvas_clip_t *self);
+
+/**
+ * @brief Store the rounded clips inside the rectangle (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The clip; checked by ::lh_assert_runtime_ref.
+ * @param rounds The new value.
+ */
+lh_void
+lh_ui_canvas_clip_set_rounds(lh_ui_canvas_clip_t *self, const lh_ui_canvas_clip_round_t * rounds);
+
+/**
+ * @brief Store how many rounded clips there are (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The clip; checked by ::lh_assert_runtime_ref.
+ * @param round_count The new value.
+ */
+lh_void
+lh_ui_canvas_clip_set_round_count(lh_ui_canvas_clip_t *self, lh_u32_t round_count);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_CANVAS_CLIP_H */

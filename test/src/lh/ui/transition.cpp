@@ -29,7 +29,7 @@ struct look
 
         lh_ui_style_init(&style);
         lh_ui_paint_init_color(&paint, &fill);
-        lh_ui_style_set_fill(&style, &paint);
+        lh_ui_style_assign_fill(&style, &paint);
         lh_ui_style_set_transition(&style, ms);
     }
 };
@@ -63,7 +63,7 @@ struct scene
         lh_ui_pixmap_init(&pixmap, lh_ptr_rcast(lh_byte_t, pixels), side, side, side * 4,
                           lh_ui_pixmap_format_argb8888);
         lh_ui_canvas_sw_init(&sw);
-        lh_ui_canvas_sw_set_pixmap(&sw, &pixmap);
+        lh_ui_canvas_sw_use_pixmap(&sw, &pixmap);
         lh_ui_canvas_init(&canvas, &lh_ui_canvas_backend_sw, &sw);
         lh_ui_size_init(&size, lh_ui_scalar_of(side), lh_ui_scalar_of(side));
         lh_ui_canvas_set_size(&canvas, size);
@@ -125,11 +125,11 @@ TEST(ui_style_blend, everything_with_an_amount_is_mixed)
 
     lh_ui_style_set_radius(&from.style, lh_ui_scalar(0));
     lh_ui_radii_init(&corners, lh_ui_scalar(10), lh_ui_scalar(20), lh_ui_scalar(0), lh_ui_scalar(0));
-    lh_ui_style_set_radii(&to.style, &corners);
+    lh_ui_style_set_radii_v(&to.style, &corners);
     lh_ui_paint_init_color(&ink, &black);
-    lh_ui_style_set_text(&from.style, &ink);
+    lh_ui_style_assign_text(&from.style, &ink);
     lh_ui_paint_init_color(&ink, &white);
-    lh_ui_style_set_text(&to.style, &ink);
+    lh_ui_style_assign_text(&to.style, &ink);
 
     lh_ui_style_init_blend(&mid, &from.style, &to.style, 51);
     EXPECT_EQ(lh_ui_color_get_r(lh_ui_style_get_fill_color(&mid)), 160);
@@ -152,7 +152,7 @@ TEST(ui_style_blend, a_shadow_cast_at_one_end_only_fades_in_from_nothing)
     lh_ui_shadow_init(&cast);
     lh_ui_shadow_set_color(&cast, color_of(0, 0, 0, 200));
     lh_ui_shadow_set_spread(&cast, lh_ui_scalar(10));
-    lh_ui_style_set_shadow(&to.style, &cast);
+    lh_ui_style_set_shadow_v(&to.style, &cast);
 
     lh_ui_style_init_blend(&mid, &from.style, &to.style, 0);
     EXPECT_EQ(lh_ui_color_get_a(&mid.shadow.color), 0) << "nothing at the start";

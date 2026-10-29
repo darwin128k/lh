@@ -120,6 +120,170 @@ lh_ui_display_get_pixmap(const lh_ui_display_t *self);
 lh_void
 lh_ui_display_present(lh_ui_display_t *self, const lh_ui_rects_t *drawn);
 
+/**
+ * @brief The size of the panel (level 1).
+ *
+ * @param self The display; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_size_t *
+lh_ui_display_get_panel(const lh_ui_display_t *self);
+
+/**
+ * @brief The size of the panel, to change in place (level 1).
+ *
+ * @param self The display; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_size_t *
+lh_ui_display_get_panel_mut(lh_ui_display_t *self);
+
+/**
+ * @brief The height of one strip the frame is drawn in (level 1).
+ *
+ * @param self The display; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_scalar_t
+lh_ui_display_get_strip_height(const lh_ui_display_t *self);
+
+/**
+ * @brief The top of the strip being drawn (level 1).
+ *
+ * @param self The display; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_scalar_t
+lh_ui_display_get_strip_y(const lh_ui_display_t *self);
+
+/**
+ * @brief The pixel format of the panel (level 1).
+ *
+ * @param self The display; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_pixmap_format_t
+lh_ui_display_get_format(const lh_ui_display_t *self);
+
+/**
+ * @brief The pixmap one strip is drawn into, to change in place (level 1).
+ *
+ * @param self The display; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_pixmap_t *
+lh_ui_display_get_pixmap_mut(lh_ui_display_t *self);
+
+/**
+ * @brief Store the pixmap one strip is drawn into (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The display; checked by ::lh_assert_runtime_ref.
+ * @param pixmap The new value.
+ */
+lh_void
+lh_ui_display_set_pixmap(lh_ui_display_t *self, lh_ui_pixmap_t pixmap);
+
+/**
+ * @brief The software canvas over the pixmap (level 1).
+ *
+ * @param self The display; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_canvas_sw_t *
+lh_ui_display_get_sw(const lh_ui_display_t *self);
+
+/**
+ * @brief The software canvas over the pixmap, to change in place (level 1).
+ *
+ * @param self The display; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_canvas_sw_t *
+lh_ui_display_get_sw_mut(lh_ui_display_t *self);
+
+/**
+ * @brief Store the software canvas over the pixmap (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The display; checked by ::lh_assert_runtime_ref.
+ * @param sw The new value.
+ */
+lh_void
+lh_ui_display_set_sw(lh_ui_display_t *self, lh_ui_canvas_sw_t sw);
+
+/**
+ * @brief The canvas the frame is drawn through, to change in place (level 1).
+ *
+ * @param self The display; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_canvas_t *
+lh_ui_display_get_canvas_mut(lh_ui_display_t *self);
+
+/**
+ * @brief Store the canvas the frame is drawn through (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The display; checked by ::lh_assert_runtime_ref.
+ * @param canvas The new value.
+ */
+lh_void
+lh_ui_display_set_canvas(lh_ui_display_t *self, lh_ui_canvas_t canvas);
+
+/**
+ * @brief The sinks a finished strip is presented to (level 1).
+ *
+ * @param self The display; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_present_sink_t *
+lh_ui_display_get_sinks(const lh_ui_display_t *self);
+
+/**
+ * @brief The sinks a finished strip is presented to, to change in place (level 1).
+ *
+ * @param self The display; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_present_sink_t *
+lh_ui_display_get_sinks_mut(lh_ui_display_t *self);
+
+/**
+ * @brief How many sinks there are (level 1).
+ *
+ * @param self The display; checked by ::lh_assert_runtime_ref.
+ */
+lh_u32_t
+lh_ui_display_get_sink_count(const lh_ui_display_t *self);
+
+/**
+ * @brief Store how many sinks there are (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The display; checked by ::lh_assert_runtime_ref.
+ * @param sink_count The new value.
+ */
+lh_void
+lh_ui_display_set_sink_count(lh_ui_display_t *self, lh_u32_t sink_count);
+
+/**
+ * @brief The mask of sinks that are enabled (level 1).
+ *
+ * @param self The display; checked by ::lh_assert_runtime_ref.
+ */
+lh_u32_t
+lh_ui_display_get_sink_enable(const lh_ui_display_t *self);
+
+/**
+ * @brief Store the mask of sinks that are enabled (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The display; checked by ::lh_assert_runtime_ref.
+ * @param sink_enable The new value.
+ */
+lh_void
+lh_ui_display_set_sink_enable(lh_ui_display_t *self, lh_u32_t sink_enable);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_DISPLAY_H */

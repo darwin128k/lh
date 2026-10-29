@@ -35,13 +35,13 @@ build_styles(lh_ui_style_t *rest, lh_ui_style_t *hot, lh_ui_style_t *pressed)
     lh_ui_style_init(rest);
     lh_ui_color_init(&color, 10, 20, 30, 255);
     lh_ui_paint_init_color(&paint, &color);
-    lh_ui_style_set_fill(rest, &paint);
+    lh_ui_style_assign_fill(rest, &paint);
     lh_ui_style_set_radius(rest, lh_ui_scalar(8));
 
     lh_ui_style_init(hot);
     lh_ui_color_init(&color, 40, 50, 60, 255);
     lh_ui_paint_init_color(&paint, &color);
-    lh_ui_style_set_fill(hot, &paint);
+    lh_ui_style_assign_fill(hot, &paint);
 
     lh_ui_style_init(pressed);
     lh_ui_color_init(&color, 70, 80, 90, 255);

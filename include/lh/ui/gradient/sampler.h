@@ -121,6 +121,194 @@ lh_void
 lh_ui_gradient_sampler_radial_row(const lh_ui_gradient_sampler_t *self, lh_s32_t x0, lh_s32_t x1,
                                   lh_s64_t dy, lh_ui_color_t *out);
 
+/**
+ * @brief The gradient sampled (level 1).
+ *
+ * @param self The sampler; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_gradient_t *
+lh_ui_gradient_sampler_get_gradient(const lh_ui_gradient_sampler_t *self);
+
+/**
+ * @brief Store the gradient sampled (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The sampler; checked by ::lh_assert_runtime_ref.
+ * @param gradient The new value.
+ */
+lh_void
+lh_ui_gradient_sampler_set_gradient(lh_ui_gradient_sampler_t *self, const lh_ui_gradient_t * gradient);
+
+/**
+ * @brief The colors of the stops, ready to blend (level 1).
+ *
+ * @param self The sampler; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_color_t *
+lh_ui_gradient_sampler_get_colors(const lh_ui_gradient_sampler_t *self);
+
+/**
+ * @brief The colors of the stops, ready to blend, to change in place (level 1).
+ *
+ * @param self The sampler; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_color_t *
+lh_ui_gradient_sampler_get_colors_mut(lh_ui_gradient_sampler_t *self);
+
+/**
+ * @brief Whether the gradient is linear or radial (level 1).
+ *
+ * @param self The sampler; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_gradient_shape_t
+lh_ui_gradient_sampler_get_shape(const lh_ui_gradient_sampler_t *self);
+
+/**
+ * @brief Store whether the gradient is linear or radial (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The sampler; checked by ::lh_assert_runtime_ref.
+ * @param shape The new value.
+ */
+lh_void
+lh_ui_gradient_sampler_set_shape(lh_ui_gradient_sampler_t *self, lh_ui_gradient_shape_t shape);
+
+/**
+ * @brief The width of the area the gradient fills, fixed point (level 1).
+ *
+ * @param self The sampler; checked by ::lh_assert_runtime_ref.
+ */
+lh_s64_t
+lh_ui_gradient_sampler_get_width(const lh_ui_gradient_sampler_t *self);
+
+/**
+ * @brief Store the width of the area the gradient fills, fixed point (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The sampler; checked by ::lh_assert_runtime_ref.
+ * @param width The new value.
+ */
+lh_void
+lh_ui_gradient_sampler_set_width(lh_ui_gradient_sampler_t *self, lh_s64_t width);
+
+/**
+ * @brief The height of the area the gradient fills, fixed point (level 1).
+ *
+ * @param self The sampler; checked by ::lh_assert_runtime_ref.
+ */
+lh_s64_t
+lh_ui_gradient_sampler_get_height(const lh_ui_gradient_sampler_t *self);
+
+/**
+ * @brief Store the height of the area the gradient fills, fixed point (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The sampler; checked by ::lh_assert_runtime_ref.
+ * @param height The new value.
+ */
+lh_void
+lh_ui_gradient_sampler_set_height(lh_ui_gradient_sampler_t *self, lh_s64_t height);
+
+/**
+ * @brief The horizontal middle of the area, fixed point (level 1).
+ *
+ * @param self The sampler; checked by ::lh_assert_runtime_ref.
+ */
+lh_s64_t
+lh_ui_gradient_sampler_get_middle_x(const lh_ui_gradient_sampler_t *self);
+
+/**
+ * @brief Store the horizontal middle of the area, fixed point (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The sampler; checked by ::lh_assert_runtime_ref.
+ * @param middle_x The new value.
+ */
+lh_void
+lh_ui_gradient_sampler_set_middle_x(lh_ui_gradient_sampler_t *self, lh_s64_t middle_x);
+
+/**
+ * @brief The vertical middle of the area, fixed point (level 1).
+ *
+ * @param self The sampler; checked by ::lh_assert_runtime_ref.
+ */
+lh_s64_t
+lh_ui_gradient_sampler_get_middle_y(const lh_ui_gradient_sampler_t *self);
+
+/**
+ * @brief Store the vertical middle of the area, fixed point (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The sampler; checked by ::lh_assert_runtime_ref.
+ * @param middle_y The new value.
+ */
+lh_void
+lh_ui_gradient_sampler_set_middle_y(lh_ui_gradient_sampler_t *self, lh_s64_t middle_y);
+
+/**
+ * @brief The sine of the gradient angle, fixed point (level 1).
+ *
+ * @param self The sampler; checked by ::lh_assert_runtime_ref.
+ */
+lh_s64_t
+lh_ui_gradient_sampler_get_sine(const lh_ui_gradient_sampler_t *self);
+
+/**
+ * @brief Store the sine of the gradient angle, fixed point (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The sampler; checked by ::lh_assert_runtime_ref.
+ * @param sine The new value.
+ */
+lh_void
+lh_ui_gradient_sampler_set_sine(lh_ui_gradient_sampler_t *self, lh_s64_t sine);
+
+/**
+ * @brief The cosine of the gradient angle, fixed point (level 1).
+ *
+ * @param self The sampler; checked by ::lh_assert_runtime_ref.
+ */
+lh_s64_t
+lh_ui_gradient_sampler_get_cosine(const lh_ui_gradient_sampler_t *self);
+
+/**
+ * @brief Store the cosine of the gradient angle, fixed point (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The sampler; checked by ::lh_assert_runtime_ref.
+ * @param cosine The new value.
+ */
+lh_void
+lh_ui_gradient_sampler_set_cosine(lh_ui_gradient_sampler_t *self, lh_s64_t cosine);
+
+/**
+ * @brief The length the gradient runs over, fixed point (level 1).
+ *
+ * @param self The sampler; checked by ::lh_assert_runtime_ref.
+ */
+lh_s64_t
+lh_ui_gradient_sampler_get_length(const lh_ui_gradient_sampler_t *self);
+
+/**
+ * @brief Store the length the gradient runs over, fixed point (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The sampler; checked by ::lh_assert_runtime_ref.
+ * @param length The new value.
+ */
+lh_void
+lh_ui_gradient_sampler_set_length(lh_ui_gradient_sampler_t *self, lh_s64_t length);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_GRADIENT_SAMPLER_H */

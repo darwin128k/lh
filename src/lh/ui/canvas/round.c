@@ -106,17 +106,17 @@ lh_ui_canvas_fill_colors(struct lh_ui_canvas *self, lh_s32_t x, lh_s32_t y, lh_s
     lh_s32_t at;
     lh_s32_t end;
 
-    lh_return_if(w <= 0 || h <= 0 || lh_null_eq(self->backend));
+    lh_return_if(w <= 0 || h <= 0 || lh_null_eq(lh_ui_canvas_get_backend(self)));
     lh_ui_rect_init(lh_addr_of(box), x, y, w, h);
-    lh_ui_canvas_state_cut(lh_addr_of(self->state), lh_addr_of(box), lh_addr_of(cut));
+    lh_ui_canvas_state_cut(lh_ui_canvas_get_state_mut(self), lh_addr_of(box), lh_addr_of(cut));
     lh_return_if(lh_ui_rect_is_empty(lh_addr_of(cut)));
     /* The box is drawn whole and cut by whoever clips, as a mask is
        (::lh_ui_canvas_can_fill_mask). */
-    if (!lh_null_eq(self->backend->fill_colors) &&
+    if (!lh_null_eq(lh_ui_canvas_backend_get_fill_colors_fn(lh_ui_canvas_get_backend(self))) &&
         (!lh_ui_canvas_is_cutting(self) || lh_ui_canvas_can_send_whole(self, lh_addr_of(box))))
     {
         lh_ui_canvas_add_damage(self, lh_addr_of(cut));
-        lh_return_if(self->backend->fill_colors(self->context, x, y, w, h, colors, axis));
+        lh_return_if(lh_ui_canvas_backend_get_fill_colors_fn(lh_ui_canvas_get_backend(self))(lh_ui_canvas_get_context(self), x, y, w, h, colors, axis));
     }
     for (at = 0; at < count; at = end)
     {

@@ -55,14 +55,14 @@ struct screen
 
         lh_ui_style_init(&root_style);
         lh_ui_paint_init_color(&paint, &bg);
-        lh_ui_style_set_fill(&root_style, &paint);
+        lh_ui_style_assign_fill(&root_style, &paint);
         lh_ui_style_init(&card_style);
         lh_ui_paint_init_color(&paint, &card);
-        lh_ui_style_set_fill(&card_style, &paint);
+        lh_ui_style_assign_fill(&card_style, &paint);
         lh_ui_paint_init_color(&paint, &ink);
-        lh_ui_style_set_text(&card_style, &paint);
+        lh_ui_style_assign_text(&card_style, &paint);
         lh_ui_style_set_radius(&card_style, lh_ui_scalar(8));
-        lh_ui_style_set_padding(&card_style, lh_ui_scalar(8));
+        lh_ui_style_set_padding_all(&card_style, lh_ui_scalar(8));
 
         lh_ui_container_init(&root, rect(0, 0, width, height));
         lh_ui_entity_set_style(lh_ui_container_as_entity(&root), &root_style);
@@ -80,7 +80,7 @@ struct screen
         }
         else if (id == screen_flex)
         {
-            lh_ui_style_set_padding(&root_style, lh_ui_scalar(8));
+            lh_ui_style_set_padding_all(&root_style, lh_ui_scalar(8));
             lh_ui_layout_init(&down, lh_ui_axis_vertical, lh_ui_scalar(8));
             lh_ui_layout_init(&across, lh_ui_axis_horizontal, lh_ui_scalar(8));
             lh_ui_container_set_layout(&root, &down);
@@ -90,7 +90,7 @@ struct screen
             {
                 lh_ui_container_init(&rows[i], rect(0, 0, 0, 0));
                 lh_ui_container_set_layout(&rows[i], &across);
-                lh_ui_entity_set_place(lh_ui_container_as_entity(&rows[i]), &fill);
+                lh_ui_entity_set_place_v(lh_ui_container_as_entity(&rows[i]), &fill);
                 lh_ui_entity_add_child(lh_ui_container_as_entity(&root), lh_ui_container_as_entity(&rows[i]));
             }
             for (int i = 0; i < 32; ++i)
@@ -98,7 +98,7 @@ struct screen
                 std::snprintf(captions[i], sizeof captions[i], "Item %d", i + 1);
                 lh_ui_label_init(&labels[i], rect(0, 0, 0, 0), captions[i]);
                 lh_ui_entity_set_style(lh_ui_label_as_entity(&labels[i]), &card_style);
-                lh_ui_entity_set_place(lh_ui_label_as_entity(&labels[i]), &fill);
+                lh_ui_entity_set_place_v(lh_ui_label_as_entity(&labels[i]), &fill);
                 lh_ui_entity_add_child(lh_ui_container_as_entity(&rows[i / 4]), lh_ui_label_as_entity(&labels[i]));
             }
             partial = rect(8, 8, 108, 26);

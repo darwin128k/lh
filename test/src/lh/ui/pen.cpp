@@ -21,7 +21,7 @@ TEST(ui_pen, set_paint_and_width)
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 4);
     lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(color));
     lh_ui_pen_init(lh_addr_of(pen));
-    lh_ui_pen_set_paint(lh_addr_of(pen), lh_addr_of(paint));
+    lh_ui_pen_set_paint_v(lh_addr_of(pen), lh_addr_of(paint));
     lh_ui_pen_set_width(lh_addr_of(pen), 3);
     EXPECT_FALSE(lh_ui_paint_is_empty(lh_ui_pen_get_paint(lh_addr_of(pen))));
     EXPECT_EQ(lh_ui_pen_get_width(lh_addr_of(pen)), 3);

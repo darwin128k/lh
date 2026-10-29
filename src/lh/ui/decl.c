@@ -114,8 +114,8 @@ lh_ui_decl_place_row(const lh_ui_decl_t *row, lh_byte_ptr slot, lh_ui_entity_t *
         lh_ui_toggle_t *toggle = lh_ptr_rcast(lh_ui_toggle_t, slot);
 
         lh_ui_toggle_init(toggle, rect);
-        lh_ui_toggle_set_off_style(toggle, row->as.toggle.off_style, row->as.toggle.off_hot_style);
-        lh_ui_toggle_set_on_style(toggle, row->as.toggle.on_style, row->as.toggle.on_hot_style);
+        lh_ui_toggle_set_off_styles(toggle, row->as.toggle.off_style, row->as.toggle.off_hot_style);
+        lh_ui_toggle_set_on_styles(toggle, row->as.toggle.on_style, row->as.toggle.on_hot_style);
         lh_ui_toggle_set_checked(toggle, row->as.toggle.checked);
         return lh_ui_toggle_as_entity(toggle);
     }
@@ -126,7 +126,7 @@ lh_ui_decl_place_row(const lh_ui_decl_t *row, lh_byte_ptr slot, lh_ui_entity_t *
         lh_ui_image_init(image, rect, row->as.image.mask);
         if (lh_null_ne(row->as.image.tint))
         {
-            lh_ui_image_set_tint(image, row->as.image.tint);
+            lh_ui_image_set_tint_v(image, row->as.image.tint);
         }
         return lh_ui_image_as_entity(image);
     }
@@ -241,7 +241,7 @@ lh_ui_decl_build(const lh_ui_decl_t *decls, lh_u32_t count, lh_ui_entity_t **nod
             }
             if (lh_null_ne(row->place))
             {
-                lh_ui_entity_set_place(entity, row->place);
+                lh_ui_entity_set_place_v(entity, row->place);
             }
             /* A flow belongs to a container, and the question "is this one?" is the
                container's own answer: a button, a toggle and a caption are

@@ -12,6 +12,7 @@
  * out whole as a row of colours (::lh_ui_canvas_fill_colors), read off a
  * ::lh_ui_gradient_sampler_t, its corner pixels at their coverage.
  */
+#include <lh/assert.h>
 
 #include <lh/math.h>
 #include <lh/ui/canvas/box.h>
@@ -204,18 +205,18 @@ lh_ui_canvas_box_frame_init(const lh_ui_rect_t *box, const lh_ui_rect_t *cut,
                             lh_ui_canvas_box_frame_t *out)
 {
     lh_assert_runtime_ref(out);
-    out->left = lh_ui_canvas_round_left(box);
-    out->right = lh_ui_canvas_round_right(box);
-    out->top = lh_ui_canvas_round_top(box);
-    out->bottom = lh_ui_canvas_round_bottom(box);
+    lh_ui_canvas_box_frame_set_left(out, lh_ui_canvas_round_left(box));
+    lh_ui_canvas_box_frame_set_right(out, lh_ui_canvas_round_right(box));
+    lh_ui_canvas_box_frame_set_top(out, lh_ui_canvas_round_top(box));
+    lh_ui_canvas_box_frame_set_bottom(out, lh_ui_canvas_round_bottom(box));
     /* Only the rows and columns the clip shows: a long gradient list scrolled to its
        end does not colour the rows above the window, nor a wide one the columns off
        to the side. */
-    out->first = lh_math_max(out->top, lh_ui_canvas_round_top(cut));
-    out->last = lh_math_min(out->bottom, lh_ui_canvas_round_bottom(cut));
-    out->shown_left = lh_math_max(out->left, lh_ui_canvas_round_left(cut));
-    out->shown_right = lh_math_min(out->right, lh_ui_canvas_round_right(cut));
-    return out->shown_right > out->shown_left ? lh_bool_true : lh_bool_false;
+    lh_ui_canvas_box_frame_set_first(out, lh_math_max(lh_ui_canvas_box_frame_get_top(out), lh_ui_canvas_round_top(cut)));
+    lh_ui_canvas_box_frame_set_last(out, lh_math_min(lh_ui_canvas_box_frame_get_bottom(out), lh_ui_canvas_round_bottom(cut)));
+    lh_ui_canvas_box_frame_set_shown_left(out, lh_math_max(lh_ui_canvas_box_frame_get_left(out), lh_ui_canvas_round_left(cut)));
+    lh_ui_canvas_box_frame_set_shown_right(out, lh_math_min(lh_ui_canvas_box_frame_get_right(out), lh_ui_canvas_round_right(cut)));
+    return lh_ui_canvas_box_frame_get_shown_right(out) > lh_ui_canvas_box_frame_get_shown_left(out) ? lh_bool_true : lh_bool_false;
 }
 
 lh_void
@@ -226,17 +227,17 @@ lh_ui_canvas_box_corners_init(const lh_ui_rect_t *box, const lh_ui_radii_t *fit,
     lh_assert_runtime_ref(out);
     /* Each corner is the corner of a box rounded all round by its radius, and only
        the pixels in that corner are asked about it. */
-    lh_ui_radius_run_init(out + 0, box, fit->top_left);
-    lh_ui_radius_run_init(out + 1, box, fit->top_right);
-    lh_ui_radius_run_init(out + 2, box, fit->bottom_left);
-    lh_ui_radius_run_init(out + 3, box, fit->bottom_right);
+    lh_ui_radius_run_init(out + 0, box, lh_ui_radii_get_top_left(fit));
+    lh_ui_radius_run_init(out + 1, box, lh_ui_radii_get_top_right(fit));
+    lh_ui_radius_run_init(out + 2, box, lh_ui_radii_get_bottom_left(fit));
+    lh_ui_radius_run_init(out + 3, box, lh_ui_radii_get_bottom_right(fit));
 }
 
 lh_bool_t
 lh_ui_canvas_box_row_is_upper(const lh_ui_canvas_box_frame_t *frame, lh_s32_t y)
 {
     lh_assert_runtime_ref(frame);
-    return (2 * y + 1 < frame->top + frame->bottom) ? lh_bool_true : lh_bool_false;
+    return (2 * y + 1 < lh_ui_canvas_box_frame_get_top(frame) + lh_ui_canvas_box_frame_get_bottom(frame)) ? lh_bool_true : lh_bool_false;
 }
 
 lh_s32_t
@@ -252,17 +253,17 @@ lh_ui_canvas_box_row_reach(const lh_ui_canvas_box_frame_t *frame, const lh_ui_ra
                            lh_s32_t y, lh_s32_t *near_end, lh_s32_t *far_start)
 {
     const lh_bool_t upper = lh_ui_canvas_box_row_is_upper(frame, y);
-    const lh_s32_t from_edge = upper ? y - frame->top : frame->bottom - 1 - y;
+    const lh_s32_t from_edge = upper ? y - lh_ui_canvas_box_frame_get_top(frame) : lh_ui_canvas_box_frame_get_bottom(frame) - 1 - y;
     const lh_s32_t zone_near = lh_ui_canvas_box_zone(
-        from_edge, upper ? fit->top_left : fit->bottom_left, frame->right - frame->left);
+        from_edge, upper ? lh_ui_radii_get_top_left(fit) : lh_ui_radii_get_bottom_left(fit), lh_ui_canvas_box_frame_get_right(frame) - lh_ui_canvas_box_frame_get_left(frame));
     const lh_s32_t zone_far =
-        lh_ui_canvas_box_zone(from_edge, upper ? fit->top_right : fit->bottom_right,
-                              frame->right - frame->left - zone_near);
+        lh_ui_canvas_box_zone(from_edge, upper ? lh_ui_radii_get_top_right(fit) : lh_ui_radii_get_bottom_right(fit),
+                              lh_ui_canvas_box_frame_get_right(frame) - lh_ui_canvas_box_frame_get_left(frame) - zone_near);
 
     lh_assert_runtime_ref(near_end);
     lh_assert_runtime_ref(far_start);
-    lh_ptr_deref(near_end) = frame->left + zone_near;
-    lh_ptr_deref(far_start) = frame->right - zone_far;
+    lh_ptr_deref(near_end) = lh_ui_canvas_box_frame_get_left(frame) + zone_near;
+    lh_ptr_deref(far_start) = lh_ui_canvas_box_frame_get_right(frame) - zone_far;
     return (zone_near != 0 || zone_far != 0) ? lh_bool_true : lh_bool_false;
 }
 
@@ -271,12 +272,12 @@ lh_ui_canvas_box_rows(lh_ui_canvas_t *self, const lh_ui_paint_t *paint,
                       lh_ui_gradient_sampler_t *sampler, const lh_ui_canvas_box_frame_t *frame,
                       const lh_ui_radii_t *fit, const struct lh_ui_radius_run *corners)
 {
-    lh_s32_t plain_from = frame->first;
+    lh_s32_t plain_from = lh_ui_canvas_box_frame_get_first(frame);
     lh_s32_t near_end;
     lh_s32_t far_start;
     lh_s32_t y;
 
-    for (y = frame->first; y < frame->last; ++y)
+    for (y = lh_ui_canvas_box_frame_get_first(frame); y < lh_ui_canvas_box_frame_get_last(frame); ++y)
     {
         const lh_s32_t pair = lh_ui_canvas_box_row_is_upper(frame, y) ? 0 : 2;
 
@@ -286,14 +287,14 @@ lh_ui_canvas_box_rows(lh_ui_canvas_t *self, const lh_ui_paint_t *paint,
         }
         /* A row a corner reaches: the rows before it that none did go out as one
            band, then this one whole, its corners at their coverage. */
-        lh_ui_canvas_box_band(self, paint, sampler, frame->shown_left, frame->shown_right,
+        lh_ui_canvas_box_band(self, paint, sampler, lh_ui_canvas_box_frame_get_shown_left(frame), lh_ui_canvas_box_frame_get_shown_right(frame),
                               plain_from, y);
         plain_from = y + 1;
-        lh_ui_canvas_box_row(self, paint, sampler, frame->shown_left, frame->shown_right, y,
+        lh_ui_canvas_box_row(self, paint, sampler, lh_ui_canvas_box_frame_get_shown_left(frame), lh_ui_canvas_box_frame_get_shown_right(frame), y,
                              near_end, corners + pair, far_start, corners + pair + 1);
     }
-    lh_ui_canvas_box_band(self, paint, sampler, frame->shown_left, frame->shown_right, plain_from,
-                          frame->last);
+    lh_ui_canvas_box_band(self, paint, sampler, lh_ui_canvas_box_frame_get_shown_left(frame), lh_ui_canvas_box_frame_get_shown_right(frame), plain_from,
+                          lh_ui_canvas_box_frame_get_last(frame));
 }
 
 lh_void
@@ -315,11 +316,11 @@ lh_ui_canvas_fill_box(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, const lh_u
        backend's rounded fill, exactly as before there were corners and gradients. */
     if (lh_null_eq(lh_ui_paint_get_gradient(paint)) && lh_ui_radii_is_uniform(lh_addr_of(fit)))
     {
-        lh_ui_canvas_fill_round_rect(self, rect, fit.top_left, lh_ui_paint_get_color(paint));
+        lh_ui_canvas_fill_round_rect(self, rect, lh_ui_radii_get_top_left(lh_addr_of(fit)), lh_ui_paint_get_color(paint));
         return;
     }
-    lh_ui_canvas_state_to_target(lh_addr_of(self->state), rect, lh_addr_of(box));
-    lh_ui_canvas_state_cut(lh_addr_of(self->state), lh_addr_of(box), lh_addr_of(cut));
+    lh_ui_canvas_state_to_target(lh_ui_canvas_get_state_mut(self), rect, lh_addr_of(box));
+    lh_ui_canvas_state_cut(lh_ui_canvas_get_state_mut(self), lh_addr_of(box), lh_addr_of(cut));
     lh_return_if(lh_ui_rect_is_empty(lh_addr_of(cut)));
     lh_return_if(!lh_ui_canvas_box_frame_init(lh_addr_of(box), lh_addr_of(cut), lh_addr_of(frame)));
     if (lh_null_ne(lh_ui_paint_get_gradient(paint)))
@@ -330,4 +331,116 @@ lh_ui_canvas_fill_box(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, const lh_u
     }
     lh_ui_canvas_box_corners_init(lh_addr_of(box), lh_addr_of(fit), corners);
     lh_ui_canvas_box_rows(self, paint, colours, lh_addr_of(frame), lh_addr_of(fit), corners);
+}
+
+lh_s32_t
+lh_ui_canvas_box_frame_get_left(const lh_ui_canvas_box_frame_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->left;
+}
+
+lh_void
+lh_ui_canvas_box_frame_set_left(lh_ui_canvas_box_frame_t *self, lh_s32_t left)
+{
+    lh_assert_runtime_ref(self);
+    self->left = left;
+}
+
+lh_s32_t
+lh_ui_canvas_box_frame_get_right(const lh_ui_canvas_box_frame_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->right;
+}
+
+lh_void
+lh_ui_canvas_box_frame_set_right(lh_ui_canvas_box_frame_t *self, lh_s32_t right)
+{
+    lh_assert_runtime_ref(self);
+    self->right = right;
+}
+
+lh_s32_t
+lh_ui_canvas_box_frame_get_top(const lh_ui_canvas_box_frame_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->top;
+}
+
+lh_void
+lh_ui_canvas_box_frame_set_top(lh_ui_canvas_box_frame_t *self, lh_s32_t top)
+{
+    lh_assert_runtime_ref(self);
+    self->top = top;
+}
+
+lh_s32_t
+lh_ui_canvas_box_frame_get_bottom(const lh_ui_canvas_box_frame_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->bottom;
+}
+
+lh_void
+lh_ui_canvas_box_frame_set_bottom(lh_ui_canvas_box_frame_t *self, lh_s32_t bottom)
+{
+    lh_assert_runtime_ref(self);
+    self->bottom = bottom;
+}
+
+lh_s32_t
+lh_ui_canvas_box_frame_get_shown_left(const lh_ui_canvas_box_frame_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->shown_left;
+}
+
+lh_void
+lh_ui_canvas_box_frame_set_shown_left(lh_ui_canvas_box_frame_t *self, lh_s32_t shown_left)
+{
+    lh_assert_runtime_ref(self);
+    self->shown_left = shown_left;
+}
+
+lh_s32_t
+lh_ui_canvas_box_frame_get_shown_right(const lh_ui_canvas_box_frame_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->shown_right;
+}
+
+lh_void
+lh_ui_canvas_box_frame_set_shown_right(lh_ui_canvas_box_frame_t *self, lh_s32_t shown_right)
+{
+    lh_assert_runtime_ref(self);
+    self->shown_right = shown_right;
+}
+
+lh_s32_t
+lh_ui_canvas_box_frame_get_first(const lh_ui_canvas_box_frame_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->first;
+}
+
+lh_void
+lh_ui_canvas_box_frame_set_first(lh_ui_canvas_box_frame_t *self, lh_s32_t first)
+{
+    lh_assert_runtime_ref(self);
+    self->first = first;
+}
+
+lh_s32_t
+lh_ui_canvas_box_frame_get_last(const lh_ui_canvas_box_frame_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->last;
+}
+
+lh_void
+lh_ui_canvas_box_frame_set_last(lh_ui_canvas_box_frame_t *self, lh_s32_t last)
+{
+    lh_assert_runtime_ref(self);
+    self->last = last;
 }

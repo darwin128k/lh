@@ -75,7 +75,7 @@ world_tick(lh_ptr ctx)
     auto *world = static_cast<host_world *>(ctx);
     lh_ui_point_t scroll;
 
-    lh_ui_container_get_scroll(lh_addr_of(world->box), lh_addr_of(scroll));
+    lh_ui_container_get_clamped_scroll(lh_addr_of(world->box), lh_addr_of(scroll));
     world->scroll_y.store(static_cast<int>(lh_ui_point_get_y(lh_addr_of(scroll))));
     world->ticks.fetch_add(1);
 }

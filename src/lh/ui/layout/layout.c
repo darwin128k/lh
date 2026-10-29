@@ -2,6 +2,7 @@
  * @file layout.c
  * @brief Implementation of `lh/ui/layout.h`.
  */
+#include <lh/assert.h>
 
 #include <lh/math.h>
 #include <lh/ui/layout.h>
@@ -12,20 +13,20 @@ lh_ui_layout_init(lh_ui_layout_t *self, lh_ui_axis_t axis, lh_ui_scalar_t gap)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_if(gap < lh_ui_scalar(0), lh_runtime_error_code_invalid_argument);
-    self->axis = axis;
-    self->gap = gap;
-    self->justify = lh_ui_justify_start;
-    self->wrap = lh_bool_false;
-    self->line_gap = lh_ui_scalar(0);
+    lh_ui_layout_set_axis(self, axis);
+    lh_ui_layout_set_gap(self, gap);
+    lh_ui_layout_set_justify(self, lh_ui_justify_start);
+    lh_ui_layout_set_wrap(self, lh_bool_false);
+    lh_ui_layout_set_line_gap(self, lh_ui_scalar(0));
 }
 
 lh_void
-lh_ui_layout_set_wrap(lh_ui_layout_t *self, lh_bool_t wrap, lh_ui_scalar_t line_gap)
+lh_ui_layout_set_wrapping(lh_ui_layout_t *self, lh_bool_t wrap, lh_ui_scalar_t line_gap)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_if(line_gap < lh_ui_scalar(0), lh_runtime_error_code_invalid_argument);
-    self->wrap = wrap;
-    self->line_gap = line_gap;
+    lh_ui_layout_set_wrap(self, wrap);
+    lh_ui_layout_set_line_gap(self, line_gap);
 }
 
 lh_bool_t
@@ -84,12 +85,12 @@ lh_ui_layout_wants(const lh_ui_layout_t *self, lh_ui_entity_t *child)
     }
     if (lh_ui_place_get_size_mode(place) == lh_ui_place_size_fixed)
     {
-        return lh_ui_place_clamp(place, self->axis, lh_ui_place_get_size(place));
+        return lh_ui_place_clamp(place, lh_ui_layout_get_axis(self), lh_ui_place_get_size(place));
     }
     lh_ui_entity_get_content_bounds(child, lh_addr_of(content));
     return lh_ui_place_clamp(
-        place, self->axis,
-        lh_ui_size_get_along(lh_ui_rect_get_size(lh_addr_of(content)), self->axis));
+        place, lh_ui_layout_get_axis(self),
+        lh_ui_size_get_along(lh_ui_rect_get_size(lh_addr_of(content)), lh_ui_layout_get_axis(self)));
 }
 
 lh_ui_scalar_t
@@ -105,7 +106,7 @@ lh_ui_layout_margin_along(const lh_ui_layout_t *self, const lh_ui_place_t *place
 {
     const lh_ui_insets_t *margin = lh_ui_place_get_margin(place);
 
-    return lh_ui_insets_get_start(margin, self->axis) + lh_ui_insets_get_end(margin, self->axis);
+    return lh_ui_insets_get_start(margin, lh_ui_layout_get_axis(self)) + lh_ui_insets_get_end(margin, lh_ui_layout_get_axis(self));
 }
 
 lh_void
@@ -113,7 +114,7 @@ lh_ui_layout_slot(const lh_ui_layout_t *self, const lh_ui_place_t *place,
                   const lh_ui_rect_t *content, lh_ui_rect_t *out)
 {
     lh_assert_runtime_ref(out);
-    const lh_ui_axis_t cross = lh_ui_axis_get_cross(self->axis);
+    const lh_ui_axis_t cross = lh_ui_axis_get_cross(lh_ui_layout_get_axis(self));
     const lh_ui_insets_t *margin = lh_ui_place_get_margin(place);
     const lh_ui_scalar_t before = lh_ui_insets_get_start(margin, cross);
     const lh_ui_scalar_t after = lh_ui_insets_get_end(margin, cross);
@@ -137,11 +138,11 @@ lh_ui_layout_across(const lh_ui_layout_t *self, lh_ui_entity_t *child, const lh_
     lh_ui_layout_cross_fit(self, child, content, lh_addr_of(fit));
     if (align == lh_ui_place_align_fill)
     {
-        lh_ptr_deref(length) = lh_ui_place_clamp(place, lh_ui_axis_get_cross(self->axis), fit.room);
+        lh_ptr_deref(length) = lh_ui_place_clamp(place, lh_ui_axis_get_cross(lh_ui_layout_get_axis(self)), lh_ui_layout_cross_get_room(lh_addr_of(fit)));
     }
     else
     {
-        lh_ptr_deref(length) = fit.own;
+        lh_ptr_deref(length) = lh_ui_layout_cross_get_own(lh_addr_of(fit));
         at = lh_ui_layout_cross_at(lh_addr_of(fit), align,
                                    align == lh_ui_place_align_baseline
                                        ? lh_ui_entity_get_baseline(child)
@@ -149,7 +150,7 @@ lh_ui_layout_across(const lh_ui_layout_t *self, lh_ui_entity_t *child, const lh_
                                    line);
     }
     lh_ptr_deref(start) =
-        lh_math_max(fit.start + lh_math_max(at, lh_ui_scalar(0)), lh_ui_scalar(0));
+        lh_math_max(lh_ui_layout_cross_get_start(lh_addr_of(fit)) + lh_math_max(at, lh_ui_scalar(0)), lh_ui_scalar(0));
 }
 
 lh_ui_scalar_t
@@ -161,14 +162,14 @@ lh_ui_layout_child_line(const lh_ui_layout_t *self, lh_ui_entity_t *child,
 
     lh_assert_runtime_ref(self);
     /* A **vertical** flow has no cross row to line up and never asks. */
-    if (lh_ui_axis_get_cross(self->axis) != lh_ui_axis_vertical ||
+    if (lh_ui_axis_get_cross(lh_ui_layout_get_axis(self)) != lh_ui_axis_vertical ||
         lh_ui_place_get_align(lh_ui_entity_get_place(child)) != lh_ui_place_align_baseline ||
         at < lh_ui_scalar(0))
     {
         return lh_ui_scalar(-1);
     }
     lh_ui_layout_cross_fit(self, child, content, lh_addr_of(fit));
-    return fit.before + lh_ui_scalar_centre(fit.room, fit.own) + at;
+    return lh_ui_layout_cross_get_before(lh_addr_of(fit)) + lh_ui_scalar_centre(lh_ui_layout_cross_get_room(lh_addr_of(fit)), lh_ui_layout_cross_get_own(lh_addr_of(fit))) + at;
 }
 
 lh_void
@@ -222,11 +223,11 @@ lh_ui_layout_run(const lh_ui_layout_t *self, lh_ui_entity_t *parent, lh_ui_entit
 lh_ui_scalar_t
 lh_ui_layout_depth(const lh_ui_layout_t *self, lh_ui_entity_t *child)
 {
-    const lh_ui_axis_t cross = lh_ui_axis_get_cross(self->axis);
+    const lh_ui_axis_t cross = lh_ui_axis_get_cross(lh_ui_layout_get_axis(self));
     const lh_ui_place_t *place = lh_ui_entity_get_place(child);
     const lh_ui_insets_t *margin = lh_ui_place_get_margin(place);
     lh_ui_rect_t rect;
-    lh_ui_entity_get_rect(child, lh_addr_of(rect));
+    lh_ui_entity_copy_rect(child, lh_addr_of(rect));
     const lh_ui_scalar_t own =
         lh_ui_place_get_align(place) == lh_ui_place_align_fill
             ? lh_ui_place_clamp(place, cross, lh_ui_scalar(0))
@@ -254,11 +255,11 @@ lh_ui_layout_line_end(const lh_ui_layout_t *self, lh_ui_entity_t *parent, lh_ui_
         }
         size = lh_ui_layout_wants(self, child) +
                lh_ui_layout_margin_along(self, lh_ui_entity_get_place(child));
-        if (count > 0 && used + self->gap + size > room)
+        if (count > 0 && used + lh_ui_layout_get_gap(self) + size > room)
         {
             return child;
         }
-        used += (count > 0 ? self->gap : lh_ui_scalar(0)) + size;
+        used += (count > 0 ? lh_ui_layout_get_gap(self) : lh_ui_scalar(0)) + size;
         ++count;
         lh_ptr_deref(depth) = lh_math_max(lh_ptr_deref(depth), lh_ui_layout_depth(self, child));
     }
@@ -271,12 +272,12 @@ lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent)
     lh_ui_insets_t padding;
     lh_ui_entity_get_padding(parent, lh_addr_of(padding));
     lh_ui_rect_t rect;
-    lh_ui_entity_get_rect(parent, lh_addr_of(rect));
+    lh_ui_entity_copy_rect(parent, lh_addr_of(rect));
     lh_ui_rect_t content;
     lh_ui_insets_shrink(lh_addr_of(padding), lh_addr_of(rect), lh_addr_of(content));
-    const lh_ui_axis_t cross = lh_ui_axis_get_cross(self->axis);
+    const lh_ui_axis_t cross = lh_ui_axis_get_cross(lh_ui_layout_get_axis(self));
     const lh_ui_scalar_t room =
-        lh_ui_size_get_along(lh_ui_rect_get_size(lh_addr_of(content)), self->axis);
+        lh_ui_size_get_along(lh_ui_rect_get_size(lh_addr_of(content)), lh_ui_layout_get_axis(self));
     const lh_ui_scalar_t room_across =
         lh_ui_size_get_along(lh_ui_rect_get_size(lh_addr_of(content)), cross);
     lh_ui_scalar_t depths = lh_ui_scalar(0);
@@ -289,7 +290,7 @@ lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent)
 
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(parent);
-    if (!self->wrap)
+    if (!lh_ui_layout_is_wrap(self))
     {
         lh_ui_layout_run(self, parent, lh_ui_entity_get_first_child(parent), lh_null,
                          lh_addr_of(content));
@@ -304,9 +305,9 @@ lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent)
         ++lines;
     }
     lh_return_if(lines == 0);
-    if (room_across - depths - self->line_gap * (lines - 1) > lh_ui_scalar(0))
+    if (room_across - depths - lh_ui_layout_get_line_gap(self) * (lines - 1) > lh_ui_scalar(0))
     {
-        lh_ui_scalar_trunc((room_across - depths - self->line_gap * (lines - 1)) / lines,
+        lh_ui_scalar_trunc((room_across - depths - lh_ui_layout_get_line_gap(self) * (lines - 1)) / lines,
                            lh_addr_of(extra));
     }
     for (first = lh_ui_entity_get_first_child(parent); lh_null_ne(first); first = end)
@@ -316,6 +317,41 @@ lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent)
         end = lh_ui_layout_line_end(self, parent, first, room, lh_addr_of(depth));
         lh_ui_rect_init_along(lh_addr_of(band), lh_addr_of(content), cross, at, depth + extra);
         lh_ui_layout_run(self, parent, first, end, lh_addr_of(band));
-        at += depth + extra + self->line_gap;
+        at += depth + extra + lh_ui_layout_get_line_gap(self);
     }
+}
+
+lh_void
+lh_ui_layout_set_axis(lh_ui_layout_t *self, lh_ui_axis_t axis)
+{
+    lh_assert_runtime_ref(self);
+    self->axis = axis;
+}
+
+lh_void
+lh_ui_layout_set_gap(lh_ui_layout_t *self, lh_ui_scalar_t gap)
+{
+    lh_assert_runtime_ref(self);
+    self->gap = gap;
+}
+
+lh_bool_t
+lh_ui_layout_is_wrap(const lh_ui_layout_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->wrap;
+}
+
+lh_void
+lh_ui_layout_set_line_gap(lh_ui_layout_t *self, lh_ui_scalar_t line_gap)
+{
+    lh_assert_runtime_ref(self);
+    self->line_gap = line_gap;
+}
+
+lh_void
+lh_ui_layout_set_wrap(lh_ui_layout_t *self, lh_bool_t wrap)
+{
+    lh_assert_runtime_ref(self);
+    self->wrap = wrap;
 }

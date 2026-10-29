@@ -34,7 +34,7 @@ plain_style(lh_ui_scalar_t padding)
     lh_ui_style_t style;
 
     lh_ui_style_init(&style);
-    lh_ui_style_set_padding(&style, padding);
+    lh_ui_style_set_padding_all(&style, padding);
     return style;
 }
 } // namespace
@@ -141,7 +141,7 @@ TEST(entity_image, the_tint_is_the_colour_the_picture_is_drawn_in)
 
     lh_ui_color_init(&red, 10, 20, 30, 255);
     lh_ui_image_init(&image, rect_of(0, 0, 4, 3), &mask);
-    lh_ui_image_set_tint(&image, &red);
+    lh_ui_image_set_tint_v(&image, &red);
     draw_log_init(&log, &canvas, false, false, true);
 
     lh_ui_entity_draw(lh_ui_image_as_entity(&image), &canvas);
@@ -167,7 +167,7 @@ TEST(entity_image, draw_keeps_the_base_class_fill)
     lh_ui_color_init(&color, 1, 2, 3, 255);
     lh_ui_paint_init_color(&paint, &color);
     lh_ui_style_init(&style);
-    lh_ui_style_set_fill(&style, &paint);
+    lh_ui_style_assign_fill(&style, &paint);
     lh_ui_image_init(&image, rect_of(0, 0, 4, 3), &mask);
     lh_ui_entity_set_style(lh_ui_image_as_entity(&image), &style);
     lh_test::fill_probe_init(&probe, &canvas, lh_test::fill_probe_backend(), rect_of(0, 0, 4, 3), color);
@@ -216,10 +216,10 @@ TEST(entity_image, a_wrap_place_gets_the_picture_its_own_width)
     lh_ui_label_init(&caption, rect_of(0, 0, 0, 16), "");
     lh_ui_place_init(&place, lh_ui_place_size_wrap, lh_ui_scalar(0));
     lh_ui_place_set_align(&place, lh_ui_place_align_center);
-    lh_ui_entity_set_place(lh_ui_image_as_entity(&picture), &place);
+    lh_ui_entity_set_place_v(lh_ui_image_as_entity(&picture), &place);
     lh_ui_place_init(&place, lh_ui_place_size_fixed, lh_ui_scalar(20));
     lh_ui_place_set_align(&place, lh_ui_place_align_center);
-    lh_ui_entity_set_place(lh_ui_label_as_entity(&caption), &place);
+    lh_ui_entity_set_place_v(lh_ui_label_as_entity(&caption), &place);
     lh_ui_entity_add_child(lh_ui_container_as_entity(&box), lh_ui_image_as_entity(&picture));
     lh_ui_entity_add_child(lh_ui_container_as_entity(&box), lh_ui_label_as_entity(&caption));
     lh_ui_layout_init(&layout, lh_ui_axis_horizontal, lh_ui_scalar(4));

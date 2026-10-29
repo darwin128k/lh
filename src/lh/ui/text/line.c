@@ -2,6 +2,7 @@
  * @file line.c
  * @brief Implementation of `lh/ui/text/line.h`.
  */
+#include <lh/assert.h>
 
 #include <lh/math.h>
 #include <lh/char/map.h>
@@ -12,13 +13,13 @@ lh_void
 lh_ui_text_line_init(lh_ui_text_line_t *self)
 {
     lh_assert_runtime_ref(self);
-    self->begin = lh_null;
-    self->end = lh_null;
-    self->next = lh_null;
-    self->width = lh_ui_scalar(0);
-    self->ink_top = lh_ui_scalar(0);
-    self->ink_bottom = lh_ui_scalar(0);
-    self->inked = lh_bool_false;
+    lh_ui_text_line_set_begin(self, lh_null);
+    lh_ui_text_line_set_end(self, lh_null);
+    lh_ui_text_line_set_next(self, lh_null);
+    lh_ui_text_line_set_width(self, lh_ui_scalar(0));
+    lh_ui_text_line_set_ink_top(self, lh_ui_scalar(0));
+    lh_ui_text_line_set_ink_bottom(self, lh_ui_scalar(0));
+    lh_ui_text_line_set_inked(self, lh_bool_false);
 }
 
 lh_void
@@ -31,15 +32,15 @@ lh_ui_text_line_take_ink(lh_ui_text_line_t *self, const lh_ui_font_t *font, lh_u
         lh_cast_static(lh_ui_scalar_t, lh_ui_mask_get_height(lh_ui_font_get_glyph_at(font, index)));
 
     lh_return_if(to <= at); /* a space: it moves the pen and draws nothing */
-    if (!self->inked || at < self->ink_top)
+    if (!lh_ui_text_line_is_inked(self) || at < lh_ui_text_line_get_ink_top(self))
     {
-        self->ink_top = at;
+        lh_ui_text_line_set_ink_top(self, at);
     }
-    if (!self->inked || to > self->ink_bottom)
+    if (!lh_ui_text_line_is_inked(self) || to > lh_ui_text_line_get_ink_bottom(self))
     {
-        self->ink_bottom = to;
+        lh_ui_text_line_set_ink_bottom(self, to);
     }
-    self->inked = lh_bool_true;
+    lh_ui_text_line_set_inked(self, lh_bool_true);
 }
 
 const lh_char_t *
@@ -73,7 +74,7 @@ lh_ui_text_line_measure(lh_ui_text_line_t *self, const lh_ui_font_t *font, const
     lh_ui_text_line_init(self);
     lh_return_if(lh_null_eq(text), lh_bool_false);
     lh_assert_runtime_ref(font);
-    self->begin = text;
+    lh_ui_text_line_set_begin(self, text);
     for (;;)
     {
         const lh_char_t *before = cursor;
@@ -86,12 +87,12 @@ lh_ui_text_line_measure(lh_ui_text_line_t *self, const lh_ui_font_t *font, const
 
         if (lh_ui_text_is_line_end(code))
         {
-            self->end = before;
+            lh_ui_text_line_set_end(self, before);
             break;
         }
         /* A space may hang past the edge: it is where the line breaks, not ink. */
         if (width > lh_ui_scalar(0) && code != lh_cast_static(lh_u32_t, lh_char_map_space) &&
-            self->width + advance > width)
+            lh_ui_text_line_get_width(self) + advance > width)
         {
             if (has_space)
             {
@@ -101,22 +102,22 @@ lh_ui_text_line_measure(lh_ui_text_line_t *self, const lh_ui_font_t *font, const
             if (before == text)
             {
                 /* A first letter wider than the line still takes it. */
-                self->width += advance;
-                self->end = cursor;
+                lh_ui_text_line_set_width(self, lh_ui_text_line_get_width(self) + (advance));
+                lh_ui_text_line_set_end(self, cursor);
                 break;
             }
-            self->end = before;
+            lh_ui_text_line_set_end(self, before);
             break;
         }
         if (code == lh_cast_static(lh_u32_t, lh_char_map_space))
         {
             at_space = lh_ptr_deref(self);
-            at_space.end = before;
+            lh_ui_text_line_set_end(lh_addr_of(at_space), before);
             has_space = lh_bool_true;
         }
-        self->width += advance;
+        lh_ui_text_line_set_width(self, lh_ui_text_line_get_width(self) + (advance));
     }
-    self->next = lh_ui_text_line_next_of(self->end, width);
+    lh_ui_text_line_set_next(self, lh_ui_text_line_next_of(lh_ui_text_line_get_end(self), width));
     return lh_bool_true;
 }
 
@@ -141,9 +142,9 @@ lh_ui_text_line_measure_ink(lh_ui_text_line_t *self, const lh_ui_font_t *font)
     const lh_char_t *end = lh_ui_text_line_get_end(self);
 
     lh_assert_runtime_ref(font);
-    self->ink_top = lh_ui_scalar(0);
-    self->ink_bottom = lh_ui_scalar(0);
-    self->inked = lh_bool_false;
+    lh_ui_text_line_set_ink_top(self, lh_ui_scalar(0));
+    lh_ui_text_line_set_ink_bottom(self, lh_ui_scalar(0));
+    lh_ui_text_line_set_inked(self, lh_bool_false);
     /* A second walk, over the bytes the layout already settled: no breaking left
        to decide, only which rows the letters ink. Asking it inside the layout made
        every width -- the measure a layout asks most -- pay for ink it never read. */
@@ -222,4 +223,53 @@ lh_ui_text_line_get_shift(const lh_ui_text_line_t *self, lh_ui_scalar_t block,
         return lh_ui_scalar_slack(block, width);
     }
     return lh_ui_scalar(0);
+}
+
+lh_void
+lh_ui_text_line_set_begin(lh_ui_text_line_t *self, const lh_char_t * begin)
+{
+    lh_assert_runtime_ref(self);
+    self->begin = begin;
+}
+
+lh_void
+lh_ui_text_line_set_end(lh_ui_text_line_t *self, const lh_char_t * end)
+{
+    lh_assert_runtime_ref(self);
+    self->end = end;
+}
+
+lh_void
+lh_ui_text_line_set_next(lh_ui_text_line_t *self, const lh_char_t * next)
+{
+    lh_assert_runtime_ref(self);
+    self->next = next;
+}
+
+lh_void
+lh_ui_text_line_set_width(lh_ui_text_line_t *self, lh_ui_scalar_t width)
+{
+    lh_assert_runtime_ref(self);
+    self->width = width;
+}
+
+lh_void
+lh_ui_text_line_set_ink_top(lh_ui_text_line_t *self, lh_ui_scalar_t ink_top)
+{
+    lh_assert_runtime_ref(self);
+    self->ink_top = ink_top;
+}
+
+lh_void
+lh_ui_text_line_set_ink_bottom(lh_ui_text_line_t *self, lh_ui_scalar_t ink_bottom)
+{
+    lh_assert_runtime_ref(self);
+    self->ink_bottom = ink_bottom;
+}
+
+lh_void
+lh_ui_text_line_set_inked(lh_ui_text_line_t *self, lh_bool_t inked)
+{
+    lh_assert_runtime_ref(self);
+    self->inked = inked;
 }

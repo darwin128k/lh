@@ -34,7 +34,7 @@ TEST(entity_container, draw_keeps_the_base_class_fill)
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
     lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(color));
     lh_ui_style_init(lh_addr_of(style));
-    lh_ui_style_set_fill(lh_addr_of(style), lh_addr_of(paint));
+    lh_ui_style_assign_fill(lh_addr_of(style), lh_addr_of(paint));
     lh_ui_container_init(lh_addr_of(box), rect);
     lh_ui_entity_set_style(lh_ui_container_as_entity(lh_addr_of(box)), lh_addr_of(style));
     lh_test::fill_probe_init(lh_addr_of(probe), lh_addr_of(canvas), lh_test::fill_probe_backend(), rect,
@@ -173,7 +173,7 @@ TEST(entity_container, children_are_drawn_moved_and_cut_to_the_viewport)
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
     lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(color));
     lh_ui_style_init(lh_addr_of(style));
-    lh_ui_style_set_fill(lh_addr_of(style), lh_addr_of(paint));
+    lh_ui_style_assign_fill(lh_addr_of(style), lh_addr_of(paint));
     lh_ui_entity_set_style(lh_addr_of(f.a), lh_addr_of(style));
     lh_ui_entity_set_style(lh_addr_of(f.b), lh_addr_of(style));
     lh_ui_container_set_scroll(lh_addr_of(f.box), point_of(0, 30));
@@ -259,7 +259,7 @@ TEST(entity_container, padding_extends_the_content_past_the_last_child)
     lh_ui_rect_init(&rect, 0, 0, 100, 100);
     lh_ui_container_init(&box, rect);
     lh_ui_style_init(&style);
-    lh_ui_style_set_padding(&style, lh_ui_scalar(8));
+    lh_ui_style_set_padding_all(&style, lh_ui_scalar(8));
     lh_ui_entity_set_style(lh_ui_container_as_entity(&box), &style);
 
     lh_ui_size_t size = lh_test::out(lh_ui_container_get_content_size, &box);

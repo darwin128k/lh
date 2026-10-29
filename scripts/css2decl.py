@@ -3474,7 +3474,7 @@ def emit(nodes, variables, root, source=""):
             value, line = props["background"]
             fill = read_paint(value, line, variables, "`background` of %s" % where, node.rect)
             if fill[0] == "solid":
-                body.append("lh_ui_style_set_fill(lh_addr_of(ui_s_%s), lh_addr_of(%s_paints));"
+                body.append("lh_ui_style_assign_fill(lh_addr_of(ui_s_%s), lh_addr_of(%s_paints));"
                             % (sname, colour_of(faded(fill[1], fade))))
             else:
                 # The stops are set on the gradient once, in this init, and the paint
@@ -3499,12 +3499,12 @@ def emit(nodes, variables, root, source=""):
                 body.append("}")
                 body.append("lh_ui_paint_init_gradient(lh_addr_of(ui_gp_%s), lh_addr_of(ui_gr_%s));"
                             % (sname, sname))
-                body.append("lh_ui_style_set_fill(lh_addr_of(ui_s_%s), lh_addr_of(ui_gp_%s));"
+                body.append("lh_ui_style_assign_fill(lh_addr_of(ui_s_%s), lh_addr_of(ui_gp_%s));"
                             % (sname, sname))
         # On an image `color` is the tint (`lh_ui_decl_t::as.image.tint`), which is
         # what a picture's colour is; a style's text paint is read by nothing there.
         if "color" in props and node.tag != "image":
-            body.append("lh_ui_style_set_text(lh_addr_of(ui_s_%s), lh_addr_of(%s_paints));"
+            body.append("lh_ui_style_assign_text(lh_addr_of(ui_s_%s), lh_addr_of(%s_paints));"
                         % (sname, paint("color")))
         border = border_sides(props, where)
         if border is not None:
@@ -3515,9 +3515,9 @@ def emit(nodes, variables, root, source=""):
             body.append("lh_ui_insets_init(lh_addr_of(ui_bd_%s), lh_ui_scalar(%d), "
                         "lh_ui_scalar(%d), lh_ui_scalar(%d), lh_ui_scalar(%d));"
                         % ((sname,) + border))
-            body.append("lh_ui_style_set_border(lh_addr_of(ui_s_%s), lh_addr_of(ui_bd_%s));"
+            body.append("lh_ui_style_set_border_v(lh_addr_of(ui_s_%s), lh_addr_of(ui_bd_%s));"
                         % (sname, sname))
-            body.append("lh_ui_style_set_border_fill(lh_addr_of(ui_s_%s), "
+            body.append("lh_ui_style_assign_border_fill(lh_addr_of(ui_s_%s), "
                         "lh_addr_of(%s_paints));" % (sname, colour))
         font = font_name(props, where)
         if font is not None:
@@ -3530,7 +3530,7 @@ def emit(nodes, variables, root, source=""):
         sides = inner_sides(props, where)
         if sides is not None:
             if len(set(sides)) == 1:
-                body.append("lh_ui_style_set_padding(lh_addr_of(ui_s_%s), lh_ui_scalar(%d));"
+                body.append("lh_ui_style_set_padding_all(lh_addr_of(ui_s_%s), lh_ui_scalar(%d));"
                             % (sname, sides[0]))
             else:
                 # Per side, because **`padding` on all four sides cannot centre
@@ -3540,7 +3540,7 @@ def emit(nodes, variables, root, source=""):
                 body.append("lh_ui_insets_init(lh_addr_of(ui_pad_%s), lh_ui_scalar(%d), "
                             "lh_ui_scalar(%d), lh_ui_scalar(%d), lh_ui_scalar(%d));"
                             % ((sname,) + sides))
-                body.append("lh_ui_style_set_padding_insets(lh_addr_of(ui_s_%s), "
+                body.append("lh_ui_style_set_padding_v(lh_addr_of(ui_s_%s), "
                             "lh_addr_of(ui_pad_%s));" % (sname, sname))
         corners = [number_in(props, key) if key in props else None
                    for key in ("radius-tl", "radius-tr", "radius-br", "radius-bl")]
@@ -3553,7 +3553,7 @@ def emit(nodes, variables, root, source=""):
                 body.append("lh_ui_radii_init(lh_addr_of(ui_rd_%s), lh_ui_scalar(%d), "
                             "lh_ui_scalar(%d), lh_ui_scalar(%d), lh_ui_scalar(%d));"
                             % ((sname,) + tuple(corners)))
-                body.append("lh_ui_style_set_radii(lh_addr_of(ui_s_%s), lh_addr_of(ui_rd_%s));"
+                body.append("lh_ui_style_set_radii_v(lh_addr_of(ui_s_%s), lh_addr_of(ui_rd_%s));"
                             % (sname, sname))
         # A transition is set on **every** look of the row, not only the resting one.
         # The engine reads the time off the style it is switching *to*
@@ -3593,7 +3593,7 @@ def emit(nodes, variables, root, source=""):
                         % (sname, blur))
             body.append("lh_ui_shadow_set_offset(lh_addr_of(ui_shadow_%s), lh_ui_scalar(%d), "
                         "lh_ui_scalar(%d));" % (sname, dx, dy))
-            body.append("lh_ui_style_set_shadow(lh_addr_of(ui_s_%s), "
+            body.append("lh_ui_style_set_shadow_v(lh_addr_of(ui_s_%s), "
                         "lh_addr_of(ui_shadow_%s));" % (sname, sname))
         if "text-align" in props:
             body.append("lh_ui_style_set_align_h(lh_addr_of(ui_s_%s), %s);"
@@ -3833,7 +3833,7 @@ def emit(nodes, variables, root, source=""):
         add("    lh_ui_layout_init(lh_addr_of(ui_l_%s), %s, lh_ui_scalar(%d));" % (node.cname(), axis, gap))
         add("    lh_ui_layout_set_justify(lh_addr_of(ui_l_%s), %s);" % (node.cname(), justify))
         if wraps:
-            add("    lh_ui_layout_set_wrap(lh_addr_of(ui_l_%s), lh_bool_true, lh_ui_scalar(%d));"
+            add("    lh_ui_layout_set_wrapping(lh_addr_of(ui_l_%s), lh_bool_true, lh_ui_scalar(%d));"
                 % (node.cname(), line_gap))
         add("}")
         add("")
@@ -3857,13 +3857,13 @@ def emit(nodes, variables, root, source=""):
         if any(margin):
             add("    lh_ui_insets_init(lh_addr_of(ui_mg_%s), lh_ui_scalar(%d), lh_ui_scalar(%d), "
                 "lh_ui_scalar(%d), lh_ui_scalar(%d));" % ((name,) + tuple(margin)))
-            add("    lh_ui_place_set_margin(lh_addr_of(ui_pl_%s), lh_addr_of(ui_mg_%s));"
+            add("    lh_ui_place_assign_margin(lh_addr_of(ui_pl_%s), lh_addr_of(ui_mg_%s));"
                 % (name, name))
         if any(least):
-            add("    lh_ui_place_set_min(lh_addr_of(ui_pl_%s), lh_ui_scalar(%d), lh_ui_scalar(%d));"
+            add("    lh_ui_place_set_min_size(lh_addr_of(ui_pl_%s), lh_ui_scalar(%d), lh_ui_scalar(%d));"
                 % ((name,) + tuple(least)))
         if any(most):
-            add("    lh_ui_place_set_max(lh_addr_of(ui_pl_%s), lh_ui_scalar(%d), lh_ui_scalar(%d));"
+            add("    lh_ui_place_set_max_size(lh_addr_of(ui_pl_%s), lh_ui_scalar(%d), lh_ui_scalar(%d));"
                 % ((name,) + tuple(most)))
         add("}")
         add("")
@@ -4228,7 +4228,7 @@ main(int argc, char **argv)
     bits = (unsigned char *)calloc((size_t)width * (size_t)height, 4);
     lh_ui_pixmap_init(&pixmap, bits, width, height, width * 4, lh_ui_pixmap_format_argb8888);
     lh_ui_canvas_sw_init(&sw);
-    lh_ui_canvas_sw_set_pixmap(&sw, &pixmap);
+    lh_ui_canvas_sw_use_pixmap(&sw, &pixmap);
     lh_ui_canvas_init(&canvas, &lh_ui_canvas_backend_sw, &sw);
     lh_ui_size_init(&size, lh_ui_scalar(width), lh_ui_scalar(height));
     lh_ui_canvas_set_size(&canvas, size);

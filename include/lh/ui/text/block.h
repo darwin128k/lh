@@ -118,6 +118,67 @@ lh_void
 lh_ui_text_block_get_size(const lh_ui_text_block_t *self, const lh_ui_font_t *font,
                           lh_ui_size_t *out);
 
+/**
+ * @brief The rectangle the ink of the block covers (level 1).
+ *
+ * @param self The text block; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_rect_t *
+lh_ui_text_block_get_ink(const lh_ui_text_block_t *self);
+
+/**
+ * @brief The rectangle the ink of the block covers, to change in place (level 1).
+ *
+ * @param self The text block; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_rect_t *
+lh_ui_text_block_get_ink_mut(lh_ui_text_block_t *self);
+
+/**
+ * @brief Store the rectangle the ink of the block covers (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The text block; checked by ::lh_assert_runtime_ref.
+ * @param ink The new value.
+ */
+lh_void
+lh_ui_text_block_set_ink(lh_ui_text_block_t *self, lh_ui_rect_t ink);
+
+/**
+ * @brief Store the width of the widest line (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The text block; checked by ::lh_assert_runtime_ref.
+ * @param width The new value.
+ */
+lh_void
+lh_ui_text_block_set_width(lh_ui_text_block_t *self, lh_ui_scalar_t width);
+
+/**
+ * @brief Store the top of the ink of the first line (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The text block; checked by ::lh_assert_runtime_ref.
+ * @param ink_top The new value.
+ */
+lh_void
+lh_ui_text_block_set_ink_top(lh_ui_text_block_t *self, lh_ui_scalar_t ink_top);
+
+/**
+ * @brief Store how many lines the block has (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The text block; checked by ::lh_assert_runtime_ref.
+ * @param lines The new value.
+ */
+lh_void
+lh_ui_text_block_set_lines(lh_ui_text_block_t *self, lh_u32_t lines);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_TEXT_BLOCK_H */

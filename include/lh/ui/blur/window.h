@@ -73,6 +73,82 @@ lh_void
 lh_ui_blur_window_span(lh_s32_t at, lh_s32_t radius, lh_s32_t lo, lh_s32_t hi, lh_s32_t *win0,
                        lh_s32_t *win1);
 
+/**
+ * @brief The running sum of red over the window (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_blur_window_get_r(const lh_ui_blur_window_t *self);
+
+/**
+ * @brief Store the running sum of red over the window (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param r The new value.
+ */
+lh_void
+lh_ui_blur_window_set_r(lh_ui_blur_window_t *self, lh_s32_t r);
+
+/**
+ * @brief The running sum of green over the window (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_blur_window_get_g(const lh_ui_blur_window_t *self);
+
+/**
+ * @brief Store the running sum of green over the window (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param g The new value.
+ */
+lh_void
+lh_ui_blur_window_set_g(lh_ui_blur_window_t *self, lh_s32_t g);
+
+/**
+ * @brief The running sum of blue over the window (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_blur_window_get_b(const lh_ui_blur_window_t *self);
+
+/**
+ * @brief Store the running sum of blue over the window (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param b The new value.
+ */
+lh_void
+lh_ui_blur_window_set_b(lh_ui_blur_window_t *self, lh_s32_t b);
+
+/**
+ * @brief The running sum of alpha over the window (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_blur_window_get_a(const lh_ui_blur_window_t *self);
+
+/**
+ * @brief Store the running sum of alpha over the window (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param a The new value.
+ */
+lh_void
+lh_ui_blur_window_set_a(lh_ui_blur_window_t *self, lh_s32_t a);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_BLUR_WINDOW_H */

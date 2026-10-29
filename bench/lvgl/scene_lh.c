@@ -69,11 +69,11 @@ card_look(void)
 
     lh_ui_style_init(&card_style);
     lh_ui_paint_init_color(&paint, &fill);
-    lh_ui_style_set_fill(&card_style, &paint);
+    lh_ui_style_assign_fill(&card_style, &paint);
     lh_ui_paint_init_color(&paint, &ink);
-    lh_ui_style_set_text(&card_style, &paint);
+    lh_ui_style_assign_text(&card_style, &paint);
     lh_ui_style_set_radius(&card_style, lh_ui_scalar(8));
-    lh_ui_style_set_padding(&card_style, lh_ui_scalar(8));
+    lh_ui_style_set_padding_all(&card_style, lh_ui_scalar(8));
 }
 
 static void
@@ -95,7 +95,7 @@ gradient_fill(int linear, int degrees)
         lh_ui_gradient_set_radial(&gradient);
     }
     lh_ui_paint_init_gradient(&paint, &gradient);
-    lh_ui_style_set_fill(&card_style, &paint);
+    lh_ui_style_assign_fill(&card_style, &paint);
 }
 
 int
@@ -114,14 +114,14 @@ lh_scene_setup(int scene)
 
     lh_ui_pixmap_init(&pixmap, (lh_byte_t *)pixels, SCENE_W, SCENE_H, SCENE_W * 4, lh_ui_pixmap_format_argb8888);
     lh_ui_canvas_sw_init(&sw);
-    lh_ui_canvas_sw_set_pixmap(&sw, &pixmap);
+    lh_ui_canvas_sw_use_pixmap(&sw, &pixmap);
     lh_ui_canvas_init(&canvas, &lh_ui_canvas_backend_sw, &sw);
     lh_ui_size_init(&size, lh_ui_scalar(SCENE_W), lh_ui_scalar(SCENE_H));
     lh_ui_canvas_set_size(&canvas, size);
 
     lh_ui_style_init(&root_style);
     lh_ui_paint_init_color(&paint, &bg);
-    lh_ui_style_set_fill(&root_style, &paint);
+    lh_ui_style_assign_fill(&root_style, &paint);
     lh_ui_container_init(&root, rect(0, 0, SCENE_W, SCENE_H));
     lh_ui_entity_set_style(lh_ui_container_as_entity(&root), &root_style);
     card_look();
@@ -142,13 +142,13 @@ lh_scene_setup(int scene)
         lh_ui_shadow_set_color(&shadow, rgb(0, 0, 0, 128));
         lh_ui_shadow_set_spread(&shadow, lh_ui_scalar(12));
         lh_ui_shadow_set_offset(&shadow, lh_ui_scalar(0), lh_ui_scalar(4));
-        lh_ui_style_set_shadow(&card_style, &shadow);
+        lh_ui_style_set_shadow_v(&card_style, &shadow);
         break;
     case SCENE_CORNERS:
     {
         lh_ui_radii_t radii;
         lh_ui_radii_init(&radii, lh_ui_scalar(12), lh_ui_scalar(12), lh_ui_scalar(0), lh_ui_scalar(0));
-        lh_ui_style_set_radii(&card_style, &radii);
+        lh_ui_style_set_radii_v(&card_style, &radii);
         break;
     }
     default:
@@ -159,7 +159,7 @@ lh_scene_setup(int scene)
     {
         lh_ui_color_t panel = rgb(42, 49, 59, 255);
         lh_ui_paint_init_color(&paint, &panel);
-        lh_ui_style_set_fill(&card_style, &paint);
+        lh_ui_style_assign_fill(&card_style, &paint);
         lh_ui_style_set_radius(&card_style, lh_ui_scalar(6));
         lh_ui_style_set_wrap(&card_style, lh_ui_text_wrap_words);
         for (i = 0; i < PARAGRAPHS; ++i)
@@ -176,7 +176,7 @@ lh_scene_setup(int scene)
         lh_ui_place_t fill;
 
         lh_ui_style_init(&row_style);
-        lh_ui_style_set_padding(&root_style, lh_ui_scalar(8));
+        lh_ui_style_set_padding_all(&root_style, lh_ui_scalar(8));
         lh_ui_layout_init(&down, lh_ui_axis_vertical, lh_ui_scalar(8));
         lh_ui_layout_init(&across, lh_ui_axis_horizontal, lh_ui_scalar(8));
         lh_ui_container_set_layout(&root, &down);
@@ -186,7 +186,7 @@ lh_scene_setup(int scene)
         {
             lh_ui_container_init(&rows[i], rect(0, 0, 0, 0));
             lh_ui_container_set_layout(&rows[i], &across);
-            lh_ui_entity_set_place(lh_ui_container_as_entity(&rows[i]), &fill);
+            lh_ui_entity_set_place_v(lh_ui_container_as_entity(&rows[i]), &fill);
             lh_ui_entity_add_child(lh_ui_container_as_entity(&root), lh_ui_container_as_entity(&rows[i]));
         }
         for (i = 0; i < CELLS; ++i)
@@ -194,7 +194,7 @@ lh_scene_setup(int scene)
             snprintf(captions[i], sizeof captions[i], "Item %d", i + 1);
             lh_ui_label_init(&cells[i], rect(0, 0, 0, 0), captions[i]);
             lh_ui_entity_set_style(lh_ui_label_as_entity(&cells[i]), &card_style);
-            lh_ui_entity_set_place(lh_ui_label_as_entity(&cells[i]), &fill);
+            lh_ui_entity_set_place_v(lh_ui_label_as_entity(&cells[i]), &fill);
             lh_ui_entity_add_child(lh_ui_container_as_entity(&rows[i / 4]), lh_ui_label_as_entity(&cells[i]));
         }
         partial = rect(8, 8, 108, 26);
@@ -258,7 +258,7 @@ lh_micro_box(int kind, int radius)
     {
         lh_ui_pixmap_init(&pixmap, (lh_byte_t *)pixels, SCENE_W, SCENE_H, SCENE_W * 4, lh_ui_pixmap_format_argb8888);
         lh_ui_canvas_sw_init(&sw);
-        lh_ui_canvas_sw_set_pixmap(&sw, &pixmap);
+        lh_ui_canvas_sw_use_pixmap(&sw, &pixmap);
         lh_ui_canvas_init(&canvas, &lh_ui_canvas_backend_sw, &sw);
         ready = 1;
     }

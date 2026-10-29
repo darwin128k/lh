@@ -2,6 +2,7 @@
  * @file mask.c
  * @brief Implementation of `lh/ui/mask.h`.
  */
+#include <lh/assert.h>
 
 #include <lh/cpu/simd.h>
 #include <lh/memory.h>
@@ -35,11 +36,11 @@ lh_ui_mask_init(lh_ui_mask_t *self, lh_byte_cptr bits, lh_s32_t width, lh_s32_t 
     lh_assert_runtime_ifn(lh_cast_static(lh_u32_t, row_bytes) >=
                               lh_bit_packed_bytes(lh_cast_static(lh_u32_t, width), bpp),
                           lh_runtime_error_code_invalid_argument);
-    self->bits = bits;
-    self->width = width;
-    self->height = height;
-    self->row_bytes = row_bytes;
-    self->bpp = bpp;
+    lh_ui_mask_set_bits(self, bits);
+    lh_ui_mask_set_width(self, width);
+    lh_ui_mask_set_height(self, height);
+    lh_ui_mask_set_row_bytes(self, row_bytes);
+    lh_ui_mask_set_bpp(self, bpp);
 }
 
 lh_s32_t
@@ -67,21 +68,21 @@ lh_byte_cptr
 lh_ui_mask_get_row(const lh_ui_mask_t *self, lh_s32_t y)
 {
     lh_assert_runtime_ref(self);
-    return self->bits + y * self->row_bytes;
+    return lh_ui_mask_get_bits(self) + y * lh_ui_mask_get_row_bytes(self);
 }
 
 lh_bool_t
 lh_ui_mask_has_pixel(const lh_ui_mask_t *self, lh_s32_t x, lh_s32_t y)
 {
     lh_assert_runtime_ref(self);
-    return x >= 0 && y >= 0 && x < self->width && y < self->height ? lh_bool_true : lh_bool_false;
+    return x >= 0 && y >= 0 && x < lh_ui_mask_get_width(self) && y < lh_ui_mask_get_height(self) ? lh_bool_true : lh_bool_false;
 }
 
 lh_u32_t
 lh_ui_mask_get_sample(const lh_ui_mask_t *self, lh_s32_t x, lh_s32_t y)
 {
     lh_return_if(!lh_ui_mask_has_pixel(self, x, y), 0U);
-    return lh_bit_packed_get(lh_ui_mask_get_row(self, y), lh_cast_static(lh_u32_t, x), self->bpp);
+    return lh_bit_packed_get(lh_ui_mask_get_row(self, y), lh_cast_static(lh_u32_t, x), lh_ui_mask_get_bpp(self));
 }
 
 lh_byte_t
@@ -127,14 +128,14 @@ lh_ui_mask_get_coverage_8(const lh_ui_mask_t *self, lh_s32_t x, lh_s32_t y)
     lh_byte_t run[8];
 
     lh_assert_runtime_ref(self);
-    lh_return_if(y < 0 || y >= self->height || x >= self->width || x + 8 <= 0, 0U);
+    lh_return_if(y < 0 || y >= lh_ui_mask_get_height(self) || x >= lh_ui_mask_get_width(self) || x + 8 <= 0, 0U);
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
-    if (self->bpp == 4U && x >= 0)
+    if (lh_ui_mask_get_bpp(self) == 4U && x >= 0)
     {
         lh_byte_cptr row = lh_ui_mask_get_row(self, y);
         const lh_s32_t at = x >> 1;
-        const lh_s32_t left = self->row_bytes - at;
-        const lh_s32_t inside = self->width - x;
+        const lh_s32_t left = lh_ui_mask_get_row_bytes(self) - at;
+        const lh_s32_t inside = lh_ui_mask_get_width(self) - x;
         lh_u64_t bytes = 0U;
         lh_u64_t cover;
         lh_s32_t i;
@@ -199,7 +200,7 @@ lh_ui_mask_coverage_run(const lh_ui_mask_t *self, lh_s32_t x0, lh_s32_t x1, lh_s
     {
         return;
     }
-    if (y < 0 || y >= self->height)
+    if (y < 0 || y >= lh_ui_mask_get_height(self))
     {
         lh_memory_set(out + (x - x0), lh_cast_static(lh_usize_t, x1 - x), 0U);
         return;
@@ -210,9 +211,9 @@ lh_ui_mask_coverage_run(const lh_ui_mask_t *self, lh_s32_t x0, lh_s32_t x1, lh_s
     /* Four bits per pixel is the baked font's format, and a glyph row is six to
        fourteen pixels of it: one or two reads of eight (::lh_ui_mask_get_coverage_8),
        and no pixel of a glyph falls to the scalar loop below. */
-    if (self->bpp == 4U)
+    if (lh_ui_mask_get_bpp(self) == 4U)
     {
-        const lh_s32_t end = lh_math_min(x1, self->width);
+        const lh_s32_t end = lh_math_min(x1, lh_ui_mask_get_width(self));
 
         while (x < end)
         {
@@ -237,8 +238,8 @@ lh_ui_mask_coverage_run(const lh_ui_mask_t *self, lh_s32_t x0, lh_s32_t x1, lh_s
 #endif
 
     {
-        const lh_s32_t width = self->width;
-        const lh_u32_t top = lh_bit_packed_max(self->bpp);
+        const lh_s32_t width = lh_ui_mask_get_width(self);
+        const lh_u32_t top = lh_bit_packed_max(lh_ui_mask_get_bpp(self));
         /* The same rescale as above: every bpp up to eight has a maximum that divides
            255, so the division is a multiply -- a division by 15 here was once most
            of what a letter cost. With SSE2 a four-bit mask only reaches this loop
@@ -248,7 +249,7 @@ lh_ui_mask_coverage_run(const lh_ui_mask_t *self, lh_s32_t x0, lh_s32_t x1, lh_s
         for (; x < x1; ++x)
         {
             const lh_u32_t sample =
-                x < width ? lh_bit_packed_get(row, lh_cast_static(lh_u32_t, x), self->bpp) : 0U;
+                x < width ? lh_bit_packed_get(row, lh_cast_static(lh_u32_t, x), lh_ui_mask_get_bpp(self)) : 0U;
 
             out[x - x0] = lh_cast_static(
                 lh_byte_t, step != 0U ? sample * step : lh_math_rescale_u32(sample, top, 255U));
@@ -266,4 +267,53 @@ lh_ui_mask_get_rect(const lh_ui_mask_t *self, lh_ui_point_t origin, lh_ui_rect_t
                     lh_ui_point_get_y(lh_addr_of(origin)), lh_ui_mask_get_width(self),
                     lh_ui_mask_get_height(self));
     lh_ptr_deref(out) = rect;
+}
+
+const lh_byte_t *
+lh_ui_mask_get_bits(const lh_ui_mask_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->bits;
+}
+
+lh_void
+lh_ui_mask_set_bits(lh_ui_mask_t *self, const lh_byte_t * bits)
+{
+    lh_assert_runtime_ref(self);
+    self->bits = bits;
+}
+
+lh_void
+lh_ui_mask_set_width(lh_ui_mask_t *self, lh_s32_t width)
+{
+    lh_assert_runtime_ref(self);
+    self->width = width;
+}
+
+lh_void
+lh_ui_mask_set_height(lh_ui_mask_t *self, lh_s32_t height)
+{
+    lh_assert_runtime_ref(self);
+    self->height = height;
+}
+
+lh_s32_t
+lh_ui_mask_get_row_bytes(const lh_ui_mask_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->row_bytes;
+}
+
+lh_void
+lh_ui_mask_set_row_bytes(lh_ui_mask_t *self, lh_s32_t row_bytes)
+{
+    lh_assert_runtime_ref(self);
+    self->row_bytes = row_bytes;
+}
+
+lh_void
+lh_ui_mask_set_bpp(lh_ui_mask_t *self, lh_byte_t bpp)
+{
+    lh_assert_runtime_ref(self);
+    self->bpp = bpp;
 }

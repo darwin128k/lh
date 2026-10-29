@@ -30,7 +30,7 @@ struct sw_fixture
         lh_ui_pixmap_init(lh_addr_of(pixmap), lh_ptr_rcast(lh_byte_t, words), side, side,
                           side * lh_ui_pixmap_format_get_bytes(format), format);
         lh_ui_canvas_sw_init(lh_addr_of(sw));
-        lh_ui_canvas_sw_set_pixmap(lh_addr_of(sw), lh_addr_of(pixmap));
+        lh_ui_canvas_sw_use_pixmap(lh_addr_of(sw), lh_addr_of(pixmap));
         lh_ui_canvas_init(lh_addr_of(canvas), backend, lh_addr_of(sw));
     }
 
@@ -655,7 +655,7 @@ TEST(ui_canvas_sw, container_cuts_its_children_along_its_corners)
     lh_ui_style_init(lh_addr_of(box_style));
     lh_ui_style_set_radius(lh_addr_of(box_style), lh_ui_scalar(8));
     lh_ui_style_init(lh_addr_of(child_style));
-    lh_ui_style_set_fill(lh_addr_of(child_style), lh_addr_of(paint));
+    lh_ui_style_assign_fill(lh_addr_of(child_style), lh_addr_of(paint));
     lh_ui_container_init(lh_addr_of(box), box_rect);
     lh_ui_entity_set_style(lh_ui_container_as_entity(lh_addr_of(box)), lh_addr_of(box_style));
     lh_ui_entity_init(lh_addr_of(child), rect_of(0, 0, side, side));
@@ -813,7 +813,7 @@ TEST(ui_canvas_sw, glass_over_a_flat_picture_stays_flat)
     lh_u8_t scratch[side * (side + 16) * 4];
     int odd = 0;
 
-    lh_ui_canvas_set_scratch(lh_addr_of(f.canvas), scratch, sizeof(scratch));
+    lh_ui_canvas_use_scratch(lh_addr_of(f.canvas), scratch, sizeof(scratch));
     lh_ui_canvas_fill_rect(lh_addr_of(f.canvas), lh_addr_of(everything), lh_addr_of(dark));
     lh_ui_canvas_fill_rect(lh_addr_of(f.canvas), lh_addr_of(rect), lh_addr_of(row));
     EXPECT_TRUE(lh_ui_canvas_glass(lh_addr_of(f.canvas), lh_addr_of(rect), lh_ui_scalar(4), lh_ui_scalar(5),
@@ -860,11 +860,11 @@ TEST(ui_canvas_sw, glass_is_the_same_panel_in_a_clipped_frame_as_in_a_whole_one)
             lh_ui_canvas_fill_rect(lh_addr_of(clipped.canvas), lh_addr_of(one), lh_addr_of(c));
         }
     }
-    lh_ui_canvas_set_scratch(lh_addr_of(whole.canvas), scratch, sizeof(scratch));
+    lh_ui_canvas_use_scratch(lh_addr_of(whole.canvas), scratch, sizeof(scratch));
     EXPECT_TRUE(lh_ui_canvas_glass(lh_addr_of(whole.canvas), lh_addr_of(rect), lh_ui_scalar(4), lh_ui_scalar(4),
                                    lh_addr_of(tint)));
 
-    lh_ui_canvas_set_scratch(lh_addr_of(clipped.canvas), scratch, sizeof(scratch));
+    lh_ui_canvas_use_scratch(lh_addr_of(clipped.canvas), scratch, sizeof(scratch));
     clipped.push_clip(4, 4, 16, 14);
     EXPECT_TRUE(lh_ui_canvas_glass(lh_addr_of(clipped.canvas), lh_addr_of(rect), lh_ui_scalar(4), lh_ui_scalar(4),
                                    lh_addr_of(tint)));
@@ -887,7 +887,7 @@ TEST(ui_canvas_sw, glass_leaves_the_square_corner_of_a_round_panel)
     const lh_ui_color_t tint = color_of(236, 240, 248, 80);
     lh_u8_t scratch[side * (side + 16) * 4];
 
-    lh_ui_canvas_set_scratch(lh_addr_of(f.canvas), scratch, sizeof(scratch));
+    lh_ui_canvas_use_scratch(lh_addr_of(f.canvas), scratch, sizeof(scratch));
     lh_ui_canvas_fill_rect(lh_addr_of(f.canvas), lh_addr_of(everything), lh_addr_of(black));
     lh_ui_canvas_fill_rect(lh_addr_of(f.canvas), lh_addr_of(speck), lh_addr_of(white));
     EXPECT_EQ(lh_ui_radius_coverage(&rect, lh_ui_scalar(8), 4, 4), 0);

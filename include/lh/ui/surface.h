@@ -66,7 +66,7 @@ lh_ui_surface_is_valid(const lh_ui_surface_t *self);
  * @brief Pixel size of @p self (zero when empty).
  */
 lh_void
-lh_ui_surface_get_size(const lh_ui_surface_t *self, lh_ui_size_t *out);
+lh_ui_surface_copy_size(const lh_ui_surface_t *self, lh_ui_size_t *out);
 
 /**
  * @brief Pixel format of @p self. The format decides how many bytes a pixel is,
@@ -169,6 +169,23 @@ lh_ui_surface_get_handle(const lh_ui_surface_t *self);
  */
 lh_void
 lh_ui_surface_set_handle(lh_ui_surface_t *self, lh_os_system_surface_handle_t handle);
+
+/**
+ * @brief The size of the surface, to change in place (level 1).
+ *
+ * @param self The surface; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_size_t *
+lh_ui_surface_get_size_mut(lh_ui_surface_t *self);
+
+/**
+ * @brief The size of the surface (level 1).
+ *
+ * @param self The surface; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_size_t *
+lh_ui_surface_get_size(const lh_ui_surface_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -48,6 +48,93 @@ lh_ui_gradient_sampler_lerp_next(lh_ui_gradient_sampler_lerp_t *self);
 lh_void
 lh_ui_gradient_sampler_lerp_color(const lh_ui_gradient_sampler_lerp_t *self, lh_ui_color_t *out);
 
+/**
+ * @brief The whole part of each channel now (level 1).
+ *
+ * @param self The interpolation; checked by ::lh_assert_runtime_ref.
+ */
+const lh_s32_t *
+lh_ui_gradient_sampler_lerp_get_quotient(const lh_ui_gradient_sampler_lerp_t *self);
+
+/**
+ * @brief The whole part of each channel now, to change in place (level 1).
+ *
+ * @param self The interpolation; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_s32_t *
+lh_ui_gradient_sampler_lerp_get_quotient_mut(lh_ui_gradient_sampler_lerp_t *self);
+
+/**
+ * @brief The remainder of each channel now (level 1).
+ *
+ * @param self The interpolation; checked by ::lh_assert_runtime_ref.
+ */
+const lh_s32_t *
+lh_ui_gradient_sampler_lerp_get_rest(const lh_ui_gradient_sampler_lerp_t *self);
+
+/**
+ * @brief The remainder of each channel now, to change in place (level 1).
+ *
+ * @param self The interpolation; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_s32_t *
+lh_ui_gradient_sampler_lerp_get_rest_mut(lh_ui_gradient_sampler_lerp_t *self);
+
+/**
+ * @brief The whole part each channel moves per pixel (level 1).
+ *
+ * @param self The interpolation; checked by ::lh_assert_runtime_ref.
+ */
+const lh_s32_t *
+lh_ui_gradient_sampler_lerp_get_step(const lh_ui_gradient_sampler_lerp_t *self);
+
+/**
+ * @brief The whole part each channel moves per pixel, to change in place (level 1).
+ *
+ * @param self The interpolation; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_s32_t *
+lh_ui_gradient_sampler_lerp_get_step_mut(lh_ui_gradient_sampler_lerp_t *self);
+
+/**
+ * @brief The remainder each channel moves per pixel (level 1).
+ *
+ * @param self The interpolation; checked by ::lh_assert_runtime_ref.
+ */
+const lh_s32_t *
+lh_ui_gradient_sampler_lerp_get_step_rest(const lh_ui_gradient_sampler_lerp_t *self);
+
+/**
+ * @brief The remainder each channel moves per pixel, to change in place (level 1).
+ *
+ * @param self The interpolation; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_s32_t *
+lh_ui_gradient_sampler_lerp_get_step_rest_mut(lh_ui_gradient_sampler_lerp_t *self);
+
+/**
+ * @brief How many pixels the interpolation runs over (level 1).
+ *
+ * @param self The interpolation; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_gradient_sampler_lerp_get_span(const lh_ui_gradient_sampler_lerp_t *self);
+
+/**
+ * @brief Store how many pixels the interpolation runs over (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The interpolation; checked by ::lh_assert_runtime_ref.
+ * @param span The new value.
+ */
+lh_void
+lh_ui_gradient_sampler_lerp_set_span(lh_ui_gradient_sampler_lerp_t *self, lh_s32_t span);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_GRADIENT_SAMPLER_LERP_H */

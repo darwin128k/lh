@@ -15,20 +15,20 @@ lh_ui_gradient_sampler_lerp_init(lh_ui_gradient_sampler_lerp_t *self, const lh_u
     lh_s32_t c;
 
     lh_assert_runtime_ref(self);
-    self->span = span;
+    lh_ui_gradient_sampler_lerp_set_span(self, span);
     for (c = 0; c < 4; ++c)
     {
         const lh_s32_t moved = t[c] - f[c];
         const lh_s32_t whole = f[c] * (span - at) + t[c] * at;
 
-        self->quotient[c] = whole / span;
-        self->rest[c] = whole % span;
-        self->step[c] = moved / span;
-        self->step_rest[c] = moved % span;
-        if (self->step_rest[c] < 0)
+        lh_ui_gradient_sampler_lerp_get_quotient_mut(self)[c] = whole / span;
+        lh_ui_gradient_sampler_lerp_get_rest_mut(self)[c] = whole % span;
+        lh_ui_gradient_sampler_lerp_get_step_mut(self)[c] = moved / span;
+        lh_ui_gradient_sampler_lerp_get_step_rest_mut(self)[c] = moved % span;
+        if (lh_ui_gradient_sampler_lerp_get_step_rest(self)[c] < 0)
         {
-            --self->step[c];
-            self->step_rest[c] += span;
+            --lh_ui_gradient_sampler_lerp_get_step_mut(self)[c];
+            lh_ui_gradient_sampler_lerp_get_step_rest_mut(self)[c] += span;
         }
     }
 }
@@ -41,12 +41,12 @@ lh_ui_gradient_sampler_lerp_next(lh_ui_gradient_sampler_lerp_t *self)
     lh_assert_runtime_ref(self);
     for (c = 0; c < 4; ++c)
     {
-        self->quotient[c] += self->step[c];
-        self->rest[c] += self->step_rest[c];
-        if (self->rest[c] >= self->span)
+        lh_ui_gradient_sampler_lerp_get_quotient_mut(self)[c] += lh_ui_gradient_sampler_lerp_get_step(self)[c];
+        lh_ui_gradient_sampler_lerp_get_rest_mut(self)[c] += lh_ui_gradient_sampler_lerp_get_step_rest(self)[c];
+        if (lh_ui_gradient_sampler_lerp_get_rest(self)[c] >= lh_ui_gradient_sampler_lerp_get_span(self))
         {
-            self->rest[c] -= self->span;
-            ++self->quotient[c];
+            lh_ui_gradient_sampler_lerp_get_rest_mut(self)[c] -= lh_ui_gradient_sampler_lerp_get_span(self);
+            ++lh_ui_gradient_sampler_lerp_get_quotient_mut(self)[c];
         }
     }
 }
@@ -55,8 +55,78 @@ lh_void
 lh_ui_gradient_sampler_lerp_color(const lh_ui_gradient_sampler_lerp_t *self, lh_ui_color_t *out)
 {
     lh_assert_runtime_ref(self);
-    lh_ui_color_init(out, lh_cast_static(lh_ui_color_channel_t, self->quotient[0]),
-                     lh_cast_static(lh_ui_color_channel_t, self->quotient[1]),
-                     lh_cast_static(lh_ui_color_channel_t, self->quotient[2]),
-                     lh_cast_static(lh_ui_color_channel_t, self->quotient[3]));
+    lh_ui_color_init(out, lh_cast_static(lh_ui_color_channel_t, lh_ui_gradient_sampler_lerp_get_quotient(self)[0]),
+                     lh_cast_static(lh_ui_color_channel_t, lh_ui_gradient_sampler_lerp_get_quotient(self)[1]),
+                     lh_cast_static(lh_ui_color_channel_t, lh_ui_gradient_sampler_lerp_get_quotient(self)[2]),
+                     lh_cast_static(lh_ui_color_channel_t, lh_ui_gradient_sampler_lerp_get_quotient(self)[3]));
+}
+
+const lh_s32_t *
+lh_ui_gradient_sampler_lerp_get_quotient(const lh_ui_gradient_sampler_lerp_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->quotient;
+}
+
+lh_s32_t *
+lh_ui_gradient_sampler_lerp_get_quotient_mut(lh_ui_gradient_sampler_lerp_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->quotient;
+}
+
+const lh_s32_t *
+lh_ui_gradient_sampler_lerp_get_rest(const lh_ui_gradient_sampler_lerp_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->rest;
+}
+
+lh_s32_t *
+lh_ui_gradient_sampler_lerp_get_rest_mut(lh_ui_gradient_sampler_lerp_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->rest;
+}
+
+const lh_s32_t *
+lh_ui_gradient_sampler_lerp_get_step(const lh_ui_gradient_sampler_lerp_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->step;
+}
+
+lh_s32_t *
+lh_ui_gradient_sampler_lerp_get_step_mut(lh_ui_gradient_sampler_lerp_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->step;
+}
+
+const lh_s32_t *
+lh_ui_gradient_sampler_lerp_get_step_rest(const lh_ui_gradient_sampler_lerp_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->step_rest;
+}
+
+lh_s32_t *
+lh_ui_gradient_sampler_lerp_get_step_rest_mut(lh_ui_gradient_sampler_lerp_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->step_rest;
+}
+
+lh_s32_t
+lh_ui_gradient_sampler_lerp_get_span(const lh_ui_gradient_sampler_lerp_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->span;
+}
+
+lh_void
+lh_ui_gradient_sampler_lerp_set_span(lh_ui_gradient_sampler_lerp_t *self, lh_s32_t span)
+{
+    lh_assert_runtime_ref(self);
+    self->span = span;
 }

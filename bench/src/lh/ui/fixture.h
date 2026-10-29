@@ -39,11 +39,11 @@ struct surface
 
         lh_ui_pixmap_init(&pixmap, reinterpret_cast<lh_byte_t *>(pixels.data()), width, height, width * bytes, fmt);
         lh_ui_canvas_sw_init(&sw);
-        lh_ui_canvas_sw_set_pixmap(&sw, &pixmap);
+        lh_ui_canvas_sw_use_pixmap(&sw, &pixmap);
         lh_ui_canvas_init(&canvas, &lh_ui_canvas_backend_sw, &sw);
         lh_ui_size_init(&size, lh_ui_scalar(width), lh_ui_scalar(height));
         lh_ui_canvas_set_size(&canvas, size);
-        lh_ui_canvas_set_scratch(&canvas, scratch.data(), scratch.size());
+        lh_ui_canvas_use_scratch(&canvas, scratch.data(), scratch.size());
         clear_to_window();
     }
 

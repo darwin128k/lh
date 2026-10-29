@@ -51,7 +51,7 @@ lh_ui_entity_init(lh_ui_entity_t *self, lh_ui_rect_t rect);
  * @brief Rectangle @p self covers, in the same space as its parent.
  */
 lh_void
-lh_ui_entity_get_rect(const lh_ui_entity_t *self, lh_ui_rect_t *out);
+lh_ui_entity_copy_rect(const lh_ui_entity_t *self, lh_ui_rect_t *out);
 
 /**
  * @brief How @p self wants a flow to place it (::lh_ui_place_t): fixed zero at
@@ -70,7 +70,7 @@ lh_ui_entity_get_place(const lh_ui_entity_t *self);
  *        parent has to work with.
  */
 lh_void
-lh_ui_entity_set_place(lh_ui_entity_t *self, const lh_ui_place_t *place);
+lh_ui_entity_set_place_v(lh_ui_entity_t *self, const lh_ui_place_t *place);
 
 /**
  * @brief Replace the rectangle @p self covers with @p rect.
@@ -721,6 +721,129 @@ lh_ui_entity_draw(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas);
  */
 lh_void
 lh_ui_entity_add_damage(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas);
+
+/**
+ * @brief The rectangle of the entity, to change in place (level 1).
+ *
+ * @param self The entity; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_rect_t *
+lh_ui_entity_get_rect_mut(lh_ui_entity_t *self);
+
+/**
+ * @brief Store the entity this one is a child of; ::lh_null for the root (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The entity; checked by ::lh_assert_runtime_ref.
+ * @param parent The new value.
+ */
+lh_void
+lh_ui_entity_set_parent(lh_ui_entity_t *self, struct lh_ui_entity * parent);
+
+/**
+ * @brief The view the entity is shown in (level 1).
+ *
+ * @param self The entity; checked by ::lh_assert_runtime_ref.
+ */
+struct lh_ui_view *
+lh_ui_entity_get_view(const lh_ui_entity_t *self);
+
+/**
+ * @brief Store the view the entity is shown in (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The entity; checked by ::lh_assert_runtime_ref.
+ * @param view The new value.
+ */
+lh_void
+lh_ui_entity_set_view(lh_ui_entity_t *self, struct lh_ui_view * view);
+
+/**
+ * @brief How the entity is placed in its parent, to change in place (level 1).
+ *
+ * @param self The entity; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_place_t *
+lh_ui_entity_get_place_mut(lh_ui_entity_t *self);
+
+/**
+ * @brief The list of child entities (level 1).
+ *
+ * @param self The entity; checked by ::lh_assert_runtime_ref.
+ */
+const lh_list_t *
+lh_ui_entity_get_children(const lh_ui_entity_t *self);
+
+/**
+ * @brief The list of child entities, to change in place (level 1).
+ *
+ * @param self The entity; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_list_t *
+lh_ui_entity_get_children_mut(lh_ui_entity_t *self);
+
+/**
+ * @brief Store the list of child entities (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The entity; checked by ::lh_assert_runtime_ref.
+ * @param children The new value.
+ */
+lh_void
+lh_ui_entity_set_children(lh_ui_entity_t *self, lh_list_t children);
+
+/**
+ * @brief The node that links the entity into its parent's list (level 1).
+ *
+ * @param self The entity; checked by ::lh_assert_runtime_ref.
+ */
+const lh_list_node_t *
+lh_ui_entity_get_link(const lh_ui_entity_t *self);
+
+/**
+ * @brief The node that links the entity into its parent's list, to change in place (level 1).
+ *
+ * @param self The entity; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_list_node_t *
+lh_ui_entity_get_link_mut(lh_ui_entity_t *self);
+
+/**
+ * @brief Store the node that links the entity into its parent's list (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The entity; checked by ::lh_assert_runtime_ref.
+ * @param link The new value.
+ */
+lh_void
+lh_ui_entity_set_link(lh_ui_entity_t *self, lh_list_node_t link);
+
+/**
+ * @brief The rectangle of the entity (level 1).
+ *
+ * @param self The entity; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_rect_t *
+lh_ui_entity_get_rect(const lh_ui_entity_t *self);
+
+/**
+ * @brief Store how the entity is placed in its parent (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The entity; checked by ::lh_assert_runtime_ref.
+ * @param place The new value.
+ */
+lh_void
+lh_ui_entity_set_place(lh_ui_entity_t *self, lh_ui_place_t place);
 
 LH_COMPILER_EXTERN_C_END
 

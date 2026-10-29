@@ -60,6 +60,63 @@ lh_void
 lh_ui_present_sink_run(const lh_ui_present_sink_t *self, const lh_ui_pixmap_t *pixels,
                        const lh_ui_rects_t *drawn);
 
+/**
+ * @brief The name of the sink (level 1).
+ *
+ * @param self The sink; checked by ::lh_assert_runtime_ref.
+ */
+const char *
+lh_ui_present_sink_get_name(const lh_ui_present_sink_t *self);
+
+/**
+ * @brief Store the name of the sink (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The sink; checked by ::lh_assert_runtime_ref.
+ * @param name The new value.
+ */
+lh_void
+lh_ui_present_sink_set_name(lh_ui_present_sink_t *self, const char * name);
+
+/**
+ * @brief The call a finished strip is handed to (level 1).
+ *
+ * @param self The sink; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_present_fn *
+lh_ui_present_sink_get_present_fn(const lh_ui_present_sink_t *self);
+
+/**
+ * @brief Store the call a finished strip is handed to (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The sink; checked by ::lh_assert_runtime_ref.
+ * @param present The new value.
+ */
+lh_void
+lh_ui_present_sink_set_present_fn(lh_ui_present_sink_t *self, lh_ui_present_fn * present);
+
+/**
+ * @brief The value passed to that call (level 1).
+ *
+ * @param self The sink; checked by ::lh_assert_runtime_ref.
+ */
+lh_ptr
+lh_ui_present_sink_get_context(const lh_ui_present_sink_t *self);
+
+/**
+ * @brief Store the value passed to that call (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The sink; checked by ::lh_assert_runtime_ref.
+ * @param context The new value.
+ */
+lh_void
+lh_ui_present_sink_set_context(lh_ui_present_sink_t *self, lh_ptr context);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_PRESENT_SINK_H */

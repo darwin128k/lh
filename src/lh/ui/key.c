@@ -10,9 +10,9 @@ lh_void
 lh_ui_key_input_init_key(lh_ui_key_input_t *self, lh_os_key_t key, lh_bool_t pressed)
 {
     lh_assert_runtime_ref(self);
-    self->key = key;
-    self->pressed = pressed;
-    self->code = 0U;
+    lh_ui_key_input_set_key(self, key);
+    lh_ui_key_input_set_pressed(self, pressed);
+    lh_ui_key_input_set_code(self, 0U);
 }
 
 lh_void
@@ -20,7 +20,7 @@ lh_ui_key_input_init_text(lh_ui_key_input_t *self, lh_u32_t code)
 {
     lh_assert_runtime_ifn(code != 0U, lh_runtime_error_code_invalid_argument);
     lh_ui_key_input_init_key(self, lh_os_key_other, lh_bool_true);
-    self->code = code;
+    lh_ui_key_input_set_code(self, code);
 }
 
 lh_os_key_t
@@ -48,5 +48,26 @@ lh_bool_t
 lh_ui_key_input_is_down(const lh_ui_key_input_t *self, lh_os_key_t key)
 {
     lh_assert_runtime_ref(self);
-    return self->key == key && self->pressed && self->code == 0U ? lh_bool_true : lh_bool_false;
+    return lh_ui_key_input_get_key(self) == key && lh_ui_key_input_is_pressed(self) && lh_ui_key_input_get_code(self) == 0U ? lh_bool_true : lh_bool_false;
+}
+
+lh_void
+lh_ui_key_input_set_key(lh_ui_key_input_t *self, lh_os_key_t key)
+{
+    lh_assert_runtime_ref(self);
+    self->key = key;
+}
+
+lh_void
+lh_ui_key_input_set_pressed(lh_ui_key_input_t *self, lh_bool_t pressed)
+{
+    lh_assert_runtime_ref(self);
+    self->pressed = pressed;
+}
+
+lh_void
+lh_ui_key_input_set_code(lh_ui_key_input_t *self, lh_u32_t code)
+{
+    lh_assert_runtime_ref(self);
+    self->code = code;
 }

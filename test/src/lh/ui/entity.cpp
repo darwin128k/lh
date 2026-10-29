@@ -101,7 +101,7 @@ fills_for_class(const lh_ui_entity_class_t *klass)
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
     lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(color));
     lh_ui_style_init(lh_addr_of(style));
-    lh_ui_style_set_fill(lh_addr_of(style), lh_addr_of(paint));
+    lh_ui_style_assign_fill(lh_addr_of(style), lh_addr_of(paint));
     lh_ui_entity_init(lh_addr_of(entity), rect);
     lh_ui_entity_set_style(lh_addr_of(entity), lh_addr_of(style));
     lh_ui_entity_set_class(lh_addr_of(entity), klass);
@@ -157,13 +157,13 @@ struct card_fixture
         lh_ui_pixmap_init(lh_addr_of(pixmap), lh_ptr_rcast(lh_byte_t, words), lh_ui_scalar_of(g_card_side),
                           lh_ui_scalar_of(g_card_side), lh_ui_scalar_of(g_card_side * 4), format);
         lh_ui_canvas_sw_init(lh_addr_of(sw));
-        lh_ui_canvas_sw_set_pixmap(lh_addr_of(sw), lh_addr_of(pixmap));
+        lh_ui_canvas_sw_use_pixmap(lh_addr_of(sw), lh_addr_of(pixmap));
         lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_sw), lh_addr_of(sw));
 
         lh_ui_color_init(lh_addr_of(fill), 97, 175, 239, 255);
         lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(fill));
         lh_ui_style_init(lh_addr_of(style));
-        lh_ui_style_set_fill(lh_addr_of(style), lh_addr_of(paint));
+        lh_ui_style_assign_fill(lh_addr_of(style), lh_addr_of(paint));
         lh_ui_style_set_radius(lh_addr_of(style), lh_ui_scalar(4));
         lh_ui_style_init(lh_addr_of(pressed));
         lh_ui_rect_init(lh_addr_of(rect), 16, 16, 32, 32);
@@ -498,7 +498,7 @@ TEST(entity, base_class_fills_the_style_color_on_the_canvas)
     lh_ui_color_init(lh_addr_of(color), 9, 10, 11, 255);
     lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(color));
     lh_ui_style_init(lh_addr_of(style));
-    lh_ui_style_set_fill(lh_addr_of(style), lh_addr_of(paint));
+    lh_ui_style_assign_fill(lh_addr_of(style), lh_addr_of(paint));
     lh_ui_entity_init(lh_addr_of(entity), rect);
     lh_ui_entity_set_style(lh_addr_of(entity), lh_addr_of(style));
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_fill_log_backend), lh_addr_of(log));
@@ -548,7 +548,7 @@ TEST(entity, base_class_passes_the_style_radius_to_the_canvas)
     lh_ui_color_init(lh_addr_of(color), 9, 10, 11, 255);
     lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(color));
     lh_ui_style_init(lh_addr_of(style));
-    lh_ui_style_set_fill(lh_addr_of(style), lh_addr_of(paint));
+    lh_ui_style_assign_fill(lh_addr_of(style), lh_addr_of(paint));
     lh_ui_style_set_radius(lh_addr_of(style), lh_ui_scalar(3));
     lh_ui_entity_init(lh_addr_of(entity), rect);
     lh_ui_entity_set_style(lh_addr_of(entity), lh_addr_of(style));
@@ -1104,7 +1104,7 @@ TEST(entity, padding_and_radius_come_from_the_style)
     EXPECT_EQ(lh_ui_insets_is_zero(lh_addr_of(padding)), lh_bool_true);
     EXPECT_EQ(lh_ui_entity_get_radius(lh_addr_of(e)), lh_ui_scalar(0));
     lh_ui_style_init(lh_addr_of(style));
-    lh_ui_style_set_padding(lh_addr_of(style), lh_ui_scalar(3));
+    lh_ui_style_set_padding_all(lh_addr_of(style), lh_ui_scalar(3));
     lh_ui_style_set_radius(lh_addr_of(style), lh_ui_scalar(4));
     lh_ui_entity_set_style(lh_addr_of(e), lh_addr_of(style));
     padding = lh_test::out(lh_ui_entity_get_padding, lh_addr_of(e));
@@ -1127,7 +1127,7 @@ TEST(entity, a_card_casts_its_shadow_outside_its_own_fill)
     lh_ui_shadow_set_color(lh_addr_of(shadow), lh_ui_color_t{0, 0, 0, 200});
     lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar(8));
     lh_ui_shadow_set_offset(lh_addr_of(shadow), lh_ui_scalar(0), lh_ui_scalar(4));
-    lh_ui_style_set_shadow(lh_addr_of(f.style), lh_addr_of(shadow));
+    lh_ui_style_set_shadow_v(lh_addr_of(f.style), lh_addr_of(shadow));
 
     f.paint();
 
@@ -1157,7 +1157,7 @@ TEST(entity, a_shadow_that_reaches_past_the_rect_is_drawn_into_a_clip_that_misse
     lh_ui_shadow_set_color(lh_addr_of(shadow), lh_ui_color_t{0, 0, 0, 200});
     lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar(8));
     lh_ui_shadow_set_offset(lh_addr_of(shadow), lh_ui_scalar(0), lh_ui_scalar(4));
-    lh_ui_style_set_shadow(lh_addr_of(f.style), lh_addr_of(shadow));
+    lh_ui_style_set_shadow_v(lh_addr_of(f.style), lh_addr_of(shadow));
 
     /* The full frame, and what it puts under the card. Denominator first: a
        comparison of two frames both drawing nothing would pass on its own. */
@@ -1187,7 +1187,7 @@ TEST(entity, a_pressed_card_paints_its_pressed_style_and_picks_it_up_again)
 
     lh_ui_color_init(lh_addr_of(hot), 30, 60, 90, 255);
     lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(hot));
-    lh_ui_style_set_fill(lh_addr_of(f.pressed), lh_addr_of(paint));
+    lh_ui_style_assign_fill(lh_addr_of(f.pressed), lh_addr_of(paint));
     lh_ui_style_set_radius(lh_addr_of(f.pressed), lh_ui_scalar(20));
     lh_ui_style_set_pressed(lh_addr_of(f.style), lh_addr_of(f.pressed));
 
@@ -1237,7 +1237,7 @@ TEST(entity, a_pressed_parent_cuts_its_children_along_the_shape_it_paints)
     lh_ui_style_init(lh_addr_of(child_style));
     lh_ui_color_init(lh_addr_of(child_color), 200, 60, 90, 255);
     lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(child_color));
-    lh_ui_style_set_fill(lh_addr_of(child_style), lh_addr_of(paint));
+    lh_ui_style_assign_fill(lh_addr_of(child_style), lh_addr_of(paint));
     lh_ui_entity_init(lh_addr_of(child), rect);
     lh_ui_entity_set_style(lh_addr_of(child), lh_addr_of(child_style));
     lh_ui_entity_add_child(lh_addr_of(f.card), lh_ui_container_as_entity(lh_addr_of(box)));

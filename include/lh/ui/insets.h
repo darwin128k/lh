@@ -89,6 +89,50 @@ lh_ui_insets_is_zero(const lh_ui_insets_t *self);
 lh_void
 lh_ui_insets_shrink(const lh_ui_insets_t *self, const lh_ui_rect_t *rect, lh_ui_rect_t *out);
 
+/**
+ * @brief Store the left inset (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The insets; checked by ::lh_assert_runtime_ref.
+ * @param left The new value.
+ */
+lh_void
+lh_ui_insets_set_left(lh_ui_insets_t *self, lh_ui_scalar_t left);
+
+/**
+ * @brief Store the top inset (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The insets; checked by ::lh_assert_runtime_ref.
+ * @param top The new value.
+ */
+lh_void
+lh_ui_insets_set_top(lh_ui_insets_t *self, lh_ui_scalar_t top);
+
+/**
+ * @brief Store the right inset (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The insets; checked by ::lh_assert_runtime_ref.
+ * @param right The new value.
+ */
+lh_void
+lh_ui_insets_set_right(lh_ui_insets_t *self, lh_ui_scalar_t right);
+
+/**
+ * @brief Store the bottom inset (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The insets; checked by ::lh_assert_runtime_ref.
+ * @param bottom The new value.
+ */
+lh_void
+lh_ui_insets_set_bottom(lh_ui_insets_t *self, lh_ui_scalar_t bottom);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_INSETS_H */

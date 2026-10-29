@@ -89,7 +89,7 @@ lh_ui_layout_set_justify(lh_ui_layout_t *self, lh_ui_justify_t justify);
  *        them on one line (the default).
  */
 lh_void
-lh_ui_layout_set_wrap(lh_ui_layout_t *self, lh_bool_t wrap, lh_ui_scalar_t line_gap);
+lh_ui_layout_set_wrapping(lh_ui_layout_t *self, lh_bool_t wrap, lh_ui_scalar_t line_gap);
 
 /**
  * @brief True when the flow breaks its children into lines.
@@ -195,6 +195,58 @@ lh_ui_layout_justify_lead(lh_ui_justify_t justify, lh_ui_scalar_t left, int show
 lh_void
 lh_ui_layout_run(const lh_ui_layout_t *self, lh_ui_entity_t *parent, lh_ui_entity_t *first,
                  lh_ui_entity_t *end, const lh_ui_rect_t *content_box);
+
+/**
+ * @brief Store the axis the children are laid along (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The layout; checked by ::lh_assert_runtime_ref.
+ * @param axis The new value.
+ */
+lh_void
+lh_ui_layout_set_axis(lh_ui_layout_t *self, lh_ui_axis_t axis);
+
+/**
+ * @brief Store the gap between children (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The layout; checked by ::lh_assert_runtime_ref.
+ * @param gap The new value.
+ */
+lh_void
+lh_ui_layout_set_gap(lh_ui_layout_t *self, lh_ui_scalar_t gap);
+
+/**
+ * @brief Whether the children wrap onto more lines (level 1).
+ *
+ * @param self The layout; checked by ::lh_assert_runtime_ref.
+ */
+lh_bool_t
+lh_ui_layout_is_wrap(const lh_ui_layout_t *self);
+
+/**
+ * @brief Store the gap between lines (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The layout; checked by ::lh_assert_runtime_ref.
+ * @param line_gap The new value.
+ */
+lh_void
+lh_ui_layout_set_line_gap(lh_ui_layout_t *self, lh_ui_scalar_t line_gap);
+
+/**
+ * @brief Store whether the children wrap onto more lines (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The layout; checked by ::lh_assert_runtime_ref.
+ * @param wrap The new value.
+ */
+lh_void
+lh_ui_layout_set_wrap(lh_ui_layout_t *self, lh_bool_t wrap);
 
 LH_COMPILER_EXTERN_C_END
 

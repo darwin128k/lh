@@ -116,6 +116,64 @@ lh_ui_gradient_frac_at(const lh_ui_gradient_t *self, const lh_ui_rect_t *rect, l
 lh_void
 lh_ui_gradient_color_at(const lh_ui_gradient_t *self, lh_byte_t frac, lh_ui_color_t *out);
 
+/**
+ * @brief The color stops (level 1).
+ *
+ * @param self The gradient; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_gradient_stop_t *
+lh_ui_gradient_get_stops(const lh_ui_gradient_t *self);
+
+/**
+ * @brief The color stops, to change in place (level 1).
+ *
+ * @param self The gradient; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_gradient_stop_t *
+lh_ui_gradient_get_stops_mut(lh_ui_gradient_t *self);
+
+/**
+ * @brief How many stops there are (level 1).
+ *
+ * @param self The gradient; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_gradient_stop_count_t
+lh_ui_gradient_get_stops_count(const lh_ui_gradient_t *self);
+
+/**
+ * @brief Store how many stops there are (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The gradient; checked by ::lh_assert_runtime_ref.
+ * @param stops_count The new value.
+ */
+lh_void
+lh_ui_gradient_set_stops_count(lh_ui_gradient_t *self, lh_ui_gradient_stop_count_t stops_count);
+
+/**
+ * @brief Store whether the gradient is linear or radial (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The gradient; checked by ::lh_assert_runtime_ref.
+ * @param shape The new value.
+ */
+lh_void
+lh_ui_gradient_set_shape(lh_ui_gradient_t *self, lh_ui_gradient_shape_t shape);
+
+/**
+ * @brief Store the angle of a linear gradient, in degrees (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The gradient; checked by ::lh_assert_runtime_ref.
+ * @param angle The new value.
+ */
+lh_void
+lh_ui_gradient_set_angle(lh_ui_gradient_t *self, lh_s16_t angle);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_GRADIENT_H */

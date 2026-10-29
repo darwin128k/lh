@@ -2,6 +2,7 @@
  * @file shadow.c
  * @brief Implementation of `lh/ui/shadow.h`.
  */
+#include <lh/assert.h>
 
 #include <lh/math.h>
 #include <lh/ui/shadow/shape.h>
@@ -12,25 +13,25 @@ lh_void
 lh_ui_shadow_init(lh_ui_shadow_t *self)
 {
     lh_assert_runtime_ref(self);
-    lh_ui_color_init(lh_addr_of(self->color), 0, 0, 0, 0);
-    self->spread = 0;
-    self->offset_x = 0;
-    self->offset_y = 0;
+    lh_ui_color_init(lh_ui_shadow_get_color_mut(self), 0, 0, 0, 0);
+    lh_ui_shadow_set_spread(self, 0);
+    lh_ui_shadow_set_offset_x(self, 0);
+    lh_ui_shadow_set_offset_y(self, 0);
 }
 
 lh_void
-lh_ui_shadow_get_color(const lh_ui_shadow_t *self, lh_ui_color_t *out)
+lh_ui_shadow_copy_color(const lh_ui_shadow_t *self, lh_ui_color_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    lh_ptr_deref(out) = self->color;
+    lh_ptr_deref(out) = lh_ptr_deref(lh_ui_shadow_get_color(self));
 }
 
 lh_bool_t
 lh_ui_shadow_is_empty(const lh_ui_shadow_t *self)
 {
     lh_assert_runtime_ref(self);
-    return self->spread <= 0 || lh_ui_color_get_a(lh_addr_of(self->color)) == 0 ? lh_bool_true
+    return lh_ui_shadow_get_spread(self) <= 0 || lh_ui_color_get_a(lh_ui_shadow_get_color(self)) == 0 ? lh_bool_true
                                                                                 : lh_bool_false;
 }
 
@@ -52,15 +53,15 @@ lh_void
 lh_ui_shadow_set_spread(lh_ui_shadow_t *self, lh_ui_scalar_t spread)
 {
     lh_assert_runtime_ref(self);
-    self->spread = spread > 0 ? spread : 0;
+    lh_ui_shadow_set_spread(self, spread > 0 ? spread : 0);
 }
 
 lh_void
 lh_ui_shadow_set_offset(lh_ui_shadow_t *self, lh_ui_scalar_t offset_x, lh_ui_scalar_t offset_y)
 {
     lh_assert_runtime_ref(self);
-    self->offset_x = offset_x;
-    self->offset_y = offset_y;
+    lh_ui_shadow_set_offset_x(self, offset_x);
+    lh_ui_shadow_set_offset_y(self, offset_y);
 }
 
 lh_ui_scalar_t
@@ -85,16 +86,16 @@ lh_ui_shadow_get_outset(const lh_ui_shadow_t *self, const lh_ui_rect_t *rect)
 
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(rect);
-    if (self->spread <= 0 || lh_ui_rect_is_empty(rect) ||
-        lh_ui_color_get_a(lh_addr_of(self->color)) == 0)
+    if (lh_ui_shadow_get_spread(self) <= 0 || lh_ui_rect_is_empty(rect) ||
+        lh_ui_color_get_a(lh_ui_shadow_get_color(self)) == 0)
     {
         return 0;
     }
-    shift_x = lh_math_abs(self->offset_x);
-    shift_y = lh_math_abs(self->offset_y);
+    shift_x = lh_math_abs(lh_ui_shadow_get_offset_x(self));
+    shift_y = lh_math_abs(lh_ui_shadow_get_offset_y(self));
     /* The fade reaches `spread` past the shifted edge, and the edge itself is as
        far as the shift carries it. */
-    return (lh_ui_scalar_t)(self->spread + lh_math_max(shift_x, shift_y));
+    return (lh_ui_scalar_t)(lh_ui_shadow_get_spread(self) + lh_math_max(shift_x, shift_y));
 }
 
 lh_s64_t
@@ -197,14 +198,14 @@ lh_ui_shadow_alpha_at(const lh_ui_shadow_t *self, lh_ui_scalar_t x, lh_ui_scalar
 {
     const lh_ui_size_t *size;
     const lh_ui_point_t *origin;
-    const lh_byte_t peak = lh_ui_color_get_a(lh_addr_of(self->color));
+    const lh_byte_t peak = lh_ui_color_get_a(lh_ui_shadow_get_color(self));
     const lh_s32_t corner = lh_ui_radius_clamp(rect, radius);
     lh_ui_rect_t shifted;
 
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(rect);
     size = lh_ui_rect_get_size(rect);
-    if (self->spread <= 0 || peak == 0 || lh_ui_rect_is_empty(rect))
+    if (lh_ui_shadow_get_spread(self) <= 0 || peak == 0 || lh_ui_rect_is_empty(rect))
     {
         return 0;
     }
@@ -229,9 +230,9 @@ lh_ui_shadow_alpha_at(const lh_ui_shadow_t *self, lh_ui_scalar_t x, lh_ui_scalar
     /* ::lh_ui_rect_offset hands back the moved rect: it does not move its argument.
        Calling it for its effect left every shadow where its box was, whatever offset
        the style gave it. */
-    lh_ui_rect_offset(lh_addr_of(shifted), self->offset_x, self->offset_y, lh_addr_of(shifted));
+    lh_ui_rect_offset(lh_addr_of(shifted), lh_ui_shadow_get_offset_x(self), lh_ui_shadow_get_offset_y(self), lh_addr_of(shifted));
     return lh_ui_shadow_falloff(lh_ui_shadow_distance(x, y, lh_addr_of(shifted), corner),
-                                self->spread, peak);
+                                lh_ui_shadow_get_spread(self), peak);
 }
 
 lh_byte_t
@@ -248,4 +249,32 @@ lh_ui_shadow_alpha_at_pixel(const lh_ui_shadow_t *self, lh_s32_t x, lh_s32_t y,
     lh_ui_shadow_shape_init(lh_addr_of(shape), self, rect, radius);
     return lh_ui_shadow_shape_alpha(lh_addr_of(shape), lh_ui_shadow_shape_row(lh_addr_of(shape), y),
                                     x, y);
+}
+
+lh_ui_color_t *
+lh_ui_shadow_get_color_mut(lh_ui_shadow_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->color);
+}
+
+lh_void
+lh_ui_shadow_set_offset_x(lh_ui_shadow_t *self, lh_ui_scalar_t offset_x)
+{
+    lh_assert_runtime_ref(self);
+    self->offset_x = offset_x;
+}
+
+lh_void
+lh_ui_shadow_set_offset_y(lh_ui_shadow_t *self, lh_ui_scalar_t offset_y)
+{
+    lh_assert_runtime_ref(self);
+    self->offset_y = offset_y;
+}
+
+const lh_ui_color_t *
+lh_ui_shadow_get_color(const lh_ui_shadow_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->color);
 }

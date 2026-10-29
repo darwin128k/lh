@@ -2,6 +2,7 @@
  * @file class.c
  * @brief Implementation of `lh/ui/entity/class.h`.
  */
+#include <lh/assert.h>
 
 #include <lh/ui/canvas/box.h>
 #include <lh/ui/entity.h>
@@ -15,7 +16,7 @@ lh_ui_entity_class_fill(const struct lh_ui_entity *self, lh_ui_canvas_t *canvas)
 
     lh_return_if(lh_null_eq(canvas) || lh_null_eq(style));
     lh_return_if(lh_ui_paint_is_empty(lh_ui_style_get_fill(style)));
-    lh_ui_entity_get_rect(self, lh_addr_of(rect));
+    lh_ui_entity_copy_rect(self, lh_addr_of(rect));
     /* The style in force (a press may change it), its paint and its corners. One
        radius and one colour are the backend's rounded fill, as they always were;
        a corner of its own or a gradient is drawn by the canvas
@@ -40,7 +41,7 @@ lh_ui_entity_class_shadow(const struct lh_ui_entity *self, lh_ui_canvas_t *canva
        nothing of it left to land on the fill. An empty shadow is the common case
        and costs nothing but this question. */
     lh_return_if(lh_ui_shadow_is_empty(lh_ui_style_get_shadow(style)));
-    lh_ui_entity_get_rect(self, lh_addr_of(rect));
+    lh_ui_entity_copy_rect(self, lh_addr_of(rect));
     (void)lh_ui_canvas_shadow(canvas, lh_addr_of(rect), lh_ui_entity_get_radius_now(self),
                               lh_ui_style_get_shadow(style));
 }
@@ -60,7 +61,7 @@ lh_bool_t
 lh_ui_entity_class_is(const lh_ui_entity_class_t *kind, const lh_ui_entity_class_t *base)
 {
     lh_return_if(lh_null_eq(base), lh_bool_false);
-    for (; lh_null_ne(kind); kind = kind->base)
+    for (; lh_null_ne(kind); kind = lh_ui_entity_class_get_base(kind))
     {
         lh_return_if(kind == base, lh_bool_true);
     }
@@ -75,8 +76,36 @@ lh_ui_entity_class_event_base(const lh_ui_entity_class_t *class, const struct lh
     lh_assert_runtime_ref(class);
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(event);
-    base = class->base;
+    base = lh_ui_entity_class_get_base(class);
     lh_return_if(base == lh_null);
-    lh_assert_runtime_ref(base->event);
-    base->event(self, event);
+    lh_assert_runtime_ref(lh_ui_entity_class_get_event_fn(base));
+    lh_ui_entity_class_get_event_fn(base)(self, event);
+}
+
+lh_ui_entity_face_cb
+lh_ui_entity_class_get_event_fn(const lh_ui_entity_class_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->event;
+}
+
+lh_void
+lh_ui_entity_class_set_event_fn(lh_ui_entity_class_t *self, lh_ui_entity_face_cb event)
+{
+    lh_assert_runtime_ref(self);
+    self->event = event;
+}
+
+const struct lh_ui_entity_class *
+lh_ui_entity_class_get_base(const lh_ui_entity_class_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->base;
+}
+
+lh_void
+lh_ui_entity_class_set_base(lh_ui_entity_class_t *self, const struct lh_ui_entity_class * base)
+{
+    lh_assert_runtime_ref(self);
+    self->base = base;
 }

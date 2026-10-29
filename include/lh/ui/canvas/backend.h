@@ -209,6 +209,234 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 extern const lh_ui_canvas_backend_t lh_ui_canvas_backend_null;
 
+/**
+ * @brief The call that starts a frame (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_canvas_begin_fn *
+lh_ui_canvas_backend_get_begin_fn(const lh_ui_canvas_backend_t *self);
+
+/**
+ * @brief Store the call that starts a frame (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @param begin The new value.
+ */
+lh_void
+lh_ui_canvas_backend_set_begin_fn(lh_ui_canvas_backend_t *self, lh_ui_canvas_begin_fn * begin);
+
+/**
+ * @brief The call that starts a frame limited to an area (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_canvas_begin_area_fn *
+lh_ui_canvas_backend_get_begin_area_fn(const lh_ui_canvas_backend_t *self);
+
+/**
+ * @brief Store the call that starts a frame limited to an area (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @param begin_area The new value.
+ */
+lh_void
+lh_ui_canvas_backend_set_begin_area_fn(lh_ui_canvas_backend_t *self, lh_ui_canvas_begin_area_fn * begin_area);
+
+/**
+ * @brief The call that ends a frame (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_canvas_end_fn *
+lh_ui_canvas_backend_get_end_fn(const lh_ui_canvas_backend_t *self);
+
+/**
+ * @brief Store the call that ends a frame (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @param end The new value.
+ */
+lh_void
+lh_ui_canvas_backend_set_end_fn(lh_ui_canvas_backend_t *self, lh_ui_canvas_end_fn * end);
+
+/**
+ * @brief The call that clears the target (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_canvas_clear_fn *
+lh_ui_canvas_backend_get_clear_fn(const lh_ui_canvas_backend_t *self);
+
+/**
+ * @brief Store the call that clears the target (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @param clear The new value.
+ */
+lh_void
+lh_ui_canvas_backend_set_clear_fn(lh_ui_canvas_backend_t *self, lh_ui_canvas_clear_fn * clear);
+
+/**
+ * @brief The call that fills a rectangle (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_canvas_fill_rect_fn *
+lh_ui_canvas_backend_get_fill_rect_fn(const lh_ui_canvas_backend_t *self);
+
+/**
+ * @brief Store the call that fills a rectangle (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @param fill_rect The new value.
+ */
+lh_void
+lh_ui_canvas_backend_set_fill_rect_fn(lh_ui_canvas_backend_t *self, lh_ui_canvas_fill_rect_fn * fill_rect);
+
+/**
+ * @brief The call that fills a rounded rectangle (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_canvas_fill_round_rect_fn *
+lh_ui_canvas_backend_get_fill_round_rect_fn(const lh_ui_canvas_backend_t *self);
+
+/**
+ * @brief Store the call that fills a rounded rectangle (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @param fill_round_rect The new value.
+ */
+lh_void
+lh_ui_canvas_backend_set_fill_round_rect_fn(lh_ui_canvas_backend_t *self, lh_ui_canvas_fill_round_rect_fn * fill_round_rect);
+
+/**
+ * @brief The call that sets the clip (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_canvas_set_clip_fn *
+lh_ui_canvas_backend_get_set_clip_fn(const lh_ui_canvas_backend_t *self);
+
+/**
+ * @brief Store the call that sets the clip (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @param set_clip The new value.
+ */
+lh_void
+lh_ui_canvas_backend_set_set_clip_fn(lh_ui_canvas_backend_t *self, lh_ui_canvas_set_clip_fn * set_clip);
+
+/**
+ * @brief The call that fills through a coverage mask (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_canvas_fill_mask_fn *
+lh_ui_canvas_backend_get_fill_mask_fn(const lh_ui_canvas_backend_t *self);
+
+/**
+ * @brief Store the call that fills through a coverage mask (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @param fill_mask The new value.
+ */
+lh_void
+lh_ui_canvas_backend_set_fill_mask_fn(lh_ui_canvas_backend_t *self, lh_ui_canvas_fill_mask_fn * fill_mask);
+
+/**
+ * @brief The call that draws a shadow (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_canvas_shadow_fn *
+lh_ui_canvas_backend_get_shadow_fn(const lh_ui_canvas_backend_t *self);
+
+/**
+ * @brief Store the call that draws a shadow (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @param shadow The new value.
+ */
+lh_void
+lh_ui_canvas_backend_set_shadow_fn(lh_ui_canvas_backend_t *self, lh_ui_canvas_shadow_fn * shadow);
+
+/**
+ * @brief The call that blurs an area (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_canvas_blur_fn *
+lh_ui_canvas_backend_get_blur_fn(const lh_ui_canvas_backend_t *self);
+
+/**
+ * @brief Store the call that blurs an area (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @param blur The new value.
+ */
+lh_void
+lh_ui_canvas_backend_set_blur_fn(lh_ui_canvas_backend_t *self, lh_ui_canvas_blur_fn * blur);
+
+/**
+ * @brief The call that draws frosted glass (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_canvas_glass_fn *
+lh_ui_canvas_backend_get_glass_fn(const lh_ui_canvas_backend_t *self);
+
+/**
+ * @brief Store the call that draws frosted glass (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @param glass The new value.
+ */
+lh_void
+lh_ui_canvas_backend_set_glass_fn(lh_ui_canvas_backend_t *self, lh_ui_canvas_glass_fn * glass);
+
+/**
+ * @brief The call that fills a rectangle with per-pixel colors (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_canvas_fill_colors_fn *
+lh_ui_canvas_backend_get_fill_colors_fn(const lh_ui_canvas_backend_t *self);
+
+/**
+ * @brief Store the call that fills a rectangle with per-pixel colors (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @param fill_colors The new value.
+ */
+lh_void
+lh_ui_canvas_backend_set_fill_colors_fn(lh_ui_canvas_backend_t *self, lh_ui_canvas_fill_colors_fn * fill_colors);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_CANVAS_BACKEND_H */

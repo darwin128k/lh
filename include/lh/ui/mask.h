@@ -131,6 +131,77 @@ lh_ui_mask_unpack_4_sse2(lh_u64_t bytes, lh_bool_t odd);
 lh_void
 lh_ui_mask_get_rect(const lh_ui_mask_t *self, lh_ui_point_t origin, lh_ui_rect_t *out);
 
+/**
+ * @brief The coverage bits (level 1).
+ *
+ * @param self The mask; checked by ::lh_assert_runtime_ref.
+ */
+const lh_byte_t *
+lh_ui_mask_get_bits(const lh_ui_mask_t *self);
+
+/**
+ * @brief Store the coverage bits (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The mask; checked by ::lh_assert_runtime_ref.
+ * @param bits The new value.
+ */
+lh_void
+lh_ui_mask_set_bits(lh_ui_mask_t *self, const lh_byte_t * bits);
+
+/**
+ * @brief Store the width of the mask in pixels (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The mask; checked by ::lh_assert_runtime_ref.
+ * @param width The new value.
+ */
+lh_void
+lh_ui_mask_set_width(lh_ui_mask_t *self, lh_s32_t width);
+
+/**
+ * @brief Store the height of the mask in pixels (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The mask; checked by ::lh_assert_runtime_ref.
+ * @param height The new value.
+ */
+lh_void
+lh_ui_mask_set_height(lh_ui_mask_t *self, lh_s32_t height);
+
+/**
+ * @brief How many bytes one row takes (level 1).
+ *
+ * @param self The mask; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_mask_get_row_bytes(const lh_ui_mask_t *self);
+
+/**
+ * @brief Store how many bytes one row takes (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The mask; checked by ::lh_assert_runtime_ref.
+ * @param row_bytes The new value.
+ */
+lh_void
+lh_ui_mask_set_row_bytes(lh_ui_mask_t *self, lh_s32_t row_bytes);
+
+/**
+ * @brief Store how many bits one pixel of coverage takes (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The mask; checked by ::lh_assert_runtime_ref.
+ * @param bpp The new value.
+ */
+lh_void
+lh_ui_mask_set_bpp(lh_ui_mask_t *self, lh_byte_t bpp);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_MASK_H */

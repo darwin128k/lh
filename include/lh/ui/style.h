@@ -59,7 +59,7 @@ lh_ui_style_get_fill(const lh_ui_style_t *self);
  * ::lh_null clears the fill to the empty paint.
  */
 lh_void
-lh_ui_style_set_fill(lh_ui_style_t *self, const lh_ui_paint_t *fill);
+lh_ui_style_assign_fill(lh_ui_style_t *self, const lh_ui_paint_t *fill);
 
 /** @p from moved @p weight of the way to @p to, in weights of 255. Written so it means
    the same on both arithmetic paths: `to - from` first, so a step that runs the other
@@ -111,7 +111,7 @@ lh_ui_style_get_radii(const lh_ui_style_t *self);
  *        one a hit test rounds by; ::lh_ui_style_set_radius sets all four again.
  */
 lh_void
-lh_ui_style_set_radii(lh_ui_style_t *self, const lh_ui_radii_t *radii);
+lh_ui_style_set_radii_v(lh_ui_style_t *self, const lh_ui_radii_t *radii);
 
 /**
  * @brief Corner radius a hit test rounds @p self with (`0` = the whole rect).
@@ -146,13 +146,13 @@ lh_ui_style_get_padding(const lh_ui_style_t *self);
  * @brief @p padding on every side of @p self. It must not be negative.
  */
 lh_void
-lh_ui_style_set_padding(lh_ui_style_t *self, lh_ui_scalar_t padding);
+lh_ui_style_set_padding_all(lh_ui_style_t *self, lh_ui_scalar_t padding);
 
 /**
  * @brief Replace the padding of @p self, per side. No side may be negative.
  */
 lh_void
-lh_ui_style_set_padding_insets(lh_ui_style_t *self, const lh_ui_insets_t *padding);
+lh_ui_style_set_padding_v(lh_ui_style_t *self, const lh_ui_insets_t *padding);
 
 /**
  * @brief Font text is drawn with, or ::lh_null (no text drawn).
@@ -178,7 +178,7 @@ lh_ui_style_get_text(const lh_ui_style_t *self);
  * ::lh_null clears it to the empty paint (no text drawn).
  */
 lh_void
-lh_ui_style_set_text(lh_ui_style_t *self, const lh_ui_paint_t *text);
+lh_ui_style_assign_text(lh_ui_style_t *self, const lh_ui_paint_t *text);
 
 /**
  * @brief Solid text color of @p self, or ::lh_null when the text paint is not
@@ -260,7 +260,7 @@ lh_ui_style_get_shadow(const lh_ui_style_t *self);
  * Copied, like the paints. ::lh_null clears it to the empty shadow.
  */
 lh_void
-lh_ui_style_set_shadow(lh_ui_style_t *self, const lh_ui_shadow_t *shadow);
+lh_ui_style_set_shadow_v(lh_ui_style_t *self, const lh_ui_shadow_t *shadow);
 
 /**
  * @brief Style an entity painted while it is pressed, or ::lh_null for none.
@@ -294,7 +294,7 @@ lh_ui_style_get_border(const lh_ui_style_t *self);
  *        ::lh_null clears every side to 0.
  */
 lh_void
-lh_ui_style_set_border(lh_ui_style_t *self, const lh_ui_insets_t *border);
+lh_ui_style_set_border_v(lh_ui_style_t *self, const lh_ui_insets_t *border);
 
 /**
  * @brief Paint the border is drawn in. Never ::lh_null; may be empty, and an
@@ -308,7 +308,7 @@ lh_ui_style_get_border_fill(const lh_ui_style_t *self);
  *        ::lh_null clears it to the empty paint.
  */
 lh_void
-lh_ui_style_set_border_fill(lh_ui_style_t *self, const lh_ui_paint_t *fill);
+lh_ui_style_assign_border_fill(lh_ui_style_t *self, const lh_ui_paint_t *fill);
 
 /**
  * @brief How long an entity takes to reach @p self from the style it had, in
@@ -362,6 +362,146 @@ lh_ui_style_set_easing(lh_ui_style_t *self, lh_ui_easing_t easing);
 lh_void
 lh_ui_style_init_blend(lh_ui_style_t *self, const lh_ui_style_t *from, const lh_ui_style_t *to,
                        lh_u32_t weight);
+
+/**
+ * @brief The paint the background is filled with, to change in place (level 1).
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_paint_t *
+lh_ui_style_get_fill_mut(lh_ui_style_t *self);
+
+/**
+ * @brief The corner radii, to change in place (level 1).
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_radii_t *
+lh_ui_style_get_radii_mut(lh_ui_style_t *self);
+
+/**
+ * @brief The padding inside the border, to change in place (level 1).
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_insets_t *
+lh_ui_style_get_padding_mut(lh_ui_style_t *self);
+
+/**
+ * @brief The paint the text is drawn with, to change in place (level 1).
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_paint_t *
+lh_ui_style_get_text_mut(lh_ui_style_t *self);
+
+/**
+ * @brief The shadow, to change in place (level 1).
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_shadow_t *
+lh_ui_style_get_shadow_mut(lh_ui_style_t *self);
+
+/**
+ * @brief The border widths, to change in place (level 1).
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_insets_t *
+lh_ui_style_get_border_mut(lh_ui_style_t *self);
+
+/**
+ * @brief The paint the border is drawn with, to change in place (level 1).
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_paint_t *
+lh_ui_style_get_border_fill_mut(lh_ui_style_t *self);
+
+/**
+ * @brief Store the paint the background is filled with (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @param fill The new value.
+ */
+lh_void
+lh_ui_style_set_fill(lh_ui_style_t *self, lh_ui_paint_t fill);
+
+/**
+ * @brief Store the corner radii (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @param radii The new value.
+ */
+lh_void
+lh_ui_style_set_radii(lh_ui_style_t *self, lh_ui_radii_t radii);
+
+/**
+ * @brief Store the padding inside the border (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @param padding The new value.
+ */
+lh_void
+lh_ui_style_set_padding(lh_ui_style_t *self, lh_ui_insets_t padding);
+
+/**
+ * @brief Store the paint the text is drawn with (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @param text The new value.
+ */
+lh_void
+lh_ui_style_set_text(lh_ui_style_t *self, lh_ui_paint_t text);
+
+/**
+ * @brief Store the shadow (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @param shadow The new value.
+ */
+lh_void
+lh_ui_style_set_shadow(lh_ui_style_t *self, lh_ui_shadow_t shadow);
+
+/**
+ * @brief Store the border widths (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @param border The new value.
+ */
+lh_void
+lh_ui_style_set_border(lh_ui_style_t *self, lh_ui_insets_t border);
+
+/**
+ * @brief Store the paint the border is drawn with (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @param border_fill The new value.
+ */
+lh_void
+lh_ui_style_set_border_fill(lh_ui_style_t *self, lh_ui_paint_t border_fill);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -168,6 +168,99 @@ lh_ui_button_get_on_click(const lh_ui_button_t *self);
 lh_void
 lh_ui_button_set_on_click(lh_ui_button_t *self, lh_ui_button_on_click_cb on_click, lh_ptr context);
 
+/**
+ * @brief The container the button is built on (level 1).
+ *
+ * @param self The button; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_container_t *
+lh_ui_button_get_container(const lh_ui_button_t *self);
+
+/**
+ * @brief The container the button is built on, to change in place (level 1).
+ *
+ * @param self The button; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_container_t *
+lh_ui_button_get_container_mut(lh_ui_button_t *self);
+
+/**
+ * @brief Store the container the button is built on (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The button; checked by ::lh_assert_runtime_ref.
+ * @param container The new value.
+ */
+lh_void
+lh_ui_button_set_container(lh_ui_button_t *self, lh_ui_container_t container);
+
+/**
+ * @brief The style the button has when it is not hot (level 1).
+ *
+ * @param self The button; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_style_t *
+lh_ui_button_get_rest_style(const lh_ui_button_t *self);
+
+/**
+ * @brief Store the style the button has when it is not hot (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The button; checked by ::lh_assert_runtime_ref.
+ * @param rest_style The new value.
+ */
+lh_void
+lh_ui_button_set_rest_style(lh_ui_button_t *self, const lh_ui_style_t * rest_style);
+
+/**
+ * @brief Whether the pointer is over the button (level 1).
+ *
+ * @param self The button; checked by ::lh_assert_runtime_ref.
+ */
+lh_bool_t
+lh_ui_button_is_hot(const lh_ui_button_t *self);
+
+/**
+ * @brief The callback run when the button is clicked (level 1).
+ *
+ * @param self The button; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_button_on_click_cb
+lh_ui_button_get_on_click_fn(const lh_ui_button_t *self);
+
+/**
+ * @brief Store the callback run when the button is clicked (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The button; checked by ::lh_assert_runtime_ref.
+ * @param on_click The new value.
+ */
+lh_void
+lh_ui_button_set_on_click_fn(lh_ui_button_t *self, lh_ui_button_on_click_cb on_click);
+
+/**
+ * @brief The value passed to the click callback (level 1).
+ *
+ * @param self The button; checked by ::lh_assert_runtime_ref.
+ */
+lh_ptr
+lh_ui_button_get_click_context(const lh_ui_button_t *self);
+
+/**
+ * @brief Store the value passed to the click callback (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The button; checked by ::lh_assert_runtime_ref.
+ * @param click_context The new value.
+ */
+lh_void
+lh_ui_button_set_click_context(lh_ui_button_t *self, lh_ptr click_context);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_BUTTON_H */

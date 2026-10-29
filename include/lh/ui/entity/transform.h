@@ -39,7 +39,7 @@ lh_ui_entity_transform_init(lh_ui_entity_transform_t *self);
  *        point when the children are hit-tested.
  */
 lh_void
-lh_ui_entity_transform_get_offset(const lh_ui_entity_transform_t *self, lh_ui_point_t *out);
+lh_ui_entity_transform_copy_offset(const lh_ui_entity_transform_t *self, lh_ui_point_t *out);
 
 /**
  * @brief Replace the offset of @p self.
@@ -64,6 +64,23 @@ lh_ui_entity_transform_set_clip(lh_ui_entity_transform_t *self, lh_bool_t clip);
  */
 lh_bool_t
 lh_ui_entity_transform_is_identity(const lh_ui_entity_transform_t *self);
+
+/**
+ * @brief The offset of the transform, to change in place (level 1).
+ *
+ * @param self The transform; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_point_t *
+lh_ui_entity_transform_get_offset_mut(lh_ui_entity_transform_t *self);
+
+/**
+ * @brief The offset of the transform (level 1).
+ *
+ * @param self The transform; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_point_t *
+lh_ui_entity_transform_get_offset(const lh_ui_entity_transform_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

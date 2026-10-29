@@ -152,6 +152,158 @@ lh_void
 lh_ui_canvas_fill_box(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, const lh_ui_radii_t *radii,
                       const lh_ui_paint_t *paint);
 
+/**
+ * @brief The left edge of the box, in pixels (level 1).
+ *
+ * @param self The box frame; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_canvas_box_frame_get_left(const lh_ui_canvas_box_frame_t *self);
+
+/**
+ * @brief Store the left edge of the box, in pixels (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The box frame; checked by ::lh_assert_runtime_ref.
+ * @param left The new value.
+ */
+lh_void
+lh_ui_canvas_box_frame_set_left(lh_ui_canvas_box_frame_t *self, lh_s32_t left);
+
+/**
+ * @brief The right edge of the box, in pixels (level 1).
+ *
+ * @param self The box frame; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_canvas_box_frame_get_right(const lh_ui_canvas_box_frame_t *self);
+
+/**
+ * @brief Store the right edge of the box, in pixels (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The box frame; checked by ::lh_assert_runtime_ref.
+ * @param right The new value.
+ */
+lh_void
+lh_ui_canvas_box_frame_set_right(lh_ui_canvas_box_frame_t *self, lh_s32_t right);
+
+/**
+ * @brief The top edge of the box, in pixels (level 1).
+ *
+ * @param self The box frame; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_canvas_box_frame_get_top(const lh_ui_canvas_box_frame_t *self);
+
+/**
+ * @brief Store the top edge of the box, in pixels (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The box frame; checked by ::lh_assert_runtime_ref.
+ * @param top The new value.
+ */
+lh_void
+lh_ui_canvas_box_frame_set_top(lh_ui_canvas_box_frame_t *self, lh_s32_t top);
+
+/**
+ * @brief The bottom edge of the box, in pixels (level 1).
+ *
+ * @param self The box frame; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_canvas_box_frame_get_bottom(const lh_ui_canvas_box_frame_t *self);
+
+/**
+ * @brief Store the bottom edge of the box, in pixels (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The box frame; checked by ::lh_assert_runtime_ref.
+ * @param bottom The new value.
+ */
+lh_void
+lh_ui_canvas_box_frame_set_bottom(lh_ui_canvas_box_frame_t *self, lh_s32_t bottom);
+
+/**
+ * @brief The left edge of the part of the box inside the clip (level 1).
+ *
+ * @param self The box frame; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_canvas_box_frame_get_shown_left(const lh_ui_canvas_box_frame_t *self);
+
+/**
+ * @brief Store the left edge of the part of the box inside the clip (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The box frame; checked by ::lh_assert_runtime_ref.
+ * @param shown_left The new value.
+ */
+lh_void
+lh_ui_canvas_box_frame_set_shown_left(lh_ui_canvas_box_frame_t *self, lh_s32_t shown_left);
+
+/**
+ * @brief The right edge of the part of the box inside the clip (level 1).
+ *
+ * @param self The box frame; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_canvas_box_frame_get_shown_right(const lh_ui_canvas_box_frame_t *self);
+
+/**
+ * @brief Store the right edge of the part of the box inside the clip (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The box frame; checked by ::lh_assert_runtime_ref.
+ * @param shown_right The new value.
+ */
+lh_void
+lh_ui_canvas_box_frame_set_shown_right(lh_ui_canvas_box_frame_t *self, lh_s32_t shown_right);
+
+/**
+ * @brief The first row of the box inside the clip (level 1).
+ *
+ * @param self The box frame; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_canvas_box_frame_get_first(const lh_ui_canvas_box_frame_t *self);
+
+/**
+ * @brief Store the first row of the box inside the clip (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The box frame; checked by ::lh_assert_runtime_ref.
+ * @param first The new value.
+ */
+lh_void
+lh_ui_canvas_box_frame_set_first(lh_ui_canvas_box_frame_t *self, lh_s32_t first);
+
+/**
+ * @brief The last row of the box inside the clip (level 1).
+ *
+ * @param self The box frame; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_canvas_box_frame_get_last(const lh_ui_canvas_box_frame_t *self);
+
+/**
+ * @brief Store the last row of the box inside the clip (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The box frame; checked by ::lh_assert_runtime_ref.
+ * @param last The new value.
+ */
+lh_void
+lh_ui_canvas_box_frame_set_last(lh_ui_canvas_box_frame_t *self, lh_s32_t last);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_CANVAS_BOX_H */

@@ -116,6 +116,28 @@ lh_ui_entity_event_get_bounds(const lh_ui_entity_event_t *self);
 lh_ui_scalar_t *
 lh_ui_entity_event_get_baseline(const lh_ui_entity_event_t *self);
 
+/**
+ * @brief Store what happened (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The event; checked by ::lh_assert_runtime_ref.
+ * @param code The new value.
+ */
+lh_void
+lh_ui_entity_event_set_code(lh_ui_entity_event_t *self, lh_ui_entity_event_code_t code);
+
+/**
+ * @brief Store the value the event carries (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The event; checked by ::lh_assert_runtime_ref.
+ * @param context The new value.
+ */
+lh_void
+lh_ui_entity_event_set_context(lh_ui_entity_event_t *self, lh_ptr context);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_ENTITY_EVENT_H */

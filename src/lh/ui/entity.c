@@ -2,6 +2,7 @@
  * @file entity.c
  * @brief Implementation of `lh/ui/entity.h`.
  */
+#include <lh/assert.h>
 
 #include <lh/ui/view.h>
 #include <lh/util/return.h>
@@ -10,24 +11,24 @@ lh_void
 lh_ui_entity_init(lh_ui_entity_t *self, lh_ui_rect_t rect)
 {
     lh_assert_runtime_ref(self);
-    self->rect = rect;
-    self->style = lh_null;
-    self->class = lh_addr_of(lh_ui_entity_class);
-    self->hidden = lh_bool_false;
-    self->pressed = lh_bool_false;
-    self->parent = lh_null;
-    self->view = lh_null;
-    lh_ui_place_init(lh_addr_of(self->place), lh_ui_place_size_fixed, lh_ui_scalar(0));
-    lh_list_init(lh_addr_of(self->children));
-    lh_list_node_init(lh_addr_of(self->link));
+    lh_ui_entity_set_rect(self, rect);
+    lh_ui_entity_set_style(self, lh_null);
+    lh_ui_entity_set_class(self, lh_addr_of(lh_ui_entity_class));
+    lh_ui_entity_set_hidden(self, lh_bool_false);
+    lh_ui_entity_set_pressed(self, lh_bool_false);
+    lh_ui_entity_set_parent(self, lh_null);
+    lh_ui_entity_set_view(self, lh_null);
+    lh_ui_place_init(lh_ui_entity_get_place_mut(self), lh_ui_place_size_fixed, lh_ui_scalar(0));
+    lh_list_init(lh_ui_entity_get_children_mut(self));
+    lh_list_node_init(lh_ui_entity_get_link_mut(self));
 }
 
 lh_void
-lh_ui_entity_get_rect(const lh_ui_entity_t *self, lh_ui_rect_t *out)
+lh_ui_entity_copy_rect(const lh_ui_entity_t *self, lh_ui_rect_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    lh_ptr_deref(out) = self->rect;
+    lh_ptr_deref(out) = lh_ptr_deref(lh_ui_entity_get_rect(self));
 }
 
 const lh_ui_place_t *
@@ -38,11 +39,11 @@ lh_ui_entity_get_place(const lh_ui_entity_t *self)
 }
 
 lh_void
-lh_ui_entity_set_place(lh_ui_entity_t *self, const lh_ui_place_t *place)
+lh_ui_entity_set_place_v(lh_ui_entity_t *self, const lh_ui_place_t *place)
 {
     lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(place));
-    self->place = lh_ptr_deref(place);
+    lh_ui_entity_set_place(self, lh_ptr_deref(place));
 }
 
 const lh_ui_style_t *
@@ -73,13 +74,13 @@ lh_ui_entity_get_style_now(const lh_ui_entity_t *self)
     const lh_ui_style_t *style;
 
     lh_assert_runtime_ref(self);
-    style = self->style;
+    style = lh_ui_entity_get_style(self);
     /* Painting is the only thing the pressed style is asked for, so it cannot
        change where anything lands. What a press *hits* keeps to the own radius
        (::lh_ui_entity_contains_point): a hit test runs before the press that
        asked for it, so a shape read from the pressed flag would answer one
        frame too late. */
-    if (!self->pressed || lh_null_eq(style))
+    if (!lh_ui_entity_is_pressed(self) || lh_null_eq(style))
     {
         return style;
     }
@@ -104,7 +105,7 @@ lh_ui_scalar_t
 lh_ui_entity_get_radius(const lh_ui_entity_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_null_eq(self->style) ? lh_ui_scalar(0) : lh_ui_style_get_radius(self->style);
+    return lh_null_eq(lh_ui_entity_get_style(self)) ? lh_ui_scalar(0) : lh_ui_style_get_radius(lh_ui_entity_get_style(self));
 }
 
 lh_ui_scalar_t
@@ -121,7 +122,7 @@ lh_ui_scalar_t
 lh_ui_entity_get_hit_radius(const lh_ui_entity_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_null_eq(self->style) ? lh_ui_scalar(0) : lh_ui_style_get_hit_radius(self->style);
+    return lh_null_eq(lh_ui_entity_get_style(self)) ? lh_ui_scalar(0) : lh_ui_style_get_hit_radius(lh_ui_entity_get_style(self));
 }
 
 lh_void
@@ -133,13 +134,13 @@ lh_ui_entity_get_padding(const lh_ui_entity_t *self, lh_ui_insets_t *out)
     lh_assert_runtime_ref(self);
     lh_ui_insets_init_all(lh_addr_of(none), lh_ui_scalar(0));
     lh_ptr_deref(out) =
-        lh_null_eq(self->style) ? none : lh_ptr_deref(lh_ui_style_get_padding(self->style));
+        lh_null_eq(lh_ui_entity_get_style(self)) ? none : lh_ptr_deref(lh_ui_style_get_padding(lh_ui_entity_get_style(self)));
 }
 
 lh_bool_t
 lh_ui_entity_contains_point(const lh_ui_entity_t *self, lh_ui_point_t point)
 {
-    return lh_ui_radius_contains(lh_addr_of(self->rect), lh_ui_entity_get_hit_radius(self), point);
+    return lh_ui_radius_contains(lh_ui_entity_get_rect(self), lh_ui_entity_get_hit_radius(self), point);
 }
 
 const lh_ui_entity_class_t *
@@ -154,8 +155,8 @@ lh_ui_entity_set_class(lh_ui_entity_t *self, const lh_ui_entity_class_t *class)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(class);
-    lh_assert_runtime_ref(class->event);
-    self->class = class;
+    lh_assert_runtime_ref(lh_ui_entity_class_get_event_fn(class));
+    lh_ui_entity_set_class(self, class);
 }
 
 lh_bool_t
@@ -170,9 +171,9 @@ lh_ui_entity_chain_shown(const lh_ui_entity_t *self)
 {
     const lh_ui_entity_t *walk;
 
-    for (walk = self; lh_null_ne(walk); walk = walk->parent)
+    for (walk = self; lh_null_ne(walk); walk = lh_ui_entity_get_parent(walk))
     {
-        if (walk->hidden)
+        if (lh_ui_entity_is_hidden(walk))
         {
             return lh_bool_false;
         }
@@ -185,11 +186,11 @@ lh_ui_entity_own_view(const lh_ui_entity_t *self)
 {
     const lh_ui_entity_t *top = self;
 
-    while (lh_null_ne(top->parent))
+    while (lh_null_ne(lh_ui_entity_get_parent(top)))
     {
-        top = top->parent;
+        top = lh_ui_entity_get_parent(top);
     }
-    return top->view;
+    return lh_ui_entity_get_view(top);
 }
 
 lh_ui_entity_t *
@@ -206,7 +207,7 @@ lh_ui_entity_is_ancestor(const lh_ui_entity_t *ancestor, const lh_ui_entity_t *s
 
     while (lh_null_ne(walk) && walk != ancestor)
     {
-        walk = walk->parent;
+        walk = lh_ui_entity_get_parent(walk);
     }
     return lh_null_ne(walk) ? lh_bool_true : lh_bool_false;
 }
@@ -217,13 +218,13 @@ lh_ui_entity_add_child(lh_ui_entity_t *self, lh_ui_entity_t *child)
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(child);
     lh_assert_runtime_if(self == child, lh_runtime_error_code_invalid_argument);
-    lh_assert_runtime_if(lh_list_node_is_linked(lh_addr_of(child->link)),
+    lh_assert_runtime_if(lh_list_node_is_linked(lh_ui_entity_get_link_mut(child)),
                          lh_runtime_error_code_invalid_argument);
-    lh_assert_runtime_if(lh_null_ne(child->parent), lh_runtime_error_code_invalid_argument);
+    lh_assert_runtime_if(lh_null_ne(lh_ui_entity_get_parent(child)), lh_runtime_error_code_invalid_argument);
     lh_assert_runtime_if(lh_ui_entity_is_ancestor(child, self),
                          lh_runtime_error_code_invalid_argument);
-    child->parent = self;
-    lh_list_push_back(lh_addr_of(self->children), lh_addr_of(child->link));
+    lh_ui_entity_set_parent(child, self);
+    lh_list_push_back(lh_ui_entity_get_children_mut(self), lh_ui_entity_get_link_mut(child));
 }
 
 lh_void
@@ -231,22 +232,22 @@ lh_ui_entity_remove_child(lh_ui_entity_t *self, lh_ui_entity_t *child)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(child);
-    lh_assert_runtime_ifn(child->parent == self, lh_runtime_error_code_invalid_argument);
+    lh_assert_runtime_ifn(lh_ui_entity_get_parent(child) == self, lh_runtime_error_code_invalid_argument);
     /* Out of the tree, out of the view's slots: what leaves lands on its styles, so
        an entity the application frees after taking it out is not left in flight. */
     if (lh_null_ne(lh_ui_entity_own_view(self)))
     {
         lh_ui_view_finish_transitions(lh_ui_entity_own_view(self), child);
     }
-    lh_list_node_unlink(lh_addr_of(child->link));
-    child->parent = lh_null;
+    lh_list_node_unlink(lh_ui_entity_get_link_mut(child));
+    lh_ui_entity_set_parent(child, lh_null);
 }
 
 lh_ui_entity_t *
 lh_ui_entity_get_first_child(const lh_ui_entity_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_list_entry(lh_ui_entity_t, link, lh_list_get_first(lh_addr_of(self->children)));
+    return lh_list_entry(lh_ui_entity_t, link, lh_list_get_first(lh_ui_entity_get_children(self)));
 }
 
 lh_ui_entity_t *
@@ -255,14 +256,14 @@ lh_ui_entity_get_next_child(const lh_ui_entity_t *self, const lh_ui_entity_t *ch
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(child);
     return lh_list_entry(lh_ui_entity_t, link,
-                         lh_list_get_next(lh_addr_of(self->children), lh_addr_of(child->link)));
+                         lh_list_get_next(lh_ui_entity_get_children(self), lh_ui_entity_get_link(child)));
 }
 
 lh_ui_entity_t *
 lh_ui_entity_get_last_child(const lh_ui_entity_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_list_entry(lh_ui_entity_t, link, lh_list_get_last(lh_addr_of(self->children)));
+    return lh_list_entry(lh_ui_entity_t, link, lh_list_get_last(lh_ui_entity_get_children(self)));
 }
 
 lh_ui_entity_t *
@@ -271,7 +272,7 @@ lh_ui_entity_get_prev_child(const lh_ui_entity_t *self, const lh_ui_entity_t *ch
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(child);
     return lh_list_entry(lh_ui_entity_t, link,
-                         lh_list_get_prev(lh_addr_of(self->children), lh_addr_of(child->link)));
+                         lh_list_get_prev(lh_ui_entity_get_children(self), lh_ui_entity_get_link(child)));
 }
 
 lh_bool_t
@@ -304,9 +305,9 @@ lh_ui_entity_send(const lh_ui_entity_t *self, lh_ui_entity_event_code_t code, lh
     lh_ui_entity_event_t event;
 
     lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(self->class);
+    lh_assert_runtime_ref(lh_ui_entity_get_class(self));
     lh_ui_entity_event_init(lh_addr_of(event), code, context);
-    self->class->event(self, lh_addr_of(event));
+    lh_ui_entity_class_get_event_fn(lh_ui_entity_get_class(self))(self, lh_addr_of(event));
 }
 
 lh_bool_t
@@ -315,7 +316,7 @@ lh_ui_entity_is_shown(const lh_ui_entity_t *self)
     lh_bool_t visible = lh_bool_true;
 
     lh_assert_runtime_ref(self);
-    lh_return_if(self->hidden, lh_bool_false);
+    lh_return_if(lh_ui_entity_is_hidden(self), lh_bool_false);
     lh_ui_entity_send(self, lh_ui_entity_event_visible, lh_addr_of(visible));
     return visible;
 }
@@ -349,7 +350,7 @@ lh_ui_entity_click_target(lh_ui_entity_t *self)
        pointer. What is under the pointer may be a caption, a picture or a row, and
        whether that is the whole of the click or only where it landed is not a
        question about geometry — it is a question about who is clickable. */
-    for (; lh_null_ne(node); node = node->parent)
+    for (; lh_null_ne(node); node = lh_ui_entity_get_parent(node))
     {
         lh_return_if(lh_ui_entity_is_clickable(node), node);
     }
@@ -361,7 +362,7 @@ lh_ui_entity_click_target(lh_ui_entity_t *self)
 lh_ui_entity_t *
 lh_ui_entity_find_focusable(lh_ui_entity_t *self)
 {
-    for (; lh_null_ne(self); self = self->parent)
+    for (; lh_null_ne(self); self = lh_ui_entity_get_parent(self))
     {
         lh_return_if(lh_ui_entity_is_focusable(self), self);
     }
@@ -382,7 +383,7 @@ lh_ui_entity_get_children_transform(const lh_ui_entity_t *self, lh_ui_point_t *o
 
     lh_assert_runtime_ref(offset);
     lh_ui_entity_ask_children(self, lh_addr_of(transform));
-    lh_ui_entity_transform_get_offset(lh_addr_of(transform), offset);
+    lh_ui_entity_transform_copy_offset(lh_addr_of(transform), offset);
     return lh_ui_entity_transform_is_clip(lh_addr_of(transform));
 }
 
@@ -393,12 +394,12 @@ lh_ui_entity_extend_bounds(const lh_ui_entity_t *self, lh_ui_rect_t bounds, lh_u
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    if (self->hidden)
+    if (lh_ui_entity_is_hidden(self))
     {
         lh_ptr_deref(out) = bounds;
         return;
     }
-    lh_ui_rect_union(lh_addr_of(bounds), lh_addr_of(self->rect), out);
+    lh_ui_rect_union(lh_addr_of(bounds), lh_ui_entity_get_rect(self), out);
 }
 
 lh_void
@@ -485,7 +486,7 @@ lh_ui_entity_get_root_offset(const lh_ui_entity_t *self, lh_ui_point_t *out)
 
     lh_assert_runtime_ref(self);
     lh_ui_point_init(lh_addr_of(total), lh_ui_scalar(0), lh_ui_scalar(0));
-    for (self = self->parent; lh_null_ne(self); self = self->parent)
+    for (self = lh_ui_entity_get_parent(self); lh_null_ne(self); self = lh_ui_entity_get_parent(self))
     {
         lh_ui_entity_add_children_offset(self, total, lh_addr_of(total));
     }
@@ -540,7 +541,7 @@ lh_ui_entity_get_root_rect(const lh_ui_entity_t *self, lh_ui_rect_t *out)
     lh_ui_point_t offset;
     lh_ui_entity_get_root_offset(self, lh_addr_of(offset));
 
-    lh_ui_rect_offset(lh_addr_of(self->rect), lh_ui_point_get_x(lh_addr_of(offset)),
+    lh_ui_rect_offset(lh_ui_entity_get_rect(self), lh_ui_point_get_x(lh_addr_of(offset)),
                       lh_ui_point_get_y(lh_addr_of(offset)), out);
 }
 
@@ -561,9 +562,9 @@ lh_ui_entity_push_children(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
     lh_return_if(lh_null_eq(canvas), lh_bool_false);
     lh_ui_entity_ask_children(self, lh_addr_of(transform));
     lh_return_if(lh_ui_entity_transform_is_identity(lh_addr_of(transform)), lh_bool_false);
-    rect = self->rect;
+    rect = lh_ptr_deref(lh_ui_entity_get_rect(self));
     lh_ui_point_t point;
-    lh_ui_entity_transform_get_offset(lh_addr_of(transform), lh_addr_of(point));
+    lh_ui_entity_transform_copy_offset(lh_addr_of(transform), lh_addr_of(point));
     lh_ui_canvas_push_round(canvas, point,
                             lh_ui_entity_transform_is_clip(lh_addr_of(transform)) ? lh_addr_of(rect)
                                                                                   : lh_null,
@@ -587,7 +588,7 @@ lh_ui_entity_searches_children_at(const lh_ui_entity_t *self, lh_ui_point_t poin
        clipping parent must not hand its cut corner to a child, and a plain one
        must, because a plain parent draws children outside its rounded shape. */
     lh_return_if(
-        lh_ui_radius_contains(lh_addr_of(self->rect), lh_ui_entity_get_radius_now(self), point),
+        lh_ui_radius_contains(lh_ui_entity_get_rect(self), lh_ui_entity_get_radius_now(self), point),
         lh_bool_true);
     /* Outside: only children could be hit, and asking about the clip may measure content. */
     lh_return_if(lh_null_eq(lh_ui_entity_get_first_child(self)), lh_bool_false);
@@ -687,9 +688,9 @@ lh_ui_entity_get_painted_rect(const lh_ui_entity_t *self, lh_ui_rect_t *out)
     const lh_ui_scalar_t outset =
         lh_null_eq(style)
             ? lh_ui_scalar(0)
-            : lh_ui_shadow_get_outset(lh_ui_style_get_shadow(style), lh_addr_of(self->rect));
+            : lh_ui_shadow_get_outset(lh_ui_style_get_shadow(style), lh_ui_entity_get_rect(self));
 
-    lh_ui_rect_inset(lh_addr_of(self->rect), lh_math_neg(outset), lh_math_neg(outset), out);
+    lh_ui_rect_inset(lh_ui_entity_get_rect(self), lh_math_neg(outset), lh_math_neg(outset), out);
 }
 
 lh_void
@@ -726,9 +727,9 @@ lh_ui_entity_set_rect(lh_ui_entity_t *self, lh_ui_rect_t rect)
     lh_assert_runtime_ref(self);
     /* The same rect is what a layout writes on every poll. Recording it would
        paint the whole table to put each row back where it already is. */
-    lh_return_if(lh_ui_rect_eq(lh_addr_of(self->rect), lh_addr_of(rect)));
+    lh_return_if(lh_ui_rect_eq(lh_ui_entity_get_rect_mut(self), lh_addr_of(rect)));
     lh_ui_entity_note(self);
-    self->rect = rect;
+    lh_ui_entity_set_rect(self, rect);
     lh_ui_entity_note(self);
 }
 
@@ -739,9 +740,9 @@ lh_ui_entity_set_style_at_once(lh_ui_entity_t *self, const lh_ui_style_t *style)
     /* A shared style switched to itself is the steady state of a card that was
        already selected. Both looks are recorded: a shadow that only the old
        one casts would otherwise stay on the surface. */
-    lh_return_if(self->style == style);
+    lh_return_if(lh_ui_entity_get_style(self) == style);
     lh_ui_entity_note(self);
-    self->style = style;
+    lh_ui_entity_set_style(self, style);
     lh_ui_entity_note(self);
 }
 
@@ -757,7 +758,7 @@ lh_ui_entity_set_style(lh_ui_entity_t *self, const lh_ui_style_t *style)
         /* Already on its way there: a hover that is asked for on every move of the
            pointer must not start the fade again on every move. */
         lh_return_if(lh_null_ne(style) && lh_ui_view_get_transition_target(view, self) == style);
-        if (lh_null_ne(style) && lh_null_ne(self->style) && self->style != style &&
+        if (lh_null_ne(style) && lh_null_ne(lh_ui_entity_get_style(self)) && lh_ui_entity_get_style(self) != style &&
             lh_ui_style_get_transition(style) > 0 && lh_ui_view_start_transition(view, self, style))
         {
             return;
@@ -778,7 +779,7 @@ lh_ui_entity_move_by(lh_ui_entity_t *self, lh_ui_scalar_t dx, lh_ui_scalar_t dy)
     lh_assert_runtime_ref(self);
     lh_return_if(dx == lh_ui_scalar(0) && dy == lh_ui_scalar(0));
     lh_ui_entity_note(self);
-    lh_ui_rect_offset(lh_addr_of(self->rect), dx, dy, lh_addr_of(self->rect));
+    lh_ui_rect_offset(lh_ui_entity_get_rect_mut(self), dx, dy, lh_ui_entity_get_rect_mut(self));
     for (child = lh_ui_entity_get_first_child(self); lh_null_ne(child);
          child = lh_ui_entity_get_next_child(self, child))
     {
@@ -790,7 +791,7 @@ lh_ui_entity_move_by(lh_ui_entity_t *self, lh_ui_scalar_t dx, lh_ui_scalar_t dy)
 lh_void
 lh_ui_entity_move_to(lh_ui_entity_t *self, lh_ui_point_t origin)
 {
-    const lh_ui_point_t *from = lh_ui_rect_get_origin(lh_addr_of(self->rect));
+    const lh_ui_point_t *from = lh_ui_rect_get_origin(lh_ui_entity_get_rect_mut(self));
 
     lh_ui_entity_move_by(self, lh_ui_point_get_x(lh_addr_of(origin)) - lh_ui_point_get_x(from),
                          lh_ui_point_get_y(lh_addr_of(origin)) - lh_ui_point_get_y(from));
@@ -800,17 +801,17 @@ lh_void
 lh_ui_entity_set_hidden(lh_ui_entity_t *self, lh_bool_t hidden)
 {
     lh_assert_runtime_ref(self);
-    lh_return_if(self->hidden == hidden);
+    lh_return_if(lh_ui_entity_is_hidden(self) == hidden);
     /* Hide records the rect that is still on screen. Show records the rect
        that is about to be: noting a hidden node is a no
        (::lh_ui_entity_note), so the flag has to change first. */
     if (hidden)
     {
         lh_ui_entity_note(self);
-        self->hidden = hidden;
+        lh_ui_entity_set_hidden(self, hidden);
         return;
     }
-    self->hidden = hidden;
+    lh_ui_entity_set_hidden(self, hidden);
     lh_ui_entity_note(self);
 }
 
@@ -885,15 +886,15 @@ lh_ui_entity_draw_border(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
     style = lh_ui_entity_get_style_now(self);
     lh_return_if(lh_null_eq(style));
     border = lh_ui_style_get_border(style);
-    left = border->left;
-    top = border->top;
-    right = border->right;
-    bottom = border->bottom;
+    left = lh_ui_insets_get_left(border);
+    top = lh_ui_insets_get_top(border);
+    right = lh_ui_insets_get_right(border);
+    bottom = lh_ui_insets_get_bottom(border);
     lh_return_if(left <= lh_ui_scalar(0) && top <= lh_ui_scalar(0) && right <= lh_ui_scalar(0) &&
                  bottom <= lh_ui_scalar(0));
     color = lh_ui_paint_get_color(lh_ui_style_get_border_fill(style));
     lh_return_if(lh_null_eq(color));
-    lh_ui_entity_get_rect(self, lh_addr_of(rect));
+    lh_ui_entity_copy_rect(self, lh_addr_of(rect));
     origin = lh_ui_rect_get_origin(lh_addr_of(rect));
     size = lh_ui_rect_get_size(lh_addr_of(rect));
     x = lh_ui_point_get_x(origin);
@@ -967,4 +968,95 @@ lh_ui_entity_add_damage(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
     lh_return_if(lh_null_eq(self) || lh_null_eq(canvas));
     lh_ui_entity_get_root_rect(self, lh_addr_of(rect));
     lh_ui_canvas_add_damage(canvas, lh_addr_of(rect));
+}
+
+lh_ui_rect_t *
+lh_ui_entity_get_rect_mut(lh_ui_entity_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->rect);
+}
+
+lh_void
+lh_ui_entity_set_parent(lh_ui_entity_t *self, struct lh_ui_entity * parent)
+{
+    lh_assert_runtime_ref(self);
+    self->parent = parent;
+}
+
+struct lh_ui_view *
+lh_ui_entity_get_view(const lh_ui_entity_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->view;
+}
+
+lh_void
+lh_ui_entity_set_view(lh_ui_entity_t *self, struct lh_ui_view * view)
+{
+    lh_assert_runtime_ref(self);
+    self->view = view;
+}
+
+lh_ui_place_t *
+lh_ui_entity_get_place_mut(lh_ui_entity_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->place);
+}
+
+const lh_list_t *
+lh_ui_entity_get_children(const lh_ui_entity_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->children);
+}
+
+lh_list_t *
+lh_ui_entity_get_children_mut(lh_ui_entity_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->children);
+}
+
+lh_void
+lh_ui_entity_set_children(lh_ui_entity_t *self, lh_list_t children)
+{
+    lh_assert_runtime_ref(self);
+    self->children = children;
+}
+
+const lh_list_node_t *
+lh_ui_entity_get_link(const lh_ui_entity_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->link);
+}
+
+lh_list_node_t *
+lh_ui_entity_get_link_mut(lh_ui_entity_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->link);
+}
+
+lh_void
+lh_ui_entity_set_link(lh_ui_entity_t *self, lh_list_node_t link)
+{
+    lh_assert_runtime_ref(self);
+    self->link = link;
+}
+
+const lh_ui_rect_t *
+lh_ui_entity_get_rect(const lh_ui_entity_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->rect);
+}
+
+lh_void
+lh_ui_entity_set_place(lh_ui_entity_t *self, lh_ui_place_t place)
+{
+    lh_assert_runtime_ref(self);
+    self->place = place;
 }

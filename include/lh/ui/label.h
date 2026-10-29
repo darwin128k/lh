@@ -251,6 +251,373 @@ lh_ui_label_shorten(const lh_ui_font_t *font, const lh_char_t *text, lh_s32_t ro
 lh_void
 lh_ui_label_draw_text(const lh_ui_label_t *self, lh_ui_canvas_t *canvas);
 
+/**
+ * @brief The container the label is built on (level 1).
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_container_t *
+lh_ui_label_get_container(const lh_ui_label_t *self);
+
+/**
+ * @brief The container the label is built on, to change in place (level 1).
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_container_t *
+lh_ui_label_get_container_mut(lh_ui_label_t *self);
+
+/**
+ * @brief Store the container the label is built on (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ * @param container The new value.
+ */
+lh_void
+lh_ui_label_set_container(lh_ui_label_t *self, lh_ui_container_t container);
+
+/**
+ * @brief Whether the cached text metrics are current (level 1).
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ */
+lh_bool_t
+lh_ui_label_is_metrics_ready(const lh_ui_label_t *self);
+
+/**
+ * @brief Store whether the cached text metrics are current (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ * @param metrics_ready The new value.
+ */
+lh_void
+lh_ui_label_set_metrics_ready(lh_ui_label_t *self, lh_bool_t metrics_ready);
+
+/**
+ * @brief Whether the text hash is current (level 1).
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ */
+lh_bool_t
+lh_ui_label_is_text_hashed(const lh_ui_label_t *self);
+
+/**
+ * @brief Store whether the text hash is current (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ * @param text_hashed The new value.
+ */
+lh_void
+lh_ui_label_set_text_hashed(lh_ui_label_t *self, lh_bool_t text_hashed);
+
+/**
+ * @brief The hash of the text the metrics were measured for (level 1).
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ */
+lh_u32_t
+lh_ui_label_get_text_hash(const lh_ui_label_t *self);
+
+/**
+ * @brief Store the hash of the text the metrics were measured for (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ * @param text_hash The new value.
+ */
+lh_void
+lh_ui_label_set_text_hash(lh_ui_label_t *self, lh_u32_t text_hash);
+
+/**
+ * @brief The length of the text the metrics were measured for (level 1).
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ */
+lh_u32_t
+lh_ui_label_get_text_length(const lh_ui_label_t *self);
+
+/**
+ * @brief Store the length of the text the metrics were measured for (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ * @param text_length The new value.
+ */
+lh_void
+lh_ui_label_set_text_length(lh_ui_label_t *self, lh_u32_t text_length);
+
+/**
+ * @brief The rectangle the text was last drawn in (level 1).
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_rect_t *
+lh_ui_label_get_text_noted(const lh_ui_label_t *self);
+
+/**
+ * @brief The rectangle the text was last drawn in, to change in place (level 1).
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_rect_t *
+lh_ui_label_get_text_noted_mut(lh_ui_label_t *self);
+
+/**
+ * @brief Store the rectangle the text was last drawn in (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ * @param text_noted The new value.
+ */
+lh_void
+lh_ui_label_set_text_noted(lh_ui_label_t *self, lh_ui_rect_t text_noted);
+
+/**
+ * @brief The font the metrics were measured with (level 1).
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ */
+const struct lh_ui_font *
+lh_ui_label_get_metrics_font(const lh_ui_label_t *self);
+
+/**
+ * @brief Store the font the metrics were measured with (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ * @param metrics_font The new value.
+ */
+lh_void
+lh_ui_label_set_metrics_font(lh_ui_label_t *self, const struct lh_ui_font * metrics_font);
+
+/**
+ * @brief The rectangle the metrics were measured in (level 1).
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_rect_t *
+lh_ui_label_get_metrics_rect(const lh_ui_label_t *self);
+
+/**
+ * @brief The rectangle the metrics were measured in, to change in place (level 1).
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_rect_t *
+lh_ui_label_get_metrics_rect_mut(lh_ui_label_t *self);
+
+/**
+ * @brief Store the rectangle the metrics were measured in (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ * @param metrics_rect The new value.
+ */
+lh_void
+lh_ui_label_set_metrics_rect(lh_ui_label_t *self, lh_ui_rect_t metrics_rect);
+
+/**
+ * @brief The padding the metrics were measured with (level 1).
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_insets_t *
+lh_ui_label_get_metrics_padding(const lh_ui_label_t *self);
+
+/**
+ * @brief The padding the metrics were measured with, to change in place (level 1).
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_insets_t *
+lh_ui_label_get_metrics_padding_mut(lh_ui_label_t *self);
+
+/**
+ * @brief Store the padding the metrics were measured with (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ * @param metrics_padding The new value.
+ */
+lh_void
+lh_ui_label_set_metrics_padding(lh_ui_label_t *self, lh_ui_insets_t metrics_padding);
+
+/**
+ * @brief The horizontal alignment the metrics were measured with (level 1).
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_text_align_h_t
+lh_ui_label_get_metrics_align_h(const lh_ui_label_t *self);
+
+/**
+ * @brief Store the horizontal alignment the metrics were measured with (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ * @param metrics_align_h The new value.
+ */
+lh_void
+lh_ui_label_set_metrics_align_h(lh_ui_label_t *self, lh_ui_text_align_h_t metrics_align_h);
+
+/**
+ * @brief The vertical alignment the metrics were measured with (level 1).
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_text_align_v_t
+lh_ui_label_get_metrics_align_v(const lh_ui_label_t *self);
+
+/**
+ * @brief Store the vertical alignment the metrics were measured with (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ * @param metrics_align_v The new value.
+ */
+lh_void
+lh_ui_label_set_metrics_align_v(lh_ui_label_t *self, lh_ui_text_align_v_t metrics_align_v);
+
+/**
+ * @brief Where the text starts (level 1).
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_point_t *
+lh_ui_label_get_metrics_origin(const lh_ui_label_t *self);
+
+/**
+ * @brief Where the text starts, to change in place (level 1).
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_point_t *
+lh_ui_label_get_metrics_origin_mut(lh_ui_label_t *self);
+
+/**
+ * @brief Store where the text starts (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ * @param metrics_origin The new value.
+ */
+lh_void
+lh_ui_label_set_metrics_origin(lh_ui_label_t *self, lh_ui_point_t metrics_origin);
+
+/**
+ * @brief The top of the ink of the text (level 1).
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_scalar_t
+lh_ui_label_get_metrics_ink_top(const lh_ui_label_t *self);
+
+/**
+ * @brief Store the top of the ink of the text (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ * @param metrics_ink_top The new value.
+ */
+lh_void
+lh_ui_label_set_metrics_ink_top(lh_ui_label_t *self, lh_ui_scalar_t metrics_ink_top);
+
+/**
+ * @brief The width the text was wrapped to (level 1).
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_scalar_t
+lh_ui_label_get_metrics_wrap(const lh_ui_label_t *self);
+
+/**
+ * @brief Store the width the text was wrapped to (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ * @param metrics_wrap The new value.
+ */
+lh_void
+lh_ui_label_set_metrics_wrap(lh_ui_label_t *self, lh_ui_scalar_t metrics_wrap);
+
+/**
+ * @brief The rectangle the ink of the text covers (level 1).
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_rect_t *
+lh_ui_label_get_metrics_ink(const lh_ui_label_t *self);
+
+/**
+ * @brief The rectangle the ink of the text covers, to change in place (level 1).
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_rect_t *
+lh_ui_label_get_metrics_ink_mut(lh_ui_label_t *self);
+
+/**
+ * @brief Store the rectangle the ink of the text covers (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ * @param metrics_ink The new value.
+ */
+lh_void
+lh_ui_label_set_metrics_ink(lh_ui_label_t *self, lh_ui_rect_t metrics_ink);
+
+/**
+ * @brief The size of the text (level 1).
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_size_t *
+lh_ui_label_get_metrics_size(const lh_ui_label_t *self);
+
+/**
+ * @brief The size of the text, to change in place (level 1).
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_size_t *
+lh_ui_label_get_metrics_size_mut(lh_ui_label_t *self);
+
+/**
+ * @brief Store the size of the text (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ * @param metrics_size The new value.
+ */
+lh_void
+lh_ui_label_set_metrics_size(lh_ui_label_t *self, lh_ui_size_t metrics_size);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_LABEL_H */
