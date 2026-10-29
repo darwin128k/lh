@@ -222,6 +222,11 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/wstr/list.c
         ${LH_LIB_SRC_PATH}/str/list/span.c
 
+        ${LH_LIB_SRC_PATH}/console/call.c
+        ${LH_LIB_SRC_PATH}/console/command.c
+        ${LH_LIB_SRC_PATH}/console/entry.c
+        ${LH_LIB_SRC_PATH}/console.c
+
         ${LH_LIB_SRC_PATH}/fs/path.c
         ${LH_LIB_SRC_PATH}/fs/path/style.c
         ${LH_LIB_SRC_PATH}/fs/stat.c

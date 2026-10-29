@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh/console`: a registry of console commands (`lh_console_t`) answering to a scope
+  and a word without case, each remembering its owner (`lh_console_drop_owner`), with
+  removal while a handler runs; `lh_console_call_t` carries the arguments and the
+  reply sink (`lh_console_call_get_arg`, `_print`, `_printf`). Where lines come from,
+  where replies go, word length and help layout stay the caller's.
+
 - The event bus modules talk through, the level over `lh/os/shared` and
   `lh/os/module` / `lh/os/loader`: `lh/os/module/event/` (`lh_os_module_event_bus_t`,
   entries, subscriptions), built with `LH_LIBRARY_OPTION_OS`. Synchronous indexed
