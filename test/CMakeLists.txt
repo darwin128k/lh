@@ -74,6 +74,8 @@ lh_add_test_core(lh_test_http_parser ${LH_TEST_SRC_PATH}/lh/http/parser.cpp
         ${LH_TEST_SRC_PATH}/lh/http/char.cpp ${LH_TEST_SRC_PATH}/lh/http/version.cpp)
 
 # Types, errors and the few pieces every core leans on.
+lh_add_test_core(lh_test_events ${LH_TEST_SRC_PATH}/lh/event/bus.cpp)
+
 lh_add_test_core(lh_test_core
         ${LH_TEST_SRC_PATH}/lh/spsc.cpp
         ${LH_TEST_SRC_PATH}/lh/array.cpp

@@ -93,7 +93,7 @@ lh_void
 lh_array_reserve(lh_array_t *self, lh_usize_t min_capacity)
 {
     lh_runtime_check_ifn(lh_array_try_reserve(self, min_capacity),
-                          lh_runtime_error_code_alloc_failed);
+                          lh_runtime_error_code_memory_not_allocated);
 }
 
 lh_bool_t
@@ -386,7 +386,7 @@ lh_uindex_t
 lh_array_push_back(lh_array_t *self, const lh_ptr value)
 {
     /* self not re-checked here: lh_array_get_size(self) right below does it.
-     * value still needs its own check вЂ” nothing downstream validates it. */
+     * value still needs its own check — nothing downstream validates it. */
     lh_assert_runtime_ref(value);
 
     /* Fast path for the common case (room already reserved): one copy to the

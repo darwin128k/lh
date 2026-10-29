@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Add the synchronous indexed event bus, stable name IDs, per-event subscriber lists, owner cleanup and deferred callback disposal. Add fallible array reserve and allocated-memory resize bricks.
+
 ### Added
 
 - Level-1 accessors for the `lh/ui` structs (about 400: every field of insets, radii, rects, mask, pixmap, font, paint, pen, shadow, gradient and its sampler, style, layout and placement, text lines and blocks, canvas and its state, clip, backend table, software canvas and shadow pass, web canvas and atlas, display, entity, container, label, input, button, toggle, image, scrollbar, transition, view and its pointers and focus walk, frame and frame statistics, renderer3d and its camera, the web host client, frame, hooks and stream, the web buffer and HTML attributes), and the ui code calls them. New sources for the structs that had none: `ui/canvas/backend.c`, `ui/view/focus/walk.c`, `ui/frame.c`, `ui/web/host/client.c`, `frame.c`, `hooks.c`, `stream.c`
@@ -394,4 +396,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - `LH_COMPILE_OPTION_*` layer (`compile_option.h`, related CMake modules): optimization, debug symbols, `NDEBUG`, and LTO are expected from the toolchain / CMake flags, not the public lh API
-

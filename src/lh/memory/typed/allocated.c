@@ -1,7 +1,8 @@
 #include <lh/memory/typed/allocated.h>
 #include <lh/math.h>
 #include <lh/assert.h>
-#include <lh/numeric/interval.h>
+#include <lh/util/interval.h>
+#include <lh/size/limits.h>
 
 lh_void
 lh_memory_typed_allocated_clear(lh_memory_typed_allocated_t *self)
@@ -13,7 +14,7 @@ lh_void
 lh_memory_typed_allocated_resize(lh_memory_typed_allocated_t *self, lh_usize_t count)
 {
     lh_runtime_check_ifn(lh_memory_typed_allocated_try_resize(self, count),
-                          lh_runtime_error_code_alloc_failed);
+                          lh_runtime_error_code_memory_not_allocated);
 }
 
 lh_bool_t
