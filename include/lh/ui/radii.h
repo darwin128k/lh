@@ -2,7 +2,7 @@
  * @file radii.h
  * @brief A radius for each corner of a box: ::lh_ui_radii_t.
  *
- * ::lh_ui_style_set_radius rounds every corner alike, and that is most boxes. A card
+ * ::lh_ui_style_set_radius_v rounds every corner alike, and that is most boxes. A card
  * whose top is rounded and whose bottom sits flush on the one below it -- a tab, a
  * sheet, the head of a panel -- is not, and CSS spells it `border-radius: 8px 8px 0 0`.
  *

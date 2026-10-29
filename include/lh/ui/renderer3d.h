@@ -211,6 +211,121 @@ lh_void
 lh_ui_renderer3d_raster(lh_ui_renderer3d_t *self, lh_math_vec3_t a, lh_math_vec3_t b,
                         lh_math_vec3_t c, lh_u32_t color_argb);
 
+/**
+ * @brief The pixmap the frame is drawn into (level 1).
+ *
+ * @param self The renderer; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_pixmap_t *
+lh_ui_renderer3d_get_target(const lh_ui_renderer3d_t *self);
+
+/**
+ * @brief Store the pixmap the frame is drawn into (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The renderer; checked by ::lh_assert_runtime_ref.
+ * @param target The new value.
+ */
+lh_void
+lh_ui_renderer3d_set_target(lh_ui_renderer3d_t *self, lh_ui_pixmap_t * target);
+
+/**
+ * @brief The depth buffer, one value per pixel (level 1).
+ *
+ * @param self The renderer; checked by ::lh_assert_runtime_ref.
+ */
+lh_math_fscalar_t *
+lh_ui_renderer3d_get_depth(const lh_ui_renderer3d_t *self);
+
+/**
+ * @brief Store the depth buffer, one value per pixel (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The renderer; checked by ::lh_assert_runtime_ref.
+ * @param depth The new value.
+ */
+lh_void
+lh_ui_renderer3d_set_depth(lh_ui_renderer3d_t *self, lh_math_fscalar_t * depth);
+
+/**
+ * @brief The camera the frame is drawn from (level 1).
+ *
+ * @param self The renderer; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_renderer3d_camera_t *
+lh_ui_renderer3d_get_camera(const lh_ui_renderer3d_t *self);
+
+/**
+ * @brief The camera the frame is drawn from, to change in place (level 1).
+ *
+ * @param self The renderer; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_renderer3d_camera_t *
+lh_ui_renderer3d_get_camera_mut(lh_ui_renderer3d_t *self);
+
+/**
+ * @brief Store the camera the frame is drawn from (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The renderer; checked by ::lh_assert_runtime_ref.
+ * @param camera The new value.
+ */
+lh_void
+lh_ui_renderer3d_set_camera(lh_ui_renderer3d_t *self, lh_ui_renderer3d_camera_t camera);
+
+/**
+ * @brief The width of the target in pixels (level 1).
+ *
+ * @param self The renderer; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_renderer3d_get_width(const lh_ui_renderer3d_t *self);
+
+/**
+ * @brief Store the width of the target in pixels (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The renderer; checked by ::lh_assert_runtime_ref.
+ * @param width The new value.
+ */
+lh_void
+lh_ui_renderer3d_set_width(lh_ui_renderer3d_t *self, lh_s32_t width);
+
+/**
+ * @brief The height of the target in pixels (level 1).
+ *
+ * @param self The renderer; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_renderer3d_get_height(const lh_ui_renderer3d_t *self);
+
+/**
+ * @brief Store the height of the target in pixels (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The renderer; checked by ::lh_assert_runtime_ref.
+ * @param height The new value.
+ */
+lh_void
+lh_ui_renderer3d_set_height(lh_ui_renderer3d_t *self, lh_s32_t height);
+
+/**
+ * @brief Store how many triangles the frame drew (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The renderer; checked by ::lh_assert_runtime_ref.
+ * @param triangles The new value.
+ */
+lh_void
+lh_ui_renderer3d_set_triangles(lh_ui_renderer3d_t *self, lh_u32_t triangles);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_RENDERER3D_H */

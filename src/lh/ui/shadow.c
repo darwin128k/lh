@@ -50,7 +50,7 @@ lh_ui_shadow_get_spread(const lh_ui_shadow_t *self)
 }
 
 lh_void
-lh_ui_shadow_set_spread(lh_ui_shadow_t *self, lh_ui_scalar_t spread)
+lh_ui_shadow_set_spread_v(lh_ui_shadow_t *self, lh_ui_scalar_t spread)
 {
     lh_assert_runtime_ref(self);
     lh_ui_shadow_set_spread(self, spread > 0 ? spread : 0);
@@ -277,4 +277,11 @@ lh_ui_shadow_get_color(const lh_ui_shadow_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->color);
+}
+
+lh_void
+lh_ui_shadow_set_spread(lh_ui_shadow_t *self, lh_ui_scalar_t spread)
+{
+    lh_assert_runtime_ref(self);
+    self->spread = spread;
 }

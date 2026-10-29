@@ -103,7 +103,7 @@ TEST(entity_image, the_picture_starts_inside_the_padding)
     draw_log log;
 
     lh_ui_image_init(&image, rect_of(10, 20, 16, 16), &mask);
-    lh_ui_entity_set_style(lh_ui_image_as_entity(&image), &style);
+    lh_ui_entity_set_style_v(lh_ui_image_as_entity(&image), &style);
     draw_log_init(&log, &canvas, false, false, true);
 
     lh_ui_entity_draw(lh_ui_image_as_entity(&image), &canvas);
@@ -169,7 +169,7 @@ TEST(entity_image, draw_keeps_the_base_class_fill)
     lh_ui_style_init(&style);
     lh_ui_style_assign_fill(&style, &paint);
     lh_ui_image_init(&image, rect_of(0, 0, 4, 3), &mask);
-    lh_ui_entity_set_style(lh_ui_image_as_entity(&image), &style);
+    lh_ui_entity_set_style_v(lh_ui_image_as_entity(&image), &style);
     lh_test::fill_probe_init(&probe, &canvas, lh_test::fill_probe_backend(), rect_of(0, 0, 4, 3), color);
 
     lh_ui_entity_draw(lh_ui_image_as_entity(&image), &canvas);
@@ -192,7 +192,7 @@ TEST(entity_image, an_image_measures_as_its_mask)
         << "the image measured the box it was given instead of the picture it shows";
 
     const lh_ui_style_t style = plain_style(lh_ui_scalar(2));
-    lh_ui_entity_set_style(lh_ui_image_as_entity(&image), &style);
+    lh_ui_entity_set_style_v(lh_ui_image_as_entity(&image), &style);
     bounds = lh_test::out(lh_ui_entity_get_content_bounds, lh_ui_image_as_entity(&image));
     EXPECT_TRUE(rect_is(bounds, rect_of(12, 22, 4, 3))) << "the padding was not measured with it";
 }
@@ -211,7 +211,7 @@ TEST(entity_image, a_wrap_place_gets_the_picture_its_own_width)
     lh_ui_place_t place;
 
     lh_ui_container_init(&box, rect_of(100, 50, 240, 160));
-    lh_ui_entity_set_style(lh_ui_container_as_entity(&box), &style);
+    lh_ui_entity_set_style_v(lh_ui_container_as_entity(&box), &style);
     lh_ui_image_init(&picture, rect_of(0, 0, 16, 3), &mask);
     lh_ui_label_init(&caption, rect_of(0, 0, 0, 16), "");
     lh_ui_place_init(&place, lh_ui_place_size_wrap, lh_ui_scalar(0));

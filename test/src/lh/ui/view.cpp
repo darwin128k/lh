@@ -222,13 +222,13 @@ struct view_fixture
         lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
         lh_ui_view_init(lh_addr_of(view));
         lh_ui_view_set_canvas(lh_addr_of(view), lh_addr_of(canvas));
-        lh_ui_view_set_root(lh_addr_of(view), lh_addr_of(root));
+        lh_ui_view_set_root_v(lh_addr_of(view), lh_addr_of(root));
     }
 
     const lh_ui_rect_t *
     damage() const
     {
-        return lh_ui_canvas_get_damage(lh_addr_of(canvas));
+        return lh_ui_canvas_get_damage_v(lh_addr_of(canvas));
     }
 };
 } // namespace
@@ -313,11 +313,11 @@ TEST(view, drag_finds_the_thumb_of_a_bar_inside_a_scrolled_container)
     lh_ui_entity_add_child(lh_ui_container_as_entity(lh_addr_of(outer)),
                            lh_ui_scrollbar_as_entity(lh_addr_of(bar)));
     lh_ui_entity_add_child(lh_ui_container_as_entity(lh_addr_of(inner)), lh_addr_of(content));
-    lh_ui_container_set_scroll(lh_addr_of(outer), point_of(0, 50));
+    lh_ui_container_set_scroll_v(lh_addr_of(outer), point_of(0, 50));
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
     lh_ui_view_init(lh_addr_of(view));
     lh_ui_view_set_canvas(lh_addr_of(view), lh_addr_of(canvas));
-    lh_ui_view_set_root(lh_addr_of(view), lh_addr_of(root));
+    lh_ui_view_set_root_v(lh_addr_of(view), lh_addr_of(root));
 
     /* Thumb: track y 60..110 in outer content space, 10..60 on screen. */
     lh_ui_view_press(lh_addr_of(view), point_of(105, 20));
@@ -327,15 +327,15 @@ TEST(view, drag_finds_the_thumb_of_a_bar_inside_a_scrolled_container)
     /* Thumb start 75 of travel 150 → scroll 150 of max 300. */
     EXPECT_EQ(scroll_y_of(inner), 150);
     /* Damage is in the root space: inner (0,10) 100x100 ∪ bar track (100,10) 10x200. */
-    ASSERT_NE(lh_ui_canvas_get_damage(lh_addr_of(canvas)), nullptr);
-    EXPECT_TRUE(rect_is(*lh_ui_canvas_get_damage(lh_addr_of(canvas)), rect_of(0, 10, 110, 200)));
+    ASSERT_NE(lh_ui_canvas_get_damage_v(lh_addr_of(canvas)), nullptr);
+    EXPECT_TRUE(rect_is(*lh_ui_canvas_get_damage_v(lh_addr_of(canvas)), rect_of(0, 10, 110, 200)));
 }
 
 TEST(view, wheel_sideways_scrolls_a_wide_container_horizontally)
 {
     view_fixture f;
 
-    lh_ui_entity_set_rect(lh_addr_of(f.content), lh_test::rect_of(0, 0, 300, 400));
+    lh_ui_entity_set_rect_v(lh_addr_of(f.content), lh_test::rect_of(0, 0, 300, 400));
     EXPECT_EQ(lh_ui_view_wheel(lh_addr_of(f.view), point_of(50, 50), lh_ui_scalar(50), lh_ui_scalar(0)),
               lh_bool_true);
     const lh_ui_point_t scroll = lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(f.box));
@@ -378,28 +378,28 @@ build_scene(scene &s)
     lh_ui_paint_init_color(lh_addr_of(s.thumb_paint), lh_addr_of(s.thumb_color));
     lh_ui_style_init(lh_addr_of(s.panel_style));
     lh_ui_style_assign_fill(lh_addr_of(s.panel_style), lh_addr_of(s.panel_paint));
-    lh_ui_style_set_radius(lh_addr_of(s.panel_style), lh_ui_scalar(12));
+    lh_ui_style_set_radius_v(lh_addr_of(s.panel_style), lh_ui_scalar(12));
     lh_ui_style_init(lh_addr_of(s.box_style));
     lh_ui_style_assign_fill(lh_addr_of(s.box_style), lh_addr_of(s.box_paint));
-    lh_ui_style_set_radius(lh_addr_of(s.box_style), lh_ui_scalar(6));
+    lh_ui_style_set_radius_v(lh_addr_of(s.box_style), lh_ui_scalar(6));
     lh_ui_style_init(lh_addr_of(s.thumb_style));
     lh_ui_style_assign_fill(lh_addr_of(s.thumb_style), lh_addr_of(s.thumb_paint));
-    lh_ui_style_set_radius(lh_addr_of(s.thumb_style), LH_UI_RADIUS_CIRCLE);
+    lh_ui_style_set_radius_v(lh_addr_of(s.thumb_style), LH_UI_RADIUS_CIRCLE);
     lh_ui_style_init(lh_addr_of(s.label_style));
     lh_ui_style_set_padding_all(lh_addr_of(s.label_style), lh_ui_scalar(2));
 
     lh_ui_entity_init(lh_addr_of(s.panel), lh_test::rect_of(0, 0, 160, 120));
-    lh_ui_entity_set_style(lh_addr_of(s.panel), lh_addr_of(s.panel_style));
+    lh_ui_entity_set_style_v(lh_addr_of(s.panel), lh_addr_of(s.panel_style));
     lh_ui_container_init(lh_addr_of(s.box), lh_test::rect_of(10, 10, 100, 60));
-    lh_ui_entity_set_style(lh_ui_container_as_entity(lh_addr_of(s.box)), lh_addr_of(s.box_style));
+    lh_ui_entity_set_style_v(lh_ui_container_as_entity(lh_addr_of(s.box)), lh_addr_of(s.box_style));
     lh_ui_entity_init(lh_addr_of(s.content), lh_test::rect_of(10, 10, 100, 300));
     lh_ui_scrollbar_init(lh_addr_of(s.bar), lh_test::rect_of(112, 10, 8, 60), lh_ui_axis_vertical,
                                 lh_addr_of(s.box));
-    lh_ui_entity_set_style(lh_ui_scrollbar_as_entity(lh_addr_of(s.bar)), lh_addr_of(s.thumb_style));
+    lh_ui_entity_set_style_v(lh_ui_scrollbar_as_entity(lh_addr_of(s.bar)), lh_addr_of(s.thumb_style));
     lh_ui_scrollbar_set_mode(lh_addr_of(s.bar), lh_ui_scrollbar_mode_always);
     lh_ui_scrollbar_set_thumb_style(lh_addr_of(s.bar), lh_addr_of(s.thumb_style));
     lh_ui_label_init(lh_addr_of(s.label), lh_test::rect_of(20, 20, 80, 40), "Paladin");
-    lh_ui_entity_set_style(lh_ui_label_as_entity(lh_addr_of(s.label)), lh_addr_of(s.label_style));
+    lh_ui_entity_set_style_v(lh_ui_label_as_entity(lh_addr_of(s.label)), lh_addr_of(s.label_style));
 
     lh_ui_entity_add_child(lh_ui_container_as_entity(lh_addr_of(s.box)), lh_addr_of(s.content));
     lh_ui_entity_add_child(lh_ui_container_as_entity(lh_addr_of(s.box)),
@@ -423,8 +423,8 @@ TEST(view, strips_draw_the_same_picture_as_one_whole_frame)
     lh_ui_view_init(lh_addr_of(many));
     lh_ui_view_set_canvas(lh_addr_of(one), lh_addr_of(whole.canvas));
     lh_ui_view_set_canvas(lh_addr_of(many), lh_addr_of(strips.canvas));
-    lh_ui_view_set_root(lh_addr_of(one), lh_addr_of(s.panel));
-    lh_ui_view_set_root(lh_addr_of(many), lh_addr_of(s.panel));
+    lh_ui_view_set_root_v(lh_addr_of(one), lh_addr_of(s.panel));
+    lh_ui_view_set_root_v(lh_addr_of(many), lh_addr_of(s.panel));
     lh_ui_view_set_strip_height(lh_addr_of(many), lh_ui_scalar(32));
 
     lh_ui_view_paint(lh_addr_of(one));
@@ -458,8 +458,8 @@ TEST(view, strips_greater_than_the_target_draw_it_as_one)
     lh_ui_view_init(lh_addr_of(many));
     lh_ui_view_set_canvas(lh_addr_of(one), lh_addr_of(whole.canvas));
     lh_ui_view_set_canvas(lh_addr_of(many), lh_addr_of(strips.canvas));
-    lh_ui_view_set_root(lh_addr_of(one), lh_addr_of(s.panel));
-    lh_ui_view_set_root(lh_addr_of(many), lh_addr_of(s.panel));
+    lh_ui_view_set_root_v(lh_addr_of(one), lh_addr_of(s.panel));
+    lh_ui_view_set_root_v(lh_addr_of(many), lh_addr_of(s.panel));
     lh_ui_view_set_strip_height(lh_addr_of(many), lh_ui_scalar(500));
 
     lh_ui_view_paint(lh_addr_of(one));
@@ -486,8 +486,8 @@ TEST(view, damage_skips_the_strips_it_does_not_reach)
     lh_ui_view_init(lh_addr_of(strip_view));
     lh_ui_view_set_canvas(lh_addr_of(whole_view), lh_addr_of(one.canvas));
     lh_ui_view_set_canvas(lh_addr_of(strip_view), lh_addr_of(strips.canvas));
-    lh_ui_view_set_root(lh_addr_of(whole_view), lh_addr_of(s.panel));
-    lh_ui_view_set_root(lh_addr_of(strip_view), lh_addr_of(s.panel));
+    lh_ui_view_set_root_v(lh_addr_of(whole_view), lh_addr_of(s.panel));
+    lh_ui_view_set_root_v(lh_addr_of(strip_view), lh_addr_of(s.panel));
     lh_ui_view_set_strip_height(lh_addr_of(strip_view), lh_ui_scalar(32));
 
     /* The lower half of the panel, the way a scroll hands it over. */
@@ -518,8 +518,8 @@ TEST(view, a_whole_area_makes_the_strip_that_reaches_it_wide_and_the_ones_inside
     lh_ui_view_init(lh_addr_of(many));
     lh_ui_view_set_canvas(lh_addr_of(one), lh_addr_of(whole.canvas));
     lh_ui_view_set_canvas(lh_addr_of(many), lh_addr_of(strips.canvas));
-    lh_ui_view_set_root(lh_addr_of(one), lh_addr_of(s.panel));
-    lh_ui_view_set_root(lh_addr_of(many), lh_addr_of(s.panel));
+    lh_ui_view_set_root_v(lh_addr_of(one), lh_addr_of(s.panel));
+    lh_ui_view_set_root_v(lh_addr_of(many), lh_addr_of(s.panel));
     lh_ui_view_set_strip_height(lh_addr_of(many), lh_ui_scalar(32));
     EXPECT_TRUE(lh_ui_view_add_whole_area(lh_addr_of(many), lh_addr_of(region)));
 
@@ -602,14 +602,14 @@ build_pressed_panel(pressed_panel &p)
     lh_ui_style_assign_fill(lh_addr_of(p.style), lh_addr_of(paint));
     lh_ui_shadow_init(lh_addr_of(p.shadow));
     lh_ui_shadow_set_color(lh_addr_of(p.shadow), lh_ui_color_t{0, 0, 0, 200});
-    lh_ui_shadow_set_spread(lh_addr_of(p.shadow), lh_ui_scalar(6));
+    lh_ui_shadow_set_spread_v(lh_addr_of(p.shadow), lh_ui_scalar(6));
     lh_ui_shadow_set_offset(lh_addr_of(p.shadow), lh_ui_scalar(0), lh_ui_scalar(3));
     lh_ui_style_set_shadow_v(lh_addr_of(p.style), lh_addr_of(p.shadow));
     lh_ui_style_init(lh_addr_of(p.hot));
     lh_ui_color_init(lh_addr_of(hot), 200, 60, 90, 255);
     lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(hot));
     lh_ui_style_assign_fill(lh_addr_of(p.hot), lh_addr_of(paint));
-    lh_ui_shadow_set_spread(lh_addr_of(p.shadow), lh_ui_scalar(6));
+    lh_ui_shadow_set_spread_v(lh_addr_of(p.shadow), lh_ui_scalar(6));
     lh_ui_style_set_shadow_v(lh_addr_of(p.hot), lh_addr_of(p.shadow));
     lh_ui_style_set_pressed(lh_addr_of(p.style), lh_addr_of(p.hot));
 }
@@ -631,15 +631,15 @@ TEST(view, a_press_and_a_release_leave_the_picture_as_it_was)
 
     build_scene(s);
     build_pressed_panel(p);
-    lh_ui_entity_set_style(lh_addr_of(s.panel), lh_addr_of(p.style));
+    lh_ui_entity_set_style_v(lh_addr_of(s.panel), lh_addr_of(p.style));
     partial_probe_init(lh_addr_of(before));
     partial_probe_init(lh_addr_of(after));
     lh_ui_view_init(lh_addr_of(plain));
     lh_ui_view_init(lh_addr_of(pressed));
     lh_ui_view_set_canvas(lh_addr_of(plain), lh_addr_of(before.canvas));
     lh_ui_view_set_canvas(lh_addr_of(pressed), lh_addr_of(after.canvas));
-    lh_ui_view_set_root(lh_addr_of(plain), lh_addr_of(s.panel));
-    lh_ui_view_set_root(lh_addr_of(pressed), lh_addr_of(s.panel));
+    lh_ui_view_set_root_v(lh_addr_of(plain), lh_addr_of(s.panel));
+    lh_ui_view_set_root_v(lh_addr_of(pressed), lh_addr_of(s.panel));
 
     /* One frame of a scene nobody has touched. */
     lh_ui_view_paint(lh_addr_of(plain));
@@ -670,16 +670,16 @@ TEST(view, a_press_damages_what_both_looks_painted)
 
     build_scene(s);
     build_pressed_panel(p);
-    lh_ui_entity_set_style(lh_addr_of(s.panel), lh_addr_of(p.style));
+    lh_ui_entity_set_style_v(lh_addr_of(s.panel), lh_addr_of(p.style));
     lh_ui_size_init(lh_addr_of(size), 160, 120);
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
     lh_ui_canvas_set_size(lh_addr_of(canvas), size);
     lh_ui_view_init(lh_addr_of(view));
     lh_ui_view_set_canvas(lh_addr_of(view), lh_addr_of(canvas));
-    lh_ui_view_set_root(lh_addr_of(view), lh_addr_of(s.panel));
+    lh_ui_view_set_root_v(lh_addr_of(view), lh_addr_of(s.panel));
 
     lh_ui_view_press(lh_addr_of(view), point_of(140, 100));
-    damage = lh_ui_canvas_get_damage(lh_addr_of(canvas));
+    damage = lh_ui_canvas_get_damage_v(lh_addr_of(canvas));
     ASSERT_NE(damage, nullptr);
     /* The panel is (0,0) 160x120 and its shadow reaches 9 rows past it: 6 of
        spread and 3 of shift. */
@@ -699,13 +699,13 @@ TEST(view, a_press_still_open_when_the_next_one_starts_is_let_go)
 
     build_scene(s);
     build_pressed_panel(p);
-    lh_ui_entity_set_style(lh_addr_of(s.panel), lh_addr_of(p.style));
+    lh_ui_entity_set_style_v(lh_addr_of(s.panel), lh_addr_of(p.style));
     lh_ui_size_init(lh_addr_of(size), 160, 120);
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
     lh_ui_canvas_set_size(lh_addr_of(canvas), size);
     lh_ui_view_init(lh_addr_of(view));
     lh_ui_view_set_canvas(lh_addr_of(view), lh_addr_of(canvas));
-    lh_ui_view_set_root(lh_addr_of(view), lh_addr_of(s.panel));
+    lh_ui_view_set_root_v(lh_addr_of(view), lh_addr_of(s.panel));
 
     lh_ui_view_press(lh_addr_of(view), point_of(140, 100));
     EXPECT_TRUE(lh_ui_entity_is_pressed(lh_addr_of(s.panel)));
@@ -739,11 +739,11 @@ TEST(view, a_hover_damages_what_both_looks_painted)
 
     lh_ui_shadow_init(lh_addr_of(small));
     lh_ui_shadow_set_color(lh_addr_of(small), lh_ui_color_t{0, 0, 0, 200});
-    lh_ui_shadow_set_spread(lh_addr_of(small), lh_ui_scalar(6));
+    lh_ui_shadow_set_spread_v(lh_addr_of(small), lh_ui_scalar(6));
     lh_ui_shadow_set_offset(lh_addr_of(small), lh_ui_scalar(0), lh_ui_scalar(3));
     lh_ui_shadow_init(lh_addr_of(wide));
     lh_ui_shadow_set_color(lh_addr_of(wide), lh_ui_color_t{0, 0, 0, 200});
-    lh_ui_shadow_set_spread(lh_addr_of(wide), lh_ui_scalar(12));
+    lh_ui_shadow_set_spread_v(lh_addr_of(wide), lh_ui_scalar(12));
 
     lh_ui_style_init(lh_addr_of(rest));
     lh_ui_color_init(&color, 30, 60, 90, 255);
@@ -752,24 +752,24 @@ TEST(view, a_hover_damages_what_both_looks_painted)
     lh_ui_style_set_shadow_v(lh_addr_of(rest), lh_addr_of(small));
     lh_ui_style_init(lh_addr_of(hot));
     lh_ui_style_set_shadow_v(lh_addr_of(hot), lh_addr_of(wide));
-    lh_ui_style_set_hit_radius(lh_addr_of(rest), LH_UI_RADIUS_CIRCLE);
+    lh_ui_style_set_hit_radius_v(lh_addr_of(rest), LH_UI_RADIUS_CIRCLE);
 
     lh_ui_button_init(lh_addr_of(button), lh_test::rect_of(20, 10, 40, 24));
     lh_ui_button_set_style(lh_addr_of(button), lh_addr_of(rest));
-    lh_ui_button_set_hot_style(lh_addr_of(button), lh_addr_of(hot));
+    lh_ui_button_set_hot_style_v(lh_addr_of(button), lh_addr_of(hot));
 
     lh_ui_size_init(lh_addr_of(size), 160, 120);
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
     lh_ui_canvas_set_size(lh_addr_of(canvas), size);
     lh_ui_view_init(lh_addr_of(view));
     lh_ui_view_set_canvas(lh_addr_of(view), lh_addr_of(canvas));
-    lh_ui_view_set_root(lh_addr_of(view), lh_ui_button_as_entity(lh_addr_of(button)));
+    lh_ui_view_set_root_v(lh_addr_of(view), lh_ui_button_as_entity(lh_addr_of(button)));
     /* Nothing drawn and nothing damaged yet, so what the hover adds is what is
        left to read: a test that clears first would be measuring the clear. */
     lh_ui_canvas_reset_damage(lh_addr_of(canvas));
 
     lh_ui_view_set_hot(lh_addr_of(view), lh_addr_of(button), lh_bool_true);
-    damage = lh_ui_canvas_get_damage(lh_addr_of(canvas));
+    damage = lh_ui_canvas_get_damage_v(lh_addr_of(canvas));
     ASSERT_NE(damage, nullptr);
     EXPECT_TRUE(lh_ui_button_get_hot(lh_addr_of(button)));
     /* The button is (20,10) 40x24 and the hot shadow reaches 12 past it, the
@@ -829,7 +829,7 @@ struct press_fixture
         lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
         lh_ui_view_init(lh_addr_of(view));
         lh_ui_view_set_canvas(lh_addr_of(view), lh_addr_of(canvas));
-        lh_ui_view_set_root(lh_addr_of(view), lh_addr_of(root));
+        lh_ui_view_set_root_v(lh_addr_of(view), lh_addr_of(root));
     }
 };
 
@@ -974,11 +974,11 @@ TEST(view, input_losing_the_focus_lets_the_press_go)
 
     build_scene(s);
     build_pressed_panel(p);
-    lh_ui_entity_set_style(lh_addr_of(s.panel), lh_addr_of(p.style));
+    lh_ui_entity_set_style_v(lh_addr_of(s.panel), lh_addr_of(p.style));
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
     lh_ui_view_init(lh_addr_of(view));
     lh_ui_view_set_canvas(lh_addr_of(view), lh_addr_of(canvas));
-    lh_ui_view_set_root(lh_addr_of(view), lh_addr_of(s.panel));
+    lh_ui_view_set_root_v(lh_addr_of(view), lh_addr_of(s.panel));
     lh_os_input_event_init(lh_addr_of(focus_out), lh_os_input_kind_focus_out, lh_os_input_device_kind_keyboard, 0U);
 
     EXPECT_TRUE(lh_ui_view_input(lh_addr_of(view), lh_addr_of(down)));
@@ -1098,7 +1098,7 @@ struct two_buttons
         lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
         lh_ui_view_init(lh_addr_of(view));
         lh_ui_view_set_canvas(lh_addr_of(view), lh_addr_of(canvas));
-        lh_ui_view_set_root(lh_addr_of(view), lh_addr_of(root));
+        lh_ui_view_set_root_v(lh_addr_of(view), lh_addr_of(root));
     }
 
     lh_bool_t

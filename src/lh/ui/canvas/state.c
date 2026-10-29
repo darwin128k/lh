@@ -18,7 +18,7 @@ lh_ui_canvas_state_init(lh_ui_canvas_state_t *self)
 }
 
 const lh_ui_rect_t *
-lh_ui_canvas_state_get_clip(const lh_ui_canvas_state_t *self)
+lh_ui_canvas_state_get_clip_v(const lh_ui_canvas_state_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_ui_canvas_state_is_clipped(self) ? lh_ui_canvas_state_get_clip(self) : lh_null;
@@ -148,4 +148,11 @@ lh_ui_canvas_state_set_round_count(lh_ui_canvas_state_t *self, lh_u8_t round_cou
 {
     lh_assert_runtime_ref(self);
     self->round_count = round_count;
+}
+
+const lh_ui_rect_t *
+lh_ui_canvas_state_get_clip(const lh_ui_canvas_state_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->clip);
 }

@@ -134,7 +134,7 @@ lh_ui_view_get_canvas(const lh_ui_view_t *self);
  * @brief Bind @p self to root entity @p root. Not owned.
  */
 lh_void
-lh_ui_view_set_root(lh_ui_view_t *self, lh_ui_entity_t *root);
+lh_ui_view_set_root_v(lh_ui_view_t *self, lh_ui_entity_t *root);
 
 /**
  * @brief Union @p rect (root space) into the one rect the window has yet to
@@ -423,7 +423,7 @@ lh_ui_view_land(lh_ui_transition_t *slot);
  * @brief Send @p entity towards @p to over @p to's time (::lh_ui_style_get_transition),
  *        from the look it has now -- a look in flight included.
  *
- * Called by ::lh_ui_entity_set_style, which is the way to ask for one.
+ * Called by ::lh_ui_entity_set_style_v, which is the way to ask for one.
  *
  * @return ::lh_bool_false when every slot is taken: the switch is then the caller's to
  *         make at once.
@@ -589,7 +589,7 @@ lh_ui_view_damage_shape(lh_ui_view_t *self, const lh_ui_entity_t *entity);
  *        the hot style. Nothing for a ::lh_null @p button or a flag that is
  *        already what it is asked for.
  *
- * The step an app takes for ::lh_ui_button_set_hot: the pointer arrives from the
+ * The step an app takes for ::lh_ui_button_set_hot_v: the pointer arrives from the
  * OS as coordinates and the app decides what is under it. This does the state
  * and the damage together, so the button itself stays a state holder with no
  * canvas in it. The caller invalidates, as it does for every other damage here.
@@ -701,7 +701,7 @@ lh_ui_view_get_focus(const lh_ui_view_t *self);
  *        one, focus to the new one.
  */
 lh_void
-lh_ui_view_set_focus(lh_ui_view_t *self, lh_ui_entity_t *entity);
+lh_ui_view_set_focus_v(lh_ui_view_t *self, lh_ui_entity_t *entity);
 
 /**
  * @brief Visitor of the Tab walk (::lh_ui_view_get_next_focus).
@@ -1004,6 +1004,28 @@ lh_ui_view_get_transitions(const lh_ui_view_t *self);
  */
 lh_ui_transition_t *
 lh_ui_view_get_transitions_mut(lh_ui_view_t *self);
+
+/**
+ * @brief Store the root entity of the view (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ * @param root The new value.
+ */
+lh_void
+lh_ui_view_set_root(lh_ui_view_t *self, lh_ui_entity_t * root);
+
+/**
+ * @brief Store the entity that has the focus; ::lh_null for none (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ * @param focus The new value.
+ */
+lh_void
+lh_ui_view_set_focus(lh_ui_view_t *self, lh_ui_entity_t * focus);
 
 LH_COMPILER_EXTERN_C_END
 

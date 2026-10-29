@@ -54,7 +54,7 @@ struct scene
         lh_ui_paint_init_color(&card_paint, &card_color);
         lh_ui_style_init(&card_style);
         lh_ui_style_assign_fill(&card_style, &card_paint);
-        lh_ui_style_set_radius(&card_style, lh_ui_scalar(6));
+        lh_ui_style_set_radius_v(&card_style, lh_ui_scalar(6));
 
         lh_ui_color_init(&action_color, 70, 76, 88, 255);
         lh_ui_paint_init_color(&action_paint, &action_color);
@@ -62,7 +62,7 @@ struct scene
         lh_ui_paint_init_color(&action_hot_paint, &action_hot_color);
         lh_ui_style_init(&action_style);
         lh_ui_style_assign_fill(&action_style, &action_paint);
-        lh_ui_style_set_radius(&action_style, lh_ui_scalar(8));
+        lh_ui_style_set_radius_v(&action_style, lh_ui_scalar(8));
         lh_ui_style_init(&action_hot_style);
         lh_ui_style_assign_fill(&action_hot_style, &action_hot_paint);
 
@@ -150,11 +150,11 @@ build_by_hand(scene &s, hand_tree &tree, lh_ui_entity_t **nodes, lh_ui_entity_t 
 
     lh_ui_rect_init(&rect, 0, 0, 200, 140);
     lh_ui_entity_init(&tree.background, rect);
-    lh_ui_entity_set_style(&tree.background, &s.root_style);
+    lh_ui_entity_set_style_v(&tree.background, &s.root_style);
 
     lh_ui_rect_init(&rect, 10, 10, 160, 60);
     lh_ui_container_init(&tree.box, rect);
-    lh_ui_entity_set_style(lh_ui_container_as_entity(&tree.box), &s.card_style);
+    lh_ui_entity_set_style_v(lh_ui_container_as_entity(&tree.box), &s.card_style);
     lh_ui_container_set_layout(&tree.box, &s.column);
     lh_ui_entity_add_child(&tree.background, lh_ui_container_as_entity(&tree.box));
 
@@ -171,7 +171,7 @@ build_by_hand(scene &s, hand_tree &tree, lh_ui_entity_t **nodes, lh_ui_entity_t 
     lh_ui_rect_init(&rect, 10, 80, 140, 30);
     lh_ui_button_init(&tree.action, rect);
     lh_ui_button_set_style(&tree.action, &s.action_style);
-    lh_ui_button_set_hot_style(&tree.action, &s.action_hot_style);
+    lh_ui_button_set_hot_style_v(&tree.action, &s.action_hot_style);
     lh_ui_button_set_on_click(&tree.action, count_click, lh_null);
     lh_ui_container_set_layout(lh_ui_button_as_container(&tree.action), &s.button_flow);
     lh_ui_entity_add_child(&tree.background, lh_ui_button_as_entity(&tree.action));
@@ -185,7 +185,7 @@ build_by_hand(scene &s, hand_tree &tree, lh_ui_entity_t **nodes, lh_ui_entity_t 
 
     lh_ui_rect_init(&rect, 0, 0, 60, 14);
     lh_ui_label_init(&tree.caption, rect, "Hide panel");
-    lh_ui_entity_set_style(lh_ui_label_as_entity(&tree.caption), &s.text_style);
+    lh_ui_entity_set_style_v(lh_ui_label_as_entity(&tree.caption), &s.text_style);
     lh_ui_entity_set_place_v(lh_ui_label_as_entity(&tree.caption), &s.wrap_center);
     lh_ui_entity_add_child(lh_ui_container_as_entity(lh_ui_button_as_container(&tree.action)),
                            lh_ui_label_as_entity(&tree.caption));

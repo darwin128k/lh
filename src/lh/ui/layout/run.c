@@ -144,7 +144,7 @@ lh_ui_layout_run_place_child(const lh_ui_layout_t *self, lh_ui_layout_run_t *run
        (::lh_ui_entity_move_to), and the size comes after, because moving is
        a delta and the child has to still be where it was for it to be right. */
     lh_ui_entity_move_to(child, lh_ptr_deref(lh_ui_rect_get_origin(lh_addr_of(placed))));
-    lh_ui_entity_set_rect(child, placed);
+    lh_ui_entity_set_rect_v(child, placed);
     if (wants > lh_ui_scalar(0) || before + after > lh_ui_scalar(0))
     {
         lh_ui_layout_run_set_along(run, lh_ui_layout_run_get_along(run) + (before + wants + after + lh_ui_layout_get_gap(self) + lh_ui_layout_run_get_spread(run)));

@@ -57,7 +57,7 @@ struct layout_fixture
         lh_ui_style_init(&style);
         lh_ui_style_set_padding_all(&style, lh_ui_scalar(8));
         lh_ui_entity_init(&parent, rect_of(100, 50, 240, 160));
-        lh_ui_entity_set_style(&parent, &style);
+        lh_ui_entity_set_style_v(&parent, &style);
         for (int i = 0; i < 3; ++i)
         {
             lh_ui_entity_init(&kids[i], rect_of(0, 0, 30 + i * 10, 20 + i * 5));
@@ -147,7 +147,7 @@ TEST(ui_layout, hidden_children_take_no_room)
     place_child(&f.kids[0], lh_ui_place_size_fixed, lh_ui_scalar(20), lh_ui_place_align_start);
     place_child(&f.kids[1], lh_ui_place_size_fixed, lh_ui_scalar(25), lh_ui_place_align_start);
     place_child(&f.kids[2], lh_ui_place_size_fixed, lh_ui_scalar(30), lh_ui_place_align_start);
-    lh_ui_entity_set_hidden(&f.kids[1], lh_bool_true);
+    lh_ui_entity_set_hidden_v(&f.kids[1], lh_bool_true);
     lh_ui_layout_init(&layout, lh_ui_axis_vertical, lh_ui_scalar(4));
     lh_ui_layout_apply(&layout, &f.parent);
 
@@ -240,8 +240,8 @@ TEST(ui_layout, space_between_puts_a_single_child_at_the_start)
     lh_ui_layout_t layout;
 
     place_child(&f.kids[0], lh_ui_place_size_fixed, lh_ui_scalar(30), lh_ui_place_align_start);
-    lh_ui_entity_set_hidden(&f.kids[1], lh_bool_true);
-    lh_ui_entity_set_hidden(&f.kids[2], lh_bool_true);
+    lh_ui_entity_set_hidden_v(&f.kids[1], lh_bool_true);
+    lh_ui_entity_set_hidden_v(&f.kids[2], lh_bool_true);
     lh_ui_layout_init(&layout, lh_ui_axis_horizontal, lh_ui_scalar(0));
     lh_ui_layout_set_justify(&layout, lh_ui_justify_space_between);
     lh_ui_layout_apply(&layout, &f.parent);
@@ -264,7 +264,7 @@ TEST(ui_layout, a_margin_is_kept_clear_around_the_child)
     lh_ui_place_assign_margin(&place, &margin);
     lh_ui_entity_set_place_v(&f.kids[0], &place);
     place_child(&f.kids[1], lh_ui_place_size_fixed, lh_ui_scalar(25), lh_ui_place_align_start);
-    lh_ui_entity_set_hidden(&f.kids[2], lh_bool_true);
+    lh_ui_entity_set_hidden_v(&f.kids[2], lh_bool_true);
     lh_ui_layout_init(&layout, lh_ui_axis_vertical, lh_ui_scalar(4));
     lh_ui_layout_apply(&layout, &f.parent);
 
@@ -287,7 +287,7 @@ TEST(ui_layout, min_and_max_hold_the_length_a_child_is_given)
     lh_ui_place_init(&place, lh_ui_place_size_fixed, lh_ui_scalar(25));
     lh_ui_place_set_min_size(&place, lh_ui_scalar(0), lh_ui_scalar(40));
     lh_ui_entity_set_place_v(&f.kids[1], &place);
-    lh_ui_entity_set_hidden(&f.kids[2], lh_bool_true);
+    lh_ui_entity_set_hidden_v(&f.kids[2], lh_bool_true);
     lh_ui_layout_init(&layout, lh_ui_axis_vertical, lh_ui_scalar(4));
     lh_ui_layout_apply(&layout, &f.parent);
 
@@ -327,10 +327,10 @@ struct button_fixture
         lh_ui_style_init(&text_style);
         lh_ui_style_set_font(&text_style, tiny_font());
         lh_ui_entity_init(&parent, rect_of(100, 50, 240, 160));
-        lh_ui_entity_set_style(&parent, &style);
+        lh_ui_entity_set_style_v(&parent, &style);
         lh_ui_entity_init(&picture, rect_of(0, 0, 16, 16));
         lh_ui_label_init(&caption, rect_of(0, 0, 0, 4), "");
-        lh_ui_entity_set_style(lh_ui_label_as_entity(&caption), &text_style);
+        lh_ui_entity_set_style_v(lh_ui_label_as_entity(&caption), &text_style);
         lh_ui_entity_add_child(&parent, &picture);
         lh_ui_entity_add_child(&parent, lh_ui_label_as_entity(&caption));
         place_child(&picture, lh_ui_place_size_fixed, lh_ui_scalar(16), lh_ui_place_align_center);
@@ -363,7 +363,7 @@ TEST(ui_layout, the_same_flow_centres_the_row_once_the_caption_has_text)
     lh_ui_rect_t caption_rect;
     lh_ui_point_t picture_at;
 
-    lh_ui_label_set_text(&f.caption, "AB");
+    lh_ui_label_set_text_v(&f.caption, "AB");
     lh_ui_layout_apply(&f.layout, &f.parent);
 
     /* 16 + 8 + the width of "AB" is what the row takes, centred as a whole, so
@@ -409,7 +409,7 @@ TEST(ui_layout, a_container_places_its_own_children_and_takes_them_along_when_it
     lh_ui_style_init(&style);
     lh_ui_style_set_padding_all(&style, lh_ui_scalar(8));
     lh_ui_container_init(&box, rect_of(100, 50, 240, 160));
-    lh_ui_entity_set_style(lh_ui_container_as_entity(&box), &style);
+    lh_ui_entity_set_style_v(lh_ui_container_as_entity(&box), &style);
     lh_ui_layout_init(&layout, lh_ui_axis_vertical, lh_ui_scalar(4));
     lh_ui_container_set_layout(&box, &layout);
     for (int i = 0; i < 2; ++i)
@@ -425,7 +425,7 @@ TEST(ui_layout, a_container_places_its_own_children_and_takes_them_along_when_it
     EXPECT_TRUE(rect_at(&kids[1], 108, 82, 30, 30));
 
     /* The container moves. Nobody runs anything; the next frame is the pass. */
-    lh_ui_entity_set_rect(lh_ui_container_as_entity(&box), rect_of(200, 150, 240, 160));
+    lh_ui_entity_set_rect_v(lh_ui_container_as_entity(&box), rect_of(200, 150, 240, 160));
     EXPECT_TRUE(rect_at(&kids[0], 108, 58, 30, 20)) << "something placed the children too early";
     lh_ui_entity_get_children_transform(lh_ui_container_as_entity(&box), &offset);
     EXPECT_TRUE(rect_at(&kids[0], 208, 158, 30, 20))
@@ -491,7 +491,7 @@ struct baseline_row
         lh_ui_style_init(&text_style);
         lh_ui_style_set_font(&text_style, tiny_font());
         lh_ui_container_init(&box, rect_of(0, 0, 40, 15));
-        lh_ui_entity_set_style(lh_ui_container_as_entity(&box), &box_style);
+        lh_ui_entity_set_style_v(lh_ui_container_as_entity(&box), &box_style);
 
         /* 'B' of the tiny font is one cropped pixel: an icon, and as close as this
            font gets. */
@@ -504,7 +504,7 @@ struct baseline_row
         /* A caption is measured by the cap line down to the baseline, so "A" is a
            2-row box with its baseline 2 rows down — the thing the line exists for. */
         lh_ui_label_init(&caption, rect_of(0, 0, 3, 2), "A");
-        lh_ui_entity_set_style(lh_ui_label_as_entity(&caption), &text_style);
+        lh_ui_entity_set_style_v(lh_ui_label_as_entity(&caption), &text_style);
 
         place_child(lh_ui_image_as_entity(&icon), lh_ui_place_size_wrap, lh_ui_scalar(0),
                     lh_ui_place_align_baseline);
@@ -669,7 +669,7 @@ TEST(ui_layout, a_flow_does_not_run_again_from_inside_itself)
     lh_ui_container_init(&column, rect_of(0, 0, 200, 100));
     lh_ui_container_init(&row, rect_of(0, 0, 0, 0));
     lh_ui_label_init(&caption, rect_of(0, 0, 0, 0), "Ag");
-    lh_ui_entity_set_style(lh_ui_label_as_entity(&caption), &text_style);
+    lh_ui_entity_set_style_v(lh_ui_label_as_entity(&caption), &text_style);
     lh_ui_entity_add_child(lh_ui_container_as_entity(&column), lh_ui_container_as_entity(&row));
     lh_ui_entity_add_child(lh_ui_container_as_entity(&row), lh_ui_label_as_entity(&caption));
     place_child(lh_ui_container_as_entity(&row), lh_ui_place_size_wrap, lh_ui_scalar(0), lh_ui_place_align_fill);
@@ -719,7 +719,7 @@ TEST(ui_layout, children_that_stretch_fill_the_depth_of_their_line)
 
     place_child(&f.kids[0], lh_ui_place_size_fixed, lh_ui_scalar(150), lh_ui_place_align_fill);
     place_child(&f.kids[1], lh_ui_place_size_fixed, lh_ui_scalar(150), lh_ui_place_align_fill);
-    lh_ui_entity_set_hidden(&f.kids[2], lh_bool_true);
+    lh_ui_entity_set_hidden_v(&f.kids[2], lh_bool_true);
     lh_ui_layout_init(&layout, lh_ui_axis_horizontal, lh_ui_scalar(0));
     lh_ui_layout_set_wrapping(&layout, lh_bool_true, lh_ui_scalar(4));
     lh_ui_layout_apply(&layout, &f.parent);

@@ -111,7 +111,7 @@ lh_ui_canvas_has_damage(const lh_ui_canvas_t *self);
  * @brief Accumulated damage of @p self, or ::lh_null when none.
  */
 const lh_ui_rect_t *
-lh_ui_canvas_get_damage(const lh_ui_canvas_t *self);
+lh_ui_canvas_get_damage_v(const lh_ui_canvas_t *self);
 
 /**
  * @brief @p damage clipped to @p area; empty where the two do not meet.
@@ -235,7 +235,7 @@ lh_ui_canvas_begin(lh_ui_canvas_t *self);
  * @p area is in target space, on whole pixels. Every primitive, clip and
  * rounded cut the backend sees afterwards is already moved so that its
  * `(0, 0)` is the top-left of @p area; `end` presents it back there. Damage
- * (:lh_ui_canvas_get_damage) stays in target space either way.
+ * (:lh_ui_canvas_get_damage_v) stays in target space either way.
  *
  * Falls back to ::lh_ui_canvas_begin when the backend has no
  * ::lh_ui_canvas_begin_area_fn: the frame is then the whole target and the
@@ -698,6 +698,14 @@ lh_ui_canvas_get_size(const lh_ui_canvas_t *self);
  */
 lh_void
 lh_ui_canvas_set_scratch(lh_ui_canvas_t *self, lh_u8_t * scratch);
+
+/**
+ * @brief The area changed since the last frame (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_rect_t *
+lh_ui_canvas_get_damage(const lh_ui_canvas_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

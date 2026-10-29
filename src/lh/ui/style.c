@@ -112,8 +112,8 @@ lh_void
 lh_ui_style_mix_paint(lh_ui_paint_t *out, const lh_ui_paint_t *from, const lh_ui_paint_t *to,
                       lh_u32_t weight)
 {
-    const lh_ui_color_t *a = lh_ui_paint_get_color(from);
-    const lh_ui_color_t *b = lh_ui_paint_get_color(to);
+    const lh_ui_color_t *a = lh_ui_paint_get_color_v(from);
+    const lh_ui_color_t *b = lh_ui_paint_get_color_v(to);
     lh_ui_color_t mixed;
 
     lh_ui_paint_init_copy(out, to);
@@ -125,7 +125,7 @@ lh_ui_style_mix_paint(lh_ui_paint_t *out, const lh_ui_paint_t *from, const lh_ui
 const lh_ui_color_t *
 lh_ui_style_get_fill_color(const lh_ui_style_t *self)
 {
-    return lh_ui_paint_get_color(lh_ui_style_get_fill(self));
+    return lh_ui_paint_get_color_v(lh_ui_style_get_fill(self));
 }
 
 lh_ui_scalar_t
@@ -136,7 +136,7 @@ lh_ui_style_get_radius(const lh_ui_style_t *self)
 }
 
 lh_void
-lh_ui_style_set_radius(lh_ui_style_t *self, lh_ui_scalar_t radius)
+lh_ui_style_set_radius_v(lh_ui_style_t *self, lh_ui_scalar_t radius)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_if(radius < lh_ui_scalar(0), lh_runtime_error_code_invalid_argument);
@@ -222,7 +222,7 @@ lh_ui_style_init_blend(lh_ui_style_t *self, const lh_ui_style_t *from, const lh_
         lh_ui_shadow_set_color(lh_ui_style_get_shadow_mut(self), color);
         if (!lh_ui_shadow_is_empty(fade_from) && !lh_ui_shadow_is_empty(fade_to))
         {
-            lh_ui_shadow_set_spread(lh_ui_style_get_shadow_mut(self),
+            lh_ui_shadow_set_spread_v(lh_ui_style_get_shadow_mut(self),
                                     lh_ui_style_mix(lh_ui_shadow_get_spread(fade_from),
                                                     lh_ui_shadow_get_spread(fade_to), weight));
             lh_ui_shadow_set_offset(lh_ui_style_get_shadow_mut(self),
@@ -242,7 +242,7 @@ lh_ui_style_get_hit_radius(const lh_ui_style_t *self)
 }
 
 lh_void
-lh_ui_style_set_hit_radius(lh_ui_style_t *self, lh_ui_scalar_t radius)
+lh_ui_style_set_hit_radius_v(lh_ui_style_t *self, lh_ui_scalar_t radius)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_if(radius < lh_ui_scalar(0), lh_runtime_error_code_invalid_argument);
@@ -307,7 +307,7 @@ lh_ui_style_assign_text(lh_ui_style_t *self, const lh_ui_paint_t *text)
 const lh_ui_color_t *
 lh_ui_style_get_text_color(const lh_ui_style_t *self)
 {
-    return lh_ui_paint_get_color(lh_ui_style_get_text(self));
+    return lh_ui_paint_get_color_v(lh_ui_style_get_text(self));
 }
 
 lh_ui_text_align_h_t
@@ -531,4 +531,18 @@ lh_ui_style_set_border_fill(lh_ui_style_t *self, lh_ui_paint_t border_fill)
 {
     lh_assert_runtime_ref(self);
     self->border_fill = border_fill;
+}
+
+lh_void
+lh_ui_style_set_radius(lh_ui_style_t *self, lh_ui_scalar_t radius)
+{
+    lh_assert_runtime_ref(self);
+    self->radius = radius;
+}
+
+lh_void
+lh_ui_style_set_hit_radius(lh_ui_style_t *self, lh_ui_scalar_t hit_radius)
+{
+    lh_assert_runtime_ref(self);
+    self->hit_radius = hit_radius;
 }

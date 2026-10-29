@@ -60,7 +60,7 @@ lh_ui_paint_init_gradient(lh_ui_paint_t *self, const lh_ui_gradient_t *gradient)
  * @brief The gradient of @p self, or ::lh_null when it is not one.
  */
 const lh_ui_gradient_t *
-lh_ui_paint_get_gradient(const lh_ui_paint_t *self);
+lh_ui_paint_get_gradient_v(const lh_ui_paint_t *self);
 
 /**
  * @brief What @p self holds.
@@ -80,7 +80,7 @@ lh_ui_paint_is_empty(const lh_ui_paint_t *self);
  * The pointer is into @p self and lives as long as it does.
  */
 const lh_ui_color_t *
-lh_ui_paint_get_color(const lh_ui_paint_t *self);
+lh_ui_paint_get_color_v(const lh_ui_paint_t *self);
 
 /**
  * @brief Store whether the paint is a color or a gradient (level 1).
@@ -123,6 +123,22 @@ lh_ui_paint_set_color(lh_ui_paint_t *self, lh_ui_color_t color);
  */
 lh_void
 lh_ui_paint_set_gradient(lh_ui_paint_t *self, const lh_ui_gradient_t * gradient);
+
+/**
+ * @brief The color of a color paint (level 1).
+ *
+ * @param self The paint; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_color_t *
+lh_ui_paint_get_color(const lh_ui_paint_t *self);
+
+/**
+ * @brief The gradient of a gradient paint (level 1).
+ *
+ * @param self The paint; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_gradient_t *
+lh_ui_paint_get_gradient(const lh_ui_paint_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -396,7 +396,7 @@ EMITS = [
      "lh_ui_scalar(6), lh_ui_scalar(6), lh_ui_scalar(6), lh_ui_scalar(0));"),
     ("one radius on every corner is still the style's one radius",
      OK.replace("height: 40;", "height: 40; border-radius: 5px 5px;"),
-     "lh_ui_style_set_radius(lh_addr_of(ui_s_title), lh_ui_scalar(5));"),
+     "lh_ui_style_set_radius_v(lh_addr_of(ui_s_title), lh_ui_scalar(5));"),
     ("a linear gradient is a gradient paint with its angle and its stops",
      OK.replace("height: 40;", "height: 40; background: linear-gradient(90deg, red, blue 80%);"),
      "lh_ui_gradient_set_linear(lh_addr_of(ui_gr_title), 90);"),
@@ -491,7 +491,7 @@ EMITS = [
     # -- CSS properties, as the web spells them
     ("`background-color` and `border-radius` are the fill and the radius",
      OK.replace("height: 40;", "height: 40; background-color: #102030; border-radius: 6px;"),
-     "lh_ui_style_set_radius(lh_addr_of(ui_s_title), lh_ui_scalar(6));"),
+     "lh_ui_style_set_radius_v(lh_addr_of(ui_s_title), lh_ui_scalar(6));"),
     ("`border` is a width, a style and a colour, in any order",
      OK.replace("height: 40;", "height: 40; border: solid #ff0000 2px;"),
      "lh_ui_style_assign_border_fill(lh_addr_of(ui_s_title), lh_addr_of(ui_c_ff0000ff_paints));"),
@@ -592,11 +592,11 @@ EMITS = [
      # `#title` keeps the rule from selecting nothing at all.
      "#root .btn { radius: 3; }\n#root > .btn, #title { radius: 7; }\n" +OK.replace("label#a { width: 200; height: 260; }", "button#a.btn { width: 200; }")
    .replace("label#b { width: 200; height: 260; }", "button#b.btn { width: 200; }"),
-     "lh_ui_style_set_radius(lh_addr_of(ui_s_a), lh_ui_scalar(3));"),
+     "lh_ui_style_set_radius_v(lh_addr_of(ui_s_a), lh_ui_scalar(3));"),
     ("the row's own block outranks every rule",
      "#a.btn { radius: 9; }\n" + OK.replace("label#a { width: 200; height: 260; }",
                                             "button#a.btn { width: 200; radius: 2; }"),
-     "lh_ui_style_set_radius(lh_addr_of(ui_s_a), lh_ui_scalar(2));"),
+     "lh_ui_style_set_radius_v(lh_addr_of(ui_s_a), lh_ui_scalar(2));"),
     ("a caption's quotes, backslashes and UTF-8 are escaped for C",
      OK.replace('text: "Hi";', r'text: "\"q\" \\ é";'),
      r'{.label = {"\"q\" \\ \303\251"}}'),

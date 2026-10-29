@@ -36,7 +36,7 @@ build_styles(lh_ui_style_t *rest, lh_ui_style_t *hot, lh_ui_style_t *pressed)
     lh_ui_color_init(&color, 10, 20, 30, 255);
     lh_ui_paint_init_color(&paint, &color);
     lh_ui_style_assign_fill(rest, &paint);
-    lh_ui_style_set_radius(rest, lh_ui_scalar(8));
+    lh_ui_style_set_radius_v(rest, lh_ui_scalar(8));
 
     lh_ui_style_init(hot);
     lh_ui_color_init(&color, 40, 50, 60, 255);
@@ -220,16 +220,16 @@ TEST(entity_button, a_hot_button_shows_the_hot_style_and_leaves_it)
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 40, 20);
     lh_ui_button_init(lh_addr_of(button), rect);
     lh_ui_button_set_style(lh_addr_of(button), lh_addr_of(rest));
-    lh_ui_button_set_hot_style(lh_addr_of(button), lh_addr_of(hot));
+    lh_ui_button_set_hot_style_v(lh_addr_of(button), lh_addr_of(hot));
     EXPECT_EQ(lh_ui_entity_get_style(lh_ui_button_as_entity(lh_addr_of(button))), lh_addr_of(rest));
 
-    lh_ui_button_set_hot(lh_addr_of(button), lh_bool_true);
+    lh_ui_button_set_hot_v(lh_addr_of(button), lh_bool_true);
     EXPECT_TRUE(lh_ui_button_get_hot(lh_addr_of(button)));
     EXPECT_EQ(lh_ui_button_get_style_now(lh_addr_of(button)), lh_addr_of(hot));
     EXPECT_EQ(lh_ui_entity_get_style(lh_ui_button_as_entity(lh_addr_of(button))), lh_addr_of(hot))
         << "the entity still paints the resting look";
 
-    lh_ui_button_set_hot(lh_addr_of(button), lh_bool_false);
+    lh_ui_button_set_hot_v(lh_addr_of(button), lh_bool_false);
     EXPECT_EQ(lh_ui_entity_get_style(lh_ui_button_as_entity(lh_addr_of(button))), lh_addr_of(rest));
     EXPECT_EQ(lh_ui_button_get_style_now(lh_addr_of(button)), lh_addr_of(rest));
 }
@@ -252,12 +252,12 @@ TEST(entity_button, hover_and_press_stack_without_the_button_knowing)
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 40, 20);
     lh_ui_button_init(lh_addr_of(button), rect);
     lh_ui_button_set_style(lh_addr_of(button), lh_addr_of(rest));
-    lh_ui_button_set_hot_style(lh_addr_of(button), lh_addr_of(hot));
+    lh_ui_button_set_hot_style_v(lh_addr_of(button), lh_addr_of(hot));
 
     lh_ui_entity_set_pressed(lh_ui_button_as_entity(lh_addr_of(button)), lh_bool_true);
     EXPECT_EQ(lh_ui_entity_get_style_now(lh_ui_button_as_entity(lh_addr_of(button))), lh_addr_of(pressed));
 
-    lh_ui_button_set_hot(lh_addr_of(button), lh_bool_true);
+    lh_ui_button_set_hot_v(lh_addr_of(button), lh_bool_true);
     EXPECT_EQ(lh_ui_entity_get_style_now(lh_ui_button_as_entity(lh_addr_of(button))), lh_addr_of(hot_pressed))
         << "the pressed look of the hot style is what shows";
 
@@ -279,9 +279,9 @@ TEST(entity_button, styles_set_while_hot_show_at_once)
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 40, 20);
     lh_ui_button_init(lh_addr_of(button), rect);
     lh_ui_button_set_style(lh_addr_of(button), lh_addr_of(rest));
-    lh_ui_button_set_hot(lh_addr_of(button), lh_bool_true);
+    lh_ui_button_set_hot_v(lh_addr_of(button), lh_bool_true);
 
-    lh_ui_button_set_hot_style(lh_addr_of(button), lh_addr_of(hot));
+    lh_ui_button_set_hot_style_v(lh_addr_of(button), lh_addr_of(hot));
     EXPECT_EQ(lh_ui_entity_get_style(lh_ui_button_as_entity(lh_addr_of(button))), lh_addr_of(hot))
         << "the hot style arrived while hovered and did not show";
     lh_ui_button_set_style(lh_addr_of(button), lh_addr_of(pressed));
@@ -304,7 +304,7 @@ TEST(entity_button, a_button_with_no_hot_style_ignores_hover)
     lh_ui_button_init(lh_addr_of(button), rect);
     lh_ui_button_set_style(lh_addr_of(button), lh_addr_of(rest));
 
-    lh_ui_button_set_hot(lh_addr_of(button), lh_bool_true);
+    lh_ui_button_set_hot_v(lh_addr_of(button), lh_bool_true);
     EXPECT_TRUE(lh_ui_button_get_hot(lh_addr_of(button)));
     EXPECT_EQ(lh_ui_button_get_style_now(lh_addr_of(button)), lh_addr_of(rest));
     EXPECT_EQ(lh_ui_entity_get_style(lh_ui_button_as_entity(lh_addr_of(button))), lh_addr_of(rest));

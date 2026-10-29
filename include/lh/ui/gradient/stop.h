@@ -51,13 +51,24 @@ lh_ui_gradient_stop_get_frac(const lh_ui_gradient_stop_t *self);
  * @brief Replace the color of @p self.
  */
 lh_void
-lh_ui_gradient_stop_set_color(lh_ui_gradient_stop_t *self, lh_ui_color_t color);
+lh_ui_gradient_stop_set_color_v(lh_ui_gradient_stop_t *self, lh_ui_color_t color);
 
 /**
  * @brief Replace the frac of @p self.
  */
 lh_void
 lh_ui_gradient_stop_set_frac(lh_ui_gradient_stop_t *self, lh_byte_t frac);
+
+/**
+ * @brief Store the color of the stop (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The stop; checked by ::lh_assert_runtime_ref.
+ * @param color The new value.
+ */
+lh_void
+lh_ui_gradient_stop_set_color(lh_ui_gradient_stop_t *self, lh_ui_color_t color);
 
 LH_COMPILER_EXTERN_C_END
 

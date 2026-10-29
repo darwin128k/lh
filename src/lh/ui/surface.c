@@ -48,7 +48,7 @@ lh_ui_surface_get_format(const lh_ui_surface_t *self)
 }
 
 lh_void
-lh_ui_surface_set_format(lh_ui_surface_t *self, lh_ui_pixmap_format_t format)
+lh_ui_surface_set_format_v(lh_ui_surface_t *self, lh_ui_pixmap_format_t format)
 {
     lh_assert_runtime_ref(self);
     /* Only while empty: a live buffer's format belongs to whatever is drawing into
@@ -64,7 +64,7 @@ lh_ui_surface_set_format(lh_ui_surface_t *self, lh_ui_pixmap_format_t format)
 }
 
 lh_bool_t
-lh_ui_surface_set_size(lh_ui_surface_t *self, lh_ui_size_t size)
+lh_ui_surface_set_size_v(lh_ui_surface_t *self, lh_ui_size_t size)
 {
     int width;
     int height;
@@ -174,4 +174,18 @@ lh_ui_surface_get_size(const lh_ui_surface_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->size);
+}
+
+lh_void
+lh_ui_surface_set_size(lh_ui_surface_t *self, lh_ui_size_t size)
+{
+    lh_assert_runtime_ref(self);
+    self->size = size;
+}
+
+lh_void
+lh_ui_surface_set_format(lh_ui_surface_t *self, lh_ui_pixmap_format_t format)
+{
+    lh_assert_runtime_ref(self);
+    self->format = format;
 }

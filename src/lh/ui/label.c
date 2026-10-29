@@ -66,7 +66,7 @@ lh_ui_label_init(lh_ui_label_t *self, lh_ui_rect_t rect, const lh_char_t *text)
     lh_ui_label_set_text_hash(self, lh_ui_label_hash_text(text, lh_addr_of(self->text_length)));
     lh_ui_label_set_text_hashed(self, lh_bool_true);
     lh_ui_rect_init_empty(lh_ui_label_get_text_noted_mut(self));
-    lh_ui_entity_set_class(lh_ui_label_as_entity(self), lh_addr_of(lh_ui_label_class));
+    lh_ui_entity_set_class_v(lh_ui_label_as_entity(self), lh_addr_of(lh_ui_label_class));
 }
 
 lh_ui_container_t *
@@ -89,7 +89,7 @@ lh_void
 lh_ui_label_drop_metrics(lh_ui_label_t *self)
 {
     lh_assert_runtime_ref(self);
-    /* The bytes changed under the label: the next ::lh_ui_label_set_text must not
+    /* The bytes changed under the label: the next ::lh_ui_label_set_text_v must not
        take them for the same ones. */
     lh_ui_label_set_metrics_ready(self, lh_bool_false);
     lh_ui_label_set_text_hashed(self, lh_bool_false);
@@ -323,7 +323,7 @@ lh_ui_label_get_ink_reach(lh_ui_label_t *self, lh_ui_rect_t *out)
 }
 
 lh_void
-lh_ui_label_set_text(lh_ui_label_t *self, const lh_char_t *text)
+lh_ui_label_set_text_v(lh_ui_label_t *self, const lh_char_t *text)
 {
     lh_ui_entity_t *entity;
     lh_ui_rect_t box;
@@ -771,4 +771,11 @@ lh_ui_label_set_metrics_size(lh_ui_label_t *self, lh_ui_size_t metrics_size)
 {
     lh_assert_runtime_ref(self);
     self->metrics_size = metrics_size;
+}
+
+lh_void
+lh_ui_label_set_text(lh_ui_label_t *self, const lh_char_t * text)
+{
+    lh_assert_runtime_ref(self);
+    self->text = text;
 }

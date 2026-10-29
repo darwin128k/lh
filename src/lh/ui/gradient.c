@@ -35,7 +35,7 @@ lh_ui_gradient_stop_get_frac(const lh_ui_gradient_stop_t *self)
 }
 
 lh_void
-lh_ui_gradient_stop_set_color(lh_ui_gradient_stop_t *self, lh_ui_color_t color)
+lh_ui_gradient_stop_set_color_v(lh_ui_gradient_stop_t *self, lh_ui_color_t color)
 {
     lh_assert_runtime_ref(self);
     lh_ptr_deref(lh_ui_gradient_stop_get_color_mut(self)) = color;
@@ -52,7 +52,7 @@ lh_void
 lh_ui_gradient_stop_init(lh_ui_gradient_stop_t *self, lh_ui_color_t color, lh_byte_t frac)
 {
     lh_assert_runtime_ref(self);
-    lh_ui_gradient_stop_set_color(self, color);
+    lh_ui_gradient_stop_set_color_v(self, color);
     lh_ui_gradient_stop_set_frac(self, frac);
 }
 
@@ -303,4 +303,11 @@ lh_ui_gradient_set_angle(lh_ui_gradient_t *self, lh_s16_t angle)
 {
     lh_assert_runtime_ref(self);
     self->angle = angle;
+}
+
+lh_void
+lh_ui_gradient_stop_set_color(lh_ui_gradient_stop_t *self, lh_ui_color_t color)
+{
+    lh_assert_runtime_ref(self);
+    self->color = color;
 }

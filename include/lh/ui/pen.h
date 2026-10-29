@@ -64,7 +64,7 @@ lh_ui_pen_get_width(const lh_ui_pen_t *self);
  * @brief Replace the line width of @p self. @p width must not be negative.
  */
 lh_void
-lh_ui_pen_set_width(lh_ui_pen_t *self, lh_ui_scalar_t width);
+lh_ui_pen_set_width_v(lh_ui_pen_t *self, lh_ui_scalar_t width);
 
 /**
  * @brief The paint the pen draws with, to change in place (level 1).
@@ -85,6 +85,17 @@ lh_ui_pen_get_paint_mut(lh_ui_pen_t *self);
  */
 lh_void
 lh_ui_pen_set_paint(lh_ui_pen_t *self, lh_ui_paint_t paint);
+
+/**
+ * @brief Store the width the pen draws with (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pen; checked by ::lh_assert_runtime_ref.
+ * @param width The new value.
+ */
+lh_void
+lh_ui_pen_set_width(lh_ui_pen_t *self, lh_ui_scalar_t width);
 
 LH_COMPILER_EXTERN_C_END
 

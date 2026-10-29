@@ -20,7 +20,7 @@ lh_ui_scrollbar_init(lh_ui_scrollbar_t *self, lh_ui_rect_t rect, lh_ui_axis_t ax
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(container);
     lh_ui_entity_init(lh_ui_scrollbar_get_entity_mut(self), rect);
-    lh_ui_entity_set_class(lh_ui_scrollbar_get_entity_mut(self), lh_addr_of(lh_ui_scrollbar_class));
+    lh_ui_entity_set_class_v(lh_ui_scrollbar_get_entity_mut(self), lh_addr_of(lh_ui_scrollbar_class));
     lh_ui_scrollbar_set_axis(self, axis);
     lh_ui_scrollbar_set_mode(self, lh_ui_scrollbar_mode_auto);
     lh_ui_scrollbar_set_container(self, container);
@@ -225,7 +225,7 @@ lh_ui_scrollbar_set_thumb_start(lh_ui_scrollbar_t *self, lh_ui_scalar_t start)
                               lh_ui_scrollbar_get_track_length(self),
                               lh_ui_scrollbar_get_thumb_length_within(self, max), start,
                               lh_ui_point_get_along(lh_addr_of(max), lh_ui_scrollbar_get_axis(self))));
-    lh_ui_container_set_scroll(lh_ui_scrollbar_get_container(self), scroll);
+    lh_ui_container_set_scroll_v(lh_ui_scrollbar_get_container(self), scroll);
 }
 
 lh_void

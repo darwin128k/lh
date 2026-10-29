@@ -529,9 +529,16 @@ lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr paint_dc, int left, in
         /* The request is read before the paint, off the DC the paint is about to draw
            on: what the window system collected from every invalidation, against the
            one rectangle it hands the paint. */
-        lh_ui_rect_init(lh_addr_of(frame.drawn), left, top, right - left, bottom - top);
-        frame.asked_known = lh_os_system_window_get_paint_region(
-            paint_dc, lh_addr_of(frame.asked_px), lh_addr_of(frame.rects));
+        lh_u64_t asked_px = 0U;
+        lh_u32_t rects = 0U;
+
+        lh_ui_rect_init(lh_ui_frame_get_drawn_mut(lh_addr_of(frame)), left, top, right - left,
+                        bottom - top);
+        lh_ui_frame_set_asked_known(lh_addr_of(frame),
+                                    lh_os_system_window_get_paint_region(
+                                        paint_dc, lh_addr_of(asked_px), lh_addr_of(rects)));
+        lh_ui_frame_set_asked_px(lh_addr_of(frame), asked_px);
+        lh_ui_frame_set_rects(lh_addr_of(frame), rects);
         started_us = lh_os_tick_us();
     }
 #endif
@@ -542,7 +549,7 @@ lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr paint_dc, int left, in
 #if LH_LIBRARY_OPTION_UI
     if (lh_null_ne(lh_os_window_get_frame_stats(self)))
     {
-        frame.us = lh_os_tick_us() - started_us;
+        lh_ui_frame_set_us(lh_addr_of(frame), lh_os_tick_us() - started_us);
         lh_ui_frame_stats_record(lh_os_window_get_frame_stats(self), lh_addr_of(frame));
     }
 #endif

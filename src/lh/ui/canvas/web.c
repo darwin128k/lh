@@ -2,6 +2,7 @@
  * @file web.c
  * @brief Implementation of `lh/ui/canvas/web.h`.
  */
+#include <lh/assert.h>
 
 #include <lh/ui/canvas/web.h>
 
@@ -18,7 +19,7 @@ lh_ui_canvas_web_put_int(lh_ui_canvas_web_t *self, lh_sint_t v)
 {
     lh_char_t buf[24];
 
-    lh_ui_web_buf_lit(lh_addr_of(self->buf), buf, lh_str_ptr_format_sint(v, buf, sizeof(buf)));
+    lh_ui_web_buf_lit(lh_ui_canvas_web_get_buf_mut(self), buf, lh_str_ptr_format_sint(v, buf, sizeof(buf)));
 }
 
 lh_void
@@ -48,23 +49,23 @@ lh_ui_canvas_web_put_hex(lh_ui_canvas_web_t *self, lh_byte_cptr px, lh_usize_t n
         const lh_usize_t len =
             lh_str_ptr_format_bytes_hex(px + i, chunk, lh_bool_false, buf, sizeof(buf));
 
-        lh_ui_web_buf_lit(lh_addr_of(self->buf), buf, len);
+        lh_ui_web_buf_lit(lh_ui_canvas_web_get_buf_mut(self), buf, len);
     }
 }
 
 lh_void
 lh_ui_canvas_web_begin_op(lh_ui_canvas_web_t *self)
 {
-    if (!lh_ui_web_buf_ok(lh_addr_of(self->buf)))
+    if (!lh_ui_web_buf_ok(lh_ui_canvas_web_get_buf_mut(self)))
     {
         return;
     }
-    if (self->comma)
+    if (lh_ui_canvas_web_is_comma(self))
     {
         lh_ui_canvas_web_put_lit(self, ",");
     }
-    self->comma = lh_bool_true;
-    ++self->ops;
+    lh_ui_canvas_web_set_comma(self, lh_bool_true);
+    lh_ui_canvas_web_set_ops(self, lh_ui_canvas_web_get_ops(self) + 1);
 }
 
 lh_void
@@ -93,27 +94,26 @@ lh_ui_canvas_web_put_rect(lh_ui_canvas_web_t *self, const lh_ui_rect_t *rect)
 static lh_ui_canvas_web_atlas_t g_web_atlas;
 
 lh_ui_canvas_web_glyphs_t *
-lh_ui_canvas_web_get_glyphs(lh_ui_canvas_web_t *self)
+lh_ui_canvas_web_get_glyphs_v(lh_ui_canvas_web_t *self)
 {
-    if (self->glyphs == lh_null)
+    if (lh_ui_canvas_web_get_glyphs(self) == lh_null)
     {
-        self->glyphs = lh_ptr_rcast(lh_ui_canvas_web_glyphs_t,
-                                    lh_runtime_allocator_alloc(sizeof(lh_ptr_deref(self->glyphs))));
-        self->glyphs_owned = (self->glyphs != lh_null) ? lh_bool_true : lh_bool_false;
-        lh_ui_canvas_web_glyphs_reset(self->glyphs);
+        lh_ui_canvas_web_set_glyphs(self, lh_ptr_rcast(lh_ui_canvas_web_glyphs_t, lh_runtime_allocator_alloc(sizeof(lh_ptr_deref(lh_ui_canvas_web_get_glyphs(self))))));
+        lh_ui_canvas_web_set_glyphs_owned(self, (lh_ui_canvas_web_get_glyphs(self) != lh_null) ? lh_bool_true : lh_bool_false);
+        lh_ui_canvas_web_glyphs_reset(lh_ui_canvas_web_get_glyphs(self));
     }
-    return self->glyphs;
+    return lh_ui_canvas_web_get_glyphs(self);
 }
 
 lh_void
 lh_ui_canvas_web_free_glyphs(lh_ui_canvas_web_t *self)
 {
-    if (self->glyphs_owned)
+    if (lh_ui_canvas_web_is_glyphs_owned(self))
     {
-        lh_runtime_allocator_free(self->glyphs);
+        lh_runtime_allocator_free(lh_ui_canvas_web_get_glyphs(self));
     }
-    self->glyphs = lh_null;
-    self->glyphs_owned = lh_bool_false;
+    lh_ui_canvas_web_set_glyphs(self, lh_null);
+    lh_ui_canvas_web_set_glyphs_owned(self, lh_bool_false);
 }
 
 lh_sint_t
@@ -141,38 +141,38 @@ lh_ui_canvas_web_intern(lh_ui_canvas_web_t *self, lh_byte_cptr px, lh_s32_t w, l
             return -1;
         }
     }
-    glyphs = lh_ui_canvas_web_get_glyphs(self);
+    glyphs = lh_ui_canvas_web_get_glyphs_v(self);
     if (glyphs == lh_null)
     {
         return id;
     }
-    if (glyphs->sent[id] != 0u)
+    if (lh_ui_canvas_web_glyphs_get_sent(glyphs)[id] != 0u)
     {
         lh_ptr_deref(is_new) = lh_bool_false;
     }
-    glyphs->sent[id] = 1u;
+    lh_ui_canvas_web_glyphs_get_sent_mut(glyphs)[id] = 1u;
     return id;
 }
 
 lh_void
 lh_ui_canvas_web_reset(lh_ui_canvas_web_t *self, lh_uint_t width, lh_uint_t height)
 {
-    lh_ui_web_buf_init(lh_addr_of(self->buf), lh_null, 0);
-    self->width = width;
-    self->height = height;
-    self->ops = 0;
-    self->comma = lh_bool_false;
-    self->glyphs = lh_null;
-    self->glyphs_owned = lh_bool_false;
+    lh_ui_web_buf_init(lh_ui_canvas_web_get_buf_mut(self), lh_null, 0);
+    lh_ui_canvas_web_set_width(self, width);
+    lh_ui_canvas_web_set_height(self, height);
+    lh_ui_canvas_web_set_ops(self, 0);
+    lh_ui_canvas_web_set_comma(self, lh_bool_false);
+    lh_ui_canvas_web_set_glyphs(self, lh_null);
+    lh_ui_canvas_web_set_glyphs_owned(self, lh_bool_false);
 }
 
 lh_void
 lh_ui_canvas_web_put_head(lh_ui_canvas_web_t *self)
 {
     lh_ui_canvas_web_put_lit(self, "{\"kind\":\"lh_ui_canvas\",\"width\":");
-    lh_ui_canvas_web_put_int(self, lh_cast_static(lh_sint_t, self->width));
+    lh_ui_canvas_web_put_int(self, lh_cast_static(lh_sint_t, lh_ui_canvas_web_get_width(self)));
     lh_ui_canvas_web_put_lit(self, ",\"height\":");
-    lh_ui_canvas_web_put_int(self, lh_cast_static(lh_sint_t, self->height));
+    lh_ui_canvas_web_put_int(self, lh_cast_static(lh_sint_t, lh_ui_canvas_web_get_height(self)));
     lh_ui_canvas_web_put_lit(self, ",\"ops\":[");
 }
 
@@ -351,9 +351,9 @@ lh_ui_canvas_web_open_mem(lh_ui_canvas_web_t *self, lh_str_ptr buf, lh_usize_t c
     }
     lh_memory_set(self, sizeof(lh_ptr_deref(self)), 0);
     lh_ui_canvas_web_reset(self, width, height);
-    lh_ui_web_buf_init(lh_addr_of(self->buf), lh_ptr_cast(lh_byte_t, buf), cap);
+    lh_ui_web_buf_init(lh_ui_canvas_web_get_buf_mut(self), lh_ptr_cast(lh_byte_t, buf), cap);
     lh_ui_canvas_web_put_head(self);
-    return lh_ui_web_buf_ok(lh_addr_of(self->buf));
+    return lh_ui_web_buf_ok(lh_ui_canvas_web_get_buf_mut(self));
 }
 
 lh_bool_t
@@ -364,30 +364,30 @@ lh_ui_canvas_web_close(lh_ui_canvas_web_t *self)
         return lh_bool_false;
     }
     lh_ui_canvas_web_put_lit(self, "]}");
-    lh_ui_web_buf_finish(lh_addr_of(self->buf));
+    lh_ui_web_buf_finish(lh_ui_canvas_web_get_buf_mut(self));
     lh_ui_canvas_web_free_glyphs(self);
-    return lh_ui_web_buf_ok(lh_addr_of(self->buf));
+    return lh_ui_web_buf_ok(lh_ui_canvas_web_get_buf_mut(self));
 }
 
 lh_void
-lh_ui_canvas_web_set_glyphs(lh_ui_canvas_web_t *self, lh_ui_canvas_web_glyphs_t *glyphs)
+lh_ui_canvas_web_set_glyphs_v(lh_ui_canvas_web_t *self, lh_ui_canvas_web_glyphs_t *glyphs)
 {
     if (self == lh_null)
     {
         return;
     }
     lh_ui_canvas_web_free_glyphs(self);
-    self->glyphs = glyphs;
+    lh_ui_canvas_web_set_glyphs(self, glyphs);
 }
 
 lh_str_cptr
 lh_ui_canvas_web_bytes(const lh_ui_canvas_web_t *self)
 {
-    if (self == lh_null || lh_ui_web_buf_bytes(lh_addr_of(self->buf)) == lh_null)
+    if (self == lh_null || lh_ui_web_buf_bytes(lh_ui_canvas_web_get_buf(self)) == lh_null)
     {
         return "";
     }
-    return lh_ptr_ccast(lh_char_t, lh_ui_web_buf_bytes(lh_addr_of(self->buf)));
+    return lh_ptr_ccast(lh_char_t, lh_ui_web_buf_bytes(lh_ui_canvas_web_get_buf(self)));
 }
 
 lh_usize_t
@@ -397,5 +397,110 @@ lh_ui_canvas_web_length(const lh_ui_canvas_web_t *self)
     {
         return 0;
     }
-    return lh_ui_web_buf_len(lh_addr_of(self->buf));
+    return lh_ui_web_buf_len(lh_ui_canvas_web_get_buf(self));
+}
+
+const lh_ui_web_buf_t *
+lh_ui_canvas_web_get_buf(const lh_ui_canvas_web_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->buf);
+}
+
+lh_ui_web_buf_t *
+lh_ui_canvas_web_get_buf_mut(lh_ui_canvas_web_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->buf);
+}
+
+lh_void
+lh_ui_canvas_web_set_buf(lh_ui_canvas_web_t *self, lh_ui_web_buf_t buf)
+{
+    lh_assert_runtime_ref(self);
+    self->buf = buf;
+}
+
+lh_uint_t
+lh_ui_canvas_web_get_width(const lh_ui_canvas_web_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->width;
+}
+
+lh_void
+lh_ui_canvas_web_set_width(lh_ui_canvas_web_t *self, lh_uint_t width)
+{
+    lh_assert_runtime_ref(self);
+    self->width = width;
+}
+
+lh_uint_t
+lh_ui_canvas_web_get_height(const lh_ui_canvas_web_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->height;
+}
+
+lh_void
+lh_ui_canvas_web_set_height(lh_ui_canvas_web_t *self, lh_uint_t height)
+{
+    lh_assert_runtime_ref(self);
+    self->height = height;
+}
+
+lh_uint_t
+lh_ui_canvas_web_get_ops(const lh_ui_canvas_web_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->ops;
+}
+
+lh_void
+lh_ui_canvas_web_set_ops(lh_ui_canvas_web_t *self, lh_uint_t ops)
+{
+    lh_assert_runtime_ref(self);
+    self->ops = ops;
+}
+
+lh_bool_t
+lh_ui_canvas_web_is_comma(const lh_ui_canvas_web_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->comma;
+}
+
+lh_void
+lh_ui_canvas_web_set_comma(lh_ui_canvas_web_t *self, lh_bool_t comma)
+{
+    lh_assert_runtime_ref(self);
+    self->comma = comma;
+}
+
+lh_bool_t
+lh_ui_canvas_web_is_glyphs_owned(const lh_ui_canvas_web_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->glyphs_owned;
+}
+
+lh_void
+lh_ui_canvas_web_set_glyphs_owned(lh_ui_canvas_web_t *self, lh_bool_t glyphs_owned)
+{
+    lh_assert_runtime_ref(self);
+    self->glyphs_owned = glyphs_owned;
+}
+
+lh_ui_canvas_web_glyphs_t *
+lh_ui_canvas_web_get_glyphs(const lh_ui_canvas_web_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->glyphs;
+}
+
+lh_void
+lh_ui_canvas_web_set_glyphs(lh_ui_canvas_web_t *self, lh_ui_canvas_web_glyphs_t * glyphs)
+{
+    lh_assert_runtime_ref(self);
+    self->glyphs = glyphs;
 }

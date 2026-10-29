@@ -17,7 +17,7 @@
  * the text, the font, the rect, the padding, the alignment or the width it wraps
  * at changes, so a repaint draws the glyphs and measures nothing. `text_hash` / `text_length` are
  * how
- * ::lh_ui_label_set_text tells a new string from the same one when the caller
+ * ::lh_ui_label_set_text_v tells a new string from the same one when the caller
  * has already overwritten the buffer the label points at. `text_noted` is where
  * the text's ink was the last time the label recorded it, **relative to the
  * label's own origin**, which is the one way left to erase an old text whose

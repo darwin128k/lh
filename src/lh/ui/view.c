@@ -716,7 +716,7 @@ lh_ui_view_set_hot(lh_ui_view_t *self, lh_ui_button_t *button, lh_bool_t hot)
        arriving are painted by the same rule as a press. */
     lh_ui_view_damage_looks(self, lh_ui_button_as_entity(button), lh_ui_button_get_style(button),
                             lh_ui_button_get_hot_style(button));
-    lh_ui_button_set_hot(button, hot);
+    lh_ui_button_set_hot_v(button, hot);
 }
 
 lh_bool_t
@@ -833,7 +833,7 @@ lh_ui_view_get_focus(const lh_ui_view_t *self)
 }
 
 lh_void
-lh_ui_view_set_focus(lh_ui_view_t *self, lh_ui_entity_t *entity)
+lh_ui_view_set_focus_v(lh_ui_view_t *self, lh_ui_entity_t *entity)
 {
     lh_assert_runtime_ref(self);
     lh_return_if(lh_ui_view_get_focus(self) == entity);
@@ -861,7 +861,7 @@ lh_ui_view_press_on(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_ent
        something else draws. The rect is ::lh_ui_view_take_damage's. */
     lh_ui_view_set_pressed(self, hit, lh_bool_true);
     lh_ui_entity_send_pointer(hit, lh_ui_entity_event_press, point);
-    lh_ui_view_set_focus(self, lh_ui_entity_find_focusable(hit));
+    lh_ui_view_set_focus_v(self, lh_ui_entity_find_focusable(hit));
     lh_ui_view_grab_thumb(self, pointer, lh_ui_entity_as_scrollbar(hit), point);
     box = lh_null_eq(lh_ui_view_pointer_get_grab(pointer)) ? lh_ui_view_get_drag_box(hit) : lh_null;
     /* A container another pointer drags stays that pointer's: this one presses and
@@ -948,7 +948,7 @@ lh_ui_view_key(lh_ui_view_t *self, lh_os_key_t key, lh_bool_t pressed)
     lh_assert_runtime_ref(self);
     if (key == lh_os_key_tab && pressed)
     {
-        lh_ui_view_set_focus(self, lh_ui_view_get_next_focus(self));
+        lh_ui_view_set_focus_v(self, lh_ui_view_get_next_focus(self));
         return lh_bool_false;
     }
     lh_ui_key_input_init_key(lh_addr_of(input), key, pressed);
@@ -1205,7 +1205,7 @@ lh_ui_view_deinit(lh_ui_view_t *self)
 }
 
 lh_void
-lh_ui_view_set_root(lh_ui_view_t *self, lh_ui_entity_t *root)
+lh_ui_view_set_root_v(lh_ui_view_t *self, lh_ui_entity_t *root)
 {
     lh_ui_entity_t *top;
 
@@ -1422,4 +1422,18 @@ lh_ui_view_get_transitions_mut(lh_ui_view_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->transitions;
+}
+
+lh_void
+lh_ui_view_set_root(lh_ui_view_t *self, lh_ui_entity_t * root)
+{
+    lh_assert_runtime_ref(self);
+    self->root = root;
+}
+
+lh_void
+lh_ui_view_set_focus(lh_ui_view_t *self, lh_ui_entity_t * focus)
+{
+    lh_assert_runtime_ref(self);
+    self->focus = focus;
 }

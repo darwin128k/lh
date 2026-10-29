@@ -46,7 +46,7 @@ lh_ui_image_init(lh_ui_image_t *self, lh_ui_rect_t rect, const lh_ui_mask_t *mas
 {
     lh_assert_runtime_ref(self);
     lh_ui_entity_init(lh_ui_image_get_entity_mut(self), rect);
-    lh_ui_entity_set_class(lh_ui_image_get_entity_mut(self), lh_addr_of(lh_ui_image_class));
+    lh_ui_entity_set_class_v(lh_ui_image_get_entity_mut(self), lh_addr_of(lh_ui_image_class));
     lh_ui_image_set_mask(self, mask);
     /* A mask is cropped to ink and knows nothing about the type it came out of,
        so a picture has no line until somebody says where its is. */

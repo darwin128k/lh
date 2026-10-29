@@ -596,8 +596,8 @@ TEST(ui_canvas, damage_of_an_area_frame_stays_in_target_space)
 
     /* The buffer moved, the damage did not: a caller invalidates a window
        rectangle, not a strip offset. */
-    ASSERT_NE(lh_ui_canvas_get_damage(lh_addr_of(canvas)), nullptr);
-    EXPECT_TRUE(lh_test::rect_is(*lh_ui_canvas_get_damage(lh_addr_of(canvas)), lh_test::rect_of(10, 75, 20, 5)));
+    ASSERT_NE(lh_ui_canvas_get_damage_v(lh_addr_of(canvas)), nullptr);
+    EXPECT_TRUE(lh_test::rect_is(*lh_ui_canvas_get_damage_v(lh_addr_of(canvas)), lh_test::rect_of(10, 75, 20, 5)));
 }
 
 /* A damage recorded between frames is a window rectangle. The buffer's origin is
@@ -627,7 +627,7 @@ TEST(ui_canvas, damage_between_frames_is_not_moved_by_the_strip_that_was_drawn_l
 
     /* What the app says afterwards, in the space it says it in. */
     lh_ui_canvas_add_damage(lh_addr_of(canvas), lh_addr_of(rect));
-    hit = *lh_ui_canvas_get_damage(lh_addr_of(canvas));
+    hit = *lh_ui_canvas_get_damage_v(lh_addr_of(canvas));
     EXPECT_TRUE(lh_test::rect_is(hit, lh_test::rect_of(10, 75, 20, 5)));
 }
 
@@ -878,7 +878,7 @@ TEST(ui_canvas, round_rect_the_slot_declines_is_drawn_by_the_canvas)
             EXPECT_EQ(target.alpha[y][x], lh_ui_radius_coverage(lh_addr_of(rect), radius, x, y)) << x << "," << y;
         }
     }
-    ASSERT_NE(lh_ui_canvas_get_damage(lh_addr_of(canvas)), nullptr);
+    ASSERT_NE(lh_ui_canvas_get_damage_v(lh_addr_of(canvas)), nullptr);
 }
 
 TEST(ui_canvas, mask_the_slot_declines_is_painted_by_the_canvas)

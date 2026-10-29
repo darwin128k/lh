@@ -3547,7 +3547,7 @@ def emit(nodes, variables, root, source=""):
         if any(c is not None for c in corners):
             corners = [c or 0 for c in corners]
             if len(set(corners)) == 1:
-                body.append("lh_ui_style_set_radius(lh_addr_of(ui_s_%s), lh_ui_scalar(%d));"
+                body.append("lh_ui_style_set_radius_v(lh_addr_of(ui_s_%s), lh_ui_scalar(%d));"
                             % (sname, corners[0]))
             else:
                 body.append("lh_ui_radii_init(lh_addr_of(ui_rd_%s), lh_ui_scalar(%d), "
@@ -3589,7 +3589,7 @@ def emit(nodes, variables, root, source=""):
             body.append("lh_ui_shadow_init(lh_addr_of(ui_shadow_%s));" % sname)
             body.append("lh_ui_shadow_set_color(lh_addr_of(ui_shadow_%s), %s);"
                         % (sname, colour_of(faded(rgb, fade))))
-            body.append("lh_ui_shadow_set_spread(lh_addr_of(ui_shadow_%s), lh_ui_scalar(%d));"
+            body.append("lh_ui_shadow_set_spread_v(lh_addr_of(ui_shadow_%s), lh_ui_scalar(%d));"
                         % (sname, blur))
             body.append("lh_ui_shadow_set_offset(lh_addr_of(ui_shadow_%s), lh_ui_scalar(%d), "
                         "lh_ui_scalar(%d));" % (sname, dx, dy))
@@ -4235,7 +4235,7 @@ main(int argc, char **argv)
     lh_ui_color_init(&clear, 255, 255, 255, 255);
     lh_ui_view_init(&view);
     lh_ui_view_set_canvas(&view, &canvas);
-    lh_ui_view_set_root(&view, root);
+    lh_ui_view_set_root_v(&view, root);
     lh_ui_view_set_clear(&view, &clear);
     lh_ui_view_paint(&view);
 

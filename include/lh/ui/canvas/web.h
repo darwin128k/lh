@@ -70,9 +70,9 @@ lh_ui_canvas_web_put_rect(lh_ui_canvas_web_t *self, const lh_ui_rect_t *rect);
 
 /** Which covers the reader holds: the caller's set, or one owned by this frame. */
 lh_ui_canvas_web_glyphs_t *
-lh_ui_canvas_web_get_glyphs(lh_ui_canvas_web_t *self);
+lh_ui_canvas_web_get_glyphs_v(lh_ui_canvas_web_t *self);
 
-/** Free the set ::lh_ui_canvas_web_get_glyphs made for this frame, if it made one. */
+/** Free the set ::lh_ui_canvas_web_get_glyphs_v made for this frame, if it made one. */
 lh_void
 lh_ui_canvas_web_free_glyphs(lh_ui_canvas_web_t *self);
 
@@ -140,7 +140,7 @@ lh_ui_canvas_web_open_mem(lh_ui_canvas_web_t *self, lh_str_ptr buf, lh_usize_t c
  * its id only, so the reader must have kept every earlier frame's covers.
  */
 lh_void
-lh_ui_canvas_web_set_glyphs(lh_ui_canvas_web_t *self, lh_ui_canvas_web_glyphs_t *glyphs);
+lh_ui_canvas_web_set_glyphs_v(lh_ui_canvas_web_t *self, lh_ui_canvas_web_glyphs_t *glyphs);
 
 /**
  * @brief Close the array. @p self's buffer stays valid at ::lh_ui_canvas_web_bytes.
@@ -155,6 +155,148 @@ lh_ui_canvas_web_bytes(const lh_ui_canvas_web_t *self);
 /** How many of those bytes. */
 lh_usize_t
 lh_ui_canvas_web_length(const lh_ui_canvas_web_t *self);
+
+/**
+ * @brief The buffer the draw stream is written into (level 1).
+ *
+ * @param self The web canvas; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_web_buf_t *
+lh_ui_canvas_web_get_buf(const lh_ui_canvas_web_t *self);
+
+/**
+ * @brief The buffer the draw stream is written into, to change in place (level 1).
+ *
+ * @param self The web canvas; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_web_buf_t *
+lh_ui_canvas_web_get_buf_mut(lh_ui_canvas_web_t *self);
+
+/**
+ * @brief Store the buffer the draw stream is written into (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The web canvas; checked by ::lh_assert_runtime_ref.
+ * @param buf The new value.
+ */
+lh_void
+lh_ui_canvas_web_set_buf(lh_ui_canvas_web_t *self, lh_ui_web_buf_t buf);
+
+/**
+ * @brief The width of the canvas in pixels (level 1).
+ *
+ * @param self The web canvas; checked by ::lh_assert_runtime_ref.
+ */
+lh_uint_t
+lh_ui_canvas_web_get_width(const lh_ui_canvas_web_t *self);
+
+/**
+ * @brief Store the width of the canvas in pixels (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The web canvas; checked by ::lh_assert_runtime_ref.
+ * @param width The new value.
+ */
+lh_void
+lh_ui_canvas_web_set_width(lh_ui_canvas_web_t *self, lh_uint_t width);
+
+/**
+ * @brief The height of the canvas in pixels (level 1).
+ *
+ * @param self The web canvas; checked by ::lh_assert_runtime_ref.
+ */
+lh_uint_t
+lh_ui_canvas_web_get_height(const lh_ui_canvas_web_t *self);
+
+/**
+ * @brief Store the height of the canvas in pixels (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The web canvas; checked by ::lh_assert_runtime_ref.
+ * @param height The new value.
+ */
+lh_void
+lh_ui_canvas_web_set_height(lh_ui_canvas_web_t *self, lh_uint_t height);
+
+/**
+ * @brief How many operations the frame has written (level 1).
+ *
+ * @param self The web canvas; checked by ::lh_assert_runtime_ref.
+ */
+lh_uint_t
+lh_ui_canvas_web_get_ops(const lh_ui_canvas_web_t *self);
+
+/**
+ * @brief Store how many operations the frame has written (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The web canvas; checked by ::lh_assert_runtime_ref.
+ * @param ops The new value.
+ */
+lh_void
+lh_ui_canvas_web_set_ops(lh_ui_canvas_web_t *self, lh_uint_t ops);
+
+/**
+ * @brief Whether the next operation needs a comma before it (level 1).
+ *
+ * @param self The web canvas; checked by ::lh_assert_runtime_ref.
+ */
+lh_bool_t
+lh_ui_canvas_web_is_comma(const lh_ui_canvas_web_t *self);
+
+/**
+ * @brief Store whether the next operation needs a comma before it (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The web canvas; checked by ::lh_assert_runtime_ref.
+ * @param comma The new value.
+ */
+lh_void
+lh_ui_canvas_web_set_comma(lh_ui_canvas_web_t *self, lh_bool_t comma);
+
+/**
+ * @brief Whether the canvas owns its glyph cache (level 1).
+ *
+ * @param self The web canvas; checked by ::lh_assert_runtime_ref.
+ */
+lh_bool_t
+lh_ui_canvas_web_is_glyphs_owned(const lh_ui_canvas_web_t *self);
+
+/**
+ * @brief Store whether the canvas owns its glyph cache (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The web canvas; checked by ::lh_assert_runtime_ref.
+ * @param glyphs_owned The new value.
+ */
+lh_void
+lh_ui_canvas_web_set_glyphs_owned(lh_ui_canvas_web_t *self, lh_bool_t glyphs_owned);
+
+/**
+ * @brief The glyph cache the canvas sends masks through (level 1).
+ *
+ * @param self The web canvas; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_canvas_web_glyphs_t *
+lh_ui_canvas_web_get_glyphs(const lh_ui_canvas_web_t *self);
+
+/**
+ * @brief Store the glyph cache the canvas sends masks through (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The web canvas; checked by ::lh_assert_runtime_ref.
+ * @param glyphs The new value.
+ */
+lh_void
+lh_ui_canvas_web_set_glyphs(lh_ui_canvas_web_t *self, lh_ui_canvas_web_glyphs_t * glyphs);
 
 LH_COMPILER_EXTERN_C_END
 

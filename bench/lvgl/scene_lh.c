@@ -72,7 +72,7 @@ card_look(void)
     lh_ui_style_assign_fill(&card_style, &paint);
     lh_ui_paint_init_color(&paint, &ink);
     lh_ui_style_assign_text(&card_style, &paint);
-    lh_ui_style_set_radius(&card_style, lh_ui_scalar(8));
+    lh_ui_style_set_radius_v(&card_style, lh_ui_scalar(8));
     lh_ui_style_set_padding_all(&card_style, lh_ui_scalar(8));
 }
 
@@ -123,7 +123,7 @@ lh_scene_setup(int scene)
     lh_ui_paint_init_color(&paint, &bg);
     lh_ui_style_assign_fill(&root_style, &paint);
     lh_ui_container_init(&root, rect(0, 0, SCENE_W, SCENE_H));
-    lh_ui_entity_set_style(lh_ui_container_as_entity(&root), &root_style);
+    lh_ui_entity_set_style_v(lh_ui_container_as_entity(&root), &root_style);
     card_look();
 
     switch (scene)
@@ -140,7 +140,7 @@ lh_scene_setup(int scene)
     case SCENE_SHADOW:
         lh_ui_shadow_init(&shadow);
         lh_ui_shadow_set_color(&shadow, rgb(0, 0, 0, 128));
-        lh_ui_shadow_set_spread(&shadow, lh_ui_scalar(12));
+        lh_ui_shadow_set_spread_v(&shadow, lh_ui_scalar(12));
         lh_ui_shadow_set_offset(&shadow, lh_ui_scalar(0), lh_ui_scalar(4));
         lh_ui_style_set_shadow_v(&card_style, &shadow);
         break;
@@ -160,13 +160,13 @@ lh_scene_setup(int scene)
         lh_ui_color_t panel = rgb(42, 49, 59, 255);
         lh_ui_paint_init_color(&paint, &panel);
         lh_ui_style_assign_fill(&card_style, &paint);
-        lh_ui_style_set_radius(&card_style, lh_ui_scalar(6));
+        lh_ui_style_set_radius_v(&card_style, lh_ui_scalar(6));
         lh_ui_style_set_wrap(&card_style, lh_ui_text_wrap_words);
         for (i = 0; i < PARAGRAPHS; ++i)
         {
             const lh_ui_rect_t r = rect(8 + (i % 2) * 236, 8 + (i / 2) * 156, 228, 148);
             lh_ui_label_init(&paragraphs[i], r, scene_paragraph);
-            lh_ui_entity_set_style(lh_ui_label_as_entity(&paragraphs[i]), &card_style);
+            lh_ui_entity_set_style_v(lh_ui_label_as_entity(&paragraphs[i]), &card_style);
             lh_ui_entity_add_child(lh_ui_container_as_entity(&root), lh_ui_label_as_entity(&paragraphs[i]));
         }
         partial = rect(8, 8, 228, 148);
@@ -193,7 +193,7 @@ lh_scene_setup(int scene)
         {
             snprintf(captions[i], sizeof captions[i], "Item %d", i + 1);
             lh_ui_label_init(&cells[i], rect(0, 0, 0, 0), captions[i]);
-            lh_ui_entity_set_style(lh_ui_label_as_entity(&cells[i]), &card_style);
+            lh_ui_entity_set_style_v(lh_ui_label_as_entity(&cells[i]), &card_style);
             lh_ui_entity_set_place_v(lh_ui_label_as_entity(&cells[i]), &fill);
             lh_ui_entity_add_child(lh_ui_container_as_entity(&rows[i / 4]), lh_ui_label_as_entity(&cells[i]));
         }
@@ -206,7 +206,7 @@ lh_scene_setup(int scene)
             const lh_ui_rect_t r = rect(8 + (i % 6) * 78, 8 + (i / 6) * 78, 72, 66);
             snprintf(captions[i], sizeof captions[i], "Card %d", i + 1);
             lh_ui_label_init(&cards[i], r, captions[i]);
-            lh_ui_entity_set_style(lh_ui_label_as_entity(&cards[i]), &card_style);
+            lh_ui_entity_set_style_v(lh_ui_label_as_entity(&cards[i]), &card_style);
             lh_ui_entity_add_child(lh_ui_container_as_entity(&root), lh_ui_label_as_entity(&cards[i]));
         }
         partial = rect(8, 8, 72, 66);
@@ -214,7 +214,7 @@ lh_scene_setup(int scene)
 
     lh_ui_view_init(&view);
     lh_ui_view_set_canvas(&view, &canvas);
-    lh_ui_view_set_root(&view, lh_ui_container_as_entity(&root));
+    lh_ui_view_set_root_v(&view, lh_ui_container_as_entity(&root));
     clear_color = bg;
     lh_ui_view_set_clear(&view, &clear_color);
     lh_ui_view_paint(&view);

@@ -39,7 +39,7 @@ field_init(field *self, lh_u16_t capacity)
     lh_ui_input_init(lh_addr_of(self->input), self->rect, self->buffer, capacity);
     lh_ui_style_init(lh_addr_of(self->style));
     lh_ui_style_set_font(lh_addr_of(self->style), tiny_font());
-    lh_ui_entity_set_style(lh_ui_input_as_entity(lh_addr_of(self->input)), lh_addr_of(self->style));
+    lh_ui_entity_set_style_v(lh_ui_input_as_entity(lh_addr_of(self->input)), lh_addr_of(self->style));
 }
 
 /** Type @p code as the keyboard would, into a field that has the focus. */
@@ -138,7 +138,7 @@ TEST(entity_input, insert_in_the_middle_shifts_the_rest_and_leaves_the_caret_aft
     field_init(lh_addr_of(f), 16);
 
     lh_ui_input_set_text(lh_addr_of(f.input), "AC");
-    EXPECT_EQ(lh_ui_input_set_caret(lh_addr_of(f.input), 1), lh_bool_true);
+    EXPECT_EQ(lh_ui_input_set_caret_v(lh_addr_of(f.input), 1), lh_bool_true);
     EXPECT_EQ(lh_ui_input_insert(lh_addr_of(f.input), 'B'), lh_bool_true);
     EXPECT_STREQ(lh_ui_input_get_text(lh_addr_of(f.input)), "ABC");
     EXPECT_EQ(lh_ui_input_get_caret(lh_addr_of(f.input)), 2);
@@ -173,7 +173,7 @@ TEST(entity_input, backspace_at_the_start_refuses_and_delete_at_the_end_refuses)
        to the start before asking for the one that is supposed to work. */
     EXPECT_EQ(lh_ui_input_delete_forward(lh_addr_of(f.input)), lh_bool_false);
     EXPECT_STREQ(lh_ui_input_get_text(lh_addr_of(f.input)), "AB");
-    ASSERT_EQ(lh_ui_input_set_caret(lh_addr_of(f.input), 0), lh_bool_true);
+    ASSERT_EQ(lh_ui_input_set_caret_v(lh_addr_of(f.input), 0), lh_bool_true);
 
     /* Forward deletes the character **under** the caret and leaves the caret where it
        is, so the same caret walks the text from "AB" to "B" to "" and then there is
@@ -207,11 +207,11 @@ TEST(entity_input, a_caret_inside_a_character_is_refused_and_the_caret_stays)
     ASSERT_EQ(lh_ui_input_get_caret(lh_addr_of(f.input)), 2);
     /* Byte 1 is the second half of the character that starts at byte 0. A caret
        there is not a position in this text. */
-    EXPECT_EQ(lh_ui_input_set_caret(lh_addr_of(f.input), 1), lh_bool_false);
+    EXPECT_EQ(lh_ui_input_set_caret_v(lh_addr_of(f.input), 1), lh_bool_false);
     EXPECT_EQ(lh_ui_input_get_caret(lh_addr_of(f.input)), 2);
-    EXPECT_EQ(lh_ui_input_set_caret(lh_addr_of(f.input), 3), lh_bool_false);
+    EXPECT_EQ(lh_ui_input_set_caret_v(lh_addr_of(f.input), 3), lh_bool_false);
     EXPECT_EQ(lh_ui_input_get_caret(lh_addr_of(f.input)), 2);
-    EXPECT_EQ(lh_ui_input_set_caret(lh_addr_of(f.input), 0), lh_bool_true);
+    EXPECT_EQ(lh_ui_input_set_caret_v(lh_addr_of(f.input), 0), lh_bool_true);
 }
 
 TEST(entity_input, set_text_that_does_not_fit_keeps_whole_characters)
@@ -260,7 +260,7 @@ TEST(entity_input, a_three_byte_character_deletes_as_a_whole_and_not_as_two_byte
        start: the first takes the 'A', the second has to take all **three** bytes of
        the euro or it leaves one behind, which is the next character as far as anything
        reading this string is concerned. */
-    ASSERT_EQ(lh_ui_input_set_caret(lh_addr_of(f.input), 0), lh_bool_true);
+    ASSERT_EQ(lh_ui_input_set_caret_v(lh_addr_of(f.input), 0), lh_bool_true);
     EXPECT_EQ(lh_ui_input_delete_forward(lh_addr_of(f.input)), lh_bool_true);
     EXPECT_STREQ(lh_ui_input_get_text(lh_addr_of(f.input)), "\xE2\x82\xAC" "B");
     EXPECT_EQ(lh_ui_input_get_length(lh_addr_of(f.input)), 4);
@@ -424,7 +424,7 @@ TEST(entity_input, the_caret_sits_where_the_text_before_it_ends)
     lh_ui_rect_t caret;
 
     lh_ui_input_set_text(lh_addr_of(f.input), "AB");
-    lh_ui_input_set_caret(lh_addr_of(f.input), 1);
+    lh_ui_input_set_caret_v(lh_addr_of(f.input), 1);
     caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
 
     /* The tiny font gives 'A' an advance of 3 and the field no padding, so the caret
@@ -446,7 +446,7 @@ cap_field(field *f, lh_ui_style_t *style)
     lh_ui_input_init(lh_addr_of(f->input), rect, f->buffer, 16);
     lh_ui_style_init(style);
     lh_ui_style_set_font(style, cap_font());
-    lh_ui_entity_set_style(lh_ui_input_as_entity(lh_addr_of(f->input)), style);
+    lh_ui_entity_set_style_v(lh_ui_input_as_entity(lh_addr_of(f->input)), style);
 }
 
 lh_ui_scalar_t
@@ -526,10 +526,10 @@ TEST(entity_input, a_block_caret_is_as_wide_as_the_character_under_it)
     lh_ui_input_set_caret_shape(lh_addr_of(f.input), lh_ui_input_caret_block);
     EXPECT_EQ(lh_ui_input_get_caret_shape(lh_addr_of(f.input)), lh_ui_input_caret_block);
     lh_ui_input_set_text(lh_addr_of(f.input), "fe");
-    lh_ui_input_set_caret(lh_addr_of(f.input), 0);
+    lh_ui_input_set_caret_v(lh_addr_of(f.input), 0);
     caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
     EXPECT_EQ(width_of(lh_addr_of(caret)), 6) << "over 'f'";
-    lh_ui_input_set_caret(lh_addr_of(f.input), 1);
+    lh_ui_input_set_caret_v(lh_addr_of(f.input), 1);
     caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
     EXPECT_EQ(width_of(lh_addr_of(caret)), 5) << "over 'e'";
     EXPECT_EQ(lh_ui_rect_get_origin(lh_addr_of(caret))->x, 6) << "after the 'f'";
@@ -544,7 +544,7 @@ TEST(entity_input, a_bar_caret_is_one_column)
     cap_field(lh_addr_of(f), lh_addr_of(style));
     EXPECT_EQ(lh_ui_input_get_caret_shape(lh_addr_of(f.input)), lh_ui_input_caret_bar) << "the default";
     lh_ui_input_set_text(lh_addr_of(f.input), "fe");
-    lh_ui_input_set_caret(lh_addr_of(f.input), 0);
+    lh_ui_input_set_caret_v(lh_addr_of(f.input), 0);
     caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
     EXPECT_EQ(width_of(lh_addr_of(caret)), 1);
 }

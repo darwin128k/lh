@@ -37,7 +37,7 @@ lh_ui_canvas_state_init(lh_ui_canvas_state_t *self);
  * @brief Clip of @p self, or ::lh_null when nothing is cut.
  */
 const lh_ui_rect_t *
-lh_ui_canvas_state_get_clip(const lh_ui_canvas_state_t *self);
+lh_ui_canvas_state_get_clip_v(const lh_ui_canvas_state_t *self);
 
 /**
  * @brief True when @p a and @p b cut the same way (both off, or same rect
@@ -173,6 +173,14 @@ lh_ui_canvas_state_get_round_count(const lh_ui_canvas_state_t *self);
  */
 lh_void
 lh_ui_canvas_state_set_round_count(lh_ui_canvas_state_t *self, lh_u8_t round_count);
+
+/**
+ * @brief The clip rectangle (level 1).
+ *
+ * @param self The state; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_rect_t *
+lh_ui_canvas_state_get_clip(const lh_ui_canvas_state_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

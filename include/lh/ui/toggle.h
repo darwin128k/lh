@@ -78,7 +78,7 @@ lh_ui_toggle_on_click(const lh_ui_toggle_t *self, const lh_ui_entity_event_t *ev
 
 /** The looks of the state @p self is in, put on the button — which re-aims the
    entity by itself: ::lh_ui_button_set_style puts the resting one back when the
-   pointer is elsewhere, and ::lh_ui_button_set_hot_style puts the hovered one
+   pointer is elsewhere, and ::lh_ui_button_set_hot_style_v puts the hovered one
    while it is there. That is why a flip under the pointer keeps the hot look:
    the pointer asked the button, not the state. Every setter below ends here, so
    there is one place that decides what a state change means. */
@@ -171,7 +171,7 @@ lh_ui_toggle_get_checked(const lh_ui_toggle_t *self);
  *        entity. No damage: the app invalidates, the same as after a scroll.
  */
 lh_void
-lh_ui_toggle_set_checked(lh_ui_toggle_t *self, lh_bool_t checked);
+lh_ui_toggle_set_checked_v(lh_ui_toggle_t *self, lh_bool_t checked);
 
 /* -- Click ----------------------------------------------------------------- */
 
@@ -306,6 +306,17 @@ lh_ui_toggle_set_off_style(lh_ui_toggle_t *self, const lh_ui_style_t * off_style
  */
 lh_void
 lh_ui_toggle_set_on_style(lh_ui_toggle_t *self, const lh_ui_style_t * on_style);
+
+/**
+ * @brief Store whether the toggle is on (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The toggle; checked by ::lh_assert_runtime_ref.
+ * @param checked The new value.
+ */
+lh_void
+lh_ui_toggle_set_checked(lh_ui_toggle_t *self, lh_bool_t checked);
 
 LH_COMPILER_EXTERN_C_END
 

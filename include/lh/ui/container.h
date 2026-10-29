@@ -213,11 +213,11 @@ lh_ui_container_get_clamped_scroll(const lh_ui_container_t *self, lh_ui_point_t 
  *        ::lh_ui_container_clamp_scroll.
  */
 lh_void
-lh_ui_container_set_scroll(lh_ui_container_t *self, lh_ui_point_t scroll);
+lh_ui_container_set_scroll_v(lh_ui_container_t *self, lh_ui_point_t scroll);
 
 /**
  * @brief Scroll @p self by `(@p dx, @p dy)`, clamped like
- *        ::lh_ui_container_set_scroll.
+ *        ::lh_ui_container_set_scroll_v.
  */
 lh_void
 lh_ui_container_scroll_by(lh_ui_container_t *self, lh_ui_scalar_t dx, lh_ui_scalar_t dy);
@@ -285,6 +285,17 @@ lh_ui_container_set_placing(lh_ui_container_t *self, lh_bool_t placing);
  */
 const lh_ui_point_t *
 lh_ui_container_get_scroll(const lh_ui_container_t *self);
+
+/**
+ * @brief Store how far the content is scrolled (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The container; checked by ::lh_assert_runtime_ref.
+ * @param scroll The new value.
+ */
+lh_void
+lh_ui_container_set_scroll(lh_ui_container_t *self, lh_ui_point_t scroll);
 
 LH_COMPILER_EXTERN_C_END
 

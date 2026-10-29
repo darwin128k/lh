@@ -151,7 +151,7 @@ lh_ui_entity_get_class(const lh_ui_entity_t *self)
 }
 
 lh_void
-lh_ui_entity_set_class(lh_ui_entity_t *self, const lh_ui_entity_class_t *class)
+lh_ui_entity_set_class_v(lh_ui_entity_t *self, const lh_ui_entity_class_t *class)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(class);
@@ -722,7 +722,7 @@ lh_ui_entity_note(const lh_ui_entity_t *self)
 }
 
 lh_void
-lh_ui_entity_set_rect(lh_ui_entity_t *self, lh_ui_rect_t rect)
+lh_ui_entity_set_rect_v(lh_ui_entity_t *self, lh_ui_rect_t rect)
 {
     lh_assert_runtime_ref(self);
     /* The same rect is what a layout writes on every poll. Recording it would
@@ -747,7 +747,7 @@ lh_ui_entity_set_style_at_once(lh_ui_entity_t *self, const lh_ui_style_t *style)
 }
 
 lh_void
-lh_ui_entity_set_style(lh_ui_entity_t *self, const lh_ui_style_t *style)
+lh_ui_entity_set_style_v(lh_ui_entity_t *self, const lh_ui_style_t *style)
 {
     struct lh_ui_view *view;
 
@@ -798,7 +798,7 @@ lh_ui_entity_move_to(lh_ui_entity_t *self, lh_ui_point_t origin)
 }
 
 lh_void
-lh_ui_entity_set_hidden(lh_ui_entity_t *self, lh_bool_t hidden)
+lh_ui_entity_set_hidden_v(lh_ui_entity_t *self, lh_bool_t hidden)
 {
     lh_assert_runtime_ref(self);
     lh_return_if(lh_ui_entity_is_hidden(self) == hidden);
@@ -892,7 +892,7 @@ lh_ui_entity_draw_border(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
     bottom = lh_ui_insets_get_bottom(border);
     lh_return_if(left <= lh_ui_scalar(0) && top <= lh_ui_scalar(0) && right <= lh_ui_scalar(0) &&
                  bottom <= lh_ui_scalar(0));
-    color = lh_ui_paint_get_color(lh_ui_style_get_border_fill(style));
+    color = lh_ui_paint_get_color_v(lh_ui_style_get_border_fill(style));
     lh_return_if(lh_null_eq(color));
     lh_ui_entity_copy_rect(self, lh_addr_of(rect));
     origin = lh_ui_rect_get_origin(lh_addr_of(rect));
@@ -1059,4 +1059,32 @@ lh_ui_entity_set_place(lh_ui_entity_t *self, lh_ui_place_t place)
 {
     lh_assert_runtime_ref(self);
     self->place = place;
+}
+
+lh_void
+lh_ui_entity_set_rect(lh_ui_entity_t *self, lh_ui_rect_t rect)
+{
+    lh_assert_runtime_ref(self);
+    self->rect = rect;
+}
+
+lh_void
+lh_ui_entity_set_class(lh_ui_entity_t *self, const lh_ui_entity_class_t *entity_class)
+{
+    lh_assert_runtime_ref(self);
+    self->class = entity_class;
+}
+
+lh_void
+lh_ui_entity_set_hidden(lh_ui_entity_t *self, lh_bool_t hidden)
+{
+    lh_assert_runtime_ref(self);
+    self->hidden = hidden;
+}
+
+lh_void
+lh_ui_entity_set_style(lh_ui_entity_t *self, const lh_ui_style_t * style)
+{
+    lh_assert_runtime_ref(self);
+    self->style = style;
 }

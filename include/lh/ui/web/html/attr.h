@@ -38,6 +38,44 @@ LH_COMPILER_EXTERN_C_BEGIN
 lh_void
 lh_ui_web_html_attr(const lh_str_ptr name, const lh_str_ptr value, lh_ui_web_html_attr_t *out);
 
+/**
+ * @brief The name of the attribute (level 1).
+ *
+ * @param self The attribute; checked by ::lh_assert_runtime_ref.
+ */
+const lh_str_ptr
+lh_ui_web_html_attr_get_name(const lh_ui_web_html_attr_t *self);
+
+/**
+ * @brief Store the name of the attribute (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The attribute; checked by ::lh_assert_runtime_ref.
+ * @param name The new value.
+ */
+lh_void
+lh_ui_web_html_attr_set_name(lh_ui_web_html_attr_t *self, const lh_str_ptr name);
+
+/**
+ * @brief The value of the attribute (level 1).
+ *
+ * @param self The attribute; checked by ::lh_assert_runtime_ref.
+ */
+const lh_str_ptr
+lh_ui_web_html_attr_get_value(const lh_ui_web_html_attr_t *self);
+
+/**
+ * @brief Store the value of the attribute (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The attribute; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_ui_web_html_attr_set_value(lh_ui_web_html_attr_t *self, const lh_str_ptr value);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_WEB_HTML_ATTR_H */

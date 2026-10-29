@@ -206,7 +206,7 @@ host_up()
     lh_ui_entity_add_child(lh_addr_of(s_world.root),
                            lh_ui_scrollbar_as_entity(lh_addr_of(s_world.down)));
     lh_ui_view_init(lh_addr_of(s_world.view));
-    lh_ui_view_set_root(lh_addr_of(s_world.view), lh_addr_of(s_world.root));
+    lh_ui_view_set_root_v(lh_addr_of(s_world.view), lh_addr_of(s_world.root));
     std::memset(lh_addr_of(s_world.hooks), 0, sizeof(s_world.hooks));
     s_world.hooks.ctx = lh_addr_of(s_world);
     s_world.hooks.tick = world_tick;

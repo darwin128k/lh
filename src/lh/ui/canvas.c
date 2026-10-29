@@ -148,7 +148,7 @@ lh_ui_canvas_has_damage(const lh_ui_canvas_t *self)
 }
 
 const lh_ui_rect_t *
-lh_ui_canvas_get_damage(const lh_ui_canvas_t *self)
+lh_ui_canvas_get_damage_v(const lh_ui_canvas_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_ui_canvas_is_has_damage(self) ? lh_ui_canvas_get_damage(self) : lh_null;
@@ -242,7 +242,7 @@ const lh_ui_rect_t *
 lh_ui_canvas_get_clip(const lh_ui_canvas_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_ui_canvas_state_get_clip(lh_ui_canvas_get_state(self));
+    return lh_ui_canvas_state_get_clip_v(lh_ui_canvas_get_state(self));
 }
 
 lh_void
@@ -300,7 +300,8 @@ lh_ui_canvas_pop(lh_ui_canvas_t *self)
     lh_assert_runtime_ref(self);
     lh_assert_runtime_if(lh_ui_canvas_get_depth(self) == 0U, lh_runtime_error_code_underflow);
     dropped = lh_ptr_deref(lh_ui_canvas_get_state(self));
-    lh_ui_canvas_set_state(self, lh_ui_canvas_get_saved(self)[--self->depth]);
+    lh_ui_canvas_set_depth(self, lh_cast_static(lh_u8_t, (lh_ui_canvas_get_depth(self) - 1U)));
+    lh_ui_canvas_set_state(self, lh_ui_canvas_get_saved(self)[lh_ui_canvas_get_depth(self)]);
     lh_ui_canvas_sync_clip(self, lh_addr_of(dropped));
 }
 
@@ -859,4 +860,11 @@ lh_ui_canvas_set_scratch(lh_ui_canvas_t *self, lh_u8_t * scratch)
 {
     lh_assert_runtime_ref(self);
     self->scratch = scratch;
+}
+
+const lh_ui_rect_t *
+lh_ui_canvas_get_damage(const lh_ui_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->damage);
 }

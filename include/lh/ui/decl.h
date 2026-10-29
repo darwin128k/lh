@@ -129,7 +129,7 @@ typedef struct lh_ui_decl
 
     /**
      * @brief Built hidden: it takes no room in its parent's flow and is not drawn
-     *        until the app shows it (::lh_ui_entity_set_hidden). CSS's
+     *        until the app shows it (::lh_ui_entity_set_hidden_v). CSS's
      *        `display: none`.
      *
      * Last, so that a table written before it was here -- every field in order, no
@@ -198,6 +198,44 @@ lh_bool_t
 lh_ui_decl_build(const lh_ui_decl_t *decls, lh_u32_t count, lh_ui_entity_t **nodes,
                  lh_byte_ptr storage, lh_u32_t bytes, lh_ui_entity_t **root,
                  lh_ui_decl_fault_t *fault);
+
+/**
+ * @brief What went wrong (level 1).
+ *
+ * @param self The fault; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_decl_error_t
+lh_ui_decl_fault_get_code(const lh_ui_decl_fault_t *self);
+
+/**
+ * @brief Store what went wrong (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The fault; checked by ::lh_assert_runtime_ref.
+ * @param code The new value.
+ */
+lh_void
+lh_ui_decl_fault_set_code(lh_ui_decl_fault_t *self, lh_ui_decl_error_t code);
+
+/**
+ * @brief The row it went wrong at (level 1).
+ *
+ * @param self The fault; checked by ::lh_assert_runtime_ref.
+ */
+lh_u32_t
+lh_ui_decl_fault_get_index(const lh_ui_decl_fault_t *self);
+
+/**
+ * @brief Store the row it went wrong at (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The fault; checked by ::lh_assert_runtime_ref.
+ * @param index The new value.
+ */
+lh_void
+lh_ui_decl_fault_set_index(lh_ui_decl_fault_t *self, lh_u32_t index);
 
 LH_COMPILER_EXTERN_C_END
 

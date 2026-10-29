@@ -86,6 +86,175 @@ lh_void
 lh_ui_renderer3d_camera_to_view(const lh_ui_renderer3d_camera_t *self, lh_math_vec3_t world,
                                 lh_math_vec3_t *out);
 
+/**
+ * @brief Where the camera is (level 1).
+ *
+ * @param self The camera; checked by ::lh_assert_runtime_ref.
+ */
+const lh_math_vec3_t *
+lh_ui_renderer3d_camera_get_position(const lh_ui_renderer3d_camera_t *self);
+
+/**
+ * @brief Where the camera is, to change in place (level 1).
+ *
+ * @param self The camera; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_math_vec3_t *
+lh_ui_renderer3d_camera_get_position_mut(lh_ui_renderer3d_camera_t *self);
+
+/**
+ * @brief Store where the camera is (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The camera; checked by ::lh_assert_runtime_ref.
+ * @param position The new value.
+ */
+lh_void
+lh_ui_renderer3d_camera_set_position(lh_ui_renderer3d_camera_t *self, lh_math_vec3_t position);
+
+/**
+ * @brief The direction the camera looks (level 1).
+ *
+ * @param self The camera; checked by ::lh_assert_runtime_ref.
+ */
+const lh_math_vec3_t *
+lh_ui_renderer3d_camera_get_forward(const lh_ui_renderer3d_camera_t *self);
+
+/**
+ * @brief The direction the camera looks, to change in place (level 1).
+ *
+ * @param self The camera; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_math_vec3_t *
+lh_ui_renderer3d_camera_get_forward_mut(lh_ui_renderer3d_camera_t *self);
+
+/**
+ * @brief Store the direction the camera looks (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The camera; checked by ::lh_assert_runtime_ref.
+ * @param forward The new value.
+ */
+lh_void
+lh_ui_renderer3d_camera_set_forward(lh_ui_renderer3d_camera_t *self, lh_math_vec3_t forward);
+
+/**
+ * @brief The direction to the right of the camera (level 1).
+ *
+ * @param self The camera; checked by ::lh_assert_runtime_ref.
+ */
+const lh_math_vec3_t *
+lh_ui_renderer3d_camera_get_right(const lh_ui_renderer3d_camera_t *self);
+
+/**
+ * @brief The direction to the right of the camera, to change in place (level 1).
+ *
+ * @param self The camera; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_math_vec3_t *
+lh_ui_renderer3d_camera_get_right_mut(lh_ui_renderer3d_camera_t *self);
+
+/**
+ * @brief Store the direction to the right of the camera (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The camera; checked by ::lh_assert_runtime_ref.
+ * @param right The new value.
+ */
+lh_void
+lh_ui_renderer3d_camera_set_right(lh_ui_renderer3d_camera_t *self, lh_math_vec3_t right);
+
+/**
+ * @brief The direction up from the camera (level 1).
+ *
+ * @param self The camera; checked by ::lh_assert_runtime_ref.
+ */
+const lh_math_vec3_t *
+lh_ui_renderer3d_camera_get_up(const lh_ui_renderer3d_camera_t *self);
+
+/**
+ * @brief The direction up from the camera, to change in place (level 1).
+ *
+ * @param self The camera; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_math_vec3_t *
+lh_ui_renderer3d_camera_get_up_mut(lh_ui_renderer3d_camera_t *self);
+
+/**
+ * @brief Store the direction up from the camera (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The camera; checked by ::lh_assert_runtime_ref.
+ * @param up The new value.
+ */
+lh_void
+lh_ui_renderer3d_camera_set_up(lh_ui_renderer3d_camera_t *self, lh_math_vec3_t up);
+
+/**
+ * @brief The tangent of half the field of view (level 1).
+ *
+ * @param self The camera; checked by ::lh_assert_runtime_ref.
+ */
+lh_math_fscalar_t
+lh_ui_renderer3d_camera_get_tangent(const lh_ui_renderer3d_camera_t *self);
+
+/**
+ * @brief Store the tangent of half the field of view (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The camera; checked by ::lh_assert_runtime_ref.
+ * @param tangent The new value.
+ */
+lh_void
+lh_ui_renderer3d_camera_set_tangent(lh_ui_renderer3d_camera_t *self, lh_math_fscalar_t tangent);
+
+/**
+ * @brief The distance of the near plane (level 1).
+ *
+ * @param self The camera; checked by ::lh_assert_runtime_ref.
+ */
+lh_math_fscalar_t
+lh_ui_renderer3d_camera_get_near_plane(const lh_ui_renderer3d_camera_t *self);
+
+/**
+ * @brief Store the distance of the near plane (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The camera; checked by ::lh_assert_runtime_ref.
+ * @param near_plane The new value.
+ */
+lh_void
+lh_ui_renderer3d_camera_set_near_plane(lh_ui_renderer3d_camera_t *self, lh_math_fscalar_t near_plane);
+
+/**
+ * @brief The distance of the far plane (level 1).
+ *
+ * @param self The camera; checked by ::lh_assert_runtime_ref.
+ */
+lh_math_fscalar_t
+lh_ui_renderer3d_camera_get_far_plane(const lh_ui_renderer3d_camera_t *self);
+
+/**
+ * @brief Store the distance of the far plane (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The camera; checked by ::lh_assert_runtime_ref.
+ * @param far_plane The new value.
+ */
+lh_void
+lh_ui_renderer3d_camera_set_far_plane(lh_ui_renderer3d_camera_t *self, lh_math_fscalar_t far_plane);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_RENDERER3D_CAMERA_H */

@@ -37,7 +37,7 @@ lh_ui_container_init(lh_ui_container_t *self, lh_ui_rect_t rect)
 {
     lh_assert_runtime_ref(self);
     lh_ui_entity_init(lh_ui_container_get_entity_mut(self), rect);
-    lh_ui_entity_set_class(lh_ui_container_get_entity_mut(self), lh_addr_of(lh_ui_container_class));
+    lh_ui_entity_set_class_v(lh_ui_container_get_entity_mut(self), lh_addr_of(lh_ui_container_class));
     lh_ui_point_init(lh_ui_container_get_scroll_mut(self), lh_ui_scalar(0), lh_ui_scalar(0));
     lh_ui_container_set_layout(self, lh_null);
     lh_ui_container_set_placing(self, lh_bool_false);
@@ -252,7 +252,7 @@ lh_ui_container_on_children(const lh_ui_container_t *self, const lh_ui_entity_ev
 }
 
 lh_void
-lh_ui_container_set_scroll(lh_ui_container_t *self, lh_ui_point_t scroll)
+lh_ui_container_set_scroll_v(lh_ui_container_t *self, lh_ui_point_t scroll)
 {
     lh_assert_runtime_ref(self);
     lh_ui_container_clamp_scroll(self, scroll, lh_ui_container_get_scroll_mut(self));
@@ -266,7 +266,7 @@ lh_ui_container_scroll_by(lh_ui_container_t *self, lh_ui_scalar_t dx, lh_ui_scal
     lh_ui_container_get_clamped_scroll(self, lh_addr_of(scroll));
     lh_ui_point_t point;
     lh_ui_point_offset(lh_addr_of(scroll), dx, dy, lh_addr_of(point));
-    lh_ui_container_set_scroll(self, point);
+    lh_ui_container_set_scroll_v(self, point);
 }
 
 lh_void
@@ -340,4 +340,11 @@ lh_ui_container_get_scroll(const lh_ui_container_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->scroll);
+}
+
+lh_void
+lh_ui_container_set_scroll(lh_ui_container_t *self, lh_ui_point_t scroll)
+{
+    lh_assert_runtime_ref(self);
+    self->scroll = scroll;
 }

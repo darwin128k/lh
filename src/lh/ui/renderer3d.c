@@ -27,11 +27,11 @@ lh_ui_renderer3d_begin(lh_ui_renderer3d_t *self, lh_ui_pixmap_t *target, lh_math
                      (lh_usize_t)width * (lh_usize_t)height > depth_count ||
                      !lh_ui_renderer3d_camera_is_usable(camera),
                  lh_bool_false);
-    self->target = target;
-    self->depth = depth;
-    self->width = width;
-    self->height = height;
-    self->camera = *camera;
+    lh_ui_renderer3d_set_target(self, target);
+    lh_ui_renderer3d_set_depth(self, depth);
+    lh_ui_renderer3d_set_width(self, width);
+    lh_ui_renderer3d_set_height(self, height);
+    lh_ui_renderer3d_set_camera(self, *camera);
     return lh_ui_renderer3d_clear(self, background_argb);
 }
 
@@ -39,18 +39,18 @@ lh_bool_t
 lh_ui_renderer3d_clear(lh_ui_renderer3d_t *self, lh_u32_t background_argb)
 {
     lh_assert_runtime_ref(self);
-    for (lh_s32_t y = 0; y < self->height; y++)
+    for (lh_s32_t y = 0; y < lh_ui_renderer3d_get_height(self); y++)
     {
-        lh_u32_t *row = lh_cast_reinterpret(lh_u32_t *, lh_ui_pixmap_get_row(self->target, y));
+        lh_u32_t *row = lh_cast_reinterpret(lh_u32_t *, lh_ui_pixmap_get_row(lh_ui_renderer3d_get_target(self), y));
         if (lh_null_eq(row))
         {
-            self->target = lh_null;
+            lh_ui_renderer3d_set_target(self, lh_null);
             return lh_bool_false;
         }
-        for (lh_s32_t x = 0; x < self->width; x++)
+        for (lh_s32_t x = 0; x < lh_ui_renderer3d_get_width(self); x++)
         {
             row[x] = background_argb;
-            self->depth[(lh_usize_t)y * self->width + x] = LH_FLOAT_T_MAX;
+            lh_ui_renderer3d_get_depth(self)[(lh_usize_t)y * lh_ui_renderer3d_get_width(self) + x] = LH_FLOAT_T_MAX;
         }
     }
     return lh_bool_true;
@@ -61,17 +61,17 @@ lh_ui_renderer3d_get_plane_distance(const lh_ui_renderer3d_t *self, lh_math_vec3
                                     lh_ui_renderer3d_plane_t plane)
 {
     lh_assert_runtime_ref(self);
-    const lh_math_fscalar_t ty = self->camera.tangent;
-    const lh_math_fscalar_t tx = ty * self->width / self->height;
+    const lh_math_fscalar_t ty = lh_ui_renderer3d_camera_get_tangent(lh_ui_renderer3d_get_camera(self));
+    const lh_math_fscalar_t tx = ty * lh_ui_renderer3d_get_width(self) / lh_ui_renderer3d_get_height(self);
     const lh_math_fscalar_t x = lh_math_vec3_get_x(&view);
     const lh_math_fscalar_t y = lh_math_vec3_get_y(&view);
     const lh_math_fscalar_t z = lh_math_vec3_get_z(&view);
     switch (plane)
     {
     case lh_ui_renderer3d_plane_near:
-        return z - self->camera.near_plane;
+        return z - lh_ui_renderer3d_camera_get_near_plane(lh_ui_renderer3d_get_camera(self));
     case lh_ui_renderer3d_plane_far:
-        return self->camera.far_plane - z;
+        return lh_ui_renderer3d_camera_get_far_plane(lh_ui_renderer3d_get_camera(self)) - z;
     case lh_ui_renderer3d_plane_left:
         return x + z * tx;
     case lh_ui_renderer3d_plane_right:
@@ -121,10 +121,10 @@ lh_ui_renderer3d_project(const lh_ui_renderer3d_t *self, lh_math_vec3_t view,
                          lh_math_vec3_t *out)
 {
     lh_assert_runtime_ref(self);
-    const lh_math_fscalar_t focal = self->height / (2 * self->camera.tangent);
+    const lh_math_fscalar_t focal = lh_ui_renderer3d_get_height(self) / (2 * lh_ui_renderer3d_camera_get_tangent(lh_ui_renderer3d_get_camera(self)));
     const lh_math_fscalar_t z = lh_math_vec3_get_z(&view);
-    lh_math_vec3_init(out, self->width * .5f + lh_math_vec3_get_x(&view) * focal / z,
-                      self->height * .5f - lh_math_vec3_get_y(&view) * focal / z, 1 / z);
+    lh_math_vec3_init(out, lh_ui_renderer3d_get_width(self) * .5f + lh_math_vec3_get_x(&view) * focal / z,
+                      lh_ui_renderer3d_get_height(self) * .5f - lh_math_vec3_get_y(&view) * focal / z, 1 / z);
 }
 
 lh_math_fscalar_t
@@ -141,10 +141,10 @@ lh_ui_renderer3d_put_fragment(lh_ui_renderer3d_t *self, lh_s32_t x, lh_s32_t y,
                               lh_math_fscalar_t depth, lh_u32_t color_argb)
 {
     lh_assert_runtime_ref(self);
-    const lh_usize_t i = (lh_usize_t)y * self->width + x;
-    lh_return_ifn(depth < self->depth[i], lh_bool_false);
-    self->depth[i] = depth;
-    lh_cast_reinterpret(lh_u32_t *, lh_ui_pixmap_get_row(self->target, y))[x] = color_argb;
+    const lh_usize_t i = (lh_usize_t)y * lh_ui_renderer3d_get_width(self) + x;
+    lh_return_ifn(depth < lh_ui_renderer3d_get_depth(self)[i], lh_bool_false);
+    lh_ui_renderer3d_get_depth(self)[i] = depth;
+    lh_cast_reinterpret(lh_u32_t *, lh_ui_pixmap_get_row(lh_ui_renderer3d_get_target(self), y))[x] = color_argb;
     return lh_bool_true;
 }
 
@@ -164,13 +164,13 @@ lh_ui_renderer3d_raster(lh_ui_renderer3d_t *self, lh_math_vec3_t a, lh_math_vec3
     const lh_math_fscalar_t cy = lh_math_vec3_get_y(&c);
     const lh_s32_t x0 =
         lh_math_max(0, lh_math_float_floor_to_int(lh_math_min(ax, lh_math_min(bx, cx))));
-    const lh_s32_t x1 = lh_math_min(self->width - 1,
+    const lh_s32_t x1 = lh_math_min(lh_ui_renderer3d_get_width(self) - 1,
                                     lh_math_float_ceil_to_int(lh_math_max(ax, lh_math_max(bx, cx))));
     const lh_s32_t y0 =
         lh_math_max(0, lh_math_float_floor_to_int(lh_math_min(ay, lh_math_min(by, cy))));
-    const lh_s32_t y1 = lh_math_min(self->height - 1,
+    const lh_s32_t y1 = lh_math_min(lh_ui_renderer3d_get_height(self) - 1,
                                     lh_math_float_ceil_to_int(lh_math_max(ay, lh_math_max(by, cy))));
-    self->triangles++;
+    lh_ui_renderer3d_set_triangles(self, lh_ui_renderer3d_get_triangles(self) + 1);
     for (lh_s32_t y = y0; y <= y1; y++)
     {
         for (lh_s32_t x = x0; x <= x1; x++)
@@ -198,12 +198,12 @@ lh_void
 lh_ui_renderer3d_triangle(lh_ui_renderer3d_t *self, lh_math_vec3_t a, lh_math_vec3_t b,
                           lh_math_vec3_t c, lh_u32_t color_argb)
 {
-    lh_return_if(lh_null_eq(self) || lh_null_eq(self->target) || !lh_math_vec3_is_finite(a) ||
+    lh_return_if(lh_null_eq(self) || lh_null_eq(lh_ui_renderer3d_get_target(self)) || !lh_math_vec3_is_finite(a) ||
                  !lh_math_vec3_is_finite(b) || !lh_math_vec3_is_finite(c));
     lh_math_vec3_t polygon[2][lh_ui_renderer3d_clip_capacity];
-    lh_ui_renderer3d_camera_to_view(&self->camera, a, &polygon[0][0]);
-    lh_ui_renderer3d_camera_to_view(&self->camera, b, &polygon[0][1]);
-    lh_ui_renderer3d_camera_to_view(&self->camera, c, &polygon[0][2]);
+    lh_ui_renderer3d_camera_to_view(lh_ui_renderer3d_get_camera_mut(self), a, &polygon[0][0]);
+    lh_ui_renderer3d_camera_to_view(lh_ui_renderer3d_get_camera_mut(self), b, &polygon[0][1]);
+    lh_ui_renderer3d_camera_to_view(lh_ui_renderer3d_get_camera_mut(self), c, &polygon[0][2]);
     lh_s32_t count = 3;
     lh_s32_t from = 0;
     for (lh_s32_t plane = 0; plane < lh_ui_renderer3d_plane_count && count > 0; plane++)
@@ -254,4 +254,88 @@ lh_u32_t
 lh_ui_renderer3d_get_triangles(const lh_ui_renderer3d_t *self)
 {
     return lh_null_ne(self) ? self->triangles : 0;
+}
+
+lh_ui_pixmap_t *
+lh_ui_renderer3d_get_target(const lh_ui_renderer3d_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->target;
+}
+
+lh_void
+lh_ui_renderer3d_set_target(lh_ui_renderer3d_t *self, lh_ui_pixmap_t * target)
+{
+    lh_assert_runtime_ref(self);
+    self->target = target;
+}
+
+lh_math_fscalar_t *
+lh_ui_renderer3d_get_depth(const lh_ui_renderer3d_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->depth;
+}
+
+lh_void
+lh_ui_renderer3d_set_depth(lh_ui_renderer3d_t *self, lh_math_fscalar_t * depth)
+{
+    lh_assert_runtime_ref(self);
+    self->depth = depth;
+}
+
+const lh_ui_renderer3d_camera_t *
+lh_ui_renderer3d_get_camera(const lh_ui_renderer3d_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->camera);
+}
+
+lh_ui_renderer3d_camera_t *
+lh_ui_renderer3d_get_camera_mut(lh_ui_renderer3d_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->camera);
+}
+
+lh_void
+lh_ui_renderer3d_set_camera(lh_ui_renderer3d_t *self, lh_ui_renderer3d_camera_t camera)
+{
+    lh_assert_runtime_ref(self);
+    self->camera = camera;
+}
+
+lh_s32_t
+lh_ui_renderer3d_get_width(const lh_ui_renderer3d_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->width;
+}
+
+lh_void
+lh_ui_renderer3d_set_width(lh_ui_renderer3d_t *self, lh_s32_t width)
+{
+    lh_assert_runtime_ref(self);
+    self->width = width;
+}
+
+lh_s32_t
+lh_ui_renderer3d_get_height(const lh_ui_renderer3d_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->height;
+}
+
+lh_void
+lh_ui_renderer3d_set_height(lh_ui_renderer3d_t *self, lh_s32_t height)
+{
+    lh_assert_runtime_ref(self);
+    self->height = height;
+}
+
+lh_void
+lh_ui_renderer3d_set_triangles(lh_ui_renderer3d_t *self, lh_u32_t triangles)
+{
+    lh_assert_runtime_ref(self);
+    self->triangles = triangles;
 }

@@ -47,7 +47,7 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief A shadow that paints nothing: no colour, no spread.
  *
- * Use ::lh_ui_shadow_set_color and ::lh_ui_shadow_set_spread, then
+ * Use ::lh_ui_shadow_set_color and ::lh_ui_shadow_set_spread_v, then
  * ::lh_ui_shadow_set_offset if the light is not straight ahead.
  */
 lh_void
@@ -86,7 +86,7 @@ lh_ui_shadow_get_spread(const lh_ui_shadow_t *self);
  * @brief Set the fade distance. Negative becomes zero.
  */
 lh_void
-lh_ui_shadow_set_spread(lh_ui_shadow_t *self, lh_ui_scalar_t spread);
+lh_ui_shadow_set_spread_v(lh_ui_shadow_t *self, lh_ui_scalar_t spread);
 
 /**
  * @brief Shift of @p self. Positive @p offset_x is right, @p offset_y is down.
@@ -212,6 +212,17 @@ lh_ui_shadow_set_offset_y(lh_ui_shadow_t *self, lh_ui_scalar_t offset_y);
  */
 const lh_ui_color_t *
 lh_ui_shadow_get_color(const lh_ui_shadow_t *self);
+
+/**
+ * @brief Store how far the shadow spreads (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The shadow; checked by ::lh_assert_runtime_ref.
+ * @param spread The new value.
+ */
+lh_void
+lh_ui_shadow_set_spread(lh_ui_shadow_t *self, lh_ui_scalar_t spread);
 
 LH_COMPILER_EXTERN_C_END
 

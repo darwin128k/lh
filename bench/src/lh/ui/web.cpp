@@ -69,7 +69,7 @@ BM_ui_web_frame_glyphs_cached(benchmark::State &state)
     for (auto _ : state)
     {
         lh_ui_canvas_web_open_mem(&web, json.data(), json.size(), width, height);
-        lh_ui_canvas_web_set_glyphs(&web, glyphs.get());
+        lh_ui_canvas_web_set_glyphs_v(&web, glyphs.get());
         lh_ui_canvas_init(&canvas, &lh_ui_canvas_backend_web, &web);
         lh_ui_view_set_canvas(&s->view, &canvas);
         lh_ui_view_draw(&s->view, nullptr);

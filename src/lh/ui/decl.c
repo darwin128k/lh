@@ -2,6 +2,7 @@
  * @file decl.c
  * @brief Implementation of `lh/ui/decl.h`.
  */
+#include <lh/assert.h>
 
 #include <lh/ui/decl.h>
 #include <lh/util/return.h>
@@ -11,8 +12,8 @@ lh_ui_decl_fault(lh_ui_decl_fault_t *fault, lh_ui_decl_error_t code, lh_u32_t in
 {
     if (lh_null_ne(fault))
     {
-        fault->code = code;
-        fault->index = index;
+        lh_ui_decl_fault_set_code(fault, code);
+        lh_ui_decl_fault_set_index(fault, index);
     }
 }
 
@@ -105,7 +106,7 @@ lh_ui_decl_place_row(const lh_ui_decl_t *row, lh_byte_ptr slot, lh_ui_entity_t *
 
         lh_ui_button_init(button, rect);
         lh_ui_button_set_style(button, row->style);
-        lh_ui_button_set_hot_style(button, row->as.button.hot_style);
+        lh_ui_button_set_hot_style_v(button, row->as.button.hot_style);
         lh_ui_button_set_on_click(button, row->as.button.on_click, row->as.button.click_context);
         return lh_ui_button_as_entity(button);
     }
@@ -116,7 +117,7 @@ lh_ui_decl_place_row(const lh_ui_decl_t *row, lh_byte_ptr slot, lh_ui_entity_t *
         lh_ui_toggle_init(toggle, rect);
         lh_ui_toggle_set_off_styles(toggle, row->as.toggle.off_style, row->as.toggle.off_hot_style);
         lh_ui_toggle_set_on_styles(toggle, row->as.toggle.on_style, row->as.toggle.on_hot_style);
-        lh_ui_toggle_set_checked(toggle, row->as.toggle.checked);
+        lh_ui_toggle_set_checked_v(toggle, row->as.toggle.checked);
         return lh_ui_toggle_as_entity(toggle);
     }
     case lh_ui_decl_kind_image:
@@ -237,7 +238,7 @@ lh_ui_decl_build(const lh_ui_decl_t *decls, lh_u32_t count, lh_ui_entity_t **nod
             {
                 /* A button and a toggle aim the entity at their style themselves,
                    so a press composes on top of whichever of the two is showing. */
-                lh_ui_entity_set_style(entity, row->style);
+                lh_ui_entity_set_style_v(entity, row->style);
             }
             if (lh_null_ne(row->place))
             {
@@ -258,7 +259,7 @@ lh_ui_decl_build(const lh_ui_decl_t *decls, lh_u32_t count, lh_ui_entity_t **nod
             }
             if (row->hidden)
             {
-                lh_ui_entity_set_hidden(entity, lh_bool_true);
+                lh_ui_entity_set_hidden_v(entity, lh_bool_true);
             }
             nodes[index] = entity;
             used += lh_ui_decl_size_of(row->kind);
@@ -280,4 +281,32 @@ lh_ui_decl_build(const lh_ui_decl_t *decls, lh_u32_t count, lh_ui_entity_t **nod
     }
     lh_ptr_deref(root) = tree;
     return lh_bool_true;
+}
+
+lh_ui_decl_error_t
+lh_ui_decl_fault_get_code(const lh_ui_decl_fault_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->code;
+}
+
+lh_void
+lh_ui_decl_fault_set_code(lh_ui_decl_fault_t *self, lh_ui_decl_error_t code)
+{
+    lh_assert_runtime_ref(self);
+    self->code = code;
+}
+
+lh_u32_t
+lh_ui_decl_fault_get_index(const lh_ui_decl_fault_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->index;
+}
+
+lh_void
+lh_ui_decl_fault_set_index(lh_ui_decl_fault_t *self, lh_u32_t index)
+{
+    lh_assert_runtime_ref(self);
+    self->index = index;
 }
