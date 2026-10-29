@@ -7,10 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- Add the synchronous indexed event bus, stable name IDs, per-event subscriber lists, owner cleanup and deferred callback disposal. Add fallible array reserve and allocated-memory resize bricks.
-
 ### Added
 
+- Synchronous indexed event bus with stable name IDs, per-event subscriber lists,
+  owner cleanup, context matching and deferred callback disposal.
+- Fallible array reserve and allocated-memory resize bricks, preserving existing
+  storage on allocation failure and rejecting element-count overflow.
 - Level-1 accessors for the `lh/ui` structs (about 400: every field of insets, radii, rects, mask, pixmap, font, paint, pen, shadow, gradient and its sampler, style, layout and placement, text lines and blocks, canvas and its state, clip, backend table, software canvas and shadow pass, web canvas and atlas, display, entity, container, label, input, button, toggle, image, scrollbar, transition, view and its pointers and focus walk, frame and frame statistics, renderer3d and its camera, the web host client, frame, hooks and stream, the web buffer and HTML attributes), and the ui code calls them. New sources for the structs that had none: `ui/canvas/backend.c`, `ui/view/focus/walk.c`, `ui/frame.c`, `ui/web/host/client.c`, `frame.c`, `hooks.c`, `stream.c`
 - `tools/list-fields.py` lists our structs' fields (through `*_fields` macros) and the accessors they lack; `tools/use-accessors.py` rewrites member chains to accessors from the variables' declared types; `tools/gen-accessors.py` kinds `view` (get / get_mut / set) and `array`
 - Level-1 accessors for `lh_os_window_t`, and the window code calls them: `lh_os_window_set_handle`, `_set_app`, `_set_parent`, `_get_children` / `_mut`, `_is_modal` / `_set_modal`, `_is_closing` / `_set_closing`, `_get_frame` / `_set_frame`, `_get_corner` / `_set_corner`, `_set_placement`, `_set_maximized`, `_get_on_*_fn` / `_set_on_*_fn` and `_get_on_*_context` / `_set_on_*_context` for zone, resize, paint, input, close and tick, `_set_paint_dc`, `_get_paint_left` / `_top` / `_right` / `_bottom` and setters, `_is_controller_armed` / `_set_controller_armed`, `_set_pressed_buttons`, `_get_tick_ms` / `_set_tick_ms`. `lh_os_render_backend_gdi_context_*` accessors for the surface, the software canvas, `present_at`, the logical size, the call counters and the frame start; `lh_ui_surface_get_handle` / `_set_handle`
