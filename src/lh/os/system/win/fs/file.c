@@ -35,6 +35,10 @@ lh_os_system_fs_file_access(lh_fs_file_mode_t mode)
     {
         return LH_OS_SYSTEM_WIN_GENERIC_WRITE;
     }
+    if (lh_math_eq(mode, lh_fs_file_mode_append))
+    {
+        return LH_OS_SYSTEM_WIN_FILE_APPEND_DATA;
+    }
     return LH_OS_SYSTEM_WIN_GENERIC_READ | LH_OS_SYSTEM_WIN_GENERIC_WRITE;
 }
 
@@ -126,4 +130,22 @@ lh_os_system_fs_file_open_read_at(lh_os_system_fs_file_handle_t root, lh_str_cpt
     lh_os_set_last_error_lit(lh_os_error_code_not_supported,
                              "handle-relative file lookup is not supported by this backend");
     return LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID;
+}
+
+lh_bool_t
+lh_os_system_fs_file_remove(lh_str_cptr path)
+{
+    lh_os_str_t os_path;
+
+    lh_assert_runtime_ref(path);
+    const lh_bool_t ok = lh_os_system_str_init_by_utf8(lh_addr_of(os_path), path);
+    const lh_bool_t removed = lh_cast_static(
+        lh_bool_t, ok && lh_math_ne(DeleteFileW(lh_os_str_get_data(lh_addr_of(os_path))), 0));
+    lh_os_str_deinit(lh_addr_of(os_path));
+    /* A failed conversion already set its own error. */
+    if (ok && !removed)
+    {
+        lh_os_system_error_capture();
+    }
+    return removed;
 }

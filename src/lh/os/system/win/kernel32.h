@@ -47,6 +47,8 @@
 /** @{ */
 /** CreateFile: dwDesiredAccess, dwShareMode, dwCreationDisposition. */
 #define LH_OS_SYSTEM_WIN_GENERIC_READ 0x80000000UL
+/** `FILE_APPEND_DATA`: write only at the end of the file. */
+#define LH_OS_SYSTEM_WIN_FILE_APPEND_DATA 0x00000004UL
 #define LH_OS_SYSTEM_WIN_GENERIC_WRITE 0x40000000UL
 #define LH_OS_SYSTEM_WIN_FILE_SHARE_READ 0x00000001UL
 #define LH_OS_SYSTEM_WIN_FILE_SHARE_WRITE 0x00000002UL
@@ -273,6 +275,10 @@ GetFileAttributesExW(lh_wstr_cptr lpFileName,
                      lh_ptr lpFileInformation);
 
 /* Directories. */
+
+/** Delete a file. Present since Windows NT 3.1. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+DeleteFileW(lh_wstr_cptr lpFileName);
 
 /** Create one directory. Present since Windows NT 3.1. */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL

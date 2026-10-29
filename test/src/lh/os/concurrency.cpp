@@ -342,3 +342,24 @@ TEST(os_thread, applies_affinity_and_rejects_unavailable_cpu)
     ASSERT_TRUE(lh_os_thread_join(&thread));
     ASSERT_TRUE(affinity.matched);
 }
+
+/* Nobody signals: the wait ends on its own, with the mutex held again. */
+TEST(os_condition, wait_for_returns_after_the_timeout)
+{
+    lh_os_condition_t condition;
+    lh_os_mutex_t mutex;
+
+    lh_os_condition_init(&condition);
+    lh_os_mutex_init(&mutex);
+    ASSERT_TRUE(lh_os_condition_open(&condition));
+    ASSERT_TRUE(lh_os_mutex_open(&mutex));
+    ASSERT_TRUE(lh_os_mutex_lock(&mutex));
+    const lh_u64_t before = lh_os_tick_us();
+    EXPECT_TRUE(lh_os_condition_wait_for(&condition, &mutex, 50U));
+    const lh_u64_t waited = (lh_os_tick_us() - before) / 1000U;
+    EXPECT_GE(waited, 30U);
+    EXPECT_LT(waited, 2000U);
+    EXPECT_TRUE(lh_os_mutex_unlock(&mutex));
+    EXPECT_TRUE(lh_os_mutex_close(&mutex));
+    EXPECT_TRUE(lh_os_condition_close(&condition));
+}

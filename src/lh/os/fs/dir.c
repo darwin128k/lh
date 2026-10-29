@@ -3,6 +3,7 @@
 #include <lh/os/error/code.h>
 #include <lh/os/system/fs/dir.h>
 #include <lh/math.h>
+#include <lh/util/return.h>
 #include <lh/util/str/ptr/dot.h>
 
 lh_void
@@ -116,6 +117,25 @@ lh_os_fs_dir_create(const lh_fs_path_t *path)
     return lh_cast_static(lh_bool_t, lh_os_fs_stat(path, lh_addr_of(info)) &&
                                          lh_math_eq(lh_fs_stat_get_kind(lh_addr_of(info)),
                                                     lh_fs_kind_dir));
+}
+
+lh_bool_t
+lh_os_fs_dir_create_tree(const lh_fs_path_t *path)
+{
+    lh_fs_path_t parent;
+    lh_bool_t created;
+
+    lh_return_if(lh_os_fs_dir_create(path), lh_bool_true);
+    lh_fs_path_init(lh_addr_of(parent));
+    /* No parent to make (a root, one relative segment): the error stands. */
+    created = lh_cast_static(lh_bool_t, lh_fs_path_parent(lh_addr_of(parent), path) &&
+                                            !lh_fs_path_is_empty(lh_addr_of(parent)) &&
+                                            !lh_fs_path_equals(lh_addr_of(parent), path,
+                                                               lh_bool_false) &&
+                                            lh_os_fs_dir_create_tree(lh_addr_of(parent)) &&
+                                            lh_os_fs_dir_create(path));
+    lh_fs_path_deinit(lh_addr_of(parent));
+    return created;
 }
 
 lh_void

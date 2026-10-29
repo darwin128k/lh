@@ -281,24 +281,24 @@ lh_date_is_greater(const lh_date_t *self, const lh_date_t *other)
 }
 
 lh_bool_t
-lh_date_parse(lh_str_cptr str, lh_usize_t str_size, lh_date_t *out)
+lh_date_parse_by(lh_str_cptr str, lh_usize_t str_size, lh_char_t separator, lh_date_t *out)
 {
     lh_uint_t year;
     lh_uint_t month;
     lh_uint_t day;
     lh_usize_t pos = 0;
 
-    if (!lh_str_ptr_split_next_uint_digits(str, str_size, lh_char_map_slash, lh_addr_of(pos), LH_DATE_YEAR_MAX,
+    if (!lh_str_ptr_split_next_uint_digits(str, str_size, separator, lh_addr_of(pos), LH_DATE_YEAR_MAX,
                                            lh_addr_of(year), lh_bool_true))
     {
         return lh_bool_false;
     }
-    if (!lh_str_ptr_split_next_uint_digits(str, str_size, lh_char_map_slash, lh_addr_of(pos), LH_DATE_MONTH_MAX,
+    if (!lh_str_ptr_split_next_uint_digits(str, str_size, separator, lh_addr_of(pos), LH_DATE_MONTH_MAX,
                                            lh_addr_of(month), lh_bool_true))
     {
         return lh_bool_false;
     }
-    if (!lh_str_ptr_split_next_uint_digits(str, str_size, lh_char_map_slash, lh_addr_of(pos), LH_DATE_DAY_MAX,
+    if (!lh_str_ptr_split_next_uint_digits(str, str_size, separator, lh_addr_of(pos), LH_DATE_DAY_MAX,
                                            lh_addr_of(day), lh_bool_false))
     {
         return lh_bool_false;
@@ -313,11 +313,23 @@ lh_date_parse(lh_str_cptr str, lh_usize_t str_size, lh_date_t *out)
     return lh_bool_true;
 }
 
+lh_bool_t
+lh_date_parse(lh_str_cptr str, lh_usize_t str_size, lh_date_t *out)
+{
+    return lh_date_parse_by(str, str_size, lh_char_map_slash, out);
+}
+
+lh_usize_t
+lh_date_format_by(const lh_date_t *self, lh_str_ptr str, lh_usize_t str_size, lh_char_t separator)
+{
+    return lh_str_ptr_format_text(str, str_size, "%u%c%02u%c%02u",
+                                  lh_cast_static(lh_uint_t, lh_date_get_year(self)), separator,
+                                  lh_cast_static(lh_uint_t, lh_date_get_month(self)), separator,
+                                  lh_cast_static(lh_uint_t, lh_date_get_day(self)));
+}
+
 lh_usize_t
 lh_date_format(const lh_date_t *self, lh_str_ptr str, lh_usize_t str_size)
 {
-    return lh_str_ptr_format_text(str, str_size, "%u/%02u/%02u",
-                                  lh_cast_static(lh_uint_t, lh_date_get_year(self)),
-                                  lh_cast_static(lh_uint_t, lh_date_get_month(self)),
-                                  lh_cast_static(lh_uint_t, lh_date_get_day(self)));
+    return lh_date_format_by(self, str, str_size, lh_char_map_slash);
 }

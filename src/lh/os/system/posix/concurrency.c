@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <pthread.h>
 #include <signal.h>
+#include <time.h>
 #include <stdlib.h>
 #if defined(__linux__)
 #    include <sched.h>
@@ -297,6 +298,35 @@ lh_os_system_condition_wait(lh_os_system_condition_handle_t handle,
                             lh_os_system_mutex_handle_t mutex)
 {
     return lh_os_concurrency_capture(handle && mutex ? pthread_cond_wait(handle, mutex) : EINVAL);
+}
+
+/**
+ * @brief Wait on a native condition at most @p timeout_ms; a timeout is a success.
+ *
+ * The deadline is on the real-time clock, as `pthread_cond_timedwait` reads it by
+ * default: a clock step shortens or lengthens one wait, which the caller's
+ * predicate loop absorbs.
+ */
+lh_bool_t
+lh_os_system_condition_wait_for(lh_os_system_condition_handle_t handle,
+                                lh_os_system_mutex_handle_t mutex, lh_u32_t timeout_ms)
+{
+    struct timespec deadline;
+    int code;
+
+    if (!handle || !mutex || clock_gettime(CLOCK_REALTIME, &deadline))
+    {
+        return lh_os_concurrency_capture(EINVAL);
+    }
+    deadline.tv_sec += (time_t)(timeout_ms / 1000U);
+    deadline.tv_nsec += (long)(timeout_ms % 1000U) * 1000000L;
+    if (deadline.tv_nsec >= 1000000000L)
+    {
+        deadline.tv_sec += 1;
+        deadline.tv_nsec -= 1000000000L;
+    }
+    code = pthread_cond_timedwait(handle, mutex, &deadline);
+    return lh_os_concurrency_capture(code == ETIMEDOUT ? 0 : code);
 }
 
 /**

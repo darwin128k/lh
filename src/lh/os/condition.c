@@ -94,6 +94,18 @@ lh_os_condition_wait(lh_os_condition_t *self, lh_os_mutex_t *mutex)
 }
 
 /**
+ * @brief Release the mutex, wait at most @p timeout_ms and reacquire it.
+ */
+lh_bool_t
+lh_os_condition_wait_for(lh_os_condition_t *self, lh_os_mutex_t *mutex, lh_u32_t timeout_ms)
+{
+    return self && lh_os_condition_get_handle(self) && mutex && lh_os_mutex_get_handle(mutex)
+               ? lh_os_system_condition_wait_for(lh_os_condition_get_handle(self),
+                                                 lh_os_mutex_get_handle(mutex), timeout_ms)
+               : lh_os_condition_invalid();
+}
+
+/**
  * @brief Wake one current waiter, if any.
  */
 lh_bool_t

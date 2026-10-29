@@ -143,6 +143,21 @@ lh_bool_t
 lh_os_system_condition_close(lh_os_system_condition_handle_t handle);
 
 /**
+ * @brief ::lh_os_system_condition_wait that also returns after @p timeout_ms.
+ *
+ * A timeout is not a failure: the caller rechecks its predicate either way.
+ *
+ * @param handle     Live native condition handle that remains valid during the operation.
+ * @param mutex      Live native mutex held exactly once by the caller.
+ * @param timeout_ms Longest wait, in milliseconds.
+ * @return ::lh_bool_true after a signal, a spurious wakeup or the timeout, with the
+ *         mutex held; ::lh_bool_false with a captured native error.
+ */
+lh_bool_t
+lh_os_system_condition_wait_for(lh_os_system_condition_handle_t handle,
+                                lh_os_system_mutex_handle_t mutex, lh_u32_t timeout_ms);
+
+/**
  * @brief Wait on a native condition, atomically releasing and reacquiring the mutex.
  *
  * Do not concurrently close or modify the handle. Loop on a protected predicate and use

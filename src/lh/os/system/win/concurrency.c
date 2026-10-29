@@ -270,6 +270,27 @@ lh_os_system_condition_wait(lh_os_system_condition_handle_t handle,
 }
 
 /**
+ * @brief Wait on a native condition at most @p timeout_ms; a timeout is a success.
+ */
+lh_bool_t
+lh_os_system_condition_wait_for(lh_os_system_condition_handle_t handle,
+                                lh_os_system_mutex_handle_t mutex, lh_u32_t timeout_ms)
+{
+    lh_os_native_condition_t *self = handle;
+    if (!self || !mutex)
+    {
+        return lh_os_concurrency_capture(ERROR_INVALID_PARAMETER);
+    }
+    if (!lh_os_native_condition_get_wait_fn(self)(lh_os_native_condition_get_state_mut(self), mutex,
+                                                  timeout_ms) &&
+        GetLastError() != ERROR_TIMEOUT)
+    {
+        return lh_os_concurrency_capture(GetLastError());
+    }
+    return lh_bool_true;
+}
+
+/**
  * @brief Notify one native condition waiter, if any.
  */
 lh_bool_t

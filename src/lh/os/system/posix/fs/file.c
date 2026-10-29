@@ -36,6 +36,10 @@ lh_os_system_fs_file_flags(lh_fs_file_mode_t mode)
     {
         return lh_math_bit_or(lh_math_bit_or(O_WRONLY, O_CREAT), O_TRUNC);
     }
+    if (lh_math_eq(mode, lh_fs_file_mode_append))
+    {
+        return lh_math_bit_or(lh_math_bit_or(O_WRONLY, O_CREAT), O_APPEND);
+    }
     return lh_math_bit_or(O_RDWR, O_CREAT);
 }
 
@@ -174,4 +178,16 @@ lh_os_system_fs_file_open_read_at(lh_os_system_fs_file_handle_t root, lh_str_cpt
         owned = lh_bool_true;
         part = lh_math_add(part, lh_math_add(length, 1U));
     }
+}
+
+lh_bool_t
+lh_os_system_fs_file_remove(lh_str_cptr path)
+{
+    lh_assert_runtime_ref(path);
+    if (lh_math_ne(unlink(path), 0))
+    {
+        lh_os_system_error_capture();
+        return lh_bool_false;
+    }
+    return lh_bool_true;
 }

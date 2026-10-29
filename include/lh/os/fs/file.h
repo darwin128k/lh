@@ -220,6 +220,16 @@ lh_os_fs_file_print_v(lh_os_fs_file_t *self, const lh_str_ptr fmt, va_list args)
 lh_bool_t
 lh_os_fs_file_print(lh_os_fs_file_t *self, const lh_str_ptr fmt, ...);
 
+/**
+ * @brief Delete the file at @p path.
+ *
+ * @param path File to delete; not a directory.
+ * @return ::lh_bool_true when it was deleted; ::lh_bool_false otherwise (no such
+ *         file, no rights, open elsewhere on Windows), with the OS error set.
+ */
+lh_bool_t
+lh_os_fs_file_remove(const lh_fs_path_t *path);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_FS_FILE_H */

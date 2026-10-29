@@ -52,6 +52,20 @@ TEST(os_fs_dir, create_makes_a_directory_and_accepts_one_already_there)
     EXPECT_EQ(lh_test_rmdir(k_dir), 0);
 }
 
+TEST(os_fs_dir, create_tree_makes_every_missing_parent)
+{
+    path_of leaf("lh_test_os_fs_tree/a/b");
+
+    lh_test_rmdir("lh_test_os_fs_tree/a/b");
+    lh_test_rmdir("lh_test_os_fs_tree/a");
+    lh_test_rmdir("lh_test_os_fs_tree");
+    ASSERT_TRUE(lh_os_fs_dir_create_tree(&leaf.path));
+    EXPECT_TRUE(lh_os_fs_dir_create_tree(&leaf.path)); /* already there */
+    EXPECT_EQ(lh_test_rmdir("lh_test_os_fs_tree/a/b"), 0);
+    EXPECT_EQ(lh_test_rmdir("lh_test_os_fs_tree/a"), 0);
+    EXPECT_EQ(lh_test_rmdir("lh_test_os_fs_tree"), 0);
+}
+
 TEST(os_fs_dir, create_fails_when_a_file_is_in_the_way)
 {
     path_of p(k_file);

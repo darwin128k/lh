@@ -232,6 +232,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/fs/stat.c
 
         ${LH_LIB_SRC_PATH}/logger.c
+        ${LH_LIB_SRC_PATH}/logger/level.c
 
         ${LH_LIB_SRC_PATH}/crypto/sha.c
         ${LH_LIB_SRC_PATH}/crypto/rijndael.c
