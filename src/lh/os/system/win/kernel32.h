@@ -17,6 +17,7 @@
 #include <lh/os/system/win/kernel32/file_attribute_data/fields.h>
 #include <lh/os/system/win/kernel32/filetime/fields.h>
 #include <lh/os/system/win/kernel32/find_data/fields.h>
+#include <lh/os/system/win/kernel32/systemtime/fields.h>
 #include <lh/str/ptr.h>
 #include <lh/wstr/ptr.h>
 
@@ -122,6 +123,15 @@ struct lh_os_system_win_filetime
 /** @copybrief lh_os_system_win_filetime */
 typedef struct lh_os_system_win_filetime lh_os_system_win_filetime_t;
 
+/** @brief `SYSTEMTIME`. */
+struct lh_os_system_win_systemtime
+{
+    /** Members: ::lh_os_system_win_systemtime_fields. */
+    lh_os_system_win_systemtime_fields(lh_os_system_win_word_t);
+};
+/** @copybrief lh_os_system_win_systemtime */
+typedef struct lh_os_system_win_systemtime lh_os_system_win_systemtime_t;
+
 /** @brief `WIN32_FIND_DATAW`. */
 struct lh_os_system_win_find_data
 {
@@ -172,6 +182,24 @@ WideCharToMultiByte(lh_os_system_win_uint_t CodePage, lh_os_system_win_dword_t d
 /** Current UTC time as a `FILETIME`. Present since Windows 95. */
 LH_OS_SYSTEM_WIN_IMPORT void LH_OS_SYSTEM_WIN_CALL
 GetSystemTimeAsFileTime(lh_os_system_win_filetime_t *lpSystemTimeAsFileTime);
+
+/** A `FILETIME` as calendar fields. Present since Windows NT 3.1. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+FileTimeToSystemTime(const lh_os_system_win_filetime_t *lpFileTime,
+                     lh_os_system_win_systemtime_t *lpSystemTime);
+
+/** Calendar fields as a `FILETIME`. Present since Windows NT 3.1. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+SystemTimeToFileTime(const lh_os_system_win_systemtime_t *lpSystemTime,
+                     lh_os_system_win_filetime_t *lpFileTime);
+
+/** UTC calendar fields to the local zone's, with the daylight rule of that date;
+ *  `lpTimeZoneInformation` is always null here (the current zone). Present since
+ *  Windows NT 3.1. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+SystemTimeToTzSpecificLocalTime(const lh_ptr lpTimeZoneInformation,
+                                const lh_os_system_win_systemtime_t *lpUniversalTime,
+                                lh_os_system_win_systemtime_t *lpLocalTime);
 
 /* Errors. `Arguments` is a `va_list *`; we always pass null with
    FORMAT_MESSAGE_IGNORE_INSERTS. */
