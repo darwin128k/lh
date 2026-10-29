@@ -9,7 +9,6 @@
 #define LH_EVENT_FN_H
 
 #include <lh/event/result.h>
-#include <lh/char.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/ptr.h>
 

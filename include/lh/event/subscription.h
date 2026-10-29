@@ -10,7 +10,7 @@
 #ifndef LH_EVENT_SUBSCRIPTION_H
 #define LH_EVENT_SUBSCRIPTION_H
 
-#include <lh/list.h>
+#include <lh/list/node.h>
 #include <lh/event/cb.h>
 #include <lh/event/dispose/cb.h>
 #include <lh/event/subscription/fields.h>
@@ -18,26 +18,31 @@
 /** @brief Subscription state; use accessors rather than fields. */
 struct lh_event_subscription
 {
-    lh_event_subscription_fields(lh_list_node_t, lh_list_node_t, lh_ptr, lh_event_cb, lh_event_dispose_cb, lh_ptr, lh_bool_t);
+    lh_event_subscription_fields(lh_list_node_t, lh_list_node_t, lh_ptr, lh_event_cb,
+                                 lh_event_dispose_cb, lh_ptr, lh_bool_t);
 };
 /** @copybrief lh_event_subscription */
 typedef struct lh_event_subscription lh_event_subscription_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/** @brief Link in the event subscriber list. Level-1 borrowed member address; self must be nonnull. */
+/** @brief Link in the event subscriber list. Level-1 borrowed member address; self must be nonnull.
+ */
 const lh_list_node_t *
 lh_event_subscription_get_node(const lh_event_subscription_t *self);
 
-/** @brief Link in the event subscriber list. Level-1 borrowed member address; self must be nonnull. */
+/** @brief Link in the event subscriber list. Level-1 borrowed member address; self must be nonnull.
+ */
 lh_list_node_t *
 lh_event_subscription_get_node_mut(lh_event_subscription_t *self);
 
-/** @brief Link in the deferred disposal list. Level-1 borrowed member address; self must be nonnull. */
+/** @brief Link in the deferred disposal list. Level-1 borrowed member address; self must be
+ * nonnull. */
 const lh_list_node_t *
 lh_event_subscription_get_retired(const lh_event_subscription_t *self);
 
-/** @brief Link in the deferred disposal list. Level-1 borrowed member address; self must be nonnull. */
+/** @brief Link in the deferred disposal list. Level-1 borrowed member address; self must be
+ * nonnull. */
 lh_list_node_t *
 lh_event_subscription_get_retired_mut(lh_event_subscription_t *self);
 
@@ -65,7 +70,8 @@ lh_event_subscription_get_dispose(const lh_event_subscription_t *self);
 lh_void
 lh_event_subscription_set_dispose(lh_event_subscription_t *self, lh_event_dispose_cb value);
 
-/** @brief Subscriber context transferred on successful insertion. Level-1 read; self must be nonnull. */
+/** @brief Subscriber context transferred on successful insertion. Level-1 read; self must be
+ * nonnull. */
 lh_ptr
 lh_event_subscription_get_context(const lh_event_subscription_t *self);
 

@@ -42,6 +42,15 @@ lh_void
 lh_memory_bounds_allocated_clear(lh_memory_bounds_allocated_t *self);
 
 /**
+ * @brief Resize through the runtime allocator without terminating on allocation failure.
+ * Preserves the original bounds and bytes on failure. Zero releases and clears
+ * the block. Requires the same allocator ownership contract as the checked form.
+ * @return True on success, false on allocation failure.
+ */
+lh_bool_t
+lh_memory_bounds_allocated_try_resize(lh_memory_bounds_allocated_t *self, lh_usize_t size);
+
+/**
  * @brief Resize the block owned by @p self to @p size bytes.
  *
  * Reallocates the owned block through the runtime allocator and stores the
@@ -84,15 +93,6 @@ lh_memory_bounds_allocated_resize(lh_memory_bounds_allocated_t *self, lh_usize_t
 lh_void
 lh_memory_bounds_allocated_exchange(lh_memory_bounds_allocated_t *self,
                                     lh_memory_bounds_allocated_t *other);
-
-/**
- * @brief Resize through the runtime allocator without terminating on allocation failure.
- * Preserves the original bounds and bytes on failure. Zero releases and clears
- * the block. Requires the same allocator ownership contract as the checked form.
- * @return True on success, false on allocation failure.
- */
-lh_bool_t
-lh_memory_bounds_allocated_try_resize(lh_memory_bounds_allocated_t *self, lh_usize_t size);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -5,7 +5,8 @@
 #include <functional>
 #include <memory>
 #include <string>
-#include <vector>
+#include <array>
+#include <cstdlib>
 
 namespace
 {
@@ -22,12 +23,33 @@ class event_bus : public testing::Test
 {
     lh_event_bus_t bus;
 
-protected:
-    lh_event_bus_t *get_bus() { return &bus; }
-    void SetUp() override { lh_event_bus_init(get_bus()); }
-    void TearDown() override { lh_event_bus_deinit(get_bus()); }
-    lh_event_id_t id(const char *name) { return lh_event_bus_get_id(get_bus(), name); }
-    lh_event_subscription_t *subscribe(lh_event_id_t event, handler &fn, void *owner = nullptr)
+  protected:
+    lh_event_bus_t *
+    get_bus()
+    {
+        return &bus;
+    }
+
+    void
+    SetUp() override
+    {
+        lh_event_bus_init(get_bus());
+    }
+
+    void
+    TearDown() override
+    {
+        lh_event_bus_deinit(get_bus());
+    }
+
+    lh_event_id_t
+    id(const char *name)
+    {
+        return lh_event_bus_get_id(get_bus(), name);
+    }
+
+    lh_event_subscription_t *
+    subscribe(lh_event_id_t event, handler &fn, void *owner = nullptr)
     {
         return lh_event_bus_subscribe(get_bus(), event, owner, invoke, &fn, nullptr);
     }
@@ -61,19 +83,22 @@ TEST_F(event_bus, publishes_only_matching_event_in_order_and_shares_query_payloa
     const auto event = id("test.query");
     std::string trace;
     int value = 3;
-    handler first = [&](const char *name, void *payload) {
+    handler first = [&](const char *name, void *payload)
+    {
         EXPECT_STREQ(name, "test.query");
         EXPECT_EQ(payload, &value);
         ++*static_cast<int *>(payload);
         trace += 'a';
         return lh_event_result_handled;
     };
-    handler second = [&](const char *, void *payload) {
+    handler second = [&](const char *, void *payload)
+    {
         EXPECT_EQ(*static_cast<int *>(payload), 4);
         trace += 'b';
         return lh_event_result_continue;
     };
-    handler unrelated = [](const char *, void *) {
+    handler unrelated = [](const char *, void *)
+    {
         ADD_FAILURE() << "unrelated event dispatched";
         return lh_event_result_stop;
     };
@@ -90,7 +115,11 @@ TEST_F(event_bus, stop_prevents_later_callbacks_and_duplicate_insertions_are_dis
 {
     const auto event = id("test.stop");
     int calls = 0;
-    handler stop = [&](const char *, void *) { ++calls; return lh_event_result_stop; };
+    handler stop = [&](const char *, void *)
+    {
+        ++calls;
+        return lh_event_result_stop;
+    };
     EXPECT_NE(subscribe(event, stop), subscribe(event, stop));
     EXPECT_EQ(lh_event_bus_get_count(get_bus()), 2u);
     EXPECT_EQ(lh_event_bus_publish(get_bus(), event, nullptr), lh_event_result_stop);
@@ -105,12 +134,14 @@ TEST_F(event_bus, self_and_next_removal_are_immediate_and_disposal_waits_for_out
     lh_event_subscription_t *next = nullptr;
     int disposed = 0;
     int calls = 0;
-    handler nested_fn = [&](const char *, void *) {
+    handler nested_fn = [&](const char *, void *)
+    {
         EXPECT_EQ(disposed, 0);
         EXPECT_EQ(lh_event_bus_get_depth(get_bus()), 2u);
         return lh_event_result_continue;
     };
-    handler fn = [&](const char *, void *) {
+    handler fn = [&](const char *, void *)
+    {
         ++calls;
         lh_event_bus_remove(get_bus(), self);
         lh_event_bus_remove(get_bus(), self);
@@ -119,14 +150,20 @@ TEST_F(event_bus, self_and_next_removal_are_immediate_and_disposal_waits_for_out
         EXPECT_EQ(disposed, 0);
         return lh_event_result_continue;
     };
-    handler forbidden = [](const char *, void *) {
+    handler forbidden = [](const char *, void *)
+    {
         ADD_FAILURE() << "removed callback dispatched";
         return lh_event_result_continue;
     };
     self = subscribe(event, fn);
     // Disposal context is independent of the handler context on the next record.
-    next = lh_event_bus_subscribe(get_bus(), event, nullptr,
-        [](const char *, void *, void *) { ADD_FAILURE(); return lh_event_result_continue; },
+    next = lh_event_bus_subscribe(
+        get_bus(), event, nullptr,
+        [](const char *, void *, void *)
+        {
+            ADD_FAILURE();
+            return lh_event_result_continue;
+        },
         &disposed, [](void *value) { ++*static_cast<int *>(value); });
     subscribe(nested, nested_fn);
     EXPECT_EQ(lh_event_bus_publish(get_bus(), event, nullptr), lh_event_result_continue);
@@ -140,10 +177,18 @@ TEST_F(event_bus, nested_registration_growth_and_new_subscription_join_current_d
 {
     const auto event = id("test.growth");
     std::string trace;
-    handler added = [&](const char *, void *) { trace += 'b'; return lh_event_result_handled; };
-    handler first = [&](const char *name, void *) {
+    handler added = [&](const char *, void *)
+    {
+        trace += 'b';
+        return lh_event_result_handled;
+    };
+    handler first = [&](const char *name, void *)
+    {
         trace += 'a';
-        for (int i = 0; i < 1000; ++i) { id(("extra." + std::to_string(i)).c_str()); }
+        for (int i = 0; i < 1000; ++i)
+        {
+            id(("extra." + std::to_string(i)).c_str());
+        }
         EXPECT_STREQ(name, "test.growth");
         subscribe(event, added);
         return lh_event_result_continue;
@@ -158,14 +203,19 @@ TEST_F(event_bus, owner_drop_and_clear_inside_callback_skip_remaining_subscriber
     const auto event = id("test.owner");
     int owner = 0;
     int calls = 0;
-    handler fn = [&](const char *, void *) {
+    handler fn = [&](const char *, void *)
+    {
         ++calls;
         lh_event_bus_drop_owner(get_bus(), &owner);
         EXPECT_EQ(lh_event_bus_publish(get_bus(), event, nullptr), lh_event_result_continue);
         lh_event_bus_clear(get_bus());
         return lh_event_result_handled;
     };
-    handler never = [](const char *, void *) { ADD_FAILURE(); return lh_event_result_continue; };
+    handler never = [](const char *, void *)
+    {
+        ADD_FAILURE();
+        return lh_event_result_continue;
+    };
     subscribe(event, fn, &owner);
     subscribe(event, never, &owner);
     subscribe(id("test.other"), never);
@@ -182,14 +232,17 @@ TEST_F(event_bus, failed_registration_and_subscription_preserve_existing_state)
     subscribe(event, fn);
     lh_memory_allocator_t saved;
     lh_memory_allocator_assign(&saved, lh_runtime_allocator());
-    auto restore = std::unique_ptr<lh_memory_allocator_t, std::function<void(lh_memory_allocator_t *)>>(
-        &saved, [](auto *allocator) { lh_memory_allocator_assign(lh_runtime_allocator(), allocator); });
+    auto restore =
+        std::unique_ptr<lh_memory_allocator_t, std::function<void(lh_memory_allocator_t *)>>(
+            &saved,
+            [](auto *allocator) { lh_memory_allocator_assign(lh_runtime_allocator(), allocator); });
     lh_memory_allocator_set_alloc_cb(lh_runtime_allocator(), nullptr);
     EXPECT_EQ(lh_event_bus_try_get_id(get_bus(), "test.live"), event);
     EXPECT_EQ(lh_event_bus_try_get_id(get_bus(), "test.failed"), 0u);
     EXPECT_EQ(lh_event_bus_try_subscribe(get_bus(), event, nullptr, invoke, &fn, nullptr), nullptr);
     EXPECT_EQ(lh_event_bus_try_subscribe(get_bus(), 0, nullptr, invoke, &fn, nullptr), nullptr);
-    EXPECT_EQ(lh_event_bus_try_subscribe(get_bus(), event, nullptr, nullptr, &fn, nullptr), nullptr);
+    EXPECT_EQ(lh_event_bus_try_subscribe(get_bus(), event, nullptr, nullptr, &fn, nullptr),
+              nullptr);
     EXPECT_EQ(lh_event_bus_publish(get_bus(), event, nullptr), lh_event_result_handled);
     EXPECT_EQ(lh_event_bus_get_count(get_bus()), 1u);
     EXPECT_EQ(lh_event_bus_find_id(get_bus(), "test.failed"), 0u);
@@ -201,30 +254,116 @@ TEST_F(event_bus, checked_forms_report_failures)
     LH_EXPECT_CHECK_DEATH(lh_event_bus_subscribe(get_bus(), 0, nullptr, nullptr, nullptr, nullptr));
 }
 
-TEST_F(event_bus, reserve_failure_and_size_overflow_leave_array_intact)
+TEST_F(event_bus, cached_ids_retry_failures_and_survive_subscription_clear)
 {
-    lh_array_t array;
-    lh_array_init(&array, sizeof(int));
-    auto cleanup = std::unique_ptr<lh_array_t, decltype(&lh_array_deinit)>(&array, lh_array_deinit);
-    int value = 42;
-    lh_array_push_back(&array, &value);
-    const auto capacity = lh_array_get_capacity(&array);
-    const auto begin = lh_array_get_begin(&array);
-    EXPECT_FALSE(lh_array_try_reserve(&array, LH_USIZE_T_MAX));
-    EXPECT_EQ(lh_array_get_capacity(&array), capacity);
-    EXPECT_EQ(lh_array_get_begin(&array), begin);
-    EXPECT_EQ(lh_array_get_size(&array), 1u);
-    EXPECT_EQ(*static_cast<int *>(lh_array_get_ptr(&array, 0)), 42);
+    lh_event_id_t cached = 0;
+    EXPECT_EQ(lh_event_bus_try_get_cached_id(get_bus(), &cached, nullptr), 0u);
+    EXPECT_NE(lh_event_bus_try_get_cached_id(get_bus(), &cached, "test.cached"), 0u);
+    const auto original = cached;
+    EXPECT_EQ(lh_event_bus_get_cached_id(get_bus(), &cached, "test.cached"), original);
+    lh_event_id_t invalid = 0;
+    LH_EXPECT_CHECK_DEATH(lh_event_bus_get_cached_id(get_bus(), &invalid, nullptr));
+    lh_event_bus_clear(get_bus());
+    EXPECT_EQ(lh_event_bus_try_get_cached_id(get_bus(), &cached, "test.cached"), original);
+    EXPECT_EQ(lh_event_bus_find_id(get_bus(), "test.cached"), original);
+}
+
+TEST_F(event_bus, entry_owns_its_name_and_checked_constructor_reports_failure)
+{
+    char name[] = "entry";
+    auto *entry = lh_event_entry_create(name, 5);
+    name[0] = 'X';
+    EXPECT_STREQ(lh_event_entry_get_name(entry), "entry");
+    EXPECT_EQ(lh_event_entry_get_length(entry), 5u);
+    EXPECT_TRUE(lh_list_is_empty(lh_event_entry_get_subscriptions(entry)));
+    lh_event_entry_destroy(entry);
+    EXPECT_EQ(lh_event_entry_try_create(nullptr, 1), nullptr);
+    EXPECT_EQ(lh_event_entry_try_create("", 0), nullptr);
+    EXPECT_EQ(lh_event_entry_try_create("x", LH_USIZE_T_MAX), nullptr);
+    LH_EXPECT_CHECK_DEATH(lh_event_entry_create(nullptr, 1));
+}
+
+using allocation_state = std::array<int, 2>;
+
+void *
+fail_after(lh_self_ptr self, lh_usize_t size)
+{
+    auto *state = static_cast<allocation_state *>(self);
+    if ((*state)[0]-- == 0)
+    {
+        return nullptr;
+    }
+    void *block = std::malloc(size);
+    if (block)
+    {
+        ++(*state)[1];
+    }
+    return block;
+}
+
+void
+count_free(lh_self_ptr self, lh_ptr block)
+{
+    auto *state = static_cast<allocation_state *>(self);
+    if (block)
+    {
+        --(*state)[1];
+    }
+    std::free(block);
+}
+
+TEST_F(event_bus, every_registration_allocation_failure_rolls_back_and_can_be_retried)
+{
     lh_memory_allocator_t saved;
     lh_memory_allocator_assign(&saved, lh_runtime_allocator());
-    auto restore = std::unique_ptr<lh_memory_allocator_t, std::function<void(lh_memory_allocator_t *)>>(
-        &saved, [](auto *allocator) { lh_memory_allocator_assign(lh_runtime_allocator(), allocator); });
-    lh_memory_allocator_set_alloc_cb(lh_runtime_allocator(), nullptr);
-    EXPECT_TRUE(lh_array_try_reserve(&array, capacity));
-    EXPECT_FALSE(lh_array_try_reserve(&array, capacity + 1));
-    EXPECT_EQ(lh_array_get_capacity(&array), capacity);
-    EXPECT_EQ(lh_array_get_begin(&array), begin);
-    EXPECT_EQ(*static_cast<int *>(lh_array_get_ptr(&array, 0)), 42);
+    auto restore =
+        std::unique_ptr<lh_memory_allocator_t, std::function<void(lh_memory_allocator_t *)>>(
+            &saved,
+            [](auto *allocator) { lh_memory_allocator_assign(lh_runtime_allocator(), allocator); });
+    for (int failure = 0; failure < 3; ++failure)
+    {
+        SCOPED_TRACE(failure);
+        allocation_state state = {failure, 0};
+        lh_memory_allocator_init(lh_runtime_allocator(), fail_after, count_free);
+        lh_memory_allocator_set_context(lh_runtime_allocator(), &state);
+        lh_event_bus_t local;
+        lh_event_bus_init(&local);
+        EXPECT_EQ(lh_event_bus_try_get_id(&local, "test.retry"), 0u);
+        EXPECT_EQ(lh_event_bus_find_id(&local, "test.retry"), 0u);
+        EXPECT_EQ(state[1], 0);
+        state[0] = 100;
+        const auto event = lh_event_bus_try_get_id(&local, "test.retry");
+        EXPECT_NE(event, 0u);
+        int disposed = 0;
+        state[0] = 0;
+        EXPECT_EQ(lh_event_bus_try_subscribe(
+                      &local, event, nullptr,
+                      [](const char *, void *, void *) { return lh_event_result_continue; },
+                      &disposed, [](void *value) { ++*static_cast<int *>(value); }),
+                  nullptr);
+        EXPECT_EQ(disposed, 0);
+        lh_event_bus_deinit(&local);
+        EXPECT_EQ(state[1], 0);
+    }
+}
+
+TEST_F(event_bus, finds_only_live_records_matching_owner_and_context)
+{
+    const auto event = id("test.find");
+    int owner = 0;
+    int other = 0;
+    handler fn = [](const char *, void *) { return lh_event_result_continue; };
+    auto *first = subscribe(event, fn, &owner);
+    auto *second = subscribe(event, fn, &other);
+    auto same_context = [](void *context, void *key)
+    { return context == key ? lh_bool_true : lh_bool_false; };
+    EXPECT_EQ(lh_event_bus_find_subscription(get_bus(), event, &owner, same_context, &fn), first);
+    EXPECT_EQ(lh_event_bus_find_subscription(get_bus(), event, &other, nullptr, nullptr), second);
+    EXPECT_EQ(lh_event_bus_find_subscription(get_bus(), event, &owner, same_context, &other),
+              nullptr);
+    lh_event_bus_remove(get_bus(), first);
+    EXPECT_EQ(lh_event_bus_find_subscription(get_bus(), event, &owner, nullptr, nullptr), nullptr);
+    EXPECT_EQ(lh_event_bus_find_subscription(get_bus(), 0, &other, nullptr, nullptr), nullptr);
 }
 
 } // namespace

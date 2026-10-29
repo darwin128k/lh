@@ -46,28 +46,6 @@ lh_void
 lh_memory_typed_allocated_clear(lh_memory_typed_allocated_t *self);
 
 /**
- * @brief Resize the block owned by @p self to hold @p count elements.
- *
- * Reallocates the owned block through the runtime allocator to
- * <tt>count * type_size</tt> bytes and stores the resulting bounds in @p self.
- * Passing @c 0 for @p count frees the block and leaves @p self empty.
- *
- * @param self  Allocated typed value to resize.
- * @param count Requested element count.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- * @fails ::lh_runtime_error_code_memory_not_allocated
- *        Growing or newly allocating the block failed.
- * @fails ::lh_runtime_error_code_allocator_function_not_initialized
- *        The runtime allocation callback is not initialized.
- * @fails ::lh_runtime_error_code_deallocator_function_not_initialized
- *        The runtime deallocation callback is not initialized.
- */
-lh_void
-lh_memory_typed_allocated_resize(lh_memory_typed_allocated_t *self, lh_usize_t count);
-
-/**
  * @brief Free the block owned by @p self, then take ownership of @p other's block.
  *
  * After the call, @p self owns the block and element type size previously
@@ -94,6 +72,28 @@ lh_memory_typed_allocated_exchange(lh_memory_typed_allocated_t *self,
  */
 lh_bool_t
 lh_memory_typed_allocated_try_resize(lh_memory_typed_allocated_t *self, lh_usize_t count);
+
+/**
+ * @brief Resize the block owned by @p self to hold @p count elements.
+ *
+ * Reallocates the owned block through the runtime allocator to
+ * <tt>count * type_size</tt> bytes and stores the resulting bounds in @p self.
+ * Passing @c 0 for @p count frees the block and leaves @p self empty.
+ *
+ * @param self  Allocated typed value to resize.
+ * @param count Requested element count.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @fails ::lh_runtime_error_code_memory_not_allocated
+ *        Growing or newly allocating the block failed.
+ * @fails ::lh_runtime_error_code_allocator_function_not_initialized
+ *        The runtime allocation callback is not initialized.
+ * @fails ::lh_runtime_error_code_deallocator_function_not_initialized
+ *        The runtime deallocation callback is not initialized.
+ */
+lh_void
+lh_memory_typed_allocated_resize(lh_memory_typed_allocated_t *self, lh_usize_t count);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -1,3 +1,7 @@
+#include <lh/expect/death.h>
+#include <lh/memory/typed/allocated.h>
+#include <lh/size/limits.h>
+#include <memory>
 #include <gtest/gtest.h>
 
 #include <lh/memory/typed.h>
@@ -146,3 +150,23 @@ TEST(memory_typed_value_equals, false_for_different_value)
 }
 
 } // namespace
+
+TEST(memory_typed_allocated_try_resize, multiplication_overflow_preserves_typed_storage)
+{
+    lh_memory_typed_allocated_t block;
+    lh_memory_typed_init_empty(&block, sizeof(int));
+    EXPECT_TRUE(lh_memory_typed_allocated_try_resize(&block, 2));
+    auto cleanup =
+        std::unique_ptr<lh_memory_typed_allocated_t, decltype(&lh_memory_typed_allocated_clear)>(
+            &block, lh_memory_typed_allocated_clear);
+    auto *data = static_cast<int *>(lh_memory_typed_get_begin(&block));
+    data[0] = 42;
+    EXPECT_FALSE(lh_memory_typed_allocated_try_resize(&block, LH_USIZE_T_MAX));
+    EXPECT_EQ(lh_memory_typed_get_begin(&block), data);
+    EXPECT_EQ(lh_memory_typed_get_size(&block), 2u);
+    EXPECT_EQ(data[0], 42);
+    EXPECT_TRUE(lh_memory_typed_allocated_try_resize(&block, 0));
+    EXPECT_EQ(lh_memory_typed_get_begin(&block), nullptr);
+    EXPECT_EQ(lh_memory_typed_get_size(&block), 0u);
+    LH_EXPECT_CHECK_DEATH(lh_memory_typed_allocated_resize(&block, LH_USIZE_T_MAX));
+}

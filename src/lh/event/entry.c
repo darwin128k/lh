@@ -1,7 +1,6 @@
 #include <lh/event/entry.h>
 #include <lh/runtime/allocator.h>
 #include <lh/assert.h>
-#include <lh/size/limits.h>
 #include <lh/memory/std.h>
 
 lh_char_t *
@@ -11,7 +10,7 @@ lh_event_entry_get_name(const lh_event_entry_t *self)
 }
 
 lh_void
-lh_event_entry_set_name(lh_event_entry_t *self, lh_char_t * value)
+lh_event_entry_set_name(lh_event_entry_t *self, lh_char_t *value)
 {
     self->name = value;
 }
@@ -40,7 +39,6 @@ lh_event_entry_get_subscriptions_mut(lh_event_entry_t *self)
     return lh_addr_of(self->subscriptions);
 }
 
-
 lh_void
 lh_event_entry_init(lh_event_entry_t *self, lh_char_t *name, lh_usize_t length)
 {
@@ -56,7 +54,6 @@ lh_event_entry_destroy(lh_event_entry_t *self)
     lh_runtime_allocator_free(self);
 }
 
-
 lh_event_entry_t *
 lh_event_entry_try_create(const lh_char_t *name, lh_usize_t length)
 {
@@ -71,7 +68,8 @@ lh_event_entry_try_create(const lh_char_t *name, lh_usize_t length)
     {
         return lh_null;
     }
-    entry = lh_cast_static(lh_event_entry_t *, lh_runtime_allocator_try_alloc(sizeof *entry));
+    entry = lh_cast_static(lh_event_entry_t *,
+                           lh_runtime_allocator_try_alloc(sizeof lh_ptr_deref(entry)));
     if (lh_ptr_is_null(entry))
     {
         lh_runtime_allocator_free(copy);

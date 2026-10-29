@@ -1,4 +1,5 @@
 #include <lh/event/subscription.h>
+#include <lh/list.h>
 #include <lh/runtime/allocator.h>
 #include <lh/assert.h>
 
@@ -85,7 +86,6 @@ lh_event_subscription_set_dead(lh_event_subscription_t *self, lh_bool_t value)
 {
     self->dead = value;
 }
-
 
 lh_event_subscription_t *
 lh_event_subscription_get_by_node(lh_list_node_t *node)

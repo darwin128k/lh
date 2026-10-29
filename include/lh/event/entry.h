@@ -11,7 +11,6 @@
 #define LH_EVENT_ENTRY_H
 
 #include <lh/list.h>
-#include <lh/char.h>
 #include <lh/event/entry/fields.h>
 
 /** @brief Entry state; use accessors rather than fields. */
@@ -30,7 +29,7 @@ lh_event_entry_get_name(const lh_event_entry_t *self);
 
 /** @brief Store name without validation or ownership changes; self must be nonnull. */
 lh_void
-lh_event_entry_set_name(lh_event_entry_t *self, lh_char_t * value);
+lh_event_entry_set_name(lh_event_entry_t *self, lh_char_t *value);
 
 /** @brief Number of characters excluding NUL. Level-1 read; self must be nonnull. */
 lh_usize_t
@@ -40,11 +39,13 @@ lh_event_entry_get_length(const lh_event_entry_t *self);
 lh_void
 lh_event_entry_set_length(lh_event_entry_t *self, lh_usize_t value);
 
-/** @brief Ordered subscriber links; bus-owned. Level-1 borrowed member address; self must be nonnull. */
+/** @brief Ordered subscriber links; bus-owned. Level-1 borrowed member address; self must be
+ * nonnull. */
 const lh_list_t *
 lh_event_entry_get_subscriptions(const lh_event_entry_t *self);
 
-/** @brief Ordered subscriber links; bus-owned. Level-1 borrowed member address; self must be nonnull. */
+/** @brief Ordered subscriber links; bus-owned. Level-1 borrowed member address; self must be
+ * nonnull. */
 lh_list_t *
 lh_event_entry_get_subscriptions_mut(lh_event_entry_t *self);
 
