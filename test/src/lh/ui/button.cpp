@@ -68,7 +68,7 @@ TEST(entity_button, init_is_an_entity_with_nothing_declared)
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 40, 20);
     lh_ui_button_init(lh_addr_of(button), rect);
 
-    stored = lh_test::out(lh_ui_entity_get_rect, lh_ui_button_as_entity(lh_addr_of(button)));
+    stored = lh_test::out(lh_ui_entity_copy_rect, lh_ui_button_as_entity(lh_addr_of(button)));
     EXPECT_TRUE(lh_ui_rect_eq(lh_addr_of(rect), lh_addr_of(stored)));
     EXPECT_EQ(lh_ui_entity_get_class(lh_ui_button_as_entity(lh_addr_of(button))),
               lh_addr_of(lh_ui_button_class));

@@ -14,7 +14,7 @@ TEST(entity_container, init_keeps_the_rect_and_container_class)
     lh_ui_rect_init(lh_addr_of(rect), 1, 2, 3, 4);
     lh_ui_container_init(lh_addr_of(box), rect);
     lh_ui_entity_t *entity = lh_ui_container_as_entity(lh_addr_of(box));
-    const lh_ui_rect_t stored = lh_test::out(lh_ui_entity_get_rect, entity);
+    const lh_ui_rect_t stored = lh_test::out(lh_ui_entity_copy_rect, entity);
 
     EXPECT_EQ(lh_ui_rect_eq(lh_addr_of(rect), lh_addr_of(stored)), lh_bool_true);
     EXPECT_EQ(lh_ui_entity_get_class(entity), lh_addr_of(lh_ui_container_class));
@@ -99,7 +99,7 @@ TEST(entity_container, init_starts_unscrolled)
     lh_ui_container_t box;
 
     lh_ui_container_init(lh_addr_of(box), rect_of(0, 0, 4, 4));
-    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_get_scroll, lh_addr_of(box)), 0, 0));
+    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(box)), 0, 0));
 }
 
 TEST(entity_container, content_size_spans_the_visible_children_from_the_origin)
@@ -132,11 +132,11 @@ TEST(entity_container, set_scroll_clamps_to_zero_and_max)
     scroll_fixture f;
 
     lh_ui_container_set_scroll(lh_addr_of(f.box), point_of(5, 12));
-    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_get_scroll, lh_addr_of(f.box)), 0, 12));
+    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(f.box)), 0, 12));
     lh_ui_container_set_scroll(lh_addr_of(f.box), point_of(-5, 99));
-    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_get_scroll, lh_addr_of(f.box)), 0, 30));
+    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(f.box)), 0, 30));
     lh_ui_container_set_scroll(lh_addr_of(f.box), point_of(0, -1));
-    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_get_scroll, lh_addr_of(f.box)), 0, 0));
+    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(f.box)), 0, 0));
 }
 
 TEST(entity_container, scroll_by_moves_and_clamps)
@@ -144,11 +144,11 @@ TEST(entity_container, scroll_by_moves_and_clamps)
     scroll_fixture f;
 
     lh_ui_container_scroll_by(lh_addr_of(f.box), lh_ui_scalar(0), lh_ui_scalar(20));
-    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_get_scroll, lh_addr_of(f.box)), 0, 20));
+    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(f.box)), 0, 20));
     lh_ui_container_scroll_by(lh_addr_of(f.box), lh_ui_scalar(0), lh_ui_scalar(20));
-    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_get_scroll, lh_addr_of(f.box)), 0, 30));
+    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(f.box)), 0, 30));
     lh_ui_container_scroll_by(lh_addr_of(f.box), lh_ui_scalar(0), lh_ui_scalar(-100));
-    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_get_scroll, lh_addr_of(f.box)), 0, 0));
+    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(f.box)), 0, 0));
 }
 
 TEST(entity_container, answers_children_with_minus_scroll_and_a_clip)
@@ -225,10 +225,10 @@ TEST(entity_container, get_scroll_is_clamped_when_the_content_shrinks)
     /* b leaves the content: it now ends at a, 40 tall in a 50 viewport. */
     lh_ui_entity_set_hidden(lh_addr_of(f.b), lh_bool_true);
 
-    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_get_scroll, lh_addr_of(f.box)), 0, 0));
+    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(f.box)), 0, 0));
     lh_ui_entity_transform_init(lh_addr_of(transform));
     lh_ui_container_place_children(lh_addr_of(f.box), lh_addr_of(transform));
-    EXPECT_TRUE(point_is(lh_test::out(lh_ui_entity_transform_get_offset, lh_addr_of(transform)), 0, 0));
+    EXPECT_TRUE(point_is(lh_test::out(lh_ui_entity_transform_copy_offset, lh_addr_of(transform)), 0, 0));
     EXPECT_EQ(lh_ui_entity_transform_is_clip(lh_addr_of(transform)), lh_bool_true);
 }
 
@@ -244,7 +244,7 @@ TEST(entity_container, event_is_public_and_answers_children)
 
     lh_ui_container_event(f.entity(), lh_addr_of(event));
 
-    EXPECT_TRUE(point_is(lh_test::out(lh_ui_entity_transform_get_offset, lh_addr_of(transform)), 0, -10));
+    EXPECT_TRUE(point_is(lh_test::out(lh_ui_entity_transform_copy_offset, lh_addr_of(transform)), 0, -10));
 }
 
 /* Padding is room after the last child: it adds to the content size (so the

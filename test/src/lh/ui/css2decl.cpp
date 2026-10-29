@@ -51,7 +51,7 @@ struct sheet
     lh_ui_rect_t
     rect(const char *id)
     {
-        return lh_test::out(lh_ui_entity_get_rect, lh_test_css_entity(nodes, id));
+        return lh_test::out(lh_ui_entity_copy_rect, lh_test_css_entity(nodes, id));
     }
 };
 
@@ -74,7 +74,7 @@ expect_the_first_layout_moves_nothing(const lh_ui_decl_t *decls, lh_u32_t count,
     ASSERT_EQ(lh_ui_decl_build(decls, count, nodes, pool, sizeof pool, &root, &fault), lh_bool_true);
     for (i = 0; i < count; ++i)
     {
-        before[i] = lh_test::out(lh_ui_entity_get_rect, nodes[i]);
+        before[i] = lh_test::out(lh_ui_entity_copy_rect, nodes[i]);
     }
     for (i = 0; i < count; ++i)
     {
@@ -88,7 +88,7 @@ expect_the_first_layout_moves_nothing(const lh_ui_decl_t *decls, lh_u32_t count,
     }
     for (i = 0; i < count; ++i)
     {
-        const lh_ui_rect_t after = lh_test::out(lh_ui_entity_get_rect, nodes[i]);
+        const lh_ui_rect_t after = lh_test::out(lh_ui_entity_copy_rect, nodes[i]);
 
         EXPECT_TRUE(rect_is(after, before[i]))
             << "row " << i << " (" << names[i] << ") moved on the first layout: the table has ("
@@ -358,9 +358,9 @@ TEST(ui_css2decl_app, a_list_that_overflows_has_a_scroll_bar_driving_it)
     ASSERT_EQ(s.built, lh_bool_true);
     EXPECT_NE(lh_test_app_scrollbar(s.nodes, "list__vbar"), lh_null);
     /* The list is the frame less the bar. */
-    EXPECT_TRUE(rect_is(lh_test::out(lh_ui_entity_get_rect, lh_test_app_entity(s.nodes, "list__frame")),
+    EXPECT_TRUE(rect_is(lh_test::out(lh_ui_entity_copy_rect, lh_test_app_entity(s.nodes, "list__frame")),
                         rect_of(12, 54, 456, 216)));
-    EXPECT_TRUE(rect_is(lh_test::out(lh_ui_entity_get_rect, lh_test_app_entity(s.nodes, "list")), rect_of(12, 54, 444, 216)));
+    EXPECT_TRUE(rect_is(lh_test::out(lh_ui_entity_copy_rect, lh_test_app_entity(s.nodes, "list")), rect_of(12, 54, 444, 216)));
 }
 
 TEST(ui_css2decl_app, a_field_starts_with_its_value)
@@ -389,5 +389,5 @@ TEST(ui_css2decl_app, a_row_placed_by_hand_over_a_flow_stays_where_it_is_after_a
         }
     }
     /* `right: 12px; bottom: 50px` of the 480 x 320 screen. */
-    EXPECT_TRUE(rect_is(lh_test::out(lh_ui_entity_get_rect, lh_test_app_entity(s.nodes, "toast")), rect_of(348, 240, 120, 30)));
+    EXPECT_TRUE(rect_is(lh_test::out(lh_ui_entity_copy_rect, lh_test_app_entity(s.nodes, "toast")), rect_of(348, 240, 120, 30)));
 }

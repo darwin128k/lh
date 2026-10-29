@@ -111,7 +111,7 @@ snapshot(built *out, lh_ui_entity_t **nodes, lh_ui_entity_t *root, lh_ui_canvas_
     lh_ui_entity_get_children_transform(root, &offset);
     for (int i = 0; i < k_rows; ++i)
     {
-        out->rects[i] = lh_test::out(lh_ui_entity_get_rect, nodes[i]);
+        out->rects[i] = lh_test::out(lh_ui_entity_copy_rect, nodes[i]);
         out->classes[i] = lh_ui_entity_get_class(nodes[i]);
     }
     draw_log_init(&out->log, canvas, true, false, true);

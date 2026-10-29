@@ -152,7 +152,7 @@ TEST(ui_canvas_sw, clip_cuts_and_pop_restores)
     EXPECT_EQ(f.at(5, 6), 0xff010203u);
     EXPECT_EQ(f.at(6, 6), sentinel);
     EXPECT_EQ(f.at(4, 7), sentinel);
-    const lh_ui_rect_t limit = lh_test::out(lh_ui_canvas_sw_get_limit, lh_addr_of(f.sw));
+    const lh_ui_rect_t limit = lh_test::out(lh_ui_canvas_sw_copy_limit, lh_addr_of(f.sw));
     EXPECT_TRUE(lh_ui_rect_eq(lh_addr_of(limit), &rect));
 }
 

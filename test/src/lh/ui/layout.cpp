@@ -19,7 +19,7 @@ using lh_test::tiny_font;
 bool
 rect_at(const lh_ui_entity_t *entity, int x, int y, int w, int h)
 {
-    const lh_ui_rect_t got = lh_test::out(lh_ui_entity_get_rect, entity);
+    const lh_ui_rect_t got = lh_test::out(lh_ui_entity_copy_rect, entity);
 
     if (!rect_is(got, rect_of(x, y, w, h)))
     {
@@ -347,7 +347,7 @@ TEST(ui_layout, a_child_that_wraps_to_nothing_collapses_and_leaves_no_gap)
     lh_ui_rect_t caption_rect;
 
     lh_ui_layout_apply(&f.layout, &f.parent);
-    caption_rect = lh_test::out(lh_ui_entity_get_rect, lh_ui_label_as_entity(&f.caption));
+    caption_rect = lh_test::out(lh_ui_entity_copy_rect, lh_ui_label_as_entity(&f.caption));
 
     /* 16 of picture in a 224 wide box, centred on its own: x 108 + (224 - 16) / 2,
        and 16 tall in a 144 tall box: y 58 + (144 - 16) / 2. */
@@ -368,8 +368,8 @@ TEST(ui_layout, the_same_flow_centres_the_row_once_the_caption_has_text)
 
     /* 16 + 8 + the width of "AB" is what the row takes, centred as a whole, so
        the picture is no longer in the middle of the button. */
-    picture_rect = lh_test::out(lh_ui_entity_get_rect, &f.picture);
-    caption_rect = lh_test::out(lh_ui_entity_get_rect, lh_ui_label_as_entity(&f.caption));
+    picture_rect = lh_test::out(lh_ui_entity_copy_rect, &f.picture);
+    caption_rect = lh_test::out(lh_ui_entity_copy_rect, lh_ui_label_as_entity(&f.caption));
     picture_at = *lh_ui_rect_get_origin(lh_addr_of(picture_rect));
 
     EXPECT_LT(lh_ui_point_get_x(&picture_at), 212) << "the picture did not move aside";
@@ -538,8 +538,8 @@ TEST(ui_layout, an_icon_and_a_caption_in_a_row_stand_on_one_line)
     lh_ui_image_set_baseline(&f.icon, lh_ui_scalar(1));
     lh_ui_layout_apply(&f.flow, lh_ui_container_as_entity(&f.box));
 
-    icon_rect = lh_test::out(lh_ui_entity_get_rect, lh_ui_image_as_entity(&f.icon));
-    caption_rect = lh_test::out(lh_ui_entity_get_rect, lh_ui_label_as_entity(&f.caption));
+    icon_rect = lh_test::out(lh_ui_entity_copy_rect, lh_ui_image_as_entity(&f.icon));
+    caption_rect = lh_test::out(lh_ui_entity_copy_rect, lh_ui_label_as_entity(&f.caption));
     icon_bottom = (int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(icon_rect))) +
                   (int)lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(icon_rect)));
     caption_baseline = (int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(caption_rect))) +
@@ -581,8 +581,8 @@ TEST(ui_layout, the_line_is_the_deepest_baseline_and_not_the_first_child)
     lh_ui_image_set_baseline(&caption_first.icon, lh_ui_scalar(1));
     lh_ui_layout_apply(&caption_first.flow, lh_ui_container_as_entity(&caption_first.box));
 
-    a = lh_test::out(lh_ui_entity_get_rect, lh_ui_label_as_entity(&icon_first.caption));
-    b = lh_test::out(lh_ui_entity_get_rect, lh_ui_label_as_entity(&caption_first.caption));
+    a = lh_test::out(lh_ui_entity_copy_rect, lh_ui_label_as_entity(&icon_first.caption));
+    b = lh_test::out(lh_ui_entity_copy_rect, lh_ui_label_as_entity(&caption_first.caption));
     y = (int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(b)));
     fprintf(stderr, "        caption at y %d icon first, y %d caption first\n",
             (int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(a))), y);
@@ -641,10 +641,10 @@ TEST(ui_layout, a_vertical_flow_has_no_line_to_line_up_on)
        and the content box itself starts at x 2, so x 20. */
     EXPECT_TRUE(rect_at(lh_ui_image_as_entity(&f.icon), 20, 2, 1, 1));
     EXPECT_TRUE(rect_at(lh_ui_label_as_entity(&f.caption), 19, 3, 3, 2));
-    icon_rect = lh_test::out(lh_ui_entity_get_rect, lh_ui_image_as_entity(&f.icon));
+    icon_rect = lh_test::out(lh_ui_entity_copy_rect, lh_ui_image_as_entity(&f.icon));
     EXPECT_EQ((int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(icon_rect))), 2);
     /* The caption goes under it, in its own 2-row box. */
-    caption_rect = lh_test::out(lh_ui_entity_get_rect, lh_ui_label_as_entity(&f.caption));
+    caption_rect = lh_test::out(lh_ui_entity_copy_rect, lh_ui_label_as_entity(&f.caption));
     EXPECT_EQ((int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(caption_rect))), 3);
 }
 

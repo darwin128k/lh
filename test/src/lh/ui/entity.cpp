@@ -225,7 +225,7 @@ TEST(entity, init_keeps_the_rect)
     lh_ui_rect_init(lh_addr_of(rect), 1, 2, 3, 4);
     lh_ui_entity_t entity;
     lh_ui_entity_init(lh_addr_of(entity), rect);
-    const lh_ui_rect_t stored = lh_test::out(lh_ui_entity_get_rect, lh_addr_of(entity));
+    const lh_ui_rect_t stored = lh_test::out(lh_ui_entity_copy_rect, lh_addr_of(entity));
 
     EXPECT_EQ(lh_ui_rect_eq(lh_addr_of(rect), lh_addr_of(stored)), lh_bool_true);
     EXPECT_EQ(lh_ui_entity_get_class(lh_addr_of(entity)), lh_addr_of(lh_ui_entity_class));
@@ -1285,7 +1285,7 @@ TEST(entity, a_childless_rounded_entity_is_hit_in_its_own_corner)
 
     /* The top-left corner pixel of the child's box, outside its radius 12. */
     lh_ui_point_init(lh_addr_of(corner), 10, 10);
-    child_rect = lh_test::out(lh_ui_entity_get_rect, lh_addr_of(child));
+    child_rect = lh_test::out(lh_ui_entity_copy_rect, lh_addr_of(child));
     EXPECT_FALSE(lh_ui_radius_contains(lh_addr_of(child_rect),
                                        lh_ui_entity_get_radius(lh_addr_of(child)), corner))
         << "the radius covers the corner, so this is not the cut one";
