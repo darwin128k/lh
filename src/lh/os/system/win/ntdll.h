@@ -44,18 +44,18 @@ typedef struct lh_os_system_win_unicode_string
 /** @brief `OBJECT_ATTRIBUTES`: what to open, relative to what. */
 typedef struct lh_os_system_win_object_attributes
 {
-    lh_os_system_win_dword_t Length;                 /**< Size of this structure. */
-    lh_os_system_win_handle_t RootDirectory;         /**< The directory the name is in. */
-    lh_os_system_win_unicode_string_t *ObjectName;   /**< One name, no separator. */
-    lh_os_system_win_dword_t Attributes;             /**< `OBJ_*` flags. */
-    lh_ptr SecurityDescriptor;                       /**< Always ::lh_null here. */
-    lh_ptr SecurityQualityOfService;                 /**< Always ::lh_null here. */
+    lh_os_system_win_dword_t Length;               /**< Size of this structure. */
+    lh_os_system_win_handle_t RootDirectory;       /**< The directory the name is in. */
+    lh_os_system_win_unicode_string_t *ObjectName; /**< One name, no separator. */
+    lh_os_system_win_dword_t Attributes;           /**< `OBJ_*` flags. */
+    lh_ptr SecurityDescriptor;                     /**< Always ::lh_null here. */
+    lh_ptr SecurityQualityOfService;               /**< Always ::lh_null here. */
 } lh_os_system_win_object_attributes_t;
 
 /** @brief `IO_STATUS_BLOCK`: how an NT I/O call ended. */
 typedef struct lh_os_system_win_io_status_block
 {
-    lh_ptr Status;      /**< The status, as wide as a pointer. */
+    lh_ptr Status;          /**< The status, as wide as a pointer. */
     lh_usize_t Information; /**< Call-specific detail. */
 } lh_os_system_win_io_status_block_t;
 
@@ -63,13 +63,13 @@ typedef struct lh_os_system_win_io_status_block
 typedef lh_long_t(LH_OS_SYSTEM_WIN_CALL *lh_os_system_win_nt_create_file_fn)(
     lh_os_system_win_handle_t *FileHandle, lh_os_system_win_dword_t DesiredAccess,
     lh_os_system_win_object_attributes_t *ObjectAttributes,
-    lh_os_system_win_io_status_block_t *IoStatusBlock, lh_os_system_win_large_integer_t *AllocationSize,
-    lh_os_system_win_dword_t FileAttributes, lh_os_system_win_dword_t ShareAccess,
-    lh_os_system_win_dword_t CreateDisposition, lh_os_system_win_dword_t CreateOptions,
-    lh_ptr EaBuffer, lh_os_system_win_dword_t EaLength);
+    lh_os_system_win_io_status_block_t *IoStatusBlock,
+    lh_os_system_win_large_integer_t *AllocationSize, lh_os_system_win_dword_t FileAttributes,
+    lh_os_system_win_dword_t ShareAccess, lh_os_system_win_dword_t CreateDisposition,
+    lh_os_system_win_dword_t CreateOptions, lh_ptr EaBuffer, lh_os_system_win_dword_t EaLength);
 
 /** `RtlNtStatusToDosError`: an NT status as a `GetLastError` code. Present since NT 3.1. */
-typedef lh_os_system_win_dword_t(LH_OS_SYSTEM_WIN_CALL *lh_os_system_win_rtl_nt_status_to_dos_error_fn)(
-    lh_long_t Status);
+typedef lh_os_system_win_dword_t(
+    LH_OS_SYSTEM_WIN_CALL *lh_os_system_win_rtl_nt_status_to_dos_error_fn)(lh_long_t Status);
 
 #endif /* LH_SRC_OS_SYSTEM_WIN_NTDLL_H */
