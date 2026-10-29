@@ -83,6 +83,16 @@ lh_event_bus_find_id(const lh_event_bus_t *self, const lh_char_t *name);
 lh_event_id_t
 lh_event_bus_try_get_id(lh_event_bus_t *self, const lh_char_t *name);
 
+/**
+ * @brief Resolve name only while *cache is zero, storing and returning the ID.
+ * cache must be nonnull and initialized to zero, or hold this name's ID from
+ * this bus lifetime. Failure leaves zero so a later call can retry. This is an
+ * externally serialized scalar cache, with the same lifetime as the bus IDs.
+ */
+lh_event_id_t
+lh_event_bus_try_get_cached_id(lh_event_bus_t *self, lh_event_id_t *cache,
+                               const lh_char_t *name);
+
 /** @brief Checked ::lh_event_bus_try_get_id; runtime failure if the result is zero. */
 lh_event_id_t
 lh_event_bus_get_id(lh_event_bus_t *self, const lh_char_t *name);

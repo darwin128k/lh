@@ -56,6 +56,19 @@ lh_event_entry_init(lh_event_entry_t *self, lh_char_t *name, lh_usize_t length);
 lh_void
 lh_event_entry_destroy(lh_event_entry_t *self);
 
+/**
+ * @brief Allocate an entry and copy length characters plus their NUL terminator.
+ * name must point to length characters followed by NUL. Returns null for a null
+ * name, zero/overflowing length, or allocation failure. Owns the copy on success;
+ * caller must destroy the entry after its subscribers have been removed.
+ */
+lh_event_entry_t *
+lh_event_entry_try_create(const lh_char_t *name, lh_usize_t length);
+
+/** @brief Checked entry creation; runtime failure when try_create returns null. */
+lh_event_entry_t *
+lh_event_entry_create(const lh_char_t *name, lh_usize_t length);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_EVENT_ENTRY_H */

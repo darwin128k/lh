@@ -101,7 +101,6 @@ lh_event_bus_try_get_id(lh_event_bus_t *self, const lh_char_t *name)
 {
     lh_event_id_t id = lh_event_bus_find_id(self, name);
     lh_usize_t length;
-    lh_char_t *copy;
     lh_event_entry_t *entry;
     lh_array_t *entries = lh_event_bus_get_entries_mut(self);
     lh_usize_t count = lh_array_get_size(entries);
@@ -115,27 +114,18 @@ lh_event_bus_try_get_id(lh_event_bus_t *self, const lh_char_t *name)
     {
         return 0u;
     }
-    copy = lh_cast_static(lh_char_t *, lh_runtime_allocator_try_alloc(lh_math_add_one(length)));
-    if (lh_ptr_is_null(copy))
-    {
-        return 0u;
-    }
-    entry = lh_cast_static(lh_event_entry_t *, lh_runtime_allocator_try_alloc(sizeof *entry));
+    entry = lh_event_entry_try_create(name, length);
     if (lh_ptr_is_null(entry))
     {
-        lh_runtime_allocator_free(copy);
         return 0u;
     }
     if (!lh_array_try_reserve(entries,
                               lh_array_get_grown_capacity(lh_array_get_capacity(entries),
                                                           lh_math_add_one(count))))
     {
-        lh_runtime_allocator_free(entry);
-        lh_runtime_allocator_free(copy);
+        lh_event_entry_destroy(entry);
         return 0u;
     }
-    lh_memory_std_copy(copy, name, lh_math_add_one(length));
-    lh_event_entry_init(entry, copy, length);
     lh_array_push_back(entries, lh_addr_of(entry));
     return lh_math_add_one(count);
 }
@@ -144,8 +134,19 @@ lh_event_id_t
 lh_event_bus_get_id(lh_event_bus_t *self, const lh_char_t *name)
 {
     lh_event_id_t id = lh_event_bus_try_get_id(self, name);
-    lh_runtime_check_if(lh_math_eq(id, 0u), lh_runtime_error_code_alloc_failed);
+    lh_runtime_check_if(lh_math_eq(id, 0u), lh_runtime_error_code_memory_not_allocated);
     return id;
+}
+
+lh_event_id_t
+lh_event_bus_try_get_cached_id(lh_event_bus_t *self, lh_event_id_t *cache,
+                               const lh_char_t *name)
+{
+    if (lh_math_eq(lh_ptr_deref(cache), 0u))
+    {
+        lh_ptr_deref(cache) = lh_event_bus_try_get_id(self, name);
+    }
+    return lh_ptr_deref(cache);
 }
 
 lh_event_subscription_t *
@@ -215,7 +216,7 @@ lh_event_bus_subscribe(lh_event_bus_t *self, lh_event_id_t id, lh_ptr owner,
 {
     lh_event_subscription_t *sub =
         lh_event_bus_try_subscribe(self, id, owner, callback, context, dispose);
-    lh_runtime_check_ref(sub);
+    lh_runtime_check_if(lh_ptr_is_null(sub), lh_runtime_error_code_memory_not_allocated);
     return sub;
 }
 

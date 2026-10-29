@@ -1,6 +1,6 @@
 /**
  * @file allocated.h
- * @brief Helpers for ::lh_memory_bounds_allocated_t вЂ” heap-owning memory bounds.
+ * @brief Helpers for ::lh_memory_bounds_allocated_t — heap-owning memory bounds.
  *
  * ::lh_memory_bounds_allocated_t is layout-identical to ::lh_memory_bounds_t, but
  * every function in this header treats the stored @c begin as a block
