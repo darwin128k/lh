@@ -571,6 +571,17 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
     target_compile_options(${PROJECT_NAME} PRIVATE -fno-ipa-icf)
 endif ()
 
+# Float math in SSE registers on x86, 32-bit included. GCC and Clang targeting
+# i386 compute float on the x87 stack by default: 80-bit intermediates, rounded
+# wherever a value happens to spill, so the same expression gives a different
+# last bit in lh and in its caller, and a 32-bit build differs from a 64-bit one.
+# SSE math rounds every operation to its type (FLT_EVAL_METHOD 0). PUBLIC: the
+# inline math in lh's headers compiles in the consumer. A no-op on x86-64.
+if (NOT MSVC AND CMAKE_C_COMPILER_ID MATCHES "GNU|Clang" AND
+        CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86|X86|i[3-6]86|AMD64|amd64|x86_64)$")
+    target_compile_options(${PROJECT_NAME} PUBLIC -msse2 -mfpmath=sse)
+endif ()
+
 # Expose generated and public include directories to consumers.
 # The generated one comes FIRST on purpose: `#include <lh/config.h>` has to find
 # this build tree's header, not one that happens to sit in the source tree.

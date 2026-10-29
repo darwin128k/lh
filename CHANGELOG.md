@@ -9,9 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Float math on 32-bit x86 ran on the x87 stack (80-bit intermediates rounded
+  wherever a value spilled), so the same expression differed in the last bit between
+  lh and its caller and between 32- and 64-bit builds (`lh_test_math`). lh now builds,
+  and makes its consumers build, with `-msse2 -mfpmath=sse` on x86 under GCC / Clang.
 - `lh_ui_web_ws_write` encoded the 64-bit length of a frame over 64 KiB by shifting
   a 32-bit `lh_usize_t` by up to 56 bits on 32-bit builds: the length came out wrong
   and the peer rejected the frame. It is widened to `lh_u64_t` first.
+
+### Changed
+
+- Every source mirrors its header: `os/concurrency.c` is split into `os/thread.c`,
+  `os/mutex.c` and `os/condition.c`; `lh_char_fold_case_nonascii`, `lh_wchar_fold_case`,
+  `lh_str_ptr_to_lower` / `_upper` and `lh_wstr_ptr_to_lower` / `_upper` are declared in
+  `util/{char,wchar}/case/fold.h` and `util/{str,wstr}/case/map.h`; the `memory/std`
+  pieces are private headers (`std/words.h`, `std/x86/*.h`), still one translation unit.
 
 ### Added
 
