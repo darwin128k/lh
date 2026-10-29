@@ -63,13 +63,25 @@ lh_os_system_fs_file_open(const lh_str_ptr path, lh_fs_file_mode_t mode);
  *         ::LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID on failure. Does not wait for
  *         a FIFO writer. The returned handle is not inherited across exec.
  *
- * POSIX backend only for now; other backends fail closed with
- * ::lh_os_error_code_not_supported. Native errors are captured in
+ * POSIX walks the path with `openat` and `O_NOFOLLOW`; Windows with `NtCreateFile`
+ * relative to each directory and `FILE_OPEN_REPARSE_POINT`, refusing any reparse
+ * point (symbolic links, junctions). Native errors are captured in
  * ::lh_os_system_last_error; invalid paths in ::lh_os_last_error.
  */
 lh_os_system_fs_file_handle_t
 lh_os_system_fs_file_open_read_at(lh_os_system_fs_file_handle_t root, const lh_str_ptr path,
                                   lh_fs_size_t *size);
+
+/**
+ * @brief Open the directory at @p path as a root for ::lh_os_system_fs_file_open_read_at.
+ *
+ * @param path Native, NUL-terminated directory path text.
+ * @return Owned handle (close with ::lh_os_system_fs_file_close), or
+ *         ::LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID with the native error captured. Not
+ *         inherited across exec.
+ */
+lh_os_system_fs_file_handle_t
+lh_os_system_fs_file_open_root(const lh_str_ptr path);
 
 /**
  * @brief Release @p handle. The close result is not reported.

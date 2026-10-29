@@ -441,3 +441,18 @@ lh_fs_path_parent(lh_fs_path_t *self, const lh_fs_path_t *path)
                     lh_math_eq(slash, LH_STR_VIEW_INVALID) ? root : lh_math_add(root, slash));
     return lh_bool_true;
 }
+
+lh_bool_t
+lh_fs_path_is_text_absolute(lh_str_cptr text, lh_fs_path_style_t style)
+{
+    lh_fs_path_t parsed;
+    lh_str_view_t view;
+    lh_bool_t absolute;
+
+    lh_str_view_init(lh_addr_of(view), text);
+    lh_fs_path_init(lh_addr_of(parsed));
+    lh_fs_path_set(lh_addr_of(parsed), view, style);
+    absolute = lh_fs_path_is_absolute(lh_addr_of(parsed));
+    lh_fs_path_deinit(lh_addr_of(parsed));
+    return absolute;
+}

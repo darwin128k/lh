@@ -191,3 +191,17 @@ lh_os_system_fs_file_remove(lh_str_cptr path)
     }
     return lh_bool_true;
 }
+
+lh_os_system_fs_file_handle_t
+lh_os_system_fs_file_open_root(lh_str_cptr path)
+{
+    lh_assert_runtime_ref(path);
+    const int native =
+        open(path, lh_math_bit_or(lh_math_bit_or(O_RDONLY, O_DIRECTORY), O_CLOEXEC));
+    if (lh_math_is_negative(native))
+    {
+        lh_os_system_error_capture();
+        return LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID;
+    }
+    return lh_cast_static(lh_os_system_fs_file_handle_t, native);
+}

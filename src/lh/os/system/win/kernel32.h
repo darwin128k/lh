@@ -210,6 +210,10 @@ SystemTimeToTzSpecificLocalTime(const lh_ptr lpTimeZoneInformation,
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_dword_t LH_OS_SYSTEM_WIN_CALL
 GetLastError(void);
 
+/** Set the calling thread's last error code. Present since Windows 95. */
+LH_OS_SYSTEM_WIN_IMPORT void LH_OS_SYSTEM_WIN_CALL
+SetLastError(lh_os_system_win_dword_t dwErrCode);
+
 /** Text of a system error code. Present since Windows 95. */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_dword_t LH_OS_SYSTEM_WIN_CALL
 FormatMessageW(lh_os_system_win_dword_t dwFlags, const lh_ptr lpSource,
@@ -275,6 +279,26 @@ GetFileAttributesExW(lh_wstr_cptr lpFileName,
                      lh_ptr lpFileInformation);
 
 /* Directories. */
+
+/** @brief `BY_HANDLE_FILE_INFORMATION`: attributes, size and identity of an open file. */
+typedef struct lh_os_system_win_by_handle_file_information
+{
+    lh_os_system_win_dword_t dwFileAttributes;     /**< `FILE_ATTRIBUTE_*` flags. */
+    lh_os_system_win_filetime_t ftCreationTime;    /**< When it was created. */
+    lh_os_system_win_filetime_t ftLastAccessTime;  /**< When it was last read. */
+    lh_os_system_win_filetime_t ftLastWriteTime;   /**< When it was last written. */
+    lh_os_system_win_dword_t dwVolumeSerialNumber; /**< The volume it is on. */
+    lh_os_system_win_dword_t nFileSizeHigh;        /**< Size, high 32 bits. */
+    lh_os_system_win_dword_t nFileSizeLow;         /**< Size, low 32 bits. */
+    lh_os_system_win_dword_t nNumberOfLinks;       /**< Hard links to it. */
+    lh_os_system_win_dword_t nFileIndexHigh;       /**< Identity on the volume, high. */
+    lh_os_system_win_dword_t nFileIndexLow;        /**< Identity on the volume, low. */
+} lh_os_system_win_by_handle_file_information_t;
+
+/** Attributes and size of an open file. Present since Windows NT 3.1. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+GetFileInformationByHandle(lh_os_system_win_handle_t hFile,
+                           lh_os_system_win_by_handle_file_information_t *lpFileInformation);
 
 /** Delete a file. Present since Windows NT 3.1. */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
