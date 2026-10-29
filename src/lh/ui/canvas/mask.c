@@ -11,7 +11,7 @@
 lh_bool_t
 lh_ui_canvas_can_fill_mask(const struct lh_ui_canvas *self, const lh_ui_rect_t *target)
 {
-    lh_return_if(lh_null_eq(self->backend) || lh_null_eq(self->backend->fill_mask), lh_bool_false);
+    lh_return_if(lh_null_eq(lh_ui_canvas_get_backend(self)) || lh_null_eq(lh_ui_canvas_backend_get_fill_mask_fn(lh_ui_canvas_get_backend(self))), lh_bool_false);
     /* A mask is per pixel, like a rounded box: drawn whole, cut by whoever
        clips (::lh_ui_canvas_can_fill_round says the same). */
     lh_return_if(!lh_ui_canvas_is_cutting(self), lh_bool_true);
@@ -27,7 +27,7 @@ lh_ui_canvas_try_fill_mask(struct lh_ui_canvas *self, const lh_ui_mask_t *mask,
     lh_return_if(!lh_ui_canvas_can_fill_mask(self, target), lh_bool_false);
     lh_ui_point_init(lh_addr_of(origin), lh_ui_canvas_round_left(target),
                      lh_ui_canvas_round_top(target));
-    return self->backend->fill_mask(self->context, lh_addr_of(origin), mask, color);
+    return lh_ui_canvas_backend_get_fill_mask_fn(lh_ui_canvas_get_backend(self))(lh_ui_canvas_get_context(self), lh_addr_of(origin), mask, color);
 }
 
 lh_void
@@ -71,7 +71,7 @@ lh_ui_canvas_fill_target_mask(struct lh_ui_canvas *self, const lh_ui_mask_t *mas
                               const lh_ui_rect_t *target, const lh_ui_color_t *color)
 {
     lh_ui_rect_t cut;
-    lh_ui_canvas_state_cut(lh_addr_of(self->state), target, lh_addr_of(cut));
+    lh_ui_canvas_state_cut(lh_ui_canvas_get_state_mut(self), target, lh_addr_of(cut));
 
     lh_return_if(lh_ui_rect_is_empty(lh_addr_of(cut)));
     lh_ui_canvas_add_damage(self, lh_addr_of(cut));
@@ -87,7 +87,7 @@ lh_ui_canvas_fill_mask(struct lh_ui_canvas *self, const lh_ui_mask_t *mask, lh_u
     lh_ui_rect_t rect;
     lh_ui_mask_get_rect(mask, origin, lh_addr_of(rect));
     lh_ui_rect_t target;
-    lh_ui_canvas_state_to_target(lh_addr_of(self->state), lh_addr_of(rect), lh_addr_of(target));
+    lh_ui_canvas_state_to_target(lh_ui_canvas_get_state_mut(self), lh_addr_of(rect), lh_addr_of(target));
 
     lh_assert_runtime_ref(color);
     lh_return_if(!lh_ui_canvas_shows(self, lh_addr_of(target)));

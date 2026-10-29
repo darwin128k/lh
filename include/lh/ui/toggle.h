@@ -123,7 +123,7 @@ lh_ui_entity_as_toggle(lh_ui_entity_t *entity);
  *        none).
  */
 lh_void
-lh_ui_toggle_set_off_style(lh_ui_toggle_t *self, const lh_ui_style_t *rest,
+lh_ui_toggle_set_off_styles(lh_ui_toggle_t *self, const lh_ui_style_t *rest,
                            const lh_ui_style_t *hot);
 
 /**
@@ -143,7 +143,7 @@ lh_ui_toggle_get_off_hot_style(const lh_ui_toggle_t *self);
  *        none). Shows them at once when @p self is already on.
  */
 lh_void
-lh_ui_toggle_set_on_style(lh_ui_toggle_t *self, const lh_ui_style_t *rest,
+lh_ui_toggle_set_on_styles(lh_ui_toggle_t *self, const lh_ui_style_t *rest,
                           const lh_ui_style_t *hot);
 
 /**
@@ -188,6 +188,124 @@ lh_ui_toggle_get_on_click(const lh_ui_toggle_t *self);
  */
 lh_void
 lh_ui_toggle_set_on_click(lh_ui_toggle_t *self, lh_ui_toggle_on_click_cb on_click, lh_ptr context);
+
+/**
+ * @brief The button the toggle is built on (level 1).
+ *
+ * @param self The toggle; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_button_t *
+lh_ui_toggle_get_button(const lh_ui_toggle_t *self);
+
+/**
+ * @brief The button the toggle is built on, to change in place (level 1).
+ *
+ * @param self The toggle; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_button_t *
+lh_ui_toggle_get_button_mut(lh_ui_toggle_t *self);
+
+/**
+ * @brief Store the button the toggle is built on (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The toggle; checked by ::lh_assert_runtime_ref.
+ * @param button The new value.
+ */
+lh_void
+lh_ui_toggle_set_button(lh_ui_toggle_t *self, lh_ui_button_t button);
+
+/**
+ * @brief Store the style the toggle has when off and hot (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The toggle; checked by ::lh_assert_runtime_ref.
+ * @param off_hot_style The new value.
+ */
+lh_void
+lh_ui_toggle_set_off_hot_style(lh_ui_toggle_t *self, const lh_ui_style_t * off_hot_style);
+
+/**
+ * @brief Store the style the toggle has when on and hot (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The toggle; checked by ::lh_assert_runtime_ref.
+ * @param on_hot_style The new value.
+ */
+lh_void
+lh_ui_toggle_set_on_hot_style(lh_ui_toggle_t *self, const lh_ui_style_t * on_hot_style);
+
+/**
+ * @brief Whether the toggle is on (level 1).
+ *
+ * @param self The toggle; checked by ::lh_assert_runtime_ref.
+ */
+lh_bool_t
+lh_ui_toggle_is_checked(const lh_ui_toggle_t *self);
+
+/**
+ * @brief The callback run when the toggle is clicked (level 1).
+ *
+ * @param self The toggle; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_toggle_on_click_cb
+lh_ui_toggle_get_on_click_fn(const lh_ui_toggle_t *self);
+
+/**
+ * @brief Store the callback run when the toggle is clicked (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The toggle; checked by ::lh_assert_runtime_ref.
+ * @param on_click The new value.
+ */
+lh_void
+lh_ui_toggle_set_on_click_fn(lh_ui_toggle_t *self, lh_ui_toggle_on_click_cb on_click);
+
+/**
+ * @brief The value passed to the click callback (level 1).
+ *
+ * @param self The toggle; checked by ::lh_assert_runtime_ref.
+ */
+lh_ptr
+lh_ui_toggle_get_click_context(const lh_ui_toggle_t *self);
+
+/**
+ * @brief Store the value passed to the click callback (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The toggle; checked by ::lh_assert_runtime_ref.
+ * @param click_context The new value.
+ */
+lh_void
+lh_ui_toggle_set_click_context(lh_ui_toggle_t *self, lh_ptr click_context);
+
+/**
+ * @brief Store the style the toggle has when off (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The toggle; checked by ::lh_assert_runtime_ref.
+ * @param off_style The new value.
+ */
+lh_void
+lh_ui_toggle_set_off_style(lh_ui_toggle_t *self, const lh_ui_style_t * off_style);
+
+/**
+ * @brief Store the style the toggle has when on (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The toggle; checked by ::lh_assert_runtime_ref.
+ * @param on_style The new value.
+ */
+lh_void
+lh_ui_toggle_set_on_style(lh_ui_toggle_t *self, const lh_ui_style_t * on_style);
 
 LH_COMPILER_EXTERN_C_END
 

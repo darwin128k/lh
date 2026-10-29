@@ -47,6 +47,42 @@ lh_ui_shadow_ramp_init(lh_ui_shadow_ramp_t *self, const lh_ui_shadow_shape_t *sh
 lh_s32_t
 lh_ui_shadow_ramp_walk(const lh_ui_shadow_ramp_t *self, lh_u64_t square, lh_s32_t level);
 
+/**
+ * @brief The falloff, indexed by squared distance (level 1).
+ *
+ * @param self The ramp; checked by ::lh_assert_runtime_ref.
+ */
+const lh_u64_t *
+lh_ui_shadow_ramp_get_square(const lh_ui_shadow_ramp_t *self);
+
+/**
+ * @brief The falloff, indexed by squared distance, to change in place (level 1).
+ *
+ * @param self The ramp; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_u64_t *
+lh_ui_shadow_ramp_get_square_mut(lh_ui_shadow_ramp_t *self);
+
+/**
+ * @brief How many entries the falloff has (level 1).
+ *
+ * @param self The ramp; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_shadow_ramp_get_count(const lh_ui_shadow_ramp_t *self);
+
+/**
+ * @brief Store how many entries the falloff has (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The ramp; checked by ::lh_assert_runtime_ref.
+ * @param count The new value.
+ */
+lh_void
+lh_ui_shadow_ramp_set_count(lh_ui_shadow_ramp_t *self, lh_s32_t count);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_SHADOW_RAMP_H */

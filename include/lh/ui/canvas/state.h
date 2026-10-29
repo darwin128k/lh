@@ -88,6 +88,92 @@ lh_ui_canvas_state_cut(const lh_ui_canvas_state_t *self, const lh_ui_rect_t *tar
 lh_bool_t
 lh_ui_canvas_state_contains(const lh_ui_canvas_state_t *self, const lh_ui_rect_t *target);
 
+/**
+ * @brief The translation applied to what is drawn (level 1).
+ *
+ * @param self The state; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_point_t *
+lh_ui_canvas_state_get_offset(const lh_ui_canvas_state_t *self);
+
+/**
+ * @brief The translation applied to what is drawn, to change in place (level 1).
+ *
+ * @param self The state; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_point_t *
+lh_ui_canvas_state_get_offset_mut(lh_ui_canvas_state_t *self);
+
+/**
+ * @brief Store the translation applied to what is drawn (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The state; checked by ::lh_assert_runtime_ref.
+ * @param offset The new value.
+ */
+lh_void
+lh_ui_canvas_state_set_offset(lh_ui_canvas_state_t *self, lh_ui_point_t offset);
+
+/**
+ * @brief The clip rectangle, to change in place (level 1).
+ *
+ * @param self The state; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_rect_t *
+lh_ui_canvas_state_get_clip_mut(lh_ui_canvas_state_t *self);
+
+/**
+ * @brief Store the clip rectangle (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The state; checked by ::lh_assert_runtime_ref.
+ * @param clip The new value.
+ */
+lh_void
+lh_ui_canvas_state_set_clip(lh_ui_canvas_state_t *self, lh_ui_rect_t clip);
+
+/**
+ * @brief Whether a clip is set (level 1).
+ *
+ * @param self The state; checked by ::lh_assert_runtime_ref.
+ */
+lh_bool_t
+lh_ui_canvas_state_is_clipped(const lh_ui_canvas_state_t *self);
+
+/**
+ * @brief Store whether a clip is set (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The state; checked by ::lh_assert_runtime_ref.
+ * @param clipped The new value.
+ */
+lh_void
+lh_ui_canvas_state_set_clipped(lh_ui_canvas_state_t *self, lh_bool_t clipped);
+
+/**
+ * @brief How many rounded clips the state has (level 1).
+ *
+ * @param self The state; checked by ::lh_assert_runtime_ref.
+ */
+lh_u8_t
+lh_ui_canvas_state_get_round_count(const lh_ui_canvas_state_t *self);
+
+/**
+ * @brief Store how many rounded clips the state has (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The state; checked by ::lh_assert_runtime_ref.
+ * @param round_count The new value.
+ */
+lh_void
+lh_ui_canvas_state_set_round_count(lh_ui_canvas_state_t *self, lh_u8_t round_count);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_CANVAS_STATE_H */

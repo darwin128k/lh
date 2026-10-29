@@ -94,6 +94,139 @@ lh_void
 lh_ui_layout_run_place(const struct lh_ui_layout *self, lh_ui_layout_run_t *run, lh_ui_entity_t *parent,
                        lh_ui_entity_t *first, lh_ui_entity_t *end, const lh_ui_rect_t *content);
 
+/**
+ * @brief The extent the children of the run take (level 1).
+ *
+ * @param self The run; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_scalar_t
+lh_ui_layout_run_get_used(const lh_ui_layout_run_t *self);
+
+/**
+ * @brief Store the extent the children of the run take (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The run; checked by ::lh_assert_runtime_ref.
+ * @param used The new value.
+ */
+lh_void
+lh_ui_layout_run_set_used(lh_ui_layout_run_t *self, lh_ui_scalar_t used);
+
+/**
+ * @brief The sum of the weights of the children that grow (level 1).
+ *
+ * @param self The run; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_scalar_t
+lh_ui_layout_run_get_weights(const lh_ui_layout_run_t *self);
+
+/**
+ * @brief Store the sum of the weights of the children that grow (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The run; checked by ::lh_assert_runtime_ref.
+ * @param weights The new value.
+ */
+lh_void
+lh_ui_layout_run_set_weights(lh_ui_layout_run_t *self, lh_ui_scalar_t weights);
+
+/**
+ * @brief The extent left for the children that grow (level 1).
+ *
+ * @param self The run; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_scalar_t
+lh_ui_layout_run_get_left(const lh_ui_layout_run_t *self);
+
+/**
+ * @brief Store the extent left for the children that grow (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The run; checked by ::lh_assert_runtime_ref.
+ * @param left The new value.
+ */
+lh_void
+lh_ui_layout_run_set_left(lh_ui_layout_run_t *self, lh_ui_scalar_t left);
+
+/**
+ * @brief The extent of the line on the cross axis (level 1).
+ *
+ * @param self The run; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_scalar_t
+lh_ui_layout_run_get_line(const lh_ui_layout_run_t *self);
+
+/**
+ * @brief Store the extent of the line on the cross axis (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The run; checked by ::lh_assert_runtime_ref.
+ * @param line The new value.
+ */
+lh_void
+lh_ui_layout_run_set_line(lh_ui_layout_run_t *self, lh_ui_scalar_t line);
+
+/**
+ * @brief Where the next child goes along the axis (level 1).
+ *
+ * @param self The run; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_scalar_t
+lh_ui_layout_run_get_along(const lh_ui_layout_run_t *self);
+
+/**
+ * @brief Store where the next child goes along the axis (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The run; checked by ::lh_assert_runtime_ref.
+ * @param along The new value.
+ */
+lh_void
+lh_ui_layout_run_set_along(lh_ui_layout_run_t *self, lh_ui_scalar_t along);
+
+/**
+ * @brief The space added between children (level 1).
+ *
+ * @param self The run; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_scalar_t
+lh_ui_layout_run_get_spread(const lh_ui_layout_run_t *self);
+
+/**
+ * @brief Store the space added between children (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The run; checked by ::lh_assert_runtime_ref.
+ * @param spread The new value.
+ */
+lh_void
+lh_ui_layout_run_set_spread(lh_ui_layout_run_t *self, lh_ui_scalar_t spread);
+
+/**
+ * @brief How many children of the run are shown (level 1).
+ *
+ * @param self The run; checked by ::lh_assert_runtime_ref.
+ */
+int
+lh_ui_layout_run_get_shown(const lh_ui_layout_run_t *self);
+
+/**
+ * @brief Store how many children of the run are shown (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The run; checked by ::lh_assert_runtime_ref.
+ * @param shown The new value.
+ */
+lh_void
+lh_ui_layout_run_set_shown(lh_ui_layout_run_t *self, int shown);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_LAYOUT_RUN_H */

@@ -79,6 +79,300 @@ lh_void
 lh_ui_shadow_shape_span(const lh_ui_shadow_shape_t *self, const struct lh_ui_shadow_ramp *ramp,
                         lh_s32_t y, lh_s32_t x0, lh_s32_t x1, lh_byte_ptr out);
 
+/**
+ * @brief The box that casts the shadow (level 1).
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_rect_t *
+lh_ui_shadow_shape_get_box(const lh_ui_shadow_shape_t *self);
+
+/**
+ * @brief The box that casts the shadow, to change in place (level 1).
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_rect_t *
+lh_ui_shadow_shape_get_box_mut(lh_ui_shadow_shape_t *self);
+
+/**
+ * @brief Store the box that casts the shadow (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ * @param box The new value.
+ */
+lh_void
+lh_ui_shadow_shape_set_box(lh_ui_shadow_shape_t *self, lh_ui_rect_t box);
+
+/**
+ * @brief The corner radius of the box (level 1).
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_scalar_t
+lh_ui_shadow_shape_get_corner(const lh_ui_shadow_shape_t *self);
+
+/**
+ * @brief Store the corner radius of the box (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ * @param corner The new value.
+ */
+lh_void
+lh_ui_shadow_shape_set_corner(lh_ui_shadow_shape_t *self, lh_ui_scalar_t corner);
+
+/**
+ * @brief The left edge of the box, fixed point (level 1).
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_shadow_shape_get_box_x0(const lh_ui_shadow_shape_t *self);
+
+/**
+ * @brief Store the left edge of the box, fixed point (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ * @param box_x0 The new value.
+ */
+lh_void
+lh_ui_shadow_shape_set_box_x0(lh_ui_shadow_shape_t *self, lh_s32_t box_x0);
+
+/**
+ * @brief The right edge of the box, fixed point (level 1).
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_shadow_shape_get_box_x1(const lh_ui_shadow_shape_t *self);
+
+/**
+ * @brief Store the right edge of the box, fixed point (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ * @param box_x1 The new value.
+ */
+lh_void
+lh_ui_shadow_shape_set_box_x1(lh_ui_shadow_shape_t *self, lh_s32_t box_x1);
+
+/**
+ * @brief The top edge of the box, fixed point (level 1).
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_shadow_shape_get_box_y0(const lh_ui_shadow_shape_t *self);
+
+/**
+ * @brief Store the top edge of the box, fixed point (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ * @param box_y0 The new value.
+ */
+lh_void
+lh_ui_shadow_shape_set_box_y0(lh_ui_shadow_shape_t *self, lh_s32_t box_y0);
+
+/**
+ * @brief The bottom edge of the box, fixed point (level 1).
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_shadow_shape_get_box_y1(const lh_ui_shadow_shape_t *self);
+
+/**
+ * @brief Store the bottom edge of the box, fixed point (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ * @param box_y1 The new value.
+ */
+lh_void
+lh_ui_shadow_shape_set_box_y1(lh_ui_shadow_shape_t *self, lh_s32_t box_y1);
+
+/**
+ * @brief The horizontal center of the box, fixed point (level 1).
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_shadow_shape_get_cx(const lh_ui_shadow_shape_t *self);
+
+/**
+ * @brief Store the horizontal center of the box, fixed point (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ * @param cx The new value.
+ */
+lh_void
+lh_ui_shadow_shape_set_cx(lh_ui_shadow_shape_t *self, lh_s32_t cx);
+
+/**
+ * @brief The vertical center of the box, fixed point (level 1).
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_shadow_shape_get_cy(const lh_ui_shadow_shape_t *self);
+
+/**
+ * @brief Store the vertical center of the box, fixed point (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ * @param cy The new value.
+ */
+lh_void
+lh_ui_shadow_shape_set_cy(lh_ui_shadow_shape_t *self, lh_s32_t cy);
+
+/**
+ * @brief The half width of the box less the corner, fixed point (level 1).
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_shadow_shape_get_hx(const lh_ui_shadow_shape_t *self);
+
+/**
+ * @brief Store the half width of the box less the corner, fixed point (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ * @param hx The new value.
+ */
+lh_void
+lh_ui_shadow_shape_set_hx(lh_ui_shadow_shape_t *self, lh_s32_t hx);
+
+/**
+ * @brief The half height of the box less the corner, fixed point (level 1).
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_shadow_shape_get_hy(const lh_ui_shadow_shape_t *self);
+
+/**
+ * @brief Store the half height of the box less the corner, fixed point (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ * @param hy The new value.
+ */
+lh_void
+lh_ui_shadow_shape_set_hy(lh_ui_shadow_shape_t *self, lh_s32_t hy);
+
+/**
+ * @brief The corner radius, fixed point (level 1).
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_shadow_shape_get_r(const lh_ui_shadow_shape_t *self);
+
+/**
+ * @brief Store the corner radius, fixed point (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ * @param r The new value.
+ */
+lh_void
+lh_ui_shadow_shape_set_r(lh_ui_shadow_shape_t *self, lh_s32_t r);
+
+/**
+ * @brief How far the shadow spreads, fixed point (level 1).
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_shadow_shape_get_spread(const lh_ui_shadow_shape_t *self);
+
+/**
+ * @brief Store how far the shadow spreads, fixed point (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ * @param spread The new value.
+ */
+lh_void
+lh_ui_shadow_shape_set_spread(lh_ui_shadow_shape_t *self, lh_s32_t spread);
+
+/**
+ * @brief The strongest coverage the shadow reaches (level 1).
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_shadow_shape_get_peak(const lh_ui_shadow_shape_t *self);
+
+/**
+ * @brief Store the strongest coverage the shadow reaches (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ * @param peak The new value.
+ */
+lh_void
+lh_ui_shadow_shape_set_peak(lh_ui_shadow_shape_t *self, lh_s32_t peak);
+
+/**
+ * @brief The distance the falloff starts at, fixed point (level 1).
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ */
+lh_s64_t
+lh_ui_shadow_shape_get_start(const lh_ui_shadow_shape_t *self);
+
+/**
+ * @brief Store the distance the falloff starts at, fixed point (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ * @param start The new value.
+ */
+lh_void
+lh_ui_shadow_shape_set_start(lh_ui_shadow_shape_t *self, lh_s64_t start);
+
+/**
+ * @brief How far the falloff moves per entry, fixed point (level 1).
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ */
+lh_s64_t
+lh_ui_shadow_shape_get_step(const lh_ui_shadow_shape_t *self);
+
+/**
+ * @brief Store how far the falloff moves per entry, fixed point (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The shape; checked by ::lh_assert_runtime_ref.
+ * @param step The new value.
+ */
+lh_void
+lh_ui_shadow_shape_set_step(lh_ui_shadow_shape_t *self, lh_s64_t step);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_SHADOW_SHAPE_H */

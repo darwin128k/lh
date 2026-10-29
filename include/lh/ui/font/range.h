@@ -75,6 +75,39 @@ lh_ui_font_range_get_last(const lh_ui_font_range_t *self);
 lh_bool_t
 lh_ui_font_range_has(const lh_ui_font_range_t *self, lh_u32_t code);
 
+/**
+ * @brief Store the first code point of the range (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The range; checked by ::lh_assert_runtime_ref.
+ * @param first The new value.
+ */
+lh_void
+lh_ui_font_range_set_first(lh_ui_font_range_t *self, lh_u32_t first);
+
+/**
+ * @brief Store how many code points the range has (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The range; checked by ::lh_assert_runtime_ref.
+ * @param length The new value.
+ */
+lh_void
+lh_ui_font_range_set_length(lh_ui_font_range_t *self, lh_u32_t length);
+
+/**
+ * @brief Store the index of the first glyph of the range (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The range; checked by ::lh_assert_runtime_ref.
+ * @param base The new value.
+ */
+lh_void
+lh_ui_font_range_set_base(lh_ui_font_range_t *self, lh_u32_t base);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_FONT_RANGE_H */

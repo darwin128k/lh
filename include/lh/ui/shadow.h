@@ -68,7 +68,7 @@ lh_ui_shadow_is_empty(const lh_ui_shadow_t *self);
  * @brief Peak colour of @p self. Its alpha is the strongest the shadow gets.
  */
 lh_void
-lh_ui_shadow_get_color(const lh_ui_shadow_t *self, lh_ui_color_t *out);
+lh_ui_shadow_copy_color(const lh_ui_shadow_t *self, lh_ui_color_t *out);
 
 /**
  * @brief Set the peak colour.
@@ -173,6 +173,45 @@ lh_ui_shadow_signed_distance(lh_s64_t px, lh_s64_t py, const lh_ui_rect_t *rect,
  */
 lh_byte_t
 lh_ui_shadow_falloff_sub(lh_s64_t distance, lh_s64_t spread, lh_byte_t peak);
+
+/**
+ * @brief The color of the shadow, to change in place (level 1).
+ *
+ * @param self The shadow; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_color_t *
+lh_ui_shadow_get_color_mut(lh_ui_shadow_t *self);
+
+/**
+ * @brief Store how far the shadow is moved right (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The shadow; checked by ::lh_assert_runtime_ref.
+ * @param offset_x The new value.
+ */
+lh_void
+lh_ui_shadow_set_offset_x(lh_ui_shadow_t *self, lh_ui_scalar_t offset_x);
+
+/**
+ * @brief Store how far the shadow is moved down (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The shadow; checked by ::lh_assert_runtime_ref.
+ * @param offset_y The new value.
+ */
+lh_void
+lh_ui_shadow_set_offset_y(lh_ui_shadow_t *self, lh_ui_scalar_t offset_y);
+
+/**
+ * @brief The color of the shadow (level 1).
+ *
+ * @param self The shadow; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_color_t *
+lh_ui_shadow_get_color(const lh_ui_shadow_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -166,9 +166,9 @@ lh_ui_blur_sample_color(const lh_u8_t *sample, lh_ui_color_t *out)
 lh_void
 lh_ui_blur_column(lh_ui_pixmap_t *pixmap, const lh_ui_blur_pass_t *pass, lh_s32_t x)
 {
-    const lh_usize_t stride = lh_cast_static(lh_usize_t, pass->width) * 4U;
+    const lh_usize_t stride = lh_cast_static(lh_usize_t, lh_ui_blur_pass_get_width(pass)) * 4U;
     /* Row `y` of column @p x is at `column + (y - y0) * stride`. */
-    const lh_u8_t *column = pass->scratch + lh_cast_static(lh_usize_t, x) * 4U;
+    const lh_u8_t *column = lh_ui_blur_pass_get_scratch(pass) + lh_cast_static(lh_usize_t, x) * 4U;
     lh_ui_blur_window_t sum = {0, 0, 0, 0};
     lh_ui_color_t out;
     lh_s32_t win0;
@@ -177,22 +177,22 @@ lh_ui_blur_column(lh_ui_pixmap_t *pixmap, const lh_ui_blur_pass_t *pass, lh_s32_
     lh_s32_t next1;
     lh_s32_t y;
 
-    lh_ui_blur_window_span(pass->top, pass->radius, pass->y0, pass->y1, lh_addr_of(win0),
+    lh_ui_blur_window_span(lh_ui_blur_pass_get_top(pass), lh_ui_blur_pass_get_radius(pass), lh_ui_blur_pass_get_y0(pass), lh_ui_blur_pass_get_y1(pass), lh_addr_of(win0),
                            lh_addr_of(win1));
     lh_ui_blur_window_take_samples(lh_addr_of(sum),
-                                   column + lh_cast_static(lh_usize_t, win0 - pass->y0) * stride,
+                                   column + lh_cast_static(lh_usize_t, win0 - lh_ui_blur_pass_get_y0(pass)) * stride,
                                    stride, win1 - win0);
-    for (y = pass->top; y < pass->top + pass->height; ++y)
+    for (y = lh_ui_blur_pass_get_top(pass); y < lh_ui_blur_pass_get_top(pass) + lh_ui_blur_pass_get_height(pass); ++y)
     {
         lh_ui_blur_window_average_color(lh_addr_of(sum), win1 - win0, lh_addr_of(out));
-        lh_ui_blur_put(pixmap, pass->left + x, y, lh_addr_of(out), pass->shape, pass->corner);
-        lh_ui_blur_window_span(y + 1, pass->radius, pass->y0, pass->y1, lh_addr_of(next0),
+        lh_ui_blur_put(pixmap, lh_ui_blur_pass_get_left(pass) + x, y, lh_addr_of(out), lh_ui_blur_pass_get_shape(pass), lh_ui_blur_pass_get_corner(pass));
+        lh_ui_blur_window_span(y + 1, lh_ui_blur_pass_get_radius(pass), lh_ui_blur_pass_get_y0(pass), lh_ui_blur_pass_get_y1(pass), lh_addr_of(next0),
                                lh_addr_of(next1));
         lh_ui_blur_window_drop_samples(
-            lh_addr_of(sum), column + lh_cast_static(lh_usize_t, win0 - pass->y0) * stride, stride,
+            lh_addr_of(sum), column + lh_cast_static(lh_usize_t, win0 - lh_ui_blur_pass_get_y0(pass)) * stride, stride,
             next0 - win0);
         lh_ui_blur_window_take_samples(
-            lh_addr_of(sum), column + lh_cast_static(lh_usize_t, win1 - pass->y0) * stride, stride,
+            lh_addr_of(sum), column + lh_cast_static(lh_usize_t, win1 - lh_ui_blur_pass_get_y0(pass)) * stride, stride,
             next1 - win1);
         win0 = lh_math_max(win0, next0);
         win1 = lh_math_max(win1, next1);
@@ -208,7 +208,7 @@ lh_ui_blur_columns(lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_s32_t ra
 
     lh_return_if(
         !lh_ui_blur_pass_init(pixmap, rect, radius, scratch, shape, corner, lh_addr_of(pass)));
-    for (x = 0; x < pass.width; ++x)
+    for (x = 0; x < lh_ui_blur_pass_get_width(lh_addr_of(pass)); ++x)
     {
         lh_ui_blur_column(pixmap, lh_addr_of(pass), x);
     }

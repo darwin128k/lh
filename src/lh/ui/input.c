@@ -2,6 +2,7 @@
  * @file input.c
  * @brief Implementation of `lh/ui/input.h`.
  */
+#include <lh/assert.h>
 
 #include <lh/math.h>
 #include <lh/char/map.h>
@@ -28,7 +29,7 @@ lh_ui_input_boundary_before(const lh_ui_input_t *self, lh_u16_t caret)
 {
     lh_u16_t at = caret;
 
-    while (at > 0U && (self->buffer[at - 1U] & 0xC0) == 0x80)
+    while (at > 0U && (lh_ui_input_get_buffer(self)[at - 1U] & 0xC0) == 0x80)
     {
         --at;
     }
@@ -38,11 +39,11 @@ lh_ui_input_boundary_before(const lh_ui_input_t *self, lh_u16_t caret)
 lh_bool_t
 lh_ui_input_is_boundary(const lh_ui_input_t *self, lh_u16_t at)
 {
-    lh_return_if(at > self->used, lh_bool_false);
+    lh_return_if(at > lh_ui_input_get_used(self), lh_bool_false);
     /* The end of the text is the end of the last character, and the byte there is the
        terminator: neither a lead byte nor a continuation, so it needs no case of its
        own. */
-    return at == 0U || (self->buffer[at] & 0xC0) != 0x80 ? lh_bool_true : lh_bool_false;
+    return at == 0U || (lh_ui_input_get_buffer(self)[at] & 0xC0) != 0x80 ? lh_bool_true : lh_bool_false;
 }
 
 /* -- Events ---------------------------------------------------------------- */
@@ -58,7 +59,7 @@ lh_ui_input_on_focus(const lh_ui_input_t *self, const lh_ui_entity_event_t *even
     focused = code == lh_ui_entity_event_focus ? lh_bool_true : lh_bool_false;
     /* No damage: the caret appearing is the application invalidating, the same as
        after a scroll or a state change anywhere else in the tree. */
-    input->focused = focused;
+    lh_ui_input_set_focused(input, focused);
 }
 
 lh_void
@@ -79,7 +80,7 @@ lh_ui_entity_t *
 lh_ui_input_as_entity(lh_ui_input_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_ui_label_as_entity(lh_addr_of(self->label));
+    return lh_ui_label_as_entity(lh_ui_input_get_label_mut(self));
 }
 
 lh_ui_label_t *
@@ -100,13 +101,13 @@ lh_ui_input_init(lh_ui_input_t *self, lh_ui_rect_t rect, lh_char_t *buffer, lh_u
         lh_str_ptr_clear(buffer);
     }
     lh_ui_label_init(lh_ui_input_as_label(self), rect, buffer);
-    self->buffer = buffer;
-    self->capacity = capacity;
-    self->used = 0U;
-    self->caret = 0U;
-    self->focused = lh_bool_false;
-    self->caret_color = lh_null;
-    self->caret_shape = lh_ui_input_caret_bar;
+    lh_ui_input_set_buffer(self, buffer);
+    lh_ui_input_set_capacity(self, capacity);
+    lh_ui_input_set_used(self, 0U);
+    lh_ui_input_set_caret(self, 0U);
+    lh_ui_input_set_focused(self, lh_bool_false);
+    lh_ui_input_set_caret_color(self, lh_null);
+    lh_ui_input_set_caret_shape(self, lh_ui_input_caret_bar);
     /* The label's own text **is** the buffer, so the drawing the label inherited
        shows what was typed without one call being made to say so. */
     lh_ui_entity_set_class(lh_ui_input_as_entity(self), lh_addr_of(lh_ui_input_class));
@@ -137,15 +138,15 @@ lh_ui_input_set_text(lh_ui_input_t *self, const lh_char_t *text)
     lh_u16_t used = 0U;
 
     lh_assert_runtime_ref(self);
-    lh_return_if(lh_null_eq(self->buffer), lh_bool_false);
+    lh_return_if(lh_null_eq(lh_ui_input_get_buffer(self)), lh_bool_false);
     /* `lh_return_ifn` is "return when the condition is FALSE", which is the opposite of
        what a guard wants; a null text is a caller with no text, and it is refused
        rather than read as "empty". */
     lh_return_if(lh_null_eq(text), lh_bool_false);
 
-    while (used < self->capacity && text[used] != lh_char_map_nul)
+    while (used < lh_ui_input_get_capacity(self) && text[used] != lh_char_map_nul)
     {
-        self->buffer[used] = text[used];
+        lh_ui_input_get_buffer(self)[used] = text[used];
         ++used;
     }
     /* A cut lands on a code point boundary, and the only way to be sure of that is to
@@ -161,7 +162,7 @@ lh_ui_input_set_text(lh_ui_input_t *self, const lh_char_t *text)
         while (at < used)
         {
             const lh_u32_t size =
-                lh_str_utf8_get_lead_size(lh_cast_static(lh_byte_t, self->buffer[at]));
+                lh_str_utf8_get_lead_size(lh_cast_static(lh_byte_t, lh_ui_input_get_buffer(self)[at]));
 
             if (size == 0U || lh_cast_static(lh_u32_t, at) + size > lh_cast_static(lh_u32_t, used))
             {
@@ -171,9 +172,9 @@ lh_ui_input_set_text(lh_ui_input_t *self, const lh_char_t *text)
             at = lh_cast_static(lh_u16_t, at + size);
         }
     }
-    self->used = used;
-    self->buffer[used] = lh_char_map_nul;
-    self->caret = used;
+    lh_ui_input_set_used(self, used);
+    lh_ui_input_get_buffer(self)[used] = lh_char_map_nul;
+    lh_ui_input_set_caret(self, used);
     lh_ui_label_drop_metrics(lh_ui_input_as_label(self));
     return lh_bool_true;
 }
@@ -182,10 +183,10 @@ lh_void
 lh_ui_input_clear(lh_ui_input_t *self)
 {
     lh_assert_runtime_ref(self);
-    lh_return_if(lh_null_eq(self->buffer));
-    self->used = 0U;
-    self->caret = 0U;
-    self->buffer[0] = lh_char_map_nul;
+    lh_return_if(lh_null_eq(lh_ui_input_get_buffer(self)));
+    lh_ui_input_set_used(self, 0U);
+    lh_ui_input_set_caret(self, 0U);
+    lh_ui_input_get_buffer(self)[0] = lh_char_map_nul;
     lh_ui_label_drop_metrics(lh_ui_input_as_label(self));
 }
 
@@ -205,22 +206,22 @@ lh_ui_input_insert(lh_ui_input_t *self, lh_u32_t code)
     lh_u16_t at;
 
     lh_assert_runtime_ref(self);
-    lh_return_if(lh_null_eq(self->buffer), lh_bool_false);
+    lh_return_if(lh_null_eq(lh_ui_input_get_buffer(self)), lh_bool_false);
     /* Nothing is written in either of the two refusals. A character that does not
        fit leaves the text exactly as it was: a field with one byte of room must not
        end in half of the character the person just typed. */
     lh_return_if(size == 0U, lh_bool_false);
-    lh_return_if(self->used + size > self->capacity, lh_bool_false);
+    lh_return_if(lh_ui_input_get_used(self) + size > lh_ui_input_get_capacity(self), lh_bool_false);
 
-    for (at = self->used; at > self->caret; --at)
+    for (at = lh_ui_input_get_used(self); at > lh_ui_input_get_caret(self); --at)
     {
-        self->buffer[at] = self->buffer[at - 1U];
+        lh_ui_input_get_buffer(self)[at] = lh_ui_input_get_buffer(self)[at - 1U];
     }
-    lh_str_utf8_encode(lh_addr_of(self->buffer[self->caret]),
-                       lh_cast_static(lh_u32_t, self->capacity - self->caret), code);
-    self->used = lh_cast_static(lh_u16_t, self->used + size);
-    self->caret = lh_cast_static(lh_u16_t, self->caret + size);
-    self->buffer[self->used] = lh_char_map_nul;
+    lh_str_utf8_encode(lh_addr_of(lh_ui_input_get_buffer(self)[lh_ui_input_get_caret(self)]),
+                       lh_cast_static(lh_u32_t, lh_ui_input_get_capacity(self) - lh_ui_input_get_caret(self)), code);
+    lh_ui_input_set_used(self, lh_cast_static(lh_u16_t, lh_ui_input_get_used(self) + size));
+    lh_ui_input_set_caret(self, lh_cast_static(lh_u16_t, lh_ui_input_get_caret(self) + size));
+    lh_ui_input_get_buffer(self)[lh_ui_input_get_used(self)] = lh_char_map_nul;
     lh_ui_label_drop_metrics(lh_ui_input_as_label(self));
     return lh_bool_true;
 }
@@ -228,20 +229,20 @@ lh_ui_input_insert(lh_ui_input_t *self, lh_u32_t code)
 lh_bool_t
 lh_ui_input_backspace(lh_ui_input_t *self)
 {
-    const lh_u16_t from = lh_ui_input_boundary_before(self, self->caret);
+    const lh_u16_t from = lh_ui_input_boundary_before(self, lh_ui_input_get_caret(self));
     lh_u16_t at;
 
     lh_assert_runtime_ref(self);
-    lh_return_if(lh_null_eq(self->buffer), lh_bool_false);
-    lh_return_if(self->caret == 0U, lh_bool_false);
+    lh_return_if(lh_null_eq(lh_ui_input_get_buffer(self)), lh_bool_false);
+    lh_return_if(lh_ui_input_get_caret(self) == 0U, lh_bool_false);
 
-    for (at = from; at < self->used - 1U; ++at)
+    for (at = from; at < lh_ui_input_get_used(self) - 1U; ++at)
     {
-        self->buffer[at] = self->buffer[at + 1U];
+        lh_ui_input_get_buffer(self)[at] = lh_ui_input_get_buffer(self)[at + 1U];
     }
-    self->used = lh_cast_static(lh_u16_t, self->used - (self->caret - from));
-    self->caret = from;
-    self->buffer[self->used] = lh_char_map_nul;
+    lh_ui_input_set_used(self, lh_cast_static(lh_u16_t, lh_ui_input_get_used(self) - (lh_ui_input_get_caret(self) - from)));
+    lh_ui_input_set_caret(self, from);
+    lh_ui_input_get_buffer(self)[lh_ui_input_get_used(self)] = lh_char_map_nul;
     lh_ui_label_drop_metrics(lh_ui_input_as_label(self));
     return lh_bool_true;
 }
@@ -250,12 +251,12 @@ lh_bool_t
 lh_ui_input_delete_forward(lh_ui_input_t *self)
 {
     const lh_u32_t size =
-        lh_str_utf8_get_lead_size(lh_cast_static(lh_byte_t, self->buffer[self->caret]));
+        lh_str_utf8_get_lead_size(lh_cast_static(lh_byte_t, lh_ui_input_get_buffer(self)[lh_ui_input_get_caret(self)]));
     lh_u16_t at;
 
     lh_assert_runtime_ref(self);
-    lh_return_if(lh_null_eq(self->buffer), lh_bool_false);
-    lh_return_if(self->caret >= self->used, lh_bool_false);
+    lh_return_if(lh_null_eq(lh_ui_input_get_buffer(self)), lh_bool_false);
+    lh_return_if(lh_ui_input_get_caret(self) >= lh_ui_input_get_used(self), lh_bool_false);
     lh_return_if(size == 0U, lh_bool_false);
     /* The character has to be **whole**. A buffer whose last code point was cut short
        -- the one shape a caller can produce by writing bytes straight into it -- has a
@@ -263,14 +264,14 @@ lh_ui_input_delete_forward(lh_ui_input_t *self)
        a very large number, and the loop that shifts the tail walks off the end of the
        buffer writing zeroes after it. A refusal leaves the broken text as it is, which
        is something an application can see and repair; walking off the end is not. */
-    lh_return_if(size > lh_cast_static(lh_u32_t, self->used - self->caret), lh_bool_false);
+    lh_return_if(size > lh_cast_static(lh_u32_t, lh_ui_input_get_used(self) - lh_ui_input_get_caret(self)), lh_bool_false);
 
-    for (at = self->caret; at < self->used - size; ++at)
+    for (at = lh_ui_input_get_caret(self); at < lh_ui_input_get_used(self) - size; ++at)
     {
-        self->buffer[at] = self->buffer[at + size];
+        lh_ui_input_get_buffer(self)[at] = lh_ui_input_get_buffer(self)[at + size];
     }
-    self->used = lh_cast_static(lh_u16_t, self->used - size);
-    self->buffer[self->used] = lh_char_map_nul;
+    lh_ui_input_set_used(self, lh_cast_static(lh_u16_t, lh_ui_input_get_used(self) - size));
+    lh_ui_input_get_buffer(self)[lh_ui_input_get_used(self)] = lh_char_map_nul;
     lh_ui_label_drop_metrics(lh_ui_input_as_label(self));
     return lh_bool_true;
 }
@@ -288,12 +289,12 @@ lh_bool_t
 lh_ui_input_set_caret(lh_ui_input_t *self, lh_u16_t caret)
 {
     lh_assert_runtime_ref(self);
-    lh_return_if(lh_null_eq(self->buffer), lh_bool_false);
+    lh_return_if(lh_null_eq(lh_ui_input_get_buffer(self)), lh_bool_false);
     /* A refusal leaves the caret where it was. A caller with a byte that is not
        there has a number wrong, and moving the caret to the nearest boundary would
        hand it a different wrong number that looks right. */
     lh_return_if(!lh_ui_input_is_boundary(self, caret), lh_bool_false);
-    self->caret = caret;
+    lh_ui_input_set_caret(self, caret);
     return lh_bool_true;
 }
 
@@ -311,20 +312,20 @@ lh_ui_input_on_press(const lh_ui_input_t *self, const lh_ui_entity_event_t *even
     lh_u16_t caret;
 
     lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_press, lh_bool_false);
-    lh_return_if(lh_null_eq(self->buffer), lh_bool_false);
-    font = lh_ui_label_get_font(lh_addr_of(self->label));
+    lh_return_if(lh_null_eq(lh_ui_input_get_buffer(self)), lh_bool_false);
+    font = lh_ui_label_get_font(lh_ui_input_get_label(self));
     lh_return_if(lh_null_eq(font), lh_bool_false);
 
-    lh_ui_label_get_text_origin(lh_addr_of(self->label), lh_addr_of(origin));
+    lh_ui_label_get_text_origin(lh_ui_input_get_label(self), lh_addr_of(origin));
     at = lh_ui_point_get_x(lh_addr_of(origin));
     lh_ui_entity_event_get_point(event, lh_addr_of(press));
     x = lh_ui_point_get_x(lh_addr_of(press));
     /* The walk is in **advances**, not in repeated widths of the whole prefix: a
        field of 64 characters measured once per character is 4096 glyph lookups for
        one press, and the field is exactly where somebody holds the pointer down. */
-    end = lh_addr_of(self->buffer[self->used]);
-    cursor = self->buffer;
-    caret = self->used;
+    end = lh_addr_of(lh_ui_input_get_buffer(self)[lh_ui_input_get_used(self)]);
+    cursor = lh_ui_input_get_buffer(self);
+    caret = lh_ui_input_get_used(self);
     for (; cursor < end;)
     {
         const lh_char_t *here = cursor;
@@ -340,11 +341,11 @@ lh_ui_input_on_press(const lh_ui_input_t *self, const lh_ui_entity_event_t *even
            byte and a click in a field did nothing at all. */
         if (next > x)
         {
-            caret = lh_cast_static(lh_u16_t, here - self->buffer);
+            caret = lh_cast_static(lh_u16_t, here - lh_ui_input_get_buffer(self));
             break;
         }
         at = next;
-        caret = lh_cast_static(lh_u16_t, cursor - self->buffer);
+        caret = lh_cast_static(lh_u16_t, cursor - lh_ui_input_get_buffer(self));
     }
     return lh_ui_input_set_caret(input, caret);
 }
@@ -362,7 +363,7 @@ lh_void
 lh_ui_input_end(lh_ui_input_t *self)
 {
     lh_assert_runtime_ref(self);
-    self->caret = self->used;
+    lh_ui_input_set_caret(self, lh_ui_input_get_used(self));
 }
 
 lh_bool_t
@@ -373,7 +374,7 @@ lh_ui_input_on_key(const lh_ui_input_t *self, const lh_ui_entity_event_t *event)
     lh_u32_t code;
 
     lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_key, lh_bool_false);
-    lh_return_if(self->focused == lh_bool_false, lh_bool_false);
+    lh_return_if(lh_ui_input_is_focused(self) == lh_bool_false, lh_bool_false);
     key = lh_ui_entity_event_get_key(event);
     lh_return_if(lh_null_eq(key), lh_bool_false);
 
@@ -395,20 +396,20 @@ lh_ui_input_on_key(const lh_ui_input_t *self, const lh_ui_entity_event_t *event)
     }
     if (lh_ui_key_input_is_down(key, lh_os_key_left))
     {
-        const lh_u16_t at = lh_ui_input_boundary_before(self, self->caret);
+        const lh_u16_t at = lh_ui_input_boundary_before(self, lh_ui_input_get_caret(self));
 
-        return self->caret == 0U ? lh_bool_false : lh_ui_input_set_caret(input, at);
+        return lh_ui_input_get_caret(self) == 0U ? lh_bool_false : lh_ui_input_set_caret(input, at);
     }
     if (lh_ui_key_input_is_down(key, lh_os_key_right))
     {
         const lh_u32_t size =
-            self->caret < self->used
-                ? lh_str_utf8_get_lead_size(lh_cast_static(lh_byte_t, self->buffer[self->caret]))
+            lh_ui_input_get_caret(self) < lh_ui_input_get_used(self)
+                ? lh_str_utf8_get_lead_size(lh_cast_static(lh_byte_t, lh_ui_input_get_buffer(self)[lh_ui_input_get_caret(self)]))
                 : 0U;
 
         return size == 0U
                    ? lh_bool_false
-                   : lh_ui_input_set_caret(input, lh_cast_static(lh_u16_t, self->caret + size));
+                   : lh_ui_input_set_caret(input, lh_cast_static(lh_u16_t, lh_ui_input_get_caret(self) + size));
     }
     if (lh_ui_key_input_is_down(key, lh_os_key_home))
     {
@@ -428,13 +429,13 @@ lh_ui_input_on_key(const lh_ui_input_t *self, const lh_ui_entity_event_t *event)
 lh_ui_scalar_t
 lh_ui_input_get_line_top(const lh_ui_input_t *self, const lh_ui_font_t *font)
 {
-    const lh_ui_entity_t *entity = lh_addr_of(self->label.container.entity);
-    const lh_ui_rect_t *box = lh_addr_of(entity->rect);
+    const lh_ui_entity_t *entity = lh_ui_container_get_entity(lh_ui_label_get_container(lh_ui_input_get_label(self)));
+    const lh_ui_rect_t *box = lh_ui_entity_get_rect(entity);
     const lh_ui_scalar_t ascent = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_ascent(font));
     /* A run with no height (".", a space) stands on nothing, and the label says so with
        a negative baseline: that takes the same answer as an empty field. */
     const lh_ui_scalar_t own =
-        self->used > 0U ? lh_ui_label_get_baseline(lh_addr_of(self->label)) : lh_ui_scalar(-1);
+        lh_ui_input_get_used(self) > 0U ? lh_ui_label_get_baseline(lh_ui_input_get_label(self)) : lh_ui_scalar(-1);
     lh_ui_scalar_t baseline;
 
     if (own >= lh_ui_scalar(0))
@@ -472,35 +473,35 @@ lh_ui_input_get_caret_rect(const lh_ui_input_t *self, lh_ui_rect_t *out)
     lh_char_t saved;
 
     lh_ui_rect_init_empty(lh_addr_of(caret));
-    if (lh_null_eq(self->buffer))
+    if (lh_null_eq(lh_ui_input_get_buffer(self)))
     {
         lh_ptr_deref(out) = caret;
         return;
     }
-    font = lh_ui_label_get_font(lh_addr_of(self->label));
+    font = lh_ui_label_get_font(lh_ui_input_get_label(self));
     if (lh_null_eq(font))
     {
         lh_ptr_deref(out) = caret;
         return;
     }
 
-    lh_ui_label_get_text_origin(lh_addr_of(self->label), lh_addr_of(origin));
+    lh_ui_label_get_text_origin(lh_ui_input_get_label(self), lh_addr_of(origin));
     /* The width of the text **before** the caret, measured by cutting the buffer at
        the caret and putting the byte back. A prefix is a string only while it is cut
        off, and the input owns what is in its buffer -- which is the whole reason it
        has one instead of the pointer a label keeps. */
-    saved = self->buffer[self->caret];
-    self->buffer[self->caret] = lh_char_map_nul;
-    at = lh_ui_point_get_x(lh_addr_of(origin)) + lh_ui_text_get_width(font, self->buffer);
-    self->buffer[self->caret] = saved;
+    saved = lh_ui_input_get_buffer(self)[lh_ui_input_get_caret(self)];
+    lh_ui_input_get_buffer(self)[lh_ui_input_get_caret(self)] = lh_char_map_nul;
+    at = lh_ui_point_get_x(lh_addr_of(origin)) + lh_ui_text_get_width(font, lh_ui_input_get_buffer(self));
+    lh_ui_input_get_buffer(self)[lh_ui_input_get_caret(self)] = saved;
 
-    if (self->caret_shape == lh_ui_input_caret_block)
+    if (lh_ui_input_get_caret_shape(self) == lh_ui_input_caret_block)
     {
         /* The character under the caret, or a '0' past the end: a block as wide as
            nothing is a bar, and the end of the text is where a block sits most. */
-        const lh_char_t *next = lh_addr_of(self->buffer[self->caret]);
+        const lh_char_t *next = lh_addr_of(lh_ui_input_get_buffer(self)[lh_ui_input_get_caret(self)]);
         const lh_u32_t code =
-            self->caret < self->used ? lh_ui_text_next_code(lh_addr_of(next)) : lh_char_map_digit_0;
+            lh_ui_input_get_caret(self) < lh_ui_input_get_used(self) ? lh_ui_text_next_code(lh_addr_of(next)) : lh_char_map_digit_0;
 
         width = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_advance(font, code));
         if (width <= lh_ui_scalar(0))
@@ -538,7 +539,7 @@ lh_ui_input_on_draw_caret(const lh_ui_input_t *self, const lh_ui_entity_event_t 
     lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_draw);
     /* A caret that is not focused is not drawn. That is the whole of "focused" as
        far as this component is concerned, and it is why the field needs no clock. */
-    lh_return_if(self->focused == lh_bool_false);
+    lh_return_if(lh_ui_input_is_focused(self) == lh_bool_false);
     color = lh_ui_input_get_caret_color(self);
     lh_return_if(lh_null_eq(color));
     lh_ui_input_get_caret_rect(self, lh_addr_of(caret));
@@ -546,18 +547,18 @@ lh_ui_input_on_draw_caret(const lh_ui_input_t *self, const lh_ui_entity_event_t 
     canvas = lh_ui_entity_event_get_canvas(event);
     lh_return_if(lh_null_eq(canvas));
     lh_ui_canvas_fill_rect(canvas, lh_addr_of(caret), color);
-    if (self->caret_shape == lh_ui_input_caret_block && self->caret < self->used)
+    if (lh_ui_input_get_caret_shape(self) == lh_ui_input_caret_block && lh_ui_input_get_caret(self) < lh_ui_input_get_used(self))
     {
         /* The block covers the character it stands on, so the character is drawn
            again on top of it in the colour that is behind the text -- the field's
            fill, or white for a field without one. Same font, same line top, same
            column: the glyph lands exactly where the label put it. */
-        const lh_ui_font_t *font = lh_ui_label_get_font(lh_addr_of(self->label));
+        const lh_ui_font_t *font = lh_ui_label_get_font(lh_ui_input_get_label(self));
         const lh_ui_style_t *style =
-            lh_ui_entity_get_style(lh_addr_of(self->label.container.entity));
+            lh_ui_entity_get_style(lh_ui_container_get_entity(lh_ui_label_get_container(lh_ui_input_get_label(self))));
         const lh_ui_color_t *under =
             lh_null_eq(style) ? lh_null : lh_ui_paint_get_color(lh_ui_style_get_fill(style));
-        const lh_char_t *at = lh_addr_of(self->buffer[self->caret]);
+        const lh_char_t *at = lh_addr_of(lh_ui_input_get_buffer(self)[lh_ui_input_get_caret(self)]);
         lh_ui_color_t white;
 
         lh_ui_color_init_argb(lh_addr_of(white), 0xFFFFFFFFU);
@@ -630,3 +631,73 @@ lh_ui_input_is_focused(const lh_ui_input_t *self)
 /* -- Class ----------------------------------------------------------------- */
 
 const lh_ui_entity_class_t lh_ui_input_class = {lh_ui_input_event, lh_addr_of(lh_ui_label_class)};
+
+const lh_ui_label_t *
+lh_ui_input_get_label(const lh_ui_input_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->label);
+}
+
+lh_ui_label_t *
+lh_ui_input_get_label_mut(lh_ui_input_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->label);
+}
+
+lh_void
+lh_ui_input_set_label(lh_ui_input_t *self, lh_ui_label_t label)
+{
+    lh_assert_runtime_ref(self);
+    self->label = label;
+}
+
+lh_char_t *
+lh_ui_input_get_buffer(const lh_ui_input_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->buffer;
+}
+
+lh_void
+lh_ui_input_set_buffer(lh_ui_input_t *self, lh_char_t * buffer)
+{
+    lh_assert_runtime_ref(self);
+    self->buffer = buffer;
+}
+
+lh_u16_t
+lh_ui_input_get_capacity(const lh_ui_input_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->capacity;
+}
+
+lh_void
+lh_ui_input_set_capacity(lh_ui_input_t *self, lh_u16_t capacity)
+{
+    lh_assert_runtime_ref(self);
+    self->capacity = capacity;
+}
+
+lh_u16_t
+lh_ui_input_get_used(const lh_ui_input_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->used;
+}
+
+lh_void
+lh_ui_input_set_used(lh_ui_input_t *self, lh_u16_t used)
+{
+    lh_assert_runtime_ref(self);
+    self->used = used;
+}
+
+lh_void
+lh_ui_input_set_focused(lh_ui_input_t *self, lh_bool_t focused)
+{
+    lh_assert_runtime_ref(self);
+    self->focused = focused;
+}

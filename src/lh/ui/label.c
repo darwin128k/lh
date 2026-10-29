@@ -2,6 +2,7 @@
  * @file label.c
  * @brief Implementation of `lh/ui/label.h`.
  */
+#include <lh/assert.h>
 
 #include <lh/hash/fnv.h>
 #include <lh/char/map.h>
@@ -50,21 +51,21 @@ lh_ui_entity_t *
 lh_ui_label_as_entity(lh_ui_label_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_ui_container_as_entity(lh_addr_of(self->container));
+    return lh_ui_container_as_entity(lh_ui_label_get_container_mut(self));
 }
 
 lh_void
 lh_ui_label_init(lh_ui_label_t *self, lh_ui_rect_t rect, const lh_char_t *text)
 {
     lh_assert_runtime_ref(self);
-    lh_ui_container_init(lh_addr_of(self->container), rect);
-    self->text = text;
-    self->metrics_ready = lh_bool_false;
+    lh_ui_container_init(lh_ui_label_get_container_mut(self), rect);
+    lh_ui_label_set_text(self, text);
+    lh_ui_label_set_metrics_ready(self, lh_bool_false);
     /* Hashed from the start, so a refresh that sets the text the label was built with
        records nothing. Nothing is noted here: the label is in no tree yet. */
-    self->text_hash = lh_ui_label_hash_text(text, lh_addr_of(self->text_length));
-    self->text_hashed = lh_bool_true;
-    lh_ui_rect_init_empty(lh_addr_of(self->text_noted));
+    lh_ui_label_set_text_hash(self, lh_ui_label_hash_text(text, lh_addr_of(self->text_length)));
+    lh_ui_label_set_text_hashed(self, lh_bool_true);
+    lh_ui_rect_init_empty(lh_ui_label_get_text_noted_mut(self));
     lh_ui_entity_set_class(lh_ui_label_as_entity(self), lh_addr_of(lh_ui_label_class));
 }
 
@@ -90,14 +91,14 @@ lh_ui_label_drop_metrics(lh_ui_label_t *self)
     lh_assert_runtime_ref(self);
     /* The bytes changed under the label: the next ::lh_ui_label_set_text must not
        take them for the same ones. */
-    self->metrics_ready = lh_bool_false;
-    self->text_hashed = lh_bool_false;
+    lh_ui_label_set_metrics_ready(self, lh_bool_false);
+    lh_ui_label_set_text_hashed(self, lh_bool_false);
 }
 
 const lh_ui_font_t *
 lh_ui_label_get_font(const lh_ui_label_t *self)
 {
-    const lh_ui_style_t *style = lh_ui_entity_get_style(lh_addr_of(self->container.entity));
+    const lh_ui_style_t *style = lh_ui_entity_get_style(lh_ui_container_get_entity(lh_ui_label_get_container(self)));
 
     return lh_null_eq(style) ? lh_null : lh_ui_style_get_font(style);
 }
@@ -108,7 +109,7 @@ lh_ui_label_get_text_color(const lh_ui_label_t *self)
     /* The paint of the text follows a press, its place does not: the origin
        below reads the font, the padding and the alignment from the entity's own
        style, so nothing moves under the pointer. */
-    const lh_ui_style_t *style = lh_ui_entity_get_style_now(lh_addr_of(self->container.entity));
+    const lh_ui_style_t *style = lh_ui_entity_get_style_now(lh_ui_container_get_entity(lh_ui_label_get_container(self)));
 
     return lh_null_eq(style) ? lh_null : lh_ui_style_get_text_color(style);
 }
@@ -116,7 +117,7 @@ lh_ui_label_get_text_color(const lh_ui_label_t *self)
 lh_ui_scalar_t
 lh_ui_label_get_wrap_width(const lh_ui_label_t *self)
 {
-    const lh_ui_entity_t *entity = lh_addr_of(self->container.entity);
+    const lh_ui_entity_t *entity = lh_ui_container_get_entity(lh_ui_label_get_container(self));
     const lh_ui_style_t *style = lh_ui_entity_get_style(entity);
     lh_ui_insets_t padding;
     lh_ui_scalar_t width;
@@ -124,7 +125,7 @@ lh_ui_label_get_wrap_width(const lh_ui_label_t *self)
     lh_return_if(lh_null_eq(style) || lh_ui_style_get_wrap(style) != lh_ui_text_wrap_words,
                  lh_ui_scalar(0));
     lh_ui_entity_get_padding(entity, lh_addr_of(padding));
-    width = lh_ui_size_get_width(lh_ui_rect_get_size(lh_addr_of(entity->rect))) -
+    width = lh_ui_size_get_width(lh_ui_rect_get_size(lh_ui_entity_get_rect(entity))) -
             lh_ui_insets_get_left(lh_addr_of(padding)) -
             lh_ui_insets_get_right(lh_addr_of(padding));
     /* A box with no room still wraps, one letter a line, rather than not at all. */
@@ -134,7 +135,7 @@ lh_ui_label_get_wrap_width(const lh_ui_label_t *self)
 lh_ui_text_align_h_t
 lh_ui_label_get_line_align(const lh_ui_label_t *self)
 {
-    const lh_ui_style_t *style = lh_ui_entity_get_style(lh_addr_of(self->container.entity));
+    const lh_ui_style_t *style = lh_ui_entity_get_style(lh_ui_container_get_entity(lh_ui_label_get_container(self)));
 
     return lh_null_eq(style) ? lh_ui_text_align_h_left : lh_ui_style_get_align_h(style);
 }
@@ -154,7 +155,7 @@ const lh_ui_label_t *
 lh_ui_label_measured(const lh_ui_label_t *self)
 {
     lh_ui_label_t *label = lh_ptr_rcast(lh_ui_label_t, self);
-    const lh_ui_entity_t *entity = lh_addr_of(self->container.entity);
+    const lh_ui_entity_t *entity = lh_ui_container_get_entity(lh_ui_label_get_container(self));
     const lh_ui_style_t *style = lh_ui_entity_get_style(entity);
     const lh_ui_font_t *font = lh_ui_label_get_font(self);
     lh_ui_insets_t padding;
@@ -166,30 +167,30 @@ lh_ui_label_measured(const lh_ui_label_t *self)
     const lh_ui_scalar_t wrap = lh_ui_label_get_wrap_width(self);
     lh_ui_size_t aligned;
 
-    if (self->metrics_ready && self->metrics_font == font && self->metrics_wrap == wrap &&
-        self->metrics_align_h == align_h && self->metrics_align_v == align_v &&
-        lh_ui_rect_eq(lh_addr_of(self->metrics_rect), lh_addr_of(entity->rect)) &&
-        lh_ui_label_same_insets(lh_addr_of(self->metrics_padding), lh_addr_of(padding)))
+    if (lh_ui_label_is_metrics_ready(self) && lh_ui_label_get_metrics_font(self) == font && lh_ui_label_get_metrics_wrap(self) == wrap &&
+        lh_ui_label_get_metrics_align_h(self) == align_h && lh_ui_label_get_metrics_align_v(self) == align_v &&
+        lh_ui_rect_eq(lh_ui_label_get_metrics_rect(self), lh_ui_entity_get_rect(entity)) &&
+        lh_ui_label_same_insets(lh_ui_label_get_metrics_padding(self), lh_addr_of(padding)))
     {
         return self;
     }
-    label->metrics_font = font;
-    label->metrics_wrap = wrap;
-    label->metrics_align_h = align_h;
-    label->metrics_align_v = align_v;
-    label->metrics_rect = entity->rect;
-    label->metrics_padding = padding;
-    lh_ui_size_init(lh_addr_of(label->metrics_size), 0, 0);
-    label->metrics_ink_top = 0;
-    if (lh_null_ne(font) && lh_null_ne(self->text))
+    lh_ui_label_set_metrics_font(label, font);
+    lh_ui_label_set_metrics_wrap(label, wrap);
+    lh_ui_label_set_metrics_align_h(label, align_h);
+    lh_ui_label_set_metrics_align_v(label, align_v);
+    lh_ui_label_set_metrics_rect(label, lh_ptr_deref(lh_ui_entity_get_rect(entity)));
+    lh_ui_label_set_metrics_padding(label, padding);
+    lh_ui_size_init(lh_ui_label_get_metrics_size_mut(label), 0, 0);
+    lh_ui_label_set_metrics_ink_top(label, 0);
+    if (lh_null_ne(font) && lh_null_ne(lh_ui_label_get_text(self)))
     {
         lh_ui_text_block_t block;
 
         /* One walk of the text for both: the size and the first ink row are two
            questions about the same lines. */
-        lh_ui_text_block_measure(lh_addr_of(block), font, self->text, wrap);
-        lh_ui_text_block_get_size(lh_addr_of(block), font, lh_addr_of(label->metrics_size));
-        label->metrics_ink_top = lh_ui_text_block_get_ink_top(lh_addr_of(block));
+        lh_ui_text_block_measure(lh_addr_of(block), font, lh_ui_label_get_text(self), wrap);
+        lh_ui_text_block_get_size(lh_addr_of(block), font, lh_ui_label_get_metrics_size_mut(label));
+        lh_ui_label_set_metrics_ink_top(label, lh_ui_text_block_get_ink_top(lh_addr_of(block)));
     }
     /* The padding is what keeps the text off the edges, and the alignment is where
        inside what the padding leaves it starts. Left and top are what this returned
@@ -201,17 +202,17 @@ lh_ui_label_measured(const lh_ui_label_t *self)
     lh_ui_size_init(lh_addr_of(aligned), 0, 0);
     if (lh_null_ne(style))
     {
-        aligned = label->metrics_size;
+        aligned = lh_ptr_deref(lh_ui_label_get_metrics_size(label));
     }
-    lh_ui_text_align_get_origin(lh_addr_of(entity->rect), lh_addr_of(padding), aligned, align_h,
-                                align_v, lh_addr_of(label->metrics_origin));
-    lh_ui_rect_init_empty(lh_addr_of(label->metrics_ink));
-    if (lh_null_ne(font) && lh_null_ne(self->text))
+    lh_ui_text_align_get_origin(lh_ui_entity_get_rect(entity), lh_addr_of(padding), aligned, align_h,
+                                align_v, lh_ui_label_get_metrics_origin_mut(label));
+    lh_ui_rect_init_empty(lh_ui_label_get_metrics_ink_mut(label));
+    if (lh_null_ne(font) && lh_null_ne(lh_ui_label_get_text(self)))
     {
-        lh_ui_text_get_ink_rect_wrapped(font, self->text, label->metrics_origin, wrap, align_h,
-                                        lh_addr_of(label->metrics_ink));
+        lh_ui_text_get_ink_rect_wrapped(font, lh_ui_label_get_text(self), lh_ptr_deref(lh_ui_label_get_metrics_origin(label)), wrap, align_h,
+                                        lh_ui_label_get_metrics_ink_mut(label));
     }
-    label->metrics_ready = lh_bool_true;
+    lh_ui_label_set_metrics_ready(label, lh_bool_true);
     return self;
 }
 
@@ -233,19 +234,19 @@ lh_ui_label_get_text_origin(const lh_ui_label_t *self, lh_ui_point_t *out)
 lh_ui_scalar_t
 lh_ui_label_get_baseline(const lh_ui_label_t *self)
 {
-    const lh_ui_entity_t *entity = lh_addr_of(self->container.entity);
+    const lh_ui_entity_t *entity = lh_ui_container_get_entity(lh_ui_label_get_container(self));
     const lh_ui_font_t *font = lh_ui_label_get_font(self);
     const lh_ui_label_t *measured = lh_ui_label_measured(self);
-    const lh_ui_point_t origin = measured->metrics_origin;
-    const lh_ui_point_t *box = lh_ui_rect_get_origin(lh_addr_of(entity->rect));
+    const lh_ui_point_t origin = lh_ptr_deref(lh_ui_label_get_metrics_origin(measured));
+    const lh_ui_point_t *box = lh_ui_rect_get_origin(lh_ui_entity_get_rect(entity));
     lh_ui_scalar_t baseline;
 
     /* Nothing stands on a line that is not drawn. */
-    if (lh_null_eq(font) || lh_null_eq(self->text))
+    if (lh_null_eq(font) || lh_null_eq(lh_ui_label_get_text(self)))
     {
         return lh_ui_scalar(-1);
     }
-    lh_return_if(lh_ui_size_get_height(lh_addr_of(measured->metrics_size)) == lh_ui_scalar(0),
+    lh_return_if(lh_ui_size_get_height(lh_ui_label_get_metrics_size(measured)) == lh_ui_scalar(0),
                  lh_ui_scalar(-1));
     /* The line the letters stand on is where the **tallest letter of this run**
        ends, and the origin is where the ink of the run goes, so the line is the
@@ -265,7 +266,7 @@ lh_ui_label_get_baseline(const lh_ui_label_t *self)
        The first line's, which is what a row lines up on. */
     baseline = lh_ui_point_get_y(lh_addr_of(origin)) - lh_ui_point_get_y(box) +
                lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_ascent(font)) -
-               measured->metrics_ink_top;
+               lh_ui_label_get_metrics_ink_top(measured);
     return baseline;
 }
 
@@ -309,7 +310,7 @@ lh_ui_label_get_ink_reach(lh_ui_label_t *self, lh_ui_rect_t *out)
     lh_ui_rect_t text;
     lh_ui_label_get_text_rect(self, lh_addr_of(text));
     lh_ui_rect_t box;
-    lh_ui_entity_get_rect(lh_ui_label_as_entity(self), lh_addr_of(box));
+    lh_ui_entity_copy_rect(lh_ui_label_as_entity(self), lh_addr_of(box));
     const lh_ui_point_t *origin = lh_ui_rect_get_origin(lh_addr_of(box));
 
     if (lh_ui_rect_is_empty(lh_addr_of(text)))
@@ -332,34 +333,34 @@ lh_ui_label_set_text(lh_ui_label_t *self, const lh_char_t *text)
 
     lh_assert_runtime_ref(self);
     hash = lh_ui_label_hash_text(text, lh_addr_of(length));
-    if (self->text_hashed && hash == self->text_hash && length == self->text_length)
+    if (lh_ui_label_is_text_hashed(self) && hash == lh_ui_label_get_text_hash(self) && length == lh_ui_label_get_text_length(self))
     {
         /* The same bytes, perhaps at a new address: nothing on screen changes. */
-        self->text = text;
+        lh_ui_label_set_text(self, text);
         return;
     }
     entity = lh_ui_label_as_entity(self);
-    lh_ui_entity_get_rect(entity, lh_addr_of(box));
+    lh_ui_entity_copy_rect(entity, lh_addr_of(box));
     /* Before: the box, and the old text where it was last recorded. Measuring the text
        now would measure the **new** bytes whenever the caller rewrote the buffer first,
        which is how a cell is usually updated -- so the remembered reach is what is
        erased, and when there is none yet (the first change) the current measure is. */
-    if (lh_ui_rect_is_empty(lh_addr_of(self->text_noted)))
+    if (lh_ui_rect_is_empty(lh_ui_label_get_text_noted_mut(self)))
     {
-        lh_ui_label_get_ink_reach(self, lh_addr_of(self->text_noted));
+        lh_ui_label_get_ink_reach(self, lh_ui_label_get_text_noted_mut(self));
     }
     lh_ui_rect_offset(
-        lh_addr_of(self->text_noted), lh_ui_point_get_x(lh_ui_rect_get_origin(lh_addr_of(box))),
+        lh_ui_label_get_text_noted_mut(self), lh_ui_point_get_x(lh_ui_rect_get_origin(lh_addr_of(box))),
         lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(box))), lh_addr_of(old_ink));
     lh_ui_entity_note_rect(entity, lh_addr_of(box));
     lh_ui_entity_note_rect(entity, lh_addr_of(old_ink));
 
-    self->text = text;
-    self->text_hashed = lh_bool_true;
-    self->text_hash = hash;
-    self->text_length = length;
-    self->metrics_ready = lh_bool_false;
-    lh_ui_label_get_ink_reach(self, lh_addr_of(self->text_noted));
+    lh_ui_label_set_text(self, text);
+    lh_ui_label_set_text_hashed(self, lh_bool_true);
+    lh_ui_label_set_text_hash(self, hash);
+    lh_ui_label_set_text_length(self, length);
+    lh_ui_label_set_metrics_ready(self, lh_bool_false);
+    lh_ui_label_get_ink_reach(self, lh_ui_label_get_text_noted_mut(self));
     /* After: the box and the new text (a leaf's note includes what it measures). */
     lh_ui_entity_note(entity);
 }
@@ -367,7 +368,7 @@ lh_ui_label_set_text(lh_ui_label_t *self, const lh_char_t *text)
 lh_bool_t
 lh_ui_label_can_draw_text(const lh_ui_label_t *self, const lh_ui_canvas_t *canvas)
 {
-    return lh_null_ne(canvas) && lh_null_ne(self->text) && lh_null_ne(lh_ui_label_get_font(self)) &&
+    return lh_null_ne(canvas) && lh_null_ne(lh_ui_label_get_text(self)) && lh_null_ne(lh_ui_label_get_font(self)) &&
                    lh_null_ne(lh_ui_label_get_text_color(self))
                ? lh_bool_true
                : lh_bool_false;
@@ -428,9 +429,9 @@ lh_ui_label_shorten(const lh_ui_font_t *font, const lh_char_t *text, lh_s32_t ro
 lh_void
 lh_ui_label_draw_text(const lh_ui_label_t *self, lh_ui_canvas_t *canvas)
 {
-    const lh_ui_entity_t *entity = lh_addr_of(self->container.entity);
+    const lh_ui_entity_t *entity = lh_ui_container_get_entity(lh_ui_label_get_container(self));
     const lh_ui_style_t *style = lh_ui_entity_get_style(entity);
-    const lh_char_t *text = self->text;
+    const lh_char_t *text = lh_ui_label_get_text(self);
     lh_char_t shortened[256];
     lh_bool_t pushed;
 
@@ -442,7 +443,7 @@ lh_ui_label_draw_text(const lh_ui_label_t *self, lh_ui_canvas_t *canvas)
         lh_ui_insets_t padding;
         lh_ui_entity_get_padding(entity, lh_addr_of(padding));
         lh_ui_rect_t rect;
-        lh_ui_entity_get_rect(entity, lh_addr_of(rect));
+        lh_ui_entity_copy_rect(entity, lh_addr_of(rect));
         const lh_s32_t room =
             lh_ui_scalar_floor_s32(lh_ui_size_get_width(lh_ui_rect_get_size(lh_addr_of(rect))) -
                                    lh_ui_insets_get_left(lh_addr_of(padding)) -
@@ -451,14 +452,14 @@ lh_ui_label_draw_text(const lh_ui_label_t *self, lh_ui_canvas_t *canvas)
         /* A line that does not fit is drawn from where it starts anyway -- a line wider
            than its box starts at the left whatever the alignment -- so the shortened
            one is drawn from the same place. */
-        if (lh_ui_label_shorten(lh_ui_label_get_font(self), self->text, room, shortened,
+        if (lh_ui_label_shorten(lh_ui_label_get_font(self), lh_ui_label_get_text(self), room, shortened,
                                 lh_cast_static(lh_u32_t, sizeof(shortened))))
         {
             text = shortened;
         }
     }
     pushed = lh_ui_entity_push_children(entity, canvas);
-    if (text == self->text)
+    if (text == lh_ui_label_get_text(self))
     {
         /* Wrapped or not: with no width to wrap at, these are the plain lines. */
         lh_ui_point_t point;
@@ -497,4 +498,277 @@ lh_ui_label_event(const struct lh_ui_entity *self, const lh_ui_entity_event_t *e
     lh_ui_label_on_baseline(label, event);
     lh_ui_label_on_draw(label, event);
     lh_ui_label_on_measure(label, event);
+}
+
+const lh_ui_container_t *
+lh_ui_label_get_container(const lh_ui_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->container);
+}
+
+lh_ui_container_t *
+lh_ui_label_get_container_mut(lh_ui_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->container);
+}
+
+lh_void
+lh_ui_label_set_container(lh_ui_label_t *self, lh_ui_container_t container)
+{
+    lh_assert_runtime_ref(self);
+    self->container = container;
+}
+
+lh_bool_t
+lh_ui_label_is_metrics_ready(const lh_ui_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->metrics_ready;
+}
+
+lh_void
+lh_ui_label_set_metrics_ready(lh_ui_label_t *self, lh_bool_t metrics_ready)
+{
+    lh_assert_runtime_ref(self);
+    self->metrics_ready = metrics_ready;
+}
+
+lh_bool_t
+lh_ui_label_is_text_hashed(const lh_ui_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->text_hashed;
+}
+
+lh_void
+lh_ui_label_set_text_hashed(lh_ui_label_t *self, lh_bool_t text_hashed)
+{
+    lh_assert_runtime_ref(self);
+    self->text_hashed = text_hashed;
+}
+
+lh_u32_t
+lh_ui_label_get_text_hash(const lh_ui_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->text_hash;
+}
+
+lh_void
+lh_ui_label_set_text_hash(lh_ui_label_t *self, lh_u32_t text_hash)
+{
+    lh_assert_runtime_ref(self);
+    self->text_hash = text_hash;
+}
+
+lh_u32_t
+lh_ui_label_get_text_length(const lh_ui_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->text_length;
+}
+
+lh_void
+lh_ui_label_set_text_length(lh_ui_label_t *self, lh_u32_t text_length)
+{
+    lh_assert_runtime_ref(self);
+    self->text_length = text_length;
+}
+
+const lh_ui_rect_t *
+lh_ui_label_get_text_noted(const lh_ui_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->text_noted);
+}
+
+lh_ui_rect_t *
+lh_ui_label_get_text_noted_mut(lh_ui_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->text_noted);
+}
+
+lh_void
+lh_ui_label_set_text_noted(lh_ui_label_t *self, lh_ui_rect_t text_noted)
+{
+    lh_assert_runtime_ref(self);
+    self->text_noted = text_noted;
+}
+
+const struct lh_ui_font *
+lh_ui_label_get_metrics_font(const lh_ui_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->metrics_font;
+}
+
+lh_void
+lh_ui_label_set_metrics_font(lh_ui_label_t *self, const struct lh_ui_font * metrics_font)
+{
+    lh_assert_runtime_ref(self);
+    self->metrics_font = metrics_font;
+}
+
+const lh_ui_rect_t *
+lh_ui_label_get_metrics_rect(const lh_ui_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->metrics_rect);
+}
+
+lh_ui_rect_t *
+lh_ui_label_get_metrics_rect_mut(lh_ui_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->metrics_rect);
+}
+
+lh_void
+lh_ui_label_set_metrics_rect(lh_ui_label_t *self, lh_ui_rect_t metrics_rect)
+{
+    lh_assert_runtime_ref(self);
+    self->metrics_rect = metrics_rect;
+}
+
+const lh_ui_insets_t *
+lh_ui_label_get_metrics_padding(const lh_ui_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->metrics_padding);
+}
+
+lh_ui_insets_t *
+lh_ui_label_get_metrics_padding_mut(lh_ui_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->metrics_padding);
+}
+
+lh_void
+lh_ui_label_set_metrics_padding(lh_ui_label_t *self, lh_ui_insets_t metrics_padding)
+{
+    lh_assert_runtime_ref(self);
+    self->metrics_padding = metrics_padding;
+}
+
+lh_ui_text_align_h_t
+lh_ui_label_get_metrics_align_h(const lh_ui_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->metrics_align_h;
+}
+
+lh_void
+lh_ui_label_set_metrics_align_h(lh_ui_label_t *self, lh_ui_text_align_h_t metrics_align_h)
+{
+    lh_assert_runtime_ref(self);
+    self->metrics_align_h = metrics_align_h;
+}
+
+lh_ui_text_align_v_t
+lh_ui_label_get_metrics_align_v(const lh_ui_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->metrics_align_v;
+}
+
+lh_void
+lh_ui_label_set_metrics_align_v(lh_ui_label_t *self, lh_ui_text_align_v_t metrics_align_v)
+{
+    lh_assert_runtime_ref(self);
+    self->metrics_align_v = metrics_align_v;
+}
+
+const lh_ui_point_t *
+lh_ui_label_get_metrics_origin(const lh_ui_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->metrics_origin);
+}
+
+lh_ui_point_t *
+lh_ui_label_get_metrics_origin_mut(lh_ui_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->metrics_origin);
+}
+
+lh_void
+lh_ui_label_set_metrics_origin(lh_ui_label_t *self, lh_ui_point_t metrics_origin)
+{
+    lh_assert_runtime_ref(self);
+    self->metrics_origin = metrics_origin;
+}
+
+lh_ui_scalar_t
+lh_ui_label_get_metrics_ink_top(const lh_ui_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->metrics_ink_top;
+}
+
+lh_void
+lh_ui_label_set_metrics_ink_top(lh_ui_label_t *self, lh_ui_scalar_t metrics_ink_top)
+{
+    lh_assert_runtime_ref(self);
+    self->metrics_ink_top = metrics_ink_top;
+}
+
+lh_ui_scalar_t
+lh_ui_label_get_metrics_wrap(const lh_ui_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->metrics_wrap;
+}
+
+lh_void
+lh_ui_label_set_metrics_wrap(lh_ui_label_t *self, lh_ui_scalar_t metrics_wrap)
+{
+    lh_assert_runtime_ref(self);
+    self->metrics_wrap = metrics_wrap;
+}
+
+const lh_ui_rect_t *
+lh_ui_label_get_metrics_ink(const lh_ui_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->metrics_ink);
+}
+
+lh_ui_rect_t *
+lh_ui_label_get_metrics_ink_mut(lh_ui_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->metrics_ink);
+}
+
+lh_void
+lh_ui_label_set_metrics_ink(lh_ui_label_t *self, lh_ui_rect_t metrics_ink)
+{
+    lh_assert_runtime_ref(self);
+    self->metrics_ink = metrics_ink;
+}
+
+const lh_ui_size_t *
+lh_ui_label_get_metrics_size(const lh_ui_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->metrics_size);
+}
+
+lh_ui_size_t *
+lh_ui_label_get_metrics_size_mut(lh_ui_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->metrics_size);
+}
+
+lh_void
+lh_ui_label_set_metrics_size(lh_ui_label_t *self, lh_ui_size_t metrics_size)
+{
+    lh_assert_runtime_ref(self);
+    self->metrics_size = metrics_size;
 }

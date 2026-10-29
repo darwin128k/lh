@@ -309,6 +309,126 @@ lh_ui_font_get_ink_bottom(const lh_ui_font_t *self, lh_u32_t code);
 lh_bool_t
 lh_ui_font_get_glyph(const lh_ui_font_t *self, lh_u32_t code, lh_ui_mask_t *mask);
 
+/**
+ * @brief The coverage masks of the glyphs (level 1).
+ *
+ * @param self The font; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_mask_t *
+lh_ui_font_get_glyphs(const lh_ui_font_t *self);
+
+/**
+ * @brief Store the coverage masks of the glyphs (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The font; checked by ::lh_assert_runtime_ref.
+ * @param glyphs The new value.
+ */
+lh_void
+lh_ui_font_set_glyphs(lh_ui_font_t *self, const lh_ui_mask_t * glyphs);
+
+/**
+ * @brief How far each glyph moves the pen (level 1).
+ *
+ * @param self The font; checked by ::lh_assert_runtime_ref.
+ */
+const lh_byte_t *
+lh_ui_font_get_advances(const lh_ui_font_t *self);
+
+/**
+ * @brief Store how far each glyph moves the pen (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The font; checked by ::lh_assert_runtime_ref.
+ * @param advances The new value.
+ */
+lh_void
+lh_ui_font_set_advances(lh_ui_font_t *self, const lh_byte_t * advances);
+
+/**
+ * @brief The top of each glyph above the baseline (level 1).
+ *
+ * @param self The font; checked by ::lh_assert_runtime_ref.
+ */
+const lh_s32_t *
+lh_ui_font_get_tops(const lh_ui_font_t *self);
+
+/**
+ * @brief Store the top of each glyph above the baseline (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The font; checked by ::lh_assert_runtime_ref.
+ * @param tops The new value.
+ */
+lh_void
+lh_ui_font_set_tops(lh_ui_font_t *self, const lh_s32_t * tops);
+
+/**
+ * @brief The code point ranges the font covers (level 1).
+ *
+ * @param self The font; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_font_range_t *
+lh_ui_font_get_ranges(const lh_ui_font_t *self);
+
+/**
+ * @brief Store the code point ranges the font covers (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The font; checked by ::lh_assert_runtime_ref.
+ * @param ranges The new value.
+ */
+lh_void
+lh_ui_font_set_ranges(lh_ui_font_t *self, const lh_ui_font_range_t * ranges);
+
+/**
+ * @brief Store the height of one line (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The font; checked by ::lh_assert_runtime_ref.
+ * @param line_height The new value.
+ */
+lh_void
+lh_ui_font_set_line_height(lh_ui_font_t *self, lh_s32_t line_height);
+
+/**
+ * @brief Store how far the font reaches above the baseline (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The font; checked by ::lh_assert_runtime_ref.
+ * @param ascent The new value.
+ */
+lh_void
+lh_ui_font_set_ascent(lh_ui_font_t *self, lh_s32_t ascent);
+
+/**
+ * @brief Store the height of a capital letter (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The font; checked by ::lh_assert_runtime_ref.
+ * @param cap_height The new value.
+ */
+lh_void
+lh_ui_font_set_cap_height(lh_ui_font_t *self, lh_s32_t cap_height);
+
+/**
+ * @brief Store how many code point ranges there are (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The font; checked by ::lh_assert_runtime_ref.
+ * @param range_count The new value.
+ */
+lh_void
+lh_ui_font_set_range_count(lh_ui_font_t *self, lh_u32_t range_count);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_FONT_H */

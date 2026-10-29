@@ -60,7 +60,7 @@ lh_ui_place_init(lh_ui_place_t *self, lh_ui_place_size_t size_mode, lh_ui_scalar
  * @brief @p self with room along the flow of @p size_mode and length @p size.
  */
 lh_void
-lh_ui_place_set_size(lh_ui_place_t *self, lh_ui_place_size_t size_mode, lh_ui_scalar_t size);
+lh_ui_place_set_sizing(lh_ui_place_t *self, lh_ui_place_size_t size_mode, lh_ui_scalar_t size);
 
 /**
  * @brief How much room @p self takes along the flow.
@@ -95,7 +95,7 @@ lh_ui_place_get_align(const lh_ui_place_t *self);
  * fills is that much smaller and one that is centred is centred in what is left.
  */
 lh_void
-lh_ui_place_set_margin(lh_ui_place_t *self, const lh_ui_insets_t *margin);
+lh_ui_place_assign_margin(lh_ui_place_t *self, const lh_ui_insets_t *margin);
 
 /**
  * @brief The room @p self keeps clear around it.
@@ -107,13 +107,13 @@ lh_ui_place_get_margin(const lh_ui_place_t *self);
  * @brief The least @p self is sized to by a flow, on each axis (0: no least).
  */
 lh_void
-lh_ui_place_set_min(lh_ui_place_t *self, lh_ui_scalar_t width, lh_ui_scalar_t height);
+lh_ui_place_set_min_size(lh_ui_place_t *self, lh_ui_scalar_t width, lh_ui_scalar_t height);
 
 /**
  * @brief The least @p self is sized to.
  */
 lh_void
-lh_ui_place_get_min(const lh_ui_place_t *self, lh_ui_size_t *out);
+lh_ui_place_copy_min(const lh_ui_place_t *self, lh_ui_size_t *out);
 
 /**
  * @brief The most @p self is sized to by a flow, on each axis (0: no most).
@@ -123,13 +123,13 @@ lh_ui_place_get_min(const lh_ui_place_t *self, lh_ui_size_t *out);
  * the same picture whenever the limit is not met.
  */
 lh_void
-lh_ui_place_set_max(lh_ui_place_t *self, lh_ui_scalar_t width, lh_ui_scalar_t height);
+lh_ui_place_set_max_size(lh_ui_place_t *self, lh_ui_scalar_t width, lh_ui_scalar_t height);
 
 /**
  * @brief The most @p self is sized to.
  */
 lh_void
-lh_ui_place_get_max(const lh_ui_place_t *self, lh_ui_size_t *out);
+lh_ui_place_copy_max(const lh_ui_place_t *self, lh_ui_size_t *out);
 
 /**
  * @brief @p length along @p axis, held between the minimum and the maximum of
@@ -137,6 +137,104 @@ lh_ui_place_get_max(const lh_ui_place_t *self, lh_ui_size_t *out);
  */
 lh_ui_scalar_t
 lh_ui_place_clamp(const lh_ui_place_t *self, lh_ui_axis_t axis, lh_ui_scalar_t length);
+
+/**
+ * @brief Store how the size of the entity is chosen (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The placement; checked by ::lh_assert_runtime_ref.
+ * @param size_mode The new value.
+ */
+lh_void
+lh_ui_place_set_size_mode(lh_ui_place_t *self, lh_ui_place_size_t size_mode);
+
+/**
+ * @brief The margin around the entity, to change in place (level 1).
+ *
+ * @param self The placement; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_insets_t *
+lh_ui_place_get_margin_mut(lh_ui_place_t *self);
+
+/**
+ * @brief The smallest size the entity takes, to change in place (level 1).
+ *
+ * @param self The placement; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_size_t *
+lh_ui_place_get_min_mut(lh_ui_place_t *self);
+
+/**
+ * @brief The largest size the entity takes, to change in place (level 1).
+ *
+ * @param self The placement; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_size_t *
+lh_ui_place_get_max_mut(lh_ui_place_t *self);
+
+/**
+ * @brief Store the size the size mode works with (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The placement; checked by ::lh_assert_runtime_ref.
+ * @param size The new value.
+ */
+lh_void
+lh_ui_place_set_size(lh_ui_place_t *self, lh_ui_scalar_t size);
+
+/**
+ * @brief The smallest size the entity takes (level 1).
+ *
+ * @param self The placement; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_size_t *
+lh_ui_place_get_min(const lh_ui_place_t *self);
+
+/**
+ * @brief Store the smallest size the entity takes (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The placement; checked by ::lh_assert_runtime_ref.
+ * @param min The new value.
+ */
+lh_void
+lh_ui_place_set_min(lh_ui_place_t *self, lh_ui_size_t min);
+
+/**
+ * @brief The largest size the entity takes (level 1).
+ *
+ * @param self The placement; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_size_t *
+lh_ui_place_get_max(const lh_ui_place_t *self);
+
+/**
+ * @brief Store the largest size the entity takes (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The placement; checked by ::lh_assert_runtime_ref.
+ * @param max The new value.
+ */
+lh_void
+lh_ui_place_set_max(lh_ui_place_t *self, lh_ui_size_t max);
+
+/**
+ * @brief Store the margin around the entity (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The placement; checked by ::lh_assert_runtime_ref.
+ * @param margin The new value.
+ */
+lh_void
+lh_ui_place_set_margin(lh_ui_place_t *self, lh_ui_insets_t margin);
 
 LH_COMPILER_EXTERN_C_END
 

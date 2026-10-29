@@ -2,6 +2,7 @@
  * @file pixmap.c
  * @brief Implementation of `lh/ui/pixmap.h`.
  */
+#include <lh/assert.h>
 
 #include <lh/bit/bswap.h>
 #include <lh/byte/limits.h>
@@ -53,11 +54,11 @@ lh_ui_pixmap_init(lh_ui_pixmap_t *self, lh_byte_ptr bits, lh_s32_t width, lh_s32
                           lh_runtime_error_code_invalid_argument);
     lh_assert_runtime_ifn(lh_null_ne(bits) || width == 0 || height == 0,
                           lh_runtime_error_code_invalid_argument);
-    self->bits = bits;
-    self->width = width;
-    self->height = height;
-    self->stride = stride;
-    self->format = format;
+    lh_ui_pixmap_set_bits(self, bits);
+    lh_ui_pixmap_set_width(self, width);
+    lh_ui_pixmap_set_height(self, height);
+    lh_ui_pixmap_set_stride(self, stride);
+    lh_ui_pixmap_set_format(self, format);
 }
 
 lh_void
@@ -100,7 +101,7 @@ lh_ui_pixmap_get_bounds(const lh_ui_pixmap_t *self, lh_ui_rect_t *out)
     lh_ui_rect_t bounds;
 
     lh_assert_runtime_ref(self);
-    lh_ui_rect_init(lh_addr_of(bounds), 0, 0, self->width, self->height);
+    lh_ui_rect_init(lh_addr_of(bounds), 0, 0, lh_ui_pixmap_get_width(self), lh_ui_pixmap_get_height(self));
     lh_ptr_deref(out) = bounds;
 }
 
@@ -108,7 +109,7 @@ lh_byte_ptr
 lh_ui_pixmap_get_row(const lh_ui_pixmap_t *self, lh_s32_t y)
 {
     lh_assert_runtime_ref(self);
-    return self->bits + y * self->stride;
+    return lh_ui_pixmap_get_bits(self) + y * lh_ui_pixmap_get_stride(self);
 }
 
 lh_byte_ptr
@@ -155,7 +156,7 @@ lh_ui_pixmap_read_word(const lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y)
 {
     lh_byte_cptr at = lh_ui_pixmap_get_address(self, x, y);
 
-    return lh_ui_pixmap_format_is_16(self->format) ? *lh_ptr_rcast(const lh_u16_t, at)
+    return lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self)) ? *lh_ptr_rcast(const lh_u16_t, at)
                                                    : *lh_ptr_rcast(const lh_u32_t, at);
 }
 
@@ -164,7 +165,7 @@ lh_ui_pixmap_write_word(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_u32_t w
 {
     lh_byte_ptr at = lh_ui_pixmap_get_address(self, x, y);
 
-    if (lh_ui_pixmap_format_is_16(self->format))
+    if (lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self)))
     {
         lh_ptr_deref(lh_ptr_rcast(lh_u16_t, at)) = lh_cast_static(lh_u16_t, word);
         return;
@@ -192,7 +193,7 @@ lh_ui_pixmap_store_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t
     lh_byte_ptr at = lh_ui_pixmap_get_address(self, x0, y);
 
     lh_return_if(x1 <= x0);
-    if (lh_ui_pixmap_format_is_16(self->format))
+    if (lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self)))
     {
         lh_memory_set_u16(lh_ptr_rcast(lh_u16_t, at), lh_cast_static(lh_usize_t, x1 - x0),
                           lh_cast_static(lh_u16_t, word));
@@ -872,7 +873,7 @@ lh_ui_pixmap_blend_alpha_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh
     lh_byte_ptr at = lh_ui_pixmap_get_address(self, x0, y);
 
     lh_return_if(x1 <= x0);
-    if (lh_ui_pixmap_format_is_16(self->format))
+    if (lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self)))
     {
         lh_ui_pixmap_blend_alpha_16(self, lh_ptr_rcast(lh_u16_t, at), alpha,
                                     lh_cast_static(lh_usize_t, x1 - x0), src);
@@ -895,11 +896,11 @@ lh_ui_pixmap_blend_cover_8(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_s32_
     {
         lh_byte_ptr at = lh_ui_pixmap_get_address(self, x, y);
 
-        if (lh_ui_pixmap_format_is_16(self->format))
+        if (lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self)))
         {
             lh_ui_pixmap_blend_cover_16_sse2(lh_ptr_rcast(lh_u16_t, at),
                                              lh_cast_static(lh_usize_t, count), cover, src,
-                                             self->format == lh_ui_pixmap_format_rgb565_swapped);
+                                             lh_ui_pixmap_get_format(self) == lh_ui_pixmap_format_rgb565_swapped);
             return;
         }
         lh_ui_pixmap_blend_cover_32_sse2(lh_ptr_rcast(lh_u32_t, at),
@@ -950,7 +951,7 @@ lh_ui_pixmap_fill_colors_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh
     lh_byte_ptr row = lh_ui_pixmap_get_address(self, x0, y);
     lh_usize_t i;
 
-    if (lh_ui_pixmap_format_is_16(self->format))
+    if (lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self)))
     {
         lh_u16_t *at = lh_ptr_rcast(lh_u16_t, row);
 
@@ -1008,5 +1009,54 @@ lh_void
 lh_ui_pixmap_clear(lh_ui_pixmap_t *self, const lh_ui_color_t *color)
 {
     lh_assert_runtime_ref(self);
-    lh_ui_pixmap_store_box(self, 0, 0, self->width, self->height, lh_ui_pixmap_pack(self, color));
+    lh_ui_pixmap_store_box(self, 0, 0, lh_ui_pixmap_get_width(self), lh_ui_pixmap_get_height(self), lh_ui_pixmap_pack(self, color));
+}
+
+lh_byte_t *
+lh_ui_pixmap_get_bits(const lh_ui_pixmap_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->bits;
+}
+
+lh_void
+lh_ui_pixmap_set_bits(lh_ui_pixmap_t *self, lh_byte_t * bits)
+{
+    lh_assert_runtime_ref(self);
+    self->bits = bits;
+}
+
+lh_void
+lh_ui_pixmap_set_width(lh_ui_pixmap_t *self, lh_s32_t width)
+{
+    lh_assert_runtime_ref(self);
+    self->width = width;
+}
+
+lh_void
+lh_ui_pixmap_set_height(lh_ui_pixmap_t *self, lh_s32_t height)
+{
+    lh_assert_runtime_ref(self);
+    self->height = height;
+}
+
+lh_s32_t
+lh_ui_pixmap_get_stride(const lh_ui_pixmap_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->stride;
+}
+
+lh_void
+lh_ui_pixmap_set_stride(lh_ui_pixmap_t *self, lh_s32_t stride)
+{
+    lh_assert_runtime_ref(self);
+    self->stride = stride;
+}
+
+lh_void
+lh_ui_pixmap_set_format(lh_ui_pixmap_t *self, lh_ui_pixmap_format_t format)
+{
+    lh_assert_runtime_ref(self);
+    self->format = format;
 }

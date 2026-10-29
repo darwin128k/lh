@@ -206,7 +206,7 @@ lh_ui_container_get_scroll_within(const lh_ui_container_t *self, lh_ui_point_t m
  *        content shrank since the last set, this is already the new max.
  */
 lh_void
-lh_ui_container_get_scroll(const lh_ui_container_t *self, lh_ui_point_t *out);
+lh_ui_container_get_clamped_scroll(const lh_ui_container_t *self, lh_ui_point_t *out);
 
 /**
  * @brief Scroll @p self to @p scroll, clamped with
@@ -221,6 +221,70 @@ lh_ui_container_set_scroll(lh_ui_container_t *self, lh_ui_point_t scroll);
  */
 lh_void
 lh_ui_container_scroll_by(lh_ui_container_t *self, lh_ui_scalar_t dx, lh_ui_scalar_t dy);
+
+/**
+ * @brief The entity the container is built on (level 1).
+ *
+ * @param self The container; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_entity_t *
+lh_ui_container_get_entity(const lh_ui_container_t *self);
+
+/**
+ * @brief The entity the container is built on, to change in place (level 1).
+ *
+ * @param self The container; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_entity_t *
+lh_ui_container_get_entity_mut(lh_ui_container_t *self);
+
+/**
+ * @brief Store the entity the container is built on (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The container; checked by ::lh_assert_runtime_ref.
+ * @param entity The new value.
+ */
+lh_void
+lh_ui_container_set_entity(lh_ui_container_t *self, lh_ui_entity_t entity);
+
+/**
+ * @brief How far the content is scrolled, to change in place (level 1).
+ *
+ * @param self The container; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_point_t *
+lh_ui_container_get_scroll_mut(lh_ui_container_t *self);
+
+/**
+ * @brief Whether the container is placing its children now (level 1).
+ *
+ * @param self The container; checked by ::lh_assert_runtime_ref.
+ */
+lh_bool_t
+lh_ui_container_is_placing(const lh_ui_container_t *self);
+
+/**
+ * @brief Store whether the container is placing its children now (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The container; checked by ::lh_assert_runtime_ref.
+ * @param placing The new value.
+ */
+lh_void
+lh_ui_container_set_placing(lh_ui_container_t *self, lh_bool_t placing);
+
+/**
+ * @brief How far the content is scrolled (level 1).
+ *
+ * @param self The container; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_point_t *
+lh_ui_container_get_scroll(const lh_ui_container_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

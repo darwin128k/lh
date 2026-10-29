@@ -56,4 +56,65 @@ struct lh_ui_web_host_hooks
 /** @copybrief lh_ui_web_host_hooks */
 typedef struct lh_ui_web_host_hooks lh_ui_web_host_hooks_t;
 
+LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief The value passed to the hooks (level 1).
+ *
+ * @param self The hooks; checked by ::lh_assert_runtime_ref.
+ */
+lh_ptr
+lh_ui_web_host_hooks_get_ctx(const lh_ui_web_host_hooks_t *self);
+
+/**
+ * @brief Store the value passed to the hooks (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The hooks; checked by ::lh_assert_runtime_ref.
+ * @param ctx The new value.
+ */
+lh_void
+lh_ui_web_host_hooks_set_ctx(lh_ui_web_host_hooks_t *self, lh_ptr ctx);
+
+/**
+ * @brief The callback the input events go to (level 1).
+ *
+ * @param self The hooks; checked by ::lh_assert_runtime_ref.
+ */
+lh_os_input_sink_cb
+lh_ui_web_host_hooks_get_input_fn(const lh_ui_web_host_hooks_t *self);
+
+/**
+ * @brief Store the callback the input events go to (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The hooks; checked by ::lh_assert_runtime_ref.
+ * @param input The new value.
+ */
+lh_void
+lh_ui_web_host_hooks_set_input_fn(lh_ui_web_host_hooks_t *self, lh_os_input_sink_cb input);
+
+/**
+ * @brief The controller the input events go to (level 1).
+ *
+ * @param self The hooks; checked by ::lh_assert_runtime_ref.
+ */
+lh_os_controller_t *
+lh_ui_web_host_hooks_get_controller(const lh_ui_web_host_hooks_t *self);
+
+/**
+ * @brief Store the controller the input events go to (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The hooks; checked by ::lh_assert_runtime_ref.
+ * @param controller The new value.
+ */
+lh_void
+lh_ui_web_host_hooks_set_controller(lh_ui_web_host_hooks_t *self, lh_os_controller_t * controller);
+
+LH_COMPILER_EXTERN_C_END
+
 #endif /* LH_UI_WEB_HOST_HOOKS_H */

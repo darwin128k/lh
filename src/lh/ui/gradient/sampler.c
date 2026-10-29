@@ -2,6 +2,7 @@
  * @file sampler.c
  * @brief Implementation of `lh/ui/gradient/sampler.h`.
  */
+#include <lh/assert.h>
 
 #include <lh/math.h>
 #include <lh/ui/gradient/sampler.h>
@@ -66,7 +67,7 @@ lh_ui_gradient_sampler_segment_at(const lh_ui_gradient_t *gradient, lh_s32_t seg
 lh_void
 lh_ui_gradient_sampler_fill(lh_ui_gradient_sampler_t *self)
 {
-    const lh_ui_gradient_t *gradient = self->gradient;
+    const lh_ui_gradient_t *gradient = lh_ui_gradient_sampler_get_gradient(self);
     const lh_s32_t count = lh_ui_gradient_get_stop_count(gradient);
     lh_ui_gradient_sampler_lerp_t lerp;
     lh_s32_t carried = 0;
@@ -85,7 +86,7 @@ lh_ui_gradient_sampler_fill(lh_ui_gradient_sampler_t *self)
         if (count <= 1 || frac <= lh_ui_gradient_sampler_stop_frac(gradient, 0) || segment >= count)
         {
             lh_ui_gradient_color_at(gradient, lh_cast_static(lh_byte_t, frac),
-                                    lh_addr_of(self->colors[frac]));
+                                    lh_addr_of(lh_ui_gradient_sampler_get_colors(self)[frac]));
             continue;
         }
         start = lh_ui_gradient_sampler_stop_frac(gradient, segment - 1);
@@ -93,7 +94,7 @@ lh_ui_gradient_sampler_fill(lh_ui_gradient_sampler_t *self)
         if (span <= 0 || frac - start < 0)
         {
             lh_ui_gradient_color_at(gradient, lh_cast_static(lh_byte_t, frac),
-                                    lh_addr_of(self->colors[frac]));
+                                    lh_addr_of(lh_ui_gradient_sampler_get_colors(self)[frac]));
             carried = 0;
             continue;
         }
@@ -112,7 +113,7 @@ lh_ui_gradient_sampler_fill(lh_ui_gradient_sampler_t *self)
         {
             lh_ui_gradient_sampler_lerp_next(lh_addr_of(lerp));
         }
-        lh_ui_gradient_sampler_lerp_color(lh_addr_of(lerp), lh_addr_of(self->colors[frac]));
+        lh_ui_gradient_sampler_lerp_color(lh_addr_of(lerp), lh_addr_of(lh_ui_gradient_sampler_get_colors(self)[frac]));
     }
 }
 
@@ -120,9 +121,9 @@ lh_void
 lh_ui_gradient_sampler_radial_run(const lh_ui_gradient_sampler_t *self, lh_s32_t x0, lh_s32_t x1,
                                   lh_s64_t dy, lh_ui_color_t *out)
 {
-    const lh_s64_t uy = dy * 1024 / self->height;
+    const lh_s64_t uy = dy * 1024 / lh_ui_gradient_sampler_get_height(self);
     const lh_s64_t uy2 = uy * uy;
-    lh_s64_t along = (2 * lh_cast_static(lh_s64_t, x0) + 1 - self->middle_x) * 1024;
+    lh_s64_t along = (2 * lh_cast_static(lh_s64_t, x0) + 1 - lh_ui_gradient_sampler_get_middle_x(self)) * 1024;
     lh_s64_t rest;
     lh_s64_t quotient;
     lh_s64_t step_rest;
@@ -131,10 +132,10 @@ lh_ui_gradient_sampler_radial_run(const lh_ui_gradient_sampler_t *self, lh_s32_t
     lh_s32_t x;
 
     lh_return_if(x1 <= x0);
-    quotient = lh_math_floor_div(along, self->width);
-    rest = lh_math_floor_mod(along, self->width);
-    step = lh_math_floor_div(2048, self->width);
-    step_rest = lh_math_floor_mod(2048, self->width);
+    quotient = lh_math_floor_div(along, lh_ui_gradient_sampler_get_width(self));
+    rest = lh_math_floor_mod(along, lh_ui_gradient_sampler_get_width(self));
+    step = lh_math_floor_div(2048, lh_ui_gradient_sampler_get_width(self));
+    step_rest = lh_math_floor_mod(2048, lh_ui_gradient_sampler_get_width(self));
     for (x = x0; x < x1; ++x)
     {
         const lh_s64_t ux = (along < 0 && rest != 0) ? quotient + 1 : quotient;
@@ -148,13 +149,13 @@ lh_ui_gradient_sampler_radial_run(const lh_ui_gradient_sampler_t *self, lh_s32_t
         {
             --level;
         }
-        out[x - x0] = self->colors[level];
+        out[x - x0] = lh_ui_gradient_sampler_get_colors(self)[level];
         along += 2048;
         quotient += step;
         rest += step_rest;
-        if (rest >= self->width)
+        if (rest >= lh_ui_gradient_sampler_get_width(self))
         {
-            rest -= self->width;
+            rest -= lh_ui_gradient_sampler_get_width(self);
             ++quotient;
         }
     }
@@ -172,29 +173,24 @@ lh_ui_gradient_sampler_init(lh_ui_gradient_sampler_t *self, const lh_ui_gradient
     lh_assert_runtime_ref(rect);
     origin = lh_ui_rect_get_origin(rect);
     size = lh_ui_rect_get_size(rect);
-    self->gradient = gradient;
+    lh_ui_gradient_sampler_set_gradient(self, gradient);
     lh_ui_gradient_sampler_fill(self);
-    self->shape = lh_ui_gradient_get_shape(gradient);
-    self->width = lh_ui_scalar_floor_s32(lh_ui_size_get_width(size));
-    self->height = lh_ui_scalar_floor_s32(lh_ui_size_get_height(size));
-    self->middle_x =
-        2 * lh_cast_static(lh_s64_t, lh_ui_scalar_floor_s32(lh_ui_point_get_x(origin))) +
-        self->width;
-    self->middle_y =
-        2 * lh_cast_static(lh_s64_t, lh_ui_scalar_floor_s32(lh_ui_point_get_y(origin))) +
-        self->height;
-    self->sine = lh_ui_gradient_sine(lh_ui_gradient_get_angle(gradient));
-    self->cosine = lh_ui_gradient_sine(lh_ui_gradient_get_angle(gradient) + 90);
-    self->length =
-        (self->width * lh_math_abs(self->sine) + self->height * lh_math_abs(self->cosine)) * 2;
+    lh_ui_gradient_sampler_set_shape(self, lh_ui_gradient_get_shape(gradient));
+    lh_ui_gradient_sampler_set_width(self, lh_ui_scalar_floor_s32(lh_ui_size_get_width(size)));
+    lh_ui_gradient_sampler_set_height(self, lh_ui_scalar_floor_s32(lh_ui_size_get_height(size)));
+    lh_ui_gradient_sampler_set_middle_x(self, 2 * lh_cast_static(lh_s64_t, lh_ui_scalar_floor_s32(lh_ui_point_get_x(origin))) + lh_ui_gradient_sampler_get_width(self));
+    lh_ui_gradient_sampler_set_middle_y(self, 2 * lh_cast_static(lh_s64_t, lh_ui_scalar_floor_s32(lh_ui_point_get_y(origin))) + lh_ui_gradient_sampler_get_height(self));
+    lh_ui_gradient_sampler_set_sine(self, lh_ui_gradient_sine(lh_ui_gradient_get_angle(gradient)));
+    lh_ui_gradient_sampler_set_cosine(self, lh_ui_gradient_sine(lh_ui_gradient_get_angle(gradient) + 90));
+    lh_ui_gradient_sampler_set_length(self, (lh_ui_gradient_sampler_get_width(self) * lh_math_abs(lh_ui_gradient_sampler_get_sine(self)) + lh_ui_gradient_sampler_get_height(self) * lh_math_abs(lh_ui_gradient_sampler_get_cosine(self))) * 2);
 }
 
 lh_bool_t
 lh_ui_gradient_sampler_is_flat(const lh_ui_gradient_sampler_t *self)
 {
     lh_assert_runtime_ref(self);
-    return (self->width <= 0 || self->height <= 0 ||
-            (self->shape != lh_ui_gradient_shape_radial && self->length == 0))
+    return (lh_ui_gradient_sampler_get_width(self) <= 0 || lh_ui_gradient_sampler_get_height(self) <= 0 ||
+            (lh_ui_gradient_sampler_get_shape(self) != lh_ui_gradient_shape_radial && lh_ui_gradient_sampler_get_length(self) == 0))
                ? lh_bool_true
                : lh_bool_false;
 }
@@ -203,7 +199,7 @@ lh_void
 lh_ui_gradient_sampler_flat_run(const lh_ui_gradient_sampler_t *self, lh_s32_t count,
                                 lh_ui_color_t *out)
 {
-    const lh_ui_color_t first = self->colors[0];
+    const lh_ui_color_t first = lh_ui_gradient_sampler_get_colors(self)[0];
     lh_s32_t i;
 
     for (i = 0; i < count; ++i)
@@ -220,8 +216,8 @@ lh_ui_gradient_sampler_linear_run(const lh_ui_gradient_sampler_t *self, lh_s64_t
        @p move / 255 / 2 a pixel: the quotient rounded down and carried with its
        remainder. Where ::lh_ui_gradient_frac_at cuts toward zero instead the two
        differ only below zero, and both are then the first step. */
-    const lh_s64_t divisor = 2 * self->length;
-    const lh_s64_t at = (2 * (dx * self->sine - dy * self->cosine) + self->length) * 255;
+    const lh_s64_t divisor = 2 * lh_ui_gradient_sampler_get_length(self);
+    const lh_s64_t at = (2 * (dx * lh_ui_gradient_sampler_get_sine(self) - dy * lh_ui_gradient_sampler_get_cosine(self)) + lh_ui_gradient_sampler_get_length(self)) * 255;
     lh_s64_t quotient = lh_math_floor_div(at, divisor);
     lh_s64_t rest = lh_math_floor_mod(at, divisor);
     const lh_s64_t step = lh_math_floor_div(move, divisor);
@@ -230,7 +226,7 @@ lh_ui_gradient_sampler_linear_run(const lh_ui_gradient_sampler_t *self, lh_s64_t
 
     for (i = 0; i < count; ++i)
     {
-        out[i] = self->colors[lh_cast_static(lh_s32_t, lh_math_clamp(quotient, 0, 255))];
+        out[i] = lh_ui_gradient_sampler_get_colors(self)[lh_cast_static(lh_s32_t, lh_math_clamp(quotient, 0, 255))];
         quotient += step;
         rest += step_rest;
         if (rest >= divisor)
@@ -250,7 +246,7 @@ lh_ui_gradient_sampler_radial_row(const lh_ui_gradient_sampler_t *self, lh_s32_t
        gives `dx`. So the half from the middle on is walked, and each pixel left of
        the middle is its mirror's -- walked too when the mirror is past the end of
        the row. */
-    const lh_s64_t middle = self->middle_x;
+    const lh_s64_t middle = lh_ui_gradient_sampler_get_middle_x(self);
     const lh_s32_t centre =
         lh_cast_static(lh_s32_t, (middle >= 0 ? middle / 2 : lh_math_neg((1 - middle) / 2)));
     const lh_s32_t right = lh_math_max(x0, centre);
@@ -275,8 +271,8 @@ lh_ui_gradient_sampler_row(lh_ui_gradient_sampler_t *self, lh_s32_t x0, lh_s32_t
 {
     /* The pixel's centre from the middle of the box, doubled, as ::lh_ui_gradient_frac_at
        has it; each pixel to the right is two further along. */
-    const lh_s64_t dx = 2 * lh_cast_static(lh_s64_t, x0) + 1 - self->middle_x;
-    const lh_s64_t dy = 2 * lh_cast_static(lh_s64_t, y) + 1 - self->middle_y;
+    const lh_s64_t dx = 2 * lh_cast_static(lh_s64_t, x0) + 1 - lh_ui_gradient_sampler_get_middle_x(self);
+    const lh_s64_t dy = 2 * lh_cast_static(lh_s64_t, y) + 1 - lh_ui_gradient_sampler_get_middle_y(self);
 
     lh_assert_runtime_ref(out);
     if (lh_ui_gradient_sampler_is_flat(self))
@@ -284,26 +280,26 @@ lh_ui_gradient_sampler_row(lh_ui_gradient_sampler_t *self, lh_s32_t x0, lh_s32_t
         lh_ui_gradient_sampler_flat_run(self, x1 - x0, out);
         return;
     }
-    if (self->shape == lh_ui_gradient_shape_radial)
+    if (lh_ui_gradient_sampler_get_shape(self) == lh_ui_gradient_shape_radial)
     {
         lh_ui_gradient_sampler_radial_row(self, x0, x1, dy, out);
         return;
     }
-    lh_ui_gradient_sampler_linear_run(self, dx, dy, 4 * self->sine * 255, x1 - x0, out);
+    lh_ui_gradient_sampler_linear_run(self, dx, dy, 4 * lh_ui_gradient_sampler_get_sine(self) * 255, x1 - x0, out);
 }
 
 lh_void
 lh_ui_gradient_sampler_column(lh_ui_gradient_sampler_t *self, lh_s32_t x, lh_s32_t y0, lh_s32_t y1,
                               lh_ui_color_t *out)
 {
-    const lh_s64_t dx = 2 * lh_cast_static(lh_s64_t, x) + 1 - self->middle_x;
-    const lh_s64_t dy = 2 * lh_cast_static(lh_s64_t, y0) + 1 - self->middle_y;
+    const lh_s64_t dx = 2 * lh_cast_static(lh_s64_t, x) + 1 - lh_ui_gradient_sampler_get_middle_x(self);
+    const lh_s64_t dy = 2 * lh_cast_static(lh_s64_t, y0) + 1 - lh_ui_gradient_sampler_get_middle_y(self);
     lh_s32_t y;
 
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(out);
-    if (self->shape == lh_ui_gradient_shape_radial || self->width <= 0 || self->height <= 0 ||
-        self->length == 0)
+    if (lh_ui_gradient_sampler_get_shape(self) == lh_ui_gradient_shape_radial || lh_ui_gradient_sampler_get_width(self) <= 0 || lh_ui_gradient_sampler_get_height(self) <= 0 ||
+        lh_ui_gradient_sampler_get_length(self) == 0)
     {
         for (y = y0; y < y1; ++y)
         {
@@ -312,5 +308,145 @@ lh_ui_gradient_sampler_column(lh_ui_gradient_sampler_t *self, lh_s32_t x, lh_s32
         return;
     }
     /* As along a row, but a pixel down moves the along the line by `-2 * cosine`. */
-    lh_ui_gradient_sampler_linear_run(self, dx, dy, -4 * self->cosine * 255, y1 - y0, out);
+    lh_ui_gradient_sampler_linear_run(self, dx, dy, -4 * lh_ui_gradient_sampler_get_cosine(self) * 255, y1 - y0, out);
+}
+
+const lh_ui_gradient_t *
+lh_ui_gradient_sampler_get_gradient(const lh_ui_gradient_sampler_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->gradient;
+}
+
+lh_void
+lh_ui_gradient_sampler_set_gradient(lh_ui_gradient_sampler_t *self, const lh_ui_gradient_t * gradient)
+{
+    lh_assert_runtime_ref(self);
+    self->gradient = gradient;
+}
+
+const lh_ui_color_t *
+lh_ui_gradient_sampler_get_colors(const lh_ui_gradient_sampler_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->colors;
+}
+
+lh_ui_color_t *
+lh_ui_gradient_sampler_get_colors_mut(lh_ui_gradient_sampler_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->colors;
+}
+
+lh_ui_gradient_shape_t
+lh_ui_gradient_sampler_get_shape(const lh_ui_gradient_sampler_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->shape;
+}
+
+lh_void
+lh_ui_gradient_sampler_set_shape(lh_ui_gradient_sampler_t *self, lh_ui_gradient_shape_t shape)
+{
+    lh_assert_runtime_ref(self);
+    self->shape = shape;
+}
+
+lh_s64_t
+lh_ui_gradient_sampler_get_width(const lh_ui_gradient_sampler_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->width;
+}
+
+lh_void
+lh_ui_gradient_sampler_set_width(lh_ui_gradient_sampler_t *self, lh_s64_t width)
+{
+    lh_assert_runtime_ref(self);
+    self->width = width;
+}
+
+lh_s64_t
+lh_ui_gradient_sampler_get_height(const lh_ui_gradient_sampler_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->height;
+}
+
+lh_void
+lh_ui_gradient_sampler_set_height(lh_ui_gradient_sampler_t *self, lh_s64_t height)
+{
+    lh_assert_runtime_ref(self);
+    self->height = height;
+}
+
+lh_s64_t
+lh_ui_gradient_sampler_get_middle_x(const lh_ui_gradient_sampler_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->middle_x;
+}
+
+lh_void
+lh_ui_gradient_sampler_set_middle_x(lh_ui_gradient_sampler_t *self, lh_s64_t middle_x)
+{
+    lh_assert_runtime_ref(self);
+    self->middle_x = middle_x;
+}
+
+lh_s64_t
+lh_ui_gradient_sampler_get_middle_y(const lh_ui_gradient_sampler_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->middle_y;
+}
+
+lh_void
+lh_ui_gradient_sampler_set_middle_y(lh_ui_gradient_sampler_t *self, lh_s64_t middle_y)
+{
+    lh_assert_runtime_ref(self);
+    self->middle_y = middle_y;
+}
+
+lh_s64_t
+lh_ui_gradient_sampler_get_sine(const lh_ui_gradient_sampler_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->sine;
+}
+
+lh_void
+lh_ui_gradient_sampler_set_sine(lh_ui_gradient_sampler_t *self, lh_s64_t sine)
+{
+    lh_assert_runtime_ref(self);
+    self->sine = sine;
+}
+
+lh_s64_t
+lh_ui_gradient_sampler_get_cosine(const lh_ui_gradient_sampler_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->cosine;
+}
+
+lh_void
+lh_ui_gradient_sampler_set_cosine(lh_ui_gradient_sampler_t *self, lh_s64_t cosine)
+{
+    lh_assert_runtime_ref(self);
+    self->cosine = cosine;
+}
+
+lh_s64_t
+lh_ui_gradient_sampler_get_length(const lh_ui_gradient_sampler_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->length;
+}
+
+lh_void
+lh_ui_gradient_sampler_set_length(lh_ui_gradient_sampler_t *self, lh_s64_t length)
+{
+    lh_assert_runtime_ref(self);
+    self->length = length;
 }

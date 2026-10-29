@@ -188,6 +188,83 @@ lh_ui_scalar_t
 lh_ui_text_line_get_shift(const lh_ui_text_line_t *self, lh_ui_scalar_t block,
                           lh_ui_text_align_h_t align);
 
+/**
+ * @brief Store the first character of the line (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The line; checked by ::lh_assert_runtime_ref.
+ * @param begin The new value.
+ */
+lh_void
+lh_ui_text_line_set_begin(lh_ui_text_line_t *self, const lh_char_t * begin);
+
+/**
+ * @brief Store the character after the last one of the line (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The line; checked by ::lh_assert_runtime_ref.
+ * @param end The new value.
+ */
+lh_void
+lh_ui_text_line_set_end(lh_ui_text_line_t *self, const lh_char_t * end);
+
+/**
+ * @brief Store where the next line starts (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The line; checked by ::lh_assert_runtime_ref.
+ * @param next The new value.
+ */
+lh_void
+lh_ui_text_line_set_next(lh_ui_text_line_t *self, const lh_char_t * next);
+
+/**
+ * @brief Store the width of the line (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The line; checked by ::lh_assert_runtime_ref.
+ * @param width The new value.
+ */
+lh_void
+lh_ui_text_line_set_width(lh_ui_text_line_t *self, lh_ui_scalar_t width);
+
+/**
+ * @brief Store the top of the ink of the line (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The line; checked by ::lh_assert_runtime_ref.
+ * @param ink_top The new value.
+ */
+lh_void
+lh_ui_text_line_set_ink_top(lh_ui_text_line_t *self, lh_ui_scalar_t ink_top);
+
+/**
+ * @brief Store the bottom of the ink of the line (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The line; checked by ::lh_assert_runtime_ref.
+ * @param ink_bottom The new value.
+ */
+lh_void
+lh_ui_text_line_set_ink_bottom(lh_ui_text_line_t *self, lh_ui_scalar_t ink_bottom);
+
+/**
+ * @brief Store whether the line has any ink (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The line; checked by ::lh_assert_runtime_ref.
+ * @param inked The new value.
+ */
+lh_void
+lh_ui_text_line_set_inked(lh_ui_text_line_t *self, lh_bool_t inked);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_TEXT_LINE_H */

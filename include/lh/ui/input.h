@@ -343,6 +343,102 @@ lh_ui_input_set_caret_shape(lh_ui_input_t *self, lh_ui_input_caret_shape_t shape
 lh_bool_t
 lh_ui_input_is_focused(const lh_ui_input_t *self);
 
+/**
+ * @brief The label the field is built on (level 1).
+ *
+ * @param self The input field; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_label_t *
+lh_ui_input_get_label(const lh_ui_input_t *self);
+
+/**
+ * @brief The label the field is built on, to change in place (level 1).
+ *
+ * @param self The input field; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_label_t *
+lh_ui_input_get_label_mut(lh_ui_input_t *self);
+
+/**
+ * @brief Store the label the field is built on (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The input field; checked by ::lh_assert_runtime_ref.
+ * @param label The new value.
+ */
+lh_void
+lh_ui_input_set_label(lh_ui_input_t *self, lh_ui_label_t label);
+
+/**
+ * @brief The text the field edits (level 1).
+ *
+ * @param self The input field; checked by ::lh_assert_runtime_ref.
+ */
+lh_char_t *
+lh_ui_input_get_buffer(const lh_ui_input_t *self);
+
+/**
+ * @brief Store the text the field edits (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The input field; checked by ::lh_assert_runtime_ref.
+ * @param buffer The new value.
+ */
+lh_void
+lh_ui_input_set_buffer(lh_ui_input_t *self, lh_char_t * buffer);
+
+/**
+ * @brief How many characters the buffer holds (level 1).
+ *
+ * @param self The input field; checked by ::lh_assert_runtime_ref.
+ */
+lh_u16_t
+lh_ui_input_get_capacity(const lh_ui_input_t *self);
+
+/**
+ * @brief Store how many characters the buffer holds (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The input field; checked by ::lh_assert_runtime_ref.
+ * @param capacity The new value.
+ */
+lh_void
+lh_ui_input_set_capacity(lh_ui_input_t *self, lh_u16_t capacity);
+
+/**
+ * @brief How many characters the buffer has in use (level 1).
+ *
+ * @param self The input field; checked by ::lh_assert_runtime_ref.
+ */
+lh_u16_t
+lh_ui_input_get_used(const lh_ui_input_t *self);
+
+/**
+ * @brief Store how many characters the buffer has in use (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The input field; checked by ::lh_assert_runtime_ref.
+ * @param used The new value.
+ */
+lh_void
+lh_ui_input_set_used(lh_ui_input_t *self, lh_u16_t used);
+
+/**
+ * @brief Store whether the field has the focus (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The input field; checked by ::lh_assert_runtime_ref.
+ * @param focused The new value.
+ */
+lh_void
+lh_ui_input_set_focused(lh_ui_input_t *self, lh_bool_t focused);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_INPUT_H */

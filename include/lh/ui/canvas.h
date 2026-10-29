@@ -85,7 +85,7 @@ lh_ui_canvas_set_size(lh_ui_canvas_t *self, lh_ui_size_t size);
  * @brief Target size of @p self.
  */
 lh_void
-lh_ui_canvas_get_size(const lh_ui_canvas_t *self, lh_ui_size_t *out);
+lh_ui_canvas_copy_size(const lh_ui_canvas_t *self, lh_ui_size_t *out);
 
 /**
  * @brief Union @p rect (target space) into the accumulated damage of @p self.
@@ -470,7 +470,7 @@ lh_ui_canvas_glass(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_
  * ::lh_ui_canvas_glass return ::lh_bool_false.
  */
 lh_void
-lh_ui_canvas_set_scratch(lh_ui_canvas_t *self, lh_u8_t *scratch, lh_usize_t bytes);
+lh_ui_canvas_use_scratch(lh_ui_canvas_t *self, lh_u8_t *scratch, lh_usize_t bytes);
 
 /**
  * @brief Scratch of @p self, or null when it has none.
@@ -483,6 +483,221 @@ lh_ui_canvas_get_scratch(const lh_ui_canvas_t *self);
  */
 lh_usize_t
 lh_ui_canvas_get_scratch_bytes(const lh_ui_canvas_t *self);
+
+/**
+ * @brief The drawing state now in effect (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_canvas_state_t *
+lh_ui_canvas_get_state(const lh_ui_canvas_t *self);
+
+/**
+ * @brief The drawing state now in effect, to change in place (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_canvas_state_t *
+lh_ui_canvas_get_state_mut(lh_ui_canvas_t *self);
+
+/**
+ * @brief Store the drawing state now in effect (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @param state The new value.
+ */
+lh_void
+lh_ui_canvas_set_state(lh_ui_canvas_t *self, lh_ui_canvas_state_t state);
+
+/**
+ * @brief The stack of saved drawing states (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_canvas_state_t *
+lh_ui_canvas_get_saved(const lh_ui_canvas_t *self);
+
+/**
+ * @brief The stack of saved drawing states, to change in place (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_canvas_state_t *
+lh_ui_canvas_get_saved_mut(lh_ui_canvas_t *self);
+
+/**
+ * @brief How many states are saved (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ */
+lh_u8_t
+lh_ui_canvas_get_depth(const lh_ui_canvas_t *self);
+
+/**
+ * @brief Store how many states are saved (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @param depth The new value.
+ */
+lh_void
+lh_ui_canvas_set_depth(lh_ui_canvas_t *self, lh_u8_t depth);
+
+/**
+ * @brief The size of the canvas, to change in place (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_size_t *
+lh_ui_canvas_get_size_mut(lh_ui_canvas_t *self);
+
+/**
+ * @brief Where the frame being drawn sits in the target (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_point_t *
+lh_ui_canvas_get_frame_at(const lh_ui_canvas_t *self);
+
+/**
+ * @brief Where the frame being drawn sits in the target, to change in place (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_point_t *
+lh_ui_canvas_get_frame_at_mut(lh_ui_canvas_t *self);
+
+/**
+ * @brief Store where the frame being drawn sits in the target (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @param frame_at The new value.
+ */
+lh_void
+lh_ui_canvas_set_frame_at(lh_ui_canvas_t *self, lh_ui_point_t frame_at);
+
+/**
+ * @brief The area changed since the last frame, to change in place (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_rect_t *
+lh_ui_canvas_get_damage_mut(lh_ui_canvas_t *self);
+
+/**
+ * @brief Store the area changed since the last frame (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @param damage The new value.
+ */
+lh_void
+lh_ui_canvas_set_damage(lh_ui_canvas_t *self, lh_ui_rect_t damage);
+
+/**
+ * @brief Whether anything changed since the last frame (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ */
+lh_bool_t
+lh_ui_canvas_is_has_damage(const lh_ui_canvas_t *self);
+
+/**
+ * @brief Store whether anything changed since the last frame (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @param has_damage The new value.
+ */
+lh_void
+lh_ui_canvas_set_has_damage(lh_ui_canvas_t *self, lh_bool_t has_damage);
+
+/**
+ * @brief The rounded clips in effect (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_canvas_clip_round_t *
+lh_ui_canvas_get_rounds(const lh_ui_canvas_t *self);
+
+/**
+ * @brief The rounded clips in effect, to change in place (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_canvas_clip_round_t *
+lh_ui_canvas_get_rounds_mut(lh_ui_canvas_t *self);
+
+/**
+ * @brief The rectangles the frame drew (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_rects_t *
+lh_ui_canvas_get_drawn(const lh_ui_canvas_t *self);
+
+/**
+ * @brief The rectangles the frame drew, to change in place (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_rects_t *
+lh_ui_canvas_get_drawn_mut(lh_ui_canvas_t *self);
+
+/**
+ * @brief Store the rectangles the frame drew (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @param drawn The new value.
+ */
+lh_void
+lh_ui_canvas_set_drawn(lh_ui_canvas_t *self, lh_ui_rects_t drawn);
+
+/**
+ * @brief Store how many bytes of scratch the backend asked for (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @param scratch_bytes The new value.
+ */
+lh_void
+lh_ui_canvas_set_scratch_bytes(lh_ui_canvas_t *self, lh_usize_t scratch_bytes);
+
+/**
+ * @brief The size of the canvas (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_size_t *
+lh_ui_canvas_get_size(const lh_ui_canvas_t *self);
+
+/**
+ * @brief Store the scratch buffer the backend may use; ::lh_null for none (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @param scratch The new value.
+ */
+lh_void
+lh_ui_canvas_set_scratch(lh_ui_canvas_t *self, lh_u8_t * scratch);
 
 LH_COMPILER_EXTERN_C_END
 

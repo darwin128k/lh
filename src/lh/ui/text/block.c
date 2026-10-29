@@ -2,6 +2,7 @@
  * @file block.c
  * @brief Implementation of `lh/ui/text/block.h`.
  */
+#include <lh/assert.h>
 
 #include <lh/ui/text/block.h>
 
@@ -12,10 +13,10 @@ lh_void
 lh_ui_text_block_init(lh_ui_text_block_t *self)
 {
     lh_assert_runtime_ref(self);
-    lh_ui_rect_init_empty(lh_addr_of(self->ink));
-    self->width = lh_ui_scalar(0);
-    self->ink_top = lh_ui_scalar(0);
-    self->lines = 0U;
+    lh_ui_rect_init_empty(lh_ui_text_block_get_ink_mut(self));
+    lh_ui_text_block_set_width(self, lh_ui_scalar(0));
+    lh_ui_text_block_set_ink_top(self, lh_ui_scalar(0));
+    lh_ui_text_block_set_lines(self, 0U);
 }
 
 lh_void
@@ -28,8 +29,8 @@ lh_ui_text_block_measure_layout(lh_ui_text_block_t *self, const lh_ui_font_t *fo
     for (; lh_ui_text_line_measure(lh_addr_of(laid), font, text, width);
          text = lh_ui_text_line_get_next(lh_addr_of(laid)))
     {
-        self->width = lh_math_max(self->width, lh_ui_text_line_get_width(lh_addr_of(laid)));
-        ++self->lines;
+        lh_ui_text_block_set_width(self, lh_math_max(lh_ui_text_block_get_width(self), lh_ui_text_line_get_width(lh_addr_of(laid))));
+        lh_ui_text_block_set_lines(self, lh_ui_text_block_get_lines(self) + 1);
     }
 }
 
@@ -57,14 +58,14 @@ lh_ui_text_block_measure(lh_ui_text_block_t *self, const lh_ui_font_t *font, con
 
         /* The first ink is asked of each line from the top of its own box: it is
            what an alignment takes back. */
-        if (!lh_ui_rect_is_empty(lh_addr_of(line_ink)) && (!inked || at < self->ink_top))
+        if (!lh_ui_rect_is_empty(lh_addr_of(line_ink)) && (!inked || at < lh_ui_text_block_get_ink_top(self)))
         {
-            self->ink_top = at;
+            lh_ui_text_block_set_ink_top(self, at);
             inked = lh_bool_true;
         }
-        self->width = lh_math_max(self->width, lh_ui_text_line_get_width(lh_addr_of(laid)));
-        lh_ui_rect_union(lh_addr_of(self->ink), lh_addr_of(line_ink), lh_addr_of(self->ink));
-        ++self->lines;
+        lh_ui_text_block_set_width(self, lh_math_max(lh_ui_text_block_get_width(self), lh_ui_text_line_get_width(lh_addr_of(laid))));
+        lh_ui_rect_union(lh_ui_text_block_get_ink_mut(self), lh_addr_of(line_ink), lh_ui_text_block_get_ink_mut(self));
+        lh_ui_text_block_set_lines(self, lh_ui_text_block_get_lines(self) + 1);
         lh_ui_point_offset(lh_addr_of(box), lh_ui_scalar(0), line_height, lh_addr_of(box));
     }
 }
@@ -97,8 +98,8 @@ lh_ui_text_block_get_ink_rect(const lh_ui_text_block_t *self, lh_ui_point_t orig
     lh_assert_runtime_ref(self);
     /* The union skips empty rects, so moving the hull is the hull of the moved
        lines -- including when nothing is inked and the hull is the last line's box. */
-    lh_ui_rect_offset(lh_addr_of(self->ink), lh_ui_point_get_x(lh_addr_of(origin)),
-                      lh_ui_point_get_y(lh_addr_of(origin)) - self->ink_top, out);
+    lh_ui_rect_offset(lh_ui_text_block_get_ink(self), lh_ui_point_get_x(lh_addr_of(origin)),
+                      lh_ui_point_get_y(lh_addr_of(origin)) - lh_ui_text_block_get_ink_top(self), out);
 }
 
 lh_void
@@ -135,4 +136,46 @@ lh_ui_text_block_get_size(const lh_ui_text_block_t *self, const lh_ui_font_t *fo
                       lh_ui_scalar_of(lh_ui_font_get_line_height(font)) +
                   lh_ui_scalar_of(lh_ui_font_get_cap_height(font)));
     lh_ptr_deref(out) = size;
+}
+
+const lh_ui_rect_t *
+lh_ui_text_block_get_ink(const lh_ui_text_block_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->ink);
+}
+
+lh_ui_rect_t *
+lh_ui_text_block_get_ink_mut(lh_ui_text_block_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->ink);
+}
+
+lh_void
+lh_ui_text_block_set_ink(lh_ui_text_block_t *self, lh_ui_rect_t ink)
+{
+    lh_assert_runtime_ref(self);
+    self->ink = ink;
+}
+
+lh_void
+lh_ui_text_block_set_width(lh_ui_text_block_t *self, lh_ui_scalar_t width)
+{
+    lh_assert_runtime_ref(self);
+    self->width = width;
+}
+
+lh_void
+lh_ui_text_block_set_ink_top(lh_ui_text_block_t *self, lh_ui_scalar_t ink_top)
+{
+    lh_assert_runtime_ref(self);
+    self->ink_top = ink_top;
+}
+
+lh_void
+lh_ui_text_block_set_lines(lh_ui_text_block_t *self, lh_u32_t lines)
+{
+    lh_assert_runtime_ref(self);
+    self->lines = lines;
 }

@@ -148,7 +148,7 @@ TEST(ui_canvas, a_sheet_across_the_strip_line_is_refused_until_the_part_holds_it
     lh_ui_rect_init(lh_addr_of(sheet), 360, 48, 240, 40);
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_effect_backend), lh_addr_of(log));
     lh_ui_canvas_set_size(lh_addr_of(canvas), size);
-    lh_ui_canvas_set_scratch(lh_addr_of(canvas), scratch, sizeof(scratch));
+    lh_ui_canvas_use_scratch(lh_addr_of(canvas), scratch, sizeof(scratch));
 
     lh_ui_canvas_begin_area(lh_addr_of(canvas), lh_addr_of(area));
     lh_ui_canvas_push(lh_addr_of(canvas), zero, lh_addr_of(part));
@@ -200,7 +200,7 @@ TEST(ui_canvas, a_clip_that_cuts_a_shape_still_cuts_the_effect_that_reads_it)
     lh_ui_rect_init(lh_addr_of(cut_panel), 20, 55, 40, 20);
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_effect_backend), lh_addr_of(log));
     lh_ui_canvas_set_size(lh_addr_of(canvas), size);
-    lh_ui_canvas_set_scratch(lh_addr_of(canvas), scratch, sizeof(scratch));
+    lh_ui_canvas_use_scratch(lh_addr_of(canvas), scratch, sizeof(scratch));
 
     /* The clip holds the panel: the shape and the effect both go to the slots. */
     lh_ui_canvas_begin(lh_addr_of(canvas));

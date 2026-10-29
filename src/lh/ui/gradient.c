@@ -2,6 +2,7 @@
  * @file gradient.c
  * @brief Implementation of lh/ui/gradient.h and lh/ui/gradient/stop.h.
  */
+#include <lh/assert.h>
 
 #include <lh/math.h>
 #include <lh/byte/limits.h>
@@ -61,9 +62,9 @@ lh_void
 lh_ui_gradient_init(lh_ui_gradient_t *self)
 {
     lh_assert_runtime_ref(self);
-    self->stops_count = 0;
-    self->shape = lh_ui_gradient_shape_linear;
-    self->angle = 180;
+    lh_ui_gradient_set_stops_count(self, 0);
+    lh_ui_gradient_set_shape(self, lh_ui_gradient_shape_linear);
+    lh_ui_gradient_set_angle(self, 180);
 }
 
 lh_void
@@ -76,7 +77,7 @@ lh_ui_gradient_init_stops(lh_ui_gradient_t *self, const lh_ui_color_t *colors, l
     lh_assert_runtime_ifn(num_stops >= 1U, lh_runtime_error_code_invalid_argument);
     lh_assert_runtime_ifn(num_stops <= LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS,
                           lh_runtime_error_code_invalid_argument);
-    self->stops_count = num_stops;
+    lh_ui_gradient_set_stops_count(self, num_stops);
     for (i = 0; i < num_stops; ++i)
     {
         lh_byte_t frac;
@@ -95,7 +96,7 @@ lh_ui_gradient_init_stops(lh_ui_gradient_t *self, const lh_ui_color_t *colors, l
         {
             frac = fracs[i];
         }
-        lh_ui_gradient_stop_init(lh_addr_of(self->stops[i]), colors[i], frac);
+        lh_ui_gradient_stop_init(lh_addr_of(lh_ui_gradient_get_stops(self)[i]), colors[i], frac);
     }
 }
 
@@ -110,16 +111,16 @@ const lh_ui_gradient_stop_t *
 lh_ui_gradient_get_stop(const lh_ui_gradient_t *self, lh_ui_gradient_stop_count_t index)
 {
     lh_assert_runtime_ref(self);
-    lh_assert_runtime_ifn(index < self->stops_count, lh_runtime_error_code_invalid_argument);
-    return lh_addr_of(self->stops[index]);
+    lh_assert_runtime_ifn(index < lh_ui_gradient_get_stops_count(self), lh_runtime_error_code_invalid_argument);
+    return lh_addr_of(lh_ui_gradient_get_stops(self)[index]);
 }
 
 lh_ui_gradient_stop_t *
 lh_ui_gradient_get_stop_mut(lh_ui_gradient_t *self, lh_ui_gradient_stop_count_t index)
 {
     lh_assert_runtime_ref(self);
-    lh_assert_runtime_ifn(index < self->stops_count, lh_runtime_error_code_invalid_argument);
-    return lh_addr_of(self->stops[index]);
+    lh_assert_runtime_ifn(index < lh_ui_gradient_get_stops_count(self), lh_runtime_error_code_invalid_argument);
+    return lh_addr_of(lh_ui_gradient_get_stops(self)[index]);
 }
 
 /* -- Over a box ------------------------------------------------------------ */
@@ -129,8 +130,8 @@ lh_ui_gradient_set_linear(lh_ui_gradient_t *self, lh_s32_t degrees)
 {
     lh_assert_runtime_ref(self);
     degrees %= 360;
-    self->shape = lh_ui_gradient_shape_linear;
-    self->angle = lh_cast_static(lh_s16_t, degrees < 0 ? degrees + 360 : degrees);
+    lh_ui_gradient_set_shape(self, lh_ui_gradient_shape_linear);
+    lh_ui_gradient_set_angle(self, lh_cast_static(lh_s16_t, degrees < 0 ? degrees + 360 : degrees));
 }
 
 lh_void
@@ -173,7 +174,7 @@ lh_ui_gradient_frac_at(const lh_ui_gradient_t *self, const lh_ui_rect_t *rect, l
 
     lh_assert_runtime_ref(self);
     lh_return_if(w <= 0 || h <= 0, 0);
-    if (self->shape == lh_ui_gradient_shape_radial)
+    if (lh_ui_gradient_get_shape(self) == lh_ui_gradient_shape_radial)
     {
         /* On an ellipse the shape of the box, through its corners: the middle is 0
            and every corner is 255. Each axis is first put on a scale of 1024 to a
@@ -189,8 +190,8 @@ lh_ui_gradient_frac_at(const lh_ui_gradient_t *self, const lh_ui_rect_t *rect, l
     {
         /* Along (sin a, -cos a), which is up at 0 and right at 90; the line is as long
            as the box seen along it, so 0 and 255 land on the two corners it meets. */
-        const lh_s64_t s = lh_ui_gradient_sine(self->angle);
-        const lh_s64_t c = lh_ui_gradient_sine(self->angle + 90);
+        const lh_s64_t s = lh_ui_gradient_sine(lh_ui_gradient_get_angle(self));
+        const lh_s64_t c = lh_ui_gradient_sine(lh_ui_gradient_get_angle(self) + 90);
         const lh_s64_t along = dx * s - dy * c;
         const lh_s64_t length = (w * lh_math_abs(s) + h * lh_math_abs(c)) * 2;
 
@@ -209,20 +210,20 @@ lh_ui_gradient_color_at(const lh_ui_gradient_t *self, lh_byte_t frac, lh_ui_colo
 
     lh_assert_runtime_ref(self);
     lh_ui_color_init(lh_addr_of(result), 0, 0, 0, 0);
-    if (self->stops_count == 0)
+    if (lh_ui_gradient_get_stops_count(self) == 0)
     {
         lh_ptr_deref(out) = result;
         return;
     }
-    if (self->stops_count == 1 || frac <= lh_ui_gradient_stop_get_frac(lh_addr_of(self->stops[0])))
+    if (lh_ui_gradient_get_stops_count(self) == 1 || frac <= lh_ui_gradient_stop_get_frac(lh_addr_of(lh_ui_gradient_get_stops(self)[0])))
     {
-        lh_ptr_deref(out) = lh_ptr_deref(lh_ui_gradient_stop_get_color(lh_addr_of(self->stops[0])));
+        lh_ptr_deref(out) = lh_ptr_deref(lh_ui_gradient_stop_get_color(lh_addr_of(lh_ui_gradient_get_stops(self)[0])));
         return;
     }
-    for (i = 1; i < self->stops_count; ++i)
+    for (i = 1; i < lh_ui_gradient_get_stops_count(self); ++i)
     {
-        const lh_ui_gradient_stop_t *a = lh_addr_of(self->stops[i - 1]);
-        const lh_ui_gradient_stop_t *b = lh_addr_of(self->stops[i]);
+        const lh_ui_gradient_stop_t *a = lh_addr_of(lh_ui_gradient_get_stops(self)[i - 1]);
+        const lh_ui_gradient_stop_t *b = lh_addr_of(lh_ui_gradient_get_stops(self)[i]);
         const lh_ui_color_t *from = lh_ui_gradient_stop_get_color(a);
         const lh_ui_color_t *to = lh_ui_gradient_stop_get_color(b);
         const lh_s32_t start = lh_ui_gradient_stop_get_frac(a);
@@ -259,5 +260,47 @@ lh_ui_gradient_color_at(const lh_ui_gradient_t *self, lh_byte_t frac, lh_ui_colo
         }
     }
     lh_ptr_deref(out) =
-        lh_ptr_deref(lh_ui_gradient_stop_get_color(lh_addr_of(self->stops[self->stops_count - 1])));
+        lh_ptr_deref(lh_ui_gradient_stop_get_color(lh_addr_of(lh_ui_gradient_get_stops(self)[lh_ui_gradient_get_stops_count(self) - 1])));
+}
+
+const lh_ui_gradient_stop_t *
+lh_ui_gradient_get_stops(const lh_ui_gradient_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->stops;
+}
+
+lh_ui_gradient_stop_t *
+lh_ui_gradient_get_stops_mut(lh_ui_gradient_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->stops;
+}
+
+lh_ui_gradient_stop_count_t
+lh_ui_gradient_get_stops_count(const lh_ui_gradient_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->stops_count;
+}
+
+lh_void
+lh_ui_gradient_set_stops_count(lh_ui_gradient_t *self, lh_ui_gradient_stop_count_t stops_count)
+{
+    lh_assert_runtime_ref(self);
+    self->stops_count = stops_count;
+}
+
+lh_void
+lh_ui_gradient_set_shape(lh_ui_gradient_t *self, lh_ui_gradient_shape_t shape)
+{
+    lh_assert_runtime_ref(self);
+    self->shape = shape;
+}
+
+lh_void
+lh_ui_gradient_set_angle(lh_ui_gradient_t *self, lh_s16_t angle)
+{
+    lh_assert_runtime_ref(self);
+    self->angle = angle;
 }

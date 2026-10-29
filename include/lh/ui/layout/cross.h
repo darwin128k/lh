@@ -55,6 +55,82 @@ lh_ui_scalar_t
 lh_ui_layout_cross_at(const lh_ui_layout_cross_t *fit, lh_ui_place_align_t align,
                       lh_ui_scalar_t base, lh_ui_scalar_t line);
 
+/**
+ * @brief Where the line starts on the cross axis (level 1).
+ *
+ * @param self The cross placement; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_scalar_t
+lh_ui_layout_cross_get_start(const lh_ui_layout_cross_t *self);
+
+/**
+ * @brief Store where the line starts on the cross axis (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The cross placement; checked by ::lh_assert_runtime_ref.
+ * @param start The new value.
+ */
+lh_void
+lh_ui_layout_cross_set_start(lh_ui_layout_cross_t *self, lh_ui_scalar_t start);
+
+/**
+ * @brief The extent of the child on the cross axis (level 1).
+ *
+ * @param self The cross placement; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_scalar_t
+lh_ui_layout_cross_get_own(const lh_ui_layout_cross_t *self);
+
+/**
+ * @brief Store the extent of the child on the cross axis (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The cross placement; checked by ::lh_assert_runtime_ref.
+ * @param own The new value.
+ */
+lh_void
+lh_ui_layout_cross_set_own(lh_ui_layout_cross_t *self, lh_ui_scalar_t own);
+
+/**
+ * @brief The room the line has on the cross axis (level 1).
+ *
+ * @param self The cross placement; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_scalar_t
+lh_ui_layout_cross_get_room(const lh_ui_layout_cross_t *self);
+
+/**
+ * @brief Store the room the line has on the cross axis (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The cross placement; checked by ::lh_assert_runtime_ref.
+ * @param room The new value.
+ */
+lh_void
+lh_ui_layout_cross_set_room(lh_ui_layout_cross_t *self, lh_ui_scalar_t room);
+
+/**
+ * @brief The space before the child on the cross axis (level 1).
+ *
+ * @param self The cross placement; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_scalar_t
+lh_ui_layout_cross_get_before(const lh_ui_layout_cross_t *self);
+
+/**
+ * @brief Store the space before the child on the cross axis (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The cross placement; checked by ::lh_assert_runtime_ref.
+ * @param before The new value.
+ */
+lh_void
+lh_ui_layout_cross_set_before(lh_ui_layout_cross_t *self, lh_ui_scalar_t before);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_LAYOUT_CROSS_H */

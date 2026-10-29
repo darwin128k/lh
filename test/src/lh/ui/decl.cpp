@@ -48,12 +48,12 @@ struct scene
         lh_ui_color_init(&root_color, 20, 22, 28, 255);
         lh_ui_paint_init_color(&root_paint, &root_color);
         lh_ui_style_init(&root_style);
-        lh_ui_style_set_fill(&root_style, &root_paint);
+        lh_ui_style_assign_fill(&root_style, &root_paint);
 
         lh_ui_color_init(&card_color, 60, 120, 200, 255);
         lh_ui_paint_init_color(&card_paint, &card_color);
         lh_ui_style_init(&card_style);
-        lh_ui_style_set_fill(&card_style, &card_paint);
+        lh_ui_style_assign_fill(&card_style, &card_paint);
         lh_ui_style_set_radius(&card_style, lh_ui_scalar(6));
 
         lh_ui_color_init(&action_color, 70, 76, 88, 255);
@@ -61,16 +61,16 @@ struct scene
         lh_ui_color_init(&action_hot_color, 90, 98, 112, 255);
         lh_ui_paint_init_color(&action_hot_paint, &action_hot_color);
         lh_ui_style_init(&action_style);
-        lh_ui_style_set_fill(&action_style, &action_paint);
+        lh_ui_style_assign_fill(&action_style, &action_paint);
         lh_ui_style_set_radius(&action_style, lh_ui_scalar(8));
         lh_ui_style_init(&action_hot_style);
-        lh_ui_style_set_fill(&action_hot_style, &action_hot_paint);
+        lh_ui_style_assign_fill(&action_hot_style, &action_hot_paint);
 
         lh_ui_color_init(&text_color, 220, 226, 236, 255);
         lh_ui_paint_init_color(&text_paint, &text_color);
         lh_ui_style_init(&text_style);
         lh_ui_style_set_font(&text_style, tiny_font());
-        lh_ui_style_set_text(&text_style, &text_paint);
+        lh_ui_style_assign_text(&text_style, &text_paint);
 
         lh_ui_color_init(&ink, 255, 255, 255, 255);
         for (int i = 0; i < 8; ++i)
@@ -160,12 +160,12 @@ build_by_hand(scene &s, hand_tree &tree, lh_ui_entity_t **nodes, lh_ui_entity_t 
 
     lh_ui_rect_init(&rect, 0, 0, 150, 20);
     lh_ui_label_init(&tree.row_one, rect, "row one");
-    lh_ui_entity_set_place(lh_ui_label_as_entity(&tree.row_one), &s.fixed20);
+    lh_ui_entity_set_place_v(lh_ui_label_as_entity(&tree.row_one), &s.fixed20);
     lh_ui_entity_add_child(lh_ui_container_as_entity(&tree.box), lh_ui_label_as_entity(&tree.row_one));
 
     lh_ui_rect_init(&rect, 0, 0, 150, 20);
     lh_ui_label_init(&tree.row_two, rect, "row two");
-    lh_ui_entity_set_place(lh_ui_label_as_entity(&tree.row_two), &s.fixed20);
+    lh_ui_entity_set_place_v(lh_ui_label_as_entity(&tree.row_two), &s.fixed20);
     lh_ui_entity_add_child(lh_ui_container_as_entity(&tree.box), lh_ui_label_as_entity(&tree.row_two));
 
     lh_ui_rect_init(&rect, 10, 80, 140, 30);
@@ -178,15 +178,15 @@ build_by_hand(scene &s, hand_tree &tree, lh_ui_entity_t **nodes, lh_ui_entity_t 
 
     lh_ui_rect_init(&rect, 0, 0, 4, 2);
     lh_ui_image_init(&tree.icon, rect, &s.mask);
-    lh_ui_image_set_tint(&tree.icon, &s.ink);
-    lh_ui_entity_set_place(lh_ui_image_as_entity(&tree.icon), &s.wrap_center);
+    lh_ui_image_set_tint_v(&tree.icon, &s.ink);
+    lh_ui_entity_set_place_v(lh_ui_image_as_entity(&tree.icon), &s.wrap_center);
     lh_ui_entity_add_child(lh_ui_container_as_entity(lh_ui_button_as_container(&tree.action)),
                            lh_ui_image_as_entity(&tree.icon));
 
     lh_ui_rect_init(&rect, 0, 0, 60, 14);
     lh_ui_label_init(&tree.caption, rect, "Hide panel");
     lh_ui_entity_set_style(lh_ui_label_as_entity(&tree.caption), &s.text_style);
-    lh_ui_entity_set_place(lh_ui_label_as_entity(&tree.caption), &s.wrap_center);
+    lh_ui_entity_set_place_v(lh_ui_label_as_entity(&tree.caption), &s.wrap_center);
     lh_ui_entity_add_child(lh_ui_container_as_entity(lh_ui_button_as_container(&tree.action)),
                            lh_ui_label_as_entity(&tree.caption));
 
@@ -197,8 +197,8 @@ build_by_hand(scene &s, hand_tree &tree, lh_ui_entity_t **nodes, lh_ui_entity_t 
 
     lh_ui_rect_init(&rect, 160, 110, 24, 24);
     lh_ui_toggle_init(&tree.sw, rect);
-    lh_ui_toggle_set_off_style(&tree.sw, &s.card_style, &s.action_style);
-    lh_ui_toggle_set_on_style(&tree.sw, &s.action_style, &s.action_hot_style);
+    lh_ui_toggle_set_off_styles(&tree.sw, &s.card_style, &s.action_style);
+    lh_ui_toggle_set_on_styles(&tree.sw, &s.action_style, &s.action_hot_style);
     lh_ui_entity_add_child(&tree.background, lh_ui_toggle_as_entity(&tree.sw));
 
     nodes[0] = &tree.background;

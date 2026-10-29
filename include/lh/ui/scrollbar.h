@@ -317,6 +317,56 @@ lh_ui_scrollbar_add_bound_damage(lh_ui_entity_t *entity, const lh_ui_container_t
 lh_void
 lh_ui_scrollbar_add_scroll_damage(lh_ui_container_t *container, lh_ui_canvas_t *canvas);
 
+/**
+ * @brief The entity the scrollbar is built on (level 1).
+ *
+ * @param self The scrollbar; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_entity_t *
+lh_ui_scrollbar_get_entity(const lh_ui_scrollbar_t *self);
+
+/**
+ * @brief The entity the scrollbar is built on, to change in place (level 1).
+ *
+ * @param self The scrollbar; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_entity_t *
+lh_ui_scrollbar_get_entity_mut(lh_ui_scrollbar_t *self);
+
+/**
+ * @brief Store the entity the scrollbar is built on (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The scrollbar; checked by ::lh_assert_runtime_ref.
+ * @param entity The new value.
+ */
+lh_void
+lh_ui_scrollbar_set_entity(lh_ui_scrollbar_t *self, lh_ui_entity_t entity);
+
+/**
+ * @brief Store the axis the scrollbar scrolls (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The scrollbar; checked by ::lh_assert_runtime_ref.
+ * @param axis The new value.
+ */
+lh_void
+lh_ui_scrollbar_set_axis(lh_ui_scrollbar_t *self, lh_ui_axis_t axis);
+
+/**
+ * @brief Store the container the scrollbar scrolls (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The scrollbar; checked by ::lh_assert_runtime_ref.
+ * @param container The new value.
+ */
+lh_void
+lh_ui_scrollbar_set_container(lh_ui_scrollbar_t *self, lh_ui_container_t * container);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_SCROLLBAR_H */

@@ -52,7 +52,7 @@ lh_ui_pen_get_paint(const lh_ui_pen_t *self);
  * ::lh_null clears it to the empty paint.
  */
 lh_void
-lh_ui_pen_set_paint(lh_ui_pen_t *self, const lh_ui_paint_t *paint);
+lh_ui_pen_set_paint_v(lh_ui_pen_t *self, const lh_ui_paint_t *paint);
 
 /**
  * @brief Line width of @p self.
@@ -65,6 +65,26 @@ lh_ui_pen_get_width(const lh_ui_pen_t *self);
  */
 lh_void
 lh_ui_pen_set_width(lh_ui_pen_t *self, lh_ui_scalar_t width);
+
+/**
+ * @brief The paint the pen draws with, to change in place (level 1).
+ *
+ * @param self The pen; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_paint_t *
+lh_ui_pen_get_paint_mut(lh_ui_pen_t *self);
+
+/**
+ * @brief Store the paint the pen draws with (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pen; checked by ::lh_assert_runtime_ref.
+ * @param paint The new value.
+ */
+lh_void
+lh_ui_pen_set_paint(lh_ui_pen_t *self, lh_ui_paint_t paint);
 
 LH_COMPILER_EXTERN_C_END
 

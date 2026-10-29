@@ -2,6 +2,7 @@
  * @file event.c
  * @brief Implementation of `lh/ui/entity/event.h`.
  */
+#include <lh/assert.h>
 
 #include <lh/ui/canvas.h>
 #include <lh/ui/entity/event.h>
@@ -12,8 +13,8 @@ lh_void
 lh_ui_entity_event_init(lh_ui_entity_event_t *self, lh_ui_entity_event_code_t code, lh_ptr context)
 {
     lh_assert_runtime_ref(self);
-    self->code = code;
-    self->context = context;
+    lh_ui_entity_event_set_code(self, code);
+    lh_ui_entity_event_set_context(self, context);
 }
 
 lh_ui_entity_event_code_t
@@ -35,7 +36,7 @@ lh_ui_entity_event_get_canvas(const lh_ui_entity_event_t *self)
 {
     lh_assert_runtime_ifn(lh_ui_entity_event_get_code(self) == lh_ui_entity_event_draw,
                           lh_runtime_error_code_invalid_argument);
-    return lh_ptr_rcast(lh_ui_canvas_t, self->context);
+    return lh_ptr_rcast(lh_ui_canvas_t, lh_ui_entity_event_get_context(self));
 }
 
 lh_bool_t
@@ -56,7 +57,7 @@ lh_ui_entity_event_get_focusable(const lh_ui_entity_event_t *self)
 
     lh_assert_runtime_ifn(lh_ui_entity_event_get_code(self) == lh_ui_entity_event_focusable,
                           lh_runtime_error_code_invalid_argument);
-    focusable = lh_ptr_rcast(lh_bool_t, self->context);
+    focusable = lh_ptr_rcast(lh_bool_t, lh_ui_entity_event_get_context(self));
     lh_assert_runtime_ref(focusable);
     return focusable;
 }
@@ -68,7 +69,7 @@ lh_ui_entity_event_get_clickable(const lh_ui_entity_event_t *self)
 
     lh_assert_runtime_ifn(lh_ui_entity_event_get_code(self) == lh_ui_entity_event_clickable,
                           lh_runtime_error_code_invalid_argument);
-    clickable = lh_ptr_rcast(lh_bool_t, self->context);
+    clickable = lh_ptr_rcast(lh_bool_t, lh_ui_entity_event_get_context(self));
     lh_assert_runtime_ref(clickable);
     return clickable;
 }
@@ -80,7 +81,7 @@ lh_ui_entity_event_get_key(const lh_ui_entity_event_t *self)
 
     lh_assert_runtime_ifn(lh_ui_entity_event_get_code(self) == lh_ui_entity_event_key,
                           lh_runtime_error_code_invalid_argument);
-    input = lh_ptr_rcast(const struct lh_ui_key_input, self->context);
+    input = lh_ptr_rcast(const struct lh_ui_key_input, lh_ui_entity_event_get_context(self));
     lh_assert_runtime_ref(input);
     return input;
 }
@@ -93,7 +94,7 @@ lh_ui_entity_event_get_point(const lh_ui_entity_event_t *self, lh_ui_point_t *ou
 
     lh_assert_runtime_ifn(lh_ui_entity_event_is_pointer(self),
                           lh_runtime_error_code_invalid_argument);
-    point = lh_ptr_rcast(const lh_ui_point_t, self->context);
+    point = lh_ptr_rcast(const lh_ui_point_t, lh_ui_entity_event_get_context(self));
     lh_assert_runtime_ref(point);
     lh_ptr_deref(out) = lh_ptr_deref(point);
 }
@@ -105,7 +106,7 @@ lh_ui_entity_event_get_transform(const lh_ui_entity_event_t *self)
 
     lh_assert_runtime_ifn(lh_ui_entity_event_get_code(self) == lh_ui_entity_event_children,
                           lh_runtime_error_code_invalid_argument);
-    transform = lh_ptr_rcast(lh_ui_entity_transform_t, self->context);
+    transform = lh_ptr_rcast(lh_ui_entity_transform_t, lh_ui_entity_event_get_context(self));
     lh_assert_runtime_ref(transform);
     return transform;
 }
@@ -117,7 +118,7 @@ lh_ui_entity_event_get_visible(const lh_ui_entity_event_t *self)
 
     lh_assert_runtime_ifn(lh_ui_entity_event_get_code(self) == lh_ui_entity_event_visible,
                           lh_runtime_error_code_invalid_argument);
-    visible = lh_ptr_rcast(lh_bool_t, self->context);
+    visible = lh_ptr_rcast(lh_bool_t, lh_ui_entity_event_get_context(self));
     lh_assert_runtime_ref(visible);
     return visible;
 }
@@ -129,7 +130,7 @@ lh_ui_entity_event_get_bounds(const lh_ui_entity_event_t *self)
 
     lh_assert_runtime_ifn(lh_ui_entity_event_get_code(self) == lh_ui_entity_event_measure,
                           lh_runtime_error_code_invalid_argument);
-    bounds = lh_ptr_rcast(lh_ui_rect_t, self->context);
+    bounds = lh_ptr_rcast(lh_ui_rect_t, lh_ui_entity_event_get_context(self));
     lh_assert_runtime_ref(bounds);
     return bounds;
 }
@@ -141,7 +142,21 @@ lh_ui_entity_event_get_baseline(const lh_ui_entity_event_t *self)
 
     lh_assert_runtime_ifn(lh_ui_entity_event_get_code(self) == lh_ui_entity_event_baseline,
                           lh_runtime_error_code_invalid_argument);
-    baseline = lh_ptr_rcast(lh_ui_scalar_t, self->context);
+    baseline = lh_ptr_rcast(lh_ui_scalar_t, lh_ui_entity_event_get_context(self));
     lh_assert_runtime_ref(baseline);
     return baseline;
+}
+
+lh_void
+lh_ui_entity_event_set_code(lh_ui_entity_event_t *self, lh_ui_entity_event_code_t code)
+{
+    lh_assert_runtime_ref(self);
+    self->code = code;
+}
+
+lh_void
+lh_ui_entity_event_set_context(lh_ui_entity_event_t *self, lh_ptr context)
+{
+    lh_assert_runtime_ref(self);
+    self->context = context;
 }

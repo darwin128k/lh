@@ -230,7 +230,7 @@ lh_ui_canvas_web_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t
 {
     lh_ui_canvas_web_t *self = lh_ptr_rcast(lh_ui_canvas_web_t, context);
     lh_ui_color_t color;
-    lh_ui_shadow_get_color(shadow, lh_addr_of(color));
+    lh_ui_shadow_copy_color(shadow, lh_addr_of(color));
 
     lh_ui_canvas_web_begin_op(self);
     lh_ui_canvas_web_put_lit(self, "{\"op\":\"shadow\",\"rect\":");

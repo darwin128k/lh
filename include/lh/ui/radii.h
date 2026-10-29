@@ -77,6 +77,82 @@ lh_ui_radii_clamp(const lh_ui_radii_t *self, const lh_ui_rect_t *rect, lh_ui_rad
 lh_ui_scalar_t
 lh_ui_radii_get_at(const lh_ui_radii_t *self, const lh_ui_rect_t *rect, lh_s32_t x, lh_s32_t y);
 
+/**
+ * @brief The top-left corner radius (level 1).
+ *
+ * @param self The radii; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_scalar_t
+lh_ui_radii_get_top_left(const lh_ui_radii_t *self);
+
+/**
+ * @brief Store the top-left corner radius (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The radii; checked by ::lh_assert_runtime_ref.
+ * @param top_left The new value.
+ */
+lh_void
+lh_ui_radii_set_top_left(lh_ui_radii_t *self, lh_ui_scalar_t top_left);
+
+/**
+ * @brief The top-right corner radius (level 1).
+ *
+ * @param self The radii; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_scalar_t
+lh_ui_radii_get_top_right(const lh_ui_radii_t *self);
+
+/**
+ * @brief Store the top-right corner radius (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The radii; checked by ::lh_assert_runtime_ref.
+ * @param top_right The new value.
+ */
+lh_void
+lh_ui_radii_set_top_right(lh_ui_radii_t *self, lh_ui_scalar_t top_right);
+
+/**
+ * @brief The bottom-right corner radius (level 1).
+ *
+ * @param self The radii; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_scalar_t
+lh_ui_radii_get_bottom_right(const lh_ui_radii_t *self);
+
+/**
+ * @brief Store the bottom-right corner radius (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The radii; checked by ::lh_assert_runtime_ref.
+ * @param bottom_right The new value.
+ */
+lh_void
+lh_ui_radii_set_bottom_right(lh_ui_radii_t *self, lh_ui_scalar_t bottom_right);
+
+/**
+ * @brief The bottom-left corner radius (level 1).
+ *
+ * @param self The radii; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_scalar_t
+lh_ui_radii_get_bottom_left(const lh_ui_radii_t *self);
+
+/**
+ * @brief Store the bottom-left corner radius (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The radii; checked by ::lh_assert_runtime_ref.
+ * @param bottom_left The new value.
+ */
+lh_void
+lh_ui_radii_set_bottom_left(lh_ui_radii_t *self, lh_ui_scalar_t bottom_left);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_RADII_H */

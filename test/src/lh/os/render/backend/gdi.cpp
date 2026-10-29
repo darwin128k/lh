@@ -65,7 +65,7 @@ fill_surface(lh_ui_surface_t *surface, lh_u32_t hex)
 
     EXPECT_TRUE(lh_ui_surface_get_pixmap(surface, lh_addr_of(pixmap)));
     lh_ui_canvas_sw_init(lh_addr_of(sw));
-    lh_ui_canvas_sw_set_pixmap(lh_addr_of(sw), lh_addr_of(pixmap));
+    lh_ui_canvas_sw_use_pixmap(lh_addr_of(sw), lh_addr_of(pixmap));
     lh_ui_color_init_hex(lh_addr_of(color), hex);
     lh_ui_canvas_sw_clear(lh_addr_of(sw), lh_addr_of(color));
 }

@@ -521,6 +521,77 @@ lh_ui_pixmap_fill_box(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t y0, lh_s32_t x
 lh_void
 lh_ui_pixmap_clear(lh_ui_pixmap_t *self, const lh_ui_color_t *color);
 
+/**
+ * @brief The pixels (level 1).
+ *
+ * @param self The pixmap; checked by ::lh_assert_runtime_ref.
+ */
+lh_byte_t *
+lh_ui_pixmap_get_bits(const lh_ui_pixmap_t *self);
+
+/**
+ * @brief Store the pixels (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pixmap; checked by ::lh_assert_runtime_ref.
+ * @param bits The new value.
+ */
+lh_void
+lh_ui_pixmap_set_bits(lh_ui_pixmap_t *self, lh_byte_t * bits);
+
+/**
+ * @brief Store the width in pixels (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pixmap; checked by ::lh_assert_runtime_ref.
+ * @param width The new value.
+ */
+lh_void
+lh_ui_pixmap_set_width(lh_ui_pixmap_t *self, lh_s32_t width);
+
+/**
+ * @brief Store the height in pixels (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pixmap; checked by ::lh_assert_runtime_ref.
+ * @param height The new value.
+ */
+lh_void
+lh_ui_pixmap_set_height(lh_ui_pixmap_t *self, lh_s32_t height);
+
+/**
+ * @brief How many bytes one row takes (level 1).
+ *
+ * @param self The pixmap; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_ui_pixmap_get_stride(const lh_ui_pixmap_t *self);
+
+/**
+ * @brief Store how many bytes one row takes (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pixmap; checked by ::lh_assert_runtime_ref.
+ * @param stride The new value.
+ */
+lh_void
+lh_ui_pixmap_set_stride(lh_ui_pixmap_t *self, lh_s32_t stride);
+
+/**
+ * @brief Store the pixel format (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pixmap; checked by ::lh_assert_runtime_ref.
+ * @param format The new value.
+ */
+lh_void
+lh_ui_pixmap_set_format(lh_ui_pixmap_t *self, lh_ui_pixmap_format_t format);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_PIXMAP_H */

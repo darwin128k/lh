@@ -412,6 +412,7 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/blur/window.c
             ${LH_LIB_SRC_PATH}/ui/range.c
             ${LH_LIB_SRC_PATH}/ui/canvas.c
+            ${LH_LIB_SRC_PATH}/ui/canvas/backend.c
             ${LH_LIB_SRC_PATH}/ui/canvas/state.c
             ${LH_LIB_SRC_PATH}/ui/canvas/round.c
             ${LH_LIB_SRC_PATH}/ui/canvas/box.c
@@ -432,6 +433,7 @@ if (LH_LIBRARY_OPTION_UI)
              ${LH_LIB_SRC_PATH}/ui/toggle.c
             ${LH_LIB_SRC_PATH}/ui/view.c
             ${LH_LIB_SRC_PATH}/ui/view/controller.c
+            ${LH_LIB_SRC_PATH}/ui/view/focus/walk.c
             ${LH_LIB_SRC_PATH}/ui/view/pointer.c
             ${LH_LIB_SRC_PATH}/ui/mask.c
             ${LH_LIB_SRC_PATH}/ui/font.c
@@ -466,6 +468,10 @@ if (LH_LIBRARY_OPTION_UI)
     endif ()
     if (LH_LIBRARY_OPTION_OS)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/client.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/frame.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/hooks.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/stream.c)
     endif ()
     if (LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/surface.c)

@@ -157,7 +157,7 @@ partial_probe_init(partial_probe *probe)
     lh_ui_pixmap_init(lh_addr_of(probe->pixmap), lh_ptr_rcast(lh_byte_t, probe->words), partial_probe::width,
                       partial_probe::height, partial_probe::width * 4, lh_ui_pixmap_format_argb8888);
     lh_ui_canvas_sw_init(lh_addr_of(probe->sw));
-    lh_ui_canvas_sw_set_pixmap(lh_addr_of(probe->sw), lh_addr_of(probe->pixmap));
+    lh_ui_canvas_sw_use_pixmap(lh_addr_of(probe->sw), lh_addr_of(probe->pixmap));
     lh_ui_canvas_init(lh_addr_of(probe->canvas), partial_probe_backend(), probe);
     lh_ui_size_init(lh_addr_of(size), lh_ui_scalar_of(partial_probe::width), lh_ui_scalar_of(partial_probe::height));
     lh_ui_canvas_set_size(lh_addr_of(probe->canvas), size);
@@ -377,16 +377,16 @@ build_scene(scene &s)
     lh_ui_paint_init_color(lh_addr_of(s.box_paint), lh_addr_of(s.box_color));
     lh_ui_paint_init_color(lh_addr_of(s.thumb_paint), lh_addr_of(s.thumb_color));
     lh_ui_style_init(lh_addr_of(s.panel_style));
-    lh_ui_style_set_fill(lh_addr_of(s.panel_style), lh_addr_of(s.panel_paint));
+    lh_ui_style_assign_fill(lh_addr_of(s.panel_style), lh_addr_of(s.panel_paint));
     lh_ui_style_set_radius(lh_addr_of(s.panel_style), lh_ui_scalar(12));
     lh_ui_style_init(lh_addr_of(s.box_style));
-    lh_ui_style_set_fill(lh_addr_of(s.box_style), lh_addr_of(s.box_paint));
+    lh_ui_style_assign_fill(lh_addr_of(s.box_style), lh_addr_of(s.box_paint));
     lh_ui_style_set_radius(lh_addr_of(s.box_style), lh_ui_scalar(6));
     lh_ui_style_init(lh_addr_of(s.thumb_style));
-    lh_ui_style_set_fill(lh_addr_of(s.thumb_style), lh_addr_of(s.thumb_paint));
+    lh_ui_style_assign_fill(lh_addr_of(s.thumb_style), lh_addr_of(s.thumb_paint));
     lh_ui_style_set_radius(lh_addr_of(s.thumb_style), LH_UI_RADIUS_CIRCLE);
     lh_ui_style_init(lh_addr_of(s.label_style));
-    lh_ui_style_set_padding(lh_addr_of(s.label_style), lh_ui_scalar(2));
+    lh_ui_style_set_padding_all(lh_addr_of(s.label_style), lh_ui_scalar(2));
 
     lh_ui_entity_init(lh_addr_of(s.panel), lh_test::rect_of(0, 0, 160, 120));
     lh_ui_entity_set_style(lh_addr_of(s.panel), lh_addr_of(s.panel_style));
@@ -599,18 +599,18 @@ build_pressed_panel(pressed_panel &p)
     lh_ui_style_init(lh_addr_of(p.style));
     lh_ui_color_init(lh_addr_of(normal), 30, 60, 90, 255);
     lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(normal));
-    lh_ui_style_set_fill(lh_addr_of(p.style), lh_addr_of(paint));
+    lh_ui_style_assign_fill(lh_addr_of(p.style), lh_addr_of(paint));
     lh_ui_shadow_init(lh_addr_of(p.shadow));
     lh_ui_shadow_set_color(lh_addr_of(p.shadow), lh_ui_color_t{0, 0, 0, 200});
     lh_ui_shadow_set_spread(lh_addr_of(p.shadow), lh_ui_scalar(6));
     lh_ui_shadow_set_offset(lh_addr_of(p.shadow), lh_ui_scalar(0), lh_ui_scalar(3));
-    lh_ui_style_set_shadow(lh_addr_of(p.style), lh_addr_of(p.shadow));
+    lh_ui_style_set_shadow_v(lh_addr_of(p.style), lh_addr_of(p.shadow));
     lh_ui_style_init(lh_addr_of(p.hot));
     lh_ui_color_init(lh_addr_of(hot), 200, 60, 90, 255);
     lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(hot));
-    lh_ui_style_set_fill(lh_addr_of(p.hot), lh_addr_of(paint));
+    lh_ui_style_assign_fill(lh_addr_of(p.hot), lh_addr_of(paint));
     lh_ui_shadow_set_spread(lh_addr_of(p.shadow), lh_ui_scalar(6));
-    lh_ui_style_set_shadow(lh_addr_of(p.hot), lh_addr_of(p.shadow));
+    lh_ui_style_set_shadow_v(lh_addr_of(p.hot), lh_addr_of(p.shadow));
     lh_ui_style_set_pressed(lh_addr_of(p.style), lh_addr_of(p.hot));
 }
 
@@ -748,10 +748,10 @@ TEST(view, a_hover_damages_what_both_looks_painted)
     lh_ui_style_init(lh_addr_of(rest));
     lh_ui_color_init(&color, 30, 60, 90, 255);
     lh_ui_paint_init_color(&paint, &color);
-    lh_ui_style_set_fill(lh_addr_of(rest), &paint);
-    lh_ui_style_set_shadow(lh_addr_of(rest), lh_addr_of(small));
+    lh_ui_style_assign_fill(lh_addr_of(rest), &paint);
+    lh_ui_style_set_shadow_v(lh_addr_of(rest), lh_addr_of(small));
     lh_ui_style_init(lh_addr_of(hot));
-    lh_ui_style_set_shadow(lh_addr_of(hot), lh_addr_of(wide));
+    lh_ui_style_set_shadow_v(lh_addr_of(hot), lh_addr_of(wide));
     lh_ui_style_set_hit_radius(lh_addr_of(rest), LH_UI_RADIUS_CIRCLE);
 
     lh_ui_button_init(lh_addr_of(button), lh_test::rect_of(20, 10, 40, 24));
@@ -1298,11 +1298,11 @@ TEST(view_pointer, the_idle_initializer_is_what_init_leaves)
         EXPECT_TRUE(lh_null_eq(lh_ui_view_pointer_get_drag(each)));
         EXPECT_TRUE(lh_null_eq(lh_ui_view_pointer_get_grab(each)));
         EXPECT_EQ(lh_ui_view_pointer_get_grab_offset(each), lh_ui_scalar(0));
-        lh_ui_view_pointer_get_press_point(each, lh_addr_of(point));
+        lh_ui_view_pointer_copy_press_point(each, lh_addr_of(point));
         EXPECT_EQ(lh_ui_point_get_x(lh_addr_of(point)), lh_ui_scalar(0));
-        lh_ui_view_pointer_get_last_point(each, lh_addr_of(point));
+        lh_ui_view_pointer_copy_last_point(each, lh_addr_of(point));
         EXPECT_EQ(lh_ui_point_get_y(lh_addr_of(point)), lh_ui_scalar(0));
-        lh_ui_view_pointer_get_velocity(each, lh_addr_of(point));
+        lh_ui_view_pointer_copy_velocity(each, lh_addr_of(point));
         EXPECT_EQ(lh_ui_point_get_x(lh_addr_of(point)), lh_ui_scalar(0));
     }
 }
@@ -1318,7 +1318,7 @@ TEST(view_pointer, a_press_past_the_threshold_is_a_drag_and_tracks_its_speed)
     EXPECT_FALSE(lh_ui_view_pointer_is_past_threshold(lh_addr_of(pointer), point_of(13, 7)));
     EXPECT_TRUE(lh_ui_view_pointer_is_past_threshold(lh_addr_of(pointer), point_of(10, 14)));
     lh_ui_view_pointer_track(lh_addr_of(pointer), point_of(10, 2));
-    lh_ui_view_pointer_get_velocity(lh_addr_of(pointer), lh_addr_of(velocity));
+    lh_ui_view_pointer_copy_velocity(lh_addr_of(pointer), lh_addr_of(velocity));
     EXPECT_EQ(lh_ui_point_get_y(lh_addr_of(velocity)), lh_ui_scalar(4)) << "half of the 8 step";
     lh_ui_view_pointer_reset(lh_addr_of(pointer));
     EXPECT_FALSE(lh_ui_view_pointer_is_active(lh_addr_of(pointer)));
