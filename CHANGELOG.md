@@ -27,6 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_os_system_fs_file_open_read_at` on Windows (`NtCreateFile` relative to each
+  directory, reparse points refused) and `lh_os_system_fs_file_open_root` on both
+  backends; `lh_fs_path_is_text_absolute`.
 - `lh/os/thread/group`: threads of one owner, each stopped by its own `wake`;
   stopping the group wakes every thread before joining any. `lh_str_ptr_format_cstr`
   (in `lh/str/format/text.h`): formatting into a buffer, always NUL-terminated.
