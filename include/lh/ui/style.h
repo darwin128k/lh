@@ -96,7 +96,7 @@ lh_ui_style_get_radius(const lh_ui_style_t *self);
  *        ::LH_UI_RADIUS_CIRCLE asks for the largest one.
  */
 lh_void
-lh_ui_style_set_radius(lh_ui_style_t *self, lh_ui_scalar_t radius);
+lh_ui_style_set_radius_v(lh_ui_style_t *self, lh_ui_scalar_t radius);
 
 /**
  * @brief The radius of each corner of the fill of @p self.
@@ -108,7 +108,7 @@ lh_ui_style_get_radii(const lh_ui_style_t *self);
  * @brief Round each corner of the fill of @p self on its own (copied): CSS's
  *        `border-radius: 8px 8px 0 0`. ::lh_ui_style_get_radius is then the smallest
  *        of them, which is the radius a clipping parent cuts its children with and the
- *        one a hit test rounds by; ::lh_ui_style_set_radius sets all four again.
+ *        one a hit test rounds by; ::lh_ui_style_set_radius_v sets all four again.
  */
 lh_void
 lh_ui_style_set_radii_v(lh_ui_style_t *self, const lh_ui_radii_t *radii);
@@ -132,7 +132,7 @@ lh_ui_style_get_hit_radius(const lh_ui_style_t *self);
  * one, which makes the hit shape follow the fill exactly.
  */
 lh_void
-lh_ui_style_set_hit_radius(lh_ui_style_t *self, lh_ui_scalar_t radius);
+lh_ui_style_set_hit_radius_v(lh_ui_style_t *self, lh_ui_scalar_t radius);
 
 /**
  * @brief Inner space of @p self, per side (`0` = content touches the edge):
@@ -320,7 +320,7 @@ lh_ui_style_assign_border_fill(lh_ui_style_t *self, const lh_ui_paint_t *fill);
  * switch. A generated screen does this for every look of a row at once, which is
  * why this is one call per style rather than one per entity.
  *
- * A style alone changes nothing: ::lh_ui_entity_set_style starts the transition,
+ * A style alone changes nothing: ::lh_ui_entity_set_style_v starts the transition,
  * ::lh_ui_view_advance is what moves it, and ::lh_ui_style_init_blend is the look
  * on screen while it does.
  */
@@ -502,6 +502,28 @@ lh_ui_style_set_border(lh_ui_style_t *self, lh_ui_insets_t border);
  */
 lh_void
 lh_ui_style_set_border_fill(lh_ui_style_t *self, lh_ui_paint_t border_fill);
+
+/**
+ * @brief Store the smallest corner radius (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @param radius The new value.
+ */
+lh_void
+lh_ui_style_set_radius(lh_ui_style_t *self, lh_ui_scalar_t radius);
+
+/**
+ * @brief Store the corner radius hits are tested against (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @param hit_radius The new value.
+ */
+lh_void
+lh_ui_style_set_hit_radius(lh_ui_style_t *self, lh_ui_scalar_t hit_radius);
 
 LH_COMPILER_EXTERN_C_END
 

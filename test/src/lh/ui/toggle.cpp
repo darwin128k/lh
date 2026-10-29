@@ -50,7 +50,7 @@ build_style(lh_ui_style_t *style, lh_byte_t grey, lh_ui_scalar_t spread)
     {
         lh_ui_shadow_init(&shadow);
         lh_ui_shadow_set_color(&shadow, lh_ui_color_t{0, 0, 0, 200});
-        lh_ui_shadow_set_spread(&shadow, spread);
+        lh_ui_shadow_set_spread_v(&shadow, spread);
         lh_ui_style_set_shadow_v(style, &shadow);
     }
 }
@@ -148,12 +148,12 @@ TEST(entity_toggle, the_state_picks_the_pair_the_entity_paints)
     build_toggle(&toggle, l);
     EXPECT_EQ(lh_ui_entity_get_style(lh_ui_toggle_as_entity(&toggle)), &l.off);
 
-    lh_ui_toggle_set_checked(&toggle, lh_bool_true);
+    lh_ui_toggle_set_checked_v(&toggle, lh_bool_true);
     EXPECT_TRUE(lh_ui_toggle_get_checked(&toggle));
     EXPECT_EQ(lh_ui_entity_get_style(lh_ui_toggle_as_entity(&toggle)), &l.on)
         << "the entity still paints the looks of the other state";
 
-    lh_ui_toggle_set_checked(&toggle, lh_bool_false);
+    lh_ui_toggle_set_checked_v(&toggle, lh_bool_false);
     EXPECT_EQ(lh_ui_entity_get_style(lh_ui_toggle_as_entity(&toggle)), &l.off);
 }
 
@@ -166,15 +166,15 @@ TEST(entity_toggle, a_flip_while_hovered_keeps_the_hot_look_of_the_new_state)
 
     build_looks(l);
     build_toggle(&toggle, l);
-    lh_ui_button_set_hot(lh_ui_toggle_as_button(&toggle), lh_bool_true);
+    lh_ui_button_set_hot_v(lh_ui_toggle_as_button(&toggle), lh_bool_true);
     EXPECT_EQ(lh_ui_entity_get_style(lh_ui_toggle_as_entity(&toggle)), &l.off_hot);
 
-    lh_ui_toggle_set_checked(&toggle, lh_bool_true);
+    lh_ui_toggle_set_checked_v(&toggle, lh_bool_true);
     EXPECT_EQ(lh_ui_entity_get_style(lh_ui_toggle_as_entity(&toggle)), &l.on_hot)
         << "the flip dropped the pointer's look";
     EXPECT_EQ(lh_ui_button_get_style_now(lh_ui_toggle_as_button(&toggle)), &l.on_hot);
 
-    lh_ui_button_set_hot(lh_ui_toggle_as_button(&toggle), lh_bool_false);
+    lh_ui_button_set_hot_v(lh_ui_toggle_as_button(&toggle), lh_bool_false);
     EXPECT_EQ(lh_ui_entity_get_style(lh_ui_toggle_as_entity(&toggle)), &l.on)
         << "leaving the pointer did not put the resting look of the state back";
 }
@@ -190,7 +190,7 @@ TEST(entity_toggle, looks_declared_while_on_show_at_once)
     build_looks(l);
     lh_ui_rect_init(&rect, 0, 0, 40, 20);
     lh_ui_toggle_init(&toggle, rect);
-    lh_ui_toggle_set_checked(&toggle, lh_bool_true);
+    lh_ui_toggle_set_checked_v(&toggle, lh_bool_true);
     lh_ui_toggle_set_on_styles(&toggle, &l.on, &l.on_hot);
     EXPECT_EQ(lh_ui_entity_get_style(lh_ui_toggle_as_entity(&toggle)), &l.on);
 
@@ -209,8 +209,8 @@ TEST(entity_toggle, a_state_with_no_hot_look_paints_the_resting_one)
     build_looks(l);
     build_toggle(&toggle, l);
     lh_ui_toggle_set_on_styles(&toggle, &l.on, lh_null);
-    lh_ui_toggle_set_checked(&toggle, lh_bool_true);
-    lh_ui_button_set_hot(lh_ui_toggle_as_button(&toggle), lh_bool_true);
+    lh_ui_toggle_set_checked_v(&toggle, lh_bool_true);
+    lh_ui_button_set_hot_v(lh_ui_toggle_as_button(&toggle), lh_bool_true);
 
     EXPECT_TRUE(lh_ui_button_get_hot(lh_ui_toggle_as_button(&toggle)));
     EXPECT_EQ(lh_ui_button_get_style_now(lh_ui_toggle_as_button(&toggle)), &l.on);
@@ -278,7 +278,7 @@ TEST(entity_toggle, a_flip_damages_the_look_it_arrives_on)
     lh_ui_canvas_init(&canvas, lh_addr_of(lh_ui_canvas_backend_null), lh_null);
     lh_ui_view_init(&view);
     lh_ui_view_set_canvas(&view, &canvas);
-    lh_ui_view_set_root(&view, &root);
+    lh_ui_view_set_root_v(&view, &root);
     lh_ui_canvas_reset_damage(&canvas);
 
     lh_ui_view_press(&view, point_of(30, 30));
@@ -286,7 +286,7 @@ TEST(entity_toggle, a_flip_damages_the_look_it_arrives_on)
         << "the click did not reach the toggle";
     EXPECT_TRUE(lh_ui_toggle_get_checked(&toggle));
 
-    damage = lh_ui_canvas_get_damage(&canvas);
+    damage = lh_ui_canvas_get_damage_v(&canvas);
     ASSERT_NE(damage, nullptr);
     EXPECT_TRUE(rect_is(lh_ptr_deref(damage), rect_of(14, 14, 52, 32)))
         << "the shadow of the look the toggle arrived on is not in the damage";

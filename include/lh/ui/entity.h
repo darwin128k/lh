@@ -79,7 +79,7 @@ lh_ui_entity_set_place_v(lh_ui_entity_t *self, const lh_ui_place_t *place);
  * the new one (::lh_ui_entity_note), when @p self is on screen.
  */
 lh_void
-lh_ui_entity_set_rect(lh_ui_entity_t *self, lh_ui_rect_t rect);
+lh_ui_entity_set_rect_v(lh_ui_entity_t *self, lh_ui_rect_t rect);
 
 /**
  * @brief Style of @p self, or ::lh_null when it has none.
@@ -97,11 +97,11 @@ lh_ui_entity_get_style(const lh_ui_entity_t *self);
  * again for the style it is already heading to changes nothing.
  */
 lh_void
-lh_ui_entity_set_style(lh_ui_entity_t *self, const lh_ui_style_t *style);
+lh_ui_entity_set_style_v(lh_ui_entity_t *self, const lh_ui_style_t *style);
 
 /**
  * @brief Point @p self at @p style now, with no transition -- what
- *        ::lh_ui_entity_set_style did before there were any, and what a view uses to
+ *        ::lh_ui_entity_set_style_v did before there were any, and what a view uses to
  *        put a look in flight and to land it.
  */
 lh_void
@@ -212,7 +212,7 @@ lh_ui_entity_contains_point(const lh_ui_entity_t *self, lh_ui_point_t point);
  * @brief Point @p self at @p class. The class is not copied.
  */
 lh_void
-lh_ui_entity_set_class(lh_ui_entity_t *self, const lh_ui_entity_class_t *);
+lh_ui_entity_set_class_v(lh_ui_entity_t *self, const lh_ui_entity_class_t *);
 
 /**
  * @brief Move @p self and its whole subtree by (@p dx, @p dy): rects are
@@ -241,7 +241,7 @@ lh_ui_entity_is_hidden(const lh_ui_entity_t *self);
  * (::lh_ui_entity_note). The same flag records nothing.
  */
 lh_void
-lh_ui_entity_set_hidden(lh_ui_entity_t *self, lh_bool_t hidden);
+lh_ui_entity_set_hidden_v(lh_ui_entity_t *self, lh_bool_t hidden);
 
 /**
  * @brief Record the painted rect of @p self, in root space, on the view that
@@ -366,7 +366,7 @@ lh_ui_entity_send(const lh_ui_entity_t *self, lh_ui_entity_event_code_t code, lh
 /**
  * @brief True when @p self is shown: the one answer draw and hit test use.
  *
- * False when @p self is hidden (::lh_ui_entity_set_hidden, the manual switch
+ * False when @p self is hidden (::lh_ui_entity_set_hidden_v, the manual switch
  * that always wins). Otherwise sends ::lh_ui_entity_event_visible to the class
  * with the answer preset to true; the base class leaves it, a class may say
  * no (a scrollbar with nothing to scroll). Not shown means no paint and no
@@ -844,6 +844,50 @@ lh_ui_entity_get_rect(const lh_ui_entity_t *self);
  */
 lh_void
 lh_ui_entity_set_place(lh_ui_entity_t *self, lh_ui_place_t place);
+
+/**
+ * @brief Store the rectangle of the entity (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The entity; checked by ::lh_assert_runtime_ref.
+ * @param rect The new value.
+ */
+lh_void
+lh_ui_entity_set_rect(lh_ui_entity_t *self, lh_ui_rect_t rect);
+
+/**
+ * @brief Store the class that handles the events of the entity (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The entity; checked by ::lh_assert_runtime_ref.
+ * @param entity_class The new value.
+ */
+lh_void
+lh_ui_entity_set_class(lh_ui_entity_t *self, const lh_ui_entity_class_t *entity_class);
+
+/**
+ * @brief Store whether the entity is hidden (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The entity; checked by ::lh_assert_runtime_ref.
+ * @param hidden The new value.
+ */
+lh_void
+lh_ui_entity_set_hidden(lh_ui_entity_t *self, lh_bool_t hidden);
+
+/**
+ * @brief Store the style the entity is drawn with (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The entity; checked by ::lh_assert_runtime_ref.
+ * @param style The new value.
+ */
+lh_void
+lh_ui_entity_set_style(lh_ui_entity_t *self, const lh_ui_style_t * style);
 
 LH_COMPILER_EXTERN_C_END
 

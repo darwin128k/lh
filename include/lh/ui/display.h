@@ -54,7 +54,7 @@ lh_ui_display_init(lh_ui_display_t *self);
  * @brief Panel size in pixels (logical, top-left origin).
  */
 lh_void
-lh_ui_display_set_panel(lh_ui_display_t *self, lh_ui_size_t panel);
+lh_ui_display_set_panel_v(lh_ui_display_t *self, lh_ui_size_t panel);
 
 /**
  * @brief Pixel format of the host buffer (e.g. ::lh_ui_pixmap_format_rgb565).
@@ -283,6 +283,17 @@ lh_ui_display_get_sink_enable(const lh_ui_display_t *self);
  */
 lh_void
 lh_ui_display_set_sink_enable(lh_ui_display_t *self, lh_u32_t sink_enable);
+
+/**
+ * @brief Store the size of the panel (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The display; checked by ::lh_assert_runtime_ref.
+ * @param panel The new value.
+ */
+lh_void
+lh_ui_display_set_panel(lh_ui_display_t *self, lh_ui_size_t panel);
 
 LH_COMPILER_EXTERN_C_END
 

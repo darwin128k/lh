@@ -18,7 +18,7 @@
  *
  * Two decisions worth writing down, because both were arrived at the hard way.
  *
- * **The text is a value, not a pointer.** ::lh_ui_label_set_text keeps the address
+ * **The text is a value, not a pointer.** ::lh_ui_label_set_text_v keeps the address
  * it is given, and the rule that comes with it is that the string must outlive the
  * label; a label handed a local buffer reads freed stack on the next paint, and the
  * window dies with `0xC000041D` inside the window procedure. A field cannot live
@@ -279,7 +279,7 @@ lh_ui_input_get_caret(const lh_ui_input_t *self);
  * and silently giving it a different one hides that.
  */
 lh_bool_t
-lh_ui_input_set_caret(lh_ui_input_t *self, lh_u16_t caret);
+lh_ui_input_set_caret_v(lh_ui_input_t *self, lh_u16_t caret);
 
 /** @brief Put the caret before the first character. */
 lh_void
@@ -438,6 +438,17 @@ lh_ui_input_set_used(lh_ui_input_t *self, lh_u16_t used);
  */
 lh_void
 lh_ui_input_set_focused(lh_ui_input_t *self, lh_bool_t focused);
+
+/**
+ * @brief Store where the caret is, in characters (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The input field; checked by ::lh_assert_runtime_ref.
+ * @param caret The new value.
+ */
+lh_void
+lh_ui_input_set_caret(lh_ui_input_t *self, lh_u16_t caret);
 
 LH_COMPILER_EXTERN_C_END
 

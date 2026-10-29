@@ -140,7 +140,7 @@ BM_ui_canvas_shadow(benchmark::State &state)
 
     lh_ui_shadow_init(&shadow);
     lh_ui_shadow_set_color(&shadow, rgb(0, 0, 0, 128));
-    lh_ui_shadow_set_spread(&shadow, lh_ui_scalar(static_cast<int>(state.range(1))));
+    lh_ui_shadow_set_spread_v(&shadow, lh_ui_scalar(static_cast<int>(state.range(1))));
     lh_ui_shadow_set_offset(&shadow, lh_ui_scalar(0), lh_ui_scalar(4));
     for (auto _ : state)
     {

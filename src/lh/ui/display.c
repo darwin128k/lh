@@ -54,7 +54,7 @@ lh_ui_display_init(lh_ui_display_t *self)
 }
 
 lh_void
-lh_ui_display_set_panel(lh_ui_display_t *self, lh_ui_size_t panel)
+lh_ui_display_set_panel_v(lh_ui_display_t *self, lh_ui_size_t panel)
 {
     lh_ui_display_set_panel(self, panel);
     lh_ui_canvas_set_size(lh_ui_display_get_canvas_mut(self), panel);
@@ -63,13 +63,15 @@ lh_ui_display_set_panel(lh_ui_display_t *self, lh_ui_size_t panel)
 lh_void
 lh_ui_display_set_format(lh_ui_display_t *self, lh_ui_pixmap_format_t format)
 {
-    lh_ui_display_set_format(self, format);
+    lh_assert_runtime_ref(self);
+    self->format = format;
 }
 
 lh_void
 lh_ui_display_set_strip_height(lh_ui_display_t *self, lh_ui_scalar_t height)
 {
-    lh_ui_display_set_strip_height(self, height);
+    lh_assert_runtime_ref(self);
+    self->strip_height = height;
 }
 
 lh_void
@@ -81,7 +83,8 @@ lh_ui_display_set_buffer(lh_ui_display_t *self, lh_byte_ptr bits, lh_s32_t strid
 lh_void
 lh_ui_display_set_strip_y(lh_ui_display_t *self, lh_ui_scalar_t y)
 {
-    lh_ui_display_set_strip_y(self, y);
+    lh_assert_runtime_ref(self);
+    self->strip_y = y;
 }
 
 lh_void
@@ -135,7 +138,7 @@ lh_ui_display_get_canvas(lh_ui_display_t *self)
 const lh_ui_pixmap_t *
 lh_ui_display_get_pixmap(const lh_ui_display_t *self)
 {
-    return lh_ui_display_get_pixmap(self);
+    return lh_addr_of(self->pixmap);
 }
 
 lh_void
@@ -270,3 +273,13 @@ lh_ui_display_set_sink_enable(lh_ui_display_t *self, lh_u32_t sink_enable)
     lh_assert_runtime_ref(self);
     self->sink_enable = sink_enable;
 }
+
+lh_void
+lh_ui_display_set_panel(lh_ui_display_t *self, lh_ui_size_t panel)
+{
+    lh_assert_runtime_ref(self);
+    self->panel = panel;
+}
+
+
+

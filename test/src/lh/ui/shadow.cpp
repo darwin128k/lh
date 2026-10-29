@@ -45,7 +45,7 @@ TEST(ui_shadow, empty_means_no_peak_or_no_fade)
 
     lh_ui_shadow_set_color(lh_addr_of(shadow), lh_ui_color_t{0, 0, 0, 200});
     EXPECT_TRUE(lh_ui_shadow_is_empty(lh_addr_of(shadow))) << "a colour with no fade paints nothing";
-    lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar(8));
+    lh_ui_shadow_set_spread_v(lh_addr_of(shadow), lh_ui_scalar(8));
     EXPECT_FALSE(lh_ui_shadow_is_empty(lh_addr_of(shadow)));
 
     lh_ui_shadow_set_color(lh_addr_of(shadow), lh_ui_color_t{0, 0, 0, 0});
@@ -58,7 +58,7 @@ TEST(ui_shadow, nothing_is_painted_inside_the_box)
 
     lh_ui_shadow_init(lh_addr_of(shadow));
     lh_ui_shadow_set_color(lh_addr_of(shadow), lh_ui_color_t{0, 0, 0, 200});
-    lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar(8));
+    lh_ui_shadow_set_spread_v(lh_addr_of(shadow), lh_ui_scalar(8));
 
     /* The fill owns these pixels, so a shadow under it would only ever darken
        the thing it is supposed to be standing behind. */
@@ -79,7 +79,7 @@ TEST(ui_shadow, it_fades_outwards_and_stops_one_spread_past_the_edge)
 
     lh_ui_shadow_init(lh_addr_of(shadow));
     lh_ui_shadow_set_color(lh_addr_of(shadow), lh_ui_color_t{0, 0, 0, 200});
-    lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar(8));
+    lh_ui_shadow_set_spread_v(lh_addr_of(shadow), lh_ui_scalar(8));
 
     /* Just outside the edge is the strongest, and each pixel further is weaker. */
     EXPECT_GT(alpha_at(lh_addr_of(shadow), lh_ui_scalar(19), lh_ui_scalar(40)), 0);
@@ -99,7 +99,7 @@ TEST(ui_shadow, the_colour_alpha_is_the_peak)
 
     lh_ui_shadow_init(lh_addr_of(shadow));
     lh_ui_shadow_set_color(lh_addr_of(shadow), lh_ui_color_t{0, 0, 0, 128});
-    lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar(8));
+    lh_ui_shadow_set_spread_v(lh_addr_of(shadow), lh_ui_scalar(8));
 
     /* Half the alpha in the colour, half the shadow everywhere. */
     EXPECT_LE(alpha_at(lh_addr_of(shadow), lh_ui_scalar(19), lh_ui_scalar(40)), 128);
@@ -113,7 +113,7 @@ TEST(ui_shadow, an_offset_moves_the_whole_fade)
 
     lh_ui_shadow_init(lh_addr_of(shadow));
     lh_ui_shadow_set_color(lh_addr_of(shadow), lh_ui_color_t{0, 0, 0, 255});
-    lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar(6));
+    lh_ui_shadow_set_spread_v(lh_addr_of(shadow), lh_ui_scalar(6));
     lh_ui_shadow_set_offset(lh_addr_of(shadow), lh_ui_scalar(5), lh_ui_scalar(0));
 
     EXPECT_EQ(lh_ui_shadow_get_offset_x(lh_addr_of(shadow)), 5);
@@ -137,7 +137,7 @@ TEST(ui_shadow, the_outset_leaves_room_for_the_fade_and_the_shift)
     lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(20), lh_ui_scalar(20), lh_ui_scalar(40), lh_ui_scalar(40));
     lh_ui_shadow_init(lh_addr_of(shadow));
     lh_ui_shadow_set_color(lh_addr_of(shadow), lh_ui_color_t{0, 0, 0, 255});
-    lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar(8));
+    lh_ui_shadow_set_spread_v(lh_addr_of(shadow), lh_ui_scalar(8));
     EXPECT_EQ(lh_ui_shadow_get_outset(lh_addr_of(shadow), lh_addr_of(rect)), 8);
 
     lh_ui_shadow_set_offset(lh_addr_of(shadow), lh_ui_scalar(-4), lh_ui_scalar(3));
@@ -180,7 +180,7 @@ TEST(ui_shadow, an_offset_moves_the_pixels_it_paints)
        ::lh_ui_rect_offset and dropped, and every shadow sat square under its box. */
     lh_ui_shadow_init(lh_addr_of(shadow));
     lh_ui_shadow_set_color(lh_addr_of(shadow), lh_ui_color_t{0, 0, 0, 255});
-    lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar(6));
+    lh_ui_shadow_set_spread_v(lh_addr_of(shadow), lh_ui_scalar(6));
     lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(20), lh_ui_scalar(20), lh_ui_scalar(40), lh_ui_scalar(40));
     EXPECT_EQ(lh_ui_shadow_alpha_at_pixel(lh_addr_of(shadow), 17, 40, lh_addr_of(rect), lh_ui_scalar(0)),
               lh_ui_shadow_alpha_at_pixel(lh_addr_of(shadow), 62, 40, lh_addr_of(rect), lh_ui_scalar(0)));
@@ -215,7 +215,7 @@ TEST(ui_shadow, a_span_reads_the_same_alphas_as_each_pixel)
 
                     lh_ui_shadow_init(lh_addr_of(shadow));
                     lh_ui_shadow_set_color(lh_addr_of(shadow), lh_ui_color_t{0, 0, 0, peak});
-                    lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar_of(spread));
+                    lh_ui_shadow_set_spread_v(lh_addr_of(shadow), lh_ui_scalar_of(spread));
                     lh_ui_shadow_set_offset(lh_addr_of(shadow), lh_ui_scalar_of(offset), lh_ui_scalar_of(-offset));
                     lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(35), lh_ui_scalar(35), lh_ui_scalar(51),
                                     lh_ui_scalar(37));

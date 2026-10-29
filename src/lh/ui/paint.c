@@ -49,7 +49,7 @@ lh_ui_paint_is_empty(const lh_ui_paint_t *self)
 }
 
 const lh_ui_color_t *
-lh_ui_paint_get_color(const lh_ui_paint_t *self)
+lh_ui_paint_get_color_v(const lh_ui_paint_t *self)
 {
     lh_assert_runtime_ref(self);
     if (lh_ui_paint_get_kind(self) != lh_ui_paint_kind_solid)
@@ -70,7 +70,7 @@ lh_ui_paint_init_gradient(lh_ui_paint_t *self, const lh_ui_gradient_t *gradient)
 }
 
 const lh_ui_gradient_t *
-lh_ui_paint_get_gradient(const lh_ui_paint_t *self)
+lh_ui_paint_get_gradient_v(const lh_ui_paint_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_ui_paint_get_kind(self) == lh_ui_paint_kind_gradient ? lh_ui_paint_get_gradient(self) : lh_null;
@@ -102,4 +102,18 @@ lh_ui_paint_set_gradient(lh_ui_paint_t *self, const lh_ui_gradient_t * gradient)
 {
     lh_assert_runtime_ref(self);
     self->gradient = gradient;
+}
+
+const lh_ui_color_t *
+lh_ui_paint_get_color(const lh_ui_paint_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->color);
+}
+
+const lh_ui_gradient_t *
+lh_ui_paint_get_gradient(const lh_ui_paint_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->gradient;
 }

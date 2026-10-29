@@ -90,7 +90,7 @@ lh_ui_surface_get_format(const lh_ui_surface_t *self);
  * ::lh_os_render_backend_gdi_context_get_format.
  */
 lh_void
-lh_ui_surface_set_format(lh_ui_surface_t *self, lh_ui_pixmap_format_t format);
+lh_ui_surface_set_format_v(lh_ui_surface_t *self, lh_ui_pixmap_format_t format);
 
 /**
  * @brief Recreate @p self for @p size. No-op when the size already matches
@@ -99,7 +99,7 @@ lh_ui_surface_set_format(lh_ui_surface_t *self, lh_ui_pixmap_format_t format);
  * @return True when @p self is valid at @p size afterwards.
  */
 lh_bool_t
-lh_ui_surface_set_size(lh_ui_surface_t *self, lh_ui_size_t size);
+lh_ui_surface_set_size_v(lh_ui_surface_t *self, lh_ui_size_t size);
 
 /**
  * @brief Set @p pixmap over the pixels of @p self (::lh_os_system_surface_get_pixels),
@@ -186,6 +186,28 @@ lh_ui_surface_get_size_mut(lh_ui_surface_t *self);
  */
 const lh_ui_size_t *
 lh_ui_surface_get_size(const lh_ui_surface_t *self);
+
+/**
+ * @brief Store the size of the surface (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The surface; checked by ::lh_assert_runtime_ref.
+ * @param size The new value.
+ */
+lh_void
+lh_ui_surface_set_size(lh_ui_surface_t *self, lh_ui_size_t size);
+
+/**
+ * @brief Store the pixel format of the surface (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The surface; checked by ::lh_assert_runtime_ref.
+ * @param format The new value.
+ */
+lh_void
+lh_ui_surface_set_format(lh_ui_surface_t *self, lh_ui_pixmap_format_t format);
 
 LH_COMPILER_EXTERN_C_END
 

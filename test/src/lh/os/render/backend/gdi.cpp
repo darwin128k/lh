@@ -164,7 +164,7 @@ TEST(os_render_backend_gdi, a_present_carries_only_the_pixels_the_frame_drew)
     lh_ui_color_init_hex(lh_addr_of(blue), blue_hex);
 
     lh_ui_surface_init(lh_addr_of(screen));
-    ASSERT_EQ(lh_ui_surface_set_size(lh_addr_of(screen), size), lh_bool_true);
+    ASSERT_EQ(lh_ui_surface_set_size_v(lh_addr_of(screen), size), lh_bool_true);
     fill_surface(lh_addr_of(screen), red_hex);
 
     present_part_of(lh_addr_of(screen), size, lh_addr_of(area), lh_addr_of(part), blue_hex);
@@ -206,7 +206,7 @@ TEST(os_render_backend_gdi, a_frame_that_was_never_cut_presents_its_whole_surfac
     lh_ui_color_init_hex(lh_addr_of(blue), blue_hex);
 
     lh_ui_surface_init(lh_addr_of(screen));
-    ASSERT_EQ(lh_ui_surface_set_size(lh_addr_of(screen), size), lh_bool_true);
+    ASSERT_EQ(lh_ui_surface_set_size_v(lh_addr_of(screen), size), lh_bool_true);
     fill_surface(lh_addr_of(screen), red_hex);
 
     present_part_of(lh_addr_of(screen), size, lh_addr_of(area), lh_null, blue_hex);
@@ -252,7 +252,7 @@ TEST(os_render_backend_gdi, a_present_leaves_the_gap_between_two_cuts_alone)
     lh_ui_color_init_hex(lh_addr_of(blue), blue_hex);
 
     lh_ui_surface_init(lh_addr_of(screen));
-    ASSERT_EQ(lh_ui_surface_set_size(lh_addr_of(screen), size), lh_bool_true);
+    ASSERT_EQ(lh_ui_surface_set_size_v(lh_addr_of(screen), size), lh_bool_true);
     fill_surface(lh_addr_of(screen), green_hex);
 
     present_parts_of(lh_addr_of(screen), size, lh_addr_of(area), lh_addr_of(left), lh_addr_of(right), blue_hex);

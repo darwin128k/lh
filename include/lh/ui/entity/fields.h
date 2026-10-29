@@ -24,7 +24,7 @@ struct lh_ui_view;
  * (::lh_ui_view_press / ::lh_ui_view_release): it paints the pressed style of
  * ::lh_ui_style_t when there is one, and changes nothing about the entity.
  * `parent` is ::lh_null for a root. `view` is set on that root by
- * ::lh_ui_view_set_root and is ::lh_null everywhere else: a setter that changes
+ * ::lh_ui_view_set_root_v and is ::lh_null everywhere else: a setter that changes
  * what is on screen walks up to it and records one rect
  * (::lh_ui_entity_note). In C++ the class member is `klass` (`class` is a
  * keyword).

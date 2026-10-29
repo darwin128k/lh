@@ -56,7 +56,7 @@ TEST(canvas_web, shadow_is_one_op_not_a_pixel_each)
     lh_ui_color_init(lh_addr_of(fill), 0, 0, 0, 40);
     lh_ui_shadow_init(lh_addr_of(shadow));
     lh_ui_shadow_set_color(lh_addr_of(shadow), fill);
-    lh_ui_shadow_set_spread(lh_addr_of(shadow), (lh_ui_scalar_t)8);
+    lh_ui_shadow_set_spread_v(lh_addr_of(shadow), (lh_ui_scalar_t)8);
     lh_ui_rect_init(lh_addr_of(rect), 10, 10, 40, 40);
     ASSERT_TRUE(lh_ui_canvas_shadow(lh_addr_of(canvas), lh_addr_of(rect), (lh_ui_scalar_t)8,
                                    lh_addr_of(shadow)));
@@ -113,7 +113,7 @@ one_glyph_frame(lh_ui_canvas_web_glyphs_t *glyphs, const lh_ui_mask_t *mask)
     char buf[2048];
 
     EXPECT_TRUE(lh_ui_canvas_web_open_mem(lh_addr_of(web), buf, sizeof(buf), 16u, 16u));
-    lh_ui_canvas_web_set_glyphs(lh_addr_of(web), glyphs);
+    lh_ui_canvas_web_set_glyphs_v(lh_addr_of(web), glyphs);
     lh_ui_color_init(lh_addr_of(fill), 1, 2, 3, 255);
     lh_ui_point_init(lh_addr_of(origin), 0, 0);
     EXPECT_TRUE(lh_ui_canvas_backend_web.fill_mask(lh_addr_of(web), lh_addr_of(origin), mask, lh_addr_of(fill)));

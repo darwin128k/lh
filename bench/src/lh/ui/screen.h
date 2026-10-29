@@ -61,11 +61,11 @@ struct screen
         lh_ui_style_assign_fill(&card_style, &paint);
         lh_ui_paint_init_color(&paint, &ink);
         lh_ui_style_assign_text(&card_style, &paint);
-        lh_ui_style_set_radius(&card_style, lh_ui_scalar(8));
+        lh_ui_style_set_radius_v(&card_style, lh_ui_scalar(8));
         lh_ui_style_set_padding_all(&card_style, lh_ui_scalar(8));
 
         lh_ui_container_init(&root, rect(0, 0, width, height));
-        lh_ui_entity_set_style(lh_ui_container_as_entity(&root), &root_style);
+        lh_ui_entity_set_style_v(lh_ui_container_as_entity(&root), &root_style);
 
         if (id == screen_cards)
         {
@@ -73,7 +73,7 @@ struct screen
             {
                 std::snprintf(captions[i], sizeof captions[i], "Card %d", i + 1);
                 lh_ui_label_init(&labels[i], rect(8 + (i % 6) * 78, 8 + (i / 6) * 78, 72, 66), captions[i]);
-                lh_ui_entity_set_style(lh_ui_label_as_entity(&labels[i]), &card_style);
+                lh_ui_entity_set_style_v(lh_ui_label_as_entity(&labels[i]), &card_style);
                 lh_ui_entity_add_child(lh_ui_container_as_entity(&root), lh_ui_label_as_entity(&labels[i]));
             }
             partial = rect(8, 8, 72, 66);
@@ -97,7 +97,7 @@ struct screen
             {
                 std::snprintf(captions[i], sizeof captions[i], "Item %d", i + 1);
                 lh_ui_label_init(&labels[i], rect(0, 0, 0, 0), captions[i]);
-                lh_ui_entity_set_style(lh_ui_label_as_entity(&labels[i]), &card_style);
+                lh_ui_entity_set_style_v(lh_ui_label_as_entity(&labels[i]), &card_style);
                 lh_ui_entity_set_place_v(lh_ui_label_as_entity(&labels[i]), &fill);
                 lh_ui_entity_add_child(lh_ui_container_as_entity(&rows[i / 4]), lh_ui_label_as_entity(&labels[i]));
             }
@@ -110,7 +110,7 @@ struct screen
             {
                 lh_ui_label_init(&labels[i], rect(8 + (i % 2) * 236, 8 + (i / 2) * 156, 228, 148),
                                  screen_paragraph);
-                lh_ui_entity_set_style(lh_ui_label_as_entity(&labels[i]), &card_style);
+                lh_ui_entity_set_style_v(lh_ui_label_as_entity(&labels[i]), &card_style);
                 lh_ui_entity_add_child(lh_ui_container_as_entity(&root), lh_ui_label_as_entity(&labels[i]));
             }
             partial = rect(8, 8, 228, 148);
@@ -118,7 +118,7 @@ struct screen
 
         lh_ui_view_init(&view);
         lh_ui_view_set_canvas(&view, &surf.canvas);
-        lh_ui_view_set_root(&view, lh_ui_container_as_entity(&root));
+        lh_ui_view_set_root_v(&view, lh_ui_container_as_entity(&root));
         clear = bg;
         lh_ui_view_set_clear(&view, &clear);
         lh_ui_view_paint(&view);

@@ -103,6 +103,132 @@ lh_ui_frame_stats_get_us(const lh_ui_frame_stats_t *self);
 lh_u64_t
 lh_ui_frame_stats_get_worst_us(const lh_ui_frame_stats_t *self);
 
+/**
+ * @brief Store how many frames were counted (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The frame statistics; checked by ::lh_assert_runtime_ref.
+ * @param frames The new value.
+ */
+lh_void
+lh_ui_frame_stats_set_frames(lh_ui_frame_stats_t *self, lh_u32_t frames);
+
+/**
+ * @brief Store how many frames had an unknown asked area (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The frame statistics; checked by ::lh_assert_runtime_ref.
+ * @param unknown The new value.
+ */
+lh_void
+lh_ui_frame_stats_set_unknown(lh_ui_frame_stats_t *self, lh_u32_t unknown);
+
+/**
+ * @brief Store how many frames drew more than they were asked to (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The frame statistics; checked by ::lh_assert_runtime_ref.
+ * @param wasteful The new value.
+ */
+lh_void
+lh_ui_frame_stats_set_wasteful(lh_ui_frame_stats_t *self, lh_u32_t wasteful);
+
+/**
+ * @brief Store how many pixels the frames drew in all (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The frame statistics; checked by ::lh_assert_runtime_ref.
+ * @param drawn_px The new value.
+ */
+lh_void
+lh_ui_frame_stats_set_drawn_px(lh_ui_frame_stats_t *self, lh_u64_t drawn_px);
+
+/**
+ * @brief Store how many pixels the frames were asked to draw in all (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The frame statistics; checked by ::lh_assert_runtime_ref.
+ * @param asked_px The new value.
+ */
+lh_void
+lh_ui_frame_stats_set_asked_px(lh_ui_frame_stats_t *self, lh_u64_t asked_px);
+
+/**
+ * @brief Store how many rectangles the frames drew in all (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The frame statistics; checked by ::lh_assert_runtime_ref.
+ * @param rects The new value.
+ */
+lh_void
+lh_ui_frame_stats_set_rects(lh_ui_frame_stats_t *self, lh_u64_t rects);
+
+/**
+ * @brief Store how many microseconds the frames took in all (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The frame statistics; checked by ::lh_assert_runtime_ref.
+ * @param us The new value.
+ */
+lh_void
+lh_ui_frame_stats_set_us(lh_ui_frame_stats_t *self, lh_u64_t us);
+
+/**
+ * @brief Store the most microseconds one frame took (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The frame statistics; checked by ::lh_assert_runtime_ref.
+ * @param worst_us The new value.
+ */
+lh_void
+lh_ui_frame_stats_set_worst_us(lh_ui_frame_stats_t *self, lh_u64_t worst_us);
+
+/**
+ * @brief The callback told after each frame (level 1).
+ *
+ * @param self The frame statistics; checked by ::lh_assert_runtime_ref.
+ */
+lh_ui_frame_stats_on_frame_cb
+lh_ui_frame_stats_get_on_frame_fn(const lh_ui_frame_stats_t *self);
+
+/**
+ * @brief Store the callback told after each frame (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The frame statistics; checked by ::lh_assert_runtime_ref.
+ * @param on_frame The new value.
+ */
+lh_void
+lh_ui_frame_stats_set_on_frame_fn(lh_ui_frame_stats_t *self, lh_ui_frame_stats_on_frame_cb on_frame);
+
+/**
+ * @brief The value passed to the frame callback (level 1).
+ *
+ * @param self The frame statistics; checked by ::lh_assert_runtime_ref.
+ */
+lh_ptr
+lh_ui_frame_stats_get_on_frame_context(const lh_ui_frame_stats_t *self);
+
+/**
+ * @brief Store the value passed to the frame callback (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The frame statistics; checked by ::lh_assert_runtime_ref.
+ * @param on_frame_context The new value.
+ */
+lh_void
+lh_ui_frame_stats_set_on_frame_context(lh_ui_frame_stats_t *self, lh_ptr on_frame_context);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_FRAME_STATS_H */

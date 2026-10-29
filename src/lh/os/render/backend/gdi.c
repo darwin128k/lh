@@ -72,7 +72,7 @@ lh_os_render_backend_gdi_context_set_format(lh_os_render_backend_gdi_context_t *
                                             lh_ui_pixmap_format_t format)
 {
     lh_assert_runtime_ref(self);
-    lh_ui_surface_set_format(lh_os_render_backend_gdi_context_get_surface_mut(self), format);
+    lh_ui_surface_set_format_v(lh_os_render_backend_gdi_context_get_surface_mut(self), format);
 }
 
 lh_void
@@ -163,7 +163,7 @@ lh_os_render_backend_gdi_begin_area(lh_ptr context, const lh_ui_rect_t *area)
        960 KB of RGB565 DIB, a 32-row strip is 48 KB, and the pixels that did not
        change are never cleared, drawn or blitted at all. */
     lh_os_render_backend_gdi_context_set_present_at(gdi, lh_ptr_deref(lh_ui_rect_get_origin(area)));
-    (void)lh_ui_surface_set_size(lh_os_render_backend_gdi_context_get_surface_mut(gdi),
+    (void)lh_ui_surface_set_size_v(lh_os_render_backend_gdi_context_get_surface_mut(gdi),
                                  lh_ptr_deref(lh_ui_rect_get_size(area)));
     lh_ui_pixmap_init_empty(lh_addr_of(pixmap));
     (void)lh_ui_surface_get_pixmap(lh_os_render_backend_gdi_context_get_surface_mut(gdi),

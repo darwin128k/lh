@@ -755,7 +755,7 @@ lh_ui_web_host_draw(lh_ui_view_t *view, lh_uint_t width, lh_uint_t height, lh_st
     {
         return lh_bool_false;
     }
-    lh_ui_canvas_web_set_glyphs(web, glyphs);
+    lh_ui_canvas_web_set_glyphs_v(web, glyphs);
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_web), web);
     lh_ui_view_set_canvas(view, lh_addr_of(canvas));
     lh_ui_view_draw(view, lh_null);

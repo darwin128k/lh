@@ -155,12 +155,12 @@ lh_ui_label_get_ink_reach(lh_ui_label_t *self, lh_ui_rect_t *out);
  * previous bytes are gone by then.
  */
 lh_void
-lh_ui_label_set_text(lh_ui_label_t *self, const lh_char_t *text);
+lh_ui_label_set_text_v(lh_ui_label_t *self, const lh_char_t *text);
 
 /**
  * @brief Forget the remembered ink of @p self.
  *
- * A field edits its buffer in place and never calls ::lh_ui_label_set_text,
+ * A field edits its buffer in place and never calls ::lh_ui_label_set_text_v,
  * because the label already points at that buffer. The next draw measures
  * again.
  */
@@ -206,7 +206,7 @@ lh_ui_label_same_insets(const lh_ui_insets_t *a, const lh_ui_insets_t *b);
    Measuring is laying the text out glyph by glyph, wrapped or not, and every frame
    asks for it several times over -- whether the label shows at all, where its text
    starts, where its line is, what its ink covers -- of every label, drawn or not.
-   It is the same answer each time until the text (::lh_ui_label_set_text drops it),
+   It is the same answer each time until the text (::lh_ui_label_set_text_v drops it),
    the font, the box, the padding, the alignment or the wrapping width changes, and
    those are what is compared here. The label is const to its callers because none
    of this is what it looks like; only the remembering writes. */
@@ -617,6 +617,17 @@ lh_ui_label_get_metrics_size_mut(lh_ui_label_t *self);
  */
 lh_void
 lh_ui_label_set_metrics_size(lh_ui_label_t *self, lh_ui_size_t metrics_size);
+
+/**
+ * @brief Store the text the label shows (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The label; checked by ::lh_assert_runtime_ref.
+ * @param text The new value.
+ */
+lh_void
+lh_ui_label_set_text(lh_ui_label_t *self, const lh_char_t * text);
 
 LH_COMPILER_EXTERN_C_END
 

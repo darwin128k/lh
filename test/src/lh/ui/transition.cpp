@@ -72,7 +72,7 @@ struct scene
         lh_ui_entity_add_child(&root, &box);
         lh_ui_view_init(&view);
         lh_ui_view_set_canvas(&view, &canvas);
-        lh_ui_view_set_root(&view, &root);
+        lh_ui_view_set_root_v(&view, &root);
     }
 
     lh_u32_t
@@ -123,7 +123,7 @@ TEST(ui_style_blend, everything_with_an_amount_is_mixed)
     const lh_ui_color_t black = color_of(0, 0, 0);
     const lh_ui_color_t white = color_of(250, 250, 250);
 
-    lh_ui_style_set_radius(&from.style, lh_ui_scalar(0));
+    lh_ui_style_set_radius_v(&from.style, lh_ui_scalar(0));
     lh_ui_radii_init(&corners, lh_ui_scalar(10), lh_ui_scalar(20), lh_ui_scalar(0), lh_ui_scalar(0));
     lh_ui_style_set_radii_v(&to.style, &corners);
     lh_ui_paint_init_color(&ink, &black);
@@ -151,7 +151,7 @@ TEST(ui_style_blend, a_shadow_cast_at_one_end_only_fades_in_from_nothing)
 
     lh_ui_shadow_init(&cast);
     lh_ui_shadow_set_color(&cast, color_of(0, 0, 0, 200));
-    lh_ui_shadow_set_spread(&cast, lh_ui_scalar(10));
+    lh_ui_shadow_set_spread_v(&cast, lh_ui_scalar(10));
     lh_ui_style_set_shadow_v(&to.style, &cast);
 
     lh_ui_style_init_blend(&mid, &from.style, &to.style, 0);
@@ -168,8 +168,8 @@ TEST(ui_transition, a_style_with_no_time_is_taken_at_once)
     look red(color_of(255, 0, 0));
     look blue(color_of(0, 0, 255));
 
-    lh_ui_entity_set_style(&s.box, &red.style);
-    lh_ui_entity_set_style(&s.box, &blue.style);
+    lh_ui_entity_set_style_v(&s.box, &red.style);
+    lh_ui_entity_set_style_v(&s.box, &blue.style);
     EXPECT_EQ(lh_ui_entity_get_style(&s.box), &blue.style);
     EXPECT_EQ(lh_ui_view_get_transition_target(&s.view, &s.box), lh_null);
 }
@@ -181,8 +181,8 @@ TEST(ui_transition, a_style_with_time_is_reached_over_it_and_then_landed_on)
     look blue(color_of(0, 0, 255), 160);
 
     lh_ui_style_set_easing(&blue.style, lh_ui_easing_linear);
-    lh_ui_entity_set_style(&s.box, &red.style);
-    lh_ui_entity_set_style(&s.box, &blue.style);
+    lh_ui_entity_set_style_v(&s.box, &red.style);
+    lh_ui_entity_set_style_v(&s.box, &blue.style);
     EXPECT_EQ(lh_ui_view_get_transition_target(&s.view, &s.box), &blue.style);
     EXPECT_EQ(red_now(&s.box), 255) << "it sets out from where it was";
 
@@ -202,10 +202,10 @@ TEST(ui_transition, the_same_style_asked_for_again_does_not_start_over)
     look blue(color_of(0, 0, 255), 160);
 
     lh_ui_style_set_easing(&blue.style, lh_ui_easing_linear);
-    lh_ui_entity_set_style(&s.box, &red.style);
-    lh_ui_entity_set_style(&s.box, &blue.style);
+    lh_ui_entity_set_style_v(&s.box, &red.style);
+    lh_ui_entity_set_style_v(&s.box, &blue.style);
     lh_ui_view_advance(&s.view, 80);
-    lh_ui_entity_set_style(&s.box, &blue.style);
+    lh_ui_entity_set_style_v(&s.box, &blue.style);
     EXPECT_NEAR(red_now(&s.box), 128, 2) << "a hover asked for on every pointer move";
 }
 
@@ -218,9 +218,9 @@ TEST(ui_transition, turned_round_half_way_it_sets_out_from_the_colour_on_screen)
     lh_ui_style_set_easing(&red.style, lh_ui_easing_linear);
     lh_ui_style_set_easing(&blue.style, lh_ui_easing_linear);
     lh_ui_entity_set_style_at_once(&s.box, &red.style);
-    lh_ui_entity_set_style(&s.box, &blue.style);
+    lh_ui_entity_set_style_v(&s.box, &blue.style);
     lh_ui_view_advance(&s.view, 80);
-    lh_ui_entity_set_style(&s.box, &red.style);
+    lh_ui_entity_set_style_v(&s.box, &red.style);
     EXPECT_NEAR(red_now(&s.box), 128, 2) << "no jump back to blue or to red";
     lh_ui_view_advance(&s.view, 80);
     EXPECT_NEAR(red_now(&s.box), 191, 2) << "half way from the middle back to red";
@@ -237,11 +237,11 @@ TEST(ui_transition, when_every_slot_is_taken_the_switch_is_instant)
     {
         lh_ui_entity_init(&e, rect_of(0, 0, 4, 4));
         lh_ui_entity_add_child(&s.root, &e);
-        lh_ui_entity_set_style(&e, &red.style);
-        lh_ui_entity_set_style(&e, &blue.style);
+        lh_ui_entity_set_style_v(&e, &red.style);
+        lh_ui_entity_set_style_v(&e, &blue.style);
     }
-    lh_ui_entity_set_style(&s.box, &red.style);
-    lh_ui_entity_set_style(&s.box, &blue.style);
+    lh_ui_entity_set_style_v(&s.box, &red.style);
+    lh_ui_entity_set_style_v(&s.box, &blue.style);
     EXPECT_EQ(lh_ui_entity_get_style(&s.box), &blue.style);
     for (lh_ui_entity_t &e : more)
     {
@@ -255,8 +255,8 @@ TEST(ui_transition, an_entity_taken_out_of_the_tree_lands_and_leaves_its_slot)
     look red(color_of(255, 0, 0));
     look blue(color_of(0, 0, 255), 160);
 
-    lh_ui_entity_set_style(&s.box, &red.style);
-    lh_ui_entity_set_style(&s.box, &blue.style);
+    lh_ui_entity_set_style_v(&s.box, &red.style);
+    lh_ui_entity_set_style_v(&s.box, &blue.style);
     lh_ui_entity_remove_child(&s.root, &s.box);
     EXPECT_EQ(lh_ui_entity_get_style(&s.box), &blue.style) << "landed, not left pointing into the view";
     EXPECT_EQ(lh_ui_view_get_transition_target(&s.view, &s.box), lh_null);
@@ -270,10 +270,10 @@ TEST(ui_transition, a_new_root_lands_the_old_trees_looks)
     look red(color_of(255, 0, 0));
     look blue(color_of(0, 0, 255), 160);
 
-    lh_ui_entity_set_style(&s.box, &red.style);
-    lh_ui_entity_set_style(&s.box, &blue.style);
+    lh_ui_entity_set_style_v(&s.box, &red.style);
+    lh_ui_entity_set_style_v(&s.box, &blue.style);
     lh_ui_entity_init(&other, rect_of(0, 0, 4, 4));
-    lh_ui_view_set_root(&s.view, &other);
+    lh_ui_view_set_root_v(&s.view, &other);
     EXPECT_EQ(lh_ui_entity_get_style(&s.box), &blue.style);
 }
 
@@ -285,8 +285,8 @@ TEST(ui_transition, a_press_shows_the_pressed_look_of_where_it_is_going)
     look pressed(color_of(0, 255, 0));
 
     lh_ui_style_set_pressed(&blue.style, &pressed.style);
-    lh_ui_entity_set_style(&s.box, &red.style);
-    lh_ui_entity_set_style(&s.box, &blue.style);
+    lh_ui_entity_set_style_v(&s.box, &red.style);
+    lh_ui_entity_set_style_v(&s.box, &blue.style);
     lh_ui_view_advance(&s.view, 32);
     lh_ui_entity_set_pressed(&s.box, lh_bool_true);
     EXPECT_EQ(lh_ui_entity_get_style_now(&s.box), &pressed.style);
@@ -303,9 +303,9 @@ TEST(ui_transition, the_pixels_follow_the_look_in_flight)
     look blue(color_of(0, 0, 255), 160);
 
     lh_ui_style_set_easing(&blue.style, lh_ui_easing_linear);
-    lh_ui_entity_set_style(&s.box, &red.style);
+    lh_ui_entity_set_style_v(&s.box, &red.style);
     EXPECT_EQ(s.painted(), 0xFFFF0000u);
-    lh_ui_entity_set_style(&s.box, &blue.style);
+    lh_ui_entity_set_style_v(&s.box, &blue.style);
     lh_ui_view_advance(&s.view, 80);
     const lh_u32_t mid = s.painted();
     EXPECT_NEAR((int)((mid >> 16) & 0xFF), 128, 3);
@@ -321,7 +321,7 @@ TEST(ui_transition, a_tick_moves_the_looks_and_says_the_frame_changed)
     look blue(color_of(0, 0, 255), 160);
 
     EXPECT_TRUE(lh_ui_view_tick(&s.view) == lh_bool_false) << "nothing in flight, nothing to paint";
-    lh_ui_entity_set_style(&s.box, &red.style);
-    lh_ui_entity_set_style(&s.box, &blue.style);
+    lh_ui_entity_set_style_v(&s.box, &red.style);
+    lh_ui_entity_set_style_v(&s.box, &blue.style);
     EXPECT_TRUE(lh_ui_view_tick(&s.view) == lh_bool_true);
 }

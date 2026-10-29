@@ -8,12 +8,12 @@
  * and a callback for the click. Everything else comes from the core: the press
  * state and its damage (::lh_ui_view_press, ::lh_ui_view_set_pressed), the
  * shadow and the radius from the style, the clickable area from
- * ::lh_ui_style_set_hit_radius. There is no class per look.
+ * ::lh_ui_style_set_hit_radius_v. There is no class per look.
  *
  * Hover is the one thing it holds itself, and on purpose: the pointer's position
  * arrives from the OS as coordinates, and the app is what turns them into "this
  * button is under the pointer". ::lh_ui_view_set_hot is that step with the
- * damage already added; ::lh_ui_button_set_hot is the raw one, for an app that
+ * damage already added; ::lh_ui_button_set_hot_v is the raw one, for an app that
  * drives its own canvas.
  *
  * Class ::lh_ui_button_class: the base draw (fill, shadow, and the
@@ -127,7 +127,7 @@ lh_ui_button_get_hot_style(const lh_ui_button_t *self);
  *        @p self is hovered.
  */
 lh_void
-lh_ui_button_set_hot_style(lh_ui_button_t *self, const lh_ui_style_t *style);
+lh_ui_button_set_hot_style_v(lh_ui_button_t *self, const lh_ui_style_t *style);
 
 /**
  * @brief The style @p self shows right now: the hot one when it is hovered and
@@ -151,7 +151,7 @@ lh_ui_button_get_hot(const lh_ui_button_t *self);
  *        ::lh_ui_view_set_hot instead, which does this and damages both looks.
  */
 lh_void
-lh_ui_button_set_hot(lh_ui_button_t *self, lh_bool_t hot);
+lh_ui_button_set_hot_v(lh_ui_button_t *self, lh_bool_t hot);
 
 /* -- Click ----------------------------------------------------------------- */
 
@@ -260,6 +260,28 @@ lh_ui_button_get_click_context(const lh_ui_button_t *self);
  */
 lh_void
 lh_ui_button_set_click_context(lh_ui_button_t *self, lh_ptr click_context);
+
+/**
+ * @brief Store whether the pointer is over the button (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The button; checked by ::lh_assert_runtime_ref.
+ * @param hot The new value.
+ */
+lh_void
+lh_ui_button_set_hot(lh_ui_button_t *self, lh_bool_t hot);
+
+/**
+ * @brief Store the style the button has when hot (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The button; checked by ::lh_assert_runtime_ref.
+ * @param hot_style The new value.
+ */
+lh_void
+lh_ui_button_set_hot_style(lh_ui_button_t *self, const lh_ui_style_t * hot_style);
 
 LH_COMPILER_EXTERN_C_END
 

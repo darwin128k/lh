@@ -110,7 +110,7 @@ lh_ui_input_init(lh_ui_input_t *self, lh_ui_rect_t rect, lh_char_t *buffer, lh_u
     lh_ui_input_set_caret_shape(self, lh_ui_input_caret_bar);
     /* The label's own text **is** the buffer, so the drawing the label inherited
        shows what was typed without one call being made to say so. */
-    lh_ui_entity_set_class(lh_ui_input_as_entity(self), lh_addr_of(lh_ui_input_class));
+    lh_ui_entity_set_class_v(lh_ui_input_as_entity(self), lh_addr_of(lh_ui_input_class));
 }
 
 lh_ui_input_t *
@@ -286,7 +286,7 @@ lh_ui_input_get_caret(const lh_ui_input_t *self)
 /* -- Editing --------------------------------------------------------------- */
 
 lh_bool_t
-lh_ui_input_set_caret(lh_ui_input_t *self, lh_u16_t caret)
+lh_ui_input_set_caret_v(lh_ui_input_t *self, lh_u16_t caret)
 {
     lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(lh_ui_input_get_buffer(self)), lh_bool_false);
@@ -347,7 +347,7 @@ lh_ui_input_on_press(const lh_ui_input_t *self, const lh_ui_entity_event_t *even
         at = next;
         caret = lh_cast_static(lh_u16_t, cursor - lh_ui_input_get_buffer(self));
     }
-    return lh_ui_input_set_caret(input, caret);
+    return lh_ui_input_set_caret_v(input, caret);
 }
 
 lh_void
@@ -398,7 +398,7 @@ lh_ui_input_on_key(const lh_ui_input_t *self, const lh_ui_entity_event_t *event)
     {
         const lh_u16_t at = lh_ui_input_boundary_before(self, lh_ui_input_get_caret(self));
 
-        return lh_ui_input_get_caret(self) == 0U ? lh_bool_false : lh_ui_input_set_caret(input, at);
+        return lh_ui_input_get_caret(self) == 0U ? lh_bool_false : lh_ui_input_set_caret_v(input, at);
     }
     if (lh_ui_key_input_is_down(key, lh_os_key_right))
     {
@@ -409,7 +409,7 @@ lh_ui_input_on_key(const lh_ui_input_t *self, const lh_ui_entity_event_t *event)
 
         return size == 0U
                    ? lh_bool_false
-                   : lh_ui_input_set_caret(input, lh_cast_static(lh_u16_t, lh_ui_input_get_caret(self) + size));
+                   : lh_ui_input_set_caret_v(input, lh_cast_static(lh_u16_t, lh_ui_input_get_caret(self) + size));
     }
     if (lh_ui_key_input_is_down(key, lh_os_key_home))
     {
@@ -557,7 +557,7 @@ lh_ui_input_on_draw_caret(const lh_ui_input_t *self, const lh_ui_entity_event_t 
         const lh_ui_style_t *style =
             lh_ui_entity_get_style(lh_ui_container_get_entity(lh_ui_label_get_container(lh_ui_input_get_label(self))));
         const lh_ui_color_t *under =
-            lh_null_eq(style) ? lh_null : lh_ui_paint_get_color(lh_ui_style_get_fill(style));
+            lh_null_eq(style) ? lh_null : lh_ui_paint_get_color_v(lh_ui_style_get_fill(style));
         const lh_char_t *at = lh_addr_of(lh_ui_input_get_buffer(self)[lh_ui_input_get_caret(self)]);
         lh_ui_color_t white;
 
@@ -700,4 +700,11 @@ lh_ui_input_set_focused(lh_ui_input_t *self, lh_bool_t focused)
 {
     lh_assert_runtime_ref(self);
     self->focused = focused;
+}
+
+lh_void
+lh_ui_input_set_caret(lh_ui_input_t *self, lh_u16_t caret)
+{
+    lh_assert_runtime_ref(self);
+    self->caret = caret;
 }

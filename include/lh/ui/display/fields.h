@@ -15,7 +15,7 @@
  * Pixels are **not** owned: @c bits come from the application (SRAM strip on
  * F4VE, DIB on Windows). @c strip_height `0` means the pixmap is the full
  * panel; otherwise it is one band and the host moves it with
- * ::lh_ui_display_set_strip_y before each band.
+ * ::lh_ui_display_set_strip_y_v before each band.
  *
  * @param size_type    ::lh_ui_size_t (panel).
  * @param scalar_type  ::lh_ui_scalar_t (strip_height, strip_y).

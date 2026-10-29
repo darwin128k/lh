@@ -87,6 +87,82 @@ lh_ui_web_buf_raw(lh_ui_web_buf_t *self, const lh_str_ptr s);
 lh_void
 lh_ui_web_buf_finish(lh_ui_web_buf_t *self);
 
+/**
+ * @brief The bytes of the buffer (level 1).
+ *
+ * @param self The buffer; checked by ::lh_assert_runtime_ref.
+ */
+lh_byte_ptr
+lh_ui_web_buf_get_mem(const lh_ui_web_buf_t *self);
+
+/**
+ * @brief Store the bytes of the buffer (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The buffer; checked by ::lh_assert_runtime_ref.
+ * @param mem The new value.
+ */
+lh_void
+lh_ui_web_buf_set_mem(lh_ui_web_buf_t *self, lh_byte_ptr mem);
+
+/**
+ * @brief How many bytes the buffer holds (level 1).
+ *
+ * @param self The buffer; checked by ::lh_assert_runtime_ref.
+ */
+lh_usize_t
+lh_ui_web_buf_get_cap(const lh_ui_web_buf_t *self);
+
+/**
+ * @brief Store how many bytes the buffer holds (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The buffer; checked by ::lh_assert_runtime_ref.
+ * @param cap The new value.
+ */
+lh_void
+lh_ui_web_buf_set_cap(lh_ui_web_buf_t *self, lh_usize_t cap);
+
+/**
+ * @brief How many bytes are in use (level 1).
+ *
+ * @param self The buffer; checked by ::lh_assert_runtime_ref.
+ */
+lh_usize_t
+lh_ui_web_buf_get_len(const lh_ui_web_buf_t *self);
+
+/**
+ * @brief Store how many bytes are in use (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The buffer; checked by ::lh_assert_runtime_ref.
+ * @param len The new value.
+ */
+lh_void
+lh_ui_web_buf_set_len(lh_ui_web_buf_t *self, lh_usize_t len);
+
+/**
+ * @brief Whether every write so far fitted (level 1).
+ *
+ * @param self The buffer; checked by ::lh_assert_runtime_ref.
+ */
+lh_bool_t
+lh_ui_web_buf_is_ok(const lh_ui_web_buf_t *self);
+
+/**
+ * @brief Store whether every write so far fitted (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The buffer; checked by ::lh_assert_runtime_ref.
+ * @param ok The new value.
+ */
+lh_void
+lh_ui_web_buf_set_ok(lh_ui_web_buf_t *self, lh_bool_t ok);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_WEB_BUF_H */

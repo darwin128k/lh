@@ -25,7 +25,7 @@
 lh_bool_t
 lh_ui_canvas_box_rows_are_one_colour(const lh_ui_paint_t *paint)
 {
-    const lh_ui_gradient_t *gradient = lh_ui_paint_get_gradient(paint);
+    const lh_ui_gradient_t *gradient = lh_ui_paint_get_gradient_v(paint);
 
     lh_return_if(lh_null_eq(gradient), lh_bool_true);
     return lh_ui_gradient_get_shape(gradient) == lh_ui_gradient_shape_linear &&
@@ -37,7 +37,7 @@ lh_ui_canvas_box_rows_are_one_colour(const lh_ui_paint_t *paint)
 lh_bool_t
 lh_ui_canvas_box_columns_are_one_colour(const lh_ui_paint_t *paint)
 {
-    const lh_ui_gradient_t *gradient = lh_ui_paint_get_gradient(paint);
+    const lh_ui_gradient_t *gradient = lh_ui_paint_get_gradient_v(paint);
 
     lh_return_if(lh_null_eq(gradient), lh_bool_false);
     return lh_ui_gradient_get_shape(gradient) == lh_ui_gradient_shape_linear &&
@@ -59,7 +59,7 @@ lh_ui_canvas_box_paint_row(const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t 
     }
     for (x = x0; x < x1; ++x)
     {
-        out[x - x0] = lh_ptr_deref(lh_ui_paint_get_color(paint));
+        out[x - x0] = lh_ptr_deref(lh_ui_paint_get_color_v(paint));
     }
 }
 
@@ -72,7 +72,7 @@ lh_ui_canvas_box_row_colour(const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t
 
     if (lh_null_eq(sampler))
     {
-        lh_ptr_deref(out) = lh_ptr_deref(lh_ui_paint_get_color(paint));
+        lh_ptr_deref(out) = lh_ptr_deref(lh_ui_paint_get_color_v(paint));
         return;
     }
     lh_ui_gradient_sampler_column(sampler, x, y, y + 1, lh_addr_of(colour));
@@ -162,7 +162,7 @@ lh_ui_canvas_box_band(lh_ui_canvas_t *self, const lh_ui_paint_t *paint,
     lh_return_if(y1 <= y0 || x1 <= x0);
     if (lh_null_eq(sampler))
     {
-        lh_ui_canvas_fill_pixels(self, x0, y0, x1 - x0, y1 - y0, lh_ui_paint_get_color(paint));
+        lh_ui_canvas_fill_pixels(self, x0, y0, x1 - x0, y1 - y0, lh_ui_paint_get_color_v(paint));
         return;
     }
     if (lh_ui_canvas_box_rows_are_one_colour(paint))
@@ -314,18 +314,18 @@ lh_ui_canvas_fill_box(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, const lh_u
     lh_ui_radii_clamp(radii, rect, lh_addr_of(fit));
     /* The common case keeps its own road: one colour and one radius are the
        backend's rounded fill, exactly as before there were corners and gradients. */
-    if (lh_null_eq(lh_ui_paint_get_gradient(paint)) && lh_ui_radii_is_uniform(lh_addr_of(fit)))
+    if (lh_null_eq(lh_ui_paint_get_gradient_v(paint)) && lh_ui_radii_is_uniform(lh_addr_of(fit)))
     {
-        lh_ui_canvas_fill_round_rect(self, rect, lh_ui_radii_get_top_left(lh_addr_of(fit)), lh_ui_paint_get_color(paint));
+        lh_ui_canvas_fill_round_rect(self, rect, lh_ui_radii_get_top_left(lh_addr_of(fit)), lh_ui_paint_get_color_v(paint));
         return;
     }
     lh_ui_canvas_state_to_target(lh_ui_canvas_get_state_mut(self), rect, lh_addr_of(box));
     lh_ui_canvas_state_cut(lh_ui_canvas_get_state_mut(self), lh_addr_of(box), lh_addr_of(cut));
     lh_return_if(lh_ui_rect_is_empty(lh_addr_of(cut)));
     lh_return_if(!lh_ui_canvas_box_frame_init(lh_addr_of(box), lh_addr_of(cut), lh_addr_of(frame)));
-    if (lh_null_ne(lh_ui_paint_get_gradient(paint)))
+    if (lh_null_ne(lh_ui_paint_get_gradient_v(paint)))
     {
-        lh_ui_gradient_sampler_init(lh_addr_of(sampler), lh_ui_paint_get_gradient(paint),
+        lh_ui_gradient_sampler_init(lh_addr_of(sampler), lh_ui_paint_get_gradient_v(paint),
                                     lh_addr_of(box));
         colours = lh_addr_of(sampler);
     }

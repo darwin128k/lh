@@ -16,7 +16,7 @@ lh_ui_toggle_push_looks(lh_ui_toggle_t *self)
     lh_ui_button_t *button = lh_ui_toggle_get_button_mut(self);
 
     lh_ui_button_set_style(button, lh_ui_toggle_is_checked(self) ? lh_ui_toggle_get_on_style(self) : lh_ui_toggle_get_off_style(self));
-    lh_ui_button_set_hot_style(button, lh_ui_toggle_is_checked(self) ? lh_ui_toggle_get_on_hot_style(self) : lh_ui_toggle_get_off_hot_style(self));
+    lh_ui_button_set_hot_style_v(button, lh_ui_toggle_is_checked(self) ? lh_ui_toggle_get_on_hot_style(self) : lh_ui_toggle_get_off_hot_style(self));
 }
 
 /* -- Events ---------------------------------------------------------------- */
@@ -28,7 +28,7 @@ lh_ui_toggle_init(lh_ui_toggle_t *self, lh_ui_rect_t rect)
     lh_ui_button_init(lh_ui_toggle_get_button_mut(self), rect);
     /* The button's class is the toggle's: a toggle is a button, and a tree that
        asks for a button has to find one here. */
-    lh_ui_entity_set_class(lh_ui_button_as_entity(lh_ui_toggle_get_button_mut(self)),
+    lh_ui_entity_set_class_v(lh_ui_button_as_entity(lh_ui_toggle_get_button_mut(self)),
                            lh_addr_of(lh_ui_toggle_class));
     lh_ui_toggle_set_off_style(self, lh_null);
     lh_ui_toggle_set_off_hot_style(self, lh_null);
@@ -128,7 +128,7 @@ lh_ui_toggle_get_checked(const lh_ui_toggle_t *self)
 }
 
 lh_void
-lh_ui_toggle_set_checked(lh_ui_toggle_t *self, lh_bool_t checked)
+lh_ui_toggle_set_checked_v(lh_ui_toggle_t *self, lh_bool_t checked)
 {
     lh_assert_runtime_ref(self);
     lh_return_if(lh_ui_toggle_is_checked(self) == checked);
@@ -154,7 +154,7 @@ lh_ui_toggle_on_click(const lh_ui_toggle_t *self, const lh_ui_entity_event_t *ev
     /* A toggle answers with itself: what a click means here is that the state
        changed, and that is this component's business. The app is told after the
        flip, so it reads the new state rather than tracking which way it went. */
-    lh_ui_toggle_set_checked(lh_ptr_rcast(lh_ui_toggle_t, self), !lh_ui_toggle_get_checked(self));
+    lh_ui_toggle_set_checked_v(lh_ptr_rcast(lh_ui_toggle_t, self), !lh_ui_toggle_get_checked(self));
     on_click = lh_ui_toggle_get_on_click(self);
     lh_return_if(lh_null_eq(on_click));
     on_click(lh_ptr_rcast(lh_ui_toggle_t, self), lh_ui_toggle_get_click_context(self));
@@ -265,4 +265,11 @@ lh_ui_toggle_set_on_style(lh_ui_toggle_t *self, const lh_ui_style_t * on_style)
 {
     lh_assert_runtime_ref(self);
     self->on_style = on_style;
+}
+
+lh_void
+lh_ui_toggle_set_checked(lh_ui_toggle_t *self, lh_bool_t checked)
+{
+    lh_assert_runtime_ref(self);
+    self->checked = checked;
 }

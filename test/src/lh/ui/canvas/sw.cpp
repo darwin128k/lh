@@ -653,13 +653,13 @@ TEST(ui_canvas_sw, container_cuts_its_children_along_its_corners)
 
     lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(c));
     lh_ui_style_init(lh_addr_of(box_style));
-    lh_ui_style_set_radius(lh_addr_of(box_style), lh_ui_scalar(8));
+    lh_ui_style_set_radius_v(lh_addr_of(box_style), lh_ui_scalar(8));
     lh_ui_style_init(lh_addr_of(child_style));
     lh_ui_style_assign_fill(lh_addr_of(child_style), lh_addr_of(paint));
     lh_ui_container_init(lh_addr_of(box), box_rect);
-    lh_ui_entity_set_style(lh_ui_container_as_entity(lh_addr_of(box)), lh_addr_of(box_style));
+    lh_ui_entity_set_style_v(lh_ui_container_as_entity(lh_addr_of(box)), lh_addr_of(box_style));
     lh_ui_entity_init(lh_addr_of(child), rect_of(0, 0, side, side));
-    lh_ui_entity_set_style(lh_addr_of(child), lh_addr_of(child_style));
+    lh_ui_entity_set_style_v(lh_addr_of(child), lh_addr_of(child_style));
     lh_ui_entity_add_child(lh_ui_container_as_entity(lh_addr_of(box)), lh_addr_of(child));
 
     lh_ui_entity_draw(lh_ui_container_as_entity(lh_addr_of(box)), lh_addr_of(f.canvas));
@@ -680,7 +680,7 @@ shadow_of(int peak, int spread, int dx, int dy)
     lh_ui_color_init(lh_addr_of(black), 0, 0, 0, static_cast<lh_u8_t>(peak));
     lh_ui_shadow_init(lh_addr_of(shadow));
     lh_ui_shadow_set_color(lh_addr_of(shadow), black);
-    lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar_of(spread));
+    lh_ui_shadow_set_spread_v(lh_addr_of(shadow), lh_ui_scalar_of(spread));
     lh_ui_shadow_set_offset(lh_addr_of(shadow), lh_ui_scalar_of(dx), lh_ui_scalar_of(dy));
     return shadow;
 }
