@@ -1,95 +1,291 @@
+/**
+ * @file worker.c
+ * @brief ::lh_os_worker_t: one thread, a bounded queue of jobs, results taken by the caller.
+ */
+
 #include <lh/os/worker.h>
+
+#include <lh/assert/runtime.h>
 #include <lh/runtime/allocator.h>
 #include <lh/runtime/terminate.h>
-#include <lh/memory/std.h>
-#include <lh/assert.h>
-#include <lh/os/thread.h>
-#include <lh/os/condition.h>
 
-/**
- * @brief Stop on a broken synchronization invariant rather than release live callback state.
- */
-static lh_void
-lh_os_worker_require(lh_bool_t ok)
-{
-    /* Continuing after an invalid lock/join could free live callback state. */
-    if (!ok)
-    {
-        lh_runtime_terminate();
-    }
-}
-
+/* The worker is opaque: its fields are reached through the level-1 accessors
+   declared in lh/os/worker.h. */
 struct lh_os_worker
 {
     lh_memory_allocator_t allocator;
-    lh_os_worker_job_t *pending, **pending_tail, *done, **done_tail;
-    lh_uint_t count, capacity;
+    lh_os_worker_job_t *pending;
+    lh_os_worker_job_t **pending_tail;
+    lh_os_worker_job_t *done;
+    lh_os_worker_job_t **done_tail;
+    lh_uint_t count;
+    lh_uint_t capacity;
     lh_bool_t stop;
     lh_os_thread_t thread;
     lh_os_mutex_t mutex;
     lh_os_condition_t wake;
 };
 
-/**
- * @brief Acquire the worker queue mutex through the LH OS layer.
- */
-static lh_void
-lh_os_worker_lock(lh_os_worker_t *w)
+lh_os_worker_job_t *
+lh_os_worker_get_pending(const lh_os_worker_t *self)
 {
-    lh_os_worker_require(lh_os_mutex_lock(&w->mutex));
+    lh_assert_runtime_ref(self);
+    return self->pending;
 }
 
-/**
- * @brief Release the worker queue mutex through the LH OS layer.
- */
-static lh_void
-lh_os_worker_unlock(lh_os_worker_t *w)
+lh_void
+lh_os_worker_set_pending(lh_os_worker_t *self, lh_os_worker_job_t *pending)
 {
-    lh_os_worker_require(lh_os_mutex_unlock(&w->mutex));
+    lh_assert_runtime_ref(self);
+    self->pending = pending;
 }
 
-/**
- * @brief Notify the worker after its queue or shutdown predicate changes.
- */
-static lh_void
-lh_os_worker_wake(lh_os_worker_t *w)
+lh_os_worker_job_t **
+lh_os_worker_get_pending_tail(const lh_os_worker_t *self)
 {
-    lh_os_worker_require(lh_os_condition_signal(&w->wake));
+    lh_assert_runtime_ref(self);
+    return self->pending_tail;
 }
 
-/**
- * @brief Execute pending work and queue completions for the caller.
- */
-static lh_void
+lh_void
+lh_os_worker_set_pending_tail(lh_os_worker_t *self, lh_os_worker_job_t **pending_tail)
+{
+    lh_assert_runtime_ref(self);
+    self->pending_tail = pending_tail;
+}
+
+lh_os_worker_job_t *
+lh_os_worker_get_done(const lh_os_worker_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->done;
+}
+
+lh_void
+lh_os_worker_set_done(lh_os_worker_t *self, lh_os_worker_job_t *done)
+{
+    lh_assert_runtime_ref(self);
+    self->done = done;
+}
+
+lh_os_worker_job_t **
+lh_os_worker_get_done_tail(const lh_os_worker_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->done_tail;
+}
+
+lh_void
+lh_os_worker_set_done_tail(lh_os_worker_t *self, lh_os_worker_job_t **done_tail)
+{
+    lh_assert_runtime_ref(self);
+    self->done_tail = done_tail;
+}
+
+lh_uint_t
+lh_os_worker_get_count(const lh_os_worker_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->count;
+}
+
+lh_void
+lh_os_worker_set_count(lh_os_worker_t *self, lh_uint_t count)
+{
+    lh_assert_runtime_ref(self);
+    self->count = count;
+}
+
+lh_uint_t
+lh_os_worker_get_capacity(const lh_os_worker_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->capacity;
+}
+
+lh_void
+lh_os_worker_set_capacity(lh_os_worker_t *self, lh_uint_t capacity)
+{
+    lh_assert_runtime_ref(self);
+    self->capacity = capacity;
+}
+
+lh_bool_t
+lh_os_worker_is_stop(const lh_os_worker_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->stop;
+}
+
+lh_void
+lh_os_worker_set_stop(lh_os_worker_t *self, lh_bool_t stop)
+{
+    lh_assert_runtime_ref(self);
+    self->stop = stop;
+}
+
+const lh_memory_allocator_t *
+lh_os_worker_get_allocator(const lh_os_worker_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->allocator);
+}
+
+lh_memory_allocator_t *
+lh_os_worker_get_allocator_mut(lh_os_worker_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->allocator);
+}
+
+const lh_os_thread_t *
+lh_os_worker_get_thread(const lh_os_worker_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->thread);
+}
+
+lh_os_thread_t *
+lh_os_worker_get_thread_mut(lh_os_worker_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->thread);
+}
+
+const lh_os_mutex_t *
+lh_os_worker_get_mutex(const lh_os_worker_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->mutex);
+}
+
+lh_os_mutex_t *
+lh_os_worker_get_mutex_mut(lh_os_worker_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->mutex);
+}
+
+const lh_os_condition_t *
+lh_os_worker_get_wake(const lh_os_worker_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->wake);
+}
+
+lh_os_condition_t *
+lh_os_worker_get_wake_mut(lh_os_worker_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->wake);
+}
+
+lh_os_worker_job_t **
+lh_os_worker_get_pending_mut(lh_os_worker_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->pending);
+}
+
+lh_os_worker_job_t **
+lh_os_worker_get_done_mut(lh_os_worker_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->done);
+}
+
+lh_void
+lh_os_worker_lock(lh_os_worker_t *self)
+{
+    lh_runtime_terminate_unless(lh_os_mutex_lock(lh_os_worker_get_mutex_mut(self)));
+}
+
+lh_void
+lh_os_worker_unlock(lh_os_worker_t *self)
+{
+    lh_runtime_terminate_unless(lh_os_mutex_unlock(lh_os_worker_get_mutex_mut(self)));
+}
+
+lh_void
+lh_os_worker_wake(lh_os_worker_t *self)
+{
+    lh_runtime_terminate_unless(lh_os_condition_signal(lh_os_worker_get_wake_mut(self)));
+}
+
+lh_void
+lh_os_worker_push_pending(lh_os_worker_t *self, lh_os_worker_job_t *job)
+{
+    lh_ptr_deref(lh_os_worker_get_pending_tail(self)) = job;
+    lh_os_worker_set_pending_tail(self, lh_os_worker_job_get_next_mut(job));
+}
+
+lh_os_worker_job_t *
+lh_os_worker_pop_pending(lh_os_worker_t *self)
+{
+    lh_os_worker_job_t *const job = lh_os_worker_get_pending(self);
+
+    if (lh_null_ne(job))
+    {
+        lh_os_worker_set_pending(self, lh_os_worker_job_get_next(job));
+        if (lh_null_eq(lh_os_worker_get_pending(self)))
+        {
+            lh_os_worker_set_pending_tail(self, lh_os_worker_get_pending_mut(self));
+        }
+        lh_os_worker_job_set_next(job, lh_null);
+    }
+    return job;
+}
+
+lh_void
+lh_os_worker_push_done(lh_os_worker_t *self, lh_os_worker_job_t *job)
+{
+    lh_ptr_deref(lh_os_worker_get_done_tail(self)) = job;
+    lh_os_worker_set_done_tail(self, lh_os_worker_job_get_next_mut(job));
+}
+
+lh_os_worker_job_t *
+lh_os_worker_pop_done(lh_os_worker_t *self)
+{
+    lh_os_worker_job_t *const job = lh_os_worker_get_done(self);
+
+    if (lh_null_ne(job))
+    {
+        lh_os_worker_set_done(self, lh_os_worker_job_get_next(job));
+        if (lh_null_eq(lh_os_worker_get_done(self)))
+        {
+            lh_os_worker_set_done_tail(self, lh_os_worker_get_done_mut(self));
+        }
+        lh_os_worker_job_set_next(job, lh_null);
+    }
+    return job;
+}
+
+lh_void
 lh_os_worker_run(lh_ptr arg)
 {
-    lh_os_worker_t *w = arg;
+    lh_os_worker_t *const self = lh_ptr_rcast(lh_os_worker_t, arg);
+
     for (;;)
     {
         lh_os_worker_job_t *job;
-        lh_os_worker_lock(w);
-        while (!w->stop && !w->pending)
+
+        lh_os_worker_lock(self);
+        while (!lh_os_worker_is_stop(self) && lh_null_eq(lh_os_worker_get_pending(self)))
         {
-            lh_os_worker_require(lh_os_condition_wait(&w->wake, &w->mutex));
+            lh_runtime_terminate_unless(lh_os_condition_wait(lh_os_worker_get_wake_mut(self),
+                                                             lh_os_worker_get_mutex_mut(self)));
         }
-        if (w->stop)
+        if (lh_os_worker_is_stop(self))
         {
-            lh_os_worker_unlock(w);
+            lh_os_worker_unlock(self);
             break;
         }
-        job = w->pending;
-        w->pending = job->next;
-        if (!w->pending)
-        {
-            w->pending_tail = &w->pending;
-        }
-        lh_os_worker_unlock(w);
-        job->work(job->user);
-        job->next = lh_null;
-        lh_os_worker_lock(w);
-        *w->done_tail = job;
-        w->done_tail = &job->next;
-        lh_os_worker_unlock(w);
+        job = lh_os_worker_pop_pending(self);
+        lh_os_worker_unlock(self);
+        lh_os_worker_job_run(job);
+        lh_os_worker_lock(self);
+        lh_os_worker_push_done(self, job);
+        lh_os_worker_unlock(self);
     }
 }
 
@@ -99,71 +295,76 @@ lh_os_worker_run(lh_ptr arg)
 lh_os_worker_t *
 lh_os_worker_create(lh_uint_t capacity)
 {
-    lh_memory_allocator_t allocator = *lh_runtime_allocator();
-    lh_os_worker_t *w;
-    if (!capacity || !allocator.alloc_cb || !allocator.dealloc_cb)
+    lh_memory_allocator_t allocator = lh_ptr_deref(lh_runtime_allocator());
+    lh_os_worker_t *self;
+
+    if (capacity == 0U || lh_null_eq(lh_memory_allocator_get_dealloc_cb(lh_addr_of(allocator))))
     {
         return lh_null;
     }
-    w = allocator.alloc_cb(allocator.context, sizeof *w);
-    if (!w)
+    self = lh_ptr_rcast(lh_os_worker_t, lh_memory_allocator_try_alloc_zero(
+                                            lh_addr_of(allocator), 1U, sizeof(lh_ptr_deref(self))));
+    if (lh_null_eq(self))
     {
         return lh_null;
     }
-    lh_memory_std_set(w, 0, sizeof *w);
-    w->allocator = allocator;
-    w->capacity = capacity;
-    w->pending_tail = &w->pending;
-    w->done_tail = &w->done;
-    lh_os_thread_init(&w->thread);
-    lh_os_mutex_init(&w->mutex);
-    lh_os_condition_init(&w->wake);
-    if (!lh_os_mutex_open(&w->mutex) || !lh_os_condition_open(&w->wake) ||
-        !lh_os_thread_start(&w->thread, lh_os_worker_run, w, -1, 0))
+    lh_memory_allocator_assign(lh_os_worker_get_allocator_mut(self), lh_addr_of(allocator));
+    lh_os_worker_set_capacity(self, capacity);
+    lh_os_worker_set_pending_tail(self, lh_os_worker_get_pending_mut(self));
+    lh_os_worker_set_done_tail(self, lh_os_worker_get_done_mut(self));
+    lh_os_thread_init(lh_os_worker_get_thread_mut(self));
+    lh_os_mutex_init(lh_os_worker_get_mutex_mut(self));
+    lh_os_condition_init(lh_os_worker_get_wake_mut(self));
+    if (!lh_os_mutex_open(lh_os_worker_get_mutex_mut(self)) ||
+        !lh_os_condition_open(lh_os_worker_get_wake_mut(self)) ||
+        !lh_os_thread_start(lh_os_worker_get_thread_mut(self), lh_os_worker_run, self, -1, 0))
     {
-        lh_os_worker_require(lh_os_condition_close(&w->wake));
-        lh_os_worker_require(lh_os_mutex_close(&w->mutex));
-        lh_memory_allocator_dealloc(&w->allocator, w);
+        lh_runtime_terminate_unless(lh_os_condition_close(lh_os_worker_get_wake_mut(self)));
+        lh_runtime_terminate_unless(lh_os_mutex_close(lh_os_worker_get_mutex_mut(self)));
+        lh_memory_allocator_dealloc(lh_os_worker_get_allocator_mut(self), self);
         return lh_null;
     }
-    return w;
+    return self;
 }
 
 /**
  * @brief Enqueue a job within the configured outstanding-job limit.
  */
 lh_bool_t
-lh_os_worker_submit(lh_os_worker_t *w, lh_os_worker_cb work, lh_os_worker_cb complete,
+lh_os_worker_submit(lh_os_worker_t *self, lh_os_worker_cb work, lh_os_worker_cb complete,
                     lh_os_worker_cb destroy, lh_ptr user)
 {
     lh_os_worker_job_t *job;
-    if (!w || !work)
+
+    if (lh_null_eq(self) || lh_null_eq(work))
     {
         return lh_bool_false;
     }
-    job = w->allocator.alloc_cb(w->allocator.context, sizeof *job);
-    if (!job)
+    job = lh_ptr_rcast(lh_os_worker_job_t,
+                       lh_memory_allocator_try_alloc_zero(lh_os_worker_get_allocator_mut(self), 1U,
+                                                          sizeof(lh_ptr_deref(job))));
+    if (lh_null_eq(job))
     {
         return lh_bool_false;
     }
-    lh_memory_std_set(job, 0, sizeof *job);
-    job->allocator = w->allocator;
-    job->work = work;
-    job->complete = complete;
-    job->destroy = destroy;
-    job->user = user;
-    lh_os_worker_lock(w);
-    if (w->stop || w->count >= w->capacity)
+    lh_memory_allocator_assign(lh_os_worker_job_get_allocator_mut(job),
+                               lh_os_worker_get_allocator(self));
+    lh_os_worker_job_set_work_fn(job, work);
+    lh_os_worker_job_set_complete_fn(job, complete);
+    lh_os_worker_job_set_destroy_fn(job, destroy);
+    lh_os_worker_job_set_user(job, user);
+    lh_os_worker_lock(self);
+    if (lh_os_worker_is_stop(self) ||
+        lh_os_worker_get_count(self) >= lh_os_worker_get_capacity(self))
     {
-        lh_os_worker_unlock(w);
-        lh_memory_allocator_dealloc(&job->allocator, job);
+        lh_os_worker_unlock(self);
+        lh_memory_allocator_dealloc(lh_os_worker_job_get_allocator_mut(job), job);
         return lh_bool_false;
     }
-    ++w->count;
-    *w->pending_tail = job;
-    w->pending_tail = &job->next;
-    lh_os_worker_wake(w);
-    lh_os_worker_unlock(w);
+    lh_os_worker_set_count(self, lh_os_worker_get_count(self) + 1U);
+    lh_os_worker_push_pending(self, job);
+    lh_os_worker_wake(self);
+    lh_os_worker_unlock(self);
     return lh_bool_true;
 }
 
@@ -173,66 +374,61 @@ lh_os_worker_submit(lh_os_worker_t *w, lh_os_worker_cb work, lh_os_worker_cb com
 lh_void
 lh_os_worker_dispose(lh_os_worker_job_t *job)
 {
-    lh_assert_runtime_ref(job);
-    if (job->destroy)
+    lh_os_worker_cb const destroy = lh_os_worker_job_get_destroy_fn(job);
+
+    if (lh_null_ne(destroy))
     {
-        job->destroy(job->user);
+        destroy(lh_os_worker_job_get_user(job));
     }
-    lh_memory_allocator_dealloc(&job->allocator, job);
+    lh_memory_allocator_dealloc(lh_os_worker_job_get_allocator_mut(job), job);
 }
 
 lh_os_worker_job_t *
-lh_os_worker_take(lh_os_worker_t *w)
+lh_os_worker_take(lh_os_worker_t *self)
 {
-    lh_assert_runtime_ref(w);
     lh_os_worker_job_t *job;
-    lh_os_worker_lock(w);
-    job = w->done;
-    if (job)
+
+    lh_assert_runtime_ref(self);
+    lh_os_worker_lock(self);
+    job = lh_os_worker_pop_done(self);
+    if (lh_null_ne(job))
     {
-        w->done = job->next;
-        if (!w->done)
-        {
-            w->done_tail = &w->done;
-        }
-        --w->count;
-        job->next = lh_null;
+        lh_os_worker_set_count(self, lh_os_worker_get_count(self) - 1U);
     }
-    lh_os_worker_unlock(w);
+    lh_os_worker_unlock(self);
     return job;
 }
 
 lh_void
-lh_os_worker_stop(lh_os_worker_t *w)
+lh_os_worker_stop(lh_os_worker_t *self)
 {
-    lh_assert_runtime_ref(w);
-    lh_os_worker_lock(w);
-    w->stop = lh_bool_true;
-    lh_os_worker_wake(w);
-    lh_os_worker_unlock(w);
-    lh_os_worker_require(lh_os_thread_join(&w->thread));
+    lh_assert_runtime_ref(self);
+    lh_os_worker_lock(self);
+    lh_os_worker_set_stop(self, lh_bool_true);
+    lh_os_worker_wake(self);
+    lh_os_worker_unlock(self);
+    lh_runtime_terminate_unless(lh_os_thread_join(lh_os_worker_get_thread_mut(self)));
 }
 
 lh_void
-lh_os_worker_destroy(lh_os_worker_t *w)
+lh_os_worker_destroy(lh_os_worker_t *self)
 {
     lh_os_worker_job_t *job;
-    if (!w)
+
+    if (lh_null_eq(self))
     {
         return;
     }
-    lh_os_worker_stop(w);
-    while ((job = w->pending))
+    lh_os_worker_stop(self);
+    while (lh_null_ne(job = lh_os_worker_pop_pending(self)))
     {
-        w->pending = job->next;
         lh_os_worker_dispose(job);
     }
-    while ((job = w->done))
+    while (lh_null_ne(job = lh_os_worker_pop_done(self)))
     {
-        w->done = job->next;
         lh_os_worker_dispose(job);
     }
-    lh_os_worker_require(lh_os_condition_close(&w->wake));
-    lh_os_worker_require(lh_os_mutex_close(&w->mutex));
-    lh_memory_allocator_dealloc(&w->allocator, w);
+    lh_runtime_terminate_unless(lh_os_condition_close(lh_os_worker_get_wake_mut(self)));
+    lh_runtime_terminate_unless(lh_os_mutex_close(lh_os_worker_get_mutex_mut(self)));
+    lh_memory_allocator_dealloc(lh_os_worker_get_allocator_mut(self), self);
 }

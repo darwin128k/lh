@@ -97,6 +97,27 @@ lh_os_condition_signal(lh_os_condition_t *self);
 lh_bool_t
 lh_os_condition_broadcast(lh_os_condition_t *self);
 
+/**
+ * @brief The native condition handle (level 1).
+ *
+ * ::lh_null while the condition is not open.
+ *
+ * @param self The condition; checked by ::lh_assert_runtime_ref.
+ */
+lh_os_system_condition_handle_t
+lh_os_condition_get_handle(const lh_os_condition_t *self);
+
+/**
+ * @brief Store the native condition handle (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The condition; checked by ::lh_assert_runtime_ref.
+ * @param handle The new value.
+ */
+lh_void
+lh_os_condition_set_handle(lh_os_condition_t *self, lh_os_system_condition_handle_t handle);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_CONDITION_H */

@@ -101,6 +101,27 @@ lh_os_serial_write(lh_self_ptr self, const lh_ptr buf, lh_usize_t size);
 lh_void
 lh_os_serial_get_stream(lh_os_serial_t *self, lh_io_stream_t *out);
 
+/**
+ * @brief The native port handle (level 1).
+ *
+ * ::LH_OS_SYSTEM_SERIAL_HANDLE_INVALID while the port is closed.
+ *
+ * @param self The port; checked by ::lh_assert_runtime_ref.
+ */
+lh_os_system_serial_handle_t
+lh_os_serial_get_handle(const lh_os_serial_t *self);
+
+/**
+ * @brief Store the native port handle (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The port; checked by ::lh_assert_runtime_ref.
+ * @param handle The new value.
+ */
+lh_void
+lh_os_serial_set_handle(lh_os_serial_t *self, lh_os_system_serial_handle_t handle);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_SERIAL_H */

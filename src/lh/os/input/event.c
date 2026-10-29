@@ -13,25 +13,25 @@ lh_os_input_event_init(lh_os_input_event_t *self, lh_os_input_kind_t kind,
                        lh_os_input_device_kind_t device_kind, lh_tick_t time)
 {
     lh_assert_runtime_ref(self);
-    self->kind = kind;
-    self->device_kind = device_kind;
-    self->device = 0U;
-    self->pointer = 0U;
-    self->button = lh_os_input_button_none;
-    self->buttons = 0U;
-    self->x = 0;
-    self->y = 0;
-    self->dx = 0;
-    self->dy = 0;
-    self->axis = lh_os_input_axis_none;
-    self->value = 0;
-    self->key = lh_os_key_other;
-    self->scancode = 0U;
-    self->code = 0U;
-    self->mods = LH_OS_INPUT_MODS_NONE;
-    self->time = time;
-    self->count = 0U;
-    self->flags = LH_OS_INPUT_FLAG_NONE;
+    lh_os_input_event_set_kind(self, kind);
+    lh_os_input_event_set_device_kind(self, device_kind);
+    lh_os_input_event_set_device(self, 0U);
+    lh_os_input_event_set_pointer(self, 0U);
+    lh_os_input_event_set_button(self, lh_os_input_button_none);
+    lh_os_input_event_set_buttons(self, 0U);
+    lh_os_input_event_set_x(self, 0);
+    lh_os_input_event_set_y(self, 0);
+    lh_os_input_event_set_dx(self, 0);
+    lh_os_input_event_set_dy(self, 0);
+    lh_os_input_event_set_axis(self, lh_os_input_axis_none);
+    lh_os_input_event_set_value(self, 0);
+    lh_os_input_event_set_key(self, lh_os_key_other);
+    lh_os_input_event_set_scancode(self, 0U);
+    lh_os_input_event_set_code(self, 0U);
+    lh_os_input_event_set_mods(self, LH_OS_INPUT_MODS_NONE);
+    lh_os_input_event_set_time(self, time);
+    lh_os_input_event_set_count(self, 0U);
+    lh_os_input_event_set_flags(self, LH_OS_INPUT_FLAG_NONE);
 }
 
 lh_void
@@ -41,11 +41,12 @@ lh_os_input_event_init_pointer(lh_os_input_event_t *self, lh_os_input_kind_t kin
                                lh_os_input_coord_t y, lh_tick_t time)
 {
     lh_os_input_event_init(self, kind, device_kind, time);
-    self->pointer = pointer;
-    self->button = button;
-    self->x = x;
-    self->y = y;
-    self->flags = pointer == 0U ? LH_OS_INPUT_FLAG_PRIMARY : LH_OS_INPUT_FLAG_NONE;
+    lh_os_input_event_set_pointer(self, pointer);
+    lh_os_input_event_set_button(self, button);
+    lh_os_input_event_set_x(self, x);
+    lh_os_input_event_set_y(self, y);
+    lh_os_input_event_set_flags(self,
+                                pointer == 0U ? LH_OS_INPUT_FLAG_PRIMARY : LH_OS_INPUT_FLAG_NONE);
 }
 
 lh_void
@@ -54,8 +55,8 @@ lh_os_input_event_init_wheel(lh_os_input_event_t *self, lh_os_input_coord_t x,
 {
     lh_os_input_event_init_pointer(self, lh_os_input_kind_wheel, lh_os_input_device_kind_mouse, 0U,
                                    lh_os_input_button_none, x, y, time);
-    self->dx = dx;
-    self->dy = dy;
+    lh_os_input_event_set_dx(self, dx);
+    lh_os_input_event_set_dy(self, dy);
 }
 
 lh_void
@@ -64,16 +65,16 @@ lh_os_input_event_init_key(lh_os_input_event_t *self, lh_os_key_t key, lh_bool_t
 {
     lh_os_input_event_init(self, down ? lh_os_input_kind_key_down : lh_os_input_kind_key_up,
                            lh_os_input_device_kind_keyboard, time);
-    self->key = key;
-    self->scancode = scancode;
-    self->flags = repeat ? LH_OS_INPUT_FLAG_REPEAT : LH_OS_INPUT_FLAG_NONE;
+    lh_os_input_event_set_key(self, key);
+    lh_os_input_event_set_scancode(self, scancode);
+    lh_os_input_event_set_flags(self, repeat ? LH_OS_INPUT_FLAG_REPEAT : LH_OS_INPUT_FLAG_NONE);
 }
 
 lh_void
 lh_os_input_event_init_text(lh_os_input_event_t *self, lh_u32_t code, lh_tick_t time)
 {
     lh_os_input_event_init(self, lh_os_input_kind_text, lh_os_input_device_kind_keyboard, time);
-    self->code = code;
+    lh_os_input_event_set_code(self, code);
 }
 
 lh_void
@@ -85,8 +86,8 @@ lh_os_input_event_init_controller_button(lh_os_input_event_t *self, lh_u8_t devi
                            down ? lh_os_input_kind_controller_button_down
                                 : lh_os_input_kind_controller_button_up,
                            lh_os_input_device_kind_controller, time);
-    self->device = device;
-    self->button = button;
+    lh_os_input_event_set_device(self, device);
+    lh_os_input_event_set_button(self, button);
 }
 
 lh_void
@@ -95,9 +96,9 @@ lh_os_input_event_init_controller_axis(lh_os_input_event_t *self, lh_u8_t device
 {
     lh_os_input_event_init(self, lh_os_input_kind_controller_axis,
                            lh_os_input_device_kind_controller, time);
-    self->device = device;
-    self->axis = axis;
-    self->value = value;
+    lh_os_input_event_set_device(self, device);
+    lh_os_input_event_set_axis(self, axis);
+    lh_os_input_event_set_value(self, value);
 }
 
 lh_void
@@ -139,8 +140,8 @@ lh_void
 lh_os_input_event_set_delta(lh_os_input_event_t *self, lh_s32_t dx, lh_s32_t dy)
 {
     lh_assert_runtime_ref(self);
-    self->dx = dx;
-    self->dy = dy;
+    lh_os_input_event_set_dx(self, dx);
+    lh_os_input_event_set_dy(self, dy);
 }
 
 /* -- Reading --------------------------------------------------------------- */
@@ -347,4 +348,102 @@ lh_os_input_event_is_key_down(lh_os_input_event_cptr self, lh_os_key_t key)
 {
     return lh_type_cast(lh_bool_t, lh_os_input_event_get_kind(self) == lh_os_input_kind_key_down &&
                                        lh_os_input_event_get_key(self) == key);
+}
+
+lh_void
+lh_os_input_event_set_kind(lh_os_input_event_t *self, lh_os_input_kind_t kind)
+{
+    lh_assert_runtime_ref(self);
+    self->kind = kind;
+}
+
+lh_void
+lh_os_input_event_set_device_kind(lh_os_input_event_t *self, lh_os_input_device_kind_t device_kind)
+{
+    lh_assert_runtime_ref(self);
+    self->device_kind = device_kind;
+}
+
+lh_void
+lh_os_input_event_set_pointer(lh_os_input_event_t *self, lh_u8_t pointer)
+{
+    lh_assert_runtime_ref(self);
+    self->pointer = pointer;
+}
+
+lh_void
+lh_os_input_event_set_button(lh_os_input_event_t *self, lh_os_input_button_t button)
+{
+    lh_assert_runtime_ref(self);
+    self->button = button;
+}
+
+lh_void
+lh_os_input_event_set_x(lh_os_input_event_t *self, lh_os_input_coord_t x)
+{
+    lh_assert_runtime_ref(self);
+    self->x = x;
+}
+
+lh_void
+lh_os_input_event_set_y(lh_os_input_event_t *self, lh_os_input_coord_t y)
+{
+    lh_assert_runtime_ref(self);
+    self->y = y;
+}
+
+lh_void
+lh_os_input_event_set_dx(lh_os_input_event_t *self, lh_s32_t dx)
+{
+    lh_assert_runtime_ref(self);
+    self->dx = dx;
+}
+
+lh_void
+lh_os_input_event_set_dy(lh_os_input_event_t *self, lh_s32_t dy)
+{
+    lh_assert_runtime_ref(self);
+    self->dy = dy;
+}
+
+lh_void
+lh_os_input_event_set_axis(lh_os_input_event_t *self, lh_os_input_axis_t axis)
+{
+    lh_assert_runtime_ref(self);
+    self->axis = axis;
+}
+
+lh_void
+lh_os_input_event_set_value(lh_os_input_event_t *self, lh_s16_t value)
+{
+    lh_assert_runtime_ref(self);
+    self->value = value;
+}
+
+lh_void
+lh_os_input_event_set_key(lh_os_input_event_t *self, lh_os_key_t key)
+{
+    lh_assert_runtime_ref(self);
+    self->key = key;
+}
+
+lh_void
+lh_os_input_event_set_scancode(lh_os_input_event_t *self, lh_u32_t scancode)
+{
+    lh_assert_runtime_ref(self);
+    self->scancode = scancode;
+}
+
+lh_void
+lh_os_input_event_set_code(lh_os_input_event_t *self, lh_u32_t code)
+{
+    lh_assert_runtime_ref(self);
+    self->code = code;
+}
+
+lh_void
+lh_os_input_event_set_time(lh_os_input_event_t *self, lh_tick_t time)
+{
+    lh_assert_runtime_ref(self);
+    self->time = time;
 }

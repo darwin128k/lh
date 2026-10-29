@@ -9,7 +9,8 @@ lh_void
 lh_os_wake_init(lh_os_wake_t *self)
 {
     lh_assert_runtime_ref(self);
-    self->reader = self->writer = LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID;
+    lh_os_wake_set_reader(self, LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID);
+    lh_os_wake_set_writer(self, LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID);
 }
 
 lh_bool_t
@@ -17,8 +18,8 @@ lh_os_wake_open(lh_os_wake_t *self, lh_u32_t timeout_ms)
 {
     lh_os_system_net_socket_handle_t pair[2];
     lh_assert_runtime_ref(self);
-    if (lh_math_ne(self->reader, LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID) ||
-        lh_math_ne(self->writer, LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID))
+    if (lh_math_ne(lh_os_wake_get_reader(self), LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID) ||
+        lh_math_ne(lh_os_wake_get_writer(self), LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID))
     {
         lh_os_set_last_error_lit(lh_os_error_code_invalid_argument, "wake signal is already open");
         return lh_bool_false;
@@ -27,8 +28,8 @@ lh_os_wake_open(lh_os_wake_t *self, lh_u32_t timeout_ms)
     {
         return lh_bool_false;
     }
-    self->reader = pair[0];
-    self->writer = pair[1];
+    lh_os_wake_set_reader(self, pair[0]);
+    lh_os_wake_set_writer(self, pair[1]);
     return lh_bool_true;
 }
 
@@ -37,7 +38,8 @@ lh_os_wake_signal(lh_os_wake_t *self)
 {
     const lh_byte_t byte = 1;
     lh_assert_runtime_ref(self);
-    const lh_ssize_t result = lh_os_system_net_socket_send(self->writer, lh_addr_of(byte), 1);
+    const lh_ssize_t result =
+        lh_os_system_net_socket_send(lh_os_wake_get_writer(self), lh_addr_of(byte), 1);
     return lh_math_eq(result, 1) || lh_math_eq(result, LH_OS_RESULT_PENDING);
 }
 
@@ -48,7 +50,8 @@ lh_os_wake_reset(lh_os_wake_t *self)
     lh_assert_runtime_ref(self);
     for (;;)
     {
-        const lh_ssize_t result = lh_os_system_net_socket_recv(self->reader, buffer, sizeof buffer);
+        const lh_ssize_t result =
+            lh_os_system_net_socket_recv(lh_os_wake_get_reader(self), buffer, sizeof buffer);
         if (lh_math_eq(result, LH_OS_RESULT_PENDING))
         {
             return lh_bool_true;
@@ -68,20 +71,48 @@ lh_os_system_net_socket_handle_t
 lh_os_wake_get_handle(const lh_os_wake_t *self)
 {
     lh_assert_runtime_ref(self);
-    return self->reader;
+    return lh_os_wake_get_reader(self);
 }
 
 lh_void
 lh_os_wake_close(lh_os_wake_t *self)
 {
     lh_assert_runtime_ref(self);
-    if (lh_math_ne(self->reader, LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID))
+    if (lh_math_ne(lh_os_wake_get_reader(self), LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID))
     {
-        lh_os_system_net_socket_close(self->reader);
+        lh_os_system_net_socket_close(lh_os_wake_get_reader(self));
     }
-    if (lh_math_ne(self->writer, LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID))
+    if (lh_math_ne(lh_os_wake_get_writer(self), LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID))
     {
-        lh_os_system_net_socket_close(self->writer);
+        lh_os_system_net_socket_close(lh_os_wake_get_writer(self));
     }
     lh_os_wake_init(self);
+}
+
+lh_os_system_net_socket_handle_t
+lh_os_wake_get_reader(const lh_os_wake_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->reader;
+}
+
+lh_void
+lh_os_wake_set_reader(lh_os_wake_t *self, lh_os_system_net_socket_handle_t reader)
+{
+    lh_assert_runtime_ref(self);
+    self->reader = reader;
+}
+
+lh_os_system_net_socket_handle_t
+lh_os_wake_get_writer(const lh_os_wake_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->writer;
+}
+
+lh_void
+lh_os_wake_set_writer(lh_os_wake_t *self, lh_os_system_net_socket_handle_t writer)
+{
+    lh_assert_runtime_ref(self);
+    self->writer = writer;
 }

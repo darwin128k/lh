@@ -94,6 +94,25 @@ lh_os_app_get_next_window(const lh_os_app_t *self, const struct lh_os_window *wi
 lh_void
 lh_os_app_run(lh_os_app_t *self);
 
+/** @brief The @c windows of @p self. */
+const lh_list_t *
+lh_os_app_get_windows(const lh_os_app_t *self);
+
+/** @brief The @c windows of @p self, to change in place. */
+lh_list_t *
+lh_os_app_get_windows_mut(lh_os_app_t *self);
+
+/**
+ * @brief Store whether the loop of @p self stops (level 1).
+ *
+ * A level-1 setter: the flag is stored as given. ::lh_os_app_quit sets it.
+ *
+ * @param self The application; checked by ::lh_assert_runtime_ref.
+ * @param quit The new flag.
+ */
+lh_void
+lh_os_app_set_quit(lh_os_app_t *self, lh_bool_t quit);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_APP_H */

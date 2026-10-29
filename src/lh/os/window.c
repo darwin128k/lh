@@ -681,3 +681,17 @@ lh_os_window_deinit(lh_os_window_t *self)
     self->on_close = lh_null;
     self->on_close_context = lh_null;
 }
+
+const lh_list_node_t *
+lh_os_window_get_link(const lh_os_window_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->link);
+}
+
+lh_list_node_t *
+lh_os_window_get_link_mut(lh_os_window_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->link);
+}

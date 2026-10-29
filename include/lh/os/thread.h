@@ -80,6 +80,27 @@ lh_os_thread_join(lh_os_thread_t *self);
 lh_bool_t
 lh_os_thread_sleep(lh_u32_t milliseconds);
 
+/**
+ * @brief The native thread handle (level 1).
+ *
+ * ::lh_null while no thread runs.
+ *
+ * @param self The thread; checked by ::lh_assert_runtime_ref.
+ */
+lh_os_system_thread_handle_t
+lh_os_thread_get_handle(const lh_os_thread_t *self);
+
+/**
+ * @brief Store the native thread handle (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The thread; checked by ::lh_assert_runtime_ref.
+ * @param handle The new value.
+ */
+lh_void
+lh_os_thread_set_handle(lh_os_thread_t *self, lh_os_system_thread_handle_t handle);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_THREAD_H */

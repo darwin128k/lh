@@ -177,6 +177,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/os/input/recognizer/pointer.c
         ${LH_LIB_SRC_PATH}/os/input/wheel.c
         ${LH_LIB_SRC_PATH}/os/controller.c
+        ${LH_LIB_SRC_PATH}/os/controller/dispatch.c
         ${LH_LIB_SRC_PATH}/error.c
         ${LH_LIB_SRC_PATH}/werror.c
         ${LH_LIB_SRC_PATH}/runtime/error.c
@@ -256,6 +257,7 @@ set(LH_LIB_SOURCES
 
 if (LH_LIBRARY_OPTION_OS)
     list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/worker.c)
+    list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/worker/job.c)
     list(APPEND LH_LIB_SOURCES
             ${LH_LIB_SRC_PATH}/os.c
             ${LH_LIB_SRC_PATH}/os/error.c
@@ -281,6 +283,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/serial.c
             ${LH_LIB_SRC_PATH}/os/shared.c
             ${LH_LIB_SRC_PATH}/os/module.c
+            ${LH_LIB_SRC_PATH}/os/module/ops.c
             ${LH_LIB_SRC_PATH}/os/loader.c
             ${LH_LIB_SRC_PATH}/sql/mysql.c
             ${LH_LIB_SRC_PATH}/sql/mysql/api.c

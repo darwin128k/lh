@@ -250,7 +250,7 @@ lh_os_system_win_window_send_contact(lh_os_window_t *window, lh_os_system_win_hw
         lh_return_if(!lh_os_input_contacts_find(lh_addr_of(lh_os_system_win_window_contacts),
                                                 pointer_id, lh_addr_of(pointer)),
                      lh_bool_false);
-        device_kind = lh_os_input_contacts_get_device_kind(
+        device_kind = lh_os_input_contacts_get_device_kind_v(
             lh_addr_of(lh_os_system_win_window_contacts), pointer);
         flags = LH_OS_SYSTEM_WIN_POINTER_FLAG_CANCELED;
     }

@@ -16,6 +16,7 @@
 #include <lh/library/fallback.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/attribute/noreturn.h>
+#include <lh/bool.h>
 #include <lh/runtime/terminate/cb.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -65,6 +66,17 @@ lh_runtime_terminate_set(lh_runtime_terminate_cb fn);
 LH_ATTRIBUTE_NORETURN
 lh_void
 lh_runtime_terminate(void);
+
+/**
+ * @brief Invoke the terminate handler unless @p ok holds.
+ *
+ * For an invariant whose breach leaves no safe way on: an unlock or a join that
+ * failed, after which carrying on could free state another thread still uses.
+ *
+ * @param ok The invariant; false does not return.
+ */
+lh_void
+lh_runtime_terminate_unless(lh_bool_t ok);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -30,15 +30,15 @@ lh_os_input_recognizer_init(lh_os_input_recognizer_t *self,
     lh_assert_runtime_ref(self);
     if (lh_null_eq(config))
     {
-        lh_os_input_recognizer_config_init_default(lh_addr_of(self->config));
+        lh_os_input_recognizer_config_init_default(lh_os_input_recognizer_get_config_mut(self));
     }
     else
     {
-        self->config = lh_ptr_deref(config);
+        lh_os_input_recognizer_set_config(self, config);
     }
     for (i = 0U; i < LH_OS_INPUT_POINTER_MAX; ++i)
     {
-        lh_os_input_recognizer_pointer_clear(lh_addr_of(self->pointers[i]));
+        lh_os_input_recognizer_pointer_clear(lh_os_input_recognizer_get_pointer_mut(self, i));
     }
 }
 
@@ -53,14 +53,14 @@ lh_os_input_recognizer_pointer_ptr
 lh_os_input_recognizer_find(lh_os_input_recognizer_t *self, lh_u8_t pointer)
 {
     lh_return_if(pointer >= LH_OS_INPUT_POINTER_MAX, lh_null);
-    return lh_addr_of(self->pointers[pointer]);
+    return lh_os_input_recognizer_get_pointer_mut(self, pointer);
 }
 
 lh_os_input_recognizer_pointer_cptr
 lh_os_input_recognizer_find_const(lh_os_input_recognizer_cptr self, lh_u8_t pointer)
 {
     lh_return_if(pointer >= LH_OS_INPUT_POINTER_MAX, lh_null);
-    return lh_addr_of(self->pointers[pointer]);
+    return lh_os_input_recognizer_get_pointer(self, pointer);
 }
 
 lh_os_input_recognizer_phase_t
@@ -345,4 +345,34 @@ lh_os_input_recognizer_feed(lh_os_input_recognizer_t *self, lh_os_input_event_cp
         return;
     }
     lh_os_input_recognizer_on_pointer(self, event, sink, context);
+}
+
+lh_os_input_recognizer_config_ptr
+lh_os_input_recognizer_get_config_mut(lh_os_input_recognizer_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->config);
+}
+
+lh_void
+lh_os_input_recognizer_set_config(lh_os_input_recognizer_t *self,
+                                  lh_os_input_recognizer_config_cptr config)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(config);
+    self->config = lh_ptr_deref(config);
+}
+
+lh_os_input_recognizer_pointer_cptr
+lh_os_input_recognizer_get_pointer(lh_os_input_recognizer_cptr self, lh_u8_t pointer)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->pointers[pointer]);
+}
+
+lh_os_input_recognizer_pointer_ptr
+lh_os_input_recognizer_get_pointer_mut(lh_os_input_recognizer_t *self, lh_u8_t pointer)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->pointers[pointer]);
 }

@@ -35,11 +35,11 @@ lh_os_input_queue_init(lh_os_input_queue_t *self, lh_os_input_event_t *storage, 
     lh_assert_runtime_ref(storage);
     lh_assert_runtime_ifn(capacity > 0U && capacity <= 32767U,
                           lh_runtime_error_code_invalid_argument);
-    self->storage = storage;
-    self->capacity = capacity;
-    self->head = 0U;
-    self->tail = 0U;
-    self->dropped = 0U;
+    lh_os_input_queue_set_storage(self, storage);
+    lh_os_input_queue_set_capacity(self, capacity);
+    lh_os_input_queue_set_head(self, 0U);
+    lh_os_input_queue_set_tail(self, 0U);
+    lh_os_input_queue_set_dropped(self, 0U);
 }
 
 lh_u16_t
@@ -57,8 +57,8 @@ lh_os_input_queue_get_count(lh_os_input_queue_cptr self)
     lh_u16_t capacity;
 
     lh_assert_runtime_ref(self);
-    head = self->head;
-    tail = self->tail;
+    head = lh_os_input_queue_get_head(self);
+    tail = lh_os_input_queue_get_tail(self);
     capacity = lh_os_input_queue_get_capacity(self);
 
     return tail >= head ? lh_type_cast(lh_u16_t, tail - head)
@@ -94,15 +94,17 @@ lh_bool_t
 lh_os_input_queue_push_full(lh_os_input_queue_t *self, lh_os_input_event_cptr event)
 {
     const lh_u16_t capacity = lh_os_input_queue_get_capacity(self);
-    lh_os_input_event_t *last = lh_addr_of(self->storage[lh_os_input_queue_slot(
-        capacity, lh_os_input_queue_previous(capacity, self->tail))]);
+    const lh_u16_t previous =
+        lh_os_input_queue_previous(capacity, lh_os_input_queue_get_tail(self));
+    lh_os_input_event_t *last =
+        lh_os_input_queue_get_storage(self) + lh_os_input_queue_slot(capacity, previous);
 
     if (lh_os_input_queue_get_count(self) > 1U && lh_os_input_queue_can_fold(last, event))
     {
         lh_ptr_deref(last) = lh_ptr_deref(event);
         return lh_bool_true;
     }
-    ++self->dropped;
+    lh_os_input_queue_set_dropped(self, lh_os_input_queue_get_dropped(self) + 1U);
     return lh_bool_false;
 }
 
@@ -110,15 +112,16 @@ lh_bool_t
 lh_os_input_queue_push(lh_os_input_queue_t *self, lh_os_input_event_cptr event)
 {
     const lh_u16_t capacity = lh_os_input_queue_get_capacity(self);
-    const lh_u16_t tail = self->tail;
+    const lh_u16_t tail = lh_os_input_queue_get_tail(self);
 
     lh_assert_runtime_ref(event);
     lh_return_if(lh_os_input_queue_get_count(self) == capacity,
                  lh_os_input_queue_push_full(self, event));
-    self->storage[lh_os_input_queue_slot(capacity, tail)] = lh_ptr_deref(event);
+    lh_os_input_queue_get_storage(self)[lh_os_input_queue_slot(capacity, tail)] =
+        lh_ptr_deref(event);
     /* The slot is written before the tail moves past it: the consumer reads only what the tail
        has passed. */
-    self->tail = lh_os_input_queue_next(capacity, tail);
+    lh_os_input_queue_set_tail(self, lh_os_input_queue_next(capacity, tail));
     return lh_bool_true;
 }
 
@@ -126,12 +129,12 @@ lh_bool_t
 lh_os_input_queue_pop(lh_os_input_queue_t *self, lh_os_input_event_t *out)
 {
     const lh_u16_t capacity = lh_os_input_queue_get_capacity(self);
-    const lh_u16_t head = self->head;
+    const lh_u16_t head = lh_os_input_queue_get_head(self);
 
     lh_assert_runtime_ref(out);
     lh_return_if(lh_os_input_queue_is_empty(self), lh_bool_false);
-    lh_ptr_deref(out) = self->storage[lh_os_input_queue_slot(capacity, head)];
-    self->head = lh_os_input_queue_next(capacity, head);
+    lh_ptr_deref(out) = lh_os_input_queue_get_storage(self)[lh_os_input_queue_slot(capacity, head)];
+    lh_os_input_queue_set_head(self, lh_os_input_queue_next(capacity, head));
     return lh_bool_true;
 }
 
@@ -148,4 +151,60 @@ lh_os_input_queue_drain(lh_os_input_queue_t *self, lh_os_input_sink_cb sink, lh_
         ++count;
     }
     return count;
+}
+
+lh_os_input_event_t *
+lh_os_input_queue_get_storage(const lh_os_input_queue_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->storage;
+}
+
+lh_void
+lh_os_input_queue_set_storage(lh_os_input_queue_t *self, lh_os_input_event_t *storage)
+{
+    lh_assert_runtime_ref(self);
+    self->storage = storage;
+}
+
+lh_void
+lh_os_input_queue_set_capacity(lh_os_input_queue_t *self, lh_u16_t capacity)
+{
+    lh_assert_runtime_ref(self);
+    self->capacity = capacity;
+}
+
+lh_u16_t
+lh_os_input_queue_get_head(const lh_os_input_queue_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->head;
+}
+
+lh_void
+lh_os_input_queue_set_head(lh_os_input_queue_t *self, lh_u16_t head)
+{
+    lh_assert_runtime_ref(self);
+    self->head = head;
+}
+
+lh_u16_t
+lh_os_input_queue_get_tail(const lh_os_input_queue_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->tail;
+}
+
+lh_void
+lh_os_input_queue_set_tail(lh_os_input_queue_t *self, lh_u16_t tail)
+{
+    lh_assert_runtime_ref(self);
+    self->tail = tail;
+}
+
+lh_void
+lh_os_input_queue_set_dropped(lh_os_input_queue_t *self, lh_u32_t dropped)
+{
+    lh_assert_runtime_ref(self);
+    self->dropped = dropped;
 }

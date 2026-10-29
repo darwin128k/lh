@@ -117,6 +117,17 @@ lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_str_view_t *name, lh_os_fs_dir_entry_
 lh_bool_t
 lh_os_fs_dir_create(const lh_fs_path_t *path);
 
+/**
+ * @brief Store the native directory handle (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The directory; checked by ::lh_assert_runtime_ref.
+ * @param handle The new value.
+ */
+lh_void
+lh_os_fs_dir_set_handle(lh_os_fs_dir_t *self, lh_os_system_fs_dir_handle_t handle);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_FS_DIR_H */
