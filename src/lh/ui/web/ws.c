@@ -63,7 +63,8 @@ lh_ui_web_ws_write(lh_byte_ptr out, lh_usize_t cap, lh_uint_t opcode, lh_bool_t 
         out[1] = 127u;
         for (i = 0; i < 8u; ++i)
         {
-            out[9u - i] = lh_cast_static(lh_byte_t, (payload_len >> (8u * i)));
+            out[9u - i] =
+                lh_cast_static(lh_byte_t, (lh_cast_static(lh_u64_t, payload_len) >> (8u * i)));
         }
         off = 10u;
     }
