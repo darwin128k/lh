@@ -14,19 +14,29 @@ lh_memory_bounds_allocated_clear(lh_memory_bounds_allocated_t *self)
 lh_void
 lh_memory_bounds_allocated_resize(lh_memory_bounds_allocated_t *self, lh_usize_t size)
 {
-    lh_assert_runtime_ref(self);
+    lh_runtime_check_ifn(lh_memory_bounds_allocated_try_resize(self, size),
+                          lh_runtime_error_code_alloc_failed);
+}
 
+lh_bool_t
+lh_memory_bounds_allocated_try_resize(lh_memory_bounds_allocated_t *self, lh_usize_t size)
+{
     lh_ptr begin = lh_memory_bounds_get_begin(self);
     const lh_usize_t cur_size = lh_memory_bounds_get_size(self);
 
-    lh_ptr allocated = lh_runtime_allocator_realloc(begin, cur_size, size);
+    lh_ptr allocated = lh_runtime_allocator_try_realloc(begin, cur_size, size);
+    if (lh_ptr_is_null(allocated) && lh_math_ne(size, 0u))
+    {
+        return lh_bool_false;
+    }
     if (lh_ptr_is_set(allocated))
     {
         lh_memory_bounds_set(self, allocated, size);
-        return;
+        return lh_bool_true;
     }
 
     lh_memory_bounds_clear(self);
+    return lh_bool_true;
 }
 
 lh_void

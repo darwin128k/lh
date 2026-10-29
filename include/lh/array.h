@@ -72,7 +72,7 @@ lh_array_get_size(const lh_array_t *self);
  * @param self Array to update.
  * @param size New element count.
  *
- * @warning Unsafe — @p size is not checked against the capacity. Caller
+ * @warning Unsafe вЂ” @p size is not checked against the capacity. Caller
  *          assumes full responsibility.
  */
 lh_void
@@ -86,7 +86,7 @@ lh_array_set_size(lh_array_t *self, lh_usize_t size);
  * policy: @c max(min_capacity, capacity * ::LH_LIBRARY_OPTION_ARRAY_GROWTH_FACTOR)
  * (or ::LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY when @p capacity is zero).
  *
- * This is a pure query — it performs no allocation. Callers can use it to
+ * This is a pure query вЂ” it performs no allocation. Callers can use it to
  * predict or replicate the exact capacity a future insertion would grow to,
  * without mutating an array.
  *
@@ -161,7 +161,7 @@ lh_array_deinit(lh_array_t *self);
  * @brief Ensure @p self can hold at least @p min_capacity elements.
  *
  * No-op when the current capacity is already sufficient. Otherwise reallocates
- * the underlying block to exactly @p min_capacity elements — this function
+ * the underlying block to exactly @p min_capacity elements вЂ” this function
  * applies no growth strategy of its own; callers that need amortized growth
  * (for example an eventual push-back) compute the target size themselves and
  * call this with it.
@@ -443,6 +443,14 @@ lh_array_contains(const lh_array_t *self, const lh_ptr value);
  */
 lh_void
 lh_array_merge(lh_array_t *self, lh_array_t *other);
+
+/**
+ * @brief Reserve at least min_capacity slots, or return false without changing the array.
+ * Uses the runtime allocator and preserves size, capacity and contents on allocation
+ * failure or byte-size overflow. No allocation when capacity already suffices.
+ */
+lh_bool_t
+lh_array_try_reserve(lh_array_t *self, lh_usize_t min_capacity);
 
 LH_COMPILER_EXTERN_C_END
 

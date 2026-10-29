@@ -1,6 +1,6 @@
 /**
  * @file allocated.h
- * @brief Helpers for ::lh_memory_typed_allocated_t — heap-owning typed memory.
+ * @brief Helpers for ::lh_memory_typed_allocated_t вЂ” heap-owning typed memory.
  *
  * ::lh_memory_typed_allocated_t is layout-identical to ::lh_memory_typed_t, but
  * every function in this header treats its bounds (::lh_memory_typed_get_bounds_mut) as a block
@@ -86,6 +86,14 @@ lh_memory_typed_allocated_resize(lh_memory_typed_allocated_t *self, lh_usize_t c
 lh_void
 lh_memory_typed_allocated_exchange(lh_memory_typed_allocated_t *self,
                                    lh_memory_typed_allocated_t *other);
+
+/**
+ * @brief Resize to count elements, preserving ownership and contents on failure.
+ * Returns false for byte-size overflow or runtime allocation failure. A zero count
+ * releases the block. Requires the allocator contract of the checked form.
+ */
+lh_bool_t
+lh_memory_typed_allocated_try_resize(lh_memory_typed_allocated_t *self, lh_usize_t count);
 
 LH_COMPILER_EXTERN_C_END
 

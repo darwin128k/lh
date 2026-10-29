@@ -92,9 +92,18 @@ lh_array_deinit(lh_array_t *self)
 lh_void
 lh_array_reserve(lh_array_t *self, lh_usize_t min_capacity)
 {
-    lh_memory_typed_allocated_t *typed = lh_array_get_typed_mut(self);
-    lh_return_if(lh_memory_typed_get_size(typed) >= min_capacity);
-    lh_memory_typed_allocated_resize(typed, min_capacity);
+    lh_runtime_check_ifn(lh_array_try_reserve(self, min_capacity),
+                          lh_runtime_error_code_alloc_failed);
+}
+
+lh_bool_t
+lh_array_try_reserve(lh_array_t *self, lh_usize_t min_capacity)
+{
+    if (lh_array_get_capacity(self) >= min_capacity)
+    {
+        return lh_bool_true;
+    }
+    return lh_memory_typed_allocated_try_resize(lh_array_get_typed_mut(self), min_capacity);
 }
 
 lh_bool_t
@@ -377,7 +386,7 @@ lh_uindex_t
 lh_array_push_back(lh_array_t *self, const lh_ptr value)
 {
     /* self not re-checked here: lh_array_get_size(self) right below does it.
-     * value still needs its own check — nothing downstream validates it. */
+     * value still needs its own check вЂ” nothing downstream validates it. */
     lh_assert_runtime_ref(value);
 
     /* Fast path for the common case (room already reserved): one copy to the
