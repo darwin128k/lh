@@ -142,6 +142,17 @@ lh_bool_t
 lh_fs_path_is_absolute(const lh_fs_path_t *self);
 
 /**
+ * @brief True when @p text, read in @p style, is a rooted path (POSIX `/` or a drive).
+ *
+ * ::lh_fs_path_is_absolute for text that is not a path object yet.
+ *
+ * @param text  NUL-terminated path text.
+ * @param style How to read it; the OS's own is ::lh_os_system_fs_path_style_native.
+ */
+lh_bool_t
+lh_fs_path_is_text_absolute(const lh_str_ptr text, lh_fs_path_style_t style);
+
+/**
  * @brief True when @p self is exactly a root (`/` or a drive) with no
  *        segments — nothing to drop before hitting bedrock.
  */

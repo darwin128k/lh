@@ -7,13 +7,47 @@
 
 #if defined(_WIN32)
 
-TEST(os_fs_file_at, unsupported_backend_leaves_size_unchanged)
+#    include <cstdio>
+#    include <direct.h>
+
+/* Handle-relative lookup on Windows: NtCreateFile relative to each directory. */
+TEST(os_fs_file_at, opens_a_file_below_the_root_and_refuses_escapes)
 {
     lh_fs_size_t size = 123U;
-    EXPECT_EQ(lh_os_system_fs_file_open_read_at(LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID, "file", &size),
+
+    _mkdir("lh-test-file-at");
+    _mkdir("lh-test-file-at/a");
+    std::FILE *file = std::fopen("lh-test-file-at/a/b.txt", "wb");
+    ASSERT_NE(file, nullptr);
+    std::fputs("hello", file);
+    std::fclose(file);
+
+    const lh_os_system_fs_file_handle_t root = lh_os_system_fs_file_open_root("lh-test-file-at");
+    ASSERT_NE(root, LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID);
+    const lh_os_system_fs_file_handle_t found =
+        lh_os_system_fs_file_open_read_at(root, "a/b.txt", &size);
+    ASSERT_NE(found, LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID);
+    EXPECT_EQ(size, 5U);
+    lh_os_system_fs_file_close(found);
+
+    size = 123U;
+    EXPECT_EQ(lh_os_system_fs_file_open_read_at(root, "../lh-test-file-at/a/b.txt", &size),
+              LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID);
+    EXPECT_EQ(lh_os_system_fs_file_open_read_at(root, "a\b.txt", &size),
+              LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID);
+    EXPECT_EQ(lh_os_system_fs_file_open_read_at(root, "a/missing.txt", &size),
+              LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID);
+    /* A directory is not the file at the end. */
+    EXPECT_EQ(lh_os_system_fs_file_open_read_at(root, "a", &size),
               LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID);
     EXPECT_EQ(size, 123U);
-    EXPECT_EQ(lh_os_get_last_error_code(), lh_os_error_code_not_supported);
+    EXPECT_EQ(lh_os_system_fs_file_open_read_at(LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID, "a/b.txt",
+                                                &size),
+              LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID);
+    lh_os_system_fs_file_close(root);
+    std::remove("lh-test-file-at/a/b.txt");
+    _rmdir("lh-test-file-at/a");
+    _rmdir("lh-test-file-at");
 }
 
 #else
