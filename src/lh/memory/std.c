@@ -2,8 +2,9 @@
  * @file std.c
  * @brief ::lh_memory_std_* — public entry points; folders under std/ are the namespaces.
  *
- * One translation unit: pieces share static path-choice state. CMake lists only
- * this file; words and x86 pieces below are included, not separate link units.
+ * One translation unit: pieces share static path-choice state and are inlined into
+ * the entry points, so the words and x86 pieces are private headers beside this
+ * file (`std/words.h`, `std/x86/*.h`), included below after the macros they use.
  */
 #include <lh/memory/std.h>
 #include <lh/assert.h>
@@ -91,10 +92,10 @@
 #    define LH_MEMORY_STD_STREAM_SET_TRAFFIC 1U
 #endif
 
-#include "std/words.c"
-#include "std/x86/cpuid.c"
-#include "std/x86/sse2.c"
-#include "std/x86/avx2.c"
+#include <lh/memory/std/words.h>
+#include <lh/memory/std/x86/cpuid.h>
+#include <lh/memory/std/x86/sse2.h>
+#include <lh/memory/std/x86/avx2.h>
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 

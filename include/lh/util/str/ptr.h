@@ -1027,30 +1027,6 @@ lh_str_ptr
 lh_str_ptr_trim(lh_str_ptr str);
 
 /**
- * @brief Replace each of the first @p size ::lh_char_t elements of @p str
- *        using Unicode simple lowercase mapping for single-byte scalars (0..255),
- *        same subset as ::lh_wstr_ptr_to_lower for Latin-1 style buffers.
- *
- * @note Interprets each code unit as an unsigned byte; not UTF-8 scalar mapping.
- *
- * @param str  Buffer to transform (::lh_runtime_check_ref).
- * @param size Number of ::lh_char_t elements to map.
- *
- * @return Pointer one past the last element updated (@p str + @p size).
- */
-lh_str_ptr
-lh_str_ptr_to_lower(lh_str_ptr str, lh_usize_t size);
-
-/**
- * @brief Replace each of the first @p size ::lh_char_t elements of @p str
- *        using Unicode simple uppercase mapping for single-byte scalars (0..255).
- *
- * @see lh_str_ptr_to_lower
- */
-lh_str_ptr
-lh_str_ptr_to_upper(lh_str_ptr str, lh_usize_t size);
-
-/**
  * True when @p chars is an ascending contiguous run (e.g. "abc", "0"-"9", "a"-"z").
  * Avoids building a bitset for the common alphabet / digit class scans.
  * Contiguity is checked with machine words of an arithmetic ramp, not one byte at a time.

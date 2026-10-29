@@ -1,12 +1,20 @@
 /**
- * @file sse2.c
+ * @file sse2.h
  * @brief SSE2/SSSE3 tiers for ::lh_memory_std_*.
  */
+
+#ifndef LH_MEMORY_STD_X86_SSE2_H
+#define LH_MEMORY_STD_X86_SSE2_H
+
+#include <lh/compiler/extern/c.h>
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
 
 LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("sse2")
+
 lh_void
 lh_memory_std_copy64_storeu(lh_byte_ptr dst, lh_byte_cptr src)
 {
@@ -23,6 +31,7 @@ lh_memory_std_copy64_storeu(lh_byte_ptr dst, lh_byte_cptr src)
 /* 64 bytes into a 16-aligned @p dst: the aligned tail block of copy_sse2. */
 LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("sse2")
+
 lh_void
 lh_memory_std_copy64_store_sse2(lh_byte_ptr dst, lh_byte_cptr src)
 {
@@ -38,6 +47,7 @@ lh_memory_std_copy64_store_sse2(lh_byte_ptr dst, lh_byte_cptr src)
 
 LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("sse2")
+
 lh_void
 lh_memory_std_copy128_store_sse2(lh_byte_ptr dst, lh_byte_cptr src)
 {
@@ -64,6 +74,7 @@ lh_memory_std_copy128_store_sse2(lh_byte_ptr dst, lh_byte_cptr src)
 
 LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("sse2")
+
 lh_void
 lh_memory_std_copy_sse2_small(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
@@ -121,6 +132,7 @@ lh_memory_std_copy_sse2_small(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 }
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
+
 static lh_void
 lh_memory_std_copy_sse2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
@@ -179,6 +191,7 @@ lh_memory_std_copy_sse2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 }
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
+
 static lh_void
 lh_memory_std_copy_sse2_stream(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
@@ -255,6 +268,7 @@ LH_MEMORY_STD_SIMD_TARGET("sse2") static __m128i lh_memory_std_reverse_epi8_sse2
 }
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
+
 static lh_void
 lh_memory_std_copy_rev_sse2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
@@ -311,6 +325,7 @@ LH_MEMORY_STD_SIMD_TARGET("ssse3") static __m128i lh_memory_std_reverse_epi8_sss
 }
 
 LH_MEMORY_STD_SIMD_TARGET("ssse3")
+
 static lh_void
 lh_memory_std_copy_rev_ssse3(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
@@ -356,6 +371,7 @@ lh_memory_std_copy_rev_ssse3(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 }
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
+
 static lh_void
 lh_memory_std_rcopy_sse2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
@@ -435,6 +451,7 @@ lh_memory_std_rcopy_sse2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 
 LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("sse2")
+
 lh_void
 lh_memory_std_move_small_sse2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
@@ -481,6 +498,7 @@ lh_memory_std_move_small_sse2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 }
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
+
 static lh_void
 lh_memory_std_move_forward_sse2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
@@ -512,6 +530,7 @@ lh_memory_std_move_forward_sse2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 
 LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("sse2")
+
 lh_void
 lh_memory_std_set_sse2(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 {
@@ -595,6 +614,7 @@ lh_memory_std_set_sse2(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 }
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
+
 static lh_void
 lh_memory_std_set_sse2_stream(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 {
@@ -640,6 +660,7 @@ lh_memory_std_set_sse2_stream(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 }
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
+
 static const lh_ptr
 lh_memory_std_compare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
@@ -714,6 +735,7 @@ lh_memory_std_compare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 }
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
+
 static const lh_ptr
 lh_memory_std_rcompare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
@@ -779,6 +801,7 @@ lh_memory_std_rcompare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 }
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
+
 static const lh_ptr
 lh_memory_std_find_sse2(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, lh_usize_t m)
 {
@@ -811,6 +834,7 @@ lh_memory_std_find_sse2(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, lh_
 }
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
+
 static const lh_ptr
 lh_memory_std_rfind_sse2(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, lh_usize_t m)
 {
@@ -847,9 +871,9 @@ lh_memory_std_rfind_sse2(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, lh
         {
             const __m128i a = _mm_loadu_si128(lh_ptr_rcast(const __m128i, hay + off));
             const __m128i b = _mm_loadu_si128(lh_ptr_rcast(const __m128i, hay + off + m - 1U));
-            lh_u32_t mask = lh_cast_static(
-                lh_u32_t,
-                _mm_movemask_epi8(_mm_and_si128(_mm_cmpeq_epi8(a, first), _mm_cmpeq_epi8(b, last))));
+            lh_u32_t mask =
+                lh_cast_static(lh_u32_t, _mm_movemask_epi8(_mm_and_si128(_mm_cmpeq_epi8(a, first),
+                                                                         _mm_cmpeq_epi8(b, last))));
 
             while (mask != 0U)
             {
@@ -874,6 +898,7 @@ lh_memory_std_rfind_sse2(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, lh
 }
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
+
 static lh_void
 lh_memory_std_xor_sse2(lh_byte_ptr dst, lh_byte_cptr lhs, lh_byte_cptr rhs, lh_usize_t n)
 {
@@ -908,3 +933,7 @@ lh_memory_std_xor_sse2(lh_byte_ptr dst, lh_byte_cptr lhs, lh_byte_cptr rhs, lh_u
 }
 
 #endif /* SSE2 */
+
+LH_COMPILER_EXTERN_C_END
+
+#endif /* LH_MEMORY_STD_X86_SSE2_H */

@@ -6,6 +6,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <lh/util/str/case/map.h>
 
 namespace
 {

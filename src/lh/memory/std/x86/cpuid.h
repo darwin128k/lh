@@ -1,7 +1,12 @@
 /**
- * @file cpuid.c
+ * @file cpuid.h
  * @brief Runtime x86 feature gates for memory/std.
  */
+
+#ifndef LH_MEMORY_STD_X86_CPUID_H
+#define LH_MEMORY_STD_X86_CPUID_H
+
+#include <lh/compiler/extern/c.h>
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 
@@ -9,6 +14,8 @@
 static lh_byte_t m_erms_copy_kind;
 #    endif
 static lh_usize_t m_stream_cache_size;
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
@@ -38,6 +45,8 @@ lh_memory_std_use_erms_copy(void)
     return lh_cast_static(lh_bool_t, m_erms_copy_kind == 1U);
 }
 
+LH_COMPILER_EXTERN_C_END
+
 static lh_usize_t
 lh_memory_std_stream_cache_size_resolve(void)
 {
@@ -46,6 +55,8 @@ lh_memory_std_stream_cache_size_resolve(void)
     m_stream_cache_size = l3 > LH_MEMORY_STD_STREAM_FLOOR ? l3 : LH_MEMORY_STD_STREAM_FLOOR;
     return m_stream_cache_size;
 }
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
@@ -66,4 +77,8 @@ lh_memory_std_is_stream_size(lh_usize_t n, lh_usize_t traffic)
     return lh_cast_static(lh_bool_t, n >= cache_size / traffic);
 }
 
+LH_COMPILER_EXTERN_C_END
+
 #endif /* SSE2 || AVX2 */
+
+#endif /* LH_MEMORY_STD_X86_CPUID_H */

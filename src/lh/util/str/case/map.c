@@ -11,6 +11,7 @@
  * (include/lh/config.h) — see that option's doc comment in cmake/library_options.cmake.
  */
 
+#include <lh/util/str/case/map.h>
 #include <lh/util/interval.h>
 #include <lh/bit/swar.h>
 #include <lh/memory/word.h>

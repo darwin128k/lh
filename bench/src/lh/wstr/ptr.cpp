@@ -3,6 +3,7 @@
 #include <lh/util/wstr/ptr.h>
 
 #include <cwchar>
+#include <lh/util/wstr/case/map.h>
 
 static void
 BM_wstr_ptr_len(benchmark::State &state)

@@ -1,12 +1,20 @@
 /**
- * @file avx2.c
+ * @file avx2.h
  * @brief AVX2 tiers for ::lh_memory_std_*.
  */
+
+#ifndef LH_MEMORY_STD_X86_AVX2_H
+#define LH_MEMORY_STD_X86_AVX2_H
+
+#include <lh/compiler/extern/c.h>
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 
 LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("avx2")
+
 lh_void
 lh_memory_std_copy128_storeu(lh_byte_ptr dst, lh_byte_cptr src)
 {
@@ -22,6 +30,7 @@ lh_memory_std_copy128_storeu(lh_byte_ptr dst, lh_byte_cptr src)
 
 LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("avx2")
+
 lh_void
 lh_memory_std_copy256_store(lh_byte_ptr dst, lh_byte_cptr src)
 {
@@ -44,6 +53,7 @@ lh_memory_std_copy256_store(lh_byte_ptr dst, lh_byte_cptr src)
 }
 
 LH_MEMORY_STD_SIMD_TARGET("avx2")
+
 static lh_void
 lh_memory_std_copy_avx2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
@@ -157,6 +167,7 @@ lh_memory_std_copy_avx2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 }
 
 LH_MEMORY_STD_SIMD_TARGET("avx2")
+
 static lh_void
 lh_memory_std_copy_avx2_stream(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
@@ -222,6 +233,7 @@ lh_memory_std_copy_avx2_stream(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 }
 
 LH_MEMORY_STD_SIMD_TARGET("avx2")
+
 static lh_void
 lh_memory_std_copy_rev_avx2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
@@ -317,6 +329,7 @@ lh_memory_std_copy_rev_avx2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 }
 
 LH_MEMORY_STD_SIMD_TARGET("avx2")
+
 static lh_void
 lh_memory_std_rcopy_avx2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
@@ -382,6 +395,7 @@ lh_memory_std_rcopy_avx2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 }
 
 LH_MEMORY_STD_SIMD_TARGET("avx2")
+
 static lh_void
 lh_memory_std_set_avx2(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 {
@@ -481,6 +495,7 @@ lh_memory_std_set_avx2(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 }
 
 LH_MEMORY_STD_SIMD_TARGET("avx2")
+
 static lh_void
 lh_memory_std_set_avx2_stream(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 {
@@ -526,6 +541,7 @@ lh_memory_std_set_avx2_stream(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 }
 
 LH_MEMORY_STD_SIMD_TARGET("avx2")
+
 static lh_void
 lh_memory_std_xor_avx2(lh_byte_ptr dst, lh_byte_cptr lhs, lh_byte_cptr rhs, lh_usize_t n)
 {
@@ -551,6 +567,7 @@ lh_memory_std_xor_avx2(lh_byte_ptr dst, lh_byte_cptr lhs, lh_byte_cptr rhs, lh_u
 }
 
 LH_MEMORY_STD_SIMD_TARGET("avx2")
+
 static const lh_ptr
 lh_memory_std_compare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
@@ -669,6 +686,7 @@ lh_memory_std_compare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 }
 
 LH_MEMORY_STD_SIMD_TARGET("avx2")
+
 static const lh_ptr
 lh_memory_std_rcompare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
@@ -748,3 +766,7 @@ lh_memory_std_rcompare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 }
 
 #endif /* AVX2 */
+
+LH_COMPILER_EXTERN_C_END
+
+#endif /* LH_MEMORY_STD_X86_AVX2_H */
