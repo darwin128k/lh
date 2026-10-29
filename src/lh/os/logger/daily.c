@@ -125,7 +125,7 @@ lh_os_logger_daily_get_local_day(lh_timestamp_t utc)
     lh_timestamp_t local;
 
     return lh_timestamp_get_days(lh_os_timestamp_try_get_local(utc, lh_addr_of(local)) ? local
-                                                                                        : utc);
+                                                                                       : utc);
 }
 
 /* The sink's clock when none is given: the system's. */
@@ -425,8 +425,8 @@ lh_os_logger_daily_try_create(lh_os_logger_daily_format_cb format,
     lh_list_init(lh_os_logger_daily_get_channels_mut(self));
     lh_os_logger_daily_set_format_fn(self, lh_null_ne(format) ? format
                                                               : lh_os_logger_daily_format_standard);
-    lh_os_logger_daily_set_clock_fn(self, lh_null_ne(clock) ? clock
-                                                            : lh_os_logger_daily_get_system_now);
+    lh_os_logger_daily_set_clock_fn(self,
+                                    lh_null_ne(clock) ? clock : lh_os_logger_daily_get_system_now);
     lh_os_logger_daily_set_user(self, user);
     lh_str_init(lh_os_logger_daily_get_line_mut(self));
     lh_os_logger_daily_set_reported(self, lh_bool_false);
