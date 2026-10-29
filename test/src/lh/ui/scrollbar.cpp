@@ -54,7 +54,7 @@ struct bar_fixture
     int
     scroll_y()
     {
-        const lh_ui_point_t scroll = lh_test::out(lh_ui_container_get_scroll, lh_addr_of(box));
+        const lh_ui_point_t scroll = lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(box));
         return static_cast<int>(lh_ui_point_get_y(lh_addr_of(scroll)));
     }
 

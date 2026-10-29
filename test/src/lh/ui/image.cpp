@@ -48,7 +48,7 @@ TEST(entity_image, init_keeps_the_mask_the_rect_and_the_class)
     lh_ui_image_init(&image, rect_of(10, 20, 16, 16), &mask);
     size = lh_test::out(lh_ui_image_get_size, &image);
 
-    EXPECT_TRUE(rect_is(lh_test::out(lh_ui_entity_get_rect, lh_ui_image_as_entity(&image)), rect_of(10, 20, 16, 16)));
+    EXPECT_TRUE(rect_is(lh_test::out(lh_ui_entity_copy_rect, lh_ui_image_as_entity(&image)), rect_of(10, 20, 16, 16)));
     EXPECT_EQ(lh_ui_image_get_mask(&image), &mask);
     EXPECT_EQ(lh_ui_entity_get_class(lh_ui_image_as_entity(&image)), &lh_ui_image_class);
     EXPECT_EQ(lh_ui_size_get_width(&size), lh_ui_scalar(4)) << "the picture is not the mask";
@@ -230,8 +230,8 @@ TEST(entity_image, a_wrap_place_gets_the_picture_its_own_width)
     lh_ui_point_t offset;
     lh_ui_entity_get_children_transform(lh_ui_container_as_entity(&box), &offset);
 
-    const lh_ui_rect_t picture_rect = lh_test::out(lh_ui_entity_get_rect, lh_ui_image_as_entity(&picture));
-    const lh_ui_rect_t caption_rect = lh_test::out(lh_ui_entity_get_rect, lh_ui_label_as_entity(&caption));
+    const lh_ui_rect_t picture_rect = lh_test::out(lh_ui_entity_copy_rect, lh_ui_image_as_entity(&picture));
+    const lh_ui_rect_t caption_rect = lh_test::out(lh_ui_entity_copy_rect, lh_ui_label_as_entity(&caption));
     /* 4 of picture, 4 of gap, 20 of caption, in a 224 wide content box. */
     const int start = 108 + (224 - 28) / 2;
 

@@ -21,7 +21,7 @@ TEST(entity_label, init_keeps_the_rect_and_the_text_pointer)
     lh_ui_label_t label;
     lh_ui_label_init(lh_addr_of(label), rect, text);
     lh_ui_entity_t *entity = lh_ui_label_as_entity(lh_addr_of(label));
-    const lh_ui_rect_t stored = lh_test::out(lh_ui_entity_get_rect, entity);
+    const lh_ui_rect_t stored = lh_test::out(lh_ui_entity_copy_rect, entity);
 
     EXPECT_EQ(lh_ui_rect_eq(lh_addr_of(rect), lh_addr_of(stored)), lh_bool_true);
     EXPECT_EQ(lh_ui_label_get_text(lh_addr_of(label)), text);

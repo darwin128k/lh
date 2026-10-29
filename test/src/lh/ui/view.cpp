@@ -189,7 +189,7 @@ point_of(int x, int y)
 int
 scroll_y_of(const lh_ui_container_t &box)
 {
-    const lh_ui_point_t scroll = lh_test::out(lh_ui_container_get_scroll, lh_addr_of(box));
+    const lh_ui_point_t scroll = lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(box));
     return static_cast<int>(lh_ui_point_get_y(lh_addr_of(scroll)));
 }
 
@@ -338,7 +338,7 @@ TEST(view, wheel_sideways_scrolls_a_wide_container_horizontally)
     lh_ui_entity_set_rect(lh_addr_of(f.content), lh_test::rect_of(0, 0, 300, 400));
     EXPECT_EQ(lh_ui_view_wheel(lh_addr_of(f.view), point_of(50, 50), lh_ui_scalar(50), lh_ui_scalar(0)),
               lh_bool_true);
-    const lh_ui_point_t scroll = lh_test::out(lh_ui_container_get_scroll, lh_addr_of(f.box));
+    const lh_ui_point_t scroll = lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(f.box));
     EXPECT_EQ(lh_ui_point_get_x(lh_addr_of(scroll)), lh_ui_scalar(50));
     EXPECT_EQ(lh_ui_point_get_y(lh_addr_of(scroll)), lh_ui_scalar(0));
 }
