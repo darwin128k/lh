@@ -14,7 +14,7 @@ lh_ui_canvas_web_glyphs_reset(lh_ui_canvas_web_glyphs_t *self)
 {
     if (self != lh_null)
     {
-        lh_memory_set(lh_ui_canvas_web_glyphs_get_sent(self), sizeof(self->sent), 0);
+        lh_memory_set(lh_ui_canvas_web_glyphs_get_sent_mut(self), sizeof(self->sent), 0);
     }
 }
 

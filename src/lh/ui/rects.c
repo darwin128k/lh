@@ -102,7 +102,7 @@ lh_ui_rects_join_once(lh_ui_rects_t *self)
                 continue;
             }
             lh_ui_rect_union(lh_addr_of(lh_ui_rects_get_rects(self)[keep]), lh_addr_of(lh_ui_rects_get_rects(self)[drop]),
-                             lh_addr_of(lh_ui_rects_get_rects(self)[keep]));
+                             lh_addr_of(lh_ui_rects_get_rects_mut(self)[keep]));
             lh_ui_rects_drop(self, drop);
             return lh_bool_true;
         }
@@ -137,7 +137,7 @@ lh_ui_rects_squeeze(lh_ui_rects_t *self, const lh_ui_rect_t *rect)
             cheapest = i;
         }
     }
-    lh_ui_rect_union(lh_addr_of(lh_ui_rects_get_rects(self)[cheapest]), rect, lh_addr_of(lh_ui_rects_get_rects(self)[cheapest]));
+    lh_ui_rect_union(lh_addr_of(lh_ui_rects_get_rects_mut(self)[cheapest]), rect, lh_addr_of(lh_ui_rects_get_rects_mut(self)[cheapest]));
     lh_ui_rects_close(self);
 }
 

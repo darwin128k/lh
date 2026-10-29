@@ -465,7 +465,7 @@ lh_ui_view_reset_pointer(lh_ui_view_t *self)
     lh_assert_runtime_ref(self);
     for (id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
     {
-        lh_ui_view_pointer_reset(lh_addr_of(lh_ui_view_get_pointers(self)[id]));
+        lh_ui_view_pointer_reset(lh_addr_of(lh_ui_view_get_pointers_mut(self)[id]));
     }
 }
 
@@ -499,11 +499,11 @@ lh_ui_view_init(lh_ui_view_t *self)
     lh_ui_point_init(lh_ui_view_get_velocity_mut(self), lh_ui_scalar(0), lh_ui_scalar(0));
     for (id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
     {
-        lh_ui_view_pointer_init(lh_addr_of(lh_ui_view_get_pointers(self)[id]));
+        lh_ui_view_pointer_init(lh_addr_of(lh_ui_view_get_pointers_mut(self)[id]));
     }
     for (i = 0; i < LH_UI_VIEW_TRANSITION_MAX; ++i)
     {
-        lh_ui_transition_init(lh_addr_of(lh_ui_view_get_transitions(self)[i]));
+        lh_ui_transition_init(lh_addr_of(lh_ui_view_get_transitions_mut(self)[i]));
     }
 }
 
@@ -521,7 +521,7 @@ lh_ui_view_pointer_t *
 lh_ui_view_get_slot(lh_ui_view_t *self, lh_os_input_pointer_id_t id)
 {
     lh_return_if(id >= LH_OS_INPUT_POINTER_MAX, lh_null);
-    return lh_addr_of(lh_ui_view_get_pointers(self)[id]);
+    return lh_addr_of(lh_ui_view_get_pointers_mut(self)[id]);
 }
 
 lh_bool_t
@@ -1177,7 +1177,7 @@ lh_ui_view_finish_transitions(lh_ui_view_t *self, const lh_ui_entity_t *subtree)
     lh_assert_runtime_ref(self);
     for (i = 0; i < LH_UI_VIEW_TRANSITION_MAX; ++i)
     {
-        lh_ui_transition_t *slot = lh_addr_of(lh_ui_view_get_transitions(self)[i]);
+        lh_ui_transition_t *slot = lh_addr_of(lh_ui_view_get_transitions_mut(self)[i]);
         const lh_ui_entity_t *up = lh_ui_transition_get_entity(slot);
 
         if (lh_null_eq(up))
@@ -1243,7 +1243,7 @@ lh_ui_view_advance(lh_ui_view_t *self, lh_u16_t ms)
     lh_return_if(ms == 0, lh_bool_false);
     for (i = 0; i < LH_UI_VIEW_TRANSITION_MAX; ++i)
     {
-        lh_ui_transition_t *slot = lh_addr_of(lh_ui_view_get_transitions(self)[i]);
+        lh_ui_transition_t *slot = lh_addr_of(lh_ui_view_get_transitions_mut(self)[i]);
         lh_ui_entity_t *entity = lh_ui_transition_get_entity(slot);
 
         if (lh_null_eq(entity))

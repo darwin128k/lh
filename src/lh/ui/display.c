@@ -47,7 +47,7 @@ lh_ui_display_init(lh_ui_display_t *self)
                       lh_ui_display_get_sw_mut(self));
     for (i = 0; i < (lh_u32_t)LH_UI_PRESENT_SINKS_MAX; ++i)
     {
-        lh_ui_present_sink_init(lh_addr_of(lh_ui_display_get_sinks(self)[i]), lh_null, lh_null, lh_null);
+        lh_ui_present_sink_init(lh_addr_of(lh_ui_display_get_sinks_mut(self)[i]), lh_null, lh_null, lh_null);
     }
     lh_ui_display_set_sink_count(self, 0);
     lh_ui_display_set_sink_enable(self, 0);
