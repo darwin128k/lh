@@ -5,6 +5,7 @@
  */
 
 #include <lh/os/module/event/bus.h>
+#include <lh/util/return.h>
 #include <lh/runtime/allocator.h>
 #include <lh/assert.h>
 #include <lh/util/str/ptr.h>
@@ -363,4 +364,45 @@ lh_os_module_event_bus_get_cached_id(lh_os_module_event_bus_t *self, lh_os_modul
     lh_os_module_event_id_t id = lh_os_module_event_bus_try_get_cached_id(self, cache, name);
     lh_runtime_check_if(lh_math_eq(id, 0u), lh_runtime_error_code_memory_not_allocated);
     return id;
+}
+
+lh_os_module_event_subscription_t *
+lh_os_module_event_bus_find_exact(const lh_os_module_event_bus_t *self, lh_os_module_event_id_t id,
+                                  lh_ptr owner, lh_os_module_event_cb callback, lh_ptr context)
+{
+    for (lh_os_module_event_subscription_t *sub = lh_os_module_event_bus_get_first(self, id);
+         lh_ptr_is_set(sub); sub = lh_os_module_event_bus_get_next(self, id, sub))
+    {
+        if (lh_math_eq(lh_os_module_event_subscription_get_owner(sub), owner) &&
+            lh_math_eq(lh_os_module_event_subscription_get_callback(sub), callback) &&
+            lh_math_eq(lh_os_module_event_subscription_get_context(sub), context))
+        {
+            return sub;
+        }
+    }
+    return lh_null;
+}
+
+lh_os_module_event_subscription_t *
+lh_os_module_event_bus_try_subscribe_once(lh_os_module_event_bus_t *self,
+                                          lh_os_module_event_id_t id, lh_ptr owner,
+                                          lh_os_module_event_cb callback, lh_ptr context)
+{
+    lh_os_module_event_subscription_t *sub =
+        lh_os_module_event_bus_find_exact(self, id, owner, callback, context);
+
+    lh_return_if(lh_ptr_is_set(sub), sub);
+    return lh_os_module_event_bus_try_subscribe(self, id, owner, callback, context, lh_null);
+}
+
+lh_bool_t
+lh_os_module_event_bus_remove_exact(lh_os_module_event_bus_t *self, lh_os_module_event_id_t id,
+                                    lh_ptr owner, lh_os_module_event_cb callback, lh_ptr context)
+{
+    lh_os_module_event_subscription_t *sub =
+        lh_os_module_event_bus_find_exact(self, id, owner, callback, context);
+
+    lh_return_if(lh_ptr_is_null(sub), lh_bool_false);
+    lh_os_module_event_bus_remove(self, sub);
+    return lh_bool_true;
 }

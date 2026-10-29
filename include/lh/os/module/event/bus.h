@@ -288,6 +288,62 @@ lh_os_module_event_id_t
 lh_os_module_event_bus_get_cached_id(lh_os_module_event_bus_t *self, lh_os_module_event_id_t *cache,
                                      const lh_char_t *name);
 
+/**
+ * @brief The live subscription of event @p id made by @p owner with exactly this
+ *        callback and context (level 5).
+ *
+ * All three are compared by identity. This is what tells "subscribe again" from a
+ * second subscription: a module that asks twice for the same handler and value
+ * means one. Visits only this event's subscribers and allocates nothing.
+ *
+ * @param self     The bus; must not be ::lh_null (not checked).
+ * @param id       The event.
+ * @param owner    The tag the subscription was made under.
+ * @param callback The handler.
+ * @param context  The value the handler is given.
+ * @return The subscription, or ::lh_null when there is none or @p id is invalid.
+ */
+lh_os_module_event_subscription_t *
+lh_os_module_event_bus_find_exact(const lh_os_module_event_bus_t *self, lh_os_module_event_id_t id,
+                                  lh_ptr owner, lh_os_module_event_cb callback, lh_ptr context);
+
+/**
+ * @brief Subscribe once: the subscription already made with this owner, callback and
+ *        context, or a new one (level 6).
+ *
+ * The context is borrowed and nothing disposes it: whoever subscribes keeps it alive
+ * until the subscription is removed. Asking again returns the same record and adds
+ * nothing.
+ *
+ * @param self     The bus; must not be ::lh_null (not checked).
+ * @param id       The event.
+ * @param owner    The tag the subscription is made under.
+ * @param callback The handler; ::lh_null is refused.
+ * @param context  The value the handler is given.
+ * @return The subscription, or ::lh_null for an invalid ID or callback, or when the
+ *         record could not be allocated.
+ */
+lh_os_module_event_subscription_t *
+lh_os_module_event_bus_try_subscribe_once(lh_os_module_event_bus_t *self,
+                                          lh_os_module_event_id_t id, lh_ptr owner,
+                                          lh_os_module_event_cb callback, lh_ptr context);
+
+/**
+ * @brief Remove the subscription made with this owner, callback and context (level 6).
+ *
+ * See ::lh_os_module_event_bus_remove for when it is destroyed.
+ *
+ * @param self     The bus; must not be ::lh_null (not checked).
+ * @param id       The event.
+ * @param owner    The tag it was made under.
+ * @param callback The handler.
+ * @param context  The value the handler is given.
+ * @return True when there was one to remove.
+ */
+lh_bool_t
+lh_os_module_event_bus_remove_exact(lh_os_module_event_bus_t *self, lh_os_module_event_id_t id,
+                                    lh_ptr owner, lh_os_module_event_cb callback, lh_ptr context);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_MODULE_EVENT_BUS_H */
