@@ -3,10 +3,10 @@
  * @brief ::lh_os_logger_queue_t: a single-producer record queue drained by an ::lh_os_loop_t.
  *
  * The producer side is lock-free: a push copies into the SPSC ring and hints the
- * loop, which runs the step soon or at the latest after one flush period. The loop's step hands records to the sink, reports drops and flushes on
- * the period or a sync; its last step drains everything and closes the sink.
- * Sync requests and their completion go through counters, compared with
- * wrap-around, under the mutex the sync waits with.
+ * loop, which runs the step soon or at the latest after one flush period. The loop's step hands
+ * records to the sink, reports drops and flushes on the period or a sync; its last step drains
+ * everything and closes the sink. Sync requests and their completion go through counters, compared
+ * with wrap-around, under the mutex the sync waits with.
  */
 
 #include <lh/os/logger/queue.h>
@@ -379,9 +379,9 @@ lh_os_logger_queue_try_create(lh_uint_t capacity, lh_u32_t flush_ms,
                      lh_null_eq(lh_os_logger_sink_get_close_fn(sink)) || flush_ms == 0U ||
                      capacity == 0U,
                  lh_null);
-    self = lh_ptr_rcast(lh_os_logger_queue_t,
-                        lh_memory_allocator_try_alloc_zero(lh_addr_of(allocator), 1U,
-                                                           sizeof(lh_ptr_deref(self))));
+    self = lh_ptr_rcast(
+        lh_os_logger_queue_t,
+        lh_memory_allocator_try_alloc_zero(lh_addr_of(allocator), 1U, sizeof(lh_ptr_deref(self))));
     lh_return_if(lh_null_eq(self), lh_null);
     lh_memory_allocator_assign(lh_os_logger_queue_get_allocator_mut(self), lh_addr_of(allocator));
     lh_os_logger_queue_set_sink(self, lh_ptr_deref(sink));

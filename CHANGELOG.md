@@ -27,6 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh/os/thread/group`: threads of one owner, each stopped by its own `wake`;
+  stopping the group wakes every thread before joining any. `lh_str_ptr_format_cstr`
+  (in `lh/str/format/text.h`): formatting into a buffer, always NUL-terminated.
+- `lh/os/worker` runs on `lh/os/loop`; the loop has `lh_os_loop_wake` (never lost)
+  and `lh_os_loop_hint` (lock-free). Loop, log queue, daily sink and thread group
+  keep a copy of the allocator they were made with.
 - `lh/os/loop`: a worker thread that sleeps until a lock-free wake, its period, the
   nearest timer of its own `lh_timer_group` or a stop, then runs one step; the last
   step sees `lh_os_loop_is_last_step`. The log queue runs on it.

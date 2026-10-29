@@ -32,6 +32,7 @@ struct lh_os_worker
 /* The loop sleeps between wakes; a wake is never lost, so the period only bounds
    how long an idle worker sleeps at a time. */
 #define LH_OS_WORKER_PERIOD_MS 60000U
+
 lh_os_worker_job_t *
 lh_os_worker_get_pending(const lh_os_worker_t *self)
 {

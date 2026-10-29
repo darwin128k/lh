@@ -17,14 +17,14 @@
 struct lh_os_logger_daily_channel
 {
     lh_memory_allocator_t allocator; /**< what it was allocated with */
-    lh_list_node_t node;  /**< the link in the sink's list */
-    lh_u32_t id;          /**< the channel id records carry */
-    lh_fs_path_t dir;     /**< the directory its files go to */
-    lh_s32_t keep_days;   /**< days of files to keep; 0 keeps all */
-    lh_bool_t raw;        /**< lines are written as text only */
-    lh_os_fs_file_t file; /**< the file of the day, when open */
-    lh_s64_t day;         /**< the local day of that file, in days since the epoch */
-    lh_s64_t pruned_day;  /**< the local day retention last ran for */
+    lh_list_node_t node;             /**< the link in the sink's list */
+    lh_u32_t id;                     /**< the channel id records carry */
+    lh_fs_path_t dir;                /**< the directory its files go to */
+    lh_s32_t keep_days;              /**< days of files to keep; 0 keeps all */
+    lh_bool_t raw;                   /**< lines are written as text only */
+    lh_os_fs_file_t file;            /**< the file of the day, when open */
+    lh_s64_t day;                    /**< the local day of that file, in days since the epoch */
+    lh_s64_t pruned_day;             /**< the local day retention last ran for */
 };
 /** @copybrief lh_os_logger_daily_channel */
 typedef struct lh_os_logger_daily_channel lh_os_logger_daily_channel_t;

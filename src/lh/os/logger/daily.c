@@ -240,8 +240,8 @@ lh_os_logger_daily_try_create(lh_os_logger_daily_format_cb format,
 {
     lh_memory_allocator_t allocator = lh_ptr_deref(lh_runtime_allocator());
     lh_os_logger_daily_t *self = lh_ptr_rcast(
-        lh_os_logger_daily_t, lh_memory_allocator_try_alloc_zero(lh_addr_of(allocator), 1U,
-                                                     sizeof(lh_ptr_deref(self))));
+        lh_os_logger_daily_t,
+        lh_memory_allocator_try_alloc_zero(lh_addr_of(allocator), 1U, sizeof(lh_ptr_deref(self))));
 
     lh_return_if(lh_null_eq(self), lh_null);
     lh_memory_allocator_assign(lh_os_logger_daily_get_allocator_mut(self), lh_addr_of(allocator));
