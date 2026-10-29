@@ -386,4 +386,44 @@ TEST_F(event_bus, finds_only_live_records_matching_owner_and_context)
               nullptr);
 }
 
+TEST_F(event_bus, subscribe_once_returns_the_record_made_with_the_same_owner_callback_and_context)
+{
+    int calls = 0;
+    handler fn = [&](const char *, void *)
+    {
+        ++calls;
+        return lh_os_module_event_result_continue;
+    };
+    handler other = [&](const char *, void *) { return lh_os_module_event_result_continue; };
+    int owner = 0;
+    const lh_os_module_event_id_t event = id("test.once");
+
+    auto *first = lh_os_module_event_bus_try_subscribe_once(get_bus(), event, &owner, invoke, &fn);
+    ASSERT_NE(first, nullptr);
+    EXPECT_EQ(lh_os_module_event_bus_try_subscribe_once(get_bus(), event, &owner, invoke, &fn),
+              first)
+        << "asking again is the same subscription";
+    EXPECT_EQ(lh_os_module_event_bus_get_count(get_bus()), 1u);
+    EXPECT_NE(lh_os_module_event_bus_try_subscribe_once(get_bus(), event, &owner, invoke, &other),
+              first)
+        << "another context is another subscription";
+    EXPECT_NE(lh_os_module_event_bus_try_subscribe_once(get_bus(), event, nullptr, invoke, &fn),
+              first)
+        << "another owner is another subscription";
+    EXPECT_EQ(lh_os_module_event_bus_get_count(get_bus()), 3u);
+
+    EXPECT_EQ(lh_os_module_event_bus_find_exact(get_bus(), event, &owner, invoke, &fn), first);
+    EXPECT_TRUE(lh_os_module_event_bus_remove_exact(get_bus(), event, &owner, invoke, &fn));
+    EXPECT_FALSE(lh_os_module_event_bus_remove_exact(get_bus(), event, &owner, invoke, &fn))
+        << "already removed";
+    EXPECT_EQ(lh_os_module_event_bus_find_exact(get_bus(), event, &owner, invoke, &fn), nullptr);
+    EXPECT_EQ(lh_os_module_event_bus_publish(get_bus(), event, nullptr),
+              lh_os_module_event_result_continue);
+    EXPECT_EQ(calls, 1) << "the subscription without an owner still runs";
+    EXPECT_EQ(lh_os_module_event_bus_try_subscribe_once(get_bus(), 0, &owner, invoke, &fn),
+              nullptr);
+    EXPECT_EQ(lh_os_module_event_bus_try_subscribe_once(get_bus(), event, &owner, nullptr, &fn),
+              nullptr);
+}
+
 } // namespace

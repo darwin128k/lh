@@ -9,8 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Synchronous indexed event bus with stable name IDs, per-event subscriber lists,
-  owner cleanup, context matching and deferred callback disposal.
+- The event bus modules talk through, the level over `lh/os/shared` and
+  `lh/os/module` / `lh/os/loader`: `lh/os/module/event/` (`lh_os_module_event_bus_t`,
+  entries, subscriptions), built with `LH_LIBRARY_OPTION_OS`. Synchronous indexed
+  delivery with stable name IDs, per-event subscriber lists, owner cleanup, context
+  matching and deferred callback disposal; `_find_exact`, `_try_subscribe_once` and
+  `_remove_exact` subscribe once per owner, callback and context.
 - Fallible array reserve and allocated-memory resize bricks, preserving existing
   storage on allocation failure and rejecting element-count overflow.
 - Level-1 accessors for the `lh/ui` structs (about 400: every field of insets, radii, rects, mask, pixmap, font, paint, pen, shadow, gradient and its sampler, style, layout and placement, text lines and blocks, canvas and its state, clip, backend table, software canvas and shadow pass, web canvas and atlas, display, entity, container, label, input, button, toggle, image, scrollbar, transition, view and its pointers and focus walk, frame and frame statistics, renderer3d and its camera, the web host client, frame, hooks and stream, the web buffer and HTML attributes), and the ui code calls them. New sources for the structs that had none: `ui/canvas/backend.c`, `ui/view/focus/walk.c`, `ui/frame.c`, `ui/web/host/client.c`, `frame.c`, `hooks.c`, `stream.c`
