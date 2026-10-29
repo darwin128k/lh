@@ -296,6 +296,8 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/module/event/subscription.c
             ${LH_LIB_SRC_PATH}/os/module/event/bus.c
             ${LH_LIB_SRC_PATH}/os/loop.c
+            ${LH_LIB_SRC_PATH}/os/thread/group/member.c
+            ${LH_LIB_SRC_PATH}/os/thread/group.c
             ${LH_LIB_SRC_PATH}/os/logger/record.c
             ${LH_LIB_SRC_PATH}/os/logger/sink.c
             ${LH_LIB_SRC_PATH}/os/logger/queue.c

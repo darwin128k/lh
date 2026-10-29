@@ -236,6 +236,7 @@ set(LH_TEST_OS_SOURCES
         ${LH_TEST_SRC_PATH}/lh/os/tick.cpp
         ${LH_TEST_SRC_PATH}/lh/os/timestamp.cpp
         ${LH_TEST_SRC_PATH}/lh/os/loop.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/thread/group.cpp
         ${LH_TEST_SRC_PATH}/lh/os/logger/queue.cpp
         ${LH_TEST_SRC_PATH}/lh/os/logger/daily.cpp
         ${LH_TEST_SRC_PATH}/lh/sql/mysql.cpp

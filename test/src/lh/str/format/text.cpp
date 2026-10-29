@@ -130,3 +130,22 @@ TEST(str_ptr_format_text_size, counts_without_writing)
 }
 
 } // namespace
+
+TEST(str_format_cstr, writes_the_text_and_its_nul)
+{
+    char text[16] = "xxxxxxxxxxxxxxx";
+
+    EXPECT_EQ(lh_str_ptr_format_cstr(text, sizeof(text), "%s=%d", "a", 42), 4U);
+    EXPECT_STREQ(text, "a=42");
+}
+
+TEST(str_format_cstr, a_result_that_does_not_fit_leaves_it_empty)
+{
+    char text[5] = "xxxx";
+
+    /* Five characters need six bytes with the NUL. */
+    EXPECT_EQ(lh_str_ptr_format_cstr(text, sizeof(text), "%s", "hello"), 0U);
+    EXPECT_STREQ(text, "");
+    EXPECT_EQ(lh_str_ptr_format_cstr(text, sizeof(text), "%s", "hell"), 4U);
+    EXPECT_STREQ(text, "hell");
+}

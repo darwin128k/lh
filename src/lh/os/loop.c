@@ -285,9 +285,9 @@ lh_os_loop_try_create(lh_u32_t period_ms, lh_os_loop_step_cb step, lh_ptr user)
 {
     lh_return_if(period_ms == 0U || lh_null_eq(step), lh_null);
     lh_memory_allocator_t allocator = lh_ptr_deref(lh_runtime_allocator());
-    lh_os_loop_t *self = lh_ptr_rcast(
-        lh_os_loop_t, lh_memory_allocator_try_alloc_zero(lh_addr_of(allocator), 1U,
-                                                     sizeof(lh_ptr_deref(self))));
+    lh_os_loop_t *self =
+        lh_ptr_rcast(lh_os_loop_t, lh_memory_allocator_try_alloc_zero(lh_addr_of(allocator), 1U,
+                                                                      sizeof(lh_ptr_deref(self))));
 
     lh_return_if(lh_null_eq(self), lh_null);
     /* Freed with the allocator it was made with, whatever the runtime one is then. */

@@ -6,6 +6,10 @@
  * ::lh_str_ptr_parse_text). Values are emitted by ::lh_str_ptr_format_uint /
  * _sint / _hex.
  *
+ * ::lh_str_ptr_format_text writes no terminator, and nothing at all when the
+ * result does not fit; ::lh_str_ptr_format_cstr writes the terminator too, and a
+ * buffer that is too small comes out empty, never half a line.
+ *
  * Supported conversions: `%%`, `%c`, `%s`, `%d`, `%i`, `%u`, `%x`, `%X`.
  * Supported flags: `0` (zero-pad), `-` (left-justify). Supported field: a
  * decimal width, and — for `%s` only — a `.` precision (max characters).
@@ -148,6 +152,27 @@ lh_str_ptr_format_text(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr fmt
  */
 lh_usize_t
 lh_str_ptr_format_text_size(const lh_str_ptr fmt, ...);
+
+/**
+ * @brief Format @p fmt and @p args into @p str, NUL-terminated.
+ *
+ * Same conversions as ::lh_str_ptr_format_text.
+ *
+ * @param str      Destination buffer.
+ * @param str_size Capacity of @p str in characters, the NUL included; not 0.
+ * @param fmt      NUL-terminated format string.
+ * @param args     Arguments, one per conversion in @p fmt.
+ * @return Characters written before the NUL; 0, with @p str empty, when the result
+ *         does not fit or @p fmt is malformed.
+ */
+lh_usize_t
+lh_str_ptr_format_cstr_v(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr fmt, va_list args);
+
+/**
+ * @brief ::lh_str_ptr_format_cstr_v with variadic arguments.
+ */
+lh_usize_t
+lh_str_ptr_format_cstr(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr fmt, ...);
 
 LH_COMPILER_EXTERN_C_END
 

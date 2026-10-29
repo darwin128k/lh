@@ -218,3 +218,27 @@ lh_str_ptr_format_text_size(lh_str_cptr fmt, ...)
 
     return result;
 }
+
+lh_usize_t
+lh_str_ptr_format_cstr_v(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr fmt, va_list args)
+{
+    lh_usize_t size;
+
+    lh_assert_runtime_ref(str);
+    lh_assert_runtime_if(str_size == 0U, lh_runtime_error_code_invalid_argument);
+    size = lh_str_ptr_format_text_v(str, str_size - 1U, fmt, args);
+    str[size] = lh_char_map_nul;
+    return size;
+}
+
+lh_usize_t
+lh_str_ptr_format_cstr(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr fmt, ...)
+{
+    va_list args;
+    lh_usize_t size;
+
+    va_start(args, fmt);
+    size = lh_str_ptr_format_cstr_v(str, str_size, fmt, args);
+    va_end(args);
+    return size;
+}
