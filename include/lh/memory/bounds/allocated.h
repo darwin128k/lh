@@ -1,6 +1,6 @@
 /**
  * @file allocated.h
- * @brief Helpers for ::lh_memory_bounds_allocated_t — heap-owning memory bounds.
+ * @brief Helpers for ::lh_memory_bounds_allocated_t вЂ” heap-owning memory bounds.
  *
  * ::lh_memory_bounds_allocated_t is layout-identical to ::lh_memory_bounds_t, but
  * every function in this header treats the stored @c begin as a block
@@ -84,6 +84,15 @@ lh_memory_bounds_allocated_resize(lh_memory_bounds_allocated_t *self, lh_usize_t
 lh_void
 lh_memory_bounds_allocated_exchange(lh_memory_bounds_allocated_t *self,
                                     lh_memory_bounds_allocated_t *other);
+
+/**
+ * @brief Resize through the runtime allocator without terminating on allocation failure.
+ * Preserves the original bounds and bytes on failure. Zero releases and clears
+ * the block. Requires the same allocator ownership contract as the checked form.
+ * @return True on success, false on allocation failure.
+ */
+lh_bool_t
+lh_memory_bounds_allocated_try_resize(lh_memory_bounds_allocated_t *self, lh_usize_t size);
 
 LH_COMPILER_EXTERN_C_END
 

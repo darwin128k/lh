@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 project(lh
-        DESCRIPTION "Light Helper — portable C utility library"
+        DESCRIPTION "Light Helper вЂ” portable C utility library"
         LANGUAGES C
 )
 
@@ -10,7 +10,7 @@ include(cmake/config.cmake)
 include(cmake/library_options.cmake)
 include(cmake/check_simd.cmake)
 
-# Compile-only SIMD tier probes (see cmake/check_simd.cmake) — sets
+# Compile-only SIMD tier probes (see cmake/check_simd.cmake) вЂ” sets
 # LH_SIMD_HAVE_SSE2 / _SSSE3 / _AVX2 / _AESNI, consumed by lh_generate_config() below.
 lh_check_simd()
 
@@ -50,8 +50,8 @@ option(LH_BUILD_BENCH "Build microbenchmarks (requires the bench/lib/benchmark s
 option(LH_BUILD_EXAMPLES "Build the example programs" OFF)
 
 # PIC/GOT: ON for desktop (static lib reusable from a shared object). OFF for
-# freestanding / bare-metal — there is no dynamic loader to relocate .got, and
-# an uncopied GOT leaves runtime globals (writer, terminate, …) as NULL.
+# freestanding / bare-metal вЂ” there is no dynamic loader to relocate .got, and
+# an uncopied GOT leaves runtime globals (writer, terminate, вЂ¦) as NULL.
 option(LH_POSITION_INDEPENDENT_CODE
         "Build lh as position-independent (-fPIC). OFF for bare-metal / freestanding."
         ON)
@@ -121,6 +121,9 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/memory.c
         ${LH_LIB_SRC_PATH}/spsc.c
         ${LH_LIB_SRC_PATH}/array.c
+        ${LH_LIB_SRC_PATH}/event/entry.c
+        ${LH_LIB_SRC_PATH}/event/subscription.c
+        ${LH_LIB_SRC_PATH}/event/bus.c
         ${LH_LIB_SRC_PATH}/list.c
         ${LH_LIB_SRC_PATH}/value.c
         ${LH_LIB_SRC_PATH}/real/bits.c
@@ -482,7 +485,7 @@ if (LH_LIBRARY_OPTION_UI)
     endif ()
 endif ()
 
-# Font-only: Roboto + mask/font without the widget/canvas tree (STM TFT, …).
+# Font-only: Roboto + mask/font without the widget/canvas tree (STM TFT, вЂ¦).
 if (LH_LIBRARY_OPTION_UI_FONT_ROBOTO AND NOT LH_LIBRARY_OPTION_UI)
     list(APPEND LH_LIB_SOURCES
             ${LH_LIB_SRC_PATH}/ui/mask.c
@@ -548,7 +551,7 @@ if (LH_POSITION_INDEPENDENT_CODE AND CMAKE_C_COMPILER_ID STREQUAL "GNU")
 endif ()
 
 # No identical code folding. lh has many one-line accessors that compile to the
-# same instructions on different types — lh_list_node_get_prev and
+# same instructions on different types вЂ” lh_list_node_get_prev and
 # lh_memory_tree_header_get_parent both load a pointer at offset 4. GCC's IPA-ICF
 # merges such functions; GCC 11 with LTO then inlines the merged body with the
 # other type's alias set, so a list-node access reads as a tree-header access
