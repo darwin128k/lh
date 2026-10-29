@@ -12,8 +12,6 @@
 #define LH_LOGGER_LEVEL_H
 
 #include <lh/bool.h>
-#include <lh/byte.h>
-#include <lh/char.h>
 #include <lh/compiler/extern/c.h>
 
 /**

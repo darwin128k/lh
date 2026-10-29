@@ -123,19 +123,21 @@ lh_os_logger_record_get_text_mut(lh_os_logger_record_t *self)
 lh_void
 lh_os_logger_record_assign_tag(lh_os_logger_record_t *self, const lh_char_t *text)
 {
-    const lh_usize_t size = lh_null_eq(text) ? 0U : lh_str_ptr_len(text);
+    const lh_char_t *from = lh_null_eq(text) ? "" : text;
 
     lh_ptr_deref(lh_str_ptr_copy(lh_os_logger_record_get_tag_mut(self),
-                                 LH_OS_LOGGER_RECORD_TAG_SIZE - 1U, text, size)) = lh_char_map_nul;
+                                 LH_OS_LOGGER_RECORD_TAG_SIZE - 1U, from, lh_str_ptr_len(from))) =
+        lh_char_map_nul;
 }
 
 lh_void
 lh_os_logger_record_assign_text(lh_os_logger_record_t *self, const lh_char_t *text)
 {
-    const lh_usize_t size = lh_null_eq(text) ? 0U : lh_str_ptr_len(text);
+    const lh_char_t *from = lh_null_eq(text) ? "" : text;
 
     lh_ptr_deref(lh_str_ptr_copy(lh_os_logger_record_get_text_mut(self),
-                                 LH_OS_LOGGER_RECORD_TEXT_SIZE - 1U, text, size)) = lh_char_map_nul;
+                                 LH_OS_LOGGER_RECORD_TEXT_SIZE - 1U, from, lh_str_ptr_len(from))) =
+        lh_char_map_nul;
 }
 
 lh_void
@@ -155,14 +157,14 @@ lh_os_logger_record_init_line(lh_os_logger_record_t *self, lh_u32_t channel,
 
 lh_void
 lh_os_logger_record_init_open(lh_os_logger_record_t *self, lh_u32_t channel, const lh_char_t *dir,
-                              lh_s32_t keep_days, lh_bool_t raw)
+                              lh_s32_t keep_days, lh_bool_t raw, lh_timestamp_t time)
 {
     lh_os_logger_record_set_channel(self, channel);
     lh_os_logger_record_set_kind(self, lh_os_logger_record_kind_open);
     lh_os_logger_record_set_level(self, lh_logger_level_debug);
     lh_os_logger_record_set_raw(self, raw);
     lh_os_logger_record_set_keep_days(self, keep_days);
-    lh_os_logger_record_set_time(self, 0);
+    lh_os_logger_record_set_time(self, time);
     lh_os_logger_record_assign_tag(self, lh_null);
     lh_os_logger_record_assign_text(self, dir);
 }
@@ -170,6 +172,6 @@ lh_os_logger_record_init_open(lh_os_logger_record_t *self, lh_u32_t channel, con
 lh_void
 lh_os_logger_record_init_close(lh_os_logger_record_t *self, lh_u32_t channel)
 {
-    lh_os_logger_record_init_open(self, channel, lh_null, 0, lh_bool_false);
+    lh_os_logger_record_init_open(self, channel, lh_null, 0, lh_bool_false, 0);
     lh_os_logger_record_set_kind(self, lh_os_logger_record_kind_close);
 }

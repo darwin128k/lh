@@ -5,7 +5,6 @@
 
 #include <lh/logger/level.h>
 #include <lh/assert/runtime.h>
-#include <lh/util/array/ptr.h>
 #include <lh/util/return.h>
 #include <lh/util/str/ptr.h>
 
