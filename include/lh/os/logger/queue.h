@@ -25,19 +25,6 @@ typedef struct lh_os_logger_queue lh_os_logger_queue_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Create a queue of @p capacity records and start its worker.
- *
- * @param capacity How many records it holds; a power of two.
- * @param flush_ms How often the worker flushes the sink, in milliseconds; not 0.
- * @param sink     Where records go: emit, flush and close set. Copied.
- * @return The queue, or ::lh_null when the arguments are wrong, memory is short or
- *         the worker could not start.
- */
-lh_os_logger_queue_t *
-lh_os_logger_queue_try_create(lh_uint_t capacity, lh_u32_t flush_ms,
-                              const lh_os_logger_sink_t *sink);
-
-/**
  * @brief Copy @p record into the queue without waiting.
  *
  * The producer's call: one thread only.
@@ -68,6 +55,19 @@ lh_os_logger_queue_sync(lh_os_logger_queue_t *self, lh_u32_t timeout_ms);
  */
 lh_u32_t
 lh_os_logger_queue_get_dropped(const lh_os_logger_queue_t *self);
+
+/**
+ * @brief Create a queue of @p capacity records and start its worker.
+ *
+ * @param capacity How many records it holds; a power of two.
+ * @param flush_ms How often the worker flushes the sink, in milliseconds; not 0.
+ * @param sink     Where records go: emit, flush and close set. Copied.
+ * @return The queue, or ::lh_null when the arguments are wrong, memory is short or
+ *         the worker could not start.
+ */
+lh_os_logger_queue_t *
+lh_os_logger_queue_try_create(lh_uint_t capacity, lh_u32_t flush_ms,
+                              const lh_os_logger_sink_t *sink);
 
 /**
  * @brief Drain the queue, flush and close the sink, join the worker and free it all.

@@ -2,8 +2,8 @@
  * @file queue.c
  * @brief ::lh_os_logger_queue_t: a single-producer record queue drained by an ::lh_os_loop_t.
  *
- * The producer side is lock-free: a push copies into the SPSC ring and wakes the
- * loop. The loop's step hands records to the sink, reports drops and flushes on
+ * The producer side is lock-free: a push copies into the SPSC ring and hints the
+ * loop, which runs the step soon or at the latest after one flush period. The loop's step hands records to the sink, reports drops and flushes on
  * the period or a sync; its last step drains everything and closes the sink.
  * Sync requests and their completion go through counters, compared with
  * wrap-around, under the mutex the sync waits with.
@@ -23,6 +23,7 @@
 
 struct lh_os_logger_queue
 {
+    lh_memory_allocator_t allocator;
     lh_os_logger_record_t *storage;
     lh_spsc_t *records;
     lh_os_logger_sink_t sink;
@@ -38,6 +39,13 @@ struct lh_os_logger_queue
 };
 
 /* -- Level 1: the fields ------------------------------------------------------ */
+
+static lh_memory_allocator_t *
+lh_os_logger_queue_get_allocator_mut(lh_os_logger_queue_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->allocator);
+}
 
 static lh_os_logger_record_t *
 lh_os_logger_queue_get_storage(const lh_os_logger_queue_t *self)
@@ -269,37 +277,6 @@ lh_os_logger_queue_flush(lh_os_logger_queue_t *self, lh_u32_t request)
     LH_ATTRIBUTE_UNUSED(lh_os_mutex_unlock(lh_os_logger_queue_get_mutex_mut(self)));
 }
 
-/* One round of the loop: records, drops, then a flush when one is due. */
-static lh_void
-lh_os_logger_queue_step(lh_ptr user)
-{
-    lh_os_logger_queue_t *self = lh_ptr_rcast(lh_os_logger_queue_t, user);
-    const lh_bool_t last = lh_os_loop_is_last_step(lh_os_logger_queue_get_loop(self));
-    const lh_u32_t request = lh_os_logger_queue_load_requested(self);
-    const lh_os_logger_sink_t *sink = lh_os_logger_queue_get_sink(self);
-
-    do
-    {
-        lh_os_logger_queue_emit_batch(self);
-    } while (last && !lh_os_logger_queue_is_empty(self));
-    lh_os_logger_queue_report_drops(self);
-    if (last || request != lh_os_logger_queue_load_completed(self) ||
-        lh_os_logger_queue_now_ms() - lh_os_logger_queue_get_last_flush(self) >=
-            lh_os_logger_queue_get_flush_ms(self))
-    {
-        lh_os_logger_queue_flush(self, last ? lh_os_logger_queue_load_requested(self) : request);
-    }
-    if (last)
-    {
-        lh_os_logger_sink_get_close_fn(sink)(lh_os_logger_sink_get_user(sink));
-    }
-    else if (!lh_os_logger_queue_is_empty(self))
-    {
-        /* The batch stopped short: come back at once, not at the end of the period. */
-        lh_os_loop_wake(lh_os_logger_queue_get_loop(self));
-    }
-}
-
 /* Free what was made; each part may be missing. */
 static lh_void
 lh_os_logger_queue_free(lh_os_logger_queue_t *self)
@@ -308,52 +285,9 @@ lh_os_logger_queue_free(lh_os_logger_queue_t *self)
     LH_ATTRIBUTE_UNUSED(lh_os_condition_close(lh_os_logger_queue_get_done_mut(self)));
     LH_ATTRIBUTE_UNUSED(lh_os_mutex_close(lh_os_logger_queue_get_mutex_mut(self)));
     lh_spsc_destroy(lh_os_logger_queue_get_records(self));
-    lh_runtime_allocator_free(lh_os_logger_queue_get_storage(self));
-    lh_runtime_allocator_free(self);
-}
-
-lh_os_logger_queue_t *
-lh_os_logger_queue_try_create(lh_uint_t capacity, lh_u32_t flush_ms,
-                              const lh_os_logger_sink_t *sink)
-{
-    lh_os_logger_queue_t *self;
-
-    lh_return_if(lh_null_eq(sink) || lh_null_eq(lh_os_logger_sink_get_emit_fn(sink)) ||
-                     lh_null_eq(lh_os_logger_sink_get_flush_fn(sink)) ||
-                     lh_null_eq(lh_os_logger_sink_get_close_fn(sink)) || flush_ms == 0U ||
-                     capacity == 0U,
-                 lh_null);
-    self = lh_ptr_rcast(lh_os_logger_queue_t,
-                        lh_runtime_allocator_try_alloc_zero(1U, sizeof(lh_ptr_deref(self))));
-    lh_return_if(lh_null_eq(self), lh_null);
-    lh_os_logger_queue_set_sink(self, lh_ptr_deref(sink));
-    lh_os_logger_queue_set_flush_ms(self, flush_ms);
-    lh_os_logger_queue_set_last_flush(self, lh_os_logger_queue_now_ms());
-    lh_os_logger_queue_set_reported(self, 0U);
-    lh_os_logger_queue_init_counters(self);
-    lh_os_mutex_init(lh_os_logger_queue_get_mutex_mut(self));
-    lh_os_condition_init(lh_os_logger_queue_get_done_mut(self));
-    lh_os_logger_queue_set_storage(
-        self, lh_ptr_rcast(lh_os_logger_record_t, lh_runtime_allocator_try_alloc_zero(
-                                                      capacity, sizeof(lh_os_logger_record_t))));
-    if (lh_null_ne(lh_os_logger_queue_get_storage(self)))
-    {
-        lh_os_logger_queue_set_records(self,
-                                       lh_spsc_create(lh_os_logger_queue_get_storage(self),
-                                                      capacity, sizeof(lh_os_logger_record_t)));
-    }
-    lh_os_logger_queue_set_loop(self,
-                                lh_os_loop_try_create(flush_ms, lh_os_logger_queue_step, self));
-    if (lh_null_eq(lh_os_logger_queue_get_records(self)) ||
-        lh_null_eq(lh_os_logger_queue_get_loop(self)) ||
-        !lh_os_mutex_open(lh_os_logger_queue_get_mutex_mut(self)) ||
-        !lh_os_condition_open(lh_os_logger_queue_get_done_mut(self)) ||
-        !lh_os_loop_try_start(lh_os_logger_queue_get_loop(self)))
-    {
-        lh_os_logger_queue_free(self);
-        return lh_null;
-    }
-    return self;
+    lh_memory_allocator_dealloc(lh_os_logger_queue_get_allocator_mut(self),
+                                lh_os_logger_queue_get_storage(self));
+    lh_memory_allocator_dealloc(lh_os_logger_queue_get_allocator_mut(self), self);
 }
 
 lh_bool_t
@@ -365,7 +299,7 @@ lh_os_logger_queue_push(lh_os_logger_queue_t *self, const lh_os_logger_record_t 
         lh_os_logger_queue_add_dropped(self);
         return lh_bool_false;
     }
-    lh_os_loop_wake(lh_os_logger_queue_get_loop(self));
+    lh_os_loop_hint(lh_os_logger_queue_get_loop(self));
     return lh_bool_true;
 }
 
@@ -400,6 +334,85 @@ lh_u32_t
 lh_os_logger_queue_get_dropped(const lh_os_logger_queue_t *self)
 {
     return lh_os_logger_queue_load_dropped(self);
+}
+
+/* One round of the loop: records, drops, then a flush when one is due. */
+static lh_void
+lh_os_logger_queue_step(lh_ptr user)
+{
+    lh_os_logger_queue_t *self = lh_ptr_rcast(lh_os_logger_queue_t, user);
+    const lh_bool_t last = lh_os_loop_is_last_step(lh_os_logger_queue_get_loop(self));
+    const lh_u32_t request = lh_os_logger_queue_load_requested(self);
+    const lh_os_logger_sink_t *sink = lh_os_logger_queue_get_sink(self);
+
+    do
+    {
+        lh_os_logger_queue_emit_batch(self);
+    } while (last && !lh_os_logger_queue_is_empty(self));
+    lh_os_logger_queue_report_drops(self);
+    if (last || request != lh_os_logger_queue_load_completed(self) ||
+        lh_os_logger_queue_now_ms() - lh_os_logger_queue_get_last_flush(self) >=
+            lh_os_logger_queue_get_flush_ms(self))
+    {
+        lh_os_logger_queue_flush(self, last ? lh_os_logger_queue_load_requested(self) : request);
+    }
+    if (last)
+    {
+        lh_os_logger_sink_get_close_fn(sink)(lh_os_logger_sink_get_user(sink));
+    }
+    else if (!lh_os_logger_queue_is_empty(self))
+    {
+        /* The batch stopped short: come back at once, not at the end of the period. */
+        lh_os_loop_wake(lh_os_logger_queue_get_loop(self));
+    }
+}
+
+lh_os_logger_queue_t *
+lh_os_logger_queue_try_create(lh_uint_t capacity, lh_u32_t flush_ms,
+                              const lh_os_logger_sink_t *sink)
+{
+    lh_memory_allocator_t allocator = lh_ptr_deref(lh_runtime_allocator());
+    lh_os_logger_queue_t *self;
+
+    lh_return_if(lh_null_eq(sink) || lh_null_eq(lh_os_logger_sink_get_emit_fn(sink)) ||
+                     lh_null_eq(lh_os_logger_sink_get_flush_fn(sink)) ||
+                     lh_null_eq(lh_os_logger_sink_get_close_fn(sink)) || flush_ms == 0U ||
+                     capacity == 0U,
+                 lh_null);
+    self = lh_ptr_rcast(lh_os_logger_queue_t,
+                        lh_memory_allocator_try_alloc_zero(lh_addr_of(allocator), 1U,
+                                                           sizeof(lh_ptr_deref(self))));
+    lh_return_if(lh_null_eq(self), lh_null);
+    lh_memory_allocator_assign(lh_os_logger_queue_get_allocator_mut(self), lh_addr_of(allocator));
+    lh_os_logger_queue_set_sink(self, lh_ptr_deref(sink));
+    lh_os_logger_queue_set_flush_ms(self, flush_ms);
+    lh_os_logger_queue_set_last_flush(self, lh_os_logger_queue_now_ms());
+    lh_os_logger_queue_set_reported(self, 0U);
+    lh_os_logger_queue_init_counters(self);
+    lh_os_mutex_init(lh_os_logger_queue_get_mutex_mut(self));
+    lh_os_condition_init(lh_os_logger_queue_get_done_mut(self));
+    lh_os_logger_queue_set_storage(
+        self, lh_ptr_rcast(lh_os_logger_record_t, lh_memory_allocator_try_alloc_zero(
+                                                      lh_os_logger_queue_get_allocator_mut(self),
+                                                      capacity, sizeof(lh_os_logger_record_t))));
+    if (lh_null_ne(lh_os_logger_queue_get_storage(self)))
+    {
+        lh_os_logger_queue_set_records(self,
+                                       lh_spsc_create(lh_os_logger_queue_get_storage(self),
+                                                      capacity, sizeof(lh_os_logger_record_t)));
+    }
+    lh_os_logger_queue_set_loop(self,
+                                lh_os_loop_try_create(flush_ms, lh_os_logger_queue_step, self));
+    if (lh_null_eq(lh_os_logger_queue_get_records(self)) ||
+        lh_null_eq(lh_os_logger_queue_get_loop(self)) ||
+        !lh_os_mutex_open(lh_os_logger_queue_get_mutex_mut(self)) ||
+        !lh_os_condition_open(lh_os_logger_queue_get_done_mut(self)) ||
+        !lh_os_loop_try_start(lh_os_logger_queue_get_loop(self)))
+    {
+        lh_os_logger_queue_free(self);
+        return lh_null;
+    }
+    return self;
 }
 
 lh_void
