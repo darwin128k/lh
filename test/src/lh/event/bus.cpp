@@ -355,7 +355,7 @@ TEST_F(event_bus, finds_only_live_records_matching_owner_and_context)
     handler fn = [](const char *, void *) { return lh_event_result_continue; };
     auto *first = subscribe(event, fn, &owner);
     auto *second = subscribe(event, fn, &other);
-    auto same_context = [](void *context, void *key)
+    auto same_context = [](void *context, void *key) -> lh_bool_t
     { return context == key ? lh_bool_true : lh_bool_false; };
     EXPECT_EQ(lh_event_bus_find_subscription(get_bus(), event, &owner, same_context, &fn), first);
     EXPECT_EQ(lh_event_bus_find_subscription(get_bus(), event, &other, nullptr, nullptr), second);
