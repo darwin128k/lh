@@ -110,6 +110,38 @@ lh_os_input_queue_get_dropped(const lh_os_input_queue_ptr self);
 lh_bool_t
 lh_os_input_queue_is_empty(const lh_os_input_queue_ptr self);
 
+/** @brief The @c storage of @p self. */
+lh_os_input_event_t *
+lh_os_input_queue_get_storage(const lh_os_input_queue_t *self);
+
+/** @brief Store @p storage as the @c storage of @p self. */
+lh_void
+lh_os_input_queue_set_storage(lh_os_input_queue_t *self, lh_os_input_event_t *storage);
+
+/** @brief Store @p capacity as the @c capacity of @p self. */
+lh_void
+lh_os_input_queue_set_capacity(lh_os_input_queue_t *self, lh_u16_t capacity);
+
+/** @brief The @c head of @p self. */
+lh_u16_t
+lh_os_input_queue_get_head(const lh_os_input_queue_t *self);
+
+/** @brief Store @p head as the @c head of @p self. */
+lh_void
+lh_os_input_queue_set_head(lh_os_input_queue_t *self, lh_u16_t head);
+
+/** @brief The @c tail of @p self. */
+lh_u16_t
+lh_os_input_queue_get_tail(const lh_os_input_queue_t *self);
+
+/** @brief Store @p tail as the @c tail of @p self. */
+lh_void
+lh_os_input_queue_set_tail(lh_os_input_queue_t *self, lh_u16_t tail);
+
+/** @brief Store @p dropped as the @c dropped of @p self. */
+lh_void
+lh_os_input_queue_set_dropped(lh_os_input_queue_t *self, lh_u32_t dropped);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_INPUT_QUEUE_H */

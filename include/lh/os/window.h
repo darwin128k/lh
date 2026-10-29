@@ -550,6 +550,24 @@ lh_os_window_feed_controller(lh_os_window_t *self, const lh_os_input_event_ptr e
 lh_void
 lh_os_window_on_native_input(lh_os_window_t *self, const lh_os_input_event_ptr event);
 
+/**
+ * @brief The node that links @p self into its application's window list (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+const lh_list_node_t *
+lh_os_window_get_link(const lh_os_window_t *self);
+
+/**
+ * @brief The node that links @p self into its application's window list, to change
+ *        in place (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_list_node_t *
+lh_os_window_get_link_mut(lh_os_window_t *self);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_WINDOW_H */

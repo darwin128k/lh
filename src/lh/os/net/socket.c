@@ -8,7 +8,7 @@ lh_void
 lh_os_net_socket_init(lh_os_net_socket_t *self)
 {
     lh_assert_runtime_ref(self);
-    self->handle = LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID;
+    lh_os_net_socket_set_handle(self, LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID);
 }
 
 lh_bool_t
@@ -20,7 +20,7 @@ lh_os_net_socket_open(lh_os_net_socket_t *self, lh_os_system_net_socket_type_t t
     {
         return lh_bool_false;
     }
-    self->handle = handle;
+    lh_os_net_socket_set_handle(self, handle);
     return lh_bool_true;
 }
 
@@ -44,7 +44,7 @@ lh_os_net_socket_close(lh_os_net_socket_t *self)
     if (lh_os_net_socket_is_valid(self))
     {
         lh_os_system_net_socket_close(lh_os_net_socket_get_handle(self));
-        self->handle = LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID;
+        lh_os_net_socket_set_handle(self, LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID);
     }
 }
 
@@ -111,7 +111,7 @@ lh_os_net_socket_accept(lh_os_net_socket_t *self, lh_os_net_socket_t *client,
     {
         return lh_bool_false;
     }
-    client->handle = handle;
+    lh_os_net_socket_set_handle(client, handle);
     return lh_bool_true;
 }
 
@@ -286,7 +286,7 @@ lh_os_net_socket_open_nonblocking(lh_os_net_socket_t *self, lh_os_system_net_soc
     {
         return lh_bool_false;
     }
-    self->handle = handle;
+    lh_os_net_socket_set_handle(self, handle);
     return lh_bool_true;
 }
 
@@ -301,7 +301,7 @@ lh_os_net_socket_accept_nonblocking(lh_os_net_socket_t *self, lh_os_net_socket_t
     {
         return lh_bool_false;
     }
-    client->handle = handle;
+    lh_os_net_socket_set_handle(client, handle);
     return lh_bool_true;
 }
 
@@ -309,4 +309,11 @@ lh_ssize_t
 lh_os_net_socket_poll(lh_os_net_socket_poll_t *entries, lh_usize_t count, lh_u32_t timeout_ms)
 {
     return lh_os_system_net_socket_poll(entries, count, timeout_ms);
+}
+
+lh_void
+lh_os_net_socket_set_handle(lh_os_net_socket_t *self, lh_os_system_net_socket_handle_t handle)
+{
+    lh_assert_runtime_ref(self);
+    self->handle = handle;
 }

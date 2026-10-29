@@ -36,7 +36,7 @@ TEST(os_input_contacts, contacts_take_the_lowest_free_ids_from_one)
     EXPECT_EQ(pointer, 2U);
     ASSERT_TRUE(lh_os_input_contacts_find(lh_addr_of(contacts), 1123U, lh_addr_of(pointer)));
     EXPECT_EQ(pointer, 1U);
-    EXPECT_EQ(lh_os_input_contacts_get_device_kind(lh_addr_of(contacts), 2U),
+    EXPECT_EQ(lh_os_input_contacts_get_device_kind_v(lh_addr_of(contacts), 2U),
               lh_os_input_device_kind_pen);
     EXPECT_EQ(lh_os_input_contacts_get_count(lh_addr_of(contacts)), 2U);
 }
@@ -67,7 +67,7 @@ TEST(os_input_contacts, a_released_id_goes_to_the_next_contact)
                                     lh_addr_of(pointer));
     lh_os_input_contacts_release(lh_addr_of(contacts), 1U);
     EXPECT_FALSE(lh_os_input_contacts_find(lh_addr_of(contacts), 10U, lh_addr_of(pointer)));
-    EXPECT_EQ(lh_os_input_contacts_get_device_kind(lh_addr_of(contacts), 1U),
+    EXPECT_EQ(lh_os_input_contacts_get_device_kind_v(lh_addr_of(contacts), 1U),
               lh_os_input_device_kind_none);
     ASSERT_TRUE(lh_os_input_contacts_take(lh_addr_of(contacts), 12U, lh_os_input_device_kind_touch,
                                           lh_addr_of(pointer)));

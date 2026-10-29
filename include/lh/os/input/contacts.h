@@ -72,8 +72,8 @@ lh_os_input_contacts_take(lh_os_input_contacts_t *self, lh_os_input_contact_id_t
  *        an id no contact has.
  */
 lh_os_input_device_kind_t
-lh_os_input_contacts_get_device_kind(const lh_os_input_contacts_ptr self,
-                                     lh_os_input_pointer_id_t pointer);
+lh_os_input_contacts_get_device_kind_v(const lh_os_input_contacts_ptr self,
+                                       lh_os_input_pointer_id_t pointer);
 
 /**
  * @brief How many contacts have an id now.
@@ -87,6 +87,83 @@ lh_os_input_contacts_get_count(const lh_os_input_contacts_ptr self);
  */
 lh_void
 lh_os_input_contacts_release(lh_os_input_contacts_t *self, lh_os_input_pointer_id_t pointer);
+
+/**
+ * @brief The contact id held in slot @p pointer (level 1).
+ *
+ * @p pointer is not checked: it must be below ::LH_OS_INPUT_POINTER_MAX.
+ *
+ * @param self    The contacts; checked by ::lh_assert_runtime_ref.
+ * @param pointer Pointer id.
+ */
+lh_os_input_contact_id_t
+lh_os_input_contacts_get_contact(const lh_os_input_contacts_ptr self,
+                                 lh_os_input_pointer_id_t pointer);
+
+/**
+ * @brief Store the contact id of slot @p pointer (level 1).
+ *
+ * @p pointer is not checked: it must be below ::LH_OS_INPUT_POINTER_MAX.
+ *
+ * @param self    The contacts; checked by ::lh_assert_runtime_ref.
+ * @param pointer Pointer id.
+ * @param contact The new contact id.
+ */
+lh_void
+lh_os_input_contacts_set_contact(lh_os_input_contacts_t *self, lh_os_input_pointer_id_t pointer,
+                                 lh_os_input_contact_id_t contact);
+
+/**
+ * @brief The device kind stored in slot @p pointer, taken or not (level 1).
+ *
+ * The fast form. @p pointer is not checked: it must be below ::LH_OS_INPUT_POINTER_MAX.
+ * ::lh_os_input_contacts_get_device_kind_v checks it and answers ::lh_os_input_device_kind_none for
+ * a free slot.
+ *
+ * @param self    The contacts; checked by ::lh_assert_runtime_ref.
+ * @param pointer Pointer id.
+ */
+lh_os_input_device_kind_t
+lh_os_input_contacts_get_device_kind(const lh_os_input_contacts_ptr self,
+                                     lh_os_input_pointer_id_t pointer);
+
+/**
+ * @brief Store the device kind of slot @p pointer (level 1).
+ *
+ * @p pointer is not checked: it must be below ::LH_OS_INPUT_POINTER_MAX.
+ *
+ * @param self        The contacts; checked by ::lh_assert_runtime_ref.
+ * @param pointer     Pointer id.
+ * @param device_kind The new device kind.
+ */
+lh_void
+lh_os_input_contacts_set_device_kind(lh_os_input_contacts_t *self, lh_os_input_pointer_id_t pointer,
+                                     lh_os_input_device_kind_t device_kind);
+
+/**
+ * @brief Whether slot @p pointer holds a contact (level 1).
+ *
+ * @p pointer is not checked: it must be below ::LH_OS_INPUT_POINTER_MAX.
+ *
+ * @param self    The contacts; checked by ::lh_assert_runtime_ref.
+ * @param pointer Pointer id.
+ */
+lh_bool_t
+lh_os_input_contacts_is_taken(const lh_os_input_contacts_ptr self,
+                              lh_os_input_pointer_id_t pointer);
+
+/**
+ * @brief Store whether slot @p pointer holds a contact (level 1).
+ *
+ * @p pointer is not checked: it must be below ::LH_OS_INPUT_POINTER_MAX.
+ *
+ * @param self    The contacts; checked by ::lh_assert_runtime_ref.
+ * @param pointer Pointer id.
+ * @param taken   The new flag.
+ */
+lh_void
+lh_os_input_contacts_set_taken(lh_os_input_contacts_t *self, lh_os_input_pointer_id_t pointer,
+                               lh_bool_t taken);
 
 LH_COMPILER_EXTERN_C_END
 

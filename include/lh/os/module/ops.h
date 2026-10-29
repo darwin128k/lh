@@ -14,6 +14,7 @@
 #define LH_OS_MODULE_OPS_H
 
 #include <lh/os/module/cb.h>
+#include <lh/compiler/extern/c.h>
 
 /**
  * @def lh_os_module_ops_fields(start_type, stop_type)
@@ -37,5 +38,51 @@ struct lh_os_module_ops
 };
 /** @copybrief lh_os_module_ops */
 typedef struct lh_os_module_ops lh_os_module_ops_t;
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief The start method, called by ::lh_os_module_start (level 1).
+ *
+ * ::lh_null makes starting a no-op.
+ *
+ * @param self The method table; checked by ::lh_assert_runtime_ref.
+ */
+lh_os_module_start_cb
+lh_os_module_ops_get_start_fn(const lh_os_module_ops_t *self);
+
+/**
+ * @brief Store the start method, called by ::lh_os_module_start (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The method table; checked by ::lh_assert_runtime_ref.
+ * @param start The new value.
+ */
+lh_void
+lh_os_module_ops_set_start_fn(lh_os_module_ops_t *self, lh_os_module_start_cb start);
+
+/**
+ * @brief The stop method, called by ::lh_os_module_stop (level 1).
+ *
+ * ::lh_null makes stopping a no-op.
+ *
+ * @param self The method table; checked by ::lh_assert_runtime_ref.
+ */
+lh_os_module_stop_cb
+lh_os_module_ops_get_stop_fn(const lh_os_module_ops_t *self);
+
+/**
+ * @brief Store the stop method, called by ::lh_os_module_stop (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The method table; checked by ::lh_assert_runtime_ref.
+ * @param stop The new value.
+ */
+lh_void
+lh_os_module_ops_set_stop_fn(lh_os_module_ops_t *self, lh_os_module_stop_cb stop);
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_MODULE_OPS_H */

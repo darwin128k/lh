@@ -131,3 +131,43 @@ TEST(os_worker, preserves_allocator_ownership_and_allocation_failures_are_recove
     records.reset();
     EXPECT_EQ(state.live, 0u);
 }
+
+namespace
+{
+
+lh_void
+job_count(lh_ptr user)
+{
+    ++*static_cast<int *>(user);
+}
+
+} // namespace
+
+TEST(os_worker_job, run_and_complete_call_their_callbacks_with_the_payload)
+{
+    lh_os_worker_job_t job = {};
+    int runs = 0;
+    int completions = 0;
+
+    lh_os_worker_job_set_user(&job, &runs);
+    lh_os_worker_job_set_work_fn(&job, job_count);
+    lh_os_worker_job_run(&job);
+    EXPECT_EQ(runs, 1);
+
+    lh_os_worker_job_complete(&job);
+    EXPECT_EQ(runs, 1) << "no completion set: nothing runs";
+
+    lh_os_worker_job_set_user(&job, &completions);
+    lh_os_worker_job_set_complete_fn(&job, job_count);
+    lh_os_worker_job_complete(&job);
+    EXPECT_EQ(completions, 1);
+}
+
+TEST(os_worker_job, next_mut_is_the_link_slot)
+{
+    lh_os_worker_job_t first = {};
+    lh_os_worker_job_t second = {};
+
+    *lh_os_worker_job_get_next_mut(&first) = &second;
+    EXPECT_EQ(lh_os_worker_job_get_next(&first), &second);
+}

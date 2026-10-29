@@ -197,7 +197,8 @@ lh_os_module_start(lh_os_module_t *self)
         return lh_bool_true;
     }
     const lh_os_module_ops_t *const ops = lh_os_module_get_ops(self);
-    if (lh_null_ne(ops) && lh_null_ne(ops->start) && !ops->start(self))
+    if (lh_null_ne(ops) && lh_null_ne(lh_os_module_ops_get_start_fn(ops)) &&
+        !lh_os_module_ops_get_start_fn(ops)(self))
     {
         /* A refused start may have been granted a loader before refusing. */
         lh_os_module_revoke_loader(self);
@@ -216,9 +217,9 @@ lh_os_module_stop(lh_os_module_t *self)
         return;
     }
     const lh_os_module_ops_t *const ops = lh_os_module_get_ops(self);
-    if (lh_null_ne(ops) && lh_null_ne(ops->stop))
+    if (lh_null_ne(ops) && lh_null_ne(lh_os_module_ops_get_stop_fn(ops)))
     {
-        ops->stop(self);
+        lh_os_module_ops_get_stop_fn(ops)(self);
     }
     lh_os_module_set_started(self, lh_bool_false);
 }

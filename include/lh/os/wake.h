@@ -88,6 +88,22 @@ lh_os_wake_get_handle(const lh_os_wake_t *self);
 lh_void
 lh_os_wake_close(lh_os_wake_t *self);
 
+/** @brief The @c reader of @p self. */
+lh_os_system_net_socket_handle_t
+lh_os_wake_get_reader(const lh_os_wake_t *self);
+
+/** @brief Store @p reader as the @c reader of @p self. */
+lh_void
+lh_os_wake_set_reader(lh_os_wake_t *self, lh_os_system_net_socket_handle_t reader);
+
+/** @brief The @c writer of @p self. */
+lh_os_system_net_socket_handle_t
+lh_os_wake_get_writer(const lh_os_wake_t *self);
+
+/** @brief Store @p writer as the @c writer of @p self. */
+lh_void
+lh_os_wake_set_writer(lh_os_wake_t *self, lh_os_system_net_socket_handle_t writer);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_WAKE_H */

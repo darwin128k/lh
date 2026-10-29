@@ -248,6 +248,160 @@ lh_os_input_event_is_cancelled(const lh_os_input_event_ptr self);
 lh_bool_t
 lh_os_input_event_is_key_down(const lh_os_input_event_ptr self, lh_os_key_t key);
 
+/**
+ * @brief Store what happened (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The event; checked by ::lh_assert_runtime_ref.
+ * @param kind The new value.
+ */
+lh_void
+lh_os_input_event_set_kind(lh_os_input_event_t *self, lh_os_input_kind_t kind);
+
+/**
+ * @brief Store the kind of device the event came from (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The event; checked by ::lh_assert_runtime_ref.
+ * @param device_kind The new value.
+ */
+lh_void
+lh_os_input_event_set_device_kind(lh_os_input_event_t *self, lh_os_input_device_kind_t device_kind);
+
+/**
+ * @brief Store the pointer id of the event (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The event; checked by ::lh_assert_runtime_ref.
+ * @param pointer The new value.
+ */
+lh_void
+lh_os_input_event_set_pointer(lh_os_input_event_t *self, lh_u8_t pointer);
+
+/**
+ * @brief Store the button that changed (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The event; checked by ::lh_assert_runtime_ref.
+ * @param button The new value.
+ */
+lh_void
+lh_os_input_event_set_button(lh_os_input_event_t *self, lh_os_input_button_t button);
+
+/**
+ * @brief Store the horizontal position, in window pixels (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The event; checked by ::lh_assert_runtime_ref.
+ * @param x The new value.
+ */
+lh_void
+lh_os_input_event_set_x(lh_os_input_event_t *self, lh_os_input_coord_t x);
+
+/**
+ * @brief Store the vertical position, in window pixels (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The event; checked by ::lh_assert_runtime_ref.
+ * @param y The new value.
+ */
+lh_void
+lh_os_input_event_set_y(lh_os_input_event_t *self, lh_os_input_coord_t y);
+
+/**
+ * @brief Store the horizontal wheel or move delta (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The event; checked by ::lh_assert_runtime_ref.
+ * @param dx The new value.
+ */
+lh_void
+lh_os_input_event_set_dx(lh_os_input_event_t *self, lh_s32_t dx);
+
+/**
+ * @brief Store the vertical wheel or move delta (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The event; checked by ::lh_assert_runtime_ref.
+ * @param dy The new value.
+ */
+lh_void
+lh_os_input_event_set_dy(lh_os_input_event_t *self, lh_s32_t dy);
+
+/**
+ * @brief Store the controller axis that moved (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The event; checked by ::lh_assert_runtime_ref.
+ * @param axis The new value.
+ */
+lh_void
+lh_os_input_event_set_axis(lh_os_input_event_t *self, lh_os_input_axis_t axis);
+
+/**
+ * @brief Store the new value of the controller axis (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The event; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_os_input_event_set_value(lh_os_input_event_t *self, lh_s16_t value);
+
+/**
+ * @brief Store the key that changed (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The event; checked by ::lh_assert_runtime_ref.
+ * @param key The new value.
+ */
+lh_void
+lh_os_input_event_set_key(lh_os_input_event_t *self, lh_os_key_t key);
+
+/**
+ * @brief Store the hardware scancode of the key (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The event; checked by ::lh_assert_runtime_ref.
+ * @param scancode The new value.
+ */
+lh_void
+lh_os_input_event_set_scancode(lh_os_input_event_t *self, lh_u32_t scancode);
+
+/**
+ * @brief Store the Unicode code point of a text event (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The event; checked by ::lh_assert_runtime_ref.
+ * @param code The new value.
+ */
+lh_void
+lh_os_input_event_set_code(lh_os_input_event_t *self, lh_u32_t code);
+
+/**
+ * @brief Store when the event happened, in ticks (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The event; checked by ::lh_assert_runtime_ref.
+ * @param time The new value.
+ */
+lh_void
+lh_os_input_event_set_time(lh_os_input_event_t *self, lh_tick_t time);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_INPUT_EVENT_H */

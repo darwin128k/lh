@@ -143,28 +143,14 @@ lh_os_controller_handle(lh_os_controller_t *self, lh_os_input_event_cptr event)
     return handle_cb(lh_os_controller_get_context(self), event);
 }
 
-/** What the recognizer's sink works with during one feed or update: the controller the
-   events go to, and whether its handler acted on any of them. */
-struct lh_os_controller_dispatch
-{
-    lh_os_controller_t *controller;
-    lh_bool_t handled;
-};
-/** @copybrief lh_os_controller_dispatch */
-typedef struct lh_os_controller_dispatch lh_os_controller_dispatch_t;
-
-/** A dispatch to @p controller that nothing was handled by yet. */
-#define lh_os_controller_dispatch_initializer(controller)                                          \
-    lh_initializer((controller), lh_bool_false)
-
 lh_void
 lh_os_controller_dispatch_sink(lh_self_ptr self, lh_os_input_event_cptr event)
 {
     lh_os_controller_dispatch_t *dispatch = lh_ptr_rcast(lh_os_controller_dispatch_t, self);
 
-    if (lh_os_controller_handle(dispatch->controller, event))
+    if (lh_os_controller_handle(lh_os_controller_dispatch_get_controller(dispatch), event))
     {
-        dispatch->handled = lh_bool_true;
+        lh_os_controller_dispatch_set_handled(dispatch, lh_bool_true);
     }
 }
 
@@ -179,7 +165,7 @@ lh_os_controller_feed(lh_os_controller_t *self, lh_os_input_event_cptr event)
                  lh_os_controller_handle(self, event));
     lh_os_input_recognizer_feed(lh_os_controller_get_recognizer(self), event,
                                 lh_os_controller_dispatch_sink, lh_addr_of(dispatch));
-    return dispatch.handled;
+    return lh_os_controller_dispatch_is_handled(lh_addr_of(dispatch));
 }
 
 lh_bool_t
@@ -201,7 +187,7 @@ lh_os_controller_update(lh_os_controller_t *self, lh_tick_t now)
     {
         update_cb(lh_os_controller_get_context(self), now);
     }
-    return dispatch.handled;
+    return lh_os_controller_dispatch_is_handled(lh_addr_of(dispatch));
 }
 
 lh_void

@@ -188,6 +188,51 @@ lh_os_input_recognizer_is_dragging(const lh_os_input_recognizer_ptr self, lh_u8_
 const lh_os_input_recognizer_config_ptr
 lh_os_input_recognizer_get_config(const lh_os_input_recognizer_ptr self);
 
+/**
+ * @brief The thresholds @p self works with, to change in place (level 1).
+ *
+ * @param self The recognizer; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_os_input_recognizer_config_ptr
+lh_os_input_recognizer_get_config_mut(lh_os_input_recognizer_t *self);
+
+/**
+ * @brief Store @p config as the thresholds of @p self (level 1).
+ *
+ * A level-1 setter: the thresholds are copied as given and are not validated.
+ *
+ * @param self   The recognizer; checked by ::lh_assert_runtime_ref.
+ * @param config The thresholds; checked by ::lh_assert_runtime_ref.
+ */
+lh_void
+lh_os_input_recognizer_set_config(lh_os_input_recognizer_t *self,
+                                  const lh_os_input_recognizer_config_ptr config);
+
+/**
+ * @brief The state of pointer @p pointer (level 1).
+ *
+ * The fast form: @p pointer is not checked and must be below ::LH_OS_INPUT_POINTER_MAX.
+ * ::lh_os_input_recognizer_find_const checks it.
+ *
+ * @param self    The recognizer; checked by ::lh_assert_runtime_ref.
+ * @param pointer Pointer id.
+ */
+const lh_os_input_recognizer_pointer_ptr
+lh_os_input_recognizer_get_pointer(const lh_os_input_recognizer_ptr self, lh_u8_t pointer);
+
+/**
+ * @brief The state of pointer @p pointer, to change in place (level 1).
+ *
+ * The fast form: @p pointer is not checked and must be below ::LH_OS_INPUT_POINTER_MAX.
+ * ::lh_os_input_recognizer_find checks it.
+ *
+ * @param self    The recognizer; checked by ::lh_assert_runtime_ref.
+ * @param pointer Pointer id.
+ */
+lh_os_input_recognizer_pointer_ptr
+lh_os_input_recognizer_get_pointer_mut(lh_os_input_recognizer_t *self, lh_u8_t pointer);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_INPUT_RECOGNIZER_H */

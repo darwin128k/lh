@@ -35,3 +35,12 @@ lh_runtime_terminate(void)
     {
     }
 }
+
+lh_void
+lh_runtime_terminate_unless(lh_bool_t ok)
+{
+    if (!ok)
+    {
+        lh_runtime_terminate();
+    }
+}
