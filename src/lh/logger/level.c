@@ -9,9 +9,9 @@
 #include <lh/util/str/ptr.h>
 
 /* The PSR-3 names in level order, then the short forms. */
-static const lh_char_t *const m_logger_level_names[] = {
-    "emergency", "alert", "critical", "error", "warning", "notice", "info", "debug",
-    "crit",      "err",   "warn"};
+static const lh_char_t *const m_logger_level_names[] = {"emergency", "alert",  "critical", "error",
+                                                        "warning",   "notice", "info",     "debug",
+                                                        "crit",      "err",    "warn"};
 static const lh_logger_level_t m_logger_level_values[] = {
     lh_logger_level_emergency, lh_logger_level_alert,   lh_logger_level_critical,
     lh_logger_level_error,     lh_logger_level_warning, lh_logger_level_notice,

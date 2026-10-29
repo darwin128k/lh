@@ -1,6 +1,7 @@
 /**
  * @file fn.h
- * @brief ::lh_os_logger_sink_dropped_fn — note that @p count records were dropped because the queue was full.
+ * @brief ::lh_os_logger_sink_dropped_fn — note that @p count records were dropped because the queue
+ * was full.
  *
  * Called on the queue's worker thread only.
  */

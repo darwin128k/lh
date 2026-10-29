@@ -27,6 +27,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh/os/logger`: an optional logging submodule (needs `LH_LIBRARY_OPTION_OS`).
+  `queue.h` is a bounded single-producer record queue whose own worker thread hands
+  records to a sink (`sink.h`), flushes it on a period and on `sync`, and counts
+  drops; `daily.h` is a sink that writes each channel to `<dir>/YYYY-MM-DD.log` by the
+  local day of each line, with retention, a format callback and a clock callback;
+  `record.h` is the fixed-size record, lines and channel openings alike.
+- Local time: `lh_os_timestamp_try_get_zone_offset`, `_try_get_local`,
+  `_try_get_utc` and `_try_get_local_now`, with daylight saving; `lh_os_timestamp_now`
+  is `lh_os_timestamp_try_get_now`.
+- `lh_fs_file_mode_append`, `lh_os_fs_file_remove`, `lh_os_fs_dir_create_tree`,
+  `lh_os_condition_wait_for`, `lh_date_parse_by` / `lh_date_format_by`,
+  `lh_logger_level_get_name` / `lh_logger_level_try_parse`.
+
 - `lh/console`: a registry of console commands (`lh_console_t`) answering to a scope
   and a word without case, each remembering its owner (`lh_console_drop_owner`), with
   removal while a handler runs; `lh_console_call_t` carries the arguments and the

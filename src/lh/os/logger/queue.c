@@ -276,7 +276,7 @@ lh_os_logger_queue_run(lh_ptr user)
         if (losses != reported && lh_null_ne(lh_os_logger_sink_get_dropped_fn(sink)))
         {
             lh_os_logger_sink_get_dropped_fn(sink)(lh_os_logger_sink_get_user(sink),
-                                                    losses - reported);
+                                                   losses - reported);
             reported = losses;
         }
         now = lh_os_logger_queue_now_ms();
@@ -322,8 +322,8 @@ lh_os_logger_queue_try_create(lh_uint_t capacity, lh_u32_t flush_ms,
                      lh_null_eq(lh_os_logger_sink_get_close_fn(sink)) || flush_ms == 0U ||
                      capacity == 0U,
                  lh_null);
-    self = lh_ptr_rcast(lh_os_logger_queue_t, lh_runtime_allocator_try_alloc_zero(
-                                                  1U, sizeof(lh_ptr_deref(self))));
+    self = lh_ptr_rcast(lh_os_logger_queue_t,
+                        lh_runtime_allocator_try_alloc_zero(1U, sizeof(lh_ptr_deref(self))));
     lh_return_if(lh_null_eq(self), lh_null);
     lh_os_logger_queue_set_sink(self, lh_ptr_deref(sink));
     lh_os_logger_queue_set_flush_ms(self, flush_ms);
@@ -386,9 +386,9 @@ lh_os_logger_queue_sync(lh_os_logger_queue_t *self, lh_u32_t timeout_ms)
         {
             break;
         }
-        LH_ATTRIBUTE_UNUSED(lh_os_condition_wait_for(lh_os_logger_queue_get_done_mut(self),
-                                                     lh_os_logger_queue_get_mutex_mut(self),
-                                                     lh_cast_static(lh_u32_t, timeout_ms - waited)));
+        LH_ATTRIBUTE_UNUSED(lh_os_condition_wait_for(
+            lh_os_logger_queue_get_done_mut(self), lh_os_logger_queue_get_mutex_mut(self),
+            lh_cast_static(lh_u32_t, timeout_ms - waited)));
     }
     LH_ATTRIBUTE_UNUSED(lh_os_mutex_unlock(lh_os_logger_queue_get_mutex_mut(self)));
     return reached;

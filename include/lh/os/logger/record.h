@@ -43,13 +43,13 @@ typedef enum lh_os_logger_record_kind lh_os_logger_record_kind_t;
 /** @brief One entry of a log queue. */
 struct lh_os_logger_record
 {
-    lh_u32_t channel;                             /**< the channel, chosen by the producer */
-    lh_u8_t kind;                                 /**< an ::lh_os_logger_record_kind_t */
-    lh_logger_level_t level;                      /**< a line's level */
-    lh_bool_t raw;                                /**< an opened channel writes text only */
-    lh_s32_t keep_days;                           /**< an opened channel's days to keep; 0 keeps all */
-    lh_timestamp_t time;                          /**< a line's or an opening's moment, UTC */
-    lh_char_t tag[LH_OS_LOGGER_RECORD_TAG_SIZE];  /**< a line's tag; empty for none */
+    lh_u32_t channel;        /**< the channel, chosen by the producer */
+    lh_u8_t kind;            /**< an ::lh_os_logger_record_kind_t */
+    lh_logger_level_t level; /**< a line's level */
+    lh_bool_t raw;           /**< an opened channel writes text only */
+    lh_s32_t keep_days;      /**< an opened channel's days to keep; 0 keeps all */
+    lh_timestamp_t time;     /**< a line's or an opening's moment, UTC */
+    lh_char_t tag[LH_OS_LOGGER_RECORD_TAG_SIZE];   /**< a line's tag; empty for none */
     lh_char_t text[LH_OS_LOGGER_RECORD_TEXT_SIZE]; /**< a line's text or a channel's directory */
 };
 /** @copybrief lh_os_logger_record */
