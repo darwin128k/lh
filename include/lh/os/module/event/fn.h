@@ -2,13 +2,14 @@
  * @file fn.h
  * @brief Synchronous event handler function type.
  *
- * Synchronous event handler function type.
+ * A handler runs on the publishing thread, inside ::lh_os_module_event_bus_publish, and may call
+ * back into the bus (see there for what is allowed).
  */
 
-#ifndef LH_EVENT_FN_H
-#define LH_EVENT_FN_H
+#ifndef LH_OS_MODULE_EVENT_FN_H
+#define LH_OS_MODULE_EVENT_FN_H
 
-#include <lh/event/result.h>
+#include <lh/os/module/event/result.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/ptr.h>
 
@@ -21,8 +22,9 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param context Subscription context, borrowed until its disposal callback runs.
  * @return Ordered delivery result. Only stop interrupts remaining callbacks.
  */
-typedef lh_event_result_t(lh_event_fn)(const lh_char_t *name, lh_ptr payload, lh_ptr context);
+typedef lh_os_module_event_result_t(lh_os_module_event_fn)(const lh_char_t *name, lh_ptr payload,
+                                                           lh_ptr context);
 
 LH_COMPILER_EXTERN_C_END
 
-#endif /* LH_EVENT_FN_H */
+#endif /* LH_OS_MODULE_EVENT_FN_H */
