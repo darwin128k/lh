@@ -81,7 +81,7 @@ lh_event_subscription_set_context(lh_event_subscription_t *self, lh_ptr value);
 
 /** @brief Removed flag; removed records are not dispatched. Level-1 read; self must be nonnull. */
 lh_bool_t
-lh_event_subscription_get_dead(const lh_event_subscription_t *self);
+lh_event_subscription_is_dead(const lh_event_subscription_t *self);
 
 /** @brief Store dead without validation or ownership changes; self must be nonnull. */
 lh_void
