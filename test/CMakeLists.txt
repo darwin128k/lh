@@ -73,9 +73,14 @@ set(LH_TEST_LISTED_SOURCES)
 lh_add_test_core(lh_test_http_parser ${LH_TEST_SRC_PATH}/lh/http/parser.cpp
         ${LH_TEST_SRC_PATH}/lh/http/char.cpp ${LH_TEST_SRC_PATH}/lh/http/version.cpp)
 
-# Types, errors and the few pieces every core leans on.
-lh_add_test_core(lh_test_events ${LH_TEST_SRC_PATH}/lh/event/bus.cpp)
+# The event bus modules talk through: registry, subscribers, deferred removal.
+if (LH_LIBRARY_OPTION_OS)
+    lh_add_test_core(lh_test_events ${LH_TEST_SRC_PATH}/lh/os/module/event/bus.cpp)
+else ()
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/module/event/bus.cpp)
+endif ()
 
+# Types, errors and the few pieces every core leans on.
 lh_add_test_core(lh_test_core
         ${LH_TEST_SRC_PATH}/lh/spsc.cpp
         ${LH_TEST_SRC_PATH}/lh/array.cpp

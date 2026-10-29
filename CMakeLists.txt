@@ -121,9 +121,6 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/memory.c
         ${LH_LIB_SRC_PATH}/spsc.c
         ${LH_LIB_SRC_PATH}/array.c
-        ${LH_LIB_SRC_PATH}/event/entry.c
-        ${LH_LIB_SRC_PATH}/event/subscription.c
-        ${LH_LIB_SRC_PATH}/event/bus.c
         ${LH_LIB_SRC_PATH}/list.c
         ${LH_LIB_SRC_PATH}/value.c
         ${LH_LIB_SRC_PATH}/real/bits.c
@@ -287,6 +284,9 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/shared.c
             ${LH_LIB_SRC_PATH}/os/module.c
             ${LH_LIB_SRC_PATH}/os/module/ops.c
+            ${LH_LIB_SRC_PATH}/os/module/event/entry.c
+            ${LH_LIB_SRC_PATH}/os/module/event/subscription.c
+            ${LH_LIB_SRC_PATH}/os/module/event/bus.c
             ${LH_LIB_SRC_PATH}/os/loader.c
             ${LH_LIB_SRC_PATH}/sql/mysql.c
             ${LH_LIB_SRC_PATH}/sql/mysql/api.c
