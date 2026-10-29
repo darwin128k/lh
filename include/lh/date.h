@@ -326,6 +326,21 @@ lh_bool_t
 lh_date_ymd_is_valid(lh_uint_t year, lh_uint_t month, lh_uint_t day);
 
 /**
+ * @brief Parse `Y<sep>M<sep>D` (leading zeros on month/day allowed).
+ *
+ * All of @p str_size must be consumed. Rejects impossible calendar days.
+ *
+ * @param str       Buffer to parse (not required to be NUL-terminated).
+ * @param str_size  Number of characters available in @p str.
+ * @param separator The character between the parts (`/`, `-`, `.`).
+ * @param out       Receives the parsed date on success; untouched on failure.
+ *
+ * @return ::lh_bool_true if all of @p str_size was consumed as a valid date.
+ */
+lh_bool_t
+lh_date_parse_by(const lh_str_ptr str, lh_usize_t str_size, lh_char_t separator, lh_date_t *out);
+
+/**
  * @brief Parse `Y/M/D` (slashes; leading zeros on month/day allowed).
  *
  * All of @p str_size must be consumed. Rejects impossible calendar days.
@@ -338,6 +353,23 @@ lh_date_ymd_is_valid(lh_uint_t year, lh_uint_t month, lh_uint_t day);
  */
 lh_bool_t
 lh_date_parse(const lh_str_ptr str, lh_usize_t str_size, lh_date_t *out);
+
+/**
+ * @brief Format @p self as `YYYY<sep>MM<sep>DD` (month and day zero-padded).
+ *
+ * No NUL terminator. A buffer of ::LH_DATE_TEXT_MAX + 1 always has room
+ * to add one after the returned length.
+ *
+ * @param self      Date to format (not null).
+ * @param str       Destination buffer.
+ * @param str_size  Capacity of @p str in characters.
+ * @param separator The character between the parts (`/`, `-`, `.`).
+ *
+ * @return Characters written, or 0 if @p str_size was too small.
+ */
+lh_usize_t
+lh_date_format_by(const lh_date_t *self, lh_str_ptr str, lh_usize_t str_size,
+                  lh_char_t separator);
 
 /**
  * @brief Format @p self as `YYYY/MM/DD` (month and day zero-padded).

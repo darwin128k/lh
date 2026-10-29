@@ -118,6 +118,17 @@ lh_bool_t
 lh_os_fs_dir_create(const lh_fs_path_t *path);
 
 /**
+ * @brief Create the directory @p path and every missing directory above it.
+ *
+ * @param path Directory to create.
+ * @return ::lh_bool_true when @p path is a directory afterwards; ::lh_bool_false
+ *         otherwise (a file in the way, no rights), with the OS error set. Parents
+ *         created before a failure stay.
+ */
+lh_bool_t
+lh_os_fs_dir_create_tree(const lh_fs_path_t *path);
+
+/**
  * @brief Store the native directory handle (level 1).
  *
  * A level-1 setter: the value is stored as given and is not validated.

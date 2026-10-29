@@ -108,6 +108,16 @@ lh_os_system_fs_file_read(lh_os_system_fs_file_handle_t handle, lh_ptr buf, lh_u
 lh_ssize_t
 lh_os_system_fs_file_write(lh_os_system_fs_file_handle_t handle, const lh_ptr buf, lh_usize_t size);
 
+/**
+ * @brief Delete the file at @p path.
+ *
+ * @param path Native, NUL-terminated file path text.
+ * @return ::lh_bool_true when the OS deleted it; ::lh_bool_false (error captured)
+ *         otherwise — including when there is no such file.
+ */
+lh_bool_t
+lh_os_system_fs_file_remove(const lh_str_ptr path);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_SYSTEM_FS_FILE_H */

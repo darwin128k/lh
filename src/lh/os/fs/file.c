@@ -225,3 +225,15 @@ lh_os_fs_file_print(lh_os_fs_file_t *self, lh_str_cptr fmt, ...)
     va_end(args);
     return ok;
 }
+
+lh_bool_t
+lh_os_fs_file_remove(const lh_fs_path_t *path)
+{
+    lh_str_t buf;
+
+    lh_str_cptr const cstr = lh_os_fs_path_to_cstr(path, lh_addr_of(buf));
+    const lh_bool_t removed =
+        lh_cast_static(lh_bool_t, lh_null_ne(cstr) && lh_os_system_fs_file_remove(cstr));
+    lh_str_deinit(lh_addr_of(buf));
+    return removed;
+}

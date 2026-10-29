@@ -47,6 +47,14 @@ typedef lh_u8_t lh_fs_file_mode_t;
 #define lh_fs_file_mode_readwrite 2U
 
 /**
+ * @def lh_fs_file_mode_append
+ * @brief Existing or created, write-only, every write at the end
+ *        (`FILE_APPEND_DATA` + `OPEN_ALWAYS` / `O_WRONLY | O_CREAT | O_APPEND`).
+ *        A whole write lands at the end even when another writer appends too.
+ */
+#define lh_fs_file_mode_append 3U
+
+/**
  * @def lh_fs_file_mode_none
  * @brief No open mode (handle is invalid).
  */
@@ -66,14 +74,15 @@ lh_fs_file_mode_is_readable(lh_fs_file_mode_t mode)
 }
 
 /**
- * @brief True when @p mode grants write access (`write` or `readwrite`).
+ * @brief True when @p mode grants write access (`write`, `readwrite` or `append`).
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
 lh_fs_file_mode_is_writable(lh_fs_file_mode_t mode)
 {
     return lh_cast_static(lh_bool_t, lh_math_eq(mode, lh_fs_file_mode_write) ||
-                                         lh_math_eq(mode, lh_fs_file_mode_readwrite));
+                                         lh_math_eq(mode, lh_fs_file_mode_readwrite) ||
+                                         lh_math_eq(mode, lh_fs_file_mode_append));
 }
 
 LH_COMPILER_EXTERN_C_END

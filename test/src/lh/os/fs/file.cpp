@@ -149,3 +149,42 @@ TEST_F(os_fs_file_at, follows_the_open_root_after_its_path_is_renamed)
 }
 } // namespace
 #endif
+
+#include <lh/os/fs/file.h>
+
+namespace
+{
+
+/* Appends from two opens land one after the other; the file then goes. */
+TEST(os_fs_file, append_adds_at_the_end_and_remove_deletes)
+{
+    const lh_char_t *name = "lh-test-append.log";
+    lh_os_fs_file_t file;
+    lh_char_t text[8] = {};
+    lh_fs_path_t path;
+    lh_str_view_t view;
+
+    lh_os_fs_file_init(&file);
+    ASSERT_TRUE(lh_os_fs_file_open_cstr(&file, name, lh_fs_file_mode_write));
+    lh_os_fs_file_close(&file);
+    ASSERT_TRUE(lh_os_fs_file_open_cstr(&file, name, lh_fs_file_mode_append));
+    ASSERT_TRUE(lh_os_fs_file_write_all(&file, "ab", 2U));
+    lh_os_fs_file_close(&file);
+    ASSERT_TRUE(lh_os_fs_file_open_cstr(&file, name, lh_fs_file_mode_append));
+    ASSERT_TRUE(lh_os_fs_file_write_all(&file, "cd", 2U));
+    lh_os_fs_file_close(&file);
+    ASSERT_TRUE(lh_os_fs_file_open_cstr(&file, name, lh_fs_file_mode_read));
+    EXPECT_EQ(lh_os_fs_file_read(&file, text, sizeof(text)), 4);
+    lh_os_fs_file_close(&file);
+    lh_os_fs_file_deinit(&file);
+    EXPECT_STREQ(text, "abcd");
+
+    lh_fs_path_init(&path);
+    lh_str_view_init(&view, name);
+    lh_fs_path_set(&path, view, lh_fs_path_style_posix);
+    EXPECT_TRUE(lh_os_fs_file_remove(&path));
+    EXPECT_FALSE(lh_os_fs_file_remove(&path));
+    lh_fs_path_deinit(&path);
+}
+
+} // namespace

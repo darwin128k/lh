@@ -120,3 +120,22 @@ TEST(logger_assign, copies_state)
 }
 
 } // namespace
+
+TEST(logger_level, names_round_trip_and_short_forms_parse)
+{
+    lh_logger_level_t level = lh_logger_level_debug;
+
+    EXPECT_STREQ(lh_logger_level_get_name(lh_logger_level_error), "error");
+    EXPECT_STREQ(lh_logger_level_get_name(lh_logger_level_debug), "debug");
+    EXPECT_STREQ(lh_logger_level_get_name(42), "?");
+    for (lh_logger_level_t i = lh_logger_level_emergency; i <= lh_logger_level_debug; ++i)
+    {
+        ASSERT_TRUE(lh_logger_level_try_parse(lh_logger_level_get_name(i), &level));
+        EXPECT_EQ(level, i);
+    }
+    EXPECT_TRUE(lh_logger_level_try_parse("WARN", &level));
+    EXPECT_EQ(level, lh_logger_level_warning);
+    EXPECT_FALSE(lh_logger_level_try_parse("loud", &level));
+    EXPECT_FALSE(lh_logger_level_try_parse(nullptr, &level));
+    EXPECT_EQ(level, lh_logger_level_warning);
+}

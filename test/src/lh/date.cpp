@@ -3,6 +3,7 @@
 #include <string>
 
 #include <lh/date.h>
+#include <lh/char/map.h>
 #include <lh/date/initializer.h>
 #include <lh/test/out.h>
 
@@ -218,3 +219,18 @@ TEST(date_scalar_compare, year_month_day_index)
 }
 
 } // namespace
+
+TEST(date_by, a_dash_date_round_trips_and_needs_its_separator)
+{
+    lh_date_t date;
+    lh_char_t text[LH_DATE_TEXT_MAX + 1] = {};
+
+    ASSERT_TRUE(lh_date_parse_by("2026-10-29", 10, lh_char_map_minus, &date));
+    EXPECT_EQ(lh_date_get_year(&date), 2026);
+    EXPECT_EQ(lh_date_get_month(&date), 10);
+    EXPECT_EQ(lh_date_get_day(&date), 29);
+    EXPECT_FALSE(lh_date_parse_by("2026/10/29", 10, lh_char_map_minus, &date));
+    EXPECT_FALSE(lh_date_parse_by("2026-02-30", 10, lh_char_map_minus, &date));
+    ASSERT_EQ(lh_date_format_by(&date, text, sizeof(text), lh_char_map_minus), 10U);
+    EXPECT_STREQ(text, "2026-10-29");
+}

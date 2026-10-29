@@ -75,6 +75,20 @@ lh_bool_t
 lh_os_condition_wait(lh_os_condition_t *self, lh_os_mutex_t *mutex);
 
 /**
+ * @brief ::lh_os_condition_wait that also returns after @p timeout_ms.
+ *
+ * A timeout is not a failure: check the protected predicate in a loop either way.
+ *
+ * @param self       Open condition variable.
+ * @param mutex      Open mutex held exactly once by the caller.
+ * @param timeout_ms Longest wait, in milliseconds.
+ * @return ::lh_bool_true with the mutex reacquired after a signal, a spurious wakeup
+ *         or the timeout; ::lh_bool_false on failure.
+ */
+lh_bool_t
+lh_os_condition_wait_for(lh_os_condition_t *self, lh_os_mutex_t *mutex, lh_u32_t timeout_ms);
+
+/**
  * @brief Wake one current waiter, if any.
  *
  * Protect predicate changes with the waiters' mutex. Notifications are not stored for
