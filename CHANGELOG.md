@@ -27,6 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh/os/loop`: a worker thread that sleeps until a lock-free wake, its period, the
+  nearest timer of its own `lh_timer_group` or a stop, then runs one step; the last
+  step sees `lh_os_loop_is_last_step`. The log queue runs on it.
 - `lh/os/logger`: an optional logging submodule (needs `LH_LIBRARY_OPTION_OS`).
   `queue.h` is a bounded single-producer record queue whose own worker thread hands
   records to a sink (`sink.h`), flushes it on a period and on `sync`, and counts
