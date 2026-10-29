@@ -234,6 +234,7 @@ set(LH_TEST_OS_SOURCES
         ${LH_TEST_SRC_PATH}/lh/os/serial.cpp
         ${LH_TEST_SRC_PATH}/lh/os/shared.cpp
         ${LH_TEST_SRC_PATH}/lh/os/tick.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/timestamp.cpp
         ${LH_TEST_SRC_PATH}/lh/sql/mysql.cpp
         ${LH_TEST_SRC_PATH}/lh/os/window.cpp
         ${LH_TEST_SRC_PATH}/lh/os/render/backend/gdi.cpp

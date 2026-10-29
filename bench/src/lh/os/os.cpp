@@ -91,7 +91,7 @@ BM_os_timestamp_now(benchmark::State &state)
 
     for (auto _ : state)
     {
-        benchmark::DoNotOptimize(lh_os_timestamp_now(&t));
+        benchmark::DoNotOptimize(lh_os_timestamp_try_get_now(&t));
         benchmark::DoNotOptimize(t);
     }
 }

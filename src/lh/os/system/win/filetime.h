@@ -40,6 +40,27 @@ lh_os_system_timestamp_from_filetime(const lh_os_system_win_filetime_t *time)
         LH_OS_SYSTEM_WIN_FILETIME_HZ);
 }
 
+/** The `FILETIME` of @p self, the inverse of ::lh_os_system_timestamp_from_filetime.
+   False, with @p out untouched, for a moment before 1601-01-01. */
+LH_ATTRIBUTE_STATIC
+lh_bool_t
+lh_os_system_timestamp_to_filetime(lh_timestamp_t self, lh_os_system_win_filetime_t *out)
+{
+    const lh_s64_t seconds_before = lh_math_floor_div(-LH_OS_SYSTEM_WIN_FILETIME_UNIX_EPOCH,
+                                                      LH_OS_SYSTEM_WIN_FILETIME_HZ);
+    lh_u64_t ticks;
+
+    if (self < seconds_before)
+    {
+        return lh_bool_false;
+    }
+    ticks = lh_cast_static(lh_u64_t, lh_math_add(lh_math_mul(self, LH_OS_SYSTEM_WIN_FILETIME_HZ),
+                                                 LH_OS_SYSTEM_WIN_FILETIME_UNIX_EPOCH));
+    out->dwLowDateTime = lh_cast_static(lh_os_system_win_dword_t, ticks);
+    out->dwHighDateTime = lh_cast_static(lh_os_system_win_dword_t, ticks >> 32);
+    return lh_bool_true;
+}
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_SRC_OS_SYSTEM_WIN_FILETIME_H */
