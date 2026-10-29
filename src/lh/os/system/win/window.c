@@ -417,7 +417,8 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
                           lh_cast_reinterpret(lh_os_system_win_lparam_t, window));
         if (lh_null_ne(window))
         {
-            window->handle = lh_cast_reinterpret(lh_os_system_window_handle_t, hwnd);
+            lh_os_window_set_handle(window,
+                                    lh_cast_reinterpret(lh_os_system_window_handle_t, hwnd));
         }
     }
 
@@ -470,7 +471,8 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
                    drew it, so they belong here rather than in every app that resizes. */
                 lh_os_system_window_set_corner_radius(
                     lh_cast_reinterpret(lh_os_system_window_handle_t, hwnd),
-                    reason == LH_OS_SYSTEM_WIN_SIZE_MAXIMIZED ? 0 : window->corner);
+                    reason == LH_OS_SYSTEM_WIN_SIZE_MAXIMIZED ? 0
+                                                              : lh_os_window_get_corner(window));
             }
         }
         return 0;

@@ -4,6 +4,7 @@
 #endif
 
 #include <lh/os/system/shared.h>
+#include <lh/os/system/posix/shared/search.h>
 #include <lh/memory/std.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
@@ -156,14 +157,8 @@ lh_os_system_shared_get_path(lh_os_system_shared_handle_t handle, lh_str_t *out)
     return lh_os_system_str_ptr_to_utf8(name, out);
 }
 
-/* What lh_os_system_shared_match looks for, and the full path it finds. */
-struct lh_os_system_shared_search
-{
-    lh_str_cptr name;
-    lh_str_cptr path;
-};
-
-/* dl_iterate_phdr callback: stop at the image whose file name is search->name. */
+/* dl_iterate_phdr callback: stop at the image whose file name is
+ * lh_os_system_shared_search_get_name(search). */
 LH_ATTRIBUTE_STATIC
 int
 lh_os_system_shared_match(struct dl_phdr_info *info, size_t size, void *data)
@@ -178,11 +173,11 @@ lh_os_system_shared_match(struct dl_phdr_info *info, size_t size, void *data)
     }
     lh_str_cptr const slash = strrchr(info->dlpi_name, lh_char_map_slash);
     lh_str_cptr const file = lh_null_eq(slash) ? info->dlpi_name : slash + 1;
-    if (strcmp(file, search->name) != 0)
+    if (strcmp(file, lh_os_system_shared_search_get_name(search)) != 0)
     {
         return 0;
     }
-    search->path = info->dlpi_name;
+    lh_os_system_shared_search_set_path(search, info->dlpi_name);
     return 1;
 }
 
@@ -197,7 +192,10 @@ lh_os_system_shared_get_by_name(lh_str_cptr name)
            found by its bare name: look for its file among the loaded ones. */
         struct lh_os_system_shared_search search = {name, lh_null};
         dl_iterate_phdr(lh_os_system_shared_match, lh_addr_of(search));
-        handle = lh_null_eq(search.path) ? lh_null : dlopen(search.path, RTLD_NOW | RTLD_NOLOAD);
+        handle = lh_null_eq(lh_os_system_shared_search_get_path(lh_addr_of(search)))
+                     ? lh_null
+                     : dlopen(lh_os_system_shared_search_get_path(lh_addr_of(search)),
+                              RTLD_NOW | RTLD_NOLOAD);
     }
     if (lh_null_eq(handle))
     {
@@ -330,4 +328,32 @@ lh_os_system_shared_get_local_sym(lh_os_system_shared_handle_t handle, lh_str_cp
     lh_ptr const result = lh_os_system_shared_find_in_symtab(fd, (uintptr_t)map->l_addr, name);
     close(fd);
     return result;
+}
+
+lh_str_cptr
+lh_os_system_shared_search_get_name(const struct lh_os_system_shared_search *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->name;
+}
+
+lh_void
+lh_os_system_shared_search_set_name(struct lh_os_system_shared_search *self, lh_str_cptr name)
+{
+    lh_assert_runtime_ref(self);
+    self->name = name;
+}
+
+lh_str_cptr
+lh_os_system_shared_search_get_path(const struct lh_os_system_shared_search *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->path;
+}
+
+lh_void
+lh_os_system_shared_search_set_path(struct lh_os_system_shared_search *self, lh_str_cptr path)
+{
+    lh_assert_runtime_ref(self);
+    self->path = path;
 }

@@ -149,6 +149,27 @@ lh_bool_t
 lh_ui_surface_present_rects(const lh_ui_surface_t *self, lh_ptr dest, const lh_ui_rects_t *rects,
                             lh_ui_point_t at);
 
+/**
+ * @brief The OS surface that holds the pixels; ::LH_OS_SYSTEM_SURFACE_HANDLE_INVALID for none
+ * (level 1).
+ *
+ * @param self The surface; checked by ::lh_assert_runtime_ref.
+ */
+lh_os_system_surface_handle_t
+lh_ui_surface_get_handle(const lh_ui_surface_t *self);
+
+/**
+ * @brief Store the OS surface that holds the pixels; ::LH_OS_SYSTEM_SURFACE_HANDLE_INVALID for none
+ * (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The surface; checked by ::lh_assert_runtime_ref.
+ * @param handle The new value.
+ */
+lh_void
+lh_ui_surface_set_handle(lh_ui_surface_t *self, lh_os_system_surface_handle_t handle);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_SURFACE_H */

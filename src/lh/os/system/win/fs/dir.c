@@ -1,3 +1,4 @@
+#include <lh/os/system/win/fs/dir/state.h>
 #include <lh/os/system/fs/dir.h>
 #include <lh/assert.h>
 #include <lh/char/slash.h>
@@ -7,15 +8,6 @@
 #include <lh/os/system/win/fs/kind.h>
 #include <lh/runtime/allocator.h>
 #include <lh/util/wstr/ptr.h>
-
-/** An open directory listing: the `FindFirstFileW` handle and the entry in hand. */
-struct lh_os_system_fs_dir_state
-{
-    lh_os_system_win_handle_t find;    /**< the listing, from FindFirstFileW */
-    lh_os_system_win_find_data_t data; /**< the entry FindFirstFileW / FindNextFileW last wrote */
-    lh_str_t name;                     /**< data.cFileName as UTF-8: what read hands out. */
-    lh_bool_t ready; /**< data holds an entry not yet reported (FindFirstFile's). */
-};
 
 LH_ATTRIBUTE_STATIC
 struct lh_os_system_fs_dir_state *
@@ -65,16 +57,18 @@ lh_os_system_fs_dir_open(lh_str_cptr path)
         lh_os_str_deinit(lh_addr_of(pattern));
         return LH_OS_SYSTEM_FS_DIR_HANDLE_INVALID;
     }
-    state->find = FindFirstFileW(lh_os_str_get_data(lh_addr_of(pattern)), lh_addr_of(state->data));
+    lh_os_system_fs_dir_state_set_find(
+        state, FindFirstFileW(lh_os_str_get_data(lh_addr_of(pattern)),
+                              lh_os_system_fs_dir_state_get_data_mut(state)));
     lh_os_str_deinit(lh_addr_of(pattern));
-    if (lh_math_eq(state->find, LH_OS_SYSTEM_WIN_INVALID_HANDLE))
+    if (lh_math_eq(lh_os_system_fs_dir_state_get_find(state), LH_OS_SYSTEM_WIN_INVALID_HANDLE))
     {
         lh_os_system_error_capture();
         lh_runtime_allocator_free(state);
         return LH_OS_SYSTEM_FS_DIR_HANDLE_INVALID;
     }
-    lh_str_init(lh_addr_of(state->name));
-    state->ready = lh_bool_true;
+    lh_str_init(lh_os_system_fs_dir_state_get_name_mut(state));
+    lh_os_system_fs_dir_state_set_ready(state, lh_bool_true);
     return state;
 }
 
@@ -83,8 +77,8 @@ lh_os_system_fs_dir_close(lh_os_system_fs_dir_handle_t handle)
 {
     struct lh_os_system_fs_dir_state *const state = lh_os_system_fs_dir_state(handle);
 
-    (void)FindClose(state->find);
-    lh_str_deinit(lh_addr_of(state->name));
+    (void)FindClose(lh_os_system_fs_dir_state_get_find(state));
+    lh_str_deinit(lh_os_system_fs_dir_state_get_name_mut(state));
     lh_runtime_allocator_free(state);
 }
 
@@ -95,9 +89,10 @@ lh_os_system_fs_dir_read(lh_os_system_fs_dir_handle_t handle, lh_str_cptr *name,
     lh_assert_runtime_ref(kind);
     struct lh_os_system_fs_dir_state *const state = lh_os_system_fs_dir_state(handle);
 
-    if (!state->ready)
+    if (!lh_os_system_fs_dir_state_is_ready(state))
     {
-        if (!FindNextFileW(state->find, lh_addr_of(state->data)))
+        if (!FindNextFileW(lh_os_system_fs_dir_state_get_find(state),
+                           lh_os_system_fs_dir_state_get_data_mut(state)))
         {
             if (lh_math_eq(GetLastError(), LH_OS_SYSTEM_WIN_ERROR_NO_MORE_FILES))
             {
@@ -107,16 +102,19 @@ lh_os_system_fs_dir_read(lh_os_system_fs_dir_handle_t handle, lh_str_cptr *name,
             return LH_OS_RESULT_INVALID;
         }
     }
-    state->ready = lh_bool_false;
-    if (!lh_os_system_str_ptr_to_utf8(state->data.cFileName, lh_addr_of(state->name)))
+    lh_os_system_fs_dir_state_set_ready(state, lh_bool_false);
+    if (!lh_os_system_str_ptr_to_utf8(lh_os_system_fs_dir_state_get_data(state)->cFileName,
+                                      lh_os_system_fs_dir_state_get_name_mut(state)))
     {
         return LH_OS_RESULT_INVALID;
     }
-    lh_ptr_deref(name) = lh_str_get_data(lh_addr_of(state->name));
+    lh_ptr_deref(name) = lh_str_get_data(lh_os_system_fs_dir_state_get_name_mut(state));
     lh_ptr_deref(kind) = lh_os_system_fs_kind_from_attrs(
-        state->data.dwFileAttributes,
-        lh_os_system_fs_is_symlink_tag(state->data.dwFileAttributes, state->data.dwReserved0));
-    return lh_cast_static(lh_ssize_t, lh_str_get_size(lh_addr_of(state->name)));
+        lh_os_system_fs_dir_state_get_data(state)->dwFileAttributes,
+        lh_os_system_fs_is_symlink_tag(lh_os_system_fs_dir_state_get_data(state)->dwFileAttributes,
+                                       lh_os_system_fs_dir_state_get_data(state)->dwReserved0));
+    return lh_cast_static(lh_ssize_t,
+                          lh_str_get_size(lh_os_system_fs_dir_state_get_name_mut(state)));
 }
 
 /* A name is at most MAX_PATH - 1 UTF-16 units; one unit is at most 3 UTF-8
@@ -143,4 +141,61 @@ lh_os_system_fs_dir_create(lh_str_cptr path)
         lh_os_system_error_capture();
     }
     return created;
+}
+
+lh_os_system_win_handle_t
+lh_os_system_fs_dir_state_get_find(const struct lh_os_system_fs_dir_state *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->find;
+}
+
+lh_void
+lh_os_system_fs_dir_state_set_find(struct lh_os_system_fs_dir_state *self,
+                                   lh_os_system_win_handle_t find)
+{
+    lh_assert_runtime_ref(self);
+    self->find = find;
+}
+
+const lh_os_system_win_find_data_t *
+lh_os_system_fs_dir_state_get_data(const struct lh_os_system_fs_dir_state *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->data);
+}
+
+lh_os_system_win_find_data_t *
+lh_os_system_fs_dir_state_get_data_mut(struct lh_os_system_fs_dir_state *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->data);
+}
+
+const lh_str_t *
+lh_os_system_fs_dir_state_get_name(const struct lh_os_system_fs_dir_state *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->name);
+}
+
+lh_str_t *
+lh_os_system_fs_dir_state_get_name_mut(struct lh_os_system_fs_dir_state *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->name);
+}
+
+lh_bool_t
+lh_os_system_fs_dir_state_is_ready(const struct lh_os_system_fs_dir_state *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->ready;
+}
+
+lh_void
+lh_os_system_fs_dir_state_set_ready(struct lh_os_system_fs_dir_state *self, lh_bool_t ready)
+{
+    lh_assert_runtime_ref(self);
+    self->ready = ready;
 }

@@ -2,6 +2,7 @@
  * @file surface.c
  * @brief Implementation of `lh/ui/surface.h`.
  */
+#include <lh/assert.h>
 
 #include <lh/os/system/surface.h>
 #include <lh/ui/surface.h>
@@ -146,4 +147,18 @@ lh_ui_surface_present_rects(const lh_ui_surface_t *self, lh_ptr dest, const lh_u
                      lh_bool_false);
     }
     return lh_bool_true;
+}
+
+lh_os_system_surface_handle_t
+lh_ui_surface_get_handle(const lh_ui_surface_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->handle;
+}
+
+lh_void
+lh_ui_surface_set_handle(lh_ui_surface_t *self, lh_os_system_surface_handle_t handle)
+{
+    lh_assert_runtime_ref(self);
+    self->handle = handle;
 }

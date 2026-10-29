@@ -1,19 +1,11 @@
-#include <lh/os/system/concurrency.h>
+#include <lh/os/system/win/concurrency/condition.h>
+#include <lh/os/system/win/concurrency/thread.h>
 #include <lh/os/system/error/capture.h>
 #include <windows.h>
 #include <stdlib.h>
 #include <process.h>
 #include <errno.h>
-
-typedef struct lh_os_native_thread
-{
-    HANDLE handle;
-    unsigned id;
-    HANDLE gate;
-    int proceed;
-    lh_os_thread_fn run;
-    lh_ptr user;
-} lh_os_native_thread_t;
+#include <lh/assert.h>
 
 /**
  * @brief Capture a Win32 failure on this thread and return false.
@@ -32,9 +24,10 @@ lh_os_concurrency_capture(DWORD code)
 static unsigned __stdcall lh_os_thread_native_run(void *arg)
 {
     lh_os_native_thread_t *self = arg;
-    if (WaitForSingleObject(self->gate, INFINITE) == WAIT_OBJECT_0 && self->proceed)
+    if (WaitForSingleObject(lh_os_native_thread_get_gate(self), INFINITE) == WAIT_OBJECT_0 &&
+        lh_os_native_thread_get_proceed(self))
     {
-        self->run(self->user);
+        lh_os_native_thread_get_run_fn(self)(lh_os_native_thread_get_user(self));
     }
     return 0;
 }
@@ -57,10 +50,10 @@ lh_os_system_thread_start(lh_os_thread_fn run, lh_ptr user, lh_s32_t cpu, lh_u32
         lh_os_concurrency_capture(ERROR_NOT_ENOUGH_MEMORY);
         return NULL;
     }
-    self->run = run;
-    self->user = user;
-    self->gate = CreateEventW(NULL, TRUE, FALSE, NULL);
-    if (!self->gate)
+    lh_os_native_thread_set_run_fn(self, run);
+    lh_os_native_thread_set_user(self, user);
+    lh_os_native_thread_set_gate(self, CreateEventW(NULL, TRUE, FALSE, NULL));
+    if (!lh_os_native_thread_get_gate(self))
     {
         DWORD error = GetLastError();
         free(self);
@@ -68,34 +61,37 @@ lh_os_system_thread_start(lh_os_thread_fn run, lh_ptr user, lh_s32_t cpu, lh_u32
         return NULL;
     }
     /* CRT per-thread state is released when the callback returns. */
-    self->handle = (HANDLE)_beginthreadex(NULL, 0, lh_os_thread_native_run, self, 0, &self->id);
+    lh_os_native_thread_set_handle(self,
+                                   (HANDLE)_beginthreadex(NULL, 0, lh_os_thread_native_run, self, 0,
+                                                          lh_os_native_thread_get_id_mut(self)));
     DWORD error = 0;
-    if (!self->handle)
+    if (!lh_os_native_thread_get_handle(self))
     {
         error = errno == EAGAIN   ? ERROR_MAX_THRDS_REACHED
                 : errno == EINVAL ? ERROR_INVALID_PARAMETER
                                   : ERROR_NOT_ENOUGH_MEMORY;
     }
-    else if (cpu >= 0 && !SetThreadAffinityMask(self->handle, (DWORD_PTR)1 << cpu))
+    else if (cpu >= 0 &&
+             !SetThreadAffinityMask(lh_os_native_thread_get_handle(self), (DWORD_PTR)1 << cpu))
     {
         error = GetLastError();
     }
     if (error)
     {
-        if (self->handle)
+        if (lh_os_native_thread_get_handle(self))
         {
             /* Release the startup gate without running user code. */
-            SetEvent(self->gate);
-            WaitForSingleObject(self->handle, INFINITE);
-            CloseHandle(self->handle);
+            SetEvent(lh_os_native_thread_get_gate(self));
+            WaitForSingleObject(lh_os_native_thread_get_handle(self), INFINITE);
+            CloseHandle(lh_os_native_thread_get_handle(self));
         }
-        CloseHandle(self->gate);
+        CloseHandle(lh_os_native_thread_get_gate(self));
         free(self);
         lh_os_concurrency_capture(error);
         return NULL;
     }
-    self->proceed = 1;
-    SetEvent(self->gate);
+    lh_os_native_thread_set_proceed(self, 1);
+    SetEvent(lh_os_native_thread_get_gate(self));
     return self;
 }
 
@@ -110,21 +106,21 @@ lh_os_system_thread_join(lh_os_system_thread_handle_t handle)
     {
         return lh_os_concurrency_capture(ERROR_INVALID_PARAMETER);
     }
-    if (self->id == GetCurrentThreadId())
+    if (lh_os_native_thread_get_id(self) == GetCurrentThreadId())
     {
         return lh_os_concurrency_capture(ERROR_POSSIBLE_DEADLOCK);
     }
-    DWORD status = WaitForSingleObject(self->handle, INFINITE);
+    DWORD status = WaitForSingleObject(lh_os_native_thread_get_handle(self), INFINITE);
     if (status != WAIT_OBJECT_0)
     {
         return lh_os_concurrency_capture(status == WAIT_FAILED ? GetLastError()
                                                                : ERROR_GEN_FAILURE);
     }
-    if (!CloseHandle(self->handle))
+    if (!CloseHandle(lh_os_native_thread_get_handle(self)))
     {
         return lh_os_concurrency_capture(GetLastError());
     }
-    CloseHandle(self->gate);
+    CloseHandle(lh_os_native_thread_get_gate(self));
     free(self);
     return lh_bool_true;
 }
@@ -194,19 +190,6 @@ lh_os_system_mutex_unlock(lh_os_system_mutex_handle_t handle)
     return lh_bool_true;
 }
 
-/* CONDITION_VARIABLE is a pointer-sized opaque state. Resolve its API at open,
- * so other LH OS services can still load on systems lacking condition variables.
- * All calls use the Win32 calling convention, including on 32-bit Windows. */
-typedef VOID(WINAPI *lh_os_condition_change_fn)(PVOID state);
-typedef BOOL(WINAPI *lh_os_condition_wait_fn)(PVOID state, PCRITICAL_SECTION mutex, DWORD timeout);
-
-typedef struct lh_os_native_condition
-{
-    PVOID state;
-    lh_os_condition_change_fn signal, broadcast;
-    lh_os_condition_wait_fn wait;
-} lh_os_native_condition_t;
-
 /**
  * @brief Allocate and initialize one native condition object.
  */
@@ -236,18 +219,19 @@ lh_os_system_condition_open(void)
     procedure.raw = GetProcAddress(kernel, "InitializeConditionVariable");
     lh_os_condition_change_fn init = procedure.change;
     procedure.raw = GetProcAddress(kernel, "WakeConditionVariable");
-    self->signal = procedure.change;
+    lh_os_native_condition_set_signal_fn(self, procedure.change);
     procedure.raw = GetProcAddress(kernel, "WakeAllConditionVariable");
-    self->broadcast = procedure.change;
+    lh_os_native_condition_set_broadcast_fn(self, procedure.change);
     procedure.raw = GetProcAddress(kernel, "SleepConditionVariableCS");
-    self->wait = procedure.wait;
-    if (!init || !self->signal || !self->broadcast || !self->wait)
+    lh_os_native_condition_set_wait_fn(self, procedure.wait);
+    if (!init || !lh_os_native_condition_get_signal_fn(self) ||
+        !lh_os_native_condition_get_broadcast_fn(self) || !lh_os_native_condition_get_wait_fn(self))
     {
         free(self);
         lh_os_concurrency_capture(ERROR_CALL_NOT_IMPLEMENTED);
         return NULL;
     }
-    init(&self->state);
+    init(lh_os_native_condition_get_state_mut(self));
     return self;
 }
 
@@ -277,7 +261,8 @@ lh_os_system_condition_wait(lh_os_system_condition_handle_t handle,
     {
         return lh_os_concurrency_capture(ERROR_INVALID_PARAMETER);
     }
-    if (!self->wait(&self->state, mutex, INFINITE))
+    if (!lh_os_native_condition_get_wait_fn(self)(lh_os_native_condition_get_state_mut(self), mutex,
+                                                  INFINITE))
     {
         return lh_os_concurrency_capture(GetLastError());
     }
@@ -295,7 +280,7 @@ lh_os_system_condition_signal(lh_os_system_condition_handle_t handle)
     {
         return lh_os_concurrency_capture(ERROR_INVALID_PARAMETER);
     }
-    self->signal(&self->state);
+    lh_os_native_condition_get_signal_fn(self)(lh_os_native_condition_get_state_mut(self));
     return lh_bool_true;
 }
 
@@ -310,6 +295,155 @@ lh_os_system_condition_broadcast(lh_os_system_condition_handle_t handle)
     {
         return lh_os_concurrency_capture(ERROR_INVALID_PARAMETER);
     }
-    self->broadcast(&self->state);
+    lh_os_native_condition_get_broadcast_fn(self)(lh_os_native_condition_get_state_mut(self));
     return lh_bool_true;
+}
+
+HANDLE
+lh_os_native_thread_get_handle(const lh_os_native_thread_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->handle;
+}
+
+lh_void
+lh_os_native_thread_set_handle(lh_os_native_thread_t *self, HANDLE handle)
+{
+    lh_assert_runtime_ref(self);
+    self->handle = handle;
+}
+
+unsigned
+lh_os_native_thread_get_id(const lh_os_native_thread_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->id;
+}
+
+lh_void
+lh_os_native_thread_set_id(lh_os_native_thread_t *self, unsigned id)
+{
+    lh_assert_runtime_ref(self);
+    self->id = id;
+}
+
+HANDLE
+lh_os_native_thread_get_gate(const lh_os_native_thread_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->gate;
+}
+
+lh_void
+lh_os_native_thread_set_gate(lh_os_native_thread_t *self, HANDLE gate)
+{
+    lh_assert_runtime_ref(self);
+    self->gate = gate;
+}
+
+int
+lh_os_native_thread_get_proceed(const lh_os_native_thread_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->proceed;
+}
+
+lh_void
+lh_os_native_thread_set_proceed(lh_os_native_thread_t *self, int proceed)
+{
+    lh_assert_runtime_ref(self);
+    self->proceed = proceed;
+}
+
+lh_os_thread_fn
+lh_os_native_thread_get_run_fn(const lh_os_native_thread_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->run;
+}
+
+lh_void
+lh_os_native_thread_set_run_fn(lh_os_native_thread_t *self, lh_os_thread_fn run)
+{
+    lh_assert_runtime_ref(self);
+    self->run = run;
+}
+
+lh_ptr
+lh_os_native_thread_get_user(const lh_os_native_thread_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->user;
+}
+
+lh_void
+lh_os_native_thread_set_user(lh_os_native_thread_t *self, lh_ptr user)
+{
+    lh_assert_runtime_ref(self);
+    self->user = user;
+}
+
+const PVOID *
+lh_os_native_condition_get_state(const lh_os_native_condition_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->state);
+}
+
+PVOID *
+lh_os_native_condition_get_state_mut(lh_os_native_condition_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->state);
+}
+
+lh_os_condition_change_fn
+lh_os_native_condition_get_signal_fn(const lh_os_native_condition_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->signal;
+}
+
+lh_void
+lh_os_native_condition_set_signal_fn(lh_os_native_condition_t *self,
+                                     lh_os_condition_change_fn signal)
+{
+    lh_assert_runtime_ref(self);
+    self->signal = signal;
+}
+
+lh_os_condition_change_fn
+lh_os_native_condition_get_broadcast_fn(const lh_os_native_condition_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->broadcast;
+}
+
+lh_void
+lh_os_native_condition_set_broadcast_fn(lh_os_native_condition_t *self,
+                                        lh_os_condition_change_fn broadcast)
+{
+    lh_assert_runtime_ref(self);
+    self->broadcast = broadcast;
+}
+
+lh_os_condition_wait_fn
+lh_os_native_condition_get_wait_fn(const lh_os_native_condition_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->wait;
+}
+
+lh_void
+lh_os_native_condition_set_wait_fn(lh_os_native_condition_t *self, lh_os_condition_wait_fn wait)
+{
+    lh_assert_runtime_ref(self);
+    self->wait = wait;
+}
+
+unsigned *
+lh_os_native_thread_get_id_mut(lh_os_native_thread_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->id);
 }

@@ -629,7 +629,7 @@ TEST(os_window, frame_and_zone_do_not_interfere)
     ZoneLog log{0, -1, -1, lh_os_window_zone_client, 36};
 
     lh_os_window_init(lh_addr_of(window));
-    lh_os_window_set_frame(lh_addr_of(window), lh_os_window_frame_own);
+    lh_os_window_set_frame_v(lh_addr_of(window), lh_os_window_frame_own);
     /* Naming zones is what the caller's own frame has instead of an OS one: with a
        system frame the OS already moves and resizes the window, and the zones say
        nothing about that. */
@@ -714,7 +714,7 @@ TEST(os_window, a_window_opens_where_the_window_system_wants_by_default)
     /* Saying nothing is a choice too: the window system's own placement, which is
        not the middle of the screen. */
     EXPECT_EQ(lh_os_window_get_placement(lh_addr_of(window)), lh_os_window_placement_default);
-    lh_os_window_set_placement(lh_addr_of(window), lh_os_window_placement_center);
+    lh_os_window_set_placement_v(lh_addr_of(window), lh_os_window_placement_center);
     EXPECT_EQ(lh_os_window_get_placement(lh_addr_of(window)), lh_os_window_placement_center);
     lh_os_window_deinit(lh_addr_of(window));
 }
@@ -744,7 +744,7 @@ TEST(os_window, a_centred_window_centres_on_what_the_system_left_usable)
        is no call that asks what it is, so this checks the two things that hold
        whatever that area turns out to be on this machine. */
     lh_os_window_init(lh_addr_of(plain));
-    lh_os_window_set_frame(lh_addr_of(plain), lh_os_window_frame_own);
+    lh_os_window_set_frame_v(lh_addr_of(plain), lh_os_window_frame_own);
     ASSERT_EQ(lh_os_window_open(lh_addr_of(app), lh_addr_of(plain), "lh-test-plain", 320, 200),
               lh_bool_true);
     ASSERT_EQ(lh_os_window_get_position(lh_addr_of(plain), lh_addr_of(plain_x), lh_addr_of(plain_y)),
@@ -752,8 +752,8 @@ TEST(os_window, a_centred_window_centres_on_what_the_system_left_usable)
     lh_os_window_close(lh_addr_of(plain));
 
     lh_os_window_init(lh_addr_of(small));
-    lh_os_window_set_frame(lh_addr_of(small), lh_os_window_frame_own);
-    lh_os_window_set_placement(lh_addr_of(small), lh_os_window_placement_center);
+    lh_os_window_set_frame_v(lh_addr_of(small), lh_os_window_frame_own);
+    lh_os_window_set_placement_v(lh_addr_of(small), lh_os_window_placement_center);
     ASSERT_EQ(lh_os_window_open(lh_addr_of(app), lh_addr_of(small), "lh-test-centred", 320, 200),
               lh_bool_true);
     ASSERT_EQ(lh_os_window_get_position(lh_addr_of(small), lh_addr_of(small_x), lh_addr_of(small_y)),
@@ -764,8 +764,8 @@ TEST(os_window, a_centred_window_centres_on_what_the_system_left_usable)
     lh_os_window_close(lh_addr_of(small));
 
     lh_os_window_init(lh_addr_of(large));
-    lh_os_window_set_frame(lh_addr_of(large), lh_os_window_frame_own);
-    lh_os_window_set_placement(lh_addr_of(large), lh_os_window_placement_center);
+    lh_os_window_set_frame_v(lh_addr_of(large), lh_os_window_frame_own);
+    lh_os_window_set_placement_v(lh_addr_of(large), lh_os_window_placement_center);
     ASSERT_EQ(lh_os_window_open(lh_addr_of(app), lh_addr_of(large), "lh-test-centred2", 500, 300),
               lh_bool_true);
     ASSERT_EQ(lh_os_window_get_position(lh_addr_of(large), lh_addr_of(large_x), lh_addr_of(large_y)),
@@ -799,8 +799,8 @@ TEST(os_window, a_window_bigger_than_the_screen_keeps_its_title_reachable)
 
     lh_os_app_init(lh_addr_of(app));
     lh_os_window_init(lh_addr_of(window));
-    lh_os_window_set_frame(lh_addr_of(window), lh_os_window_frame_own);
-    lh_os_window_set_placement(lh_addr_of(window), lh_os_window_placement_center);
+    lh_os_window_set_frame_v(lh_addr_of(window), lh_os_window_frame_own);
+    lh_os_window_set_placement_v(lh_addr_of(window), lh_os_window_placement_center);
     /* Far wider and taller than any desktop, so the centred corner would be well
        off the screen and the title bar with it. */
     ASSERT_EQ(lh_os_window_open(lh_addr_of(app), lh_addr_of(window), "lh-test-huge", 20000, 20000),

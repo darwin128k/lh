@@ -32,11 +32,11 @@ struct lh_ui_frame_stats;
  * window instead of taking the OS frame: `frame` picks whose frame it is, `corner`
  * cuts that window to a rounded region, and `on_zone` answers what the window system
  * should do with each point — move, resize, or leave it to the app. See
- * ::lh_os_window_set_frame, ::lh_os_window_set_corner_radius and
+ * ::lh_os_window_set_frame_v, ::lh_os_window_set_corner_radius and
  * ::lh_os_window_set_on_zone.
  *
  * `placement` is where the window opens for the first time; it is read at creation
- * like `frame` and `corner`. See ::lh_os_window_set_placement.
+ * like `frame` and `corner`. See ::lh_os_window_set_placement_v.
  *
  * `paint_dc` is set only for the duration of ::lh_os_window_on_paint_fn.
  * `frame_stats` is the caller's, and every paint is recorded into it when it is set
