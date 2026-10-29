@@ -341,6 +341,7 @@ if (LH_LIBRARY_OPTION_OS)
             # the loader, and no X11 headers or development package to build with.
             list(APPEND LH_LIB_SOURCES
                     ${LH_LIB_SRC_PATH}/os/system/posix/x11.c
+                    ${LH_LIB_SRC_PATH}/os/system/posix/paint.c
                     ${LH_LIB_SRC_PATH}/os/system/posix/window.c
                     ${LH_LIB_SRC_PATH}/os/system/posix/key.c
                     ${LH_LIB_SRC_PATH}/os/system/posix/input.c

@@ -1,7 +1,7 @@
 #ifndef _GNU_SOURCE
 #    define _GNU_SOURCE
 #endif
-#include <lh/os/system/concurrency.h>
+#include <lh/os/system/posix/concurrency/thread.h>
 #include <lh/os/system/error/capture.h>
 #include <errno.h>
 #include <pthread.h>
@@ -10,17 +10,7 @@
 #if defined(__linux__)
 #    include <sched.h>
 #endif
-
-typedef struct lh_os_native_thread
-{
-    pthread_t thread;
-    pthread_mutex_t gate;
-    pthread_cond_t ready;
-    lh_os_thread_fn run;
-    lh_ptr user;
-    lh_u32_t flags;
-    int prepared, preparation_error, proceed;
-} lh_os_native_thread_t;
+#include <lh/assert.h>
 
 /**
  * @brief Return success for zero, or capture the POSIX error on this thread.
@@ -45,26 +35,27 @@ lh_os_thread_native_run(void *arg)
 {
     lh_os_native_thread_t *self = arg;
     int error = 0;
-    if (self->flags & lh_os_thread_block_sigpipe)
+    if (lh_os_native_thread_get_flags(self) & lh_os_thread_block_sigpipe)
     {
         sigset_t mask;
         sigemptyset(&mask);
         sigaddset(&mask, SIGPIPE);
         error = pthread_sigmask(SIG_BLOCK, &mask, NULL);
     }
-    pthread_mutex_lock(&self->gate);
-    self->preparation_error = error;
-    self->prepared = 1;
-    pthread_cond_signal(&self->ready);
-    while (!self->proceed)
+    pthread_mutex_lock(lh_os_native_thread_get_gate_mut(self));
+    lh_os_native_thread_set_preparation_error(self, error);
+    lh_os_native_thread_set_prepared(self, 1);
+    pthread_cond_signal(lh_os_native_thread_get_ready_mut(self));
+    while (!lh_os_native_thread_get_proceed(self))
     {
-        pthread_cond_wait(&self->ready, &self->gate);
+        pthread_cond_wait(lh_os_native_thread_get_ready_mut(self),
+                          lh_os_native_thread_get_gate_mut(self));
     }
-    int proceed = self->proceed;
-    pthread_mutex_unlock(&self->gate);
+    int proceed = lh_os_native_thread_get_proceed(self);
+    pthread_mutex_unlock(lh_os_native_thread_get_gate_mut(self));
     if (proceed > 0)
     {
-        self->run(self->user);
+        lh_os_native_thread_get_run_fn(self)(lh_os_native_thread_get_user(self));
     }
     return NULL;
 }
@@ -75,8 +66,8 @@ lh_os_thread_native_run(void *arg)
 static void
 lh_os_thread_native_free(lh_os_native_thread_t *self)
 {
-    pthread_cond_destroy(&self->ready);
-    pthread_mutex_destroy(&self->gate);
+    pthread_cond_destroy(lh_os_native_thread_get_ready_mut(self));
+    pthread_mutex_destroy(lh_os_native_thread_get_gate_mut(self));
     free(self);
 }
 
@@ -110,20 +101,20 @@ lh_os_system_thread_start(lh_os_thread_fn run, lh_ptr user, lh_s32_t cpu, lh_u32
         lh_os_concurrency_capture(ENOMEM);
         return NULL;
     }
-    self->run = run;
-    self->user = user;
-    self->flags = flags;
-    int code = pthread_mutex_init(&self->gate, NULL);
+    lh_os_native_thread_set_run_fn(self, run);
+    lh_os_native_thread_set_user(self, user);
+    lh_os_native_thread_set_flags(self, flags);
+    int code = pthread_mutex_init(lh_os_native_thread_get_gate_mut(self), NULL);
     if (code)
     {
         free(self);
         lh_os_concurrency_capture(code);
         return NULL;
     }
-    code = pthread_cond_init(&self->ready, NULL);
+    code = pthread_cond_init(lh_os_native_thread_get_ready_mut(self), NULL);
     if (code)
     {
-        pthread_mutex_destroy(&self->gate);
+        pthread_mutex_destroy(lh_os_native_thread_get_gate_mut(self));
         free(self);
         lh_os_concurrency_capture(code);
         return NULL;
@@ -145,33 +136,35 @@ lh_os_system_thread_start(lh_os_thread_fn run, lh_ptr user, lh_s32_t cpu, lh_u32
         code = pthread_attr_setaffinity_np(&attributes, sizeof set, &set);
     }
 #endif
-    pthread_mutex_lock(&self->gate);
+    pthread_mutex_lock(lh_os_native_thread_get_gate_mut(self));
     if (!code)
     {
-        code = pthread_create(&self->thread, &attributes, lh_os_thread_native_run, self);
+        code = pthread_create(lh_os_native_thread_get_thread_mut(self), &attributes,
+                              lh_os_thread_native_run, self);
     }
     pthread_attr_destroy(&attributes);
     if (code)
     {
-        pthread_mutex_unlock(&self->gate);
+        pthread_mutex_unlock(lh_os_native_thread_get_gate_mut(self));
         lh_os_thread_native_free(self);
         lh_os_concurrency_capture(code);
         return NULL;
     }
-    while (!self->prepared && !code)
+    while (!lh_os_native_thread_get_prepared(self) && !code)
     {
-        code = pthread_cond_wait(&self->ready, &self->gate);
+        code = pthread_cond_wait(lh_os_native_thread_get_ready_mut(self),
+                                 lh_os_native_thread_get_gate_mut(self));
     }
     if (!code)
     {
-        code = self->preparation_error;
+        code = lh_os_native_thread_get_preparation_error(self);
     }
-    self->proceed = code ? -1 : 1;
-    pthread_cond_signal(&self->ready);
-    pthread_mutex_unlock(&self->gate);
+    lh_os_native_thread_set_proceed(self, code ? -1 : 1);
+    pthread_cond_signal(lh_os_native_thread_get_ready_mut(self));
+    pthread_mutex_unlock(lh_os_native_thread_get_gate_mut(self));
     if (code)
     {
-        pthread_join(self->thread, NULL);
+        pthread_join(lh_os_native_thread_get_thread(self), NULL);
         lh_os_thread_native_free(self);
         lh_os_concurrency_capture(code);
         return NULL;
@@ -190,7 +183,7 @@ lh_os_system_thread_join(lh_os_system_thread_handle_t handle)
     {
         return lh_os_concurrency_capture(EINVAL);
     }
-    if (!lh_os_concurrency_capture(pthread_join(self->thread, NULL)))
+    if (!lh_os_concurrency_capture(pthread_join(lh_os_native_thread_get_thread(self), NULL)))
     {
         return lh_bool_false;
     }
@@ -322,4 +315,137 @@ lh_bool_t
 lh_os_system_condition_broadcast(lh_os_system_condition_handle_t handle)
 {
     return lh_os_concurrency_capture(handle ? pthread_cond_broadcast(handle) : EINVAL);
+}
+
+pthread_t
+lh_os_native_thread_get_thread(const lh_os_native_thread_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->thread;
+}
+
+lh_void
+lh_os_native_thread_set_thread(lh_os_native_thread_t *self, pthread_t thread)
+{
+    lh_assert_runtime_ref(self);
+    self->thread = thread;
+}
+
+const pthread_mutex_t *
+lh_os_native_thread_get_gate(const lh_os_native_thread_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->gate);
+}
+
+pthread_mutex_t *
+lh_os_native_thread_get_gate_mut(lh_os_native_thread_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->gate);
+}
+
+const pthread_cond_t *
+lh_os_native_thread_get_ready(const lh_os_native_thread_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->ready);
+}
+
+pthread_cond_t *
+lh_os_native_thread_get_ready_mut(lh_os_native_thread_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->ready);
+}
+
+lh_os_thread_fn
+lh_os_native_thread_get_run_fn(const lh_os_native_thread_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->run;
+}
+
+lh_void
+lh_os_native_thread_set_run_fn(lh_os_native_thread_t *self, lh_os_thread_fn run)
+{
+    lh_assert_runtime_ref(self);
+    self->run = run;
+}
+
+lh_ptr
+lh_os_native_thread_get_user(const lh_os_native_thread_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->user;
+}
+
+lh_void
+lh_os_native_thread_set_user(lh_os_native_thread_t *self, lh_ptr user)
+{
+    lh_assert_runtime_ref(self);
+    self->user = user;
+}
+
+lh_u32_t
+lh_os_native_thread_get_flags(const lh_os_native_thread_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->flags;
+}
+
+lh_void
+lh_os_native_thread_set_flags(lh_os_native_thread_t *self, lh_u32_t flags)
+{
+    lh_assert_runtime_ref(self);
+    self->flags = flags;
+}
+
+int
+lh_os_native_thread_get_prepared(const lh_os_native_thread_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->prepared;
+}
+
+lh_void
+lh_os_native_thread_set_prepared(lh_os_native_thread_t *self, int prepared)
+{
+    lh_assert_runtime_ref(self);
+    self->prepared = prepared;
+}
+
+int
+lh_os_native_thread_get_preparation_error(const lh_os_native_thread_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->preparation_error;
+}
+
+lh_void
+lh_os_native_thread_set_preparation_error(lh_os_native_thread_t *self, int preparation_error)
+{
+    lh_assert_runtime_ref(self);
+    self->preparation_error = preparation_error;
+}
+
+int
+lh_os_native_thread_get_proceed(const lh_os_native_thread_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->proceed;
+}
+
+lh_void
+lh_os_native_thread_set_proceed(lh_os_native_thread_t *self, int proceed)
+{
+    lh_assert_runtime_ref(self);
+    self->proceed = proceed;
+}
+
+pthread_t *
+lh_os_native_thread_get_thread_mut(lh_os_native_thread_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->thread);
 }

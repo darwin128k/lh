@@ -3,25 +3,14 @@
  * @brief Win32 off-screen surface: DIB section + memory DC + BitBlt present.
  */
 
+#include <lh/assert/runtime.h>
 #include <lh/memory.h>
 #include <lh/os/alloc.h>
 #include <lh/os/system/surface.h>
 #include <lh/os/system/win/gdi32.h>
+#include <lh/os/system/win/surface.h>
 #include <lh/runtime/allocator.h>
 #include <lh/util/return.h>
-
-/** An off-screen surface: a DIB section selected into a memory DC. */
-struct lh_os_system_win_surface
-{
-    lh_os_system_win_hdc_t dc;          /**< memory DC the bitmap is selected into */
-    lh_os_system_win_handle_t bitmap;   /**< the DIB section */
-    lh_os_system_win_handle_t previous; /**< the DC's bitmap before ours, restored on free */
-    lh_ptr bits;                        /**< the DIB's pixels */
-    int width;                          /**< width in pixels */
-    int height;                         /**< height in pixels */
-};
-/** @copybrief lh_os_system_win_surface */
-typedef struct lh_os_system_win_surface lh_os_system_win_surface_t;
 
 lh_os_system_surface_handle_t
 lh_os_system_surface_create(int width, int height, int bits)
@@ -73,12 +62,12 @@ lh_os_system_surface_create(int width, int height, int bits)
         return LH_OS_SYSTEM_SURFACE_HANDLE_INVALID;
     }
 
-    surface->dc = dc;
-    surface->bitmap = bitmap;
-    surface->previous = SelectObject(dc, bitmap);
-    surface->bits = bits_pointer;
-    surface->width = width;
-    surface->height = height;
+    lh_os_system_win_surface_set_dc(surface, dc);
+    lh_os_system_win_surface_set_bitmap(surface, bitmap);
+    lh_os_system_win_surface_set_previous(surface, SelectObject(dc, bitmap));
+    lh_os_system_win_surface_set_bits(surface, bits_pointer);
+    lh_os_system_win_surface_set_width(surface, width);
+    lh_os_system_win_surface_set_height(surface, height);
     return lh_cast_reinterpret(lh_os_system_surface_handle_t, surface);
 }
 
@@ -89,17 +78,19 @@ lh_os_system_surface_destroy(lh_os_system_surface_handle_t handle)
 
     lh_return_if(lh_null_eq(handle));
     surface = lh_ptr_rcast(lh_os_system_win_surface_t, handle);
-    if (lh_null_ne(surface->dc) && lh_null_ne(surface->previous))
+    if (lh_null_ne(lh_os_system_win_surface_get_dc(surface)) &&
+        lh_null_ne(lh_os_system_win_surface_get_previous(surface)))
     {
-        SelectObject(surface->dc, surface->previous);
+        SelectObject(lh_os_system_win_surface_get_dc(surface),
+                     lh_os_system_win_surface_get_previous(surface));
     }
-    if (lh_null_ne(surface->bitmap))
+    if (lh_null_ne(lh_os_system_win_surface_get_bitmap(surface)))
     {
-        DeleteObject(surface->bitmap);
+        DeleteObject(lh_os_system_win_surface_get_bitmap(surface));
     }
-    if (lh_null_ne(surface->dc))
+    if (lh_null_ne(lh_os_system_win_surface_get_dc(surface)))
     {
-        DeleteDC(surface->dc);
+        DeleteDC(lh_os_system_win_surface_get_dc(surface));
     }
     lh_runtime_allocator_free(surface);
 }
@@ -111,7 +102,7 @@ lh_os_system_surface_get_width(lh_os_system_surface_handle_t handle)
 
     lh_return_if(lh_null_eq(handle), 0);
     surface = lh_ptr_rcast(const lh_os_system_win_surface_t, handle);
-    return surface->width;
+    return lh_os_system_win_surface_get_width(surface);
 }
 
 int
@@ -121,7 +112,7 @@ lh_os_system_surface_get_height(lh_os_system_surface_handle_t handle)
 
     lh_return_if(lh_null_eq(handle), 0);
     surface = lh_ptr_rcast(const lh_os_system_win_surface_t, handle);
-    return surface->height;
+    return lh_os_system_win_surface_get_height(surface);
 }
 
 lh_ptr
@@ -132,7 +123,7 @@ lh_os_system_surface_get_pixels(lh_os_system_surface_handle_t handle)
     lh_return_if(lh_null_eq(handle), lh_null);
     surface = lh_ptr_rcast(const lh_os_system_win_surface_t, handle);
     (void)GdiFlush();
-    return surface->bits;
+    return lh_os_system_win_surface_get_bits(surface);
 }
 
 lh_ptr
@@ -142,7 +133,7 @@ lh_os_system_surface_get_dc(lh_os_system_surface_handle_t handle)
 
     lh_return_if(lh_null_eq(handle), lh_null);
     surface = lh_ptr_rcast(const lh_os_system_win_surface_t, handle);
-    return lh_cast_reinterpret(lh_ptr, surface->dc);
+    return lh_cast_reinterpret(lh_ptr, lh_os_system_win_surface_get_dc(surface));
 }
 
 lh_bool_t
@@ -156,7 +147,8 @@ lh_os_system_surface_present_part(lh_os_system_surface_handle_t handle, lh_ptr d
     lh_return_if(width <= 0 || height <= 0, lh_bool_false);
     surface = lh_ptr_rcast(const lh_os_system_win_surface_t, handle);
     dest_dc = lh_cast_reinterpret(lh_os_system_win_hdc_t, dest);
-    return lh_cast_static(lh_bool_t, BitBlt(dest_dc, x, y, width, height, surface->dc, src_x, src_y,
+    return lh_cast_static(lh_bool_t, BitBlt(dest_dc, x, y, width, height,
+                                            lh_os_system_win_surface_get_dc(surface), src_x, src_y,
                                             LH_OS_SYSTEM_WIN_SRCCOPY) != 0);
 }
 
@@ -167,8 +159,9 @@ lh_os_system_surface_present_at(lh_os_system_surface_handle_t handle, lh_ptr des
 
     lh_return_if(lh_null_eq(handle) || lh_null_eq(dest), lh_bool_false);
     surface = lh_ptr_rcast(const lh_os_system_win_surface_t, handle);
-    return lh_os_system_surface_present_part(handle, dest, x, y, 0, 0, surface->width,
-                                             surface->height);
+    return lh_os_system_surface_present_part(handle, dest, x, y, 0, 0,
+                                             lh_os_system_win_surface_get_width(surface),
+                                             lh_os_system_win_surface_get_height(surface));
 }
 
 lh_bool_t
@@ -188,15 +181,18 @@ lh_os_system_surface_present_fit(lh_os_system_surface_handle_t handle, lh_ptr de
                  lh_bool_false);
     surface = lh_ptr_rcast(const lh_os_system_win_surface_t, handle);
     dest_dc = lh_cast_reinterpret(lh_os_system_win_hdc_t, dest);
-    if (dest_w * surface->height > dest_h * surface->width)
+    if (dest_w * lh_os_system_win_surface_get_height(surface) >
+        dest_h * lh_os_system_win_surface_get_width(surface))
     {
         dh = dest_h;
-        dw = dest_h * surface->width / surface->height;
+        dw = dest_h * lh_os_system_win_surface_get_width(surface) /
+             lh_os_system_win_surface_get_height(surface);
     }
     else
     {
         dw = dest_w;
-        dh = dest_w * surface->height / surface->width;
+        dh = dest_w * lh_os_system_win_surface_get_height(surface) /
+             lh_os_system_win_surface_get_width(surface);
     }
     if (dw < 1)
     {
@@ -217,7 +213,95 @@ lh_os_system_surface_present_fit(lh_os_system_surface_handle_t handle, lh_ptr de
         (void)DeleteObject(brush);
     }
     (void)SetStretchBltMode(dest_dc, LH_OS_SYSTEM_WIN_COLORONCOLOR);
-    return lh_cast_static(lh_bool_t,
-                          StretchBlt(dest_dc, ox, oy, dw, dh, surface->dc, 0, 0, surface->width,
-                                     surface->height, LH_OS_SYSTEM_WIN_SRCCOPY) != 0);
+    return lh_cast_static(lh_bool_t, StretchBlt(dest_dc, ox, oy, dw, dh,
+                                                lh_os_system_win_surface_get_dc(surface), 0, 0,
+                                                lh_os_system_win_surface_get_width(surface),
+                                                lh_os_system_win_surface_get_height(surface),
+                                                LH_OS_SYSTEM_WIN_SRCCOPY) != 0);
+}
+
+lh_os_system_win_hdc_t
+lh_os_system_win_surface_get_dc(const lh_os_system_win_surface_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->dc;
+}
+
+lh_void
+lh_os_system_win_surface_set_dc(lh_os_system_win_surface_t *self, lh_os_system_win_hdc_t dc)
+{
+    lh_assert_runtime_ref(self);
+    self->dc = dc;
+}
+
+lh_os_system_win_handle_t
+lh_os_system_win_surface_get_bitmap(const lh_os_system_win_surface_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->bitmap;
+}
+
+lh_void
+lh_os_system_win_surface_set_bitmap(lh_os_system_win_surface_t *self,
+                                    lh_os_system_win_handle_t bitmap)
+{
+    lh_assert_runtime_ref(self);
+    self->bitmap = bitmap;
+}
+
+lh_os_system_win_handle_t
+lh_os_system_win_surface_get_previous(const lh_os_system_win_surface_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->previous;
+}
+
+lh_void
+lh_os_system_win_surface_set_previous(lh_os_system_win_surface_t *self,
+                                      lh_os_system_win_handle_t previous)
+{
+    lh_assert_runtime_ref(self);
+    self->previous = previous;
+}
+
+lh_ptr
+lh_os_system_win_surface_get_bits(const lh_os_system_win_surface_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->bits;
+}
+
+lh_void
+lh_os_system_win_surface_set_bits(lh_os_system_win_surface_t *self, lh_ptr bits)
+{
+    lh_assert_runtime_ref(self);
+    self->bits = bits;
+}
+
+int
+lh_os_system_win_surface_get_width(const lh_os_system_win_surface_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->width;
+}
+
+lh_void
+lh_os_system_win_surface_set_width(lh_os_system_win_surface_t *self, int width)
+{
+    lh_assert_runtime_ref(self);
+    self->width = width;
+}
+
+int
+lh_os_system_win_surface_get_height(const lh_os_system_win_surface_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->height;
+}
+
+lh_void
+lh_os_system_win_surface_set_height(lh_os_system_win_surface_t *self, int height)
+{
+    lh_assert_runtime_ref(self);
+    self->height = height;
 }

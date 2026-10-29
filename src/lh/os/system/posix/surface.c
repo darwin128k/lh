@@ -14,6 +14,7 @@
  * for that first (::lh_os_system_surface_get_pixels) — the same promise GdiFlush
  * keeps on Windows. Anywhere else, the plain path: the pixels in the request.
  */
+#include <lh/assert.h>
 
 #include <lh/byte/ptr.h>
 #include <lh/memory.h>
@@ -59,14 +60,14 @@ lh_os_system_posix_surface_share(lh_os_system_posix_surface_t *surface, lh_usize
         (void)shmctl(id, IPC_RMID, lh_null);
         return lh_bool_false;
     }
-    lh_memory_set(lh_addr_of(surface->segment), sizeof(surface->segment), 0);
-    surface->segment.shmid = id;
-    surface->segment.shmaddr = lh_ptr_rcast(char, address);
-    surface->segment.read_only = 0;
+    lh_memory_set(lh_os_system_posix_surface_get_segment_mut(surface), sizeof(surface->segment), 0);
+    lh_os_system_posix_surface_get_segment_mut(surface)->shmid = id;
+    lh_os_system_posix_surface_get_segment_mut(surface)->shmaddr = lh_ptr_rcast(char, address);
+    lh_os_system_posix_surface_get_segment_mut(surface)->read_only = 0;
     /* The attach is answered asynchronously; a server on another machine answers it
        with an error, and the sync is what makes the answer arrive now. */
     (void)lh_os_system_posix_connection_take_error();
-    (void)ext->XShmAttach(display, lh_addr_of(surface->segment));
+    (void)ext->XShmAttach(display, lh_os_system_posix_surface_get_segment_mut(surface));
     (void)x->XSync(display, 0);
     refused = lh_os_system_posix_connection_take_error();
     (void)shmctl(id, IPC_RMID, lh_null);
@@ -77,19 +78,20 @@ lh_os_system_posix_surface_share(lh_os_system_posix_surface_t *surface, lh_usize
         return lh_bool_false;
     }
     lh_os_system_posix_surface_shm = 1;
-    surface->bits = lh_ptr_rcast(lh_byte_t, address);
-    surface->display = display;
-    surface->shared = lh_bool_true;
+    lh_os_system_posix_surface_set_bits(surface, lh_ptr_rcast(lh_byte_t, address));
+    lh_os_system_posix_surface_set_display(surface, display);
+    lh_os_system_posix_surface_set_shared(surface, lh_bool_true);
     return lh_bool_true;
 }
 
 lh_void
 lh_os_system_posix_surface_settle(lh_os_system_posix_surface_t *surface)
 {
-    if (surface->pending)
+    if (lh_os_system_posix_surface_is_pending(surface))
     {
-        (void)lh_os_system_posix_x11_load()->XSync(surface->display, 0);
-        surface->pending = lh_bool_false;
+        (void)lh_os_system_posix_x11_load()->XSync(lh_os_system_posix_surface_get_display(surface),
+                                                   0);
+        lh_os_system_posix_surface_set_pending(surface, lh_bool_false);
     }
 }
 
@@ -110,19 +112,19 @@ lh_os_system_surface_create(int width, int height, int bits)
         !lh_os_system_posix_surface_share(surface, lh_cast_static(lh_usize_t, width) *
                                                        lh_cast_static(lh_usize_t, height) * 4U))
     {
-        surface->bits =
-            lh_ptr_rcast(lh_byte_t, lh_os_alloc(lh_cast_static(lh_usize_t, width) *
-                                                lh_cast_static(lh_usize_t, height) *
-                                                lh_cast_static(lh_usize_t, (bits / 8))));
-        if (lh_null_eq(surface->bits))
+        lh_os_system_posix_surface_set_bits(
+            surface, lh_ptr_rcast(lh_byte_t, lh_os_alloc(lh_cast_static(lh_usize_t, width) *
+                                                         lh_cast_static(lh_usize_t, height) *
+                                                         lh_cast_static(lh_usize_t, (bits / 8)))));
+        if (lh_null_eq(lh_os_system_posix_surface_get_bits(surface)))
         {
             lh_runtime_allocator_free(surface);
             return LH_OS_SYSTEM_SURFACE_HANDLE_INVALID;
         }
     }
-    surface->width = width;
-    surface->height = height;
-    surface->pixel_bits = bits;
+    lh_os_system_posix_surface_set_width(surface, width);
+    lh_os_system_posix_surface_set_height(surface, height);
+    lh_os_system_posix_surface_set_pixel_bits(surface, bits);
     return surface;
 }
 
@@ -133,23 +135,25 @@ lh_os_system_surface_destroy(lh_os_system_surface_handle_t handle)
 
     lh_return_if(lh_null_eq(handle));
     surface = lh_ptr_rcast(lh_os_system_posix_surface_t, handle);
-    if (lh_null_ne(surface->staging))
+    if (lh_null_ne(lh_os_system_posix_surface_get_staging(surface)))
     {
-        lh_runtime_allocator_free(surface->staging);
+        lh_runtime_allocator_free(lh_os_system_posix_surface_get_staging(surface));
     }
-    if (surface->shared)
+    if (lh_os_system_posix_surface_is_shared(surface))
     {
         /* Detached and synced before the memory goes: the server may still be
            reading the last present out of it. */
         lh_os_system_posix_surface_settle(surface);
-        (void)lh_os_system_posix_xext_load()->XShmDetach(surface->display,
-                                                         lh_addr_of(surface->segment));
-        (void)lh_os_system_posix_x11_load()->XSync(surface->display, 0);
-        (void)shmdt(surface->segment.shmaddr);
+        (void)lh_os_system_posix_xext_load()->XShmDetach(
+            lh_os_system_posix_surface_get_display(surface),
+            lh_os_system_posix_surface_get_segment_mut(surface));
+        (void)lh_os_system_posix_x11_load()->XSync(lh_os_system_posix_surface_get_display(surface),
+                                                   0);
+        (void)shmdt(lh_os_system_posix_surface_get_segment_mut(surface)->shmaddr);
     }
     else
     {
-        lh_runtime_allocator_free(surface->bits);
+        lh_runtime_allocator_free(lh_os_system_posix_surface_get_bits(surface));
     }
     lh_runtime_allocator_free(surface);
 }
@@ -178,7 +182,7 @@ lh_os_system_surface_get_pixels(lh_os_system_surface_handle_t handle)
     /* Whoever asks for the pixels is about to write them, and the server may not
        have read the last frame out of them yet. */
     lh_os_system_posix_surface_settle(surface);
-    return surface->bits;
+    return lh_os_system_posix_surface_get_bits(surface);
 }
 
 lh_ptr
@@ -198,32 +202,34 @@ lh_os_system_posix_surface_widen(lh_os_system_posix_surface_t *surface, int src_
     int x;
     int y;
 
-    if (surface->staging_words < words)
+    if (lh_os_system_posix_surface_get_staging_words(surface) < words)
     {
         lh_u32_t *grown = lh_ptr_rcast(lh_u32_t, lh_os_alloc(words * sizeof(lh_u32_t)));
 
         lh_return_if(lh_null_eq(grown), lh_null);
-        if (lh_null_ne(surface->staging))
+        if (lh_null_ne(lh_os_system_posix_surface_get_staging(surface)))
         {
-            lh_runtime_allocator_free(surface->staging);
+            lh_runtime_allocator_free(lh_os_system_posix_surface_get_staging(surface));
         }
-        surface->staging = grown;
-        surface->staging_words = words;
+        lh_os_system_posix_surface_set_staging(surface, grown);
+        lh_os_system_posix_surface_set_staging_words(surface, words);
     }
     for (y = 0; y < height; ++y)
     {
         const lh_u16_t *row =
-            lh_ptr_rcast(const lh_u16_t, surface->bits) +
-            lh_cast_static(lh_usize_t, (src_y + y)) * lh_cast_static(lh_usize_t, surface->width);
+            lh_ptr_rcast(const lh_u16_t, lh_os_system_posix_surface_get_bits(surface)) +
+            lh_cast_static(lh_usize_t, (src_y + y)) *
+                lh_cast_static(lh_usize_t, lh_os_system_posix_surface_get_width(surface));
 
         for (x = 0; x < width; ++x)
         {
-            surface->staging[lh_cast_static(lh_usize_t, y) * lh_cast_static(lh_usize_t, width) +
-                             lh_cast_static(lh_usize_t, x)] =
+            lh_os_system_posix_surface_get_staging(
+                surface)[lh_cast_static(lh_usize_t, y) * lh_cast_static(lh_usize_t, width) +
+                         lh_cast_static(lh_usize_t, x)] =
                 lh_os_system_posix_surface_from_565(row[src_x + x]);
         }
     }
-    return surface->staging;
+    return lh_os_system_posix_surface_get_staging(surface);
 }
 
 lh_bool_t
@@ -244,12 +250,16 @@ lh_os_system_surface_present_part(lh_os_system_surface_handle_t handle, lh_ptr d
     /* The part has to be inside the surface: XPutImage reads what it is told to,
        and a part past the edge is memory that is not ours. */
     lh_return_if(width <= 0 || height <= 0 || src_x < 0 || src_y < 0, lh_bool_false);
-    lh_return_if(src_x + width > surface->width || src_y + height > surface->height, lh_bool_false);
+    lh_return_if(src_x + width > lh_os_system_posix_surface_get_width(surface) ||
+                     src_y + height > lh_os_system_posix_surface_get_height(surface),
+                 lh_bool_false);
     /* Only TrueColor 24 and 32: the words are 0x00RRGGBB, which is what those
        visuals take. A paletted or 16-bit screen is not one this backend draws on. */
-    lh_return_if(paint->depth != 24 && paint->depth != 32, lh_bool_false);
+    lh_return_if(lh_os_system_posix_paint_get_depth(paint) != 24 &&
+                     lh_os_system_posix_paint_get_depth(paint) != 32,
+                 lh_bool_false);
 
-    if (surface->pixel_bits == 16)
+    if (lh_os_system_posix_surface_get_pixel_bits(surface) == 16)
     {
         data = lh_ptr_rcast(lh_byte_t,
                             lh_os_system_posix_surface_widen(surface, src_x, src_y, width, height));
@@ -261,9 +271,9 @@ lh_os_system_surface_present_part(lh_os_system_surface_handle_t handle, lh_ptr d
     }
     else
     {
-        data = surface->bits;
-        image_width = surface->width;
-        image_height = surface->height;
+        data = lh_os_system_posix_surface_get_bits(surface);
+        image_width = lh_os_system_posix_surface_get_width(surface);
+        image_height = lh_os_system_posix_surface_get_height(surface);
     }
 
     lh_memory_set(lh_addr_of(image), sizeof(image), 0);
@@ -279,29 +289,34 @@ lh_os_system_surface_present_part(lh_os_system_surface_handle_t handle, lh_ptr d
     image.bitmap_unit = 32;
     image.bitmap_bit_order = image.byte_order;
     image.bitmap_pad = 32;
-    image.depth = paint->depth;
+    image.depth = lh_os_system_posix_paint_get_depth(paint);
     image.bytes_per_line = image_width * 4;
     image.bits_per_pixel = 32;
     image.red_mask = 0x00ff0000UL;
     image.green_mask = 0x0000ff00UL;
     image.blue_mask = 0x000000ffUL;
-    if (surface->shared)
+    if (lh_os_system_posix_surface_is_shared(surface))
     {
         /* XShmPutImage finds the segment through obdata. */
-        image.obdata = lh_ptr_rcast(char, lh_addr_of(surface->segment));
+        image.obdata = lh_ptr_rcast(char, lh_os_system_posix_surface_get_segment_mut(surface));
     }
-    lh_return_if(paint->x11->XInitImage(lh_addr_of(image)) == 0, lh_bool_false);
-    if (surface->shared && surface->display == paint->display)
+    lh_return_if(lh_os_system_posix_paint_get_x11(paint)->XInitImage(lh_addr_of(image)) == 0,
+                 lh_bool_false);
+    if (lh_os_system_posix_surface_is_shared(surface) &&
+        lh_os_system_posix_surface_get_display(surface) ==
+            lh_os_system_posix_paint_get_display(paint))
     {
         (void)lh_os_system_posix_xext_load()->XShmPutImage(
-            paint->display, paint->window, paint->gc, lh_addr_of(image), src_x, src_y, x, y,
+            lh_os_system_posix_paint_get_display(paint), lh_os_system_posix_paint_get_window(paint),
+            lh_os_system_posix_paint_get_gc(paint), lh_addr_of(image), src_x, src_y, x, y,
             lh_cast_static(unsigned int, width), lh_cast_static(unsigned int, height), 0);
-        surface->pending = lh_bool_true;
+        lh_os_system_posix_surface_set_pending(surface, lh_bool_true);
         return lh_bool_true;
     }
-    paint->x11->XPutImage(paint->display, paint->window, paint->gc, lh_addr_of(image), src_x, src_y,
-                          x, y, lh_cast_static(unsigned int, width),
-                          lh_cast_static(unsigned int, height));
+    lh_os_system_posix_paint_get_x11(paint)->XPutImage(
+        lh_os_system_posix_paint_get_display(paint), lh_os_system_posix_paint_get_window(paint),
+        lh_os_system_posix_paint_get_gc(paint), lh_addr_of(image), src_x, src_y, x, y,
+        lh_cast_static(unsigned int, width), lh_cast_static(unsigned int, height));
     return lh_bool_true;
 }
 
@@ -312,8 +327,9 @@ lh_os_system_surface_present_at(lh_os_system_surface_handle_t handle, lh_ptr des
 
     lh_return_if(lh_null_eq(handle) || lh_null_eq(dest), lh_bool_false);
     surface = lh_ptr_rcast(const lh_os_system_posix_surface_t, handle);
-    return lh_os_system_surface_present_part(handle, dest, x, y, 0, 0, surface->width,
-                                             surface->height);
+    return lh_os_system_surface_present_part(handle, dest, x, y, 0, 0,
+                                             lh_os_system_posix_surface_get_width(surface),
+                                             lh_os_system_posix_surface_get_height(surface));
 }
 
 lh_bool_t
@@ -324,4 +340,146 @@ lh_os_system_surface_present_fit(lh_os_system_surface_handle_t handle, lh_ptr de
     (void)dest_h;
     (void)fill;
     return lh_os_system_surface_present_at(handle, dest, 0, 0);
+}
+
+lh_byte_ptr
+lh_os_system_posix_surface_get_bits(const lh_os_system_posix_surface_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->bits;
+}
+
+lh_void
+lh_os_system_posix_surface_set_bits(lh_os_system_posix_surface_t *self, lh_byte_ptr bits)
+{
+    lh_assert_runtime_ref(self);
+    self->bits = bits;
+}
+
+int
+lh_os_system_posix_surface_get_width(const lh_os_system_posix_surface_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->width;
+}
+
+lh_void
+lh_os_system_posix_surface_set_width(lh_os_system_posix_surface_t *self, int width)
+{
+    lh_assert_runtime_ref(self);
+    self->width = width;
+}
+
+int
+lh_os_system_posix_surface_get_height(const lh_os_system_posix_surface_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->height;
+}
+
+lh_void
+lh_os_system_posix_surface_set_height(lh_os_system_posix_surface_t *self, int height)
+{
+    lh_assert_runtime_ref(self);
+    self->height = height;
+}
+
+int
+lh_os_system_posix_surface_get_pixel_bits(const lh_os_system_posix_surface_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->pixel_bits;
+}
+
+lh_void
+lh_os_system_posix_surface_set_pixel_bits(lh_os_system_posix_surface_t *self, int pixel_bits)
+{
+    lh_assert_runtime_ref(self);
+    self->pixel_bits = pixel_bits;
+}
+
+lh_u32_t *
+lh_os_system_posix_surface_get_staging(const lh_os_system_posix_surface_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->staging;
+}
+
+lh_void
+lh_os_system_posix_surface_set_staging(lh_os_system_posix_surface_t *self, lh_u32_t *staging)
+{
+    lh_assert_runtime_ref(self);
+    self->staging = staging;
+}
+
+lh_usize_t
+lh_os_system_posix_surface_get_staging_words(const lh_os_system_posix_surface_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->staging_words;
+}
+
+lh_void
+lh_os_system_posix_surface_set_staging_words(lh_os_system_posix_surface_t *self,
+                                             lh_usize_t staging_words)
+{
+    lh_assert_runtime_ref(self);
+    self->staging_words = staging_words;
+}
+
+const lh_os_system_posix_xshm_segment_info_t *
+lh_os_system_posix_surface_get_segment(const lh_os_system_posix_surface_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->segment);
+}
+
+lh_os_system_posix_xshm_segment_info_t *
+lh_os_system_posix_surface_get_segment_mut(lh_os_system_posix_surface_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->segment);
+}
+
+lh_os_system_posix_display_t *
+lh_os_system_posix_surface_get_display(const lh_os_system_posix_surface_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->display;
+}
+
+lh_void
+lh_os_system_posix_surface_set_display(lh_os_system_posix_surface_t *self,
+                                       lh_os_system_posix_display_t *display)
+{
+    lh_assert_runtime_ref(self);
+    self->display = display;
+}
+
+lh_bool_t
+lh_os_system_posix_surface_is_shared(const lh_os_system_posix_surface_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->shared;
+}
+
+lh_void
+lh_os_system_posix_surface_set_shared(lh_os_system_posix_surface_t *self, lh_bool_t shared)
+{
+    lh_assert_runtime_ref(self);
+    self->shared = shared;
+}
+
+lh_bool_t
+lh_os_system_posix_surface_is_pending(const lh_os_system_posix_surface_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->pending;
+}
+
+lh_void
+lh_os_system_posix_surface_set_pending(lh_os_system_posix_surface_t *self, lh_bool_t pending)
+{
+    lh_assert_runtime_ref(self);
+    self->pending = pending;
 }

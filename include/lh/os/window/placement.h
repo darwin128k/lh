@@ -2,7 +2,7 @@
  * @file placement.h
  * @brief Where a window opens on the screen: ::lh_os_window_placement_t.
  *
- * Not hardcoded here: ::lh_os_window_set_placement says, and the window system
+ * Not hardcoded here: ::lh_os_window_set_placement_v says, and the window system
  * picks when it is left at ::lh_os_window_placement_default.
  */
 

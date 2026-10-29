@@ -10,7 +10,7 @@
  * The message pump lives on ::lh_os_app_run, not on the window.
  *
  * A caller can style the window instead of taking the OS frame, and none of it is
- * hardcoded here: ::lh_os_window_set_frame says whose frame it is,
+ * hardcoded here: ::lh_os_window_set_frame_v says whose frame it is,
  * ::lh_os_window_set_corner_radius cuts its corners, and
  * ::lh_os_window_set_on_zone answers point by point what the window system should do
  * — move it, resize it, or leave the press to the app. What that looks like is the
@@ -86,7 +86,7 @@ lh_os_window_init(lh_os_window_t *self);
  * caption, menu and resize borders, and needs nothing else set.
  */
 lh_void
-lh_os_window_set_frame(lh_os_window_t *self, lh_os_window_frame_t frame);
+lh_os_window_set_frame_v(lh_os_window_t *self, lh_os_window_frame_t frame);
 
 /**
  * @brief Cut @p self's corners to a rounded region of @p radius pixels.
@@ -104,7 +104,7 @@ lh_os_window_set_corner_radius(lh_os_window_t *self, int radius);
 /**
  * @brief Say where @p self opens for the first time.
  *
- * Call before ::lh_os_window_open, like ::lh_os_window_set_frame: what it says is
+ * Call before ::lh_os_window_open, like ::lh_os_window_set_frame_v: what it says is
  * read at creation. The default, ::lh_os_window_placement_default, is the window
  * system's own choice, which on Win32 is a cascade from the top-left corner and not
  * where a user expects a window to be.
@@ -114,11 +114,11 @@ lh_os_window_set_corner_radius(lh_os_window_t *self, int radius);
  * the title reachable when the window is larger than that area.
  *
  * This is where a window *opens*. Moving one that is already up is the window
- * system's drag, and ::lh_os_window_set_maximized restores it to the rectangle it
+ * system's drag, and ::lh_os_window_maximize restores it to the rectangle it
  * was opened at.
  */
 lh_void
-lh_os_window_set_placement(lh_os_window_t *self, lh_os_window_placement_t placement);
+lh_os_window_set_placement_v(lh_os_window_t *self, lh_os_window_placement_t placement);
 
 /**
  * @brief Where @p self opens, or ::lh_os_window_placement_default.
@@ -128,7 +128,7 @@ lh_os_window_get_placement(const lh_os_window_t *self);
 
 /**
  * @brief Where @p self is on the screen, into @p x and @p y: the top-left corner in
- *        screen coordinates, which is what ::lh_os_window_set_placement counts in.
+ *        screen coordinates, which is what ::lh_os_window_set_placement_v counts in.
  *
  * The window system may answer differently from what placement asked for — a
  * window dragged somewhere, or restored from a maximize — so this is the position,
@@ -176,7 +176,7 @@ lh_os_window_minimize(lh_os_window_t *self);
  *        ::lh_os_window_minimize.
  */
 lh_void
-lh_os_window_set_maximized(lh_os_window_t *self, lh_bool_t maximized);
+lh_os_window_maximize(lh_os_window_t *self, lh_bool_t maximized);
 
 /**
  * @brief True while @p self is maximized.
@@ -567,6 +567,519 @@ lh_os_window_get_link(const lh_os_window_t *self);
  */
 lh_list_node_t *
 lh_os_window_get_link_mut(lh_os_window_t *self);
+
+/**
+ * @brief Store the native window handle; ::lh_null while the window is closed (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param handle The new value.
+ */
+lh_void
+lh_os_window_set_handle(lh_os_window_t *self, lh_os_system_window_handle_t handle);
+
+/**
+ * @brief Store the application the window belongs to (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param app The new value.
+ */
+lh_void
+lh_os_window_set_app(lh_os_window_t *self, struct lh_os_app *app);
+
+/**
+ * @brief Store the window this one is a child of; ::lh_null for a top-level window (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param parent The new value.
+ */
+lh_void
+lh_os_window_set_parent(lh_os_window_t *self, struct lh_os_window *parent);
+
+/**
+ * @brief The list of child windows (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+const lh_list_t *
+lh_os_window_get_children(const lh_os_window_t *self);
+
+/**
+ * @brief The list of child windows, to change in place (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_list_t *
+lh_os_window_get_children_mut(lh_os_window_t *self);
+
+/**
+ * @brief Whether the window is modal to its parent (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+lh_bool_t
+lh_os_window_is_modal(const lh_os_window_t *self);
+
+/**
+ * @brief Store whether the window is modal to its parent (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param modal The new value.
+ */
+lh_void
+lh_os_window_set_modal(lh_os_window_t *self, lh_bool_t modal);
+
+/**
+ * @brief Whether the window is being closed (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+lh_bool_t
+lh_os_window_is_closing(const lh_os_window_t *self);
+
+/**
+ * @brief Store whether the window is being closed (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param closing The new value.
+ */
+lh_void
+lh_os_window_set_closing(lh_os_window_t *self, lh_bool_t closing);
+
+/**
+ * @brief Who draws the frame of the window (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+lh_os_window_frame_t
+lh_os_window_get_frame(const lh_os_window_t *self);
+
+/**
+ * @brief Store who draws the frame of the window (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param frame The new value.
+ */
+lh_void
+lh_os_window_set_frame(lh_os_window_t *self, lh_os_window_frame_t frame);
+
+/**
+ * @brief The corner radius in pixels; 0 for square corners (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+int
+lh_os_window_get_corner(const lh_os_window_t *self);
+
+/**
+ * @brief Store the corner radius in pixels; 0 for square corners (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param corner The new value.
+ */
+lh_void
+lh_os_window_set_corner(lh_os_window_t *self, int corner);
+
+/**
+ * @brief Store where the window opens (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param placement The new value.
+ */
+lh_void
+lh_os_window_set_placement(lh_os_window_t *self, lh_os_window_placement_t placement);
+
+/**
+ * @brief Store whether the window is maximized (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param maximized The new value.
+ */
+lh_void
+lh_os_window_set_maximized(lh_os_window_t *self, lh_bool_t maximized);
+
+/**
+ * @brief The callback that says which zone of the window a point is in (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+lh_os_window_on_zone_cb
+lh_os_window_get_on_zone_fn(const lh_os_window_t *self);
+
+/**
+ * @brief Store the callback that says which zone of the window a point is in (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param on_zone The new value.
+ */
+lh_void
+lh_os_window_set_on_zone_fn(lh_os_window_t *self, lh_os_window_on_zone_cb on_zone);
+
+/**
+ * @brief The value passed to the zone callback (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+lh_ptr
+lh_os_window_get_on_zone_context(const lh_os_window_t *self);
+
+/**
+ * @brief Store the value passed to the zone callback (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param on_zone_context The new value.
+ */
+lh_void
+lh_os_window_set_on_zone_context(lh_os_window_t *self, lh_ptr on_zone_context);
+
+/**
+ * @brief The callback told when the window changes size (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+lh_os_window_on_resize_cb
+lh_os_window_get_on_resize_fn(const lh_os_window_t *self);
+
+/**
+ * @brief Store the callback told when the window changes size (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param on_resize The new value.
+ */
+lh_void
+lh_os_window_set_on_resize_fn(lh_os_window_t *self, lh_os_window_on_resize_cb on_resize);
+
+/**
+ * @brief The value passed to the resize callback (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+lh_ptr
+lh_os_window_get_on_resize_context(const lh_os_window_t *self);
+
+/**
+ * @brief Store the value passed to the resize callback (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param on_resize_context The new value.
+ */
+lh_void
+lh_os_window_set_on_resize_context(lh_os_window_t *self, lh_ptr on_resize_context);
+
+/**
+ * @brief Store the native drawing context of the paint in progress; ::lh_null outside a paint
+ * (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param paint_dc The new value.
+ */
+lh_void
+lh_os_window_set_paint_dc(lh_os_window_t *self, lh_ptr paint_dc);
+
+/**
+ * @brief The left edge of the area being painted (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+int
+lh_os_window_get_paint_left(const lh_os_window_t *self);
+
+/**
+ * @brief Store the left edge of the area being painted (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param paint_left The new value.
+ */
+lh_void
+lh_os_window_set_paint_left(lh_os_window_t *self, int paint_left);
+
+/**
+ * @brief The top edge of the area being painted (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+int
+lh_os_window_get_paint_top(const lh_os_window_t *self);
+
+/**
+ * @brief Store the top edge of the area being painted (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param paint_top The new value.
+ */
+lh_void
+lh_os_window_set_paint_top(lh_os_window_t *self, int paint_top);
+
+/**
+ * @brief The right edge of the area being painted (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+int
+lh_os_window_get_paint_right(const lh_os_window_t *self);
+
+/**
+ * @brief Store the right edge of the area being painted (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param paint_right The new value.
+ */
+lh_void
+lh_os_window_set_paint_right(lh_os_window_t *self, int paint_right);
+
+/**
+ * @brief The bottom edge of the area being painted (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+int
+lh_os_window_get_paint_bottom(const lh_os_window_t *self);
+
+/**
+ * @brief Store the bottom edge of the area being painted (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param paint_bottom The new value.
+ */
+lh_void
+lh_os_window_set_paint_bottom(lh_os_window_t *self, int paint_bottom);
+
+/**
+ * @brief The callback that paints the window (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+lh_os_window_on_paint_cb
+lh_os_window_get_on_paint_fn(const lh_os_window_t *self);
+
+/**
+ * @brief Store the callback that paints the window (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param on_paint The new value.
+ */
+lh_void
+lh_os_window_set_on_paint_fn(lh_os_window_t *self, lh_os_window_on_paint_cb on_paint);
+
+/**
+ * @brief The value passed to the paint callback (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+lh_ptr
+lh_os_window_get_on_paint_context(const lh_os_window_t *self);
+
+/**
+ * @brief Store the value passed to the paint callback (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param on_paint_context The new value.
+ */
+lh_void
+lh_os_window_set_on_paint_context(lh_os_window_t *self, lh_ptr on_paint_context);
+
+/**
+ * @brief The callback the input events of the window go to (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+lh_os_input_sink_cb
+lh_os_window_get_on_input_fn(const lh_os_window_t *self);
+
+/**
+ * @brief Store the callback the input events of the window go to (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param on_input The new value.
+ */
+lh_void
+lh_os_window_set_on_input_fn(lh_os_window_t *self, lh_os_input_sink_cb on_input);
+
+/**
+ * @brief The value passed to the input callback (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+lh_ptr
+lh_os_window_get_on_input_context(const lh_os_window_t *self);
+
+/**
+ * @brief Store the value passed to the input callback (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param on_input_context The new value.
+ */
+lh_void
+lh_os_window_set_on_input_context(lh_os_window_t *self, lh_ptr on_input_context);
+
+/**
+ * @brief whether the window timer runs for the controller alone (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+lh_bool_t
+lh_os_window_is_controller_armed(const lh_os_window_t *self);
+
+/**
+ * @brief Store whether the window timer runs for the controller alone (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param controller_armed The new value.
+ */
+lh_void
+lh_os_window_set_controller_armed(lh_os_window_t *self, lh_bool_t controller_armed);
+
+/**
+ * @brief Store the mouse buttons held down over the window, as a mask (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param pressed_buttons The new value.
+ */
+lh_void
+lh_os_window_set_pressed_buttons(lh_os_window_t *self, lh_u32_t pressed_buttons);
+
+/**
+ * @brief The callback asked whether the window may close (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+lh_os_window_on_close_cb
+lh_os_window_get_on_close_fn(const lh_os_window_t *self);
+
+/**
+ * @brief Store the callback asked whether the window may close (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param on_close The new value.
+ */
+lh_void
+lh_os_window_set_on_close_fn(lh_os_window_t *self, lh_os_window_on_close_cb on_close);
+
+/**
+ * @brief The value passed to the close callback (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+lh_ptr
+lh_os_window_get_on_close_context(const lh_os_window_t *self);
+
+/**
+ * @brief Store the value passed to the close callback (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param on_close_context The new value.
+ */
+lh_void
+lh_os_window_set_on_close_context(lh_os_window_t *self, lh_ptr on_close_context);
+
+/**
+ * @brief The callback run on the tick of the window (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+lh_os_window_on_tick_cb
+lh_os_window_get_on_tick_fn(const lh_os_window_t *self);
+
+/**
+ * @brief Store the callback run on the tick of the window (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param on_tick The new value.
+ */
+lh_void
+lh_os_window_set_on_tick_fn(lh_os_window_t *self, lh_os_window_on_tick_cb on_tick);
+
+/**
+ * @brief The value passed to the tick callback (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+lh_ptr
+lh_os_window_get_on_tick_context(const lh_os_window_t *self);
+
+/**
+ * @brief Store the value passed to the tick callback (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param on_tick_context The new value.
+ */
+lh_void
+lh_os_window_set_on_tick_context(lh_os_window_t *self, lh_ptr on_tick_context);
+
+/**
+ * @brief The tick period in milliseconds; 0 for no tick (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+lh_u32_t
+lh_os_window_get_tick_ms(const lh_os_window_t *self);
+
+/**
+ * @brief Store the tick period in milliseconds; 0 for no tick (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ * @param tick_ms The new value.
+ */
+lh_void
+lh_os_window_set_tick_ms(lh_os_window_t *self, lh_u32_t tick_ms);
 
 LH_COMPILER_EXTERN_C_END
 

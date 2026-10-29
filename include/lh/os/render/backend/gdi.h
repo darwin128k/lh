@@ -265,6 +265,177 @@ lh_os_render_backend_gdi_glass(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_s
  */
 extern const lh_ui_canvas_backend_t lh_os_render_backend_gdi;
 
+/**
+ * @brief The off-screen surface the frame is drawn into (level 1).
+ *
+ * @param self The context; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_surface_t *
+lh_os_render_backend_gdi_context_get_surface(const lh_os_render_backend_gdi_context_t *self);
+
+/**
+ * @brief The off-screen surface the frame is drawn into, to change in place (level 1).
+ *
+ * @param self The context; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_surface_t *
+lh_os_render_backend_gdi_context_get_surface_mut(lh_os_render_backend_gdi_context_t *self);
+
+/**
+ * @brief The software canvas that draws into the surface (level 1).
+ *
+ * @param self The context; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_canvas_sw_t *
+lh_os_render_backend_gdi_context_get_sw(const lh_os_render_backend_gdi_context_t *self);
+
+/**
+ * @brief The software canvas that draws into the surface, to change in place (level 1).
+ *
+ * @param self The context; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_canvas_sw_t *
+lh_os_render_backend_gdi_context_get_sw_mut(lh_os_render_backend_gdi_context_t *self);
+
+/**
+ * @brief Where in the window the surface is presented (level 1).
+ *
+ * @param self The context; checked by ::lh_assert_runtime_ref.
+ */
+const lh_ui_point_t *
+lh_os_render_backend_gdi_context_get_present_at(const lh_os_render_backend_gdi_context_t *self);
+
+/**
+ * @brief Where in the window the surface is presented, to change in place (level 1).
+ *
+ * @param self The context; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_ui_point_t *
+lh_os_render_backend_gdi_context_get_present_at_mut(lh_os_render_backend_gdi_context_t *self);
+
+/**
+ * @brief The logical width of the frame (level 1).
+ *
+ * @param self The context; checked by ::lh_assert_runtime_ref.
+ */
+lh_u32_t
+lh_os_render_backend_gdi_context_get_logical_w(const lh_os_render_backend_gdi_context_t *self);
+
+/**
+ * @brief Store the logical width of the frame (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The context; checked by ::lh_assert_runtime_ref.
+ * @param logical_w The new value.
+ */
+lh_void
+lh_os_render_backend_gdi_context_set_logical_w(lh_os_render_backend_gdi_context_t *self,
+                                               lh_u32_t logical_w);
+
+/**
+ * @brief The logical height of the frame (level 1).
+ *
+ * @param self The context; checked by ::lh_assert_runtime_ref.
+ */
+lh_u32_t
+lh_os_render_backend_gdi_context_get_logical_h(const lh_os_render_backend_gdi_context_t *self);
+
+/**
+ * @brief Store the logical height of the frame (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The context; checked by ::lh_assert_runtime_ref.
+ * @param logical_h The new value.
+ */
+lh_void
+lh_os_render_backend_gdi_context_set_logical_h(lh_os_render_backend_gdi_context_t *self,
+                                               lh_u32_t logical_h);
+
+/**
+ * @brief Store how many mask fills the frame made (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The context; checked by ::lh_assert_runtime_ref.
+ * @param mask_calls The new value.
+ */
+lh_void
+lh_os_render_backend_gdi_context_set_mask_calls(lh_os_render_backend_gdi_context_t *self,
+                                                lh_u32_t mask_calls);
+
+/**
+ * @brief Store how many rectangle fills the frame made (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The context; checked by ::lh_assert_runtime_ref.
+ * @param rect_calls The new value.
+ */
+lh_void
+lh_os_render_backend_gdi_context_set_rect_calls(lh_os_render_backend_gdi_context_t *self,
+                                                lh_u32_t rect_calls);
+
+/**
+ * @brief Store how many rounded-rectangle fills the frame made (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The context; checked by ::lh_assert_runtime_ref.
+ * @param round_calls The new value.
+ */
+lh_void
+lh_os_render_backend_gdi_context_set_round_calls(lh_os_render_backend_gdi_context_t *self,
+                                                 lh_u32_t round_calls);
+
+/**
+ * @brief Store how many clip changes the frame made (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The context; checked by ::lh_assert_runtime_ref.
+ * @param clip_calls The new value.
+ */
+lh_void
+lh_os_render_backend_gdi_context_set_clip_calls(lh_os_render_backend_gdi_context_t *self,
+                                                lh_u32_t clip_calls);
+
+/**
+ * @brief When the frame began, in microseconds (level 1).
+ *
+ * @param self The context; checked by ::lh_assert_runtime_ref.
+ */
+lh_u64_t
+lh_os_render_backend_gdi_context_get_frame_start_us(const lh_os_render_backend_gdi_context_t *self);
+
+/**
+ * @brief Store when the frame began, in microseconds (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The context; checked by ::lh_assert_runtime_ref.
+ * @param frame_start_us The new value.
+ */
+lh_void
+lh_os_render_backend_gdi_context_set_frame_start_us(lh_os_render_backend_gdi_context_t *self,
+                                                    lh_u64_t frame_start_us);
+
+/**
+ * @brief Store where in the window the surface is presented (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The context; checked by ::lh_assert_runtime_ref.
+ * @param present_at The new value.
+ */
+lh_void
+lh_os_render_backend_gdi_context_set_present_at(lh_os_render_backend_gdi_context_t *self,
+                                                lh_ui_point_t present_at);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_RENDER_BACKEND_GDI_H */

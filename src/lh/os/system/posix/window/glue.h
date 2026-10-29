@@ -9,14 +9,9 @@
 #ifndef LH_SRC_OS_SYSTEM_POSIX_WINDOW_GLUE_H
 #define LH_SRC_OS_SYSTEM_POSIX_WINDOW_GLUE_H
 
-#include <lh/bool.h>
-#include <lh/os/system/posix/window/fields.h>
-#include <lh/os/system/posix/x11.h>
+#include <lh/os/system/posix/window.h>
 #include <lh/os/system/window/handle.h>
 #include <lh/os/window/zone.h>
-
-struct lh_os_system_posix_window;
-typedef struct lh_os_system_posix_window lh_os_system_posix_window_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
