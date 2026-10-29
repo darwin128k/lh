@@ -10,6 +10,7 @@
  * Supplementary-plane rows are compiled only when LH_WCHAR_T_MAX > 0xFFFF.
  */
 
+#include <lh/util/wchar/case/fold.h>
 #include <lh/util/wchar.h>
 #include <lh/util/interval.h>
 #include <lh/size.h>

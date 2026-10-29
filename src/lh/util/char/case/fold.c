@@ -1,3 +1,4 @@
+#include <lh/util/char/case/fold.h>
 #include <lh/char/limits.h>
 #include <lh/util/char.h>
 #include <lh/util/interval.h>

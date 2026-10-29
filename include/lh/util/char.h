@@ -14,8 +14,7 @@
 
 #include <lh/attribute/force_inline.h>
 #include <lh/cast/static.h>
-#include <lh/char.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/util/char/case/fold.h>
 
 /** @brief Code of character @p c as type @p T. */
 #define lh_char_ord_to(T, c) lh_cast_static(T, c)
@@ -23,14 +22,6 @@
 #define lh_char_ord(c) lh_char_ord_to(lh_sint_t, c)
 
 LH_COMPILER_EXTERN_C_BEGIN
-
-/**
- * @brief Fold a non-ASCII ::lh_char_t (table path). Prefer ::lh_char_fold_case.
- *
- * @see lh_char_fold_case
- */
-lh_char_t
-lh_char_fold_case_nonascii(lh_char_t c);
 
 /**
  * @brief Fold one ::lh_char_t for case-insensitive comparison

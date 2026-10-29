@@ -1,7 +1,14 @@
 /**
- * @file words.c
+ * @file words.h
  * @brief Portable ::lh_memory_std_* kernels (no CPUID, no SIMD ISA).
  */
+
+#ifndef LH_MEMORY_STD_WORDS_H
+#define LH_MEMORY_STD_WORDS_H
+
+#include <lh/compiler/extern/c.h>
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** Copy fewer than 16 bytes with two overlapping loads and stores of the widest fitting word. */
 LH_ATTRIBUTE_FORCE_INLINE
@@ -326,6 +333,8 @@ lh_memory_std_rcompare_word_byte(lh_byte_cptr lhs, lh_byte_cptr rhs, lh_usize_t 
     return lhs + i;
 }
 
+LH_COMPILER_EXTERN_C_END
+
 /** Scalar ::lh_memory_std_compare: the first differing byte of @p lhs, or ::lh_null.
  *  Equal runs go by machine word once both pointers are aligned. */
 static const lh_ptr
@@ -368,8 +377,7 @@ lh_memory_std_compare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
     if (n >= w)
     {
-        if (lh_memory_word_load(l) !=
-            lh_memory_word_load(r))
+        if (lh_memory_word_load(l) != lh_memory_word_load(r))
         {
             return lh_memory_std_compare_word_byte(l, r);
         }
@@ -405,8 +413,7 @@ lh_memory_std_rcompare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
         return lh_null;
     }
 
-    while (n > 0U &&
-           ((lh_ptr_to_uaddr(l + n) | lh_ptr_to_uaddr(r + n)) & (w - 1U)) != 0U)
+    while (n > 0U && ((lh_ptr_to_uaddr(l + n) | lh_ptr_to_uaddr(r + n)) & (w - 1U)) != 0U)
     {
         --n;
         if (l[n] != r[n])
@@ -418,13 +425,11 @@ lh_memory_std_rcompare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
     while (n >= w * 2U)
     {
         n -= w * 2U;
-        if (lh_memory_word_load(l + n + w) !=
-            lh_memory_word_load(r + n + w))
+        if (lh_memory_word_load(l + n + w) != lh_memory_word_load(r + n + w))
         {
             return lh_memory_std_rcompare_word_byte(l + n + w, r + n + w, w);
         }
-        if (lh_memory_word_load(l + n) !=
-            lh_memory_word_load(r + n))
+        if (lh_memory_word_load(l + n) != lh_memory_word_load(r + n))
         {
             return lh_memory_std_rcompare_word_byte(l + n, r + n, w);
         }
@@ -433,8 +438,7 @@ lh_memory_std_rcompare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
     if (n >= w)
     {
         n -= w;
-        if (lh_memory_word_load(l + n) !=
-            lh_memory_word_load(r + n))
+        if (lh_memory_word_load(l + n) != lh_memory_word_load(r + n))
         {
             return lh_memory_std_rcompare_word_byte(l + n, r + n, w);
         }
@@ -458,6 +462,8 @@ lh_memory_std_copy_simd_scalar(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
     lh_memory_std_copy_bytes(dst, src, n);
 }
 #endif
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 lh_ptr
 lh_memory_std_copy_words(lh_ptr dst, const lh_ptr src, lh_usize_t n)
@@ -521,6 +527,8 @@ lh_memory_std_fill_words(lh_ptr dst, lh_usize_t word, lh_usize_t n)
     return lh_ptr_cast(lh_void, d);
 }
 
+LH_COMPILER_EXTERN_C_END
+
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 static lh_void
 lh_memory_std_copy_rev_simd_scalar(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
@@ -540,6 +548,8 @@ lh_memory_std_set_simd_scalar(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
     lh_memory_std_set_bytes(dst, val, n);
 }
 #endif
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** Scalar ::lh_memory_std_xor: machine words, then a byte tail. */
 LH_ATTRIBUTE_FORCE_INLINE
@@ -569,6 +579,8 @@ lh_memory_std_xor_bytes(lh_byte_ptr dst, lh_byte_cptr lhs, lh_byte_cptr rhs, lh_
     }
 }
 
+LH_COMPILER_EXTERN_C_END
+
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 static const lh_ptr
 lh_memory_std_compare_scalar(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
@@ -582,6 +594,8 @@ lh_memory_std_rcompare_scalar(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
     return lh_memory_std_rcompare_bytes(lhs, rhs, n);
 }
 #endif
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /** Whether @p cand matches @p needle between its first and last byte (already checked).
  *  Short middles stay local: routing a one-byte gap through ::lh_memory_std_compare
@@ -612,6 +626,8 @@ lh_memory_std_find_at(lh_byte_cptr hay, lh_usize_t off, lh_byte_cptr needle, lh_
                                          lh_memory_std_find_is_match(hay + off, needle, m));
 }
 
+LH_COMPILER_EXTERN_C_END
+
 /** Scalar ::lh_memory_std_find from offset @p off.
  *  Full words of candidates move by sizeof(::lh_usize_t); the tail steps one byte.
  *  The word filter watches one needle end only: the last byte when @p m > 1 (so a
@@ -636,8 +652,8 @@ lh_memory_std_find_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, l
         {
             /* Lanes whose byte equals the filter byte. A lit lane is not proof: the
              * subtract can light a neighbor, so each candidate is rechecked. */
-            const lh_usize_t mask = lh_bit_swar_zero_mask(lh_bit_xor(
-                lh_memory_load_usize(hay + off + filter_off), filter));
+            const lh_usize_t mask = lh_bit_swar_zero_mask(
+                lh_bit_xor(lh_memory_load_usize(hay + off + filter_off), filter));
 
             if (mask != 0U)
             {
@@ -701,8 +717,8 @@ lh_memory_std_rfind_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, 
         off = block;
         for (;;)
         {
-            const lh_usize_t mask = lh_bit_swar_zero_mask(lh_bit_xor(
-                lh_memory_load_usize(hay + off + filter_off), filter));
+            const lh_usize_t mask = lh_bit_swar_zero_mask(
+                lh_bit_xor(lh_memory_load_usize(hay + off + filter_off), filter));
 
             if (mask != 0U)
             {
@@ -740,3 +756,5 @@ lh_memory_std_rfind_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, 
     }
     return lh_null;
 }
+
+#endif /* LH_MEMORY_STD_WORDS_H */

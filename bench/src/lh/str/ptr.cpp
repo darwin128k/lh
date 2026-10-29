@@ -5,6 +5,7 @@
 
 #include <cstring>
 #include <string>
+#include <lh/util/str/case/map.h>
 
 static void
 BM_str_ptr_len(benchmark::State &state)

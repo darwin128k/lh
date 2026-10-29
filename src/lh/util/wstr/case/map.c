@@ -9,6 +9,7 @@
  * (include/lh/config.h) — see that option's doc comment in cmake/library_options.cmake.
  */
 
+#include <lh/util/wstr/case/map.h>
 #include <lh/util/wstr/ptr.h>
 #include <lh/util/interval.h>
 #include <lh/wchar/case/pair.h>

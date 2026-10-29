@@ -1,5 +1,6 @@
 #include <lh/util/wchar.h>
 #include <lh/util/wstr/ptr.h>
+#include <lh/util/wstr/case/map.h>
 
 lh_wchar_t
 lh_wchar_to_lower(lh_wchar_t c)

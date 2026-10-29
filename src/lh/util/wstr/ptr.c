@@ -5,6 +5,7 @@
 #include <lh/util/wchar.h>
 #include <lh/util/return.h>
 #include <lh/assert.h>
+#include <lh/util/wchar/case/fold.h>
 
 static const lh_wchar_t m_whitespace_chars[] = {
     lh_wstr_ptr_cat_va(lh_char_map_space), lh_wstr_ptr_cat_va(lh_char_map_lf),

@@ -2,6 +2,7 @@
 
 #include <lh/expect/death.h>
 #include <lh/util/str/ptr.h>
+#include <lh/util/str/case/map.h>
 
 namespace
 {
