@@ -12,9 +12,10 @@ piece: a type, a function, a macro kernel. Bricks do not know about each
 other's purpose; a mechanism (an allocator, a parser, a socket loop) is the
 *composition* of bricks, never a monolith that re-implements them.
 
-More public API is better than less: many small bricks, including dangerous
-ones (`*_unsafe`, unchecked), are fine — a caller who misuses them owns the
-consequence. Hidden implementation is what we avoid.
+More public API is better than less: many small bricks, including the
+unchecked fast forms (no suffix) and the validating ones (`_v`), are fine — a
+caller who misuses them owns the consequence. Hidden implementation is what we
+avoid.
 
 ## 0. LH uses its own bricks — first rule
 
@@ -183,7 +184,8 @@ file of LH and of Authum — reads and writes through them. No exceptions.
 - Boolean results: `is_`, `has_`, `can_`, `needs_` — `lh_memory_allocator_realloc_needs_alloc`.
 - Value reads: `get_` (or a noun when the meaning is unmistakable); writes: `set_`.
 - Actions are verbs: `alloc`, `copy`, `resize`, `move`.
-- Fallible: `try_`; unchecked/raw: `_unsafe`.
+- Fallible: `try_`; validating: `_v`; unchecked/raw: no suffix — that is the
+  fast form, and it does not check.
 - A reader must know from the name alone whether a function returns
   something and what.
 

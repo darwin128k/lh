@@ -17,7 +17,7 @@ lh_str_ptr_parse_text_literal(lh_str_cptr str, lh_usize_t str_size, lh_usize_t *
     const lh_usize_t size = lh_str_scanf_spec_get_literal_size(spec);
 
     lh_return_if(lh_math_gt(size, lh_math_sub(str_size, at)), lh_bool_false);
-    lh_return_if(lh_ptr_is_set(lh_memory_std_compare(lh_ptr_add_by_offset_unsafe(const lh_char_t, str, at),
+    lh_return_if(lh_ptr_is_set(lh_memory_std_compare(lh_ptr_add_by_offset(const lh_char_t, str, at),
                                                       lh_str_scanf_spec_get_literal(spec), size)),
                  lh_bool_false);
     lh_ptr_deref(pos) = lh_math_add(at, size);
@@ -55,7 +55,7 @@ lh_str_ptr_parse_text_str(lh_str_cptr str, lh_usize_t str_size, lh_usize_t *pos,
     lh_str_ptr out = va_arg(lh_ptr_deref(args), lh_str_ptr);
     const lh_usize_t out_size = va_arg(lh_ptr_deref(args), lh_usize_t);
     const lh_usize_t at = lh_ptr_deref(pos);
-    lh_str_cptr from = lh_ptr_add_by_offset_unsafe(const lh_char_t, str, at);
+    lh_str_cptr from = lh_ptr_add_by_offset(const lh_char_t, str, at);
     lh_usize_t field_size = limit;
     lh_str_scanf_spec_t next;
 
@@ -97,7 +97,7 @@ lh_str_ptr_parse_text_uint(lh_str_cptr str, lh_usize_t *pos, lh_usize_t limit, v
     lh_usize_t consumed;
 
     lh_assert_runtime_ref(out);
-    consumed = lh_str_ptr_parse_uint_prefix(lh_ptr_add_by_offset_unsafe(const lh_char_t, str, at), limit,
+    consumed = lh_str_ptr_parse_uint_prefix(lh_ptr_add_by_offset(const lh_char_t, str, at), limit,
                                             LH_UINT_T_MAX, lh_addr_of(value));
     lh_return_if(lh_math_is_zero(consumed), lh_bool_false);
     lh_ptr_deref(out) = value;
@@ -126,7 +126,7 @@ lh_str_ptr_parse_text_sint(lh_str_cptr str, lh_usize_t *pos, lh_usize_t limit, v
         digit_limit = lh_math_sub_one(limit);
     }
     consumed = lh_str_ptr_parse_uint_prefix(
-        lh_ptr_add_by_offset_unsafe(const lh_char_t, str, at), digit_limit,
+        lh_ptr_add_by_offset(const lh_char_t, str, at), digit_limit,
         is_negative ? min_magnitude : lh_cast_static(lh_uint_t, LH_SINT_T_MAX), lh_addr_of(magnitude));
     lh_return_if(lh_math_is_zero(consumed), lh_bool_false);
 
@@ -155,7 +155,7 @@ lh_str_ptr_parse_text_hex(lh_str_cptr str, lh_usize_t *pos, lh_usize_t limit, va
     lh_usize_t consumed;
 
     lh_assert_runtime_ref(out);
-    consumed = lh_str_ptr_parse_hex_prefix(lh_ptr_add_by_offset_unsafe(const lh_char_t, str, at), limit,
+    consumed = lh_str_ptr_parse_hex_prefix(lh_ptr_add_by_offset(const lh_char_t, str, at), limit,
                                            LH_UINT_T_MAX, lh_addr_of(value));
     lh_return_if(lh_math_is_zero(consumed), lh_bool_false);
     lh_ptr_deref(out) = value;

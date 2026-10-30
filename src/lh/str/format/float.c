@@ -570,7 +570,7 @@ lh_str_format_float_put_fixed(const lh_str_ptr digits, lh_usize_t nd, lh_sint_t 
         {
             n = lh_str_ptr_put_char(str, n, lh_char_map_period);
             n = lh_str_ptr_put_chars(
-                str, n, lh_ptr_add_by_offset_unsafe(const lh_char_t, digits, int_digits),
+                str, n, lh_ptr_add_by_offset(const lh_char_t, digits, int_digits),
                 lh_math_sub(nd, int_digits));
         }
         return n;
@@ -587,7 +587,7 @@ lh_str_format_float_put_exponent(const lh_str_ptr digits, lh_usize_t nd, lh_sint
     if (lh_math_gt(nd, 1U))
     {
         n = lh_str_ptr_put_char(str, n, lh_char_map_period);
-        n = lh_str_ptr_put_chars(str, n, lh_ptr_add_by_offset_unsafe(const lh_char_t, digits, 1U),
+        n = lh_str_ptr_put_chars(str, n, lh_ptr_add_by_offset(const lh_char_t, digits, 1U),
                                  lh_math_sub_one(nd));
     }
     n = lh_str_ptr_put_char(str, n, lh_char_map_small_e);

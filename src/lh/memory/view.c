@@ -57,7 +57,7 @@ const lh_ptr
 lh_memory_view_get_end(const lh_memory_view_t *self)
 {
     /* Address arithmetic, so begin + size gives back any end set, backward included. */
-    return lh_ptr_add_by_offset_unsafe(const lh_void, lh_memory_view_get_begin(self),
+    return lh_ptr_add_by_offset(const lh_void, lh_memory_view_get_begin(self),
                                        lh_memory_view_get_size(self));
 }
 
@@ -200,8 +200,8 @@ lh_memory_view_rcompare_by_size(const lh_memory_view_t *self, const lh_ptr data,
     const lh_usize_t n = lh_math_min(self_size, size);
 
     return lh_memory_std_rcompare(
-        lh_ptr_add_by_offset_unsafe(const lh_void, self_begin, lh_math_sub(self_size, n)),
-        lh_ptr_add_by_offset_unsafe(const lh_void, data, lh_math_sub(size, n)), n);
+        lh_ptr_add_by_offset(const lh_void, self_begin, lh_math_sub(self_size, n)),
+        lh_ptr_add_by_offset(const lh_void, data, lh_math_sub(size, n)), n);
 }
 
 lh_void
@@ -269,7 +269,7 @@ lh_memory_view_get_ptr_from_begin(const lh_memory_view_t *self, lh_uoffset_t off
 {
     lh_assert_runtime_ifn(lh_memory_view_is_valid_offset(self, offset),
                           lh_runtime_error_code_out_of_range);
-    return lh_ptr_add_by_offset_unsafe(const lh_void, lh_memory_view_get_begin(self), offset);
+    return lh_ptr_add_by_offset(const lh_void, lh_memory_view_get_begin(self), offset);
 }
 
 /* Offset 0 is the last byte, one before the exclusive end. */
@@ -278,7 +278,7 @@ lh_memory_view_get_ptr_from_end(const lh_memory_view_t *self, lh_uoffset_t offse
 {
     lh_assert_runtime_ifn(lh_memory_view_is_valid_offset(self, offset),
                           lh_runtime_error_code_out_of_range);
-    return lh_ptr_sub_by_offset_unsafe(const lh_void, lh_memory_view_get_end(self),
+    return lh_ptr_sub_by_offset(const lh_void, lh_memory_view_get_end(self),
                                        lh_math_add(offset, 1U));
 }
 
@@ -467,7 +467,7 @@ lh_memory_view_from_offset(const lh_memory_view_t *self, lh_uoffset_t offset, lh
 
     /* offset may be total when size is 0: empty at the end, past every byte but still inside. */
     lh_memory_view_init(
-        out, lh_ptr_add_by_offset_unsafe(const lh_void, lh_memory_view_get_begin(self), offset),
+        out, lh_ptr_add_by_offset(const lh_void, lh_memory_view_get_begin(self), offset),
         size);
 }
 

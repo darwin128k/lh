@@ -149,7 +149,7 @@ lh_memory_allocator_init_tail(lh_ptr block, lh_usize_t old_size, lh_usize_t new_
 {
 #if (lh_math_eq(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED, LH_LIBRARY_OPTION_ON))
     lh_return_if(lh_null_eq(block) || lh_math_le(new_size, old_size));
-    lh_memory_std_set(lh_ptr_add_by_offset_unsafe(lh_void, block, old_size), 0,
+    lh_memory_std_set(lh_ptr_add_by_offset(lh_void, block, old_size), 0,
                       lh_math_sub(new_size, old_size));
 #else
     LH_ATTRIBUTE_UNUSED(block);

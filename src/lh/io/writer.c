@@ -86,7 +86,7 @@ lh_io_writer_write_all(lh_io_writer_t *self, const lh_ptr buf, lh_usize_t size)
         {
             return lh_bool_false;
         }
-        p = lh_ptr_add_by_offset(const lh_byte_t, p, n);
+        p = lh_ptr_add_by_offset_v(const lh_byte_t, p, n);
         left -= n;
     }
     return lh_bool_true;

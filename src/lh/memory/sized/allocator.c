@@ -8,13 +8,13 @@
 lh_ptr
 lh_memory_sized_allocator_get_block(const lh_ptr ptr)
 {
-    return lh_ptr_sub_by_offset_unsafe(lh_void, ptr, LH_MEMORY_SIZED_ALLOCATOR_HEADER_SIZE);
+    return lh_ptr_sub_by_offset(lh_void, ptr, LH_MEMORY_SIZED_ALLOCATOR_HEADER_SIZE);
 }
 
 lh_ptr
 lh_memory_sized_allocator_get_data(const lh_ptr block)
 {
-    return lh_ptr_add_by_offset_unsafe(lh_void, block, LH_MEMORY_SIZED_ALLOCATOR_HEADER_SIZE);
+    return lh_ptr_add_by_offset(lh_void, block, LH_MEMORY_SIZED_ALLOCATOR_HEADER_SIZE);
 }
 
 lh_usize_t

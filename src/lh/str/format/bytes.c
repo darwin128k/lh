@@ -53,7 +53,7 @@ lh_str_ptr_format_bytes_hex(const lh_ptr data, lh_usize_t data_size, lh_bool_t u
     for (lh_usize_t i = 0U; lh_math_lt(i, data_size); i = lh_math_add_one(i))
     {
         lh_str_ptr_format_bytes_hex_byte(bytes[i], uppercase,
-                                         lh_ptr_add_by_offset_unsafe(lh_char_t, str, lh_math_mul(i, 2U)));
+                                         lh_ptr_add_by_offset(lh_char_t, str, lh_math_mul(i, 2U)));
     }
     return lh_math_mul(data_size, 2U);
 }
@@ -72,7 +72,7 @@ lh_str_ptr_format_bytes_hex_dump_line(const lh_ptr data, lh_usize_t count, lh_u3
     for (lh_usize_t j = 0U; lh_math_lt(j, count); j = lh_math_add_one(j))
     {
         lh_str_ptr_format_bytes_hex_byte(bytes[j], uppercase,
-                                         lh_ptr_add_by_offset_unsafe(lh_char_t, str, pos));
+                                         lh_ptr_add_by_offset(lh_char_t, str, pos));
         str[lh_math_add(pos, 2U)] = lh_char_map_space;
         pos = lh_math_add(pos, 3U);
     }
@@ -121,10 +121,10 @@ lh_str_ptr_format_bytes_hex_dump(const lh_ptr data, lh_usize_t data_size, lh_boo
     {
         pos = lh_math_add(
             pos, lh_str_ptr_format_bytes_hex_dump_line(
-                     lh_ptr_add_by_offset_unsafe(const lh_void, data, offset),
+                     lh_ptr_add_by_offset(const lh_void, data, offset),
                      lh_math_min(lh_math_sub(data_size, offset), LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH),
                      lh_cast_static(lh_u32_t, offset), uppercase,
-                     lh_ptr_add_by_offset_unsafe(lh_char_t, str, pos)));
+                     lh_ptr_add_by_offset(lh_char_t, str, pos)));
     }
     return pos;
 }

@@ -18,7 +18,7 @@ lh_str_ptr_format_text_put_text(lh_str_ptr str, lh_usize_t str_size, lh_usize_t 
     if (lh_ptr_is_set(str))
     {
         lh_return_if(lh_math_gt(n, lh_math_sub(str_size, at)), lh_bool_false);
-        lh_memory_std_copy(lh_ptr_add_by_offset_unsafe(lh_char_t, str, at), text, n);
+        lh_memory_std_copy(lh_ptr_add_by_offset(lh_char_t, str, at), text, n);
     }
     lh_ptr_deref(pos) = lh_math_add(at, n);
     return lh_bool_true;
@@ -33,7 +33,7 @@ lh_str_ptr_format_text_put_run(lh_str_ptr str, lh_usize_t str_size, lh_usize_t *
     if (lh_ptr_is_set(str))
     {
         lh_return_if(lh_math_gt(n, lh_math_sub(str_size, at)), lh_bool_false);
-        lh_memory_std_set(lh_ptr_add_by_offset_unsafe(lh_char_t, str, at), lh_cast_static(lh_byte_t, ch),
+        lh_memory_std_set(lh_ptr_add_by_offset(lh_char_t, str, at), lh_cast_static(lh_byte_t, ch),
                           n);
     }
     lh_ptr_deref(pos) = lh_math_add(at, n);
@@ -120,7 +120,7 @@ lh_str_ptr_format_text_put_field(lh_str_ptr str, lh_usize_t str_size, lh_usize_t
             lh_str_ptr_format_text_put_text(str, str_size, lh_addr_of(at), content, 1U);
             lh_str_ptr_format_text_put_run(str, str_size, lh_addr_of(at), lh_char_map_digit_0, pad);
             lh_str_ptr_format_text_put_text(str, str_size, lh_addr_of(at),
-                                            lh_ptr_add_by_offset_unsafe(const lh_char_t, content, 1U),
+                                            lh_ptr_add_by_offset(const lh_char_t, content, 1U),
                                             lh_math_sub_one(size));
         }
         else
