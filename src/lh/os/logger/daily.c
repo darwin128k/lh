@@ -11,7 +11,7 @@
 #include <lh/attribute/unused.h>
 #include <lh/char/map.h>
 #include <lh/os.h>
-#include <lh/os/logger/daily/channel.h>
+#include <lh/os/logger/daily/private.h>
 #include <lh/runtime/allocator.h>
 #include <lh/runtime/logger.h>
 #include <lh/util/return.h>
@@ -34,84 +34,84 @@ struct lh_os_logger_daily
 
 /* -- Level 1: the fields ------------------------------------------------------ */
 
-static lh_memory_allocator_t *
+lh_memory_allocator_t *
 lh_os_logger_daily_get_allocator_mut(lh_os_logger_daily_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->allocator);
 }
 
-static const lh_list_t *
+const lh_list_t *
 lh_os_logger_daily_get_channels(const lh_os_logger_daily_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->channels);
 }
 
-static lh_list_t *
+lh_list_t *
 lh_os_logger_daily_get_channels_mut(lh_os_logger_daily_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->channels);
 }
 
-static lh_os_logger_daily_format_cb
+lh_os_logger_daily_format_cb
 lh_os_logger_daily_get_format_fn(const lh_os_logger_daily_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->format;
 }
 
-static lh_void
+lh_void
 lh_os_logger_daily_set_format_fn(lh_os_logger_daily_t *self, lh_os_logger_daily_format_cb format)
 {
     lh_assert_runtime_ref(self);
     self->format = format;
 }
 
-static lh_os_logger_daily_clock_cb
+lh_os_logger_daily_clock_cb
 lh_os_logger_daily_get_clock_fn(const lh_os_logger_daily_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->clock;
 }
 
-static lh_void
+lh_void
 lh_os_logger_daily_set_clock_fn(lh_os_logger_daily_t *self, lh_os_logger_daily_clock_cb clock)
 {
     lh_assert_runtime_ref(self);
     self->clock = clock;
 }
 
-static lh_ptr
+lh_ptr
 lh_os_logger_daily_get_user(const lh_os_logger_daily_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->user;
 }
 
-static lh_void
+lh_void
 lh_os_logger_daily_set_user(lh_os_logger_daily_t *self, lh_ptr user)
 {
     lh_assert_runtime_ref(self);
     self->user = user;
 }
 
-static lh_str_t *
+lh_str_t *
 lh_os_logger_daily_get_line_mut(lh_os_logger_daily_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->line);
 }
 
-static lh_bool_t
+lh_bool_t
 lh_os_logger_daily_is_reported(const lh_os_logger_daily_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->reported;
 }
 
-static lh_void
+lh_void
 lh_os_logger_daily_set_reported(lh_os_logger_daily_t *self, lh_bool_t reported)
 {
     lh_assert_runtime_ref(self);
@@ -120,14 +120,14 @@ lh_os_logger_daily_set_reported(lh_os_logger_daily_t *self, lh_bool_t reported)
 
 /* -- Level 2 and up ----------------------------------------------------------- */
 
-static lh_os_logger_daily_channel_t *
+lh_os_logger_daily_channel_t *
 lh_os_logger_daily_get_channel(lh_list_node_t *node)
 {
     return lh_list_entry(lh_os_logger_daily_channel_t, node, node);
 }
 
 /* The local day of @p utc, in days since the epoch; UTC's when the zone is unknown. */
-static lh_s64_t
+lh_s64_t
 lh_os_logger_daily_get_local_day(lh_timestamp_t utc)
 {
     lh_timestamp_t local;
@@ -137,7 +137,7 @@ lh_os_logger_daily_get_local_day(lh_timestamp_t utc)
 }
 
 /* The sink's clock when none is given: the system's. */
-static lh_bool_t
+lh_bool_t
 lh_os_logger_daily_get_system_now(lh_ptr user, lh_timestamp_t *out)
 {
     LH_ATTRIBUTE_UNUSED(user);
@@ -145,7 +145,7 @@ lh_os_logger_daily_get_system_now(lh_ptr user, lh_timestamp_t *out)
 }
 
 /* The day of a `YYYY-MM-DD.log` name, in days since the epoch. */
-static lh_bool_t
+lh_bool_t
 lh_os_logger_daily_try_get_day(lh_str_view_t name, lh_s64_t *out)
 {
     lh_str_view_t extension;
@@ -163,7 +163,7 @@ lh_os_logger_daily_try_get_day(lh_str_view_t name, lh_s64_t *out)
 }
 
 /* @p dir joined with the file name of @p day. */
-static lh_bool_t
+lh_bool_t
 lh_os_logger_daily_get_path(const lh_fs_path_t *dir, lh_s64_t day, lh_fs_path_t *out)
 {
     lh_char_t text[LH_DATE_TEXT_MAX + sizeof(LH_OS_LOGGER_DAILY_EXTENSION)];
@@ -204,7 +204,7 @@ lh_os_logger_daily_append_text(lh_str_t *out, const lh_char_t *text)
 }
 
 /* Report the first file failure; later ones would only repeat it. */
-static lh_void
+lh_void
 lh_os_logger_daily_report(lh_os_logger_daily_t *self, const lh_char_t *what,
                           const lh_fs_path_t *path)
 {
@@ -217,7 +217,7 @@ lh_os_logger_daily_report(lh_os_logger_daily_t *self, const lh_char_t *what,
                     lh_null_ne(desc) ? desc : "unknown error");
 }
 
-static lh_os_logger_daily_channel_t *
+lh_os_logger_daily_channel_t *
 lh_os_logger_daily_find(const lh_os_logger_daily_t *self, lh_u32_t id)
 {
     const lh_list_t *list = lh_os_logger_daily_get_channels(self);
@@ -285,7 +285,7 @@ lh_os_logger_daily_format_standard(lh_ptr user, const lh_os_logger_record_t *rec
 }
 
 /* Delete the channel's daily files older than its retention allows on @p today. */
-static lh_void
+lh_void
 lh_os_logger_daily_prune(lh_os_logger_daily_t *self, lh_os_logger_daily_channel_t *channel,
                          lh_s64_t today)
 {
@@ -320,7 +320,7 @@ lh_os_logger_daily_prune(lh_os_logger_daily_t *self, lh_os_logger_daily_channel_
     lh_os_fs_dir_close(lh_addr_of(listing));
 }
 
-static lh_void
+lh_void
 lh_os_logger_daily_close_channel(lh_os_logger_daily_t *self, const lh_os_logger_record_t *record)
 {
     lh_os_logger_daily_channel_t *channel =
@@ -332,7 +332,7 @@ lh_os_logger_daily_close_channel(lh_os_logger_daily_t *self, const lh_os_logger_
 }
 
 /* The channel's file for @p day: the open one, or the next one opened. */
-static lh_bool_t
+lh_bool_t
 lh_os_logger_daily_open_day(lh_os_logger_daily_t *self, lh_os_logger_daily_channel_t *channel,
                             lh_s64_t day)
 {
@@ -369,7 +369,7 @@ lh_os_logger_daily_open_day(lh_os_logger_daily_t *self, lh_os_logger_daily_chann
     return opened;
 }
 
-static lh_void
+lh_void
 lh_os_logger_daily_open(lh_os_logger_daily_t *self, const lh_os_logger_record_t *record)
 {
     lh_os_logger_daily_channel_t *channel =
@@ -398,7 +398,7 @@ lh_os_logger_daily_open(lh_os_logger_daily_t *self, const lh_os_logger_record_t 
     }
 }
 
-static lh_void
+lh_void
 lh_os_logger_daily_write(lh_os_logger_daily_t *self, const lh_os_logger_record_t *record)
 {
     lh_os_logger_daily_channel_t *channel =
@@ -431,7 +431,7 @@ lh_os_logger_daily_write(lh_os_logger_daily_t *self, const lh_os_logger_record_t
 
 /* -- The sink callbacks ------------------------------------------------------- */
 
-static lh_void
+lh_void
 lh_os_logger_daily_emit(lh_ptr user, const lh_os_logger_record_t *record)
 {
     lh_os_logger_daily_t *self = lh_ptr_rcast(lh_os_logger_daily_t, user);
@@ -452,7 +452,7 @@ lh_os_logger_daily_emit(lh_ptr user, const lh_os_logger_record_t *record)
 
 /* Lines are written straight to the files: there is no buffer of ours to flush.
    A flush is when a quiet channel notices a new day and cleans up. */
-static lh_void
+lh_void
 lh_os_logger_daily_flush(lh_ptr user)
 {
     lh_os_logger_daily_t *self = lh_ptr_rcast(lh_os_logger_daily_t, user);
@@ -475,7 +475,7 @@ lh_os_logger_daily_flush(lh_ptr user)
     }
 }
 
-static lh_void
+lh_void
 lh_os_logger_daily_close(lh_ptr user)
 {
     lh_os_logger_daily_t *self = lh_ptr_rcast(lh_os_logger_daily_t, user);

@@ -2,6 +2,9 @@
 
 #include <lh/attribute/unused.h>
 #include <lh/os/loop.h>
+#include <lh/os/net.h>
+#include <lh/os/net/socket.h>
+#include <lh/os/wake.h>
 #include <lh/os/thread.h>
 #include <lh/os/tick.h>
 #include <lh/timer.h>
@@ -135,4 +138,53 @@ TEST(os_loop, a_hint_also_runs_a_step)
     }
     EXPECT_GT(c.steps.load(), before);
     lh_os_loop_destroy(c.loop);
+}
+
+/* A waiter that sleeps in poll on a wake signal, as a loop over sockets does. */
+namespace
+{
+
+lh_void
+poll_wait(lh_ptr waiter, lh_u32_t timeout_ms)
+{
+    auto *wake = static_cast<lh_os_wake_t *>(waiter);
+    lh_os_net_socket_poll_t entry{};
+
+    entry.handle = lh_os_wake_get_handle(wake);
+    entry.events = lh_os_net_socket_poll_read;
+    if (lh_os_net_socket_poll(&entry, 1U, timeout_ms) > 0)
+    {
+        LH_ATTRIBUTE_UNUSED(lh_os_wake_reset(wake));
+    }
+}
+
+lh_void
+poll_wake(lh_ptr waiter)
+{
+    LH_ATTRIBUTE_UNUSED(lh_os_wake_signal(static_cast<lh_os_wake_t *>(waiter)));
+}
+
+} // namespace
+
+TEST(os_loop, a_waiter_on_a_wake_signal_runs_steps_and_stops)
+{
+    lh_os_wake_t wake;
+    counter c;
+
+    ASSERT_TRUE(lh_os_net_init());
+    lh_os_wake_init(&wake);
+    ASSERT_TRUE(lh_os_wake_open(&wake, 1000U));
+    c.loop = lh_os_loop_try_create_waiting(60000U, count, &c, poll_wait, poll_wake, &wake);
+    ASSERT_NE(c.loop, nullptr);
+    ASSERT_TRUE(lh_os_loop_try_start(c.loop));
+    wait_for_steps(c, 1);
+    const int before = c.steps.load();
+    lh_os_loop_wake(c.loop);
+    wait_for_steps(c, before + 1);
+    EXPECT_GT(c.steps.load(), before);
+    lh_os_loop_destroy(c.loop);
+    EXPECT_EQ(c.last.load(), 1);
+    lh_os_wake_close(&wake);
+    lh_os_net_deinit();
+    EXPECT_EQ(lh_os_loop_try_create_waiting(10U, count, &c, nullptr, poll_wake, &wake), nullptr);
 }

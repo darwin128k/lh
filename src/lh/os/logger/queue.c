@@ -13,11 +13,8 @@
 #include <lh/assert/runtime.h>
 #include <lh/attribute/unused.h>
 #include <lh/cast/const.h>
-#include <lh/os/condition.h>
-#include <lh/os/loop.h>
 #include <lh/os/tick.h>
 #include <lh/runtime/allocator.h>
-#include <lh/spsc.h>
 #include <lh/util/return.h>
 #include <stdatomic.h>
 
@@ -40,126 +37,126 @@ struct lh_os_logger_queue
 
 /* -- Level 1: the fields ------------------------------------------------------ */
 
-static lh_memory_allocator_t *
+lh_memory_allocator_t *
 lh_os_logger_queue_get_allocator_mut(lh_os_logger_queue_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->allocator);
 }
 
-static lh_os_logger_record_t *
+lh_os_logger_record_t *
 lh_os_logger_queue_get_storage(const lh_os_logger_queue_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->storage;
 }
 
-static lh_void
+lh_void
 lh_os_logger_queue_set_storage(lh_os_logger_queue_t *self, lh_os_logger_record_t *storage)
 {
     lh_assert_runtime_ref(self);
     self->storage = storage;
 }
 
-static lh_spsc_t *
+lh_spsc_t *
 lh_os_logger_queue_get_records(const lh_os_logger_queue_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->records;
 }
 
-static lh_void
+lh_void
 lh_os_logger_queue_set_records(lh_os_logger_queue_t *self, lh_spsc_t *records)
 {
     lh_assert_runtime_ref(self);
     self->records = records;
 }
 
-static const lh_os_logger_sink_t *
+const lh_os_logger_sink_t *
 lh_os_logger_queue_get_sink(const lh_os_logger_queue_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->sink);
 }
 
-static lh_void
+lh_void
 lh_os_logger_queue_set_sink(lh_os_logger_queue_t *self, lh_os_logger_sink_t sink)
 {
     lh_assert_runtime_ref(self);
     self->sink = sink;
 }
 
-static lh_u32_t
+lh_u32_t
 lh_os_logger_queue_get_flush_ms(const lh_os_logger_queue_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->flush_ms;
 }
 
-static lh_void
+lh_void
 lh_os_logger_queue_set_flush_ms(lh_os_logger_queue_t *self, lh_u32_t flush_ms)
 {
     lh_assert_runtime_ref(self);
     self->flush_ms = flush_ms;
 }
 
-static lh_os_loop_t *
+lh_os_loop_t *
 lh_os_logger_queue_get_loop(const lh_os_logger_queue_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->loop;
 }
 
-static lh_void
+lh_void
 lh_os_logger_queue_set_loop(lh_os_logger_queue_t *self, lh_os_loop_t *loop)
 {
     lh_assert_runtime_ref(self);
     self->loop = loop;
 }
 
-static lh_u64_t
+lh_u64_t
 lh_os_logger_queue_get_last_flush(const lh_os_logger_queue_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->last_flush;
 }
 
-static lh_void
+lh_void
 lh_os_logger_queue_set_last_flush(lh_os_logger_queue_t *self, lh_u64_t last_flush)
 {
     lh_assert_runtime_ref(self);
     self->last_flush = last_flush;
 }
 
-static lh_u32_t
+lh_u32_t
 lh_os_logger_queue_get_reported(const lh_os_logger_queue_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->reported;
 }
 
-static lh_void
+lh_void
 lh_os_logger_queue_set_reported(lh_os_logger_queue_t *self, lh_u32_t reported)
 {
     lh_assert_runtime_ref(self);
     self->reported = reported;
 }
 
-static lh_os_mutex_t *
+lh_os_mutex_t *
 lh_os_logger_queue_get_mutex_mut(lh_os_logger_queue_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->mutex);
 }
 
-static lh_os_condition_t *
+lh_os_condition_t *
 lh_os_logger_queue_get_done_mut(lh_os_logger_queue_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->done);
 }
 
-static lh_u32_t
+lh_u32_t
 lh_os_logger_queue_load_dropped(const lh_os_logger_queue_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -167,42 +164,42 @@ lh_os_logger_queue_load_dropped(const lh_os_logger_queue_t *self)
                                 memory_order_relaxed);
 }
 
-static lh_void
+lh_void
 lh_os_logger_queue_add_dropped(lh_os_logger_queue_t *self)
 {
     lh_assert_runtime_ref(self);
     atomic_fetch_add_explicit(lh_addr_of(self->dropped), 1U, memory_order_relaxed);
 }
 
-static lh_u32_t
+lh_u32_t
 lh_os_logger_queue_load_requested(lh_os_logger_queue_t *self)
 {
     lh_assert_runtime_ref(self);
     return atomic_load_explicit(lh_addr_of(self->requested), memory_order_acquire);
 }
 
-static lh_u32_t
+lh_u32_t
 lh_os_logger_queue_add_requested(lh_os_logger_queue_t *self)
 {
     lh_assert_runtime_ref(self);
     return atomic_fetch_add_explicit(lh_addr_of(self->requested), 1U, memory_order_acq_rel) + 1U;
 }
 
-static lh_u32_t
+lh_u32_t
 lh_os_logger_queue_load_completed(lh_os_logger_queue_t *self)
 {
     lh_assert_runtime_ref(self);
     return atomic_load_explicit(lh_addr_of(self->completed), memory_order_acquire);
 }
 
-static lh_void
+lh_void
 lh_os_logger_queue_store_completed(lh_os_logger_queue_t *self, lh_u32_t completed)
 {
     lh_assert_runtime_ref(self);
     atomic_store_explicit(lh_addr_of(self->completed), completed, memory_order_release);
 }
 
-static lh_void
+lh_void
 lh_os_logger_queue_init_counters(lh_os_logger_queue_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -213,20 +210,20 @@ lh_os_logger_queue_init_counters(lh_os_logger_queue_t *self)
 
 /* -- Level 2 and up ----------------------------------------------------------- */
 
-static lh_u64_t
+lh_u64_t
 lh_os_logger_queue_now_ms(lh_void)
 {
     return lh_os_tick_us() / 1000U;
 }
 
 /* True when @p done has reached @p wanted, counting through wrap-around. */
-static lh_bool_t
+lh_bool_t
 lh_os_logger_queue_has_reached(lh_u32_t done, lh_u32_t wanted)
 {
     return lh_cast_static(lh_s32_t, done - wanted) >= 0 ? lh_bool_true : lh_bool_false;
 }
 
-static lh_bool_t
+lh_bool_t
 lh_os_logger_queue_is_empty(lh_os_logger_queue_t *self)
 {
     return lh_null_eq(lh_spsc_peek(lh_os_logger_queue_get_records(self)));
@@ -234,7 +231,7 @@ lh_os_logger_queue_is_empty(lh_os_logger_queue_t *self)
 
 /* Hand at most one queue's worth of records to the sink, so a flush or a stop is
    never starved by sustained logging. */
-static lh_void
+lh_void
 lh_os_logger_queue_emit_batch(lh_os_logger_queue_t *self)
 {
     const lh_os_logger_sink_t *sink = lh_os_logger_queue_get_sink(self);
@@ -250,7 +247,7 @@ lh_os_logger_queue_emit_batch(lh_os_logger_queue_t *self)
     }
 }
 
-static lh_void
+lh_void
 lh_os_logger_queue_report_drops(lh_os_logger_queue_t *self)
 {
     const lh_os_logger_sink_t *sink = lh_os_logger_queue_get_sink(self);
@@ -264,7 +261,7 @@ lh_os_logger_queue_report_drops(lh_os_logger_queue_t *self)
 }
 
 /* Flush, then mark the sync requests seen before it as done and wake their waiters. */
-static lh_void
+lh_void
 lh_os_logger_queue_flush(lh_os_logger_queue_t *self, lh_u32_t request)
 {
     const lh_os_logger_sink_t *sink = lh_os_logger_queue_get_sink(self);
@@ -278,7 +275,7 @@ lh_os_logger_queue_flush(lh_os_logger_queue_t *self, lh_u32_t request)
 }
 
 /* Free what was made; each part may be missing. */
-static lh_void
+lh_void
 lh_os_logger_queue_free(lh_os_logger_queue_t *self)
 {
     lh_os_loop_destroy(lh_os_logger_queue_get_loop(self));
@@ -337,7 +334,7 @@ lh_os_logger_queue_get_dropped(const lh_os_logger_queue_t *self)
 }
 
 /* One round of the loop: records, drops, then a flush when one is due. */
-static lh_void
+lh_void
 lh_os_logger_queue_step(lh_ptr user)
 {
     lh_os_logger_queue_t *self = lh_ptr_rcast(lh_os_logger_queue_t, user);

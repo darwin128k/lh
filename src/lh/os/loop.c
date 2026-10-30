@@ -5,7 +5,8 @@
  * The thread clears the pending flag before its step and, under the mutex, sleeps
  * only while the flag is clear. A wake sets it under the mutex, so it is never
  * lost; a hint sets it without, so one that races the sleep itself waits for the
- * period.
+ * period. A loop with a waiter sleeps in it instead and wakes it for every wake,
+ * hint and stop; the waiter keeps the signal pending, so nothing is lost there.
  */
 
 #include <lh/os/loop.h>
@@ -13,8 +14,6 @@
 #include <lh/attribute/unused.h>
 #include <lh/cast/const.h>
 #include <lh/math.h>
-#include <lh/os/thread.h>
-#include <lh/os/condition.h>
 #include <lh/os/tick.h>
 #include <lh/runtime/allocator.h>
 #include <lh/util/return.h>
@@ -25,6 +24,9 @@ struct lh_os_loop
     lh_memory_allocator_t allocator;
     lh_os_loop_step_cb step;
     lh_ptr user;
+    lh_os_loop_wait_cb wait;
+    lh_os_loop_wake_cb wake;
+    lh_ptr waiter;
     lh_u32_t period_ms;
     lh_timer_group_t timers;
     lh_os_thread_t thread;
@@ -38,49 +40,91 @@ struct lh_os_loop
 
 /* -- Level 1: the fields ------------------------------------------------------ */
 
-static lh_memory_allocator_t *
+lh_os_loop_wait_cb
+lh_os_loop_get_wait_fn(const lh_os_loop_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->wait;
+}
+
+lh_void
+lh_os_loop_set_wait_fn(lh_os_loop_t *self, lh_os_loop_wait_cb wait)
+{
+    lh_assert_runtime_ref(self);
+    self->wait = wait;
+}
+
+lh_os_loop_wake_cb
+lh_os_loop_get_wake_fn(const lh_os_loop_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->wake;
+}
+
+lh_void
+lh_os_loop_set_wake_fn(lh_os_loop_t *self, lh_os_loop_wake_cb wake)
+{
+    lh_assert_runtime_ref(self);
+    self->wake = wake;
+}
+
+lh_ptr
+lh_os_loop_get_waiter(const lh_os_loop_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->waiter;
+}
+
+lh_void
+lh_os_loop_set_waiter(lh_os_loop_t *self, lh_ptr waiter)
+{
+    lh_assert_runtime_ref(self);
+    self->waiter = waiter;
+}
+
+lh_memory_allocator_t *
 lh_os_loop_get_allocator_mut(lh_os_loop_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->allocator);
 }
 
-static lh_os_loop_step_cb
+lh_os_loop_step_cb
 lh_os_loop_get_step_fn(const lh_os_loop_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->step;
 }
 
-static lh_void
+lh_void
 lh_os_loop_set_step_fn(lh_os_loop_t *self, lh_os_loop_step_cb step)
 {
     lh_assert_runtime_ref(self);
     self->step = step;
 }
 
-static lh_ptr
+lh_ptr
 lh_os_loop_get_user(const lh_os_loop_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->user;
 }
 
-static lh_void
+lh_void
 lh_os_loop_set_user(lh_os_loop_t *self, lh_ptr user)
 {
     lh_assert_runtime_ref(self);
     self->user = user;
 }
 
-static lh_u32_t
+lh_u32_t
 lh_os_loop_get_period_ms(const lh_os_loop_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->period_ms;
 }
 
-static lh_void
+lh_void
 lh_os_loop_set_period_ms(lh_os_loop_t *self, lh_u32_t period_ms)
 {
     lh_assert_runtime_ref(self);
@@ -94,35 +138,35 @@ lh_os_loop_get_timers_mut(lh_os_loop_t *self)
     return lh_addr_of(self->timers);
 }
 
-static lh_os_thread_t *
+lh_os_thread_t *
 lh_os_loop_get_thread_mut(lh_os_loop_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->thread);
 }
 
-static lh_os_mutex_t *
+lh_os_mutex_t *
 lh_os_loop_get_mutex_mut(lh_os_loop_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->mutex);
 }
 
-static lh_os_condition_t *
+lh_os_condition_t *
 lh_os_loop_get_condition_mut(lh_os_loop_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->condition);
 }
 
-static lh_bool_t
+lh_bool_t
 lh_os_loop_is_started(const lh_os_loop_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->started;
 }
 
-static lh_void
+lh_void
 lh_os_loop_set_started(lh_os_loop_t *self, lh_bool_t started)
 {
     lh_assert_runtime_ref(self);
@@ -130,7 +174,7 @@ lh_os_loop_set_started(lh_os_loop_t *self, lh_bool_t started)
 }
 
 /* Clear the pending wake and say whether there was one. */
-static lh_bool_t
+lh_bool_t
 lh_os_loop_take_pending(lh_os_loop_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -139,7 +183,7 @@ lh_os_loop_take_pending(lh_os_loop_t *self)
                : lh_bool_false;
 }
 
-static lh_bool_t
+lh_bool_t
 lh_os_loop_is_pending(lh_os_loop_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -147,7 +191,7 @@ lh_os_loop_is_pending(lh_os_loop_t *self)
                                                                                  : lh_bool_false;
 }
 
-static lh_void
+lh_void
 lh_os_loop_set_pending(lh_os_loop_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -161,14 +205,14 @@ lh_os_loop_is_last_step(const lh_os_loop_t *self)
     return self->last_step;
 }
 
-static lh_void
+lh_void
 lh_os_loop_set_last_step(lh_os_loop_t *self, lh_bool_t last_step)
 {
     lh_assert_runtime_ref(self);
     self->last_step = last_step;
 }
 
-static lh_bool_t
+lh_bool_t
 lh_os_loop_is_stopping(const lh_os_loop_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -178,14 +222,14 @@ lh_os_loop_is_stopping(const lh_os_loop_t *self)
                : lh_bool_false;
 }
 
-static lh_void
+lh_void
 lh_os_loop_set_stopping(lh_os_loop_t *self)
 {
     lh_assert_runtime_ref(self);
     atomic_store_explicit(lh_addr_of(self->stopping), 1, memory_order_release);
 }
 
-static lh_void
+lh_void
 lh_os_loop_init_flags(lh_os_loop_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -196,9 +240,17 @@ lh_os_loop_init_flags(lh_os_loop_t *self)
 /* -- Level 2 and up ----------------------------------------------------------- */
 
 /* Sleep at most @p timeout_ms, unless a wake or a stop is already there. */
-static lh_void
+lh_void
 lh_os_loop_sleep(lh_os_loop_t *self, lh_u32_t timeout_ms)
 {
+    if (lh_null_ne(lh_os_loop_get_wait_fn(self)))
+    {
+        if (!lh_os_loop_is_pending(self) && !lh_os_loop_is_stopping(self))
+        {
+            lh_os_loop_get_wait_fn(self)(lh_os_loop_get_waiter(self), timeout_ms);
+        }
+        return;
+    }
     LH_ATTRIBUTE_UNUSED(lh_os_mutex_lock(lh_os_loop_get_mutex_mut(self)));
     if (!lh_os_loop_is_pending(self) && !lh_os_loop_is_stopping(self))
     {
@@ -208,7 +260,7 @@ lh_os_loop_sleep(lh_os_loop_t *self, lh_u32_t timeout_ms)
     LH_ATTRIBUTE_UNUSED(lh_os_mutex_unlock(lh_os_loop_get_mutex_mut(self)));
 }
 
-static lh_void
+lh_void
 lh_os_loop_run(lh_ptr user)
 {
     lh_os_loop_t *self = lh_ptr_rcast(lh_os_loop_t, user);
@@ -238,17 +290,29 @@ lh_os_loop_run(lh_ptr user)
 }
 
 lh_bool_t
-lh_os_loop_try_start(lh_os_loop_t *self)
+lh_os_loop_try_start_on(lh_os_loop_t *self, lh_s32_t cpu, lh_u32_t flags)
 {
     lh_return_if(lh_os_loop_is_started(self), lh_bool_false);
-    lh_os_loop_set_started(
-        self, lh_os_thread_start(lh_os_loop_get_thread_mut(self), lh_os_loop_run, self, -1, 0U));
+    lh_os_loop_set_started(self, lh_os_thread_start(lh_os_loop_get_thread_mut(self), lh_os_loop_run,
+                                                    self, cpu, flags));
     return lh_os_loop_is_started(self);
+}
+
+lh_bool_t
+lh_os_loop_try_start(lh_os_loop_t *self)
+{
+    return lh_os_loop_try_start_on(self, -1, 0U);
 }
 
 lh_void
 lh_os_loop_wake(lh_os_loop_t *self)
 {
+    if (lh_null_ne(lh_os_loop_get_wake_fn(self)))
+    {
+        lh_os_loop_set_pending(self);
+        lh_os_loop_get_wake_fn(self)(lh_os_loop_get_waiter(self));
+        return;
+    }
     LH_ATTRIBUTE_UNUSED(lh_os_mutex_lock(lh_os_loop_get_mutex_mut(self)));
     lh_os_loop_set_pending(self);
     LH_ATTRIBUTE_UNUSED(lh_os_condition_signal(lh_os_loop_get_condition_mut(self)));
@@ -259,6 +323,11 @@ lh_void
 lh_os_loop_hint(lh_os_loop_t *self)
 {
     lh_os_loop_set_pending(self);
+    if (lh_null_ne(lh_os_loop_get_wake_fn(self)))
+    {
+        lh_os_loop_get_wake_fn(self)(lh_os_loop_get_waiter(self));
+        return;
+    }
     LH_ATTRIBUTE_UNUSED(lh_os_condition_signal(lh_os_loop_get_condition_mut(self)));
 }
 
@@ -266,7 +335,13 @@ lh_void
 lh_os_loop_destroy(lh_os_loop_t *self)
 {
     lh_return_if(lh_null_eq(self));
-    if (lh_os_loop_is_started(self))
+    if (lh_os_loop_is_started(self) && lh_null_ne(lh_os_loop_get_wake_fn(self)))
+    {
+        lh_os_loop_set_stopping(self);
+        lh_os_loop_get_wake_fn(self)(lh_os_loop_get_waiter(self));
+        LH_ATTRIBUTE_UNUSED(lh_os_thread_join(lh_os_loop_get_thread_mut(self)));
+    }
+    else if (lh_os_loop_is_started(self))
     {
         LH_ATTRIBUTE_UNUSED(lh_os_mutex_lock(lh_os_loop_get_mutex_mut(self)));
         lh_os_loop_set_stopping(self);
@@ -308,5 +383,20 @@ lh_os_loop_try_create(lh_u32_t period_ms, lh_os_loop_step_cb step, lh_ptr user)
         lh_os_loop_destroy(self);
         return lh_null;
     }
+    return self;
+}
+
+lh_os_loop_t *
+lh_os_loop_try_create_waiting(lh_u32_t period_ms, lh_os_loop_step_cb step, lh_ptr user,
+                              lh_os_loop_wait_cb wait, lh_os_loop_wake_cb wake, lh_ptr waiter)
+{
+    lh_os_loop_t *self;
+
+    lh_return_if(lh_null_eq(wait) || lh_null_eq(wake), lh_null);
+    self = lh_os_loop_try_create(period_ms, step, user);
+    lh_return_if(lh_null_eq(self), lh_null);
+    lh_os_loop_set_wait_fn(self, wait);
+    lh_os_loop_set_wake_fn(self, wake);
+    lh_os_loop_set_waiter(self, waiter);
     return self;
 }
