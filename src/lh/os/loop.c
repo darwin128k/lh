@@ -37,7 +37,6 @@ struct lh_os_loop
     atomic_bool pending;
     atomic_bool stopping;
 };
-
 /* -- Level 1: the fields ------------------------------------------------------ */
 
 lh_os_loop_wait_cb
@@ -260,35 +259,6 @@ lh_os_loop_sleep(lh_os_loop_t *self, lh_u32_t timeout_ms)
     LH_ATTRIBUTE_UNUSED(lh_os_mutex_unlock(lh_os_loop_get_mutex_mut(self)));
 }
 
-lh_void
-lh_os_loop_run(lh_ptr user)
-{
-    lh_os_loop_t *self = lh_ptr_rcast(lh_os_loop_t, user);
-    lh_timer_group_t *timers = lh_os_loop_get_timers_mut(self);
-
-    for (;;)
-    {
-        /* Read before the step: the step that sees the stop is the last one. */
-        const lh_bool_t stopping = lh_os_loop_is_stopping(self);
-        lh_tick_t now;
-
-        LH_ATTRIBUTE_UNUSED(lh_os_loop_take_pending(self));
-        lh_os_loop_set_last_step(self, stopping);
-        lh_timer_group_handler(timers, lh_os_tick_ms());
-        lh_os_loop_get_step_fn(self)(lh_os_loop_get_user(self));
-        if (stopping)
-        {
-            break;
-        }
-        now = lh_os_tick_ms();
-        lh_os_loop_sleep(
-            self,
-            lh_cast_static(lh_u32_t,
-                           lh_math_min(lh_cast_static(lh_tick_t, lh_os_loop_get_period_ms(self)),
-                                       lh_timer_group_until_next(timers, now))));
-    }
-}
-
 lh_bool_t
 lh_os_loop_try_start_on(lh_os_loop_t *self, lh_s32_t cpu, lh_u32_t flags)
 {
@@ -296,12 +266,6 @@ lh_os_loop_try_start_on(lh_os_loop_t *self, lh_s32_t cpu, lh_u32_t flags)
     lh_os_loop_set_started(self, lh_os_thread_start(lh_os_loop_get_thread_mut(self), lh_os_loop_run,
                                                     self, cpu, flags));
     return lh_os_loop_is_started(self);
-}
-
-lh_bool_t
-lh_os_loop_try_start(lh_os_loop_t *self)
-{
-    return lh_os_loop_try_start_on(self, -1, 0U);
 }
 
 lh_void
@@ -353,6 +317,41 @@ lh_os_loop_destroy(lh_os_loop_t *self)
     LH_ATTRIBUTE_UNUSED(lh_os_condition_close(lh_os_loop_get_condition_mut(self)));
     LH_ATTRIBUTE_UNUSED(lh_os_mutex_close(lh_os_loop_get_mutex_mut(self)));
     lh_memory_allocator_dealloc(lh_os_loop_get_allocator_mut(self), self);
+}
+
+lh_void
+lh_os_loop_run(lh_ptr user)
+{
+    lh_os_loop_t *self = lh_ptr_rcast(lh_os_loop_t, user);
+    lh_timer_group_t *timers = lh_os_loop_get_timers_mut(self);
+
+    for (;;)
+    {
+        /* Read before the step: the step that sees the stop is the last one. */
+        const lh_bool_t stopping = lh_os_loop_is_stopping(self);
+        lh_tick_t now;
+
+        LH_ATTRIBUTE_UNUSED(lh_os_loop_take_pending(self));
+        lh_os_loop_set_last_step(self, stopping);
+        lh_timer_group_handler(timers, lh_os_tick_ms());
+        lh_os_loop_get_step_fn(self)(lh_os_loop_get_user(self));
+        if (stopping)
+        {
+            break;
+        }
+        now = lh_os_tick_ms();
+        lh_os_loop_sleep(
+            self,
+            lh_cast_static(lh_u32_t,
+                           lh_math_min(lh_cast_static(lh_tick_t, lh_os_loop_get_period_ms(self)),
+                                       lh_timer_group_until_next(timers, now))));
+    }
+}
+
+lh_bool_t
+lh_os_loop_try_start(lh_os_loop_t *self)
+{
+    return lh_os_loop_try_start_on(self, -1, 0U);
 }
 
 lh_os_loop_t *
