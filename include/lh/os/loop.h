@@ -47,21 +47,6 @@ typedef struct lh_os_loop lh_os_loop_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief ::lh_os_loop_try_create for a loop that sleeps in @p wait, woken by @p wake.
- *
- * @param period_ms Longest sleep, in milliseconds; not 0.
- * @param step      The step; not ::lh_null.
- * @param user      The value the step is given.
- * @param wait      How the thread sleeps; not ::lh_null.
- * @param wake      How a sleep is cut short, from any thread; not ::lh_null.
- * @param waiter    The value @p wait and @p wake are given.
- * @return The loop, or ::lh_null as ::lh_os_loop_try_create.
- */
-lh_os_loop_t *
-lh_os_loop_try_create_waiting(lh_u32_t period_ms, lh_os_loop_step_cb step, lh_ptr user,
-                              lh_os_loop_wait_cb wait, lh_os_loop_wake_cb wake, lh_ptr waiter);
-
-/**
  * @brief The loop's timers, fired on its thread before each step.
  *
  * @param self The loop.
@@ -79,70 +64,6 @@ lh_os_loop_get_timers_mut(lh_os_loop_t *self);
  */
 lh_bool_t
 lh_os_loop_is_last_step(const lh_os_loop_t *self);
-
-/**
- * @brief Start the thread; the first step runs at once.
- *
- * @param self The loop, created and not started.
- * @return ::lh_bool_false when the thread could not start.
- */
-lh_bool_t
-lh_os_loop_try_start(lh_os_loop_t *self);
-
-/**
- * @brief ::lh_os_loop_try_start with the thread's CPU and flags (`lh/os/thread.h`).
- *
- * @param self  The loop, created and not started.
- * @param cpu   Logical CPU index, or -1 to inherit affinity.
- * @param flags Zero or ::lh_os_thread_block_sigpipe.
- * @return ::lh_bool_false when the thread could not start.
- */
-lh_bool_t
-lh_os_loop_try_start_on(lh_os_loop_t *self, lh_s32_t cpu, lh_u32_t flags);
-
-/**
- * @brief Have the thread run its step soon; never lost.
- *
- * Takes the loop's mutex for a moment. Any thread may call it, many times: wakes
- * that come together run one step.
- *
- * @param self The loop.
- */
-lh_void
-lh_os_loop_wake(lh_os_loop_t *self);
-
-/**
- * @brief ::lh_os_loop_wake without any lock; may be missed for one period.
- *
- * For a producer that must never wait. The step runs soon, or at the latest at the
- * end of the period.
- *
- * @param self The loop.
- */
-lh_void
-lh_os_loop_hint(lh_os_loop_t *self);
-
-/**
- * @brief Stop the thread after one last step, join it and free the loop.
- *
- * Call it from another thread than the loop's. A loop never started is just freed.
- *
- * @param self The loop, or ::lh_null.
- */
-lh_void
-lh_os_loop_destroy(lh_os_loop_t *self);
-
-/**
- * @brief Create a loop, without its thread yet.
- *
- * @param period_ms Longest sleep, in milliseconds; not 0.
- * @param step      The step; not ::lh_null.
- * @param user      The value the step is given.
- * @return The loop, or ::lh_null when an argument is wrong or the system is short of
- *         memory or synchronization objects.
- */
-lh_os_loop_t *
-lh_os_loop_try_create(lh_u32_t period_ms, lh_os_loop_step_cb step, lh_ptr user);
 
 /**
  * @brief Allocator mut (internal).
@@ -259,16 +180,95 @@ lh_void
 lh_os_loop_init_flags(lh_os_loop_t *self);
 
 /**
+ * @brief ::lh_os_loop_try_start with the thread's CPU and flags (`lh/os/thread.h`).
+ *
+ * @param self  The loop, created and not started.
+ * @param cpu   Logical CPU index, or -1 to inherit affinity.
+ * @param flags Zero or ::lh_os_thread_block_sigpipe.
+ * @return ::lh_bool_false when the thread could not start.
+ */
+lh_bool_t
+lh_os_loop_try_start_on(lh_os_loop_t *self, lh_s32_t cpu, lh_u32_t flags);
+
+/**
+ * @brief Have the thread run its step soon; never lost.
+ *
+ * Takes the loop's mutex for a moment. Any thread may call it, many times: wakes
+ * that come together run one step.
+ *
+ * @param self The loop.
+ */
+lh_void
+lh_os_loop_wake(lh_os_loop_t *self);
+
+/**
+ * @brief ::lh_os_loop_wake without any lock; may be missed for one period.
+ *
+ * For a producer that must never wait. The step runs soon, or at the latest at the
+ * end of the period.
+ *
+ * @param self The loop.
+ */
+lh_void
+lh_os_loop_hint(lh_os_loop_t *self);
+
+/**
+ * @brief Stop the thread after one last step, join it and free the loop.
+ *
+ * Call it from another thread than the loop's. A loop never started is just freed.
+ *
+ * @param self The loop, or ::lh_null.
+ */
+lh_void
+lh_os_loop_destroy(lh_os_loop_t *self);
+
+/**
  * @brief Sleep at most @p timeout_ms, unless a wake or a stop is already there.
  */
 lh_void
 lh_os_loop_sleep(lh_os_loop_t *self, lh_u32_t timeout_ms);
 
 /**
+ * @brief Start the thread; the first step runs at once.
+ *
+ * @param self The loop, created and not started.
+ * @return ::lh_bool_false when the thread could not start.
+ */
+lh_bool_t
+lh_os_loop_try_start(lh_os_loop_t *self);
+
+/**
+ * @brief Create a loop, without its thread yet.
+ *
+ * @param period_ms Longest sleep, in milliseconds; not 0.
+ * @param step      The step; not ::lh_null.
+ * @param user      The value the step is given.
+ * @return The loop, or ::lh_null when an argument is wrong or the system is short of
+ *         memory or synchronization objects.
+ */
+lh_os_loop_t *
+lh_os_loop_try_create(lh_u32_t period_ms, lh_os_loop_step_cb step, lh_ptr user);
+
+/**
  * @brief Lh os loop run (internal).
  */
 lh_void
 lh_os_loop_run(lh_ptr user);
+
+/**
+ * @brief ::lh_os_loop_try_create for a loop that sleeps in @p wait, woken by @p wake.
+ *
+ * @param period_ms Longest sleep, in milliseconds; not 0.
+ * @param step      The step; not ::lh_null.
+ * @param user      The value the step is given.
+ * @param wait      How the thread sleeps; not ::lh_null.
+ * @param wake      How a sleep is cut short, from any thread; not ::lh_null.
+ * @param waiter    The value @p wait and @p wake are given.
+ * @return The loop, or ::lh_null as ::lh_os_loop_try_create.
+ */
+lh_os_loop_t *
+lh_os_loop_try_create_waiting(lh_u32_t period_ms, lh_os_loop_step_cb step, lh_ptr user,
+                              lh_os_loop_wait_cb wait, lh_os_loop_wake_cb wake, lh_ptr waiter);
 
 LH_COMPILER_EXTERN_C_END
 
