@@ -30,6 +30,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `lh_os_system_fs_file_open_read_at` on Windows (`NtCreateFile` relative to each
   directory, reparse points refused) and `lh_os_system_fs_file_open_root` on both
   backends; `lh_fs_path_is_text_absolute`.
+- `lh/os/loop` waiters: `lh_os_loop_try_create_waiting` sleeps in a caller's `wait`
+  (a `poll` of sockets) and wakes through its `wake`; `lh_os_loop_try_start_on` sets
+  the thread's CPU and flags. The private accessors of the loop, the log queue and
+  the daily sink are no longer `static` (lib/lh/AGENTS.md 2).
 - `lh/os/thread/group`: threads of one owner, each stopped by its own `wake`;
   stopping the group wakes every thread before joining any. `lh_str_ptr_format_cstr`
   (in `lh/str/format/text.h`): formatting into a buffer, always NUL-terminated.
