@@ -37,6 +37,7 @@ struct lh_os_loop
     atomic_bool pending;
     atomic_bool stopping;
 };
+
 /* -- Level 1: the fields ------------------------------------------------------ */
 
 lh_os_loop_wait_cb
