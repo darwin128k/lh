@@ -19,7 +19,7 @@ lh_str_ptr_scanf_next_literal(lh_str_cptr fmt, lh_usize_t *pos, lh_str_scanf_spe
             fmt_pos = lh_math_add_one(fmt_pos);
         }
         lh_str_scanf_spec_set_kind(out, lh_str_scanf_spec_kind_literal);
-        lh_str_scanf_spec_set_literal(out, lh_ptr_add_by_offset_unsafe(const lh_char_t, fmt, run_start));
+        lh_str_scanf_spec_set_literal(out, lh_ptr_add_by_offset(const lh_char_t, fmt, run_start));
         lh_str_scanf_spec_set_literal_size(out, lh_math_sub(fmt_pos, run_start));
         lh_ptr_deref(pos) = fmt_pos;
     }

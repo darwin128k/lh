@@ -98,8 +98,8 @@ const lh_ptr
 lh_memory_rcompare(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size)
 {
     const lh_usize_t n = lh_math_min(lhs_size, rhs_size);
-    const lh_ptr l = lh_ptr_add(void, lhs, lh_math_sub(lhs_size, n));
-    const lh_ptr r = lh_ptr_add(void, rhs, lh_math_sub(rhs_size, n));
+    const lh_ptr l = lh_ptr_add_v(void, lhs, lh_math_sub(lhs_size, n));
+    const lh_ptr r = lh_ptr_add_v(void, rhs, lh_math_sub(rhs_size, n));
 
     return lh_memory_std_rcompare(l, r, n);
 }
@@ -215,7 +215,7 @@ lh_memory_find_byte_by_step(const lh_ptr lhs, lh_usize_t lhs_size, lh_byte_t byt
     for (lh_usize_t off = 0; lh_math_ge(lh_memory_size_rest(lhs_size, off), 1);
          off = lh_math_add(off, step))
     {
-        lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
+        lh_byte_cptr cand = lh_ptr_add_by_offset(const lh_byte_t, base, off);
         if (lh_ptr_deref(cand) == byte)
         {
             return cand;
@@ -232,7 +232,7 @@ lh_memory_find_unit_by_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr 
     for (lh_usize_t off = 0; lh_math_ge(lh_memory_size_rest(lhs_size, off), unit_size);
          off = lh_math_add(off, unit_size))
     {
-        lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
+        lh_byte_cptr cand = lh_ptr_add_by_offset(const lh_byte_t, base, off);
         if (lh_memory_is_equal(cand, unit, unit_size))
         {
             return cand;
@@ -249,7 +249,7 @@ lh_memory_find_unit(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr unit, lh
     /* The byte search of the kernel; a hit off the unit grid resumes at the next unit. */
     while (lh_math_ge(lh_memory_size_rest(lhs_size, off), unit_size))
     {
-        lh_byte_cptr hit = lh_memory_std_find(lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off),
+        lh_byte_cptr hit = lh_memory_std_find(lh_ptr_add_by_offset(const lh_byte_t, base, off),
                                               lh_memory_size_rest(lhs_size, off), unit, unit_size);
         lh_return_if(lh_null_eq(hit), lh_null);
         const lh_usize_t at = lh_addr_diff(lh_ptr_to_uaddr(hit), lh_ptr_to_uaddr(base));
@@ -269,7 +269,7 @@ lh_memory_find_needle_by_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_pt
     for (lh_usize_t off = 0; lh_math_ge(lh_memory_size_rest(lhs_size, off), rhs_size);
          off = lh_math_add(off, step))
     {
-        lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
+        lh_byte_cptr cand = lh_ptr_add_by_offset(const lh_byte_t, base, off);
         if (lh_ptr_deref(cand) == first &&
             !lh_memory_compare(cand, lh_memory_size_rest(lhs_size, off), rhs, rhs_size))
         {
@@ -320,7 +320,7 @@ lh_memory_rfind_needle_by_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_p
     lh_usize_t off = lh_memory_get_last_step_offset(lhs_size, rhs_size, step);
     for (;;)
     {
-        lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
+        lh_byte_cptr cand = lh_ptr_add_by_offset(const lh_byte_t, base, off);
         if (lh_ptr_deref(cand) == first && lh_memory_is_equal(cand, rhs, rhs_size))
         {
             return cand;

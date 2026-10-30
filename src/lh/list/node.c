@@ -37,7 +37,7 @@ lh_list_node_get_entry(const lh_list_node_t *self, lh_usize_t offset)
     {
         return lh_null;
     }
-    return lh_ptr_sub_by_offset_unsafe(lh_void, self, offset);
+    return lh_ptr_sub_by_offset(lh_void, self, offset);
 }
 
 lh_void

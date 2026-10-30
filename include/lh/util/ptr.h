@@ -401,7 +401,7 @@
 #define lh_ptr_is_backward_copy(dst, src, src_end) (!lh_ptr_is_forward_copy(dst, src, src_end))
 
 /**
- * @def lh_ptr_add_by_offset_unsafe(T, ptr, offset)
+ * @def lh_ptr_add_by_offset(T, ptr, offset)
  * @brief `ptr` advanced by @p offset bytes (via ::lh_uaddr_t); result has type `T *`.
  *
  * @note @p offset counts **bytes**, not elements. For `T` with `alignof(T) > 1`,
@@ -415,31 +415,31 @@
  * @code{.c}
  * lh_byte_t block[64];
  * lh_byte_ptr p = &block[8];
- * lh_byte_ptr q = lh_ptr_add_by_offset_unsafe(lh_byte_t, p, (lh_uaddr_t)16);
+ * lh_byte_ptr q = lh_ptr_add_by_offset(lh_byte_t, p, (lh_uaddr_t)16);
  * @endcode
  */
-#define lh_ptr_add_by_offset_unsafe(T, ptr, offset)                                                \
+#define lh_ptr_add_by_offset(T, ptr, offset)                                                \
     lh_addr_to_ptr(T, lh_math_add(lh_ptr_to_uaddr(ptr), offset))
 
 /**
- * @def lh_ptr_sub_by_offset_unsafe(T, ptr, offset)
+ * @def lh_ptr_sub_by_offset(T, ptr, offset)
  * @brief `ptr` moved back by @p offset bytes (via ::lh_uaddr_t); result has type `T *`.
  *
- * @warning Same null / validity caveats as ::lh_ptr_add_by_offset_unsafe.
+ * @warning Same null / validity caveats as ::lh_ptr_add_by_offset.
  *
  * Example usage:
  * @code{.c}
  * lh_byte_t block[64];
  * lh_byte_ptr p = &block[40];
- * lh_byte_ptr q = lh_ptr_sub_by_offset_unsafe(lh_byte_t, p, (lh_uaddr_t)8);
+ * lh_byte_ptr q = lh_ptr_sub_by_offset(lh_byte_t, p, (lh_uaddr_t)8);
  * @endcode
  */
-#define lh_ptr_sub_by_offset_unsafe(T, ptr, offset)                                                \
+#define lh_ptr_sub_by_offset(T, ptr, offset)                                                \
     lh_addr_to_ptr(T, lh_math_sub(lh_ptr_to_uaddr(ptr), offset))
 
 /**
- * @def lh_ptr_add_by_offset(T, ptr, offset)
- * @brief Like ::lh_ptr_add_by_offset_unsafe,
+ * @def lh_ptr_add_by_offset_v(T, ptr, offset)
+ * @brief Like ::lh_ptr_add_by_offset,
  *        but if @p ptr is null (::lh_ptr_is_null),
  *        returns @p ptr unchanged.
  *
@@ -450,30 +450,30 @@
  * Example usage:
  * @code{.c}
  * lh_ptr z = LH_PTR_T_MIN;
- * lh_ptr r = lh_ptr_add_by_offset(lh_void, z, (lh_uaddr_t)8); // still null
+ * lh_ptr r = lh_ptr_add_by_offset_v(lh_void, z, (lh_uaddr_t)8); // still null
  * @endcode
  */
-#define lh_ptr_add_by_offset(T, ptr, offset)                                                       \
-    (lh_ptr_is_null(ptr) ? ptr : lh_ptr_add_by_offset_unsafe(T, ptr, offset))
+#define lh_ptr_add_by_offset_v(T, ptr, offset)                                                       \
+    (lh_ptr_is_null(ptr) ? ptr : lh_ptr_add_by_offset(T, ptr, offset))
 
 /**
- * @def lh_ptr_sub_by_offset(T, ptr, offset)
- * @brief Like ::lh_ptr_sub_by_offset_unsafe, but if @p ptr is null,
+ * @def lh_ptr_sub_by_offset_v(T, ptr, offset)
+ * @brief Like ::lh_ptr_sub_by_offset, but if @p ptr is null,
  *        returns @p ptr unchanged.
  *
  * Example usage:
  * @code{.c}
  * lh_ptr z = LH_PTR_T_MIN;
- * lh_ptr r = lh_ptr_sub_by_offset(lh_void, z, (lh_uaddr_t)4); // still null
+ * lh_ptr r = lh_ptr_sub_by_offset_v(lh_void, z, (lh_uaddr_t)4); // still null
  * @endcode
  */
-#define lh_ptr_sub_by_offset(T, ptr, offset)                                                       \
-    (lh_ptr_is_null(ptr) ? ptr : lh_ptr_sub_by_offset_unsafe(T, ptr, offset))
+#define lh_ptr_sub_by_offset_v(T, ptr, offset)                                                       \
+    (lh_ptr_is_null(ptr) ? ptr : lh_ptr_sub_by_offset(T, ptr, offset))
 
 /**
- * @def lh_ptr_add_unsafe(T, ptr, rhs)
+ * @def lh_ptr_add(T, ptr, rhs)
  * @brief `T *` from `::lh_ptr_to_uaddr(ptr) + ::lh_ptr_to_uaddr(rhs)`
- *        (::lh_ptr_add_by_offset_unsafe).
+ *        (::lh_ptr_add_by_offset).
  *
  * This is **integer address** addition, not “pointer + index”.
  * Rare; know the layout you need.
@@ -482,28 +482,28 @@
  * @code{.c}
  * // lh_addr_to_ptr(T, lh_ptr_to_uaddr(ptr) + lh_ptr_to_uaddr(rhs))
  * int x, y;
- * int *p = lh_ptr_add_unsafe(int, &x, &y);
+ * int *p = lh_ptr_add(int, &x, &y);
  * @endcode
  */
-#define lh_ptr_add_unsafe(T, ptr, rhs) lh_ptr_add_by_offset_unsafe(T, ptr, lh_ptr_to_uaddr(rhs))
+#define lh_ptr_add(T, ptr, rhs) lh_ptr_add_by_offset(T, ptr, lh_ptr_to_uaddr(rhs))
 
 /**
- * @def lh_ptr_sub_unsafe(T, ptr, rhs)
+ * @def lh_ptr_sub(T, ptr, rhs)
  * @brief `T *` from `::lh_ptr_to_uaddr(ptr) - ::lh_ptr_to_uaddr(rhs)`
- *        (::lh_ptr_sub_by_offset_unsafe).
+ *        (::lh_ptr_sub_by_offset).
  *
  * Example usage:
  * @code{.c}
  * // lh_addr_to_ptr(T, lh_ptr_to_uaddr(ptr) - lh_ptr_to_uaddr(rhs))
  * int x, y;
- * int *p = lh_ptr_sub_unsafe(int, &x, &y);
+ * int *p = lh_ptr_sub(int, &x, &y);
  * @endcode
  */
-#define lh_ptr_sub_unsafe(T, ptr, rhs) lh_ptr_sub_by_offset_unsafe(T, ptr, lh_ptr_to_uaddr(rhs))
+#define lh_ptr_sub(T, ptr, rhs) lh_ptr_sub_by_offset(T, ptr, lh_ptr_to_uaddr(rhs))
 
 /**
- * @def lh_ptr_add(T, ptr, rhs)
- * @brief Like ::lh_ptr_add_unsafe, but if @p ptr is null (::lh_ptr_is_null), returns @p ptr.
+ * @def lh_ptr_add_v(T, ptr, rhs)
+ * @brief Like ::lh_ptr_add, but if @p ptr is null (::lh_ptr_is_null), returns @p ptr.
  *
  * @note When @p ptr is null, @p rhs is not applied — there is no “null + address” path;
  *       only the null-preserving short-circuit runs.
@@ -513,16 +513,16 @@
  * int cell;
  * int *q = &cell;
  * lh_ptr z = LH_PTR_T_MIN;
- * int *r = lh_ptr_add(int, q, z); // z null → offset 0 → still &cell
+ * int *r = lh_ptr_add_v(int, q, z); // z null → offset 0 → still &cell
  * @endcode
  */
-#define lh_ptr_add(T, ptr, rhs) lh_ptr_add_by_offset(T, ptr, lh_ptr_to_uaddr(rhs))
+#define lh_ptr_add_v(T, ptr, rhs) lh_ptr_add_by_offset_v(T, ptr, lh_ptr_to_uaddr(rhs))
 
 /**
- * @def lh_ptr_sub(T, ptr, rhs)
- * @brief Like ::lh_ptr_sub_unsafe, but if @p ptr is null, returns @p ptr.
+ * @def lh_ptr_sub_v(T, ptr, rhs)
+ * @brief Like ::lh_ptr_sub, but if @p ptr is null, returns @p ptr.
  *
- * @note Same short-circuit as ::lh_ptr_add:
+ * @note Same short-circuit as ::lh_ptr_add_v:
  *       a null @p ptr returns immediately; @p rhs is ignored.
  *
  * Example usage:
@@ -530,10 +530,10 @@
  * int cell;
  * int *q = &cell;
  * lh_ptr z = LH_PTR_T_MIN;
- * int *r = lh_ptr_sub(int, q, z); // z null → offset 0 → still &cell
+ * int *r = lh_ptr_sub_v(int, q, z); // z null → offset 0 → still &cell
  * @endcode
  */
-#define lh_ptr_sub(T, ptr, rhs) lh_ptr_sub_by_offset(T, ptr, lh_ptr_to_uaddr(rhs))
+#define lh_ptr_sub_v(T, ptr, rhs) lh_ptr_sub_by_offset_v(T, ptr, lh_ptr_to_uaddr(rhs))
 
 /**
  * @def lh_ptr_align_up_grid(T, ptr, origin, grid)
@@ -559,7 +559,7 @@
  * @endcode
  */
 #define lh_ptr_align_up_grid(T, ptr, origin, grid)                                                 \
-    lh_ptr_add_by_offset_unsafe(                                                                   \
+    lh_ptr_add_by_offset(                                                                   \
         T, (ptr),                                                                                  \
         lh_math_mod(lh_math_sub((grid), lh_math_mod(lh_ptr_udiff((ptr), (origin)), (grid))),       \
                     (grid)))
@@ -585,7 +585,7 @@
  * @endcode
  */
 #define lh_ptr_align_down_grid(T, ptr, origin, grid)                                               \
-    lh_ptr_add_by_offset_unsafe(T, (origin),                                                       \
+    lh_ptr_add_by_offset(T, (origin),                                                       \
                                 lh_math_sub(lh_ptr_udiff((ptr), (origin)),                         \
                                             lh_math_mod(lh_ptr_udiff((ptr), (origin)), (grid))))
 

@@ -174,7 +174,7 @@ lh_array_get_ptr(const lh_array_t *self, lh_uindex_t index)
     /* index < size <= capacity already holds, so no second check against the
      * typed block's capacity (lh_memory_typed_get_ptr_from_begin). */
     lh_assert_runtime_ifn(lh_array_is_valid_index(self, index), lh_runtime_error_code_out_of_range);
-    return lh_ptr_add_by_offset_unsafe(lh_void, lh_array_get_begin(self),
+    return lh_ptr_add_by_offset(lh_void, lh_array_get_begin(self),
                                        lh_math_mul(index, lh_array_get_type_size(self)));
 }
 
@@ -292,7 +292,7 @@ lh_array_filter(lh_array_t *self, lh_array_pred_cb pred, lh_ptr context)
 lh_ptr
 lh_array_get_end(const lh_array_t *self)
 {
-    return lh_ptr_add_by_offset_unsafe(lh_void, lh_array_get_begin(self),
+    return lh_ptr_add_by_offset(lh_void, lh_array_get_begin(self),
                                        lh_array_get_size_of_bytes(self));
 }
 

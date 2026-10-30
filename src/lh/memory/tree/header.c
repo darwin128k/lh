@@ -5,13 +5,13 @@
 lh_memory_tree_header_t *
 lh_memory_tree_header_of(const lh_ptr ptr)
 {
-    return lh_ptr_sub_by_offset_unsafe(lh_memory_tree_header_t, ptr, LH_MEMORY_TREE_HEADER_SIZE);
+    return lh_ptr_sub_by_offset(lh_memory_tree_header_t, ptr, LH_MEMORY_TREE_HEADER_SIZE);
 }
 
 lh_ptr
 lh_memory_tree_header_get_data(const lh_memory_tree_header_t *header)
 {
-    return lh_ptr_add_by_offset_unsafe(lh_void, header, LH_MEMORY_TREE_HEADER_SIZE);
+    return lh_ptr_add_by_offset(lh_void, header, LH_MEMORY_TREE_HEADER_SIZE);
 }
 
 lh_memory_tree_header_t *

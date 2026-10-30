@@ -58,14 +58,14 @@ lh_str_ptr_put_char(lh_str_ptr str, lh_usize_t pos, lh_char_t ch)
 lh_usize_t
 lh_str_ptr_put_chars(lh_str_ptr str, lh_usize_t pos, const lh_str_ptr chars, lh_usize_t n)
 {
-    lh_memory_std_copy(lh_ptr_add_by_offset_unsafe(lh_char_t, str, pos), chars, n);
+    lh_memory_std_copy(lh_ptr_add_by_offset(lh_char_t, str, pos), chars, n);
     return lh_math_add(pos, n);
 }
 
 lh_usize_t
 lh_str_ptr_put_run(lh_str_ptr str, lh_usize_t pos, lh_char_t ch, lh_usize_t n)
 {
-    lh_memory_std_set(lh_ptr_add_by_offset_unsafe(lh_char_t, str, pos),
+    lh_memory_std_set(lh_ptr_add_by_offset(lh_char_t, str, pos),
                       lh_cast_static(lh_byte_t, ch), n);
     return lh_math_add(pos, n);
 }

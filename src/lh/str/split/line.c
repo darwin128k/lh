@@ -28,7 +28,7 @@ lh_str_ptr_split_next_line(lh_str_cptr str, lh_usize_t str_size, lh_usize_t *pos
         return lh_bool_false;
     }
 
-    begin = lh_ptr_add_by_offset_unsafe(const lh_char_t, str, start);
+    begin = lh_ptr_add_by_offset(const lh_char_t, str, start);
     rest = lh_math_sub(str_size, start);
     end = lh_str_ptr_find_of_chars(begin, rest, m_str_split_line_ends,
                                    lh_array_ptr_get_size(m_str_split_line_ends));

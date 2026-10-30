@@ -53,9 +53,9 @@ lh_str_ptr_format_ullong(lh_ullong_t value, lh_str_ptr str, lh_usize_t str_size)
         {
             return 0;
         }
-        lh_memory_std_set(lh_ptr_add_by_offset_unsafe(lh_char_t, str, written),
+        lh_memory_std_set(lh_ptr_add_by_offset(lh_char_t, str, written),
                           lh_cast_static(lh_byte_t, lh_char_map_digit_0), pad);
-        lh_memory_std_copy(lh_ptr_add_by_offset_unsafe(lh_char_t, str, lh_math_add(written, pad)), digits,
+        lh_memory_std_copy(lh_ptr_add_by_offset(lh_char_t, str, lh_math_add(written, pad)), digits,
                            n);
         written = lh_math_add(written, LH_STR_FORMAT_ULLONG_CHUNK_DIGITS);
     }

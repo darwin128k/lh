@@ -24,7 +24,7 @@ lh_str_ptr_split_next_of(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr delim
         return lh_bool_false;
     }
     rest = lh_math_sub(str_size, start);
-    from = lh_ptr_add_by_offset_unsafe(const lh_char_t, str, start);
+    from = lh_ptr_add_by_offset(const lh_char_t, str, start);
     delim_at = lh_str_ptr_find_of_chars(from, rest, delims, delim_count);
 
     lh_ptr_deref(field) = from;

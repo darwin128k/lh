@@ -190,7 +190,7 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
     lh_assert_runtime_ref(dst);
     lh_assert_runtime_ref(src);
 
-    lh_ptr end = lh_ptr_add_unsafe(lh_void, dst, n);
+    lh_ptr end = lh_ptr_add(lh_void, dst, n);
 
 #if LH_LIBRARY_OPTION_MEMORY_STD_BACKEND_LIBC
     (void)memcpy(dst, src, n);
@@ -360,7 +360,7 @@ lh_memory_std_copy_rev(lh_ptr dst, const lh_ptr src, lh_usize_t n)
     lh_assert_runtime_ref(dst);
     lh_assert_runtime_ref(src);
 
-    lh_ptr end = lh_ptr_add_unsafe(lh_void, dst, n);
+    lh_ptr end = lh_ptr_add(lh_void, dst, n);
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
     if (n >= LH_MEMORY_STD_SIMD_COPY_REV_THRESHOLD)
@@ -495,7 +495,7 @@ lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n)
     lh_assert_runtime_ref(src);
 
     (void)memmove(dst, src, n);
-    return lh_ptr_add_by_offset(lh_void, dst, n);
+    return lh_ptr_add_by_offset_v(lh_void, dst, n);
 #else
     lh_assert_runtime_ref(dst);
     lh_assert_runtime_ref(src);
@@ -504,20 +504,20 @@ lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n)
     if (n < 16U)
     {
         lh_memory_std_copy_tiny(lh_ptr_cast(lh_byte_t, dst), lh_ptr_ccast(lh_byte_t, src), n);
-        return lh_ptr_add_by_offset(lh_void, dst, n);
+        return lh_ptr_add_by_offset_v(lh_void, dst, n);
     }
     if (n <= 128U && lh_memory_std_has_sse2())
     {
         lh_memory_std_move_small_sse2(lh_ptr_cast(lh_byte_t, dst), lh_ptr_ccast(lh_byte_t, src), n);
-        return lh_ptr_add_by_offset(lh_void, dst, n);
+        return lh_ptr_add_by_offset_v(lh_void, dst, n);
     }
 #    endif
 
-    const lh_ptr src_end = lh_ptr_add_by_offset(lh_void, src, n);
+    const lh_ptr src_end = lh_ptr_add_by_offset_v(lh_void, src, n);
     if (lh_ptr_is_backward_copy(dst, src, src_end))
     {
         lh_memory_std_rcopy(dst, src, n);
-        return lh_ptr_add_by_offset(lh_void, dst, n);
+        return lh_ptr_add_by_offset_v(lh_void, dst, n);
     }
 
     /* Forward, and dst inside [src - n, src): overlapping, so not the copy tiers
@@ -531,11 +531,11 @@ lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n)
         {
             lh_memory_std_move_forward_sse2(lh_ptr_cast(lh_byte_t, dst),
                                             lh_ptr_ccast(lh_byte_t, src), n);
-            return lh_ptr_add_by_offset(lh_void, dst, n);
+            return lh_ptr_add_by_offset_v(lh_void, dst, n);
         }
 #    endif
         lh_memory_std_copy_bytes(lh_ptr_cast(lh_byte_t, dst), lh_ptr_ccast(lh_byte_t, src), n);
-        return lh_ptr_add_by_offset(lh_void, dst, n);
+        return lh_ptr_add_by_offset_v(lh_void, dst, n);
     }
     return lh_memory_std_copy(dst, src, n);
 #endif
@@ -587,7 +587,7 @@ lh_memory_std_set(lh_ptr dst, lh_byte_t val, lh_usize_t n)
 {
     lh_assert_runtime_ref(dst);
 
-    lh_ptr end = lh_ptr_add_unsafe(lh_void, dst, n);
+    lh_ptr end = lh_ptr_add(lh_void, dst, n);
 #if LH_LIBRARY_OPTION_MEMORY_STD_BACKEND_LIBC
     (void)memset(dst, val, n);
 #elif LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
@@ -691,7 +691,7 @@ lh_memory_std_xor(lh_ptr dst, const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
         if (m_simd_kind == LH_MEMORY_STD_KIND_AVX2)
         {
             lh_memory_std_xor_avx2(d, l, r, n);
-            return lh_ptr_add_unsafe(lh_void, dst, n);
+            return lh_ptr_add(lh_void, dst, n);
         }
     }
 #endif
@@ -699,11 +699,11 @@ lh_memory_std_xor(lh_ptr dst, const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
     if (n >= 32U && lh_memory_std_has_sse2())
     {
         lh_memory_std_xor_sse2(d, l, r, n);
-        return lh_ptr_add_unsafe(lh_void, dst, n);
+        return lh_ptr_add(lh_void, dst, n);
     }
 #endif
     lh_memory_std_xor_bytes(d, l, r, n);
-    return lh_ptr_add_unsafe(lh_void, dst, n);
+    return lh_ptr_add(lh_void, dst, n);
 }
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2

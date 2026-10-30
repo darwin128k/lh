@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The pointer arithmetic forms follow one naming rule now: the fast form has no
+  suffix and does not check (`lh_ptr_add_by_offset`, `lh_ptr_sub_by_offset`,
+  `lh_ptr_add`, `lh_ptr_sub`), the validating form has `_v` (`lh_ptr_add_by_offset_v`,
+  `lh_ptr_sub_by_offset_v`, `lh_ptr_add_v`, `lh_ptr_sub_v`). The `_unsafe` forms are
+  gone — the fast form says it in its name by not saying anything.
 - Every source mirrors its header: `os/concurrency.c` is split into `os/thread.c`,
   `os/mutex.c` and `os/condition.c`; `lh_char_fold_case_nonascii`, `lh_wchar_fold_case`,
   `lh_str_ptr_to_lower` / `_upper` and `lh_wstr_ptr_to_lower` / `_upper` are declared in
