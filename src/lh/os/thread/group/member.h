@@ -167,6 +167,12 @@ lh_os_thread_group_member_request_stop(lh_os_thread_group_member_t *self);
 lh_void
 lh_os_thread_group_member_destroy(lh_os_thread_group_member_t *self);
 
+/**
+ * @brief The member of @p self (level 1).
+ */
+lh_os_thread_group_member_t *
+lh_os_thread_group_get_member(lh_list_node_t *node);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_SRC_OS_THREAD_GROUP_MEMBER_H */

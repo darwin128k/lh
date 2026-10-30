@@ -51,7 +51,7 @@ lh_os_thread_group_set_closing(lh_os_thread_group_t *self, lh_bool_t closing)
     self->closing = closing;
 }
 
-static lh_os_thread_group_member_t *
+lh_os_thread_group_member_t *
 lh_os_thread_group_get_member(lh_list_node_t *node)
 {
     return lh_list_entry(lh_os_thread_group_member_t, node, node);

@@ -20,7 +20,6 @@
 
 #include <lh/os/worker/job.h>
 #include <lh/os/loop.h>
-#include <lh/os/mutex.h>
 
 /** @brief Opaque owner of a bounded serial background worker. */
 typedef struct lh_os_worker lh_os_worker_t;
