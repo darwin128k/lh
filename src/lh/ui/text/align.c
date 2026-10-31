@@ -16,15 +16,20 @@ lh_ui_text_align_get_origin(const lh_ui_rect_t *box, const lh_ui_insets_t *paddi
     lh_ui_scalar_t dy = 0;
     lh_ui_point_t origin;
 
+    /* The empty box lives here, not inside the branch below: the pointer that
+       names it is read after the branch ends, so a variable declared inside it
+       would already be gone. */
+    lh_ui_rect_t empty_box;
+
     if (lh_null_eq(box))
     {
-        lh_ui_rect_t empty_box;
         lh_ui_rect_init_empty(lh_addr_of(empty_box));
         box = lh_addr_of(empty_box);
     }
+    lh_ui_insets_t no_padding;
+
     if (lh_null_eq(padding))
     {
-        lh_ui_insets_t no_padding;
         lh_ui_insets_init_all(lh_addr_of(no_padding), 0);
         padding = lh_addr_of(no_padding);
     }

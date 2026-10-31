@@ -54,6 +54,12 @@ every brick.
   variable outlives the loop and is read after it. Both forms compile to the
   same code — the difference is the scope and what the line says at a glance,
   not the speed.
+- **A variable lives as long as the pointer that names it.** A declaration moves
+  into the block that needs it only when nothing outlives that block. When the
+  address of a variable is taken and the pointer is read after the block ends,
+  the variable stays in the outer scope: the block ends, the variable is gone,
+  and the pointer names nothing. `python tools/check-decls.py <paths>` (the
+  Authum repository holds the checker) reports that shape as well.
 - **Do not repeat a pointer assertion already guaranteed by delegation.**
   A public function owns its documented preconditions, but may enforce them
   through the brick it calls; it does not need a separate entry assertion.
