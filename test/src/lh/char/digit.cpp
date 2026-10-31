@@ -51,6 +51,21 @@ TEST(char_digit_accumulate, rejects_overflow)
     EXPECT_EQ(value, 4294967295U); /* unchanged on overflow */
 }
 
+TEST(char_digit_accumulate_ullong_radix, builds_value_left_to_right)
+{
+    lh_ullong_t value = 0;
+    ASSERT_TRUE(lh_char_digit_accumulate_radix_ullong(&value, 1, 16U));
+    ASSERT_TRUE(lh_char_digit_accumulate_radix_ullong(&value, 15, 16U));
+    EXPECT_EQ(value, 31U);
+}
+
+TEST(char_digit_accumulate_ullong_radix, rejects_overflow)
+{
+    lh_ullong_t value = 18446744073709551615ULL; /* LH_U64_T_MAX */
+    EXPECT_FALSE(lh_char_digit_accumulate_radix_ullong(&value, 1, 10U));
+    EXPECT_EQ(value, 18446744073709551615ULL); /* unchanged on overflow */
+}
+
 TEST(char_digit_extract, pulls_digits_right_to_left)
 {
     lh_uint_t value = 123U;

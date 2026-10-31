@@ -49,25 +49,45 @@ layer.
 children, the serializer, the HTML dialect, and the migration of
 `lh_ui_web_html_*` onto it.
 
-## 3. A JavaScript engine in lh
+## 3. A JavaScript engine of our own
 
 **Today.** Every script lh ships is JavaScript written as C strings.
 
-**There are JavaScript engines written in C.** QuickJS (MIT, no dependencies,
-almost complete ES2025, last release 2026-06-04) is the one that fits: a few
-files of C and about 350 KiB of code. MuJS (ISC) is smaller but ES5;
-Duktape (MIT) is ES5 and no longer developed; JerryScript is ES5.1. V8 and
-SpiderMonkey are C++ and far too heavy for this.
+**The decision.** The engine is **lh's own code**, on lh's bricks: the lexer,
+the parser, the tree, the interpreter. Nothing foreign is vendored into the
+tree — the same rule the rest of lh follows (SQLite and Monocypher are the
+exception because they are a database and a cryptography library, not a
+language we are building). The QuickJS implementation (MIT) is the
+**reference for the algorithms** — the way to read a number, the way to scan a
+string literal, the way the tree is shaped — not a dependency and not a
+library we link.
 
-**Target.** A brick that loads an engine the way the Win32 backend already
-looks up the pointer API at run time — dynamically, so lh never links an
-engine and a program without one still starts. Scripts run in the engine, and
-what crosses the boundary are C objects through our wrappers, not text. The
-media player is then an application that runs a script, not a page with a
-script pasted into it.
+**Why the port is a port.** The engine is written after QuickJS's, so the
+hard parts (the number scanner, the string escapes, the operator precedence,
+the garbage collector's roots) have a working answer to look at. What changes
+is everything around them: lh's strings, lh's memory kernels, lh's arrays and
+hashes, lh's error handling, lh's naming, lh's layering, and a test per brick.
 
-**Cost.** About two to three days: context, evaluation, calling in, calling
-out, and the lifetime rules.
+**The slices.** Each is a checkpoint of its own:
+
+1. **The lexer** — the tokens of a script: names, numbers, strings, the
+   punctuation, the comments, the line and the column of an error.
+2. **The tree** — the nodes a script is: the expressions, the statements, the
+   functions, the scopes.
+3. **The parser** — the text into the tree.
+4. **The values** — what a name holds: a number, a string, a boolean, null,
+   undefined, an object, a function.
+5. **The interpreter** — the tree running.
+6. **The runtime** — the objects, the prototypes, the garbage collector.
+
+**Cost.** The whole engine is weeks, not days; the slices are days. The first
+slice (the lexer) is the foundation of all the others and stands on its own:
+a script can be tokenized, and the tokens are worth having.
+
+**What it is for.** The media player and the web page's script stop being
+C strings: they become scripts the engine runs. What crosses the boundary
+between the script and the application are lh values — strings, numbers,
+booleans — and not text.
 
 ## 4. The gamepad driver
 

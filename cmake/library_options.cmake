@@ -325,6 +325,24 @@ option(LH_LIBRARY_OPTION_SQL_SQLITE
         OFF)
 
 # -----------------------------------------------------------------------------
+# Option: LH_LIBRARY_OPTION_JS
+#
+# The JavaScript engine of lh/js (include/lh/js.h): the lexer, the parser and
+# the interpreter, written on lh's own bricks.
+#
+#   ON  — compile the engine.
+#   OFF — leave it out (default): the engine is young, and a program that does
+#         not run scripts should not carry it.
+#
+# There is no foreign library here: the engine is lh's own code, the way the
+# rest of lh is. What it is written after is the QuickJS implementation
+# (MIT), which is the reference for the algorithms, not a dependency.
+# -----------------------------------------------------------------------------
+option(LH_LIBRARY_OPTION_JS
+        "Compile the lh/js JavaScript engine (lexer, parser, interpreter)."
+        OFF)
+
+# -----------------------------------------------------------------------------
 # LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS
 #
 # Fixed capacity of lh_ui_gradient_t::stops. Same role as LVGL's

@@ -9,7 +9,9 @@
  * ::lh_char_digit_extract (pull out, least-significant digit first —
  * ::lh_str_ptr_format_uint, ::lh_str_ptr_format_hex) take their radix as a
  * parameter; ::lh_char_digit_accumulate is the decimal one
- * (::lh_str_ptr_format_text width/precision).
+ * (::lh_str_ptr_format_text width/precision). The 64-bit forms are
+ * ::lh_char_digit_accumulate_radix_ullong and
+ * ::lh_char_digit_accumulate_ullong.
  *
  * Every function here is ::LH_ATTRIBUTE_FORCE_INLINE — the digit kernel
  * under ::lh_str_ptr_parse_uint / ::lh_str_ptr_format_uint. Those parsers
@@ -149,6 +151,35 @@ lh_char_digit_accumulate_ullong(lh_ullong_t *value, lh_byte_t digit)
         return lh_bool_false; /* would overflow lh_ullong_t */
     }
     *value = *value * LH_CHAR_DIGIT_RADIX + digit;
+    return lh_bool_true;
+}
+
+/**
+ * @brief ::lh_char_digit_accumulate_radix for a 64-bit accumulator:
+ *        `*value = *value * radix + digit`.
+ *
+ * The step under ::lh_str_ptr_parse_radix_ullong, for a number that does not
+ * fit ::lh_uint_t (a JavaScript hexadecimal literal, a 64-bit id).
+ *
+ * @param value Accumulator, updated in place on success; left unmodified on
+ *              overflow.
+ * @param digit Next digit, `[0, radix)`.
+ * @param radix Base to accumulate in (::LH_CHAR_DIGIT_RADIX, 16, ...).
+ * @return ::lh_bool_true if it fit in ::lh_ullong_t, ::lh_bool_false if it
+ *         would have overflowed (@p value is then left unmodified).
+ */
+LH_ATTRIBUTE_FORCE_INLINE
+lh_bool_t
+lh_char_digit_accumulate_radix_ullong(lh_ullong_t *value, lh_byte_t digit, lh_uint_t radix)
+{
+    lh_assert_runtime_ref(value);
+    lh_assert_runtime_if(digit >= radix, lh_runtime_error_code_invalid_argument);
+
+    if (*value > (lh_numeric_limit_max(lh_ullong_t) - digit) / radix)
+    {
+        return lh_bool_false; /* would overflow lh_ullong_t */
+    }
+    *value = *value * radix + digit;
     return lh_bool_true;
 }
 

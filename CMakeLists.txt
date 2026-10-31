@@ -400,6 +400,16 @@ if (LH_LIBRARY_OPTION_SQL_SQLITE)
     )
 endif ()
 
+# The JavaScript engine of lh/js (LH_LIBRARY_OPTION_JS). Our own code, on our
+# own bricks; the QuickJS implementation is the reference for the algorithms,
+# not a dependency.
+if (LH_LIBRARY_OPTION_JS)
+    list(APPEND LH_LIB_SOURCES
+            ${LH_LIB_SRC_PATH}/js/lexer.c
+            ${LH_LIB_SRC_PATH}/js/lexer/token.c
+    )
+endif ()
+
 if (LH_LIBRARY_OPTION_UI)
     list(APPEND LH_LIB_SOURCES
             ${LH_LIB_SRC_PATH}/ui/axis.c
@@ -480,7 +490,7 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/web/x.c
             ${LH_LIB_SRC_PATH}/ui/web/html.c
             ${LH_LIB_SRC_PATH}/ui/web/html/attr.c
-            ${LH_LIB_SRC_PATH}/ui/web/page.c
+            ${LH_LIB_SRC_PATH}/ui/web/player/page.c
     )
     if (LH_LIBRARY_OPTION_MATH_FPU)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/renderer3d.c
