@@ -155,8 +155,7 @@ lh_ui_canvas_fill_coverage_span(struct lh_ui_canvas *self, const lh_ui_rect_t *r
                                 lh_ui_scalar_t radius, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
                                 const lh_ui_color_t *color)
 {
-    lh_s32_t x;
-    for (x = x0; x < x1; ++x)
+    for (lh_s32_t x = x0; x < x1; ++x)
     {
         lh_ui_canvas_fill_coverage_pixel(self, rect, radius, x, y, color);
     }
@@ -184,11 +183,10 @@ lh_ui_canvas_fill_round_band(struct lh_ui_canvas *self, const lh_ui_rect_t *rect
     const lh_s32_t right = lh_ui_canvas_round_right(rect);
     const lh_s32_t zone = lh_ui_scalar_ceil_s32(radius);
     const lh_s32_t near_end = lh_ui_canvas_round_near_end(left, right, zone);
-    lh_s32_t y;
     lh_ui_canvas_fill_pixels(self, near_end, y0,
                              lh_ui_canvas_round_far_start(left, right, zone) - near_end, y1 - y0,
                              color);
-    for (y = y0; y < y1; ++y)
+    for (lh_s32_t y = y0; y < y1; ++y)
     {
         lh_ui_canvas_fill_coverage_row(self, rect, radius, y, color);
     }

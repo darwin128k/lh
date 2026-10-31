@@ -83,12 +83,11 @@ lh_void
 lh_ui_canvas_box_corner(lh_ui_canvas_t *self, const lh_ui_color_t *colour,
                         const struct lh_ui_radius_run *corner, lh_s32_t x0, lh_s32_t x1, lh_s32_t y)
 {
-    lh_s32_t end;
-
-    for (; x0 < x1; x0 = end)
+    while (x0 < x1)
     {
-        end = lh_math_min(x1, x0 + LH_UI_CANVAS_BOX_RUN);
+        lh_s32_t end = lh_math_min(x1, x0 + LH_UI_CANVAS_BOX_RUN);
         lh_byte_t cover[LH_UI_CANVAS_BOX_RUN];
+
         lh_ui_radius_run_row(corner, x0, end, y, cover);
         lh_ui_color_t colours[LH_UI_CANVAS_BOX_RUN];
         for (lh_s32_t x = x0; x < end; ++x)
@@ -96,6 +95,7 @@ lh_ui_canvas_box_corner(lh_ui_canvas_t *self, const lh_ui_color_t *colour,
             lh_ui_color_with_coverage(colour, cover[x - x0], lh_addr_of(colours[x - x0]));
         }
         lh_ui_canvas_fill_colors(self, x0, y, end - x0, 1, colours, lh_ui_axis_horizontal);
+        x0 = end;
     }
 }
 
@@ -118,19 +118,18 @@ lh_ui_canvas_box_row(lh_ui_canvas_t *self, const lh_ui_paint_t *paint,
         lh_ui_canvas_box_corner(self, lh_addr_of(colour), far, far_start, x1, y);
         return;
     }
-    lh_s32_t end;
-    for (; x0 < x1; x0 = end)
+    while (x0 < x1)
     {
-        end = lh_math_min(x1, x0 + LH_UI_CANVAS_BOX_RUN);
+        lh_s32_t end = lh_math_min(x1, x0 + LH_UI_CANVAS_BOX_RUN);
         lh_ui_color_t colours[LH_UI_CANVAS_BOX_RUN];
+
         lh_ui_canvas_box_paint_row(paint, sampler, x0, end, y, colours);
         lh_s32_t cut = lh_math_min(end, near_end);
         lh_byte_t cover[LH_UI_CANVAS_BOX_RUN];
-        lh_s32_t x;
         if (x0 < cut)
         {
             lh_ui_radius_run_row(near, x0, cut, y, cover);
-            for (x = x0; x < cut; ++x)
+            for (lh_s32_t x = x0; x < cut; ++x)
             {
                 lh_ui_color_with_coverage(colours + (x - x0), cover[x - x0],
                                           lh_addr_of(colours[x - x0]));
@@ -140,13 +139,14 @@ lh_ui_canvas_box_row(lh_ui_canvas_t *self, const lh_ui_paint_t *paint,
         if (cut < end)
         {
             lh_ui_radius_run_row(far, cut, end, y, cover);
-            for (x = cut; x < end; ++x)
+            for (lh_s32_t x = cut; x < end; ++x)
             {
                 lh_ui_color_with_coverage(colours + (x - x0), cover[x - cut],
                                           lh_addr_of(colours[x - x0]));
             }
         }
         lh_ui_canvas_fill_colors(self, x0, y, end - x0, 1, colours, lh_ui_axis_horizontal);
+        x0 = end;
     }
 }
 
@@ -155,8 +155,6 @@ lh_ui_canvas_box_band(lh_ui_canvas_t *self, const lh_ui_paint_t *paint,
                       lh_ui_gradient_sampler_t *sampler, lh_s32_t x0, lh_s32_t x1, lh_s32_t y0,
                       lh_s32_t y1)
 {
-    lh_s32_t y;
-
     lh_return_if(y1 <= y0 || x1 <= x0);
     if (lh_null_eq(sampler))
     {
@@ -167,13 +165,15 @@ lh_ui_canvas_box_band(lh_ui_canvas_t *self, const lh_ui_paint_t *paint,
     {
         /* A colour a row, read down the first column, the rows sent together. */
         lh_ui_color_t colours[LH_UI_CANVAS_BOX_RUN];
-        lh_s32_t end;
+        lh_s32_t y = y0;
 
-        for (y = y0; y < y1; y = end)
+        while (y < y1)
         {
-            end = lh_math_min(y1, y + LH_UI_CANVAS_BOX_RUN);
+            lh_s32_t end = lh_math_min(y1, y + LH_UI_CANVAS_BOX_RUN);
+
             lh_ui_gradient_sampler_column(sampler, x0, y, end, colours);
             lh_ui_canvas_fill_colors(self, x0, y, x1 - x0, end - y, colours, lh_ui_axis_vertical);
+            y = end;
         }
         return;
     }
@@ -181,18 +181,19 @@ lh_ui_canvas_box_band(lh_ui_canvas_t *self, const lh_ui_paint_t *paint,
     {
         /* A colour a column, the same all the way down: the row once, for every row. */
         lh_ui_color_t colours[LH_UI_CANVAS_BOX_RUN];
-        lh_s32_t end;
-        lh_s32_t x;
+        lh_s32_t x = x0;
 
-        for (x = x0; x < x1; x = end)
+        while (x < x1)
         {
-            end = lh_math_min(x1, x + LH_UI_CANVAS_BOX_RUN);
+            lh_s32_t end = lh_math_min(x1, x + LH_UI_CANVAS_BOX_RUN);
+
             lh_ui_gradient_sampler_row(sampler, x, end, y0, colours);
             lh_ui_canvas_fill_colors(self, x, y0, end - x, y1 - y0, colours, lh_ui_axis_horizontal);
+            x = end;
         }
         return;
     }
-    for (y = y0; y < y1; ++y)
+    for (lh_s32_t y = y0; y < y1; ++y)
     {
         lh_ui_canvas_box_row(self, paint, sampler, x0, x1, y, x0, lh_null, x1, lh_null);
     }

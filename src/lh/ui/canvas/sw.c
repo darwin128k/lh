@@ -145,14 +145,14 @@ lh_void
 lh_ui_canvas_sw_clip_pixels(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
                             const lh_ui_color_t *color)
 {
-    lh_s32_t end;
-
-    for (; x0 < x1; x0 = end)
+    while (x0 < x1)
     {
-        end = lh_math_min(x1, x0 + LH_UI_PIXMAP_RUN);
+        lh_s32_t end = lh_math_min(x1, x0 + LH_UI_PIXMAP_RUN);
         lh_byte_t coverage[LH_UI_PIXMAP_RUN];
+
         lh_memory_set(coverage, sizeof(coverage), 255U);
         lh_ui_canvas_sw_blend_run(self, x0, end, y, color, coverage);
+        x0 = end;
     }
 }
 
@@ -163,13 +163,16 @@ lh_ui_canvas_sw_fill_span(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_
 
     x0 = lh_ui_canvas_sw_cut_x0(self, x0);
     x1 = lh_ui_canvas_sw_cut_x1(self, x1);
-    lh_s32_t mid0;
-    lh_s32_t mid1;
-    lh_ui_canvas_clip_split_row(lh_ui_canvas_sw_get_clip_mut(self), x0, lh_math_max(x0, x1), y,
-                                lh_addr_of(mid0), lh_addr_of(mid1));
-    lh_ui_canvas_sw_clip_pixels(self, x0, mid0, y, color);
-    lh_ui_pixmap_fill_span(lh_ui_canvas_sw_get_pixmap_mut(self), mid0, mid1, y, color);
-    lh_ui_canvas_sw_clip_pixels(self, mid1, x1, y, color);
+    {
+        lh_s32_t mid0;
+        lh_s32_t mid1;
+
+        lh_ui_canvas_clip_split_row(lh_ui_canvas_sw_get_clip_mut(self), x0, lh_math_max(x0, x1), y,
+                                    lh_addr_of(mid0), lh_addr_of(mid1));
+        lh_ui_canvas_sw_clip_pixels(self, x0, mid0, y, color);
+        lh_ui_pixmap_fill_span(lh_ui_canvas_sw_get_pixmap_mut(self), mid0, mid1, y, color);
+        lh_ui_canvas_sw_clip_pixels(self, mid1, x1, y, color);
+    }
 }
 
 lh_void
@@ -383,11 +386,11 @@ lh_ui_canvas_sw_shadow_span(lh_ui_canvas_sw_t *self, const lh_ui_canvas_sw_shado
 
     x0 = lh_ui_canvas_sw_cut_x0(self, x0);
     x1 = lh_ui_canvas_sw_cut_x1(self, x1);
-    lh_s32_t end;
-    for (; x0 < x1; x0 = end)
+    while (x0 < x1)
     {
-        end = lh_math_min(x1, x0 + LH_UI_PIXMAP_RUN);
+        lh_s32_t end = lh_math_min(x1, x0 + LH_UI_PIXMAP_RUN);
         lh_byte_t alpha[LH_UI_PIXMAP_RUN];
+
         lh_ui_shadow_shape_span(lh_ui_canvas_sw_shadow_pass_get_shape(pass),
                                 lh_ui_canvas_sw_shadow_pass_get_ramp(pass), y, x0, end, alpha);
         /* The shadow is soft on its own account and then cut by the clip, in that
@@ -401,6 +404,7 @@ lh_ui_canvas_sw_shadow_span(lh_ui_canvas_sw_t *self, const lh_ui_canvas_sw_shado
         }
         lh_ui_pixmap_blend_alpha_span(lh_ui_canvas_sw_get_pixmap_mut(self), x0, end, y,
                                       lh_ui_canvas_sw_shadow_pass_get_rgb(pass), alpha);
+        x0 = end;
     }
 }
 
@@ -410,17 +414,20 @@ lh_ui_canvas_sw_shadow_row(lh_ui_canvas_sw_t *self, const lh_ui_canvas_sw_shadow
 {
     const lh_s32_t x0 = lh_ui_canvas_sw_cut_x0(self, lh_ui_canvas_sw_shadow_pass_get_left(pass));
     const lh_s32_t x1 = lh_ui_canvas_sw_cut_x1(self, lh_ui_canvas_sw_shadow_pass_get_right(pass));
-    lh_s32_t full0;
-    lh_s32_t full1;
 
     /* The span the fill covers wholly is a span the shadow does not paint
        (::lh_ui_shadow_alpha_at_pixel). Skipping it is the same pixels, and
        it is most of a card. */
-    lh_ui_radius_full_span(lh_ui_canvas_sw_shadow_pass_get_rect(pass),
-                           lh_ui_canvas_sw_shadow_pass_get_corner(pass), y, lh_addr_of(full0),
-                           lh_addr_of(full1));
-    lh_ui_canvas_sw_shadow_span(self, pass, x0, lh_math_min(x1, full0), y);
-    lh_ui_canvas_sw_shadow_span(self, pass, lh_math_max(x0, full1), x1, y);
+    {
+        lh_s32_t full0;
+        lh_s32_t full1;
+
+        lh_ui_radius_full_span(lh_ui_canvas_sw_shadow_pass_get_rect(pass),
+                               lh_ui_canvas_sw_shadow_pass_get_corner(pass), y, lh_addr_of(full0),
+                               lh_addr_of(full1));
+        lh_ui_canvas_sw_shadow_span(self, pass, x0, lh_math_min(x1, full0), y);
+        lh_ui_canvas_sw_shadow_span(self, pass, lh_math_max(x0, full1), x1, y);
+    }
 }
 
 lh_bool_t

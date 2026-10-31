@@ -60,9 +60,8 @@ lh_byte_t
 lh_ui_canvas_clip_coverage(const lh_ui_canvas_clip_t *self, lh_s32_t x, lh_s32_t y)
 {
     lh_byte_t kept = 255U;
-    lh_u32_t i;
 
-    for (i = 0U; i < lh_ui_canvas_clip_get_round_count(self) && kept != 0U; ++i)
+    for (lh_u32_t i = 0U; i < lh_ui_canvas_clip_get_round_count(self) && kept != 0U; ++i)
     {
         kept = lh_ui_radius_scale(
             kept, lh_ui_canvas_clip_round_coverage(lh_ui_canvas_clip_get_rounds(self) + i, x, y));
@@ -76,9 +75,8 @@ lh_ui_canvas_clip_split_row(const lh_ui_canvas_clip_t *self, lh_s32_t x0, lh_s32
 {
     lh_s32_t lo = x0;
     lh_s32_t hi = x1;
-    lh_u32_t i;
 
-    for (i = 0U; i < lh_ui_canvas_clip_get_round_count(self); ++i)
+    for (lh_u32_t i = 0U; i < lh_ui_canvas_clip_get_round_count(self); ++i)
     {
         lh_ui_canvas_clip_round_narrow_row(lh_ui_canvas_clip_get_rounds(self) + i, y,
                                            lh_addr_of(lo), lh_addr_of(hi));

@@ -687,9 +687,7 @@ lh_ui_web_host_ws_ingest(lh_ui_web_host_client_t *c, lh_ui_view_t *view,
 lh_void
 lh_ui_web_host_ws_attach(lh_ui_web_host_client_t *slots, lh_os_net_socket_t *client, lh_uint_t now)
 {
-    lh_uint_t i;
-
-    for (i = 0u; i < LH_UI_WEB_HOST_WS_MAX; ++i)
+    for (lh_uint_t i = 0u; i < LH_UI_WEB_HOST_WS_MAX; ++i)
     {
         lh_ui_web_host_client_t *c = slots + i;
 
@@ -1117,9 +1115,12 @@ lh_ui_web_host_run(lh_ui_view_t *view, lh_uint_t width, lh_uint_t height, lh_str
     {
         return lh_bool_false;
     }
-    lh_os_controller_t view_controller;
     lh_ui_web_host_hooks_t routed;
-    lh_ui_web_host_route_hooks(hooks, view, lh_addr_of(view_controller), lh_addr_of(routed));
+    {
+        lh_os_controller_t view_controller;
+
+        lh_ui_web_host_route_hooks(hooks, view, lh_addr_of(view_controller), lh_addr_of(routed));
+    }
     if (!lh_os_net_init())
     {
         return lh_bool_false;

@@ -415,13 +415,15 @@ lh_void
 lh_ui_canvas_send_clip_row(lh_ui_canvas_t *self, const lh_ui_canvas_clip_t *clip, lh_s32_t x0,
                            lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color)
 {
-    lh_s32_t mid0;
-    lh_s32_t mid1;
+    {
+        lh_s32_t mid0;
+        lh_s32_t mid1;
 
-    lh_ui_canvas_clip_split_row(clip, x0, x1, y, lh_addr_of(mid0), lh_addr_of(mid1));
-    lh_ui_canvas_send_clip_pixels(self, clip, x0, mid0, y, color);
-    lh_ui_canvas_send_box(self, mid0, mid1, y, color);
-    lh_ui_canvas_send_clip_pixels(self, clip, mid1, x1, y, color);
+        lh_ui_canvas_clip_split_row(clip, x0, x1, y, lh_addr_of(mid0), lh_addr_of(mid1));
+        lh_ui_canvas_send_clip_pixels(self, clip, x0, mid0, y, color);
+        lh_ui_canvas_send_box(self, mid0, mid1, y, color);
+        lh_ui_canvas_send_clip_pixels(self, clip, mid1, x1, y, color);
+    }
 }
 
 lh_void
@@ -603,9 +605,8 @@ lh_ui_canvas_shadow_fallback(lh_ui_canvas_t *self, const lh_ui_rect_t *bounds,
     for (lh_s32_t y = lh_ui_point_get_y(cut_origin); y < y1; ++y)
     {
         const lh_s32_t row = lh_ui_shadow_shape_row(lh_addr_of(shape), y);
-        lh_s32_t x;
 
-        for (x = lh_ui_point_get_x(cut_origin); x < x1; ++x)
+        for (lh_s32_t x = lh_ui_point_get_x(cut_origin); x < x1; ++x)
         {
             const lh_byte_t alpha = lh_ui_shadow_shape_alpha(lh_addr_of(shape), row, x, y);
             lh_ui_rect_t pixel;
