@@ -48,17 +48,14 @@ lh_ui_blur_row_x(const lh_ui_pixmap_t *pixmap, lh_s32_t y, lh_s32_t left, lh_s32
     const lh_s32_t pix_w = lh_ui_pixmap_get_width(pixmap);
     const lh_s32_t read0 = radius > 0 && left > radius ? left - radius : 0;
     lh_s32_t read1 = left + width + (radius > 0 ? radius : 0);
-    lh_s32_t win0;
-    lh_s32_t win1;
-    lh_s32_t x;
     lh_ui_blur_window_t sum = {0, 0, 0, 0};
 
     if (read1 > pix_w)
     {
         read1 = pix_w;
     }
-    win0 = left - radius;
-    win1 = left + radius + 1;
+    lh_s32_t win0 = left - radius;
+    lh_s32_t win1 = left + radius + 1;
     if (win0 < read0)
     {
         win0 = read0;
@@ -67,6 +64,7 @@ lh_ui_blur_row_x(const lh_ui_pixmap_t *pixmap, lh_s32_t y, lh_s32_t left, lh_s32
     {
         win1 = read1;
     }
+    lh_s32_t x;
     for (x = win0; x < win1; ++x)
     {
         lh_ui_color_t pixel;
@@ -118,13 +116,12 @@ lh_ui_blur_rows(lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_s32_t radiu
     const lh_s32_t top = lh_ui_point_get_y(origin);
     const lh_s32_t width = lh_ui_size_get_width(size);
     const lh_s32_t height = lh_ui_size_get_height(size);
-    lh_s32_t y0;
-    lh_s32_t y1;
-    lh_s32_t y;
 
     lh_return_if(radius < 0 || lh_null_eq(scratch) || width <= 0 || height <= 0);
+    lh_s32_t y0;
+    lh_s32_t y1;
     lh_ui_blur_band(pixmap, top, height, radius, lh_addr_of(y0), lh_addr_of(y1));
-    for (y = y0; y < y1; ++y)
+    for (lh_s32_t y = y0; y < y1; ++y)
     {
         lh_ui_blur_row_x(pixmap, y, left, width, radius, scratch + (y - y0) * width * 4);
     }
@@ -170,30 +167,36 @@ lh_ui_blur_column(lh_ui_pixmap_t *pixmap, const lh_ui_blur_pass_t *pass, lh_s32_
     /* Row `y` of column @p x is at `column + (y - y0) * stride`. */
     const lh_u8_t *column = lh_ui_blur_pass_get_scratch(pass) + lh_cast_static(lh_usize_t, x) * 4U;
     lh_ui_blur_window_t sum = {0, 0, 0, 0};
-    lh_ui_color_t out;
     lh_s32_t win0;
     lh_s32_t win1;
-    lh_s32_t next0;
-    lh_s32_t next1;
-    lh_s32_t y;
 
-    lh_ui_blur_window_span(lh_ui_blur_pass_get_top(pass), lh_ui_blur_pass_get_radius(pass), lh_ui_blur_pass_get_y0(pass), lh_ui_blur_pass_get_y1(pass), lh_addr_of(win0),
-                           lh_addr_of(win1));
-    lh_ui_blur_window_take_samples(lh_addr_of(sum),
-                                   column + lh_cast_static(lh_usize_t, win0 - lh_ui_blur_pass_get_y0(pass)) * stride,
-                                   stride, win1 - win0);
-    for (y = lh_ui_blur_pass_get_top(pass); y < lh_ui_blur_pass_get_top(pass) + lh_ui_blur_pass_get_height(pass); ++y)
+    lh_ui_blur_window_span(lh_ui_blur_pass_get_top(pass), lh_ui_blur_pass_get_radius(pass),
+                           lh_ui_blur_pass_get_y0(pass), lh_ui_blur_pass_get_y1(pass),
+                           lh_addr_of(win0), lh_addr_of(win1));
+    lh_ui_blur_window_take_samples(
+        lh_addr_of(sum),
+        column + lh_cast_static(lh_usize_t, win0 - lh_ui_blur_pass_get_y0(pass)) * stride, stride,
+        win1 - win0);
+    for (lh_s32_t y = lh_ui_blur_pass_get_top(pass);
+         y < lh_ui_blur_pass_get_top(pass) + lh_ui_blur_pass_get_height(pass); ++y)
     {
+        lh_ui_color_t out;
         lh_ui_blur_window_average_color(lh_addr_of(sum), win1 - win0, lh_addr_of(out));
-        lh_ui_blur_put(pixmap, lh_ui_blur_pass_get_left(pass) + x, y, lh_addr_of(out), lh_ui_blur_pass_get_shape(pass), lh_ui_blur_pass_get_corner(pass));
-        lh_ui_blur_window_span(y + 1, lh_ui_blur_pass_get_radius(pass), lh_ui_blur_pass_get_y0(pass), lh_ui_blur_pass_get_y1(pass), lh_addr_of(next0),
-                               lh_addr_of(next1));
+        lh_ui_blur_put(pixmap, lh_ui_blur_pass_get_left(pass) + x, y, lh_addr_of(out),
+                       lh_ui_blur_pass_get_shape(pass), lh_ui_blur_pass_get_corner(pass));
+        lh_s32_t next0;
+        lh_s32_t next1;
+        lh_ui_blur_window_span(y + 1, lh_ui_blur_pass_get_radius(pass),
+                               lh_ui_blur_pass_get_y0(pass), lh_ui_blur_pass_get_y1(pass),
+                               lh_addr_of(next0), lh_addr_of(next1));
         lh_ui_blur_window_drop_samples(
-            lh_addr_of(sum), column + lh_cast_static(lh_usize_t, win0 - lh_ui_blur_pass_get_y0(pass)) * stride, stride,
-            next0 - win0);
+            lh_addr_of(sum),
+            column + lh_cast_static(lh_usize_t, win0 - lh_ui_blur_pass_get_y0(pass)) * stride,
+            stride, next0 - win0);
         lh_ui_blur_window_take_samples(
-            lh_addr_of(sum), column + lh_cast_static(lh_usize_t, win1 - lh_ui_blur_pass_get_y0(pass)) * stride, stride,
-            next1 - win1);
+            lh_addr_of(sum),
+            column + lh_cast_static(lh_usize_t, win1 - lh_ui_blur_pass_get_y0(pass)) * stride,
+            stride, next1 - win1);
         win0 = lh_math_max(win0, next0);
         win1 = lh_math_max(win1, next1);
     }
@@ -204,11 +207,10 @@ lh_ui_blur_columns(lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_s32_t ra
                    const lh_u8_t *scratch, const lh_ui_rect_t *shape, lh_ui_scalar_t corner)
 {
     lh_ui_blur_pass_t pass;
-    lh_s32_t x;
 
     lh_return_if(
         !lh_ui_blur_pass_init(pixmap, rect, radius, scratch, shape, corner, lh_addr_of(pass)));
-    for (x = 0; x < lh_ui_blur_pass_get_width(lh_addr_of(pass)); ++x)
+    for (lh_s32_t x = 0; x < lh_ui_blur_pass_get_width(lh_addr_of(pass)); ++x)
     {
         lh_ui_blur_column(pixmap, lh_addr_of(pass), x);
     }
@@ -220,12 +222,11 @@ lh_ui_blur_rect(lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_ui_scalar_t
 {
     lh_ui_rect_t bounds;
     lh_ui_pixmap_get_bounds(pixmap, lh_addr_of(bounds));
-    lh_ui_rect_t cut;
-    lh_s32_t px;
 
     lh_return_if(lh_null_eq(pixmap) || lh_null_eq(rect) || radius <= 0 || lh_null_eq(scratch));
+    lh_ui_rect_t cut;
     lh_ui_rect_intersection(rect, lh_addr_of(bounds), lh_addr_of(cut));
-    px = lh_ui_scalar_floor_s32(radius);
+    lh_s32_t px = lh_ui_scalar_floor_s32(radius);
     lh_return_if(lh_ui_blur_scratch_size(lh_addr_of(cut), px) == 0);
     lh_ui_blur_rows(pixmap, lh_addr_of(cut), px, scratch);
     lh_ui_blur_columns(pixmap, lh_addr_of(cut), px, scratch, lh_null, lh_ui_scalar(0));

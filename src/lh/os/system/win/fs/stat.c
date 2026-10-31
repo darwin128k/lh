@@ -87,7 +87,6 @@ lh_bool_t
 lh_os_system_fs_stat_wide(lh_wstr_cptr path, lh_fs_stat_t *out)
 {
     lh_os_system_win_file_attribute_data_t info;
-    lh_bool_t is_symlink;
 
     if (!GetFileAttributesExW(path, lh_os_system_win_get_file_ex_info_standard, lh_addr_of(info)))
     {
@@ -95,6 +94,8 @@ lh_os_system_fs_stat_wide(lh_wstr_cptr path, lh_fs_stat_t *out)
         return lh_bool_false;
     }
     const lh_os_system_win_dword_t attrs = info.dwFileAttributes;
+    lh_bool_t is_symlink;
+
     if (!lh_os_system_fs_is_symlink(path, attrs, lh_addr_of(is_symlink)))
     {
         return lh_bool_false;

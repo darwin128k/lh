@@ -657,9 +657,7 @@ lh_memory_std_find_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, l
 
             if (mask != 0U)
             {
-                lh_usize_t lane;
-
-                for (lane = 0U; lane < w; ++lane)
+                for (lh_usize_t lane = 0U; lane < w; ++lane)
                 {
                     if (lh_math_ne(lh_bit_and(mask, lh_bit_swar_lane_bit(lane)), 0U) &&
                         lh_memory_std_find_at(hay, off + lane, needle, m, first, last))

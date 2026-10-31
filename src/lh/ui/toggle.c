@@ -15,8 +15,12 @@ lh_ui_toggle_push_looks(lh_ui_toggle_t *self)
 {
     lh_ui_button_t *button = lh_ui_toggle_get_button_mut(self);
 
-    lh_ui_button_set_style(button, lh_ui_toggle_is_checked(self) ? lh_ui_toggle_get_on_style(self) : lh_ui_toggle_get_off_style(self));
-    lh_ui_button_set_hot_style_v(button, lh_ui_toggle_is_checked(self) ? lh_ui_toggle_get_on_hot_style(self) : lh_ui_toggle_get_off_hot_style(self));
+    lh_ui_button_set_style(button, lh_ui_toggle_is_checked(self)
+                                       ? lh_ui_toggle_get_on_style(self)
+                                       : lh_ui_toggle_get_off_style(self));
+    lh_ui_button_set_hot_style_v(button, lh_ui_toggle_is_checked(self)
+                                             ? lh_ui_toggle_get_on_hot_style(self)
+                                             : lh_ui_toggle_get_off_hot_style(self));
 }
 
 /* -- Events ---------------------------------------------------------------- */
@@ -24,12 +28,11 @@ lh_ui_toggle_push_looks(lh_ui_toggle_t *self)
 lh_void
 lh_ui_toggle_init(lh_ui_toggle_t *self, lh_ui_rect_t rect)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_button_init(lh_ui_toggle_get_button_mut(self), rect);
     /* The button's class is the toggle's: a toggle is a button, and a tree that
        asks for a button has to find one here. */
     lh_ui_entity_set_class_v(lh_ui_button_as_entity(lh_ui_toggle_get_button_mut(self)),
-                           lh_addr_of(lh_ui_toggle_class));
+                             lh_addr_of(lh_ui_toggle_class));
     lh_ui_toggle_set_off_style(self, lh_null);
     lh_ui_toggle_set_off_hot_style(self, lh_null);
     lh_ui_toggle_set_on_style(self, lh_null);
@@ -42,7 +45,6 @@ lh_ui_toggle_init(lh_ui_toggle_t *self, lh_ui_rect_t rect)
 lh_ui_entity_t *
 lh_ui_toggle_as_entity(lh_ui_toggle_t *self)
 {
-    lh_assert_runtime_ref(self);
     return lh_ui_button_as_entity(lh_ui_toggle_get_button_mut(self));
 }
 
@@ -67,9 +69,8 @@ lh_ui_entity_as_toggle(lh_ui_entity_t *entity)
 
 lh_void
 lh_ui_toggle_set_off_styles(lh_ui_toggle_t *self, const lh_ui_style_t *rest,
-                           const lh_ui_style_t *hot)
+                            const lh_ui_style_t *hot)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_toggle_set_off_style(self, rest);
     lh_ui_toggle_set_off_hot_style(self, hot);
     if (!lh_ui_toggle_is_checked(self))
@@ -95,9 +96,9 @@ lh_ui_toggle_get_off_hot_style(const lh_ui_toggle_t *self)
 }
 
 lh_void
-lh_ui_toggle_set_on_styles(lh_ui_toggle_t *self, const lh_ui_style_t *rest, const lh_ui_style_t *hot)
+lh_ui_toggle_set_on_styles(lh_ui_toggle_t *self, const lh_ui_style_t *rest,
+                           const lh_ui_style_t *hot)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_toggle_set_on_style(self, rest);
     lh_ui_toggle_set_on_hot_style(self, hot);
     if (lh_ui_toggle_is_checked(self))
@@ -130,7 +131,6 @@ lh_ui_toggle_get_checked(const lh_ui_toggle_t *self)
 lh_void
 lh_ui_toggle_set_checked_v(lh_ui_toggle_t *self, lh_bool_t checked)
 {
-    lh_assert_runtime_ref(self);
     lh_return_if(lh_ui_toggle_is_checked(self) == checked);
     lh_ui_toggle_set_checked(self, checked);
     lh_ui_toggle_push_looks(self);
@@ -178,7 +178,6 @@ lh_ui_toggle_event(const lh_ui_entity_t *self, const lh_ui_entity_event_t *event
 lh_void
 lh_ui_toggle_set_on_click(lh_ui_toggle_t *self, lh_ui_toggle_on_click_cb on_click, lh_ptr context)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_toggle_set_on_click_fn(self, on_click);
     lh_ui_toggle_set_click_context(self, context);
 }
@@ -205,14 +204,14 @@ lh_ui_toggle_set_button(lh_ui_toggle_t *self, lh_ui_button_t button)
 }
 
 lh_void
-lh_ui_toggle_set_off_hot_style(lh_ui_toggle_t *self, const lh_ui_style_t * off_hot_style)
+lh_ui_toggle_set_off_hot_style(lh_ui_toggle_t *self, const lh_ui_style_t *off_hot_style)
 {
     lh_assert_runtime_ref(self);
     self->off_hot_style = off_hot_style;
 }
 
 lh_void
-lh_ui_toggle_set_on_hot_style(lh_ui_toggle_t *self, const lh_ui_style_t * on_hot_style)
+lh_ui_toggle_set_on_hot_style(lh_ui_toggle_t *self, const lh_ui_style_t *on_hot_style)
 {
     lh_assert_runtime_ref(self);
     self->on_hot_style = on_hot_style;
@@ -254,14 +253,14 @@ lh_ui_toggle_set_click_context(lh_ui_toggle_t *self, lh_ptr click_context)
 }
 
 lh_void
-lh_ui_toggle_set_off_style(lh_ui_toggle_t *self, const lh_ui_style_t * off_style)
+lh_ui_toggle_set_off_style(lh_ui_toggle_t *self, const lh_ui_style_t *off_style)
 {
     lh_assert_runtime_ref(self);
     self->off_style = off_style;
 }
 
 lh_void
-lh_ui_toggle_set_on_style(lh_ui_toggle_t *self, const lh_ui_style_t * on_style)
+lh_ui_toggle_set_on_style(lh_ui_toggle_t *self, const lh_ui_style_t *on_style)
 {
     lh_assert_runtime_ref(self);
     self->on_style = on_style;

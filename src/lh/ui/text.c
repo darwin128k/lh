@@ -14,9 +14,6 @@
 lh_u32_t
 lh_ui_text_next_code(const lh_char_t **cursor)
 {
-    lh_u32_t code;
-    lh_u32_t left;
-    lh_u32_t at;
     const lh_byte_t first = lh_cast_static(lh_byte_t, lh_ptr_deref(lh_ptr_deref(cursor)));
 
     lh_return_if(first == 0U, 0U);
@@ -25,6 +22,8 @@ lh_ui_text_next_code(const lh_char_t **cursor)
         ++lh_ptr_deref(cursor);
         return lh_cast_static(lh_u32_t, first);
     }
+    lh_u32_t code;
+    lh_u32_t left;
     /* UTF-8, and **this is the place to change it**: the lead byte says how many bytes
        the code takes, and the ones after it each add six bits. It used to read one
        byte and hand that byte back as if it were the code, which was true of every
@@ -54,7 +53,7 @@ lh_ui_text_next_code(const lh_char_t **cursor)
         return lh_cast_static(lh_u32_t, first);
     }
     ++lh_ptr_deref(cursor);
-    for (at = 0U; at < left; ++at)
+    for (lh_u32_t at = 0U; at < left; ++at)
     {
         const lh_byte_t next = lh_cast_static(lh_byte_t, lh_ptr_deref(lh_ptr_deref(cursor)));
 
@@ -73,7 +72,8 @@ lh_ui_text_next_code(const lh_char_t **cursor)
 lh_bool_t
 lh_ui_text_is_line_end(lh_u32_t code)
 {
-    return code == 0U || code == lh_cast_static(lh_u32_t, lh_char_map_lf) ? lh_bool_true : lh_bool_false;
+    return code == 0U || code == lh_cast_static(lh_u32_t, lh_char_map_lf) ? lh_bool_true
+                                                                          : lh_bool_false;
 }
 
 const lh_char_t *
@@ -184,9 +184,6 @@ lh_ui_text_get_ink_rect_wrapped(const lh_ui_font_t *font, const lh_char_t *text,
     const lh_ui_scalar_t line_height =
         lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_line_height(font));
     lh_ui_text_block_t block;
-    lh_ui_text_line_t laid;
-    lh_ui_scalar_t down;
-    lh_ui_rect_t ink;
 
     lh_ui_text_block_measure(lh_addr_of(block), font, text, width);
     /* Left-aligned, the block already holds the hull: one walk. Centred or right,
@@ -197,8 +194,10 @@ lh_ui_text_get_ink_rect_wrapped(const lh_ui_font_t *font, const lh_char_t *text,
         lh_ui_text_block_get_ink_rect(lh_addr_of(block), origin, out);
         return;
     }
-    down = lh_math_neg(lh_ui_text_block_get_ink_top(lh_addr_of(block)));
+    lh_ui_scalar_t down = lh_math_neg(lh_ui_text_block_get_ink_top(lh_addr_of(block)));
+    lh_ui_rect_t ink;
     lh_ui_rect_init_empty(lh_addr_of(ink));
+    lh_ui_text_line_t laid;
     for (; lh_ui_text_line_measure(lh_addr_of(laid), font, text, width);
          text = lh_ui_text_line_get_next(lh_addr_of(laid)))
     {

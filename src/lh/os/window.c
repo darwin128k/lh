@@ -29,7 +29,6 @@ lh_os_window_unlink(lh_os_window_t *self)
 lh_void
 lh_os_window_init(lh_os_window_t *self)
 {
-    lh_assert_runtime_ref(self);
     lh_os_window_set_handle(self, LH_OS_SYSTEM_WINDOW_HANDLE_INVALID);
     lh_os_window_set_app(self, lh_null);
     lh_os_window_set_parent(self, lh_null);
@@ -70,7 +69,6 @@ lh_os_window_open(lh_os_app_t *app, lh_os_window_t *self, const lh_char_t *title
                   int height)
 {
     lh_assert_runtime_ref(app);
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(title);
     lh_assert_runtime_if(lh_null_ne(lh_os_window_get_handle(self)),
                          lh_runtime_error_code_invalid_argument);
@@ -133,7 +131,6 @@ lh_os_window_open_modal(lh_os_window_t *parent, lh_os_window_t *self, const lh_c
 lh_bool_t
 lh_os_window_is_open(const lh_os_window_t *self)
 {
-    lh_assert_runtime_ref(self);
     return lh_os_system_window_is_valid(lh_os_window_get_handle(self));
 }
 
@@ -178,7 +175,6 @@ lh_os_window_get_next_child(const lh_os_window_t *self, const lh_os_window_t *ch
 lh_void
 lh_os_window_set_on_close(lh_os_window_t *self, lh_os_window_on_close_cb on_close, lh_ptr context)
 {
-    lh_assert_runtime_ref(self);
     lh_os_window_set_on_close_fn(self, on_close);
     lh_os_window_set_on_close_context(self, context);
 }
@@ -186,7 +182,6 @@ lh_os_window_set_on_close(lh_os_window_t *self, lh_os_window_on_close_cb on_clos
 lh_void
 lh_os_window_set_on_paint(lh_os_window_t *self, lh_os_window_on_paint_cb on_paint, lh_ptr context)
 {
-    lh_assert_runtime_ref(self);
     lh_os_window_set_on_paint_fn(self, on_paint);
     lh_os_window_set_on_paint_context(self, context);
 }
@@ -208,7 +203,6 @@ lh_os_window_get_frame_stats(const lh_os_window_t *self)
 lh_void
 lh_os_window_set_on_input(lh_os_window_t *self, lh_os_input_sink_cb on_input, lh_ptr context)
 {
-    lh_assert_runtime_ref(self);
     lh_os_window_set_on_input_fn(self, on_input);
     lh_os_window_set_on_input_context(self, context);
 }
@@ -253,19 +247,19 @@ lh_void
 lh_os_window_arm_controller(lh_os_window_t *self, lh_bool_t rearm)
 {
     lh_tick_t deadline = 0U;
-    lh_tick_t now;
-    lh_bool_t waits;
 
     lh_return_if(lh_os_window_get_tick_ms(self) != 0U ||
                  !lh_os_system_window_is_valid(lh_os_window_get_handle(self)));
-    waits = lh_os_window_get_controller_deadline(self, lh_addr_of(deadline));
+    lh_bool_t waits = lh_os_window_get_controller_deadline(self, lh_addr_of(deadline));
+
     if (!waits && lh_os_window_is_controller_armed(self))
     {
         lh_os_window_set_controller_armed(self, lh_bool_false);
         lh_os_system_window_set_timer(lh_os_window_get_handle(self), 0U);
     }
     lh_return_if(!waits || (lh_os_window_is_controller_armed(self) && !rearm));
-    now = lh_os_tick_ms();
+    lh_tick_t now = lh_os_tick_ms();
+
     /* Due already is due at the next tick the system can make, never a timer of 0 ms:
        that is the call that stops it. */
     lh_os_system_window_set_timer(lh_os_window_get_handle(self),
@@ -289,7 +283,6 @@ lh_void
 lh_os_window_set_on_tick(lh_os_window_t *self, lh_os_window_on_tick_cb on_tick, lh_ptr context,
                          lh_u32_t ms)
 {
-    lh_assert_runtime_ref(self);
     lh_os_window_set_on_tick_fn(self, on_tick);
     lh_os_window_set_on_tick_context(self, context);
     lh_os_window_set_tick_ms(self, ms);
@@ -308,18 +301,15 @@ lh_os_window_set_on_tick(lh_os_window_t *self, lh_os_window_on_tick_cb on_tick, 
 lh_void
 lh_os_window_on_native_tick(lh_os_window_t *self)
 {
-    lh_os_window_on_tick_cb on_tick;
-    lh_ptr context;
-
-    lh_assert_runtime_ref(self);
     /* The controller first, so `on_tick` paints what a long press that just came due
        did to the view. */
     lh_os_window_update_controller(self);
-    on_tick = lh_os_window_get_on_tick_fn(self);
+    lh_os_window_on_tick_cb on_tick = lh_os_window_get_on_tick_fn(self);
     /* Read the pair before the call and not after: a tick that stops its own timer -- or
        that stops it and starts it at another period -- would otherwise be talking about
        a slot the callback had already been replaced in. */
-    context = lh_os_window_get_on_tick_context(self);
+    lh_ptr context = lh_os_window_get_on_tick_context(self);
+
     lh_return_if(lh_null_eq(lh_ptr_rcast(lh_void, on_tick)));
     on_tick(self, context);
 }
@@ -335,7 +325,6 @@ lh_void
 lh_os_window_get_paint_rect(const lh_os_window_t *self, int *left, int *top, int *right,
                             int *bottom)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(left);
     lh_assert_runtime_ref(top);
     lh_assert_runtime_ref(right);
@@ -349,7 +338,6 @@ lh_os_window_get_paint_rect(const lh_os_window_t *self, int *left, int *top, int
 lh_void
 lh_os_window_invalidate(lh_os_window_t *self)
 {
-    lh_assert_runtime_ref(self);
     if (lh_os_system_window_is_valid(lh_os_window_get_handle(self)))
     {
         lh_os_system_window_invalidate(lh_os_window_get_handle(self));
@@ -359,7 +347,6 @@ lh_os_window_invalidate(lh_os_window_t *self)
 lh_void
 lh_os_window_invalidate_rect(lh_os_window_t *self, int left, int top, int right, int bottom)
 {
-    lh_assert_runtime_ref(self);
     if (lh_os_system_window_is_valid(lh_os_window_get_handle(self)))
     {
         lh_os_system_window_invalidate_rect(lh_os_window_get_handle(self), left, top, right,
@@ -370,7 +357,6 @@ lh_os_window_invalidate_rect(lh_os_window_t *self, int left, int top, int right,
 lh_void
 lh_os_window_set_frame_v(lh_os_window_t *self, lh_os_window_frame_t frame)
 {
-    lh_assert_runtime_ref(self);
     /* Only while closed: this is read at creation, and a live window's style and
        region are the OS's to change now, not ours to set behind its back. */
     lh_assert_runtime_if(lh_null_ne(lh_os_window_get_handle(self)),
@@ -381,7 +367,6 @@ lh_os_window_set_frame_v(lh_os_window_t *self, lh_os_window_frame_t frame)
 lh_void
 lh_os_window_set_corner_radius(lh_os_window_t *self, int radius)
 {
-    lh_assert_runtime_ref(self);
     lh_os_window_set_corner(self, radius > 0 ? radius : 0);
     if (lh_os_system_window_is_valid(lh_os_window_get_handle(self)))
     {
@@ -393,7 +378,6 @@ lh_os_window_set_corner_radius(lh_os_window_t *self, int radius)
 lh_void
 lh_os_window_set_placement_v(lh_os_window_t *self, lh_os_window_placement_t placement)
 {
-    lh_assert_runtime_ref(self);
     /* Only while closed, like ::lh_os_window_set_frame_v: this is read at creation,
        and a window that is already up has a position the user may have moved. */
     lh_assert_runtime_if(lh_null_ne(lh_os_window_get_handle(self)),
@@ -411,7 +395,6 @@ lh_os_window_get_placement(const lh_os_window_t *self)
 lh_void
 lh_os_window_set_on_zone(lh_os_window_t *self, lh_os_window_on_zone_cb on_zone, lh_ptr context)
 {
-    lh_assert_runtime_ref(self);
     lh_os_window_set_on_zone_fn(self, on_zone);
     lh_os_window_set_on_zone_context(self, context);
 }
@@ -419,7 +402,6 @@ lh_os_window_set_on_zone(lh_os_window_t *self, lh_os_window_on_zone_cb on_zone, 
 lh_os_window_zone_t
 lh_os_window_zone_at(lh_os_window_t *self, int x, int y)
 {
-    lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(lh_ptr_rcast(lh_void, lh_os_window_get_on_zone_fn(self))),
                  lh_os_window_zone_client);
     return lh_os_window_get_on_zone_fn(self)(self, x, y, lh_os_window_get_on_zone_context(self));
@@ -429,7 +411,6 @@ lh_void
 lh_os_window_set_on_resize(lh_os_window_t *self, lh_os_window_on_resize_cb on_resize,
                            lh_ptr context)
 {
-    lh_assert_runtime_ref(self);
     lh_os_window_set_on_resize_fn(self, on_resize);
     lh_os_window_set_on_resize_context(self, context);
 }
@@ -437,10 +418,6 @@ lh_os_window_set_on_resize(lh_os_window_t *self, lh_os_window_on_resize_cb on_re
 lh_void
 lh_os_window_on_native_resize(lh_os_window_t *self, int width, int height, lh_bool_t maximized)
 {
-    lh_os_window_on_resize_cb on_resize;
-    lh_ptr on_resize_context;
-
-    lh_assert_runtime_ref(self);
     lh_os_window_set_maximized(self, maximized);
     /* An empty client is not a size to lay out for, and it arrives from two
        directions: the first size message of a window's life carries nothing before
@@ -450,8 +427,9 @@ lh_os_window_on_native_resize(lh_os_window_t *self, int width, int height, lh_bo
        next message with a real size is what the app should be laying out for. The
        maximized flag is kept either way: it is a state, not a size. */
     lh_return_if(width <= 0 || height <= 0);
-    on_resize = lh_os_window_get_on_resize_fn(self);
-    on_resize_context = lh_os_window_get_on_resize_context(self);
+    lh_os_window_on_resize_cb on_resize = lh_os_window_get_on_resize_fn(self);
+    lh_ptr on_resize_context = lh_os_window_get_on_resize_context(self);
+
     if (lh_null_ne(lh_ptr_rcast(lh_void, on_resize)))
     {
         on_resize(self, width, height, on_resize_context);
@@ -461,7 +439,6 @@ lh_os_window_on_native_resize(lh_os_window_t *self, int width, int height, lh_bo
 lh_void
 lh_os_window_minimize(lh_os_window_t *self)
 {
-    lh_assert_runtime_ref(self);
     if (lh_os_system_window_is_valid(lh_os_window_get_handle(self)))
     {
         lh_os_system_window_minimize(lh_os_window_get_handle(self));
@@ -471,7 +448,6 @@ lh_os_window_minimize(lh_os_window_t *self)
 lh_void
 lh_os_window_maximize(lh_os_window_t *self, lh_bool_t maximized)
 {
-    lh_assert_runtime_ref(self);
     if (lh_os_system_window_is_valid(lh_os_window_get_handle(self)))
     {
         lh_os_system_window_set_maximized(lh_os_window_get_handle(self), maximized);
@@ -488,7 +464,6 @@ lh_os_window_is_maximized(const lh_os_window_t *self)
 lh_bool_t
 lh_os_window_get_client_size(const lh_os_window_t *self, int *width, int *height)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(width);
     lh_assert_runtime_ref(height);
     return lh_os_system_window_get_client_size(lh_os_window_get_handle(self), width, height);
@@ -497,7 +472,6 @@ lh_os_window_get_client_size(const lh_os_window_t *self, int *width, int *height
 lh_bool_t
 lh_os_window_get_position(const lh_os_window_t *self, int *x, int *y)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(x);
     lh_assert_runtime_ref(y);
     return lh_os_system_window_get_position(lh_os_window_get_handle(self), x, y);
@@ -507,22 +481,18 @@ lh_void
 lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr paint_dc, int left, int top, int right,
                              int bottom)
 {
-    lh_os_window_on_paint_cb on_paint;
-    lh_ptr on_paint_context;
-
 #if LH_LIBRARY_OPTION_UI
     lh_ui_frame_t frame;
     lh_u64_t started_us = 0U;
 #endif
 
-    lh_assert_runtime_ref(self);
     lh_os_window_set_paint_dc(self, paint_dc);
     lh_os_window_set_paint_left(self, left);
     lh_os_window_set_paint_top(self, top);
     lh_os_window_set_paint_right(self, right);
     lh_os_window_set_paint_bottom(self, bottom);
-    on_paint = lh_os_window_get_on_paint_fn(self);
-    on_paint_context = lh_os_window_get_on_paint_context(self);
+    lh_os_window_on_paint_cb on_paint = lh_os_window_get_on_paint_fn(self);
+    lh_ptr on_paint_context = lh_os_window_get_on_paint_context(self);
 #if LH_LIBRARY_OPTION_UI
     if (lh_null_ne(lh_os_window_get_frame_stats(self)))
     {
@@ -601,7 +571,6 @@ lh_os_window_feed_controller(lh_os_window_t *self, lh_os_input_event_cptr event)
 lh_void
 lh_os_window_on_native_input(lh_os_window_t *self, lh_os_input_event_cptr event)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(event);
     lh_os_window_track_buttons(self, event);
     /* The raw tap first, then the consumer: the sink is the low level and sees the event
@@ -616,25 +585,18 @@ lh_os_window_on_native_input(lh_os_window_t *self, lh_os_input_event_cptr event)
 lh_void
 lh_os_window_on_native_destroy(lh_os_window_t *self)
 {
-    lh_os_app_t *app;
-    lh_os_window_t *parent;
-    lh_bool_t modal;
-    lh_bool_t was_main;
-    lh_os_window_close_reason_t reason;
-    lh_os_window_on_close_cb on_close;
-    lh_ptr on_close_context;
+    lh_os_app_t *app = lh_os_window_get_app(self);
+    lh_os_window_t *parent = lh_os_window_get_parent(self);
+    lh_bool_t modal = lh_os_window_is_modal(self);
+    lh_bool_t was_main = lh_bool_false;
 
-    lh_assert_runtime_ref(self);
-    app = lh_os_window_get_app(self);
-    parent = lh_os_window_get_parent(self);
-    modal = lh_os_window_is_modal(self);
-    was_main = lh_bool_false;
     if (lh_null_ne(app))
     {
         was_main = lh_cast_static(lh_bool_t, self == lh_os_app_get_window(app));
     }
-    reason = lh_os_window_is_closing(self) ? lh_os_window_close_reason_api
-                                           : lh_os_window_close_reason_os;
+    lh_os_window_close_reason_t reason = lh_os_window_is_closing(self) ? lh_os_window_close_reason_api
+                                                                        : lh_os_window_close_reason_os;
+
     lh_os_window_set_closing(self, lh_bool_false);
     lh_os_window_set_controller_armed(self, lh_bool_false);
     lh_os_window_set_handle(self, LH_OS_SYSTEM_WINDOW_HANDLE_INVALID);
@@ -643,8 +605,9 @@ lh_os_window_on_native_destroy(lh_os_window_t *self)
     {
         lh_os_system_window_set_enabled(lh_os_window_get_handle(parent), lh_bool_true);
     }
-    on_close = lh_os_window_get_on_close_fn(self);
-    on_close_context = lh_os_window_get_on_close_context(self);
+    lh_os_window_on_close_cb on_close = lh_os_window_get_on_close_fn(self);
+    lh_ptr on_close_context = lh_os_window_get_on_close_context(self);
+
     if (lh_null_ne(lh_ptr_rcast(lh_void, on_close)))
     {
         on_close(self, reason, on_close_context);
@@ -662,9 +625,6 @@ lh_os_window_on_native_destroy(lh_os_window_t *self)
 lh_void
 lh_os_window_close(lh_os_window_t *self)
 {
-    lh_os_window_t *child;
-
-    lh_assert_runtime_ref(self);
     /* The timer stops with the window, and not on the way out of the native one alone:
        a window that is closed and reopened from the same struct must not come back with
        the timer it had before, ticking into an app that has already put the session
@@ -678,7 +638,8 @@ lh_os_window_close(lh_os_window_t *self)
     lh_os_window_set_controller_armed(self, lh_bool_false);
     for (;;)
     {
-        child = lh_os_window_get_first_child(self);
+        lh_os_window_t *child = lh_os_window_get_first_child(self);
+
         if (lh_null_eq(child))
         {
             break;
@@ -700,7 +661,6 @@ lh_os_window_close(lh_os_window_t *self)
 lh_void
 lh_os_window_deinit(lh_os_window_t *self)
 {
-    lh_assert_runtime_ref(self);
     lh_os_window_close(self);
     lh_os_window_set_on_close_fn(self, lh_null);
     lh_os_window_set_on_close_context(self, lh_null);

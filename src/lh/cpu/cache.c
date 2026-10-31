@@ -29,9 +29,7 @@ lh_usize_t
 lh_cpu_cache_l3_size_intel(void)
 {
     lh_u32_t regs[4];
-    lh_u32_t subleaf;
-
-    for (subleaf = 0U; subleaf < LH_CPU_CACHE_LEAF4_MAX_SUBLEAVES; ++subleaf)
+    for (lh_u32_t subleaf = 0U; subleaf < LH_CPU_CACHE_LEAF4_MAX_SUBLEAVES; ++subleaf)
     {
         lh_u32_t level;
 

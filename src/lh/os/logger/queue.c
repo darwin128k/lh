@@ -304,11 +304,11 @@ lh_bool_t
 lh_os_logger_queue_sync(lh_os_logger_queue_t *self, lh_u32_t timeout_ms)
 {
     const lh_u64_t start = lh_os_logger_queue_now_ms();
-    lh_bool_t reached;
-    lh_u32_t request;
+    lh_bool_t reached = lh_bool_false;
 
     LH_ATTRIBUTE_UNUSED(lh_os_mutex_lock(lh_os_logger_queue_get_mutex_mut(self)));
-    request = lh_os_logger_queue_add_requested(self);
+    lh_u32_t request = lh_os_logger_queue_add_requested(self);
+
     lh_os_loop_wake(lh_os_logger_queue_get_loop(self));
     for (;;)
     {

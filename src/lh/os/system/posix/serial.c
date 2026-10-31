@@ -67,8 +67,6 @@ lh_os_system_serial_open(lh_str_cptr name, lh_u32_t baud, lh_os_serial_parity_t 
                          lh_u8_t stop_bits)
 {
     const speed_t speed = lh_os_system_serial_speed(baud);
-    struct termios tty;
-    int fd;
 
     lh_assert_runtime_ref(name);
     if (speed == B0 || (stop_bits != 1U && stop_bits != 2U))
@@ -80,12 +78,15 @@ lh_os_system_serial_open(lh_str_cptr name, lh_u32_t baud, lh_os_serial_parity_t 
     /* O_NOCTTY: a port is not this process's terminal, and must not become one --
        a line that drops would otherwise send it SIGHUP. O_NONBLOCK: open does not
        wait for the modem lines, and every read after it does not wait either. */
-    fd = open(name, O_RDWR | O_NOCTTY | O_NONBLOCK);
+    int fd = open(name, O_RDWR | O_NOCTTY | O_NONBLOCK);
+
     if (fd < 0)
     {
         lh_os_system_error_capture();
         return LH_OS_SYSTEM_SERIAL_HANDLE_INVALID;
     }
+    struct termios tty;
+
     if (tcgetattr(fd, lh_addr_of(tty)) != 0)
     {
         lh_os_system_error_capture();

@@ -133,9 +133,8 @@ lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usiz
             lh_usize_t phase = 0;
             lh_byte_t rep_bytes[sizeof(lh_usize_t)];
             lh_usize_t rep;
-            lh_usize_t i;
 
-            for (i = 0; i < w; ++i)
+            for (lh_usize_t i = 0U; i < w; ++i)
             {
                 rep_bytes[i] = s[i % src_size];
             }

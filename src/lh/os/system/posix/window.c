@@ -260,9 +260,8 @@ lh_os_system_posix_corner_rows(lh_os_system_posix_xrectangle_t *rows, int width,
                                int radius)
 {
     int count = 0;
-    int row;
 
-    for (row = 0; lh_math_lt(row, radius); ++row)
+    for (int row = 0; lh_math_lt(row, radius); ++row)
     {
         const int inset = lh_os_window_corner_inset(radius, row);
 
@@ -343,9 +342,8 @@ lh_os_system_posix_corner_outside(lh_os_system_posix_xrectangle_t *rows, int wid
                                   int radius)
 {
     int count = 0;
-    int row;
 
-    for (row = 0; lh_math_lt(row, radius); ++row)
+    for (int row = 0; lh_math_lt(row, radius); ++row)
     {
         const int inset = lh_os_window_corner_inset(radius, row);
 
@@ -548,7 +546,6 @@ lh_bool_t
 lh_os_system_posix_window_begin_moveresize(lh_os_system_posix_window_t *self,
                                            lh_os_window_zone_t zone, int x_root, int y_root)
 {
-    lh_os_system_posix_xevent_t event;
     long direction;
 
     switch (zone)
@@ -586,6 +583,8 @@ lh_os_system_posix_window_begin_moveresize(lh_os_system_posix_window_t *self,
     }
     (void)lh_os_system_posix_x->XUngrabPointer(lh_os_system_posix_display,
                                                LH_OS_SYSTEM_POSIX_X_CURRENT_TIME);
+    lh_os_system_posix_xevent_t event;
+
     lh_memory_set(lh_addr_of(event), sizeof(event), 0);
     event.client.type = LH_OS_SYSTEM_POSIX_X_CLIENT_MESSAGE;
     event.client.window = lh_os_system_posix_window_get_window(self);
@@ -693,10 +692,6 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     lh_os_system_posix_window_t *self;
     lh_os_system_posix_window_t *owner_window;
     lh_os_system_posix_xset_window_attributes_t attributes;
-    lh_os_system_posix_xsize_hints_t hints;
-    lh_os_system_posix_xid_t protocols[1];
-    lh_os_system_posix_xid_t root;
-    lh_os_system_posix_xvisual_info_t info;
     const lh_os_system_posix_xrender_t *render;
     const unsigned long mask = LH_OS_SYSTEM_POSIX_X_CW_BACK_PIXMAP |
                                LH_OS_SYSTEM_POSIX_X_CW_BIT_GRAVITY |
@@ -757,6 +752,8 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
         LH_OS_SYSTEM_POSIX_X_STRUCTURE_NOTIFY_MASK | LH_OS_SYSTEM_POSIX_X_PROPERTY_CHANGE_MASK |
         LH_OS_SYSTEM_POSIX_X_FOCUS_CHANGE_MASK;
     render = lh_os_system_posix_xrender_load();
+    lh_os_system_posix_xvisual_info_t info;
+
     lh_memory_set(lh_addr_of(info), sizeof(info), 0);
     if (lh_null_ne(render) &&
         render->XRenderQueryExtension(lh_os_system_posix_display, lh_addr_of(event_base),
@@ -839,6 +836,8 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
         lh_cast_static(int, title_length));
 
     /* The close button sends a message instead of killing the connection. */
+    lh_os_system_posix_xid_t protocols[1];
+
     protocols[0] = lh_os_system_posix_atom_wm_delete_window;
     (void)x->XSetWMProtocols(lh_os_system_posix_display, lh_os_system_posix_window_get_window(self),
                              protocols, 1);
@@ -847,6 +846,8 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     {
         /* Without this the window manager places the window itself and the
            position given to XCreateWindow is ignored. */
+        lh_os_system_posix_xsize_hints_t hints;
+
         lh_memory_set(lh_addr_of(hints), sizeof(hints), 0);
         hints.flags = LH_OS_SYSTEM_POSIX_X_US_POSITION | LH_OS_SYSTEM_POSIX_X_P_POSITION;
         hints.x = at_x;
@@ -888,6 +889,8 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     lh_os_system_posix_window_wait_placed(self);
 
     /* The size it was given, which the window manager may not have honoured. */
+    lh_os_system_posix_xid_t root;
+
     if (x->XGetGeometry(lh_os_system_posix_display, lh_os_system_posix_window_get_window(self),
                         lh_addr_of(root), lh_addr_of(at_x), lh_addr_of(at_y), lh_addr_of(got_width),
                         lh_addr_of(got_height), lh_addr_of(border), lh_addr_of(depth)) != 0 &&
@@ -1047,23 +1050,26 @@ lh_bool_t
 lh_os_system_posix_window_send_wheel(lh_os_system_posix_window_t *self,
                                      const lh_os_system_posix_xevent_t *event)
 {
-    lh_os_input_event_t input;
-    lh_s32_t dx;
-    lh_s32_t dy;
+    {
+        lh_s32_t dx;
+        lh_s32_t dy;
+        lh_os_input_event_t input;
 
-    lh_return_if(
-        !lh_os_system_posix_input_wheel_of(event->button.button, lh_addr_of(dx), lh_addr_of(dy)),
-        lh_bool_false);
-    lh_os_input_event_init_wheel(lh_addr_of(input), lh_os_input_coord_from_int(event->button.x),
-                                 lh_os_input_coord_from_int(event->button.y), dx, dy,
-                                 lh_os_tick_ms());
-    lh_os_input_event_set_buttons(
-        lh_addr_of(input), lh_os_system_posix_input_buttons_held(
-                               event->button.state, lh_os_window_get_pressed_buttons(
-                                                        lh_os_system_posix_window_get_user(self))));
-    lh_os_input_event_set_mods(lh_addr_of(input),
-                               lh_os_system_posix_input_mods_of(event->button.state));
-    lh_os_window_on_native_input(lh_os_system_posix_window_get_user(self), lh_addr_of(input));
+        lh_return_if(!lh_os_system_posix_input_wheel_of(event->button.button, lh_addr_of(dx),
+                                                         lh_addr_of(dy)),
+                     lh_bool_false);
+        lh_os_input_event_init_wheel(lh_addr_of(input),
+                                     lh_os_input_coord_from_int(event->button.x),
+                                     lh_os_input_coord_from_int(event->button.y), dx, dy,
+                                     lh_os_tick_ms());
+        lh_os_input_event_set_buttons(
+            lh_addr_of(input), lh_os_system_posix_input_buttons_held(
+                                   event->button.state, lh_os_window_get_pressed_buttons(
+                                                            lh_os_system_posix_window_get_user(self))));
+        lh_os_input_event_set_mods(lh_addr_of(input),
+                                   lh_os_system_posix_input_mods_of(event->button.state));
+        lh_os_window_on_native_input(lh_os_system_posix_window_get_user(self), lh_addr_of(input));
+    }
     return lh_bool_true;
 }
 
@@ -1097,7 +1103,6 @@ lh_os_system_posix_window_send_key(lh_os_system_posix_window_t *self,
                                    lh_os_system_posix_xevent_t *event)
 {
     char text[8];
-    lh_os_input_event_t input;
     lh_os_system_posix_xid_t keysym = LH_OS_SYSTEM_POSIX_X_NONE;
     const lh_u32_t keycode = lh_type_cast(lh_u32_t, event->key.keycode);
     const lh_os_input_mods_t mods = lh_os_system_posix_input_mods_of(event->key.state);
@@ -1118,6 +1123,8 @@ lh_os_system_posix_window_send_key(lh_os_system_posix_window_t *self,
     /* The keysym with the layout and Shift applied: what the key means now. */
     (void)lh_os_system_posix_x->XLookupString(
         lh_addr_of(event->key), text, lh_type_cast(int, sizeof(text)), lh_addr_of(keysym), lh_null);
+    lh_os_input_event_t input;
+
     lh_os_input_event_init_key(lh_addr_of(input), lh_os_system_posix_key_from_keysym(keysym),
                                pressed, repeat, keycode, lh_os_tick_ms());
     lh_os_input_event_set_mods(lh_addr_of(input), mods);
@@ -1344,18 +1351,14 @@ lh_os_system_window_pump_wait(lh_tick_t timeout_ms)
     const lh_os_system_posix_x11_t *x = lh_os_system_posix_x;
     lh_bool_t handled = lh_bool_false;
     lh_os_system_posix_window_t *window;
-    lh_os_system_posix_xevent_t event;
-    struct pollfd watch;
-    lh_u64_t now;
-    int wait;
-    int tick;
 
     if (lh_os_system_posix_quit)
     {
         lh_os_system_posix_quit = lh_bool_false;
         return lh_os_system_window_pump_quit;
     }
-    wait = timeout_ms == LH_TICK_T_MAX ? -1 : lh_cast_static(int, timeout_ms);
+    int wait = timeout_ms == LH_TICK_T_MAX ? -1 : lh_cast_static(int, timeout_ms);
+
     if (lh_null_eq(lh_os_system_posix_display))
     {
         /* Nothing to wait on but the time. */
@@ -1363,8 +1366,9 @@ lh_os_system_window_pump_wait(lh_tick_t timeout_ms)
         return lh_os_system_window_pump_timeout;
     }
 
-    now = lh_os_tick_us();
-    tick = lh_os_system_posix_until_tick(now);
+    lh_u64_t now = lh_os_tick_us();
+    int tick = lh_os_system_posix_until_tick(now);
+
     if (tick >= 0 && (wait < 0 || tick < wait))
     {
         wait = tick;
@@ -1378,6 +1382,8 @@ lh_os_system_window_pump_wait(lh_tick_t timeout_ms)
     }
     if (wait != 0)
     {
+        struct pollfd watch;
+
         watch.fd = x->XConnectionNumber(lh_os_system_posix_display);
         watch.events = POLLIN;
         watch.revents = 0;
@@ -1386,6 +1392,8 @@ lh_os_system_window_pump_wait(lh_tick_t timeout_ms)
 
     while (x->XPending(lh_os_system_posix_display) > 0)
     {
+        lh_os_system_posix_xevent_t event;
+
         (void)x->XNextEvent(lh_os_system_posix_display, lh_addr_of(event));
         lh_os_system_posix_dispatch(lh_addr_of(event));
         handled = lh_bool_true;

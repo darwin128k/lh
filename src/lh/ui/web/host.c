@@ -99,8 +99,9 @@ lh_ui_web_host_query(lh_str_cptr req, lh_usize_t len, lh_str_cptr key, lh_usize_
         {
             continue;
         }
-        while (off + n < len && req[off + n] != lh_char_map_ampersand && req[off + n] != lh_char_map_space &&
-               req[off + n] != lh_char_map_cr && req[off + n] != lh_char_map_lf)
+        while (off + n < len && req[off + n] != lh_char_map_ampersand &&
+               req[off + n] != lh_char_map_space && req[off + n] != lh_char_map_cr &&
+               req[off + n] != lh_char_map_lf)
         {
             ++n;
         }
@@ -156,14 +157,16 @@ lh_ui_web_host_input(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks,
 {
     lh_bool_t changed = lh_bool_false;
 
-    lh_return_if(hooks == lh_null || (lh_ui_web_host_hooks_get_input_fn(hooks) == lh_null && lh_ui_web_host_hooks_get_controller(hooks) == lh_null),
+    lh_return_if(hooks == lh_null || (lh_ui_web_host_hooks_get_input_fn(hooks) == lh_null &&
+                                      lh_ui_web_host_hooks_get_controller(hooks) == lh_null),
                  lh_ui_view_input(view, event));
     if (lh_ui_web_host_hooks_get_input_fn(hooks) != lh_null)
     {
         lh_ui_web_host_hooks_get_input_fn(hooks)(lh_ui_web_host_hooks_get_ctx(hooks), event);
         changed = lh_bool_true;
     }
-    if (lh_ui_web_host_hooks_get_controller(hooks) != lh_null && lh_os_controller_feed(lh_ui_web_host_hooks_get_controller(hooks), event))
+    if (lh_ui_web_host_hooks_get_controller(hooks) != lh_null &&
+        lh_os_controller_feed(lh_ui_web_host_hooks_get_controller(hooks), event))
     {
         changed = lh_bool_true;
     }
@@ -279,10 +282,6 @@ lh_ui_web_host_ws_upgrade(lh_os_net_socket_t *client, lh_str_cptr req, lh_usize_
 {
     static const lh_char_t guid[] = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
     lh_str_cptr k = lh_ui_web_host_find(req, len, lh_str_lit("Sec-WebSocket-Key:"));
-    lh_char_t cat[80];
-    lh_byte_t digest[LH_CRYPTO_SHA1_DIGEST_SIZE];
-    lh_char_t accept[32];
-    lh_char_t head[280];
     lh_usize_t n = 0u;
     lh_usize_t h;
 
@@ -299,19 +298,25 @@ lh_ui_web_host_ws_upgrade(lh_os_net_socket_t *client, lh_str_cptr req, lh_usize_
     {
         ++k;
     }
-    while (k + n < req + len && k[n] != lh_char_map_cr && k[n] != lh_char_map_lf && n < sizeof(cat) - sizeof(guid))
+    lh_char_t cat[80];
+    while (k + n < req + len && k[n] != lh_char_map_cr && k[n] != lh_char_map_lf &&
+           n < sizeof(cat) - sizeof(guid))
     {
         cat[n] = k[n];
         ++n;
     }
     lh_memory_copy(cat + n, sizeof(cat) - n, lh_cast_const(lh_ptr, guid), sizeof(guid) - 1u);
     n += sizeof(guid) - 1u;
+    lh_byte_t digest[LH_CRYPTO_SHA1_DIGEST_SIZE];
     if (lh_crypto_sha_hash(lh_crypto_sha_kind_1, cat, n, digest, sizeof(digest)) !=
         LH_CRYPTO_SHA1_DIGEST_SIZE)
     {
         return lh_bool_false;
     }
-    accept[lh_str_ptr_format_base64(digest, sizeof(digest), accept, sizeof(accept) - 1u)] = lh_char_map_nul;
+    lh_char_t accept[32];
+    accept[lh_str_ptr_format_base64(digest, sizeof(digest), accept, sizeof(accept) - 1u)] =
+        lh_char_map_nul;
+    lh_char_t head[280];
     h = lh_str_ptr_format_text(head, sizeof(head),
                                "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\n"
                                "Connection: Upgrade\r\nSec-WebSocket-Accept: %s\r\n\r\n",
@@ -430,20 +435,20 @@ lh_ui_web_host_ws_enqueue(lh_ui_web_host_client_t *c, lh_uint_t opcode, const vo
                           lh_usize_t plen, lh_bool_t front)
 {
     const lh_usize_t need = lh_ui_web_ws_frame_size(plen);
-    lh_ui_web_host_frame_t *q;
-    lh_byte_ptr bytes;
 
     if (c == lh_null || !lh_ui_web_host_client_is_used(c))
     {
         return lh_bool_false;
     }
-    if (need == 0u || lh_ui_web_host_client_get_queued(c) + lh_cast_static(lh_uint_t, need) > LH_UI_WEB_HOST_WS_QMAX)
+    if (need == 0u || lh_ui_web_host_client_get_queued(c) + lh_cast_static(lh_uint_t, need) >
+                          LH_UI_WEB_HOST_WS_QMAX)
     {
         lh_ui_web_host_ws_drop(c);
         return lh_bool_false;
     }
-    q = lh_ptr_rcast(lh_ui_web_host_frame_t, lh_os_alloc(sizeof(lh_ptr_deref(q))));
-    bytes = lh_ptr_rcast(lh_byte_t, lh_os_alloc(need));
+    lh_ui_web_host_frame_t *q =
+        lh_ptr_rcast(lh_ui_web_host_frame_t, lh_os_alloc(sizeof(lh_ptr_deref(q))));
+    lh_byte_ptr bytes = lh_ptr_rcast(lh_byte_t, lh_os_alloc(need));
     if (q == lh_null || bytes == lh_null ||
         lh_ui_web_ws_write(bytes, need, opcode, lh_bool_true, payload, plen) != need)
     {
@@ -477,18 +482,23 @@ lh_ui_web_host_ws_enqueue(lh_ui_web_host_client_t *c, lh_uint_t opcode, const vo
         }
         lh_ui_web_host_client_set_qtail(c, q);
     }
-    lh_ui_web_host_client_set_queued(c, lh_ui_web_host_client_get_queued(c) + (lh_cast_static(lh_uint_t, need)));
+    lh_ui_web_host_client_set_queued(c, lh_ui_web_host_client_get_queued(c) +
+                                            (lh_cast_static(lh_uint_t, need)));
     return lh_bool_true;
 }
 
 lh_void
 lh_ui_web_host_ws_flush(lh_ui_web_host_client_t *c)
 {
-    while (c != lh_null && lh_ui_web_host_client_is_used(c) && lh_ui_web_host_client_get_qhead(c) != lh_null)
+    while (c != lh_null && lh_ui_web_host_client_is_used(c) &&
+           lh_ui_web_host_client_get_qhead(c) != lh_null)
     {
         lh_ui_web_host_frame_t *q = lh_ui_web_host_client_get_qhead(c);
-        const lh_ssize_t w = lh_os_net_socket_send(lh_ui_web_host_client_get_sock_mut(c), lh_ui_web_host_frame_get_bytes(q) + lh_ui_web_host_frame_get_off(q),
-                                                   lh_cast_static(lh_usize_t, (lh_ui_web_host_frame_get_len(q) - lh_ui_web_host_frame_get_off(q))));
+        const lh_ssize_t w = lh_os_net_socket_send(
+            lh_ui_web_host_client_get_sock_mut(c),
+            lh_ui_web_host_frame_get_bytes(q) + lh_ui_web_host_frame_get_off(q),
+            lh_cast_static(lh_usize_t,
+                           (lh_ui_web_host_frame_get_len(q) - lh_ui_web_host_frame_get_off(q))));
 
         if (w == LH_OS_RESULT_PENDING)
         {
@@ -499,8 +509,10 @@ lh_ui_web_host_ws_flush(lh_ui_web_host_client_t *c)
             lh_ui_web_host_ws_drop(c);
             return;
         }
-        lh_ui_web_host_frame_set_off(q, lh_ui_web_host_frame_get_off(q) + (lh_cast_static(lh_uint_t, w)));
-        lh_ui_web_host_client_set_queued(c, lh_ui_web_host_client_get_queued(c) - (lh_cast_static(lh_uint_t, w)));
+        lh_ui_web_host_frame_set_off(q, lh_ui_web_host_frame_get_off(q) +
+                                            (lh_cast_static(lh_uint_t, w)));
+        lh_ui_web_host_client_set_queued(c, lh_ui_web_host_client_get_queued(c) -
+                                                (lh_cast_static(lh_uint_t, w)));
         if (lh_ui_web_host_frame_get_off(q) >= lh_ui_web_host_frame_get_len(q))
         {
             lh_ui_web_host_client_set_qhead(c, lh_ui_web_host_frame_get_next(q));
@@ -512,7 +524,8 @@ lh_ui_web_host_ws_flush(lh_ui_web_host_client_t *c)
             lh_runtime_allocator_free(q);
         }
     }
-    if (c != lh_null && lh_ui_web_host_client_is_used(c) && lh_ui_web_host_client_is_closing(c) && lh_ui_web_host_client_get_qhead(c) == lh_null)
+    if (c != lh_null && lh_ui_web_host_client_is_used(c) && lh_ui_web_host_client_is_closing(c) &&
+        lh_ui_web_host_client_get_qhead(c) == lh_null)
     {
         lh_ui_web_host_ws_drop(c);
     }
@@ -527,13 +540,18 @@ lh_ui_web_host_ws_msg_add(lh_ui_web_host_client_t *c, lh_byte_cptr p, lh_usize_t
     {
         return lh_bool_false;
     }
-    if (lh_ui_web_host_client_get_msg_len(c) + lh_cast_static(lh_uint_t, n) > lh_ui_web_host_client_get_msg_cap(c))
+    if (lh_ui_web_host_client_get_msg_len(c) + lh_cast_static(lh_uint_t, n) >
+        lh_ui_web_host_client_get_msg_cap(c))
     {
         const lh_uint_t cap = lh_ui_web_host_client_get_msg_len(c) + lh_cast_static(lh_uint_t, n);
-        const lh_uint_t next = (lh_ui_web_host_client_get_msg_cap(c) == 0u) ? 256u : (lh_ui_web_host_client_get_msg_cap(c) * 2u);
+        const lh_uint_t next = (lh_ui_web_host_client_get_msg_cap(c) == 0u)
+                                   ? 256u
+                                   : (lh_ui_web_host_client_get_msg_cap(c) * 2u);
         const lh_uint_t want = (cap > next) ? cap : next;
 
-        grow = lh_ptr_rcast(lh_byte_t, lh_runtime_allocator_realloc(lh_ui_web_host_client_get_msg(c), lh_ui_web_host_client_get_msg_cap(c), want));
+        grow = lh_ptr_rcast(
+            lh_byte_t, lh_runtime_allocator_realloc(lh_ui_web_host_client_get_msg(c),
+                                                    lh_ui_web_host_client_get_msg_cap(c), want));
         if (grow == lh_null)
         {
             return lh_bool_false;
@@ -541,8 +559,11 @@ lh_ui_web_host_ws_msg_add(lh_ui_web_host_client_t *c, lh_byte_cptr p, lh_usize_t
         lh_ui_web_host_client_set_msg(c, grow);
         lh_ui_web_host_client_set_msg_cap(c, want);
     }
-    lh_memory_copy(lh_ui_web_host_client_get_msg(c) + lh_ui_web_host_client_get_msg_len(c), lh_ui_web_host_client_get_msg_cap(c) - lh_ui_web_host_client_get_msg_len(c), lh_cast_const(lh_ptr, p), n);
-    lh_ui_web_host_client_set_msg_len(c, lh_ui_web_host_client_get_msg_len(c) + (lh_cast_static(lh_uint_t, n)));
+    lh_memory_copy(lh_ui_web_host_client_get_msg(c) + lh_ui_web_host_client_get_msg_len(c),
+                   lh_ui_web_host_client_get_msg_cap(c) - lh_ui_web_host_client_get_msg_len(c),
+                   lh_cast_const(lh_ptr, p), n);
+    lh_ui_web_host_client_set_msg_len(c, lh_ui_web_host_client_get_msg_len(c) +
+                                             (lh_cast_static(lh_uint_t, n)));
     return lh_bool_true;
 }
 
@@ -559,8 +580,9 @@ lh_ui_web_host_ws_ingest(lh_ui_web_host_client_t *c, lh_ui_view_t *view,
         lh_usize_t plen = 0;
         lh_byte_cptr mask = lh_null;
         const lh_usize_t n =
-            lh_ui_web_ws_read(lh_ui_web_host_client_get_rx(c), lh_ui_web_host_client_get_rx_len(c), lh_addr_of(opcode), lh_addr_of(fin),
-                              lh_addr_of(payload), lh_addr_of(plen), lh_addr_of(mask));
+            lh_ui_web_ws_read(lh_ui_web_host_client_get_rx(c), lh_ui_web_host_client_get_rx_len(c),
+                              lh_addr_of(opcode), lh_addr_of(fin), lh_addr_of(payload),
+                              lh_addr_of(plen), lh_addr_of(mask));
         lh_byte_ptr body;
 
         if (n == 0u)
@@ -612,8 +634,10 @@ lh_ui_web_host_ws_ingest(lh_ui_web_host_client_t *c, lh_ui_view_t *view,
             {
                 if (lh_ui_web_host_client_get_msg_op(c) == LH_UI_WEB_WS_TEXT)
                 {
-                    lh_ui_web_host_event_line(view, hooks, width, height, gen,
-                                              lh_ptr_rcast(const lh_char_t, lh_ui_web_host_client_get_msg(c)), lh_ui_web_host_client_get_msg_len(c));
+                    lh_ui_web_host_event_line(
+                        view, hooks, width, height, gen,
+                        lh_ptr_rcast(const lh_char_t, lh_ui_web_host_client_get_msg(c)),
+                        lh_ui_web_host_client_get_msg_len(c));
                 }
                 lh_ui_web_host_client_set_msg_on(c, lh_bool_false);
                 lh_ui_web_host_client_set_msg_len(c, 0u);
@@ -651,9 +675,12 @@ lh_ui_web_host_ws_ingest(lh_ui_web_host_client_t *c, lh_ui_view_t *view,
             lh_ui_web_host_ws_drop(c);
             return;
         }
-        lh_memory_move(lh_ui_web_host_client_get_rx(c), LH_UI_WEB_HOST_WS_RX, lh_ui_web_host_client_get_rx(c) + n,
-                       lh_cast_static(lh_usize_t, (lh_ui_web_host_client_get_rx_len(c) - lh_cast_static(lh_uint_t, n))));
-        lh_ui_web_host_client_set_rx_len(c, lh_ui_web_host_client_get_rx_len(c) - (lh_cast_static(lh_uint_t, n)));
+        lh_memory_move(lh_ui_web_host_client_get_rx(c), LH_UI_WEB_HOST_WS_RX,
+                       lh_ui_web_host_client_get_rx(c) + n,
+                       lh_cast_static(lh_usize_t, (lh_ui_web_host_client_get_rx_len(c) -
+                                                   lh_cast_static(lh_uint_t, n))));
+        lh_ui_web_host_client_set_rx_len(c, lh_ui_web_host_client_get_rx_len(c) -
+                                                (lh_cast_static(lh_uint_t, n)));
     }
 }
 
@@ -712,7 +739,8 @@ lh_ui_web_host_ws_pump(lh_ui_web_host_client_t *c, lh_ui_view_t *view,
         lh_ui_web_host_ws_drop(c);
         return;
     }
-    if (!lh_ui_web_host_client_is_closing(c) && (now - lh_ui_web_host_client_get_last_ping_ms(c)) >= LH_UI_WEB_HOST_WS_PING_MS)
+    if (!lh_ui_web_host_client_is_closing(c) &&
+        (now - lh_ui_web_host_client_get_last_ping_ms(c)) >= LH_UI_WEB_HOST_WS_PING_MS)
     {
         if (!lh_ui_web_host_ws_enqueue(c, LH_UI_WEB_WS_PING, lh_null, 0u, lh_bool_true))
         {
@@ -725,8 +753,10 @@ lh_ui_web_host_ws_pump(lh_ui_web_host_client_t *c, lh_ui_view_t *view,
         lh_ui_web_host_ws_drop(c);
         return;
     }
-    got = lh_os_net_socket_recv(lh_ui_web_host_client_get_sock_mut(c), lh_ui_web_host_client_get_rx(c) + lh_ui_web_host_client_get_rx_len(c),
-                                LH_UI_WEB_HOST_WS_RX - lh_ui_web_host_client_get_rx_len(c));
+    got =
+        lh_os_net_socket_recv(lh_ui_web_host_client_get_sock_mut(c),
+                              lh_ui_web_host_client_get_rx(c) + lh_ui_web_host_client_get_rx_len(c),
+                              LH_UI_WEB_HOST_WS_RX - lh_ui_web_host_client_get_rx_len(c));
     if (got == LH_OS_RESULT_PENDING)
     {
         lh_ui_web_host_ws_flush(c);
@@ -737,7 +767,8 @@ lh_ui_web_host_ws_pump(lh_ui_web_host_client_t *c, lh_ui_view_t *view,
         lh_ui_web_host_ws_drop(c);
         return;
     }
-    lh_ui_web_host_client_set_rx_len(c, lh_ui_web_host_client_get_rx_len(c) + (lh_cast_static(lh_uint_t, got)));
+    lh_ui_web_host_client_set_rx_len(c, lh_ui_web_host_client_get_rx_len(c) +
+                                            (lh_cast_static(lh_uint_t, got)));
     lh_ui_web_host_ws_ingest(c, view, hooks, width, height, gen, now);
     if (lh_ui_web_host_client_is_used(c))
     {
@@ -827,9 +858,6 @@ lh_ui_web_host_handle(lh_ui_view_t *view, lh_uint_t *width, lh_uint_t *height, l
 {
     lh_char_t req[1024];
     lh_os_net_socket_t *const watch[1] = {client};
-    lh_ui_canvas_web_t web;
-    lh_ssize_t got;
-    lh_usize_t len;
 
     /* Accepted the moment it connected, so the request may not be here yet; and
        a socket accepted from a non-blocking listener is non-blocking on Windows,
@@ -840,12 +868,12 @@ lh_ui_web_host_handle(lh_ui_view_t *view, lh_uint_t *width, lh_uint_t *height, l
     {
         return lh_bool_false;
     }
-    got = lh_os_net_socket_recv(client, req, sizeof(req));
+    lh_ssize_t got = lh_os_net_socket_recv(client, req, sizeof(req));
     if (got <= 0)
     {
         return lh_bool_false;
     }
-    len = lh_cast_static(lh_usize_t, got);
+    lh_usize_t len = lh_cast_static(lh_usize_t, got);
     if (lh_ui_web_host_route(req, len, lh_str_lit("/ws")))
     {
         return lh_ui_web_host_ws_upgrade(client, req, len);
@@ -874,6 +902,7 @@ lh_ui_web_host_handle(lh_ui_view_t *view, lh_uint_t *width, lh_uint_t *height, l
             lh_ui_web_host_reply_text(client, 304u, lh_str_lit(""));
             return lh_bool_false;
         }
+        lh_ui_canvas_web_t web;
         if (!lh_ui_web_host_draw(view, lh_ptr_deref(width), lh_ptr_deref(height), json, json_cap,
                                  lh_addr_of(web), lh_null))
         {
@@ -902,8 +931,11 @@ lh_ui_web_host_handle(lh_ui_view_t *view, lh_uint_t *width, lh_uint_t *height, l
 lh_bool_t
 lh_ui_web_host_ws_wants(const lh_ui_web_host_client_t *c, lh_uint_t gen)
 {
-    return (lh_ui_web_host_client_is_used(c) && !lh_ui_web_host_client_is_closing(c) && lh_ui_web_host_client_get_seen(c) != gen && lh_ui_web_host_client_get_qhead(c) == lh_null) ? lh_bool_true
-                                                                             : lh_bool_false;
+    return (lh_ui_web_host_client_is_used(c) && !lh_ui_web_host_client_is_closing(c) &&
+            lh_ui_web_host_client_get_seen(c) != gen &&
+            lh_ui_web_host_client_get_qhead(c) == lh_null)
+               ? lh_bool_true
+               : lh_bool_false;
 }
 
 lh_void
@@ -912,7 +944,9 @@ lh_ui_web_host_ws_remember(lh_ui_web_host_stream_t *stream, lh_str_cptr body, lh
     if (len > lh_ui_web_host_stream_get_last_cap(stream))
     {
         lh_str_ptr grow = lh_ptr_rcast(
-            lh_char_t, lh_runtime_allocator_realloc(lh_ui_web_host_stream_get_last(stream), lh_ui_web_host_stream_get_last_cap(stream), len));
+            lh_char_t,
+            lh_runtime_allocator_realloc(lh_ui_web_host_stream_get_last(stream),
+                                         lh_ui_web_host_stream_get_last_cap(stream), len));
 
         if (grow == lh_null)
         {
@@ -922,7 +956,8 @@ lh_ui_web_host_ws_remember(lh_ui_web_host_stream_t *stream, lh_str_cptr body, lh
         lh_ui_web_host_stream_set_last(stream, grow);
         lh_ui_web_host_stream_set_last_cap(stream, len);
     }
-    lh_memory_copy(lh_ui_web_host_stream_get_last(stream), lh_ui_web_host_stream_get_last_cap(stream), lh_cast_const(lh_ptr, body), len);
+    lh_memory_copy(lh_ui_web_host_stream_get_last(stream),
+                   lh_ui_web_host_stream_get_last_cap(stream), lh_cast_const(lh_ptr, body), len);
     lh_ui_web_host_stream_set_last_len(stream, len);
 }
 
@@ -930,7 +965,8 @@ lh_bool_t
 lh_ui_web_host_ws_same(const lh_ui_web_host_stream_t *stream, lh_str_cptr body, lh_usize_t len)
 {
     return (len > 0u && len == lh_ui_web_host_stream_get_last_len(stream) &&
-            lh_memory_compare(lh_cast_const(lh_ptr, body), len, lh_ui_web_host_stream_get_last(stream), len) == lh_null)
+            lh_memory_compare(lh_cast_const(lh_ptr, body), len,
+                              lh_ui_web_host_stream_get_last(stream), len) == lh_null)
                ? lh_bool_true
                : lh_bool_false;
 }
@@ -942,9 +978,6 @@ lh_ui_web_host_ws_frame(lh_ui_web_host_client_t *cli, lh_ui_web_host_stream_t *s
 {
     lh_ui_canvas_web_t web;
     lh_bool_t want = lh_bool_false;
-    lh_bool_t same;
-    lh_str_cptr body;
-    lh_usize_t len;
     lh_uint_t i;
 
     for (i = 0u; i < LH_UI_WEB_HOST_WS_MAX; ++i)
@@ -963,9 +996,9 @@ lh_ui_web_host_ws_frame(lh_ui_web_host_client_t *cli, lh_ui_web_host_stream_t *s
     {
         return;
     }
-    body = lh_ui_canvas_web_bytes(lh_addr_of(web));
-    len = lh_ui_canvas_web_length(lh_addr_of(web));
-    same = lh_ui_web_host_ws_same(stream, body, len);
+    lh_str_cptr body = lh_ui_canvas_web_bytes(lh_addr_of(web));
+    lh_usize_t len = lh_ui_canvas_web_length(lh_addr_of(web));
+    lh_bool_t same = lh_ui_web_host_ws_same(stream, body, len);
     for (i = 0u; i < LH_UI_WEB_HOST_WS_MAX; ++i)
     {
         lh_ui_web_host_client_t *c = cli + i;
@@ -1033,13 +1066,13 @@ lh_void
 lh_ui_web_host_wait(lh_os_net_socket_t *listen_fd, lh_ui_web_host_client_t *cli,
                     lh_uint_t timeout_ms)
 {
-    lh_os_net_socket_t *read[LH_UI_WEB_HOST_WS_MAX + 1u];
-    lh_os_net_socket_t *write[LH_UI_WEB_HOST_WS_MAX];
     lh_usize_t nr = 0u;
     lh_usize_t nw = 0u;
     lh_uint_t i;
+    lh_os_net_socket_t *read[LH_UI_WEB_HOST_WS_MAX + 1u];
 
     read[nr++] = listen_fd;
+    lh_os_net_socket_t *write[LH_UI_WEB_HOST_WS_MAX];
     for (i = 0u; i < LH_UI_WEB_HOST_WS_MAX; ++i)
     {
         if (!cli[i].used)
@@ -1068,7 +1101,8 @@ lh_ui_web_host_route_hooks(const lh_ui_web_host_hooks_t *hooks, lh_ui_view_t *vi
     {
         lh_ptr_deref(out) = lh_ptr_deref(hooks);
     }
-    lh_return_if(lh_ui_web_host_hooks_get_input_fn(out) != lh_null || lh_ui_web_host_hooks_get_controller(out) != lh_null);
+    lh_return_if(lh_ui_web_host_hooks_get_input_fn(out) != lh_null ||
+                 lh_ui_web_host_hooks_get_controller(out) != lh_null);
     lh_os_controller_init(view_controller, lh_ui_view_controller_handle, view, lh_null);
     lh_os_controller_set_cancel_cb(view_controller, lh_ui_view_controller_cancel);
     lh_ui_web_host_hooks_set_controller(out, view_controller);
@@ -1078,28 +1112,28 @@ lh_bool_t
 lh_ui_web_host_run(lh_ui_view_t *view, lh_uint_t width, lh_uint_t height, lh_str_ptr json,
                    lh_usize_t json_cap, lh_net_port_t port, const lh_ui_web_host_hooks_t *hooks)
 {
-    lh_os_controller_t view_controller;
-    lh_ui_web_host_hooks_t routed;
-    lh_os_net_socket_t listen_fd;
-    lh_net_ip4_t ip;
-    lh_net_ip4_socket_addr_t addr;
 
     if (view == lh_null || json == lh_null || json_cap < 64u)
     {
         return lh_bool_false;
     }
+    lh_os_controller_t view_controller;
+    lh_ui_web_host_hooks_t routed;
     lh_ui_web_host_route_hooks(hooks, view, lh_addr_of(view_controller), lh_addr_of(routed));
     if (!lh_os_net_init())
     {
         return lh_bool_false;
     }
+    lh_os_net_socket_t listen_fd;
     lh_os_net_socket_init(lh_addr_of(listen_fd));
     if (!lh_os_net_socket_open(lh_addr_of(listen_fd), lh_os_system_net_socket_type_tcp))
     {
         return lh_bool_false;
     }
     (void)lh_os_net_socket_set_reuse_addr(lh_addr_of(listen_fd), lh_bool_true);
+    lh_net_ip4_t ip;
     lh_net_ip4_init(lh_addr_of(ip), 127, 0, 0, 1);
+    lh_net_ip4_socket_addr_t addr;
     lh_net_ip4_socket_addr_init(lh_addr_of(addr), lh_addr_of(ip), port);
     if (!lh_os_net_socket_bind(lh_addr_of(listen_fd), lh_addr_of(addr)) ||
         !lh_os_net_socket_listen(lh_addr_of(listen_fd), 8))
@@ -1143,7 +1177,8 @@ lh_ui_web_host_run(lh_ui_view_t *view, lh_uint_t width, lh_uint_t height, lh_str
                press that came due is in the view by the time the app looks. */
             if (lh_ui_web_host_hooks_get_controller(lh_addr_of(routed)) != lh_null)
             {
-                (void)lh_os_controller_update(lh_ui_web_host_hooks_get_controller(lh_addr_of(routed)), lh_os_tick_ms());
+                (void)lh_os_controller_update(
+                    lh_ui_web_host_hooks_get_controller(lh_addr_of(routed)), lh_os_tick_ms());
             }
             if (routed.tick != lh_null)
             {

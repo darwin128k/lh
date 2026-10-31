@@ -37,7 +37,6 @@ lh_ui_gradient_stop_get_frac(const lh_ui_gradient_stop_t *self)
 lh_void
 lh_ui_gradient_stop_set_color_v(lh_ui_gradient_stop_t *self, lh_ui_color_t color)
 {
-    lh_assert_runtime_ref(self);
     lh_ptr_deref(lh_ui_gradient_stop_get_color_mut(self)) = color;
 }
 
@@ -51,7 +50,6 @@ lh_ui_gradient_stop_set_frac(lh_ui_gradient_stop_t *self, lh_byte_t frac)
 lh_void
 lh_ui_gradient_stop_init(lh_ui_gradient_stop_t *self, lh_ui_color_t color, lh_byte_t frac)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_gradient_stop_set_color_v(self, color);
     lh_ui_gradient_stop_set_frac(self, frac);
 }
@@ -61,7 +59,6 @@ lh_ui_gradient_stop_init(lh_ui_gradient_stop_t *self, lh_ui_color_t color, lh_by
 lh_void
 lh_ui_gradient_init(lh_ui_gradient_t *self)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_gradient_set_stops_count(self, 0);
     lh_ui_gradient_set_shape(self, lh_ui_gradient_shape_linear);
     lh_ui_gradient_set_angle(self, 180);
@@ -72,7 +69,6 @@ lh_ui_gradient_init_stops(lh_ui_gradient_t *self, const lh_ui_color_t *colors, l
                           lh_ui_gradient_stop_count_t num_stops)
 {
     lh_ui_gradient_stop_count_t i;
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(colors);
     lh_assert_runtime_ifn(num_stops >= 1U, lh_runtime_error_code_invalid_argument);
     lh_assert_runtime_ifn(num_stops <= LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS,
@@ -96,7 +92,8 @@ lh_ui_gradient_init_stops(lh_ui_gradient_t *self, const lh_ui_color_t *colors, l
         {
             frac = fracs[i];
         }
-        lh_ui_gradient_stop_init(lh_addr_of(lh_ui_gradient_get_stops_mut(self)[i]), colors[i], frac);
+        lh_ui_gradient_stop_init(lh_addr_of(lh_ui_gradient_get_stops_mut(self)[i]), colors[i],
+                                 frac);
     }
 }
 
@@ -110,16 +107,16 @@ lh_ui_gradient_get_stop_count(const lh_ui_gradient_t *self)
 const lh_ui_gradient_stop_t *
 lh_ui_gradient_get_stop(const lh_ui_gradient_t *self, lh_ui_gradient_stop_count_t index)
 {
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ifn(index < lh_ui_gradient_get_stops_count(self), lh_runtime_error_code_invalid_argument);
+    lh_assert_runtime_ifn(index < lh_ui_gradient_get_stops_count(self),
+                          lh_runtime_error_code_invalid_argument);
     return lh_addr_of(lh_ui_gradient_get_stops(self)[index]);
 }
 
 lh_ui_gradient_stop_t *
 lh_ui_gradient_get_stop_mut(lh_ui_gradient_t *self, lh_ui_gradient_stop_count_t index)
 {
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ifn(index < lh_ui_gradient_get_stops_count(self), lh_runtime_error_code_invalid_argument);
+    lh_assert_runtime_ifn(index < lh_ui_gradient_get_stops_count(self),
+                          lh_runtime_error_code_invalid_argument);
     return lh_addr_of(lh_ui_gradient_get_stops_mut(self)[index]);
 }
 
@@ -128,7 +125,6 @@ lh_ui_gradient_get_stop_mut(lh_ui_gradient_t *self, lh_ui_gradient_stop_count_t 
 lh_void
 lh_ui_gradient_set_linear(lh_ui_gradient_t *self, lh_s32_t degrees)
 {
-    lh_assert_runtime_ref(self);
     degrees %= 360;
     lh_ui_gradient_set_shape(self, lh_ui_gradient_shape_linear);
     lh_ui_gradient_set_angle(self, lh_cast_static(lh_s16_t, degrees < 0 ? degrees + 360 : degrees));
@@ -172,7 +168,6 @@ lh_ui_gradient_frac_at(const lh_ui_gradient_t *self, const lh_ui_rect_t *rect, l
         (2 * lh_cast_static(lh_s64_t, lh_ui_scalar_floor_s32(lh_ui_point_get_y(origin))) + h);
     lh_s64_t frac;
 
-    lh_assert_runtime_ref(self);
     lh_return_if(w <= 0 || h <= 0, 0);
     if (lh_ui_gradient_get_shape(self) == lh_ui_gradient_shape_radial)
     {
@@ -205,22 +200,22 @@ lh_void
 lh_ui_gradient_color_at(const lh_ui_gradient_t *self, lh_byte_t frac, lh_ui_color_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_ui_gradient_stop_count_t i;
     lh_ui_color_t result;
 
-    lh_assert_runtime_ref(self);
     lh_ui_color_init(lh_addr_of(result), 0, 0, 0, 0);
     if (lh_ui_gradient_get_stops_count(self) == 0)
     {
         lh_ptr_deref(out) = result;
         return;
     }
-    if (lh_ui_gradient_get_stops_count(self) == 1 || frac <= lh_ui_gradient_stop_get_frac(lh_addr_of(lh_ui_gradient_get_stops(self)[0])))
+    if (lh_ui_gradient_get_stops_count(self) == 1 ||
+        frac <= lh_ui_gradient_stop_get_frac(lh_addr_of(lh_ui_gradient_get_stops(self)[0])))
     {
-        lh_ptr_deref(out) = lh_ptr_deref(lh_ui_gradient_stop_get_color(lh_addr_of(lh_ui_gradient_get_stops(self)[0])));
+        lh_ptr_deref(out) = lh_ptr_deref(
+            lh_ui_gradient_stop_get_color(lh_addr_of(lh_ui_gradient_get_stops(self)[0])));
         return;
     }
-    for (i = 1; i < lh_ui_gradient_get_stops_count(self); ++i)
+    for (lh_ui_gradient_stop_count_t i = 1; i < lh_ui_gradient_get_stops_count(self); ++i)
     {
         const lh_ui_gradient_stop_t *a = lh_addr_of(lh_ui_gradient_get_stops(self)[i - 1]);
         const lh_ui_gradient_stop_t *b = lh_addr_of(lh_ui_gradient_get_stops(self)[i]);
@@ -259,8 +254,8 @@ lh_ui_gradient_color_at(const lh_ui_gradient_t *self, lh_byte_t frac, lh_ui_colo
             return;
         }
     }
-    lh_ptr_deref(out) =
-        lh_ptr_deref(lh_ui_gradient_stop_get_color(lh_addr_of(lh_ui_gradient_get_stops(self)[lh_ui_gradient_get_stops_count(self) - 1])));
+    lh_ptr_deref(out) = lh_ptr_deref(lh_ui_gradient_stop_get_color(
+        lh_addr_of(lh_ui_gradient_get_stops(self)[lh_ui_gradient_get_stops_count(self) - 1])));
 }
 
 const lh_ui_gradient_stop_t *

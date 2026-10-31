@@ -199,8 +199,6 @@ lh_os_system_posix_surface_widen(lh_os_system_posix_surface_t *surface, int src_
                                  int width, int height)
 {
     const lh_usize_t words = lh_cast_static(lh_usize_t, width) * lh_cast_static(lh_usize_t, height);
-    int x;
-    int y;
 
     if (lh_os_system_posix_surface_get_staging_words(surface) < words)
     {
@@ -214,14 +212,14 @@ lh_os_system_posix_surface_widen(lh_os_system_posix_surface_t *surface, int src_
         lh_os_system_posix_surface_set_staging(surface, grown);
         lh_os_system_posix_surface_set_staging_words(surface, words);
     }
-    for (y = 0; y < height; ++y)
+    for (lh_int_t y = 0; y < height; ++y)
     {
         const lh_u16_t *row =
             lh_ptr_rcast(const lh_u16_t, lh_os_system_posix_surface_get_bits(surface)) +
             lh_cast_static(lh_usize_t, (src_y + y)) *
                 lh_cast_static(lh_usize_t, lh_os_system_posix_surface_get_width(surface));
 
-        for (x = 0; x < width; ++x)
+        for (lh_int_t x = 0; x < width; ++x)
         {
             lh_os_system_posix_surface_get_staging(
                 surface)[lh_cast_static(lh_usize_t, y) * lh_cast_static(lh_usize_t, width) +
@@ -240,9 +238,6 @@ lh_os_system_surface_present_part(lh_os_system_surface_handle_t handle, lh_ptr d
     const lh_os_system_posix_paint_t *paint;
     lh_os_system_posix_ximage_t image;
     const lh_u32_t one = 1U;
-    lh_byte_ptr data;
-    int image_width;
-    int image_height;
 
     lh_return_if(lh_null_eq(handle) || lh_null_eq(dest), lh_bool_false);
     surface = lh_ptr_rcast(lh_os_system_posix_surface_t, handle);
@@ -259,42 +254,49 @@ lh_os_system_surface_present_part(lh_os_system_surface_handle_t handle, lh_ptr d
                      lh_os_system_posix_paint_get_depth(paint) != 32,
                  lh_bool_false);
 
-    if (lh_os_system_posix_surface_get_pixel_bits(surface) == 16)
     {
-        data = lh_ptr_rcast(lh_byte_t,
-                            lh_os_system_posix_surface_widen(surface, src_x, src_y, width, height));
-        lh_return_if(lh_null_eq(data), lh_bool_false);
-        image_width = width;
-        image_height = height;
-        src_x = 0;
-        src_y = 0;
-    }
-    else
-    {
-        data = lh_os_system_posix_surface_get_bits(surface);
-        image_width = lh_os_system_posix_surface_get_width(surface);
-        image_height = lh_os_system_posix_surface_get_height(surface);
-    }
+        lh_byte_ptr data;
+        int image_width;
+        int image_height;
 
-    lh_memory_set(lh_addr_of(image), sizeof(image), 0);
-    image.width = image_width;
-    image.height = image_height;
-    image.format = LH_OS_SYSTEM_POSIX_X_ZPIXMAP;
-    image.data = lh_ptr_rcast(char, data);
-    /* The words are in this machine's byte order; Xlib swaps them if the server's
-       is the other one. */
-    image.byte_order = *lh_ptr_rcast(const lh_byte_t, lh_addr_of(one)) == 1U
-                           ? LH_OS_SYSTEM_POSIX_X_LSB_FIRST
-                           : LH_OS_SYSTEM_POSIX_X_MSB_FIRST;
-    image.bitmap_unit = 32;
-    image.bitmap_bit_order = image.byte_order;
-    image.bitmap_pad = 32;
-    image.depth = lh_os_system_posix_paint_get_depth(paint);
-    image.bytes_per_line = image_width * 4;
-    image.bits_per_pixel = 32;
-    image.red_mask = 0x00ff0000UL;
-    image.green_mask = 0x0000ff00UL;
-    image.blue_mask = 0x000000ffUL;
+        if (lh_os_system_posix_surface_get_pixel_bits(surface) == 16)
+        {
+            data = lh_ptr_rcast(lh_byte_t,
+                                lh_os_system_posix_surface_widen(surface, src_x, src_y, width,
+                                                                 height));
+            lh_return_if(lh_null_eq(data), lh_bool_false);
+            image_width = width;
+            image_height = height;
+            src_x = 0;
+            src_y = 0;
+        }
+        else
+        {
+            data = lh_os_system_posix_surface_get_bits(surface);
+            image_width = lh_os_system_posix_surface_get_width(surface);
+            image_height = lh_os_system_posix_surface_get_height(surface);
+        }
+
+        lh_memory_set(lh_addr_of(image), sizeof(image), 0);
+        image.width = image_width;
+        image.height = image_height;
+        image.format = LH_OS_SYSTEM_POSIX_X_ZPIXMAP;
+        image.data = lh_ptr_rcast(char, data);
+        /* The words are in this machine's byte order; Xlib swaps them if the server's
+           is the other one. */
+        image.byte_order = *lh_ptr_rcast(const lh_byte_t, lh_addr_of(one)) == 1U
+                               ? LH_OS_SYSTEM_POSIX_X_LSB_FIRST
+                               : LH_OS_SYSTEM_POSIX_X_MSB_FIRST;
+        image.bitmap_unit = 32;
+        image.bitmap_bit_order = image.byte_order;
+        image.bitmap_pad = 32;
+        image.depth = lh_os_system_posix_paint_get_depth(paint);
+        image.bytes_per_line = image_width * 4;
+        image.bits_per_pixel = 32;
+        image.red_mask = 0x00ff0000UL;
+        image.green_mask = 0x0000ff00UL;
+        image.blue_mask = 0x000000ffUL;
+    }
     if (lh_os_system_posix_surface_is_shared(surface))
     {
         /* XShmPutImage finds the segment through obdata. */

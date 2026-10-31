@@ -12,7 +12,6 @@
 lh_void
 lh_ui_text_line_init(lh_ui_text_line_t *self)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_text_line_set_begin(self, lh_null);
     lh_ui_text_line_set_end(self, lh_null);
     lh_ui_text_line_set_next(self, lh_null);
@@ -226,21 +225,21 @@ lh_ui_text_line_get_shift(const lh_ui_text_line_t *self, lh_ui_scalar_t block,
 }
 
 lh_void
-lh_ui_text_line_set_begin(lh_ui_text_line_t *self, const lh_char_t * begin)
+lh_ui_text_line_set_begin(lh_ui_text_line_t *self, const lh_char_t *begin)
 {
     lh_assert_runtime_ref(self);
     self->begin = begin;
 }
 
 lh_void
-lh_ui_text_line_set_end(lh_ui_text_line_t *self, const lh_char_t * end)
+lh_ui_text_line_set_end(lh_ui_text_line_t *self, const lh_char_t *end)
 {
     lh_assert_runtime_ref(self);
     self->end = end;
 }
 
 lh_void
-lh_ui_text_line_set_next(lh_ui_text_line_t *self, const lh_char_t * next)
+lh_ui_text_line_set_next(lh_ui_text_line_t *self, const lh_char_t *next)
 {
     lh_assert_runtime_ref(self);
     self->next = next;

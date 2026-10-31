@@ -368,11 +368,9 @@ lh_os_worker_submit(lh_os_worker_t *self, lh_os_worker_cb work, lh_os_worker_cb 
 lh_os_worker_job_t *
 lh_os_worker_take(lh_os_worker_t *self)
 {
-    lh_os_worker_job_t *job;
-
-    lh_assert_runtime_ref(self);
     lh_os_worker_lock(self);
-    job = lh_os_worker_pop_done(self);
+    lh_os_worker_job_t *job = lh_os_worker_pop_done(self);
+
     if (lh_null_ne(job))
     {
         lh_os_worker_set_count(self, lh_os_worker_get_count(self) - 1U);
@@ -384,7 +382,6 @@ lh_os_worker_take(lh_os_worker_t *self)
 lh_void
 lh_os_worker_stop(lh_os_worker_t *self)
 {
-    lh_assert_runtime_ref(self);
     lh_os_worker_lock(self);
     lh_os_worker_set_stop(self, lh_bool_true);
     lh_os_worker_unlock(self);

@@ -16,7 +16,6 @@ lh_ui_pen_get_paint(const lh_ui_pen_t *self)
 lh_void
 lh_ui_pen_set_paint_v(lh_ui_pen_t *self, const lh_ui_paint_t *paint)
 {
-    lh_assert_runtime_ref(self);
     if (lh_null_eq(paint))
     {
         lh_ui_paint_init(lh_ui_pen_get_paint_mut(self));
@@ -35,7 +34,6 @@ lh_ui_pen_get_width(const lh_ui_pen_t *self)
 lh_void
 lh_ui_pen_set_width_v(lh_ui_pen_t *self, lh_ui_scalar_t width)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_if(width < lh_ui_scalar(0), lh_runtime_error_code_invalid_argument);
     lh_ui_pen_set_width(self, width);
 }
@@ -43,7 +41,6 @@ lh_ui_pen_set_width_v(lh_ui_pen_t *self, lh_ui_scalar_t width)
 lh_void
 lh_ui_pen_init_paint(lh_ui_pen_t *self, const lh_ui_paint_t *paint, lh_ui_scalar_t width)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_pen_set_paint_v(self, paint);
     lh_ui_pen_set_width_v(self, width);
 }

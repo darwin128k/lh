@@ -10,7 +10,6 @@ lh_ui_blur_window_take(lh_ui_blur_window_t *self, const lh_ui_color_t *pixel)
 {
     const lh_s32_t a = lh_ui_color_get_a(pixel);
 
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(pixel);
     /* Colour times alpha, not the colour alone: a pixel nobody can see still
        holds bytes, and those bytes are not part of the picture. */
@@ -25,7 +24,6 @@ lh_ui_blur_window_drop(lh_ui_blur_window_t *self, const lh_ui_color_t *pixel)
 {
     const lh_s32_t a = lh_ui_color_get_a(pixel);
 
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(pixel);
     lh_ui_blur_window_set_r(self, lh_ui_blur_window_get_r(self) - (lh_ui_color_get_r(pixel) * a));
     lh_ui_blur_window_set_g(self, lh_ui_blur_window_get_g(self) - (lh_ui_color_get_g(pixel) * a));
@@ -38,11 +36,12 @@ lh_ui_blur_window_average(const lh_ui_blur_window_t *self, lh_s32_t channel, lh_
 {
     lh_s32_t sum;
 
-    lh_assert_runtime_ref(self);
     lh_return_if(channel < 0 || channel > 3 || count <= 0, lh_cast_static(lh_u8_t, 0));
     if (channel == 3)
     {
-        return lh_cast_static(lh_u8_t, lh_math_clamp(lh_math_div_round(lh_ui_blur_window_get_a(self), count), 0, 255));
+        return lh_cast_static(
+            lh_u8_t,
+            lh_math_clamp(lh_math_div_round(lh_ui_blur_window_get_a(self), count), 0, 255));
     }
     switch (channel)
     {
@@ -66,7 +65,8 @@ lh_ui_blur_window_average(const lh_ui_blur_window_t *self, lh_s32_t channel, lh_
     {
         return lh_cast_static(lh_u8_t, lh_math_clamp(lh_math_div_round(sum / 255, count), 0, 255));
     }
-    return lh_cast_static(lh_u8_t, lh_math_clamp(lh_math_div_round(sum, lh_ui_blur_window_get_a(self)), 0, 255));
+    return lh_cast_static(
+        lh_u8_t, lh_math_clamp(lh_math_div_round(sum, lh_ui_blur_window_get_a(self)), 0, 255));
 }
 
 lh_void

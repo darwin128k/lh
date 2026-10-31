@@ -12,7 +12,6 @@
 lh_void
 lh_ui_entity_event_init(lh_ui_entity_event_t *self, lh_ui_entity_event_code_t code, lh_ptr context)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_entity_event_set_code(self, code);
     lh_ui_entity_event_set_context(self, context);
 }

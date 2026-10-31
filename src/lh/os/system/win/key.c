@@ -28,9 +28,7 @@ const lh_os_key_t lh_os_system_win_key_keys[] = {
 lh_os_key_t
 lh_os_system_win_key_from_vk(lh_u32_t vk)
 {
-    lh_u32_t i;
-
-    for (i = 0U; i < sizeof(lh_os_system_win_key_vks) / sizeof(lh_os_system_win_key_vks[0]); ++i)
+    for (lh_u32_t i = 0U; i < sizeof(lh_os_system_win_key_vks) / sizeof(lh_os_system_win_key_vks[0]); ++i)
     {
         lh_return_if(lh_os_system_win_key_vks[i] == vk, lh_os_system_win_key_keys[i]);
     }

@@ -162,9 +162,7 @@ lh_json_reader_skip_word(lh_json_reader_t *self, lh_str_view_t word)
 {
     const lh_usize_t size = lh_str_view_get_size(lh_addr_of(word));
     const lh_str_cptr chars = lh_str_view_get_data(lh_addr_of(word));
-    lh_usize_t i;
-
-    for (i = 0U; lh_math_lt(i, size); i = lh_math_add_one(i))
+    for (lh_usize_t i = 0U; lh_math_lt(i, size); i = lh_math_add_one(i))
     {
         if (lh_math_ne(lh_json_reader_peek(self, i), chars[i]))
         {

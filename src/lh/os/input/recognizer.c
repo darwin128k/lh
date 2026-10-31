@@ -102,13 +102,13 @@ lh_os_input_recognizer_get_next_deadline(lh_os_input_recognizer_cptr self, lh_ti
 {
     lh_bool_t found = lh_bool_false;
     lh_tick_t earliest = 0U;
-    lh_tick_t due;
-    lh_u8_t i;
 
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(out);
-    for (i = 0U; i < LH_OS_INPUT_POINTER_MAX; ++i)
+    for (lh_u8_t i = 0U; i < LH_OS_INPUT_POINTER_MAX; ++i)
     {
+        lh_tick_t due;
+
         if (lh_os_input_recognizer_get_long_press_due(
                 self, lh_os_input_recognizer_find_const(self, i), lh_addr_of(due)) &&
             (!found || lh_tick_is_after(earliest, due)))
@@ -126,18 +126,17 @@ lh_void
 lh_os_input_recognizer_update(lh_os_input_recognizer_t *self, lh_tick_t now,
                               lh_os_input_sink_cb sink, lh_ptr context)
 {
-    lh_os_input_recognizer_pointer_ptr state;
-    lh_os_input_event_t gesture;
-    lh_tick_t due;
-    lh_u8_t i;
-
     lh_assert_runtime_ref(self);
-    for (i = 0U; i < LH_OS_INPUT_POINTER_MAX; ++i)
+    for (lh_u8_t i = 0U; i < LH_OS_INPUT_POINTER_MAX; ++i)
     {
-        state = lh_os_input_recognizer_find(self, i);
+        lh_os_input_recognizer_pointer_ptr state = lh_os_input_recognizer_find(self, i);
+        lh_tick_t due;
+
         if (lh_os_input_recognizer_get_long_press_due(self, state, lh_addr_of(due)) &&
             !lh_tick_is_after(due, now))
         {
+            lh_os_input_event_t gesture;
+
             /* Held still long enough: a long press, and the up that ends it is no click. */
             lh_os_input_recognizer_pointer_set_phase(state, lh_os_input_recognizer_phase_holding);
             lh_os_input_recognizer_pointer_forget_click(state);
@@ -168,15 +167,14 @@ lh_void
 lh_os_input_recognizer_cancel_all(lh_os_input_recognizer_t *self, lh_tick_t time,
                                   lh_os_input_sink_cb sink, lh_ptr context)
 {
-    lh_os_input_recognizer_pointer_ptr state;
-    lh_os_input_event_t cancel;
-    lh_u8_t i;
-
-    for (i = 0U; i < LH_OS_INPUT_POINTER_MAX; ++i)
+    for (lh_u8_t i = 0U; i < LH_OS_INPUT_POINTER_MAX; ++i)
     {
-        state = lh_os_input_recognizer_find(self, i);
+        lh_os_input_recognizer_pointer_ptr state = lh_os_input_recognizer_find(self, i);
+
         if (lh_os_input_recognizer_pointer_get_phase(state) != lh_os_input_recognizer_phase_idle)
         {
+            lh_os_input_event_t cancel;
+
             lh_os_input_recognizer_pointer_make_at_last(state, i, lh_os_input_kind_pointer_cancel,
                                                         time, lh_addr_of(cancel));
             lh_os_input_event_set_buttons(lh_addr_of(cancel), 0U);
@@ -213,14 +211,16 @@ lh_os_input_recognizer_on_move(lh_os_input_recognizer_t *self,
                                lh_ptr context)
 {
     const lh_os_input_recognizer_phase_t phase = lh_os_input_recognizer_pointer_get_phase(state);
-    lh_os_input_event_t gesture;
-    lh_s32_t dx;
-    lh_s32_t dy;
 
     if (phase == lh_os_input_recognizer_phase_dragging)
     {
+        lh_s32_t dx;
+        lh_s32_t dy;
+
         lh_os_input_recognizer_pointer_advance(state, event, lh_addr_of(dx), lh_addr_of(dy));
         lh_return_if(dx == 0 && dy == 0);
+        lh_os_input_event_t gesture;
+
         lh_os_input_recognizer_pointer_make_from(state, event, lh_os_input_kind_drag,
                                                  lh_addr_of(gesture));
         lh_os_input_event_set_delta(lh_addr_of(gesture), dx, dy);
@@ -234,11 +234,17 @@ lh_os_input_recognizer_on_move(lh_os_input_recognizer_t *self,
     /* The drag starts from where the press went down, so its first distance is all of it. */
     lh_os_input_recognizer_pointer_set_phase(state, lh_os_input_recognizer_phase_dragging);
     lh_os_input_recognizer_pointer_forget_click(state);
-    lh_os_input_recognizer_pointer_advance(state, event, lh_addr_of(dx), lh_addr_of(dy));
-    lh_os_input_recognizer_pointer_make_from(state, event, lh_os_input_kind_drag_begin,
-                                             lh_addr_of(gesture));
-    lh_os_input_event_set_delta(lh_addr_of(gesture), dx, dy);
-    lh_os_input_recognizer_send(lh_addr_of(gesture), LH_OS_INPUT_FLAG_NONE, sink, context);
+    {
+        lh_s32_t dx;
+        lh_s32_t dy;
+        lh_os_input_event_t gesture;
+
+        lh_os_input_recognizer_pointer_advance(state, event, lh_addr_of(dx), lh_addr_of(dy));
+        lh_os_input_recognizer_pointer_make_from(state, event, lh_os_input_kind_drag_begin,
+                                                 lh_addr_of(gesture));
+        lh_os_input_event_set_delta(lh_addr_of(gesture), dx, dy);
+        lh_os_input_recognizer_send(lh_addr_of(gesture), LH_OS_INPUT_FLAG_NONE, sink, context);
+    }
 }
 
 lh_void
@@ -248,10 +254,6 @@ lh_os_input_recognizer_on_up(lh_os_input_recognizer_t *self,
 {
     const lh_os_input_recognizer_phase_t phase = lh_os_input_recognizer_pointer_get_phase(state);
     lh_os_input_recognizer_config_cptr config = lh_os_input_recognizer_get_config(self);
-    lh_os_input_event_t gesture;
-    lh_s32_t dx;
-    lh_s32_t dy;
-    lh_u8_t count;
 
     lh_return_if(phase == lh_os_input_recognizer_phase_idle ||
                  lh_os_input_event_get_button(event) !=
@@ -259,7 +261,12 @@ lh_os_input_recognizer_on_up(lh_os_input_recognizer_t *self,
     lh_os_input_recognizer_pointer_set_phase(state, lh_os_input_recognizer_phase_idle);
     if (phase == lh_os_input_recognizer_phase_dragging)
     {
+        lh_s32_t dx;
+        lh_s32_t dy;
+
         lh_os_input_recognizer_pointer_advance(state, event, lh_addr_of(dx), lh_addr_of(dy));
+        lh_os_input_event_t gesture;
+
         lh_os_input_recognizer_pointer_make_from(state, event, lh_os_input_kind_drag_end,
                                                  lh_addr_of(gesture));
         lh_os_input_event_set_delta(lh_addr_of(gesture), dx, dy);
@@ -267,10 +274,13 @@ lh_os_input_recognizer_on_up(lh_os_input_recognizer_t *self,
         return;
     }
     lh_return_if(phase != lh_os_input_recognizer_phase_pending);
-    count = lh_os_input_recognizer_pointer_count_click(
+    lh_u8_t count = lh_os_input_recognizer_pointer_count_click(
         state, event, lh_os_input_recognizer_config_get_double_click_ms(config),
         lh_os_input_recognizer_config_get_double_click_slop(config));
+
     lh_os_input_recognizer_pointer_remember_click(state, event, count);
+    lh_os_input_event_t gesture;
+
     lh_os_input_recognizer_pointer_make_from(state, event, lh_os_input_kind_click,
                                              lh_addr_of(gesture));
     lh_os_input_event_set_count(lh_addr_of(gesture), count);

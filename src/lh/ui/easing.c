@@ -19,9 +19,6 @@ static const lh_u8_t lh_ui_easing_tables[5][17] = {
 lh_u32_t
 lh_ui_easing_apply(lh_ui_easing_t easing, lh_u32_t time)
 {
-    const lh_u8_t *table;
-    lh_u32_t at;
-    lh_u32_t part;
 
     if (time >= 255U)
     {
@@ -31,12 +28,13 @@ lh_ui_easing_apply(lh_ui_easing_t easing, lh_u32_t time)
     {
         return time;
     }
+    const lh_u8_t *table;
     table = lh_ui_easing_tables[lh_cast_static(unsigned, easing) <= 4U
                                     ? lh_cast_static(unsigned, easing)
                                     : 0U];
     /* Which sixteenth the time is in, and how far into it -- then straight between
        the two samples either side. */
-    at = time * 16U / 255U;
-    part = time * 16U - at * 255U;
+    lh_u32_t at = time * 16U / 255U;
+    lh_u32_t part = time * 16U - at * 255U;
     return (table[at] * (255U - part) + table[at + 1U] * part) / 255U;
 }

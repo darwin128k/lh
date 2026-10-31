@@ -102,9 +102,8 @@ lh_sql_mysql_query_count_params(lh_str_view_t sql)
     const lh_str_cptr text = lh_str_view_get_begin(lh_addr_of(sql));
     const lh_usize_t size = lh_str_view_get_size(lh_addr_of(sql));
     lh_usize_t count = 0U;
-    lh_usize_t pos;
 
-    for (pos = lh_sql_mysql_query_find_param(text, size, 0U); lh_math_lt(pos, size);
+    for (lh_usize_t pos = lh_sql_mysql_query_find_param(text, size, 0U); lh_math_lt(pos, size);
          pos = lh_sql_mysql_query_find_param(text, size, lh_math_add_one(pos)))
     {
         count = lh_math_add_one(count);

@@ -434,9 +434,7 @@ lh_str_ptr_find_of_null_terminator(const lh_str_ptr str)
 
         if (lh_math_ne(lh_bit_swar_zero_mask(v), 0U))
         {
-            lh_usize_t lane;
-
-            for (lane = 0U; lane < w; ++lane)
+            for (lh_usize_t lane = 0U; lane < w; ++lane)
             {
                 if (p[lane] == 0U)
                 {
@@ -542,9 +540,7 @@ lh_str_ptr_find_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str
     {
         const lh_char_t a = chars[0];
         const lh_char_t b = chars[1];
-        lh_usize_t i;
-
-        for (i = 0U; i < str_size; ++i)
+        for (lh_usize_t i = 0U; i < str_size; ++i)
         {
             const lh_char_t c = str[i];
 
@@ -719,9 +715,7 @@ lh_str_ptr_find_of_null_terminator_by_size(const lh_str_ptr str, lh_usize_t size
 
         if (lh_math_ne(lh_bit_swar_zero_mask(v), 0U))
         {
-            lh_usize_t lane;
-
-            for (lane = 0U; lane < w; ++lane)
+            for (lh_usize_t lane = 0U; lane < w; ++lane)
             {
                 if (p[lane] == 0U)
                 {
@@ -789,9 +783,8 @@ lh_str_ptr_find_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const 
 
         {
             const lh_char_t folded = lh_char_fold_case(ch);
-            lh_usize_t i;
 
-            for (i = 0U; i < str_size; ++i)
+            for (lh_usize_t i = 0U; i < str_size; ++i)
             {
                 if (lh_math_eq(lh_char_fold_case(str[i]), folded))
                 {
@@ -804,9 +797,8 @@ lh_str_ptr_find_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const 
 
     {
         const lh_usize_t last = lh_math_sub(str_size, src_size);
-        lh_usize_t i;
 
-        for (i = 0U; i <= last; ++i)
+        for (lh_usize_t i = 0U; i <= last; ++i)
         {
             if (lh_null_eq(lh_str_ptr_compare_by_ignore_case(str + i, src_size, src, src_size)))
             {

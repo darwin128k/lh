@@ -44,9 +44,7 @@ static const lh_u16_t lh_os_system_posix_key_cyrillic[] = {
 lh_os_key_t
 lh_os_system_posix_key_from_keysym(unsigned long keysym)
 {
-    lh_u32_t i;
-
-    for (i = 0U;
+    for (lh_u32_t i = 0U;
          i < sizeof(lh_os_system_posix_key_keysyms) / sizeof(lh_os_system_posix_key_keysyms[0]);
          ++i)
     {

@@ -95,10 +95,9 @@ lh_os_system_shared_get_by_addr(lh_ptr addr)
 lh_bool_t
 lh_os_system_shared_get_path(lh_os_system_shared_handle_t handle, lh_str_t *out)
 {
-    lh_os_system_win_dword_t cap;
-
     /* GetModuleFileName reports truncation as n == cap: grow and retry. */
-    for (cap = 256U; lh_math_le(cap, LH_OS_SYSTEM_WIN_SHARED_PATH_MAX); cap = lh_math_mul(cap, 2U))
+    for (lh_os_system_win_dword_t cap = 256U; lh_math_le(cap, LH_OS_SYSTEM_WIN_SHARED_PATH_MAX);
+         cap = lh_math_mul(cap, 2U))
     {
         lh_wstr_ptr const buf =
             lh_ptr_cast(lh_wchar_t, lh_os_alloc(lh_math_mul(cap, sizeof(lh_wchar_t))));

@@ -15,12 +15,11 @@ const lh_ui_entity_class_t lh_ui_button_class = {lh_ui_button_event,
 lh_void
 lh_ui_button_init(lh_ui_button_t *self, lh_ui_rect_t rect)
 {
-    lh_assert_runtime_ref(self);
     /* The button is a container: that is what gives it somewhere to put a
        caption and a picture, and the flow that places them. */
     lh_ui_container_init(lh_ui_button_get_container_mut(self), rect);
     lh_ui_entity_set_class_v(lh_ui_container_as_entity(lh_ui_button_get_container_mut(self)),
-                           lh_addr_of(lh_ui_button_class));
+                             lh_addr_of(lh_ui_button_class));
     lh_ui_button_set_rest_style(self, lh_null);
     lh_ui_button_set_hot_style(self, lh_null);
     lh_ui_button_set_hot(self, lh_bool_false);
@@ -31,7 +30,6 @@ lh_ui_button_init(lh_ui_button_t *self, lh_ui_rect_t rect)
 lh_ui_entity_t *
 lh_ui_button_as_entity(lh_ui_button_t *self)
 {
-    lh_assert_runtime_ref(self);
     return lh_ui_container_as_entity(lh_ui_button_get_container_mut(self));
 }
 
@@ -64,7 +62,6 @@ lh_ui_button_get_style(const lh_ui_button_t *self)
 lh_void
 lh_ui_button_set_style(lh_ui_button_t *self, const lh_ui_style_t *style)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_button_set_rest_style(self, style);
     if (!lh_ui_button_is_hot(self))
     {
@@ -84,14 +81,14 @@ lh_ui_button_get_hot_style(const lh_ui_button_t *self)
 const lh_ui_style_t *
 lh_ui_button_get_style_now(const lh_ui_button_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return (lh_ui_button_is_hot(self) && !lh_null_eq(lh_ui_button_get_hot_style(self))) ? lh_ui_button_get_hot_style(self) : lh_ui_button_get_rest_style(self);
+    return (lh_ui_button_is_hot(self) && !lh_null_eq(lh_ui_button_get_hot_style(self)))
+               ? lh_ui_button_get_hot_style(self)
+               : lh_ui_button_get_rest_style(self);
 }
 
 lh_void
 lh_ui_button_set_hot_style_v(lh_ui_button_t *self, const lh_ui_style_t *style)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_button_set_hot_style(self, style);
     if (lh_ui_button_is_hot(self))
     {
@@ -109,7 +106,6 @@ lh_ui_button_get_hot(const lh_ui_button_t *self)
 lh_void
 lh_ui_button_set_hot_v(lh_ui_button_t *self, lh_bool_t hot)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_button_set_hot(self, hot);
     lh_ui_entity_set_style_v(lh_ui_button_as_entity(self), lh_ui_button_get_style_now(self));
 }
@@ -160,7 +156,6 @@ lh_ui_button_event(const lh_ui_entity_t *self, const lh_ui_entity_event_t *event
 lh_void
 lh_ui_button_set_on_click(lh_ui_button_t *self, lh_ui_button_on_click_cb on_click, lh_ptr context)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_button_set_on_click_fn(self, on_click);
     lh_ui_button_set_click_context(self, context);
 }
@@ -194,7 +189,7 @@ lh_ui_button_get_rest_style(const lh_ui_button_t *self)
 }
 
 lh_void
-lh_ui_button_set_rest_style(lh_ui_button_t *self, const lh_ui_style_t * rest_style)
+lh_ui_button_set_rest_style(lh_ui_button_t *self, const lh_ui_style_t *rest_style)
 {
     lh_assert_runtime_ref(self);
     self->rest_style = rest_style;
@@ -243,7 +238,7 @@ lh_ui_button_set_hot(lh_ui_button_t *self, lh_bool_t hot)
 }
 
 lh_void
-lh_ui_button_set_hot_style(lh_ui_button_t *self, const lh_ui_style_t * hot_style)
+lh_ui_button_set_hot_style(lh_ui_button_t *self, const lh_ui_style_t *hot_style)
 {
     lh_assert_runtime_ref(self);
     self->hot_style = hot_style;

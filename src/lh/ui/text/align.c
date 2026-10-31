@@ -12,23 +12,23 @@ lh_ui_text_align_get_origin(const lh_ui_rect_t *box, const lh_ui_insets_t *paddi
                             lh_ui_text_align_v_t vertical, lh_ui_point_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_ui_rect_t empty_box;
-    lh_ui_insets_t no_padding;
-    lh_ui_size_t room;
     lh_ui_scalar_t dx = 0;
     lh_ui_scalar_t dy = 0;
     lh_ui_point_t origin;
 
     if (lh_null_eq(box))
     {
+        lh_ui_rect_t empty_box;
         lh_ui_rect_init_empty(lh_addr_of(empty_box));
         box = lh_addr_of(empty_box);
     }
     if (lh_null_eq(padding))
     {
+        lh_ui_insets_t no_padding;
         lh_ui_insets_init_all(lh_addr_of(no_padding), 0);
         padding = lh_addr_of(no_padding);
     }
+    lh_ui_size_t room;
 
     /* Only the room the padding leaves, and never past the near edge: text wider
        than its box has nowhere to go, so every alignment starts it at the left or

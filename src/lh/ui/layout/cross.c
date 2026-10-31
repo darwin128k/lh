@@ -9,18 +9,23 @@ lh_ui_layout_cross_fit(const lh_ui_layout_t *self, lh_ui_entity_t *child,
                        const lh_ui_rect_t *content, lh_ui_layout_cross_t *out)
 {
     const lh_ui_axis_t cross = lh_ui_axis_get_cross(lh_ui_layout_get_axis(self));
-    lh_ui_rect_t rect;
-    lh_ui_rect_t slot;
 
     lh_assert_runtime_ref(out);
+    lh_ui_rect_t rect;
     lh_ui_entity_copy_rect(child, lh_addr_of(rect));
+    lh_ui_rect_t slot;
     lh_ui_layout_slot(self, lh_ui_entity_get_place(child), content, lh_addr_of(slot));
-    lh_ui_layout_cross_set_start(out, lh_ui_point_get_along(lh_ui_rect_get_origin(lh_addr_of(slot)), cross));
-    lh_ui_layout_cross_set_own(out, lh_ui_size_get_along(lh_ui_rect_get_size(lh_addr_of(rect)), cross));
-    lh_ui_layout_cross_set_room(out, lh_ui_size_get_along(lh_ui_rect_get_size(lh_addr_of(slot)), cross));
+    lh_ui_layout_cross_set_start(
+        out, lh_ui_point_get_along(lh_ui_rect_get_origin(lh_addr_of(slot)), cross));
+    lh_ui_layout_cross_set_own(out,
+                               lh_ui_size_get_along(lh_ui_rect_get_size(lh_addr_of(rect)), cross));
+    lh_ui_layout_cross_set_room(out,
+                                lh_ui_size_get_along(lh_ui_rect_get_size(lh_addr_of(slot)), cross));
     /* The line is measured from the content box; the slot starts the margin further
        in, so the line is that much nearer to it. */
-    lh_ui_layout_cross_set_before(out, lh_ui_layout_cross_get_start(out) - lh_ui_point_get_along(lh_ui_rect_get_origin(content), cross));
+    lh_ui_layout_cross_set_before(out,
+                                  lh_ui_layout_cross_get_start(out) -
+                                      lh_ui_point_get_along(lh_ui_rect_get_origin(content), cross));
 }
 
 lh_ui_scalar_t
@@ -30,7 +35,8 @@ lh_ui_layout_cross_at(const lh_ui_layout_cross_t *fit, lh_ui_place_align_t align
     lh_assert_runtime_ref(fit);
     if (align == lh_ui_place_align_center)
     {
-        return lh_ui_scalar_centre(lh_ui_layout_cross_get_room(fit), lh_ui_layout_cross_get_own(fit));
+        return lh_ui_scalar_centre(lh_ui_layout_cross_get_room(fit),
+                                   lh_ui_layout_cross_get_own(fit));
     }
     if (align == lh_ui_place_align_end)
     {
@@ -52,7 +58,8 @@ lh_ui_layout_cross_at(const lh_ui_layout_cross_t *fit, lh_ui_place_align_t align
        row to stand on, is the centring above. */
     return (base >= lh_ui_scalar(0) && line >= lh_ui_scalar(0))
                ? line - lh_ui_layout_cross_get_before(fit) - base
-               : lh_ui_scalar_centre(lh_ui_layout_cross_get_room(fit), lh_ui_layout_cross_get_own(fit));
+               : lh_ui_scalar_centre(lh_ui_layout_cross_get_room(fit),
+                                     lh_ui_layout_cross_get_own(fit));
 }
 
 lh_ui_scalar_t

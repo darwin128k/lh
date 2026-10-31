@@ -14,7 +14,6 @@ lh_ui_gradient_sampler_lerp_init(lh_ui_gradient_sampler_lerp_t *self, const lh_u
                            lh_ui_color_get_a(to)};
     lh_s32_t c;
 
-    lh_assert_runtime_ref(self);
     lh_ui_gradient_sampler_lerp_set_span(self, span);
     for (c = 0; c < 4; ++c)
     {
@@ -38,14 +37,17 @@ lh_ui_gradient_sampler_lerp_next(lh_ui_gradient_sampler_lerp_t *self)
 {
     lh_s32_t c;
 
-    lh_assert_runtime_ref(self);
     for (c = 0; c < 4; ++c)
     {
-        lh_ui_gradient_sampler_lerp_get_quotient_mut(self)[c] += lh_ui_gradient_sampler_lerp_get_step(self)[c];
-        lh_ui_gradient_sampler_lerp_get_rest_mut(self)[c] += lh_ui_gradient_sampler_lerp_get_step_rest(self)[c];
-        if (lh_ui_gradient_sampler_lerp_get_rest(self)[c] >= lh_ui_gradient_sampler_lerp_get_span(self))
+        lh_ui_gradient_sampler_lerp_get_quotient_mut(self)[c] +=
+            lh_ui_gradient_sampler_lerp_get_step(self)[c];
+        lh_ui_gradient_sampler_lerp_get_rest_mut(self)[c] +=
+            lh_ui_gradient_sampler_lerp_get_step_rest(self)[c];
+        if (lh_ui_gradient_sampler_lerp_get_rest(self)[c] >=
+            lh_ui_gradient_sampler_lerp_get_span(self))
         {
-            lh_ui_gradient_sampler_lerp_get_rest_mut(self)[c] -= lh_ui_gradient_sampler_lerp_get_span(self);
+            lh_ui_gradient_sampler_lerp_get_rest_mut(self)[c] -=
+                lh_ui_gradient_sampler_lerp_get_span(self);
             ++lh_ui_gradient_sampler_lerp_get_quotient_mut(self)[c];
         }
     }
@@ -54,11 +56,12 @@ lh_ui_gradient_sampler_lerp_next(lh_ui_gradient_sampler_lerp_t *self)
 lh_void
 lh_ui_gradient_sampler_lerp_color(const lh_ui_gradient_sampler_lerp_t *self, lh_ui_color_t *out)
 {
-    lh_assert_runtime_ref(self);
-    lh_ui_color_init(out, lh_cast_static(lh_ui_color_channel_t, lh_ui_gradient_sampler_lerp_get_quotient(self)[0]),
-                     lh_cast_static(lh_ui_color_channel_t, lh_ui_gradient_sampler_lerp_get_quotient(self)[1]),
-                     lh_cast_static(lh_ui_color_channel_t, lh_ui_gradient_sampler_lerp_get_quotient(self)[2]),
-                     lh_cast_static(lh_ui_color_channel_t, lh_ui_gradient_sampler_lerp_get_quotient(self)[3]));
+    lh_ui_color_init(
+        out,
+        lh_cast_static(lh_ui_color_channel_t, lh_ui_gradient_sampler_lerp_get_quotient(self)[0]),
+        lh_cast_static(lh_ui_color_channel_t, lh_ui_gradient_sampler_lerp_get_quotient(self)[1]),
+        lh_cast_static(lh_ui_color_channel_t, lh_ui_gradient_sampler_lerp_get_quotient(self)[2]),
+        lh_cast_static(lh_ui_color_channel_t, lh_ui_gradient_sampler_lerp_get_quotient(self)[3]));
 }
 
 const lh_s32_t *

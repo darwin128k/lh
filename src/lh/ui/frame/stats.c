@@ -10,7 +10,6 @@
 lh_void
 lh_ui_frame_stats_init(lh_ui_frame_stats_t *self)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_frame_stats_set_frames(self, 0U);
     lh_ui_frame_stats_set_unknown(self, 0U);
     lh_ui_frame_stats_set_wasteful(self, 0U);
@@ -27,7 +26,6 @@ lh_void
 lh_ui_frame_stats_set_on_frame(lh_ui_frame_stats_t *self, lh_ui_frame_stats_on_frame_cb cb,
                                lh_ptr context)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_frame_stats_set_on_frame_fn(self, cb);
     lh_ui_frame_stats_set_on_frame_context(self, context);
 }
@@ -35,14 +33,11 @@ lh_ui_frame_stats_set_on_frame(lh_ui_frame_stats_t *self, lh_ui_frame_stats_on_f
 lh_u64_t
 lh_ui_frame_area(const lh_ui_rect_t *rect)
 {
-    const lh_ui_size_t *size;
-    lh_s64_t w;
-    lh_s64_t h;
 
     lh_assert_runtime_ref(rect);
-    size = lh_ui_rect_get_size(rect);
-    w = lh_cast_static(lh_s64_t, lh_ui_size_get_width(size));
-    h = lh_cast_static(lh_s64_t, lh_ui_size_get_height(size));
+    const lh_ui_size_t *size = lh_ui_rect_get_size(rect);
+    lh_s64_t w = lh_cast_static(lh_s64_t, lh_ui_size_get_width(size));
+    lh_s64_t h = lh_cast_static(lh_s64_t, lh_ui_size_get_height(size));
     lh_return_if(w <= 0 || h <= 0, 0U);
     return lh_cast_static(lh_u64_t, w) * lh_cast_static(lh_u64_t, h);
 }
@@ -50,7 +45,6 @@ lh_ui_frame_area(const lh_ui_rect_t *rect)
 lh_void
 lh_ui_frame_stats_record(lh_ui_frame_stats_t *self, const lh_ui_frame_t *frame)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(frame);
     lh_ui_frame_stats_set_frames(self, lh_ui_frame_stats_get_frames(self) + 1);
     lh_ui_frame_stats_set_us(self, lh_ui_frame_stats_get_us(self) + (lh_ui_frame_get_us(frame)));
@@ -70,8 +64,10 @@ lh_ui_frame_stats_record(lh_ui_frame_stats_t *self, const lh_ui_frame_t *frame)
         const lh_u64_t drawn = lh_ui_frame_area(lh_ui_frame_get_drawn(frame));
 
         lh_ui_frame_stats_set_drawn_px(self, lh_ui_frame_stats_get_drawn_px(self) + (drawn));
-        lh_ui_frame_stats_set_asked_px(self, lh_ui_frame_stats_get_asked_px(self) + (lh_ui_frame_get_asked_px(frame)));
-        lh_ui_frame_stats_set_rects(self, lh_ui_frame_stats_get_rects(self) + (lh_ui_frame_get_rects(frame)));
+        lh_ui_frame_stats_set_asked_px(self, lh_ui_frame_stats_get_asked_px(self) +
+                                                 (lh_ui_frame_get_asked_px(frame)));
+        lh_ui_frame_stats_set_rects(self, lh_ui_frame_stats_get_rects(self) +
+                                              (lh_ui_frame_get_rects(frame)));
         if (drawn > 0U && drawn >= lh_ui_frame_get_asked_px(frame) * 2U)
         {
             lh_ui_frame_stats_set_wasteful(self, lh_ui_frame_stats_get_wasteful(self) + 1);
@@ -79,7 +75,8 @@ lh_ui_frame_stats_record(lh_ui_frame_stats_t *self, const lh_ui_frame_t *frame)
     }
     if (lh_null_ne(lh_ui_frame_stats_get_on_frame_fn(self)))
     {
-        lh_ui_frame_stats_get_on_frame_fn(self)(frame, lh_ui_frame_stats_get_on_frame_context(self));
+        lh_ui_frame_stats_get_on_frame_fn(self)(frame,
+                                                lh_ui_frame_stats_get_on_frame_context(self));
     }
 }
 

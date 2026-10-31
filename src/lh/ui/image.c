@@ -44,7 +44,6 @@ lh_ui_image_get_baseline(const lh_ui_image_t *self)
 lh_void
 lh_ui_image_init(lh_ui_image_t *self, lh_ui_rect_t rect, const lh_ui_mask_t *mask)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_entity_init(lh_ui_image_get_entity_mut(self), rect);
     lh_ui_entity_set_class_v(lh_ui_image_get_entity_mut(self), lh_addr_of(lh_ui_image_class));
     lh_ui_image_set_mask(self, mask);
@@ -97,7 +96,6 @@ lh_ui_image_get_tint(const lh_ui_image_t *self)
 lh_void
 lh_ui_image_set_tint_v(lh_ui_image_t *self, const lh_ui_color_t *tint)
 {
-    lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(tint));
     lh_ui_image_set_tint(self, lh_ptr_deref(tint));
 }
@@ -108,11 +106,11 @@ lh_ui_image_get_size(const lh_ui_image_t *self, lh_ui_size_t *out)
     lh_assert_runtime_ref(out);
     lh_ui_size_t size;
 
-    lh_assert_runtime_ref(self);
     lh_ui_size_init(lh_addr_of(size), lh_ui_scalar(0), lh_ui_scalar(0));
     if (lh_null_ne(lh_ui_image_get_mask(self)))
     {
-        lh_ui_size_init(lh_addr_of(size), lh_ui_scalar_of(lh_ui_mask_get_width(lh_ui_image_get_mask(self))),
+        lh_ui_size_init(lh_addr_of(size),
+                        lh_ui_scalar_of(lh_ui_mask_get_width(lh_ui_image_get_mask(self))),
                         lh_ui_scalar_of(lh_ui_mask_get_height(lh_ui_image_get_mask(self))));
     }
     lh_ptr_deref(out) = size;
@@ -132,9 +130,10 @@ lh_ui_image_get_origin(const lh_ui_image_t *self, lh_ui_point_t *out)
 
     /* The corner of the box, moved in by the padding: the picture is not
        aligned and not scaled, so this is the whole of where it goes. */
-    lh_ui_point_init(lh_addr_of(origin),
-                     lh_ui_point_get_x(lh_addr_of(corner)) + lh_ui_insets_get_left(lh_addr_of(padding)),
-                     lh_ui_point_get_y(lh_addr_of(corner)) + lh_ui_insets_get_top(lh_addr_of(padding)));
+    lh_ui_point_init(
+        lh_addr_of(origin),
+        lh_ui_point_get_x(lh_addr_of(corner)) + lh_ui_insets_get_left(lh_addr_of(padding)),
+        lh_ui_point_get_y(lh_addr_of(corner)) + lh_ui_insets_get_top(lh_addr_of(padding)));
     lh_ptr_deref(out) = origin;
 }
 
@@ -158,20 +157,19 @@ lh_void
 lh_ui_image_on_measure(const lh_ui_image_t *self, const lh_ui_entity_event_t *event)
 {
     const lh_ui_mask_t *mask = lh_ui_image_get_mask(self);
-    lh_ui_rect_t *bounds;
-    lh_ui_point_t origin;
-    lh_ui_size_t size;
-    lh_ui_rect_t picture;
 
     lh_return_if(lh_null_eq(mask));
-    bounds = lh_ui_entity_event_get_bounds(event);
+    lh_ui_rect_t *bounds = lh_ui_entity_event_get_bounds(event);
+    lh_ui_point_t origin;
     /* Where it would sit: the picture is as big as the mask, and it keeps the
        padding that keeps it off the edges — the same box the text of a label
        measures as. */
     lh_ui_image_get_origin(self, lh_addr_of(origin));
+    lh_ui_size_t size;
     lh_ui_image_get_size(self, lh_addr_of(size));
-    lh_ui_rect_init(lh_addr_of(picture), lh_ui_point_get_x(lh_addr_of(origin)), lh_ui_point_get_y(lh_addr_of(origin)),
-                    lh_ui_size_get_width(lh_addr_of(size)),
+    lh_ui_rect_t picture;
+    lh_ui_rect_init(lh_addr_of(picture), lh_ui_point_get_x(lh_addr_of(origin)),
+                    lh_ui_point_get_y(lh_addr_of(origin)), lh_ui_size_get_width(lh_addr_of(size)),
                     lh_ui_size_get_height(lh_addr_of(size)));
     lh_ui_rect_union(bounds, lh_addr_of(picture), bounds);
 }

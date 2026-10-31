@@ -279,8 +279,8 @@ lh_os_system_shared_find_in_symtab(int fd, uintptr_t bias, lh_str_cptr name)
         strs = lh_ptr_cast(
             char, lh_os_system_shared_read_alloc(fd, (off_t)strtab->sh_offset, strtab->sh_size));
         const size_t count = symtab->sh_size / sizeof(ElfW(Sym));
-        size_t j;
-        for (j = 0U; lh_null_ne(syms) && lh_null_ne(strs) && j < count; ++j)
+
+        for (size_t j = 0U; lh_null_ne(syms) && lh_null_ne(strs) && j < count; ++j)
         {
             if (syms[j].st_name != 0U && syms[j].st_value != 0U &&
                 syms[j].st_name < strtab->sh_size && strcmp(strs + syms[j].st_name, name) == 0)

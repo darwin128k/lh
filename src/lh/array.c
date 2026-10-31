@@ -222,8 +222,8 @@ lh_array_reverse(lh_array_t *self)
 
     const lh_usize_t type_size = lh_array_get_type_size(self);
     lh_byte_ptr lo = lh_ptr_cast(lh_byte_t, lh_array_get_begin(self));
-    lh_byte_ptr hi = lo + lh_math_mul(lh_math_sub_one(size), type_size);
-    for (; lo < hi; hi -= type_size)
+    for (lh_byte_ptr hi = lo + lh_math_mul(lh_math_sub_one(size), type_size); lo < hi;
+         hi -= type_size)
     {
         for (lh_usize_t i = 0; i < type_size; ++i, ++lo)
         {

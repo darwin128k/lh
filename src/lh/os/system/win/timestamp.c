@@ -18,13 +18,19 @@ lh_bool_t
 lh_os_system_timestamp_try_get_zone_offset(lh_timestamp_t utc, lh_s32_t *out)
 {
     lh_os_system_win_filetime_t ft;
-    lh_os_system_win_systemtime_t universal;
-    lh_os_system_win_systemtime_t local;
 
     lh_assert_runtime_ref(out);
+    lh_os_system_win_systemtime_t universal;
+
     if (!lh_os_system_timestamp_to_filetime(utc, lh_addr_of(ft)) ||
-        !FileTimeToSystemTime(lh_addr_of(ft), lh_addr_of(universal)) ||
-        !SystemTimeToTzSpecificLocalTime(lh_null, lh_addr_of(universal), lh_addr_of(local)) ||
+        !FileTimeToSystemTime(lh_addr_of(ft), lh_addr_of(universal)))
+    {
+        lh_os_system_error_capture();
+        return lh_bool_false;
+    }
+    lh_os_system_win_systemtime_t local;
+
+    if (!SystemTimeToTzSpecificLocalTime(lh_null, lh_addr_of(universal), lh_addr_of(local)) ||
         !SystemTimeToFileTime(lh_addr_of(local), lh_addr_of(ft)))
     {
         lh_os_system_error_capture();

@@ -10,7 +10,6 @@
 lh_void
 lh_ui_transition_init(lh_ui_transition_t *self)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_transition_set_entity(self, lh_null);
     lh_ui_transition_set_to(self, lh_null);
     lh_ui_style_init(lh_ui_transition_get_from_mut(self));
@@ -46,7 +45,6 @@ lh_ui_transition_start(lh_ui_transition_t *self, struct lh_ui_entity *entity,
 {
     lh_ui_style_t start;
 
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(from);
     lh_assert_runtime_ref(to);
     /* Through a copy: @p from may be this slot's own look, and the look is about to
@@ -57,18 +55,19 @@ lh_ui_transition_start(lh_ui_transition_t *self, struct lh_ui_entity *entity,
     lh_ui_transition_set_to(self, to);
     lh_ui_transition_set_elapsed(self, 0);
     lh_ui_transition_set_total(self, lh_ui_style_get_transition(to));
-    lh_ui_style_init_blend(lh_ui_transition_get_look_mut(self), lh_ui_transition_get_from_mut(self), to, 0U);
+    lh_ui_style_init_blend(lh_ui_transition_get_look_mut(self), lh_ui_transition_get_from_mut(self),
+                           to, 0U);
 }
 
 lh_bool_t
 lh_ui_transition_advance(lh_ui_transition_t *self, lh_u16_t ms)
 {
-    lh_u32_t spent;
-    lh_u32_t time;
 
-    lh_assert_runtime_ref(self);
-    lh_return_if(lh_null_eq(lh_ui_transition_get_entity(self)) || lh_null_eq(lh_ui_transition_get_to(self)), lh_bool_false);
-    spent = lh_cast_static(lh_u32_t, lh_ui_transition_get_elapsed(self)) + lh_cast_static(lh_u32_t, ms);
+    lh_return_if(lh_null_eq(lh_ui_transition_get_entity(self)) ||
+                     lh_null_eq(lh_ui_transition_get_to(self)),
+                 lh_bool_false);
+    lh_u32_t spent =
+        lh_cast_static(lh_u32_t, lh_ui_transition_get_elapsed(self)) + lh_cast_static(lh_u32_t, ms);
     if (spent >= lh_cast_static(lh_u32_t, lh_ui_transition_get_total(self)))
     {
         lh_ui_transition_set_elapsed(self, lh_ui_transition_get_total(self));
@@ -76,14 +75,16 @@ lh_ui_transition_advance(lh_ui_transition_t *self, lh_u16_t ms)
         return lh_bool_false;
     }
     lh_ui_transition_set_elapsed(self, lh_cast_static(lh_u16_t, spent));
-    time = spent * 255U / lh_cast_static(lh_u32_t, lh_ui_transition_get_total(self));
-    lh_ui_style_init_blend(lh_ui_transition_get_look_mut(self), lh_ui_transition_get_from_mut(self), lh_ui_transition_get_to(self),
-                           lh_ui_easing_apply(lh_ui_style_get_easing(lh_ui_transition_get_to(self)), time));
+    lh_u32_t time = spent * 255U / lh_cast_static(lh_u32_t, lh_ui_transition_get_total(self));
+    lh_ui_style_init_blend(
+        lh_ui_transition_get_look_mut(self), lh_ui_transition_get_from_mut(self),
+        lh_ui_transition_get_to(self),
+        lh_ui_easing_apply(lh_ui_style_get_easing(lh_ui_transition_get_to(self)), time));
     return lh_bool_true;
 }
 
 lh_void
-lh_ui_transition_set_entity(lh_ui_transition_t *self, struct lh_ui_entity * entity)
+lh_ui_transition_set_entity(lh_ui_transition_t *self, struct lh_ui_entity *entity)
 {
     lh_assert_runtime_ref(self);
     self->entity = entity;
@@ -97,7 +98,7 @@ lh_ui_transition_get_to(const lh_ui_transition_t *self)
 }
 
 lh_void
-lh_ui_transition_set_to(lh_ui_transition_t *self, const lh_ui_style_t * to)
+lh_ui_transition_set_to(lh_ui_transition_t *self, const lh_ui_style_t *to)
 {
     lh_assert_runtime_ref(self);
     self->to = to;

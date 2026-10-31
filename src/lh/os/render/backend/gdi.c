@@ -89,7 +89,6 @@ lh_os_render_backend_gdi_reset_counters(lh_os_render_backend_gdi_context_t *self
 lh_void
 lh_os_render_backend_gdi_context_init(lh_os_render_backend_gdi_context_t *self)
 {
-    lh_assert_runtime_ref(self);
     lh_os_render_backend_gdi_context_set_hwnd(self, LH_OS_SYSTEM_WINDOW_HANDLE_INVALID);
     lh_os_render_backend_gdi_context_set_hdc(self, lh_null);
     lh_ui_surface_init(lh_os_render_backend_gdi_context_get_surface_mut(self));
@@ -111,7 +110,6 @@ lh_os_render_backend_gdi_context_init(lh_os_render_backend_gdi_context_t *self)
 lh_void
 lh_os_render_backend_gdi_context_deinit(lh_os_render_backend_gdi_context_t *self)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_surface_deinit(lh_os_render_backend_gdi_context_get_surface_mut(self));
     lh_os_render_backend_gdi_context_init(self);
 }
@@ -147,7 +145,6 @@ lh_os_render_backend_gdi_context_get_clip_calls(const lh_os_render_backend_gdi_c
 lh_u64_t
 lh_os_render_backend_gdi_context_get_frame_us(const lh_os_render_backend_gdi_context_t *self)
 {
-    lh_assert_runtime_ref(self);
     return lh_os_tick_us() - lh_os_render_backend_gdi_context_get_frame_start_us(self);
 }
 
@@ -181,28 +178,34 @@ lh_void
 lh_os_render_backend_gdi_begin(lh_ptr context)
 {
     lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
-    lh_ui_rect_t area;
-    lh_ui_size_t size;
-    int width;
-    int height;
 
-    if (lh_os_render_backend_gdi_context_get_logical_w(gdi) > 0u &&
-        lh_os_render_backend_gdi_context_get_logical_h(gdi) > 0u)
     {
-        width = lh_cast_static(int, lh_os_render_backend_gdi_context_get_logical_w(gdi));
-        height = lh_cast_static(int, lh_os_render_backend_gdi_context_get_logical_h(gdi));
+        int width;
+        int height;
+
+        if (lh_os_render_backend_gdi_context_get_logical_w(gdi) > 0u &&
+            lh_os_render_backend_gdi_context_get_logical_h(gdi) > 0u)
+        {
+            width = lh_cast_static(int, lh_os_render_backend_gdi_context_get_logical_w(gdi));
+            height = lh_cast_static(int, lh_os_render_backend_gdi_context_get_logical_h(gdi));
+        }
+        else
+        {
+            lh_return_if(!lh_os_system_window_get_client_size(
+                lh_os_render_backend_gdi_context_get_hwnd(gdi), lh_addr_of(width),
+                lh_addr_of(height)));
+        }
+        lh_ui_size_t size;
+
+        lh_ui_size_init(lh_addr_of(size), lh_cast_static(lh_ui_scalar_t, width),
+                        lh_cast_static(lh_ui_scalar_t, height));
+        lh_ui_rect_t area;
+
+        lh_ui_rect_init(lh_addr_of(area), lh_ui_scalar(0), lh_ui_scalar(0),
+                        lh_ui_size_get_width(lh_addr_of(size)),
+                        lh_ui_size_get_height(lh_addr_of(size)));
+        lh_os_render_backend_gdi_begin_area(context, lh_addr_of(area));
     }
-    else
-    {
-        lh_return_if(!lh_os_system_window_get_client_size(
-            lh_os_render_backend_gdi_context_get_hwnd(gdi), lh_addr_of(width), lh_addr_of(height)));
-    }
-    lh_ui_size_init(lh_addr_of(size), lh_cast_static(lh_ui_scalar_t, width),
-                    lh_cast_static(lh_ui_scalar_t, height));
-    lh_ui_rect_init(lh_addr_of(area), lh_ui_scalar(0), lh_ui_scalar(0),
-                    lh_ui_size_get_width(lh_addr_of(size)),
-                    lh_ui_size_get_height(lh_addr_of(size)));
-    lh_os_render_backend_gdi_begin_area(context, lh_addr_of(area));
 }
 
 lh_void
