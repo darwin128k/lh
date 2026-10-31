@@ -72,9 +72,8 @@ lh_ui_gradient_sampler_fill(lh_ui_gradient_sampler_t *self)
     lh_ui_gradient_sampler_lerp_t lerp;
     lh_s32_t carried = 0;
     lh_s32_t segment = 1;
-    lh_s32_t frac;
 
-    for (frac = 0; frac < 256; ++frac)
+    for (lh_s32_t frac = 0; frac < 256; ++frac)
     {
         lh_s32_t start;
         lh_s32_t span;
@@ -206,9 +205,8 @@ lh_ui_gradient_sampler_flat_run(const lh_ui_gradient_sampler_t *self, lh_s32_t c
                                 lh_ui_color_t *out)
 {
     const lh_ui_color_t first = lh_ui_gradient_sampler_get_colors(self)[0];
-    lh_s32_t i;
 
-    for (i = 0; i < count; ++i)
+    for (lh_s32_t i = 0; i < count; ++i)
     {
         out[i] = first;
     }
@@ -231,9 +229,8 @@ lh_ui_gradient_sampler_linear_run(const lh_ui_gradient_sampler_t *self, lh_s64_t
     lh_s64_t rest = lh_math_floor_mod(at, divisor);
     const lh_s64_t step = lh_math_floor_div(move, divisor);
     const lh_s64_t step_rest = lh_math_floor_mod(move, divisor);
-    lh_s32_t i;
 
-    for (i = 0; i < count; ++i)
+    for (lh_s32_t i = 0; i < count; ++i)
     {
         out[i] = lh_ui_gradient_sampler_get_colors(
             self)[lh_cast_static(lh_s32_t, lh_math_clamp(quotient, 0, 255))];

@@ -46,9 +46,7 @@ lh_void
 lh_ui_canvas_fill_mask_row(struct lh_ui_canvas *self, const lh_ui_mask_t *mask, lh_s32_t x0,
                            lh_s32_t y0, lh_s32_t y, const lh_ui_color_t *color)
 {
-    lh_s32_t x;
-
-    for (x = 0; x < lh_ui_mask_get_width(mask); ++x)
+    for (lh_s32_t x = 0; x < lh_ui_mask_get_width(mask); ++x)
     {
         lh_ui_canvas_fill_mask_pixel(self, mask, x0, y0, x, y, color);
     }
@@ -58,9 +56,7 @@ lh_void
 lh_ui_canvas_fill_mask_by_pixels(struct lh_ui_canvas *self, const lh_ui_mask_t *mask, lh_s32_t x0,
                                  lh_s32_t y0, const lh_ui_color_t *color)
 {
-    lh_s32_t y;
-
-    for (y = 0; y < lh_ui_mask_get_height(mask); ++y)
+    for (lh_s32_t y = 0; y < lh_ui_mask_get_height(mask); ++y)
     {
         lh_ui_canvas_fill_mask_row(self, mask, x0, y0, y, color);
     }

@@ -483,9 +483,8 @@ LH_COMPILER_ATTRIBUTE_FORCE_INLINE __m128i
 lh_ui_pixmap_gather_alpha(lh_byte_cptr alpha, lh_usize_t count)
 {
     lh_u64_t bytes = 0U;
-    lh_usize_t k;
 
-    for (k = count; k > 0U; --k)
+    for (lh_usize_t k = count; k > 0U; --k)
     {
         bytes = (bytes << 8) | alpha[k - 1U];
     }
@@ -605,9 +604,7 @@ lh_ui_pixmap_blend_alpha_32(const lh_ui_pixmap_t *self, lh_u32_t *at, lh_byte_cp
     }
 #endif
     {
-        lh_usize_t i;
-
-        for (i = 0U; i < count; ++i)
+        for (lh_usize_t i = 0U; i < count; ++i)
         {
             if (alpha[i] != 0U)
             {
@@ -920,12 +917,13 @@ lh_ui_pixmap_blend_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t
     lh_byte_t alpha[LH_UI_PIXMAP_RUN];
 
     lh_memory_set(alpha, sizeof(alpha), lh_ui_color_get_a(color));
-    lh_s32_t end;
-    for (; x0 < x1; x0 = end)
+    while (x0 < x1)
     {
-        end = lh_math_min(x1, x0 + LH_UI_PIXMAP_RUN);
+        lh_s32_t end = lh_math_min(x1, x0 + LH_UI_PIXMAP_RUN);
+
         lh_ui_pixmap_blend_alpha_span(self, x0, end, y, lh_ui_color_get_argb(color) & 0x00FFFFFFU,
                                       alpha);
+        x0 = end;
     }
 }
 
@@ -973,9 +971,7 @@ lh_void
 lh_ui_pixmap_store_box(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t y0, lh_s32_t x1, lh_s32_t y1,
                        lh_u32_t word)
 {
-    lh_s32_t y;
-
-    for (y = y0; y < y1; ++y)
+    for (lh_s32_t y = y0; y < y1; ++y)
     {
         lh_ui_pixmap_store_span(self, x0, x1, y, word);
     }

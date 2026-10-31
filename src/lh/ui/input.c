@@ -462,7 +462,6 @@ lh_ui_input_get_caret_rect(const lh_ui_input_t *self, lh_ui_rect_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_ui_scalar_t width = lh_ui_scalar(1);
-    lh_char_t saved;
     lh_ui_rect_t caret;
 
     lh_ui_rect_init_empty(lh_addr_of(caret));
@@ -484,7 +483,8 @@ lh_ui_input_get_caret_rect(const lh_ui_input_t *self, lh_ui_rect_t *out)
        the caret and putting the byte back. A prefix is a string only while it is cut
        off, and the input owns what is in its buffer -- which is the whole reason it
        has one instead of the pointer a label keeps. */
-    saved = lh_ui_input_get_buffer(self)[lh_ui_input_get_caret(self)];
+    lh_char_t saved = lh_ui_input_get_buffer(self)[lh_ui_input_get_caret(self)];
+
     lh_ui_input_get_buffer(self)[lh_ui_input_get_caret(self)] = lh_char_map_nul;
     lh_ui_scalar_t at = lh_ui_point_get_x(lh_addr_of(origin)) +
                         lh_ui_text_get_width(font, lh_ui_input_get_buffer(self));

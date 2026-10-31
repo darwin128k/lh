@@ -44,7 +44,6 @@ lh_ui_web_ws_write(lh_byte_ptr out, lh_usize_t cap, lh_uint_t opcode, lh_bool_t 
         return 0;
     }
     out[0] = lh_cast_static(lh_byte_t, ((fin ? 0x80u : 0u) | (opcode & 0x0fu)));
-    lh_usize_t i;
     lh_usize_t off;
     if (payload_len < 126u)
     {
@@ -61,14 +60,14 @@ lh_ui_web_ws_write(lh_byte_ptr out, lh_usize_t cap, lh_uint_t opcode, lh_bool_t 
     else
     {
         out[1] = 127u;
-        for (i = 0; i < 8u; ++i)
+        for (lh_usize_t i = 0; i < 8u; ++i)
         {
             out[9u - i] =
                 lh_cast_static(lh_byte_t, (lh_cast_static(lh_u64_t, payload_len) >> (8u * i)));
         }
         off = 10u;
     }
-    for (i = 0; i < payload_len; ++i)
+    for (lh_usize_t i = 0; i < payload_len; ++i)
     {
         out[off + i] = src[i];
     }

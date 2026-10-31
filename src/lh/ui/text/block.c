@@ -45,8 +45,7 @@ lh_ui_text_block_measure(lh_ui_text_block_t *self, const lh_ui_font_t *font, con
     lh_ui_text_block_init(self);
     lh_ui_point_t box;
     lh_ui_point_init(lh_addr_of(box), lh_ui_scalar(0), lh_ui_scalar(0));
-    lh_ui_text_line_t laid;
-    for (; lh_ui_text_line_measure(lh_addr_of(laid), font, text, width);
+    for (lh_ui_text_line_t laid; lh_ui_text_line_measure(lh_addr_of(laid), font, text, width);
          text = lh_ui_text_line_get_next(lh_addr_of(laid)))
     {
         lh_ui_rect_t line_ink;

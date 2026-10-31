@@ -35,9 +35,7 @@ lh_ui_gradient_sampler_lerp_init(lh_ui_gradient_sampler_lerp_t *self, const lh_u
 lh_void
 lh_ui_gradient_sampler_lerp_next(lh_ui_gradient_sampler_lerp_t *self)
 {
-    lh_s32_t c;
-
-    for (c = 0; c < 4; ++c)
+    for (lh_s32_t c = 0; c < 4; ++c)
     {
         lh_ui_gradient_sampler_lerp_get_quotient_mut(self)[c] +=
             lh_ui_gradient_sampler_lerp_get_step(self)[c];

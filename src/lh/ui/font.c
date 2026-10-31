@@ -25,9 +25,7 @@ lh_ui_font_get_default(lh_void)
 lh_bool_t
 lh_ui_font_runs_are_a_runs(const lh_ui_font_range_t *ranges, lh_u32_t count)
 {
-    lh_u32_t i;
-
-    for (i = 0; i < count; ++i)
+    for (lh_u32_t i = 0; i < count; ++i)
     {
         if (lh_ui_font_range_get_length(lh_addr_of(ranges[i])) == 0U)
         {
@@ -117,9 +115,8 @@ lh_u32_t
 lh_ui_font_get_glyph_count(const lh_ui_font_t *self)
 {
     lh_u32_t total = 0U;
-    lh_u32_t i;
 
-    for (i = 0; i < lh_ui_font_get_range_count(self); ++i)
+    for (lh_u32_t i = 0; i < lh_ui_font_get_range_count(self); ++i)
     {
         total += lh_ui_font_range_get_length(lh_addr_of(lh_ui_font_get_ranges(self)[i]));
     }
@@ -136,9 +133,7 @@ lh_ui_font_get_glyph_count(const lh_ui_font_t *self)
 const lh_ui_font_range_t *
 lh_ui_font_get_range_of(const lh_ui_font_t *self, lh_u32_t code)
 {
-    lh_u32_t i;
-
-    for (i = 0; i < lh_ui_font_get_range_count(self); ++i)
+    for (lh_u32_t i = 0; i < lh_ui_font_get_range_count(self); ++i)
     {
         if (lh_ui_font_range_has(lh_addr_of(lh_ui_font_get_ranges(self)[i]), code))
         {

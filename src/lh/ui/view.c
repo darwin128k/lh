@@ -451,9 +451,7 @@ lh_ui_view_slow_down(lh_ui_point_t velocity, lh_ui_point_t *out)
 lh_void
 lh_ui_view_reset_pointer(lh_ui_view_t *self)
 {
-    lh_os_input_pointer_id_t id;
-
-    for (id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
+    for (lh_os_input_pointer_id_t id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
     {
         lh_ui_view_pointer_reset(lh_addr_of(lh_ui_view_get_pointers_mut(self)[id]));
     }
@@ -944,9 +942,7 @@ lh_ui_view_text(lh_ui_view_t *self, lh_u32_t code)
 lh_ui_transition_t *
 lh_ui_view_slot_of(const lh_ui_view_t *self, const lh_ui_entity_t *entity)
 {
-    int i;
-
-    for (i = 0; i < LH_UI_VIEW_TRANSITION_MAX; ++i)
+    for (int i = 0; i < LH_UI_VIEW_TRANSITION_MAX; ++i)
     {
         if (lh_ui_transition_get_entity(lh_addr_of(lh_ui_view_get_transitions(self)[i])) == entity)
         {
@@ -1010,9 +1006,7 @@ lh_ui_view_cancel_pointer(lh_ui_view_t *self, lh_os_input_pointer_id_t id)
 lh_void
 lh_ui_view_cancel(lh_ui_view_t *self)
 {
-    lh_os_input_pointer_id_t id;
-
-    for (id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
+    for (lh_os_input_pointer_id_t id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
     {
         lh_ui_view_cancel_pointer(self, id);
     }

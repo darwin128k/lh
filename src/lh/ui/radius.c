@@ -64,9 +64,8 @@ lh_u64_t
 lh_ui_radius_scale_8(lh_byte_t a, lh_u64_t b)
 {
     lh_u64_t out = 0U;
-    lh_u32_t i;
 
-    for (i = 0U; i < 8U; ++i)
+    for (lh_u32_t i = 0U; i < 8U; ++i)
     {
         out |= lh_cast_static(lh_u64_t,
                               lh_ui_radius_scale(a, lh_cast_static(lh_byte_t, b >> (8U * i))))
@@ -214,20 +213,21 @@ lh_ui_radius_run_row(const struct lh_ui_radius_run *self, lh_s32_t x0, lh_s32_t 
         lh_memory_set(out, lh_cast_static(lh_usize_t, x1 - x0), 0);
         return;
     }
-    lh_s64_t p;
-    lh_s32_t i;
     /* A row away from every corner: whole pixels of the rect are 255, the
        columns outside it 0. dy == 0 alone does not decide that — the column
        still has to be inside the rect, or lh_ui_radius_coverage answers 0. */
     if (dy == 0)
     {
-        for (i = 0; i < x1 - x0; ++i)
+        for (lh_s32_t i = 0; i < x1 - x0; ++i)
         {
-            p = lh_ui_radius_pixel_center(x0 + i);
+            lh_s64_t p = lh_ui_radius_pixel_center(x0 + i);
+
             out[i] = p < self->lo || p >= self->hi ? 0 : 255;
         }
         return;
     }
+
+    lh_s64_t p = lh_ui_radius_pixel_center(x0);
 
     /* p steps by exactly one subpixel per column, so the fixed-point edges, the
        radius and the vertical distance are all hoisted. Every pixel is written,
@@ -237,7 +237,7 @@ lh_ui_radius_run_row(const struct lh_ui_radius_run *self, lh_s32_t x0, lh_s32_t 
        the whole loop. Past the arc's outer edge the coverage is 0, which is what
        lh_ui_radius_cover_from_square answers to d2 >= outer * outer — decided
        here, without a square root. */
-    for (i = 0, p = lh_ui_radius_pixel_center(x0); i < x1 - x0; ++i, p += LH_UI_RADIUS_SUBPIXEL)
+    for (lh_s32_t i = 0; i < x1 - x0; ++i, p += LH_UI_RADIUS_SUBPIXEL)
     {
         lh_s64_t dx;
         lh_s64_t d2;

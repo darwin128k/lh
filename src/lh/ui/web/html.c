@@ -102,9 +102,7 @@ lh_ui_web_html_put_escaped(lh_ui_web_buf_t *out, const lh_str_ptr s, lh_bool_t i
 lh_void
 lh_ui_web_html_put_attrs(lh_ui_web_buf_t *out, const lh_ui_web_html_attr_t *attrs, lh_u16_t n)
 {
-    lh_u16_t i;
-
-    for (i = 0u; i < n; ++i)
+    for (lh_u16_t i = 0u; i < n; ++i)
     {
         lh_ui_web_buf_lit(out, " ", 1u);
         lh_ui_web_buf_raw(out, attrs[i].name);
