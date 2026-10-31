@@ -10,6 +10,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
 #include <lh/str/ptr.h>
+#include <lh/util/byte/ptr.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -63,6 +64,36 @@ lh_str_ptr_parse_hex(const lh_str_ptr str, lh_usize_t str_size, lh_uint_t max, l
 lh_usize_t
 lh_str_ptr_parse_hex_prefix(const lh_str_ptr str, lh_usize_t str_size, lh_uint_t max,
                             lh_uint_t *out);
+
+/**
+ * @brief Parse hexadecimal digits from the start of @p str into @p out — two
+ *        digits make one byte.
+ *
+ * Exactly @p out_size bytes are read from the beginning of @p str; what
+ * follows them is left alone. Upper and lower case digits are both accepted.
+ * @p out is written only when the whole text is good: a text that is too
+ * short or holds a character that is not a hexadecimal digit leaves @p out
+ * untouched.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_byte_t key[4];
+ * lh_bool_t ok = lh_str_ptr_parse_hex_bytes("00ff10a0", 8, key, sizeof(key));
+ * // ok == lh_bool_true, key == { 0x00, 0xff, 0x10, 0xa0 }
+ * @endcode
+ *
+ * @param str      Buffer to parse (not required to be NUL-terminated).
+ * @param str_size Number of characters available in @p str.
+ * @param out      Receives the parsed bytes on success; untouched on failure.
+ * @param out_size Number of bytes to parse.
+ *
+ * @return ::lh_bool_true if @p out_size bytes were parsed, ::lh_bool_false
+ *         otherwise — the text was too short, held a character that is not a
+ *         hexadecimal digit, or a pointer was ::lh_null.
+ */
+lh_bool_t
+lh_str_ptr_parse_hex_bytes(const lh_str_ptr str, lh_usize_t str_size, lh_byte_ptr out,
+                           lh_usize_t out_size);
 
 LH_COMPILER_EXTERN_C_END
 

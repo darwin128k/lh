@@ -1,6 +1,8 @@
 #include <lh/str/format/hex.h>
 #include <lh/math.h>
 #include <lh/char/digit.h>
+#include <lh/char/map.h>
+#include <lh/util/ptr.h>
 
 /* Every 4 bits is one hex digit: the highest set bit's position (0-based) divided
  * by 4, plus 1, gives the digit count directly — no trial-and-error extraction
@@ -18,7 +20,8 @@ lh_str_ptr_format_hex(lh_uint_t value, lh_bool_t uppercase, lh_str_ptr str, lh_u
 {
     lh_str_cptr alphabet = uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
     const lh_usize_t digit_count =
-        lh_math_is_zero(value) ? 1U : lh_math_add_one(lh_math_div(lh_bit_scan_reverse_u32(value), 4U));
+        lh_math_is_zero(value) ? 1U
+                               : lh_math_add_one(lh_math_div(lh_bit_scan_reverse_u32(value), 4U));
     lh_usize_t i;
 
     lh_assert_runtime_ref(str);
@@ -39,4 +42,37 @@ lh_str_ptr_format_hex(lh_uint_t value, lh_bool_t uppercase, lh_str_ptr str, lh_u
     } while (lh_math_gt(i, 0U));
 
     return digit_count;
+}
+
+lh_usize_t
+lh_str_ptr_format_hex_bytes(const lh_byte_ptr bytes, lh_usize_t size, lh_str_ptr str,
+                            lh_usize_t str_size, lh_bool_t uppercase)
+{
+    lh_str_cptr alphabet = uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
+    lh_usize_t room;
+    lh_usize_t written = 0U;
+    lh_usize_t i;
+
+    lh_assert_runtime_ref(str);
+
+    if (lh_math_is_zero(size) || lh_math_is_zero(str_size) || lh_null_eq(bytes))
+    {
+        return 0U;
+    }
+    /* The terminator is part of the room: what is written is a C string. */
+    room = lh_math_sub_one(str_size);
+    for (i = 0U; lh_math_lt(i, size); i = lh_math_add_one(i))
+    {
+        lh_byte_t byte = bytes[i];
+
+        if (lh_math_gt(lh_math_add(written, 2U), room))
+        {
+            break;
+        }
+        str[written] = alphabet[(byte >> 4) & 0x0fU];
+        str[written + 1U] = alphabet[byte & 0x0fU];
+        written = lh_math_add(written, 2U);
+    }
+    str[written] = lh_char_map_nul;
+    return written;
 }

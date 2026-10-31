@@ -7,8 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `lh_str_ptr_format_hex_bytes` (`lh/str/format/hex.h`): a byte span as
+  hexadecimal text, two characters per byte, cut at a byte boundary when the
+  room is too small.
+- `lh_str_ptr_parse_hex_bytes` (`lh/str/parse/hex.h`): hexadecimal text into a
+  byte span, upper and lower case accepted, the caller's bytes left alone when
+  the text does not hold.
+
 ### Fixed
 
+- A `for` loop whose third clause was the bare `lh_math_add_one(i)` — the value
+  discarded — lost its increment under GCC 16 (MSYS2 MinGW): the loop ran on
+  the byte it had and stopped on some other condition, with no warning. The
+  third clause assigns (`i = lh_math_add_one(i)`), as the LH sources always
+  did; the rule is now in `AGENTS.md`.
 - Float math on 32-bit x86 ran on the x87 stack (80-bit intermediates rounded
   wherever a value spilled), so the same expression differed in the last bit between
   lh and its caller and between 32- and 64-bit builds (`lh_test_math`). lh now builds,

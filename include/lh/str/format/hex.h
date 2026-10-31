@@ -10,6 +10,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
 #include <lh/str/ptr.h>
+#include <lh/util/byte/ptr.h>
 
 /**
  * @def LH_STR_FORMAT_HEX_RADIX
@@ -36,6 +37,35 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 lh_usize_t
 lh_str_ptr_format_hex(lh_uint_t value, lh_bool_t uppercase, lh_str_ptr str, lh_usize_t str_size);
+
+/**
+ * @brief Write @p size bytes as hexadecimal text — two characters per byte,
+ *        high nibble first — into @p str.
+ *
+ * A buffer too small for the whole text takes the part that fits and stops.
+ * The cut is at a byte boundary: a room too small for a whole byte is not
+ * used. What was written is NUL-terminated whenever @p str has room for the
+ * terminator.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_char_t text[8];
+ * lh_usize_t n = lh_str_ptr_format_hex_bytes(bytes, 3, text, sizeof(text), lh_bool_false);
+ * // n == 6, text == "0a1b2c"
+ * @endcode
+ *
+ * @param bytes     Bytes to write; may be ::lh_null when @p size is 0.
+ * @param size      Number of bytes to write.
+ * @param str       Destination buffer.
+ * @param str_size  Capacity of @p str in characters, the NUL included.
+ * @param uppercase ::lh_bool_true for `A`-`F`, ::lh_bool_false for `a`-`f`.
+ *
+ * @return Characters written, the NUL not counted; 0 when @p bytes is
+ *         ::lh_null, @p size is 0, or @p str is ::lh_null or has no room.
+ */
+lh_usize_t
+lh_str_ptr_format_hex_bytes(const lh_byte_ptr bytes, lh_usize_t size, lh_str_ptr str,
+                            lh_usize_t str_size, lh_bool_t uppercase);
 
 LH_COMPILER_EXTERN_C_END
 
