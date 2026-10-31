@@ -149,9 +149,10 @@ lh_bool_t
 lh_os_logger_daily_try_get_day(lh_str_view_t name, lh_s64_t *out)
 {
     lh_str_view_t extension;
-    lh_date_t date;
 
     lh_str_view_init(lh_addr_of(extension), LH_OS_LOGGER_DAILY_EXTENSION);
+    lh_date_t date;
+
     lh_return_if(
         lh_str_view_get_size(lh_addr_of(name)) != LH_OS_LOGGER_DAILY_NAME_SIZE ||
             !lh_str_view_ends_with(lh_addr_of(name), lh_addr_of(extension), lh_bool_false) ||
@@ -166,23 +167,26 @@ lh_os_logger_daily_try_get_day(lh_str_view_t name, lh_s64_t *out)
 lh_bool_t
 lh_os_logger_daily_get_path(const lh_fs_path_t *dir, lh_s64_t day, lh_fs_path_t *out)
 {
-    lh_char_t text[LH_DATE_TEXT_MAX + sizeof(LH_OS_LOGGER_DAILY_EXTENSION)];
-    lh_fs_path_t name;
-    lh_str_view_t view;
     lh_date_t date;
-    lh_usize_t size;
-    lh_bool_t joined;
 
     lh_date_from_epoch_days(day, lh_addr_of(date));
-    size = lh_date_format_by(lh_addr_of(date), text, sizeof(text), lh_char_map_minus);
+    lh_char_t text[LH_DATE_TEXT_MAX + sizeof(LH_OS_LOGGER_DAILY_EXTENSION)];
+
+    lh_usize_t size = lh_date_format_by(lh_addr_of(date), text, sizeof(text), lh_char_map_minus);
+
     lh_return_if(size == 0U, lh_bool_false);
     lh_ptr_deref(lh_str_ptr_copy(text + size, sizeof(text) - size - 1U,
                                  LH_OS_LOGGER_DAILY_EXTENSION,
                                  sizeof(LH_OS_LOGGER_DAILY_EXTENSION) - 1U)) = lh_char_map_nul;
+    lh_fs_path_t name;
+
     lh_fs_path_init(lh_addr_of(name));
+    lh_str_view_t view;
+
     lh_str_view_init(lh_addr_of(view), text);
     lh_fs_path_set(lh_addr_of(name), view, lh_fs_path_style_posix);
-    joined = lh_fs_path_join(out, dir, lh_addr_of(name));
+    lh_bool_t joined = lh_fs_path_join(out, dir, lh_addr_of(name));
+
     lh_fs_path_deinit(lh_addr_of(name));
     return joined;
 }
@@ -291,18 +295,25 @@ lh_os_logger_daily_prune(lh_os_logger_daily_t *self, lh_os_logger_daily_channel_
 {
     const lh_s32_t keep = lh_os_logger_daily_channel_get_keep_days(channel);
     const lh_fs_path_t *dir = lh_os_logger_daily_channel_get_dir(channel);
-    lh_os_fs_dir_entry_kind_t kind;
-    lh_os_fs_dir_t listing;
-    lh_str_view_t entry;
-    lh_fs_path_t path;
 
     lh_os_logger_daily_channel_set_pruned_day(channel, today);
     lh_return_if(keep <= 0);
+    lh_os_fs_dir_t listing;
+
     lh_os_fs_dir_init(lh_addr_of(listing));
     lh_return_ifn(lh_os_fs_dir_open(lh_addr_of(listing), dir));
+    lh_fs_path_t path;
+
     lh_fs_path_init(lh_addr_of(path));
-    while (lh_os_fs_dir_read(lh_addr_of(listing), lh_addr_of(entry), lh_addr_of(kind)) > 0)
+    for (;;)
     {
+        lh_os_fs_dir_entry_kind_t kind;
+        lh_str_view_t entry;
+
+        if (lh_os_fs_dir_read(lh_addr_of(listing), lh_addr_of(entry), lh_addr_of(kind)) <= 0)
+        {
+            break;
+        }
         lh_s64_t day;
 
         if (kind == lh_fs_kind_dir || !lh_os_logger_daily_try_get_day(entry, lh_addr_of(day)) ||
@@ -337,8 +348,6 @@ lh_os_logger_daily_open_day(lh_os_logger_daily_t *self, lh_os_logger_daily_chann
                             lh_s64_t day)
 {
     const lh_fs_path_t *dir = lh_os_logger_daily_channel_get_dir(channel);
-    lh_fs_path_t path;
-    lh_bool_t opened;
 
     lh_return_if(lh_os_fs_file_is_valid(lh_os_logger_daily_channel_get_file(channel)) &&
                      lh_os_logger_daily_channel_get_day(channel) == day,
@@ -353,10 +362,12 @@ lh_os_logger_daily_open_day(lh_os_logger_daily_t *self, lh_os_logger_daily_chann
     {
         lh_os_logger_daily_prune(self, channel, day);
     }
+    lh_fs_path_t path;
+
     lh_fs_path_init(lh_addr_of(path));
-    opened = lh_os_logger_daily_get_path(dir, day, lh_addr_of(path)) &&
-             lh_os_fs_file_open(lh_os_logger_daily_channel_get_file_mut(channel), lh_addr_of(path),
-                                lh_fs_file_mode_append);
+    lh_bool_t opened = lh_os_logger_daily_get_path(dir, day, lh_addr_of(path)) &&
+                       lh_os_fs_file_open(lh_os_logger_daily_channel_get_file_mut(channel),
+                                          lh_addr_of(path), lh_fs_file_mode_append);
     if (opened)
     {
         lh_os_logger_daily_channel_set_day(channel, day);
@@ -458,11 +469,10 @@ lh_os_logger_daily_flush(lh_ptr user)
     lh_os_logger_daily_t *self = lh_ptr_rcast(lh_os_logger_daily_t, user);
     const lh_list_t *list = lh_os_logger_daily_get_channels(self);
     lh_timestamp_t now;
-    lh_s64_t today;
 
     lh_return_ifn(
         lh_os_logger_daily_get_clock_fn(self)(lh_os_logger_daily_get_user(self), lh_addr_of(now)));
-    today = lh_os_logger_daily_get_local_day(now);
+    lh_s64_t today = lh_os_logger_daily_get_local_day(now);
     for (lh_list_node_t *node = lh_list_get_first(list); lh_null_ne(node);
          node = lh_list_get_next(list, node))
     {

@@ -16,22 +16,20 @@ lh_os_system_surface_handle_t
 lh_os_system_surface_create(int width, int height, int bits)
 {
     lh_os_system_win_surface_t *surface;
-    lh_os_system_win_bitmapv5header_t info;
-    lh_os_system_win_hdc_t dc;
-    lh_os_system_win_handle_t bitmap;
-    lh_ptr bits_pointer;
 
     lh_return_if(width <= 0 || height <= 0, LH_OS_SYSTEM_SURFACE_HANDLE_INVALID);
 
     surface = lh_ptr_rcast(lh_os_system_win_surface_t, lh_os_alloc(sizeof(lh_ptr_deref(surface))));
     lh_return_if(lh_null_eq(surface), LH_OS_SYSTEM_SURFACE_HANDLE_INVALID);
 
-    dc = CreateCompatibleDC(lh_null);
+    lh_os_system_win_hdc_t dc = CreateCompatibleDC(lh_null);
     if (lh_null_eq(dc))
     {
         lh_runtime_allocator_free(surface);
         return LH_OS_SYSTEM_SURFACE_HANDLE_INVALID;
     }
+
+    lh_os_system_win_bitmapv5header_t info;
 
     lh_memory_set(lh_addr_of(info), sizeof(info), 0);
     info.bV5Header.biSize = lh_cast_static(lh_os_system_win_dword_t, sizeof(info));
@@ -51,10 +49,11 @@ lh_os_system_surface_create(int width, int height, int bits)
         info.bV5BlueMask = 0x0000001FU;
     }
 
-    bits_pointer = lh_null;
-    bitmap = CreateDIBSection(
-        dc, lh_cast_reinterpret(const lh_os_system_win_bitmapinfo_t *, lh_addr_of(info)),
-        LH_OS_SYSTEM_WIN_DIB_RGB_COLORS, lh_addr_of(bits_pointer), lh_null, 0);
+    lh_ptr bits_pointer = lh_null;
+    lh_os_system_win_handle_t bitmap =
+        CreateDIBSection(dc,
+                         lh_cast_reinterpret(const lh_os_system_win_bitmapinfo_t *, lh_addr_of(info)),
+                         LH_OS_SYSTEM_WIN_DIB_RGB_COLORS, lh_addr_of(bits_pointer), lh_null, 0);
     if (lh_null_eq(bitmap) || lh_null_eq(bits_pointer))
     {
         DeleteDC(dc);
@@ -169,55 +168,55 @@ lh_os_system_surface_present_fit(lh_os_system_surface_handle_t handle, lh_ptr de
                                  int dest_h, lh_u32_t fill)
 {
     const lh_os_system_win_surface_t *surface;
-    lh_os_system_win_hdc_t dest_dc;
-    lh_os_system_win_handle_t brush;
-    lh_os_system_win_handle_t previous;
-    int dw;
-    int dh;
-    int ox;
-    int oy;
 
     lh_return_if(lh_null_eq(handle) || lh_null_eq(dest) || dest_w <= 0 || dest_h <= 0,
                  lh_bool_false);
     surface = lh_ptr_rcast(const lh_os_system_win_surface_t, handle);
-    dest_dc = lh_cast_reinterpret(lh_os_system_win_hdc_t, dest);
-    if (dest_w * lh_os_system_win_surface_get_height(surface) >
-        dest_h * lh_os_system_win_surface_get_width(surface))
+    lh_os_system_win_hdc_t dest_dc = lh_cast_reinterpret(lh_os_system_win_hdc_t, dest);
+
     {
-        dh = dest_h;
-        dw = dest_h * lh_os_system_win_surface_get_width(surface) /
-             lh_os_system_win_surface_get_height(surface);
+        int dw;
+        int dh;
+
+        if (dest_w * lh_os_system_win_surface_get_height(surface) >
+            dest_h * lh_os_system_win_surface_get_width(surface))
+        {
+            dh = dest_h;
+            dw = dest_h * lh_os_system_win_surface_get_width(surface) /
+                 lh_os_system_win_surface_get_height(surface);
+        }
+        else
+        {
+            dw = dest_w;
+            dh = dest_w * lh_os_system_win_surface_get_height(surface) /
+                 lh_os_system_win_surface_get_width(surface);
+        }
+        if (dw < 1)
+        {
+            dw = 1;
+        }
+        if (dh < 1)
+        {
+            dh = 1;
+        }
+        const int ox = (dest_w - dw) / 2;
+        const int oy = (dest_h - dh) / 2;
+        lh_os_system_win_handle_t brush = CreateSolidBrush(fill);
+        lh_os_system_win_handle_t previous = SelectObject(dest_dc, brush);
+
+        (void)PatBlt(dest_dc, 0, 0, dest_w, dest_h, LH_OS_SYSTEM_WIN_PATCOPY);
+        (void)SelectObject(dest_dc, previous);
+        if (lh_null_ne(brush))
+        {
+            (void)DeleteObject(brush);
+        }
+        (void)SetStretchBltMode(dest_dc, LH_OS_SYSTEM_WIN_COLORONCOLOR);
+        return lh_cast_static(lh_bool_t, StretchBlt(dest_dc, ox, oy, dw, dh,
+                                                    lh_os_system_win_surface_get_dc(surface), 0, 0,
+                                                    lh_os_system_win_surface_get_width(surface),
+                                                    lh_os_system_win_surface_get_height(surface),
+                                                    LH_OS_SYSTEM_WIN_SRCCOPY) != 0);
     }
-    else
-    {
-        dw = dest_w;
-        dh = dest_w * lh_os_system_win_surface_get_height(surface) /
-             lh_os_system_win_surface_get_width(surface);
-    }
-    if (dw < 1)
-    {
-        dw = 1;
-    }
-    if (dh < 1)
-    {
-        dh = 1;
-    }
-    ox = (dest_w - dw) / 2;
-    oy = (dest_h - dh) / 2;
-    brush = CreateSolidBrush(fill);
-    previous = SelectObject(dest_dc, brush);
-    (void)PatBlt(dest_dc, 0, 0, dest_w, dest_h, LH_OS_SYSTEM_WIN_PATCOPY);
-    (void)SelectObject(dest_dc, previous);
-    if (lh_null_ne(brush))
-    {
-        (void)DeleteObject(brush);
-    }
-    (void)SetStretchBltMode(dest_dc, LH_OS_SYSTEM_WIN_COLORONCOLOR);
-    return lh_cast_static(lh_bool_t, StretchBlt(dest_dc, ox, oy, dw, dh,
-                                                lh_os_system_win_surface_get_dc(surface), 0, 0,
-                                                lh_os_system_win_surface_get_width(surface),
-                                                lh_os_system_win_surface_get_height(surface),
-                                                LH_OS_SYSTEM_WIN_SRCCOPY) != 0);
 }
 
 lh_os_system_win_hdc_t

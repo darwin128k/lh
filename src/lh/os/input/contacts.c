@@ -10,10 +10,7 @@
 lh_void
 lh_os_input_contacts_init(lh_os_input_contacts_t *self)
 {
-    lh_os_input_pointer_id_t pointer;
-
-    lh_assert_runtime_ref(self);
-    for (pointer = 0U; pointer < LH_OS_INPUT_POINTER_MAX; ++pointer)
+    for (lh_os_input_pointer_id_t pointer = 0U; pointer < LH_OS_INPUT_POINTER_MAX; ++pointer)
     {
         lh_os_input_contacts_set_contact(self, pointer, 0U);
         lh_os_input_contacts_set_device_kind(self, pointer, lh_os_input_device_kind_none);
@@ -27,7 +24,6 @@ lh_os_input_contacts_find(lh_os_input_contacts_cptr self, lh_os_input_contact_id
 {
     lh_os_input_pointer_id_t pointer;
 
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(out);
     for (pointer = 1U; pointer < LH_OS_INPUT_POINTER_MAX; ++pointer)
     {
@@ -47,7 +43,6 @@ lh_os_input_contacts_take(lh_os_input_contacts_t *self, lh_os_input_contact_id_t
 {
     lh_os_input_pointer_id_t pointer;
 
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(out);
     /* A down the system sends twice for one contact keeps the id it has. */
     lh_return_if(lh_os_input_contacts_find(self, contact, out), lh_bool_true);
@@ -69,7 +64,6 @@ lh_os_input_device_kind_t
 lh_os_input_contacts_get_device_kind_v(lh_os_input_contacts_cptr self,
                                        lh_os_input_pointer_id_t pointer)
 {
-    lh_assert_runtime_ref(self);
     lh_return_if(pointer >= LH_OS_INPUT_POINTER_MAX ||
                      !lh_os_input_contacts_is_taken(self, pointer),
                  lh_os_input_device_kind_none);
@@ -82,7 +76,6 @@ lh_os_input_contacts_get_count(lh_os_input_contacts_cptr self)
     lh_os_input_pointer_id_t pointer;
     lh_u32_t count = 0U;
 
-    lh_assert_runtime_ref(self);
     for (pointer = 1U; pointer < LH_OS_INPUT_POINTER_MAX; ++pointer)
     {
         count += lh_os_input_contacts_is_taken(self, pointer) ? 1U : 0U;
@@ -93,7 +86,6 @@ lh_os_input_contacts_get_count(lh_os_input_contacts_cptr self)
 lh_void
 lh_os_input_contacts_release(lh_os_input_contacts_t *self, lh_os_input_pointer_id_t pointer)
 {
-    lh_assert_runtime_ref(self);
     lh_return_if(pointer == 0U || pointer >= LH_OS_INPUT_POINTER_MAX);
     lh_os_input_contacts_set_contact(self, pointer, 0U);
     lh_os_input_contacts_set_device_kind(self, pointer, lh_os_input_device_kind_none);

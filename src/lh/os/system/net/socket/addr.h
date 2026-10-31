@@ -38,11 +38,9 @@ lh_os_system_net_socket_native_addr_from_ip4(lh_os_system_net_socket_native_addr
                                              const lh_net_ip4_socket_addr_t *addr)
 {
     lh_net_ip4_t ip;
-    lh_net_port_t port;
-    lh_byte_ptr addr_bytes;
 
     lh_net_ip4_socket_addr_get_ip(addr, lh_addr_of(ip));
-    port = lh_net_ip4_socket_addr_get_port(addr);
+    lh_net_port_t port = lh_net_ip4_socket_addr_get_port(addr);
 
     lh_memory_set(lh_addr_of(*native_addr), sizeof(*native_addr), 0);
     native_addr->sin_family = LH_OS_SYSTEM_NET_SOCKET_NATIVE_AF_INET;
@@ -52,7 +50,8 @@ lh_os_system_net_socket_native_addr_from_ip4(lh_os_system_net_socket_native_addr
      * depending on htonl. sin_port is also network byte order, but that one
      * genuinely is "pack a u16 as big-endian bytes", so it goes through
      * lh_bit_pack_be16 instead of a second hand-rolled shift/mask. */
-    addr_bytes = lh_ptr_rcast(lh_byte_t, lh_addr_of(native_addr->sin_addr));
+    lh_byte_ptr addr_bytes = lh_ptr_rcast(lh_byte_t, lh_addr_of(native_addr->sin_addr));
+
     addr_bytes[0] = lh_net_ip4_get_octet(lh_addr_of(ip), LH_NET_IP4_OCTET_INDEX_0);
     addr_bytes[1] = lh_net_ip4_get_octet(lh_addr_of(ip), LH_NET_IP4_OCTET_INDEX_1);
     addr_bytes[2] = lh_net_ip4_get_octet(lh_addr_of(ip), LH_NET_IP4_OCTET_INDEX_2);
@@ -67,13 +66,13 @@ lh_void
 lh_os_system_net_socket_ip4_from_native_addr(
     lh_net_ip4_socket_addr_t *addr, const lh_os_system_net_socket_native_addr_t *native_addr)
 {
-    lh_byte_cptr addr_bytes;
+    lh_byte_cptr addr_bytes = lh_ptr_ccast(lh_byte_t, lh_addr_of(native_addr->sin_addr));
     lh_net_ip4_t ip;
-    lh_net_port_t port;
 
-    addr_bytes = lh_ptr_ccast(lh_byte_t, lh_addr_of(native_addr->sin_addr));
     lh_net_ip4_init(lh_addr_of(ip), addr_bytes[0], addr_bytes[1], addr_bytes[2], addr_bytes[3]);
-    port = lh_bit_unpack_be16(lh_ptr_ccast(lh_byte_t, lh_addr_of(native_addr->sin_port)));
+    lh_net_port_t port =
+        lh_bit_unpack_be16(lh_ptr_ccast(lh_byte_t, lh_addr_of(native_addr->sin_port)));
+
     lh_net_ip4_socket_addr_init(addr, lh_addr_of(ip), port);
 }
 

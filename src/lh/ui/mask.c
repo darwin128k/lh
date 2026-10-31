@@ -29,7 +29,6 @@ lh_void
 lh_ui_mask_init(lh_ui_mask_t *self, lh_byte_cptr bits, lh_s32_t width, lh_s32_t height,
                 lh_s32_t row_bytes, lh_byte_t bpp)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(bits);
     lh_assert_runtime_ifn(lh_ui_mask_is_bpp(bpp) && width >= 0 && height >= 0,
                           lh_runtime_error_code_invalid_argument);
@@ -67,22 +66,23 @@ lh_ui_mask_get_bpp(const lh_ui_mask_t *self)
 lh_byte_cptr
 lh_ui_mask_get_row(const lh_ui_mask_t *self, lh_s32_t y)
 {
-    lh_assert_runtime_ref(self);
     return lh_ui_mask_get_bits(self) + y * lh_ui_mask_get_row_bytes(self);
 }
 
 lh_bool_t
 lh_ui_mask_has_pixel(const lh_ui_mask_t *self, lh_s32_t x, lh_s32_t y)
 {
-    lh_assert_runtime_ref(self);
-    return x >= 0 && y >= 0 && x < lh_ui_mask_get_width(self) && y < lh_ui_mask_get_height(self) ? lh_bool_true : lh_bool_false;
+    return x >= 0 && y >= 0 && x < lh_ui_mask_get_width(self) && y < lh_ui_mask_get_height(self)
+               ? lh_bool_true
+               : lh_bool_false;
 }
 
 lh_u32_t
 lh_ui_mask_get_sample(const lh_ui_mask_t *self, lh_s32_t x, lh_s32_t y)
 {
     lh_return_if(!lh_ui_mask_has_pixel(self, x, y), 0U);
-    return lh_bit_packed_get(lh_ui_mask_get_row(self, y), lh_cast_static(lh_u32_t, x), lh_ui_mask_get_bpp(self));
+    return lh_bit_packed_get(lh_ui_mask_get_row(self, y), lh_cast_static(lh_u32_t, x),
+                             lh_ui_mask_get_bpp(self));
 }
 
 lh_byte_t
@@ -127,8 +127,9 @@ lh_ui_mask_get_coverage_8(const lh_ui_mask_t *self, lh_s32_t x, lh_s32_t y)
 {
     lh_byte_t run[8];
 
-    lh_assert_runtime_ref(self);
-    lh_return_if(y < 0 || y >= lh_ui_mask_get_height(self) || x >= lh_ui_mask_get_width(self) || x + 8 <= 0, 0U);
+    lh_return_if(y < 0 || y >= lh_ui_mask_get_height(self) || x >= lh_ui_mask_get_width(self) ||
+                     x + 8 <= 0,
+                 0U);
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
     if (lh_ui_mask_get_bpp(self) == 4U && x >= 0)
     {
@@ -170,8 +171,6 @@ lh_void
 lh_ui_mask_coverage_run(const lh_ui_mask_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
                         lh_byte_ptr out)
 {
-    lh_byte_cptr row;
-    lh_s32_t x;
 
     lh_assert_runtime_ref(out);
     lh_return_if(x1 <= x0);
@@ -186,7 +185,7 @@ lh_ui_mask_coverage_run(const lh_ui_mask_t *self, lh_s32_t x0, lh_s32_t x1, lh_s
        answer: only the pixels outside are 0, so the head is cleared and the rest
        still answered. Zeroing the whole run because its start is outside is the
        easy wrong answer, and it was wrong until a test swept the starts. */
-    x = x0;
+    lh_s32_t x = x0;
     if (x < 0)
     {
         const lh_s32_t skip = lh_math_min(lh_math_neg(x), x1 - x0);
@@ -205,7 +204,7 @@ lh_ui_mask_coverage_run(const lh_ui_mask_t *self, lh_s32_t x0, lh_s32_t x1, lh_s
         lh_memory_set(out + (x - x0), lh_cast_static(lh_usize_t, x1 - x), 0U);
         return;
     }
-    row = lh_ui_mask_get_row(self, y);
+    lh_byte_cptr row = lh_ui_mask_get_row(self, y);
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
     /* Four bits per pixel is the baked font's format, and a glyph row is six to
@@ -248,8 +247,9 @@ lh_ui_mask_coverage_run(const lh_ui_mask_t *self, lh_s32_t x0, lh_s32_t x1, lh_s
 
         for (; x < x1; ++x)
         {
-            const lh_u32_t sample =
-                x < width ? lh_bit_packed_get(row, lh_cast_static(lh_u32_t, x), lh_ui_mask_get_bpp(self)) : 0U;
+            const lh_u32_t sample = x < width ? lh_bit_packed_get(row, lh_cast_static(lh_u32_t, x),
+                                                                  lh_ui_mask_get_bpp(self))
+                                              : 0U;
 
             out[x - x0] = lh_cast_static(
                 lh_byte_t, step != 0U ? sample * step : lh_math_rescale_u32(sample, top, 255U));
@@ -277,7 +277,7 @@ lh_ui_mask_get_bits(const lh_ui_mask_t *self)
 }
 
 lh_void
-lh_ui_mask_set_bits(lh_ui_mask_t *self, const lh_byte_t * bits)
+lh_ui_mask_set_bits(lh_ui_mask_t *self, const lh_byte_t *bits)
 {
     lh_assert_runtime_ref(self);
     self->bits = bits;

@@ -23,10 +23,11 @@ LH_ATTRIBUTE_STATIC
 lh_bool_t
 lh_os_system_fs_dir_pattern(lh_str_cptr path, lh_os_str_t *out)
 {
-    lh_str_t pattern;
     lh_str_view_t view;
 
     lh_str_view_init(lh_addr_of(view), path);
+
+    lh_str_t pattern;
 
     lh_str_init_by_view(lh_addr_of(pattern), view);
     if (!lh_str_view_is_empty(lh_addr_of(view)) &&

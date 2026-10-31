@@ -38,10 +38,10 @@ lh_ui_renderer3d_begin(lh_ui_renderer3d_t *self, lh_ui_pixmap_t *target, lh_math
 lh_bool_t
 lh_ui_renderer3d_clear(lh_ui_renderer3d_t *self, lh_u32_t background_argb)
 {
-    lh_assert_runtime_ref(self);
     for (lh_s32_t y = 0; y < lh_ui_renderer3d_get_height(self); y++)
     {
-        lh_u32_t *row = lh_cast_reinterpret(lh_u32_t *, lh_ui_pixmap_get_row(lh_ui_renderer3d_get_target(self), y));
+        lh_u32_t *row = lh_cast_reinterpret(
+            lh_u32_t *, lh_ui_pixmap_get_row(lh_ui_renderer3d_get_target(self), y));
         if (lh_null_eq(row))
         {
             lh_ui_renderer3d_set_target(self, lh_null);
@@ -50,7 +50,8 @@ lh_ui_renderer3d_clear(lh_ui_renderer3d_t *self, lh_u32_t background_argb)
         for (lh_s32_t x = 0; x < lh_ui_renderer3d_get_width(self); x++)
         {
             row[x] = background_argb;
-            lh_ui_renderer3d_get_depth(self)[(lh_usize_t)y * lh_ui_renderer3d_get_width(self) + x] = LH_FLOAT_T_MAX;
+            lh_ui_renderer3d_get_depth(self)[(lh_usize_t)y * lh_ui_renderer3d_get_width(self) + x] =
+                LH_FLOAT_T_MAX;
         }
     }
     return lh_bool_true;
@@ -60,9 +61,10 @@ lh_math_fscalar_t
 lh_ui_renderer3d_get_plane_distance(const lh_ui_renderer3d_t *self, lh_math_vec3_t view,
                                     lh_ui_renderer3d_plane_t plane)
 {
-    lh_assert_runtime_ref(self);
-    const lh_math_fscalar_t ty = lh_ui_renderer3d_camera_get_tangent(lh_ui_renderer3d_get_camera(self));
-    const lh_math_fscalar_t tx = ty * lh_ui_renderer3d_get_width(self) / lh_ui_renderer3d_get_height(self);
+    const lh_math_fscalar_t ty =
+        lh_ui_renderer3d_camera_get_tangent(lh_ui_renderer3d_get_camera(self));
+    const lh_math_fscalar_t tx =
+        ty * lh_ui_renderer3d_get_width(self) / lh_ui_renderer3d_get_height(self);
     const lh_math_fscalar_t x = lh_math_vec3_get_x(&view);
     const lh_math_fscalar_t y = lh_math_vec3_get_y(&view);
     const lh_math_fscalar_t z = lh_math_vec3_get_z(&view);
@@ -101,8 +103,7 @@ lh_ui_renderer3d_clip_plane(const lh_ui_renderer3d_t *self, lh_ui_renderer3d_pla
         if ((previous_distance >= 0) != (distance >= 0))
         {
             lh_return_if(written >= capacity, -1);
-            lh_math_vec3_lerp(previous, current,
-                              previous_distance / (previous_distance - distance),
+            lh_math_vec3_lerp(previous, current, previous_distance / (previous_distance - distance),
                               &out[written++]);
         }
         if (distance >= 0)
@@ -117,14 +118,15 @@ lh_ui_renderer3d_clip_plane(const lh_ui_renderer3d_t *self, lh_ui_renderer3d_pla
 }
 
 lh_void
-lh_ui_renderer3d_project(const lh_ui_renderer3d_t *self, lh_math_vec3_t view,
-                         lh_math_vec3_t *out)
+lh_ui_renderer3d_project(const lh_ui_renderer3d_t *self, lh_math_vec3_t view, lh_math_vec3_t *out)
 {
-    lh_assert_runtime_ref(self);
-    const lh_math_fscalar_t focal = lh_ui_renderer3d_get_height(self) / (2 * lh_ui_renderer3d_camera_get_tangent(lh_ui_renderer3d_get_camera(self)));
+    const lh_math_fscalar_t focal =
+        lh_ui_renderer3d_get_height(self) /
+        (2 * lh_ui_renderer3d_camera_get_tangent(lh_ui_renderer3d_get_camera(self)));
     const lh_math_fscalar_t z = lh_math_vec3_get_z(&view);
-    lh_math_vec3_init(out, lh_ui_renderer3d_get_width(self) * .5f + lh_math_vec3_get_x(&view) * focal / z,
-                      lh_ui_renderer3d_get_height(self) * .5f - lh_math_vec3_get_y(&view) * focal / z, 1 / z);
+    lh_math_vec3_init(
+        out, lh_ui_renderer3d_get_width(self) * .5f + lh_math_vec3_get_x(&view) * focal / z,
+        lh_ui_renderer3d_get_height(self) * .5f - lh_math_vec3_get_y(&view) * focal / z, 1 / z);
 }
 
 lh_math_fscalar_t
@@ -140,11 +142,11 @@ lh_bool_t
 lh_ui_renderer3d_put_fragment(lh_ui_renderer3d_t *self, lh_s32_t x, lh_s32_t y,
                               lh_math_fscalar_t depth, lh_u32_t color_argb)
 {
-    lh_assert_runtime_ref(self);
     const lh_usize_t i = (lh_usize_t)y * lh_ui_renderer3d_get_width(self) + x;
     lh_return_ifn(depth < lh_ui_renderer3d_get_depth(self)[i], lh_bool_false);
     lh_ui_renderer3d_get_depth(self)[i] = depth;
-    lh_cast_reinterpret(lh_u32_t *, lh_ui_pixmap_get_row(lh_ui_renderer3d_get_target(self), y))[x] = color_argb;
+    lh_cast_reinterpret(lh_u32_t *, lh_ui_pixmap_get_row(lh_ui_renderer3d_get_target(self), y))[x] =
+        color_argb;
     return lh_bool_true;
 }
 
@@ -152,7 +154,6 @@ lh_void
 lh_ui_renderer3d_raster(lh_ui_renderer3d_t *self, lh_math_vec3_t a, lh_math_vec3_t b,
                         lh_math_vec3_t c, lh_u32_t color_argb)
 {
-    lh_assert_runtime_ref(self);
     const lh_math_fscalar_t area =
         lh_ui_renderer3d_get_edge(a, b, lh_math_vec3_get_x(&c), lh_math_vec3_get_y(&c));
     lh_return_if(!lh_math_float_is_finite(area) || lh_math_abs(area) < 1e-5f);
@@ -164,12 +165,14 @@ lh_ui_renderer3d_raster(lh_ui_renderer3d_t *self, lh_math_vec3_t a, lh_math_vec3
     const lh_math_fscalar_t cy = lh_math_vec3_get_y(&c);
     const lh_s32_t x0 =
         lh_math_max(0, lh_math_float_floor_to_int(lh_math_min(ax, lh_math_min(bx, cx))));
-    const lh_s32_t x1 = lh_math_min(lh_ui_renderer3d_get_width(self) - 1,
-                                    lh_math_float_ceil_to_int(lh_math_max(ax, lh_math_max(bx, cx))));
+    const lh_s32_t x1 =
+        lh_math_min(lh_ui_renderer3d_get_width(self) - 1,
+                    lh_math_float_ceil_to_int(lh_math_max(ax, lh_math_max(bx, cx))));
     const lh_s32_t y0 =
         lh_math_max(0, lh_math_float_floor_to_int(lh_math_min(ay, lh_math_min(by, cy))));
-    const lh_s32_t y1 = lh_math_min(lh_ui_renderer3d_get_height(self) - 1,
-                                    lh_math_float_ceil_to_int(lh_math_max(ay, lh_math_max(by, cy))));
+    const lh_s32_t y1 =
+        lh_math_min(lh_ui_renderer3d_get_height(self) - 1,
+                    lh_math_float_ceil_to_int(lh_math_max(ay, lh_math_max(by, cy))));
     lh_ui_renderer3d_set_triangles(self, lh_ui_renderer3d_get_triangles(self) + 1);
     for (lh_s32_t y = y0; y <= y1; y++)
     {
@@ -198,8 +201,9 @@ lh_void
 lh_ui_renderer3d_triangle(lh_ui_renderer3d_t *self, lh_math_vec3_t a, lh_math_vec3_t b,
                           lh_math_vec3_t c, lh_u32_t color_argb)
 {
-    lh_return_if(lh_null_eq(self) || lh_null_eq(lh_ui_renderer3d_get_target(self)) || !lh_math_vec3_is_finite(a) ||
-                 !lh_math_vec3_is_finite(b) || !lh_math_vec3_is_finite(c));
+    lh_return_if(lh_null_eq(self) || lh_null_eq(lh_ui_renderer3d_get_target(self)) ||
+                 !lh_math_vec3_is_finite(a) || !lh_math_vec3_is_finite(b) ||
+                 !lh_math_vec3_is_finite(c));
     lh_math_vec3_t polygon[2][lh_ui_renderer3d_clip_capacity];
     lh_ui_renderer3d_camera_to_view(lh_ui_renderer3d_get_camera_mut(self), a, &polygon[0][0]);
     lh_ui_renderer3d_camera_to_view(lh_ui_renderer3d_get_camera_mut(self), b, &polygon[0][1]);
@@ -208,9 +212,9 @@ lh_ui_renderer3d_triangle(lh_ui_renderer3d_t *self, lh_math_vec3_t a, lh_math_ve
     lh_s32_t from = 0;
     for (lh_s32_t plane = 0; plane < lh_ui_renderer3d_plane_count && count > 0; plane++)
     {
-        count = lh_ui_renderer3d_clip_plane(self, (lh_ui_renderer3d_plane_t)plane, polygon[from],
-                                            count, polygon[1 - from],
-                                            lh_ui_renderer3d_clip_capacity);
+        count =
+            lh_ui_renderer3d_clip_plane(self, (lh_ui_renderer3d_plane_t)plane, polygon[from], count,
+                                        polygon[1 - from], lh_ui_renderer3d_clip_capacity);
         lh_return_if(count < 0);
         from = 1 - from;
     }
@@ -264,7 +268,7 @@ lh_ui_renderer3d_get_target(const lh_ui_renderer3d_t *self)
 }
 
 lh_void
-lh_ui_renderer3d_set_target(lh_ui_renderer3d_t *self, lh_ui_pixmap_t * target)
+lh_ui_renderer3d_set_target(lh_ui_renderer3d_t *self, lh_ui_pixmap_t *target)
 {
     lh_assert_runtime_ref(self);
     self->target = target;
@@ -278,7 +282,7 @@ lh_ui_renderer3d_get_depth(const lh_ui_renderer3d_t *self)
 }
 
 lh_void
-lh_ui_renderer3d_set_depth(lh_ui_renderer3d_t *self, lh_math_fscalar_t * depth)
+lh_ui_renderer3d_set_depth(lh_ui_renderer3d_t *self, lh_math_fscalar_t *depth)
 {
     lh_assert_runtime_ref(self);
     self->depth = depth;

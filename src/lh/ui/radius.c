@@ -130,9 +130,6 @@ lh_ui_radius_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t
     const lh_s64_t dy = lh_ui_radius_axis_distance(
         lh_ui_radius_pixel_center(y), lh_ui_point_get_y(origin), lh_ui_size_get_height(size), r);
     const lh_s64_t inner = r - LH_UI_RADIUS_SUBPIXEL / 2;
-    lh_s64_t reach;
-    lh_s64_t inside;
-    lh_s32_t at;
 
     lh_assert_runtime_ref(out_x0);
     if (dy < 0)
@@ -149,6 +146,7 @@ lh_ui_radius_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t
         lh_ptr_deref(out_x1) = right;
         return;
     }
+    lh_s64_t reach;
 
     /* How far past the corner center a pixel still counts as wholly inside.
        lh_ui_radius_cover_from_square answers 255 while dx * dx + dy * dy is at
@@ -166,7 +164,8 @@ lh_ui_radius_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t
                 ? lh_cast_static(lh_s64_t, lh_math_isqrt_u64(lh_cast_static(
                                                lh_u64_t, lh_math_max(inner * inner - dy * dy, 0))))
                 : 0;
-    inside = near - reach;
+    lh_s64_t inside = near - reach;
+    lh_s32_t at;
     /* The first pixel whose center is at or past that point: center(x) is
        x * SUBPIXEL + half, so x is the ceiling of (inside - half) / SUBPIXEL. */
     at = lh_cast_static(lh_s32_t, lh_math_neg(lh_math_floor_div(LH_UI_RADIUS_SUBPIXEL / 2 - inside,
@@ -204,8 +203,6 @@ lh_ui_radius_run_row(const struct lh_ui_radius_run *self, lh_s32_t x0, lh_s32_t 
        so lim_sq never goes negative and the arc always has a non-empty core. */
     const lh_s64_t lim_sq =
         (self->r + LH_UI_RADIUS_SUBPIXEL / 2) * (self->r + LH_UI_RADIUS_SUBPIXEL / 2) - dy2;
-    lh_s64_t p;
-    lh_s32_t i;
 
     lh_assert_runtime_ref(out);
     lh_return_if(x1 <= x0);
@@ -217,6 +214,8 @@ lh_ui_radius_run_row(const struct lh_ui_radius_run *self, lh_s32_t x0, lh_s32_t 
         lh_memory_set(out, lh_cast_static(lh_usize_t, x1 - x0), 0);
         return;
     }
+    lh_s64_t p;
+    lh_s32_t i;
     /* A row away from every corner: whole pixels of the rect are 255, the
        columns outside it 0. dy == 0 alone does not decide that — the column
        still has to be inside the rect, or lh_ui_radius_coverage answers 0. */

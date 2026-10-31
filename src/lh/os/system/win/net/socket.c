@@ -110,17 +110,17 @@ lh_os_system_net_socket_connect_wait(lh_os_system_net_socket_handle_t handle, lh
 {
     const lh_os_system_win_socket_t native = lh_os_system_net_socket_native(handle);
     lh_os_system_win_fd_set_t writable;
-    lh_os_system_win_fd_set_t failed;
-    lh_os_system_win_timeval_t timeout;
-    lh_int_t error = 0;
-    lh_int_t error_size = lh_cast_static(lh_int_t, sizeof(error));
 
     /* Winsock reports a connect that succeeded as writable and one that failed in
        the except set -- not as writable, which is where POSIX puts both. */
     writable.fd_count = 1;
     writable.fd_array[0] = native;
+    lh_os_system_win_fd_set_t failed;
+
     failed.fd_count = 1;
     failed.fd_array[0] = native;
+    lh_os_system_win_timeval_t timeout;
+
     timeout.tv_sec = lh_cast_static(lh_long_t, timeout_ms / 1000U);
     timeout.tv_usec = lh_cast_static(lh_long_t, (timeout_ms % 1000U) * 1000U);
 
@@ -135,6 +135,9 @@ lh_os_system_net_socket_connect_wait(lh_os_system_net_socket_handle_t handle, lh
     {
         return LH_OS_RESULT_PENDING;
     }
+    lh_int_t error = 0;
+    lh_int_t error_size = lh_cast_static(lh_int_t, sizeof(error));
+
     if (!lh_os_system_error_check_zero(
             getsockopt(native, LH_OS_SYSTEM_WIN_SOL_SOCKET, LH_OS_SYSTEM_WIN_SO_ERROR,
                        lh_ptr_cast(char, lh_addr_of(error)), lh_addr_of(error_size))))
@@ -257,14 +260,16 @@ lh_os_system_net_socket_wait(const lh_os_system_net_socket_handle_t *read, lh_us
                              lh_u32_t timeout_ms)
 {
     lh_os_system_win_fd_set_t readable;
-    lh_os_system_win_fd_set_t writable;
-    lh_os_system_win_timeval_t timeout;
 
     /* Winsock refuses a select with every set empty (WSAEINVAL) where POSIX
        would sleep; neither is what a caller with nothing to watch wants. */
     lh_return_if(lh_math_is_zero(read_count + write_count), LH_OS_RESULT_PENDING);
     lh_os_system_net_socket_fill_set(lh_addr_of(readable), read, read_count);
+    lh_os_system_win_fd_set_t writable;
+
     lh_os_system_net_socket_fill_set(lh_addr_of(writable), write, write_count);
+    lh_os_system_win_timeval_t timeout;
+
     timeout.tv_sec = lh_cast_static(lh_long_t, timeout_ms / 1000U);
     timeout.tv_usec = lh_cast_static(lh_long_t, (timeout_ms % 1000U) * 1000U);
 
@@ -446,7 +451,7 @@ lh_os_system_net_socket_poll(lh_os_net_socket_poll_t *entries, lh_usize_t count,
                              lh_u32_t timeout_ms)
 {
     lh_os_system_win_socket_poll_set_t readable, writable, exceptional;
-    lh_os_system_win_timeval_t timeout;
+
     lh_assert_runtime_if(count > LH_OS_NET_SOCKET_POLL_MAX, lh_runtime_error_code_invalid_argument);
     if (count)
     {
@@ -478,6 +483,8 @@ lh_os_system_net_socket_poll(lh_os_net_socket_poll_t *entries, lh_usize_t count,
     {
         return LH_OS_RESULT_PENDING;
     }
+    lh_os_system_win_timeval_t timeout;
+
     timeout.tv_sec = lh_cast_static(lh_long_t, timeout_ms / 1000U);
     timeout.tv_usec = lh_cast_static(lh_long_t, (timeout_ms % 1000U) * 1000U);
     const lh_int_t result =
@@ -530,9 +537,11 @@ lh_os_system_net_socket_pair(lh_os_system_net_socket_handle_t *pair, lh_u32_t ti
     lh_os_system_net_socket_handle_t writer = LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID;
     lh_os_system_net_socket_handle_t reader = LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID;
     lh_net_ip4_t ip;
-    lh_net_ip4_socket_addr_t address, expected, peer;
+
     lh_assert_runtime_ref(pair);
     lh_net_ip4_init(&ip, 127, 0, 0, 1);
+    lh_net_ip4_socket_addr_t address, expected, peer;
+
     lh_net_ip4_socket_addr_init(&address, &ip, 0);
     listener = lh_os_system_net_socket_open_nonblocking(lh_os_system_net_socket_type_tcp);
     if (listener == LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID)
@@ -621,8 +630,7 @@ lh_os_system_net_socket_send_file(lh_os_system_net_socket_handle_t handle,
                                   lh_usize_t size)
 {
     lh_byte_t buffer[16384];
-    lh_os_system_win_large_integer_t position;
-    lh_os_system_win_dword_t read_size = 0;
+
     lh_assert_runtime_ref(offset);
     if (!size)
     {
@@ -634,6 +642,9 @@ lh_os_system_net_socket_send_file(lh_os_system_net_socket_handle_t handle,
         lh_os_system_error_capture();
         return LH_OS_RESULT_INVALID;
     }
+    lh_os_system_win_large_integer_t position;
+    lh_os_system_win_dword_t read_size = 0;
+
     position.QuadPart = lh_cast_static(lh_s64_t, *offset);
     const lh_os_system_win_handle_t native_file =
         lh_cast_reinterpret(lh_os_system_win_handle_t, file);

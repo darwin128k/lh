@@ -31,7 +31,6 @@ lh_os_input_queue_slot(lh_u16_t capacity, lh_u16_t index)
 lh_void
 lh_os_input_queue_init(lh_os_input_queue_t *self, lh_os_input_event_t *storage, lh_u16_t capacity)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(storage);
     lh_assert_runtime_ifn(capacity > 0U && capacity <= 32767U,
                           lh_runtime_error_code_invalid_argument);
@@ -52,14 +51,9 @@ lh_os_input_queue_get_capacity(lh_os_input_queue_cptr self)
 lh_u16_t
 lh_os_input_queue_get_count(lh_os_input_queue_cptr self)
 {
-    lh_u16_t head;
-    lh_u16_t tail;
-    lh_u16_t capacity;
-
-    lh_assert_runtime_ref(self);
-    head = lh_os_input_queue_get_head(self);
-    tail = lh_os_input_queue_get_tail(self);
-    capacity = lh_os_input_queue_get_capacity(self);
+    lh_u16_t head = lh_os_input_queue_get_head(self);
+    lh_u16_t tail = lh_os_input_queue_get_tail(self);
+    lh_u16_t capacity = lh_os_input_queue_get_capacity(self);
 
     return tail >= head ? lh_type_cast(lh_u16_t, tail - head)
                         : lh_type_cast(lh_u16_t, capacity * 2U - head + tail);
@@ -144,8 +138,7 @@ lh_os_input_queue_drain(lh_os_input_queue_t *self, lh_os_input_sink_cb sink, lh_
     lh_os_input_event_t event;
     lh_u16_t count = 0U;
 
-    lh_assert_runtime_ref(sink);
-    while (lh_os_input_queue_pop(self, lh_addr_of(event)))
+    lh_assert_runtime_ref(sink);    while (lh_os_input_queue_pop(self, lh_addr_of(event)))
     {
         sink(context, lh_addr_of(event));
         ++count;

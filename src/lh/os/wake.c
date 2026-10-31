@@ -8,7 +8,6 @@
 lh_void
 lh_os_wake_init(lh_os_wake_t *self)
 {
-    lh_assert_runtime_ref(self);
     lh_os_wake_set_reader(self, LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID);
     lh_os_wake_set_writer(self, LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID);
 }
@@ -17,7 +16,7 @@ lh_bool_t
 lh_os_wake_open(lh_os_wake_t *self, lh_u32_t timeout_ms)
 {
     lh_os_system_net_socket_handle_t pair[2];
-    lh_assert_runtime_ref(self);
+
     if (lh_math_ne(lh_os_wake_get_reader(self), LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID) ||
         lh_math_ne(lh_os_wake_get_writer(self), LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID))
     {
@@ -37,7 +36,7 @@ lh_bool_t
 lh_os_wake_signal(lh_os_wake_t *self)
 {
     const lh_byte_t byte = 1;
-    lh_assert_runtime_ref(self);
+
     const lh_ssize_t result =
         lh_os_system_net_socket_send(lh_os_wake_get_writer(self), lh_addr_of(byte), 1);
     return lh_math_eq(result, 1) || lh_math_eq(result, LH_OS_RESULT_PENDING);
@@ -47,7 +46,7 @@ lh_bool_t
 lh_os_wake_reset(lh_os_wake_t *self)
 {
     lh_byte_t buffer[64];
-    lh_assert_runtime_ref(self);
+
     for (;;)
     {
         const lh_ssize_t result =
@@ -70,14 +69,12 @@ lh_os_wake_reset(lh_os_wake_t *self)
 lh_os_system_net_socket_handle_t
 lh_os_wake_get_handle(const lh_os_wake_t *self)
 {
-    lh_assert_runtime_ref(self);
     return lh_os_wake_get_reader(self);
 }
 
 lh_void
 lh_os_wake_close(lh_os_wake_t *self)
 {
-    lh_assert_runtime_ref(self);
     if (lh_math_ne(lh_os_wake_get_reader(self), LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID))
     {
         lh_os_system_net_socket_close(lh_os_wake_get_reader(self));

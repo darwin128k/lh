@@ -15,9 +15,8 @@ lh_os_window_corner_inset(lh_s32_t radius, lh_s32_t row)
         lh_math_sub(lh_math_sub(lh_math_mul(2, radius64), lh_math_mul(2, lh_type_cast(lh_s64_t, row))),
                     1);
     const lh_s64_t r2 = lh_math_mul(4, lh_math_mul(radius64, radius64));
-    lh_s32_t inset;
 
-    for (inset = 0; lh_math_lt(inset, radius); ++inset)
+    for (lh_s32_t inset = 0; lh_math_lt(inset, radius); ++inset)
     {
         const lh_s64_t dx = lh_math_sub(
             lh_math_sub(lh_math_mul(2, radius64), lh_math_mul(2, lh_type_cast(lh_s64_t, inset))), 1);

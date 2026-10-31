@@ -30,17 +30,16 @@ lh_ui_entity_class_fill(const struct lh_ui_entity *self, lh_ui_canvas_t *canvas)
 lh_void
 lh_ui_entity_class_shadow(const struct lh_ui_entity *self, lh_ui_canvas_t *canvas)
 {
-    const lh_ui_style_t *style;
-    lh_ui_rect_t rect;
 
     lh_return_if(lh_null_eq(canvas) || lh_null_eq(lh_ui_entity_get_style_now(self)));
-    style = lh_ui_entity_get_style_now(self);
+    const lh_ui_style_t *style = lh_ui_entity_get_style_now(self);
     /* Down first because that is the order of the story: the box casts this,
        then the box is painted. The picture is the same either way — a shadow
        paints nothing inside its own box (::lh_ui_shadow_alpha_at), so there is
        nothing of it left to land on the fill. An empty shadow is the common case
        and costs nothing but this question. */
     lh_return_if(lh_ui_shadow_is_empty(lh_ui_style_get_shadow(style)));
+    lh_ui_rect_t rect;
     lh_ui_entity_copy_rect(self, lh_addr_of(rect));
     (void)lh_ui_canvas_shadow(canvas, lh_addr_of(rect), lh_ui_entity_get_radius_now(self),
                               lh_ui_style_get_shadow(style));
@@ -104,7 +103,7 @@ lh_ui_entity_class_get_base(const lh_ui_entity_class_t *self)
 }
 
 lh_void
-lh_ui_entity_class_set_base(lh_ui_entity_class_t *self, const struct lh_ui_entity_class * base)
+lh_ui_entity_class_set_base(lh_ui_entity_class_t *self, const struct lh_ui_entity_class *base)
 {
     lh_assert_runtime_ref(self);
     self->base = base;

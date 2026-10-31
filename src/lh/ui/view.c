@@ -29,7 +29,6 @@ lh_ui_view_get_canvas(const lh_ui_view_t *self)
 lh_void
 lh_ui_view_add_damage(lh_ui_view_t *self, const lh_ui_rect_t *rect)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(rect);
     lh_return_if(lh_ui_rect_is_empty(rect));
     if (!lh_ui_view_is_has_pending(self))
@@ -44,7 +43,6 @@ lh_ui_view_add_damage(lh_ui_view_t *self, const lh_ui_rect_t *rect)
 lh_bool_t
 lh_ui_view_take_damage(lh_ui_view_t *self, lh_ui_rect_t *out)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(out);
     lh_return_if(!lh_ui_view_is_has_pending(self), lh_bool_false);
     lh_ptr_deref(out) = lh_ptr_deref(lh_ui_view_get_pending(self));
@@ -81,7 +79,8 @@ lh_ui_view_fit_canvas(lh_ui_view_t *self)
 
     lh_return_if(lh_null_eq(lh_ui_view_get_root(self)));
     lh_ui_entity_copy_rect(lh_ui_view_get_root(self), lh_addr_of(rect));
-    lh_ui_canvas_set_size(lh_ui_view_get_canvas(self), lh_ptr_deref(lh_ui_rect_get_size(lh_addr_of(rect))));
+    lh_ui_canvas_set_size(lh_ui_view_get_canvas(self),
+                          lh_ptr_deref(lh_ui_rect_get_size(lh_addr_of(rect))));
 }
 
 lh_void
@@ -136,8 +135,8 @@ lh_ui_view_get_strip_height(const lh_ui_view_t *self)
 lh_bool_t
 lh_ui_view_is_stripped(const lh_ui_view_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return lh_math_gt(lh_ui_view_get_strip_height(self), lh_ui_scalar(0)) ? lh_bool_true : lh_bool_false;
+    return lh_math_gt(lh_ui_view_get_strip_height(self), lh_ui_scalar(0)) ? lh_bool_true
+                                                                          : lh_bool_false;
 }
 
 lh_void
@@ -151,7 +150,6 @@ lh_ui_view_get_strip(const lh_ui_view_t *self, lh_ui_scalar_t index, lh_ui_rect_
     const lh_ui_scalar_t top = lh_math_min(index * height, whole - height);
     lh_ui_rect_t strip;
 
-    lh_assert_runtime_ref(self);
     lh_ui_rect_init_empty(lh_addr_of(strip));
     /* Past the last strip, and never a strip taller than the target itself. */
     if (height <= lh_ui_scalar(0) || index < lh_ui_scalar(0) || index * height >= whole)
@@ -184,7 +182,6 @@ lh_ui_view_draw_frame_on(lh_ui_view_t *self, const lh_ui_rect_t *area, const lh_
 lh_bool_t
 lh_ui_view_add_whole_area(lh_ui_view_t *self, const lh_ui_rect_t *rect)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(rect);
     lh_return_if(lh_ui_rect_is_empty(rect), lh_bool_false);
     lh_return_if(lh_ui_view_get_whole_count(self) >= LH_UI_VIEW_WHOLE_MAX, lh_bool_false);
@@ -207,14 +204,12 @@ lh_ui_view_area_whole(const lh_ui_view_t *self, const lh_ui_rect_t *area, const 
     lh_assert_runtime_ref(out);
     lh_ui_size_t size;
     lh_ui_canvas_copy_size(lh_ui_view_get_canvas(self), lh_addr_of(size));
-    lh_ui_rect_t target;
-    lh_ui_rect_t grown;
-    lh_u32_t i;
 
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(reach);
+    lh_ui_rect_t target;
     lh_ui_rect_init(lh_addr_of(target), 0, 0, lh_ui_size_get_width(lh_addr_of(size)),
                     lh_ui_size_get_height(lh_addr_of(size)));
+    lh_ui_rect_t grown;
     /* ::lh_null is the whole target, the way ::lh_ui_canvas_damage_in reads it:
        the damage of a frame is that when nothing was said. */
     if (lh_null_eq(area))
@@ -225,11 +220,12 @@ lh_ui_view_area_whole(const lh_ui_view_t *self, const lh_ui_rect_t *area, const 
     {
         lh_ui_rect_intersection(area, lh_addr_of(target), lh_addr_of(grown));
     }
-    for (i = 0; i < lh_ui_view_get_whole_count(self); ++i)
+    for (lh_u32_t i = 0; i < lh_ui_view_get_whole_count(self); ++i)
     {
         if (lh_ui_rect_intersects(reach, lh_addr_of(lh_ui_view_get_whole(self)[i])))
         {
-            lh_ui_rect_union(lh_addr_of(grown), lh_addr_of(lh_ui_view_get_whole(self)[i]), lh_addr_of(grown));
+            lh_ui_rect_union(lh_addr_of(grown), lh_addr_of(lh_ui_view_get_whole(self)[i]),
+                             lh_addr_of(grown));
         }
     }
     lh_ui_rect_intersection(lh_addr_of(grown), lh_addr_of(target), out);
@@ -238,11 +234,10 @@ lh_ui_view_area_whole(const lh_ui_view_t *self, const lh_ui_rect_t *area, const 
 lh_void
 lh_ui_view_draw_strips(lh_ui_view_t *self, const lh_ui_rect_t *damage)
 {
-    lh_ui_scalar_t index;
     lh_ui_rect_t covered;
 
     lh_ui_rect_init_empty(lh_addr_of(covered));
-    for (index = lh_ui_scalar(0);; ++index)
+    for (lh_ui_scalar_t index = lh_ui_scalar(0);; ++index)
     {
         lh_ui_rect_t strip;
         lh_ui_view_get_strip(self, index, lh_addr_of(strip));
@@ -295,7 +290,6 @@ lh_ui_view_draw_strips(lh_ui_view_t *self, const lh_ui_rect_t *damage)
 lh_void
 lh_ui_view_draw(lh_ui_view_t *self, const lh_ui_rect_t *damage)
 {
-    lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(lh_ui_view_get_canvas(self)));
     lh_ui_view_fit_canvas(self);
     lh_ui_canvas_reset_damage(lh_ui_view_get_canvas(self));
@@ -319,7 +313,6 @@ lh_ui_view_paint(lh_ui_view_t *self)
 lh_ui_entity_t *
 lh_ui_view_hit_test(lh_ui_view_t *self, lh_ui_point_t point)
 {
-    lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(lh_ui_view_get_root(self)), lh_null);
     return lh_ui_entity_find_at(lh_ui_view_get_root(self), point);
 }
@@ -406,7 +399,6 @@ lh_ui_view_is_slow(lh_ui_point_t velocity, lh_ui_scalar_t limit)
 lh_void
 lh_ui_view_stop_throw(lh_ui_view_t *self)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_point_init(lh_ui_view_get_velocity_mut(self), lh_ui_scalar(0), lh_ui_scalar(0));
     lh_return_if(lh_null_eq(lh_ui_view_get_throwing(self)));
     lh_ui_view_set_throwing(self, lh_null);
@@ -441,7 +433,6 @@ lh_ui_view_start_throw(lh_ui_view_t *self, lh_ui_container_t *box)
 lh_bool_t
 lh_ui_view_is_gliding(const lh_ui_view_t *self)
 {
-    lh_assert_runtime_ref(self);
     return lh_null_ne(lh_ui_view_get_throwing(self)) ? lh_bool_true : lh_bool_false;
 }
 
@@ -462,7 +453,6 @@ lh_ui_view_reset_pointer(lh_ui_view_t *self)
 {
     lh_os_input_pointer_id_t id;
 
-    lh_assert_runtime_ref(self);
     for (id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
     {
         lh_ui_view_pointer_reset(lh_addr_of(lh_ui_view_get_pointers_mut(self)[id]));
@@ -472,7 +462,6 @@ lh_ui_view_reset_pointer(lh_ui_view_t *self)
 const lh_ui_view_pointer_t *
 lh_ui_view_get_pointer(const lh_ui_view_t *self, lh_os_input_pointer_id_t id)
 {
-    lh_assert_runtime_ref(self);
     lh_return_if(id >= LH_OS_INPUT_POINTER_MAX, lh_null);
     return lh_addr_of(lh_ui_view_get_pointers(self)[id]);
 }
@@ -482,10 +471,7 @@ lh_ui_view_get_pointer(const lh_ui_view_t *self, lh_os_input_pointer_id_t id)
 lh_void
 lh_ui_view_init(lh_ui_view_t *self)
 {
-    lh_os_input_pointer_id_t id;
-    int i;
 
-    lh_assert_runtime_ref(self);
     lh_ui_view_set_canvas(self, lh_null);
     lh_ui_view_set_root(self, lh_null);
     lh_ui_view_set_clear(self, lh_null);
@@ -497,11 +483,11 @@ lh_ui_view_init(lh_ui_view_t *self)
     lh_ui_rect_init_empty(lh_ui_view_get_pending_mut(self));
     lh_ui_view_set_has_pending(self, lh_bool_false);
     lh_ui_point_init(lh_ui_view_get_velocity_mut(self), lh_ui_scalar(0), lh_ui_scalar(0));
-    for (id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
+    for (lh_os_input_pointer_id_t id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
     {
         lh_ui_view_pointer_init(lh_addr_of(lh_ui_view_get_pointers_mut(self)[id]));
     }
-    for (i = 0; i < LH_UI_VIEW_TRANSITION_MAX; ++i)
+    for (int i = 0; i < LH_UI_VIEW_TRANSITION_MAX; ++i)
     {
         lh_ui_transition_init(lh_addr_of(lh_ui_view_get_transitions_mut(self)[i]));
     }
@@ -582,8 +568,8 @@ lh_ui_view_grab_thumb(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_s
     lh_return_if(!lh_ui_scrollbar_contains_thumb(bar, local));
     lh_return_if(lh_ui_view_is_driven_by_other(self, pointer, lh_ui_scrollbar_get_container(bar)));
     lh_ui_view_pointer_grab(pointer, bar,
-                                lh_ui_view_get_thumb_start_at(bar, point) -
-                                    lh_ui_scrollbar_get_thumb_start(bar));
+                            lh_ui_view_get_thumb_start_at(bar, point) -
+                                lh_ui_scrollbar_get_thumb_start(bar));
 }
 
 lh_ui_container_t *
@@ -597,15 +583,13 @@ lh_void
 lh_ui_view_damage_looks(lh_ui_view_t *self, const lh_ui_entity_t *entity,
                         const lh_ui_style_t *first, const lh_ui_style_t *second)
 {
-    lh_ui_rect_t rect;
-    lh_ui_rect_t bounds;
-    lh_ui_scalar_t outset;
 
     lh_ui_point_t offset;
 
-    lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(entity));
+    lh_ui_rect_t rect;
     lh_ui_entity_copy_rect(entity, lh_addr_of(rect));
+    lh_ui_scalar_t outset;
     outset = lh_null_eq(first)
                  ? lh_ui_scalar(0)
                  : lh_ui_shadow_get_outset(lh_ui_style_get_shadow(first), lh_addr_of(rect));
@@ -614,6 +598,7 @@ lh_ui_view_damage_looks(lh_ui_view_t *self, const lh_ui_entity_t *entity,
         outset = lh_math_max(
             outset, lh_ui_shadow_get_outset(lh_ui_style_get_shadow(second), lh_addr_of(rect)));
     }
+    lh_ui_rect_t bounds;
     lh_ui_rect_inset(lh_addr_of(rect), lh_math_neg(outset), lh_math_neg(outset),
                      lh_addr_of(bounds));
     /* The canvas record stays in the rect's own space: that is what a frame
@@ -634,7 +619,6 @@ lh_ui_view_damage_shape(lh_ui_view_t *self, const lh_ui_entity_t *entity)
 {
     const lh_ui_style_t *style;
 
-    lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(entity));
     style = lh_ui_entity_get_style(entity);
     lh_ui_view_damage_looks(self, entity, style,
@@ -655,12 +639,11 @@ lh_ui_view_click_plain(lh_ui_view_t *self, lh_ui_point_t point)
 lh_ui_entity_t *
 lh_ui_view_click_scrolling(lh_ui_view_t *self, lh_ui_container_t *box, lh_ui_point_t point)
 {
-    lh_ui_point_t before;
-    lh_ui_entity_t *clicked;
 
     lh_return_if(lh_null_eq(box), lh_ui_view_click_plain(self, point));
+    lh_ui_point_t before;
     lh_ui_container_get_clamped_scroll(box, lh_addr_of(before));
-    clicked = lh_ui_view_click_plain(self, point);
+    lh_ui_entity_t *clicked = lh_ui_view_click_plain(self, point);
     (void)lh_ui_view_damage_scroll(self, box, before);
     lh_ui_view_end_scroll(self);
     return clicked;
@@ -669,7 +652,6 @@ lh_ui_view_click_scrolling(lh_ui_view_t *self, lh_ui_container_t *box, lh_ui_poi
 lh_ui_entity_t *
 lh_ui_view_click(lh_ui_view_t *self, lh_ui_point_t point)
 {
-    lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(lh_ui_view_get_root(self)), lh_null);
     return lh_ui_view_click_scrolling(
         self, lh_ui_scrollbar_get_driven(lh_ui_view_hit_test(self, point)), point);
@@ -678,7 +660,6 @@ lh_ui_view_click(lh_ui_view_t *self, lh_ui_point_t point)
 lh_void
 lh_ui_view_set_pressed(lh_ui_view_t *self, lh_ui_entity_t *entity, lh_bool_t pressed)
 {
-    lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(entity) || lh_ui_entity_is_pressed(entity) == pressed);
     lh_ui_view_damage_shape(self, entity);
     lh_ui_entity_set_pressed(entity, pressed);
@@ -696,7 +677,6 @@ lh_ui_view_unpress_target(lh_ui_view_t *self, const lh_ui_view_pointer_t *pointe
 lh_void
 lh_ui_view_start_pointer(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_point_t point)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(pointer);
     lh_ui_view_stop_throw(self);
     /* A press of this pointer still open when it goes down again (an app that
@@ -709,7 +689,6 @@ lh_ui_view_start_pointer(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_u
 lh_void
 lh_ui_view_set_hot(lh_ui_view_t *self, lh_ui_button_t *button, lh_bool_t hot)
 {
-    lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(button));
     lh_return_if(lh_ui_button_get_hot(button) == hot);
     /* Both looks, in whichever order they are: the one being left and the one
@@ -752,13 +731,10 @@ lh_ui_view_drag_content(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui
 lh_bool_t
 lh_ui_view_move_pointer(lh_ui_view_t *self, lh_os_input_pointer_id_t id, lh_ui_point_t point)
 {
-    lh_ui_view_pointer_t *pointer;
-    lh_ui_scrollbar_t *grab;
 
-    lh_assert_runtime_ref(self);
-    pointer = lh_ui_view_get_slot(self, id);
+    lh_ui_view_pointer_t *pointer = lh_ui_view_get_slot(self, id);
     lh_return_if(lh_null_eq(pointer), lh_bool_false);
-    grab = lh_ui_view_pointer_get_grab(pointer);
+    lh_ui_scrollbar_t *grab = lh_ui_view_pointer_get_grab(pointer);
     if (lh_null_ne(grab))
     {
         lh_ui_view_pointer_set_dragged(pointer, lh_bool_true);
@@ -794,20 +770,17 @@ lh_ui_view_finish_gesture(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer)
 lh_ui_entity_t *
 lh_ui_view_release_pointer(lh_ui_view_t *self, lh_os_input_pointer_id_t id, lh_ui_point_t point)
 {
-    lh_ui_view_pointer_t *pointer;
-    lh_ui_entity_t *target;
-    lh_bool_t clicked;
 
-    lh_assert_runtime_ref(self);
-    pointer = lh_ui_view_get_slot(self, id);
+    lh_ui_view_pointer_t *pointer = lh_ui_view_get_slot(self, id);
     lh_return_if(lh_null_eq(pointer), lh_null);
-    target = lh_ui_view_pointer_get_target(pointer);
+    lh_ui_entity_t *target = lh_ui_view_pointer_get_target(pointer);
     lh_ui_entity_send_pointer(target, lh_ui_entity_event_release, point);
     /* Released before the click, and on the entity the press went down on: a
        click may move the pointer onto something else, and that thing was never
        pressed. */
     lh_ui_view_unpress_target(self, pointer);
     lh_ui_view_finish_gesture(self, pointer);
+    lh_bool_t clicked;
     /* A click is a press and a release on one thing: a finger that slid off the
        button it went down on and lifted over another one clicked neither. */
     clicked = lh_type_cast(
@@ -835,7 +808,6 @@ lh_ui_view_get_focus(const lh_ui_view_t *self)
 lh_void
 lh_ui_view_set_focus_v(lh_ui_view_t *self, lh_ui_entity_t *entity)
 {
-    lh_assert_runtime_ref(self);
     lh_return_if(lh_ui_view_get_focus(self) == entity);
     if (lh_null_ne(lh_ui_view_get_focus(self)))
     {
@@ -852,7 +824,6 @@ lh_ui_view_press_on(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_ent
 {
     lh_ui_container_t *box;
 
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(pointer);
     lh_ui_view_pointer_set_target(pointer, hit);
     /* Pressed is the entity's own state and this is the one place that sets it:
@@ -875,7 +846,6 @@ lh_ui_view_press_pointer(lh_ui_view_t *self, lh_os_input_pointer_id_t id, lh_ui_
 {
     lh_ui_view_pointer_t *pointer;
 
-    lh_assert_runtime_ref(self);
     pointer = lh_ui_view_get_slot(self, id);
     lh_return_if(lh_null_eq(pointer));
     lh_ui_view_start_pointer(self, pointer, point);
@@ -901,8 +871,12 @@ lh_ui_view_visit_focus(const lh_ui_entity_t *entity, lh_ptr context)
     {
         lh_ui_view_focus_walk_set_first(walk, entity);
     }
-    lh_return_if(lh_ui_view_focus_walk_is_passed(walk) && lh_null_eq(lh_ui_view_focus_walk_get_next(walk)), (walk->next = entity, lh_bool_false));
-    lh_ui_view_focus_walk_set_passed(walk, entity == lh_ui_view_focus_walk_get_current(walk) ? lh_bool_true : lh_ui_view_focus_walk_is_passed(walk));
+    lh_return_if(lh_ui_view_focus_walk_is_passed(walk) &&
+                     lh_null_eq(lh_ui_view_focus_walk_get_next(walk)),
+                 (walk->next = entity, lh_bool_false));
+    lh_ui_view_focus_walk_set_passed(walk, entity == lh_ui_view_focus_walk_get_current(walk)
+                                               ? lh_bool_true
+                                               : lh_ui_view_focus_walk_is_passed(walk));
     return lh_bool_true;
 }
 
@@ -915,27 +889,30 @@ lh_ui_view_get_next_focus(const lh_ui_view_t *self)
 
     lh_return_if(lh_null_eq(lh_ui_view_get_root(self)), lh_null);
     lh_ui_view_focus_walk_set_current(lh_addr_of(walk), lh_ui_view_get_focus(self));
-    lh_ui_view_focus_walk_set_passed(lh_addr_of(walk), lh_null_eq(lh_ui_view_get_focus(self)) ? lh_bool_true : lh_bool_false);
+    lh_ui_view_focus_walk_set_passed(
+        lh_addr_of(walk), lh_null_eq(lh_ui_view_get_focus(self)) ? lh_bool_true : lh_bool_false);
     (void)lh_ui_entity_walk(lh_ui_view_get_root(self), lh_ui_view_visit_focus, lh_addr_of(walk));
-    return lh_ptr_rcast(lh_ui_entity_t, lh_null_ne(lh_ui_view_focus_walk_get_next(lh_addr_of(walk))) ? lh_ui_view_focus_walk_get_next(lh_addr_of(walk)) : lh_ui_view_focus_walk_get_first(lh_addr_of(walk)));
+    return lh_ptr_rcast(lh_ui_entity_t, lh_null_ne(lh_ui_view_focus_walk_get_next(lh_addr_of(walk)))
+                                            ? lh_ui_view_focus_walk_get_next(lh_addr_of(walk))
+                                            : lh_ui_view_focus_walk_get_first(lh_addr_of(walk)));
 }
 
 lh_bool_t
 lh_ui_view_send_input(lh_ui_view_t *self, const lh_ui_key_input_t *input)
 {
     lh_ui_container_t *box = lh_ui_entity_as_container(lh_ui_view_get_focus(self));
-    lh_ui_point_t before;
-    lh_bool_t moved;
 
     lh_return_if(lh_null_eq(lh_ui_view_get_focus(self)), lh_bool_false);
+    lh_ui_point_t before;
     lh_ui_point_init(lh_addr_of(before), lh_ui_scalar(0), lh_ui_scalar(0));
     if (lh_null_ne(box))
     {
         lh_ui_container_get_clamped_scroll(box, lh_addr_of(before));
     }
-    lh_ui_entity_send(lh_ui_view_get_focus(self), lh_ui_entity_event_key, lh_ptr_rcast(lh_void, input));
+    lh_ui_entity_send(lh_ui_view_get_focus(self), lh_ui_entity_event_key,
+                      lh_ptr_rcast(lh_void, input));
     lh_return_if(lh_null_eq(box), lh_bool_false);
-    moved = lh_ui_view_damage_scroll(self, box, before);
+    lh_bool_t moved = lh_ui_view_damage_scroll(self, box, before);
     lh_ui_view_end_scroll(self);
     return moved;
 }
@@ -960,7 +937,6 @@ lh_ui_view_text(lh_ui_view_t *self, lh_u32_t code)
 {
     lh_ui_key_input_t input;
 
-    lh_assert_runtime_ref(self);
     lh_ui_key_input_init_text(lh_addr_of(input), code);
     return lh_ui_view_send_input(self, lh_addr_of(input));
 }
@@ -974,7 +950,8 @@ lh_ui_view_slot_of(const lh_ui_view_t *self, const lh_ui_entity_t *entity)
     {
         if (lh_ui_transition_get_entity(lh_addr_of(lh_ui_view_get_transitions(self)[i])) == entity)
         {
-            return lh_ptr_rcast(lh_ui_transition_t, lh_addr_of(lh_ui_view_get_transitions(self)[i]));
+            return lh_ptr_rcast(lh_ui_transition_t,
+                                lh_addr_of(lh_ui_view_get_transitions(self)[i]));
         }
     }
     return lh_null;
@@ -993,15 +970,13 @@ lh_ui_view_land(lh_ui_transition_t *slot)
 lh_bool_t
 lh_ui_view_start_transition(lh_ui_view_t *self, lh_ui_entity_t *entity, const lh_ui_style_t *to)
 {
-    lh_ui_transition_t *slot;
-    const lh_ui_style_t *from;
 
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(entity);
     lh_assert_runtime_ref(to);
-    from = lh_ui_entity_get_style(entity);
+    const lh_ui_style_t *from = lh_ui_entity_get_style(entity);
     lh_return_if(lh_null_eq(from), lh_bool_false);
-    slot = lh_ui_view_slot_of(self, entity);
+    lh_ui_transition_t *slot = lh_ui_view_slot_of(self, entity);
     if (lh_null_eq(slot))
     {
         /* A free slot is one with no entity in it. */
@@ -1020,12 +995,10 @@ lh_ui_view_start_transition(lh_ui_view_t *self, lh_ui_entity_t *entity, const lh
 lh_void
 lh_ui_view_cancel_pointer(lh_ui_view_t *self, lh_os_input_pointer_id_t id)
 {
-    lh_ui_view_pointer_t *pointer;
-    lh_ui_point_t last;
 
-    lh_assert_runtime_ref(self);
-    pointer = lh_ui_view_get_slot(self, id);
+    lh_ui_view_pointer_t *pointer = lh_ui_view_get_slot(self, id);
     lh_return_if(lh_null_eq(pointer) || !lh_ui_view_pointer_is_active(pointer));
+    lh_ui_point_t last;
     lh_ui_view_pointer_copy_last_point(pointer, lh_addr_of(last));
     lh_ui_entity_send_pointer(lh_ui_view_pointer_get_target(pointer), lh_ui_entity_event_release,
                               last);
@@ -1039,7 +1012,6 @@ lh_ui_view_cancel(lh_ui_view_t *self)
 {
     lh_os_input_pointer_id_t id;
 
-    lh_assert_runtime_ref(self);
     for (id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
     {
         lh_ui_view_cancel_pointer(self, id);
@@ -1122,7 +1094,6 @@ lh_ui_view_input_pointer(lh_ui_view_t *self, lh_os_input_event_cptr event)
 lh_bool_t
 lh_ui_view_input(lh_ui_view_t *self, lh_os_input_event_cptr event)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(event);
     lh_return_if(lh_os_input_event_is_synthesized(event), lh_bool_false);
     switch (lh_os_input_event_get_kind(event))
@@ -1209,7 +1180,6 @@ lh_ui_view_set_root_v(lh_ui_view_t *self, lh_ui_entity_t *root)
 {
     lh_ui_entity_t *top;
 
-    lh_assert_runtime_ref(self);
     /* The tree that leaves takes its looks with it, landed: its entities must not
        point into a view that no longer holds them. */
     if (lh_ui_view_get_root(self) != root)
@@ -1219,7 +1189,8 @@ lh_ui_view_set_root_v(lh_ui_view_t *self, lh_ui_entity_t *root)
     /* The pointer lives on the top of the tree, which is where a setter walks
        to find this view. A root that is itself parented still records on the
        top, or the walk would stop one short of it. */
-    if (lh_null_ne(lh_ui_view_get_root(self)) && lh_ui_entity_get_view(lh_ui_view_get_root(self)) == self)
+    if (lh_null_ne(lh_ui_view_get_root(self)) &&
+        lh_ui_entity_get_view(lh_ui_view_get_root(self)) == self)
     {
         lh_ui_entity_set_view(lh_ui_view_get_root(self), lh_null);
     }
@@ -1270,16 +1241,18 @@ lh_ui_view_tick(lh_ui_view_t *self)
 
     lh_bool_t faded;
 
-    lh_assert_runtime_ref(self);
     /* Looks first, whether or not anything glides: a frame that only fades is a
        frame to paint. */
     faded = lh_ui_view_advance(self, LH_UI_VIEW_FRAME_MS);
     lh_return_if(lh_null_eq(lh_ui_view_get_throwing(self)), faded);
-    lh_ui_view_slow_down(lh_ptr_deref(lh_ui_view_get_velocity(self)), lh_ui_view_get_velocity_mut(self));
-    moved =
-        lh_ui_view_scroll_by(self, lh_ui_view_get_throwing(self), lh_ui_point_get_x(lh_ui_view_get_velocity_mut(self)),
-                             lh_ui_point_get_y(lh_ui_view_get_velocity_mut(self)));
-    lh_return_if(moved && !lh_ui_view_is_slow(lh_ptr_deref(lh_ui_view_get_velocity(self)), lh_ui_scalar(1)), lh_bool_true);
+    lh_ui_view_slow_down(lh_ptr_deref(lh_ui_view_get_velocity(self)),
+                         lh_ui_view_get_velocity_mut(self));
+    moved = lh_ui_view_scroll_by(self, lh_ui_view_get_throwing(self),
+                                 lh_ui_point_get_x(lh_ui_view_get_velocity_mut(self)),
+                                 lh_ui_point_get_y(lh_ui_view_get_velocity_mut(self)));
+    lh_return_if(
+        moved && !lh_ui_view_is_slow(lh_ptr_deref(lh_ui_view_get_velocity(self)), lh_ui_scalar(1)),
+        lh_bool_true);
     lh_ui_view_stop_throw(self);
     return moved ? lh_bool_true : faded;
 }
@@ -1327,7 +1300,7 @@ lh_ui_view_get_scrolling(const lh_ui_view_t *self)
 }
 
 lh_void
-lh_ui_view_set_scrolling(lh_ui_view_t *self, lh_ui_container_t * scrolling)
+lh_ui_view_set_scrolling(lh_ui_view_t *self, lh_ui_container_t *scrolling)
 {
     lh_assert_runtime_ref(self);
     self->scrolling = scrolling;
@@ -1341,7 +1314,7 @@ lh_ui_view_get_throwing(const lh_ui_view_t *self)
 }
 
 lh_void
-lh_ui_view_set_throwing(lh_ui_view_t *self, lh_ui_container_t * throwing)
+lh_ui_view_set_throwing(lh_ui_view_t *self, lh_ui_container_t *throwing)
 {
     lh_assert_runtime_ref(self);
     self->throwing = throwing;
@@ -1425,14 +1398,14 @@ lh_ui_view_get_transitions_mut(lh_ui_view_t *self)
 }
 
 lh_void
-lh_ui_view_set_root(lh_ui_view_t *self, lh_ui_entity_t * root)
+lh_ui_view_set_root(lh_ui_view_t *self, lh_ui_entity_t *root)
 {
     lh_assert_runtime_ref(self);
     self->root = root;
 }
 
 lh_void
-lh_ui_view_set_focus(lh_ui_view_t *self, lh_ui_entity_t * focus)
+lh_ui_view_set_focus(lh_ui_view_t *self, lh_ui_entity_t *focus)
 {
     lh_assert_runtime_ref(self);
     self->focus = focus;

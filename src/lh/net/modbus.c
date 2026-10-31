@@ -108,19 +108,17 @@ lh_mb_build_read(lh_byte_ptr adu, lh_u16_t cap, lh_u8_t unit, lh_u8_t fc, lh_u16
                  lh_u16_t count)
 {
     lh_byte_t pdu[16];
-    lh_u16_t pdu_length;
-    lh_u16_t crc;
 
     lh_return_if(lh_null_eq(adu), lh_cast_static(lh_u16_t, 0));
     /* unit, PDU, CRC. */
     lh_return_if(cap < 8, lh_cast_static(lh_u16_t, 0));
-    pdu_length =
+    lh_u16_t pdu_length =
         lh_mb_build_pdu_read(pdu, lh_cast_static(lh_u16_t, sizeof(pdu)), fc, address, count);
     lh_return_if(pdu_length == 0, lh_cast_static(lh_u16_t, 0));
 
     adu[0] = unit;
     lh_memory_std_copy(lh_addr_of(adu[1]), pdu, pdu_length);
-    crc = lh_mb_crc16(adu, lh_cast_static(lh_u16_t, (1 + pdu_length)));
+    lh_u16_t crc = lh_mb_crc16(adu, lh_cast_static(lh_u16_t, (1 + pdu_length)));
     adu[1 + pdu_length] = lh_cast_static(lh_byte_t, (crc & 0xFF));
     adu[2 + pdu_length] = lh_cast_static(lh_byte_t, ((crc >> 8) & 0xFF));
     return (lh_u16_t)(3 + pdu_length);
@@ -131,20 +129,18 @@ lh_mb_build_write(lh_byte_ptr adu, lh_u16_t cap, lh_u8_t unit, lh_u16_t address,
                   const lh_u16_t *values, lh_u16_t count)
 {
     lh_byte_t pdu[LH_MB_ADU_MAX];
-    lh_u16_t pdu_length;
-    lh_u16_t crc;
 
     lh_return_if(lh_null_eq(adu) || lh_null_eq(values), lh_cast_static(lh_u16_t, 0));
     /* unit, PDU, CRC. */
     lh_return_if(count == 0 || count > LH_MB_READ_MAX, lh_cast_static(lh_u16_t, 0));
     lh_return_if(cap < lh_cast_static(lh_u16_t, (9 + count * 2)), lh_cast_static(lh_u16_t, 0));
-    pdu_length =
+    lh_u16_t pdu_length =
         lh_mb_build_pdu_write(pdu, lh_cast_static(lh_u16_t, sizeof(pdu)), address, values, count);
     lh_return_if(pdu_length == 0, lh_cast_static(lh_u16_t, 0));
 
     adu[0] = unit;
     lh_memory_std_copy(lh_addr_of(adu[1]), pdu, pdu_length);
-    crc = lh_mb_crc16(adu, lh_cast_static(lh_u16_t, (1 + pdu_length)));
+    lh_u16_t crc = lh_mb_crc16(adu, lh_cast_static(lh_u16_t, (1 + pdu_length)));
     adu[1 + pdu_length] = lh_cast_static(lh_byte_t, (crc & 0xFF));
     adu[2 + pdu_length] = lh_cast_static(lh_byte_t, ((crc >> 8) & 0xFF));
     return (lh_u16_t)(3 + pdu_length);
@@ -154,10 +150,6 @@ lh_mb_status_t
 lh_mb_parse_pdu(lh_byte_cptr pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expect, lh_u16_t *values,
                 lh_u16_t cap, lh_u16_t *out, lh_u8_t *exception)
 {
-    lh_u8_t bytes;
-    lh_u16_t got;
-    lh_u16_t i;
-
     if (out != lh_null)
     {
         lh_ptr_deref(out) = 0;
@@ -198,12 +190,12 @@ lh_mb_parse_pdu(lh_byte_cptr pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expect, 
     {
         return lh_mb_status_wrong_code;
     }
-    bytes = pdu[1];
+    lh_u8_t bytes = pdu[1];
     if (!lh_math_is_multiple_of(bytes, 2))
     {
         return lh_mb_status_garbage; /* not a whole number of words */
     }
-    got = lh_cast_static(lh_u16_t, (bytes / 2));
+    lh_u16_t got = lh_cast_static(lh_u16_t, (bytes / 2));
     /* The bytes that arrived decide this, not the byte count inside them: a
        device that says eight words and sends four has not answered, and taking
        its word for how much came is how a parser reads the next frame as its
@@ -216,7 +208,7 @@ lh_mb_parse_pdu(lh_byte_cptr pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expect, 
     {
         const lh_u16_t take = got < cap ? got : cap;
 
-        for (i = 0; i < take; ++i)
+        for (lh_u16_t i = 0; i < take; ++i)
         {
             values[i] = lh_cast_static(
                 lh_u16_t, (lh_cast_static(lh_u16_t, pdu[2 + i * 2]) << 8 | pdu[3 + i * 2]));

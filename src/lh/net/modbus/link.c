@@ -486,8 +486,6 @@ lh_mb_frame_length(lh_mb_framing_t framing, lh_byte_cptr frame, lh_u16_t have, l
 lh_void
 lh_mb_link_set_fc(lh_mb_link_t *self, lh_u8_t fc)
 {
-    lh_assert_runtime_ref(self);
-
     /* Only while nothing is in flight. A link whose question is already out
        cannot be told to ask a different one: the answer to a 0x03 arriving under
        a link that now believes it asked 0x04 is a frame that parses as somebody
@@ -499,8 +497,6 @@ lh_mb_link_set_fc(lh_mb_link_t *self, lh_u8_t fc)
 lh_void
 lh_mb_link_set_stream(lh_mb_link_t *self, const lh_io_stream_t *stream)
 {
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(stream);
     lh_io_stream_assign(lh_mb_link_get_stream_mut(self), stream);
     /* A new connection is a new stream: whatever was held belonged to the old one,
        and the first byte that arrives now is the first byte of a frame. */
@@ -535,7 +531,6 @@ lh_mb_link_consume(lh_mb_link_t *self, lh_u16_t n)
 const lh_u16_t *
 lh_mb_link_take(lh_mb_link_t *self, lh_u16_t *count)
 {
-    lh_assert_runtime_ref(self);
     lh_return_ifn(lh_mb_link_get_state(self) == lh_cast_static(lh_u8_t, lh_mb_link_answered),
                   lh_ptr_ccast(lh_u16_t, lh_null));
     if (count != lh_null)
@@ -548,7 +543,6 @@ lh_mb_link_take(lh_mb_link_t *self, lh_u16_t *count)
 lh_void
 lh_mb_link_release(lh_mb_link_t *self)
 {
-    lh_assert_runtime_ref(self);
     lh_mb_link_set_state(self, lh_cast_static(lh_u8_t, lh_mb_link_idle));
     /* Over MBAP what is held after the answer is the next frame's start; see
        ::lh_mb_link_consume. */
@@ -565,7 +559,6 @@ lh_mb_link_init(lh_mb_link_t *self, const lh_io_stream_t *stream, lh_mb_framing_
                 lh_u8_t unit, lh_mb_link_clock_cb now_us, lh_ptr clock)
 {
     lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(stream);
 
     lh_memory_std_set(lh_addr_of(lh_ptr_deref(self)), 0, sizeof(lh_ptr_deref(self)));
     lh_io_stream_assign(lh_mb_link_get_stream_mut(self), stream);
@@ -599,7 +592,6 @@ lh_mb_link_send(lh_mb_link_t *self, lh_byte_cptr pdu, lh_u16_t pdu_length, lh_u1
        carries this question's own transaction id -- was then read back as the
        answer. */
     lh_byte_t out[LH_MB_ADU_MAX];
-    lh_ssize_t wrote;
 
     if (pdu_length == 0)
     {
@@ -612,8 +604,8 @@ lh_mb_link_send(lh_mb_link_t *self, lh_byte_cptr pdu, lh_u16_t pdu_length, lh_u1
     {
         return lh_bool_false;
     }
-    wrote = lh_io_stream_write(lh_mb_link_get_stream_mut(self), out,
-                               lh_cast_static(lh_usize_t, pdu_length));
+    lh_ssize_t wrote = lh_io_stream_write(lh_mb_link_get_stream_mut(self), out,
+                                         lh_cast_static(lh_usize_t, pdu_length));
     if (wrote == LH_IO_PENDING)
     {
         /* Nothing went out: the send buffer is full for the moment. Not a fault --
@@ -661,13 +653,10 @@ lh_mb_link_send(lh_mb_link_t *self, lh_byte_cptr pdu, lh_u16_t pdu_length, lh_u1
 lh_mb_link_state_t
 lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us)
 {
-    lh_ssize_t got;
-    lh_u16_t need;
     lh_byte_t pdu[LH_MB_ADU_MAX];
     lh_u16_t pdu_length = 0;
     lh_mb_status_t status;
 
-    lh_assert_runtime_ref(self);
     lh_return_ifn(lh_mb_link_get_state(self) == lh_cast_static(lh_u8_t, lh_mb_link_waiting),
                   lh_cast_static(lh_mb_link_state_t, lh_mb_link_get_state(self)));
 
@@ -675,12 +664,14 @@ lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us)
        and the loop below consumes it. A read of zero bytes is not a harmless call on
        a real socket -- it returns 0, which is how a socket says the peer has
        closed. */
-    got = lh_mb_link_get_held(self) < lh_cast_static(lh_u16_t, LH_MB_ADU_MAX)
-              ? lh_io_stream_read(lh_mb_link_get_stream_mut(self),
-                                  lh_mb_link_get_frame_mut(self) + lh_mb_link_get_held(self),
-                                  lh_cast_static(lh_usize_t,
-                                                 (LH_MB_ADU_MAX - lh_mb_link_get_held(self))))
-              : LH_IO_PENDING;
+    lh_ssize_t got = lh_mb_link_get_held(self) < lh_cast_static(lh_u16_t, LH_MB_ADU_MAX)
+                         ? lh_io_stream_read(lh_mb_link_get_stream_mut(self),
+                                             lh_mb_link_get_frame_mut(self) +
+                                                 lh_mb_link_get_held(self),
+                                             lh_cast_static(lh_usize_t,
+                                                            (LH_MB_ADU_MAX -
+                                                             lh_mb_link_get_held(self))))
+                         : LH_IO_PENDING;
     if (got == 0 || (got < 0 && got != LH_IO_PENDING))
     {
         /* Every failure below ends the same way: **back to idle, not stuck.**
@@ -715,6 +706,7 @@ lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us)
     for (;;)
     {
         lh_bool_t ours;
+        lh_u16_t need;
 
         need = lh_mb_frame_length(lh_mb_link_get_framing(self), lh_mb_link_get_frame(self),
                                   lh_mb_link_get_held(self), lh_mb_link_get_asked_fc(self));
@@ -842,9 +834,7 @@ lh_bool_t
 lh_mb_link_ask(lh_mb_link_t *self, lh_u16_t address, lh_u16_t count)
 {
     lh_byte_t pdu[LH_MB_ADU_MAX];
-    lh_u16_t pdu_length;
 
-    lh_assert_runtime_ref(self);
     /* One question at a time. A second request sent while the first is unanswered
        comes back after its own answer and is read as somebody else's frame, which
        is a bug that looks like a device answering the wrong question. */
@@ -860,8 +850,8 @@ lh_mb_link_ask(lh_mb_link_t *self, lh_u16_t address, lh_u16_t count)
        else's frame. It looked like a device
        answering the wrong question, which is the most expensive kind of bug to
        chase and the least likely — the answer was fine, the reader was wrong. */
-    pdu_length = lh_mb_build_pdu_read(pdu, lh_cast_static(lh_u16_t, sizeof(pdu)),
-                                      lh_mb_link_get_fc(self), address, count);
+    lh_u16_t pdu_length = lh_mb_build_pdu_read(pdu, lh_cast_static(lh_u16_t, sizeof(pdu)),
+                                                lh_mb_link_get_fc(self), address, count);
     return lh_mb_link_send(self, pdu, pdu_length, address, count, lh_mb_link_get_fc(self));
 }
 
@@ -870,7 +860,6 @@ lh_mb_link_write(lh_mb_link_t *self, lh_u16_t address, const lh_u16_t *values, l
 {
     lh_byte_t pdu[LH_MB_ADU_MAX];
 
-    lh_assert_runtime_ref(self);
     lh_return_ifn(lh_mb_link_get_state(self) == lh_cast_static(lh_u8_t, lh_mb_link_idle),
                   lh_bool_false);
     lh_return_ifn(lh_null_ne(values) && count > 0, lh_bool_false);
@@ -885,7 +874,6 @@ lh_mb_link_write_one(lh_mb_link_t *self, lh_u16_t address, lh_u16_t value)
 {
     lh_byte_t pdu[LH_MB_ADU_MAX];
 
-    lh_assert_runtime_ref(self);
     lh_return_ifn(lh_mb_link_get_state(self) == lh_cast_static(lh_u8_t, lh_mb_link_idle),
                   lh_bool_false);
     lh_return_ifn(lh_mb_link_send(self, pdu,

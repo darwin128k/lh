@@ -48,7 +48,6 @@ lh_ui_pixmap_init(lh_ui_pixmap_t *self, lh_byte_ptr bits, lh_s32_t width, lh_s32
 {
     const lh_s32_t bytes = lh_ui_pixmap_format_get_bytes(format);
 
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ifn(width >= 0 && height >= 0 && stride >= width * bytes &&
                               lh_math_is_multiple_of(stride, bytes),
                           lh_runtime_error_code_invalid_argument);
@@ -100,15 +99,14 @@ lh_ui_pixmap_get_bounds(const lh_ui_pixmap_t *self, lh_ui_rect_t *out)
     lh_assert_runtime_ref(out);
     lh_ui_rect_t bounds;
 
-    lh_assert_runtime_ref(self);
-    lh_ui_rect_init(lh_addr_of(bounds), 0, 0, lh_ui_pixmap_get_width(self), lh_ui_pixmap_get_height(self));
+    lh_ui_rect_init(lh_addr_of(bounds), 0, 0, lh_ui_pixmap_get_width(self),
+                    lh_ui_pixmap_get_height(self));
     lh_ptr_deref(out) = bounds;
 }
 
 lh_byte_ptr
 lh_ui_pixmap_get_row(const lh_ui_pixmap_t *self, lh_s32_t y)
 {
-    lh_assert_runtime_ref(self);
     return lh_ui_pixmap_get_bits(self) + y * lh_ui_pixmap_get_stride(self);
 }
 
@@ -156,8 +154,9 @@ lh_ui_pixmap_read_word(const lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y)
 {
     lh_byte_cptr at = lh_ui_pixmap_get_address(self, x, y);
 
-    return lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self)) ? *lh_ptr_rcast(const lh_u16_t, at)
-                                                   : *lh_ptr_rcast(const lh_u32_t, at);
+    return lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self))
+               ? *lh_ptr_rcast(const lh_u16_t, at)
+               : *lh_ptr_rcast(const lh_u32_t, at);
 }
 
 lh_void
@@ -665,9 +664,6 @@ lh_ui_pixmap_blend_octet_m128(__m128i in, __m128i a8, lh_u32_t src, lh_bool_t sw
     const __m128i src8b = _mm_set1_epi16(lh_cast_static(short, (src & 0xFF)));
     const __m128i alpha16 = _mm_unpacklo_epi8(a8, zero);
     const __m128i inv = _mm_sub_epi16(full, alpha16);
-    __m128i r8;
-    __m128i g8;
-    __m128i b8;
 
     /* A swapped format keeps the low byte first; one 16-bit byte swap per block
        turns it into the numeric RGB565 the planes below expect, and the same
@@ -676,8 +672,11 @@ lh_ui_pixmap_blend_octet_m128(__m128i in, __m128i a8, lh_u32_t src, lh_bool_t sw
     {
         in = _mm_or_si128(_mm_slli_epi16(in, 8), _mm_srli_epi16(in, 8));
     }
+    __m128i r8;
     LH_UI_PIXMAP_BLEND_PLANE(r8, _mm_and_si128(_mm_srli_epi16(in, 11), m31), src8r, 3, 2, 3);
+    __m128i g8;
     LH_UI_PIXMAP_BLEND_PLANE(g8, _mm_and_si128(_mm_srli_epi16(in, 5), m63), src8g, 2, 4, 2);
+    __m128i b8;
     LH_UI_PIXMAP_BLEND_PLANE(b8, _mm_and_si128(in, m31), src8b, 3, 2, 3);
     in = _mm_or_si128(_mm_slli_epi16(r8, 11), _mm_or_si128(_mm_slli_epi16(g8, 5), b8));
     if (swap)
@@ -887,8 +886,6 @@ lh_void
 lh_ui_pixmap_blend_cover_8(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_s32_t count,
                            lh_u64_t cover, lh_u32_t src)
 {
-    lh_byte_t alpha[8];
-    lh_s32_t i;
 
     lh_assert_runtime(count >= 1 && count <= 8, lh_runtime_error_code_invalid_argument);
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
@@ -898,17 +895,18 @@ lh_ui_pixmap_blend_cover_8(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_s32_
 
         if (lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self)))
         {
-            lh_ui_pixmap_blend_cover_16_sse2(lh_ptr_rcast(lh_u16_t, at),
-                                             lh_cast_static(lh_usize_t, count), cover, src,
-                                             lh_ui_pixmap_get_format(self) == lh_ui_pixmap_format_rgb565_swapped);
+            lh_ui_pixmap_blend_cover_16_sse2(
+                lh_ptr_rcast(lh_u16_t, at), lh_cast_static(lh_usize_t, count), cover, src,
+                lh_ui_pixmap_get_format(self) == lh_ui_pixmap_format_rgb565_swapped);
             return;
         }
         lh_ui_pixmap_blend_cover_32_sse2(lh_ptr_rcast(lh_u32_t, at),
                                          lh_cast_static(lh_usize_t, count), cover, src);
         return;
     }
+    lh_byte_t alpha[8];
 #endif
-    for (i = 0; i < count; ++i)
+    for (lh_s32_t i = 0; i < count; ++i)
     {
         alpha[i] = lh_cast_static(lh_byte_t, cover >> (8 * i));
     }
@@ -920,9 +918,9 @@ lh_ui_pixmap_blend_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t
                         const lh_ui_color_t *color)
 {
     lh_byte_t alpha[LH_UI_PIXMAP_RUN];
-    lh_s32_t end;
 
     lh_memory_set(alpha, sizeof(alpha), lh_ui_color_get_a(color));
+    lh_s32_t end;
     for (; x0 < x1; x0 = end)
     {
         end = lh_math_min(x1, x0 + LH_UI_PIXMAP_RUN);
@@ -1008,8 +1006,8 @@ lh_ui_pixmap_fill_box(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t y0, lh_s32_t x
 lh_void
 lh_ui_pixmap_clear(lh_ui_pixmap_t *self, const lh_ui_color_t *color)
 {
-    lh_assert_runtime_ref(self);
-    lh_ui_pixmap_store_box(self, 0, 0, lh_ui_pixmap_get_width(self), lh_ui_pixmap_get_height(self), lh_ui_pixmap_pack(self, color));
+    lh_ui_pixmap_store_box(self, 0, 0, lh_ui_pixmap_get_width(self), lh_ui_pixmap_get_height(self),
+                           lh_ui_pixmap_pack(self, color));
 }
 
 lh_byte_t *
@@ -1020,7 +1018,7 @@ lh_ui_pixmap_get_bits(const lh_ui_pixmap_t *self)
 }
 
 lh_void
-lh_ui_pixmap_set_bits(lh_ui_pixmap_t *self, lh_byte_t * bits)
+lh_ui_pixmap_set_bits(lh_ui_pixmap_t *self, lh_byte_t *bits)
 {
     lh_assert_runtime_ref(self);
     self->bits = bits;

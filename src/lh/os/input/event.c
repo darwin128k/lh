@@ -139,7 +139,6 @@ lh_os_input_event_set_count(lh_os_input_event_t *self, lh_u8_t count)
 lh_void
 lh_os_input_event_set_delta(lh_os_input_event_t *self, lh_s32_t dx, lh_s32_t dy)
 {
-    lh_assert_runtime_ref(self);
     lh_os_input_event_set_dx(self, dx);
     lh_os_input_event_set_dy(self, dy);
 }

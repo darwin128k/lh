@@ -14,7 +14,6 @@
 lh_void
 lh_os_app_init(lh_os_app_t *self)
 {
-    lh_assert_runtime_ref(self);
     lh_list_init(lh_os_app_get_windows_mut(self));
     lh_timer_group_init(lh_os_app_get_timers(self));
     lh_os_app_set_quit(self, lh_bool_false);
@@ -37,7 +36,6 @@ lh_os_app_is_quit(const lh_os_app_t *self)
 lh_void
 lh_os_app_quit(lh_os_app_t *self)
 {
-    lh_assert_runtime_ref(self);
     lh_os_app_set_quit(self, lh_bool_true);
     lh_os_system_window_post_quit();
 }
@@ -52,12 +50,10 @@ lh_os_app_get_first_window(const lh_os_app_t *self)
 lh_void
 lh_os_app_deinit(lh_os_app_t *self)
 {
-    lh_os_window_t *window;
-
-    lh_assert_runtime_ref(self);
     for (;;)
     {
-        window = lh_os_app_get_first_window(self);
+        lh_os_window_t *window = lh_os_app_get_first_window(self);
+
         if (lh_null_eq(window))
         {
             break;
@@ -88,17 +84,14 @@ lh_os_app_get_next_window(const lh_os_app_t *self, const lh_os_window_t *window)
 lh_void
 lh_os_app_run(lh_os_app_t *self)
 {
-    lh_assert_runtime_ref(self);
     while (!lh_os_app_is_quit(self) && !lh_list_is_empty(lh_os_app_get_windows(self)))
     {
-        lh_tick_t now;
-        lh_tick_t wait;
-        lh_os_system_window_pump_result_t result;
+        lh_tick_t now = lh_os_tick_ms();
 
-        now = lh_os_tick_ms();
         lh_timer_group_handler(lh_os_app_get_timers(self), now);
-        wait = lh_timer_group_until_next(lh_os_app_get_timers(self), lh_os_tick_ms());
-        result = lh_os_system_window_pump_wait(wait);
+        lh_tick_t wait = lh_timer_group_until_next(lh_os_app_get_timers(self), lh_os_tick_ms());
+        lh_os_system_window_pump_result_t result = lh_os_system_window_pump_wait(wait);
+
         if (result == lh_os_system_window_pump_quit)
         {
             lh_os_app_set_quit(self, lh_bool_true);

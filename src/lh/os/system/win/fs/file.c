@@ -153,25 +153,29 @@ lh_os_system_fs_file_open_step(lh_os_system_win_handle_t ntdll,
                                lh_os_system_win_handle_t directory, lh_str_cptr name,
                                lh_bool_t more)
 {
-    lh_os_system_win_unicode_string_t text;
-    lh_os_system_win_object_attributes_t attributes;
-    lh_os_system_win_io_status_block_t status_block;
-    lh_os_system_win_handle_t handle = LH_OS_SYSTEM_WIN_INVALID_HANDLE;
     lh_os_str_t wide;
-    lh_long_t status;
 
     lh_return_ifn(lh_os_system_str_init_by_utf8(lh_addr_of(wide), name),
                   LH_OS_SYSTEM_WIN_INVALID_HANDLE);
+    lh_os_system_win_unicode_string_t text;
+
     text.Buffer = lh_cast_const(lh_wstr_ptr, lh_os_str_get_data(lh_addr_of(wide)));
     text.Length = lh_cast_static(lh_os_system_win_word_t,
                                  lh_os_str_get_size(lh_addr_of(wide)) * sizeof(lh_wchar_t));
     text.MaximumLength = text.Length;
+    lh_os_system_win_object_attributes_t attributes;
+
     attributes.Length = lh_cast_static(lh_os_system_win_dword_t, sizeof(attributes));
     attributes.RootDirectory = directory;
     attributes.ObjectName = lh_addr_of(text);
     attributes.Attributes = LH_OS_SYSTEM_WIN_OBJ_CASE_INSENSITIVE;
     attributes.SecurityDescriptor = lh_null;
     attributes.SecurityQualityOfService = lh_null;
+    lh_os_system_win_io_status_block_t status_block;
+
+    lh_os_system_win_handle_t handle = LH_OS_SYSTEM_WIN_INVALID_HANDLE;
+    lh_long_t status;
+
     status = create(lh_addr_of(handle),
                     more ? (LH_OS_SYSTEM_WIN_FILE_LIST_DIRECTORY | LH_OS_SYSTEM_WIN_FILE_TRAVERSE |
                             LH_OS_SYSTEM_WIN_FILE_READ_ATTRIBUTES | LH_OS_SYSTEM_WIN_SYNCHRONIZE)

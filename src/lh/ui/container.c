@@ -35,9 +35,9 @@ lh_ui_container_set_layout(lh_ui_container_t *self, const lh_ui_layout_t *layout
 lh_void
 lh_ui_container_init(lh_ui_container_t *self, lh_ui_rect_t rect)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_entity_init(lh_ui_container_get_entity_mut(self), rect);
-    lh_ui_entity_set_class_v(lh_ui_container_get_entity_mut(self), lh_addr_of(lh_ui_container_class));
+    lh_ui_entity_set_class_v(lh_ui_container_get_entity_mut(self),
+                             lh_addr_of(lh_ui_container_class));
     lh_ui_point_init(lh_ui_container_get_scroll_mut(self), lh_ui_scalar(0), lh_ui_scalar(0));
     lh_ui_container_set_layout(self, lh_null);
     lh_ui_container_set_placing(self, lh_bool_false);
@@ -77,8 +77,8 @@ lh_void
 lh_ui_container_get_viewport_size(const lh_ui_container_t *self, lh_ui_size_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_assert_runtime_ref(self);
-    lh_ptr_deref(out) = lh_ptr_deref(lh_ui_rect_get_size(lh_ui_entity_get_rect(lh_ui_container_get_entity(self))));
+    lh_ptr_deref(out) =
+        lh_ptr_deref(lh_ui_rect_get_size(lh_ui_entity_get_rect(lh_ui_container_get_entity(self))));
 }
 
 lh_void
@@ -98,11 +98,11 @@ lh_ui_container_get_content_far(const lh_ui_container_t *self, lh_ui_point_t *ou
     lh_assert_runtime_ref(out);
     lh_ui_rect_t bounds;
 
-    lh_assert_runtime_ref(self);
     lh_ui_entity_get_content_bounds(lh_ui_container_get_entity(self), lh_addr_of(bounds));
     if (lh_ui_rect_is_empty(lh_addr_of(bounds)))
     {
-        lh_ptr_deref(out) = lh_ptr_deref(lh_ui_rect_get_origin(lh_ui_entity_get_rect(lh_ui_container_get_entity(self))));
+        lh_ptr_deref(out) = lh_ptr_deref(
+            lh_ui_rect_get_origin(lh_ui_entity_get_rect(lh_ui_container_get_entity(self))));
         return;
     }
     {
@@ -116,11 +116,10 @@ lh_void
 lh_ui_container_get_content_size(const lh_ui_container_t *self, lh_ui_size_t *out)
 {
     lh_assert_runtime_ref(out);
-    const lh_ui_point_t *origin;
-    lh_ui_point_t corner;
 
-    lh_assert_runtime_ref(self);
-    origin = lh_ui_rect_get_origin(lh_ui_entity_get_rect(lh_ui_container_get_entity(self)));
+    const lh_ui_point_t *origin =
+        lh_ui_rect_get_origin(lh_ui_entity_get_rect(lh_ui_container_get_entity(self)));
+    lh_ui_point_t corner;
     lh_ui_container_get_content_far(self, lh_addr_of(corner));
     lh_ui_point_max(lh_addr_of(corner), origin, lh_addr_of(corner));
     lh_ui_size_from_extent(origin, lh_addr_of(corner), out);
@@ -131,9 +130,9 @@ lh_ui_container_get_scroll_max(const lh_ui_container_t *self, lh_ui_point_t *out
 {
     lh_assert_runtime_ref(out);
     lh_ui_size_t content;
-    lh_ui_size_t viewport;
 
     lh_ui_container_get_content_size(self, lh_addr_of(content));
+    lh_ui_size_t viewport;
     lh_ui_container_get_viewport_size(self, lh_addr_of(viewport));
     lh_ui_point_init(out,
                      lh_ui_scalar_slack(lh_ui_size_get_width(lh_addr_of(content)),
@@ -169,7 +168,6 @@ lh_void
 lh_ui_container_get_scroll_within(const lh_ui_container_t *self, lh_ui_point_t max,
                                   lh_ui_point_t *out)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_container_clamp_scroll_to(lh_ptr_deref(lh_ui_container_get_scroll(self)), max, out);
 }
 
@@ -222,8 +220,6 @@ lh_ui_container_get_key_delta(const lh_ui_container_t *self, const lh_ui_key_inp
 lh_void
 lh_ui_container_place_children(const lh_ui_container_t *self, lh_ui_entity_transform_t *transform)
 {
-    lh_ui_point_t scroll;
-    lh_ui_point_t offset;
 
     /* First, because everything below is about where the content ended up: the
        flow is the container's own job and this is the only place in a frame that
@@ -237,7 +233,9 @@ lh_ui_container_place_children(const lh_ui_container_t *self, lh_ui_entity_trans
         lh_ui_layout_apply(lh_ui_container_get_layout(self), lh_ptr_rcast(lh_ui_entity_t, self));
         lh_ui_container_set_placing(placing, lh_bool_false);
     }
+    lh_ui_point_t scroll;
     lh_ui_container_get_clamped_scroll(self, lh_addr_of(scroll));
+    lh_ui_point_t offset;
     lh_ui_point_init(lh_addr_of(offset), lh_math_neg(lh_ui_point_get_x(lh_addr_of(scroll))),
                      lh_math_neg(lh_ui_point_get_y(lh_addr_of(scroll))));
     lh_ui_entity_transform_set_offset(transform, offset);
@@ -254,7 +252,6 @@ lh_ui_container_on_children(const lh_ui_container_t *self, const lh_ui_entity_ev
 lh_void
 lh_ui_container_set_scroll_v(lh_ui_container_t *self, lh_ui_point_t scroll)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_container_clamp_scroll(self, scroll, lh_ui_container_get_scroll_mut(self));
 }
 

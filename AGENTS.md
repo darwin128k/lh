@@ -48,6 +48,12 @@ every brick.
   `python tools/check-decls.py <paths>` (the Authum repository holds the
   checker) reports the piles: two or more declarations in a row at the start of
   a block.
+- **A loop counter lives in the `for` header.** A variable that belongs to the
+  loop alone is declared in the header itself: `for (lh_usize_t i = 0; i < 8u;
+  ++i)`. A separate `lh_usize_t i;` line above the loop is right only when the
+  variable outlives the loop and is read after it. Both forms compile to the
+  same code — the difference is the scope and what the line says at a glance,
+  not the speed.
 - **Do not repeat a pointer assertion already guaranteed by delegation.**
   A public function owns its documented preconditions, but may enforce them
   through the brick it calls; it does not need a separate entry assertion.

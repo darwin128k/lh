@@ -35,7 +35,6 @@ lh_os_system_serial_setup(lh_os_system_win_handle_t port, lh_u32_t baud,
                           lh_os_serial_parity_t parity, lh_u8_t stop_bits)
 {
     lh_os_system_win_dcb_t dcb;
-    lh_os_system_win_commtimeouts_t timeouts;
 
     lh_memory_set(lh_addr_of(dcb), sizeof(dcb), 0);
     dcb.DCBlength = lh_cast_static(lh_os_system_win_dword_t, sizeof(dcb));
@@ -58,6 +57,8 @@ lh_os_system_serial_setup(lh_os_system_win_handle_t port, lh_u32_t baud,
     /* MAXDWORD, 0, 0 is the documented way to say "return what has arrived, now":
        a read never waits. Writes have no timeout and complete when the bytes are
        sent, which is the frame's transmission time. */
+    lh_os_system_win_commtimeouts_t timeouts;
+
     timeouts.ReadIntervalTimeout = LH_OS_SYSTEM_WIN_MAXDWORD;
     timeouts.ReadTotalTimeoutMultiplier = 0UL;
     timeouts.ReadTotalTimeoutConstant = 0UL;
@@ -73,17 +74,14 @@ lh_os_system_serial_open(lh_str_cptr name, lh_u32_t baud, lh_os_serial_parity_t 
                          lh_u8_t stop_bits)
 {
     lh_char_t path[LH_OS_SYSTEM_WIN_SERIAL_NAME_MAX];
-    lh_os_str_t os_path;
-    lh_os_system_win_handle_t port;
-    lh_usize_t at = 0U;
-    lh_usize_t i = 0U;
-    lh_bool_t ok;
 
     lh_assert_runtime_ref(name);
     lh_return_if(baud == 0U || (stop_bits != 1U && stop_bits != 2U),
                  LH_OS_SYSTEM_SERIAL_HANDLE_INVALID);
     /* COM1 to COM9 open by their names; COM10 and up only as \\.\COM10, and the
        long form works for all of them -- so a bare name gets it. */
+    lh_usize_t at = 0U;
+
     if (!(name[0] == lh_char_map_backslash && name[1] == lh_char_map_backslash))
     {
         path[at++] = lh_char_map_backslash;
@@ -91,6 +89,8 @@ lh_os_system_serial_open(lh_str_cptr name, lh_u32_t baud, lh_os_serial_parity_t 
         path[at++] = lh_char_map_period;
         path[at++] = lh_char_map_backslash;
     }
+    lh_usize_t i = 0U;
+
     while (name[i] != lh_char_map_nul &&
            at + 1U < lh_cast_static(lh_usize_t, LH_OS_SYSTEM_WIN_SERIAL_NAME_MAX))
     {
@@ -99,11 +99,15 @@ lh_os_system_serial_open(lh_str_cptr name, lh_u32_t baud, lh_os_serial_parity_t 
     lh_return_if(name[i] != lh_char_map_nul, LH_OS_SYSTEM_SERIAL_HANDLE_INVALID);
     path[at] = lh_char_map_nul;
 
-    ok = lh_os_system_str_init_by_utf8(lh_addr_of(os_path), path);
-    port = ok ? CreateFileW(lh_os_str_get_data(lh_addr_of(os_path)),
-                            LH_OS_SYSTEM_WIN_GENERIC_READ | LH_OS_SYSTEM_WIN_GENERIC_WRITE, 0UL,
-                            lh_null, LH_OS_SYSTEM_WIN_OPEN_EXISTING, 0UL, lh_null)
-              : LH_OS_SYSTEM_WIN_INVALID_HANDLE;
+    lh_os_str_t os_path;
+
+    lh_bool_t ok = lh_os_system_str_init_by_utf8(lh_addr_of(os_path), path);
+    lh_os_system_win_handle_t port =
+        ok ? CreateFileW(lh_os_str_get_data(lh_addr_of(os_path)),
+                         LH_OS_SYSTEM_WIN_GENERIC_READ | LH_OS_SYSTEM_WIN_GENERIC_WRITE, 0UL,
+                         lh_null, LH_OS_SYSTEM_WIN_OPEN_EXISTING, 0UL, lh_null)
+           : LH_OS_SYSTEM_WIN_INVALID_HANDLE;
+
     lh_os_str_deinit(lh_addr_of(os_path));
     if (port == LH_OS_SYSTEM_WIN_INVALID_HANDLE)
     {

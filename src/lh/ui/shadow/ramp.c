@@ -11,7 +11,6 @@ lh_ui_shadow_ramp_init(lh_ui_shadow_ramp_t *self, const lh_ui_shadow_shape_t *sh
 {
     lh_s32_t level;
 
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(shape);
     lh_ui_shadow_ramp_set_count(self, lh_ui_shadow_shape_get_peak(shape));
     for (level = 0; level < lh_ui_shadow_ramp_get_count(self); ++level)
@@ -21,7 +20,8 @@ lh_ui_shadow_ramp_init(lh_ui_shadow_ramp_t *self, const lh_ui_shadow_shape_t *sh
            in, where the peak gives way -- and between, where the fade
            `(start - d * step) >> 16` first drops to `level`, which is
            `d * step > start - ((level + 1) << 16)`. */
-        const lh_s64_t limit = lh_ui_shadow_shape_get_start(shape) - (lh_cast_static(lh_s64_t, (level + 1)) << 16);
+        const lh_s64_t limit =
+            lh_ui_shadow_shape_get_start(shape) - (lh_cast_static(lh_s64_t, (level + 1)) << 16);
         lh_s64_t least;
         lh_s64_t reach;
 
@@ -36,8 +36,10 @@ lh_ui_shadow_ramp_init(lh_ui_shadow_ramp_t *self, const lh_ui_shadow_shape_t *sh
         }
         else
         {
-            least = limit < 0 ? lh_math_neg(lh_cast_static(lh_s64_t, lh_ui_shadow_shape_get_spread(shape)))
-                              : lh_cast_static(lh_s64_t, lh_ui_shadow_shape_get_spread(shape));
+            least =
+                limit < 0
+                    ? lh_math_neg(lh_cast_static(lh_s64_t, lh_ui_shadow_shape_get_spread(shape)))
+                    : lh_cast_static(lh_s64_t, lh_ui_shadow_shape_get_spread(shape));
         }
         if (least < 1 - lh_cast_static(lh_s64_t, lh_ui_shadow_shape_get_spread(shape)))
         {
@@ -51,7 +53,8 @@ lh_ui_shadow_ramp_init(lh_ui_shadow_ramp_t *self, const lh_ui_shadow_shape_t *sh
            `root - r`, and `root` is the whole square root of the squared distance,
            so `root >= least + r` is the squared distance reaching `(least + r)^2`. */
         reach = least + lh_ui_shadow_shape_get_r(shape);
-        lh_ui_shadow_ramp_get_square_mut(self)[level] = reach > 0 ? lh_cast_static(lh_u64_t, (reach * reach)) : 0U;
+        lh_ui_shadow_ramp_get_square_mut(self)[level] =
+            reach > 0 ? lh_cast_static(lh_u64_t, (reach * reach)) : 0U;
     }
 }
 
@@ -60,7 +63,8 @@ lh_ui_shadow_ramp_walk(const lh_ui_shadow_ramp_t *self, lh_u64_t square, lh_s32_
 {
     /* The alpha is how many thresholds lie beyond the distance, and they fall as the
        alpha rises, so it is found by stepping from a neighbour's. */
-    while (level < lh_ui_shadow_ramp_get_count(self) && square < lh_ui_shadow_ramp_get_square(self)[level])
+    while (level < lh_ui_shadow_ramp_get_count(self) &&
+           square < lh_ui_shadow_ramp_get_square(self)[level])
     {
         ++level;
     }

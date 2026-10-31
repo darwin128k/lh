@@ -11,7 +11,6 @@
 lh_void
 lh_ui_layout_init(lh_ui_layout_t *self, lh_ui_axis_t axis, lh_ui_scalar_t gap)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_if(gap < lh_ui_scalar(0), lh_runtime_error_code_invalid_argument);
     lh_ui_layout_set_axis(self, axis);
     lh_ui_layout_set_gap(self, gap);
@@ -23,7 +22,6 @@ lh_ui_layout_init(lh_ui_layout_t *self, lh_ui_axis_t axis, lh_ui_scalar_t gap)
 lh_void
 lh_ui_layout_set_wrapping(lh_ui_layout_t *self, lh_bool_t wrap, lh_ui_scalar_t line_gap)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_if(line_gap < lh_ui_scalar(0), lh_runtime_error_code_invalid_argument);
     lh_ui_layout_set_wrap(self, wrap);
     lh_ui_layout_set_line_gap(self, line_gap);
@@ -88,9 +86,9 @@ lh_ui_layout_wants(const lh_ui_layout_t *self, lh_ui_entity_t *child)
         return lh_ui_place_clamp(place, lh_ui_layout_get_axis(self), lh_ui_place_get_size(place));
     }
     lh_ui_entity_get_content_bounds(child, lh_addr_of(content));
-    return lh_ui_place_clamp(
-        place, lh_ui_layout_get_axis(self),
-        lh_ui_size_get_along(lh_ui_rect_get_size(lh_addr_of(content)), lh_ui_layout_get_axis(self)));
+    return lh_ui_place_clamp(place, lh_ui_layout_get_axis(self),
+                             lh_ui_size_get_along(lh_ui_rect_get_size(lh_addr_of(content)),
+                                                  lh_ui_layout_get_axis(self)));
 }
 
 lh_ui_scalar_t
@@ -106,7 +104,8 @@ lh_ui_layout_margin_along(const lh_ui_layout_t *self, const lh_ui_place_t *place
 {
     const lh_ui_insets_t *margin = lh_ui_place_get_margin(place);
 
-    return lh_ui_insets_get_start(margin, lh_ui_layout_get_axis(self)) + lh_ui_insets_get_end(margin, lh_ui_layout_get_axis(self));
+    return lh_ui_insets_get_start(margin, lh_ui_layout_get_axis(self)) +
+           lh_ui_insets_get_end(margin, lh_ui_layout_get_axis(self));
 }
 
 lh_void
@@ -138,7 +137,9 @@ lh_ui_layout_across(const lh_ui_layout_t *self, lh_ui_entity_t *child, const lh_
     lh_ui_layout_cross_fit(self, child, content, lh_addr_of(fit));
     if (align == lh_ui_place_align_fill)
     {
-        lh_ptr_deref(length) = lh_ui_place_clamp(place, lh_ui_axis_get_cross(lh_ui_layout_get_axis(self)), lh_ui_layout_cross_get_room(lh_addr_of(fit)));
+        lh_ptr_deref(length) =
+            lh_ui_place_clamp(place, lh_ui_axis_get_cross(lh_ui_layout_get_axis(self)),
+                              lh_ui_layout_cross_get_room(lh_addr_of(fit)));
     }
     else
     {
@@ -149,8 +150,9 @@ lh_ui_layout_across(const lh_ui_layout_t *self, lh_ui_entity_t *child, const lh_
                                        : lh_ui_scalar(-1),
                                    line);
     }
-    lh_ptr_deref(start) =
-        lh_math_max(lh_ui_layout_cross_get_start(lh_addr_of(fit)) + lh_math_max(at, lh_ui_scalar(0)), lh_ui_scalar(0));
+    lh_ptr_deref(start) = lh_math_max(lh_ui_layout_cross_get_start(lh_addr_of(fit)) +
+                                          lh_math_max(at, lh_ui_scalar(0)),
+                                      lh_ui_scalar(0));
 }
 
 lh_ui_scalar_t
@@ -160,7 +162,6 @@ lh_ui_layout_child_line(const lh_ui_layout_t *self, lh_ui_entity_t *child,
     const lh_ui_scalar_t at = lh_ui_entity_get_baseline(child);
     lh_ui_layout_cross_t fit;
 
-    lh_assert_runtime_ref(self);
     /* A **vertical** flow has no cross row to line up and never asks. */
     if (lh_ui_axis_get_cross(lh_ui_layout_get_axis(self)) != lh_ui_axis_vertical ||
         lh_ui_place_get_align(lh_ui_entity_get_place(child)) != lh_ui_place_align_baseline ||
@@ -169,7 +170,10 @@ lh_ui_layout_child_line(const lh_ui_layout_t *self, lh_ui_entity_t *child,
         return lh_ui_scalar(-1);
     }
     lh_ui_layout_cross_fit(self, child, content, lh_addr_of(fit));
-    return lh_ui_layout_cross_get_before(lh_addr_of(fit)) + lh_ui_scalar_centre(lh_ui_layout_cross_get_room(lh_addr_of(fit)), lh_ui_layout_cross_get_own(lh_addr_of(fit))) + at;
+    return lh_ui_layout_cross_get_before(lh_addr_of(fit)) +
+           lh_ui_scalar_centre(lh_ui_layout_cross_get_room(lh_addr_of(fit)),
+                               lh_ui_layout_cross_get_own(lh_addr_of(fit))) +
+           at;
 }
 
 lh_void
@@ -283,12 +287,8 @@ lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent)
     lh_ui_scalar_t depths = lh_ui_scalar(0);
     lh_ui_scalar_t extra = lh_ui_scalar(0);
     lh_ui_scalar_t at = lh_ui_scalar(0);
-    lh_ui_scalar_t depth;
-    lh_ui_entity_t *first;
-    lh_ui_entity_t *end;
     int lines = 0;
 
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(parent);
     if (!lh_ui_layout_is_wrap(self))
     {
@@ -296,6 +296,9 @@ lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent)
                          lh_addr_of(content));
         return;
     }
+    lh_ui_scalar_t depth;
+    lh_ui_entity_t *first;
+    lh_ui_entity_t *end;
     /* How many lines, and how deep they are together; what is left across is then
        shared between them, which is CSS's `align-content: stretch`. */
     for (first = lh_ui_entity_get_first_child(parent); lh_null_ne(first); first = end)
@@ -307,7 +310,8 @@ lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent)
     lh_return_if(lines == 0);
     if (room_across - depths - lh_ui_layout_get_line_gap(self) * (lines - 1) > lh_ui_scalar(0))
     {
-        lh_ui_scalar_trunc((room_across - depths - lh_ui_layout_get_line_gap(self) * (lines - 1)) / lines,
+        lh_ui_scalar_trunc((room_across - depths - lh_ui_layout_get_line_gap(self) * (lines - 1)) /
+                               lines,
                            lh_addr_of(extra));
     }
     for (first = lh_ui_entity_get_first_child(parent); lh_null_ne(first); first = end)

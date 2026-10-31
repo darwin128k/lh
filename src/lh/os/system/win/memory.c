@@ -15,10 +15,9 @@
 lh_bool_t
 lh_os_system_memory_protect(lh_ptr address, lh_usize_t size, lh_os_memory_access_t access)
 {
-    lh_os_system_win_dword_t protect;
-    lh_os_system_win_dword_t old_protect;
-
     lh_assert_runtime_ref(address);
+    lh_os_system_win_dword_t protect;
+
     if (access & lh_os_memory_access_execute)
     {
         protect = (access & lh_os_memory_access_write)  ? LH_OS_SYSTEM_WIN_PAGE_EXECUTE_READWRITE
@@ -31,6 +30,8 @@ lh_os_system_memory_protect(lh_ptr address, lh_usize_t size, lh_os_memory_access
                   : (access & lh_os_memory_access_read) ? LH_OS_SYSTEM_WIN_PAGE_READONLY
                                                         : LH_OS_SYSTEM_WIN_PAGE_NOACCESS;
     }
+    lh_os_system_win_dword_t old_protect;
+
     if (lh_math_is_zero(VirtualProtect(address, size, protect, lh_addr_of(old_protect))))
     {
         lh_os_system_error_capture();

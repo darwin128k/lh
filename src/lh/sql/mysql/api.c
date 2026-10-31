@@ -505,9 +505,7 @@ lh_sql_mysql_api_load(lh_sql_mysql_api_t *self, lh_str_view_t name)
 lh_bool_t
 lh_sql_mysql_api_load_default(lh_sql_mysql_api_t *self)
 {
-    lh_usize_t i;
-
-    for (i = 0U; lh_math_lt(i, lh_array_ptr_get_size(m_sql_mysql_api_names));
+    for (lh_usize_t i = 0U; lh_math_lt(i, lh_array_ptr_get_size(m_sql_mysql_api_names));
          i = lh_math_add_one(i))
     {
         lh_str_view_t name;

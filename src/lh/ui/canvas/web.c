@@ -19,7 +19,8 @@ lh_ui_canvas_web_put_int(lh_ui_canvas_web_t *self, lh_sint_t v)
 {
     lh_char_t buf[24];
 
-    lh_ui_web_buf_lit(lh_ui_canvas_web_get_buf_mut(self), buf, lh_str_ptr_format_sint(v, buf, sizeof(buf)));
+    lh_ui_web_buf_lit(lh_ui_canvas_web_get_buf_mut(self), buf,
+                      lh_str_ptr_format_sint(v, buf, sizeof(buf)));
 }
 
 lh_void
@@ -41,9 +42,8 @@ lh_void
 lh_ui_canvas_web_put_hex(lh_ui_canvas_web_t *self, lh_byte_cptr px, lh_usize_t n)
 {
     lh_char_t buf[256];
-    lh_usize_t i;
 
-    for (i = 0; lh_math_lt(i, n); i = lh_math_add(i, lh_math_div(sizeof(buf), 2U)))
+    for (lh_usize_t i = 0; lh_math_lt(i, n); i = lh_math_add(i, lh_math_div(sizeof(buf), 2U)))
     {
         const lh_usize_t chunk = lh_math_min(lh_math_sub(n, i), lh_math_div(sizeof(buf), 2U));
         const lh_usize_t len =
@@ -98,8 +98,12 @@ lh_ui_canvas_web_get_glyphs_v(lh_ui_canvas_web_t *self)
 {
     if (lh_ui_canvas_web_get_glyphs(self) == lh_null)
     {
-        lh_ui_canvas_web_set_glyphs(self, lh_ptr_rcast(lh_ui_canvas_web_glyphs_t, lh_runtime_allocator_alloc(sizeof(lh_ptr_deref(lh_ui_canvas_web_get_glyphs(self))))));
-        lh_ui_canvas_web_set_glyphs_owned(self, (lh_ui_canvas_web_get_glyphs(self) != lh_null) ? lh_bool_true : lh_bool_false);
+        lh_ui_canvas_web_set_glyphs(
+            self, lh_ptr_rcast(lh_ui_canvas_web_glyphs_t,
+                               lh_runtime_allocator_alloc(
+                                   sizeof(lh_ptr_deref(lh_ui_canvas_web_get_glyphs(self))))));
+        lh_ui_canvas_web_set_glyphs_owned(
+            self, (lh_ui_canvas_web_get_glyphs(self) != lh_null) ? lh_bool_true : lh_bool_false);
         lh_ui_canvas_web_glyphs_reset(lh_ui_canvas_web_get_glyphs(self));
     }
     return lh_ui_canvas_web_get_glyphs(self);
@@ -253,16 +257,14 @@ lh_void
 lh_ui_canvas_web_put_cover(lh_ui_canvas_web_t *self, const lh_ui_mask_t *mask, lh_s32_t w,
                            lh_s32_t h)
 {
-    lh_byte_t row[LH_UI_CANVAS_WEB_ATLAS_PIX];
-    lh_s32_t x0;
-    lh_s32_t y;
 
-    for (y = 0; y < h; ++y)
+    for (lh_s32_t y = 0; y < h; ++y)
     {
-        for (x0 = 0; x0 < w; x0 += LH_UI_CANVAS_WEB_ATLAS_PIX)
+        for (lh_s32_t x0 = 0; x0 < w; x0 += LH_UI_CANVAS_WEB_ATLAS_PIX)
         {
             const lh_s32_t x1 =
                 (w - x0 > LH_UI_CANVAS_WEB_ATLAS_PIX) ? x0 + LH_UI_CANVAS_WEB_ATLAS_PIX : w;
+            lh_byte_t row[LH_UI_CANVAS_WEB_ATLAS_PIX];
 
             lh_ui_mask_coverage_run(mask, x0, x1, y, row);
             lh_ui_canvas_web_put_hex(self, row, lh_cast_static(lh_usize_t, x1 - x0));
@@ -499,7 +501,7 @@ lh_ui_canvas_web_get_glyphs(const lh_ui_canvas_web_t *self)
 }
 
 lh_void
-lh_ui_canvas_web_set_glyphs(lh_ui_canvas_web_t *self, lh_ui_canvas_web_glyphs_t * glyphs)
+lh_ui_canvas_web_set_glyphs(lh_ui_canvas_web_t *self, lh_ui_canvas_web_glyphs_t *glyphs)
 {
     lh_assert_runtime_ref(self);
     self->glyphs = glyphs;

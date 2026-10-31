@@ -12,7 +12,6 @@
 lh_void
 lh_ui_view_pointer_reset(lh_ui_view_pointer_t *self)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_view_pointer_set_target(self, lh_null);
     lh_ui_view_pointer_set_drag(self, lh_null);
     lh_ui_view_pointer_set_grab(self, lh_null);
@@ -24,9 +23,9 @@ lh_ui_view_pointer_reset(lh_ui_view_pointer_t *self)
 lh_void
 lh_ui_view_pointer_init(lh_ui_view_pointer_t *self)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_view_pointer_reset(self);
-    lh_ui_point_init(lh_ui_view_pointer_get_press_point_mut(self), lh_ui_scalar(0), lh_ui_scalar(0));
+    lh_ui_point_init(lh_ui_view_pointer_get_press_point_mut(self), lh_ui_scalar(0),
+                     lh_ui_scalar(0));
     lh_ui_point_init(lh_ui_view_pointer_get_last_point_mut(self), lh_ui_scalar(0), lh_ui_scalar(0));
     lh_ui_point_init(lh_ui_view_pointer_get_velocity_mut(self), lh_ui_scalar(0), lh_ui_scalar(0));
 }
@@ -34,7 +33,6 @@ lh_ui_view_pointer_init(lh_ui_view_pointer_t *self)
 lh_void
 lh_ui_view_pointer_start(lh_ui_view_pointer_t *self, lh_ui_point_t point)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_view_pointer_reset(self);
     lh_ui_view_pointer_set_pressed(self, lh_bool_true);
     lh_ui_view_pointer_set_press_point(self, point);
@@ -45,8 +43,8 @@ lh_ui_view_pointer_start(lh_ui_view_pointer_t *self, lh_ui_point_t point)
 lh_bool_t
 lh_ui_view_pointer_is_active(const lh_ui_view_pointer_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return lh_type_cast(lh_bool_t, lh_ui_view_pointer_is_pressed(self) || lh_null_ne(lh_ui_view_pointer_get_grab(self)));
+    return lh_type_cast(lh_bool_t, lh_ui_view_pointer_is_pressed(self) ||
+                                       lh_null_ne(lh_ui_view_pointer_get_grab(self)));
 }
 
 lh_ui_entity_t *
@@ -92,10 +90,8 @@ lh_ui_view_pointer_get_grab_offset(const lh_ui_view_pointer_t *self)
 }
 
 lh_void
-lh_ui_view_pointer_grab(lh_ui_view_pointer_t *self, lh_ui_scrollbar_t *grab,
-                            lh_ui_scalar_t offset)
+lh_ui_view_pointer_grab(lh_ui_view_pointer_t *self, lh_ui_scrollbar_t *grab, lh_ui_scalar_t offset)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_view_pointer_set_grab(self, grab);
     lh_ui_view_pointer_set_grab_offset(self, offset);
 }
@@ -124,7 +120,6 @@ lh_ui_view_pointer_set_dragged(lh_ui_view_pointer_t *self, lh_bool_t dragged)
 lh_void
 lh_ui_view_pointer_copy_press_point(const lh_ui_view_pointer_t *self, lh_ui_point_t *out)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(out);
     lh_ptr_deref(out) = lh_ptr_deref(lh_ui_view_pointer_get_press_point(self));
 }
@@ -132,7 +127,6 @@ lh_ui_view_pointer_copy_press_point(const lh_ui_view_pointer_t *self, lh_ui_poin
 lh_void
 lh_ui_view_pointer_copy_last_point(const lh_ui_view_pointer_t *self, lh_ui_point_t *out)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(out);
     lh_ptr_deref(out) = lh_ptr_deref(lh_ui_view_pointer_get_last_point(self));
 }
@@ -140,7 +134,6 @@ lh_ui_view_pointer_copy_last_point(const lh_ui_view_pointer_t *self, lh_ui_point
 lh_void
 lh_ui_view_pointer_copy_velocity(const lh_ui_view_pointer_t *self, lh_ui_point_t *out)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(out);
     lh_ptr_deref(out) = lh_ptr_deref(lh_ui_view_pointer_get_velocity(self));
 }
@@ -148,12 +141,11 @@ lh_ui_view_pointer_copy_velocity(const lh_ui_view_pointer_t *self, lh_ui_point_t
 lh_void
 lh_ui_view_pointer_track(lh_ui_view_pointer_t *self, lh_ui_point_t point)
 {
-    lh_ui_scalar_t dx;
-    lh_ui_scalar_t dy;
 
-    lh_assert_runtime_ref(self);
-    dx = lh_ui_point_get_x(lh_ui_view_pointer_get_last_point_mut(self)) - lh_ui_point_get_x(lh_addr_of(point));
-    dy = lh_ui_point_get_y(lh_ui_view_pointer_get_last_point_mut(self)) - lh_ui_point_get_y(lh_addr_of(point));
+    lh_ui_scalar_t dx = lh_ui_point_get_x(lh_ui_view_pointer_get_last_point_mut(self)) -
+                        lh_ui_point_get_x(lh_addr_of(point));
+    lh_ui_scalar_t dy = lh_ui_point_get_y(lh_ui_view_pointer_get_last_point_mut(self)) -
+                        lh_ui_point_get_y(lh_addr_of(point));
     lh_ui_point_init(lh_ui_view_pointer_get_velocity_mut(self),
                      (lh_ui_point_get_x(lh_ui_view_pointer_get_velocity_mut(self)) + dx) / 2,
                      (lh_ui_point_get_y(lh_ui_view_pointer_get_velocity_mut(self)) + dy) / 2);
@@ -163,12 +155,11 @@ lh_ui_view_pointer_track(lh_ui_view_pointer_t *self, lh_ui_point_t point)
 lh_bool_t
 lh_ui_view_pointer_is_past_threshold(const lh_ui_view_pointer_t *self, lh_ui_point_t point)
 {
-    lh_ui_scalar_t dx;
-    lh_ui_scalar_t dy;
 
-    lh_assert_runtime_ref(self);
-    dx = lh_ui_point_get_x(lh_addr_of(point)) - lh_ui_point_get_x(lh_ui_view_pointer_get_press_point(self));
-    dy = lh_ui_point_get_y(lh_addr_of(point)) - lh_ui_point_get_y(lh_ui_view_pointer_get_press_point(self));
+    lh_ui_scalar_t dx = lh_ui_point_get_x(lh_addr_of(point)) -
+                        lh_ui_point_get_x(lh_ui_view_pointer_get_press_point(self));
+    lh_ui_scalar_t dy = lh_ui_point_get_y(lh_addr_of(point)) -
+                        lh_ui_point_get_y(lh_ui_view_pointer_get_press_point(self));
     return lh_type_cast(lh_bool_t, lh_math_abs(dx) >= LH_UI_VIEW_DRAG_THRESHOLD ||
                                        lh_math_abs(dy) >= LH_UI_VIEW_DRAG_THRESHOLD);
 }
@@ -230,7 +221,7 @@ lh_ui_view_pointer_set_pressed(lh_ui_view_pointer_t *self, lh_bool_t pressed)
 }
 
 lh_void
-lh_ui_view_pointer_set_grab(lh_ui_view_pointer_t *self, lh_ui_scrollbar_t * grab)
+lh_ui_view_pointer_set_grab(lh_ui_view_pointer_t *self, lh_ui_scrollbar_t *grab)
 {
     lh_assert_runtime_ref(self);
     self->grab = grab;

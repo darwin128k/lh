@@ -312,7 +312,6 @@ lh_os_system_condition_wait_for(lh_os_system_condition_handle_t handle,
                                 lh_os_system_mutex_handle_t mutex, lh_u32_t timeout_ms)
 {
     struct timespec deadline;
-    int code;
 
     if (!handle || !mutex || clock_gettime(CLOCK_REALTIME, &deadline))
     {
@@ -325,7 +324,8 @@ lh_os_system_condition_wait_for(lh_os_system_condition_handle_t handle,
         deadline.tv_sec += 1;
         deadline.tv_nsec -= 1000000000L;
     }
-    code = pthread_cond_timedwait(handle, mutex, &deadline);
+    int code = pthread_cond_timedwait(handle, mutex, &deadline);
+
     return lh_os_concurrency_capture(code == ETIMEDOUT ? 0 : code);
 }
 

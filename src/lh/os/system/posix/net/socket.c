@@ -285,10 +285,10 @@ lh_os_system_net_socket_wait(const lh_os_system_net_socket_handle_t *read, lh_us
                              lh_u32_t timeout_ms)
 {
     struct pollfd watch[2U * LH_OS_SYSTEM_NET_SOCKET_WAIT_MAX];
-    lh_usize_t count;
 
     lh_return_if(lh_math_is_zero(read_count + write_count), LH_OS_RESULT_PENDING);
-    count = lh_os_system_net_socket_fill_watch(watch, read, read_count, POLLIN);
+    lh_usize_t count = lh_os_system_net_socket_fill_watch(watch, read, read_count, POLLIN);
+
     count += lh_os_system_net_socket_fill_watch(watch + count, write, write_count, POLLOUT);
 
     const int ready = poll(

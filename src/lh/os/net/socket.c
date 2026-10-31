@@ -7,14 +7,12 @@
 lh_void
 lh_os_net_socket_init(lh_os_net_socket_t *self)
 {
-    lh_assert_runtime_ref(self);
     lh_os_net_socket_set_handle(self, LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID);
 }
 
 lh_bool_t
 lh_os_net_socket_open(lh_os_net_socket_t *self, lh_os_system_net_socket_type_t type)
 {
-    lh_assert_runtime_ref(self);
     const lh_os_system_net_socket_handle_t handle = lh_os_system_net_socket_open(type);
     if (lh_math_eq(handle, LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID))
     {
@@ -153,11 +151,13 @@ lh_os_net_socket_wait(lh_os_net_socket_t *const *read, lh_usize_t read_count,
                       lh_os_net_socket_t *const *write, lh_usize_t write_count, lh_u32_t timeout_ms)
 {
     lh_os_system_net_socket_handle_t readable[LH_OS_SYSTEM_NET_SOCKET_WAIT_MAX];
+
+    lh_usize_t readable_count = lh_os_net_socket_get_handles(readable, read, read_count);
     lh_os_system_net_socket_handle_t writable[LH_OS_SYSTEM_NET_SOCKET_WAIT_MAX];
 
-    return lh_os_system_net_socket_wait(
-        readable, lh_os_net_socket_get_handles(readable, read, read_count), writable,
-        lh_os_net_socket_get_handles(writable, write, write_count), timeout_ms);
+    lh_usize_t writable_count = lh_os_net_socket_get_handles(writable, write, write_count);
+    return lh_os_system_net_socket_wait(readable, readable_count, writable, writable_count,
+                                        timeout_ms);
 }
 
 lh_ssize_t
@@ -200,9 +200,10 @@ lh_void
 lh_os_net_socket_get_reader(lh_os_net_socket_t *self, lh_io_reader_t *out)
 {
     lh_assert_runtime_ref(out);
+    lh_assert_runtime_ref(self);
+
     lh_io_reader_t reader;
 
-    lh_assert_runtime_ref(self);
     lh_io_reader_init(lh_addr_of(reader), lh_os_net_socket_recv, self);
     lh_ptr_deref(out) = reader;
 }
@@ -211,9 +212,10 @@ lh_void
 lh_os_net_socket_get_writer(lh_os_net_socket_t *self, lh_io_writer_t *out)
 {
     lh_assert_runtime_ref(out);
+    lh_assert_runtime_ref(self);
+
     lh_io_writer_t writer;
 
-    lh_assert_runtime_ref(self);
     lh_io_writer_init(lh_addr_of(writer), lh_os_net_socket_send, self);
     lh_ptr_deref(out) = writer;
 }
@@ -245,9 +247,10 @@ lh_void
 lh_os_net_socket_get_dgram_reader(lh_os_net_socket_t *self, lh_io_dgram_reader_t *out)
 {
     lh_assert_runtime_ref(out);
+    lh_assert_runtime_ref(self);
+
     lh_io_dgram_reader_t reader;
 
-    lh_assert_runtime_ref(self);
     lh_io_dgram_reader_init(lh_addr_of(reader), lh_os_net_socket_recvfrom, self);
     lh_ptr_deref(out) = reader;
 }
@@ -256,9 +259,10 @@ lh_void
 lh_os_net_socket_get_dgram_writer(lh_os_net_socket_t *self, lh_io_dgram_writer_t *out)
 {
     lh_assert_runtime_ref(out);
+    lh_assert_runtime_ref(self);
+
     lh_io_dgram_writer_t writer;
 
-    lh_assert_runtime_ref(self);
     lh_io_dgram_writer_init(lh_addr_of(writer), lh_os_net_socket_sendto, self);
     lh_ptr_deref(out) = writer;
 }
@@ -280,7 +284,6 @@ lh_os_net_socket_get_dgram(lh_os_net_socket_t *self, lh_io_dgram_t *out)
 lh_bool_t
 lh_os_net_socket_open_nonblocking(lh_os_net_socket_t *self, lh_os_system_net_socket_type_t type)
 {
-    lh_assert_runtime_ref(self);
     const lh_os_system_net_socket_handle_t handle = lh_os_system_net_socket_open_nonblocking(type);
     if (lh_math_eq(handle, LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID))
     {

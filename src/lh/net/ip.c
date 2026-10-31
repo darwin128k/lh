@@ -55,11 +55,8 @@ lh_net_ip4_is_loopback(const lh_net_ip4_t *self)
 lh_bool_t
 lh_net_ip4_is_private(const lh_net_ip4_t *self)
 {
-    lh_u8_t octet0;
-    lh_u8_t octet1;
-
-    octet0 = lh_net_ip4_get_octet(self, LH_NET_IP4_OCTET_INDEX_0);
-    octet1 = lh_net_ip4_get_octet(self, LH_NET_IP4_OCTET_INDEX_1);
+    lh_u8_t octet0 = lh_net_ip4_get_octet(self, LH_NET_IP4_OCTET_INDEX_0);
+    lh_u8_t octet1 = lh_net_ip4_get_octet(self, LH_NET_IP4_OCTET_INDEX_1);
 
     if (octet0 == 10U)
     {
@@ -131,7 +128,6 @@ lh_net_ip4_format(const lh_net_ip4_t *self, lh_str_ptr str, lh_usize_t str_size)
     lh_usize_t pos = 0;
     lh_usize_t octet_index;
 
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(str);
 
     for (octet_index = 0; octet_index < LH_NET_IP4_OCTET_COUNT; octet_index++)
@@ -167,9 +163,6 @@ lh_net_ip4_format(const lh_net_ip4_t *self, lh_str_ptr str, lh_usize_t str_size)
 lh_bool_t
 lh_net_ip4_equals(const lh_net_ip4_t *self, const lh_net_ip4_t *other)
 {
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(other);
-
     return lh_memory_is_equal(lh_net_ip4_get_octets(self), lh_net_ip4_get_octets(other),
                               LH_NET_IP4_OCTET_COUNT);
 }
@@ -177,12 +170,7 @@ lh_net_ip4_equals(const lh_net_ip4_t *self, const lh_net_ip4_t *other)
 lh_bool_t
 lh_net_ip4_is_at_least(const lh_net_ip4_t *self, const lh_net_ip4_t *minimum)
 {
-    lh_usize_t octet_index;
-
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(minimum);
-
-    for (octet_index = 0; octet_index < LH_NET_IP4_OCTET_COUNT; octet_index++)
+    for (lh_usize_t octet_index = 0; octet_index < LH_NET_IP4_OCTET_COUNT; octet_index++)
     {
         const lh_u8_t self_octet = lh_net_ip4_get_octet(self, octet_index);
         const lh_u8_t minimum_octet = lh_net_ip4_get_octet(minimum, octet_index);

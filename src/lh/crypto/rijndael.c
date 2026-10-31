@@ -78,9 +78,8 @@ lh_byte_t
 lh_crypto_rijndael_gf_mul(lh_byte_t a, lh_byte_t b)
 {
     lh_byte_t p = 0;
-    lh_usize_t i;
 
-    for (i = 0; i < 8U; ++i)
+    for (lh_usize_t i = 0U; i < 8U; ++i)
     {
         if (b & 1U)
         {
@@ -145,9 +144,8 @@ lh_void
 lh_crypto_rijndael_sub_bytes(lh_byte_ptr state, lh_usize_t block_size, lh_bool_t inverse)
 {
     lh_byte_cptr box = inverse ? m_inv_sbox : m_sbox;
-    lh_usize_t i;
 
-    for (i = 0; i < block_size; ++i)
+    for (lh_usize_t i = 0U; i < block_size; ++i)
     {
         state[i] = box[state[i]];
     }
@@ -156,9 +154,7 @@ lh_crypto_rijndael_sub_bytes(lh_byte_ptr state, lh_usize_t block_size, lh_bool_t
 lh_void
 lh_crypto_rijndael_mix_columns(lh_byte_ptr state, lh_usize_t nb, lh_bool_t inverse)
 {
-    lh_usize_t c;
-
-    for (c = 0; c < nb; ++c)
+    for (lh_usize_t c = 0U; c < nb; ++c)
     {
         lh_byte_ptr col = state + c * 4U;
         lh_byte_t a0 = col[0];
@@ -344,9 +340,8 @@ static lh_void
 lh_crypto_rijndael_aesni_expand_dec_key(lh_crypto_rijndael_t *self)
 {
     const lh_usize_t nr = lh_crypto_rijndael_get_round_count(self);
-    lh_usize_t round;
 
-    for (round = 1; round < nr; ++round)
+    for (lh_usize_t round = 1U; round < nr; ++round)
     {
         lh_byte_t *key = lh_crypto_rijndael_get_aesni_dec_key_mut(self);
 

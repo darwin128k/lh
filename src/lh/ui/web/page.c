@@ -89,99 +89,98 @@ lh_ui_web_page_emit_key_table(lh_ui_web_buf_t *j, lh_str_cptr name, lh_bool_t mo
 lh_bool_t
 lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
 {
-    lh_ui_web_buf_t *j;
     lh_ui_web_buf_t js;
-    lh_ui_web_html_t doc_type;
-    lh_ui_web_html_t el_html;
-    lh_ui_web_html_t el_head;
-    lh_ui_web_html_t el_body;
-    lh_ui_web_html_t el_script;
-    lh_ui_web_html_t el_meta_cs;
-    lh_ui_web_html_t el_meta_vp;
-    lh_ui_web_html_t el_title;
-    lh_ui_web_html_t el_style;
-    lh_ui_web_html_t el_canvas_c;
-    lh_ui_web_html_t el_canvas_v3d;
-    lh_ui_web_html_t title_text;
-    lh_ui_web_html_t style_raw;
-    lh_ui_web_html_attr_t attr_lang;
-    lh_ui_web_html_attr_t attr_charset;
-    lh_ui_web_html_attr_t attr_vp_name;
-    lh_ui_web_html_attr_t attr_vp_content;
-    lh_ui_web_html_attr_t attr_c_id;
-    lh_ui_web_html_attr_t attr_c_w;
-    lh_ui_web_html_attr_t attr_c_h;
-    lh_ui_web_html_attr_t attr_c_tab;
-    lh_ui_web_html_attr_t attr_v3d_id;
-    lh_ui_web_html_attr_t meta_cs_attrs[1];
-    lh_ui_web_html_attr_t meta_vp_attrs[2];
-    lh_ui_web_html_attr_t canvas_c_attrs[4];
-    lh_ui_web_html_attr_t canvas_v3d_attrs[1];
-    lh_ui_web_html_attr_t html_attrs[1];
-    const lh_ui_web_html_t *head_kids[4];
-    const lh_ui_web_html_t *title_kids[1];
-    const lh_ui_web_html_t *style_kids[1];
 
     lh_ui_web_buf_init(lh_addr_of(js), mem, cap);
-    j = lh_addr_of(js);
+    lh_ui_web_buf_t *j = lh_addr_of(js);
     if (out_len != lh_null)
     {
         lh_ptr_deref(out_len) = 0u;
     }
+    lh_ui_web_html_t doc_type;
 
     /* -- markup tree (construct, then serialize) ------------------------------- */
     lh_ui_web_html_doctype(lh_addr_of(doc_type));
+    lh_ui_web_html_attr_t attr_lang;
     lh_ui_web_html_attr("lang", "ru", lh_addr_of(attr_lang));
+    lh_ui_web_html_attr_t html_attrs[1];
     html_attrs[0] = attr_lang;
+    lh_ui_web_html_t el_html;
     lh_ui_web_html_tag("html", html_attrs, 1u, lh_null, 0u, lh_bool_false, lh_addr_of(el_html));
+    lh_ui_web_html_attr_t attr_charset;
 
     lh_ui_web_html_attr("charset", "utf-8", lh_addr_of(attr_charset));
+    lh_ui_web_html_attr_t meta_cs_attrs[1];
     meta_cs_attrs[0] = attr_charset;
+    lh_ui_web_html_t el_meta_cs;
     lh_ui_web_html_tag("meta", meta_cs_attrs, 1u, lh_null, 0u, lh_bool_true,
                        lh_addr_of(el_meta_cs));
+    lh_ui_web_html_attr_t attr_vp_name;
 
     lh_ui_web_html_attr("name", "viewport", lh_addr_of(attr_vp_name));
+    lh_ui_web_html_attr_t attr_vp_content;
     lh_ui_web_html_attr("content", "width=device-width,initial-scale=1",
                         lh_addr_of(attr_vp_content));
+    lh_ui_web_html_attr_t meta_vp_attrs[2];
     meta_vp_attrs[0] = attr_vp_name;
     meta_vp_attrs[1] = attr_vp_content;
+    lh_ui_web_html_t el_meta_vp;
     lh_ui_web_html_tag("meta", meta_vp_attrs, 2u, lh_null, 0u, lh_bool_true,
                        lh_addr_of(el_meta_vp));
+    lh_ui_web_html_t title_text;
 
     lh_ui_web_html_text("lh_ui", lh_addr_of(title_text));
+    const lh_ui_web_html_t *title_kids[1];
     title_kids[0] = lh_addr_of(title_text);
+    lh_ui_web_html_t el_title;
     lh_ui_web_html_tag("title", lh_null, 0u, title_kids, 1u, lh_bool_false, lh_addr_of(el_title));
+    lh_ui_web_html_t style_raw;
 
     lh_ui_web_html_raw("html,body{margin:0;height:100%;background:#edf0f5;overflow:hidden}"
                        "#c{display:block;position:absolute;cursor:pointer;outline:none}"
                        "#v3d{position:absolute;display:none;pointer-events:none}",
                        lh_addr_of(style_raw));
+    const lh_ui_web_html_t *style_kids[1];
     style_kids[0] = lh_addr_of(style_raw);
+    lh_ui_web_html_t el_style;
     lh_ui_web_html_tag("style", lh_null, 0u, style_kids, 1u, lh_bool_false, lh_addr_of(el_style));
+    const lh_ui_web_html_t *head_kids[4];
 
     head_kids[0] = lh_addr_of(el_meta_cs);
     head_kids[1] = lh_addr_of(el_meta_vp);
     head_kids[2] = lh_addr_of(el_title);
     head_kids[3] = lh_addr_of(el_style);
+    lh_ui_web_html_t el_head;
     lh_ui_web_html_tag("head", lh_null, 0u, head_kids, 4u, lh_bool_false, lh_addr_of(el_head));
+    lh_ui_web_html_attr_t attr_c_id;
 
     lh_ui_web_html_attr("id", "c", lh_addr_of(attr_c_id));
+    lh_ui_web_html_attr_t attr_c_w;
     lh_ui_web_html_attr("width", "980", lh_addr_of(attr_c_w));
+    lh_ui_web_html_attr_t attr_c_h;
     lh_ui_web_html_attr("height", "620", lh_addr_of(attr_c_h));
+    lh_ui_web_html_attr_t attr_c_tab;
     lh_ui_web_html_attr("tabindex", "0", lh_addr_of(attr_c_tab));
+    lh_ui_web_html_attr_t canvas_c_attrs[4];
     canvas_c_attrs[0] = attr_c_id;
     canvas_c_attrs[1] = attr_c_w;
     canvas_c_attrs[2] = attr_c_h;
     canvas_c_attrs[3] = attr_c_tab;
+    lh_ui_web_html_t el_canvas_c;
     lh_ui_web_html_tag("canvas", canvas_c_attrs, 4u, lh_null, 0u, lh_bool_false,
                        lh_addr_of(el_canvas_c));
+    lh_ui_web_html_attr_t attr_v3d_id;
 
     lh_ui_web_html_attr("id", "v3d", lh_addr_of(attr_v3d_id));
+    lh_ui_web_html_attr_t canvas_v3d_attrs[1];
     canvas_v3d_attrs[0] = attr_v3d_id;
+    lh_ui_web_html_t el_canvas_v3d;
     lh_ui_web_html_tag("canvas", canvas_v3d_attrs, 1u, lh_null, 0u, lh_bool_false,
                        lh_addr_of(el_canvas_v3d));
+    lh_ui_web_html_t el_body;
 
     lh_ui_web_html_tag("body", lh_null, 0u, lh_null, 0u, lh_bool_false, lh_addr_of(el_body));
+    lh_ui_web_html_t el_script;
     lh_ui_web_html_tag("script", lh_null, 0u, lh_null, 0u, lh_bool_false, lh_addr_of(el_script));
 
     lh_ui_web_html_emit(j, lh_addr_of(doc_type));

@@ -17,9 +17,7 @@ lh_u32_t
 lh_hash_fnv1a_32_update(lh_u32_t hash, const lh_ptr data, lh_usize_t size)
 {
     const lh_byte_cptr bytes = lh_ptr_rcast(const lh_byte_t, data);
-    lh_usize_t i;
-
-    for (i = 0U; lh_math_lt(i, size); i = lh_math_add_one(i))
+    for (lh_usize_t i = 0U; lh_math_lt(i, size); i = lh_math_add_one(i))
     {
         hash = lh_hash_fnv1a_32_byte(hash, bytes[i]);
     }

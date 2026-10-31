@@ -12,7 +12,6 @@ lh_ui_style_init(lh_ui_style_t *self)
 {
     lh_ui_color_t black;
 
-    lh_assert_runtime_ref(self);
     lh_ui_color_init(lh_addr_of(black), 0, 0, 0, 255);
     lh_ui_paint_init(lh_ui_style_get_fill_mut(self));
     lh_ui_style_set_radius(self, lh_ui_scalar(0));
@@ -51,7 +50,6 @@ lh_ui_style_get_fill(const lh_ui_style_t *self)
 lh_void
 lh_ui_style_assign_fill(lh_ui_style_t *self, const lh_ui_paint_t *fill)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_paint_init_copy(lh_ui_style_get_fill_mut(self), fill);
 }
 
@@ -138,7 +136,6 @@ lh_ui_style_get_radius(const lh_ui_style_t *self)
 lh_void
 lh_ui_style_set_radius_v(lh_ui_style_t *self, lh_ui_scalar_t radius)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_if(radius < lh_ui_scalar(0), lh_runtime_error_code_invalid_argument);
     lh_ui_style_set_radius(self, radius);
     lh_ui_radii_init_all(lh_ui_style_get_radii_mut(self), radius);
@@ -154,7 +151,6 @@ lh_ui_style_get_radii(const lh_ui_style_t *self)
 lh_void
 lh_ui_style_set_radii_v(lh_ui_style_t *self, const lh_ui_radii_t *radii)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(radii);
     lh_assert_runtime_if(lh_ui_radii_get_min(radii) < lh_ui_scalar(0),
                          lh_runtime_error_code_invalid_argument);
@@ -166,29 +162,32 @@ lh_void
 lh_ui_style_init_blend(lh_ui_style_t *self, const lh_ui_style_t *from, const lh_ui_style_t *to,
                        lh_u32_t weight)
 {
-    const lh_ui_shadow_t *fade_from;
-    const lh_ui_shadow_t *fade_to;
-    lh_ui_radii_t radii;
 
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(from);
     lh_assert_runtime_ref(to);
     lh_ptr_deref(self) = lh_ptr_deref(to);
     lh_return_if(weight >= 255U);
-    lh_ui_style_mix_paint(lh_ui_style_get_fill_mut(self), lh_ui_style_get_fill(from), lh_ui_style_get_fill(to),
-                          weight);
-    lh_ui_style_mix_paint(lh_ui_style_get_text_mut(self), lh_ui_style_get_text(from), lh_ui_style_get_text(to),
-                          weight);
+    lh_ui_style_mix_paint(lh_ui_style_get_fill_mut(self), lh_ui_style_get_fill(from),
+                          lh_ui_style_get_fill(to), weight);
+    lh_ui_style_mix_paint(lh_ui_style_get_text_mut(self), lh_ui_style_get_text(from),
+                          lh_ui_style_get_text(to), weight);
     lh_ui_style_mix_paint(lh_ui_style_get_border_fill_mut(self), lh_ui_style_get_border_fill(from),
                           lh_ui_style_get_border_fill(to), weight);
-    lh_ui_radii_init(lh_addr_of(radii),
-                     lh_ui_style_mix(lh_ui_radii_get_top_left(lh_ui_style_get_radii(from)), lh_ui_radii_get_top_left(lh_ui_style_get_radii(to)), weight),
-                     lh_ui_style_mix(lh_ui_radii_get_top_right(lh_ui_style_get_radii(from)), lh_ui_radii_get_top_right(lh_ui_style_get_radii(to)), weight),
-                     lh_ui_style_mix(lh_ui_radii_get_bottom_right(lh_ui_style_get_radii(from)), lh_ui_radii_get_bottom_right(lh_ui_style_get_radii(to)), weight),
-                     lh_ui_style_mix(lh_ui_radii_get_bottom_left(lh_ui_style_get_radii(from)), lh_ui_radii_get_bottom_left(lh_ui_style_get_radii(to)), weight));
+    lh_ui_radii_t radii;
+    lh_ui_radii_init(
+        lh_addr_of(radii),
+        lh_ui_style_mix(lh_ui_radii_get_top_left(lh_ui_style_get_radii(from)),
+                        lh_ui_radii_get_top_left(lh_ui_style_get_radii(to)), weight),
+        lh_ui_style_mix(lh_ui_radii_get_top_right(lh_ui_style_get_radii(from)),
+                        lh_ui_radii_get_top_right(lh_ui_style_get_radii(to)), weight),
+        lh_ui_style_mix(lh_ui_radii_get_bottom_right(lh_ui_style_get_radii(from)),
+                        lh_ui_radii_get_bottom_right(lh_ui_style_get_radii(to)), weight),
+        lh_ui_style_mix(lh_ui_radii_get_bottom_left(lh_ui_style_get_radii(from)),
+                        lh_ui_radii_get_bottom_left(lh_ui_style_get_radii(to)), weight));
     lh_ui_style_set_radii_v(self, lh_addr_of(radii));
-    fade_from = lh_ui_style_get_shadow(from);
-    fade_to = lh_ui_style_get_shadow(to);
+    const lh_ui_shadow_t *fade_from = lh_ui_style_get_shadow(from);
+    const lh_ui_shadow_t *fade_to = lh_ui_style_get_shadow(to);
     if (!lh_ui_shadow_is_empty(fade_from) || !lh_ui_shadow_is_empty(fade_to))
     {
         /* A shadow at one end only grows out of, or melts into, the other end's
@@ -223,8 +222,8 @@ lh_ui_style_init_blend(lh_ui_style_t *self, const lh_ui_style_t *from, const lh_
         if (!lh_ui_shadow_is_empty(fade_from) && !lh_ui_shadow_is_empty(fade_to))
         {
             lh_ui_shadow_set_spread_v(lh_ui_style_get_shadow_mut(self),
-                                    lh_ui_style_mix(lh_ui_shadow_get_spread(fade_from),
-                                                    lh_ui_shadow_get_spread(fade_to), weight));
+                                      lh_ui_style_mix(lh_ui_shadow_get_spread(fade_from),
+                                                      lh_ui_shadow_get_spread(fade_to), weight));
             lh_ui_shadow_set_offset(lh_ui_style_get_shadow_mut(self),
                                     lh_ui_style_mix(lh_ui_shadow_get_offset_x(fade_from),
                                                     lh_ui_shadow_get_offset_x(fade_to), weight),
@@ -244,7 +243,6 @@ lh_ui_style_get_hit_radius(const lh_ui_style_t *self)
 lh_void
 lh_ui_style_set_hit_radius_v(lh_ui_style_t *self, lh_ui_scalar_t radius)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_if(radius < lh_ui_scalar(0), lh_runtime_error_code_invalid_argument);
     lh_ui_style_set_hit_radius(self, radius);
 }
@@ -259,10 +257,11 @@ lh_ui_style_get_padding(const lh_ui_style_t *self)
 lh_void
 lh_ui_style_set_padding_v(lh_ui_style_t *self, const lh_ui_insets_t *padding)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(padding);
-    lh_assert_runtime_if(lh_ui_insets_get_left(padding) < lh_ui_scalar(0) || lh_ui_insets_get_top(padding) < lh_ui_scalar(0) ||
-                             lh_ui_insets_get_right(padding) < lh_ui_scalar(0) || lh_ui_insets_get_bottom(padding) < lh_ui_scalar(0),
+    lh_assert_runtime_if(lh_ui_insets_get_left(padding) < lh_ui_scalar(0) ||
+                             lh_ui_insets_get_top(padding) < lh_ui_scalar(0) ||
+                             lh_ui_insets_get_right(padding) < lh_ui_scalar(0) ||
+                             lh_ui_insets_get_bottom(padding) < lh_ui_scalar(0),
                          lh_runtime_error_code_invalid_argument);
     lh_ui_style_set_padding(self, lh_ptr_deref(padding));
 }
@@ -300,7 +299,6 @@ lh_ui_style_get_text(const lh_ui_style_t *self)
 lh_void
 lh_ui_style_assign_text(lh_ui_style_t *self, const lh_ui_paint_t *text)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_paint_init_copy(lh_ui_style_get_text_mut(self), text);
 }
 
@@ -376,7 +374,6 @@ lh_ui_style_get_shadow(const lh_ui_style_t *self)
 lh_void
 lh_ui_style_set_shadow_v(lh_ui_style_t *self, const lh_ui_shadow_t *shadow)
 {
-    lh_assert_runtime_ref(self);
     if (lh_null_eq(shadow))
     {
         lh_ui_shadow_init(lh_ui_style_get_shadow_mut(self));
@@ -409,14 +406,15 @@ lh_ui_style_get_border(const lh_ui_style_t *self)
 lh_void
 lh_ui_style_set_border_v(lh_ui_style_t *self, const lh_ui_insets_t *border)
 {
-    lh_assert_runtime_ref(self);
     if (lh_null_eq(border))
     {
         lh_ui_insets_init_all(lh_ui_style_get_border_mut(self), lh_ui_scalar(0));
         return;
     }
-    lh_assert_runtime_if(lh_ui_insets_get_left(border) < lh_ui_scalar(0) || lh_ui_insets_get_top(border) < lh_ui_scalar(0) ||
-                             lh_ui_insets_get_right(border) < lh_ui_scalar(0) || lh_ui_insets_get_bottom(border) < lh_ui_scalar(0),
+    lh_assert_runtime_if(lh_ui_insets_get_left(border) < lh_ui_scalar(0) ||
+                             lh_ui_insets_get_top(border) < lh_ui_scalar(0) ||
+                             lh_ui_insets_get_right(border) < lh_ui_scalar(0) ||
+                             lh_ui_insets_get_bottom(border) < lh_ui_scalar(0),
                          lh_runtime_error_code_invalid_argument);
     lh_ui_style_set_border(self, lh_ptr_deref(border));
 }
@@ -431,7 +429,6 @@ lh_ui_style_get_border_fill(const lh_ui_style_t *self)
 lh_void
 lh_ui_style_assign_border_fill(lh_ui_style_t *self, const lh_ui_paint_t *fill)
 {
-    lh_assert_runtime_ref(self);
     lh_ui_paint_init_copy(lh_ui_style_get_border_fill_mut(self), fill);
 }
 
