@@ -46,4 +46,42 @@ TEST(str_ptr_parse_radix, rejects_above_max_and_overflow)
     EXPECT_EQ(value, LH_UINT_T_MAX);
 }
 
+TEST(str_ptr_parse_radix_ullong, parses_in_each_base)
+{
+    lh_ullong_t value = 0;
+    EXPECT_TRUE(lh_str_ptr_parse_radix_ullong("101", 3, 2U, LH_ULLONG_T_MAX, &value));
+    EXPECT_EQ(value, 5U);
+    EXPECT_TRUE(lh_str_ptr_parse_radix_ullong("777", 3, 8U, LH_ULLONG_T_MAX, &value));
+    EXPECT_EQ(value, 511U);
+    EXPECT_TRUE(lh_str_ptr_parse_radix_ullong("ffffffff", 8, 16U, LH_ULLONG_T_MAX, &value));
+    EXPECT_EQ(value, 4294967295ULL);
+}
+
+TEST(str_ptr_parse_radix_ullong, reads_a_value_above_uint32)
+{
+    lh_ullong_t value = 0;
+    EXPECT_TRUE(lh_str_ptr_parse_radix_ullong("100000000", 9, 16U, LH_ULLONG_T_MAX, &value));
+    EXPECT_EQ(value, 4294967296ULL);
+    EXPECT_TRUE(
+        lh_str_ptr_parse_radix_ullong("ffffffffffffffff", 16, 16U, LH_ULLONG_T_MAX, &value));
+    EXPECT_EQ(value, 18446744073709551615ULL);
+}
+
+TEST(str_ptr_parse_radix_ullong, rejects_digits_above_base_and_leaves_out)
+{
+    lh_ullong_t value = 7U;
+    EXPECT_FALSE(lh_str_ptr_parse_radix_ullong("12", 2, 2U, LH_ULLONG_T_MAX, &value));
+    EXPECT_FALSE(lh_str_ptr_parse_radix_ullong("1a", 2, 10U, LH_ULLONG_T_MAX, &value));
+    EXPECT_FALSE(lh_str_ptr_parse_radix_ullong("", 0, 10U, LH_ULLONG_T_MAX, &value));
+    EXPECT_EQ(value, 7U);
+}
+
+TEST(str_ptr_parse_radix_ullong, rejects_above_max_and_overflow)
+{
+    lh_ullong_t value = 0;
+    EXPECT_FALSE(lh_str_ptr_parse_radix_ullong("256", 3, 10U, 255U, &value));
+    EXPECT_FALSE(
+        lh_str_ptr_parse_radix_ullong("10000000000000000", 17, 16U, LH_ULLONG_T_MAX, &value));
+}
+
 } // namespace

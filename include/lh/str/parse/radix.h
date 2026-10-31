@@ -48,6 +48,26 @@ lh_bool_t
 lh_str_ptr_parse_radix(const lh_str_ptr str, lh_usize_t str_size, lh_uint_t radix, lh_uint_t max,
                        lh_uint_t *out);
 
+/**
+ * @brief ::lh_str_ptr_parse_radix for a 64-bit value.
+ *
+ * Same rules, same bases, same overflow safety — the value is an
+ * ::lh_ullong_t, so a number that does not fit ::lh_uint_t is read whole (a
+ * JavaScript hexadecimal literal, a 64-bit id).
+ *
+ * @param str      Buffer to parse (not required to be NUL-terminated).
+ * @param str_size Number of characters available in @p str.
+ * @param radix    Base, `2`..`16`.
+ * @param max      Largest value considered valid (inclusive).
+ * @param out      Receives the parsed value on success; untouched on failure.
+ *
+ * @return ::lh_bool_true if all of @p str_size was consumed as an integer not
+ *         exceeding @p max, ::lh_bool_false otherwise.
+ */
+lh_bool_t
+lh_str_ptr_parse_radix_ullong(const lh_str_ptr str, lh_usize_t str_size, lh_uint_t radix,
+                              lh_ullong_t max, lh_ullong_t *out);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_STR_PARSE_RADIX_H */

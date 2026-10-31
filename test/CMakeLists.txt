@@ -509,6 +509,14 @@ else ()
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_CSS2DECL_SOURCE})
 endif ()
 
+# The JavaScript engine of lh/js: the lexer needs no OS, but the option that
+# carries it decides whether it is built here.
+if (LH_LIBRARY_OPTION_JS)
+    lh_add_test_core(lh_test_js ${LH_TEST_SRC_PATH}/lh/js/lexer.cpp)
+else ()
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/js/lexer.cpp)
+endif ()
+
 # Every test file belongs to a core, or the build says so.
 #
 # The check runs over the same lists the targets above were built from, so a file
