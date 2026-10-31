@@ -38,9 +38,9 @@ BM_ui_web_frame(benchmark::State &state)
         bytes = lh_ui_canvas_web_length(&web);
         benchmark::DoNotOptimize(bytes);
         /* GCC 16.1 with LTO was seen returning a stale length here (clang and a
-           non-LTO GCC build agree with the field). A wrong length is a broken
+           non-LTO GCC build agree with the buffer). A wrong length is a broken
            frame, so it fails the run instead of printing a byte rate. */
-        agree = agree && bytes == web.len;
+        agree = agree && bytes == lh_ui_web_buf_len(lh_ui_canvas_web_get_buf(&web));
     }
     lh_ui_view_set_canvas(&s->view, &s->surf.canvas);
     if (!agree)
@@ -76,7 +76,7 @@ BM_ui_web_frame_glyphs_cached(benchmark::State &state)
         lh_ui_canvas_web_close(&web);
         bytes = lh_ui_canvas_web_length(&web);
         benchmark::DoNotOptimize(bytes);
-        agree = agree && bytes == web.len;
+        agree = agree && bytes == lh_ui_web_buf_len(lh_ui_canvas_web_get_buf(&web));
     }
     lh_ui_view_set_canvas(&s->view, &s->surf.canvas);
     if (!agree)

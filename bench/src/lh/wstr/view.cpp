@@ -22,7 +22,8 @@ BM_wstr_view_from_offset(benchmark::State &state)
     lh_usize_t i = 0;
     for (auto _ : state)
     {
-        lh_wstr_view_t mid = lh_wstr_view_from_offset(&v, i % 10, 4);
+        lh_wstr_view_t mid;
+        lh_wstr_view_from_offset(&v, i % 10, 4, &mid);
         benchmark::DoNotOptimize(lh_wstr_view_get_size(&mid));
         ++i;
     }
@@ -36,7 +37,8 @@ BM_wstr_view_tail(benchmark::State &state)
     lh_usize_t i = 0;
     for (auto _ : state)
     {
-        lh_wstr_view_t tail = lh_wstr_view_tail(&v, i % lh_wstr_view_get_size(&v));
+        lh_wstr_view_t tail;
+        lh_wstr_view_tail(&v, i % lh_wstr_view_get_size(&v), &tail);
         benchmark::DoNotOptimize(lh_wstr_view_get_size(&tail));
         ++i;
     }

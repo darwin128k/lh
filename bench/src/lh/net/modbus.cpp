@@ -1,6 +1,7 @@
 #include <benchmark/benchmark.h>
 
 #include <lh/net/modbus.h>
+#include <lh/size.h>
 
 static void
 BM_mb_crc16(benchmark::State &state)

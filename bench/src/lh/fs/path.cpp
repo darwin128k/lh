@@ -64,7 +64,8 @@ BM_fs_path_get_segment(benchmark::State &state)
     lh_usize_t i = 0;
     for (auto _ : state)
     {
-        lh_str_view_t seg = lh_fs_path_get_segment(&path, i % count);
+        lh_str_view_t seg;
+        lh_fs_path_get_segment(&path, i % count, &seg);
         benchmark::DoNotOptimize(lh_str_view_get_size(&seg));
         ++i;
     }
