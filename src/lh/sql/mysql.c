@@ -223,9 +223,6 @@ lh_sql_mysql_execute(lh_sql_stmt_t *stmt)
     lh_sql_mysql_prepared_t *prepared = lh_sql_mysql_get_prepared(stmt);
     const lh_sql_mysql_api_t *api = lh_sql_mysql_get_api(db);
     lh_str_t query;
-    lh_str_view_t text;
-    lh_bool_t sent;
-    lh_ptr result;
 
     lh_str_init(lh_addr_of(query));
     if (!lh_sql_mysql_prepared_build(prepared, lh_addr_of(query)))
@@ -233,8 +230,11 @@ lh_sql_mysql_execute(lh_sql_stmt_t *stmt)
         lh_str_deinit(lh_addr_of(query));
         return lh_sql_db_fail(db, lh_str_view_lit("a parameter is not bound"));
     }
+    lh_str_view_t text;
+
     lh_str_as_view(lh_addr_of(query), lh_addr_of(text));
-    sent = lh_sql_mysql_send(db, text);
+    const lh_bool_t sent = lh_sql_mysql_send(db, text);
+
     lh_str_deinit(lh_addr_of(query));
     if (!sent)
     {
@@ -242,7 +242,8 @@ lh_sql_mysql_execute(lh_sql_stmt_t *stmt)
     }
 
     /* The connection may be a new one now: ask the one the text went to. */
-    result = lh_sql_mysql_api_store_result(api, lh_sql_mysql_get_native(db));
+    const lh_ptr result = lh_sql_mysql_api_store_result(api, lh_sql_mysql_get_native(db));
+
     if (lh_null_eq(result) &&
         !lh_math_is_zero(lh_sql_mysql_api_field_count(api, lh_sql_mysql_get_native(db))))
     {
@@ -334,18 +335,20 @@ lh_str_view_t
 lh_sql_mysql_get_column_str(const lh_sql_stmt_t *stmt, lh_usize_t index)
 {
     const lh_sql_mysql_prepared_t *prepared = lh_sql_mysql_get_prepared(stmt);
-    lh_str_view_t view;
-    lh_usize_t size;
 
     if (lh_sql_mysql_is_column_null(stmt, index))
     {
         return lh_str_view_empty();
     }
-    size = lh_cast_static(lh_usize_t, lh_sql_mysql_prepared_get_lengths(prepared)[index]);
+    const lh_usize_t size =
+        lh_cast_static(lh_usize_t, lh_sql_mysql_prepared_get_lengths(prepared)[index]);
+
     if (lh_math_is_zero(size))
     {
         return lh_str_view_empty();
     }
+    lh_str_view_t view;
+
     lh_str_view_init_by_size(lh_addr_of(view), lh_sql_mysql_prepared_get_row(prepared)[index], size);
     return view;
 }
@@ -390,15 +393,8 @@ lh_sql_mysql_connect(lh_sql_db_t *db, const lh_sql_mysql_api_t *api, lh_str_view
                      lh_str_view_t user, lh_str_view_t password, lh_str_view_t name,
                      lh_uint_t port)
 {
-    lh_str_t host_text;
-    lh_str_t user_text;
-    lh_str_t password_text;
-    lh_str_t name_text;
-    lh_ptr native;
-    lh_ptr connected;
-    lh_bool_t charset;
+    const lh_ptr native = lh_sql_mysql_api_init_native(api);
 
-    native = lh_sql_mysql_api_init_native(api);
     if (lh_null_eq(native))
     {
         lh_sql_db_set_error(db, lh_str_view_lit("mysql_init failed"));
@@ -419,22 +415,32 @@ lh_sql_mysql_connect(lh_sql_db_t *db, const lh_sql_mysql_api_t *api, lh_str_view
         }
     }
 
-    connected = lh_sql_mysql_api_real_connect(
-        api, native, lh_sql_mysql_to_cstr(lh_addr_of(host_text), host),
-        lh_sql_mysql_to_cstr(lh_addr_of(user_text), user),
-        lh_sql_mysql_to_cstr(lh_addr_of(password_text), password),
-        lh_sql_mysql_to_cstr(lh_addr_of(name_text), name), port);
-    lh_str_deinit(lh_addr_of(host_text));
-    lh_str_deinit(lh_addr_of(user_text));
-    lh_str_deinit(lh_addr_of(password_text));
-    lh_str_deinit(lh_addr_of(name_text));
+    lh_ptr connected;
+
+    {
+        lh_str_t host_text;
+        lh_str_t user_text;
+        lh_str_t password_text;
+        lh_str_t name_text;
+
+        connected = lh_sql_mysql_api_real_connect(
+            api, native, lh_sql_mysql_to_cstr(lh_addr_of(host_text), host),
+            lh_sql_mysql_to_cstr(lh_addr_of(user_text), user),
+            lh_sql_mysql_to_cstr(lh_addr_of(password_text), password),
+            lh_sql_mysql_to_cstr(lh_addr_of(name_text), name), port);
+        lh_str_deinit(lh_addr_of(host_text));
+        lh_str_deinit(lh_addr_of(user_text));
+        lh_str_deinit(lh_addr_of(password_text));
+        lh_str_deinit(lh_addr_of(name_text));
+    }
 
     /* utf8mb4 is all of UTF-8; servers before 5.5.3 only know utf8. Escaping
        is only safe once the client knows the character set. */
-    charset =
+    const lh_bool_t charset =
         lh_cast_static(lh_bool_t, lh_null_ne(connected) &&
                                       (lh_sql_mysql_api_set_character_set(api, native, "utf8mb4") ||
                                        lh_sql_mysql_api_set_character_set(api, native, "utf8")));
+
     if (!charset)
     {
         const lh_str_view_t message = lh_sql_mysql_api_error(api, native);

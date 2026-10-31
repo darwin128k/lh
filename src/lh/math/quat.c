@@ -61,7 +61,6 @@ lh_math_quat_set_w(lh_math_quat_t *self, lh_float_t w)
 lh_void
 lh_math_quat_init(lh_math_quat_t *self, lh_float_t x, lh_float_t y, lh_float_t z, lh_float_t w)
 {
-    lh_assert_runtime_ref(self);
     lh_math_quat_set_x(self, x);
     lh_math_quat_set_y(self, y);
     lh_math_quat_set_z(self, z);
@@ -103,14 +102,18 @@ lh_void
 lh_math_quat_from_axis_angle(lh_math_vec3_t axis, lh_float_t angle, lh_math_quat_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_float_t s;
-    lh_float_t c;
-    lh_math_float_sin_cos(angle * 0.5f, lh_addr_of(s), lh_addr_of(c));
-    lh_math_quat_t result;
-    lh_math_quat_init(lh_addr_of(result), lh_math_vec3_get_x(lh_addr_of(axis)) * s,
-                      lh_math_vec3_get_y(lh_addr_of(axis)) * s,
-                      lh_math_vec3_get_z(lh_addr_of(axis)) * s, c);
-    lh_ptr_deref(out) = result;
+    {
+        lh_float_t s;
+        lh_float_t c;
+
+        lh_math_float_sin_cos(angle * 0.5f, lh_addr_of(s), lh_addr_of(c));
+        lh_math_quat_t result;
+
+        lh_math_quat_init(lh_addr_of(result), lh_math_vec3_get_x(lh_addr_of(axis)) * s,
+                          lh_math_vec3_get_y(lh_addr_of(axis)) * s,
+                          lh_math_vec3_get_z(lh_addr_of(axis)) * s, c);
+        lh_ptr_deref(out) = result;
+    }
 }
 
 lh_void
@@ -199,9 +202,10 @@ lh_math_quat_normalize(lh_math_quat_t q, lh_math_quat_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_math_vec4_t v;
-    lh_math_vec4_t unit;
 
     lh_math_quat_to_vec4(q, lh_addr_of(v));
+    lh_math_vec4_t unit;
+
     lh_math_vec4_normalize(v, lh_addr_of(unit));
     lh_math_quat_from_vec4(unit, out);
 }
@@ -211,13 +215,14 @@ lh_math_quat_rotate(lh_math_quat_t q, lh_math_vec3_t v, lh_math_vec3_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_math_vec3_t u;
-    lh_math_vec3_t t;
 
     /* v + w * t + u x t, with u = (x, y, z) and t = 2 (u x v): the expanded
      * q v q* without forming the intermediate quaternions. u x t is built in
      * u's slot once u is no longer needed. */
     lh_math_vec3_init(lh_addr_of(u), lh_math_quat_get_x(lh_addr_of(q)),
                       lh_math_quat_get_y(lh_addr_of(q)), lh_math_quat_get_z(lh_addr_of(q)));
+    lh_math_vec3_t t;
+
     lh_math_vec3_cross(u, v, lh_addr_of(t));
     lh_math_vec3_scale(t, 2.0f, lh_addr_of(t));
     lh_math_vec3_madd(v, t, lh_math_quat_get_w(lh_addr_of(q)), out);

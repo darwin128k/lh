@@ -137,9 +137,10 @@ lh_math_mat4_transform_point(lh_math_mat4_t m, lh_math_vec3_t p, lh_math_vec3_t 
 {
     lh_assert_runtime_ref(out);
     lh_math_vec4_t p4;
-    lh_math_vec4_t r;
 
     lh_math_vec3_to_vec4(p, 1.0f, lh_addr_of(p4));
+    lh_math_vec4_t r;
+
     lh_math_mat4_mul_vec4(m, p4, lh_addr_of(r));
     lh_math_vec4_to_vec3(r, out);
 }
@@ -149,9 +150,10 @@ lh_math_mat4_transform_dir(lh_math_mat4_t m, lh_math_vec3_t d, lh_math_vec3_t *o
 {
     lh_assert_runtime_ref(out);
     lh_math_vec4_t d4;
-    lh_math_vec4_t r;
 
     lh_math_vec3_to_vec4(d, 0.0f, lh_addr_of(d4));
+    lh_math_vec4_t r;
+
     lh_math_mat4_mul_vec4(m, d4, lh_addr_of(r));
     lh_math_vec4_to_vec3(r, out);
 }
@@ -195,7 +197,7 @@ lh_math_mat4_inverse(lh_math_mat4_t m, lh_math_mat4_t *out)
      * for one storage order, it holds for the other too: the inverse of the
      * transpose is the transpose of the inverse. */
     lh_float_t a[16]; /* column * 4 + row */
-    lh_float_t inv[16];
+
     for (unsigned c = 0; c < 4; ++c)
     {
         lh_math_vec4_t col;
@@ -205,6 +207,8 @@ lh_math_mat4_inverse(lh_math_mat4_t m, lh_math_mat4_t *out)
         a[c * 4 + 2] = lh_math_vec4_get_z(lh_addr_of(col));
         a[c * 4 + 3] = lh_math_vec4_get_w(lh_addr_of(col));
     }
+
+    lh_float_t inv[16];
 
     inv[0] = a[5] * a[10] * a[15] - a[5] * a[11] * a[14] - a[9] * a[6] * a[15] +
              a[9] * a[7] * a[14] + a[13] * a[6] * a[11] - a[13] * a[7] * a[10];

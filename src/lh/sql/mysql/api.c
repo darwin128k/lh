@@ -291,7 +291,6 @@ lh_sql_mysql_api_init(lh_sql_mysql_api_t *self)
 lh_bool_t
 lh_sql_mysql_api_is_loaded(const lh_sql_mysql_api_t *self)
 {
-    lh_assert_runtime_ref(self);
     return lh_cast_static(lh_bool_t,
                           lh_null_ne(lh_sql_mysql_api_get_init(self)) && lh_null_ne(lh_sql_mysql_api_get_real_connect(self)) &&
                               lh_null_ne(lh_sql_mysql_api_get_close(self)) && lh_null_ne(lh_sql_mysql_api_get_error(self)) &&
@@ -308,7 +307,6 @@ lh_sql_mysql_api_is_loaded(const lh_sql_mysql_api_t *self)
 lh_ptr
 lh_sql_mysql_api_init_native(const lh_sql_mysql_api_t *self)
 {
-    lh_assert_runtime_ref(self);
     return lh_sql_mysql_api_get_init(self)(lh_null);
 }
 
@@ -317,29 +315,26 @@ lh_sql_mysql_api_real_connect(const lh_sql_mysql_api_t *self, lh_ptr mysql, cons
                               const lh_char_t *user, const lh_char_t *password, const lh_char_t *db,
                               lh_uint_t port)
 {
-    lh_assert_runtime_ref(self);
     return lh_sql_mysql_api_get_real_connect(self)(mysql, host, user, password, db, port, lh_null, 0UL);
 }
 
 lh_void
 lh_sql_mysql_api_close(const lh_sql_mysql_api_t *self, lh_ptr mysql)
 {
-    lh_assert_runtime_ref(self);
     lh_sql_mysql_api_get_close(self)(mysql);
 }
 
 lh_str_view_t
 lh_sql_mysql_api_error(const lh_sql_mysql_api_t *self, lh_ptr mysql)
 {
-    const lh_char_t *text;
-    lh_str_view_t view;
+    const lh_char_t *text = lh_sql_mysql_api_get_error(self)(mysql);
 
-    lh_assert_runtime_ref(self);
-    text = lh_sql_mysql_api_get_error(self)(mysql);
     if (lh_null_eq(text))
     {
         return lh_str_view_empty();
     }
+    lh_str_view_t view;
+
     lh_str_view_init(lh_addr_of(view), text);
     return view;
 }
@@ -347,14 +342,12 @@ lh_sql_mysql_api_error(const lh_sql_mysql_api_t *self, lh_ptr mysql)
 lh_uint_t
 lh_sql_mysql_api_error_code(const lh_sql_mysql_api_t *self, lh_ptr mysql)
 {
-    lh_assert_runtime_ref(self);
     return lh_sql_mysql_api_get_error_code(self)(mysql);
 }
 
 lh_bool_t
 lh_sql_mysql_api_real_query(const lh_sql_mysql_api_t *self, lh_ptr mysql, lh_str_view_t query)
 {
-    lh_assert_runtime_ref(self);
     /* A view may have no data when empty; the client wants a pointer anyway. */
     return lh_cast_static(
         lh_bool_t,
@@ -367,49 +360,42 @@ lh_sql_mysql_api_real_query(const lh_sql_mysql_api_t *self, lh_ptr mysql, lh_str
 lh_ptr
 lh_sql_mysql_api_store_result(const lh_sql_mysql_api_t *self, lh_ptr mysql)
 {
-    lh_assert_runtime_ref(self);
     return lh_sql_mysql_api_get_store_result(self)(mysql);
 }
 
 lh_void
 lh_sql_mysql_api_free_result(const lh_sql_mysql_api_t *self, lh_ptr result)
 {
-    lh_assert_runtime_ref(self);
     lh_sql_mysql_api_get_free_result(self)(result);
 }
 
 lh_char_t **
 lh_sql_mysql_api_fetch_row(const lh_sql_mysql_api_t *self, lh_ptr result)
 {
-    lh_assert_runtime_ref(self);
     return lh_sql_mysql_api_get_fetch_row(self)(result);
 }
 
 lh_ulong_t *
 lh_sql_mysql_api_fetch_lengths(const lh_sql_mysql_api_t *self, lh_ptr result)
 {
-    lh_assert_runtime_ref(self);
     return lh_sql_mysql_api_get_fetch_lengths(self)(result);
 }
 
 lh_usize_t
 lh_sql_mysql_api_num_fields(const lh_sql_mysql_api_t *self, lh_ptr result)
 {
-    lh_assert_runtime_ref(self);
     return lh_cast_static(lh_usize_t, lh_sql_mysql_api_get_num_fields(self)(result));
 }
 
 lh_usize_t
 lh_sql_mysql_api_field_count(const lh_sql_mysql_api_t *self, lh_ptr mysql)
 {
-    lh_assert_runtime_ref(self);
     return lh_cast_static(lh_usize_t, lh_sql_mysql_api_get_field_count(self)(mysql));
 }
 
 lh_ullong_t
 lh_sql_mysql_api_insert_id(const lh_sql_mysql_api_t *self, lh_ptr mysql)
 {
-    lh_assert_runtime_ref(self);
     return lh_sql_mysql_api_get_insert_id(self)(mysql);
 }
 
@@ -421,12 +407,10 @@ lh_sql_mysql_api_escape(const lh_sql_mysql_api_t *self, lh_ptr mysql, lh_str_vie
     /* The client's contract: room for every byte escaped, plus its NUL. */
     const lh_usize_t room = lh_math_add_one(lh_math_mul(size, 2U));
     lh_char_t *buffer = lh_ptr_cast(lh_char_t, lh_runtime_allocator_alloc(room));
-    lh_ulong_t written;
-
-    lh_assert_runtime_ref(self);
-    written = lh_sql_mysql_api_get_real_escape_string(self)(
+    const lh_ulong_t written = lh_sql_mysql_api_get_real_escape_string(self)(
         mysql, buffer, lh_math_is_zero(size) ? "" : lh_str_view_get_begin(lh_addr_of(text)),
         lh_cast_static(lh_ulong_t, size));
+
     lh_str_append(out, buffer, lh_cast_static(lh_usize_t, written));
     lh_runtime_allocator_free(buffer);
 }
@@ -435,14 +419,12 @@ lh_bool_t
 lh_sql_mysql_api_set_character_set(const lh_sql_mysql_api_t *self, lh_ptr mysql,
                                    const lh_char_t *name)
 {
-    lh_assert_runtime_ref(self);
     return lh_cast_static(lh_bool_t, lh_math_is_zero(lh_sql_mysql_api_get_set_character_set(self)(mysql, name)));
 }
 
 lh_void
 lh_sql_mysql_api_thread_end(const lh_sql_mysql_api_t *self)
 {
-    lh_assert_runtime_ref(self);
     if (lh_null_ne(lh_sql_mysql_api_get_thread_end(self)))
     {
         lh_sql_mysql_api_get_thread_end(self)();
@@ -492,12 +474,13 @@ lh_bool_t
 lh_sql_mysql_api_load(lh_sql_mysql_api_t *self, lh_str_view_t name)
 {
     lh_fs_path_t path;
-    lh_bool_t opened;
 
     lh_sql_mysql_api_deinit(self);
     lh_fs_path_init(lh_addr_of(path));
     lh_fs_path_set(lh_addr_of(path), name, lh_os_system_fs_path_style_native());
-    opened = lh_os_shared_open(lh_sql_mysql_api_get_image_mut(self), lh_addr_of(path));
+    const lh_bool_t opened =
+        lh_os_shared_open(lh_sql_mysql_api_get_image_mut(self), lh_addr_of(path));
+
     lh_fs_path_deinit(lh_addr_of(path));
     return lh_cast_static(lh_bool_t, opened && lh_sql_mysql_api_bind(self));
 }

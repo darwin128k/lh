@@ -9,8 +9,11 @@
 lh_float_t
 lh_math_float_tan(lh_float_t x)
 {
-    lh_float_t sine;
-    lh_float_t cosine;
-    lh_math_float_sin_cos(x, &sine, &cosine);
-    return sine / cosine;
+    {
+        lh_float_t sine;
+        lh_float_t cosine;
+
+        lh_math_float_sin_cos(x, &sine, &cosine);
+        return sine / cosine;
+    }
 }

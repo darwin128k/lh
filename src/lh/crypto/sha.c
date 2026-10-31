@@ -193,7 +193,6 @@ lh_crypto_sha_add_bits(lh_crypto_sha_t *self, lh_usize_t byte_count)
 lh_void
 lh_crypto_sha_init(lh_crypto_sha_t *self, lh_crypto_sha_kind_t kind)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_if(lh_crypto_sha_digest_size(kind) == 0,
                          lh_runtime_error_code_invalid_argument);
 
@@ -286,17 +285,16 @@ lh_crypto_sha_put_digest(const lh_crypto_sha_t *self, lh_byte_ptr out)
 {
     const lh_crypto_sha_kind_t kind = lh_crypto_sha_get_kind(self);
     const lh_usize_t digest_size = lh_crypto_sha_digest_size(kind);
-    lh_usize_t i;
 
     if (lh_crypto_sha_kind_is_wide(kind))
     {
-        for (i = 0; i < digest_size / 8U; ++i)
+        for (lh_usize_t i = 0U; i < digest_size / 8U; ++i)
         {
             lh_bit_pack_be64(lh_crypto_sha_get_state_word(self, i), out + i * 8U);
         }
         return;
     }
-    for (i = 0; i < digest_size / 4U; ++i)
+    for (lh_usize_t i = 0U; i < digest_size / 4U; ++i)
     {
         lh_bit_pack_be32(lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, i)),
                          out + i * 4U);
@@ -307,29 +305,23 @@ lh_void
 lh_crypto_sha_process_1(lh_crypto_sha_t *self, lh_byte_cptr block)
 {
     lh_u32_t w[80];
-    lh_u32_t a;
-    lh_u32_t b;
-    lh_u32_t c;
-    lh_u32_t d;
-    lh_u32_t e;
-    lh_usize_t i;
 
-    for (i = 0; i < 16U; ++i)
+    for (lh_usize_t i = 0U; i < 16U; ++i)
     {
         w[i] = lh_bit_unpack_be32(block + i * 4U);
     }
-    for (i = 16; i < 80U; ++i)
+    for (lh_usize_t i = 16U; i < 80U; ++i)
     {
         w[i] = lh_bit_rotate_left_u32(w[i - 3U] ^ w[i - 8U] ^ w[i - 14U] ^ w[i - 16U], 1U);
     }
 
-    a = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 0));
-    b = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 1));
-    c = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 2));
-    d = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 3));
-    e = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 4));
+    lh_u32_t a = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 0));
+    lh_u32_t b = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 1));
+    lh_u32_t c = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 2));
+    lh_u32_t d = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 3));
+    lh_u32_t e = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 4));
 
-    for (i = 0; i < 80U; ++i)
+    for (lh_usize_t i = 0U; i < 80U; ++i)
     {
         lh_u32_t f;
         lh_u32_t k;
@@ -375,21 +367,12 @@ lh_void
 lh_crypto_sha_process_256(lh_crypto_sha_t *self, lh_byte_cptr block)
 {
     lh_u32_t w[64];
-    lh_u32_t a;
-    lh_u32_t b;
-    lh_u32_t c;
-    lh_u32_t d;
-    lh_u32_t e;
-    lh_u32_t f;
-    lh_u32_t g;
-    lh_u32_t h;
-    lh_usize_t i;
 
-    for (i = 0; i < 16U; ++i)
+    for (lh_usize_t i = 0U; i < 16U; ++i)
     {
         w[i] = lh_bit_unpack_be32(block + i * 4U);
     }
-    for (i = 16; i < 64U; ++i)
+    for (lh_usize_t i = 16U; i < 64U; ++i)
     {
         lh_u32_t s0 = lh_bit_rotate_right_u32(w[i - 15U], 7U) ^
                       lh_bit_rotate_right_u32(w[i - 15U], 18U) ^ (w[i - 15U] >> 3);
@@ -398,16 +381,16 @@ lh_crypto_sha_process_256(lh_crypto_sha_t *self, lh_byte_cptr block)
         w[i] = w[i - 16U] + s0 + w[i - 7U] + s1;
     }
 
-    a = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 0));
-    b = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 1));
-    c = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 2));
-    d = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 3));
-    e = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 4));
-    f = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 5));
-    g = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 6));
-    h = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 7));
+    lh_u32_t a = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 0));
+    lh_u32_t b = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 1));
+    lh_u32_t c = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 2));
+    lh_u32_t d = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 3));
+    lh_u32_t e = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 4));
+    lh_u32_t f = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 5));
+    lh_u32_t g = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 6));
+    lh_u32_t h = lh_cast_static(lh_u32_t, lh_crypto_sha_get_state_word(self, 7));
 
-    for (i = 0; i < 64U; ++i)
+    for (lh_usize_t i = 0U; i < 64U; ++i)
     {
         lh_u32_t s1 = lh_bit_rotate_right_u32(e, 6U) ^ lh_bit_rotate_right_u32(e, 11U) ^
                       lh_bit_rotate_right_u32(e, 25U);
@@ -442,21 +425,12 @@ lh_void
 lh_crypto_sha_process_512(lh_crypto_sha_t *self, lh_byte_cptr block)
 {
     lh_u64_t w[80];
-    lh_u64_t a;
-    lh_u64_t b;
-    lh_u64_t c;
-    lh_u64_t d;
-    lh_u64_t e;
-    lh_u64_t f;
-    lh_u64_t g;
-    lh_u64_t h;
-    lh_usize_t i;
 
-    for (i = 0; i < 16U; ++i)
+    for (lh_usize_t i = 0U; i < 16U; ++i)
     {
         w[i] = lh_bit_unpack_be64(block + i * 8U);
     }
-    for (i = 16; i < 80U; ++i)
+    for (lh_usize_t i = 16U; i < 80U; ++i)
     {
         lh_u64_t s0 = lh_bit_rotate_right_u64(w[i - 15U], 1U) ^
                       lh_bit_rotate_right_u64(w[i - 15U], 8U) ^ (w[i - 15U] >> 7);
@@ -465,16 +439,16 @@ lh_crypto_sha_process_512(lh_crypto_sha_t *self, lh_byte_cptr block)
         w[i] = w[i - 16U] + s0 + w[i - 7U] + s1;
     }
 
-    a = lh_crypto_sha_get_state_word(self, 0);
-    b = lh_crypto_sha_get_state_word(self, 1);
-    c = lh_crypto_sha_get_state_word(self, 2);
-    d = lh_crypto_sha_get_state_word(self, 3);
-    e = lh_crypto_sha_get_state_word(self, 4);
-    f = lh_crypto_sha_get_state_word(self, 5);
-    g = lh_crypto_sha_get_state_word(self, 6);
-    h = lh_crypto_sha_get_state_word(self, 7);
+    lh_u64_t a = lh_crypto_sha_get_state_word(self, 0);
+    lh_u64_t b = lh_crypto_sha_get_state_word(self, 1);
+    lh_u64_t c = lh_crypto_sha_get_state_word(self, 2);
+    lh_u64_t d = lh_crypto_sha_get_state_word(self, 3);
+    lh_u64_t e = lh_crypto_sha_get_state_word(self, 4);
+    lh_u64_t f = lh_crypto_sha_get_state_word(self, 5);
+    lh_u64_t g = lh_crypto_sha_get_state_word(self, 6);
+    lh_u64_t h = lh_crypto_sha_get_state_word(self, 7);
 
-    for (i = 0; i < 80U; ++i)
+    for (lh_usize_t i = 0U; i < 80U; ++i)
     {
         lh_u64_t s1 = lh_bit_rotate_right_u64(e, 14U) ^ lh_bit_rotate_right_u64(e, 18U) ^
                       lh_bit_rotate_right_u64(e, 41U);
@@ -539,11 +513,6 @@ lh_crypto_sha_process(lh_crypto_sha_t *self, lh_byte_cptr block)
 lh_void
 lh_crypto_sha_update(lh_crypto_sha_t *self, const lh_ptr data, lh_usize_t size)
 {
-    lh_byte_cptr bytes;
-    lh_usize_t block_size;
-    lh_usize_t remaining;
-
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_if(lh_crypto_sha_is_finished(self), lh_runtime_error_code_invalid_argument);
     if (size == 0)
     {
@@ -551,9 +520,9 @@ lh_crypto_sha_update(lh_crypto_sha_t *self, const lh_ptr data, lh_usize_t size)
     }
     lh_assert_runtime_ref(data);
 
-    bytes = lh_ptr_rcast(const lh_byte_t, data);
-    block_size = lh_crypto_sha_block_size(lh_crypto_sha_get_kind(self));
-    remaining = size;
+    lh_byte_cptr bytes = lh_ptr_rcast(const lh_byte_t, data);
+    const lh_usize_t block_size = lh_crypto_sha_block_size(lh_crypto_sha_get_kind(self));
+    lh_usize_t remaining = size;
 
     lh_crypto_sha_add_bits(self, size);
 
@@ -614,13 +583,11 @@ lh_crypto_sha_pad(lh_crypto_sha_t *self)
 lh_usize_t
 lh_crypto_sha_finish(lh_crypto_sha_t *self, lh_ptr out, lh_usize_t out_size)
 {
-    lh_usize_t digest_size;
-
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(out);
     lh_assert_runtime_if(lh_crypto_sha_is_finished(self), lh_runtime_error_code_invalid_argument);
 
-    digest_size = lh_crypto_sha_digest_size(lh_crypto_sha_get_kind(self));
+    const lh_usize_t digest_size = lh_crypto_sha_digest_size(lh_crypto_sha_get_kind(self));
+
     if (digest_size > out_size)
     {
         return 0;

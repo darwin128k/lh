@@ -58,8 +58,6 @@ lh_math_size_from_extent(const lh_math_point_t *min, const lh_math_point_t *max,
                          lh_math_size_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_assert_runtime_ref(min);
-    lh_assert_runtime_ref(max);
     lh_math_size_t s;
     lh_math_size_init(lh_addr_of(s), lh_math_point_get_x(max) - lh_math_point_get_x(min),
                       lh_math_point_get_y(max) - lh_math_point_get_y(min));
@@ -72,8 +70,6 @@ lh_bool_t
 lh_math_size_eq(const lh_math_size_t *a, const lh_math_size_t *b)
 {
     lh_return_if(a == b, lh_bool_true);
-    lh_assert_runtime_ref(a);
-    lh_assert_runtime_ref(b);
     return lh_math_eq(lh_math_size_get_width(a), lh_math_size_get_width(b)) &&
            lh_math_eq(lh_math_size_get_height(a), lh_math_size_get_height(b));
 }
@@ -87,21 +83,16 @@ lh_math_size_equals(const lh_math_size_t *self, const lh_math_size_t *other)
 lh_bool_t
 lh_math_size_is_at_least(const lh_math_size_t *self, const lh_math_size_t *minimum)
 {
-    lh_math_scalar_t self_width;
-    lh_math_scalar_t minimum_width;
-    lh_math_scalar_t self_height;
-    lh_math_scalar_t minimum_height;
+    const lh_math_scalar_t self_width = lh_math_size_get_width(self);
+    const lh_math_scalar_t minimum_width = lh_math_size_get_width(minimum);
 
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(minimum);
-    self_width = lh_math_size_get_width(self);
-    minimum_width = lh_math_size_get_width(minimum);
     if (lh_math_ne(self_width, minimum_width))
     {
         return lh_cast_static(lh_bool_t, lh_math_gt(self_width, minimum_width));
     }
-    self_height = lh_math_size_get_height(self);
-    minimum_height = lh_math_size_get_height(minimum);
+    const lh_math_scalar_t self_height = lh_math_size_get_height(self);
+    const lh_math_scalar_t minimum_height = lh_math_size_get_height(minimum);
+
     return lh_cast_static(lh_bool_t, lh_math_ge(self_height, minimum_height));
 }
 
@@ -120,7 +111,6 @@ lh_math_size_is_greater(const lh_math_size_t *self, const lh_math_size_t *other)
 lh_bool_t
 lh_math_size_is_empty(const lh_math_size_t *self)
 {
-    lh_assert_runtime_ref(self);
     return (lh_math_size_get_width(self) <= 0) || (lh_math_size_get_height(self) <= 0);
 }
 
@@ -130,8 +120,6 @@ lh_void
 lh_math_size_min(const lh_math_size_t *a, const lh_math_size_t *b, lh_math_size_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_assert_runtime_ref(a);
-    lh_assert_runtime_ref(b);
     lh_math_size_t s;
     lh_math_size_pairwise(lh_math_size, lh_math_min, a, b, lh_addr_of(s));
     lh_ptr_deref(out) = s;
@@ -141,8 +129,6 @@ lh_void
 lh_math_size_max(const lh_math_size_t *a, const lh_math_size_t *b, lh_math_size_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_assert_runtime_ref(a);
-    lh_assert_runtime_ref(b);
     lh_math_size_t s;
     lh_math_size_pairwise(lh_math_size, lh_math_max, a, b, lh_addr_of(s));
     lh_ptr_deref(out) = s;
@@ -151,7 +137,6 @@ lh_math_size_max(const lh_math_size_t *a, const lh_math_size_t *b, lh_math_size_
 lh_math_scalar_t
 lh_math_size_min_side(const lh_math_size_t *self)
 {
-    lh_assert_runtime_ref(self);
     return lh_math_size_min_side_of(lh_math_size, self);
 }
 
@@ -162,7 +147,6 @@ lh_math_size_inset(const lh_math_size_t *self, lh_math_scalar_t dx, lh_math_scal
                    lh_math_size_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_assert_runtime_ref(self);
     lh_math_size_t s;
     lh_math_size_init(lh_addr_of(s), lh_math_size_get_width(self) - dx - dx,
                       lh_math_size_get_height(self) - dy - dy);

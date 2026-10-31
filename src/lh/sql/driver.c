@@ -207,21 +207,18 @@ lh_sql_driver_set_column_str_fn(lh_sql_driver_t *self, lh_sql_column_str_fn * co
 lh_void
 lh_sql_driver_close(const lh_sql_driver_t *self, struct lh_sql_db *db)
 {
-    lh_assert_runtime_ref(self);
     lh_sql_driver_get_close_fn(self)(db);
 }
 
 lh_bool_t
 lh_sql_driver_exec(const lh_sql_driver_t *self, struct lh_sql_db *db, lh_str_view_t sql)
 {
-    lh_assert_runtime_ref(self);
     return lh_sql_driver_get_exec_fn(self)(db, sql);
 }
 
 lh_sllong_t
 lh_sql_driver_get_last_insert_id(const lh_sql_driver_t *self, struct lh_sql_db *db)
 {
-    lh_assert_runtime_ref(self);
     return lh_sql_driver_get_last_insert_id_fn(self)(db);
 }
 
@@ -229,21 +226,18 @@ lh_bool_t
 lh_sql_driver_prepare(const lh_sql_driver_t *self, struct lh_sql_db *db, struct lh_sql_stmt *stmt,
                       lh_str_view_t sql)
 {
-    lh_assert_runtime_ref(self);
     return lh_sql_driver_get_prepare_fn(self)(db, stmt, sql);
 }
 
 lh_void
 lh_sql_driver_finalize(const lh_sql_driver_t *self, struct lh_sql_stmt *stmt)
 {
-    lh_assert_runtime_ref(self);
     lh_sql_driver_get_finalize_fn(self)(stmt);
 }
 
 lh_bool_t
 lh_sql_driver_bind_null(const lh_sql_driver_t *self, struct lh_sql_stmt *stmt, lh_usize_t index)
 {
-    lh_assert_runtime_ref(self);
     return lh_sql_driver_get_bind_null_fn(self)(stmt, index);
 }
 
@@ -251,7 +245,6 @@ lh_bool_t
 lh_sql_driver_bind_sint(const lh_sql_driver_t *self, struct lh_sql_stmt *stmt, lh_usize_t index,
                         lh_sllong_t value)
 {
-    lh_assert_runtime_ref(self);
     return lh_sql_driver_get_bind_sint_fn(self)(stmt, index, value);
 }
 
@@ -259,28 +252,24 @@ lh_bool_t
 lh_sql_driver_bind_str(const lh_sql_driver_t *self, struct lh_sql_stmt *stmt, lh_usize_t index,
                        lh_str_view_t value)
 {
-    lh_assert_runtime_ref(self);
     return lh_sql_driver_get_bind_str_fn(self)(stmt, index, value);
 }
 
 lh_sql_step_t
 lh_sql_driver_step(const lh_sql_driver_t *self, struct lh_sql_stmt *stmt)
 {
-    lh_assert_runtime_ref(self);
     return lh_sql_driver_get_step_fn(self)(stmt);
 }
 
 lh_bool_t
 lh_sql_driver_reset(const lh_sql_driver_t *self, struct lh_sql_stmt *stmt)
 {
-    lh_assert_runtime_ref(self);
     return lh_sql_driver_get_reset_fn(self)(stmt);
 }
 
 lh_usize_t
 lh_sql_driver_get_column_count(const lh_sql_driver_t *self, const struct lh_sql_stmt *stmt)
 {
-    lh_assert_runtime_ref(self);
     return lh_sql_driver_get_column_count_fn(self)(stmt);
 }
 
@@ -288,7 +277,6 @@ lh_bool_t
 lh_sql_driver_is_column_null(const lh_sql_driver_t *self, const struct lh_sql_stmt *stmt,
                              lh_usize_t index)
 {
-    lh_assert_runtime_ref(self);
     return lh_sql_driver_get_column_is_null_fn(self)(stmt, index);
 }
 
@@ -296,7 +284,6 @@ lh_sllong_t
 lh_sql_driver_get_column_sint(const lh_sql_driver_t *self, const struct lh_sql_stmt *stmt,
                               lh_usize_t index)
 {
-    lh_assert_runtime_ref(self);
     return lh_sql_driver_get_column_sint_fn(self)(stmt, index);
 }
 
@@ -304,6 +291,5 @@ lh_str_view_t
 lh_sql_driver_get_column_str(const lh_sql_driver_t *self, const struct lh_sql_stmt *stmt,
                              lh_usize_t index)
 {
-    lh_assert_runtime_ref(self);
     return lh_sql_driver_get_column_str_fn(self)(stmt, index);
 }
