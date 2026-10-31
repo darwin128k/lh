@@ -261,9 +261,8 @@ lh_os_system_surface_present_part(lh_os_system_surface_handle_t handle, lh_ptr d
 
         if (lh_os_system_posix_surface_get_pixel_bits(surface) == 16)
         {
-            data = lh_ptr_rcast(lh_byte_t,
-                                lh_os_system_posix_surface_widen(surface, src_x, src_y, width,
-                                                                 height));
+            data = lh_ptr_rcast(
+                lh_byte_t, lh_os_system_posix_surface_widen(surface, src_x, src_y, width, height));
             lh_return_if(lh_null_eq(data), lh_bool_false);
             image_width = width;
             image_height = height;

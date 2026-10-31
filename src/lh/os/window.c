@@ -594,8 +594,9 @@ lh_os_window_on_native_destroy(lh_os_window_t *self)
     {
         was_main = lh_cast_static(lh_bool_t, self == lh_os_app_get_window(app));
     }
-    lh_os_window_close_reason_t reason = lh_os_window_is_closing(self) ? lh_os_window_close_reason_api
-                                                                        : lh_os_window_close_reason_os;
+    lh_os_window_close_reason_t reason = lh_os_window_is_closing(self)
+                                             ? lh_os_window_close_reason_api
+                                             : lh_os_window_close_reason_os;
 
     lh_os_window_set_closing(self, lh_bool_false);
     lh_os_window_set_controller_armed(self, lh_bool_false);

@@ -50,10 +50,9 @@ lh_os_system_surface_create(int width, int height, int bits)
     }
 
     lh_ptr bits_pointer = lh_null;
-    lh_os_system_win_handle_t bitmap =
-        CreateDIBSection(dc,
-                         lh_cast_reinterpret(const lh_os_system_win_bitmapinfo_t *, lh_addr_of(info)),
-                         LH_OS_SYSTEM_WIN_DIB_RGB_COLORS, lh_addr_of(bits_pointer), lh_null, 0);
+    lh_os_system_win_handle_t bitmap = CreateDIBSection(
+        dc, lh_cast_reinterpret(const lh_os_system_win_bitmapinfo_t *, lh_addr_of(info)),
+        LH_OS_SYSTEM_WIN_DIB_RGB_COLORS, lh_addr_of(bits_pointer), lh_null, 0);
     if (lh_null_eq(bitmap) || lh_null_eq(bits_pointer))
     {
         DeleteDC(dc);
