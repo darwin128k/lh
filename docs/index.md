@@ -4,6 +4,10 @@ Every guide in this project, in one list. The [README](../README.md) is the
 project overview: what the library is, how to build it and what it contains.
 This page is the map of the detailed guides.
 
+The [roadmap](roadmap.md) is what comes next and in what order: the web host
+without a built-in application, XML and HTML as nodes, a JavaScript engine in
+lh, the gamepad driver.
+
 ## Integration guides
 
 How the library is added to a host project, per target. Start with
