@@ -36,6 +36,11 @@ every brick.
 - A hand-written loop, `switch`, range test or literal that duplicates a brick
   is replaced by the brick — in the file being edited and, per section 8,
   everywhere else it occurs.
+- **A `for` loop counts with an assignment in its third clause**:
+  `for (i = 0U; lh_math_lt(i, n); i = lh_math_add_one(i))`. The bare form
+  `lh_math_add_one(i)` — the value discarded — is dropped by GCC 16 (MSYS2
+  MinGW): the loop then runs forever or stops on another condition, with no
+  warning. The LH sources always assign; keep it that way.
 - If the brick does not fit, fix or extend the brick. Never write a local
   copy "because it was quicker".
 - A new brick is used by LH right away: introduce it together with the code

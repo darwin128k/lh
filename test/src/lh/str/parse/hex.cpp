@@ -80,4 +80,45 @@ TEST(str_ptr_parse_hex_prefix, failures_return_zero_and_keep_out)
     EXPECT_EQ(value, 77u);
 }
 
+TEST(str_ptr_parse_hex_bytes, parses_two_digits_per_byte)
+{
+    lh_byte_t bytes[4] = {0U, 0U, 0U, 0U};
+    EXPECT_TRUE(lh_str_ptr_parse_hex_bytes("00ff10a0", 8, bytes, sizeof bytes));
+    EXPECT_EQ(bytes[0], 0x00U);
+    EXPECT_EQ(bytes[1], 0xffU);
+    EXPECT_EQ(bytes[2], 0x10U);
+    EXPECT_EQ(bytes[3], 0xa0U);
+}
+
+TEST(str_ptr_parse_hex_bytes, accepts_mixed_case)
+{
+    lh_byte_t bytes[2] = {0U, 0U};
+    EXPECT_TRUE(lh_str_ptr_parse_hex_bytes("DeAd", 4, bytes, sizeof bytes));
+    EXPECT_EQ(bytes[0], 0xdeU);
+    EXPECT_EQ(bytes[1], 0xadU);
+}
+
+TEST(str_ptr_parse_hex_bytes, leaves_the_rest_of_the_text_alone)
+{
+    lh_byte_t bytes[1] = {0U};
+    EXPECT_TRUE(lh_str_ptr_parse_hex_bytes("ab;", 3, bytes, sizeof bytes));
+    EXPECT_EQ(bytes[0], 0xabU);
+}
+
+TEST(str_ptr_parse_hex_bytes, rejects_text_that_is_too_short)
+{
+    lh_byte_t bytes[2] = {7U, 8U};
+    EXPECT_FALSE(lh_str_ptr_parse_hex_bytes("ab", 2, bytes, sizeof bytes));
+    EXPECT_EQ(bytes[0], 7U);
+    EXPECT_EQ(bytes[1], 8U);
+}
+
+TEST(str_ptr_parse_hex_bytes, rejects_a_character_that_is_not_a_hex_digit)
+{
+    lh_byte_t bytes[2] = {7U, 8U};
+    EXPECT_FALSE(lh_str_ptr_parse_hex_bytes("az", 2, bytes, sizeof bytes));
+    EXPECT_EQ(bytes[0], 7U);
+    EXPECT_EQ(bytes[1], 8U);
+}
+
 } // namespace
