@@ -48,14 +48,34 @@ every brick.
   `python tools/check-decls.py <paths>` (the Authum repository holds the
   checker) reports the piles: two or more declarations in a row at the start of
   a block.
-- **A pointer is checked once, at the boundary that receives it.** A public
-  function checks the arguments it takes from the outside; an internal helper
-  that only ever gets the pointer from a checked caller does not check it
-  again. One path never checks the same pointer twice: when the caller checks
-  and the callee checks too, one of the two goes — keep the check in the
-  function that owns the contract (the public one), and drop the caller's.
-  `python tools/check-asserts.py <paths>` (in the Authum repository) reports
-  the double checks.
+- **Do not repeat a pointer assertion already guaranteed by delegation.**
+  A public function owns its documented preconditions, but may enforce them
+  through the brick it calls; it does not need a separate entry assertion.
+  If `lh_assert_runtime_ref(self)` is followed by a call that checks the same
+  unchanged `self`, remove the caller's assertion only when that call checks
+  it before any operation that requires a valid pointer, on every relevant
+  execution path. Inspect the callee and its delegation chain, not just its
+  name. A later check cannot protect an earlier field access or dereference.
+  - Keep the assertion in an independently callable public brick when it
+    needs it to enforce its own contract. Do not remove it just because one
+    caller has already checked the pointer.
+  - For an existing private helper called only with checked pointers, remove
+    its redundant assertion after inspecting every caller. This does not
+    permit new `static` functions (section 2).
+  - Compare the actual conditions: non-null, valid range, initialized state
+    and successful operation are different contracts. Do not remove a
+    stronger check because a weaker one exists. Account for branches, early
+    returns, pointer reassignment and intervening state changes.
+  - Do not add unchecked copies, raw field access or bypasses merely to avoid
+    assertions in independently callable bricks. Repeated accessor calls are
+    not permission to break layering. Preserve the existing null/empty cases
+    and failure behaviour; this is a debug assertion cleanup, not a contract
+    change. Release-disabled assertions still deserve this review.
+  - `python tools/check-asserts.py <paths>` (in the Authum repository) reports
+    candidates, not proven defects: it is a same-file textual heuristic and
+    does not establish control flow, parameter correspondence or cross-file
+    delegation. Review both LH and Authum; never delete assertions in bulk
+    from its count alone.
 - If the brick does not fit, fix or extend the brick. Never write a local
   copy "because it was quicker".
 - A new brick is used by LH right away: introduce it together with the code

@@ -130,4 +130,25 @@ TEST(str_view_split_next_of, splits_on_either_slash)
     EXPECT_FALSE(lh_str_view_split_next_of(&text, seps, 2, &pos, &field, &had_delim));
 }
 
+TEST(str_view_split_next_of, empty_fields_keep_their_source_address)
+{
+    const lh_str_view_t text = lh_str_view_lit(",,x");
+    const lh_char_t delims[] = {','};
+    lh_usize_t pos = 0U;
+    lh_str_view_t field;
+    lh_bool_t had_delim;
+    for (lh_usize_t i = 0U; i < 2U; i = i + 1U)
+    {
+        ASSERT_TRUE(lh_str_view_split_next_of(&text, delims, 1U, &pos, &field, &had_delim));
+        EXPECT_EQ(lh_str_view_get_size(&field), 0U);
+        EXPECT_EQ(lh_str_view_get_data(&field), lh_str_view_get_data(&text) + i);
+        EXPECT_EQ(pos, i + 1U);
+        EXPECT_TRUE(had_delim);
+    }
+    ASSERT_TRUE(lh_str_view_split_next_of(&text, delims, 1U, &pos, &field, &had_delim));
+    EXPECT_EQ(lh_str_view_get_size(&field), 1U);
+    EXPECT_FALSE(had_delim);
+    EXPECT_FALSE(lh_str_view_split_next_of(&text, delims, 1U, &pos, &field, &had_delim));
+}
+
 } // namespace

@@ -74,13 +74,6 @@ lh_str_view_split_next_of(const lh_str_view_t *self, lh_str_cptr delims, lh_usiz
         return lh_bool_false;
     }
 
-    if (lh_math_is_zero(piece_size))
-    {
-        lh_str_view_init_empty(field);
-    }
-    else
-    {
-        lh_str_view_init_by_size(field, piece, piece_size);
-    }
+    lh_str_view_init_by_size(field, piece, piece_size);
     return lh_bool_true;
 }

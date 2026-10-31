@@ -87,7 +87,6 @@ lh_str_append(lh_str_t *self, lh_str_cptr text, lh_usize_t count)
 lh_void
 lh_str_as_view(const lh_str_t *self, lh_str_view_t *out)
 {
-    lh_assert_runtime_ref(out);
     lh_str_view_init_by_size(out, lh_str_get_data(self), lh_str_get_size(self));
 }
 
@@ -142,7 +141,6 @@ lh_str_clear(lh_str_t *self)
 lh_void
 lh_str_truncate(lh_str_t *self, lh_usize_t n)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_if(n > lh_str_get_size(self), lh_runtime_error_code_invalid_range);
     lh_array_resize(self, n);
     lh_str_terminate(self);

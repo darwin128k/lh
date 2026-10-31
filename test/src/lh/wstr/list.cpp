@@ -10,6 +10,15 @@
 namespace
 {
 
+TEST(wstr_list_contract, delegated_check_rejects_null_output)
+{
+    lh_wstr_list_t list;
+    lh_wstr_list_init(&list);
+    lh_wstr_list_push_back(&list, lh_wstr_view_lit(L"only"));
+    LH_EXPECT_DEATH(lh_wstr_list_get(&list, 0U, lh_null));
+    lh_wstr_list_deinit(&list);
+}
+
 std::wstring
 as_wstring(lh_wstr_view_t view)
 {

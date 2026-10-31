@@ -99,7 +99,6 @@ lh_str_list_assign(lh_str_list_t *self, const lh_str_list_t *other)
 lh_void
 lh_str_list_get(const lh_str_list_t *self, lh_uindex_t index, lh_str_view_t *out)
 {
-    lh_assert_runtime_ref(out);
     lh_str_list_span_t span;
     lh_str_view_t chars;
 

@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- String view line and delimiter splitting retain the source address for
+  empty results, matching the pointer forms. Empty lines no longer become
+  null-backed views that violate non-null contracts in downstream copies.
+
 - A `for` loop whose third clause was the bare `lh_math_add_one(i)` — the value
   discarded — lost its increment under GCC 16 (MSYS2 MinGW): the loop ran on
   the byte it had and stopped on some other condition, with no warning. The

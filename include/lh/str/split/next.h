@@ -71,8 +71,11 @@ lh_str_ptr_split_next(const lh_str_ptr str, lh_usize_t str_size, lh_char_t delim
 /**
  * @brief View wrapper for ::lh_str_ptr_split_next_of.
  *
- * Empty @p self yields ::lh_bool_false. A zero-length field is an empty
- * view (leading or doubled delimiter).
+ * Empty @p self yields ::lh_bool_false. Every returned field borrows its
+ * storage from @p self, which must outlive the result. A zero-length field
+ * (leading or doubled delimiter) retains its start address in the source
+ * text, matching ::lh_str_ptr_split_next_of. No storage is allocated or
+ * transferred.
  */
 lh_bool_t
 lh_str_view_split_next_of(const lh_str_view_t *self, const lh_str_ptr delims,

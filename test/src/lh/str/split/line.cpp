@@ -102,4 +102,24 @@ TEST(str_view_split_next_line, empty_view_has_no_lines)
     EXPECT_FALSE(lh_str_view_split_next_line(&text, &pos, &line));
 }
 
+TEST(str_view_split_next_line, empty_lines_keep_their_source_address)
+{
+    for (const std::string text : {"\n", "\r", "\r\n", "\n\n", "\r\n\r\n"})
+    {
+        lh_str_view_t source;
+        lh_str_view_init_by_size(&source, text.data(), text.size());
+        lh_usize_t pos = 0U;
+        lh_str_view_t line;
+        while (pos < text.size())
+        {
+            const lh_usize_t start = pos;
+            ASSERT_TRUE(lh_str_view_split_next_line(&source, &pos, &line));
+            EXPECT_EQ(lh_str_view_get_size(&line), 0U);
+            EXPECT_EQ(lh_str_view_get_data(&line), text.data() + start);
+            EXPECT_GT(pos, start);
+        }
+        EXPECT_FALSE(lh_str_view_split_next_line(&source, &pos, &line));
+    }
+}
+
 } // namespace
