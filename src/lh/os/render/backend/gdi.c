@@ -191,9 +191,9 @@ lh_os_render_backend_gdi_begin(lh_ptr context)
         }
         else
         {
-            lh_return_if(!lh_os_system_window_get_client_size(
-                lh_os_render_backend_gdi_context_get_hwnd(gdi), lh_addr_of(width),
-                lh_addr_of(height)));
+            lh_return_if(
+                !lh_os_system_window_get_client_size(lh_os_render_backend_gdi_context_get_hwnd(gdi),
+                                                     lh_addr_of(width), lh_addr_of(height)));
         }
         lh_ui_size_t size;
 

@@ -73,8 +73,9 @@ lh_net_ip4_socket_addr_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_ip4_so
         lh_net_ip4_t ip;
         lh_net_port_t port;
 
-        if (!lh_str_ptr_split_next(str, str_size, lh_char_map_colon, lh_addr_of(pos), lh_addr_of(field),
-                                   lh_addr_of(field_size), lh_addr_of(had_delim)))
+        if (!lh_str_ptr_split_next(str, str_size, lh_char_map_colon, lh_addr_of(pos),
+                                   lh_addr_of(field), lh_addr_of(field_size),
+                                   lh_addr_of(had_delim)))
         {
             return lh_bool_false;
         }
@@ -126,8 +127,8 @@ lh_net_ip4_socket_addr_format(const lh_net_ip4_socket_addr_t *self, lh_str_ptr s
         }
 
         written = lh_str_ptr_format_uint(
-            lh_cast_static(lh_uint_t, lh_net_ip4_get_octet(lh_addr_of(ip), octet_index)), scratch + pos,
-            LH_NET_IP4_SOCKET_ADDR_TEXT_MAX - pos);
+            lh_cast_static(lh_uint_t, lh_net_ip4_get_octet(lh_addr_of(ip), octet_index)),
+            scratch + pos, LH_NET_IP4_SOCKET_ADDR_TEXT_MAX - pos);
         if (written == 0)
         {
             return 0; /* unreachable: each octet is <= 3 digits and scratch always has room */

@@ -1056,16 +1056,16 @@ lh_os_system_posix_window_send_wheel(lh_os_system_posix_window_t *self,
         lh_os_input_event_t input;
 
         lh_return_if(!lh_os_system_posix_input_wheel_of(event->button.button, lh_addr_of(dx),
-                                                         lh_addr_of(dy)),
+                                                        lh_addr_of(dy)),
                      lh_bool_false);
-        lh_os_input_event_init_wheel(lh_addr_of(input),
-                                     lh_os_input_coord_from_int(event->button.x),
+        lh_os_input_event_init_wheel(lh_addr_of(input), lh_os_input_coord_from_int(event->button.x),
                                      lh_os_input_coord_from_int(event->button.y), dx, dy,
                                      lh_os_tick_ms());
         lh_os_input_event_set_buttons(
-            lh_addr_of(input), lh_os_system_posix_input_buttons_held(
-                                   event->button.state, lh_os_window_get_pressed_buttons(
-                                                            lh_os_system_posix_window_get_user(self))));
+            lh_addr_of(input),
+            lh_os_system_posix_input_buttons_held(
+                event->button.state,
+                lh_os_window_get_pressed_buttons(lh_os_system_posix_window_get_user(self))));
         lh_os_input_event_set_mods(lh_addr_of(input),
                                    lh_os_system_posix_input_mods_of(event->button.state));
         lh_os_window_on_native_input(lh_os_system_posix_window_get_user(self), lh_addr_of(input));

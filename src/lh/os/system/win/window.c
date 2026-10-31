@@ -132,8 +132,7 @@ lh_os_system_win_window_send_wheel(lh_os_window_t *window, lh_os_system_win_hwnd
         lh_os_system_win_input_wheel_of(msg, wparam, lh_addr_of(dx), lh_addr_of(dy));
         lh_os_input_event_init_wheel(lh_addr_of(event), lh_os_input_coord_from_int(cursor.x),
                                      lh_os_input_coord_from_int(cursor.y), dx, dy, lh_os_tick_ms());
-        lh_os_input_event_set_buttons(lh_addr_of(event),
-                                      lh_os_system_win_input_buttons_of(wparam));
+        lh_os_input_event_set_buttons(lh_addr_of(event), lh_os_system_win_input_buttons_of(wparam));
         lh_os_input_event_set_mods(lh_addr_of(event), lh_os_system_win_input_get_mods());
         lh_os_window_on_native_input(window, lh_addr_of(event));
     }
@@ -355,14 +354,14 @@ lh_os_system_win_window_centered_origin(const lh_os_system_win_rect_t *window_re
         return;
     }
 
-    const int centered_x = monitor_info.work.left +
-                            (monitor_info.work.right - monitor_info.work.left -
-                             (window_rect->right - window_rect->left)) /
-                                2;
-    const int centered_y = monitor_info.work.top +
-                           (monitor_info.work.bottom - monitor_info.work.top -
-                            (window_rect->bottom - window_rect->top)) /
-                               2;
+    const int centered_x =
+        monitor_info.work.left + (monitor_info.work.right - monitor_info.work.left -
+                                  (window_rect->right - window_rect->left)) /
+                                     2;
+    const int centered_y =
+        monitor_info.work.top + (monitor_info.work.bottom - monitor_info.work.top -
+                                 (window_rect->bottom - window_rect->top)) /
+                                    2;
 
     lh_ptr_deref(x) = centered_x > monitor_info.work.left ? centered_x : monitor_info.work.left;
     lh_ptr_deref(y) = centered_y > monitor_info.work.top ? centered_y : monitor_info.work.top;
@@ -698,10 +697,9 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
                                                 lh_addr_of(y));
     }
 
-    lh_os_system_win_hwnd_t hwnd =
-        CreateWindowExA(ex_style, LH_OS_SYSTEM_WIN_WINDOW_CLASS_NAME, title, style, x, y,
-                        rect.right - rect.left, rect.bottom - rect.top, owner_hwnd, lh_null,
-                        instance, user);
+    lh_os_system_win_hwnd_t hwnd = CreateWindowExA(
+        ex_style, LH_OS_SYSTEM_WIN_WINDOW_CLASS_NAME, title, style, x, y, rect.right - rect.left,
+        rect.bottom - rect.top, owner_hwnd, lh_null, instance, user);
     if (hwnd == lh_null)
     {
         return LH_OS_SYSTEM_WINDOW_HANDLE_INVALID;
@@ -776,9 +774,9 @@ lh_os_system_window_close(lh_os_system_window_handle_t handle)
 lh_os_system_window_pump_result_t
 lh_os_system_window_pump_wait(lh_tick_t timeout_ms)
 {
-    lh_os_system_win_dword_t wait =
-        (timeout_ms == LH_TICK_T_MAX) ? LH_OS_SYSTEM_WIN_INFINITE
-                                      : lh_cast_static(lh_os_system_win_dword_t, timeout_ms);
+    lh_os_system_win_dword_t wait = (timeout_ms == LH_TICK_T_MAX)
+                                        ? LH_OS_SYSTEM_WIN_INFINITE
+                                        : lh_cast_static(lh_os_system_win_dword_t, timeout_ms);
     lh_os_system_win_dword_t result = MsgWaitForMultipleObjects(0, lh_null, LH_OS_SYSTEM_WIN_FALSE,
                                                                 wait, LH_OS_SYSTEM_WIN_QS_ALLINPUT);
 
@@ -912,7 +910,7 @@ lh_os_system_window_get_paint_region(lh_ptr paint_dc, lh_u64_t *area, lh_u32_t *
 
     lh_return_if(lh_null_eq(rgn), lh_bool_false);
     lh_int_t got = GetRandomRgn(lh_cast_reinterpret(lh_os_system_win_hdc_t, paint_dc), rgn,
-                                 LH_OS_SYSTEM_WIN_SYSRGN);
+                                LH_OS_SYSTEM_WIN_SYSRGN);
 
     if (got == 0)
     {
@@ -928,8 +926,9 @@ lh_os_system_window_get_paint_region(lh_ptr paint_dc, lh_u64_t *area, lh_u32_t *
             /* The rectangles never overlap, so their areas add up to the region's. They
                are in screen coordinates on NT and client ones on 9x, which moves them
                and does not resize them -- and only the size is wanted. */
-            const lh_os_system_win_rect_t *rects = lh_ptr_rcast(
-                const lh_os_system_win_rect_t, lh_ptr_rcast(const lh_byte_t, buffer) + header->dwSize);
+            const lh_os_system_win_rect_t *rects =
+                lh_ptr_rcast(const lh_os_system_win_rect_t,
+                             lh_ptr_rcast(const lh_byte_t, buffer) + header->dwSize);
 
             for (lh_os_system_win_dword_t i = 0U; i < header->nCount; ++i)
             {

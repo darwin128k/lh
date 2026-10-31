@@ -130,12 +130,11 @@ lh_os_fs_dir_create_tree(const lh_fs_path_t *path)
 
     lh_fs_path_init(lh_addr_of(parent));
     /* No parent to make (a root, one relative segment): the error stands. */
-    lh_bool_t created = lh_cast_static(lh_bool_t, lh_fs_path_parent(lh_addr_of(parent), path) &&
-                                       !lh_fs_path_is_empty(lh_addr_of(parent)) &&
-                                       !lh_fs_path_equals(lh_addr_of(parent), path,
-                                                          lh_bool_false) &&
-                                       lh_os_fs_dir_create_tree(lh_addr_of(parent)) &&
-                                       lh_os_fs_dir_create(path));
+    lh_bool_t created = lh_cast_static(
+        lh_bool_t, lh_fs_path_parent(lh_addr_of(parent), path) &&
+                       !lh_fs_path_is_empty(lh_addr_of(parent)) &&
+                       !lh_fs_path_equals(lh_addr_of(parent), path, lh_bool_false) &&
+                       lh_os_fs_dir_create_tree(lh_addr_of(parent)) && lh_os_fs_dir_create(path));
     lh_fs_path_deinit(lh_addr_of(parent));
     return created;
 }

@@ -138,7 +138,8 @@ lh_os_input_queue_drain(lh_os_input_queue_t *self, lh_os_input_sink_cb sink, lh_
     lh_os_input_event_t event;
     lh_u16_t count = 0U;
 
-    lh_assert_runtime_ref(sink);    while (lh_os_input_queue_pop(self, lh_addr_of(event)))
+    lh_assert_runtime_ref(sink);
+    while (lh_os_input_queue_pop(self, lh_addr_of(event)))
     {
         sink(context, lh_addr_of(event));
         ++count;

@@ -605,7 +605,7 @@ lh_mb_link_send(lh_mb_link_t *self, lh_byte_cptr pdu, lh_u16_t pdu_length, lh_u1
         return lh_bool_false;
     }
     lh_ssize_t wrote = lh_io_stream_write(lh_mb_link_get_stream_mut(self), out,
-                                         lh_cast_static(lh_usize_t, pdu_length));
+                                          lh_cast_static(lh_usize_t, pdu_length));
     if (wrote == LH_IO_PENDING)
     {
         /* Nothing went out: the send buffer is full for the moment. Not a fault --
@@ -664,14 +664,13 @@ lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us)
        and the loop below consumes it. A read of zero bytes is not a harmless call on
        a real socket -- it returns 0, which is how a socket says the peer has
        closed. */
-    lh_ssize_t got = lh_mb_link_get_held(self) < lh_cast_static(lh_u16_t, LH_MB_ADU_MAX)
-                         ? lh_io_stream_read(lh_mb_link_get_stream_mut(self),
-                                             lh_mb_link_get_frame_mut(self) +
-                                                 lh_mb_link_get_held(self),
-                                             lh_cast_static(lh_usize_t,
-                                                            (LH_MB_ADU_MAX -
-                                                             lh_mb_link_get_held(self))))
-                         : LH_IO_PENDING;
+    lh_ssize_t got =
+        lh_mb_link_get_held(self) < lh_cast_static(lh_u16_t, LH_MB_ADU_MAX)
+            ? lh_io_stream_read(
+                  lh_mb_link_get_stream_mut(self),
+                  lh_mb_link_get_frame_mut(self) + lh_mb_link_get_held(self),
+                  lh_cast_static(lh_usize_t, (LH_MB_ADU_MAX - lh_mb_link_get_held(self))))
+            : LH_IO_PENDING;
     if (got == 0 || (got < 0 && got != LH_IO_PENDING))
     {
         /* Every failure below ends the same way: **back to idle, not stuck.**
@@ -851,7 +850,7 @@ lh_mb_link_ask(lh_mb_link_t *self, lh_u16_t address, lh_u16_t count)
        answering the wrong question, which is the most expensive kind of bug to
        chase and the least likely — the answer was fine, the reader was wrong. */
     lh_u16_t pdu_length = lh_mb_build_pdu_read(pdu, lh_cast_static(lh_u16_t, sizeof(pdu)),
-                                                lh_mb_link_get_fc(self), address, count);
+                                               lh_mb_link_get_fc(self), address, count);
     return lh_mb_link_send(self, pdu, pdu_length, address, count, lh_mb_link_get_fc(self));
 }
 
