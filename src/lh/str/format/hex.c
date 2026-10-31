@@ -1,8 +1,6 @@
 #include <lh/str/format/hex.h>
 #include <lh/math.h>
 #include <lh/char/digit.h>
-#include <lh/char/map.h>
-#include <lh/util/ptr.h>
 
 /* Every 4 bits is one hex digit: the highest set bit's position (0-based) divided
  * by 4, plus 1, gives the digit count directly — no trial-and-error extraction
