@@ -34,7 +34,6 @@ lh_math_vec2_set_y(lh_math_vec2_t *self, lh_float_t y)
 lh_void
 lh_math_vec2_init(lh_math_vec2_t *self, lh_float_t x, lh_float_t y)
 {
-    lh_assert_runtime_ref(self);
     lh_math_vec2_set_x(self, x);
     lh_math_vec2_set_y(self, y);
 }
@@ -98,9 +97,10 @@ lh_math_vec2_view_of(const lh_math_vec2_t *v, lh_math_view_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_math_slice_t slice;
-    lh_math_view_t view;
 
     lh_math_slice_init(lh_addr_of(slice), lh_ptr_rcast(const lh_float_t, v), 2U);
+    lh_math_view_t view;
+
     lh_math_view_init_by_slice(lh_addr_of(view), lh_addr_of(slice));
     lh_ptr_deref(out) = view;
 }

@@ -144,10 +144,8 @@ lh_math_slice_drop_last(const lh_math_slice_t *self, lh_usize_t n, lh_math_slice
 lh_bool_t
 lh_math_slice_equals(const lh_math_slice_t *a, const lh_math_slice_t *b)
 {
-    lh_usize_t i;
-
     lh_return_if(lh_math_slice_get_size(a) != lh_math_slice_get_size(b), lh_bool_false);
-    for (i = 0U; i < lh_math_slice_get_size(a); ++i)
+    for (lh_usize_t i = 0U; i < lh_math_slice_get_size(a); ++i)
     {
         lh_return_if(lh_math_slice_get_at(a, i) != lh_math_slice_get_at(b, i), lh_bool_false);
     }
@@ -157,13 +155,13 @@ lh_math_slice_equals(const lh_math_slice_t *a, const lh_math_slice_t *b)
 lh_float_t
 lh_math_slice_sum(const lh_math_slice_t *self)
 {
-    lh_float_t sum;
-    lh_usize_t i;
-
     /* From the first element, not from 0: 0 + -0 is +0, and a sum written out by
        hand (x + y + z) keeps the sign of an all-negative-zero row. */
     lh_return_if(lh_math_slice_is_empty(self), 0.0f);
-    for (sum = lh_math_slice_get_at(self, 0U), i = 1U; i < lh_math_slice_get_size(self); ++i)
+
+    lh_float_t sum = lh_math_slice_get_at(self, 0U);
+
+    for (lh_usize_t i = 1U; i < lh_math_slice_get_size(self); ++i)
     {
         sum += lh_math_slice_get_at(self, i);
     }
@@ -173,14 +171,13 @@ lh_math_slice_sum(const lh_math_slice_t *self)
 lh_float_t
 lh_math_slice_dot(const lh_math_slice_t *a, const lh_math_slice_t *b)
 {
-    lh_float_t sum;
-    lh_usize_t i;
-
     lh_assert_runtime_ifn(lh_math_slice_get_size(a) == lh_math_slice_get_size(b),
                           lh_runtime_error_code_invalid_range);
     lh_return_if(lh_math_slice_is_empty(a), 0.0f);
-    for (sum = lh_math_slice_get_at(a, 0U) * lh_math_slice_get_at(b, 0U), i = 1U;
-         i < lh_math_slice_get_size(a); ++i)
+
+    lh_float_t sum = lh_math_slice_get_at(a, 0U) * lh_math_slice_get_at(b, 0U);
+
+    for (lh_usize_t i = 1U; i < lh_math_slice_get_size(a); ++i)
     {
         sum += lh_math_slice_get_at(a, i) * lh_math_slice_get_at(b, i);
     }

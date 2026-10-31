@@ -156,10 +156,9 @@ lh_void
 lh_sql_mysql_prepared_destroy(lh_sql_mysql_prepared_t *self, const lh_sql_mysql_api_t *api)
 {
     lh_array_t *literals = lh_sql_mysql_prepared_get_literals_mut(self);
-    lh_usize_t i;
 
     lh_sql_mysql_prepared_rewind(self, api);
-    for (i = 0U; lh_math_lt(i, lh_array_get_size(literals)); i = lh_math_add_one(i))
+    for (lh_usize_t i = 0U; lh_math_lt(i, lh_array_get_size(literals)); i = lh_math_add_one(i))
     {
         lh_str_deinit(lh_ptr_cast(lh_str_t, lh_array_get_ptr(literals, i)));
     }

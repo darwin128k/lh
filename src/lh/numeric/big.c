@@ -21,7 +21,6 @@ lh_numeric_big_set_word(lh_numeric_big_t *self, lh_usize_t index, lh_u32_t value
 lh_void
 lh_numeric_big_set_u32(lh_numeric_big_t *self, lh_u32_t value)
 {
-    lh_assert_runtime_ref(self);
     lh_numeric_big_set_word(self, 0, value);
     for (lh_usize_t i = 1U; lh_math_lt(i, LH_NUMERIC_BIG_WORDS); i = lh_math_add_one(i))
     {
@@ -34,8 +33,6 @@ lh_numeric_big_mul_u32(lh_numeric_big_t *self, lh_u32_t k)
 {
     lh_u64_t carry = 0U;
     lh_usize_t hi = LH_NUMERIC_BIG_WORDS;
-
-    lh_assert_runtime_ref(self);
 
     /* Skip leading zero words so common float ratios stay in 1–2 limbs. */
     while (lh_math_gt(hi, 0U) && lh_math_is_zero(lh_numeric_big_get_word(self, lh_math_sub_one(hi))))
@@ -75,7 +72,6 @@ lh_numeric_big_shl(lh_numeric_big_t *self, lh_usize_t bits)
     const lh_usize_t words = lh_math_div(bits, 32U);
     const lh_usize_t rest = lh_math_mod(bits, 32U);
 
-    lh_assert_runtime_ref(self);
     for (lh_usize_t i = LH_NUMERIC_BIG_WORDS; lh_math_gt(i, 0U); i = lh_math_sub_one(i))
     {
         const lh_usize_t to = lh_math_sub_one(i);
@@ -97,8 +93,6 @@ lh_numeric_big_shl(lh_numeric_big_t *self, lh_usize_t bits)
 lh_sint_t
 lh_numeric_big_compare(const lh_numeric_big_t *a, const lh_numeric_big_t *b)
 {
-    lh_assert_runtime_ref(a);
-    lh_assert_runtime_ref(b);
     for (lh_usize_t i = LH_NUMERIC_BIG_WORDS; lh_math_gt(i, 0U); i = lh_math_sub_one(i))
     {
         const lh_u32_t x = lh_numeric_big_get_word(a, lh_math_sub_one(i));
@@ -117,8 +111,6 @@ lh_numeric_big_sub(lh_numeric_big_t *a, const lh_numeric_big_t *b)
 {
     lh_u64_t borrow = 0U;
 
-    lh_assert_runtime_ref(a);
-    lh_assert_runtime_ref(b);
     for (lh_usize_t i = 0U; lh_math_lt(i, LH_NUMERIC_BIG_WORDS); i = lh_math_add_one(i))
     {
         const lh_u64_t x = lh_cast_static(lh_u64_t, lh_numeric_big_get_word(a, i));

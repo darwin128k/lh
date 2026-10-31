@@ -150,18 +150,25 @@ lh_sql_sqlite_bind_sint(lh_sql_stmt_t *stmt, lh_usize_t index, lh_sllong_t value
 lh_bool_t
 lh_sql_sqlite_bind_str(lh_sql_stmt_t *stmt, lh_usize_t index, lh_str_view_t value)
 {
-    int at;
-    int size;
     /* An empty view may have no data pointer; SQLite takes "" for empty text,
        a null pointer for NULL. */
     const lh_str_cptr text =
         lh_str_view_is_empty(lh_addr_of(value)) ? "" : lh_str_view_get_begin(lh_addr_of(value));
+    int at;
 
-    return lh_sql_sqlite_to_int(index, lh_addr_of(at)) &&
-           lh_sql_sqlite_to_int(lh_str_view_get_size(lh_addr_of(value)), lh_addr_of(size)) &&
-           lh_math_eq(sqlite3_bind_text(lh_sql_sqlite_get_native_stmt(stmt), at, text, size,
-                                        SQLITE_TRANSIENT),
-                      SQLITE_OK);
+    if (!lh_sql_sqlite_to_int(index, lh_addr_of(at)))
+    {
+        return lh_bool_false;
+    }
+    int size;
+
+    if (!lh_sql_sqlite_to_int(lh_str_view_get_size(lh_addr_of(value)), lh_addr_of(size)))
+    {
+        return lh_bool_false;
+    }
+    return lh_math_eq(
+        sqlite3_bind_text(lh_sql_sqlite_get_native_stmt(stmt), at, text, size, SQLITE_TRANSIENT),
+        SQLITE_OK);
 }
 
 lh_sql_step_t
@@ -222,10 +229,7 @@ lh_str_view_t
 lh_sql_sqlite_get_column_str(const lh_sql_stmt_t *stmt, lh_usize_t index)
 {
     sqlite3_stmt *native = lh_sql_sqlite_get_native_stmt(stmt);
-    lh_str_view_t view;
-    const unsigned char *text;
     int at;
-    int size;
 
     if (!lh_sql_sqlite_to_int(index, lh_addr_of(at)))
     {
@@ -233,12 +237,15 @@ lh_sql_sqlite_get_column_str(const lh_sql_stmt_t *stmt, lh_usize_t index)
     }
     /* Text first, then its length: the documented order, as reading the text
        may convert the value. */
-    text = sqlite3_column_text(native, at);
-    size = sqlite3_column_bytes(native, at);
+    const unsigned char *text = sqlite3_column_text(native, at);
+    const int size = sqlite3_column_bytes(native, at);
+
     if (lh_null_eq(text) || lh_math_le(size, 0))
     {
         return lh_str_view_empty();
     }
+    lh_str_view_t view;
+
     lh_str_view_init_by_size(lh_addr_of(view), lh_ptr_cast(const lh_char_t, text),
                         lh_cast_static(lh_usize_t, size));
     return view;
@@ -275,7 +282,6 @@ lh_sql_db_open_sqlite(lh_sql_db_t *db, lh_str_view_t path)
 {
     sqlite3 *native = lh_null;
     lh_str_t name;
-    int rc;
 
     lh_sql_db_close(db);
     lh_sql_db_clear_error(db);
@@ -286,8 +292,9 @@ lh_sql_db_open_sqlite(lh_sql_db_t *db, lh_str_view_t path)
 
     /* SQLite wants a NUL-terminated name; the view need not have one. */
     lh_str_init_by_view(lh_addr_of(name), path);
-    rc = sqlite3_open_v2(lh_str_get_data(lh_addr_of(name)), lh_addr_of(native),
-                         SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, lh_null);
+    const int rc = sqlite3_open_v2(lh_str_get_data(lh_addr_of(name)), lh_addr_of(native),
+                                   SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, lh_null);
+
     lh_str_deinit(lh_addr_of(name));
 
     lh_sql_db_set_handle(db, native);

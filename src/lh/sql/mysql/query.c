@@ -38,13 +38,14 @@ lh_sql_mysql_query_skip_comment(const lh_str_ptr text, lh_usize_t size, lh_usize
         lh_math_lt(lh_math_add_one(pos), size) ? text[lh_math_add_one(pos)] : lh_char_map_nul;
     const lh_char_t after =
         lh_math_lt(lh_math_add(pos, 2U), size) ? text[lh_math_add(pos, 2U)] : lh_char_map_nul;
-    lh_usize_t at;
 
     if (lh_math_eq(ch, lh_char_map_hash) ||
         (lh_math_eq(ch, lh_char_map_minus) && lh_math_eq(next, lh_char_map_minus) &&
          lh_math_le(lh_cast_static(lh_byte_t, after),
                     lh_cast_static(lh_byte_t, lh_char_map_space))))
     {
+        lh_usize_t at;
+
         for (at = pos; lh_math_lt(at, size) && lh_math_ne(text[at], lh_char_map_lf);
              at = lh_math_add_one(at))
         {
@@ -53,7 +54,7 @@ lh_sql_mysql_query_skip_comment(const lh_str_ptr text, lh_usize_t size, lh_usize
     }
     if (lh_math_eq(ch, lh_char_map_slash) && lh_math_eq(next, lh_char_map_asterisk))
     {
-        for (at = lh_math_add(pos, 2U); lh_math_lt(lh_math_add_one(at), size);
+        for (lh_usize_t at = lh_math_add(pos, 2U); lh_math_lt(lh_math_add_one(at), size);
              at = lh_math_add_one(at))
         {
             if (lh_math_eq(text[at], lh_char_map_asterisk) &&
@@ -119,10 +120,9 @@ lh_sql_mysql_query_substitute(lh_str_view_t sql, const lh_str_t *literals, lh_us
     const lh_usize_t size = lh_str_view_get_size(lh_addr_of(sql));
     lh_usize_t param = 0U;
     lh_usize_t start = 0U;
-    lh_usize_t pos;
 
     lh_assert_runtime_ref(out);
-    for (pos = lh_sql_mysql_query_find_param(text, size, 0U); lh_math_lt(pos, size);
+    for (lh_usize_t pos = lh_sql_mysql_query_find_param(text, size, 0U); lh_math_lt(pos, size);
          pos = lh_sql_mysql_query_find_param(text, size, lh_math_add_one(pos)))
     {
         if (lh_math_ge(param, count) || lh_str_is_empty(lh_addr_of(literals[param])))

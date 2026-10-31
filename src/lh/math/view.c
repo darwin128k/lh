@@ -94,14 +94,13 @@ lh_math_view_init_by_slice(lh_math_view_t *self, const lh_math_slice_t *base)
 lh_float_t
 lh_math_view_dot(const lh_math_view_t *a, const lh_math_view_t *b)
 {
-    lh_float_t sum;
-    lh_usize_t i;
-
     lh_assert_runtime_ifn(lh_math_view_get_size(a) == lh_math_view_get_size(b),
                           lh_runtime_error_code_invalid_range);
     lh_return_if(lh_math_view_is_empty(a), 0.0f);
-    for (sum = lh_math_view_get_at(a, 0U) * lh_math_view_get_at(b, 0U), i = 1U;
-         i < lh_math_view_get_size(a); ++i)
+
+    lh_float_t sum = lh_math_view_get_at(a, 0U) * lh_math_view_get_at(b, 0U);
+
+    for (lh_usize_t i = 1U; i < lh_math_view_get_size(a); ++i)
     {
         sum += lh_math_view_get_at(a, i) * lh_math_view_get_at(b, i);
     }
