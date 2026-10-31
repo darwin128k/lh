@@ -41,6 +41,21 @@ every brick.
   `lh_math_add_one(i)` — the value discarded — is dropped by GCC 16 (MSYS2
   MinGW): the loop then runs forever or stops on another condition, with no
   warning. The LH sources always assign; keep it that way.
+- **A variable is declared where it is used.** The code is C11, so a
+  declaration lives in the innermost block that needs it, right before the
+  statement that uses it — not in a pile at the top of the function (that is
+  the C89 habit). A variable the whole body works with may stay at the top.
+  `python tools/check-decls.py <paths>` (the Authum repository holds the
+  checker) reports the piles: two or more declarations in a row at the start of
+  a block.
+- **A pointer is checked once, at the boundary that receives it.** A public
+  function checks the arguments it takes from the outside; an internal helper
+  that only ever gets the pointer from a checked caller does not check it
+  again. One path never checks the same pointer twice: when the caller checks
+  and the callee checks too, one of the two goes — keep the check in the
+  function that owns the contract (the public one), and drop the caller's.
+  `python tools/check-asserts.py <paths>` (in the Authum repository) reports
+  the double checks.
 - If the brick does not fit, fix or extend the brick. Never write a local
   copy "because it was quicker".
 - A new brick is used by LH right away: introduce it together with the code
