@@ -53,7 +53,10 @@ lh_str_ptr_split_next_line(const lh_str_ptr str, lh_usize_t str_size, lh_usize_t
 /**
  * @brief View wrapper for ::lh_str_ptr_split_next_line.
  *
- * Empty @p self yields ::lh_bool_false. An empty line is an empty view.
+ * Empty @p self yields ::lh_bool_false. Every returned line borrows its
+ * storage from @p self, which must outlive the result. An empty line has
+ * size zero and retains its start address in the source text, matching
+ * ::lh_str_ptr_split_next_line. No storage is allocated or transferred.
  */
 lh_bool_t
 lh_str_view_split_next_line(const lh_str_view_t *self, lh_usize_t *pos, lh_str_view_t *line);

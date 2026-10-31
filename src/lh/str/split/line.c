@@ -72,13 +72,6 @@ lh_str_view_split_next_line(const lh_str_view_t *self, lh_usize_t *pos, lh_str_v
         return lh_bool_false;
     }
 
-    if (lh_math_is_zero(piece_size))
-    {
-        lh_str_view_init_empty(line);
-    }
-    else
-    {
-        lh_str_view_init_by_size(line, piece, piece_size);
-    }
+    lh_str_view_init_by_size(line, piece, piece_size);
     return lh_bool_true;
 }

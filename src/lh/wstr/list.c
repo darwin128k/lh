@@ -98,7 +98,6 @@ lh_wstr_list_assign(lh_wstr_list_t *self, const lh_wstr_list_t *other)
 lh_void
 lh_wstr_list_get(const lh_wstr_list_t *self, lh_uindex_t index, lh_wstr_view_t *out)
 {
-    lh_assert_runtime_ref(out);
     lh_str_list_span_t span;
     lh_wstr_view_t chars;
 

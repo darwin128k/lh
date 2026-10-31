@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <lh/expect/death.h>
+
 #include <lh/test/alloc_counter.h>
 #include <lh/wstr.h>
 #include <lh/test/out.h>
@@ -8,6 +10,15 @@
 
 namespace
 {
+
+TEST(wstr_contract, delegated_checks_reject_null_arguments)
+{
+    lh_wstr_t text;
+    lh_wstr_init(&text);
+    LH_EXPECT_DEATH(lh_wstr_as_view(&text, lh_null));
+    LH_EXPECT_DEATH(lh_wstr_truncate(lh_null, 0U));
+    lh_wstr_deinit(&text);
+}
 
 TEST(wstr_init, allocates_nothing_and_reads_empty)
 {

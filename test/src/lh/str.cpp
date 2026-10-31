@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <lh/expect/death.h>
+
 #include <lh/str.h>
 #include <lh/test/alloc_counter.h>
 #include <lh/test/out.h>
@@ -8,6 +10,15 @@
 
 namespace
 {
+
+TEST(str_contract, delegated_checks_reject_null_arguments)
+{
+    lh_str_t text;
+    lh_str_init(&text);
+    LH_EXPECT_DEATH(lh_str_as_view(&text, lh_null));
+    LH_EXPECT_DEATH(lh_str_truncate(lh_null, 0U));
+    lh_str_deinit(&text);
+}
 
 TEST(str_init, starts_empty_and_terminated)
 {

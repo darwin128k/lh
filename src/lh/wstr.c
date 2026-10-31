@@ -80,7 +80,6 @@ lh_wstr_append(lh_wstr_t *self, lh_wstr_cptr text, lh_usize_t count)
 lh_void
 lh_wstr_as_view(const lh_wstr_t *self, lh_wstr_view_t *out)
 {
-    lh_assert_runtime_ref(out);
     lh_wstr_view_init_by_size(out, lh_wstr_get_data(self), lh_wstr_get_size(self));
 }
 
@@ -111,7 +110,6 @@ lh_wstr_clear(lh_wstr_t *self)
 lh_void
 lh_wstr_truncate(lh_wstr_t *self, lh_usize_t n)
 {
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_if(n > lh_wstr_get_size(self), lh_runtime_error_code_invalid_range);
     lh_array_resize(self, n);
     lh_wstr_terminate(self);

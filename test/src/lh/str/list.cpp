@@ -11,6 +11,15 @@
 namespace
 {
 
+TEST(str_list_contract, delegated_check_rejects_null_output)
+{
+    lh_str_list_t list;
+    lh_str_list_init(&list);
+    lh_str_list_push_back(&list, lh_str_view_lit("only"));
+    LH_EXPECT_DEATH(lh_str_list_get(&list, 0U, lh_null));
+    lh_str_list_deinit(&list);
+}
+
 std::string
 as_string(lh_str_view_t view)
 {
