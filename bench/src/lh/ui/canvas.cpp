@@ -308,7 +308,8 @@ BM_ui_text_get_size(benchmark::State &state)
 
     for (auto _ : state)
     {
-        lh_ui_size_t size = lh_ui_text_get_size(lh_ui_font_get_default(), text);
+        lh_ui_size_t size;
+        lh_ui_text_get_size(lh_ui_font_get_default(), text, &size);
         benchmark::DoNotOptimize(size);
     }
 }
@@ -319,7 +320,8 @@ BM_ui_text_get_size_wrapped(benchmark::State &state)
 {
     for (auto _ : state)
     {
-        lh_ui_size_t size = lh_ui_text_get_size_wrapped(lh_ui_font_get_default(), paragraph, lh_ui_scalar(228));
+        lh_ui_size_t size;
+        lh_ui_text_get_size_wrapped(lh_ui_font_get_default(), paragraph, lh_ui_scalar(228), &size);
         benchmark::DoNotOptimize(size);
     }
 }
@@ -464,7 +466,7 @@ BM_ui_color_over(benchmark::State &state)
 
     for (auto _ : state)
     {
-        dst = lh_ui_color_over(&dst, &src);
+        lh_ui_color_over(&dst, &src, &dst);
         benchmark::DoNotOptimize(dst);
     }
 }

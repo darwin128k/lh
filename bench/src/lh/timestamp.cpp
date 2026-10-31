@@ -53,7 +53,8 @@ BM_timestamp_get_date(benchmark::State &state)
 
     for (auto _ : state)
     {
-        lh_date_t d = lh_timestamp_get_date(t);
+        lh_date_t d;
+        lh_timestamp_get_date(t, &d);
         benchmark::DoNotOptimize(d);
         t = next(t);
     }
