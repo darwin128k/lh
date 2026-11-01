@@ -2,6 +2,7 @@
 
 #include <lh/memory/view.h>
 
+#include <cstdint>
 #include <vector>
 
 static void

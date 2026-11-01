@@ -3,6 +3,7 @@
 #include <lh/memory.h>
 #include <lh/util/str/ptr.h>
 
+#include <cstdint>
 #include <cstring>
 #include <string>
 #include <lh/util/str/case/map.h>

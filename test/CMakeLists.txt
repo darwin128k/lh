@@ -403,6 +403,7 @@ set(LH_TEST_UI_SOURCES
         ${LH_TEST_SRC_PATH}/lh/ui/web/html.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/js.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/page.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/web/player.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/ws.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/viewport3d.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/color.cpp

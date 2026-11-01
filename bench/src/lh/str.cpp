@@ -2,6 +2,8 @@
 
 #include <lh/str.h>
 
+#include <cstdint>
+
 namespace
 {
 constexpr lh_usize_t kCount = 1000;

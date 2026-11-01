@@ -6,7 +6,6 @@
 #include <lh/ui/web/host.h>
 #include <lh/util/str/ptr.h>
 #include <lh/char/map.h>
-#include <lh/ui/web/page.h>
 
 #include <lh/cast/const.h>
 #include <lh/crypto/sha.h>
@@ -18,15 +17,9 @@
 #include <lh/runtime/logger.h>
 #include <lh/str/format/text.h>
 #include <lh/str/parse/text.h>
-#include <lh/ui/view/controller.h>
 #include <lh/util/memory.h>
 #include <lh/str/format/base64.h>
 #include <lh/util/return.h>
-
-/** The player page, built once by ::lh_ui_web_page_build. */
-static lh_byte_t m_ui_web_host_page[LH_UI_WEB_HOST_PAGE_CAP];
-/** Bytes of ::m_ui_web_host_page in use. */
-static lh_usize_t m_ui_web_host_page_len;
 
 lh_void
 lh_ui_web_host_reply(lh_os_net_socket_t *client, lh_uint_t code, lh_str_cptr type, lh_str_cptr body,
@@ -152,132 +145,6 @@ lh_ui_web_host_query_flag(lh_str_cptr req, lh_usize_t len, lh_str_cptr key, lh_u
 }
 
 lh_bool_t
-lh_ui_web_host_input(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks,
-                     const lh_os_input_event_t *event)
-{
-    lh_bool_t changed = lh_bool_false;
-
-    lh_return_if(hooks == lh_null || (lh_ui_web_host_hooks_get_input_fn(hooks) == lh_null &&
-                                      lh_ui_web_host_hooks_get_controller(hooks) == lh_null),
-                 lh_ui_view_input(view, event));
-    if (lh_ui_web_host_hooks_get_input_fn(hooks) != lh_null)
-    {
-        lh_ui_web_host_hooks_get_input_fn(hooks)(lh_ui_web_host_hooks_get_ctx(hooks), event);
-        changed = lh_bool_true;
-    }
-    if (lh_ui_web_host_hooks_get_controller(hooks) != lh_null &&
-        lh_os_controller_feed(lh_ui_web_host_hooks_get_controller(hooks), event))
-    {
-        changed = lh_bool_true;
-    }
-    return changed;
-}
-
-lh_bool_t
-lh_ui_web_host_pointer(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks,
-                       lh_os_input_kind_t kind, lh_sint_t x, lh_sint_t y)
-{
-    lh_os_input_event_t event;
-    const lh_bool_t up = lh_type_cast(lh_bool_t, kind == lh_os_input_kind_pointer_up);
-    const lh_os_input_button_t button = kind == lh_os_input_kind_pointer_move
-                                            ? lh_os_input_button_none
-                                            : lh_os_input_button_primary;
-
-    lh_os_input_event_init_pointer(lh_addr_of(event), kind, lh_os_input_device_kind_mouse, 0U,
-                                   button, lh_os_input_coord_from_int(x),
-                                   lh_os_input_coord_from_int(y), lh_os_tick_ms());
-    lh_os_input_event_set_buttons(lh_addr_of(event),
-                                  up ? 0U : lh_os_input_button_to_mask(lh_os_input_button_primary));
-    return lh_ui_web_host_input(view, hooks, lh_addr_of(event));
-}
-
-lh_bool_t
-lh_ui_web_host_wheel(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, lh_sint_t x,
-                     lh_sint_t y, lh_sint_t dx, lh_sint_t dy)
-{
-    lh_os_input_event_t event;
-
-    lh_os_input_event_init_wheel(
-        lh_addr_of(event), lh_os_input_coord_from_int(x), lh_os_input_coord_from_int(y),
-        lh_type_cast(lh_s32_t, dx) * LH_OS_INPUT_WHEEL_NOTCH,
-        lh_type_cast(lh_s32_t, dy) * LH_OS_INPUT_WHEEL_NOTCH, lh_os_tick_ms());
-    return lh_ui_web_host_input(view, hooks, lh_addr_of(event));
-}
-
-lh_bool_t
-lh_ui_web_host_resize(const lh_ui_web_host_hooks_t *hooks, lh_uint_t *width, lh_uint_t *height,
-                      lh_sint_t w, lh_sint_t h)
-{
-    if (width == lh_null || height == lh_null)
-    {
-        return lh_bool_false;
-    }
-    if (w < LH_UI_WEB_HOST_SIZE_MIN)
-    {
-        w = LH_UI_WEB_HOST_SIZE_MIN;
-    }
-    if (h < LH_UI_WEB_HOST_SIZE_MIN)
-    {
-        h = LH_UI_WEB_HOST_SIZE_MIN;
-    }
-    if (w > LH_UI_WEB_HOST_SIZE_MAX)
-    {
-        w = LH_UI_WEB_HOST_SIZE_MAX;
-    }
-    if (h > LH_UI_WEB_HOST_SIZE_MAX)
-    {
-        h = LH_UI_WEB_HOST_SIZE_MAX;
-    }
-    if (lh_cast_static(lh_uint_t, w) == lh_ptr_deref(width) &&
-        lh_cast_static(lh_uint_t, h) == lh_ptr_deref(height))
-    {
-        return lh_bool_false;
-    }
-    lh_ptr_deref(width) = lh_cast_static(lh_uint_t, w);
-    lh_ptr_deref(height) = lh_cast_static(lh_uint_t, h);
-    if (hooks != lh_null && hooks->resize != lh_null)
-    {
-        hooks->resize(w, h, lh_ui_web_host_hooks_get_ctx(hooks));
-    }
-    return lh_bool_true;
-}
-
-lh_bool_t
-lh_ui_web_host_key(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, lh_sint_t k,
-                   lh_bool_t pressed)
-{
-    lh_os_input_event_t event;
-
-    if (k < lh_cast_static(lh_sint_t, lh_os_key_other) ||
-        k > lh_cast_static(lh_sint_t, lh_os_key_alt))
-    {
-        k = lh_cast_static(lh_sint_t, lh_os_key_other);
-    }
-    lh_os_input_event_init_key(lh_addr_of(event), lh_type_cast(lh_os_key_t, k), pressed,
-                               lh_bool_false, 0U, lh_os_tick_ms());
-    return lh_ui_web_host_input(view, hooks, lh_addr_of(event));
-}
-
-lh_bool_t
-lh_ui_web_host_text(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, lh_u32_t code)
-{
-    lh_os_input_event_t event;
-
-    lh_return_if(code == 0U, lh_bool_false);
-    lh_os_input_event_init_text(lh_addr_of(event), code, lh_os_tick_ms());
-    return lh_ui_web_host_input(view, hooks, lh_addr_of(event));
-}
-
-lh_void
-lh_ui_web_host_bump(lh_uint_t *gen)
-{
-    if (gen != lh_null)
-    {
-        ++lh_ptr_deref(gen);
-    }
-}
-
-lh_bool_t
 lh_ui_web_host_ws_upgrade(lh_os_net_socket_t *client, lh_str_cptr req, lh_usize_t len)
 {
     static const lh_char_t guid[] = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
@@ -328,71 +195,6 @@ lh_ui_web_host_ws_upgrade(lh_os_net_socket_t *client, lh_str_cptr req, lh_usize_
     (void)lh_os_net_socket_send_all(client, head, h);
     (void)lh_os_net_socket_set_blocking(client, lh_bool_false);
     return lh_bool_true;
-}
-
-lh_void
-lh_ui_web_host_event_line(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, lh_uint_t *width,
-                          lh_uint_t *height, lh_uint_t *gen, lh_str_cptr line, lh_usize_t len)
-{
-    lh_sint_t x = 0;
-    lh_sint_t y = 0;
-    lh_sint_t dx = 0;
-    lh_sint_t dy = 0;
-    lh_sint_t k = 0;
-    lh_sint_t pressed = 0;
-    lh_uint_t code = 0u;
-
-    if (lh_str_ptr_parse_text(line, len, "p %d %d", lh_addr_of(x), lh_addr_of(y)) != 0u)
-    {
-        (void)lh_ui_web_host_pointer(view, hooks, lh_os_input_kind_pointer_down,
-                                     lh_cast_static(lh_sint_t, x), lh_cast_static(lh_sint_t, y));
-    }
-    else if (lh_str_ptr_parse_text(line, len, "r %d %d", lh_addr_of(x), lh_addr_of(y)) != 0u)
-    {
-        (void)lh_ui_web_host_pointer(view, hooks, lh_os_input_kind_pointer_up,
-                                     lh_cast_static(lh_sint_t, x), lh_cast_static(lh_sint_t, y));
-    }
-    else if (lh_str_ptr_parse_text(line, len, "w %d %d %d %d", lh_addr_of(x), lh_addr_of(y),
-                                   lh_addr_of(dx), lh_addr_of(dy)) != 0u)
-    {
-        (void)lh_ui_web_host_wheel(view, hooks, lh_cast_static(lh_sint_t, x),
-                                   lh_cast_static(lh_sint_t, y), lh_cast_static(lh_sint_t, dx),
-                                   lh_cast_static(lh_sint_t, dy));
-    }
-    else if (lh_str_ptr_parse_text(line, len, "m %d %d", lh_addr_of(x), lh_addr_of(y)) != 0u)
-    {
-        /* A drag sends one every frame; one that changed nothing is not worth a draw. */
-        if (!lh_ui_web_host_pointer(view, hooks, lh_os_input_kind_pointer_move,
-                                    lh_cast_static(lh_sint_t, x), lh_cast_static(lh_sint_t, y)))
-        {
-            return;
-        }
-    }
-    else if (lh_str_ptr_parse_text(line, len, "k %d %d", lh_addr_of(k), lh_addr_of(pressed)) != 0u)
-    {
-        (void)lh_ui_web_host_key(view, hooks, lh_cast_static(lh_sint_t, k),
-                                 (pressed != 0) ? lh_bool_true : lh_bool_false);
-    }
-    else if (lh_str_ptr_parse_text(line, len, "k %d", lh_addr_of(k)) != 0u)
-    {
-        (void)lh_ui_web_host_key(view, hooks, lh_cast_static(lh_sint_t, k), lh_bool_true);
-    }
-    else if (lh_str_ptr_parse_text(line, len, "t %u", lh_addr_of(code)) != 0u)
-    {
-        (void)lh_ui_web_host_text(view, hooks, lh_cast_static(lh_u32_t, code));
-    }
-    else if (lh_str_ptr_parse_text(line, len, "z %d %d", lh_addr_of(x), lh_addr_of(y)) != 0u)
-    {
-        /* Always bump: an unchanged size still needs a frame for a new tab, or the
-           player keeps the design 980×620 it got before `z` arrived. */
-        (void)lh_ui_web_host_resize(hooks, width, height, lh_cast_static(lh_sint_t, x),
-                                    lh_cast_static(lh_sint_t, y));
-    }
-    else
-    {
-        return;
-    }
-    lh_ui_web_host_bump(gen);
 }
 
 lh_void
@@ -568,9 +370,7 @@ lh_ui_web_host_ws_msg_add(lh_ui_web_host_client_t *c, lh_byte_cptr p, lh_usize_t
 }
 
 lh_void
-lh_ui_web_host_ws_ingest(lh_ui_web_host_client_t *c, lh_ui_view_t *view,
-                         const lh_ui_web_host_hooks_t *hooks, lh_uint_t *width, lh_uint_t *height,
-                         lh_uint_t *gen, lh_uint_t now)
+lh_ui_web_host_ws_ingest(lh_ui_web_host_client_t *c, lh_ui_web_app_t *app, lh_uint_t now)
 {
     while (lh_ui_web_host_client_is_used(c) && lh_ui_web_host_client_get_rx_len(c) >= 2u)
     {
@@ -634,10 +434,10 @@ lh_ui_web_host_ws_ingest(lh_ui_web_host_client_t *c, lh_ui_view_t *view,
             {
                 if (lh_ui_web_host_client_get_msg_op(c) == LH_UI_WEB_WS_TEXT)
                 {
-                    lh_ui_web_host_event_line(
-                        view, hooks, width, height, gen,
-                        lh_ptr_rcast(const lh_char_t, lh_ui_web_host_client_get_msg(c)),
-                        lh_ui_web_host_client_get_msg_len(c));
+                    lh_ui_web_app_message(app,
+                                          lh_ptr_rcast(const lh_char_t,
+                                                        lh_ui_web_host_client_get_msg(c)),
+                                          lh_ui_web_host_client_get_msg_len(c));
                 }
                 lh_ui_web_host_client_set_msg_on(c, lh_bool_false);
                 lh_ui_web_host_client_set_msg_len(c, 0u);
@@ -654,8 +454,7 @@ lh_ui_web_host_ws_ingest(lh_ui_web_host_client_t *c, lh_ui_view_t *view,
             {
                 if (opcode == LH_UI_WEB_WS_TEXT)
                 {
-                    lh_ui_web_host_event_line(view, hooks, width, height, gen,
-                                              lh_ptr_rcast(const lh_char_t, body), plen);
+                    lh_ui_web_app_message(app, lh_ptr_rcast(const lh_char_t, body), plen);
                 }
             }
             else
@@ -722,9 +521,7 @@ lh_ui_web_host_ws_attach(lh_ui_web_host_client_t *slots, lh_os_net_socket_t *cli
 }
 
 lh_void
-lh_ui_web_host_ws_pump(lh_ui_web_host_client_t *c, lh_ui_view_t *view,
-                       const lh_ui_web_host_hooks_t *hooks, lh_uint_t *width, lh_uint_t *height,
-                       lh_uint_t *gen, lh_uint_t now)
+lh_ui_web_host_ws_pump(lh_ui_web_host_client_t *c, lh_ui_web_app_t *app, lh_uint_t now)
 {
     lh_ssize_t got;
 
@@ -767,7 +564,7 @@ lh_ui_web_host_ws_pump(lh_ui_web_host_client_t *c, lh_ui_view_t *view,
     }
     lh_ui_web_host_client_set_rx_len(c, lh_ui_web_host_client_get_rx_len(c) +
                                             (lh_cast_static(lh_uint_t, got)));
-    lh_ui_web_host_ws_ingest(c, view, hooks, width, height, gen, now);
+    lh_ui_web_host_ws_ingest(c, app, now);
     if (lh_ui_web_host_client_is_used(c))
     {
         lh_ui_web_host_ws_flush(c);
@@ -775,84 +572,7 @@ lh_ui_web_host_ws_pump(lh_ui_web_host_client_t *c, lh_ui_view_t *view,
 }
 
 lh_bool_t
-lh_ui_web_host_draw(lh_ui_view_t *view, lh_uint_t width, lh_uint_t height, lh_str_ptr json,
-                    lh_usize_t json_cap, lh_ui_canvas_web_t *web, lh_ui_canvas_web_glyphs_t *glyphs)
-{
-    lh_ui_canvas_t canvas;
-
-    if (!lh_ui_canvas_web_open_mem(web, json, json_cap, width, height))
-    {
-        return lh_bool_false;
-    }
-    lh_ui_canvas_web_set_glyphs_v(web, glyphs);
-    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_web), web);
-    lh_ui_view_set_canvas(view, lh_addr_of(canvas));
-    lh_ui_view_draw(view, lh_null);
-    lh_ui_view_set_canvas(view, lh_null);
-    return lh_ui_canvas_web_close(web);
-}
-
-lh_bool_t
-lh_ui_web_host_handle_input(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks,
-                            lh_uint_t *width, lh_uint_t *height, lh_str_cptr req, lh_usize_t len)
-{
-    const lh_sint_t x = lh_ui_web_host_query_int(req, len, lh_str_lit("x="));
-    const lh_sint_t y = lh_ui_web_host_query_int(req, len, lh_str_lit("y="));
-
-    if (lh_ui_web_host_route(req, len, lh_str_lit("/ui/click")))
-    {
-        (void)lh_ui_web_host_pointer(view, hooks, lh_os_input_kind_pointer_down, x, y);
-        (void)lh_ui_web_host_pointer(view, hooks, lh_os_input_kind_pointer_up, x, y);
-    }
-    else if (lh_ui_web_host_route(req, len, lh_str_lit("/ui/press")))
-    {
-        (void)lh_ui_web_host_pointer(view, hooks, lh_os_input_kind_pointer_down, x, y);
-    }
-    else if (lh_ui_web_host_route(req, len, lh_str_lit("/ui/release")))
-    {
-        (void)lh_ui_web_host_pointer(view, hooks, lh_os_input_kind_pointer_up, x, y);
-    }
-    else if (lh_ui_web_host_route(req, len, lh_str_lit("/ui/move")))
-    {
-        (void)lh_ui_web_host_pointer(view, hooks, lh_os_input_kind_pointer_move, x, y);
-    }
-    else if (lh_ui_web_host_route(req, len, lh_str_lit("/ui/wheel")))
-    {
-        (void)lh_ui_web_host_wheel(view, hooks, x, y,
-                                   lh_ui_web_host_query_int(req, len, lh_str_lit("dx=")),
-                                   lh_ui_web_host_query_int(req, len, lh_str_lit("dy=")));
-    }
-    else if (lh_ui_web_host_route(req, len, lh_str_lit("/ui/key")))
-    {
-        /* `p=` is the direction; without it the request is a key going down, as before. */
-        (void)lh_ui_web_host_key(
-            view, hooks, lh_ui_web_host_query_int(req, len, lh_str_lit("k=")),
-            lh_ui_web_host_query_flag(req, len, lh_str_lit("p="), lh_bool_true));
-    }
-    else if (lh_ui_web_host_route(req, len, lh_str_lit("/ui/text")))
-    {
-        (void)lh_ui_web_host_text(
-            view, hooks,
-            lh_cast_static(lh_u32_t, lh_ui_web_host_query_uint(req, len, lh_str_lit("c="))));
-    }
-    else if (lh_ui_web_host_route(req, len, lh_str_lit("/ui/size")))
-    {
-        /* Always handled: an unchanged size is still a valid no-op, not a 404. */
-        (void)lh_ui_web_host_resize(hooks, width, height,
-                                    lh_ui_web_host_query_int(req, len, lh_str_lit("w=")),
-                                    lh_ui_web_host_query_int(req, len, lh_str_lit("h=")));
-    }
-    else
-    {
-        return lh_bool_false;
-    }
-    return lh_bool_true;
-}
-
-lh_bool_t
-lh_ui_web_host_handle(lh_ui_view_t *view, lh_uint_t *width, lh_uint_t *height, lh_str_ptr json,
-                      lh_usize_t json_cap, const lh_ui_web_host_hooks_t *hooks, lh_uint_t *gen,
-                      lh_os_net_socket_t *client)
+lh_ui_web_host_handle(lh_ui_web_app_t *app, lh_os_net_socket_t *client)
 {
     lh_char_t req[1024];
     lh_os_net_socket_t *const watch[1] = {client};
@@ -872,54 +592,12 @@ lh_ui_web_host_handle(lh_ui_view_t *view, lh_uint_t *width, lh_uint_t *height, l
         return lh_bool_false;
     }
     lh_usize_t len = lh_cast_static(lh_usize_t, got);
-    if (lh_ui_web_host_route(req, len, lh_str_lit("/ws")))
+    if (lh_ui_web_app_is_websocket(app, req, len))
     {
         return lh_ui_web_host_ws_upgrade(client, req, len);
     }
-    if (lh_ui_web_host_handle_input(view, hooks, width, height, req, len))
+    if (lh_ui_web_app_handle(app, req, len, client))
     {
-        lh_ui_web_host_bump(gen);
-        lh_ui_web_host_reply_text(client, 200u, lh_str_lit("ok\n"));
-        return lh_bool_false;
-    }
-    if (lh_ui_web_host_route(req, len, lh_str_lit("/ui.rev")))
-    {
-        lh_char_t body[32];
-        const lh_usize_t n = lh_str_ptr_format_text(
-            body, sizeof(body), "%u\n",
-            lh_cast_static(lh_uint_t, (gen != lh_null ? lh_ptr_deref(gen) : 0u)));
-
-        lh_ui_web_host_reply_text(client, 200u, body, n);
-        return lh_bool_false;
-    }
-    if (lh_ui_web_host_route(req, len, lh_str_lit("/ui.json")))
-    {
-        if (gen != lh_null &&
-            lh_ui_web_host_query_uint(req, len, lh_str_lit("rev=")) == lh_ptr_deref(gen))
-        {
-            lh_ui_web_host_reply_text(client, 304u, lh_str_lit(""));
-            return lh_bool_false;
-        }
-        lh_ui_canvas_web_t web;
-        if (!lh_ui_web_host_draw(view, lh_ptr_deref(width), lh_ptr_deref(height), json, json_cap,
-                                 lh_addr_of(web), lh_null))
-        {
-            lh_ui_web_host_reply_text(client, 500u, lh_str_lit("draw failed\n"));
-            return lh_bool_false;
-        }
-        lh_ui_web_host_reply(client, 200u, "application/json; charset=utf-8",
-                             lh_ui_canvas_web_bytes(lh_addr_of(web)),
-                             lh_ui_canvas_web_length(lh_addr_of(web)));
-        return lh_bool_false;
-    }
-    /* `/` and `/?scale=…` — not a bare `/` prefix, or `/ui.json` would match too. */
-    if (lh_ui_web_host_route(req, len, lh_str_lit("/ ")) ||
-        lh_ui_web_host_route(req, len, lh_str_lit("/?")) ||
-        lh_ui_web_host_route(req, len, lh_str_lit("/index.html")))
-    {
-        lh_ui_web_host_reply(client, 200u, "text/html; charset=utf-8",
-                             lh_ptr_rcast(const lh_char_t, m_ui_web_host_page),
-                             m_ui_web_host_page_len);
         return lh_bool_false;
     }
     lh_ui_web_host_reply_text(client, 404u, lh_str_lit("not found\n"));
@@ -971,72 +649,76 @@ lh_ui_web_host_ws_same(const lh_ui_web_host_stream_t *stream, lh_str_cptr body, 
 
 lh_void
 lh_ui_web_host_ws_frame(lh_ui_web_host_client_t *cli, lh_ui_web_host_stream_t *stream,
-                        lh_ui_view_t *view, lh_uint_t width, lh_uint_t height, lh_str_ptr json,
-                        lh_usize_t json_cap, lh_uint_t gen)
+                        lh_ui_web_app_t *app)
 {
-    lh_ui_canvas_web_t web;
+    const lh_uint_t gen = lh_ui_web_app_get_generation(app);
+    const lh_str_ptr body = lh_null;
+    lh_usize_t len = 0u;
     lh_bool_t want = lh_bool_false;
-    lh_uint_t i;
 
-    for (i = 0u; i < LH_UI_WEB_HOST_WS_MAX; ++i)
+    for (lh_uint_t i = 0u; i < LH_UI_WEB_HOST_WS_MAX; ++i)
     {
         if (lh_ui_web_host_ws_wants(cli + i, gen))
         {
             want = lh_bool_true;
-            if (!cli[i].synced)
+            if (!lh_ui_web_host_client_is_synced(cli + i))
             {
                 lh_ui_canvas_web_glyphs_reset(lh_ui_web_host_stream_get_glyphs_mut(stream));
             }
         }
     }
-    if (!want || !lh_ui_web_host_draw(view, width, height, json, json_cap, lh_addr_of(web),
-                                      lh_ui_web_host_stream_get_glyphs_mut(stream)))
+    if (!want)
     {
         return;
     }
-    lh_str_cptr body = lh_ui_canvas_web_bytes(lh_addr_of(web));
-    lh_usize_t len = lh_ui_canvas_web_length(lh_addr_of(web));
-    lh_bool_t same = lh_ui_web_host_ws_same(stream, body, len);
-    for (i = 0u; i < LH_UI_WEB_HOST_WS_MAX; ++i)
+    lh_ui_web_app_frame(app, lh_ui_web_host_stream_get_glyphs_mut(stream), lh_addr_of(body),
+                        lh_addr_of(len));
+    if (len == 0u)
     {
-        lh_ui_web_host_client_t *c = cli + i;
-
-        if (!lh_ui_web_host_client_is_used(c))
-        {
-            continue;
-        }
-        if (!lh_ui_web_host_ws_wants(c, gen))
-        {
-            /* Not sent this one: any cover it introduced, this client lacks. */
-            if (!same)
-            {
-                lh_ui_web_host_client_set_synced(c, lh_bool_false);
-            }
-            continue;
-        }
-        if (same && lh_ui_web_host_client_is_synced(c))
-        {
-            lh_ui_web_host_client_set_seen(c, gen);
-            continue;
-        }
-        if (lh_ui_web_host_ws_enqueue(c, LH_UI_WEB_WS_TEXT, body, len, lh_bool_false))
-        {
-            lh_ui_web_host_client_set_seen(c, gen);
-            lh_ui_web_host_client_set_synced(c, lh_bool_true);
-            lh_ui_web_host_ws_flush(c);
-        }
+        return;
     }
-    if (!same)
     {
-        lh_ui_web_host_ws_remember(stream, body, len);
+        const lh_bool_t same = lh_ui_web_host_ws_same(stream, body, len);
+
+        for (lh_uint_t i = 0u; i < LH_UI_WEB_HOST_WS_MAX; ++i)
+        {
+            lh_ui_web_host_client_t *c = cli + i;
+
+            if (!lh_ui_web_host_client_is_used(c))
+            {
+                continue;
+            }
+            if (!lh_ui_web_host_ws_wants(c, gen))
+            {
+                /* Not sent this one: any cover it introduced, this client lacks. */
+                if (!same)
+                {
+                    lh_ui_web_host_client_set_synced(c, lh_bool_false);
+                }
+                continue;
+            }
+            if (same && lh_ui_web_host_client_is_synced(c))
+            {
+                lh_ui_web_host_client_set_seen(c, gen);
+                continue;
+            }
+            if (lh_ui_web_host_ws_enqueue(c, LH_UI_WEB_WS_TEXT, body, len, lh_bool_false))
+            {
+                lh_ui_web_host_client_set_seen(c, gen);
+                lh_ui_web_host_client_set_synced(c, lh_bool_true);
+                lh_ui_web_host_ws_flush(c);
+            }
+        }
+        if (!same)
+        {
+            lh_ui_web_host_ws_remember(stream, body, len);
+        }
     }
 }
 
 lh_void
 lh_ui_web_host_accept_all(lh_os_net_socket_t *listen_fd, lh_ui_web_host_client_t *cli,
-                          lh_ui_view_t *view, lh_uint_t *width, lh_uint_t *height, lh_str_ptr json,
-                          lh_usize_t json_cap, const lh_ui_web_host_hooks_t *hooks, lh_uint_t *gen,
-                          lh_uint_t now)
+                          lh_ui_web_app_t *app, lh_uint_t now)
 {
     for (;;)
     {
@@ -1048,8 +730,7 @@ lh_ui_web_host_accept_all(lh_os_net_socket_t *listen_fd, lh_ui_web_host_client_t
         {
             return;
         }
-        if (lh_ui_web_host_handle(view, width, height, json, json_cap, hooks, gen,
-                                  lh_addr_of(client)))
+        if (lh_ui_web_host_handle(app, lh_addr_of(client)))
         {
             lh_ui_web_host_ws_attach(cli, lh_addr_of(client), now);
         }
@@ -1090,36 +771,12 @@ lh_ui_web_host_wait(lh_os_net_socket_t *listen_fd, lh_ui_web_host_client_t *cli,
     }
 }
 
-lh_void
-lh_ui_web_host_route_hooks(const lh_ui_web_host_hooks_t *hooks, lh_ui_view_t *view,
-                           lh_os_controller_t *view_controller, lh_ui_web_host_hooks_t *out)
-{
-    lh_memory_set(out, sizeof(lh_ptr_deref(out)), 0);
-    if (hooks != lh_null)
-    {
-        lh_ptr_deref(out) = lh_ptr_deref(hooks);
-    }
-    lh_return_if(lh_ui_web_host_hooks_get_input_fn(out) != lh_null ||
-                 lh_ui_web_host_hooks_get_controller(out) != lh_null);
-    lh_os_controller_init(view_controller, lh_ui_view_controller_handle, view, lh_null);
-    lh_os_controller_set_cancel_cb(view_controller, lh_ui_view_controller_cancel);
-    lh_ui_web_host_hooks_set_controller(out, view_controller);
-}
-
 lh_bool_t
-lh_ui_web_host_run(lh_ui_view_t *view, lh_uint_t width, lh_uint_t height, lh_str_ptr json,
-                   lh_usize_t json_cap, lh_net_port_t port, const lh_ui_web_host_hooks_t *hooks)
+lh_ui_web_host_run(lh_ui_web_app_t *app, lh_net_port_t port)
 {
-
-    if (view == lh_null || json == lh_null || json_cap < 64u)
+    if (app == lh_null)
     {
         return lh_bool_false;
-    }
-    lh_ui_web_host_hooks_t routed;
-    {
-        lh_os_controller_t view_controller;
-
-        lh_ui_web_host_route_hooks(hooks, view, lh_addr_of(view_controller), lh_addr_of(routed));
     }
     if (!lh_os_net_init())
     {
@@ -1142,23 +799,11 @@ lh_ui_web_host_run(lh_ui_view_t *view, lh_uint_t width, lh_uint_t height, lh_str
         lh_os_net_socket_close(lh_addr_of(listen_fd));
         return lh_bool_false;
     }
-    if (!lh_ui_web_page_build(m_ui_web_host_page,
-                              lh_cast_static(lh_usize_t, sizeof(m_ui_web_host_page)),
-                              lh_addr_of(m_ui_web_host_page_len)))
-    {
-        lh_logger_error(lh_runtime_logger(), "[lh] ui web player page would not build");
-        lh_os_net_socket_close(lh_addr_of(listen_fd));
-        return lh_bool_false;
-    }
     (void)lh_os_net_socket_set_blocking(lh_addr_of(listen_fd), lh_bool_false);
-    lh_logger_notice(lh_runtime_logger(),
-                     "[lh] ui web host http://127.0.0.1:%u/ (layout default, ?scale=fit)",
+    lh_logger_notice(lh_runtime_logger(), "[lh] ui web host http://127.0.0.1:%u/",
                      lh_cast_static(lh_uint_t, port));
     {
-        lh_uint_t gen = 1u;
         lh_uint_t i;
-        lh_uint_t frame_w = width;
-        lh_uint_t frame_h = height;
         lh_ui_web_host_client_t cli[LH_UI_WEB_HOST_WS_MAX];
         lh_ui_web_host_stream_t stream;
 
@@ -1170,38 +815,16 @@ lh_ui_web_host_run(lh_ui_view_t *view, lh_uint_t width, lh_uint_t height, lh_str
         }
         for (;;)
         {
-            lh_ui_rect_t damage;
             const lh_uint_t now = lh_cast_static(lh_uint_t, lh_os_tick_ms());
             lh_uint_t spent;
 
-            /* The controller's timers before the app's tick, as a window does: a long
-               press that came due is in the view by the time the app looks. */
-            if (lh_ui_web_host_hooks_get_controller(lh_addr_of(routed)) != lh_null)
-            {
-                (void)lh_os_controller_update(
-                    lh_ui_web_host_hooks_get_controller(lh_addr_of(routed)), lh_os_tick_ms());
-            }
-            if (routed.tick != lh_null)
-            {
-                routed.tick(lh_ui_web_host_hooks_get_ctx(lh_addr_of(routed)));
-            }
-            lh_ui_web_host_accept_all(lh_addr_of(listen_fd), cli, view, lh_addr_of(frame_w),
-                                      lh_addr_of(frame_h), json, json_cap, lh_addr_of(routed),
-                                      lh_addr_of(gen), now);
+            lh_ui_web_app_tick(app);
+            lh_ui_web_host_accept_all(lh_addr_of(listen_fd), cli, app, now);
             for (i = 0u; i < LH_UI_WEB_HOST_WS_MAX; ++i)
             {
-                lh_ui_web_host_ws_pump(lh_addr_of(cli[i]), view, lh_addr_of(routed),
-                                       lh_addr_of(frame_w), lh_addr_of(frame_h), lh_addr_of(gen),
-                                       now);
+                lh_ui_web_host_ws_pump(lh_addr_of(cli[i]), app, now);
             }
-            /* After the input, not before it: an event and the damage it caused
-               are one change and one frame, not two. */
-            if (lh_ui_view_take_damage(view, lh_addr_of(damage)))
-            {
-                ++gen;
-            }
-            lh_ui_web_host_ws_frame(cli, lh_addr_of(stream), view, frame_w, frame_h, json, json_cap,
-                                    gen);
+            lh_ui_web_host_ws_frame(cli, lh_addr_of(stream), app);
             spent = lh_cast_static(lh_uint_t, lh_os_tick_ms()) - now;
             lh_ui_web_host_wait(lh_addr_of(listen_fd), cli,
                                 (spent >= LH_UI_WEB_HOST_TICK_MS) ? 0u

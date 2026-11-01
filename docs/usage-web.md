@@ -23,13 +23,20 @@ handlers are the same.
 - `lh_ui_canvas_backend_web` (`lh/ui/canvas/web.h`) records a frame's
   primitives as JSON. Glyph covers are interned: each glyph crosses the wire
   once per client.
-- `lh_ui_web_host_run` (`lh/ui/web/host.h`) listens on `127.0.0.1:<port>`:
-  - `GET /` — the Canvas2D HTML player (built by `lh_ui_web_page_build`);
+- `lh_ui_web_host_run` (`lh/ui/web/host.h`) listens on `127.0.0.1:<port>` and
+  serves an application. The host is the transport: it knows nothing about
+  pages, routes or scaling. The Canvas2D player is one application built on it
+  (`lh_ui_web_player_t`, `lh/ui/web/player.h`):
+  - `GET /` — the Canvas2D HTML player (built by `lh_ui_web_player_page_build`);
   - `GET /ui.json` — one frame;
   - `ws://…/ws` — pushes a frame **only when the tree changed**;
   - presses, releases, moves while a button is down, wheel, keys (down and
     up), text and the tab size come back: the input as one
     `lh_os_input_event_t` each, the size through the `resize` hook.
+- A REST surface is a table of routes the caller writes
+  (`lh_ui_web_route_t`, `lh/ui/web/app/route.h`) and attaches to its
+  application. Nothing is built in: an application with no routes serves
+  nothing, and a desktop program has no use for a REST surface.
 - No Python, Node or external web server — everything runs in the process.
 - Several tabs can watch one process.
 
@@ -136,8 +143,10 @@ main(int argc, char **argv)
     {
         /* One JSON frame. 4 MB is ample for configurator. */
         static char json[4u * 1024u * 1024u];
+        static char page[LH_UI_WEB_PLAYER_PAGE_CAP];
         lh_net_port_t port = (lh_net_port_t)8765;
         lh_ui_web_host_hooks_t hooks;
+        lh_ui_web_player_t player;
 
         (void)app; (void)window;
         if (argc > 1)
@@ -149,9 +158,18 @@ main(int argc, char **argv)
         hooks.resize     = web_resize;
         hooks.controller = lh_addr_of(self.controller);    /* the desktop one */
 
+        /* The player is an application: the host serves it and knows nothing
+           about it. */
+        if (!lh_ui_web_player_init(lh_addr_of(player), lh_addr_of(self.view), 980u, 620u,
+                                   json, sizeof(json), lh_ptr_rcast(lh_byte_t, page),
+                                   sizeof(page), lh_addr_of(hooks)))
+        {
+            lh_logger_error(lh_runtime_logger(), "player page would not build");
+            return 1;
+        }
+
         /* Does not return on success. */
-        if (!lh_ui_web_host_run(lh_addr_of(self.view), 980u, 620u,
-                                json, sizeof(json), port, &hooks))
+        if (!lh_ui_web_host_run(lh_ui_web_player_get_app(lh_addr_of(player)), port))
         {
             lh_logger_error(lh_runtime_logger(), "listen %u failed", (unsigned)port);
             return 1;

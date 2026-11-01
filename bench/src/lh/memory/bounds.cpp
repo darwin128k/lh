@@ -2,6 +2,7 @@
 
 #include <lh/memory/bounds.h>
 
+#include <cstdint>
 #include <vector>
 
 static void

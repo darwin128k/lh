@@ -16,6 +16,7 @@
 #include <lh/os/tick.h>
 #include <lh/os/timestamp.h>
 
+#include <cstdint>
 #include <cstdio>
 #include <vector>
 
