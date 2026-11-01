@@ -68,19 +68,6 @@ const lh_str_ptr
 lh_ui_web_route_get_method(const lh_ui_web_route_t *self);
 
 /**
- * @brief Store the method the route answers (level 1).
- *
- * A level-1 setter: the pointer is stored as given and is not validated. The
- * text is not owned and must outlive the route.
- *
- * @param self       The route; checked by ::lh_assert_runtime_ref.
- * @param method     The new method.
- * @param method_len Its length.
- */
-lh_void
-lh_ui_web_route_set_method(lh_ui_web_route_t *self, const lh_str_ptr method, lh_usize_t method_len);
-
-/**
  * @brief How long the method the route answers is (level 1).
  *
  * @param self The route; checked by ::lh_assert_runtime_ref.
@@ -106,19 +93,6 @@ lh_ui_web_route_set_method_len(lh_ui_web_route_t *self, lh_usize_t method_len);
  */
 const lh_str_ptr
 lh_ui_web_route_get_path(const lh_ui_web_route_t *self);
-
-/**
- * @brief Store the path the route answers (level 1).
- *
- * A level-1 setter: the pointer is stored as given and is not validated. The
- * text is not owned and must outlive the route.
- *
- * @param self    The route; checked by ::lh_assert_runtime_ref.
- * @param path    The new path.
- * @param path_len Its length.
- */
-lh_void
-lh_ui_web_route_set_path(lh_ui_web_route_t *self, const lh_str_ptr path, lh_usize_t path_len);
 
 /**
  * @brief How long the path the route answers is (level 1).
@@ -157,6 +131,34 @@ lh_ui_web_route_get_handler(const lh_ui_web_route_t *self);
  */
 lh_void
 lh_ui_web_route_set_handler(lh_ui_web_route_t *self, lh_ui_web_route_fn handler);
+
+/**
+ * @brief Store the method the route answers (level 2).
+ *
+ * Stores the length with ::lh_ui_web_route_set_method_len, then the pointer as
+ * given; neither is validated. The text is not owned and must outlive the
+ * route.
+ *
+ * @param self       The route; checked by ::lh_assert_runtime_ref.
+ * @param method     The new method.
+ * @param method_len Its length.
+ */
+lh_void
+lh_ui_web_route_set_method(lh_ui_web_route_t *self, const lh_str_ptr method, lh_usize_t method_len);
+
+/**
+ * @brief Store the path the route answers (level 2).
+ *
+ * Stores the length with ::lh_ui_web_route_set_path_len, then the pointer as
+ * given; neither is validated. The text is not owned and must outlive the
+ * route.
+ *
+ * @param self    The route; checked by ::lh_assert_runtime_ref.
+ * @param path    The new path.
+ * @param path_len Its length.
+ */
+lh_void
+lh_ui_web_route_set_path(lh_ui_web_route_t *self, const lh_str_ptr path, lh_usize_t path_len);
 
 /**
  * @brief Whether @p req is the request this route answers.

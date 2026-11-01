@@ -14,14 +14,6 @@ lh_ui_web_route_get_method(const lh_ui_web_route_t *self)
     return self->method;
 }
 
-lh_void
-lh_ui_web_route_set_method(lh_ui_web_route_t *self, const lh_str_ptr method, lh_usize_t method_len)
-{
-    lh_assert_runtime_ref(self);
-    self->method = method;
-    self->method_len = method_len;
-}
-
 lh_usize_t
 lh_ui_web_route_get_method_len(const lh_ui_web_route_t *self)
 {
@@ -41,14 +33,6 @@ lh_ui_web_route_get_path(const lh_ui_web_route_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->path;
-}
-
-lh_void
-lh_ui_web_route_set_path(lh_ui_web_route_t *self, const lh_str_ptr path, lh_usize_t path_len)
-{
-    lh_assert_runtime_ref(self);
-    self->path = path;
-    self->path_len = path_len;
 }
 
 lh_usize_t
@@ -77,6 +61,20 @@ lh_ui_web_route_set_handler(lh_ui_web_route_t *self, lh_ui_web_route_fn handler)
 {
     lh_assert_runtime_ref(self);
     self->handler = handler;
+}
+
+lh_void
+lh_ui_web_route_set_method(lh_ui_web_route_t *self, const lh_str_ptr method, lh_usize_t method_len)
+{
+    lh_ui_web_route_set_method_len(self, method_len);
+    self->method = method;
+}
+
+lh_void
+lh_ui_web_route_set_path(lh_ui_web_route_t *self, const lh_str_ptr path, lh_usize_t path_len)
+{
+    lh_ui_web_route_set_path_len(self, path_len);
+    self->path = path;
 }
 
 lh_bool_t
