@@ -14,6 +14,13 @@ lh_ui_web_app_get_routes(const lh_ui_web_app_t *self)
     return self->routes;
 }
 
+lh_void
+lh_ui_web_app_set_routes(lh_ui_web_app_t *self, const lh_ui_web_route_t *routes)
+{
+    lh_assert_runtime_ref(self);
+    self->routes = routes;
+}
+
 lh_usize_t
 lh_ui_web_app_get_nroutes(const lh_ui_web_app_t *self)
 {
@@ -33,6 +40,13 @@ lh_ui_web_app_get_ws_path(const lh_ui_web_app_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->ws_path;
+}
+
+lh_void
+lh_ui_web_app_set_ws_path(lh_ui_web_app_t *self, const lh_str_ptr ws_path)
+{
+    lh_assert_runtime_ref(self);
+    self->ws_path = ws_path;
 }
 
 lh_usize_t
@@ -117,20 +131,6 @@ lh_ui_web_app_set_generation(lh_ui_web_app_t *self, lh_uint_t generation)
 {
     lh_assert_runtime_ref(self);
     self->generation = generation;
-}
-
-lh_void
-lh_ui_web_app_set_routes(lh_ui_web_app_t *self, const lh_ui_web_route_t *routes, lh_usize_t nroutes)
-{
-    lh_ui_web_app_set_nroutes(self, nroutes);
-    self->routes = routes;
-}
-
-lh_void
-lh_ui_web_app_set_ws_path(lh_ui_web_app_t *self, const lh_str_ptr ws_path, lh_usize_t ws_path_len)
-{
-    lh_ui_web_app_set_ws_path_len(self, ws_path_len);
-    self->ws_path = ws_path;
 }
 
 lh_void
@@ -247,8 +247,10 @@ lh_ui_web_app_tick(lh_ui_web_app_t *self)
 lh_void
 lh_ui_web_app_init(lh_ui_web_app_t *self, const lh_ui_web_route_t *routes, lh_usize_t nroutes)
 {
-    lh_ui_web_app_set_routes(self, routes, nroutes);
-    lh_ui_web_app_set_ws_path(self, lh_null, 0u);
+    lh_ui_web_app_set_routes(self, routes);
+    lh_ui_web_app_set_nroutes(self, nroutes);
+    lh_ui_web_app_set_ws_path(self, lh_null);
+    lh_ui_web_app_set_ws_path_len(self, 0u);
     lh_ui_web_app_set_frame_fn(self, lh_null);
     lh_ui_web_app_set_message_fn(self, lh_null);
     lh_ui_web_app_set_tick_fn(self, lh_null);

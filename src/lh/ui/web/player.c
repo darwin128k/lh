@@ -401,13 +401,16 @@ lh_ui_web_player_init(lh_ui_web_player_t *self, lh_ui_view_t *view, lh_uint_t wi
     }
     for (lh_usize_t i = 0u; i < LH_UI_WEB_PLAYER_ROUTES; ++i)
     {
-        lh_ui_web_route_set_method(routes + i, m_ui_web_player_method, m_ui_web_player_method_len);
-        lh_ui_web_route_set_path(routes + i, m_ui_web_player_paths[i], m_ui_web_player_path_lens[i]);
+        lh_ui_web_route_set_method(routes + i, m_ui_web_player_method);
+        lh_ui_web_route_set_method_len(routes + i, m_ui_web_player_method_len);
+        lh_ui_web_route_set_path(routes + i, m_ui_web_player_paths[i]);
+        lh_ui_web_route_set_path_len(routes + i, m_ui_web_player_path_lens[i]);
         lh_ui_web_route_set_handler(routes + i, m_ui_web_player_handlers[i]);
     }
     lh_ui_web_app_init(lh_ui_web_player_get_app(self), routes, LH_UI_WEB_PLAYER_ROUTES);
     lh_ui_web_app_set_ctx(lh_ui_web_player_get_app(self), self);
-    lh_ui_web_app_set_ws_path(lh_ui_web_player_get_app(self), lh_str_lit("/ws"));
+    lh_ui_web_app_set_ws_path(lh_ui_web_player_get_app(self), "/ws");
+    lh_ui_web_app_set_ws_path_len(lh_ui_web_player_get_app(self), lh_str_lit_size("/ws"));
     lh_ui_web_app_set_frame_fn(lh_ui_web_player_get_app(self), lh_ui_web_player_frame);
     lh_ui_web_app_set_message_fn(lh_ui_web_player_get_app(self), lh_ui_web_player_message);
     lh_ui_web_app_set_tick_fn(lh_ui_web_player_get_app(self), lh_ui_web_player_tick);
