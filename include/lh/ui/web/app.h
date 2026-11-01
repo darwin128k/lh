@@ -89,6 +89,19 @@ const lh_ui_web_route_t *
 lh_ui_web_app_get_routes(const lh_ui_web_app_t *self);
 
 /**
+ * @brief Store the route table (level 1).
+ *
+ * A level-1 setter: the pointer is stored as given and is not validated. The
+ * table is not owned and must outlive the application. Its count is stored
+ * apart, with ::lh_ui_web_app_set_nroutes.
+ *
+ * @param self   The application; checked by ::lh_assert_runtime_ref.
+ * @param routes The new table.
+ */
+lh_void
+lh_ui_web_app_set_routes(lh_ui_web_app_t *self, const lh_ui_web_route_t *routes);
+
+/**
  * @brief How many routes the application has (level 1).
  *
  * @param self The application; checked by ::lh_assert_runtime_ref.
@@ -114,6 +127,19 @@ lh_ui_web_app_set_nroutes(lh_ui_web_app_t *self, lh_usize_t nroutes);
  */
 const lh_str_ptr
 lh_ui_web_app_get_ws_path(const lh_ui_web_app_t *self);
+
+/**
+ * @brief Store the path the websocket answers on (level 1).
+ *
+ * A level-1 setter: the pointer is stored as given and is not validated. The
+ * text is not owned and must outlive the application. Its length is stored
+ * apart, with ::lh_ui_web_app_set_ws_path_len.
+ *
+ * @param self    The application; checked by ::lh_assert_runtime_ref.
+ * @param ws_path The new path; with a length of 0 there is no websocket.
+ */
+lh_void
+lh_ui_web_app_set_ws_path(lh_ui_web_app_t *self, const lh_str_ptr ws_path);
 
 /**
  * @brief How long the websocket path is (level 1).
@@ -228,34 +254,6 @@ lh_ui_web_app_get_generation(const lh_ui_web_app_t *self);
  */
 lh_void
 lh_ui_web_app_set_generation(lh_ui_web_app_t *self, lh_uint_t generation);
-
-/**
- * @brief Store the route table (level 2).
- *
- * Stores the count with ::lh_ui_web_app_set_nroutes, then the pointer as given;
- * neither is validated. The table is not owned and must outlive the
- * application.
- *
- * @param self    The application; checked by ::lh_assert_runtime_ref.
- * @param routes  The new table.
- * @param nroutes How many routes it holds.
- */
-lh_void
-lh_ui_web_app_set_routes(lh_ui_web_app_t *self, const lh_ui_web_route_t *routes, lh_usize_t nroutes);
-
-/**
- * @brief Store the path the websocket answers on (level 2).
- *
- * Stores the length with ::lh_ui_web_app_set_ws_path_len, then the pointer as
- * given; neither is validated. The text is not owned and must outlive the
- * application.
- *
- * @param self      The application; checked by ::lh_assert_runtime_ref.
- * @param ws_path   The new path; empty for no websocket.
- * @param ws_path_len Its length.
- */
-lh_void
-lh_ui_web_app_set_ws_path(lh_ui_web_app_t *self, const lh_str_ptr ws_path, lh_usize_t ws_path_len);
 
 /**
  * @brief Mark the content changed: the next frame is due for every client.

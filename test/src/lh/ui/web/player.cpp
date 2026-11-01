@@ -113,10 +113,10 @@ TEST(ui_web_player, with_an_input_hook_it_keeps_no_controller)
 TEST(ui_web_player, setters)
 {
     static player_world world;
-    static lh_ui_view_t other_view;
-    static lh_char_t other_json[16];
-    static lh_byte_t other_page[16];
     lh_ui_web_player_t *player = lh_addr_of(world.player);
+    static lh_ui_view_t other_view;
+    static lh_char_t other_json[16] = {};
+    static lh_byte_t other_page[16] = {};
     lh_ui_web_host_hooks_t hooks;
 
     std::memset(lh_addr_of(hooks), 0, sizeof(hooks));

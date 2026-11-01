@@ -613,8 +613,10 @@ TEST(str_view_make, empty_string_is_empty)
     EXPECT_TRUE(lh_str_view_is_empty(&v));
 }
 
-/* The runtime spelling of "" must agree with the literal spelling: the same
-   endpoints, so "present and empty" never depends on which spelling was used. */
+/* The runtime spelling of "" must agree with the literal spelling, so "present
+   and empty" never depends on which spelling was used. Two "" literals need not
+   share one address, so they agree by value: both present, both empty, no
+   characters between the endpoints, and the same terminator at the start. */
 TEST(str_view_make, empty_string_matches_the_literal_spelling)
 {
     lh_str_view_t v;
@@ -622,8 +624,14 @@ TEST(str_view_make, empty_string_matches_the_literal_spelling)
 
     lh_str_view_init(lh_addr_of(v), "");
 
-    EXPECT_EQ(lh_str_view_get_begin(&v), lh_str_view_get_begin(&lit));
-    EXPECT_EQ(lh_str_view_get_end(&v), lh_str_view_get_end(&lit));
+    ASSERT_NE(lh_str_view_get_data(&v), lh_null);
+    ASSERT_NE(lh_str_view_get_data(&lit), lh_null);
+    EXPECT_TRUE(lh_str_view_is_empty(&v));
+    EXPECT_TRUE(lh_str_view_is_empty(&lit));
+    EXPECT_EQ(lh_str_view_get_size(&v), lh_str_view_get_size(&lit));
+    EXPECT_EQ(lh_str_view_get_end(&v) - lh_str_view_get_begin(&v),
+              lh_str_view_get_end(&lit) - lh_str_view_get_begin(&lit));
+    EXPECT_EQ(lh_str_view_get_data(&v)[0], lh_str_view_get_data(&lit)[0]);
 }
 
 TEST(str_view_skip_bom, drops_leading_mark)

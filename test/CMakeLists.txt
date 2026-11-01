@@ -399,6 +399,8 @@ set(LH_TEST_UI_SOURCES
         ${LH_TEST_SRC_PATH}/lh/ui/transition.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/canvas/sw.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/canvas/web.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/web/app.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/web/app/route.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/host.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/html.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/js.cpp
