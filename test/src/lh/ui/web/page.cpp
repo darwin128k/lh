@@ -6,7 +6,7 @@
 #include <gtest/gtest.h>
 
 #include <lh/os/key.h>
-#include <lh/ui/web/page.h>
+#include <lh/ui/web/player/page.h>
 
 #include <string>
 #include <vector>
@@ -21,7 +21,7 @@ page_text()
     std::vector<lh_byte_t> mem(48u * 1024u);
     lh_usize_t len = 0u;
 
-    EXPECT_EQ(lh_ui_web_page_build(mem.data(), mem.size(), lh_addr_of(len)), lh_bool_true);
+    EXPECT_EQ(lh_ui_web_player_page_build(mem.data(), mem.size(), lh_addr_of(len)), lh_bool_true);
     return std::string(reinterpret_cast<const char *>(mem.data()), len);
 }
 

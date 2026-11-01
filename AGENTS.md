@@ -196,6 +196,15 @@ file of LH and of Authum — reads and writes through them. No exceptions.
   allocate (`lh_memory_allocator_try_alloc`) + wipe (`lh_memory_std_set`),
   overflow by the existing kernel (`lh_interval_closed_is_mul_overflow`).
   It contains no copy of either implementation.
+- **A brick is added for a need, and looked at again afterwards.** When
+  something is missing, add it: in the right place, with its own header, its
+  own implementation and its own test. But nothing is added "for the sake of
+  implementation" — every brick closes a concrete need, and the report says
+  which. After it is in, look at the code around it once more: what was
+  written inline and now has a brick of its own, what belongs to a
+  neighbouring level, what can be moved out. A function that does two
+  independent things — allocates and zeroes, scans and builds — is two
+  bricks and one caller, never one function.
 - No `static` functions. `static` is only for file-local data.
 
 ## 3. No parallel implementations, no detours

@@ -6,7 +6,7 @@
  * Dense loops still use ::lh_ui_web_buf_raw until they become statement entities.
  */
 
-#include <lh/ui/web/page.h>
+#include <lh/ui/web/player/page.h>
 #include <lh/char/map.h>
 
 #include <lh/assert/static.h>
@@ -87,7 +87,7 @@ lh_ui_web_page_emit_key_table(lh_ui_web_buf_t *j, lh_str_cptr name, lh_bool_t mo
 /* -- page ------------------------------------------------------------------ */
 
 lh_bool_t
-lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
+lh_ui_web_player_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
 {
     lh_ui_web_buf_t js;
 

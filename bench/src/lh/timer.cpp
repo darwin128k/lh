@@ -7,6 +7,7 @@
 
 #include <lh/timer.h>
 
+#include <cstdint>
 #include <vector>
 
 static lh_void

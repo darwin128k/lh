@@ -3,6 +3,7 @@
 #include <lh/memory.h>
 
 #include <algorithm>
+#include <cstdint>
 #include <cstring>
 #include <vector>
 

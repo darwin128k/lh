@@ -28,6 +28,7 @@
 #    include <lh/ui/scrollbar.h>
 #    include <lh/ui/view.h>
 #    include <lh/ui/web/host.h>
+#    include <lh/ui/web/player.h>
 #    include <lh/ui/web/ws.h>
 
 #    include <atomic>
@@ -52,7 +53,9 @@ struct host_world
     lh_ui_scrollbar_t down;
     lh_ui_view_t view;
     lh_ui_web_host_hooks_t hooks;
+    lh_ui_web_player_t player;
     char json[256u * 1024u];
+    char page[LH_UI_WEB_PLAYER_PAGE_CAP];
     lh_net_port_t port;
     std::atomic<int> started;
     std::atomic<int> failed;
@@ -173,8 +176,7 @@ connect_to_host(lh_os_net_socket_t *sock)
 void
 host_thread()
 {
-    (void)lh_ui_web_host_run(lh_addr_of(s_world.view), 200u, 200u, s_world.json,
-                             sizeof(s_world.json), s_world.port, lh_addr_of(s_world.hooks));
+    (void)lh_ui_web_host_run(lh_ui_web_player_get_app(lh_addr_of(s_world.player)), s_world.port);
     s_world.failed.store(1);
 }
 
@@ -208,13 +210,20 @@ host_up()
     lh_ui_view_init(lh_addr_of(s_world.view));
     lh_ui_view_set_root_v(lh_addr_of(s_world.view), lh_addr_of(s_world.root));
     std::memset(lh_addr_of(s_world.hooks), 0, sizeof(s_world.hooks));
-    s_world.hooks.ctx = lh_addr_of(s_world);
-    s_world.hooks.tick = world_tick;
-    s_world.hooks.input = world_input;
+    lh_ui_web_host_hooks_set_ctx(lh_addr_of(s_world.hooks), lh_addr_of(s_world));
+    lh_ui_web_host_hooks_set_tick_fn(lh_addr_of(s_world.hooks), world_tick);
+    lh_ui_web_host_hooks_set_input_fn(lh_addr_of(s_world.hooks), world_input);
     lh_os_controller_init(lh_addr_of(s_world.controller), world_control, lh_addr_of(s_world),
                           lh_null);
     lh_os_controller_set_update_cb(lh_addr_of(s_world.controller), world_update);
-    s_world.hooks.controller = lh_addr_of(s_world.controller);
+    lh_ui_web_host_hooks_set_controller(lh_addr_of(s_world.hooks), lh_addr_of(s_world.controller));
+    if (!lh_ui_web_player_init(lh_addr_of(s_world.player), lh_addr_of(s_world.view), 200u, 200u,
+                               s_world.json, sizeof(s_world.json),
+                               lh_ptr_rcast(lh_byte_t, s_world.page), sizeof(s_world.page),
+                               lh_addr_of(s_world.hooks)))
+    {
+        return false;
+    }
     s_world.port = free_port();
     if (s_world.port == 0u)
     {

@@ -3,6 +3,7 @@
 #include <lh/crypto/rijndael.h>
 #include <lh/util/addr.h>
 
+#include <cstdint>
 #include <cstring>
 
 namespace

@@ -8,13 +8,13 @@
  * Requires ::LH_LIBRARY_OPTION_UI.
  */
 
-#ifndef LH_UI_WEB_PAGE_H
-#define LH_UI_WEB_PAGE_H
+#ifndef LH_UI_WEB_PLAYER_PAGE_H
+#define LH_UI_WEB_PLAYER_PAGE_H
 
 #include <lh/ui/web/buf.h>
 
 #if !LH_LIBRARY_OPTION_UI
-#    error "lh/ui/web/page.h requires LH_LIBRARY_OPTION_UI"
+#    error "lh/ui/web/player/page.h requires LH_LIBRARY_OPTION_UI"
 #endif
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -34,8 +34,8 @@ lh_ui_web_page_emit_key_table(lh_ui_web_buf_t *j, const lh_str_ptr name, lh_bool
  * @return ::lh_bool_false when the buffer is too small or @p mem is null.
  */
 lh_bool_t
-lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len);
+lh_ui_web_player_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len);
 
 LH_COMPILER_EXTERN_C_END
 
-#endif /* LH_UI_WEB_PAGE_H */
+#endif /* LH_UI_WEB_PLAYER_PAGE_H */

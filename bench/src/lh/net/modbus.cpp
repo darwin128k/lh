@@ -3,6 +3,8 @@
 #include <lh/net/modbus.h>
 #include <lh/size.h>
 
+#include <cstdint>
+
 static void
 BM_mb_crc16(benchmark::State &state)
 {

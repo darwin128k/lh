@@ -3,6 +3,7 @@
 #include <lh/io/reader.h>
 #include <lh/io/writer.h>
 
+#include <cstdint>
 #include <cstring>
 #include <vector>
 

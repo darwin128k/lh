@@ -8,7 +8,7 @@
 #include "screen.h"
 
 #include <lh/ui/canvas/web.h>
-#include <lh/ui/web/page.h>
+#include <lh/ui/web/player/page.h>
 #include <lh/ui/web/ws.h>
 
 #include <algorithm>
@@ -168,7 +168,7 @@ BM_ui_web_page_build(benchmark::State &state)
 
     for (auto _ : state)
     {
-        benchmark::DoNotOptimize(lh_ui_web_page_build(mem.data(), mem.size(), &len));
+        benchmark::DoNotOptimize(lh_ui_web_player_page_build(mem.data(), mem.size(), &len));
         benchmark::ClobberMemory();
     }
     state.SetBytesProcessed(state.iterations() * static_cast<std::int64_t>(len));
