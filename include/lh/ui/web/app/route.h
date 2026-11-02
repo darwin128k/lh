@@ -13,6 +13,8 @@
 #define LH_UI_WEB_APP_ROUTE_H
 
 #include <lh/config.h>
+#include <lh/http/header.h>
+#include <lh/http/request.h>
 #include <lh/assert/runtime.h>
 #include <lh/os/net/socket.h>
 #include <lh/ui/web/app/route/fields.h>
@@ -33,14 +35,17 @@ LH_COMPILER_EXTERN_C_BEGIN
  * ::lh_ui_web_host_reply_text are there for it — and says whether it answered.
  *
  * @param ctx    The route's context, as the application has it.
- * @param req    The whole request, as it came in.
+ * @param request Parsed request, borrowing the input buffer.
+ * @param headers Parsed fields, in caller-owned storage. Their count is in @p request.
+ * @param req    Bytes received so far, including the head and possibly part of the body.
  * @param len    Its length.
  * @param client The socket to answer on.
  *
  * @return ::lh_bool_true when the route answered.
  */
-typedef lh_bool_t (*lh_ui_web_route_fn)(lh_ptr ctx, const lh_str_ptr req, lh_usize_t len,
-                                       lh_os_net_socket_t *client);
+typedef lh_bool_t (*lh_ui_web_route_fn)(lh_ptr ctx, const lh_http_request_t *request,
+                                        const lh_http_header_t *headers, const lh_str_ptr req,
+                                        lh_usize_t len, lh_os_net_socket_t *client);
 
 LH_COMPILER_EXTERN_C_END
 
@@ -161,18 +166,16 @@ lh_ui_web_route_set_handler(lh_ui_web_route_t *self, lh_ui_web_route_fn handler)
 /**
  * @brief Whether @p req is the request this route answers.
  *
- * The request line is `<method> <path>`; the path ends at the space before the
- * HTTP version, at the `?` of the query, or at the end of the request. A route
- * with no method answers any method.
+ * Compares the parsed method and the target path before its query. A route
+ * with no method answers any method; matching is case-sensitive.
  *
  * @param self The route; checked by ::lh_assert_runtime_ref.
- * @param req  The request, as it came in.
- * @param len  Its length.
+ * @param request Parsed request; its views are borrowed from the caller.
  *
  * @return ::lh_bool_true when this route answers the request.
  */
 lh_bool_t
-lh_ui_web_route_match(const lh_ui_web_route_t *self, const lh_str_ptr req, lh_usize_t len);
+lh_ui_web_route_is_match(const lh_ui_web_route_t *self, const lh_http_request_t *request);
 
 LH_COMPILER_EXTERN_C_END
 

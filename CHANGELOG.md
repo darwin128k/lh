@@ -61,6 +61,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Web routes match parsed HTTP request objects. `lh_ui_web_route_is_match`
+  replaces `lh_ui_web_route_match`; `lh_ui_web_host_is_route` replaces
+  `lh_ui_web_host_route`. Handlers receive the request, parsed headers and
+  received bytes; the body may still be incomplete. Web query helpers now
+  take a parsed request and search only its target query; the old `query*`
+  names are replaced by `get_query_value_size`, `get_query_int`,
+  `get_query_uint` and `get_query_flag` under the `lh_ui_web_host_` prefix.
+
 - WebSocket path detection accepts a parsed HTTP request instead of raw bytes.
 
 - Web host request reads return parsed request and header objects in

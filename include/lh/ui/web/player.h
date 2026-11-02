@@ -353,15 +353,18 @@ lh_ui_web_player_resize(lh_ui_web_player_t *self, lh_sint_t w, lh_sint_t h);
  * The route handler of `/`.
  *
  * @param ctx    The player's context.
- * @param req    The request, as it came in.
+ * @param request Parsed request, borrowing its source bytes.
+ * @param headers Parsed fields, whose count is stored in @p request.
+ * @param req    Received bytes; the request body may be incomplete.
  * @param len    Its length.
  * @param client The socket to answer on.
  *
  * @return ::lh_bool_true when it answered.
  */
 lh_bool_t
-lh_ui_web_player_serve_page(lh_ptr ctx, const lh_str_ptr req, lh_usize_t len,
-                             lh_os_net_socket_t *client);
+lh_ui_web_player_serve_page(lh_ptr ctx, const lh_http_request_t *request,
+                            const lh_http_header_t *headers, const lh_str_ptr req, lh_usize_t len,
+                            lh_os_net_socket_t *client);
 
 /**
  * @brief Serve the frame counter, so a page knows whether it is behind.
@@ -369,15 +372,18 @@ lh_ui_web_player_serve_page(lh_ptr ctx, const lh_str_ptr req, lh_usize_t len,
  * The route handler of `/ui.rev`.
  *
  * @param ctx    The player's context.
- * @param req    The request, as it came in.
+ * @param request Parsed request, borrowing its source bytes.
+ * @param headers Parsed fields, whose count is stored in @p request.
+ * @param req    Received bytes; the request body may be incomplete.
  * @param len    Its length.
  * @param client The socket to answer on.
  *
  * @return ::lh_bool_true when it answered.
  */
 lh_bool_t
-lh_ui_web_player_serve_revision(lh_ptr ctx, const lh_str_ptr req, lh_usize_t len,
-                                 lh_os_net_socket_t *client);
+lh_ui_web_player_serve_revision(lh_ptr ctx, const lh_http_request_t *request,
+                                const lh_http_header_t *headers, const lh_str_ptr req,
+                                lh_usize_t len, lh_os_net_socket_t *client);
 
 /**
  * @brief Draw the tree into the frame scratch.
@@ -472,15 +478,18 @@ lh_ui_web_player_text(lh_ui_web_player_t *self, lh_u32_t code);
  * The route handler of `/ui.json`.
  *
  * @param ctx    The player's context.
- * @param req    The request, as it came in.
+ * @param request Parsed request, borrowing its source bytes.
+ * @param headers Parsed fields, whose count is stored in @p request.
+ * @param req    Received bytes; the request body may be incomplete.
  * @param len    Its length.
  * @param client The socket to answer on.
  *
  * @return ::lh_bool_true when it answered.
  */
 lh_bool_t
-lh_ui_web_player_serve_frame(lh_ptr ctx, const lh_str_ptr req, lh_usize_t len,
-                              lh_os_net_socket_t *client);
+lh_ui_web_player_serve_frame(lh_ptr ctx, const lh_http_request_t *request,
+                             const lh_http_header_t *headers, const lh_str_ptr req, lh_usize_t len,
+                             lh_os_net_socket_t *client);
 
 /**
  * @brief The frame the application pushes to the websocket clients.
@@ -525,15 +534,18 @@ lh_ui_web_player_event_line(lh_ui_web_player_t *self, const lh_str_ptr line, lh_
  * release, the move, the wheel, the key, the text and the size.
  *
  * @param ctx    The player's context.
- * @param req    The request, as it came in.
+ * @param request Parsed request, borrowing its source bytes.
+ * @param headers Parsed fields, whose count is stored in @p request.
+ * @param req    Received bytes; the request body may be incomplete.
  * @param len    Its length.
  * @param client The socket to answer on.
  *
  * @return ::lh_bool_true when it answered.
  */
 lh_bool_t
-lh_ui_web_player_serve_input(lh_ptr ctx, const lh_str_ptr req, lh_usize_t len,
-                              lh_os_net_socket_t *client);
+lh_ui_web_player_serve_input(lh_ptr ctx, const lh_http_request_t *request,
+                             const lh_http_header_t *headers, const lh_str_ptr req, lh_usize_t len,
+                             lh_os_net_socket_t *client);
 
 /**
  * @brief Read one message of a websocket client.

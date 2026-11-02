@@ -12,6 +12,52 @@
 
 #    include <lh/str/lit.h>
 #    include <lh/ui/web/app.h>
+#    include <lh/http/parser.h>
+#    include <lh/attribute/unused.h>
+#    include <string>
+
+lh_bool_t
+ui_web_test_handle(lh_ptr ctx, const lh_http_request_t *request, const lh_http_header_t *headers,
+                   const lh_str_ptr bytes, lh_usize_t len, lh_os_net_socket_t *client)
+{
+    LH_ATTRIBUTE_UNUSED(client);
+    bool *called = static_cast<bool *>(ctx);
+    *called = true;
+    const lh_str_view_t method = lh_str_view_initializer_lit("GET");
+    const lh_str_view_t name = lh_str_view_initializer_lit("x-test");
+    EXPECT_TRUE(
+        lh_str_view_equals(lh_http_request_get_method(request), lh_addr_of(method), lh_bool_false));
+    EXPECT_NE(
+        lh_http_header_find(headers, lh_http_request_get_header_count(request), lh_addr_of(name)),
+        nullptr);
+    EXPECT_EQ(std::string(bytes, len), "GET /state HTTP/1.1\r\nX-Test: yes\r\n\r\n");
+    return lh_bool_true;
+}
+
+TEST(ui_web_app, handler_receives_parsed_request_and_headers)
+{
+    const char text[] = "GET /state HTTP/1.1\r\nX-Test: yes\r\n\r\n";
+    lh_http_parser_t parser;
+    lh_http_request_t request;
+    lh_http_header_t headers[2];
+    lh_http_parser_init(lh_addr_of(parser));
+    const lh_str_view_t input = lh_str_view_initializer(text, sizeof(text) - 1);
+    ASSERT_EQ(lh_http_parser_request(lh_addr_of(parser), input, lh_addr_of(request), headers, 2),
+              lh_http_parse_complete);
+    lh_ui_web_route_t route;
+    lh_ui_web_route_set_method(lh_addr_of(route), "GET");
+    lh_ui_web_route_set_method_len(lh_addr_of(route), 3);
+    lh_ui_web_route_set_path(lh_addr_of(route), "/state");
+    lh_ui_web_route_set_path_len(lh_addr_of(route), 6);
+    lh_ui_web_route_set_handler(lh_addr_of(route), ui_web_test_handle);
+    lh_ui_web_app_t app;
+    lh_ui_web_app_init(lh_addr_of(app), lh_addr_of(route), 1);
+    bool called = false;
+    lh_ui_web_app_set_ctx(lh_addr_of(app), lh_addr_of(called));
+    EXPECT_TRUE(lh_ui_web_app_handle_request_is_handled(lh_addr_of(app), lh_addr_of(request),
+                                                        headers, text, sizeof(text) - 1, nullptr));
+    EXPECT_TRUE(called);
+}
 
 TEST(ui_web_app, init_starts_with_the_routes_and_nothing_else)
 {

@@ -300,11 +300,16 @@ lh_ui_web_player_resize(lh_ui_web_player_t *self, lh_sint_t w, lh_sint_t h)
 }
 
 lh_bool_t
-lh_ui_web_player_serve_page(lh_ptr ctx, const lh_str_ptr req, lh_usize_t len,
-                             lh_os_net_socket_t *client)
+lh_ui_web_player_serve_page(lh_ptr ctx, const lh_http_request_t *request,
+                            const lh_http_header_t *headers, const lh_str_ptr req, lh_usize_t len,
+                            lh_os_net_socket_t *client)
 {
     lh_ui_web_player_t *self = lh_ptr_rcast(lh_ui_web_player_t, ctx);
 
+    LH_ATTRIBUTE_UNUSED(request);
+    LH_ATTRIBUTE_UNUSED(headers);
+    LH_ATTRIBUTE_UNUSED(req);
+    LH_ATTRIBUTE_UNUSED(len);
     lh_assert_runtime_ref(self);
     lh_ui_web_host_reply(client, 200u, "text/html; charset=utf-8",
                          lh_ptr_rcast(const lh_char_t, lh_ui_web_player_get_page(self)),
@@ -313,8 +318,9 @@ lh_ui_web_player_serve_page(lh_ptr ctx, const lh_str_ptr req, lh_usize_t len,
 }
 
 lh_bool_t
-lh_ui_web_player_serve_revision(lh_ptr ctx, const lh_str_ptr req, lh_usize_t len,
-                                 lh_os_net_socket_t *client)
+lh_ui_web_player_serve_revision(lh_ptr ctx, const lh_http_request_t *request,
+                                const lh_http_header_t *headers, const lh_str_ptr req,
+                                lh_usize_t len, lh_os_net_socket_t *client)
 {
     lh_ui_web_player_t *self = lh_ptr_rcast(lh_ui_web_player_t, ctx);
     lh_char_t body[32];
@@ -322,6 +328,10 @@ lh_ui_web_player_serve_revision(lh_ptr ctx, const lh_str_ptr req, lh_usize_t len
         body, sizeof(body), "%u\n",
         lh_cast_static(lh_uint_t, lh_ui_web_app_get_generation(lh_ui_web_player_get_app(self))));
 
+    LH_ATTRIBUTE_UNUSED(request);
+    LH_ATTRIBUTE_UNUSED(headers);
+    LH_ATTRIBUTE_UNUSED(req);
+    LH_ATTRIBUTE_UNUSED(len);
     lh_assert_runtime_ref(self);
     lh_ui_web_host_reply_text(client, 200u, body, n);
     return lh_bool_true;
@@ -480,15 +490,20 @@ lh_ui_web_player_text(lh_ui_web_player_t *self, lh_u32_t code)
 }
 
 lh_bool_t
-lh_ui_web_player_serve_frame(lh_ptr ctx, const lh_str_ptr req, lh_usize_t len,
-                              lh_os_net_socket_t *client)
+lh_ui_web_player_serve_frame(lh_ptr ctx, const lh_http_request_t *request,
+                             const lh_http_header_t *headers, const lh_str_ptr req, lh_usize_t len,
+                             lh_os_net_socket_t *client)
 {
+    LH_ATTRIBUTE_UNUSED(headers);
+    LH_ATTRIBUTE_UNUSED(req);
+    LH_ATTRIBUTE_UNUSED(len);
+
     lh_ui_web_player_t *self = lh_ptr_rcast(lh_ui_web_player_t, ctx);
     const lh_str_ptr bytes = lh_null;
     lh_usize_t n = 0u;
 
     lh_assert_runtime_ref(self);
-    if (lh_ui_web_host_query_uint(req, len, lh_str_lit("rev=")) ==
+    if (lh_ui_web_host_get_query_uint(request, lh_str_lit("rev=")) ==
         lh_ui_web_app_get_generation(lh_ui_web_player_get_app(self)))
     {
         lh_ui_web_host_reply_text(client, 304u, lh_str_lit(""));
@@ -604,55 +619,61 @@ lh_ui_web_player_event_line(lh_ui_web_player_t *self, const lh_str_ptr line, lh_
 }
 
 lh_bool_t
-lh_ui_web_player_serve_input(lh_ptr ctx, const lh_str_ptr req, lh_usize_t len,
-                              lh_os_net_socket_t *client)
+lh_ui_web_player_serve_input(lh_ptr ctx, const lh_http_request_t *request,
+                             const lh_http_header_t *headers, const lh_str_ptr req, lh_usize_t len,
+                             lh_os_net_socket_t *client)
 {
+    LH_ATTRIBUTE_UNUSED(headers);
+    LH_ATTRIBUTE_UNUSED(req);
+    LH_ATTRIBUTE_UNUSED(len);
+
     lh_ui_web_player_t *self = lh_ptr_rcast(lh_ui_web_player_t, ctx);
-    const lh_sint_t x = lh_ui_web_host_query_int(req, len, lh_str_lit("x="));
-    const lh_sint_t y = lh_ui_web_host_query_int(req, len, lh_str_lit("y="));
+    const lh_sint_t x = lh_ui_web_host_get_query_int(request, lh_str_lit("x="));
+    const lh_sint_t y = lh_ui_web_host_get_query_int(request, lh_str_lit("y="));
 
     lh_assert_runtime_ref(self);
-    if (lh_ui_web_host_route(req, len, lh_str_lit("/ui/click")))
+    if (lh_ui_web_host_is_route(request, lh_str_lit("/ui/click")))
     {
         LH_ATTRIBUTE_UNUSED(lh_ui_web_player_pointer(self, lh_os_input_kind_pointer_down, x, y));
         LH_ATTRIBUTE_UNUSED(lh_ui_web_player_pointer(self, lh_os_input_kind_pointer_up, x, y));
     }
-    else if (lh_ui_web_host_route(req, len, lh_str_lit("/ui/press")))
+    else if (lh_ui_web_host_is_route(request, lh_str_lit("/ui/press")))
     {
         LH_ATTRIBUTE_UNUSED(lh_ui_web_player_pointer(self, lh_os_input_kind_pointer_down, x, y));
     }
-    else if (lh_ui_web_host_route(req, len, lh_str_lit("/ui/release")))
+    else if (lh_ui_web_host_is_route(request, lh_str_lit("/ui/release")))
     {
         LH_ATTRIBUTE_UNUSED(lh_ui_web_player_pointer(self, lh_os_input_kind_pointer_up, x, y));
     }
-    else if (lh_ui_web_host_route(req, len, lh_str_lit("/ui/move")))
+    else if (lh_ui_web_host_is_route(request, lh_str_lit("/ui/move")))
     {
         LH_ATTRIBUTE_UNUSED(lh_ui_web_player_pointer(self, lh_os_input_kind_pointer_move, x, y));
     }
-    else if (lh_ui_web_host_route(req, len, lh_str_lit("/ui/wheel")))
+    else if (lh_ui_web_host_is_route(request, lh_str_lit("/ui/wheel")))
     {
         LH_ATTRIBUTE_UNUSED(lh_ui_web_player_wheel(
-            self, x, y, lh_ui_web_host_query_int(req, len, lh_str_lit("dx=")),
-            lh_ui_web_host_query_int(req, len, lh_str_lit("dy="))));
+            self, x, y, lh_ui_web_host_get_query_int(request, lh_str_lit("dx=")),
+            lh_ui_web_host_get_query_int(request, lh_str_lit("dy="))));
     }
-    else if (lh_ui_web_host_route(req, len, lh_str_lit("/ui/key")))
+    else if (lh_ui_web_host_is_route(request, lh_str_lit("/ui/key")))
     {
         /* `p=` is the direction; without it the request is a key going down, as before. */
         LH_ATTRIBUTE_UNUSED(lh_ui_web_player_key(
-            self, lh_ui_web_host_query_int(req, len, lh_str_lit("k=")),
-            lh_ui_web_host_query_flag(req, len, lh_str_lit("p="), lh_bool_true)));
+            self, lh_ui_web_host_get_query_int(request, lh_str_lit("k=")),
+            lh_ui_web_host_get_query_flag(request, lh_str_lit("p="), lh_bool_true)));
     }
-    else if (lh_ui_web_host_route(req, len, lh_str_lit("/ui/text")))
+    else if (lh_ui_web_host_is_route(request, lh_str_lit("/ui/text")))
     {
         LH_ATTRIBUTE_UNUSED(lh_ui_web_player_text(
-            self, lh_cast_static(lh_u32_t, lh_ui_web_host_query_uint(req, len, lh_str_lit("c=")))));
+            self,
+            lh_cast_static(lh_u32_t, lh_ui_web_host_get_query_uint(request, lh_str_lit("c=")))));
     }
-    else if (lh_ui_web_host_route(req, len, lh_str_lit("/ui/size")))
+    else if (lh_ui_web_host_is_route(request, lh_str_lit("/ui/size")))
     {
         /* Always handled: an unchanged size is still a valid no-op, not a 404. */
         LH_ATTRIBUTE_UNUSED(
-            lh_ui_web_player_resize(self, lh_ui_web_host_query_int(req, len, lh_str_lit("w=")),
-                                    lh_ui_web_host_query_int(req, len, lh_str_lit("h="))));
+            lh_ui_web_player_resize(self, lh_ui_web_host_get_query_int(request, lh_str_lit("w=")),
+                                    lh_ui_web_host_get_query_int(request, lh_str_lit("h="))));
     }
     else
     {
