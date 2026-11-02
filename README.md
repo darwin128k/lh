@@ -171,15 +171,15 @@ The HTML output is written to `docs/html/index.html`.
 
 Every guide is indexed in [docs/index.md](docs/index.md). The integration
 guides by target — options, runtime wiring, display and UI:
-[docs/usage.md](docs/usage.md) (overview and option matrix),
-[microcontroller](docs/usage-embedded.md), [desktop window](docs/usage-desktop.md),
-[web host](docs/usage-web.md).
+[docs/guides/usage.md](docs/guides/usage.md) (overview and option matrix),
+[microcontroller](docs/guides/usage-embedded.md), [desktop window](docs/guides/usage-desktop.md),
+[web host](docs/guides/usage-web.md).
 
-The subsystem guides: [UI model](docs/ui.md),
-[modules and loaders](docs/module-loader.md),
-[OS threads and synchronization](docs/concurrency.md),
-[HTTP/1 head parser](docs/http.md),
-[software 3D renderer](docs/renderer3d.md).
+The subsystem guides: [UI model](docs/subsystems/ui.md),
+[modules and loaders](docs/subsystems/module-loader.md),
+[OS threads and synchronization](docs/subsystems/concurrency.md),
+[HTTP/1 head parser](docs/subsystems/http.md),
+[software 3D renderer](docs/subsystems/renderer3d.md).
 
 Umbrella header (version entry point):
 
@@ -376,7 +376,7 @@ effect the library does not have is a class written in the caller's program.
 Nothing has to be registered, and the library does not have to be edited.
 
 How to build a tree of them — by hand or from a stylesheet with
-`scripts/css2decl.py` — is in [docs/usage-desktop.md](docs/usage-desktop.md).
+`scripts/css2decl.py` — is in [docs/guides/usage-desktop.md](docs/guides/usage-desktop.md).
 
 ## Version
 

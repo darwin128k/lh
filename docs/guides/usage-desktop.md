@@ -3,7 +3,7 @@
 A walk through `H:\Projects\configurator` (target `configurator`) — a Modbus
 configurator with a Win32 GDI window, a UI tree generated from CSS, and device
 polling on a timer. A minimal window without a UI tree is
-[`example/window_stats.c`](../example/window_stats.c).
+[`example/window_stats.c`](../../example/window_stats.c).
 
 Overview and option matrix: [usage.md](usage.md).
 The same code in a browser: [usage-web.md](usage-web.md).
