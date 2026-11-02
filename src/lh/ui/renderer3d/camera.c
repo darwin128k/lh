@@ -17,12 +17,14 @@ lh_ui_renderer3d_camera_init(lh_ui_renderer3d_camera_t *self, lh_math_vec3_t pos
             !lh_math_float_is_finite(far_plane) || near_plane <= 0 || far_plane <= near_plane,
         lh_bool_false);
     lh_math_vec3_t unit_forward;
-    lh_return_ifn(lh_math_vec3_try_normalize(forward, 1e-6f, &unit_forward), lh_bool_false);
+    lh_return_ifn(lh_math_vec3_try_normalize(forward, 1e-6f, lh_addr_of(unit_forward)),
+                  lh_bool_false);
     lh_math_vec3_t unit_right;
-    lh_math_vec3_cross(unit_forward, up, &unit_right);
-    lh_return_ifn(lh_math_vec3_try_normalize(unit_right, 1e-6f, &unit_right), lh_bool_false);
+    lh_math_vec3_cross(unit_forward, up, lh_addr_of(unit_right));
+    lh_return_ifn(lh_math_vec3_try_normalize(unit_right, 1e-6f, lh_addr_of(unit_right)),
+                  lh_bool_false);
     lh_math_vec3_t unit_up;
-    lh_math_vec3_cross(unit_right, unit_forward, &unit_up);
+    lh_math_vec3_cross(unit_right, unit_forward, lh_addr_of(unit_up));
     lh_ui_renderer3d_camera_set_position(self, position);
     lh_ui_renderer3d_camera_set_forward(self, unit_forward);
     lh_ui_renderer3d_camera_set_right(self, unit_right);
@@ -48,7 +50,8 @@ lh_ui_renderer3d_camera_to_view(const lh_ui_renderer3d_camera_t *self, lh_math_v
                                 lh_math_vec3_t *out)
 {
     lh_math_vec3_t offset;
-    lh_math_vec3_sub(world, lh_ptr_deref(lh_ui_renderer3d_camera_get_position(self)), &offset);
+    lh_math_vec3_sub(world, lh_ptr_deref(lh_ui_renderer3d_camera_get_position(self)),
+                     lh_addr_of(offset));
     lh_math_vec3_init(
         out, lh_math_vec3_dot(offset, lh_ptr_deref(lh_ui_renderer3d_camera_get_right(self))),
         lh_math_vec3_dot(offset, lh_ptr_deref(lh_ui_renderer3d_camera_get_up(self))),

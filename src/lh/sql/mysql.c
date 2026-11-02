@@ -406,8 +406,9 @@ lh_sql_mysql_connect(lh_sql_db_t *db, const lh_sql_mysql_api_t *api, lh_str_view
         const lh_uint_t seconds = 5U;
         /* Stable C client ABI: CONNECT_TIMEOUT, READ_TIMEOUT, WRITE_TIMEOUT.
          * Keep network failures bounded, including worker joins on unload. */
-        if (lh_sql_mysql_api_get_options(api)(native, 0, &seconds) || lh_sql_mysql_api_get_options(api)(native, 11, &seconds) ||
-            lh_sql_mysql_api_get_options(api)(native, 12, &seconds))
+        if (lh_sql_mysql_api_get_options(api)(native, 0, lh_addr_of(seconds)) ||
+            lh_sql_mysql_api_get_options(api)(native, 11, lh_addr_of(seconds)) ||
+            lh_sql_mysql_api_get_options(api)(native, 12, lh_addr_of(seconds)))
         {
             lh_sql_db_set_error(db, lh_str_view_lit("cannot set MySQL I/O timeouts"));
             lh_sql_mysql_api_close(api, native);

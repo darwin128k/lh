@@ -171,8 +171,8 @@ lh_ui_web_app_is_websocket(const lh_ui_web_app_t *self, const lh_str_ptr req, lh
 }
 
 lh_bool_t
-lh_ui_web_app_handle(lh_ui_web_app_t *self, const lh_str_ptr req, lh_usize_t len,
-                      lh_os_net_socket_t *client)
+lh_ui_web_app_handle_request_is_handled(lh_ui_web_app_t *self, const lh_str_ptr req, lh_usize_t len,
+                                        lh_os_net_socket_t *client)
 {
     const lh_ui_web_route_t *routes = lh_ui_web_app_get_routes(self);
     const lh_usize_t nroutes = lh_ui_web_app_get_nroutes(self);
@@ -180,7 +180,7 @@ lh_ui_web_app_handle(lh_ui_web_app_t *self, const lh_str_ptr req, lh_usize_t len
     lh_assert_runtime_ref(self);
     for (lh_usize_t i = 0u; i < nroutes; ++i)
     {
-        const lh_ui_web_route_t *route = &routes[i];
+        const lh_ui_web_route_t *route = lh_addr_of(routes[i]);
         lh_ui_web_route_fn handler;
 
         if (!lh_ui_web_route_match(route, req, len))

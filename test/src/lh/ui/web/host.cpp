@@ -17,6 +17,7 @@
 
 #if LH_LIBRARY_OPTION_OS
 
+#    include <lh/expect/death.h>
 #    include <lh/test/ui/draw_log.h>
 
 #    include <lh/os/controller.h>
@@ -36,6 +37,28 @@
 #    include <cstring>
 #    include <string>
 #    include <thread>
+
+TEST(ui_web_host_try_read_request, leaves_length_unchanged_when_storage_is_empty)
+{
+    lh_os_net_socket_t socket;
+    lh_os_net_socket_init(&socket);
+    char buffer;
+    lh_usize_t length = 17;
+
+    EXPECT_FALSE(lh_ui_web_host_try_read_request(&socket, &buffer, 0, 10, &length));
+    EXPECT_EQ(length, 17u);
+    LH_EXPECT_CHECK_DEATH(lh_ui_web_host_read_request(&socket, &buffer, 0, 10, &length));
+}
+
+TEST(ui_web_host_handle_request_is_upgraded, rejects_a_socket_that_cannot_be_configured)
+{
+    lh_os_net_socket_t socket;
+    lh_os_net_socket_init(&socket);
+    lh_ui_web_app_t app;
+    lh_ui_web_app_init(&app, nullptr, 0);
+
+    EXPECT_FALSE(lh_ui_web_host_handle_request_is_upgraded(&app, &socket));
+}
 
 TEST(ui_web_host_route, matches_only_complete_paths_for_get_and_post)
 {
@@ -330,7 +353,7 @@ struct ws_client
     {
         static const char upgrade[] = "GET /ws HTTP/1.1\r\nHost: 127.0.0.1\r\n"
                                       "Upgrade: websocket\r\nConnection: Upgrade\r\n"
-                                      "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+                                      "sEc-WeBsOcKeT-kEy: dGhlIHNhbXBsZSBub25jZQ==\r\n"
                                       "Sec-WebSocket-Version: 13\r\n\r\n";
 
         if (!connect_to_host(lh_addr_of(sock)))
@@ -392,6 +415,21 @@ wait_passes()
 }
 
 } // namespace
+
+TEST(web_host, receives_a_request_head_in_separate_fragments)
+{
+    LH_TEST_NEEDS_HOST();
+    lh_os_net_socket_t sock;
+    ASSERT_TRUE(connect_to_host(&sock));
+    const char first[] = "GET /ui.json HTTP/1.1\r\nHost: ";
+    const char last[] = "127.0.0.1\r\n\r\n";
+
+    ASSERT_TRUE(send_all(&sock, first, sizeof(first) - 1));
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    ASSERT_TRUE(send_all(&sock, last, sizeof(last) - 1));
+    EXPECT_NE(read_head(&sock).find(" 200 "), std::string::npos);
+    lh_os_net_socket_close(&sock);
+}
 
 TEST(web_host, ws_key_lines_carry_the_direction_and_the_old_line_is_a_key_down)
 {

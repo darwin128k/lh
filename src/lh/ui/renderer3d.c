@@ -65,9 +65,9 @@ lh_ui_renderer3d_get_plane_distance(const lh_ui_renderer3d_t *self, lh_math_vec3
         lh_ui_renderer3d_camera_get_tangent(lh_ui_renderer3d_get_camera(self));
     const lh_math_fscalar_t tx =
         ty * lh_ui_renderer3d_get_width(self) / lh_ui_renderer3d_get_height(self);
-    const lh_math_fscalar_t x = lh_math_vec3_get_x(&view);
-    const lh_math_fscalar_t y = lh_math_vec3_get_y(&view);
-    const lh_math_fscalar_t z = lh_math_vec3_get_z(&view);
+    const lh_math_fscalar_t x = lh_math_vec3_get_x(lh_addr_of(view));
+    const lh_math_fscalar_t y = lh_math_vec3_get_y(lh_addr_of(view));
+    const lh_math_fscalar_t z = lh_math_vec3_get_z(lh_addr_of(view));
     switch (plane)
     {
     case lh_ui_renderer3d_plane_near:
@@ -104,7 +104,7 @@ lh_ui_renderer3d_clip_plane(const lh_ui_renderer3d_t *self, lh_ui_renderer3d_pla
         {
             lh_return_if(written >= capacity, -1);
             lh_math_vec3_lerp(previous, current, previous_distance / (previous_distance - distance),
-                              &out[written++]);
+                              lh_addr_of(out[written++]));
         }
         if (distance >= 0)
         {
@@ -123,19 +123,22 @@ lh_ui_renderer3d_project(const lh_ui_renderer3d_t *self, lh_math_vec3_t view, lh
     const lh_math_fscalar_t focal =
         lh_ui_renderer3d_get_height(self) /
         (2 * lh_ui_renderer3d_camera_get_tangent(lh_ui_renderer3d_get_camera(self)));
-    const lh_math_fscalar_t z = lh_math_vec3_get_z(&view);
+    const lh_math_fscalar_t z = lh_math_vec3_get_z(lh_addr_of(view));
     lh_math_vec3_init(
-        out, lh_ui_renderer3d_get_width(self) * .5f + lh_math_vec3_get_x(&view) * focal / z,
-        lh_ui_renderer3d_get_height(self) * .5f - lh_math_vec3_get_y(&view) * focal / z, 1 / z);
+        out,
+        lh_ui_renderer3d_get_width(self) * .5f + lh_math_vec3_get_x(lh_addr_of(view)) * focal / z,
+        lh_ui_renderer3d_get_height(self) * .5f - lh_math_vec3_get_y(lh_addr_of(view)) * focal / z,
+        1 / z);
 }
 
 lh_math_fscalar_t
 lh_ui_renderer3d_get_edge(lh_math_vec3_t a, lh_math_vec3_t b, lh_math_fscalar_t x,
                           lh_math_fscalar_t y)
 {
-    const lh_math_fscalar_t ax = lh_math_vec3_get_x(&a);
-    const lh_math_fscalar_t ay = lh_math_vec3_get_y(&a);
-    return (x - ax) * (lh_math_vec3_get_y(&b) - ay) - (y - ay) * (lh_math_vec3_get_x(&b) - ax);
+    const lh_math_fscalar_t ax = lh_math_vec3_get_x(lh_addr_of(a));
+    const lh_math_fscalar_t ay = lh_math_vec3_get_y(lh_addr_of(a));
+    return (x - ax) * (lh_math_vec3_get_y(lh_addr_of(b)) - ay) -
+           (y - ay) * (lh_math_vec3_get_x(lh_addr_of(b)) - ax);
 }
 
 lh_bool_t
@@ -154,15 +157,15 @@ lh_void
 lh_ui_renderer3d_raster(lh_ui_renderer3d_t *self, lh_math_vec3_t a, lh_math_vec3_t b,
                         lh_math_vec3_t c, lh_u32_t color_argb)
 {
-    const lh_math_fscalar_t area =
-        lh_ui_renderer3d_get_edge(a, b, lh_math_vec3_get_x(&c), lh_math_vec3_get_y(&c));
+    const lh_math_fscalar_t area = lh_ui_renderer3d_get_edge(
+        a, b, lh_math_vec3_get_x(lh_addr_of(c)), lh_math_vec3_get_y(lh_addr_of(c)));
     lh_return_if(!lh_math_float_is_finite(area) || lh_math_abs(area) < 1e-5f);
-    const lh_math_fscalar_t ax = lh_math_vec3_get_x(&a);
-    const lh_math_fscalar_t bx = lh_math_vec3_get_x(&b);
-    const lh_math_fscalar_t cx = lh_math_vec3_get_x(&c);
-    const lh_math_fscalar_t ay = lh_math_vec3_get_y(&a);
-    const lh_math_fscalar_t by = lh_math_vec3_get_y(&b);
-    const lh_math_fscalar_t cy = lh_math_vec3_get_y(&c);
+    const lh_math_fscalar_t ax = lh_math_vec3_get_x(lh_addr_of(a));
+    const lh_math_fscalar_t bx = lh_math_vec3_get_x(lh_addr_of(b));
+    const lh_math_fscalar_t cx = lh_math_vec3_get_x(lh_addr_of(c));
+    const lh_math_fscalar_t ay = lh_math_vec3_get_y(lh_addr_of(a));
+    const lh_math_fscalar_t by = lh_math_vec3_get_y(lh_addr_of(b));
+    const lh_math_fscalar_t cy = lh_math_vec3_get_y(lh_addr_of(c));
     const lh_s32_t x0 =
         lh_math_max(0, lh_math_float_floor_to_int(lh_math_min(ax, lh_math_min(bx, cx))));
     const lh_s32_t x1 =
@@ -185,9 +188,9 @@ lh_ui_renderer3d_raster(lh_ui_renderer3d_t *self, lh_math_vec3_t a, lh_math_vec3
             {
                 continue;
             }
-            const lh_math_fscalar_t inverse_depth = wa * lh_math_vec3_get_z(&a) +
-                                                    wb * lh_math_vec3_get_z(&b) +
-                                                    wc * lh_math_vec3_get_z(&c);
+            const lh_math_fscalar_t inverse_depth = wa * lh_math_vec3_get_z(lh_addr_of(a)) +
+                                                    wb * lh_math_vec3_get_z(lh_addr_of(b)) +
+                                                    wc * lh_math_vec3_get_z(lh_addr_of(c));
             if (inverse_depth <= 0)
             {
                 continue;
@@ -205,9 +208,12 @@ lh_ui_renderer3d_triangle(lh_ui_renderer3d_t *self, lh_math_vec3_t a, lh_math_ve
                  !lh_math_vec3_is_finite(a) || !lh_math_vec3_is_finite(b) ||
                  !lh_math_vec3_is_finite(c));
     lh_math_vec3_t polygon[2][lh_ui_renderer3d_clip_capacity];
-    lh_ui_renderer3d_camera_to_view(lh_ui_renderer3d_get_camera_mut(self), a, &polygon[0][0]);
-    lh_ui_renderer3d_camera_to_view(lh_ui_renderer3d_get_camera_mut(self), b, &polygon[0][1]);
-    lh_ui_renderer3d_camera_to_view(lh_ui_renderer3d_get_camera_mut(self), c, &polygon[0][2]);
+    lh_ui_renderer3d_camera_to_view(lh_ui_renderer3d_get_camera_mut(self), a,
+                                    lh_addr_of(polygon[0][0]));
+    lh_ui_renderer3d_camera_to_view(lh_ui_renderer3d_get_camera_mut(self), b,
+                                    lh_addr_of(polygon[0][1]));
+    lh_ui_renderer3d_camera_to_view(lh_ui_renderer3d_get_camera_mut(self), c,
+                                    lh_addr_of(polygon[0][2]));
     lh_s32_t count = 3;
     lh_s32_t from = 0;
     for (lh_s32_t plane = 0; plane < lh_ui_renderer3d_plane_count && count > 0; plane++)
@@ -220,7 +226,7 @@ lh_ui_renderer3d_triangle(lh_ui_renderer3d_t *self, lh_math_vec3_t a, lh_math_ve
     }
     for (lh_s32_t i = 0; i < count; i++)
     {
-        lh_ui_renderer3d_project(self, polygon[from][i], &polygon[from][i]);
+        lh_ui_renderer3d_project(self, polygon[from][i], lh_addr_of(polygon[from][i]));
     }
     for (lh_s32_t i = 1; i + 1 < count; i++)
     {
@@ -233,16 +239,18 @@ lh_void
 lh_ui_renderer3d_box(lh_ui_renderer3d_t *self, lh_math_vec3_t minimum, lh_math_vec3_t maximum,
                      lh_u32_t color_argb)
 {
-    lh_return_if(!lh_math_vec3_is_finite(minimum) || !lh_math_vec3_is_finite(maximum) ||
-                 lh_math_vec3_get_x(&minimum) > lh_math_vec3_get_x(&maximum) ||
-                 lh_math_vec3_get_y(&minimum) > lh_math_vec3_get_y(&maximum) ||
-                 lh_math_vec3_get_z(&minimum) > lh_math_vec3_get_z(&maximum));
+    lh_return_if(
+        !lh_math_vec3_is_finite(minimum) || !lh_math_vec3_is_finite(maximum) ||
+        lh_math_vec3_get_x(lh_addr_of(minimum)) > lh_math_vec3_get_x(lh_addr_of(maximum)) ||
+        lh_math_vec3_get_y(lh_addr_of(minimum)) > lh_math_vec3_get_y(lh_addr_of(maximum)) ||
+        lh_math_vec3_get_z(lh_addr_of(minimum)) > lh_math_vec3_get_z(lh_addr_of(maximum)));
     lh_math_vec3_t corner[8];
     for (lh_s32_t i = 0; i < 8; i++)
     {
-        lh_math_vec3_init(&corner[i], lh_math_vec3_get_x(i & 1 ? &maximum : &minimum),
-                          lh_math_vec3_get_y(i & 2 ? &maximum : &minimum),
-                          lh_math_vec3_get_z(i & 4 ? &maximum : &minimum));
+        lh_math_vec3_init(lh_addr_of(corner[i]),
+                          lh_math_vec3_get_x(i & 1 ? lh_addr_of(maximum) : lh_addr_of(minimum)),
+                          lh_math_vec3_get_y(i & 2 ? lh_addr_of(maximum) : lh_addr_of(minimum)),
+                          lh_math_vec3_get_z(i & 4 ? lh_addr_of(maximum) : lh_addr_of(minimum)));
     }
     static const lh_u8_t faces[12][3] = {{0, 1, 3}, {0, 3, 2}, {4, 6, 7}, {4, 7, 5},
                                          {0, 4, 5}, {0, 5, 1}, {2, 3, 7}, {2, 7, 6},

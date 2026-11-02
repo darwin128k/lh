@@ -19,7 +19,7 @@
  * Input has two levels. The standard one is a controller
  * (::lh_os_window_set_controller): the window feeds it every event, cancels it when
  * the focus goes and runs its gesture timers, so a view behind
- * `lh_ui_view_controller_handle` needs nothing else wired. The low level is the
+ * `lh_ui_view_controller_handle_event_is_handled` needs nothing else wired. The low level is the
  * sink (::lh_os_window_set_on_input), which sees every raw event first; with no
  * controller it is the only consumer.
  *
@@ -362,12 +362,12 @@ lh_os_window_set_on_input(lh_os_window_t *self, lh_os_input_sink_cb on_input, lh
  * controller is replaced is not seen by the new one.
  *
  * The OS layer knows nothing of the UI: a view becomes the handler through
- * `lh_ui_view_controller_handle` (`lh/ui/view/controller.h`).
+ * `lh_ui_view_controller_handle_event_is_handled` (`lh/ui/view/controller.h`).
  *
  * Example usage:
  * @code{.c}
- * lh_os_controller_init(lh_addr_of(controller), lh_ui_view_controller_handle, // the view
- *                       lh_addr_of(view), lh_null);                           // defaults
+ * lh_os_controller_init(lh_addr_of(controller), lh_ui_view_controller_handle_event_is_handled, //
+ * the view lh_addr_of(view), lh_null);                           // defaults
  * lh_os_controller_set_cancel_cb(lh_addr_of(controller), lh_ui_view_controller_cancel);
  * lh_os_window_set_controller(lh_addr_of(window), lh_addr_of(controller));
  * @endcode

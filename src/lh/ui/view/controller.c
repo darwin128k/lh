@@ -7,7 +7,7 @@
 #include <lh/ui/view/controller.h>
 
 lh_bool_t
-lh_ui_view_controller_handle(lh_self_ptr self, lh_os_input_event_cptr event)
+lh_ui_view_controller_handle_event_is_handled(lh_self_ptr self, lh_os_input_event_cptr event)
 {
     return lh_ui_view_input(lh_ptr_rcast(lh_ui_view_t, self), event);
 }

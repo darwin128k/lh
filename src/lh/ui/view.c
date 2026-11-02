@@ -3,6 +3,7 @@
  * @brief Implementation of lh/ui/view.h — entity tree on an lh_ui_canvas_t.
  */
 #include <lh/assert.h>
+#include <lh/attribute/unused.h>
 
 #include <lh/math.h>
 #include <lh/ui/view.h>
@@ -642,7 +643,7 @@ lh_ui_view_click_scrolling(lh_ui_view_t *self, lh_ui_container_t *box, lh_ui_poi
     lh_ui_point_t before;
     lh_ui_container_get_clamped_scroll(box, lh_addr_of(before));
     lh_ui_entity_t *clicked = lh_ui_view_click_plain(self, point);
-    (void)lh_ui_view_damage_scroll(self, box, before);
+    LH_ATTRIBUTE_UNUSED(lh_ui_view_damage_scroll(self, box, before));
     lh_ui_view_end_scroll(self);
     return clicked;
 }
@@ -889,7 +890,8 @@ lh_ui_view_get_next_focus(const lh_ui_view_t *self)
     lh_ui_view_focus_walk_set_current(lh_addr_of(walk), lh_ui_view_get_focus(self));
     lh_ui_view_focus_walk_set_passed(
         lh_addr_of(walk), lh_null_eq(lh_ui_view_get_focus(self)) ? lh_bool_true : lh_bool_false);
-    (void)lh_ui_entity_walk(lh_ui_view_get_root(self), lh_ui_view_visit_focus, lh_addr_of(walk));
+    LH_ATTRIBUTE_UNUSED(
+        lh_ui_entity_walk(lh_ui_view_get_root(self), lh_ui_view_visit_focus, lh_addr_of(walk)));
     return lh_ptr_rcast(lh_ui_entity_t, lh_null_ne(lh_ui_view_focus_walk_get_next(lh_addr_of(walk)))
                                             ? lh_ui_view_focus_walk_get_next(lh_addr_of(walk))
                                             : lh_ui_view_focus_walk_get_first(lh_addr_of(walk)));
@@ -1073,7 +1075,7 @@ lh_ui_view_input_pointer(lh_ui_view_t *self, lh_os_input_event_cptr event)
         return lh_ui_view_move_pointer(self, id, lh_ui_view_point_of(event));
     case lh_os_input_kind_pointer_up:
         lh_return_if(!lh_ui_view_is_primary_press(event), lh_bool_false);
-        (void)lh_ui_view_release_pointer(self, id, lh_ui_view_point_of(event));
+        LH_ATTRIBUTE_UNUSED(lh_ui_view_release_pointer(self, id, lh_ui_view_point_of(event)));
         return lh_bool_true;
     case lh_os_input_kind_pointer_cancel:
         lh_ui_view_cancel_pointer(self, id);
@@ -1094,12 +1096,13 @@ lh_ui_view_input(lh_ui_view_t *self, lh_os_input_event_cptr event)
     {
     case lh_os_input_kind_key_down:
     case lh_os_input_kind_key_up:
-        (void)lh_ui_view_key(self, lh_os_input_event_get_key(event),
-                             lh_type_cast(lh_bool_t, lh_os_input_event_get_kind(event) ==
-                                                         lh_os_input_kind_key_down));
+        LH_ATTRIBUTE_UNUSED(
+            lh_ui_view_key(self, lh_os_input_event_get_key(event),
+                           lh_type_cast(lh_bool_t, lh_os_input_event_get_kind(event) ==
+                                                       lh_os_input_kind_key_down)));
         return lh_bool_true;
     case lh_os_input_kind_text:
-        (void)lh_ui_view_text(self, lh_os_input_event_get_code(event));
+        LH_ATTRIBUTE_UNUSED(lh_ui_view_text(self, lh_os_input_event_get_code(event)));
         return lh_bool_true;
     case lh_os_input_kind_focus_out:
         lh_ui_view_cancel(self);

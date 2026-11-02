@@ -238,13 +238,13 @@ TEST(os_controller, handle_passes_the_recognizer_by)
     fixture f;
     const lh_os_input_event_t down = pointer_event(lh_os_input_kind_pointer_down, 10, 10, 0U);
 
-    EXPECT_TRUE(lh_os_controller_handle(&f.controller, &down));
+    EXPECT_TRUE(lh_os_controller_handle_event_is_handled(&f.controller, &down));
     EXPECT_EQ(f.log.events.size(), 1U);
     EXPECT_EQ(lh_os_input_recognizer_get_phase(lh_os_controller_get_recognizer(&f.controller), 0U),
               lh_os_input_recognizer_phase_idle);
 
     lh_os_controller_set_enabled(&f.controller, lh_bool_false);
-    EXPECT_FALSE(lh_os_controller_handle(&f.controller, &down));
+    EXPECT_FALSE(lh_os_controller_handle_event_is_handled(&f.controller, &down));
     EXPECT_EQ(f.log.events.size(), 1U);
 }
 
@@ -254,7 +254,7 @@ TEST(os_controller, handle_without_a_handler_drops_the_event)
     const lh_os_input_event_t down = pointer_event(lh_os_input_kind_pointer_down, 10, 10, 0U);
 
     lh_os_controller_set_handle_cb(&f.controller, nullptr);
-    EXPECT_FALSE(lh_os_controller_handle(&f.controller, &down));
+    EXPECT_FALSE(lh_os_controller_handle_event_is_handled(&f.controller, &down));
     EXPECT_FALSE(lh_os_controller_feed(&f.controller, &down));
     EXPECT_TRUE(f.log.events.empty());
 }

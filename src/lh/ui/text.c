@@ -4,6 +4,7 @@
  */
 
 #include <lh/math.h>
+#include <lh/attribute/unused.h>
 #include <lh/char/map.h>
 #include <lh/ui/canvas/mask.h>
 #include <lh/ui/text.h>
@@ -118,7 +119,7 @@ lh_ui_text_get_line_width(const lh_ui_font_t *font, const lh_char_t *line)
 {
     lh_ui_text_line_t laid;
 
-    (void)lh_ui_text_line_measure(lh_addr_of(laid), font, line, lh_ui_scalar(0));
+    LH_ATTRIBUTE_UNUSED(lh_ui_text_line_measure(lh_addr_of(laid), font, line, lh_ui_scalar(0)));
     return lh_ui_text_line_get_width(lh_addr_of(laid));
 }
 
@@ -156,7 +157,7 @@ lh_ui_text_get_line_ink_rect(const lh_ui_font_t *font, const lh_char_t *line, lh
     lh_assert_runtime_ref(out);
     lh_ui_text_line_t laid;
 
-    (void)lh_ui_text_line_measure(lh_addr_of(laid), font, line, lh_ui_scalar(0));
+    LH_ATTRIBUTE_UNUSED(lh_ui_text_line_measure(lh_addr_of(laid), font, line, lh_ui_scalar(0)));
     lh_ui_text_line_measure_ink(lh_addr_of(laid), font);
     lh_ui_text_line_get_ink_rect(lh_addr_of(laid), origin, out);
 }

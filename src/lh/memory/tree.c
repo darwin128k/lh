@@ -1,4 +1,5 @@
 #include <lh/memory/tree.h>
+#include <lh/attribute/unused.h>
 #include <lh/assert.h>
 #include <lh/memory/tree/header.h>
 #include <lh/math.h>
@@ -178,7 +179,7 @@ lh_memory_tree_allocator_alloc(lh_self_ptr self, lh_usize_t size)
 lh_void
 lh_memory_tree_allocator_dealloc(lh_self_ptr self, lh_ptr ptr)
 {
-    (void)self;
+    LH_ATTRIBUTE_UNUSED(self);
     lh_memory_tree_free(ptr);
 }
 
@@ -186,8 +187,8 @@ lh_ptr
 lh_memory_tree_allocator_realloc(lh_self_ptr self, lh_ptr ptr, lh_usize_t old_size,
                                  lh_usize_t new_size)
 {
-    (void)self;
-    (void)old_size;
+    LH_ATTRIBUTE_UNUSED(self);
+    LH_ATTRIBUTE_UNUSED(old_size);
     return lh_memory_tree_realloc(ptr, new_size);
 }
 

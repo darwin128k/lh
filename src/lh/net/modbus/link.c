@@ -4,6 +4,7 @@
  */
 
 #include <lh/net/modbus/link.h>
+#include <lh/attribute/unused.h>
 
 #include <lh/assert/runtime.h>
 #include <lh/memory/std.h>
@@ -619,7 +620,7 @@ lh_mb_link_send(lh_mb_link_t *self, lh_byte_cptr pdu, lh_u16_t pdu_length, lh_u1
         /* A failure, or half a request out. The second is worse than none: what is
            on the line now is a frame nobody sent, and the device will read whatever
            comes next as the rest of it. Either way the stream is lost. */
-        (void)lh_mb_link_lose(self);
+        LH_ATTRIBUTE_UNUSED(lh_mb_link_lose(self));
         return lh_bool_false;
     }
     lh_mb_link_set_address(self, address);

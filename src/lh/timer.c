@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/timer.h` and `lh/timer/group.h`.
  */
 #include <lh/assert.h>
+#include <lh/attribute/unused.h>
 
 #include <lh/math.h>
 #include <lh/timer.h>
@@ -370,7 +371,7 @@ lh_timer_cmp_priority(const lh_list_node_t *a, const lh_list_node_t *b, lh_ptr c
     const lh_timer_t *left;
     const lh_timer_t *right;
 
-    (void)context;
+    LH_ATTRIBUTE_UNUSED(context);
     left = lh_timer_get_by_node(a);
     right = lh_timer_get_by_node(b);
     if (lh_timer_priority_is_greater(left, right))

@@ -4,6 +4,7 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/attribute/unused.h>
 #include <lh/memory.h>
 #include <lh/os/input/contacts.h>
 #include <lh/os/input/contacts/initializer.h>
@@ -939,7 +940,7 @@ lh_os_system_window_get_paint_region(lh_ptr paint_dc, lh_u64_t *area, lh_u32_t *
             ok = lh_bool_true;
         }
     }
-    (void)DeleteObject(rgn);
+    LH_ATTRIBUTE_UNUSED(DeleteObject(rgn));
     return ok;
 }
 

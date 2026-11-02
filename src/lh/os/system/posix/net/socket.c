@@ -3,6 +3,7 @@
 #endif
 
 #include <lh/os/system/net/socket.h>
+#include <lh/attribute/unused.h>
 #include <lh/assert.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/math.h>
@@ -80,7 +81,7 @@ lh_os_system_net_socket_open(lh_os_system_net_socket_type_t type)
 lh_void
 lh_os_system_net_socket_close(lh_os_system_net_socket_handle_t handle)
 {
-    (void)close(lh_os_system_net_socket_native(handle));
+    LH_ATTRIBUTE_UNUSED(close(lh_os_system_net_socket_native(handle)));
 }
 
 lh_bool_t
@@ -582,7 +583,7 @@ lh_os_system_net_socket_send_file(lh_os_system_net_socket_handle_t handle,
     off_t next = position;
     const lh_usize_t amount = lh_math_min(size, lh_cast_static(lh_usize_t, LH_SSIZE_T_MAX));
     const ssize_t sent = sendfile(lh_os_system_net_socket_native(handle), lh_cast_static(int, file),
-                                  &next, lh_cast_static(size_t, amount));
+                                  lh_addr_of(next), lh_cast_static(size_t, amount));
     const lh_ssize_t result = lh_os_system_net_socket_result(lh_cast_static(lh_ssize_t, sent));
 #else
     lh_byte_t buffer[16384];

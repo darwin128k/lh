@@ -4,6 +4,7 @@
  */
 
 #include <lh/ui/web/player.h>
+#include <lh/attribute/unused.h>
 
 #include <lh/ui/web/host.h>
 #include <lh/ui/web/player/page.h>
@@ -394,7 +395,8 @@ lh_ui_web_player_init(lh_ui_web_player_t *self, lh_ui_view_t *view, lh_uint_t wi
     {
         lh_os_controller_t *controller = lh_ui_web_player_get_controller_mut(self);
 
-        lh_os_controller_init(controller, lh_ui_view_controller_handle, view, lh_null);
+        lh_os_controller_init(controller, lh_ui_view_controller_handle_event_is_handled, view,
+                              lh_null);
         lh_os_controller_set_cancel_cb(controller, lh_ui_view_controller_cancel);
         lh_ui_web_player_set_owns_controller(self, lh_bool_true);
         lh_ui_web_host_hooks_set_controller(routed, controller);
@@ -508,7 +510,7 @@ lh_ui_web_player_frame(lh_ptr ctx, lh_ui_canvas_web_glyphs_t *glyphs, const lh_s
     lh_ui_web_player_t *self = lh_ptr_rcast(lh_ui_web_player_t, ctx);
 
     lh_assert_runtime_ref(self);
-    (void)lh_ui_web_player_draw(self, glyphs, bytes, len);
+    LH_ATTRIBUTE_UNUSED(lh_ui_web_player_draw(self, glyphs, bytes, len));
 }
 
 lh_void
@@ -521,8 +523,8 @@ lh_ui_web_player_tick(lh_ptr ctx)
        press that came due is in the view by the time the app looks. */
     if (lh_ui_web_player_get_routed_controller(self) != lh_null)
     {
-        (void)lh_os_controller_update(lh_ui_web_player_get_routed_controller(self),
-                                      lh_os_tick_ms());
+        LH_ATTRIBUTE_UNUSED(
+            lh_os_controller_update(lh_ui_web_player_get_routed_controller(self), lh_os_tick_ms()));
     }
     if (lh_ui_web_host_hooks_get_tick_fn(lh_ui_web_player_get_routed(self)) != lh_null)
     {
@@ -548,19 +550,22 @@ lh_ui_web_player_event_line(lh_ui_web_player_t *self, const lh_str_ptr line, lh_
 
     if (lh_str_ptr_parse_text(line, len, "p %d %d", lh_addr_of(x), lh_addr_of(y)) != 0u)
     {
-        (void)lh_ui_web_player_pointer(self, lh_os_input_kind_pointer_down,
-                                       lh_cast_static(lh_sint_t, x), lh_cast_static(lh_sint_t, y));
+        LH_ATTRIBUTE_UNUSED(lh_ui_web_player_pointer(self, lh_os_input_kind_pointer_down,
+                                                     lh_cast_static(lh_sint_t, x),
+                                                     lh_cast_static(lh_sint_t, y)));
     }
     else if (lh_str_ptr_parse_text(line, len, "r %d %d", lh_addr_of(x), lh_addr_of(y)) != 0u)
     {
-        (void)lh_ui_web_player_pointer(self, lh_os_input_kind_pointer_up,
-                                       lh_cast_static(lh_sint_t, x), lh_cast_static(lh_sint_t, y));
+        LH_ATTRIBUTE_UNUSED(lh_ui_web_player_pointer(self, lh_os_input_kind_pointer_up,
+                                                     lh_cast_static(lh_sint_t, x),
+                                                     lh_cast_static(lh_sint_t, y)));
     }
     else if (lh_str_ptr_parse_text(line, len, "w %d %d %d %d", lh_addr_of(x), lh_addr_of(y),
                                    lh_addr_of(dx), lh_addr_of(dy)) != 0u)
     {
-        (void)lh_ui_web_player_wheel(self, lh_cast_static(lh_sint_t, x), lh_cast_static(lh_sint_t, y),
-                                     lh_cast_static(lh_sint_t, dx), lh_cast_static(lh_sint_t, dy));
+        LH_ATTRIBUTE_UNUSED(
+            lh_ui_web_player_wheel(self, lh_cast_static(lh_sint_t, x), lh_cast_static(lh_sint_t, y),
+                                   lh_cast_static(lh_sint_t, dx), lh_cast_static(lh_sint_t, dy)));
     }
     else if (lh_str_ptr_parse_text(line, len, "m %d %d", lh_addr_of(x), lh_addr_of(y)) != 0u)
     {
@@ -573,22 +578,23 @@ lh_ui_web_player_event_line(lh_ui_web_player_t *self, const lh_str_ptr line, lh_
     }
     else if (lh_str_ptr_parse_text(line, len, "k %d %d", lh_addr_of(k), lh_addr_of(pressed)) != 0u)
     {
-        (void)lh_ui_web_player_key(self, lh_cast_static(lh_sint_t, k),
-                                   (pressed != 0) ? lh_bool_true : lh_bool_false);
+        LH_ATTRIBUTE_UNUSED(lh_ui_web_player_key(self, lh_cast_static(lh_sint_t, k),
+                                                 (pressed != 0) ? lh_bool_true : lh_bool_false));
     }
     else if (lh_str_ptr_parse_text(line, len, "k %d", lh_addr_of(k)) != 0u)
     {
-        (void)lh_ui_web_player_key(self, lh_cast_static(lh_sint_t, k), lh_bool_true);
+        LH_ATTRIBUTE_UNUSED(lh_ui_web_player_key(self, lh_cast_static(lh_sint_t, k), lh_bool_true));
     }
     else if (lh_str_ptr_parse_text(line, len, "t %u", lh_addr_of(code)) != 0u)
     {
-        (void)lh_ui_web_player_text(self, lh_cast_static(lh_u32_t, code));
+        LH_ATTRIBUTE_UNUSED(lh_ui_web_player_text(self, lh_cast_static(lh_u32_t, code)));
     }
     else if (lh_str_ptr_parse_text(line, len, "z %d %d", lh_addr_of(x), lh_addr_of(y)) != 0u)
     {
         /* Always bump: an unchanged size still needs a frame for a new tab, or the
            player keeps the design 980×620 it got before `z` arrived. */
-        (void)lh_ui_web_player_resize(self, lh_cast_static(lh_sint_t, x), lh_cast_static(lh_sint_t, y));
+        LH_ATTRIBUTE_UNUSED(lh_ui_web_player_resize(self, lh_cast_static(lh_sint_t, x),
+                                                    lh_cast_static(lh_sint_t, y)));
     }
     else
     {
@@ -608,43 +614,45 @@ lh_ui_web_player_serve_input(lh_ptr ctx, const lh_str_ptr req, lh_usize_t len,
     lh_assert_runtime_ref(self);
     if (lh_ui_web_host_route(req, len, lh_str_lit("/ui/click")))
     {
-        (void)lh_ui_web_player_pointer(self, lh_os_input_kind_pointer_down, x, y);
-        (void)lh_ui_web_player_pointer(self, lh_os_input_kind_pointer_up, x, y);
+        LH_ATTRIBUTE_UNUSED(lh_ui_web_player_pointer(self, lh_os_input_kind_pointer_down, x, y));
+        LH_ATTRIBUTE_UNUSED(lh_ui_web_player_pointer(self, lh_os_input_kind_pointer_up, x, y));
     }
     else if (lh_ui_web_host_route(req, len, lh_str_lit("/ui/press")))
     {
-        (void)lh_ui_web_player_pointer(self, lh_os_input_kind_pointer_down, x, y);
+        LH_ATTRIBUTE_UNUSED(lh_ui_web_player_pointer(self, lh_os_input_kind_pointer_down, x, y));
     }
     else if (lh_ui_web_host_route(req, len, lh_str_lit("/ui/release")))
     {
-        (void)lh_ui_web_player_pointer(self, lh_os_input_kind_pointer_up, x, y);
+        LH_ATTRIBUTE_UNUSED(lh_ui_web_player_pointer(self, lh_os_input_kind_pointer_up, x, y));
     }
     else if (lh_ui_web_host_route(req, len, lh_str_lit("/ui/move")))
     {
-        (void)lh_ui_web_player_pointer(self, lh_os_input_kind_pointer_move, x, y);
+        LH_ATTRIBUTE_UNUSED(lh_ui_web_player_pointer(self, lh_os_input_kind_pointer_move, x, y));
     }
     else if (lh_ui_web_host_route(req, len, lh_str_lit("/ui/wheel")))
     {
-        (void)lh_ui_web_player_wheel(self, x, y, lh_ui_web_host_query_int(req, len, lh_str_lit("dx=")),
-                                     lh_ui_web_host_query_int(req, len, lh_str_lit("dy=")));
+        LH_ATTRIBUTE_UNUSED(lh_ui_web_player_wheel(
+            self, x, y, lh_ui_web_host_query_int(req, len, lh_str_lit("dx=")),
+            lh_ui_web_host_query_int(req, len, lh_str_lit("dy="))));
     }
     else if (lh_ui_web_host_route(req, len, lh_str_lit("/ui/key")))
     {
         /* `p=` is the direction; without it the request is a key going down, as before. */
-        (void)lh_ui_web_player_key(
+        LH_ATTRIBUTE_UNUSED(lh_ui_web_player_key(
             self, lh_ui_web_host_query_int(req, len, lh_str_lit("k=")),
-            lh_ui_web_host_query_flag(req, len, lh_str_lit("p="), lh_bool_true));
+            lh_ui_web_host_query_flag(req, len, lh_str_lit("p="), lh_bool_true)));
     }
     else if (lh_ui_web_host_route(req, len, lh_str_lit("/ui/text")))
     {
-        (void)lh_ui_web_player_text(
-            self, lh_cast_static(lh_u32_t, lh_ui_web_host_query_uint(req, len, lh_str_lit("c="))));
+        LH_ATTRIBUTE_UNUSED(lh_ui_web_player_text(
+            self, lh_cast_static(lh_u32_t, lh_ui_web_host_query_uint(req, len, lh_str_lit("c=")))));
     }
     else if (lh_ui_web_host_route(req, len, lh_str_lit("/ui/size")))
     {
         /* Always handled: an unchanged size is still a valid no-op, not a 404. */
-        (void)lh_ui_web_player_resize(self, lh_ui_web_host_query_int(req, len, lh_str_lit("w=")),
-                                      lh_ui_web_host_query_int(req, len, lh_str_lit("h=")));
+        LH_ATTRIBUTE_UNUSED(
+            lh_ui_web_player_resize(self, lh_ui_web_host_query_int(req, len, lh_str_lit("w=")),
+                                    lh_ui_web_host_query_int(req, len, lh_str_lit("h="))));
     }
     else
     {

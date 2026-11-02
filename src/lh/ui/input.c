@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/input.h`.
  */
 #include <lh/assert.h>
+#include <lh/attribute/unused.h>
 
 #include <lh/math.h>
 #include <lh/char/map.h>
@@ -559,9 +560,10 @@ lh_ui_input_on_draw_caret(const lh_ui_input_t *self, const lh_ui_entity_event_t 
         lh_ui_color_t white;
 
         lh_ui_color_init_argb(lh_addr_of(white), 0xFFFFFFFFU);
-        (void)lh_ui_text_draw_code(canvas, font, lh_ui_text_next_code(lh_addr_of(at)),
-                                   lh_ptr_deref(lh_ui_rect_get_origin(lh_addr_of(caret))),
-                                   lh_null_eq(under) ? lh_addr_of(white) : under);
+        LH_ATTRIBUTE_UNUSED(
+            lh_ui_text_draw_code(canvas, font, lh_ui_text_next_code(lh_addr_of(at)),
+                                 lh_ptr_deref(lh_ui_rect_get_origin(lh_addr_of(caret))),
+                                 lh_null_eq(under) ? lh_addr_of(white) : under));
     }
 }
 
@@ -584,10 +586,10 @@ lh_ui_input_event(const struct lh_ui_entity *self, const lh_ui_entity_event_t *e
         lh_ui_input_on_focusable(event);
         break;
     case lh_ui_entity_event_key:
-        (void)lh_ui_input_on_key(input, event);
+        LH_ATTRIBUTE_UNUSED(lh_ui_input_on_key(input, event));
         break;
     case lh_ui_entity_event_press:
-        (void)lh_ui_input_on_press(input, event);
+        LH_ATTRIBUTE_UNUSED(lh_ui_input_on_press(input, event));
         break;
     case lh_ui_entity_event_draw:
         lh_ui_input_on_draw_caret(input, event);

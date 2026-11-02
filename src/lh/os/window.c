@@ -4,6 +4,7 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/attribute/unused.h>
 #include <lh/os/app.h>
 #include <lh/os/window.h>
 #include <lh/util/return.h>
@@ -275,7 +276,7 @@ lh_os_window_update_controller(lh_os_window_t *self)
     lh_os_controller_t *controller = lh_os_window_get_controller(self);
 
     lh_return_if(lh_null_eq(controller));
-    (void)lh_os_controller_update(controller, lh_os_tick_ms());
+    LH_ATTRIBUTE_UNUSED(lh_os_controller_update(controller, lh_os_tick_ms()));
     lh_os_window_arm_controller(self, lh_bool_true);
 }
 
@@ -557,7 +558,7 @@ lh_os_window_feed_controller(lh_os_window_t *self, lh_os_input_event_cptr event)
     const lh_os_input_kind_t kind = lh_os_input_event_get_kind(event);
 
     lh_return_if(lh_null_eq(controller));
-    (void)lh_os_controller_feed(controller, event);
+    LH_ATTRIBUTE_UNUSED(lh_os_controller_feed(controller, event));
     if (kind == lh_os_input_kind_focus_out)
     {
         lh_os_controller_cancel(controller);

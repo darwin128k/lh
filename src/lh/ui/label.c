@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/label.h`.
  */
 #include <lh/assert.h>
+#include <lh/attribute/unused.h>
 
 #include <lh/hash/fnv.h>
 #include <lh/char/map.h>
@@ -22,7 +23,7 @@ lh_ui_label_on_children(const lh_ui_label_t *self, const lh_ui_entity_event_t *e
 {
     lh_ui_entity_transform_t *transform;
 
-    (void)self;
+    LH_ATTRIBUTE_UNUSED(self);
     lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_children);
     /* The transform is the one thing an event carries that a class fills in, and
        the getter takes it without the const every event handler is given. */
@@ -629,7 +630,7 @@ lh_ui_label_on_baseline(const lh_ui_label_t *self, const lh_ui_entity_event_t *e
 {
     lh_ui_scalar_t *answer;
 
-    (void)self;
+    LH_ATTRIBUTE_UNUSED(self);
     lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_baseline);
     /* The one thing that stands on a line in this picture is the text, and where
        that line is follows the alignment and the padding, not the box: a label

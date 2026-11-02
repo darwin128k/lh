@@ -1,4 +1,5 @@
 #include <lh/os/system/fs/file.h>
+#include <lh/attribute/unused.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/os/system/error/capture.h>
@@ -92,7 +93,7 @@ lh_os_system_fs_file_open(lh_str_cptr path, lh_fs_file_mode_t mode)
 lh_void
 lh_os_system_fs_file_close(lh_os_system_fs_file_handle_t handle)
 {
-    (void)CloseHandle(lh_os_system_fs_file_native(handle));
+    LH_ATTRIBUTE_UNUSED(CloseHandle(lh_os_system_fs_file_native(handle)));
 }
 
 lh_ssize_t
@@ -249,7 +250,7 @@ lh_os_system_fs_file_open_read_at(lh_os_system_fs_file_handle_t root, lh_str_cpt
                                      "expected a relative file path without dot components");
             if (owned)
             {
-                (void)CloseHandle(directory);
+                LH_ATTRIBUTE_UNUSED(CloseHandle(directory));
             }
             return LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID;
         }
@@ -258,7 +259,7 @@ lh_os_system_fs_file_open_read_at(lh_os_system_fs_file_handle_t root, lh_str_cpt
         next = lh_os_system_fs_file_open_step(ntdll, procedure.create, directory, name, more);
         if (owned)
         {
-            (void)CloseHandle(directory);
+            LH_ATTRIBUTE_UNUSED(CloseHandle(directory));
         }
         lh_return_if(lh_math_eq(next, LH_OS_SYSTEM_WIN_INVALID_HANDLE),
                      LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID);
@@ -268,7 +269,7 @@ lh_os_system_fs_file_open_read_at(lh_os_system_fs_file_handle_t root, lh_str_cpt
         {
             lh_os_set_last_error_lit(lh_os_error_code_invalid_argument,
                                      "a link or a reparse point is in the path");
-            (void)CloseHandle(next);
+            LH_ATTRIBUTE_UNUSED(CloseHandle(next));
             return LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID;
         }
         if (!more)
