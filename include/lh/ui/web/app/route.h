@@ -33,19 +33,20 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * The handler writes the answer on the socket — ::lh_ui_web_host_reply and
  * ::lh_ui_web_host_reply_text are there for it — and says whether it answered.
+ * Request, header and body views borrow transport storage and remain valid only
+ * for the duration of the callback. The body may contain arbitrary bytes.
  *
  * @param ctx    The route's context, as the application has it.
  * @param request Parsed request, borrowing the input buffer.
  * @param headers Parsed fields, in caller-owned storage. Their count is in @p request.
- * @param req    Bytes received so far, including the head and possibly part of the body.
- * @param len    Its length.
+ * @param body   Borrowed body bytes; the web host supplies the complete Content-Length body.
  * @param client The socket to answer on.
  *
  * @return ::lh_bool_true when the route answered.
  */
 typedef lh_bool_t (*lh_ui_web_route_fn)(lh_ptr ctx, const lh_http_request_t *request,
-                                        const lh_http_header_t *headers, const lh_str_ptr req,
-                                        lh_usize_t len, lh_os_net_socket_t *client);
+                                        const lh_http_header_t *headers, const lh_str_view_t *body,
+                                        lh_os_net_socket_t *client);
 
 LH_COMPILER_EXTERN_C_END
 

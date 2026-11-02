@@ -18,7 +18,7 @@
 
 lh_bool_t
 ui_web_test_handle(lh_ptr ctx, const lh_http_request_t *request, const lh_http_header_t *headers,
-                   const lh_str_ptr bytes, lh_usize_t len, lh_os_net_socket_t *client)
+                   const lh_str_view_t *body, lh_os_net_socket_t *client)
 {
     LH_ATTRIBUTE_UNUSED(client);
     bool *called = static_cast<bool *>(ctx);
@@ -30,7 +30,8 @@ ui_web_test_handle(lh_ptr ctx, const lh_http_request_t *request, const lh_http_h
     EXPECT_NE(
         lh_http_header_find(headers, lh_http_request_get_header_count(request), lh_addr_of(name)),
         nullptr);
-    EXPECT_EQ(std::string(bytes, len), "GET /state HTTP/1.1\r\nX-Test: yes\r\n\r\n");
+    EXPECT_EQ(std::string(lh_str_view_get_data(body), lh_str_view_get_size(body)),
+              std::string("a\0b", 3));
     return lh_bool_true;
 }
 
@@ -54,8 +55,9 @@ TEST(ui_web_app, handler_receives_parsed_request_and_headers)
     lh_ui_web_app_init(lh_addr_of(app), lh_addr_of(route), 1);
     bool called = false;
     lh_ui_web_app_set_ctx(lh_addr_of(app), lh_addr_of(called));
+    const lh_str_view_t body = lh_str_view_initializer("a\0b", 3);
     EXPECT_TRUE(lh_ui_web_app_handle_request_is_handled(lh_addr_of(app), lh_addr_of(request),
-                                                        headers, text, sizeof(text) - 1, nullptr));
+                                                        headers, lh_addr_of(body), nullptr));
     EXPECT_TRUE(called);
 }
 

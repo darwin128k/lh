@@ -7,6 +7,7 @@
 #define LH_HTTP_REQUEST_H
 
 #include <lh/str/view.h>
+#include <lh/http/method/kind.h>
 #include <lh/http/request/fields.h>
 
 /**
@@ -93,6 +94,20 @@ lh_http_request_set_header_count(lh_http_request_t *self, lh_usize_t header_coun
  */
 lh_str_view_t
 lh_http_request_get_path(const lh_http_request_t *self);
+
+/**
+ * @brief Test a parsed request's method against a known HTTP method.
+ *
+ * The comparison is case-sensitive. Both the request and its method storage
+ * remain caller-owned; unknown enum values never match.
+ *
+ * @param self Parsed request with a valid borrowed method view.
+ * @param method Known method to compare.
+ * @return ::lh_bool_true if the method matches, ::lh_bool_false otherwise.
+ * @fails ::lh_runtime_error_code_null_pointer @p self is null.
+ */
+lh_bool_t
+lh_http_request_is_method(const lh_http_request_t *self, lh_http_method_kind_t method);
 
 LH_COMPILER_EXTERN_C_END
 

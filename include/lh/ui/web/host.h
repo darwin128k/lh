@@ -41,20 +41,62 @@
 #define LH_UI_WEB_HOST_WS_DEAD_MS 45000u
 /** How long the loop sleeps when nothing at all happens: the tick's period. */
 #define LH_UI_WEB_HOST_TICK_MS 20u
-/** How long an accepted connection may take to send its request line. */
+/**
+ * Maximum combined request head and body size used by the host, in bytes.
+ *
+ * Define this before building LH to change the host's fixed stack allocation.
+ * The value must be positive and suitable for the host thread's stack.
+ * ::lh_ui_web_host_try_read_request instead uses its caller's buffer size.
+ */
+#ifndef LH_UI_WEB_HOST_REQUEST_CAPACITY
+#    define LH_UI_WEB_HOST_REQUEST_CAPACITY 1024u
+#endif
+
+/** How long an accepted connection may take to send its complete request. */
 #define LH_UI_WEB_HOST_REQUEST_MS 2000u
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/** Answer an HTTP request with status @p code, content type @p type and @p body. */
+/**
+ * @brief Send an HTTP response head and its permitted content.
+ *
+ * Builds the head from HTTP response and field objects. A HEAD request keeps
+ * the representation length but receives no body; informational, 204, 205
+ * and 304 responses receive neither body nor Content-Length. Successful
+ * CONNECT responses also omit both; this function does not establish a tunnel.
+ * Output and the request remain caller-owned. Invalid status, formatting or
+ * socket failure stops the send; the peer may have received a partial reply.
+ *
+ * @param client Connected socket to write to.
+ * @param request Parsed request with a valid method view.
+ * @param code HTTP status in the 100..599 range.
+ * @param type NUL-terminated, valid HTTP Content-Type field value.
+ * @param body Caller-owned content bytes. May be null when @p len is zero or
+ *             the request method or response status forbids sending content.
+ * @param len Number of representation bytes.
+ * @pre All non-optional pointers are valid, the field value contains no HTTP
+ *      control characters. When content is sent, @p body has @p len readable
+ *      bytes.
+ */
 lh_void
-lh_ui_web_host_reply(lh_os_net_socket_t *client, lh_uint_t code, const lh_str_ptr type,
-                     const lh_str_ptr body, lh_usize_t len);
+lh_ui_web_host_reply(lh_os_net_socket_t *client, const lh_http_request_t *request, lh_uint_t code,
+                     const lh_str_ptr type, const lh_str_ptr body, lh_usize_t len);
 
-/** ::lh_ui_web_host_reply with a plain-text body. */
+/**
+ * @brief Send a plain-text HTTP response using ::lh_ui_web_host_reply.
+ *
+ * @param client Connected socket to write to.
+ * @param request Parsed request with a valid method view.
+ * @param code HTTP status in the 100..599 range.
+ * @param text Caller-owned content; the same null rules as the body of
+ *             ::lh_ui_web_host_reply apply.
+ * @param len Number of representation bytes.
+ * @pre The pointer, status and content preconditions of
+ *      ::lh_ui_web_host_reply hold.
+ */
 lh_void
-lh_ui_web_host_reply_text(lh_os_net_socket_t *client, lh_uint_t code, const lh_str_ptr text,
-                          lh_usize_t len);
+lh_ui_web_host_reply_text(lh_os_net_socket_t *client, const lh_http_request_t *request,
+                          lh_uint_t code, const lh_str_ptr text, lh_usize_t len);
 
 /** The first whole @p needle in @p p, or lh_null. lh_memory_find compares a
  *   shortened needle at the tail, so a match running past the end is no match. */
@@ -215,45 +257,56 @@ lh_ui_web_host_ws_frame(lh_ui_web_host_client_t *cli, lh_ui_web_host_stream_t *s
                         lh_ui_web_app_t *app);
 
 /**
- * @brief Read a complete HTTP request head from a socket within a time limit.
+ * @brief Read a complete HTTP request from a socket within a time limit.
  *
  * Uses the HTTP parser on a growing caller-owned buffer. The socket and buffer
- * remain owned by the caller. Bytes received after the head are retained in
- * the buffer; this function does not guarantee that a request body is complete.
- * Parsed views borrow @p buf and remain valid while it is unchanged. The
- * caller supplies the request object and header storage. On failure, the
+ * remain owned by the caller. A single Content-Length determines the body size; Transfer-Encoding
+ * and repeated Content-Length fields are rejected. The entire request must fit. Bytes following the
+ * request may be read but are excluded from @p length. Parsed views borrow @p buf and remain valid
+ * while it is unchanged. The caller supplies the request object and header storage. On failure, the
  * request and header contents are unspecified; inspect them only on success.
  *
  * @param client Connected socket, configured for blocking reads.
  * @param buf Writable storage for the request.
  * @param capacity Number of bytes available in @p buf.
  * @param timeout_ms Total time allowed, in milliseconds.
- * @param length Receives the number of bytes read on success; unchanged on failure.
+ * @param length Receives the number of bytes in the complete request on success; unchanged on
+ * failure.
+ * @param body Receives a borrowed view of the complete body on success; unchanged on failure.
  * @param request Receives the parsed request on success.
  * @param headers Caller-owned storage for parsed fields.
  * @param header_capacity Number of entries in @p headers; zero permits null.
- * @return ::lh_bool_true for a complete valid head; ::lh_bool_false on timeout,
+ * @return ::lh_bool_true for a complete supported request; ::lh_bool_false on timeout,
  *         closed socket, I/O error, invalid head, or insufficient storage.
- * @pre @p client, @p buf, @p length and @p request are valid; @p buf has
+ * @pre @p client, @p buf, @p length, @p body and @p request are valid; @p buf has
  *      @p capacity writable bytes. A nonzero @p header_capacity requires
  *      @p headers to point to that many writable entries.
  */
 lh_bool_t
 lh_ui_web_host_try_read_request(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize_t capacity,
-                                lh_u32_t timeout_ms, lh_usize_t *length, lh_http_request_t *request,
-                                lh_http_header_t *headers, lh_usize_t header_capacity);
+                                lh_u32_t timeout_ms, lh_usize_t *length, lh_str_view_t *body,
+                                lh_http_request_t *request, lh_http_header_t *headers,
+                                lh_usize_t header_capacity);
 
 /**
- * @brief Read a request head, checking that the read succeeded.
+ * @brief Read a complete request, checking that the read succeeded.
  * @copydetails lh_ui_web_host_try_read_request
  * @fails ::lh_runtime_error_code_invalid_range The request could not be read.
  */
 lh_void
 lh_ui_web_host_read_request(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize_t capacity,
-                            lh_u32_t timeout_ms, lh_usize_t *length, lh_http_request_t *request,
-                            lh_http_header_t *headers, lh_usize_t header_capacity);
+                            lh_u32_t timeout_ms, lh_usize_t *length, lh_str_view_t *body,
+                            lh_http_request_t *request, lh_http_header_t *headers,
+                            lh_usize_t header_capacity);
 
-/** Serve one HTTP request; true when it became a WebSocket to keep. */
+/**
+ * @brief Serve one HTTP request; true when it became a WebSocket to keep.
+ *
+ * The request head and Content-Length body together must fit in
+ * ::LH_UI_WEB_HOST_REQUEST_CAPACITY bytes.
+ * Transfer-Encoding is unsupported. An incomplete or unsupported request is
+ * closed without invoking a route; 100-continue negotiation is not provided.
+ */
 lh_bool_t
 lh_ui_web_host_handle_request_is_upgraded(lh_ui_web_app_t *app, lh_os_net_socket_t *client);
 
