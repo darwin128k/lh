@@ -100,13 +100,13 @@ lh_add_test_core(lh_test_core
         ${LH_TEST_SRC_PATH}/lh/value.cpp
         ${LH_TEST_SRC_PATH}/lh/real.cpp
         ${LH_TEST_SRC_PATH}/lh/pair.cpp
-        ${LH_TEST_SRC_PATH}/lh/js/name.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/js/name.cpp
         ${LH_TEST_SRC_PATH}/lh/ini/entry.cpp
         ${LH_TEST_SRC_PATH}/lh/ini/parser.cpp
-        ${LH_TEST_SRC_PATH}/lh/json/node.cpp
-        ${LH_TEST_SRC_PATH}/lh/json/minify.cpp
-        ${LH_TEST_SRC_PATH}/lh/json/reader.cpp
-        ${LH_TEST_SRC_PATH}/lh/json/writer.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/json/node.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/json/minify.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/json/reader.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/json/writer.cpp
         ${LH_TEST_SRC_PATH}/lh/sql/db.cpp
         ${LH_TEST_SRC_PATH}/lh/sql/mysql/query.cpp
         ${LH_TEST_SRC_PATH}/lh/version.cpp
@@ -520,12 +520,12 @@ else ()
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_CSS2DECL_SOURCE})
 endif ()
 
-# The JavaScript engine of lh/js: the lexer needs no OS, but the option that
+# The JavaScript engine of lh/web/js: the lexer needs no OS, but the option that
 # carries it decides whether it is built here.
 if (LH_LIBRARY_OPTION_JS)
-    lh_add_test_core(lh_test_js ${LH_TEST_SRC_PATH}/lh/js/lexer.cpp)
+    lh_add_test_core(lh_test_js ${LH_TEST_SRC_PATH}/lh/web/js/lexer.cpp)
 else ()
-    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/js/lexer.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/web/js/lexer.cpp)
 endif ()
 
 # Every test file belongs to a core, or the build says so.

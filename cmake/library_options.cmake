@@ -327,7 +327,7 @@ option(LH_LIBRARY_OPTION_SQL_SQLITE
 # -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_JS
 #
-# The JavaScript engine of lh/js (include/lh/js.h): the lexer, the parser and
+# The JavaScript engine of lh/web/js (include/lh/web/js.h): the lexer, the parser and
 # the interpreter, written on lh's own bricks.
 #
 #   ON  — compile the engine.
@@ -339,7 +339,7 @@ option(LH_LIBRARY_OPTION_SQL_SQLITE
 # (MIT), which is the reference for the algorithms, not a dependency.
 # -----------------------------------------------------------------------------
 option(LH_LIBRARY_OPTION_JS
-        "Compile the lh/js JavaScript engine (lexer, parser, interpreter)."
+        "Compile the lh/web/js JavaScript engine (lexer, parser, interpreter)."
         OFF)
 
 # -----------------------------------------------------------------------------

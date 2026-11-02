@@ -44,7 +44,7 @@ XML with different tagging rules — void elements, attribute quoting — so one
 tree and one serializer serve both, with the dialect as a flag.
 
 The other side of the same idea: a C object serialized to and from text. JSON
-already is (`lh/json/`); XML is the other form, and it belongs to the same
+already is (`lh/web/json/`); XML is the other form, and it belongs to the same
 layer.
 
 **Cost.** About three to five days: the entity and node bricks, the owned

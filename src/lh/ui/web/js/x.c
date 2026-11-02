@@ -5,7 +5,7 @@
 
 #include <lh/ui/web/js/x.h>
 #include <lh/char/map.h>
-#include <lh/js/lexer/name.h>
+#include <lh/web/js/lexer/name.h>
 #include <lh/str/format/sllong.h>
 
 lh_void
@@ -176,7 +176,7 @@ lh_ui_web_js_emit_x(lh_ui_web_buf_t *self, const lh_ui_web_x_t *x)
             const lh_str_view_t prototype = lh_str_view_initializer_lit("__proto__");
             lh_str_view_t name;
             lh_str_view_init(lh_addr_of(name), key);
-            if (lh_js_lexer_name_is_ascii_identifier(lh_addr_of(name)) &&
+            if (lh_web_js_lexer_name_is_ascii_identifier(lh_addr_of(name)) &&
                 !lh_str_view_equals(lh_addr_of(name), lh_addr_of(prototype), lh_bool_false))
             {
                 lh_ui_web_buf_lit(self, key, lh_str_view_get_size(lh_addr_of(name)));

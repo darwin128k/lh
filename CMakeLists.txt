@@ -131,7 +131,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/real/lemire.c
         ${LH_LIB_SRC_PATH}/real/power5.c
         ${LH_LIB_SRC_PATH}/pair.c
-        ${LH_LIB_SRC_PATH}/js/lexer/name.c
+        ${LH_LIB_SRC_PATH}/web/js/lexer/name.c
         ${LH_LIB_SRC_PATH}/ini/entry.c
         ${LH_LIB_SRC_PATH}/ini/error.c
         ${LH_LIB_SRC_PATH}/ini/parser.c
@@ -149,11 +149,11 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/sql/driver.c
         ${LH_LIB_SRC_PATH}/sql/mysql/query.c
         ${LH_LIB_SRC_PATH}/sql/stmt.c
-        ${LH_LIB_SRC_PATH}/json/error.c
-        ${LH_LIB_SRC_PATH}/json/node.c
-        ${LH_LIB_SRC_PATH}/json/minify.c
-        ${LH_LIB_SRC_PATH}/json/reader.c
-        ${LH_LIB_SRC_PATH}/json/writer.c
+        ${LH_LIB_SRC_PATH}/web/json/error.c
+        ${LH_LIB_SRC_PATH}/web/json/node.c
+        ${LH_LIB_SRC_PATH}/web/json/minify.c
+        ${LH_LIB_SRC_PATH}/web/json/reader.c
+        ${LH_LIB_SRC_PATH}/web/json/writer.c
         ${LH_LIB_SRC_PATH}/list/node.c
 
         ${LH_LIB_SRC_PATH}/math/point.c
@@ -405,13 +405,13 @@ if (LH_LIBRARY_OPTION_SQL_SQLITE)
     )
 endif ()
 
-# The JavaScript engine of lh/js (LH_LIBRARY_OPTION_JS). Our own code, on our
+# The JavaScript engine of lh/web/js (LH_LIBRARY_OPTION_JS). Our own code, on our
 # own bricks; the QuickJS implementation is the reference for the algorithms,
 # not a dependency.
 if (LH_LIBRARY_OPTION_JS)
     list(APPEND LH_LIB_SOURCES
-            ${LH_LIB_SRC_PATH}/js/lexer.c
-            ${LH_LIB_SRC_PATH}/js/lexer/token.c
+            ${LH_LIB_SRC_PATH}/web/js/lexer.c
+            ${LH_LIB_SRC_PATH}/web/js/lexer/token.c
     )
 endif ()
 
