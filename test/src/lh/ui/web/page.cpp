@@ -98,3 +98,27 @@ TEST(web_page, tint_emits_canvas_operations_from_expressions)
     EXPECT_NE(tint.find("(g).globalCompositeOperation='destination-in';"), std::string::npos);
     EXPECT_NE(tint.find("((g).drawImage)(a,0,0);"), std::string::npos);
 }
+
+TEST(web_page, decode_cover_preserves_canvas_setup_and_pixel_upload)
+{
+    const std::string page = page_text();
+    const auto start = page.find("function decodeCover(w,h,cv){");
+    ASSERT_NE(start, std::string::npos);
+    const auto end = page.find("function ingest(", start);
+    ASSERT_NE(end, std::string::npos);
+    const std::string function = page.substr(start, end - start);
+    EXPECT_NE(function.find("var im=((document).createElement)('canvas');"), std::string::npos);
+    EXPECT_NE(function.find("(im).width=w;"), std::string::npos);
+    EXPECT_NE(function.find("(im).height=h;"), std::string::npos);
+    EXPECT_NE(function.find("if(((w)<=(0))||((h)<=(0))){"), std::string::npos);
+    EXPECT_NE(function.find("var g=((im).getContext)('2d');"), std::string::npos);
+    EXPECT_NE(function.find("var id=((g).createImageData)(w,h);"), std::string::npos);
+    EXPECT_NE(function.find("var p=(id).data;"), std::string::npos);
+    EXPECT_NE(function.find("var n=(w)*(h);"), std::string::npos);
+    const auto loop = function.find("for(i=0,j=0;i<n;i++,j+=4)");
+    const auto upload = function.find("((g).putImageData)(id,0,0);");
+    ASSERT_NE(loop, std::string::npos);
+    ASSERT_NE(upload, std::string::npos);
+    EXPECT_LT(loop, upload);
+    EXPECT_NE(function.find("return im;", upload), std::string::npos);
+}
