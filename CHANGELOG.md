@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Web player input routes use the shared route matcher and reject longer paths
+  that only start with a registered input path.
+
 - The JavaScript lexer recognizes logical negation and compound bitwise, shift,
   logical and nullish assignments as single tokens. Optional chaining is
   distinguished from a conditional followed by a decimal fraction.

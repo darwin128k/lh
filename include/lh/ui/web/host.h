@@ -61,7 +61,19 @@ const lh_str_ptr
 lh_ui_web_host_find(const lh_str_ptr p, lh_usize_t len, const lh_str_ptr needle,
                     lh_usize_t needle_len);
 
-/** `GET <path>` or `POST <path>` at the start of the request. */
+/**
+ * @brief Match a GET or POST request against a complete path.
+ *
+ * Uses the application route matcher; a query may follow the path, but a
+ * longer path with the same prefix does not match. The request and path are
+ * borrowed byte spans and remain owned by the caller.
+ *
+ * @param req Request bytes.
+ * @param len Number of request bytes.
+ * @param path Path to match.
+ * @param path_len Number of path bytes.
+ * @return ::lh_bool_true on a match; ::lh_bool_false otherwise.
+ */
 lh_bool_t
 lh_ui_web_host_route(const lh_str_ptr req, lh_usize_t len, const lh_str_ptr path,
                      lh_usize_t path_len);
