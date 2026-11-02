@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The JavaScript lexer recognizes logical negation and compound bitwise, shift,
+  logical and nullish assignments as single tokens. Optional chaining is
+  distinguished from a conditional followed by a decimal fraction.
+
 - String view line and delimiter splitting retain the source address for
   empty results, matching the pointer forms. Empty lines no longer become
   null-backed views that violate non-null contracts in downstream copies.

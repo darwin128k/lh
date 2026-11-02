@@ -65,6 +65,12 @@ static const lh_str_view_t LH_JS_KEYWORDS[] = {
 /** The operators and the brackets of JavaScript, the longest first. */
 static const lh_str_view_t LH_JS_PUNCTUATION[] = {
     /* clang-format off */
+    lh_str_view_initializer_lit(">>>="),
+    lh_str_view_initializer_lit("<<="),
+    lh_str_view_initializer_lit(">>="),
+    lh_str_view_initializer_lit("&&="),
+    lh_str_view_initializer_lit("||="),
+    lh_str_view_initializer_lit("?" "?="),
     lh_str_view_initializer_lit("==="),
     lh_str_view_initializer_lit("!=="),
     lh_str_view_initializer_lit("**="),
@@ -73,6 +79,9 @@ static const lh_str_view_t LH_JS_PUNCTUATION[] = {
     lh_str_view_initializer_lit("**"),
     lh_str_view_initializer_lit("++"),
     lh_str_view_initializer_lit("--"),
+    lh_str_view_initializer_lit("&="),
+    lh_str_view_initializer_lit("|="),
+    lh_str_view_initializer_lit("^="),
     lh_str_view_initializer_lit("+="),
     lh_str_view_initializer_lit("-="),
     lh_str_view_initializer_lit("*="),
@@ -111,6 +120,7 @@ static const lh_str_view_t LH_JS_PUNCTUATION[] = {
     lh_str_view_initializer_lit("|"),
     lh_str_view_initializer_lit("^"),
     lh_str_view_initializer_lit("~"),
+    lh_str_view_initializer_lit("!"),
     /* clang-format on */
 };
 
@@ -415,10 +425,15 @@ lh_js_lexer_is_keyword(const lh_str_view_t *text)
 lh_usize_t
 lh_js_lexer_find_punctuation(const lh_str_view_t *text)
 {
-    lh_usize_t i;
-
     lh_assert_runtime_ref(text);
-    for (i = 0U; i < lh_array_ptr_get_size(LH_JS_PUNCTUATION); ++i)
+    const lh_str_view_t optional_chain = lh_str_view_initializer_lit("?.");
+    if (lh_str_view_starts_with(text, &optional_chain, lh_bool_false) &&
+        (lh_math_le(lh_str_view_get_size(text), 2U) ||
+         !lh_char_is_digit(lh_str_view_get_char_from_begin(text, 2U))))
+    {
+        return lh_str_view_get_size(&optional_chain);
+    }
+    for (lh_usize_t i = 0U; i < lh_array_ptr_get_size(LH_JS_PUNCTUATION); i = lh_math_add_one(i))
     {
         if (lh_str_view_starts_with(text, &LH_JS_PUNCTUATION[i], lh_bool_false))
         {
