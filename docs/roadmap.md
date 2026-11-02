@@ -9,23 +9,25 @@ The order below is the owner's: the web host first, the controller after it.
 
 ## 1. The web host: nothing baked in
 
-**Today.** `lh_ui_web_host_t` serves a hardcoded Canvas2D player at `/` and
-answers a fixed set of routes: `/ui/press`, `/ui/release`, `/ui/move`,
-`/ui/wheel`, `/ui/key`, `/ui/text`, `/ui/size`, `/ui.json`, `/ws`. The player
-picks its own scale mode (`?scale=fit`, `layout` otherwise) and its script is
-assembled from C strings (`lh/ui/web/js.h`, `src/lh/ui/web/page.c`, about 800
-lines). The host, the application and the protocol are one thing.
+**Today.** The transport accepts an application supplied by its caller. The
+Canvas2D player is a separate application: it renders the same LH view as a
+desktop backend and sends drawing commands over WebSocket. It owns its page and
+input endpoints. Applications attach their own route tables; the host does
+not install a REST API. The player page still contains JavaScript fragments,
+and parts of the host parse HTTP and write response headers as raw text.
 
-**Target.** The host is the transport: HTTP, the websocket, the files. The
-application belongs to the caller — its page, its routes, its scaling. A REST
-surface is a brick of its own that the caller attaches when it wants one; a
-desktop program has no reason to carry it, and the transport does not need it.
-Nothing is removed: the player becomes one application built on the transport
-instead of the transport's built-in default. No hidden, hardcoded behaviour.
+**Target.** Build application UI once from LH entities and use it with desktop
+and browser backends. Construct HTML and JavaScript from public objects and
+serialize them at the browser boundary. The host composes the shared HTTP
+parser, request and response objects and serializers; known methods and status
+codes have named values while extension methods and headers remain possible.
+REST is a separate facility attached by the application when wanted.
 
-**Cost.** About two days: the transport and the application split, the player
-moves out of the host into an application of its own, and a route table
-(`lh/web/route.h`) lets an application attach REST handlers.
+**Work.** First make the host use the HTTP bricks, including complete request
+handling and structured responses. Extend the existing HTML and JavaScript
+nodes as needed and migrate the player from source fragments. Exercise the same
+view and input on desktop and web; test each public brick and their composition.
+A JavaScript interpreter or bytecode VM is a separate future feature.
 
 ## 2. XML and HTML as nodes
 
@@ -58,9 +60,16 @@ the parser, the tree, the interpreter. Nothing foreign is vendored into the
 tree — the same rule the rest of lh follows (SQLite and Monocypher are the
 exception because they are a database and a cryptography library, not a
 language we are building). The QuickJS implementation (MIT) is the
-**reference for the algorithms** — the way to read a number, the way to scan a
-string literal, the way the tree is shaped — not a dependency and not a
-library we link.
+**reference for the algorithms** — the way to read a number, scan a string
+literal, parse expressions, and compile a function — not a dependency and not
+a library we link.
+
+**Architecture to reconcile.** QuickJS parses source directly into bytecode;
+it does not construct the general syntax tree proposed in the slices below.
+The tree is therefore an LH design choice, not a QuickJS structure already
+mapped to LH. A faithful port must account for QuickJS's bytecode emitter,
+function and scope state, and virtual machine; the tree-based slices below
+remain a proposal until those pieces are mapped to LH bricks.
 
 **Why the port is a port.** The engine is written after QuickJS's, so the
 hard parts (the number scanner, the string escapes, the operator precedence,

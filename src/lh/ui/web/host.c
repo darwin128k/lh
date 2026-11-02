@@ -61,15 +61,19 @@ lh_ui_web_host_find(lh_str_cptr p, lh_usize_t len, lh_str_cptr needle, lh_usize_
 lh_bool_t
 lh_ui_web_host_route(lh_str_cptr req, lh_usize_t len, lh_str_cptr path, lh_usize_t path_len)
 {
-    if (lh_str_ptr_starts_with_by_size(req, len, "GET ", 4u, lh_bool_false))
+    lh_ui_web_route_t route;
+
+    lh_ui_web_route_set_path(&route, path);
+    lh_ui_web_route_set_path_len(&route, path_len);
+    lh_ui_web_route_set_method(&route, "GET");
+    lh_ui_web_route_set_method_len(&route, lh_str_lit_size("GET"));
+    if (lh_ui_web_route_match(&route, req, len))
     {
-        return lh_str_ptr_starts_with_by_size(req + 4u, len - 4u, path, path_len, lh_bool_false);
+        return lh_bool_true;
     }
-    if (lh_str_ptr_starts_with_by_size(req, len, "POST ", 5u, lh_bool_false))
-    {
-        return lh_str_ptr_starts_with_by_size(req + 5u, len - 5u, path, path_len, lh_bool_false);
-    }
-    return lh_bool_false;
+    lh_ui_web_route_set_method(&route, "POST");
+    lh_ui_web_route_set_method_len(&route, lh_str_lit_size("POST"));
+    return lh_ui_web_route_match(&route, req, len);
 }
 
 lh_usize_t

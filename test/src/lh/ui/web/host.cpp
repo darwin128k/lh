@@ -37,6 +37,19 @@
 #    include <string>
 #    include <thread>
 
+TEST(ui_web_host_route, matches_only_complete_paths_for_get_and_post)
+{
+    const char get[] = "GET /ui/key?x=1 HTTP/1.1";
+    const char post[] = "POST /ui/key HTTP/1.1";
+    const char longer[] = "GET /ui/keyboard HTTP/1.1";
+    const char other[] = "PUT /ui/key HTTP/1.1";
+
+    EXPECT_TRUE(lh_ui_web_host_route(get, sizeof(get) - 1, "/ui/key", 7));
+    EXPECT_TRUE(lh_ui_web_host_route(post, sizeof(post) - 1, "/ui/key", 7));
+    EXPECT_FALSE(lh_ui_web_host_route(longer, sizeof(longer) - 1, "/ui/key", 7));
+    EXPECT_FALSE(lh_ui_web_host_route(other, sizeof(other) - 1, "/ui/key", 7));
+}
+
 namespace
 {
 
