@@ -24,6 +24,7 @@
 #    include <lh/os/input.h>
 #    include <lh/os/net.h>
 #    include <lh/os/net/socket.h>
+#    include <lh/os/system/net/socket.h>
 #    include <lh/os/tick.h>
 #    include <lh/ui/container.h>
 #    include <lh/ui/scrollbar.h>
@@ -44,10 +45,15 @@ TEST(ui_web_host_try_read_request, leaves_length_unchanged_when_storage_is_empty
     lh_os_net_socket_init(&socket);
     char buffer;
     lh_usize_t length = 17;
+    lh_http_request_t request;
 
-    EXPECT_FALSE(lh_ui_web_host_try_read_request(&socket, &buffer, 0, 10, &length));
+    EXPECT_FALSE(lh_ui_web_host_try_read_request(lh_addr_of(socket), lh_addr_of(buffer), 0, 10,
+                                                 lh_addr_of(length), lh_addr_of(request), nullptr,
+                                                 0));
     EXPECT_EQ(length, 17u);
-    LH_EXPECT_CHECK_DEATH(lh_ui_web_host_read_request(&socket, &buffer, 0, 10, &length));
+    LH_EXPECT_CHECK_DEATH(lh_ui_web_host_read_request(lh_addr_of(socket), lh_addr_of(buffer), 0, 10,
+                                                      lh_addr_of(length), lh_addr_of(request),
+                                                      nullptr, 0));
 }
 
 TEST(ui_web_host_handle_request_is_upgraded, rejects_a_socket_that_cannot_be_configured)
@@ -58,6 +64,45 @@ TEST(ui_web_host_handle_request_is_upgraded, rejects_a_socket_that_cannot_be_con
     lh_ui_web_app_init(&app, nullptr, 0);
 
     EXPECT_FALSE(lh_ui_web_host_handle_request_is_upgraded(&app, &socket));
+}
+
+TEST(ui_web_host_try_read_request, returns_parsed_request_and_borrowed_headers)
+{
+    ASSERT_TRUE(lh_os_net_init());
+    lh_os_system_net_socket_handle_t handles[2];
+    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+    lh_os_net_socket_t reader;
+    lh_os_net_socket_t writer;
+    lh_os_net_socket_init(lh_addr_of(reader));
+    lh_os_net_socket_init(lh_addr_of(writer));
+    lh_os_net_socket_set_handle(lh_addr_of(reader), handles[0]);
+    lh_os_net_socket_set_handle(lh_addr_of(writer), handles[1]);
+    ASSERT_TRUE(lh_os_net_socket_set_blocking(lh_addr_of(reader), lh_bool_true));
+    const char text[] = "GET /ui HTTP/1.1\r\nX-Example: value\r\n\r\n";
+    ASSERT_TRUE(lh_os_net_socket_send_all(lh_addr_of(writer), text, sizeof(text) - 1));
+    char buffer[128];
+    lh_usize_t length = 0;
+    lh_http_request_t request;
+    lh_http_header_t headers[2];
+    ASSERT_TRUE(lh_ui_web_host_try_read_request(lh_addr_of(reader), buffer, sizeof(buffer), 1000,
+                                                lh_addr_of(length), lh_addr_of(request), headers,
+                                                2));
+    const lh_str_view_t get = lh_str_view_initializer_lit("GET");
+    const lh_str_view_t target = lh_str_view_initializer_lit("/ui");
+    const lh_str_view_t name = lh_str_view_initializer_lit("x-example");
+    const lh_str_view_t value = lh_str_view_initializer_lit("value");
+    EXPECT_EQ(length, sizeof(text) - 1);
+    EXPECT_TRUE(lh_str_view_equals(lh_http_request_get_method(lh_addr_of(request)), lh_addr_of(get),
+                                   lh_bool_false));
+    EXPECT_TRUE(lh_str_view_equals(lh_http_request_get_target(lh_addr_of(request)),
+                                   lh_addr_of(target), lh_bool_false));
+    ASSERT_EQ(lh_http_request_get_header_count(lh_addr_of(request)), 1u);
+    const lh_http_header_t *header = lh_http_header_find(headers, 1, lh_addr_of(name));
+    ASSERT_NE(header, nullptr);
+    EXPECT_TRUE(
+        lh_str_view_equals(lh_http_header_get_value(header), lh_addr_of(value), lh_bool_false));
+    lh_os_net_socket_close(lh_addr_of(reader));
+    lh_os_net_socket_close(lh_addr_of(writer));
 }
 
 TEST(ui_web_host_route, matches_only_complete_paths_for_get_and_post)

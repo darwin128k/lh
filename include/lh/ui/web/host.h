@@ -18,6 +18,7 @@
 #define LH_UI_WEB_HOST_H
 
 #include <lh/config.h>
+#include <lh/http/parser.h>
 #include <lh/ui/web/app.h>
 #include <lh/ui/web/host/hooks.h>
 
@@ -101,9 +102,21 @@ lh_bool_t
 lh_ui_web_host_query_flag(const lh_str_ptr req, lh_usize_t len, const lh_str_ptr key,
                           lh_usize_t key_len, lh_bool_t absent);
 
-/** Answer a WebSocket handshake (RFC 6455) and make the socket non-blocking. */
+/**
+ * @brief Answer a WebSocket handshake using already parsed HTTP headers.
+ *
+ * The socket remains caller-owned; header views borrow the request buffer.
+ * On success the response was sent and the socket is non-blocking.
+ *
+ * @param client Connected socket.
+ * @param headers Parsed header array, borrowed for this call.
+ * @param count Number of headers in the array.
+ * @return ::lh_bool_true on upgrade, ::lh_bool_false if the key is missing,
+ *         too long, hashing or sending fails, or the socket mode cannot change.
+ */
 lh_bool_t
-lh_ui_web_host_ws_upgrade(lh_os_net_socket_t *client, const lh_str_ptr req, lh_usize_t len);
+lh_ui_web_host_ws_upgrade(lh_os_net_socket_t *client, const lh_http_header_t *headers,
+                          lh_usize_t count);
 
 /** Close a client and free everything it holds. */
 lh_void
@@ -163,20 +176,28 @@ lh_ui_web_host_ws_frame(lh_ui_web_host_client_t *cli, lh_ui_web_host_stream_t *s
  * Uses the HTTP parser on a growing caller-owned buffer. The socket and buffer
  * remain owned by the caller. Bytes received after the head are retained in
  * the buffer; this function does not guarantee that a request body is complete.
- * The parser accepts at most 32 header fields.
+ * Parsed views borrow @p buf and remain valid while it is unchanged. The
+ * caller supplies the request object and header storage. On failure, the
+ * request and header contents are unspecified; inspect them only on success.
  *
  * @param client Connected socket, configured for blocking reads.
  * @param buf Writable storage for the request.
  * @param capacity Number of bytes available in @p buf.
  * @param timeout_ms Total time allowed, in milliseconds.
  * @param length Receives the number of bytes read on success; unchanged on failure.
+ * @param request Receives the parsed request on success.
+ * @param headers Caller-owned storage for parsed fields.
+ * @param header_capacity Number of entries in @p headers; zero permits null.
  * @return ::lh_bool_true for a complete valid head; ::lh_bool_false on timeout,
  *         closed socket, I/O error, invalid head, or insufficient storage.
- * @pre All pointers are valid and @p buf has @p capacity writable bytes.
+ * @pre @p client, @p buf, @p length and @p request are valid; @p buf has
+ *      @p capacity writable bytes. A nonzero @p header_capacity requires
+ *      @p headers to point to that many writable entries.
  */
 lh_bool_t
 lh_ui_web_host_try_read_request(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize_t capacity,
-                                lh_u32_t timeout_ms, lh_usize_t *length);
+                                lh_u32_t timeout_ms, lh_usize_t *length, lh_http_request_t *request,
+                                lh_http_header_t *headers, lh_usize_t header_capacity);
 
 /**
  * @brief Read a request head, checking that the read succeeded.
@@ -185,7 +206,8 @@ lh_ui_web_host_try_read_request(lh_os_net_socket_t *client, lh_str_ptr buf, lh_u
  */
 lh_void
 lh_ui_web_host_read_request(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize_t capacity,
-                            lh_u32_t timeout_ms, lh_usize_t *length);
+                            lh_u32_t timeout_ms, lh_usize_t *length, lh_http_request_t *request,
+                            lh_http_header_t *headers, lh_usize_t header_capacity);
 
 /** Serve one HTTP request; true when it became a WebSocket to keep. */
 lh_bool_t

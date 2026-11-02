@@ -56,6 +56,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Web host request reads return parsed request and header objects in
+  caller-owned storage; WebSocket upgrade consumes these headers directly.
+
 - Renamed the boolean request and input handlers to state their result:
   `lh_ui_web_host_handle_request_is_upgraded`,
   `lh_ui_web_app_handle_request_is_handled`,
