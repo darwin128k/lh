@@ -279,19 +279,64 @@ lh_ui_web_player_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len
 
     /* -- decodeCover ----------------------------------------------------------- */
     lh_ui_web_js_fun_open(j, "decodeCover", "w,h,cv");
-    lh_ui_web_js_var(j, "im", "document.createElement('canvas')");
-    lh_ui_web_js_assign(j, "im.width", "w");
-    lh_ui_web_js_assign(j, "im.height", "h");
-    lh_ui_web_js_if(j, "w<=0||h<=0");
-    lh_ui_web_js_ret(j, "im");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_vars(j, "g=im.getContext('2d'),id=g.createImageData(w,h),p=id.data,n=w*h,i,j,k");
-    /* Pixel loop stays dense — expanding it gains nothing readable. */
-    lh_ui_web_buf_raw(
-        j, "for(i=0,j=0;i<n;i++,j+=4){k=i*2;p[j]=p[j+1]=p[j+2]=255;"
-           "p[j+3]=k+1<cv.length?(hexv(cv.charCodeAt(k))<<4)|hexv(cv.charCodeAt(k+1)):0;}\n");
-    lh_ui_web_js_stmt(j, "g.putImageData(id,0,0)");
-    lh_ui_web_js_ret(j, "im");
+    {
+        lh_ui_web_x_t document, create_element, canvas, create_canvas, im, w, h, zero;
+        lh_ui_web_x_t width, height, w_empty, h_empty, empty, get_context, context_2d;
+        lh_ui_web_x_t context, g, create_image, image_data, image, pixels, n;
+        lh_ui_web_x_t put_image, put;
+        const lh_ui_web_x_t *one_arg[1];
+        const lh_ui_web_x_t *size_args[2];
+        const lh_ui_web_x_t *put_args[3];
+
+        lh_ui_web_x_id("document", lh_addr_of(document));
+        lh_ui_web_x_dot(lh_addr_of(document), "createElement", lh_addr_of(create_element));
+        lh_ui_web_x_str("canvas", lh_addr_of(canvas));
+        one_arg[0] = lh_addr_of(canvas);
+        lh_ui_web_x_call(lh_addr_of(create_element), one_arg, 1u, lh_addr_of(create_canvas));
+        lh_ui_web_js_var_x(j, "im", lh_addr_of(create_canvas));
+        lh_ui_web_x_id("im", lh_addr_of(im));
+        lh_ui_web_x_id("w", lh_addr_of(w));
+        lh_ui_web_x_id("h", lh_addr_of(h));
+        lh_ui_web_x_num(0, lh_addr_of(zero));
+        lh_ui_web_x_dot(lh_addr_of(im), "width", lh_addr_of(width));
+        lh_ui_web_x_dot(lh_addr_of(im), "height", lh_addr_of(height));
+        lh_ui_web_js_assign_x(j, lh_addr_of(width), lh_addr_of(w));
+        lh_ui_web_js_assign_x(j, lh_addr_of(height), lh_addr_of(h));
+        lh_ui_web_x_bin(lh_addr_of(w), "<=", lh_addr_of(zero), lh_addr_of(w_empty));
+        lh_ui_web_x_bin(lh_addr_of(h), "<=", lh_addr_of(zero), lh_addr_of(h_empty));
+        lh_ui_web_x_bin(lh_addr_of(w_empty), "||", lh_addr_of(h_empty), lh_addr_of(empty));
+        lh_ui_web_js_if_x(j, lh_addr_of(empty));
+        lh_ui_web_js_ret_x(j, lh_addr_of(im));
+        lh_ui_web_js_end(j);
+        lh_ui_web_x_dot(lh_addr_of(im), "getContext", lh_addr_of(get_context));
+        lh_ui_web_x_str("2d", lh_addr_of(context_2d));
+        one_arg[0] = lh_addr_of(context_2d);
+        lh_ui_web_x_call(lh_addr_of(get_context), one_arg, 1u, lh_addr_of(context));
+        lh_ui_web_js_var_x(j, "g", lh_addr_of(context));
+        lh_ui_web_x_id("g", lh_addr_of(g));
+        lh_ui_web_x_dot(lh_addr_of(g), "createImageData", lh_addr_of(create_image));
+        size_args[0] = lh_addr_of(w);
+        size_args[1] = lh_addr_of(h);
+        lh_ui_web_x_call(lh_addr_of(create_image), size_args, 2u, lh_addr_of(image_data));
+        lh_ui_web_js_var_x(j, "id", lh_addr_of(image_data));
+        lh_ui_web_x_id("id", lh_addr_of(image));
+        lh_ui_web_x_dot(lh_addr_of(image), "data", lh_addr_of(pixels));
+        lh_ui_web_js_var_x(j, "p", lh_addr_of(pixels));
+        lh_ui_web_x_bin(lh_addr_of(w), "*", lh_addr_of(h), lh_addr_of(n));
+        lh_ui_web_js_var_x(j, "n", lh_addr_of(n));
+        lh_ui_web_js_vars(j, "i,j,k");
+        /* The pixel loop awaits statement nodes for for-loops and updates. */
+        lh_ui_web_buf_raw(
+            j, "for(i=0,j=0;i<n;i++,j+=4){k=i*2;p[j]=p[j+1]=p[j+2]=255;"
+               "p[j+3]=k+1<cv.length?(hexv(cv.charCodeAt(k))<<4)|hexv(cv.charCodeAt(k+1)):0;}\n");
+        lh_ui_web_x_dot(lh_addr_of(g), "putImageData", lh_addr_of(put_image));
+        put_args[0] = lh_addr_of(image);
+        put_args[1] = lh_addr_of(zero);
+        put_args[2] = lh_addr_of(zero);
+        lh_ui_web_x_call(lh_addr_of(put_image), put_args, 3u, lh_addr_of(put));
+        lh_ui_web_js_stmt_x(j, lh_addr_of(put));
+        lh_ui_web_js_ret_x(j, lh_addr_of(im));
+    }
     lh_ui_web_js_fun_close(j);
 
     /* -- ingest ---------------------------------------------------------------- */
