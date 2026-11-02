@@ -12,9 +12,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ASCII JavaScript identifier-name predicates shared by the lexer and web
   serializer; available without enabling the JavaScript engine.
 
-- Public field accessors for JavaScript expression nodes, used by constructors and serialization.
+- HTML as a tree (`lh/web/html/`, `lh_web_html_*`): `lh_web_html_node_t` (doctype,
+  element, void element, text, raw) owns its children and its `lh_web_html_attr_t`
+  attributes through `lh_list` and the runtime allocator; `lh/web/html/escape.h`
+  escapes text and attribute values, `lh/web/html/name.h` validates tag and
+  attribute names, and `lh_web_html_writer_t` writes a tree (`try_write` and the
+  checked `write`).
 
-- Public field accessors for HTML tree nodes, used by construction and serialization.
+- JavaScript as a tree (`lh/web/js/node.h`, `kind.h`, `op.h`, `precedence.h`,
+  `writer.h`): `lh_web_js_node_t` holds one expression or statement (ESTree
+  shapes: functions, `var`, `if`, `for`, `return`, `switch`, `try`, calls,
+  members, operators, literals) and owns its children; operators are
+  `lh_web_js_op_t` values, not text. `lh_web_js_writer_t` writes a tree,
+  validating names, numbers and regular expressions, escaping strings and
+  placing parentheses only where precedence or tokenization needs them
+  (`try_write` and the checked `write`). Built without
+  `LH_LIBRARY_OPTION_JS`.
 
 - `LH_UI_WEB_HOST_REQUEST_CAPACITY` sets the host request buffer at LH build time.
 
@@ -56,6 +69,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   computed keys and 90 ns with ASCII name checks (paired medians).
 
 - Web route callbacks receive a borrowed view of the complete request body.
+
+- The web player page (`lh/ui/web/player/page.h`) is built as an HTML tree
+  and a JavaScript tree and written by their writers; no part of it is held as
+  code text. Every top-level script statement is its own public brick
+  (`lh_ui_web_player_page_create_rgba` ... `_create_start`), composed by
+  `lh_ui_web_player_page_create_script` and written by
+  `lh_ui_web_player_page_try_write` / `_write`; `lh_ui_web_player_page_build`
+  keeps its contract and the player still builds the page once at start. The
+  served script is the same program with the redundant parentheses gone (8952
+  bytes instead of 9194). `lh_ui_web_page_emit_key_table` is replaced by
+  `lh_ui_web_player_page_create_key_table` (an object expression) with
+  `lh_ui_web_player_page_get_key_name` and `_is_modifier`.
 
 - JavaScript literal serialization writes ordinary spans through the existing
   string-set search instead of appending one byte at a time. On Windows GCC
@@ -379,6 +404,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `lh_wchar_case_pair_t` (`lh/wchar/case/pair.h`) holds two `lh_wchar_t` instead of two `lh_uchar32_t`, like `lh_char_case_pair_t` holds `lh_char_t`: 4 bytes a row instead of 8 on a 16-bit `wchar_t` (Windows), unchanged on a 32-bit one. The supplementary-plane rows (above `0xFFFF`) of the fold table and of the sparse case-map tables are compiled only when `LH_WCHAR_T_MAX > 0xFFFF`; a 16-bit `wchar_t` never reached them, so `lh_wchar_fold_case` and `lh_wstr_ptr_to_lower` / `_to_upper` give the same results. With `LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE` `OFF` the case maps now take about 9.5 KB instead of 23 KB on Windows
 
 ### Removed
+
+- The string-built web DSL: `lh/ui/web/html.h` (`lh_ui_web_html_*`, with
+  `html/attr.h` and `html/kind.h`), `lh/ui/web/js.h` (`lh_ui_web_js_*`
+  statement emitters taking code strings), `lh/ui/web/x.h` and
+  `lh/ui/web/js/x.h` (`lh_ui_web_x_*` expressions, with `x/kind.h`). Use
+  `lh/web/html/` and `lh/web/js/node.h` with their writers.
 
 - The `[begin, end)` forms of `lh_memory_view_*` and `lh_memory_bounds_*` (`_equals_of`, `_contains_of`, `_overlaps_of` and their `_range` aliases; `_find_range`, `_rfind_range`, `_compare_range`, `_rcompare_range`, `_copy_range`, `_move_range`, `_fill_pattern_range`; `_take_first`, `_take_last`, `_between`), `lh/memory/raw.h` (`lh_memory_raw_*`, pointer-pair byte operations) and `lh/util/memory.h`'s `lh_memory_bytes_*` (a second word-at-a-time kernel beside `lh_memory_std_*`). The view-operand forms, `_by_size` operand forms, `from_begin` / `from_end` / `from_offset` and the std kernel cover them
 

@@ -1,1012 +1,3432 @@
 /**
  * @file page.c
- * @brief Canvas2D player: HTML entities + JS constructor, then serialize.
- *
- * Markup is ::lh_ui_web_html; the script body is ::lh_ui_web_js / ::lh_ui_web_x.
- * Dense loops still use ::lh_ui_web_buf_raw until they become statement entities.
+ * @brief Implementation of `lh/ui/web/player/page.h`.
  */
 
 #include <lh/ui/web/player/page.h>
+#include <lh/assert.h>
 #include <lh/char/map.h>
+#include <lh/memory/std.h>
+#include <lh/web/html/writer.h>
+#include <lh/web/js/writer.h>
 
-#include <lh/assert/static.h>
-#include <lh/os/key.h>
-#include <lh/str/format/text.h>
-#include <lh/ui/web/html.h>
-#include <lh/ui/web/js.h>
-#include <lh/ui/web/js/x.h>
+/** The browser's `KeyboardEvent.key` for every ::lh_os_key_t from ::lh_os_key_tab on, in the
+   enum's order; a key added to the enum without a name here stops the build below. */
+static const lh_str_cptr m_ui_web_player_page_key_names[] = {
+    "Tab",       "Enter",      "Escape",  "Backspace", "Delete", " ",
+    "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home",   "End",
+    "PageUp",    "PageDown",   "Shift",   "Control",   "Alt"};
 
-/** Append string literal @p s to @p j, its length taken at compile time. */
-#define page_lit(j, s) lh_ui_web_buf_lit((j), (s), lh_cast_static(lh_usize_t, (sizeof(s) - 1u)))
+lh_assert_static(lh_array_ptr_get_size(m_ui_web_player_page_key_names) ==
+                     lh_cast_static(lh_usize_t, lh_os_key_alt),
+                 "m_ui_web_player_page_key_names must name every lh_os_key_t but lh_os_key_other");
 
-/* -- keys ------------------------------------------------------------------ */
+/* ── keys ────────────────────────────────────────────────────────────────── */
 
-/** Room for one key table as JS text, braces and NUL included. */
-#define PAGE_KEY_TABLE_CAP 512u
-
-/** A browser `KeyboardEvent.key` and the ::lh_os_key_t the player sends for it. */
-typedef struct page_key
+lh_str_view_t
+lh_ui_web_player_page_get_key_name(lh_os_key_t key)
 {
-    lh_str_cptr name;   /**< `e.key` as the browser spells it */
-    lh_os_key_t key;    /**< what the host is sent */
-    lh_bool_t modifier; /**< held with other keys, so the browser keeps its default */
-} page_key_t;           /**< A browser key name and the ::lh_os_key_t for it. */
+    lh_str_view_t name;
 
-/** Every ::lh_os_key_t but ::lh_os_key_other, by the name a browser gives it. The player's
-   table is written from this, so the numbers on the wire are the enum's own; a key added to
-   the enum without a name here stops the build at the check below. */
-static const page_key_t page_keys[] = {
-    {"Tab", lh_os_key_tab, lh_bool_false},        {"Enter", lh_os_key_enter, lh_bool_false},
-    {"Escape", lh_os_key_escape, lh_bool_false},  {"Backspace", lh_os_key_backspace, lh_bool_false},
-    {"Delete", lh_os_key_delete, lh_bool_false},  {" ", lh_os_key_space, lh_bool_false},
-    {"ArrowLeft", lh_os_key_left, lh_bool_false}, {"ArrowRight", lh_os_key_right, lh_bool_false},
-    {"ArrowUp", lh_os_key_up, lh_bool_false},     {"ArrowDown", lh_os_key_down, lh_bool_false},
-    {"Home", lh_os_key_home, lh_bool_false},      {"End", lh_os_key_end, lh_bool_false},
-    {"PageUp", lh_os_key_page_up, lh_bool_false}, {"PageDown", lh_os_key_page_down, lh_bool_false},
-    {"Shift", lh_os_key_shift, lh_bool_true},     {"Control", lh_os_key_control, lh_bool_true},
-    {"Alt", lh_os_key_alt, lh_bool_true},
-};
-
-/** Entries in ::page_keys. */
-#define PAGE_KEY_COUNT (sizeof(page_keys) / sizeof(page_keys[0]))
-
-lh_assert_static(PAGE_KEY_COUNT == lh_cast_static(lh_usize_t, lh_os_key_alt),
-                 "page_keys must name every lh_os_key_t but lh_os_key_other");
-
-lh_void
-lh_ui_web_page_emit_key_table(lh_ui_web_buf_t *j, lh_str_cptr name, lh_bool_t modifiers_only)
-{
-    lh_char_t table[PAGE_KEY_TABLE_CAP];
-    lh_usize_t len = 0u;
-    lh_usize_t i;
-
-    table[len++] = lh_char_map_lbrace;
-    for (i = 0u; i < PAGE_KEY_COUNT; ++i)
+    if (lh_math_eq(key, lh_os_key_other) || lh_math_gt(key, lh_os_key_alt))
     {
-        lh_usize_t n;
+        lh_str_view_init_empty(lh_addr_of(name));
+        return name;
+    }
+    lh_str_view_init(lh_addr_of(name), m_ui_web_player_page_key_names[lh_math_sub_one(key)]);
+    return name;
+}
 
-        if (modifiers_only && !page_keys[i].modifier)
+lh_bool_t
+lh_ui_web_player_page_is_modifier(lh_os_key_t key)
+{
+    return lh_cast_static(lh_bool_t,
+                          lh_math_ge(key, lh_os_key_shift) && !lh_math_gt(key, lh_os_key_alt));
+}
+
+/* ── script parts ────────────────────────────────────────────────────────── */
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_rgba(lh_void)
+{
+    lh_web_js_node_t *self = lh_web_js_node_create_function_declaration(lh_str_view_lit("rgba"));
+
+    lh_web_js_node_push_param(self, lh_str_view_lit("c"));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_return(lh_web_js_node_create_binary(
+            lh_web_js_op_add,
+            lh_web_js_node_create_binary(
+                lh_web_js_op_add,
+                lh_web_js_node_create_binary(
+                    lh_web_js_op_add,
+                    lh_web_js_node_create_binary(
+                        lh_web_js_op_add,
+                        lh_web_js_node_create_binary(
+                            lh_web_js_op_add,
+                            lh_web_js_node_create_binary(
+                                lh_web_js_op_add,
+                                lh_web_js_node_create_binary(
+                                    lh_web_js_op_add,
+                                    lh_web_js_node_create_binary(
+                                        lh_web_js_op_add, lh_web_js_node_create_string_lit("rgba("),
+                                        lh_web_js_node_create_index(
+                                            lh_web_js_node_create_ident_lit("c"),
+                                            lh_web_js_node_create_number(0U))),
+                                    lh_web_js_node_create_string_lit(",")),
+                                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("c"),
+                                                            lh_web_js_node_create_number(1U))),
+                            lh_web_js_node_create_string_lit(",")),
+                        lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("c"),
+                                                    lh_web_js_node_create_number(2U))),
+                    lh_web_js_node_create_string_lit(",")),
+                lh_web_js_node_create_binary(
+                    lh_web_js_op_div,
+                    lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("c"),
+                                                lh_web_js_node_create_number(3U)),
+                    lh_web_js_node_create_number(255U))),
+            lh_web_js_node_create_string_lit(")"))));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_state(lh_void)
+{
+    lh_web_js_node_t *self = lh_web_js_node_create_var(
+        lh_str_view_lit("atlas"), lh_web_js_node_create_with_kind(lh_web_js_kind_array));
+
+    lh_web_js_node_add_declarator(self, lh_str_view_lit("tints"),
+                                  lh_web_js_node_create_with_kind(lh_web_js_kind_object));
+    lh_web_js_node_add_declarator(self, lh_str_view_lit("ntint"), lh_web_js_node_create_number(0U));
+    lh_web_js_node_add_declarator(self, lh_str_view_lit("fw"), lh_web_js_node_create_number(980U));
+    lh_web_js_node_add_declarator(self, lh_str_view_lit("fh"), lh_web_js_node_create_number(620U));
+    lh_web_js_node_add_declarator(self, lh_str_view_lit("cssS"), lh_web_js_node_create_number(1U));
+    lh_web_js_node_add_declarator(self, lh_str_view_lit("lastD"),
+                                  lh_web_js_node_create_with_kind(lh_web_js_kind_null));
+    lh_web_js_node_add_declarator(self, lh_str_view_lit("pend"),
+                                  lh_web_js_node_create_with_kind(lh_web_js_kind_null));
+    lh_web_js_node_add_declarator(self, lh_str_view_lit("raf"), lh_web_js_node_create_number(0U));
+    lh_web_js_node_add_declarator(self, lh_str_view_lit("v3on"), lh_web_js_node_create_number(0U));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_scale_mode(lh_void)
+{
+    lh_web_js_node_t *self = lh_web_js_node_create_var(
+        lh_str_view_lit("scaleMode"),
+        lh_web_js_node_create_conditional(
+            lh_web_js_node_push_back(
+                lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                    lh_web_js_node_create_regex(lh_str_view_lit("scale=fit"), lh_str_view_lit("")),
+                    "test")),
+                lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("location"),
+                                                 "search")),
+            lh_web_js_node_create_string_lit("fit"), lh_web_js_node_create_string_lit("layout")));
+
+    lh_web_js_node_add_declarator(self, lh_str_view_lit("lastZW"),
+                                  lh_web_js_node_create_number(0U));
+    lh_web_js_node_add_declarator(self, lh_str_view_lit("lastZH"),
+                                  lh_web_js_node_create_number(0U));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_hexv(lh_void)
+{
+    lh_web_js_node_t *self = lh_web_js_node_create_function_declaration(lh_str_view_lit("hexv"));
+
+    lh_web_js_node_push_param(self, lh_str_view_lit("c"));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_return(lh_web_js_node_create_conditional(
+            lh_web_js_node_create_binary(lh_web_js_op_lt, lh_web_js_node_create_ident_lit("c"),
+                                         lh_web_js_node_create_number(58U)),
+            lh_web_js_node_create_binary(lh_web_js_op_sub, lh_web_js_node_create_ident_lit("c"),
+                                         lh_web_js_node_create_number(48U)),
+            lh_web_js_node_create_binary(
+                lh_web_js_op_sub,
+                lh_web_js_node_create_binary(lh_web_js_op_bit_or,
+                                             lh_web_js_node_create_ident_lit("c"),
+                                             lh_web_js_node_create_number(32U)),
+                lh_web_js_node_create_number(87U)))));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_decode_cover(lh_void)
+{
+    lh_web_js_node_t *self =
+        lh_web_js_node_create_function_declaration(lh_str_view_lit("decodeCover"));
+
+    lh_web_js_node_push_param(self, lh_str_view_lit("w"));
+    lh_web_js_node_push_param(self, lh_str_view_lit("h"));
+    lh_web_js_node_push_param(self, lh_str_view_lit("cv"));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_var(
+                  lh_str_view_lit("im"),
+                  lh_web_js_node_push_back(
+                      lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                          lh_web_js_node_create_ident_lit("document"), "createElement")),
+                      lh_web_js_node_create_string_lit("canvas"))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                  lh_web_js_op_assign,
+                  lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("im"), "width"),
+                  lh_web_js_node_create_ident_lit("w"))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                  lh_web_js_op_assign,
+                  lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("im"), "height"),
+                  lh_web_js_node_create_ident_lit("h"))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_if(
+            lh_web_js_node_create_binary(
+                lh_web_js_op_or,
+                lh_web_js_node_create_binary(lh_web_js_op_le, lh_web_js_node_create_ident_lit("w"),
+                                             lh_web_js_node_create_number(0U)),
+                lh_web_js_node_create_binary(lh_web_js_op_le, lh_web_js_node_create_ident_lit("h"),
+                                             lh_web_js_node_create_number(0U))),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                lh_web_js_node_create_return(lh_web_js_node_create_ident_lit("im"))),
+            lh_null));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_var(
+            lh_str_view_lit("g"),
+            lh_web_js_node_push_back(lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                         lh_web_js_node_create_ident_lit("im"), "getContext")),
+                                     lh_web_js_node_create_string_lit("2d"))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_var(
+                  lh_str_view_lit("id"),
+                  lh_web_js_node_push_back(
+                      lh_web_js_node_push_back(
+                          lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                              lh_web_js_node_create_ident_lit("g"), "createImageData")),
+                          lh_web_js_node_create_ident_lit("w")),
+                      lh_web_js_node_create_ident_lit("h"))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_var(
+                  lh_str_view_lit("p"),
+                  lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("id"), "data")));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_var(lh_str_view_lit("n"),
+                                        lh_web_js_node_create_binary(
+                                            lh_web_js_op_mul, lh_web_js_node_create_ident_lit("w"),
+                                            lh_web_js_node_create_ident_lit("h"))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_add_declarator(
+            lh_web_js_node_add_declarator(lh_web_js_node_create_var(lh_str_view_lit("i"), lh_null),
+                                          lh_str_view_lit("j"), lh_null),
+            lh_str_view_lit("k"), lh_null));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_for(
+            lh_web_js_node_push_back(
+                lh_web_js_node_push_back(
+                    lh_web_js_node_create_with_kind(lh_web_js_kind_sequence),
+                    lh_web_js_node_create_assign(lh_web_js_op_assign,
+                                                 lh_web_js_node_create_ident_lit("i"),
+                                                 lh_web_js_node_create_number(0U))),
+                lh_web_js_node_create_assign(lh_web_js_op_assign,
+                                             lh_web_js_node_create_ident_lit("j"),
+                                             lh_web_js_node_create_number(0U))),
+            lh_web_js_node_create_binary(lh_web_js_op_lt, lh_web_js_node_create_ident_lit("i"),
+                                         lh_web_js_node_create_ident_lit("n")),
+            lh_web_js_node_push_back(
+                lh_web_js_node_push_back(
+                    lh_web_js_node_create_with_kind(lh_web_js_kind_sequence),
+                    lh_web_js_node_create_postfix(lh_web_js_op_increment,
+                                                  lh_web_js_node_create_ident_lit("i"))),
+                lh_web_js_node_create_assign(lh_web_js_op_add_assign,
+                                             lh_web_js_node_create_ident_lit("j"),
+                                             lh_web_js_node_create_number(4U))),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_push_statement(
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                            lh_web_js_op_assign, lh_web_js_node_create_ident_lit("k"),
+                            lh_web_js_node_create_binary(lh_web_js_op_mul,
+                                                         lh_web_js_node_create_ident_lit("i"),
+                                                         lh_web_js_node_create_number(2U))))),
+                    lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                        lh_web_js_op_assign,
+                        lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                                    lh_web_js_node_create_ident_lit("j")),
+                        lh_web_js_node_create_assign(
+                            lh_web_js_op_assign,
+                            lh_web_js_node_create_index(
+                                lh_web_js_node_create_ident_lit("p"),
+                                lh_web_js_node_create_binary(lh_web_js_op_add,
+                                                             lh_web_js_node_create_ident_lit("j"),
+                                                             lh_web_js_node_create_number(1U))),
+                            lh_web_js_node_create_assign(
+                                lh_web_js_op_assign,
+                                lh_web_js_node_create_index(
+                                    lh_web_js_node_create_ident_lit("p"),
+                                    lh_web_js_node_create_binary(
+                                        lh_web_js_op_add, lh_web_js_node_create_ident_lit("j"),
+                                        lh_web_js_node_create_number(2U))),
+                                lh_web_js_node_create_number(255U)))))),
+                lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                    lh_web_js_op_assign,
+                    lh_web_js_node_create_index(
+                        lh_web_js_node_create_ident_lit("p"),
+                        lh_web_js_node_create_binary(lh_web_js_op_add,
+                                                     lh_web_js_node_create_ident_lit("j"),
+                                                     lh_web_js_node_create_number(3U))),
+                    lh_web_js_node_create_conditional(
+                        lh_web_js_node_create_binary(
+                            lh_web_js_op_lt,
+                            lh_web_js_node_create_binary(lh_web_js_op_add,
+                                                         lh_web_js_node_create_ident_lit("k"),
+                                                         lh_web_js_node_create_number(1U)),
+                            lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("cv"),
+                                                             "length")),
+                        lh_web_js_node_create_binary(
+                            lh_web_js_op_bit_or,
+                            lh_web_js_node_create_binary(
+                                lh_web_js_op_shl,
+                                lh_web_js_node_push_back(
+                                    lh_web_js_node_create_call(
+                                        lh_web_js_node_create_ident_lit("hexv")),
+                                    lh_web_js_node_push_back(
+                                        lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                            lh_web_js_node_create_ident_lit("cv"), "charCodeAt")),
+                                        lh_web_js_node_create_ident_lit("k"))),
+                                lh_web_js_node_create_number(4U)),
+                            lh_web_js_node_push_back(
+                                lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("hexv")),
+                                lh_web_js_node_push_back(
+                                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                        lh_web_js_node_create_ident_lit("cv"), "charCodeAt")),
+                                    lh_web_js_node_create_binary(
+                                        lh_web_js_op_add, lh_web_js_node_create_ident_lit("k"),
+                                        lh_web_js_node_create_number(1U))))),
+                        lh_web_js_node_create_number(0U)))))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                  lh_web_js_node_push_back(
+                      lh_web_js_node_push_back(
+                          lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                              lh_web_js_node_create_ident_lit("g"), "putImageData")),
+                          lh_web_js_node_create_ident_lit("id")),
+                      lh_web_js_node_create_number(0U)),
+                  lh_web_js_node_create_number(0U))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_return(lh_web_js_node_create_ident_lit("im")));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_ingest(lh_void)
+{
+    lh_web_js_node_t *self = lh_web_js_node_create_function_declaration(lh_str_view_lit("ingest"));
+
+    lh_web_js_node_push_param(self, lh_str_view_lit("d"));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_add_declarator(
+                  lh_web_js_node_add_declarator(
+                      lh_web_js_node_create_var(
+                          lh_str_view_lit("ops"),
+                          lh_web_js_node_create_binary(
+                              lh_web_js_op_or,
+                              lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("d"),
+                                                               "ops"),
+                              lh_web_js_node_create_with_kind(lh_web_js_kind_array))),
+                      lh_str_view_lit("i"), lh_null),
+                  lh_str_view_lit("op"), lh_null));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_for(
+            lh_web_js_node_create_assign(lh_web_js_op_assign, lh_web_js_node_create_ident_lit("i"),
+                                         lh_web_js_node_create_number(0U)),
+            lh_web_js_node_create_binary(
+                lh_web_js_op_lt, lh_web_js_node_create_ident_lit("i"),
+                lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("ops"), "length")),
+            lh_web_js_node_create_postfix(lh_web_js_op_increment,
+                                          lh_web_js_node_create_ident_lit("i")),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_push_statement(
+                    lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                    lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                        lh_web_js_op_assign, lh_web_js_node_create_ident_lit("op"),
+                        lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("ops"),
+                                                    lh_web_js_node_create_ident_lit("i"))))),
+                lh_web_js_node_create_if(
+                    lh_web_js_node_create_binary(
+                        lh_web_js_op_and,
+                        lh_web_js_node_create_binary(
+                            lh_web_js_op_strict_ne,
+                            lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("op"),
+                                                             "cover"),
+                            lh_web_js_node_create_ident_lit("undefined")),
+                        lh_web_js_node_create_binary(
+                            lh_web_js_op_strict_eq,
+                            lh_web_js_node_create_unary(
+                                lh_web_js_op_typeof,
+                                lh_web_js_node_create_member_lit(
+                                    lh_web_js_node_create_ident_lit("op"), "m")),
+                            lh_web_js_node_create_string_lit("number"))),
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                            lh_web_js_op_assign,
+                            lh_web_js_node_create_index(
+                                lh_web_js_node_create_ident_lit("atlas"),
+                                lh_web_js_node_create_member_lit(
+                                    lh_web_js_node_create_ident_lit("op"), "m")),
+                            lh_web_js_node_push_back(
+                                lh_web_js_node_push_back(
+                                    lh_web_js_node_push_back(
+                                        lh_web_js_node_create_call(
+                                            lh_web_js_node_create_ident_lit("decodeCover")),
+                                        lh_web_js_node_create_index(
+                                            lh_web_js_node_create_member_lit(
+                                                lh_web_js_node_create_ident_lit("op"), "size"),
+                                            lh_web_js_node_create_number(0U))),
+                                    lh_web_js_node_create_index(
+                                        lh_web_js_node_create_member_lit(
+                                            lh_web_js_node_create_ident_lit("op"), "size"),
+                                        lh_web_js_node_create_number(1U))),
+                                lh_web_js_node_create_member_lit(
+                                    lh_web_js_node_create_ident_lit("op"), "cover"))))),
+                    lh_null))));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_tint(lh_void)
+{
+    lh_web_js_node_t *self = lh_web_js_node_create_function_declaration(lh_str_view_lit("tint"));
+
+    lh_web_js_node_push_param(self, lh_str_view_lit("a"));
+    lh_web_js_node_push_param(self, lh_str_view_lit("c"));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_var(
+                  lh_str_view_lit("t"),
+                  lh_web_js_node_push_back(
+                      lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                          lh_web_js_node_create_ident_lit("document"), "createElement")),
+                      lh_web_js_node_create_string_lit("canvas"))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+            lh_web_js_op_assign,
+            lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("t"), "width"),
+            lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("a"), "width"))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+            lh_web_js_op_assign,
+            lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("t"), "height"),
+            lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("a"), "height"))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_if(
+                  lh_web_js_node_create_binary(
+                      lh_web_js_op_or,
+                      lh_web_js_node_create_unary(
+                          lh_web_js_op_not, lh_web_js_node_create_member_lit(
+                                                lh_web_js_node_create_ident_lit("a"), "width")),
+                      lh_web_js_node_create_unary(
+                          lh_web_js_op_not, lh_web_js_node_create_member_lit(
+                                                lh_web_js_node_create_ident_lit("a"), "height"))),
+                  lh_web_js_node_push_statement(
+                      lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                      lh_web_js_node_create_return(lh_web_js_node_create_ident_lit("t"))),
+                  lh_null));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_var(
+            lh_str_view_lit("g"),
+            lh_web_js_node_push_back(lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                         lh_web_js_node_create_ident_lit("t"), "getContext")),
+                                     lh_web_js_node_create_string_lit("2d"))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+            lh_web_js_op_assign,
+            lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("g"), "fillStyle"),
+            lh_web_js_node_push_back(
+                lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("rgba")),
+                lh_web_js_node_create_ident_lit("c")))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_expression(lh_web_js_node_push_back(
+            lh_web_js_node_push_back(
+                lh_web_js_node_push_back(
+                    lh_web_js_node_push_back(
+                        lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                            lh_web_js_node_create_ident_lit("g"), "fillRect")),
+                        lh_web_js_node_create_number(0U)),
+                    lh_web_js_node_create_number(0U)),
+                lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("t"), "width")),
+            lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("t"), "height"))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                  lh_web_js_op_assign,
+                  lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("g"),
+                                                   "globalCompositeOperation"),
+                  lh_web_js_node_create_string_lit("destination-in"))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                  lh_web_js_node_push_back(
+                      lh_web_js_node_push_back(
+                          lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                              lh_web_js_node_create_ident_lit("g"), "drawImage")),
+                          lh_web_js_node_create_ident_lit("a")),
+                      lh_web_js_node_create_number(0U)),
+                  lh_web_js_node_create_number(0U))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_return(lh_web_js_node_create_ident_lit("t")));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_glyph(lh_void)
+{
+    lh_web_js_node_t *self = lh_web_js_node_create_function_declaration(lh_str_view_lit("glyph"));
+
+    lh_web_js_node_push_param(self, lh_str_view_lit("op"));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_var(lh_str_view_lit("c"),
+                                        lh_web_js_node_create_member_lit(
+                                            lh_web_js_node_create_ident_lit("op"), "color")));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_if(
+                  lh_web_js_node_create_binary(
+                      lh_web_js_op_strict_ne,
+                      lh_web_js_node_create_unary(lh_web_js_op_typeof,
+                                                  lh_web_js_node_create_member_lit(
+                                                      lh_web_js_node_create_ident_lit("op"), "m")),
+                      lh_web_js_node_create_string_lit("number")),
+                  lh_web_js_node_push_statement(
+                      lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                      lh_web_js_node_create_return(lh_web_js_node_push_back(
+                          lh_web_js_node_push_back(
+                              lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("tint")),
+                              lh_web_js_node_push_back(
+                                  lh_web_js_node_push_back(
+                                      lh_web_js_node_push_back(
+                                          lh_web_js_node_create_call(
+                                              lh_web_js_node_create_ident_lit("decodeCover")),
+                                          lh_web_js_node_create_index(
+                                              lh_web_js_node_create_member_lit(
+                                                  lh_web_js_node_create_ident_lit("op"), "size"),
+                                              lh_web_js_node_create_number(0U))),
+                                      lh_web_js_node_create_index(
+                                          lh_web_js_node_create_member_lit(
+                                              lh_web_js_node_create_ident_lit("op"), "size"),
+                                          lh_web_js_node_create_number(1U))),
+                                  lh_web_js_node_create_binary(
+                                      lh_web_js_op_or,
+                                      lh_web_js_node_create_member_lit(
+                                          lh_web_js_node_create_ident_lit("op"), "cover"),
+                                      lh_web_js_node_create_string_lit("")))),
+                          lh_web_js_node_create_ident_lit("c")))),
+                  lh_null));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_add_declarator(
+            lh_web_js_node_create_var(
+                lh_str_view_lit("k"),
+                lh_web_js_node_create_binary(
+                    lh_web_js_op_add,
+                    lh_web_js_node_create_binary(
+                        lh_web_js_op_add,
+                        lh_web_js_node_create_binary(
+                            lh_web_js_op_add,
+                            lh_web_js_node_create_binary(
+                                lh_web_js_op_add,
+                                lh_web_js_node_create_binary(
+                                    lh_web_js_op_add,
+                                    lh_web_js_node_create_binary(
+                                        lh_web_js_op_add,
+                                        lh_web_js_node_create_binary(
+                                            lh_web_js_op_add,
+                                            lh_web_js_node_create_binary(
+                                                lh_web_js_op_add,
+                                                lh_web_js_node_create_member_lit(
+                                                    lh_web_js_node_create_ident_lit("op"), "m"),
+                                                lh_web_js_node_create_string_lit(",")),
+                                            lh_web_js_node_create_index(
+                                                lh_web_js_node_create_ident_lit("c"),
+                                                lh_web_js_node_create_number(0U))),
+                                        lh_web_js_node_create_string_lit(",")),
+                                    lh_web_js_node_create_index(
+                                        lh_web_js_node_create_ident_lit("c"),
+                                        lh_web_js_node_create_number(1U))),
+                                lh_web_js_node_create_string_lit(",")),
+                            lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("c"),
+                                                        lh_web_js_node_create_number(2U))),
+                        lh_web_js_node_create_string_lit(",")),
+                    lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("c"),
+                                                lh_web_js_node_create_number(3U)))),
+            lh_str_view_lit("t"),
+            lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("tints"),
+                                        lh_web_js_node_create_ident_lit("k"))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_if(
+                  lh_web_js_node_create_ident_lit("t"),
+                  lh_web_js_node_push_statement(
+                      lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                      lh_web_js_node_create_return(lh_web_js_node_create_ident_lit("t"))),
+                  lh_null));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_var(
+                  lh_str_view_lit("a"),
+                  lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("atlas"),
+                                              lh_web_js_node_create_member_lit(
+                                                  lh_web_js_node_create_ident_lit("op"), "m"))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_if(
+            lh_web_js_node_create_unary(lh_web_js_op_not, lh_web_js_node_create_ident_lit("a")),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                lh_web_js_node_create_return(lh_web_js_node_create_with_kind(lh_web_js_kind_null))),
+            lh_null));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_if(
+            lh_web_js_node_create_binary(lh_web_js_op_ge, lh_web_js_node_create_ident_lit("ntint"),
+                                         lh_web_js_node_create_number(8192U)),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_push_statement(
+                    lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                    lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                        lh_web_js_op_assign, lh_web_js_node_create_ident_lit("tints"),
+                        lh_web_js_node_create_with_kind(lh_web_js_kind_object)))),
+                lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                    lh_web_js_op_assign, lh_web_js_node_create_ident_lit("ntint"),
+                    lh_web_js_node_create_number(0U)))),
+            lh_null));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                  lh_web_js_op_assign, lh_web_js_node_create_ident_lit("t"),
+                  lh_web_js_node_push_back(
+                      lh_web_js_node_push_back(
+                          lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("tint")),
+                          lh_web_js_node_create_ident_lit("a")),
+                      lh_web_js_node_create_ident_lit("c")))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                  lh_web_js_op_assign,
+                  lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("tints"),
+                                              lh_web_js_node_create_ident_lit("k")),
+                  lh_web_js_node_create_ident_lit("t"))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_expression(lh_web_js_node_create_prefix(
+                  lh_web_js_op_increment, lh_web_js_node_create_ident_lit("ntint"))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_return(lh_web_js_node_create_ident_lit("t")));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_round(lh_void)
+{
+    lh_web_js_node_t *self = lh_web_js_node_create_function_declaration(lh_str_view_lit("round"));
+
+    lh_web_js_node_push_param(self, lh_str_view_lit("x"));
+    lh_web_js_node_push_param(self, lh_str_view_lit("r"));
+    lh_web_js_node_push_param(self, lh_str_view_lit("rad"));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_expression(lh_web_js_node_create_call(
+            lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("x"), "beginPath"))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_if(
+            lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("x"), "roundRect"),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                    lh_web_js_node_push_back(
+                        lh_web_js_node_push_back(
+                            lh_web_js_node_push_back(
+                                lh_web_js_node_push_back(
+                                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                        lh_web_js_node_create_ident_lit("x"), "roundRect")),
+                                    lh_web_js_node_create_index(
+                                        lh_web_js_node_create_ident_lit("r"),
+                                        lh_web_js_node_create_number(0U))),
+                                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("r"),
+                                                            lh_web_js_node_create_number(1U))),
+                            lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("r"),
+                                                        lh_web_js_node_create_number(2U))),
+                        lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("r"),
+                                                    lh_web_js_node_create_number(3U))),
+                    lh_web_js_node_create_binary(lh_web_js_op_or,
+                                                 lh_web_js_node_create_ident_lit("rad"),
+                                                 lh_web_js_node_create_number(0U))))),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                    lh_web_js_node_push_back(
+                        lh_web_js_node_push_back(
+                            lh_web_js_node_push_back(
+                                lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                    lh_web_js_node_create_ident_lit("x"), "rect")),
+                                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("r"),
+                                                            lh_web_js_node_create_number(0U))),
+                            lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("r"),
+                                                        lh_web_js_node_create_number(1U))),
+                        lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("r"),
+                                                    lh_web_js_node_create_number(2U))),
+                    lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("r"),
+                                                lh_web_js_node_create_number(3U)))))));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_pane3d(lh_void)
+{
+    lh_web_js_node_t *self = lh_web_js_node_create_function_declaration(lh_str_view_lit("pane3d"));
+
+    lh_web_js_node_push_param(self, lh_str_view_lit("d"));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_add_declarator(
+                  lh_web_js_node_add_declarator(
+                      lh_web_js_node_create_var(
+                          lh_str_view_lit("v"),
+                          lh_web_js_node_push_back(
+                              lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                  lh_web_js_node_create_ident_lit("document"), "getElementById")),
+                              lh_web_js_node_create_string_lit("v3d"))),
+                      lh_str_view_lit("r"),
+                      lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("d"),
+                                                       "viewport3d")),
+                  lh_str_view_lit("c"),
+                  lh_web_js_node_push_back(
+                      lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                          lh_web_js_node_create_ident_lit("document"), "getElementById")),
+                      lh_web_js_node_create_string_lit("c"))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_if(
+            lh_web_js_node_create_unary(lh_web_js_op_not, lh_web_js_node_create_ident_lit("r")),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_push_statement(
+                    lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                    lh_web_js_node_create_if(
+                        lh_web_js_node_create_ident_lit("v3on"),
+                        lh_web_js_node_push_statement(
+                            lh_web_js_node_push_statement(
+                                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                                lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                    lh_web_js_op_assign,
+                                    lh_web_js_node_create_member_lit(
+                                        lh_web_js_node_create_member_lit(
+                                            lh_web_js_node_create_ident_lit("v"), "style"),
+                                        "display"),
+                                    lh_web_js_node_create_string_lit("none")))),
+                            lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                lh_web_js_op_assign, lh_web_js_node_create_ident_lit("v3on"),
+                                lh_web_js_node_create_number(0U)))),
+                        lh_null)),
+                lh_web_js_node_create_return(lh_null)),
+            lh_null));
+    lh_web_js_node_push_statement(self,
+                                  lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                      lh_web_js_op_assign, lh_web_js_node_create_ident_lit("v3on"),
+                                      lh_web_js_node_create_number(1U))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_add_declarator(
+                  lh_web_js_node_create_var(
+                      lh_str_view_lit("box"),
+                      lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                          lh_web_js_node_create_ident_lit("c"), "getBoundingClientRect"))),
+                  lh_str_view_lit("dpr"),
+                  lh_web_js_node_create_binary(
+                      lh_web_js_op_or,
+                      lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("window"),
+                                                       "devicePixelRatio"),
+                      lh_web_js_node_create_number(1U))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+            lh_web_js_op_assign,
+            lh_web_js_node_create_member_lit(
+                lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("v"), "style"),
+                "display"),
+            lh_web_js_node_create_string_lit("block"))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+            lh_web_js_op_assign,
+            lh_web_js_node_create_member_lit(
+                lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("v"), "style"),
+                "left"),
+            lh_web_js_node_create_binary(
+                lh_web_js_op_add,
+                lh_web_js_node_create_binary(
+                    lh_web_js_op_add,
+                    lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("box"),
+                                                     "left"),
+                    lh_web_js_node_create_binary(
+                        lh_web_js_op_mul,
+                        lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("r"),
+                                                    lh_web_js_node_create_number(0U)),
+                        lh_web_js_node_create_ident_lit("cssS"))),
+                lh_web_js_node_create_string_lit("px")))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+            lh_web_js_op_assign,
+            lh_web_js_node_create_member_lit(
+                lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("v"), "style"),
+                "top"),
+            lh_web_js_node_create_binary(
+                lh_web_js_op_add,
+                lh_web_js_node_create_binary(
+                    lh_web_js_op_add,
+                    lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("box"), "top"),
+                    lh_web_js_node_create_binary(
+                        lh_web_js_op_mul,
+                        lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("r"),
+                                                    lh_web_js_node_create_number(1U)),
+                        lh_web_js_node_create_ident_lit("cssS"))),
+                lh_web_js_node_create_string_lit("px")))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+            lh_web_js_op_assign,
+            lh_web_js_node_create_member_lit(
+                lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("v"), "style"),
+                "width"),
+            lh_web_js_node_create_binary(
+                lh_web_js_op_add,
+                lh_web_js_node_create_binary(
+                    lh_web_js_op_mul,
+                    lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("r"),
+                                                lh_web_js_node_create_number(2U)),
+                    lh_web_js_node_create_ident_lit("cssS")),
+                lh_web_js_node_create_string_lit("px")))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+            lh_web_js_op_assign,
+            lh_web_js_node_create_member_lit(
+                lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("v"), "style"),
+                "height"),
+            lh_web_js_node_create_binary(
+                lh_web_js_op_add,
+                lh_web_js_node_create_binary(
+                    lh_web_js_op_mul,
+                    lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("r"),
+                                                lh_web_js_node_create_number(3U)),
+                    lh_web_js_node_create_ident_lit("cssS")),
+                lh_web_js_node_create_string_lit("px")))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                  lh_web_js_op_assign,
+                  lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("v"), "width"),
+                  lh_web_js_node_push_back(
+                      lh_web_js_node_push_back(
+                          lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                              lh_web_js_node_create_ident_lit("Math"), "max")),
+                          lh_web_js_node_create_number(1U)),
+                      lh_web_js_node_push_back(
+                          lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                              lh_web_js_node_create_ident_lit("Math"), "round")),
+                          lh_web_js_node_create_binary(
+                              lh_web_js_op_mul,
+                              lh_web_js_node_create_binary(
+                                  lh_web_js_op_mul,
+                                  lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("r"),
+                                                              lh_web_js_node_create_number(2U)),
+                                  lh_web_js_node_create_ident_lit("cssS")),
+                              lh_web_js_node_create_ident_lit("dpr")))))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                  lh_web_js_op_assign,
+                  lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("v"), "height"),
+                  lh_web_js_node_push_back(
+                      lh_web_js_node_push_back(
+                          lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                              lh_web_js_node_create_ident_lit("Math"), "max")),
+                          lh_web_js_node_create_number(1U)),
+                      lh_web_js_node_push_back(
+                          lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                              lh_web_js_node_create_ident_lit("Math"), "round")),
+                          lh_web_js_node_create_binary(
+                              lh_web_js_op_mul,
+                              lh_web_js_node_create_binary(
+                                  lh_web_js_op_mul,
+                                  lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("r"),
+                                                              lh_web_js_node_create_number(3U)),
+                                  lh_web_js_node_create_ident_lit("cssS")),
+                              lh_web_js_node_create_ident_lit("dpr")))))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_if(
+            lh_web_js_node_create_unary(
+                lh_web_js_op_not,
+                lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("v"), "gl")),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                    lh_web_js_op_assign,
+                    lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("v"), "gl"),
+                    lh_web_js_node_create_binary(
+                        lh_web_js_op_or,
+                        lh_web_js_node_push_back(
+                            lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                lh_web_js_node_create_ident_lit("v"), "getContext")),
+                            lh_web_js_node_create_string_lit("webgl")),
+                        lh_web_js_node_push_back(
+                            lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                lh_web_js_node_create_ident_lit("v"), "getContext")),
+                            lh_web_js_node_create_string_lit("experimental-webgl")))))),
+            lh_null));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_fit(lh_void)
+{
+    lh_web_js_node_t *self = lh_web_js_node_create_function_declaration(lh_str_view_lit("fit"));
+
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_add_declarator(
+            lh_web_js_node_add_declarator(
+                lh_web_js_node_add_declarator(
+                    lh_web_js_node_add_declarator(
+                        lh_web_js_node_add_declarator(
+                            lh_web_js_node_add_declarator(
+                                lh_web_js_node_create_var(
+                                    lh_str_view_lit("c"),
+                                    lh_web_js_node_push_back(
+                                        lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                            lh_web_js_node_create_ident_lit("document"),
+                                            "getElementById")),
+                                        lh_web_js_node_create_string_lit("c"))),
+                                lh_str_view_lit("vw"),
+                                lh_web_js_node_create_member_lit(
+                                    lh_web_js_node_create_ident_lit("window"), "innerWidth")),
+                            lh_str_view_lit("vh"),
+                            lh_web_js_node_create_member_lit(
+                                lh_web_js_node_create_ident_lit("window"), "innerHeight")),
+                        lh_str_view_lit("dpr"),
+                        lh_web_js_node_create_binary(
+                            lh_web_js_op_or,
+                            lh_web_js_node_create_member_lit(
+                                lh_web_js_node_create_ident_lit("window"), "devicePixelRatio"),
+                            lh_web_js_node_create_number(1U))),
+                    lh_str_view_lit("s"), lh_null),
+                lh_str_view_lit("bw"), lh_null),
+            lh_str_view_lit("bh"), lh_null));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_if(
+            lh_web_js_node_create_binary(lh_web_js_op_strict_eq,
+                                         lh_web_js_node_create_ident_lit("scaleMode"),
+                                         lh_web_js_node_create_string_lit("layout")),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_push_statement(
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_push_statement(
+                            lh_web_js_node_push_statement(
+                                lh_web_js_node_push_statement(
+                                    lh_web_js_node_push_statement(
+                                        lh_web_js_node_push_statement(
+                                            lh_web_js_node_push_statement(
+                                                lh_web_js_node_push_statement(
+                                                    lh_web_js_node_create_with_kind(
+                                                        lh_web_js_kind_block),
+                                                    lh_web_js_node_create_expression(
+                                                        lh_web_js_node_create_assign(
+                                                            lh_web_js_op_assign,
+                                                            lh_web_js_node_create_ident_lit("cssS"),
+                                                            lh_web_js_node_create_number(1U)))),
+                                                lh_web_js_node_create_expression(
+                                                    lh_web_js_node_create_assign(
+                                                        lh_web_js_op_assign,
+                                                        lh_web_js_node_create_ident_lit("bw"),
+                                                        lh_web_js_node_push_back(
+                                                            lh_web_js_node_push_back(
+                                                                lh_web_js_node_create_call(
+                                                                    lh_web_js_node_create_member_lit(
+                                                                        lh_web_js_node_create_ident_lit(
+                                                                            "Math"),
+                                                                        "max")),
+                                                                lh_web_js_node_create_number(1U)),
+                                                            lh_web_js_node_push_back(
+                                                                lh_web_js_node_create_call(
+                                                                    lh_web_js_node_create_member_lit(
+                                                                        lh_web_js_node_create_ident_lit(
+                                                                            "Math"),
+                                                                        "round")),
+                                                                lh_web_js_node_create_binary(
+                                                                    lh_web_js_op_mul,
+                                                                    lh_web_js_node_create_ident_lit(
+                                                                        "fw"),
+                                                                    lh_web_js_node_create_ident_lit(
+                                                                        "dpr"))))))),
+                                            lh_web_js_node_create_expression(
+                                                lh_web_js_node_create_assign(
+                                                    lh_web_js_op_assign,
+                                                    lh_web_js_node_create_ident_lit("bh"),
+                                                    lh_web_js_node_push_back(
+                                                        lh_web_js_node_push_back(
+                                                            lh_web_js_node_create_call(
+                                                                lh_web_js_node_create_member_lit(
+                                                                    lh_web_js_node_create_ident_lit(
+                                                                        "Math"),
+                                                                    "max")),
+                                                            lh_web_js_node_create_number(1U)),
+                                                        lh_web_js_node_push_back(
+                                                            lh_web_js_node_create_call(
+                                                                lh_web_js_node_create_member_lit(
+                                                                    lh_web_js_node_create_ident_lit(
+                                                                        "Math"),
+                                                                    "round")),
+                                                            lh_web_js_node_create_binary(
+                                                                lh_web_js_op_mul,
+                                                                lh_web_js_node_create_ident_lit(
+                                                                    "fh"),
+                                                                lh_web_js_node_create_ident_lit(
+                                                                    "dpr"))))))),
+                                        lh_web_js_node_create_if(
+                                            lh_web_js_node_create_binary(
+                                                lh_web_js_op_strict_ne,
+                                                lh_web_js_node_create_member_lit(
+                                                    lh_web_js_node_create_ident_lit("c"), "width"),
+                                                lh_web_js_node_create_ident_lit("bw")),
+                                            lh_web_js_node_push_statement(
+                                                lh_web_js_node_create_with_kind(
+                                                    lh_web_js_kind_block),
+                                                lh_web_js_node_create_expression(
+                                                    lh_web_js_node_create_assign(
+                                                        lh_web_js_op_assign,
+                                                        lh_web_js_node_create_member_lit(
+                                                            lh_web_js_node_create_ident_lit("c"),
+                                                            "width"),
+                                                        lh_web_js_node_create_ident_lit("bw")))),
+                                            lh_null)),
+                                    lh_web_js_node_create_if(
+                                        lh_web_js_node_create_binary(
+                                            lh_web_js_op_strict_ne,
+                                            lh_web_js_node_create_member_lit(
+                                                lh_web_js_node_create_ident_lit("c"), "height"),
+                                            lh_web_js_node_create_ident_lit("bh")),
+                                        lh_web_js_node_push_statement(
+                                            lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                                            lh_web_js_node_create_expression(
+                                                lh_web_js_node_create_assign(
+                                                    lh_web_js_op_assign,
+                                                    lh_web_js_node_create_member_lit(
+                                                        lh_web_js_node_create_ident_lit("c"),
+                                                        "height"),
+                                                    lh_web_js_node_create_ident_lit("bh")))),
+                                        lh_null)),
+                                lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                    lh_web_js_op_assign,
+                                    lh_web_js_node_create_member_lit(
+                                        lh_web_js_node_create_member_lit(
+                                            lh_web_js_node_create_ident_lit("c"), "style"),
+                                        "width"),
+                                    lh_web_js_node_create_binary(
+                                        lh_web_js_op_add, lh_web_js_node_create_ident_lit("fw"),
+                                        lh_web_js_node_create_string_lit("px"))))),
+                            lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                lh_web_js_op_assign,
+                                lh_web_js_node_create_member_lit(
+                                    lh_web_js_node_create_member_lit(
+                                        lh_web_js_node_create_ident_lit("c"), "style"),
+                                    "height"),
+                                lh_web_js_node_create_binary(
+                                    lh_web_js_op_add, lh_web_js_node_create_ident_lit("fh"),
+                                    lh_web_js_node_create_string_lit("px"))))),
+                        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                            lh_web_js_op_assign,
+                            lh_web_js_node_create_member_lit(
+                                lh_web_js_node_create_member_lit(
+                                    lh_web_js_node_create_ident_lit("c"), "style"),
+                                "left"),
+                            lh_web_js_node_create_string_lit("0")))),
+                    lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                        lh_web_js_op_assign,
+                        lh_web_js_node_create_member_lit(
+                            lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("c"),
+                                                             "style"),
+                            "top"),
+                        lh_web_js_node_create_string_lit("0")))),
+                lh_web_js_node_create_return(lh_web_js_node_push_back(
+                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                        lh_web_js_node_create_ident_lit("c"), "getContext")),
+                    lh_web_js_node_create_string_lit("2d")))),
+            lh_null));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                  lh_web_js_op_assign, lh_web_js_node_create_ident_lit("s"),
+                  lh_web_js_node_push_back(
+                      lh_web_js_node_push_back(
+                          lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                              lh_web_js_node_create_ident_lit("Math"), "min")),
+                          lh_web_js_node_create_binary(lh_web_js_op_div,
+                                                       lh_web_js_node_create_ident_lit("vw"),
+                                                       lh_web_js_node_create_ident_lit("fw"))),
+                      lh_web_js_node_create_binary(lh_web_js_op_div,
+                                                   lh_web_js_node_create_ident_lit("vh"),
+                                                   lh_web_js_node_create_ident_lit("fh"))))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_if(
+            lh_web_js_node_create_binary(
+                lh_web_js_op_or,
+                lh_web_js_node_create_unary(
+                    lh_web_js_op_not,
+                    lh_web_js_node_push_back(
+                        lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("isFinite")),
+                        lh_web_js_node_create_ident_lit("s"))),
+                lh_web_js_node_create_binary(lh_web_js_op_le, lh_web_js_node_create_ident_lit("s"),
+                                             lh_web_js_node_create_number(0U))),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                    lh_web_js_op_assign, lh_web_js_node_create_ident_lit("s"),
+                    lh_web_js_node_create_number(1U)))),
+            lh_null));
+    lh_web_js_node_push_statement(self,
+                                  lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                      lh_web_js_op_assign, lh_web_js_node_create_ident_lit("cssS"),
+                                      lh_web_js_node_create_ident_lit("s"))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                  lh_web_js_op_assign, lh_web_js_node_create_ident_lit("bw"),
+                  lh_web_js_node_push_back(
+                      lh_web_js_node_push_back(
+                          lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                              lh_web_js_node_create_ident_lit("Math"), "max")),
+                          lh_web_js_node_create_number(1U)),
+                      lh_web_js_node_push_back(
+                          lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                              lh_web_js_node_create_ident_lit("Math"), "round")),
+                          lh_web_js_node_create_binary(
+                              lh_web_js_op_mul,
+                              lh_web_js_node_create_binary(lh_web_js_op_mul,
+                                                           lh_web_js_node_create_ident_lit("fw"),
+                                                           lh_web_js_node_create_ident_lit("s")),
+                              lh_web_js_node_create_ident_lit("dpr")))))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                  lh_web_js_op_assign, lh_web_js_node_create_ident_lit("bh"),
+                  lh_web_js_node_push_back(
+                      lh_web_js_node_push_back(
+                          lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                              lh_web_js_node_create_ident_lit("Math"), "max")),
+                          lh_web_js_node_create_number(1U)),
+                      lh_web_js_node_push_back(
+                          lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                              lh_web_js_node_create_ident_lit("Math"), "round")),
+                          lh_web_js_node_create_binary(
+                              lh_web_js_op_mul,
+                              lh_web_js_node_create_binary(lh_web_js_op_mul,
+                                                           lh_web_js_node_create_ident_lit("fh"),
+                                                           lh_web_js_node_create_ident_lit("s")),
+                              lh_web_js_node_create_ident_lit("dpr")))))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_if(
+            lh_web_js_node_create_binary(
+                lh_web_js_op_strict_ne,
+                lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("c"), "width"),
+                lh_web_js_node_create_ident_lit("bw")),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                    lh_web_js_op_assign,
+                    lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("c"), "width"),
+                    lh_web_js_node_create_ident_lit("bw")))),
+            lh_null));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_if(
+                  lh_web_js_node_create_binary(lh_web_js_op_strict_ne,
+                                               lh_web_js_node_create_member_lit(
+                                                   lh_web_js_node_create_ident_lit("c"), "height"),
+                                               lh_web_js_node_create_ident_lit("bh")),
+                  lh_web_js_node_push_statement(
+                      lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                      lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                          lh_web_js_op_assign,
+                          lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("c"),
+                                                           "height"),
+                          lh_web_js_node_create_ident_lit("bh")))),
+                  lh_null));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+            lh_web_js_op_assign,
+            lh_web_js_node_create_member_lit(
+                lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("c"), "style"),
+                "width"),
+            lh_web_js_node_create_binary(
+                lh_web_js_op_add,
+                lh_web_js_node_push_back(
+                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                        lh_web_js_node_create_ident_lit("Math"), "round")),
+                    lh_web_js_node_create_binary(lh_web_js_op_mul,
+                                                 lh_web_js_node_create_ident_lit("fw"),
+                                                 lh_web_js_node_create_ident_lit("s"))),
+                lh_web_js_node_create_string_lit("px")))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+            lh_web_js_op_assign,
+            lh_web_js_node_create_member_lit(
+                lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("c"), "style"),
+                "height"),
+            lh_web_js_node_create_binary(
+                lh_web_js_op_add,
+                lh_web_js_node_push_back(
+                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                        lh_web_js_node_create_ident_lit("Math"), "round")),
+                    lh_web_js_node_create_binary(lh_web_js_op_mul,
+                                                 lh_web_js_node_create_ident_lit("fh"),
+                                                 lh_web_js_node_create_ident_lit("s"))),
+                lh_web_js_node_create_string_lit("px")))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+            lh_web_js_op_assign,
+            lh_web_js_node_create_member_lit(
+                lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("c"), "style"),
+                "left"),
+            lh_web_js_node_create_binary(
+                lh_web_js_op_add,
+                lh_web_js_node_push_back(
+                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                        lh_web_js_node_create_ident_lit("Math"), "round")),
+                    lh_web_js_node_create_binary(
+                        lh_web_js_op_div,
+                        lh_web_js_node_create_binary(
+                            lh_web_js_op_sub, lh_web_js_node_create_ident_lit("vw"),
+                            lh_web_js_node_create_binary(lh_web_js_op_mul,
+                                                         lh_web_js_node_create_ident_lit("fw"),
+                                                         lh_web_js_node_create_ident_lit("s"))),
+                        lh_web_js_node_create_number(2U))),
+                lh_web_js_node_create_string_lit("px")))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+            lh_web_js_op_assign,
+            lh_web_js_node_create_member_lit(
+                lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("c"), "style"),
+                "top"),
+            lh_web_js_node_create_binary(
+                lh_web_js_op_add,
+                lh_web_js_node_push_back(
+                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                        lh_web_js_node_create_ident_lit("Math"), "round")),
+                    lh_web_js_node_create_binary(
+                        lh_web_js_op_div,
+                        lh_web_js_node_create_binary(
+                            lh_web_js_op_sub, lh_web_js_node_create_ident_lit("vh"),
+                            lh_web_js_node_create_binary(lh_web_js_op_mul,
+                                                         lh_web_js_node_create_ident_lit("fh"),
+                                                         lh_web_js_node_create_ident_lit("s"))),
+                        lh_web_js_node_create_number(2U))),
+                lh_web_js_node_create_string_lit("px")))));
+    lh_web_js_node_push_statement(self,
+                                  lh_web_js_node_create_return(lh_web_js_node_push_back(
+                                      lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                          lh_web_js_node_create_ident_lit("c"), "getContext")),
+                                      lh_web_js_node_create_string_lit("2d"))));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_play(lh_void)
+{
+    lh_web_js_node_t *self = lh_web_js_node_create_function_declaration(lh_str_view_lit("play"));
+
+    lh_web_js_node_push_param(self, lh_str_view_lit("d"));
+    lh_web_js_node_push_statement(self,
+                                  lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                      lh_web_js_op_assign, lh_web_js_node_create_ident_lit("lastD"),
+                                      lh_web_js_node_create_ident_lit("d"))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+            lh_web_js_op_assign, lh_web_js_node_create_ident_lit("fw"),
+            lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("d"), "width"))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+            lh_web_js_op_assign, lh_web_js_node_create_ident_lit("fh"),
+            lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("d"), "height"))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_add_declarator(
+                  lh_web_js_node_add_declarator(
+                      lh_web_js_node_add_declarator(
+                          lh_web_js_node_add_declarator(
+                              lh_web_js_node_add_declarator(
+                                  lh_web_js_node_add_declarator(
+                                      lh_web_js_node_create_var(
+                                          lh_str_view_lit("x"),
+                                          lh_web_js_node_create_call(
+                                              lh_web_js_node_create_ident_lit("fit"))),
+                                      lh_str_view_lit("ops"),
+                                      lh_web_js_node_create_binary(
+                                          lh_web_js_op_or,
+                                          lh_web_js_node_create_member_lit(
+                                              lh_web_js_node_create_ident_lit("d"), "ops"),
+                                          lh_web_js_node_create_with_kind(lh_web_js_kind_array))),
+                                  lh_str_view_lit("i"), lh_null),
+                              lh_str_view_lit("op"), lh_null),
+                          lh_str_view_lit("s"), lh_null),
+                      lh_str_view_lit("fs"), lh_web_js_node_create_with_kind(lh_web_js_kind_null)),
+                  lh_str_view_lit("dpr"),
+                  lh_web_js_node_create_binary(
+                      lh_web_js_op_or,
+                      lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("window"),
+                                                       "devicePixelRatio"),
+                      lh_web_js_node_create_number(1U))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                  lh_web_js_node_push_back(
+                      lh_web_js_node_push_back(
+                          lh_web_js_node_push_back(
+                              lh_web_js_node_push_back(
+                                  lh_web_js_node_push_back(
+                                      lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                          lh_web_js_node_create_ident_lit("x"), "setTransform")),
+                                      lh_web_js_node_create_binary(
+                                          lh_web_js_op_mul, lh_web_js_node_create_ident_lit("cssS"),
+                                          lh_web_js_node_create_ident_lit("dpr"))),
+                                  lh_web_js_node_create_number(0U)),
+                              lh_web_js_node_create_number(0U)),
+                          lh_web_js_node_create_binary(lh_web_js_op_mul,
+                                                       lh_web_js_node_create_ident_lit("cssS"),
+                                                       lh_web_js_node_create_ident_lit("dpr"))),
+                      lh_web_js_node_create_number(0U)),
+                  lh_web_js_node_create_number(0U))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                  lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("pane3d")),
+                  lh_web_js_node_create_ident_lit("d"))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_for(
+            lh_web_js_node_create_assign(lh_web_js_op_assign, lh_web_js_node_create_ident_lit("i"),
+                                         lh_web_js_node_create_number(0U)),
+            lh_web_js_node_create_binary(
+                lh_web_js_op_lt, lh_web_js_node_create_ident_lit("i"),
+                lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("ops"), "length")),
+            lh_web_js_node_create_postfix(lh_web_js_op_increment,
+                                          lh_web_js_node_create_ident_lit("i")),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_push_statement(
+                    lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                    lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                        lh_web_js_op_assign, lh_web_js_node_create_ident_lit("op"),
+                        lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("ops"),
+                                                    lh_web_js_node_create_ident_lit("i"))))),
+                lh_web_js_node_push_back(
+                    lh_web_js_node_push_back(
+                        lh_web_js_node_push_back(
+                            lh_web_js_node_push_back(
+                                lh_web_js_node_push_back(
+                                    lh_web_js_node_create_switch(lh_web_js_node_create_member_lit(
+                                        lh_web_js_node_create_ident_lit("op"), "op")),
+                                    lh_web_js_node_push_statement(
+                                        lh_web_js_node_create_case(
+                                            lh_web_js_node_create_string_lit("fill_mask")),
+                                        lh_web_js_node_push_statement(
+                                            lh_web_js_node_push_statement(
+                                                lh_web_js_node_push_statement(
+                                                    lh_web_js_node_create_with_kind(
+                                                        lh_web_js_kind_block),
+                                                    lh_web_js_node_create_var(
+                                                        lh_str_view_lit("g"),
+                                                        lh_web_js_node_push_back(
+                                                            lh_web_js_node_create_call(
+                                                                lh_web_js_node_create_ident_lit(
+                                                                    "glyph")),
+                                                            lh_web_js_node_create_ident_lit(
+                                                                "op")))),
+                                                lh_web_js_node_create_if(
+                                                    lh_web_js_node_create_ident_lit("g"),
+                                                    lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                                                        lh_web_js_node_push_back(
+                                                            lh_web_js_node_push_back(
+                                                                lh_web_js_node_create_call(
+                                                                    lh_web_js_node_create_member_lit(
+                                                                        lh_web_js_node_create_ident_lit(
+                                                                            "x"),
+                                                                        "drawImage")),
+                                                                lh_web_js_node_create_ident_lit(
+                                                                    "g")),
+                                                            lh_web_js_node_create_index(
+                                                                lh_web_js_node_create_member_lit(
+                                                                    lh_web_js_node_create_ident_lit(
+                                                                        "op"),
+                                                                    "origin"),
+                                                                lh_web_js_node_create_number(0U))),
+                                                        lh_web_js_node_create_index(
+                                                            lh_web_js_node_create_member_lit(
+                                                                lh_web_js_node_create_ident_lit(
+                                                                    "op"),
+                                                                "origin"),
+                                                            lh_web_js_node_create_number(1U)))),
+                                                    lh_null)),
+                                            lh_web_js_node_create_with_kind(
+                                                lh_web_js_kind_break)))),
+                                lh_web_js_node_push_statement(
+                                    lh_web_js_node_push_statement(
+                                        lh_web_js_node_push_statement(
+                                            lh_web_js_node_push_statement(
+                                                lh_web_js_node_create_case(
+                                                    lh_web_js_node_create_string_lit("fill_rect")),
+                                                lh_web_js_node_create_expression(
+                                                    lh_web_js_node_create_assign(
+                                                        lh_web_js_op_assign,
+                                                        lh_web_js_node_create_ident_lit("s"),
+                                                        lh_web_js_node_push_back(
+                                                            lh_web_js_node_create_call(
+                                                                lh_web_js_node_create_ident_lit(
+                                                                    "rgba")),
+                                                            lh_web_js_node_create_member_lit(
+                                                                lh_web_js_node_create_ident_lit(
+                                                                    "op"),
+                                                                "color"))))),
+                                            lh_web_js_node_create_if(
+                                                lh_web_js_node_create_binary(
+                                                    lh_web_js_op_strict_ne,
+                                                    lh_web_js_node_create_ident_lit("s"),
+                                                    lh_web_js_node_create_ident_lit("fs")),
+                                                lh_web_js_node_push_statement(
+                                                    lh_web_js_node_push_statement(
+                                                        lh_web_js_node_create_with_kind(
+                                                            lh_web_js_kind_block),
+                                                        lh_web_js_node_create_expression(
+                                                            lh_web_js_node_create_assign(
+                                                                lh_web_js_op_assign,
+                                                                lh_web_js_node_create_member_lit(
+                                                                    lh_web_js_node_create_ident_lit(
+                                                                        "x"),
+                                                                    "fillStyle"),
+                                                                lh_web_js_node_create_ident_lit(
+                                                                    "s")))),
+                                                    lh_web_js_node_create_expression(
+                                                        lh_web_js_node_create_assign(
+                                                            lh_web_js_op_assign,
+                                                            lh_web_js_node_create_ident_lit("fs"),
+                                                            lh_web_js_node_create_ident_lit("s")))),
+                                                lh_null)),
+                                        lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                                            lh_web_js_node_push_back(
+                                                lh_web_js_node_push_back(
+                                                    lh_web_js_node_push_back(
+                                                        lh_web_js_node_create_call(
+                                                            lh_web_js_node_create_member_lit(
+                                                                lh_web_js_node_create_ident_lit(
+                                                                    "x"),
+                                                                "fillRect")),
+                                                        lh_web_js_node_create_index(
+                                                            lh_web_js_node_create_member_lit(
+                                                                lh_web_js_node_create_ident_lit(
+                                                                    "op"),
+                                                                "rect"),
+                                                            lh_web_js_node_create_number(0U))),
+                                                    lh_web_js_node_create_index(
+                                                        lh_web_js_node_create_member_lit(
+                                                            lh_web_js_node_create_ident_lit("op"),
+                                                            "rect"),
+                                                        lh_web_js_node_create_number(1U))),
+                                                lh_web_js_node_create_index(
+                                                    lh_web_js_node_create_member_lit(
+                                                        lh_web_js_node_create_ident_lit("op"),
+                                                        "rect"),
+                                                    lh_web_js_node_create_number(2U))),
+                                            lh_web_js_node_create_index(
+                                                lh_web_js_node_create_member_lit(
+                                                    lh_web_js_node_create_ident_lit("op"), "rect"),
+                                                lh_web_js_node_create_number(3U))))),
+                                    lh_web_js_node_create_with_kind(lh_web_js_kind_break))),
+                            lh_web_js_node_push_statement(
+                                lh_web_js_node_push_statement(
+                                    lh_web_js_node_push_statement(
+                                        lh_web_js_node_push_statement(
+                                            lh_web_js_node_push_statement(
+                                                lh_web_js_node_create_case(
+                                                    lh_web_js_node_create_string_lit(
+                                                        "fill_round_rect")),
+                                                lh_web_js_node_create_expression(
+                                                    lh_web_js_node_create_assign(
+                                                        lh_web_js_op_assign,
+                                                        lh_web_js_node_create_ident_lit("s"),
+                                                        lh_web_js_node_push_back(
+                                                            lh_web_js_node_create_call(
+                                                                lh_web_js_node_create_ident_lit(
+                                                                    "rgba")),
+                                                            lh_web_js_node_create_member_lit(
+                                                                lh_web_js_node_create_ident_lit(
+                                                                    "op"),
+                                                                "color"))))),
+                                            lh_web_js_node_create_if(
+                                                lh_web_js_node_create_binary(
+                                                    lh_web_js_op_strict_ne,
+                                                    lh_web_js_node_create_ident_lit("s"),
+                                                    lh_web_js_node_create_ident_lit("fs")),
+                                                lh_web_js_node_push_statement(
+                                                    lh_web_js_node_push_statement(
+                                                        lh_web_js_node_create_with_kind(
+                                                            lh_web_js_kind_block),
+                                                        lh_web_js_node_create_expression(
+                                                            lh_web_js_node_create_assign(
+                                                                lh_web_js_op_assign,
+                                                                lh_web_js_node_create_member_lit(
+                                                                    lh_web_js_node_create_ident_lit(
+                                                                        "x"),
+                                                                    "fillStyle"),
+                                                                lh_web_js_node_create_ident_lit(
+                                                                    "s")))),
+                                                    lh_web_js_node_create_expression(
+                                                        lh_web_js_node_create_assign(
+                                                            lh_web_js_op_assign,
+                                                            lh_web_js_node_create_ident_lit("fs"),
+                                                            lh_web_js_node_create_ident_lit("s")))),
+                                                lh_null)),
+                                        lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                                            lh_web_js_node_push_back(
+                                                lh_web_js_node_push_back(
+                                                    lh_web_js_node_create_call(
+                                                        lh_web_js_node_create_ident_lit("round")),
+                                                    lh_web_js_node_create_ident_lit("x")),
+                                                lh_web_js_node_create_member_lit(
+                                                    lh_web_js_node_create_ident_lit("op"), "rect")),
+                                            lh_web_js_node_create_binary(
+                                                lh_web_js_op_or,
+                                                lh_web_js_node_create_member_lit(
+                                                    lh_web_js_node_create_ident_lit("op"),
+                                                    "radius"),
+                                                lh_web_js_node_create_number(0U))))),
+                                    lh_web_js_node_create_expression(
+                                        lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                            lh_web_js_node_create_ident_lit("x"), "fill")))),
+                                lh_web_js_node_create_with_kind(lh_web_js_kind_break))),
+                        lh_web_js_node_push_statement(
+                            lh_web_js_node_push_statement(
+                                lh_web_js_node_push_statement(
+                                    lh_web_js_node_push_statement(
+                                        lh_web_js_node_create_case(
+                                            lh_web_js_node_create_string_lit("clear")),
+                                        lh_web_js_node_create_expression(
+                                            lh_web_js_node_create_assign(
+                                                lh_web_js_op_assign,
+                                                lh_web_js_node_create_ident_lit("s"),
+                                                lh_web_js_node_push_back(
+                                                    lh_web_js_node_create_call(
+                                                        lh_web_js_node_create_ident_lit("rgba")),
+                                                    lh_web_js_node_create_member_lit(
+                                                        lh_web_js_node_create_ident_lit("op"),
+                                                        "color"))))),
+                                    lh_web_js_node_create_if(
+                                        lh_web_js_node_create_binary(
+                                            lh_web_js_op_strict_ne,
+                                            lh_web_js_node_create_ident_lit("s"),
+                                            lh_web_js_node_create_ident_lit("fs")),
+                                        lh_web_js_node_push_statement(
+                                            lh_web_js_node_push_statement(
+                                                lh_web_js_node_create_with_kind(
+                                                    lh_web_js_kind_block),
+                                                lh_web_js_node_create_expression(
+                                                    lh_web_js_node_create_assign(
+                                                        lh_web_js_op_assign,
+                                                        lh_web_js_node_create_member_lit(
+                                                            lh_web_js_node_create_ident_lit("x"),
+                                                            "fillStyle"),
+                                                        lh_web_js_node_create_ident_lit("s")))),
+                                            lh_web_js_node_create_expression(
+                                                lh_web_js_node_create_assign(
+                                                    lh_web_js_op_assign,
+                                                    lh_web_js_node_create_ident_lit("fs"),
+                                                    lh_web_js_node_create_ident_lit("s")))),
+                                        lh_null)),
+                                lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                                    lh_web_js_node_push_back(
+                                        lh_web_js_node_push_back(
+                                            lh_web_js_node_push_back(
+                                                lh_web_js_node_create_call(
+                                                    lh_web_js_node_create_member_lit(
+                                                        lh_web_js_node_create_ident_lit("x"),
+                                                        "fillRect")),
+                                                lh_web_js_node_create_number(0U)),
+                                            lh_web_js_node_create_number(0U)),
+                                        lh_web_js_node_create_ident_lit("fw")),
+                                    lh_web_js_node_create_ident_lit("fh")))),
+                            lh_web_js_node_create_with_kind(lh_web_js_kind_break))),
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_push_statement(
+                            lh_web_js_node_push_statement(
+                                lh_web_js_node_push_statement(
+                                    lh_web_js_node_push_statement(
+                                        lh_web_js_node_push_statement(
+                                            lh_web_js_node_push_statement(
+                                                lh_web_js_node_push_statement(
+                                                    lh_web_js_node_push_statement(
+                                                        lh_web_js_node_push_statement(
+                                                            lh_web_js_node_push_statement(
+                                                                lh_web_js_node_create_case(
+                                                                    lh_web_js_node_create_string_lit(
+                                                                        "shadow")),
+                                                                lh_web_js_node_create_expression(
+                                                                    lh_web_js_node_create_call(
+                                                                        lh_web_js_node_create_member_lit(
+                                                                            lh_web_js_node_create_ident_lit(
+                                                                                "x"),
+                                                                            "save")))),
+                                                            lh_web_js_node_create_expression(
+                                                                lh_web_js_node_create_assign(
+                                                                    lh_web_js_op_assign,
+                                                                    lh_web_js_node_create_member_lit(
+                                                                        lh_web_js_node_create_ident_lit(
+                                                                            "x"),
+                                                                        "shadowColor"),
+                                                                    lh_web_js_node_push_back(
+                                                                        lh_web_js_node_create_call(
+                                                                            lh_web_js_node_create_ident_lit(
+                                                                                "rgba")),
+                                                                        lh_web_js_node_create_member_lit(
+                                                                            lh_web_js_node_create_ident_lit(
+                                                                                "op"),
+                                                                            "color"))))),
+                                                        lh_web_js_node_create_expression(
+                                                            lh_web_js_node_create_assign(
+                                                                lh_web_js_op_assign,
+                                                                lh_web_js_node_create_member_lit(
+                                                                    lh_web_js_node_create_ident_lit(
+                                                                        "x"),
+                                                                    "shadowBlur"),
+                                                                lh_web_js_node_create_binary(
+                                                                    lh_web_js_op_or,
+                                                                    lh_web_js_node_create_member_lit(
+                                                                        lh_web_js_node_create_ident_lit(
+                                                                            "op"),
+                                                                        "spread"),
+                                                                    lh_web_js_node_create_number(
+                                                                        0U))))),
+                                                    lh_web_js_node_create_expression(
+                                                        lh_web_js_node_create_assign(
+                                                            lh_web_js_op_assign,
+                                                            lh_web_js_node_create_member_lit(
+                                                                lh_web_js_node_create_ident_lit(
+                                                                    "x"),
+                                                                "shadowOffsetX"),
+                                                            lh_web_js_node_create_conditional(
+                                                                lh_web_js_node_create_member_lit(
+                                                                    lh_web_js_node_create_ident_lit(
+                                                                        "op"),
+                                                                    "offset"),
+                                                                lh_web_js_node_create_index(
+                                                                    lh_web_js_node_create_member_lit(
+                                                                        lh_web_js_node_create_ident_lit(
+                                                                            "op"),
+                                                                        "offset"),
+                                                                    lh_web_js_node_create_number(
+                                                                        0U)),
+                                                                lh_web_js_node_create_number(
+                                                                    0U))))),
+                                                lh_web_js_node_create_expression(
+                                                    lh_web_js_node_create_assign(
+                                                        lh_web_js_op_assign,
+                                                        lh_web_js_node_create_member_lit(
+                                                            lh_web_js_node_create_ident_lit("x"),
+                                                            "shadowOffsetY"),
+                                                        lh_web_js_node_create_conditional(
+                                                            lh_web_js_node_create_member_lit(
+                                                                lh_web_js_node_create_ident_lit(
+                                                                    "op"),
+                                                                "offset"),
+                                                            lh_web_js_node_create_index(
+                                                                lh_web_js_node_create_member_lit(
+                                                                    lh_web_js_node_create_ident_lit(
+                                                                        "op"),
+                                                                    "offset"),
+                                                                lh_web_js_node_create_number(1U)),
+                                                            lh_web_js_node_create_number(0U))))),
+                                            lh_web_js_node_create_expression(
+                                                lh_web_js_node_create_assign(
+                                                    lh_web_js_op_assign,
+                                                    lh_web_js_node_create_member_lit(
+                                                        lh_web_js_node_create_ident_lit("x"),
+                                                        "fillStyle"),
+                                                    lh_web_js_node_push_back(
+                                                        lh_web_js_node_create_call(
+                                                            lh_web_js_node_create_ident_lit(
+                                                                "rgba")),
+                                                        lh_web_js_node_create_member_lit(
+                                                            lh_web_js_node_create_ident_lit("op"),
+                                                            "color"))))),
+                                        lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                                            lh_web_js_node_push_back(
+                                                lh_web_js_node_push_back(
+                                                    lh_web_js_node_create_call(
+                                                        lh_web_js_node_create_ident_lit("round")),
+                                                    lh_web_js_node_create_ident_lit("x")),
+                                                lh_web_js_node_create_member_lit(
+                                                    lh_web_js_node_create_ident_lit("op"), "rect")),
+                                            lh_web_js_node_create_binary(
+                                                lh_web_js_op_or,
+                                                lh_web_js_node_create_member_lit(
+                                                    lh_web_js_node_create_ident_lit("op"),
+                                                    "radius"),
+                                                lh_web_js_node_create_number(0U))))),
+                                    lh_web_js_node_create_expression(
+                                        lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                            lh_web_js_node_create_ident_lit("x"), "fill")))),
+                                lh_web_js_node_create_expression(
+                                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                        lh_web_js_node_create_ident_lit("x"), "restore")))),
+                            lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                lh_web_js_op_assign, lh_web_js_node_create_ident_lit("fs"),
+                                lh_web_js_node_create_with_kind(lh_web_js_kind_null)))),
+                        lh_web_js_node_create_with_kind(lh_web_js_kind_break))))));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_sized(lh_void)
+{
+    lh_web_js_node_t *self = lh_web_js_node_create_function_declaration(lh_str_view_lit("sized"));
+
+    lh_web_js_node_push_param(self, lh_str_view_lit("d"));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_if(
+                  lh_web_js_node_create_binary(
+                      lh_web_js_op_or,
+                      lh_web_js_node_create_binary(lh_web_js_op_strict_ne,
+                                                   lh_web_js_node_create_ident_lit("scaleMode"),
+                                                   lh_web_js_node_create_string_lit("layout")),
+                      lh_web_js_node_create_unary(lh_web_js_op_not,
+                                                  lh_web_js_node_create_ident_lit("lastZW"))),
+                  lh_web_js_node_push_statement(
+                      lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                      lh_web_js_node_create_return(lh_web_js_node_create_number(1U))),
+                  lh_null));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_if(
+            lh_web_js_node_create_binary(
+                lh_web_js_op_and,
+                lh_web_js_node_create_binary(
+                    lh_web_js_op_and,
+                    lh_web_js_node_create_binary(lh_web_js_op_strict_eq,
+                                                 lh_web_js_node_create_member_lit(
+                                                     lh_web_js_node_create_ident_lit("d"), "width"),
+                                                 lh_web_js_node_create_number(980U)),
+                    lh_web_js_node_create_binary(
+                        lh_web_js_op_strict_eq,
+                        lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("d"),
+                                                         "height"),
+                        lh_web_js_node_create_number(620U))),
+                lh_web_js_node_create_binary(
+                    lh_web_js_op_or,
+                    lh_web_js_node_create_binary(lh_web_js_op_strict_ne,
+                                                 lh_web_js_node_create_ident_lit("lastZW"),
+                                                 lh_web_js_node_create_number(980U)),
+                    lh_web_js_node_create_binary(lh_web_js_op_strict_ne,
+                                                 lh_web_js_node_create_ident_lit("lastZH"),
+                                                 lh_web_js_node_create_number(620U)))),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                lh_web_js_node_create_return(lh_web_js_node_create_number(0U))),
+            lh_null));
+    lh_web_js_node_push_statement(self,
+                                  lh_web_js_node_create_return(lh_web_js_node_create_number(1U)));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_show(lh_void)
+{
+    lh_web_js_node_t *self = lh_web_js_node_create_function_declaration(lh_str_view_lit("show"));
+
+    lh_web_js_node_push_param(self, lh_str_view_lit("d"));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                  lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("ingest")),
+                  lh_web_js_node_create_ident_lit("d"))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_if(
+            lh_web_js_node_create_unary(
+                lh_web_js_op_not,
+                lh_web_js_node_push_back(
+                    lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("sized")),
+                    lh_web_js_node_create_ident_lit("d"))),
+            lh_web_js_node_push_statement(lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                                          lh_web_js_node_create_return(lh_null)),
+            lh_null));
+    lh_web_js_node_push_statement(self,
+                                  lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                      lh_web_js_op_assign, lh_web_js_node_create_ident_lit("pend"),
+                                      lh_web_js_node_create_ident_lit("d"))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_if(
+            lh_web_js_node_create_unary(lh_web_js_op_not, lh_web_js_node_create_ident_lit("raf")),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                    lh_web_js_op_assign, lh_web_js_node_create_ident_lit("raf"),
+                    lh_web_js_node_push_back(
+                        lh_web_js_node_create_call(
+                            lh_web_js_node_create_ident_lit("requestAnimationFrame")),
+                        lh_web_js_node_push_statement(
+                            lh_web_js_node_push_statement(
+                                lh_web_js_node_push_statement(
+                                    lh_web_js_node_push_statement(
+                                        lh_web_js_node_create_function_expression(),
+                                        lh_web_js_node_create_expression(
+                                            lh_web_js_node_create_assign(
+                                                lh_web_js_op_assign,
+                                                lh_web_js_node_create_ident_lit("raf"),
+                                                lh_web_js_node_create_number(0U)))),
+                                    lh_web_js_node_create_var(
+                                        lh_str_view_lit("p"),
+                                        lh_web_js_node_create_ident_lit("pend"))),
+                                lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                    lh_web_js_op_assign, lh_web_js_node_create_ident_lit("pend"),
+                                    lh_web_js_node_create_with_kind(lh_web_js_kind_null)))),
+                            lh_web_js_node_create_if(
+                                lh_web_js_node_create_ident_lit("p"),
+                                lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                                    lh_web_js_node_create_call(
+                                        lh_web_js_node_create_ident_lit("play")),
+                                    lh_web_js_node_create_ident_lit("p"))),
+                                lh_null)))))),
+            lh_null));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_pos(lh_void)
+{
+    lh_web_js_node_t *self = lh_web_js_node_create_function_declaration(lh_str_view_lit("pos"));
+
+    lh_web_js_node_push_param(self, lh_str_view_lit("e"));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_add_declarator(
+                  lh_web_js_node_create_var(
+                      lh_str_view_lit("c"),
+                      lh_web_js_node_push_back(
+                          lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                              lh_web_js_node_create_ident_lit("document"), "getElementById")),
+                          lh_web_js_node_create_string_lit("c"))),
+                  lh_str_view_lit("r"),
+                  lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                      lh_web_js_node_create_ident_lit("c"), "getBoundingClientRect"))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_return(lh_web_js_node_push_back(
+                  lh_web_js_node_push_back(
+                      lh_web_js_node_create_with_kind(lh_web_js_kind_object),
+                      lh_web_js_node_create_property(
+                          lh_str_view_lit("x"),
+                          lh_web_js_node_push_back(
+                              lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                  lh_web_js_node_create_ident_lit("Math"), "round")),
+                              lh_web_js_node_create_binary(
+                                  lh_web_js_op_div,
+                                  lh_web_js_node_create_binary(
+                                      lh_web_js_op_mul,
+                                      lh_web_js_node_create_binary(
+                                          lh_web_js_op_sub,
+                                          lh_web_js_node_create_member_lit(
+                                              lh_web_js_node_create_ident_lit("e"), "clientX"),
+                                          lh_web_js_node_create_member_lit(
+                                              lh_web_js_node_create_ident_lit("r"), "left")),
+                                      lh_web_js_node_create_ident_lit("fw")),
+                                  lh_web_js_node_create_member_lit(
+                                      lh_web_js_node_create_ident_lit("r"), "width"))))),
+                  lh_web_js_node_create_property(
+                      lh_str_view_lit("y"),
+                      lh_web_js_node_push_back(
+                          lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                              lh_web_js_node_create_ident_lit("Math"), "round")),
+                          lh_web_js_node_create_binary(
+                              lh_web_js_op_div,
+                              lh_web_js_node_create_binary(
+                                  lh_web_js_op_mul,
+                                  lh_web_js_node_create_binary(
+                                      lh_web_js_op_sub,
+                                      lh_web_js_node_create_member_lit(
+                                          lh_web_js_node_create_ident_lit("e"), "clientY"),
+                                      lh_web_js_node_create_member_lit(
+                                          lh_web_js_node_create_ident_lit("r"), "top")),
+                                  lh_web_js_node_create_ident_lit("fh")),
+                              lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("r"),
+                                                               "height")))))));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_view_size(lh_void)
+{
+    lh_web_js_node_t *self =
+        lh_web_js_node_create_function_declaration(lh_str_view_lit("viewSize"));
+
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_var(lh_str_view_lit("w"),
+                                  lh_web_js_node_create_binary(
+                                      lh_web_js_op_bit_or,
+                                      lh_web_js_node_create_member_lit(
+                                          lh_web_js_node_create_ident_lit("window"), "innerWidth"),
+                                      lh_web_js_node_create_number(0U))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_var(lh_str_view_lit("h"),
+                                  lh_web_js_node_create_binary(
+                                      lh_web_js_op_bit_or,
+                                      lh_web_js_node_create_member_lit(
+                                          lh_web_js_node_create_ident_lit("window"), "innerHeight"),
+                                      lh_web_js_node_create_number(0U))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_if(lh_web_js_node_create_binary(lh_web_js_op_lt,
+                                                              lh_web_js_node_create_ident_lit("w"),
+                                                              lh_web_js_node_create_number(1U)),
+                                 lh_web_js_node_push_statement(
+                                     lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                                     lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                         lh_web_js_op_assign, lh_web_js_node_create_ident_lit("w"),
+                                         lh_web_js_node_create_number(1U)))),
+                                 lh_null));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_if(lh_web_js_node_create_binary(lh_web_js_op_lt,
+                                                              lh_web_js_node_create_ident_lit("h"),
+                                                              lh_web_js_node_create_number(1U)),
+                                 lh_web_js_node_push_statement(
+                                     lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                                     lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                         lh_web_js_op_assign, lh_web_js_node_create_ident_lit("h"),
+                                         lh_web_js_node_create_number(1U)))),
+                                 lh_null));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_return(lh_web_js_node_push_back(
+                  lh_web_js_node_push_back(
+                      lh_web_js_node_create_with_kind(lh_web_js_kind_object),
+                      lh_web_js_node_create_property(lh_str_view_lit("w"),
+                                                     lh_web_js_node_create_ident_lit("w"))),
+                  lh_web_js_node_create_property(lh_str_view_lit("h"),
+                                                 lh_web_js_node_create_ident_lit("h")))));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_report_size(lh_void)
+{
+    lh_web_js_node_t *self =
+        lh_web_js_node_create_function_declaration(lh_str_view_lit("reportSize"));
+
+    lh_web_js_node_push_param(self, lh_str_view_lit("force"));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_if(
+            lh_web_js_node_create_binary(lh_web_js_op_strict_ne,
+                                         lh_web_js_node_create_ident_lit("scaleMode"),
+                                         lh_web_js_node_create_string_lit("layout")),
+            lh_web_js_node_push_statement(lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                                          lh_web_js_node_create_return(lh_null)),
+            lh_null));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_var(
+                  lh_str_view_lit("s"),
+                  lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("viewSize"))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_if(
+            lh_web_js_node_create_binary(
+                lh_web_js_op_and,
+                lh_web_js_node_create_unary(lh_web_js_op_not,
+                                            lh_web_js_node_create_ident_lit("force")),
+                lh_web_js_node_create_binary(
+                    lh_web_js_op_and,
+                    lh_web_js_node_create_binary(
+                        lh_web_js_op_strict_eq,
+                        lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("s"), "w"),
+                        lh_web_js_node_create_ident_lit("lastZW")),
+                    lh_web_js_node_create_binary(
+                        lh_web_js_op_strict_eq,
+                        lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("s"), "h"),
+                        lh_web_js_node_create_ident_lit("lastZH")))),
+            lh_web_js_node_push_statement(lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                                          lh_web_js_node_create_return(lh_null)),
+            lh_null));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                  lh_web_js_op_assign, lh_web_js_node_create_ident_lit("lastZW"),
+                  lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("s"), "w"))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                  lh_web_js_op_assign, lh_web_js_node_create_ident_lit("lastZH"),
+                  lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("s"), "h"))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_expression(lh_web_js_node_push_back(
+            lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("emit")),
+            lh_web_js_node_create_binary(
+                lh_web_js_op_add,
+                lh_web_js_node_create_binary(
+                    lh_web_js_op_add,
+                    lh_web_js_node_create_binary(lh_web_js_op_add,
+                                                 lh_web_js_node_create_string_lit("z "),
+                                                 lh_web_js_node_create_member_lit(
+                                                     lh_web_js_node_create_ident_lit("s"), "w")),
+                    lh_web_js_node_create_string_lit(" ")),
+                lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("s"), "h")))));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_on_resize(lh_void)
+{
+    return lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+        lh_web_js_op_assign,
+        lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("window"), "onresize"),
+        lh_web_js_node_push_statement(
+            lh_web_js_node_create_function_expression(),
+            lh_web_js_node_create_if(
+                lh_web_js_node_create_binary(lh_web_js_op_strict_eq,
+                                             lh_web_js_node_create_ident_lit("scaleMode"),
+                                             lh_web_js_node_create_string_lit("layout")),
+                lh_web_js_node_create_expression(
+                    lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("reportSize"))),
+                lh_web_js_node_create_if(
+                    lh_web_js_node_create_ident_lit("lastD"),
+                    lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                        lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("play")),
+                        lh_web_js_node_create_ident_lit("lastD"))),
+                    lh_null)))));
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_fetch_state(lh_void)
+{
+    lh_web_js_node_t *self =
+        lh_web_js_node_create_var(lh_str_view_lit("busy"), lh_web_js_node_create_number(0U));
+
+    lh_web_js_node_add_declarator(
+        self, lh_str_view_lit("rev"),
+        lh_web_js_node_create_unary(lh_web_js_op_minus, lh_web_js_node_create_number(1U)));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_load(lh_void)
+{
+    lh_web_js_node_t *self = lh_web_js_node_create_function_declaration(lh_str_view_lit("load"));
+
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_if(
+                  lh_web_js_node_create_ident_lit("busy"),
+                  lh_web_js_node_push_statement(
+                      lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                      lh_web_js_node_create_return(lh_web_js_node_create_ident_lit("busy"))),
+                  lh_null));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+            lh_web_js_op_assign, lh_web_js_node_create_ident_lit("busy"),
+            lh_web_js_node_push_back(
+                lh_web_js_node_push_back(
+                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                        lh_web_js_node_push_back(
+                            lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                lh_web_js_node_push_back(
+                                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                        lh_web_js_node_push_back(
+                                            lh_web_js_node_create_call(
+                                                lh_web_js_node_create_ident_lit("fetch")),
+                                            lh_web_js_node_create_string_lit("/ui.json")),
+                                        "then")),
+                                    lh_web_js_node_push_statement(
+                                        lh_web_js_node_push_param(
+                                            lh_web_js_node_create_function_expression(),
+                                            lh_str_view_lit("r")),
+                                        lh_web_js_node_create_return(lh_web_js_node_create_call(
+                                            lh_web_js_node_create_member_lit(
+                                                lh_web_js_node_create_ident_lit("r"), "json"))))),
+                                "then")),
+                            lh_web_js_node_create_ident_lit("show")),
+                        "then")),
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_create_function_expression(),
+                        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                            lh_web_js_op_assign, lh_web_js_node_create_ident_lit("busy"),
+                            lh_web_js_node_create_number(0U))))),
+                lh_web_js_node_push_statement(
+                    lh_web_js_node_create_function_expression(),
+                    lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                        lh_web_js_op_assign, lh_web_js_node_create_ident_lit("busy"),
+                        lh_web_js_node_create_number(0U))))))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_return(lh_web_js_node_create_ident_lit("busy")));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_poll(lh_void)
+{
+    lh_web_js_node_t *self = lh_web_js_node_create_function_declaration(lh_str_view_lit("poll"));
+
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_expression(lh_web_js_node_push_back(
+            lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                lh_web_js_node_push_back(
+                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                        lh_web_js_node_push_back(
+                            lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("fetch")),
+                            lh_web_js_node_create_string_lit("/ui.rev")),
+                        "then")),
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_push_param(lh_web_js_node_create_function_expression(),
+                                                  lh_str_view_lit("r")),
+                        lh_web_js_node_create_return(
+                            lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                lh_web_js_node_create_ident_lit("r"), "text"))))),
+                "then")),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_push_statement(
+                    lh_web_js_node_push_param(lh_web_js_node_create_function_expression(),
+                                              lh_str_view_lit("t")),
+                    lh_web_js_node_create_var(
+                        lh_str_view_lit("n"),
+                        lh_web_js_node_create_unary(lh_web_js_op_plus,
+                                                    lh_web_js_node_create_ident_lit("t")))),
+                lh_web_js_node_create_if(
+                    lh_web_js_node_create_binary(lh_web_js_op_strict_ne,
+                                                 lh_web_js_node_create_ident_lit("n"),
+                                                 lh_web_js_node_create_ident_lit("rev")),
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_push_statement(
+                            lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                            lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                lh_web_js_op_assign, lh_web_js_node_create_ident_lit("rev"),
+                                lh_web_js_node_create_ident_lit("n")))),
+                        lh_web_js_node_create_expression(
+                            lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("load")))),
+                    lh_null)))));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_emit(lh_void)
+{
+    lh_web_js_node_t *self = lh_web_js_node_create_function_declaration(lh_str_view_lit("emit"));
+
+    lh_web_js_node_push_param(self, lh_str_view_lit("line"));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_if(
+                  lh_web_js_node_create_binary(
+                      lh_web_js_op_and, lh_web_js_node_create_ident_lit("sock"),
+                      lh_web_js_node_create_binary(
+                          lh_web_js_op_strict_eq,
+                          lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("sock"),
+                                                           "readyState"),
+                          lh_web_js_node_create_number(1U))),
+                  lh_web_js_node_push_statement(
+                      lh_web_js_node_push_statement(
+                          lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                          lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                              lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                  lh_web_js_node_create_ident_lit("sock"), "send")),
+                              lh_web_js_node_create_ident_lit("line")))),
+                      lh_web_js_node_create_return(lh_null)),
+                  lh_null));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_var(
+            lh_str_view_lit("p"),
+            lh_web_js_node_push_back(lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                         lh_web_js_node_create_ident_lit("line"), "split")),
+                                     lh_web_js_node_create_string_lit(" "))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_if(
+            lh_web_js_node_create_binary(
+                lh_web_js_op_strict_eq,
+                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                            lh_web_js_node_create_number(0U)),
+                lh_web_js_node_create_string_lit("p")),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                lh_web_js_node_create_return(lh_web_js_node_push_back(
+                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                        lh_web_js_node_push_back(
+                            lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("fetch")),
+                            lh_web_js_node_create_binary(
+                                lh_web_js_op_add,
+                                lh_web_js_node_create_binary(
+                                    lh_web_js_op_add,
+                                    lh_web_js_node_create_binary(
+                                        lh_web_js_op_add,
+                                        lh_web_js_node_create_string_lit("/ui/press?x="),
+                                        lh_web_js_node_create_index(
+                                            lh_web_js_node_create_ident_lit("p"),
+                                            lh_web_js_node_create_number(1U))),
+                                    lh_web_js_node_create_string_lit("&y=")),
+                                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                                            lh_web_js_node_create_number(2U)))),
+                        "then")),
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_push_statement(
+                            lh_web_js_node_create_function_expression(),
+                            lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                lh_web_js_op_assign, lh_web_js_node_create_ident_lit("rev"),
+                                lh_web_js_node_create_unary(lh_web_js_op_minus,
+                                                            lh_web_js_node_create_number(1U))))),
+                        lh_web_js_node_create_return(lh_web_js_node_create_call(
+                            lh_web_js_node_create_ident_lit("load"))))))),
+            lh_null));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_if(
+            lh_web_js_node_create_binary(
+                lh_web_js_op_strict_eq,
+                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                            lh_web_js_node_create_number(0U)),
+                lh_web_js_node_create_string_lit("r")),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                lh_web_js_node_create_return(lh_web_js_node_push_back(
+                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                        lh_web_js_node_push_back(
+                            lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("fetch")),
+                            lh_web_js_node_create_binary(
+                                lh_web_js_op_add,
+                                lh_web_js_node_create_binary(
+                                    lh_web_js_op_add,
+                                    lh_web_js_node_create_binary(
+                                        lh_web_js_op_add,
+                                        lh_web_js_node_create_string_lit("/ui/release?x="),
+                                        lh_web_js_node_create_index(
+                                            lh_web_js_node_create_ident_lit("p"),
+                                            lh_web_js_node_create_number(1U))),
+                                    lh_web_js_node_create_string_lit("&y=")),
+                                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                                            lh_web_js_node_create_number(2U)))),
+                        "then")),
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_push_statement(
+                            lh_web_js_node_create_function_expression(),
+                            lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                lh_web_js_op_assign, lh_web_js_node_create_ident_lit("rev"),
+                                lh_web_js_node_create_unary(lh_web_js_op_minus,
+                                                            lh_web_js_node_create_number(1U))))),
+                        lh_web_js_node_create_return(lh_web_js_node_create_call(
+                            lh_web_js_node_create_ident_lit("load"))))))),
+            lh_null));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_if(
+            lh_web_js_node_create_binary(
+                lh_web_js_op_strict_eq,
+                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                            lh_web_js_node_create_number(0U)),
+                lh_web_js_node_create_string_lit("w")),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                lh_web_js_node_create_return(lh_web_js_node_push_back(
+                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                        lh_web_js_node_push_back(
+                            lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("fetch")),
+                            lh_web_js_node_create_binary(
+                                lh_web_js_op_add,
+                                lh_web_js_node_create_binary(
+                                    lh_web_js_op_add,
+                                    lh_web_js_node_create_binary(
+                                        lh_web_js_op_add,
+                                        lh_web_js_node_create_binary(
+                                            lh_web_js_op_add,
+                                            lh_web_js_node_create_binary(
+                                                lh_web_js_op_add,
+                                                lh_web_js_node_create_binary(
+                                                    lh_web_js_op_add,
+                                                    lh_web_js_node_create_binary(
+                                                        lh_web_js_op_add,
+                                                        lh_web_js_node_create_string_lit(
+                                                            "/ui/wheel?x="),
+                                                        lh_web_js_node_create_index(
+                                                            lh_web_js_node_create_ident_lit("p"),
+                                                            lh_web_js_node_create_number(1U))),
+                                                    lh_web_js_node_create_string_lit("&y=")),
+                                                lh_web_js_node_create_index(
+                                                    lh_web_js_node_create_ident_lit("p"),
+                                                    lh_web_js_node_create_number(2U))),
+                                            lh_web_js_node_create_string_lit("&dx=")),
+                                        lh_web_js_node_create_index(
+                                            lh_web_js_node_create_ident_lit("p"),
+                                            lh_web_js_node_create_number(3U))),
+                                    lh_web_js_node_create_string_lit("&dy=")),
+                                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                                            lh_web_js_node_create_number(4U)))),
+                        "then")),
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_push_statement(
+                            lh_web_js_node_create_function_expression(),
+                            lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                lh_web_js_op_assign, lh_web_js_node_create_ident_lit("rev"),
+                                lh_web_js_node_create_unary(lh_web_js_op_minus,
+                                                            lh_web_js_node_create_number(1U))))),
+                        lh_web_js_node_create_return(lh_web_js_node_create_call(
+                            lh_web_js_node_create_ident_lit("load"))))))),
+            lh_null));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_if(
+            lh_web_js_node_create_binary(
+                lh_web_js_op_strict_eq,
+                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                            lh_web_js_node_create_number(0U)),
+                lh_web_js_node_create_string_lit("m")),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                lh_web_js_node_create_return(lh_web_js_node_push_back(
+                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                        lh_web_js_node_push_back(
+                            lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("fetch")),
+                            lh_web_js_node_create_binary(
+                                lh_web_js_op_add,
+                                lh_web_js_node_create_binary(
+                                    lh_web_js_op_add,
+                                    lh_web_js_node_create_binary(
+                                        lh_web_js_op_add,
+                                        lh_web_js_node_create_string_lit("/ui/move?x="),
+                                        lh_web_js_node_create_index(
+                                            lh_web_js_node_create_ident_lit("p"),
+                                            lh_web_js_node_create_number(1U))),
+                                    lh_web_js_node_create_string_lit("&y=")),
+                                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                                            lh_web_js_node_create_number(2U)))),
+                        "then")),
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_push_statement(
+                            lh_web_js_node_create_function_expression(),
+                            lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                lh_web_js_op_assign, lh_web_js_node_create_ident_lit("rev"),
+                                lh_web_js_node_create_unary(lh_web_js_op_minus,
+                                                            lh_web_js_node_create_number(1U))))),
+                        lh_web_js_node_create_return(lh_web_js_node_create_call(
+                            lh_web_js_node_create_ident_lit("load"))))))),
+            lh_null));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_if(
+            lh_web_js_node_create_binary(
+                lh_web_js_op_strict_eq,
+                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                            lh_web_js_node_create_number(0U)),
+                lh_web_js_node_create_string_lit("k")),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                lh_web_js_node_create_return(lh_web_js_node_push_back(
+                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                        lh_web_js_node_push_back(
+                            lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("fetch")),
+                            lh_web_js_node_create_binary(
+                                lh_web_js_op_add,
+                                lh_web_js_node_create_binary(
+                                    lh_web_js_op_add,
+                                    lh_web_js_node_create_string_lit("/ui/key?k="),
+                                    lh_web_js_node_create_index(
+                                        lh_web_js_node_create_ident_lit("p"),
+                                        lh_web_js_node_create_number(1U))),
+                                lh_web_js_node_create_conditional(
+                                    lh_web_js_node_create_binary(
+                                        lh_web_js_op_gt,
+                                        lh_web_js_node_create_member_lit(
+                                            lh_web_js_node_create_ident_lit("p"), "length"),
+                                        lh_web_js_node_create_number(2U)),
+                                    lh_web_js_node_create_binary(
+                                        lh_web_js_op_add, lh_web_js_node_create_string_lit("&p="),
+                                        lh_web_js_node_create_index(
+                                            lh_web_js_node_create_ident_lit("p"),
+                                            lh_web_js_node_create_number(2U))),
+                                    lh_web_js_node_create_string_lit("")))),
+                        "then")),
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_push_statement(
+                            lh_web_js_node_create_function_expression(),
+                            lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                lh_web_js_op_assign, lh_web_js_node_create_ident_lit("rev"),
+                                lh_web_js_node_create_unary(lh_web_js_op_minus,
+                                                            lh_web_js_node_create_number(1U))))),
+                        lh_web_js_node_create_return(lh_web_js_node_create_call(
+                            lh_web_js_node_create_ident_lit("load"))))))),
+            lh_null));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_if(
+            lh_web_js_node_create_binary(
+                lh_web_js_op_strict_eq,
+                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                            lh_web_js_node_create_number(0U)),
+                lh_web_js_node_create_string_lit("t")),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                lh_web_js_node_create_return(lh_web_js_node_push_back(
+                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                        lh_web_js_node_push_back(
+                            lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("fetch")),
+                            lh_web_js_node_create_binary(
+                                lh_web_js_op_add, lh_web_js_node_create_string_lit("/ui/text?c="),
+                                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                                            lh_web_js_node_create_number(1U)))),
+                        "then")),
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_push_statement(
+                            lh_web_js_node_create_function_expression(),
+                            lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                lh_web_js_op_assign, lh_web_js_node_create_ident_lit("rev"),
+                                lh_web_js_node_create_unary(lh_web_js_op_minus,
+                                                            lh_web_js_node_create_number(1U))))),
+                        lh_web_js_node_create_return(lh_web_js_node_create_call(
+                            lh_web_js_node_create_ident_lit("load"))))))),
+            lh_null));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_if(
+            lh_web_js_node_create_binary(
+                lh_web_js_op_strict_eq,
+                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                            lh_web_js_node_create_number(0U)),
+                lh_web_js_node_create_string_lit("z")),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                lh_web_js_node_create_return(lh_web_js_node_push_back(
+                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                        lh_web_js_node_push_back(
+                            lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("fetch")),
+                            lh_web_js_node_create_binary(
+                                lh_web_js_op_add,
+                                lh_web_js_node_create_binary(
+                                    lh_web_js_op_add,
+                                    lh_web_js_node_create_binary(
+                                        lh_web_js_op_add,
+                                        lh_web_js_node_create_string_lit("/ui/size?w="),
+                                        lh_web_js_node_create_index(
+                                            lh_web_js_node_create_ident_lit("p"),
+                                            lh_web_js_node_create_number(1U))),
+                                    lh_web_js_node_create_string_lit("&h=")),
+                                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                                            lh_web_js_node_create_number(2U)))),
+                        "then")),
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_push_statement(
+                            lh_web_js_node_create_function_expression(),
+                            lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                lh_web_js_op_assign, lh_web_js_node_create_ident_lit("rev"),
+                                lh_web_js_node_create_unary(lh_web_js_op_minus,
+                                                            lh_web_js_node_create_number(1U))))),
+                        lh_web_js_node_create_return(lh_web_js_node_create_call(
+                            lh_web_js_node_create_ident_lit("load"))))))),
+            lh_null));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_canvas(lh_void)
+{
+    lh_web_js_node_t *self = lh_web_js_node_create_var(
+        lh_str_view_lit("c"),
+        lh_web_js_node_push_back(
+            lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                lh_web_js_node_create_ident_lit("document"), "getElementById")),
+            lh_web_js_node_create_string_lit("c")));
+
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_pointer_state(lh_void)
+{
+    lh_web_js_node_t *self =
+        lh_web_js_node_create_var(lh_str_view_lit("held"), lh_web_js_node_create_number(0U));
+
+    lh_web_js_node_add_declarator(self, lh_str_view_lit("mv"),
+                                  lh_web_js_node_create_with_kind(lh_web_js_kind_null));
+    lh_web_js_node_add_declarator(self, lh_str_view_lit("mvRaf"), lh_web_js_node_create_number(0U));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_flush_move(lh_void)
+{
+    lh_web_js_node_t *self =
+        lh_web_js_node_create_function_declaration(lh_str_view_lit("flushMove"));
+
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_if(
+                  lh_web_js_node_create_ident_lit("mvRaf"),
+                  lh_web_js_node_push_statement(
+                      lh_web_js_node_push_statement(
+                          lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                          lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                              lh_web_js_node_create_call(
+                                  lh_web_js_node_create_ident_lit("cancelAnimationFrame")),
+                              lh_web_js_node_create_ident_lit("mvRaf")))),
+                      lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                          lh_web_js_op_assign, lh_web_js_node_create_ident_lit("mvRaf"),
+                          lh_web_js_node_create_number(0U)))),
+                  lh_null));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_if(
+                  lh_web_js_node_create_ident_lit("mv"),
+                  lh_web_js_node_push_statement(
+                      lh_web_js_node_push_statement(
+                          lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                          lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                              lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("emit")),
+                              lh_web_js_node_create_binary(
+                                  lh_web_js_op_add,
+                                  lh_web_js_node_create_binary(
+                                      lh_web_js_op_add,
+                                      lh_web_js_node_create_binary(
+                                          lh_web_js_op_add, lh_web_js_node_create_string_lit("m "),
+                                          lh_web_js_node_create_member_lit(
+                                              lh_web_js_node_create_ident_lit("mv"), "x")),
+                                      lh_web_js_node_create_string_lit(" ")),
+                                  lh_web_js_node_create_member_lit(
+                                      lh_web_js_node_create_ident_lit("mv"), "y"))))),
+                      lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                          lh_web_js_op_assign, lh_web_js_node_create_ident_lit("mv"),
+                          lh_web_js_node_create_with_kind(lh_web_js_kind_null)))),
+                  lh_null));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_on_mouse_down(lh_void)
+{
+    return lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+        lh_web_js_op_assign,
+        lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("c"), "onmousedown"),
+        lh_web_js_node_push_statement(
+            lh_web_js_node_push_statement(
+                lh_web_js_node_push_statement(
+                    lh_web_js_node_push_param(lh_web_js_node_create_function_expression(),
+                                              lh_str_view_lit("e")),
+                    lh_web_js_node_create_var(
+                        lh_str_view_lit("p"),
+                        lh_web_js_node_push_back(
+                            lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("pos")),
+                            lh_web_js_node_create_ident_lit("e")))),
+                lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                    lh_web_js_op_assign, lh_web_js_node_create_ident_lit("held"),
+                    lh_web_js_node_create_number(1U)))),
+            lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("emit")),
+                lh_web_js_node_create_binary(
+                    lh_web_js_op_add,
+                    lh_web_js_node_create_binary(
+                        lh_web_js_op_add,
+                        lh_web_js_node_create_binary(
+                            lh_web_js_op_add, lh_web_js_node_create_string_lit("p "),
+                            lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("p"),
+                                                             "x")),
+                        lh_web_js_node_create_string_lit(" ")),
+                    lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("p"),
+                                                     "y")))))));
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_on_mouse_up(lh_void)
+{
+    return lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+        lh_web_js_op_assign,
+        lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("window"), "onmouseup"),
+        lh_web_js_node_push_statement(
+            lh_web_js_node_push_statement(
+                lh_web_js_node_push_statement(
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_push_statement(
+                            lh_web_js_node_push_param(lh_web_js_node_create_function_expression(),
+                                                      lh_str_view_lit("e")),
+                            lh_web_js_node_create_if(
+                                lh_web_js_node_create_unary(
+                                    lh_web_js_op_not, lh_web_js_node_create_ident_lit("held")),
+                                lh_web_js_node_create_return(lh_null), lh_null)),
+                        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                            lh_web_js_op_assign, lh_web_js_node_create_ident_lit("held"),
+                            lh_web_js_node_create_number(0U)))),
+                    lh_web_js_node_create_expression(
+                        lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("flushMove")))),
+                lh_web_js_node_create_var(
+                    lh_str_view_lit("p"),
+                    lh_web_js_node_push_back(
+                        lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("pos")),
+                        lh_web_js_node_create_ident_lit("e")))),
+            lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("emit")),
+                lh_web_js_node_create_binary(
+                    lh_web_js_op_add,
+                    lh_web_js_node_create_binary(
+                        lh_web_js_op_add,
+                        lh_web_js_node_create_binary(
+                            lh_web_js_op_add, lh_web_js_node_create_string_lit("r "),
+                            lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("p"),
+                                                             "x")),
+                        lh_web_js_node_create_string_lit(" ")),
+                    lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("p"),
+                                                     "y")))))));
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_on_mouse_move(lh_void)
+{
+    return lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+        lh_web_js_op_assign,
+        lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("window"), "onmousemove"),
+        lh_web_js_node_push_statement(
+            lh_web_js_node_push_statement(
+                lh_web_js_node_push_statement(
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_push_param(lh_web_js_node_create_function_expression(),
+                                                  lh_str_view_lit("e")),
+                        lh_web_js_node_create_if(
+                            lh_web_js_node_create_unary(lh_web_js_op_not,
+                                                        lh_web_js_node_create_ident_lit("held")),
+                            lh_web_js_node_create_return(lh_null), lh_null)),
+                    lh_web_js_node_create_if(
+                        lh_web_js_node_create_binary(
+                            lh_web_js_op_strict_eq,
+                            lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("e"),
+                                                             "buttons"),
+                            lh_web_js_node_create_number(0U)),
+                        lh_web_js_node_push_statement(
+                            lh_web_js_node_push_statement(
+                                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                                lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                        lh_web_js_node_create_ident_lit("window"), "onmouseup")),
+                                    lh_web_js_node_create_ident_lit("e")))),
+                            lh_web_js_node_create_return(lh_null)),
+                        lh_null)),
+                lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                    lh_web_js_op_assign, lh_web_js_node_create_ident_lit("mv"),
+                    lh_web_js_node_push_back(
+                        lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("pos")),
+                        lh_web_js_node_create_ident_lit("e"))))),
+            lh_web_js_node_create_if(
+                lh_web_js_node_create_unary(lh_web_js_op_not,
+                                            lh_web_js_node_create_ident_lit("mvRaf")),
+                lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                    lh_web_js_op_assign, lh_web_js_node_create_ident_lit("mvRaf"),
+                    lh_web_js_node_push_back(
+                        lh_web_js_node_create_call(
+                            lh_web_js_node_create_ident_lit("requestAnimationFrame")),
+                        lh_web_js_node_push_statement(
+                            lh_web_js_node_push_statement(
+                                lh_web_js_node_create_function_expression(),
+                                lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                    lh_web_js_op_assign, lh_web_js_node_create_ident_lit("mvRaf"),
+                                    lh_web_js_node_create_number(0U)))),
+                            lh_web_js_node_create_expression(lh_web_js_node_create_call(
+                                lh_web_js_node_create_ident_lit("flushMove"))))))),
+                lh_null))));
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_on_wheel(lh_void)
+{
+    return lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+        lh_web_js_op_assign,
+        lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("c"), "onwheel"),
+        lh_web_js_node_push_statement(
+            lh_web_js_node_push_statement(
+                lh_web_js_node_push_statement(
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_push_statement(
+                            lh_web_js_node_push_statement(
+                                lh_web_js_node_push_param(
+                                    lh_web_js_node_create_function_expression(),
+                                    lh_str_view_lit("e")),
+                                lh_web_js_node_create_expression(
+                                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                        lh_web_js_node_create_ident_lit("e"), "preventDefault")))),
+                            lh_web_js_node_create_var(
+                                lh_str_view_lit("p"),
+                                lh_web_js_node_push_back(
+                                    lh_web_js_node_create_call(
+                                        lh_web_js_node_create_ident_lit("pos")),
+                                    lh_web_js_node_create_ident_lit("e")))),
+                        lh_web_js_node_create_var(
+                            lh_str_view_lit("dy"),
+                            lh_web_js_node_create_conditional(
+                                lh_web_js_node_create_binary(
+                                    lh_web_js_op_strict_eq,
+                                    lh_web_js_node_create_member_lit(
+                                        lh_web_js_node_create_ident_lit("e"), "deltaY"),
+                                    lh_web_js_node_create_number(0U)),
+                                lh_web_js_node_create_number(0U),
+                                lh_web_js_node_create_conditional(
+                                    lh_web_js_node_create_binary(
+                                        lh_web_js_op_gt,
+                                        lh_web_js_node_create_member_lit(
+                                            lh_web_js_node_create_ident_lit("e"), "deltaY"),
+                                        lh_web_js_node_create_number(0U)),
+                                    lh_web_js_node_create_unary(lh_web_js_op_minus,
+                                                                lh_web_js_node_create_number(1U)),
+                                    lh_web_js_node_create_number(1U))))),
+                    lh_web_js_node_create_var(
+                        lh_str_view_lit("dx"),
+                        lh_web_js_node_create_conditional(
+                            lh_web_js_node_create_binary(
+                                lh_web_js_op_strict_eq,
+                                lh_web_js_node_create_member_lit(
+                                    lh_web_js_node_create_ident_lit("e"), "deltaX"),
+                                lh_web_js_node_create_number(0U)),
+                            lh_web_js_node_create_number(0U),
+                            lh_web_js_node_create_conditional(
+                                lh_web_js_node_create_binary(
+                                    lh_web_js_op_gt,
+                                    lh_web_js_node_create_member_lit(
+                                        lh_web_js_node_create_ident_lit("e"), "deltaX"),
+                                    lh_web_js_node_create_number(0U)),
+                                lh_web_js_node_create_unary(lh_web_js_op_minus,
+                                                            lh_web_js_node_create_number(1U)),
+                                lh_web_js_node_create_number(1U))))),
+                lh_web_js_node_create_if(
+                    lh_web_js_node_create_binary(
+                        lh_web_js_op_and,
+                        lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("e"),
+                                                         "shiftKey"),
+                        lh_web_js_node_create_ident_lit("dy")),
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_push_statement(
+                            lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                            lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                lh_web_js_op_assign, lh_web_js_node_create_ident_lit("dx"),
+                                lh_web_js_node_create_ident_lit("dy")))),
+                        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                            lh_web_js_op_assign, lh_web_js_node_create_ident_lit("dy"),
+                            lh_web_js_node_create_number(0U)))),
+                    lh_null)),
+            lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("emit")),
+                lh_web_js_node_create_binary(
+                    lh_web_js_op_add,
+                    lh_web_js_node_create_binary(
+                        lh_web_js_op_add,
+                        lh_web_js_node_create_binary(
+                            lh_web_js_op_add,
+                            lh_web_js_node_create_binary(
+                                lh_web_js_op_add,
+                                lh_web_js_node_create_binary(
+                                    lh_web_js_op_add,
+                                    lh_web_js_node_create_binary(
+                                        lh_web_js_op_add,
+                                        lh_web_js_node_create_binary(
+                                            lh_web_js_op_add,
+                                            lh_web_js_node_create_string_lit("w "),
+                                            lh_web_js_node_create_member_lit(
+                                                lh_web_js_node_create_ident_lit("p"), "x")),
+                                        lh_web_js_node_create_string_lit(" ")),
+                                    lh_web_js_node_create_member_lit(
+                                        lh_web_js_node_create_ident_lit("p"), "y")),
+                                lh_web_js_node_create_string_lit(" ")),
+                            lh_web_js_node_create_ident_lit("dx")),
+                        lh_web_js_node_create_string_lit(" ")),
+                    lh_web_js_node_create_ident_lit("dy")))))));
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_on_key_down(lh_void)
+{
+    return lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+        lh_web_js_op_assign,
+        lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("document"), "onkeydown"),
+        lh_web_js_node_push_statement(
+            lh_web_js_node_push_statement(
+                lh_web_js_node_push_statement(
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_push_statement(
+                            lh_web_js_node_push_param(lh_web_js_node_create_function_expression(),
+                                                      lh_str_view_lit("e")),
+                            lh_web_js_node_add_declarator(
+                                lh_web_js_node_create_var(
+                                    lh_str_view_lit("k"),
+                                    lh_web_js_node_create_index(
+                                        lh_web_js_node_create_ident_lit("keys"),
+                                        lh_web_js_node_create_member_lit(
+                                            lh_web_js_node_create_ident_lit("e"), "key"))),
+                                lh_str_view_lit("m"),
+                                lh_web_js_node_create_index(
+                                    lh_web_js_node_create_ident_lit("mods"),
+                                    lh_web_js_node_create_member_lit(
+                                        lh_web_js_node_create_ident_lit("e"), "key")))),
+                        lh_web_js_node_create_var(
+                            lh_str_view_lit("t"),
+                            lh_web_js_node_create_binary(
+                                lh_web_js_op_and,
+                                lh_web_js_node_create_binary(
+                                    lh_web_js_op_and,
+                                    lh_web_js_node_create_binary(
+                                        lh_web_js_op_and,
+                                        lh_web_js_node_create_binary(
+                                            lh_web_js_op_and,
+                                            lh_web_js_node_create_member_lit(
+                                                lh_web_js_node_create_ident_lit("e"), "key"),
+                                            lh_web_js_node_create_binary(
+                                                lh_web_js_op_strict_eq,
+                                                lh_web_js_node_create_member_lit(
+                                                    lh_web_js_node_create_member_lit(
+                                                        lh_web_js_node_create_ident_lit("e"),
+                                                        "key"),
+                                                    "length"),
+                                                lh_web_js_node_create_number(1U))),
+                                        lh_web_js_node_create_unary(
+                                            lh_web_js_op_not,
+                                            lh_web_js_node_create_member_lit(
+                                                lh_web_js_node_create_ident_lit("e"), "ctrlKey"))),
+                                    lh_web_js_node_create_unary(
+                                        lh_web_js_op_not,
+                                        lh_web_js_node_create_member_lit(
+                                            lh_web_js_node_create_ident_lit("e"), "altKey"))),
+                                lh_web_js_node_create_unary(
+                                    lh_web_js_op_not,
+                                    lh_web_js_node_create_member_lit(
+                                        lh_web_js_node_create_ident_lit("e"), "metaKey"))))),
+                    lh_web_js_node_create_if(
+                        lh_web_js_node_create_binary(
+                            lh_web_js_op_or,
+                            lh_web_js_node_create_binary(
+                                lh_web_js_op_and, lh_web_js_node_create_ident_lit("k"),
+                                lh_web_js_node_create_unary(lh_web_js_op_not,
+                                                            lh_web_js_node_create_ident_lit("m"))),
+                            lh_web_js_node_create_ident_lit("t")),
+                        lh_web_js_node_create_expression(
+                            lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                lh_web_js_node_create_ident_lit("e"), "preventDefault"))),
+                        lh_null)),
+                lh_web_js_node_create_if(
+                    lh_web_js_node_create_ident_lit("k"),
+                    lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                        lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("emit")),
+                        lh_web_js_node_create_binary(
+                            lh_web_js_op_add,
+                            lh_web_js_node_create_binary(lh_web_js_op_add,
+                                                         lh_web_js_node_create_string_lit("k "),
+                                                         lh_web_js_node_create_ident_lit("k")),
+                            lh_web_js_node_create_string_lit(" 1")))),
+                    lh_null)),
+            lh_web_js_node_create_if(
+                lh_web_js_node_create_ident_lit("t"),
+                lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                    lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("emit")),
+                    lh_web_js_node_create_binary(
+                        lh_web_js_op_add, lh_web_js_node_create_string_lit("t "),
+                        lh_web_js_node_push_back(
+                            lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                lh_web_js_node_create_member_lit(
+                                    lh_web_js_node_create_ident_lit("e"), "key"),
+                                "codePointAt")),
+                            lh_web_js_node_create_number(0U))))),
+                lh_null))));
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_on_key_up(lh_void)
+{
+    return lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+        lh_web_js_op_assign,
+        lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("document"), "onkeyup"),
+        lh_web_js_node_push_statement(
+            lh_web_js_node_push_statement(
+                lh_web_js_node_push_statement(
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_push_param(lh_web_js_node_create_function_expression(),
+                                                  lh_str_view_lit("e")),
+                        lh_web_js_node_create_var(
+                            lh_str_view_lit("k"),
+                            lh_web_js_node_create_index(
+                                lh_web_js_node_create_ident_lit("keys"),
+                                lh_web_js_node_create_member_lit(
+                                    lh_web_js_node_create_ident_lit("e"), "key")))),
+                    lh_web_js_node_create_if(
+                        lh_web_js_node_create_unary(lh_web_js_op_not,
+                                                    lh_web_js_node_create_ident_lit("k")),
+                        lh_web_js_node_create_return(lh_null), lh_null)),
+                lh_web_js_node_create_if(
+                    lh_web_js_node_create_unary(
+                        lh_web_js_op_not, lh_web_js_node_create_index(
+                                              lh_web_js_node_create_ident_lit("mods"),
+                                              lh_web_js_node_create_member_lit(
+                                                  lh_web_js_node_create_ident_lit("e"), "key"))),
+                    lh_web_js_node_create_expression(
+                        lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                            lh_web_js_node_create_ident_lit("e"), "preventDefault"))),
+                    lh_null)),
+            lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("emit")),
+                lh_web_js_node_create_binary(
+                    lh_web_js_op_add,
+                    lh_web_js_node_create_binary(lh_web_js_op_add,
+                                                 lh_web_js_node_create_string_lit("k "),
+                                                 lh_web_js_node_create_ident_lit("k")),
+                    lh_web_js_node_create_string_lit(" 0")))))));
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_focus(lh_void)
+{
+    return lh_web_js_node_create_expression(lh_web_js_node_create_call(
+        lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("c"), "focus")));
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_socket_state(lh_void)
+{
+    lh_web_js_node_t *self = lh_web_js_node_create_var(
+        lh_str_view_lit("sock"), lh_web_js_node_create_with_kind(lh_web_js_kind_null));
+
+    lh_web_js_node_add_declarator(self, lh_str_view_lit("retry"),
+                                  lh_web_js_node_create_number(200U));
+    lh_web_js_node_add_declarator(self, lh_str_view_lit("pollId"),
+                                  lh_web_js_node_create_number(0U));
+    lh_web_js_node_add_declarator(self, lh_str_view_lit("retryId"),
+                                  lh_web_js_node_create_number(0U));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_stop_poll(lh_void)
+{
+    lh_web_js_node_t *self =
+        lh_web_js_node_create_function_declaration(lh_str_view_lit("stopPoll"));
+
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_if(
+                  lh_web_js_node_create_ident_lit("pollId"),
+                  lh_web_js_node_push_statement(
+                      lh_web_js_node_push_statement(
+                          lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                          lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                              lh_web_js_node_create_call(
+                                  lh_web_js_node_create_ident_lit("clearInterval")),
+                              lh_web_js_node_create_ident_lit("pollId")))),
+                      lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                          lh_web_js_op_assign, lh_web_js_node_create_ident_lit("pollId"),
+                          lh_web_js_node_create_number(0U)))),
+                  lh_null));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_start_poll(lh_void)
+{
+    lh_web_js_node_t *self =
+        lh_web_js_node_create_function_declaration(lh_str_view_lit("startPoll"));
+
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_if(
+                  lh_web_js_node_create_unary(lh_web_js_op_not,
+                                              lh_web_js_node_create_ident_lit("pollId")),
+                  lh_web_js_node_push_statement(
+                      lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                      lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                          lh_web_js_op_assign, lh_web_js_node_create_ident_lit("pollId"),
+                          lh_web_js_node_push_back(
+                              lh_web_js_node_push_back(
+                                  lh_web_js_node_create_call(
+                                      lh_web_js_node_create_ident_lit("setInterval")),
+                                  lh_web_js_node_create_ident_lit("poll")),
+                              lh_web_js_node_create_number(80U))))),
+                  lh_null));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_arm_retry(lh_void)
+{
+    lh_web_js_node_t *self =
+        lh_web_js_node_create_function_declaration(lh_str_view_lit("armRetry"));
+
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_if(lh_web_js_node_create_ident_lit("retryId"),
+                                       lh_web_js_node_push_statement(
+                                           lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                                           lh_web_js_node_create_return(lh_null)),
+                                       lh_null));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+            lh_web_js_op_assign, lh_web_js_node_create_ident_lit("retryId"),
+            lh_web_js_node_push_back(
+                lh_web_js_node_push_back(
+                    lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("setTimeout")),
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_push_statement(
+                            lh_web_js_node_create_function_expression(),
+                            lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                lh_web_js_op_assign, lh_web_js_node_create_ident_lit("retryId"),
+                                lh_web_js_node_create_number(0U)))),
+                        lh_web_js_node_create_expression(lh_web_js_node_create_call(
+                            lh_web_js_node_create_ident_lit("openWs"))))),
+                lh_web_js_node_create_ident_lit("retry")))));
+    lh_web_js_node_push_statement(
+        self, lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                  lh_web_js_op_assign, lh_web_js_node_create_ident_lit("retry"),
+                  lh_web_js_node_push_back(
+                      lh_web_js_node_push_back(
+                          lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                              lh_web_js_node_create_ident_lit("Math"), "min")),
+                          lh_web_js_node_create_binary(lh_web_js_op_mul,
+                                                       lh_web_js_node_create_ident_lit("retry"),
+                                                       lh_web_js_node_create_number(2U))),
+                      lh_web_js_node_create_number(5000U)))));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_open_ws(lh_void)
+{
+    lh_web_js_node_t *self = lh_web_js_node_create_function_declaration(lh_str_view_lit("openWs"));
+
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_if(
+            lh_web_js_node_create_binary(
+                lh_web_js_op_and, lh_web_js_node_create_ident_lit("sock"),
+                lh_web_js_node_create_binary(
+                    lh_web_js_op_or,
+                    lh_web_js_node_create_binary(
+                        lh_web_js_op_strict_eq,
+                        lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("sock"),
+                                                         "readyState"),
+                        lh_web_js_node_create_number(0U)),
+                    lh_web_js_node_create_binary(
+                        lh_web_js_op_strict_eq,
+                        lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("sock"),
+                                                         "readyState"),
+                        lh_web_js_node_create_number(1U)))),
+            lh_web_js_node_push_statement(lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                                          lh_web_js_node_create_return(lh_null)),
+            lh_null));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_try(
+            lh_web_js_node_push_statement(
+                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                    lh_web_js_op_assign, lh_web_js_node_create_ident_lit("sock"),
+                    lh_web_js_node_push_back(
+                        lh_web_js_node_create_new(lh_web_js_node_create_ident_lit("WebSocket")),
+                        lh_web_js_node_create_binary(
+                            lh_web_js_op_add,
+                            lh_web_js_node_create_binary(
+                                lh_web_js_op_add,
+                                lh_web_js_node_create_conditional(
+                                    lh_web_js_node_create_binary(
+                                        lh_web_js_op_strict_eq,
+                                        lh_web_js_node_create_member_lit(
+                                            lh_web_js_node_create_ident_lit("location"),
+                                            "protocol"),
+                                        lh_web_js_node_create_string_lit("https:")),
+                                    lh_web_js_node_create_string_lit("wss://"),
+                                    lh_web_js_node_create_string_lit("ws://")),
+                                lh_web_js_node_create_member_lit(
+                                    lh_web_js_node_create_ident_lit("location"), "host")),
+                            lh_web_js_node_create_string_lit("/ws")))))),
+            lh_str_view_lit("e"),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_push_statement(
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_push_statement(
+                            lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                            lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                lh_web_js_op_assign, lh_web_js_node_create_ident_lit("sock"),
+                                lh_web_js_node_create_with_kind(lh_web_js_kind_null)))),
+                        lh_web_js_node_create_expression(lh_web_js_node_create_call(
+                            lh_web_js_node_create_ident_lit("startPoll")))),
+                    lh_web_js_node_create_expression(
+                        lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("armRetry")))),
+                lh_web_js_node_create_return(lh_null))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+            lh_web_js_op_assign,
+            lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("sock"), "onopen"),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_push_statement(
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_create_function_expression(),
+                        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                            lh_web_js_op_assign, lh_web_js_node_create_ident_lit("retry"),
+                            lh_web_js_node_create_number(200U)))),
+                    lh_web_js_node_create_expression(
+                        lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("stopPoll")))),
+                lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                    lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("reportSize")),
+                    lh_web_js_node_create_number(1U)))))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+            lh_web_js_op_assign,
+            lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("sock"), "onmessage"),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_push_param(lh_web_js_node_create_function_expression(),
+                                          lh_str_view_lit("ev")),
+                lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                    lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("show")),
+                    lh_web_js_node_push_back(
+                        lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                            lh_web_js_node_create_ident_lit("JSON"), "parse")),
+                        lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("ev"),
+                                                         "data"))))))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+            lh_web_js_op_assign,
+            lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("sock"), "onclose"),
+            lh_web_js_node_push_statement(
+                lh_web_js_node_push_statement(
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_create_function_expression(),
+                        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                            lh_web_js_op_assign, lh_web_js_node_create_ident_lit("sock"),
+                            lh_web_js_node_create_with_kind(lh_web_js_kind_null)))),
+                    lh_web_js_node_create_expression(
+                        lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("startPoll")))),
+                lh_web_js_node_create_expression(
+                    lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("armRetry")))))));
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+            lh_web_js_op_assign,
+            lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("sock"), "onerror"),
+            lh_web_js_node_create_function_expression())));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_start(lh_void)
+{
+    return lh_web_js_node_create_if(
+        lh_web_js_node_create_binary(lh_web_js_op_strict_eq,
+                                     lh_web_js_node_create_ident_lit("scaleMode"),
+                                     lh_web_js_node_create_string_lit("layout")),
+        lh_web_js_node_push_statement(
+            lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+            lh_web_js_node_create_expression(
+                lh_web_js_node_create_call(lh_web_js_node_push_statement(
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_push_statement(
+                            lh_web_js_node_push_statement(
+                                lh_web_js_node_create_function_expression(),
+                                lh_web_js_node_create_var(
+                                    lh_str_view_lit("s"),
+                                    lh_web_js_node_create_call(
+                                        lh_web_js_node_create_ident_lit("viewSize")))),
+                            lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                                lh_web_js_op_assign, lh_web_js_node_create_ident_lit("lastZW"),
+                                lh_web_js_node_create_member_lit(
+                                    lh_web_js_node_create_ident_lit("s"), "w")))),
+                        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                            lh_web_js_op_assign, lh_web_js_node_create_ident_lit("lastZH"),
+                            lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("s"),
+                                                             "h")))),
+                    lh_web_js_node_create_expression(lh_web_js_node_push_back(
+                        lh_web_js_node_push_back(
+                            lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                lh_web_js_node_push_back(
+                                    lh_web_js_node_push_back(
+                                        lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                            lh_web_js_node_push_back(
+                                                lh_web_js_node_create_call(
+                                                    lh_web_js_node_create_ident_lit("fetch")),
+                                                lh_web_js_node_create_binary(
+                                                    lh_web_js_op_add,
+                                                    lh_web_js_node_create_binary(
+                                                        lh_web_js_op_add,
+                                                        lh_web_js_node_create_binary(
+                                                            lh_web_js_op_add,
+                                                            lh_web_js_node_create_string_lit(
+                                                                "/ui/size?w="),
+                                                            lh_web_js_node_create_member_lit(
+                                                                lh_web_js_node_create_ident_lit(
+                                                                    "s"),
+                                                                "w")),
+                                                        lh_web_js_node_create_string_lit("&h=")),
+                                                    lh_web_js_node_create_member_lit(
+                                                        lh_web_js_node_create_ident_lit("s"),
+                                                        "h"))),
+                                            "then")),
+                                        lh_web_js_node_push_statement(
+                                            lh_web_js_node_push_statement(
+                                                lh_web_js_node_create_function_expression(),
+                                                lh_web_js_node_create_expression(
+                                                    lh_web_js_node_create_assign(
+                                                        lh_web_js_op_assign,
+                                                        lh_web_js_node_create_ident_lit("rev"),
+                                                        lh_web_js_node_create_unary(
+                                                            lh_web_js_op_minus,
+                                                            lh_web_js_node_create_number(1U))))),
+                                            lh_web_js_node_create_return(lh_web_js_node_create_call(
+                                                lh_web_js_node_create_ident_lit("load"))))),
+                                    lh_web_js_node_create_function_expression()),
+                                "then")),
+                            lh_web_js_node_push_statement(
+                                lh_web_js_node_create_function_expression(),
+                                lh_web_js_node_create_expression(lh_web_js_node_create_call(
+                                    lh_web_js_node_create_ident_lit("openWs"))))),
+                        lh_web_js_node_push_statement(
+                            lh_web_js_node_create_function_expression(),
+                            lh_web_js_node_create_expression(lh_web_js_node_create_call(
+                                lh_web_js_node_create_ident_lit("openWs")))))))))),
+        lh_web_js_node_push_statement(
+            lh_web_js_node_push_statement(
+                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+                lh_web_js_node_create_expression(
+                    lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("load")))),
+            lh_web_js_node_create_expression(
+                lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("openWs")))));
+}
+
+/* ── document ────────────────────────────────────────────────────────────── */
+
+lh_web_html_node_t *
+lh_ui_web_player_page_create_head(lh_void)
+{
+    lh_web_html_node_t *self = lh_web_html_node_create_element(lh_str_view_lit("head"));
+
+    lh_web_html_node_push_child(
+        self, lh_web_html_node_add_attr(lh_web_html_node_create_void(lh_str_view_lit("meta")),
+                                        lh_str_view_lit("charset"), lh_str_view_lit("utf-8")));
+    lh_web_html_node_push_child(
+        self,
+        lh_web_html_node_add_attr(
+            lh_web_html_node_add_attr(lh_web_html_node_create_void(lh_str_view_lit("meta")),
+                                      lh_str_view_lit("name"), lh_str_view_lit("viewport")),
+            lh_str_view_lit("content"), lh_str_view_lit("width=device-width,initial-scale=1")));
+    lh_web_html_node_push_child(
+        self, lh_web_html_node_push_child(lh_web_html_node_create_element(lh_str_view_lit("title")),
+                                          lh_web_html_node_create_text(lh_str_view_lit("lh_ui"))));
+    lh_web_html_node_push_child(
+        self, lh_web_html_node_push_child(
+                  lh_web_html_node_create_element(lh_str_view_lit("style")),
+                  lh_web_html_node_create_raw(lh_str_view_lit(
+                      "html,body{margin:0;height:100%;background:#edf0f5;overflow:hidden}"
+                      "#c{display:block;position:absolute;cursor:pointer;outline:none}"
+                      "#v3d{position:absolute;display:none;pointer-events:none}"))));
+    return self;
+}
+
+lh_web_html_node_t *
+lh_ui_web_player_page_create_body(lh_str_view_t script)
+{
+    lh_web_html_node_t *self = lh_web_html_node_create_element(lh_str_view_lit("body"));
+    lh_web_html_node_t *canvas = lh_web_html_node_create_element(lh_str_view_lit("canvas"));
+
+    lh_web_html_node_add_attr(canvas, lh_str_view_lit("id"), lh_str_view_lit("c"));
+    lh_web_html_node_add_attr(canvas, lh_str_view_lit("width"), lh_str_view_lit("980"));
+    lh_web_html_node_add_attr(canvas, lh_str_view_lit("height"), lh_str_view_lit("620"));
+    lh_web_html_node_add_attr(canvas, lh_str_view_lit("tabindex"), lh_str_view_lit("0"));
+    lh_web_html_node_push_child(self, canvas);
+    lh_web_html_node_push_child(
+        self, lh_web_html_node_add_attr(lh_web_html_node_create_element(lh_str_view_lit("canvas")),
+                                        lh_str_view_lit("id"), lh_str_view_lit("v3d")));
+    /* The script is a raw child: ::lh_web_js_writer_try_write escapes every `<` a string holds
+       and keeps `</` and `<!` out of code, so the text cannot close the element early. */
+    lh_web_html_node_push_child(
+        self,
+        lh_web_html_node_push_child(
+            lh_web_html_node_push_child(lh_web_html_node_create_element(lh_str_view_lit("script")),
+                                        lh_web_html_node_create_text(lh_str_view_lit("\n"))),
+            lh_web_html_node_create_raw(script)));
+    return self;
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_key_table(lh_bool_t modifiers_only)
+{
+    lh_web_js_node_t *self = lh_web_js_node_create_with_kind(lh_web_js_kind_object);
+
+    for (lh_os_key_t key = lh_os_key_tab; !lh_math_gt(key, lh_os_key_alt);
+         key = lh_cast_static(lh_os_key_t, lh_math_add_one(key)))
+    {
+        if (modifiers_only && !lh_ui_web_player_page_is_modifier(key))
         {
             continue;
         }
-        n = lh_str_ptr_format_text(table + len, sizeof(table) - len, "%s'%s':%u",
-                                   (len > 1u) ? "," : "", page_keys[i].name,
-                                   lh_cast_static(lh_uint_t, page_keys[i].key));
-        if (n == 0u || len + n + 2u > sizeof(table))
-        {
-            lh_ui_web_buf_fail(j);
-            return;
-        }
-        len += n;
+        lh_web_js_node_push_back(
+            self, lh_web_js_node_create_property(lh_ui_web_player_page_get_key_name(key),
+                                                 lh_web_js_node_create_number(key)));
     }
-    table[len++] = lh_char_map_rbrace;
-    table[len] = lh_char_map_nul;
-    lh_ui_web_js_var(j, name, table);
+    return self;
 }
 
-/* -- page ------------------------------------------------------------------ */
+lh_web_html_node_t *
+lh_ui_web_player_page_create_html(lh_str_view_t script)
+{
+    lh_web_html_node_t *self = lh_web_html_node_create_element(lh_str_view_lit("html"));
+
+    lh_web_html_node_add_attr(self, lh_str_view_lit("lang"), lh_str_view_lit("ru"));
+    lh_web_html_node_push_child(self, lh_ui_web_player_page_create_head());
+    return lh_web_html_node_push_child(self, lh_ui_web_player_page_create_body(script));
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_keys(lh_void)
+{
+    return lh_web_js_node_create_var(lh_str_view_lit("keys"),
+                                     lh_ui_web_player_page_create_key_table(lh_bool_false));
+}
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_mods(lh_void)
+{
+    return lh_web_js_node_create_var(lh_str_view_lit("mods"),
+                                     lh_ui_web_player_page_create_key_table(lh_bool_true));
+}
+
+lh_bool_t
+lh_ui_web_player_page_try_write_document(lh_str_t *out, lh_str_view_t script)
+{
+    lh_web_html_writer_t writer;
+    lh_web_html_node_t *doctype = lh_web_html_node_create_doctype();
+    lh_web_html_node_t *html = lh_ui_web_player_page_create_html(script);
+    lh_bool_t written;
+
+    lh_web_html_writer_init(lh_addr_of(writer), out);
+    written = lh_web_html_writer_try_write(lh_addr_of(writer), doctype) &&
+              lh_web_html_writer_try_write(lh_addr_of(writer), html);
+    lh_web_html_node_destroy(html);
+    lh_web_html_node_destroy(doctype);
+    return written;
+}
+
+/* ── script ──────────────────────────────────────────────────────────────── */
+
+lh_web_js_node_t *
+lh_ui_web_player_page_create_script(lh_void)
+{
+    lh_web_js_node_t *self = lh_web_js_node_create_with_kind(lh_web_js_kind_program);
+
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_rgba());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_state());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_scale_mode());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_hexv());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_decode_cover());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_ingest());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_tint());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_glyph());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_round());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_pane3d());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_fit());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_play());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_sized());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_show());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_pos());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_view_size());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_report_size());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_on_resize());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_fetch_state());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_load());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_poll());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_emit());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_canvas());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_pointer_state());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_flush_move());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_on_mouse_down());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_on_mouse_up());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_on_mouse_move());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_on_wheel());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_keys());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_mods());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_on_key_down());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_on_key_up());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_focus());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_socket_state());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_stop_poll());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_start_poll());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_arm_retry());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_open_ws());
+    lh_web_js_node_push_statement(self, lh_ui_web_player_page_create_start());
+    return self;
+}
+
+lh_bool_t
+lh_ui_web_player_page_try_write_script(lh_str_t *out)
+{
+    lh_web_js_writer_t writer;
+    lh_web_js_node_t *script = lh_ui_web_player_page_create_script();
+    lh_bool_t written;
+
+    lh_web_js_writer_init(lh_addr_of(writer), out);
+    written = lh_web_js_writer_try_write(lh_addr_of(writer), script);
+    lh_web_js_node_destroy(script);
+    return written;
+}
+
+/* ── page ────────────────────────────────────────────────────────────────── */
+
+lh_bool_t
+lh_ui_web_player_page_try_write(lh_str_t *out)
+{
+    lh_str_t script;
+
+    lh_str_init(lh_addr_of(script));
+    lh_bool_t written = lh_ui_web_player_page_try_write_script(lh_addr_of(script));
+    if (written)
+    {
+        lh_str_view_t view;
+
+        lh_str_as_view(lh_addr_of(script), lh_addr_of(view));
+        written = lh_ui_web_player_page_try_write_document(out, view);
+    }
+    lh_str_deinit(lh_addr_of(script));
+    return written;
+}
+
+lh_void
+lh_ui_web_player_page_write(lh_str_t *out)
+{
+    lh_runtime_check_ifn(lh_ui_web_player_page_try_write(out),
+                         lh_runtime_error_code_invalid_argument, "player page cannot be written");
+}
 
 lh_bool_t
 lh_ui_web_player_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
 {
-    lh_ui_web_buf_t js;
-
-    lh_ui_web_buf_init(lh_addr_of(js), mem, cap);
-    lh_ui_web_buf_t *j = lh_addr_of(js);
-    if (out_len != lh_null)
+    if (lh_null_ne(out_len))
     {
-        lh_ptr_deref(out_len) = 0u;
+        lh_ptr_deref(out_len) = 0U;
     }
-    lh_ui_web_html_t doc_type;
-
-    /* -- markup tree (construct, then serialize) ------------------------------- */
-    lh_ui_web_html_doctype(lh_addr_of(doc_type));
-    lh_ui_web_html_attr_t attr_lang;
-    lh_ui_web_html_attr("lang", "ru", lh_addr_of(attr_lang));
-    lh_ui_web_html_attr_t html_attrs[1];
-    html_attrs[0] = attr_lang;
-    lh_ui_web_html_t el_html;
-    lh_ui_web_html_tag("html", html_attrs, 1u, lh_null, 0u, lh_bool_false, lh_addr_of(el_html));
-    lh_ui_web_html_attr_t attr_charset;
-
-    lh_ui_web_html_attr("charset", "utf-8", lh_addr_of(attr_charset));
-    lh_ui_web_html_attr_t meta_cs_attrs[1];
-    meta_cs_attrs[0] = attr_charset;
-    lh_ui_web_html_t el_meta_cs;
-    lh_ui_web_html_tag("meta", meta_cs_attrs, 1u, lh_null, 0u, lh_bool_true,
-                       lh_addr_of(el_meta_cs));
-    lh_ui_web_html_attr_t attr_vp_name;
-
-    lh_ui_web_html_attr("name", "viewport", lh_addr_of(attr_vp_name));
-    lh_ui_web_html_attr_t attr_vp_content;
-    lh_ui_web_html_attr("content", "width=device-width,initial-scale=1",
-                        lh_addr_of(attr_vp_content));
-    lh_ui_web_html_attr_t meta_vp_attrs[2];
-    meta_vp_attrs[0] = attr_vp_name;
-    meta_vp_attrs[1] = attr_vp_content;
-    lh_ui_web_html_t el_meta_vp;
-    lh_ui_web_html_tag("meta", meta_vp_attrs, 2u, lh_null, 0u, lh_bool_true,
-                       lh_addr_of(el_meta_vp));
-    lh_ui_web_html_t title_text;
-
-    lh_ui_web_html_text("lh_ui", lh_addr_of(title_text));
-    const lh_ui_web_html_t *title_kids[1];
-    title_kids[0] = lh_addr_of(title_text);
-    lh_ui_web_html_t el_title;
-    lh_ui_web_html_tag("title", lh_null, 0u, title_kids, 1u, lh_bool_false, lh_addr_of(el_title));
-    lh_ui_web_html_t style_raw;
-
-    lh_ui_web_html_raw("html,body{margin:0;height:100%;background:#edf0f5;overflow:hidden}"
-                       "#c{display:block;position:absolute;cursor:pointer;outline:none}"
-                       "#v3d{position:absolute;display:none;pointer-events:none}",
-                       lh_addr_of(style_raw));
-    const lh_ui_web_html_t *style_kids[1];
-    style_kids[0] = lh_addr_of(style_raw);
-    lh_ui_web_html_t el_style;
-    lh_ui_web_html_tag("style", lh_null, 0u, style_kids, 1u, lh_bool_false, lh_addr_of(el_style));
-    const lh_ui_web_html_t *head_kids[4];
-
-    head_kids[0] = lh_addr_of(el_meta_cs);
-    head_kids[1] = lh_addr_of(el_meta_vp);
-    head_kids[2] = lh_addr_of(el_title);
-    head_kids[3] = lh_addr_of(el_style);
-    lh_ui_web_html_t el_head;
-    lh_ui_web_html_tag("head", lh_null, 0u, head_kids, 4u, lh_bool_false, lh_addr_of(el_head));
-    lh_ui_web_html_attr_t attr_c_id;
-
-    lh_ui_web_html_attr("id", "c", lh_addr_of(attr_c_id));
-    lh_ui_web_html_attr_t attr_c_w;
-    lh_ui_web_html_attr("width", "980", lh_addr_of(attr_c_w));
-    lh_ui_web_html_attr_t attr_c_h;
-    lh_ui_web_html_attr("height", "620", lh_addr_of(attr_c_h));
-    lh_ui_web_html_attr_t attr_c_tab;
-    lh_ui_web_html_attr("tabindex", "0", lh_addr_of(attr_c_tab));
-    lh_ui_web_html_attr_t canvas_c_attrs[4];
-    canvas_c_attrs[0] = attr_c_id;
-    canvas_c_attrs[1] = attr_c_w;
-    canvas_c_attrs[2] = attr_c_h;
-    canvas_c_attrs[3] = attr_c_tab;
-    lh_ui_web_html_t el_canvas_c;
-    lh_ui_web_html_tag("canvas", canvas_c_attrs, 4u, lh_null, 0u, lh_bool_false,
-                       lh_addr_of(el_canvas_c));
-    lh_ui_web_html_attr_t attr_v3d_id;
-
-    lh_ui_web_html_attr("id", "v3d", lh_addr_of(attr_v3d_id));
-    lh_ui_web_html_attr_t canvas_v3d_attrs[1];
-    canvas_v3d_attrs[0] = attr_v3d_id;
-    lh_ui_web_html_t el_canvas_v3d;
-    lh_ui_web_html_tag("canvas", canvas_v3d_attrs, 1u, lh_null, 0u, lh_bool_false,
-                       lh_addr_of(el_canvas_v3d));
-    lh_ui_web_html_t el_body;
-
-    lh_ui_web_html_tag("body", lh_null, 0u, lh_null, 0u, lh_bool_false, lh_addr_of(el_body));
-    lh_ui_web_html_t el_script;
-    lh_ui_web_html_tag("script", lh_null, 0u, lh_null, 0u, lh_bool_false, lh_addr_of(el_script));
-
-    lh_ui_web_html_emit(j, lh_addr_of(doc_type));
-    lh_ui_web_html_open(j, lh_addr_of(el_html));
-    lh_ui_web_html_emit(j, lh_addr_of(el_head));
-    lh_ui_web_html_open(j, lh_addr_of(el_body));
-    lh_ui_web_html_emit(j, lh_addr_of(el_canvas_c));
-    lh_ui_web_html_emit(j, lh_addr_of(el_canvas_v3d));
-    lh_ui_web_html_open(j, lh_addr_of(el_script));
-    lh_ui_web_buf_lit(j, "\n", 1u);
-
-    /* -- rgba ------------------------------------------------------------------ */
-    lh_ui_web_js_fun_open(j, "rgba", "c");
-    {
-        lh_ui_web_x_t xc;
-        lh_ui_web_x_t i0;
-        lh_ui_web_x_t i1;
-        lh_ui_web_x_t i2;
-        lh_ui_web_x_t i3;
-        lh_ui_web_x_t c0;
-        lh_ui_web_x_t c1;
-        lh_ui_web_x_t c2;
-        lh_ui_web_x_t c3;
-        lh_ui_web_x_t n255;
-        lh_ui_web_x_t alpha;
-        lh_ui_web_x_t s_rgba;
-        lh_ui_web_x_t s_comma;
-        lh_ui_web_x_t s_end;
-        lh_ui_web_x_t t0;
-        lh_ui_web_x_t t1;
-        lh_ui_web_x_t t2;
-        lh_ui_web_x_t t3;
-        lh_ui_web_x_t t4;
-        lh_ui_web_x_t t5;
-        lh_ui_web_x_t t6;
-        lh_ui_web_x_t t7;
-
-        lh_ui_web_x_id("c", lh_addr_of(xc));
-        lh_ui_web_x_num(0, lh_addr_of(i0));
-        lh_ui_web_x_num(1, lh_addr_of(i1));
-        lh_ui_web_x_num(2, lh_addr_of(i2));
-        lh_ui_web_x_num(3, lh_addr_of(i3));
-        lh_ui_web_x_idx(lh_addr_of(xc), lh_addr_of(i0), lh_addr_of(c0));
-        lh_ui_web_x_idx(lh_addr_of(xc), lh_addr_of(i1), lh_addr_of(c1));
-        lh_ui_web_x_idx(lh_addr_of(xc), lh_addr_of(i2), lh_addr_of(c2));
-        lh_ui_web_x_idx(lh_addr_of(xc), lh_addr_of(i3), lh_addr_of(c3));
-        lh_ui_web_x_num(255, lh_addr_of(n255));
-        lh_ui_web_x_bin(lh_addr_of(c3), "/", lh_addr_of(n255), lh_addr_of(alpha));
-        lh_ui_web_x_str("rgba(", lh_addr_of(s_rgba));
-        lh_ui_web_x_str(",", lh_addr_of(s_comma));
-        lh_ui_web_x_str(")", lh_addr_of(s_end));
-        lh_ui_web_x_bin(lh_addr_of(s_rgba), "+", lh_addr_of(c0), lh_addr_of(t0));
-        lh_ui_web_x_bin(lh_addr_of(t0), "+", lh_addr_of(s_comma), lh_addr_of(t1));
-        lh_ui_web_x_bin(lh_addr_of(t1), "+", lh_addr_of(c1), lh_addr_of(t2));
-        lh_ui_web_x_bin(lh_addr_of(t2), "+", lh_addr_of(s_comma), lh_addr_of(t3));
-        lh_ui_web_x_bin(lh_addr_of(t3), "+", lh_addr_of(c2), lh_addr_of(t4));
-        lh_ui_web_x_bin(lh_addr_of(t4), "+", lh_addr_of(s_comma), lh_addr_of(t5));
-        lh_ui_web_x_bin(lh_addr_of(t5), "+", lh_addr_of(alpha), lh_addr_of(t6));
-        lh_ui_web_x_bin(lh_addr_of(t6), "+", lh_addr_of(s_end), lh_addr_of(t7));
-        lh_ui_web_js_ret_x(j, lh_addr_of(t7));
-    }
-    lh_ui_web_js_fun_close(j);
-
-    lh_ui_web_js_vars(
-        j, "atlas=[],tints={},ntint=0,fw=980,fh=620,cssS=1,lastD=null,pend=null,raf=0,v3on=0");
-    lh_ui_web_js_vars(
-        j, "scaleMode=(/scale=fit/.test(location.search)?'fit':'layout'),lastZW=0,lastZH=0");
-
-    /* -- hexv ------------------------------------------------------------------ */
-    lh_ui_web_js_fun_open(j, "hexv", "c");
-    {
-        lh_ui_web_x_t xc;
-        lh_ui_web_x_t n58;
-        lh_ui_web_x_t n48;
-        lh_ui_web_x_t n32;
-        lh_ui_web_x_t n87;
-        lh_ui_web_x_t lt;
-        lh_ui_web_x_t sub48;
-        lh_ui_web_x_t or32;
-        lh_ui_web_x_t sub87;
-        lh_ui_web_x_t tern;
-
-        lh_ui_web_x_id("c", lh_addr_of(xc));
-        lh_ui_web_x_num(58, lh_addr_of(n58));
-        lh_ui_web_x_num(48, lh_addr_of(n48));
-        lh_ui_web_x_num(32, lh_addr_of(n32));
-        lh_ui_web_x_num(87, lh_addr_of(n87));
-        lh_ui_web_x_bin(lh_addr_of(xc), "<", lh_addr_of(n58), lh_addr_of(lt));
-        lh_ui_web_x_bin(lh_addr_of(xc), "-", lh_addr_of(n48), lh_addr_of(sub48));
-        lh_ui_web_x_bin(lh_addr_of(xc), "|", lh_addr_of(n32), lh_addr_of(or32));
-        lh_ui_web_x_bin(lh_addr_of(or32), "-", lh_addr_of(n87), lh_addr_of(sub87));
-        lh_ui_web_x_tern(lh_addr_of(lt), lh_addr_of(sub48), lh_addr_of(sub87), lh_addr_of(tern));
-        lh_ui_web_js_ret_x(j, lh_addr_of(tern));
-    }
-    lh_ui_web_js_fun_close(j);
-
-    /* -- decodeCover ----------------------------------------------------------- */
-    lh_ui_web_js_fun_open(j, "decodeCover", "w,h,cv");
-    {
-        lh_ui_web_x_t document, create_element, canvas, create_canvas, im, w, h, zero;
-        lh_ui_web_x_t width, height, w_empty, h_empty, empty, get_context, context_2d;
-        lh_ui_web_x_t context, g, create_image, image_data, image, pixels, n;
-        lh_ui_web_x_t put_image, put;
-        const lh_ui_web_x_t *one_arg[1];
-        const lh_ui_web_x_t *size_args[2];
-        const lh_ui_web_x_t *put_args[3];
-
-        lh_ui_web_x_id("document", lh_addr_of(document));
-        lh_ui_web_x_dot(lh_addr_of(document), "createElement", lh_addr_of(create_element));
-        lh_ui_web_x_str("canvas", lh_addr_of(canvas));
-        one_arg[0] = lh_addr_of(canvas);
-        lh_ui_web_x_call(lh_addr_of(create_element), one_arg, 1u, lh_addr_of(create_canvas));
-        lh_ui_web_js_var_x(j, "im", lh_addr_of(create_canvas));
-        lh_ui_web_x_id("im", lh_addr_of(im));
-        lh_ui_web_x_id("w", lh_addr_of(w));
-        lh_ui_web_x_id("h", lh_addr_of(h));
-        lh_ui_web_x_num(0, lh_addr_of(zero));
-        lh_ui_web_x_dot(lh_addr_of(im), "width", lh_addr_of(width));
-        lh_ui_web_x_dot(lh_addr_of(im), "height", lh_addr_of(height));
-        lh_ui_web_js_assign_x(j, lh_addr_of(width), lh_addr_of(w));
-        lh_ui_web_js_assign_x(j, lh_addr_of(height), lh_addr_of(h));
-        lh_ui_web_x_bin(lh_addr_of(w), "<=", lh_addr_of(zero), lh_addr_of(w_empty));
-        lh_ui_web_x_bin(lh_addr_of(h), "<=", lh_addr_of(zero), lh_addr_of(h_empty));
-        lh_ui_web_x_bin(lh_addr_of(w_empty), "||", lh_addr_of(h_empty), lh_addr_of(empty));
-        lh_ui_web_js_if_x(j, lh_addr_of(empty));
-        lh_ui_web_js_ret_x(j, lh_addr_of(im));
-        lh_ui_web_js_end(j);
-        lh_ui_web_x_dot(lh_addr_of(im), "getContext", lh_addr_of(get_context));
-        lh_ui_web_x_str("2d", lh_addr_of(context_2d));
-        one_arg[0] = lh_addr_of(context_2d);
-        lh_ui_web_x_call(lh_addr_of(get_context), one_arg, 1u, lh_addr_of(context));
-        lh_ui_web_js_var_x(j, "g", lh_addr_of(context));
-        lh_ui_web_x_id("g", lh_addr_of(g));
-        lh_ui_web_x_dot(lh_addr_of(g), "createImageData", lh_addr_of(create_image));
-        size_args[0] = lh_addr_of(w);
-        size_args[1] = lh_addr_of(h);
-        lh_ui_web_x_call(lh_addr_of(create_image), size_args, 2u, lh_addr_of(image_data));
-        lh_ui_web_js_var_x(j, "id", lh_addr_of(image_data));
-        lh_ui_web_x_id("id", lh_addr_of(image));
-        lh_ui_web_x_dot(lh_addr_of(image), "data", lh_addr_of(pixels));
-        lh_ui_web_js_var_x(j, "p", lh_addr_of(pixels));
-        lh_ui_web_x_bin(lh_addr_of(w), "*", lh_addr_of(h), lh_addr_of(n));
-        lh_ui_web_js_var_x(j, "n", lh_addr_of(n));
-        lh_ui_web_js_vars(j, "i,j,k");
-        /* The pixel loop awaits statement nodes for for-loops and updates. */
-        lh_ui_web_buf_raw(
-            j, "for(i=0,j=0;i<n;i++,j+=4){k=i*2;p[j]=p[j+1]=p[j+2]=255;"
-               "p[j+3]=k+1<cv.length?(hexv(cv.charCodeAt(k))<<4)|hexv(cv.charCodeAt(k+1)):0;}\n");
-        lh_ui_web_x_dot(lh_addr_of(g), "putImageData", lh_addr_of(put_image));
-        put_args[0] = lh_addr_of(image);
-        put_args[1] = lh_addr_of(zero);
-        put_args[2] = lh_addr_of(zero);
-        lh_ui_web_x_call(lh_addr_of(put_image), put_args, 3u, lh_addr_of(put));
-        lh_ui_web_js_stmt_x(j, lh_addr_of(put));
-        lh_ui_web_js_ret_x(j, lh_addr_of(im));
-    }
-    lh_ui_web_js_fun_close(j);
-
-    /* -- ingest ---------------------------------------------------------------- */
-    lh_ui_web_js_fun_open(j, "ingest", "d");
-    lh_ui_web_js_vars(j, "ops=d.ops||[],i,op");
-    lh_ui_web_js_for(j, "i=0;i<ops.length;i++");
-    {
-        lh_ui_web_x_t op, ops, index, current, cover, undefined, has_cover;
-        lh_ui_web_x_t member, member_type, number, is_number, eligible, atlas, slot;
-        lh_ui_web_x_t size, zero, one, width, height, decoded;
-        const lh_ui_web_x_t *args[3];
-
-        lh_ui_web_x_id("op", lh_addr_of(op));
-        lh_ui_web_x_id("ops", lh_addr_of(ops));
-        lh_ui_web_x_id("i", lh_addr_of(index));
-        lh_ui_web_x_idx(lh_addr_of(ops), lh_addr_of(index), lh_addr_of(current));
-        lh_ui_web_js_assign_x(j, lh_addr_of(op), lh_addr_of(current));
-        lh_ui_web_x_dot(lh_addr_of(op), "cover", lh_addr_of(cover));
-        lh_ui_web_x_id("undefined", lh_addr_of(undefined));
-        lh_ui_web_x_bin(lh_addr_of(cover), "!==", lh_addr_of(undefined), lh_addr_of(has_cover));
-        lh_ui_web_x_dot(lh_addr_of(op), "m", lh_addr_of(member));
-        lh_ui_web_x_typeof(lh_addr_of(member), lh_addr_of(member_type));
-        lh_ui_web_x_str("number", lh_addr_of(number));
-        lh_ui_web_x_bin(lh_addr_of(member_type), "===", lh_addr_of(number), lh_addr_of(is_number));
-        lh_ui_web_x_bin(lh_addr_of(has_cover), "&&", lh_addr_of(is_number), lh_addr_of(eligible));
-        lh_ui_web_js_if_x(j, lh_addr_of(eligible));
-        lh_ui_web_x_id("atlas", lh_addr_of(atlas));
-        lh_ui_web_x_idx(lh_addr_of(atlas), lh_addr_of(member), lh_addr_of(slot));
-        lh_ui_web_x_dot(lh_addr_of(op), "size", lh_addr_of(size));
-        lh_ui_web_x_num(0, lh_addr_of(zero));
-        lh_ui_web_x_num(1, lh_addr_of(one));
-        lh_ui_web_x_idx(lh_addr_of(size), lh_addr_of(zero), lh_addr_of(width));
-        lh_ui_web_x_idx(lh_addr_of(size), lh_addr_of(one), lh_addr_of(height));
-        args[0] = lh_addr_of(width);
-        args[1] = lh_addr_of(height);
-        args[2] = lh_addr_of(cover);
-        lh_ui_web_x_call_id("decodeCover", args, 3u, lh_addr_of(decoded));
-        lh_ui_web_js_assign_x(j, lh_addr_of(slot), lh_addr_of(decoded));
-        lh_ui_web_js_end(j);
-    }
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_fun_close(j);
-
-    /* -- tint ------------------------------------------------------------------ */
-    lh_ui_web_js_fun_open(j, "tint", "a,c");
-    {
-        lh_ui_web_x_t document, create_element, canvas, create_canvas, t, a, c;
-        lh_ui_web_x_t t_width, t_height, a_width, a_height, no_width, no_height, empty;
-        lh_ui_web_x_t get_context, context_2d, get_2d, g, fill_style, rgba;
-        lh_ui_web_x_t fill_rect, zero, rect, composite, destination_in, draw_image, draw;
-        const lh_ui_web_x_t *one_arg[1];
-        const lh_ui_web_x_t *rect_args[4];
-        const lh_ui_web_x_t *draw_args[3];
-
-        lh_ui_web_x_id("document", lh_addr_of(document));
-        lh_ui_web_x_dot(lh_addr_of(document), "createElement", lh_addr_of(create_element));
-        lh_ui_web_x_str("canvas", lh_addr_of(canvas));
-        one_arg[0] = lh_addr_of(canvas);
-        lh_ui_web_x_call(lh_addr_of(create_element), one_arg, 1u, lh_addr_of(create_canvas));
-        lh_ui_web_js_var_x(j, "t", lh_addr_of(create_canvas));
-        lh_ui_web_x_id("t", lh_addr_of(t));
-        lh_ui_web_x_id("a", lh_addr_of(a));
-        lh_ui_web_x_id("c", lh_addr_of(c));
-        lh_ui_web_x_dot(lh_addr_of(t), "width", lh_addr_of(t_width));
-        lh_ui_web_x_dot(lh_addr_of(t), "height", lh_addr_of(t_height));
-        lh_ui_web_x_dot(lh_addr_of(a), "width", lh_addr_of(a_width));
-        lh_ui_web_x_dot(lh_addr_of(a), "height", lh_addr_of(a_height));
-        lh_ui_web_js_assign_x(j, lh_addr_of(t_width), lh_addr_of(a_width));
-        lh_ui_web_js_assign_x(j, lh_addr_of(t_height), lh_addr_of(a_height));
-        lh_ui_web_x_un("!", lh_addr_of(a_width), lh_addr_of(no_width));
-        lh_ui_web_x_un("!", lh_addr_of(a_height), lh_addr_of(no_height));
-        lh_ui_web_x_bin(lh_addr_of(no_width), "||", lh_addr_of(no_height), lh_addr_of(empty));
-        lh_ui_web_js_if_x(j, lh_addr_of(empty));
-        lh_ui_web_js_ret_x(j, lh_addr_of(t));
-        lh_ui_web_js_end(j);
-        lh_ui_web_x_dot(lh_addr_of(t), "getContext", lh_addr_of(get_context));
-        lh_ui_web_x_str("2d", lh_addr_of(context_2d));
-        one_arg[0] = lh_addr_of(context_2d);
-        lh_ui_web_x_call(lh_addr_of(get_context), one_arg, 1u, lh_addr_of(get_2d));
-        lh_ui_web_js_var_x(j, "g", lh_addr_of(get_2d));
-        lh_ui_web_x_id("g", lh_addr_of(g));
-        lh_ui_web_x_dot(lh_addr_of(g), "fillStyle", lh_addr_of(fill_style));
-        one_arg[0] = lh_addr_of(c);
-        lh_ui_web_x_call_id("rgba", one_arg, 1u, lh_addr_of(rgba));
-        lh_ui_web_js_assign_x(j, lh_addr_of(fill_style), lh_addr_of(rgba));
-        lh_ui_web_x_dot(lh_addr_of(g), "fillRect", lh_addr_of(fill_rect));
-        lh_ui_web_x_num(0, lh_addr_of(zero));
-        rect_args[0] = lh_addr_of(zero);
-        rect_args[1] = lh_addr_of(zero);
-        rect_args[2] = lh_addr_of(t_width);
-        rect_args[3] = lh_addr_of(t_height);
-        lh_ui_web_x_call(lh_addr_of(fill_rect), rect_args, 4u, lh_addr_of(rect));
-        lh_ui_web_js_stmt_x(j, lh_addr_of(rect));
-        lh_ui_web_x_dot(lh_addr_of(g), "globalCompositeOperation", lh_addr_of(composite));
-        lh_ui_web_x_str("destination-in", lh_addr_of(destination_in));
-        lh_ui_web_js_assign_x(j, lh_addr_of(composite), lh_addr_of(destination_in));
-        lh_ui_web_x_dot(lh_addr_of(g), "drawImage", lh_addr_of(draw_image));
-        draw_args[0] = lh_addr_of(a);
-        draw_args[1] = lh_addr_of(zero);
-        draw_args[2] = lh_addr_of(zero);
-        lh_ui_web_x_call(lh_addr_of(draw_image), draw_args, 3u, lh_addr_of(draw));
-        lh_ui_web_js_stmt_x(j, lh_addr_of(draw));
-        lh_ui_web_js_ret_x(j, lh_addr_of(t));
-    }
-    lh_ui_web_js_fun_close(j);
-
-    /* -- glyph ----------------------------------------------------------------- */
-    lh_ui_web_js_fun_open(j, "glyph", "op");
-    lh_ui_web_js_var(j, "c", "op.color");
-    lh_ui_web_js_if(j, "typeof op.m!=='number'");
-    lh_ui_web_js_ret(j, "tint(decodeCover(op.size[0],op.size[1],op.cover||''),c)");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_vars(j, "k=op.m+','+c[0]+','+c[1]+','+c[2]+','+c[3],t=tints[k]");
-    lh_ui_web_js_if(j, "t");
-    lh_ui_web_js_ret(j, "t");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_var(j, "a", "atlas[op.m]");
-    lh_ui_web_js_if(j, "!a");
-    lh_ui_web_js_ret(j, "null");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_if(j, "ntint>=8192");
-    lh_ui_web_js_assign(j, "tints", "{}");
-    lh_ui_web_js_assign(j, "ntint", "0");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_assign(j, "t", "tint(a,c)");
-    lh_ui_web_js_assign(j, "tints[k]", "t");
-    lh_ui_web_js_stmt(j, "++ntint");
-    lh_ui_web_js_ret(j, "t");
-    lh_ui_web_js_fun_close(j);
-
-    /* -- round ----------------------------------------------------------------- */
-    lh_ui_web_js_fun_open(j, "round", "x,r,rad");
-    {
-        lh_ui_web_x_t context, rectangle, radius, zero, rounded_radius;
-        lh_ui_web_x_t begin_path, begin, round_rect, rect, rounded, plain;
-        lh_ui_web_x_t indexes[4], coordinates[4];
-        const lh_ui_web_x_t *args[5];
-
-        lh_ui_web_x_id("x", lh_addr_of(context));
-        lh_ui_web_x_id("r", lh_addr_of(rectangle));
-        lh_ui_web_x_id("rad", lh_addr_of(radius));
-        lh_ui_web_x_num(0, lh_addr_of(zero));
-        lh_ui_web_x_dot(lh_addr_of(context), "beginPath", lh_addr_of(begin_path));
-        lh_ui_web_x_call(lh_addr_of(begin_path), lh_null, 0u, lh_addr_of(begin));
-        lh_ui_web_js_stmt_x(j, lh_addr_of(begin));
-        lh_ui_web_x_dot(lh_addr_of(context), "roundRect", lh_addr_of(round_rect));
-        lh_ui_web_x_dot(lh_addr_of(context), "rect", lh_addr_of(rect));
-        for (lh_u16_t i = 0u; i < 4u; i = lh_math_add_one(i))
-        {
-            lh_ui_web_x_num(i, lh_addr_of(indexes[i]));
-            lh_ui_web_x_idx(lh_addr_of(rectangle), lh_addr_of(indexes[i]),
-                            lh_addr_of(coordinates[i]));
-            args[i] = lh_addr_of(coordinates[i]);
-        }
-        lh_ui_web_x_bin(lh_addr_of(radius), "||", lh_addr_of(zero), lh_addr_of(rounded_radius));
-        args[4] = lh_addr_of(rounded_radius);
-        lh_ui_web_x_call(lh_addr_of(round_rect), args, 5u, lh_addr_of(rounded));
-        lh_ui_web_x_call(lh_addr_of(rect), args, 4u, lh_addr_of(plain));
-        lh_ui_web_js_if_x(j, lh_addr_of(round_rect));
-        lh_ui_web_js_stmt_x(j, lh_addr_of(rounded));
-        lh_ui_web_js_else(j);
-        lh_ui_web_js_stmt_x(j, lh_addr_of(plain));
-        lh_ui_web_js_end(j);
-    }
-    lh_ui_web_js_fun_close(j);
-
-    /* -- pane3d ---------------------------------------------------------------- */
-    lh_ui_web_js_fun_open(j, "pane3d", "d");
-    lh_ui_web_js_vars(
-        j, "v=document.getElementById('v3d'),r=d.viewport3d,c=document.getElementById('c')");
-    lh_ui_web_js_if(j, "!r");
-    lh_ui_web_js_if(j, "v3on");
-    lh_ui_web_js_assign(j, "v.style.display", "'none'");
-    lh_ui_web_js_assign(j, "v3on", "0");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_ret(j, lh_null);
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_assign(j, "v3on", "1");
-    lh_ui_web_js_vars(j, "box=c.getBoundingClientRect(),dpr=window.devicePixelRatio||1");
-    lh_ui_web_js_assign(j, "v.style.display", "'block'");
-    lh_ui_web_js_assign(j, "v.style.left", "(box.left+r[0]*cssS)+'px'");
-    lh_ui_web_js_assign(j, "v.style.top", "(box.top+r[1]*cssS)+'px'");
-    lh_ui_web_js_assign(j, "v.style.width", "(r[2]*cssS)+'px'");
-    lh_ui_web_js_assign(j, "v.style.height", "(r[3]*cssS)+'px'");
-    lh_ui_web_js_assign(j, "v.width", "Math.max(1,Math.round(r[2]*cssS*dpr))");
-    lh_ui_web_js_assign(j, "v.height", "Math.max(1,Math.round(r[3]*cssS*dpr))");
-    lh_ui_web_js_if(j, "!v.gl");
-    lh_ui_web_js_assign(j, "v.gl", "v.getContext('webgl')||v.getContext('experimental-webgl')");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_fun_close(j);
-
-    /* -- fit ------------------------------------------------------------------- */
-    lh_ui_web_js_fun_open(j, "fit", "");
-    lh_ui_web_js_vars(j,
-                      "c=document.getElementById('c'),vw=window.innerWidth,vh=window.innerHeight,"
-                      "dpr=window.devicePixelRatio||1,s,bw,bh");
-    lh_ui_web_js_if(j, "scaleMode==='layout'");
-    lh_ui_web_js_assign(j, "cssS", "1");
-    lh_ui_web_js_assign(j, "bw", "Math.max(1,Math.round(fw*dpr))");
-    lh_ui_web_js_assign(j, "bh", "Math.max(1,Math.round(fh*dpr))");
-    lh_ui_web_js_if(j, "c.width!==bw");
-    lh_ui_web_js_assign(j, "c.width", "bw");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_if(j, "c.height!==bh");
-    lh_ui_web_js_assign(j, "c.height", "bh");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_assign(j, "c.style.width", "fw+'px'");
-    lh_ui_web_js_assign(j, "c.style.height", "fh+'px'");
-    lh_ui_web_js_assign(j, "c.style.left", "'0'");
-    lh_ui_web_js_assign(j, "c.style.top", "'0'");
-    lh_ui_web_js_ret(j, "c.getContext('2d')");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_assign(j, "s", "Math.min(vw/fw,vh/fh)");
-    lh_ui_web_js_if(j, "!isFinite(s)||s<=0");
-    lh_ui_web_js_assign(j, "s", "1");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_assign(j, "cssS", "s");
-    lh_ui_web_js_assign(j, "bw", "Math.max(1,Math.round(fw*s*dpr))");
-    lh_ui_web_js_assign(j, "bh", "Math.max(1,Math.round(fh*s*dpr))");
-    lh_ui_web_js_if(j, "c.width!==bw");
-    lh_ui_web_js_assign(j, "c.width", "bw");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_if(j, "c.height!==bh");
-    lh_ui_web_js_assign(j, "c.height", "bh");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_assign(j, "c.style.width", "Math.round(fw*s)+'px'");
-    lh_ui_web_js_assign(j, "c.style.height", "Math.round(fh*s)+'px'");
-    lh_ui_web_js_assign(j, "c.style.left", "Math.round((vw-fw*s)/2)+'px'");
-    lh_ui_web_js_assign(j, "c.style.top", "Math.round((vh-fh*s)/2)+'px'");
-    lh_ui_web_js_ret(j, "c.getContext('2d')");
-    lh_ui_web_js_fun_close(j);
-
-    /* -- play (switch stays one raw block) ------------------------------------- */
-    lh_ui_web_js_fun_open(j, "play", "d");
-    lh_ui_web_js_assign(j, "lastD", "d");
-    lh_ui_web_js_assign(j, "fw", "d.width");
-    lh_ui_web_js_assign(j, "fh", "d.height");
-    lh_ui_web_js_vars(j, "x=fit(),ops=d.ops||[],i,op,s,fs=null,dpr=window.devicePixelRatio||1");
-    lh_ui_web_js_stmt(j, "x.setTransform(cssS*dpr,0,0,cssS*dpr,0,0)");
-    lh_ui_web_js_stmt(j, "pane3d(d)");
-    lh_ui_web_buf_raw(
-        j,
-        "for(i=0;i<ops.length;i++){op=ops[i];switch(op.op){"
-        "case 'fill_mask':{var g=glyph(op);if(g)x.drawImage(g,op.origin[0],op.origin[1]);break;}"
-        "case 'fill_rect':s=rgba(op.color);if(s!==fs){x.fillStyle=s;fs=s;}"
-        "x.fillRect(op.rect[0],op.rect[1],op.rect[2],op.rect[3]);break;"
-        "case 'fill_round_rect':s=rgba(op.color);if(s!==fs){x.fillStyle=s;fs=s;}"
-        "round(x,op.rect,op.radius||0);x.fill();break;"
-        "case 'clear':s=rgba(op.color);if(s!==fs){x.fillStyle=s;fs=s;}x.fillRect(0,0,fw,fh);break;"
-        "case 'shadow':x.save();x.shadowColor=rgba(op.color);x.shadowBlur=op.spread||0;"
-        "x.shadowOffsetX=op.offset?op.offset[0]:0;x.shadowOffsetY=op.offset?op.offset[1]:0;"
-        "x.fillStyle=rgba(op.color);round(x,op.rect,op.radius||0);x.fill();x.restore();fs=null;"
-        "break;"
-        "}}\n");
-    lh_ui_web_js_fun_close(j);
-
-    /* -- sized / show / pos / viewSize / reportSize ---------------------------- */
-    lh_ui_web_js_fun_open(j, "sized", "d");
-    {
-        lh_ui_web_x_t scale;
-        lh_ui_web_x_t layout;
-        lh_ui_web_x_t ne;
-        lh_ui_web_x_t last_zw;
-        lh_ui_web_x_t not_zw;
-        lh_ui_web_x_t skip;
-        lh_ui_web_x_t one;
-        lh_ui_web_x_t zero;
-        lh_ui_web_x_t xd;
-        lh_ui_web_x_t dw;
-        lh_ui_web_x_t dh;
-        lh_ui_web_x_t n980;
-        lh_ui_web_x_t n620;
-        lh_ui_web_x_t last_zh;
-        lh_ui_web_x_t eq_w;
-        lh_ui_web_x_t eq_h;
-        lh_ui_web_x_t ne_zw;
-        lh_ui_web_x_t ne_zh;
-        lh_ui_web_x_t wrong_z;
-        lh_ui_web_x_t design;
-        lh_ui_web_x_t reject;
-
-        lh_ui_web_x_id("scaleMode", lh_addr_of(scale));
-        lh_ui_web_x_str("layout", lh_addr_of(layout));
-        lh_ui_web_x_bin(lh_addr_of(scale), "!==", lh_addr_of(layout), lh_addr_of(ne));
-        lh_ui_web_x_id("lastZW", lh_addr_of(last_zw));
-        lh_ui_web_x_un("!", lh_addr_of(last_zw), lh_addr_of(not_zw));
-        lh_ui_web_x_bin(lh_addr_of(ne), "||", lh_addr_of(not_zw), lh_addr_of(skip));
-        lh_ui_web_x_num(1, lh_addr_of(one));
-        lh_ui_web_js_if_x(j, lh_addr_of(skip));
-        lh_ui_web_js_ret_x(j, lh_addr_of(one));
-        lh_ui_web_js_end(j);
-
-        lh_ui_web_x_id("d", lh_addr_of(xd));
-        lh_ui_web_x_dot(lh_addr_of(xd), "width", lh_addr_of(dw));
-        lh_ui_web_x_dot(lh_addr_of(xd), "height", lh_addr_of(dh));
-        lh_ui_web_x_num(980, lh_addr_of(n980));
-        lh_ui_web_x_num(620, lh_addr_of(n620));
-        lh_ui_web_x_id("lastZH", lh_addr_of(last_zh));
-        lh_ui_web_x_bin(lh_addr_of(dw), "===", lh_addr_of(n980), lh_addr_of(eq_w));
-        lh_ui_web_x_bin(lh_addr_of(dh), "===", lh_addr_of(n620), lh_addr_of(eq_h));
-        lh_ui_web_x_bin(lh_addr_of(last_zw), "!==", lh_addr_of(n980), lh_addr_of(ne_zw));
-        lh_ui_web_x_bin(lh_addr_of(last_zh), "!==", lh_addr_of(n620), lh_addr_of(ne_zh));
-        lh_ui_web_x_bin(lh_addr_of(ne_zw), "||", lh_addr_of(ne_zh), lh_addr_of(wrong_z));
-        lh_ui_web_x_bin(lh_addr_of(eq_w), "&&", lh_addr_of(eq_h), lh_addr_of(design));
-        lh_ui_web_x_bin(lh_addr_of(design), "&&", lh_addr_of(wrong_z), lh_addr_of(reject));
-        lh_ui_web_x_num(0, lh_addr_of(zero));
-        lh_ui_web_js_if_x(j, lh_addr_of(reject));
-        lh_ui_web_js_ret_x(j, lh_addr_of(zero));
-        lh_ui_web_js_end(j);
-        lh_ui_web_js_ret_x(j, lh_addr_of(one));
-    }
-    lh_ui_web_js_fun_close(j);
-
-    lh_ui_web_js_fun_open(j, "show", "d");
-    {
-        lh_ui_web_x_t xd;
-        lh_ui_web_x_t ingest;
-        lh_ui_web_x_t sized;
-        lh_ui_web_x_t not_sized;
-        lh_ui_web_x_t pend;
-        lh_ui_web_x_t raf;
-        lh_ui_web_x_t not_raf;
-        const lh_ui_web_x_t *ingest_args[1];
-        const lh_ui_web_x_t *sized_args[1];
-
-        lh_ui_web_x_id("d", lh_addr_of(xd));
-        ingest_args[0] = lh_addr_of(xd);
-        lh_ui_web_x_call_id("ingest", ingest_args, 1u, lh_addr_of(ingest));
-        lh_ui_web_js_stmt_x(j, lh_addr_of(ingest));
-        sized_args[0] = lh_addr_of(xd);
-        lh_ui_web_x_call_id("sized", sized_args, 1u, lh_addr_of(sized));
-        lh_ui_web_x_un("!", lh_addr_of(sized), lh_addr_of(not_sized));
-        lh_ui_web_js_if_x(j, lh_addr_of(not_sized));
-        lh_ui_web_js_ret_x(j, lh_null);
-        lh_ui_web_js_end(j);
-        lh_ui_web_x_id("pend", lh_addr_of(pend));
-        lh_ui_web_js_assign_x(j, lh_addr_of(pend), lh_addr_of(xd));
-        lh_ui_web_x_id("raf", lh_addr_of(raf));
-        lh_ui_web_x_un("!", lh_addr_of(raf), lh_addr_of(not_raf));
-        lh_ui_web_js_if_x(j, lh_addr_of(not_raf));
-        lh_ui_web_js_assign(
-            j, "raf",
-            "requestAnimationFrame(function(){raf=0;var p=pend;pend=null;if(p)play(p);})");
-        lh_ui_web_js_end(j);
-    }
-    lh_ui_web_js_fun_close(j);
-
-    lh_ui_web_js_fun_open(j, "pos", "e");
-    lh_ui_web_js_vars(j, "c=document.getElementById('c'),r=c.getBoundingClientRect()");
-    {
-        lh_ui_web_x_t xe;
-        lh_ui_web_x_t xr;
-        lh_ui_web_x_t xfw;
-        lh_ui_web_x_t xfh;
-        lh_ui_web_x_t client_x;
-        lh_ui_web_x_t client_y;
-        lh_ui_web_x_t left;
-        lh_ui_web_x_t top;
-        lh_ui_web_x_t width;
-        lh_ui_web_x_t height;
-        lh_ui_web_x_t dx;
-        lh_ui_web_x_t dy;
-        lh_ui_web_x_t nx1;
-        lh_ui_web_x_t nx2;
-        lh_ui_web_x_t ny1;
-        lh_ui_web_x_t ny2;
-        lh_ui_web_x_t math;
-        lh_ui_web_x_t math_round;
-        lh_ui_web_x_t round_x;
-        lh_ui_web_x_t round_y;
-        lh_ui_web_x_t obj;
-        const lh_str_ptr keys[2];
-        const lh_ui_web_x_t *vals[2];
-        const lh_ui_web_x_t *rx_args[1];
-        const lh_ui_web_x_t *ry_args[1];
-
-        lh_ui_web_x_id("e", lh_addr_of(xe));
-        lh_ui_web_x_id("r", lh_addr_of(xr));
-        lh_ui_web_x_id("fw", lh_addr_of(xfw));
-        lh_ui_web_x_id("fh", lh_addr_of(xfh));
-        lh_ui_web_x_dot(lh_addr_of(xe), "clientX", lh_addr_of(client_x));
-        lh_ui_web_x_dot(lh_addr_of(xe), "clientY", lh_addr_of(client_y));
-        lh_ui_web_x_dot(lh_addr_of(xr), "left", lh_addr_of(left));
-        lh_ui_web_x_dot(lh_addr_of(xr), "top", lh_addr_of(top));
-        lh_ui_web_x_dot(lh_addr_of(xr), "width", lh_addr_of(width));
-        lh_ui_web_x_dot(lh_addr_of(xr), "height", lh_addr_of(height));
-        lh_ui_web_x_bin(lh_addr_of(client_x), "-", lh_addr_of(left), lh_addr_of(dx));
-        lh_ui_web_x_bin(lh_addr_of(client_y), "-", lh_addr_of(top), lh_addr_of(dy));
-        lh_ui_web_x_bin(lh_addr_of(dx), "*", lh_addr_of(xfw), lh_addr_of(nx1));
-        lh_ui_web_x_bin(lh_addr_of(nx1), "/", lh_addr_of(width), lh_addr_of(nx2));
-        lh_ui_web_x_bin(lh_addr_of(dy), "*", lh_addr_of(xfh), lh_addr_of(ny1));
-        lh_ui_web_x_bin(lh_addr_of(ny1), "/", lh_addr_of(height), lh_addr_of(ny2));
-        lh_ui_web_x_id("Math", lh_addr_of(math));
-        lh_ui_web_x_dot(lh_addr_of(math), "round", lh_addr_of(math_round));
-        rx_args[0] = lh_addr_of(nx2);
-        ry_args[0] = lh_addr_of(ny2);
-        lh_ui_web_x_call(lh_addr_of(math_round), rx_args, 1u, lh_addr_of(round_x));
-        lh_ui_web_x_call(lh_addr_of(math_round), ry_args, 1u, lh_addr_of(round_y));
-        keys[0] = "x";
-        keys[1] = "y";
-        vals[0] = lh_addr_of(round_x);
-        vals[1] = lh_addr_of(round_y);
-        lh_ui_web_x_obj(keys, vals, 2u, lh_addr_of(obj));
-        lh_ui_web_js_ret_x(j, lh_addr_of(obj));
-    }
-    lh_ui_web_js_fun_close(j);
-
-    lh_ui_web_js_fun_open(j, "viewSize", "");
-    {
-        lh_ui_web_x_t win;
-        lh_ui_web_x_t iw;
-        lh_ui_web_x_t ih;
-        lh_ui_web_x_t zero;
-        lh_ui_web_x_t w_init;
-        lh_ui_web_x_t h_init;
-        lh_ui_web_x_t xw;
-        lh_ui_web_x_t xh;
-        lh_ui_web_x_t one;
-        lh_ui_web_x_t w_lt;
-        lh_ui_web_x_t h_lt;
-        lh_ui_web_x_t obj;
-        const lh_str_ptr keys[2];
-        const lh_ui_web_x_t *vals[2];
-
-        lh_ui_web_x_id("window", lh_addr_of(win));
-        lh_ui_web_x_dot(lh_addr_of(win), "innerWidth", lh_addr_of(iw));
-        lh_ui_web_x_dot(lh_addr_of(win), "innerHeight", lh_addr_of(ih));
-        lh_ui_web_x_num(0, lh_addr_of(zero));
-        lh_ui_web_x_bin(lh_addr_of(iw), "|", lh_addr_of(zero), lh_addr_of(w_init));
-        lh_ui_web_x_bin(lh_addr_of(ih), "|", lh_addr_of(zero), lh_addr_of(h_init));
-        lh_ui_web_js_var_x(j, "w", lh_addr_of(w_init));
-        lh_ui_web_js_var_x(j, "h", lh_addr_of(h_init));
-        lh_ui_web_x_id("w", lh_addr_of(xw));
-        lh_ui_web_x_id("h", lh_addr_of(xh));
-        lh_ui_web_x_num(1, lh_addr_of(one));
-        lh_ui_web_x_bin(lh_addr_of(xw), "<", lh_addr_of(one), lh_addr_of(w_lt));
-        lh_ui_web_js_if_x(j, lh_addr_of(w_lt));
-        lh_ui_web_js_assign_x(j, lh_addr_of(xw), lh_addr_of(one));
-        lh_ui_web_js_end(j);
-        lh_ui_web_x_bin(lh_addr_of(xh), "<", lh_addr_of(one), lh_addr_of(h_lt));
-        lh_ui_web_js_if_x(j, lh_addr_of(h_lt));
-        lh_ui_web_js_assign_x(j, lh_addr_of(xh), lh_addr_of(one));
-        lh_ui_web_js_end(j);
-        keys[0] = "w";
-        keys[1] = "h";
-        vals[0] = lh_addr_of(xw);
-        vals[1] = lh_addr_of(xh);
-        lh_ui_web_x_obj(keys, vals, 2u, lh_addr_of(obj));
-        lh_ui_web_js_ret_x(j, lh_addr_of(obj));
-    }
-    lh_ui_web_js_fun_close(j);
-
-    lh_ui_web_js_fun_open(j, "reportSize", "force");
-    {
-        lh_ui_web_x_t scale;
-        lh_ui_web_x_t layout;
-        lh_ui_web_x_t ne;
-        lh_ui_web_x_t view;
-        lh_ui_web_x_t xs;
-        lh_ui_web_x_t force;
-        lh_ui_web_x_t not_force;
-        lh_ui_web_x_t sw;
-        lh_ui_web_x_t sh;
-        lh_ui_web_x_t last_zw;
-        lh_ui_web_x_t last_zh;
-        lh_ui_web_x_t eq_w;
-        lh_ui_web_x_t eq_h;
-        lh_ui_web_x_t same;
-        lh_ui_web_x_t skip;
-        lh_ui_web_x_t s_z;
-        lh_ui_web_x_t s_sp;
-        lh_ui_web_x_t t0;
-        lh_ui_web_x_t t1;
-        lh_ui_web_x_t t2;
-        lh_ui_web_x_t emit;
-        const lh_ui_web_x_t *emit_args[1];
-
-        lh_ui_web_x_id("scaleMode", lh_addr_of(scale));
-        lh_ui_web_x_str("layout", lh_addr_of(layout));
-        lh_ui_web_x_bin(lh_addr_of(scale), "!==", lh_addr_of(layout), lh_addr_of(ne));
-        lh_ui_web_js_if_x(j, lh_addr_of(ne));
-        lh_ui_web_js_ret_x(j, lh_null);
-        lh_ui_web_js_end(j);
-        lh_ui_web_x_call_id("viewSize", lh_null, 0u, lh_addr_of(view));
-        lh_ui_web_js_var_x(j, "s", lh_addr_of(view));
-        lh_ui_web_x_id("s", lh_addr_of(xs));
-        lh_ui_web_x_id("force", lh_addr_of(force));
-        lh_ui_web_x_un("!", lh_addr_of(force), lh_addr_of(not_force));
-        lh_ui_web_x_dot(lh_addr_of(xs), "w", lh_addr_of(sw));
-        lh_ui_web_x_dot(lh_addr_of(xs), "h", lh_addr_of(sh));
-        lh_ui_web_x_id("lastZW", lh_addr_of(last_zw));
-        lh_ui_web_x_id("lastZH", lh_addr_of(last_zh));
-        lh_ui_web_x_bin(lh_addr_of(sw), "===", lh_addr_of(last_zw), lh_addr_of(eq_w));
-        lh_ui_web_x_bin(lh_addr_of(sh), "===", lh_addr_of(last_zh), lh_addr_of(eq_h));
-        lh_ui_web_x_bin(lh_addr_of(eq_w), "&&", lh_addr_of(eq_h), lh_addr_of(same));
-        lh_ui_web_x_bin(lh_addr_of(not_force), "&&", lh_addr_of(same), lh_addr_of(skip));
-        lh_ui_web_js_if_x(j, lh_addr_of(skip));
-        lh_ui_web_js_ret_x(j, lh_null);
-        lh_ui_web_js_end(j);
-        lh_ui_web_js_assign_x(j, lh_addr_of(last_zw), lh_addr_of(sw));
-        lh_ui_web_js_assign_x(j, lh_addr_of(last_zh), lh_addr_of(sh));
-        lh_ui_web_x_str("z ", lh_addr_of(s_z));
-        lh_ui_web_x_str(" ", lh_addr_of(s_sp));
-        lh_ui_web_x_bin(lh_addr_of(s_z), "+", lh_addr_of(sw), lh_addr_of(t0));
-        lh_ui_web_x_bin(lh_addr_of(t0), "+", lh_addr_of(s_sp), lh_addr_of(t1));
-        lh_ui_web_x_bin(lh_addr_of(t1), "+", lh_addr_of(sh), lh_addr_of(t2));
-        emit_args[0] = lh_addr_of(t2);
-        lh_ui_web_x_call_id("emit", emit_args, 1u, lh_addr_of(emit));
-        lh_ui_web_js_stmt_x(j, lh_addr_of(emit));
-    }
-    lh_ui_web_js_fun_close(j);
-
-    lh_ui_web_js_assign(
-        j, "window.onresize",
-        "function(){if(scaleMode==='layout')reportSize();else if(lastD)play(lastD);}");
-    lh_ui_web_js_vars(j, "busy=0,rev=-1");
-
-    /* -- load / poll / emit ---------------------------------------------------- */
-    lh_ui_web_js_fun_open(j, "load", "");
-    lh_ui_web_js_if(j, "busy");
-    lh_ui_web_js_ret(j, "busy");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_assign(j, "busy",
-                        "fetch('/ui.json').then(function(r){return r.json();})"
-                        ".then(show).then(function(){busy=0;},function(){busy=0;})");
-    lh_ui_web_js_ret(j, "busy");
-    lh_ui_web_js_fun_close(j);
-
-    lh_ui_web_js_fun_open(j, "poll", "");
-    lh_ui_web_js_stmt(j, "fetch('/ui.rev').then(function(r){return r.text();}).then(function(t){"
-                         "var n=+t;if(n!==rev){rev=n;load();}})");
-    lh_ui_web_js_fun_close(j);
-
-    lh_ui_web_js_fun_open(j, "emit", "line");
-    lh_ui_web_js_if(j, "sock&&sock.readyState===1");
-    lh_ui_web_js_stmt(j, "sock.send(line)");
-    lh_ui_web_js_ret(j, lh_null);
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_var(j, "p", "line.split(' ')");
-    lh_ui_web_js_if(j, "p[0]==='p'");
-    lh_ui_web_js_ret(
-        j, "fetch('/ui/press?x='+p[1]+'&y='+p[2]).then(function(){rev=-1;return load();})");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_if(j, "p[0]==='r'");
-    lh_ui_web_js_ret(
-        j, "fetch('/ui/release?x='+p[1]+'&y='+p[2]).then(function(){rev=-1;return load();})");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_if(j, "p[0]==='w'");
-    lh_ui_web_js_ret(j, "fetch('/ui/wheel?x='+p[1]+'&y='+p[2]+'&dx='+p[3]+'&dy='+p[4])"
-                        ".then(function(){rev=-1;return load();})");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_if(j, "p[0]==='m'");
-    lh_ui_web_js_ret(
-        j, "fetch('/ui/move?x='+p[1]+'&y='+p[2]).then(function(){rev=-1;return load();})");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_if(j, "p[0]==='k'");
-    lh_ui_web_js_ret(j, "fetch('/ui/key?k='+p[1]+(p.length>2?'&p='+p[2]:''))"
-                        ".then(function(){rev=-1;return load();})");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_if(j, "p[0]==='t'");
-    lh_ui_web_js_ret(j, "fetch('/ui/text?c='+p[1]).then(function(){rev=-1;return load();})");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_if(j, "p[0]==='z'");
-    lh_ui_web_js_ret(
-        j, "fetch('/ui/size?w='+p[1]+'&h='+p[2]).then(function(){rev=-1;return load();})");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_fun_close(j);
-
-    /* -- canvas handlers + websocket ------------------------------------------- */
-    lh_ui_web_js_var(j, "c", "document.getElementById('c')");
-    lh_ui_web_js_vars(j, "held=0,mv=null,mvRaf=0");
-    lh_ui_web_js_fun_open(j, "flushMove", "");
-    lh_ui_web_js_if(j, "mvRaf");
-    lh_ui_web_js_stmt(j, "cancelAnimationFrame(mvRaf)");
-    lh_ui_web_js_assign(j, "mvRaf", "0");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_if(j, "mv");
-    lh_ui_web_js_stmt(j, "emit('m '+mv.x+' '+mv.y)");
-    lh_ui_web_js_assign(j, "mv", "null");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_fun_close(j);
-    lh_ui_web_js_prop(j, "c", "onmousedown",
-                      "function(e){var p=pos(e);held=1;emit('p '+p.x+' '+p.y);}");
-    /* Up and move on the window, not the canvas: a drag that leaves the canvas is still the
-       drag, as a captured pointer is on the desktop. Moves go only while a button is held, at
-       most one per animation frame, and the last one goes before the release. */
-    lh_ui_web_js_assign(j, "window.onmouseup",
-                        "function(e){if(!held)return;held=0;flushMove();var p=pos(e);"
-                        "emit('r '+p.x+' '+p.y);}");
-    lh_ui_web_js_assign(j, "window.onmousemove",
-                        "function(e){if(!held)return;if(e.buttons===0){window.onmouseup(e);return;}"
-                        "mv=pos(e);if(!mvRaf)mvRaf=requestAnimationFrame(function(){mvRaf=0;"
-                        "flushMove();});}");
-    lh_ui_web_js_prop(
-        j, "c", "onwheel",
-        "function(e){e.preventDefault();var p=pos(e);"
-        "var dy=e.deltaY===0?0:(e.deltaY>0?-1:1);var dx=e.deltaX===0?0:(e.deltaX>0?-1:1);"
-        "if(e.shiftKey&&dy){dx=dy;dy=0;}emit('w '+p.x+' '+p.y+' '+dx+' '+dy);}");
-
-    /* A key goes as `k <key> 1` down and `k <key> 0` up, and a key that also types (Space)
-       sends its text after it, as the desktop's key-down and character messages do. A modifier
-       keeps the browser's default; every other key the player takes. */
-    lh_ui_web_page_emit_key_table(j, "keys", lh_bool_false);
-    lh_ui_web_page_emit_key_table(j, "mods", lh_bool_true);
-    lh_ui_web_js_assign(j, "document.onkeydown",
-                        "function(e){var k=keys[e.key],m=mods[e.key];"
-                        "var t=e.key&&e.key.length===1&&!e.ctrlKey&&!e.altKey&&!e.metaKey;"
-                        "if((k&&!m)||t)e.preventDefault();"
-                        "if(k)emit('k '+k+' 1');"
-                        "if(t)emit('t '+e.key.codePointAt(0));}");
-    lh_ui_web_js_assign(j, "document.onkeyup",
-                        "function(e){var k=keys[e.key];if(!k)return;"
-                        "if(!mods[e.key])e.preventDefault();emit('k '+k+' 0');}");
-    lh_ui_web_js_stmt(j, "c.focus()");
-    lh_ui_web_js_vars(j, "sock=null,retry=200,pollId=0,retryId=0");
-
-    lh_ui_web_js_fun_open(j, "stopPoll", "");
-    lh_ui_web_js_if(j, "pollId");
-    lh_ui_web_js_stmt(j, "clearInterval(pollId)");
-    lh_ui_web_js_assign(j, "pollId", "0");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_fun_close(j);
-
-    lh_ui_web_js_fun_open(j, "startPoll", "");
-    lh_ui_web_js_if(j, "!pollId");
-    lh_ui_web_js_assign(j, "pollId", "setInterval(poll,80)");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_fun_close(j);
-
-    lh_ui_web_js_fun_open(j, "armRetry", "");
-    lh_ui_web_js_if(j, "retryId");
-    lh_ui_web_js_ret(j, lh_null);
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_assign(j, "retryId", "setTimeout(function(){retryId=0;openWs();},retry)");
-    lh_ui_web_js_assign(j, "retry", "Math.min(retry*2,5000)");
-    lh_ui_web_js_fun_close(j);
-
-    lh_ui_web_js_fun_open(j, "openWs", "");
-    lh_ui_web_js_if(j, "sock&&(sock.readyState===0||sock.readyState===1)");
-    lh_ui_web_js_ret(j, lh_null);
-    lh_ui_web_js_end(j);
-    lh_ui_web_buf_raw(j, "try{sock=new WebSocket((location.protocol==='https:'?'wss://':'ws://')"
-                         "+location.host+'/ws');}\n"
-                         "catch(e){sock=null;startPoll();armRetry();return;}\n");
-    lh_ui_web_js_prop(j, "sock", "onopen", "function(){retry=200;stopPoll();reportSize(1);}");
-    lh_ui_web_js_prop(j, "sock", "onmessage", "function(ev){show(JSON.parse(ev.data));}");
-    lh_ui_web_js_prop(j, "sock", "onclose", "function(){sock=null;startPoll();armRetry();}");
-    lh_ui_web_js_prop(j, "sock", "onerror", "function(){}");
-    lh_ui_web_js_fun_close(j);
-
-    /* Layout: HTTP size before WS so the first frame is not 980×620. */
-    page_lit(
-        j,
-        "if(scaleMode==='layout'){(function(){var s=viewSize();lastZW=s.w;lastZH=s.h;"
-        "fetch('/ui/size?w='+s.w+'&h='+s.h).then(function(){rev=-1;return load();},function(){})."
-        "then(function(){openWs();},function(){openWs();});})();}\n"
-        "else{load();openWs();}\n");
-
-    lh_ui_web_html_close(j, lh_addr_of(el_script));
-    lh_ui_web_html_close(j, lh_addr_of(el_body));
-    lh_ui_web_html_close(j, lh_addr_of(el_html));
-
-    lh_ui_web_buf_finish(j);
-    if (!lh_ui_web_buf_ok(j))
+    if (lh_null_eq(mem))
     {
         return lh_bool_false;
     }
-    if (out_len != lh_null)
+    lh_str_t page;
+
+    lh_str_init(lh_addr_of(page));
+    /* The bytes and the terminator after them must fit. */
+    const lh_bool_t built =
+        lh_cast_static(lh_bool_t, lh_ui_web_player_page_try_write(lh_addr_of(page)) &&
+                                      lh_math_lt(lh_str_get_size(lh_addr_of(page)), cap));
+    if (built)
     {
-        lh_ptr_deref(out_len) = lh_ui_web_buf_len(j);
+        lh_memory_std_copy(mem, lh_str_get_data(lh_addr_of(page)),
+                           lh_str_get_size(lh_addr_of(page)));
+        mem[lh_str_get_size(lh_addr_of(page))] = lh_char_map_nul;
+        if (lh_null_ne(out_len))
+        {
+            lh_ptr_deref(out_len) = lh_str_get_size(lh_addr_of(page));
+        }
     }
-    return lh_bool_true;
+    lh_str_deinit(lh_addr_of(page));
+    return built;
 }

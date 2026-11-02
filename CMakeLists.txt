@@ -154,6 +154,14 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/web/json/minify.c
         ${LH_LIB_SRC_PATH}/web/json/reader.c
         ${LH_LIB_SRC_PATH}/web/json/writer.c
+        ${LH_LIB_SRC_PATH}/web/html/attr.c
+        ${LH_LIB_SRC_PATH}/web/html/escape.c
+        ${LH_LIB_SRC_PATH}/web/html/name.c
+        ${LH_LIB_SRC_PATH}/web/html/node.c
+        ${LH_LIB_SRC_PATH}/web/html/writer.c
+        ${LH_LIB_SRC_PATH}/web/js/op.c
+        ${LH_LIB_SRC_PATH}/web/js/node.c
+        ${LH_LIB_SRC_PATH}/web/js/writer.c
         ${LH_LIB_SRC_PATH}/list/node.c
 
         ${LH_LIB_SRC_PATH}/math/point.c
@@ -490,11 +498,6 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/viewport3d.c
             ${LH_LIB_SRC_PATH}/ui/web/ws.c
             ${LH_LIB_SRC_PATH}/ui/web/buf.c
-            ${LH_LIB_SRC_PATH}/ui/web/js.c
-            ${LH_LIB_SRC_PATH}/ui/web/js/x.c
-            ${LH_LIB_SRC_PATH}/ui/web/x.c
-            ${LH_LIB_SRC_PATH}/ui/web/html.c
-            ${LH_LIB_SRC_PATH}/ui/web/html/attr.c
             ${LH_LIB_SRC_PATH}/ui/web/player/page.c
     )
     if (LH_LIBRARY_OPTION_MATH_FPU)
