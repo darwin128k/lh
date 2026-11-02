@@ -23,18 +23,6 @@ lh_web_json_minify_skip_line_comment(const lh_str_ptr text, lh_usize_t size, lh_
     return pos;
 }
 
-lh_usize_t
-lh_web_json_minify_skip_block_comment(const lh_str_ptr text, lh_usize_t size, lh_usize_t pos)
-{
-    pos = lh_math_add(pos, 2U);
-    while (lh_math_lt(pos, size) &&
-           !lh_web_json_minify_is_at(text, size, pos, lh_char_map_asterisk, lh_char_map_slash))
-    {
-        pos = lh_math_add_one(pos);
-    }
-    return lh_math_min(lh_math_add(pos, 2U), size);
-}
-
 lh_void
 lh_web_json_minify_copy_string(lh_str_ptr text, lh_usize_t size, lh_usize_t *read,
                                lh_usize_t *write)
@@ -62,6 +50,18 @@ lh_web_json_minify_copy_string(lh_str_ptr text, lh_usize_t size, lh_usize_t *rea
     }
     lh_ptr_deref(read) = from;
     lh_ptr_deref(write) = to;
+}
+
+lh_usize_t
+lh_web_json_minify_skip_block_comment(const lh_str_ptr text, lh_usize_t size, lh_usize_t pos)
+{
+    pos = lh_math_add(pos, 2U);
+    while (lh_math_lt(pos, size) &&
+           !lh_web_json_minify_is_at(text, size, pos, lh_char_map_asterisk, lh_char_map_slash))
+    {
+        pos = lh_math_add_one(pos);
+    }
+    return lh_math_min(lh_math_add(pos, 2U), size);
 }
 
 lh_usize_t

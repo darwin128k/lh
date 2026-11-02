@@ -90,6 +90,10 @@ lh_web_json_reader_get_error(const lh_web_json_reader_t *self);
 lh_void
 lh_web_json_reader_set_error(lh_web_json_reader_t *self, lh_web_json_error_t error);
 
+/** True for the four characters JSON calls whitespace: space, tab, LF, CR. */
+lh_bool_t
+lh_web_json_reader_is_whitespace(lh_char_t ch);
+
 /**
  * @brief Stop on @p error: this and every later read returns false.
  *
@@ -125,21 +129,17 @@ lh_web_json_reader_is_end(const lh_web_json_reader_t *self);
 lh_char_t
 lh_web_json_reader_peek(const lh_web_json_reader_t *self, lh_usize_t ahead);
 
-/** The character at the position; NUL at the end of the text. */
-lh_char_t
-lh_web_json_reader_get_char(const lh_web_json_reader_t *self);
-
 /** Move the position @p count characters on. */
 lh_void
 lh_web_json_reader_advance(lh_web_json_reader_t *self, lh_usize_t count);
 
-/** True for the four characters JSON calls whitespace: space, tab, LF, CR. */
-lh_bool_t
-lh_web_json_reader_is_whitespace(lh_char_t ch);
-
-/** Move past any whitespace at the position. */
+/** Close the innermost open array or object. */
 lh_void
-lh_web_json_reader_skip_whitespace(lh_web_json_reader_t *self);
+lh_web_json_reader_leave(lh_web_json_reader_t *self);
+
+/** The character at the position; NUL at the end of the text. */
+lh_char_t
+lh_web_json_reader_get_char(const lh_web_json_reader_t *self);
 
 /**
  * @brief Stop on what is at the position: ::lh_web_json_error_unexpected_end at
@@ -149,10 +149,6 @@ lh_web_json_reader_skip_whitespace(lh_web_json_reader_t *self);
  */
 lh_bool_t
 lh_web_json_reader_fail_unexpected(lh_web_json_reader_t *self);
-
-/** Move past @p ch if it is at the position; false, and no move, if not. */
-lh_bool_t
-lh_web_json_reader_skip_char(lh_web_json_reader_t *self, lh_char_t ch);
 
 /** Move past @p word if the text continues with it; false, and no move, if not. */
 lh_bool_t
@@ -167,9 +163,13 @@ lh_web_json_reader_skip_word(lh_web_json_reader_t *self, lh_str_view_t word);
 lh_bool_t
 lh_web_json_reader_enter(lh_web_json_reader_t *self);
 
-/** Close the innermost open array or object. */
+/** Move past any whitespace at the position. */
 lh_void
-lh_web_json_reader_leave(lh_web_json_reader_t *self);
+lh_web_json_reader_skip_whitespace(lh_web_json_reader_t *self);
+
+/** Move past @p ch if it is at the position; false, and no move, if not. */
+lh_bool_t
+lh_web_json_reader_skip_char(lh_web_json_reader_t *self, lh_char_t ch);
 
 /* ── values ──────────────────────────────────────────────────────────────── */
 
@@ -186,6 +186,14 @@ lh_usize_t
 lh_web_json_reader_skip_digits(lh_web_json_reader_t *self);
 
 /**
+ * @brief Read the four hex digits of a `\u` escape into @p code.
+ *
+ * @return ::lh_bool_false when there are not four (::lh_web_json_error_bad_unicode).
+ */
+lh_bool_t
+lh_web_json_reader_read_hex4(lh_web_json_reader_t *self, lh_u32_t *code);
+
+/**
  * @brief Read a number into @p node, keeping its text as written.
  *
  * `-? (0 | [1-9][0-9]*) (. [0-9]+)? ([eE] [+-]? [0-9]+)?`, nothing else.
@@ -194,14 +202,6 @@ lh_web_json_reader_skip_digits(lh_web_json_reader_t *self);
  */
 lh_bool_t
 lh_web_json_reader_read_number(lh_web_json_reader_t *self, lh_web_json_node_t *node);
-
-/**
- * @brief Read the four hex digits of a `\u` escape into @p code.
- *
- * @return ::lh_bool_false when there are not four (::lh_web_json_error_bad_unicode).
- */
-lh_bool_t
-lh_web_json_reader_read_hex4(lh_web_json_reader_t *self, lh_u32_t *code);
 
 /**
  * @brief Read what follows `\u` — one escape, or the two of a surrogate
@@ -237,13 +237,6 @@ lh_bool_t
 lh_web_json_reader_read_string(lh_web_json_reader_t *self, lh_web_json_node_t *node);
 
 /**
- * @brief Read the array at the position into @p node, each element a new
- *        child.
- */
-lh_bool_t
-lh_web_json_reader_read_array(lh_web_json_reader_t *self, lh_web_json_node_t *node);
-
-/**
  * @brief Read the object at the position into @p node, each member a new
  *        child carrying its key.
  */
@@ -256,6 +249,13 @@ lh_web_json_reader_read_object(lh_web_json_reader_t *self, lh_web_json_node_t *n
  */
 lh_bool_t
 lh_web_json_reader_read_value(lh_web_json_reader_t *self, lh_web_json_node_t *node);
+
+/**
+ * @brief Read the array at the position into @p node, each element a new
+ *        child.
+ */
+lh_bool_t
+lh_web_json_reader_read_array(lh_web_json_reader_t *self, lh_web_json_node_t *node);
 
 /**
  * @brief Read the whole text as one value into @p node.

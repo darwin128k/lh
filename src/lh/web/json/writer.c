@@ -47,6 +47,15 @@ lh_web_json_writer_set_depth(lh_web_json_writer_t *self, lh_usize_t depth)
 }
 
 lh_bool_t
+lh_web_json_writer_needs_escape(lh_char_t ch)
+{
+    return lh_cast_static(lh_bool_t, lh_math_eq(ch, lh_char_map_dquot) ||
+                                         lh_math_eq(ch, lh_char_map_backslash) ||
+                                         lh_math_lt(lh_cast_static(lh_byte_t, ch),
+                                                    lh_cast_static(lh_byte_t, lh_char_map_space)));
+}
+
+lh_bool_t
 lh_web_json_writer_is_pretty(const lh_web_json_writer_t *self)
 {
     return lh_cast_static(lh_bool_t, !lh_math_is_zero(lh_web_json_writer_get_indent(self)));
@@ -136,15 +145,6 @@ lh_web_json_writer_put_escape(lh_web_json_writer_t *self, lh_char_t ch)
     lh_web_json_writer_put_char(self, name);
 }
 
-lh_bool_t
-lh_web_json_writer_needs_escape(lh_char_t ch)
-{
-    return lh_cast_static(lh_bool_t, lh_math_eq(ch, lh_char_map_dquot) ||
-                                         lh_math_eq(ch, lh_char_map_backslash) ||
-                                         lh_math_lt(lh_cast_static(lh_byte_t, ch),
-                                                    lh_cast_static(lh_byte_t, lh_char_map_space)));
-}
-
 lh_void
 lh_web_json_writer_put_string(lh_web_json_writer_t *self, lh_str_view_t text)
 {
@@ -177,32 +177,6 @@ lh_web_json_writer_put_string(lh_web_json_writer_t *self, lh_str_view_t text)
 }
 
 /* ── values ──────────────────────────────────────────────────────────────── */
-
-lh_void
-lh_web_json_writer_write_array(lh_web_json_writer_t *self, const lh_web_json_node_t *node)
-{
-    const lh_web_json_node_t *child = lh_web_json_node_get_first(node);
-
-    lh_web_json_writer_put_char(self, lh_char_map_lbracket);
-    if (lh_null_eq(child))
-    {
-        lh_web_json_writer_put_char(self, lh_char_map_rbracket);
-        return;
-    }
-    lh_web_json_writer_set_depth(self, lh_math_add_one(lh_web_json_writer_get_depth(self)));
-    for (; lh_null_ne(child); child = lh_web_json_node_get_next(node, child))
-    {
-        lh_web_json_writer_put_newline(self);
-        lh_web_json_writer_write(self, child);
-        if (lh_null_ne(lh_web_json_node_get_next(node, child)))
-        {
-            lh_web_json_writer_put_char(self, lh_char_map_comma);
-        }
-    }
-    lh_web_json_writer_set_depth(self, lh_math_sub_one(lh_web_json_writer_get_depth(self)));
-    lh_web_json_writer_put_newline(self);
-    lh_web_json_writer_put_char(self, lh_char_map_rbracket);
-}
 
 lh_void
 lh_web_json_writer_write_object(lh_web_json_writer_t *self, const lh_web_json_node_t *node)
@@ -267,4 +241,30 @@ lh_web_json_writer_write(lh_web_json_writer_t *self, const lh_web_json_node_t *n
         lh_web_json_writer_put_view(self, lh_str_view_lit("null"));
         break;
     }
+}
+
+lh_void
+lh_web_json_writer_write_array(lh_web_json_writer_t *self, const lh_web_json_node_t *node)
+{
+    const lh_web_json_node_t *child = lh_web_json_node_get_first(node);
+
+    lh_web_json_writer_put_char(self, lh_char_map_lbracket);
+    if (lh_null_eq(child))
+    {
+        lh_web_json_writer_put_char(self, lh_char_map_rbracket);
+        return;
+    }
+    lh_web_json_writer_set_depth(self, lh_math_add_one(lh_web_json_writer_get_depth(self)));
+    for (; lh_null_ne(child); child = lh_web_json_node_get_next(node, child))
+    {
+        lh_web_json_writer_put_newline(self);
+        lh_web_json_writer_write(self, child);
+        if (lh_null_ne(lh_web_json_node_get_next(node, child)))
+        {
+            lh_web_json_writer_put_char(self, lh_char_map_comma);
+        }
+    }
+    lh_web_json_writer_set_depth(self, lh_math_sub_one(lh_web_json_writer_get_depth(self)));
+    lh_web_json_writer_put_newline(self);
+    lh_web_json_writer_put_char(self, lh_char_map_rbracket);
 }

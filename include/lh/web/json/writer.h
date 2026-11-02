@@ -72,6 +72,10 @@ lh_web_json_writer_get_depth(const lh_web_json_writer_t *self);
 lh_void
 lh_web_json_writer_set_depth(lh_web_json_writer_t *self, lh_usize_t depth);
 
+/** True when @p ch must be escaped inside a string: `"`, `\` and every control character. */
+lh_bool_t
+lh_web_json_writer_needs_escape(lh_char_t ch);
+
 /** True when @p self lays the text out over lines (indent above `0`). */
 lh_bool_t
 lh_web_json_writer_is_pretty(const lh_web_json_writer_t *self);
@@ -103,19 +107,11 @@ lh_web_json_writer_put_newline(lh_web_json_writer_t *self);
 lh_void
 lh_web_json_writer_put_escape(lh_web_json_writer_t *self, lh_char_t ch);
 
-/** True when @p ch must be escaped inside a string: `"`, `\` and every control character. */
-lh_bool_t
-lh_web_json_writer_needs_escape(lh_char_t ch);
-
 /** Append @p text as a JSON string: quotes around, escapes inside. */
 lh_void
 lh_web_json_writer_put_string(lh_web_json_writer_t *self, lh_str_view_t text);
 
 /* ── values ──────────────────────────────────────────────────────────────── */
-
-/** Append the array @p node, each element on its own line when pretty. */
-lh_void
-lh_web_json_writer_write_array(lh_web_json_writer_t *self, const lh_web_json_node_t *node);
 
 /** Append the object @p node, each member on its own line when pretty. */
 lh_void
@@ -124,6 +120,10 @@ lh_web_json_writer_write_object(lh_web_json_writer_t *self, const lh_web_json_no
 /** Append the value @p node, whatever kind it is, children and all. */
 lh_void
 lh_web_json_writer_write(lh_web_json_writer_t *self, const lh_web_json_node_t *node);
+
+/** Append the array @p node, each element on its own line when pretty. */
+lh_void
+lh_web_json_writer_write_array(lh_web_json_writer_t *self, const lh_web_json_node_t *node);
 
 LH_COMPILER_EXTERN_C_END
 

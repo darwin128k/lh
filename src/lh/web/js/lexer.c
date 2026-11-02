@@ -296,82 +296,6 @@ lh_web_js_lexer_set_error_column(lh_web_js_lexer_t *self, lh_usize_t column)
 
 /* ── level 2: what the scanner is made of ─────────────────────────────────── */
 
-lh_char_t
-lh_web_js_lexer_get_char(const lh_web_js_lexer_t *self)
-{
-    lh_usize_t pos = lh_web_js_lexer_get_pos(self);
-
-    if (lh_math_ge(pos, lh_web_js_lexer_get_text_len(self)))
-    {
-        return lh_char_map_nul;
-    }
-    return lh_web_js_lexer_get_text(self)[pos];
-}
-
-lh_bool_t
-lh_web_js_lexer_try_get_char_at(const lh_web_js_lexer_t *self, lh_usize_t offset, lh_char_t *out)
-{
-    lh_usize_t pos = lh_web_js_lexer_get_pos(self);
-
-    lh_assert_runtime_ref(out);
-    if (lh_math_ge(lh_math_add(pos, offset), lh_web_js_lexer_get_text_len(self)))
-    {
-        return lh_bool_false;
-    }
-    lh_ptr_deref(out) = lh_web_js_lexer_get_text(self)[pos + offset];
-    return lh_bool_true;
-}
-
-lh_bool_t
-lh_web_js_lexer_is_at_end(const lh_web_js_lexer_t *self)
-{
-    return lh_math_ge(lh_web_js_lexer_get_pos(self), lh_web_js_lexer_get_text_len(self))
-               ? lh_bool_true
-               : lh_bool_false;
-}
-
-lh_void
-lh_web_js_lexer_get_rest(const lh_web_js_lexer_t *self, lh_str_view_t *out)
-{
-    lh_usize_t pos = lh_web_js_lexer_get_pos(self);
-    lh_usize_t len = lh_web_js_lexer_get_text_len(self);
-
-    lh_assert_runtime_ref(out);
-    if (lh_math_is_zero(len))
-    {
-        lh_str_view_init_empty(out);
-        return;
-    }
-    lh_str_view_init_by_size(out, lh_web_js_lexer_get_text(self) + pos, lh_math_sub(len, pos));
-}
-
-lh_void
-lh_web_js_lexer_advance(lh_web_js_lexer_t *self)
-{
-    lh_char_t ch = lh_web_js_lexer_get_char(self);
-
-    if (ch == lh_char_map_cr)
-    {
-        lh_web_js_lexer_set_pos(self, lh_math_add_one(lh_web_js_lexer_get_pos(self)));
-        lh_web_js_lexer_set_line(self, lh_math_add_one(lh_web_js_lexer_get_line(self)));
-        lh_web_js_lexer_set_column(self, 1U);
-        if (lh_web_js_lexer_get_char(self) == lh_char_map_lf)
-        {
-            lh_web_js_lexer_set_pos(self, lh_math_add_one(lh_web_js_lexer_get_pos(self)));
-        }
-        return;
-    }
-    if (ch == lh_char_map_lf)
-    {
-        lh_web_js_lexer_set_pos(self, lh_math_add_one(lh_web_js_lexer_get_pos(self)));
-        lh_web_js_lexer_set_line(self, lh_math_add_one(lh_web_js_lexer_get_line(self)));
-        lh_web_js_lexer_set_column(self, 1U);
-        return;
-    }
-    lh_web_js_lexer_set_pos(self, lh_math_add_one(lh_web_js_lexer_get_pos(self)));
-    lh_web_js_lexer_set_column(self, lh_math_add_one(lh_web_js_lexer_get_column(self)));
-}
-
 lh_web_js_token_t *
 lh_web_js_lexer_get_token_mut(lh_web_js_lexer_t *self)
 {
@@ -435,6 +359,55 @@ lh_web_js_lexer_find_radix(lh_char_t prefix)
         return 0U;
     }
     return LH_WEB_JS_RADIX[found - LH_WEB_JS_RADIX_PREFIX];
+}
+
+lh_char_t
+lh_web_js_lexer_get_char(const lh_web_js_lexer_t *self)
+{
+    lh_usize_t pos = lh_web_js_lexer_get_pos(self);
+
+    if (lh_math_ge(pos, lh_web_js_lexer_get_text_len(self)))
+    {
+        return lh_char_map_nul;
+    }
+    return lh_web_js_lexer_get_text(self)[pos];
+}
+
+lh_bool_t
+lh_web_js_lexer_try_get_char_at(const lh_web_js_lexer_t *self, lh_usize_t offset, lh_char_t *out)
+{
+    lh_usize_t pos = lh_web_js_lexer_get_pos(self);
+
+    lh_assert_runtime_ref(out);
+    if (lh_math_ge(lh_math_add(pos, offset), lh_web_js_lexer_get_text_len(self)))
+    {
+        return lh_bool_false;
+    }
+    lh_ptr_deref(out) = lh_web_js_lexer_get_text(self)[pos + offset];
+    return lh_bool_true;
+}
+
+lh_bool_t
+lh_web_js_lexer_is_at_end(const lh_web_js_lexer_t *self)
+{
+    return lh_math_ge(lh_web_js_lexer_get_pos(self), lh_web_js_lexer_get_text_len(self))
+               ? lh_bool_true
+               : lh_bool_false;
+}
+
+lh_void
+lh_web_js_lexer_get_rest(const lh_web_js_lexer_t *self, lh_str_view_t *out)
+{
+    lh_usize_t pos = lh_web_js_lexer_get_pos(self);
+    lh_usize_t len = lh_web_js_lexer_get_text_len(self);
+
+    lh_assert_runtime_ref(out);
+    if (lh_math_is_zero(len))
+    {
+        lh_str_view_init_empty(out);
+        return;
+    }
+    lh_str_view_init_by_size(out, lh_web_js_lexer_get_text(self) + pos, lh_math_sub(len, pos));
 }
 
 lh_void
@@ -502,6 +475,33 @@ lh_web_js_lexer_clear_error(lh_web_js_lexer_t *self)
     lh_web_js_lexer_set_error_message_len(self, 0U);
     lh_web_js_lexer_set_error_line(self, 0U);
     lh_web_js_lexer_set_error_column(self, 0U);
+}
+
+lh_void
+lh_web_js_lexer_advance(lh_web_js_lexer_t *self)
+{
+    lh_char_t ch = lh_web_js_lexer_get_char(self);
+
+    if (ch == lh_char_map_cr)
+    {
+        lh_web_js_lexer_set_pos(self, lh_math_add_one(lh_web_js_lexer_get_pos(self)));
+        lh_web_js_lexer_set_line(self, lh_math_add_one(lh_web_js_lexer_get_line(self)));
+        lh_web_js_lexer_set_column(self, 1U);
+        if (lh_web_js_lexer_get_char(self) == lh_char_map_lf)
+        {
+            lh_web_js_lexer_set_pos(self, lh_math_add_one(lh_web_js_lexer_get_pos(self)));
+        }
+        return;
+    }
+    if (ch == lh_char_map_lf)
+    {
+        lh_web_js_lexer_set_pos(self, lh_math_add_one(lh_web_js_lexer_get_pos(self)));
+        lh_web_js_lexer_set_line(self, lh_math_add_one(lh_web_js_lexer_get_line(self)));
+        lh_web_js_lexer_set_column(self, 1U);
+        return;
+    }
+    lh_web_js_lexer_set_pos(self, lh_math_add_one(lh_web_js_lexer_get_pos(self)));
+    lh_web_js_lexer_set_column(self, lh_math_add_one(lh_web_js_lexer_get_column(self)));
 }
 
 /* ── level 3: the scanners ────────────────────────────────────────────────── */
@@ -592,27 +592,6 @@ lh_web_js_lexer_scan_name(lh_web_js_lexer_t *self)
     lh_web_js_token_set_text_len(token, lh_web_js_lexer_get_pos(self) - start);
     lh_web_js_token_set_value(token, 0.0);
     return lh_bool_true;
-}
-
-lh_bool_t
-lh_web_js_lexer_scan_number(lh_web_js_lexer_t *self)
-{
-    lh_uint_t radix = 0U;
-
-    if (lh_web_js_lexer_get_char(self) == lh_char_map_digit_0)
-    {
-        lh_char_t prefix = lh_char_map_nul;
-
-        if (lh_web_js_lexer_try_get_char_at(self, 1U, lh_addr_of(prefix)))
-        {
-            radix = lh_web_js_lexer_find_radix(prefix);
-        }
-    }
-    if (radix != 0U)
-    {
-        return lh_web_js_lexer_scan_radix_number(self, radix);
-    }
-    return lh_web_js_lexer_scan_decimal_number(self);
 }
 
 lh_bool_t
@@ -741,88 +720,6 @@ lh_web_js_lexer_scan_decimal_number(lh_web_js_lexer_t *self)
 }
 
 lh_bool_t
-lh_web_js_lexer_scan_string(lh_web_js_lexer_t *self)
-{
-    lh_usize_t start = lh_web_js_lexer_get_pos(self);
-    lh_char_t quote = lh_web_js_lexer_get_char(self);
-
-    lh_web_js_lexer_advance(self);
-
-    while (!lh_web_js_lexer_is_at_end(self))
-    {
-        lh_char_t ch = lh_web_js_lexer_get_char(self);
-
-        if (ch == quote)
-        {
-            lh_web_js_lexer_advance(self);
-            lh_web_js_token_t *token = lh_web_js_lexer_get_token_mut(self);
-            lh_web_js_token_set_kind(token, lh_web_js_token_kind_string);
-            lh_web_js_token_set_text(token, lh_web_js_lexer_get_text(self) + start);
-            lh_web_js_token_set_text_len(token, lh_web_js_lexer_get_pos(self) - start);
-            lh_web_js_token_set_value(token, 0.0);
-            return lh_bool_true;
-        }
-        if (ch == lh_char_map_backslash)
-        {
-            lh_web_js_lexer_advance(self);
-            if (!lh_web_js_lexer_scan_escape(self))
-            {
-                return lh_bool_false;
-            }
-            continue;
-        }
-        if (ch == lh_char_map_lf || ch == lh_char_map_cr)
-        {
-            break;
-        }
-        lh_web_js_lexer_advance(self);
-    }
-
-    lh_web_js_lexer_set_error(self, LH_WEB_JS_ERROR_UNTERMINATED_STRING,
-                              lh_str_ptr_len(LH_WEB_JS_ERROR_UNTERMINATED_STRING));
-    return lh_bool_false;
-}
-
-lh_bool_t
-lh_web_js_lexer_scan_escape(lh_web_js_lexer_t *self)
-{
-    lh_char_t ch = lh_web_js_lexer_get_char(self);
-
-    if (lh_web_js_lexer_is_at_end(self))
-    {
-        lh_web_js_lexer_set_error(self, LH_WEB_JS_ERROR_BAD_ESCAPE,
-                                  lh_str_ptr_len(LH_WEB_JS_ERROR_BAD_ESCAPE));
-        return lh_bool_false;
-    }
-    if (ch == lh_char_map_small_x)
-    {
-        lh_web_js_lexer_advance(self);
-        return lh_web_js_lexer_scan_hex_digits(self, 2U);
-    }
-    if (ch == lh_char_map_small_u)
-    {
-        lh_web_js_lexer_advance(self);
-        if (!lh_web_js_lexer_is_at_end(self) &&
-            lh_web_js_lexer_get_char(self) == lh_char_map_lbrace)
-        {
-            lh_web_js_lexer_advance(self);
-            return lh_web_js_lexer_scan_code_point(self);
-        }
-        return lh_web_js_lexer_scan_hex_digits(self, 4U);
-    }
-    if (lh_str_ptr_contains_char(LH_WEB_JS_ESCAPE_CHARS,
-                                 lh_str_ptr_get_size(LH_WEB_JS_ESCAPE_CHARS), ch))
-    {
-        lh_web_js_lexer_advance(self);
-        return lh_bool_true;
-    }
-
-    lh_web_js_lexer_set_error(self, LH_WEB_JS_ERROR_BAD_ESCAPE,
-                              lh_str_ptr_len(LH_WEB_JS_ERROR_BAD_ESCAPE));
-    return lh_bool_false;
-}
-
-lh_bool_t
 lh_web_js_lexer_scan_hex_digits(lh_web_js_lexer_t *self, lh_usize_t count)
 {
     lh_usize_t start = lh_web_js_lexer_get_pos(self);
@@ -915,6 +812,109 @@ lh_web_js_lexer_scan_punctuation(lh_web_js_lexer_t *self)
     lh_web_js_token_set_text_len(token, lh_web_js_lexer_get_pos(self) - start);
     lh_web_js_token_set_value(token, 0.0);
     return lh_bool_true;
+}
+
+lh_bool_t
+lh_web_js_lexer_scan_number(lh_web_js_lexer_t *self)
+{
+    lh_uint_t radix = 0U;
+
+    if (lh_web_js_lexer_get_char(self) == lh_char_map_digit_0)
+    {
+        lh_char_t prefix = lh_char_map_nul;
+
+        if (lh_web_js_lexer_try_get_char_at(self, 1U, lh_addr_of(prefix)))
+        {
+            radix = lh_web_js_lexer_find_radix(prefix);
+        }
+    }
+    if (radix != 0U)
+    {
+        return lh_web_js_lexer_scan_radix_number(self, radix);
+    }
+    return lh_web_js_lexer_scan_decimal_number(self);
+}
+
+lh_bool_t
+lh_web_js_lexer_scan_escape(lh_web_js_lexer_t *self)
+{
+    lh_char_t ch = lh_web_js_lexer_get_char(self);
+
+    if (lh_web_js_lexer_is_at_end(self))
+    {
+        lh_web_js_lexer_set_error(self, LH_WEB_JS_ERROR_BAD_ESCAPE,
+                                  lh_str_ptr_len(LH_WEB_JS_ERROR_BAD_ESCAPE));
+        return lh_bool_false;
+    }
+    if (ch == lh_char_map_small_x)
+    {
+        lh_web_js_lexer_advance(self);
+        return lh_web_js_lexer_scan_hex_digits(self, 2U);
+    }
+    if (ch == lh_char_map_small_u)
+    {
+        lh_web_js_lexer_advance(self);
+        if (!lh_web_js_lexer_is_at_end(self) &&
+            lh_web_js_lexer_get_char(self) == lh_char_map_lbrace)
+        {
+            lh_web_js_lexer_advance(self);
+            return lh_web_js_lexer_scan_code_point(self);
+        }
+        return lh_web_js_lexer_scan_hex_digits(self, 4U);
+    }
+    if (lh_str_ptr_contains_char(LH_WEB_JS_ESCAPE_CHARS,
+                                 lh_str_ptr_get_size(LH_WEB_JS_ESCAPE_CHARS), ch))
+    {
+        lh_web_js_lexer_advance(self);
+        return lh_bool_true;
+    }
+
+    lh_web_js_lexer_set_error(self, LH_WEB_JS_ERROR_BAD_ESCAPE,
+                              lh_str_ptr_len(LH_WEB_JS_ERROR_BAD_ESCAPE));
+    return lh_bool_false;
+}
+
+lh_bool_t
+lh_web_js_lexer_scan_string(lh_web_js_lexer_t *self)
+{
+    lh_usize_t start = lh_web_js_lexer_get_pos(self);
+    lh_char_t quote = lh_web_js_lexer_get_char(self);
+
+    lh_web_js_lexer_advance(self);
+
+    while (!lh_web_js_lexer_is_at_end(self))
+    {
+        lh_char_t ch = lh_web_js_lexer_get_char(self);
+
+        if (ch == quote)
+        {
+            lh_web_js_lexer_advance(self);
+            lh_web_js_token_t *token = lh_web_js_lexer_get_token_mut(self);
+            lh_web_js_token_set_kind(token, lh_web_js_token_kind_string);
+            lh_web_js_token_set_text(token, lh_web_js_lexer_get_text(self) + start);
+            lh_web_js_token_set_text_len(token, lh_web_js_lexer_get_pos(self) - start);
+            lh_web_js_token_set_value(token, 0.0);
+            return lh_bool_true;
+        }
+        if (ch == lh_char_map_backslash)
+        {
+            lh_web_js_lexer_advance(self);
+            if (!lh_web_js_lexer_scan_escape(self))
+            {
+                return lh_bool_false;
+            }
+            continue;
+        }
+        if (ch == lh_char_map_lf || ch == lh_char_map_cr)
+        {
+            break;
+        }
+        lh_web_js_lexer_advance(self);
+    }
+
+    lh_web_js_lexer_set_error(self, LH_WEB_JS_ERROR_UNTERMINATED_STRING,
+                              lh_str_ptr_len(LH_WEB_JS_ERROR_UNTERMINATED_STRING));
+    return lh_bool_false;
 }
 
 lh_bool_t
