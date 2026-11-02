@@ -1522,11 +1522,11 @@ Common mistakes:
 
 ## 18. Overlap with the usage guides
 
-The four usage guides in `docs/` stay as they are. These parts repeat what
+The four usage guides in `docs/guides/` stay as they are. These parts repeat what
 `ui.md` now explains and could later be replaced by a short link to the
 matching section here.
 
-**`docs/usage.md`** (103 lines)
+**`docs/guides/usage.md`** (103 lines)
 
 - "1. The model" (lines 15-48): [section 2](#2-the-big-picture).
 - "2. Adding lh with CMake" (lines 49-69): [section 3](#3-adding-lh-to-a-project).
@@ -1534,7 +1534,7 @@ matching section here.
 - "4. Common mistakes" (lines 95-103): included in [section 16](#16-finding-problems).
 - The target table at the top (lines 1-14) can stay as an index that points to `ui.md`.
 
-**`docs/usage-desktop.md`** (500 lines)
+**`docs/guides/usage-desktop.md`** (500 lines)
 
 - "1. Build" (lines 13-59): [section 3](#3-adding-lh-to-a-project).
 - "2. Skeleton: app, window, loop" (lines 60-123): [section 11](#11-recipe-a-desktop-application).
@@ -1552,7 +1552,7 @@ matching section here.
   "Scripted input" item still names `on_press` / `on_release` / `on_key`,
   which no longer exist.
 
-**`docs/usage-embedded.md`** (350 lines)
+**`docs/guides/usage-embedded.md`** (350 lines)
 
 - "1. Build" (lines 12-79): [section 12.1](#121-build).
 - "2. Runtime" (lines 80-142): [section 12.2](#122-runtime-give-lh-a-way-out-and-a-voice).
@@ -1566,7 +1566,7 @@ matching section here.
   [section 12.7](#127-touch-and-buttons-on-a-microcontroller).
 - "Checklist for a new MCU project" (lines 343-350): [section 12.8](#128-checklist).
 
-**`docs/usage-web.md`** (232 lines)
+**`docs/guides/usage-web.md`** (232 lines)
 
 - "1. How it works" (lines 12-59): [section 13.1](#131-how-it-works).
 - "2. Build: a second target from the same source" (lines 60-80): [section 13.2](#132-a-second-target-from-the-same-source).

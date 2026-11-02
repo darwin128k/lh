@@ -11,14 +11,14 @@ lh, the gamepad driver.
 ## Integration guides
 
 How the library is added to a host project, per target. Start with
-[usage.md](usage.md) for the model and the option matrix.
+[usage.md](guides/usage.md) for the model and the option matrix.
 
 | Guide | Target | What it covers |
 |---|---|---|
-| [usage.md](usage.md) | All three | The model, adding lh with CMake, the option matrix, common mistakes |
-| [usage-embedded.md](usage-embedded.md) | Microcontroller, no OS (STM32F407 + ILI9341) | Build, runtime, display, present sink, text, UI tree |
-| [usage-desktop.md](usage-desktop.md) | Desktop window (Win32 GDI, X11) | Build, window and loop, canvas, UI tree, input, diagnostics |
-| [usage-web.md](usage-web.md) | Browser | The web host, hooks, scaling, frames without a server, limits |
+| [usage.md](guides/usage.md) | All three | The model, adding lh with CMake, the option matrix, common mistakes |
+| [usage-embedded.md](guides/usage-embedded.md) | Microcontroller, no OS (STM32F407 + ILI9341) | Build, runtime, display, present sink, text, UI tree |
+| [usage-desktop.md](guides/usage-desktop.md) | Desktop window (Win32 GDI, X11) | Build, window and loop, canvas, UI tree, input, diagnostics |
+| [usage-web.md](guides/usage-web.md) | Browser | The web host, hooks, scaling, frames without a server, limits |
 
 ## Subsystem guides
 
@@ -26,12 +26,12 @@ One guide per subsystem that has behaviour worth stating in prose.
 
 | Guide | Subsystem | What it covers |
 |---|---|---|
-| [ui.md](ui.md) | UI model (`lh/ui/`) | The entity tree, canvas and view, input, sinks, controllers, recipes per target |
-| [module-loader.md](module-loader.md) | Modules (`lh/os/module.h`) | The loader tree, loading and unloading, shared images, errors, writing a module |
-| [concurrency.md](concurrency.md) | OS threads (`lh/os/thread.h`) | Threads, mutexes, conditions, monotonic time, backend notes |
-| [net-sockets.md](net-sockets.md) | OS sockets (`lh/os/net/socket.h`) | Non-blocking servers, handle inheritance, pending I/O and backend guarantees |
-| [http.md](http.md) | HTTP/1 head parser (`lh/http.h`) | Parsing a message head, view lifetime, framing, syntax, limits |
-| [renderer3d.md](renderer3d.md) | Software 3D renderer (`lh/ui/renderer3d.h`) | Camera setup, drawing, limits, relation to the GPU sink |
+| [ui.md](subsystems/ui.md) | UI model (`lh/ui/`) | The entity tree, canvas and view, input, sinks, controllers, recipes per target |
+| [module-loader.md](subsystems/module-loader.md) | Modules (`lh/os/module.h`) | The loader tree, loading and unloading, shared images, errors, writing a module |
+| [concurrency.md](subsystems/concurrency.md) | OS threads (`lh/os/thread.h`) | Threads, mutexes, conditions, monotonic time, backend notes |
+| [net-sockets.md](subsystems/net-sockets.md) | OS sockets (`lh/os/net/socket.h`) | Non-blocking servers, handle inheritance, pending I/O and backend guarantees |
+| [http.md](subsystems/http.md) | HTTP/1 head parser (`lh/http.h`) | Parsing a message head, view lifetime, framing, syntax, limits |
+| [renderer3d.md](subsystems/renderer3d.md) | Software 3D renderer (`lh/ui/renderer3d.h`) | Camera setup, drawing, limits, relation to the GPU sink |
 
 ## Project files
 
@@ -54,4 +54,4 @@ cmake --build build --target lh_docs
 The HTML output is written to `docs/html/index.html`. It covers every public
 header under `include/lh/` and every implementation file under `src/lh/`.
 
-- [Background worker and SPSC queue](worker-queue.md) - bounded jobs and fixed-record buffering.
+- [Background worker and SPSC queue](subsystems/worker-queue.md) - bounded jobs and fixed-record buffering.

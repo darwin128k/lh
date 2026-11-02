@@ -18,15 +18,17 @@ INPUT                  = @CMAKE_SOURCE_DIR@/README.md \
                          @CMAKE_SOURCE_DIR@/CHANGELOG.md \
                          @CMAKE_SOURCE_DIR@/LICENSE.md \
                          @CMAKE_SOURCE_DIR@/docs/index.md \
-                         @CMAKE_SOURCE_DIR@/docs/usage.md \
-                         @CMAKE_SOURCE_DIR@/docs/usage-embedded.md \
-                         @CMAKE_SOURCE_DIR@/docs/usage-desktop.md \
-                         @CMAKE_SOURCE_DIR@/docs/usage-web.md \
-                         @CMAKE_SOURCE_DIR@/docs/ui.md \
-                         @CMAKE_SOURCE_DIR@/docs/module-loader.md \
-                         @CMAKE_SOURCE_DIR@/docs/concurrency.md \
-                         @CMAKE_SOURCE_DIR@/docs/http.md \
-                         @CMAKE_SOURCE_DIR@/docs/renderer3d.md \
+                         @CMAKE_SOURCE_DIR@/docs/guides/usage.md \
+                         @CMAKE_SOURCE_DIR@/docs/guides/usage-embedded.md \
+                         @CMAKE_SOURCE_DIR@/docs/guides/usage-desktop.md \
+                         @CMAKE_SOURCE_DIR@/docs/guides/usage-web.md \
+                         @CMAKE_SOURCE_DIR@/docs/subsystems/ui.md \
+                         @CMAKE_SOURCE_DIR@/docs/subsystems/module-loader.md \
+                         @CMAKE_SOURCE_DIR@/docs/subsystems/concurrency.md \
+                         @CMAKE_SOURCE_DIR@/docs/subsystems/net-sockets.md \
+                         @CMAKE_SOURCE_DIR@/docs/subsystems/worker-queue.md \
+                         @CMAKE_SOURCE_DIR@/docs/subsystems/http.md \
+                         @CMAKE_SOURCE_DIR@/docs/subsystems/renderer3d.md \
                          @CMAKE_SOURCE_DIR@/bench/lvgl/RESULTS.md \
                          @CMAKE_SOURCE_DIR@/scripts/README.md \
                          @CMAKE_SOURCE_DIR@/tools/README.md \
