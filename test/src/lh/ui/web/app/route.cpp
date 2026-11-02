@@ -66,20 +66,31 @@ TEST(ui_web_route, set_path_and_set_path_len_store_one_field_each)
     EXPECT_EQ(lh_ui_web_route_get_path_len(&route), 6u);
 }
 
-TEST(ui_web_route, match_reads_the_method_and_path_up_to_their_lengths)
+TEST(ui_web_route, is_match_uses_the_parsed_method_and_path)
 {
-    const lh_str_ptr plain = "GET /state HTTP/1.1";
-    const lh_str_ptr query = "GET /state?x=1 HTTP/1.1";
-    const lh_str_ptr post = "POST /state HTTP/1.1";
-    const lh_str_ptr longer = "GET /states HTTP/1.1";
     lh_ui_web_route_t route;
+    lh_http_request_t request;
+    const lh_str_view_t get = lh_str_view_initializer_lit("GET");
+    const lh_str_view_t post = lh_str_view_initializer_lit("POST");
+    const lh_str_view_t plain = lh_str_view_initializer_lit("/state");
+    const lh_str_view_t query = lh_str_view_initializer_lit("/state?x=1");
+    const lh_str_view_t longer = lh_str_view_initializer_lit("/states");
 
     start(lh_addr_of(route), "GET", lh_str_lit_size("GET"), "/state", lh_str_lit_size("/state"));
-
-    EXPECT_TRUE(lh_ui_web_route_match(&route, plain, lh_str_lit_size("GET /state HTTP/1.1")));
-    EXPECT_TRUE(lh_ui_web_route_match(&route, query, lh_str_lit_size("GET /state?x=1 HTTP/1.1")));
-    EXPECT_FALSE(lh_ui_web_route_match(&route, post, lh_str_lit_size("POST /state HTTP/1.1")));
-    EXPECT_FALSE(lh_ui_web_route_match(&route, longer, lh_str_lit_size("GET /states HTTP/1.1")));
+    lh_http_request_set_method(lh_addr_of(request), get);
+    lh_http_request_set_target(lh_addr_of(request), plain);
+    EXPECT_TRUE(lh_ui_web_route_is_match(lh_addr_of(route), lh_addr_of(request)));
+    lh_http_request_set_target(lh_addr_of(request), query);
+    EXPECT_TRUE(lh_ui_web_route_is_match(lh_addr_of(route), lh_addr_of(request)));
+    lh_http_request_set_method(lh_addr_of(request), post);
+    EXPECT_FALSE(lh_ui_web_route_is_match(lh_addr_of(route), lh_addr_of(request)));
+    lh_http_request_set_method(lh_addr_of(request), get);
+    lh_http_request_set_target(lh_addr_of(request), longer);
+    EXPECT_FALSE(lh_ui_web_route_is_match(lh_addr_of(route), lh_addr_of(request)));
+    lh_ui_web_route_set_method_len(lh_addr_of(route), 0);
+    lh_http_request_set_method(lh_addr_of(request), post);
+    lh_http_request_set_target(lh_addr_of(request), plain);
+    EXPECT_TRUE(lh_ui_web_route_is_match(lh_addr_of(route), lh_addr_of(request)));
 }
 
 #endif /* LH_LIBRARY_OPTION_OS */

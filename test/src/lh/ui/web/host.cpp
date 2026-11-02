@@ -105,17 +105,60 @@ TEST(ui_web_host_try_read_request, returns_parsed_request_and_borrowed_headers)
     lh_os_net_socket_close(lh_addr_of(writer));
 }
 
-TEST(ui_web_host_route, matches_only_complete_paths_for_get_and_post)
+TEST(ui_web_host_query, searches_only_the_parsed_query_and_exact_keys)
 {
-    const char get[] = "GET /ui/key?x=1 HTTP/1.1";
-    const char post[] = "POST /ui/key HTTP/1.1";
-    const char longer[] = "GET /ui/keyboard HTTP/1.1";
-    const char other[] = "PUT /ui/key HTTP/1.1";
+    lh_http_request_t request;
+    const lh_str_view_t target = lh_str_view_initializer_lit("/ui?dx=7&x=12&x=99&flag=0");
+    lh_http_request_set_target(lh_addr_of(request), target);
+    lh_str_cptr value = nullptr;
+    EXPECT_EQ(lh_ui_web_host_get_query_value_size(lh_addr_of(request), lh_str_lit("x="),
+                                                  lh_addr_of(value)),
+              2u);
+    ASSERT_NE(value, nullptr);
+    EXPECT_EQ(std::string(value, 2), "12");
+    EXPECT_EQ(lh_ui_web_host_get_query_int(lh_addr_of(request), lh_str_lit("dx=")), 7);
+    EXPECT_FALSE(
+        lh_ui_web_host_get_query_flag(lh_addr_of(request), lh_str_lit("flag="), lh_bool_true));
+    EXPECT_TRUE(
+        lh_ui_web_host_get_query_flag(lh_addr_of(request), lh_str_lit("missing="), lh_bool_true));
+    const lh_str_view_t empty_value = lh_str_view_initializer_lit("/?x=");
+    lh_http_request_set_target(lh_addr_of(request), empty_value);
+    value = nullptr;
+    EXPECT_EQ(lh_ui_web_host_get_query_value_size(lh_addr_of(request), lh_str_lit("x="),
+                                                  lh_addr_of(value)),
+              0u);
+    EXPECT_EQ(value, lh_str_view_get_end(lh_addr_of(empty_value)));
+    const lh_str_view_t no_query = lh_str_view_initializer_lit("/x=12");
+    lh_http_request_set_target(lh_addr_of(request), no_query);
+    value = nullptr;
+    EXPECT_EQ(lh_ui_web_host_get_query_value_size(lh_addr_of(request), lh_str_lit("x="),
+                                                  lh_addr_of(value)),
+              0u);
+    EXPECT_EQ(value, nullptr);
+    EXPECT_EQ(lh_ui_web_host_get_query_value_size(lh_addr_of(request), "", 0, lh_addr_of(value)),
+              0u);
+    EXPECT_EQ(value, nullptr);
+}
 
-    EXPECT_TRUE(lh_ui_web_host_route(get, sizeof(get) - 1, "/ui/key", 7));
-    EXPECT_TRUE(lh_ui_web_host_route(post, sizeof(post) - 1, "/ui/key", 7));
-    EXPECT_FALSE(lh_ui_web_host_route(longer, sizeof(longer) - 1, "/ui/key", 7));
-    EXPECT_FALSE(lh_ui_web_host_route(other, sizeof(other) - 1, "/ui/key", 7));
+TEST(ui_web_host_is_route, matches_only_complete_paths_for_get_and_post)
+{
+    lh_http_request_t request;
+    const lh_str_view_t get = lh_str_view_initializer_lit("GET");
+    const lh_str_view_t post = lh_str_view_initializer_lit("POST");
+    const lh_str_view_t put = lh_str_view_initializer_lit("PUT");
+    const lh_str_view_t path = lh_str_view_initializer_lit("/ui/key?x=1");
+    const lh_str_view_t longer = lh_str_view_initializer_lit("/ui/keyboard");
+
+    lh_http_request_set_method(lh_addr_of(request), get);
+    lh_http_request_set_target(lh_addr_of(request), path);
+    EXPECT_TRUE(lh_ui_web_host_is_route(lh_addr_of(request), "/ui/key", 7));
+    lh_http_request_set_method(lh_addr_of(request), post);
+    EXPECT_TRUE(lh_ui_web_host_is_route(lh_addr_of(request), "/ui/key", 7));
+    lh_http_request_set_method(lh_addr_of(request), put);
+    EXPECT_FALSE(lh_ui_web_host_is_route(lh_addr_of(request), "/ui/key", 7));
+    lh_http_request_set_method(lh_addr_of(request), get);
+    lh_http_request_set_target(lh_addr_of(request), longer);
+    EXPECT_FALSE(lh_ui_web_host_is_route(lh_addr_of(request), "/ui/key", 7));
 }
 
 namespace
@@ -510,6 +553,21 @@ TEST(web_host, http_key_takes_p_and_without_it_is_a_key_down)
     EXPECT_EQ(s_world.pressed[base], 0);
     EXPECT_EQ(s_world.key[base + 1], static_cast<int>(lh_os_key_delete));
     EXPECT_EQ(s_world.pressed[base + 1], 1);
+}
+
+TEST(web_host, query_parameters_are_not_read_from_headers)
+{
+    LH_TEST_NEEDS_HOST();
+    const int base = s_world.keys.load();
+    lh_os_net_socket_t socket;
+    ASSERT_TRUE(connect_to_host(lh_addr_of(socket)));
+    const char request[] = "GET /ui/key HTTP/1.1\r\nHost: localhost\r\nX-Noise: ?k=5\r\n\r\n";
+    ASSERT_TRUE(send_all(lh_addr_of(socket), request, sizeof(request) - 1));
+    EXPECT_NE(read_head(lh_addr_of(socket)).find(" 200 "), std::string::npos);
+    lh_os_net_socket_close(lh_addr_of(socket));
+    ASSERT_TRUE(wait_keys(base, 1));
+    ASSERT_LT(base, key_log_max);
+    EXPECT_EQ(s_world.key[base], static_cast<int>(lh_os_key_other));
 }
 
 /* Thumb 50 of a 200 track over scroll 0..300: dragging its top from 0 to 75 is scroll 150,

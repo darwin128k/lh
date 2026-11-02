@@ -5,6 +5,7 @@
 
 #include <lh/ui/web/host.h>
 #include <lh/attribute/unused.h>
+#include <lh/str/split/once.h>
 #include <lh/char/map.h>
 
 #include <lh/cast/const.h>
@@ -59,7 +60,7 @@ lh_ui_web_host_find(lh_str_cptr p, lh_usize_t len, lh_str_cptr needle, lh_usize_
 }
 
 lh_bool_t
-lh_ui_web_host_route(lh_str_cptr req, lh_usize_t len, lh_str_cptr path, lh_usize_t path_len)
+lh_ui_web_host_is_route(const lh_http_request_t *request, lh_str_cptr path, lh_usize_t path_len)
 {
     lh_ui_web_route_t route;
 
@@ -67,51 +68,60 @@ lh_ui_web_host_route(lh_str_cptr req, lh_usize_t len, lh_str_cptr path, lh_usize
     lh_ui_web_route_set_path_len(lh_addr_of(route), path_len);
     lh_ui_web_route_set_method(lh_addr_of(route), "GET");
     lh_ui_web_route_set_method_len(lh_addr_of(route), lh_str_lit_size("GET"));
-    if (lh_ui_web_route_match(lh_addr_of(route), req, len))
+    if (lh_ui_web_route_is_match(lh_addr_of(route), request))
     {
         return lh_bool_true;
     }
     lh_ui_web_route_set_method(lh_addr_of(route), "POST");
     lh_ui_web_route_set_method_len(lh_addr_of(route), lh_str_lit_size("POST"));
-    return lh_ui_web_route_match(lh_addr_of(route), req, len);
+    return lh_ui_web_route_is_match(lh_addr_of(route), request);
 }
 
 lh_usize_t
-lh_ui_web_host_query(lh_str_cptr req, lh_usize_t len, lh_str_cptr key, lh_usize_t key_len,
-                     lh_str_cptr *value)
+lh_ui_web_host_get_query_value_size(const lh_http_request_t *request, lh_str_cptr key,
+                                    lh_usize_t key_len, lh_str_cptr *value)
 {
+    if (lh_math_is_zero(key_len))
+    {
+        return 0u;
+    }
+    lh_str_view_t path;
+    lh_str_view_t query;
+    if (!lh_str_view_split_once(lh_http_request_get_target(request), lh_char_map_question,
+                                lh_addr_of(path), lh_addr_of(query)) ||
+        lh_str_view_is_empty(lh_addr_of(query)))
+    {
+        return 0u;
+    }
+    const lh_str_ptr req = lh_str_view_get_data(lh_addr_of(query));
+    const lh_usize_t len = lh_str_view_get_size(lh_addr_of(query));
     lh_usize_t off = 0u;
 
     for (;;)
     {
         lh_str_cptr at = lh_ui_web_host_find(req + off, len - off, key, key_len);
-        lh_usize_t n = 0u;
 
         if (at == lh_null)
         {
             return 0u;
         }
-        off = lh_cast_static(lh_usize_t, (at - req)) + key_len;
-        if (at == req || (at[-1] != lh_char_map_question && at[-1] != lh_char_map_ampersand))
+        off = lh_math_add(lh_ptr_udiff(at, req), key_len);
+        if (at != req && at[-1] != lh_char_map_ampersand)
         {
             continue;
         }
-        while (off + n < len && req[off + n] != lh_char_map_ampersand &&
-               req[off + n] != lh_char_map_space && req[off + n] != lh_char_map_cr &&
-               req[off + n] != lh_char_map_lf)
-        {
-            ++n;
-        }
         lh_ptr_deref(value) = req + off;
-        return n;
+        const lh_str_ptr end = lh_str_ptr_find_of_char(req + off, len - off, lh_char_map_ampersand);
+        return lh_null_ne(end) ? lh_ptr_udiff(end, req + off) : len - off;
     }
 }
 
 lh_sint_t
-lh_ui_web_host_query_int(lh_str_cptr req, lh_usize_t len, lh_str_cptr key, lh_usize_t key_len)
+lh_ui_web_host_get_query_int(const lh_http_request_t *request, lh_str_cptr key, lh_usize_t key_len)
 {
     lh_str_cptr value = lh_null;
-    const lh_usize_t n = lh_ui_web_host_query(req, len, key, key_len, lh_addr_of(value));
+    const lh_usize_t n =
+        lh_ui_web_host_get_query_value_size(request, key, key_len, lh_addr_of(value));
     lh_sint_t v = 0;
 
     if (n == 0u || lh_str_ptr_parse_text(value, n, "%d", lh_addr_of(v)) == 0u)
@@ -122,10 +132,11 @@ lh_ui_web_host_query_int(lh_str_cptr req, lh_usize_t len, lh_str_cptr key, lh_us
 }
 
 lh_uint_t
-lh_ui_web_host_query_uint(lh_str_cptr req, lh_usize_t len, lh_str_cptr key, lh_usize_t key_len)
+lh_ui_web_host_get_query_uint(const lh_http_request_t *request, lh_str_cptr key, lh_usize_t key_len)
 {
     lh_str_cptr value = lh_null;
-    const lh_usize_t n = lh_ui_web_host_query(req, len, key, key_len, lh_addr_of(value));
+    const lh_usize_t n =
+        lh_ui_web_host_get_query_value_size(request, key, key_len, lh_addr_of(value));
     lh_uint_t v = 0u;
 
     if (n == 0u || lh_str_ptr_parse_text(value, n, "%u", lh_addr_of(v)) == 0u)
@@ -136,16 +147,17 @@ lh_ui_web_host_query_uint(lh_str_cptr req, lh_usize_t len, lh_str_cptr key, lh_u
 }
 
 lh_bool_t
-lh_ui_web_host_query_flag(lh_str_cptr req, lh_usize_t len, lh_str_cptr key, lh_usize_t key_len,
-                          lh_bool_t absent)
+lh_ui_web_host_get_query_flag(const lh_http_request_t *request, lh_str_cptr key, lh_usize_t key_len,
+                              lh_bool_t absent)
 {
     lh_str_cptr value = lh_null;
 
-    if (lh_ui_web_host_query(req, len, key, key_len, lh_addr_of(value)) == 0u)
+    if (lh_ui_web_host_get_query_value_size(request, key, key_len, lh_addr_of(value)) == 0u)
     {
         return absent;
     }
-    return (lh_ui_web_host_query_int(req, len, key, key_len) != 0) ? lh_bool_true : lh_bool_false;
+    return (lh_ui_web_host_get_query_int(request, key, key_len) != 0) ? lh_bool_true
+                                                                      : lh_bool_false;
 }
 
 lh_bool_t
@@ -646,7 +658,8 @@ lh_ui_web_host_handle_request_is_upgraded(lh_ui_web_app_t *app, lh_os_net_socket
         return lh_ui_web_host_ws_upgrade(client, headers,
                                          lh_http_request_get_header_count(lh_addr_of(request)));
     }
-    if (lh_ui_web_app_handle_request_is_handled(app, req, len, client))
+    if (lh_ui_web_app_handle_request_is_handled(app, lh_addr_of(request), headers, req, len,
+                                                client))
     {
         return lh_bool_false;
     }

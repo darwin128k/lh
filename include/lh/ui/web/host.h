@@ -69,38 +69,82 @@ lh_ui_web_host_find(const lh_str_ptr p, lh_usize_t len, const lh_str_ptr needle,
  * longer path with the same prefix does not match. The request and path are
  * borrowed byte spans and remain owned by the caller.
  *
- * @param req Request bytes.
- * @param len Number of request bytes.
+ * @param request Parsed request; its bytes remain caller-owned.
  * @param path Path to match.
  * @param path_len Number of path bytes.
  * @return ::lh_bool_true on a match; ::lh_bool_false otherwise.
  */
 lh_bool_t
-lh_ui_web_host_route(const lh_str_ptr req, lh_usize_t len, const lh_str_ptr path,
-                     lh_usize_t path_len);
+lh_ui_web_host_is_route(const lh_http_request_t *request, const lh_str_ptr path,
+                        lh_usize_t path_len);
 
-/** The value of query parameter @p key (written `x=`), as text up to the next
- *   `&`, space or line end. Only a key right after `?` or `&` counts, so `x=`
- *   is never found inside `dx=`. */
+/**
+ * @brief Find a parameter in the parsed request target's query.
+ *
+ * The key includes its equals sign, such as `x=`. The returned value is a
+ * borrowed view into the request target and is not decoded or copied. The
+ * first matching key wins; empty values and missing keys both return zero.
+ *
+ * @param request Parsed request whose target remains alive for this call.
+ * @param key Parameter name including `=`; borrowed and not modified.
+ * @param key_len Number of bytes in @p key.
+ * @param value Receives the start of the value when a key is found; unchanged
+ *              when no key is found. The caller retains the target storage.
+ * @return Value length in bytes, or zero for a missing or empty value or an
+ *         empty key.
+ * @pre @p request and @p value are valid; @p key names @p key_len readable
+ *      bytes when the length is nonzero. The request target is a valid view.
+ */
 lh_usize_t
-lh_ui_web_host_query(const lh_str_ptr req, lh_usize_t len, const lh_str_ptr key, lh_usize_t key_len,
-                     const lh_str_ptr *value);
+lh_ui_web_host_get_query_value_size(const lh_http_request_t *request, const lh_str_ptr key,
+                                    lh_usize_t key_len, const lh_str_ptr *value);
 
-/** Query parameter @p key as a signed integer; 0 when absent or not a number. */
+/**
+ * @brief Read a signed integer from a request's query parameter.
+ *
+ * Uses ::lh_ui_web_host_get_query_value_size; no input is copied or owned.
+ *
+ * @param request Parsed request with a valid, caller-owned target.
+ * @param key Parameter name including `=`; caller-owned.
+ * @param key_len Number of bytes in @p key.
+ * @return The parsed integer, or zero for a missing, empty or invalid value.
+ * @pre @p request and the non-empty @p key are valid.
+ */
 lh_sint_t
-lh_ui_web_host_query_int(const lh_str_ptr req, lh_usize_t len, const lh_str_ptr key,
-                         lh_usize_t key_len);
+lh_ui_web_host_get_query_int(const lh_http_request_t *request, const lh_str_ptr key,
+                             lh_usize_t key_len);
 
-/** Query parameter @p key as an lh_uint_t integer; 0 when absent or not a number. */
+/**
+ * @brief Read an unsigned integer from a request's query parameter.
+ *
+ * Uses ::lh_ui_web_host_get_query_value_size; no input is copied or owned.
+ *
+ * @param request Parsed request with a valid, caller-owned target.
+ * @param key Parameter name including `=`; caller-owned.
+ * @param key_len Number of bytes in @p key.
+ * @return The parsed integer, or zero for a missing, empty or invalid value.
+ * @pre @p request and the non-empty @p key are valid.
+ */
 lh_uint_t
-lh_ui_web_host_query_uint(const lh_str_ptr req, lh_usize_t len, const lh_str_ptr key,
-                          lh_usize_t key_len);
+lh_ui_web_host_get_query_uint(const lh_http_request_t *request, const lh_str_ptr key,
+                              lh_usize_t key_len);
 
-/** Query parameter @p key as a flag: @p absent when it is not there, otherwise true for any
- *   number but 0. */
+/**
+ * @brief Read a numeric query parameter as a flag.
+ *
+ * Uses the signed integer reader. Input remains owned by the caller.
+ *
+ * @param request Parsed request with a valid, caller-owned target.
+ * @param key Parameter name including `=`; caller-owned.
+ * @param key_len Number of bytes in @p key.
+ * @param absent Value to return when the parameter is missing or empty.
+ * @return @p absent for a missing or empty value; otherwise true for a
+ *         nonzero parsed integer and false for zero or invalid input.
+ * @pre @p request and the non-empty @p key are valid.
+ */
 lh_bool_t
-lh_ui_web_host_query_flag(const lh_str_ptr req, lh_usize_t len, const lh_str_ptr key,
-                          lh_usize_t key_len, lh_bool_t absent);
+lh_ui_web_host_get_query_flag(const lh_http_request_t *request, const lh_str_ptr key,
+                              lh_usize_t key_len, lh_bool_t absent);
 
 /**
  * @brief Answer a WebSocket handshake using already parsed HTTP headers.

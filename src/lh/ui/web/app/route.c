@@ -5,7 +5,6 @@
 
 #include <lh/ui/web/app/route.h>
 
-#include <lh/util/str/ptr.h>
 
 const lh_str_ptr
 lh_ui_web_route_get_method(const lh_ui_web_route_t *self)
@@ -78,37 +77,26 @@ lh_ui_web_route_set_handler(lh_ui_web_route_t *self, lh_ui_web_route_fn handler)
 }
 
 lh_bool_t
-lh_ui_web_route_match(const lh_ui_web_route_t *self, const lh_str_ptr req, lh_usize_t len)
+lh_ui_web_route_is_match(const lh_ui_web_route_t *self, const lh_http_request_t *request)
 {
-    lh_usize_t off = 0u;
-
-    if (lh_ui_web_route_get_method_len(self) > 0u)
+    const lh_usize_t method_len = lh_ui_web_route_get_method_len(self);
+    if (!lh_math_is_zero(method_len))
     {
-        const lh_usize_t method_len = lh_ui_web_route_get_method_len(self);
-
-        if (!lh_str_ptr_starts_with_by_size(req, len, lh_ui_web_route_get_method(self), method_len,
-                                           lh_bool_false))
+        const lh_str_view_t method =
+            lh_str_view_initializer(lh_ui_web_route_get_method(self), method_len);
+        if (!lh_str_view_equals(lh_http_request_get_method(request), lh_addr_of(method),
+                                lh_bool_false))
         {
             return lh_bool_false;
         }
-        off = method_len;
-        if (off >= len || req[off] != ' ')
-        {
-            return lh_bool_false;
-        }
-        ++off;
     }
+    const lh_str_view_t path = lh_http_request_get_path(request);
+    const lh_usize_t path_len = lh_ui_web_route_get_path_len(self);
+    if (lh_math_is_zero(path_len))
     {
-        const lh_usize_t path_len = lh_ui_web_route_get_path_len(self);
-
-        if (!lh_str_ptr_starts_with_by_size(req + off, len - off, lh_ui_web_route_get_path(self),
-                                            path_len, lh_bool_false))
-        {
-            return lh_bool_false;
-        }
-        off += path_len;
+        return lh_str_view_is_empty(lh_addr_of(path));
     }
-    /* The path ends at the space before the HTTP version, at the `?` of the
-       query, or at the end of the request. */
-    return (off >= len || req[off] == ' ' || req[off] == '?') ? lh_bool_true : lh_bool_false;
+    const lh_str_view_t expected =
+        lh_str_view_initializer(lh_ui_web_route_get_path(self), path_len);
+    return lh_str_view_equals(lh_addr_of(path), lh_addr_of(expected), lh_bool_false);
 }

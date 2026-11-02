@@ -18,7 +18,6 @@
 #define LH_UI_WEB_APP_H
 
 #include <lh/config.h>
-#include <lh/http/request.h>
 #include <lh/ui/canvas/web.h>
 #include <lh/ui/web/app/fields.h>
 #include <lh/ui/web/app/route.h>
@@ -283,15 +282,18 @@ lh_ui_web_app_is_websocket(const lh_ui_web_app_t *self, const lh_http_request_t 
  * not the end of it: the next route is tried.
  *
  * @param self   The application; checked by ::lh_assert_runtime_ref.
- * @param req    The request, as it came in.
+ * @param request Parsed request borrowing the input buffer.
+ * @param headers Parsed header fields, with count stored in @p request.
+ * @param req    Received bytes including the head and any already-read body.
  * @param len    Its length.
  * @param client The socket to answer on.
  *
  * @return ::lh_bool_true when a route answered.
  */
 lh_bool_t
-lh_ui_web_app_handle_request_is_handled(lh_ui_web_app_t *self, const lh_str_ptr req, lh_usize_t len,
-                                        lh_os_net_socket_t *client);
+lh_ui_web_app_handle_request_is_handled(lh_ui_web_app_t *self, const lh_http_request_t *request,
+                                        const lh_http_header_t *headers, const lh_str_ptr req,
+                                        lh_usize_t len, lh_os_net_socket_t *client);
 
 /**
  * @brief The bytes of one frame for the websocket clients.
