@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `LH_UI_WEB_HOST_REQUEST_CAPACITY` sets the host request buffer at LH build time.
+
 - HTTP request framing helpers reject ambiguous lengths and unsupported transfer encodings.
 - HTTP response status-line, field and head formatters with fallible and
   checked forms; `lh_http_header_set` stores both borrowed field views.

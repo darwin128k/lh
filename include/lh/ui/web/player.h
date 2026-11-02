@@ -355,15 +355,14 @@ lh_ui_web_player_resize(lh_ui_web_player_t *self, lh_sint_t w, lh_sint_t h);
  * @param ctx    The player's context.
  * @param request Parsed request, borrowing its source bytes.
  * @param headers Parsed fields, whose count is stored in @p request.
- * @param req    Received bytes; the request body may be incomplete.
- * @param len    Its length.
+ * @param request_body Borrowed body bytes; the web host supplies the complete Content-Length body.
  * @param client The socket to answer on.
  *
  * @return ::lh_bool_true when it answered.
  */
 lh_bool_t
 lh_ui_web_player_serve_page(lh_ptr ctx, const lh_http_request_t *request,
-                            const lh_http_header_t *headers, const lh_str_ptr req, lh_usize_t len,
+                            const lh_http_header_t *headers, const lh_str_view_t *request_body,
                             lh_os_net_socket_t *client);
 
 /**
@@ -374,16 +373,15 @@ lh_ui_web_player_serve_page(lh_ptr ctx, const lh_http_request_t *request,
  * @param ctx    The player's context.
  * @param request Parsed request, borrowing its source bytes.
  * @param headers Parsed fields, whose count is stored in @p request.
- * @param req    Received bytes; the request body may be incomplete.
- * @param len    Its length.
+ * @param request_body Borrowed body bytes; the web host supplies the complete Content-Length body.
  * @param client The socket to answer on.
  *
  * @return ::lh_bool_true when it answered.
  */
 lh_bool_t
 lh_ui_web_player_serve_revision(lh_ptr ctx, const lh_http_request_t *request,
-                                const lh_http_header_t *headers, const lh_str_ptr req,
-                                lh_usize_t len, lh_os_net_socket_t *client);
+                                const lh_http_header_t *headers, const lh_str_view_t *request_body,
+                                lh_os_net_socket_t *client);
 
 /**
  * @brief Draw the tree into the frame scratch.
@@ -480,15 +478,14 @@ lh_ui_web_player_text(lh_ui_web_player_t *self, lh_u32_t code);
  * @param ctx    The player's context.
  * @param request Parsed request, borrowing its source bytes.
  * @param headers Parsed fields, whose count is stored in @p request.
- * @param req    Received bytes; the request body may be incomplete.
- * @param len    Its length.
+ * @param request_body Borrowed body bytes; the web host supplies the complete Content-Length body.
  * @param client The socket to answer on.
  *
  * @return ::lh_bool_true when it answered.
  */
 lh_bool_t
 lh_ui_web_player_serve_frame(lh_ptr ctx, const lh_http_request_t *request,
-                             const lh_http_header_t *headers, const lh_str_ptr req, lh_usize_t len,
+                             const lh_http_header_t *headers, const lh_str_view_t *request_body,
                              lh_os_net_socket_t *client);
 
 /**
@@ -536,15 +533,14 @@ lh_ui_web_player_event_line(lh_ui_web_player_t *self, const lh_str_ptr line, lh_
  * @param ctx    The player's context.
  * @param request Parsed request, borrowing its source bytes.
  * @param headers Parsed fields, whose count is stored in @p request.
- * @param req    Received bytes; the request body may be incomplete.
- * @param len    Its length.
+ * @param request_body Borrowed body bytes; the web host supplies the complete Content-Length body.
  * @param client The socket to answer on.
  *
  * @return ::lh_bool_true when it answered.
  */
 lh_bool_t
 lh_ui_web_player_serve_input(lh_ptr ctx, const lh_http_request_t *request,
-                             const lh_http_header_t *headers, const lh_str_ptr req, lh_usize_t len,
+                             const lh_http_header_t *headers, const lh_str_view_t *request_body,
                              lh_os_net_socket_t *client);
 
 /**

@@ -150,6 +150,38 @@ TEST(ui_web_host_try_read_request, waits_for_the_complete_body)
     lh_os_net_socket_close(lh_addr_of(writer));
 }
 
+TEST(ui_web_host_try_read_request, rejects_oversized_and_incomplete_bodies)
+{
+    ASSERT_TRUE(lh_os_net_init());
+    const char *requests[] = {"POST / HTTP/1.1\r\nContent-Length: 1000\r\n\r\n",
+                              "POST / HTTP/1.1\r\nContent-Length: 4\r\n\r\nab"};
+    for (const char *text : requests)
+    {
+        lh_os_system_net_socket_handle_t handles[2];
+        ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+        lh_os_net_socket_t reader;
+        lh_os_net_socket_t writer;
+        lh_os_net_socket_init(lh_addr_of(reader));
+        lh_os_net_socket_init(lh_addr_of(writer));
+        lh_os_net_socket_set_handle(lh_addr_of(reader), handles[0]);
+        lh_os_net_socket_set_handle(lh_addr_of(writer), handles[1]);
+        ASSERT_TRUE(lh_os_net_socket_set_blocking(lh_addr_of(reader), lh_bool_true));
+        ASSERT_TRUE(lh_os_net_socket_send_all(lh_addr_of(writer), text, std::strlen(text)));
+        char buffer[128];
+        lh_usize_t length = 17;
+        lh_str_view_t body = lh_str_view_initializer_lit("unchanged");
+        lh_http_request_t request;
+        lh_http_header_t headers[2];
+        EXPECT_FALSE(lh_ui_web_host_try_read_request(lh_addr_of(reader), buffer, sizeof(buffer), 40,
+                                                     lh_addr_of(length), lh_addr_of(body),
+                                                     lh_addr_of(request), headers, 2));
+        EXPECT_EQ(length, 17u);
+        EXPECT_EQ(lh_str_view_get_size(lh_addr_of(body)), 9u);
+        lh_os_net_socket_close(lh_addr_of(reader));
+        lh_os_net_socket_close(lh_addr_of(writer));
+    }
+}
+
 lh_bool_t
 ui_web_host_test_capture_body(lh_ptr ctx, const lh_http_request_t *request,
                               const lh_http_header_t *headers, const lh_str_view_t *body,

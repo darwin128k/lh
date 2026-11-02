@@ -713,7 +713,7 @@ lh_ui_web_host_read_request(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize
 lh_bool_t
 lh_ui_web_host_handle_request_is_upgraded(lh_ui_web_app_t *app, lh_os_net_socket_t *client)
 {
-    lh_char_t req[1024];
+    lh_char_t req[LH_UI_WEB_HOST_REQUEST_CAPACITY];
     lh_usize_t len;
     lh_str_view_t body;
     lh_http_request_t request;

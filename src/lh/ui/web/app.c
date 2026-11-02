@@ -153,8 +153,8 @@ lh_ui_web_app_is_websocket(const lh_ui_web_app_t *self, const lh_http_request_t 
 
 lh_bool_t
 lh_ui_web_app_handle_request_is_handled(lh_ui_web_app_t *self, const lh_http_request_t *request,
-                                        const lh_http_header_t *headers, const lh_str_ptr req,
-                                        lh_usize_t len, lh_os_net_socket_t *client)
+                                        const lh_http_header_t *headers, const lh_str_view_t *body,
+                                        lh_os_net_socket_t *client)
 {
     const lh_ui_web_route_t *routes = lh_ui_web_app_get_routes(self);
     const lh_usize_t nroutes = lh_ui_web_app_get_nroutes(self);
@@ -174,7 +174,7 @@ lh_ui_web_app_handle_request_is_handled(lh_ui_web_app_t *self, const lh_http_req
         {
             continue;
         }
-        if (handler(lh_ui_web_app_get_ctx(self), request, headers, req, len, client))
+        if (handler(lh_ui_web_app_get_ctx(self), request, headers, body, client))
         {
             return lh_bool_true;
         }

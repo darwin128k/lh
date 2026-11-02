@@ -1,6 +1,7 @@
 #include <lh/http/request.h>
 #include <lh/assert.h>
 #include <lh/char/map.h>
+#include <lh/http/method.h>
 #include <lh/str/split/once.h>
 
 const lh_str_view_t *
@@ -71,4 +72,13 @@ lh_http_request_get_path(const lh_http_request_t *self)
         lh_str_view_assign(lh_addr_of(path), target);
     }
     return path;
+}
+
+lh_bool_t
+lh_http_request_is_method(const lh_http_request_t *self, lh_http_method_kind_t method)
+{
+    const lh_str_view_t *actual = lh_http_request_get_method(self);
+    const lh_str_view_t name = lh_http_method_get_name(method);
+    return !lh_str_view_is_empty(lh_addr_of(name)) &&
+           lh_str_view_equals(actual, lh_addr_of(name), lh_bool_false);
 }

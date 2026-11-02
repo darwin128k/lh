@@ -276,7 +276,7 @@ lh_bool_t
 lh_ui_web_app_is_websocket(const lh_ui_web_app_t *self, const lh_http_request_t *request);
 
 /**
- * @brief Let the routes answer @p req.
+ * @brief Let the routes answer a parsed request.
  *
  * The first route that matches answers it. A route that does not answer is
  * not the end of it: the next route is tried.
@@ -284,16 +284,15 @@ lh_ui_web_app_is_websocket(const lh_ui_web_app_t *self, const lh_http_request_t 
  * @param self   The application; checked by ::lh_assert_runtime_ref.
  * @param request Parsed request borrowing the input buffer.
  * @param headers Parsed header fields, with count stored in @p request.
- * @param req    Received bytes including the head and any already-read body.
- * @param len    Its length.
+ * @param body   Borrowed body bytes; the web host supplies the complete Content-Length body.
  * @param client The socket to answer on.
  *
  * @return ::lh_bool_true when a route answered.
  */
 lh_bool_t
 lh_ui_web_app_handle_request_is_handled(lh_ui_web_app_t *self, const lh_http_request_t *request,
-                                        const lh_http_header_t *headers, const lh_str_ptr req,
-                                        lh_usize_t len, lh_os_net_socket_t *client);
+                                        const lh_http_header_t *headers, const lh_str_view_t *body,
+                                        lh_os_net_socket_t *client);
 
 /**
  * @brief The bytes of one frame for the websocket clients.
