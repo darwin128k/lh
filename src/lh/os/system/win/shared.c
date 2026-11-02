@@ -1,4 +1,5 @@
 #include <lh/os/system/shared.h>
+#include <lh/attribute/unused.h>
 #include <lh/assert.h>
 #include <lh/os.h>
 #include <lh/os/error/code.h>
@@ -153,7 +154,7 @@ lh_ptr
 lh_os_system_shared_get_local_sym(lh_os_system_shared_handle_t handle, lh_str_cptr name)
 {
     /* PE images carry no symbol table of their own; locals live in the .pdb. */
-    (void)handle;
-    (void)name;
+    LH_ATTRIBUTE_UNUSED(handle);
+    LH_ATTRIBUTE_UNUSED(name);
     return lh_null;
 }

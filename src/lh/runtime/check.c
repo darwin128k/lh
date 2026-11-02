@@ -1,4 +1,5 @@
 #include <lh/runtime/check.h>
+#include <lh/attribute/unused.h>
 #include <lh/char/map.h>
 #include <lh/attribute/thread_local.h>
 #include <lh/exception/initializer.h>
@@ -23,21 +24,21 @@ lh_runtime_check_fail_default(const lh_exception_t *exception)
 
     if (lh_math_is_zero(n))
     {
-        (void)fprintf(stderr, "lh: runtime check failed: error %d\n",
-                      lh_exception_get_code(exception));
+        LH_ATTRIBUTE_UNUSED(fprintf(stderr, "lh: runtime check failed: error %d\n",
+                                    lh_exception_get_code(exception)));
     }
     else
     {
         text[n] = lh_char_map_nul;
-        (void)fputs(text, stderr);
+        LH_ATTRIBUTE_UNUSED(fputs(text, stderr));
     }
-    (void)fflush(stderr);
+    LH_ATTRIBUTE_UNUSED(fflush(stderr));
 }
 #else
 lh_void
 lh_runtime_check_fail_default(const lh_exception_t *exception)
 {
-    (void)exception; /* no C library to report through: the host installs its own */
+    LH_ATTRIBUTE_UNUSED(exception); /* no C library to report through: the host installs its own */
 }
 #endif
 

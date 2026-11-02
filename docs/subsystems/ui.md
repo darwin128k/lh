@@ -107,7 +107,7 @@ Input travels the other way:
   lh_os_input_event_t --> sink (optional tap) --> lh_os_controller_t
                                                         |
                                                         v
-                                         lh_ui_view_controller_handle
+                                         lh_ui_view_controller_handle_event_is_handled
                                                         |
                                                         v
                                          lh_ui_view_input --> entities
@@ -569,7 +569,7 @@ gave it (`lh_os_controller_set_context` / `lh_os_controller_get_context`).
 For the view, lh already has the two handlers you need, in
 `lh/ui/view/controller.h`:
 
-- `lh_ui_view_controller_handle(self, event)` calls `lh_ui_view_input` on
+- `lh_ui_view_controller_handle_event_is_handled(self, event)` calls `lh_ui_view_input` on
   the view;
 - `lh_ui_view_controller_cancel(self)` calls `lh_ui_view_cancel` on the view.
 
@@ -579,7 +579,7 @@ So connecting a view is three lines:
 #include <lh/os/controller.h>
 #include <lh/ui/view/controller.h>
 
-lh_os_controller_init(lh_addr_of(self->controller), lh_ui_view_controller_handle,
+lh_os_controller_init(lh_addr_of(self->controller), lh_ui_view_controller_handle_event_is_handled,
                       lh_addr_of(self->view), lh_null);       /* default thresholds */
 lh_os_controller_set_cancel_cb(lh_addr_of(self->controller), lh_ui_view_controller_cancel);
 lh_os_window_set_controller(lh_addr_of(self->window), lh_addr_of(self->controller));
@@ -593,14 +593,14 @@ The view acts only on raw events and ignores the gestures, because it makes
 its own click from a press and a release. So a click is never handled twice,
 and your own handler can still look at the gestures. The touch lab does
 exactly that: its handler logs every gesture and then calls
-`lh_ui_view_controller_handle`.
+`lh_ui_view_controller_handle_event_is_handled`.
 
 ### 8.3 What you can call
 
 | Call | What reaches the handlers |
 |---|---|
 | `lh_os_controller_feed(c, event)` | the event, then the gestures it completes (with the gestures flag), or only the event (without it); returns true when the handler acted |
-| `lh_os_controller_handle(c, event)` | only the event, skipping the recognizer |
+| `lh_os_controller_handle_event_is_handled(c, event)` | only the event, skipping the recognizer |
 | `lh_os_controller_update(c, now)` | the gestures due by `now` (a long press), then `update_cb` |
 | `lh_os_controller_cancel(c)` | nothing from the recognizer (it forgets silently), then `cancel_cb` |
 | `lh_os_controller_sink(self, event)` | a ready-made sink that feeds the controller `self` |
@@ -796,7 +796,7 @@ main(void)
     if (!my_ui_build(&self))                                  /* section 4              */
         return 1;
 
-    lh_os_controller_init(lh_addr_of(self.controller), lh_ui_view_controller_handle,
+    lh_os_controller_init(lh_addr_of(self.controller), lh_ui_view_controller_handle_event_is_handled,
                           lh_addr_of(self.view), lh_null);
     lh_os_controller_set_cancel_cb(lh_addr_of(self.controller), lh_ui_view_controller_cancel);
 
@@ -1138,7 +1138,7 @@ The host knows nothing about windows. It takes a struct of hooks,
 | `controller` | `lh_os_controller_t *` | the normal consumer, updated by the host at every tick before `tick` |
 
 Any hook may be `lh_null`. If both `input` and `controller` are `lh_null`,
-the host makes a controller of its own with `lh_ui_view_controller_handle`
+the host makes a controller of its own with `lh_ui_view_controller_handle_event_is_handled`
 and `lh_ui_view_controller_cancel` on the served view. The browser player has
 no focus to lose, so the host never cancels a controller.
 
@@ -1353,7 +1353,7 @@ flowchart TD
     E --> F["on_input sink, if set (raw tap)"]
     E --> G["lh_os_controller_feed"]
     G --> H["recognizer: raw event, then gestures (synthesized)"]
-    H --> I["handle_cb = lh_ui_view_controller_handle"]
+    H --> I["handle_cb = lh_ui_view_controller_handle_event_is_handled"]
     I --> J["lh_ui_view_input: press / move / release / cancel of that pointer"]
     J --> K["entity events: press, release, click; the damage grows"]
     K --> L["on_tick: lh_ui_view_take_damage"]
@@ -1374,7 +1374,7 @@ The same walk in words:
    event is a press, the window also makes sure its timer will fire when the
    recognizer next needs it.
 5. The recognizer passes the raw event on, and later the gestures it notices.
-   Each reaches `handle_cb`, here `lh_ui_view_controller_handle`, with the
+   Each reaches `handle_cb`, here `lh_ui_view_controller_handle_event_is_handled`, with the
    view as `self`.
 6. `lh_ui_view_input` sees a raw `pointer_down` of the primary button and
    calls `lh_ui_view_press_pointer(view, 1, point)`. The view ignores
@@ -1401,7 +1401,7 @@ this, by hand and automatically. Everything goes through one
 ```
 window --lh_os_window_set_controller--> recognizer
        (click, double_click, long_press, drag_*)
-       --> lab_handle (logs) --> lh_ui_view_controller_handle (buttons)
+       --> lab_handle (logs) --> lh_ui_view_controller_handle_event_is_handled (buttons)
 ```
 
 What you see:

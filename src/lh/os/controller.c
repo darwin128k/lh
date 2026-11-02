@@ -4,6 +4,7 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/attribute/unused.h>
 #include <lh/os/controller.h>
 #include <lh/util/return.h>
 
@@ -134,7 +135,7 @@ lh_os_controller_init(lh_os_controller_t *self, lh_os_controller_handlers_handle
 /* -- Events ---------------------------------------------------------------- */
 
 lh_bool_t
-lh_os_controller_handle(lh_os_controller_t *self, lh_os_input_event_cptr event)
+lh_os_controller_handle_event_is_handled(lh_os_controller_t *self, lh_os_input_event_cptr event)
 {
     lh_os_controller_handlers_handle_cb handle_cb = lh_os_controller_get_handle_cb(self);
 
@@ -148,7 +149,8 @@ lh_os_controller_dispatch_sink(lh_self_ptr self, lh_os_input_event_cptr event)
 {
     lh_os_controller_dispatch_t *dispatch = lh_ptr_rcast(lh_os_controller_dispatch_t, self);
 
-    if (lh_os_controller_handle(lh_os_controller_dispatch_get_controller(dispatch), event))
+    if (lh_os_controller_handle_event_is_handled(lh_os_controller_dispatch_get_controller(dispatch),
+                                                 event))
     {
         lh_os_controller_dispatch_set_handled(dispatch, lh_bool_true);
     }
@@ -162,7 +164,7 @@ lh_os_controller_feed(lh_os_controller_t *self, lh_os_input_event_cptr event)
     lh_assert_runtime_ref(event);
     lh_return_if(!lh_os_controller_is_enabled(self), lh_bool_false);
     lh_return_if(!lh_os_controller_has_flag(self, lh_os_controller_flags_gestures),
-                 lh_os_controller_handle(self, event));
+                 lh_os_controller_handle_event_is_handled(self, event));
     lh_os_input_recognizer_feed(lh_os_controller_get_recognizer(self), event,
                                 lh_os_controller_dispatch_sink, lh_addr_of(dispatch));
     return lh_os_controller_dispatch_is_handled(lh_addr_of(dispatch));
@@ -215,5 +217,5 @@ lh_os_controller_cancel(lh_os_controller_t *self)
 lh_void
 lh_os_controller_sink(lh_self_ptr self, lh_os_input_event_cptr event)
 {
-    (void)lh_os_controller_feed(lh_ptr_rcast(lh_os_controller_t, self), event);
+    LH_ATTRIBUTE_UNUSED(lh_os_controller_feed(lh_ptr_rcast(lh_os_controller_t, self), event));
 }

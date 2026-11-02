@@ -4,6 +4,7 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/attribute/unused.h>
 #include <lh/memory.h>
 #include <lh/os/alloc.h>
 #include <lh/os/system/surface.h>
@@ -120,7 +121,7 @@ lh_os_system_surface_get_pixels(lh_os_system_surface_handle_t handle)
 
     lh_return_if(lh_null_eq(handle), lh_null);
     surface = lh_ptr_rcast(const lh_os_system_win_surface_t, handle);
-    (void)GdiFlush();
+    LH_ATTRIBUTE_UNUSED(GdiFlush());
     return lh_os_system_win_surface_get_bits(surface);
 }
 
@@ -203,13 +204,13 @@ lh_os_system_surface_present_fit(lh_os_system_surface_handle_t handle, lh_ptr de
         lh_os_system_win_handle_t brush = CreateSolidBrush(fill);
         lh_os_system_win_handle_t previous = SelectObject(dest_dc, brush);
 
-        (void)PatBlt(dest_dc, 0, 0, dest_w, dest_h, LH_OS_SYSTEM_WIN_PATCOPY);
-        (void)SelectObject(dest_dc, previous);
+        LH_ATTRIBUTE_UNUSED(PatBlt(dest_dc, 0, 0, dest_w, dest_h, LH_OS_SYSTEM_WIN_PATCOPY));
+        LH_ATTRIBUTE_UNUSED(SelectObject(dest_dc, previous));
         if (lh_null_ne(brush))
         {
-            (void)DeleteObject(brush);
+            LH_ATTRIBUTE_UNUSED(DeleteObject(brush));
         }
-        (void)SetStretchBltMode(dest_dc, LH_OS_SYSTEM_WIN_COLORONCOLOR);
+        LH_ATTRIBUTE_UNUSED(SetStretchBltMode(dest_dc, LH_OS_SYSTEM_WIN_COLORONCOLOR));
         return lh_cast_static(lh_bool_t, StretchBlt(dest_dc, ox, oy, dw, dh,
                                                     lh_os_system_win_surface_get_dc(surface), 0, 0,
                                                     lh_os_system_win_surface_get_width(surface),

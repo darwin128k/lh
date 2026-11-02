@@ -15,7 +15,8 @@ lh_os_system_tick_us(lh_u64_t *out)
         return lh_bool_false;
     }
     LARGE_INTEGER counter, frequency;
-    if (!QueryPerformanceCounter(&counter) || !QueryPerformanceFrequency(&frequency))
+    if (!QueryPerformanceCounter(lh_addr_of(counter)) ||
+        !QueryPerformanceFrequency(lh_addr_of(frequency)))
     {
         lh_os_system_error_capture();
         return lh_bool_false;

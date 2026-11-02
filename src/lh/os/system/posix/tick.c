@@ -19,7 +19,7 @@ lh_os_system_tick_us(lh_u64_t *out)
         return lh_bool_false;
     }
     struct timespec now;
-    if (clock_gettime(CLOCK_MONOTONIC, &now))
+    if (clock_gettime(CLOCK_MONOTONIC, lh_addr_of(now)))
     {
         lh_os_system_error_capture();
         return lh_bool_false;
@@ -35,7 +35,7 @@ lh_bool_t
 lh_os_system_sleep_ms(lh_u32_t milliseconds)
 {
     struct timespec delay = {milliseconds / 1000U, (long)(milliseconds % 1000U) * 1000000L};
-    while (nanosleep(&delay, &delay))
+    while (nanosleep(lh_addr_of(delay), lh_addr_of(delay)))
     {
         if (errno == EINTR)
         {

@@ -4,18 +4,19 @@
  */
 
 #include <lh/ui/viewport3d.h>
+#include <lh/attribute/unused.h>
 
 lh_void
 lh_ui_viewport3d_null_begin(lh_ptr context, const lh_ui_rect_t *rect)
 {
-    (void)context;
-    (void)rect;
+    LH_ATTRIBUTE_UNUSED(context);
+    LH_ATTRIBUTE_UNUSED(rect);
 }
 
 lh_void
 lh_ui_viewport3d_null_end(lh_ptr context)
 {
-    (void)context;
+    LH_ATTRIBUTE_UNUSED(context);
 }
 
 const lh_ui_viewport3d_backend_t lh_ui_viewport3d_backend_null = {

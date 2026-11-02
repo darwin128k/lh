@@ -4,6 +4,7 @@
  */
 
 #include <lh/os/system/serial.h>
+#include <lh/attribute/unused.h>
 #include <lh/char/map.h>
 
 #include <lh/assert/runtime.h>
@@ -65,7 +66,8 @@ lh_os_system_serial_setup(lh_os_system_win_handle_t port, lh_u32_t baud,
     timeouts.WriteTotalTimeoutMultiplier = 0UL;
     timeouts.WriteTotalTimeoutConstant = 0UL;
     lh_return_if(SetCommTimeouts(port, lh_addr_of(timeouts)) == 0, lh_bool_false);
-    (void)PurgeComm(port, LH_OS_SYSTEM_WIN_PURGE_RXCLEAR | LH_OS_SYSTEM_WIN_PURGE_TXCLEAR);
+    LH_ATTRIBUTE_UNUSED(
+        PurgeComm(port, LH_OS_SYSTEM_WIN_PURGE_RXCLEAR | LH_OS_SYSTEM_WIN_PURGE_TXCLEAR));
     return lh_bool_true;
 }
 
@@ -120,7 +122,7 @@ lh_os_system_serial_open(lh_str_cptr name, lh_u32_t baud, lh_os_serial_parity_t 
     if (!lh_os_system_serial_setup(port, baud, parity, stop_bits))
     {
         lh_os_system_error_capture();
-        (void)CloseHandle(port);
+        LH_ATTRIBUTE_UNUSED(CloseHandle(port));
         return LH_OS_SYSTEM_SERIAL_HANDLE_INVALID;
     }
     return lh_cast_reinterpret(lh_os_system_serial_handle_t, port);
@@ -131,7 +133,7 @@ lh_os_system_serial_close(lh_os_system_serial_handle_t handle)
 {
     if (handle != LH_OS_SYSTEM_SERIAL_HANDLE_INVALID)
     {
-        (void)CloseHandle(lh_os_system_serial_native(handle));
+        LH_ATTRIBUTE_UNUSED(CloseHandle(lh_os_system_serial_native(handle)));
     }
 }
 

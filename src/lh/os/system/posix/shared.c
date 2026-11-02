@@ -4,6 +4,7 @@
 #endif
 
 #include <lh/os/system/shared.h>
+#include <lh/attribute/unused.h>
 #include <lh/os/system/posix/shared/search.h>
 #include <lh/memory/std.h>
 #include <lh/assert.h>
@@ -166,7 +167,7 @@ lh_os_system_shared_match(struct dl_phdr_info *info, size_t size, void *data)
     struct lh_os_system_shared_search *const search =
         lh_ptr_cast(struct lh_os_system_shared_search, data);
 
-    (void)size;
+    LH_ATTRIBUTE_UNUSED(size);
     if (lh_str_ptr_is_empty(info->dlpi_name))
     {
         return 0;

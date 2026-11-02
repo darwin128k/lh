@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_ui_web_host_try_read_request` and its checked form read a complete HTTP
+  head from fragmented socket input within a time limit.
+
+- `lh_http_header_find` finds a field by its ASCII case-insensitive name.
+
 - `lh_str_ptr_format_hex_bytes` (`lh/str/format/hex.h`): a byte span as
   hexadecimal text, two characters per byte, cut at a byte boundary when the
   room is too small.
@@ -17,6 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the text does not hold.
 
 ### Fixed
+
+- The web host rejects sockets when required blocking-mode changes fail and
+  keeps a WebSocket only after its handshake is sent successfully.
+
+- The web host waits for a complete HTTP head instead of routing a partial read.
+
+- WebSocket upgrades read the key from parsed HTTP headers regardless of name case.
 
 - Web player input routes use the shared route matcher and reject longer paths
   that only start with a registered input path.
@@ -43,6 +55,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and the peer rejected the frame. It is widened to `lh_u64_t` first.
 
 ### Changed
+
+- Renamed the boolean request and input handlers to state their result:
+  `lh_ui_web_host_handle_request_is_upgraded`,
+  `lh_ui_web_app_handle_request_is_handled`,
+  `lh_os_controller_handle_event_is_handled`, and
+  `lh_ui_view_controller_handle_event_is_handled` replace their `handle` names.
 
 - The pointer arithmetic forms follow one naming rule now: the fast form has no
   suffix and does not check (`lh_ptr_add_by_offset`, `lh_ptr_sub_by_offset`,

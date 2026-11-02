@@ -3,6 +3,7 @@
  * @brief GDI as a screen: ::lh_ui_canvas_backend_sw into a surface, `BitBlt`.
  */
 #include <lh/assert.h>
+#include <lh/attribute/unused.h>
 
 #include <lh/os/render/backend/gdi.h>
 #include <lh/os/system/surface.h>
@@ -160,11 +161,12 @@ lh_os_render_backend_gdi_begin_area(lh_ptr context, const lh_ui_rect_t *area)
        960 KB of RGB565 DIB, a 32-row strip is 48 KB, and the pixels that did not
        change are never cleared, drawn or blitted at all. */
     lh_os_render_backend_gdi_context_set_present_at(gdi, lh_ptr_deref(lh_ui_rect_get_origin(area)));
-    (void)lh_ui_surface_set_size_v(lh_os_render_backend_gdi_context_get_surface_mut(gdi),
-                                 lh_ptr_deref(lh_ui_rect_get_size(area)));
+    LH_ATTRIBUTE_UNUSED(
+        lh_ui_surface_set_size_v(lh_os_render_backend_gdi_context_get_surface_mut(gdi),
+                                 lh_ptr_deref(lh_ui_rect_get_size(area))));
     lh_ui_pixmap_init_empty(lh_addr_of(pixmap));
-    (void)lh_ui_surface_get_pixmap(lh_os_render_backend_gdi_context_get_surface_mut(gdi),
-                                   lh_addr_of(pixmap));
+    LH_ATTRIBUTE_UNUSED(lh_ui_surface_get_pixmap(
+        lh_os_render_backend_gdi_context_get_surface_mut(gdi), lh_addr_of(pixmap)));
     lh_ui_canvas_sw_use_pixmap(lh_os_render_backend_gdi_context_get_sw_mut(gdi),
                                lh_addr_of(pixmap));
     /* Nothing of this frame is drawn yet, and the area is not necessarily all of
@@ -226,9 +228,9 @@ lh_os_render_backend_gdi_end(lh_ptr context, const lh_ui_rects_t *drawn)
              client_h != lh_cast_static(int, lh_os_render_backend_gdi_context_get_logical_h(gdi))))
         {
             /* 0x00BBGGRR of `--canvas` #EDF0F5, for the letterbox. */
-            (void)lh_os_system_surface_present_fit(
+            LH_ATTRIBUTE_UNUSED(lh_os_system_surface_present_fit(
                 lh_ui_surface_get_handle(lh_os_render_backend_gdi_context_get_surface(gdi)),
-                lh_os_render_backend_gdi_context_get_hdc(gdi), client_w, client_h, 0x00F5F0EDu);
+                lh_os_render_backend_gdi_context_get_hdc(gdi), client_w, client_h, 0x00F5F0EDu));
             return;
         }
     }
@@ -244,16 +246,16 @@ lh_os_render_backend_gdi_end(lh_ptr context, const lh_ui_rects_t *drawn)
        vertical streaks next to it. */
     if (lh_null_eq(drawn) || lh_ui_rects_is_empty(drawn))
     {
-        (void)lh_ui_surface_present_at(
+        LH_ATTRIBUTE_UNUSED(lh_ui_surface_present_at(
             lh_os_render_backend_gdi_context_get_surface_mut(gdi),
             lh_os_render_backend_gdi_context_get_hdc(gdi),
-            lh_ptr_deref(lh_os_render_backend_gdi_context_get_present_at(gdi)));
+            lh_ptr_deref(lh_os_render_backend_gdi_context_get_present_at(gdi))));
         return;
     }
-    (void)lh_ui_surface_present_rects(
+    LH_ATTRIBUTE_UNUSED(lh_ui_surface_present_rects(
         lh_os_render_backend_gdi_context_get_surface_mut(gdi),
         lh_os_render_backend_gdi_context_get_hdc(gdi), drawn,
-        lh_ptr_deref(lh_os_render_backend_gdi_context_get_present_at(gdi)));
+        lh_ptr_deref(lh_os_render_backend_gdi_context_get_present_at(gdi))));
 }
 
 lh_void

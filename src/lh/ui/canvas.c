@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/canvas.h` and the null backend.
  */
 #include <lh/assert.h>
+#include <lh/attribute/unused.h>
 
 #include <lh/math.h>
 #include <lh/ui/canvas.h>
@@ -327,7 +328,7 @@ lh_ui_canvas_begin_area(lh_ui_canvas_t *self, const lh_ui_rect_t *area)
     if (lh_null_eq(lh_ui_canvas_get_backend(self)) ||
         lh_null_eq(lh_ui_canvas_backend_get_begin_area_fn(lh_ui_canvas_get_backend(self))))
     {
-        (void)lh_ui_canvas_begin(self);
+        LH_ATTRIBUTE_UNUSED(lh_ui_canvas_begin(self));
         return;
     }
     const lh_ui_point_t *at = lh_ui_rect_get_origin(area);
@@ -434,7 +435,7 @@ lh_ui_canvas_send_clip_rows(lh_ui_canvas_t *self, const lh_ui_rect_t *cut,
     const lh_s32_t y1 = lh_ui_canvas_round_bottom(cut);
     lh_s32_t y;
 
-    (void)lh_ui_canvas_describe_clip(self, lh_addr_of(clip));
+    LH_ATTRIBUTE_UNUSED(lh_ui_canvas_describe_clip(self, lh_addr_of(clip)));
     for (y = lh_ui_canvas_round_top(cut); y < y1; ++y)
     {
         lh_ui_canvas_send_clip_row(self, lh_addr_of(clip), lh_ui_canvas_round_left(cut),

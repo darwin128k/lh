@@ -1,4 +1,5 @@
 #include <lh/runtime/logger.h>
+#include <lh/attribute/unused.h>
 #include <lh/char/map.h>
 #include <lh/attribute/thread_local.h>
 #include <lh/config.h>
@@ -22,8 +23,8 @@ lh_runtime_logger_stderr(lh_self_ptr self, lh_logger_level_t level, lh_str_cptr 
     lh_usize_t n = lh_str_ptr_format_text_v(line, sizeof(line) - 1u, fmt, args);
     const char *text = line;
 
-    (void)self;
-    (void)level;
+    LH_ATTRIBUTE_UNUSED(self);
+    LH_ATTRIBUTE_UNUSED(level);
     if (n == 0u)
     {
         text = fmt;

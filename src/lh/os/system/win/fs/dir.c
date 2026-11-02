@@ -1,4 +1,5 @@
 #include <lh/os/system/win/fs/dir/state.h>
+#include <lh/attribute/unused.h>
 #include <lh/os/system/fs/dir.h>
 #include <lh/assert.h>
 #include <lh/char/slash.h>
@@ -78,7 +79,7 @@ lh_os_system_fs_dir_close(lh_os_system_fs_dir_handle_t handle)
 {
     struct lh_os_system_fs_dir_state *const state = lh_os_system_fs_dir_state(handle);
 
-    (void)FindClose(lh_os_system_fs_dir_state_get_find(state));
+    LH_ATTRIBUTE_UNUSED(FindClose(lh_os_system_fs_dir_state_get_find(state)));
     lh_str_deinit(lh_os_system_fs_dir_state_get_name_mut(state));
     lh_runtime_allocator_free(state);
 }

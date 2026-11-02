@@ -1,4 +1,5 @@
 #include <lh/runtime/allocator.h>
+#include <lh/attribute/unused.h>
 #include <lh/attribute/thread_local.h>
 #include <lh/memory/allocator/initializer.h>
 
@@ -12,14 +13,14 @@
 lh_ptr
 lh_runtime_allocator_default_alloc(lh_self_ptr self, lh_usize_t size)
 {
-    (void)self;
+    LH_ATTRIBUTE_UNUSED(self);
     return LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC(size);
 }
 
 lh_void
 lh_runtime_allocator_default_dealloc(lh_self_ptr self, lh_ptr ptr)
 {
-    (void)self;
+    LH_ATTRIBUTE_UNUSED(self);
     LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_DEALLOC(ptr);
 }
 
@@ -28,8 +29,8 @@ lh_ptr
 lh_runtime_allocator_default_realloc(lh_self_ptr self, lh_ptr ptr, lh_usize_t old_size,
                                      lh_usize_t new_size)
 {
-    (void)self;
-    (void)old_size;
+    LH_ATTRIBUTE_UNUSED(self);
+    LH_ATTRIBUTE_UNUSED(old_size);
     return LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_REALLOC(ptr, new_size);
 }
 #        define LH_RUNTIME_ALLOCATOR_DEFAULT_REALLOC lh_runtime_allocator_default_realloc

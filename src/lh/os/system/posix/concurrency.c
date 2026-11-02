@@ -39,9 +39,9 @@ lh_os_thread_native_run(void *arg)
     if (lh_os_native_thread_get_flags(self) & lh_os_thread_block_sigpipe)
     {
         sigset_t mask;
-        sigemptyset(&mask);
-        sigaddset(&mask, SIGPIPE);
-        error = pthread_sigmask(SIG_BLOCK, &mask, NULL);
+        sigemptyset(lh_addr_of(mask));
+        sigaddset(lh_addr_of(mask), SIGPIPE);
+        error = pthread_sigmask(SIG_BLOCK, lh_addr_of(mask), NULL);
     }
     pthread_mutex_lock(lh_os_native_thread_get_gate_mut(self));
     lh_os_native_thread_set_preparation_error(self, error);
@@ -121,7 +121,7 @@ lh_os_system_thread_start(lh_os_thread_fn run, lh_ptr user, lh_s32_t cpu, lh_u32
         return NULL;
     }
     pthread_attr_t attributes;
-    code = pthread_attr_init(&attributes);
+    code = pthread_attr_init(lh_addr_of(attributes));
     if (code)
     {
         lh_os_thread_native_free(self);
@@ -132,18 +132,18 @@ lh_os_system_thread_start(lh_os_thread_fn run, lh_ptr user, lh_s32_t cpu, lh_u32
     if (cpu >= 0)
     {
         cpu_set_t set;
-        CPU_ZERO(&set);
-        CPU_SET(cpu, &set);
-        code = pthread_attr_setaffinity_np(&attributes, sizeof set, &set);
+        CPU_ZERO(lh_addr_of(set));
+        CPU_SET(cpu, lh_addr_of(set));
+        code = pthread_attr_setaffinity_np(lh_addr_of(attributes), sizeof set, lh_addr_of(set));
     }
 #endif
     pthread_mutex_lock(lh_os_native_thread_get_gate_mut(self));
     if (!code)
     {
-        code = pthread_create(lh_os_native_thread_get_thread_mut(self), &attributes,
+        code = pthread_create(lh_os_native_thread_get_thread_mut(self), lh_addr_of(attributes),
                               lh_os_thread_native_run, self);
     }
-    pthread_attr_destroy(&attributes);
+    pthread_attr_destroy(lh_addr_of(attributes));
     if (code)
     {
         pthread_mutex_unlock(lh_os_native_thread_get_gate_mut(self));
@@ -313,7 +313,7 @@ lh_os_system_condition_wait_for(lh_os_system_condition_handle_t handle,
 {
     struct timespec deadline;
 
-    if (!handle || !mutex || clock_gettime(CLOCK_REALTIME, &deadline))
+    if (!handle || !mutex || clock_gettime(CLOCK_REALTIME, lh_addr_of(deadline)))
     {
         return lh_os_concurrency_capture(EINVAL);
     }
@@ -324,7 +324,7 @@ lh_os_system_condition_wait_for(lh_os_system_condition_handle_t handle,
         deadline.tv_sec += 1;
         deadline.tv_nsec -= 1000000000L;
     }
-    int code = pthread_cond_timedwait(handle, mutex, &deadline);
+    int code = pthread_cond_timedwait(handle, mutex, lh_addr_of(deadline));
 
     return lh_os_concurrency_capture(code == ETIMEDOUT ? 0 : code);
 }

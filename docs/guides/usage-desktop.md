@@ -429,7 +429,7 @@ a handler and the object the handler works on, and the window drives it:
 #include <lh/os/controller.h>
 #include <lh/ui/view/controller.h>
 
-lh_os_controller_init(lh_addr_of(self->controller), lh_ui_view_controller_handle,
+lh_os_controller_init(lh_addr_of(self->controller), lh_ui_view_controller_handle_event_is_handled,
                       lh_addr_of(self->view), lh_null); /* default thresholds */
 lh_os_controller_set_cancel_cb(lh_addr_of(self->controller), lh_ui_view_controller_cancel);
 lh_os_window_set_controller(lh_addr_of(self->window), lh_addr_of(self->controller));
@@ -463,7 +463,7 @@ into its sink through `lh_os_controller_sink` as well: it would be fed twice.
 - `lh_os_controller_feed` (what `lh_os_controller_sink` calls) passes each raw
   event to the handler and, with `lh_os_controller_flags_gestures`, the
   gestures after it; it returns true when the handler acted on any of them, the
-  moment to repaint. `lh_os_controller_handle` skips the recognizer.
+  moment to repaint. `lh_os_controller_handle_event_is_handled` skips the recognizer.
 - `lh_os_controller_update` sends what is due by `now` (a long press), then
   calls the optional `update_cb`; `lh_os_controller_cancel` drops every gesture
   silently, then calls the optional `cancel_cb` (`lh_ui_view_cancel` for the view).

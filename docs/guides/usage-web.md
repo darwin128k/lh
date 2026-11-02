@@ -110,7 +110,7 @@ Notes:
   `controller` (an `lh_os_controller_t *`, the standard path) gets it next and
   is updated by the host at every tick, before `tick`, so long presses come
   due. With neither, the host feeds a controller of its own made with
-  `lh_ui_view_controller_handle` / `lh_ui_view_controller_cancel` on the
+  `lh_ui_view_controller_handle_event_is_handled` / `lh_ui_view_controller_cancel` on the
   served view, which is `lh_ui_view_input` with the gestures alongside. With
   `input` alone the hook is the only consumer, as before, and passes on to
   `lh_ui_view_input` what the view should see. The player has no focus to

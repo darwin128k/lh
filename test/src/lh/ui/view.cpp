@@ -1025,7 +1025,7 @@ TEST(view, input_keys_and_text_go_to_the_view)
     EXPECT_FALSE(feed(f, axis)) << "a controller is not for the view";
 }
 
-/* -- lh_ui_view_controller_handle ------------------------------------------ */
+/* -- lh_ui_view_controller_handle_event_is_handled ------------------------------------------ */
 
 /* The view behind a controller with gestures: the raw press and release page once,
    the synthesized click after them is not a second page. */
@@ -1038,8 +1038,8 @@ TEST(view, controller_handle_gives_the_view_the_raw_events)
     const lh_os_input_event_t up =
         pointer_event(lh_os_input_kind_pointer_up, lh_os_input_button_primary, 105, 150);
 
-    lh_os_controller_init(lh_addr_of(controller), lh_ui_view_controller_handle, lh_addr_of(f.view),
-                          lh_null);
+    lh_os_controller_init(lh_addr_of(controller), lh_ui_view_controller_handle_event_is_handled,
+                          lh_addr_of(f.view), lh_null);
     EXPECT_TRUE(lh_os_controller_feed(lh_addr_of(controller), lh_addr_of(down)));
     EXPECT_TRUE(lh_os_controller_feed(lh_addr_of(controller), lh_addr_of(up)));
     EXPECT_EQ(scroll_y_of(f.box), 100) << "the synthesized click paged a second time";
@@ -1054,8 +1054,8 @@ TEST(view, controller_cancel_ends_the_press_without_a_click)
     const lh_os_input_event_t up =
         pointer_event(lh_os_input_kind_pointer_up, lh_os_input_button_primary, 105, 150);
 
-    lh_os_controller_init(lh_addr_of(controller), lh_ui_view_controller_handle, lh_addr_of(f.view),
-                          lh_null);
+    lh_os_controller_init(lh_addr_of(controller), lh_ui_view_controller_handle_event_is_handled,
+                          lh_addr_of(f.view), lh_null);
     lh_os_controller_set_cancel_cb(lh_addr_of(controller), lh_ui_view_controller_cancel);
     EXPECT_TRUE(lh_os_controller_feed(lh_addr_of(controller), lh_addr_of(down)));
     lh_os_controller_cancel(lh_addr_of(controller));

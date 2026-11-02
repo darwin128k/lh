@@ -157,9 +157,39 @@ lh_void
 lh_ui_web_host_ws_frame(lh_ui_web_host_client_t *cli, lh_ui_web_host_stream_t *stream,
                         lh_ui_web_app_t *app);
 
+/**
+ * @brief Read a complete HTTP request head from a socket within a time limit.
+ *
+ * Uses the HTTP parser on a growing caller-owned buffer. The socket and buffer
+ * remain owned by the caller. Bytes received after the head are retained in
+ * the buffer; this function does not guarantee that a request body is complete.
+ * The parser accepts at most 32 header fields.
+ *
+ * @param client Connected socket, configured for blocking reads.
+ * @param buf Writable storage for the request.
+ * @param capacity Number of bytes available in @p buf.
+ * @param timeout_ms Total time allowed, in milliseconds.
+ * @param length Receives the number of bytes read on success; unchanged on failure.
+ * @return ::lh_bool_true for a complete valid head; ::lh_bool_false on timeout,
+ *         closed socket, I/O error, invalid head, or insufficient storage.
+ * @pre All pointers are valid and @p buf has @p capacity writable bytes.
+ */
+lh_bool_t
+lh_ui_web_host_try_read_request(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize_t capacity,
+                                lh_u32_t timeout_ms, lh_usize_t *length);
+
+/**
+ * @brief Read a request head, checking that the read succeeded.
+ * @copydetails lh_ui_web_host_try_read_request
+ * @fails ::lh_runtime_error_code_invalid_range The request could not be read.
+ */
+lh_void
+lh_ui_web_host_read_request(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize_t capacity,
+                            lh_u32_t timeout_ms, lh_usize_t *length);
+
 /** Serve one HTTP request; true when it became a WebSocket to keep. */
 lh_bool_t
-lh_ui_web_host_handle(lh_ui_web_app_t *app, lh_os_net_socket_t *client);
+lh_ui_web_host_handle_request_is_upgraded(lh_ui_web_app_t *app, lh_os_net_socket_t *client);
 
 /** Accept and serve every connection waiting on the listener. */
 lh_void

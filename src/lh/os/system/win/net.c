@@ -1,4 +1,5 @@
 #include <lh/os/system/net.h>
+#include <lh/attribute/unused.h>
 #include <lh/os/system/win/ws2_32.h>
 #include <lh/math.h>
 
@@ -15,5 +16,5 @@ lh_os_system_net_init(void)
 lh_void
 lh_os_system_net_deinit(void)
 {
-    (void)WSACleanup();
+    LH_ATTRIBUTE_UNUSED(WSACleanup());
 }

@@ -7,6 +7,7 @@
  * file (`std/words.h`, `std/x86/*.h`), included below after the macros they use.
  */
 #include <lh/memory/std.h>
+#include <lh/attribute/unused.h>
 #include <lh/assert.h>
 #include <lh/byte/ptr.h>
 #include <lh/compiler/arch/family.h>
@@ -193,7 +194,7 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
     lh_ptr end = lh_ptr_add(lh_void, dst, n);
 
 #if LH_LIBRARY_OPTION_MEMORY_STD_BACKEND_LIBC
-    (void)memcpy(dst, src, n);
+    LH_ATTRIBUTE_UNUSED(memcpy(dst, src, n));
 #elif LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
     /* See lh_memory_std_copy_simd_dispatch's doc comment above for why this tier —
      * not REP MOVSB — is the default whenever SIMD is compilable, for both GCC/Clang
@@ -309,7 +310,7 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
        is the floor, not a byte loop. It is the same code the vector tiers are
        measured against, so a non-x86 build is not left an order of magnitude
        behind simply by lacking intrinsics. */
-    (void)lh_memory_std_copy_words(dst, src, n);
+    LH_ATTRIBUTE_UNUSED(lh_memory_std_copy_words(dst, src, n));
 #endif
 
     return end;
@@ -447,7 +448,7 @@ lh_memory_std_rcopy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 #if LH_LIBRARY_OPTION_MEMORY_STD_BACKEND_LIBC
     /* rcopy is memmove's backward half: for dst above an overlapping src (its
      * documented use) and for disjoint ranges the result is the same. */
-    (void)memmove(dst, src, n);
+    LH_ATTRIBUTE_UNUSED(memmove(dst, src, n));
 #elif LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
     if (n >= LH_MEMORY_STD_SIMD_RCOPY_THRESHOLD)
     {
@@ -494,7 +495,7 @@ lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n)
     lh_assert_runtime_ref(dst);
     lh_assert_runtime_ref(src);
 
-    (void)memmove(dst, src, n);
+    LH_ATTRIBUTE_UNUSED(memmove(dst, src, n));
     return lh_ptr_add_by_offset_v(lh_void, dst, n);
 #else
     lh_assert_runtime_ref(dst);
@@ -589,7 +590,7 @@ lh_memory_std_set(lh_ptr dst, lh_byte_t val, lh_usize_t n)
 
     lh_ptr end = lh_ptr_add(lh_void, dst, n);
 #if LH_LIBRARY_OPTION_MEMORY_STD_BACKEND_LIBC
-    (void)memset(dst, val, n);
+    LH_ATTRIBUTE_UNUSED(memset(dst, val, n));
 #elif LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
     if (n >= LH_MEMORY_STD_SIMD_SET_THRESHOLD)
     {

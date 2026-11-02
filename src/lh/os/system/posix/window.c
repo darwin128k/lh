@@ -15,6 +15,7 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/attribute/unused.h>
 #include <lh/char/map.h>
 #include <lh/byte/ptr.h>
 #include <lh/memory.h>
@@ -99,8 +100,8 @@ int
 lh_os_system_posix_on_error(lh_os_system_posix_display_t *display,
                             lh_os_system_posix_xerror_event_t *error)
 {
-    (void)display;
-    (void)error;
+    LH_ATTRIBUTE_UNUSED(display);
+    LH_ATTRIBUTE_UNUSED(error);
     lh_os_system_posix_failed = lh_bool_true;
     return 0;
 }
@@ -134,7 +135,7 @@ lh_os_system_posix_connect(void)
     lh_os_system_posix_display = x->XOpenDisplay(lh_null);
     lh_return_if(lh_null_eq(lh_os_system_posix_display), lh_bool_false);
     lh_os_system_posix_x = x;
-    (void)x->XSetErrorHandler(lh_os_system_posix_on_error);
+    LH_ATTRIBUTE_UNUSED(x->XSetErrorHandler(lh_os_system_posix_on_error));
     lh_os_system_posix_screen = x->XDefaultScreen(lh_os_system_posix_display);
     lh_os_system_posix_depth =
         x->XDefaultDepth(lh_os_system_posix_display, lh_os_system_posix_screen);
@@ -381,8 +382,8 @@ lh_os_system_posix_window_back(lh_os_system_posix_window_t *self)
     }
     if (lh_os_system_posix_window_get_backing(self) != LH_OS_SYSTEM_POSIX_X_NONE)
     {
-        (void)x->XFreePixmap(lh_os_system_posix_display,
-                             lh_os_system_posix_window_get_backing(self));
+        LH_ATTRIBUTE_UNUSED(x->XFreePixmap(lh_os_system_posix_display,
+                                           lh_os_system_posix_window_get_backing(self)));
     }
     lh_os_system_posix_window_set_backing(
         self,
@@ -491,7 +492,7 @@ lh_os_system_posix_window_read_maximized(const lh_os_system_posix_window_t *self
             horizontal = atoms[i] == lh_os_system_posix_atom_net_wm_state_max_horz ? lh_bool_true
                                                                                    : horizontal;
         }
-        (void)x->XFree(data);
+        LH_ATTRIBUTE_UNUSED(x->XFree(data));
     }
     return vertical && horizontal ? lh_bool_true : lh_bool_false;
 }
@@ -534,7 +535,7 @@ lh_os_system_posix_workarea(int *x, int *y, int *width, int *height)
             lh_ptr_deref(width) = lh_cast_static(int, area[2]);
             lh_ptr_deref(height) = lh_cast_static(int, area[3]);
         }
-        (void)xlib->XFree(data);
+        LH_ATTRIBUTE_UNUSED(xlib->XFree(data));
     }
 }
 
@@ -581,8 +582,8 @@ lh_os_system_posix_window_begin_moveresize(lh_os_system_posix_window_t *self,
     default:
         return lh_bool_false;
     }
-    (void)lh_os_system_posix_x->XUngrabPointer(lh_os_system_posix_display,
-                                               LH_OS_SYSTEM_POSIX_X_CURRENT_TIME);
+    LH_ATTRIBUTE_UNUSED(lh_os_system_posix_x->XUngrabPointer(lh_os_system_posix_display,
+                                                             LH_OS_SYSTEM_POSIX_X_CURRENT_TIME));
     lh_os_system_posix_xevent_t event;
 
     lh_memory_set(lh_addr_of(event), sizeof(event), 0);
@@ -595,10 +596,11 @@ lh_os_system_posix_window_begin_moveresize(lh_os_system_posix_window_t *self,
     event.client.data[2] = direction;
     event.client.data[3] = lh_cast_static(long, LH_OS_SYSTEM_POSIX_X_BUTTON_LEFT);
     event.client.data[4] = 1L; /* source: an application */
-    (void)lh_os_system_posix_x->XSendEvent(lh_os_system_posix_display, lh_os_system_posix_root, 0,
-                                           LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_REDIRECT_MASK |
-                                               LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_NOTIFY_MASK,
-                                           lh_addr_of(event));
+    LH_ATTRIBUTE_UNUSED(
+        lh_os_system_posix_x->XSendEvent(lh_os_system_posix_display, lh_os_system_posix_root, 0,
+                                         LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_REDIRECT_MASK |
+                                             LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_NOTIFY_MASK,
+                                         lh_addr_of(event)));
     return lh_bool_true;
 }
 
@@ -614,7 +616,8 @@ lh_os_system_posix_is_repeat(const lh_os_system_posix_xevent_t *release)
     lh_return_if(lh_os_system_posix_x->XEventsQueued(
                      lh_os_system_posix_display, LH_OS_SYSTEM_POSIX_X_QUEUED_AFTER_READING) == 0,
                  lh_bool_false);
-    (void)lh_os_system_posix_x->XPeekEvent(lh_os_system_posix_display, lh_addr_of(next));
+    LH_ATTRIBUTE_UNUSED(
+        lh_os_system_posix_x->XPeekEvent(lh_os_system_posix_display, lh_addr_of(next)));
     return next.type == LH_OS_SYSTEM_POSIX_X_KEY_PRESS && next.key.window == release->key.window &&
                    next.key.keycode == release->key.keycode && next.key.time == release->key.time
                ? lh_bool_true
@@ -678,8 +681,8 @@ lh_os_system_posix_window_wait_placed(lh_os_system_posix_window_t *self)
         /* Asked again every few milliseconds once mapped: the move that places it is
            the window manager's, and it does not always tell the window. */
         watch.revents = 0;
-        (void)poll(lh_addr_of(watch), 1,
-                   mapped ? 5 : lh_cast_static(int, ((until - now) / 1000U)) + 1);
+        LH_ATTRIBUTE_UNUSED(poll(lh_addr_of(watch), 1,
+                                 mapped ? 5 : lh_cast_static(int, ((until - now) / 1000U)) + 1));
     }
 }
 
@@ -789,8 +792,8 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
         }
         else
         {
-            (void)x->XFreeColormap(lh_os_system_posix_display,
-                                   lh_os_system_posix_window_get_colormap(self));
+            LH_ATTRIBUTE_UNUSED(x->XFreeColormap(lh_os_system_posix_display,
+                                                 lh_os_system_posix_window_get_colormap(self)));
             lh_os_system_posix_window_set_colormap(self, LH_OS_SYSTEM_POSIX_X_NONE);
         }
     }
@@ -827,20 +830,20 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     {
         ++title_length;
     }
-    (void)x->XStoreName(lh_os_system_posix_display, lh_os_system_posix_window_get_window(self),
-                        title);
-    (void)x->XChangeProperty(
+    LH_ATTRIBUTE_UNUSED(x->XStoreName(lh_os_system_posix_display,
+                                      lh_os_system_posix_window_get_window(self), title));
+    LH_ATTRIBUTE_UNUSED(x->XChangeProperty(
         lh_os_system_posix_display, lh_os_system_posix_window_get_window(self),
         lh_os_system_posix_atom_net_wm_name, lh_os_system_posix_atom_utf8_string, 8,
         LH_OS_SYSTEM_POSIX_X_PROP_MODE_REPLACE, lh_ptr_rcast(const lh_byte_t, title),
-        lh_cast_static(int, title_length));
+        lh_cast_static(int, title_length)));
 
     /* The close button sends a message instead of killing the connection. */
     lh_os_system_posix_xid_t protocols[1];
 
     protocols[0] = lh_os_system_posix_atom_wm_delete_window;
-    (void)x->XSetWMProtocols(lh_os_system_posix_display, lh_os_system_posix_window_get_window(self),
-                             protocols, 1);
+    LH_ATTRIBUTE_UNUSED(x->XSetWMProtocols(
+        lh_os_system_posix_display, lh_os_system_posix_window_get_window(self), protocols, 1));
 
     if (placement == lh_os_window_placement_center)
     {
@@ -859,9 +862,9 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     }
     if (lh_null_ne(owner_window))
     {
-        (void)x->XSetTransientForHint(lh_os_system_posix_display,
-                                      lh_os_system_posix_window_get_window(self),
-                                      lh_os_system_posix_window_get_window(owner_window));
+        LH_ATTRIBUTE_UNUSED(x->XSetTransientForHint(
+            lh_os_system_posix_display, lh_os_system_posix_window_get_window(self),
+            lh_os_system_posix_window_get_window(owner_window)));
     }
     if (frame == lh_os_window_frame_own)
     {
@@ -869,10 +872,10 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
            off: flags = decorations, decorations = none. */
         const long motif[5] = {2L, 0L, 0L, 0L, 0L};
 
-        (void)x->XChangeProperty(
+        LH_ATTRIBUTE_UNUSED(x->XChangeProperty(
             lh_os_system_posix_display, lh_os_system_posix_window_get_window(self),
             lh_os_system_posix_atom_motif_wm_hints, lh_os_system_posix_atom_motif_wm_hints, 32,
-            LH_OS_SYSTEM_POSIX_X_PROP_MODE_REPLACE, lh_ptr_rcast(const lh_byte_t, motif), 5);
+            LH_OS_SYSTEM_POSIX_X_PROP_MODE_REPLACE, lh_ptr_rcast(const lh_byte_t, motif), 5));
     }
 
     /* Listed before it is mapped: the events of its first moments are for it. And
@@ -884,8 +887,9 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     {
         lh_os_window_set_handle(lh_os_system_posix_window_get_user(self), self);
     }
-    (void)x->XMapWindow(lh_os_system_posix_display, lh_os_system_posix_window_get_window(self));
-    (void)x->XFlush(lh_os_system_posix_display);
+    LH_ATTRIBUTE_UNUSED(
+        x->XMapWindow(lh_os_system_posix_display, lh_os_system_posix_window_get_window(self)));
+    LH_ATTRIBUTE_UNUSED(x->XFlush(lh_os_system_posix_display));
     lh_os_system_posix_window_wait_placed(self);
 
     /* The size it was given, which the window manager may not have honoured. */
@@ -918,7 +922,7 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
             lh_os_system_posix_window_paint(self);
         }
     }
-    (void)x->XFlush(lh_os_system_posix_display);
+    LH_ATTRIBUTE_UNUSED(x->XFlush(lh_os_system_posix_display));
     return self;
 }
 
@@ -930,7 +934,7 @@ lh_os_system_window_set_corner_radius(lh_os_system_window_handle_t handle, int r
     lh_return_if(lh_null_eq(self));
     lh_os_system_posix_window_set_corner(self, radius > 0 ? radius : 0);
     lh_os_system_posix_window_cut(self);
-    (void)lh_os_system_posix_x->XFlush(lh_os_system_posix_display);
+    LH_ATTRIBUTE_UNUSED(lh_os_system_posix_x->XFlush(lh_os_system_posix_display));
 }
 
 lh_void
@@ -939,10 +943,10 @@ lh_os_system_window_minimize(lh_os_system_window_handle_t handle)
     lh_os_system_posix_window_t *self = lh_os_system_posix_window_find(handle);
 
     lh_return_if(lh_null_eq(self));
-    (void)lh_os_system_posix_x->XIconifyWindow(lh_os_system_posix_display,
-                                               lh_os_system_posix_window_get_window(self),
-                                               lh_os_system_posix_screen);
-    (void)lh_os_system_posix_x->XFlush(lh_os_system_posix_display);
+    LH_ATTRIBUTE_UNUSED(lh_os_system_posix_x->XIconifyWindow(
+        lh_os_system_posix_display, lh_os_system_posix_window_get_window(self),
+        lh_os_system_posix_screen));
+    LH_ATTRIBUTE_UNUSED(lh_os_system_posix_x->XFlush(lh_os_system_posix_display));
 }
 
 lh_void
@@ -963,11 +967,12 @@ lh_os_system_window_set_maximized(lh_os_system_window_handle_t handle, lh_bool_t
     event.client.data[1] = lh_cast_static(long, lh_os_system_posix_atom_net_wm_state_max_vert);
     event.client.data[2] = lh_cast_static(long, lh_os_system_posix_atom_net_wm_state_max_horz);
     event.client.data[3] = 1L;
-    (void)lh_os_system_posix_x->XSendEvent(lh_os_system_posix_display, lh_os_system_posix_root, 0,
-                                           LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_REDIRECT_MASK |
-                                               LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_NOTIFY_MASK,
-                                           lh_addr_of(event));
-    (void)lh_os_system_posix_x->XFlush(lh_os_system_posix_display);
+    LH_ATTRIBUTE_UNUSED(
+        lh_os_system_posix_x->XSendEvent(lh_os_system_posix_display, lh_os_system_posix_root, 0,
+                                         LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_REDIRECT_MASK |
+                                             LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_NOTIFY_MASK,
+                                         lh_addr_of(event)));
+    LH_ATTRIBUTE_UNUSED(lh_os_system_posix_x->XFlush(lh_os_system_posix_display));
 }
 
 lh_bool_t
@@ -1012,8 +1017,8 @@ lh_os_system_window_close(lh_os_system_window_handle_t handle)
         lh_os_system_window_close(owned);
     }
     lh_os_system_posix_window_unlist(self);
-    (void)lh_os_system_posix_x->XFreeGC(lh_os_system_posix_display,
-                                        lh_os_system_posix_window_get_gc(self));
+    LH_ATTRIBUTE_UNUSED(lh_os_system_posix_x->XFreeGC(lh_os_system_posix_display,
+                                                      lh_os_system_posix_window_get_gc(self)));
     if (lh_os_system_posix_window_get_backing(self) != LH_OS_SYSTEM_POSIX_X_NONE)
     {
         const lh_os_system_posix_xrender_t *render = lh_os_system_posix_xrender_load();
@@ -1022,17 +1027,17 @@ lh_os_system_window_close(lh_os_system_window_handle_t handle)
                                    lh_os_system_posix_window_get_backing_picture(self));
         render->XRenderFreePicture(lh_os_system_posix_display,
                                    lh_os_system_posix_window_get_window_picture(self));
-        (void)lh_os_system_posix_x->XFreePixmap(lh_os_system_posix_display,
-                                                lh_os_system_posix_window_get_backing(self));
+        LH_ATTRIBUTE_UNUSED(lh_os_system_posix_x->XFreePixmap(
+            lh_os_system_posix_display, lh_os_system_posix_window_get_backing(self)));
     }
-    (void)lh_os_system_posix_x->XDestroyWindow(lh_os_system_posix_display,
-                                               lh_os_system_posix_window_get_window(self));
+    LH_ATTRIBUTE_UNUSED(lh_os_system_posix_x->XDestroyWindow(
+        lh_os_system_posix_display, lh_os_system_posix_window_get_window(self)));
     if (lh_os_system_posix_window_get_colormap(self) != LH_OS_SYSTEM_POSIX_X_NONE)
     {
-        (void)lh_os_system_posix_x->XFreeColormap(lh_os_system_posix_display,
-                                                  lh_os_system_posix_window_get_colormap(self));
+        LH_ATTRIBUTE_UNUSED(lh_os_system_posix_x->XFreeColormap(
+            lh_os_system_posix_display, lh_os_system_posix_window_get_colormap(self)));
     }
-    (void)lh_os_system_posix_x->XFlush(lh_os_system_posix_display);
+    LH_ATTRIBUTE_UNUSED(lh_os_system_posix_x->XFlush(lh_os_system_posix_display));
     /* Destroying is synchronous on Windows and ends in WM_DESTROY; the portable
        layer is told here, the same way and at the same point. */
     user = lh_os_system_posix_window_get_user(self);
@@ -1121,8 +1126,9 @@ lh_os_system_posix_window_send_key(lh_os_system_posix_window_t *self,
     }
     lh_os_system_posix_repeat_keycode = 0U;
     /* The keysym with the layout and Shift applied: what the key means now. */
-    (void)lh_os_system_posix_x->XLookupString(
-        lh_addr_of(event->key), text, lh_type_cast(int, sizeof(text)), lh_addr_of(keysym), lh_null);
+    LH_ATTRIBUTE_UNUSED(lh_os_system_posix_x->XLookupString(lh_addr_of(event->key), text,
+                                                            lh_type_cast(int, sizeof(text)),
+                                                            lh_addr_of(keysym), lh_null));
     lh_os_input_event_t input;
 
     lh_os_input_event_init_key(lh_addr_of(input), lh_os_system_posix_key_from_keysym(keysym),
@@ -1362,7 +1368,7 @@ lh_os_system_window_pump_wait(lh_tick_t timeout_ms)
     if (lh_null_eq(lh_os_system_posix_display))
     {
         /* Nothing to wait on but the time. */
-        (void)poll(lh_null, 0, wait);
+        LH_ATTRIBUTE_UNUSED(poll(lh_null, 0, wait));
         return lh_os_system_window_pump_timeout;
     }
 
@@ -1387,14 +1393,14 @@ lh_os_system_window_pump_wait(lh_tick_t timeout_ms)
         watch.fd = x->XConnectionNumber(lh_os_system_posix_display);
         watch.events = POLLIN;
         watch.revents = 0;
-        (void)poll(lh_addr_of(watch), 1, wait);
+        LH_ATTRIBUTE_UNUSED(poll(lh_addr_of(watch), 1, wait));
     }
 
     while (x->XPending(lh_os_system_posix_display) > 0)
     {
         lh_os_system_posix_xevent_t event;
 
-        (void)x->XNextEvent(lh_os_system_posix_display, lh_addr_of(event));
+        LH_ATTRIBUTE_UNUSED(x->XNextEvent(lh_os_system_posix_display, lh_addr_of(event)));
         lh_os_system_posix_dispatch(lh_addr_of(event));
         handled = lh_bool_true;
     }
@@ -1417,7 +1423,7 @@ lh_os_system_window_pump_wait(lh_tick_t timeout_ms)
         lh_os_system_posix_window_paint(window);
         handled = lh_bool_true;
     }
-    (void)x->XFlush(lh_os_system_posix_display);
+    LH_ATTRIBUTE_UNUSED(x->XFlush(lh_os_system_posix_display));
 
     if (lh_os_system_posix_quit)
     {

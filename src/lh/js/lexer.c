@@ -199,7 +199,7 @@ const lh_js_token_t *
 lh_js_lexer_get_token(const lh_js_lexer_t *self)
 {
     lh_assert_runtime_ref(self);
-    return &self->token;
+    return lh_addr_of(self->token);
 }
 
 lh_void
@@ -375,7 +375,7 @@ lh_js_token_t *
 lh_js_lexer_get_token_mut(lh_js_lexer_t *self)
 {
     lh_assert_runtime_ref(self);
-    return &self->token;
+    return lh_addr_of(self->token);
 }
 
 lh_str_ptr
@@ -414,7 +414,7 @@ lh_js_lexer_is_keyword(const lh_str_view_t *text)
     lh_assert_runtime_ref(text);
     for (i = 0U; i < lh_array_ptr_get_size(LH_JS_KEYWORDS); ++i)
     {
-        if (lh_str_view_equals(text, &LH_JS_KEYWORDS[i], lh_bool_false))
+        if (lh_str_view_equals(text, lh_addr_of(LH_JS_KEYWORDS[i]), lh_bool_false))
         {
             return lh_bool_true;
         }
@@ -427,17 +427,17 @@ lh_js_lexer_find_punctuation(const lh_str_view_t *text)
 {
     lh_assert_runtime_ref(text);
     const lh_str_view_t optional_chain = lh_str_view_initializer_lit("?.");
-    if (lh_str_view_starts_with(text, &optional_chain, lh_bool_false) &&
+    if (lh_str_view_starts_with(text, lh_addr_of(optional_chain), lh_bool_false) &&
         (lh_math_le(lh_str_view_get_size(text), 2U) ||
          !lh_char_is_digit(lh_str_view_get_char_from_begin(text, 2U))))
     {
-        return lh_str_view_get_size(&optional_chain);
+        return lh_str_view_get_size(lh_addr_of(optional_chain));
     }
     for (lh_usize_t i = 0U; i < lh_array_ptr_get_size(LH_JS_PUNCTUATION); i = lh_math_add_one(i))
     {
-        if (lh_str_view_starts_with(text, &LH_JS_PUNCTUATION[i], lh_bool_false))
+        if (lh_str_view_starts_with(text, lh_addr_of(LH_JS_PUNCTUATION[i]), lh_bool_false))
         {
-            return lh_str_view_get_size(&LH_JS_PUNCTUATION[i]);
+            return lh_str_view_get_size(lh_addr_of(LH_JS_PUNCTUATION[i]));
         }
     }
     return 0U;
@@ -533,7 +533,7 @@ lh_js_lexer_skip_space(lh_js_lexer_t *self)
         lh_char_t ch = lh_js_lexer_get_char(self);
         lh_char_t next = lh_char_map_nul;
 
-        if (ch == lh_char_map_slash && lh_js_lexer_try_get_char_at(self, 1U, &next))
+        if (ch == lh_char_map_slash && lh_js_lexer_try_get_char_at(self, 1U, lh_addr_of(next)))
         {
             if (next == lh_char_map_slash)
             {
@@ -559,7 +559,7 @@ lh_js_lexer_skip_space(lh_js_lexer_t *self)
                     {
                         lh_char_t after = lh_char_map_nul;
 
-                        if (lh_js_lexer_try_get_char_at(self, 1U, &after) &&
+                        if (lh_js_lexer_try_get_char_at(self, 1U, lh_addr_of(after)) &&
                             after == lh_char_map_slash)
                         {
                             lh_js_lexer_advance(self);
@@ -600,11 +600,12 @@ lh_js_lexer_scan_name(lh_js_lexer_t *self)
     }
 
     lh_str_view_t name;
-    lh_str_view_init_by_size(&name, lh_js_lexer_get_text(self) + start,
+    lh_str_view_init_by_size(lh_addr_of(name), lh_js_lexer_get_text(self) + start,
                              lh_js_lexer_get_pos(self) - start);
     lh_js_token_t *token = lh_js_lexer_get_token_mut(self);
-    lh_js_token_set_kind(token, lh_js_lexer_is_keyword(&name) ? lh_js_token_kind_keyword
-                                                              : lh_js_token_kind_identifier);
+    lh_js_token_set_kind(token, lh_js_lexer_is_keyword(lh_addr_of(name))
+                                    ? lh_js_token_kind_keyword
+                                    : lh_js_token_kind_identifier);
     lh_js_token_set_text(token, lh_js_lexer_get_text(self) + start);
     lh_js_token_set_text_len(token, lh_js_lexer_get_pos(self) - start);
     lh_js_token_set_value(token, 0.0);
@@ -620,7 +621,7 @@ lh_js_lexer_scan_number(lh_js_lexer_t *self)
     {
         lh_char_t prefix = lh_char_map_nul;
 
-        if (lh_js_lexer_try_get_char_at(self, 1U, &prefix))
+        if (lh_js_lexer_try_get_char_at(self, 1U, lh_addr_of(prefix)))
         {
             radix = lh_js_lexer_find_radix(prefix);
         }
@@ -649,7 +650,7 @@ lh_js_lexer_scan_radix_number(lh_js_lexer_t *self, lh_uint_t radix)
     lh_ullong_t value = 0;
     if (lh_math_is_zero(digits) ||
         !lh_str_ptr_parse_radix_ullong(lh_js_lexer_get_text(self) + digits_start, digits, radix,
-                                       LH_ULLONG_T_MAX, &value))
+                                       LH_ULLONG_T_MAX, lh_addr_of(value)))
     {
         lh_js_lexer_set_error(self, LH_JS_ERROR_BAD_NUMBER, lh_str_ptr_len(LH_JS_ERROR_BAD_NUMBER));
         return lh_bool_false;
@@ -735,7 +736,7 @@ lh_js_lexer_scan_decimal_number(lh_js_lexer_t *self)
     }
 
     if (!lh_str_ptr_parse_real(lh_js_lexer_get_text(self) + start,
-                               lh_js_lexer_get_pos(self) - start, &value))
+                               lh_js_lexer_get_pos(self) - start, lh_addr_of(value)))
     {
         lh_js_lexer_set_error(self, LH_JS_ERROR_BAD_NUMBER, lh_str_ptr_len(LH_JS_ERROR_BAD_NUMBER));
         return lh_bool_false;
@@ -834,7 +835,8 @@ lh_js_lexer_scan_hex_digits(lh_js_lexer_t *self, lh_usize_t count)
     lh_uint_t value = 0;
 
     if (lh_math_lt(lh_math_sub(lh_js_lexer_get_text_len(self), start), count) ||
-        !lh_str_ptr_parse_hex(lh_js_lexer_get_text(self) + start, count, LH_UINT_T_MAX, &value))
+        !lh_str_ptr_parse_hex(lh_js_lexer_get_text(self) + start, count, LH_UINT_T_MAX,
+                              lh_addr_of(value)))
     {
         lh_js_lexer_set_error(self, LH_JS_ERROR_BAD_ESCAPE, lh_str_ptr_len(LH_JS_ERROR_BAD_ESCAPE));
         return lh_bool_false;
@@ -859,7 +861,8 @@ lh_js_lexer_scan_code_point(lh_js_lexer_t *self)
     }
     digits = lh_js_lexer_get_pos(self) - start;
     if (lh_math_is_zero(digits) || lh_math_gt(digits, 6U) ||
-        !lh_str_ptr_parse_hex(lh_js_lexer_get_text(self) + start, digits, LH_UINT_T_MAX, &value) ||
+        !lh_str_ptr_parse_hex(lh_js_lexer_get_text(self) + start, digits, LH_UINT_T_MAX,
+                              lh_addr_of(value)) ||
         lh_math_gt(value, LH_JS_CODE_POINT_MAX))
     {
         lh_js_lexer_set_error(self, LH_JS_ERROR_BAD_ESCAPE, lh_str_ptr_len(LH_JS_ERROR_BAD_ESCAPE));
@@ -896,8 +899,8 @@ lh_js_lexer_scan_punctuation(lh_js_lexer_t *self)
     lh_usize_t len;
 
     lh_str_view_t rest;
-    lh_js_lexer_get_rest(self, &rest);
-    len = lh_js_lexer_find_punctuation(&rest);
+    lh_js_lexer_get_rest(self, lh_addr_of(rest));
+    len = lh_js_lexer_find_punctuation(lh_addr_of(rest));
     if (lh_math_is_zero(len))
     {
         lh_js_lexer_set_error(self, LH_JS_ERROR_UNEXPECTED_CHAR,
@@ -952,7 +955,7 @@ lh_js_lexer_next(lh_js_lexer_t *self)
     {
         lh_char_t next = lh_char_map_nul;
 
-        if (lh_js_lexer_try_get_char_at(self, 1U, &next) && lh_char_is_digit(next))
+        if (lh_js_lexer_try_get_char_at(self, 1U, lh_addr_of(next)) && lh_char_is_digit(next))
         {
             return lh_js_lexer_scan_number(self);
         }
@@ -967,8 +970,8 @@ lh_js_lexer_next(lh_js_lexer_t *self)
     }
 
     lh_str_view_t rest;
-    lh_js_lexer_get_rest(self, &rest);
-    if (lh_math_ne(lh_js_lexer_find_punctuation(&rest), 0U))
+    lh_js_lexer_get_rest(self, lh_addr_of(rest));
+    if (lh_math_ne(lh_js_lexer_find_punctuation(lh_addr_of(rest)), 0U))
     {
         return lh_js_lexer_scan_punctuation(self);
     }

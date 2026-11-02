@@ -55,6 +55,22 @@ lh_http_header_get_value(const lh_http_header_t *self);
 lh_void
 lh_http_header_set_value(lh_http_header_t *self, lh_str_view_t value);
 
+/**
+ * @brief Find the first HTTP field with the given name, ignoring ASCII case.
+ *
+ * The fields and their name views are borrowed. A zero count permits a null
+ * array. Field names follow HTTP's ASCII case-insensitive comparison.
+ *
+ * @param headers Array of fields, retained by the caller.
+ * @param count Number of fields in the array.
+ * @param name Field name to find, retained by the caller.
+ * @return A pointer into @p headers, or ::lh_null when no field matches.
+ * @pre A nonzero @p count requires @p headers to point to that many fields.
+ */
+const lh_http_header_t *
+lh_http_header_find(const lh_http_header_t *headers, lh_usize_t count,
+                    const lh_str_view_t *name);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_HTTP_HEADER_H */

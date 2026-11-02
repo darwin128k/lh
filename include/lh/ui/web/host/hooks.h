@@ -20,7 +20,7 @@
  * - @p controller, when set, gets it next (::lh_os_controller_feed), and the host
  *   calls ::lh_os_controller_update on it at every tick, before @p tick;
  * - with neither, the host feeds a controller of its own, made with
- *   `lh_ui_view_controller_handle` and `lh_ui_view_controller_cancel` on the
+ *   `lh_ui_view_controller_handle_event_is_handled` and `lh_ui_view_controller_cancel` on the
  *   served view and the default thresholds, so the view gets every event as
  *   ::lh_ui_view_input would have, the gestures go along (and are ignored by it).
  *

@@ -1,4 +1,5 @@
 #include <lh/cpu/id.h>
+#include <lh/attribute/unused.h>
 
 #include <lh/assert.h>
 #include <lh/compiler/arch/family.h>
@@ -51,8 +52,8 @@ lh_cpu_id(lh_u32_t leaf, lh_u32_t subleaf, lh_u32_t regs[LH_CPU_ID_REGISTER_COUN
 #    endif
     return lh_bool_true;
 #else
-    (void)leaf;
-    (void)subleaf;
+    LH_ATTRIBUTE_UNUSED(leaf);
+    LH_ATTRIBUTE_UNUSED(subleaf);
     return lh_bool_false;
 #endif
 }

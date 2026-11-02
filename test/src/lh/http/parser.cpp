@@ -24,6 +24,21 @@ equal(lh_str_view_t value, const char *text)
                                        << ", expected: " << testing::PrintToString(text);
 }
 
+TEST(http_header_find, matches_case_insensitively_and_returns_first)
+{
+    lh_http_header_t headers[2];
+    const lh_str_view_t first = view("X-Test", 6);
+    const lh_str_view_t second = view("x-test", 6);
+    const lh_str_view_t search = view("x-TeSt", 6);
+    const lh_str_view_t absent = view("missing", 7);
+
+    lh_http_header_set_name(&headers[0], first);
+    lh_http_header_set_name(&headers[1], second);
+    EXPECT_EQ(lh_http_header_find(headers, 2, &search), &headers[0]);
+    EXPECT_EQ(lh_http_header_find(headers, 2, &absent), nullptr);
+    EXPECT_EQ(lh_http_header_find(nullptr, 0, &search), nullptr);
+}
+
 TEST(http_parser, prefixes_complete_only_after_the_full_head)
 {
     const char *valid[] = {"GET / HTTP/1.0\r\n\r\n",

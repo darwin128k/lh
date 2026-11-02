@@ -15,6 +15,7 @@
  * keeps on Windows. Anywhere else, the plain path: the pixels in the request.
  */
 #include <lh/assert.h>
+#include <lh/attribute/unused.h>
 
 #include <lh/byte/ptr.h>
 #include <lh/memory.h>
@@ -57,7 +58,7 @@ lh_os_system_posix_surface_share(lh_os_system_posix_surface_t *surface, lh_usize
     address = shmat(id, lh_null, 0);
     if (address == LH_PTR_T_MAX)
     {
-        (void)shmctl(id, IPC_RMID, lh_null);
+        LH_ATTRIBUTE_UNUSED(shmctl(id, IPC_RMID, lh_null));
         return lh_bool_false;
     }
     lh_memory_set(lh_os_system_posix_surface_get_segment_mut(surface), sizeof(surface->segment), 0);
@@ -66,14 +67,15 @@ lh_os_system_posix_surface_share(lh_os_system_posix_surface_t *surface, lh_usize
     lh_os_system_posix_surface_get_segment_mut(surface)->read_only = 0;
     /* The attach is answered asynchronously; a server on another machine answers it
        with an error, and the sync is what makes the answer arrive now. */
-    (void)lh_os_system_posix_connection_take_error();
-    (void)ext->XShmAttach(display, lh_os_system_posix_surface_get_segment_mut(surface));
-    (void)x->XSync(display, 0);
+    LH_ATTRIBUTE_UNUSED(lh_os_system_posix_connection_take_error());
+    LH_ATTRIBUTE_UNUSED(
+        ext->XShmAttach(display, lh_os_system_posix_surface_get_segment_mut(surface)));
+    LH_ATTRIBUTE_UNUSED(x->XSync(display, 0));
     refused = lh_os_system_posix_connection_take_error();
-    (void)shmctl(id, IPC_RMID, lh_null);
+    LH_ATTRIBUTE_UNUSED(shmctl(id, IPC_RMID, lh_null));
     if (refused)
     {
-        (void)shmdt(address);
+        LH_ATTRIBUTE_UNUSED(shmdt(address));
         lh_os_system_posix_surface_shm = 0;
         return lh_bool_false;
     }
@@ -89,8 +91,8 @@ lh_os_system_posix_surface_settle(lh_os_system_posix_surface_t *surface)
 {
     if (lh_os_system_posix_surface_is_pending(surface))
     {
-        (void)lh_os_system_posix_x11_load()->XSync(lh_os_system_posix_surface_get_display(surface),
-                                                   0);
+        LH_ATTRIBUTE_UNUSED(lh_os_system_posix_x11_load()->XSync(
+            lh_os_system_posix_surface_get_display(surface), 0));
         lh_os_system_posix_surface_set_pending(surface, lh_bool_false);
     }
 }
@@ -144,12 +146,12 @@ lh_os_system_surface_destroy(lh_os_system_surface_handle_t handle)
         /* Detached and synced before the memory goes: the server may still be
            reading the last present out of it. */
         lh_os_system_posix_surface_settle(surface);
-        (void)lh_os_system_posix_xext_load()->XShmDetach(
+        LH_ATTRIBUTE_UNUSED(lh_os_system_posix_xext_load()->XShmDetach(
             lh_os_system_posix_surface_get_display(surface),
-            lh_os_system_posix_surface_get_segment_mut(surface));
-        (void)lh_os_system_posix_x11_load()->XSync(lh_os_system_posix_surface_get_display(surface),
-                                                   0);
-        (void)shmdt(lh_os_system_posix_surface_get_segment_mut(surface)->shmaddr);
+            lh_os_system_posix_surface_get_segment_mut(surface)));
+        LH_ATTRIBUTE_UNUSED(lh_os_system_posix_x11_load()->XSync(
+            lh_os_system_posix_surface_get_display(surface), 0));
+        LH_ATTRIBUTE_UNUSED(shmdt(lh_os_system_posix_surface_get_segment_mut(surface)->shmaddr));
     }
     else
     {
@@ -190,7 +192,7 @@ lh_os_system_surface_get_dc(lh_os_system_surface_handle_t handle)
 {
     /* X has no memory device context: nothing draws into a surface through the
        window system here, it is drawn into as memory and presented. */
-    (void)handle;
+    LH_ATTRIBUTE_UNUSED(handle);
     return lh_null;
 }
 
@@ -307,10 +309,10 @@ lh_os_system_surface_present_part(lh_os_system_surface_handle_t handle, lh_ptr d
         lh_os_system_posix_surface_get_display(surface) ==
             lh_os_system_posix_paint_get_display(paint))
     {
-        (void)lh_os_system_posix_xext_load()->XShmPutImage(
+        LH_ATTRIBUTE_UNUSED(lh_os_system_posix_xext_load()->XShmPutImage(
             lh_os_system_posix_paint_get_display(paint), lh_os_system_posix_paint_get_window(paint),
             lh_os_system_posix_paint_get_gc(paint), lh_addr_of(image), src_x, src_y, x, y,
-            lh_cast_static(unsigned int, width), lh_cast_static(unsigned int, height), 0);
+            lh_cast_static(unsigned int, width), lh_cast_static(unsigned int, height), 0));
         lh_os_system_posix_surface_set_pending(surface, lh_bool_true);
         return lh_bool_true;
     }
@@ -337,9 +339,9 @@ lh_bool_t
 lh_os_system_surface_present_fit(lh_os_system_surface_handle_t handle, lh_ptr dest, int dest_w,
                                  int dest_h, lh_u32_t fill)
 {
-    (void)dest_w;
-    (void)dest_h;
-    (void)fill;
+    LH_ATTRIBUTE_UNUSED(dest_w);
+    LH_ATTRIBUTE_UNUSED(dest_h);
+    LH_ATTRIBUTE_UNUSED(fill);
     return lh_os_system_surface_present_at(handle, dest, 0, 0);
 }
 

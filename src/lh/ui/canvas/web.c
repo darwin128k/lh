@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/canvas/web.h`.
  */
 #include <lh/assert.h>
+#include <lh/attribute/unused.h>
 
 #include <lh/ui/canvas/web.h>
 
@@ -224,8 +225,8 @@ lh_ui_canvas_web_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui
 lh_void
 lh_ui_canvas_web_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *clip)
 {
-    (void)context;
-    (void)clip;
+    LH_ATTRIBUTE_UNUSED(context);
+    LH_ATTRIBUTE_UNUSED(clip);
 }
 
 lh_bool_t

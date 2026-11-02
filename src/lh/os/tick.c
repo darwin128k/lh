@@ -1,4 +1,6 @@
 #include <lh/os/tick.h>
+#include <lh/attribute/unused.h>
+#include <lh/util/addr.h>
 #include <lh/os/system/tick.h>
 
 /**
@@ -8,7 +10,7 @@ lh_u64_t
 lh_os_tick_us(void)
 {
     lh_u64_t value = 0;
-    (void)lh_os_system_tick_us(&value);
+    LH_ATTRIBUTE_UNUSED(lh_os_system_tick_us(lh_addr_of(value)));
     return value;
 }
 

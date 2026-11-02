@@ -289,8 +289,8 @@ lh_ui_web_app_is_websocket(const lh_ui_web_app_t *self, const lh_str_ptr req, lh
  * @return ::lh_bool_true when a route answered.
  */
 lh_bool_t
-lh_ui_web_app_handle(lh_ui_web_app_t *self, const lh_str_ptr req, lh_usize_t len,
-                      lh_os_net_socket_t *client);
+lh_ui_web_app_handle_request_is_handled(lh_ui_web_app_t *self, const lh_str_ptr req, lh_usize_t len,
+                                        lh_os_net_socket_t *client);
 
 /**
  * @brief The bytes of one frame for the websocket clients.

@@ -1,4 +1,5 @@
 #include <lh/runtime/writer.h>
+#include <lh/attribute/unused.h>
 #include <lh/attribute/thread_local.h>
 #include <lh/config.h>
 
@@ -10,7 +11,7 @@ lh_runtime_writer_stdout(lh_self_ptr self, const lh_ptr buf, lh_usize_t size)
 {
     size_t n;
 
-    (void)self;
+    LH_ATTRIBUTE_UNUSED(self);
     if (size == 0u)
     {
         return 0;

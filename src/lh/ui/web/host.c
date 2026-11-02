@@ -4,6 +4,8 @@
  */
 
 #include <lh/ui/web/host.h>
+#include <lh/attribute/unused.h>
+#include <lh/http/parser.h>
 #include <lh/util/str/ptr.h>
 #include <lh/char/map.h>
 
@@ -36,8 +38,8 @@ lh_ui_web_host_reply(lh_os_net_socket_t *client, lh_uint_t code, lh_str_cptr typ
         "Connection: close\r\nCache-Control: no-store\r\n\r\n",
         lh_cast_static(lh_uint_t, code), reason, type, lh_cast_static(lh_uint_t, len));
 
-    (void)lh_os_net_socket_send_all(client, head, n);
-    (void)lh_os_net_socket_send_all(client, body, len);
+    LH_ATTRIBUTE_UNUSED(lh_os_net_socket_send_all(client, head, n));
+    LH_ATTRIBUTE_UNUSED(lh_os_net_socket_send_all(client, body, len));
 }
 
 lh_void
@@ -63,17 +65,17 @@ lh_ui_web_host_route(lh_str_cptr req, lh_usize_t len, lh_str_cptr path, lh_usize
 {
     lh_ui_web_route_t route;
 
-    lh_ui_web_route_set_path(&route, path);
-    lh_ui_web_route_set_path_len(&route, path_len);
-    lh_ui_web_route_set_method(&route, "GET");
-    lh_ui_web_route_set_method_len(&route, lh_str_lit_size("GET"));
-    if (lh_ui_web_route_match(&route, req, len))
+    lh_ui_web_route_set_path(lh_addr_of(route), path);
+    lh_ui_web_route_set_path_len(lh_addr_of(route), path_len);
+    lh_ui_web_route_set_method(lh_addr_of(route), "GET");
+    lh_ui_web_route_set_method_len(lh_addr_of(route), lh_str_lit_size("GET"));
+    if (lh_ui_web_route_match(lh_addr_of(route), req, len))
     {
         return lh_bool_true;
     }
-    lh_ui_web_route_set_method(&route, "POST");
-    lh_ui_web_route_set_method_len(&route, lh_str_lit_size("POST"));
-    return lh_ui_web_route_match(&route, req, len);
+    lh_ui_web_route_set_method(lh_addr_of(route), "POST");
+    lh_ui_web_route_set_method_len(lh_addr_of(route), lh_str_lit_size("POST"));
+    return lh_ui_web_route_match(lh_addr_of(route), req, len);
 }
 
 lh_usize_t
@@ -152,30 +154,33 @@ lh_bool_t
 lh_ui_web_host_ws_upgrade(lh_os_net_socket_t *client, lh_str_cptr req, lh_usize_t len)
 {
     static const lh_char_t guid[] = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-    lh_str_cptr k = lh_ui_web_host_find(req, len, lh_str_lit("Sec-WebSocket-Key:"));
-    lh_usize_t n = 0u;
-    lh_usize_t h;
+    lh_http_parser_t parser;
+    lh_http_request_t request;
+    lh_http_header_t headers[32];
+    const lh_str_view_t input = lh_str_view_initializer(req, len);
+    const lh_str_view_t key_name = lh_str_view_initializer_lit("Sec-WebSocket-Key");
 
-    if (k == lh_null)
-    {
-        k = lh_ui_web_host_find(req, len, lh_str_lit("sec-websocket-key:"));
-    }
-    if (k == lh_null)
+    lh_http_parser_init(lh_addr_of(parser));
+    if (lh_http_parser_request(lh_addr_of(parser), input, lh_addr_of(request), headers,
+                               lh_array_ptr_get_size(headers)) != lh_http_parse_complete)
     {
         return lh_bool_false;
     }
-    k += sizeof("Sec-WebSocket-Key:") - 1u;
-    while (k < req + len && lh_ptr_deref(k) == lh_char_map_space)
+    const lh_http_header_t *key = lh_http_header_find(
+        headers, lh_http_request_get_header_count(lh_addr_of(request)), lh_addr_of(key_name));
+    if (key == lh_null)
     {
-        ++k;
+        return lh_bool_false;
     }
+    const lh_str_view_t *value = lh_http_header_get_value(key);
+    lh_usize_t n = lh_str_view_get_size(value);
     lh_char_t cat[80];
-    while (k + n < req + len && k[n] != lh_char_map_cr && k[n] != lh_char_map_lf &&
-           n < sizeof(cat) - sizeof(guid))
+
+    if (n > sizeof(cat) - (sizeof(guid) - 1u))
     {
-        cat[n] = k[n];
-        ++n;
+        return lh_bool_false;
     }
+    lh_memory_copy(cat, sizeof(cat), lh_cast_const(lh_ptr, lh_str_view_get_data(value)), n);
     lh_memory_copy(cat + n, sizeof(cat) - n, lh_cast_const(lh_ptr, guid), sizeof(guid) - 1u);
     n += sizeof(guid) - 1u;
     lh_byte_t digest[LH_CRYPTO_SHA1_DIGEST_SIZE];
@@ -188,7 +193,7 @@ lh_ui_web_host_ws_upgrade(lh_os_net_socket_t *client, lh_str_cptr req, lh_usize_
     accept[lh_str_ptr_format_base64(digest, sizeof(digest), accept, sizeof(accept) - 1u)] =
         lh_char_map_nul;
     lh_char_t head[280];
-    h = lh_str_ptr_format_text(head, sizeof(head),
+    lh_usize_t h = lh_str_ptr_format_text(head, sizeof(head),
                                "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\n"
                                "Connection: Upgrade\r\nSec-WebSocket-Accept: %s\r\n\r\n",
                                accept);
@@ -196,9 +201,11 @@ lh_ui_web_host_ws_upgrade(lh_os_net_socket_t *client, lh_str_cptr req, lh_usize_
     {
         return lh_bool_false;
     }
-    (void)lh_os_net_socket_send_all(client, head, h);
-    (void)lh_os_net_socket_set_blocking(client, lh_bool_false);
-    return lh_bool_true;
+    if (!lh_os_net_socket_send_all(client, head, h))
+    {
+        return lh_bool_false;
+    }
+    return lh_os_net_socket_set_blocking(client, lh_bool_false);
 }
 
 lh_void
@@ -576,31 +583,78 @@ lh_ui_web_host_ws_pump(lh_ui_web_host_client_t *c, lh_ui_web_app_t *app, lh_uint
 }
 
 lh_bool_t
-lh_ui_web_host_handle(lh_ui_web_app_t *app, lh_os_net_socket_t *client)
+lh_ui_web_host_try_read_request(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize_t capacity,
+                                lh_u32_t timeout_ms, lh_usize_t *length)
+{
+    lh_http_parser_t parser;
+    lh_http_request_t request;
+    lh_http_header_t headers[32];
+    lh_os_net_socket_t *const watch[] = {client};
+    const lh_u64_t start = lh_os_tick_ms();
+    lh_usize_t used = 0U;
+
+    lh_http_parser_init(lh_addr_of(parser));
+    while (used < capacity)
+    {
+        const lh_u64_t elapsed = lh_os_tick_ms() - start;
+        if (elapsed >= timeout_ms ||
+            lh_os_net_socket_wait(watch, 1U, lh_null, 0U,
+                                  lh_cast_static(lh_u32_t, timeout_ms - elapsed)) <= 0)
+        {
+            return lh_bool_false;
+        }
+        const lh_ssize_t got = lh_os_net_socket_recv(client, buf + used, capacity - used);
+        if (got <= 0)
+        {
+            return lh_bool_false;
+        }
+        used += lh_cast_static(lh_usize_t, got);
+        const lh_str_view_t input = lh_str_view_initializer(buf, used);
+        const lh_http_parse_status_t status =
+            lh_http_parser_request(lh_addr_of(parser), input, lh_addr_of(request), headers,
+                                   lh_array_ptr_get_size(headers));
+        if (status == lh_http_parse_complete)
+        {
+            lh_ptr_deref(length) = used;
+            return lh_bool_true;
+        }
+        if (status == lh_http_parse_error)
+        {
+            return lh_bool_false;
+        }
+    }
+    return lh_bool_false;
+}
+
+lh_void
+lh_ui_web_host_read_request(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize_t capacity,
+                            lh_u32_t timeout_ms, lh_usize_t *length)
+{
+    lh_runtime_check_ifn(lh_ui_web_host_try_read_request(client, buf, capacity, timeout_ms, length),
+                         lh_runtime_error_code_invalid_range);
+}
+
+lh_bool_t
+lh_ui_web_host_handle_request_is_upgraded(lh_ui_web_app_t *app, lh_os_net_socket_t *client)
 {
     lh_char_t req[1024];
-    lh_os_net_socket_t *const watch[1] = {client};
+    lh_usize_t len;
 
-    /* Accepted the moment it connected, so the request may not be here yet; and
-       a socket accepted from a non-blocking listener is non-blocking on Windows,
-       so a bare recv would answer "not yet" and drop the request. */
-    (void)lh_os_net_socket_set_blocking(client, lh_bool_true);
-    (void)lh_os_net_socket_set_no_delay(client, lh_bool_true);
-    if (lh_os_net_socket_wait(watch, 1u, lh_null, 0u, LH_UI_WEB_HOST_REQUEST_MS) <= 0)
+    if (!lh_os_net_socket_set_blocking(client, lh_bool_true))
     {
         return lh_bool_false;
     }
-    lh_ssize_t got = lh_os_net_socket_recv(client, req, sizeof(req));
-    if (got <= 0)
+    LH_ATTRIBUTE_UNUSED(lh_os_net_socket_set_no_delay(client, lh_bool_true));
+    if (!lh_ui_web_host_try_read_request(client, req, sizeof(req), LH_UI_WEB_HOST_REQUEST_MS,
+                                         lh_addr_of(len)))
     {
         return lh_bool_false;
     }
-    lh_usize_t len = lh_cast_static(lh_usize_t, got);
     if (lh_ui_web_app_is_websocket(app, req, len))
     {
         return lh_ui_web_host_ws_upgrade(client, req, len);
     }
-    if (lh_ui_web_app_handle(app, req, len, client))
+    if (lh_ui_web_app_handle_request_is_handled(app, req, len, client))
     {
         return lh_bool_false;
     }
@@ -734,7 +788,7 @@ lh_ui_web_host_accept_all(lh_os_net_socket_t *listen_fd, lh_ui_web_host_client_t
         {
             return;
         }
-        if (lh_ui_web_host_handle(app, lh_addr_of(client)))
+        if (lh_ui_web_host_handle_request_is_upgraded(app, lh_addr_of(client)))
         {
             lh_ui_web_host_ws_attach(cli, lh_addr_of(client), now);
         }
@@ -771,7 +825,8 @@ lh_ui_web_host_wait(lh_os_net_socket_t *listen_fd, lh_ui_web_host_client_t *cli,
     if (lh_os_net_socket_wait(read, nr, write, nw, lh_cast_static(lh_u32_t, timeout_ms)) ==
         LH_OS_RESULT_INVALID)
     {
-        (void)lh_os_net_socket_wait(read, 1u, lh_null, 0u, lh_cast_static(lh_u32_t, timeout_ms));
+        LH_ATTRIBUTE_UNUSED(
+            lh_os_net_socket_wait(read, 1u, lh_null, 0u, lh_cast_static(lh_u32_t, timeout_ms)));
     }
 }
 
@@ -792,7 +847,7 @@ lh_ui_web_host_run(lh_ui_web_app_t *app, lh_net_port_t port)
     {
         return lh_bool_false;
     }
-    (void)lh_os_net_socket_set_reuse_addr(lh_addr_of(listen_fd), lh_bool_true);
+    LH_ATTRIBUTE_UNUSED(lh_os_net_socket_set_reuse_addr(lh_addr_of(listen_fd), lh_bool_true));
     lh_net_ip4_t ip;
     lh_net_ip4_init(lh_addr_of(ip), 127, 0, 0, 1);
     lh_net_ip4_socket_addr_t addr;
@@ -803,7 +858,11 @@ lh_ui_web_host_run(lh_ui_web_app_t *app, lh_net_port_t port)
         lh_os_net_socket_close(lh_addr_of(listen_fd));
         return lh_bool_false;
     }
-    (void)lh_os_net_socket_set_blocking(lh_addr_of(listen_fd), lh_bool_false);
+    if (!lh_os_net_socket_set_blocking(lh_addr_of(listen_fd), lh_bool_false))
+    {
+        lh_os_net_socket_close(lh_addr_of(listen_fd));
+        return lh_bool_false;
+    }
     lh_logger_notice(lh_runtime_logger(), "[lh] ui web host http://127.0.0.1:%u/",
                      lh_cast_static(lh_uint_t, port));
     {

@@ -1,4 +1,5 @@
 #include <lh/os/system/net/socket.h>
+#include <lh/attribute/unused.h>
 #include <lh/assert.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/net/socket/addr.h>
@@ -64,7 +65,7 @@ lh_os_system_net_socket_open(lh_os_system_net_socket_type_t type)
 lh_void
 lh_os_system_net_socket_close(lh_os_system_net_socket_handle_t handle)
 {
-    (void)closesocket(lh_os_system_net_socket_native(handle));
+    LH_ATTRIBUTE_UNUSED(closesocket(lh_os_system_net_socket_native(handle)));
 }
 
 lh_bool_t
@@ -487,10 +488,11 @@ lh_os_system_net_socket_poll(lh_os_net_socket_poll_t *entries, lh_usize_t count,
 
     timeout.tv_sec = lh_cast_static(lh_long_t, timeout_ms / 1000U);
     timeout.tv_usec = lh_cast_static(lh_long_t, (timeout_ms % 1000U) * 1000U);
-    const lh_int_t result =
-        select(0, readable.fd_count ? lh_ptr_rcast(lh_os_system_win_fd_set_t, &readable) : lh_null,
-               writable.fd_count ? lh_ptr_rcast(lh_os_system_win_fd_set_t, &writable) : lh_null,
-               lh_ptr_rcast(lh_os_system_win_fd_set_t, &exceptional), &timeout);
+    const lh_int_t result = select(
+        0,
+        readable.fd_count ? lh_ptr_rcast(lh_os_system_win_fd_set_t, lh_addr_of(readable)) : lh_null,
+        writable.fd_count ? lh_ptr_rcast(lh_os_system_win_fd_set_t, lh_addr_of(writable)) : lh_null,
+        lh_ptr_rcast(lh_os_system_win_fd_set_t, lh_addr_of(exceptional)), lh_addr_of(timeout));
     if (result == LH_OS_SYSTEM_WIN_SOCKET_ERROR)
     {
         if (lh_os_system_error_get_native_code() == LH_OS_SYSTEM_WIN_WSAEINTR)
@@ -509,16 +511,16 @@ lh_os_system_net_socket_poll(lh_os_net_socket_poll_t *entries, lh_usize_t count,
         }
         const lh_os_system_win_socket_t native = lh_os_system_net_socket_native(entries[i].handle);
         if ((entries[i].events & lh_os_net_socket_poll_read) &&
-            lh_os_system_net_socket_poll_contains(&readable, native))
+            lh_os_system_net_socket_poll_contains(lh_addr_of(readable), native))
         {
             entries[i].ready |= lh_os_net_socket_poll_read;
         }
         if ((entries[i].events & lh_os_net_socket_poll_write) &&
-            lh_os_system_net_socket_poll_contains(&writable, native))
+            lh_os_system_net_socket_poll_contains(lh_addr_of(writable), native))
         {
             entries[i].ready |= lh_os_net_socket_poll_write;
         }
-        if (lh_os_system_net_socket_poll_contains(&exceptional, native))
+        if (lh_os_system_net_socket_poll_contains(lh_addr_of(exceptional), native))
         {
             entries[i].ready |= lh_os_net_socket_poll_error;
         }
@@ -539,18 +541,18 @@ lh_os_system_net_socket_pair(lh_os_system_net_socket_handle_t *pair, lh_u32_t ti
     lh_net_ip4_t ip;
 
     lh_assert_runtime_ref(pair);
-    lh_net_ip4_init(&ip, 127, 0, 0, 1);
+    lh_net_ip4_init(lh_addr_of(ip), 127, 0, 0, 1);
     lh_net_ip4_socket_addr_t address, expected, peer;
 
-    lh_net_ip4_socket_addr_init(&address, &ip, 0);
+    lh_net_ip4_socket_addr_init(lh_addr_of(address), lh_addr_of(ip), 0);
     listener = lh_os_system_net_socket_open_nonblocking(lh_os_system_net_socket_type_tcp);
     if (listener == LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID)
     {
         goto failed;
     }
-    if (!lh_os_system_net_socket_bind(listener, &address) ||
+    if (!lh_os_system_net_socket_bind(listener, lh_addr_of(address)) ||
         !lh_os_system_net_socket_listen(listener, 4) ||
-        !lh_os_system_net_socket_get_local_addr(listener, &address))
+        !lh_os_system_net_socket_get_local_addr(listener, lh_addr_of(address)))
     {
         goto failed;
     }
@@ -559,7 +561,7 @@ lh_os_system_net_socket_pair(lh_os_system_net_socket_handle_t *pair, lh_u32_t ti
     {
         goto failed;
     }
-    lh_ssize_t connected = lh_os_system_net_socket_connect_start(writer, &address);
+    lh_ssize_t connected = lh_os_system_net_socket_connect_start(writer, lh_addr_of(address));
     if (connected == LH_OS_RESULT_PENDING)
     {
         connected = lh_os_system_net_socket_connect_wait(writer, timeout_ms);
@@ -569,14 +571,15 @@ lh_os_system_net_socket_pair(lh_os_system_net_socket_handle_t *pair, lh_u32_t ti
         goto timed_out;
     }
     if (connected == LH_OS_RESULT_INVALID ||
-        !lh_os_system_net_socket_get_local_addr(writer, &expected))
+        !lh_os_system_net_socket_get_local_addr(writer, lh_addr_of(expected)))
     {
         goto failed;
     }
     /* Reject unrelated connections to the temporary listener. */
     for (lh_uint_t attempt = 0; attempt < 16; ++attempt)
     {
-        const lh_ssize_t ready = lh_os_system_net_socket_wait(&listener, 1, lh_null, 0, timeout_ms);
+        const lh_ssize_t ready =
+            lh_os_system_net_socket_wait(lh_addr_of(listener), 1, lh_null, 0, timeout_ms);
         if (ready == LH_OS_RESULT_PENDING)
         {
             goto timed_out;
@@ -585,12 +588,12 @@ lh_os_system_net_socket_pair(lh_os_system_net_socket_handle_t *pair, lh_u32_t ti
         {
             goto failed;
         }
-        reader = lh_os_system_net_socket_accept_nonblocking(listener, &peer);
+        reader = lh_os_system_net_socket_accept_nonblocking(listener, lh_addr_of(peer));
         if (reader == LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID)
         {
             goto failed;
         }
-        if (lh_net_ip4_socket_addr_equals(&peer, &expected))
+        if (lh_net_ip4_socket_addr_equals(lh_addr_of(peer), lh_addr_of(expected)))
         {
             if (!lh_os_system_net_socket_set_no_delay(reader, lh_bool_true) ||
                 !lh_os_system_net_socket_set_no_delay(writer, lh_bool_true))
@@ -651,7 +654,7 @@ lh_os_system_net_socket_send_file(lh_os_system_net_socket_handle_t handle,
     if (!SetFilePointerEx(native_file, position, lh_null, LH_OS_SYSTEM_WIN_FILE_BEGIN) ||
         !ReadFile(native_file, buffer,
                   lh_cast_static(lh_os_system_win_dword_t, lh_math_min(size, sizeof buffer)),
-                  &read_size, lh_null))
+                  lh_addr_of(read_size), lh_null))
     {
         lh_os_system_error_capture();
         return LH_OS_RESULT_INVALID;

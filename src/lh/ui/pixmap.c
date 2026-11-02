@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/pixmap.h`.
  */
 #include <lh/assert.h>
+#include <lh/attribute/unused.h>
 
 #include <lh/bit/bswap.h>
 #include <lh/byte/limits.h>
@@ -224,7 +225,7 @@ lh_ui_pixmap_mix_any(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_
 lh_u32_t
 lh_ui_pixmap_mix_argb(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t a)
 {
-    (void)self;
+    LH_ATTRIBUTE_UNUSED(self);
     return lh_ui_color_argb_over(dst, (a << 24) | src);
 }
 
@@ -539,7 +540,7 @@ lh_ui_pixmap_blend_alpha_32_sse2(const lh_ui_pixmap_t *self, lh_u32_t *at, lh_by
 {
     lh_usize_t i;
 
-    (void)self;
+    LH_ATTRIBUTE_UNUSED(self);
     /* The block itself, not the exported quad: inlined, its constants are set up
        once for the run instead of once a block. */
     for (i = 0U; i + 4U <= count; i += 4U)
@@ -817,7 +818,7 @@ lh_ui_pixmap_pack_rgb(const lh_ui_pixmap_t *self, lh_u32_t src)
 {
     lh_ui_color_t color;
 
-    (void)self;
+    LH_ATTRIBUTE_UNUSED(self);
     lh_ui_color_init_argb(lh_addr_of(color), 0xFF000000U | src);
     return lh_ui_color_get_rgb565(lh_addr_of(color));
 }

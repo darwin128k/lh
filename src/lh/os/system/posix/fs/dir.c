@@ -1,4 +1,5 @@
 #include <lh/os/system/fs/dir.h>
+#include <lh/attribute/unused.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/os/system/error/capture.h>
@@ -44,7 +45,7 @@ lh_os_system_fs_dir_kind(lh_byte_t type)
         return lh_fs_kind_file;
     }
 #endif
-    (void)type;
+    LH_ATTRIBUTE_UNUSED(type);
     return lh_fs_kind_other;
 }
 
@@ -64,7 +65,7 @@ lh_os_system_fs_dir_open(lh_str_cptr path)
 lh_void
 lh_os_system_fs_dir_close(lh_os_system_fs_dir_handle_t handle)
 {
-    (void)closedir(lh_os_system_fs_dir_native(handle));
+    LH_ATTRIBUTE_UNUSED(closedir(lh_os_system_fs_dir_native(handle)));
 }
 
 lh_ssize_t

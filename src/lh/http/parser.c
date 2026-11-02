@@ -101,8 +101,9 @@ lh_http_parser_begin(lh_http_parser_t *self, lh_str_view_t input, const lh_void 
     lh_http_parser_set_consumed(self, 0);
     lh_http_parser_set_error_offset(self, 0);
     lh_http_parser_set_error(self, lh_http_error_none);
-    if (lh_null_eq(output) || !lh_memory_view_is_valid(&input) || (lh_null_eq(headers) && capacity) ||
-        !lh_http_parser_get_head_size_max(self) || !lh_http_parser_get_line_size_max(self))
+    if (lh_null_eq(output) || !lh_memory_view_is_valid(lh_addr_of(input)) ||
+        (lh_null_eq(headers) && capacity) || !lh_http_parser_get_head_size_max(self) ||
+        !lh_http_parser_get_line_size_max(self))
     {
         lh_http_parser_set_error(self, lh_http_error_argument);
         return lh_bool_false;
@@ -124,8 +125,8 @@ lh_http_parse_status_t
 lh_http_parser_find_line(lh_http_parser_t *self, lh_str_view_t input, lh_usize_t start,
                          lh_usize_t *end)
 {
-    const lh_char_t *text = lh_str_view_get_data(&input);
-    const lh_usize_t size = lh_str_view_get_size(&input);
+    const lh_char_t *text = lh_str_view_get_data(lh_addr_of(input));
+    const lh_usize_t size = lh_str_view_get_size(lh_addr_of(input));
     const lh_usize_t head_size_max = lh_http_parser_get_head_size_max(self);
     const lh_usize_t limit = lh_math_min(size, head_size_max);
     for (lh_usize_t i = start; i < limit; ++i)
@@ -163,7 +164,7 @@ lh_http_parse_status_t
 lh_http_parser_parse_request_line(lh_http_parser_t *self, lh_str_view_t input, lh_usize_t end,
                                   lh_http_request_t *request)
 {
-    const lh_char_t *text = lh_str_view_get_data(&input);
+    const lh_char_t *text = lh_str_view_get_data(lh_addr_of(input));
     lh_usize_t method = 0;
     while (method < end && lh_http_is_token_char(text[method]))
     {
@@ -187,13 +188,13 @@ lh_http_parser_parse_request_line(lh_http_parser_t *self, lh_str_view_t input, l
                  lh_http_parser_fail(self, lh_http_error_start_line, version));
     lh_str_view_t part;
     lh_u8_t minor;
-    lh_str_view_from_offset(&input, version + 1, end - version - 1, &part);
-    lh_return_ifn(lh_http_parse_version(part, &minor),
+    lh_str_view_from_offset(lh_addr_of(input), version + 1, end - version - 1, lh_addr_of(part));
+    lh_return_ifn(lh_http_parse_version(part, lh_addr_of(minor)),
                   lh_http_parser_fail(self, lh_http_error_start_line, version));
     lh_http_request_set_version_minor(request, minor);
-    lh_str_view_from_offset(&input, 0, method, &part);
+    lh_str_view_from_offset(lh_addr_of(input), 0, method, lh_addr_of(part));
     lh_http_request_set_method(request, part);
-    lh_str_view_from_offset(&input, target, version - target, &part);
+    lh_str_view_from_offset(lh_addr_of(input), target, version - target, lh_addr_of(part));
     lh_http_request_set_target(request, part);
     return lh_http_parse_complete;
 }
@@ -202,15 +203,14 @@ lh_http_parse_status_t
 lh_http_parser_parse_status_line(lh_http_parser_t *self, lh_str_view_t input, lh_usize_t end,
                                  lh_http_response_t *response)
 {
-    const lh_char_t *text = lh_str_view_get_data(&input);
+    const lh_char_t *text = lh_str_view_get_data(lh_addr_of(input));
     lh_return_if(end < 13, lh_http_parser_fail(self, lh_http_error_start_line, 0));
     lh_str_view_t part;
     lh_u8_t minor;
-    lh_str_view_from_offset(&input, 0, 8, &part);
-    if (!lh_http_parse_version(part, &minor) || text[8] != lh_char_map_space ||
+    lh_str_view_from_offset(lh_addr_of(input), 0, 8, lh_addr_of(part));
+    if (!lh_http_parse_version(part, lh_addr_of(minor)) || text[8] != lh_char_map_space ||
         text[9] < lh_char_map_digit_1 || text[9] > lh_char_map_digit_5 ||
-        !lh_char_is_digit(text[10]) || !lh_char_is_digit(text[11]) ||
-        text[12] != lh_char_map_space)
+        !lh_char_is_digit(text[10]) || !lh_char_is_digit(text[11]) || text[12] != lh_char_map_space)
     {
         return lh_http_parser_fail(self, lh_http_error_start_line, 0);
     }
@@ -226,7 +226,7 @@ lh_http_parser_parse_status_line(lh_http_parser_t *self, lh_str_view_t input, lh
                                 (lh_u16_t)(lh_char_to_digit(text[9]) * 100 +
                                            lh_char_to_digit(text[10]) * 10 +
                                            lh_char_to_digit(text[11])));
-    lh_str_view_from_offset(&input, 13, end - 13, &part);
+    lh_str_view_from_offset(lh_addr_of(input), 13, end - 13, lh_addr_of(part));
     lh_http_response_set_reason(response, part);
     return lh_http_parse_complete;
 }
@@ -235,7 +235,7 @@ lh_http_parse_status_t
 lh_http_parser_parse_field(lh_http_parser_t *self, lh_str_view_t input, lh_usize_t begin,
                            lh_usize_t end, lh_http_header_t *header)
 {
-    const lh_char_t *text = lh_str_view_get_data(&input);
+    const lh_char_t *text = lh_str_view_get_data(lh_addr_of(input));
     lh_usize_t colon = begin;
     while (colon < end && lh_http_is_token_char(text[colon]))
     {
@@ -253,11 +253,11 @@ lh_http_parser_parse_field(lh_http_parser_t *self, lh_str_view_t input, lh_usize
         }
     }
     lh_str_view_t part;
-    lh_str_view_from_offset(&input, begin, colon - begin, &part);
+    lh_str_view_from_offset(lh_addr_of(input), begin, colon - begin, lh_addr_of(part));
     lh_http_header_set_name(header, part);
-    lh_str_view_from_offset(&input, colon + 1, end - colon - 1, &part);
+    lh_str_view_from_offset(lh_addr_of(input), colon + 1, end - colon - 1, lh_addr_of(part));
     /* Field bytes are checked above, so the only whitespace left is SP and HTAB. */
-    lh_str_view_trim(&part);
+    lh_str_view_trim(lh_addr_of(part));
     lh_http_header_set_value(header, part);
     return lh_http_parse_complete;
 }
@@ -270,7 +270,8 @@ lh_http_parser_parse_fields(lh_http_parser_t *self, lh_str_view_t input, lh_usiz
     for (;;)
     {
         lh_usize_t end;
-        lh_http_parse_status_t status = lh_http_parser_find_line(self, input, offset, &end);
+        lh_http_parse_status_t status =
+            lh_http_parser_find_line(self, input, offset, lh_addr_of(end));
         lh_return_if(status != lh_http_parse_complete, status);
         if (end == offset)
         {
@@ -279,7 +280,7 @@ lh_http_parser_parse_fields(lh_http_parser_t *self, lh_str_view_t input, lh_usiz
             return lh_http_parse_complete;
         }
         lh_http_header_t field;
-        status = lh_http_parser_parse_field(self, input, offset, end, &field);
+        status = lh_http_parser_parse_field(self, input, offset, end, lh_addr_of(field));
         lh_return_if(status != lh_http_parse_complete, status);
         if (number == capacity)
         {
@@ -298,11 +299,12 @@ lh_http_parser_request(lh_http_parser_t *self, lh_str_view_t input, lh_http_requ
                   lh_http_parse_error);
     lh_usize_t end;
     lh_usize_t count;
-    lh_http_parse_status_t status = lh_http_parser_find_line(self, input, 0, &end);
+    lh_http_parse_status_t status = lh_http_parser_find_line(self, input, 0, lh_addr_of(end));
     lh_return_if(status != lh_http_parse_complete, status);
     status = lh_http_parser_parse_request_line(self, input, end, request);
     lh_return_if(status != lh_http_parse_complete, status);
-    status = lh_http_parser_parse_fields(self, input, end + 2, headers, header_capacity, &count);
+    status = lh_http_parser_parse_fields(self, input, end + 2, headers, header_capacity,
+                                         lh_addr_of(count));
     lh_return_if(status != lh_http_parse_complete, status);
     lh_http_request_set_header_count(request, count);
     return status;
@@ -316,11 +318,12 @@ lh_http_parser_response(lh_http_parser_t *self, lh_str_view_t input, lh_http_res
                   lh_http_parse_error);
     lh_usize_t end;
     lh_usize_t count;
-    lh_http_parse_status_t status = lh_http_parser_find_line(self, input, 0, &end);
+    lh_http_parse_status_t status = lh_http_parser_find_line(self, input, 0, lh_addr_of(end));
     lh_return_if(status != lh_http_parse_complete, status);
     status = lh_http_parser_parse_status_line(self, input, end, response);
     lh_return_if(status != lh_http_parse_complete, status);
-    status = lh_http_parser_parse_fields(self, input, end + 2, headers, header_capacity, &count);
+    status = lh_http_parser_parse_fields(self, input, end + 2, headers, header_capacity,
+                                         lh_addr_of(count));
     lh_return_if(status != lh_http_parse_complete, status);
     lh_http_response_set_header_count(response, count);
     return status;

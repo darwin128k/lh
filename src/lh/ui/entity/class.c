@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/entity/class.h`.
  */
 #include <lh/assert.h>
+#include <lh/attribute/unused.h>
 
 #include <lh/ui/canvas/box.h>
 #include <lh/ui/entity.h>
@@ -41,8 +42,9 @@ lh_ui_entity_class_shadow(const struct lh_ui_entity *self, lh_ui_canvas_t *canva
     lh_return_if(lh_ui_shadow_is_empty(lh_ui_style_get_shadow(style)));
     lh_ui_rect_t rect;
     lh_ui_entity_copy_rect(self, lh_addr_of(rect));
-    (void)lh_ui_canvas_shadow(canvas, lh_addr_of(rect), lh_ui_entity_get_radius_now(self),
-                              lh_ui_style_get_shadow(style));
+    LH_ATTRIBUTE_UNUSED(lh_ui_canvas_shadow(canvas, lh_addr_of(rect),
+                                            lh_ui_entity_get_radius_now(self),
+                                            lh_ui_style_get_shadow(style)));
 }
 
 lh_void

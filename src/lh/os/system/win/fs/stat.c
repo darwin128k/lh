@@ -1,4 +1,5 @@
 #include <lh/os/system/fs/stat.h>
+#include <lh/attribute/unused.h>
 #include <lh/assert.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/str.h>
@@ -76,7 +77,7 @@ lh_os_system_fs_is_symlink(lh_wstr_cptr path, lh_os_system_win_dword_t attrs, lh
         lh_os_system_error_capture();
         return lh_bool_false;
     }
-    (void)FindClose(find);
+    LH_ATTRIBUTE_UNUSED(FindClose(find));
     lh_ptr_deref(out) = lh_os_system_fs_is_symlink_tag(attrs, data.dwReserved0);
     return lh_bool_true;
 }

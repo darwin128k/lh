@@ -11,6 +11,7 @@
 #endif
 
 #include <lh/os/system/serial.h>
+#include <lh/attribute/unused.h>
 
 #include <lh/assert/runtime.h>
 #include <lh/os/system/error/capture.h>
@@ -90,7 +91,7 @@ lh_os_system_serial_open(lh_str_cptr name, lh_u32_t baud, lh_os_serial_parity_t 
     if (tcgetattr(fd, lh_addr_of(tty)) != 0)
     {
         lh_os_system_error_capture();
-        (void)close(fd);
+        LH_ATTRIBUTE_UNUSED(close(fd));
         return LH_OS_SYSTEM_SERIAL_HANDLE_INVALID;
     }
     /* Raw: every byte as it came, nothing translated, nothing echoed, no line
@@ -125,11 +126,11 @@ lh_os_system_serial_open(lh_str_cptr name, lh_u32_t baud, lh_os_serial_parity_t 
         tcsetattr(fd, TCSANOW, lh_addr_of(tty)) != 0)
     {
         lh_os_system_error_capture();
-        (void)close(fd);
+        LH_ATTRIBUTE_UNUSED(close(fd));
         return LH_OS_SYSTEM_SERIAL_HANDLE_INVALID;
     }
     /* What arrived before the port was set up was read at another rate, if at all. */
-    (void)tcflush(fd, TCIOFLUSH);
+    LH_ATTRIBUTE_UNUSED(tcflush(fd, TCIOFLUSH));
     return lh_cast_static(lh_os_system_serial_handle_t, fd);
 }
 
@@ -138,7 +139,7 @@ lh_os_system_serial_close(lh_os_system_serial_handle_t handle)
 {
     if (handle != LH_OS_SYSTEM_SERIAL_HANDLE_INVALID)
     {
-        (void)close(lh_cast_static(int, handle));
+        LH_ATTRIBUTE_UNUSED(close(lh_cast_static(int, handle)));
     }
 }
 
