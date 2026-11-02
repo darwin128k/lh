@@ -535,10 +535,6 @@ lh_bool_t
 lh_web_json_node_equals(const lh_web_json_node_t *self, const lh_web_json_node_t *other)
 {
     const lh_web_json_kind_t kind = lh_web_json_node_get_kind(self);
-    const lh_web_json_node_t *a;
-    const lh_web_json_node_t *b;
-    lh_str_view_t text_a;
-    lh_str_view_t text_b;
 
     if (lh_math_ne(kind, lh_web_json_node_get_kind(other)))
     {
@@ -551,12 +547,22 @@ lh_web_json_node_equals(const lh_web_json_node_t *self, const lh_web_json_node_t
                                                     lh_web_json_node_get_flag(other)));
     case lh_web_json_kind_number:
     case lh_web_json_kind_string:
+    {
+        lh_str_view_t text_a;
+
         lh_str_as_view(lh_web_json_node_get_text(self), lh_addr_of(text_a));
+
+        lh_str_view_t text_b;
+
         lh_str_as_view(lh_web_json_node_get_text(other), lh_addr_of(text_b));
         return lh_str_view_equals(lh_addr_of(text_a), lh_addr_of(text_b), lh_bool_false);
+    }
     case lh_web_json_kind_array:
-        for (a = lh_web_json_node_get_first(self), b = lh_web_json_node_get_first(other);
-             lh_null_ne(a) && lh_null_ne(b);
+    {
+        const lh_web_json_node_t *a = lh_web_json_node_get_first(self);
+        const lh_web_json_node_t *b = lh_web_json_node_get_first(other);
+
+        for (; lh_null_ne(a) && lh_null_ne(b);
              a = lh_web_json_node_get_next(self, a), b = lh_web_json_node_get_next(other, b))
         {
             if (!lh_web_json_node_equals(a, b))
@@ -565,16 +571,21 @@ lh_web_json_node_equals(const lh_web_json_node_t *self, const lh_web_json_node_t
             }
         }
         return lh_cast_static(lh_bool_t, lh_null_eq(a) && lh_null_eq(b));
+    }
     case lh_web_json_kind_object:
         if (lh_math_ne(lh_web_json_node_get_size(self), lh_web_json_node_get_size(other)))
         {
             return lh_bool_false;
         }
-        for (a = lh_web_json_node_get_first(self); lh_null_ne(a);
+        for (const lh_web_json_node_t *a = lh_web_json_node_get_first(self); lh_null_ne(a);
              a = lh_web_json_node_get_next(self, a))
         {
-            lh_str_as_view(lh_web_json_node_get_key(a), lh_addr_of(text_a));
-            b = lh_web_json_node_get_member(other, text_a);
+            lh_str_view_t key;
+
+            lh_str_as_view(lh_web_json_node_get_key(a), lh_addr_of(key));
+
+            const lh_web_json_node_t *b = lh_web_json_node_get_member(other, key);
+
             if (lh_null_eq(b) || !lh_web_json_node_equals(a, b))
             {
                 return lh_bool_false;

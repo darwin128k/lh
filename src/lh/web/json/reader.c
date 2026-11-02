@@ -62,6 +62,14 @@ lh_web_json_reader_set_error(lh_web_json_reader_t *self, lh_web_json_error_t err
 }
 
 lh_bool_t
+lh_web_json_reader_is_whitespace(lh_char_t ch)
+{
+    return lh_cast_static(lh_bool_t,
+                          lh_math_eq(ch, lh_char_map_space) || lh_math_eq(ch, lh_char_map_ht) ||
+                              lh_math_eq(ch, lh_char_map_lf) || lh_math_eq(ch, lh_char_map_cr));
+}
+
+lh_bool_t
 lh_web_json_reader_fail(lh_web_json_reader_t *self, lh_web_json_error_t error)
 {
     lh_web_json_reader_set_error(self, error);
@@ -110,33 +118,22 @@ lh_web_json_reader_peek(const lh_web_json_reader_t *self, lh_usize_t ahead)
     return lh_str_view_get_data(text)[at];
 }
 
-lh_char_t
-lh_web_json_reader_get_char(const lh_web_json_reader_t *self)
-{
-    return lh_web_json_reader_peek(self, 0U);
-}
-
 lh_void
 lh_web_json_reader_advance(lh_web_json_reader_t *self, lh_usize_t count)
 {
     lh_web_json_reader_set_pos(self, lh_math_add(lh_web_json_reader_get_pos(self), count));
 }
 
-lh_bool_t
-lh_web_json_reader_is_whitespace(lh_char_t ch)
+lh_void
+lh_web_json_reader_leave(lh_web_json_reader_t *self)
 {
-    return lh_cast_static(lh_bool_t,
-                          lh_math_eq(ch, lh_char_map_space) || lh_math_eq(ch, lh_char_map_ht) ||
-                              lh_math_eq(ch, lh_char_map_lf) || lh_math_eq(ch, lh_char_map_cr));
+    lh_web_json_reader_set_depth(self, lh_math_sub_one(lh_web_json_reader_get_depth(self)));
 }
 
-lh_void
-lh_web_json_reader_skip_whitespace(lh_web_json_reader_t *self)
+lh_char_t
+lh_web_json_reader_get_char(const lh_web_json_reader_t *self)
 {
-    while (lh_web_json_reader_is_whitespace(lh_web_json_reader_get_char(self)))
-    {
-        lh_web_json_reader_advance(self, 1U);
-    }
+    return lh_web_json_reader_peek(self, 0U);
 }
 
 lh_bool_t
@@ -145,17 +142,6 @@ lh_web_json_reader_fail_unexpected(lh_web_json_reader_t *self)
     return lh_web_json_reader_fail(self, lh_web_json_reader_is_end(self)
                                              ? lh_web_json_error_unexpected_end
                                              : lh_web_json_error_unexpected_char);
-}
-
-lh_bool_t
-lh_web_json_reader_skip_char(lh_web_json_reader_t *self, lh_char_t ch)
-{
-    if (lh_web_json_reader_is_end(self) || lh_math_ne(lh_web_json_reader_get_char(self), ch))
-    {
-        return lh_bool_false;
-    }
-    lh_web_json_reader_advance(self, 1U);
-    return lh_bool_true;
 }
 
 lh_bool_t
@@ -188,9 +174,23 @@ lh_web_json_reader_enter(lh_web_json_reader_t *self)
 }
 
 lh_void
-lh_web_json_reader_leave(lh_web_json_reader_t *self)
+lh_web_json_reader_skip_whitespace(lh_web_json_reader_t *self)
 {
-    lh_web_json_reader_set_depth(self, lh_math_sub_one(lh_web_json_reader_get_depth(self)));
+    while (lh_web_json_reader_is_whitespace(lh_web_json_reader_get_char(self)))
+    {
+        lh_web_json_reader_advance(self, 1U);
+    }
+}
+
+lh_bool_t
+lh_web_json_reader_skip_char(lh_web_json_reader_t *self, lh_char_t ch)
+{
+    if (lh_web_json_reader_is_end(self) || lh_math_ne(lh_web_json_reader_get_char(self), ch))
+    {
+        return lh_bool_false;
+    }
+    lh_web_json_reader_advance(self, 1U);
+    return lh_bool_true;
 }
 
 /* ── values ──────────────────────────────────────────────────────────────── */
@@ -229,6 +229,28 @@ lh_web_json_reader_skip_digits(lh_web_json_reader_t *self)
         count = lh_math_add_one(count);
     }
     return count;
+}
+
+lh_bool_t
+lh_web_json_reader_read_hex4(lh_web_json_reader_t *self, lh_u32_t *code)
+{
+    lh_uint_t value = 0U;
+    lh_usize_t i;
+
+    lh_assert_runtime_ref(code);
+    for (i = 0U; lh_math_lt(i, 4U); i = lh_math_add_one(i))
+    {
+        const lh_char_t ch = lh_web_json_reader_get_char(self);
+
+        if (!lh_char_is_xdigit(ch))
+        {
+            return lh_web_json_reader_fail(self, lh_web_json_error_bad_unicode);
+        }
+        lh_char_xdigit_accumulate(lh_addr_of(value), lh_char_to_xdigit(ch));
+        lh_web_json_reader_advance(self, 1U);
+    }
+    lh_ptr_deref(code) = value;
+    return lh_bool_true;
 }
 
 lh_bool_t
@@ -277,34 +299,9 @@ lh_web_json_reader_read_number(lh_web_json_reader_t *self, lh_web_json_node_t *n
 }
 
 lh_bool_t
-lh_web_json_reader_read_hex4(lh_web_json_reader_t *self, lh_u32_t *code)
-{
-    lh_uint_t value = 0U;
-    lh_usize_t i;
-
-    lh_assert_runtime_ref(code);
-    for (i = 0U; lh_math_lt(i, 4U); i = lh_math_add_one(i))
-    {
-        const lh_char_t ch = lh_web_json_reader_get_char(self);
-
-        if (!lh_char_is_xdigit(ch))
-        {
-            return lh_web_json_reader_fail(self, lh_web_json_error_bad_unicode);
-        }
-        lh_char_xdigit_accumulate(lh_addr_of(value), lh_char_to_xdigit(ch));
-        lh_web_json_reader_advance(self, 1U);
-    }
-    lh_ptr_deref(code) = value;
-    return lh_bool_true;
-}
-
-lh_bool_t
 lh_web_json_reader_read_unicode(lh_web_json_reader_t *self, lh_str_t *out)
 {
-    lh_char_t bytes[4];
     lh_u32_t code;
-    lh_u32_t low;
-    lh_u32_t size;
 
     if (!lh_web_json_reader_read_hex4(self, lh_addr_of(code)))
     {
@@ -318,6 +315,8 @@ lh_web_json_reader_read_unicode(lh_web_json_reader_t *self, lh_str_t *out)
     {
         /* A high surrogate means nothing alone: the low half must follow as
            the next escape, and the two make one code point above U+FFFF. */
+        lh_u32_t low;
+
         if (!lh_web_json_reader_skip_word(self, lh_str_view_lit("\\u")) ||
             !lh_web_json_reader_read_hex4(self, lh_addr_of(low)))
         {
@@ -331,7 +330,9 @@ lh_web_json_reader_read_unicode(lh_web_json_reader_t *self, lh_str_t *out)
                                                  lh_math_sub(low, 0xDC00U)));
     }
 
-    size = lh_str_utf8_encode(bytes, 4U, code);
+    lh_char_t bytes[4];
+    const lh_u32_t size = lh_str_utf8_encode(bytes, 4U, code);
+
     if (lh_math_is_zero(size))
     {
         return lh_web_json_reader_fail(self, lh_web_json_error_bad_unicode);
@@ -436,49 +437,6 @@ lh_web_json_reader_read_string(lh_web_json_reader_t *self, lh_web_json_node_t *n
 }
 
 lh_bool_t
-lh_web_json_reader_read_array(lh_web_json_reader_t *self, lh_web_json_node_t *node)
-{
-    if (!lh_web_json_reader_skip_char(self, lh_char_map_lbracket))
-    {
-        return lh_web_json_reader_fail_unexpected(self);
-    }
-    if (!lh_web_json_reader_enter(self))
-    {
-        return lh_bool_false;
-    }
-    lh_web_json_node_set_kind(node, lh_web_json_kind_array);
-
-    lh_web_json_reader_skip_whitespace(self);
-    if (lh_web_json_reader_skip_char(self, lh_char_map_rbracket))
-    {
-        lh_web_json_reader_leave(self);
-        return lh_bool_true;
-    }
-    for (;;)
-    {
-        lh_web_json_node_t *child = lh_web_json_node_create();
-
-        /* In the tree before it is read, so a failure halfway still frees it. */
-        lh_web_json_node_push_back(node, child);
-        if (!lh_web_json_reader_read_value(self, child))
-        {
-            return lh_bool_false;
-        }
-        lh_web_json_reader_skip_whitespace(self);
-        if (lh_web_json_reader_skip_char(self, lh_char_map_rbracket))
-        {
-            lh_web_json_reader_leave(self);
-            return lh_bool_true;
-        }
-        if (!lh_web_json_reader_skip_char(self, lh_char_map_comma))
-        {
-            return lh_web_json_reader_fail_unexpected(self);
-        }
-        lh_web_json_reader_skip_whitespace(self);
-    }
-}
-
-lh_bool_t
 lh_web_json_reader_read_object(lh_web_json_reader_t *self, lh_web_json_node_t *node)
 {
     if (!lh_web_json_reader_skip_char(self, lh_char_map_lbrace))
@@ -557,6 +515,49 @@ lh_web_json_reader_read_value(lh_web_json_reader_t *self, lh_web_json_node_t *no
             return lh_web_json_reader_read_number(self, node);
         }
         return lh_web_json_reader_fail_unexpected(self);
+    }
+}
+
+lh_bool_t
+lh_web_json_reader_read_array(lh_web_json_reader_t *self, lh_web_json_node_t *node)
+{
+    if (!lh_web_json_reader_skip_char(self, lh_char_map_lbracket))
+    {
+        return lh_web_json_reader_fail_unexpected(self);
+    }
+    if (!lh_web_json_reader_enter(self))
+    {
+        return lh_bool_false;
+    }
+    lh_web_json_node_set_kind(node, lh_web_json_kind_array);
+
+    lh_web_json_reader_skip_whitespace(self);
+    if (lh_web_json_reader_skip_char(self, lh_char_map_rbracket))
+    {
+        lh_web_json_reader_leave(self);
+        return lh_bool_true;
+    }
+    for (;;)
+    {
+        lh_web_json_node_t *child = lh_web_json_node_create();
+
+        /* In the tree before it is read, so a failure halfway still frees it. */
+        lh_web_json_node_push_back(node, child);
+        if (!lh_web_json_reader_read_value(self, child))
+        {
+            return lh_bool_false;
+        }
+        lh_web_json_reader_skip_whitespace(self);
+        if (lh_web_json_reader_skip_char(self, lh_char_map_rbracket))
+        {
+            lh_web_json_reader_leave(self);
+            return lh_bool_true;
+        }
+        if (!lh_web_json_reader_skip_char(self, lh_char_map_comma))
+        {
+            return lh_web_json_reader_fail_unexpected(self);
+        }
+        lh_web_json_reader_skip_whitespace(self);
     }
 }
 
