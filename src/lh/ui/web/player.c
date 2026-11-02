@@ -4,6 +4,8 @@
  */
 
 #include <lh/ui/web/player.h>
+#include <lh/http/status.h>
+#include <lh/http/method.h>
 #include <lh/attribute/unused.h>
 
 #include <lh/ui/web/host.h>
@@ -18,10 +20,6 @@
 #include <lh/str/parse/text.h>
 #include <lh/util/return.h>
 
-/** The method every route of the player answers. */
-static const lh_str_ptr m_ui_web_player_method = "GET";
-/** @copydoc m_ui_web_player_method */
-static const lh_usize_t m_ui_web_player_method_len = lh_str_lit_size("GET");
 /** The paths the player's routes answer. */
 static const lh_str_ptr m_ui_web_player_paths[LH_UI_WEB_PLAYER_ROUTES] = {
     "/",         "/ui.json",   "/ui.rev",     "/ui/click", "/ui/press", "/ui/release",
@@ -301,17 +299,15 @@ lh_ui_web_player_resize(lh_ui_web_player_t *self, lh_sint_t w, lh_sint_t h)
 
 lh_bool_t
 lh_ui_web_player_serve_page(lh_ptr ctx, const lh_http_request_t *request,
-                            const lh_http_header_t *headers, const lh_str_ptr req, lh_usize_t len,
+                            const lh_http_header_t *headers, const lh_str_view_t *request_body,
                             lh_os_net_socket_t *client)
 {
     lh_ui_web_player_t *self = lh_ptr_rcast(lh_ui_web_player_t, ctx);
 
-    LH_ATTRIBUTE_UNUSED(request);
     LH_ATTRIBUTE_UNUSED(headers);
-    LH_ATTRIBUTE_UNUSED(req);
-    LH_ATTRIBUTE_UNUSED(len);
+    LH_ATTRIBUTE_UNUSED(request_body);
     lh_assert_runtime_ref(self);
-    lh_ui_web_host_reply(client, 200u, "text/html; charset=utf-8",
+    lh_ui_web_host_reply(client, request, lh_http_status_ok, "text/html; charset=utf-8",
                          lh_ptr_rcast(const lh_char_t, lh_ui_web_player_get_page(self)),
                          lh_ui_web_player_get_page_len(self));
     return lh_bool_true;
@@ -319,8 +315,8 @@ lh_ui_web_player_serve_page(lh_ptr ctx, const lh_http_request_t *request,
 
 lh_bool_t
 lh_ui_web_player_serve_revision(lh_ptr ctx, const lh_http_request_t *request,
-                                const lh_http_header_t *headers, const lh_str_ptr req,
-                                lh_usize_t len, lh_os_net_socket_t *client)
+                                const lh_http_header_t *headers, const lh_str_view_t *request_body,
+                                lh_os_net_socket_t *client)
 {
     lh_ui_web_player_t *self = lh_ptr_rcast(lh_ui_web_player_t, ctx);
     lh_char_t body[32];
@@ -328,12 +324,10 @@ lh_ui_web_player_serve_revision(lh_ptr ctx, const lh_http_request_t *request,
         body, sizeof(body), "%u\n",
         lh_cast_static(lh_uint_t, lh_ui_web_app_get_generation(lh_ui_web_player_get_app(self))));
 
-    LH_ATTRIBUTE_UNUSED(request);
     LH_ATTRIBUTE_UNUSED(headers);
-    LH_ATTRIBUTE_UNUSED(req);
-    LH_ATTRIBUTE_UNUSED(len);
+    LH_ATTRIBUTE_UNUSED(request_body);
     lh_assert_runtime_ref(self);
-    lh_ui_web_host_reply_text(client, 200u, body, n);
+    lh_ui_web_host_reply_text(client, request, lh_http_status_ok, body, n);
     return lh_bool_true;
 }
 
@@ -411,10 +405,11 @@ lh_ui_web_player_init(lh_ui_web_player_t *self, lh_ui_view_t *view, lh_uint_t wi
         lh_ui_web_player_set_owns_controller(self, lh_bool_true);
         lh_ui_web_host_hooks_set_controller(routed, controller);
     }
-    for (lh_usize_t i = 0u; i < LH_UI_WEB_PLAYER_ROUTES; ++i)
+    const lh_str_view_t method = lh_http_method_get_name(lh_http_method_get);
+    for (lh_usize_t i = 0u; i < LH_UI_WEB_PLAYER_ROUTES; i = lh_math_add_one(i))
     {
-        lh_ui_web_route_set_method(routes + i, m_ui_web_player_method);
-        lh_ui_web_route_set_method_len(routes + i, m_ui_web_player_method_len);
+        lh_ui_web_route_set_method(routes + i, lh_str_view_get_data(lh_addr_of(method)));
+        lh_ui_web_route_set_method_len(routes + i, lh_str_view_get_size(lh_addr_of(method)));
         lh_ui_web_route_set_path(routes + i, m_ui_web_player_paths[i]);
         lh_ui_web_route_set_path_len(routes + i, m_ui_web_player_path_lens[i]);
         lh_ui_web_route_set_handler(routes + i, m_ui_web_player_handlers[i]);
@@ -491,12 +486,11 @@ lh_ui_web_player_text(lh_ui_web_player_t *self, lh_u32_t code)
 
 lh_bool_t
 lh_ui_web_player_serve_frame(lh_ptr ctx, const lh_http_request_t *request,
-                             const lh_http_header_t *headers, const lh_str_ptr req, lh_usize_t len,
+                             const lh_http_header_t *headers, const lh_str_view_t *request_body,
                              lh_os_net_socket_t *client)
 {
     LH_ATTRIBUTE_UNUSED(headers);
-    LH_ATTRIBUTE_UNUSED(req);
-    LH_ATTRIBUTE_UNUSED(len);
+    LH_ATTRIBUTE_UNUSED(request_body);
 
     lh_ui_web_player_t *self = lh_ptr_rcast(lh_ui_web_player_t, ctx);
     const lh_str_ptr bytes = lh_null;
@@ -506,15 +500,17 @@ lh_ui_web_player_serve_frame(lh_ptr ctx, const lh_http_request_t *request,
     if (lh_ui_web_host_get_query_uint(request, lh_str_lit("rev=")) ==
         lh_ui_web_app_get_generation(lh_ui_web_player_get_app(self)))
     {
-        lh_ui_web_host_reply_text(client, 304u, lh_str_lit(""));
+        lh_ui_web_host_reply_text(client, request, lh_http_status_not_modified, lh_str_lit(""));
         return lh_bool_true;
     }
     if (!lh_ui_web_player_draw(self, lh_null, lh_addr_of(bytes), lh_addr_of(n)))
     {
-        lh_ui_web_host_reply_text(client, 500u, lh_str_lit("draw failed\n"));
+        lh_ui_web_host_reply_text(client, request, lh_http_status_internal_server_error,
+                                  lh_str_lit("draw failed\n"));
         return lh_bool_true;
     }
-    lh_ui_web_host_reply(client, 200u, "application/json; charset=utf-8", bytes, n);
+    lh_ui_web_host_reply(client, request, lh_http_status_ok, "application/json; charset=utf-8",
+                         bytes, n);
     return lh_bool_true;
 }
 
@@ -620,12 +616,11 @@ lh_ui_web_player_event_line(lh_ui_web_player_t *self, const lh_str_ptr line, lh_
 
 lh_bool_t
 lh_ui_web_player_serve_input(lh_ptr ctx, const lh_http_request_t *request,
-                             const lh_http_header_t *headers, const lh_str_ptr req, lh_usize_t len,
+                             const lh_http_header_t *headers, const lh_str_view_t *request_body,
                              lh_os_net_socket_t *client)
 {
     LH_ATTRIBUTE_UNUSED(headers);
-    LH_ATTRIBUTE_UNUSED(req);
-    LH_ATTRIBUTE_UNUSED(len);
+    LH_ATTRIBUTE_UNUSED(request_body);
 
     lh_ui_web_player_t *self = lh_ptr_rcast(lh_ui_web_player_t, ctx);
     const lh_sint_t x = lh_ui_web_host_get_query_int(request, lh_str_lit("x="));
@@ -680,7 +675,7 @@ lh_ui_web_player_serve_input(lh_ptr ctx, const lh_http_request_t *request,
         return lh_bool_false;
     }
     lh_ui_web_app_bump(lh_ui_web_player_get_app(self));
-    lh_ui_web_host_reply_text(client, 200u, lh_str_lit("ok\n"));
+    lh_ui_web_host_reply_text(client, request, lh_http_status_ok, lh_str_lit("ok\n"));
     return lh_bool_true;
 }
 

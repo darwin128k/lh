@@ -9,10 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- HTTP request framing helpers reject ambiguous lengths and unsupported transfer encodings.
+- HTTP response status-line, field and head formatters with fallible and
+  checked forms; `lh_http_header_set` stores both borrowed field views.
+- `LH_STR_FORMAT_ULLONG_DIGITS_MAX` bounds a decimal unsigned-long-long buffer.
+- Named HTTP status codes, status predicates and borrowed reason phrases.
+- Named HTTP methods, their wire names and parsed-request method matching.
+
 - `lh_http_request_get_path` returns the borrowed target before its query.
 
 - `lh_ui_web_host_try_read_request` and its checked form read a complete HTTP
-  head from fragmented socket input within a time limit.
+  request, including its Content-Length body, from fragmented socket input within a time limit.
 
 - `lh_http_header_find` finds a field by its ASCII case-insensitive name.
 
@@ -23,7 +30,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   byte span, upper and lower case accepted, the caller's bytes left alone when
   the text does not hold.
 
+### Changed
+
+- Web route callbacks receive a borrowed view of the complete request body.
+
 ### Fixed
+
+- The web host omits response content and Content-Length for statuses that
+  prohibit content, including 1xx, 204, 205 and 304. HEAD sends no body while
+  retaining the representation length; successful CONNECT omits both.
 
 - String view splitting and tail preserve the source address for empty results
   at either boundary, including a delimiter at the start or end.
@@ -60,6 +75,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and the peer rejected the frame. It is widened to `lh_u64_t` first.
 
 ### Changed
+
+- The web host serializes ordinary and WebSocket response heads from HTTP
+  response and header objects using the common HTTP formatter. The response
+  helpers now accept the parsed request to honor its method. Status 500 now
+  uses its standard `Internal Server Error` phrase; unknown valid statuses have
+  an empty phrase instead of being labelled `Not Found`.
 
 - Web routes match parsed HTTP request objects. `lh_ui_web_route_is_match`
   replaces `lh_ui_web_route_match`; `lh_ui_web_host_is_route` replaces

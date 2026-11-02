@@ -29,6 +29,13 @@ lh_http_header_set_value(lh_http_header_t *self, lh_str_view_t value)
     self->value = value;
 }
 
+lh_void
+lh_http_header_set(lh_http_header_t *self, lh_str_view_t name, lh_str_view_t value)
+{
+    lh_http_header_set_name(self, name);
+    lh_http_header_set_value(self, value);
+}
+
 const lh_http_header_t *
 lh_http_header_find(const lh_http_header_t *headers, lh_usize_t count, const lh_str_view_t *name)
 {

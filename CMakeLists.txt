@@ -136,9 +136,13 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/ini/parser.c
         ${LH_LIB_SRC_PATH}/http/char.c
         ${LH_LIB_SRC_PATH}/http/header.c
+        ${LH_LIB_SRC_PATH}/http/format.c
+        ${LH_LIB_SRC_PATH}/http/framing.c
+        ${LH_LIB_SRC_PATH}/http/method.c
         ${LH_LIB_SRC_PATH}/http/parser.c
         ${LH_LIB_SRC_PATH}/http/request.c
         ${LH_LIB_SRC_PATH}/http/response.c
+        ${LH_LIB_SRC_PATH}/http/status.c
         ${LH_LIB_SRC_PATH}/http/version.c
         ${LH_LIB_SRC_PATH}/sql/db.c
         ${LH_LIB_SRC_PATH}/sql/driver.c
