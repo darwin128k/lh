@@ -5,8 +5,6 @@
 
 #include <lh/ui/web/app.h>
 
-#include <lh/util/str/ptr.h>
-
 const lh_ui_web_route_t *
 lh_ui_web_app_get_routes(const lh_ui_web_app_t *self)
 {
@@ -140,34 +138,17 @@ lh_ui_web_app_bump(lh_ui_web_app_t *self)
 }
 
 lh_bool_t
-lh_ui_web_app_is_websocket(const lh_ui_web_app_t *self, const lh_str_ptr req, lh_usize_t len)
+lh_ui_web_app_is_websocket(const lh_ui_web_app_t *self, const lh_http_request_t *request)
 {
-    lh_usize_t off = 0u;
-    lh_usize_t path_len;
-
-    path_len = lh_ui_web_app_get_ws_path_len(self);
-    if (path_len == 0u)
+    const lh_usize_t path_len = lh_ui_web_app_get_ws_path_len(self);
+    if (lh_math_is_zero(path_len))
     {
         return lh_bool_false;
     }
-    /* The path follows the method and its space; it ends at the `?` of the
-       query or at the space before the HTTP version. */
-    while (off < len && req[off] != ' ')
-    {
-        ++off;
-    }
-    if (off >= len)
-    {
-        return lh_bool_false;
-    }
-    ++off;
-    if (!lh_str_ptr_starts_with_by_size(req + off, len - off, lh_ui_web_app_get_ws_path(self), path_len,
-                                        lh_bool_false))
-    {
-        return lh_bool_false;
-    }
-    off += path_len;
-    return (off >= len || req[off] == ' ' || req[off] == '?') ? lh_bool_true : lh_bool_false;
+    const lh_str_view_t path = lh_http_request_get_path(request);
+    const lh_str_view_t expected =
+        lh_str_view_initializer(lh_ui_web_app_get_ws_path(self), path_len);
+    return lh_str_view_equals(lh_addr_of(path), lh_addr_of(expected), lh_bool_false);
 }
 
 lh_bool_t

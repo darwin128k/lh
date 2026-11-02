@@ -33,12 +33,14 @@ TEST(str_view_split_once, delim_at_edges_gives_empty_sides)
     lh_str_view_t tail;
 
     ASSERT_TRUE(lh_str_view_split_once(&leading, '=', &head, &tail));
-    EXPECT_TRUE(lh_str_view_is_empty(&head));
+    EXPECT_TRUE(lh_str_view_is_empty(lh_addr_of(head)));
+    EXPECT_EQ(lh_str_view_get_data(lh_addr_of(head)), lh_str_view_get_data(lh_addr_of(leading)));
     EXPECT_EQ(text(tail), "v");
 
     ASSERT_TRUE(lh_str_view_split_once(&trailing, '=', &head, &tail));
     EXPECT_EQ(text(head), "k");
-    EXPECT_TRUE(lh_str_view_is_empty(&tail));
+    EXPECT_TRUE(lh_str_view_is_empty(lh_addr_of(tail)));
+    EXPECT_EQ(lh_str_view_get_data(lh_addr_of(tail)), lh_str_view_get_end(lh_addr_of(trailing)));
 
     ASSERT_TRUE(lh_str_view_split_once(&only, '=', &head, &tail));
     EXPECT_TRUE(lh_str_view_is_empty(&head));

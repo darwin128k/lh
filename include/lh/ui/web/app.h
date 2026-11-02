@@ -18,6 +18,7 @@
 #define LH_UI_WEB_APP_H
 
 #include <lh/config.h>
+#include <lh/http/request.h>
 #include <lh/ui/canvas/web.h>
 #include <lh/ui/web/app/fields.h>
 #include <lh/ui/web/app/route.h>
@@ -267,13 +268,13 @@ lh_ui_web_app_bump(lh_ui_web_app_t *self);
  * @brief Whether @p req asks for the websocket.
  *
  * @param self The application; checked by ::lh_assert_runtime_ref.
- * @param req  The request, as it came in.
- * @param len  Its length.
+ * @param request Parsed request; its target bytes remain caller-owned.
  *
- * @return ::lh_bool_true when the request is the websocket one.
+ * @return ::lh_bool_true when the request target names the websocket path;
+ *         ::lh_bool_false when no path is configured or it differs.
  */
 lh_bool_t
-lh_ui_web_app_is_websocket(const lh_ui_web_app_t *self, const lh_str_ptr req, lh_usize_t len);
+lh_ui_web_app_is_websocket(const lh_ui_web_app_t *self, const lh_http_request_t *request);
 
 /**
  * @brief Let the routes answer @p req.

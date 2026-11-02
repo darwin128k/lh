@@ -71,6 +71,7 @@ endfunction()
 set(LH_TEST_LISTED_SOURCES)
 
 lh_add_test_core(lh_test_http_parser ${LH_TEST_SRC_PATH}/lh/http/parser.cpp
+        ${LH_TEST_SRC_PATH}/lh/http/request.cpp
         ${LH_TEST_SRC_PATH}/lh/http/char.cpp ${LH_TEST_SRC_PATH}/lh/http/version.cpp)
 
 # The event bus modules talk through: registry, subscribers, deferred removal.

@@ -79,6 +79,21 @@ lh_http_request_get_header_count(const lh_http_request_t *self);
 lh_void
 lh_http_request_set_header_count(lh_http_request_t *self, lh_usize_t header_count);
 
+/**
+ * @brief Return the request target before its first query delimiter.
+ *
+ * The result is a borrowed view into the same input as the target. If there
+ * is no query delimiter, it covers the entire target. This does not decode or
+ * normalize the target, nor interpret an absolute-form URI.
+ *
+ * @param self Request whose target must be a valid view.
+ * @return The path portion, including an empty view when the target starts
+ *         with a query delimiter. The caller does not own its bytes.
+ * @fails ::lh_runtime_error_code_null_pointer @p self is null.
+ */
+lh_str_view_t
+lh_http_request_get_path(const lh_http_request_t *self);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_HTTP_REQUEST_H */

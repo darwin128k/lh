@@ -66,24 +66,24 @@ TEST(ui_web_app, set_ws_path_and_set_ws_path_len_store_one_field_each)
     EXPECT_EQ(lh_ui_web_app_get_ws_path_len(&app), 3u);
 }
 
-TEST(ui_web_app, is_websocket_reads_the_path_up_to_its_length)
+TEST(ui_web_app, is_websocket_matches_the_parsed_target_path)
 {
-    const lh_str_ptr upgrade = "GET /ws HTTP/1.1";
-    const lh_str_ptr query = "GET /ws?x=1 HTTP/1.1";
-    const lh_str_ptr longer = "GET /wsx HTTP/1.1";
     lh_ui_web_app_t app;
+    lh_http_request_t request;
+    const lh_str_view_t path = lh_str_view_initializer_lit("/ws");
+    const lh_str_view_t query = lh_str_view_initializer_lit("/ws?x=1");
+    const lh_str_view_t longer = lh_str_view_initializer_lit("/wsx");
 
     lh_ui_web_app_init(lh_addr_of(app), lh_null, 0u);
     lh_ui_web_app_set_ws_path(lh_addr_of(app), "/ws");
-
-    /* A path with no length is no websocket. */
-    EXPECT_FALSE(lh_ui_web_app_is_websocket(&app, upgrade, lh_str_lit_size("GET /ws HTTP/1.1")));
-
+    lh_http_request_set_target(lh_addr_of(request), path);
+    EXPECT_FALSE(lh_ui_web_app_is_websocket(lh_addr_of(app), lh_addr_of(request)));
     lh_ui_web_app_set_ws_path_len(lh_addr_of(app), lh_str_lit_size("/ws"));
-
-    EXPECT_TRUE(lh_ui_web_app_is_websocket(&app, upgrade, lh_str_lit_size("GET /ws HTTP/1.1")));
-    EXPECT_TRUE(lh_ui_web_app_is_websocket(&app, query, lh_str_lit_size("GET /ws?x=1 HTTP/1.1")));
-    EXPECT_FALSE(lh_ui_web_app_is_websocket(&app, longer, lh_str_lit_size("GET /wsx HTTP/1.1")));
+    EXPECT_TRUE(lh_ui_web_app_is_websocket(lh_addr_of(app), lh_addr_of(request)));
+    lh_http_request_set_target(lh_addr_of(request), query);
+    EXPECT_TRUE(lh_ui_web_app_is_websocket(lh_addr_of(app), lh_addr_of(request)));
+    lh_http_request_set_target(lh_addr_of(request), longer);
+    EXPECT_FALSE(lh_ui_web_app_is_websocket(lh_addr_of(app), lh_addr_of(request)));
 }
 
 #endif /* LH_LIBRARY_OPTION_OS */
