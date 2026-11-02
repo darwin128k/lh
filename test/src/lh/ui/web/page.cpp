@@ -80,3 +80,21 @@ TEST(web_page, a_held_button_sends_moves_and_the_last_before_the_release)
     ASSERT_NE(up, std::string::npos);
     EXPECT_LT(page.find("flushMove()", up), page.find("emit('r '", up));
 }
+
+TEST(web_page, tint_emits_canvas_operations_from_expressions)
+{
+    const std::string page = page_text();
+    const auto start = page.find("function tint(a,c){");
+    ASSERT_NE(start, std::string::npos);
+    const auto end = page.find("function glyph(", start);
+    ASSERT_NE(end, std::string::npos);
+    const std::string tint = page.substr(start, end - start);
+    EXPECT_NE(tint.find("var t=((document).createElement)('canvas');"), std::string::npos);
+    EXPECT_NE(tint.find("(t).width=(a).width;"), std::string::npos);
+    EXPECT_NE(tint.find("(t).height=(a).height;"), std::string::npos);
+    EXPECT_NE(tint.find("var g=((t).getContext)('2d');"), std::string::npos);
+    EXPECT_NE(tint.find("(g).fillStyle=rgba(c);"), std::string::npos);
+    EXPECT_NE(tint.find("((g).fillRect)(0,0,(t).width,(t).height);"), std::string::npos);
+    EXPECT_NE(tint.find("(g).globalCompositeOperation='destination-in';"), std::string::npos);
+    EXPECT_NE(tint.find("((g).drawImage)(a,0,0);"), std::string::npos);
+}

@@ -307,18 +307,65 @@ lh_ui_web_player_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len
 
     /* -- tint ------------------------------------------------------------------ */
     lh_ui_web_js_fun_open(j, "tint", "a,c");
-    lh_ui_web_js_var(j, "t", "document.createElement('canvas')");
-    lh_ui_web_js_assign(j, "t.width", "a.width");
-    lh_ui_web_js_assign(j, "t.height", "a.height");
-    lh_ui_web_js_if(j, "!a.width||!a.height");
-    lh_ui_web_js_ret(j, "t");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_var(j, "g", "t.getContext('2d')");
-    lh_ui_web_js_assign(j, "g.fillStyle", "rgba(c)");
-    lh_ui_web_js_stmt(j, "g.fillRect(0,0,t.width,t.height)");
-    lh_ui_web_js_assign(j, "g.globalCompositeOperation", "'destination-in'");
-    lh_ui_web_js_stmt(j, "g.drawImage(a,0,0)");
-    lh_ui_web_js_ret(j, "t");
+    {
+        lh_ui_web_x_t document, create_element, canvas, create_canvas, t, a, c;
+        lh_ui_web_x_t t_width, t_height, a_width, a_height, no_width, no_height, empty;
+        lh_ui_web_x_t get_context, context_2d, get_2d, g, fill_style, rgba;
+        lh_ui_web_x_t fill_rect, zero, rect, composite, destination_in, draw_image, draw;
+        const lh_ui_web_x_t *one_arg[1];
+        const lh_ui_web_x_t *rect_args[4];
+        const lh_ui_web_x_t *draw_args[3];
+
+        lh_ui_web_x_id("document", lh_addr_of(document));
+        lh_ui_web_x_dot(lh_addr_of(document), "createElement", lh_addr_of(create_element));
+        lh_ui_web_x_str("canvas", lh_addr_of(canvas));
+        one_arg[0] = lh_addr_of(canvas);
+        lh_ui_web_x_call(lh_addr_of(create_element), one_arg, 1u, lh_addr_of(create_canvas));
+        lh_ui_web_js_var_x(j, "t", lh_addr_of(create_canvas));
+        lh_ui_web_x_id("t", lh_addr_of(t));
+        lh_ui_web_x_id("a", lh_addr_of(a));
+        lh_ui_web_x_id("c", lh_addr_of(c));
+        lh_ui_web_x_dot(lh_addr_of(t), "width", lh_addr_of(t_width));
+        lh_ui_web_x_dot(lh_addr_of(t), "height", lh_addr_of(t_height));
+        lh_ui_web_x_dot(lh_addr_of(a), "width", lh_addr_of(a_width));
+        lh_ui_web_x_dot(lh_addr_of(a), "height", lh_addr_of(a_height));
+        lh_ui_web_js_assign_x(j, lh_addr_of(t_width), lh_addr_of(a_width));
+        lh_ui_web_js_assign_x(j, lh_addr_of(t_height), lh_addr_of(a_height));
+        lh_ui_web_x_un("!", lh_addr_of(a_width), lh_addr_of(no_width));
+        lh_ui_web_x_un("!", lh_addr_of(a_height), lh_addr_of(no_height));
+        lh_ui_web_x_bin(lh_addr_of(no_width), "||", lh_addr_of(no_height), lh_addr_of(empty));
+        lh_ui_web_js_if_x(j, lh_addr_of(empty));
+        lh_ui_web_js_ret_x(j, lh_addr_of(t));
+        lh_ui_web_js_end(j);
+        lh_ui_web_x_dot(lh_addr_of(t), "getContext", lh_addr_of(get_context));
+        lh_ui_web_x_str("2d", lh_addr_of(context_2d));
+        one_arg[0] = lh_addr_of(context_2d);
+        lh_ui_web_x_call(lh_addr_of(get_context), one_arg, 1u, lh_addr_of(get_2d));
+        lh_ui_web_js_var_x(j, "g", lh_addr_of(get_2d));
+        lh_ui_web_x_id("g", lh_addr_of(g));
+        lh_ui_web_x_dot(lh_addr_of(g), "fillStyle", lh_addr_of(fill_style));
+        one_arg[0] = lh_addr_of(c);
+        lh_ui_web_x_call_id("rgba", one_arg, 1u, lh_addr_of(rgba));
+        lh_ui_web_js_assign_x(j, lh_addr_of(fill_style), lh_addr_of(rgba));
+        lh_ui_web_x_dot(lh_addr_of(g), "fillRect", lh_addr_of(fill_rect));
+        lh_ui_web_x_num(0, lh_addr_of(zero));
+        rect_args[0] = lh_addr_of(zero);
+        rect_args[1] = lh_addr_of(zero);
+        rect_args[2] = lh_addr_of(t_width);
+        rect_args[3] = lh_addr_of(t_height);
+        lh_ui_web_x_call(lh_addr_of(fill_rect), rect_args, 4u, lh_addr_of(rect));
+        lh_ui_web_js_stmt_x(j, lh_addr_of(rect));
+        lh_ui_web_x_dot(lh_addr_of(g), "globalCompositeOperation", lh_addr_of(composite));
+        lh_ui_web_x_str("destination-in", lh_addr_of(destination_in));
+        lh_ui_web_js_assign_x(j, lh_addr_of(composite), lh_addr_of(destination_in));
+        lh_ui_web_x_dot(lh_addr_of(g), "drawImage", lh_addr_of(draw_image));
+        draw_args[0] = lh_addr_of(a);
+        draw_args[1] = lh_addr_of(zero);
+        draw_args[2] = lh_addr_of(zero);
+        lh_ui_web_x_call(lh_addr_of(draw_image), draw_args, 3u, lh_addr_of(draw));
+        lh_ui_web_js_stmt_x(j, lh_addr_of(draw));
+        lh_ui_web_js_ret_x(j, lh_addr_of(t));
+    }
     lh_ui_web_js_fun_close(j);
 
     /* -- glyph ----------------------------------------------------------------- */
