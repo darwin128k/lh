@@ -122,3 +122,33 @@ TEST(web_page, decode_cover_preserves_canvas_setup_and_pixel_upload)
     EXPECT_LT(loop, upload);
     EXPECT_NE(function.find("return im;", upload), std::string::npos);
 }
+
+TEST(web_page, round_selects_rounded_or_plain_canvas_path)
+{
+    const std::string page = page_text();
+    const auto start = page.find("function round(x,r,rad){");
+    ASSERT_NE(start, std::string::npos);
+    const auto end = page.find("function pane3d(", start);
+    ASSERT_NE(end, std::string::npos);
+    const std::string function = page.substr(start, end - start);
+    EXPECT_NE(function.find("((x).beginPath)();"), std::string::npos);
+    EXPECT_NE(function.find("if((x).roundRect){"), std::string::npos);
+    EXPECT_NE(function.find("((x).roundRect)((r)[0],(r)[1],(r)[2],(r)[3],(rad)||(0));"),
+              std::string::npos);
+    EXPECT_NE(function.find("((x).rect)((r)[0],(r)[1],(r)[2],(r)[3]);"), std::string::npos);
+}
+
+TEST(web_page, ingest_guards_and_stores_decoded_glyphs)
+{
+    const std::string page = page_text();
+    const auto start = page.find("function ingest(d){");
+    ASSERT_NE(start, std::string::npos);
+    const auto end = page.find("function tint(", start);
+    ASSERT_NE(end, std::string::npos);
+    const std::string function = page.substr(start, end - start);
+    EXPECT_NE(function.find("op=(ops)[i];"), std::string::npos);
+    EXPECT_NE(function.find("((op).cover)!==(undefined)"), std::string::npos);
+    EXPECT_NE(function.find("typeof((op).m))===('number')"), std::string::npos);
+    EXPECT_NE(function.find("(atlas)[(op).m]=decodeCover(((op).size)[0],((op).size)[1],(op).cover);"),
+              std::string::npos);
+}

@@ -343,10 +343,40 @@ lh_ui_web_player_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len
     lh_ui_web_js_fun_open(j, "ingest", "d");
     lh_ui_web_js_vars(j, "ops=d.ops||[],i,op");
     lh_ui_web_js_for(j, "i=0;i<ops.length;i++");
-    lh_ui_web_js_assign(j, "op", "ops[i]");
-    lh_ui_web_js_if(j, "op.cover!==undefined&&typeof op.m==='number'");
-    lh_ui_web_js_assign(j, "atlas[op.m]", "decodeCover(op.size[0],op.size[1],op.cover)");
-    lh_ui_web_js_end(j);
+    {
+        lh_ui_web_x_t op, ops, index, current, cover, undefined, has_cover;
+        lh_ui_web_x_t member, member_type, number, is_number, eligible, atlas, slot;
+        lh_ui_web_x_t size, zero, one, width, height, decoded;
+        const lh_ui_web_x_t *args[3];
+
+        lh_ui_web_x_id("op", lh_addr_of(op));
+        lh_ui_web_x_id("ops", lh_addr_of(ops));
+        lh_ui_web_x_id("i", lh_addr_of(index));
+        lh_ui_web_x_idx(lh_addr_of(ops), lh_addr_of(index), lh_addr_of(current));
+        lh_ui_web_js_assign_x(j, lh_addr_of(op), lh_addr_of(current));
+        lh_ui_web_x_dot(lh_addr_of(op), "cover", lh_addr_of(cover));
+        lh_ui_web_x_id("undefined", lh_addr_of(undefined));
+        lh_ui_web_x_bin(lh_addr_of(cover), "!==", lh_addr_of(undefined), lh_addr_of(has_cover));
+        lh_ui_web_x_dot(lh_addr_of(op), "m", lh_addr_of(member));
+        lh_ui_web_x_typeof(lh_addr_of(member), lh_addr_of(member_type));
+        lh_ui_web_x_str("number", lh_addr_of(number));
+        lh_ui_web_x_bin(lh_addr_of(member_type), "===", lh_addr_of(number), lh_addr_of(is_number));
+        lh_ui_web_x_bin(lh_addr_of(has_cover), "&&", lh_addr_of(is_number), lh_addr_of(eligible));
+        lh_ui_web_js_if_x(j, lh_addr_of(eligible));
+        lh_ui_web_x_id("atlas", lh_addr_of(atlas));
+        lh_ui_web_x_idx(lh_addr_of(atlas), lh_addr_of(member), lh_addr_of(slot));
+        lh_ui_web_x_dot(lh_addr_of(op), "size", lh_addr_of(size));
+        lh_ui_web_x_num(0, lh_addr_of(zero));
+        lh_ui_web_x_num(1, lh_addr_of(one));
+        lh_ui_web_x_idx(lh_addr_of(size), lh_addr_of(zero), lh_addr_of(width));
+        lh_ui_web_x_idx(lh_addr_of(size), lh_addr_of(one), lh_addr_of(height));
+        args[0] = lh_addr_of(width);
+        args[1] = lh_addr_of(height);
+        args[2] = lh_addr_of(cover);
+        lh_ui_web_x_call_id("decodeCover", args, 3u, lh_addr_of(decoded));
+        lh_ui_web_js_assign_x(j, lh_addr_of(slot), lh_addr_of(decoded));
+        lh_ui_web_js_end(j);
+    }
     lh_ui_web_js_end(j);
     lh_ui_web_js_fun_close(j);
 
@@ -439,12 +469,38 @@ lh_ui_web_player_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len
 
     /* -- round ----------------------------------------------------------------- */
     lh_ui_web_js_fun_open(j, "round", "x,r,rad");
-    lh_ui_web_js_stmt(j, "x.beginPath()");
-    lh_ui_web_js_if(j, "x.roundRect");
-    lh_ui_web_js_stmt(j, "x.roundRect(r[0],r[1],r[2],r[3],rad||0)");
-    lh_ui_web_js_else(j);
-    lh_ui_web_js_stmt(j, "x.rect(r[0],r[1],r[2],r[3])");
-    lh_ui_web_js_end(j);
+    {
+        lh_ui_web_x_t context, rectangle, radius, zero, rounded_radius;
+        lh_ui_web_x_t begin_path, begin, round_rect, rect, rounded, plain;
+        lh_ui_web_x_t indexes[4], coordinates[4];
+        const lh_ui_web_x_t *args[5];
+
+        lh_ui_web_x_id("x", lh_addr_of(context));
+        lh_ui_web_x_id("r", lh_addr_of(rectangle));
+        lh_ui_web_x_id("rad", lh_addr_of(radius));
+        lh_ui_web_x_num(0, lh_addr_of(zero));
+        lh_ui_web_x_dot(lh_addr_of(context), "beginPath", lh_addr_of(begin_path));
+        lh_ui_web_x_call(lh_addr_of(begin_path), lh_null, 0u, lh_addr_of(begin));
+        lh_ui_web_js_stmt_x(j, lh_addr_of(begin));
+        lh_ui_web_x_dot(lh_addr_of(context), "roundRect", lh_addr_of(round_rect));
+        lh_ui_web_x_dot(lh_addr_of(context), "rect", lh_addr_of(rect));
+        for (lh_u16_t i = 0u; i < 4u; i = lh_math_add_one(i))
+        {
+            lh_ui_web_x_num(i, lh_addr_of(indexes[i]));
+            lh_ui_web_x_idx(lh_addr_of(rectangle), lh_addr_of(indexes[i]),
+                            lh_addr_of(coordinates[i]));
+            args[i] = lh_addr_of(coordinates[i]);
+        }
+        lh_ui_web_x_bin(lh_addr_of(radius), "||", lh_addr_of(zero), lh_addr_of(rounded_radius));
+        args[4] = lh_addr_of(rounded_radius);
+        lh_ui_web_x_call(lh_addr_of(round_rect), args, 5u, lh_addr_of(rounded));
+        lh_ui_web_x_call(lh_addr_of(rect), args, 4u, lh_addr_of(plain));
+        lh_ui_web_js_if_x(j, lh_addr_of(round_rect));
+        lh_ui_web_js_stmt_x(j, lh_addr_of(rounded));
+        lh_ui_web_js_else(j);
+        lh_ui_web_js_stmt_x(j, lh_addr_of(plain));
+        lh_ui_web_js_end(j);
+    }
     lh_ui_web_js_fun_close(j);
 
     /* -- pane3d ---------------------------------------------------------------- */

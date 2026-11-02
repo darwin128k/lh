@@ -6,6 +6,7 @@
 #include <lh/ui/web/html.h>
 #include <lh/char/map.h>
 #include <lh/assert/runtime.h>
+
 lh_ui_web_html_kind_t
 lh_ui_web_html_get_kind(const lh_ui_web_html_t *self)
 {

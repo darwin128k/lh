@@ -386,27 +386,6 @@ lh_js_lexer_get_error_buffer_mut(lh_js_lexer_t *self)
 }
 
 lh_bool_t
-lh_js_lexer_is_name_start(lh_char_t ch)
-{
-    if (lh_char_is_letter(ch))
-    {
-        return lh_bool_true;
-    }
-    return (ch == lh_char_map_dollar || ch == lh_char_map_underscore) ? lh_bool_true
-                                                                      : lh_bool_false;
-}
-
-lh_bool_t
-lh_js_lexer_is_name_part(lh_char_t ch)
-{
-    if (lh_js_lexer_is_name_start(ch))
-    {
-        return lh_bool_true;
-    }
-    return lh_char_is_digit(ch) ? lh_bool_true : lh_bool_false;
-}
-
-lh_bool_t
 lh_js_lexer_is_keyword(const lh_str_view_t *text)
 {
     lh_usize_t i;

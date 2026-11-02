@@ -5,6 +5,7 @@
 
 #include <lh/ui/web/js/x.h>
 #include <lh/char/map.h>
+#include <lh/js/lexer/name.h>
 #include <lh/str/format/sllong.h>
 
 lh_void
@@ -17,35 +18,48 @@ lh_ui_web_js_put_s64(lh_ui_web_buf_t *self, lh_s64_t n)
 lh_void
 lh_ui_web_js_put_str_lit(lh_ui_web_buf_t *self, const lh_str_ptr s)
 {
+    static const lh_char_t escape_chars[] = {lh_char_map_backslash, lh_char_map_squote,
+                                             lh_char_map_lf,        lh_char_map_cr,
+                                             lh_char_map_ht,        lh_char_map_less};
     lh_ui_web_buf_lit(self, "'", 1u);
     if (s != lh_null)
     {
-        while (lh_ptr_deref(s) != lh_char_map_nul)
+        lh_str_cptr at = s;
+        lh_usize_t remaining = lh_str_ptr_len(s);
+        while (remaining != 0u)
         {
-            lh_char_t c;
-
-            c = lh_ptr_deref(s++);
-            if (c == lh_char_map_backslash || c == lh_char_map_squote)
+            const lh_str_ptr found =
+                lh_str_ptr_find_of_chars(at, remaining, escape_chars, sizeof(escape_chars));
+            if (found == lh_null)
+            {
+                lh_ui_web_buf_lit(self, at, remaining);
+                break;
+            }
+            const lh_usize_t prefix = lh_cast_static(lh_usize_t, found - at);
+            lh_ui_web_buf_lit(self, at, prefix);
+            if (lh_str_ptr_contains_char(escape_chars, 2u, lh_ptr_deref(found)))
             {
                 lh_ui_web_buf_lit(self, "\\", 1u);
-                lh_ui_web_buf_lit(self, lh_addr_of(c), 1u);
+                lh_ui_web_buf_lit(self, found, 1u);
             }
-            else if (c == lh_char_map_lf)
+            else if (lh_ptr_deref(found) == lh_char_map_lf)
             {
                 lh_ui_web_buf_lit(self, "\\n", 2u);
             }
-            else if (c == lh_char_map_cr)
+            else if (lh_ptr_deref(found) == lh_char_map_cr)
             {
                 lh_ui_web_buf_lit(self, "\\r", 2u);
             }
-            else if (c == lh_char_map_ht)
+            else if (lh_ptr_deref(found) == lh_char_map_ht)
             {
                 lh_ui_web_buf_lit(self, "\\t", 2u);
             }
             else
             {
-                lh_ui_web_buf_lit(self, lh_addr_of(c), 1u);
+                lh_ui_web_buf_lit(self, "\\x3c", 4u);
             }
+            at = found + 1u;
+            remaining -= prefix + 1u;
         }
     }
     lh_ui_web_buf_lit(self, "'", 1u);
@@ -78,16 +92,16 @@ lh_ui_web_js_emit_x(lh_ui_web_buf_t *self, const lh_ui_web_x_t *x)
         lh_ui_web_buf_fail(self);
         return;
     }
-    switch (x->kind)
+    switch (lh_ui_web_x_get_kind(x))
     {
     case lh_ui_web_x_kind_id:
-        lh_ui_web_buf_raw(self, x->u.id);
+        lh_ui_web_buf_raw(self, lh_ui_web_x_get_id(x));
         break;
     case lh_ui_web_x_kind_num:
-        lh_ui_web_js_put_s64(self, x->u.num);
+        lh_ui_web_js_put_s64(self, lh_ui_web_x_get_num(x));
         break;
     case lh_ui_web_x_kind_str:
-        lh_ui_web_js_put_str_lit(self, x->u.str);
+        lh_ui_web_js_put_str_lit(self, lh_ui_web_x_get_str(x));
         break;
     case lh_ui_web_x_kind_null:
         lh_ui_web_buf_lit(self, "null", 4u);
@@ -100,67 +114,81 @@ lh_ui_web_js_emit_x(lh_ui_web_buf_t *self, const lh_ui_web_x_t *x)
         break;
     case lh_ui_web_x_kind_dot:
         lh_ui_web_buf_lit(self, "(", 1u);
-        lh_ui_web_js_emit_x(self, x->u.dot.obj);
+        lh_ui_web_js_emit_x(self, lh_ui_web_x_get_dot_obj(x));
         lh_ui_web_buf_lit(self, ").", 2u);
-        lh_ui_web_buf_raw(self, x->u.dot.name);
+        lh_ui_web_buf_raw(self, lh_ui_web_x_get_dot_name(x));
         break;
     case lh_ui_web_x_kind_idx:
         lh_ui_web_buf_lit(self, "(", 1u);
-        lh_ui_web_js_emit_x(self, x->u.idx.obj);
+        lh_ui_web_js_emit_x(self, lh_ui_web_x_get_idx_obj(x));
         lh_ui_web_buf_lit(self, ")[", 2u);
-        lh_ui_web_js_emit_x(self, x->u.idx.ix);
+        lh_ui_web_js_emit_x(self, lh_ui_web_x_get_idx_ix(x));
         lh_ui_web_buf_lit(self, "]", 1u);
         break;
     case lh_ui_web_x_kind_call:
         lh_ui_web_buf_lit(self, "(", 1u);
-        lh_ui_web_js_emit_x(self, x->u.call.fn);
+        lh_ui_web_js_emit_x(self, lh_ui_web_x_get_call_fn(x));
         lh_ui_web_buf_lit(self, ")", 1u);
-        lh_ui_web_js_emit_args(self, x->u.call.args, x->u.call.n);
+        lh_ui_web_js_emit_args(self, lh_ui_web_x_get_call_args(x), lh_ui_web_x_get_call_n(x));
         break;
     case lh_ui_web_x_kind_call_id:
-        lh_ui_web_buf_raw(self, x->u.call_id.name);
-        lh_ui_web_js_emit_args(self, x->u.call_id.args, x->u.call_id.n);
+        lh_ui_web_buf_raw(self, lh_ui_web_x_get_call_id_name(x));
+        lh_ui_web_js_emit_args(self, lh_ui_web_x_get_call_id_args(x), lh_ui_web_x_get_call_id_n(x));
         break;
     case lh_ui_web_x_kind_bin:
         lh_ui_web_buf_lit(self, "(", 1u);
-        lh_ui_web_js_emit_x(self, x->u.bin.a);
+        lh_ui_web_js_emit_x(self, lh_ui_web_x_get_bin_a(x));
         lh_ui_web_buf_lit(self, ")", 1u);
-        lh_ui_web_buf_raw(self, x->u.bin.op);
+        lh_ui_web_buf_raw(self, lh_ui_web_x_get_bin_op(x));
         lh_ui_web_buf_lit(self, "(", 1u);
-        lh_ui_web_js_emit_x(self, x->u.bin.b);
+        lh_ui_web_js_emit_x(self, lh_ui_web_x_get_bin_b(x));
         lh_ui_web_buf_lit(self, ")", 1u);
         break;
     case lh_ui_web_x_kind_un:
-        lh_ui_web_buf_raw(self, x->u.un.op);
+        lh_ui_web_buf_raw(self, lh_ui_web_x_get_un_op(x));
         lh_ui_web_buf_lit(self, "(", 1u);
-        lh_ui_web_js_emit_x(self, x->u.un.a);
+        lh_ui_web_js_emit_x(self, lh_ui_web_x_get_un_a(x));
         lh_ui_web_buf_lit(self, ")", 1u);
         break;
     case lh_ui_web_x_kind_tern:
         lh_ui_web_buf_lit(self, "(", 1u);
-        lh_ui_web_js_emit_x(self, x->u.tern.c);
+        lh_ui_web_js_emit_x(self, lh_ui_web_x_get_tern_c(x));
         lh_ui_web_buf_lit(self, ")?(", 3u);
-        lh_ui_web_js_emit_x(self, x->u.tern.t);
+        lh_ui_web_js_emit_x(self, lh_ui_web_x_get_tern_t(x));
         lh_ui_web_buf_lit(self, "):(", 3u);
-        lh_ui_web_js_emit_x(self, x->u.tern.f);
+        lh_ui_web_js_emit_x(self, lh_ui_web_x_get_tern_f(x));
         lh_ui_web_buf_lit(self, ")", 1u);
         break;
     case lh_ui_web_x_kind_typeof:
         lh_ui_web_buf_lit(self, "typeof(", 7u);
-        lh_ui_web_js_emit_x(self, x->u.typeof_a);
+        lh_ui_web_js_emit_x(self, lh_ui_web_x_get_typeof_a(x));
         lh_ui_web_buf_lit(self, ")", 1u);
         break;
     case lh_ui_web_x_kind_obj:
         lh_ui_web_buf_lit(self, "{", 1u);
-        for (i = 0u; i < x->u.obj.n; ++i)
+        for (i = 0u; i < lh_ui_web_x_get_obj_n(x); ++i)
         {
             if (i != 0u)
             {
                 lh_ui_web_buf_lit(self, ",", 1u);
             }
-            lh_ui_web_buf_raw(self, x->u.obj.keys[i]);
-            lh_ui_web_buf_lit(self, ":", 1u);
-            lh_ui_web_js_emit_x(self, x->u.obj.vals[i]);
+            const lh_str_ptr key = lh_ui_web_x_get_obj_keys(x)[i];
+            const lh_str_view_t prototype = lh_str_view_initializer_lit("__proto__");
+            lh_str_view_t name;
+            lh_str_view_init(lh_addr_of(name), key);
+            if (lh_js_lexer_name_is_ascii_identifier(lh_addr_of(name)) &&
+                !lh_str_view_equals(lh_addr_of(name), lh_addr_of(prototype), lh_bool_false))
+            {
+                lh_ui_web_buf_lit(self, key, lh_str_view_get_size(lh_addr_of(name)));
+                lh_ui_web_buf_lit(self, ":", 1u);
+            }
+            else
+            {
+                lh_ui_web_buf_lit(self, "[", 1u);
+                lh_ui_web_js_put_str_lit(self, key);
+                lh_ui_web_buf_lit(self, "]:", 2u);
+            }
+            lh_ui_web_js_emit_x(self, lh_ui_web_x_get_obj_vals(x)[i]);
         }
         lh_ui_web_buf_lit(self, "}", 1u);
         break;
