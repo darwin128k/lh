@@ -107,6 +107,14 @@ lh_add_test_core(lh_test_core
         ${LH_TEST_SRC_PATH}/lh/web/json/minify.cpp
         ${LH_TEST_SRC_PATH}/lh/web/json/reader.cpp
         ${LH_TEST_SRC_PATH}/lh/web/json/writer.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/html/attr.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/html/escape.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/html/name.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/html/node.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/html/writer.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/js/op.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/js/node.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/js/writer.cpp
         ${LH_TEST_SRC_PATH}/lh/sql/db.cpp
         ${LH_TEST_SRC_PATH}/lh/sql/mysql/query.cpp
         ${LH_TEST_SRC_PATH}/lh/version.cpp
@@ -409,9 +417,6 @@ set(LH_TEST_UI_SOURCES
         ${LH_TEST_SRC_PATH}/lh/ui/web/app/route.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/host.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/buf.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/web/html.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/web/js.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/web/x_fields.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/page.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/player.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/ws.cpp

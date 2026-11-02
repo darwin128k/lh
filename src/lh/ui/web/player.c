@@ -16,28 +16,25 @@
 #include <lh/memory.h>
 #include <lh/os/input.h>
 #include <lh/os/tick.h>
-#include <lh/str/format/text.h>
-#include <lh/str/parse/text.h>
 #include <lh/util/return.h>
 
 /** The paths the player's routes answer. */
 static const lh_str_ptr m_ui_web_player_paths[LH_UI_WEB_PLAYER_ROUTES] = {
-    "/",         "/ui.json",   "/ui.rev",     "/ui/click", "/ui/press", "/ui/release",
-    "/ui/move",  "/ui/wheel",  "/ui/key",     "/ui/text",  "/ui/size"};
+    "/",        "/ui.json",  "/ui.rev", "/ui/click", "/ui/press", "/ui/release",
+    "/ui/move", "/ui/wheel", "/ui/key", "/ui/text",  "/ui/size"};
 /** @copydoc m_ui_web_player_paths */
 static const lh_usize_t m_ui_web_player_path_lens[LH_UI_WEB_PLAYER_ROUTES] = {
-    lh_str_lit_size("/"),         lh_str_lit_size("/ui.json"),   lh_str_lit_size("/ui.rev"),
+    lh_str_lit_size("/"),         lh_str_lit_size("/ui.json"),  lh_str_lit_size("/ui.rev"),
     lh_str_lit_size("/ui/click"), lh_str_lit_size("/ui/press"), lh_str_lit_size("/ui/release"),
-    lh_str_lit_size("/ui/move"),  lh_str_lit_size("/ui/wheel"),  lh_str_lit_size("/ui/key"),
+    lh_str_lit_size("/ui/move"),  lh_str_lit_size("/ui/wheel"), lh_str_lit_size("/ui/key"),
     lh_str_lit_size("/ui/text"),  lh_str_lit_size("/ui/size")};
 /** What answers each of the player's routes. */
 static const lh_ui_web_route_fn m_ui_web_player_handlers[LH_UI_WEB_PLAYER_ROUTES] = {
-    lh_ui_web_player_serve_page,     lh_ui_web_player_serve_frame,
-    lh_ui_web_player_serve_revision, lh_ui_web_player_serve_input,
-    lh_ui_web_player_serve_input,    lh_ui_web_player_serve_input,
-    lh_ui_web_player_serve_input,    lh_ui_web_player_serve_input,
-    lh_ui_web_player_serve_input,    lh_ui_web_player_serve_input,
-    lh_ui_web_player_serve_input};
+    lh_ui_web_player_serve_page,  lh_ui_web_player_serve_frame, lh_ui_web_player_serve_revision,
+    lh_ui_web_player_serve_input, lh_ui_web_player_serve_input, lh_ui_web_player_serve_input,
+    lh_ui_web_player_serve_input, lh_ui_web_player_serve_input, lh_ui_web_player_serve_input,
+    lh_ui_web_player_serve_input, lh_ui_web_player_serve_input};
+
 lh_ui_web_app_t *
 lh_ui_web_player_get_app(lh_ui_web_player_t *self)
 {
@@ -332,16 +329,15 @@ lh_ui_web_player_serve_revision(lh_ptr ctx, const lh_http_request_t *request,
 }
 
 lh_bool_t
-lh_ui_web_player_draw(lh_ui_web_player_t *self, lh_ui_canvas_web_glyphs_t *glyphs, const lh_str_ptr *bytes,
-                      lh_usize_t *len)
+lh_ui_web_player_draw(lh_ui_web_player_t *self, lh_ui_canvas_web_glyphs_t *glyphs,
+                      const lh_str_ptr *bytes, lh_usize_t *len)
 {
     lh_ui_canvas_t canvas;
 
     lh_ui_canvas_web_t *web = lh_ui_web_player_get_web_mut(self);
-    if (!lh_ui_canvas_web_open_mem(web, lh_ui_web_player_get_json(self),
-                                   lh_ui_web_player_get_json_cap(self),
-                                   lh_ui_web_player_get_width(self),
-                                   lh_ui_web_player_get_height(self)))
+    if (!lh_ui_canvas_web_open_mem(
+            web, lh_ui_web_player_get_json(self), lh_ui_web_player_get_json_cap(self),
+            lh_ui_web_player_get_width(self), lh_ui_web_player_get_height(self)))
     {
         return lh_bool_false;
     }
@@ -366,9 +362,9 @@ lh_ui_web_player_draw(lh_ui_web_player_t *self, lh_ui_canvas_web_glyphs_t *glyph
 }
 
 lh_bool_t
-lh_ui_web_player_init(lh_ui_web_player_t *self, lh_ui_view_t *view, lh_uint_t width, lh_uint_t height,
-                      lh_str_ptr json, lh_usize_t json_cap, lh_byte_ptr page, lh_usize_t page_cap,
-                      const lh_ui_web_host_hooks_t *hooks)
+lh_ui_web_player_init(lh_ui_web_player_t *self, lh_ui_view_t *view, lh_uint_t width,
+                      lh_uint_t height, lh_str_ptr json, lh_usize_t json_cap, lh_byte_ptr page,
+                      lh_usize_t page_cap, const lh_ui_web_host_hooks_t *hooks)
 {
     lh_ui_web_route_t *routes = lh_ui_web_player_get_routes(self);
 
@@ -423,15 +419,15 @@ lh_ui_web_player_init(lh_ui_web_player_t *self, lh_ui_view_t *view, lh_uint_t wi
     lh_ui_web_app_set_tick_fn(lh_ui_web_player_get_app(self), lh_ui_web_player_tick);
     lh_ui_web_app_set_generation(lh_ui_web_player_get_app(self), 1u);
     lh_usize_t page_len = 0u;
-    const lh_bool_t built = lh_ui_web_player_page_build(lh_ui_web_player_get_page(self),
-                                                        lh_ui_web_player_get_page_cap(self),
-                                                        lh_addr_of(page_len));
+    const lh_bool_t built = lh_ui_web_player_page_build(
+        lh_ui_web_player_get_page(self), lh_ui_web_player_get_page_cap(self), lh_addr_of(page_len));
     lh_ui_web_player_set_page_len(self, page_len);
     return built;
 }
 
 lh_bool_t
-lh_ui_web_player_pointer(lh_ui_web_player_t *self, lh_os_input_kind_t kind, lh_sint_t x, lh_sint_t y)
+lh_ui_web_player_pointer(lh_ui_web_player_t *self, lh_os_input_kind_t kind, lh_sint_t x,
+                         lh_sint_t y)
 {
     lh_os_input_event_t event;
     const lh_bool_t up = lh_type_cast(lh_bool_t, kind == lh_os_input_kind_pointer_up);
@@ -448,7 +444,8 @@ lh_ui_web_player_pointer(lh_ui_web_player_t *self, lh_os_input_kind_t kind, lh_s
 }
 
 lh_bool_t
-lh_ui_web_player_wheel(lh_ui_web_player_t *self, lh_sint_t x, lh_sint_t y, lh_sint_t dx, lh_sint_t dy)
+lh_ui_web_player_wheel(lh_ui_web_player_t *self, lh_sint_t x, lh_sint_t y, lh_sint_t dx,
+                       lh_sint_t dy)
 {
     lh_os_input_event_t event;
 

@@ -13,8 +13,10 @@ The order below is the owner's: the web host first, the controller after it.
 Canvas2D player is a separate application: it renders the same LH view as a
 desktop backend and sends drawing commands over WebSocket. It owns its page and
 input endpoints. Applications attach their own route tables; the host does
-not install a REST API. The player page still contains JavaScript fragments,
-and parts of the host parse HTTP and write response headers as raw text.
+not install a REST API. The player page is built as an HTML tree and a
+JavaScript tree (`lh/web/html/`, `lh/web/js/node.h`) and written by their
+writers; parts of the host still parse HTTP and write response headers as raw
+text.
 
 **Target.** Build application UI once from LH entities and use it with desktop
 and browser backends. Construct HTML and JavaScript from public objects and
@@ -24,17 +26,16 @@ codes have named values while extension methods and headers remain possible.
 REST is a separate facility attached by the application when wanted.
 
 **Work.** First make the host use the HTTP bricks, including complete request
-handling and structured responses. Extend the existing HTML and JavaScript
-nodes as needed and migrate the player from source fragments. Exercise the same
+handling and structured responses. Extend the HTML and JavaScript trees as
+needed. Exercise the same
 view and input on desktop and web; test each public brick and their composition.
 A JavaScript interpreter or bytecode VM is a separate future feature.
 
 ## 2. XML and HTML as nodes
 
-**Today.** `lh_ui_web_html_t` is already a node with children, but the
-children are borrowed pointers in arrays the caller builds by hand — the page
-builder declares about thirty locals to describe one page. There is no XML in
-lh at all.
+**Today.** `lh_web_html_node_t` (`lh/web/html/`) is a node that owns its
+children and attributes, with its own escaping and writer; the player page is
+built on it. It is HTML only: there is no XML in lh at all.
 
 **Target.** `lh/xml/`: an **entity** is the data (kind, name, attributes,
 children), a **node** is that same entity with the operations on it (add a
@@ -48,12 +49,14 @@ already is (`lh/web/json/`); XML is the other form, and it belongs to the same
 layer.
 
 **Cost.** About three to five days: the entity and node bricks, the owned
-children, the serializer, the HTML dialect, and the migration of
-`lh_ui_web_html_*` onto it.
+children, the serializer, the HTML dialect, and the move of
+`lh_web_html_*` onto it.
 
 ## 3. A JavaScript engine of our own
 
-**Today.** Every script lh ships is JavaScript written as C strings.
+**Today.** The one script lh ships, the web player's, is built as a tree
+(`lh_web_js_node_t`) and written by `lh_web_js_writer_t`; lh has a JavaScript
+lexer but no parser and no interpreter.
 
 **The decision.** The engine is **lh's own code**, on lh's bricks: the lexer,
 the parser, the tree, the interpreter. Nothing foreign is vendored into the
