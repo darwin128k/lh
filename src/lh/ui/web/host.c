@@ -641,7 +641,7 @@ lh_ui_web_host_handle_request_is_upgraded(lh_ui_web_app_t *app, lh_os_net_socket
     {
         return lh_bool_false;
     }
-    if (lh_ui_web_app_is_websocket(app, req, len))
+    if (lh_ui_web_app_is_websocket(app, lh_addr_of(request)))
     {
         return lh_ui_web_host_ws_upgrade(client, headers,
                                          lh_http_request_get_header_count(lh_addr_of(request)));

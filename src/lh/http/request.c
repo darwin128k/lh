@@ -1,5 +1,7 @@
 #include <lh/http/request.h>
 #include <lh/assert.h>
+#include <lh/char/map.h>
+#include <lh/str/split/once.h>
 
 const lh_str_view_t *
 lh_http_request_get_method(const lh_http_request_t *self)
@@ -55,4 +57,18 @@ lh_http_request_set_header_count(lh_http_request_t *self, lh_usize_t header_coun
 {
     lh_assert_runtime_ref(self);
     self->header_count = header_count;
+}
+
+lh_str_view_t
+lh_http_request_get_path(const lh_http_request_t *self)
+{
+    const lh_str_view_t *target = lh_http_request_get_target(self);
+    lh_str_view_t path;
+    lh_str_view_t query;
+
+    if (!lh_str_view_split_once(target, lh_char_map_question, lh_addr_of(path), lh_addr_of(query)))
+    {
+        lh_str_view_assign(lh_addr_of(path), target);
+    }
+    return path;
 }

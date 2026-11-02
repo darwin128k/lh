@@ -5,6 +5,7 @@
  * For `key=value`, `host:port`, `Name: value` — anything that is one head,
  * one delimiter, and the rest. The rest may hold the delimiter again:
  * only the first one cuts. Nothing is trimmed; that is the caller's call.
+ * Empty results retain their position in the caller-owned source text.
  */
 
 #ifndef LH_STR_SPLIT_ONCE_H

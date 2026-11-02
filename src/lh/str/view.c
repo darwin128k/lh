@@ -255,15 +255,6 @@ lh_str_view_tail(const lh_str_view_t *self, lh_uoffset_t offset, lh_str_view_t *
     const lh_usize_t size = lh_str_view_is_empty(self) ? 0U : lh_str_view_get_size(self);
 
     lh_assert_runtime_if(lh_math_gt(offset, size), lh_runtime_error_code_out_of_range);
-    if (lh_math_eq(offset, size))
-    {
-        /* At the boundary nothing is left. That is an explicitly empty view, not a
-           null pointer: views reject size 0, so init(lh_null) would die here. */
-        lh_str_view_t _lh_tmp;
-        lh_str_view_init_empty(lh_addr_of(_lh_tmp));
-        lh_ptr_deref(out) = _lh_tmp;
-        return;
-    }
     lh_str_view_from_offset(self, offset, lh_math_sub(size, offset), out);
 }
 

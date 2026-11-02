@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_http_request_get_path` returns the borrowed target before its query.
+
 - `lh_ui_web_host_try_read_request` and its checked form read a complete HTTP
   head from fragmented socket input within a time limit.
 
@@ -22,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the text does not hold.
 
 ### Fixed
+
+- String view splitting and tail preserve the source address for empty results
+  at either boundary, including a delimiter at the start or end.
 
 - The web host rejects sockets when required blocking-mode changes fail and
   keeps a WebSocket only after its handshake is sent successfully.
@@ -55,6 +60,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and the peer rejected the frame. It is widened to `lh_u64_t` first.
 
 ### Changed
+
+- WebSocket path detection accepts a parsed HTTP request instead of raw bytes.
 
 - Web host request reads return parsed request and header objects in
   caller-owned storage; WebSocket upgrade consumes these headers directly.

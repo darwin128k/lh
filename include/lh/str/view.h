@@ -573,12 +573,14 @@ lh_str_view_find_null_terminator(const lh_str_view_t *self);
  * @brief The characters of @p self from @p offset to its end.
  *
  * Empty when @p offset equals the size of @p self — including an empty
- * @p self with @p offset 0.
+ * @p self with @p offset 0. An empty tail retains the address at that offset;
+ * it borrows the source storage just like a non-empty tail.
  *
  * Example usage:
  * @code{.c}
  * lh_str_view_t v = lh_str_view_lit("key=value");
- * lh_str_view_t value = lh_str_view_tail(&v, 4); // "value"
+ * lh_str_view_t value;
+ * lh_str_view_tail(lh_addr_of(v), 4, lh_addr_of(value)); // "value"
  * @endcode
  *
  * @param self   Source view.
