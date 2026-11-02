@@ -56,6 +56,20 @@ lh_void
 lh_http_header_set_value(lh_http_header_t *self, lh_str_view_t value);
 
 /**
+ * @brief Store both borrowed views of an HTTP field.
+ *
+ * The source storage remains caller-owned and must outlive the field. The
+ * names and values are stored as given; this function does not validate them.
+ *
+ * @param self Field to update.
+ * @param name Borrowed field name.
+ * @param value Borrowed field value, which may be empty.
+ * @fails ::lh_runtime_error_code_null_pointer @p self is null.
+ */
+lh_void
+lh_http_header_set(lh_http_header_t *self, lh_str_view_t name, lh_str_view_t value);
+
+/**
  * @brief Find the first HTTP field with the given name, ignoring ASCII case.
  *
  * The fields and their name views are borrowed. A zero count permits a null

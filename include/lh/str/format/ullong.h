@@ -13,6 +13,14 @@
 #include <lh/size.h>
 #include <lh/str/ptr.h>
 
+/**
+ * @brief Capacity for the longest decimal ::lh_ullong_t, without a NUL.
+ *
+ * Every byte contributes at most three decimal digits. This bound is
+ * intentionally conservative and is suitable for ::lh_str_ptr_format_ullong.
+ */
+#define LH_STR_FORMAT_ULLONG_DIGITS_MAX (sizeof(lh_ullong_t) * 3U)
+
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
