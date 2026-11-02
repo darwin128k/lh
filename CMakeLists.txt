@@ -131,6 +131,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/real/lemire.c
         ${LH_LIB_SRC_PATH}/real/power5.c
         ${LH_LIB_SRC_PATH}/pair.c
+        ${LH_LIB_SRC_PATH}/js/lexer/name.c
         ${LH_LIB_SRC_PATH}/ini/entry.c
         ${LH_LIB_SRC_PATH}/ini/error.c
         ${LH_LIB_SRC_PATH}/ini/parser.c

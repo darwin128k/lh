@@ -2,17 +2,15 @@
  * @file private.h
  * @brief Private to `lexer.c`: the steps of the scan, below its public API.
  *
- * The character tests, the tables of keywords and operators, and the scanners
- * that walk the source text. They are not in `lh/js/lexer.h`: the caller of
- * the lexer scans tokens, it does not scan pieces of them.
+ * The keyword and operator tables and scanners that walk the source text.
+ * Shared ASCII name tests are declared separately in `lh/js/lexer/name.h`.
  */
 
 #ifndef LH_SRC_JS_LEXER_PRIVATE_H
 #define LH_SRC_JS_LEXER_PRIVATE_H
 
 #include <lh/js/lexer.h>
-
-#include <lh/str/view.h>
+#include <lh/js/lexer/name.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -70,18 +68,6 @@ lh_js_lexer_get_token_mut(lh_js_lexer_t *self);
  */
 lh_str_ptr
 lh_js_lexer_get_error_buffer_mut(lh_js_lexer_t *self);
-
-/**
- * @brief Whether @p ch starts a name (level 1).
- */
-lh_bool_t
-lh_js_lexer_is_name_start(lh_char_t ch);
-
-/**
- * @brief Whether @p ch goes on a name (level 1).
- */
-lh_bool_t
-lh_js_lexer_is_name_part(lh_char_t ch);
 
 /**
  * @brief Whether @p text is a keyword of JavaScript (level 1).

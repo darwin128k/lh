@@ -100,6 +100,7 @@ lh_add_test_core(lh_test_core
         ${LH_TEST_SRC_PATH}/lh/value.cpp
         ${LH_TEST_SRC_PATH}/lh/real.cpp
         ${LH_TEST_SRC_PATH}/lh/pair.cpp
+        ${LH_TEST_SRC_PATH}/lh/js/name.cpp
         ${LH_TEST_SRC_PATH}/lh/ini/entry.cpp
         ${LH_TEST_SRC_PATH}/lh/ini/parser.cpp
         ${LH_TEST_SRC_PATH}/lh/json/node.cpp
@@ -407,8 +408,10 @@ set(LH_TEST_UI_SOURCES
         ${LH_TEST_SRC_PATH}/lh/ui/web/app.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/app/route.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/host.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/web/buf.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/html.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/js.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/web/x_fields.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/page.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/player.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/ws.cpp

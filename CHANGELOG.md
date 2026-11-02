@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- ASCII JavaScript identifier-name predicates shared by the lexer and web
+  serializer; available without enabling the JavaScript engine.
+
+- Public field accessors for JavaScript expression nodes, used by constructors and serialization.
+
 - Public field accessors for HTML tree nodes, used by construction and serialization.
 
 - `LH_UI_WEB_HOST_REQUEST_CAPACITY` sets the host request buffer at LH build time.
@@ -36,9 +41,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- JavaScript object keys are treated as names rather than JavaScript source;
+  ASCII identifier names are emitted directly, while other names use escaped
+  ES2015 computed properties. `__proto__` is an ordinary own property. JavaScript
+  string literals also escape `<` for safe embedding in an HTML script element.
+  On Windows GCC 16.1 Release/LTO, a two-field object measured 132 ns with
+  computed keys and 90 ns with ASCII name checks (paired medians).
+
 - Web route callbacks receive a borrowed view of the complete request body.
 
+- JavaScript literal serialization writes ordinary spans through the existing
+  string-set search instead of appending one byte at a time. On Windows GCC
+  16.1 Release/LTO, 64 ASCII bytes measured 480 ns before and 95 ns after;
+  with an escape every eight bytes they measured 450 ns and 256 ns (paired medians).
+
 ### Fixed
+
+- Web buffer writes reject overflowing lengths without changing stored bytes.
+  After checking capacity, they call the existing memory kernel directly rather
+  than clamping the same length twice. On Windows GCC 16.1 Release/LTO, 32
+  one-byte appends measured 137 ns before and 123 ns after; building the player
+  page measured 18.63 and 18.04 microseconds respectively (paired medians).
 
 - The web host omits response content and Content-Length for statuses that
   prohibit content, including 1xx, 204, 205 and 304. HEAD sends no body while

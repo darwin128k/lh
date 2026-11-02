@@ -90,6 +90,8 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_BENCH_SRC_PATH}/lh/ui/canvas.cpp
             ${LH_BENCH_SRC_PATH}/lh/ui/view.cpp
             ${LH_BENCH_SRC_PATH}/lh/ui/web.cpp
+            ${LH_BENCH_SRC_PATH}/lh/ui/web_buf.cpp
+            ${LH_BENCH_SRC_PATH}/lh/ui/web_escape.cpp
     )
 endif ()
 
