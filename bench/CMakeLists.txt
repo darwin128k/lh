@@ -38,6 +38,7 @@ add_subdirectory(${LH_BENCH_LIB_PATH}/benchmark)
 
 set(LH_BENCH_SOURCES
         ${LH_BENCH_SRC_PATH}/lh/memory/std.cpp
+        ${LH_BENCH_SRC_PATH}/lh/http.cpp
         ${LH_BENCH_SRC_PATH}/lh/array.cpp
         ${LH_BENCH_SRC_PATH}/lh/list.cpp
         ${LH_BENCH_SRC_PATH}/lh/str.cpp
