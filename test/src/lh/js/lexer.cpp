@@ -252,6 +252,34 @@ TEST(js_lexer, scans_the_operators_and_the_brackets)
     }
 }
 
+TEST(js_lexer, scans_compound_assignments_and_logical_not)
+{
+    const char *operators[] = {">>>=", "<<=", ">>=", "&&=", "||=", "?" "?=", "&=", "|=", "^=", "!"};
+
+    for (const char *op : operators)
+    {
+        std::vector<token_info> tokens = scan(op);
+
+        ASSERT_EQ(tokens.size(), 1U) << op;
+        EXPECT_EQ(tokens[0].kind, lh_js_token_kind_punctuation) << op;
+        EXPECT_EQ(tokens[0].text, op) << op;
+    }
+}
+
+TEST(js_lexer, distinguishes_optional_chaining_from_conditional_decimal)
+{
+    std::vector<token_info> chain = scan("value?.name ?. ?.0");
+
+    ASSERT_EQ(chain.size(), 6U);
+    EXPECT_EQ(chain[0].text, "value");
+    EXPECT_EQ(chain[1].text, "?.");
+    EXPECT_EQ(chain[2].text, "name");
+    EXPECT_EQ(chain[3].text, "?.");
+    EXPECT_EQ(chain[4].text, "?");
+    EXPECT_EQ(chain[5].text, ".0");
+    EXPECT_EQ(chain[5].kind, lh_js_token_kind_number);
+}
+
 TEST(js_lexer, takes_the_longest_operator)
 {
     std::vector<token_info> tokens = scan("===!==");
