@@ -150,10 +150,10 @@
 
 /**
  * @def LH_LIBRARY_OPTION_UI
- * @brief The UI model under `lh/ui` is compiled. Fallback: on (CMake default).
+ * @brief The UI model under `lh/ui` is compiled. Fallback: off (CMake default).
  */
 #ifndef LH_LIBRARY_OPTION_UI
-#    define LH_LIBRARY_OPTION_UI LH_LIBRARY_OPTION_ON
+#    define LH_LIBRARY_OPTION_UI LH_LIBRARY_OPTION_OFF
 #endif /* LH_LIBRARY_OPTION_UI */
 
 /**

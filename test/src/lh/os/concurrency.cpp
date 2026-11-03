@@ -2,6 +2,7 @@
 #    define _GNU_SOURCE
 #endif
 #include <gtest/gtest.h>
+#include <lh/library/fallback.h>
 #include <lh/os/thread.h>
 #include <lh/os/mutex.h>
 #include <lh/os/condition.h>
@@ -176,7 +177,13 @@ TEST(os_thread, self_join_preserves_worker_and_owner_error)
     locked = false;
     ASSERT_TRUE(lh_os_thread_join(&self.thread));
     ASSERT_TRUE(self.refused);
+#if (LH_LIBRARY_OPTION_THREAD_LOCAL == LH_LIBRARY_OPTION_ON)
+    /* The captured error is per thread only with thread-local storage; with
+       THREAD_LOCAL=OFF every thread shares one slot, so the worker's error stays. */
     ASSERT_EQ(lh_os_system_get_last_error_code(), owner_error);
+#else
+    (void)owner_error;
+#endif
     ASSERT_TRUE(lh_os_mutex_close(&self.gate));
 }
 
@@ -293,6 +300,7 @@ TEST_P(os_condition, signal_broadcast_and_mutex_contention)
     ASSERT_TRUE(lh_os_mutex_close(&state.mutex));
     mutex_open = false;
 }
+
 INSTANTIATE_TEST_SUITE_P(repeated_synchronization, os_condition, testing::Range(0, 20));
 
 TEST(os_thread, applies_affinity_and_rejects_unavailable_cpu)

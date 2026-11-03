@@ -1,5 +1,4 @@
 #include <lh/real/diy.h>
-#include <lh/assert.h>
 
 #if LH_REAL_ENABLED
 
@@ -9,7 +8,6 @@
 #    include <lh/math/ops.h>
 #    include <lh/numeric/mul.h>
 #    include <lh/real/bits.h>
-#endif /* LH_REAL_ENABLED */
 
 lh_u64_t
 lh_real_diy_get_f(const lh_real_diy_t *self)
@@ -130,3 +128,5 @@ lh_real_diy_get_boundaries(lh_real_t value, lh_real_diy_t *minus, lh_real_diy_t 
     lh_ptr_deref(minus) = lower;
     lh_ptr_deref(plus) = upper;
 }
+
+#endif /* LH_REAL_ENABLED */

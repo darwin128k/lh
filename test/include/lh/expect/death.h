@@ -7,10 +7,10 @@
  * run they compile the statement without running it. LH_TEST_EXPECT_DEATH_ENABLED
  * still says whether they run, for guarding whole `TEST` blocks.
  *
- * LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB is checked because it selects
- * the **compile-time default** for lh_runtime_terminate(): ON → initial handler
- * is abort(), which EXPECT_DEATH can rely on; OFF → initial handler is null,
- * calling terminate on failed checks is undefined — these tests are disabled.
+ * Death tests rely on lh_runtime_terminate() ending the process with abort().
+ * With LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB=ON that is the initial
+ * handler; with OFF the slot starts null and the common runner (test/src/main.cpp)
+ * installs abort() before any test runs, so both builds run them.
  *
  * This does not prove anything at runtime: lh_runtime_terminate_set() can
  * replace abort() with another function; then EXPECT_DEATH may fail unless
@@ -40,11 +40,11 @@
         }                                                                                          \
     } while (0)
 
-#if GTEST_HAS_DEATH_TEST && LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB
+#if GTEST_HAS_DEATH_TEST
 
 /**
- * A failed check calls lh_runtime_terminate(). With the default stdlib-backed handler
- * that is abort(); the child process exits and EXPECT_DEATH matches stderr with ".*".
+ * A failed check calls lh_runtime_terminate(), which is abort() (the stdlib default
+ * or the runner's); the child process exits and EXPECT_DEATH matches stderr with ".*".
  */
 
 /**
@@ -70,8 +70,8 @@
 
 #else
 
-/* No death tests here (no GTEST_HAS_DEATH_TEST, or terminate is not abort()):
-   both macros compile their statement and never run it. */
+/* No death tests here (no GTEST_HAS_DEATH_TEST): both macros compile their
+   statement and never run it. */
 #    define LH_EXPECT_DEATH(stmt) LH_TEST_EXPECT_DEATH_SKIP(stmt)
 #    define LH_EXPECT_CHECK_DEATH(stmt) LH_TEST_EXPECT_DEATH_SKIP(stmt)
 

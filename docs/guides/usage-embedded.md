@@ -97,11 +97,17 @@ host_terminate(void)
 void
 f4ve_app_run(void)
 {
-    lh_runtime_terminate_set(host_terminate);
+    lh_runtime_terminate_set_process(host_terminate);
     lh_runtime_writer_init(f4ve_usart1_writer_cb, lh_null);
     /* ... */
 }
 ```
+
+`lh_runtime_terminate_set_process` installs the handler for the whole
+program: every thread (RTOS task) that uses LH afterwards starts with it, so
+call it before the scheduler starts other tasks. `lh_runtime_terminate_set`
+changes the calling thread only. The runtime allocator has the same pair:
+`lh_runtime_allocator_init_process` and `lh_runtime_allocator_init`.
 
 The writer is a plain `lh_io_writer_write_cb`: take a buffer, return how many
 bytes were written.

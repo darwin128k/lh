@@ -6,6 +6,17 @@
  * callback and ::lh_runtime_terminate() to invoke the current handler
  * (typically in unrecoverable error paths).
  *
+ * The handler has two levels, as ::lh_runtime_allocator does. The process
+ * handler (::lh_runtime_terminate_get_process) is one for the whole program;
+ * every thread's own handler starts as a copy of it, taken on that thread's
+ * first use. A host installs its handler once, at start-up, with
+ * ::lh_runtime_terminate_set_process, and every thread uses it: the threads LH
+ * starts and the host's own alike. The process handler is published
+ * atomically (::lh_atomic_fn_ptr_t), so installing it while other threads run
+ * is no data race. With
+ * ::LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB on the process handler
+ * starts as abort(); off, null, and a null handler spins instead of returning.
+ *
  * @see lh_runtime_terminate_fn
  * @see lh_runtime_terminate_cb
  */
@@ -22,23 +33,36 @@
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Get the current runtime terminate callback.
+ * @brief Get the process terminate callback.
  *
- * @return Current callback,
- *         or null if none is set (uses default handler).
+ * The value each thread's handler is copied from on that thread's first use;
+ * it is not what an already running thread calls. Read with acquire order.
  *
- * Example usage:
- * @code{.c}
- * lh_runtime_terminate_cb old = lh_runtime_terminate_get();
- * // install new handler
- * @endcode
+ * @return The process callback, or null if none is installed.
  */
 lh_runtime_terminate_cb
-lh_runtime_terminate_get(void);
+lh_runtime_terminate_get_process(void);
 
 /**
- * @brief Install a custom runtime terminate callback.
- * @param fn New callback (or null to restore default).
+ * @brief Install the process terminate callback.
+ *
+ * Published with release order. Reaches only threads that have not used their
+ * handler yet, so call it at start-up, before other threads use LH, for every
+ * thread to get it. Safe while other threads run: each sees the old handler or
+ * the new one.
+ *
+ * @param fn New process callback (null: threads seeded from it spin on
+ *           ::lh_runtime_terminate).
+ */
+lh_void
+lh_runtime_terminate_set_process(lh_runtime_terminate_cb fn);
+
+/**
+ * @brief Install the calling thread's terminate callback.
+ *
+ * Changes this thread only; other threads keep theirs.
+ *
+ * @param fn New callback (null: ::lh_runtime_terminate spins on this thread).
  *           Type: ::lh_runtime_terminate_cb.
  *
  * Example usage:
@@ -50,10 +74,27 @@ lh_void
 lh_runtime_terminate_set(lh_runtime_terminate_cb fn);
 
 /**
- * @brief Invoke the current runtime terminate handler (does not return).
+ * @brief Get the calling thread's terminate callback.
  *
- * Calls the callback set via ::lh_runtime_terminate_set(),
- * or the default handler if none was set.
+ * On the thread's first use it is a copy of ::lh_runtime_terminate_get_process.
+ *
+ * @return The thread's callback, or null if none is installed
+ *         (::lh_runtime_terminate then spins).
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_runtime_terminate_cb old = lh_runtime_terminate_get();
+ * // install new handler
+ * @endcode
+ */
+lh_runtime_terminate_cb
+lh_runtime_terminate_get(void);
+
+/**
+ * @brief Invoke the calling thread's terminate handler (does not return).
+ *
+ * Calls ::lh_runtime_terminate_get(); a null handler, or one that returns,
+ * leaves the thread spinning so the host can still inspect it.
  * The function is declared noreturn.
  *
  * Example usage:

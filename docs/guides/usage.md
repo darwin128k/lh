@@ -73,7 +73,7 @@ directory comes **first**) and the system libraries of the OS layer
 |---|---|---|---|
 | `LH_LIBRARY_OPTION_OS` | **OFF** | ON | ON (sockets) |
 | `LH_LIBRARY_OPTION_OS_WINDOW` | **OFF** | ON | not needed¹ |
-| `LH_LIBRARY_OPTION_UI` | ON | ON | ON |
+| `LH_LIBRARY_OPTION_UI` | **ON** | **ON** | **ON** |
 | `LH_LIBRARY_OPTION_UI_FONT_ROBOTO` | ON | ON | ON |
 | `LH_LIBRARY_OPTION_THREAD_LOCAL` | **OFF** | ON | ON |
 | `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB` | **OFF** | ON | ON |
