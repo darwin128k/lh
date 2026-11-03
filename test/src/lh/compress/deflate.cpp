@@ -808,3 +808,30 @@ TEST(compress_deflate_stored, appends_bytes_and_preserves_offsets_on_error)
     LH_EXPECT_CHECK_DEATH(lh_compress_deflate_stored(input, sizeof(input) - 1U, &position, out,
                                                      sizeof(out), &written));
 }
+
+const lh_byte_t pattern_wire0[] = {115, 116, 28, 5, 196, 2, 0};
+const lh_byte_t pattern_wire1[] = {171, 168, 172, 24, 133, 68, 66, 0};
+const lh_byte_t pattern_wire2[] = {75, 76, 74, 78, 73, 77, 75, 207, 72, 28, 165, 201, 162, 1};
+
+TEST(compress_deflate, repeats_overlapping_backreferences)
+{
+    const lh_byte_t *inputs[] = {pattern_wire0, pattern_wire1, pattern_wire2};
+    const size_t sizes[] = {sizeof(pattern_wire0), sizeof(pattern_wire1), sizeof(pattern_wire2)};
+    const std::string patterns[] = {"A", "xy", "abcdefgh"};
+    const size_t repeats[] = {300, 150, 40};
+    for (int n = 0; n < 3; ++n)
+    {
+        std::string expected;
+        for (size_t i = 0; i < repeats[n]; ++i)
+        {
+            expected += patterns[n];
+        }
+        std::string actual(expected.size(), '\0');
+        lh_usize_t consumed = 0, written = 0;
+        ASSERT_TRUE(lh_compress_deflate_try_decode(inputs[n], sizes[n],
+                                                   reinterpret_cast<lh_byte_t *>(&actual[0]),
+                                                   actual.size(), &consumed, &written));
+        EXPECT_EQ(actual, expected);
+        EXPECT_EQ(written, expected.size());
+    }
+}
