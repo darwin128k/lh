@@ -77,7 +77,8 @@ TEST(js_token, holds_its_kind_text_and_value)
     lh_web_js_token_set_text_len(&token, 2);
     lh_web_js_token_set_value(&token, 12.0);
     EXPECT_EQ(lh_web_js_token_get_kind(&token), lh_web_js_token_kind_number);
-    EXPECT_EQ(std::string(lh_web_js_token_get_text(&token), lh_web_js_token_get_text_len(&token)), "12");
+    EXPECT_EQ(std::string(lh_web_js_token_get_text(&token), lh_web_js_token_get_text_len(&token)),
+              "12");
     EXPECT_EQ(lh_web_js_token_get_value(&token), 12.0);
 }
 
@@ -210,7 +211,8 @@ TEST(js_lexer, counts_the_line_and_the_column)
     EXPECT_EQ(lh_web_js_lexer_get_column(&lexer), 2U);
 
     ASSERT_TRUE(lh_web_js_lexer_next(&lexer));
-    EXPECT_EQ(lh_web_js_token_get_kind(lh_web_js_lexer_get_token(&lexer)), lh_web_js_token_kind_newline);
+    EXPECT_EQ(lh_web_js_token_get_kind(lh_web_js_lexer_get_token(&lexer)),
+              lh_web_js_token_kind_newline);
     EXPECT_EQ(lh_web_js_lexer_get_line(&lexer), 2U);
     EXPECT_EQ(lh_web_js_lexer_get_column(&lexer), 1U);
 
@@ -230,7 +232,8 @@ TEST(js_lexer, ends_at_the_end_of_the_text)
     lh_web_js_lexer_init(&lexer, source.c_str(), source.size());
     ASSERT_TRUE(lh_web_js_lexer_next(&lexer));
     EXPECT_FALSE(lh_web_js_lexer_next(&lexer));
-    EXPECT_EQ(lh_web_js_token_get_kind(lh_web_js_lexer_get_token(&lexer)), lh_web_js_token_kind_end_of_input);
+    EXPECT_EQ(lh_web_js_token_get_kind(lh_web_js_lexer_get_token(&lexer)),
+              lh_web_js_token_kind_end_of_input);
     EXPECT_FALSE(lh_web_js_lexer_get_error(&lexer, &message, &len));
 }
 
@@ -254,7 +257,17 @@ TEST(js_lexer, scans_the_operators_and_the_brackets)
 
 TEST(js_lexer, scans_compound_assignments_and_logical_not)
 {
-    const char *operators[] = {">>>=", "<<=", ">>=", "&&=", "||=", "?" "?=", "&=", "|=", "^=", "!"};
+    const char *operators[] = {">>>=",
+                               "<<=",
+                               ">>=",
+                               "&&=",
+                               "||=",
+                               "?"
+                               "?=",
+                               "&=",
+                               "|=",
+                               "^=",
+                               "!"};
 
     for (const char *op : operators)
     {
@@ -351,3 +364,16 @@ TEST(js_lexer, holds_where_the_failure_was)
 }
 
 } // namespace
+
+TEST(web_js_lexer_cursor, keeps_embedded_nul_distinct_from_end)
+{
+    const char text[] = {'a', '\0', 'b'};
+    lh_web_js_lexer_t lexer;
+    lh_web_js_lexer_init(lh_addr_of(lexer), text, 3U);
+    lh_web_js_lexer_set_pos(lh_addr_of(lexer), 1U);
+    EXPECT_FALSE(lh_str_cursor_is_end(lh_web_js_lexer_get_cursor(lh_addr_of(lexer))));
+    EXPECT_EQ(lh_str_cursor_peek(lh_web_js_lexer_get_cursor(lh_addr_of(lexer)), 0U), '\0');
+    lh_web_js_lexer_set_pos(lh_addr_of(lexer), 3U);
+    EXPECT_TRUE(lh_str_cursor_is_end(lh_web_js_lexer_get_cursor(lh_addr_of(lexer))));
+    EXPECT_EQ(lh_str_cursor_peek(lh_web_js_lexer_get_cursor(lh_addr_of(lexer)), 0U), '\0');
+}

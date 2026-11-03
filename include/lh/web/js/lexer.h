@@ -19,7 +19,7 @@
 #ifndef LH_WEB_JS_LEXER_H
 #define LH_WEB_JS_LEXER_H
 
-#include <lh/bool.h>
+#include <lh/str/cursor.h>
 #include <lh/web/js/lexer/fields.h>
 #include <lh/web/js/lexer/token.h>
 
@@ -31,7 +31,7 @@
 struct lh_web_js_lexer
 {
     /** Members: ::lh_web_js_lexer_fields. */
-    lh_web_js_lexer_fields(const lh_str_ptr, lh_usize_t, lh_web_js_token_t, lh_str_ptr, lh_char_t);
+    lh_web_js_lexer_fields(lh_str_cursor_t, lh_usize_t, lh_web_js_token_t, lh_str_ptr, lh_char_t);
 };
 /** @copybrief lh_web_js_lexer */
 typedef struct lh_web_js_lexer lh_web_js_lexer_t;
@@ -39,7 +39,26 @@ typedef struct lh_web_js_lexer lh_web_js_lexer_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief The source text @p self reads (level 1).
+ * @brief Read the cursor holding the lexer's source text and position.
+ * @param self Initialized lexer, which owns the cursor but not its text.
+ * @return Borrowed cursor pointer, valid while @p self lives.
+ * @fails ::lh_runtime_error_code_null_pointer @p self is null.
+ */
+const lh_str_cursor_t *
+lh_web_js_lexer_get_cursor(const lh_web_js_lexer_t *self);
+
+/**
+ * @brief Access the lexer's cursor to change its source text or position.
+ * @param self Initialized lexer, which owns the cursor but not its text.
+ * @return Borrowed mutable cursor pointer, valid while @p self lives.
+ * @pre Keep its text alive and its position within that text.
+ * @fails ::lh_runtime_error_code_null_pointer @p self is null.
+ */
+lh_str_cursor_t *
+lh_web_js_lexer_get_cursor_mut(lh_web_js_lexer_t *self);
+
+/**
+ * @brief The source text @p self reads.
  *
  * The text is not owned: it belongs to the caller, and every token's text
  * points into it.
@@ -54,7 +73,7 @@ const lh_str_ptr
 lh_web_js_lexer_get_text(const lh_web_js_lexer_t *self);
 
 /**
- * @brief Store the source text of @p self (level 1).
+ * @brief Store the source text of @p self.
  *
  * The text is stored as it is given: the caller keeps it alive.
  *
@@ -68,7 +87,7 @@ lh_void
 lh_web_js_lexer_set_text(lh_web_js_lexer_t *self, const lh_str_ptr text);
 
 /**
- * @brief The length of the source text of @p self, in bytes (level 1).
+ * @brief The length of the source text of @p self, in bytes.
  *
  * @param self Lexer to read.
  * @return The source text's length.
@@ -80,7 +99,7 @@ lh_usize_t
 lh_web_js_lexer_get_text_len(const lh_web_js_lexer_t *self);
 
 /**
- * @brief Store the length of the source text of @p self (level 1).
+ * @brief Store the length of the source text of @p self.
  *
  * @param self Lexer to write.
  * @param len The length to store, in bytes.
@@ -92,7 +111,7 @@ lh_void
 lh_web_js_lexer_set_text_len(lh_web_js_lexer_t *self, lh_usize_t len);
 
 /**
- * @brief Where @p self is in the source text, in bytes from the start (level 1).
+ * @brief Where @p self is in the source text, in bytes from the start.
  *
  * @param self Lexer to read.
  * @return The scanner's offset.
@@ -104,7 +123,7 @@ lh_usize_t
 lh_web_js_lexer_get_pos(const lh_web_js_lexer_t *self);
 
 /**
- * @brief Store where @p self is in the source text (level 1).
+ * @brief Store where @p self is in the source text.
  *
  * @param self Lexer to write.
  * @param pos The offset to store, in bytes from the start.

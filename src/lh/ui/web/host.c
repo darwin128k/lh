@@ -122,39 +122,7 @@ lh_usize_t
 lh_ui_web_host_get_query_value_size(const lh_http_request_t *request, lh_str_cptr key,
                                     lh_usize_t key_len, lh_str_cptr *value)
 {
-    if (lh_math_is_zero(key_len))
-    {
-        return 0u;
-    }
-    lh_str_view_t path;
-    lh_str_view_t query;
-    if (!lh_str_view_split_once(lh_http_request_get_target(request), lh_char_map_question,
-                                lh_addr_of(path), lh_addr_of(query)) ||
-        lh_str_view_is_empty(lh_addr_of(query)))
-    {
-        return 0u;
-    }
-    const lh_str_ptr req = lh_str_view_get_data(lh_addr_of(query));
-    const lh_usize_t len = lh_str_view_get_size(lh_addr_of(query));
-    lh_usize_t off = 0u;
-
-    for (;;)
-    {
-        lh_str_cptr at = lh_ui_web_host_find(req + off, len - off, key, key_len);
-
-        if (at == lh_null)
-        {
-            return 0u;
-        }
-        off = lh_math_add(lh_ptr_udiff(at, req), key_len);
-        if (at != req && at[-1] != lh_char_map_ampersand)
-        {
-            continue;
-        }
-        lh_ptr_deref(value) = req + off;
-        const lh_str_ptr end = lh_str_ptr_find_of_char(req + off, len - off, lh_char_map_ampersand);
-        return lh_null_ne(end) ? lh_ptr_udiff(end, req + off) : len - off;
-    }
+    return lh_http_request_get_query_value_size(request, key, key_len, value);
 }
 
 lh_sint_t
@@ -498,10 +466,9 @@ lh_ui_web_host_ws_ingest(lh_ui_web_host_client_t *c, lh_ui_web_app_t *app, lh_ui
             {
                 if (lh_ui_web_host_client_get_msg_op(c) == LH_UI_WEB_WS_TEXT)
                 {
-                    lh_ui_web_app_message(app,
-                                          lh_ptr_rcast(const lh_char_t,
-                                                        lh_ui_web_host_client_get_msg(c)),
-                                          lh_ui_web_host_client_get_msg_len(c));
+                    lh_ui_web_app_message(
+                        app, lh_ptr_rcast(const lh_char_t, lh_ui_web_host_client_get_msg(c)),
+                        lh_ui_web_host_client_get_msg_len(c));
                 }
                 lh_ui_web_host_client_set_msg_on(c, lh_bool_false);
                 lh_ui_web_host_client_set_msg_len(c, 0u);

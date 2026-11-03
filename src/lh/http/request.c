@@ -74,6 +74,51 @@ lh_http_request_get_path(const lh_http_request_t *self)
     return path;
 }
 
+lh_usize_t
+lh_http_request_get_query_value_size(const lh_http_request_t *self, lh_str_cptr key,
+                                     lh_usize_t key_len, lh_str_cptr *value)
+{
+    if (lh_math_is_zero(key_len))
+    {
+        return 0U;
+    }
+    lh_str_view_t query;
+    {
+        lh_str_view_t path;
+        if (!lh_str_view_split_once(lh_http_request_get_target(self), lh_char_map_question,
+                                    lh_addr_of(path), lh_addr_of(query)))
+        {
+            return 0U;
+        }
+    }
+    if (lh_str_view_is_empty(lh_addr_of(query)))
+    {
+        return 0U;
+    }
+    const lh_str_ptr text = lh_str_view_get_data(lh_addr_of(query));
+    const lh_usize_t size = lh_str_view_get_size(lh_addr_of(query));
+    lh_usize_t offset = 0U;
+
+    for (;;)
+    {
+        const lh_str_ptr at =
+            lh_str_ptr_find(text + offset, size - offset, key, key_len, lh_bool_false);
+        if (lh_ptr_is_null(at))
+        {
+            return 0U;
+        }
+        offset = lh_math_add(lh_ptr_udiff(at, text), key_len);
+        if (at != text && at[-1] != lh_char_map_ampersand)
+        {
+            continue;
+        }
+        lh_ptr_deref(value) = text + offset;
+        const lh_str_ptr end =
+            lh_str_ptr_find_of_char(text + offset, size - offset, lh_char_map_ampersand);
+        return lh_null_ne(end) ? lh_ptr_udiff(end, text + offset) : size - offset;
+    }
+}
+
 lh_bool_t
 lh_http_request_is_method(const lh_http_request_t *self, lh_http_method_kind_t method)
 {

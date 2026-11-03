@@ -25,3 +25,25 @@ TEST(http_request_get_path, keeps_the_path_before_the_first_query_delimiter)
                   lh_str_view_get_data(lh_addr_of(cases[i])));
     }
 }
+
+TEST(http_request_get_query_value_size, finds_first_field_prefix_and_preserves_empty_values)
+{
+    lh_http_request_t request;
+    lh_http_request_set_target(lh_addr_of(request), lh_str_view_lit("/p?xx=bad&x=42&x=8&empty="));
+    lh_str_cptr value = lh_null;
+    EXPECT_EQ(
+        lh_http_request_get_query_value_size(lh_addr_of(request), "x=", 2U, lh_addr_of(value)), 2U);
+    EXPECT_EQ(value[0], '4');
+    EXPECT_EQ(value[1], '2');
+    EXPECT_EQ(
+        lh_http_request_get_query_value_size(lh_addr_of(request), "empty=", 6U, lh_addr_of(value)),
+        0U);
+    EXPECT_NE(value, nullptr);
+    lh_str_cptr previous = value;
+    EXPECT_EQ(
+        lh_http_request_get_query_value_size(lh_addr_of(request), "absent=", 7U, lh_addr_of(value)),
+        0U);
+    EXPECT_EQ(value, previous);
+    EXPECT_EQ(lh_http_request_get_query_value_size(lh_addr_of(request), "", 0U, lh_addr_of(value)),
+              0U);
+}

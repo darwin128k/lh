@@ -12,12 +12,10 @@
 #define LH_WEB_JS_LEXER_ERROR_MESSAGE_MAX 64U
 
 /**
- * @def lh_web_js_lexer_fields(text_type, size_type, token_type, message_type, buffer_type)
+ * @def lh_web_js_lexer_fields(cursor_type, size_type, token_type, message_type, buffer_type)
  * @brief The scanner over one JavaScript source text:
  *
- * - `text` — the source text (not owned);
- * - `text_len` — its length in bytes;
- * - `pos` — where the scanner is, in bytes from the start;
+ * - `cursor` — the borrowed source text and current byte position;
  * - `token` — the token just scanned;
  * - `line` — the line the scanner is on, counting from `1`;
  * - `column` — the column the scanner is on, counting from `1`;
@@ -27,16 +25,14 @@
  * - `error_column` — the column the failure was found on;
  * - `error_buffer` — where the message is kept.
  *
- * @param text_type    Type of `text` (::lh_str_ptr).
+ * @param cursor_type  Type of `cursor` (::lh_str_cursor_t).
  * @param size_type    Type of the sizes (::lh_usize_t).
  * @param token_type   Type of `token` (::lh_web_js_token_t).
  * @param message_type Type of `error_message` (::lh_str_ptr).
  * @param buffer_type  Type of `error_buffer` (::lh_char_t).
  */
-#define lh_web_js_lexer_fields(text_type, size_type, token_type, message_type, buffer_type)        \
-    text_type text;                                                                                \
-    size_type text_len;                                                                            \
-    size_type pos;                                                                                 \
+#define lh_web_js_lexer_fields(cursor_type, size_type, token_type, message_type, buffer_type)      \
+    cursor_type cursor;                                                                            \
     token_type token;                                                                              \
     size_type line;                                                                                \
     size_type column;                                                                              \

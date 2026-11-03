@@ -12,7 +12,6 @@
 #include <lh/str/parse/hex.h>
 #include <lh/str/parse/radix.h>
 #include <lh/str/parse/real.h>
-#include <lh/str/view.h>
 
 #include "lexer/private.h"
 
@@ -153,46 +152,60 @@ static const lh_char_t LH_WEB_JS_ERROR_UNEXPECTED_CHAR[] = "unexpected character
 
 /* ── level 1: the accessors ───────────────────────────────────────────────── */
 
+const lh_str_cursor_t *
+lh_web_js_lexer_get_cursor(const lh_web_js_lexer_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->cursor);
+}
+
+lh_str_cursor_t *
+lh_web_js_lexer_get_cursor_mut(lh_web_js_lexer_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->cursor);
+}
+
 const lh_str_ptr
 lh_web_js_lexer_get_text(const lh_web_js_lexer_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return self->text;
+    return lh_str_view_get_data(lh_str_cursor_get_text(lh_web_js_lexer_get_cursor(self)));
 }
 
 lh_void
 lh_web_js_lexer_set_text(lh_web_js_lexer_t *self, const lh_str_ptr text)
 {
-    lh_assert_runtime_ref(self);
-    self->text = text;
+    lh_str_cursor_t *cursor = lh_web_js_lexer_get_cursor_mut(self);
+    lh_str_view_t view = *lh_str_cursor_get_text(cursor);
+    lh_memory_view_set_begin(lh_addr_of(view), text);
+    lh_str_cursor_set_text(cursor, view);
 }
 
 lh_usize_t
 lh_web_js_lexer_get_text_len(const lh_web_js_lexer_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return self->text_len;
+    return lh_str_view_get_size(lh_str_cursor_get_text(lh_web_js_lexer_get_cursor(self)));
 }
 
 lh_void
 lh_web_js_lexer_set_text_len(lh_web_js_lexer_t *self, lh_usize_t len)
 {
-    lh_assert_runtime_ref(self);
-    self->text_len = len;
+    lh_str_cursor_t *cursor = lh_web_js_lexer_get_cursor_mut(self);
+    lh_str_view_t view = *lh_str_cursor_get_text(cursor);
+    lh_memory_view_set_size(lh_addr_of(view), len);
+    lh_str_cursor_set_text(cursor, view);
 }
 
 lh_usize_t
 lh_web_js_lexer_get_pos(const lh_web_js_lexer_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return self->pos;
+    return lh_str_cursor_get_pos(lh_web_js_lexer_get_cursor(self));
 }
 
 lh_void
 lh_web_js_lexer_set_pos(lh_web_js_lexer_t *self, lh_usize_t pos)
 {
-    lh_assert_runtime_ref(self);
-    self->pos = pos;
+    lh_str_cursor_set_pos(lh_web_js_lexer_get_cursor_mut(self), pos);
 }
 
 const lh_web_js_token_t *
@@ -364,50 +377,33 @@ lh_web_js_lexer_find_radix(lh_char_t prefix)
 lh_char_t
 lh_web_js_lexer_get_char(const lh_web_js_lexer_t *self)
 {
-    lh_usize_t pos = lh_web_js_lexer_get_pos(self);
-
-    if (lh_math_ge(pos, lh_web_js_lexer_get_text_len(self)))
-    {
-        return lh_char_map_nul;
-    }
-    return lh_web_js_lexer_get_text(self)[pos];
+    return lh_str_cursor_peek(lh_web_js_lexer_get_cursor(self), 0U);
 }
 
 lh_bool_t
 lh_web_js_lexer_try_get_char_at(const lh_web_js_lexer_t *self, lh_usize_t offset, lh_char_t *out)
 {
-    lh_usize_t pos = lh_web_js_lexer_get_pos(self);
+    const lh_str_cursor_t *cursor = lh_web_js_lexer_get_cursor(self);
 
     lh_assert_runtime_ref(out);
-    if (lh_math_ge(lh_math_add(pos, offset), lh_web_js_lexer_get_text_len(self)))
+    if (lh_math_ge(offset, lh_str_cursor_get_left(cursor)))
     {
         return lh_bool_false;
     }
-    lh_ptr_deref(out) = lh_web_js_lexer_get_text(self)[pos + offset];
+    lh_ptr_deref(out) = lh_str_cursor_peek(cursor, offset);
     return lh_bool_true;
 }
 
 lh_bool_t
 lh_web_js_lexer_is_at_end(const lh_web_js_lexer_t *self)
 {
-    return lh_math_ge(lh_web_js_lexer_get_pos(self), lh_web_js_lexer_get_text_len(self))
-               ? lh_bool_true
-               : lh_bool_false;
+    return lh_str_cursor_is_end(lh_web_js_lexer_get_cursor(self));
 }
 
 lh_void
 lh_web_js_lexer_get_rest(const lh_web_js_lexer_t *self, lh_str_view_t *out)
 {
-    lh_usize_t pos = lh_web_js_lexer_get_pos(self);
-    lh_usize_t len = lh_web_js_lexer_get_text_len(self);
-
-    lh_assert_runtime_ref(out);
-    if (lh_math_is_zero(len))
-    {
-        lh_str_view_init_empty(out);
-        return;
-    }
-    lh_str_view_init_by_size(out, lh_web_js_lexer_get_text(self) + pos, lh_math_sub(len, pos));
+    lh_str_cursor_get_rest(lh_web_js_lexer_get_cursor(self), out);
 }
 
 lh_void
@@ -415,9 +411,9 @@ lh_web_js_lexer_init(lh_web_js_lexer_t *self, lh_str_cptr text, lh_usize_t len)
 {
     lh_web_js_token_t *token;
 
-    lh_web_js_lexer_set_text(self, text);
-    lh_web_js_lexer_set_text_len(self, len);
-    lh_web_js_lexer_set_pos(self, 0U);
+    lh_str_view_t source;
+    lh_str_view_init_by_size(lh_addr_of(source), text, len);
+    lh_str_cursor_init(lh_web_js_lexer_get_cursor_mut(self), source);
     lh_web_js_lexer_set_line(self, 1U);
     lh_web_js_lexer_set_column(self, 1U);
     lh_web_js_lexer_set_error_message(self, lh_null);
