@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Bounded raw DEFLATE decoding for stored, fixed, and dynamic Huffman blocks,
+  plus gzip member decoding with CRC and size validation. Stored-block decoding
+  is also exposed as a separately usable operation; gzip header and trailer
+  validation can be used separately.
+
 - Reflected CRC kernels and incremental gzip CRC-32; Modbus uses the shared kernel.
 
 - An LH reader operation drains a stream into caller-provided scratch.
