@@ -139,6 +139,11 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/http/header.c
         ${LH_LIB_SRC_PATH}/http/format.c
         ${LH_LIB_SRC_PATH}/http/framing.c
+        ${LH_LIB_SRC_PATH}/http/expect.c
+        ${LH_LIB_SRC_PATH}/http/chunked.c
+        ${LH_LIB_SRC_PATH}/http/chunked/decoder.c
+        ${LH_LIB_SRC_PATH}/http/body/reader.c
+        ${LH_LIB_SRC_PATH}/http/cursor.c
         ${LH_LIB_SRC_PATH}/http/method.c
         ${LH_LIB_SRC_PATH}/http/parser.c
         ${LH_LIB_SRC_PATH}/http/request.c
@@ -516,12 +521,14 @@ if (LH_LIBRARY_OPTION_UI)
     endif ()
     if (LH_LIBRARY_OPTION_OS)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/deadline.c)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/client.c)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/frame.c)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/hooks.c)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/stream.c)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/app.c)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/app/route.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/app/stream/route.c)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/player.c)
     endif ()
     if (LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW)

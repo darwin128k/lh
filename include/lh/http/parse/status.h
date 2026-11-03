@@ -9,7 +9,7 @@
 #include <lh/numeric/fixed/types.h>
 
 /**
- * @brief Outcome of one ::lh_http_parser_request or ::lh_http_parser_response call.
+ * @brief Outcome of a growing HTTP head or chunked body parse.
  */
 typedef lh_u8_t lh_http_parse_status_t;
 
@@ -21,13 +21,13 @@ typedef lh_u8_t lh_http_parse_status_t;
 
 /**
  * @def lh_http_parse_complete
- * @brief Head parsed; views and the consumed byte count are valid.
+ * @brief Parsing completed; documented outputs are valid.
  */
 #define lh_http_parse_complete 1U
 
 /**
  * @def lh_http_parse_error
- * @brief Inspect parser error/offset; output is not usable.
+ * @brief Input is invalid; documented outputs are not usable.
  */
 #define lh_http_parse_error 2U
 

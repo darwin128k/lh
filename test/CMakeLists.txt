@@ -71,8 +71,14 @@ endfunction()
 set(LH_TEST_LISTED_SOURCES)
 
 lh_add_test_core(lh_test_http_parser ${LH_TEST_SRC_PATH}/lh/http/parser.cpp
+        ${LH_TEST_SRC_PATH}/lh/http/header/name.cpp
         ${LH_TEST_SRC_PATH}/lh/http/format.cpp
         ${LH_TEST_SRC_PATH}/lh/http/framing.cpp
+        ${LH_TEST_SRC_PATH}/lh/http/expect.cpp
+        ${LH_TEST_SRC_PATH}/lh/http/body/reader.cpp
+        ${LH_TEST_SRC_PATH}/lh/http/chunked.cpp
+        ${LH_TEST_SRC_PATH}/lh/http/chunked/decoder.cpp
+        ${LH_TEST_SRC_PATH}/lh/http/cursor.cpp
         ${LH_TEST_SRC_PATH}/lh/http/method.cpp
         ${LH_TEST_SRC_PATH}/lh/http/status.cpp
         ${LH_TEST_SRC_PATH}/lh/http/request.cpp

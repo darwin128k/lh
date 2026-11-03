@@ -32,6 +32,8 @@ lh_http_status_get_reason(lh_uint_t status)
 {
     switch (status)
     {
+    case lh_http_status_continue:
+        return lh_str_view_lit("Continue");
     case lh_http_status_switching_protocols:
         return lh_str_view_lit("Switching Protocols");
     case lh_http_status_ok:
@@ -44,6 +46,10 @@ lh_http_status_get_reason(lh_uint_t status)
         return lh_str_view_lit("Not Modified");
     case lh_http_status_not_found:
         return lh_str_view_lit("Not Found");
+    case lh_http_status_content_too_large:
+        return lh_str_view_lit("Content Too Large");
+    case lh_http_status_expectation_failed:
+        return lh_str_view_lit("Expectation Failed");
     case lh_http_status_internal_server_error:
         return lh_str_view_lit("Internal Server Error");
     default:

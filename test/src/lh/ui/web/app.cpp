@@ -68,6 +68,8 @@ TEST(ui_web_app, init_starts_with_the_routes_and_nothing_else)
 
     lh_ui_web_app_init(lh_addr_of(app), routes, 2u);
 
+    EXPECT_EQ(lh_ui_web_app_get_stream_routes(&app), lh_null);
+    EXPECT_EQ(lh_ui_web_app_get_nstream_routes(&app), 0u);
     EXPECT_EQ(lh_ui_web_app_get_routes(&app), routes);
     EXPECT_EQ(lh_ui_web_app_get_nroutes(&app), 2u);
     EXPECT_EQ(lh_ui_web_app_get_ws_path(&app), lh_null);

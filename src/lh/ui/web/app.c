@@ -5,6 +5,34 @@
 
 #include <lh/ui/web/app.h>
 
+const lh_ui_web_stream_route_t *
+lh_ui_web_app_get_stream_routes(const lh_ui_web_app_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->stream_routes;
+}
+
+lh_void
+lh_ui_web_app_set_stream_routes(lh_ui_web_app_t *self, const lh_ui_web_stream_route_t *routes)
+{
+    lh_assert_runtime_ref(self);
+    self->stream_routes = routes;
+}
+
+lh_usize_t
+lh_ui_web_app_get_nstream_routes(const lh_ui_web_app_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->nstream_routes;
+}
+
+lh_void
+lh_ui_web_app_set_nstream_routes(lh_ui_web_app_t *self, lh_usize_t count)
+{
+    lh_assert_runtime_ref(self);
+    self->nstream_routes = count;
+}
+
 const lh_ui_web_route_t *
 lh_ui_web_app_get_routes(const lh_ui_web_app_t *self)
 {
@@ -151,6 +179,21 @@ lh_ui_web_app_is_websocket(const lh_ui_web_app_t *self, const lh_http_request_t 
     return lh_str_view_equals(lh_addr_of(path), lh_addr_of(expected), lh_bool_false);
 }
 
+const lh_ui_web_stream_route_t *
+lh_ui_web_app_find_stream_route(const lh_ui_web_app_t *self, const lh_http_request_t *request)
+{
+    const lh_ui_web_stream_route_t *routes = lh_ui_web_app_get_stream_routes(self);
+    const lh_usize_t count = lh_ui_web_app_get_nstream_routes(self);
+    for (lh_usize_t i = 0U; lh_math_lt(i, count); i = lh_math_add_one(i))
+    {
+        if (lh_ui_web_stream_route_is_match(lh_addr_of(routes[i]), request))
+        {
+            return lh_addr_of(routes[i]);
+        }
+    }
+    return lh_null;
+}
+
 lh_bool_t
 lh_ui_web_app_handle_request_is_handled(lh_ui_web_app_t *self, const lh_http_request_t *request,
                                         const lh_http_header_t *headers, const lh_str_view_t *body,
@@ -183,8 +226,8 @@ lh_ui_web_app_handle_request_is_handled(lh_ui_web_app_t *self, const lh_http_req
 }
 
 lh_void
-lh_ui_web_app_frame(lh_ui_web_app_t *self, lh_ui_canvas_web_glyphs_t *glyphs, const lh_str_ptr *bytes,
-                    lh_usize_t *len)
+lh_ui_web_app_frame(lh_ui_web_app_t *self, lh_ui_canvas_web_glyphs_t *glyphs,
+                    const lh_str_ptr *bytes, lh_usize_t *len)
 {
     const lh_ui_web_app_frame_fn frame_fn = lh_ui_web_app_get_frame_fn(self);
 
@@ -231,6 +274,8 @@ lh_ui_web_app_init(lh_ui_web_app_t *self, const lh_ui_web_route_t *routes, lh_us
 {
     lh_ui_web_app_set_routes(self, routes);
     lh_ui_web_app_set_nroutes(self, nroutes);
+    lh_ui_web_app_set_stream_routes(self, lh_null);
+    lh_ui_web_app_set_nstream_routes(self, 0U);
     lh_ui_web_app_set_ws_path(self, lh_null);
     lh_ui_web_app_set_ws_path_len(self, 0u);
     lh_ui_web_app_set_frame_fn(self, lh_null);
