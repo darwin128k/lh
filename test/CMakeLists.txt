@@ -174,6 +174,7 @@ lh_add_test_core(lh_test_crypto
 
 lh_add_test_core(lh_test_hash
         ${LH_TEST_SRC_PATH}/lh/hash/fnv.cpp
+        ${LH_TEST_SRC_PATH}/lh/hash/crc.cpp
 )
 
 lh_add_test_core(lh_test_fs

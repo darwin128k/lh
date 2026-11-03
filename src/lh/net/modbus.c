@@ -4,6 +4,7 @@
  */
 
 #include <lh/net/modbus.h>
+#include <lh/hash/crc.h>
 
 #include <lh/memory/std.h>
 #include <lh/util/return.h>
@@ -17,29 +18,8 @@
 lh_u16_t
 lh_mb_crc16(lh_byte_cptr bytes, lh_u16_t length)
 {
-    lh_u16_t crc = 0xFFFF;
-
-    lh_return_if(lh_null_eq(bytes), lh_cast_static(lh_u16_t, 0xFFFF));
-    while (length > 0)
-    {
-        lh_u8_t bit;
-
-        crc ^= lh_cast_static(lh_u16_t, (lh_ptr_deref(bytes)));
-        ++bytes;
-        --length;
-        for (bit = 0; bit < 8; ++bit)
-        {
-            if ((crc & 1) != 0)
-            {
-                crc = lh_cast_static(lh_u16_t, ((crc >> 1) ^ 0xA001));
-            }
-            else
-            {
-                crc = lh_cast_static(lh_u16_t, (crc >> 1));
-            }
-        }
-    }
-    return crc;
+    lh_return_if(lh_null_eq(bytes), lh_cast_static(lh_u16_t, 0xFFFFU));
+    return lh_cast_static(lh_u16_t, lh_hash_crc_reflected_update(0xFFFFU, bytes, length, 0xA001U));
 }
 
 /* -- Frames ----------------------------------------------------------------
@@ -356,8 +336,9 @@ lh_mb_parse_read(lh_byte_cptr adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc, lh
 lh_u16_t
 lh_mb_reach(lh_u16_t start, lh_u16_t end, const lh_mb_want_t *next)
 {
-    const lh_u16_t next_end =
-        lh_cast_static(lh_u16_t, (lh_mb_want_get_address(next) + (lh_mb_want_get_registers(next) ? lh_mb_want_get_registers(next) : 1)));
+    const lh_u16_t next_end = lh_cast_static(
+        lh_u16_t, (lh_mb_want_get_address(next) +
+                   (lh_mb_want_get_registers(next) ? lh_mb_want_get_registers(next) : 1)));
     const lh_u16_t reach = next_end > end ? next_end : end;
 
     if (lh_mb_want_get_address(next) > end && lh_mb_want_get_address(next) - end > LH_MB_GAP_MAX)
