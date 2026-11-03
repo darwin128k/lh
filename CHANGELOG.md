@@ -12,7 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bounded raw DEFLATE decoding for stored, fixed, and dynamic Huffman blocks,
   plus gzip member decoding with CRC and size validation. Stored-block decoding
   is also exposed as a separately usable operation; gzip header and trailer
-  validation can be used separately.
+  validation can be used separately. Fixed and dynamic Huffman tables can be
+  built independently, including retry after an incomplete dynamic header.
 
 - Reflected CRC kernels and incremental gzip CRC-32; Modbus uses the shared kernel.
 

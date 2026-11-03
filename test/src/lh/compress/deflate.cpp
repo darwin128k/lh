@@ -835,3 +835,33 @@ TEST(compress_deflate, repeats_overlapping_backreferences)
         EXPECT_EQ(written, expected.size());
     }
 }
+
+TEST(compress_deflate_fixed, builds_literal_and_distance_tables)
+{
+    lh_u16_t lit_counts[16], lit_symbols[288], dist_counts[16], dist_symbols[32];
+    lh_compress_deflate_fixed(lit_counts, lit_symbols, dist_counts, dist_symbols);
+    EXPECT_EQ(lit_counts[7], 24U);
+    EXPECT_EQ(lit_counts[8], 152U);
+    EXPECT_EQ(lit_counts[9], 112U);
+    EXPECT_EQ(dist_counts[5], 32U);
+}
+
+TEST(compress_deflate_dynamic, builds_tables_and_preserves_offset_on_truncation)
+{
+    lh_u16_t lit_counts[16], lit_symbols[288], dist_counts[16], dist_symbols[32];
+    lh_usize_t pos = 3U;
+    lh_compress_deflate_dynamic(dynamic_wire, sizeof(dynamic_wire), &pos, lit_counts, lit_symbols,
+                                dist_counts, dist_symbols);
+    EXPECT_GT(pos, 3U);
+    EXPECT_GT(lit_counts[1] + lit_counts[2] + lit_counts[3] + lit_counts[4] + lit_counts[5] +
+                  lit_counts[6] + lit_counts[7] + lit_counts[8] + lit_counts[9] + lit_counts[10] +
+                  lit_counts[11] + lit_counts[12] + lit_counts[13] + lit_counts[14] +
+                  lit_counts[15],
+              0U);
+    pos = 3U;
+    EXPECT_FALSE(lh_compress_deflate_try_dynamic(dynamic_wire, 1U, &pos, lit_counts, lit_symbols,
+                                                 dist_counts, dist_symbols));
+    EXPECT_EQ(pos, 3U);
+    LH_EXPECT_CHECK_DEATH(lh_compress_deflate_dynamic(dynamic_wire, 1U, &pos, lit_counts,
+                                                      lit_symbols, dist_counts, dist_symbols));
+}
