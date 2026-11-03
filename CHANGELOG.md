@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Incremental HTTP chunk decoder and framed body reader, deadline-bounded socket
+  reader, and streaming web routes with separate decoded-body, chunk-metadata
+  and request-time limits. Known oversized request bodies receive HTTP 413.
+
+- HTTP Expect field parsing and web-host 100 Continue / 417 responses before
+  reading a request body, including clients that wait for the interim reply.
+
+- HTTP chunked request framing and in-place decoding with validated, discarded
+  trailers; the web host accepts one chunked coding without Content-Length.
+
+- Named HTTP field names and common values, and web-host operations for sending
+  caller-supplied structured responses and headers.
+- Fallible web-host reply forms; checked replies now report failures through
+  runtime checks instead of silently discarding them.
+
 - `lh_web_xml_entity_t` and its field accessors expose the data shared
   by XML and HTML node operations without adding a second object.
 

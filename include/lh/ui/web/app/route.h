@@ -31,15 +31,18 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief What answers one route.
  *
- * The handler writes the answer on the socket — ::lh_ui_web_host_reply and
- * ::lh_ui_web_host_reply_text are there for it — and says whether it answered.
+ * The handler writes the answer on the socket and says whether it handled the
+ * route. The try reply functions let it handle a disconnected client without
+ * a runtime check. Once a route has attempted a reply it must report handled
+ * even if sending failed: the host closes the connection and must not append
+ * a second response to a partial first one.
  * Request, header and body views borrow transport storage and remain valid only
  * for the duration of the callback. The body may contain arbitrary bytes.
  *
  * @param ctx    The route's context, as the application has it.
  * @param request Parsed request, borrowing the input buffer.
  * @param headers Parsed fields, in caller-owned storage. Their count is in @p request.
- * @param body   Borrowed body bytes; the web host supplies the complete Content-Length body.
+ * @param body   Borrowed body bytes; the web host supplies the complete decoded body.
  * @param client The socket to answer on.
  *
  * @return ::lh_bool_true when the route answered.

@@ -4,9 +4,14 @@
  */
 
 #include <lh/ui/web/host.h>
+#include <lh/ui/web/host/deadline.h>
+#include <lh/http/body/reader.h>
 #include <lh/attribute/unused.h>
 #include <lh/http/format.h>
 #include <lh/http/framing.h>
+#include <lh/http/expect.h>
+#include <lh/http/header/name.h>
+#include <lh/http/header/value.h>
 #include <lh/http/status.h>
 #include <lh/str/format/ullong.h>
 #include <lh/str/split/once.h>
@@ -25,17 +30,62 @@
 #include <lh/str/format/base64.h>
 #include <lh/util/return.h>
 
-lh_void
-lh_ui_web_host_reply(lh_os_net_socket_t *client, const lh_http_request_t *request, lh_uint_t code,
-                     lh_str_cptr type, lh_str_cptr body, lh_usize_t len)
+lh_bool_t
+lh_ui_web_host_try_send_response(lh_os_net_socket_t *client, const lh_http_response_t *response,
+                                 const lh_http_header_t *headers, lh_str_ptr scratch,
+                                 lh_usize_t capacity, const lh_ptr body, lh_usize_t body_size)
 {
-    lh_char_t head[256];
+    lh_usize_t size = 0U;
+
+    if (!lh_http_format_try_response_head(response, headers, scratch, capacity, lh_addr_of(size)) ||
+        !lh_os_net_socket_send_all(client, scratch, size))
+    {
+        return lh_bool_false;
+    }
+    return lh_math_is_zero(body_size) || lh_os_net_socket_send_all(client, body, body_size);
+}
+
+lh_void
+lh_ui_web_host_send_response(lh_os_net_socket_t *client, const lh_http_response_t *response,
+                             const lh_http_header_t *headers, lh_str_ptr scratch,
+                             lh_usize_t capacity, const lh_ptr body, lh_usize_t body_size)
+{
+    lh_runtime_check_ifn(lh_ui_web_host_try_send_response(client, response, headers, scratch,
+                                                          capacity, body, body_size),
+                         lh_runtime_error_code_invalid_range);
+}
+
+lh_bool_t
+lh_ui_web_host_try_send_continue(lh_os_net_socket_t *client)
+{
+    lh_http_response_t response;
+    lh_http_response_set_version_minor(lh_addr_of(response), 1U);
+    lh_http_response_set_status(lh_addr_of(response), lh_http_status_continue);
+    lh_http_response_set_reason(lh_addr_of(response),
+                                lh_http_status_get_reason(lh_http_status_continue));
+    lh_http_response_set_header_count(lh_addr_of(response), 0U);
+    lh_char_t head[64];
+    return lh_ui_web_host_try_send_response(client, lh_addr_of(response), lh_null, head,
+                                            sizeof(head), lh_null, 0U);
+}
+
+lh_void
+lh_ui_web_host_send_continue(lh_os_net_socket_t *client)
+{
+    lh_runtime_check_ifn(lh_ui_web_host_try_send_continue(client),
+                         lh_runtime_error_code_invalid_range);
+}
+
+lh_bool_t
+lh_ui_web_host_try_reply(lh_os_net_socket_t *client, const lh_http_request_t *request,
+                         lh_uint_t code, lh_str_cptr type, lh_str_cptr body, lh_usize_t len)
+{
     lh_char_t length_text[LH_STR_FORMAT_ULLONG_DIGITS_MAX];
     const lh_usize_t length_size = lh_str_ptr_format_ullong(lh_cast_static(lh_ullong_t, len),
                                                             length_text, sizeof(length_text));
     if (!lh_http_status_is_valid(code))
     {
-        return;
+        return lh_bool_false;
     }
     const lh_str_view_t reason = lh_http_status_get_reason(code);
     const lh_bool_t content_forbidden =
@@ -50,45 +100,54 @@ lh_ui_web_host_reply(lh_os_net_socket_t *client, const lh_http_request_t *reques
     lh_http_header_t headers[4];
     lh_usize_t count = 0U;
     lh_http_header_set(
-        lh_addr_of(headers[count]), lh_str_view_lit("Content-Type"),
+        lh_addr_of(headers[count]), lh_http_header_name_content_type,
         lh_initializer_of(lh_str_view_t, lh_str_view_initializer, type, lh_str_ptr_len(type)));
     count = lh_math_add_one(count);
     if (!content_forbidden)
     {
         lh_http_header_set(
-            lh_addr_of(headers[count]), lh_str_view_lit("Content-Length"),
+            lh_addr_of(headers[count]), lh_http_header_name_content_length,
             lh_initializer_of(lh_str_view_t, lh_str_view_initializer, length_text, length_size));
         count = lh_math_add_one(count);
     }
-    lh_http_header_set(lh_addr_of(headers[count]), lh_str_view_lit("Connection"),
-                       lh_str_view_lit("close"));
+    lh_http_header_set(lh_addr_of(headers[count]), lh_http_header_name_connection,
+                       lh_http_header_value_close);
     count = lh_math_add_one(count);
-    lh_http_header_set(lh_addr_of(headers[count]), lh_str_view_lit("Cache-Control"),
-                       lh_str_view_lit("no-store"));
+    lh_http_header_set(lh_addr_of(headers[count]), lh_http_header_name_cache_control,
+                       lh_http_header_value_no_store);
     count = lh_math_add_one(count);
     lh_http_response_set_header_count(lh_addr_of(response), count);
-    lh_usize_t n = 0U;
-    if (lh_math_is_zero(length_size) ||
-        !lh_http_format_try_response_head(lh_addr_of(response), headers, head, sizeof(head),
-                                          lh_addr_of(n)))
+    if (lh_math_is_zero(length_size))
     {
-        return;
+        return lh_bool_false;
     }
-    if (!lh_os_net_socket_send_all(client, head, n))
-    {
-        return;
-    }
-    if (!content_forbidden && !is_head)
-    {
-        LH_ATTRIBUTE_UNUSED(lh_os_net_socket_send_all(client, body, len));
-    }
+    const lh_usize_t body_size = !content_forbidden && !is_head ? len : 0U;
+    lh_char_t head[256];
+    return lh_ui_web_host_try_send_response(client, lh_addr_of(response), headers, head,
+                                            sizeof(head), body, body_size);
+}
+
+lh_void
+lh_ui_web_host_reply(lh_os_net_socket_t *client, const lh_http_request_t *request, lh_uint_t code,
+                     lh_str_cptr type, lh_str_cptr body, lh_usize_t len)
+{
+    lh_runtime_check_ifn(lh_ui_web_host_try_reply(client, request, code, type, body, len),
+                         lh_runtime_error_code_invalid_range);
+}
+
+lh_bool_t
+lh_ui_web_host_try_reply_text(lh_os_net_socket_t *client, const lh_http_request_t *request,
+                              lh_uint_t code, lh_str_cptr text, lh_usize_t len)
+{
+    return lh_ui_web_host_try_reply(client, request, code, "text/plain; charset=utf-8", text, len);
 }
 
 lh_void
 lh_ui_web_host_reply_text(lh_os_net_socket_t *client, const lh_http_request_t *request,
                           lh_uint_t code, lh_str_cptr text, lh_usize_t len)
 {
-    lh_ui_web_host_reply(client, request, code, "text/plain; charset=utf-8", text, len);
+    lh_runtime_check_ifn(lh_ui_web_host_try_reply_text(client, request, code, text, len),
+                         lh_runtime_error_code_invalid_range);
 }
 
 lh_str_cptr
@@ -174,7 +233,7 @@ lh_ui_web_host_ws_upgrade(lh_os_net_socket_t *client, const lh_http_header_t *he
                           lh_usize_t count)
 {
     static const lh_char_t guid[] = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-    const lh_str_view_t key_name = lh_str_view_lit("Sec-WebSocket-Key");
+    const lh_str_view_t key_name = lh_http_header_name_websocket_key;
 
     const lh_http_header_t *key = lh_http_header_find(headers, count, lh_addr_of(key_name));
     if (key == lh_null)
@@ -201,7 +260,6 @@ lh_ui_web_host_ws_upgrade(lh_os_net_socket_t *client, const lh_http_header_t *he
     lh_char_t accept[32];
     accept[lh_str_ptr_format_base64(digest, sizeof(digest), accept, sizeof(accept) - 1u)] =
         lh_char_map_nul;
-    lh_char_t head[280];
     lh_http_response_t response;
     lh_http_response_set_status(lh_addr_of(response), lh_http_status_switching_protocols);
     lh_http_response_set_version_minor(lh_addr_of(response), 1U);
@@ -209,20 +267,16 @@ lh_ui_web_host_ws_upgrade(lh_os_net_socket_t *client, const lh_http_header_t *he
                                 lh_http_status_get_reason(lh_http_status_switching_protocols));
     lh_http_response_set_header_count(lh_addr_of(response), 3U);
     lh_http_header_t response_headers[3];
-    lh_http_header_set(lh_addr_of(response_headers[0]), lh_str_view_lit("Upgrade"),
-                       lh_str_view_lit("websocket"));
-    lh_http_header_set(lh_addr_of(response_headers[1]), lh_str_view_lit("Connection"),
-                       lh_str_view_lit("Upgrade"));
+    lh_http_header_set(lh_addr_of(response_headers[0]), lh_http_header_name_upgrade,
+                       lh_http_header_value_websocket);
+    lh_http_header_set(lh_addr_of(response_headers[1]), lh_http_header_name_connection,
+                       lh_http_header_value_upgrade);
     lh_http_header_set(
-        lh_addr_of(response_headers[2]), lh_str_view_lit("Sec-WebSocket-Accept"),
+        lh_addr_of(response_headers[2]), lh_http_header_name_websocket_accept,
         lh_initializer_of(lh_str_view_t, lh_str_view_initializer, accept, lh_str_ptr_len(accept)));
-    lh_usize_t h = 0U;
-    if (!lh_http_format_try_response_head(lh_addr_of(response), response_headers, head,
-                                          sizeof(head), lh_addr_of(h)))
-    {
-        return lh_bool_false;
-    }
-    if (!lh_os_net_socket_send_all(client, head, h))
+    lh_char_t head[280];
+    if (!lh_ui_web_host_try_send_response(client, lh_addr_of(response), response_headers, head,
+                                          sizeof(head), lh_null, 0U))
     {
         return lh_bool_false;
     }
@@ -603,67 +657,237 @@ lh_ui_web_host_ws_pump(lh_ui_web_host_client_t *c, lh_ui_web_app_t *app, lh_uint
 }
 
 lh_bool_t
+lh_ui_web_host_try_read_head(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize_t capacity,
+                             lh_u32_t timeout_ms, lh_usize_t *received, lh_usize_t *head_size,
+                             lh_http_request_t *request, lh_http_header_t *headers,
+                             lh_usize_t header_capacity)
+{
+    lh_http_parser_t parser;
+    lh_http_parser_init(lh_addr_of(parser));
+    lh_os_net_socket_t *const watch[] = {client};
+    const lh_u64_t start = lh_os_tick_ms();
+    lh_usize_t used = 0U;
+    while (lh_math_lt(used, capacity))
+    {
+        const lh_u64_t elapsed = lh_math_sub(lh_os_tick_ms(), start);
+        if (lh_math_ge(elapsed, timeout_ms) ||
+            lh_math_le(
+                lh_os_net_socket_wait(watch, 1U, lh_null, 0U,
+                                      lh_cast_static(lh_u32_t, lh_math_sub(timeout_ms, elapsed))),
+                0))
+        {
+            return lh_bool_false;
+        }
+        const lh_ssize_t got =
+            lh_os_net_socket_recv(client, buf + used, lh_math_sub(capacity, used));
+        if (lh_math_le(got, 0))
+        {
+            return lh_bool_false;
+        }
+        used = lh_math_add(used, lh_cast_static(lh_usize_t, got));
+        const lh_str_view_t input = lh_str_view_initializer(buf, used);
+        const lh_http_parse_status_t status =
+            lh_http_parser_request(lh_addr_of(parser), input, request, headers, header_capacity);
+        if (lh_math_eq(status, lh_http_parse_error))
+        {
+            return lh_bool_false;
+        }
+        if (lh_math_eq(status, lh_http_parse_complete))
+        {
+            lh_ptr_deref(received) = used;
+            lh_ptr_deref(head_size) = lh_http_parser_get_consumed(lh_addr_of(parser));
+            return lh_bool_true;
+        }
+    }
+    return lh_bool_false;
+}
+
+lh_void
+lh_ui_web_host_read_head(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize_t capacity,
+                         lh_u32_t timeout_ms, lh_usize_t *received, lh_usize_t *head_size,
+                         lh_http_request_t *request, lh_http_header_t *headers,
+                         lh_usize_t header_capacity)
+{
+    lh_runtime_check_ifn(lh_ui_web_host_try_read_head(client, buf, capacity, timeout_ms, received,
+                                                      head_size, request, headers, header_capacity),
+                         lh_runtime_error_code_invalid_range);
+}
+
+lh_bool_t
+lh_ui_web_host_try_begin_body(lh_os_net_socket_t *client, const lh_http_request_t *request,
+                              const lh_http_header_t *headers, lh_str_view_t initial,
+                              lh_usize_t decoded_limit, lh_bool_t can_receive_more,
+                              lh_bool_t *chunked, lh_usize_t *length)
+{
+    const lh_usize_t count = lh_http_request_get_header_count(request);
+    lh_bool_t is_chunked;
+    if (!lh_http_framing_try_is_chunked(headers, count, lh_addr_of(is_chunked)) ||
+        (is_chunked && lh_math_is_zero(lh_http_request_get_version_minor(request))))
+    {
+        return lh_bool_false;
+    }
+    lh_usize_t size = 0U;
+    if (!is_chunked && !lh_http_framing_try_get_content_length(headers, count, lh_addr_of(size)))
+    {
+        return lh_bool_false;
+    }
+    if (!is_chunked && lh_math_gt(size, decoded_limit))
+    {
+        LH_ATTRIBUTE_UNUSED(lh_ui_web_host_try_reply_text(
+            client, request, lh_http_status_content_too_large, lh_str_lit("body too large\n")));
+        return lh_bool_false;
+    }
+    lh_bool_t needs_body = lh_math_lt(lh_str_view_get_size(lh_addr_of(initial)), size);
+    if (is_chunked)
+    {
+        lh_usize_t consumed;
+        lh_usize_t decoded;
+        const lh_http_parse_status_t status =
+            lh_http_chunked_scan(initial, lh_addr_of(consumed), lh_addr_of(decoded));
+        if (lh_math_eq(status, lh_http_parse_error))
+        {
+            return lh_bool_false;
+        }
+        if (lh_math_eq(status, lh_http_parse_complete) && lh_math_gt(decoded, decoded_limit))
+        {
+            LH_ATTRIBUTE_UNUSED(lh_ui_web_host_try_reply_text(
+                client, request, lh_http_status_content_too_large, lh_str_lit("body too large\n")));
+            return lh_bool_false;
+        }
+        needs_body = lh_math_eq(status, lh_http_parse_incomplete);
+    }
+    if (needs_body && !can_receive_more)
+    {
+        return lh_bool_false;
+    }
+    if (!lh_math_is_zero(lh_http_request_get_version_minor(request)))
+    {
+        lh_bool_t expect_continue;
+        if (!lh_http_expect_try_get_continue(headers, count, lh_addr_of(expect_continue)))
+        {
+            LH_ATTRIBUTE_UNUSED(
+                lh_ui_web_host_try_reply_text(client, request, lh_http_status_expectation_failed,
+                                              lh_str_lit("unsupported expectation\n")));
+            return lh_bool_false;
+        }
+        if (expect_continue && needs_body && !lh_ui_web_host_try_send_continue(client))
+        {
+            return lh_bool_false;
+        }
+    }
+    lh_ptr_deref(chunked) = is_chunked;
+    lh_ptr_deref(length) = size;
+    return lh_bool_true;
+}
+
+lh_void
+lh_ui_web_host_begin_body(lh_os_net_socket_t *client, const lh_http_request_t *request,
+                          const lh_http_header_t *headers, lh_str_view_t initial,
+                          lh_usize_t decoded_limit, lh_bool_t can_receive_more, lh_bool_t *chunked,
+                          lh_usize_t *length)
+{
+    lh_runtime_check_ifn(lh_ui_web_host_try_begin_body(client, request, headers, initial,
+                                                       decoded_limit, can_receive_more, chunked,
+                                                       length),
+                         lh_runtime_error_code_invalid_range);
+}
+
+lh_bool_t
+lh_ui_web_host_try_finish_request(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize_t capacity,
+                                  lh_u32_t timeout_ms, lh_usize_t received, lh_usize_t head_size,
+                                  lh_http_request_t *request, lh_http_header_t *headers,
+                                  lh_usize_t *length, lh_str_view_t *body)
+{
+    const lh_u64_t start = lh_os_tick_ms();
+    lh_usize_t used = received;
+    lh_str_view_t initial;
+    lh_str_view_init_by_size(lh_addr_of(initial), buf + head_size, lh_math_sub(used, head_size));
+    lh_bool_t chunked = lh_bool_false;
+    lh_usize_t body_size;
+    if (!lh_ui_web_host_try_begin_body(client, request, headers, initial,
+                                       lh_math_sub(capacity, head_size), lh_math_lt(used, capacity),
+                                       lh_addr_of(chunked), lh_addr_of(body_size)))
+    {
+        return lh_bool_false;
+    }
+    lh_os_net_socket_t *const watch[] = {client};
+    for (;;)
+    {
+        if (chunked)
+        {
+            lh_usize_t consumed;
+            lh_usize_t decoded;
+            const lh_http_parse_status_t status =
+                lh_http_chunked_decode(buf + head_size, lh_math_sub(used, head_size),
+                                       lh_addr_of(consumed), lh_addr_of(decoded));
+            if (lh_math_eq(status, lh_http_parse_error))
+            {
+                return lh_bool_false;
+            }
+            if (lh_math_eq(status, lh_http_parse_complete))
+            {
+                lh_str_view_init_by_size(body, buf + head_size, decoded);
+                lh_ptr_deref(length) = lh_math_add(head_size, consumed);
+                return lh_bool_true;
+            }
+        }
+        else if (lh_math_ge(lh_math_sub(used, head_size), body_size))
+        {
+            lh_str_view_init_by_size(body, buf + head_size, body_size);
+            lh_ptr_deref(length) = lh_math_add(head_size, body_size);
+            return lh_bool_true;
+        }
+        const lh_u64_t elapsed = lh_math_sub(lh_os_tick_ms(), start);
+        if (lh_math_ge(used, capacity) || lh_math_ge(elapsed, timeout_ms) ||
+            lh_math_le(
+                lh_os_net_socket_wait(watch, 1U, lh_null, 0U,
+                                      lh_cast_static(lh_u32_t, lh_math_sub(timeout_ms, elapsed))),
+                0))
+        {
+            return lh_bool_false;
+        }
+        const lh_ssize_t got =
+            lh_os_net_socket_recv(client, buf + used, lh_math_sub(capacity, used));
+        if (lh_math_le(got, 0))
+        {
+            return lh_bool_false;
+        }
+        used = lh_math_add(used, lh_cast_static(lh_usize_t, got));
+    }
+}
+
+lh_void
+lh_ui_web_host_finish_request(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize_t capacity,
+                              lh_u32_t timeout_ms, lh_usize_t received, lh_usize_t head_size,
+                              lh_http_request_t *request, lh_http_header_t *headers,
+                              lh_usize_t *length, lh_str_view_t *body)
+{
+    lh_runtime_check_ifn(lh_ui_web_host_try_finish_request(client, buf, capacity, timeout_ms,
+                                                           received, head_size, request, headers,
+                                                           length, body),
+                         lh_runtime_error_code_invalid_range);
+}
+
+lh_bool_t
 lh_ui_web_host_try_read_request(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize_t capacity,
                                 lh_u32_t timeout_ms, lh_usize_t *length, lh_str_view_t *body,
                                 lh_http_request_t *request, lh_http_header_t *headers,
                                 lh_usize_t header_capacity)
 {
-    lh_http_parser_t parser;
-    lh_os_net_socket_t *const watch[] = {client};
     const lh_u64_t start = lh_os_tick_ms();
     lh_usize_t used = 0U;
-    lh_usize_t required = 0U;
-    lh_usize_t head_size = 0U;
-    lh_bool_t head_complete = lh_bool_false;
-
-    lh_http_parser_init(lh_addr_of(parser));
-    while (used < capacity)
+    lh_usize_t head_size;
+    if (!lh_ui_web_host_try_read_head(client, buf, capacity, timeout_ms, lh_addr_of(used),
+                                      lh_addr_of(head_size), request, headers, header_capacity))
     {
-        const lh_u64_t elapsed = lh_os_tick_ms() - start;
-        if (elapsed >= timeout_ms ||
-            lh_os_net_socket_wait(watch, 1U, lh_null, 0U,
-                                  lh_cast_static(lh_u32_t, timeout_ms - elapsed)) <= 0)
-        {
-            return lh_bool_false;
-        }
-        const lh_ssize_t got = lh_os_net_socket_recv(client, buf + used, capacity - used);
-        if (got <= 0)
-        {
-            return lh_bool_false;
-        }
-        used += lh_cast_static(lh_usize_t, got);
-        if (!head_complete)
-        {
-            const lh_str_view_t input = lh_str_view_initializer(buf, used);
-            const lh_http_parse_status_t status = lh_http_parser_request(
-                lh_addr_of(parser), input, request, headers, header_capacity);
-            if (status == lh_http_parse_error)
-            {
-                return lh_bool_false;
-            }
-            if (status == lh_http_parse_complete)
-            {
-                head_size = lh_http_parser_get_consumed(lh_addr_of(parser));
-                lh_usize_t body_size;
-                if (!lh_http_framing_try_get_content_length(
-                        headers, lh_http_request_get_header_count(request),
-                        lh_addr_of(body_size)) ||
-                    body_size > capacity - head_size)
-                {
-                    return lh_bool_false;
-                }
-                required = head_size + body_size;
-                head_complete = lh_bool_true;
-            }
-        }
-        if (head_complete && used >= required)
-        {
-            lh_str_view_init_by_size(body, buf + head_size, required - head_size);
-            lh_ptr_deref(length) = required;
-            return lh_bool_true;
-        }
+        return lh_bool_false;
     }
-    return lh_bool_false;
+    const lh_u64_t elapsed = lh_math_sub(lh_os_tick_ms(), start);
+    const lh_u32_t remaining = lh_math_ge(elapsed, timeout_ms)
+                                   ? 0U
+                                   : lh_cast_static(lh_u32_t, lh_math_sub(timeout_ms, elapsed));
+    return lh_ui_web_host_try_finish_request(client, buf, capacity, remaining, used, head_size,
+                                             request, headers, length, body);
 }
 
 lh_void
@@ -678,26 +902,116 @@ lh_ui_web_host_read_request(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize
 }
 
 lh_bool_t
+lh_ui_web_host_try_serve_stream(lh_ui_web_app_t *app, const lh_ui_web_stream_route_t *route,
+                                lh_os_net_socket_t *client, const lh_http_request_t *request,
+                                const lh_http_header_t *headers, lh_str_view_t initial,
+                                lh_u64_t start)
+{
+    lh_char_t wire[LH_UI_WEB_HOST_REQUEST_CAPACITY];
+    lh_char_t line[LH_UI_WEB_HOST_CHUNK_LINE_CAPACITY];
+    const lh_usize_t available = lh_str_view_get_size(lh_addr_of(initial));
+    if (lh_math_gt(available, sizeof(wire)))
+    {
+        return lh_bool_false;
+    }
+    lh_bool_t chunked;
+    lh_usize_t length;
+    if (!lh_ui_web_host_try_begin_body(client, request, headers, initial,
+                                       lh_ui_web_stream_route_get_body_limit(route), lh_bool_true,
+                                       lh_addr_of(chunked), lh_addr_of(length)))
+    {
+        return lh_bool_false;
+    }
+    if (!lh_math_is_zero(available))
+    {
+        lh_memory_std_copy(wire, lh_str_view_get_begin(lh_addr_of(initial)), available);
+    }
+    lh_ui_web_host_deadline_t deadline;
+    lh_ui_web_host_deadline_init(lh_addr_of(deadline), client, start,
+                                 lh_ui_web_stream_route_get_timeout_ms(route));
+    lh_io_reader_t source;
+    lh_ui_web_host_deadline_get_reader(lh_addr_of(deadline), lh_addr_of(source));
+    lh_http_body_reader_t body;
+    lh_http_chunked_decoder_t decoder;
+    if (chunked)
+    {
+        lh_http_chunked_decoder_init(lh_addr_of(decoder), line, sizeof(line),
+                                     lh_ui_web_stream_route_get_body_limit(route),
+                                     lh_ui_web_stream_route_get_metadata_limit(route));
+        lh_http_body_reader_init_chunked(lh_addr_of(body), lh_addr_of(source), wire, sizeof(wire),
+                                         available, lh_addr_of(decoder));
+    }
+    else
+    {
+        lh_http_body_reader_init_length(lh_addr_of(body), lh_addr_of(source), wire, sizeof(wire),
+                                        available, length);
+    }
+    lh_io_reader_t reader;
+    lh_http_body_reader_get_reader(lh_addr_of(body), lh_addr_of(reader));
+    lh_ui_web_stream_route_get_handler(route)(lh_ui_web_app_get_ctx(app), request, headers,
+                                              lh_addr_of(reader), client);
+    return lh_bool_true;
+}
+
+lh_void
+lh_ui_web_host_serve_stream(lh_ui_web_app_t *app, const lh_ui_web_stream_route_t *route,
+                            lh_os_net_socket_t *client, const lh_http_request_t *request,
+                            const lh_http_header_t *headers, lh_str_view_t initial, lh_u64_t start)
+{
+    lh_runtime_check_ifn(
+        lh_ui_web_host_try_serve_stream(app, route, client, request, headers, initial, start),
+        lh_runtime_error_code_invalid_range);
+}
+
+lh_bool_t
 lh_ui_web_host_handle_request_is_upgraded(lh_ui_web_app_t *app, lh_os_net_socket_t *client)
 {
     lh_char_t req[LH_UI_WEB_HOST_REQUEST_CAPACITY];
-    lh_usize_t len;
-    lh_str_view_t body;
+    lh_usize_t received;
+    lh_usize_t head_size;
     lh_http_request_t request;
     lh_http_header_t headers[32];
-
     if (!lh_os_net_socket_set_blocking(client, lh_bool_true))
     {
         return lh_bool_false;
     }
     LH_ATTRIBUTE_UNUSED(lh_os_net_socket_set_no_delay(client, lh_bool_true));
-    if (!lh_ui_web_host_try_read_request(client, req, sizeof(req), LH_UI_WEB_HOST_REQUEST_MS,
-                                         lh_addr_of(len), lh_addr_of(body), lh_addr_of(request),
-                                         headers, lh_array_ptr_get_size(headers)))
+    const lh_u64_t start = lh_os_tick_ms();
+    if (!lh_ui_web_host_try_read_head(client, req, sizeof(req), LH_UI_WEB_HOST_REQUEST_MS,
+                                      lh_addr_of(received), lh_addr_of(head_size),
+                                      lh_addr_of(request), headers, lh_array_ptr_get_size(headers)))
     {
         return lh_bool_false;
     }
-    if (lh_ui_web_app_is_websocket(app, lh_addr_of(request)))
+    const lh_bool_t websocket = lh_ui_web_app_is_websocket(app, lh_addr_of(request));
+    if (!websocket)
+    {
+        const lh_ui_web_stream_route_t *route =
+            lh_ui_web_app_find_stream_route(app, lh_addr_of(request));
+        if (route != lh_null)
+        {
+            lh_str_view_t initial;
+            lh_str_view_init_by_size(lh_addr_of(initial), req + head_size,
+                                     lh_math_sub(received, head_size));
+            LH_ATTRIBUTE_UNUSED(lh_ui_web_host_try_serve_stream(
+                app, route, client, lh_addr_of(request), headers, initial, start));
+            return lh_bool_false;
+        }
+    }
+    const lh_u64_t elapsed = lh_math_sub(lh_os_tick_ms(), start);
+    const lh_u32_t remaining =
+        lh_math_ge(elapsed, LH_UI_WEB_HOST_REQUEST_MS)
+            ? 0U
+            : lh_cast_static(lh_u32_t, lh_math_sub(LH_UI_WEB_HOST_REQUEST_MS, elapsed));
+    lh_usize_t len;
+    lh_str_view_t body;
+    if (!lh_ui_web_host_try_finish_request(client, req, sizeof(req), remaining, received, head_size,
+                                           lh_addr_of(request), headers, lh_addr_of(len),
+                                           lh_addr_of(body)))
+    {
+        return lh_bool_false;
+    }
+    if (websocket)
     {
         return lh_ui_web_host_ws_upgrade(client, headers,
                                          lh_http_request_get_header_count(lh_addr_of(request)));
@@ -707,8 +1021,8 @@ lh_ui_web_host_handle_request_is_upgraded(lh_ui_web_app_t *app, lh_os_net_socket
     {
         return lh_bool_false;
     }
-    lh_ui_web_host_reply_text(client, lh_addr_of(request), lh_http_status_not_found,
-                              lh_str_lit("not found\n"));
+    LH_ATTRIBUTE_UNUSED(lh_ui_web_host_try_reply_text(
+        client, lh_addr_of(request), lh_http_status_not_found, lh_str_lit("not found\n")));
     return lh_bool_false;
 }
 

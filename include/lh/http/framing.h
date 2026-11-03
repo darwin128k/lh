@@ -2,9 +2,9 @@
  * @file framing.h
  * @brief Determine the length of a supported HTTP request body.
  *
- * The helpers inspect caller-owned parsed fields. They support one decimal
- * Content-Length or no body, and deliberately reject Transfer-Encoding and
- * repeated Content-Length fields. They neither own input nor consume bytes.
+ * The helpers inspect caller-owned parsed fields. They identify a single
+ * chunked transfer coding or determine one decimal Content-Length, rejecting
+ * ambiguous framing. They neither own input nor consume bytes.
  */
 
 #ifndef LH_HTTP_FRAMING_H
@@ -13,6 +13,38 @@
 #include <lh/http/header.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief Determine whether the request uses the supported chunked coding.
+ *
+ * A single case-insensitive `chunked` value without Content-Length is
+ * supported. Repeated Transfer-Encoding, multiple or unknown codings, and
+ * Transfer-Encoding combined with Content-Length are rejected. If there is no
+ * Transfer-Encoding, the caller must validate Content-Length separately.
+ *
+ * @param headers Caller-owned fields; null is allowed when @p count is zero.
+ * @param count Number of fields.
+ * @param out Receives true for chunked or false for no Transfer-Encoding;
+ *            unchanged if validation fails.
+ * @return True when the transfer coding is supported, false otherwise.
+ * @pre @p out is valid; nonzero @p count has that many valid fields.
+ */
+lh_bool_t
+lh_http_framing_try_is_chunked(const lh_http_header_t *headers, lh_usize_t count, lh_bool_t *out);
+
+/**
+ * @brief Check the transfer coding and report whether it is chunked.
+ *
+ * Delegates to ::lh_http_framing_try_is_chunked; field storage remains owned
+ * by the caller. No Transfer-Encoding returns false.
+ * @param headers Caller-owned fields, or null when @p count is zero.
+ * @param count Number of fields.
+ * @return True for the supported chunked coding, false if absent.
+ * @pre A nonzero count has that many valid fields.
+ * @fails ::lh_runtime_error_code_invalid_range The coding is invalid or unsupported.
+ */
+lh_bool_t
+lh_http_framing_is_chunked(const lh_http_header_t *headers, lh_usize_t count);
 
 /**
  * @brief Determine a request body length from its parsed fields.

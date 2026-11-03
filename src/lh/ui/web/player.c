@@ -304,9 +304,10 @@ lh_ui_web_player_serve_page(lh_ptr ctx, const lh_http_request_t *request,
     LH_ATTRIBUTE_UNUSED(headers);
     LH_ATTRIBUTE_UNUSED(request_body);
     lh_assert_runtime_ref(self);
-    lh_ui_web_host_reply(client, request, lh_http_status_ok, "text/html; charset=utf-8",
-                         lh_ptr_rcast(const lh_char_t, lh_ui_web_player_get_page(self)),
-                         lh_ui_web_player_get_page_len(self));
+    LH_ATTRIBUTE_UNUSED(
+        lh_ui_web_host_try_reply(client, request, lh_http_status_ok, "text/html; charset=utf-8",
+                                 lh_ptr_rcast(const lh_char_t, lh_ui_web_player_get_page(self)),
+                                 lh_ui_web_player_get_page_len(self)));
     return lh_bool_true;
 }
 
@@ -324,7 +325,7 @@ lh_ui_web_player_serve_revision(lh_ptr ctx, const lh_http_request_t *request,
     LH_ATTRIBUTE_UNUSED(headers);
     LH_ATTRIBUTE_UNUSED(request_body);
     lh_assert_runtime_ref(self);
-    lh_ui_web_host_reply_text(client, request, lh_http_status_ok, body, n);
+    LH_ATTRIBUTE_UNUSED(lh_ui_web_host_try_reply_text(client, request, lh_http_status_ok, body, n));
     return lh_bool_true;
 }
 
@@ -497,17 +498,18 @@ lh_ui_web_player_serve_frame(lh_ptr ctx, const lh_http_request_t *request,
     if (lh_ui_web_host_get_query_uint(request, lh_str_lit("rev=")) ==
         lh_ui_web_app_get_generation(lh_ui_web_player_get_app(self)))
     {
-        lh_ui_web_host_reply_text(client, request, lh_http_status_not_modified, lh_str_lit(""));
+        LH_ATTRIBUTE_UNUSED(lh_ui_web_host_try_reply_text(
+            client, request, lh_http_status_not_modified, lh_str_lit("")));
         return lh_bool_true;
     }
     if (!lh_ui_web_player_draw(self, lh_null, lh_addr_of(bytes), lh_addr_of(n)))
     {
-        lh_ui_web_host_reply_text(client, request, lh_http_status_internal_server_error,
-                                  lh_str_lit("draw failed\n"));
+        LH_ATTRIBUTE_UNUSED(lh_ui_web_host_try_reply_text(
+            client, request, lh_http_status_internal_server_error, lh_str_lit("draw failed\n")));
         return lh_bool_true;
     }
-    lh_ui_web_host_reply(client, request, lh_http_status_ok, "application/json; charset=utf-8",
-                         bytes, n);
+    LH_ATTRIBUTE_UNUSED(lh_ui_web_host_try_reply(client, request, lh_http_status_ok,
+                                                 "application/json; charset=utf-8", bytes, n));
     return lh_bool_true;
 }
 
@@ -672,7 +674,8 @@ lh_ui_web_player_serve_input(lh_ptr ctx, const lh_http_request_t *request,
         return lh_bool_false;
     }
     lh_ui_web_app_bump(lh_ui_web_player_get_app(self));
-    lh_ui_web_host_reply_text(client, request, lh_http_status_ok, lh_str_lit("ok\n"));
+    LH_ATTRIBUTE_UNUSED(
+        lh_ui_web_host_try_reply_text(client, request, lh_http_status_ok, lh_str_lit("ok\n")));
     return lh_bool_true;
 }
 

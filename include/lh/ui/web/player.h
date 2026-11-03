@@ -355,7 +355,7 @@ lh_ui_web_player_resize(lh_ui_web_player_t *self, lh_sint_t w, lh_sint_t h);
  * @param ctx    The player's context.
  * @param request Parsed request, borrowing its source bytes.
  * @param headers Parsed fields, whose count is stored in @p request.
- * @param request_body Borrowed body bytes; the web host supplies the complete Content-Length body.
+ * @param request_body Borrowed body bytes; the web host supplies the complete decoded body.
  * @param client The socket to answer on.
  *
  * @return ::lh_bool_true when it answered.
@@ -373,7 +373,7 @@ lh_ui_web_player_serve_page(lh_ptr ctx, const lh_http_request_t *request,
  * @param ctx    The player's context.
  * @param request Parsed request, borrowing its source bytes.
  * @param headers Parsed fields, whose count is stored in @p request.
- * @param request_body Borrowed body bytes; the web host supplies the complete Content-Length body.
+ * @param request_body Borrowed body bytes; the web host supplies the complete decoded body.
  * @param client The socket to answer on.
  *
  * @return ::lh_bool_true when it answered.
@@ -394,8 +394,8 @@ lh_ui_web_player_serve_revision(lh_ptr ctx, const lh_http_request_t *request,
  * @return ::lh_bool_false when the frame did not fit.
  */
 lh_bool_t
-lh_ui_web_player_draw(lh_ui_web_player_t *self, lh_ui_canvas_web_glyphs_t *glyphs, const lh_str_ptr *bytes,
-                      lh_usize_t *len);
+lh_ui_web_player_draw(lh_ui_web_player_t *self, lh_ui_canvas_web_glyphs_t *glyphs,
+                      const lh_str_ptr *bytes, lh_usize_t *len);
 
 /**
  * @brief Start a player.
@@ -416,9 +416,9 @@ lh_ui_web_player_draw(lh_ui_web_player_t *self, lh_ui_canvas_web_glyphs_t *glyph
  * @return ::lh_bool_false when the player document did not build.
  */
 lh_bool_t
-lh_ui_web_player_init(lh_ui_web_player_t *self, lh_ui_view_t *view, lh_uint_t width, lh_uint_t height,
-                      lh_str_ptr json, lh_usize_t json_cap, lh_byte_ptr page, lh_usize_t page_cap,
-                      const lh_ui_web_host_hooks_t *hooks);
+lh_ui_web_player_init(lh_ui_web_player_t *self, lh_ui_view_t *view, lh_uint_t width,
+                      lh_uint_t height, lh_str_ptr json, lh_usize_t json_cap, lh_byte_ptr page,
+                      lh_usize_t page_cap, const lh_ui_web_host_hooks_t *hooks);
 
 /**
  * @brief A pointer event at view pixel (@p x, @p y).
@@ -431,7 +431,8 @@ lh_ui_web_player_init(lh_ui_web_player_t *self, lh_ui_view_t *view, lh_uint_t wi
  * @return True when the tree may have changed.
  */
 lh_bool_t
-lh_ui_web_player_pointer(lh_ui_web_player_t *self, lh_os_input_kind_t kind, lh_sint_t x, lh_sint_t y);
+lh_ui_web_player_pointer(lh_ui_web_player_t *self, lh_os_input_kind_t kind, lh_sint_t x,
+                         lh_sint_t y);
 
 /**
  * @brief A wheel notch at (@p x, @p y).
@@ -445,7 +446,8 @@ lh_ui_web_player_pointer(lh_ui_web_player_t *self, lh_os_input_kind_t kind, lh_s
  * @return True when the tree may have changed.
  */
 lh_bool_t
-lh_ui_web_player_wheel(lh_ui_web_player_t *self, lh_sint_t x, lh_sint_t y, lh_sint_t dx, lh_sint_t dy);
+lh_ui_web_player_wheel(lh_ui_web_player_t *self, lh_sint_t x, lh_sint_t y, lh_sint_t dx,
+                       lh_sint_t dy);
 
 /**
  * @brief A key going down or up.
@@ -478,7 +480,7 @@ lh_ui_web_player_text(lh_ui_web_player_t *self, lh_u32_t code);
  * @param ctx    The player's context.
  * @param request Parsed request, borrowing its source bytes.
  * @param headers Parsed fields, whose count is stored in @p request.
- * @param request_body Borrowed body bytes; the web host supplies the complete Content-Length body.
+ * @param request_body Borrowed body bytes; the web host supplies the complete decoded body.
  * @param client The socket to answer on.
  *
  * @return ::lh_bool_true when it answered.
@@ -533,7 +535,7 @@ lh_ui_web_player_event_line(lh_ui_web_player_t *self, const lh_str_ptr line, lh_
  * @param ctx    The player's context.
  * @param request Parsed request, borrowing its source bytes.
  * @param headers Parsed fields, whose count is stored in @p request.
- * @param request_body Borrowed body bytes; the web host supplies the complete Content-Length body.
+ * @param request_body Borrowed body bytes; the web host supplies the complete decoded body.
  * @param client The socket to answer on.
  *
  * @return ::lh_bool_true when it answered.

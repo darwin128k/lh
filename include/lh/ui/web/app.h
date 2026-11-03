@@ -20,7 +20,7 @@
 #include <lh/config.h>
 #include <lh/ui/canvas/web.h>
 #include <lh/ui/web/app/fields.h>
-#include <lh/ui/web/app/route.h>
+#include <lh/ui/web/app/stream/route.h>
 
 #if !LH_LIBRARY_OPTION_UI
 #    error "lh/ui/web/app.h requires LH_LIBRARY_OPTION_UI"
@@ -72,13 +72,46 @@ LH_COMPILER_EXTERN_C_END
 struct lh_ui_web_app
 {
     /** Members: ::lh_ui_web_app_fields. */
-    lh_ui_web_app_fields(const lh_ui_web_route_t *, lh_usize_t, const lh_str_ptr,
-                         lh_ui_web_app_frame_fn, lh_ui_web_app_message_fn, lh_ui_web_app_tick_fn);
+    lh_ui_web_app_fields(const lh_ui_web_route_t *, const lh_ui_web_stream_route_t *, lh_usize_t,
+                         const lh_str_ptr, lh_ui_web_app_frame_fn, lh_ui_web_app_message_fn,
+                         lh_ui_web_app_tick_fn);
 };
 /** @copybrief lh_ui_web_app */
 typedef struct lh_ui_web_app lh_ui_web_app_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief Return the borrowed streaming route table.
+ * @param self Valid application.
+ * @return The table pointer, null when no table is set.
+ */
+const lh_ui_web_stream_route_t *
+lh_ui_web_app_get_stream_routes(const lh_ui_web_app_t *self);
+
+/**
+ * @brief Store a borrowed streaming route table without changing its count.
+ * @param self Valid application.
+ * @param routes Caller-owned table that must outlive the application, or null.
+ */
+lh_void
+lh_ui_web_app_set_stream_routes(lh_ui_web_app_t *self, const lh_ui_web_stream_route_t *routes);
+
+/**
+ * @brief Return the number of borrowed streaming routes.
+ * @param self Valid application.
+ * @return Number of entries in the streaming table.
+ */
+lh_usize_t
+lh_ui_web_app_get_nstream_routes(const lh_ui_web_app_t *self);
+
+/**
+ * @brief Store the number of streaming routes without changing the table.
+ * @param self Valid application.
+ * @param count Number of entries in the caller-owned table.
+ */
+lh_void
+lh_ui_web_app_set_nstream_routes(lh_ui_web_app_t *self, lh_usize_t count);
 
 /**
  * @brief The route table (level 1).
@@ -276,6 +309,16 @@ lh_bool_t
 lh_ui_web_app_is_websocket(const lh_ui_web_app_t *self, const lh_http_request_t *request);
 
 /**
+ * @brief Find the first streaming route matching a parsed request.
+ * @param self Application with a valid borrowed streaming route table.
+ * @param request Parsed request, borrowed.
+ * @return Borrowed route pointer or null if no route matches.
+ * @pre The table has the configured number of valid routes and matchers.
+ */
+const lh_ui_web_stream_route_t *
+lh_ui_web_app_find_stream_route(const lh_ui_web_app_t *self, const lh_http_request_t *request);
+
+/**
  * @brief Let the routes answer a parsed request.
  *
  * The first route that matches answers it. A route that does not answer is
@@ -284,7 +327,7 @@ lh_ui_web_app_is_websocket(const lh_ui_web_app_t *self, const lh_http_request_t 
  * @param self   The application; checked by ::lh_assert_runtime_ref.
  * @param request Parsed request borrowing the input buffer.
  * @param headers Parsed header fields, with count stored in @p request.
- * @param body   Borrowed body bytes; the web host supplies the complete Content-Length body.
+ * @param body   Borrowed body bytes; the web host supplies the complete decoded body.
  * @param client The socket to answer on.
  *
  * @return ::lh_bool_true when a route answered.
@@ -303,8 +346,8 @@ lh_ui_web_app_handle_request_is_handled(lh_ui_web_app_t *self, const lh_http_req
  * @param len    Receives its length.
  */
 lh_void
-lh_ui_web_app_frame(lh_ui_web_app_t *self, lh_ui_canvas_web_glyphs_t *glyphs, const lh_str_ptr *bytes,
-                    lh_usize_t *len);
+lh_ui_web_app_frame(lh_ui_web_app_t *self, lh_ui_canvas_web_glyphs_t *glyphs,
+                    const lh_str_ptr *bytes, lh_usize_t *len);
 
 /**
  * @brief Give one text message from a client to the application.
