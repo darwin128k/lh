@@ -121,6 +121,18 @@ lh_io_reader_get_context(const lh_io_reader_t *self);
 lh_ssize_t
 lh_io_reader_read(lh_io_reader_t *self, lh_ptr buf, lh_usize_t size);
 
+/**
+ * @brief Discard input until end of stream using caller-owned scratch.
+ * @param self Initialized reader; remains caller-owned.
+ * @param scratch Writable scratch buffer, borrowed for this call.
+ * @param capacity Scratch size, which must be nonzero.
+ * @return Zero at end of stream, or the negative pending/error result from
+ * the reader. After pending, a caller may invoke this operation again.
+ * @pre All pointers are valid and scratch holds capacity writable bytes.
+ */
+lh_ssize_t
+lh_io_reader_drain(lh_io_reader_t *self, lh_ptr scratch, lh_usize_t capacity);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_IO_READER_H */

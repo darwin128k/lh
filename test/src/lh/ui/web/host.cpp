@@ -370,14 +370,12 @@ std::string
 read_head(lh_os_net_socket_t *sock);
 }
 
-void
+lh_bool_t
 ui_web_host_test_stream_body(lh_ptr ctx, const lh_http_request_t *request,
-                             const lh_http_header_t *headers, lh_io_reader_t *body,
-                             lh_os_net_socket_t *client)
+                             const lh_http_header_t *headers, lh_io_reader_t *body)
 {
     LH_ATTRIBUTE_UNUSED(request);
     LH_ATTRIBUTE_UNUSED(headers);
-    LH_ATTRIBUTE_UNUSED(client);
     std::string *captured = static_cast<std::string *>(ctx);
     char buffer[113];
     for (;;)
@@ -385,15 +383,27 @@ ui_web_host_test_stream_body(lh_ptr ctx, const lh_http_request_t *request,
         const lh_ssize_t size = lh_io_reader_read(body, buffer, sizeof(buffer));
         if (size == 0)
         {
-            return;
+            return lh_bool_true;
         }
         if (size < 0)
         {
-            captured->append("READ ERROR");
-            return;
+            return lh_bool_false;
         }
         captured->append(buffer, static_cast<std::size_t>(size));
     }
+}
+
+void
+ui_web_host_test_stream_commit(lh_ptr, const lh_http_request_t *, const lh_http_header_t *,
+                               lh_os_net_socket_t *)
+{
+}
+
+void
+ui_web_host_test_stream_abort(lh_ptr ctx, const lh_http_request_t *, const lh_http_header_t *,
+                              lh_os_net_socket_t *)
+{
+    static_cast<std::string *>(ctx)->clear();
 }
 
 TEST(ui_web_host_serve_stream, checks_initial_scratch_capacity)
@@ -456,8 +466,9 @@ TEST(ui_web_host_handle_request_is_upgraded, streams_large_bodies_with_continue)
         lh_ui_web_route_set_path(&match, "/data");
         lh_ui_web_route_set_path_len(&match, 5U);
         lh_ui_web_stream_route_t route;
-        lh_ui_web_stream_route_init(&route, &match, ui_web_host_test_stream_body, 20000U, 1024U,
-                                    5000U);
+        lh_ui_web_stream_route_init(&route, &match, ui_web_host_test_stream_body,
+                                    ui_web_host_test_stream_commit, ui_web_host_test_stream_abort,
+                                    20000U, 1024U, 5000U);
         lh_ui_web_app_t app;
         lh_ui_web_app_init(&app, nullptr, 0U);
         lh_ui_web_app_set_stream_routes(&app, &route);
@@ -490,6 +501,85 @@ TEST(ui_web_host_handle_request_is_upgraded, streams_large_bodies_with_continue)
     }
 }
 
+lh_bool_t
+ui_web_host_test_stream_stage_one(lh_ptr ctx, const lh_http_request_t *, const lh_http_header_t *,
+                                  lh_io_reader_t *body)
+{
+    char byte;
+    if (lh_io_reader_read(body, &byte, 1U) != 1)
+    {
+        return lh_bool_false;
+    }
+    static_cast<std::string *>(ctx)->append(1U, byte);
+    return lh_bool_true;
+}
+
+void
+ui_web_host_test_stream_mark_commit(lh_ptr ctx, const lh_http_request_t *, const lh_http_header_t *,
+                                    lh_os_net_socket_t *)
+{
+    static_cast<std::string *>(ctx)->append(" COMMIT");
+}
+
+void
+ui_web_host_test_stream_mark_abort(lh_ptr ctx, const lh_http_request_t *, const lh_http_header_t *,
+                                   lh_os_net_socket_t *)
+{
+    *static_cast<std::string *>(ctx) = "ABORT";
+}
+
+TEST(ui_web_host_handle_request_is_upgraded,
+     finishes_staged_data_only_after_remaining_chunked_body_is_validated)
+{
+    for (int scenario : {0, 1, 2})
+    {
+        const bool oversize = scenario == 1;
+        ASSERT_TRUE(lh_os_net_init());
+        lh_os_system_net_socket_handle_t handles[2];
+        ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+        lh_os_net_socket_t server;
+        lh_os_net_socket_t client;
+        lh_os_net_socket_init(&server);
+        lh_os_net_socket_init(&client);
+        lh_os_net_socket_set_handle(&server, handles[0]);
+        lh_os_net_socket_set_handle(&client, handles[1]);
+        lh_ui_web_route_t match = {};
+        lh_ui_web_route_set_method(&match, "POST");
+        lh_ui_web_route_set_method_len(&match, 4U);
+        lh_ui_web_route_set_path(&match, "/data");
+        lh_ui_web_route_set_path_len(&match, 5U);
+        lh_ui_web_stream_route_t route;
+        lh_ui_web_stream_route_init(
+            &route, &match, ui_web_host_test_stream_stage_one, ui_web_host_test_stream_mark_commit,
+            ui_web_host_test_stream_mark_abort, oversize ? 2U : 100U, 1024U, 5000U);
+        lh_ui_web_app_t app;
+        lh_ui_web_app_init(&app, nullptr, 0U);
+        lh_ui_web_app_set_stream_routes(&app, &route);
+        lh_ui_web_app_set_nstream_routes(&app, 1U);
+        std::string staged;
+        lh_ui_web_app_set_ctx(&app, &staged);
+        const char head[] =
+            "POST /data HTTP/1.1\r\nTransfer-Encoding: chunked\r\nExpect: 100-continue\r\n\r\n";
+        ASSERT_TRUE(lh_os_net_socket_send_all(&client, head, sizeof(head) - 1U));
+        std::thread worker(
+            [&] { LH_ATTRIBUTE_UNUSED(lh_ui_web_host_handle_request_is_upgraded(&app, &server)); });
+        lh_os_net_socket_t *watch[] = {&client};
+        const bool ready = lh_os_net_socket_wait(watch, 1U, nullptr, 0U, 1000U) > 0;
+        const std::string interim = ready ? read_head(&client) : "";
+        const std::string wire =
+            oversize ? "1\r\na\r\n3\r\nbcd\r\n0\r\n\r\n"
+                     : (scenario == 2 ? "1\r\na\r\n1\r\nb\r\n0\r\n\r\n" : "1\r\na\r\nZZ\r\n");
+        const bool sent = lh_os_net_socket_send_all(&client, wire.data(), wire.size());
+        worker.join();
+        EXPECT_TRUE(ready);
+        EXPECT_EQ(interim, "HTTP/1.1 100 Continue\r\n\r\n");
+        EXPECT_TRUE(sent);
+        EXPECT_EQ(staged, scenario == 2 ? "a COMMIT" : "ABORT");
+        lh_os_net_socket_close(&server);
+        lh_os_net_socket_close(&client);
+    }
+}
+
 TEST(ui_web_host_handle_request_is_upgraded, rejects_oversized_stream_before_continue)
 {
     ASSERT_TRUE(lh_os_net_init());
@@ -507,7 +597,9 @@ TEST(ui_web_host_handle_request_is_upgraded, rejects_oversized_stream_before_con
     lh_ui_web_route_set_path(&match, "/data");
     lh_ui_web_route_set_path_len(&match, 5U);
     lh_ui_web_stream_route_t route;
-    lh_ui_web_stream_route_init(&route, &match, ui_web_host_test_stream_body, 8U, 1024U, 1000U);
+    lh_ui_web_stream_route_init(&route, &match, ui_web_host_test_stream_body,
+                                ui_web_host_test_stream_commit, ui_web_host_test_stream_abort, 8U,
+                                1024U, 1000U);
     lh_ui_web_app_t app;
     lh_ui_web_app_init(&app, nullptr, 0U);
     lh_ui_web_app_set_stream_routes(&app, &route);

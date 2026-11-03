@@ -64,6 +64,24 @@ TEST(io_reader_read, reads_in_chunks)
     EXPECT_EQ(lh_io_reader_read(&reader, buf, 2), 0); /* end of stream */
 }
 
+TEST(io_reader_drain, discards_until_end_and_preserves_errors)
+{
+    MemorySource src{"hello", 5, 0};
+    lh_io_reader_t reader{};
+    lh_io_reader_init(&reader, &MemorySourceRead, &src);
+    char scratch[2];
+    EXPECT_EQ(lh_io_reader_drain(&reader, scratch, sizeof(scratch)), 0);
+    EXPECT_EQ(src.pos, 5u);
+    lh_io_reader_init(
+        &reader, [](lh_self_ptr, lh_ptr, lh_usize_t) -> lh_ssize_t { return LH_IO_PENDING; },
+        nullptr);
+    EXPECT_EQ(lh_io_reader_drain(&reader, scratch, sizeof(scratch)), LH_IO_PENDING);
+    lh_io_reader_init(
+        &reader, [](lh_self_ptr, lh_ptr, lh_usize_t) -> lh_ssize_t { return LH_IO_ERROR; },
+        nullptr);
+    EXPECT_EQ(lh_io_reader_drain(&reader, scratch, sizeof(scratch)), LH_IO_ERROR);
+}
+
 TEST(io_reader_deinit, clears_callback_and_context)
 {
     MemorySource src{"hi", 2, 0};

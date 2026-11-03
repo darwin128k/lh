@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- An LH reader operation drains a stream into caller-provided scratch.
+- Streaming route callbacks now stage changes and provide commit and abort
+  callbacks; the host validates the remaining framed body before committing.
+  This changes the streaming route initializer and handler signature.
+
 - Incremental HTTP chunk decoder and framed body reader, deadline-bounded socket
   reader, and streaming web routes with separate decoded-body, chunk-metadata
   and request-time limits. Known oversized request bodies receive HTTP 413.

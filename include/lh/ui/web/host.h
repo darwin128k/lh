@@ -65,13 +65,13 @@ LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Dispatch an already parsed request to a streaming route.
- * The synchronous handler borrows the request, headers, socket and body reader.
- * The reader reports malformed or truncated bodies as errors; the handler must
- * handle errors after partial reads and send its response. The route limits
+ * The staging callback borrows the request, headers and body reader. The host
+ * validates the remaining body, calls commit on success or abort on failure,
+ * and passes the socket to that finish callback for a reply. The route limits
  * decoded bytes, chunk metadata, and the total time since @p start (milliseconds
  * from lh_os_tick_ms). Initial bytes are borrowed and copied into scratch.
- * @return False if framing, limits or the interim response fail; otherwise true
- * once the handler returns. A false result may already have sent an HTTP reply.
+ * @return False if framing, staging, body validation, limits or the interim
+ * response fail; true when commit was called. A reply may already be sent.
  * @pre All objects and borrowed views are valid; initial fits host scratch.
  */
 lh_bool_t
@@ -543,7 +543,8 @@ lh_ui_web_host_read_request(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize
  * including framing and trailers to fit the host buffer. A single chunked
  * coding or Content-Length is supported. HTTP/1.1 100-continue is supported;
  * unsupported expectations receive 417. Known oversized content receives 413.
- * Streaming handlers must detect late body read errors and handle any rollback.
+ * Streaming handlers stage changes; the host calls commit after validation or
+ * abort on failure. The application owns its staged state and finish callbacks.
  */
 lh_bool_t
 lh_ui_web_host_handle_request_is_upgraded(lh_ui_web_app_t *app, lh_os_net_socket_t *client);
