@@ -113,6 +113,7 @@ lh_add_test_core(lh_test_core
         ${LH_TEST_SRC_PATH}/lh/web/xml/entity.cpp
         ${LH_TEST_SRC_PATH}/lh/web/xml/escape.cpp
         ${LH_TEST_SRC_PATH}/lh/web/xml/name.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/xml/node/entity.cpp
         ${LH_TEST_SRC_PATH}/lh/web/xml/node.cpp
         ${LH_TEST_SRC_PATH}/lh/web/xml/reader.cpp
         ${LH_TEST_SRC_PATH}/lh/web/xml/writer.cpp

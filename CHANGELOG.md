@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_web_xml_entity_t` and its field accessors expose the data shared
+  by XML and HTML node operations without adding a second object.
+
 - JavaScript lexer cursor accessors expose its borrowed text and position.
 
 - HTTP request query field lookup, shared by the web host.

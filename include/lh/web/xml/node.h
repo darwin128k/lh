@@ -3,7 +3,9 @@
  * @brief One XML node and its children (::lh_web_xml_node_t): the tree a
  *        document is built as before it is written out, or read into.
  *
- * A node is a document, an element, an empty element, text, raw markup, a
+ * ::lh_web_xml_node_t and ::lh_web_xml_entity_t name the same object:
+ * the entity API exposes its fields and this API supplies tree operations
+ * and lifetime. A node is a document, an element, an empty element, text, raw markup, a
  * comment, a CDATA section, a processing instruction or a doctype
  * (::lh_web_xml_kind_t). An element owns its attributes
  * (::lh_web_xml_attr_t) and its children, both in order, in lists threaded
@@ -46,22 +48,10 @@
 #ifndef LH_WEB_XML_NODE_H
 #define LH_WEB_XML_NODE_H
 
-#include <lh/web/xml/attr.h>
-#include <lh/web/xml/kind.h>
-#include <lh/web/xml/node/fields.h>
+#include <lh/web/xml/node/entity.h>
 
-/**
- * @struct lh_web_xml_node
- * @brief Kind, name, text, attributes and children. Fields via
- *        ::lh_web_xml_node_fields.
- */
-struct lh_web_xml_node
-{
-    /** Members: ::lh_web_xml_node_fields. */
-    lh_web_xml_node_fields(lh_list_node_t, lh_web_xml_kind_t, lh_str_t, lh_list_t);
-};
-/** @copybrief lh_web_xml_node */
-typedef struct lh_web_xml_node lh_web_xml_node_t;
+/** @brief An XML or HTML entity with the node operations declared below. */
+typedef lh_web_xml_entity_t lh_web_xml_node_t;
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
 

@@ -33,28 +33,25 @@ A JavaScript interpreter or bytecode VM is a separate future feature.
 
 ## 2. XML and HTML as nodes
 
-**Today.** `lh_web_xml_node_t` (`lh/web/xml/`) is a node that owns its
-children and attributes; one escaper and one writer serve XML and HTML, with
-the dialect as a flag, and `lh_web_xml_reader_t` reads XML into the tree.
-`lh/web/html/` keeps only HTML's rules on top: the void and raw-text elements
-and a reader built from the XML reader's steps. The player page is one such
-document. Not done yet: the entity / node split below (the node is still one
-struct with its functions).
+**Today.** `lh_web_xml_entity_t` is the data of a tree node; the node API
+operates on that same object to own and manage its attributes and children.
+The entity and node are available to XML and HTML alike. One escaper and one
+writer serve both, with the dialect as a flag. `lh_web_xml_reader_t` reads XML;
+`lh/web/html/` adds HTML rules and builds on the XML reader's steps.
 
-**Target.** `lh/web/xml/`: an **entity** is the data (kind, name, attributes,
-children), a **node** is that same entity with the operations on it (add a
-child, set an attribute, serialize). That is the pseudo-object shape: the
-entity is the plain tag, the node is the same tag with the functions. HTML is
-XML with different tagging rules — void elements, attribute quoting — so one
-tree and one serializer serve both, with the dialect as a flag.
+**Target.** Keep the shared tree and its operations as the common bricks, with
+HTML-specific parsing and serialization rules above them. HTML syntax has its
+own parsing and tree-construction rules; it is not XML with only different tag
+spelling. The current HTML reader handles the documented well-formed subset
+used by LH, not the browser's full HTML parsing algorithm.
 
 The other side of the same idea: a C object serialized to and from text. JSON
 already is (`lh/web/json/`); XML is the other form, and it belongs to the same
 layer.
 
-**Cost.** About three to five days: the entity and node bricks, the owned
-children, the serializer, the HTML dialect, and the move of
-`lh_web_html_*` onto it.
+**Work.** Extend the HTML-specific rules as concrete uses require, keeping the
+shared tree and low-level operations in use. Full browser-compatible parsing,
+if needed, is a separate scope.
 
 ## 3. A JavaScript engine of our own
 
