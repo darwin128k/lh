@@ -91,6 +91,50 @@ lh_compress_deflate_stored(const lh_byte_t *input, lh_usize_t input_size, lh_usi
                            lh_byte_t *output, lh_usize_t capacity, lh_usize_t *written);
 
 /**
+ * @brief Build the fixed DEFLATE literal/length and distance code tables.
+ * @param lit_counts Caller-owned 16-entry length-count array.
+ * @param lit_symbols Caller-owned 288-entry literal/length symbol array.
+ * @param dist_counts Caller-owned 16-entry distance length-count array.
+ * @param dist_symbols Caller-owned 32-entry distance symbol array.
+ * @return True on success, false if table construction fails. Arrays may be
+ *         modified on failure; no memory is retained.
+ * @pre Arrays are valid and have the stated capacities.
+ */
+lh_bool_t
+lh_compress_deflate_try_fixed(lh_u16_t *lit_counts, lh_u16_t *lit_symbols, lh_u16_t *dist_counts,
+                              lh_u16_t *dist_symbols);
+
+/** @brief Checked form of ::lh_compress_deflate_try_fixed. */
+lh_void
+lh_compress_deflate_fixed(lh_u16_t *lit_counts, lh_u16_t *lit_symbols, lh_u16_t *dist_counts,
+                          lh_u16_t *dist_symbols);
+
+/**
+ * @brief Read a dynamic DEFLATE block's Huffman tables after its block header.
+ * @param input Borrowed compressed bytes.
+ * @param input_size Readable input size in bytes.
+ * @param position In/out bit offset after the three-bit block header; unchanged
+ *                 on failure.
+ * @param lit_counts Caller-owned 16-entry literal/length counts.
+ * @param lit_symbols Caller-owned 288-entry literal/length symbol table.
+ * @param dist_counts Caller-owned 16-entry distance counts.
+ * @param dist_symbols Caller-owned 32-entry distance symbol table.
+ * @return True for complete valid tables; false on truncation or invalid code
+ *         lengths. Tables may be partially modified on failure.
+ * @pre All pointers are valid, with arrays of the stated capacities.
+ */
+lh_bool_t
+lh_compress_deflate_try_dynamic(const lh_byte_t *input, lh_usize_t input_size, lh_usize_t *position,
+                                lh_u16_t *lit_counts, lh_u16_t *lit_symbols, lh_u16_t *dist_counts,
+                                lh_u16_t *dist_symbols);
+
+/** @brief Checked form of ::lh_compress_deflate_try_dynamic. */
+lh_void
+lh_compress_deflate_dynamic(const lh_byte_t *input, lh_usize_t input_size, lh_usize_t *position,
+                            lh_u16_t *lit_counts, lh_u16_t *lit_symbols, lh_u16_t *dist_counts,
+                            lh_u16_t *dist_symbols);
+
+/**
  * @brief Decode one raw DEFLATE stream into caller-owned storage.
  * @param input Borrowed input bytes; valid for input_size bytes.
  * @param input_size Input length in bytes.
