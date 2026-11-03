@@ -12,12 +12,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ASCII JavaScript identifier-name predicates shared by the lexer and web
   serializer; available without enabling the JavaScript engine.
 
-- HTML as a tree (`lh/web/html/`, `lh_web_html_*`): `lh_web_html_node_t` (doctype,
-  element, void element, text, raw) owns its children and its `lh_web_html_attr_t`
-  attributes through `lh_list` and the runtime allocator; `lh/web/html/escape.h`
-  escapes text and attribute values, `lh/web/html/name.h` validates tag and
-  attribute names, and `lh_web_html_writer_t` writes a tree (`try_write` and the
-  checked `write`).
+- XML as a tree (`lh/web/xml.h`, `lh/web/xml/`, `lh_web_xml_*`):
+  `lh_web_xml_node_t` (document, element, empty element, text, raw, comment,
+  CDATA, processing instruction, doctype; `lh_web_xml_kind_t`) owns its
+  children and its `lh_web_xml_attr_t` attributes through `lh_list` and the
+  runtime allocator. `lh/web/xml/name.h` and `char.h` hold the name and
+  character rules, `comment.h` the comment rule, `entity.h` the five
+  predefined entities, `escape.h` escapes text and attribute values (attribute
+  TAB, LF and CR become character references, text CR becomes `&#13;`, so a
+  read gives back the same characters). `lh_web_xml_writer_t` writes a tree
+  (`try_write` and the checked `write`) in one of two dialects
+  (`lh_web_xml_dialect_t`): XML, or HTML (`>` ends an empty element, bare
+  attributes, `<!doctype ...>`, no CDATA or processing instructions).
+  `lh_web_xml_reader_t` reads a document of one root element into a tree
+  (references resolved, line ends and attribute whitespace normalized, nesting
+  bounded by `LH_WEB_XML_READER_DEPTH_MAX`) and reports the first error as an
+  `lh_web_xml_error_t` with its position.
+
+- HTML on top of XML (`lh/web/html.h`): `lh_web_html_void_is_name` and
+  `lh_web_html_rawtext_is_name` name the void and raw-text (`script`, `style`)
+  elements, and `lh_web_html_reader_t` reads well-formed HTML into the same
+  tree through the XML reader's steps: void elements without an end tag, bare
+  and unquoted attributes, raw-text bodies, tag names in any case, any number
+  of top-level nodes. No implied tags and only XML's five named references.
+
+- `lh_str_cursor_t` (`lh/str/cursor.h`): a position over a borrowed text with
+  peek, advance, word match and search (optionally ignoring case), and
+  character, word and whitespace skips; the readers step through text with it.
+
+- `lh_str_view_find_in` gives the index of the first view in a list equal to a
+  view, optionally ignoring case.
 
 - JavaScript as a tree (`lh/web/js/node.h`, `kind.h`, `op.h`, `precedence.h`,
   `writer.h`): `lh_web_js_node_t` holds one expression or statement (ESTree
@@ -70,8 +94,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Web route callbacks receive a borrowed view of the complete request body.
 
-- The web player page (`lh/ui/web/player/page.h`) is built as an HTML tree
-  and a JavaScript tree and written by their writers; no part of it is held as
+- The web player page (`lh/ui/web/player/page.h`) is built as an XML tree
+  (one document: the doctype and `<html>`, written in the HTML dialect) and a
+  JavaScript tree and written by their writers; no part of it is held as
   code text. Every top-level script statement is its own public brick
   (`lh_ui_web_player_page_create_rgba` ... `_create_start`), composed by
   `lh_ui_web_player_page_create_script` and written by
@@ -409,7 +434,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `html/attr.h` and `html/kind.h`), `lh/ui/web/js.h` (`lh_ui_web_js_*`
   statement emitters taking code strings), `lh/ui/web/x.h` and
   `lh/ui/web/js/x.h` (`lh_ui_web_x_*` expressions, with `x/kind.h`). Use
-  `lh/web/html/` and `lh/web/js/node.h` with their writers.
+  `lh/web/xml/` (HTML dialect) and `lh/web/js/node.h` with their writers.
 
 - The `[begin, end)` forms of `lh_memory_view_*` and `lh_memory_bounds_*` (`_equals_of`, `_contains_of`, `_overlaps_of` and their `_range` aliases; `_find_range`, `_rfind_range`, `_compare_range`, `_rcompare_range`, `_copy_range`, `_move_range`, `_fill_pattern_range`; `_take_first`, `_take_last`, `_between`), `lh/memory/raw.h` (`lh_memory_raw_*`, pointer-pair byte operations) and `lh/util/memory.h`'s `lh_memory_bytes_*` (a second word-at-a-time kernel beside `lh_memory_std_*`). The view-operand forms, `_by_size` operand forms, `from_begin` / `from_end` / `from_offset` and the std kernel cover them
 

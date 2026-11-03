@@ -280,6 +280,20 @@ lh_str_view_contains(const lh_str_view_t *self, const lh_str_view_t *other, lh_b
     return lh_str_view_find(self, other, ignore_case) != LH_STR_VIEW_INVALID;
 }
 
+lh_usize_t
+lh_str_view_find_in(const lh_str_view_t *self, const lh_str_view_t *list, lh_usize_t count,
+                    lh_bool_t ignore_case)
+{
+    for (lh_usize_t i = 0U; lh_math_lt(i, count); i = lh_math_add_one(i))
+    {
+        if (lh_str_view_equals(self, lh_addr_of(list[i]), ignore_case))
+        {
+            return i;
+        }
+    }
+    return LH_STR_VIEW_INVALID;
+}
+
 lh_bool_t
 lh_str_view_is_null_terminated(const lh_str_view_t *self)
 {

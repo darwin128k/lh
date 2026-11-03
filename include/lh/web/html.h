@@ -1,25 +1,25 @@
 /**
  * @file html.h
- * @brief HTML markup: the tree of nodes and attributes, the escaping, and the
- *        writer that prints the tree.
+ * @brief HTML on top of XML: the void and raw-text elements, and the reader.
  *
- * A page is built as a tree of ::lh_web_html_node_t - the doctype, elements
- * with their ::lh_web_html_attr_t, text and raw markup - that owns everything
- * in it, and turned into text once, by ::lh_web_html_writer_try_write. No
- * markup is written by hand.
+ * A page is an XML tree (::lh_web_xml_node_t) - the doctype, elements with
+ * their attributes, text, raw markup - that owns everything in it. It is
+ * written by the XML writer in the HTML dialect (::lh_web_xml_writer_set_dialect
+ * with ::lh_web_xml_dialect_html) and read by ::lh_web_html_reader_read, which
+ * adds HTML's rules to the XML reader's steps. No markup is written by hand.
  *
- * @see lh/web/html/node.h
- * @see lh/web/html/attr.h
- * @see lh/web/html/escape.h
- * @see lh/web/html/name.h
- * @see lh/web/html/writer.h
+ * @see lh/web/xml.h
+ * @see lh/web/html/void.h
+ * @see lh/web/html/rawtext.h
+ * @see lh/web/html/reader.h
  */
 
 #ifndef LH_WEB_HTML_H
 #define LH_WEB_HTML_H
 
-#include <lh/web/html/escape.h>
-#include <lh/web/html/name.h>
-#include <lh/web/html/writer.h>
+#include <lh/web/html/rawtext.h>
+#include <lh/web/html/reader.h>
+#include <lh/web/html/void.h>
+#include <lh/web/xml/writer.h>
 
 #endif /* LH_WEB_HTML_H */

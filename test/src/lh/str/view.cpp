@@ -705,6 +705,21 @@ TEST(str_view_trim, strips_vertical_tab_and_form_feed)
     EXPECT_EQ(lh_str_view_get_first_char(&v), 'k');
 }
 
+TEST(str_view_find_in, gives_the_index_of_the_first_equal_view)
+{
+    const lh_str_view_t list[] = {lh_str_view_lit("br"), lh_str_view_lit("meta"),
+                                  lh_str_view_lit("br")};
+    const lh_str_view_t meta = lh_str_view_lit("META");
+    const lh_str_view_t br = lh_str_view_lit("br");
+    const lh_str_view_t b = lh_str_view_lit("b");
+
+    EXPECT_EQ(lh_str_view_find_in(&br, list, 3U, lh_bool_false), 0u);
+    EXPECT_EQ(lh_str_view_find_in(&meta, list, 3U, lh_bool_false), LH_STR_VIEW_INVALID);
+    EXPECT_EQ(lh_str_view_find_in(&meta, list, 3U, lh_bool_true), 1u);
+    EXPECT_EQ(lh_str_view_find_in(&b, list, 3U, lh_bool_true), LH_STR_VIEW_INVALID);
+    EXPECT_EQ(lh_str_view_find_in(&br, list, 0U, lh_bool_false), LH_STR_VIEW_INVALID);
+}
+
 #if LH_TEST_EXPECT_DEATH_ENABLED
 TEST(str_view_make_tail_death, offset_past_end)
 {

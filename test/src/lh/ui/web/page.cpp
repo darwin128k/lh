@@ -9,7 +9,9 @@
 #include <lh/expect/death.h>
 #include <lh/os/key.h>
 #include <lh/ui/web/player/page.h>
+#include <lh/web/html/reader.h>
 #include <lh/web/js/writer.h>
+#include <lh/web/xml/writer.h>
 
 #include <string>
 #include <vector>
@@ -324,4 +326,26 @@ TEST(web_page, open_ws_falls_back_to_polling)
         function.find("try{\nsock=new WebSocket((location.protocol==='https:'?'wss://':'ws://')"
                       "+location.host+'/ws');\n}catch(e){\nsock=null;\nstartPoll();\n"),
         std::string::npos);
+}
+
+TEST(web_page, the_page_reads_back_as_html_and_writes_the_same_bytes)
+{
+    const std::string page = page_text();
+    lh_web_html_reader_t reader;
+    lh_web_xml_node_t doc;
+    lh_web_xml_writer_t writer;
+    lh_str_view_t view;
+    lh_str_t out;
+
+    lh_str_view_init_by_size(&view, page.data(), page.size());
+    lh_web_xml_node_init(&doc);
+    lh_web_html_reader_init(&reader, view);
+    ASSERT_TRUE(lh_web_html_reader_read(&reader, &doc));
+    lh_str_init(&out);
+    lh_web_xml_writer_init(&writer, &out);
+    lh_web_xml_writer_set_dialect(&writer, lh_web_xml_dialect_html);
+    EXPECT_TRUE(lh_web_xml_writer_try_write(&writer, &doc));
+    EXPECT_EQ(std::string(lh_str_get_data(&out), lh_str_get_size(&out)), page);
+    lh_str_deinit(&out);
+    lh_web_xml_node_deinit(&doc);
 }

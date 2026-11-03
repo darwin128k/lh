@@ -603,8 +603,7 @@ lh_str_view_tail(const lh_str_view_t *self, lh_uoffset_t offset, lh_str_view_t *
  * needs the same notion of whitespace. For one character,
  * ::lh_char_is_whitespace.
  */
-lh_str_view_t
-lh_str_view_get_whitespace(lh_void);
+lh_str_view_t lh_str_view_get_whitespace(lh_void);
 
 /**
  * @brief Return ::lh_bool_true if any character of @p self belongs to @p chars.
@@ -641,6 +640,23 @@ lh_str_view_contains_of(const lh_str_view_t *self, const lh_str_view_t *chars);
  */
 lh_bool_t
 lh_str_view_contains(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case);
+
+/**
+ * @brief Find @p self among the @p count views of @p list: the index of the
+ *        first one equal to it (::lh_str_view_equals).
+ *
+ * The lookup of a word in a small fixed table - a keyword, an element name,
+ * an entity name - without writing the loop again at every table.
+ *
+ * @param self        View to look for.
+ * @param list        Views to compare with, in order; ::lh_null only with a zero @p count.
+ * @param count       How many views @p list holds.
+ * @param ignore_case ::lh_bool_false for exact bytes, ::lh_bool_true for case-folded match.
+ * @return Zero-based index of the first equal view, or ::LH_STR_VIEW_INVALID if none is.
+ */
+lh_usize_t
+lh_str_view_find_in(const lh_str_view_t *self, const lh_str_view_t *list, lh_usize_t count,
+                    lh_bool_t ignore_case);
 
 /**
  * @brief True if the view contains at least one NUL character.

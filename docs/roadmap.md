@@ -13,9 +13,9 @@ The order below is the owner's: the web host first, the controller after it.
 Canvas2D player is a separate application: it renders the same LH view as a
 desktop backend and sends drawing commands over WebSocket. It owns its page and
 input endpoints. Applications attach their own route tables; the host does
-not install a REST API. The player page is built as an HTML tree and a
-JavaScript tree (`lh/web/html/`, `lh/web/js/node.h`) and written by their
-writers; parts of the host still parse HTTP and write response headers as raw
+not install a REST API. The player page is built as an XML tree written in
+the HTML dialect and a JavaScript tree (`lh/web/xml/`, `lh/web/js/node.h`) and
+written by their writers; parts of the host still parse HTTP and write response headers as raw
 text.
 
 **Target.** Build application UI once from LH entities and use it with desktop
@@ -33,9 +33,14 @@ A JavaScript interpreter or bytecode VM is a separate future feature.
 
 ## 2. XML and HTML as nodes
 
-**Today.** `lh_web_html_node_t` (`lh/web/html/`) is a node that owns its
-children and attributes, with its own escaping and writer; the player page is
-built on it. It is HTML only: there is no XML in lh at all.
+**Today.** `lh_web_xml_node_t` (`lh/web/xml/`) is a node that owns its
+children and attributes; one escaper and one writer serve XML and HTML, with
+the dialect as a flag, and `lh_web_xml_reader_t` reads XML into the tree.
+`lh/web/html/` keeps only HTML's rules on top: the void and raw-text elements
+and a reader built from the XML reader's steps. The player page is one such
+document. Not done yet: the entity / node split below (the node is still one
+struct with its functions), and the `lh/xml/` path (the tree lives under
+`lh/web/`).
 
 **Target.** `lh/xml/`: an **entity** is the data (kind, name, attributes,
 children), a **node** is that same entity with the operations on it (add a
