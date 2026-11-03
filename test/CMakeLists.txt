@@ -178,7 +178,9 @@ lh_add_test_core(lh_test_hash
         ${LH_TEST_SRC_PATH}/lh/hash/fnv.cpp
         ${LH_TEST_SRC_PATH}/lh/hash/crc.cpp
         ${LH_TEST_SRC_PATH}/lh/compress/deflate.cpp
+        ${LH_TEST_SRC_PATH}/lh/compress/deflate/encoder.cpp
         ${LH_TEST_SRC_PATH}/lh/compress/deflate/matcher.cpp
+        ${LH_TEST_SRC_PATH}/lh/compress/deflate/tokens.cpp
         ${LH_TEST_SRC_PATH}/lh/compress/gzip.cpp
 )
 

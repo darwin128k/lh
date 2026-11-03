@@ -137,8 +137,8 @@ lh_compress_gzip_put_trailer(lh_u32_t crc, lh_usize_t decoded_size, lh_byte_t *o
 /**
  * @brief Largest member ::lh_compress_gzip_try_encode writes for an input size.
  *
- * The stored DEFLATE size (::lh_compress_deflate_try_stored_bound) plus the
- * header and trailer; an output of this size always suffices.
+ * The DEFLATE stream bound (::lh_compress_deflate_try_bound) plus the header
+ * and trailer; an output of this size always suffices.
  * @param size Input size in bytes.
  * @param bound Receives the size in bytes on success.
  * @return True on success; false if the size overflows, with @p bound unchanged.
@@ -153,24 +153,26 @@ lh_compress_gzip_bound(lh_usize_t size, lh_usize_t *bound);
 
 /**
  * @brief Encode an input as one gzip member.
- * @param matcher Caller-owned DEFLATE matcher, used as scratch.
+ * @param encoder Caller-owned DEFLATE encoder state from
+ *                ::lh_compress_deflate_encoder_init, used as scratch.
  * @param input Borrowed input; may be null when @p input_size is zero.
  * @param input_size Input size in bytes.
  * @param output Borrowed writable output, valid for @p capacity bytes.
  * @param capacity Output size; ::lh_compress_gzip_try_bound always suffices.
  * @param written Receives the member size in bytes on success.
  * @return True on success; false for insufficient output, with @p written
- *         unchanged. Output bytes and the matcher may be modified on failure.
+ *         unchanged. Output bytes and the encoder state may be modified on
+ *         failure.
  * @pre Pointers are valid, buffers hold their stated sizes and do not overlap.
  */
 lh_bool_t
-lh_compress_gzip_try_encode(lh_compress_deflate_matcher_t *matcher, const lh_byte_t *input,
+lh_compress_gzip_try_encode(lh_compress_deflate_encoder_t *encoder, const lh_byte_t *input,
                             lh_usize_t input_size, lh_byte_t *output, lh_usize_t capacity,
                             lh_usize_t *written);
 
 /** @brief Checked form of ::lh_compress_gzip_try_encode. */
 lh_void
-lh_compress_gzip_encode(lh_compress_deflate_matcher_t *matcher, const lh_byte_t *input,
+lh_compress_gzip_encode(lh_compress_deflate_encoder_t *encoder, const lh_byte_t *input,
                         lh_usize_t input_size, lh_byte_t *output, lh_usize_t capacity,
                         lh_usize_t *written);
 

@@ -436,7 +436,7 @@ lh_compress_deflate_reader_try_step_codes(lh_compress_deflate_reader_t *self, lh
         return lh_math_ge(lh_compress_deflate_reader_get_available_bits(self), 15U) ? LH_IO_ERROR
                                                                                     : LH_IO_PENDING;
     }
-    if (lh_math_lt(symbol, 256U))
+    if (lh_math_lt(symbol, LH_COMPRESS_DEFLATE_END_OF_BLOCK))
     {
         if (lh_math_ge(lh_compress_deflate_reader_get_decoded(self),
                        lh_compress_deflate_reader_get_limit(self)))
@@ -447,7 +447,7 @@ lh_compress_deflate_reader_try_step_codes(lh_compress_deflate_reader_t *self, lh
         lh_compress_deflate_reader_emit(self, output, lh_cast_static(lh_byte_t, symbol));
         return 1;
     }
-    if (lh_math_eq(symbol, 256U))
+    if (lh_math_eq(symbol, LH_COMPRESS_DEFLATE_END_OF_BLOCK))
     {
         lh_compress_deflate_reader_set_bit_position(self, pos);
         lh_compress_deflate_reader_set_phase(self, lh_compress_deflate_reader_get_final(self)

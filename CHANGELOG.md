@@ -21,14 +21,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allocation-free DEFLATE and gzip encoding. A caller-owned hash-chain matcher
   (`lh/compress/deflate/matcher.h`) finds back-references through
   `lh_memory_std_compare` within the 32 KiB window, bounded by a chain limit.
-  Separate bricks write bits, canonical codes, symbols, length/distance pairs,
-  stored blocks and fixed-Huffman block bodies. The stream encoder writes one
-  fixed-Huffman block and falls back to stored blocks when that would not be
-  smaller, so output never exceeds the published stored bound. Gzip gains a
-  minimal header writer, a trailer writer, a size bound and a member encoder.
+  Separate bricks write bits, canonical codes, symbols, length/distance pairs
+  and stored blocks. The stream encoder works block by block: a caller-owned
+  `lh_compress_deflate_encoder_t` (`lh/compress/deflate/encoder.h`) bundles the
+  matcher with a token buffer (`lh/compress/deflate/tokens.h`, 16384
+  literals/matches); `lh_compress_deflate_try_collect` fills one block of at
+  most 65535 bytes, `lh_compress_deflate_count_symbols` counts it,
+  `lh_compress_deflate_get_codes_cost` and `lh_compress_deflate_get_stored_cost`
+  price it, and `lh_compress_deflate_try_put_block` writes the cheaper of fixed
+  Huffman and stored through `lh_compress_deflate_try_put_tokens`. Each block is
+  matched once and written once, and mixed input keeps its compressible parts
+  compressed. `lh_compress_deflate_try_bound` (input plus 5 bytes per started
+  16384) sizes the output, built with `lh_compress_deflate_get_block_count` and
+  `lh_compress_deflate_try_blocks_bound`, which the stored bound now uses too.
+  `lh_compress_deflate_fill_fixed_lengths` and named symbol constants
+  (`LH_COMPRESS_DEFLATE_END_OF_BLOCK`, `_LITERAL_SYMBOLS`, ...) replace the
+  literals in the decoder as well. Gzip gains a minimal header writer, a
+  trailer writer, a size bound and a member encoder.
   `lh_bit_reverse_u32` mirrors the low bits of a word. DEFLATE length and
   distance tables, the fixed code lengths, the window size and the gzip format
   bytes are public bricks that the decoders now use too.
+  `lh_compress_deflate_matcher_can_improve` rejects a chain candidate by the one
+  byte after the best length before the `lh_memory_std_compare` call, and the
+  search stops once a match reaches the input end. `lh_memory_std_compare`
+  itself was measured and is not the cost (1.4 ns for an early mismatch); the
+  search spent its time comparing every one of 32 candidates sharing a prefix.
+  `lh_compress_deflate_try_put_bits` places the bits with one shifted mask
+  instead of dividing per byte. Output is byte-identical; `bench/` on an
+  i7-3770K (-O3, 1 MiB, chain limit 32): markup 66 -> 107 MiB/s, random
+  32 -> 45 MiB/s, zeros ~480 MiB/s unchanged. A 16-bit link table was also
+  tried and dropped: it did not speed up the search and slowed inserts.
+  `lh_compress_deflate_get_length_index` and `_get_distance_code` compute the
+  index from the top set bit (`lh_bit_scan_reverse_u32`) instead of scanning the
+  tables backwards, as every match now asks for both twice (count, then write).
+  With block-wise pricing, same machine: markup 107 -> 125 MiB/s, random 1 MiB
+  45 -> 50 MiB/s and 4 KiB 76 -> 143 MiB/s (no more encoding the block twice),
+  zeros ~500 MiB/s; ratios unchanged but for zeros (0.630% -> 0.634%: a block
+  boundary every 64 KiB).
 
 - Incremental gzip member-header parsing with bounded metadata and header CRC
   validation; gzip trailers can also validate an incrementally accumulated CRC.

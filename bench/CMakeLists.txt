@@ -56,8 +56,10 @@ set(LH_BENCH_SOURCES
         ${LH_BENCH_SRC_PATH}/lh/str/format/bytes.cpp
         ${LH_BENCH_SRC_PATH}/lh/crypto/sha.cpp
         ${LH_BENCH_SRC_PATH}/lh/crypto/rijndael.cpp
+        ${LH_BENCH_SRC_PATH}/lh/compress/deflate.cpp
         ${LH_BENCH_SRC_PATH}/lh/str/view.cpp
         ${LH_BENCH_SRC_PATH}/lh/str/ptr.cpp
+        ${LH_BENCH_SRC_PATH}/lh/web/escape.cpp
         ${LH_BENCH_SRC_PATH}/lh/str/split/next.cpp
         ${LH_BENCH_SRC_PATH}/lh/wstr/ptr.cpp
         ${LH_BENCH_SRC_PATH}/lh/wstr/view.cpp
@@ -91,7 +93,6 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_BENCH_SRC_PATH}/lh/ui/view.cpp
             ${LH_BENCH_SRC_PATH}/lh/ui/web.cpp
             ${LH_BENCH_SRC_PATH}/lh/ui/web_buf.cpp
-            ${LH_BENCH_SRC_PATH}/lh/ui/web_escape.cpp
     )
 endif ()
 
