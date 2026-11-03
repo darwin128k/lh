@@ -4,7 +4,7 @@
  */
 
 #include <lh/compress/deflate.h>
-#include <lh/memory/std.h>
+#include <lh/memory.h>
 #include <lh/assert.h>
 #include <lh/math.h>
 #include <lh/size/limits.h>
@@ -334,11 +334,9 @@ lh_compress_deflate_try_decode(const lh_byte_t *input, lh_usize_t input_size, lh
             {
                 return lh_bool_false;
             }
-            for (lh_uint_t i = 0U; lh_math_lt(i, length); i = lh_math_add_one(i))
-            {
-                output[used] = output[lh_math_sub(used, distance)];
-                used = lh_math_add_one(used);
-            }
+            lh_memory_set_pattern(output + used, length, output + lh_math_sub(used, distance),
+                                  distance);
+            used = lh_math_add(used, length);
         }
     } while (lh_math_is_zero(final));
     *consumed = lh_math_div(lh_math_add(pos, 7U), 8U);
