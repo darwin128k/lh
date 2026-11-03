@@ -19,8 +19,9 @@ written by their writers. The host parses request heads and Content-Length or
 chunked bodies with the HTTP parser and framing bricks; response and WebSocket headers
 are serialized from HTTP objects. Its generic response sender accepts caller-
 supplied fields, while the player reply helper supplies its usual fields.
-Streaming routes read bodies incrementally with separate content, metadata and
-request-time limits; buffered routes still require the whole request in scratch.
+Streaming routes read chunked and gzip bodies incrementally with separate
+encoded-body, decoded-body, metadata and request-time limits. Buffered routes
+still require the complete wire request and decoded content to fit scratch.
 
 **Target.** Build application UI once from LH entities and use it with desktop
 and browser backends. Construct HTML and JavaScript from public objects and
@@ -29,8 +30,8 @@ parser, request and response objects and serializers; known methods and status
 codes have named values while extension methods and headers remain possible.
 REST is a separate facility attached by the application when wanted.
 
-**Work.** Extend request framing beyond Content-Length and the single chunked
-coding as needed, and extend the HTML and JavaScript trees as needed. Exercise the same
+**Work.** Extend HTTP codings beyond gzip and chunked as needed, and extend the
+HTML and JavaScript trees as needed. Exercise the same
 view and input on desktop and web; test each public brick and their composition.
 A JavaScript interpreter or bytecode VM is a separate future feature.
 

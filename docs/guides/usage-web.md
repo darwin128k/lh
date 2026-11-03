@@ -237,7 +237,39 @@ if (lh_ui_canvas_web_open_mem(&web, buf, sizeof(buf), 980u, 620u))
 
 ---
 
-## 7. Limitations
+## 7. Streaming request bodies
+
+For an upload, register an `lh_ui_web_stream_route_t` with an ordinary route
+as its method/path matcher. Its staging callback reads from the borrowed
+`lh_io_reader_t`; it should place changes in temporary application-owned state.
+The host drains the rest of the reader and invokes `commit` only after the whole
+body, including any gzip checksum, validates. `abort` discards staged state and
+may send the error response. Neither callback may retain request or reader
+pointers after it returns.
+
+```c
+lh_ui_web_stream_route_init(&upload, &matcher, stage_upload, commit_upload,
+                            abort_upload, decoded_limit, metadata_limit, timeout_ms);
+lh_ui_web_stream_route_set_wire_limit(&upload, encoded_limit);
+lh_ui_web_app_set_stream_routes(&app, &upload);
+lh_ui_web_app_set_nstream_routes(&app, 1U);
+```
+
+`decoded_limit` bounds bytes after decompression. `encoded_limit` bounds gzip
+bytes after any chunk framing; it defaults to `LH_USIZE_T_MAX`, so set it when
+registering routes exposed to untrusted clients. `metadata_limit` separately
+bounds chunk metadata and gzip header/trailer bytes. The timeout bounds socket
+reads from the start of the request; it does not preempt handler execution.
+The host accepts `Content-Encoding: gzip` and `Transfer-Encoding: gzip, chunked`;
+streaming routes do not support nested gzip in both fields.
+Other content codings receive 415. The handler receives decoded bytes while
+header fields retain their original values, including `Content-Encoding` and
+`Transfer-Encoding`. Buffered routes also decode gzip, but the whole wire
+request and decoded body must fit host scratch.
+
+---
+
+## 8. Limitations
 
 - Listens on `127.0.0.1` only, no TLS — a local tool, not a public server.
   `wss` is supported by the codec, but no TLS stream is built into the host.

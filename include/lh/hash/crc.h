@@ -15,7 +15,13 @@
 #include <lh/ptr.h>
 #include <lh/size.h>
 
-/** Reflected polynomial for the gzip CRC-32. */
+/**
+ * @brief Standard reflected polynomial for gzip CRC-32.
+ *
+ * This value is part of the gzip format and is not a configuration point.
+ * Other CRC variants pass their own reflected polynomial to
+ * ::lh_hash_crc_reflected_byte or ::lh_hash_crc_reflected_update.
+ */
 #define LH_HASH_CRC32_POLYNOMIAL 0xEDB88320U
 
 LH_COMPILER_EXTERN_C_BEGIN

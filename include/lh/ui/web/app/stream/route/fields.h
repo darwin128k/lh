@@ -13,6 +13,7 @@
     finish_type commit;                                                                            \
     finish_type abort;                                                                             \
     size_type body_limit;                                                                          \
+    size_type wire_limit;                                                                          \
     size_type metadata_limit;                                                                      \
     lh_u32_t timeout_ms
 

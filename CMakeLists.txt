@@ -143,6 +143,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/http/chunked.c
         ${LH_LIB_SRC_PATH}/http/chunked/decoder.c
         ${LH_LIB_SRC_PATH}/http/body/reader.c
+        ${LH_LIB_SRC_PATH}/http/content/encoding.c
         ${LH_LIB_SRC_PATH}/http/cursor.c
         ${LH_LIB_SRC_PATH}/http/method.c
         ${LH_LIB_SRC_PATH}/http/parser.c
@@ -270,7 +271,11 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/hash/fnv.c
         ${LH_LIB_SRC_PATH}/hash/crc.c
         ${LH_LIB_SRC_PATH}/compress/deflate.c
+        ${LH_LIB_SRC_PATH}/compress/deflate/matcher.c
+        ${LH_LIB_SRC_PATH}/compress/deflate/reader.c
         ${LH_LIB_SRC_PATH}/compress/gzip.c
+        ${LH_LIB_SRC_PATH}/compress/gzip/reader.c
+        ${LH_LIB_SRC_PATH}/compress/gzip/header/decoder.c
 
         ${LH_LIB_SRC_PATH}/net/ip.c
         ${LH_LIB_SRC_PATH}/net/port.c
@@ -525,6 +530,7 @@ if (LH_LIBRARY_OPTION_UI)
     if (LH_LIBRARY_OPTION_OS)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host.c)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/deadline.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/gzip/workspace.c)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/client.c)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/frame.c)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/hooks.c)

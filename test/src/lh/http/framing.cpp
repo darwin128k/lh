@@ -59,5 +59,38 @@ TEST(http_framing_is_chunked, checks_coding_and_ambiguous_lengths)
     EXPECT_FALSE(lh_http_framing_try_is_chunked(fields, 2U, &chunked));
     lh_http_header_set(&fields[0], lh_str_view_lit("Transfer-Encoding"),
                        lh_str_view_lit("gzip, chunked"));
-    EXPECT_FALSE(lh_http_framing_try_is_chunked(fields, 1U, &chunked));
+    EXPECT_TRUE(lh_http_framing_try_is_chunked(fields, 1U, &chunked));
+    EXPECT_TRUE(chunked);
+}
+
+TEST(http_framing_get_transfer, validates_gzip_chunked_and_rejects_ambiguous_chains)
+{
+    lh_http_header_t fields[2];
+    lh_bool_t chunked = lh_bool_false;
+    lh_bool_t gzip = lh_bool_false;
+    EXPECT_TRUE(lh_http_framing_try_get_transfer(nullptr, 0U, &chunked, &gzip));
+    EXPECT_FALSE(chunked);
+    EXPECT_FALSE(gzip);
+    lh_http_header_set(&fields[0], lh_str_view_lit("Transfer-Encoding"),
+                       lh_str_view_lit(" GzIp , ChUnKeD "));
+    lh_http_framing_get_transfer(fields, 1U, &chunked, &gzip);
+    EXPECT_TRUE(chunked);
+    EXPECT_TRUE(gzip);
+    for (const char *value :
+         {"gzip", "chunked, gzip", "gzip, chunked,", "gzip,,chunked", "gzip, gzip, chunked"})
+    {
+        lh_str_view_t view;
+        lh_str_view_init(&view, value);
+        lh_http_header_set(&fields[0], lh_str_view_lit("Transfer-Encoding"), view);
+        chunked = lh_bool_true;
+        gzip = lh_bool_false;
+        EXPECT_FALSE(lh_http_framing_try_get_transfer(fields, 1U, &chunked, &gzip)) << value;
+        EXPECT_TRUE(chunked);
+        EXPECT_FALSE(gzip);
+    }
+    lh_http_header_set(&fields[0], lh_str_view_lit("Transfer-Encoding"),
+                       lh_str_view_lit("gzip, chunked"));
+    lh_http_header_set(&fields[1], lh_str_view_lit("Content-Length"), lh_str_view_lit("4"));
+    EXPECT_FALSE(lh_http_framing_try_get_transfer(fields, 2U, &chunked, &gzip));
+    LH_EXPECT_CHECK_DEATH(lh_http_framing_get_transfer(fields, 2U, &chunked, &gzip));
 }

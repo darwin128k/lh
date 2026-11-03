@@ -9,11 +9,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Allocation-free incremental DEFLATE and gzip readers with a bounded 32 KiB
+  history, fragmented input, concatenated members, CRC and size validation.
+  Web host streaming routes accept gzip content coding or gzip then chunked
+  transfer coding, with independent encoded, decoded, and metadata limits.
+  Buffered routes decode gzip content and gzip transfer coding within their
+  existing capacity. Unsupported content coding receives 415. The host exposes
+  its caller-owned fixed gzip workspace, encoded-content limit, and separate
+  streaming decoder phase operations.
+
+- Allocation-free DEFLATE and gzip encoding. A caller-owned hash-chain matcher
+  (`lh/compress/deflate/matcher.h`) finds back-references through
+  `lh_memory_std_compare` within the 32 KiB window, bounded by a chain limit.
+  Separate bricks write bits, canonical codes, symbols, length/distance pairs,
+  stored blocks and fixed-Huffman block bodies. The stream encoder writes one
+  fixed-Huffman block and falls back to stored blocks when that would not be
+  smaller, so output never exceeds the published stored bound. Gzip gains a
+  minimal header writer, a trailer writer, a size bound and a member encoder.
+  `lh_bit_reverse_u32` mirrors the low bits of a word. DEFLATE length and
+  distance tables, the fixed code lengths, the window size and the gzip format
+  bytes are public bricks that the decoders now use too.
+
+- Incremental gzip member-header parsing with bounded metadata and header CRC
+  validation; gzip trailers can also validate an incrementally accumulated CRC.
+
 - Bounded raw DEFLATE decoding for stored, fixed, and dynamic Huffman blocks,
   plus gzip member decoding with CRC and size validation. Stored-block decoding
   is also exposed as a separately usable operation; gzip header and trailer
   validation can be used separately. Fixed and dynamic Huffman tables can be
   built independently, including retry after an incomplete dynamic header.
+  Separate checked operations decode complete length/distance pairs and expand
+  overlapping back-references.
 
 - Reflected CRC kernels and incremental gzip CRC-32; Modbus uses the shared kernel.
 

@@ -6,6 +6,10 @@
  * It reads decoded body bytes through the borrowed LH reader and stages changes.
  * No staged changes may be published before the separate commit callback. The
  * host validates the remaining body and then calls either commit or abort.
+ * Header fields are the original request fields and are not rewritten after
+ * gzip decompression; the body reader yields decompressed content. As with
+ * any LH reader, LH_IO_PENDING means the handler must arrange a retry rather
+ * than treating it as end of input.
  */
 
 #ifndef LH_UI_WEB_APP_STREAM_ROUTE_FN_H

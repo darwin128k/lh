@@ -76,6 +76,7 @@ lh_add_test_core(lh_test_http_parser ${LH_TEST_SRC_PATH}/lh/http/parser.cpp
         ${LH_TEST_SRC_PATH}/lh/http/framing.cpp
         ${LH_TEST_SRC_PATH}/lh/http/expect.cpp
         ${LH_TEST_SRC_PATH}/lh/http/body/reader.cpp
+        ${LH_TEST_SRC_PATH}/lh/http/content/encoding.cpp
         ${LH_TEST_SRC_PATH}/lh/http/chunked.cpp
         ${LH_TEST_SRC_PATH}/lh/http/chunked/decoder.cpp
         ${LH_TEST_SRC_PATH}/lh/http/cursor.cpp
@@ -147,6 +148,7 @@ lh_add_test_core(lh_test_bit
         ${LH_TEST_SRC_PATH}/lh/bit/endian.cpp
         ${LH_TEST_SRC_PATH}/lh/bit/half.cpp
         ${LH_TEST_SRC_PATH}/lh/bit/packed.cpp
+        ${LH_TEST_SRC_PATH}/lh/bit/reverse.cpp
         ${LH_TEST_SRC_PATH}/lh/bit/rotate.cpp
         ${LH_TEST_SRC_PATH}/lh/bit/scan.cpp
 )
@@ -176,6 +178,7 @@ lh_add_test_core(lh_test_hash
         ${LH_TEST_SRC_PATH}/lh/hash/fnv.cpp
         ${LH_TEST_SRC_PATH}/lh/hash/crc.cpp
         ${LH_TEST_SRC_PATH}/lh/compress/deflate.cpp
+        ${LH_TEST_SRC_PATH}/lh/compress/deflate/matcher.cpp
         ${LH_TEST_SRC_PATH}/lh/compress/gzip.cpp
 )
 
