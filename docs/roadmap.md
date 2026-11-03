@@ -39,10 +39,9 @@ the dialect as a flag, and `lh_web_xml_reader_t` reads XML into the tree.
 `lh/web/html/` keeps only HTML's rules on top: the void and raw-text elements
 and a reader built from the XML reader's steps. The player page is one such
 document. Not done yet: the entity / node split below (the node is still one
-struct with its functions), and the `lh/xml/` path (the tree lives under
-`lh/web/`).
+struct with its functions).
 
-**Target.** `lh/xml/`: an **entity** is the data (kind, name, attributes,
+**Target.** `lh/web/xml/`: an **entity** is the data (kind, name, attributes,
 children), a **node** is that same entity with the operations on it (add a
 child, set an attribute, serialize). That is the pseudo-object shape: the
 entity is the plain tag, the node is the same tag with the functions. HTML is
