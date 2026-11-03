@@ -107,11 +107,18 @@ lh_add_test_core(lh_test_core
         ${LH_TEST_SRC_PATH}/lh/web/json/minify.cpp
         ${LH_TEST_SRC_PATH}/lh/web/json/reader.cpp
         ${LH_TEST_SRC_PATH}/lh/web/json/writer.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/html/attr.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/html/escape.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/html/name.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/html/node.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/html/writer.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/xml/attr.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/xml/char.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/xml/comment.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/xml/entity.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/xml/escape.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/xml/name.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/xml/node.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/xml/reader.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/xml/writer.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/html/rawtext.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/html/reader.cpp
+        ${LH_TEST_SRC_PATH}/lh/web/html/void.cpp
         ${LH_TEST_SRC_PATH}/lh/web/js/op.cpp
         ${LH_TEST_SRC_PATH}/lh/web/js/node.cpp
         ${LH_TEST_SRC_PATH}/lh/web/js/writer.cpp
@@ -349,6 +356,7 @@ set(LH_TEST_STR_SOURCES
         ${LH_TEST_SRC_PATH}/lh/str/utf8.cpp
         ${LH_TEST_SRC_PATH}/lh/str/line/reader.cpp
         ${LH_TEST_SRC_PATH}/lh/str/view.cpp
+        ${LH_TEST_SRC_PATH}/lh/str/cursor.cpp
         ${LH_TEST_SRC_PATH}/lh/wchar/case/map.cpp
         ${LH_TEST_SRC_PATH}/lh/wstr.cpp
         ${LH_TEST_SRC_PATH}/lh/wstr/list.cpp

@@ -154,11 +154,19 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/web/json/minify.c
         ${LH_LIB_SRC_PATH}/web/json/reader.c
         ${LH_LIB_SRC_PATH}/web/json/writer.c
-        ${LH_LIB_SRC_PATH}/web/html/attr.c
-        ${LH_LIB_SRC_PATH}/web/html/escape.c
-        ${LH_LIB_SRC_PATH}/web/html/name.c
-        ${LH_LIB_SRC_PATH}/web/html/node.c
-        ${LH_LIB_SRC_PATH}/web/html/writer.c
+        ${LH_LIB_SRC_PATH}/web/xml/attr.c
+        ${LH_LIB_SRC_PATH}/web/xml/char.c
+        ${LH_LIB_SRC_PATH}/web/xml/comment.c
+        ${LH_LIB_SRC_PATH}/web/xml/entity.c
+        ${LH_LIB_SRC_PATH}/web/xml/error.c
+        ${LH_LIB_SRC_PATH}/web/xml/escape.c
+        ${LH_LIB_SRC_PATH}/web/xml/name.c
+        ${LH_LIB_SRC_PATH}/web/xml/node.c
+        ${LH_LIB_SRC_PATH}/web/xml/reader.c
+        ${LH_LIB_SRC_PATH}/web/xml/writer.c
+        ${LH_LIB_SRC_PATH}/web/html/rawtext.c
+        ${LH_LIB_SRC_PATH}/web/html/reader.c
+        ${LH_LIB_SRC_PATH}/web/html/void.c
         ${LH_LIB_SRC_PATH}/web/js/op.c
         ${LH_LIB_SRC_PATH}/web/js/node.c
         ${LH_LIB_SRC_PATH}/web/js/writer.c
@@ -203,6 +211,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/util/str/ptr.c
         ${LH_LIB_SRC_PATH}/util/wchar.c
         ${LH_LIB_SRC_PATH}/str/view.c
+        ${LH_LIB_SRC_PATH}/str/cursor.c
         ${LH_LIB_SRC_PATH}/wstr/view.c
         ${LH_LIB_SRC_PATH}/str.c
         ${LH_LIB_SRC_PATH}/wstr.c

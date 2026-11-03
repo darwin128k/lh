@@ -6,9 +6,10 @@
  * The page the web player serves on `GET /` is a small document (two
  * canvases and a style) and one script that fetches frames, draws them and
  * sends input back. Both are built as trees - the markup with
- * ::lh_web_html_node_t, the script with ::lh_web_js_node_t - and only the
- * writers turn them into text: names are validated, strings escaped and
- * parentheses placed by precedence. No part of the page is held as code text.
+ * ::lh_web_xml_node_t (written in the HTML dialect), the script with
+ * ::lh_web_js_node_t - and only the writers turn them into text: names are
+ * validated, strings escaped and parentheses placed by precedence. No part of
+ * the page is held as code text.
  *
  * The script is a list of top-level statements, each made by its own
  * `lh_ui_web_player_page_create_<part>` brick (a new tree the caller owns and
@@ -27,7 +28,7 @@
 #define LH_UI_WEB_PLAYER_PAGE_H
 
 #include <lh/os/key.h>
-#include <lh/web/html/node.h>
+#include <lh/web/xml/node.h>
 #include <lh/web/js/node.h>
 
 #if !LH_LIBRARY_OPTION_UI
@@ -56,7 +57,7 @@ lh_ui_web_player_page_is_modifier(lh_os_key_t key);
 /* ── document ────────────────────────────────────────────────────────────── */
 
 /** A new `<head>`: charset, viewport, title and the style. The caller owns it. */
-lh_web_html_node_t *lh_ui_web_player_page_create_head(lh_void);
+lh_web_xml_node_t *lh_ui_web_player_page_create_head(lh_void);
 
 /**
  * @brief A new `<body>`: the player canvas `#c`, the 3D canvas `#v3d` and a
@@ -64,7 +65,7 @@ lh_web_html_node_t *lh_ui_web_player_page_create_head(lh_void);
  *        @p script must come from ::lh_web_js_writer_try_write, which keeps
  *        `</` out of the text. The caller owns the result.
  */
-lh_web_html_node_t *
+lh_web_xml_node_t *
 lh_ui_web_player_page_create_body(lh_str_view_t script);
 
 /**
@@ -77,13 +78,15 @@ lh_web_js_node_t *
 lh_ui_web_player_page_create_key_table(lh_bool_t modifiers_only);
 
 /** A new `<html lang="ru">` with the head and the body of @p script. The caller owns it. */
-lh_web_html_node_t *
+lh_web_xml_node_t *
 lh_ui_web_player_page_create_html(lh_str_view_t script);
 
 /**
- * @brief Append `<!doctype html>` and the `<html>` of @p script to @p out.
+ * @brief Append `<!doctype html>` and the `<html>` of @p script to @p out: one
+ *        document of the two, written by ::lh_web_xml_writer_try_write in the
+ *        HTML dialect.
  *
- * @return ::lh_bool_false when the HTML writer rejects the tree.
+ * @return ::lh_bool_false when the writer rejects the tree.
  */
 lh_bool_t
 lh_ui_web_player_page_try_write_document(lh_str_t *out, lh_str_view_t script);

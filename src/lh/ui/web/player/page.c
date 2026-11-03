@@ -7,7 +7,7 @@
 #include <lh/assert.h>
 #include <lh/char/map.h>
 #include <lh/memory/std.h>
-#include <lh/web/html/writer.h>
+#include <lh/web/xml/writer.h>
 #include <lh/web/js/writer.h>
 
 /** The browser's `KeyboardEvent.key` for every ::lh_os_key_t from ::lh_os_key_tab on, in the
@@ -3198,55 +3198,55 @@ lh_ui_web_player_page_create_start(lh_void)
 
 /* ── document ────────────────────────────────────────────────────────────── */
 
-lh_web_html_node_t *
+lh_web_xml_node_t *
 lh_ui_web_player_page_create_head(lh_void)
 {
-    lh_web_html_node_t *self = lh_web_html_node_create_element(lh_str_view_lit("head"));
+    lh_web_xml_node_t *self = lh_web_xml_node_create_element(lh_str_view_lit("head"));
 
-    lh_web_html_node_push_child(
-        self, lh_web_html_node_add_attr(lh_web_html_node_create_void(lh_str_view_lit("meta")),
+    lh_web_xml_node_push_child(
+        self, lh_web_xml_node_add_attr(lh_web_xml_node_create_empty(lh_str_view_lit("meta")),
                                         lh_str_view_lit("charset"), lh_str_view_lit("utf-8")));
-    lh_web_html_node_push_child(
+    lh_web_xml_node_push_child(
         self,
-        lh_web_html_node_add_attr(
-            lh_web_html_node_add_attr(lh_web_html_node_create_void(lh_str_view_lit("meta")),
+        lh_web_xml_node_add_attr(
+            lh_web_xml_node_add_attr(lh_web_xml_node_create_empty(lh_str_view_lit("meta")),
                                       lh_str_view_lit("name"), lh_str_view_lit("viewport")),
             lh_str_view_lit("content"), lh_str_view_lit("width=device-width,initial-scale=1")));
-    lh_web_html_node_push_child(
-        self, lh_web_html_node_push_child(lh_web_html_node_create_element(lh_str_view_lit("title")),
-                                          lh_web_html_node_create_text(lh_str_view_lit("lh_ui"))));
-    lh_web_html_node_push_child(
-        self, lh_web_html_node_push_child(
-                  lh_web_html_node_create_element(lh_str_view_lit("style")),
-                  lh_web_html_node_create_raw(lh_str_view_lit(
+    lh_web_xml_node_push_child(
+        self, lh_web_xml_node_push_child(lh_web_xml_node_create_element(lh_str_view_lit("title")),
+                                         lh_web_xml_node_create_text(lh_str_view_lit("lh_ui"))));
+    lh_web_xml_node_push_child(
+        self, lh_web_xml_node_push_child(
+                  lh_web_xml_node_create_element(lh_str_view_lit("style")),
+                  lh_web_xml_node_create_raw(lh_str_view_lit(
                       "html,body{margin:0;height:100%;background:#edf0f5;overflow:hidden}"
                       "#c{display:block;position:absolute;cursor:pointer;outline:none}"
                       "#v3d{position:absolute;display:none;pointer-events:none}"))));
     return self;
 }
 
-lh_web_html_node_t *
+lh_web_xml_node_t *
 lh_ui_web_player_page_create_body(lh_str_view_t script)
 {
-    lh_web_html_node_t *self = lh_web_html_node_create_element(lh_str_view_lit("body"));
-    lh_web_html_node_t *canvas = lh_web_html_node_create_element(lh_str_view_lit("canvas"));
+    lh_web_xml_node_t *self = lh_web_xml_node_create_element(lh_str_view_lit("body"));
+    lh_web_xml_node_t *canvas = lh_web_xml_node_create_element(lh_str_view_lit("canvas"));
 
-    lh_web_html_node_add_attr(canvas, lh_str_view_lit("id"), lh_str_view_lit("c"));
-    lh_web_html_node_add_attr(canvas, lh_str_view_lit("width"), lh_str_view_lit("980"));
-    lh_web_html_node_add_attr(canvas, lh_str_view_lit("height"), lh_str_view_lit("620"));
-    lh_web_html_node_add_attr(canvas, lh_str_view_lit("tabindex"), lh_str_view_lit("0"));
-    lh_web_html_node_push_child(self, canvas);
-    lh_web_html_node_push_child(
-        self, lh_web_html_node_add_attr(lh_web_html_node_create_element(lh_str_view_lit("canvas")),
+    lh_web_xml_node_add_attr(canvas, lh_str_view_lit("id"), lh_str_view_lit("c"));
+    lh_web_xml_node_add_attr(canvas, lh_str_view_lit("width"), lh_str_view_lit("980"));
+    lh_web_xml_node_add_attr(canvas, lh_str_view_lit("height"), lh_str_view_lit("620"));
+    lh_web_xml_node_add_attr(canvas, lh_str_view_lit("tabindex"), lh_str_view_lit("0"));
+    lh_web_xml_node_push_child(self, canvas);
+    lh_web_xml_node_push_child(
+        self, lh_web_xml_node_add_attr(lh_web_xml_node_create_element(lh_str_view_lit("canvas")),
                                         lh_str_view_lit("id"), lh_str_view_lit("v3d")));
     /* The script is a raw child: ::lh_web_js_writer_try_write escapes every `<` a string holds
        and keeps `</` and `<!` out of code, so the text cannot close the element early. */
-    lh_web_html_node_push_child(
+    lh_web_xml_node_push_child(
         self,
-        lh_web_html_node_push_child(
-            lh_web_html_node_push_child(lh_web_html_node_create_element(lh_str_view_lit("script")),
-                                        lh_web_html_node_create_text(lh_str_view_lit("\n"))),
-            lh_web_html_node_create_raw(script)));
+        lh_web_xml_node_push_child(
+            lh_web_xml_node_push_child(lh_web_xml_node_create_element(lh_str_view_lit("script")),
+                                       lh_web_xml_node_create_text(lh_str_view_lit("\n"))),
+            lh_web_xml_node_create_raw(script)));
     return self;
 }
 
@@ -3269,14 +3269,14 @@ lh_ui_web_player_page_create_key_table(lh_bool_t modifiers_only)
     return self;
 }
 
-lh_web_html_node_t *
+lh_web_xml_node_t *
 lh_ui_web_player_page_create_html(lh_str_view_t script)
 {
-    lh_web_html_node_t *self = lh_web_html_node_create_element(lh_str_view_lit("html"));
+    lh_web_xml_node_t *self = lh_web_xml_node_create_element(lh_str_view_lit("html"));
 
-    lh_web_html_node_add_attr(self, lh_str_view_lit("lang"), lh_str_view_lit("ru"));
-    lh_web_html_node_push_child(self, lh_ui_web_player_page_create_head());
-    return lh_web_html_node_push_child(self, lh_ui_web_player_page_create_body(script));
+    lh_web_xml_node_add_attr(self, lh_str_view_lit("lang"), lh_str_view_lit("ru"));
+    lh_web_xml_node_push_child(self, lh_ui_web_player_page_create_head());
+    return lh_web_xml_node_push_child(self, lh_ui_web_player_page_create_body(script));
 }
 
 lh_web_js_node_t *
@@ -3296,16 +3296,17 @@ lh_ui_web_player_page_create_mods(lh_void)
 lh_bool_t
 lh_ui_web_player_page_try_write_document(lh_str_t *out, lh_str_view_t script)
 {
-    lh_web_html_writer_t writer;
-    lh_web_html_node_t *doctype = lh_web_html_node_create_doctype();
-    lh_web_html_node_t *html = lh_ui_web_player_page_create_html(script);
-    lh_bool_t written;
+    lh_web_xml_writer_t writer;
+    lh_web_xml_node_t *document = lh_web_xml_node_create_document();
 
-    lh_web_html_writer_init(lh_addr_of(writer), out);
-    written = lh_web_html_writer_try_write(lh_addr_of(writer), doctype) &&
-              lh_web_html_writer_try_write(lh_addr_of(writer), html);
-    lh_web_html_node_destroy(html);
-    lh_web_html_node_destroy(doctype);
+    lh_web_xml_node_push_child(document, lh_web_xml_node_create_doctype(lh_str_view_lit("html")));
+    lh_web_xml_node_push_child(document, lh_ui_web_player_page_create_html(script));
+    lh_web_xml_writer_init(lh_addr_of(writer), out);
+    lh_web_xml_writer_set_dialect(lh_addr_of(writer), lh_web_xml_dialect_html);
+
+    const lh_bool_t written = lh_web_xml_writer_try_write(lh_addr_of(writer), document);
+
+    lh_web_xml_node_destroy(document);
     return written;
 }
 
