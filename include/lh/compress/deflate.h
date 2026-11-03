@@ -8,16 +8,19 @@
  * codes, truncated input, invalid back references and insufficient output.
  *
  * The encoder is built from the same tables. Bit, code, symbol, match and
- * stored-block writers each append to caller-owned output at a bit position;
- * the stream encoders compose them with the hash-chain matcher
- * (`lh/compress/deflate/matcher.h`) into stored or fixed-Huffman streams.
- * Nothing is allocated; the matcher and all buffers belong to the caller.
+ * stored-block writers each append to caller-owned output at a bit position.
+ * The stream encoder works block by block: the hash-chain matcher
+ * (`lh/compress/deflate/matcher.h`) collects a block's literals and matches
+ * into a token buffer (`lh/compress/deflate/tokens.h`), the symbols are
+ * counted, each block type is priced in bits from the counts, and only the
+ * cheapest is written. Nothing is allocated; the encoder state
+ * (`lh/compress/deflate/encoder.h`) and all buffers belong to the caller.
  */
 
 #ifndef LH_COMPRESS_DEFLATE_H
 #define LH_COMPRESS_DEFLATE_H
 
-#include <lh/compress/deflate/matcher.h>
+#include <lh/compress/deflate/encoder.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
@@ -25,6 +28,24 @@
 
 /** Code length of every distance symbol in a fixed-Huffman block. */
 #define LH_COMPRESS_DEFLATE_FIXED_DISTANCE_BITS 5U
+
+/** Literal/length codes of the fixed code, including the unused 286 and 287. */
+#define LH_COMPRESS_DEFLATE_FIXED_LITERAL_CODES 288U
+
+/** Distance codes of the fixed code, including the unused 30 and 31. */
+#define LH_COMPRESS_DEFLATE_FIXED_DISTANCE_CODES 32U
+
+/** Literal/length symbols a block may use: 256 literals, end of block, 29 lengths. */
+#define LH_COMPRESS_DEFLATE_LITERAL_SYMBOLS 286U
+
+/** Distance symbols a block may use. */
+#define LH_COMPRESS_DEFLATE_DISTANCE_SYMBOLS 30U
+
+/** Literal/length symbol that ends a Huffman-coded block. */
+#define LH_COMPRESS_DEFLATE_END_OF_BLOCK 256U
+
+/** First length symbol; the length index is the symbol minus this. */
+#define LH_COMPRESS_DEFLATE_FIRST_LENGTH_SYMBOL 257U
 
 /** Largest payload of one stored block, in bytes. */
 #define LH_COMPRESS_DEFLATE_STORED_MAX 65535U
@@ -98,6 +119,21 @@ lh_compress_deflate_get_distance_code(lh_uint_t distance);
  */
 lh_uint_t
 lh_compress_deflate_get_fixed_length(lh_uint_t symbol);
+
+/**
+ * @brief Fill the code lengths of the fixed Huffman code, RFC 1951, 3.2.6.
+ *
+ * Writes ::lh_compress_deflate_get_fixed_length for every literal/length code
+ * and ::LH_COMPRESS_DEFLATE_FIXED_DISTANCE_BITS for every distance code. The
+ * decoder builds its fixed tables and the encoder its fixed codes from these.
+ * @param lit_lengths Writable array of ::LH_COMPRESS_DEFLATE_FIXED_LITERAL_CODES
+ *                    entries.
+ * @param dist_lengths Writable array of
+ *                     ::LH_COMPRESS_DEFLATE_FIXED_DISTANCE_CODES entries.
+ * @pre Both arrays are valid for their sizes; not checked.
+ */
+lh_void
+lh_compress_deflate_fill_fixed_lengths(lh_byte_t *lit_lengths, lh_byte_t *dist_lengths);
 
 /**
  * @brief Read up to 16 low-bit-first bits from a borrowed input buffer.
@@ -483,12 +519,45 @@ lh_compress_deflate_put_stored(const lh_byte_t *input, lh_usize_t input_size, lh
                                lh_byte_t *output, lh_usize_t capacity, lh_usize_t *position);
 
 /**
+ * @brief Number of blocks of at most @p block_size bytes that cover @p size.
+ *
+ * Every started block counts, and an empty input still takes one block, as a
+ * DEFLATE stream always has at least one.
+ * @param size Input size in bytes.
+ * @param block_size Most bytes one block covers; not zero.
+ * @return From 1 upwards.
+ * @pre @p block_size is not zero; not checked.
+ */
+lh_usize_t
+lh_compress_deflate_get_block_count(lh_usize_t size, lh_usize_t block_size);
+
+/**
+ * @brief Input size plus one stored-block overhead for every block covering it.
+ *
+ * Adds ::LH_COMPRESS_DEFLATE_STORED_OVERHEAD for each of
+ * ::lh_compress_deflate_get_block_count blocks. A stream whose every block is
+ * at most a stored block of its bytes, and whose blocks each span at least
+ * @p block_size bytes but the last, never exceeds it.
+ * @param size Input size in bytes.
+ * @param block_size Fewest bytes a block other than the last spans; not zero.
+ * @param bound Receives the size in bytes on success.
+ * @return True on success; false if the size overflows ::lh_usize_t, with
+ *         @p bound unchanged.
+ * @pre @p bound is valid and @p block_size is not zero.
+ */
+lh_bool_t
+lh_compress_deflate_try_blocks_bound(lh_usize_t size, lh_usize_t block_size, lh_usize_t *bound);
+
+/** Checked form of ::lh_compress_deflate_try_blocks_bound; aborts on overflow. */
+lh_void
+lh_compress_deflate_blocks_bound(lh_usize_t size, lh_usize_t block_size, lh_usize_t *bound);
+
+/**
  * @brief Exact size of ::lh_compress_deflate_try_encode_stored output.
  *
  * Every started ::LH_COMPRESS_DEFLATE_STORED_MAX bytes, and an empty input,
  * cost one block of ::LH_COMPRESS_DEFLATE_STORED_OVERHEAD bytes on top of the
- * payload. It is also the most ::lh_compress_deflate_try_encode ever writes,
- * so it sizes a caller's output buffer.
+ * payload.
  * @param size Input size in bytes.
  * @param bound Receives the size in bytes on success.
  * @return True on success; false if the size overflows ::lh_usize_t, with
@@ -523,90 +592,204 @@ lh_compress_deflate_encode_stored(const lh_byte_t *input, lh_usize_t input_size,
                                   lh_usize_t capacity, lh_usize_t *written);
 
 /**
- * @brief Write the codes of a fixed-Huffman block body, ending with symbol 256.
+ * @brief Count how often each symbol occurs in a block's tokens.
  *
- * Resets @p matcher with ::lh_compress_deflate_matcher_reset, keeping its
- * chain limit, then takes the longest match at each position
- * (::lh_compress_deflate_matcher_try_find) or a literal, and writes them with
- * ::lh_compress_deflate_try_put_match and ::lh_compress_deflate_try_put_symbol.
- * The three-bit block header is the caller's, so the body can follow any
- * header the caller writes.
- * @param matcher Caller-owned matcher, used as scratch; its chain limit applies.
- * @param input Borrowed input; may be null when @p input_size is zero.
- * @param input_size Input size, at most ::LH_COMPRESS_DEFLATE_MATCHER_INPUT_LIMIT.
+ * A literal counts its byte; a match counts its length symbol (257 plus
+ * ::lh_compress_deflate_get_length_index) and its distance code
+ * (::lh_compress_deflate_get_distance_code). The end-of-block symbol counts
+ * once, as every Huffman-coded block ends with it.
+ * @param tokens Borrowed block tokens.
+ * @param lit_freq Writable array of ::LH_COMPRESS_DEFLATE_LITERAL_SYMBOLS counts;
+ *                 fully overwritten.
+ * @param dist_freq Writable array of ::LH_COMPRESS_DEFLATE_DISTANCE_SYMBOLS
+ *                  counts; fully overwritten.
+ * @pre All pointers are valid; not checked.
+ */
+lh_void
+lh_compress_deflate_count_symbols(const lh_compress_deflate_tokens_t *tokens, lh_usize_t *lit_freq,
+                                  lh_usize_t *dist_freq);
+
+/**
+ * @brief Bits a Huffman-coded block body takes under given code lengths.
+ *
+ * Every counted symbol costs its code length; length symbols and distance
+ * codes add their extra bits. The block header and any code description are
+ * not included. A counted symbol of length zero adds nothing, so the result is
+ * only meaningful for codes that cover every counted symbol.
+ * @param lit_lengths Literal/length code lengths, at least
+ *                    ::LH_COMPRESS_DEFLATE_LITERAL_SYMBOLS entries.
+ * @param dist_lengths Distance code lengths, at least
+ *                     ::LH_COMPRESS_DEFLATE_DISTANCE_SYMBOLS entries.
+ * @param lit_freq Counts from ::lh_compress_deflate_count_symbols.
+ * @param dist_freq Counts from ::lh_compress_deflate_count_symbols.
+ * @return The body size in bits.
+ * @pre All pointers are valid and the total fits ::lh_usize_t; not checked.
+ *      One token buffer's counts always fit.
+ */
+lh_usize_t
+lh_compress_deflate_get_codes_cost(const lh_byte_t *lit_lengths, const lh_byte_t *dist_lengths,
+                                   const lh_usize_t *lit_freq, const lh_usize_t *dist_freq);
+
+/**
+ * @brief Bits ::lh_compress_deflate_try_put_stored adds at a bit position.
+ *
+ * The three-bit header, the padding to the next byte after it, LEN, NLEN and
+ * the payload.
+ * @param size Payload size, at most ::LH_COMPRESS_DEFLATE_STORED_MAX.
+ * @param position Bit position the block starts at.
+ * @return The block size in bits.
+ * @pre size is within the limit; not checked.
+ */
+lh_usize_t
+lh_compress_deflate_get_stored_cost(lh_usize_t size, lh_usize_t position);
+
+/**
+ * @brief Write a block body from its tokens, ending with the end-of-block symbol.
+ *
+ * Literals go through ::lh_compress_deflate_try_put_symbol, matches through
+ * ::lh_compress_deflate_try_put_match. The block header is the caller's.
+ * @param tokens Borrowed block tokens.
+ * @param lit_codes Literal/length codes of at least
+ *                  ::LH_COMPRESS_DEFLATE_LITERAL_SYMBOLS entries.
+ * @param lit_lengths Their code lengths.
+ * @param dist_codes Distance codes of at least
+ *                   ::LH_COMPRESS_DEFLATE_DISTANCE_SYMBOLS entries.
+ * @param dist_lengths Their code lengths.
  * @param output Borrowed writable output, valid for @p capacity bytes.
  * @param capacity Output size in bytes.
  * @param position In/out bit position, just after the block header.
- * @return True on success; false for an oversized input or insufficient
- *         output. The position is unchanged on failure; output bytes after it
- *         and the matcher's tables may have been modified.
- * @pre Pointers are valid, buffers hold their stated sizes and do not overlap.
+ * @return True on success; false if a symbol has no code or the output is too
+ *         small. The position is unchanged on failure; output bytes after it
+ *         may have been modified.
+ * @pre Pointers are valid and the tables have the stated sizes.
  */
 lh_bool_t
-lh_compress_deflate_try_put_fixed_codes(lh_compress_deflate_matcher_t *matcher,
-                                        const lh_byte_t *input, lh_usize_t input_size,
-                                        lh_byte_t *output, lh_usize_t capacity,
-                                        lh_usize_t *position);
+lh_compress_deflate_try_put_tokens(const lh_compress_deflate_tokens_t *tokens,
+                                   const lh_u16_t *lit_codes, const lh_byte_t *lit_lengths,
+                                   const lh_u16_t *dist_codes, const lh_byte_t *dist_lengths,
+                                   lh_byte_t *output, lh_usize_t capacity, lh_usize_t *position);
 
-/** Checked form of ::lh_compress_deflate_try_put_fixed_codes; aborts on failure. */
+/** Checked form of ::lh_compress_deflate_try_put_tokens; aborts on failure. */
 lh_void
-lh_compress_deflate_put_fixed_codes(lh_compress_deflate_matcher_t *matcher, const lh_byte_t *input,
-                                    lh_usize_t input_size, lh_byte_t *output, lh_usize_t capacity,
-                                    lh_usize_t *position);
+lh_compress_deflate_put_tokens(const lh_compress_deflate_tokens_t *tokens,
+                               const lh_u16_t *lit_codes, const lh_byte_t *lit_lengths,
+                               const lh_u16_t *dist_codes, const lh_byte_t *dist_lengths,
+                               lh_byte_t *output, lh_usize_t capacity, lh_usize_t *position);
 
 /**
- * @brief Encode an input as one fixed-Huffman raw DEFLATE block.
+ * @brief Collect the tokens of the block that starts at @p begin.
  *
- * Writes the final fixed-block header, the body with
- * ::lh_compress_deflate_try_put_fixed_codes, and zero bits up to the next byte.
- * @param matcher Caller-owned matcher, used as scratch; its chain limit applies.
+ * Empties @p tokens, then takes the longest match at each position
+ * (::lh_compress_deflate_matcher_try_find) or a literal, inserting every
+ * covered position into the matcher, until the buffer is full or the block
+ * spans ::LH_COMPRESS_DEFLATE_STORED_MAX bytes. Matches never cross that
+ * block limit, so the block fits one stored block; they may reach back into
+ * earlier blocks. The matcher must hold exactly the positions before
+ * @p begin, as after ::lh_compress_deflate_matcher_reset and earlier calls.
+ * @param matcher Caller-owned matcher; its chain limit applies.
+ * @param tokens Caller-owned buffer; receives the block's tokens.
+ * @param input Borrowed input; may be null when @p input_size is zero.
+ * @param input_size Input size, at most ::LH_COMPRESS_DEFLATE_MATCHER_INPUT_LIMIT.
+ * @param begin First position of the block, at most @p input_size.
+ * @param end Receives the position after the block on success; it equals
+ *            @p begin only when @p begin is @p input_size.
+ * @return True on success; false for an oversized input or a @p begin past the
+ *         end, with nothing changed.
+ * @pre Pointers are valid and the input holds @p input_size bytes.
+ */
+lh_bool_t
+lh_compress_deflate_try_collect(lh_compress_deflate_matcher_t *matcher,
+                                lh_compress_deflate_tokens_t *tokens, const lh_byte_t *input,
+                                lh_usize_t input_size, lh_usize_t begin, lh_usize_t *end);
+
+/** Checked form of ::lh_compress_deflate_try_collect; aborts on failure. */
+lh_void
+lh_compress_deflate_collect(lh_compress_deflate_matcher_t *matcher,
+                            lh_compress_deflate_tokens_t *tokens, const lh_byte_t *input,
+                            lh_usize_t input_size, lh_usize_t begin, lh_usize_t *end);
+
+/**
+ * @brief Write one block as the cheaper of fixed Huffman and stored.
+ *
+ * Counts the symbols with ::lh_compress_deflate_count_symbols and prices the
+ * fixed block (three header bits plus ::lh_compress_deflate_get_codes_cost
+ * under the fixed code) against ::lh_compress_deflate_get_stored_cost at the
+ * current position. A stored block is written only when strictly cheaper, so
+ * the block never takes more bits than a stored block of the same bytes.
+ * @param tokens Borrowed tokens of the block.
+ * @param input Borrowed bytes the tokens encode; may be null when
+ *              @p input_size is zero.
+ * @param input_size Their count, at most ::LH_COMPRESS_DEFLATE_STORED_MAX.
+ * @param final Whether this block ends the stream.
+ * @param output Borrowed writable output, valid for @p capacity bytes.
+ * @param capacity Output size in bytes.
+ * @param position In/out bit position of the block start.
+ * @return True on success; false for an oversized block or insufficient
+ *         output. The position is unchanged on failure; output bytes after it
+ *         may have been modified.
+ * @pre Pointers are valid and the tokens encode exactly the given bytes.
+ */
+lh_bool_t
+lh_compress_deflate_try_put_block(const lh_compress_deflate_tokens_t *tokens,
+                                  const lh_byte_t *input, lh_usize_t input_size, lh_bool_t final,
+                                  lh_byte_t *output, lh_usize_t capacity, lh_usize_t *position);
+
+/** Checked form of ::lh_compress_deflate_try_put_block; aborts on failure. */
+lh_void
+lh_compress_deflate_put_block(const lh_compress_deflate_tokens_t *tokens, const lh_byte_t *input,
+                              lh_usize_t input_size, lh_bool_t final, lh_byte_t *output,
+                              lh_usize_t capacity, lh_usize_t *position);
+
+/**
+ * @brief Largest stream ::lh_compress_deflate_try_encode writes for a size.
+ *
+ * Every block is written at most as large as a stored block of its bytes,
+ * and every block but the last spans at least
+ * ::LH_COMPRESS_DEFLATE_TOKENS_LIMIT bytes. So the stream takes at most the
+ * input size plus ::LH_COMPRESS_DEFLATE_STORED_OVERHEAD bytes for every
+ * started ::LH_COMPRESS_DEFLATE_TOKENS_LIMIT bytes, and for an empty input.
+ * @param size Input size in bytes.
+ * @param bound Receives the size in bytes on success.
+ * @return True on success; false if the size overflows ::lh_usize_t, with
+ *         @p bound unchanged.
+ * @pre @p bound is valid.
+ */
+lh_bool_t
+lh_compress_deflate_try_bound(lh_usize_t size, lh_usize_t *bound);
+
+/** Checked form of ::lh_compress_deflate_try_bound; aborts on overflow. */
+lh_void
+lh_compress_deflate_bound(lh_usize_t size, lh_usize_t *bound);
+
+/**
+ * @brief Encode an input as a raw DEFLATE stream, block by block.
+ *
+ * Resets the encoder's matcher, then repeats ::lh_compress_deflate_try_collect
+ * and ::lh_compress_deflate_try_put_block until the input is consumed, marking
+ * the last block final, and pads the stream to a whole byte. Each block is
+ * matched once and written once. An empty input becomes one empty fixed
+ * block.
+ * @param encoder Caller-owned state from ::lh_compress_deflate_encoder_init,
+ *                used as scratch; its chain limit applies.
  * @param input Borrowed input; may be null when @p input_size is zero.
  * @param input_size Input size, at most ::LH_COMPRESS_DEFLATE_MATCHER_INPUT_LIMIT.
  * @param output Borrowed writable output, valid for @p capacity bytes.
- * @param capacity Output size in bytes.
+ * @param capacity Output size in bytes; ::lh_compress_deflate_try_bound always
+ *                 suffices.
  * @param written Receives the stream size in bytes on success.
  * @return True on success; false for an oversized input or insufficient
- *         output, with @p written unchanged. Output bytes and the matcher's
- *         tables may have been modified on failure.
+ *         output, with @p written unchanged. Output bytes and the encoder
+ *         state may have been modified on failure.
  * @pre Pointers are valid, buffers hold their stated sizes and do not overlap.
  */
 lh_bool_t
-lh_compress_deflate_try_encode_fixed(lh_compress_deflate_matcher_t *matcher, const lh_byte_t *input,
-                                     lh_usize_t input_size, lh_byte_t *output, lh_usize_t capacity,
-                                     lh_usize_t *written);
-
-/** Checked form of ::lh_compress_deflate_try_encode_fixed; aborts on failure. */
-lh_void
-lh_compress_deflate_encode_fixed(lh_compress_deflate_matcher_t *matcher, const lh_byte_t *input,
-                                 lh_usize_t input_size, lh_byte_t *output, lh_usize_t capacity,
-                                 lh_usize_t *written);
-
-/**
- * @brief Encode an input as the smaller of a fixed-Huffman or stored stream.
- *
- * Tries ::lh_compress_deflate_try_encode_fixed within one byte less than the
- * stored size; when that does not fit, falls back to
- * ::lh_compress_deflate_try_encode_stored. Incompressible input therefore
- * never grows beyond ::lh_compress_deflate_try_stored_bound.
- * @param matcher Caller-owned matcher, used as scratch; its chain limit applies.
- * @param input Borrowed input; may be null when @p input_size is zero.
- * @param input_size Input size in bytes.
- * @param output Borrowed writable output, valid for @p capacity bytes.
- * @param capacity Output size in bytes; the stored bound always suffices.
- * @param written Receives the stream size in bytes on success.
- * @return True on success; false for insufficient output or an input whose
- *         stored size overflows, with @p written unchanged. Output bytes and
- *         the matcher's tables may have been modified on failure.
- * @pre Pointers are valid, buffers hold their stated sizes and do not overlap.
- */
-lh_bool_t
-lh_compress_deflate_try_encode(lh_compress_deflate_matcher_t *matcher, const lh_byte_t *input,
+lh_compress_deflate_try_encode(lh_compress_deflate_encoder_t *encoder, const lh_byte_t *input,
                                lh_usize_t input_size, lh_byte_t *output, lh_usize_t capacity,
                                lh_usize_t *written);
 
 /** Checked form of ::lh_compress_deflate_try_encode; aborts on failure. */
 lh_void
-lh_compress_deflate_encode(lh_compress_deflate_matcher_t *matcher, const lh_byte_t *input,
+lh_compress_deflate_encode(lh_compress_deflate_encoder_t *encoder, const lh_byte_t *input,
                            lh_usize_t input_size, lh_byte_t *output, lh_usize_t capacity,
                            lh_usize_t *written);
 

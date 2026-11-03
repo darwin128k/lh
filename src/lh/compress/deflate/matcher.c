@@ -76,6 +76,13 @@ lh_compress_deflate_matcher_get_match_size(const lh_byte_t *input, lh_usize_t si
     return lh_addr_diff(lh_ptr_to_uaddr(diff), lh_ptr_to_uaddr(input + candidate));
 }
 
+lh_bool_t
+lh_compress_deflate_matcher_can_improve(const lh_byte_t *input, lh_usize_t candidate,
+                                        lh_usize_t position, lh_usize_t length)
+{
+    return lh_math_eq(input[lh_math_add(candidate, length)], input[lh_math_add(position, length)]);
+}
+
 lh_void
 lh_compress_deflate_matcher_reset(lh_compress_deflate_matcher_t *self)
 {
@@ -111,6 +118,8 @@ lh_compress_deflate_matcher_try_find(const lh_compress_deflate_matcher_t *self,
     const lh_usize_t limit = lh_compress_deflate_matcher_get_chain_limit(self);
     lh_usize_t entry = lh_compress_deflate_matcher_get_head(
         self)[lh_compress_deflate_matcher_get_hash(input + position)];
+    const lh_usize_t longest =
+        lh_math_min(lh_math_sub(size, position), LH_COMPRESS_DEFLATE_MATCHER_MAX_MATCH);
     lh_usize_t best_length = 0U;
     lh_usize_t best_distance = 0U;
     for (lh_usize_t step = 0U; lh_math_lt(step, limit) && !lh_math_is_zero(entry);
@@ -122,15 +131,18 @@ lh_compress_deflate_matcher_try_find(const lh_compress_deflate_matcher_t *self,
         {
             break;
         }
-        const lh_usize_t found =
-            lh_compress_deflate_matcher_get_match_size(input, size, candidate, position);
-        if (lh_math_gt(found, best_length))
+        if (lh_compress_deflate_matcher_can_improve(input, candidate, position, best_length))
         {
-            best_length = found;
-            best_distance = back;
-            if (lh_math_eq(found, LH_COMPRESS_DEFLATE_MATCHER_MAX_MATCH))
+            const lh_usize_t found =
+                lh_compress_deflate_matcher_get_match_size(input, size, candidate, position);
+            if (lh_math_gt(found, best_length))
             {
-                break;
+                best_length = found;
+                best_distance = back;
+                if (lh_math_eq(found, longest))
+                {
+                    break;
+                }
             }
         }
         const lh_usize_t next =

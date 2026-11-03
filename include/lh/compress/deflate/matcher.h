@@ -119,6 +119,27 @@ lh_compress_deflate_matcher_get_match_size(const lh_byte_t *input, lh_usize_t si
                                            lh_usize_t candidate, lh_usize_t position);
 
 /**
+ * @brief Tell whether @p candidate may match more than @p length bytes.
+ *
+ * A match longer than @p length needs the byte right after the first
+ * @p length to agree, so one byte decides that a candidate cannot beat the
+ * best match found so far. The search asks this before the full
+ * ::lh_compress_deflate_matcher_get_match_size: a hash collision or an equally
+ * long candidate costs one byte instead of a kernel call. True does not
+ * promise a longer match, only that one is possible.
+ * @param input Borrowed input.
+ * @param candidate Earlier position, below @p position.
+ * @param position Current position.
+ * @param length Length to beat; position + length must be below the input size.
+ * @return True if the bytes at candidate + length and position + length are
+ *         equal; false if no match through @p candidate exceeds @p length.
+ * @pre Input is valid through position + length; not checked.
+ */
+lh_bool_t
+lh_compress_deflate_matcher_can_improve(const lh_byte_t *input, lh_usize_t candidate,
+                                        lh_usize_t position, lh_usize_t length);
+
+/**
  * @brief Forget every inserted position; the chain limit is kept.
  *
  * Clears the hash-head table only: the previous-position table is read just

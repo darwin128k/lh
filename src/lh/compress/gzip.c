@@ -172,15 +172,15 @@ lh_compress_gzip_put_trailer(lh_u32_t crc, lh_usize_t decoded_size, lh_byte_t *o
 lh_bool_t
 lh_compress_gzip_try_bound(lh_usize_t size, lh_usize_t *bound)
 {
-    lh_usize_t stored;
+    lh_usize_t stream;
     const lh_usize_t frame =
         lh_math_add(LH_COMPRESS_GZIP_HEADER_SIZE, LH_COMPRESS_GZIP_TRAILER_SIZE);
-    if (!lh_compress_deflate_try_stored_bound(size, &stored) ||
-        lh_interval_closed_is_add_overflow(stored, frame, 0U, LH_USIZE_T_MAX))
+    if (!lh_compress_deflate_try_bound(size, &stream) ||
+        lh_interval_closed_is_add_overflow(stream, frame, 0U, LH_USIZE_T_MAX))
     {
         return lh_bool_false;
     }
-    *bound = lh_math_add(stored, frame);
+    *bound = lh_math_add(stream, frame);
     return lh_bool_true;
 }
 
@@ -192,7 +192,7 @@ lh_compress_gzip_bound(lh_usize_t size, lh_usize_t *bound)
 }
 
 lh_bool_t
-lh_compress_gzip_try_encode(lh_compress_deflate_matcher_t *matcher, const lh_byte_t *input,
+lh_compress_gzip_try_encode(lh_compress_deflate_encoder_t *encoder, const lh_byte_t *input,
                             lh_usize_t input_size, lh_byte_t *output, lh_usize_t capacity,
                             lh_usize_t *written)
 {
@@ -204,7 +204,7 @@ lh_compress_gzip_try_encode(lh_compress_deflate_matcher_t *matcher, const lh_byt
     }
     lh_usize_t body;
     if (!lh_compress_deflate_try_encode(
-            matcher, input, input_size, output + used,
+            encoder, input, input_size, output + used,
             lh_math_sub(lh_math_sub(capacity, used), LH_COMPRESS_GZIP_TRAILER_SIZE), &body))
     {
         return lh_bool_false;
@@ -220,11 +220,11 @@ lh_compress_gzip_try_encode(lh_compress_deflate_matcher_t *matcher, const lh_byt
 }
 
 lh_void
-lh_compress_gzip_encode(lh_compress_deflate_matcher_t *matcher, const lh_byte_t *input,
+lh_compress_gzip_encode(lh_compress_deflate_encoder_t *encoder, const lh_byte_t *input,
                         lh_usize_t input_size, lh_byte_t *output, lh_usize_t capacity,
                         lh_usize_t *written)
 {
     lh_runtime_check_ifn(
-        lh_compress_gzip_try_encode(matcher, input, input_size, output, capacity, written),
+        lh_compress_gzip_try_encode(encoder, input, input_size, output, capacity, written),
         lh_runtime_error_code_invalid_range);
 }

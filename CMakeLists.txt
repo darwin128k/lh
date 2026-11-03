@@ -271,7 +271,9 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/hash/fnv.c
         ${LH_LIB_SRC_PATH}/hash/crc.c
         ${LH_LIB_SRC_PATH}/compress/deflate.c
+        ${LH_LIB_SRC_PATH}/compress/deflate/encoder.c
         ${LH_LIB_SRC_PATH}/compress/deflate/matcher.c
+        ${LH_LIB_SRC_PATH}/compress/deflate/tokens.c
         ${LH_LIB_SRC_PATH}/compress/deflate/reader.c
         ${LH_LIB_SRC_PATH}/compress/gzip.c
         ${LH_LIB_SRC_PATH}/compress/gzip/reader.c

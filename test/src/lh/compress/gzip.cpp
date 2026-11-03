@@ -522,13 +522,13 @@ TEST(compress_gzip_put_trailer, appends_values_the_trailer_check_accepts)
     LH_EXPECT_CHECK_DEATH(lh_compress_gzip_put_trailer(1U, 1U, output, sizeof(output), &written));
 }
 
-TEST(compress_gzip_bound, adds_header_and_trailer_to_stored_size)
+TEST(compress_gzip_bound, adds_header_and_trailer_to_the_stream_bound)
 {
     lh_usize_t bound = 0U;
     lh_compress_gzip_bound(0U, &bound);
     EXPECT_EQ(bound, 23U);
     lh_compress_gzip_bound(65536U, &bound);
-    EXPECT_EQ(bound, 65564U);
+    EXPECT_EQ(bound, 65574U);
     bound = 1U;
     EXPECT_FALSE(lh_compress_gzip_try_bound(LH_USIZE_T_MAX - 20U, &bound));
     EXPECT_EQ(bound, 1U);
@@ -537,8 +537,8 @@ TEST(compress_gzip_bound, adds_header_and_trailer_to_stored_size)
 
 TEST(compress_gzip_encode, writes_members_the_decoders_accept)
 {
-    std::unique_ptr<lh_compress_deflate_matcher_t> matcher(new lh_compress_deflate_matcher_t);
-    lh_compress_deflate_matcher_init(matcher.get(), LH_COMPRESS_DEFLATE_MATCHER_CHAIN_LIMIT);
+    std::unique_ptr<lh_compress_deflate_encoder_t> encoder(new lh_compress_deflate_encoder_t);
+    lh_compress_deflate_encoder_init(encoder.get(), LH_COMPRESS_DEFLATE_MATCHER_CHAIN_LIMIT);
     std::string text;
     for (int i = 0; i < 400; ++i)
     {
@@ -553,7 +553,7 @@ TEST(compress_gzip_encode, writes_members_the_decoders_accept)
         lh_compress_gzip_bound(input.size(), &bound);
         std::vector<lh_byte_t> member(bound);
         lh_usize_t written = 0U;
-        lh_compress_gzip_encode(matcher.get(), reinterpret_cast<const lh_byte_t *>(input.data()),
+        lh_compress_gzip_encode(encoder.get(), reinterpret_cast<const lh_byte_t *>(input.data()),
                                 input.size(), member.data(), member.size(), &written);
         member.resize(written);
         std::vector<lh_byte_t> decoded(input.size() + 1U);
@@ -573,19 +573,19 @@ TEST(compress_gzip_encode, writes_members_the_decoders_accept)
 
 TEST(compress_gzip_encode, reports_insufficient_output)
 {
-    std::unique_ptr<lh_compress_deflate_matcher_t> matcher(new lh_compress_deflate_matcher_t);
-    lh_compress_deflate_matcher_init(matcher.get(), LH_COMPRESS_DEFLATE_MATCHER_CHAIN_LIMIT);
+    std::unique_ptr<lh_compress_deflate_encoder_t> encoder(new lh_compress_deflate_encoder_t);
+    lh_compress_deflate_encoder_init(encoder.get(), LH_COMPRESS_DEFLATE_MATCHER_CHAIN_LIMIT);
     const lh_byte_t input[] = {'a', 'b', 'c'};
     lh_byte_t output[64];
     lh_usize_t written = 7U;
     EXPECT_FALSE(
-        lh_compress_gzip_try_encode(matcher.get(), input, sizeof(input), output, 12U, &written));
+        lh_compress_gzip_try_encode(encoder.get(), input, sizeof(input), output, 12U, &written));
     EXPECT_FALSE(
-        lh_compress_gzip_try_encode(matcher.get(), input, sizeof(input), output, 20U, &written));
+        lh_compress_gzip_try_encode(encoder.get(), input, sizeof(input), output, 20U, &written));
     EXPECT_EQ(written, 7U);
-    EXPECT_TRUE(lh_compress_gzip_try_encode(matcher.get(), input, sizeof(input), output,
+    EXPECT_TRUE(lh_compress_gzip_try_encode(encoder.get(), input, sizeof(input), output,
                                             sizeof(output), &written));
     EXPECT_EQ(written, 23U);
     LH_EXPECT_CHECK_DEATH(
-        lh_compress_gzip_encode(matcher.get(), input, sizeof(input), output, 12U, &written));
+        lh_compress_gzip_encode(encoder.get(), input, sizeof(input), output, 12U, &written));
 }

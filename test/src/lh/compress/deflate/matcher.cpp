@@ -61,6 +61,31 @@ TEST(compress_deflate_matcher_get_match_size, stops_at_difference_end_and_maximu
     EXPECT_EQ(lh_compress_deflate_matcher_get_match_size(bytes(run), run.size(), 0U, 295U), 5U);
 }
 
+TEST(compress_deflate_matcher_can_improve, compares_the_byte_after_the_length)
+{
+    const std::string text = "abcdabcx";
+    EXPECT_TRUE(lh_compress_deflate_matcher_can_improve(bytes(text), 0U, 4U, 0U));
+    EXPECT_TRUE(lh_compress_deflate_matcher_can_improve(bytes(text), 0U, 4U, 2U));
+    EXPECT_FALSE(lh_compress_deflate_matcher_can_improve(bytes(text), 0U, 4U, 3U));
+    EXPECT_FALSE(lh_compress_deflate_matcher_can_improve(bytes(text), 1U, 4U, 0U));
+}
+
+TEST(compress_deflate_matcher, stops_at_a_match_reaching_the_input_end)
+{
+    const std::string text = "abcdabcdabcd";
+    std::unique_ptr<lh_compress_deflate_matcher_t> matcher = make_matcher(8U);
+    for (lh_usize_t i = 0U; i < 8U; ++i)
+    {
+        lh_compress_deflate_matcher_insert(matcher.get(), bytes(text), text.size(), i);
+    }
+    lh_usize_t length = 0U;
+    lh_usize_t distance = 0U;
+    lh_compress_deflate_matcher_find(matcher.get(), bytes(text), text.size(), 8U, &length,
+                                     &distance);
+    EXPECT_EQ(length, 4U);
+    EXPECT_EQ(distance, 4U);
+}
+
 TEST(compress_deflate_matcher, finds_longest_inserted_match_within_window)
 {
     const std::string text = "abcXabcdYabcdZ";
