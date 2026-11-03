@@ -96,6 +96,26 @@ lh_str_view_t
 lh_http_request_get_path(const lh_http_request_t *self);
 
 /**
+ * @brief Find the value following a query field prefix in the request target.
+ *
+ * The prefix is matched at the start of a field (after `?` or `&`). Include
+ * the equals sign in @p key when it is part of the desired match. No decoding
+ * is performed. The first match wins, including a match with an empty value.
+ *
+ * @param self Request with a valid target view.
+ * @param key Borrowed prefix to find, normally a name followed by `=`.
+ * @param key_len Size of @p key in bytes; zero never matches.
+ * @param value Receives the borrowed value pointer on a match, including an
+ *              empty value. It is unchanged when no match is found.
+ * @return Value length in bytes, or zero for no match or an empty value.
+ * @pre When @p key_len is nonzero, @p self and @p key are valid. If a match
+ *      is found, @p value points to writable pointer storage.
+ */
+lh_usize_t
+lh_http_request_get_query_value_size(const lh_http_request_t *self, const lh_str_ptr key,
+                                     lh_usize_t key_len, lh_str_cptr *value);
+
+/**
  * @brief Test a parsed request's method against a known HTTP method.
  *
  * The comparison is case-sensitive. Both the request and its method storage

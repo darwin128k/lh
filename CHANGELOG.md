@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- JavaScript lexer cursor accessors expose its borrowed text and position.
+
+- HTTP request query field lookup, shared by the web host.
+
 - ASCII JavaScript identifier-name predicates shared by the lexer and web
   serializer; available without enabling the JavaScript engine.
 
