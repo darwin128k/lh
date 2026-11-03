@@ -62,3 +62,17 @@ lh_io_reader_read(lh_io_reader_t *self, lh_ptr buf, lh_usize_t size)
 
     return read_cb(lh_io_reader_get_context(self), buf, size);
 }
+
+lh_ssize_t
+lh_io_reader_drain(lh_io_reader_t *self, lh_ptr scratch, lh_usize_t capacity)
+{
+    lh_assert_runtime_if(lh_math_is_zero(capacity), lh_runtime_error_code_invalid_range);
+    for (;;)
+    {
+        const lh_ssize_t result = lh_io_reader_read(self, scratch, capacity);
+        if (lh_math_le(result, 0))
+        {
+            return result;
+        }
+    }
+}

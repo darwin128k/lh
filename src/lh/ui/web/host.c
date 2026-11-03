@@ -907,14 +907,13 @@ lh_ui_web_host_try_serve_stream(lh_ui_web_app_t *app, const lh_ui_web_stream_rou
                                 const lh_http_header_t *headers, lh_str_view_t initial,
                                 lh_u64_t start)
 {
-    lh_char_t wire[LH_UI_WEB_HOST_REQUEST_CAPACITY];
-    lh_char_t line[LH_UI_WEB_HOST_CHUNK_LINE_CAPACITY];
+    lh_char_t wire[LH_UI_WEB_HOST_REQUEST_CAPACITY + LH_UI_WEB_HOST_CHUNK_LINE_CAPACITY];
     const lh_usize_t available = lh_str_view_get_size(lh_addr_of(initial));
-    if (lh_math_gt(available, sizeof(wire)))
+    lh_bool_t chunked;
+    if (lh_math_gt(available, LH_UI_WEB_HOST_REQUEST_CAPACITY))
     {
         return lh_bool_false;
     }
-    lh_bool_t chunked;
     lh_usize_t length;
     if (!lh_ui_web_host_try_begin_body(client, request, headers, initial,
                                        lh_ui_web_stream_route_get_body_limit(route), lh_bool_true,
@@ -922,6 +921,7 @@ lh_ui_web_host_try_serve_stream(lh_ui_web_app_t *app, const lh_ui_web_stream_rou
     {
         return lh_bool_false;
     }
+    lh_http_body_reader_t body;
     if (!lh_math_is_zero(available))
     {
         lh_memory_std_copy(wire, lh_str_view_get_begin(lh_addr_of(initial)), available);
@@ -931,26 +931,42 @@ lh_ui_web_host_try_serve_stream(lh_ui_web_app_t *app, const lh_ui_web_stream_rou
                                  lh_ui_web_stream_route_get_timeout_ms(route));
     lh_io_reader_t source;
     lh_ui_web_host_deadline_get_reader(lh_addr_of(deadline), lh_addr_of(source));
-    lh_http_body_reader_t body;
     lh_http_chunked_decoder_t decoder;
     if (chunked)
     {
-        lh_http_chunked_decoder_init(lh_addr_of(decoder), line, sizeof(line),
+        lh_http_chunked_decoder_init(lh_addr_of(decoder), wire + LH_UI_WEB_HOST_REQUEST_CAPACITY,
+                                     LH_UI_WEB_HOST_CHUNK_LINE_CAPACITY,
                                      lh_ui_web_stream_route_get_body_limit(route),
                                      lh_ui_web_stream_route_get_metadata_limit(route));
-        lh_http_body_reader_init_chunked(lh_addr_of(body), lh_addr_of(source), wire, sizeof(wire),
-                                         available, lh_addr_of(decoder));
+        lh_http_body_reader_init_chunked(lh_addr_of(body), lh_addr_of(source), wire,
+                                         LH_UI_WEB_HOST_REQUEST_CAPACITY, available,
+                                         lh_addr_of(decoder));
     }
     else
     {
-        lh_http_body_reader_init_length(lh_addr_of(body), lh_addr_of(source), wire, sizeof(wire),
-                                        available, length);
+        lh_http_body_reader_init_length(lh_addr_of(body), lh_addr_of(source), wire,
+                                        LH_UI_WEB_HOST_REQUEST_CAPACITY, available, length);
     }
     lh_io_reader_t reader;
     lh_http_body_reader_get_reader(lh_addr_of(body), lh_addr_of(reader));
-    lh_ui_web_stream_route_get_handler(route)(lh_ui_web_app_get_ctx(app), request, headers,
-                                              lh_addr_of(reader), client);
-    return lh_bool_true;
+    lh_bool_t ok = lh_ui_web_stream_route_get_handler(route)(lh_ui_web_app_get_ctx(app), request,
+                                                             headers, lh_addr_of(reader));
+    lh_char_t discard[LH_UI_WEB_HOST_REQUEST_CAPACITY];
+    if (ok)
+    {
+        ok = lh_math_is_zero(lh_io_reader_drain(lh_addr_of(reader), discard, sizeof(discard)));
+    }
+    if (ok)
+    {
+        lh_ui_web_stream_route_get_commit(route)(lh_ui_web_app_get_ctx(app), request, headers,
+                                                 client);
+    }
+    else
+    {
+        lh_ui_web_stream_route_get_abort(route)(lh_ui_web_app_get_ctx(app), request, headers,
+                                                client);
+    }
+    return ok;
 }
 
 lh_void
@@ -967,16 +983,15 @@ lh_bool_t
 lh_ui_web_host_handle_request_is_upgraded(lh_ui_web_app_t *app, lh_os_net_socket_t *client)
 {
     lh_char_t req[LH_UI_WEB_HOST_REQUEST_CAPACITY];
-    lh_usize_t received;
-    lh_usize_t head_size;
-    lh_http_request_t request;
-    lh_http_header_t headers[32];
     if (!lh_os_net_socket_set_blocking(client, lh_bool_true))
     {
         return lh_bool_false;
     }
+    lh_http_header_t headers[32];
     LH_ATTRIBUTE_UNUSED(lh_os_net_socket_set_no_delay(client, lh_bool_true));
+    lh_http_request_t request;
     const lh_u64_t start = lh_os_tick_ms();
+    lh_usize_t received, head_size;
     if (!lh_ui_web_host_try_read_head(client, req, sizeof(req), LH_UI_WEB_HOST_REQUEST_MS,
                                       lh_addr_of(received), lh_addr_of(head_size),
                                       lh_addr_of(request), headers, lh_array_ptr_get_size(headers)))
@@ -998,12 +1013,12 @@ lh_ui_web_host_handle_request_is_upgraded(lh_ui_web_app_t *app, lh_os_net_socket
             return lh_bool_false;
         }
     }
+    lh_usize_t len;
     const lh_u64_t elapsed = lh_math_sub(lh_os_tick_ms(), start);
     const lh_u32_t remaining =
         lh_math_ge(elapsed, LH_UI_WEB_HOST_REQUEST_MS)
             ? 0U
             : lh_cast_static(lh_u32_t, lh_math_sub(LH_UI_WEB_HOST_REQUEST_MS, elapsed));
-    lh_usize_t len;
     lh_str_view_t body;
     if (!lh_ui_web_host_try_finish_request(client, req, sizeof(req), remaining, received, head_size,
                                            lh_addr_of(request), headers, lh_addr_of(len),
