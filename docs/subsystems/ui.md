@@ -145,7 +145,7 @@ each target needs:
 |---|---|---|---|
 | `LH_LIBRARY_OPTION_OS` | **OFF** | ON | ON (sockets) |
 | `LH_LIBRARY_OPTION_OS_WINDOW` | **OFF** | ON | not needed (1) |
-| `LH_LIBRARY_OPTION_UI` | ON | ON | ON |
+| `LH_LIBRARY_OPTION_UI` | **ON** | **ON** | **ON** |
 | `LH_LIBRARY_OPTION_UI_FONT_ROBOTO` | ON | ON | ON |
 | `LH_LIBRARY_OPTION_THREAD_LOCAL` | **OFF** | ON | ON |
 | `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB` | **OFF** | ON | ON |
@@ -914,7 +914,7 @@ host_terminate(void)
 void
 f4ve_app_run(void)
 {
-    lh_runtime_terminate_set(host_terminate);
+    lh_runtime_terminate_set_process(host_terminate);
     lh_runtime_writer_init(f4ve_usart1_writer_cb, lh_null);   /* text to a serial port */
 }
 ```

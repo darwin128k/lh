@@ -96,6 +96,8 @@ endif ()
 lh_add_test_core(lh_test_console ${LH_TEST_SRC_PATH}/lh/console/console.cpp)
 
 lh_add_test_core(lh_test_core
+        ${LH_TEST_SRC_PATH}/lh/atomic/ptr.cpp
+        ${LH_TEST_SRC_PATH}/lh/atomic/fn_ptr.cpp
         ${LH_TEST_SRC_PATH}/lh/spsc.cpp
         ${LH_TEST_SRC_PATH}/lh/array.cpp
         ${LH_TEST_SRC_PATH}/lh/error.cpp
@@ -137,6 +139,7 @@ lh_add_test_core(lh_test_core
 )
 
 lh_add_test_core(lh_test_runtime
+        ${LH_TEST_SRC_PATH}/lh/runtime/allocator.cpp
         ${LH_TEST_SRC_PATH}/lh/runtime/check.cpp
         ${LH_TEST_SRC_PATH}/lh/runtime/error.cpp
         ${LH_TEST_SRC_PATH}/lh/runtime/terminate.cpp
@@ -319,6 +322,16 @@ if (NOT LH_LIBRARY_OPTION_OS)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/shared.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/sql/mysql.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/sql/mysql.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/timestamp.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/timestamp.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/loop.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/loop.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/thread/group.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/thread/group.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/logger/queue.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/logger/queue.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/logger/daily.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/logger/daily.cpp)
 endif ()
 if (NOT (LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW))
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/window.cpp)
@@ -334,9 +347,11 @@ if (WIN32 OR NOT (LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW))
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/system/posix/input.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/system/posix/input.cpp)
 endif ()
-if (NOT (WIN32 AND LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW))
+if (NOT (WIN32 AND LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW AND LH_LIBRARY_OPTION_UI))
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/render/backend/gdi.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/render/backend/gdi.cpp)
+endif ()
+if (NOT (WIN32 AND LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW))
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/system/win/input.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/system/win/input.cpp)
 endif ()

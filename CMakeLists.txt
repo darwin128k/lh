@@ -119,6 +119,8 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/memory/view.c
         ${LH_LIB_SRC_PATH}/memory/std.c
         ${LH_LIB_SRC_PATH}/memory.c
+        ${LH_LIB_SRC_PATH}/atomic/ptr.c
+        ${LH_LIB_SRC_PATH}/atomic/fn_ptr.c
         ${LH_LIB_SRC_PATH}/spsc.c
         ${LH_LIB_SRC_PATH}/array.c
         ${LH_LIB_SRC_PATH}/list.c
@@ -406,7 +408,6 @@ if (LH_LIBRARY_OPTION_OS)
             )
             list(APPEND LH_OS_SYSTEM_LINK_LIBS ${CMAKE_DL_LIBS})
         endif ()
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/render/backend/gdi.c)
     endif ()
 endif ()
 
@@ -542,8 +543,11 @@ if (LH_LIBRARY_OPTION_UI)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/app/stream/route.c)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/player.c)
     endif ()
+    # A window's screen: the UI's software canvas drawn into a surface the
+    # window presents. Needs both the UI and a native window.
     if (LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/surface.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/render/backend/gdi.c)
     endif ()
     if (LH_LIBRARY_OPTION_UI_FONT_ROBOTO)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/font/roboto.c)

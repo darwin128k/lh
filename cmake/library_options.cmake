@@ -298,14 +298,20 @@ option(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED
 # UI model under include/lh/ui and src/lh/ui: color, paint, pen, style,
 # gradient, canvas (backend table), and the entity tree.
 #
-#   ON  — compile the UI sources (default).
-#   OFF — leave them out; lh/ui.h and friends refuse to compile.
+#   ON  — compile the UI sources.
+#   OFF — leave them out (default); lh/ui.h and friends refuse to compile.
+#
+# Off by default: most users of lh want its bricks, not a widget toolkit, and
+# should not pay for it in build time and archive size. Turn it on to get the
+# canvas, the entity tree and the web host (ui/web).
 #
 # Needs no OS: a canvas backend is supplied by the host (GDI, GL, STM32 ...).
+# With LH_LIBRARY_OPTION_OS_WINDOW it also builds the window's screen
+# (os/render/backend/gdi.c, ui/surface.c).
 # -----------------------------------------------------------------------------
 option(LH_LIBRARY_OPTION_UI
         "Compile the lh UI model (color, paint, style, canvas, entity tree)."
-        ON)
+        OFF)
 
 # -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_SQL_SQLITE

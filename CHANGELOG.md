@@ -168,6 +168,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `LH_LIBRARY_OPTION_UI` is now `OFF` by default, in CMake and in
+  `lh/library/fallback.h`: most users want the bricks, not the widget toolkit.
+  Projects that use `lh/ui` (canvas, entity tree, web host) set it `ON`. The
+  window's screen (`os/render/backend/gdi.c`) is built only with both the UI
+  and `LH_LIBRARY_OPTION_OS_WINDOW`; before, the default window option with the
+  UI off failed to compile it. Every option set below builds and passes its
+  tests: default, UI, UI + FPU, FPU, OS off, UI without a window, no Roboto,
+  JS + SQLite, and a minimal OS-off / REAL=NONE / no-thread-local build.
+- The `lh_bench` target builds again: the HTML/JS escaping benchmark, left on
+  the removed `lh/ui/web` string DSL, now measures `lh/web/xml/escape.h` and
+  `lh/web/js/writer.h` (`bench/src/lh/web/escape.cpp`).
+- The runtime allocator and terminate handler have a process level under the
+  thread one. New: `lh_runtime_allocator_process`,
+  `lh_runtime_allocator_init_process`, `lh_runtime_terminate_get_process` and
+  `lh_runtime_terminate_set_process`. Each thread's slot starts as a copy of the
+  process slot, taken on its first use; `lh_runtime_allocator()`,
+  `lh_runtime_allocator_init`, `lh_runtime_terminate_get` and `_set` still read
+  and write the calling thread's slot only. Before, a thread-local slot started
+  from the compile-time default alone, so with
+  `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB` or
+  `LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB` off no host could reach the
+  threads LH starts itself: the logger queue's thread found no allocator and
+  spun in terminate. A host now installs both once at start-up. With the stdlib
+  options on nothing changes. The test runner (`test/src/main.cpp`) installs
+  the C library on the process slots when those options are off, so death tests
+  run in those builds too.
+
 - The JavaScript lexer and JSON headers moved under `lh/web/`: `<lh/js.h>`,
   `<lh/js/*>`, `<lh/json.h>` and `<lh/json/*>` are now `<lh/web/js.h>`,
   `<lh/web/js/*>`, `<lh/web/json.h>` and `<lh/web/json/*>`; sources and tests

@@ -335,9 +335,10 @@ subsequent operation that requires a valid slice.
 
 ## UI
 
-`LH_LIBRARY_OPTION_UI` (default `ON`) compiles the UI model under `lh/ui/`:
-color, paint, gradient, shadow, blur, style, transition, layout, canvas and the
-entity tree. It needs no OS; the host supplies where the pixels go.
+`LH_LIBRARY_OPTION_UI` (default `OFF`; turn it on to use any of this) compiles
+the UI model under `lh/ui/`: color, paint, gradient, shadow, blur, style,
+transition, layout, canvas and the entity tree. It needs no OS; the host
+supplies where the pixels go.
 
 - **View** — `lh_ui_view_t` (`lh/ui/view.h`) binds an entity tree to a canvas,
   draws it (`lh_ui_view_draw`), takes input (press / move / release / wheel /

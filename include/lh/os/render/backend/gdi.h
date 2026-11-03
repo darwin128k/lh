@@ -14,7 +14,8 @@
  * memory and presents through `lh/os/system/surface.h`, so it is the same screen
  * on every backend that has one -- the Win32 one and the X11 one.
  *
- * Requires ::LH_LIBRARY_OPTION_OS_WINDOW.
+ * Requires ::LH_LIBRARY_OPTION_OS_WINDOW and ::LH_LIBRARY_OPTION_UI: it is the
+ * UI's screen, built only when both are on.
  */
 
 #ifndef LH_OS_RENDER_BACKEND_GDI_H
@@ -27,6 +28,10 @@
 
 #if !LH_LIBRARY_OPTION_OS_WINDOW
 #    error "lh/os/render/backend/gdi.h requires LH_LIBRARY_OPTION_OS_WINDOW"
+#endif
+
+#if !LH_LIBRARY_OPTION_UI
+#    error "lh/os/render/backend/gdi.h requires LH_LIBRARY_OPTION_UI"
 #endif
 
 /**
