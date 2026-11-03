@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Reflected CRC kernels and incremental gzip CRC-32; Modbus uses the shared kernel.
+
 - An LH reader operation drains a stream into caller-provided scratch.
 - Streaming route callbacks now stage changes and provide commit and abort
   callbacks; the host validates the remaining framed body before committing.
