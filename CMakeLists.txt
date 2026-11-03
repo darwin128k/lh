@@ -161,6 +161,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/web/xml/error.c
         ${LH_LIB_SRC_PATH}/web/xml/escape.c
         ${LH_LIB_SRC_PATH}/web/xml/name.c
+        ${LH_LIB_SRC_PATH}/web/xml/node/entity.c
         ${LH_LIB_SRC_PATH}/web/xml/node.c
         ${LH_LIB_SRC_PATH}/web/xml/reader.c
         ${LH_LIB_SRC_PATH}/web/xml/writer.c

@@ -12,15 +12,13 @@
 lh_list_node_t *
 lh_web_xml_node_get_link_mut(lh_web_xml_node_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->link);
+    return lh_web_xml_entity_get_link_mut(self);
 }
 
 const lh_list_node_t *
 lh_web_xml_node_get_link(const lh_web_xml_node_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->link);
+    return lh_web_xml_entity_get_link(self);
 }
 
 lh_web_xml_node_t *
@@ -38,71 +36,61 @@ lh_web_xml_node_get_by_link(const lh_list_node_t *link)
 lh_web_xml_kind_t
 lh_web_xml_node_get_kind(const lh_web_xml_node_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return self->kind;
+    return lh_web_xml_entity_get_kind(self);
 }
 
 lh_void
 lh_web_xml_node_set_kind(lh_web_xml_node_t *self, lh_web_xml_kind_t kind)
 {
-    lh_assert_runtime_ref(self);
-    self->kind = kind;
+    lh_web_xml_entity_set_kind(self, kind);
 }
 
 lh_str_t *
 lh_web_xml_node_get_name_mut(lh_web_xml_node_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->name);
+    return lh_web_xml_entity_get_name_mut(self);
 }
 
 const lh_str_t *
 lh_web_xml_node_get_name(const lh_web_xml_node_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->name);
+    return lh_web_xml_entity_get_name(self);
 }
 
 lh_str_t *
 lh_web_xml_node_get_text_mut(lh_web_xml_node_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->text);
+    return lh_web_xml_entity_get_text_mut(self);
 }
 
 const lh_str_t *
 lh_web_xml_node_get_text(const lh_web_xml_node_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->text);
+    return lh_web_xml_entity_get_text(self);
 }
 
 lh_list_t *
 lh_web_xml_node_get_attrs_mut(lh_web_xml_node_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->attrs);
+    return lh_web_xml_entity_get_attrs_mut(self);
 }
 
 const lh_list_t *
 lh_web_xml_node_get_attrs(const lh_web_xml_node_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->attrs);
+    return lh_web_xml_entity_get_attrs(self);
 }
 
 lh_list_t *
 lh_web_xml_node_get_children_mut(lh_web_xml_node_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->children);
+    return lh_web_xml_entity_get_children_mut(self);
 }
 
 const lh_list_t *
 lh_web_xml_node_get_children(const lh_web_xml_node_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->children);
+    return lh_web_xml_entity_get_children(self);
 }
 
 lh_bool_t
