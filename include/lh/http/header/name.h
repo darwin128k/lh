@@ -15,6 +15,9 @@
 /** The Content-Type field name. */
 #define lh_http_header_name_content_type lh_str_view_lit("Content-Type")
 
+/** The Content-Encoding field name. */
+#define lh_http_header_name_content_encoding lh_str_view_lit("Content-Encoding")
+
 /** The Content-Length field name. */
 #define lh_http_header_name_content_length lh_str_view_lit("Content-Length")
 

@@ -79,6 +79,20 @@ lh_ui_web_stream_route_set_body_limit(lh_ui_web_stream_route_t *self, lh_usize_t
 }
 
 lh_usize_t
+lh_ui_web_stream_route_get_wire_limit(const lh_ui_web_stream_route_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->wire_limit;
+}
+
+lh_void
+lh_ui_web_stream_route_set_wire_limit(lh_ui_web_stream_route_t *self, lh_usize_t value)
+{
+    lh_assert_runtime_ref(self);
+    self->wire_limit = value;
+}
+
+lh_usize_t
 lh_ui_web_stream_route_get_metadata_limit(const lh_ui_web_stream_route_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -118,6 +132,7 @@ lh_ui_web_stream_route_init(lh_ui_web_stream_route_t *self, const lh_ui_web_rout
     lh_ui_web_stream_route_set_commit(self, commit);
     lh_ui_web_stream_route_set_abort(self, abort);
     lh_ui_web_stream_route_set_body_limit(self, body_limit);
+    lh_ui_web_stream_route_set_wire_limit(self, LH_USIZE_T_MAX);
     lh_ui_web_stream_route_set_metadata_limit(self, metadata_limit);
     lh_ui_web_stream_route_set_timeout_ms(self, timeout_ms);
 }

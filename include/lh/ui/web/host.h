@@ -64,6 +64,57 @@
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
+ * @brief Invoke a staging handler and commit only after the body reaches EOF.
+ * The reader and request are borrowed. On staging or read failure the abort
+ * callback runs; on complete success the commit callback runs. Both callbacks
+ * may send a response. A late failure can follow partial staged data. This is
+ * synchronous: LH_IO_PENDING while draining is treated as an aborted request.
+ * @param app Application and context, borrowed.
+ * @param route Streaming route with all callbacks, borrowed.
+ * @param request Parsed request, borrowed.
+ * @param headers Parsed fields, borrowed.
+ * @param reader Decoded body reader, borrowed.
+ * @param client Connected response socket, borrowed.
+ * @return True if commit ran; false if staging or reading failed and abort ran.
+ * @pre All pointers are valid and route callbacks are configured.
+ */
+lh_bool_t
+lh_ui_web_host_try_dispatch_stream(lh_ui_web_app_t *app, const lh_ui_web_stream_route_t *route,
+                                   const lh_http_request_t *request,
+                                   const lh_http_header_t *headers, lh_io_reader_t *reader,
+                                   lh_os_net_socket_t *client);
+
+/** @brief Checked form of ::lh_ui_web_host_try_dispatch_stream. */
+lh_void
+lh_ui_web_host_dispatch_stream(lh_ui_web_app_t *app, const lh_ui_web_stream_route_t *route,
+                               const lh_http_request_t *request, const lh_http_header_t *headers,
+                               lh_io_reader_t *reader, lh_os_net_socket_t *client);
+
+/**
+ * @brief Decode gzip from a framed reader and dispatch a transaction.
+ * Uses bounded scratch and history, validates all gzip members and limits, and
+ * commits only after their trailers and source EOF. Components remain borrowed.
+ * @param app Application and context.
+ * @param route Route with decoded-body and gzip metadata limits.
+ * @param request Borrowed parsed request.
+ * @param headers Borrowed parsed fields.
+ * @param compressed Borrowed framed compressed-content reader.
+ * @param client Borrowed connected response socket.
+ * @return True if the validated transaction committed; false if aborted.
+ * @pre All pointers are valid and route callbacks are configured.
+ */
+lh_bool_t
+lh_ui_web_host_try_dispatch_gzip(lh_ui_web_app_t *app, const lh_ui_web_stream_route_t *route,
+                                 const lh_http_request_t *request, const lh_http_header_t *headers,
+                                 lh_io_reader_t *compressed, lh_os_net_socket_t *client);
+
+/** @brief Checked form of ::lh_ui_web_host_try_dispatch_gzip. */
+lh_void
+lh_ui_web_host_dispatch_gzip(lh_ui_web_app_t *app, const lh_ui_web_stream_route_t *route,
+                             const lh_http_request_t *request, const lh_http_header_t *headers,
+                             lh_io_reader_t *compressed, lh_os_net_socket_t *client);
+
+/**
  * @brief Dispatch an already parsed request to a streaming route.
  * The staging callback borrows the request, headers and body reader. The host
  * validates the remaining body, calls commit on success or abort on failure,
@@ -407,16 +458,17 @@ lh_ui_web_host_read_head(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize_t 
 /**
  * @brief Validate request body framing and handle its HTTP expectation.
  *
- * Only a single chunked coding or a single Content-Length is supported. The
- * maximum applies to decoded content. If 100-continue is requested and more
- * bytes are needed, sends the interim reply before returning; unsupported
+ * Supports Content-Length, chunked, and gzip followed by chunked. The maximum
+ * applies after chunk framing is removed but before gzip decompression. If 100-continue is
+ * requested and more bytes are needed, sends the interim reply before returning; unsupported
  * expectations receive 417. HTTP/1.0 ignores Expect and rejects chunked.
  * @p initial borrows any body bytes already read. No input is owned or changed.
  * @param client Connected socket used for an interim or rejection response.
  * @param request Parsed request borrowing the head buffer.
  * @param headers Parsed fields; count is in @p request.
  * @param initial Borrowed body wire bytes already received.
- * @param decoded_limit Maximum acceptable decoded body size.
+ * @param decoded_limit Maximum content bytes after chunk framing and before
+ *                      any gzip decompression.
  * @param can_receive_more Whether the caller has room to receive more wire bytes.
  * @param chunked Receives true for chunked, false for Content-Length or no body.
  * @param length Receives Content-Length, or zero for chunked.
@@ -443,12 +495,35 @@ lh_ui_web_host_begin_body(lh_os_net_socket_t *client, const lh_http_request_t *r
                           lh_usize_t *length);
 
 /**
+ * @brief Decode complete gzip bytes in place using temporary allocator storage.
+ * @param buffer Caller-owned writable buffer containing encoded bytes.
+ * @param encoded_size Number of encoded bytes in the buffer.
+ * @param capacity Buffer capacity and maximum decoded size.
+ * @param decoded_size Receives decoded byte count only on success.
+ * @return True after validation, copying and release succeed; false on invalid
+ *         input, output overflow or allocation/release failure. Buffer may be
+ *         modified if releasing temporary storage fails; output count is then
+ *         unchanged. Temporary storage is managed by the runtime allocator.
+ * @pre Buffer and decoded_size are valid; buffer holds capacity writable bytes.
+ */
+lh_bool_t
+lh_ui_web_host_try_decode_gzip_in_place(lh_str_ptr buffer, lh_usize_t encoded_size,
+                                        lh_usize_t capacity, lh_usize_t *decoded_size);
+
+/** @brief Checked form of ::lh_ui_web_host_try_decode_gzip_in_place. */
+lh_void
+lh_ui_web_host_decode_gzip_in_place(lh_str_ptr buffer, lh_usize_t encoded_size, lh_usize_t capacity,
+                                    lh_usize_t *decoded_size);
+
+/**
  * @brief Finish a request after ::lh_ui_web_host_try_read_head.
  *
  * The buffer starts with the parsed head followed by @p received - @p head_size
  * bytes already read. Validates framing, handles Expect and collects a complete
- * body in the remaining buffer. Chunked content is compacted in place. Request
- * and header views borrow its unchanged head; input storage remains caller-owned.
+ * body in the remaining buffer. Chunked content is compacted in place, and a
+ * gzip transfer coding is decoded using temporary runtime-allocator storage.
+ * Content-Encoding is left to the caller. Request and header views borrow the
+ * unchanged head; input storage remains caller-owned.
  * @param client Connected blocking socket.
  * @param buf Buffer holding the head and any initial body bytes.
  * @param capacity Writable buffer size.
@@ -485,10 +560,11 @@ lh_ui_web_host_finish_request(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usi
  * @brief Read a complete HTTP request from a socket within a time limit.
  *
  * Uses the HTTP parser on a growing caller-owned buffer. The socket and buffer
- * remain owned by the caller. A single Content-Length or one `chunked`
- * transfer coding determines the body; repeated lengths, conflicting fields
- * and other transfer codings are rejected, as is Transfer-Encoding on
- * HTTP/1.0. The complete wire request must fit
+ * remain owned by the caller. Content-Length, chunked, or gzip followed by
+ * chunked determines the body; repeated lengths, conflicting fields and other
+ * transfer chains are rejected, as is Transfer-Encoding on HTTP/1.0. Gzip
+ * transfer coding is decoded with temporary runtime-allocator storage;
+ * Content-Encoding remains unchanged for the caller. The complete wire request must fit
  * in the buffer. On chunked success its body is compacted in place, trailers
  * are validated and discarded, and header views still describe the original
  * header bytes, including Transfer-Encoding. Bytes following the wire request
@@ -534,17 +610,39 @@ lh_ui_web_host_read_request(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize
                             lh_usize_t header_capacity);
 
 /**
+ * @brief Decode a complete gzip body and dispatch a buffered route.
+ * The decoded body uses bounded host scratch and is validated before any
+ * handler is invoked. Invalid, truncated or oversized gzip receives 400.
+ * @param app Borrowed application.
+ * @param request Borrowed parsed request.
+ * @param headers Borrowed fields, count stored in request.
+ * @param body Borrowed complete gzip bytes.
+ * @param client Borrowed connected response socket.
+ * @return True if a handler handled the request or an error response was
+ *         attempted; false if no route handled the valid decoded body.
+ * @pre All pointers are valid and body holds its stated bytes.
+ */
+lh_bool_t
+lh_ui_web_host_handle_buffered_gzip_is_handled(lh_ui_web_app_t *app,
+                                               const lh_http_request_t *request,
+                                               const lh_http_header_t *headers,
+                                               const lh_str_view_t *body,
+                                               lh_os_net_socket_t *client);
+
+/**
  * @brief Serve one HTTP request; true when it became a WebSocket to keep.
  *
- * The request head must fit ::LH_UI_WEB_HOST_REQUEST_CAPACITY. Matching
- * streaming routes receive decoded content incrementally with their own body,
- * metadata and time limits. WebSocket matching takes precedence, then streaming
- * routes, then buffered routes. Buffered routes require the whole wire request
- * including framing and trailers to fit the host buffer. A single chunked
- * coding or Content-Length is supported. HTTP/1.1 100-continue is supported;
- * unsupported expectations receive 417. Known oversized content receives 413.
- * Streaming handlers stage changes; the host calls commit after validation or
- * abort on failure. The application owns its staged state and finish callbacks.
+ * The request head must fit ::LH_UI_WEB_HOST_REQUEST_CAPACITY. Gzip is
+ * supported as Content-Encoding or as Transfer-Encoding before chunked;
+ * using both at once on a streaming route is rejected. Other content codings
+ * receive 415. Matching streaming routes receive decoded content incrementally
+ * with their own body, metadata and time limits. WebSocket matching takes precedence, then
+ * streaming routes, then buffered routes. Buffered routes require the whole wire request including
+ * framing and trailers to fit the host buffer. A single chunked coding, gzip followed by chunked,
+ * or Content-Length is supported. HTTP/1.1 100-continue is supported; unsupported expectations
+ * receive 417. Known oversized content receives 413. Streaming handlers stage changes; the host
+ * calls commit after validation or abort on failure. The application owns its
+ * staged state and finish callbacks.
  */
 lh_bool_t
 lh_ui_web_host_handle_request_is_upgraded(lh_ui_web_app_t *app, lh_os_net_socket_t *client);

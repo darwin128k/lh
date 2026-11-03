@@ -11,6 +11,12 @@
 
 #include <lh/str/view.h>
 
+/** The gzip coding. */
+#define lh_http_header_value_gzip lh_str_view_lit("gzip")
+
+/** The identity coding. */
+#define lh_http_header_value_identity lh_str_view_lit("identity")
+
 /** The chunked transfer coding. */
 #define lh_http_header_value_chunked lh_str_view_lit("chunked")
 

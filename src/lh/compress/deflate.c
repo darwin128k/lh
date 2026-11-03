@@ -4,17 +4,94 @@
  */
 
 #include <lh/compress/deflate.h>
+#include <lh/bit/reverse.h>
 #include <lh/memory.h>
 #include <lh/assert.h>
 #include <lh/math.h>
 #include <lh/size/limits.h>
+#include <lh/util/interval.h>
+
+static const lh_u16_t lh_compress_deflate_length_base[29] = {
+    3,  4,  5,  6,  7,  8,  9,  10, 11,  13,  15,  17,  19,  23, 27,
+    31, 35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258};
+
+static const lh_byte_t lh_compress_deflate_length_extra[29] = {
+    0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0};
+
+static const lh_u16_t lh_compress_deflate_distance_base[30] = {
+    1,   2,   3,   4,   5,   7,    9,    13,   17,   25,   33,   49,   65,    97,    129,
+    193, 257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577};
+
+static const lh_byte_t lh_compress_deflate_distance_extra[30] = {
+    0, 0, 0, 0, 1, 1, 2, 2,  3,  3,  4,  4,  5,  5,  6,
+    6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13};
+
+lh_uint_t
+lh_compress_deflate_get_length_base(lh_uint_t index)
+{
+    return lh_compress_deflate_length_base[index];
+}
+
+lh_uint_t
+lh_compress_deflate_get_length_extra(lh_uint_t index)
+{
+    return lh_compress_deflate_length_extra[index];
+}
+
+lh_uint_t
+lh_compress_deflate_get_distance_base(lh_uint_t code)
+{
+    return lh_compress_deflate_distance_base[code];
+}
+
+lh_uint_t
+lh_compress_deflate_get_distance_extra(lh_uint_t code)
+{
+    return lh_compress_deflate_distance_extra[code];
+}
+
+lh_uint_t
+lh_compress_deflate_get_length_index(lh_uint_t length)
+{
+    lh_uint_t index = 28U;
+    while (lh_math_gt(lh_compress_deflate_get_length_base(index), length))
+    {
+        index = lh_math_sub(index, 1U);
+    }
+    return index;
+}
+
+lh_uint_t
+lh_compress_deflate_get_distance_code(lh_uint_t distance)
+{
+    lh_uint_t code = 29U;
+    while (lh_math_gt(lh_compress_deflate_get_distance_base(code), distance))
+    {
+        code = lh_math_sub(code, 1U);
+    }
+    return code;
+}
+
+lh_uint_t
+lh_compress_deflate_get_fixed_length(lh_uint_t symbol)
+{
+    if (lh_math_lt(symbol, 144U))
+    {
+        return 8U;
+    }
+    if (lh_math_lt(symbol, 256U))
+    {
+        return 9U;
+    }
+    return lh_math_lt(symbol, 280U) ? 7U : 8U;
+}
 
 lh_bool_t
 lh_compress_deflate_try_bits(const lh_byte_t *input, lh_usize_t size, lh_usize_t *position,
                              lh_uint_t count, lh_uint_t *value)
 {
     lh_usize_t pos = *position;
-    if (lh_math_gt(count, lh_math_sub(LH_USIZE_T_MAX, pos)))
+    if (lh_interval_closed_is_add_overflow(pos, count, 0U, LH_USIZE_T_MAX))
     {
         return lh_bool_false;
     }
@@ -76,6 +153,32 @@ lh_compress_deflate_try_build(const lh_byte_t *lengths, lh_usize_t size, lh_u16_
 }
 
 lh_bool_t
+lh_compress_deflate_is_tree_valid(const lh_u16_t *counts, lh_bool_t allow_single,
+                                  lh_bool_t allow_empty)
+{
+    lh_int_t left = 1;
+    lh_uint_t symbols = 0U;
+    for (lh_uint_t len = 1U; lh_math_le(len, 15U); len = lh_math_add_one(len))
+    {
+        left = lh_math_sub(lh_math_mul(left, 2), counts[len]);
+        if (lh_math_lt(left, 0))
+        {
+            return lh_bool_false;
+        }
+        symbols = lh_math_add(symbols, counts[len]);
+    }
+    if (lh_math_is_zero(symbols))
+    {
+        return allow_empty;
+    }
+    if (lh_math_is_zero(left))
+    {
+        return lh_bool_true;
+    }
+    return allow_single && lh_math_eq(symbols, 1U) && lh_math_eq(counts[1], 1U);
+}
+
+lh_bool_t
 lh_compress_deflate_try_symbol(const lh_byte_t *input, lh_usize_t size, lh_usize_t *position,
                                const lh_u16_t *counts, const lh_u16_t *symbols, lh_uint_t *symbol)
 {
@@ -106,24 +209,51 @@ lh_compress_deflate_try_symbol(const lh_byte_t *input, lh_usize_t size, lh_usize
 }
 
 lh_bool_t
-lh_compress_deflate_try_stored(const lh_byte_t *input, lh_usize_t input_size, lh_usize_t *position,
-                               lh_byte_t *output, lh_usize_t capacity, lh_usize_t *written)
+lh_compress_deflate_try_stored_header(const lh_byte_t *input, lh_usize_t input_size,
+                                      lh_usize_t *position, lh_uint_t *length)
 {
     lh_usize_t pos = *position;
-    const lh_usize_t used = *written;
-    if (lh_math_gt(used, capacity) || lh_math_gt(pos, lh_math_sub(LH_USIZE_T_MAX, 7U)))
+    if (lh_interval_closed_is_add_overflow(pos, 7U, 0U, LH_USIZE_T_MAX))
     {
         return lh_bool_false;
     }
-    pos = lh_math_mul(lh_math_div(lh_math_add(pos, 7U), 8U), 8U);
-    lh_uint_t length;
-    if (!lh_compress_deflate_try_bits(input, input_size, &pos, 16U, &length))
+    pos = lh_math_add(pos, lh_compress_deflate_get_pad_bits(pos));
+    lh_uint_t value;
+    if (!lh_compress_deflate_try_bits(input, input_size, &pos, 16U, &value))
     {
         return lh_bool_false;
     }
     lh_uint_t inverse;
     if (!lh_compress_deflate_try_bits(input, input_size, &pos, 16U, &inverse) ||
-        lh_math_ne(lh_bit_xor(length, inverse), 65535U))
+        lh_math_ne(lh_bit_xor(value, inverse), 65535U))
+    {
+        return lh_bool_false;
+    }
+    *position = pos;
+    *length = value;
+    return lh_bool_true;
+}
+
+lh_void
+lh_compress_deflate_stored_header(const lh_byte_t *input, lh_usize_t input_size,
+                                  lh_usize_t *position, lh_uint_t *length)
+{
+    lh_runtime_check_ifn(lh_compress_deflate_try_stored_header(input, input_size, position, length),
+                         lh_runtime_error_code_invalid_range);
+}
+
+lh_bool_t
+lh_compress_deflate_try_stored(const lh_byte_t *input, lh_usize_t input_size, lh_usize_t *position,
+                               lh_byte_t *output, lh_usize_t capacity, lh_usize_t *written)
+{
+    lh_usize_t pos = *position;
+    const lh_usize_t used = *written;
+    if (lh_math_gt(used, capacity))
+    {
+        return lh_bool_false;
+    }
+    lh_uint_t length;
+    if (!lh_compress_deflate_try_stored_header(input, input_size, &pos, &length))
     {
         return lh_bool_false;
     }
@@ -158,13 +288,9 @@ lh_compress_deflate_try_fixed(lh_u16_t *lit_counts, lh_u16_t *lit_symbols, lh_u1
     lh_byte_t lengths[320];
     for (lh_uint_t i = 0U; lh_math_lt(i, 288U); i = lh_math_add_one(i))
     {
-        lengths[i] =
-            lh_math_lt(i, 144U) ? 8U : (lh_math_lt(i, 256U) ? 9U : (lh_math_lt(i, 280U) ? 7U : 8U));
+        lengths[i] = lh_cast_static(lh_byte_t, lh_compress_deflate_get_fixed_length(i));
     }
-    for (lh_uint_t i = 288U; lh_math_lt(i, 320U); i = lh_math_add_one(i))
-    {
-        lengths[i] = 5U;
-    }
+    lh_memory_std_set(lengths + 288U, LH_COMPRESS_DEFLATE_FIXED_DISTANCE_BITS, 32U);
     if (!lh_compress_deflate_try_build(lengths, 288U, lit_counts, lit_symbols) ||
         !lh_compress_deflate_try_build(lengths + 288U, 32U, dist_counts, dist_symbols))
     {
@@ -216,7 +342,8 @@ lh_compress_deflate_try_dynamic(const lh_byte_t *input, lh_usize_t input_size, l
         code_lengths[order[i]] = lh_cast_static(lh_byte_t, n);
     }
     lh_u16_t code_counts[16], code_symbols[19];
-    if (!lh_compress_deflate_try_build(code_lengths, 19U, code_counts, code_symbols))
+    if (!lh_compress_deflate_try_build(code_lengths, 19U, code_counts, code_symbols) ||
+        !lh_compress_deflate_is_tree_valid(code_counts, lh_bool_false, lh_bool_false))
     {
         return lh_bool_false;
     }
@@ -259,7 +386,9 @@ lh_compress_deflate_try_dynamic(const lh_byte_t *input, lh_usize_t input_size, l
     }
     if (lh_math_is_zero(lengths[256]) ||
         !lh_compress_deflate_try_build(lengths, hlit, lit_counts, lit_symbols) ||
-        !lh_compress_deflate_try_build(lengths + hlit, hdist, dist_counts, dist_symbols))
+        !lh_compress_deflate_is_tree_valid(lit_counts, lh_bool_true, lh_bool_false) ||
+        !lh_compress_deflate_try_build(lengths + hlit, hdist, dist_counts, dist_symbols) ||
+        !lh_compress_deflate_is_tree_valid(dist_counts, lh_bool_true, lh_bool_true))
     {
         return lh_bool_false;
     }
@@ -278,19 +407,82 @@ lh_compress_deflate_dynamic(const lh_byte_t *input, lh_usize_t input_size, lh_us
 }
 
 lh_bool_t
+lh_compress_deflate_try_copy_match(lh_byte_t *output, lh_usize_t capacity, lh_usize_t *written,
+                                   lh_usize_t distance, lh_usize_t length)
+{
+    const lh_usize_t used = *written;
+    if (lh_math_gt(used, capacity) || lh_math_is_zero(distance) ||
+        lh_math_gt(distance, LH_COMPRESS_DEFLATE_WINDOW_SIZE) || lh_math_gt(distance, used) ||
+        lh_math_gt(length, lh_math_sub(capacity, used)))
+    {
+        return lh_bool_false;
+    }
+    if (!lh_math_is_zero(length))
+    {
+        lh_memory_set_pattern(output + used, length, output + lh_math_sub(used, distance),
+                              distance);
+    }
+    *written = lh_math_add(used, length);
+    return lh_bool_true;
+}
+
+lh_void
+lh_compress_deflate_copy_match(lh_byte_t *output, lh_usize_t capacity, lh_usize_t *written,
+                               lh_usize_t distance, lh_usize_t length)
+{
+    lh_runtime_check_ifn(
+        lh_compress_deflate_try_copy_match(output, capacity, written, distance, length),
+        lh_runtime_error_code_invalid_range);
+}
+
+lh_bool_t
+lh_compress_deflate_try_match(const lh_byte_t *input, lh_usize_t input_size, lh_usize_t *position,
+                              lh_uint_t symbol, const lh_u16_t *dist_counts,
+                              const lh_u16_t *dist_symbols, lh_uint_t *length, lh_uint_t *distance)
+{
+    if (lh_math_lt(symbol, 257U) || lh_math_gt(symbol, 285U))
+    {
+        return lh_bool_false;
+    }
+    lh_usize_t pos = *position;
+    const lh_uint_t li = lh_math_sub(symbol, 257U);
+    lh_uint_t extra;
+    if (!lh_compress_deflate_try_bits(input, input_size, &pos,
+                                      lh_compress_deflate_get_length_extra(li), &extra))
+    {
+        return lh_bool_false;
+    }
+    const lh_uint_t result_length = lh_math_add(lh_compress_deflate_get_length_base(li), extra);
+    lh_uint_t distance_symbol;
+    if (!lh_compress_deflate_try_symbol(input, input_size, &pos, dist_counts, dist_symbols,
+                                        &distance_symbol) ||
+        lh_math_ge(distance_symbol, 30U) ||
+        !lh_compress_deflate_try_bits(input, input_size, &pos,
+                                      lh_compress_deflate_get_distance_extra(distance_symbol),
+                                      &extra))
+    {
+        return lh_bool_false;
+    }
+    *length = result_length;
+    *distance = lh_math_add(lh_compress_deflate_get_distance_base(distance_symbol), extra);
+    *position = pos;
+    return lh_bool_true;
+}
+
+lh_void
+lh_compress_deflate_match(const lh_byte_t *input, lh_usize_t input_size, lh_usize_t *position,
+                          lh_uint_t symbol, const lh_u16_t *dist_counts,
+                          const lh_u16_t *dist_symbols, lh_uint_t *length, lh_uint_t *distance)
+{
+    lh_runtime_check_ifn(lh_compress_deflate_try_match(input, input_size, position, symbol,
+                                                       dist_counts, dist_symbols, length, distance),
+                         lh_runtime_error_code_invalid_range);
+}
+
+lh_bool_t
 lh_compress_deflate_try_decode(const lh_byte_t *input, lh_usize_t input_size, lh_byte_t *output,
                                lh_usize_t capacity, lh_usize_t *consumed, lh_usize_t *written)
 {
-    const lh_u16_t length_base[29] = {3,  4,  5,  6,   7,   8,   9,   10,  11, 13,
-                                      15, 17, 19, 23,  27,  31,  35,  43,  51, 59,
-                                      67, 83, 99, 115, 131, 163, 195, 227, 258};
-    const lh_byte_t length_extra[29] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2,
-                                        2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0};
-    const lh_u16_t distance_base[30] = {
-        1,   2,   3,   4,   5,   7,    9,    13,   17,   25,   33,   49,   65,    97,    129,
-        193, 257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577};
-    const lh_byte_t distance_extra[30] = {0, 0, 0, 0, 1, 1, 2, 2,  3,  3,  4,  4,  5,  5,  6,
-                                          6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13};
     lh_usize_t pos = 0U;
     lh_usize_t used = 0U;
     lh_uint_t final = 0U;
@@ -349,34 +541,17 @@ lh_compress_deflate_try_decode(const lh_byte_t *input, lh_usize_t input_size, lh
             {
                 break;
             }
-            if (lh_math_gt(symbol, 285U))
+            lh_uint_t length;
+            lh_uint_t distance;
+            if (!lh_compress_deflate_try_match(input, input_size, &pos, symbol, dist_counts,
+                                               dist_symbols, &length, &distance))
             {
                 return lh_bool_false;
             }
-            const lh_uint_t li = lh_math_sub(symbol, 257U);
-            lh_uint_t extra;
-            if (!lh_compress_deflate_try_bits(input, input_size, &pos, length_extra[li], &extra))
+            if (!lh_compress_deflate_try_copy_match(output, capacity, &used, distance, length))
             {
                 return lh_bool_false;
             }
-            const lh_uint_t length = lh_math_add(length_base[li], extra);
-            lh_uint_t distance_symbol;
-            if (!lh_compress_deflate_try_symbol(input, input_size, &pos, dist_counts, dist_symbols,
-                                                &distance_symbol) ||
-                lh_math_ge(distance_symbol, 30U) ||
-                !lh_compress_deflate_try_bits(input, input_size, &pos,
-                                              distance_extra[distance_symbol], &extra))
-            {
-                return lh_bool_false;
-            }
-            const lh_uint_t distance = lh_math_add(distance_base[distance_symbol], extra);
-            if (lh_math_gt(distance, used) || lh_math_gt(length, lh_math_sub(capacity, used)))
-            {
-                return lh_bool_false;
-            }
-            lh_memory_set_pattern(output + used, length, output + lh_math_sub(used, distance),
-                                  distance);
-            used = lh_math_add(used, length);
         }
     } while (lh_math_is_zero(final));
     *consumed = lh_math_div(lh_math_add(pos, 7U), 8U);
@@ -415,5 +590,386 @@ lh_compress_deflate_symbol(const lh_byte_t *input, lh_usize_t size, lh_usize_t *
 {
     lh_runtime_check_ifn(
         lh_compress_deflate_try_symbol(input, size, position, counts, symbols, symbol),
+        lh_runtime_error_code_invalid_range);
+}
+
+lh_bool_t
+lh_compress_deflate_try_put_bits(lh_byte_t *output, lh_usize_t capacity, lh_usize_t *position,
+                                 lh_uint_t count, lh_uint_t value)
+{
+    lh_usize_t pos = *position;
+    if (lh_interval_closed_is_add_overflow(pos, count, 0U, LH_USIZE_T_MAX))
+    {
+        return lh_bool_false;
+    }
+    const lh_usize_t end = lh_math_add(pos, count);
+    if (!lh_math_is_zero(count) && lh_math_ge(lh_math_div(lh_math_sub(end, 1U), 8U), capacity))
+    {
+        return lh_bool_false;
+    }
+    while (lh_math_lt(pos, end))
+    {
+        const lh_uint_t shift = lh_cast_static(lh_uint_t, lh_math_mod(pos, 8U));
+        const lh_uint_t take =
+            lh_math_min(lh_math_sub(8U, shift), lh_cast_static(lh_uint_t, lh_math_sub(end, pos)));
+        const lh_uint_t mask = lh_bit_shl(lh_math_sub(lh_bit_mask(take), 1U), shift);
+        lh_byte_t *at = output + lh_math_div(pos, 8U);
+        *at = lh_cast_static(lh_byte_t, lh_bit_or(lh_bit_and(*at, lh_bit_not(mask)),
+                                                  lh_bit_and(lh_bit_shl(value, shift), mask)));
+        value = lh_bit_shr(value, take);
+        pos = lh_math_add(pos, take);
+    }
+    *position = pos;
+    return lh_bool_true;
+}
+
+lh_void
+lh_compress_deflate_put_bits(lh_byte_t *output, lh_usize_t capacity, lh_usize_t *position,
+                             lh_uint_t count, lh_uint_t value)
+{
+    lh_runtime_check_ifn(lh_compress_deflate_try_put_bits(output, capacity, position, count, value),
+                         lh_runtime_error_code_invalid_range);
+}
+
+lh_bool_t
+lh_compress_deflate_try_codes(const lh_byte_t *lengths, lh_usize_t size, lh_u16_t *codes)
+{
+    if (lh_math_gt(size, 288U))
+    {
+        return lh_bool_false;
+    }
+    lh_u16_t counts[16], symbols[288];
+    if (!lh_compress_deflate_try_build(lengths, size, counts, symbols))
+    {
+        return lh_bool_false;
+    }
+    lh_u16_t next[16];
+    next[0] = 0U;
+    lh_uint_t code = 0U;
+    for (lh_uint_t len = 1U; lh_math_le(len, 15U); len = lh_math_add_one(len))
+    {
+        const lh_uint_t shorter = lh_math_eq(len, 1U) ? 0U : counts[lh_math_sub(len, 1U)];
+        code = lh_bit_shl(lh_math_add(code, shorter), 1U);
+        next[len] = lh_cast_static(lh_u16_t, code);
+    }
+    for (lh_usize_t i = 0U; lh_math_lt(i, size); i = lh_math_add_one(i))
+    {
+        const lh_uint_t len = lengths[i];
+        if (lh_math_is_zero(len))
+        {
+            codes[i] = 0U;
+            continue;
+        }
+        codes[i] = lh_cast_static(lh_u16_t, lh_bit_reverse_u32(next[len], len));
+        next[len] = lh_cast_static(lh_u16_t, lh_math_add_one(next[len]));
+    }
+    return lh_bool_true;
+}
+
+lh_void
+lh_compress_deflate_codes(const lh_byte_t *lengths, lh_usize_t size, lh_u16_t *codes)
+{
+    lh_runtime_check_ifn(lh_compress_deflate_try_codes(lengths, size, codes),
+                         lh_runtime_error_code_invalid_range);
+}
+
+lh_bool_t
+lh_compress_deflate_try_put_symbol(lh_byte_t *output, lh_usize_t capacity, lh_usize_t *position,
+                                   const lh_u16_t *codes, const lh_byte_t *lengths,
+                                   lh_uint_t symbol)
+{
+    if (lh_math_is_zero(lengths[symbol]))
+    {
+        return lh_bool_false;
+    }
+    return lh_compress_deflate_try_put_bits(output, capacity, position, lengths[symbol],
+                                            codes[symbol]);
+}
+
+lh_void
+lh_compress_deflate_put_symbol(lh_byte_t *output, lh_usize_t capacity, lh_usize_t *position,
+                               const lh_u16_t *codes, const lh_byte_t *lengths, lh_uint_t symbol)
+{
+    lh_runtime_check_ifn(
+        lh_compress_deflate_try_put_symbol(output, capacity, position, codes, lengths, symbol),
+        lh_runtime_error_code_invalid_range);
+}
+
+lh_bool_t
+lh_compress_deflate_try_put_match(lh_byte_t *output, lh_usize_t capacity, lh_usize_t *position,
+                                  const lh_u16_t *lit_codes, const lh_byte_t *lit_lengths,
+                                  const lh_u16_t *dist_codes, const lh_byte_t *dist_lengths,
+                                  lh_uint_t length, lh_uint_t distance)
+{
+    if (lh_math_lt(length, LH_COMPRESS_DEFLATE_MATCHER_MIN_MATCH) ||
+        lh_math_gt(length, LH_COMPRESS_DEFLATE_MATCHER_MAX_MATCH) || lh_math_is_zero(distance) ||
+        lh_math_gt(distance, LH_COMPRESS_DEFLATE_WINDOW_SIZE))
+    {
+        return lh_bool_false;
+    }
+    const lh_uint_t index = lh_compress_deflate_get_length_index(length);
+    const lh_uint_t code = lh_compress_deflate_get_distance_code(distance);
+    lh_usize_t pos = *position;
+    if (!lh_compress_deflate_try_put_symbol(output, capacity, &pos, lit_codes, lit_lengths,
+                                            lh_math_add(index, 257U)) ||
+        !lh_compress_deflate_try_put_bits(
+            output, capacity, &pos, lh_compress_deflate_get_length_extra(index),
+            lh_math_sub(length, lh_compress_deflate_get_length_base(index))) ||
+        !lh_compress_deflate_try_put_symbol(output, capacity, &pos, dist_codes, dist_lengths,
+                                            code) ||
+        !lh_compress_deflate_try_put_bits(
+            output, capacity, &pos, lh_compress_deflate_get_distance_extra(code),
+            lh_math_sub(distance, lh_compress_deflate_get_distance_base(code))))
+    {
+        return lh_bool_false;
+    }
+    *position = pos;
+    return lh_bool_true;
+}
+
+lh_void
+lh_compress_deflate_put_match(lh_byte_t *output, lh_usize_t capacity, lh_usize_t *position,
+                              const lh_u16_t *lit_codes, const lh_byte_t *lit_lengths,
+                              const lh_u16_t *dist_codes, const lh_byte_t *dist_lengths,
+                              lh_uint_t length, lh_uint_t distance)
+{
+    lh_runtime_check_ifn(lh_compress_deflate_try_put_match(output, capacity, position, lit_codes,
+                                                           lit_lengths, dist_codes, dist_lengths,
+                                                           length, distance),
+                         lh_runtime_error_code_invalid_range);
+}
+
+lh_uint_t
+lh_compress_deflate_get_pad_bits(lh_usize_t position)
+{
+    return lh_cast_static(lh_uint_t, lh_math_mod(lh_math_sub(8U, lh_math_mod(position, 8U)), 8U));
+}
+
+lh_bool_t
+lh_compress_deflate_try_put_stored(const lh_byte_t *input, lh_usize_t input_size, lh_bool_t final,
+                                   lh_byte_t *output, lh_usize_t capacity, lh_usize_t *position)
+{
+    if (lh_math_gt(input_size, LH_COMPRESS_DEFLATE_STORED_MAX))
+    {
+        return lh_bool_false;
+    }
+    lh_usize_t pos = *position;
+    const lh_uint_t length = lh_cast_static(lh_uint_t, input_size);
+    if (!lh_compress_deflate_try_put_bits(output, capacity, &pos, 3U, final ? 1U : 0U) ||
+        !lh_compress_deflate_try_put_bits(output, capacity, &pos,
+                                          lh_compress_deflate_get_pad_bits(pos), 0U) ||
+        !lh_compress_deflate_try_put_bits(output, capacity, &pos, 16U, length) ||
+        !lh_compress_deflate_try_put_bits(output, capacity, &pos, 16U,
+                                          lh_bit_xor(length, LH_COMPRESS_DEFLATE_STORED_MAX)))
+    {
+        return lh_bool_false;
+    }
+    const lh_usize_t at = lh_math_div(pos, 8U);
+    if (lh_math_gt(input_size, lh_math_sub(capacity, at)))
+    {
+        return lh_bool_false;
+    }
+    if (!lh_math_is_zero(input_size))
+    {
+        lh_memory_std_copy(output + at, input, input_size);
+    }
+    *position = lh_math_add(pos, lh_math_mul(input_size, 8U));
+    return lh_bool_true;
+}
+
+lh_void
+lh_compress_deflate_put_stored(const lh_byte_t *input, lh_usize_t input_size, lh_bool_t final,
+                               lh_byte_t *output, lh_usize_t capacity, lh_usize_t *position)
+{
+    lh_runtime_check_ifn(
+        lh_compress_deflate_try_put_stored(input, input_size, final, output, capacity, position),
+        lh_runtime_error_code_invalid_range);
+}
+
+lh_bool_t
+lh_compress_deflate_try_stored_bound(lh_usize_t size, lh_usize_t *bound)
+{
+    lh_usize_t blocks = lh_math_div(size, LH_COMPRESS_DEFLATE_STORED_MAX);
+    if (lh_math_is_zero(size) ||
+        !lh_math_is_zero(lh_math_mod(size, LH_COMPRESS_DEFLATE_STORED_MAX)))
+    {
+        blocks = lh_math_add_one(blocks);
+    }
+    const lh_usize_t overhead = lh_math_mul(blocks, LH_COMPRESS_DEFLATE_STORED_OVERHEAD);
+    if (lh_interval_closed_is_add_overflow(size, overhead, 0U, LH_USIZE_T_MAX))
+    {
+        return lh_bool_false;
+    }
+    *bound = lh_math_add(size, overhead);
+    return lh_bool_true;
+}
+
+lh_void
+lh_compress_deflate_stored_bound(lh_usize_t size, lh_usize_t *bound)
+{
+    lh_runtime_check_ifn(lh_compress_deflate_try_stored_bound(size, bound),
+                         lh_runtime_error_code_invalid_range);
+}
+
+lh_bool_t
+lh_compress_deflate_try_encode_stored(const lh_byte_t *input, lh_usize_t input_size,
+                                      lh_byte_t *output, lh_usize_t capacity, lh_usize_t *written)
+{
+    lh_usize_t pos = 0U;
+    lh_usize_t done = 0U;
+    do
+    {
+        const lh_usize_t chunk =
+            lh_math_min(lh_math_sub(input_size, done), LH_COMPRESS_DEFLATE_STORED_MAX);
+        const lh_usize_t next = lh_math_add(done, chunk);
+        if (!lh_compress_deflate_try_put_stored(input + done, chunk, lh_math_eq(next, input_size),
+                                                output, capacity, &pos))
+        {
+            return lh_bool_false;
+        }
+        done = next;
+    } while (lh_math_lt(done, input_size));
+    *written = lh_math_div(pos, 8U);
+    return lh_bool_true;
+}
+
+lh_void
+lh_compress_deflate_encode_stored(const lh_byte_t *input, lh_usize_t input_size, lh_byte_t *output,
+                                  lh_usize_t capacity, lh_usize_t *written)
+{
+    lh_runtime_check_ifn(
+        lh_compress_deflate_try_encode_stored(input, input_size, output, capacity, written),
+        lh_runtime_error_code_invalid_range);
+}
+
+lh_bool_t
+lh_compress_deflate_try_put_fixed_codes(lh_compress_deflate_matcher_t *matcher,
+                                        const lh_byte_t *input, lh_usize_t input_size,
+                                        lh_byte_t *output, lh_usize_t capacity,
+                                        lh_usize_t *position)
+{
+    if (lh_math_gt(input_size, LH_COMPRESS_DEFLATE_MATCHER_INPUT_LIMIT))
+    {
+        return lh_bool_false;
+    }
+    lh_byte_t lit_lengths[288];
+    for (lh_uint_t i = 0U; lh_math_lt(i, 288U); i = lh_math_add_one(i))
+    {
+        lit_lengths[i] = lh_cast_static(lh_byte_t, lh_compress_deflate_get_fixed_length(i));
+    }
+    lh_u16_t lit_codes[288];
+    if (!lh_compress_deflate_try_codes(lit_lengths, 288U, lit_codes))
+    {
+        return lh_bool_false;
+    }
+    lh_byte_t dist_lengths[30];
+    lh_memory_std_set(dist_lengths, LH_COMPRESS_DEFLATE_FIXED_DISTANCE_BITS, sizeof(dist_lengths));
+    lh_u16_t dist_codes[30];
+    if (!lh_compress_deflate_try_codes(dist_lengths, 30U, dist_codes))
+    {
+        return lh_bool_false;
+    }
+    lh_usize_t pos = *position;
+    lh_compress_deflate_matcher_reset(matcher);
+    for (lh_usize_t at = 0U; lh_math_lt(at, input_size);)
+    {
+        lh_usize_t length;
+        lh_usize_t distance;
+        if (!lh_compress_deflate_matcher_try_find(matcher, input, input_size, at, &length,
+                                                  &distance))
+        {
+            if (!lh_compress_deflate_try_put_symbol(output, capacity, &pos, lit_codes, lit_lengths,
+                                                    input[at]))
+            {
+                return lh_bool_false;
+            }
+            lh_compress_deflate_matcher_insert(matcher, input, input_size, at);
+            at = lh_math_add_one(at);
+            continue;
+        }
+        if (!lh_compress_deflate_try_put_match(
+                output, capacity, &pos, lit_codes, lit_lengths, dist_codes, dist_lengths,
+                lh_cast_static(lh_uint_t, length), lh_cast_static(lh_uint_t, distance)))
+        {
+            return lh_bool_false;
+        }
+        for (lh_usize_t left = length; !lh_math_is_zero(left); left = lh_math_sub(left, 1U))
+        {
+            lh_compress_deflate_matcher_insert(matcher, input, input_size, at);
+            at = lh_math_add_one(at);
+        }
+    }
+    if (!lh_compress_deflate_try_put_symbol(output, capacity, &pos, lit_codes, lit_lengths, 256U))
+    {
+        return lh_bool_false;
+    }
+    *position = pos;
+    return lh_bool_true;
+}
+
+lh_void
+lh_compress_deflate_put_fixed_codes(lh_compress_deflate_matcher_t *matcher, const lh_byte_t *input,
+                                    lh_usize_t input_size, lh_byte_t *output, lh_usize_t capacity,
+                                    lh_usize_t *position)
+{
+    lh_runtime_check_ifn(lh_compress_deflate_try_put_fixed_codes(matcher, input, input_size, output,
+                                                                 capacity, position),
+                         lh_runtime_error_code_invalid_range);
+}
+
+lh_bool_t
+lh_compress_deflate_try_encode_fixed(lh_compress_deflate_matcher_t *matcher, const lh_byte_t *input,
+                                     lh_usize_t input_size, lh_byte_t *output, lh_usize_t capacity,
+                                     lh_usize_t *written)
+{
+    lh_usize_t pos = 0U;
+    if (!lh_compress_deflate_try_put_bits(output, capacity, &pos, 3U, 3U) ||
+        !lh_compress_deflate_try_put_fixed_codes(matcher, input, input_size, output, capacity,
+                                                 &pos) ||
+        !lh_compress_deflate_try_put_bits(output, capacity, &pos,
+                                          lh_compress_deflate_get_pad_bits(pos), 0U))
+    {
+        return lh_bool_false;
+    }
+    *written = lh_math_div(pos, 8U);
+    return lh_bool_true;
+}
+
+lh_void
+lh_compress_deflate_encode_fixed(lh_compress_deflate_matcher_t *matcher, const lh_byte_t *input,
+                                 lh_usize_t input_size, lh_byte_t *output, lh_usize_t capacity,
+                                 lh_usize_t *written)
+{
+    lh_runtime_check_ifn(
+        lh_compress_deflate_try_encode_fixed(matcher, input, input_size, output, capacity, written),
+        lh_runtime_error_code_invalid_range);
+}
+
+lh_bool_t
+lh_compress_deflate_try_encode(lh_compress_deflate_matcher_t *matcher, const lh_byte_t *input,
+                               lh_usize_t input_size, lh_byte_t *output, lh_usize_t capacity,
+                               lh_usize_t *written)
+{
+    lh_usize_t bound;
+    if (!lh_compress_deflate_try_stored_bound(input_size, &bound))
+    {
+        return lh_bool_false;
+    }
+    if (lh_compress_deflate_try_encode_fixed(matcher, input, input_size, output,
+                                             lh_math_min(capacity, lh_math_sub(bound, 1U)),
+                                             written))
+    {
+        return lh_bool_true;
+    }
+    return lh_compress_deflate_try_encode_stored(input, input_size, output, capacity, written);
+}
+
+lh_void
+lh_compress_deflate_encode(lh_compress_deflate_matcher_t *matcher, const lh_byte_t *input,
+                           lh_usize_t input_size, lh_byte_t *output, lh_usize_t capacity,
+                           lh_usize_t *written)
+{
+    lh_runtime_check_ifn(
+        lh_compress_deflate_try_encode(matcher, input, input_size, output, capacity, written),
         lh_runtime_error_code_invalid_range);
 }

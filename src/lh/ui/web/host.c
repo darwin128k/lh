@@ -5,6 +5,9 @@
 
 #include <lh/ui/web/host.h>
 #include <lh/ui/web/host/deadline.h>
+#include <lh/http/content/encoding.h>
+#include <lh/ui/web/host/gzip/workspace.h>
+#include <lh/compress/gzip.h>
 #include <lh/http/body/reader.h>
 #include <lh/attribute/unused.h>
 #include <lh/http/format.h>
@@ -720,8 +723,8 @@ lh_ui_web_host_try_begin_body(lh_os_net_socket_t *client, const lh_http_request_
                               lh_bool_t *chunked, lh_usize_t *length)
 {
     const lh_usize_t count = lh_http_request_get_header_count(request);
-    lh_bool_t is_chunked;
-    if (!lh_http_framing_try_is_chunked(headers, count, lh_addr_of(is_chunked)) ||
+    lh_bool_t is_chunked, transfer_gzip;
+    if (!lh_http_framing_try_get_transfer(headers, count, lh_addr_of(is_chunked), &transfer_gzip) ||
         (is_chunked && lh_math_is_zero(lh_http_request_get_version_minor(request))))
     {
         return lh_bool_false;
@@ -793,11 +796,55 @@ lh_ui_web_host_begin_body(lh_os_net_socket_t *client, const lh_http_request_t *r
 }
 
 lh_bool_t
+lh_ui_web_host_try_decode_gzip_in_place(lh_str_ptr buffer, lh_usize_t encoded_size,
+                                        lh_usize_t capacity, lh_usize_t *decoded_size)
+{
+    if (lh_math_is_zero(capacity) || lh_math_gt(encoded_size, capacity))
+    {
+        return lh_bool_false;
+    }
+    lh_byte_t *scratch = lh_ptr_rcast(lh_byte_t, lh_runtime_allocator_try_alloc(capacity));
+    if (lh_null_eq(scratch))
+    {
+        return lh_bool_false;
+    }
+    lh_usize_t result;
+    const lh_bool_t ok = lh_compress_gzip_try_decode(lh_ptr_rcast(const lh_byte_t, buffer),
+                                                     encoded_size, scratch, capacity, &result);
+    if (ok && !lh_math_is_zero(result))
+    {
+        lh_memory_std_copy(buffer, scratch, result);
+    }
+    const lh_bool_t freed = lh_runtime_allocator_try_free(scratch);
+    if (!ok || !freed)
+    {
+        return lh_bool_false;
+    }
+    *decoded_size = result;
+    return lh_bool_true;
+}
+
+lh_void
+lh_ui_web_host_decode_gzip_in_place(lh_str_ptr buffer, lh_usize_t encoded_size, lh_usize_t capacity,
+                                    lh_usize_t *decoded_size)
+{
+    lh_runtime_check_ifn(
+        lh_ui_web_host_try_decode_gzip_in_place(buffer, encoded_size, capacity, decoded_size),
+        lh_runtime_error_code_invalid_range);
+}
+
+lh_bool_t
 lh_ui_web_host_try_finish_request(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize_t capacity,
                                   lh_u32_t timeout_ms, lh_usize_t received, lh_usize_t head_size,
                                   lh_http_request_t *request, lh_http_header_t *headers,
                                   lh_usize_t *length, lh_str_view_t *body)
 {
+    lh_bool_t transfer_chunked, transfer_gzip;
+    if (!lh_http_framing_try_get_transfer(headers, lh_http_request_get_header_count(request),
+                                          &transfer_chunked, &transfer_gzip))
+    {
+        return lh_bool_false;
+    }
     const lh_u64_t start = lh_os_tick_ms();
     lh_usize_t used = received;
     lh_str_view_t initial;
@@ -826,6 +873,12 @@ lh_ui_web_host_try_finish_request(lh_os_net_socket_t *client, lh_str_ptr buf, lh
             }
             if (lh_math_eq(status, lh_http_parse_complete))
             {
+                if (transfer_gzip &&
+                    !lh_ui_web_host_try_decode_gzip_in_place(
+                        buf + head_size, decoded, lh_math_sub(capacity, head_size), &decoded))
+                {
+                    return lh_bool_false;
+                }
                 lh_str_view_init_by_size(body, buf + head_size, decoded);
                 lh_ptr_deref(length) = lh_math_add(head_size, consumed);
                 return lh_bool_true;
@@ -902,6 +955,71 @@ lh_ui_web_host_read_request(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize
 }
 
 lh_bool_t
+lh_ui_web_host_try_dispatch_stream(lh_ui_web_app_t *app, const lh_ui_web_stream_route_t *route,
+                                   const lh_http_request_t *request,
+                                   const lh_http_header_t *headers, lh_io_reader_t *reader,
+                                   lh_os_net_socket_t *client)
+{
+    lh_bool_t ok = lh_ui_web_stream_route_get_handler(route)(lh_ui_web_app_get_ctx(app), request,
+                                                             headers, reader);
+    lh_char_t discard[LH_UI_WEB_HOST_REQUEST_CAPACITY];
+    if (ok)
+    {
+        ok = lh_math_is_zero(lh_io_reader_drain(reader, discard, sizeof(discard)));
+    }
+    if (ok)
+    {
+        lh_ui_web_stream_route_get_commit(route)(lh_ui_web_app_get_ctx(app), request, headers,
+                                                 client);
+    }
+    else
+    {
+        lh_ui_web_stream_route_get_abort(route)(lh_ui_web_app_get_ctx(app), request, headers,
+                                                client);
+    }
+    return ok;
+}
+
+lh_void
+lh_ui_web_host_dispatch_stream(lh_ui_web_app_t *app, const lh_ui_web_stream_route_t *route,
+                               const lh_http_request_t *request, const lh_http_header_t *headers,
+                               lh_io_reader_t *reader, lh_os_net_socket_t *client)
+{
+    lh_runtime_check_ifn(
+        lh_ui_web_host_try_dispatch_stream(app, route, request, headers, reader, client),
+        lh_runtime_error_code_invalid_range);
+}
+
+lh_bool_t
+lh_ui_web_host_try_dispatch_gzip(lh_ui_web_app_t *app, const lh_ui_web_stream_route_t *route,
+                                 const lh_http_request_t *request, const lh_http_header_t *headers,
+                                 lh_io_reader_t *compressed, lh_os_net_socket_t *client)
+{
+    lh_ui_web_host_gzip_workspace_t workspace;
+    lh_compress_gzip_reader_init(lh_ui_web_host_gzip_workspace_get_reader(&workspace), compressed,
+                                 lh_ui_web_host_gzip_workspace_get_header(&workspace),
+                                 lh_ui_web_host_gzip_workspace_get_deflate(&workspace),
+                                 lh_ui_web_host_gzip_workspace_get_scratch(&workspace),
+                                 lh_ui_web_host_gzip_workspace_get_history(&workspace),
+                                 lh_ui_web_stream_route_get_body_limit(route),
+                                 lh_ui_web_stream_route_get_metadata_limit(route));
+    lh_io_reader_t reader;
+    lh_compress_gzip_reader_get_reader(lh_ui_web_host_gzip_workspace_get_reader(&workspace),
+                                       &reader);
+    return lh_ui_web_host_try_dispatch_stream(app, route, request, headers, &reader, client);
+}
+
+lh_void
+lh_ui_web_host_dispatch_gzip(lh_ui_web_app_t *app, const lh_ui_web_stream_route_t *route,
+                             const lh_http_request_t *request, const lh_http_header_t *headers,
+                             lh_io_reader_t *compressed, lh_os_net_socket_t *client)
+{
+    lh_runtime_check_ifn(
+        lh_ui_web_host_try_dispatch_gzip(app, route, request, headers, compressed, client),
+        lh_runtime_error_code_invalid_range);
+}
+
+lh_bool_t
 lh_ui_web_host_try_serve_stream(lh_ui_web_app_t *app, const lh_ui_web_stream_route_t *route,
                                 lh_os_net_socket_t *client, const lh_http_request_t *request,
                                 const lh_http_header_t *headers, lh_str_view_t initial,
@@ -914,10 +1032,34 @@ lh_ui_web_host_try_serve_stream(lh_ui_web_app_t *app, const lh_ui_web_stream_rou
     {
         return lh_bool_false;
     }
+    lh_bool_t gzip;
+    if (!lh_http_content_encoding_try_is_gzip(headers, lh_http_request_get_header_count(request),
+                                              &gzip))
+    {
+        LH_ATTRIBUTE_UNUSED(
+            lh_ui_web_host_try_reply_text(client, request, lh_http_status_unsupported_media_type,
+                                          lh_str_lit("unsupported content encoding\n")));
+        return lh_bool_false;
+    }
+    lh_bool_t transfer_chunked, transfer_gzip;
+    if (!lh_http_framing_try_get_transfer(headers, lh_http_request_get_header_count(request),
+                                          &transfer_chunked, &transfer_gzip))
+    {
+        return lh_bool_false;
+    }
+    if (gzip && transfer_gzip)
+    {
+        LH_ATTRIBUTE_UNUSED(
+            lh_ui_web_host_try_reply_text(client, request, lh_http_status_unsupported_media_type,
+                                          lh_str_lit("unsupported coding chain\n")));
+        return lh_bool_false;
+    }
+    gzip = gzip || transfer_gzip;
+    const lh_usize_t content_limit = gzip ? lh_ui_web_stream_route_get_wire_limit(route)
+                                          : lh_ui_web_stream_route_get_body_limit(route);
     lh_usize_t length;
-    if (!lh_ui_web_host_try_begin_body(client, request, headers, initial,
-                                       lh_ui_web_stream_route_get_body_limit(route), lh_bool_true,
-                                       lh_addr_of(chunked), lh_addr_of(length)))
+    if (!lh_ui_web_host_try_begin_body(client, request, headers, initial, content_limit,
+                                       lh_bool_true, lh_addr_of(chunked), lh_addr_of(length)))
     {
         return lh_bool_false;
     }
@@ -935,8 +1077,7 @@ lh_ui_web_host_try_serve_stream(lh_ui_web_app_t *app, const lh_ui_web_stream_rou
     if (chunked)
     {
         lh_http_chunked_decoder_init(lh_addr_of(decoder), wire + LH_UI_WEB_HOST_REQUEST_CAPACITY,
-                                     LH_UI_WEB_HOST_CHUNK_LINE_CAPACITY,
-                                     lh_ui_web_stream_route_get_body_limit(route),
+                                     LH_UI_WEB_HOST_CHUNK_LINE_CAPACITY, content_limit,
                                      lh_ui_web_stream_route_get_metadata_limit(route));
         lh_http_body_reader_init_chunked(lh_addr_of(body), lh_addr_of(source), wire,
                                          LH_UI_WEB_HOST_REQUEST_CAPACITY, available,
@@ -949,24 +1090,11 @@ lh_ui_web_host_try_serve_stream(lh_ui_web_app_t *app, const lh_ui_web_stream_rou
     }
     lh_io_reader_t reader;
     lh_http_body_reader_get_reader(lh_addr_of(body), lh_addr_of(reader));
-    lh_bool_t ok = lh_ui_web_stream_route_get_handler(route)(lh_ui_web_app_get_ctx(app), request,
-                                                             headers, lh_addr_of(reader));
-    lh_char_t discard[LH_UI_WEB_HOST_REQUEST_CAPACITY];
-    if (ok)
+    if (gzip)
     {
-        ok = lh_math_is_zero(lh_io_reader_drain(lh_addr_of(reader), discard, sizeof(discard)));
+        return lh_ui_web_host_try_dispatch_gzip(app, route, request, headers, &reader, client);
     }
-    if (ok)
-    {
-        lh_ui_web_stream_route_get_commit(route)(lh_ui_web_app_get_ctx(app), request, headers,
-                                                 client);
-    }
-    else
-    {
-        lh_ui_web_stream_route_get_abort(route)(lh_ui_web_app_get_ctx(app), request, headers,
-                                                client);
-    }
-    return ok;
+    return lh_ui_web_host_try_dispatch_stream(app, route, request, headers, &reader, client);
 }
 
 lh_void
@@ -977,6 +1105,28 @@ lh_ui_web_host_serve_stream(lh_ui_web_app_t *app, const lh_ui_web_stream_route_t
     lh_runtime_check_ifn(
         lh_ui_web_host_try_serve_stream(app, route, client, request, headers, initial, start),
         lh_runtime_error_code_invalid_range);
+}
+
+lh_bool_t
+lh_ui_web_host_handle_buffered_gzip_is_handled(lh_ui_web_app_t *app,
+                                               const lh_http_request_t *request,
+                                               const lh_http_header_t *headers,
+                                               const lh_str_view_t *body,
+                                               lh_os_net_socket_t *client)
+{
+    lh_usize_t size;
+    const lh_usize_t encoded_size = lh_str_view_get_size(body);
+    lh_byte_t decoded[LH_UI_WEB_HOST_REQUEST_CAPACITY];
+    if (!lh_compress_gzip_try_decode(lh_ptr_rcast(const lh_byte_t, lh_str_view_get_data(body)),
+                                     encoded_size, decoded, sizeof(decoded), &size))
+    {
+        LH_ATTRIBUTE_UNUSED(lh_ui_web_host_try_reply_text(
+            client, request, lh_http_status_bad_request, lh_str_lit("invalid gzip body\n")));
+        return lh_bool_true;
+    }
+    lh_str_view_t view;
+    lh_str_view_init_by_size(&view, lh_ptr_rcast(lh_char_t, decoded), size);
+    return lh_ui_web_app_handle_request_is_handled(app, request, headers, &view, client);
 }
 
 lh_bool_t
@@ -1013,6 +1163,15 @@ lh_ui_web_host_handle_request_is_upgraded(lh_ui_web_app_t *app, lh_os_net_socket
             return lh_bool_false;
         }
     }
+    lh_bool_t content_gzip = lh_bool_false;
+    if (!websocket && !lh_http_content_encoding_try_is_gzip(
+                          headers, lh_http_request_get_header_count(&request), &content_gzip))
+    {
+        LH_ATTRIBUTE_UNUSED(
+            lh_ui_web_host_try_reply_text(client, &request, lh_http_status_unsupported_media_type,
+                                          lh_str_lit("unsupported content encoding\n")));
+        return lh_bool_false;
+    }
     lh_usize_t len;
     const lh_u64_t elapsed = lh_math_sub(lh_os_tick_ms(), start);
     const lh_u32_t remaining =
@@ -1031,8 +1190,9 @@ lh_ui_web_host_handle_request_is_upgraded(lh_ui_web_app_t *app, lh_os_net_socket
         return lh_ui_web_host_ws_upgrade(client, headers,
                                          lh_http_request_get_header_count(lh_addr_of(request)));
     }
-    if (lh_ui_web_app_handle_request_is_handled(app, lh_addr_of(request), headers, lh_addr_of(body),
-                                                client))
+    if (content_gzip
+            ? lh_ui_web_host_handle_buffered_gzip_is_handled(app, &request, headers, &body, client)
+            : lh_ui_web_app_handle_request_is_handled(app, &request, headers, &body, client))
     {
         return lh_bool_false;
     }

@@ -4,8 +4,13 @@
 
 #include <gtest/gtest.h>
 #include <lh/compress/deflate.h>
+#include <lh/compress/deflate/reader.h>
 #include <lh/expect/death.h>
+#include <lh/size/limits.h>
+#include <algorithm>
+#include <memory>
 #include <string>
+#include <vector>
 
 const unsigned char vector0[] = {
     1,   192, 15,  63,  240, 116, 104, 101, 32,  113, 117, 105, 99,  107, 32,  98,  114, 111, 119,
@@ -864,4 +869,969 @@ TEST(compress_deflate_dynamic, builds_tables_and_preserves_offset_on_truncation)
     EXPECT_EQ(pos, 3U);
     LH_EXPECT_CHECK_DEATH(lh_compress_deflate_dynamic(dynamic_wire, 1U, &pos, lit_counts,
                                                       lit_symbols, dist_counts, dist_symbols));
+}
+
+TEST(compress_deflate_copy_match, repeats_overlapping_history_and_rejects_bad_ranges)
+{
+    lh_byte_t output[12] = {'x', 'y'};
+    lh_usize_t written = 2U;
+    lh_compress_deflate_copy_match(output, sizeof(output), &written, 2U, 7U);
+    EXPECT_EQ(written, 9U);
+    EXPECT_EQ(std::string(reinterpret_cast<char *>(output), written), "xyxyxyxyx");
+    EXPECT_FALSE(lh_compress_deflate_try_copy_match(output, sizeof(output), &written, 0U, 1U));
+    EXPECT_FALSE(lh_compress_deflate_try_copy_match(output, sizeof(output), &written, 10U, 1U));
+    EXPECT_FALSE(lh_compress_deflate_try_copy_match(output, sizeof(output), &written, 1U, 4U));
+    EXPECT_FALSE(lh_compress_deflate_try_copy_match(output, sizeof(output), &written, 32769U, 1U));
+    EXPECT_EQ(written, 9U);
+    LH_EXPECT_CHECK_DEATH(lh_compress_deflate_copy_match(output, sizeof(output), &written, 0U, 1U));
+}
+
+TEST(compress_deflate_copy_match, accepts_maximum_distance)
+{
+    std::string output(32769U, 'z');
+    output[0] = 'q';
+    lh_usize_t written = 32768U;
+    EXPECT_TRUE(lh_compress_deflate_try_copy_match(reinterpret_cast<lh_byte_t *>(&output[0]),
+                                                   output.size(), &written, 32768U, 1U));
+    EXPECT_EQ(written, output.size());
+    EXPECT_EQ(output[32768U], 'q');
+}
+
+TEST(compress_deflate_match, decodes_atomically_and_rejects_truncated_input)
+{
+    lh_u16_t lit_counts[16], lit_symbols[288], dist_counts[16], dist_symbols[32];
+    lh_compress_deflate_fixed(lit_counts, lit_symbols, dist_counts, dist_symbols);
+    lh_usize_t pos = 3U;
+    lh_uint_t symbol = 0U;
+    do
+    {
+        ASSERT_TRUE(lh_compress_deflate_try_symbol(pattern_wire0, sizeof(pattern_wire0), &pos,
+                                                   lit_counts, lit_symbols, &symbol));
+    } while (symbol < 256U);
+    ASSERT_GE(symbol, 257U);
+    const lh_usize_t start = pos;
+    lh_uint_t length = 999U;
+    lh_uint_t distance = 999U;
+    EXPECT_FALSE(lh_compress_deflate_try_match(pattern_wire0, start / 8U, &pos, symbol, dist_counts,
+                                               dist_symbols, &length, &distance));
+    EXPECT_EQ(pos, start);
+    EXPECT_EQ(length, 999U);
+    EXPECT_EQ(distance, 999U);
+    LH_EXPECT_CHECK_DEATH(lh_compress_deflate_match(pattern_wire0, start / 8U, &pos, symbol,
+                                                    dist_counts, dist_symbols, &length, &distance));
+    ASSERT_TRUE(lh_compress_deflate_try_match(pattern_wire0, sizeof(pattern_wire0), &pos, symbol,
+                                              dist_counts, dist_symbols, &length, &distance));
+    EXPECT_GT(pos, start);
+    EXPECT_GE(length, 3U);
+    EXPECT_EQ(distance, 1U);
+    EXPECT_FALSE(lh_compress_deflate_try_match(pattern_wire0, sizeof(pattern_wire0), &pos, 286U,
+                                               dist_counts, dist_symbols, &length, &distance));
+}
+
+struct deflate_reader_test_source
+{
+    const lh_byte_t *data;
+    lh_usize_t size;
+    lh_usize_t position;
+    bool pending;
+};
+
+lh_ssize_t
+deflate_reader_test_read(lh_self_ptr context, lh_ptr output, lh_usize_t size)
+{
+    auto *source = static_cast<deflate_reader_test_source *>(context);
+    if (size == 0U)
+    {
+        return 0;
+    }
+    if (source->pending)
+    {
+        source->pending = false;
+        return LH_IO_PENDING;
+    }
+    source->pending = true;
+    if (source->position == source->size)
+    {
+        return 0;
+    }
+    *static_cast<lh_byte_t *>(output) = source->data[source->position++];
+    return 1;
+}
+
+TEST(compress_deflate_reader, streams_stored_fixed_and_dynamic_with_pending_and_byte_output)
+{
+    const lh_byte_t *inputs[] = {vector0, vector1, dynamic_wire};
+    const size_t sizes[] = {sizeof(vector0), sizeof(vector1), sizeof(dynamic_wire)};
+    std::string expected;
+    for (int i = 0; i < 80; ++i)
+    {
+        expected += "the quick brown fox jumps over the lazy dog ";
+    }
+    for (int j = 0; j < 2; ++j)
+    {
+        for (int i = 0; i < 256; ++i)
+        {
+            expected.push_back(static_cast<char>(i));
+        }
+    }
+    const std::string dynamic_result(reinterpret_cast<const char *>(dynamic_expected),
+                                     sizeof(dynamic_expected));
+    for (int n = 0; n < 3; ++n)
+    {
+        std::string wire(reinterpret_cast<const char *>(inputs[n]), sizes[n]);
+        wire += "TAIL";
+        deflate_reader_test_source source{reinterpret_cast<const lh_byte_t *>(wire.data()),
+                                          wire.size(), 0U, false};
+        lh_io_reader_t io;
+        lh_io_reader_init(&io, deflate_reader_test_read, &source);
+        lh_byte_t scratch[LH_COMPRESS_DEFLATE_READER_INPUT_SIZE];
+        lh_byte_t history[LH_COMPRESS_DEFLATE_READER_HISTORY_SIZE];
+        lh_compress_deflate_reader_t decoder;
+        lh_compress_deflate_reader_init(&decoder, &io, scratch, sizeof(scratch), history, 5000U);
+        lh_io_reader_t reader;
+        lh_compress_deflate_reader_get_reader(&decoder, &reader);
+        std::string result;
+        for (;;)
+        {
+            lh_byte_t byte;
+            const lh_ssize_t got = lh_io_reader_read(&reader, &byte, 1U);
+            if (got == LH_IO_PENDING)
+            {
+                continue;
+            }
+            ASSERT_GE(got, 0) << n;
+            if (got == 0)
+            {
+                break;
+            }
+            result.push_back(static_cast<char>(byte));
+        }
+        EXPECT_EQ(result, n == 2 ? dynamic_result : expected);
+        EXPECT_EQ(source.position, sizes[n]);
+    }
+}
+
+TEST(compress_deflate_reader, reports_truncation_and_decoded_limit)
+{
+    for (bool truncate : {false, true})
+    {
+        deflate_reader_test_source source{
+            pattern_wire0, truncate ? sizeof(pattern_wire0) - 1U : sizeof(pattern_wire0), 0U,
+            false};
+        lh_io_reader_t io;
+        lh_io_reader_init(&io, deflate_reader_test_read, &source);
+        lh_byte_t scratch[LH_COMPRESS_DEFLATE_READER_INPUT_SIZE];
+        lh_byte_t history[LH_COMPRESS_DEFLATE_READER_HISTORY_SIZE];
+        lh_compress_deflate_reader_t reader;
+        lh_compress_deflate_reader_init(&reader, &io, scratch, sizeof(scratch), history,
+                                        truncate ? 1000U : 10U);
+        lh_byte_t out[13];
+        lh_ssize_t result;
+        do
+        {
+            result = lh_compress_deflate_reader_read(&reader, out, sizeof(out));
+        } while (result > 0 || result == LH_IO_PENDING);
+        EXPECT_EQ(result, LH_IO_ERROR);
+        EXPECT_EQ(lh_compress_deflate_reader_read(&reader, out, sizeof(out)), LH_IO_ERROR);
+    }
+}
+
+TEST(compress_deflate_reader, wraps_history_and_preserves_following_bytes)
+{
+    const lh_byte_t wire[] = {
+        237, 198, 89,  21,  0,   32,  8,   0,   176, 172, 120, 32,  218, 63,  128, 61,  120,
+        219, 215, 98,  204, 181, 243, 212, 125, 97,  102, 102, 102, 102, 102, 102, 102, 102,
+        102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,
+        102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,
+        102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,
+        102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,
+        102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,
+        102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,
+        102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,
+        102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,
+        102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,
+        102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 214, 106, 31,  12U, 34U};
+    deflate_reader_test_source source{wire, sizeof(wire), 0U, false};
+    lh_io_reader_t io;
+    lh_io_reader_init(&io, deflate_reader_test_read, &source);
+    lh_byte_t scratch[LH_COMPRESS_DEFLATE_READER_INPUT_SIZE];
+    lh_byte_t history[LH_COMPRESS_DEFLATE_READER_HISTORY_SIZE];
+    lh_compress_deflate_reader_t reader;
+    lh_compress_deflate_reader_init(&reader, &io, scratch, sizeof(scratch), history, 90000U);
+    std::string actual;
+    lh_byte_t out[117];
+    for (;;)
+    {
+        const lh_ssize_t n = lh_compress_deflate_reader_read(&reader, out, sizeof(out));
+        if (n == LH_IO_PENDING)
+        {
+            continue;
+        }
+        ASSERT_GE(n, 0);
+        if (n == 0)
+        {
+            break;
+        }
+        actual.append(reinterpret_cast<char *>(out), static_cast<size_t>(n));
+    }
+    std::string expected;
+    for (int i = 0; i < 9000; ++i)
+    {
+        expected += "abcdefghij";
+    }
+    EXPECT_EQ(actual, expected);
+    EXPECT_EQ(source.position, sizeof(wire) - 2U);
+    EXPECT_EQ(lh_compress_deflate_reader_get_history_size(&reader), 32768U);
+}
+
+TEST(compress_deflate_stored_header, checks_complement_and_offsets)
+{
+    const lh_byte_t input[] = {1U, 3U, 0U, 252U, 255U};
+    lh_usize_t position = 3U;
+    lh_uint_t length = 99U;
+    lh_compress_deflate_stored_header(input, sizeof(input), &position, &length);
+    EXPECT_EQ(position, 40U);
+    EXPECT_EQ(length, 3U);
+    position = 3U;
+    length = 99U;
+    EXPECT_FALSE(lh_compress_deflate_try_stored_header(input, 4U, &position, &length));
+    EXPECT_EQ(position, 3U);
+    EXPECT_EQ(length, 99U);
+    LH_EXPECT_CHECK_DEATH(lh_compress_deflate_stored_header(input, 4U, &position, &length));
+}
+
+TEST(compress_deflate_is_tree_valid, distinguishes_complete_single_empty_and_incomplete)
+{
+    lh_u16_t counts[16] = {};
+    EXPECT_FALSE(lh_compress_deflate_is_tree_valid(counts, lh_bool_false, lh_bool_false));
+    EXPECT_TRUE(lh_compress_deflate_is_tree_valid(counts, lh_bool_false, lh_bool_true));
+    counts[1] = 1U;
+    EXPECT_FALSE(lh_compress_deflate_is_tree_valid(counts, lh_bool_false, lh_bool_false));
+    EXPECT_TRUE(lh_compress_deflate_is_tree_valid(counts, lh_bool_true, lh_bool_false));
+    counts[1] = 2U;
+    EXPECT_TRUE(lh_compress_deflate_is_tree_valid(counts, lh_bool_false, lh_bool_false));
+    counts[2] = 1U;
+    EXPECT_FALSE(lh_compress_deflate_is_tree_valid(counts, lh_bool_true, lh_bool_true));
+}
+
+TEST(compress_deflate_reader, rejects_reserved_block_bad_stored_length_and_invalid_tree)
+{
+    const lh_byte_t reserved[] = {7U};
+    const lh_byte_t stored[] = {1U, 1U, 0U, 0U, 0U, 65U};
+    const lh_byte_t dynamic[] = {5, 0, 146, 4};
+    const lh_byte_t *inputs[] = {reserved, stored, dynamic};
+    const size_t sizes[] = {sizeof(reserved), sizeof(stored), sizeof(dynamic)};
+    for (int i = 0; i < 3; ++i)
+    {
+        deflate_reader_test_source source{inputs[i], sizes[i], 0U, false};
+        lh_io_reader_t io;
+        lh_io_reader_init(&io, deflate_reader_test_read, &source);
+        lh_byte_t scratch[LH_COMPRESS_DEFLATE_READER_INPUT_SIZE];
+        lh_byte_t history[LH_COMPRESS_DEFLATE_READER_HISTORY_SIZE];
+        lh_compress_deflate_reader_t reader;
+        lh_compress_deflate_reader_init(&reader, &io, scratch, sizeof(scratch), history, 100U);
+        lh_byte_t out[4];
+        lh_ssize_t result;
+        do
+        {
+            result = lh_compress_deflate_reader_read(&reader, out, sizeof(out));
+        } while (result == LH_IO_PENDING || result > 0);
+        EXPECT_EQ(result, LH_IO_ERROR) << i;
+        if (i == 1)
+        {
+            EXPECT_EQ(source.position, 5U);
+        }
+        EXPECT_EQ(lh_compress_deflate_reader_read(&reader, out, sizeof(out)), LH_IO_ERROR);
+    }
+}
+
+TEST(compress_deflate_reader, matches_independent_varied_streams)
+{
+    const lh_byte_t *inputs[] = {differential_0, differential_1, differential_2,  differential_3,
+                                 differential_4, differential_5, differential_6,  differential_7,
+                                 differential_8, differential_9, differential_10, differential_11};
+    const size_t sizes[] = {
+        sizeof(differential_0), sizeof(differential_1),  sizeof(differential_2),
+        sizeof(differential_3), sizeof(differential_4),  sizeof(differential_5),
+        sizeof(differential_6), sizeof(differential_7),  sizeof(differential_8),
+        sizeof(differential_9), sizeof(differential_10), sizeof(differential_11)};
+    for (unsigned seed = 0; seed < 12; ++seed)
+    {
+        deflate_reader_test_source source{inputs[seed], sizes[seed], 0U, false};
+        lh_io_reader_t io;
+        lh_io_reader_init(&io, deflate_reader_test_read, &source);
+        lh_byte_t scratch[LH_COMPRESS_DEFLATE_READER_INPUT_SIZE];
+        lh_byte_t history[LH_COMPRESS_DEFLATE_READER_HISTORY_SIZE];
+        lh_compress_deflate_reader_t reader;
+        const size_t size = 300U + seed * 37U;
+        lh_compress_deflate_reader_init(&reader, &io, scratch, sizeof(scratch), history, size);
+        std::string actual;
+        for (;;)
+        {
+            lh_byte_t out[23];
+            const lh_ssize_t n = lh_compress_deflate_reader_read(&reader, out, sizeof(out));
+            if (n == LH_IO_PENDING)
+            {
+                continue;
+            }
+            ASSERT_GE(n, 0) << seed;
+            if (n == 0)
+            {
+                break;
+            }
+            actual.append(reinterpret_cast<char *>(out), static_cast<size_t>(n));
+        }
+        std::string expected(size, '\0');
+        for (size_t i = 0; i < size; ++i)
+        {
+            expected[i] = static_cast<char>(((i * 17U + seed * 31U) ^ (i >> (seed % 5U))) & 255U);
+        }
+        EXPECT_EQ(actual, expected) << seed;
+        EXPECT_EQ(source.position, sizes[seed]);
+    }
+}
+
+TEST(compress_deflate_reader_step_block, distinguishes_incomplete_reserved_and_fixed)
+{
+    lh_io_reader_t source;
+    lh_io_reader_init(&source, deflate_reader_test_read, nullptr);
+    lh_byte_t scratch[LH_COMPRESS_DEFLATE_READER_INPUT_SIZE] = {};
+    lh_byte_t history[LH_COMPRESS_DEFLATE_READER_HISTORY_SIZE];
+    lh_compress_deflate_reader_t reader;
+    lh_compress_deflate_reader_init(&reader, &source, scratch, sizeof(scratch), history, 100U);
+    EXPECT_EQ(lh_compress_deflate_reader_step_block(&reader), LH_IO_PENDING);
+    scratch[0] = 7U;
+    lh_compress_deflate_reader_set_input_size(&reader, 1U);
+    EXPECT_EQ(lh_compress_deflate_reader_try_step_block(&reader), LH_IO_ERROR);
+    LH_EXPECT_CHECK_DEATH(lh_compress_deflate_reader_step_block(&reader));
+    EXPECT_EQ(lh_compress_deflate_reader_get_bit_position(&reader), 0U);
+    scratch[0] = pattern_wire0[0];
+    EXPECT_EQ(lh_compress_deflate_reader_step_block(&reader), 0);
+    EXPECT_EQ(lh_compress_deflate_reader_get_phase(&reader),
+              lh_compress_deflate_reader_phase_codes);
+}
+
+TEST(compress_deflate_reader_step_stored, handles_header_bytes_and_completion)
+{
+    const lh_byte_t wire[] = {1U, 3U, 0U, 252U, 255U, 'a', 'b', 'c'};
+    lh_io_reader_t source;
+    lh_io_reader_init(&source, deflate_reader_test_read, nullptr);
+    lh_byte_t scratch[LH_COMPRESS_DEFLATE_READER_INPUT_SIZE] = {};
+    lh_byte_t history[LH_COMPRESS_DEFLATE_READER_HISTORY_SIZE];
+    lh_compress_deflate_reader_t reader;
+    lh_compress_deflate_reader_init(&reader, &source, scratch, sizeof(scratch), history, 3U);
+    for (size_t i = 0; i < sizeof(wire); ++i)
+    {
+        scratch[i] = wire[i];
+    }
+    lh_compress_deflate_reader_set_input_size(&reader, 1U);
+    EXPECT_EQ(lh_compress_deflate_reader_step_block(&reader), 0);
+    EXPECT_EQ(lh_compress_deflate_reader_step_stored_header(&reader), LH_IO_PENDING);
+    lh_compress_deflate_reader_set_input_size(&reader, sizeof(wire));
+    EXPECT_EQ(lh_compress_deflate_reader_get_available_bits(&reader), 61U);
+    EXPECT_EQ(lh_compress_deflate_reader_step_stored_header(&reader), 0);
+    lh_byte_t out[3];
+    for (int i = 0; i < 3; ++i)
+    {
+        EXPECT_EQ(lh_compress_deflate_reader_step_stored(&reader, &out[i]), 1);
+    }
+    EXPECT_EQ(std::string(reinterpret_cast<char *>(out), sizeof(out)), "abc");
+    EXPECT_EQ(lh_compress_deflate_reader_step_stored(&reader, out), 0);
+    EXPECT_EQ(lh_compress_deflate_reader_get_phase(&reader), lh_compress_deflate_reader_phase_done);
+}
+
+TEST(compress_deflate_reader_step_dynamic, builds_only_after_full_header)
+{
+    lh_io_reader_t source;
+    lh_io_reader_init(&source, deflate_reader_test_read, nullptr);
+    lh_byte_t scratch[LH_COMPRESS_DEFLATE_READER_INPUT_SIZE];
+    lh_byte_t history[LH_COMPRESS_DEFLATE_READER_HISTORY_SIZE];
+    lh_compress_deflate_reader_t reader;
+    lh_compress_deflate_reader_init(&reader, &source, scratch, sizeof(scratch), history, 1000U);
+    for (size_t i = 0; i < sizeof(dynamic_wire); ++i)
+    {
+        scratch[i] = dynamic_wire[i];
+    }
+    lh_compress_deflate_reader_set_bit_position(&reader, 3U);
+    lh_compress_deflate_reader_set_input_size(&reader, 1U);
+    EXPECT_EQ(lh_compress_deflate_reader_step_dynamic(&reader), LH_IO_PENDING);
+    EXPECT_EQ(lh_compress_deflate_reader_get_bit_position(&reader), 3U);
+    lh_compress_deflate_reader_set_input_size(&reader, sizeof(dynamic_wire));
+    EXPECT_EQ(lh_compress_deflate_reader_step_dynamic(&reader), 0);
+    EXPECT_EQ(lh_compress_deflate_reader_get_phase(&reader),
+              lh_compress_deflate_reader_phase_codes);
+}
+
+TEST(compress_deflate_reader_step_codes, emits_literal_and_checks_limit)
+{
+    lh_io_reader_t source;
+    lh_io_reader_init(&source, deflate_reader_test_read, nullptr);
+    lh_byte_t scratch[LH_COMPRESS_DEFLATE_READER_INPUT_SIZE] = {};
+    lh_byte_t history[LH_COMPRESS_DEFLATE_READER_HISTORY_SIZE];
+    lh_compress_deflate_reader_t reader;
+    lh_compress_deflate_reader_init(&reader, &source, scratch, sizeof(scratch), history, 1U);
+    for (size_t i = 0; i < sizeof(pattern_wire0); ++i)
+    {
+        scratch[i] = pattern_wire0[i];
+    }
+    lh_compress_deflate_reader_set_input_size(&reader, sizeof(pattern_wire0));
+    EXPECT_EQ(lh_compress_deflate_reader_step_block(&reader), 0);
+    lh_byte_t out = 0;
+    EXPECT_EQ(lh_compress_deflate_reader_step_codes(&reader, &out), 1);
+    EXPECT_EQ(out, 'A');
+    EXPECT_EQ(lh_compress_deflate_reader_try_step_codes(&reader, &out), LH_IO_ERROR);
+    LH_EXPECT_CHECK_DEATH(lh_compress_deflate_reader_step_codes(&reader, &out));
+}
+
+TEST(compress_deflate_reader_step_match, repeats_history_and_completes)
+{
+    lh_io_reader_t source;
+    lh_io_reader_init(&source, deflate_reader_test_read, nullptr);
+    lh_byte_t scratch[LH_COMPRESS_DEFLATE_READER_INPUT_SIZE];
+    lh_byte_t history[LH_COMPRESS_DEFLATE_READER_HISTORY_SIZE];
+    lh_compress_deflate_reader_t reader;
+    lh_compress_deflate_reader_init(&reader, &source, scratch, sizeof(scratch), history, 4U);
+    lh_byte_t out;
+    lh_compress_deflate_reader_emit(&reader, &out, 'x');
+    lh_compress_deflate_reader_set_phase(&reader, lh_compress_deflate_reader_phase_match);
+    lh_compress_deflate_reader_set_distance(&reader, 1U);
+    lh_compress_deflate_reader_set_remaining(&reader, 3U);
+    for (int i = 0; i < 3; ++i)
+    {
+        EXPECT_EQ(lh_compress_deflate_reader_step_match(&reader, &out), 1);
+        EXPECT_EQ(out, 'x');
+    }
+    EXPECT_EQ(lh_compress_deflate_reader_step_match(&reader, &out), 0);
+    EXPECT_EQ(lh_compress_deflate_reader_get_phase(&reader),
+              lh_compress_deflate_reader_phase_codes);
+}
+
+TEST(compress_deflate_reader_step, _dispatches_terminal_states)
+{
+    lh_io_reader_t source;
+    lh_io_reader_init(&source, deflate_reader_test_read, nullptr);
+    lh_byte_t scratch[LH_COMPRESS_DEFLATE_READER_INPUT_SIZE];
+    lh_byte_t history[LH_COMPRESS_DEFLATE_READER_HISTORY_SIZE];
+    lh_compress_deflate_reader_t reader;
+    lh_compress_deflate_reader_init(&reader, &source, scratch, sizeof(scratch), history, 1U);
+    lh_byte_t out;
+    EXPECT_EQ(lh_compress_deflate_reader_step(&reader, &out), LH_IO_PENDING);
+    lh_compress_deflate_reader_set_phase(&reader, lh_compress_deflate_reader_phase_done);
+    EXPECT_EQ(lh_compress_deflate_reader_step(&reader, &out), 0);
+    lh_compress_deflate_reader_set_phase(&reader, lh_compress_deflate_reader_phase_error);
+    EXPECT_EQ(lh_compress_deflate_reader_try_step(&reader, &out), LH_IO_ERROR);
+    LH_EXPECT_CHECK_DEATH(lh_compress_deflate_reader_step(&reader, &out));
+}
+
+TEST(compress_deflate_reader_compact, preserves_partial_byte_and_unread_input)
+{
+    lh_io_reader_t source;
+    lh_io_reader_init(&source, deflate_reader_test_read, nullptr);
+    lh_byte_t scratch[LH_COMPRESS_DEFLATE_READER_INPUT_SIZE] = {1U, 2U, 3U};
+    lh_byte_t history[LH_COMPRESS_DEFLATE_READER_HISTORY_SIZE];
+    lh_compress_deflate_reader_t reader;
+    lh_compress_deflate_reader_init(&reader, &source, scratch, sizeof(scratch), history, 100U);
+    lh_compress_deflate_reader_set_input_size(&reader, 3U);
+    lh_compress_deflate_reader_set_bit_position(&reader, 10U);
+    lh_compress_deflate_reader_compact(&reader);
+    EXPECT_EQ(lh_compress_deflate_reader_get_bit_position(&reader), 2U);
+    EXPECT_EQ(lh_compress_deflate_reader_get_input_size(&reader), 2U);
+    EXPECT_EQ(scratch[0], 2U);
+    EXPECT_EQ(scratch[1], 3U);
+}
+
+TEST(compress_deflate_reader_refill, preserves_pending_and_reuses_consumed_space)
+{
+    const lh_byte_t input[] = {12U, 34U};
+    deflate_reader_test_source source{input, sizeof(input), 0U, false};
+    lh_io_reader_t io;
+    lh_io_reader_init(&io, deflate_reader_test_read, &source);
+    lh_byte_t scratch[LH_COMPRESS_DEFLATE_READER_INPUT_SIZE];
+    lh_byte_t history[LH_COMPRESS_DEFLATE_READER_HISTORY_SIZE];
+    lh_compress_deflate_reader_t reader;
+    lh_compress_deflate_reader_init(&reader, &io, scratch, sizeof(scratch), history, 100U);
+    EXPECT_EQ(lh_compress_deflate_reader_refill(&reader), 1);
+    EXPECT_EQ(scratch[0], 12U);
+    EXPECT_EQ(lh_compress_deflate_reader_refill(&reader), LH_IO_PENDING);
+    lh_compress_deflate_reader_set_bit_position(&reader, 8U);
+    EXPECT_EQ(lh_compress_deflate_reader_refill(&reader), 1);
+    EXPECT_EQ(lh_compress_deflate_reader_get_input_size(&reader), 1U);
+    EXPECT_EQ(lh_compress_deflate_reader_get_bit_position(&reader), 0U);
+    EXPECT_EQ(scratch[0], 34U);
+}
+
+TEST(compress_deflate_reader_emit, wraps_bounded_history)
+{
+    lh_io_reader_t source;
+    lh_io_reader_init(&source, deflate_reader_test_read, nullptr);
+    lh_byte_t scratch[LH_COMPRESS_DEFLATE_READER_INPUT_SIZE];
+    lh_byte_t history[LH_COMPRESS_DEFLATE_READER_HISTORY_SIZE];
+    lh_compress_deflate_reader_t reader;
+    lh_compress_deflate_reader_init(&reader, &source, scratch, sizeof(scratch), history, 2U);
+    lh_compress_deflate_reader_set_history_position(&reader, 32767U);
+    lh_compress_deflate_reader_set_history_size(&reader, 32767U);
+    lh_byte_t out;
+    lh_compress_deflate_reader_emit(&reader, &out, 41U);
+    EXPECT_EQ(out, 41U);
+    EXPECT_EQ(history[32767U], 41U);
+    EXPECT_EQ(lh_compress_deflate_reader_get_history_position(&reader), 0U);
+    lh_compress_deflate_reader_emit(&reader, &out, 42U);
+    EXPECT_EQ(history[0], 42U);
+    EXPECT_EQ(lh_compress_deflate_reader_get_history_size(&reader), 32768U);
+    EXPECT_EQ(lh_compress_deflate_reader_get_decoded(&reader), 2U);
+}
+
+TEST(compress_deflate_reader_checked_steps, report_invalid_stored_header_and_limit)
+{
+    lh_io_reader_t source;
+    lh_io_reader_init(&source, deflate_reader_test_read, nullptr);
+    lh_byte_t scratch[LH_COMPRESS_DEFLATE_READER_INPUT_SIZE] = {1U, 1U, 0U, 0U, 0U};
+    lh_byte_t history[LH_COMPRESS_DEFLATE_READER_HISTORY_SIZE];
+    lh_compress_deflate_reader_t reader;
+    lh_compress_deflate_reader_init(&reader, &source, scratch, sizeof(scratch), history, 0U);
+    lh_compress_deflate_reader_set_bit_position(&reader, 3U);
+    lh_compress_deflate_reader_set_input_size(&reader, 5U);
+    lh_compress_deflate_reader_set_phase(&reader, lh_compress_deflate_reader_phase_stored_header);
+    EXPECT_EQ(lh_compress_deflate_reader_try_step_stored_header(&reader), LH_IO_ERROR);
+    LH_EXPECT_CHECK_DEATH(lh_compress_deflate_reader_step_stored_header(&reader));
+    lh_compress_deflate_reader_set_phase(&reader, lh_compress_deflate_reader_phase_stored);
+    lh_compress_deflate_reader_set_remaining(&reader, 1U);
+    lh_byte_t output;
+    EXPECT_EQ(lh_compress_deflate_reader_try_step_stored(&reader, &output), LH_IO_ERROR);
+    LH_EXPECT_CHECK_DEATH(lh_compress_deflate_reader_step_stored(&reader, &output));
+}
+
+TEST(compress_deflate_reader_refill_checked, reports_source_end)
+{
+    deflate_reader_test_source source{nullptr, 0U, 0U, false};
+    lh_io_reader_t io;
+    lh_io_reader_init(&io, deflate_reader_test_read, &source);
+    lh_byte_t scratch[LH_COMPRESS_DEFLATE_READER_INPUT_SIZE];
+    lh_byte_t history[LH_COMPRESS_DEFLATE_READER_HISTORY_SIZE];
+    lh_compress_deflate_reader_t reader;
+    lh_compress_deflate_reader_init(&reader, &io, scratch, sizeof(scratch), history, 1U);
+    EXPECT_EQ(lh_compress_deflate_reader_try_refill(&reader), LH_IO_ERROR);
+    source.pending = false;
+    LH_EXPECT_CHECK_DEATH(lh_compress_deflate_reader_refill(&reader));
+}
+
+namespace
+{
+
+std::vector<lh_byte_t>
+encoder_sample(size_t size, unsigned seed)
+{
+    std::vector<lh_byte_t> data(size);
+    unsigned state = seed;
+    for (size_t i = 0; i < size; ++i)
+    {
+        state = state * 1103515245U + 12345U;
+        data[i] = static_cast<lh_byte_t>(state >> 16);
+    }
+    return data;
+}
+
+std::vector<lh_byte_t>
+encoder_text(size_t size)
+{
+    const std::string words[] = {"<div class=\"item\">", "lorem ",         "ipsum ", "</div>\n",
+                                 "dolor sit amet, ",     "{\"key\": 42}, "};
+    std::vector<lh_byte_t> data;
+    unsigned state = 7U;
+    while (data.size() < size)
+    {
+        state = state * 1103515245U + 12345U;
+        const std::string &word = words[(state >> 16) % 6U];
+        data.insert(data.end(), word.begin(), word.end());
+    }
+    data.resize(size);
+    return data;
+}
+
+std::unique_ptr<lh_compress_deflate_matcher_t>
+encoder_matcher()
+{
+    std::unique_ptr<lh_compress_deflate_matcher_t> matcher(new lh_compress_deflate_matcher_t);
+    lh_compress_deflate_matcher_init(matcher.get(), LH_COMPRESS_DEFLATE_MATCHER_CHAIN_LIMIT);
+    return matcher;
+}
+
+std::vector<lh_byte_t>
+decode_all(const std::vector<lh_byte_t> &stream, size_t expected)
+{
+    std::vector<lh_byte_t> output(expected + 1U);
+    lh_usize_t consumed = 0U;
+    lh_usize_t written = 0U;
+    EXPECT_TRUE(lh_compress_deflate_try_decode(stream.data(), stream.size(), output.data(),
+                                               output.size(), &consumed, &written));
+    EXPECT_EQ(consumed, stream.size());
+    output.resize(written);
+    return output;
+}
+
+std::string
+to_hex(const lh_byte_t *data, size_t size)
+{
+    static const char digits[] = "0123456789abcdef";
+    std::string text;
+    for (size_t i = 0; i < size; ++i)
+    {
+        text += digits[data[i] >> 4];
+        text += digits[data[i] & 15U];
+    }
+    return text;
+}
+
+} // namespace
+
+TEST(compress_deflate_tables, read_length_and_distance_ranges)
+{
+    EXPECT_EQ(lh_compress_deflate_get_length_base(0U), 3U);
+    EXPECT_EQ(lh_compress_deflate_get_length_base(28U), 258U);
+    EXPECT_EQ(lh_compress_deflate_get_length_extra(8U), 1U);
+    EXPECT_EQ(lh_compress_deflate_get_length_extra(28U), 0U);
+    EXPECT_EQ(lh_compress_deflate_get_distance_base(29U), 24577U);
+    EXPECT_EQ(lh_compress_deflate_get_distance_extra(29U), 13U);
+    EXPECT_EQ(lh_compress_deflate_get_length_index(3U), 0U);
+    EXPECT_EQ(lh_compress_deflate_get_length_index(10U), 7U);
+    EXPECT_EQ(lh_compress_deflate_get_length_index(12U), 8U);
+    EXPECT_EQ(lh_compress_deflate_get_length_index(257U), 27U);
+    EXPECT_EQ(lh_compress_deflate_get_length_index(258U), 28U);
+    EXPECT_EQ(lh_compress_deflate_get_distance_code(1U), 0U);
+    EXPECT_EQ(lh_compress_deflate_get_distance_code(6U), 4U);
+    EXPECT_EQ(lh_compress_deflate_get_distance_code(24576U), 28U);
+    EXPECT_EQ(lh_compress_deflate_get_distance_code(32768U), 29U);
+    EXPECT_EQ(lh_compress_deflate_get_fixed_length(143U), 8U);
+    EXPECT_EQ(lh_compress_deflate_get_fixed_length(144U), 9U);
+    EXPECT_EQ(lh_compress_deflate_get_fixed_length(256U), 7U);
+    EXPECT_EQ(lh_compress_deflate_get_fixed_length(280U), 8U);
+}
+
+TEST(compress_deflate_get_pad_bits, reaches_next_byte_boundary)
+{
+    EXPECT_EQ(lh_compress_deflate_get_pad_bits(0U), 0U);
+    EXPECT_EQ(lh_compress_deflate_get_pad_bits(1U), 7U);
+    EXPECT_EQ(lh_compress_deflate_get_pad_bits(7U), 1U);
+    EXPECT_EQ(lh_compress_deflate_get_pad_bits(16U), 0U);
+}
+
+TEST(compress_deflate_put_bits, writes_over_dirty_bytes_and_preserves_on_overflow)
+{
+    lh_byte_t output[3] = {0xff, 0xff, 0xff};
+    lh_usize_t position = 3U;
+    lh_compress_deflate_put_bits(output, sizeof(output), &position, 13U, 0x1555U);
+    EXPECT_EQ(position, 16U);
+    EXPECT_EQ(output[0], 0xafU);
+    EXPECT_EQ(output[1], 0xaaU);
+    EXPECT_EQ(output[2], 0xffU);
+    position = 3U;
+    lh_uint_t value = 0U;
+    lh_compress_deflate_bits(output, sizeof(output), &position, 13U, &value);
+    EXPECT_EQ(value, 0x1555U);
+    position = 20U;
+    EXPECT_FALSE(lh_compress_deflate_try_put_bits(output, sizeof(output), &position, 5U, 0U));
+    EXPECT_EQ(position, 20U);
+    EXPECT_EQ(output[2], 0xffU);
+    EXPECT_TRUE(lh_compress_deflate_try_put_bits(output, 0U, &position, 0U, 0U));
+    LH_EXPECT_CHECK_DEATH(lh_compress_deflate_put_bits(output, sizeof(output), &position, 5U, 0U));
+}
+
+TEST(compress_deflate_codes, assign_fixed_codes_that_the_decoder_reads_back)
+{
+    lh_byte_t lengths[288];
+    for (lh_uint_t i = 0U; i < 288U; ++i)
+    {
+        lengths[i] = static_cast<lh_byte_t>(lh_compress_deflate_get_fixed_length(i));
+    }
+    lh_u16_t codes[288];
+    lh_compress_deflate_codes(lengths, 288U, codes);
+    EXPECT_EQ(codes[0], 0x0cU);
+    EXPECT_EQ(codes[256], 0U);
+    std::vector<lh_byte_t> output(400U);
+    lh_usize_t position = 0U;
+    for (lh_uint_t symbol = 0U; symbol < 288U; ++symbol)
+    {
+        lh_compress_deflate_put_symbol(output.data(), output.size(), &position, codes, lengths,
+                                       symbol);
+    }
+    lh_u16_t lit_counts[16], lit_symbols[288], dist_counts[16], dist_symbols[32];
+    lh_compress_deflate_fixed(lit_counts, lit_symbols, dist_counts, dist_symbols);
+    lh_usize_t read = 0U;
+    for (lh_uint_t symbol = 0U; symbol < 288U; ++symbol)
+    {
+        lh_uint_t decoded = 999U;
+        lh_compress_deflate_symbol(output.data(), output.size(), &read, lit_counts, lit_symbols,
+                                   &decoded);
+        EXPECT_EQ(decoded, symbol);
+    }
+    EXPECT_EQ(read, position);
+}
+
+TEST(compress_deflate_codes, reject_oversubscribed_lengths_and_symbols_without_code)
+{
+    const lh_byte_t lengths[3] = {1U, 1U, 1U};
+    lh_u16_t codes[3];
+    EXPECT_FALSE(lh_compress_deflate_try_codes(lengths, 3U, codes));
+    LH_EXPECT_CHECK_DEATH(lh_compress_deflate_codes(lengths, 3U, codes));
+    const lh_byte_t sparse[3] = {1U, 0U, 1U};
+    lh_compress_deflate_codes(sparse, 3U, codes);
+    EXPECT_EQ(codes[0], 0U);
+    EXPECT_EQ(codes[2], 1U);
+    lh_byte_t output[1] = {0U};
+    lh_usize_t position = 0U;
+    EXPECT_FALSE(
+        lh_compress_deflate_try_put_symbol(output, sizeof(output), &position, codes, sparse, 1U));
+    EXPECT_EQ(position, 0U);
+    LH_EXPECT_CHECK_DEATH(
+        lh_compress_deflate_put_symbol(output, sizeof(output), &position, codes, sparse, 1U));
+}
+
+TEST(compress_deflate_put_match, round_trips_through_match_decoder)
+{
+    lh_byte_t lit_lengths[288];
+    for (lh_uint_t i = 0U; i < 288U; ++i)
+    {
+        lit_lengths[i] = static_cast<lh_byte_t>(lh_compress_deflate_get_fixed_length(i));
+    }
+    lh_byte_t dist_lengths[30];
+    for (lh_uint_t i = 0U; i < 30U; ++i)
+    {
+        dist_lengths[i] = LH_COMPRESS_DEFLATE_FIXED_DISTANCE_BITS;
+    }
+    lh_u16_t lit_codes[288], dist_codes[30];
+    lh_compress_deflate_codes(lit_lengths, 288U, lit_codes);
+    lh_compress_deflate_codes(dist_lengths, 30U, dist_codes);
+    lh_u16_t lit_counts[16], lit_symbols[288], dist_counts[16], dist_symbols[32];
+    lh_compress_deflate_fixed(lit_counts, lit_symbols, dist_counts, dist_symbols);
+    const lh_uint_t pairs[][2] = {{3U, 1U}, {10U, 5U}, {11U, 25U}, {130U, 1000U}, {258U, 32768U}};
+    for (const auto &pair : pairs)
+    {
+        lh_byte_t output[8] = {0};
+        lh_usize_t position = 0U;
+        lh_compress_deflate_put_match(output, sizeof(output), &position, lit_codes, lit_lengths,
+                                      dist_codes, dist_lengths, pair[0], pair[1]);
+        lh_usize_t read = 0U;
+        lh_uint_t symbol = 0U;
+        lh_compress_deflate_symbol(output, sizeof(output), &read, lit_counts, lit_symbols, &symbol);
+        lh_uint_t length = 0U;
+        lh_uint_t distance = 0U;
+        lh_compress_deflate_match(output, sizeof(output), &read, symbol, dist_counts, dist_symbols,
+                                  &length, &distance);
+        EXPECT_EQ(length, pair[0]);
+        EXPECT_EQ(distance, pair[1]);
+        EXPECT_EQ(read, position);
+    }
+    lh_byte_t output[8] = {0};
+    lh_usize_t position = 0U;
+    EXPECT_FALSE(lh_compress_deflate_try_put_match(output, sizeof(output), &position, lit_codes,
+                                                   lit_lengths, dist_codes, dist_lengths, 2U, 1U));
+    EXPECT_FALSE(lh_compress_deflate_try_put_match(output, sizeof(output), &position, lit_codes,
+                                                   lit_lengths, dist_codes, dist_lengths, 3U,
+                                                   32769U));
+    EXPECT_FALSE(lh_compress_deflate_try_put_match(output, 1U, &position, lit_codes, lit_lengths,
+                                                   dist_codes, dist_lengths, 258U, 32768U));
+    EXPECT_EQ(position, 0U);
+    LH_EXPECT_CHECK_DEATH(lh_compress_deflate_put_match(output, sizeof(output), &position,
+                                                        lit_codes, lit_lengths, dist_codes,
+                                                        dist_lengths, 259U, 1U));
+}
+
+TEST(compress_deflate_put_stored, writes_a_block_the_stored_decoder_reads)
+{
+    const lh_byte_t payload[] = {'a', 'b', 'c'};
+    lh_byte_t output[16];
+    std::fill(output, output + sizeof(output), static_cast<lh_byte_t>(0xee));
+    lh_usize_t position = 2U;
+    lh_compress_deflate_put_stored(payload, sizeof(payload), lh_bool_true, output, sizeof(output),
+                                   &position);
+    EXPECT_EQ(position, 64U);
+    lh_usize_t read = 2U;
+    lh_uint_t final = 0U;
+    lh_uint_t type = 7U;
+    lh_compress_deflate_bits(output, sizeof(output), &read, 1U, &final);
+    lh_compress_deflate_bits(output, sizeof(output), &read, 2U, &type);
+    EXPECT_EQ(final, 1U);
+    EXPECT_EQ(type, 0U);
+    lh_byte_t decoded[3];
+    lh_usize_t written = 0U;
+    lh_compress_deflate_stored(output, sizeof(output), &read, decoded, sizeof(decoded), &written);
+    EXPECT_EQ(written, 3U);
+    EXPECT_EQ(read, position);
+    EXPECT_EQ(std::string(reinterpret_cast<char *>(decoded), 3U), "abc");
+    position = 0U;
+    EXPECT_FALSE(lh_compress_deflate_try_put_stored(payload, sizeof(payload), lh_bool_false, output,
+                                                    7U, &position));
+    EXPECT_EQ(position, 0U);
+    std::vector<lh_byte_t> large(LH_COMPRESS_DEFLATE_STORED_MAX + 1U);
+    std::vector<lh_byte_t> room(large.size() + 16U);
+    EXPECT_FALSE(lh_compress_deflate_try_put_stored(large.data(), large.size(), lh_bool_true,
+                                                    room.data(), room.size(), &position));
+    LH_EXPECT_CHECK_DEATH(lh_compress_deflate_put_stored(payload, sizeof(payload), lh_bool_false,
+                                                         output, 7U, &position));
+}
+
+TEST(compress_deflate_stored_bound, counts_one_block_per_started_chunk)
+{
+    lh_usize_t bound = 0U;
+    lh_compress_deflate_stored_bound(0U, &bound);
+    EXPECT_EQ(bound, 5U);
+    lh_compress_deflate_stored_bound(1U, &bound);
+    EXPECT_EQ(bound, 6U);
+    lh_compress_deflate_stored_bound(65535U, &bound);
+    EXPECT_EQ(bound, 65540U);
+    lh_compress_deflate_stored_bound(65536U, &bound);
+    EXPECT_EQ(bound, 65546U);
+    bound = 1U;
+    EXPECT_FALSE(lh_compress_deflate_try_stored_bound(LH_USIZE_T_MAX, &bound));
+    EXPECT_EQ(bound, 1U);
+    LH_EXPECT_CHECK_DEATH(lh_compress_deflate_stored_bound(LH_USIZE_T_MAX, &bound));
+}
+
+TEST(compress_deflate_encode_stored, splits_blocks_and_round_trips)
+{
+    for (size_t size : {size_t(0U), size_t(1U), size_t(65535U), size_t(140000U)})
+    {
+        const std::vector<lh_byte_t> input = encoder_sample(size, 3U);
+        lh_usize_t bound = 0U;
+        lh_compress_deflate_stored_bound(size, &bound);
+        std::vector<lh_byte_t> stream(bound);
+        lh_usize_t written = 0U;
+        lh_compress_deflate_encode_stored(input.data(), size, stream.data(), stream.size(),
+                                          &written);
+        EXPECT_EQ(written, bound);
+        stream.resize(written);
+        EXPECT_EQ(decode_all(stream, size), input);
+    }
+    const lh_byte_t one = 'x';
+    lh_byte_t small[5];
+    lh_usize_t written = 9U;
+    EXPECT_FALSE(lh_compress_deflate_try_encode_stored(&one, 1U, small, sizeof(small), &written));
+    EXPECT_EQ(written, 9U);
+    LH_EXPECT_CHECK_DEATH(
+        lh_compress_deflate_encode_stored(&one, 1U, small, sizeof(small), &written));
+}
+
+TEST(compress_deflate_encode_fixed, writes_known_fixed_huffman_vectors)
+{
+    std::unique_ptr<lh_compress_deflate_matcher_t> matcher = encoder_matcher();
+    const std::string inputs[] = {"", "a", "abcabcabc"};
+    /* The first two equal zlib's Z_FIXED output; for the third zlib emits a
+     * literal more ("4b4c4a4e042300"), the match at offset 3 here is one byte
+     * shorter and zlib's inflate decodes it to the same text. */
+    const std::string expected[] = {"0300", "4b0400", "4b4c4a862000"};
+    for (int n = 0; n < 3; ++n)
+    {
+        lh_byte_t output[32];
+        std::fill(output, output + sizeof(output), static_cast<lh_byte_t>(0xee));
+        lh_usize_t written = 0U;
+        lh_compress_deflate_encode_fixed(matcher.get(),
+                                         reinterpret_cast<const lh_byte_t *>(inputs[n].data()),
+                                         inputs[n].size(), output, sizeof(output), &written);
+        EXPECT_EQ(to_hex(output, written), expected[n]);
+    }
+}
+
+TEST(compress_deflate_put_fixed_codes, follows_a_caller_written_header)
+{
+    std::unique_ptr<lh_compress_deflate_matcher_t> matcher = encoder_matcher();
+    const lh_byte_t input[] = {'z', 'z', 'z', 'z', 'z', 'z'};
+    lh_byte_t output[16] = {0};
+    lh_usize_t position = 0U;
+    lh_compress_deflate_put_bits(output, sizeof(output), &position, 3U, 3U);
+    lh_compress_deflate_put_fixed_codes(matcher.get(), input, sizeof(input), output, sizeof(output),
+                                        &position);
+    lh_byte_t decoded[8];
+    lh_usize_t consumed = 0U;
+    lh_usize_t written = 0U;
+    ASSERT_TRUE(lh_compress_deflate_try_decode(output, sizeof(output), decoded, sizeof(decoded),
+                                               &consumed, &written));
+    EXPECT_EQ(std::string(reinterpret_cast<char *>(decoded), written), "zzzzzz");
+    EXPECT_EQ(consumed, (position + 7U) / 8U);
+    const lh_usize_t before = position;
+    EXPECT_FALSE(lh_compress_deflate_try_put_fixed_codes(matcher.get(), input, sizeof(input),
+                                                         output, 1U, &position));
+    EXPECT_EQ(position, before);
+    LH_EXPECT_CHECK_DEATH(lh_compress_deflate_put_fixed_codes(matcher.get(), input, sizeof(input),
+                                                              output, 1U, &position));
+}
+
+TEST(compress_deflate_encode, compresses_repetitive_input_and_round_trips)
+{
+    std::unique_ptr<lh_compress_deflate_matcher_t> matcher = encoder_matcher();
+    std::vector<std::vector<lh_byte_t>> inputs;
+    inputs.push_back(encoder_text(50000U));
+    inputs.push_back(std::vector<lh_byte_t>(100000U, 0U));
+    inputs.push_back(encoder_text(LH_COMPRESS_DEFLATE_WINDOW_SIZE * 3U + 17U));
+    for (const std::vector<lh_byte_t> &input : inputs)
+    {
+        lh_usize_t bound = 0U;
+        lh_compress_deflate_stored_bound(input.size(), &bound);
+        std::vector<lh_byte_t> stream(bound);
+        lh_usize_t written = 0U;
+        lh_compress_deflate_encode(matcher.get(), input.data(), input.size(), stream.data(),
+                                   stream.size(), &written);
+        EXPECT_LT(written, input.size() / 3U);
+        stream.resize(written);
+        EXPECT_EQ(decode_all(stream, input.size()), input);
+    }
+}
+
+TEST(compress_deflate_encode, falls_back_to_stored_for_incompressible_input)
+{
+    std::unique_ptr<lh_compress_deflate_matcher_t> matcher = encoder_matcher();
+    const std::vector<lh_byte_t> input = encoder_sample(5000U, 11U);
+    lh_usize_t bound = 0U;
+    lh_compress_deflate_stored_bound(input.size(), &bound);
+    std::vector<lh_byte_t> stream(bound);
+    lh_usize_t written = 0U;
+    lh_compress_deflate_encode(matcher.get(), input.data(), input.size(), stream.data(),
+                               stream.size(), &written);
+    EXPECT_EQ(written, bound);
+    EXPECT_EQ(stream[0] & 7U, 1U);
+    EXPECT_EQ(decode_all(stream, input.size()), input);
+    written = 4U;
+    EXPECT_FALSE(lh_compress_deflate_try_encode(matcher.get(), input.data(), input.size(),
+                                                stream.data(), bound - 1U, &written));
+    EXPECT_EQ(written, 4U);
+    LH_EXPECT_CHECK_DEATH(lh_compress_deflate_encode(matcher.get(), input.data(), input.size(),
+                                                     stream.data(), bound - 1U, &written));
+}
+
+TEST(compress_deflate_encode, round_trips_through_the_streaming_reader)
+{
+    std::unique_ptr<lh_compress_deflate_matcher_t> matcher = encoder_matcher();
+    const std::vector<lh_byte_t> input = encoder_text(70000U);
+    lh_usize_t bound = 0U;
+    lh_compress_deflate_stored_bound(input.size(), &bound);
+    std::vector<lh_byte_t> stream(bound);
+    lh_usize_t written = 0U;
+    lh_compress_deflate_encode(matcher.get(), input.data(), input.size(), stream.data(),
+                               stream.size(), &written);
+    deflate_reader_test_source source{stream.data(), written, 0U, false};
+    lh_io_reader_t io;
+    lh_io_reader_init(&io, deflate_reader_test_read, &source);
+    lh_byte_t scratch[LH_COMPRESS_DEFLATE_READER_INPUT_SIZE];
+    std::vector<lh_byte_t> history(LH_COMPRESS_DEFLATE_READER_HISTORY_SIZE);
+    lh_compress_deflate_reader_t decoder;
+    lh_compress_deflate_reader_init(&decoder, &io, scratch, sizeof(scratch), history.data(),
+                                    input.size());
+    lh_io_reader_t reader;
+    lh_compress_deflate_reader_get_reader(&decoder, &reader);
+    std::vector<lh_byte_t> decoded;
+    lh_byte_t chunk[777];
+    for (;;)
+    {
+        const lh_ssize_t got = lh_io_reader_read(&reader, chunk, sizeof(chunk));
+        if (got == LH_IO_PENDING)
+        {
+            continue;
+        }
+        ASSERT_GE(got, 0);
+        if (got == 0)
+        {
+            break;
+        }
+        decoded.insert(decoded.end(), chunk, chunk + got);
+    }
+    EXPECT_EQ(decoded, input);
 }

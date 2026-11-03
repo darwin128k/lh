@@ -6,6 +6,7 @@
 #ifndef LH_HTTP_H
 #define LH_HTTP_H
 
+#include <lh/http/content/encoding.h>
 #include <lh/http/format.h>
 #include <lh/http/framing.h>
 #include <lh/http/expect.h>

@@ -4,8 +4,11 @@
  *
  * Reuses an ordinary route as a method/path matcher; its buffered handler is
  * not used. The matcher and callback remain caller-owned. Limits apply to the
- * decoded body and aggregate chunk metadata independently. The host invokes
- * the staging handler synchronously, validates the remaining content, then calls
+ * decoded body, gzip-encoded content and metadata independently. The wire
+ * limit applies to gzip bytes after chunk framing and defaults to LH_USIZE_T_MAX;
+ * set it explicitly when a bound is needed. The metadata limit applies
+ * independently to chunk framing and to gzip headers and trailers. The host
+ * invokes the staging handler synchronously, validates the remaining content, then calls
  * exactly one commit or abort callback. Staging must not publish changes or send
  * a response; abort discards staged changes. Callbacks own application state.
  */
@@ -72,6 +75,22 @@ lh_ui_web_stream_route_get_body_limit(const lh_ui_web_stream_route_t *self);
 lh_void
 lh_ui_web_stream_route_set_body_limit(lh_ui_web_stream_route_t *self, lh_usize_t value);
 
+/**
+ * @brief Return the maximum framed content bytes before gzip decoding.
+ * @param self Valid route.
+ * @return Configured wire limit; initialized to the maximum representable size.
+ */
+lh_usize_t
+lh_ui_web_stream_route_get_wire_limit(const lh_ui_web_stream_route_t *self);
+
+/**
+ * @brief Set the maximum framed content bytes before gzip decoding.
+ * @param self Valid route.
+ * @param value Limit in bytes. The value is stored without validation.
+ */
+lh_void
+lh_ui_web_stream_route_set_wire_limit(lh_ui_web_stream_route_t *self, lh_usize_t value);
+
 /** Return the stored metadata_limit; @p self must be valid. */
 lh_usize_t
 lh_ui_web_stream_route_get_metadata_limit(const lh_ui_web_stream_route_t *self);
@@ -96,8 +115,10 @@ lh_ui_web_stream_route_set_timeout_ms(lh_ui_web_stream_route_t *self, lh_u32_t v
  * @param commit Callback to publish staged changes on success.
  * @param abort Callback to discard staged changes on failure.
  * @param body_limit Maximum decoded content bytes.
- * @param metadata_limit Maximum chunk metadata bytes, including trailers.
- * @param timeout_ms Total request timeout in milliseconds, including the head.
+ * @param metadata_limit Maximum chunk metadata and, independently, gzip
+ *                       header/trailer bytes across concatenated members.
+ * @param timeout_ms Deadline for receiving request bytes, measured from the
+ *                   start of head reading. It does not preempt the handler.
  * @pre All pointers are valid; matcher and all callbacks outlive @p self.
  */
 lh_void
