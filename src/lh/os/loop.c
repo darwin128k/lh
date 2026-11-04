@@ -17,7 +17,7 @@
 #include <lh/os/tick.h>
 #include <lh/runtime/allocator.h>
 #include <lh/util/return.h>
-#include <stdatomic.h>
+#include <lh/atomic/bool.h>
 
 struct lh_os_loop
 {
@@ -34,8 +34,8 @@ struct lh_os_loop
     lh_os_condition_t condition;
     lh_bool_t started;
     lh_bool_t last_step;
-    atomic_bool pending;
-    atomic_bool stopping;
+    lh_atomic_bool_t pending;
+    lh_atomic_bool_t stopping;
 };
 
 /* -- Level 1: the fields ------------------------------------------------------ */
@@ -178,24 +178,21 @@ lh_bool_t
 lh_os_loop_take_pending(lh_os_loop_t *self)
 {
     lh_assert_runtime_ref(self);
-    return atomic_exchange_explicit(lh_addr_of(self->pending), 0, memory_order_acq_rel)
-               ? lh_bool_true
-               : lh_bool_false;
+    return lh_atomic_bool_exchange_acq_rel(lh_addr_of(self->pending), lh_bool_false);
 }
 
 lh_bool_t
 lh_os_loop_is_pending(lh_os_loop_t *self)
 {
     lh_assert_runtime_ref(self);
-    return atomic_load_explicit(lh_addr_of(self->pending), memory_order_acquire) ? lh_bool_true
-                                                                                 : lh_bool_false;
+    return lh_atomic_bool_get_acquire(lh_addr_of(self->pending));
 }
 
 lh_void
 lh_os_loop_set_pending(lh_os_loop_t *self)
 {
     lh_assert_runtime_ref(self);
-    atomic_store_explicit(lh_addr_of(self->pending), 1, memory_order_release);
+    lh_atomic_bool_set_release(lh_addr_of(self->pending), lh_bool_true);
 }
 
 lh_bool_t
@@ -216,25 +213,22 @@ lh_bool_t
 lh_os_loop_is_stopping(const lh_os_loop_t *self)
 {
     lh_assert_runtime_ref(self);
-    return atomic_load_explicit(lh_cast_const(atomic_bool *, lh_addr_of(self->stopping)),
-                                memory_order_acquire)
-               ? lh_bool_true
-               : lh_bool_false;
+    return lh_atomic_bool_get_acquire(lh_addr_of(self->stopping));
 }
 
 lh_void
 lh_os_loop_set_stopping(lh_os_loop_t *self)
 {
     lh_assert_runtime_ref(self);
-    atomic_store_explicit(lh_addr_of(self->stopping), 1, memory_order_release);
+    lh_atomic_bool_set_release(lh_addr_of(self->stopping), lh_bool_true);
 }
 
 lh_void
 lh_os_loop_init_flags(lh_os_loop_t *self)
 {
     lh_assert_runtime_ref(self);
-    atomic_init(lh_addr_of(self->pending), 0);
-    atomic_init(lh_addr_of(self->stopping), 0);
+    lh_atomic_bool_set_relaxed(lh_addr_of(self->pending), lh_bool_false);
+    lh_atomic_bool_set_relaxed(lh_addr_of(self->stopping), lh_bool_false);
 }
 
 /* -- Level 2 and up ----------------------------------------------------------- */

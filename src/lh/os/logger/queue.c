@@ -16,7 +16,7 @@
 #include <lh/os/tick.h>
 #include <lh/runtime/allocator.h>
 #include <lh/util/return.h>
-#include <stdatomic.h>
+#include <lh/atomic/uint.h>
 
 struct lh_os_logger_queue
 {
@@ -30,9 +30,9 @@ struct lh_os_logger_queue
     lh_u32_t reported;
     lh_os_mutex_t mutex;
     lh_os_condition_t done;
-    atomic_uint dropped;
-    atomic_uint requested;
-    atomic_uint completed;
+    lh_atomic_uint_t dropped;
+    lh_atomic_uint_t requested;
+    lh_atomic_uint_t completed;
 };
 
 /* -- Level 1: the fields ------------------------------------------------------ */
@@ -160,52 +160,51 @@ lh_u32_t
 lh_os_logger_queue_load_dropped(const lh_os_logger_queue_t *self)
 {
     lh_assert_runtime_ref(self);
-    return atomic_load_explicit(lh_cast_const(atomic_uint *, lh_addr_of(self->dropped)),
-                                memory_order_relaxed);
+    return lh_atomic_uint_get_relaxed(lh_addr_of(self->dropped));
 }
 
 lh_void
 lh_os_logger_queue_add_dropped(lh_os_logger_queue_t *self)
 {
     lh_assert_runtime_ref(self);
-    atomic_fetch_add_explicit(lh_addr_of(self->dropped), 1U, memory_order_relaxed);
+    lh_atomic_uint_fetch_add_relaxed(lh_addr_of(self->dropped), 1U);
 }
 
 lh_u32_t
 lh_os_logger_queue_load_requested(lh_os_logger_queue_t *self)
 {
     lh_assert_runtime_ref(self);
-    return atomic_load_explicit(lh_addr_of(self->requested), memory_order_acquire);
+    return lh_atomic_uint_get_acquire(lh_addr_of(self->requested));
 }
 
 lh_u32_t
 lh_os_logger_queue_add_requested(lh_os_logger_queue_t *self)
 {
     lh_assert_runtime_ref(self);
-    return atomic_fetch_add_explicit(lh_addr_of(self->requested), 1U, memory_order_acq_rel) + 1U;
+    return lh_atomic_uint_fetch_add_acq_rel(lh_addr_of(self->requested), 1U) + 1U;
 }
 
 lh_u32_t
 lh_os_logger_queue_load_completed(lh_os_logger_queue_t *self)
 {
     lh_assert_runtime_ref(self);
-    return atomic_load_explicit(lh_addr_of(self->completed), memory_order_acquire);
+    return lh_atomic_uint_get_acquire(lh_addr_of(self->completed));
 }
 
 lh_void
 lh_os_logger_queue_store_completed(lh_os_logger_queue_t *self, lh_u32_t completed)
 {
     lh_assert_runtime_ref(self);
-    atomic_store_explicit(lh_addr_of(self->completed), completed, memory_order_release);
+    lh_atomic_uint_set_release(lh_addr_of(self->completed), completed);
 }
 
 lh_void
 lh_os_logger_queue_init_counters(lh_os_logger_queue_t *self)
 {
     lh_assert_runtime_ref(self);
-    atomic_init(lh_addr_of(self->dropped), 0U);
-    atomic_init(lh_addr_of(self->requested), 0U);
-    atomic_init(lh_addr_of(self->completed), 0U);
+    lh_atomic_uint_set_relaxed(lh_addr_of(self->dropped), 0U);
+    lh_atomic_uint_set_relaxed(lh_addr_of(self->requested), 0U);
+    lh_atomic_uint_set_relaxed(lh_addr_of(self->completed), 0U);
 }
 
 /* -- Level 2 and up ----------------------------------------------------------- */

@@ -14,6 +14,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   initializer. Built on the compiler's atomic operations on an ordinary field
   (GCC/Clang `__atomic`, MSVC `_Interlocked`), so the struct is the same in C
   and C++; a pointer that is not lock-free fails the build.
+- `lh/atomic/uint.h` (`lh_atomic_uint_t`) and `lh/atomic/bool.h`
+  (`lh_atomic_bool_t`): a counter and a flag shared between threads, with
+  `_get_relaxed` / `_get_acquire`, `_set_relaxed` / `_set_release`,
+  `_fetch_add_relaxed` / `_acq_rel` and `_exchange_acq_rel`. The counter is
+  built on the compiler's atomic operations, as `lh_atomic_ptr_t` is; the flag
+  is a composition over the counter. `lh_spsc_t`, `lh_os_loop_t` and
+  `lh_os_logger_queue_t` use them instead of `<stdatomic.h>`, which no LH
+  source includes any more.
 - `lh/runtime/terminate/handler.h` and `lh/runtime/check/handler.h`: the
   terminate and failed-check handlers as a call plus context, with getters,
   setters, `_init`, `_assign`, `_call` and static initializers.
