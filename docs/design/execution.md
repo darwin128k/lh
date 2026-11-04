@@ -76,7 +76,7 @@ Execution needs six words, and each comes with laws.
 | Today | Becomes |
 |---|---|
 | `lh_os_loop_t` | the loop, with its waiter as the source of world readiness |
-| `lh_os_worker_t` and its job | the *thread* executor and the task |
+| `lh_os_worker_t` and its job | the *thread* executor and the task (worker removed in step 4b) |
 | `lh_os_logger_queue_t` | a thread executor whose tasks are records, plus a sink |
 | web host request reading | sockets as loop sources instead of blocking reads with timeouts |
 | `lh_os_thread_group_t` | stays as is: the owner's set of threads, used by executors |
@@ -252,8 +252,8 @@ and committed by the owner before the next.
 1. This page, agreed.
 2. `lh_atomic_ptr_exchange_acq_rel`; task and queue, with tests.
 3. Mailbox, executor interface, inline executor.
-4. Thread executor, context, stop (4a); `lh_os_worker_t` becomes a layer over
-   it and Authum's tasks move (4b).
+4. Thread executor, context, stop (4a); Authum's tasks move onto it and
+   `lh_os_worker_t`, left without users, is removed (4b, owner, 2026-11-04).
 5. The loop in `lh/exec`; `lh_os_loop_t` and the logger queue move onto it.
 6. The HTTP server (with the fastdl hardening) and the web host wait through
    the loop.

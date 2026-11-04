@@ -54,4 +54,5 @@ cmake --build build --target lh_docs
 The HTML output is written to `docs/html/index.html`. It covers every public
 header under `include/lh/` and every implementation file under `src/lh/`.
 
-- [Background worker and SPSC queue](subsystems/worker-queue.md) - bounded jobs and fixed-record buffering.
+- [SPSC queue](subsystems/spsc.md) - fixed-record buffering between two threads.
+- [Execution](design/execution.md) - tasks, executors, mailboxes and stops (`lh/exec/`).
