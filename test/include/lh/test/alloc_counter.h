@@ -2,8 +2,9 @@
  * @file alloc_counter.h
  * @brief Test helper: count allocations made through the runtime allocator.
  *
- * Swaps the calling thread's runtime allocator for a malloc/free pair that
- * counts calls, and restores the previous one on destruction. The counting
+ * Swaps the runtime allocator for a malloc/free pair that counts calls, and
+ * restores the previous one on destruction. The slot is one for the whole
+ * program: use it while no other thread allocates through lh. The counting
  * pair has no realloc of its own, so growth goes through the alloc + copy +
  * dealloc fallback and every new block is counted.
  */

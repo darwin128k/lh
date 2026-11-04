@@ -11,6 +11,7 @@
 #define LH_OS_THREAD_H
 
 #include <lh/os/system/concurrency.h>
+#include <lh/memory/allocator.h>
 #include <lh/os/thread/fields.h>
 
 /**
@@ -19,13 +20,63 @@
 struct lh_os_thread
 {
     /** Members: ::lh_os_thread_fields. */
-    lh_os_thread_fields(lh_os_system_thread_handle_t);
+    lh_os_thread_fields(lh_os_system_thread_handle_t, lh_memory_allocator_t);
 };
 
 /** @copybrief lh_os_thread */
 typedef struct lh_os_thread lh_os_thread_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief The allocator the native storage of @p self came from (level 1).
+ * @param self Object; must not be null.
+ * @return A copy of the runtime allocator taken when the native object was
+ *         created; meaningless while @p self owns none.
+ */
+const lh_memory_allocator_t *
+lh_os_thread_get_allocator(const lh_os_thread_t *self);
+
+/**
+ * @brief The allocator the native storage of @p self came from, for change (level 1).
+ * @param self Object; must not be null.
+ * @return The object's own copy of the allocator.
+ */
+lh_memory_allocator_t *
+lh_os_thread_get_allocator_mut(lh_os_thread_t *self);
+
+/**
+ * @brief Suspend the calling thread for a finite interval.
+ *
+ * POSIX interruptions are retried using the remaining interval. Actual wakeup may be later
+ * due to scheduling. This call does not pump game events or invoke callbacks.
+ *
+ * @param milliseconds Minimum sleep interval in milliseconds.
+ * @return ::lh_bool_true on completion; ::lh_bool_false on a native failure.
+ */
+lh_bool_t
+lh_os_thread_sleep(lh_u32_t milliseconds);
+
+/**
+ * @brief The native thread handle (level 1).
+ *
+ * ::lh_null while no thread runs.
+ *
+ * @param self The thread; checked by ::lh_assert_runtime_ref.
+ */
+lh_os_system_thread_handle_t
+lh_os_thread_get_handle(const lh_os_thread_t *self);
+
+/**
+ * @brief Store the native thread handle (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The thread; checked by ::lh_assert_runtime_ref.
+ * @param handle The new value.
+ */
+lh_void
+lh_os_thread_set_handle(lh_os_thread_t *self, lh_os_system_thread_handle_t handle);
 
 /**
  * @brief Initialize an empty thread object.
@@ -67,39 +118,6 @@ lh_os_thread_start(lh_os_thread_t *self, lh_os_thread_fn run, lh_ptr user, lh_s3
  */
 lh_bool_t
 lh_os_thread_join(lh_os_thread_t *self);
-
-/**
- * @brief Suspend the calling thread for a finite interval.
- *
- * POSIX interruptions are retried using the remaining interval. Actual wakeup may be later
- * due to scheduling. This call does not pump game events or invoke callbacks.
- *
- * @param milliseconds Minimum sleep interval in milliseconds.
- * @return ::lh_bool_true on completion; ::lh_bool_false on a native failure.
- */
-lh_bool_t
-lh_os_thread_sleep(lh_u32_t milliseconds);
-
-/**
- * @brief The native thread handle (level 1).
- *
- * ::lh_null while no thread runs.
- *
- * @param self The thread; checked by ::lh_assert_runtime_ref.
- */
-lh_os_system_thread_handle_t
-lh_os_thread_get_handle(const lh_os_thread_t *self);
-
-/**
- * @brief Store the native thread handle (level 1).
- *
- * A level-1 setter: the value is stored as given and is not validated.
- *
- * @param self The thread; checked by ::lh_assert_runtime_ref.
- * @param handle The new value.
- */
-lh_void
-lh_os_thread_set_handle(lh_os_thread_t *self, lh_os_system_thread_handle_t handle);
 
 LH_COMPILER_EXTERN_C_END
 
