@@ -17,7 +17,6 @@
 #ifndef LH_EXEC_CONTEXT_H
 #define LH_EXEC_CONTEXT_H
 
-#include <lh/core/compiler/extern/c.h>
 #include <lh/exec/context/close/cb.h>
 #include <lh/exec/context/fields.h>
 #include <lh/exec/context/open/cb.h>

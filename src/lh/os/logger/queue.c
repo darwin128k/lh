@@ -16,7 +16,6 @@
 #include <lh/os/tick.h>
 #include <lh/core/runtime/allocator.h>
 #include <lh/core/util/return.h>
-#include <lh/core/atomic/uint.h>
 
 struct lh_os_logger_queue
 {

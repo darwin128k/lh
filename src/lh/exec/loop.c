@@ -36,6 +36,11 @@ struct lh_exec_loop
     lh_bool_t last_step;
     lh_atomic_bool_t pending;
     lh_atomic_bool_t stopping;
+    /* lh_exec_loop_state_*: who frees the step's state at the end. */
+    lh_atomic_uint_t state;
+    /* Set by the owner before it abandons; read by the thread after it lost. */
+    lh_exec_loop_release_cb release;
+    lh_ptr release_user;
 };
 
 /* -- Level 1: the fields ------------------------------------------------------ */
@@ -223,15 +228,98 @@ lh_exec_loop_set_stopping(lh_exec_loop_t *self)
     lh_atomic_bool_set_release(lh_addr_of(self->stopping), lh_bool_true);
 }
 
+lh_atomic_uint_t *
+lh_exec_loop_get_state_mut(lh_exec_loop_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->state);
+}
+
+lh_exec_loop_release_cb
+lh_exec_loop_get_release_fn(const lh_exec_loop_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->release;
+}
+
+lh_void
+lh_exec_loop_set_release_fn(lh_exec_loop_t *self, lh_exec_loop_release_cb release)
+{
+    lh_assert_runtime_ref(self);
+    self->release = release;
+}
+
+lh_ptr
+lh_exec_loop_get_release_user(const lh_exec_loop_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->release_user;
+}
+
+lh_void
+lh_exec_loop_set_release_user(lh_exec_loop_t *self, lh_ptr release_user)
+{
+    lh_assert_runtime_ref(self);
+    self->release_user = release_user;
+}
+
 lh_void
 lh_exec_loop_init_flags(lh_exec_loop_t *self)
 {
     lh_assert_runtime_ref(self);
     lh_atomic_bool_set_relaxed(lh_addr_of(self->pending), lh_bool_false);
     lh_atomic_bool_set_relaxed(lh_addr_of(self->stopping), lh_bool_false);
+    lh_atomic_uint_set_relaxed(lh_addr_of(self->state), lh_exec_loop_state_running);
 }
 
 /* -- Level 2 and up ----------------------------------------------------------- */
+
+lh_exec_loop_state_t
+lh_exec_loop_load_state(lh_exec_loop_t *self)
+{
+    return lh_atomic_uint_get_acquire(lh_exec_loop_get_state_mut(self));
+}
+
+lh_void
+lh_exec_loop_ask_stop(lh_exec_loop_t *self)
+{
+    if (lh_null_ne(lh_exec_loop_get_wake_fn(self)))
+    {
+        lh_exec_loop_set_stopping(self);
+        lh_exec_loop_get_wake_fn(self)(lh_exec_loop_get_waiter(self));
+        return;
+    }
+    LH_ATTRIBUTE_UNUSED(lh_os_mutex_lock(lh_exec_loop_get_mutex_mut(self)));
+    lh_exec_loop_set_stopping(self);
+    LH_ATTRIBUTE_UNUSED(lh_os_condition_signal(lh_exec_loop_get_condition_mut(self)));
+    LH_ATTRIBUTE_UNUSED(lh_os_mutex_unlock(lh_exec_loop_get_mutex_mut(self)));
+}
+
+lh_void
+lh_exec_loop_end(lh_exec_loop_t *self)
+{
+    if (lh_atomic_uint_try_compare_exchange_acq_rel(
+            lh_exec_loop_get_state_mut(self), lh_exec_loop_state_running, lh_exec_loop_state_ended))
+    {
+        return; /* the owner still holds the loop and joins it */
+    }
+    /* Abandoned: the owner touches neither the loop nor the step's state any more. */
+    lh_exec_loop_release_cb release = lh_exec_loop_get_release_fn(self);
+    if (lh_null_ne(release))
+    {
+        release(lh_exec_loop_get_release_user(self));
+    }
+    lh_atomic_uint_set_release(lh_exec_loop_get_state_mut(self), lh_exec_loop_state_released);
+}
+
+lh_void
+lh_exec_loop_free(lh_exec_loop_t *self)
+{
+    lh_timer_group_deinit(lh_exec_loop_get_timers_mut(self));
+    LH_ATTRIBUTE_UNUSED(lh_os_condition_close(lh_exec_loop_get_condition_mut(self)));
+    LH_ATTRIBUTE_UNUSED(lh_os_mutex_close(lh_exec_loop_get_mutex_mut(self)));
+    lh_memory_allocator_dealloc(lh_exec_loop_get_allocator_mut(self), self);
+}
 
 /* Sleep at most @p timeout_ms, unless a wake or a stop is already there. */
 lh_void
@@ -290,28 +378,43 @@ lh_exec_loop_hint(lh_exec_loop_t *self)
     LH_ATTRIBUTE_UNUSED(lh_os_condition_signal(lh_exec_loop_get_condition_mut(self)));
 }
 
+lh_bool_t
+lh_exec_loop_try_abandon(lh_exec_loop_t *self, lh_exec_loop_release_cb release, lh_ptr release_user)
+{
+    /* Published by the compare-exchange below, read by the thread after it lost it. */
+    lh_exec_loop_set_release_fn(self, release);
+    lh_exec_loop_set_release_user(self, release_user);
+    return lh_atomic_uint_try_compare_exchange_acq_rel(
+        lh_exec_loop_get_state_mut(self), lh_exec_loop_state_running, lh_exec_loop_state_abandoned);
+}
+
+lh_bool_t
+lh_exec_loop_is_ended(lh_exec_loop_t *self)
+{
+    return lh_math_eq(lh_exec_loop_load_state(self), lh_exec_loop_state_ended);
+}
+
 lh_void
 lh_exec_loop_destroy(lh_exec_loop_t *self)
 {
     lh_return_if(lh_null_eq(self));
-    if (lh_exec_loop_is_started(self) && lh_null_ne(lh_exec_loop_get_wake_fn(self)))
+    if (lh_exec_loop_is_started(self))
     {
-        lh_exec_loop_set_stopping(self);
-        lh_exec_loop_get_wake_fn(self)(lh_exec_loop_get_waiter(self));
+        lh_exec_loop_ask_stop(self);
         LH_ATTRIBUTE_UNUSED(lh_os_thread_join(lh_exec_loop_get_thread_mut(self)));
     }
-    else if (lh_exec_loop_is_started(self))
-    {
-        LH_ATTRIBUTE_UNUSED(lh_os_mutex_lock(lh_exec_loop_get_mutex_mut(self)));
-        lh_exec_loop_set_stopping(self);
-        LH_ATTRIBUTE_UNUSED(lh_os_condition_signal(lh_exec_loop_get_condition_mut(self)));
-        LH_ATTRIBUTE_UNUSED(lh_os_mutex_unlock(lh_exec_loop_get_mutex_mut(self)));
-        LH_ATTRIBUTE_UNUSED(lh_os_thread_join(lh_exec_loop_get_thread_mut(self)));
-    }
-    lh_timer_group_deinit(lh_exec_loop_get_timers_mut(self));
-    LH_ATTRIBUTE_UNUSED(lh_os_condition_close(lh_exec_loop_get_condition_mut(self)));
-    LH_ATTRIBUTE_UNUSED(lh_os_mutex_close(lh_exec_loop_get_mutex_mut(self)));
-    lh_memory_allocator_dealloc(lh_exec_loop_get_allocator_mut(self), self);
+    lh_exec_loop_free(self);
+}
+
+lh_bool_t
+lh_exec_loop_try_reap(lh_exec_loop_t *self)
+{
+    lh_return_if(lh_math_ne(lh_exec_loop_load_state(self), lh_exec_loop_state_released),
+                 lh_bool_false);
+    /* The thread only returns from its body now: the join waits for no work. */
+    LH_ATTRIBUTE_UNUSED(lh_os_thread_join(lh_exec_loop_get_thread_mut(self)));
+    lh_exec_loop_free(self);
+    return lh_bool_true;
 }
 
 lh_void
@@ -341,12 +444,29 @@ lh_exec_loop_run(lh_ptr user)
                            lh_math_min(lh_cast_static(lh_tick_t, lh_exec_loop_get_period_ms(self)),
                                        lh_timer_group_until_next(timers, now))));
     }
+    lh_exec_loop_end(self);
 }
 
 lh_bool_t
 lh_exec_loop_try_start(lh_exec_loop_t *self)
 {
     return lh_exec_loop_try_start_on(self, -1, 0U);
+}
+
+lh_bool_t
+lh_exec_loop_try_stop(lh_exec_loop_t *self, lh_u32_t timeout_ms)
+{
+    lh_return_if(!lh_exec_loop_is_started(self), lh_bool_true);
+    lh_exec_loop_ask_stop(self);
+    const lh_u64_t start = lh_os_tick_ms64();
+    /* The end is one atomic store on the loop's thread, which may sleep in a waiter
+       that has no condition to signal: a short poll serves both kinds of loop. */
+    while (!lh_exec_loop_is_ended(self) &&
+           lh_math_lt(lh_math_sub(lh_os_tick_ms64(), start), lh_cast_static(lh_u64_t, timeout_ms)))
+    {
+        LH_ATTRIBUTE_UNUSED(lh_os_thread_sleep(1U));
+    }
+    return lh_exec_loop_is_ended(self);
 }
 
 lh_exec_loop_t *
@@ -366,6 +486,8 @@ lh_exec_loop_try_create(lh_u32_t period_ms, lh_exec_loop_step_cb step, lh_ptr us
     lh_exec_loop_set_period_ms(self, period_ms);
     lh_exec_loop_set_started(self, lh_bool_false);
     lh_exec_loop_set_last_step(self, lh_bool_false);
+    lh_exec_loop_set_release_fn(self, lh_null);
+    lh_exec_loop_set_release_user(self, lh_null);
     lh_exec_loop_init_flags(self);
     lh_timer_group_init(lh_exec_loop_get_timers_mut(self));
     lh_os_thread_init(lh_exec_loop_get_thread_mut(self));

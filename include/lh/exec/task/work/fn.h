@@ -7,6 +7,9 @@
 #define LH_EXEC_TASK_WORK_FN_H
 
 #include <lh/core/ptr.h>
+#include <lh/core/compiler/extern/c.h>
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @typedef lh_exec_task_work_fn
@@ -19,5 +22,7 @@
  * ::lh_exec_task_work_cb for a pointer.
  */
 typedef lh_void(lh_exec_task_work_fn)(lh_ptr user, lh_ptr local);
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_EXEC_TASK_WORK_FN_H */

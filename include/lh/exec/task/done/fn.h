@@ -7,6 +7,9 @@
 #define LH_EXEC_TASK_DONE_FN_H
 
 #include <lh/core/ptr.h>
+#include <lh/core/compiler/extern/c.h>
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @typedef lh_exec_task_done_fn
@@ -19,5 +22,7 @@
  * itself; use ::lh_exec_task_done_cb for a pointer.
  */
 typedef lh_void(lh_exec_task_done_fn)(lh_ptr user);
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_EXEC_TASK_DONE_FN_H */
