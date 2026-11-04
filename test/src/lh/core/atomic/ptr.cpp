@@ -4,7 +4,9 @@
 #include <lh/core/atomic/ptr/initializer.h>
 #include <lh/expect/death.h>
 
+#include <atomic>
 #include <thread>
+#include <vector>
 
 namespace
 {
@@ -62,6 +64,58 @@ TEST(atomic_ptr_get_acquire, sees_what_was_written_before_the_release)
         ASSERT_EQ(seen.a, round);
         ASSERT_EQ(seen.b, round + 1);
     }
+}
+
+TEST(atomic_ptr_set_relaxed, stores_the_value)
+{
+    int target = 0;
+    lh_atomic_ptr_t slot = lh_atomic_ptr_initializer(lh_null);
+    lh_atomic_ptr_set_relaxed(&slot, &target);
+    EXPECT_EQ(lh_atomic_ptr_get_acquire(&slot), &target);
+}
+
+TEST(atomic_ptr_exchange_acq_rel, returns_the_value_before)
+{
+    int first = 0;
+    int second = 0;
+    lh_atomic_ptr_t slot = lh_atomic_ptr_initializer(&first);
+    EXPECT_EQ(lh_atomic_ptr_exchange_acq_rel(&slot, &second), &first);
+    EXPECT_EQ(lh_atomic_ptr_get_acquire(&slot), &second);
+    EXPECT_EQ(lh_atomic_ptr_exchange_acq_rel(&slot, lh_null), &second);
+}
+
+/* Each exchange takes exactly one value: across threads every token is seen once. */
+TEST(atomic_ptr_exchange_acq_rel, hands_each_value_to_one_thread)
+{
+    constexpr int per_thread = 10000;
+    static int tokens[4 * per_thread];
+    lh_atomic_ptr_t slot = lh_atomic_ptr_initializer(lh_null);
+    std::atomic<int> seen{0};
+    std::vector<std::thread> threads;
+    for (int t = 0; t < 4; ++t)
+    {
+        threads.emplace_back(
+            [&, t]
+            {
+                for (int i = 0; i < per_thread; ++i)
+                {
+                    if (lh_atomic_ptr_exchange_acq_rel(&slot, &tokens[t * per_thread + i]) !=
+                        lh_null)
+                    {
+                        seen.fetch_add(1);
+                    }
+                }
+            });
+    }
+    for (auto &thread : threads)
+    {
+        thread.join();
+    }
+    if (lh_atomic_ptr_exchange_acq_rel(&slot, lh_null) != lh_null)
+    {
+        seen.fetch_add(1);
+    }
+    EXPECT_EQ(seen.load(), 4 * per_thread);
 }
 
 TEST(atomic_ptr_death, rejects_null_object)

@@ -66,6 +66,34 @@ lh_atomic_ptr_get_acquire(const lh_atomic_ptr_t *self);
 lh_void
 lh_atomic_ptr_set_release(lh_atomic_ptr_t *self, lh_ptr value);
 
+/**
+ * @brief Store @p value with relaxed order.
+ *
+ * The pointer itself is never torn, but nothing else is ordered around it: for
+ * an object no other thread can reach yet, or one that a later release
+ * operation publishes.
+ *
+ * @param self  Object to write; must not be null.
+ * @param value Pointer to store (may be ::lh_null).
+ */
+lh_void
+lh_atomic_ptr_set_relaxed(lh_atomic_ptr_t *self, lh_ptr value);
+
+/**
+ * @brief Replace the pointer with @p value with acquire-release order.
+ *
+ * One indivisible step: no other thread's store lands between the read of the
+ * old value and the write of the new one. What the caller did before is
+ * visible to whoever acquires @p value, and what the thread that stored the
+ * old value did before is visible to the caller.
+ *
+ * @param self  Object to change; must not be null.
+ * @param value New pointer (may be ::lh_null).
+ * @return The pointer before the replacement.
+ */
+lh_ptr
+lh_atomic_ptr_exchange_acq_rel(lh_atomic_ptr_t *self, lh_ptr value);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_ATOMIC_PTR_H */
