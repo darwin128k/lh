@@ -1,60 +1,52 @@
 #include <lh/runtime/check.h>
 #include <lh/attribute/unused.h>
+#include <lh/runtime/check/handler/initializer.h>
 #include <lh/char/map.h>
-#include <lh/attribute/thread_local.h>
 #include <lh/exception/initializer.h>
 #include <lh/runtime/error/initializer.h>
 #include <lh/runtime/terminate.h>
-
-#if (LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB == LH_LIBRARY_OPTION_ON)
-#    include <lh/math.h>
-
-#    include <stdio.h>
+#include <lh/math.h>
+#include <lh/runtime/logger.h>
 
 /* Room for a report with a long source path; a longer one falls back to the
    code alone rather than being cut. */
-#    define LH_RUNTIME_CHECK_REPORT_TEXT_MAX 1024U
+#define LH_RUNTIME_CHECK_REPORT_TEXT_MAX 1024U
 
 lh_void
-lh_runtime_check_fail_default(const lh_exception_t *exception)
+lh_runtime_check_fail_default(lh_self_ptr self, const lh_exception_t *exception)
 {
+    LH_ATTRIBUTE_UNUSED(self);
+    lh_logger_t *logger = lh_runtime_logger_get_mut();
     lh_char_t text[LH_RUNTIME_CHECK_REPORT_TEXT_MAX];
     const lh_usize_t n =
         lh_exception_format(exception, text, LH_RUNTIME_CHECK_REPORT_TEXT_MAX - 1U);
-
     if (lh_math_is_zero(n))
     {
-        LH_ATTRIBUTE_UNUSED(fprintf(stderr, "lh: runtime check failed: error %d\n",
-                                    lh_exception_get_code(exception)));
+        LH_ATTRIBUTE_UNUSED(lh_logger_critical(logger, "lh: runtime check failed: error %d",
+                                               lh_exception_get_code(exception)));
+        return;
     }
-    else
-    {
-        text[n] = lh_char_map_nul;
-        LH_ATTRIBUTE_UNUSED(fputs(text, stderr));
-    }
-    LH_ATTRIBUTE_UNUSED(fflush(stderr));
+    /* The report ends its last line; the logger ends the record itself. */
+    text[lh_math_sub_one(n)] = lh_char_map_nul;
+    LH_ATTRIBUTE_UNUSED(lh_logger_critical(logger, "%s", text));
 }
-#else
-lh_void
-lh_runtime_check_fail_default(const lh_exception_t *exception)
+
+/* One object for the whole program, empty until the host fills it: the core
+   has no C library and no defaults. The host fills it before the first use
+   and before it starts other threads, so every thread sees the same one. */
+lh_runtime_check_handler_t m_runtime_check =
+    lh_runtime_check_handler_initializer(lh_runtime_check_fail_default, lh_null);
+
+lh_runtime_check_handler_t *
+lh_runtime_check_get_mut(void)
 {
-    LH_ATTRIBUTE_UNUSED(exception); /* no C library to report through: the host installs its own */
+    return lh_addr_of(m_runtime_check);
 }
-#endif
 
-LH_ATTRIBUTE_THREAD_LOCAL
-lh_runtime_check_fail_cb m_runtime_check_fail = lh_runtime_check_fail_default;
-
-lh_runtime_check_fail_cb
+const lh_runtime_check_handler_t *
 lh_runtime_check_get(void)
 {
-    return m_runtime_check_fail;
-}
-
-lh_void
-lh_runtime_check_set(lh_runtime_check_fail_cb fn)
-{
-    m_runtime_check_fail = lh_ptr_is_set(fn) ? fn : lh_runtime_check_fail_default;
+    return lh_addr_of(m_runtime_check);
 }
 
 lh_void
@@ -65,6 +57,6 @@ lh_runtime_check_fail(const lh_exception_origin_t *origin, lh_runtime_error_code
             code, lh_ptr_is_set(origin) ? lh_exception_origin_get_message(origin) : lh_null),
         origin);
 
-    m_runtime_check_fail(lh_addr_of(exception));
+    lh_runtime_check_handler_call(lh_runtime_check_get(), lh_addr_of(exception));
     lh_runtime_terminate();
 }

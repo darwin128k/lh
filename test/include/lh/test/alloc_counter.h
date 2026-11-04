@@ -53,14 +53,14 @@ class alloc_counter
 public:
     alloc_counter()
     {
-        lh_memory_allocator_assign(&m_saved, lh_runtime_allocator());
-        lh_memory_allocator_set(lh_runtime_allocator(), counting_alloc, counting_dealloc);
+        lh_memory_allocator_assign(&m_saved, lh_runtime_allocator_get());
+        lh_memory_allocator_set(lh_runtime_allocator_get_mut(), counting_alloc, counting_dealloc);
         alloc_count() = 0;
     }
 
     ~alloc_counter()
     {
-        lh_memory_allocator_assign(lh_runtime_allocator(), &m_saved);
+        lh_memory_allocator_assign(lh_runtime_allocator_get_mut(), &m_saved);
     }
 
     alloc_counter(const alloc_counter &) = delete;

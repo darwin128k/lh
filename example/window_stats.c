@@ -15,8 +15,11 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <lh/os/app.h>
+#include <lh/runtime/allocator.h>
+#include <lh/runtime/terminate.h>
 #include <lh/os/window.h>
 #include <lh/math/rect.h>
 #include <lh/ui/frame/stats.h>
@@ -150,6 +153,29 @@ on_close(lh_os_window_t *self, lh_os_window_close_reason_t reason, lh_ptr contex
     }
 }
 
+/* The example is a host: the core starts with every runtime slot empty, so it
+   binds the C library before lh allocates anything. */
+static lh_ptr
+example_alloc(lh_self_ptr self, lh_usize_t size)
+{
+    (void)self;
+    return malloc(size);
+}
+
+static lh_void
+example_dealloc(lh_self_ptr self, lh_ptr ptr)
+{
+    (void)self;
+    free(ptr);
+}
+
+static lh_void
+example_abort(lh_self_ptr self)
+{
+    (void)self;
+    abort();
+}
+
 int
 main(void)
 {
@@ -157,6 +183,8 @@ main(void)
     lh_os_window_t win;
     lh_ui_frame_stats_t stats;
 
+    lh_memory_allocator_init(lh_runtime_allocator_get_mut(), example_alloc, example_dealloc);
+    lh_runtime_terminate_handler_init(lh_runtime_terminate_get_mut(), example_abort, NULL);
     lh_os_app_init(lh_addr_of(app));
     lh_os_window_init(lh_addr_of(win));
     lh_ui_frame_stats_init(lh_addr_of(stats));

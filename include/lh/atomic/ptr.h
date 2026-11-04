@@ -18,7 +18,7 @@
  * Built on the compiler's atomic operations on an ordinary object (GCC/Clang
  * `__atomic`, MSVC `_Interlocked`): the struct is the same in C and C++ and can
  * sit in any other struct. A pointer that is not lock-free on the target fails
- * the build. For a function pointer see ::lh_atomic_fn_ptr_t.
+ * the build.
  */
 
 #ifndef LH_ATOMIC_PTR_H

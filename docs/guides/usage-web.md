@@ -134,6 +134,7 @@ main(int argc, char **argv)
     lh_os_app_t app;
     lh_os_window_t window;
 
+    my_host_install();               /* allocator, terminate, logger: see the README */
     lh_os_app_init(lh_addr_of(app));
     lh_os_window_init(lh_addr_of(window));
     if (!my_main_init(lh_addr_of(self)))
@@ -164,14 +165,14 @@ main(int argc, char **argv)
                                    json, sizeof(json), lh_ptr_rcast(lh_byte_t, page),
                                    sizeof(page), lh_addr_of(hooks)))
         {
-            lh_logger_error(lh_runtime_logger(), "player page would not build");
+            lh_logger_error(lh_runtime_logger_get_mut(), "player page would not build");
             return 1;
         }
 
         /* Does not return on success. */
         if (!lh_ui_web_host_run(lh_ui_web_player_get_app(lh_addr_of(player)), port))
         {
-            lh_logger_error(lh_runtime_logger(), "listen %u failed", (unsigned)port);
+            lh_logger_error(lh_runtime_logger_get_mut(), "listen %u failed", (unsigned)port);
             return 1;
         }
         return 0;

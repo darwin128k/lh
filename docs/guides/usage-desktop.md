@@ -71,6 +71,7 @@ main(void)
     lh_os_window_t window;
     static struct my_main self;      /* static: the state can be large */
 
+    my_host_install();               /* allocator, terminate, logger: see the README */
     lh_os_app_init(lh_addr_of(app));
     lh_os_window_init(lh_addr_of(window));
 
@@ -498,5 +499,5 @@ does.
   `set_canvas(original)`.
 - **Scripted input.** `CFG_CLICK=x,y` and `CFG_ENTER=1` call the same
   `on_press` / `on_release` / `on_key` the window does — reproducible bugs.
-- **Log.** `lh_logger_info(lh_runtime_logger(), "...")` writes to stderr by
-  default.
+- **Log.** `lh_logger_info(lh_runtime_logger_get_mut(), "...")` writes to stderr
+  once the program has installed a logger over stderr (the README section "What the host must install before using lh").

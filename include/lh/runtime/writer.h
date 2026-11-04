@@ -2,18 +2,19 @@
  * @file writer.h
  * @brief The runtime writer: the ::lh_io_writer_t library code reaches for.
  *
- * Same idea as ::lh_runtime_allocator / ::lh_runtime_logger: one instance the
- * host configures, so lh never hardcodes UART, a socket, or `FILE *`. With
- * ::LH_LIBRARY_OPTION_RUNTIME_IO_USE_STDLIB on (the default) it starts as
- * `stdout`; off, it starts empty until the application installs a sink:
+ * Same idea as ::lh_runtime_allocator_get_mut / ::lh_runtime_logger_get_mut: one instance the
+ * host configures, so lh never hardcodes UART, a socket, or `FILE *`. It
+ * starts empty until the host installs a sink (`stdout`, a UART, …):
  *
  * @code
- * lh_runtime_writer_init(usart_write_cb, lh_null);
+ * lh_io_writer_init(lh_runtime_writer_get_mut(), usart_write_cb, lh_null);
  * lh_runtime_writer_write("hi\r\n", 4);
  * @endcode
  *
- * When thread-local mode is enabled, each thread has its own instance.
- */
+ * The slot is one object for the whole program, empty until the host fills it
+ * through ::lh_runtime_writer_get_mut — before the first use and before it starts
+ * other threads (a thread sees everything written before it was created).
+ * Every thread, the ones LH starts and the host's own, uses the same object. */
 
 #ifndef LH_RUNTIME_WRITER_H
 #define LH_RUNTIME_WRITER_H
@@ -24,46 +25,46 @@
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/** The default writer callback: `stdout`. */
-lh_ssize_t
-lh_runtime_writer_stdout(lh_self_ptr self, const lh_ptr buf, lh_usize_t size);
-
 /**
- * @brief Return address of the runtime writer instance.
- * @return Pointer to the internal ::lh_io_writer_t (never null).
+ * @brief Return the runtime writer, for change.
+ *
+ * One object for every thread. The host fills it before the first use and
+ * before it starts other threads; a change while other threads use it is a
+ * data race.
+ *
+ * @return The runtime ::lh_io_writer_t (never null).
  */
 lh_io_writer_t *
-lh_runtime_writer(void);
+lh_runtime_writer_get_mut(void);
 
 /**
- * @brief Install a sink on ::lh_runtime_writer().
+ * @brief Return the runtime writer.
  *
- * Same as ::lh_io_writer_init(::lh_runtime_writer(), @p write_cb, @p context).
+ * Same object as ::lh_runtime_writer_get_mut, read-only.
  *
- * @param write_cb Write callback (may be ::lh_null to disable).
- * @param context  Passed to @p write_cb on every call.
+ * @return The runtime ::lh_io_writer_t (never null).
  */
-lh_void
-lh_runtime_writer_init(lh_io_writer_write_cb write_cb, lh_ptr context);
+const lh_io_writer_t *
+lh_runtime_writer_get(void);
 
 /**
- * @brief Write through ::lh_runtime_writer().
+ * @brief Write through ::lh_runtime_writer_get_mut().
  *
- * Same as ::lh_io_writer_write(::lh_runtime_writer(), @p buf, @p size).
+ * Same as ::lh_io_writer_write(::lh_runtime_writer_get_mut(), @p buf, @p size).
  */
 lh_ssize_t
 lh_runtime_writer_write(const lh_ptr buf, lh_usize_t size);
 
 /**
- * @brief Write every byte through ::lh_runtime_writer().
+ * @brief Write every byte through ::lh_runtime_writer_get_mut().
  *
- * Same as ::lh_io_writer_write_all(::lh_runtime_writer(), @p buf, @p size).
+ * Same as ::lh_io_writer_write_all(::lh_runtime_writer_get_mut(), @p buf, @p size).
  */
 lh_bool_t
 lh_runtime_writer_write_all(const lh_ptr buf, lh_usize_t size);
 
 /**
- * @brief printf-style write through ::lh_runtime_writer().
+ * @brief printf-style write through ::lh_runtime_writer_get_mut().
  *
  * Formats with ::lh_str_ptr_format_text (not libc printf) into a
  * ::LH_IO_WRITER_PRINT_CAPACITY stack buffer, then

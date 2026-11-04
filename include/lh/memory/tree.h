@@ -199,7 +199,7 @@ lh_memory_tree_allocator_realloc(lh_self_ptr self, lh_ptr ptr, lh_usize_t old_si
  *
  * Its alloc is ::lh_memory_tree_alloc_child of @p root, its dealloc
  * ::lh_memory_tree_free and its realloc ::lh_memory_tree_realloc. Installed
- * as the runtime allocator (::lh_runtime_allocator), everything lh allocates
+ * as the runtime allocator (::lh_runtime_allocator_get_mut), everything lh allocates
  * meanwhile belongs to @p root and is freed with it at the latest.
  *
  * @param self Allocator to set up (its previous state is overwritten).

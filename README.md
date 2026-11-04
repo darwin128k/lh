@@ -24,10 +24,10 @@ from Windows XP up, X11) and a browser — see [Usage](#usage).
 - **Compound literals** — `lh_initializer`, `lh_initializer_of_type`, … in `lh/initializer.h`
 - **Member-offset utility** — `lh_offset_of` macro in `lh/offset.h` for compile-time layout checks
 - **Macro utilities** — argument token concatenation (`lh_arg_concat`) and count (`lh_arg_get_count`) for variadic macro dispatch in `lh/util/arg.h`
-- **Runtime assertions** — `lh_assert_runtime`, `lh_assert_runtime_if`, `lh_assert_runtime_ifn`, `lh_assert_runtime_ref` — contract checks in `lh/assert.h`, written as `(condition, code [, "message"])`: on failure an `lh_exception_t` (`lh/exception.h`: the error — code and message — plus its static origin — file, line, function, condition; amount set by `LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT`) goes to the host's handler (`lh_runtime_check_set`), then `lh_runtime_terminate` (`abort()` by default); compiled out in Release (`NDEBUG`), optionally a call-free trap (`LH_RUNTIME_ASSERT_TRAP`). `lh_runtime_check_*` are the always-on checks for environment failures (e.g. allocation).
+- **Runtime assertions** — `lh_assert_runtime`, `lh_assert_runtime_if`, `lh_assert_runtime_ifn`, `lh_assert_runtime_ref` — contract checks in `lh/assert.h`, written as `(condition, code [, "message"])`: on failure an `lh_exception_t` (`lh/exception.h`: the error — code and message — plus its static origin — file, line, function, condition; amount set by `LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT`) goes to the host's handler (`lh_runtime_check_get_mut`), then `lh_runtime_terminate` (`abort()` by default); compiled out in Release (`NDEBUG`), optionally a call-free trap (`LH_RUNTIME_ASSERT_TRAP`). `lh_runtime_check_*` are the always-on checks for environment failures (e.g. allocation).
 - **Errors** — `lh_error_t` (code + description); description type is `lh_error_desc_t` in `lh/error/desc.h` (today an alias of `lh_str_cptr`)
 - **Memory & intervals** — non-owning memory views (`lh_memory_view_t`) and bounds (`lh_memory_bounds_t`) with front/back and indexed access, validated and fallback APIs (`*_v`, `*_or_empty`); numeric interval helpers and binary-search macros used by table lookups
-- **Memory allocator** — configurable alloc/dealloc callback pair (`lh_memory_allocator_t`, `lh/memory/allocator.h`) with pack/unpack/init/set and validated alloc/dealloc/realloc; a thread-local runtime singleton (`lh_runtime_allocator()`, `lh/runtime/allocator.h`) seeded at compile time from a configurable default pair (`malloc`/`free` unless overridden — see Library options below)
+- **Memory allocator** — configurable alloc/dealloc callback pair (`lh_memory_allocator_t`, `lh/memory/allocator.h`) with pack/unpack/init/set and validated alloc/dealloc/realloc; a thread-local runtime singleton (`lh_runtime_allocator_get_mut()`, `lh/runtime/allocator.h`) seeded at compile time from a configurable default pair (`malloc`/`free` unless overridden — see Library options below)
 - **Heap-owning memory bounds** — `lh_memory_bounds_allocated_t` (`lh/memory/bounds/allocated.h`) is layout-identical to `lh_memory_bounds_t` but routes `clear` / `resize` / `exchange` through the runtime allocator, freeing or reallocating the owned block as needed
 - **Growable containers** — `lh_array_t` (`lh/array.h`), a typed growable array (push/insert/erase/pop_back/reserve, amortized growth policy) backed by a heap-owning typed block; `lh_str_t` (`lh/str.h`), an owning NUL-terminated string built directly on `lh_array_t` (`init`/`deinit`, `push_back`/`append`, `clear`, conversion to `lh_str_view_t`)
 - **Wide text** — `lh_wchar_t`, raw wide-string helpers, Unicode simple case mapping for buffers and single-code-point case fold (UCD-backed tables under `src/lh/util/wstr/` and `src/lh/util/wchar/`)
@@ -125,13 +125,7 @@ Manual (no-CMake) builds set the same names directly in `config.h` or via `-D`.
 | `LH_LIBRARY_OPTION_OS_WERROR` | `ON` on Windows, else `OFF` | OS last-error slot uses `lh_werror_t` / `FormatMessageW` instead of `lh_error_t` / `FormatMessageA` |
 | `LH_LIBRARY_OPTION_MATH_FPU` | `OFF` | `ON`: compile float math (`fpoint` / `fsize` / `frect`, `vec` / `quat` / `mat4`) on `lh_math_fscalar_t`; UI aliases those. `OFF`: UI aliases `lh_math_scalar_t` / `point` / `size` / `rect` |
 | `LH_LIBRARY_OPTION_REAL` | `DOUBLE` | `lh_real_t` for `lh_value_t`: `DOUBLE`, `FLOAT`, or `NONE` (no real kind, no soft-float from values) |
-| `LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB` | `ON` | Default `lh_runtime_terminate` handler is `abort()` and the default check handler prints to `stderr`; `OFF` leaves both to the host |
 | `LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT` | `FULL` | What a failed runtime check reports (`lh_exception_origin_t`): `NONE` (error code only), `LOCATION` (+ file, line, message), `FULL` (+ function and condition text) |
-| `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB` | `ON` | Seed the runtime allocator with the default functions below at startup; `OFF` leaves it null until `lh_memory_allocator_set()` is called |
-| `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC` | `malloc` | Function bound as the runtime allocator's `alloc_cb` (e.g. `pvPortMalloc`) |
-| `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_DEALLOC` | `free` | Function bound as the runtime allocator's `dealloc_cb` (e.g. `vPortFree`) |
-| `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_REALLOC` | `realloc` with `malloc`/`free`, else `lh_null` | Function bound as the runtime allocator's optional `realloc_cb` |
-| `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_INCLUDE` | `<stdlib.h>` | Header declaring the functions above |
 | `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED` | `ON` | Zero-initialize memory returned by `lh_memory_allocator_alloc` |
 | `LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY` | `1` | Capacity `lh_array_t` grows to from empty on its first insertion (must be `> 0`) |
 | `LH_LIBRARY_OPTION_ARRAY_GROWTH_FACTOR` | `2` | Factor by which `lh_array_t` capacity grows when full (must be `> 1`) |
@@ -149,15 +143,53 @@ Manual (no-CMake) builds set the same names directly in `config.h` or via `-D`.
 
 Every `MEMORY_STD_*` value above is a measured crossover point (this project's own x86-64 GCC/MinGW and MSVC targets), not a correctness fact — retuning for a different microarchitecture is always safe to try. See the option comments in `cmake/library_options.cmake` for the full rationale.
 
-Example — bind the runtime allocator to a custom pair at compile time instead
-of writing `lh_memory_allocator_set()` init code:
+### What the host must install before using lh
 
-```sh
-cmake -S . -B build \
-  -DLH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC=pvPortMalloc \
-  -DLH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_DEALLOC=vPortFree \
-  -DLH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_INCLUDE=<FreeRTOS.h>
+The core (`lh`) uses no C library and has no defaults. Its runtime slots start
+empty, and every lh object that needs a service takes it from them — it does
+not care what the host put there:
+
+| Slot | Needed by | Without it |
+|---|---|---|
+| allocator (`lh_runtime_allocator_get_mut`) | anything that grows: `lh_array_t`, `lh_str_t`, trees, the OS layer's threads and loops | the first allocation fails its check, then terminate |
+| terminate (`lh_runtime_terminate_get_mut`) | failed checks and broken invariants | a compiler trap (`lh_compiler_trap`) |
+| logger (`lh_runtime_logger_get_mut`) | `lh_logger_*` on the runtime logger, the default failed-check report | records are dropped |
+| writer (`lh_runtime_writer_get_mut`) | `lh_runtime_writer_*`, `lh_runtime_stream_*` | nothing is written |
+| reader (`lh_runtime_reader_get_mut`) | `lh_runtime_reader_*`, `lh_runtime_stream_*` | nothing is read |
+| check (`lh_runtime_check_get_mut`) | a failed check, before terminate | the default report on the logger |
+
+Each slot is one object for the whole program. Fill it **first thing in
+`main`, before the first use and before starting other threads** — a thread
+sees everything written before it was created, so every thread then uses the
+same object. Callbacks take the slot's context first (`self`), so C functions
+are wrapped, never cast: calling a function through a pointer of another type
+is undefined behaviour.
+
+A hosted program over the C library:
+
+```c
+#include <lh/runtime/allocator.h>
+#include <lh/runtime/terminate.h>
+
+#include <stdlib.h>
+
+static lh_ptr  host_alloc(lh_self_ptr self, lh_usize_t size) { (void)self; return malloc(size); }
+static lh_void host_free(lh_self_ptr self, lh_ptr ptr)       { (void)self; free(ptr); }
+static lh_void host_abort(lh_self_ptr self)                  { (void)self; abort(); }
+
+int main(void)
+{
+    lh_memory_allocator_init(lh_runtime_allocator_get_mut(), host_alloc, host_free);
+    lh_runtime_terminate_handler_init(lh_runtime_terminate_get_mut(), host_abort, lh_null);
+    /* the same for the logger and the writer if the program uses them */
+    /* ... */
+}
 ```
+
+A firmware does the same with its own pieces: a pool or `pvPortMalloc` /
+`vPortFree` for the allocator, a UART for the writer and the logger, a board
+reset or `HardFault_Handler` for terminate. `test/src/main.cpp` is a complete
+example that also installs a logger and a writer.
 
 ### Generating documentation
 

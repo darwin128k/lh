@@ -15,8 +15,6 @@
  * `LH_LIBRARY_OPTION_ARRAY_GROWTH_FACTOR` (must be > 1),
  * `LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK` (must be > 0), and the
  * `LH_LIBRARY_OPTION_MEMORY_STD_*` tuning thresholds below (must be > 0).
- * The `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_*` options take raw
- * C tokens instead (e.g. `malloc`, `free`, `<stdlib.h>`).
  * `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2` / `_SSSE3` / `_AVX2` / `_AESNI` are toolchain capability probes
  * (see `cmake/check_simd.cmake`; `-DLH_SIMD_HAVE_<TIER>=0` on the CMake command
  * line skips a probe and turns that tier off) — for a manual build, `0` is always a safe
@@ -127,28 +125,6 @@
 
 
 /**
- * @def LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB
- * @brief Default terminate handler uses `abort()`
- *        from the C library (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).
- */
-#define LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB @ValRtStdlib@
-
-/**
- * @def LH_LIBRARY_OPTION_RUNTIME_LOGGER_USE_STDLIB
- * @brief Default runtime logger writes every level to `stderr`
- *        from the C library (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).
- */
-#define LH_LIBRARY_OPTION_RUNTIME_LOGGER_USE_STDLIB @ValRtLoggerStdlib@
-
-/**
- * @def LH_LIBRARY_OPTION_RUNTIME_IO_USE_STDLIB
- * @brief Default runtime writer/reader use `stdout`/`stdin`
- *        from the C library (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).
- *        OFF: empty until the host installs callbacks (UART on STM, …).
- */
-#define LH_LIBRARY_OPTION_RUNTIME_IO_USE_STDLIB @ValRtIoStdlib@
-
-/**
  * @def LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT
  * @brief What a failed runtime check hands to its handler:
  *        `0` nothing, `1` file + line, `2` also function + condition
@@ -162,49 +138,6 @@
  *        `float`, `2` `double` (::LH_REAL_NONE / _FLOAT / _DOUBLE).
  */
 #define LH_LIBRARY_OPTION_REAL @ValReal@
-
-/**
- * @def LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB
- * @brief Default runtime allocator uses `malloc`/`free`
- *        from the C library (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).
- */
-#define LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB @ValAllocatorStdlib@
-
-/**
- * @def LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC
- * @brief Function bound as the default runtime allocator's `alloc_cb`
- *        when ::LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB is on (default `malloc`).
- */
-#define LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC @ValAllocatorDefaultAlloc@
-
-/**
- * @def LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_DEALLOC
- * @brief Function bound as the default runtime allocator's `dealloc_cb`
- *        when ::LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB is on (default `free`).
- */
-#define LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_DEALLOC @ValAllocatorDefaultDealloc@
-
-/**
- * @def LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_REALLOC
- * @brief Function bound as the default runtime allocator's `realloc_cb`
- *        (default `realloc` for the stdlib pair, ::lh_null otherwise — then
- *        growth falls back to alloc + copy + dealloc).
- */
-#define LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_REALLOC @ValAllocatorDefaultRealloc@
-
-/**
- * @def LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_HAS_REALLOC
- * @brief 1 when ::LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_REALLOC names a
- *        function, 0 when it is ::lh_null (set by CMake from that option).
- */
-#define LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_HAS_REALLOC @ValAllocatorDefaultHasRealloc@
-
-/**
- * @def LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_INCLUDE
- * @brief Header declaring ::LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC
- *        and ::LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_DEALLOC (default `<stdlib.h>`).
- */
-#define LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_INCLUDE @ValAllocatorDefaultInclude@
 
 /**
  * @def LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED

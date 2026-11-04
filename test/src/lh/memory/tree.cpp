@@ -225,8 +225,8 @@ TEST_F(MemoryTree, as_runtime_allocator_lh_containers_land_in_the_sandbox)
     lh_memory_tree_allocator_init(&tree_allocator, sandbox);
 
     lh_memory_allocator_t saved;
-    lh_memory_allocator_assign(&saved, lh_runtime_allocator());
-    lh_memory_allocator_assign(lh_runtime_allocator(), &tree_allocator);
+    lh_memory_allocator_assign(&saved, lh_runtime_allocator_get());
+    lh_memory_allocator_assign(lh_runtime_allocator_get_mut(), &tree_allocator);
 
     // A "module" that allocates and forgets to free.
     lh_array_t leaked;
@@ -236,7 +236,7 @@ TEST_F(MemoryTree, as_runtime_allocator_lh_containers_land_in_the_sandbox)
         lh_array_push_back(&leaked, &i); // grows: realloc inside the tree
     }
 
-    lh_memory_allocator_assign(lh_runtime_allocator(), &saved);
+    lh_memory_allocator_assign(lh_runtime_allocator_get_mut(), &saved);
 
     EXPECT_NE(lh_memory_tree_get_first_child(sandbox), nullptr);
     EXPECT_EQ(lh_memory_tree_get_parent(lh_array_get_data(&leaked)), sandbox);

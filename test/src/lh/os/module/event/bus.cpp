@@ -240,12 +240,12 @@ TEST_F(event_bus, failed_registration_and_subscription_preserve_existing_state)
     handler fn = [](const char *, void *) { return lh_os_module_event_result_handled; };
     subscribe(event, fn);
     lh_memory_allocator_t saved;
-    lh_memory_allocator_assign(&saved, lh_runtime_allocator());
+    lh_memory_allocator_assign(&saved, lh_runtime_allocator_get());
     auto restore =
         std::unique_ptr<lh_memory_allocator_t, std::function<void(lh_memory_allocator_t *)>>(
             &saved,
-            [](auto *allocator) { lh_memory_allocator_assign(lh_runtime_allocator(), allocator); });
-    lh_memory_allocator_set_alloc_cb(lh_runtime_allocator(), nullptr);
+            [](auto *allocator) { lh_memory_allocator_assign(lh_runtime_allocator_get_mut(), allocator); });
+    lh_memory_allocator_set_alloc_cb(lh_runtime_allocator_get_mut(), nullptr);
     EXPECT_EQ(lh_os_module_event_bus_try_get_id(get_bus(), "test.live"), event);
     EXPECT_EQ(lh_os_module_event_bus_try_get_id(get_bus(), "test.failed"), 0u);
     EXPECT_EQ(lh_os_module_event_bus_try_subscribe(get_bus(), event, nullptr, invoke, &fn, nullptr),
@@ -330,17 +330,17 @@ count_free(lh_self_ptr self, lh_ptr block)
 TEST_F(event_bus, every_registration_allocation_failure_rolls_back_and_can_be_retried)
 {
     lh_memory_allocator_t saved;
-    lh_memory_allocator_assign(&saved, lh_runtime_allocator());
+    lh_memory_allocator_assign(&saved, lh_runtime_allocator_get());
     auto restore =
         std::unique_ptr<lh_memory_allocator_t, std::function<void(lh_memory_allocator_t *)>>(
             &saved,
-            [](auto *allocator) { lh_memory_allocator_assign(lh_runtime_allocator(), allocator); });
+            [](auto *allocator) { lh_memory_allocator_assign(lh_runtime_allocator_get_mut(), allocator); });
     for (int failure = 0; failure < 3; ++failure)
     {
         SCOPED_TRACE(failure);
         allocation_state state = {failure, 0};
-        lh_memory_allocator_init(lh_runtime_allocator(), fail_after, count_free);
-        lh_memory_allocator_set_context(lh_runtime_allocator(), &state);
+        lh_memory_allocator_init(lh_runtime_allocator_get_mut(), fail_after, count_free);
+        lh_memory_allocator_set_context(lh_runtime_allocator_get_mut(), &state);
         lh_os_module_event_bus_t local;
         lh_os_module_event_bus_init(&local);
         EXPECT_EQ(lh_os_module_event_bus_try_get_id(&local, "test.retry"), 0u);

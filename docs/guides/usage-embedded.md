@@ -29,12 +29,8 @@ if (F4VE_USE_LH)
     # Roboto 16 px / 4bpp — text on the TFT
     set(LH_LIBRARY_OPTION_UI_FONT_ROBOTO  ON CACHE BOOL "" FORCE)
 
-    # No TLS, no default malloc/abort/stdio — the host wires them
-    set(LH_LIBRARY_OPTION_THREAD_LOCAL                 OFF CACHE BOOL "" FORCE)
-    set(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB  OFF CACHE BOOL "" FORCE)
-    set(LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB OFF CACHE BOOL "" FORCE)
-    set(LH_LIBRARY_OPTION_RUNTIME_LOGGER_USE_STDLIB    OFF CACHE BOOL "" FORCE)
-    set(LH_LIBRARY_OPTION_RUNTIME_IO_USE_STDLIB        OFF CACHE BOOL "" FORCE)
+    # No TLS; lh has no C library — the host wires allocator/terminate/output itself
+    set(LH_LIBRARY_OPTION_THREAD_LOCAL OFF CACHE BOOL "" FORCE)
 
     set(LH_LIBRARY_OPTION_LTO OFF CACHE STRING "" FORCE)
     # Bare metal: no loader to fix up .got
@@ -54,8 +50,8 @@ Why:
   the toolchain file (`cmake/arm-none-eabi.cmake`) passes `-fno-pic -fno-pie`.
 - **`LTO=OFF`** — an archive of machine code links with any
   `arm-none-eabi-gcc`, no LTO plugin required.
-- **`*_USE_STDLIB=OFF`** — otherwise `malloc`, `abort` and `stdout` are pulled
-  into the firmware. The host installs its own handlers instead (section 2).
+- **No C library in lh** — the core calls no `malloc`, `abort` or `stdout`.
+  The host installs its own handlers instead (section 2).
 
 Toolchain:
 
@@ -79,8 +75,8 @@ cmake --build build
 
 ## 2. Runtime: `src/app.c`, `src/board.c`
 
-With `*_USE_STDLIB=OFF` the runtime has no output and no fatal exit. The
-first thing the application does is wire them:
+The core starts with no output and no fatal exit: an empty terminate handler
+ends in a compiler trap. The first thing the application does is wire them:
 
 ```c
 #include <lh/null.h>
@@ -88,26 +84,27 @@ first thing the application does is wire them:
 #include <lh/runtime/writer.h>
 
 static void
-host_terminate(void)
+host_terminate(lh_self_ptr self)
 {
     extern void HardFault_Handler(void);
+    (void)self;
     HardFault_Handler();          /* failed contract → into the debugger */
 }
 
 void
 f4ve_app_run(void)
 {
-    lh_runtime_terminate_set_process(host_terminate);
-    lh_runtime_writer_init(f4ve_usart1_writer_cb, lh_null);
+    lh_runtime_terminate_handler_init(lh_runtime_terminate_get_mut(), host_terminate, lh_null);
+    lh_io_writer_init(lh_runtime_writer_get_mut(), f4ve_usart1_writer_cb, lh_null);
     /* ... */
 }
 ```
 
-`lh_runtime_terminate_set_process` installs the handler for the whole
-program: every thread (RTOS task) that uses LH afterwards starts with it, so
-call it before the scheduler starts other tasks. `lh_runtime_terminate_set`
-changes the calling thread only. The runtime allocator has the same pair:
-`lh_runtime_allocator_init_process` and `lh_runtime_allocator_init`.
+Each runtime slot is one object for the whole program, filled through
+`lh_runtime_<slot>_get_mut()` with the type's own `_init`: do it before the
+scheduler starts other tasks, and every task (and every thread LH starts) uses
+it. Every slot has the same two accessors, `_get` and `_get_mut`: allocator,
+writer, reader, logger, terminate and check.
 
 The writer is a plain `lh_io_writer_write_cb`: take a buffer, return how many
 bytes were written.
@@ -138,9 +135,9 @@ What else can be wired the same way:
 
 | What | Call | When |
 |---|---|---|
-| Allocator | `lh_memory_allocator_set(lh_runtime_allocator(), …)` or `-DLH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC=pvPortMalloc` | `lh_array_t`, `lh_str_t`, anything that grows |
-| Logger | `lh_logger_set(lh_runtime_logger(), …)` | `lh_logger_info` and friends |
-| Reader | `lh_io_reader_set(lh_runtime_reader(), …)` | input from a UART |
+| Allocator | `lh_memory_allocator_init(lh_runtime_allocator_get_mut(), …)` (e.g. over `pvPortMalloc` / `vPortFree`) | `lh_array_t`, `lh_str_t`, anything that grows |
+| Logger | `lh_logger_init(lh_runtime_logger_get_mut(), …)` | `lh_logger_info` and friends; the default failed-check report |
+| Reader | `lh_io_reader_init(lh_runtime_reader_get_mut(), …)` | input from a UART |
 
 The firmware installs no allocator: the UI and display run on static buffers.
 
@@ -350,7 +347,7 @@ platform without a kernel for it (STM32 and the like) gets the same 40 from
 
 1. A toolchain file with `-fno-pic -fno-pie`, `-ffunction-sections`, `--gc-sections`.
 2. The `set(... FORCE)` block from section 1 before `add_subdirectory(lib/lh)`.
-3. `lh_runtime_terminate_set` + `lh_runtime_writer_init` at the start of `main`.
+3. Fill `lh_runtime_terminate_get_mut()` and `lh_runtime_writer_get_mut()` at the start of `main`.
 4. A static strip buffer + `lh_ui_display_t` in the panel's format.
 5. One `lh_ui_present_fn` → the panel driver.
 6. An allocator and a logger if needed.

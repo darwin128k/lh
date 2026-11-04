@@ -96,12 +96,12 @@ TEST(os_worker, retains_completed_jobs_in_capacity_and_rejects_submission_during
 TEST(os_worker, preserves_allocator_ownership_and_allocation_failures_are_recoverable)
 {
     allocator_case state;
-    const auto previous = *lh_runtime_allocator();
-    lh_test::scope_exit restore([&] { *lh_runtime_allocator() = previous; });
+    const auto previous = *lh_runtime_allocator_get_mut();
+    lh_test::scope_exit restore([&] { *lh_runtime_allocator_get_mut() = previous; });
     auto custom = previous;
     lh_memory_allocator_set(&custom, allocator_case::alloc, allocator_case::free);
     lh_memory_allocator_set_context(&custom, &state);
-    *lh_runtime_allocator() = custom;
+    *lh_runtime_allocator_get_mut() = custom;
     state.reject = true;
     unsigned storage[2];
     EXPECT_EQ(lh_spsc_create(storage, 2, sizeof storage[0]), nullptr);
@@ -125,7 +125,7 @@ TEST(os_worker, preserves_allocator_ownership_and_allocation_failures_are_recove
             job.reset(lh_os_worker_take(worker.get()));
             return !!job;
         }));
-    *lh_runtime_allocator() = previous;
+    *lh_runtime_allocator_get_mut() = previous;
     worker.reset();
     job.reset();
     records.reset();

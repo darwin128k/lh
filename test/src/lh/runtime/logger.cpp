@@ -7,11 +7,13 @@
 
 #include <lh/config.h>
 #include <lh/library/option.h>
+#include <lh/expect/death.h>
 #include <lh/runtime/logger.h>
 #include <lh/str/format/text.h>
 
 #include <cstdarg>
 #include <string>
+#include <thread>
 
 namespace
 {
@@ -43,12 +45,12 @@ struct keep_runtime_logger
 
     keep_runtime_logger()
     {
-        lh_logger_assign(&saved, lh_runtime_logger());
+        lh_logger_assign(&saved, lh_runtime_logger_get());
     }
 
     ~keep_runtime_logger()
     {
-        lh_logger_assign(lh_runtime_logger(), &saved);
+        lh_logger_assign(lh_runtime_logger_get_mut(), &saved);
     }
 };
 
@@ -56,22 +58,23 @@ struct keep_runtime_logger
 
 TEST(runtime_logger, is_one_instance)
 {
-    ASSERT_NE(lh_runtime_logger(), nullptr);
-    EXPECT_EQ(lh_runtime_logger(), lh_runtime_logger());
+    ASSERT_NE(lh_runtime_logger_get_mut(), nullptr);
+    EXPECT_EQ(lh_runtime_logger_get_mut(), lh_runtime_logger_get_mut());
 }
 
-TEST(runtime_logger, the_default_matches_the_option)
+/* The core starts empty; the runner (test/src/main.cpp) installed its logger. */
+TEST(runtime_logger, the_runner_installed_its_logger)
 {
-#if (LH_LIBRARY_OPTION_RUNTIME_LOGGER_USE_STDLIB == LH_LIBRARY_OPTION_ON)
-    EXPECT_EQ(lh_logger_get_flags(lh_runtime_logger()), (lh_logger_level_flags_t)lh_logger_level_flags_all);
-    for (lh_logger_level_t level = lh_logger_level_emergency; level <= lh_logger_level_debug; ++level)
+    EXPECT_EQ(lh_logger_get_flags(lh_runtime_logger_get()),
+              (lh_logger_level_flags_t)lh_logger_level_flags_all);
+    EXPECT_EQ(lh_logger_get_flags(lh_runtime_logger_get()),
+              (lh_logger_level_flags_t)lh_logger_level_flags_all);
+    for (lh_logger_level_t level = lh_logger_level_emergency; level <= lh_logger_level_debug;
+         ++level)
     {
-        EXPECT_NE(lh_logger_get_emit_cb(lh_runtime_logger(), level), nullptr) << "level " << (int)level;
+        EXPECT_NE(lh_logger_get_emit_cb(lh_runtime_logger_get(), level), nullptr)
+            << "level " << (int)level;
     }
-#else
-    EXPECT_EQ(lh_logger_get_flags(lh_runtime_logger()), (lh_logger_level_flags_t)lh_logger_level_flags_none);
-    EXPECT_EQ(lh_logger_log(lh_runtime_logger(), lh_logger_level_error, "dropped"), 0);
-#endif
 }
 
 TEST(runtime_logger, an_installed_sink_gets_the_records)
@@ -79,13 +82,39 @@ TEST(runtime_logger, an_installed_sink_gets_the_records)
     keep_runtime_logger keep;
     capture c;
 
-    lh_logger_init(lh_runtime_logger(), lh_logger_level_flags_all, capture_emit, &c);
-    lh_logger_info(lh_runtime_logger(), "listening on %u", (lh_uint_t)8765u);
+    lh_logger_init(lh_runtime_logger_get_mut(), lh_logger_level_flags_all, capture_emit, &c);
+    lh_logger_info(lh_runtime_logger_get_mut(), "listening on %u", (lh_uint_t)8765u);
     EXPECT_EQ(c.calls, 1);
     EXPECT_EQ(c.level, (lh_logger_level_t)lh_logger_level_info);
     EXPECT_EQ(c.text, "listening on 8765");
 
-    lh_logger_init(lh_runtime_logger(), lh_logger_level_flags_error, capture_emit, &c);
-    lh_logger_info(lh_runtime_logger(), "filtered");
+    lh_logger_init(lh_runtime_logger_get_mut(), lh_logger_level_flags_error, capture_emit, &c);
+    lh_logger_info(lh_runtime_logger_get_mut(), "filtered");
     EXPECT_EQ(c.calls, 1);
+}
+
+namespace
+{
+
+/* The info slot a fresh thread finds in its own logger. */
+lh_logger_emit_cb
+info_cb_on_new_thread(void)
+{
+    lh_logger_emit_cb seen = lh_null;
+    std::thread(
+        [&] { seen = lh_logger_get_emit_cb(lh_runtime_logger_get_mut(), lh_logger_level_info); })
+        .join();
+    return seen;
+}
+
+} // namespace
+
+/* One object for the whole program: a change on one thread is seen on all. */
+TEST(runtime_logger, is_one_slot_for_every_thread)
+{
+    keep_runtime_logger keep;
+    capture c;
+
+    lh_logger_init(lh_runtime_logger_get_mut(), lh_logger_level_flags_all, capture_emit, &c);
+    EXPECT_EQ(info_cb_on_new_thread(), capture_emit);
 }

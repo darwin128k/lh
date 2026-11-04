@@ -2,9 +2,12 @@
 
 #include <lh/config.h>
 #include <lh/expect/death.h>
+#include <lh/library/fallback.h>
 #include <lh/runtime/assert.h>
+#include <lh/runtime/check/handler/initializer.h>
 
 #include <cstdio>
+#include <thread>
 
 namespace
 {
@@ -12,14 +15,16 @@ namespace
 LH_COMPILER_EXTERN_C_BEGIN
 
 void
-test_check_handler_noop(const lh_exception_t *exception)
+test_check_handler_noop(lh_self_ptr self, const lh_exception_t *exception)
 {
+    (void)self;
     (void)exception;
 }
 
 void
-test_check_handler_prints(const lh_exception_t *exception)
+test_check_handler_prints(lh_self_ptr self, const lh_exception_t *exception)
 {
+    (void)self;
     const lh_exception_origin_t *origin = lh_exception_get_origin(exception);
     const char *desc = lh_runtime_error_get_desc(lh_exception_get_error(exception));
     const bool has_desc = desc != nullptr && *desc != '\0';
@@ -36,20 +41,42 @@ test_check_handler_prints(const lh_exception_t *exception)
 
 LH_COMPILER_EXTERN_C_END
 
-TEST(runtime_check_handler, default_is_installed)
+/* Installs @p fail_cb on the calling thread's handler. */
+void
+install_on_this_thread(lh_runtime_check_fail_cb fail_cb)
 {
-    EXPECT_NE(lh_runtime_check_get(), nullptr);
+    lh_runtime_check_handler_init(lh_runtime_check_get_mut(), fail_cb, lh_null);
 }
 
-TEST(runtime_check_handler, set_replaces_and_null_restores_default)
+/* The report call a fresh thread finds in its own handler. */
+lh_runtime_check_fail_cb
+fail_cb_on_new_thread(void)
 {
-    lh_runtime_check_fail_cb original = lh_runtime_check_get();
+    lh_runtime_check_fail_cb seen = lh_null;
+    std::thread([&] { seen = lh_runtime_check_handler_get_fail_cb(lh_runtime_check_get()); })
+        .join();
+    return seen;
+}
 
-    lh_runtime_check_set(test_check_handler_noop);
-    EXPECT_EQ(lh_runtime_check_get(), test_check_handler_noop);
+TEST(runtime_check_get, starts_as_the_default_report)
+{
+    EXPECT_EQ(lh_runtime_check_handler_get_fail_cb(lh_runtime_check_get()),
+              lh_runtime_check_fail_default);
+}
 
-    lh_runtime_check_set(nullptr);
-    EXPECT_EQ(lh_runtime_check_get(), original);
+TEST(runtime_check_get, is_the_same_object_read_only)
+{
+    EXPECT_EQ(lh_runtime_check_get(), lh_runtime_check_get_mut());
+}
+
+/* One object for the whole program: a change on one thread is seen on all. */
+TEST(runtime_check_get_mut, is_one_handler_for_every_thread)
+{
+    lh_runtime_check_handler_t saved;
+    lh_runtime_check_handler_assign(&saved, lh_runtime_check_get());
+    install_on_this_thread(test_check_handler_noop);
+    EXPECT_EQ(fail_cb_on_new_thread(), test_check_handler_noop);
+    lh_runtime_check_handler_assign(lh_runtime_check_get_mut(), &saved);
 }
 
 TEST(runtime_check, passing_check_does_nothing)
@@ -72,26 +99,27 @@ fail_two_plus_two(void)
 void
 fail_with_code_only(void)
 {
-    lh_runtime_check_set(test_check_handler_prints);
+    install_on_this_thread(test_check_handler_prints);
     lh_runtime_check_if(1 == 1, lh_runtime_error_code_invalid_range);
 }
 
 void
 fail_with_message(void)
 {
-    lh_runtime_check_set(test_check_handler_prints);
+    install_on_this_thread(test_check_handler_prints);
     lh_runtime_check_if(1 == 1, lh_runtime_error_code_overflow, "too big");
 }
 
 void
 fail_with_computed_code(lh_runtime_error_code_t code)
 {
-    lh_runtime_check_set(test_check_handler_prints);
+    install_on_this_thread(test_check_handler_prints);
     lh_runtime_check_if(code != lh_runtime_error_code_ok, code);
 }
 
-#    if (LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT == LH_RUNTIME_CHECK_REPORT_FULL) &&                \
-        (LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB == LH_LIBRARY_OPTION_ON)
+/* The default report goes to the runtime logger, which the runner bound to
+   stderr. */
+#    if (LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT == LH_RUNTIME_CHECK_REPORT_FULL)
 TEST(runtime_check_death, default_handler_reports_error_condition_and_file)
 {
     EXPECT_DEATH(fail_two_plus_two(), "runtime check failed: error 9, math still works");

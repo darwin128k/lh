@@ -2,16 +2,17 @@
  * @file reader.h
  * @brief The runtime reader: the ::lh_io_reader_t library code reaches for.
  *
- * Mirror of ::lh_runtime_writer for the read direction. With
- * ::LH_LIBRARY_OPTION_RUNTIME_IO_USE_STDLIB on it starts as `stdin`; off, empty
- * until the host installs a source (UART RX, …):
+ * Mirror of ::lh_runtime_writer_get_mut for the read direction. It starts
+ * empty until the host installs a source (`stdin`, UART RX, …):
  *
  * @code
- * lh_runtime_reader_init(usart_read_cb, lh_null);
+ * lh_io_reader_init(lh_runtime_reader_get_mut(), usart_read_cb, lh_null);
  * @endcode
  *
- * When thread-local mode is enabled, each thread has its own instance.
- */
+ * The slot is one object for the whole program, empty until the host fills it
+ * through ::lh_runtime_reader_get_mut — before the first use and before it starts
+ * other threads (a thread sees everything written before it was created).
+ * Every thread, the ones LH starts and the host's own, uses the same object. */
 
 #ifndef LH_RUNTIME_READER_H
 #define LH_RUNTIME_READER_H
@@ -20,32 +21,32 @@
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/** The default reader callback: `stdin`. */
-lh_ssize_t
-lh_runtime_reader_stdin(lh_self_ptr self, lh_ptr buf, lh_usize_t size);
-
 /**
- * @brief Return address of the runtime reader instance.
- * @return Pointer to the internal ::lh_io_reader_t (never null).
+ * @brief Return the runtime reader, for change.
+ *
+ * One object for every thread. The host fills it before the first use and
+ * before it starts other threads; a change while other threads use it is a
+ * data race.
+ *
+ * @return The runtime ::lh_io_reader_t (never null).
  */
 lh_io_reader_t *
-lh_runtime_reader(void);
+lh_runtime_reader_get_mut(void);
 
 /**
- * @brief Install a source on ::lh_runtime_reader().
+ * @brief Return the runtime reader.
  *
- * Same as ::lh_io_reader_init(::lh_runtime_reader(), @p read_cb, @p context).
+ * Same object as ::lh_runtime_reader_get_mut, read-only.
  *
- * @param read_cb Read callback (may be ::lh_null to disable).
- * @param context Passed to @p read_cb on every call.
+ * @return The runtime ::lh_io_reader_t (never null).
  */
-lh_void
-lh_runtime_reader_init(lh_io_reader_read_cb read_cb, lh_ptr context);
+const lh_io_reader_t *
+lh_runtime_reader_get(void);
 
 /**
- * @brief Read through ::lh_runtime_reader().
+ * @brief Read through ::lh_runtime_reader_get_mut().
  *
- * Same as ::lh_io_reader_read(::lh_runtime_reader(), @p buf, @p size).
+ * Same as ::lh_io_reader_read(::lh_runtime_reader_get_mut(), @p buf, @p size).
  */
 lh_ssize_t
 lh_runtime_reader_read(lh_ptr buf, lh_usize_t size);
