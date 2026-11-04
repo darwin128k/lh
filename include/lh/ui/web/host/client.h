@@ -1,6 +1,7 @@
 /**
  * @file client.h
- * @brief ::lh_ui_web_host_client_t — one WebSocket client: its socket, what it sent, and what is queued for it.
+ * @brief ::lh_ui_web_host_client_t — one WebSocket client: its socket, what it sent, and what is
+ * queued for it.
  */
 
 #ifndef LH_UI_WEB_HOST_CLIENT_H
@@ -202,7 +203,7 @@ lh_ui_web_host_client_get_qhead(const lh_ui_web_host_client_t *self);
  * @param qhead The new value.
  */
 lh_void
-lh_ui_web_host_client_set_qhead(lh_ui_web_host_client_t *self, lh_ui_web_host_frame_t * qhead);
+lh_ui_web_host_client_set_qhead(lh_ui_web_host_client_t *self, lh_ui_web_host_frame_t *qhead);
 
 /**
  * @brief The last frame waiting to be sent (level 1).
@@ -221,7 +222,7 @@ lh_ui_web_host_client_get_qtail(const lh_ui_web_host_client_t *self);
  * @param qtail The new value.
  */
 lh_void
-lh_ui_web_host_client_set_qtail(lh_ui_web_host_client_t *self, lh_ui_web_host_frame_t * qtail);
+lh_ui_web_host_client_set_qtail(lh_ui_web_host_client_t *self, lh_ui_web_host_frame_t *qtail);
 
 /**
  * @brief How many bytes wait to be sent (level 1).

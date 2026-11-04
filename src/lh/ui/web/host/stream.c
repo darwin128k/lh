@@ -5,7 +5,6 @@
 
 #include <lh/ui/web/host/stream.h>
 
-
 const lh_ui_canvas_web_glyphs_t *
 lh_ui_web_host_stream_get_glyphs(const lh_ui_web_host_stream_t *self)
 {

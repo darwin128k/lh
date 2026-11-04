@@ -461,20 +461,22 @@ lh_os_system_net_socket_poll(lh_os_net_socket_poll_t *entries, lh_usize_t count,
     readable.fd_count = writable.fd_count = exceptional.fd_count = 0;
     for (lh_usize_t i = 0; i < count; ++i)
     {
-        lh_assert_runtime_if(entries[i].events &
-                                 ~(lh_os_net_socket_poll_read | lh_os_net_socket_poll_write),
+        lh_os_net_socket_poll_t *const entry = lh_addr_of(entries[i]);
+        const lh_uint_t events = lh_os_net_socket_poll_get_events(entry);
+        lh_assert_runtime_if(events & ~(lh_os_net_socket_poll_read | lh_os_net_socket_poll_write),
                              lh_runtime_error_code_invalid_argument);
-        entries[i].ready = 0;
-        if (entries[i].handle == LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID)
+        lh_os_net_socket_poll_set_ready(entry, 0U);
+        if (lh_os_net_socket_poll_get_handle(entry) == LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID)
         {
             continue;
         }
-        const lh_os_system_win_socket_t native = lh_os_system_net_socket_native(entries[i].handle);
-        if (entries[i].events & lh_os_net_socket_poll_read)
+        const lh_os_system_win_socket_t native =
+            lh_os_system_net_socket_native(lh_os_net_socket_poll_get_handle(entry));
+        if (events & lh_os_net_socket_poll_read)
         {
             readable.fd_array[readable.fd_count++] = native;
         }
-        if (entries[i].events & lh_os_net_socket_poll_write)
+        if (events & lh_os_net_socket_poll_write)
         {
             writable.fd_array[writable.fd_count++] = native;
         }
@@ -505,26 +507,29 @@ lh_os_system_net_socket_poll(lh_os_net_socket_poll_t *entries, lh_usize_t count,
     lh_ssize_t ready = 0;
     for (lh_usize_t i = 0; i < count; ++i)
     {
-        if (entries[i].handle == LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID)
+        lh_os_net_socket_poll_t *const entry = lh_addr_of(entries[i]);
+        const lh_uint_t events = lh_os_net_socket_poll_get_events(entry);
+        if (lh_os_net_socket_poll_get_handle(entry) == LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID)
         {
             continue;
         }
-        const lh_os_system_win_socket_t native = lh_os_system_net_socket_native(entries[i].handle);
-        if ((entries[i].events & lh_os_net_socket_poll_read) &&
+        const lh_os_system_win_socket_t native =
+            lh_os_system_net_socket_native(lh_os_net_socket_poll_get_handle(entry));
+        if ((events & lh_os_net_socket_poll_read) &&
             lh_os_system_net_socket_poll_contains(lh_addr_of(readable), native))
         {
-            entries[i].ready |= lh_os_net_socket_poll_read;
+            lh_os_net_socket_poll_add_ready(entry, lh_os_net_socket_poll_read);
         }
-        if ((entries[i].events & lh_os_net_socket_poll_write) &&
+        if ((events & lh_os_net_socket_poll_write) &&
             lh_os_system_net_socket_poll_contains(lh_addr_of(writable), native))
         {
-            entries[i].ready |= lh_os_net_socket_poll_write;
+            lh_os_net_socket_poll_add_ready(entry, lh_os_net_socket_poll_write);
         }
         if (lh_os_system_net_socket_poll_contains(lh_addr_of(exceptional), native))
         {
-            entries[i].ready |= lh_os_net_socket_poll_error;
+            lh_os_net_socket_poll_add_ready(entry, lh_os_net_socket_poll_error);
         }
-        if (entries[i].ready)
+        if (lh_os_net_socket_poll_get_ready(entry))
         {
             ++ready;
         }

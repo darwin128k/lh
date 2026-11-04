@@ -5,7 +5,6 @@
 
 #include <lh/ui/web/host/hooks.h>
 
-
 lh_ptr
 lh_ui_web_host_hooks_get_ctx(const lh_ui_web_host_hooks_t *self)
 {
@@ -48,17 +47,17 @@ lh_ui_web_host_hooks_set_tick_fn(lh_ui_web_host_hooks_t *self, lh_void (*tick_fn
 }
 
 lh_void (*lh_ui_web_host_hooks_get_resize_fn(const lh_ui_web_host_hooks_t *self))(lh_sint_t width,
-                                                                                lh_sint_t height,
-                                                                                lh_ptr ctx)
+                                                                                  lh_sint_t height,
+                                                                                  lh_ptr ctx)
 {
     lh_assert_runtime_ref(self);
     return self->resize;
 }
 
 lh_void
-lh_ui_web_host_hooks_set_resize_fn(
-    lh_ui_web_host_hooks_t *self,
-    lh_void (*resize_fn)(lh_sint_t width, lh_sint_t height, lh_ptr ctx))
+lh_ui_web_host_hooks_set_resize_fn(lh_ui_web_host_hooks_t *self,
+                                   lh_void (*resize_fn)(lh_sint_t width, lh_sint_t height,
+                                                        lh_ptr ctx))
 {
     lh_assert_runtime_ref(self);
     self->resize = resize_fn;
@@ -72,7 +71,7 @@ lh_ui_web_host_hooks_get_controller(const lh_ui_web_host_hooks_t *self)
 }
 
 lh_void
-lh_ui_web_host_hooks_set_controller(lh_ui_web_host_hooks_t *self, lh_os_controller_t * controller)
+lh_ui_web_host_hooks_set_controller(lh_ui_web_host_hooks_t *self, lh_os_controller_t *controller)
 {
     lh_assert_runtime_ref(self);
     self->controller = controller;

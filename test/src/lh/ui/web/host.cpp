@@ -382,7 +382,8 @@ ui_web_host_test_stream_body(lh_ptr ctx, const lh_http_request_t *request,
     for (;;)
     {
         const lh_ssize_t size = lh_io_reader_read(body, buffer, sizeof(buffer));
-        if (size == 0)
+        /* Nothing more yet: the host calls again when the body has more. */
+        if (size == 0 || size == LH_IO_PENDING)
         {
             return lh_bool_true;
         }
@@ -507,7 +508,12 @@ ui_web_host_test_stream_stage_one(lh_ptr ctx, const lh_http_request_t *, const l
                                   lh_io_reader_t *body)
 {
     char byte;
-    if (lh_io_reader_read(body, &byte, 1U) != 1)
+    const lh_ssize_t got = lh_io_reader_read(body, &byte, 1U);
+    if (got == LH_IO_PENDING)
+    {
+        return lh_bool_true; /* called again when the first byte is there */
+    }
+    if (got != 1)
     {
         return lh_bool_false;
     }

@@ -5,7 +5,6 @@
 
 #include <lh/ui/web/host/frame.h>
 
-
 struct lh_ui_web_host_frame *
 lh_ui_web_host_frame_get_next(const lh_ui_web_host_frame_t *self)
 {
@@ -14,7 +13,7 @@ lh_ui_web_host_frame_get_next(const lh_ui_web_host_frame_t *self)
 }
 
 lh_void
-lh_ui_web_host_frame_set_next(lh_ui_web_host_frame_t *self, struct lh_ui_web_host_frame * next)
+lh_ui_web_host_frame_set_next(lh_ui_web_host_frame_t *self, struct lh_ui_web_host_frame *next)
 {
     lh_assert_runtime_ref(self);
     self->next = next;

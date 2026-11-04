@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- The web host serves many connections at once on an `lh_exec_loop_t`:
+  `lh_ui_web_host_t` (`lh_ui_web_host_try_create` / `_try_start` /
+  `_try_stop` / `_destroy`, with its loop `_step`, `_wait` and `_wake`), one
+  poll of the listener, the wake signal, the websocket clients and the HTTP
+  connections. New bricks it is built from: `lh/ui/web/host/conn.h` (one
+  connection, step by step: head, buffered body or stream), `host/pipe.h` (a
+  streaming body between steps), `host/gate.h` (a socket reader that receives
+  once per readiness), `host/tap.h` (a reader that remembers its last result),
+  `host/finish.h` (`lh_ui_web_host_finish_stream`: commit or abort, once),
+  `host/capacity.h` (the host's sizes, moved out of `host.h`; adds
+  `LH_UI_WEB_HOST_HEADER_MAX` and `LH_UI_WEB_HOST_CONN_MAX`), and
+  `lh_ui_web_host_try_complete_body` (is a buffered body complete, never
+  reads). A slow client no longer holds the other connections or the
+  websocket clients.
+- `lh_os_net_socket_poll_t` has level-1 accessors (`_get_handle`, `_set_ready`,
+  ...), `_init`, `_add_ready` and `_is_readable`; both backends use them.
+
 - A bounded end for `lh_exec_loop_t`: `lh_exec_loop_try_stop(loop, timeout_ms)`
   asks for the last step and waits at most that long; when a step is stuck in
   a call, `lh_exec_loop_try_abandon(loop, release, user)` gives the thread up —
@@ -230,6 +247,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the text does not hold.
 
 ### Changed
+
+- Web host, streaming routes: the handler is called again each time more of
+  the body has arrived, and reads until `LH_IO_PENDING` (return true), 0 or an
+  error — not once with a blocking reader. A handler written for one call that
+  treats `LH_IO_PENDING` as a failure must return true for it instead.
+- `lh_ui_web_host_accept_all` and `lh_ui_web_host_wait` take the host record
+  (the latter is the loop's wait); `lh_ui_web_host_run` runs the host's loop on
+  the calling thread. `lh_ui_web_host_try_serve_stream` and
+  `lh_ui_web_host_handle_request_is_upgraded` keep their signatures and drive
+  one socket with the step-by-step pieces.
 
 - **Breaking: the data bricks moved under `lh/core/`.** Every part of
   `include/lh/` that stands on its own — needs no operating system, no window,

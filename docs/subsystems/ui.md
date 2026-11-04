@@ -1080,8 +1080,9 @@ browser's Canvas2D.
 
 - `lh_ui_canvas_backend_web` (`lh/ui/canvas/web.h`) records one frame as
   JSON. Each glyph shape crosses the wire once per browser tab.
-- `lh_ui_web_host_run` (`lh/ui/web/host.h`) listens on `127.0.0.1:<port>`:
-  `GET /` gives the player page, `GET /ui.json` one frame, and a WebSocket
+- `lh_ui_web_host_run` (`lh/ui/web/host.h`) listens on `127.0.0.1:<port>`
+  (on the calling thread; `lh_ui_web_host_try_create` + `_try_start` give it a
+  thread of its own): `GET /` gives the player page, `GET /ui.json` one frame, and a WebSocket
   (`/ws`, a connection that stays open both ways) pushes a new frame **only
   when the tree changed**.
 - No Python, Node or web server: everything runs inside your program, and
