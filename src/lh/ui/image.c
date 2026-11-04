@@ -2,11 +2,11 @@
  * @file image.c
  * @brief Implementation of `lh/ui/image.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 #include <lh/ui/canvas/mask.h>
 #include <lh/ui/image.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 const lh_ui_entity_class_t lh_ui_image_class = {lh_ui_image_event, lh_addr_of(lh_ui_entity_class)};
 

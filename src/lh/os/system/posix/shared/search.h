@@ -7,8 +7,8 @@
 #ifndef LH_SRC_OS_SYSTEM_POSIX_SHARED_SEARCH_H
 #define LH_SRC_OS_SYSTEM_POSIX_SHARED_SEARCH_H
 
-#include <lh/str/ptr.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/str/ptr.h>
+#include <lh/core/compiler/extern/c.h>
 
 /** What ::lh_os_system_shared_match looks for, and the full path it finds. */
 struct lh_os_system_shared_search

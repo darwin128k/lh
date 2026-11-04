@@ -1,13 +1,13 @@
 #include <lh/os/system/fs/path.h>
-#include <lh/attribute/unused.h>
-#include <lh/char/map.h>
-#include <lh/assert.h>
+#include <lh/core/attribute/unused.h>
+#include <lh/core/char/map.h>
+#include <lh/core/assert.h>
 #include <lh/os.h>
 #include <lh/os/error/code.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/str.h>
 #include <lh/os/system/win/kernel32.h>
-#include <lh/math.h>
+#include <lh/core/math.h>
 
 lh_fs_path_style_t
 lh_os_system_fs_path_style_native(void)

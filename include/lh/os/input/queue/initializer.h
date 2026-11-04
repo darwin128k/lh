@@ -6,7 +6,7 @@
 #ifndef LH_OS_INPUT_QUEUE_INITIALIZER_H
 #define LH_OS_INPUT_QUEUE_INITIALIZER_H
 
-#include <lh/initializer.h>
+#include <lh/core/initializer.h>
 
 /**
  * @def lh_os_input_queue_initializer(storage, capacity, head, tail, dropped)

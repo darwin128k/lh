@@ -16,12 +16,12 @@
 #ifndef LH_UI_SCALAR_H
 #define LH_UI_SCALAR_H
 
-#include <lh/assert/runtime.h>
-#include <lh/attribute/force_inline.h>
+#include <lh/core/assert/runtime.h>
+#include <lh/core/attribute/force_inline.h>
 #include <lh/config.h>
 
 #if LH_LIBRARY_OPTION_MATH_FPU
-#    include <lh/math/fscalar.h>
+#    include <lh/core/math/fscalar.h>
 
 /** @brief A UI coordinate: ::lh_math_fscalar_t when ::LH_LIBRARY_OPTION_MATH_FPU is on. */
 typedef lh_math_fscalar_t lh_ui_scalar_t;
@@ -31,7 +31,7 @@ typedef lh_math_fscalar_t lh_ui_scalar_t;
  */
 #    define lh_ui_scalar(n) lh_math_fscalar(n)
 
-#    include <lh/math/fscalar/round.h>
+#    include <lh/core/math/fscalar/round.h>
 
 /**
  * @brief Largest whole ::lh_s32_t not above an ::lh_ui_scalar_t.
@@ -43,7 +43,7 @@ typedef lh_math_fscalar_t lh_ui_scalar_t;
  */
 #    define lh_ui_scalar_ceil_s32 lh_math_fscalar_ceil_s32
 #else
-#    include <lh/math/scalar.h>
+#    include <lh/core/math/scalar.h>
 
 /** @brief A UI coordinate: ::lh_math_scalar_t when ::LH_LIBRARY_OPTION_MATH_FPU is off. */
 typedef lh_math_scalar_t lh_ui_scalar_t;
@@ -53,7 +53,7 @@ typedef lh_math_scalar_t lh_ui_scalar_t;
  */
 #    define lh_ui_scalar(n) lh_math_scalar(n)
 
-#    include <lh/numeric/fixed/types.h>
+#    include <lh/core/numeric/fixed/types.h>
 
 /**
  * @brief The integer scalar is already whole: a cast.

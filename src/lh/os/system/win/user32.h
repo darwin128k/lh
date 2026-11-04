@@ -15,7 +15,7 @@
 #include <lh/os/system/win/window/msg/fields.h>
 #include <lh/os/system/win/window/paintstruct/fields.h>
 #include <lh/os/system/win/window/wndclassexw/fields.h>
-#include <lh/str/ptr.h>
+#include <lh/core/str/ptr.h>
 
 /** @brief `HDC`. Present since Windows 95. */
 typedef lh_ptr lh_os_system_win_hdc_t;

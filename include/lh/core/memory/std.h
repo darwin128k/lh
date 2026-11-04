@@ -1,0 +1,290 @@
+/**
+ * @file std.h
+ * @brief Canonical untyped byte kernels: copy, move, fill, and compare.
+ *
+ * All sizes are in bytes (::lh_usize_t). Implementation files that need to
+ * copy, fill, or compare bytes go through these functions — a second
+ * hand-rolled loop is the thing these exist to replace. Call overhead at
+ * this boundary is accepted; the work inside is the fast path (SIMD when
+ * available, overlapping-word tiny copies below one vector, portable scalar
+ * otherwise).
+ *
+ * Pointers are checked in debug builds via ::lh_runtime_check_ref where applicable.
+ */
+
+#ifndef LH_MEMORY_STD_H
+#define LH_MEMORY_STD_H
+
+#include <lh/core/compiler/extern/c.h>
+#include <lh/core/ptr.h>
+#include <lh/core/size.h>
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief Copy @p n bytes from @p src to @p dst in forward (low-to-high address) order.
+ *
+ * For overlapping ranges, behaviour is only defined when @p dst does not lie strictly
+ * inside the source span (same constraints as `memcpy`).
+ *
+ * @param dst Destination buffer.
+ * @param src Source buffer.
+ * @param n Number of bytes to copy.
+ *
+ * @return Pointer one past the last byte written (i.e. `dst + n` as an untyped pointer).
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_byte_t buf[8];
+ * lh_byte_t src[4] = {1, 2, 3, 4};
+ * lh_ptr end = lh_memory_std_copy(buf, src, 4);
+ * // buf[0..3] == {1,2,3,4}; end == buf + 4
+ * @endcode
+ */
+lh_ptr
+lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n);
+
+/**
+ * @brief Portable word-granular copy: moves one ::lh_usize_t at a time, with a
+ *        byte head and a byte tail.
+ *
+ * This is the libc-free primitive every tier is allowed to be built on, and the
+ * one that runs when no vector unit was compiled in. Unlike
+ * ::lh_memory_std_copy it never dispatches, so it costs the same everywhere.
+ *
+ * Source and destination must not overlap.
+ *
+ * Both pointers are stepped in lockstep until each sits on a ::lh_usize_t
+ * boundary, so neither is ever read or written through a misaligned pointer —
+ * that is the access a strict-alignment target faults on.
+ *
+ * @param dst Start of the destination range (length @p n bytes).
+ * @param src Source buffer.
+ * @param n   Number of bytes to copy.
+ *
+ * @return Pointer one past the last byte written (i.e. `dst + n` as an untyped pointer).
+ */
+lh_ptr
+lh_memory_std_copy_words(lh_ptr dst, const lh_ptr src, lh_usize_t n);
+
+/**
+ * @brief Portable word-granular fill: writes a repeated ::lh_usize_t pattern.
+ *
+ * The same shape as ::lh_memory_std_copy_words — byte head, word body, byte tail
+ * — and the same reason for it. @p word is broadcast, so filling with the word
+ * whose every byte is the wanted value writes that value across the range.
+ *
+ * @param dst   Start of the destination range (length @p n bytes).
+ * @param word  Word repeated over the range; use @c 0 to zero-fill.
+ * @param n     Number of bytes to write.
+ *
+ * @return Pointer one past the last byte written (i.e. `dst + n` as an untyped pointer).
+ */
+lh_ptr
+lh_memory_std_fill_words(lh_ptr dst, lh_usize_t word, lh_usize_t n);
+
+/**
+ * @brief Copy @p n bytes from @p src to @p dst while reversing byte order in the destination range.
+ *
+ * The first byte read from @p src is stored at the highest address of the @p n-byte destination
+ * block; the last byte read is stored at @p dst.
+ *
+ * @param dst Start of the destination range (length @p n bytes).
+ * @param src Source buffer.
+ * @param n Number of bytes to copy.
+ *
+ * @return Pointer one past the last byte of the destination range (same as `dst + n`).
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_byte_t src[4] = {1, 2, 3, 4};
+ * lh_byte_t dst[4];
+ * lh_memory_std_copy_rev(dst, src, 4);
+ * // dst == {4, 3, 2, 1}
+ * @endcode
+ */
+lh_ptr
+lh_memory_std_copy_rev(lh_ptr dst, const lh_ptr src, lh_usize_t n);
+
+/**
+ * @brief Copy @p n bytes from @p src to @p dst in reverse (high-to-low address) order.
+ *
+ * Suitable when the ranges overlap and @p dst lies inside the source span (analogous to the
+ * backward copy path of `memmove`).
+ *
+ * @param dst Destination buffer.
+ * @param src Source buffer.
+ * @param n Number of bytes to copy.
+ *
+ * @return @p dst (the start of the destination range).
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_byte_t v[5] = {1, 2, 3, 4, 5};
+ * lh_memory_std_rcopy(v + 1, v, 4);
+ * // v == {1, 1, 2, 3, 4}
+ * @endcode
+ */
+lh_ptr
+lh_memory_std_rcopy(lh_ptr dst, const lh_ptr src, lh_usize_t n);
+
+/**
+ * @brief Move @p n bytes from @p src to @p dst, correctly handling overlapping ranges.
+ *
+ * Chooses forward or reverse copy so that the result matches a non-overlapping copy of the
+ * original source bytes (same semantics as `memmove`).
+ *
+ * @param dst Destination buffer.
+ * @param src Source buffer.
+ * @param n Number of bytes to move.
+ *
+ * @return Pointer one past the last byte written in the destination range.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_byte_t buf[8] = {1, 2, 3, 4, 5, 6, 7, 8};
+ * lh_memory_std_move(buf + 2, buf, 6);
+ * // buf == {1, 2, 1, 2, 3, 4, 5, 6}
+ * @endcode
+ */
+lh_ptr
+lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n);
+
+/**
+ * @brief Set each of @p n bytes starting at @p dst to @p val.
+ *
+ * @param dst Destination buffer.
+ * @param val Byte value to fill.
+ * @param n Number of bytes to write.
+ *
+ * @return Pointer one past the last byte written.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_byte_t block[16];
+ * lh_ptr end = lh_memory_std_set(block, 0, 16);
+ * // all bytes in block are 0; end == block + 16
+ * @endcode
+ */
+lh_ptr
+lh_memory_std_set(lh_ptr dst, lh_byte_t val, lh_usize_t n);
+
+/**
+ * @brief Write the byte-wise XOR of @p lhs and @p rhs into @p dst,
+ *        @p n bytes.
+ *
+ * @p dst may be the same buffer as @p lhs or @p rhs (in-place XOR);
+ * any other overlap is not supported.
+ *
+ * @param dst Destination buffer.
+ * @param lhs First operand.
+ * @param rhs Second operand.
+ * @param n Number of bytes to combine.
+ *
+ * @return Pointer one past the last byte written.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_byte_t block[16];
+ * lh_memory_std_xor(block, block, key, 16); // block ^= key
+ * @endcode
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p dst, @p lhs or @p rhs is ::lh_null.
+ */
+lh_ptr
+lh_memory_std_xor(lh_ptr dst, const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
+
+/**
+ * @brief Compare @p n bytes at @p lhs and @p rhs from the start toward higher addresses.
+ *
+ * @param lhs First buffer.
+ * @param rhs Second buffer.
+ * @param n Number of bytes to compare.
+ *
+ * @return Pointer to the first differing byte in @p lhs if a difference exists; otherwise
+ *         ::lh_null if all @p n bytes are equal.
+ *
+ * Example usage:
+ * @code{.c}
+ * const lh_byte_t a[] = {1, 2, 9, 4};
+ * const lh_byte_t b[] = {1, 2, 3, 4};
+ * const lh_ptr diff = lh_memory_std_compare(a, b, 4);
+ * // diff points to a[2] (value 9)
+ * @endcode
+ */
+const lh_ptr
+lh_memory_std_compare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
+
+/**
+ * @brief Compare @p n bytes at @p lhs and @p rhs from the end toward lower addresses.
+ *
+ * @param lhs First buffer.
+ * @param rhs Second buffer.
+ * @param n Number of bytes to compare (the compared window is the last @p n bytes of each span).
+ *
+ * @return Pointer to the differing byte in @p lhs when scanning from the tail; ::lh_null if all
+ *         @p n bytes match pairwise from both ends inward.
+ *
+ * Example usage:
+ * @code{.c}
+ * const lh_byte_t a[] = {1, 2, 3, 9};
+ * const lh_byte_t b[] = {1, 2, 3, 4};
+ * const lh_ptr diff = lh_memory_std_rcompare(a, b, 4);
+ * // diff points to a[3] (last byte differs first when comparing from the end)
+ * @endcode
+ */
+const lh_ptr
+lh_memory_std_rcompare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
+
+/**
+ * @brief Find the first occurrence of @p rhs (@p rhs_size bytes) inside the first
+ *        @p lhs_size bytes at @p lhs.
+ *
+ * Filters candidate positions on the needle's first and last byte, a machine
+ * word at a time on the scalar path and 16 bytes at a time with SSE2, and
+ * compares the middle only for positions that pass (the technique of .NET's
+ * IndexOf, Go's strings.Index, Rust's memchr).
+ * Reads only inside the @p lhs_size bytes — unlike lh_memory_scan, this needs
+ * a real haystack length.
+ *
+ * @param lhs Haystack.
+ * @param lhs_size Haystack size in bytes.
+ * @param rhs Needle.
+ * @param rhs_size Needle size in bytes.
+ *
+ * @return Pointer to the first match inside @p lhs; ::lh_null when there is none,
+ *         when @p rhs_size is 0, or when @p rhs_size exceeds @p lhs_size.
+ *
+ * Example usage:
+ * @code{.c}
+ * const char text[] = "the quick brown fox";
+ * const lh_ptr p = lh_memory_std_find(text, 19, "brown", 5);
+ * // p == text + 10
+ * @endcode
+ */
+const lh_ptr
+lh_memory_std_find(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size);
+
+/**
+ * @brief Find the last occurrence of @p rhs (@p rhs_size bytes) inside the first
+ *        @p lhs_size bytes at @p lhs.
+ *
+ * Same first-and-last-byte filter as ::lh_memory_std_find, walked from the last
+ * candidate toward the start, 16 bytes at a time with SSE2 where available.
+ * The middle is compared only when both ends match.
+ *
+ * @param lhs Haystack.
+ * @param lhs_size Haystack size in bytes.
+ * @param rhs Needle.
+ * @param rhs_size Needle size in bytes.
+ *
+ * @return Pointer to the last match inside @p lhs; ::lh_null when there is none,
+ *         when @p rhs_size is 0, or when @p rhs_size exceeds @p lhs_size.
+ */
+const lh_ptr
+lh_memory_std_rfind(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size);
+
+LH_COMPILER_EXTERN_C_END
+
+#endif /* LH_MEMORY_STD_H */

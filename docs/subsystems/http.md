@@ -1,13 +1,13 @@
 # HTTP/1 message-head parser
 
-`<lh/http.h>` is an allocation-free protocol brick. It parses request/status
+`<lh/core/http.h>` is an allocation-free protocol brick. It parses request/status
 lines and fields from byte views. It does not open sockets, read files, manage
 threads, decode a body or decide which methods a service allows.
 
 ## Example
 
 ```c
-#include <lh/http.h>
+#include <lh/core/http.h>
 
 const char input[] = "GET /maps/example.bsp HTTP/1.1\r\nHost: example\r\n\r\n";
 lh_str_view_t bytes = lh_str_view_initializer(input, sizeof input - 1);
@@ -72,8 +72,8 @@ own:
 | `lh_http_parser_parse_field` | one `name: value` line |
 | `lh_http_parser_parse_fields` | field lines up to the empty line, records `consumed` |
 | `lh_http_parser_fail` | the one place an error is recorded |
-| `lh_http_parse_version` (`lh/http/version.h`) | the `HTTP/1.x` token |
-| `lh_http_is_token_char`, `_is_target_char`, `_is_field_char` (`lh/http/char.h`) | byte classes |
+| `lh_http_parse_version` (`lh/core/http/version.h`) | the `HTTP/1.x` token |
+| `lh_http_is_token_char`, `_is_target_char`, `_is_field_char` (`lh/core/http/char.h`) | byte classes |
 
 Sub-views come from `lh_str_view_from_offset`, ASCII classes from `lh/char`,
 value trimming from `lh_str_view_trim`. The parser allocates nothing, keeps no

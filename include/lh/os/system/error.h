@@ -19,10 +19,10 @@
 #ifndef LH_OS_SYSTEM_ERROR_H
 #define LH_OS_SYSTEM_ERROR_H
 
-#include <lh/void.h>
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/error/fields.h>
+#include <lh/core/void.h>
+#include <lh/core/bool.h>
+#include <lh/core/compiler/extern/c.h>
+#include <lh/core/error/fields.h>
 #include <lh/os/error/desc.h>
 #include <lh/os/system/error/code.h>
 

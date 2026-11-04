@@ -2,14 +2,14 @@
  * @file gdi.c
  * @brief GDI as a screen: ::lh_ui_canvas_backend_sw into a surface, `BitBlt`.
  */
-#include <lh/assert.h>
-#include <lh/attribute/unused.h>
+#include <lh/core/assert.h>
+#include <lh/core/attribute/unused.h>
 
 #include <lh/os/render/backend/gdi.h>
 #include <lh/os/system/surface.h>
 #include <lh/os/system/window.h>
 #include <lh/os/tick.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 /* -- Context --------------------------------------------------------------- */
 

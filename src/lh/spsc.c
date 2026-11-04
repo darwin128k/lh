@@ -1,11 +1,11 @@
 #include <lh/spsc.h>
-#include <lh/atomic/uint.h>
-#include <lh/runtime/allocator.h>
-#include <lh/memory/std.h>
-#include <lh/size/limits.h>
-#include <lh/assert.h>
-#include <lh/cast/const.h>
-#include <lh/util/return.h>
+#include <lh/core/atomic/uint.h>
+#include <lh/core/runtime/allocator.h>
+#include <lh/core/memory/std.h>
+#include <lh/core/size/limits.h>
+#include <lh/core/assert.h>
+#include <lh/core/cast/const.h>
+#include <lh/core/util/return.h>
 
 struct lh_spsc
 {

@@ -9,7 +9,7 @@
 #ifndef LH_OS_CONTROLLER_HANDLERS_CANCEL_FN_H
 #define LH_OS_CONTROLLER_HANDLERS_CANCEL_FN_H
 
-#include <lh/self.h>
+#include <lh/core/self.h>
 
 /**
  * @typedef lh_os_controller_handlers_cancel_fn

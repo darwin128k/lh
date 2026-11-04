@@ -5,7 +5,7 @@
 
 #include <lh/os/controller/dispatch.h>
 
-#include <lh/assert/runtime.h>
+#include <lh/core/assert/runtime.h>
 
 struct lh_os_controller *
 lh_os_controller_dispatch_get_controller(const lh_os_controller_dispatch_t *self)

@@ -17,6 +17,23 @@ unchecked fast forms (no suffix) and the validating ones (`_v`), are fine — a
 caller who misuses them owns the consequence. Hidden implementation is what we
 avoid.
 
+### The tree: data, execution, world
+
+The tree holds three natures, each in its own place
+(`docs/design/execution.md`):
+
+- **`lh/core/` — data.** Everything that stands on its own: types, numeric,
+  memory, strings, containers, atomics, json / xml, compression, crypto, paths
+  and addresses as data. Call it, get the result: no waiting, no threads, no
+  operating system. A core header never includes anything outside `lh/core/`.
+- **Execution** — threads, waiting, queues of work (being designed; today it
+  is spread over `lh/os/`).
+- **`lh/os/` — the world.** Files, sockets, windows, input, the module
+  loader: operating-system resources, built on `lh/core/`.
+
+`lh/ui/` and the web host are compositions over all of them. `lh/sql/` and
+`lh/spsc.h` wait for their place.
+
 ## 0. LH uses its own bricks — first rule
 
 > The owner: "Why did we create all these wrappers at all, if nobody uses
@@ -27,10 +44,10 @@ that bypasses it, not an optional nicety. LH itself is the first user of
 every brick.
 
 - Before writing any line, search LH for the brick that already does it:
-  named characters (`lh/char/map.h`), character classes (`lh/char/*`),
+  named characters (`lh/core/char/map.h`), character classes (`lh/core/char/*`),
   set membership (`lh_str_ptr_contains_char`), sub-views
   (`lh_str_view_from_offset`), trimming, number formatting and parsing
-  (`lh/str/format/*`, `lh/str/parse/*`), digit conversion
+  (`lh/core/str/format/*`, `lh/core/str/parse/*`), digit conversion
   (`lh_char_to_digit` / `lh_char_from_digit`), min / max / abs (`lh/math`),
   overflow (`lh_interval_*_is_*_overflow`), memory kernels, casts.
 - A hand-written loop, `switch`, range test or literal that duplicates a brick
@@ -120,7 +137,7 @@ The OS layer is the model for every subsystem that touches the platform:
   platform's own calls and types, as they are — no LH portable wrappers, no
   LH policy. It may use LH types and the small bricks it needs (bit ops),
   nothing above them.
-- The portable LH API (`lh/os/*`, `lh/fs/*`, ...) is built **on top** of that
+- The portable LH API (`lh/os/*`, `lh/core/fs/*`, ...) is built **on top** of that
   backend and never calls the platform directly.
 - A new platform feature first goes into each backend in the platform's own
   terms, then gets one portable wrapper above them.
@@ -181,7 +198,7 @@ file of LH and of Authum — reads and writes through them. No exceptions.
 - Follow the existing split: `<name>.h` (API), `<name>/fields.h` (struct
   members via the fields macro), `<name>/fn.h` + `<name>/cb.h` (callback
   function type and pointer), `<name>/initializer.h`, `<name>/kind.h` (enum).
-  See `lh/memory/allocator/` and `lh/array/`.
+  See `lh/core/memory/allocator/` and `lh/core/array/`.
 - Each piece stands on its own; together they form the mechanism.
 - Exception: a **type family** is one entity and stays in one file — the base
   C types (`numeric/types.h`), the fixed widths `u8`…`u64` / `s8`…`s64`
@@ -218,9 +235,9 @@ file of LH and of Authum — reads and writes through them. No exceptions.
   What is forbidden is **copying an implementation**: an `is_equal` that walks
   the bytes itself instead of calling `compare` duplicates the kernel. Also
   forbidden: a second brick with the same contract and a new name (removed
-  example: `lh/size/ops.h`, whose `lh_size_add` was
+  example: `lh/core/size/ops.h`, whose `lh_size_add` was
   `lh_interval_closed_is_add_overflow` again).
-- Characters: name them with `lh/char/map.h` (`lh_char_map_ht`, `_space`,
+- Characters: name them with `lh/core/char/map.h` (`lh_char_map_ht`, `_space`,
   `_colon`, `_del`, ...), never bare `'	'` / `0x20` literals in code; test a
   byte against a set with `lh_str_ptr_contains_char` (or the
   `lh_str_ptr_fill_char_set` bitmap), with the set as an array of map names.
@@ -243,6 +260,11 @@ file of LH and of Authum — reads and writes through them. No exceptions.
 ## 5. Names say what comes back
 
 - Boolean results: `is_`, `has_`, `can_`, `needs_` — `lh_memory_allocator_realloc_needs_alloc`.
+- **A name follows its path from the root of its part.** `lh/os/fs/file.h` is
+  `lh_os_fs_file_*`. The core is transparent: its root is `lh/core/`, and the
+  word `core` is never part of a name — `lh/core/array.h` is `lh_array_*`,
+  `lh/core/str/view.h` is `lh_str_view_*`. Every other part carries its name in
+  the prefix, so a name tells which part it belongs to.
 - Value reads: `get_<x>`; writes: `set_<x>`. A bare noun is not a name for a
   read: `lh_runtime_writer_process()` does not say whether it reads, builds or
   switches to something; `lh_runtime_writer_get_process()` does.

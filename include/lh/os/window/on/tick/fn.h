@@ -8,7 +8,7 @@
 #ifndef LH_OS_WINDOW_ON_TICK_FN_H
 #define LH_OS_WINDOW_ON_TICK_FN_H
 
-#include <lh/ptr.h>
+#include <lh/core/ptr.h>
 
 struct lh_os_window;
 
@@ -23,4 +23,4 @@ struct lh_os_window;
  */
 typedef lh_void(lh_os_window_on_tick_fn)(struct lh_os_window *self, lh_ptr context);
 
-#endif /* LH_OS_WINDOW_ON_TICK_FN_H */
+#endif /* LH_OS_WINDOW_ON_TICK_FN_H */

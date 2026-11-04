@@ -5,9 +5,9 @@
 
 #include <lh/os/serial.h>
 
-#include <lh/assert/runtime.h>
+#include <lh/core/assert/runtime.h>
 #include <lh/os/system/serial.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_void
 lh_os_serial_init(lh_os_serial_t *self)

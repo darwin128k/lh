@@ -7,8 +7,8 @@
 #define LH_SRC_OS_SYSTEM_WIN_CONCURRENCY_CONDITION_H
 
 #include <windows.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/void.h>
+#include <lh/core/compiler/extern/c.h>
+#include <lh/core/void.h>
 
 /* CONDITION_VARIABLE is a pointer-sized opaque state. Resolve its API at open,
  * so other LH OS services can still load on systems lacking condition variables.

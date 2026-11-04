@@ -22,7 +22,7 @@
 #define LH_OS_SYSTEM_FS_STAT_H
 
 #include <lh/config.h>
-#include <lh/fs/stat.h>
+#include <lh/core/fs/stat.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/system/fs/stat.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"

@@ -4,9 +4,9 @@
  */
 
 #include <lh/os/logger/daily/channel.h>
-#include <lh/assert/runtime.h>
-#include <lh/runtime/allocator.h>
-#include <lh/util/return.h>
+#include <lh/core/assert/runtime.h>
+#include <lh/core/runtime/allocator.h>
+#include <lh/core/util/return.h>
 
 const lh_list_node_t *
 lh_os_logger_daily_channel_get_node(const lh_os_logger_daily_channel_t *self)

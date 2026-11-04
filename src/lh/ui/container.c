@@ -2,11 +2,11 @@
  * @file container.c
  * @brief Implementation of `lh/ui/container.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
-#include <lh/math.h>
+#include <lh/core/math.h>
 #include <lh/ui/container.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 const lh_ui_entity_class_t lh_ui_container_class = {lh_ui_container_event,
                                                     lh_addr_of(lh_ui_entity_class)};

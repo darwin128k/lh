@@ -32,7 +32,7 @@
 #define LH_OS_MODULE_H
 
 #include <lh/config.h>
-#include <lh/list/node.h>
+#include <lh/core/list/node.h>
 #include <lh/os/module/fields.h>
 #include <lh/os/module/ops.h>
 #include <lh/os/shared.h>

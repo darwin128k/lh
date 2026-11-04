@@ -1,12 +1,12 @@
 #include <lh/ui/canvas/sw/shadow/pass.h>
-#include <lh/byte/limits.h>
-#include <lh/math.h>
-#include <lh/memory.h>
+#include <lh/core/byte/limits.h>
+#include <lh/core/math.h>
+#include <lh/core/memory.h>
 #include <lh/ui/blur.h>
 #include <lh/ui/canvas/round.h>
 #include <lh/ui/canvas/sw.h>
-#include <lh/util/return.h>
-#include <lh/assert.h>
+#include <lh/core/util/return.h>
+#include <lh/core/assert.h>
 
 lh_bool_t
 lh_ui_canvas_sw_shadow_pass_init(const lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect,

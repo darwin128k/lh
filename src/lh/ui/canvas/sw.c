@@ -2,15 +2,15 @@
  * @file sw.c
  * @brief Implementation of `lh/ui/canvas/sw.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
-#include <lh/byte/limits.h>
-#include <lh/math.h>
-#include <lh/memory.h>
+#include <lh/core/byte/limits.h>
+#include <lh/core/math.h>
+#include <lh/core/memory.h>
 #include <lh/ui/blur.h>
 #include <lh/ui/canvas/round.h>
 #include <lh/ui/canvas/sw.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 /* -- Lifetime -------------------------------------------------------------- */
 

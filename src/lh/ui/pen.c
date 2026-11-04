@@ -2,7 +2,7 @@
  * @file pen.c
  * @brief Implementation of `lh/ui/pen.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 #include <lh/ui/pen.h>
 

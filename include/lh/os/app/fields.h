@@ -6,7 +6,7 @@
 #ifndef LH_OS_APP_FIELDS_H
 #define LH_OS_APP_FIELDS_H
 
-#include <lh/timer/group.h>
+#include <lh/core/timer/group.h>
 
 /**
  * @def lh_os_app_fields(list_type, timers_type)

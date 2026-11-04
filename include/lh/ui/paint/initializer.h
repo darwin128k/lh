@@ -6,7 +6,7 @@
 #ifndef LH_UI_PAINT_INITIALIZER_H
 #define LH_UI_PAINT_INITIALIZER_H
 
-#include <lh/initializer.h>
+#include <lh/core/initializer.h>
 
 /**
  * @def lh_ui_paint_initializer(kind, color, gradient)

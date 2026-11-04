@@ -7,8 +7,8 @@
 #ifndef LH_UI_GRADIENT_SINE_H
 #define LH_UI_GRADIENT_SINE_H
 
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
+#include <lh/core/compiler/extern/c.h>
+#include <lh/core/numeric/fixed/types.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

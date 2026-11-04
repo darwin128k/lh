@@ -19,7 +19,7 @@
 #ifndef LH_SQL_MYSQL_QUERY_H
 #define LH_SQL_MYSQL_QUERY_H
 
-#include <lh/str.h>
+#include <lh/core/str.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

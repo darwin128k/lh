@@ -11,7 +11,7 @@
 #ifndef LH_SRC_OS_SYSTEM_POSIX_PAINT_H
 #define LH_SRC_OS_SYSTEM_POSIX_PAINT_H
 
-#include <lh/numeric/fixed/types.h>
+#include <lh/core/numeric/fixed/types.h>
 #include <lh/os/system/posix/x11.h>
 #include <lh/os/system/posix/paint/fields.h>
 

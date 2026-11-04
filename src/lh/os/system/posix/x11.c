@@ -5,8 +5,8 @@
 
 #include <lh/os/system/posix/x11.h>
 
-#include <lh/null.h>
-#include <lh/util/addr.h>
+#include <lh/core/null.h>
+#include <lh/core/util/addr.h>
 
 #include <dlfcn.h>
 

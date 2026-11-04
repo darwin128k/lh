@@ -7,7 +7,7 @@
 #ifndef LH_UI_CANVAS_CLIP_INITIALIZER_H
 #define LH_UI_CANVAS_CLIP_INITIALIZER_H
 
-#include <lh/initializer.h>
+#include <lh/core/initializer.h>
 
 /**
  * @def lh_ui_canvas_clip_round_initializer(rect, radius)

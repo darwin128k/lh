@@ -18,7 +18,7 @@
 #define LH_UI_WEB_HOST_H
 
 #include <lh/config.h>
-#include <lh/http/parser.h>
+#include <lh/core/http/parser.h>
 #include <lh/ui/web/app.h>
 #include <lh/ui/web/host/hooks.h>
 

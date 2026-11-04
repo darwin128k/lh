@@ -8,7 +8,7 @@
 #ifndef LH_UI_TOGGLE_ON_CLICK_FN_H
 #define LH_UI_TOGGLE_ON_CLICK_FN_H
 
-#include <lh/ptr.h>
+#include <lh/core/ptr.h>
 
 struct lh_ui_toggle;
 
@@ -25,4 +25,4 @@ struct lh_ui_toggle;
  */
 typedef lh_void(lh_ui_toggle_on_click_fn)(struct lh_ui_toggle *self, lh_ptr context);
 
-#endif /* LH_UI_TOGGLE_ON_CLICK_FN_H */
+#endif /* LH_UI_TOGGLE_ON_CLICK_FN_H */

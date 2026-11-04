@@ -12,10 +12,10 @@
 #ifndef LH_TEST_ALLOC_COUNTER_H
 #define LH_TEST_ALLOC_COUNTER_H
 
-#include <lh/compiler/extern/c.h>
-#include <lh/memory/allocator.h>
-#include <lh/runtime/allocator.h>
-#include <lh/self.h>
+#include <lh/core/compiler/extern/c.h>
+#include <lh/core/memory/allocator.h>
+#include <lh/core/runtime/allocator.h>
+#include <lh/core/self.h>
 
 #include <cstdlib>
 

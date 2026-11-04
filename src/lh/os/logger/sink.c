@@ -4,7 +4,7 @@
  */
 
 #include <lh/os/logger/sink.h>
-#include <lh/assert/runtime.h>
+#include <lh/core/assert/runtime.h>
 
 lh_os_logger_sink_emit_cb
 lh_os_logger_sink_get_emit_fn(const lh_os_logger_sink_t *self)

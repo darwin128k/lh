@@ -8,7 +8,7 @@
 
 #include <lh/os/worker/cb.h>
 #include <lh/os/worker/job/fields.h>
-#include <lh/memory/allocator.h>
+#include <lh/core/memory/allocator.h>
 
 /**
  * @brief One accepted job; release with ::lh_os_worker_dispose after taking it.

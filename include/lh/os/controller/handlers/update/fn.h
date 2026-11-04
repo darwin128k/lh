@@ -9,8 +9,8 @@
 #ifndef LH_OS_CONTROLLER_HANDLERS_UPDATE_FN_H
 #define LH_OS_CONTROLLER_HANDLERS_UPDATE_FN_H
 
-#include <lh/self.h>
-#include <lh/timer/tick.h>
+#include <lh/core/self.h>
+#include <lh/core/timer/tick.h>
 
 /**
  * @typedef lh_os_controller_handlers_update_fn

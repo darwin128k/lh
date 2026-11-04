@@ -7,7 +7,7 @@
 #define LH_OS_LOGGER_DAILY_FORMAT_FN_H
 
 #include <lh/os/logger/record.h>
-#include <lh/str.h>
+#include <lh/core/str.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

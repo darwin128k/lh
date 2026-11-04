@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <lh/os/worker.h>
-#include <lh/runtime/allocator.h>
+#include <lh/core/runtime/allocator.h>
 #include <lh/spsc.h>
 #include <lh/test/os.h>
 #include <atomic>

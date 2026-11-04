@@ -2,9 +2,9 @@
  * @file insets.c
  * @brief Implementation of `lh/ui/insets.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
-#include <lh/math.h>
+#include <lh/core/math.h>
 #include <lh/ui/insets.h>
 
 lh_void

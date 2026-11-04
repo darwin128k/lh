@@ -4,9 +4,9 @@
  */
 
 #include <lh/os/module/event/subscription.h>
-#include <lh/list.h>
-#include <lh/runtime/allocator.h>
-#include <lh/assert.h>
+#include <lh/core/list.h>
+#include <lh/core/runtime/allocator.h>
+#include <lh/core/assert.h>
 
 const lh_list_node_t *
 lh_os_module_event_subscription_get_node(const lh_os_module_event_subscription_t *self)

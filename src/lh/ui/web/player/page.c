@@ -4,11 +4,11 @@
  */
 
 #include <lh/ui/web/player/page.h>
-#include <lh/assert.h>
-#include <lh/char/map.h>
-#include <lh/memory/std.h>
-#include <lh/web/xml/writer.h>
-#include <lh/web/js/writer.h>
+#include <lh/core/assert.h>
+#include <lh/core/char/map.h>
+#include <lh/core/memory/std.h>
+#include <lh/core/web/xml/writer.h>
+#include <lh/core/web/js/writer.h>
 
 /** The browser's `KeyboardEvent.key` for every ::lh_os_key_t from ::lh_os_key_tab on, in the
    enum's order; a key added to the enum without a name here stops the build below. */

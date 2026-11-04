@@ -18,8 +18,8 @@
 #include <lh/os/system/win/kernel32/filetime/fields.h>
 #include <lh/os/system/win/kernel32/find_data/fields.h>
 #include <lh/os/system/win/kernel32/systemtime/fields.h>
-#include <lh/str/ptr.h>
-#include <lh/wstr/ptr.h>
+#include <lh/core/str/ptr.h>
+#include <lh/core/wstr/ptr.h>
 
 /** `INVALID_HANDLE_VALUE`: (HANDLE)(LONG_PTR)-1. */
 #define LH_OS_SYSTEM_WIN_INVALID_HANDLE                                                            \

@@ -1,9 +1,9 @@
 #include <lh/os/system/error/capture.h>
-#include <lh/assert.h>
-#include <lh/char/map.h>
+#include <lh/core/assert.h>
+#include <lh/core/char/map.h>
 #include <lh/os/system/win/kernel32.h>
-#include <lh/math.h>
-#include <lh/util/wstr/ptr.h>
+#include <lh/core/math.h>
+#include <lh/core/util/wstr/ptr.h>
 
 lh_os_system_error_code_t
 lh_os_system_error_get_native_code(void)

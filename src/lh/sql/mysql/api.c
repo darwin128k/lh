@@ -1,7 +1,7 @@
 #include <lh/sql/mysql/api.h>
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 #include <lh/os/system/fs/path.h>
-#include <lh/runtime/allocator.h>
+#include <lh/core/runtime/allocator.h>
 
 /* What the client is called, most likely first: MariaDB's Connector/C, then
    Oracle's libmysqlclient, newest soname first. */

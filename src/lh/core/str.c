@@ -1,0 +1,226 @@
+#include <lh/core/str.h>
+#include <lh/core/char/map.h>
+#include <lh/core/assert.h>
+#include <lh/core/math.h>
+
+/* What an empty string with no buffer of its own reads as. */
+static const lh_char_t m_str_empty[1] = {lh_char_map_nul};
+
+lh_void
+lh_str_write_terminator(lh_str_t *self)
+{
+    lh_ptr_deref_of(lh_char_t, lh_array_get_end(self)) = lh_char_map_nul;
+}
+
+lh_void
+lh_str_init(lh_str_t *self)
+{
+    lh_array_init(self, sizeof(lh_char_t));
+}
+
+lh_void
+lh_str_deinit(lh_str_t *self)
+{
+    lh_array_deinit(self);
+}
+
+lh_str_cptr
+lh_str_get_data(const lh_str_t *self)
+{
+    if (lh_math_is_zero(lh_array_get_capacity(self)))
+    {
+        return m_str_empty;
+    }
+    return lh_ptr_cast(lh_char_t, lh_array_get_data(self));
+}
+
+lh_usize_t
+lh_str_get_size(const lh_str_t *self)
+{
+    return lh_array_get_size(self);
+}
+
+lh_bool_t
+lh_str_is_empty(const lh_str_t *self)
+{
+    return lh_array_is_empty(self);
+}
+
+lh_void
+lh_str_reserve(lh_str_t *self, lh_usize_t count)
+{
+    lh_array_reserve(self, lh_math_add_one(count));
+}
+
+lh_void
+lh_str_terminate(lh_str_t *self)
+{
+    if (lh_math_is_zero(lh_array_get_capacity(self)))
+    {
+        return;
+    }
+    lh_str_write_terminator(self);
+}
+
+lh_void
+lh_str_append(lh_str_t *self, lh_str_cptr text, lh_usize_t count)
+{
+    lh_usize_t needed;
+    lh_usize_t capacity;
+
+    if (lh_math_is_zero(count))
+    {
+        return;
+    }
+    /* Grow once, for the text and the terminator together — push_back_of
+       alone would size for the text and then need a second grow for the NUL. */
+    needed = lh_math_add_one(lh_math_add(lh_array_get_size(self), count));
+    capacity = lh_array_get_capacity(self);
+    if (lh_math_lt(capacity, needed))
+    {
+        lh_array_reserve(self, lh_array_get_grown_capacity(capacity, needed));
+    }
+    lh_array_push_back_of(self, text, count);
+    lh_str_write_terminator(self);
+}
+
+lh_void
+lh_str_as_view(const lh_str_t *self, lh_str_view_t *out)
+{
+    lh_str_view_init_by_size(out, lh_str_get_data(self), lh_str_get_size(self));
+}
+
+lh_void
+lh_str_push_back(lh_str_t *self, lh_char_t ch)
+{
+    lh_str_append(self, lh_addr_of(ch), 1);
+}
+
+lh_void
+lh_str_append_view(lh_str_t *self, lh_str_view_t view)
+{
+    if (lh_str_view_is_empty(lh_addr_of(view)))
+    {
+        return;
+    }
+    lh_str_append(self, lh_str_view_get_data(lh_addr_of(view)),
+                  lh_str_view_get_size(lh_addr_of(view)));
+}
+
+lh_usize_t
+lh_str_format_v(lh_str_t *self, lh_str_cptr fmt, va_list args)
+{
+    va_list measure;
+    lh_usize_t n;
+
+    va_copy(measure, args);
+    n = lh_str_ptr_format_text_size_v(fmt, measure);
+    va_end(measure);
+    if (n == LH_STR_PTR_INVALID)
+    {
+        return 0;
+    }
+
+    lh_array_reserve(self, lh_math_add_one(n));
+    lh_array_resize(self, n);
+    if (n > 0U)
+    {
+        lh_str_ptr_format_text_v(lh_ptr_cast(lh_char_t, lh_array_get_data(self)), n, fmt, args);
+    }
+    lh_str_terminate(self);
+    return n;
+}
+
+lh_void
+lh_str_clear(lh_str_t *self)
+{
+    lh_array_clear(self);
+    lh_str_terminate(self);
+}
+
+lh_void
+lh_str_truncate(lh_str_t *self, lh_usize_t n)
+{
+    lh_assert_runtime_if(n > lh_str_get_size(self), lh_runtime_error_code_invalid_range);
+    lh_array_resize(self, n);
+    lh_str_terminate(self);
+}
+
+lh_void
+lh_str_init_by_view(lh_str_t *self, lh_str_view_t view)
+{
+    lh_str_init(self);
+    lh_str_append_view(self, view);
+}
+
+lh_usize_t
+lh_str_format(lh_str_t *self, lh_str_cptr fmt, ...)
+{
+    lh_usize_t result;
+    va_list args;
+
+    va_start(args, fmt);
+    result = lh_str_format_v(self, fmt, args);
+    va_end(args);
+    return result;
+}
+
+lh_void
+lh_str_assign_view(lh_str_t *self, lh_str_view_t view)
+{
+    lh_str_clear(self);
+    lh_str_append_view(self, view);
+}
+
+lh_void
+lh_str_join(lh_str_t *self, const lh_str_view_t *parts, lh_usize_t count, lh_char_t sep)
+{
+    lh_usize_t i;
+
+    if (count > 0U)
+    {
+        lh_assert_runtime_ref(parts);
+    }
+    lh_str_clear(self);
+    for (i = 0U; i < count; ++i)
+    {
+        if (i > 0U)
+        {
+            lh_str_push_back(self, sep);
+        }
+        lh_str_append_view(self, parts[i]);
+    }
+}
+
+lh_void
+lh_str_append_str(lh_str_t *self, const lh_str_t *other)
+{
+    lh_assert_runtime_ref(other);
+    if (self == other)
+    {
+        const lh_usize_t n = lh_str_get_size(self);
+        if (n == 0U)
+        {
+            return;
+        }
+        lh_array_reserve(
+            self, lh_array_get_grown_capacity(lh_array_get_capacity(self), lh_math_add(n + n, 1U)));
+        lh_str_append(self, lh_str_get_data(self), n);
+        return;
+    }
+    lh_str_view_t view;
+    lh_str_as_view(other, lh_addr_of(view));
+    lh_str_append_view(self, view);
+}
+
+lh_void
+lh_str_assign(lh_str_t *self, const lh_str_t *other)
+{
+    lh_assert_runtime_ref(other);
+    if (self == other)
+    {
+        return;
+    }
+    lh_str_clear(self);
+    lh_str_append_str(self, other);
+}

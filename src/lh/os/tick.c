@@ -1,6 +1,6 @@
 #include <lh/os/tick.h>
-#include <lh/attribute/unused.h>
-#include <lh/util/addr.h>
+#include <lh/core/attribute/unused.h>
+#include <lh/core/util/addr.h>
 #include <lh/os/system/tick.h>
 
 /**

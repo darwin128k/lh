@@ -7,7 +7,7 @@
 #define LH_OS_WINDOW_ON_CLOSE_CB_H
 
 #include <lh/os/window/on/close/fn.h>
-#include <lh/util/ptr.h>
+#include <lh/core/util/ptr.h>
 
 /**
  * @def lh_os_window_on_close_cb

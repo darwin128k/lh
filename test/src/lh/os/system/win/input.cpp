@@ -2,7 +2,7 @@
 
 #include <lh/os/input/event.h>
 #include <lh/os/input/wheel.h>
-#include <lh/size.h>
+#include <lh/core/size.h>
 
 /* Backend-private (src/lh/os/system/win/input.h), so declared here: the test
    includes only the public tree. wParam is a UINT_PTR and lParam a LONG_PTR. */

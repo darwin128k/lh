@@ -6,7 +6,7 @@
 #include <lh/os/system/win/kernel32.h>
 #include <lh/os/system/win/key.h>
 #include <lh/os/system/win/user32.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 /* Virtual key and portable key, side by side. */
 const lh_u32_t lh_os_system_win_key_vks[] = {

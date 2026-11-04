@@ -6,8 +6,8 @@
 #ifndef LH_OS_INPUT_CONTACTS_INITIALIZER_H
 #define LH_OS_INPUT_CONTACTS_INITIALIZER_H
 
-#include <lh/bool.h>
-#include <lh/initializer.h>
+#include <lh/core/bool.h>
+#include <lh/core/initializer.h>
 #include <lh/os/input/device/kind.h>
 
 /**

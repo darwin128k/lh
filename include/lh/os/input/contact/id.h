@@ -7,7 +7,7 @@
 #ifndef LH_OS_INPUT_CONTACT_ID_H
 #define LH_OS_INPUT_CONTACT_ID_H
 
-#include <lh/numeric/fixed/types.h>
+#include <lh/core/numeric/fixed/types.h>
 
 /**
  * @typedef lh_os_input_contact_id_t

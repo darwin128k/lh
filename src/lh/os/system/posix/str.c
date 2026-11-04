@@ -1,5 +1,5 @@
 #include <lh/os/system/str.h>
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 /* POSIX OS text already is UTF-8 bytes: both directions are a copy. */
 

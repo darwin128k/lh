@@ -4,12 +4,12 @@
  */
 #include <lh/ui/web/buf.h>
 
-#include <lh/attribute/unused.h>
-#include <lh/char/map.h>
+#include <lh/core/attribute/unused.h>
+#include <lh/core/char/map.h>
 
-#include <lh/cast/const.h>
-#include <lh/memory.h>
-#include <lh/util/str/ptr.h>
+#include <lh/core/cast/const.h>
+#include <lh/core/memory.h>
+#include <lh/core/util/str/ptr.h>
 
 lh_byte_ptr
 lh_ui_web_buf_get_mem(const lh_ui_web_buf_t *self)

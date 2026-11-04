@@ -6,7 +6,7 @@
 #ifndef LH_UI_INSETS_INITIALIZER_H
 #define LH_UI_INSETS_INITIALIZER_H
 
-#include <lh/initializer.h>
+#include <lh/core/initializer.h>
 
 /**
  * @def lh_ui_insets_initializer(left, top, right, bottom)

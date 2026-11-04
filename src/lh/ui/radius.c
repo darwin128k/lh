@@ -6,10 +6,10 @@
  * the same code for the integer and the float scalar, so it needs no FPU.
  */
 
-#include <lh/math.h>
-#include <lh/memory.h>
+#include <lh/core/math.h>
+#include <lh/core/memory.h>
 #include <lh/ui/radius.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_s64_t
 lh_ui_radius_to_fixed(lh_ui_scalar_t v)

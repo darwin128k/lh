@@ -1,0 +1,179 @@
+#include <lh/core/cpu/simd.h>
+
+#include <lh/core/bit/ops.h>
+#include <lh/core/cast/static.h>
+#include <lh/core/compiler/arch.h>
+#include <lh/core/compiler/arch/family.h>
+#include <lh/core/compiler/cpu.h>
+#include <lh/config.h>
+#include <lh/core/cpu/id.h>
+
+/* CPUID leaves / bits shared by the MSVC hand-rolled probes and by
+ * ::lh_cpu_simd_has_erms (which always goes through ::lh_cpu_id — GCC has no
+ * reliable __builtin_cpu_supports string for ERMS on every toolchain). */
+#define LH_CPU_SIMD_CPUID_LEAF_FEATURE_INFO 1      /* processor feature bits */
+#define LH_CPU_SIMD_CPUID_LEAF_EXTENDED_FEATURES 7 /* AVX2 / ERMS and newer */
+#define LH_CPU_SIMD_CPUID_EDX_SSE2_BIT 26
+#define LH_CPU_SIMD_CPUID_ECX_SSSE3_BIT 9
+#define LH_CPU_SIMD_CPUID_ECX_AESNI_BIT 25
+#define LH_CPU_SIMD_CPUID_ECX_OSXSAVE_BIT 27
+#define LH_CPU_SIMD_CPUID_ECX_AVX_BIT 28
+#define LH_CPU_SIMD_CPUID_EXTENDED_FEATURES_EBX_AVX2_BIT 5
+#define LH_CPU_SIMD_CPUID_EXTENDED_FEATURES_EBX_ERMS_BIT 9 /* Enhanced REP MOVSB/STOSB */
+
+#if (LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC) &&                                                 \
+    (LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_SSSE3 ||                      \
+     LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 || LH_LIBRARY_OPTION_SIMD_HAVE_AESNI)
+#    include <intrin.h>
+
+/* _xgetbv's control-register index, and the XCR0 bits it reports back. */
+#    define LH_CPU_SIMD_XCR0 0
+#    define LH_CPU_SIMD_XCR0_SSE_STATE_BIT 1 /* XMM register state enabled by the OS */
+#    define LH_CPU_SIMD_XCR0_AVX_STATE_BIT 2 /* YMM register state enabled by the OS */
+
+#endif
+
+/* __builtin_cpu_supports (wrapped by lh_compiler_cpu_has_feature) does not promise
+ * exactly 0/1 — checked directly on this project's own GCC: __builtin_cpu_supports
+ * ("sse2") returned 16, ("ssse3") returned 64, both nonzero-but-not-1 raw feature-bit
+ * values. Fine for a plain `if (...)` truthiness check, but lh_bool_t only has two
+ * canonical values (lh_bool_true == 1), so every call below is normalized with `!!`
+ * before the cast — a plain cast to the 1-byte lh_bool_t does not do that normalization
+ * itself, it would just truncate (e.g. 256 -> 0), which is its own way to end up wrong. */
+lh_bool_t
+lh_cpu_simd_has_sse2(void)
+{
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+#    if LH_COMPILER_ARCH_FAMILY_IS_X86 && (LH_COMPILER_ARCH == LH_COMPILER_ARCH_64)
+    /* SSE2 is part of the mandatory baseline ISA on x86-64 — no runtime check needed. */
+    return lh_bool_true;
+#    elif LH_COMPILER_TYPE_IS_GCC_LIKE
+    return lh_cast_static(lh_bool_t, !!lh_compiler_cpu_has_feature("sse2"));
+#    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
+    lh_u32_t regs[LH_CPU_ID_REGISTER_COUNT];
+    if (!lh_cpu_id(LH_CPU_SIMD_CPUID_LEAF_FEATURE_INFO, 0U, regs))
+    {
+        return lh_bool_false;
+    }
+    return lh_cast_static(lh_bool_t, !lh_bit_disjoint(regs[LH_CPU_ID_EDX],
+                                                      lh_bit_mask(LH_CPU_SIMD_CPUID_EDX_SSE2_BIT)));
+#    else
+    return lh_bool_false;
+#    endif
+#else
+    return lh_bool_false;
+#endif
+}
+
+lh_bool_t
+lh_cpu_simd_has_ssse3(void)
+{
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSSE3
+#    if LH_COMPILER_TYPE_IS_GCC_LIKE
+    return lh_cast_static(lh_bool_t, !!lh_compiler_cpu_has_feature("ssse3"));
+#    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
+    /* Unlike AVX2, no XCR0/XGETBV check needed: SSSE3 uses the same XMM state SSE2
+     * already does, which every OS running on x86-64 has enabled from the start. */
+    lh_u32_t regs[LH_CPU_ID_REGISTER_COUNT];
+    if (!lh_cpu_id(LH_CPU_SIMD_CPUID_LEAF_FEATURE_INFO, 0U, regs))
+    {
+        return lh_bool_false;
+    }
+    return lh_cast_static(
+        lh_bool_t,
+        !lh_bit_disjoint(regs[LH_CPU_ID_ECX], lh_bit_mask(LH_CPU_SIMD_CPUID_ECX_SSSE3_BIT)));
+#    else
+    return lh_bool_false;
+#    endif
+#else
+    return lh_bool_false;
+#endif
+}
+
+lh_bool_t
+lh_cpu_simd_has_avx2(void)
+{
+#if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
+#    if LH_COMPILER_TYPE_IS_GCC_LIKE
+    /* Checks CPUID *and* that the OS has enabled AVX register state via XGETBV/XCR0,
+     * not just the raw feature bit. */
+    return lh_cast_static(lh_bool_t, !!lh_compiler_cpu_has_feature("avx2"));
+#    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
+    /* Same check as __builtin_cpu_supports above, hand-rolled: MSVC has no
+     * equivalent builtin. */
+    lh_u32_t regs[LH_CPU_ID_REGISTER_COUNT];
+
+    if (!lh_cpu_id(LH_CPU_SIMD_CPUID_LEAF_FEATURE_INFO, 0U, regs) ||
+        lh_bit_disjoint(regs[LH_CPU_ID_ECX], lh_bit_mask(LH_CPU_SIMD_CPUID_ECX_OSXSAVE_BIT)) ||
+        lh_bit_disjoint(regs[LH_CPU_ID_ECX], lh_bit_mask(LH_CPU_SIMD_CPUID_ECX_AVX_BIT)))
+    {
+        return lh_bool_false; /* no feature leaf, no OSXSAVE, or no AVX */
+    }
+
+    {
+        const lh_u64_t xcr0_required_state = lh_bit_or(lh_bit_mask(LH_CPU_SIMD_XCR0_SSE_STATE_BIT),
+                                                       lh_bit_mask(LH_CPU_SIMD_XCR0_AVX_STATE_BIT));
+
+        if (lh_bit_and(_xgetbv(LH_CPU_SIMD_XCR0), xcr0_required_state) != xcr0_required_state)
+        {
+            return lh_bool_false; /* OS hasn't enabled XMM+YMM state */
+        }
+    }
+
+    if (!lh_cpu_id(LH_CPU_SIMD_CPUID_LEAF_EXTENDED_FEATURES, 0U, regs))
+    {
+        return lh_bool_false; /* CPUID leaf 7 (structured extended features) not available */
+    }
+    return lh_cast_static(
+        lh_bool_t, !lh_bit_disjoint(regs[LH_CPU_ID_EBX],
+                                    lh_bit_mask(LH_CPU_SIMD_CPUID_EXTENDED_FEATURES_EBX_AVX2_BIT)));
+#    else
+    return lh_bool_false;
+#    endif
+#else
+    return lh_bool_false;
+#endif
+}
+
+lh_bool_t
+lh_cpu_simd_has_aesni(void)
+{
+#if LH_LIBRARY_OPTION_SIMD_HAVE_AESNI
+#    if LH_COMPILER_TYPE_IS_GCC_LIKE
+    return lh_cast_static(lh_bool_t, !!lh_compiler_cpu_has_feature("aes"));
+#    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
+    /* XMM state only, like SSSE3 — no XCR0/XGETBV check. */
+    lh_u32_t regs[LH_CPU_ID_REGISTER_COUNT];
+    if (!lh_cpu_id(LH_CPU_SIMD_CPUID_LEAF_FEATURE_INFO, 0U, regs))
+    {
+        return lh_bool_false;
+    }
+    return lh_cast_static(
+        lh_bool_t,
+        !lh_bit_disjoint(regs[LH_CPU_ID_ECX], lh_bit_mask(LH_CPU_SIMD_CPUID_ECX_AESNI_BIT)));
+#    else
+    return lh_bool_false;
+#    endif
+#else
+    return lh_bool_false;
+#endif
+}
+
+lh_bool_t
+lh_cpu_simd_has_erms(void)
+{
+#if LH_COMPILER_ARCH_FAMILY_IS_X86
+    lh_u32_t regs[LH_CPU_ID_REGISTER_COUNT];
+
+    /* Leaf 7 may be absent on pre-Ivy Bridge / old AMD — lh_cpu_id fails then. */
+    if (!lh_cpu_id(LH_CPU_SIMD_CPUID_LEAF_EXTENDED_FEATURES, 0U, regs))
+    {
+        return lh_bool_false;
+    }
+    return lh_cast_static(
+        lh_bool_t, !lh_bit_disjoint(regs[LH_CPU_ID_EBX],
+                                    lh_bit_mask(LH_CPU_SIMD_CPUID_EXTENDED_FEATURES_EBX_ERMS_BIT)));
+#else
+    return lh_bool_false;
+#endif
+}

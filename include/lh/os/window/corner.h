@@ -10,8 +10,8 @@
 #ifndef LH_OS_WINDOW_CORNER_H
 #define LH_OS_WINDOW_CORNER_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/bool.h>
+#include <lh/core/compiler/extern/c.h>
 
 /**
  * @def LH_OS_WINDOW_CORNER_MAX

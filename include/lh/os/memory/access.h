@@ -8,7 +8,7 @@
 #ifndef LH_OS_MEMORY_ACCESS_H
 #define LH_OS_MEMORY_ACCESS_H
 
-#include <lh/byte.h>
+#include <lh/core/byte.h>
 
 /** No access at all. */
 #define lh_os_memory_access_none 0U

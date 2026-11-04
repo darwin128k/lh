@@ -2,15 +2,15 @@
  * @file input.c
  * @brief Implementation of `lh/ui/input.h`.
  */
-#include <lh/assert.h>
-#include <lh/attribute/unused.h>
+#include <lh/core/assert.h>
+#include <lh/core/attribute/unused.h>
 
-#include <lh/math.h>
-#include <lh/char/map.h>
-#include <lh/str/utf8.h>
+#include <lh/core/math.h>
+#include <lh/core/char/map.h>
+#include <lh/core/str/utf8.h>
 #include <lh/ui/input.h>
-#include <lh/util/return.h>
-#include <lh/util/str/ptr.h>
+#include <lh/core/util/return.h>
+#include <lh/core/util/str/ptr.h>
 
 /* -- Boundaries ------------------------------------------------------------
  *

@@ -3,10 +3,10 @@
  * @brief Implementation of `lh/os/input/recognizer.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/math.h>
+#include <lh/core/assert/runtime.h>
+#include <lh/core/math.h>
 #include <lh/os/input/recognizer.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 /* -- Sending --------------------------------------------------------------- */
 

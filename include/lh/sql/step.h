@@ -6,7 +6,7 @@
 #ifndef LH_SQL_STEP_H
 #define LH_SQL_STEP_H
 
-#include <lh/numeric/fixed/types.h>
+#include <lh/core/numeric/fixed/types.h>
 
 /**
  * @typedef lh_sql_step_t

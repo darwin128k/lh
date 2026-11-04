@@ -27,7 +27,7 @@
 #define LH_OS_LOADER_H
 
 #include <lh/config.h>
-#include <lh/list.h>
+#include <lh/core/list.h>
 #include <lh/os/loader/fields.h>
 #include <lh/os/module.h>
 

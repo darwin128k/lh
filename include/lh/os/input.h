@@ -21,7 +21,7 @@
 
 #include <lh/config.h>
 #include <lh/os/input/wheel.h>
-#include <lh/void.h>
+#include <lh/core/void.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/input.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"

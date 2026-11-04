@@ -11,7 +11,7 @@
 #define LH_OS_MUTEX_H
 
 #include <lh/os/system/concurrency.h>
-#include <lh/memory/allocator.h>
+#include <lh/core/memory/allocator.h>
 #include <lh/os/mutex/fields.h>
 
 /**

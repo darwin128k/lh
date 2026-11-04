@@ -9,14 +9,14 @@
 #ifndef LH_SRC_OS_SYSTEM_WIN_WINDOW_MAP_H
 #define LH_SRC_OS_SYSTEM_WIN_WINDOW_MAP_H
 
-#include <lh/bool.h>
+#include <lh/core/bool.h>
 #include <lh/os/input/coord.h>
 #include <lh/os/input/device/kind.h>
 #include <lh/os/input/kind.h>
 #include <lh/os/input/pointer/id.h>
 #include <lh/os/system/win/user32.h>
 #include <lh/os/window/zone.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/compiler/extern/c.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

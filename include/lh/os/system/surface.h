@@ -14,8 +14,8 @@
 #ifndef LH_OS_SYSTEM_SURFACE_H
 #define LH_OS_SYSTEM_SURFACE_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/bool.h>
+#include <lh/core/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/os/system/surface/handle.h>
 

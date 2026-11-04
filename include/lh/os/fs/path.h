@@ -13,7 +13,7 @@
 #define LH_OS_FS_PATH_H
 
 #include <lh/config.h>
-#include <lh/fs/path.h>
+#include <lh/core/fs/path.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/fs/path.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"

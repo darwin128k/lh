@@ -3,11 +3,11 @@
 Compute the two tables lh/real converts numbers with, in exact integers, and write
 them into their .c files.
 
-  - m_real_power5 (src/lh/real/power5.c): 5^q for q in [-342, 308], normalized to
+  - m_real_power5 (src/lh/core/real/power5.c): 5^q for q in [-342, 308], normalized to
     128 bits (top bit set) and truncated, two 64-bit words per power — the table of
     Eisel-Lemire, the same as fast_float's. Rows outside [-65, 38] are only needed
     by binary64 and sit under `#if LH_LIBRARY_OPTION_REAL == LH_REAL_DOUBLE`.
-  - m_real_cached (src/lh/real/cached.c): 10^k for k = -348 + 8 i, i in [0, 86], as a
+  - m_real_cached (src/lh/core/real/cached.c): 10^k for k = -348 + 8 i, i in [0, 86], as a
     64-bit significand rounded to nearest and a binary exponent — the cached powers
     of Grisu2, the same as RapidJSON's and double-conversion's.
 
@@ -16,7 +16,7 @@ is. Python integers are exact, so there is nothing to download: the output is fu
 determined by this script (the first entries are checked against the published
 tables).
 
-Output: src/lh/real/power5.c, src/lh/real/cached.c
+Output: src/lh/core/real/power5.c, src/lh/core/real/cached.c
 """
 
 from __future__ import annotations
@@ -117,8 +117,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[1])
     parser.parse_args()
     check()
-    replace_initializer(os.path.join(ROOT, "src/lh/real/power5.c"), "m_real_power5", power5_rows())
-    replace_initializer(os.path.join(ROOT, "src/lh/real/cached.c"), "m_real_cached", cached_rows())
+    replace_initializer(os.path.join(ROOT, "src/lh/core/real/power5.c"), "m_real_power5", power5_rows())
+    replace_initializer(os.path.join(ROOT, "src/lh/core/real/cached.c"), "m_real_cached", cached_rows())
 
 
 if __name__ == "__main__":

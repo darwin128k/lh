@@ -18,10 +18,10 @@
 #include <stdlib.h>
 
 #include <lh/os/app.h>
-#include <lh/runtime/allocator.h>
-#include <lh/runtime/terminate.h>
+#include <lh/core/runtime/allocator.h>
+#include <lh/core/runtime/terminate.h>
 #include <lh/os/window.h>
-#include <lh/math/rect.h>
+#include <lh/core/math/rect.h>
 #include <lh/ui/frame/stats.h>
 
 #if defined(_WIN32)

@@ -11,12 +11,12 @@
 #ifndef LH_OS_MEMORY_H
 #define LH_OS_MEMORY_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/bool.h>
+#include <lh/core/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/os/memory/access.h>
-#include <lh/ptr.h>
-#include <lh/size.h>
+#include <lh/core/ptr.h>
+#include <lh/core/size.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/memory.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"

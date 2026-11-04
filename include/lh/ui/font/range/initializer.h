@@ -6,7 +6,7 @@
 #ifndef LH_UI_FONT_RANGE_INITIALIZER_H
 #define LH_UI_FONT_RANGE_INITIALIZER_H
 
-#include <lh/initializer.h>
+#include <lh/core/initializer.h>
 
 /**
  * @def lh_ui_font_range_initializer(first, length, base)

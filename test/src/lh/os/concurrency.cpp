@@ -2,7 +2,7 @@
 #    define _GNU_SOURCE
 #endif
 #include <gtest/gtest.h>
-#include <lh/library/fallback.h>
+#include <lh/core/library/fallback.h>
 #include <lh/os/thread.h>
 #include <lh/os/mutex.h>
 #include <lh/os/condition.h>
@@ -12,7 +12,7 @@
 #include <lh/test/os.h>
 #include <lh/os.h>
 #include <lh/os/error/code.h>
-#include <lh/runtime/allocator.h>
+#include <lh/core/runtime/allocator.h>
 #include <cstdlib>
 #include <atomic>
 #if defined(_WIN32)
@@ -124,6 +124,7 @@ check_affinity(void *user)
 class os_condition : public testing::TestWithParam<int>
 {
 };
+
 /* Counts the native storage taken from and given back to the runtime
    allocator; refuses every allocation while reject is set. */
 struct storage_counter

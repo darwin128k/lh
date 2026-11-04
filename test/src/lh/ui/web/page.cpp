@@ -9,9 +9,9 @@
 #include <lh/expect/death.h>
 #include <lh/os/key.h>
 #include <lh/ui/web/player/page.h>
-#include <lh/web/html/reader.h>
-#include <lh/web/js/writer.h>
-#include <lh/web/xml/writer.h>
+#include <lh/core/web/html/reader.h>
+#include <lh/core/web/js/writer.h>
+#include <lh/core/web/xml/writer.h>
 
 #include <string>
 #include <vector>

@@ -4,17 +4,17 @@
 #endif
 
 #include <lh/os/system/shared.h>
-#include <lh/attribute/unused.h>
+#include <lh/core/attribute/unused.h>
 #include <lh/os/system/posix/shared/search.h>
-#include <lh/memory/std.h>
-#include <lh/assert.h>
-#include <lh/attribute/static.h>
+#include <lh/core/memory/std.h>
+#include <lh/core/assert.h>
+#include <lh/core/attribute/static.h>
 #include <lh/os/alloc.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/str.h>
-#include <lh/math.h>
-#include <lh/runtime/allocator.h>
-#include <lh/util/str/ptr/empty.h>
+#include <lh/core/math.h>
+#include <lh/core/runtime/allocator.h>
+#include <lh/core/util/str/ptr/empty.h>
 
 #include <dlfcn.h>
 #include <fcntl.h>

@@ -1,0 +1,391 @@
+/**
+ * @file date.h
+ * @brief Calendar date value type (`year/month/day`).
+ *
+ * Pure value — no clock, no OS. Gregorian calendar on parse. Fields are
+ * ::lh_date_year_t, ::lh_date_month_t, and ::lh_date_day_t.
+ *
+ * Brace init: ::lh_date_initializer in `lh/core/date/initializer.h`.
+ */
+
+#ifndef LH_DATE_H
+#define LH_DATE_H
+
+#include <lh/core/date/day.h>
+#include <lh/core/date/view/fields.h>
+#include <lh/core/date/week/index.h>
+#include <lh/core/size.h>
+#include <lh/core/str/ptr.h>
+
+/**
+ * @def LH_DATE_TEXT_MAX
+ * @brief Longest `YYYY/MM/DD` text, excluding NUL (`65535/12/31` is 11).
+ */
+#define LH_DATE_TEXT_MAX 11U
+
+/**
+ * @struct lh_date
+ * @brief Gregorian calendar date.
+ *
+ * Fields are injected via ::lh_date_fields.
+ */
+struct lh_date
+{
+    /** Members: ::lh_date_fields. */
+    lh_date_fields(lh_date_year_t, lh_date_month_t, lh_date_day_t);
+};
+
+/**
+ * @typedef lh_date_t
+ * @brief Alias for `struct lh_date`.
+ */
+typedef struct lh_date lh_date_t;
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief Copy @p other into @p self.
+ *
+ * @param self  Destination (not null).
+ * @param other Source (not null).
+ */
+lh_void
+lh_date_assign(lh_date_t *self, const lh_date_t *other);
+
+/**
+ * @brief Replace @p self with @p year, @p month, and @p day.
+ *
+ * @param self  Date to modify (not null).
+ * @param year  Year (`0`–::LH_DATE_YEAR_MAX).
+ * @param month Month (::LH_DATE_MONTH_MIN–::LH_DATE_MONTH_MAX).
+ * @param day   Day of month (::LH_DATE_DAY_MIN and up).
+ */
+lh_void
+lh_date_set(lh_date_t *self, lh_date_year_t year, lh_date_month_t month, lh_date_day_t day);
+
+/**
+ * @brief Write only the year field.
+ *
+ * @param self Date to modify (not null).
+ * @param year New year.
+ */
+lh_void
+lh_date_set_year(lh_date_t *self, lh_date_year_t year);
+
+/**
+ * @brief Write only the month field.
+ *
+ * @param self  Date to modify (not null).
+ * @param month New month.
+ */
+lh_void
+lh_date_set_month(lh_date_t *self, lh_date_month_t month);
+
+/**
+ * @brief Write only the day field.
+ *
+ * @param self Date to modify (not null).
+ * @param day  New day of month.
+ */
+lh_void
+lh_date_set_day(lh_date_t *self, lh_date_day_t day);
+
+/**
+ * @brief Add @p value years. Delegates to ::lh_date_add_month
+ *        (`value * ::LH_DATE_MONTHS_PER_YEAR` months), which clamps the day if
+ *        it is past the new month length (e.g. 29 Feb → 28 Feb).
+ *
+ * @param self  Date to update (not null).
+ * @param value Years to add (any ::lh_uint_t).
+ *
+ * @return Year-radix overflow from ::lh_date_year_add. `0` if the year stayed in range.
+ */
+lh_uint_t
+lh_date_add_year(lh_date_t *self, lh_uint_t value);
+
+/**
+ * @brief Subtract @p value years. Delegates to ::lh_date_sub_month.
+ *
+ * @param self  Date to update (not null).
+ * @param value Years to subtract (any ::lh_uint_t).
+ *
+ * @return Year-radix units borrowed. `0` if the year stayed in range.
+ */
+lh_uint_t
+lh_date_sub_year(lh_date_t *self, lh_uint_t value);
+
+/**
+ * @brief Add @p value months, wrapping the month/year via ::lh_date_month_add /
+ *        ::lh_date_year_add, then clamping the day if it no longer fits
+ *        (e.g. 31 Jan + 1 month → 28/29 Feb).
+ *
+ * @param self  Date to update (not null).
+ * @param value Months to add (any ::lh_uint_t).
+ *
+ * @return Year-radix overflow. `0` if the year stayed in range.
+ */
+lh_uint_t
+lh_date_add_month(lh_date_t *self, lh_uint_t value);
+
+/**
+ * @brief Subtract @p value months. Mirror of ::lh_date_add_month.
+ *
+ * @param self  Date to update (not null).
+ * @param value Months to subtract (any ::lh_uint_t).
+ *
+ * @return Year-radix units borrowed. `0` if the year stayed in range.
+ */
+lh_uint_t
+lh_date_sub_month(lh_date_t *self, lh_uint_t value);
+
+/**
+ * @brief Add @p value calendar days. Shifts the epoch-day number
+ *        (::lh_date_days_since_epoch) by @p value and converts back
+ *        (::lh_date_from_epoch_days).
+ *
+ * @param self  Date to update (not null).
+ * @param value Days to add (any ::lh_uint_t).
+ *
+ * @return `1` if the stored ::lh_date_year_t wrapped past ::LH_DATE_YEAR_MAX, else `0`.
+ */
+lh_uint_t
+lh_date_add_day(lh_date_t *self, lh_uint_t value);
+
+/**
+ * @brief Subtract @p value calendar days. Mirror of ::lh_date_add_day.
+ *
+ * @param self  Date to update (not null).
+ * @param value Days to subtract (any ::lh_uint_t).
+ *
+ * @return `1` if the stored ::lh_date_year_t wrapped below `0`, else `0`.
+ */
+lh_uint_t
+lh_date_sub_day(lh_date_t *self, lh_uint_t value);
+
+/**
+ * @brief Add days, then months, then years (::lh_date_add_day / `_month` / `_year`).
+ *
+ * @param self  Date to update (not null).
+ * @param year  Years to add.
+ * @param month Months to add.
+ * @param day   Days to add.
+ *
+ * @return Sum of year-radix overflow from the three steps.
+ */
+lh_uint_t
+lh_date_add_custom(lh_date_t *self, lh_uint_t year, lh_uint_t month, lh_uint_t day);
+
+/**
+ * @brief Subtract years, then months, then days (::lh_date_sub_year / `_month` / `_day`).
+ *
+ * Inverse field order of ::lh_date_add_custom.
+ *
+ * @param self  Date to update (not null).
+ * @param year  Years to subtract.
+ * @param month Months to subtract.
+ * @param day   Days to subtract.
+ *
+ * @return Sum of year-radix units borrowed from the three steps.
+ */
+lh_uint_t
+lh_date_sub_custom(lh_date_t *self, lh_uint_t year, lh_uint_t month, lh_uint_t day);
+
+/**
+ * @brief Add @p other as a duration. Delegates to ::lh_date_add_custom
+ *        with other's year, month, and day as unsigned counts (not a calendar delta).
+ *
+ * @param self  Date to update (not null).
+ * @param other Duration (not null).
+ *
+ * @return Same as ::lh_date_add_custom.
+ */
+lh_uint_t
+lh_date_add(lh_date_t *self, const lh_date_t *other);
+
+/**
+ * @brief Subtract @p other as a duration. Delegates to ::lh_date_sub_custom.
+ *
+ * @param self  Date to update (not null).
+ * @param other Duration (not null).
+ *
+ * @return Same as ::lh_date_sub_custom.
+ */
+lh_uint_t
+lh_date_sub(lh_date_t *self, const lh_date_t *other);
+
+/**
+ * @brief Days in @p self's month. Delegates to ::lh_date_days_in_month.
+ *
+ * @param self Date to read (not null).
+ * @return `28`–`31`, or `0` if the month is not `1…12`.
+ */
+lh_date_day_t
+lh_date_max_days(const lh_date_t *self);
+
+/**
+ * @brief Days from 1970-01-01 to @p self (negative when @p self is before the
+ *        epoch). O(months in the year) — walks @p self's months, plus an O(1)
+ *        closed-form Gregorian leap-year count for the year offset.
+ *
+ * This is the ground-truth day count the rest of the library is built on:
+ * ::lh_date_add_day / ::lh_date_sub_day use it directly, and
+ * ::lh_timestamp_from_date is just this multiplied by seconds-per-day.
+ *
+ * @param self Date to read (not null).
+ * @return Epoch-day number (`0` for 1970-01-01).
+ */
+lh_s64_t
+lh_date_days_since_epoch(const lh_date_t *self);
+
+/**
+ * @brief Inverse of ::lh_date_days_since_epoch: the calendar date @p days
+ *        after 1970-01-01 (before it, if negative).
+ *
+ * @param days Epoch-day number.
+ * @param out  Receives the calendar date.
+ */
+lh_void
+lh_date_from_epoch_days(lh_s64_t days, lh_date_t *out);
+
+/**
+ * @brief Return the year of @p self.
+ *
+ * @param self Date to read (not null).
+ * @return Stored year.
+ */
+lh_date_year_t
+lh_date_get_year(const lh_date_t *self);
+
+/**
+ * @brief Return the month of @p self.
+ *
+ * @param self Date to read (not null).
+ * @return Stored month (`1`–`12` when valid).
+ */
+lh_date_month_t
+lh_date_get_month(const lh_date_t *self);
+
+/**
+ * @brief Return the day of month of @p self.
+ *
+ * @param self Date to read (not null).
+ * @return Stored day of month.
+ */
+lh_date_day_t
+lh_date_get_day(const lh_date_t *self);
+
+/**
+ * @brief True if @p self and @p other hold the same year, month, and day.
+ *
+ * @param self  Left (not null).
+ * @param other Right (not null).
+ */
+lh_bool_t
+lh_date_equals(const lh_date_t *self, const lh_date_t *other);
+
+/**
+ * @brief True if @p self is not earlier than @p minimum.
+ *
+ * Order: year, then month, then day.
+ *
+ * @param self    Value under test (not null).
+ * @param minimum Floor (not null).
+ */
+lh_bool_t
+lh_date_is_at_least(const lh_date_t *self, const lh_date_t *minimum);
+
+/**
+ * @brief True if @p self is strictly earlier than @p other.
+ *
+ * Same field order as ::lh_date_is_at_least.
+ *
+ * @param self  Value under test (not null).
+ * @param other Bound (not null).
+ */
+lh_bool_t
+lh_date_is_less(const lh_date_t *self, const lh_date_t *other);
+
+/**
+ * @brief True if @p self is strictly later than @p other.
+ *
+ * Same field order as ::lh_date_is_at_least.
+ *
+ * @param self  Value under test (not null).
+ * @param other Bound (not null).
+ */
+lh_bool_t
+lh_date_is_greater(const lh_date_t *self, const lh_date_t *other);
+
+/**
+ * @brief True if @p year/@p month/@p day is a real Gregorian calendar day.
+ *
+ * Month and day must be at least ::LH_DATE_MONTH_MIN / ::LH_DATE_DAY_MIN,
+ * and @p day must not exceed ::lh_date_days_in_month.
+ */
+lh_bool_t
+lh_date_ymd_is_valid(lh_uint_t year, lh_uint_t month, lh_uint_t day);
+
+/**
+ * @brief Parse `Y<sep>M<sep>D` (leading zeros on month/day allowed).
+ *
+ * All of @p str_size must be consumed. Rejects impossible calendar days.
+ *
+ * @param str       Buffer to parse (not required to be NUL-terminated).
+ * @param str_size  Number of characters available in @p str.
+ * @param separator The character between the parts (`/`, `-`, `.`).
+ * @param out       Receives the parsed date on success; untouched on failure.
+ *
+ * @return ::lh_bool_true if all of @p str_size was consumed as a valid date.
+ */
+lh_bool_t
+lh_date_parse_by(const lh_str_ptr str, lh_usize_t str_size, lh_char_t separator, lh_date_t *out);
+
+/**
+ * @brief Parse `Y/M/D` (slashes; leading zeros on month/day allowed).
+ *
+ * All of @p str_size must be consumed. Rejects impossible calendar days.
+ *
+ * @param str      Buffer to parse (not required to be NUL-terminated).
+ * @param str_size Number of characters available in @p str.
+ * @param out      Receives the parsed date on success; untouched on failure.
+ *
+ * @return ::lh_bool_true if all of @p str_size was consumed as a valid date.
+ */
+lh_bool_t
+lh_date_parse(const lh_str_ptr str, lh_usize_t str_size, lh_date_t *out);
+
+/**
+ * @brief Format @p self as `YYYY<sep>MM<sep>DD` (month and day zero-padded).
+ *
+ * No NUL terminator. A buffer of ::LH_DATE_TEXT_MAX + 1 always has room
+ * to add one after the returned length.
+ *
+ * @param self      Date to format (not null).
+ * @param str       Destination buffer.
+ * @param str_size  Capacity of @p str in characters.
+ * @param separator The character between the parts (`/`, `-`, `.`).
+ *
+ * @return Characters written, or 0 if @p str_size was too small.
+ */
+lh_usize_t
+lh_date_format_by(const lh_date_t *self, lh_str_ptr str, lh_usize_t str_size,
+                  lh_char_t separator);
+
+/**
+ * @brief Format @p self as `YYYY/MM/DD` (month and day zero-padded).
+ *
+ * No NUL terminator. A buffer of ::LH_DATE_TEXT_MAX + 1 always has room
+ * to add one after the returned length.
+ *
+ * @param self     Date to format (not null).
+ * @param str      Destination buffer.
+ * @param str_size Capacity of @p str in characters.
+ *
+ * @return Characters written, or 0 if @p str_size was too small.
+ */
+lh_usize_t
+lh_date_format(const lh_date_t *self, lh_str_ptr str, lh_usize_t str_size);
+
+LH_COMPILER_EXTERN_C_END
+
+#endif /* LH_DATE_H */

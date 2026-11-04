@@ -11,8 +11,8 @@
 #ifndef LH_OS_MODULE_FN_H
 #define LH_OS_MODULE_FN_H
 
-#include <lh/void.h>
-#include <lh/bool.h>
+#include <lh/core/void.h>
+#include <lh/core/bool.h>
 
 struct lh_os_module;
 

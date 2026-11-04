@@ -1,9 +1,9 @@
 #include <benchmark/benchmark.h>
 
-#include <lh/memory/allocator/initializer.h>
-#include <lh/runtime/allocator.h>
-#include <lh/runtime/terminate.h>
-#include <lh/runtime/terminate/handler/initializer.h>
+#include <lh/core/memory/allocator/initializer.h>
+#include <lh/core/runtime/allocator.h>
+#include <lh/core/runtime/terminate.h>
+#include <lh/core/runtime/terminate/handler/initializer.h>
 
 #include <cstdlib>
 

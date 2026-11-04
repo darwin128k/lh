@@ -5,7 +5,7 @@
 
 #include <gtest/gtest.h>
 
-#include <lh/size/limits.h>
+#include <lh/core/size/limits.h>
 #include <lh/ui/web/buf.h>
 
 TEST(ui_web_buf_get_mem, stores_or_reads_the_field)

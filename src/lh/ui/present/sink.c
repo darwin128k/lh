@@ -3,7 +3,7 @@
  * @brief ::lh_ui_present_sink_t.
  */
 #include <lh/ui/present/sink.h>
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 lh_void
 lh_ui_present_sink_init(lh_ui_present_sink_t *self, const char *name, lh_ui_present_fn *present,

@@ -1,7 +1,7 @@
 #include <lh/os/system/net.h>
-#include <lh/attribute/unused.h>
+#include <lh/core/attribute/unused.h>
 #include <lh/os/system/win/ws2_32.h>
-#include <lh/math.h>
+#include <lh/core/math.h>
 
 lh_bool_t
 lh_os_system_net_init(void)

@@ -15,7 +15,7 @@
  * line of a channel that was never opened is dropped.
  *
  * The first file failure is reported once on the runtime logger
- * (`lh/runtime/logger.h`), not through the queue being written.
+ * (`lh/core/runtime/logger.h`), not through the queue being written.
  *
  * Requires ::LH_LIBRARY_OPTION_OS.
  */

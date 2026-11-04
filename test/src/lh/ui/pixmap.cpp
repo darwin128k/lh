@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <vector>
 
-#include <lh/cpu/simd.h>
+#include <lh/core/cpu/simd.h>
 #include <lh/expect/death.h>
 #include <lh/ui/pixmap.h>
 #include <lh/test/out.h>

@@ -4,7 +4,7 @@
  */
 
 #include <lh/ui/web/host/gzip/workspace.h>
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 lh_byte_t *
 lh_ui_web_host_gzip_workspace_get_scratch(lh_ui_web_host_gzip_workspace_t *self)

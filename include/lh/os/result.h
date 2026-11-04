@@ -16,7 +16,7 @@
 #ifndef LH_OS_RESULT_H
 #define LH_OS_RESULT_H
 
-#include <lh/io/pending.h>
+#include <lh/core/io/pending.h>
 
 /**
  * @def LH_OS_RESULT_INVALID

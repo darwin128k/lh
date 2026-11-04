@@ -2,10 +2,10 @@
  * @file state.c
  * @brief Implementation of `lh/ui/canvas/state.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 #include <lh/ui/canvas/state.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_void
 lh_ui_canvas_state_init(lh_ui_canvas_state_t *self)

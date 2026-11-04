@@ -3,7 +3,7 @@
  * @brief Implementation of `lh/ui/gradient/sine.h`.
  */
 
-#include <lh/math/ops.h>
+#include <lh/core/math/ops.h>
 #include <lh/ui/gradient/sine.h>
 
 /** sin(d) for d in 0 .. 90 degrees, times 4096. Whole degrees are all CSS angles a sheet

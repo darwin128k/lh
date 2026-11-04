@@ -1,10 +1,10 @@
 #include <lh/os/system/str.h>
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 #include <lh/os/alloc.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/win/kernel32.h>
-#include <lh/runtime/allocator.h>
-#include <lh/math.h>
+#include <lh/core/runtime/allocator.h>
+#include <lh/core/math.h>
 
 lh_bool_t
 lh_os_system_str_from_utf8(lh_os_str_t *out, lh_str_cptr text)

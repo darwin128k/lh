@@ -10,10 +10,10 @@
 #ifndef LH_SRC_OS_SYSTEM_WIN_FS_KIND_H
 #define LH_SRC_OS_SYSTEM_WIN_FS_KIND_H
 
-#include <lh/attribute/static.h>
-#include <lh/fs/kind.h>
+#include <lh/core/attribute/static.h>
+#include <lh/core/fs/kind.h>
 #include <lh/os/system/win/kernel32.h>
-#include <lh/math.h>
+#include <lh/core/math.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

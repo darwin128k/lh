@@ -10,7 +10,7 @@
 #ifndef LH_OS_MODULE_EVENT_ENTRY_H
 #define LH_OS_MODULE_EVENT_ENTRY_H
 
-#include <lh/list.h>
+#include <lh/core/list.h>
 #include <lh/os/module/event/entry/fields.h>
 
 /** @brief Entry state; use accessors rather than fields. */

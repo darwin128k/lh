@@ -7,14 +7,14 @@
  */
 
 #include <lh/os/logger/daily.h>
-#include <lh/assert/runtime.h>
-#include <lh/attribute/unused.h>
-#include <lh/char/map.h>
+#include <lh/core/assert/runtime.h>
+#include <lh/core/attribute/unused.h>
+#include <lh/core/char/map.h>
 #include <lh/os.h>
 #include <lh/os/logger/daily/private.h>
-#include <lh/runtime/allocator.h>
-#include <lh/runtime/logger.h>
-#include <lh/util/return.h>
+#include <lh/core/runtime/allocator.h>
+#include <lh/core/runtime/logger.h>
+#include <lh/core/util/return.h>
 
 /* `YYYY-MM-DD.log`: the date, then the extension. */
 #define LH_OS_LOGGER_DAILY_EXTENSION ".log"

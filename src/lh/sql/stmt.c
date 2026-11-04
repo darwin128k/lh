@@ -1,5 +1,5 @@
 #include <lh/sql/stmt.h>
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
 

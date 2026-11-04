@@ -20,7 +20,7 @@
 
 #include <lh/config.h>
 #include <lh/os/str.h>
-#include <lh/str.h>
+#include <lh/core/str.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/system/str.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"

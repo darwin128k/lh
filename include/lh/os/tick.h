@@ -7,7 +7,7 @@
 #define LH_OS_TICK_H
 
 #include <lh/config.h>
-#include <lh/timer/tick.h>
+#include <lh/core/timer/tick.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/tick.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"

@@ -7,7 +7,7 @@
 #define LH_OS_WINDOW_ON_RESIZE_CB_H
 
 #include <lh/os/window/on/resize/fn.h>
-#include <lh/util/ptr.h>
+#include <lh/core/util/ptr.h>
 
 /**
  * @def lh_os_window_on_resize_cb
@@ -15,4 +15,4 @@
  */
 #define lh_os_window_on_resize_cb lh_ptr_of(lh_os_window_on_resize_fn)
 
-#endif /* LH_OS_WINDOW_ON_RESIZE_CB_H */
+#endif /* LH_OS_WINDOW_ON_RESIZE_CB_H */

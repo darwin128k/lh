@@ -2,10 +2,10 @@
  * @file transition.c
  * @brief Implementation of `lh/ui/transition.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 #include <lh/ui/transition.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_void
 lh_ui_transition_init(lh_ui_transition_t *self)

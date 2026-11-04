@@ -25,8 +25,8 @@
 #define LH_OS_NET_SOCKET_H
 
 #include <lh/config.h>
-#include <lh/io/dgram.h>
-#include <lh/io/stream.h>
+#include <lh/core/io/dgram.h>
+#include <lh/core/io/stream.h>
 #include <lh/os/result.h>
 #include <lh/os/net/socket/poll.h>
 #include <lh/os/system/net/socket/type.h>

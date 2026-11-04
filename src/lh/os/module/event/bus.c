@@ -5,11 +5,11 @@
  */
 
 #include <lh/os/module/event/bus.h>
-#include <lh/util/return.h>
-#include <lh/runtime/allocator.h>
-#include <lh/assert.h>
-#include <lh/util/str/ptr.h>
-#include <lh/memory/std.h>
+#include <lh/core/util/return.h>
+#include <lh/core/runtime/allocator.h>
+#include <lh/core/assert.h>
+#include <lh/core/util/str/ptr.h>
+#include <lh/core/memory/std.h>
 
 const lh_array_t *
 lh_os_module_event_bus_get_entries(const lh_os_module_event_bus_t *self)

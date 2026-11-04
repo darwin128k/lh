@@ -9,7 +9,7 @@
 #define LH_OS_WINDOW_ON_CLOSE_FN_H
 
 #include <lh/os/window/close/reason.h>
-#include <lh/ptr.h>
+#include <lh/core/ptr.h>
 
 struct lh_os_window;
 

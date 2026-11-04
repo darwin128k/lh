@@ -9,9 +9,9 @@
 
 #include <lh/os/worker.h>
 
-#include <lh/assert/runtime.h>
-#include <lh/runtime/allocator.h>
-#include <lh/runtime/terminate.h>
+#include <lh/core/assert/runtime.h>
+#include <lh/core/runtime/allocator.h>
+#include <lh/core/runtime/terminate.h>
 
 /* The worker is opaque: its fields are reached through the level-1 accessors
    declared in lh/os/worker.h. */

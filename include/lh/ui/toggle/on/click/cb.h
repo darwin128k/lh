@@ -7,7 +7,7 @@
 #define LH_UI_TOGGLE_ON_CLICK_CB_H
 
 #include <lh/ui/toggle/on/click/fn.h>
-#include <lh/util/ptr.h>
+#include <lh/core/util/ptr.h>
 
 /**
  * @def lh_ui_toggle_on_click_cb
@@ -15,4 +15,4 @@
  */
 #define lh_ui_toggle_on_click_cb lh_ptr_of(lh_ui_toggle_on_click_fn)
 
-#endif /* LH_UI_TOGGLE_ON_CLICK_CB_H */
+#endif /* LH_UI_TOGGLE_ON_CLICK_CB_H */

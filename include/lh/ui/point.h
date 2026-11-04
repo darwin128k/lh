@@ -14,7 +14,7 @@
 #include <lh/ui/scalar.h>
 
 #if LH_LIBRARY_OPTION_MATH_FPU
-#    include <lh/math/fpoint.h>
+#    include <lh/core/math/fpoint.h>
 
 /** @brief A UI point: ::lh_math_fpoint_t when ::LH_LIBRARY_OPTION_MATH_FPU is on. */
 typedef lh_math_fpoint_t lh_ui_point_t;
@@ -26,7 +26,7 @@ typedef lh_math_fpoint_t lh_ui_point_t;
 /** @brief ::lh_math_point_t to ::lh_ui_point_t (::lh_math_point_to_fpoint). */
 #    define lh_ui_point_from_point lh_math_point_to_fpoint
 #else
-#    include <lh/math/point.h>
+#    include <lh/core/math/point.h>
 
 /** @brief A UI point: ::lh_math_point_t when ::LH_LIBRARY_OPTION_MATH_FPU is off. */
 typedef lh_math_point_t lh_ui_point_t;

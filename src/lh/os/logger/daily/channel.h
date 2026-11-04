@@ -9,8 +9,8 @@
 #ifndef LH_SRC_OS_LOGGER_DAILY_CHANNEL_H
 #define LH_SRC_OS_LOGGER_DAILY_CHANNEL_H
 
-#include <lh/list/node.h>
-#include <lh/memory/allocator.h>
+#include <lh/core/list/node.h>
+#include <lh/core/memory/allocator.h>
 #include <lh/os/fs/file.h>
 
 /** @brief One channel of daily files. */

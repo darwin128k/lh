@@ -11,9 +11,9 @@
 #ifndef LH_SRC_OS_SYSTEM_POSIX_KEY_H
 #define LH_SRC_OS_SYSTEM_POSIX_KEY_H
 
-#include <lh/compiler/extern/c.h>
+#include <lh/core/compiler/extern/c.h>
 #include <lh/os/key.h>
-#include <lh/numeric/fixed/types.h>
+#include <lh/core/numeric/fixed/types.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

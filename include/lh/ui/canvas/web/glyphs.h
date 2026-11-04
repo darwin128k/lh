@@ -8,7 +8,7 @@
 
 #include <lh/ui/canvas/backend.h>
 #include <lh/ui/canvas/web/atlas.h>
-#include <lh/str/lit.h>
+#include <lh/core/str/lit.h>
 #include <lh/ui/web/buf.h>
 
 /**

@@ -3,11 +3,11 @@
  * @brief Implementation of `lh/ui/color.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/byte/limits.h>
-#include <lh/math.h>
+#include <lh/core/assert/runtime.h>
+#include <lh/core/byte/limits.h>
+#include <lh/core/math.h>
 #include <lh/ui/color.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 #if LH_UI_COLOR_HAVE_SMLAD
 #    include <arm_acle.h>

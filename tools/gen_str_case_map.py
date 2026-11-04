@@ -10,11 +10,11 @@ MU U+039C, or LATIN SMALL LETTER Y WITH DIAERESIS U+00FF -> U+0178, which has no
 code point in 0..255 at all) cannot be represented and is dropped.
 
 Emits both implementations lh_str_ptr_to_lower / lh_str_ptr_to_upper switch on
-(src/lh/util/str/case/map.c), guarded by #if LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE:
+(src/lh/core/util/str/case/map.c), guarded by #if LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE:
   - ON:  a dense 256-entry table per direction (table[(unsigned char)c] is always the
          mapped byte; identity for bytes with no mapping — no branch needed).
   - OFF: the sorted sparse pair table, via lh_interval_ropen_binary_search() from
-         lh/util/interval.h (same lookup gen_wchar_case_map.py's output uses).
+         lh/core/util/interval.h (same lookup gen_wchar_case_map.py's output uses).
 
 128..255 (and their mapped values) are written as their lh_char_t (signed 8-bit)
 values (v - 256 for v in [128, 255]) so initializers are well-defined instead of
@@ -22,7 +22,7 @@ relying on implementation-defined narrowing of an out-of-range unsigned literal
 into a signed char.
 
 Input: tools/data/unicode/UnicodeData-16.0.0.txt
-Output: src/lh/util/str/case/map.c
+Output: src/lh/core/util/str/case/map.c
 """
 
 from __future__ import annotations
@@ -98,15 +98,15 @@ def emit_c(
         " * (include/lh/config.h) — see that option's doc comment in cmake/library_options.cmake.",
         " */",
         "",
-        "#include <lh/util/str/ptr.h>",
-        "#include <lh/util/interval.h>",
-        "#include <lh/size.h>",
-        "#include <lh/char/case/pair.h>",
-        "#include <lh/util/array/ptr.h>",
-        "#include <lh/assert.h>",
-        "#include <lh/cast/static.h>",
+        "#include <lh/core/util/str/ptr.h>",
+        "#include <lh/core/util/interval.h>",
+        "#include <lh/core/size.h>",
+        "#include <lh/core/char/case/pair.h>",
+        "#include <lh/core/util/array/ptr.h>",
+        "#include <lh/core/assert.h>",
+        "#include <lh/core/cast/static.h>",
         "#include <lh/config.h>",
-        "#include <lh/foreach.h>",
+        "#include <lh/core/foreach.h>",
         "",
         "#if LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE",
         "",

@@ -63,7 +63,7 @@ Either member may be null — that step is then a no-op.
 
 | Field     | Meaning                                                                    |
 |-----------|----------------------------------------------------------------------------|
-| `modules` | The children in load order: an intrusive list (`lh_list_t`, `lh/list.h`) linked through each child's `node`. |
+| `modules` | The children in load order: an intrusive list (`lh_list_t`, `lh/core/list.h`) linked through each child's `node`. |
 | `owner`   | The module holding this privilege.                                         |
 | `entry`   | The symbol name a child exports its `lh_os_module_ops_t` under (a copy).   |
 

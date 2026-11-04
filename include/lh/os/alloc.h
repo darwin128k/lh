@@ -6,7 +6,7 @@
  * none: ::lh_null back, and ::lh_os_error_code_out_of_memory in
  * ::lh_os_last_error — never an assertion. ::lh_os_alloc is that one place.
  *
- * Memory comes from the runtime allocator (`lh/runtime/allocator.h`);
+ * Memory comes from the runtime allocator (`lh/core/runtime/allocator.h`);
  * release it with ::lh_runtime_allocator_free.
  *
  * Requires ::LH_LIBRARY_OPTION_OS.
@@ -15,10 +15,10 @@
 #ifndef LH_OS_ALLOC_H
 #define LH_OS_ALLOC_H
 
-#include <lh/compiler/extern/c.h>
+#include <lh/core/compiler/extern/c.h>
 #include <lh/config.h>
-#include <lh/ptr.h>
-#include <lh/size.h>
+#include <lh/core/ptr.h>
+#include <lh/core/size.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/alloc.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"

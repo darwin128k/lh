@@ -11,10 +11,10 @@
 #ifndef LH_UI_FONT_RANGE_H
 #define LH_UI_FONT_RANGE_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/bool.h>
+#include <lh/core/compiler/extern/c.h>
 #include <lh/ui/font/range/fields.h>
-#include <lh/void.h>
+#include <lh/core/void.h>
 
 /**
  * @struct lh_ui_font_range
@@ -110,4 +110,4 @@ lh_ui_font_range_set_base(lh_ui_font_range_t *self, lh_u32_t base);
 
 LH_COMPILER_EXTERN_C_END
 
-#endif /* LH_UI_FONT_RANGE_H */
+#endif /* LH_UI_FONT_RANGE_H */

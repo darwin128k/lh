@@ -6,7 +6,7 @@
 #ifndef LH_UI_RADII_INITIALIZER_H
 #define LH_UI_RADII_INITIALIZER_H
 
-#include <lh/initializer.h>
+#include <lh/core/initializer.h>
 
 /**
  * @def lh_ui_radii_initializer(top_left, top_right, bottom_right, bottom_left)

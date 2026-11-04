@@ -2,13 +2,13 @@
  * @file atlas.c
  * @brief Implementation of `lh/ui/canvas/web/atlas.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 #include <lh/ui/canvas/web/atlas.h>
 
-#include <lh/cast/const.h>
-#include <lh/memory.h>
-#include <lh/runtime/allocator.h>
+#include <lh/core/cast/const.h>
+#include <lh/core/memory.h>
+#include <lh/core/runtime/allocator.h>
 
 lh_sint_t
 lh_ui_canvas_web_atlas_find(const lh_ui_canvas_web_atlas_t *self, lh_byte_cptr px, lh_uint_t n,

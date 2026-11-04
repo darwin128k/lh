@@ -6,7 +6,7 @@
 #ifndef LH_UI_PIXMAP_INITIALIZER_H
 #define LH_UI_PIXMAP_INITIALIZER_H
 
-#include <lh/initializer.h>
+#include <lh/core/initializer.h>
 
 /**
  * @def lh_ui_pixmap_initializer(bits, width, height, stride, format)

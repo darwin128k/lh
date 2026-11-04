@@ -10,7 +10,7 @@
 #if defined(__linux__)
 #    include <sched.h>
 #endif
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 /**
  * @brief Return success for zero, or capture the POSIX error on this thread.

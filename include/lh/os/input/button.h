@@ -6,10 +6,10 @@
 #ifndef LH_OS_INPUT_BUTTON_H
 #define LH_OS_INPUT_BUTTON_H
 
-#include <lh/attribute/force_inline.h>
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/util/type.h>
+#include <lh/core/attribute/force_inline.h>
+#include <lh/core/bool.h>
+#include <lh/core/compiler/extern/c.h>
+#include <lh/core/util/type.h>
 
 /**
  * @enum lh_os_input_button

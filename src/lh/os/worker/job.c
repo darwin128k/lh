@@ -5,7 +5,7 @@
 
 #include <lh/os/worker/job.h>
 
-#include <lh/assert/runtime.h>
+#include <lh/core/assert/runtime.h>
 
 lh_os_worker_job_t *
 lh_os_worker_job_get_next(const lh_os_worker_job_t *self)

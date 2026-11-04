@@ -9,7 +9,7 @@
 #ifndef LH_OS_CONTROLLER_FLAGS_H
 #define LH_OS_CONTROLLER_FLAGS_H
 
-#include <lh/byte.h>
+#include <lh/core/byte.h>
 
 /**
  * @typedef lh_os_controller_flags_t

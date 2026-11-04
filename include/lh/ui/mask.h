@@ -3,7 +3,7 @@
  * @brief A packed alpha mask: ::lh_ui_mask_t.
  *
  * `width` x `height` pixels of coverage, each row packed high bit first at
- * 1, 2, 4 or 8 bits per pixel (`lh/bit/packed.h`) and `row_bytes` long. The
+ * 1, 2, 4 or 8 bits per pixel (`lh/core/bit/packed.h`) and `row_bytes` long. The
  * bytes are not owned. A font glyph is a mask; so is a baked icon or cursor.
  * ::lh_ui_canvas_fill_mask paints one in a color.
  */
@@ -11,7 +11,7 @@
 #ifndef LH_UI_MASK_H
 #define LH_UI_MASK_H
 
-#include <lh/byte/ptr.h>
+#include <lh/core/byte/ptr.h>
 #include <lh/ui/mask/fields.h>
 #include <lh/ui/rect.h>
 

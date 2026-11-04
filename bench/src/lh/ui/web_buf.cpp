@@ -6,7 +6,7 @@
 #include <benchmark/benchmark.h>
 
 #include <lh/ui/web/buf.h>
-#include <lh/char/map.h>
+#include <lh/core/char/map.h>
 
 #include <vector>
 

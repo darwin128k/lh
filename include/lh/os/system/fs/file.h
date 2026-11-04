@@ -23,9 +23,9 @@
 #include <lh/config.h>
 #include <lh/os/result.h>
 #include <lh/os/system/fs/file/handle.h>
-#include <lh/fs/file/mode.h>
-#include <lh/fs/size.h>
-#include <lh/str/ptr.h>
+#include <lh/core/fs/file/mode.h>
+#include <lh/core/fs/size.h>
+#include <lh/core/str/ptr.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/system/fs/file.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"

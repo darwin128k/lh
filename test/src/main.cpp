@@ -1,12 +1,12 @@
 #include <gtest/gtest.h>
 
-#include <lh/memory/allocator/initializer.h>
-#include <lh/runtime/allocator.h>
-#include <lh/runtime/logger.h>
-#include <lh/runtime/terminate.h>
-#include <lh/runtime/terminate/handler/initializer.h>
-#include <lh/runtime/writer.h>
-#include <lh/str/format/text.h>
+#include <lh/core/memory/allocator/initializer.h>
+#include <lh/core/runtime/allocator.h>
+#include <lh/core/runtime/logger.h>
+#include <lh/core/runtime/terminate.h>
+#include <lh/core/runtime/terminate/handler/initializer.h>
+#include <lh/core/runtime/writer.h>
+#include <lh/core/str/format/text.h>
 
 #include <cstdarg>
 #include <cstdio>

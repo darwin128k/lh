@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 
 #include <lh/test/ui/tiny_font.h>
-#include <lh/str/utf8.h>
+#include <lh/core/str/utf8.h>
 #include <lh/ui/input.h>
 #include <lh/test/out.h>
 
@@ -639,4 +639,4 @@ TEST(ui_text, an_encoded_code_reads_back_as_the_same_code)
         EXPECT_EQ(lh_ui_text_next_code(lh_addr_of(cursor)), code);
         EXPECT_EQ(lh_ui_text_next_code(lh_addr_of(cursor)), 0U);
     }
-}
+}

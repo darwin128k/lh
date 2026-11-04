@@ -18,13 +18,13 @@
 #ifndef LH_OS_SYSTEM_ERROR_CAPTURE_H
 #define LH_OS_SYSTEM_ERROR_CAPTURE_H
 
-#include <lh/void.h>
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/void.h>
+#include <lh/core/bool.h>
+#include <lh/core/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/os/error/desc.h>
 #include <lh/os/system/error/code.h>
-#include <lh/size.h>
+#include <lh/core/size.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error                                                                                         \

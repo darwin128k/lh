@@ -25,7 +25,7 @@
 
 #include <lh/sql/db/fields.h>
 #include <lh/sql/driver.h>
-#include <lh/str.h>
+#include <lh/core/str.h>
 
 /**
  * @struct lh_sql_db

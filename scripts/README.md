@@ -205,7 +205,7 @@ that is not preceded by a Doxygen comment:
 
 ```sh
 python scripts/audit_headers.py
-python scripts/audit_headers.py include/lh/memory/typed.h
+python scripts/audit_headers.py include/lh/core/memory/typed.h
 ```
 
 It prints one line per header with the count and the names, then the totals.

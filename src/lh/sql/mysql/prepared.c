@@ -1,6 +1,6 @@
 #include <lh/sql/mysql/prepared.h>
-#include <lh/assert.h>
-#include <lh/runtime/allocator.h>
+#include <lh/core/assert.h>
+#include <lh/core/runtime/allocator.h>
 #include <lh/sql/mysql/query.h>
 
 /* ── accessors ───────────────────────────────────────────────────────────── */

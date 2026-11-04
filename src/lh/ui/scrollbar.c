@@ -2,11 +2,11 @@
  * @file scrollbar.c
  * @brief Implementation of `lh/ui/scrollbar.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 #include <lh/ui/scrollbar.h>
 #include <lh/ui/range.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 /* -- Class ----------------------------------------------------------------- */
 

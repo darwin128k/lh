@@ -4,7 +4,7 @@
  */
 
 #include <lh/os/input/wheel.h>
-#include <lh/util/type.h>
+#include <lh/core/util/type.h>
 
 lh_s32_t
 lh_os_input_wheel_step_of(lh_u32_t lines)

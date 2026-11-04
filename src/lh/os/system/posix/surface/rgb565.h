@@ -6,11 +6,11 @@
 #ifndef LH_SRC_OS_SYSTEM_POSIX_SURFACE_RGB565_H
 #define LH_SRC_OS_SYSTEM_POSIX_SURFACE_RGB565_H
 
-#include <lh/attribute/force_inline.h>
-#include <lh/bit/ops.h>
-#include <lh/cast/static.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/attribute/force_inline.h>
+#include <lh/core/bit/ops.h>
+#include <lh/core/cast/static.h>
+#include <lh/core/numeric/fixed/types.h>
+#include <lh/core/compiler/extern/c.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

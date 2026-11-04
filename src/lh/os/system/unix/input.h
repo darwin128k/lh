@@ -15,8 +15,8 @@
 #ifndef LH_SRC_OS_SYSTEM_UNIX_INPUT_H
 #define LH_SRC_OS_SYSTEM_UNIX_INPUT_H
 
-#include <lh/numeric/fixed/types.h>
-#include <lh/void.h>
+#include <lh/core/numeric/fixed/types.h>
+#include <lh/core/void.h>
 
 /**
  * @brief Lines one wheel notch scrolls by the input driver:

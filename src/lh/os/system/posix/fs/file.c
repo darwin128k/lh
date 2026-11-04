@@ -1,10 +1,10 @@
 #include <lh/os/system/fs/file.h>
-#include <lh/attribute/unused.h>
-#include <lh/char/map.h>
-#include <lh/assert.h>
-#include <lh/attribute/static.h>
+#include <lh/core/attribute/unused.h>
+#include <lh/core/char/map.h>
+#include <lh/core/assert.h>
+#include <lh/core/attribute/static.h>
 #include <lh/os/system/error/capture.h>
-#include <lh/math.h>
+#include <lh/core/math.h>
 
 #include <fcntl.h>
 #include <unistd.h>

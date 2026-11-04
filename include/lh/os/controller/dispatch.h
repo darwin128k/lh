@@ -11,10 +11,10 @@
 #ifndef LH_OS_CONTROLLER_DISPATCH_H
 #define LH_OS_CONTROLLER_DISPATCH_H
 
-#include <lh/initializer.h>
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/void.h>
+#include <lh/core/initializer.h>
+#include <lh/core/bool.h>
+#include <lh/core/compiler/extern/c.h>
+#include <lh/core/void.h>
 
 struct lh_os_controller;
 

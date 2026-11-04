@@ -2,7 +2,7 @@
 
 #include <lh/os/logger/queue.h>
 #include <lh/os/thread.h>
-#include <lh/attribute/unused.h>
+#include <lh/core/attribute/unused.h>
 
 #include <atomic>
 #include <string>

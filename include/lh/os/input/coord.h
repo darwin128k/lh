@@ -6,8 +6,8 @@
 #ifndef LH_OS_INPUT_COORD_H
 #define LH_OS_INPUT_COORD_H
 
-#include <lh/numeric/fixed/types.h>
-#include <lh/util/type.h>
+#include <lh/core/numeric/fixed/types.h>
+#include <lh/core/util/type.h>
 
 /**
  * @typedef lh_os_input_coord_t

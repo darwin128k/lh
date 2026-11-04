@@ -2,11 +2,11 @@
  * @file surface.c
  * @brief Implementation of `lh/ui/surface.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 #include <lh/os/system/surface.h>
 #include <lh/ui/surface.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_void
 lh_ui_surface_init(lh_ui_surface_t *self)

@@ -2,12 +2,12 @@
  * @file pointer.c
  * @brief Implementation of `lh/ui/view/pointer.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
-#include <lh/math.h>
+#include <lh/core/math.h>
 #include <lh/ui/view.h>
 #include <lh/ui/view/pointer.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_void
 lh_ui_view_pointer_reset(lh_ui_view_pointer_t *self)

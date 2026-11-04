@@ -2,10 +2,10 @@
  * @file paint.c
  * @brief Implementation of `lh/ui/paint.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 #include <lh/ui/paint.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_void
 lh_ui_paint_init(lh_ui_paint_t *self)

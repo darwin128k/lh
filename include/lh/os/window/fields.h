@@ -6,7 +6,7 @@
 #ifndef LH_OS_WINDOW_FIELDS_H
 #define LH_OS_WINDOW_FIELDS_H
 
-#include <lh/list.h>
+#include <lh/core/list.h>
 #include <lh/os/input/sink/cb.h>
 #include <lh/os/window/frame.h>
 #include <lh/os/window/on/close/cb.h>

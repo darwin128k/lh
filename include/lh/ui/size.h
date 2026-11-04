@@ -14,7 +14,7 @@
 #include <lh/ui/scalar.h>
 
 #if LH_LIBRARY_OPTION_MATH_FPU
-#    include <lh/math/fsize.h>
+#    include <lh/core/math/fsize.h>
 
 /** @brief A UI size: ::lh_math_fsize_t when ::LH_LIBRARY_OPTION_MATH_FPU is on. */
 typedef lh_math_fsize_t lh_ui_size_t;
@@ -26,7 +26,7 @@ typedef lh_math_fsize_t lh_ui_size_t;
 /** @brief ::lh_math_size_t to ::lh_ui_size_t (::lh_math_size_to_fsize). */
 #    define lh_ui_size_from_size lh_math_size_to_fsize
 #else
-#    include <lh/math/size.h>
+#    include <lh/core/math/size.h>
 
 /** @brief A UI size: ::lh_math_size_t when ::LH_LIBRARY_OPTION_MATH_FPU is off. */
 typedef lh_math_size_t lh_ui_size_t;

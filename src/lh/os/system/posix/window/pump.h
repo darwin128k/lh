@@ -9,9 +9,9 @@
 #ifndef LH_SRC_OS_SYSTEM_POSIX_WINDOW_PUMP_H
 #define LH_SRC_OS_SYSTEM_POSIX_WINDOW_PUMP_H
 
-#include <lh/bool.h>
+#include <lh/core/bool.h>
 #include <lh/os/system/posix/window/fields.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/compiler/extern/c.h>
 
 struct lh_os_system_posix_window;
 typedef struct lh_os_system_posix_window lh_os_system_posix_window_t;

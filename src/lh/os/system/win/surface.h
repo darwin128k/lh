@@ -11,7 +11,7 @@
 #define LH_SRC_OS_SYSTEM_WIN_SURFACE_H
 
 #include <lh/os/system/win/types.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/compiler/extern/c.h>
 
 /** An off-screen surface: a DIB section selected into a memory DC. */
 struct lh_os_system_win_surface

@@ -4,9 +4,9 @@
  */
 
 #include <lh/os/thread/group.h>
-#include <lh/assert/runtime.h>
-#include <lh/util/return.h>
-#include <lh/runtime/terminate.h>
+#include <lh/core/assert/runtime.h>
+#include <lh/core/util/return.h>
+#include <lh/core/runtime/terminate.h>
 #include <lh/os/thread/group/member.h>
 
 const lh_list_t *

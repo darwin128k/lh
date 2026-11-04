@@ -3,7 +3,7 @@
  * @brief Implementation of `lh/os/input/event.h`.
  */
 
-#include <lh/assert/runtime.h>
+#include <lh/core/assert/runtime.h>
 #include <lh/os/input/event.h>
 
 /* -- Building -------------------------------------------------------------- */

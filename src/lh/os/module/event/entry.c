@@ -4,9 +4,9 @@
  */
 
 #include <lh/os/module/event/entry.h>
-#include <lh/runtime/allocator.h>
-#include <lh/assert.h>
-#include <lh/memory/std.h>
+#include <lh/core/runtime/allocator.h>
+#include <lh/core/assert.h>
+#include <lh/core/memory/std.h>
 
 lh_char_t *
 lh_os_module_event_entry_get_name(const lh_os_module_event_entry_t *self)

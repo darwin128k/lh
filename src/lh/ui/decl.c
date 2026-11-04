@@ -2,10 +2,10 @@
  * @file decl.c
  * @brief Implementation of `lh/ui/decl.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 #include <lh/ui/decl.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_void
 lh_ui_decl_fault(lh_ui_decl_fault_t *fault, lh_ui_decl_error_t code, lh_u32_t index)

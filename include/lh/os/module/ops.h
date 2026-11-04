@@ -14,7 +14,7 @@
 #define LH_OS_MODULE_OPS_H
 
 #include <lh/os/module/cb.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/compiler/extern/c.h>
 
 /**
  * @def lh_os_module_ops_fields(start_type, stop_type)

@@ -3,9 +3,9 @@
  * @brief Win32 backend for `lh/os/system/window.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/attribute/unused.h>
-#include <lh/memory.h>
+#include <lh/core/assert/runtime.h>
+#include <lh/core/attribute/unused.h>
+#include <lh/core/memory.h>
 #include <lh/os/input/contacts.h>
 #include <lh/os/input/contacts/initializer.h>
 #include <lh/os/system/win/gdi32.h>
@@ -16,7 +16,7 @@
 #include <lh/os/system/win/window/map.h>
 #include <lh/os/system/window.h>
 #include <lh/os/tick.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 /** The window class every window of ours is registered under. */
 #define LH_OS_SYSTEM_WIN_WINDOW_CLASS_NAME "lh_os_window"

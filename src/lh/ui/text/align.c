@@ -3,7 +3,7 @@
  * @brief Implementation of `lh/ui/text/align.h`.
  */
 
-#include <lh/math.h>
+#include <lh/core/math.h>
 #include <lh/ui/text/align.h>
 
 lh_void
@@ -72,4 +72,4 @@ lh_ui_text_align_get_origin(const lh_ui_rect_t *box, const lh_ui_insets_t *paddi
         lh_ui_point_get_x(lh_ui_rect_get_origin(box)) + lh_ui_insets_get_left((padding)) + dx,
         lh_ui_point_get_y(lh_ui_rect_get_origin(box)) + lh_ui_insets_get_top((padding)) + dy);
     lh_ptr_deref(out) = origin;
-}
+}

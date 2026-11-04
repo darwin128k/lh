@@ -1,5 +1,5 @@
 #include <lh/os/system/fs/path.h>
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 #include <lh/os.h>
 #include <lh/os/error/code.h>
 #include <lh/os/system/error/capture.h>

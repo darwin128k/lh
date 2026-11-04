@@ -6,13 +6,13 @@
  * is a force-inline copy in the header.
  */
 
-#include <lh/math.h>
-#include <lh/math/scalar/centre.h>
+#include <lh/core/math.h>
+#include <lh/core/math/scalar/centre.h>
 #include <lh/ui/scalar.h>
 
 #if LH_LIBRARY_OPTION_MATH_FPU
-#    include <lh/assert/runtime.h>
-#    include <lh/numeric/fixed/types.h>
+#    include <lh/core/assert/runtime.h>
+#    include <lh/core/numeric/fixed/types.h>
 
 lh_void
 lh_ui_scalar_trunc(lh_ui_scalar_t v, lh_ui_scalar_t *out)

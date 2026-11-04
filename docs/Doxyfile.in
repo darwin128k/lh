@@ -40,12 +40,12 @@ IMAGE_PATH             = @CMAKE_SOURCE_DIR@/docs/assets
 FILE_PATTERNS          = *.h *.c *.md
 RECURSIVE              = YES
 EXCLUDE_PATTERNS       = */build/* */cmake-build-*/* */tools/*.py \
-                         */src/lh/math/fpoint.c */src/lh/math/point.c
+                         */src/lh/core/math/fpoint.c */src/lh/core/math/point.c
 # fpoint.c and point.c stay out of the reference: their @copydoc points at a
 # signature Doxygen cannot resolve (the header spells the parameter
 # `const struct lh_math_fsize *`, the definition `const lh_math_fsize_t *`).
 # Every public function of both files is declared and documented in
-# include/lh/math/fpoint.h and include/lh/math/point.h, so the reference
+# include/lh/core/math/fpoint.h and include/lh/core/math/point.h, so the reference
 # loses nothing.
 USE_MDFILE_AS_MAINPAGE = @CMAKE_SOURCE_DIR@/README.md
 # Heading ids as GitHub makes them, so README's [Performance](#performance)
@@ -61,7 +61,7 @@ ENABLE_PREPROCESSING   = YES
 MACRO_EXPANSION        = YES
 EXPAND_ONLY_PREDEF     = YES
 # WCHAR_MIN / WCHAR_MAX come from <stdint.h>, which Doxygen does not read; without
-# them lh/wchar.h takes its #error branch and LH_WCHAR_T_MIN / _MAX vanish.
+# them lh/core/wchar.h takes its #error branch and LH_WCHAR_T_MIN / _MAX vanish.
 # lh_assert_static(...) is a declaration-level check, not an API: hidden here.
 #
 # The pointer macros are the same problem, and it is bigger. A header may spell a
@@ -151,7 +151,7 @@ DOT_PATH               = @DOXYGEN_DOT_PATH@
 # the machine with them. Two at a time keeps it usable.
 DOT_NUM_THREADS        = 2
 # The default is 50 nodes, and this library is wider than that: bool.h is
-# included by 92 headers, lh/compiler/extern/c.h by 143. Doxygen then drops
+# included by 92 headers, lh/core/compiler/extern/c.h by 143. Doxygen then drops
 # those "included by" graphs without saying so, and warns about it. 200
 # covers the widest graph with room to grow.
 DOT_GRAPH_MAX_NODES    = 200

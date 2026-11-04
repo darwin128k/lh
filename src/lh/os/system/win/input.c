@@ -5,7 +5,7 @@
 
 #include <lh/os/input/wheel.h>
 #include <lh/os/system/win/input.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_os_input_button_t
 lh_os_system_win_input_button_of(lh_u32_t msg, lh_os_system_win_wparam_t wparam)

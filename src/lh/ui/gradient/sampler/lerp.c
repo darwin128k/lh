@@ -1,8 +1,8 @@
 #include <lh/ui/gradient/sampler/lerp.h>
-#include <lh/math.h>
+#include <lh/core/math.h>
 #include <lh/ui/gradient/sampler.h>
 #include <lh/ui/gradient/sine.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_void
 lh_ui_gradient_sampler_lerp_init(lh_ui_gradient_sampler_lerp_t *self, const lh_ui_color_t *from,

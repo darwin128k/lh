@@ -6,7 +6,7 @@
 #include <lh/ui/canvas.h>
 #include <lh/ui/canvas/mask.h>
 #include <lh/ui/canvas/round.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_bool_t
 lh_ui_canvas_can_fill_mask(const struct lh_ui_canvas *self, const lh_ui_rect_t *target)

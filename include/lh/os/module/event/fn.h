@@ -10,8 +10,8 @@
 #define LH_OS_MODULE_EVENT_FN_H
 
 #include <lh/os/module/event/result.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/ptr.h>
+#include <lh/core/compiler/extern/c.h>
+#include <lh/core/ptr.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

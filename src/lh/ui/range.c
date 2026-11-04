@@ -3,9 +3,9 @@
  * @brief Implementation of `lh/ui/range.h`.
  */
 
-#include <lh/math.h>
+#include <lh/core/math.h>
 #include <lh/ui/range.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_ui_scalar_t
 lh_ui_range_window_length(lh_ui_scalar_t track, lh_ui_scalar_t view, lh_ui_scalar_t content,

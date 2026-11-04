@@ -9,11 +9,11 @@
 #ifndef LH_UI_COLOR_H
 #define LH_UI_COLOR_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/bool.h>
+#include <lh/core/compiler/extern/c.h>
 #include <lh/ui/color/channels.h>
 #include <lh/ui/color/fields.h>
-#include <lh/void.h>
+#include <lh/core/void.h>
 
 /**
  * @struct lh_ui_color

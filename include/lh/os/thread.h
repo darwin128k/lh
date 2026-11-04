@@ -11,7 +11,7 @@
 #define LH_OS_THREAD_H
 
 #include <lh/os/system/concurrency.h>
-#include <lh/memory/allocator.h>
+#include <lh/core/memory/allocator.h>
 #include <lh/os/thread/fields.h>
 
 /**

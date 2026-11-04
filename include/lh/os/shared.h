@@ -25,7 +25,7 @@
 #define LH_OS_SHARED_H
 
 #include <lh/config.h>
-#include <lh/fs/path.h>
+#include <lh/core/fs/path.h>
 #include <lh/os/shared/fields.h>
 #include <lh/os/system/shared/handle.h>
 

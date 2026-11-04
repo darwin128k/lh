@@ -2,7 +2,7 @@
  * @file transform.c
  * @brief Implementation of `lh/ui/entity/transform.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 #include <lh/ui/entity/transform.h>
 

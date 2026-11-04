@@ -3,7 +3,7 @@
  * @brief Implementation of `lh/os/input.h`: the platform's kernel, picked by `#if`.
  */
 
-#include <lh/compiler/os.h>
+#include <lh/core/compiler/os.h>
 #include <lh/os/input.h>
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS && LH_LIBRARY_OPTION_OS_WINDOW

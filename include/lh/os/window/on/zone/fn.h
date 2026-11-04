@@ -9,7 +9,7 @@
 #define LH_OS_WINDOW_ON_ZONE_FN_H
 
 #include <lh/os/window/zone.h>
-#include <lh/ptr.h>
+#include <lh/core/ptr.h>
 
 struct lh_os_window;
 
@@ -29,4 +29,4 @@ struct lh_os_window;
 typedef lh_os_window_zone_t(lh_os_window_on_zone_fn)(struct lh_os_window *self, int x, int y,
                                                      lh_ptr context);
 
-#endif /* LH_OS_WINDOW_ON_ZONE_FN_H */
+#endif /* LH_OS_WINDOW_ON_ZONE_FN_H */

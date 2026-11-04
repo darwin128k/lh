@@ -6,7 +6,7 @@
 #ifndef LH_OS_LOGGER_DAILY_CLOCK_FN_H
 #define LH_OS_LOGGER_DAILY_CLOCK_FN_H
 
-#include <lh/timestamp.h>
+#include <lh/core/timestamp.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

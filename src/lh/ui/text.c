@@ -3,12 +3,12 @@
  * @brief Implementation of `lh/ui/text.h`.
  */
 
-#include <lh/math.h>
-#include <lh/attribute/unused.h>
-#include <lh/char/map.h>
+#include <lh/core/math.h>
+#include <lh/core/attribute/unused.h>
+#include <lh/core/char/map.h>
 #include <lh/ui/canvas/mask.h>
 #include <lh/ui/text.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 /* -- Reading --------------------------------------------------------------- */
 

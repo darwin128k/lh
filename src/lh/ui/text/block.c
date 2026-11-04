@@ -2,11 +2,11 @@
  * @file block.c
  * @brief Implementation of `lh/ui/text/block.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 #include <lh/ui/text/block.h>
 
-#include <lh/math.h>
+#include <lh/core/math.h>
 #include <lh/ui/text/line.h>
 
 lh_void

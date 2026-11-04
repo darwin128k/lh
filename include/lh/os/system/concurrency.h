@@ -15,10 +15,10 @@
 #define LH_OS_SYSTEM_CONCURRENCY_H
 
 #include <lh/config.h>
-#include <lh/bool.h>
-#include <lh/ptr.h>
-#include <lh/size.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/bool.h>
+#include <lh/core/ptr.h>
+#include <lh/core/size.h>
+#include <lh/core/compiler/extern/c.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "OS concurrency requires LH_LIBRARY_OPTION_OS"

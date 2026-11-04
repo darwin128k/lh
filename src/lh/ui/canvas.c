@@ -2,15 +2,15 @@
  * @file canvas.c
  * @brief Implementation of `lh/ui/canvas.h` and the null backend.
  */
-#include <lh/assert.h>
-#include <lh/attribute/unused.h>
+#include <lh/core/assert.h>
+#include <lh/core/attribute/unused.h>
 
-#include <lh/math.h>
+#include <lh/core/math.h>
 #include <lh/ui/canvas.h>
 #include <lh/ui/shadow/shape.h>
 #include <lh/ui/canvas/round.h>
 #include <lh/ui/radius.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 /* -- Null backend ---------------------------------------------------------- */
 

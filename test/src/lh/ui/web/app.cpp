@@ -10,10 +10,10 @@
 
 #if LH_LIBRARY_OPTION_OS
 
-#    include <lh/str/lit.h>
+#    include <lh/core/str/lit.h>
 #    include <lh/ui/web/app.h>
-#    include <lh/http/parser.h>
-#    include <lh/attribute/unused.h>
+#    include <lh/core/http/parser.h>
+#    include <lh/core/attribute/unused.h>
 #    include <string>
 
 lh_bool_t

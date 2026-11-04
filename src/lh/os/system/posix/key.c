@@ -5,7 +5,7 @@
 
 #include <lh/os/system/posix/key.h>
 
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 /** Keysym and portable key, side by side; both Shift, Control and Alt keys are
    the one modifier, as on Windows. */

@@ -3,10 +3,10 @@
  * @brief Implementation of `lh/ui/blur.h`.
  */
 
-#include <lh/math.h>
+#include <lh/core/math.h>
 #include <lh/ui/blur.h>
 #include <lh/ui/radius.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_usize_t
 lh_ui_blur_scratch_size(const lh_ui_rect_t *rect, lh_s32_t radius)

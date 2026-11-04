@@ -2,7 +2,7 @@
  * @file ramp.c
  * @brief Implementation of `lh/ui/shadow/ramp.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 #include <lh/ui/shadow/ramp.h>
 

@@ -17,8 +17,8 @@
 #include <lh/os/system/win/ws2_32/sockaddr_in/fields.h>
 #include <lh/os/system/win/ws2_32/timeval/fields.h>
 #include <lh/os/system/win/ws2_32/wsadata/fields.h>
-#include <lh/str/ptr.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/str/ptr.h>
+#include <lh/core/compiler/extern/c.h>
 
 /** @brief `SOCKET`: `UINT_PTR`, pointer-sized. */
 typedef lh_usize_t lh_os_system_win_socket_t;

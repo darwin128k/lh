@@ -7,7 +7,7 @@
 #define LH_UI_ENTITY_VISIT_CB_H
 
 #include <lh/ui/entity/visit/fn.h>
-#include <lh/util/ptr.h>
+#include <lh/core/util/ptr.h>
 
 /**
  * @def lh_ui_entity_visit_cb

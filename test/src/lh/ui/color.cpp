@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <lh/ui/color.h>
-#include <lh/util/addr.h>
+#include <lh/core/util/addr.h>
 #include <lh/test/out.h>
 #include <lh/ui/color/initializer.h>
 

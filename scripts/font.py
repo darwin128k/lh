@@ -360,8 +360,8 @@ def main():
             f"#ifndef {guard}",
             f"#define {guard}",
             "",
-            "#include <lh/byte.h>",
-            "#include <lh/compiler/extern/c.h>",
+            "#include <lh/core/byte.h>",
+            "#include <lh/core/compiler/extern/c.h>",
             "#include <lh/ui/font.h>",
             "#include <lh/ui/mask.h>",
             "",
@@ -396,8 +396,8 @@ def main():
     lines = comment + [
         f"#include <{include}>",
         "",
-        "#include <lh/null.h>",
-        "#include <lh/numeric/fixed/types.h>",
+        "#include <lh/core/null.h>",
+        "#include <lh/core/numeric/fixed/types.h>",
         "",
         f"const lh_byte_t {name}_bits[] = {{",
     ]

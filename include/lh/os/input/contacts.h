@@ -18,8 +18,8 @@
 #ifndef LH_OS_INPUT_CONTACTS_H
 #define LH_OS_INPUT_CONTACTS_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/bool.h>
+#include <lh/core/compiler/extern/c.h>
 #include <lh/os/input/contact/id.h>
 #include <lh/os/input/contacts/fields.h>
 #include <lh/os/input/contacts/ptr.h>

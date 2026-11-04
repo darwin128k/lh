@@ -3,9 +3,9 @@
  * @brief Implementation of `lh/os/input/queue.h`.
  */
 
-#include <lh/assert/runtime.h>
+#include <lh/core/assert/runtime.h>
 #include <lh/os/input/queue.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_u16_t
 lh_os_input_queue_next(lh_u16_t capacity, lh_u16_t index)

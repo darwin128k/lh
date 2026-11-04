@@ -6,7 +6,7 @@ Doxygen's WARN_IF_UNDOCUMENTED has two blind spots, both silent:
   1. A header that is reached first as a nested #include is skipped when it
      later appears as a top-level input file. Its include guard is already
      defined, so Doxygen never looks inside it: no file page, no members and
-     no warning. (include/lh/memory/typed/allocated.h pulls in bounds.h and
+     no warning. (include/lh/core/memory/typed/allocated.h pulls in bounds.h and
      typed.h that way.)
   2. A function that is declared in a header and defined in a .c file is
      attributed to the .c file, so a missing doc comment in the header is

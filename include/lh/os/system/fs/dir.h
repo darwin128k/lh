@@ -19,13 +19,13 @@
 #ifndef LH_OS_SYSTEM_FS_DIR_H
 #define LH_OS_SYSTEM_FS_DIR_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/bool.h>
+#include <lh/core/compiler/extern/c.h>
 #include <lh/config.h>
-#include <lh/fs/kind.h>
+#include <lh/core/fs/kind.h>
 #include <lh/os/result.h>
 #include <lh/os/system/fs/dir/handle.h>
-#include <lh/str/ptr.h>
+#include <lh/core/str/ptr.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/system/fs/dir.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
