@@ -268,7 +268,7 @@ lh_os_worker_pop_done(lh_os_worker_t *self)
 lh_os_worker_t *
 lh_os_worker_create(lh_uint_t capacity)
 {
-    lh_memory_allocator_t allocator = lh_ptr_deref(lh_runtime_allocator());
+    lh_memory_allocator_t allocator = lh_ptr_deref(lh_runtime_allocator_get());
     lh_os_worker_t *self;
 
     if (capacity == 0U || lh_null_eq(lh_memory_allocator_get_dealloc_cb(lh_addr_of(allocator))))

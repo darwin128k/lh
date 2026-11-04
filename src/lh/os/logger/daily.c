@@ -216,7 +216,7 @@ lh_os_logger_daily_report(lh_os_logger_daily_t *self, const lh_char_t *what,
 
     lh_return_if(lh_os_logger_daily_is_reported(self));
     lh_os_logger_daily_set_reported(self, lh_bool_true);
-    lh_logger_error(lh_runtime_logger(), "lh logger: %s failed, path='%s': %s", what,
+    lh_logger_error(lh_runtime_logger_get_mut(), "lh logger: %s failed, path='%s': %s", what,
                     lh_str_get_data(lh_fs_path_get_text(path)),
                     lh_null_ne(desc) ? desc : "unknown error");
 }
@@ -242,7 +242,7 @@ lh_os_logger_daily_t *
 lh_os_logger_daily_try_create(lh_os_logger_daily_format_cb format,
                               lh_os_logger_daily_clock_cb clock, lh_ptr user)
 {
-    lh_memory_allocator_t allocator = lh_ptr_deref(lh_runtime_allocator());
+    lh_memory_allocator_t allocator = lh_ptr_deref(lh_runtime_allocator_get());
     lh_os_logger_daily_t *self = lh_ptr_rcast(
         lh_os_logger_daily_t,
         lh_memory_allocator_try_alloc_zero(lh_addr_of(allocator), 1U, sizeof(lh_ptr_deref(self))));

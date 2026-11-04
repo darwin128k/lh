@@ -110,54 +110,6 @@ option(LH_LIBRARY_OPTION_MATH_FPU
         OFF)
 
 # -----------------------------------------------------------------------------
-# Option: LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB
-#
-# Default handler for lh_runtime_terminate() (lh/runtime_terminate.c).
-#
-#   ON  — initial callback is abort() from <stdlib.h>.
-#   OFF — initial callback is null; call lh_runtime_terminate_set() before use
-#         or rely on your own first install.
-#
-# Runtime override: lh_runtime_terminate_set() replaces the handler regardless.
-# -----------------------------------------------------------------------------
-option(LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB
-        "Default lh_runtime_terminate handler is abort(); OFF leaves it unset."
-        ON)
-
-# -----------------------------------------------------------------------------
-# Option: LH_LIBRARY_OPTION_RUNTIME_LOGGER_USE_STDLIB
-#
-# Default sink of the runtime logger, lh_runtime_logger() (lh/runtime/logger.c).
-#
-#   ON  — every level is written to stderr from <stdio.h>, one line per record.
-#   OFF — the logger starts with no slots: records are dropped until user code
-#         installs a sink with lh_logger_set(lh_runtime_logger(), ...).
-#
-# Runtime override: lh_logger_set() / lh_logger_assign() on lh_runtime_logger().
-# -----------------------------------------------------------------------------
-option(LH_LIBRARY_OPTION_RUNTIME_LOGGER_USE_STDLIB
-        "Default runtime logger writes to stderr; OFF leaves it without a sink."
-        ON)
-
-# -----------------------------------------------------------------------------
-# Option: LH_LIBRARY_OPTION_RUNTIME_IO_USE_STDLIB
-#
-# Default ends of lh_runtime_writer() / lh_runtime_reader() (and the duplex
-# lh_runtime_stream() built from them).
-#
-#   ON  — writer is stdout, reader is stdin from <stdio.h>.
-#   OFF — both start empty (null callbacks) until the host installs sinks with
-#         lh_io_writer_set(lh_runtime_writer(), ...) / lh_io_reader_set(...).
-#         Freestanding / STM builds use OFF and plug UART (or RTT, …) here;
-#         lh itself never names a concrete peripheral.
-#
-# Runtime override: lh_io_writer_set / lh_io_reader_set on the runtime instances.
-# -----------------------------------------------------------------------------
-option(LH_LIBRARY_OPTION_RUNTIME_IO_USE_STDLIB
-        "Default runtime writer/reader use stdout/stdin; OFF leaves them empty for the host to wire."
-        ON)
-
-# -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT
 #
 # What a failed runtime check hands to its handler (lh/runtime/check.h):
@@ -236,49 +188,6 @@ set_property(CACHE LH_LIBRARY_OPTION_LTO PROPERTY STRINGS OFF ON FAT)
 set(LH_LIBRARY_OPTION_MEMORY_STD_BACKEND "AUTO" CACHE STRING
         "lh_memory_std_copy/move/rcopy/set backend: AUTO, OWN or LIBC.")
 set_property(CACHE LH_LIBRARY_OPTION_MEMORY_STD_BACKEND PROPERTY STRINGS AUTO OWN LIBC)
-
-# -----------------------------------------------------------------------------
-# Option: LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB
-#
-# Initial default for runtime allocator callbacks in lh/runtime/allocator.c.
-#
-#   ON  — runtime allocator is initialized with malloc/free from <stdlib.h>.
-#   OFF — runtime allocator starts as null and must be installed by user code.
-# -----------------------------------------------------------------------------
-option(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB
-        "Initialize runtime allocator with malloc/free by default."
-        ON)
-
-# -----------------------------------------------------------------------------
-# LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_{ALLOC,DEALLOC,INCLUDE}
-#
-# Function names (and the header declaring them) used to seed the runtime
-# allocator when LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB is ON. Default
-# to malloc/free/<stdlib.h>; override to bind a different pair at compile
-# time (e.g. pvPortMalloc/vPortFree on FreeRTOS) without writing runtime
-# lh_memory_allocator_set() init code.
-#
-# CMake: -DLH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC=pvPortMalloc or ccmake.
-# Manual build: set in include/lh/config.h or -D on the compiler command line.
-# -----------------------------------------------------------------------------
-set(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC "malloc" CACHE STRING
-        "Function bound as the default runtime allocator's alloc_cb.")
-set(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_DEALLOC "free" CACHE STRING
-        "Function bound as the default runtime allocator's dealloc_cb.")
-set(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_INCLUDE "<stdlib.h>" CACHE STRING
-        "Header providing the default alloc/dealloc functions above.")
-# Native realloc paired with the pair above. Defaults to `realloc` only for the
-# stdlib malloc/free pair — any other pair gets lh_null (alloc + copy + dealloc
-# fallback) unless you name its own realloc, since mixing heaps is undefined.
-if (LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC STREQUAL "malloc" AND
-        LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_DEALLOC STREQUAL "free")
-    set(_LH_DEFAULT_REALLOC "realloc")
-else ()
-    set(_LH_DEFAULT_REALLOC "lh_null")
-endif ()
-set(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_REALLOC "${_LH_DEFAULT_REALLOC}" CACHE STRING
-        "Function bound as the default runtime allocator's realloc_cb (lh_null for none).")
-unset(_LH_DEFAULT_REALLOC)
 
 # -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED

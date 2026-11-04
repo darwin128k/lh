@@ -1402,7 +1402,7 @@ lh_ui_web_host_run(lh_ui_web_app_t *app, lh_net_port_t port)
         lh_os_net_socket_close(lh_addr_of(listen_fd));
         return lh_bool_false;
     }
-    lh_logger_notice(lh_runtime_logger(), "[lh] ui web host http://127.0.0.1:%u/",
+    lh_logger_notice(lh_runtime_logger_get_mut(), "[lh] ui web host http://127.0.0.1:%u/",
                      lh_cast_static(lh_uint_t, port));
     {
         lh_uint_t i;

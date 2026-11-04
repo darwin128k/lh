@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh/atomic/ptr.h` (`lh_atomic_ptr_t`): one pointer published between
+  threads, `lh_atomic_ptr_get_acquire` / `_set_release`, with a static
+  initializer. Built on the compiler's atomic operations on an ordinary field
+  (GCC/Clang `__atomic`, MSVC `_Interlocked`), so the struct is the same in C
+  and C++; a pointer that is not lock-free fails the build.
+- `lh/runtime/terminate/handler.h` and `lh/runtime/check/handler.h`: the
+  terminate and failed-check handlers as a call plus context, with getters,
+  setters, `_init`, `_assign`, `_call` and static initializers.
 - Allocation-free incremental DEFLATE and gzip readers with a bounded 32 KiB
   history, fragmented input, concatenated members, CRC and size validation.
   Web host streaming routes accept gzip content coding or gzip then chunked
@@ -174,26 +182,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   window's screen (`os/render/backend/gdi.c`) is built only with both the UI
   and `LH_LIBRARY_OPTION_OS_WINDOW`; before, the default window option with the
   UI off failed to compile it. Every option set below builds and passes its
-  tests: default, UI, UI + FPU, FPU, OS off, UI without a window, no Roboto,
-  JS + SQLite, and a minimal OS-off / REAL=NONE / no-thread-local build.
+  tests on Windows: default, UI, UI + FPU, FPU, OS off, UI without a window,
+  no Roboto, JS + SQLite, REAL=FLOAT, UI with OS off, thread-local off, and a
+  minimal OS-off / REAL=NONE / no-thread-local build; the default set on Linux
+  too. The library alone with OS off (with and without UI) references no C
+  library function; the UI build only gets `memcpy` that GCC itself emits for
+  large struct copies, which every GCC target must provide.
 - The `lh_bench` target builds again: the HTML/JS escaping benchmark, left on
   the removed `lh/ui/web` string DSL, now measures `lh/web/xml/escape.h` and
   `lh/web/js/writer.h` (`bench/src/lh/web/escape.cpp`).
-- The runtime allocator and terminate handler have a process level under the
-  thread one. New: `lh_runtime_allocator_process`,
-  `lh_runtime_allocator_init_process`, `lh_runtime_terminate_get_process` and
-  `lh_runtime_terminate_set_process`. Each thread's slot starts as a copy of the
-  process slot, taken on its first use; `lh_runtime_allocator()`,
-  `lh_runtime_allocator_init`, `lh_runtime_terminate_get` and `_set` still read
-  and write the calling thread's slot only. Before, a thread-local slot started
-  from the compile-time default alone, so with
-  `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB` or
-  `LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB` off no host could reach the
-  threads LH starts itself: the logger queue's thread found no allocator and
-  spun in terminate. A host now installs both once at start-up. With the stdlib
-  options on nothing changes. The test runner (`test/src/main.cpp`) installs
-  the C library on the process slots when those options are off, so death tests
-  run in those builds too.
+- **Breaking: every runtime slot is one object with one shape.** Allocator,
+  writer, reader, logger, terminate and check are each a single object for the
+  whole program (no longer thread-local), read with `lh_runtime_<slot>_get()`
+  and filled or changed through `lh_runtime_<slot>_get_mut()`. The host fills
+  them before the first use and before it starts other threads, so every
+  thread — the host's and the ones LH starts (logger queue, worker, loop) —
+  uses the same object. Before, each thread had its own copy that started from
+  the compile-time default, so with the C library options off a host could not
+  reach LH's own threads: the logger queue's thread found no allocator and
+  spun in terminate. Migration:
+  - `lh_runtime_allocator()`, `lh_runtime_writer()`, `lh_runtime_reader()`,
+    `lh_runtime_logger()`, `lh_runtime_stream()` are now `..._get_mut()`;
+  - `lh_runtime_allocator_init(a, d)`, `lh_runtime_writer_init(w, c)` and
+    `lh_runtime_reader_init(r, c)` are gone: use the type's own `_init` on
+    `..._get_mut()`;
+  - the terminate and check handlers are objects with a context, like a writer:
+    `lh_runtime_terminate_handler_t` (`lh_runtime_terminate_fn` now takes
+    `lh_self_ptr self`) and `lh_runtime_check_handler_t`
+    (`lh_runtime_check_fail_fn` now takes `self` first);
+    `lh_runtime_terminate_set` / `_get` and `lh_runtime_check_set` / `_get`
+    with a bare function pointer are gone.
+- **Breaking: the core uses no C library and has no defaults.** Every runtime
+  slot starts empty; the host installs what lh needs before its first use, as
+  the README section "What the host must install before using lh" spells out.
+  Gone: `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB`,
+  `LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB`,
+  `LH_LIBRARY_OPTION_RUNTIME_LOGGER_USE_STDLIB`,
+  `LH_LIBRARY_OPTION_RUNTIME_IO_USE_STDLIB` and
+  `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC` / `_DEALLOC` / `_REALLOC` /
+  `_HAS_REALLOC` / `_INCLUDE`, with `lh_runtime_allocator_default_alloc` /
+  `_dealloc` / `_realloc`, `lh_runtime_writer_stdout`, `lh_runtime_reader_stdin`
+  and `lh_runtime_logger_stderr`. Migration: a hosted program wraps `malloc` /
+  `free`, `abort` and, if it logs, `stderr` in the slot callbacks and publishes
+  them through `lh_runtime_<slot>_get_mut()` first thing in `main` — without an
+  allocator the first allocation fails its check. An empty terminate handler,
+  or one that returns, now ends in `lh_compiler_trap()` instead of spinning,
+  and the default failed-check report (`lh_runtime_check_fail_default`) goes to
+  the runtime logger at critical level instead of `stderr`. The test runner
+  (`test/src/main.cpp`), the benchmark runner (`bench/src/main.cpp`, now its
+  own `main`) and the example install their own; death tests no longer depend
+  on an option. With `LH_LIBRARY_OPTION_OS` off, `liblh.a` references no C
+  library symbol.
 
 - The JavaScript lexer and JSON headers moved under `lh/web/`: `<lh/js.h>`,
   `<lh/js/*>`, `<lh/json.h>` and `<lh/json/*>` are now `<lh/web/js.h>`,

@@ -59,6 +59,11 @@ add_subdirectory(lib/lh EXCLUDE_FROM_ALL)
 target_link_libraries(my_app PRIVATE lh)
 ```
 
+The core `lh` uses no C library and has no defaults: its runtime slots start
+empty. Every program — desktop or firmware — installs what lh needs (an
+allocator, a terminate handler, a logger, ...) first thing in `main`; see
+the README section "What the host must install before using lh".
+
 `target_link_libraries` brings the include paths (the generated `lh/config.h`
 directory comes **first**) and the system libraries of the OS layer
 (`ws2_32`, `user32`, `gdi32`, `dl`). Do not add your own
@@ -76,10 +81,6 @@ directory comes **first**) and the system libraries of the OS layer
 | `LH_LIBRARY_OPTION_UI` | **ON** | **ON** | **ON** |
 | `LH_LIBRARY_OPTION_UI_FONT_ROBOTO` | ON | ON | ON |
 | `LH_LIBRARY_OPTION_THREAD_LOCAL` | **OFF** | ON | ON |
-| `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB` | **OFF** | ON | ON |
-| `LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB` | **OFF** | ON | ON |
-| `LH_LIBRARY_OPTION_RUNTIME_LOGGER_USE_STDLIB` | **OFF** | ON | ON |
-| `LH_LIBRARY_OPTION_RUNTIME_IO_USE_STDLIB` | **OFF** | ON | ON |
 | `LH_LIBRARY_OPTION_LTO` | **OFF** | FAT (default) | FAT |
 | `LH_POSITION_INDEPENDENT_CODE` | **OFF** | ON | ON |
 
@@ -87,8 +88,9 @@ directory comes **first**) and the system libraries of the OS layer
 builds both targets from one build tree, so the window is on there anyway.
 
 Everything turned off in the MCU column **must be wired by the host**: the
-fatal exit (`lh_runtime_terminate_set`), output (`lh_runtime_writer_init`),
-and the allocator (`lh_memory_allocator_set`) if anything allocates.
+fatal exit (`lh_runtime_terminate_get_mut`), output
+(`lh_runtime_writer_get_mut`), and the allocator
+(`lh_runtime_allocator_get_mut`) if anything allocates.
 
 ---
 
@@ -97,7 +99,7 @@ and the allocator (`lh_memory_allocator_set`) if anything allocates.
 | Symptom | Cause | Fix |
 |---|---|---|
 | On an MCU the runtime writer / terminate is `NULL`; crash on the first `print` | PIC: `.got` is never copied, globals are read through an empty table | `LH_POSITION_INDEPENDENT_CODE=OFF` and `-fno-pic -fno-pie` in the toolchain file |
-| The linker wants `malloc` / `abort` / `stdout` in firmware | stdlib defaults are on | Turn off the matching `*_USE_STDLIB` options (table above) |
+| The linker wants `malloc` / `abort` / `stdout` in firmware | the firmware's own host code calls them | Install a pool / UART / reset instead; lh itself calls none of them |
 | `lh_os_window_open` is undefined at link time | Platform without a window backend (macOS) | Windows exist for Win32 and X11 only |
 | Window "hangs" and stops repainting | A long loop inside `on_tick` / `on_paint` | One pass per call; nothing blocking in callbacks |
 | Russian / non-ASCII text cut short | `snprintf` cuts UTF-8 in the middle of a code point | Size text buffers in bytes, ×2 for Cyrillic |

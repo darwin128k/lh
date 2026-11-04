@@ -1,6 +1,6 @@
 /**
  * @file stream.h
- * @brief Duplex view of ::lh_runtime_reader and ::lh_runtime_writer.
+ * @brief Duplex view of ::lh_runtime_reader_get_mut and ::lh_runtime_writer_get_mut.
  *
  * Returns an ::lh_io_stream_t whose halves track the current runtime reader
  * and writer (refreshed on each call). lh still does not own a peripheral —
@@ -18,19 +18,19 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Return the runtime duplex stream (reader + writer).
  *
  * @return Pointer to an internal ::lh_io_stream_t (never null). Halves match
- *         ::lh_runtime_reader() / ::lh_runtime_writer() at the time of the call.
+ *         ::lh_runtime_reader_get_mut() / ::lh_runtime_writer_get_mut() at the time of the call.
  */
 lh_io_stream_t *
-lh_runtime_stream(void);
+lh_runtime_stream_get_mut(void);
 
 /**
- * @brief Read via ::lh_runtime_stream().
+ * @brief Read via ::lh_runtime_stream_get_mut().
  */
 lh_ssize_t
 lh_runtime_stream_read(lh_ptr buf, lh_usize_t size);
 
 /**
- * @brief Write via ::lh_runtime_stream().
+ * @brief Write via ::lh_runtime_stream_get_mut().
  */
 lh_ssize_t
 lh_runtime_stream_write(const lh_ptr buf, lh_usize_t size);

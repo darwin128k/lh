@@ -356,12 +356,12 @@ TEST(array_try_reserve, failure_and_size_overflow_leave_array_intact)
     EXPECT_EQ(lh_array_get_size(&array), 1u);
     EXPECT_EQ(*static_cast<int *>(lh_array_get_ptr(&array, 0)), 42);
     lh_memory_allocator_t saved;
-    lh_memory_allocator_assign(&saved, lh_runtime_allocator());
+    lh_memory_allocator_assign(&saved, lh_runtime_allocator_get());
     auto restore =
         std::unique_ptr<lh_memory_allocator_t, std::function<void(lh_memory_allocator_t *)>>(
             &saved,
-            [](auto *allocator) { lh_memory_allocator_assign(lh_runtime_allocator(), allocator); });
-    lh_memory_allocator_set_alloc_cb(lh_runtime_allocator(), nullptr);
+            [](auto *allocator) { lh_memory_allocator_assign(lh_runtime_allocator_get_mut(), allocator); });
+    lh_memory_allocator_set_alloc_cb(lh_runtime_allocator_get_mut(), nullptr);
     EXPECT_TRUE(lh_array_try_reserve(&array, capacity));
     EXPECT_FALSE(lh_array_try_reserve(&array, capacity + 1));
     EXPECT_EQ(lh_array_get_capacity(&array), capacity);

@@ -163,7 +163,7 @@ lh_spsc_t *
 lh_spsc_create(lh_ptr storage, lh_uint_t capacity, lh_usize_t item_size)
 {
     lh_return_ifn(lh_spsc_is_valid_shape(storage, capacity, item_size), lh_null);
-    lh_memory_allocator_t *runtime = lh_runtime_allocator();
+    lh_memory_allocator_t *runtime = lh_runtime_allocator_get_mut();
     lh_return_if(lh_null_eq(lh_memory_allocator_get_alloc_cb(runtime)) ||
                      lh_null_eq(lh_memory_allocator_get_dealloc_cb(runtime)),
                  lh_null);

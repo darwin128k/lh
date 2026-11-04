@@ -3,7 +3,7 @@
  * @brief OS layer: the last-error slot for OUR errors (::lh_os_error_t).
  *
  * One thread-local ::lh_os_error_t, the OS-layer counterpart to
- * ::lh_runtime_allocator's thread-local instance. The slot is a value
+ * ::lh_runtime_allocator_get_mut's thread-local instance. The slot is a value
  * holder only — it does not own a text buffer; a description is either
  * a literal (::lh_os_error_desc_lit) or a pointer into whatever buffer the
  * caller keeps alive.

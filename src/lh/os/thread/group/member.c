@@ -102,7 +102,7 @@ lh_os_thread_group_member_get_thread_mut(lh_os_thread_group_member_t *self)
 lh_os_thread_group_member_t *
 lh_os_thread_group_member_try_create(lh_os_thread_fn wake, lh_ptr user)
 {
-    lh_memory_allocator_t allocator = lh_ptr_deref(lh_runtime_allocator());
+    lh_memory_allocator_t allocator = lh_ptr_deref(lh_runtime_allocator_get());
     lh_os_thread_group_member_t *self = lh_ptr_rcast(
         lh_os_thread_group_member_t,
         lh_memory_allocator_try_alloc_zero(lh_addr_of(allocator), 1U, sizeof(lh_ptr_deref(self))));

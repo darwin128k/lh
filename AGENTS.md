@@ -243,7 +243,11 @@ file of LH and of Authum — reads and writes through them. No exceptions.
 ## 5. Names say what comes back
 
 - Boolean results: `is_`, `has_`, `can_`, `needs_` — `lh_memory_allocator_realloc_needs_alloc`.
-- Value reads: `get_` (or a noun when the meaning is unmistakable); writes: `set_`.
+- Value reads: `get_<x>`; writes: `set_<x>`. A bare noun is not a name for a
+  read: `lh_runtime_writer_process()` does not say whether it reads, builds or
+  switches to something; `lh_runtime_writer_get_process()` does.
+- A read that returns a pointer: `get_<x>` returns a `const` pointer (or a
+  value), `get_<x>_mut` a mutable one. No `_as_const`.
 - Actions are verbs: `alloc`, `copy`, `resize`, `move`.
 - Fallible: `try_`; validating: `_v`; unchecked/raw: no suffix — that is the
   fast form, and it does not check.

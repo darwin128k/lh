@@ -148,10 +148,6 @@ each target needs:
 | `LH_LIBRARY_OPTION_UI` | **ON** | **ON** | **ON** |
 | `LH_LIBRARY_OPTION_UI_FONT_ROBOTO` | ON | ON | ON |
 | `LH_LIBRARY_OPTION_THREAD_LOCAL` | **OFF** | ON | ON |
-| `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB` | **OFF** | ON | ON |
-| `LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB` | **OFF** | ON | ON |
-| `LH_LIBRARY_OPTION_RUNTIME_LOGGER_USE_STDLIB` | **OFF** | ON | ON |
-| `LH_LIBRARY_OPTION_RUNTIME_IO_USE_STDLIB` | **OFF** | ON | ON |
 | `LH_LIBRARY_OPTION_LTO` | **OFF** | FAT (default) | FAT |
 | `LH_POSITION_INDEPENDENT_CODE` | **OFF** | ON | ON |
 
@@ -854,11 +850,7 @@ set(LH_LIBRARY_OPTION_OS_WINDOW OFF CACHE BOOL "" FORCE)
 set(LH_LIBRARY_OPTION_UI             ON CACHE BOOL "" FORCE)        # canvas + present sinks
 set(LH_LIBRARY_OPTION_UI_FONT_ROBOTO ON CACHE BOOL "" FORCE)        # Roboto 16 px, 4 bpp
 
-set(LH_LIBRARY_OPTION_THREAD_LOCAL                 OFF CACHE BOOL "" FORCE)
-set(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB  OFF CACHE BOOL "" FORCE)
-set(LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB OFF CACHE BOOL "" FORCE)
-set(LH_LIBRARY_OPTION_RUNTIME_LOGGER_USE_STDLIB    OFF CACHE BOOL "" FORCE)
-set(LH_LIBRARY_OPTION_RUNTIME_IO_USE_STDLIB        OFF CACHE BOOL "" FORCE)
+set(LH_LIBRARY_OPTION_THREAD_LOCAL OFF CACHE BOOL "" FORCE)
 
 set(LH_LIBRARY_OPTION_LTO OFF CACHE STRING "" FORCE)
 set(LH_POSITION_INDEPENDENT_CODE OFF CACHE BOOL "" FORCE)           # bare metal: no .got fix-up
@@ -875,8 +867,8 @@ Why:
   first `print` crashes. Also pass `-fno-pic -fno-pie` in the toolchain file.
 - **`LTO=OFF`**: the library links with any `arm-none-eabi-gcc`, no LTO
   plugin needed.
-- **`*_USE_STDLIB=OFF`**: otherwise `malloc`, `abort` and `stdout` are pulled
-  into the firmware.
+- **No C library in lh**: the core calls no `malloc`, `abort` or `stdout`; the
+  firmware installs its own allocator, writer and terminate handler (12.2).
 
 The toolchain file and the build:
 
@@ -905,25 +897,27 @@ a fatal error. Give it both first thing:
 #include <lh/runtime/writer.h>
 
 static void
-host_terminate(void)
+host_terminate(lh_self_ptr self)
 {
     extern void HardFault_Handler(void);
+    (void)self;
     HardFault_Handler();                                      /* stop in the debugger */
 }
 
 void
 f4ve_app_run(void)
 {
-    lh_runtime_terminate_set_process(host_terminate);
-    lh_runtime_writer_init(f4ve_usart1_writer_cb, lh_null);   /* text to a serial port */
+    lh_runtime_terminate_handler_init(lh_runtime_terminate_get_mut(), host_terminate, lh_null);
+    lh_io_writer_init(lh_runtime_writer_get_mut(), f4ve_usart1_writer_cb, lh_null); /* serial */
 }
 ```
 
 The writer is an `lh_io_writer_write_fn`: `self` first, then a buffer and
 its size; it returns how many bytes it wrote. After that,
 `lh_runtime_writer_print("tick %u\r\n", n)` works with lh's own formatter.
-In the same way you can set an allocator (`lh_memory_allocator_set`), a
-logger (`lh_logger_set`) and a reader (`lh_io_reader_set`) if you need them.
+In the same way you can fill the allocator (`lh_runtime_allocator_get_mut`),
+the logger (`lh_runtime_logger_get_mut`) and the reader
+(`lh_runtime_reader_get_mut`) if you need them.
 The f4ve firmware needs no allocator: its UI runs on static memory.
 
 ### 12.3 Display: `lh_ui_display_t`
@@ -1069,7 +1063,7 @@ directly still works for very small programs.
 
 1. A toolchain file with `-fno-pic -fno-pie`, `-ffunction-sections`, `--gc-sections`.
 2. The `set(... FORCE)` block before `add_subdirectory(lib/lh)`.
-3. `lh_runtime_terminate_set` and `lh_runtime_writer_init` at the start of `main`.
+3. Fill `lh_runtime_terminate_get_mut()` and `lh_runtime_writer_get_mut()` at the start of `main`.
 4. A static strip buffer and an `lh_ui_display_t` in the display's pixel format.
 5. One `lh_ui_present_fn` that calls your display driver.
 6. An allocator and a logger only if you need them.
@@ -1482,7 +1476,7 @@ Pictures, in the `--out` folder (default `.`):
 - **Scripted input.** Build events yourself and give them to the controller
   with `lh_os_controller_feed`: exactly the path real input takes. Bugs
   become repeatable.
-- **Log.** `lh_logger_info(lh_runtime_logger(), "...")` writes to stderr by
+- **Log.** `lh_logger_info(lh_runtime_logger_get_mut(), "...")` writes to stderr by
   default.
 
 Common mistakes:
@@ -1490,7 +1484,7 @@ Common mistakes:
 | What you see | Why | Fix |
 |---|---|---|
 | On a microcontroller the first `print` crashes | position-independent code: globals read through an empty table | `LH_POSITION_INDEPENDENT_CODE=OFF` and `-fno-pic -fno-pie` |
-| The firmware needs `malloc`, `abort`, `stdout` | C library defaults are on | turn off the `*_USE_STDLIB` options |
+| The firmware needs `malloc`, `abort`, `stdout` | the firmware's own host code calls them | install a pool / UART / reset instead; lh itself calls none of them |
 | `lh_os_window_open` is missing when linking | no window backend on this system (macOS) | windows exist on Win32 and X11 only |
 | The window freezes and stops repainting | a long loop inside `on_tick` or `on_paint` | one pass per call |
 | A colour paints nothing | colour without alpha (`0x1B2430`) | write `0xRRGGBBAA` (`0x1B2430FF`) |

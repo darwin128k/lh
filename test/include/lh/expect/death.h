@@ -8,12 +8,11 @@
  * still says whether they run, for guarding whole `TEST` blocks.
  *
  * Death tests rely on lh_runtime_terminate() ending the process with abort().
- * With LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB=ON that is the initial
- * handler; with OFF the slot starts null and the common runner (test/src/main.cpp)
- * installs abort() before any test runs, so both builds run them.
+ * The core starts with no terminate handler; the common runner
+ * (test/src/main.cpp) installs one that calls abort() before any test runs.
  *
- * This does not prove anything at runtime: lh_runtime_terminate_set() can
- * replace abort() with another function; then EXPECT_DEATH may fail unless
+ * This does not prove anything at runtime: a test can replace abort() on its
+ * thread through lh_runtime_terminate_get_mut(); then EXPECT_DEATH may fail unless
  * tests restore abort() or otherwise ensure the process still dies in a way
  * the death-test harness expects.
  */

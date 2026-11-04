@@ -97,7 +97,6 @@ lh_add_test_core(lh_test_console ${LH_TEST_SRC_PATH}/lh/console/console.cpp)
 
 lh_add_test_core(lh_test_core
         ${LH_TEST_SRC_PATH}/lh/atomic/ptr.cpp
-        ${LH_TEST_SRC_PATH}/lh/atomic/fn_ptr.cpp
         ${LH_TEST_SRC_PATH}/lh/spsc.cpp
         ${LH_TEST_SRC_PATH}/lh/array.cpp
         ${LH_TEST_SRC_PATH}/lh/error.cpp
@@ -141,9 +140,13 @@ lh_add_test_core(lh_test_core
 lh_add_test_core(lh_test_runtime
         ${LH_TEST_SRC_PATH}/lh/runtime/allocator.cpp
         ${LH_TEST_SRC_PATH}/lh/runtime/check.cpp
+        ${LH_TEST_SRC_PATH}/lh/runtime/check/handler.cpp
         ${LH_TEST_SRC_PATH}/lh/runtime/error.cpp
         ${LH_TEST_SRC_PATH}/lh/runtime/terminate.cpp
+        ${LH_TEST_SRC_PATH}/lh/runtime/terminate/handler.cpp
         ${LH_TEST_SRC_PATH}/lh/runtime/logger.cpp
+        ${LH_TEST_SRC_PATH}/lh/runtime/reader.cpp
+        ${LH_TEST_SRC_PATH}/lh/runtime/writer.cpp
 )
 
 lh_add_test_core(lh_test_bit

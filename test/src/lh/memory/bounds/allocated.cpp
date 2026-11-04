@@ -154,21 +154,21 @@ TEST(memory_bounds_allocated_try_resize, failure_and_refused_release_preserve_or
     auto *data = static_cast<unsigned char *>(lh_memory_bounds_get_begin(&block));
     data[0] = 73;
     lh_memory_allocator_t saved;
-    lh_memory_allocator_assign(&saved, lh_runtime_allocator());
+    lh_memory_allocator_assign(&saved, lh_runtime_allocator_get());
     auto restore =
         std::unique_ptr<lh_memory_allocator_t, std::function<void(lh_memory_allocator_t *)>>(
             &saved,
-            [](auto *allocator) { lh_memory_allocator_assign(lh_runtime_allocator(), allocator); });
-    lh_memory_allocator_set_alloc_cb(lh_runtime_allocator(), nullptr);
+            [](auto *allocator) { lh_memory_allocator_assign(lh_runtime_allocator_get_mut(), allocator); });
+    lh_memory_allocator_set_alloc_cb(lh_runtime_allocator_get_mut(), nullptr);
     EXPECT_FALSE(lh_memory_bounds_allocated_try_resize(&block, 16));
     EXPECT_EQ(lh_memory_bounds_get_begin(&block), data);
     EXPECT_EQ(lh_memory_bounds_get_size(&block), 8u);
     EXPECT_EQ(data[0], 73u);
-    lh_memory_allocator_set_dealloc_cb(lh_runtime_allocator(), nullptr);
+    lh_memory_allocator_set_dealloc_cb(lh_runtime_allocator_get_mut(), nullptr);
     EXPECT_FALSE(lh_memory_bounds_allocated_try_resize(&block, 0));
     EXPECT_EQ(lh_memory_bounds_get_begin(&block), data);
     EXPECT_EQ(lh_memory_bounds_get_size(&block), 8u);
-    lh_memory_allocator_assign(lh_runtime_allocator(), &saved);
+    lh_memory_allocator_assign(lh_runtime_allocator_get_mut(), &saved);
     EXPECT_TRUE(lh_memory_bounds_allocated_try_resize(&block, 0));
     EXPECT_EQ(lh_memory_bounds_get_begin(&block), nullptr);
     EXPECT_EQ(lh_memory_bounds_get_size(&block), 0u);

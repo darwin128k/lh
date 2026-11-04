@@ -94,6 +94,8 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/runtime/reader.c
         ${LH_LIB_SRC_PATH}/runtime/stream.c
         ${LH_LIB_SRC_PATH}/runtime/check.c
+        ${LH_LIB_SRC_PATH}/runtime/check/handler.c
+        ${LH_LIB_SRC_PATH}/runtime/terminate/handler.c
         ${LH_LIB_SRC_PATH}/exception.c
         ${LH_LIB_SRC_PATH}/exception/origin.c
 
@@ -120,7 +122,6 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/memory/std.c
         ${LH_LIB_SRC_PATH}/memory.c
         ${LH_LIB_SRC_PATH}/atomic/ptr.c
-        ${LH_LIB_SRC_PATH}/atomic/fn_ptr.c
         ${LH_LIB_SRC_PATH}/spsc.c
         ${LH_LIB_SRC_PATH}/array.c
         ${LH_LIB_SRC_PATH}/list.c

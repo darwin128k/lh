@@ -68,7 +68,7 @@ lh_exception_get_origin(const lh_exception_t *self);
  * @endcode
  * Every line ends in `\n`. Needs no C library, so a host can route the
  * report anywhere — a server log, a UART, a debugger — from its own handler
- * (::lh_runtime_check_set).
+ * (::lh_runtime_check_get_mut).
  *
  * All-or-nothing, like ::lh_str_ptr_format_text: when @p str_size cannot
  * hold the whole report nothing is written and 0 is returned. No NUL

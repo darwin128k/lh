@@ -37,6 +37,7 @@ endif ()
 add_subdirectory(${LH_BENCH_LIB_PATH}/benchmark)
 
 set(LH_BENCH_SOURCES
+        ${LH_BENCH_SRC_PATH}/main.cpp
         ${LH_BENCH_SRC_PATH}/lh/memory/std.cpp
         ${LH_BENCH_SRC_PATH}/lh/http.cpp
         ${LH_BENCH_SRC_PATH}/lh/array.cpp
@@ -122,7 +123,7 @@ if (LH_IPO_SUPPORTED)
     endif ()
 endif ()
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ${LH_CORE_TARGET} benchmark::benchmark_main)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${LH_CORE_TARGET} benchmark::benchmark)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON)
 

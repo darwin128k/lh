@@ -7,20 +7,21 @@ LH_ATTRIBUTE_THREAD_LOCAL
 lh_io_stream_t m_runtime_stream;
 
 lh_io_stream_t *
-lh_runtime_stream(void)
+lh_runtime_stream_get_mut(void)
 {
-    lh_io_stream_init(lh_addr_of(m_runtime_stream), lh_runtime_reader(), lh_runtime_writer());
+    lh_io_stream_init(lh_addr_of(m_runtime_stream), lh_runtime_reader_get_mut(),
+                      lh_runtime_writer_get_mut());
     return lh_addr_of(m_runtime_stream);
 }
 
 lh_ssize_t
 lh_runtime_stream_read(lh_ptr buf, lh_usize_t size)
 {
-    return lh_io_stream_read(lh_runtime_stream(), buf, size);
+    return lh_io_stream_read(lh_runtime_stream_get_mut(), buf, size);
 }
 
 lh_ssize_t
 lh_runtime_stream_write(const lh_ptr buf, lh_usize_t size)
 {
-    return lh_io_stream_write(lh_runtime_stream(), buf, size);
+    return lh_io_stream_write(lh_runtime_stream_get_mut(), buf, size);
 }
