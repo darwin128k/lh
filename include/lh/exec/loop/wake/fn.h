@@ -1,10 +1,10 @@
 /**
  * @file fn.h
- * @brief ::lh_os_loop_wake_fn — half of a loop's waiter.
+ * @brief ::lh_exec_loop_wake_fn — half of a loop's waiter.
  */
 
-#ifndef LH_OS_LOOP_WAKE_FN_H
-#define LH_OS_LOOP_WAKE_FN_H
+#ifndef LH_EXEC_LOOP_WAKE_FN_H
+#define LH_EXEC_LOOP_WAKE_FN_H
 
 #include <lh/core/ptr.h>
 #include <lh/core/compiler/extern/c.h>
@@ -12,7 +12,7 @@
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Make a running or a coming ::lh_os_loop_wait_fn return.
+ * @brief Make a running or a coming ::lh_exec_loop_wait_fn return.
  *
  * Any thread calls it, without waiting. The wake must stay pending until the
  * waiter consumes it, so one that comes before the wait is not lost (a
@@ -20,8 +20,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @param waiter The value the waiter was given.
  */
-typedef lh_void(lh_os_loop_wake_fn)(lh_ptr waiter);
+typedef lh_void(lh_exec_loop_wake_fn)(lh_ptr waiter);
 
 LH_COMPILER_EXTERN_C_END
 
-#endif /* LH_OS_LOOP_WAKE_FN_H */
+#endif /* LH_EXEC_LOOP_WAKE_FN_H */

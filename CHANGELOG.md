@@ -666,6 +666,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- `lh/os/loop.h` (`lh_os_loop_*`, `lh/os/loop/{step,wait,wake}`): moved to
+  `lh/exec/loop.h` as `lh_exec_loop_*` — the worker loop is execution, not
+  world. Same functions, same behaviour; rename the prefix and the include.
+  `lh_os_logger_queue_t` uses it under the new name.
 - `lh/os/worker.h` (`lh_os_worker_t`, `lh_os_worker_job_t`, `lh/os/worker/*`):
   the bounded serial worker. `lh/exec` does its job — `lh_exec_thread_t` runs
   the tasks on one thread, `lh_exec_mailbox_t` bounds them and delivers

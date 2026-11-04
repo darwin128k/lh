@@ -18,7 +18,7 @@
 #define LH_OS_LOGGER_QUEUE_H
 
 #include <lh/os/logger/sink.h>
-#include <lh/os/loop.h>
+#include <lh/exec/loop.h>
 #include <lh/core/spsc.h>
 
 /** @brief A log queue and its worker; opaque. */
@@ -138,14 +138,14 @@ lh_os_logger_queue_set_flush_ms(lh_os_logger_queue_t *self, lh_u32_t flush_ms);
 /**
  * @brief The loop of @p self (level 1).
  */
-lh_os_loop_t *
+lh_exec_loop_t *
 lh_os_logger_queue_get_loop(const lh_os_logger_queue_t *self);
 
 /**
  * @brief Store the loop of @p self (level 1).
  */
 lh_void
-lh_os_logger_queue_set_loop(lh_os_logger_queue_t *self, lh_os_loop_t *loop);
+lh_os_logger_queue_set_loop(lh_os_logger_queue_t *self, lh_exec_loop_t *loop);
 
 /**
  * @brief The last flush of @p self (level 1).

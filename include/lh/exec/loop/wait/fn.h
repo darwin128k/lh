@@ -1,10 +1,10 @@
 /**
  * @file fn.h
- * @brief ::lh_os_loop_wait_fn — half of a loop's waiter.
+ * @brief ::lh_exec_loop_wait_fn — half of a loop's waiter.
  */
 
-#ifndef LH_OS_LOOP_WAIT_FN_H
-#define LH_OS_LOOP_WAIT_FN_H
+#ifndef LH_EXEC_LOOP_WAIT_FN_H
+#define LH_EXEC_LOOP_WAIT_FN_H
 
 #include <lh/core/ptr.h>
 #include <lh/core/compiler/extern/c.h>
@@ -19,8 +19,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param waiter     The value the waiter was given.
  * @param timeout_ms Longest sleep, in milliseconds.
  */
-typedef lh_void(lh_os_loop_wait_fn)(lh_ptr waiter, lh_u32_t timeout_ms);
+typedef lh_void(lh_exec_loop_wait_fn)(lh_ptr waiter, lh_u32_t timeout_ms);
 
 LH_COMPILER_EXTERN_C_END
 
-#endif /* LH_OS_LOOP_WAIT_FN_H */
+#endif /* LH_EXEC_LOOP_WAIT_FN_H */
