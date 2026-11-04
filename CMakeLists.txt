@@ -125,6 +125,8 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/atomic/ptr.c
         ${LH_LIB_SRC_PATH}/core/atomic/uint.c
         ${LH_LIB_SRC_PATH}/core/spsc.c
+        ${LH_LIB_SRC_PATH}/exec/task.c
+        ${LH_LIB_SRC_PATH}/exec/queue.c
         ${LH_LIB_SRC_PATH}/core/array.c
         ${LH_LIB_SRC_PATH}/core/list.c
         ${LH_LIB_SRC_PATH}/core/value.c

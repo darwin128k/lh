@@ -37,3 +37,27 @@ lh_atomic_ptr_set_release(lh_atomic_ptr_t *self, lh_ptr value)
     _InterlockedExchangePointer(lh_addr_of(self->value), value);
 #endif
 }
+
+lh_void
+lh_atomic_ptr_set_relaxed(lh_atomic_ptr_t *self, lh_ptr value)
+{
+    lh_assert_runtime_ref(self);
+#if (LH_COMPILER_TYPE_IS_GCC_LIKE)
+    __atomic_store_n(lh_addr_of(self->value), value, __ATOMIC_RELAXED);
+#else
+    /* An aligned pointer store is atomic on every MSVC target. */
+    lh_ptr_deref(lh_cast_static(lh_ptr volatile *, lh_addr_of(self->value))) = value;
+#endif
+}
+
+lh_ptr
+lh_atomic_ptr_exchange_acq_rel(lh_atomic_ptr_t *self, lh_ptr value)
+{
+    lh_assert_runtime_ref(self);
+#if (LH_COMPILER_TYPE_IS_GCC_LIKE)
+    return __atomic_exchange_n(lh_addr_of(self->value), value, __ATOMIC_ACQ_REL);
+#else
+    /* Every _Interlocked read-modify-write is a full barrier. */
+    return _InterlockedExchangePointer(lh_addr_of(self->value), value);
+#endif
+}

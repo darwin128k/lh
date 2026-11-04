@@ -1,7 +1,8 @@
 # Execution in LH — concept (draft for discussion)
 
-Status: draft, nothing implemented. This page decides what the execution
-engine is before any code moves; the code follows the page, not the other way.
+Status: decisions taken (section 5), API draft for review (section 6),
+nothing implemented. This page decides what the execution engine is before
+any code moves; the code follows the page, not the other way.
 
 ## 1. Three natures, mixed today
 
@@ -103,30 +104,132 @@ compositions: web host, logger queue, SQL, Authum tasks
   execution, so it separates from the data part too. AGENTS.md 0.1.1 already
   asks for that ("the OS is assembled from parts").
 
-## 5. Order of the move
+## 5. Decisions (owner, 2026-11-04)
+
+1. **Name: `exec`.** Headers in `include/lh/exec/`, sources in `src/lh/exec/`,
+   names `lh_exec_*` (the part carries its name, AGENTS.md section 5).
+2. **Any thread may submit.** The submission queue is multi-producer,
+   single-consumer: a task may submit a follow-up, two subsystems may share one
+   executor.
+3. **Bounded.** Every owner's mailbox has a capacity; a submission that would
+   exceed it is refused at once (`try_submit` is false), never queued.
+4. **Pool later.** One thread per executor keeps tasks in order; the pool comes
+   when something needs it.
+5. **Beside `lh/os` first.** `lh/exec` is built next to `lh/os` and uses its
+   thread, mutex and condition for now; `lh/os` users move onto `lh/exec` one by
+   one, and the primitives move out of `lh/os` last.
+
+## 6. API draft
+
+Every entity has its own header, `fields.h`, getters and setters, as AGENTS.md
+asks. Only the shape is shown here.
+
+### Task — `lh/exec/task.h`
+
+```c
+typedef lh_void(lh_exec_task_fn)(lh_ptr user, lh_ptr local);  /* work: local = thread context state */
+typedef lh_void(lh_exec_done_fn)(lh_ptr user);                /* complete and destroy */
+
+struct lh_exec_task {
+    lh_exec_task_fields(lh_exec_task_fn, lh_exec_done_fn, lh_ptr, lh_atomic_ptr_t,
+                        struct lh_exec_mailbox *);
+    /* work_cb, complete_cb, destroy_cb, user, next (queue link), mailbox */
+};
+
+lh_void lh_exec_task_init(lh_exec_task_t *self, lh_exec_task_cb work, lh_exec_done_cb complete,
+                          lh_exec_done_cb destroy, lh_ptr user);
+```
+
+- The task record belongs to the caller: embedded in the caller's own object,
+  or allocated by the caller. `lh/exec` allocates nothing per task. `destroy`
+  is where the caller frees it.
+- `next` is the intrusive link of the queues below, `mailbox` the owner that
+  gets `complete`; both are set by the executor, not by the caller.
+
+### Queue — `lh/exec/queue.h`
+
+A multi-producer, single-consumer intrusive queue of tasks: `lh_exec_queue_push`
+from any thread (lock-free, one `exchange` on the tail), `lh_exec_queue_try_pop`
+on the one consumer thread. Needs one new brick:
+`lh_atomic_ptr_exchange_acq_rel`.
+
+### Mailbox — `lh/exec/mailbox.h`
+
+```c
+lh_bool_t lh_exec_mailbox_try_init(lh_exec_mailbox_t *self, lh_uint_t capacity);
+lh_bool_t lh_exec_mailbox_try_reserve(lh_exec_mailbox_t *self);   /* any thread, at submit */
+lh_void   lh_exec_mailbox_post(lh_exec_mailbox_t *self, lh_exec_task_t *task); /* after work */
+lh_uint_t lh_exec_mailbox_dispatch(lh_exec_mailbox_t *self);       /* owner thread */
+```
+
+- The capacity counts tasks accepted for this owner and not yet dispatched —
+  queued, running and finished. A full mailbox refuses the submission.
+- `dispatch` runs `complete` then `destroy` for every finished task, on the
+  owner's thread, and frees their places.
+
+### Executor — `lh/exec/executor.h`
+
+```c
+struct lh_exec_executor {
+    lh_exec_executor_fields(lh_exec_executor_submit_fn, lh_ptr);  /* submit_cb, context */
+};
+
+lh_bool_t lh_exec_executor_try_submit(const lh_exec_executor_t *self, lh_exec_task_t *task,
+                                      lh_exec_mailbox_t *mailbox);
+lh_void   lh_exec_executor_submit(...);  /* the try_ form + lh_runtime_check */
+```
+
+- One interface for every kind. `try_submit` reserves a place in `mailbox`,
+  then hands the task over; false means nothing was accepted and the task is
+  still the caller's.
+
+### Inline executor — `lh/exec/inline.h`
+
+Runs `work` at once on the submitting thread (with `local` = null), then posts
+the task: `complete` still comes only at `dispatch`, so code behaves the same on
+the synchronous and the threaded executor. Tests use it to run logic without
+threads or timing.
+
+### Thread executor and its context — `lh/exec/thread.h`, `lh/exec/context.h`
+
+```c
+struct lh_exec_context {   /* state that lives as long as the executor's thread */
+    lh_exec_context_fields(lh_exec_context_open_fn, lh_exec_context_close_fn, lh_ptr);
+};
+
+lh_exec_thread_t *lh_exec_thread_try_create(const lh_exec_context_t *context);
+const lh_exec_executor_t *lh_exec_thread_get_executor(const lh_exec_thread_t *self);
+lh_bool_t lh_exec_thread_try_stop(lh_exec_thread_t *self, lh_exec_stop_kind_t kind,
+                                  lh_u32_t timeout_ms);
+lh_void   lh_exec_thread_destroy(lh_exec_thread_t *self);
+```
+
+- One thread, tasks in submission order. `open` runs on the thread before its
+  first task and returns the `local` state every `work` receives; `close` runs
+  on the same thread after the last one (a database connection, `mysql_thread_end`).
+- `lh_exec_stop_kind_t` (`lh/exec/stop/kind.h`): `drain` runs every accepted
+  task, `cancel` gives the not-started ones `destroy` only; the running task
+  always finishes. `timeout_ms` bounds the owner's wait: a thread stuck in a
+  call is left to finish and frees itself, then `destroy` (or a later stop)
+  joins it without waiting — what the HTTP server does today by hand.
+
+### Later: the loop
+
+`lh/exec/loop.h` takes over `lh_os_loop_t` (wake, hint, timers, period, waiter
+sources) in step 6; the thread executor then runs on it.
+
+## 7. Order of the move
 
 Each step is its own change, verified on the GCC option matrix, Linux and MSVC,
 and committed by the owner before the next.
 
 1. This page, agreed.
-2. Headers of task, executor, loop, mailbox, thread context — documentation only.
-3. The OS primitives execution needs (thread, mutex, condition, sleep, wake)
-   move out from under `lh/os` into the execution part's base.
-4. Task, inline and thread executors, mailbox; `lh_os_worker_t` moves onto them.
-5. The loop with sources; `lh_os_loop_t` and the logger queue move onto it.
-6. The web host waits through the loop.
+2. `lh_atomic_ptr_exchange_acq_rel`; task and queue, with tests.
+3. Mailbox, executor interface, inline executor.
+4. Thread executor, context, stop; `lh_os_worker_t` becomes a layer over it,
+   Authum's tasks move.
+5. The loop in `lh/exec`; `lh_os_loop_t` and the logger queue move onto it.
+6. The HTTP server (with the fastdl hardening) and the web host wait through
+   the loop.
 7. Asynchronous SQL as a composition.
-8. Authum moves onto all of it.
-
-## 6. Open questions for the owner
-
-1. **Name** of the execution part and its prefix.
-2. **Who may submit.** Today `lh_os_worker_t` allows one owner thread. A task
-   that submits a follow-up, or two subsystems sharing an executor, need submit
-   from any thread (a multi-producer queue). Allow it from the start?
-3. **Mailbox bound.** Bounded (rejects when full, like the executor) or
-   growing?
-4. **Pool now or later.** A game server usually needs one database thread; a
-   pool loses ordering. Build the pool only when something needs it?
-5. **Does the world move now** (step 3 onwards), or does execution first live
-   beside `lh/os` and the world follows later?
+8. The thread, mutex and condition move out of `lh/os` into `lh/exec`'s base.

@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh/exec/`, the execution part (`docs/design/execution.md`), begins with
+  two bricks. `lh/exec/task.h` (`lh_exec_task_t`): one piece of work with its
+  `work`, `complete` and `destroy` calls, the pointer they receive and an
+  atomic queue link; the record is the caller's, `lh/exec` allocates nothing
+  per task. `lh/exec/queue.h` (`lh_exec_queue_t`): an intrusive
+  multi-producer / single-consumer queue of tasks (Vyukov, with a stub task):
+  `lh_exec_queue_push` from any thread, wait-free; `lh_exec_queue_try_pop`
+  from one consumer. Built on `lh/core/atomic/ptr.h` only.
+- `lh_atomic_ptr_set_relaxed` and `lh_atomic_ptr_exchange_acq_rel`: a store
+  for a pointer no other thread can reach yet, and an exchange that returns the
+  old value; the queue's `push` is built on them.
+
 - `lh/atomic/ptr.h` (`lh_atomic_ptr_t`): one pointer published between
   threads, `lh_atomic_ptr_get_acquire` / `_set_release`, with a static
   initializer. Built on the compiler's atomic operations on an ordinary field
