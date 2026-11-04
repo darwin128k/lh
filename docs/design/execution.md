@@ -75,7 +75,7 @@ Execution needs six words, and each comes with laws.
 
 | Today | Becomes |
 |---|---|
-| `lh_os_loop_t` | the loop, with its waiter as the source of world readiness |
+| `lh_os_loop_t` | the loop, with its waiter as the source of world readiness (`lh_exec_loop_t` since step 5) |
 | `lh_os_worker_t` and its job | the *thread* executor and the task (worker removed in step 4b) |
 | `lh_os_logger_queue_t` | a thread executor whose tasks are records, plus a sink |
 | web host request reading | sockets as loop sources instead of blocking reads with timeouts |
@@ -237,12 +237,23 @@ lh_void   lh_exec_thread_destroy(lh_exec_thread_t *self);
   a bound, then joins. A thread stuck in a call that frees itself later (what
   the HTTP server does today by hand) comes with step 6, which needs it.
 - Submission takes the executor's mutex for a moment (link the task, wake the
-  thread); the loop of step 5 replaces that wait.
+  thread). The loop's own wake takes a mutex as well, so moving the executor
+  onto the loop gains nothing there; it moves when it needs the loop's waiter
+  (step 6).
 
-### Later: the loop
+### The loop — `lh/exec/loop.h`
 
-`lh/exec/loop.h` takes over `lh_os_loop_t` (wake, hint, timers, period, waiter
-sources) in step 6; the thread executor then runs on it.
+`lh_exec_loop_t` (step 5) is the former `lh_os_loop_t`, moved and renamed, its
+behaviour unchanged: a thread that runs a step, fires its due timers and sleeps
+until a wake (never lost), a hint (lock-free, may be missed for one period), the
+nearest timer, the end of its period, or a stop. A loop made with a waiter
+(`lh_exec_loop_try_create_waiting`) sleeps in the waiter's `wait` — a `poll` of
+sockets and a wake signal — which is how the world plugs in as sources. The
+logger queue (`lh_os_logger_queue_t`) and Authum's HTTP server run on it.
+
+The thread executor is not built on the loop yet: nothing it does today needs
+timers or a waiter. Step 6 (the HTTP server waiting through the loop) is the
+first need, and the executor moves then.
 
 ## 7. Order of the move
 
@@ -254,7 +265,9 @@ and committed by the owner before the next.
 3. Mailbox, executor interface, inline executor.
 4. Thread executor, context, stop (4a); Authum's tasks move onto it and
    `lh_os_worker_t`, left without users, is removed (4b, owner, 2026-11-04).
-5. The loop in `lh/exec`; `lh_os_loop_t` and the logger queue move onto it.
+5. The loop in `lh/exec`: `lh_os_loop_t` becomes `lh_exec_loop_t`; the logger
+   queue and Authum's HTTP server use it under the new name. The thread
+   executor moves onto the loop with step 6, its first need.
 6. The HTTP server (with the fastdl hardening) and the web host wait through
    the loop.
 7. Asynchronous SQL as a composition.

@@ -312,6 +312,7 @@ set(LH_LIB_SOURCES
 
 if (LH_LIBRARY_OPTION_OS)
     # The thread executor runs on the OS thread, mutex and condition.
+    list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/exec/loop.c)
     list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/exec/thread.c)
     list(APPEND LH_LIB_SOURCES
             ${LH_LIB_SRC_PATH}/os.c
@@ -344,7 +345,6 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/module/event/entry.c
             ${LH_LIB_SRC_PATH}/os/module/event/subscription.c
             ${LH_LIB_SRC_PATH}/os/module/event/bus.c
-            ${LH_LIB_SRC_PATH}/os/loop.c
             ${LH_LIB_SRC_PATH}/os/thread/group/member.c
             ${LH_LIB_SRC_PATH}/os/thread/group.c
             ${LH_LIB_SRC_PATH}/os/logger/record.c
