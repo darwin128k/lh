@@ -2,7 +2,6 @@
 #include <lh/os/system/win/concurrency/thread.h>
 #include <lh/os/system/error/capture.h>
 #include <windows.h>
-#include <stdlib.h>
 #include <process.h>
 #include <errno.h>
 #include <lh/assert.h>
@@ -21,7 +20,8 @@ lh_os_concurrency_capture(DWORD code)
 /**
  * @brief Complete the startup handshake and invoke user code only when startup succeeds.
  */
-static unsigned __stdcall lh_os_thread_native_run(void *arg)
+static unsigned __stdcall
+lh_os_thread_native_run(void *arg)
 {
     lh_os_native_thread_t *self = arg;
     if (WaitForSingleObject(lh_os_native_thread_get_gate(self), INFINITE) == WAIT_OBJECT_0 &&
@@ -33,31 +33,34 @@ static unsigned __stdcall lh_os_thread_native_run(void *arg)
 }
 
 /**
+ * @brief Bytes of storage one native thread needs.
+ */
+lh_usize_t
+lh_os_system_thread_get_size(void)
+{
+    return sizeof(lh_os_native_thread_t);
+}
+
+/**
  * @brief Create a native worker and validate its startup options before user code runs.
  */
 lh_os_system_thread_handle_t
-lh_os_system_thread_start(lh_os_thread_fn run, lh_ptr user, lh_s32_t cpu, lh_u32_t flags)
+lh_os_system_thread_start(lh_ptr storage, lh_os_thread_fn run, lh_ptr user, lh_s32_t cpu,
+                          lh_u32_t flags)
 {
-    if (!run || cpu < -1 || cpu >= (lh_s32_t)(8 * sizeof(DWORD_PTR)) ||
+    if (!storage || !run || cpu < -1 || cpu >= (lh_s32_t)(8 * sizeof(DWORD_PTR)) ||
         (flags & ~lh_os_thread_block_sigpipe))
     {
         lh_os_concurrency_capture(ERROR_INVALID_PARAMETER);
         return NULL;
     }
-    lh_os_native_thread_t *self = calloc(1, sizeof *self);
-    if (!self)
-    {
-        lh_os_concurrency_capture(ERROR_NOT_ENOUGH_MEMORY);
-        return NULL;
-    }
+    lh_os_native_thread_t *self = storage;
     lh_os_native_thread_set_run_fn(self, run);
     lh_os_native_thread_set_user(self, user);
     lh_os_native_thread_set_gate(self, CreateEventW(NULL, TRUE, FALSE, NULL));
     if (!lh_os_native_thread_get_gate(self))
     {
-        DWORD error = GetLastError();
-        free(self);
-        lh_os_concurrency_capture(error);
+        lh_os_concurrency_capture(GetLastError());
         return NULL;
     }
     /* CRT per-thread state is released when the callback returns. */
@@ -86,7 +89,6 @@ lh_os_system_thread_start(lh_os_thread_fn run, lh_ptr user, lh_s32_t cpu, lh_u32
             CloseHandle(lh_os_native_thread_get_handle(self));
         }
         CloseHandle(lh_os_native_thread_get_gate(self));
-        free(self);
         lh_os_concurrency_capture(error);
         return NULL;
     }
@@ -96,7 +98,7 @@ lh_os_system_thread_start(lh_os_thread_fn run, lh_ptr user, lh_s32_t cpu, lh_u32
 }
 
 /**
- * @brief Wait for a native worker and release its handle.
+ * @brief Wait for a native worker and release its native handles.
  */
 lh_bool_t
 lh_os_system_thread_join(lh_os_system_thread_handle_t handle)
@@ -121,34 +123,40 @@ lh_os_system_thread_join(lh_os_system_thread_handle_t handle)
         return lh_os_concurrency_capture(GetLastError());
     }
     CloseHandle(lh_os_native_thread_get_gate(self));
-    free(self);
     return lh_bool_true;
 }
 
 /**
- * @brief Allocate and initialize one native mutex object.
+ * @brief Bytes of storage one native mutex needs.
+ */
+lh_usize_t
+lh_os_system_mutex_get_size(void)
+{
+    return sizeof(CRITICAL_SECTION);
+}
+
+/**
+ * @brief Initialize one native mutex in caller storage.
  */
 lh_os_system_mutex_handle_t
-lh_os_system_mutex_open(void)
+lh_os_system_mutex_open(lh_ptr storage)
 {
-    CRITICAL_SECTION *self = malloc(sizeof *self);
+    CRITICAL_SECTION *self = storage;
     if (!self)
     {
-        lh_os_concurrency_capture(ERROR_NOT_ENOUGH_MEMORY);
+        lh_os_concurrency_capture(ERROR_INVALID_PARAMETER);
         return NULL;
     }
     if (!InitializeCriticalSectionAndSpinCount(self, 0))
     {
-        DWORD error = GetLastError();
-        free(self);
-        lh_os_concurrency_capture(error);
+        lh_os_concurrency_capture(GetLastError());
         return NULL;
     }
     return self;
 }
 
 /**
- * @brief Release a native mutex after its last use.
+ * @brief Destroy a native mutex after its last use.
  */
 lh_bool_t
 lh_os_system_mutex_close(lh_os_system_mutex_handle_t handle)
@@ -158,7 +166,6 @@ lh_os_system_mutex_close(lh_os_system_mutex_handle_t handle)
         return lh_os_concurrency_capture(ERROR_INVALID_PARAMETER);
     }
     DeleteCriticalSection(handle);
-    free(handle);
     return lh_bool_true;
 }
 
@@ -191,31 +198,40 @@ lh_os_system_mutex_unlock(lh_os_system_mutex_handle_t handle)
 }
 
 /**
- * @brief Allocate and initialize one native condition object.
+ * @brief Bytes of storage one native condition needs.
+ */
+lh_usize_t
+lh_os_system_condition_get_size(void)
+{
+    return sizeof(lh_os_native_condition_t);
+}
+
+/**
+ * @brief Initialize one native condition in caller storage.
  */
 lh_os_system_condition_handle_t
-lh_os_system_condition_open(void)
+lh_os_system_condition_open(lh_ptr storage)
 {
-    lh_os_native_condition_t *self = calloc(1, sizeof *self);
+    lh_os_native_condition_t *self = storage;
     if (!self)
     {
-        lh_os_concurrency_capture(ERROR_NOT_ENOUGH_MEMORY);
+        lh_os_concurrency_capture(ERROR_INVALID_PARAMETER);
         return NULL;
     }
     HMODULE kernel = GetModuleHandleW(L"kernel32.dll");
     if (!kernel)
     {
-        DWORD error = GetLastError();
-        free(self);
-        lh_os_concurrency_capture(error);
+        lh_os_concurrency_capture(GetLastError());
         return NULL;
     }
+
     union
     {
         FARPROC raw;
         lh_os_condition_change_fn change;
         lh_os_condition_wait_fn wait;
     } procedure;
+
     procedure.raw = GetProcAddress(kernel, "InitializeConditionVariable");
     lh_os_condition_change_fn init = procedure.change;
     procedure.raw = GetProcAddress(kernel, "WakeConditionVariable");
@@ -227,7 +243,6 @@ lh_os_system_condition_open(void)
     if (!init || !lh_os_native_condition_get_signal_fn(self) ||
         !lh_os_native_condition_get_broadcast_fn(self) || !lh_os_native_condition_get_wait_fn(self))
     {
-        free(self);
         lh_os_concurrency_capture(ERROR_CALL_NOT_IMPLEMENTED);
         return NULL;
     }
@@ -236,7 +251,8 @@ lh_os_system_condition_open(void)
 }
 
 /**
- * @brief Release a native condition after its last use.
+ * @brief Destroy a native condition after its last use: a Win32 condition
+ *        variable holds no resource, so nothing is released.
  */
 lh_bool_t
 lh_os_system_condition_close(lh_os_system_condition_handle_t handle)
@@ -245,7 +261,6 @@ lh_os_system_condition_close(lh_os_system_condition_handle_t handle)
     {
         return lh_os_concurrency_capture(ERROR_INVALID_PARAMETER);
     }
-    free(handle);
     return lh_bool_true;
 }
 

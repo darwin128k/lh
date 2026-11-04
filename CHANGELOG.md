@@ -231,8 +231,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the runtime logger at critical level instead of `stderr`. The test runner
   (`test/src/main.cpp`), the benchmark runner (`bench/src/main.cpp`, now its
   own `main`) and the example install their own; death tests no longer depend
-  on an option. With `LH_LIBRARY_OPTION_OS` off, `liblh.a` references no C
-  library symbol.
+  on an option. `liblh.a` references no C library allocation or I/O function,
+  with the OS layer as well.
+- **Breaking (backend API):** the native thread, mutex and condition backends
+  (`lh/os/system/concurrency.h`) allocate nothing. `lh_os_system_thread_start`,
+  `lh_os_system_mutex_open` and `lh_os_system_condition_open` take
+  zero-filled caller storage of `lh_os_system_thread_get_size()` /
+  `_mutex_get_size()` / `_condition_get_size()` bytes, and `_join` / `_close`
+  no longer free it. `lh_os_thread_t`, `lh_os_mutex_t` and
+  `lh_os_condition_t` take that storage from the runtime allocator and keep a
+  copy of it (`lh_os_<type>_get_allocator` / `_get_allocator_mut`), so the
+  storage goes back to the heap it came from; with no memory, start / open
+  fails with `lh_os_error_code_out_of_memory`. Before, both backends called
+  `calloc` / `malloc` / `free` themselves, past the host's allocator.
 
 - The JavaScript lexer and JSON headers moved under `lh/web/`: `<lh/js.h>`,
   `<lh/js/*>`, `<lh/json.h>` and `<lh/json/*>` are now `<lh/web/js.h>`,

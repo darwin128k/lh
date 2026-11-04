@@ -7,6 +7,7 @@
 #include <lh/os.h>
 #include <lh/os/error/code.h>
 #include <lh/assert/runtime.h>
+#include <lh/runtime/allocator.h>
 
 /**
  * @brief Report an invalid condition variable or lifecycle state in the LH error slot.
@@ -17,6 +18,20 @@ lh_os_condition_invalid(void)
     lh_os_set_last_error_lit(lh_os_error_code_invalid_argument,
                              "invalid condition variable or state");
     return lh_bool_false;
+}
+
+const lh_memory_allocator_t *
+lh_os_condition_get_allocator(const lh_os_condition_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->allocator);
+}
+
+lh_memory_allocator_t *
+lh_os_condition_get_allocator_mut(lh_os_condition_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->allocator);
 }
 
 lh_os_system_condition_handle_t
@@ -55,8 +70,23 @@ lh_os_condition_open(lh_os_condition_t *self)
     {
         return lh_os_condition_invalid();
     }
-    lh_os_condition_set_handle(self, lh_os_system_condition_open());
-    return lh_os_condition_get_handle(self) != lh_null;
+    lh_memory_allocator_t *allocator = lh_os_condition_get_allocator_mut(self);
+    lh_memory_allocator_assign(allocator, lh_runtime_allocator_get());
+    lh_ptr storage =
+        lh_memory_allocator_try_alloc_zero(allocator, 1U, lh_os_system_condition_get_size());
+    if (!storage)
+    {
+        lh_os_set_last_error_lit(lh_os_error_code_out_of_memory,
+                                 "no memory for a condition variable");
+        return lh_bool_false;
+    }
+    lh_os_condition_set_handle(self, lh_os_system_condition_open(storage));
+    if (!lh_os_condition_get_handle(self))
+    {
+        lh_memory_allocator_dealloc(allocator, storage);
+        return lh_bool_false;
+    }
+    return lh_bool_true;
 }
 
 /**
@@ -77,6 +107,8 @@ lh_os_condition_close(lh_os_condition_t *self)
     {
         return lh_bool_false;
     }
+    lh_memory_allocator_dealloc(lh_os_condition_get_allocator_mut(self),
+                                lh_os_condition_get_handle(self));
     lh_os_condition_set_handle(self, lh_null);
     return lh_bool_true;
 }

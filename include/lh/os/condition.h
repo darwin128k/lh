@@ -10,6 +10,7 @@
 #ifndef LH_OS_CONDITION_H
 #define LH_OS_CONDITION_H
 
+#include <lh/memory/allocator.h>
 #include <lh/os/condition/fields.h>
 #include <lh/os/mutex.h>
 
@@ -19,13 +20,30 @@
 struct lh_os_condition
 {
     /** Members: ::lh_os_condition_fields. */
-    lh_os_condition_fields(lh_os_system_condition_handle_t);
+    lh_os_condition_fields(lh_os_system_condition_handle_t, lh_memory_allocator_t);
 };
 
 /** @copybrief lh_os_condition */
 typedef struct lh_os_condition lh_os_condition_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief The allocator the native storage of @p self came from (level 1).
+ * @param self Object; must not be null.
+ * @return A copy of the runtime allocator taken when the native object was
+ *         created; meaningless while @p self owns none.
+ */
+const lh_memory_allocator_t *
+lh_os_condition_get_allocator(const lh_os_condition_t *self);
+
+/**
+ * @brief The allocator the native storage of @p self came from, for change (level 1).
+ * @param self Object; must not be null.
+ * @return The object's own copy of the allocator.
+ */
+lh_memory_allocator_t *
+lh_os_condition_get_allocator_mut(lh_os_condition_t *self);
 
 /**
  * @brief Initialize an empty condition-variable object.

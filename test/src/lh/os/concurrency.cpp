@@ -10,6 +10,10 @@
 #include <lh/os/system/tick.h>
 #include <lh/os/system.h>
 #include <lh/test/os.h>
+#include <lh/os.h>
+#include <lh/os/error/code.h>
+#include <lh/runtime/allocator.h>
+#include <cstdlib>
 #include <atomic>
 #if defined(_WIN32)
 #    include <windows.h>
@@ -120,7 +124,164 @@ check_affinity(void *user)
 class os_condition : public testing::TestWithParam<int>
 {
 };
+/* Counts the native storage taken from and given back to the runtime
+   allocator; refuses every allocation while reject is set. */
+struct storage_counter
+{
+    int allocs = 0;
+    int frees = 0;
+    bool reject = false;
+};
+
+lh_ptr
+storage_alloc(lh_self_ptr self, lh_usize_t size)
+{
+    auto *counter = static_cast<storage_counter *>(self);
+    if (counter->reject)
+    {
+        return nullptr;
+    }
+    ++counter->allocs;
+    return std::malloc(size);
+}
+
+lh_void
+storage_free(lh_self_ptr self, lh_ptr ptr)
+{
+    auto *counter = static_cast<storage_counter *>(self);
+    if (ptr != nullptr)
+    {
+        ++counter->frees;
+        std::free(ptr);
+    }
+}
+
+/* Puts the counting allocator on the runtime slot for one scope. */
+class counting_runtime_allocator
+{
+  public:
+    explicit counting_runtime_allocator(storage_counter &counter)
+    {
+        lh_memory_allocator_assign(&m_saved, lh_runtime_allocator_get());
+        lh_memory_allocator_set(lh_runtime_allocator_get_mut(), storage_alloc, storage_free);
+        lh_memory_allocator_set_context(lh_runtime_allocator_get_mut(), &counter);
+    }
+
+    ~counting_runtime_allocator()
+    {
+        lh_memory_allocator_assign(lh_runtime_allocator_get_mut(), &m_saved);
+    }
+
+    counting_runtime_allocator(const counting_runtime_allocator &) = delete;
+    counting_runtime_allocator &operator=(const counting_runtime_allocator &) = delete;
+
+  private:
+    lh_memory_allocator_t m_saved;
+};
+
 } // namespace
+
+/* The native object lives in storage from the runtime allocator, and goes back
+   to the same allocator on close even when the runtime slot changed since. */
+TEST(os_mutex, native_storage_comes_from_the_runtime_allocator)
+{
+    storage_counter counter;
+    lh_os_mutex_t mutex;
+    lh_os_mutex_init(&mutex);
+    {
+        counting_runtime_allocator scope(counter);
+        ASSERT_TRUE(lh_os_mutex_open(&mutex));
+    }
+    EXPECT_EQ(counter.allocs, 1);
+    EXPECT_EQ(counter.frees, 0);
+    EXPECT_TRUE(lh_os_mutex_lock(&mutex));
+    EXPECT_TRUE(lh_os_mutex_unlock(&mutex));
+    EXPECT_TRUE(lh_os_mutex_close(&mutex));
+    EXPECT_EQ(counter.frees, 1);
+}
+
+TEST(os_mutex, open_fails_without_memory)
+{
+    storage_counter counter;
+    counter.reject = true;
+    counting_runtime_allocator scope(counter);
+    lh_os_mutex_t mutex;
+    lh_os_mutex_init(&mutex);
+    EXPECT_FALSE(lh_os_mutex_open(&mutex));
+    EXPECT_EQ(lh_os_get_last_error_code(), lh_os_error_code_out_of_memory);
+    EXPECT_EQ(lh_os_mutex_get_handle(&mutex), nullptr);
+    EXPECT_TRUE(lh_os_mutex_close(&mutex));
+}
+
+TEST(os_condition, native_storage_comes_from_the_runtime_allocator)
+{
+    storage_counter counter;
+    lh_os_condition_t condition;
+    lh_os_condition_init(&condition);
+    {
+        counting_runtime_allocator scope(counter);
+        ASSERT_TRUE(lh_os_condition_open(&condition));
+    }
+    EXPECT_EQ(counter.allocs, 1);
+    EXPECT_TRUE(lh_os_condition_signal(&condition));
+    EXPECT_TRUE(lh_os_condition_close(&condition));
+    EXPECT_EQ(counter.frees, 1);
+}
+
+TEST(os_condition, open_fails_without_memory)
+{
+    storage_counter counter;
+    counter.reject = true;
+    counting_runtime_allocator scope(counter);
+    lh_os_condition_t condition;
+    lh_os_condition_init(&condition);
+    EXPECT_FALSE(lh_os_condition_open(&condition));
+    EXPECT_EQ(lh_os_get_last_error_code(), lh_os_error_code_out_of_memory);
+    EXPECT_EQ(lh_os_condition_get_handle(&condition), nullptr);
+}
+
+TEST(os_thread, native_storage_comes_from_the_runtime_allocator)
+{
+    storage_counter counter;
+    std::atomic_int callbacks{0};
+    lh_os_thread_t thread;
+    lh_os_thread_init(&thread);
+    {
+        counting_runtime_allocator scope(counter);
+        ASSERT_TRUE(lh_os_thread_start(&thread, count_callback, &callbacks, -1, 0));
+    }
+    EXPECT_EQ(counter.allocs, 1);
+    ASSERT_TRUE(lh_os_thread_join(&thread));
+    EXPECT_EQ(counter.frees, 1);
+    EXPECT_EQ(callbacks.load(), 1);
+}
+
+TEST(os_thread, a_rejected_start_gives_its_storage_back)
+{
+    storage_counter counter;
+    std::atomic_int callbacks{0};
+    lh_os_thread_t thread;
+    lh_os_thread_init(&thread);
+    {
+        counting_runtime_allocator scope(counter);
+        EXPECT_FALSE(lh_os_thread_start(&thread, count_callback, &callbacks, -2, 0));
+    }
+    EXPECT_EQ(counter.allocs, counter.frees);
+    EXPECT_EQ(callbacks.load(), 0);
+}
+
+TEST(os_thread, start_fails_without_memory)
+{
+    storage_counter counter;
+    counter.reject = true;
+    std::atomic_int callbacks{0};
+    counting_runtime_allocator scope(counter);
+    lh_os_thread_t thread;
+    lh_os_thread_init(&thread);
+    EXPECT_FALSE(lh_os_thread_start(&thread, count_callback, &callbacks, -1, 0));
+    EXPECT_EQ(lh_os_get_last_error_code(), lh_os_error_code_out_of_memory);
+    EXPECT_EQ(callbacks.load(), 0);
+}
 
 TEST(os_clock, monotonic_sleep_and_invalid_output)
 {

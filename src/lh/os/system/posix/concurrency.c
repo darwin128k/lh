@@ -7,7 +7,6 @@
 #include <pthread.h>
 #include <signal.h>
 #include <time.h>
-#include <stdlib.h>
 #if defined(__linux__)
 #    include <sched.h>
 #endif
@@ -62,23 +61,33 @@ lh_os_thread_native_run(void *arg)
 }
 
 /**
- * @brief Release startup synchronization and storage after the native worker has exited.
+ * @brief Release startup synchronization after the native worker has exited; the
+ *        storage stays the caller's.
  */
 static void
-lh_os_thread_native_free(lh_os_native_thread_t *self)
+lh_os_thread_native_destroy(lh_os_native_thread_t *self)
 {
     pthread_cond_destroy(lh_os_native_thread_get_ready_mut(self));
     pthread_mutex_destroy(lh_os_native_thread_get_gate_mut(self));
-    free(self);
+}
+
+/**
+ * @brief Bytes of storage one native thread needs.
+ */
+lh_usize_t
+lh_os_system_thread_get_size(void)
+{
+    return sizeof(lh_os_native_thread_t);
 }
 
 /**
  * @brief Create a native worker and validate its startup options before user code runs.
  */
 lh_os_system_thread_handle_t
-lh_os_system_thread_start(lh_os_thread_fn run, lh_ptr user, lh_s32_t cpu, lh_u32_t flags)
+lh_os_system_thread_start(lh_ptr storage, lh_os_thread_fn run, lh_ptr user, lh_s32_t cpu,
+                          lh_u32_t flags)
 {
-    if (!run || cpu < -1 || (flags & ~lh_os_thread_block_sigpipe))
+    if (!storage || !run || cpu < -1 || (flags & ~lh_os_thread_block_sigpipe))
     {
         lh_os_concurrency_capture(EINVAL);
         return NULL;
@@ -96,19 +105,13 @@ lh_os_system_thread_start(lh_os_thread_fn run, lh_ptr user, lh_s32_t cpu, lh_u32
         return NULL;
     }
 #endif
-    lh_os_native_thread_t *self = calloc(1, sizeof *self);
-    if (!self)
-    {
-        lh_os_concurrency_capture(ENOMEM);
-        return NULL;
-    }
+    lh_os_native_thread_t *self = storage;
     lh_os_native_thread_set_run_fn(self, run);
     lh_os_native_thread_set_user(self, user);
     lh_os_native_thread_set_flags(self, flags);
     int code = pthread_mutex_init(lh_os_native_thread_get_gate_mut(self), NULL);
     if (code)
     {
-        free(self);
         lh_os_concurrency_capture(code);
         return NULL;
     }
@@ -116,7 +119,6 @@ lh_os_system_thread_start(lh_os_thread_fn run, lh_ptr user, lh_s32_t cpu, lh_u32
     if (code)
     {
         pthread_mutex_destroy(lh_os_native_thread_get_gate_mut(self));
-        free(self);
         lh_os_concurrency_capture(code);
         return NULL;
     }
@@ -124,7 +126,7 @@ lh_os_system_thread_start(lh_os_thread_fn run, lh_ptr user, lh_s32_t cpu, lh_u32
     code = pthread_attr_init(lh_addr_of(attributes));
     if (code)
     {
-        lh_os_thread_native_free(self);
+        lh_os_thread_native_destroy(self);
         lh_os_concurrency_capture(code);
         return NULL;
     }
@@ -147,7 +149,7 @@ lh_os_system_thread_start(lh_os_thread_fn run, lh_ptr user, lh_s32_t cpu, lh_u32
     if (code)
     {
         pthread_mutex_unlock(lh_os_native_thread_get_gate_mut(self));
-        lh_os_thread_native_free(self);
+        lh_os_thread_native_destroy(self);
         lh_os_concurrency_capture(code);
         return NULL;
     }
@@ -166,7 +168,7 @@ lh_os_system_thread_start(lh_os_thread_fn run, lh_ptr user, lh_s32_t cpu, lh_u32
     if (code)
     {
         pthread_join(lh_os_native_thread_get_thread(self), NULL);
-        lh_os_thread_native_free(self);
+        lh_os_thread_native_destroy(self);
         lh_os_concurrency_capture(code);
         return NULL;
     }
@@ -174,7 +176,7 @@ lh_os_system_thread_start(lh_os_thread_fn run, lh_ptr user, lh_s32_t cpu, lh_u32
 }
 
 /**
- * @brief Wait for a native worker and release its handle.
+ * @brief Wait for a native worker and release its native resources.
  */
 lh_bool_t
 lh_os_system_thread_join(lh_os_system_thread_handle_t handle)
@@ -188,26 +190,29 @@ lh_os_system_thread_join(lh_os_system_thread_handle_t handle)
     {
         return lh_bool_false;
     }
-    lh_os_thread_native_free(self);
+    lh_os_thread_native_destroy(self);
     return lh_bool_true;
 }
 
 /**
- * @brief Allocate and initialize one native mutex object.
+ * @brief Bytes of storage one native mutex needs.
+ */
+lh_usize_t
+lh_os_system_mutex_get_size(void)
+{
+    return sizeof(pthread_mutex_t);
+}
+
+/**
+ * @brief Initialize one native mutex in caller storage.
  */
 lh_os_system_mutex_handle_t
-lh_os_system_mutex_open(void)
+lh_os_system_mutex_open(lh_ptr storage)
 {
-    pthread_mutex_t *self = malloc(sizeof *self);
-    if (!self)
-    {
-        lh_os_concurrency_capture(ENOMEM);
-        return NULL;
-    }
-    int code = pthread_mutex_init(self, NULL);
+    pthread_mutex_t *self = storage;
+    int code = self ? pthread_mutex_init(self, NULL) : EINVAL;
     if (code)
     {
-        free(self);
         lh_os_concurrency_capture(code);
         return NULL;
     }
@@ -224,12 +229,7 @@ lh_os_system_mutex_close(lh_os_system_mutex_handle_t handle)
     {
         return lh_os_concurrency_capture(EINVAL);
     }
-    if (!lh_os_concurrency_capture(pthread_mutex_destroy(handle)))
-    {
-        return lh_bool_false;
-    }
-    free(handle);
-    return lh_bool_true;
+    return lh_os_concurrency_capture(pthread_mutex_destroy(handle));
 }
 
 /**
@@ -251,21 +251,24 @@ lh_os_system_mutex_unlock(lh_os_system_mutex_handle_t handle)
 }
 
 /**
- * @brief Allocate and initialize one native condition object.
+ * @brief Bytes of storage one native condition needs.
+ */
+lh_usize_t
+lh_os_system_condition_get_size(void)
+{
+    return sizeof(pthread_cond_t);
+}
+
+/**
+ * @brief Initialize one native condition in caller storage.
  */
 lh_os_system_condition_handle_t
-lh_os_system_condition_open(void)
+lh_os_system_condition_open(lh_ptr storage)
 {
-    pthread_cond_t *self = malloc(sizeof *self);
-    if (!self)
-    {
-        lh_os_concurrency_capture(ENOMEM);
-        return NULL;
-    }
-    int code = pthread_cond_init(self, NULL);
+    pthread_cond_t *self = storage;
+    int code = self ? pthread_cond_init(self, NULL) : EINVAL;
     if (code)
     {
-        free(self);
         lh_os_concurrency_capture(code);
         return NULL;
     }
@@ -282,12 +285,7 @@ lh_os_system_condition_close(lh_os_system_condition_handle_t handle)
     {
         return lh_os_concurrency_capture(EINVAL);
     }
-    if (!lh_os_concurrency_capture(pthread_cond_destroy(handle)))
-    {
-        return lh_bool_false;
-    }
-    free(handle);
-    return lh_bool_true;
+    return lh_os_concurrency_capture(pthread_cond_destroy(handle));
 }
 
 /**

@@ -8,7 +8,7 @@
 #include <lh/os/error/code.h>
 #include <lh/os/system/tick.h>
 #include <lh/assert/runtime.h>
-
+#include <lh/runtime/allocator.h>
 /**
  * @brief Report an invalid thread or lifecycle state in the LH error slot.
  */
@@ -17,6 +17,20 @@ lh_os_thread_invalid(void)
 {
     lh_os_set_last_error_lit(lh_os_error_code_invalid_argument, "invalid thread or state");
     return lh_bool_false;
+}
+
+const lh_memory_allocator_t *
+lh_os_thread_get_allocator(const lh_os_thread_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->allocator);
+}
+
+lh_memory_allocator_t *
+lh_os_thread_get_allocator_mut(lh_os_thread_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->allocator);
 }
 
 lh_os_system_thread_handle_t
@@ -31,6 +45,15 @@ lh_os_thread_set_handle(lh_os_thread_t *self, lh_os_system_thread_handle_t handl
 {
     lh_assert_runtime_ref(self);
     self->handle = handle;
+}
+
+/**
+ * @brief Suspend the calling thread for a finite interval.
+ */
+lh_bool_t
+lh_os_thread_sleep(lh_u32_t milliseconds)
+{
+    return lh_os_system_sleep_ms(milliseconds);
 }
 
 /**
@@ -56,8 +79,22 @@ lh_os_thread_start(lh_os_thread_t *self, lh_os_thread_fn run, lh_ptr user, lh_s3
     {
         return lh_os_thread_invalid();
     }
-    lh_os_thread_set_handle(self, lh_os_system_thread_start(run, user, cpu, flags));
-    return lh_os_thread_get_handle(self) != lh_null;
+    lh_memory_allocator_t *allocator = lh_os_thread_get_allocator_mut(self);
+    lh_memory_allocator_assign(allocator, lh_runtime_allocator_get());
+    lh_ptr storage =
+        lh_memory_allocator_try_alloc_zero(allocator, 1U, lh_os_system_thread_get_size());
+    if (!storage)
+    {
+        lh_os_set_last_error_lit(lh_os_error_code_out_of_memory, "no memory for a thread");
+        return lh_bool_false;
+    }
+    lh_os_thread_set_handle(self, lh_os_system_thread_start(storage, run, user, cpu, flags));
+    if (!lh_os_thread_get_handle(self))
+    {
+        lh_memory_allocator_dealloc(allocator, storage);
+        return lh_bool_false;
+    }
+    return lh_bool_true;
 }
 
 /**
@@ -78,15 +115,8 @@ lh_os_thread_join(lh_os_thread_t *self)
     {
         return lh_bool_false;
     }
+    lh_memory_allocator_dealloc(lh_os_thread_get_allocator_mut(self),
+                                lh_os_thread_get_handle(self));
     lh_os_thread_set_handle(self, lh_null);
     return lh_bool_true;
-}
-
-/**
- * @brief Suspend the calling thread for a finite interval.
- */
-lh_bool_t
-lh_os_thread_sleep(lh_u32_t milliseconds)
-{
-    return lh_os_system_sleep_ms(milliseconds);
 }
