@@ -96,7 +96,9 @@ endif ()
 lh_add_test_core(lh_test_console ${LH_TEST_SRC_PATH}/lh/console/console.cpp)
 
 lh_add_test_core(lh_test_core
+        ${LH_TEST_SRC_PATH}/lh/atomic/bool.cpp
         ${LH_TEST_SRC_PATH}/lh/atomic/ptr.cpp
+        ${LH_TEST_SRC_PATH}/lh/atomic/uint.cpp
         ${LH_TEST_SRC_PATH}/lh/spsc.cpp
         ${LH_TEST_SRC_PATH}/lh/array.cpp
         ${LH_TEST_SRC_PATH}/lh/error.cpp

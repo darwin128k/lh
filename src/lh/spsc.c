@@ -1,5 +1,5 @@
 #include <lh/spsc.h>
-#include <stdatomic.h>
+#include <lh/atomic/uint.h>
 #include <lh/runtime/allocator.h>
 #include <lh/memory/std.h>
 #include <lh/size/limits.h>
@@ -13,7 +13,8 @@ struct lh_spsc
     lh_byte_t *storage;
     lh_uint_t capacity;
     lh_usize_t item_size;
-    atomic_uint written, read;
+    lh_atomic_uint_t written;
+    lh_atomic_uint_t read;
 };
 
 /* -- Level 1: the fields ------------------------------------------------------ */
@@ -71,56 +72,56 @@ lh_uint_t
 lh_spsc_get_written(lh_spsc_t *self)
 {
     lh_assert_runtime_ref(self);
-    return atomic_load_explicit(lh_addr_of(self->written), memory_order_acquire);
+    return lh_atomic_uint_get_acquire(lh_addr_of(self->written));
 }
 
 lh_void
 lh_spsc_set_written(lh_spsc_t *self, lh_uint_t written)
 {
     lh_assert_runtime_ref(self);
-    atomic_store_explicit(lh_addr_of(self->written), written, memory_order_release);
+    lh_atomic_uint_set_release(lh_addr_of(self->written), written);
 }
 
 lh_uint_t
 lh_spsc_get_read(lh_spsc_t *self)
 {
     lh_assert_runtime_ref(self);
-    return atomic_load_explicit(lh_addr_of(self->read), memory_order_acquire);
+    return lh_atomic_uint_get_acquire(lh_addr_of(self->read));
 }
 
 lh_void
 lh_spsc_set_read(lh_spsc_t *self, lh_uint_t read)
 {
     lh_assert_runtime_ref(self);
-    atomic_store_explicit(lh_addr_of(self->read), read, memory_order_release);
+    lh_atomic_uint_set_release(lh_addr_of(self->read), read);
 }
 
 lh_void
 lh_spsc_init_written(lh_spsc_t *self)
 {
     lh_assert_runtime_ref(self);
-    atomic_init(lh_addr_of(self->written), 0);
+    lh_atomic_uint_set_relaxed(lh_addr_of(self->written), 0);
 }
 
 lh_void
 lh_spsc_init_read(lh_spsc_t *self)
 {
     lh_assert_runtime_ref(self);
-    atomic_init(lh_addr_of(self->read), 0);
+    lh_atomic_uint_set_relaxed(lh_addr_of(self->read), 0);
 }
 
 lh_bool_t
 lh_spsc_is_written_lock_free(const lh_spsc_t *self)
 {
     lh_assert_runtime_ref(self);
-    return atomic_is_lock_free(lh_addr_of(self->written));
+    return lh_atomic_uint_is_lock_free();
 }
 
 lh_bool_t
 lh_spsc_is_read_lock_free(const lh_spsc_t *self)
 {
     lh_assert_runtime_ref(self);
-    return atomic_is_lock_free(lh_addr_of(self->read));
+    return lh_atomic_uint_is_lock_free();
 }
 
 /* -- Level 2 and up ----------------------------------------------------------- */
