@@ -327,6 +327,9 @@ TEST(ui_web_host_gate, receives_once_per_readiness)
     lh_ui_web_host_gate_get_reader(&gate, &reader);
     char buf[8];
     EXPECT_EQ(lh_io_reader_read(&reader, buf, sizeof(buf)), LH_IO_PENDING);
+    /* As the host does: the gate opens only once a wait found the socket readable. */
+    lh_os_net_socket_t *watch[] = {&a};
+    ASSERT_GT(lh_os_net_socket_wait(watch, 1U, nullptr, 0U, 2000U), 0);
     lh_ui_web_host_gate_set_ready(&gate, lh_bool_true);
     EXPECT_EQ(lh_io_reader_read(&reader, buf, 2U), 2);
     EXPECT_FALSE(lh_ui_web_host_gate_is_ready(&gate));

@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh/os/sql/worker.h` (`lh_os_sql_worker_t`): asynchronous SQL as a
+  composition — an `lh_exec_thread_t` whose thread context holds one
+  `lh_sql_db_t`. The caller's connect call opens it once on the worker's
+  thread (driver and address are its choice), every task's `work` gets the
+  worker as `local` (`lh_os_sql_worker_from_local`, `_get_db_mut`) and may
+  reopen a lost connection (`_try_ensure_open`); after the last task the
+  connection closes and the caller's release call runs on the same thread
+  (`mysql_thread_end`).
+
 - The web host serves many connections at once on an `lh_exec_loop_t`:
   `lh_ui_web_host_t` (`lh_ui_web_host_try_create` / `_try_start` /
   `_try_stop` / `_destroy`, with its loop `_step`, `_wait` and `_wake`), one
