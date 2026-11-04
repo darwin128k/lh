@@ -10,7 +10,7 @@ submissions retain payload ownership. Keep callbacks and their code alive until
 disposal finishes. Submit/take/lifecycle calls require caller coordination; work
 callbacks must not join or destroy their own worker.
 
-`lh/spsc.h` provides an allocation-free push and zero-copy peek/release after
+`lh/core/spsc.h` provides an allocation-free push and zero-copy peek/release after
 creation. Supply storage for a power-of-two number of fixed-size records. Only
 one producer may push and one consumer may peek/release concurrently. Storage
 and returned record pointers are borrowed; do not overwrite them externally.

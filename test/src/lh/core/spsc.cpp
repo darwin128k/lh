@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <lh/spsc.h>
+#include <lh/core/spsc.h>
 #include <lh/config.h>
 #if LH_LIBRARY_OPTION_OS
 #    include <lh/test/os.h>

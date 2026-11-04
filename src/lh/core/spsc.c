@@ -1,4 +1,4 @@
-#include <lh/spsc.h>
+#include <lh/core/spsc.h>
 #include <lh/core/atomic/uint.h>
 #include <lh/core/runtime/allocator.h>
 #include <lh/core/memory/std.h>
