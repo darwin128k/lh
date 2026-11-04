@@ -45,6 +45,8 @@ TEST(exec_task_initializer, holds_the_calls_and_an_empty_link)
     EXPECT_EQ(lh_exec_task_get_destroy_cb(&task), record_destroy);
     EXPECT_EQ(lh_exec_task_get_user(&task), &c);
     EXPECT_EQ(lh_exec_task_get_next_task(&task), nullptr);
+    EXPECT_EQ(lh_exec_task_get_mailbox(&task), nullptr);
+    EXPECT_FALSE(lh_exec_task_is_cancelled(&task));
 }
 
 TEST(exec_task_set, each_field_stands_alone)
@@ -60,6 +62,12 @@ TEST(exec_task_set, each_field_stands_alone)
     EXPECT_EQ(lh_exec_task_get_user(&task), &c);
     lh_exec_task_set_work_cb(&task, lh_null);
     EXPECT_EQ(lh_exec_task_get_work_cb(&task), nullptr);
+    auto *mailbox = reinterpret_cast<struct lh_exec_mailbox *>(&c);
+    lh_exec_task_set_mailbox(&task, mailbox);
+    EXPECT_EQ(lh_exec_task_get_mailbox_mut(&task), mailbox);
+    EXPECT_EQ(lh_exec_task_get_mailbox(&task), mailbox);
+    lh_exec_task_set_cancelled(&task, lh_bool_true);
+    EXPECT_TRUE(lh_exec_task_is_cancelled(&task));
 }
 
 TEST(exec_task_init, clears_the_link)
@@ -68,8 +76,12 @@ TEST(exec_task_init, clears_the_link)
     lh_exec_task_t other = lh_exec_task_initializer(record_work, lh_null, lh_null, lh_null);
     lh_exec_task_t task;
     lh_atomic_ptr_set_relaxed(lh_exec_task_get_next_mut(&task), &other);
+    lh_exec_task_set_mailbox(&task, reinterpret_cast<struct lh_exec_mailbox *>(&c));
+    lh_exec_task_set_cancelled(&task, lh_bool_true);
     lh_exec_task_init(&task, record_work, record_complete, record_destroy, &c);
+    EXPECT_FALSE(lh_exec_task_is_cancelled(&task));
     EXPECT_EQ(lh_exec_task_get_next_task(&task), nullptr);
+    EXPECT_EQ(lh_exec_task_get_mailbox(&task), nullptr);
     EXPECT_EQ(lh_exec_task_get_user(&task), &c);
 }
 

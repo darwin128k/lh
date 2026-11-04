@@ -502,8 +502,8 @@ lh_crypto_rijndael_encrypt_block(lh_crypto_rijndael_t *self, const lh_ptr in, lh
     lh_assert_runtime_ref(out);
 
     const lh_usize_t block_size = lh_crypto_rijndael_get_block_size(self);
-    const lh_byte_cptr in_bytes = lh_ptr_rcast(const lh_byte_t, in);
-    const lh_byte_ptr out_bytes = lh_ptr_rcast(lh_byte_t, out);
+    lh_byte_cptr in_bytes = lh_ptr_rcast(const lh_byte_t, in);
+    lh_byte_ptr out_bytes = lh_ptr_rcast(lh_byte_t, out);
 
     if (lh_crypto_rijndael_get_mode(self) == lh_crypto_rijndael_mode_ecb)
     {
@@ -536,8 +536,8 @@ lh_crypto_rijndael_decrypt_block(lh_crypto_rijndael_t *self, const lh_ptr in, lh
     lh_assert_runtime_ref(out);
 
     const lh_usize_t block_size = lh_crypto_rijndael_get_block_size(self);
-    const lh_byte_cptr in_bytes = lh_ptr_rcast(const lh_byte_t, in);
-    const lh_byte_ptr out_bytes = lh_ptr_rcast(lh_byte_t, out);
+    lh_byte_cptr in_bytes = lh_ptr_rcast(const lh_byte_t, in);
+    lh_byte_ptr out_bytes = lh_ptr_rcast(lh_byte_t, out);
 
     if (lh_crypto_rijndael_get_mode(self) == lh_crypto_rijndael_mode_ecb)
     {

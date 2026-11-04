@@ -71,6 +71,41 @@ lh_exec_task_get_next_mut(lh_exec_task_t *self)
     return lh_addr_of(self->next);
 }
 
+const struct lh_exec_mailbox *
+lh_exec_task_get_mailbox(const lh_exec_task_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->mailbox;
+}
+
+struct lh_exec_mailbox *
+lh_exec_task_get_mailbox_mut(lh_exec_task_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->mailbox;
+}
+
+lh_void
+lh_exec_task_set_mailbox(lh_exec_task_t *self, struct lh_exec_mailbox *mailbox)
+{
+    lh_assert_runtime_ref(self);
+    self->mailbox = mailbox;
+}
+
+lh_bool_t
+lh_exec_task_is_cancelled(const lh_exec_task_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->cancelled;
+}
+
+lh_void
+lh_exec_task_set_cancelled(lh_exec_task_t *self, lh_bool_t cancelled)
+{
+    lh_assert_runtime_ref(self);
+    self->cancelled = cancelled;
+}
+
 lh_exec_task_t *
 lh_exec_task_get_next_task(const lh_exec_task_t *self)
 {
@@ -86,6 +121,8 @@ lh_exec_task_init(lh_exec_task_t *self, lh_exec_task_work_cb work_cb,
     lh_exec_task_set_destroy_cb(self, destroy_cb);
     lh_exec_task_set_user(self, user);
     lh_atomic_ptr_set_relaxed(lh_exec_task_get_next_mut(self), lh_null);
+    lh_exec_task_set_mailbox(self, lh_null);
+    lh_exec_task_set_cancelled(self, lh_bool_false);
 }
 
 lh_void

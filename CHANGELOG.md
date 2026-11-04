@@ -17,6 +17,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   multi-producer / single-consumer queue of tasks (Vyukov, with a stub task):
   `lh_exec_queue_push` from any thread, wait-free; `lh_exec_queue_try_pop`
   from one consumer. Built on `lh/core/atomic/ptr.h` only.
+- `lh/exec/mailbox.h` (`lh_exec_mailbox_t`): the owner's bounded box of
+  finished tasks. `_try_reserve` takes a place from any thread and refuses when
+  full (exact under contention), `_post` hands a finished task over, and
+  `_dispatch` (`_try_take` + `_deliver`) runs `complete` then `destroy` on the
+  owner's thread and gives the places back. `lh_exec_task_t` gained the
+  `mailbox` it is delivered by.
+- `lh/exec/executor.h` (`lh_exec_executor_t`): one interface for every kind of
+  executor, a call (`accept_cb`) and its state. `lh_exec_executor_try_submit`
+  takes a mailbox place, then hands the task over, and gives the place back on
+  refusal; `lh_exec_executor_submit` is the checked form
+  (`lh_runtime_error_code_not_accepted`, new).
+- `lh/exec/inline.h`: the inline executor — `work` at once on the submitter,
+  `complete` at dispatch, as on a threaded executor.
+  `lh_exec_inline_get_executor()` returns its one shared record.
+- `lh/exec/context.h` (`lh_exec_context_t`): state that lives as long as an
+  executor's thread — `open` returns the `local` every `work` receives, `close`
+  gets it back, both on that thread.
+- `lh/exec/thread.h` (`lh_exec_thread_t`): the thread executor — one OS thread,
+  tasks in acceptance order, a context of its own. `_try_start` fills a
+  caller-owned record; `_try_stop` (`lh/exec/stop/kind.h`: drain or cancel)
+  waits a bounded time for the end; `_destroy` joins. Cancelled tasks are
+  marked (`lh_exec_task_is_cancelled`) and still posted, so their `destroy`
+  runs on the owner's thread at dispatch.
+- `lh_atomic_uint_fetch_sub_acq_rel` and
+  `lh_atomic_uint_try_compare_exchange_acq_rel`; the mailbox's place count is
+  built on them.
 - `lh_atomic_ptr_set_relaxed` and `lh_atomic_ptr_exchange_acq_rel`: a store
   for a pointer no other thread can reach yet, and an exchange that returns the
   old value; the queue's `push` is built on them.

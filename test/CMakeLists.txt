@@ -92,9 +92,22 @@ else ()
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/module/event/bus.cpp)
 endif ()
 
-# The execution part: tasks and the queue that carries them between threads.
-lh_add_test_core(lh_test_exec ${LH_TEST_SRC_PATH}/lh/exec/task.cpp
-        ${LH_TEST_SRC_PATH}/lh/exec/queue.cpp)
+# The execution part: tasks, the queue that carries them between threads, the
+# owner's mailbox, the executor interface, the inline executor, the thread
+# context and (with the OS) the thread executor.
+set(LH_TEST_EXEC_SOURCES
+        ${LH_TEST_SRC_PATH}/lh/exec/task.cpp
+        ${LH_TEST_SRC_PATH}/lh/exec/queue.cpp
+        ${LH_TEST_SRC_PATH}/lh/exec/mailbox.cpp
+        ${LH_TEST_SRC_PATH}/lh/exec/executor.cpp
+        ${LH_TEST_SRC_PATH}/lh/exec/inline.cpp
+        ${LH_TEST_SRC_PATH}/lh/exec/context.cpp)
+if (LH_LIBRARY_OPTION_OS)
+    list(APPEND LH_TEST_EXEC_SOURCES ${LH_TEST_SRC_PATH}/lh/exec/thread.cpp)
+else ()
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/exec/thread.cpp)
+endif ()
+lh_add_test_core(lh_test_exec ${LH_TEST_EXEC_SOURCES})
 
 # Types, errors and the few pieces every core leans on.
 lh_add_test_core(lh_test_console ${LH_TEST_SRC_PATH}/lh/core/console/console.cpp)

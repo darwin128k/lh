@@ -26,7 +26,7 @@ lh_hash_crc_reflected_byte(lh_u32_t crc, lh_byte_t byte, lh_u32_t polynomial)
 lh_u32_t
 lh_hash_crc_reflected_update(lh_u32_t crc, const lh_ptr data, lh_usize_t size, lh_u32_t polynomial)
 {
-    const lh_byte_cptr bytes = lh_ptr_rcast(const lh_byte_t, data);
+    lh_byte_cptr bytes = lh_ptr_rcast(const lh_byte_t, data);
     for (lh_usize_t i = 0U; lh_math_lt(i, size); i = lh_math_add_one(i))
     {
         crc = lh_hash_crc_reflected_byte(crc, bytes[i], polynomial);

@@ -4,6 +4,7 @@
 #include <lh/core/atomic/uint/initializer.h>
 #include <lh/expect/death.h>
 
+#include <atomic>
 #include <thread>
 #include <vector>
 
@@ -95,6 +96,64 @@ TEST(atomic_uint_get_acquire, sees_what_was_written_before_the_release)
         reader.join();
         ASSERT_EQ(seen, round + 1);
     }
+}
+
+TEST(atomic_uint_fetch_sub, returns_the_old_value_and_wraps)
+{
+    lh_atomic_uint_t counter = lh_atomic_uint_initializer(5U);
+    EXPECT_EQ(lh_atomic_uint_fetch_sub_acq_rel(&counter, 2U), 5U);
+    EXPECT_EQ(lh_atomic_uint_get_relaxed(&counter), 3U);
+    EXPECT_EQ(lh_atomic_uint_fetch_sub_acq_rel(&counter, 4U), 3U);
+    EXPECT_EQ(lh_atomic_uint_get_relaxed(&counter), ~0U);
+}
+
+TEST(atomic_uint_try_compare_exchange, stores_only_over_the_expected_value)
+{
+    lh_atomic_uint_t counter = lh_atomic_uint_initializer(7U);
+    EXPECT_FALSE(lh_atomic_uint_try_compare_exchange_acq_rel(&counter, 6U, 1U));
+    EXPECT_EQ(lh_atomic_uint_get_relaxed(&counter), 7U);
+    EXPECT_TRUE(lh_atomic_uint_try_compare_exchange_acq_rel(&counter, 7U, 1U));
+    EXPECT_EQ(lh_atomic_uint_get_relaxed(&counter), 1U);
+}
+
+/* A bounded counter built from compare-exchange never passes its bound, and
+   every increment that succeeded is matched by a decrement. */
+TEST(atomic_uint_try_compare_exchange, bounded_increment_across_threads)
+{
+    constexpr unsigned bound = 3U;
+    lh_atomic_uint_t counter = lh_atomic_uint_initializer(0U);
+    std::atomic<bool> passed{false};
+    std::vector<std::thread> threads;
+    for (int t = 0; t < 4; ++t)
+    {
+        threads.emplace_back(
+            [&]
+            {
+                for (int i = 0; i < 20000; ++i)
+                {
+                    unsigned seen = lh_atomic_uint_get_acquire(&counter);
+                    if (seen >= bound)
+                    {
+                        continue;
+                    }
+                    if (!lh_atomic_uint_try_compare_exchange_acq_rel(&counter, seen, seen + 1U))
+                    {
+                        continue;
+                    }
+                    if (lh_atomic_uint_get_relaxed(&counter) > bound)
+                    {
+                        passed = true;
+                    }
+                    lh_atomic_uint_fetch_sub_acq_rel(&counter, 1U);
+                }
+            });
+    }
+    for (auto &thread : threads)
+    {
+        thread.join();
+    }
+    EXPECT_FALSE(passed);
+    EXPECT_EQ(lh_atomic_uint_get_relaxed(&counter), 0U);
 }
 
 TEST(atomic_uint_death, rejects_null_counter)
