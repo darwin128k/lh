@@ -25,7 +25,8 @@ lh_str_ptr_format_base64_block(lh_byte_cptr data, lh_usize_t count, lh_str_ptr s
                          lh_runtime_error_code_invalid_argument);
     str[0] = m_base64_alphabet[lh_bit_and(lh_bit_shr(n, 18U), 63U)];
     str[1] = m_base64_alphabet[lh_bit_and(lh_bit_shr(n, 12U), 63U)];
-    str[2] = lh_math_gt(count, 1U) ? m_base64_alphabet[lh_bit_and(lh_bit_shr(n, 6U), 63U)] : lh_char_map_equals;
+    str[2] = lh_math_gt(count, 1U) ? m_base64_alphabet[lh_bit_and(lh_bit_shr(n, 6U), 63U)]
+                                   : lh_char_map_equals;
     str[3] = lh_math_gt(count, 2U) ? m_base64_alphabet[lh_bit_and(n, 63U)] : lh_char_map_equals;
 }
 
@@ -33,7 +34,7 @@ lh_usize_t
 lh_str_ptr_format_base64(const lh_ptr data, lh_usize_t data_size, lh_str_ptr str,
                          lh_usize_t str_size)
 {
-    const lh_byte_cptr bytes = lh_ptr_rcast(const lh_byte_t, data);
+    lh_byte_cptr bytes = lh_ptr_rcast(const lh_byte_t, data);
     const lh_usize_t size = lh_str_ptr_format_base64_size(data_size);
     lh_usize_t i = 0U;
     lh_usize_t o = 0U;

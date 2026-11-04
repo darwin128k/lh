@@ -111,3 +111,35 @@ lh_atomic_uint_exchange_acq_rel(lh_atomic_uint_t *self, lh_uint_t value)
                                         lh_cast_static(long, value)));
 #endif
 }
+
+lh_uint_t
+lh_atomic_uint_fetch_sub_acq_rel(lh_atomic_uint_t *self, lh_uint_t amount)
+{
+    lh_assert_runtime_ref(self);
+#if (LH_COMPILER_TYPE_IS_GCC_LIKE)
+    return __atomic_fetch_sub(lh_addr_of(self->value), amount, __ATOMIC_ACQ_REL);
+#else
+    /* Adding the two's complement subtracts, modulo 2^32. */
+    return lh_cast_static(
+        lh_uint_t, _InterlockedExchangeAdd(lh_cast_static(volatile long *, lh_addr_of(self->value)),
+                                           lh_cast_static(long, lh_math_sub(0U, amount))));
+#endif
+}
+
+lh_bool_t
+lh_atomic_uint_try_compare_exchange_acq_rel(lh_atomic_uint_t *self, lh_uint_t expected,
+                                            lh_uint_t desired)
+{
+    lh_assert_runtime_ref(self);
+#if (LH_COMPILER_TYPE_IS_GCC_LIKE)
+    return __atomic_compare_exchange_n(lh_addr_of(self->value), lh_addr_of(expected), desired,
+                                       lh_bool_false, __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE);
+#else
+    return lh_math_eq(
+        lh_cast_static(lh_uint_t,
+                       _InterlockedCompareExchange(
+                           lh_cast_static(volatile long *, lh_addr_of(self->value)),
+                           lh_cast_static(long, desired), lh_cast_static(long, expected))),
+        expected);
+#endif
+}

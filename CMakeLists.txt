@@ -127,6 +127,10 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/spsc.c
         ${LH_LIB_SRC_PATH}/exec/task.c
         ${LH_LIB_SRC_PATH}/exec/queue.c
+        ${LH_LIB_SRC_PATH}/exec/mailbox.c
+        ${LH_LIB_SRC_PATH}/exec/executor.c
+        ${LH_LIB_SRC_PATH}/exec/inline.c
+        ${LH_LIB_SRC_PATH}/exec/context.c
         ${LH_LIB_SRC_PATH}/core/array.c
         ${LH_LIB_SRC_PATH}/core/list.c
         ${LH_LIB_SRC_PATH}/core/value.c
@@ -307,6 +311,8 @@ set(LH_LIB_SOURCES
 )
 
 if (LH_LIBRARY_OPTION_OS)
+    # The thread executor runs on the OS thread, mutex and condition.
+    list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/exec/thread.c)
     list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/worker.c)
     list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/worker/job.c)
     list(APPEND LH_LIB_SOURCES

@@ -117,6 +117,33 @@ lh_atomic_uint_fetch_add_acq_rel(lh_atomic_uint_t *self, lh_uint_t amount);
 lh_uint_t
 lh_atomic_uint_exchange_acq_rel(lh_atomic_uint_t *self, lh_uint_t value);
 
+/**
+ * @brief Subtract @p amount with acquire-release order, wrapping modulo 2^N.
+ * @param self   Counter to change; must not be null.
+ * @param amount Amount to subtract.
+ * @return The value before the subtraction.
+ */
+lh_uint_t
+lh_atomic_uint_fetch_sub_acq_rel(lh_atomic_uint_t *self, lh_uint_t amount);
+
+/**
+ * @brief Replace the value with @p desired only if it is still @p expected,
+ *        with acquire-release order.
+ *
+ * The test and the store are one step: no other thread's change can fall
+ * between them. The usual caller reads the value, decides, and retries from a
+ * fresh read when this returns false.
+ *
+ * @param self     Counter to change; must not be null.
+ * @param expected The value the caller last read.
+ * @param desired  The value to store.
+ * @return ::lh_bool_true when the value was @p expected and is now @p desired;
+ *         ::lh_bool_false when another thread changed it first (nothing changed).
+ */
+lh_bool_t
+lh_atomic_uint_try_compare_exchange_acq_rel(lh_atomic_uint_t *self, lh_uint_t expected,
+                                            lh_uint_t desired);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_ATOMIC_UINT_H */

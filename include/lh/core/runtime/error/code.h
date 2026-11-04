@@ -166,6 +166,15 @@
 #define lh_runtime_error_code_type_size_mismatch 0x11
 
 /**
+ * @def lh_runtime_error_code_not_accepted
+ * @brief Runtime error code for work a bounded receiver refused.
+
+ * Emitted by a checked submission (for example ::lh_exec_executor_submit) when
+ * the receiver is full or stopping and the work was not taken.
+ */
+#define lh_runtime_error_code_not_accepted 0x12
+
+/**
  * @typedef lh_runtime_error_code_t
  * @brief Same representation as ::lh_error_code_t for runtime-layer APIs.
  *

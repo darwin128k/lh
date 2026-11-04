@@ -19,16 +19,25 @@
  * `complete`, or instead of it when the task is cancelled.
  *
  * The queue link (`next`) is `lh/exec`'s: queues write it from any thread
- * through the atomic brick, and nobody else touches it.
+ * through the atomic brick, and nobody else touches it. The mailbox
+ * (`mailbox`) is the owner's ::lh_exec_mailbox_t that delivers `complete`;
+ * ::lh_exec_executor_try_submit sets it, and the executor posts the task there
+ * after `work`. An executor that stops before the work ran marks the task
+ * `cancelled` and posts it all the same, so its `destroy` too runs on the
+ * owner's thread.
  */
 
 #ifndef LH_EXEC_TASK_H
 #define LH_EXEC_TASK_H
 
 #include <lh/core/atomic/ptr.h>
+#include <lh/core/bool.h>
 #include <lh/exec/task/done/cb.h>
 #include <lh/exec/task/fields.h>
 #include <lh/exec/task/work/cb.h>
+
+/* The mailbox is only pointed at here; lh/exec/mailbox.h defines it. */
+struct lh_exec_mailbox;
 
 /**
  * @brief One piece of work, its completion and its cleanup.
@@ -36,7 +45,8 @@
 struct lh_exec_task
 {
     /** Members: ::lh_exec_task_fields. */
-    lh_exec_task_fields(lh_exec_task_work_fn, lh_exec_task_done_fn, lh_ptr, lh_atomic_ptr_t);
+    lh_exec_task_fields(lh_exec_task_work_fn, lh_exec_task_done_fn, lh_ptr, lh_atomic_ptr_t,
+                        struct lh_exec_mailbox, lh_bool_t);
 };
 
 /** @copybrief lh_exec_task */
@@ -125,6 +135,54 @@ lh_atomic_ptr_t *
 lh_exec_task_get_next_mut(lh_exec_task_t *self);
 
 /**
+ * @brief The mailbox that delivers the completion of @p self (level 1).
+ * @param self Task; must not be null.
+ * @return The mailbox, read-only, or ::lh_null before the task is submitted.
+ */
+const struct lh_exec_mailbox *
+lh_exec_task_get_mailbox(const lh_exec_task_t *self);
+
+/**
+ * @brief The mailbox that delivers the completion of @p self, for posting
+ *        (level 1).
+ * @param self Task; must not be null.
+ * @return The mailbox, or ::lh_null before the task is submitted.
+ */
+struct lh_exec_mailbox *
+lh_exec_task_get_mailbox_mut(lh_exec_task_t *self);
+
+/**
+ * @brief Store the mailbox that delivers the completion of @p self (level 1).
+ *
+ * ::lh_exec_executor_try_submit calls it; a caller does not.
+ *
+ * @param self    Task; must not be null.
+ * @param mailbox The owner's mailbox, borrowed (may be ::lh_null).
+ */
+lh_void
+lh_exec_task_set_mailbox(lh_exec_task_t *self, struct lh_exec_mailbox *mailbox);
+
+/**
+ * @brief Whether @p self was cancelled before its work ran (level 1).
+ * @param self Task; must not be null.
+ * @return ::lh_bool_true when only `destroy` is to run at dispatch.
+ */
+lh_bool_t
+lh_exec_task_is_cancelled(const lh_exec_task_t *self);
+
+/**
+ * @brief Mark @p self cancelled, or not (level 1).
+ *
+ * An executor calls it on the thread that owns the task at the time, before it
+ * posts the task; a caller does not.
+ *
+ * @param self      Task; must not be null.
+ * @param cancelled ::lh_bool_true when the work will not run.
+ */
+lh_void
+lh_exec_task_set_cancelled(lh_exec_task_t *self, lh_bool_t cancelled);
+
+/**
  * @brief The task linked after @p self, read with acquire order.
  *
  * What the producer that linked it did before linking is visible afterwards.
@@ -136,7 +194,8 @@ lh_exec_task_t *
 lh_exec_task_get_next_task(const lh_exec_task_t *self);
 
 /**
- * @brief Fill @p self: its three calls, its pointer, and an empty queue link.
+ * @brief Fill @p self: its three calls, its pointer, an empty queue link, no
+ *        mailbox, not cancelled.
  *
  * For a task no other thread can reach yet: the link is cleared with relaxed
  * order, and the submission that publishes the task orders everything.
