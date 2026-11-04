@@ -2,7 +2,7 @@
  * @file event.c
  * @brief Implementation of `lh/ui/entity/event.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 #include <lh/ui/canvas.h>
 #include <lh/ui/entity/event.h>

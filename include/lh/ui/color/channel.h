@@ -6,7 +6,7 @@
 #ifndef LH_UI_COLOR_CHANNEL_H
 #define LH_UI_COLOR_CHANNEL_H
 
-#include <lh/byte.h>
+#include <lh/core/byte.h>
 
 /**
  * @typedef lh_ui_color_channel_t

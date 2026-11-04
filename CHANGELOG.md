@@ -184,6 +184,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking: the data bricks moved under `lh/core/`.** Every part of
+  `include/lh/` that stands on its own — needs no operating system, no window,
+  no thread — now lives in `include/lh/core/` (sources in `src/lh/core/`,
+  tests in `test/src/lh/core/`): `<lh/array.h>` is `<lh/core/array.h>`,
+  `<lh/str/view.h>` is `<lh/core/str/view.h>`, and so on for 58 parts. Names
+  do not change: the core is transparent (`lh_array_*` stays `lh_array_*`).
+  `lh/os/`, `lh/ui/`, `lh/sql/`, `lh/spsc.h`, `lh/lh.h` and the generated
+  `lh/config.h` stay where they were. Migration: rewrite the include paths;
+  the move script maps every old path to its new one.
+
 - `LH_LIBRARY_OPTION_UI` is now `OFF` by default, in CMake and in
   `lh/library/fallback.h`: most users want the bricks, not the widget toolkit.
   Projects that use `lh/ui` (canvas, entity tree, web host) set it `ON`. The

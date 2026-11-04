@@ -2,10 +2,10 @@
  * @file style.c
  * @brief Implementation of `lh/ui/style.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 #include <lh/ui/style.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_void
 lh_ui_style_init(lh_ui_style_t *self)

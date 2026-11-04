@@ -79,9 +79,9 @@ The core starts with no output and no fatal exit: an empty terminate handler
 ends in a compiler trap. The first thing the application does is wire them:
 
 ```c
-#include <lh/null.h>
-#include <lh/runtime/terminate.h>
-#include <lh/runtime/writer.h>
+#include <lh/core/null.h>
+#include <lh/core/runtime/terminate.h>
+#include <lh/core/runtime/writer.h>
 
 static void
 host_terminate(lh_self_ptr self)
@@ -155,7 +155,7 @@ frame.
 #include <lh/ui/pixmap/format.h>
 #include <lh/ui/present/sink.h>
 #include <lh/ui/size.h>
-#include <lh/util/addr.h>
+#include <lh/core/util/addr.h>
 
 /* 320 × 48 RGB565 ≈ 30 KB — about 1/5 of the panel, like LVGL PARTIAL */
 static uint16_t s_fb[F4VE_TFT_WIDTH * F4VE_FB_STRIP_H];

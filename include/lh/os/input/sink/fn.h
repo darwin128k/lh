@@ -9,7 +9,7 @@
 #define LH_OS_INPUT_SINK_FN_H
 
 #include <lh/os/input/event/ptr.h>
-#include <lh/self.h>
+#include <lh/core/self.h>
 
 /**
  * @typedef lh_os_input_sink_fn

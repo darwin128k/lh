@@ -10,10 +10,10 @@
 #ifndef LH_SRC_OS_SYSTEM_NET_SOCKET_ADDR_H
 #define LH_SRC_OS_SYSTEM_NET_SOCKET_ADDR_H
 
-#include <lh/attribute/static.h>
-#include <lh/memory.h>
-#include <lh/net/socket/addr/ip4.h>
-#include <lh/bit/endian.h>
+#include <lh/core/attribute/static.h>
+#include <lh/core/memory.h>
+#include <lh/core/net/socket/addr/ip4.h>
+#include <lh/core/bit/endian.h>
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
 #    include <lh/os/system/win/ws2_32.h>

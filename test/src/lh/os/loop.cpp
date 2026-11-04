@@ -1,13 +1,13 @@
 #include <gtest/gtest.h>
 
-#include <lh/attribute/unused.h>
+#include <lh/core/attribute/unused.h>
 #include <lh/os/loop.h>
 #include <lh/os/net.h>
 #include <lh/os/net/socket.h>
 #include <lh/os/wake.h>
 #include <lh/os/thread.h>
 #include <lh/os/tick.h>
-#include <lh/timer.h>
+#include <lh/core/timer.h>
 
 #include <atomic>
 

@@ -1,5 +1,5 @@
 #include <lh/sql/driver.h>
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 lh_str_cptr
 lh_sql_driver_get_name(const lh_sql_driver_t *self)

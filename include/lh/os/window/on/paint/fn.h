@@ -8,7 +8,7 @@
 #ifndef LH_OS_WINDOW_ON_PAINT_FN_H
 #define LH_OS_WINDOW_ON_PAINT_FN_H
 
-#include <lh/ptr.h>
+#include <lh/core/ptr.h>
 
 struct lh_os_window;
 

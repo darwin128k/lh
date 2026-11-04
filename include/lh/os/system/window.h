@@ -17,7 +17,7 @@
 #include <lh/os/system/window/handle.h>
 #include <lh/os/window/frame.h>
 #include <lh/os/window/placement.h>
-#include <lh/timer/tick.h>
+#include <lh/core/timer/tick.h>
 
 #if !LH_LIBRARY_OPTION_OS_WINDOW
 #    error "lh/os/system/window.h requires LH_LIBRARY_OPTION_OS_WINDOW"

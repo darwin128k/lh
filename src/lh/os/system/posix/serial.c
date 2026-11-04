@@ -11,9 +11,9 @@
 #endif
 
 #include <lh/os/system/serial.h>
-#include <lh/attribute/unused.h>
+#include <lh/core/attribute/unused.h>
 
-#include <lh/assert/runtime.h>
+#include <lh/core/assert/runtime.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/posix/serial.h>
 

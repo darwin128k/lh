@@ -1,9 +1,9 @@
 #include <lh/ui/renderer3d.h>
-#include <lh/assert.h>
-#include <lh/math/float/finite.h>
-#include <lh/math/float/round.h>
-#include <lh/memory/std.h>
-#include <lh/util/return.h>
+#include <lh/core/assert.h>
+#include <lh/core/math/float/finite.h>
+#include <lh/core/math/float/round.h>
+#include <lh/core/memory/std.h>
+#include <lh/core/util/return.h>
 
 /* Vertices a triangle may grow to while it is clipped by the six planes. */
 enum

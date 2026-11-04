@@ -4,7 +4,7 @@
  */
 
 #include <lh/ui/web/app/stream/route.h>
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 const lh_ui_web_route_t *
 lh_ui_web_stream_route_get_match(const lh_ui_web_stream_route_t *self)

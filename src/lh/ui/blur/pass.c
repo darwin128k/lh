@@ -1,9 +1,9 @@
 #include <lh/ui/blur/pass.h>
-#include <lh/math.h>
+#include <lh/core/math.h>
 #include <lh/ui/blur.h>
 #include <lh/ui/radius.h>
-#include <lh/util/return.h>
-#include <lh/assert.h>
+#include <lh/core/util/return.h>
+#include <lh/core/assert.h>
 
 lh_bool_t
 lh_ui_blur_pass_init(const lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_s32_t radius,

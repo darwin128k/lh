@@ -1,5 +1,5 @@
 #include <lh/os/system/str.h>
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 /* Built on the backend's from_utf8 / to_utf8: the same on every OS. */
 

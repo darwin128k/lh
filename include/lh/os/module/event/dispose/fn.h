@@ -9,8 +9,8 @@
 #ifndef LH_OS_MODULE_EVENT_DISPOSE_FN_H
 #define LH_OS_MODULE_EVENT_DISPOSE_FN_H
 
-#include <lh/ptr.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/ptr.h>
+#include <lh/core/compiler/extern/c.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

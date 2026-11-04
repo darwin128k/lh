@@ -10,7 +10,7 @@
 #ifndef LH_OS_MODULE_EVENT_SUBSCRIPTION_H
 #define LH_OS_MODULE_EVENT_SUBSCRIPTION_H
 
-#include <lh/list/node.h>
+#include <lh/core/list/node.h>
 #include <lh/os/module/event/cb.h>
 #include <lh/os/module/event/dispose/cb.h>
 #include <lh/os/module/event/subscription/fields.h>

@@ -4,9 +4,9 @@
  */
 
 #include <lh/os/logger/record.h>
-#include <lh/assert/runtime.h>
-#include <lh/char/map.h>
-#include <lh/util/str/ptr.h>
+#include <lh/core/assert/runtime.h>
+#include <lh/core/char/map.h>
+#include <lh/core/util/str/ptr.h>
 
 lh_u32_t
 lh_os_logger_record_get_channel(const lh_os_logger_record_t *self)

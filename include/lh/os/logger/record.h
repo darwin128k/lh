@@ -14,8 +14,8 @@
 #define LH_OS_LOGGER_RECORD_H
 
 #include <lh/config.h>
-#include <lh/logger/level.h>
-#include <lh/timestamp.h>
+#include <lh/core/logger/level.h>
+#include <lh/core/timestamp.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/logger/record.h requires LH_LIBRARY_OPTION_OS"

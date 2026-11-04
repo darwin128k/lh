@@ -7,7 +7,7 @@
 #define LH_SRC_OS_SYSTEM_WIN_FS_DIR_STATE_H
 
 #include <lh/os/system/win/kernel32.h>
-#include <lh/str.h>
+#include <lh/core/str.h>
 
 /** An open directory listing: the `FindFirstFileW` handle and the entry in hand. */
 struct lh_os_system_fs_dir_state

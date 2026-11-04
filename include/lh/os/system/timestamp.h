@@ -14,7 +14,7 @@
 #define LH_OS_SYSTEM_TIMESTAMP_H
 
 #include <lh/config.h>
-#include <lh/timestamp.h>
+#include <lh/core/timestamp.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error                                                                                         \

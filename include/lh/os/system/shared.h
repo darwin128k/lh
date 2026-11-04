@@ -27,7 +27,7 @@
 
 #include <lh/config.h>
 #include <lh/os/system/shared/handle.h>
-#include <lh/str.h>
+#include <lh/core/str.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/system/shared.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"

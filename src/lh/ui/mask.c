@@ -2,15 +2,15 @@
  * @file mask.c
  * @brief Implementation of `lh/ui/mask.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
-#include <lh/cpu/simd.h>
-#include <lh/memory.h>
-#include <lh/bit/packed.h>
-#include <lh/math.h>
+#include <lh/core/cpu/simd.h>
+#include <lh/core/memory.h>
+#include <lh/core/bit/packed.h>
+#include <lh/core/math.h>
 #include <lh/ui/mask.h>
-#include <lh/util/return.h>
-#include <lh/memory/word.h>
+#include <lh/core/util/return.h>
+#include <lh/core/memory/word.h>
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
 #    include <immintrin.h>

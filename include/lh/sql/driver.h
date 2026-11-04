@@ -18,7 +18,7 @@
 
 #include <lh/sql/driver/fields.h>
 #include <lh/sql/step.h>
-#include <lh/str/view.h>
+#include <lh/core/str/view.h>
 
 struct lh_sql_db;
 struct lh_sql_stmt;

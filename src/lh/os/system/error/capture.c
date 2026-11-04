@@ -1,8 +1,8 @@
 #include <lh/os/system/error/capture.h>
-#include <lh/attribute/thread_local.h>
-#include <lh/math.h>
+#include <lh/core/attribute/thread_local.h>
+#include <lh/core/math.h>
 #include <lh/os/system.h>
-#include <lh/util/addr.h>
+#include <lh/core/util/addr.h>
 
 #if LH_LIBRARY_OPTION_OS_WERROR
 LH_ATTRIBUTE_THREAD_LOCAL

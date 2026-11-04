@@ -6,10 +6,10 @@
 #ifndef LH_OS_INPUT_MODS_H
 #define LH_OS_INPUT_MODS_H
 
-#include <lh/attribute/force_inline.h>
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/util/type.h>
+#include <lh/core/attribute/force_inline.h>
+#include <lh/core/bool.h>
+#include <lh/core/compiler/extern/c.h>
+#include <lh/core/util/type.h>
 
 /**
  * @typedef lh_os_input_mods_t

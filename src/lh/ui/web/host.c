@@ -5,33 +5,33 @@
 
 #include <lh/ui/web/host.h>
 #include <lh/ui/web/host/deadline.h>
-#include <lh/http/content/encoding.h>
+#include <lh/core/http/content/encoding.h>
 #include <lh/ui/web/host/gzip/workspace.h>
-#include <lh/compress/gzip.h>
-#include <lh/http/body/reader.h>
-#include <lh/attribute/unused.h>
-#include <lh/http/format.h>
-#include <lh/http/framing.h>
-#include <lh/http/expect.h>
-#include <lh/http/header/name.h>
-#include <lh/http/header/value.h>
-#include <lh/http/status.h>
-#include <lh/str/format/ullong.h>
-#include <lh/str/split/once.h>
-#include <lh/char/map.h>
+#include <lh/core/compress/gzip.h>
+#include <lh/core/http/body/reader.h>
+#include <lh/core/attribute/unused.h>
+#include <lh/core/http/format.h>
+#include <lh/core/http/framing.h>
+#include <lh/core/http/expect.h>
+#include <lh/core/http/header/name.h>
+#include <lh/core/http/header/value.h>
+#include <lh/core/http/status.h>
+#include <lh/core/str/format/ullong.h>
+#include <lh/core/str/split/once.h>
+#include <lh/core/char/map.h>
 
-#include <lh/cast/const.h>
-#include <lh/crypto/sha.h>
-#include <lh/memory.h>
+#include <lh/core/cast/const.h>
+#include <lh/core/crypto/sha.h>
+#include <lh/core/memory.h>
 #include <lh/os/alloc.h>
 #include <lh/os/net.h>
 #include <lh/os/tick.h>
-#include <lh/runtime/allocator.h>
-#include <lh/runtime/logger.h>
-#include <lh/str/parse/text.h>
-#include <lh/util/memory.h>
-#include <lh/str/format/base64.h>
-#include <lh/util/return.h>
+#include <lh/core/runtime/allocator.h>
+#include <lh/core/runtime/logger.h>
+#include <lh/core/str/parse/text.h>
+#include <lh/core/util/memory.h>
+#include <lh/core/str/format/base64.h>
+#include <lh/core/util/return.h>
 
 lh_bool_t
 lh_ui_web_host_try_send_response(lh_os_net_socket_t *client, const lh_http_response_t *response,

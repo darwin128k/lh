@@ -1,0 +1,887 @@
+/**
+ * @file link.c
+ * @brief Framing, and a link that never waits.
+ */
+
+#include <lh/core/net/modbus/link.h>
+#include <lh/core/attribute/unused.h>
+
+#include <lh/core/assert/runtime.h>
+#include <lh/core/memory/std.h>
+#include <lh/core/util/return.h>
+
+/* -- Framing ---------------------------------------------------------------
+   The PDU is the part that is the same everywhere: function code, then data. The
+   framing is the part that is not — a serial line has no header and ends a frame
+   with a CRC, a network has a header with a length in it and no CRC. */
+
+lh_u16_t
+lh_mb_encode(lh_mb_framing_t framing, lh_u8_t unit, lh_u16_t tx, lh_byte_cptr pdu,
+             lh_u16_t pdu_length, lh_byte_ptr out, lh_u16_t cap)
+{
+    lh_return_if(lh_null_eq(out) || lh_null_eq(pdu), lh_cast_static(lh_u16_t, 0));
+
+    if (framing == lh_mb_framing_mbap)
+    {
+        lh_return_if(cap < lh_cast_static(lh_u16_t, (LH_MB_MBAP_HEAD + pdu_length)),
+                     lh_cast_static(lh_u16_t, 0));
+        /* Transaction id, protocol id (0 is Modbus), length, unit. The length is
+           everything after itself: the unit and the PDU, and **not** the six bytes
+           before it. A length that counts the wrong thing is a frame no device
+           will accept.
+
+           The length *field* and the length *of the frame* count different things,
+           and that is the whole trap: the field is `1 + pdu_length` because it
+           counts the unit, while the frame is `HEAD + pdu_length` because the unit
+           is already one of the header's seven bytes. Returning `HEAD + 1 + ...`
+           tells the caller to write one byte more than was filled in, and the byte
+           it writes is whatever was in the buffer before -- a stale tail on a
+           frame that is otherwise perfect.
+
+           It is worse than a wrong number, because it hides: the reader in
+           ::lh_mb_frame_length counted the same extra byte, so sender and receiver
+           agreed with each other and disagreed with the protocol, and every test
+           that only ever round-tripped our own frames was green. The device that
+           finally showed it was a Modbus server written by somebody else. */
+        out[0] = lh_cast_static(lh_byte_t, (tx >> 8));
+        out[1] = lh_cast_static(lh_byte_t, (tx & 0xFF));
+        out[2] = 0;
+        out[3] = 0;
+        out[4] = lh_cast_static(lh_byte_t, ((1 + pdu_length) >> 8));
+        out[5] = lh_cast_static(lh_byte_t, ((1 + pdu_length) & 0xFF));
+        out[6] = unit;
+        lh_memory_std_copy(lh_addr_of(out[7]), pdu, pdu_length);
+        return (lh_u16_t)(LH_MB_MBAP_HEAD + pdu_length);
+    }
+    /* RTU: unit, PDU, CRC low byte first. */
+    lh_return_if(cap < lh_cast_static(lh_u16_t, (2 + pdu_length)), lh_cast_static(lh_u16_t, 0));
+    out[0] = unit;
+    lh_memory_std_copy(lh_addr_of(out[1]), pdu, pdu_length);
+    {
+        const lh_u16_t crc = lh_mb_crc16(out, lh_cast_static(lh_u16_t, (1 + pdu_length)));
+
+        out[1 + pdu_length] = lh_cast_static(lh_byte_t, (crc & 0xFF));
+        out[2 + pdu_length] = lh_cast_static(lh_byte_t, (crc >> 8));
+    }
+    return (lh_u16_t)(3 + pdu_length);
+}
+
+lh_u16_t
+lh_mb_rtu_frame_length(lh_byte_cptr frame, lh_u16_t have, lh_u8_t fc)
+{
+    if (have < 3)
+    {
+        return 0;
+    }
+    if ((frame[1] & 0x80) != 0)
+    {
+        return 5; /* unit, code|80, code, CRC */
+    }
+    switch (fc)
+    {
+    case LH_MB_FC_READ_HOLDING:
+    case LH_MB_FC_READ_INPUT:
+        return (lh_u16_t)(5 + frame[2]); /* unit, code, byte count, words, CRC */
+    case LH_MB_FC_WRITE_ONE:
+    case LH_MB_FC_WRITE_MANY:
+        return 8; /* the write echoes its own header back */
+    default:
+        return 0; /* a code this program never sent */
+    }
+}
+
+lh_bool_t
+lh_mb_decode(lh_mb_framing_t framing, lh_u8_t unit, lh_byte_cptr frame, lh_u16_t length,
+             lh_byte_ptr pdu, lh_u16_t *pdu_length)
+{
+    lh_return_ifn(lh_null_ne(frame) && lh_null_ne(pdu) && lh_null_ne(pdu_length), lh_bool_false);
+
+    if (framing == lh_mb_framing_mbap)
+    {
+        lh_return_ifn(length > LH_MB_MBAP_HEAD, lh_bool_false);
+        if (frame[2] != 0 || frame[3] != 0 || frame[6] != unit)
+        {
+            return lh_bool_false;
+        }
+        /* The PDU is everything past the seven-byte header -- including the unit,
+           there is nothing else -- so its length is the frame length less the
+           header. It is *not* less the header plus one: that would drop the last
+           byte of every answer, which for a read is the top byte of the last
+           register, and a number that is wrong in its last byte is a number that
+           looks right. */
+        lh_ptr_deref(pdu_length) = lh_cast_static(lh_u16_t, (length - LH_MB_MBAP_HEAD));
+        lh_memory_std_copy(pdu, lh_addr_of(frame[7]), lh_ptr_deref(pdu_length));
+        return lh_bool_true;
+    }
+    /* RTU: the CRC is checked before anything is taken out of the frame, for the
+       same reason the reader checks it before the byte count — a corrupted length
+       sends the copy off the end of the buffer. */
+    lh_return_ifn(length >= 4, lh_bool_false);
+    if (frame[0] != unit)
+    {
+        return lh_bool_false; /* a good frame for another unit on the same line */
+    }
+    if (lh_mb_crc16(frame, lh_cast_static(lh_u16_t, (length - 2))) !=
+        lh_cast_static(lh_u16_t,
+                       (lh_cast_static(lh_u16_t, frame[length - 1]) << 8 | frame[length - 2])))
+    {
+        return lh_bool_false;
+    }
+    lh_ptr_deref(pdu_length) = lh_cast_static(lh_u16_t, (length - 3));
+    lh_memory_std_copy(pdu, lh_addr_of(frame[1]), lh_ptr_deref(pdu_length));
+    return lh_bool_true;
+}
+
+lh_u8_t
+lh_mb_link_get_fc(const lh_mb_link_t *self)
+{
+    lh_return_ifn(lh_null_ne(self), lh_cast_static(lh_u8_t, 0));
+    return self->fc;
+}
+
+const lh_io_stream_t *
+lh_mb_link_get_stream(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->stream);
+}
+
+lh_io_stream_t *
+lh_mb_link_get_stream_mut(lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->stream);
+}
+
+const lh_mb_link_counters_t *
+lh_mb_link_get_counters(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->counters);
+}
+
+lh_mb_link_counters_t *
+lh_mb_link_get_counters_mut(lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->counters);
+}
+
+lh_mb_framing_t
+lh_mb_link_get_framing(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->framing;
+}
+
+lh_void
+lh_mb_link_set_framing(lh_mb_link_t *self, lh_mb_framing_t framing)
+{
+    lh_assert_runtime_ref(self);
+    self->framing = framing;
+}
+
+lh_u8_t
+lh_mb_link_get_unit(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->unit;
+}
+
+lh_void
+lh_mb_link_set_unit(lh_mb_link_t *self, lh_u8_t unit)
+{
+    lh_assert_runtime_ref(self);
+    self->unit = unit;
+}
+
+lh_u8_t
+lh_mb_link_get_asked_fc(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->asked_fc;
+}
+
+lh_void
+lh_mb_link_set_asked_fc(lh_mb_link_t *self, lh_u8_t asked_fc)
+{
+    lh_assert_runtime_ref(self);
+    self->asked_fc = asked_fc;
+}
+
+lh_u8_t
+lh_mb_link_get_state(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->state;
+}
+
+lh_void
+lh_mb_link_set_state(lh_mb_link_t *self, lh_u8_t state)
+{
+    lh_assert_runtime_ref(self);
+    self->state = state;
+}
+
+lh_mb_status_t
+lh_mb_link_get_reason(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->reason;
+}
+
+lh_void
+lh_mb_link_set_reason(lh_mb_link_t *self, lh_mb_status_t reason)
+{
+    lh_assert_runtime_ref(self);
+    self->reason = reason;
+}
+
+lh_u16_t
+lh_mb_link_get_address(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->address;
+}
+
+lh_void
+lh_mb_link_set_address(lh_mb_link_t *self, lh_u16_t address)
+{
+    lh_assert_runtime_ref(self);
+    self->address = address;
+}
+
+lh_u16_t
+lh_mb_link_get_expected(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->expected;
+}
+
+lh_void
+lh_mb_link_set_expected(lh_mb_link_t *self, lh_u16_t expected)
+{
+    lh_assert_runtime_ref(self);
+    self->expected = expected;
+}
+
+lh_u16_t
+lh_mb_link_get_got(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->got;
+}
+
+lh_void
+lh_mb_link_set_got(lh_mb_link_t *self, lh_u16_t got)
+{
+    lh_assert_runtime_ref(self);
+    self->got = got;
+}
+
+lh_u16_t
+lh_mb_link_get_written(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->written;
+}
+
+lh_void
+lh_mb_link_set_written(lh_mb_link_t *self, lh_u16_t written)
+{
+    lh_assert_runtime_ref(self);
+    self->written = written;
+}
+
+lh_u16_t
+lh_mb_link_get_held(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->held;
+}
+
+lh_void
+lh_mb_link_set_held(lh_mb_link_t *self, lh_u16_t held)
+{
+    lh_assert_runtime_ref(self);
+    self->held = held;
+}
+
+lh_u16_t
+lh_mb_link_get_tx(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->tx;
+}
+
+lh_void
+lh_mb_link_set_tx(lh_mb_link_t *self, lh_u16_t tx)
+{
+    lh_assert_runtime_ref(self);
+    self->tx = tx;
+}
+
+lh_u16_t
+lh_mb_link_get_asked_tx(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->asked_tx;
+}
+
+lh_void
+lh_mb_link_set_asked_tx(lh_mb_link_t *self, lh_u16_t asked_tx)
+{
+    lh_assert_runtime_ref(self);
+    self->asked_tx = asked_tx;
+}
+
+lh_u64_t
+lh_mb_link_get_since_us(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->since_us;
+}
+
+lh_void
+lh_mb_link_set_since_us(lh_mb_link_t *self, lh_u64_t since_us)
+{
+    lh_assert_runtime_ref(self);
+    self->since_us = since_us;
+}
+
+lh_mb_link_clock_cb
+lh_mb_link_get_now_us(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->now_us;
+}
+
+lh_void
+lh_mb_link_set_now_us(lh_mb_link_t *self, lh_mb_link_clock_cb now_us)
+{
+    lh_assert_runtime_ref(self);
+    self->now_us = now_us;
+}
+
+lh_ptr
+lh_mb_link_get_clock(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->clock;
+}
+
+lh_void
+lh_mb_link_set_clock(lh_mb_link_t *self, lh_ptr clock)
+{
+    lh_assert_runtime_ref(self);
+    self->clock = clock;
+}
+
+lh_mb_link_change_cb
+lh_mb_link_get_on_change(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->on_change;
+}
+
+lh_void
+lh_mb_link_set_on_change(lh_mb_link_t *self, lh_mb_link_change_cb on_change)
+{
+    lh_assert_runtime_ref(self);
+    self->on_change = on_change;
+}
+
+lh_ptr
+lh_mb_link_get_owner(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->owner;
+}
+
+lh_void
+lh_mb_link_set_owner(lh_mb_link_t *self, lh_ptr owner)
+{
+    lh_assert_runtime_ref(self);
+    self->owner = owner;
+}
+
+const lh_u16_t *
+lh_mb_link_get_values(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->values;
+}
+
+lh_u16_t *
+lh_mb_link_get_values_mut(lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->values;
+}
+
+const lh_byte_t *
+lh_mb_link_get_frame(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->frame;
+}
+
+lh_byte_t *
+lh_mb_link_get_frame_mut(lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->frame;
+}
+
+lh_u16_t
+lh_mb_frame_length(lh_mb_framing_t framing, lh_byte_cptr frame, lh_u16_t have, lh_u8_t fc)
+{
+    lh_return_if(lh_null_eq(frame), lh_cast_static(lh_u16_t, 0));
+
+    if (framing == lh_mb_framing_mbap)
+    {
+        lh_u16_t length;
+
+        if (have < LH_MB_MBAP_HEAD)
+        {
+            return 0;
+        }
+        /* The header carries the length, so "have I got it all" is an arithmetic
+           question and not a guess. This is the whole reason a network frame can
+           be read one byte at a time without ever mistaking its middle for an
+           edge.
+
+           The arithmetic is `HEAD + length - 1`, and the **-1 is the unit byte**:
+           Modbus TCP's length field counts the unit identifier and everything after
+           it, while ::LH_MB_MBAP_HEAD already counts the unit among the bytes ahead
+           of the PDU. Counting both is how a fifteen-byte answer is waited for as
+           though it were sixteen, and a link that never completes a frame never
+           parses one. The frame captured from a device that answered the read of
+           three holding registers at address 10 is
+
+               00 01 | 00 00 | 00 09 | 01 | 03 06 | 00 01 00 01 00 01
+
+           -- 15 bytes, length field 9 -- and that is what this returns. */
+        if (frame[2] != 0 || frame[3] != 0)
+        {
+            return 0; /* protocol id 0 is Modbus; anything else is not a frame we can size */
+        }
+        length = lh_cast_static(lh_u16_t, ((lh_cast_static(lh_u16_t, frame[4]) << 8) | frame[5]));
+        if (length < 2 || length > lh_cast_static(lh_u16_t, (LH_MB_ADU_MAX - LH_MB_MBAP_HEAD + 1)))
+        {
+            /* Unit and a function code at least, and no more than the buffer holds.
+               A length past that is not a big frame, it is a header that is not one:
+               waiting for it would wait for bytes that can never fit. */
+            return 0;
+        }
+        /* Whose frame it is does not matter here. Another unit's answer, or a late
+           answer to a question that has timed out, is still exactly this long, and
+           knowing that is what lets the link step over it to the frame behind it.
+           Calling it "not complete" instead left the link waiting out its timeout
+           on bytes that had all arrived. */
+        return (lh_u16_t)(LH_MB_MBAP_HEAD + length - 1);
+    }
+    return lh_mb_rtu_frame_length(frame, have, fc);
+}
+
+lh_void
+lh_mb_link_set_fc(lh_mb_link_t *self, lh_u8_t fc)
+{
+    /* Only while nothing is in flight. A link whose question is already out
+       cannot be told to ask a different one: the answer to a 0x03 arriving under
+       a link that now believes it asked 0x04 is a frame that parses as somebody
+       else's, which is the one thing the field above exists to prevent. */
+    lh_return_if(lh_mb_link_get_state(self) != lh_cast_static(lh_u8_t, lh_mb_link_idle));
+    self->fc = fc;
+}
+
+lh_void
+lh_mb_link_set_stream(lh_mb_link_t *self, const lh_io_stream_t *stream)
+{
+    lh_io_stream_assign(lh_mb_link_get_stream_mut(self), stream);
+    /* A new connection is a new stream: whatever was held belonged to the old one,
+       and the first byte that arrives now is the first byte of a frame. */
+    lh_mb_link_set_held(self, 0);
+    lh_mb_link_set_state(self, lh_cast_static(lh_u8_t, lh_mb_link_idle));
+    lh_mb_link_set_reason(self, lh_mb_status_ok);
+}
+
+lh_mb_link_state_t
+lh_mb_link_lose(lh_mb_link_t *self)
+{
+    lh_mb_link_set_held(self, 0);
+    lh_mb_link_set_state(self, lh_cast_static(lh_u8_t, lh_mb_link_idle));
+    lh_mb_link_set_reason(self, lh_mb_status_lost);
+    lh_mb_link_counters_count_failed(lh_mb_link_get_counters_mut(self));
+    return lh_mb_link_failed;
+}
+
+lh_void
+lh_mb_link_consume(lh_mb_link_t *self, lh_u16_t n)
+{
+    if (lh_mb_link_get_framing(self) != lh_mb_framing_mbap || n >= lh_mb_link_get_held(self))
+    {
+        lh_mb_link_set_held(self, 0);
+        return;
+    }
+    lh_memory_std_move(lh_mb_link_get_frame_mut(self), lh_mb_link_get_frame(self) + n,
+                       lh_cast_static(lh_usize_t, (lh_mb_link_get_held(self) - n)));
+    lh_mb_link_set_held(self, lh_cast_static(lh_u16_t, (lh_mb_link_get_held(self) - n)));
+}
+
+const lh_u16_t *
+lh_mb_link_take(lh_mb_link_t *self, lh_u16_t *count)
+{
+    lh_return_ifn(lh_mb_link_get_state(self) == lh_cast_static(lh_u8_t, lh_mb_link_answered),
+                  lh_ptr_ccast(lh_u16_t, lh_null));
+    if (count != lh_null)
+    {
+        lh_ptr_deref(count) = lh_mb_link_get_got(self);
+    }
+    return lh_mb_link_get_values(self);
+}
+
+lh_void
+lh_mb_link_release(lh_mb_link_t *self)
+{
+    lh_mb_link_set_state(self, lh_cast_static(lh_u8_t, lh_mb_link_idle));
+    /* Over MBAP what is held after the answer is the next frame's start; see
+       ::lh_mb_link_consume. */
+    if (lh_mb_link_get_framing(self) != lh_mb_framing_mbap)
+    {
+        lh_mb_link_set_held(self, 0);
+    }
+}
+
+/* -- A link ---------------------------------------------------------------- */
+
+lh_void
+lh_mb_link_init(lh_mb_link_t *self, const lh_io_stream_t *stream, lh_mb_framing_t framing,
+                lh_u8_t unit, lh_mb_link_clock_cb now_us, lh_ptr clock)
+{
+    lh_assert_runtime_ref(self);
+
+    lh_memory_std_set(lh_addr_of(lh_ptr_deref(self)), 0, sizeof(lh_ptr_deref(self)));
+    lh_io_stream_assign(lh_mb_link_get_stream_mut(self), stream);
+    lh_mb_link_set_framing(self, framing);
+    lh_mb_link_set_unit(self, unit);
+    /* Which question this link asks. It is a field and not an argument to every
+       call because an answer is only known by the question that was asked: a
+       parser that had to be handed the code on the way in would be handed the
+       wrong one exactly when it matters, on the frame that arrived late.
+
+       Holding registers are the default, and ::lh_mb_link_set_fc changes it. The
+       default is a default and not a restriction: real register maps are
+       mostly input registers (one device has 761 of them against 646 holding), and
+       a link that could only ever ask 0x03 could not poll most of what those
+       devices have. */
+    lh_mb_link_set_fc(self, LH_MB_FC_READ_HOLDING);
+    lh_mb_link_set_asked_fc(self, LH_MB_FC_READ_HOLDING);
+    lh_mb_link_set_state(self, lh_cast_static(lh_u8_t, lh_mb_link_idle));
+    lh_mb_link_set_reason(self, lh_mb_status_ok);
+    lh_mb_link_set_now_us(self, now_us);
+    lh_mb_link_set_clock(self, clock);
+}
+
+lh_bool_t
+lh_mb_link_send(lh_mb_link_t *self, lh_byte_cptr pdu, lh_u16_t pdu_length, lh_u16_t address,
+                lh_u16_t count, lh_u8_t fc)
+{
+    /* The request is built in a buffer of its own. ::lh_mb_link_t.frame is the
+       receive side, and over MBAP it may already hold the start of the next frame:
+       building the request there wrote it over those bytes, and the request -- which
+       carries this question's own transaction id -- was then read back as the
+       answer. */
+    lh_byte_t out[LH_MB_ADU_MAX];
+
+    if (pdu_length == 0)
+    {
+        return lh_bool_false;
+    }
+    pdu_length = lh_mb_encode(lh_mb_link_get_framing(self), lh_mb_link_get_unit(self),
+                              lh_mb_link_get_tx(self), pdu, pdu_length, out,
+                              lh_cast_static(lh_u16_t, sizeof(out)));
+    if (pdu_length == 0)
+    {
+        return lh_bool_false;
+    }
+    lh_ssize_t wrote = lh_io_stream_write(lh_mb_link_get_stream_mut(self), out,
+                                          lh_cast_static(lh_usize_t, pdu_length));
+    if (wrote == LH_IO_PENDING)
+    {
+        /* Nothing went out: the send buffer is full for the moment. Not a fault --
+           the stream is fine and so is the device -- so it is not counted as one;
+           the caller gets `false` and asks again on its next pass. */
+        lh_mb_link_set_state(self, lh_cast_static(lh_u8_t, lh_mb_link_idle));
+        return lh_bool_false;
+    }
+    if (wrote != lh_cast_static(lh_ssize_t, pdu_length))
+    {
+        /* A failure, or half a request out. The second is worse than none: what is
+           on the line now is a frame nobody sent, and the device will read whatever
+           comes next as the rest of it. Either way the stream is lost. */
+        LH_ATTRIBUTE_UNUSED(lh_mb_link_lose(self));
+        return lh_bool_false;
+    }
+    lh_mb_link_set_address(self, address);
+    lh_mb_link_set_expected(self, count);
+    /* Over MBAP the held bytes stay: they arrived before this question went out, so
+       they are not its answer, but they may be the start of an answer to the last
+       one, and dropping half a frame puts every frame after it off by that much.
+       The transaction id is what keeps them from being taken for this answer. */
+    if (lh_mb_link_get_framing(self) != lh_mb_framing_mbap)
+    {
+        lh_mb_link_set_held(self, 0);
+    }
+    lh_mb_link_set_got(self, 0);
+    lh_mb_link_set_asked_tx(self, lh_mb_link_get_tx(self));
+    lh_mb_link_set_tx(self, lh_cast_static(lh_u16_t, (lh_mb_link_get_tx(self) + 1U)));
+    lh_mb_link_counters_count_sent(lh_mb_link_get_counters_mut(self));
+    lh_mb_link_counters_add_bytes(lh_mb_link_get_counters_mut(self),
+                                  lh_cast_static(lh_u32_t, pdu_length));
+    /* A new question clears the last answer's verdict: ::reason says how the
+       previous one ended, and a caller that reads it after asking the next one is
+       reading about the wrong question. */
+    lh_mb_link_set_reason(self, lh_mb_status_ok);
+    lh_mb_link_set_since_us(self, lh_mb_link_get_now_us(self) != lh_null
+                                      ? lh_mb_link_get_now_us(self)(lh_mb_link_get_clock(self))
+                                      : 0);
+    lh_mb_link_set_asked_fc(self, fc);
+    lh_mb_link_set_state(self, lh_cast_static(lh_u8_t, lh_mb_link_waiting));
+    return lh_bool_true;
+}
+
+lh_mb_link_state_t
+lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us)
+{
+    lh_byte_t pdu[LH_MB_ADU_MAX];
+    lh_u16_t pdu_length = 0;
+    lh_mb_status_t status;
+
+    lh_return_ifn(lh_mb_link_get_state(self) == lh_cast_static(lh_u8_t, lh_mb_link_waiting),
+                  lh_cast_static(lh_mb_link_state_t, lh_mb_link_get_state(self)));
+
+    /* Nothing to ask for when the buffer is full: it holds a whole frame at least,
+       and the loop below consumes it. A read of zero bytes is not a harmless call on
+       a real socket -- it returns 0, which is how a socket says the peer has
+       closed. */
+    lh_ssize_t got =
+        lh_mb_link_get_held(self) < lh_cast_static(lh_u16_t, LH_MB_ADU_MAX)
+            ? lh_io_stream_read(
+                  lh_mb_link_get_stream_mut(self),
+                  lh_mb_link_get_frame_mut(self) + lh_mb_link_get_held(self),
+                  lh_cast_static(lh_usize_t, (LH_MB_ADU_MAX - lh_mb_link_get_held(self))))
+            : LH_IO_PENDING;
+    if (got == 0 || (got < 0 && got != LH_IO_PENDING))
+    {
+        /* Every failure below ends the same way: **back to idle, not stuck.**
+           A question that came back wrong, came back short, or never came back is
+           one question. Letting it decide the rest of the session is how a device
+           that answers "illegal function" for one register bank gets dropped for
+           good, and how a poll loop that keeps finding the link busy spins for
+           ever instead of moving on to the other devices.
+
+           The caller learns it happened from the state this poll returns, from
+           ::lh_mb_link_t.reason and from ::lh_mb_link_counters_t.failed; deciding
+           that a device is *off* rather than *slow* is the app's business, because
+           only it knows how many failures in a row mean that.
+
+           This one is not a question going wrong but the stream ending -- `0` is
+           the peer closing, a negative value a failure -- and it is said as such,
+           because the answer to it is a new connection and not another question. */
+        return lh_mb_link_lose(self);
+    }
+    if (got > 0)
+    {
+        lh_mb_link_set_held(self, lh_cast_static(lh_u16_t, (lh_mb_link_get_held(self) +
+                                                             lh_cast_static(lh_u16_t, got))));
+        lh_mb_link_counters_add_bytes(lh_mb_link_get_counters_mut(self),
+                                      lh_cast_static(lh_u32_t, got));
+    }
+
+    /* Every whole frame that is not this question's answer is stepped over, and the
+       loop goes on to the one behind it: a recv can hand over another unit's frame,
+       or the late answer to a question that timed out, and this answer right after
+       it in the same bytes. */
+    for (;;)
+    {
+        lh_bool_t ours;
+        lh_u16_t need;
+
+        need = lh_mb_frame_length(lh_mb_link_get_framing(self), lh_mb_link_get_frame(self),
+                                  lh_mb_link_get_held(self), lh_mb_link_get_asked_fc(self));
+        if (need == 0 && lh_mb_link_get_framing(self) == lh_mb_framing_mbap &&
+            lh_mb_link_get_held(self) >= LH_MB_MBAP_HEAD)
+        {
+            /* Seven bytes and still no length: the header is not a Modbus header.
+               On a stream that means the place is lost, and nothing after it can be
+               framed until the connection starts over -- so this is said now, not
+               after a timeout spent waiting for a frame that has no end. */
+            lh_mb_link_set_held(self, 0);
+            lh_mb_link_set_state(self, lh_cast_static(lh_u8_t, lh_mb_link_idle));
+            lh_mb_link_set_reason(self, lh_mb_status_garbage);
+            lh_mb_link_counters_count_failed(lh_mb_link_get_counters_mut(self));
+            return (lh_mb_link_state_t)lh_mb_link_failed;
+        }
+        if (need == 0 || lh_mb_link_get_held(self) < need)
+        {
+            /* Not yet. How long it has been unanswered is the only thing that turns
+               "not yet" into "never", and that check is what stops one dead device
+               from holding a place in every pass for ever. */
+            const lh_u64_t now =
+                lh_mb_link_get_now_us(self) != lh_null
+                    ? lh_mb_link_get_now_us(self)(lh_mb_link_get_clock(self))
+                    : 0;
+
+            if (lh_mb_link_get_now_us(self) != lh_null && timeout_us > 0 &&
+                now - lh_mb_link_get_since_us(self) > lh_cast_static(lh_u64_t, timeout_us))
+            {
+                /* Over MBAP what has arrived of a frame is kept: if the rest of a
+                   slow answer comes later, it completes the frame and the frame is
+                   stepped over by its transaction id. Dropping the half that came
+                   would read the half that comes as a header. */
+                if (lh_mb_link_get_framing(self) != lh_mb_framing_mbap)
+                {
+                    lh_mb_link_set_held(self, 0);
+                }
+                lh_mb_link_set_state(self, lh_cast_static(lh_u8_t, lh_mb_link_idle));
+                lh_mb_link_set_reason(self, lh_mb_status_short);
+                lh_mb_link_counters_count_failed(lh_mb_link_get_counters_mut(self));
+                return (lh_mb_link_state_t)lh_mb_link_failed;
+            }
+            return (lh_mb_link_state_t)lh_mb_link_get_state(self);
+        }
+
+        /* A frame that is whole and is not ours -- another device on the line, or
+           over MBAP an answer to some other question -- is dropped and the wait goes
+           on, rather than being counted as this device's answer: that is the
+           difference between a bus and a fault. The transaction id is checked
+           because nothing else can tell a late answer from this one: asked for the
+           same registers, it parses perfectly, and its values are stale. */
+        ours = lh_mb_decode(lh_mb_link_get_framing(self), lh_mb_link_get_unit(self),
+                            lh_mb_link_get_frame(self), need, pdu, lh_addr_of(pdu_length));
+        if (ours && lh_mb_link_get_framing(self) == lh_mb_framing_mbap)
+        {
+            const lh_byte_t *frame = lh_mb_link_get_frame(self);
+
+            ours = lh_cast_static(lh_bool_t,
+                                  (((lh_cast_static(lh_u16_t, frame[0]) << 8) | frame[1]) ==
+                                   lh_mb_link_get_asked_tx(self)));
+        }
+        lh_mb_link_consume(self, need);
+        if (ours)
+        {
+            break;
+        }
+    }
+    if (lh_mb_link_get_asked_fc(self) == LH_MB_FC_WRITE_MANY)
+    {
+        /* A write's answer is its own header echoed and carries no values. */
+        lh_mb_link_set_got(self, 0);
+        status = lh_mb_parse_pdu_write(pdu, pdu_length, lh_mb_link_get_address(self),
+                                       lh_mb_link_get_expected(self), lh_null);
+    }
+    else if (lh_mb_link_get_asked_fc(self) == LH_MB_FC_WRITE_ONE)
+    {
+        /* And a single write's is the whole request echoed, the value with it. */
+        lh_mb_link_set_got(self, 0);
+        status = lh_mb_parse_pdu_write_one(pdu, pdu_length, lh_mb_link_get_address(self),
+                                           lh_mb_link_get_written(self), lh_null);
+    }
+    else
+    {
+        lh_u16_t words = 0;
+
+        status = lh_mb_parse_pdu(pdu, pdu_length, lh_mb_link_get_asked_fc(self),
+                                 lh_mb_link_get_expected(self), lh_mb_link_get_values_mut(self),
+                                 LH_MB_LINK_VALUES, lh_addr_of(words), lh_null);
+        lh_mb_link_set_got(self, words);
+    }
+    lh_mb_link_set_reason(self, status);
+    if (status != lh_mb_status_ok && status != lh_mb_status_partial)
+    {
+        /* No data this time, so the state says failed — but the two reasons want
+           opposite things from the app above, and they go to opposite counters.
+           A device that refused the address is *talking*: the line is good, the
+           framing was right, and the honest thing to do is stop asking that
+           address. A device whose answers do not parse is a fault. Counting an
+           exception as a failure made a healthy controller indistinguishable from a
+           dead one, and the client's rule for "off line" is a run of failures. */
+        lh_mb_link_set_state(self, lh_cast_static(lh_u8_t, lh_mb_link_idle));
+        if (status == lh_mb_status_exception)
+        {
+            lh_mb_link_counters_count_refused(lh_mb_link_get_counters_mut(self));
+        }
+        else
+        {
+            lh_mb_link_counters_count_failed(lh_mb_link_get_counters_mut(self));
+        }
+        return (lh_mb_link_state_t)lh_mb_link_failed;
+    }
+    lh_mb_link_counters_count_done(lh_mb_link_get_counters_mut(self));
+    if (lh_mb_link_get_now_us(self) != lh_null)
+    {
+        const lh_u64_t now = lh_mb_link_get_now_us(self)(lh_mb_link_get_clock(self));
+
+        lh_mb_link_counters_add_us_busy(lh_mb_link_get_counters_mut(self),
+                                        now - lh_mb_link_get_since_us(self));
+    }
+    lh_mb_link_set_state(self, lh_cast_static(lh_u8_t, lh_mb_link_answered));
+    return (lh_mb_link_state_t)lh_mb_link_get_state(self);
+}
+
+lh_bool_t
+lh_mb_link_ask(lh_mb_link_t *self, lh_u16_t address, lh_u16_t count)
+{
+    lh_byte_t pdu[LH_MB_ADU_MAX];
+
+    /* One question at a time. A second request sent while the first is unanswered
+       comes back after its own answer and is read as somebody else's frame, which
+       is a bug that looks like a device answering the wrong question. */
+    lh_return_ifn(lh_mb_link_get_state(self) == lh_cast_static(lh_u8_t, lh_mb_link_idle),
+                  lh_bool_false);
+    lh_return_ifn(count > 0 && count <= LH_MB_READ_MAX, lh_bool_false);
+
+    /* ::lh_mb_link_get_fc, not a constant. ::lh_mb_link_poll reads the answer
+       back with the same field, and a request built with anything else is a
+       question the reader is not expecting the answer to: the device replies
+       perfectly to a 0x03 read of holding registers, the answer comes back
+       carrying 0x03, and the parser is holding 0x04 and calls it somebody
+       else's frame. It looked like a device
+       answering the wrong question, which is the most expensive kind of bug to
+       chase and the least likely — the answer was fine, the reader was wrong. */
+    lh_u16_t pdu_length = lh_mb_build_pdu_read(pdu, lh_cast_static(lh_u16_t, sizeof(pdu)),
+                                               lh_mb_link_get_fc(self), address, count);
+    return lh_mb_link_send(self, pdu, pdu_length, address, count, lh_mb_link_get_fc(self));
+}
+
+lh_bool_t
+lh_mb_link_write(lh_mb_link_t *self, lh_u16_t address, const lh_u16_t *values, lh_u16_t count)
+{
+    lh_byte_t pdu[LH_MB_ADU_MAX];
+
+    lh_return_ifn(lh_mb_link_get_state(self) == lh_cast_static(lh_u8_t, lh_mb_link_idle),
+                  lh_bool_false);
+    lh_return_ifn(lh_null_ne(values) && count > 0, lh_bool_false);
+    return lh_mb_link_send(
+        self, pdu,
+        lh_mb_build_pdu_write(pdu, lh_cast_static(lh_u16_t, sizeof(pdu)), address, values, count),
+        address, count, LH_MB_FC_WRITE_MANY);
+}
+
+lh_bool_t
+lh_mb_link_write_one(lh_mb_link_t *self, lh_u16_t address, lh_u16_t value)
+{
+    lh_byte_t pdu[LH_MB_ADU_MAX];
+
+    lh_return_ifn(lh_mb_link_get_state(self) == lh_cast_static(lh_u8_t, lh_mb_link_idle),
+                  lh_bool_false);
+    lh_return_ifn(lh_mb_link_send(self, pdu,
+                                  lh_mb_build_pdu_write_one(
+                                      pdu, lh_cast_static(lh_u16_t, sizeof(pdu)), address, value),
+                                  address, 1, LH_MB_FC_WRITE_ONE),
+                  lh_bool_false);
+    /* After the send, which starts a question by forgetting the last one's. */
+    lh_mb_link_set_written(self, value);
+    return lh_bool_true;
+}

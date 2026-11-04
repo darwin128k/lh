@@ -1,0 +1,263 @@
+/**
+ * @file vec3.h
+ * @brief 3-component float vector: `x, y, z`.
+ *
+ * Plain value type of lh's vector math, the same in every engine and API:
+ * points, directions, colors. All functions take and return vectors by
+ * value and never fail; nothing here knows about coordinate systems (which
+ * axis is up, handedness) — those are a matter of the code using it.
+ *
+ * Layout is 3 consecutive ::lh_math_fscalar_t (`x, y, z`), the same as a C
+ * `float[3]`, e.g. GoldSrc's `vec3_t`.
+ *
+ * Fields are not part of the public API: read and mutate them through the
+ * `lh_math_vec3_get_*` / `lh_math_vec3_set_*` accessors. The struct is
+ * defined here only so it can be embedded by value.
+ */
+
+#ifndef LH_MATH_VEC3_H
+#define LH_MATH_VEC3_H
+
+#include <lh/core/math/vec2.h>
+#include <lh/core/math/vec3/fields.h>
+
+/**
+ * @struct lh_math_vec3
+ * @brief 3-component float vector.
+ */
+struct lh_math_vec3
+{
+    /** Members: ::lh_math_vec3_fields. */
+    lh_math_vec3_fields(lh_math_fscalar_t);
+};
+/** @copybrief lh_math_vec3 */
+typedef struct lh_math_vec3 lh_math_vec3_t;
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief Fill @p self with the given components.
+ */
+lh_void
+lh_math_vec3_init(lh_math_vec3_t *self, lh_math_fscalar_t x, lh_math_fscalar_t y,
+                  lh_math_fscalar_t z);
+
+/**
+ * @brief Fill @p self with zero components.
+ */
+lh_void
+lh_math_vec3_init_empty(lh_math_vec3_t *self);
+
+/* -- Accessors ------------------------------------------------------------- */
+
+/**
+ * @brief X component of @p self.
+ */
+lh_math_fscalar_t
+lh_math_vec3_get_x(const lh_math_vec3_t *self);
+
+/**
+ * @brief Y component of @p self.
+ */
+lh_math_fscalar_t
+lh_math_vec3_get_y(const lh_math_vec3_t *self);
+
+/**
+ * @brief Z component of @p self.
+ */
+lh_math_fscalar_t
+lh_math_vec3_get_z(const lh_math_vec3_t *self);
+
+/**
+ * @brief Set the X component of @p self.
+ */
+lh_void
+lh_math_vec3_set_x(lh_math_vec3_t *self, lh_math_fscalar_t x);
+
+/**
+ * @brief Set the Y component of @p self.
+ */
+lh_void
+lh_math_vec3_set_y(lh_math_vec3_t *self, lh_math_fscalar_t y);
+
+/**
+ * @brief Set the Z component of @p self.
+ */
+lh_void
+lh_math_vec3_set_z(lh_math_vec3_t *self, lh_math_fscalar_t z);
+
+/* -- Conversions ----------------------------------------------------------- */
+
+/**
+ * @brief Widen @p v to the plane `z = @p z`.
+ *
+ * @param v Vector to widen.
+ * @param z Depth to add.
+ * @param out Receives `(v.x, v.y, z)`.
+ */
+lh_void
+lh_math_vec2_to_vec3(lh_math_vec2_t v, lh_math_fscalar_t z, lh_math_vec3_t *out);
+
+/**
+ * @brief Widen @p v to the plane `z = 0`.
+ *
+ * The natural widening for a 2D entity: a 2D entity is a 3D one that stays
+ * in the `z = 0` plane.
+ *
+ * @param v Vector to widen.
+ * @param out Receives `(v.x, v.y, 0)`.
+ */
+lh_void
+lh_math_vec2_to_vec3_z0(lh_math_vec2_t v, lh_math_vec3_t *out);
+
+/**
+ * @brief Narrow @p v to the plane, dropping `z`.
+ *
+ * @param v Vector to narrow.
+ * @param out Receives `(v.x, v.y)`.
+ */
+lh_void
+lh_math_vec3_to_vec2(lh_math_vec3_t v, lh_math_vec2_t *out);
+
+/**
+ * @brief Component-wise sum @p a + @p b.
+ */
+lh_void
+lh_math_vec3_add(lh_math_vec3_t a, lh_math_vec3_t b, lh_math_vec3_t *out);
+
+/**
+ * @brief Component-wise difference @p a - @p b.
+ */
+lh_void
+lh_math_vec3_sub(lh_math_vec3_t a, lh_math_vec3_t b, lh_math_vec3_t *out);
+
+/**
+ * @brief @p v with every component multiplied by @p s.
+ */
+lh_void
+lh_math_vec3_scale(lh_math_vec3_t v, lh_math_fscalar_t s, lh_math_vec3_t *out);
+
+/**
+ * @brief Multiply-accumulate: @p a + @p b * @p s, component-wise.
+ *
+ * @p a and @p b are taken by value, so @p out may point at the storage either
+ * of them was copied from (`lh_math_vec3_madd(*out, b, s, out)` accumulates in
+ * place); `*out` is only written, never read.
+ * @param a Vector to add to.
+ * @param b Vector to scale.
+ * @param s Factor for @p b.
+ * @param out Receives the result.
+ */
+lh_void
+lh_math_vec3_madd(lh_math_vec3_t a, lh_math_vec3_t b, lh_math_fscalar_t s, lh_math_vec3_t *out);
+
+/**
+ * @brief @p v with every component negated.
+ */
+lh_void
+lh_math_vec3_neg(lh_math_vec3_t v, lh_math_vec3_t *out);
+
+/**
+ * @brief Dot product: the sum of the component products.
+ *
+ * `|a| |b| cos(angle)`: 0 for perpendicular vectors, positive when they point
+ * the same way.
+ */
+lh_math_fscalar_t
+lh_math_vec3_dot(lh_math_vec3_t a, lh_math_vec3_t b);
+
+/**
+ * @brief Squared length, `dot(v, v)`.
+ *
+ * Cheaper than ::lh_math_vec3_length (no square root) and enough for comparing
+ * lengths.
+ */
+lh_math_fscalar_t
+lh_math_vec3_length_sq(lh_math_vec3_t v);
+
+/**
+ * @brief Euclidean length.
+ */
+lh_math_fscalar_t
+lh_math_vec3_length(lh_math_vec3_t v);
+
+/**
+ * @brief The components of @p v as a read-only view: `x`, `y`, `z`, in that order.
+ *
+ * A vector is laid out as `float[3]` (checked when the library is built), so the
+ * view reads the components in place without copying them; it is valid while
+ * @p v is. ::lh_math_vec3_dot and the lengths are measured through it.
+ */
+lh_void
+lh_math_vec3_view_of(const lh_math_vec3_t *v, lh_math_view_t *out);
+
+/**
+ * @brief @p v scaled to length 1, same direction.
+ *
+ * A zero vector has no direction and is returned unchanged (zero), not as
+ * NaNs.
+ */
+lh_void
+lh_math_vec3_normalize(lh_math_vec3_t v, lh_math_vec3_t *out);
+
+/**
+ * @brief @p v scaled to length 1, or a refusal when it has no usable direction.
+ *
+ * Composed of ::lh_math_vec3_length, ::lh_math_float_is_finite and
+ * ::lh_math_vec3_normalize.
+ *
+ * @param v Vector to normalize.
+ * @param min_length Shortest length that still has a direction.
+ * @param out Receives the unit vector; untouched on failure.
+ * @return ::lh_bool_false when the length of @p v is not finite or is below
+ *         @p min_length.
+ */
+lh_bool_t
+lh_math_vec3_try_normalize(lh_math_vec3_t v, lh_math_fscalar_t min_length, lh_math_vec3_t *out);
+
+/**
+ * @brief Linear interpolation: @p a at @p t = 0, @p b at @p t = 1.
+ *
+ * @p t is not clamped: values outside `[0, 1]` extrapolate along the line.
+ */
+lh_void
+lh_math_vec3_lerp(lh_math_vec3_t a, lh_math_vec3_t b, lh_math_fscalar_t t, lh_math_vec3_t *out);
+
+/**
+ * @brief Whether every component of @p a and @p b differs by at most @p eps.
+ *
+ * Floating-point results are rarely bit-identical; compare with a tolerance
+ * suited to the magnitudes involved.
+ */
+lh_bool_t
+lh_math_vec3_near(lh_math_vec3_t a, lh_math_vec3_t b, lh_math_fscalar_t eps);
+
+/**
+ * @brief Exact component-wise equality (bit-identical floats).
+ */
+lh_bool_t
+lh_math_vec3_equals(lh_math_vec3_t self, lh_math_vec3_t other);
+
+/**
+ * @brief Whether every component of @p v is finite (::lh_math_float_is_finite).
+ *
+ * False when any component is NaN or an infinity: such a point has no place in
+ * space, and arithmetic on it only spreads the NaN.
+ */
+lh_bool_t
+lh_math_vec3_is_finite(lh_math_vec3_t v);
+
+/**
+ * @brief Cross product @p a × @p b: perpendicular to both, of length
+ *        `|a| |b| sin(angle)`.
+ *
+ * The standard component formula: the result follows the right-hand rule in
+ * a right-handed coordinate system (and the left-hand rule in a left-handed
+ * one). Anticommutative: `cross(b, a) == -cross(a, b)`.
+ */
+lh_void
+lh_math_vec3_cross(lh_math_vec3_t a, lh_math_vec3_t b, lh_math_vec3_t *out);
+
+LH_COMPILER_EXTERN_C_END
+
+#endif /* LH_MATH_VEC3_H */

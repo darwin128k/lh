@@ -6,8 +6,8 @@
 #include <lh/os/mutex.h>
 #include <lh/os.h>
 #include <lh/os/error/code.h>
-#include <lh/assert/runtime.h>
-#include <lh/runtime/allocator.h>
+#include <lh/core/assert/runtime.h>
+#include <lh/core/runtime/allocator.h>
 
 /**
  * @brief Report an invalid mutex or lifecycle state in the LH error slot.

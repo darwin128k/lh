@@ -7,7 +7,7 @@
 #define LH_OS_CONTROLLER_HANDLERS_UPDATE_CB_H
 
 #include <lh/os/controller/handlers/update/fn.h>
-#include <lh/util/ptr.h>
+#include <lh/core/util/ptr.h>
 
 /**
  * @def lh_os_controller_handlers_update_cb

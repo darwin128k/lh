@@ -2,10 +2,10 @@
  * @file button.c
  * @brief Implementation of `lh/ui/button.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 #include <lh/ui/button.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 const lh_ui_entity_class_t lh_ui_button_class = {lh_ui_button_event,
                                                  lh_addr_of(lh_ui_container_class)};

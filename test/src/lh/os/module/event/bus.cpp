@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <lh/os/module/event/bus.h>
-#include <lh/runtime/allocator.h>
+#include <lh/core/runtime/allocator.h>
 #include <lh/expect/death.h>
 #include <functional>
 #include <memory>

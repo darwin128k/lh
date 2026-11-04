@@ -11,7 +11,7 @@
 #ifndef LH_UI_RENDERER3D_CAMERA_H
 #define LH_UI_RENDERER3D_CAMERA_H
 
-#include <lh/math/vec3.h>
+#include <lh/core/math/vec3.h>
 
 /**
  * @struct lh_ui_renderer3d_camera

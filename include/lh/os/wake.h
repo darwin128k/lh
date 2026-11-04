@@ -14,10 +14,10 @@
 
 #include <lh/os/system/net/socket/handle.h>
 #include <lh/os/wake/fields.h>
-#include <lh/bool.h>
-#include <lh/void.h>
+#include <lh/core/bool.h>
+#include <lh/core/void.h>
 #include <lh/config.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/compiler/extern/c.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/wake.h requires LH_LIBRARY_OPTION_OS"

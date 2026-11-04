@@ -10,7 +10,7 @@
 #ifndef LH_OS_MODULE_EVENT_BUS_H
 #define LH_OS_MODULE_EVENT_BUS_H
 
-#include <lh/array.h>
+#include <lh/core/array.h>
 #include <lh/os/module/event/entry.h>
 #include <lh/os/module/event/subscription.h>
 #include <lh/os/module/event/id.h>

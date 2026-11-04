@@ -17,7 +17,7 @@
 #define LH_OS_SERIAL_H
 
 #include <lh/config.h>
-#include <lh/io/stream.h>
+#include <lh/core/io/stream.h>
 #include <lh/os/serial/fields.h>
 #include <lh/os/serial/parity.h>
 #include <lh/os/system/serial/handle.h>

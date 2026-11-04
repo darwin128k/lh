@@ -17,10 +17,10 @@
 
 #if LH_LIBRARY_OPTION_OS
 
-#    include <lh/attribute/unused.h>
+#    include <lh/core/attribute/unused.h>
 #    include <lh/expect/death.h>
-#    include <lh/http/method.h>
-#    include <lh/http/status.h>
+#    include <lh/core/http/method.h>
+#    include <lh/core/http/status.h>
 #    include <lh/test/ui/draw_log.h>
 
 #    include <lh/os/controller.h>

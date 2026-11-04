@@ -17,12 +17,12 @@
 #define LH_OS_FS_FILE_H
 
 #include <lh/config.h>
-#include <lh/fs/path.h>
-#include <lh/io/stream.h>
+#include <lh/core/fs/path.h>
+#include <lh/core/io/stream.h>
 #include <lh/os/fs/file/fields.h>
 #include <lh/os/result.h>
 #include <lh/os/system/fs/file/handle.h>
-#include <lh/fs/file/mode.h>
+#include <lh/core/fs/file/mode.h>
 
 #include <stdarg.h>
 

@@ -5,7 +5,7 @@
 
 #include <lh/os/module/ops.h>
 
-#include <lh/assert/runtime.h>
+#include <lh/core/assert/runtime.h>
 
 lh_os_module_start_cb
 lh_os_module_ops_get_start_fn(const lh_os_module_ops_t *self)

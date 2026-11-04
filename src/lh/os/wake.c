@@ -2,8 +2,8 @@
 #include <lh/os/system/net/socket.h>
 #include <lh/os.h>
 #include <lh/os/error/code.h>
-#include <lh/assert.h>
-#include <lh/math.h>
+#include <lh/core/assert.h>
+#include <lh/core/math.h>
 
 lh_void
 lh_os_wake_init(lh_os_wake_t *self)

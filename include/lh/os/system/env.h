@@ -10,9 +10,9 @@
 #ifndef LH_OS_SYSTEM_ENV_H
 #define LH_OS_SYSTEM_ENV_H
 
-#include <lh/compiler/extern/c.h>
+#include <lh/core/compiler/extern/c.h>
 #include <lh/config.h>
-#include <lh/str/ptr.h>
+#include <lh/core/str/ptr.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/system/env.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"

@@ -14,7 +14,7 @@ Canvas2D player is a separate application: it renders the same LH view as a
 desktop backend and sends drawing commands over WebSocket. It owns its page and
 input endpoints. Applications attach their own route tables; the host does
 not install a REST API. The player page is built as an XML tree written in
-the HTML dialect and a JavaScript tree (`lh/web/xml/`, `lh/web/js/node.h`) and
+the HTML dialect and a JavaScript tree (`lh/core/web/xml/`, `lh/core/web/js/node.h`) and
 written by their writers. The host parses request heads and Content-Length or
 chunked bodies with the HTTP parser and framing bricks; response and WebSocket headers
 are serialized from HTTP objects. Its generic response sender accepts caller-
@@ -41,7 +41,7 @@ A JavaScript interpreter or bytecode VM is a separate future feature.
 operates on that same object to own and manage its attributes and children.
 The entity and node are available to XML and HTML alike. One escaper and one
 writer serve both, with the dialect as a flag. `lh_web_xml_reader_t` reads XML;
-`lh/web/html/` adds HTML rules and builds on the XML reader's steps.
+`lh/core/web/html/` adds HTML rules and builds on the XML reader's steps.
 
 **Target.** Keep the shared tree and its operations as the common bricks, with
 HTML-specific parsing and serialization rules above them. HTML syntax has its
@@ -50,7 +50,7 @@ spelling. The current HTML reader handles the documented well-formed subset
 used by LH, not the browser's full HTML parsing algorithm.
 
 The other side of the same idea: a C object serialized to and from text. JSON
-already is (`lh/web/json/`); XML is the other form, and it belongs to the same
+already is (`lh/core/web/json/`); XML is the other form, and it belongs to the same
 layer.
 
 **Work.** Extend the HTML-specific rules as concrete uses require, keeping the

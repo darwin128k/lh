@@ -16,8 +16,8 @@
 #ifndef LH_OS_INPUT_WHEEL_H
 #define LH_OS_INPUT_WHEEL_H
 
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
+#include <lh/core/compiler/extern/c.h>
+#include <lh/core/numeric/fixed/types.h>
 
 /**
  * @def LH_OS_INPUT_WHEEL_STEP_DEFAULT

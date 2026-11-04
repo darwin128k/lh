@@ -1,9 +1,9 @@
 #include <lh/ui/blur/window.h>
-#include <lh/math.h>
+#include <lh/core/math.h>
 #include <lh/ui/blur.h>
 #include <lh/ui/radius.h>
-#include <lh/util/return.h>
-#include <lh/assert.h>
+#include <lh/core/util/return.h>
+#include <lh/core/assert.h>
 
 lh_void
 lh_ui_blur_window_take(lh_ui_blur_window_t *self, const lh_ui_color_t *pixel)

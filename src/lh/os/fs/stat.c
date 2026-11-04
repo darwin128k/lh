@@ -1,5 +1,5 @@
 #include <lh/os/fs/stat.h>
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 #include <lh/os/fs/path.h>
 #include <lh/os/system/fs/stat.h>
 

@@ -2,12 +2,12 @@
  * @file class.c
  * @brief Implementation of `lh/ui/entity/class.h`.
  */
-#include <lh/assert.h>
-#include <lh/attribute/unused.h>
+#include <lh/core/assert.h>
+#include <lh/core/attribute/unused.h>
 
 #include <lh/ui/canvas/box.h>
 #include <lh/ui/entity.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_void
 lh_ui_entity_class_fill(const struct lh_ui_entity *self, lh_ui_canvas_t *canvas)

@@ -1,8 +1,8 @@
 #include <lh/ui/layout/cross.h>
-#include <lh/math.h>
+#include <lh/core/math.h>
 #include <lh/ui/layout.h>
-#include <lh/util/return.h>
-#include <lh/assert.h>
+#include <lh/core/util/return.h>
+#include <lh/core/assert.h>
 
 lh_void
 lh_ui_layout_cross_fit(const lh_ui_layout_t *self, lh_ui_entity_t *child,

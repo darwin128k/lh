@@ -2,12 +2,12 @@
  * @file pointer.c
  * @brief Implementation of `lh/os/input/recognizer/pointer.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 #include <lh/os/input/recognizer/pointer.h>
-#include <lh/math.h>
+#include <lh/core/math.h>
 #include <lh/os/input/recognizer/pointer/initializer.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_bool_t
 lh_os_input_recognizer_is_beyond(lh_os_input_coord_t from_x, lh_os_input_coord_t from_y,

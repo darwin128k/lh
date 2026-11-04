@@ -10,7 +10,7 @@
 #ifndef LH_OS_FS_DIR_ENTRY_KIND_H
 #define LH_OS_FS_DIR_ENTRY_KIND_H
 
-#include <lh/fs/kind.h>
+#include <lh/core/fs/kind.h>
 
 /**
  * @typedef lh_os_fs_dir_entry_kind_t

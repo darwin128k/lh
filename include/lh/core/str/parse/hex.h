@@ -1,0 +1,100 @@
+/**
+ * @file hex.h
+ * @brief Parse an unsigned hexadecimal integer from text.
+ */
+
+#ifndef LH_STR_PARSE_HEX_H
+#define LH_STR_PARSE_HEX_H
+
+#include <lh/core/bool.h>
+#include <lh/core/compiler/extern/c.h>
+#include <lh/core/size.h>
+#include <lh/core/str/ptr.h>
+#include <lh/core/util/byte/ptr.h>
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief Parse an unsigned hexadecimal integer, rejecting values above @p max.
+ *
+ * Accepts ASCII digits `0`-`9` and letters `a`-`f` / `A`-`F`; all of
+ * @p str_size must be consumed. Rejects empty input. Unlike
+ * ::lh_str_ptr_parse_uint, leading zeros are allowed — padded hex (`00FF`)
+ * is the usual written form. No `0x` prefix.
+ *
+ * Safe against ::lh_uint_t overflow regardless of @p max. Base 16 of
+ * ::lh_str_ptr_parse_radix.
+ *
+ * @param str      Buffer to parse (not required to be NUL-terminated).
+ * @param str_size Number of characters available in @p str.
+ * @param max      Largest value considered valid (inclusive).
+ * @param out      Receives the parsed value on success; untouched on failure.
+ *
+ * @return ::lh_bool_true if all of @p str_size was consumed as a hexadecimal
+ *         integer not exceeding @p max, ::lh_bool_false otherwise.
+ */
+lh_bool_t
+lh_str_ptr_parse_hex(const lh_str_ptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out);
+
+/**
+ * @brief Parse the hexadecimal integer at the start of @p str and report
+ *        how many characters it took.
+ *
+ * Takes the leading run of hex digits (at most @p str_size) and parses it
+ * like ::lh_str_ptr_parse_hex. What follows the digits is left alone.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_uint_t value;
+ * lh_usize_t n = lh_str_ptr_parse_hex_prefix("ff;", 3, LH_UINT_T_MAX, &value);
+ * // n == 2, value == 255
+ * @endcode
+ *
+ * @param str      Buffer to parse (not required to be NUL-terminated).
+ * @param str_size Number of characters available in @p str.
+ * @param max      Largest value considered valid (inclusive).
+ * @param out      Receives the parsed value on success; untouched on failure.
+ *
+ * @return Characters consumed, or 0 if @p str does not start with a hex
+ *         digit or the value exceeds @p max.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p str or @p out is ::lh_null.
+ */
+lh_usize_t
+lh_str_ptr_parse_hex_prefix(const lh_str_ptr str, lh_usize_t str_size, lh_uint_t max,
+                            lh_uint_t *out);
+
+/**
+ * @brief Parse hexadecimal digits from the start of @p str into @p out — two
+ *        digits make one byte.
+ *
+ * Exactly @p out_size bytes are read from the beginning of @p str; what
+ * follows them is left alone. Upper and lower case digits are both accepted.
+ * @p out is written only when the whole text is good: a text that is too
+ * short or holds a character that is not a hexadecimal digit leaves @p out
+ * untouched.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_byte_t key[4];
+ * lh_bool_t ok = lh_str_ptr_parse_hex_bytes("00ff10a0", 8, key, sizeof(key));
+ * // ok == lh_bool_true, key == { 0x00, 0xff, 0x10, 0xa0 }
+ * @endcode
+ *
+ * @param str      Buffer to parse (not required to be NUL-terminated).
+ * @param str_size Number of characters available in @p str.
+ * @param out      Receives the parsed bytes on success; untouched on failure.
+ * @param out_size Number of bytes to parse.
+ *
+ * @return ::lh_bool_true if @p out_size bytes were parsed, ::lh_bool_false
+ *         otherwise — the text was too short, held a character that is not a
+ *         hexadecimal digit, or a pointer was ::lh_null.
+ */
+lh_bool_t
+lh_str_ptr_parse_hex_bytes(const lh_str_ptr str, lh_usize_t str_size, lh_byte_ptr out,
+                           lh_usize_t out_size);
+
+LH_COMPILER_EXTERN_C_END
+
+#endif /* LH_STR_PARSE_HEX_H */

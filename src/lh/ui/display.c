@@ -3,8 +3,8 @@
  * @brief ::lh_ui_display_t — host buffer + sw canvas + present sinks.
  */
 #include <lh/ui/display.h>
-#include <lh/math.h>
-#include <lh/assert.h>
+#include <lh/core/math.h>
+#include <lh/core/assert.h>
 
 lh_void
 lh_ui_display_rebind_pixmap(lh_ui_display_t *self, lh_byte_ptr bits, lh_s32_t stride)

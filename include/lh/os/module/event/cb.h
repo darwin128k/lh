@@ -9,7 +9,7 @@
 #define LH_OS_MODULE_EVENT_CB_H
 
 #include <lh/os/module/event/fn.h>
-#include <lh/util/ptr.h>
+#include <lh/core/util/ptr.h>
 
 /** @brief Pointer to ::lh_os_module_event_fn. */
 #define lh_os_module_event_cb lh_ptr_of(lh_os_module_event_fn)

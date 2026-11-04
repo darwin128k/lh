@@ -1,9 +1,9 @@
 #include <lh/ui/canvas/clip/round.h>
-#include <lh/math.h>
+#include <lh/core/math.h>
 #include <lh/ui/canvas/clip.h>
 #include <lh/ui/canvas/round.h>
 #include <lh/ui/radius.h>
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 lh_void
 lh_ui_canvas_clip_round_init(lh_ui_canvas_clip_round_t *self, const lh_ui_rect_t *rect,

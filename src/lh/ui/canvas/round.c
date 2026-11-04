@@ -3,11 +3,11 @@
  * @brief Implementation of `lh/ui/canvas/round.h`.
  */
 
-#include <lh/math.h>
+#include <lh/core/math.h>
 #include <lh/ui/canvas.h>
 #include <lh/ui/canvas/round.h>
 #include <lh/ui/radius.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_s32_t
 lh_ui_canvas_round_left(const lh_ui_rect_t *rect)

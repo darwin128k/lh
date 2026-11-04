@@ -62,7 +62,7 @@ Worth copying from `configurator/CMakeLists.txt`:
 ```c
 #include <lh/os/app.h>
 #include <lh/os/window.h>
-#include <lh/util/addr.h>
+#include <lh/core/util/addr.h>
 
 int
 main(void)

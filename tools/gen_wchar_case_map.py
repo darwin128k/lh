@@ -20,7 +20,7 @@ by #if LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE:
          even reach — that fallback (and the c > 0xFFFF check) is compiled out entirely
          on a platform where LH_WCHAR_T_MAX already can't exceed 0xFFFF.
   - OFF: the original single sorted sparse pair table covering every code point, via
-         lh_interval_ropen_binary_search() from lh/util/interval.h. O(log n) per
+         lh_interval_ropen_binary_search() from lh/core/util/interval.h. O(log n) per
          character (~11 comparisons for the current ~1.4k entries per direction). The
          supplementary-plane tail of each table is guarded by #if LH_WCHAR_T_MAX > 0xFFFF,
          since lh_wchar_case_pair_t holds lh_wchar_t.
@@ -31,7 +31,7 @@ script aborts if that ever stops holding, since the two-level table's stage-2 en
 stored as 16-bit values and could not represent a supplementary-plane target.
 
 Input: tools/data/unicode/UnicodeData-16.0.0.txt
-Output: src/lh/util/wstr/case/map.c
+Output: src/lh/core/util/wstr/case/map.c
 """
 
 from __future__ import annotations
@@ -235,14 +235,14 @@ def emit_c(
         " * (include/lh/config.h) — see that option's doc comment in cmake/library_options.cmake.",
         " */",
         "",
-        "#include <lh/util/wstr/ptr.h>",
-        "#include <lh/util/interval.h>",
-        "#include <lh/wchar/case/pair.h>",
-        "#include <lh/wchar.h>",
-        "#include <lh/numeric/fixed/types.h>",
-        "#include <lh/assert.h>",
+        "#include <lh/core/util/wstr/ptr.h>",
+        "#include <lh/core/util/interval.h>",
+        "#include <lh/core/wchar/case/pair.h>",
+        "#include <lh/core/wchar.h>",
+        "#include <lh/core/numeric/fixed/types.h>",
+        "#include <lh/core/assert.h>",
         "#include <lh/config.h>",
-        "#include <lh/foreach.h>",
+        "#include <lh/core/foreach.h>",
         "",
         "#if LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE",
         "",

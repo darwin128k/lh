@@ -165,7 +165,7 @@
 
 /**
  * @def LH_LIBRARY_OPTION_JS
- * @brief Compile the lh/web/js JavaScript engine (`lh/web/js.h`) into lh
+ * @brief Compile the lh/core/web/js JavaScript engine (`lh/core/web/js.h`) into lh
  *        (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).
  */
 #define LH_LIBRARY_OPTION_JS @ValJs@

@@ -1,12 +1,12 @@
 #include <lh/os/system/net/socket.h>
-#include <lh/attribute/unused.h>
-#include <lh/assert.h>
+#include <lh/core/attribute/unused.h>
+#include <lh/core/assert.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/net/socket/addr.h>
 #include <lh/os/system/win/ws2_32.h>
 #include <lh/os/system/win/kernel32.h>
-#include <lh/math.h>
-#include <lh/util/return.h>
+#include <lh/core/math.h>
+#include <lh/core/util/return.h>
 
 LH_ATTRIBUTE_STATIC
 lh_os_system_win_socket_t

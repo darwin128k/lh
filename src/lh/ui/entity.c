@@ -2,11 +2,11 @@
  * @file entity.c
  * @brief Implementation of `lh/ui/entity.h`.
  */
-#include <lh/assert.h>
-#include <lh/attribute/unused.h>
+#include <lh/core/assert.h>
+#include <lh/core/attribute/unused.h>
 
 #include <lh/ui/view.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_void
 lh_ui_entity_init(lh_ui_entity_t *self, lh_ui_rect_t rect)

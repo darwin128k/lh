@@ -3,10 +3,10 @@
  * @brief The library's own interface: which lh this binary is.
  *
  * Not an umbrella, and deliberately not one. Nothing here pulls in a subsystem.
- * Each of those has its own door — `lh/math.h`, `lh/memory.h`, `lh/os.h`,
- * `lh/ui.h`, `lh/str.h` — so a program includes what it uses and nothing else.
+ * Each of those has its own door — `lh/core/math.h`, `lh/core/memory.h`, `lh/os.h`,
+ * `lh/ui.h`, `lh/core/str.h` — so a program includes what it uses and nothing else.
  *
- * `lh/version.h` is a different thing and does not answer this question. That is
+ * `lh/core/version.h` is a different thing and does not answer this question. That is
  * the version *value type*: assign, set components, compare, format, parse over a
  * version the caller built. This header answers the one question only the
  * compiled library can answer, which version of lh this binary is.
@@ -16,7 +16,7 @@
 #ifndef LH_H
 #define LH_H
 
-#include <lh/version.h>
+#include <lh/core/version.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

@@ -14,11 +14,11 @@
  * `_MOTIF_WM_HINTS` for a window that draws its own frame.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/attribute/unused.h>
-#include <lh/char/map.h>
-#include <lh/byte/ptr.h>
-#include <lh/memory.h>
+#include <lh/core/assert/runtime.h>
+#include <lh/core/attribute/unused.h>
+#include <lh/core/char/map.h>
+#include <lh/core/byte/ptr.h>
+#include <lh/core/memory.h>
 #include <lh/os/alloc.h>
 #include <lh/os/system/posix/connection.h>
 #include <lh/os/system/posix/input.h>
@@ -31,8 +31,8 @@
 #include <lh/os/system/window.h>
 #include <lh/os/tick.h>
 #include <lh/os/window.h>
-#include <lh/runtime/allocator.h>
-#include <lh/util/return.h>
+#include <lh/core/runtime/allocator.h>
+#include <lh/core/util/return.h>
 
 #include <poll.h>
 

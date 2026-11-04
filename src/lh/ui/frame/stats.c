@@ -2,10 +2,10 @@
  * @file stats.c
  * @brief Implementation of `lh/ui/frame/stats.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 #include <lh/ui/frame/stats.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_void
 lh_ui_frame_stats_init(lh_ui_frame_stats_t *self)

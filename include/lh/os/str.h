@@ -21,14 +21,14 @@
 #ifndef LH_OS_STR_H
 #define LH_OS_STR_H
 
-#include <lh/compiler/os.h>
+#include <lh/core/compiler/os.h>
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-#    include <lh/util/wstr/ptr.h>
-#    include <lh/wchar.h>
-#    include <lh/wstr.h>
-#    include <lh/wstr/ptr.h>
-#    include <lh/wstr/view.h>
+#    include <lh/core/util/wstr/ptr.h>
+#    include <lh/core/wchar.h>
+#    include <lh/core/wstr.h>
+#    include <lh/core/wstr/ptr.h>
+#    include <lh/core/wstr/view.h>
 
 /**
  * @def LH_OS_STR_WIDE
@@ -81,11 +81,11 @@ typedef lh_wstr_view_t lh_os_str_view_t;
 /** @brief Length of NUL-terminated OS text, in code units. */
 #    define lh_os_str_ptr_len(text) lh_wstr_ptr_len(text)
 #else
-#    include <lh/char.h>
-#    include <lh/str.h>
-#    include <lh/str/ptr.h>
-#    include <lh/str/view.h>
-#    include <lh/util/str/ptr.h>
+#    include <lh/core/char.h>
+#    include <lh/core/str.h>
+#    include <lh/core/str/ptr.h>
+#    include <lh/core/str/view.h>
+#    include <lh/core/util/str/ptr.h>
 
 /**
  * @def LH_OS_STR_WIDE

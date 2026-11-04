@@ -2,17 +2,17 @@
  * @file pixmap.c
  * @brief Implementation of `lh/ui/pixmap.h`.
  */
-#include <lh/assert.h>
-#include <lh/attribute/unused.h>
+#include <lh/core/assert.h>
+#include <lh/core/attribute/unused.h>
 
-#include <lh/bit/bswap.h>
-#include <lh/byte/limits.h>
-#include <lh/cpu/simd.h>
-#include <lh/math.h>
-#include <lh/memory.h>
-#include <lh/numeric/float.h>
+#include <lh/core/bit/bswap.h>
+#include <lh/core/byte/limits.h>
+#include <lh/core/cpu/simd.h>
+#include <lh/core/math.h>
+#include <lh/core/memory.h>
+#include <lh/core/numeric/float.h>
 #include <lh/ui/pixmap.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 #    include <immintrin.h>

@@ -6,7 +6,7 @@
 #ifndef LH_SRC_OS_SYSTEM_WIN_WS2_32_WSADATA_FIELDS_H
 #define LH_SRC_OS_SYSTEM_WIN_WS2_32_WSADATA_FIELDS_H
 
-#include <lh/compiler/arch.h>
+#include <lh/core/compiler/arch.h>
 
 /**
  * @def lh_os_system_win_wsadata_fields(word_type, ushort_type, char_type)

@@ -6,7 +6,7 @@
 #ifndef LH_UI_LAYOUT_PLACE_INITIALIZER_H
 #define LH_UI_LAYOUT_PLACE_INITIALIZER_H
 
-#include <lh/initializer.h>
+#include <lh/core/initializer.h>
 
 /**
  * @def lh_ui_place_initializer(size_mode, size, align, margin, min, max)

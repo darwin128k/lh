@@ -8,7 +8,7 @@
 #ifndef LH_UI_BUTTON_ON_CLICK_FN_H
 #define LH_UI_BUTTON_ON_CLICK_FN_H
 
-#include <lh/ptr.h>
+#include <lh/core/ptr.h>
 
 struct lh_ui_button;
 
@@ -24,4 +24,4 @@ struct lh_ui_button;
  */
 typedef lh_void(lh_ui_button_on_click_fn)(struct lh_ui_button *self, lh_ptr context);
 
-#endif /* LH_UI_BUTTON_ON_CLICK_FN_H */
+#endif /* LH_UI_BUTTON_ON_CLICK_FN_H */

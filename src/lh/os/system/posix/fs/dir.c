@@ -1,10 +1,10 @@
 #include <lh/os/system/fs/dir.h>
-#include <lh/attribute/unused.h>
-#include <lh/assert.h>
-#include <lh/attribute/static.h>
+#include <lh/core/attribute/unused.h>
+#include <lh/core/assert.h>
+#include <lh/core/attribute/static.h>
 #include <lh/os/system/error/capture.h>
-#include <lh/math.h>
-#include <lh/util/str/ptr.h>
+#include <lh/core/math.h>
+#include <lh/core/util/str/ptr.h>
 
 #include <dirent.h>
 #include <errno.h>

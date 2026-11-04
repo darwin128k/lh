@@ -1,14 +1,14 @@
 #include <lh/os/system/win/fs/dir/state.h>
-#include <lh/attribute/unused.h>
+#include <lh/core/attribute/unused.h>
 #include <lh/os/system/fs/dir.h>
-#include <lh/assert.h>
-#include <lh/char/slash.h>
+#include <lh/core/assert.h>
+#include <lh/core/char/slash.h>
 #include <lh/os/alloc.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/str.h>
 #include <lh/os/system/win/fs/kind.h>
-#include <lh/runtime/allocator.h>
-#include <lh/util/wstr/ptr.h>
+#include <lh/core/runtime/allocator.h>
+#include <lh/core/util/wstr/ptr.h>
 
 LH_ATTRIBUTE_STATIC
 struct lh_os_system_fs_dir_state *

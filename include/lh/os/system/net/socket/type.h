@@ -11,7 +11,7 @@
 #ifndef LH_OS_SYSTEM_NET_SOCKET_TYPE_H
 #define LH_OS_SYSTEM_NET_SOCKET_TYPE_H
 
-#include <lh/numeric/fixed/types.h>
+#include <lh/core/numeric/fixed/types.h>
 
 /**
  * @typedef lh_os_system_net_socket_type_t

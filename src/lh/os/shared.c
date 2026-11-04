@@ -1,7 +1,7 @@
-#include <lh/assert.h>
-#include <lh/attribute/static.h>
+#include <lh/core/assert.h>
+#include <lh/core/attribute/static.h>
 #include <lh/os.h>
-#include <lh/memory.h>
+#include <lh/core/memory.h>
 #include <lh/os/error/code.h>
 #include <lh/os/system/fs/path.h>
 #include <lh/os/system/shared.h>

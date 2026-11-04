@@ -23,7 +23,7 @@
 #include <gtest/gtest.h>
 #include <lh/config.h>
 
-#include <lh/runtime/assert.h>
+#include <lh/core/runtime/assert.h>
 
 /**
  * LH_TEST_EXPECT_DEATH_SKIP(stmt): compile @p stmt behind `if (false)` and never run

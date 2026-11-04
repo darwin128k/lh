@@ -1,8 +1,8 @@
 #include <lh/os/net/socket.h>
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 #include <lh/os/system/net/socket.h>
-#include <lh/math.h>
-#include <lh/util/return.h>
+#include <lh/core/math.h>
+#include <lh/core/util/return.h>
 
 lh_void
 lh_os_net_socket_init(lh_os_net_socket_t *self)

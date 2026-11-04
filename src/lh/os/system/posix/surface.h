@@ -6,10 +6,10 @@
 #ifndef LH_SRC_OS_SYSTEM_POSIX_SURFACE_H
 #define LH_SRC_OS_SYSTEM_POSIX_SURFACE_H
 
-#include <lh/bool.h>
+#include <lh/core/bool.h>
 #include <lh/os/system/posix/surface/fields.h>
-#include <lh/size.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/size.h>
+#include <lh/core/compiler/extern/c.h>
 
 /** @brief A surface: its pixels and what they look like. */
 struct lh_os_system_posix_surface

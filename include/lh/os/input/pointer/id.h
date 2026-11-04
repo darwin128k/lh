@@ -6,7 +6,7 @@
 #ifndef LH_OS_INPUT_POINTER_ID_H
 #define LH_OS_INPUT_POINTER_ID_H
 
-#include <lh/numeric/fixed/types.h>
+#include <lh/core/numeric/fixed/types.h>
 
 /**
  * @typedef lh_os_input_pointer_id_t

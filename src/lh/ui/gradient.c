@@ -2,14 +2,14 @@
  * @file gradient.c
  * @brief Implementation of lh/ui/gradient.h and lh/ui/gradient/stop.h.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
-#include <lh/math.h>
-#include <lh/byte/limits.h>
+#include <lh/core/math.h>
+#include <lh/core/byte/limits.h>
 #include <lh/config.h>
 #include <lh/ui/gradient.h>
 #include <lh/ui/gradient/sine.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 /* -- Stop ------------------------------------------------------------------ */
 

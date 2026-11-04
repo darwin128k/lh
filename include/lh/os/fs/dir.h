@@ -19,7 +19,7 @@
 #define LH_OS_FS_DIR_H
 
 #include <lh/config.h>
-#include <lh/fs/path.h>
+#include <lh/core/fs/path.h>
 #include <lh/os/fs/dir/entry/kind.h>
 #include <lh/os/result.h>
 #include <lh/os/system/fs/dir/handle.h>

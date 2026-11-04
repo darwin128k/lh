@@ -4,9 +4,9 @@
  */
 
 #include <lh/os/thread/group/member.h>
-#include <lh/assert/runtime.h>
-#include <lh/util/return.h>
-#include <lh/runtime/allocator.h>
+#include <lh/core/assert/runtime.h>
+#include <lh/core/util/return.h>
+#include <lh/core/runtime/allocator.h>
 
 const lh_memory_allocator_t *
 lh_os_thread_group_member_get_allocator(const lh_os_thread_group_member_t *self)

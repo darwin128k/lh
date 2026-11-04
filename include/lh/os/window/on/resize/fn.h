@@ -8,7 +8,7 @@
 #ifndef LH_OS_WINDOW_ON_RESIZE_FN_H
 #define LH_OS_WINDOW_ON_RESIZE_FN_H
 
-#include <lh/ptr.h>
+#include <lh/core/ptr.h>
 
 struct lh_os_window;
 
@@ -27,4 +27,4 @@ struct lh_os_window;
 typedef lh_void(lh_os_window_on_resize_fn)(struct lh_os_window *self, int width, int height,
                                            lh_ptr context);
 
-#endif /* LH_OS_WINDOW_ON_RESIZE_FN_H */
+#endif /* LH_OS_WINDOW_ON_RESIZE_FN_H */

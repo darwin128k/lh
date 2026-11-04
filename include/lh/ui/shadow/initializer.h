@@ -6,7 +6,7 @@
 #ifndef LH_UI_SHADOW_INITIALIZER_H
 #define LH_UI_SHADOW_INITIALIZER_H
 
-#include <lh/initializer.h>
+#include <lh/core/initializer.h>
 
 /**
  * @def lh_ui_shadow_initializer(color, spread, offset_x, offset_y)

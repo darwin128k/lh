@@ -7,7 +7,7 @@
 #define LH_OS_MODULE_CB_H
 
 #include <lh/os/module/fn.h>
-#include <lh/util/ptr.h>
+#include <lh/core/util/ptr.h>
 
 /**
  * @def lh_os_module_start_cb

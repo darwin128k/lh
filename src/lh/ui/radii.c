@@ -2,9 +2,9 @@
  * @file radii.c
  * @brief Implementation of `lh/ui/radii.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
-#include <lh/math.h>
+#include <lh/core/math.h>
 #include <lh/ui/radii.h>
 #include <lh/ui/radius.h>
 

@@ -6,7 +6,6 @@
 #ifndef LH_SRC_OS_THREAD_GROUP_MEMBER_H
 #define LH_SRC_OS_THREAD_GROUP_MEMBER_H
 
-#include <lh/memory/allocator.h>
 #include <lh/os/thread/group.h>
 
 /** @brief One thread of a group. */

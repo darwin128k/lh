@@ -3,9 +3,9 @@
  * @brief Implementation of `lh/os/input/contacts.h`.
  */
 
-#include <lh/assert/runtime.h>
+#include <lh/core/assert/runtime.h>
 #include <lh/os/input/contacts.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_void
 lh_os_input_contacts_init(lh_os_input_contacts_t *self)

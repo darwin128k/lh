@@ -4,7 +4,7 @@
  */
 
 #include <lh/ui/web/host/deadline.h>
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 #include <lh/os/tick.h>
 
 lh_os_net_socket_t *

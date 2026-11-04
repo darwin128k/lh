@@ -6,7 +6,7 @@
 #ifndef LH_OS_INPUT_RECOGNIZER_PTR_H
 #define LH_OS_INPUT_RECOGNIZER_PTR_H
 
-#include <lh/util/ptr.h>
+#include <lh/core/util/ptr.h>
 
 struct lh_os_input_recognizer;
 

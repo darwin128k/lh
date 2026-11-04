@@ -6,11 +6,11 @@
 #ifndef LH_SRC_OS_SYSTEM_WIN_SERIAL_H
 #define LH_SRC_OS_SYSTEM_WIN_SERIAL_H
 
-#include <lh/bool.h>
+#include <lh/core/bool.h>
 #include <lh/os/serial/parity.h>
 #include <lh/os/system/serial/handle.h>
 #include <lh/os/system/win/kernel32.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/compiler/extern/c.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

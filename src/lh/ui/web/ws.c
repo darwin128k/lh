@@ -5,7 +5,7 @@
 
 #include <lh/ui/web/ws.h>
 
-#include <lh/math.h>
+#include <lh/core/math.h>
 
 lh_bool_t
 lh_ui_web_ws_is_ok_opcode(lh_uint_t opcode)

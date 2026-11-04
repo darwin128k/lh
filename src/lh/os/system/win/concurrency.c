@@ -4,7 +4,7 @@
 #include <windows.h>
 #include <process.h>
 #include <errno.h>
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 /**
  * @brief Capture a Win32 failure on this thread and return false.

@@ -1,11 +1,11 @@
 #include <lh/os/fs/file.h>
-#include <lh/char/map.h>
-#include <lh/assert.h>
-#include <lh/cast/const.h>
+#include <lh/core/char/map.h>
+#include <lh/core/assert.h>
+#include <lh/core/cast/const.h>
 #include <lh/os/fs/path.h>
 #include <lh/os/system/fs/file.h>
 #include <lh/os/system/fs/path.h>
-#include <lh/math.h>
+#include <lh/core/math.h>
 
 #include <stdarg.h>
 

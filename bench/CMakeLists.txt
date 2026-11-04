@@ -38,52 +38,52 @@ add_subdirectory(${LH_BENCH_LIB_PATH}/benchmark)
 
 set(LH_BENCH_SOURCES
         ${LH_BENCH_SRC_PATH}/main.cpp
-        ${LH_BENCH_SRC_PATH}/lh/memory/std.cpp
-        ${LH_BENCH_SRC_PATH}/lh/http.cpp
-        ${LH_BENCH_SRC_PATH}/lh/array.cpp
-        ${LH_BENCH_SRC_PATH}/lh/list.cpp
-        ${LH_BENCH_SRC_PATH}/lh/str.cpp
-        ${LH_BENCH_SRC_PATH}/lh/str/format/uint.cpp
-        ${LH_BENCH_SRC_PATH}/lh/str/format/sint.cpp
-        ${LH_BENCH_SRC_PATH}/lh/str/format/hex.cpp
-        ${LH_BENCH_SRC_PATH}/lh/str/format/text.cpp
-        ${LH_BENCH_SRC_PATH}/lh/str/parse/uint.cpp
-        ${LH_BENCH_SRC_PATH}/lh/str/parse/hex.cpp
-        ${LH_BENCH_SRC_PATH}/lh/error.cpp
-        ${LH_BENCH_SRC_PATH}/lh/werror.cpp
-        ${LH_BENCH_SRC_PATH}/lh/date.cpp
-        ${LH_BENCH_SRC_PATH}/lh/time.cpp
-        ${LH_BENCH_SRC_PATH}/lh/datetime.cpp
-        ${LH_BENCH_SRC_PATH}/lh/str/format/bytes.cpp
-        ${LH_BENCH_SRC_PATH}/lh/crypto/sha.cpp
-        ${LH_BENCH_SRC_PATH}/lh/crypto/rijndael.cpp
-        ${LH_BENCH_SRC_PATH}/lh/compress/deflate.cpp
-        ${LH_BENCH_SRC_PATH}/lh/str/view.cpp
-        ${LH_BENCH_SRC_PATH}/lh/str/ptr.cpp
-        ${LH_BENCH_SRC_PATH}/lh/web/escape.cpp
-        ${LH_BENCH_SRC_PATH}/lh/str/split/next.cpp
-        ${LH_BENCH_SRC_PATH}/lh/wstr/ptr.cpp
-        ${LH_BENCH_SRC_PATH}/lh/wstr/view.cpp
-        ${LH_BENCH_SRC_PATH}/lh/net/ip.cpp
-        ${LH_BENCH_SRC_PATH}/lh/net/port.cpp
-        ${LH_BENCH_SRC_PATH}/lh/net/socket/addr.cpp
-        ${LH_BENCH_SRC_PATH}/lh/net/modbus.cpp
-        ${LH_BENCH_SRC_PATH}/lh/io/stream.cpp
-        ${LH_BENCH_SRC_PATH}/lh/memory/allocator.cpp
-        ${LH_BENCH_SRC_PATH}/lh/memory/bounds.cpp
-        ${LH_BENCH_SRC_PATH}/lh/memory/bounds/allocated.cpp
-        ${LH_BENCH_SRC_PATH}/lh/memory/typed.cpp
-        ${LH_BENCH_SRC_PATH}/lh/memory/typed/allocated.cpp
-        ${LH_BENCH_SRC_PATH}/lh/memory/view.cpp
-        ${LH_BENCH_SRC_PATH}/lh/bit/scan.cpp
-        ${LH_BENCH_SRC_PATH}/lh/bit/bswap.cpp
-        ${LH_BENCH_SRC_PATH}/lh/bit/rotate.cpp
-        ${LH_BENCH_SRC_PATH}/lh/bit/endian.cpp
-        ${LH_BENCH_SRC_PATH}/lh/math/rect.cpp
-        ${LH_BENCH_SRC_PATH}/lh/fs/path.cpp
-        ${LH_BENCH_SRC_PATH}/lh/logger.cpp
-        ${LH_BENCH_SRC_PATH}/lh/timestamp.cpp
-        ${LH_BENCH_SRC_PATH}/lh/timer.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/memory/std.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/http.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/array.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/list.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/str.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/str/format/uint.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/str/format/sint.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/str/format/hex.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/str/format/text.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/str/parse/uint.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/str/parse/hex.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/error.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/werror.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/date.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/time.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/datetime.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/str/format/bytes.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/crypto/sha.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/crypto/rijndael.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/compress/deflate.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/str/view.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/str/ptr.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/web/escape.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/str/split/next.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/wstr/ptr.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/wstr/view.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/net/ip.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/net/port.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/net/socket/addr.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/net/modbus.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/io/stream.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/memory/allocator.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/memory/bounds.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/memory/bounds/allocated.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/memory/typed.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/memory/typed/allocated.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/memory/view.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/bit/scan.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/bit/bswap.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/bit/rotate.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/bit/endian.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/math/rect.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/fs/path.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/logger.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/timestamp.cpp
+        ${LH_BENCH_SRC_PATH}/lh/core/timer.cpp
 )
 
 # The software renderer, the entity tree and the web canvas. One frame of a real
@@ -100,9 +100,9 @@ endif ()
 # Float math (vec/quat/mat4) is only in the library when MATH_FPU is ON.
 if (LH_LIBRARY_OPTION_MATH_FPU)
     list(APPEND LH_BENCH_SOURCES
-            ${LH_BENCH_SRC_PATH}/lh/math/vec3.cpp
-            ${LH_BENCH_SRC_PATH}/lh/math/mat4.cpp
-            ${LH_BENCH_SRC_PATH}/lh/math/quat.cpp
+            ${LH_BENCH_SRC_PATH}/lh/core/math/vec3.cpp
+            ${LH_BENCH_SRC_PATH}/lh/core/math/mat4.cpp
+            ${LH_BENCH_SRC_PATH}/lh/core/math/quat.cpp
     )
 endif ()
 

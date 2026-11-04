@@ -24,12 +24,12 @@
 #ifndef LH_TEST_UI_TINY_FONT_H
 #define LH_TEST_UI_TINY_FONT_H
 
-#include <lh/byte.h>
-#include <lh/null.h>
+#include <lh/core/byte.h>
+#include <lh/core/null.h>
 #include <lh/ui/font.h>
 #include <lh/ui/font/range.h>
 #include <lh/ui/mask.h>
-#include <lh/util/addr.h>
+#include <lh/core/util/addr.h>
 
 namespace lh_test
 {
@@ -148,4 +148,4 @@ split_font()
 
 } // namespace lh_test
 
-#endif /* LH_TEST_UI_TINY_FONT_H */
+#endif /* LH_TEST_UI_TINY_FONT_H */

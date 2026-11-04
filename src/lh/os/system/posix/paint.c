@@ -5,7 +5,7 @@
 
 #include <lh/os/system/posix/paint.h>
 
-#include <lh/assert/runtime.h>
+#include <lh/core/assert/runtime.h>
 
 const lh_os_system_posix_x11_t *
 lh_os_system_posix_paint_get_x11(const lh_os_system_posix_paint_t *self)

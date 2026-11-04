@@ -15,9 +15,9 @@
 #ifndef LH_UI_WEB_APP_STREAM_ROUTE_FN_H
 #define LH_UI_WEB_APP_STREAM_ROUTE_FN_H
 
-#include <lh/http/header.h>
-#include <lh/http/request.h>
-#include <lh/io/reader.h>
+#include <lh/core/http/header.h>
+#include <lh/core/http/request.h>
+#include <lh/core/io/reader.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

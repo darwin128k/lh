@@ -9,9 +9,9 @@
 #ifndef LH_OS_CONTROLLER_HANDLERS_HANDLE_FN_H
 #define LH_OS_CONTROLLER_HANDLERS_HANDLE_FN_H
 
-#include <lh/bool.h>
+#include <lh/core/bool.h>
 #include <lh/os/input/event/ptr.h>
-#include <lh/self.h>
+#include <lh/core/self.h>
 
 /**
  * @typedef lh_os_controller_handlers_handle_fn

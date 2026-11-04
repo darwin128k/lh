@@ -1,6 +1,6 @@
 #include <lh/sql/mysql/conn.h>
-#include <lh/assert.h>
-#include <lh/runtime/allocator.h>
+#include <lh/core/assert.h>
+#include <lh/core/runtime/allocator.h>
 
 const lh_sql_mysql_api_t *
 lh_sql_mysql_conn_get_api(const lh_sql_mysql_conn_t *self)

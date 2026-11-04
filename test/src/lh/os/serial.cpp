@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <lh/net/modbus/link.h>
+#include <lh/core/net/modbus/link.h>
 #include <lh/os/serial.h>
 
 #include <cstring>

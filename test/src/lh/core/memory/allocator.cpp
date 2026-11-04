@@ -1,0 +1,577 @@
+#include <gtest/gtest.h>
+
+#include <lh/core/attribute/unused.h>
+#include <lh/core/cast/const.h>
+#include <lh/core/size/limits.h>
+#include <lh/expect/death.h>
+#include <lh/config.h>
+#include <lh/core/memory/allocator.h>
+#include <lh/core/memory/allocator/initializer.h>
+
+#include <cstdlib>
+#include <cstring>
+
+namespace
+{
+
+lh_usize_t g_test_alloc_last_size = 0;
+int g_test_alloc_calls = 0;
+int g_test_dealloc_calls = 0;
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+lh_ptr
+test_alloc_malloc(lh_self_ptr self, lh_usize_t size)
+{
+    LH_ATTRIBUTE_UNUSED(self);
+    ++g_test_alloc_calls;
+    g_test_alloc_last_size = size;
+    return lh_cast_static(lh_ptr, std::malloc(lh_cast_static(std::size_t, size)));
+}
+
+lh_void
+test_dealloc_free(lh_self_ptr self, lh_ptr ptr)
+{
+    LH_ATTRIBUTE_UNUSED(self);
+    ++g_test_dealloc_calls;
+    std::free(ptr);
+}
+
+lh_void
+test_dealloc_alt(lh_self_ptr self, lh_ptr ptr)
+{
+    LH_ATTRIBUTE_UNUSED(self);
+    std::free(ptr);
+}
+
+lh_ptr
+test_alloc_other(lh_self_ptr self, lh_usize_t size)
+{
+    LH_ATTRIBUTE_UNUSED(self);
+    LH_ATTRIBUTE_UNUSED(size);
+    return lh_cast_static(lh_ptr, std::malloc(1));
+}
+
+lh_ptr
+test_alloc_always_null(lh_self_ptr self, lh_usize_t size)
+{
+    LH_ATTRIBUTE_UNUSED(self);
+    LH_ATTRIBUTE_UNUSED(size);
+    return nullptr;
+}
+
+int g_test_realloc_calls = 0;
+
+lh_ptr
+test_realloc(lh_self_ptr self, lh_ptr ptr, lh_usize_t old_size, lh_usize_t size)
+{
+    LH_ATTRIBUTE_UNUSED(self);
+    LH_ATTRIBUTE_UNUSED(old_size);
+    ++g_test_realloc_calls;
+    return std::realloc(ptr, lh_cast_static(std::size_t, size));
+}
+
+lh_ptr
+test_realloc_always_null(lh_self_ptr self, lh_ptr ptr, lh_usize_t old_size, lh_usize_t size)
+{
+    LH_ATTRIBUTE_UNUSED(self);
+    LH_ATTRIBUTE_UNUSED(old_size);
+    LH_ATTRIBUTE_UNUSED(ptr);
+    LH_ATTRIBUTE_UNUSED(size);
+    return nullptr;
+}
+
+/* A stateful allocator: everything it does is recorded in its context. */
+struct test_counting_heap
+{
+    int allocs;
+    int deallocs;
+    int reallocs;
+    lh_usize_t last_old_size;
+    lh_usize_t last_new_size;
+};
+
+lh_ptr
+test_heap_alloc(lh_self_ptr self, lh_usize_t size)
+{
+    ++lh_cast_static(test_counting_heap *, self)->allocs;
+    return std::malloc(lh_cast_static(std::size_t, size));
+}
+
+lh_void
+test_heap_dealloc(lh_self_ptr self, lh_ptr ptr)
+{
+    ++lh_cast_static(test_counting_heap *, self)->deallocs;
+    std::free(ptr);
+}
+
+lh_ptr
+test_heap_realloc(lh_self_ptr self, lh_ptr ptr, lh_usize_t old_size, lh_usize_t new_size)
+{
+    test_counting_heap *heap = lh_cast_static(test_counting_heap *, self);
+    ++heap->reallocs;
+    heap->last_old_size = old_size;
+    heap->last_new_size = new_size;
+    return std::realloc(ptr, lh_cast_static(std::size_t, new_size));
+}
+
+LH_COMPILER_EXTERN_C_END
+
+TEST(memory_allocator_context, reaches_every_callback)
+{
+    test_counting_heap heap = {};
+    lh_memory_allocator_t a = lh_memory_allocator_empty_initializer();
+    lh_memory_allocator_set(&a, test_heap_alloc, test_heap_dealloc);
+    lh_memory_allocator_set_realloc_cb(&a, test_heap_realloc);
+    lh_memory_allocator_set_context(&a, &heap);
+    EXPECT_EQ(lh_memory_allocator_get_context(&a), static_cast<lh_ptr>(&heap));
+
+    lh_ptr p = lh_memory_allocator_alloc(&a, 16);
+    ASSERT_NE(p, nullptr);
+    p = lh_memory_allocator_realloc(&a, p, 16, 64);
+    ASSERT_NE(p, nullptr);
+    lh_memory_allocator_dealloc(&a, p);
+
+    EXPECT_EQ(heap.allocs, 1);
+    EXPECT_EQ(heap.reallocs, 1);
+    EXPECT_EQ(heap.deallocs, 1);
+    EXPECT_EQ(heap.last_old_size, 16u); // realloc learns the block's current size
+    EXPECT_EQ(heap.last_new_size, 64u);
+}
+
+TEST(memory_allocator_context, two_allocators_keep_separate_state)
+{
+    test_counting_heap first = {};
+    test_counting_heap second = {};
+    lh_memory_allocator_t a = lh_memory_allocator_initializer_with_context(
+        test_heap_alloc, test_heap_dealloc, lh_null, &first);
+    lh_memory_allocator_t b = lh_memory_allocator_initializer_with_context(
+        test_heap_alloc, test_heap_dealloc, lh_null, &second);
+
+    lh_memory_allocator_dealloc(&a, lh_memory_allocator_alloc(&a, 8));
+    lh_memory_allocator_dealloc(&a, lh_memory_allocator_alloc(&a, 8));
+    lh_memory_allocator_dealloc(&b, lh_memory_allocator_alloc(&b, 8));
+
+    EXPECT_EQ(first.allocs, 2);
+    EXPECT_EQ(first.deallocs, 2);
+    EXPECT_EQ(second.allocs, 1);
+    EXPECT_EQ(second.deallocs, 1);
+}
+
+TEST(memory_allocator_context, assign_copies_it_init_and_deinit_clear_it)
+{
+    test_counting_heap heap = {};
+    lh_memory_allocator_t a = lh_memory_allocator_initializer_with_context(
+        test_heap_alloc, test_heap_dealloc, lh_null, &heap);
+    lh_memory_allocator_t b = lh_memory_allocator_empty_initializer();
+    EXPECT_EQ(lh_memory_allocator_get_context(&b), nullptr);
+
+    lh_memory_allocator_assign(&b, &a);
+    EXPECT_EQ(lh_memory_allocator_get_context(&b), static_cast<lh_ptr>(&heap));
+
+    lh_memory_allocator_init(&b, test_heap_alloc, test_heap_dealloc);
+    EXPECT_EQ(lh_memory_allocator_get_context(&b), nullptr);
+
+    lh_memory_allocator_deinit(&a);
+    EXPECT_EQ(lh_memory_allocator_get_context(&a), nullptr);
+}
+
+TEST(memory_allocator_set_alloc_cb, keeps_dealloc)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_initializer(test_alloc_malloc, test_dealloc_free);
+    lh_memory_allocator_set_alloc_cb(&a, test_alloc_other);
+    EXPECT_EQ(lh_memory_allocator_get_alloc_cb(&a), test_alloc_other);
+    EXPECT_EQ(lh_memory_allocator_get_dealloc_cb(&a), test_dealloc_free);
+}
+
+TEST(memory_allocator_set_dealloc_cb, keeps_alloc)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_initializer(test_alloc_malloc, test_dealloc_free);
+    lh_memory_allocator_set_dealloc_cb(&a, test_dealloc_alt);
+    EXPECT_EQ(lh_memory_allocator_get_alloc_cb(&a), test_alloc_malloc);
+    EXPECT_EQ(lh_memory_allocator_get_dealloc_cb(&a), test_dealloc_alt);
+}
+
+TEST(memory_allocator_getters, return_stored_callbacks)
+{
+    const lh_memory_allocator_t a =
+        lh_memory_allocator_initializer(test_alloc_malloc, test_dealloc_free);
+    EXPECT_EQ(lh_memory_allocator_get_alloc_cb(&a), test_alloc_malloc);
+    EXPECT_EQ(lh_memory_allocator_get_dealloc_cb(&a), test_dealloc_free);
+}
+
+TEST(memory_allocator_init, matches_set)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_empty_initializer();
+    lh_memory_allocator_t b = lh_memory_allocator_empty_initializer();
+    lh_memory_allocator_init(&a, test_alloc_malloc, test_dealloc_free);
+    lh_memory_allocator_set(&b, test_alloc_malloc, test_dealloc_free);
+    EXPECT_EQ(lh_memory_allocator_get_alloc_cb(&a), lh_memory_allocator_get_alloc_cb(&b));
+    EXPECT_EQ(lh_memory_allocator_get_dealloc_cb(&a), lh_memory_allocator_get_dealloc_cb(&b));
+}
+
+TEST(memory_allocator_deinit, clears_callbacks)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_initializer(test_alloc_malloc, test_dealloc_free);
+    lh_memory_allocator_deinit(&a);
+    EXPECT_EQ(lh_memory_allocator_get_alloc_cb(&a), nullptr);
+    EXPECT_EQ(lh_memory_allocator_get_dealloc_cb(&a), nullptr);
+}
+
+TEST(memory_allocator_alloc_dealloc, roundtrip_with_malloc_free)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_empty_initializer();
+    g_test_alloc_calls = 0;
+    g_test_dealloc_calls = 0;
+    lh_memory_allocator_set(&a, test_alloc_malloc, test_dealloc_free);
+
+    lh_ptr p = lh_memory_allocator_alloc(&a, 32);
+    ASSERT_NE(p, nullptr);
+    EXPECT_EQ(g_test_alloc_calls, 1);
+    EXPECT_EQ(g_test_alloc_last_size, 32u);
+
+#if (LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED == LH_LIBRARY_OPTION_ON)
+    auto *bytes = lh_cast_static(unsigned char *, p);
+    for (lh_usize_t i = 0; i < 32; ++i)
+    {
+        EXPECT_EQ(bytes[i], 0u);
+    }
+#endif
+
+    std::memset(p, 0xAB, 32);
+    lh_memory_allocator_dealloc(&a, p);
+    EXPECT_EQ(g_test_dealloc_calls, 1);
+}
+
+TEST(memory_allocator_dealloc, null_pointer_noop)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_initializer(test_alloc_malloc, test_dealloc_free);
+    g_test_dealloc_calls = 0;
+    lh_memory_allocator_dealloc(&a, nullptr);
+    EXPECT_EQ(g_test_dealloc_calls, 0);
+}
+
+TEST(memory_allocator_realloc, same_size_returns_same_pointer)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_empty_initializer();
+    lh_memory_allocator_set(&a, test_alloc_malloc, test_dealloc_free);
+    lh_ptr p = lh_memory_allocator_alloc(&a, 16);
+    ASSERT_NE(p, nullptr);
+    lh_ptr q = lh_memory_allocator_realloc(&a, p, 16, 16);
+    EXPECT_EQ(q, p);
+    lh_memory_allocator_dealloc(&a, p);
+}
+
+TEST(memory_allocator_realloc, null_old_pointer_allocates)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_empty_initializer();
+    lh_memory_allocator_set(&a, test_alloc_malloc, test_dealloc_free);
+    lh_ptr p = lh_memory_allocator_realloc(&a, nullptr, 0, 24);
+    ASSERT_NE(p, nullptr);
+    lh_memory_allocator_dealloc(&a, p);
+}
+
+TEST(memory_allocator_realloc, zero_new_size_frees_and_returns_null)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_empty_initializer();
+    g_test_dealloc_calls = 0;
+    lh_memory_allocator_set(&a, test_alloc_malloc, test_dealloc_free);
+    lh_ptr p = lh_memory_allocator_alloc(&a, 8);
+    ASSERT_NE(p, nullptr);
+    lh_ptr r = lh_memory_allocator_realloc(&a, p, 8, 0);
+    EXPECT_EQ(r, nullptr);
+    EXPECT_EQ(g_test_dealloc_calls, 1);
+}
+
+TEST(memory_allocator_realloc, grows_and_copies_prefix)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_empty_initializer();
+    lh_memory_allocator_set(&a, test_alloc_malloc, test_dealloc_free);
+    lh_ptr p = lh_memory_allocator_alloc(&a, 4);
+    ASSERT_NE(p, nullptr);
+    auto *b = lh_cast_static(unsigned char *, p);
+    b[0] = 1;
+    b[1] = 2;
+    b[2] = 3;
+    b[3] = 4;
+
+    lh_ptr q = lh_memory_allocator_realloc(&a, p, 4, 8);
+    ASSERT_NE(q, nullptr);
+    auto *b2 = lh_cast_static(unsigned char *, q);
+    EXPECT_EQ(b2[0], 1u);
+    EXPECT_EQ(b2[1], 2u);
+    EXPECT_EQ(b2[2], 3u);
+    EXPECT_EQ(b2[3], 4u);
+
+    lh_memory_allocator_dealloc(&a, q);
+}
+
+TEST(memory_allocator_realloc_cb, two_arg_initializer_has_none)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_initializer(test_alloc_malloc, test_dealloc_free);
+    EXPECT_EQ(lh_memory_allocator_get_realloc_cb(&a), nullptr);
+}
+
+TEST(memory_allocator_realloc_cb, initializer_with_realloc_stores_it)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_initializer_with_realloc(
+        test_alloc_malloc, test_dealloc_free, test_realloc);
+    EXPECT_EQ(lh_memory_allocator_get_alloc_cb(&a), test_alloc_malloc);
+    EXPECT_EQ(lh_memory_allocator_get_dealloc_cb(&a), test_dealloc_free);
+    EXPECT_EQ(lh_memory_allocator_get_realloc_cb(&a), test_realloc);
+}
+
+TEST(memory_allocator_realloc_cb, set_and_get)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_initializer(test_alloc_malloc, test_dealloc_free);
+    lh_memory_allocator_set_realloc_cb(&a, test_realloc);
+    EXPECT_EQ(lh_memory_allocator_get_realloc_cb(&a), test_realloc);
+    lh_memory_allocator_set_realloc_cb(&a, nullptr);
+    EXPECT_EQ(lh_memory_allocator_get_realloc_cb(&a), nullptr);
+}
+
+TEST(memory_allocator_realloc_cb, changing_alloc_or_dealloc_drops_it)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_initializer_with_realloc(
+        test_alloc_malloc, test_dealloc_free, test_realloc);
+    lh_memory_allocator_set_alloc_cb(&a, test_alloc_other);
+    EXPECT_EQ(lh_memory_allocator_get_realloc_cb(&a), nullptr);
+
+    lh_memory_allocator_set_realloc_cb(&a, test_realloc);
+    lh_memory_allocator_set_dealloc_cb(&a, test_dealloc_alt);
+    EXPECT_EQ(lh_memory_allocator_get_realloc_cb(&a), nullptr);
+
+    lh_memory_allocator_set_realloc_cb(&a, test_realloc);
+    lh_memory_allocator_set(&a, test_alloc_malloc, test_dealloc_free);
+    EXPECT_EQ(lh_memory_allocator_get_realloc_cb(&a), nullptr);
+}
+
+TEST(memory_allocator_realloc_cb, assign_copies_it)
+{
+    lh_memory_allocator_t src = lh_memory_allocator_initializer_with_realloc(
+        test_alloc_malloc, test_dealloc_free, test_realloc);
+    lh_memory_allocator_t dst = lh_memory_allocator_empty_initializer();
+    lh_memory_allocator_assign(&dst, &src);
+    EXPECT_EQ(lh_memory_allocator_get_realloc_cb(&dst), test_realloc);
+}
+
+TEST(memory_allocator_realloc_cb, deinit_clears_it)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_initializer_with_realloc(
+        test_alloc_malloc, test_dealloc_free, test_realloc);
+    lh_memory_allocator_deinit(&a);
+    EXPECT_EQ(lh_memory_allocator_get_realloc_cb(&a), nullptr);
+}
+
+TEST(memory_allocator_realloc, uses_native_realloc_when_set)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_initializer_with_realloc(
+        test_alloc_malloc, test_dealloc_free, test_realloc);
+    lh_ptr p = lh_memory_allocator_alloc(&a, 4);
+    ASSERT_NE(p, nullptr);
+    std::memcpy(p, "abcd", 4);
+
+    g_test_alloc_calls = 0;
+    g_test_dealloc_calls = 0;
+    g_test_realloc_calls = 0;
+    lh_ptr q = lh_memory_allocator_realloc(&a, p, 4, 64);
+    ASSERT_NE(q, nullptr);
+    EXPECT_EQ(g_test_realloc_calls, 1);
+    EXPECT_EQ(g_test_alloc_calls, 0);
+    EXPECT_EQ(g_test_dealloc_calls, 0);
+    EXPECT_EQ(std::memcmp(q, "abcd", 4), 0);
+
+    lh_memory_allocator_dealloc(&a, q);
+}
+
+TEST(memory_allocator_realloc, falls_back_without_native_realloc)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_initializer(test_alloc_malloc, test_dealloc_free);
+    lh_ptr p = lh_memory_allocator_alloc(&a, 4);
+    ASSERT_NE(p, nullptr);
+    std::memcpy(p, "abcd", 4);
+
+    g_test_alloc_calls = 0;
+    g_test_dealloc_calls = 0;
+    lh_ptr q = lh_memory_allocator_realloc(&a, p, 4, 64);
+    ASSERT_NE(q, nullptr);
+    EXPECT_EQ(g_test_alloc_calls, 1);
+    EXPECT_EQ(g_test_dealloc_calls, 1);
+    EXPECT_EQ(std::memcmp(q, "abcd", 4), 0);
+
+    lh_memory_allocator_dealloc(&a, q);
+}
+
+#if (LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED == LH_LIBRARY_OPTION_ON)
+TEST(memory_allocator_realloc, native_growth_zeroes_new_tail)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_initializer_with_realloc(
+        test_alloc_malloc, test_dealloc_free, test_realloc);
+    lh_ptr p = lh_memory_allocator_alloc(&a, 4);
+    ASSERT_NE(p, nullptr);
+    std::memset(p, 0x5A, 4);
+
+    lh_ptr q = lh_memory_allocator_realloc(&a, p, 4, 256);
+    ASSERT_NE(q, nullptr);
+    auto *b = lh_cast_static(unsigned char *, q);
+    for (int i = 0; i < 4; ++i)
+    {
+        EXPECT_EQ(b[i], 0x5Au);
+    }
+    for (int i = 4; i < 256; ++i)
+    {
+        EXPECT_EQ(b[i], 0u) << "byte " << i;
+    }
+
+    lh_memory_allocator_dealloc(&a, q);
+}
+#endif
+
+#if LH_TEST_EXPECT_DEATH_ENABLED
+
+TEST(memory_allocator_death, set_null_self)
+{
+    LH_EXPECT_DEATH(lh_memory_allocator_set(nullptr, test_alloc_malloc, test_dealloc_free));
+}
+
+TEST(memory_allocator_death, get_alloc_cb_null_self)
+{
+    LH_EXPECT_DEATH((void)lh_memory_allocator_get_alloc_cb(nullptr));
+}
+
+/* Allocator failures are lh_runtime_check_* — they die in every build. */
+
+TEST(memory_allocator_death, alloc_uninitialized_callback)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_empty_initializer();
+    LH_EXPECT_CHECK_DEATH(lh_memory_allocator_alloc(&a, 1));
+}
+
+TEST(memory_allocator_death, alloc_callback_returns_null)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_empty_initializer();
+    lh_memory_allocator_set(&a, test_alloc_always_null, test_dealloc_free);
+    LH_EXPECT_CHECK_DEATH(lh_memory_allocator_alloc(&a, 8));
+}
+
+TEST(memory_allocator_death, dealloc_without_callback)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_empty_initializer();
+    int x = 0;
+    LH_EXPECT_CHECK_DEATH(lh_memory_allocator_dealloc(&a, lh_cast_static(lh_ptr, &x)));
+}
+
+TEST(memory_allocator_death, native_realloc_returns_null)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_initializer_with_realloc(
+        test_alloc_malloc, test_dealloc_free, test_realloc_always_null);
+    lh_ptr p = lh_memory_allocator_alloc(&a, 4);
+    LH_EXPECT_CHECK_DEATH((void)lh_memory_allocator_realloc(&a, p, 4, 8));
+    lh_memory_allocator_dealloc(&a, p);
+}
+
+TEST(memory_allocator_death, alloc_zero_overflow)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_initializer(test_alloc_malloc, test_dealloc_free);
+    LH_EXPECT_CHECK_DEATH((void)lh_memory_allocator_alloc_zero(&a, LH_USIZE_T_MAX, 2));
+}
+
+TEST(memory_allocator_death, realloc_zero_size_without_dealloc_callback)
+{
+    lh_memory_allocator_t a = lh_memory_allocator_empty_initializer();
+    int x = 0;
+    LH_EXPECT_CHECK_DEATH((void)lh_memory_allocator_realloc(&a, &x, sizeof x, 0));
+}
+
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
+
+TEST(memory_allocator_try, failures_preserve_the_original_block)
+{
+    lh_memory_allocator_t allocator;
+    lh_memory_allocator_init(&allocator, test_alloc_always_null, test_dealloc_free);
+    EXPECT_EQ(lh_memory_allocator_try_alloc(&allocator, 8U), nullptr);
+    lh_memory_allocator_set_alloc_cb(&allocator, test_alloc_malloc);
+    lh_ptr block = lh_memory_allocator_try_alloc(&allocator, 8U);
+    ASSERT_NE(block, nullptr);
+    std::memcpy(block, "keep", 5U);
+    lh_memory_allocator_set_realloc_cb(&allocator, test_realloc_always_null);
+    EXPECT_EQ(lh_memory_allocator_try_realloc(&allocator, block, 8U, 16U), nullptr);
+    EXPECT_STREQ(lh_cast_static(const char *, block), "keep");
+    /* Clearing native realloc exercises the alloc/copy/free fallback on failure. */
+    lh_memory_allocator_set_alloc_cb(&allocator, test_alloc_always_null);
+    EXPECT_EQ(lh_memory_allocator_try_realloc(&allocator, block, 8U, 16U), nullptr);
+    EXPECT_STREQ(lh_cast_static(const char *, block), "keep");
+    lh_memory_allocator_dealloc(&allocator, block);
+}
+
+TEST(memory_allocator_try, fallback_resizes_and_zero_size_releases)
+{
+    lh_memory_allocator_t allocator;
+    lh_memory_allocator_init(&allocator, test_alloc_malloc, test_dealloc_free);
+    lh_ptr block = lh_memory_allocator_try_realloc(&allocator, nullptr, 0U, 8U);
+    ASSERT_NE(block, nullptr);
+    std::memcpy(block, "keep", 5U);
+    lh_ptr grown = lh_memory_allocator_try_realloc(&allocator, block, 8U, 16U);
+    ASSERT_NE(grown, nullptr);
+    EXPECT_STREQ(lh_cast_static(const char *, grown), "keep");
+    EXPECT_EQ(lh_memory_allocator_try_realloc(&allocator, grown, 16U, 16U), grown);
+    EXPECT_EQ(lh_memory_allocator_try_realloc(&allocator, grown, 16U, 0U), nullptr);
+}
+
+TEST(memory_allocator_try, alloc_zero_zeroes_and_rejects_overflow)
+{
+    lh_memory_allocator_t allocator;
+    lh_memory_allocator_init(&allocator, test_alloc_malloc, test_dealloc_free);
+    EXPECT_EQ(lh_memory_allocator_try_alloc_zero(&allocator, LH_USIZE_T_MAX, 2U), nullptr);
+    const lh_byte_t *block =
+        lh_cast_static(const lh_byte_t *, lh_memory_allocator_try_alloc_zero(&allocator, 4U, 3U));
+    ASSERT_NE(block, nullptr);
+    EXPECT_EQ(g_test_alloc_last_size, 12U);
+    for (lh_usize_t i = 0; i < 12U; ++i)
+    {
+        EXPECT_EQ(block[i], 0U) << "byte " << i;
+    }
+    lh_memory_allocator_dealloc(&allocator, lh_cast_const(lh_byte_t *, block));
+}
+
+TEST(memory_allocator_try, dealloc_reports_a_missing_callback)
+{
+    lh_memory_allocator_t allocator = lh_memory_allocator_empty_initializer();
+    int x = 0;
+    EXPECT_TRUE(lh_memory_allocator_try_dealloc(&allocator, nullptr));
+    EXPECT_FALSE(lh_memory_allocator_try_dealloc(&allocator, &x));
+    /* Without a release callback the fallback cannot hand the old block back. */
+    lh_memory_allocator_set_alloc_cb(&allocator, test_alloc_malloc);
+    const int before = g_test_alloc_calls;
+    EXPECT_EQ(lh_memory_allocator_try_move(&allocator, &x, sizeof x, 2U * sizeof x), nullptr);
+    EXPECT_EQ(g_test_alloc_calls, before);
+}
+
+TEST(memory_allocator_try, resize_needs_a_native_callback)
+{
+    lh_memory_allocator_t allocator;
+    lh_memory_allocator_init(&allocator, test_alloc_malloc, test_dealloc_free);
+    lh_ptr block = lh_memory_allocator_alloc(&allocator, 4U);
+    EXPECT_EQ(lh_memory_allocator_try_resize(&allocator, block, 4U, 8U), nullptr);
+    lh_memory_allocator_set_realloc_cb(&allocator, test_realloc);
+    const int before = g_test_realloc_calls;
+    block = lh_memory_allocator_try_resize(&allocator, block, 4U, 8U);
+    ASSERT_NE(block, nullptr);
+    EXPECT_EQ(g_test_realloc_calls, before + 1);
+    lh_memory_allocator_dealloc(&allocator, block);
+}
+
+TEST(memory_allocator_realloc_needs_alloc, follows_the_resize_path)
+{
+    lh_memory_allocator_t allocator;
+    lh_memory_allocator_init(&allocator, test_alloc_malloc, test_dealloc_free);
+    int x = 0;
+    EXPECT_FALSE(lh_memory_allocator_realloc_needs_alloc(&allocator, &x, 4U, 0U));
+    EXPECT_TRUE(lh_memory_allocator_realloc_needs_alloc(&allocator, nullptr, 0U, 4U));
+    EXPECT_FALSE(lh_memory_allocator_realloc_needs_alloc(&allocator, &x, 4U, 4U));
+    EXPECT_TRUE(lh_memory_allocator_realloc_needs_alloc(&allocator, &x, 4U, 8U));
+    lh_memory_allocator_set_realloc_cb(&allocator, test_realloc);
+    EXPECT_FALSE(lh_memory_allocator_realloc_needs_alloc(&allocator, &x, 4U, 8U));
+}
+
+} // namespace

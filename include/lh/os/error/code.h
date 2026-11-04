@@ -11,7 +11,7 @@
 #ifndef LH_OS_ERROR_CODE_H
 #define LH_OS_ERROR_CODE_H
 
-#include <lh/error/code.h>
+#include <lh/core/error/code.h>
 
 /**
  * @def lh_os_error_code_ok

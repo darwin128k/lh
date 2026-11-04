@@ -8,10 +8,10 @@
 #ifndef LH_SRC_OS_SYSTEM_POSIX_SERIAL_H
 #define LH_SRC_OS_SYSTEM_POSIX_SERIAL_H
 
-#include <lh/numeric/fixed/types.h>
+#include <lh/core/numeric/fixed/types.h>
 
 #include <termios.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/compiler/extern/c.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

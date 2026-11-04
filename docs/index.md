@@ -30,7 +30,7 @@ One guide per subsystem that has behaviour worth stating in prose.
 | [module-loader.md](subsystems/module-loader.md) | Modules (`lh/os/module.h`) | The loader tree, loading and unloading, shared images, errors, writing a module |
 | [concurrency.md](subsystems/concurrency.md) | OS threads (`lh/os/thread.h`) | Threads, mutexes, conditions, monotonic time, backend notes |
 | [net-sockets.md](subsystems/net-sockets.md) | OS sockets (`lh/os/net/socket.h`) | Non-blocking servers, handle inheritance, pending I/O and backend guarantees |
-| [http.md](subsystems/http.md) | HTTP/1 head parser (`lh/http.h`) | Parsing a message head, view lifetime, framing, syntax, limits |
+| [http.md](subsystems/http.md) | HTTP/1 head parser (`lh/core/http.h`) | Parsing a message head, view lifetime, framing, syntax, limits |
 | [renderer3d.md](subsystems/renderer3d.md) | Software 3D renderer (`lh/ui/renderer3d.h`) | Camera setup, drawing, limits, relation to the GPU sink |
 
 ## Project files

@@ -1,6 +1,6 @@
 #include <lh/os/timestamp.h>
 #include <lh/os/system/timestamp.h>
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 lh_bool_t
 lh_os_timestamp_try_get_now(lh_timestamp_t *out)

@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <lh/os/key.h>
-#include <lh/numeric/fixed/types.h>
+#include <lh/core/numeric/fixed/types.h>
 
 /* Backend-private (src/lh/os/system/posix/key.h), so declared here: the test
    includes only the public tree. */

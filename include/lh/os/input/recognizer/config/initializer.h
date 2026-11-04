@@ -6,8 +6,8 @@
 #ifndef LH_OS_INPUT_RECOGNIZER_CONFIG_INITIALIZER_H
 #define LH_OS_INPUT_RECOGNIZER_CONFIG_INITIALIZER_H
 
-#include <lh/bool.h>
-#include <lh/initializer.h>
+#include <lh/core/bool.h>
+#include <lh/core/initializer.h>
 
 /**
  * @def lh_os_input_recognizer_config_initializer

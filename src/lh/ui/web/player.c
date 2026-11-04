@@ -4,19 +4,19 @@
  */
 
 #include <lh/ui/web/player.h>
-#include <lh/http/status.h>
-#include <lh/http/method.h>
-#include <lh/attribute/unused.h>
+#include <lh/core/http/status.h>
+#include <lh/core/http/method.h>
+#include <lh/core/attribute/unused.h>
 
 #include <lh/ui/web/host.h>
 #include <lh/ui/web/player/page.h>
 #include <lh/ui/view/controller.h>
 
-#include <lh/cast/const.h>
-#include <lh/memory.h>
+#include <lh/core/cast/const.h>
+#include <lh/core/memory.h>
 #include <lh/os/input.h>
 #include <lh/os/tick.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 /** The paths the player's routes answer. */
 static const lh_str_ptr m_ui_web_player_paths[LH_UI_WEB_PLAYER_ROUTES] = {

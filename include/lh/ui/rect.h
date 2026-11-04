@@ -15,7 +15,7 @@
 #include <lh/ui/size.h>
 
 #if LH_LIBRARY_OPTION_MATH_FPU
-#    include <lh/math/frect.h>
+#    include <lh/core/math/frect.h>
 
 /** @brief A UI rectangle: ::lh_math_frect_t when ::LH_LIBRARY_OPTION_MATH_FPU is on. */
 typedef lh_math_frect_t lh_ui_rect_t;
@@ -27,7 +27,7 @@ typedef lh_math_frect_t lh_ui_rect_t;
 /** @brief ::lh_math_rect_t to ::lh_ui_rect_t (::lh_math_rect_to_frect). */
 #    define lh_ui_rect_from_rect lh_math_rect_to_frect
 #else
-#    include <lh/math/rect.h>
+#    include <lh/core/math/rect.h>
 
 /** @brief A UI rectangle: ::lh_math_rect_t when ::LH_LIBRARY_OPTION_MATH_FPU is off. */
 typedef lh_math_rect_t lh_ui_rect_t;

@@ -4,7 +4,7 @@
 #endif
 
 #include <lh/os/system/timestamp.h>
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 #include <lh/os/system/error/capture.h>
 
 #include <errno.h>

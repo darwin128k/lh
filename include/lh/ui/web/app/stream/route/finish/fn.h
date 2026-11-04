@@ -10,8 +10,8 @@
 #ifndef LH_UI_WEB_APP_STREAM_ROUTE_FINISH_FN_H
 #define LH_UI_WEB_APP_STREAM_ROUTE_FINISH_FN_H
 
-#include <lh/http/header.h>
-#include <lh/http/request.h>
+#include <lh/core/http/header.h>
+#include <lh/core/http/request.h>
 #include <lh/os/net/socket.h>
 
 LH_COMPILER_EXTERN_C_BEGIN

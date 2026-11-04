@@ -17,12 +17,12 @@
 #ifndef LH_UI_WEB_BUF_H
 #define LH_UI_WEB_BUF_H
 
-#include <lh/bool.h>
-#include <lh/byte/ptr.h>
-#include <lh/str/ptr.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/bool.h>
+#include <lh/core/byte/ptr.h>
+#include <lh/core/str/ptr.h>
+#include <lh/core/compiler/extern/c.h>
 #include <lh/config.h>
-#include <lh/size.h>
+#include <lh/core/size.h>
 
 #if !LH_LIBRARY_OPTION_UI
 #    error "lh/ui/web/buf.h requires LH_LIBRARY_OPTION_UI"

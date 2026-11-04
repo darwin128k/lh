@@ -3,7 +3,7 @@
  * @brief Implementation of `lh/os/input/recognizer/config.h`.
  */
 
-#include <lh/assert/runtime.h>
+#include <lh/core/assert/runtime.h>
 #include <lh/os/input/recognizer/config.h>
 #include <lh/os/input/recognizer/config/initializer.h>
 

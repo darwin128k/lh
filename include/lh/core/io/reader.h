@@ -1,0 +1,138 @@
+/**
+ * @file reader.h
+ * @brief Stream read source: a callback plus whatever context it needs,
+ *        wired up so any concrete byte source (socket, file, ...) can hand
+ *        callers an ::lh_io_reader_t without those callers knowing which.
+ *
+ * Same shape as ::lh_memory_allocator_t (set/init/deinit/get_*),
+ * except the callback itself carries a `context` — a memory allocator is
+ * global/stateless like `malloc`, but a reader has to say *which* stream
+ * it's reading, since there can be many open at once.
+ */
+
+#ifndef LH_IO_READER_H
+#define LH_IO_READER_H
+
+#include <lh/core/compiler/extern/c.h>
+#include <lh/core/io/pending.h>
+#include <lh/core/io/reader/cb.h>
+#include <lh/core/io/reader/fields.h>
+
+/**
+ * @struct lh_io_reader
+ * @brief A read callback paired with the context it needs to do its job.
+ *
+ * The concrete fields are expanded by ::lh_io_reader_fields.
+ */
+struct lh_io_reader
+{
+    /** Members: ::lh_io_reader_fields. */
+    lh_io_reader_fields(lh_io_reader_read_fn);
+};
+/** @copybrief lh_io_reader */
+typedef struct lh_io_reader lh_io_reader_t;
+
+/* -- set / init ------------------------------------------------------------ */
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief Copy the reader state from @p other into @p self.
+ * @param self  Destination reader.
+ * @param other Source reader.
+ */
+lh_void
+lh_io_reader_assign(lh_io_reader_t *self, const lh_io_reader_t *other);
+
+/**
+ * @brief Set both the callback and the context at once.
+ *
+ * @param self    Reader object to modify.
+ * @param read_cb New read callback.
+ * @param context New context.
+ */
+lh_void
+lh_io_reader_set(lh_io_reader_t *self, lh_io_reader_read_cb read_cb, lh_ptr context);
+
+/**
+ * @brief Write only the read callback.
+ */
+lh_void
+lh_io_reader_set_read_cb(lh_io_reader_t *self, lh_io_reader_read_cb read_cb);
+
+/**
+ * @brief Write only the context.
+ */
+lh_void
+lh_io_reader_set_context(lh_io_reader_t *self, lh_ptr context);
+
+/**
+ * @brief Initialize a reader's callback and context.
+ *
+ * Call this (or ::lh_io_reader_set) before first use of ::lh_io_reader_read.
+ *
+ * @param self    Reader object to initialize.
+ * @param read_cb Read callback (may be ::lh_null to leave reading disabled).
+ * @param context Context passed to @p read_cb on every call.
+ */
+lh_void
+lh_io_reader_init(lh_io_reader_t *self, lh_io_reader_read_cb read_cb, lh_ptr context);
+
+/**
+ * @brief Reset a reader to empty state (callback and context both ::lh_null).
+ * @param self Reader object to reset.
+ */
+lh_void
+lh_io_reader_deinit(lh_io_reader_t *self);
+
+/* -- accessors ------------------------------------------------------------- */
+
+/**
+ * @brief Get the current read callback from @p self.
+ * @param self Reader object to read from.
+ * @return Current read callback (may be ::lh_null).
+ */
+lh_io_reader_read_cb
+lh_io_reader_get_read_cb(const lh_io_reader_t *self);
+
+/**
+ * @brief Get the current context from @p self.
+ * @param self Reader object to read from.
+ * @return Current context (may be ::lh_null).
+ */
+lh_ptr
+lh_io_reader_get_context(const lh_io_reader_t *self);
+
+/* -- operation ------------------------------------------------------------- */
+
+/**
+ * @brief Read up to @p size bytes into @p buf via @p self's callback.
+ *
+ * Fails with a runtime check when the callback is not initialized.
+ *
+ * @param self Reader to read from.
+ * @param buf  Destination buffer.
+ * @param size Maximum bytes to read into @p buf.
+ *
+ * @return Bytes actually read, `0` at the end of the stream, ::LH_IO_PENDING
+ *         when a non-blocking source has nothing yet, or another negative value
+ *         if the underlying callback reports a failure.
+ */
+lh_ssize_t
+lh_io_reader_read(lh_io_reader_t *self, lh_ptr buf, lh_usize_t size);
+
+/**
+ * @brief Discard input until end of stream using caller-owned scratch.
+ * @param self Initialized reader; remains caller-owned.
+ * @param scratch Writable scratch buffer, borrowed for this call.
+ * @param capacity Scratch size, which must be nonzero.
+ * @return Zero at end of stream, or the negative pending/error result from
+ * the reader. After pending, a caller may invoke this operation again.
+ * @pre All pointers are valid and scratch holds capacity writable bytes.
+ */
+lh_ssize_t
+lh_io_reader_drain(lh_io_reader_t *self, lh_ptr scratch, lh_usize_t capacity);
+
+LH_COMPILER_EXTERN_C_END
+
+#endif /* LH_IO_READER_H */

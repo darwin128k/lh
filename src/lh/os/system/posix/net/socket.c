@@ -3,12 +3,12 @@
 #endif
 
 #include <lh/os/system/net/socket.h>
-#include <lh/attribute/unused.h>
-#include <lh/assert.h>
+#include <lh/core/attribute/unused.h>
+#include <lh/core/assert.h>
 #include <lh/os/system/error/capture.h>
-#include <lh/math.h>
-#include <lh/size/limits.h>
-#include <lh/util/return.h>
+#include <lh/core/math.h>
+#include <lh/core/size/limits.h>
+#include <lh/core/util/return.h>
 
 #include <errno.h>
 #include <fcntl.h>

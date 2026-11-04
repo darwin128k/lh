@@ -12,15 +12,15 @@
 #ifndef LH_TEST_UI_DRAW_LOG_H
 #define LH_TEST_UI_DRAW_LOG_H
 
-#include <lh/ptr.h>
+#include <lh/core/ptr.h>
 #include <lh/ui/canvas.h>
 #include <lh/ui/color.h>
 #include <lh/ui/mask.h>
 #include <lh/ui/point.h>
 #include <lh/ui/rect.h>
 #include <lh/ui/scalar.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
+#include <lh/core/util/addr.h>
+#include <lh/core/util/ptr.h>
 #include <lh/test/out.h>
 
 namespace lh_test

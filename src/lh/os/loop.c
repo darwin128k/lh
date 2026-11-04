@@ -10,14 +10,14 @@
  */
 
 #include <lh/os/loop.h>
-#include <lh/assert/runtime.h>
-#include <lh/attribute/unused.h>
-#include <lh/cast/const.h>
-#include <lh/math.h>
+#include <lh/core/assert/runtime.h>
+#include <lh/core/attribute/unused.h>
+#include <lh/core/cast/const.h>
+#include <lh/core/math.h>
 #include <lh/os/tick.h>
-#include <lh/runtime/allocator.h>
-#include <lh/util/return.h>
-#include <lh/atomic/bool.h>
+#include <lh/core/runtime/allocator.h>
+#include <lh/core/util/return.h>
+#include <lh/core/atomic/bool.h>
 
 struct lh_os_loop
 {

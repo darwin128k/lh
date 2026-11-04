@@ -50,4 +50,4 @@ which remains under its own license.
 - License: BSD 2-Clause or CC0 1.0, at the user's choice (see
   `licenses/Monocypher.txt`, or https://monocypher.org/)
 - Files: `lib/monocypher/`
-- Used by: `src/lh/crypto/ed25519.c` (Ed25519 key pairs, signing, verification)
+- Used by: `src/lh/core/crypto/ed25519.c` (Ed25519 key pairs, signing, verification)

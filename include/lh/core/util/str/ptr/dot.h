@@ -1,0 +1,55 @@
+/**
+ * @file dot.h
+ * @brief NUL-terminated `.` and `..` name tests.
+ *
+ * Directory listings skip these names. The checks themselves are C-string
+ * predicates, not OS/fs helpers.
+ *
+ * Every function here is ::LH_ATTRIBUTE_FORCE_INLINE.
+ */
+
+#ifndef LH_UTIL_STR_PTR_DOT_H
+#define LH_UTIL_STR_PTR_DOT_H
+
+#include <lh/core/char/dot.h>
+#include <lh/core/str/ptr.h>
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief Test whether @p name is `.`.
+ *
+ * @param name NUL-terminated name; must not be null.
+ * @return ::lh_bool_true if @p name is `.`, otherwise ::lh_bool_false.
+ */
+LH_ATTRIBUTE_FORCE_INLINE
+lh_bool_t
+lh_str_ptr_is_dot(const lh_str_ptr name)
+{
+    return (lh_char_is_dot(lh_ptr_deref(name)) &&
+            lh_ptr_deref(lh_ptr_add_by_offset_v(const lh_char_t, name, 1U)) == lh_char_map_nul)
+               ? lh_bool_true
+               : lh_bool_false;
+}
+
+/**
+ * @brief Test whether @p name is `..`.
+ *
+ * First character must be `.`; the remainder is ::lh_str_ptr_is_dot.
+ *
+ * @param name NUL-terminated name; must not be null.
+ * @return ::lh_bool_true if @p name is `..`, otherwise ::lh_bool_false.
+ */
+LH_ATTRIBUTE_FORCE_INLINE
+lh_bool_t
+lh_str_ptr_is_double_dot(const lh_str_ptr name)
+{
+    return (lh_char_is_dot(lh_ptr_deref(name)) &&
+            lh_str_ptr_is_dot(lh_ptr_add_by_offset_v(const lh_char_t, name, 1U)))
+               ? lh_bool_true
+               : lh_bool_false;
+}
+
+LH_COMPILER_EXTERN_C_END
+
+#endif /* LH_UTIL_STR_PTR_DOT_H */

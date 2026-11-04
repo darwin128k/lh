@@ -6,7 +6,7 @@
 #ifndef LH_UI_GRADIENT_FIELDS_H
 #define LH_UI_GRADIENT_FIELDS_H
 
-#include <lh/assert/static.h>
+#include <lh/core/assert/static.h>
 #include <lh/config.h>
 
 /*

@@ -1,6 +1,6 @@
 #include <lh/os/system/fs/stat.h>
-#include <lh/attribute/unused.h>
-#include <lh/assert.h>
+#include <lh/core/attribute/unused.h>
+#include <lh/core/assert.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/str.h>
 #include <lh/os/system/win/filetime.h>

@@ -1,13 +1,13 @@
 #include <lh/ui/canvas/web/glyphs.h>
 #include <lh/ui/canvas/web.h>
-#include <lh/cast/const.h>
-#include <lh/hash/fnv.h>
-#include <lh/math.h>
-#include <lh/memory.h>
-#include <lh/runtime/allocator.h>
-#include <lh/str/format/bytes.h>
-#include <lh/str/format/sint.h>
-#include <lh/assert.h>
+#include <lh/core/cast/const.h>
+#include <lh/core/hash/fnv.h>
+#include <lh/core/math.h>
+#include <lh/core/memory.h>
+#include <lh/core/runtime/allocator.h>
+#include <lh/core/str/format/bytes.h>
+#include <lh/core/str/format/sint.h>
+#include <lh/core/assert.h>
 
 lh_void
 lh_ui_canvas_web_glyphs_reset(lh_ui_canvas_web_glyphs_t *self)

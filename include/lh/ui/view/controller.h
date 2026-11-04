@@ -28,11 +28,11 @@
 #ifndef LH_UI_VIEW_CONTROLLER_H
 #define LH_UI_VIEW_CONTROLLER_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/bool.h>
+#include <lh/core/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/os/input/event/ptr.h>
-#include <lh/self.h>
+#include <lh/core/self.h>
 
 #if !LH_LIBRARY_OPTION_UI
 #    error "lh/ui/view/controller.h requires LH_LIBRARY_OPTION_UI"

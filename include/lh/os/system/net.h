@@ -9,9 +9,9 @@
 #ifndef LH_OS_SYSTEM_NET_H
 #define LH_OS_SYSTEM_NET_H
 
-#include <lh/void.h>
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/void.h>
+#include <lh/core/bool.h>
+#include <lh/core/compiler/extern/c.h>
 #include <lh/config.h>
 
 #if !LH_LIBRARY_OPTION_OS

@@ -6,10 +6,10 @@
 #ifndef LH_SRC_OS_SYSTEM_WIN_KEY_H
 #define LH_SRC_OS_SYSTEM_WIN_KEY_H
 
-#include <lh/bool.h>
+#include <lh/core/bool.h>
 #include <lh/os/key.h>
 #include <lh/os/system/win/types.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/compiler/extern/c.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

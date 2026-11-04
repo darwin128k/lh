@@ -21,7 +21,7 @@
 #ifndef LH_OS_SYSTEM_ERROR_CODE_H
 #define LH_OS_SYSTEM_ERROR_CODE_H
 
-#include <lh/numeric/fixed/types.h>
+#include <lh/core/numeric/fixed/types.h>
 
 /**
  * @def lh_os_system_error_code_ok

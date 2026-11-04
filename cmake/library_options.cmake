@@ -13,7 +13,7 @@
 # Option: LH_LIBRARY_OPTION_THREAD_LOCAL
 #
 # Controls whether LH_ATTRIBUTE_THREAD_LOCAL expands to real thread-local
-# storage in library sources (see lh/attribute/thread_local.h).
+# storage in library sources (see lh/core/attribute/thread_local.h).
 #
 #   ON  — per-thread instances of decorated statics (compiler TLS support required).
 #   OFF — macro expands to nothing; same address space for all threads.
@@ -112,7 +112,7 @@ option(LH_LIBRARY_OPTION_MATH_FPU
 # -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT
 #
-# What a failed runtime check hands to its handler (lh/runtime/check.h):
+# What a failed runtime check hands to its handler (lh/core/runtime/check.h):
 #
 #   NONE     — nothing (lh_null): no strings stored, smallest flash.
 #   LOCATION — file and line.
@@ -125,7 +125,7 @@ set_property(CACHE LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT PROPERTY STRINGS NONE 
 # -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_REAL
 #
-# What lh_real_t is (include/lh/real.h), and so whether lh uses floating
+# What lh_real_t is (include/lh/core/real.h), and so whether lh uses floating
 # point at all in ::lh_value_t:
 #
 #   DOUBLE — double: desktop and any target with a double-precision FPU.
@@ -168,7 +168,7 @@ set_property(CACHE LH_LIBRARY_OPTION_LTO PROPERTY STRINGS OFF ON FAT)
 #
 # What moves the bytes in lh_memory_std_copy / move / rcopy / set:
 #
-#   OWN  — this library's own tiers (src/lh/memory/std.c): runtime-dispatched
+#   OWN  — this library's own tiers (src/lh/core/memory/std.c): runtime-dispatched
 #          SSE2/AVX2, L3-sized non-temporal stores. No libc call.
 #   LIBC — the C library's memcpy / memmove / memset, wrapped to keep lh's
 #          contract (null checks, dst + n return). Compiles the own tiers out.
@@ -242,7 +242,7 @@ option(LH_LIBRARY_OPTION_SQL_SQLITE
 # -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_JS
 #
-# The JavaScript engine of lh/web/js (include/lh/web/js.h): the lexer, the parser and
+# The JavaScript engine of lh/core/web/js (include/lh/core/web/js.h): the lexer, the parser and
 # the interpreter, written on lh's own bricks.
 #
 #   ON  — compile the engine.
@@ -254,7 +254,7 @@ option(LH_LIBRARY_OPTION_SQL_SQLITE
 # (MIT), which is the reference for the algorithms, not a dependency.
 # -----------------------------------------------------------------------------
 option(LH_LIBRARY_OPTION_JS
-        "Compile the lh/web/js JavaScript engine (lexer, parser, interpreter)."
+        "Compile the lh/core/web/js JavaScript engine (lexer, parser, interpreter)."
         OFF)
 
 # -----------------------------------------------------------------------------
@@ -299,7 +299,7 @@ set(LH_LIBRARY_OPTION_UI_CANVAS_DEPTH "8" CACHE STRING
 # LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY
 #
 # Capacity lh_array_t grows to from empty on its first push_back/insert
-# (src/lh/array.c). Must be a positive decimal integer.
+# (src/lh/core/array.c). Must be a positive decimal integer.
 #
 # CMake: -DLH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY=4 or ccmake.
 # Manual build: set in include/lh/config.h or -D on the compiler command line.
@@ -310,7 +310,7 @@ set(LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY "1" CACHE STRING
 # -----------------------------------------------------------------------------
 # LH_LIBRARY_OPTION_ARRAY_GROWTH_FACTOR
 #
-# Factor by which lh_array_t capacity grows once full (src/lh/array.c).
+# Factor by which lh_array_t capacity grows once full (src/lh/core/array.c).
 # Must be a decimal integer greater than 1.
 #
 # CMake: -DLH_LIBRARY_OPTION_ARRAY_GROWTH_FACTOR=3 or ccmake.
@@ -322,10 +322,10 @@ set(LH_LIBRARY_OPTION_ARRAY_GROWTH_FACTOR "2" CACHE STRING
 # -----------------------------------------------------------------------------
 # LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK
 #
-# Byte block size the scalar path of lh_memory_std_compare (src/lh/memory/std.c)
+# Byte block size the scalar path of lh_memory_std_compare (src/lh/core/memory/std.c)
 # scans branchlessly before falling back to a precise, byte-by-byte scan of
 # the block that turned out to differ — same block used by the single-element
-# fast path in lh_memory_find_step (src/lh/memory.c). Larger values give the
+# fast path in lh_memory_find_step (src/lh/core/memory.c). Larger values give the
 # compiler more to auto-vectorize per block at the cost of a longer worst-case
 # precise rescan when a block does contain a mismatch/hit; smaller values do
 # the opposite. Must be a positive decimal integer.
@@ -339,7 +339,7 @@ set(LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK "16" CACHE STRING
 # -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE
 #
-# Implementation lh_str_ptr_to_lower / lh_str_ptr_to_upper (src/lh/util/str/case/map.c)
+# Implementation lh_str_ptr_to_lower / lh_str_ptr_to_upper (src/lh/core/util/str/case/map.c)
 # use for single-byte (0..255) simple case mapping:
 #
 #   ON  — direct 256-entry lookup table per direction (512 bytes total flash/ROM).
@@ -359,7 +359,7 @@ option(LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE
 # -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE
 #
-# Implementation lh_wstr_ptr_to_lower / lh_wstr_ptr_to_upper (src/lh/util/wstr/case/map.c)
+# Implementation lh_wstr_ptr_to_lower / lh_wstr_ptr_to_upper (src/lh/core/util/wstr/case/map.c)
 # use for the full-Unicode simple case mapping (~1.4k pairs across the whole UCD, vs ~56
 # for the narrow LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE — too many, and too sparse across
 # too wide a range, for a single dense table to be sane at any code point width):
@@ -391,7 +391,7 @@ option(LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE
         ON)
 
 # -----------------------------------------------------------------------------
-# LH_LIBRARY_OPTION_MEMORY_STD_SIMD_* (src/lh/memory/std.c)
+# LH_LIBRARY_OPTION_MEMORY_STD_SIMD_* (src/lh/core/memory/std.c)
 #
 # Every value below is a measured *crossover point* — "below this many bytes, X is
 # faster; above it, Y is" — not a correctness fact. All were measured on this

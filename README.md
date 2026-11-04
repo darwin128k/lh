@@ -18,28 +18,28 @@ from Windows XP up, X11) and a browser — see [Usage](#usage).
 ## Features
 
 - **Portable types** — fixed-width integers (`lh_uint_t`, `lh_sllong_t`, …), explicit `lh_byte_t` / `lh_schar_t`, `lh_bool_t`, `lh_void` / `lh_void_ptr`
-- **Compiler layer** — detection (Clang / GCC / MSVC), version, target OS, C++ vs C, `extern "C"` via `LH_COMPILER(EXTERN_C_BEGIN|END)`, attributes (`LH_ATTRIBUTE(SYMBOL)`, …), **subsystem detection macros** (`lh/compiler/os/subsys.h`) for Windows-specific visibility attributes
+- **Compiler layer** — detection (Clang / GCC / MSVC), version, target OS, C++ vs C, `extern "C"` via `LH_COMPILER(EXTERN_C_BEGIN|END)`, attributes (`LH_ATTRIBUTE(SYMBOL)`, …), **subsystem detection macros** (`lh/core/compiler/os/subsys.h`) for Windows-specific visibility attributes
 - **Casts** — `lh_cast_static`, `lh_cast_reinterpret` (C++-style in C++, C casts in C)
-- **Pointers** — `lh_ptr`, `lh_void_ptr`, `lh_ptr_of`, `lh_cptr_of`, `lh_str_ptr` / `lh_str_cptr` (`lh/ptr.h`, `lh/void/ptr.h`, `lh/util/ptr.h`, `lh/str/ptr.h`)
-- **Compound literals** — `lh_initializer`, `lh_initializer_of_type`, … in `lh/initializer.h`
-- **Member-offset utility** — `lh_offset_of` macro in `lh/offset.h` for compile-time layout checks
-- **Macro utilities** — argument token concatenation (`lh_arg_concat`) and count (`lh_arg_get_count`) for variadic macro dispatch in `lh/util/arg.h`
-- **Runtime assertions** — `lh_assert_runtime`, `lh_assert_runtime_if`, `lh_assert_runtime_ifn`, `lh_assert_runtime_ref` — contract checks in `lh/assert.h`, written as `(condition, code [, "message"])`: on failure an `lh_exception_t` (`lh/exception.h`: the error — code and message — plus its static origin — file, line, function, condition; amount set by `LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT`) goes to the host's handler (`lh_runtime_check_get_mut`), then `lh_runtime_terminate` (`abort()` by default); compiled out in Release (`NDEBUG`), optionally a call-free trap (`LH_RUNTIME_ASSERT_TRAP`). `lh_runtime_check_*` are the always-on checks for environment failures (e.g. allocation).
-- **Errors** — `lh_error_t` (code + description); description type is `lh_error_desc_t` in `lh/error/desc.h` (today an alias of `lh_str_cptr`)
+- **Pointers** — `lh_ptr`, `lh_void_ptr`, `lh_ptr_of`, `lh_cptr_of`, `lh_str_ptr` / `lh_str_cptr` (`lh/core/ptr.h`, `lh/core/void/ptr.h`, `lh/core/util/ptr.h`, `lh/core/str/ptr.h`)
+- **Compound literals** — `lh_initializer`, `lh_initializer_of_type`, … in `lh/core/initializer.h`
+- **Member-offset utility** — `lh_offset_of` macro in `lh/core/offset.h` for compile-time layout checks
+- **Macro utilities** — argument token concatenation (`lh_arg_concat`) and count (`lh_arg_get_count`) for variadic macro dispatch in `lh/core/util/arg.h`
+- **Runtime assertions** — `lh_assert_runtime`, `lh_assert_runtime_if`, `lh_assert_runtime_ifn`, `lh_assert_runtime_ref` — contract checks in `lh/core/assert.h`, written as `(condition, code [, "message"])`: on failure an `lh_exception_t` (`lh/core/exception.h`: the error — code and message — plus its static origin — file, line, function, condition; amount set by `LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT`) goes to the host's handler (`lh_runtime_check_get_mut`), then `lh_runtime_terminate` (`abort()` by default); compiled out in Release (`NDEBUG`), optionally a call-free trap (`LH_RUNTIME_ASSERT_TRAP`). `lh_runtime_check_*` are the always-on checks for environment failures (e.g. allocation).
+- **Errors** — `lh_error_t` (code + description); description type is `lh_error_desc_t` in `lh/core/error/desc.h` (today an alias of `lh_str_cptr`)
 - **Memory & intervals** — non-owning memory views (`lh_memory_view_t`) and bounds (`lh_memory_bounds_t`) with front/back and indexed access, validated and fallback APIs (`*_v`, `*_or_empty`); numeric interval helpers and binary-search macros used by table lookups
-- **Memory allocator** — configurable alloc/dealloc callback pair (`lh_memory_allocator_t`, `lh/memory/allocator.h`) with pack/unpack/init/set and validated alloc/dealloc/realloc; a thread-local runtime singleton (`lh_runtime_allocator_get_mut()`, `lh/runtime/allocator.h`) seeded at compile time from a configurable default pair (`malloc`/`free` unless overridden — see Library options below)
-- **Heap-owning memory bounds** — `lh_memory_bounds_allocated_t` (`lh/memory/bounds/allocated.h`) is layout-identical to `lh_memory_bounds_t` but routes `clear` / `resize` / `exchange` through the runtime allocator, freeing or reallocating the owned block as needed
-- **Growable containers** — `lh_array_t` (`lh/array.h`), a typed growable array (push/insert/erase/pop_back/reserve, amortized growth policy) backed by a heap-owning typed block; `lh_str_t` (`lh/str.h`), an owning NUL-terminated string built directly on `lh_array_t` (`init`/`deinit`, `push_back`/`append`, `clear`, conversion to `lh_str_view_t`)
-- **Wide text** — `lh_wchar_t`, raw wide-string helpers, Unicode simple case mapping for buffers and single-code-point case fold (UCD-backed tables under `src/lh/util/wstr/` and `src/lh/util/wchar/`)
+- **Memory allocator** — configurable alloc/dealloc callback pair (`lh_memory_allocator_t`, `lh/core/memory/allocator.h`) with pack/unpack/init/set and validated alloc/dealloc/realloc; a thread-local runtime singleton (`lh_runtime_allocator_get_mut()`, `lh/core/runtime/allocator.h`) seeded at compile time from a configurable default pair (`malloc`/`free` unless overridden — see Library options below)
+- **Heap-owning memory bounds** — `lh_memory_bounds_allocated_t` (`lh/core/memory/bounds/allocated.h`) is layout-identical to `lh_memory_bounds_t` but routes `clear` / `resize` / `exchange` through the runtime allocator, freeing or reallocating the owned block as needed
+- **Growable containers** — `lh_array_t` (`lh/core/array.h`), a typed growable array (push/insert/erase/pop_back/reserve, amortized growth policy) backed by a heap-owning typed block; `lh_str_t` (`lh/core/str.h`), an owning NUL-terminated string built directly on `lh_array_t` (`init`/`deinit`, `push_back`/`append`, `clear`, conversion to `lh_str_view_t`)
+- **Wide text** — `lh_wchar_t`, raw wide-string helpers, Unicode simple case mapping for buffers and single-code-point case fold (UCD-backed tables under `src/lh/core/util/wstr/` and `src/lh/core/util/wchar/`)
 - **String search & compare** — `lh_str_view_find`, `lh_str_view_rfind`, `lh_str_view_find_of`, case-insensitive compare, size-aware comparison; same for wide strings (`lh_wstr_ptr_*`)
-- **String formatting & parsing** — `lh_str_ptr_format_uint`/`_sint`/`_hex`/`_bytes_hex`/`_bytes_hex_dump`/`_text` and `lh_str_ptr_parse_uint`/`_hex` (`lh/str/format/`, `lh/str/parse/`); `lh_str_ptr_format_text`/`_v` is a printf-style engine used directly by the logger below
-- **SIMD memory operations** — `lh/memory/std.h` is the byte kernel everything else is supposed to call (`copy` / `copy_rev` / `rcopy` / `set` / `compare` / `rcompare`). Those runtime-dispatch to a hand-written SSE2/SSSE3/AVX2 tier (resolved once via a self-rewriting function pointer) when the toolchain can compile it and the running CPU supports it, falling back to a portable scalar path everywhere else — see [Performance](#performance)
-- **CPU feature/vendor detection** — `lh_cpu_simd_has_sse2/ssse3/avx2/aesni` (`lh/cpu/simd.h`), `lh_cpu_vendor_is_intel/is_amd` (`lh/cpu/vendor.h`)
-- **Bit utilities** — header-only, force-inlined helpers under `lh/bit/`: `lh_bit_scan_forward/reverse` (`u8`/`u16`/`u32`/`u64`), `lh_bit_bswap_u16/u32/u64`, `lh_bit_rotate_left/right_u32/u64`, and big/little-endian `lh_bit_pack_be16/le16/be32/le32/be64/le64` / `lh_bit_unpack_*` for packing values into byte buffers
-- **Logging** — `lh_logger_t` (`lh/logger.h`), a level-filtered logger (PSR-3-shaped severities, emergency through debug) with a runtime filter mask plus an independent callback slot per level, so different severities can be routed to different sinks without branching; `lh_logger_debug`/`_info`/`_warning`/… convenience macros and the explicit `lh_logger_log`/`lh_logger_log_v`
-- **IO abstraction** — callback-based `lh_io_reader_t` / `lh_io_writer_t` and the duplex `lh_io_stream_t` that pairs them (`lh/io/`), so code written against read/write does not need to know whether a socket, file, or pipe is behind it
-- **Networking** — pure value types for IPv4 (`lh_net_ip4_t` — parse/format/pack/unpack, `lh/net/ip.h`), a TCP/UDP port (`lh_net_port_t`, `lh/net/port.h`), and an address pair (`lh_net_ip4_socket_addr_t`, `lh/net/socket/addr/ip4.h`); a blocking IPv4 TCP/UDP client socket (`lh_os_net_socket_t`, `lh/os/net/socket.h`) that hands out an `lh_io_stream_t` — no bind/listen/accept or non-blocking mode yet
-- **Crypto** — `lh_crypto_rijndael_t` (`lh/crypto/rijndael.h`): Rijndael/AES block cipher, 16/24/32-byte keys and blocks, ECB/CBC/CFB modes, pure computation (no OS, no allocator); 16-byte (AES) blocks run on AES-NI when the CPU has it (`lh_cpu_simd_has_aesni`), Rijndael's 24/32-byte blocks and other CPUs use the table path; `lh_crypto_sha_t` (`lh/crypto/sha.h`): SHA-1/224/256/384/512 (FIPS 180-4) with incremental `init`/`update`/`finish` and one-shot `lh_crypto_sha_hash`
+- **String formatting & parsing** — `lh_str_ptr_format_uint`/`_sint`/`_hex`/`_bytes_hex`/`_bytes_hex_dump`/`_text` and `lh_str_ptr_parse_uint`/`_hex` (`lh/core/str/format/`, `lh/core/str/parse/`); `lh_str_ptr_format_text`/`_v` is a printf-style engine used directly by the logger below
+- **SIMD memory operations** — `lh/core/memory/std.h` is the byte kernel everything else is supposed to call (`copy` / `copy_rev` / `rcopy` / `set` / `compare` / `rcompare`). Those runtime-dispatch to a hand-written SSE2/SSSE3/AVX2 tier (resolved once via a self-rewriting function pointer) when the toolchain can compile it and the running CPU supports it, falling back to a portable scalar path everywhere else — see [Performance](#performance)
+- **CPU feature/vendor detection** — `lh_cpu_simd_has_sse2/ssse3/avx2/aesni` (`lh/core/cpu/simd.h`), `lh_cpu_vendor_is_intel/is_amd` (`lh/core/cpu/vendor.h`)
+- **Bit utilities** — header-only, force-inlined helpers under `lh/core/bit/`: `lh_bit_scan_forward/reverse` (`u8`/`u16`/`u32`/`u64`), `lh_bit_bswap_u16/u32/u64`, `lh_bit_rotate_left/right_u32/u64`, and big/little-endian `lh_bit_pack_be16/le16/be32/le32/be64/le64` / `lh_bit_unpack_*` for packing values into byte buffers
+- **Logging** — `lh_logger_t` (`lh/core/logger.h`), a level-filtered logger (PSR-3-shaped severities, emergency through debug) with a runtime filter mask plus an independent callback slot per level, so different severities can be routed to different sinks without branching; `lh_logger_debug`/`_info`/`_warning`/… convenience macros and the explicit `lh_logger_log`/`lh_logger_log_v`
+- **IO abstraction** — callback-based `lh_io_reader_t` / `lh_io_writer_t` and the duplex `lh_io_stream_t` that pairs them (`lh/core/io/`), so code written against read/write does not need to know whether a socket, file, or pipe is behind it
+- **Networking** — pure value types for IPv4 (`lh_net_ip4_t` — parse/format/pack/unpack, `lh/core/net/ip.h`), a TCP/UDP port (`lh_net_port_t`, `lh/core/net/port.h`), and an address pair (`lh_net_ip4_socket_addr_t`, `lh/core/net/socket/addr/ip4.h`); a blocking IPv4 TCP/UDP client socket (`lh_os_net_socket_t`, `lh/os/net/socket.h`) that hands out an `lh_io_stream_t` — no bind/listen/accept or non-blocking mode yet
+- **Crypto** — `lh_crypto_rijndael_t` (`lh/core/crypto/rijndael.h`): Rijndael/AES block cipher, 16/24/32-byte keys and blocks, ECB/CBC/CFB modes, pure computation (no OS, no allocator); 16-byte (AES) blocks run on AES-NI when the CPU has it (`lh_cpu_simd_has_aesni`), Rijndael's 24/32-byte blocks and other CPUs use the table path; `lh_crypto_sha_t` (`lh/core/crypto/sha.h`): SHA-1/224/256/384/512 (FIPS 180-4) with incremental `init`/`update`/`finish` and one-shot `lh_crypto_sha_hash`
 - **Version** — `lh_version_t`, `lh_get_version()` via `lh/lh.h`
 - **Build** — CMake, generated `lh/config.h`, optional Doxygen docs and bundled GoogleTest
 
@@ -168,8 +168,8 @@ is undefined behaviour.
 A hosted program over the C library:
 
 ```c
-#include <lh/runtime/allocator.h>
-#include <lh/runtime/terminate.h>
+#include <lh/core/runtime/allocator.h>
+#include <lh/core/runtime/terminate.h>
 
 #include <stdlib.h>
 
@@ -224,21 +224,21 @@ const lh_version_t *v = lh_get_version();
 Include only what you need, for example:
 
 ```c
-#include <lh/numeric/types.h>      /* lh_uint_t, lh_sint_t, … */
-#include <lh/compiler/extern/c.h>  /* LH_COMPILER_EXTERN_C_BEGIN/END, … */
-#include <lh/cast/static.h>        /* lh_cast_static */
-#include <lh/cast/reinterpret.h>   /* lh_cast_reinterpret */
-#include <lh/util/ptr.h>           /* lh_ptr_of, lh_cptr_of */
-#include <lh/initializer.h>        /* lh_initializer_of_type, … */
-#include <lh/error.h>              /* lh_error_t, lh_error_pack, … */
-#include <lh/str/ptr.h>            /* lh_str_ptr, lh_str_cptr */
+#include <lh/core/numeric/types.h>      /* lh_uint_t, lh_sint_t, … */
+#include <lh/core/compiler/extern/c.h>  /* LH_COMPILER_EXTERN_C_BEGIN/END, … */
+#include <lh/core/cast/static.h>        /* lh_cast_static */
+#include <lh/core/cast/reinterpret.h>   /* lh_cast_reinterpret */
+#include <lh/core/util/ptr.h>           /* lh_ptr_of, lh_cptr_of */
+#include <lh/core/initializer.h>        /* lh_initializer_of_type, … */
+#include <lh/core/error.h>              /* lh_error_t, lh_error_pack, … */
+#include <lh/core/str/ptr.h>            /* lh_str_ptr, lh_str_cptr */
 ```
 
-There is no single umbrella `lh/compiler.h` or `lh/cast.h` — compiler
-detection and casts are split into focused headers under `lh/compiler/` and
-`lh/cast/`; include only the ones you need.
+There is no single umbrella `lh/core/compiler.h` or `lh/core/cast.h` — compiler
+detection and casts are split into focused headers under `lh/core/compiler/` and
+`lh/core/cast/`; include only the ones you need.
 
-String-related headers live under **`lh/str/`** (not `lh/string/`). Generic initializer macros are **`lh/initializer.h`** at the include root. `lh_str_view_t` search/compare API is in `lh/str/view.h`; raw buffer helpers are in `lh/util/str/ptr.h`.
+String-related headers live under **`lh/core/str/`** (not `lh/string/`). Generic initializer macros are **`lh/core/initializer.h`** at the include root. `lh_str_view_t` search/compare API is in `lh/core/str/view.h`; raw buffer helpers are in `lh/core/util/str/ptr.h`.
 
 ### Integer types
 
@@ -257,12 +257,12 @@ lh_version_major_t major = lh_version_get_major(&ver); /* 0 */
 
 ## Performance
 
-`lh/memory/std.h`'s `copy` / `copy_rev` / `rcopy` / `set` / `compare` / `rcompare`
+`lh/core/memory/std.h`'s `copy` / `copy_rev` / `rcopy` / `set` / `compare` / `rcompare`
 dispatch at runtime to a hand-written SSE2/SSSE3/AVX2 tier when two things both
 hold: the toolchain can compile it for the target (decided once at CMake
 configure time by a compile-only probe — `cmake/check_simd.cmake` — never by
 running code, so this stays correct under cross-compilation) and the CPU the
-binary actually runs on supports it (`lh/cpu/simd.h`, checked once and cached
+binary actually runs on supports it (`lh/core/cpu/simd.h`, checked once and cached
 behind a self-rewriting function pointer). Everywhere either doesn't hold, it
 falls back to the portable scalar path, unchanged.
 

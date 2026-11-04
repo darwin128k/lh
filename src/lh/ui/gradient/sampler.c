@@ -2,12 +2,12 @@
  * @file sampler.c
  * @brief Implementation of `lh/ui/gradient/sampler.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
-#include <lh/math.h>
+#include <lh/core/math.h>
 #include <lh/ui/gradient/sampler.h>
 #include <lh/ui/gradient/sine.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 /** `ceil(1448 * k / 255)` squared: the least squared distance, on the 1024-to-a-side
    scale ::lh_ui_gradient_frac_at puts a radial gradient on, whose whole square root

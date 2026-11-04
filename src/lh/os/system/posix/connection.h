@@ -12,7 +12,7 @@
 #ifndef LH_SRC_OS_SYSTEM_POSIX_CONNECTION_H
 #define LH_SRC_OS_SYSTEM_POSIX_CONNECTION_H
 
-#include <lh/bool.h>
+#include <lh/core/bool.h>
 #include <lh/os/system/posix/x11.h>
 
 LH_COMPILER_EXTERN_C_BEGIN

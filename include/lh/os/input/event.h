@@ -24,7 +24,7 @@
 #include <lh/os/input/kind.h>
 #include <lh/os/input/mods.h>
 #include <lh/os/key.h>
-#include <lh/timer/tick.h>
+#include <lh/core/timer/tick.h>
 
 /**
  * @struct lh_os_input_event

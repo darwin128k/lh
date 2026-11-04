@@ -14,19 +14,19 @@
  * for that first (::lh_os_system_surface_get_pixels) — the same promise GdiFlush
  * keeps on Windows. Anywhere else, the plain path: the pixels in the request.
  */
-#include <lh/assert.h>
-#include <lh/attribute/unused.h>
+#include <lh/core/assert.h>
+#include <lh/core/attribute/unused.h>
 
-#include <lh/byte/ptr.h>
-#include <lh/memory.h>
+#include <lh/core/byte/ptr.h>
+#include <lh/core/memory.h>
 #include <lh/os/alloc.h>
 #include <lh/os/system/posix/connection.h>
 #include <lh/os/system/posix/paint.h>
 #include <lh/os/system/posix/surface.h>
 #include <lh/os/system/posix/surface/rgb565.h>
 #include <lh/os/system/surface.h>
-#include <lh/runtime/allocator.h>
-#include <lh/util/return.h>
+#include <lh/core/runtime/allocator.h>
+#include <lh/core/util/return.h>
 
 #include <sys/ipc.h>
 #include <sys/shm.h>

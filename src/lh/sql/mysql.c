@@ -1,8 +1,8 @@
 #include <lh/sql/mysql.h>
-#include <lh/assert.h>
-#include <lh/char/map.h>
-#include <lh/str/format/sllong.h>
-#include <lh/str/parse/sllong.h>
+#include <lh/core/assert.h>
+#include <lh/core/char/map.h>
+#include <lh/core/str/format/sllong.h>
+#include <lh/core/str/parse/sllong.h>
 
 /* ── state behind the handles ────────────────────────────────────────────── */
 

@@ -1,8 +1,8 @@
 #include <lh/ui/renderer3d/camera.h>
-#include <lh/assert.h>
-#include <lh/math/float/finite.h>
-#include <lh/math/float/tan.h>
-#include <lh/util/return.h>
+#include <lh/core/assert.h>
+#include <lh/core/math/float/finite.h>
+#include <lh/core/math/float/tan.h>
+#include <lh/core/util/return.h>
 
 lh_bool_t
 lh_ui_renderer3d_camera_init(lh_ui_renderer3d_camera_t *self, lh_math_vec3_t position,

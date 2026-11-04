@@ -25,7 +25,7 @@ add_subdirectory(${LH_TEST_LIB_PATH}/googletest)
 # One executable per core, not one for everything.
 #
 # The list used to be a single block naming every test file the library has, and
-# that is how test/src/lh/math/rescale.cpp came to be in the tree with two tests
+# that is how test/src/lh/core/math/rescale.cpp came to be in the tree with two tests
 # in it and in no build at all: a file nobody ran, and nothing said so. The cores
 # below are named the way the library is cut, and the guard at the end of this
 # file turns "a test file nobody runs" from a silent hole into a configure error.
@@ -70,20 +70,20 @@ endfunction()
 # guard at the end unhappy, which is the point of the guard.
 set(LH_TEST_LISTED_SOURCES)
 
-lh_add_test_core(lh_test_http_parser ${LH_TEST_SRC_PATH}/lh/http/parser.cpp
-        ${LH_TEST_SRC_PATH}/lh/http/header/name.cpp
-        ${LH_TEST_SRC_PATH}/lh/http/format.cpp
-        ${LH_TEST_SRC_PATH}/lh/http/framing.cpp
-        ${LH_TEST_SRC_PATH}/lh/http/expect.cpp
-        ${LH_TEST_SRC_PATH}/lh/http/body/reader.cpp
-        ${LH_TEST_SRC_PATH}/lh/http/content/encoding.cpp
-        ${LH_TEST_SRC_PATH}/lh/http/chunked.cpp
-        ${LH_TEST_SRC_PATH}/lh/http/chunked/decoder.cpp
-        ${LH_TEST_SRC_PATH}/lh/http/cursor.cpp
-        ${LH_TEST_SRC_PATH}/lh/http/method.cpp
-        ${LH_TEST_SRC_PATH}/lh/http/status.cpp
-        ${LH_TEST_SRC_PATH}/lh/http/request.cpp
-        ${LH_TEST_SRC_PATH}/lh/http/char.cpp ${LH_TEST_SRC_PATH}/lh/http/version.cpp)
+lh_add_test_core(lh_test_http_parser ${LH_TEST_SRC_PATH}/lh/core/http/parser.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/http/header/name.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/http/format.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/http/framing.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/http/expect.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/http/body/reader.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/http/content/encoding.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/http/chunked.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/http/chunked/decoder.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/http/cursor.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/http/method.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/http/status.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/http/request.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/http/char.cpp ${LH_TEST_SRC_PATH}/lh/core/http/version.cpp)
 
 # The event bus modules talk through: registry, subscribers, deferred removal.
 if (LH_LIBRARY_OPTION_OS)
@@ -93,142 +93,142 @@ else ()
 endif ()
 
 # Types, errors and the few pieces every core leans on.
-lh_add_test_core(lh_test_console ${LH_TEST_SRC_PATH}/lh/console/console.cpp)
+lh_add_test_core(lh_test_console ${LH_TEST_SRC_PATH}/lh/core/console/console.cpp)
 
 lh_add_test_core(lh_test_core
-        ${LH_TEST_SRC_PATH}/lh/atomic/bool.cpp
-        ${LH_TEST_SRC_PATH}/lh/atomic/ptr.cpp
-        ${LH_TEST_SRC_PATH}/lh/atomic/uint.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/atomic/bool.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/atomic/ptr.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/atomic/uint.cpp
         ${LH_TEST_SRC_PATH}/lh/spsc.cpp
-        ${LH_TEST_SRC_PATH}/lh/array.cpp
-        ${LH_TEST_SRC_PATH}/lh/error.cpp
-        ${LH_TEST_SRC_PATH}/lh/exception.cpp
-        ${LH_TEST_SRC_PATH}/lh/exception/origin.cpp
-        ${LH_TEST_SRC_PATH}/lh/foreach.cpp
-        ${LH_TEST_SRC_PATH}/lh/list.cpp
-        ${LH_TEST_SRC_PATH}/lh/logger.cpp
-        ${LH_TEST_SRC_PATH}/lh/value.cpp
-        ${LH_TEST_SRC_PATH}/lh/real.cpp
-        ${LH_TEST_SRC_PATH}/lh/pair.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/js/name.cpp
-        ${LH_TEST_SRC_PATH}/lh/ini/entry.cpp
-        ${LH_TEST_SRC_PATH}/lh/ini/parser.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/json/node.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/json/minify.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/json/reader.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/json/writer.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/xml/attr.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/xml/char.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/xml/comment.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/xml/entity.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/xml/escape.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/xml/name.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/xml/node/entity.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/xml/node.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/xml/reader.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/xml/writer.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/html/rawtext.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/html/reader.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/html/void.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/js/op.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/js/node.cpp
-        ${LH_TEST_SRC_PATH}/lh/web/js/writer.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/array.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/error.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/exception.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/exception/origin.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/foreach.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/list.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/logger.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/value.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/real.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/pair.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/web/js/name.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/ini/entry.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/ini/parser.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/web/json/node.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/web/json/minify.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/web/json/reader.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/web/json/writer.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/web/xml/attr.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/web/xml/char.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/web/xml/comment.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/web/xml/entity.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/web/xml/escape.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/web/xml/name.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/web/xml/node/entity.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/web/xml/node.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/web/xml/reader.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/web/xml/writer.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/web/html/rawtext.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/web/html/reader.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/web/html/void.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/web/js/op.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/web/js/node.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/web/js/writer.cpp
         ${LH_TEST_SRC_PATH}/lh/sql/db.cpp
         ${LH_TEST_SRC_PATH}/lh/sql/mysql/query.cpp
-        ${LH_TEST_SRC_PATH}/lh/version.cpp
-        ${LH_TEST_SRC_PATH}/lh/werror.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/version.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/werror.cpp
 )
 
 lh_add_test_core(lh_test_runtime
-        ${LH_TEST_SRC_PATH}/lh/runtime/allocator.cpp
-        ${LH_TEST_SRC_PATH}/lh/runtime/check.cpp
-        ${LH_TEST_SRC_PATH}/lh/runtime/check/handler.cpp
-        ${LH_TEST_SRC_PATH}/lh/runtime/error.cpp
-        ${LH_TEST_SRC_PATH}/lh/runtime/terminate.cpp
-        ${LH_TEST_SRC_PATH}/lh/runtime/terminate/handler.cpp
-        ${LH_TEST_SRC_PATH}/lh/runtime/logger.cpp
-        ${LH_TEST_SRC_PATH}/lh/runtime/reader.cpp
-        ${LH_TEST_SRC_PATH}/lh/runtime/writer.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/runtime/allocator.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/runtime/check.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/runtime/check/handler.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/runtime/error.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/runtime/terminate.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/runtime/terminate/handler.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/runtime/logger.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/runtime/reader.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/runtime/writer.cpp
 )
 
 lh_add_test_core(lh_test_bit
-        ${LH_TEST_SRC_PATH}/lh/bit/bswap.cpp
-        ${LH_TEST_SRC_PATH}/lh/bit/endian.cpp
-        ${LH_TEST_SRC_PATH}/lh/bit/half.cpp
-        ${LH_TEST_SRC_PATH}/lh/bit/packed.cpp
-        ${LH_TEST_SRC_PATH}/lh/bit/reverse.cpp
-        ${LH_TEST_SRC_PATH}/lh/bit/rotate.cpp
-        ${LH_TEST_SRC_PATH}/lh/bit/scan.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/bit/bswap.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/bit/endian.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/bit/half.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/bit/packed.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/bit/reverse.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/bit/rotate.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/bit/scan.cpp
 )
 
 lh_add_test_core(lh_test_char
-        ${LH_TEST_SRC_PATH}/lh/char/digit.cpp
-        ${LH_TEST_SRC_PATH}/lh/char/dot.cpp
-        ${LH_TEST_SRC_PATH}/lh/char/letter.cpp
-        ${LH_TEST_SRC_PATH}/lh/char/slash.cpp
-        ${LH_TEST_SRC_PATH}/lh/char/xdigit.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/char/digit.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/char/dot.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/char/letter.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/char/slash.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/char/xdigit.cpp
 )
 
 lh_add_test_core(lh_test_cpu
-        ${LH_TEST_SRC_PATH}/lh/cpu/cache.cpp
-        ${LH_TEST_SRC_PATH}/lh/cpu/id.cpp
-        ${LH_TEST_SRC_PATH}/lh/cpu/simd.cpp
-        ${LH_TEST_SRC_PATH}/lh/cpu/vendor.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/cpu/cache.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/cpu/id.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/cpu/simd.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/cpu/vendor.cpp
 )
 
 lh_add_test_core(lh_test_crypto
-        ${LH_TEST_SRC_PATH}/lh/crypto/ed25519.cpp
-        ${LH_TEST_SRC_PATH}/lh/crypto/rijndael.cpp
-        ${LH_TEST_SRC_PATH}/lh/crypto/sha.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/crypto/ed25519.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/crypto/rijndael.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/crypto/sha.cpp
 )
 
 lh_add_test_core(lh_test_hash
-        ${LH_TEST_SRC_PATH}/lh/hash/fnv.cpp
-        ${LH_TEST_SRC_PATH}/lh/hash/crc.cpp
-        ${LH_TEST_SRC_PATH}/lh/compress/deflate.cpp
-        ${LH_TEST_SRC_PATH}/lh/compress/deflate/encoder.cpp
-        ${LH_TEST_SRC_PATH}/lh/compress/deflate/matcher.cpp
-        ${LH_TEST_SRC_PATH}/lh/compress/deflate/tokens.cpp
-        ${LH_TEST_SRC_PATH}/lh/compress/gzip.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/hash/fnv.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/hash/crc.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/compress/deflate.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/compress/deflate/encoder.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/compress/deflate/matcher.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/compress/deflate/tokens.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/compress/gzip.cpp
 )
 
 lh_add_test_core(lh_test_fs
-        ${LH_TEST_SRC_PATH}/lh/fs/path.cpp
-        ${LH_TEST_SRC_PATH}/lh/fs/path/style.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/fs/path.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/fs/path/style.cpp
 )
 
 lh_add_test_core(lh_test_io
-        ${LH_TEST_SRC_PATH}/lh/io/dgram.cpp
-        ${LH_TEST_SRC_PATH}/lh/io/reader.cpp
-        ${LH_TEST_SRC_PATH}/lh/io/stream.cpp
-        ${LH_TEST_SRC_PATH}/lh/io/writer.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/io/dgram.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/io/reader.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/io/stream.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/io/writer.cpp
 )
 
 set(LH_TEST_MATH_FPU_SOURCES
-        ${LH_TEST_SRC_PATH}/lh/math/fpoint.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/fsize.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/frect.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/vec2.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/vec3.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/vec4.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/quat.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/mat4.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/convert.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/float/sqrt.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/float/sin_cos.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/float/round.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/float/finite.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/float/tan.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/slice.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/view.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/fpoint.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/fsize.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/frect.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/vec2.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/vec3.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/vec4.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/quat.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/mat4.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/convert.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/float/sqrt.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/float/sin_cos.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/float/round.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/float/finite.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/float/tan.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/slice.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/view.cpp
 )
 set(LH_TEST_MATH_SOURCES
-        ${LH_TEST_SRC_PATH}/lh/math.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/point.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/size.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/rect.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/rescale.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/scalar_centre.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/point.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/size.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/rect.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/rescale.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/scalar_centre.cpp
 )
 if (LH_LIBRARY_OPTION_MATH_FPU)
     list(APPEND LH_TEST_MATH_SOURCES ${LH_TEST_MATH_FPU_SOURCES})
@@ -238,32 +238,32 @@ endif ()
 lh_add_test_core(lh_test_math ${LH_TEST_MATH_SOURCES})
 
 lh_add_test_core(lh_test_memory
-        ${LH_TEST_SRC_PATH}/lh/memory/allocator.cpp
-        ${LH_TEST_SRC_PATH}/lh/memory/bounds.cpp
-        ${LH_TEST_SRC_PATH}/lh/memory/bounds/allocated.cpp
-        ${LH_TEST_SRC_PATH}/lh/memory/memory.cpp
-        ${LH_TEST_SRC_PATH}/lh/memory/scan_page.cpp
-        ${LH_TEST_SRC_PATH}/lh/memory/sized/allocator.cpp
-        ${LH_TEST_SRC_PATH}/lh/memory/std.cpp
-        ${LH_TEST_SRC_PATH}/lh/memory/tree.cpp
-        ${LH_TEST_SRC_PATH}/lh/memory/typed.cpp
-        ${LH_TEST_SRC_PATH}/lh/memory/view.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/memory/allocator.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/memory/bounds.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/memory/bounds/allocated.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/memory/memory.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/memory/scan_page.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/memory/sized/allocator.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/memory/std.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/memory/tree.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/memory/typed.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/memory/view.cpp
 )
 
 lh_add_test_core(lh_test_net
-        ${LH_TEST_SRC_PATH}/lh/net/ip.cpp
-        ${LH_TEST_SRC_PATH}/lh/net/modbus.cpp
-        ${LH_TEST_SRC_PATH}/lh/net/modbus_link.cpp
-        ${LH_TEST_SRC_PATH}/lh/net/port.cpp
-        ${LH_TEST_SRC_PATH}/lh/net/socket/addr.cpp
-        ${LH_TEST_SRC_PATH}/lh/net/socket/addr/ip4.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/net/ip.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/net/modbus.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/net/modbus_link.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/net/port.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/net/socket/addr.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/net/socket/addr/ip4.cpp
 )
 
 lh_add_test_core(lh_test_numeric
-        ${LH_TEST_SRC_PATH}/lh/numeric/big.cpp
-        ${LH_TEST_SRC_PATH}/lh/numeric/float.cpp
-        ${LH_TEST_SRC_PATH}/lh/numeric/mul.cpp
-        ${LH_TEST_SRC_PATH}/lh/numeric/parse/bytes.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/numeric/big.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/numeric/float.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/numeric/mul.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/numeric/parse/bytes.cpp
 )
 
 set(LH_TEST_OS_SOURCES
@@ -367,37 +367,37 @@ if (LH_TEST_OS_SOURCES)
 endif ()
 
 set(LH_TEST_STR_SOURCES
-        ${LH_TEST_SRC_PATH}/lh/str.cpp
-        ${LH_TEST_SRC_PATH}/lh/str/format/bytes.cpp
-        ${LH_TEST_SRC_PATH}/lh/str/format/base64.cpp
-        ${LH_TEST_SRC_PATH}/lh/str/format/hex.cpp
-        ${LH_TEST_SRC_PATH}/lh/str/format/sint.cpp
-        ${LH_TEST_SRC_PATH}/lh/str/format/sllong.cpp
-        ${LH_TEST_SRC_PATH}/lh/str/format/text.cpp
-        ${LH_TEST_SRC_PATH}/lh/str/format/uint.cpp
-        ${LH_TEST_SRC_PATH}/lh/str/format/ullong.cpp
-        ${LH_TEST_SRC_PATH}/lh/str/list.cpp
-        ${LH_TEST_SRC_PATH}/lh/str/list/span.cpp
-        ${LH_TEST_SRC_PATH}/lh/str/parse/hex.cpp
-        ${LH_TEST_SRC_PATH}/lh/str/parse/radix.cpp
-        ${LH_TEST_SRC_PATH}/lh/str/parse/text.cpp
-        ${LH_TEST_SRC_PATH}/lh/str/parse/uint.cpp
-        ${LH_TEST_SRC_PATH}/lh/str/parse/ullong.cpp
-        ${LH_TEST_SRC_PATH}/lh/str/parse/sllong.cpp
-        ${LH_TEST_SRC_PATH}/lh/str/scanf/next.cpp
-        ${LH_TEST_SRC_PATH}/lh/str/split/next.cpp
-        ${LH_TEST_SRC_PATH}/lh/str/split/line.cpp
-        ${LH_TEST_SRC_PATH}/lh/str/split/once.cpp
-        ${LH_TEST_SRC_PATH}/lh/str/utf8.cpp
-        ${LH_TEST_SRC_PATH}/lh/str/line/reader.cpp
-        ${LH_TEST_SRC_PATH}/lh/str/view.cpp
-        ${LH_TEST_SRC_PATH}/lh/str/cursor.cpp
-        ${LH_TEST_SRC_PATH}/lh/wchar/case/map.cpp
-        ${LH_TEST_SRC_PATH}/lh/wstr.cpp
-        ${LH_TEST_SRC_PATH}/lh/wstr/list.cpp
-        ${LH_TEST_SRC_PATH}/lh/wstr/view.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/format/bytes.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/format/base64.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/format/hex.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/format/sint.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/format/sllong.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/format/text.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/format/uint.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/format/ullong.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/list.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/list/span.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/parse/hex.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/parse/radix.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/parse/text.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/parse/uint.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/parse/ullong.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/parse/sllong.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/scanf/next.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/split/next.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/split/line.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/split/once.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/utf8.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/line/reader.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/view.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/cursor.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/wchar/case/map.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/wstr.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/wstr/list.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/wstr/view.cpp
 )
-set(LH_TEST_STR_FPU_SOURCES ${LH_TEST_SRC_PATH}/lh/str/format/float.cpp)
+set(LH_TEST_STR_FPU_SOURCES ${LH_TEST_SRC_PATH}/lh/core/str/format/float.cpp)
 if (LH_LIBRARY_OPTION_MATH_FPU)
     list(APPEND LH_TEST_STR_SOURCES ${LH_TEST_STR_FPU_SOURCES})
 else ()
@@ -406,13 +406,13 @@ endif ()
 lh_add_test_core(lh_test_str ${LH_TEST_STR_SOURCES})
 
 lh_add_test_core(lh_test_time
-        ${LH_TEST_SRC_PATH}/lh/date.cpp
-        ${LH_TEST_SRC_PATH}/lh/datetime.cpp
-        ${LH_TEST_SRC_PATH}/lh/time.cpp
-        ${LH_TEST_SRC_PATH}/lh/time/hour.cpp
-        ${LH_TEST_SRC_PATH}/lh/time/minute.cpp
-        ${LH_TEST_SRC_PATH}/lh/time/second.cpp
-        ${LH_TEST_SRC_PATH}/lh/timestamp.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/date.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/datetime.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/time.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/time/hour.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/time/minute.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/time/second.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/timestamp.cpp
 )
 
 # lh/os/input: the event, the queue, the recognizer and the wheel step's conversion
@@ -432,19 +432,19 @@ lh_add_test_core(lh_test_os_controller
 )
 
 lh_add_test_core(lh_test_timer
-        ${LH_TEST_SRC_PATH}/lh/timer.cpp
-        ${LH_TEST_SRC_PATH}/lh/timer/tick.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/timer.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/timer/tick.cpp
 )
 
 lh_add_test_core(lh_test_util
-        ${LH_TEST_SRC_PATH}/lh/util/interval.cpp
-        ${LH_TEST_SRC_PATH}/lh/util/memory.cpp
-        ${LH_TEST_SRC_PATH}/lh/util/null.cpp
-        ${LH_TEST_SRC_PATH}/lh/util/str/case/map.cpp
-        ${LH_TEST_SRC_PATH}/lh/util/str/ptr.cpp
-        ${LH_TEST_SRC_PATH}/lh/util/str/ptr/dot.cpp
-        ${LH_TEST_SRC_PATH}/lh/util/swap.cpp
-        ${LH_TEST_SRC_PATH}/lh/util/wstr/ptr.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/util/interval.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/util/memory.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/util/null.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/util/str/case/map.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/util/str/ptr.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/util/str/ptr/dot.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/util/swap.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/util/wstr/ptr.cpp
 )
 
 set(LH_TEST_UI_SOURCES
@@ -568,12 +568,12 @@ else ()
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_CSS2DECL_SOURCE})
 endif ()
 
-# The JavaScript engine of lh/web/js: the lexer needs no OS, but the option that
+# The JavaScript engine of lh/core/web/js: the lexer needs no OS, but the option that
 # carries it decides whether it is built here.
 if (LH_LIBRARY_OPTION_JS)
-    lh_add_test_core(lh_test_js ${LH_TEST_SRC_PATH}/lh/web/js/lexer.cpp)
+    lh_add_test_core(lh_test_js ${LH_TEST_SRC_PATH}/lh/core/web/js/lexer.cpp)
 else ()
-    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/web/js/lexer.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/core/web/js/lexer.cpp)
 endif ()
 
 # Every test file belongs to a core, or the build says so.

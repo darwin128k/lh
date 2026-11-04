@@ -1,0 +1,222 @@
+/**
+ * @file quat.h
+ * @brief Rotation quaternion: `x, y, z` (vector part), `w` (scalar part).
+ *
+ * A unit quaternion is a rotation in 3D: about a unit axis `a` by `angle`
+ * radians it is `(a * sin(angle/2), cos(angle/2))`. Unlike Euler angles it
+ * has no gimbal lock, composes with one ::lh_math_quat_mul and interpolates
+ * smoothly (::lh_math_quat_nlerp), which is why engines keep orientations as
+ * quaternions and turn them into a matrix (::lh_math_mat4_from_quat) only to draw.
+ *
+ * Rotations follow the right-hand rule in a right-handed coordinate system
+ * (counterclockwise looking from the axis' tip toward the origin) and the
+ * left-hand rule in a left-handed one; nothing here picks either.
+ *
+ * Layout is 4 consecutive ::lh_math_fscalar_t in `x, y, z, w` order (GLM's and
+ * most engines' storage order). All functions take and return by value.
+ *
+ * Fields are not part of the public API: read and mutate them through the
+ * `lh_math_quat_get_*` / `lh_math_quat_set_*` accessors. The struct is
+ * defined here only so it can be embedded by value.
+ */
+
+#ifndef LH_MATH_QUAT_H
+#define LH_MATH_QUAT_H
+
+#include <lh/core/math/quat/fields.h>
+#include <lh/core/math/vec4.h>
+
+/**
+ * @struct lh_math_quat
+ * @brief Rotation quaternion. Fields via ::lh_math_quat_fields.
+ */
+struct lh_math_quat
+{
+    /** Members: ::lh_math_quat_fields. */
+    lh_math_quat_fields(lh_math_fscalar_t);
+};
+/** @copybrief lh_math_quat */
+typedef struct lh_math_quat lh_math_quat_t;
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief Fill @p self with the given components.
+ */
+lh_void
+lh_math_quat_init(lh_math_quat_t *self, lh_math_fscalar_t x, lh_math_fscalar_t y,
+                  lh_math_fscalar_t z, lh_math_fscalar_t w);
+
+/* -- Accessors ------------------------------------------------------------- */
+
+/**
+ * @brief X component (vector part) of @p self.
+ */
+lh_math_fscalar_t
+lh_math_quat_get_x(const lh_math_quat_t *self);
+
+/**
+ * @brief Y component (vector part) of @p self.
+ */
+lh_math_fscalar_t
+lh_math_quat_get_y(const lh_math_quat_t *self);
+
+/**
+ * @brief Z component (vector part) of @p self.
+ */
+lh_math_fscalar_t
+lh_math_quat_get_z(const lh_math_quat_t *self);
+
+/**
+ * @brief W component (scalar part) of @p self.
+ */
+lh_math_fscalar_t
+lh_math_quat_get_w(const lh_math_quat_t *self);
+
+/**
+ * @brief Set the X component of @p self.
+ */
+lh_void
+lh_math_quat_set_x(lh_math_quat_t *self, lh_math_fscalar_t x);
+
+/**
+ * @brief Set the Y component of @p self.
+ */
+lh_void
+lh_math_quat_set_y(lh_math_quat_t *self, lh_math_fscalar_t y);
+
+/**
+ * @brief Set the Z component of @p self.
+ */
+lh_void
+lh_math_quat_set_z(lh_math_quat_t *self, lh_math_fscalar_t z);
+
+/**
+ * @brief Set the W component of @p self.
+ */
+lh_void
+lh_math_quat_set_w(lh_math_quat_t *self, lh_math_fscalar_t w);
+
+/**
+ * @brief The same 4 numbers as a ::lh_math_vec4_t (`x, y, z, w`).
+ *
+ * For code that treats a quaternion as plain data: a shader uniform, a
+ * vertex attribute, a keyframe array of 4-float tuples.
+ */
+lh_void
+lh_math_quat_to_vec4(lh_math_quat_t q, lh_math_vec4_t *out);
+
+/**
+ * @brief The quaternion with @p v's 4 numbers; see ::lh_math_quat_to_vec4.
+ */
+lh_void
+lh_math_quat_from_vec4(lh_math_vec4_t v, lh_math_quat_t *out);
+
+/**
+ * @brief No rotation: `(0, 0, 0, 1)`.
+ */
+lh_void
+lh_math_quat_identity(lh_math_quat_t *out);
+
+/**
+ * @brief Rotation about @p axis by @p angle radians.
+ *
+ * @param axis  Rotation axis; must be unit length (see ::lh_math_vec3_normalize).
+ * @param angle Angle in radians.
+ * @param out   Receives the rotation.
+ */
+lh_void
+lh_math_quat_from_axis_angle(lh_math_vec3_t axis, lh_math_fscalar_t angle, lh_math_quat_t *out);
+
+/**
+ * @brief Product @p a * @p b: the rotation @p b followed by @p a.
+ *
+ * Not commutative: `mul(a, b)` and `mul(b, a)` are different rotations in
+ * general.
+ */
+lh_void
+lh_math_quat_mul(lh_math_quat_t a, lh_math_quat_t b, lh_math_quat_t *out);
+
+/**
+ * @brief Conjugate `(-x, -y, -z, w)`: for a unit quaternion, the inverse
+ *        rotation.
+ */
+lh_void
+lh_math_quat_conjugate(lh_math_quat_t q, lh_math_quat_t *out);
+
+/**
+ * @brief Where the rotation of a unit quaternion with vector part `(i, j, k)`
+ *        and scalar @p w takes the axis along `i`, in the order `(i, j, k)`:
+ *        `(1 - 2(j² + k²), 2(ij + wk), 2(ik - wj))`.
+ *
+ * Feeding the components in cyclic order `(x, y, z)`, `(y, z, x)` or
+ * `(z, x, y)` gives the image of the x, y or z axis, rotated into that order;
+ * ::lh_math_quat_axis_x, ::lh_math_quat_axis_y and ::lh_math_quat_axis_z put
+ * it back. @p out must not be null (::lh_assert_runtime_ref).
+ */
+lh_void
+lh_math_quat_axis_cyclic(lh_math_fscalar_t i, lh_math_fscalar_t j, lh_math_fscalar_t k,
+                         lh_math_fscalar_t w, lh_math_vec3_t *out);
+
+/**
+ * @brief Where the rotation of unit @p q takes the x axis: column 0 of
+ *        ::lh_math_mat4_from_quat.
+ */
+lh_void
+lh_math_quat_axis_x(lh_math_quat_t q, lh_math_vec3_t *out);
+
+/**
+ * @brief Where the rotation of unit @p q takes the y axis: column 1 of
+ *        ::lh_math_mat4_from_quat.
+ */
+lh_void
+lh_math_quat_axis_y(lh_math_quat_t q, lh_math_vec3_t *out);
+
+/**
+ * @brief Where the rotation of unit @p q takes the z axis: column 2 of
+ *        ::lh_math_mat4_from_quat.
+ */
+lh_void
+lh_math_quat_axis_z(lh_math_quat_t q, lh_math_vec3_t *out);
+
+/**
+ * @brief 4D dot product. For unit quaternions, `|dot|` near 1 means nearly
+ *        the same rotation.
+ */
+lh_math_fscalar_t
+lh_math_quat_dot(lh_math_quat_t a, lh_math_quat_t b);
+
+/**
+ * @brief @p q scaled to length 1.
+ *
+ * Products of many unit quaternions drift from length 1 through rounding;
+ * normalizing now and then keeps them rotations. A zero quaternion is
+ * returned unchanged.
+ */
+lh_void
+lh_math_quat_normalize(lh_math_quat_t q, lh_math_quat_t *out);
+
+/**
+ * @brief @p v rotated by the unit quaternion @p q.
+ *
+ * The inputs are taken by value, so @p out may point at the storage one of
+ * them was copied from.
+ */
+lh_void
+lh_math_quat_rotate(lh_math_quat_t q, lh_math_vec3_t v, lh_math_vec3_t *out);
+
+/**
+ * @brief Interpolate between the rotations @p a (at @p t = 0) and @p b
+ *        (at @p t = 1) the short way round, normalized.
+ *
+ * `q` and `-q` are the same rotation; @p b is flipped when needed so the
+ * result does not take the long way. The speed along the arc is not
+ * constant (unlike slerp), which is invisible for the small steps between
+ * animation frames.
+ */
+lh_void
+lh_math_quat_nlerp(lh_math_quat_t a, lh_math_quat_t b, lh_math_fscalar_t t, lh_math_quat_t *out);
+
+LH_COMPILER_EXTERN_C_END
+
+#endif /* LH_MATH_QUAT_H */

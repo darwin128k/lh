@@ -1,7 +1,7 @@
 #include <lh/os/system/memory.h>
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 #include <lh/os/system/error/capture.h>
-#include <lh/math.h>
+#include <lh/core/math.h>
 
 #include <stdint.h>
 #include <sys/mman.h>

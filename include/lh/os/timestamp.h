@@ -5,7 +5,7 @@
  * ::lh_os_timestamp_now reads the system's real-time clock (UTC) and
  * converts it to ::lh_timestamp_t — the same "seconds since 1970-01-01
  * 00:00:00 UTC" model the rest of `lh` already builds on
- * (`lh/timestamp.h`), so callers get straight to ::lh_date_t /
+ * (`lh/core/timestamp.h`), so callers get straight to ::lh_date_t /
  * ::lh_time_t / ::lh_datetime_t via the existing conversions, with no
  * separate OS-specific time type in between.
  *
@@ -25,7 +25,7 @@
 #define LH_OS_TIMESTAMP_H
 
 #include <lh/config.h>
-#include <lh/timestamp.h>
+#include <lh/core/timestamp.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/timestamp.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"

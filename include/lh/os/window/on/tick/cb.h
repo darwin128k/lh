@@ -7,7 +7,7 @@
 #define LH_OS_WINDOW_ON_TICK_CB_H
 
 #include <lh/os/window/on/tick/fn.h>
-#include <lh/util/ptr.h>
+#include <lh/core/util/ptr.h>
 
 /**
  * @def lh_os_window_on_tick_cb
@@ -15,4 +15,4 @@
  */
 #define lh_os_window_on_tick_cb lh_ptr_of(lh_os_window_on_tick_fn)
 
-#endif /* LH_OS_WINDOW_ON_TICK_CB_H */
+#endif /* LH_OS_WINDOW_ON_TICK_CB_H */

@@ -3,15 +3,15 @@
  * @brief Win32 off-screen surface: DIB section + memory DC + BitBlt present.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/attribute/unused.h>
-#include <lh/memory.h>
+#include <lh/core/assert/runtime.h>
+#include <lh/core/attribute/unused.h>
+#include <lh/core/memory.h>
 #include <lh/os/alloc.h>
 #include <lh/os/system/surface.h>
 #include <lh/os/system/win/gdi32.h>
 #include <lh/os/system/win/surface.h>
-#include <lh/runtime/allocator.h>
-#include <lh/util/return.h>
+#include <lh/core/runtime/allocator.h>
+#include <lh/core/util/return.h>
 
 lh_os_system_surface_handle_t
 lh_os_system_surface_create(int width, int height, int bits)

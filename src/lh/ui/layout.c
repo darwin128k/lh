@@ -2,11 +2,11 @@
  * @file layout.c
  * @brief Implementation of `lh/ui/layout.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
-#include <lh/math.h>
+#include <lh/core/math.h>
 #include <lh/ui/layout.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_void
 lh_ui_layout_init(lh_ui_layout_t *self, lh_ui_axis_t axis, lh_ui_scalar_t gap)

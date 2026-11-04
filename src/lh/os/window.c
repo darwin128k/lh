@@ -3,11 +3,11 @@
  * @brief Portable ::lh_os_window_t on top of `lh/os/system/window.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/attribute/unused.h>
+#include <lh/core/assert/runtime.h>
+#include <lh/core/attribute/unused.h>
 #include <lh/os/app.h>
 #include <lh/os/window.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 #include <lh/os/system/window.h>
 #include <lh/os/tick.h>

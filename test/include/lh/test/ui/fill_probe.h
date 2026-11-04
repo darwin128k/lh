@@ -11,13 +11,13 @@
 #ifndef LH_TEST_UI_FILL_PROBE_H
 #define LH_TEST_UI_FILL_PROBE_H
 
-#include <lh/ptr.h>
+#include <lh/core/ptr.h>
 #include <lh/ui/canvas.h>
 #include <lh/ui/color.h>
 #include <lh/ui/rect.h>
 #include <lh/ui/scalar.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
+#include <lh/core/util/addr.h>
+#include <lh/core/util/ptr.h>
 
 namespace lh_test
 {

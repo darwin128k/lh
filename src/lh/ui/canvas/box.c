@@ -12,12 +12,12 @@
  * out whole as a row of colours (::lh_ui_canvas_fill_colors), read off a
  * ::lh_ui_gradient_sampler_t, its corner pixels at their coverage.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
-#include <lh/math.h>
+#include <lh/core/math.h>
 #include <lh/ui/canvas/box.h>
 #include <lh/ui/canvas/round.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 /** How many pixels of a row are coloured before they are sent. */
 #define LH_UI_CANVAS_BOX_RUN 256

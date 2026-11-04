@@ -13,7 +13,7 @@
 #ifndef LH_SPSC_H
 #define LH_SPSC_H
 
-#include <lh/memory/allocator.h>
+#include <lh/core/memory/allocator.h>
 
 typedef struct lh_spsc lh_spsc_t;
 

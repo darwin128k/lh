@@ -1,8 +1,8 @@
 #include <lh/os/system/memory.h>
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/win/kernel32.h>
-#include <lh/math.h>
+#include <lh/core/math.h>
 
 /* PAGE_* protection constants: Windows takes one value, not flags. */
 #define LH_OS_SYSTEM_WIN_PAGE_NOACCESS 0x01UL

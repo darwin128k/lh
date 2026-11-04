@@ -5,13 +5,13 @@ Parse Unicode CaseFolding.txt and emit fold.c (table + lh_wchar_fold_case in one
 Uses only mappings where the folded form is a single code point (excludes full "F" expansions
 like ß -> ss). Omits status "T" (Turkic) by default — same as common non-Turkic case fold.
 
-lh_wchar_fold_case uses lh_interval_ropen_binary_search() from lh/util/interval.h on the
+lh_wchar_fold_case uses lh_interval_ropen_binary_search() from lh/core/util/interval.h on the
 sorted table (same interval search as wstr case map). Table rows are lh_wchar_t pairs; the
 supplementary-plane tail is guarded by #if LH_WCHAR_T_MAX > 0xFFFF (no fold crosses the BMP
 boundary — the script aborts if that ever stops holding).
 
 Input: tools/data/unicode/CaseFolding-16.0.0.txt (vendored; refresh from unicode.org when bumping UCD).
-Output: src/lh/util/wchar/case/fold.c
+Output: src/lh/core/util/wchar/case/fold.c
 """
 
 from __future__ import annotations
@@ -69,15 +69,15 @@ def emit_c(pairs: list[tuple[int, int]], unicode_version: str, out_path: str) ->
         " *",
         " * Unicode data copyright Unicode, Inc.; see https://www.unicode.org/terms_of_use.html",
         " *",
-        " * Lookup: lh_interval_ropen_binary_search() in lh/util/interval.h.",
+        " * Lookup: lh_interval_ropen_binary_search() in lh/core/util/interval.h.",
         " * Supplementary-plane rows are compiled only when LH_WCHAR_T_MAX > 0xFFFF.",
         " */",
         "",
-        "#include <lh/util/wchar.h>",
-        "#include <lh/util/interval.h>",
-        "#include <lh/size.h>",
-        "#include <lh/wchar/case/pair.h>",
-        "#include <lh/util/array/ptr.h>",
+        "#include <lh/core/util/wchar.h>",
+        "#include <lh/core/util/interval.h>",
+        "#include <lh/core/size.h>",
+        "#include <lh/core/wchar/case/pair.h>",
+        "#include <lh/core/util/array/ptr.h>",
         "",
         "static const lh_wchar_case_pair_t m_wchar_case_fold_table[] = {",
         "    /* clang-format off */",
@@ -92,7 +92,7 @@ def emit_c(pairs: list[tuple[int, int]], unicode_version: str, out_path: str) ->
     lines.extend(
         [
             "",
-            "/* Table lookup: lh_interval_ropen_binary_search() — lh/util/interval.h */",
+            "/* Table lookup: lh_interval_ropen_binary_search() — lh/core/util/interval.h */",
             "lh_wchar_t lh_wchar_fold_case(lh_wchar_t c) {",
             "    const lh_usize_t n = lh_array_ptr_get_size(m_wchar_case_fold_table);",
             "    lh_wchar_case_pair_t result;",

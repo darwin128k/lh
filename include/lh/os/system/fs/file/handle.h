@@ -12,8 +12,8 @@
 #ifndef LH_OS_SYSTEM_FS_FILE_HANDLE_H
 #define LH_OS_SYSTEM_FS_FILE_HANDLE_H
 
-#include <lh/cast/static.h>
-#include <lh/size.h>
+#include <lh/core/cast/static.h>
+#include <lh/core/size.h>
 
 /**
  * @typedef lh_os_system_fs_file_handle_t

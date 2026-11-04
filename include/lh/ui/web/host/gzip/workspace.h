@@ -11,7 +11,7 @@
 #ifndef LH_UI_WEB_HOST_GZIP_WORKSPACE_H
 #define LH_UI_WEB_HOST_GZIP_WORKSPACE_H
 
-#include <lh/compress/gzip/reader.h>
+#include <lh/core/compress/gzip/reader.h>
 #include <lh/ui/web/host/gzip/workspace/fields.h>
 
 /** @brief Scratch and decoder states for one gzip dispatch. */

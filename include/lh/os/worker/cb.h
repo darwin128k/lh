@@ -7,7 +7,7 @@
 #define LH_OS_WORKER_CB_H
 
 #include <lh/os/worker/fn.h>
-#include <lh/util/ptr.h>
+#include <lh/core/util/ptr.h>
 
 /**
  * @def lh_os_worker_cb

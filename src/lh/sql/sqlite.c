@@ -1,5 +1,5 @@
 #include <lh/sql/sqlite/native.h>
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 /* ── native handles ──────────────────────────────────────────────────────── */
 

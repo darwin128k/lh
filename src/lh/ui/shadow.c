@@ -2,12 +2,12 @@
  * @file shadow.c
  * @brief Implementation of `lh/ui/shadow.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
-#include <lh/math.h>
+#include <lh/core/math.h>
 #include <lh/ui/shadow/shape.h>
 #include <lh/ui/radius.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_void
 lh_ui_shadow_init(lh_ui_shadow_t *self)

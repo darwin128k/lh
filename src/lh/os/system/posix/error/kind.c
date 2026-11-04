@@ -1,5 +1,5 @@
 #include <lh/os/system/error/kind.h>
-#include <lh/math.h>
+#include <lh/core/math.h>
 
 #include <errno.h>
 

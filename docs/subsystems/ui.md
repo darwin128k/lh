@@ -729,7 +729,7 @@ struct on the stack overflows and then looks like a drawing bug.
 #include <lh/ui/canvas.h>
 #include <lh/ui/view.h>
 #include <lh/ui/view/controller.h>
-#include <lh/util/addr.h>
+#include <lh/core/util/addr.h>
 
 struct my_main
 {
@@ -892,9 +892,9 @@ With the C library defaults off, lh has no way to print and no way to stop on
 a fatal error. Give it both first thing:
 
 ```c
-#include <lh/null.h>
-#include <lh/runtime/terminate.h>
-#include <lh/runtime/writer.h>
+#include <lh/core/null.h>
+#include <lh/core/runtime/terminate.h>
+#include <lh/core/runtime/writer.h>
 
 static void
 host_terminate(lh_self_ptr self)
@@ -931,7 +931,7 @@ usually a **strip**, a band of the screen, not the whole screen:
 #include <lh/ui/pixmap/format.h>
 #include <lh/ui/present/sink.h>
 #include <lh/ui/size.h>
-#include <lh/util/addr.h>
+#include <lh/core/util/addr.h>
 
 static uint16_t s_fb[F4VE_TFT_WIDTH * F4VE_FB_STRIP_H];        /* 320 x 48 RGB565, 30 KB */
 static uint16_t s_strip_y;

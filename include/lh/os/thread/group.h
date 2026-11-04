@@ -18,7 +18,7 @@
 #ifndef LH_OS_THREAD_GROUP_H
 #define LH_OS_THREAD_GROUP_H
 
-#include <lh/list.h>
+#include <lh/core/list.h>
 #include <lh/os/thread.h>
 
 /** @brief One thread of a group; opaque. */

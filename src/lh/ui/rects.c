@@ -2,11 +2,11 @@
  * @file rects.c
  * @brief Implementation of `lh/ui/rects.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
-#include <lh/math.h>
+#include <lh/core/math.h>
 #include <lh/ui/rects.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_void
 lh_ui_rects_init(lh_ui_rects_t *self)

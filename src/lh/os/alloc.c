@@ -1,6 +1,6 @@
 #include <lh/os.h>
 #include <lh/os/error/code.h>
-#include <lh/runtime/allocator.h>
+#include <lh/core/runtime/allocator.h>
 
 lh_ptr
 lh_os_alloc(lh_usize_t size)

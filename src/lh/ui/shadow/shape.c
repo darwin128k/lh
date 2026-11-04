@@ -2,14 +2,14 @@
  * @file shape.c
  * @brief Implementation of `lh/ui/shadow/shape.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
-#include <lh/math/isqrt.h>
-#include <lh/memory.h>
+#include <lh/core/math/isqrt.h>
+#include <lh/core/memory.h>
 #include <lh/ui/canvas/round.h>
 #include <lh/ui/radius.h>
 #include <lh/ui/shadow/ramp.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_void
 lh_ui_shadow_shape_init(lh_ui_shadow_shape_t *self, const lh_ui_shadow_t *shadow,

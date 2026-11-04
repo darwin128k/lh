@@ -1,0 +1,82 @@
+#include <lh/core/time/second.h>
+#include <lh/core/assert.h>
+#include <lh/core/util/interval/wrap.h>
+#include <lh/core/math.h>
+
+lh_uint_t
+lh_time_second_set(lh_time_second_t *self, lh_uint_t value)
+{
+    lh_ullong_t cur = 0;
+    lh_uint_t overflow;
+
+    lh_assert_runtime_ref(self);
+    overflow = lh_interval_closed_wrap_set(lh_addr_of(cur), lh_cast_static(lh_ullong_t, value), 0,
+                                           lh_cast_static(lh_ullong_t, LH_TIME_SECOND_MAX));
+    lh_ptr_deref(self) = lh_cast_static(lh_time_second_t, cur);
+    return overflow;
+}
+
+lh_void
+lh_time_second_init(lh_time_second_t *self, lh_time_second_t value)
+{
+    lh_assert_runtime_ref(self);
+    lh_ptr_deref(self) = value;
+}
+
+lh_time_second_t
+lh_time_second_get(const lh_time_second_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_ptr_deref(self);
+}
+
+lh_uint_t
+lh_time_second_add(lh_time_second_t *self, lh_uint_t value)
+{
+    lh_ullong_t cur = lh_cast_static(lh_ullong_t, lh_time_second_get(self));
+    lh_uint_t overflow;
+
+    overflow = lh_interval_closed_wrap_add(lh_addr_of(cur), lh_cast_static(lh_ullong_t, value), 0,
+                                           lh_cast_static(lh_ullong_t, LH_TIME_SECOND_MAX));
+    lh_ptr_deref(self) = lh_cast_static(lh_time_second_t, cur);
+    return overflow;
+}
+
+lh_uint_t
+lh_time_second_sub(lh_time_second_t *self, lh_uint_t value)
+{
+    lh_ullong_t cur = lh_cast_static(lh_ullong_t, lh_time_second_get(self));
+    lh_uint_t overflow;
+
+    overflow = lh_interval_closed_wrap_sub(lh_addr_of(cur), lh_cast_static(lh_ullong_t, value), 0,
+                                           lh_cast_static(lh_ullong_t, LH_TIME_SECOND_MAX));
+    lh_ptr_deref(self) = lh_cast_static(lh_time_second_t, cur);
+    return overflow;
+}
+
+lh_bool_t
+lh_time_second_equals(const lh_time_second_t *self, const lh_time_second_t *other)
+{
+    return lh_cast_static(lh_bool_t,
+                          lh_math_eq(lh_time_second_get(self), lh_time_second_get(other)));
+}
+
+lh_bool_t
+lh_time_second_is_at_least(const lh_time_second_t *self, const lh_time_second_t *minimum)
+{
+    return lh_cast_static(lh_bool_t,
+                          lh_math_ge(lh_time_second_get(self), lh_time_second_get(minimum)));
+}
+
+lh_bool_t
+lh_time_second_is_less(const lh_time_second_t *self, const lh_time_second_t *other)
+{
+    return lh_cast_static(lh_bool_t,
+                          lh_math_lt(lh_time_second_get(self), lh_time_second_get(other)));
+}
+
+lh_bool_t
+lh_time_second_is_greater(const lh_time_second_t *self, const lh_time_second_t *other)
+{
+    return lh_time_second_is_less(other, self);
+}

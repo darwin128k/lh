@@ -3,10 +3,10 @@
  * @brief Implementation of `lh/os/controller.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/attribute/unused.h>
+#include <lh/core/assert/runtime.h>
+#include <lh/core/attribute/unused.h>
 #include <lh/os/controller.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 /* -- Setting up ------------------------------------------------------------ */
 

@@ -49,7 +49,7 @@ Generates wide-char case mapping tables (`lh_wstr_ptr_to_lower` / `lh_wstr_ptr_t
 ```sh
 python3 gen_wchar_case_map.py
 ```
-Writes to `src/lh/util/wstr/case/map.c`.
+Writes to `src/lh/core/util/wstr/case/map.c`.
 
 ### Case Map (narrow)
 
@@ -64,7 +64,7 @@ sorted sparse pair table with binary search.
 ```sh
 python3 gen_str_case_map.py
 ```
-Writes to `src/lh/util/str/case/map.c`.
+Writes to `src/lh/core/util/str/case/map.c`.
 
 ### Case Fold
 
@@ -73,7 +73,7 @@ Generates case folding table (`lh_wchar_fold_case`) from CaseFolding.txt.
 ```sh
 python3 gen_wstr_case_fold.py
 ```
-Writes to `src/lh/util/wchar/case/fold.c`.
+Writes to `src/lh/core/util/wchar/case/fold.c`.
 
 ### Data
 
@@ -96,4 +96,4 @@ Computes the two tables `lh/real` converts numbers with, in exact Python integer
 ```sh
 python3 gen_real_tables.py
 ```
-Writes to `src/lh/real/power5.c` and `src/lh/real/cached.c`.
+Writes to `src/lh/core/real/power5.c` and `src/lh/core/real/cached.c`.

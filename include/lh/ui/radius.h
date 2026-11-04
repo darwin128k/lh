@@ -11,7 +11,7 @@
 #ifndef LH_UI_RADIUS_H
 #define LH_UI_RADIUS_H
 
-#include <lh/byte/ptr.h>
+#include <lh/core/byte/ptr.h>
 #include <lh/ui/rect.h>
 
 /**

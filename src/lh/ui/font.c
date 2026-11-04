@@ -2,11 +2,11 @@
  * @file font.c
  * @brief Implementation of `lh/ui/font.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 #include <lh/config.h>
 #include <lh/ui/font.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 #if LH_LIBRARY_OPTION_UI_FONT_ROBOTO
 #    include <lh/ui/font/roboto.h>

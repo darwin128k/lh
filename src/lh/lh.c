@@ -1,6 +1,6 @@
 #include <lh/lh.h>
-#include <lh/version/fallback.h>
-#include <lh/version/initializer.h>
+#include <lh/core/version/fallback.h>
+#include <lh/core/version/initializer.h>
 
 static const lh_version_t m_version =
     lh_version_initializer(LH_VERSION_MAJOR, LH_VERSION_MINOR, LH_VERSION_PATCH);

@@ -28,8 +28,8 @@
 #define LH_UI_WEB_PLAYER_PAGE_H
 
 #include <lh/os/key.h>
-#include <lh/web/xml/node.h>
-#include <lh/web/js/node.h>
+#include <lh/core/web/xml/node.h>
+#include <lh/core/web/js/node.h>
 
 #if !LH_LIBRARY_OPTION_UI
 #    error "lh/ui/web/player/page.h requires LH_LIBRARY_OPTION_UI"

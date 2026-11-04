@@ -1,8 +1,8 @@
 #include <lh/os/loader.h>
-#include <lh/assert.h>
-#include <lh/attribute/static.h>
+#include <lh/core/assert.h>
+#include <lh/core/attribute/static.h>
 #include <lh/os/alloc.h>
-#include <lh/runtime/allocator.h>
+#include <lh/core/runtime/allocator.h>
 
 /* -- accessors ------------------------------------------------------------- */
 

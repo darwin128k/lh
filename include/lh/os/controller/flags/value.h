@@ -6,7 +6,7 @@
 #ifndef LH_OS_CONTROLLER_FLAGS_VALUE_H
 #define LH_OS_CONTROLLER_FLAGS_VALUE_H
 
-#include <lh/bit/ops.h>
+#include <lh/core/bit/ops.h>
 
 /**
  * @enum lh_os_controller_flags_value

@@ -1,0 +1,187 @@
+#include <lh/core/str/list.h>
+#include <lh/core/assert.h>
+#include <lh/core/char/map.h>
+#include <lh/core/math.h>
+
+lh_str_t *
+lh_str_list_get_chars_mut(lh_str_list_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->chars);
+}
+
+const lh_str_t *
+lh_str_list_get_chars(const lh_str_list_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->chars);
+}
+
+lh_array_t *
+lh_str_list_get_spans_mut(lh_str_list_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->spans);
+}
+
+const lh_array_t *
+lh_str_list_get_spans(const lh_str_list_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->spans);
+}
+
+lh_void
+lh_str_list_get_span(const lh_str_list_t *self, lh_uindex_t index, lh_str_list_span_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_ptr_deref(out) = lh_ptr_deref(lh_ptr_cast(
+        const lh_str_list_span_t, lh_array_get_ptr(lh_str_list_get_spans(self), index)));
+}
+
+lh_void
+lh_str_list_init(lh_str_list_t *self)
+{
+    lh_str_init(lh_str_list_get_chars_mut(self));
+    lh_array_init(lh_str_list_get_spans_mut(self), sizeof(lh_str_list_span_t));
+}
+
+lh_void
+lh_str_list_deinit(lh_str_list_t *self)
+{
+    lh_str_deinit(lh_str_list_get_chars_mut(self));
+    lh_array_deinit(lh_str_list_get_spans_mut(self));
+}
+
+lh_void
+lh_str_list_clear(lh_str_list_t *self)
+{
+    lh_str_clear(lh_str_list_get_chars_mut(self));
+    lh_array_clear(lh_str_list_get_spans_mut(self));
+}
+
+lh_bool_t
+lh_str_list_is_empty(const lh_str_list_t *self)
+{
+    return lh_array_is_empty(lh_str_list_get_spans(self));
+}
+
+lh_usize_t
+lh_str_list_get_size(const lh_str_list_t *self)
+{
+    return lh_array_get_size(lh_str_list_get_spans(self));
+}
+
+lh_uindex_t
+lh_str_list_push_back(lh_str_list_t *self, lh_str_view_t text)
+{
+    lh_str_t *chars;
+    lh_str_list_span_t span;
+
+    chars = lh_str_list_get_chars_mut(self);
+    lh_str_list_span_init(lh_addr_of(span), lh_str_get_size(chars), lh_str_view_get_size(lh_addr_of(text)));
+    lh_str_append_view(chars, text);
+    lh_str_push_back(chars, lh_char_map_nul);
+    return lh_array_push_back(lh_str_list_get_spans_mut(self), lh_addr_of(span));
+}
+
+lh_void
+lh_str_list_assign(lh_str_list_t *self, const lh_str_list_t *other)
+{
+    if (lh_math_eq(self, other))
+    {
+        return;
+    }
+    lh_str_assign(lh_str_list_get_chars_mut(self), lh_str_list_get_chars(other));
+    lh_array_assign(lh_str_list_get_spans_mut(self), lh_str_list_get_spans(other));
+}
+
+lh_void
+lh_str_list_get(const lh_str_list_t *self, lh_uindex_t index, lh_str_view_t *out)
+{
+    lh_str_list_span_t span;
+    lh_str_view_t chars;
+
+    lh_str_list_get_span(self, index, lh_addr_of(span));
+    lh_str_as_view(lh_str_list_get_chars(self), lh_addr_of(chars));
+    lh_str_view_from_offset(lh_addr_of(chars), lh_str_list_span_get_offset(lh_addr_of(span)),
+                        lh_str_list_span_get_size(lh_addr_of(span)), out);
+}
+
+lh_str_cptr
+lh_str_list_get_data(const lh_str_list_t *self, lh_uindex_t index)
+{
+    lh_str_list_span_t span;
+    lh_str_view_t chars;
+
+    lh_str_list_get_span(self, index, lh_addr_of(span));
+    lh_str_as_view(lh_str_list_get_chars(self), lh_addr_of(chars));
+    return lh_ptr_cast(const lh_char_t,
+                       lh_memory_view_get_ptr_from_begin(lh_addr_of(chars), lh_str_list_span_get_offset(lh_addr_of(span))));
+}
+
+lh_uindex_t
+lh_str_list_push_back_str(lh_str_list_t *self, const lh_str_t *value)
+{
+    lh_str_view_t view;
+    lh_str_as_view(value, lh_addr_of(view));
+    return lh_str_list_push_back(self, view);
+}
+
+lh_void
+lh_str_list_append(lh_str_list_t *self, const lh_str_list_t *other)
+{
+    lh_usize_t base;
+    lh_usize_t n;
+    lh_uindex_t i;
+    lh_str_list_span_t span;
+
+    /* Read other's size before growing self: they may be the same list. */
+    n = lh_str_list_get_size(other);
+    base = lh_str_get_size(lh_str_list_get_chars_mut(self));
+    lh_str_append_str(lh_str_list_get_chars_mut(self), lh_str_list_get_chars(other));
+    for (i = 0U; lh_math_lt(i, n); i = lh_math_add_one(i))
+    {
+        lh_str_list_get_span(other, i, lh_addr_of(span));
+        lh_str_list_span_set_offset(lh_addr_of(span),
+                                    lh_math_add(lh_str_list_span_get_offset(lh_addr_of(span)), base));
+        lh_array_push_back(lh_str_list_get_spans_mut(self), lh_addr_of(span));
+    }
+}
+
+lh_void
+lh_str_list_split_of(lh_str_list_t *self, lh_str_view_t text, lh_str_cptr delims,
+                     lh_usize_t delim_count)
+{
+    lh_usize_t pos = 0U;
+    lh_str_view_t piece;
+    lh_bool_t had_delim;
+
+    while (lh_str_view_split_next_of(lh_addr_of(text), delims, delim_count, lh_addr_of(pos),
+                                     lh_addr_of(piece), lh_addr_of(had_delim)))
+    {
+        if (!lh_str_view_is_empty(lh_addr_of(piece)))
+        {
+            lh_str_list_push_back(self, piece);
+        }
+    }
+}
+
+lh_void
+lh_str_list_join(const lh_str_list_t *self, lh_str_t *out, lh_char_t sep)
+{
+    lh_usize_t n;
+    lh_uindex_t i;
+
+    n = lh_str_list_get_size(self);
+    for (i = 0U; lh_math_lt(i, n); i = lh_math_add_one(i))
+    {
+        if (lh_math_gt(i, 0U))
+        {
+            lh_str_push_back(out, sep);
+        }
+        lh_str_view_t view;
+        lh_str_list_get(self, i, lh_addr_of(view));
+        lh_str_append_view(out, view);
+    }
+}

@@ -6,8 +6,8 @@
 #ifndef LH_OS_INPUT_RECOGNIZER_CONFIG_H
 #define LH_OS_INPUT_RECOGNIZER_CONFIG_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/bool.h>
+#include <lh/core/compiler/extern/c.h>
 #include <lh/os/input/recognizer/config/fields.h>
 #include <lh/os/input/recognizer/config/ptr.h>
 

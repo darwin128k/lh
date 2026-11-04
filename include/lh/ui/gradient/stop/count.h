@@ -6,7 +6,7 @@
 #ifndef LH_UI_GRADIENT_STOP_COUNT_H
 #define LH_UI_GRADIENT_STOP_COUNT_H
 
-#include <lh/byte.h>
+#include <lh/core/byte.h>
 
 /**
  * @typedef lh_ui_gradient_stop_count_t

@@ -2,12 +2,12 @@
  * @file view.c
  * @brief Implementation of lh/ui/view.h — entity tree on an lh_ui_canvas_t.
  */
-#include <lh/assert.h>
-#include <lh/attribute/unused.h>
+#include <lh/core/assert.h>
+#include <lh/core/attribute/unused.h>
 
-#include <lh/math.h>
+#include <lh/core/math.h>
 #include <lh/ui/view.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 #if LH_LIBRARY_OPTION_OS
 #    include <lh/os/input.h>

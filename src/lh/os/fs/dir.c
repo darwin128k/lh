@@ -1,10 +1,10 @@
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 #include <lh/os.h>
 #include <lh/os/error/code.h>
 #include <lh/os/system/fs/dir.h>
-#include <lh/math.h>
-#include <lh/util/return.h>
-#include <lh/util/str/ptr/dot.h>
+#include <lh/core/math.h>
+#include <lh/core/util/return.h>
+#include <lh/core/util/str/ptr/dot.h>
 
 lh_void
 lh_os_fs_dir_init(lh_os_fs_dir_t *self)

@@ -9,11 +9,11 @@
 #ifndef LH_UI_KEY_H
 #define LH_UI_KEY_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
+#include <lh/core/bool.h>
+#include <lh/core/compiler/extern/c.h>
 #include <lh/os/key.h>
 #include <lh/ui/key/fields.h>
-#include <lh/void.h>
+#include <lh/core/void.h>
 
 /**
  * @struct lh_ui_key_input

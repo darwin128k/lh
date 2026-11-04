@@ -5,7 +5,7 @@
 
 #include <lh/os/input/wheel.h>
 #include <lh/os/system/unix/input.h>
-#include <lh/util/type.h>
+#include <lh/core/util/type.h>
 
 lh_u32_t
 lh_os_system_unix_input_get_wheel_lines(lh_void)

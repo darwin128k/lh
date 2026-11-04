@@ -4,8 +4,8 @@
  */
 
 #include <lh/os/window/corner.h>
-#include <lh/util/return.h>
-#include <lh/util/type.h>
+#include <lh/core/util/return.h>
+#include <lh/core/util/type.h>
 
 lh_s32_t
 lh_os_window_corner_inset(lh_s32_t radius, lh_s32_t row)

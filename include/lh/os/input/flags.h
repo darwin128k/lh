@@ -6,8 +6,8 @@
 #ifndef LH_OS_INPUT_FLAGS_H
 #define LH_OS_INPUT_FLAGS_H
 
-#include <lh/bit/ops.h>
-#include <lh/byte.h>
+#include <lh/core/bit/ops.h>
+#include <lh/core/byte.h>
 
 /**
  * @typedef lh_os_input_flags_t

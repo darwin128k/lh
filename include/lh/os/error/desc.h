@@ -19,7 +19,7 @@
 #include <lh/config.h>
 
 #if LH_LIBRARY_OPTION_OS_WERROR
-#    include <lh/util/wstr/ptr/empty.h>
+#    include <lh/core/util/wstr/ptr/empty.h>
 
 /**
  * @def lh_os_error_desc_ptr
@@ -42,7 +42,7 @@
  */
 #    define lh_os_error_desc_is_empty(text) lh_wstr_ptr_is_empty(text)
 #else
-#    include <lh/util/str/ptr/empty.h>
+#    include <lh/core/util/str/ptr/empty.h>
 
 /**
  * @def lh_os_error_desc_ptr

@@ -4,7 +4,7 @@
  */
 
 #include <lh/ui/easing.h>
-#include <lh/cast/static.h>
+#include <lh/core/cast/static.h>
 
 /** Each curve at time 0/16 .. 16/16, in weights of 255: the Bézier's y where its x is
    that time, solved once off the target and kept as numbers. */

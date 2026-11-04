@@ -23,7 +23,7 @@
 #define LH_OS_SYSTEM_NET_SOCKET_H
 
 #include <lh/config.h>
-#include <lh/net/socket/addr/ip4.h>
+#include <lh/core/net/socket/addr/ip4.h>
 #include <lh/os/result.h>
 #include <lh/os/net/socket/poll.h>
 #include <lh/os/system/fs/file/handle.h>

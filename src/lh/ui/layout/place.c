@@ -2,7 +2,7 @@
  * @file place.c
  * @brief Implementation of `lh/ui/layout/place.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
 #include <lh/ui/layout/place.h>
 

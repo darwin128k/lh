@@ -6,7 +6,7 @@
 #ifndef LH_OS_INPUT_EVENT_INITIALIZER_H
 #define LH_OS_INPUT_EVENT_INITIALIZER_H
 
-#include <lh/initializer.h>
+#include <lh/core/initializer.h>
 #include <lh/os/input/axis.h>
 #include <lh/os/input/button.h>
 #include <lh/os/input/device/kind.h>

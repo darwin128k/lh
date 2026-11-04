@@ -4,15 +4,15 @@
  */
 
 #include <lh/os/system/serial.h>
-#include <lh/attribute/unused.h>
-#include <lh/char/map.h>
+#include <lh/core/attribute/unused.h>
+#include <lh/core/char/map.h>
 
-#include <lh/assert/runtime.h>
-#include <lh/memory.h>
+#include <lh/core/assert/runtime.h>
+#include <lh/core/memory.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/str.h>
 #include <lh/os/system/win/serial.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 /** Room for `\\.\` and a port name; nothing longer is a port. */
 #define LH_OS_SYSTEM_WIN_SERIAL_NAME_MAX 64

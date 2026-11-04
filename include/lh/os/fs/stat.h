@@ -3,7 +3,7 @@
  * @brief Path queries that fill an ::lh_fs_stat_t (::lh_os_fs_stat) or read
  *        one of its fields (mtime, owner permissions).
  *
- * The snapshot itself is a pure value in `lh/fs/stat.h`; this header is
+ * The snapshot itself is a pure value in `lh/core/fs/stat.h`; this header is
  * the OS side that fills it from a path (`lstat` /
  * `GetFileAttributesEx`) — no open, no handle, just the name.
  *
@@ -14,8 +14,8 @@
 #define LH_OS_FS_STAT_H
 
 #include <lh/config.h>
-#include <lh/fs/path.h>
-#include <lh/fs/stat.h>
+#include <lh/core/fs/path.h>
+#include <lh/core/fs/stat.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/fs/stat.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"

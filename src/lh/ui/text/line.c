@@ -2,12 +2,12 @@
  * @file line.c
  * @brief Implementation of `lh/ui/text/line.h`.
  */
-#include <lh/assert.h>
+#include <lh/core/assert.h>
 
-#include <lh/math.h>
-#include <lh/char/map.h>
+#include <lh/core/math.h>
+#include <lh/core/char/map.h>
 #include <lh/ui/text.h>
-#include <lh/util/return.h>
+#include <lh/core/util/return.h>
 
 lh_void
 lh_ui_text_line_init(lh_ui_text_line_t *self)
