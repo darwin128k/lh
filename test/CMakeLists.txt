@@ -310,7 +310,6 @@ set(LH_TEST_OS_SOURCES
 )
 set(LH_TEST_OS_PRIMITIVE_SOURCES
         ${LH_TEST_SRC_PATH}/lh/os/concurrency.cpp
-        ${LH_TEST_SRC_PATH}/lh/os/worker.cpp
         ${LH_TEST_SRC_PATH}/lh/os/net/nonblocking.cpp
         ${LH_TEST_SRC_PATH}/lh/os/poll_file.cpp
 )

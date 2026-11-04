@@ -666,6 +666,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- `lh/os/worker.h` (`lh_os_worker_t`, `lh_os_worker_job_t`, `lh/os/worker/*`):
+  the bounded serial worker. `lh/exec` does its job — `lh_exec_thread_t` runs
+  the tasks on one thread, `lh_exec_mailbox_t` bounds them and delivers
+  `complete` / `destroy` on the owner's thread — and Authum's tasks, its only
+  user, moved onto it. `docs/subsystems/worker-queue.md` is now `spsc.md`.
 - The string-built web DSL: `lh/ui/web/html.h` (`lh_ui_web_html_*`, with
   `html/attr.h` and `html/kind.h`), `lh/ui/web/js.h` (`lh_ui_web_js_*`
   statement emitters taking code strings), `lh/ui/web/x.h` and

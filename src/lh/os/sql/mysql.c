@@ -250,7 +250,7 @@ lh_os_sql_mysql_execute(lh_sql_stmt_t *stmt)
     }
 
     /* The connection may be a new one now: ask the one the text went to. */
-    const lh_ptr result = lh_os_sql_mysql_api_store_result(api, lh_os_sql_mysql_get_native(db));
+    lh_ptr result = lh_os_sql_mysql_api_store_result(api, lh_os_sql_mysql_get_native(db));
 
     if (lh_null_eq(result) &&
         !lh_math_is_zero(lh_os_sql_mysql_api_field_count(api, lh_os_sql_mysql_get_native(db))))
@@ -403,7 +403,7 @@ lh_os_sql_mysql_connect(lh_sql_db_t *db, const lh_os_sql_mysql_api_t *api, lh_st
                         lh_str_view_t user, lh_str_view_t password, lh_str_view_t name,
                         lh_uint_t port)
 {
-    const lh_ptr native = lh_os_sql_mysql_api_init_native(api);
+    lh_ptr native = lh_os_sql_mysql_api_init_native(api);
 
     if (lh_null_eq(native))
     {

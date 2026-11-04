@@ -313,8 +313,6 @@ set(LH_LIB_SOURCES
 if (LH_LIBRARY_OPTION_OS)
     # The thread executor runs on the OS thread, mutex and condition.
     list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/exec/thread.c)
-    list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/worker.c)
-    list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/worker/job.c)
     list(APPEND LH_LIB_SOURCES
             ${LH_LIB_SRC_PATH}/os.c
             ${LH_LIB_SRC_PATH}/os/error.c
