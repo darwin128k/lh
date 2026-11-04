@@ -31,8 +31,11 @@ The tree holds three natures, each in its own place
 - **`lh/os/` — the world.** Files, sockets, windows, input, the module
   loader: operating-system resources, built on `lh/core/`.
 
-`lh/ui/` and the web host are compositions over all of them. `lh/sql/` and
-`lh/spsc.h` wait for their place.
+`lh/ui/` and the web host are compositions over all of them. A subject can
+live in two parts: `lh/core/sql/` says what a database, a driver and a
+statement are; `lh/os/sql/` holds the drivers that reach a real database.
+`lh/core/spsc.h` and `lh/core/atomic/` are data too: they wait for nothing,
+and the execution part is built on them.
 
 ## 0. LH uses its own bricks — first rule
 

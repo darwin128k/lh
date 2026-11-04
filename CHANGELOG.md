@@ -188,11 +188,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `include/lh/` that stands on its own — needs no operating system, no window,
   no thread — now lives in `include/lh/core/` (sources in `src/lh/core/`,
   tests in `test/src/lh/core/`): `<lh/array.h>` is `<lh/core/array.h>`,
-  `<lh/str/view.h>` is `<lh/core/str/view.h>`, and so on for 58 parts. Names
+  `<lh/str/view.h>` is `<lh/core/str/view.h>`, and so on. Names
   do not change: the core is transparent (`lh_array_*` stays `lh_array_*`).
-  `lh/os/`, `lh/ui/`, `lh/sql/`, `lh/spsc.h`, `lh/lh.h` and the generated
-  `lh/config.h` stay where they were. Migration: rewrite the include paths;
+  `lh/spsc.h` is `lh/core/spsc.h` too (59 parts). `lh/os/`, `lh/ui/`,
+  `lh/lh.h` and the generated `lh/config.h` stay where they were; `lh/sql/` is
+  split (next entry). Migration: rewrite the include paths;
   the move script maps every old path to its new one.
+- **Breaking: `lh/sql` is split between the core and the world.** What a
+  database, a driver and a statement are — `lh_sql_db_t`, `lh_sql_driver_t`,
+  `lh_sql_stmt_t`, `lh_sql_step_t` and the MySQL placeholder substitution
+  (`lh_sql_mysql_query_*`) — is in `lh/core/sql/` and keeps its names. The
+  drivers that reach a real database are in `lh/os/sql/` and carry the part's
+  name: `lh_sql_mysql_*` (api, conn, prepared, the driver) is now
+  `lh_os_sql_mysql_*`, `lh_sql_sqlite_*` is `lh_os_sql_sqlite_*`, the
+  `LH_SQL_MYSQL_*` / `LH_SQL_SQLITE_*` macros are `LH_OS_SQL_*`, and the openers
+  belong to their driver: `lh_sql_db_open_sqlite` is `lh_os_sql_sqlite_open`,
+  `lh_sql_db_open_mysql` / `_with` are `lh_os_sql_mysql_open` / `_open_with`.
+  The build conditions are unchanged (MySQL with the OS layer, SQLite with
+  `LH_LIBRARY_OPTION_SQL_SQLITE`).
 
 - `LH_LIBRARY_OPTION_UI` is now `OFF` by default, in CMake and in
   `lh/library/fallback.h`: most users want the bricks, not the widget toolkit.
