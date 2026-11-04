@@ -19,7 +19,7 @@
 
 #include <lh/os/logger/sink.h>
 #include <lh/os/loop.h>
-#include <lh/spsc.h>
+#include <lh/core/spsc.h>
 
 /** @brief A log queue and its worker; opaque. */
 typedef struct lh_os_logger_queue lh_os_logger_queue_t;
