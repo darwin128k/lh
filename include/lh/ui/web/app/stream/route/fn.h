@@ -2,14 +2,17 @@
  * @file fn.h
  * @brief Handler function type for a selected streaming web route.
  *
- * The handler is called once after the request head and framing are accepted.
- * It reads decoded body bytes through the borrowed LH reader and stages changes.
- * No staged changes may be published before the separate commit callback. The
- * host validates the remaining body and then calls either commit or abort.
+ * The handler is called after the request head and framing are accepted, and
+ * again each time more of the body has arrived. Each call reads decoded body
+ * bytes through the borrowed LH reader until it answers ::LH_IO_PENDING (return
+ * true: the host calls again when more arrives), 0 (the body ended and
+ * validated) or an error, and stages changes. A handler that returns before
+ * either is not called again: the host validates the rest of the body itself.
+ * No staged changes may be published before the separate commit callback; the
+ * host calls either commit or abort, once.
  * Header fields are the original request fields and are not rewritten after
- * gzip decompression; the body reader yields decompressed content. As with
- * any LH reader, LH_IO_PENDING means the handler must arrange a retry rather
- * than treating it as end of input.
+ * gzip decompression; the body reader yields decompressed content.
+ * ::LH_IO_PENDING is not the end of input: return true and wait for the next call.
  */
 
 #ifndef LH_UI_WEB_APP_STREAM_ROUTE_FN_H

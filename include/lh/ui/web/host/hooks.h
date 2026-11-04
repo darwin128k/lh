@@ -120,8 +120,8 @@ lh_ui_web_host_hooks_set_tick_fn(lh_ui_web_host_hooks_t *self, lh_void (*tick_fn
  * @param self The hooks; checked by ::lh_assert_runtime_ref.
  */
 lh_void (*lh_ui_web_host_hooks_get_resize_fn(const lh_ui_web_host_hooks_t *self))(lh_sint_t width,
-                                                                                lh_sint_t height,
-                                                                                lh_ptr ctx);
+                                                                                  lh_sint_t height,
+                                                                                  lh_ptr ctx);
 
 /**
  * @brief Store the callback the page's size goes to (level 1).
@@ -132,9 +132,9 @@ lh_void (*lh_ui_web_host_hooks_get_resize_fn(const lh_ui_web_host_hooks_t *self)
  * @param resize_fn The new value.
  */
 lh_void
-lh_ui_web_host_hooks_set_resize_fn(
-    lh_ui_web_host_hooks_t *self,
-    lh_void (*resize_fn)(lh_sint_t width, lh_sint_t height, lh_ptr ctx));
+lh_ui_web_host_hooks_set_resize_fn(lh_ui_web_host_hooks_t *self,
+                                   lh_void (*resize_fn)(lh_sint_t width, lh_sint_t height,
+                                                        lh_ptr ctx));
 
 /**
  * @brief The controller the input events go to (level 1).
@@ -153,7 +153,7 @@ lh_ui_web_host_hooks_get_controller(const lh_ui_web_host_hooks_t *self);
  * @param controller The new value.
  */
 lh_void
-lh_ui_web_host_hooks_set_controller(lh_ui_web_host_hooks_t *self, lh_os_controller_t * controller);
+lh_ui_web_host_hooks_set_controller(lh_ui_web_host_hooks_t *self, lh_os_controller_t *controller);
 
 LH_COMPILER_EXTERN_C_END
 

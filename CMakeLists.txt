@@ -328,6 +328,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/mutex.c
             ${LH_LIB_SRC_PATH}/os/condition.c
             ${LH_LIB_SRC_PATH}/os/wake.c
+            ${LH_LIB_SRC_PATH}/os/net/socket/poll.c
             ${LH_LIB_SRC_PATH}/os/env.c
             ${LH_LIB_SRC_PATH}/os/memory.c
             ${LH_LIB_SRC_PATH}/os/input.c
@@ -547,6 +548,11 @@ if (LH_LIBRARY_OPTION_UI)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/frame.c)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/hooks.c)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/stream.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/gate.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/tap.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/finish.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/pipe.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/conn.c)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/app.c)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/app/route.c)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/app/stream/route.c)

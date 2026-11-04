@@ -47,7 +47,7 @@ lh_ui_web_host_frame_get_next(const lh_ui_web_host_frame_t *self);
  * @param next The new value.
  */
 lh_void
-lh_ui_web_host_frame_set_next(lh_ui_web_host_frame_t *self, struct lh_ui_web_host_frame * next);
+lh_ui_web_host_frame_set_next(lh_ui_web_host_frame_t *self, struct lh_ui_web_host_frame *next);
 
 /**
  * @brief The bytes of the frame (level 1).

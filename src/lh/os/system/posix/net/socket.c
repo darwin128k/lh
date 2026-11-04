@@ -476,13 +476,14 @@ lh_os_system_net_socket_poll(lh_os_net_socket_poll_t *entries, lh_usize_t count,
     }
     for (lh_usize_t i = 0; i < count; ++i)
     {
-        lh_assert_runtime_if(entries[i].events &
-                                 ~(lh_os_net_socket_poll_read | lh_os_net_socket_poll_write),
+        const lh_uint_t events = lh_os_net_socket_poll_get_events(lh_addr_of(entries[i]));
+        lh_assert_runtime_if(events & ~(lh_os_net_socket_poll_read | lh_os_net_socket_poll_write),
                              lh_runtime_error_code_invalid_argument);
-        entries[i].ready = 0;
-        native[i].fd = lh_os_system_net_socket_native(entries[i].handle);
-        native[i].events = ((entries[i].events & lh_os_net_socket_poll_read) ? POLLIN : 0) |
-                           ((entries[i].events & lh_os_net_socket_poll_write) ? POLLOUT : 0);
+        lh_os_net_socket_poll_set_ready(lh_addr_of(entries[i]), 0U);
+        native[i].fd = lh_os_system_net_socket_native(
+            lh_os_net_socket_poll_get_handle(lh_addr_of(entries[i])));
+        native[i].events = ((events & lh_os_net_socket_poll_read) ? POLLIN : 0) |
+                           ((events & lh_os_net_socket_poll_write) ? POLLOUT : 0);
         native[i].revents = 0;
         if (native[i].fd >= 0)
         {
@@ -510,21 +511,21 @@ lh_os_system_net_socket_poll(lh_os_net_socket_poll_t *entries, lh_usize_t count,
     {
         if (native[i].revents & POLLIN)
         {
-            entries[i].ready |= lh_os_net_socket_poll_read;
+            lh_os_net_socket_poll_add_ready(lh_addr_of(entries[i]), lh_os_net_socket_poll_read);
         }
         if (native[i].revents & POLLOUT)
         {
-            entries[i].ready |= lh_os_net_socket_poll_write;
+            lh_os_net_socket_poll_add_ready(lh_addr_of(entries[i]), lh_os_net_socket_poll_write);
         }
         if (native[i].revents & (POLLERR | POLLNVAL))
         {
-            entries[i].ready |= lh_os_net_socket_poll_error;
+            lh_os_net_socket_poll_add_ready(lh_addr_of(entries[i]), lh_os_net_socket_poll_error);
         }
         if (native[i].revents & POLLHUP)
         {
-            entries[i].ready |= lh_os_net_socket_poll_hangup;
+            lh_os_net_socket_poll_add_ready(lh_addr_of(entries[i]), lh_os_net_socket_poll_hangup);
         }
-        if (entries[i].ready)
+        if (lh_os_net_socket_poll_get_ready(lh_addr_of(entries[i])))
         {
             ++ready;
         }

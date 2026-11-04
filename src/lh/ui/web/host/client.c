@@ -5,7 +5,6 @@
 
 #include <lh/ui/web/host/client.h>
 
-
 const lh_os_net_socket_t *
 lh_ui_web_host_client_get_sock(const lh_ui_web_host_client_t *self)
 {
@@ -133,7 +132,7 @@ lh_ui_web_host_client_get_qhead(const lh_ui_web_host_client_t *self)
 }
 
 lh_void
-lh_ui_web_host_client_set_qhead(lh_ui_web_host_client_t *self, lh_ui_web_host_frame_t * qhead)
+lh_ui_web_host_client_set_qhead(lh_ui_web_host_client_t *self, lh_ui_web_host_frame_t *qhead)
 {
     lh_assert_runtime_ref(self);
     self->qhead = qhead;
@@ -147,7 +146,7 @@ lh_ui_web_host_client_get_qtail(const lh_ui_web_host_client_t *self)
 }
 
 lh_void
-lh_ui_web_host_client_set_qtail(lh_ui_web_host_client_t *self, lh_ui_web_host_frame_t * qtail)
+lh_ui_web_host_client_set_qtail(lh_ui_web_host_client_t *self, lh_ui_web_host_frame_t *qtail)
 {
     lh_assert_runtime_ref(self);
     self->qtail = qtail;

@@ -24,8 +24,12 @@ handlers are the same.
   primitives as JSON. Glyph covers are interned: each glyph crosses the wire
   once per client.
 - `lh_ui_web_host_run` (`lh/ui/web/host.h`) listens on `127.0.0.1:<port>` and
-  serves an application. The host is the transport: it knows nothing about
-  pages, routes or scaling. The Canvas2D player is one application built on it
+  serves an application on the calling thread; `lh_ui_web_host_try_create` +
+  `_try_start` run the same host on a thread of its own, and `_try_stop` /
+  `_destroy` end it. The host waits for all its sockets in one poll (an
+  `lh_exec_loop_t`) and serves many connections at once: a client sending its
+  request slowly holds only its own connection. The host is the transport: it
+  knows nothing about pages, routes or scaling. The Canvas2D player is one application built on it
   (`lh_ui_web_player_t`, `lh/ui/web/player.h`):
   - `GET /` — the Canvas2D HTML player (built by `lh_ui_web_player_page_build`);
   - `GET /ui.json` — one frame;
@@ -243,8 +247,12 @@ if (lh_ui_canvas_web_open_mem(&web, buf, sizeof(buf), 980u, 620u))
 For an upload, register an `lh_ui_web_stream_route_t` with an ordinary route
 as its method/path matcher. Its staging callback reads from the borrowed
 `lh_io_reader_t`; it should place changes in temporary application-owned state.
-The host drains the rest of the reader and invokes `commit` only after the whole
-body, including any gzip checksum, validates. `abort` discards staged state and
+The callback is called again each time more of the body has arrived: it reads
+until the reader answers `LH_IO_PENDING` (return true and wait for the next
+call), `0` (the body ended) or an error. A callback that returns before either
+is not called again; the host validates the rest of the body itself and
+invokes `commit` only after the whole body, including any gzip checksum,
+validates. `abort` discards staged state and
 may send the error response. Neither callback may retain request or reader
 pointers after it returns.
 
@@ -259,8 +267,8 @@ lh_ui_web_app_set_nstream_routes(&app, 1U);
 `decoded_limit` bounds bytes after decompression. `encoded_limit` bounds gzip
 bytes after any chunk framing; it defaults to `LH_USIZE_T_MAX`, so set it when
 registering routes exposed to untrusted clients. `metadata_limit` separately
-bounds chunk metadata and gzip header/trailer bytes. The timeout bounds socket
-reads from the start of the request; it does not preempt handler execution.
+bounds chunk metadata and gzip header/trailer bytes. The timeout bounds the
+whole request from its start; it does not preempt handler execution.
 The host accepts `Content-Encoding: gzip` and `Transfer-Encoding: gzip, chunked`;
 streaming routes do not support nested gzip in both fields.
 Other content codings receive 415. The handler receives decoded bytes while

@@ -278,7 +278,13 @@ and committed by the owner before the next.
      with a timeout, `_try_abandon` (the thread frees the step's state through
      a release call when it ends), `_try_reap` (frees the loop, never waits) —
      and Authum's hand-made copy (link, stop state, grace period) is gone;
-   - 6c: the thread executor runs on the loop; the web host reads requests
-     through loop sources instead of blocking reads with timeouts.
+   - 6c (done): the web host is an `lh_ui_web_host_t` on an `lh_exec_loop_t`
+     with one poll of the listener, the wake signal, the websocket clients and
+     the HTTP connections; each connection (`lh_ui_web_host_conn_t`) advances a
+     step when readable, and a streaming route's handler is called again as its
+     body arrives (`lh_ui_web_host_pipe_t`: a socket gate, the resumable
+     decoders, a tap that tells why the handler stopped). The blocking bricks
+     drive one socket with the same pieces. The thread executor stays off the
+     loop: nothing it runs waits for sockets (owner, 2026-11-04).
 7. Asynchronous SQL as a composition.
 8. The thread, mutex and condition move out of `lh/os` into `lh/exec`'s base.

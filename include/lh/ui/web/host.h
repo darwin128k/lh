@@ -11,6 +11,22 @@
  * The Canvas2D player is one application built on this transport
  * (::lh_ui_web_player_t), not the transport's default.
  *
+ * The host is an ::lh_ui_web_host_t on an ::lh_exec_loop_t that sleeps in one
+ * poll of the listener, its wake signal, the websocket clients and the HTTP
+ * connections still sending their requests. Each connection advances one step
+ * when its socket is readable (::lh_ui_web_host_conn_t): a client sending its
+ * request slowly holds only its own connection, never the others or the
+ * websocket clients. A streaming route's handler is called each time more of
+ * its body has arrived (::lh_ui_web_host_pipe_t). ::lh_ui_web_host_try_start
+ * runs the host on its own thread, ::lh_ui_web_host_try_stop and
+ * ::lh_ui_web_host_destroy end it; ::lh_ui_web_host_run serves on the calling
+ * thread. The application's callbacks run on the host's thread.
+ *
+ * The blocking bricks below (::lh_ui_web_host_try_read_request,
+ * ::lh_ui_web_host_try_serve_stream, ::lh_ui_web_host_handle_request_is_upgraded)
+ * drive one socket to the end with the same step-by-step pieces, waiting on it
+ * in between.
+ *
  * Requires ::LH_LIBRARY_OPTION_UI and ::LH_LIBRARY_OPTION_OS.
  */
 
@@ -18,9 +34,11 @@
 #define LH_UI_WEB_HOST_H
 
 #include <lh/config.h>
-#include <lh/core/http/parser.h>
-#include <lh/ui/web/app.h>
 #include <lh/ui/web/host/hooks.h>
+#include <lh/exec/loop.h>
+#include <lh/os/wake.h>
+#include <lh/ui/web/host/conn.h>
+#include <lh/ui/web/host/fields.h>
 
 #if !LH_LIBRARY_OPTION_UI
 #    error "lh/ui/web/host.h requires LH_LIBRARY_OPTION_UI"
@@ -41,27 +59,148 @@
 #define LH_UI_WEB_HOST_WS_DEAD_MS 45000u
 /** How long the loop sleeps when nothing at all happens: the tick's period. */
 #define LH_UI_WEB_HOST_TICK_MS 20u
+
 /**
- * Request head and buffered-request wire capacity, in bytes.
- * Streaming routes reuse this capacity as scratch and may receive larger bodies.
- *
- * Define this before building LH to change the host's fixed stack allocation.
- * The value must be positive and suitable for the host thread's stack.
- * ::lh_ui_web_host_try_read_request instead uses its caller's buffer size.
+ * @brief The web host: a listener, its connections and websocket clients, on a loop.
  */
-#ifndef LH_UI_WEB_HOST_REQUEST_CAPACITY
-#    define LH_UI_WEB_HOST_REQUEST_CAPACITY 1024u
-#endif
+struct lh_ui_web_host
+{
+    /** Members: ::lh_ui_web_host_fields. */
+    lh_ui_web_host_fields();
+};
 
-/** Maximum chunk size line or trailer line held by a streaming request. */
-#ifndef LH_UI_WEB_HOST_CHUNK_LINE_CAPACITY
-#    define LH_UI_WEB_HOST_CHUNK_LINE_CAPACITY 1024u
-#endif
-
-/** How long an accepted connection may take to send its complete request. */
-#define LH_UI_WEB_HOST_REQUEST_MS 2000u
+/** @copybrief lh_ui_web_host */
+typedef struct lh_ui_web_host lh_ui_web_host_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief The application served (level 1).
+ * @param self Must not be null.
+ * @return The value.
+ */
+lh_ui_web_app_t *
+lh_ui_web_host_get_app(const lh_ui_web_host_t *self);
+
+/**
+ * @brief Store the application served (level 1).
+ * @param self  Must not be null.
+ * @param value The new value.
+ */
+lh_void
+lh_ui_web_host_set_app(lh_ui_web_host_t *self, lh_ui_web_app_t *value);
+
+/**
+ * @brief The listening socket, read-only (level 1).
+ * @param self Must not be null.
+ * @return Its address.
+ */
+const lh_os_net_socket_t *
+lh_ui_web_host_get_listener(const lh_ui_web_host_t *self);
+
+/**
+ * @brief The listening socket, for change (level 1).
+ * @param self Must not be null.
+ * @return Its address.
+ */
+lh_os_net_socket_t *
+lh_ui_web_host_get_listener_mut(lh_ui_web_host_t *self);
+
+/**
+ * @brief The signal that cuts the poll short, read-only (level 1).
+ * @param self Must not be null.
+ * @return Its address.
+ */
+const lh_os_wake_t *
+lh_ui_web_host_get_wake(const lh_ui_web_host_t *self);
+
+/**
+ * @brief The signal that cuts the poll short, for change (level 1).
+ * @param self Must not be null.
+ * @return Its address.
+ */
+lh_os_wake_t *
+lh_ui_web_host_get_wake_mut(lh_ui_web_host_t *self);
+
+/**
+ * @brief The loop the host runs on (level 1).
+ * @param self Must not be null.
+ * @return The value.
+ */
+lh_exec_loop_t *
+lh_ui_web_host_get_loop(const lh_ui_web_host_t *self);
+
+/**
+ * @brief Store the loop the host runs on (level 1).
+ * @param self  Must not be null.
+ * @param value The new value.
+ */
+lh_void
+lh_ui_web_host_set_loop(lh_ui_web_host_t *self, lh_exec_loop_t *value);
+
+/**
+ * @brief The websocket clients, read-only (level 1).
+ * @param self Must not be null.
+ * @return Its address.
+ */
+const lh_ui_web_host_client_t *
+lh_ui_web_host_get_clients(const lh_ui_web_host_t *self);
+
+/**
+ * @brief The websocket clients, for change (level 1).
+ * @param self Must not be null.
+ * @return Its address.
+ */
+lh_ui_web_host_client_t *
+lh_ui_web_host_get_clients_mut(lh_ui_web_host_t *self);
+
+/**
+ * @brief The last frame sent to the clients, read-only (level 1).
+ * @param self Must not be null.
+ * @return Its address.
+ */
+const lh_ui_web_host_stream_t *
+lh_ui_web_host_get_stream(const lh_ui_web_host_t *self);
+
+/**
+ * @brief The last frame sent to the clients, for change (level 1).
+ * @param self Must not be null.
+ * @return Its address.
+ */
+lh_ui_web_host_stream_t *
+lh_ui_web_host_get_stream_mut(lh_ui_web_host_t *self);
+
+/**
+ * @brief The HTTP connections in progress, read-only (level 1).
+ * @param self Must not be null.
+ * @return Its address.
+ */
+const lh_ui_web_host_conn_t *
+lh_ui_web_host_get_conns(const lh_ui_web_host_t *self);
+
+/**
+ * @brief The HTTP connections in progress, for change (level 1).
+ * @param self Must not be null.
+ * @return Its address.
+ */
+lh_ui_web_host_conn_t *
+lh_ui_web_host_get_conns_mut(lh_ui_web_host_t *self);
+
+/**
+ * @brief The poll entries of the last wait, read-only (level 1).
+ * @param self Must not be null.
+ * @return Its address.
+ */
+const lh_os_net_socket_poll_t *
+lh_ui_web_host_get_events(const lh_ui_web_host_t *self);
+
+/**
+ * @brief The poll entries of the last wait, for change (level 1).
+ * @param self Must not be null.
+ * @return Its address.
+ */
+lh_os_net_socket_poll_t *
+lh_ui_web_host_get_events_mut(lh_ui_web_host_t *self);
 
 /**
  * @brief Invoke a staging handler and commit only after the body reaches EOF.
@@ -84,45 +223,20 @@ lh_ui_web_host_try_dispatch_stream(lh_ui_web_app_t *app, const lh_ui_web_stream_
                                    const lh_http_header_t *headers, lh_io_reader_t *reader,
                                    lh_os_net_socket_t *client);
 
-/** @brief Checked form of ::lh_ui_web_host_try_dispatch_stream. */
-lh_void
-lh_ui_web_host_dispatch_stream(lh_ui_web_app_t *app, const lh_ui_web_stream_route_t *route,
-                               const lh_http_request_t *request, const lh_http_header_t *headers,
-                               lh_io_reader_t *reader, lh_os_net_socket_t *client);
-
 /**
- * @brief Decode gzip from a framed reader and dispatch a transaction.
- * Uses bounded scratch and history, validates all gzip members and limits, and
- * commits only after their trailers and source EOF. Components remain borrowed.
- * @param app Application and context.
- * @param route Route with decoded-body and gzip metadata limits.
- * @param request Borrowed parsed request.
- * @param headers Borrowed parsed fields.
- * @param compressed Borrowed framed compressed-content reader.
- * @param client Borrowed connected response socket.
- * @return True if the validated transaction committed; false if aborted.
- * @pre All pointers are valid and route callbacks are configured.
- */
-lh_bool_t
-lh_ui_web_host_try_dispatch_gzip(lh_ui_web_app_t *app, const lh_ui_web_stream_route_t *route,
-                                 const lh_http_request_t *request, const lh_http_header_t *headers,
-                                 lh_io_reader_t *compressed, lh_os_net_socket_t *client);
-
-/** @brief Checked form of ::lh_ui_web_host_try_dispatch_gzip. */
-lh_void
-lh_ui_web_host_dispatch_gzip(lh_ui_web_app_t *app, const lh_ui_web_stream_route_t *route,
-                             const lh_http_request_t *request, const lh_http_header_t *headers,
-                             lh_io_reader_t *compressed, lh_os_net_socket_t *client);
-
-/**
- * @brief Dispatch an already parsed request to a streaming route.
- * The staging callback borrows the request, headers and body reader. The host
- * validates the remaining body, calls commit on success or abort on failure,
- * and passes the socket to that finish callback for a reply. The route limits
- * decoded bytes, chunk metadata, and the total time since @p start (milliseconds
- * from lh_os_tick_ms). Initial bytes are borrowed and copied into scratch.
- * @return False if framing, staging, body validation, limits or the interim
- * response fail; true when commit was called. A reply may already be sent.
+ * @brief Serve a parsed request's streaming body on this thread, to its end.
+ *
+ * Begins an ::lh_ui_web_host_pipe_t (codings, framing, `Expect`), then steps it,
+ * waiting for the socket in between: the handler is called each time more of
+ * the body has arrived, reads until ::LH_IO_PENDING or 0, and the host
+ * validates what it leaves. The route's commit runs after the body validated,
+ * its abort on any failure. The route limits decoded bytes, chunk metadata, and
+ * the total time since @p start (milliseconds from lh_os_tick_ms). Initial
+ * bytes are borrowed and copied into the pipe, which is allocated through the
+ * runtime allocator for the call.
+ * @return False if framing, staging, body validation, limits, the interim
+ * response or the allocation fail; true when commit was called. A reply may
+ * already be sent.
  * @pre All objects and borrowed views are valid; initial fits host scratch.
  */
 lh_bool_t
@@ -130,12 +244,6 @@ lh_ui_web_host_try_serve_stream(lh_ui_web_app_t *app, const lh_ui_web_stream_rou
                                 lh_os_net_socket_t *client, const lh_http_request_t *request,
                                 const lh_http_header_t *headers, lh_str_view_t initial,
                                 lh_u64_t start);
-
-/** @brief Checked form of ::lh_ui_web_host_try_serve_stream; aborts on failure. */
-lh_void
-lh_ui_web_host_serve_stream(lh_ui_web_app_t *app, const lh_ui_web_stream_route_t *route,
-                            lh_os_net_socket_t *client, const lh_http_request_t *request,
-                            const lh_http_header_t *headers, lh_str_view_t initial, lh_u64_t start);
 
 /**
  * @brief Serialize a caller-supplied response and send its head and content.
@@ -162,104 +270,6 @@ lh_bool_t
 lh_ui_web_host_try_send_response(lh_os_net_socket_t *client, const lh_http_response_t *response,
                                  const lh_http_header_t *headers, lh_str_ptr scratch,
                                  lh_usize_t capacity, const lh_ptr body, lh_usize_t body_size);
-
-/**
- * @brief Send the response with ::lh_ui_web_host_try_send_response and check success.
- *
- * Arguments, ownership, partial-send behavior and preconditions are the same
- * as the try form.
- * @fails ::lh_runtime_error_code_invalid_range Formatting or sending failed.
- */
-lh_void
-lh_ui_web_host_send_response(lh_os_net_socket_t *client, const lh_http_response_t *response,
-                             const lh_http_header_t *headers, lh_str_ptr scratch,
-                             lh_usize_t capacity, const lh_ptr body, lh_usize_t body_size);
-
-/**
- * @brief Send a `100 Continue` interim response on a connected socket.
- *
- * Builds a status response without fields and delegates formatting and sending
- * to ::lh_ui_web_host_try_send_response. The socket remains caller-owned and
- * may have received a partial response on failure.
- * @param client Connected socket to write to.
- * @return True if sent, false on formatting or socket failure.
- * @pre @p client is valid.
- */
-lh_bool_t
-lh_ui_web_host_try_send_continue(lh_os_net_socket_t *client);
-
-/**
- * @brief Send `100 Continue`, checking ::lh_ui_web_host_try_send_continue.
- * @param client Connected, caller-owned socket.
- * @fails ::lh_runtime_error_code_invalid_range Formatting or sending failed.
- */
-lh_void
-lh_ui_web_host_send_continue(lh_os_net_socket_t *client);
-
-/**
- * @brief Send an HTTP response head and its permitted content.
- *
- * Builds the head from HTTP response and field objects. A HEAD request keeps
- * the representation length but receives no body; informational, 204, 205
- * and 304 responses receive neither body nor Content-Length. Successful
- * CONNECT responses also omit both; this function does not establish a tunnel.
- * Output and the request remain caller-owned. Invalid status, formatting or
- * socket failure returns false; the peer may have received a partial reply.
- *
- * @param client Connected socket to write to.
- * @param request Parsed request with a valid method view.
- * @param code HTTP status in the 100..599 range.
- * @param type NUL-terminated, valid HTTP Content-Type field value.
- * @param body Caller-owned content bytes. May be null when @p len is zero or
- *             the request method or response status forbids sending content.
- * @param len Number of representation bytes.
- * @return True when the permitted response is sent, false on invalid status,
- *         insufficient head space, formatting failure or socket failure.
- * @pre All non-optional pointers are valid, the field value contains no HTTP
- *      control characters. When content is sent, @p body has @p len readable
- *      bytes.
- */
-lh_bool_t
-lh_ui_web_host_try_reply(lh_os_net_socket_t *client, const lh_http_request_t *request,
-                         lh_uint_t code, const lh_str_ptr type, const lh_str_ptr body,
-                         lh_usize_t len);
-
-/**
- * @brief Send an ordinary response and check ::lh_ui_web_host_try_reply.
- *
- * Arguments, ownership, and partial-send behavior are as for the try form.
- * @fails ::lh_runtime_error_code_invalid_range The response could not be sent.
- */
-lh_void
-lh_ui_web_host_reply(lh_os_net_socket_t *client, const lh_http_request_t *request, lh_uint_t code,
-                     const lh_str_ptr type, const lh_str_ptr body, lh_usize_t len);
-
-/**
- * @brief Try to send a plain-text HTTP response using ::lh_ui_web_host_try_reply.
- *
- * @param client Connected socket to write to.
- * @param request Parsed request with a valid method view.
- * @param code HTTP status in the 100..599 range.
- * @param text Caller-owned content; the same null rules as the body of
- *             ::lh_ui_web_host_reply apply.
- * @param len Number of representation bytes.
- * @pre The pointer, status and content preconditions of
- *      ::lh_ui_web_host_try_reply hold.
- * @return True on success, false on formatting or socket failure.
- */
-lh_bool_t
-lh_ui_web_host_try_reply_text(lh_os_net_socket_t *client, const lh_http_request_t *request,
-                              lh_uint_t code, const lh_str_ptr text, lh_usize_t len);
-
-/**
- * @brief Send a plain-text response and check ::lh_ui_web_host_try_reply_text.
- *
- * Arguments, ownership, and partial-send behavior are as for the try form.
- * @fails ::lh_runtime_error_code_invalid_range The response could not be sent.
- */
-lh_void
-lh_ui_web_host_reply_text(lh_os_net_socket_t *client, const lh_http_request_t *request,
-                          lh_uint_t code, const lh_str_ptr text, lh_usize_t len);
 
 /** The first whole @p needle in @p p, or lh_null. lh_memory_find compares a
  *   shortened needle at the tail, so a match running past the end is no match. */
@@ -304,6 +314,188 @@ lh_usize_t
 lh_ui_web_host_get_query_value_size(const lh_http_request_t *request, const lh_str_ptr key,
                                     lh_usize_t key_len, const lh_str_ptr *value);
 
+/** Close a client and free everything it holds. */
+lh_void
+lh_ui_web_host_ws_drop(lh_ui_web_host_client_t *c);
+
+/** Append a fragment to the message being assembled; false past ::LH_UI_WEB_WS_MAX_MSG. */
+lh_bool_t
+lh_ui_web_host_ws_msg_add(lh_ui_web_host_client_t *c, const lh_byte_ptr p, lh_usize_t n);
+
+/** Give an upgraded connection a free client slot, or close it when there is none. */
+lh_void
+lh_ui_web_host_ws_attach(lh_ui_web_host_client_t *slots, lh_os_net_socket_t *client, lh_uint_t now);
+
+/** Is @p c waiting for a frame it can take now? A client still sending the last
+ *   one is skipped and gets the newest when it is done. */
+lh_bool_t
+lh_ui_web_host_ws_wants(const lh_ui_web_host_client_t *c, lh_uint_t gen);
+
+/** Keep a copy of the frame just sent, to skip sending an equal one. */
+lh_void
+lh_ui_web_host_ws_remember(lh_ui_web_host_stream_t *stream, const lh_str_ptr body, lh_usize_t len);
+
+/** Whether @p body equals the last frame sent. */
+lh_bool_t
+lh_ui_web_host_ws_same(const lh_ui_web_host_stream_t *stream, const lh_str_ptr body,
+                       lh_usize_t len);
+
+/**
+ * @brief Read and parse a request head, retaining any body bytes read with it.
+ *
+ * Reads into caller-owned storage until the shared HTTP parser completes. The
+ * request and headers borrow the buffer. On failure only their contents are
+ * unspecified; @p received and @p head_size remain unchanged.
+ * @param client Connected blocking socket.
+ * @param buf Caller-owned writable input buffer.
+ * @param capacity Bytes available in @p buf.
+ * @param timeout_ms Total time allowed in milliseconds.
+ * @param received Receives bytes read, including any early body bytes.
+ * @param head_size Receives bytes consumed by the parsed head.
+ * @param request Receives the parsed request.
+ * @param headers Caller-owned parsed field storage.
+ * @param header_capacity Number of fields that fit in @p headers.
+ * @return True for a complete head, false on timeout, invalid input or I/O failure.
+ * @pre Pointers are valid; @p buf holds @p capacity bytes. A nonzero header
+ *      capacity requires that many writable entries.
+ */
+lh_bool_t
+lh_ui_web_host_try_read_head(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize_t capacity,
+                             lh_u32_t timeout_ms, lh_usize_t *received, lh_usize_t *head_size,
+                             lh_http_request_t *request, lh_http_header_t *headers,
+                             lh_usize_t header_capacity);
+
+/**
+ * @brief Decode complete gzip bytes in place using temporary allocator storage.
+ * @param buffer Caller-owned writable buffer containing encoded bytes.
+ * @param encoded_size Number of encoded bytes in the buffer.
+ * @param capacity Buffer capacity and maximum decoded size.
+ * @param decoded_size Receives decoded byte count only on success.
+ * @return True after validation, copying and release succeed; false on invalid
+ *         input, output overflow or allocation/release failure. Buffer may be
+ *         modified if releasing temporary storage fails; output count is then
+ *         unchanged. Temporary storage is managed by the runtime allocator.
+ * @pre Buffer and decoded_size are valid; buffer holds capacity writable bytes.
+ */
+lh_bool_t
+lh_ui_web_host_try_decode_gzip_in_place(lh_str_ptr buffer, lh_usize_t encoded_size,
+                                        lh_usize_t capacity, lh_usize_t *decoded_size);
+
+/**
+ * @brief Serve one HTTP request on this thread; true when it became a WebSocket to keep.
+ *
+ * Drives one ::lh_ui_web_host_conn_t over @p client to its end, waiting for the
+ * socket between steps, within ::LH_UI_WEB_HOST_REQUEST_MS (a stream: its
+ * route's limit). The connection is allocated through the runtime allocator for
+ * the call; the socket stays the caller's (closed by the caller unless kept).
+ *
+ * The request head must fit ::LH_UI_WEB_HOST_REQUEST_CAPACITY. Gzip is
+ * supported as Content-Encoding or as Transfer-Encoding before chunked;
+ * using both at once on a streaming route is rejected. Other content codings
+ * receive 415. Matching streaming routes receive decoded content incrementally
+ * with their own body, metadata and time limits. WebSocket matching takes precedence, then
+ * streaming routes, then buffered routes. Buffered routes require the whole wire request including
+ * framing and trailers to fit the host buffer. A single chunked coding, gzip followed by chunked,
+ * or Content-Length is supported. HTTP/1.1 100-continue is supported; unsupported expectations
+ * receive 417. Known oversized content receives 413. Streaming handlers stage changes; the host
+ * calls commit after validation or abort on failure. The application owns its
+ * staged state and finish callbacks.
+ */
+lh_bool_t
+lh_ui_web_host_handle_request_is_upgraded(lh_ui_web_app_t *app, lh_os_net_socket_t *client);
+
+/**
+ * @brief Open @p listener on 127.0.0.1:@p port, non-blocking.
+ * @param listener Initialized, unopened socket; must not be null.
+ * @param port     Port to listen on.
+ * @return ::lh_bool_true when it listens; on failure the socket is closed.
+ */
+lh_bool_t
+lh_ui_web_host_try_listen(lh_os_net_socket_t *listener, lh_net_port_t port);
+
+/** @brief Checked form of ::lh_ui_web_host_try_dispatch_stream. */
+lh_void
+lh_ui_web_host_dispatch_stream(lh_ui_web_app_t *app, const lh_ui_web_stream_route_t *route,
+                               const lh_http_request_t *request, const lh_http_header_t *headers,
+                               lh_io_reader_t *reader, lh_os_net_socket_t *client);
+
+/**
+ * @brief Decode gzip from a framed reader and dispatch a transaction.
+ * Uses bounded scratch and history, validates all gzip members and limits, and
+ * commits only after their trailers and source EOF. Components remain borrowed.
+ * @param app Application and context.
+ * @param route Route with decoded-body and gzip metadata limits.
+ * @param request Borrowed parsed request.
+ * @param headers Borrowed parsed fields.
+ * @param compressed Borrowed framed compressed-content reader.
+ * @param client Borrowed connected response socket.
+ * @return True if the validated transaction committed; false if aborted.
+ * @pre All pointers are valid and route callbacks are configured.
+ */
+lh_bool_t
+lh_ui_web_host_try_dispatch_gzip(lh_ui_web_app_t *app, const lh_ui_web_stream_route_t *route,
+                                 const lh_http_request_t *request, const lh_http_header_t *headers,
+                                 lh_io_reader_t *compressed, lh_os_net_socket_t *client);
+
+/** @brief Checked form of ::lh_ui_web_host_try_serve_stream; aborts on failure. */
+lh_void
+lh_ui_web_host_serve_stream(lh_ui_web_app_t *app, const lh_ui_web_stream_route_t *route,
+                            lh_os_net_socket_t *client, const lh_http_request_t *request,
+                            const lh_http_header_t *headers, lh_str_view_t initial, lh_u64_t start);
+
+/**
+ * @brief Send the response with ::lh_ui_web_host_try_send_response and check success.
+ *
+ * Arguments, ownership, partial-send behavior and preconditions are the same
+ * as the try form.
+ * @fails ::lh_runtime_error_code_invalid_range Formatting or sending failed.
+ */
+lh_void
+lh_ui_web_host_send_response(lh_os_net_socket_t *client, const lh_http_response_t *response,
+                             const lh_http_header_t *headers, lh_str_ptr scratch,
+                             lh_usize_t capacity, const lh_ptr body, lh_usize_t body_size);
+
+/**
+ * @brief Send a `100 Continue` interim response on a connected socket.
+ *
+ * Builds a status response without fields and delegates formatting and sending
+ * to ::lh_ui_web_host_try_send_response. The socket remains caller-owned and
+ * may have received a partial response on failure.
+ * @param client Connected socket to write to.
+ * @return True if sent, false on formatting or socket failure.
+ * @pre @p client is valid.
+ */
+lh_bool_t
+lh_ui_web_host_try_send_continue(lh_os_net_socket_t *client);
+
+/**
+ * @brief Send an HTTP response head and its permitted content.
+ *
+ * Builds the head from HTTP response and field objects. A HEAD request keeps
+ * the representation length but receives no body; informational, 204, 205
+ * and 304 responses receive neither body nor Content-Length. Successful
+ * CONNECT responses also omit both; this function does not establish a tunnel.
+ * Output and the request remain caller-owned. Invalid status, formatting or
+ * socket failure returns false; the peer may have received a partial reply.
+ *
+ * @param client Connected socket to write to.
+ * @param request Parsed request with a valid method view.
+ * @param code HTTP status in the 100..599 range.
+ * @param type NUL-terminated, valid HTTP Content-Type field value.
+ * @param body Caller-owned content bytes. May be null when @p len is zero or
+ *             the request method or response status forbids sending content.
+ * @param len Number of representation bytes.
+ * @return True when the permitted response is sent, false on invalid status,
+ *         insufficient head space, formatting failure or socket failure.
+ * @pre All non-optional pointers are valid, the field value contains no HTTP
+ *      control characters. When content is sent, @p body has @p len readable
+ *      bytes.
+ */
+lh_bool_t
+lh_ui_web_host_try_reply(lh_os_net_socket_t *client, const lh_http_request_t *request,
+                         lh_uint_t code, const lh_str_ptr type, const lh_str_ptr body,
+                         lh_usize_t len);
+
 /**
  * @brief Read a signed integer from a request's query parameter.
  *
@@ -335,6 +527,164 @@ lh_ui_web_host_get_query_uint(const lh_http_request_t *request, const lh_str_ptr
                               lh_usize_t key_len);
 
 /**
+ * @brief Answer a WebSocket handshake using already parsed HTTP headers.
+ *
+ * The socket remains caller-owned; header views borrow the request buffer.
+ * On success the response was sent and the socket is non-blocking.
+ *
+ * @param client Connected socket.
+ * @param headers Parsed header array, borrowed for this call.
+ * @param count Number of headers in the array.
+ * @return ::lh_bool_true on upgrade, ::lh_bool_false if the key is missing,
+ *         too long, hashing or sending fails, or the socket mode cannot change.
+ */
+lh_bool_t
+lh_ui_web_host_ws_upgrade(lh_os_net_socket_t *client, const lh_http_header_t *headers,
+                          lh_usize_t count);
+
+/** Queue one frame for a client, at the front for control frames; drops a client over
+ * ::LH_UI_WEB_HOST_WS_QMAX. */
+lh_bool_t
+lh_ui_web_host_ws_enqueue(lh_ui_web_host_client_t *c, lh_uint_t opcode, const void *payload,
+                          lh_usize_t plen, lh_bool_t front);
+
+/** Send what a client's socket takes now; drops it on error or once a close has drained. */
+lh_void
+lh_ui_web_host_ws_flush(lh_ui_web_host_client_t *c);
+
+/**
+ * @brief Read a request head and check ::lh_ui_web_host_try_read_head.
+ * @copydetails lh_ui_web_host_try_read_head
+ * @fails ::lh_runtime_error_code_invalid_range The head could not be read.
+ */
+lh_void
+lh_ui_web_host_read_head(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize_t capacity,
+                         lh_u32_t timeout_ms, lh_usize_t *received, lh_usize_t *head_size,
+                         lh_http_request_t *request, lh_http_header_t *headers,
+                         lh_usize_t header_capacity);
+
+/** @brief Checked form of ::lh_ui_web_host_try_decode_gzip_in_place. */
+lh_void
+lh_ui_web_host_decode_gzip_in_place(lh_str_ptr buffer, lh_usize_t encoded_size, lh_usize_t capacity,
+                                    lh_usize_t *decoded_size);
+
+/**
+ * @brief See whether a buffered request body is complete in @p buf; decode it if so.
+ *
+ * Never reads: the step-by-step host calls it after each receive, the blocking
+ * ::lh_ui_web_host_try_finish_request after each wait. Chunked content is
+ * compacted in place when complete, and a gzip transfer coding is then decoded
+ * with temporary runtime-allocator storage.
+ *
+ * @param buf           The request: head, then the body bytes received so far.
+ * @param capacity      Writable size of @p buf.
+ * @param used          Bytes in @p buf.
+ * @param head_size     Bytes of the head.
+ * @param chunked       Whether the body is chunked.
+ * @param body_size     Content-Length when not chunked.
+ * @param transfer_gzip Whether a chunked body also has gzip transfer coding.
+ * @param length        Receives the wire bytes of the request when complete.
+ * @param body          Receives the decoded body, borrowed from @p buf, when complete.
+ * @return ::lh_http_parse_complete, ::lh_http_parse_incomplete (receive more),
+ *         or ::lh_http_parse_error (bad chunking or gzip).
+ */
+lh_http_parse_status_t
+lh_ui_web_host_try_complete_body(lh_str_ptr buf, lh_usize_t capacity, lh_usize_t used,
+                                 lh_usize_t head_size, lh_bool_t chunked, lh_usize_t body_size,
+                                 lh_bool_t transfer_gzip, lh_usize_t *length, lh_str_view_t *body);
+
+/**
+ * @brief Give a connection's end to its owner: an upgrade joins the websocket
+ *        clients, a finished request is closed.
+ * @param self The host; must not be null.
+ * @param conn One of its connections, just stepped.
+ * @param now  Milliseconds from lh_os_tick_ms, truncated, for the websocket client.
+ */
+lh_void
+lh_ui_web_host_settle(lh_ui_web_host_t *self, lh_ui_web_host_conn_t *conn, lh_uint_t now);
+
+/**
+ * @brief Fill the poll entries: the listener, the wake signal, the clients (write
+ *        when output is queued), the connections in progress.
+ * @param self The host; must not be null.
+ */
+lh_void
+lh_ui_web_host_prepare_poll(lh_ui_web_host_t *self);
+
+/**
+ * @brief The host's loop wake (an ::lh_exec_loop_wake_fn): signal the wake socket.
+ * @param waiter The ::lh_ui_web_host_t.
+ */
+lh_void
+lh_ui_web_host_wake(lh_ptr waiter);
+
+/**
+ * @brief Run the host on its own thread.
+ * @param self The host, created and not started; must not be null.
+ * @return ::lh_bool_false when the thread could not start.
+ */
+lh_bool_t
+lh_ui_web_host_try_start(lh_ui_web_host_t *self);
+
+/**
+ * @brief Ask the host's thread to stop and wait at most @p timeout_ms (::lh_exec_loop_try_stop).
+ * @param self       The host; must not be null.
+ * @param timeout_ms Longest wait.
+ * @return ::lh_bool_true when the thread has ended (or never started).
+ */
+lh_bool_t
+lh_ui_web_host_try_stop(lh_ui_web_host_t *self, lh_u32_t timeout_ms);
+
+/**
+ * @brief Stop the host (waiting for its last step), abort unfinished streams,
+ *        close every socket and free the record.
+ * @param self The host, or ::lh_null.
+ */
+lh_void
+lh_ui_web_host_destroy(lh_ui_web_host_t *self);
+
+/** @brief Checked form of ::lh_ui_web_host_try_dispatch_gzip. */
+lh_void
+lh_ui_web_host_dispatch_gzip(lh_ui_web_app_t *app, const lh_ui_web_stream_route_t *route,
+                             const lh_http_request_t *request, const lh_http_header_t *headers,
+                             lh_io_reader_t *compressed, lh_os_net_socket_t *client);
+
+/**
+ * @brief Send `100 Continue`, checking ::lh_ui_web_host_try_send_continue.
+ * @param client Connected, caller-owned socket.
+ * @fails ::lh_runtime_error_code_invalid_range Formatting or sending failed.
+ */
+lh_void
+lh_ui_web_host_send_continue(lh_os_net_socket_t *client);
+
+/**
+ * @brief Send an ordinary response and check ::lh_ui_web_host_try_reply.
+ *
+ * Arguments, ownership, and partial-send behavior are as for the try form.
+ * @fails ::lh_runtime_error_code_invalid_range The response could not be sent.
+ */
+lh_void
+lh_ui_web_host_reply(lh_os_net_socket_t *client, const lh_http_request_t *request, lh_uint_t code,
+                     const lh_str_ptr type, const lh_str_ptr body, lh_usize_t len);
+
+/**
+ * @brief Try to send a plain-text HTTP response using ::lh_ui_web_host_try_reply.
+ *
+ * @param client Connected socket to write to.
+ * @param request Parsed request with a valid method view.
+ * @param code HTTP status in the 100..599 range.
+ * @param text Caller-owned content; the same null rules as the body of
+ *             ::lh_ui_web_host_reply apply.
+ * @param len Number of representation bytes.
+ * @pre The pointer, status and content preconditions of
+ *      ::lh_ui_web_host_try_reply hold.
+ * @return True on success, false on formatting or socket failure.
+ */
+lh_bool_t
+lh_ui_web_host_try_reply_text(lh_os_net_socket_t *client, const lh_http_request_t *request,
+                              lh_uint_t code, const lh_str_ptr text, lh_usize_t len);
+
+/**
  * @brief Read a numeric query parameter as a flag.
  *
  * Uses the signed integer reader. Input remains owned by the caller.
@@ -351,66 +701,10 @@ lh_bool_t
 lh_ui_web_host_get_query_flag(const lh_http_request_t *request, const lh_str_ptr key,
                               lh_usize_t key_len, lh_bool_t absent);
 
-/**
- * @brief Answer a WebSocket handshake using already parsed HTTP headers.
- *
- * The socket remains caller-owned; header views borrow the request buffer.
- * On success the response was sent and the socket is non-blocking.
- *
- * @param client Connected socket.
- * @param headers Parsed header array, borrowed for this call.
- * @param count Number of headers in the array.
- * @return ::lh_bool_true on upgrade, ::lh_bool_false if the key is missing,
- *         too long, hashing or sending fails, or the socket mode cannot change.
- */
-lh_bool_t
-lh_ui_web_host_ws_upgrade(lh_os_net_socket_t *client, const lh_http_header_t *headers,
-                          lh_usize_t count);
-
-/** Close a client and free everything it holds. */
-lh_void
-lh_ui_web_host_ws_drop(lh_ui_web_host_client_t *c);
-
-/** Queue one frame for a client, at the front for control frames; drops a client over
- * ::LH_UI_WEB_HOST_WS_QMAX. */
-lh_bool_t
-lh_ui_web_host_ws_enqueue(lh_ui_web_host_client_t *c, lh_uint_t opcode, const void *payload,
-                          lh_usize_t plen, lh_bool_t front);
-
-/** Send what a client's socket takes now; drops it on error or once a close has drained. */
-lh_void
-lh_ui_web_host_ws_flush(lh_ui_web_host_client_t *c);
-
-/** Append a fragment to the message being assembled; false past ::LH_UI_WEB_WS_MAX_MSG. */
-lh_bool_t
-lh_ui_web_host_ws_msg_add(lh_ui_web_host_client_t *c, const lh_byte_ptr p, lh_usize_t n);
-
 /** Parse every whole frame received: answer pings and closes, give the text messages
  *   to the application. */
 lh_void
 lh_ui_web_host_ws_ingest(lh_ui_web_host_client_t *c, lh_ui_web_app_t *app, lh_uint_t now);
-
-/** Give an upgraded connection a free client slot, or close it when there is none. */
-lh_void
-lh_ui_web_host_ws_attach(lh_ui_web_host_client_t *slots, lh_os_net_socket_t *client, lh_uint_t now);
-
-/** Ping, time out, read and answer one client; one pass, never blocks. */
-lh_void
-lh_ui_web_host_ws_pump(lh_ui_web_host_client_t *c, lh_ui_web_app_t *app, lh_uint_t now);
-
-/** Is @p c waiting for a frame it can take now? A client still sending the last
- *   one is skipped and gets the newest when it is done. */
-lh_bool_t
-lh_ui_web_host_ws_wants(const lh_ui_web_host_client_t *c, lh_uint_t gen);
-
-/** Keep a copy of the frame just sent, to skip sending an equal one. */
-lh_void
-lh_ui_web_host_ws_remember(lh_ui_web_host_stream_t *stream, const lh_str_ptr body, lh_usize_t len);
-
-/** Whether @p body equals the last frame sent. */
-lh_bool_t
-lh_ui_web_host_ws_same(const lh_ui_web_host_stream_t *stream, const lh_str_ptr body,
-                       lh_usize_t len);
 
 /** Draw once for every client that wants a frame and send it. Covers go once per
  *   connection: a client that missed a frame, or is new, resets the set so this
@@ -420,40 +714,67 @@ lh_ui_web_host_ws_frame(lh_ui_web_host_client_t *cli, lh_ui_web_host_stream_t *s
                         lh_ui_web_app_t *app);
 
 /**
- * @brief Read and parse a request head, retaining any body bytes read with it.
+ * @brief Accept every connection waiting on the listener into a free slot.
  *
- * Reads into caller-owned storage until the shared HTTP parser completes. The
- * request and headers borrow the buffer. On failure only their contents are
- * unspecified; @p received and @p head_size remain unchanged.
- * @param client Connected blocking socket.
- * @param buf Caller-owned writable input buffer.
- * @param capacity Bytes available in @p buf.
- * @param timeout_ms Total time allowed in milliseconds.
- * @param received Receives bytes read, including any early body bytes.
- * @param head_size Receives bytes consumed by the parsed head.
- * @param request Receives the parsed request.
- * @param headers Caller-owned parsed field storage.
- * @param header_capacity Number of fields that fit in @p headers.
- * @return True for a complete head, false on timeout, invalid input or I/O failure.
- * @pre Pointers are valid; @p buf holds @p capacity bytes. A nonzero header
- *      capacity requires that many writable entries.
- */
-lh_bool_t
-lh_ui_web_host_try_read_head(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize_t capacity,
-                             lh_u32_t timeout_ms, lh_usize_t *received, lh_usize_t *head_size,
-                             lh_http_request_t *request, lh_http_header_t *headers,
-                             lh_usize_t header_capacity);
-
-/**
- * @brief Read a request head and check ::lh_ui_web_host_try_read_head.
- * @copydetails lh_ui_web_host_try_read_head
- * @fails ::lh_runtime_error_code_invalid_range The head could not be read.
+ * A connection with no free slot is closed at once. Each accepted one takes a
+ * first step (it may already have sent its request).
+ *
+ * @param self The host; must not be null.
+ * @param now  Milliseconds from lh_os_tick_ms64.
  */
 lh_void
-lh_ui_web_host_read_head(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize_t capacity,
-                         lh_u32_t timeout_ms, lh_usize_t *received, lh_usize_t *head_size,
-                         lh_http_request_t *request, lh_http_header_t *headers,
-                         lh_usize_t header_capacity);
+lh_ui_web_host_accept_all(lh_ui_web_host_t *self, lh_u64_t now);
+
+/**
+ * @brief Step every connection in progress; readable ones receive once.
+ * @param self The host; must not be null. Its poll entries are those of the last wait.
+ * @param now  Milliseconds from lh_os_tick_ms64.
+ */
+lh_void
+lh_ui_web_host_advance_conns(lh_ui_web_host_t *self, lh_u64_t now);
+
+/**
+ * @brief The host's loop wait (an ::lh_exec_loop_wait_fn): one poll of everything.
+ *
+ * Sleeps until a connection, a request's bytes, a client's input or room for its
+ * queued output, a wake — or @p timeout_ms. A poll that fails (a socket gone bad
+ * under it) waits on the listener and the wake signal alone, so the loop still
+ * sleeps instead of spinning.
+ *
+ * @param waiter     The ::lh_ui_web_host_t.
+ * @param timeout_ms Longest sleep.
+ */
+lh_void
+lh_ui_web_host_wait(lh_ptr waiter, lh_u32_t timeout_ms);
+
+/**
+ * @brief Make a host for @p app listening on 127.0.0.1:@p port, not running yet.
+ *
+ * The record (connections included) comes from the runtime allocator.
+ *
+ * @param app  The application: its routes answer the requests, its websocket path
+ *             takes the upgrades, its frames go to the clients, its tick runs every
+ *             step. Borrowed; it must outlive the host.
+ * @param port Port to listen on.
+ * @return The host, or ::lh_null when @p app is null, the socket would not
+ *         listen, or memory or the wake signal could not be had.
+ */
+lh_ui_web_host_t *
+lh_ui_web_host_try_create(lh_ui_web_app_t *app, lh_net_port_t port);
+
+/**
+ * @brief Send a plain-text response and check ::lh_ui_web_host_try_reply_text.
+ *
+ * Arguments, ownership, and partial-send behavior are as for the try form.
+ * @fails ::lh_runtime_error_code_invalid_range The response could not be sent.
+ */
+lh_void
+lh_ui_web_host_reply_text(lh_os_net_socket_t *client, const lh_http_request_t *request,
+                          lh_uint_t code, const lh_str_ptr text, lh_usize_t len);
+
+/** Ping, time out, read and answer one client; one pass, never blocks. */
+lh_void
+lh_ui_web_host_ws_pump(lh_ui_web_host_client_t *c, lh_ui_web_app_t *app, lh_uint_t now);
 
 /**
  * @brief Validate request body framing and handle its HTTP expectation.
@@ -484,6 +805,37 @@ lh_ui_web_host_try_begin_body(lh_os_net_socket_t *client, const lh_http_request_
                               lh_bool_t *chunked, lh_usize_t *length);
 
 /**
+ * @brief Decode a complete gzip body and dispatch a buffered route.
+ * The decoded body uses bounded host scratch and is validated before any
+ * handler is invoked. Invalid, truncated or oversized gzip receives 400.
+ * @param app Borrowed application.
+ * @param request Borrowed parsed request.
+ * @param headers Borrowed fields, count stored in request.
+ * @param body Borrowed complete gzip bytes.
+ * @param client Borrowed connected response socket.
+ * @return True if a handler handled the request or an error response was
+ *         attempted; false if no route handled the valid decoded body.
+ * @pre All pointers are valid and body holds its stated bytes.
+ */
+lh_bool_t
+lh_ui_web_host_handle_buffered_gzip_is_handled(lh_ui_web_app_t *app,
+                                               const lh_http_request_t *request,
+                                               const lh_http_header_t *headers,
+                                               const lh_str_view_t *body,
+                                               lh_os_net_socket_t *client);
+
+/**
+ * @brief Listen on 127.0.0.1:@p port and serve @p app on the calling thread.
+ *
+ * ::lh_ui_web_host_try_create, then the host's loop runs here; nothing stops it,
+ * so it does not return on success.
+ *
+ * @return ::lh_bool_false when the host could not be made.
+ */
+lh_bool_t
+lh_ui_web_host_run(lh_ui_web_app_t *app, lh_net_port_t port);
+
+/**
  * @brief Begin a request body and check ::lh_ui_web_host_try_begin_body.
  * @copydetails lh_ui_web_host_try_begin_body
  * @fails ::lh_runtime_error_code_invalid_range The body could not be begun.
@@ -493,27 +845,6 @@ lh_ui_web_host_begin_body(lh_os_net_socket_t *client, const lh_http_request_t *r
                           const lh_http_header_t *headers, lh_str_view_t initial,
                           lh_usize_t decoded_limit, lh_bool_t can_receive_more, lh_bool_t *chunked,
                           lh_usize_t *length);
-
-/**
- * @brief Decode complete gzip bytes in place using temporary allocator storage.
- * @param buffer Caller-owned writable buffer containing encoded bytes.
- * @param encoded_size Number of encoded bytes in the buffer.
- * @param capacity Buffer capacity and maximum decoded size.
- * @param decoded_size Receives decoded byte count only on success.
- * @return True after validation, copying and release succeed; false on invalid
- *         input, output overflow or allocation/release failure. Buffer may be
- *         modified if releasing temporary storage fails; output count is then
- *         unchanged. Temporary storage is managed by the runtime allocator.
- * @pre Buffer and decoded_size are valid; buffer holds capacity writable bytes.
- */
-lh_bool_t
-lh_ui_web_host_try_decode_gzip_in_place(lh_str_ptr buffer, lh_usize_t encoded_size,
-                                        lh_usize_t capacity, lh_usize_t *decoded_size);
-
-/** @brief Checked form of ::lh_ui_web_host_try_decode_gzip_in_place. */
-lh_void
-lh_ui_web_host_decode_gzip_in_place(lh_str_ptr buffer, lh_usize_t encoded_size, lh_usize_t capacity,
-                                    lh_usize_t *decoded_size);
 
 /**
  * @brief Finish a request after ::lh_ui_web_host_try_read_head.
@@ -544,6 +875,17 @@ lh_ui_web_host_try_finish_request(lh_os_net_socket_t *client, lh_str_ptr buf, lh
                                   lh_u32_t timeout_ms, lh_usize_t received, lh_usize_t head_size,
                                   lh_http_request_t *request, lh_http_header_t *headers,
                                   lh_usize_t *length, lh_str_view_t *body);
+
+/**
+ * @brief The host's loop step (an ::lh_exec_loop_step_fn).
+ *
+ * Ticks the application, steps the connections, accepts new ones, pumps the
+ * websocket clients and sends them a frame. Never waits.
+ *
+ * @param user The ::lh_ui_web_host_t.
+ */
+lh_void
+lh_ui_web_host_step(lh_ptr user);
 
 /**
  * @brief Finish a request and check ::lh_ui_web_host_try_finish_request.
@@ -608,70 +950,6 @@ lh_ui_web_host_read_request(lh_os_net_socket_t *client, lh_str_ptr buf, lh_usize
                             lh_u32_t timeout_ms, lh_usize_t *length, lh_str_view_t *body,
                             lh_http_request_t *request, lh_http_header_t *headers,
                             lh_usize_t header_capacity);
-
-/**
- * @brief Decode a complete gzip body and dispatch a buffered route.
- * The decoded body uses bounded host scratch and is validated before any
- * handler is invoked. Invalid, truncated or oversized gzip receives 400.
- * @param app Borrowed application.
- * @param request Borrowed parsed request.
- * @param headers Borrowed fields, count stored in request.
- * @param body Borrowed complete gzip bytes.
- * @param client Borrowed connected response socket.
- * @return True if a handler handled the request or an error response was
- *         attempted; false if no route handled the valid decoded body.
- * @pre All pointers are valid and body holds its stated bytes.
- */
-lh_bool_t
-lh_ui_web_host_handle_buffered_gzip_is_handled(lh_ui_web_app_t *app,
-                                               const lh_http_request_t *request,
-                                               const lh_http_header_t *headers,
-                                               const lh_str_view_t *body,
-                                               lh_os_net_socket_t *client);
-
-/**
- * @brief Serve one HTTP request; true when it became a WebSocket to keep.
- *
- * The request head must fit ::LH_UI_WEB_HOST_REQUEST_CAPACITY. Gzip is
- * supported as Content-Encoding or as Transfer-Encoding before chunked;
- * using both at once on a streaming route is rejected. Other content codings
- * receive 415. Matching streaming routes receive decoded content incrementally
- * with their own body, metadata and time limits. WebSocket matching takes precedence, then
- * streaming routes, then buffered routes. Buffered routes require the whole wire request including
- * framing and trailers to fit the host buffer. A single chunked coding, gzip followed by chunked,
- * or Content-Length is supported. HTTP/1.1 100-continue is supported; unsupported expectations
- * receive 417. Known oversized content receives 413. Streaming handlers stage changes; the host
- * calls commit after validation or abort on failure. The application owns its
- * staged state and finish callbacks.
- */
-lh_bool_t
-lh_ui_web_host_handle_request_is_upgraded(lh_ui_web_app_t *app, lh_os_net_socket_t *client);
-
-/** Accept and serve every connection waiting on the listener. */
-lh_void
-lh_ui_web_host_accept_all(lh_os_net_socket_t *listen_fd, lh_ui_web_host_client_t *cli,
-                          lh_ui_web_app_t *app, lh_uint_t now);
-
-/** Sleep until a connection, a client's input or room for its queued output --
- *   or @p timeout_ms, whichever is first. This is what answers an input in the
- *   time it takes to draw it, rather than in up to one tick. A wait that fails
- *   (a client socket gone bad under it) waits on the listener alone, so the loop
- *   still sleeps instead of spinning. */
-lh_void
-lh_ui_web_host_wait(lh_os_net_socket_t *listen_fd, lh_ui_web_host_client_t *cli,
-                    lh_uint_t timeout_ms);
-
-/**
- * @brief Listen on 127.0.0.1:@p port and serve @p app. Does not return on success.
- *
- * @p app is the application: its routes answer the requests, its websocket path
- * takes the upgrades, its frames go to the clients and its tick runs between
- * the requests.
- *
- * @return ::lh_bool_false when the socket would not listen.
- */
-lh_bool_t
-lh_ui_web_host_run(lh_ui_web_app_t *app, lh_net_port_t port);
 
 LH_COMPILER_EXTERN_C_END
 

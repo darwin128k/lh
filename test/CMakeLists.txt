@@ -474,6 +474,7 @@ set(LH_TEST_UI_SOURCES
         ${LH_TEST_SRC_PATH}/lh/ui/web/app.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/app/route.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/host.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/web/host/serve.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/buf.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/page.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/web/player.cpp
