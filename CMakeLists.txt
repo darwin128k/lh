@@ -124,7 +124,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/atomic/bool.c
         ${LH_LIB_SRC_PATH}/core/atomic/ptr.c
         ${LH_LIB_SRC_PATH}/core/atomic/uint.c
-        ${LH_LIB_SRC_PATH}/spsc.c
+        ${LH_LIB_SRC_PATH}/core/spsc.c
         ${LH_LIB_SRC_PATH}/core/array.c
         ${LH_LIB_SRC_PATH}/core/list.c
         ${LH_LIB_SRC_PATH}/core/value.c
@@ -156,10 +156,10 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/http/response.c
         ${LH_LIB_SRC_PATH}/core/http/status.c
         ${LH_LIB_SRC_PATH}/core/http/version.c
-        ${LH_LIB_SRC_PATH}/sql/db.c
-        ${LH_LIB_SRC_PATH}/sql/driver.c
-        ${LH_LIB_SRC_PATH}/sql/mysql/query.c
-        ${LH_LIB_SRC_PATH}/sql/stmt.c
+        ${LH_LIB_SRC_PATH}/core/sql/db.c
+        ${LH_LIB_SRC_PATH}/core/sql/driver.c
+        ${LH_LIB_SRC_PATH}/core/sql/mysql/query.c
+        ${LH_LIB_SRC_PATH}/core/sql/stmt.c
         ${LH_LIB_SRC_PATH}/core/web/json/error.c
         ${LH_LIB_SRC_PATH}/core/web/json/node.c
         ${LH_LIB_SRC_PATH}/core/web/json/minify.c
@@ -347,10 +347,10 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/logger/daily/channel.c
             ${LH_LIB_SRC_PATH}/os/logger/daily.c
             ${LH_LIB_SRC_PATH}/os/loader.c
-            ${LH_LIB_SRC_PATH}/sql/mysql.c
-            ${LH_LIB_SRC_PATH}/sql/mysql/api.c
-            ${LH_LIB_SRC_PATH}/sql/mysql/conn.c
-            ${LH_LIB_SRC_PATH}/sql/mysql/prepared.c
+            ${LH_LIB_SRC_PATH}/os/sql/mysql.c
+            ${LH_LIB_SRC_PATH}/os/sql/mysql/api.c
+            ${LH_LIB_SRC_PATH}/os/sql/mysql/conn.c
+            ${LH_LIB_SRC_PATH}/os/sql/mysql/prepared.c
     )
     # Kernel backend: the only sources that call Win32 / POSIX directly.
     # Each backend also names the system libraries it links against.
@@ -433,7 +433,7 @@ set_source_files_properties(
 set(LH_SQLITE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/sqlite)
 if (LH_LIBRARY_OPTION_SQL_SQLITE)
     list(APPEND LH_LIB_SOURCES
-            ${LH_LIB_SRC_PATH}/sql/sqlite.c
+            ${LH_LIB_SRC_PATH}/os/sql/sqlite.c
             ${LH_SQLITE_PATH}/sqlite3.c
     )
     set_source_files_properties(${LH_SQLITE_PATH}/sqlite3.c PROPERTIES

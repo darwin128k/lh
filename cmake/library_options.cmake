@@ -225,7 +225,7 @@ option(LH_LIBRARY_OPTION_UI
 # -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_SQL_SQLITE
 #
-# The SQLite backend of lh/sql (include/lh/sql/sqlite.h), with SQLite itself
+# The SQLite backend of lh/sql (include/lh/os/sql/sqlite.h), with SQLite itself
 # (lib/sqlite, the 3.46.1 amalgamation) compiled into the lh archive.
 #
 #   ON  — compile SQLite and the backend; dependents get the sqlite3_*

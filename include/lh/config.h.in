@@ -158,7 +158,7 @@
 
 /**
  * @def LH_LIBRARY_OPTION_SQL_SQLITE
- * @brief Compile SQLite and the lh/sql SQLite backend (`lh/sql/sqlite.h`)
+ * @brief Compile SQLite and the lh/sql SQLite backend (`lh/os/sql/sqlite.h`)
  *        into lh (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).
  */
 #define LH_LIBRARY_OPTION_SQL_SQLITE @ValSqlSqlite@

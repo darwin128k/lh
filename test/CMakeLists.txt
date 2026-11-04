@@ -99,7 +99,7 @@ lh_add_test_core(lh_test_core
         ${LH_TEST_SRC_PATH}/lh/core/atomic/bool.cpp
         ${LH_TEST_SRC_PATH}/lh/core/atomic/ptr.cpp
         ${LH_TEST_SRC_PATH}/lh/core/atomic/uint.cpp
-        ${LH_TEST_SRC_PATH}/lh/spsc.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/spsc.cpp
         ${LH_TEST_SRC_PATH}/lh/core/array.cpp
         ${LH_TEST_SRC_PATH}/lh/core/error.cpp
         ${LH_TEST_SRC_PATH}/lh/core/exception.cpp
@@ -133,8 +133,8 @@ lh_add_test_core(lh_test_core
         ${LH_TEST_SRC_PATH}/lh/core/web/js/op.cpp
         ${LH_TEST_SRC_PATH}/lh/core/web/js/node.cpp
         ${LH_TEST_SRC_PATH}/lh/core/web/js/writer.cpp
-        ${LH_TEST_SRC_PATH}/lh/sql/db.cpp
-        ${LH_TEST_SRC_PATH}/lh/sql/mysql/query.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/sql/db.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/sql/mysql/query.cpp
         ${LH_TEST_SRC_PATH}/lh/core/version.cpp
         ${LH_TEST_SRC_PATH}/lh/core/werror.cpp
 )
@@ -283,7 +283,7 @@ set(LH_TEST_OS_SOURCES
         ${LH_TEST_SRC_PATH}/lh/os/thread/group.cpp
         ${LH_TEST_SRC_PATH}/lh/os/logger/queue.cpp
         ${LH_TEST_SRC_PATH}/lh/os/logger/daily.cpp
-        ${LH_TEST_SRC_PATH}/lh/sql/mysql.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/sql/mysql.cpp
         ${LH_TEST_SRC_PATH}/lh/os/window.cpp
         ${LH_TEST_SRC_PATH}/lh/os/render/backend/gdi.cpp
         ${LH_TEST_SRC_PATH}/lh/os/system/posix/input.cpp
@@ -325,8 +325,8 @@ if (NOT LH_LIBRARY_OPTION_OS)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/serial.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/shared.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/shared.cpp)
-    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/sql/mysql.cpp)
-    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/sql/mysql.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/sql/mysql.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/sql/mysql.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/timestamp.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/timestamp.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/loop.cpp)
@@ -525,9 +525,9 @@ endif ()
 
 # The SQLite backend exists only with LH_LIBRARY_OPTION_SQL_SQLITE.
 if (LH_LIBRARY_OPTION_SQL_SQLITE)
-    lh_add_test_core(lh_test_sql ${LH_TEST_SRC_PATH}/lh/sql/sqlite.cpp)
+    lh_add_test_core(lh_test_sql ${LH_TEST_SRC_PATH}/lh/os/sql/sqlite.cpp)
 else ()
-    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/sql/sqlite.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/sql/sqlite.cpp)
 endif ()
 
 # scripts/css2decl.py, run the two ways it can go wrong: its self-test asks whether it
