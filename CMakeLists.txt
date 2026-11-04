@@ -355,6 +355,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/logger/daily.c
             ${LH_LIB_SRC_PATH}/os/loader.c
             ${LH_LIB_SRC_PATH}/os/sql/mysql.c
+            ${LH_LIB_SRC_PATH}/os/sql/worker.c
             ${LH_LIB_SRC_PATH}/os/sql/mysql/api.c
             ${LH_LIB_SRC_PATH}/os/sql/mysql/conn.c
             ${LH_LIB_SRC_PATH}/os/sql/mysql/prepared.c

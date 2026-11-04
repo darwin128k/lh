@@ -286,5 +286,10 @@ and committed by the owner before the next.
      decoders, a tap that tells why the handler stopped). The blocking bricks
      drive one socket with the same pieces. The thread executor stays off the
      loop: nothing it runs waits for sockets (owner, 2026-11-04).
-7. Asynchronous SQL as a composition.
+7. Asynchronous SQL as a composition (done): `lh_os_sql_worker_t` is a thread
+   executor whose context holds one connection, opened once on its thread and
+   closed there. Authum keeps its own module-side connection per task thread
+   instead, closed by a call the host runs at that thread's end
+   (`authum_tasks_at_exit`): a module's LH copy cannot share the host's
+   `lh_sql_db_t` (owner, 2026-11-04).
 8. The thread, mutex and condition move out of `lh/os` into `lh/exec`'s base.
