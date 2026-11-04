@@ -188,3 +188,139 @@ TEST(exec_loop, a_waiter_on_a_wake_signal_runs_steps_and_stops)
     lh_os_net_deinit();
     EXPECT_EQ(lh_exec_loop_try_create_waiting(10U, count, &c, nullptr, poll_wake, &wake), nullptr);
 }
+
+/* A step that can be held inside a call, as one stuck on a network share is. */
+namespace
+{
+
+struct stuck
+{
+    std::atomic<bool> hold{false};
+    std::atomic<bool> inside{false};
+    std::atomic<int> steps{0};
+    std::atomic<int> released{0};
+};
+
+lh_void
+stuck_step(lh_ptr user)
+{
+    auto *self = static_cast<stuck *>(user);
+
+    self->steps.fetch_add(1);
+    while (self->hold.load())
+    {
+        self->inside = true;
+        LH_ATTRIBUTE_UNUSED(lh_os_thread_sleep(1U));
+    }
+}
+
+lh_void
+stuck_release(lh_ptr user)
+{
+    static_cast<stuck *>(user)->released.fetch_add(1);
+}
+
+} // namespace
+
+TEST(exec_loop_try_stop, a_free_step_ends_within_the_timeout)
+{
+    stuck s;
+    lh_exec_loop_t *loop = lh_exec_loop_try_create(60000U, stuck_step, &s);
+
+    ASSERT_NE(loop, nullptr);
+    EXPECT_TRUE(lh_exec_loop_try_stop(loop, 0U)); /* never started: nothing to wait for */
+    ASSERT_TRUE(lh_exec_loop_try_start(loop));
+    EXPECT_TRUE(lh_exec_loop_try_stop(loop, 5000U));
+    EXPECT_TRUE(lh_exec_loop_is_ended(loop));
+    EXPECT_EQ(lh_exec_loop_load_state(loop), lh_exec_loop_state_ended);
+    /* It ended first: abandoning is refused, the owner destroys as usual. */
+    EXPECT_FALSE(lh_exec_loop_try_abandon(loop, stuck_release, &s));
+    lh_exec_loop_destroy(loop);
+    EXPECT_EQ(s.released.load(), 0);
+}
+
+TEST(exec_loop_try_stop, a_stuck_step_times_out_and_ends_when_freed)
+{
+    stuck s;
+    s.hold = true;
+    lh_exec_loop_t *loop = lh_exec_loop_try_create(60000U, stuck_step, &s);
+
+    ASSERT_NE(loop, nullptr);
+    ASSERT_TRUE(lh_exec_loop_try_start(loop));
+    for (int i = 0; i < 2000 && !s.inside.load(); ++i)
+    {
+        LH_ATTRIBUTE_UNUSED(lh_os_thread_sleep(1U));
+    }
+    EXPECT_FALSE(lh_exec_loop_try_stop(loop, 30U));
+    EXPECT_EQ(lh_exec_loop_load_state(loop), lh_exec_loop_state_running);
+    s.hold = false;
+    EXPECT_TRUE(lh_exec_loop_try_stop(loop, 5000U));
+    lh_exec_loop_destroy(loop);
+}
+
+TEST(exec_loop_try_abandon, the_thread_releases_and_the_owner_reaps)
+{
+    stuck s;
+    s.hold = true;
+    lh_exec_loop_t *loop = lh_exec_loop_try_create(60000U, stuck_step, &s);
+
+    ASSERT_NE(loop, nullptr);
+    ASSERT_TRUE(lh_exec_loop_try_start(loop));
+    for (int i = 0; i < 2000 && !s.inside.load(); ++i)
+    {
+        LH_ATTRIBUTE_UNUSED(lh_os_thread_sleep(1U));
+    }
+    EXPECT_FALSE(lh_exec_loop_try_stop(loop, 10U));
+    ASSERT_TRUE(lh_exec_loop_try_abandon(loop, stuck_release, &s));
+    EXPECT_EQ(lh_exec_loop_load_state(loop), lh_exec_loop_state_abandoned);
+    EXPECT_FALSE(lh_exec_loop_try_reap(loop)); /* still inside its step */
+    EXPECT_EQ(s.released.load(), 0);
+    s.hold = false;
+    bool reaped = false;
+    for (int i = 0; i < 5000 && !reaped; ++i)
+    {
+        reaped = lh_exec_loop_try_reap(loop);
+        if (!reaped)
+        {
+            LH_ATTRIBUTE_UNUSED(lh_os_thread_sleep(1U));
+        }
+    }
+    EXPECT_TRUE(reaped);
+    EXPECT_EQ(s.released.load(), 1);
+    EXPECT_GE(s.steps.load(), 2); /* the stuck step, then the last one */
+}
+
+TEST(exec_loop_try_abandon, works_for_a_loop_with_a_waiter)
+{
+    lh_os_wake_t wake;
+    stuck s;
+    s.hold = true;
+
+    ASSERT_TRUE(lh_os_net_init());
+    lh_os_wake_init(&wake);
+    ASSERT_TRUE(lh_os_wake_open(&wake, 1000U));
+    lh_exec_loop_t *loop =
+        lh_exec_loop_try_create_waiting(60000U, stuck_step, &s, poll_wait, poll_wake, &wake);
+    ASSERT_NE(loop, nullptr);
+    ASSERT_TRUE(lh_exec_loop_try_start(loop));
+    for (int i = 0; i < 2000 && !s.inside.load(); ++i)
+    {
+        LH_ATTRIBUTE_UNUSED(lh_os_thread_sleep(1U));
+    }
+    EXPECT_FALSE(lh_exec_loop_try_stop(loop, 10U));
+    ASSERT_TRUE(lh_exec_loop_try_abandon(loop, stuck_release, &s));
+    s.hold = false;
+    bool reaped = false;
+    for (int i = 0; i < 5000 && !reaped; ++i)
+    {
+        reaped = lh_exec_loop_try_reap(loop);
+        if (!reaped)
+        {
+            LH_ATTRIBUTE_UNUSED(lh_os_thread_sleep(1U));
+        }
+    }
+    EXPECT_TRUE(reaped);
+    EXPECT_EQ(s.released.load(), 1);
+    lh_os_wake_close(&wake);
+    lh_os_net_deinit();
+}

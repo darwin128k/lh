@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- A bounded end for `lh_exec_loop_t`: `lh_exec_loop_try_stop(loop, timeout_ms)`
+  asks for the last step and waits at most that long; when a step is stuck in
+  a call, `lh_exec_loop_try_abandon(loop, release, user)` gives the thread up —
+  it runs `release` on its own thread when it ends — and
+  `lh_exec_loop_try_reap` frees the loop afterwards without ever waiting for
+  work. Who frees what is settled by one compare-exchange
+  (`lh/exec/loop/state.h`). Authum's HTTP server stops through it instead of
+  its own copy.
+
 - `lh/exec/`, the execution part (`docs/design/execution.md`), begins with
   two bricks. `lh/exec/task.h` (`lh_exec_task_t`): one piece of work with its
   `work`, `complete` and `destroy` calls, the pointer they receive and an

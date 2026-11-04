@@ -268,7 +268,17 @@ and committed by the owner before the next.
 5. The loop in `lh/exec`: `lh_os_loop_t` becomes `lh_exec_loop_t`; the logger
    queue and Authum's HTTP server use it under the new name. The thread
    executor moves onto the loop with step 6, its first need.
-6. The HTTP server (with the fastdl hardening) and the web host wait through
-   the loop.
+6. The HTTP server and the web host wait through the loop, in three parts:
+   - 6a: the fastdl hardening lands in Authum's HTTP server as it was tested
+     (path checks incl. 8.3 names, `per_ip_pending`, `trusted_proxies`,
+     `struct_size`, access-log levels, and a hand-made bounded stop: a worker
+     stuck in a file call is abandoned, frees the server itself, and a reaper
+     on the game thread joins it later);
+   - 6b (done): that bounded stop is the loop's own — `lh_exec_loop_try_stop`
+     with a timeout, `_try_abandon` (the thread frees the step's state through
+     a release call when it ends), `_try_reap` (frees the loop, never waits) —
+     and Authum's hand-made copy (link, stop state, grace period) is gone;
+   - 6c: the thread executor runs on the loop; the web host reads requests
+     through loop sources instead of blocking reads with timeouts.
 7. Asynchronous SQL as a composition.
 8. The thread, mutex and condition move out of `lh/os` into `lh/exec`'s base.

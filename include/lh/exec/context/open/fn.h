@@ -7,6 +7,9 @@
 #define LH_EXEC_CONTEXT_OPEN_FN_H
 
 #include <lh/core/ptr.h>
+#include <lh/core/compiler/extern/c.h>
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @typedef lh_exec_context_open_fn
@@ -20,5 +23,7 @@
  * ::lh_exec_context_open_cb.
  */
 typedef lh_ptr(lh_exec_context_open_fn)(lh_ptr user);
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_EXEC_CONTEXT_OPEN_FN_H */

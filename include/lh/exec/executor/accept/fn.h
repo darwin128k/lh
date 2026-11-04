@@ -8,6 +8,8 @@
 
 #include <lh/exec/task.h>
 
+LH_COMPILER_EXTERN_C_BEGIN
+
 /**
  * @typedef lh_exec_executor_accept_fn
  * @brief Function type `lh_bool_t (lh_ptr context, lh_exec_task_t *task)` —
@@ -22,5 +24,7 @@
  * caller. Not a pointer type by itself; use ::lh_exec_executor_accept_cb.
  */
 typedef lh_bool_t(lh_exec_executor_accept_fn)(lh_ptr context, lh_exec_task_t *task);
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_EXEC_EXECUTOR_ACCEPT_FN_H */
