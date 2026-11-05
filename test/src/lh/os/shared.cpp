@@ -90,7 +90,6 @@ TEST(os_shared, get_fn_is_null_for_a_missing_name_or_a_closed_image)
     EXPECT_EQ(lh_os_shared_get_fn(&o.image, k_function), nullptr);
 }
 
-
 TEST(os_shared, bind_name_takes_an_image_already_loaded)
 {
     lh_os_shared_t image;
@@ -127,6 +126,26 @@ TEST(os_shared, get_local_sym_finds_what_the_image_keeps_to_itself)
               reinterpret_cast<lh_ptr>(&lh_test_os_shared_local));
 #endif
     EXPECT_EQ(lh_os_shared_get_local_sym(&image, "lh_no_such_symbol_anywhere"), nullptr);
+    lh_os_shared_close(&image);
+    lh_os_shared_deinit(&image);
+}
+
+/* The program's code holds LH's, linked in: one of its functions lies inside. */
+TEST(os_shared, try_get_code_spans_the_code_of_the_image)
+{
+    lh_os_shared_t image;
+    lh_ptr begin = nullptr;
+    lh_usize_t size = 0U;
+
+    lh_os_shared_init(&image);
+    EXPECT_FALSE(lh_os_shared_try_get_code(&image, &begin, &size)); /* not open */
+    ASSERT_TRUE(lh_os_shared_bind_executable(&image));
+    ASSERT_TRUE(lh_os_shared_try_get_code(&image, &begin, &size));
+    const auto *first = static_cast<const unsigned char *>(begin);
+    const auto *code = reinterpret_cast<const unsigned char *>(&lh_os_shared_try_get_code);
+    EXPECT_GT(size, 0U);
+    EXPECT_GE(code, first);
+    EXPECT_LT(code, first + size);
     lh_os_shared_close(&image);
     lh_os_shared_deinit(&image);
 }

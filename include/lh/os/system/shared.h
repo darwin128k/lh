@@ -114,6 +114,24 @@ lh_ptr
 lh_os_system_shared_get_local_sym(lh_os_system_shared_handle_t handle, const lh_str_ptr name);
 
 /**
+ * @brief The executable code of @p handle's image: where it starts in memory
+ *        and how long it is.
+ *
+ * Windows: the first section marked executable (`.text`), from the PE section
+ * table. POSIX: the executable `PT_LOAD` segment, from the ELF program headers
+ * mapped with the image. The whole range is mapped and readable, so a search
+ * may read it end to end — for a function that has no symbol, found by its
+ * bytes.
+ *
+ * @param handle Open handle.
+ * @param begin  Receives the first byte of the code.
+ * @param size   Receives its length in bytes.
+ * @return ::lh_bool_false when the headers cannot be read or no part is executable.
+ */
+lh_bool_t
+lh_os_system_shared_get_code(lh_os_system_shared_handle_t handle, lh_ptr *begin, lh_usize_t *size);
+
+/**
  * @brief Native path of @p handle into @p out (replacing its contents).
  *
  * Buffer sizing is the backend's business: the caller gets the whole path

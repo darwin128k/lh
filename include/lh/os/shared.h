@@ -172,6 +172,21 @@ lh_ptr
 lh_os_shared_get_local_sym(const lh_os_shared_t *self, const lh_str_ptr name);
 
 /**
+ * @brief The executable code of the open image (::lh_os_system_shared_get_code).
+ *
+ * For a search through a loaded library's code, such as a function that has
+ * no symbol, found by a byte pattern (::lh_memory_find_masked). The range is
+ * readable end to end.
+ *
+ * @param self  Open shared object; must not be null.
+ * @param begin Receives the first byte of the code.
+ * @param size  Receives its length in bytes.
+ * @return ::lh_bool_false when @p self is not open or its headers cannot be read.
+ */
+lh_bool_t
+lh_os_shared_try_get_code(const lh_os_shared_t *self, lh_ptr *begin, lh_usize_t *size);
+
+/**
  * @brief True if open and @p name is exported.
  */
 lh_bool_t

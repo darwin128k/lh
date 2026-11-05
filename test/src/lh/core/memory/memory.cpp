@@ -213,6 +213,39 @@ TEST(memory_rcompare, suffix_mismatch_returns_pointer_in_lhs_window)
     EXPECT_EQ(d, static_cast<const lh_ptr>(&lhs[3]));
 }
 
+TEST(memory_is_equal_masked, compares_only_the_selected_bits)
+{
+    const unsigned char bytes[] = {0x55, 0x8B, 0xEC, 0xA1, 0x12, 0x34};
+    const unsigned char pattern[] = {0x55, 0x8B, 0xEC, 0xA1, 0x00, 0x00};
+    const unsigned char all[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+    const unsigned char wild[] = {0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00};
+    const unsigned char low[] = {0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x0F};
+    EXPECT_FALSE(lh_memory_is_equal_masked(bytes, pattern, all, sizeof bytes));
+    EXPECT_TRUE(lh_memory_is_equal_masked(bytes, pattern, wild, sizeof bytes));
+    EXPECT_FALSE(lh_memory_is_equal_masked(bytes, pattern, low, sizeof bytes)); /* 0x34 & 0x0F */
+    EXPECT_TRUE(lh_memory_is_equal_masked(bytes, pattern, all, 0U));
+}
+
+TEST(memory_find_masked, finds_the_first_match_with_wildcards)
+{
+    const unsigned char hay[] = {0x90, 0x55, 0x8B, 0x01, 0xC3, 0x55, 0x8B, 0x02, 0xC3, 0x55};
+    const unsigned char pattern[] = {0x55, 0x8B, 0x00, 0xC3};
+    const unsigned char mask[] = {0xFF, 0xFF, 0x00, 0xFF};
+    EXPECT_EQ(lh_memory_find_masked(hay, sizeof hay, pattern, mask, sizeof pattern), hay + 1);
+    EXPECT_EQ(lh_memory_find_masked(hay + 2, sizeof hay - 2U, pattern, mask, sizeof pattern),
+              hay + 5);
+    /* A match must lie wholly inside: the last 0x55 starts none. */
+    EXPECT_EQ(lh_memory_find_masked(hay + 6, sizeof hay - 6U, pattern, mask, sizeof pattern),
+              nullptr);
+    EXPECT_EQ(lh_memory_find_masked(hay, 3U, pattern, mask, sizeof pattern), nullptr);
+}
+
+TEST(memory_find_masked_death, rejects_an_empty_pattern)
+{
+    const unsigned char hay[] = {0x01};
+    LH_EXPECT_DEATH(lh_memory_find_masked(hay, sizeof hay, hay, hay, 0U));
+}
+
 TEST(memory_find, finds_first_occurrence)
 {
     const lh_byte_t hay[] = {'a', 'b', 'a', 'b', 'c'};
@@ -542,12 +575,10 @@ TEST(memory_find_unit, agrees_with_the_unit_walk)
         EXPECT_EQ(lh_memory_find_unit(units, sizeof units, &want, sizeof want),
                   lh_memory_find_unit_by_step(units, sizeof units, &want, sizeof want))
             << at;
-        EXPECT_EQ(lh_memory_find_unit(units, sizeof units, &want, sizeof want),
-                  units + at);
+        EXPECT_EQ(lh_memory_find_unit(units, sizeof units, &want, sizeof want), units + at);
     }
     const unsigned int missing = 1000U;
-    EXPECT_EQ(lh_memory_find_unit(units, sizeof units, &missing, sizeof missing),
-              nullptr);
+    EXPECT_EQ(lh_memory_find_unit(units, sizeof units, &missing, sizeof missing), nullptr);
 }
 
 TEST(memory_find_needle_by_step, compares_only_where_the_first_byte_matches)

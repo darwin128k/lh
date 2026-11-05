@@ -7,6 +7,7 @@
 #include <lh/core/attribute/unused.h>
 #include <lh/os/system/posix/shared/search.h>
 #include <lh/core/memory/std.h>
+#include <lh/core/bit/ops.h>
 #include <lh/core/assert.h>
 #include <lh/core/attribute/static.h>
 #include <lh/os/alloc.h>
@@ -304,6 +305,42 @@ lh_os_system_shared_find_in_symtab(int fd, uintptr_t bias, lh_str_cptr name)
         lh_runtime_allocator_free(shdrs);
     }
     return result;
+}
+
+lh_bool_t
+lh_os_system_shared_get_code(lh_os_system_shared_handle_t handle, lh_ptr *begin, lh_usize_t *size)
+{
+    struct link_map *map = lh_null;
+
+    lh_assert_runtime_ref(handle);
+    if (dlinfo(handle, RTLD_DI_LINKMAP, lh_addr_of(map)) != 0 || lh_null_eq(map))
+    {
+        lh_os_system_error_capture();
+        return lh_bool_false;
+    }
+    /* The ELF and program headers are mapped with the image's first segment,
+       whose address dladdr gives; the code is the executable PT_LOAD segment. */
+    Dl_info info;
+    if (lh_math_is_zero(dladdr(map->l_ld, lh_addr_of(info))) || lh_null_eq(info.dli_fbase))
+    {
+        return lh_bool_false;
+    }
+    const ElfW(Ehdr) *ehdr = (const ElfW(Ehdr) *)info.dli_fbase;
+    if (lh_null_ne(lh_memory_std_compare(ehdr->e_ident, ELFMAG, SELFMAG)))
+    {
+        return lh_bool_false;
+    }
+    const ElfW(Phdr) *phdr = (const ElfW(Phdr) *)((const lh_byte_t *)ehdr + ehdr->e_phoff);
+    for (lh_usize_t i = 0U; lh_math_lt(i, (lh_usize_t)ehdr->e_phnum); i = lh_math_add_one(i))
+    {
+        if (phdr[i].p_type == PT_LOAD && !lh_math_is_zero(lh_bit_and(phdr[i].p_flags, PF_X)))
+        {
+            lh_ptr_deref(begin) = (lh_ptr)(uintptr_t)(map->l_addr + phdr[i].p_vaddr);
+            lh_ptr_deref(size) = (lh_usize_t)phdr[i].p_filesz;
+            return lh_bool_true;
+        }
+    }
+    return lh_bool_false;
 }
 
 lh_ptr

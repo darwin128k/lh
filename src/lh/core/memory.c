@@ -140,8 +140,7 @@ lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usiz
             }
             lh_memory_std_copy(lh_addr_of(rep), rep_bytes, w);
 
-            while (n > 0U &&
-                   ((lh_ptr_to_uaddr(out) & (w - 1U)) != 0U || phase != 0U))
+            while (n > 0U && ((lh_ptr_to_uaddr(out) & (w - 1U)) != 0U || phase != 0U))
             {
                 lh_ptr_deref(out++) = s[phase];
                 phase = lh_math_add_one(phase);
@@ -294,9 +293,8 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
         lh_return_if(rhs_size == step, lh_memory_find_unit(lhs, lhs_size, rhs, rhs_size));
     }
     /* A sentinel scan reads nothing past the match. */
-    lh_return_if(rhs_size == 1U,
-                 lh_memory_find_byte_by_step(lhs, lhs_size, *lh_ptr_cast(const lh_byte_t, rhs),
-                                             step));
+    lh_return_if(rhs_size == 1U, lh_memory_find_byte_by_step(
+                                     lhs, lhs_size, *lh_ptr_cast(const lh_byte_t, rhs), step));
     lh_return_if(rhs_size == step, lh_memory_find_unit_by_step(lhs, lhs_size, rhs, rhs_size));
     return lh_memory_find_needle_by_step(lhs, lhs_size, rhs, rhs_size, step);
 }
@@ -354,6 +352,44 @@ const lh_ptr
 lh_memory_find(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size)
 {
     return lh_memory_find_step(lhs, lhs_size, rhs, rhs_size, LH_UCHAR_T_SIZE);
+}
+
+lh_bool_t
+lh_memory_is_equal_masked(const lh_ptr lhs, const lh_ptr pattern, const lh_ptr mask,
+                          lh_usize_t size)
+{
+    lh_byte_cptr bytes = lh_ptr_cast(const lh_byte_t, lhs);
+    lh_byte_cptr expected = lh_ptr_cast(const lh_byte_t, pattern);
+    lh_byte_cptr selected = lh_ptr_cast(const lh_byte_t, mask);
+    for (lh_usize_t i = 0U; lh_math_lt(i, size); i = lh_math_add_one(i))
+    {
+        if (!lh_math_is_zero(lh_bit_and(lh_bit_xor(bytes[i], expected[i]), selected[i])))
+        {
+            return lh_bool_false;
+        }
+    }
+    return lh_bool_true;
+}
+
+const lh_ptr
+lh_memory_find_masked(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr pattern,
+                      const lh_ptr mask, lh_usize_t size)
+{
+    lh_assert_runtime_if(lh_math_is_zero(size), lh_runtime_error_code_invalid_argument);
+    if (lh_math_gt(size, lhs_size))
+    {
+        return lh_null;
+    }
+    lh_byte_cptr base = lh_ptr_cast(const lh_byte_t, lhs);
+    const lh_usize_t last = lh_math_sub(lhs_size, size);
+    for (lh_usize_t i = 0U; lh_math_le(i, last); i = lh_math_add_one(i))
+    {
+        if (lh_memory_is_equal_masked(base + i, pattern, mask, size))
+        {
+            return base + i;
+        }
+    }
+    return lh_null;
 }
 
 const lh_ptr

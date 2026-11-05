@@ -1,4 +1,7 @@
 #include <lh/os/system/shared.h>
+#include <lh/core/memory/std.h>
+#include <lh/core/cast/const.h>
+#include <lh/core/bit/ops.h>
 #include <lh/core/attribute/unused.h>
 #include <lh/core/assert.h>
 #include <lh/os.h>
@@ -148,6 +151,51 @@ lh_os_system_shared_get_by_name(lh_str_cptr name)
         return LH_OS_SYSTEM_SHARED_HANDLE_INVALID;
     }
     return native;
+}
+
+lh_bool_t
+lh_os_system_shared_get_code(lh_os_system_shared_handle_t handle, lh_ptr *begin, lh_usize_t *size)
+{
+    lh_assert_runtime_ref(handle);
+    /* The module handle is its base address: the DOS header ("MZ"), at e_lfanew
+       the PE signature, the file header (section count at +6, optional header
+       size at +20), then the section table: 40 bytes a section, its size at +8,
+       its address at +12 and its characteristics at +36. */
+    lh_byte_cptr base = lh_ptr_cast(const lh_byte_t, handle);
+    if (lh_math_ne(base[0], 0x4DU) || lh_math_ne(base[1], 0x5AU))
+    {
+        return lh_bool_false;
+    }
+    lh_u32_t e_lfanew;
+    lh_memory_std_copy(lh_addr_of(e_lfanew), base + 0x3C, sizeof(e_lfanew));
+    lh_byte_cptr nt = base + e_lfanew;
+    if (lh_math_ne(nt[0], 0x50U) || lh_math_ne(nt[1], 0x45U) || !lh_math_is_zero(nt[2]) ||
+        !lh_math_is_zero(nt[3]))
+    {
+        return lh_bool_false;
+    }
+    lh_u16_t sections;
+    lh_u16_t optional_size;
+    lh_memory_std_copy(lh_addr_of(sections), nt + 6, sizeof(sections));
+    lh_memory_std_copy(lh_addr_of(optional_size), nt + 20, sizeof(optional_size));
+    lh_byte_cptr section = nt + 24 + optional_size;
+    for (lh_u16_t i = 0U; lh_math_lt(i, sections); i = lh_math_add_one(i))
+    {
+        lh_u32_t characteristics;
+        lh_memory_std_copy(lh_addr_of(characteristics), section + 36, sizeof(characteristics));
+        if (!lh_math_is_zero(lh_bit_and(characteristics, 0x20000000UL))) /* MEM_EXECUTE */
+        {
+            lh_u32_t virtual_size;
+            lh_u32_t virtual_address;
+            lh_memory_std_copy(lh_addr_of(virtual_size), section + 8, sizeof(virtual_size));
+            lh_memory_std_copy(lh_addr_of(virtual_address), section + 12, sizeof(virtual_address));
+            lh_ptr_deref(begin) = lh_cast_const(lh_byte_t *, base + virtual_address);
+            lh_ptr_deref(size) = virtual_size;
+            return lh_bool_true;
+        }
+        section = section + 40;
+    }
+    return lh_bool_false;
 }
 
 lh_ptr
