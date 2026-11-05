@@ -49,5 +49,7 @@ which remains under its own license.
 - Copyright (c) 2017-2023 Loup Vaillant, Michael Savage, Fabio Scotoni
 - License: BSD 2-Clause or CC0 1.0, at the user's choice (see
   `licenses/Monocypher.txt`, or https://monocypher.org/)
-- Files: `lib/monocypher/`
-- Used by: `src/lh/core/crypto/ed25519.c` (Ed25519 key pairs, signing, verification)
+- Files: ported into LH's own bricks, no longer vendored —
+  `src/lh/core/crypto/curve25519/field.c`, `src/lh/core/crypto/ed25519/scalar.c`,
+  `point.c`, `slide.c` and `base.c` (its precomputed tables), and the order of
+  steps in `src/lh/core/crypto/ed25519.c`

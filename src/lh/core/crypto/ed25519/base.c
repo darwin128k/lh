@@ -2,7 +2,7 @@
 #include <lh/core/crypto/ed25519/point/precomp/initializer.h>
 
 /* Monocypher 4's tables (CC0 / BSD-2-Clause, Loup Vaillant), copied by a script
-   from lib/monocypher/monocypher.c: b_window, b_comb_low, b_comb_high. */
+   from its monocypher.c: b_window, b_comb_low, b_comb_high. */
 
 const lh_crypto_ed25519_point_precomp_t
     m_crypto_ed25519_base_window[LH_CRYPTO_ED25519_BASE_TABLE_SIZE] = {

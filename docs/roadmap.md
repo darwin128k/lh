@@ -65,9 +65,9 @@ lexer but no parser and no interpreter.
 
 **The decision.** The engine is **lh's own code**, on lh's bricks: the lexer,
 the parser, the tree, the interpreter. Nothing foreign is vendored into the
-tree — the same rule the rest of lh follows (SQLite and Monocypher are the
-exception because they are a database and a cryptography library, not a
-language we are building). The QuickJS implementation (MIT) is the
+tree — the same rule the rest of lh follows (SQLite is the exception because
+it is a database, not a language we are building; Monocypher's Ed25519 has been
+ported into lh's own bricks). The QuickJS implementation (MIT) is the
 **reference for the algorithms** — the way to read a number, scan a string
 literal, parse expressions, and compile a function — not a dependency and not
 a library we link.
