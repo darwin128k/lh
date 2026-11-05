@@ -93,6 +93,25 @@ lh_bit_unpack_le16(const lh_byte_ptr in)
 }
 
 /**
+ * @brief Read three little-endian bytes into the low 24 bits of a value.
+ *
+ * For a 24-bit field inside a longer encoding, where a 32-bit read would run
+ * past the end (the last limb of a curve25519 field element).
+ *
+ * @param in Source of exactly 3 bytes (`in[0]` is the least significant byte).
+ * @return The value, below 2^24.
+ */
+LH_ATTRIBUTE_FORCE_INLINE
+lh_u32_t
+lh_bit_unpack_le24(const lh_byte_ptr in)
+{
+    lh_assert_runtime_ref(in);
+    return lh_bit_or(
+        lh_bit_or(lh_cast_static(lh_u32_t, in[0]), lh_bit_shl(lh_cast_static(lh_u32_t, in[1]), 8)),
+        lh_bit_shl(lh_cast_static(lh_u32_t, in[2]), 16));
+}
+
+/**
  * @brief Write @p value into @p out as four big-endian bytes.
  *
  * @param value Value to pack.
@@ -228,6 +247,46 @@ lh_bit_unpack_le64(const lh_byte_ptr in)
 {
     lh_assert_runtime_ref(in);
     return lh_bit_make_u64(lh_bit_unpack_le32(in + 4), lh_bit_unpack_le32(in));
+}
+
+/**
+ * @brief Read @p count little-endian 32-bit words from @p in, the first word from
+ *        the first four bytes.
+ *
+ * A big number kept as 32-bit limbs, lowest first (a scalar modulo L).
+ *
+ * @param out   Destination of @p count words; must not be null.
+ * @param in    Source of 4 * @p count bytes; must not be null.
+ * @param count Words to read.
+ */
+LH_ATTRIBUTE_FORCE_INLINE
+lh_void
+lh_bit_unpack_le32_words(lh_u32_t *out, const lh_byte_ptr in, lh_usize_t count)
+{
+    lh_assert_runtime_ref(out);
+    for (lh_usize_t i = 0U; i < count; i = lh_math_add_one(i))
+    {
+        out[i] = lh_bit_unpack_le32(in + i * 4U);
+    }
+}
+
+/**
+ * @brief Write @p count 32-bit words into @p out as little-endian bytes, the first
+ *        word into the first four bytes. Inverse of ::lh_bit_unpack_le32_words.
+ *
+ * @param words Source of @p count words; must not be null.
+ * @param count Words to write.
+ * @param out   Destination of 4 * @p count bytes; must not be null.
+ */
+LH_ATTRIBUTE_FORCE_INLINE
+lh_void
+lh_bit_pack_le32_words(const lh_u32_t *words, lh_usize_t count, lh_byte_ptr out)
+{
+    lh_assert_runtime_ref(words);
+    for (lh_usize_t i = 0U; i < count; i = lh_math_add_one(i))
+    {
+        lh_bit_pack_le32(words[i], out + i * 4U);
+    }
 }
 
 LH_COMPILER_EXTERN_C_END

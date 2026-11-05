@@ -75,6 +75,15 @@ TEST(util_bit_endian, pack_and_unpack_le32_round_trip)
     EXPECT_EQ(lh_bit_unpack_le32(bytes), 0x12345678u);
 }
 
+TEST(util_bit_endian, unpack_le24_reads_exactly_three_bytes)
+{
+    /* The fourth byte lies past the field: it must not count. */
+    const lh_byte_t bytes[4] = {0x56u, 0x34u, 0x12u, 0xffu};
+    EXPECT_EQ(lh_bit_unpack_le24(bytes), 0x123456u);
+    const lh_byte_t top[3] = {0xffu, 0xffu, 0xffu};
+    EXPECT_EQ(lh_bit_unpack_le24(top), 0xffffffu);
+}
+
 TEST(util_bit_endian, pack_and_unpack_be64_round_trip)
 {
     lh_byte_t bytes[8];

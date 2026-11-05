@@ -285,6 +285,9 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/crypto/rijndael.c
         ${LH_LIB_SRC_PATH}/core/crypto/ed25519.c
         ${LH_LIB_SRC_PATH}/core/crypto/wipe.c
+        ${LH_LIB_SRC_PATH}/core/crypto/is_equal.c
+        ${LH_LIB_SRC_PATH}/core/crypto/curve25519/field.c
+        ${LH_LIB_SRC_PATH}/core/crypto/ed25519/scalar.c
 
         ${LH_LIB_SRC_PATH}/core/hash/fnv.c
         ${LH_LIB_SRC_PATH}/core/hash/crc.c
