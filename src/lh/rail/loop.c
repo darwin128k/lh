@@ -377,6 +377,29 @@ lh_rail_loop_try_abandon(lh_rail_loop_t *self, lh_rail_loop_release_cb release, 
 }
 
 lh_void
+lh_rail_loop_run_step(lh_rail_loop_t *self)
+{
+    /* Read before the step: the step that sees the stop is the last one. */
+    const lh_bool_t stopping = lh_rail_loop_is_stopping(self);
+    LH_ATTRIBUTE_UNUSED(lh_rail_loop_take_pending(self));
+    lh_rail_loop_set_last_step(self, stopping);
+    lh_timer_group_handler(lh_rail_loop_get_timers_mut(self),
+                           lh_cast_static(lh_tick_t, lh_rail_base_now_ms(lh_rail_runtime_base_get())));
+    lh_rail_loop_get_step_fn(self)(lh_rail_loop_get_user(self));
+}
+
+lh_u32_t
+lh_rail_loop_get_next_pass_ms(lh_rail_loop_t *self)
+{
+    /* A wake or a stop that came during the step: the next pass is due now. */
+    lh_return_if(lh_rail_loop_is_pending(self) || lh_rail_loop_is_stopping(self), 0U);
+    const lh_tick_t now = lh_cast_static(lh_tick_t, lh_rail_base_now_ms(lh_rail_runtime_base_get()));
+    return lh_cast_static(
+        lh_u32_t, lh_math_min(lh_cast_static(lh_tick_t, lh_rail_loop_get_period_ms(self)),
+                              lh_timer_group_until_next(lh_rail_loop_get_timers_mut(self), now)));
+}
+
+lh_void
 lh_rail_loop_ask_stop(lh_rail_loop_t *self)
 {
     if (lh_null_ne(lh_rail_loop_get_wake_fn(self)))
@@ -464,6 +487,13 @@ lh_rail_loop_try_start(lh_rail_loop_t *self)
     return lh_rail_loop_try_start_on(self, -1, 0U);
 }
 
+lh_u32_t
+lh_rail_loop_pass(lh_rail_loop_t *self)
+{
+    lh_rail_loop_run_step(self);
+    return lh_rail_loop_get_next_pass_ms(self);
+}
+
 lh_void
 lh_rail_loop_destroy(lh_rail_loop_t *self)
 {
@@ -481,29 +511,10 @@ lh_void
 lh_rail_loop_run(lh_ptr user)
 {
     lh_rail_loop_t *self = lh_ptr_rcast(lh_rail_loop_t, user);
-    const lh_rail_base_t *base = lh_rail_runtime_base_get();
-    lh_timer_group_t *timers = lh_rail_loop_get_timers_mut(self);
-
-    for (;;)
+    for (lh_u32_t next_ms = lh_rail_loop_pass(self); !lh_rail_loop_is_last_step(self);
+         next_ms = lh_rail_loop_pass(self))
     {
-        /* Read before the step: the step that sees the stop is the last one. */
-        const lh_bool_t stopping = lh_rail_loop_is_stopping(self);
-        lh_tick_t now;
-
-        LH_ATTRIBUTE_UNUSED(lh_rail_loop_take_pending(self));
-        lh_rail_loop_set_last_step(self, stopping);
-        lh_timer_group_handler(timers, lh_cast_static(lh_tick_t, lh_rail_base_now_ms(base)));
-        lh_rail_loop_get_step_fn(self)(lh_rail_loop_get_user(self));
-        if (stopping)
-        {
-            break;
-        }
-        now = lh_cast_static(lh_tick_t, lh_rail_base_now_ms(base));
-        lh_rail_loop_sleep(
-            self,
-            lh_cast_static(lh_u32_t,
-                           lh_math_min(lh_cast_static(lh_tick_t, lh_rail_loop_get_period_ms(self)),
-                                       lh_timer_group_until_next(timers, now))));
+        lh_rail_loop_sleep(self, next_ms);
     }
     lh_rail_loop_end(self);
 }
