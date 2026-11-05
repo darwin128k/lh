@@ -223,23 +223,6 @@ lh_memory_find_byte_by_step(const lh_ptr lhs, lh_usize_t lhs_size, lh_byte_t byt
 }
 
 const lh_ptr
-lh_memory_find_unit_by_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr unit,
-                            lh_usize_t unit_size)
-{
-    lh_byte_cptr base = lh_ptr_cast(const lh_byte_t, lhs);
-    for (lh_usize_t off = 0; lh_math_ge(lh_memory_size_rest(lhs_size, off), unit_size);
-         off = lh_math_add(off, unit_size))
-    {
-        lh_byte_cptr cand = lh_ptr_add_by_offset(const lh_byte_t, base, off);
-        if (lh_memory_is_equal(cand, unit, unit_size))
-        {
-            return cand;
-        }
-    }
-    return lh_null;
-}
-
-const lh_ptr
 lh_memory_find_unit(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr unit, lh_usize_t unit_size)
 {
     lh_byte_cptr base = lh_ptr_cast(const lh_byte_t, lhs);
@@ -253,6 +236,48 @@ lh_memory_find_unit(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr unit, lh
         const lh_usize_t at = lh_addr_diff(lh_ptr_to_uaddr(hit), lh_ptr_to_uaddr(base));
         lh_return_if(lh_math_is_zero(at % unit_size), hit);
         off = lh_math_add(at - at % unit_size, unit_size);
+    }
+    return lh_null;
+}
+
+lh_usize_t
+lh_memory_get_last_step_offset(lh_usize_t lhs_size, lh_usize_t rhs_size, lh_usize_t step)
+{
+    const lh_usize_t max_start = lh_math_sub(lhs_size, rhs_size);
+    /* Power-of-two step (byte, wchar): mask. Otherwise the usual truncate-to-grid. */
+    return lh_math_is_power_of_two(step) ? (max_start & ~(step - 1U)) : (max_start / step) * step;
+}
+
+lh_bool_t
+lh_memory_is_equal_masked(const lh_ptr lhs, const lh_ptr pattern, const lh_ptr mask,
+                          lh_usize_t size)
+{
+    lh_byte_cptr bytes = lh_ptr_cast(const lh_byte_t, lhs);
+    lh_byte_cptr expected = lh_ptr_cast(const lh_byte_t, pattern);
+    lh_byte_cptr selected = lh_ptr_cast(const lh_byte_t, mask);
+    for (lh_usize_t i = 0U; lh_math_lt(i, size); i = lh_math_add_one(i))
+    {
+        if (!lh_math_is_zero(lh_bit_and(lh_bit_xor(bytes[i], expected[i]), selected[i])))
+        {
+            return lh_bool_false;
+        }
+    }
+    return lh_bool_true;
+}
+
+const lh_ptr
+lh_memory_find_unit_by_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr unit,
+                            lh_usize_t unit_size)
+{
+    lh_byte_cptr base = lh_ptr_cast(const lh_byte_t, lhs);
+    for (lh_usize_t off = 0; lh_math_ge(lh_memory_size_rest(lhs_size, off), unit_size);
+         off = lh_math_add(off, unit_size))
+    {
+        lh_byte_cptr cand = lh_ptr_add_by_offset(const lh_byte_t, base, off);
+        if (lh_memory_is_equal(cand, unit, unit_size))
+        {
+            return cand;
+        }
     }
     return lh_null;
 }
@@ -272,6 +297,47 @@ lh_memory_find_needle_by_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_pt
             !lh_memory_compare(cand, lh_memory_size_rest(lhs_size, off), rhs, rhs_size))
         {
             return cand;
+        }
+    }
+    return lh_null;
+}
+
+const lh_ptr
+lh_memory_rfind_needle_by_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs,
+                               lh_usize_t rhs_size, lh_usize_t step)
+{
+    lh_return_if(lhs_size < rhs_size, lh_null);
+    lh_byte_cptr base = lh_ptr_cast(const lh_byte_t, lhs);
+    const lh_byte_t first = *lh_ptr_cast(const lh_byte_t, rhs);
+    lh_usize_t off = lh_memory_get_last_step_offset(lhs_size, rhs_size, step);
+    for (;;)
+    {
+        lh_byte_cptr cand = lh_ptr_add_by_offset(const lh_byte_t, base, off);
+        if (lh_ptr_deref(cand) == first && lh_memory_is_equal(cand, rhs, rhs_size))
+        {
+            return cand;
+        }
+        lh_return_if(off < step, lh_null);
+        off -= step;
+    }
+}
+
+const lh_ptr
+lh_memory_find_masked(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr pattern,
+                      const lh_ptr mask, lh_usize_t size)
+{
+    lh_assert_runtime_if(lh_math_is_zero(size), lh_runtime_error_code_invalid_argument);
+    if (lh_math_gt(size, lhs_size))
+    {
+        return lh_null;
+    }
+    lh_byte_cptr base = lh_ptr_cast(const lh_byte_t, lhs);
+    const lh_usize_t last = lh_math_sub(lhs_size, size);
+    for (lh_usize_t i = 0U; lh_math_le(i, last); i = lh_math_add_one(i))
+    {
+        if (lh_memory_is_equal_masked(base + i, pattern, mask, size))
+        {
+            return base + i;
         }
     }
     return lh_null;
@@ -299,34 +365,6 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
     return lh_memory_find_needle_by_step(lhs, lhs_size, rhs, rhs_size, step);
 }
 
-lh_usize_t
-lh_memory_get_last_step_offset(lh_usize_t lhs_size, lh_usize_t rhs_size, lh_usize_t step)
-{
-    const lh_usize_t max_start = lh_math_sub(lhs_size, rhs_size);
-    /* Power-of-two step (byte, wchar): mask. Otherwise the usual truncate-to-grid. */
-    return lh_math_is_power_of_two(step) ? (max_start & ~(step - 1U)) : (max_start / step) * step;
-}
-
-const lh_ptr
-lh_memory_rfind_needle_by_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs,
-                               lh_usize_t rhs_size, lh_usize_t step)
-{
-    lh_return_if(lhs_size < rhs_size, lh_null);
-    lh_byte_cptr base = lh_ptr_cast(const lh_byte_t, lhs);
-    const lh_byte_t first = *lh_ptr_cast(const lh_byte_t, rhs);
-    lh_usize_t off = lh_memory_get_last_step_offset(lhs_size, rhs_size, step);
-    for (;;)
-    {
-        lh_byte_cptr cand = lh_ptr_add_by_offset(const lh_byte_t, base, off);
-        if (lh_ptr_deref(cand) == first && lh_memory_is_equal(cand, rhs, rhs_size))
-        {
-            return cand;
-        }
-        lh_return_if(off < step, lh_null);
-        off -= step;
-    }
-}
-
 const lh_ptr
 lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size,
                      lh_usize_t step)
@@ -352,44 +390,6 @@ const lh_ptr
 lh_memory_find(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size)
 {
     return lh_memory_find_step(lhs, lhs_size, rhs, rhs_size, LH_UCHAR_T_SIZE);
-}
-
-lh_bool_t
-lh_memory_is_equal_masked(const lh_ptr lhs, const lh_ptr pattern, const lh_ptr mask,
-                          lh_usize_t size)
-{
-    lh_byte_cptr bytes = lh_ptr_cast(const lh_byte_t, lhs);
-    lh_byte_cptr expected = lh_ptr_cast(const lh_byte_t, pattern);
-    lh_byte_cptr selected = lh_ptr_cast(const lh_byte_t, mask);
-    for (lh_usize_t i = 0U; lh_math_lt(i, size); i = lh_math_add_one(i))
-    {
-        if (!lh_math_is_zero(lh_bit_and(lh_bit_xor(bytes[i], expected[i]), selected[i])))
-        {
-            return lh_bool_false;
-        }
-    }
-    return lh_bool_true;
-}
-
-const lh_ptr
-lh_memory_find_masked(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr pattern,
-                      const lh_ptr mask, lh_usize_t size)
-{
-    lh_assert_runtime_if(lh_math_is_zero(size), lh_runtime_error_code_invalid_argument);
-    if (lh_math_gt(size, lhs_size))
-    {
-        return lh_null;
-    }
-    lh_byte_cptr base = lh_ptr_cast(const lh_byte_t, lhs);
-    const lh_usize_t last = lh_math_sub(lhs_size, size);
-    for (lh_usize_t i = 0U; lh_math_le(i, last); i = lh_math_add_one(i))
-    {
-        if (lh_memory_is_equal_masked(base + i, pattern, mask, size))
-        {
-            return base + i;
-        }
-    }
-    return lh_null;
 }
 
 const lh_ptr

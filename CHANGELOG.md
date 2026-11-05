@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Work around MSVC 14.51.36231 x86 C1001 during XP test link-time code generation by compiling the memory standard test translation unit without `/GL`; the tests and library LTO remain enabled.
+
+### Added
+
+- Masked memory comparison and search, and access to the executable code span of an already loaded shared image on Windows and POSIX.
+
+
 ## [0.4.0] - 2026-11-05
 
 ### Added
