@@ -44,6 +44,15 @@ jobs:
             cc: clang
             cxx: clang++
             build_type: Release
+          # No OS, atomics in the critical section: the core and rail as a board
+          # without an OS sees them. rail runs on its base without an OS
+          # (lh/rail/bare.h) over the CPU model; the loop is driven by passes.
+          - name: Linux GCC no OS
+            os: ubuntu-24.04
+            cc: gcc
+            cxx: g++
+            build_type: Debug
+            cmake_args: -DLH_LIBRARY_OPTION_OS=OFF -DLH_LIBRARY_OPTION_ATOMIC=CRITICAL
           - name: Windows MSVC
             os: windows-2025-vs2026
             build_type: Release
@@ -133,3 +142,44 @@ jobs:
           --generator "NMake Makefiles"
           --cc cl --cxx cl
           --no-docs --tests --run-tests
+
+  # Cortex-M0 without an OS, build only: no atomic instructions (ATOMIC=CRITICAL),
+  # no FPU (REAL=NONE), the real CPU layer under the rail base (PRIMASK, WFI).
+  # Nothing runs; the library must build and need nothing beyond libgcc and
+  # memcpy / memmove / memset / strlen.
+  cortex-m0:
+    name: Cortex-M0 (build only)
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+
+      - name: Install arm-none-eabi
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends gcc-arm-none-eabi ninja-build
+
+      - name: Configure
+        run: >
+          cmake -S . -B build-m0 -G Ninja
+          -DCMAKE_BUILD_TYPE=MinSizeRel
+          -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain/cortex-m0.cmake
+          -DLH_LIBRARY_OPTION_OS=OFF
+          -DLH_LIBRARY_OPTION_ATOMIC=CRITICAL
+          -DLH_LIBRARY_OPTION_REAL=NONE
+          -DLH_LIBRARY_OPTION_THREAD_LOCAL=OFF
+          -DLH_POSITION_INDEPENDENT_CODE=OFF
+          -DLH_BUILD_TESTS=OFF
+          -DLH_BUILD_DOCS=OFF
+
+      - name: Build
+        run: cmake --build build-m0 --target lh
+
+      - name: Needs nothing beyond libgcc and the four memory/string calls
+        run: |
+          arm-none-eabi-nm build-m0/liblh.a | awk '$1=="U"{print $2}' | sort -u > undefined.txt
+          arm-none-eabi-nm build-m0/liblh.a | awk 'NF==3 && $2 ~ /[TDBRCW]/ {print $3}' | sort -u > defined.txt
+          comm -23 undefined.txt defined.txt \
+            | grep -v -E '^(__aeabi_|__gnu_thumb1_|__clzsi2$|__ctzsi2$|memcpy$|memmove$|memset$|strlen$)' \
+            > outside.txt || true
+          if [ -s outside.txt ]; then echo "lh needs:"; cat outside.txt; exit 1; fi

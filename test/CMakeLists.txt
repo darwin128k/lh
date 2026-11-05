@@ -97,6 +97,7 @@ endif ()
 # base a platform gives rail and its slot, and (on the OS base) the thread
 # executor and the loop.
 set(LH_TEST_RAIL_SOURCES
+        ${LH_TEST_SRC_PATH}/lh/rail/bare.cpp
         ${LH_TEST_SRC_PATH}/lh/rail/base.cpp
         ${LH_TEST_SRC_PATH}/lh/rail/runtime/base.cpp
         ${LH_TEST_SRC_PATH}/lh/rail/task.cpp
