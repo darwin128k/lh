@@ -398,6 +398,41 @@ const lh_ptr
 lh_memory_find(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size);
 
 /**
+ * @brief Whether @p lhs matches @p pattern in every bit @p mask selects.
+ *
+ * Byte by byte: `(lhs[i] ^ pattern[i]) & mask[i]` must be zero. A mask byte
+ * 0xFF compares the whole byte, 0x00 accepts any byte there — a byte pattern
+ * with wildcards, as for the code of a function whose addresses differ from
+ * build to build.
+ *
+ * @param lhs     Bytes to test; @p size readable.
+ * @param pattern Expected bytes; @p size readable.
+ * @param mask    Which bits count; @p size readable.
+ * @param size    Bytes to compare (0 always matches).
+ * @return ::lh_bool_true when every selected bit is equal.
+ */
+lh_bool_t
+lh_memory_is_equal_masked(const lh_ptr lhs, const lh_ptr pattern, const lh_ptr mask,
+                          lh_usize_t size);
+
+/**
+ * @brief The first place in @p lhs where @p pattern matches under @p mask.
+ *
+ * Every start from the beginning of @p lhs is tried with
+ * ::lh_memory_is_equal_masked; a match must lie wholly inside @p lhs.
+ *
+ * @param lhs      Haystack.
+ * @param lhs_size Size of @p lhs in bytes.
+ * @param pattern  Expected bytes.
+ * @param mask     Which bits count (0xFF a byte, 0x00 any byte).
+ * @param size     Size of @p pattern and @p mask; must not be 0.
+ * @return Pointer to the start of the first match, or ::lh_null if none.
+ */
+const lh_ptr
+lh_memory_find_masked(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr pattern,
+                      const lh_ptr mask, lh_usize_t size);
+
+/**
  * @brief Like ::lh_memory_scan, but only tries start offsets on a @p step grid.
  *
  * Use @p step equal to @p rhs_size for fixed-size units (e.g. ::lh_wchar_t).
