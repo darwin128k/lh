@@ -137,6 +137,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/rail/runtime/base.c
         ${LH_LIB_SRC_PATH}/rail/loop.c
         ${LH_LIB_SRC_PATH}/rail/thread.c
+        ${LH_LIB_SRC_PATH}/rail/bare.c
         ${LH_LIB_SRC_PATH}/core/array.c
         ${LH_LIB_SRC_PATH}/core/list.c
         ${LH_LIB_SRC_PATH}/core/value.c
@@ -315,6 +316,14 @@ set(LH_LIB_SOURCES
 
         ${LH_LIB_SRC_PATH}/lh.c
 )
+
+# The CPU layer under the rail base without an OS (lh/rail/system/cpu.h): the
+# real one on a Cortex-M, the model elsewhere (tests run the base on a PC).
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "^cortex-m")
+    list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/rail/system/cortexm/cpu.c)
+else ()
+    list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/rail/system/sim/cpu.c)
+endif ()
 
 if (LH_LIBRARY_OPTION_OS)
     # The OS implementation of the rail base (lh/os/rail/base.h).
