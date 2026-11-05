@@ -83,37 +83,6 @@ lh_os_system_shared_handle_t
 lh_os_system_shared_get_executable(void);
 
 /**
- * @brief Handle of the already-loaded image that contains @p addr.
- *
- * Windows: `GetModuleHandleEx(FROM_ADDRESS)`; POSIX: `dlopen(RTLD_NOLOAD)`.
- * Both take a reference, so the image stays loaded while the handle is
- * held even if whoever loaded it lets go.
- *
- * @param addr An address inside the loaded image.
- * @return Handle (close it), or ::LH_OS_SYSTEM_SHARED_HANDLE_INVALID on failure.
- */
-lh_os_system_shared_handle_t
-lh_os_system_shared_get_by_addr(lh_ptr addr);
-
-/**
- * @brief Handle of the already-loaded image whose file is @p name.
- *
- * Windows: `GetModuleHandleEx`; POSIX: `dlopen(RTLD_NOLOAD)`. Never loads;
- * takes a reference like ::lh_os_system_shared_get_by_addr.
- *
- * @return Handle (close it), or ::LH_OS_SYSTEM_SHARED_HANDLE_INVALID.
- */
-lh_os_system_shared_handle_t
-lh_os_system_shared_get_by_name(const lh_str_ptr name);
-
-/**
- * @brief Symbol @p name from the on-disk symbol table of @p handle's image,
- *        or ::lh_null (always on Windows).
- */
-lh_ptr
-lh_os_system_shared_get_local_sym(lh_os_system_shared_handle_t handle, const lh_str_ptr name);
-
-/**
  * @brief The executable code of @p handle's image: where it starts in memory
  *        and how long it is.
  *
@@ -132,6 +101,17 @@ lh_bool_t
 lh_os_system_shared_get_code(lh_os_system_shared_handle_t handle, lh_ptr *begin, lh_usize_t *size);
 
 /**
+ * @brief Handle of the already-loaded image whose file is @p name.
+ *
+ * Windows: `GetModuleHandleEx`; POSIX: `dlopen(RTLD_NOLOAD)`. Never loads;
+ * takes a reference like ::lh_os_system_shared_get_by_addr.
+ *
+ * @return Handle (close it), or ::LH_OS_SYSTEM_SHARED_HANDLE_INVALID.
+ */
+lh_os_system_shared_handle_t
+lh_os_system_shared_get_by_name(const lh_str_ptr name);
+
+/**
  * @brief Native path of @p handle into @p out (replacing its contents).
  *
  * Buffer sizing is the backend's business: the caller gets the whole path
@@ -144,6 +124,26 @@ lh_os_system_shared_get_code(lh_os_system_shared_handle_t handle, lh_ptr *begin,
  */
 lh_bool_t
 lh_os_system_shared_get_path(lh_os_system_shared_handle_t handle, lh_str_t *out);
+
+/**
+ * @brief Handle of the already-loaded image that contains @p addr.
+ *
+ * Windows: `GetModuleHandleEx(FROM_ADDRESS)`; POSIX: `dlopen(RTLD_NOLOAD)`.
+ * Both take a reference, so the image stays loaded while the handle is
+ * held even if whoever loaded it lets go.
+ *
+ * @param addr An address inside the loaded image.
+ * @return Handle (close it), or ::LH_OS_SYSTEM_SHARED_HANDLE_INVALID on failure.
+ */
+lh_os_system_shared_handle_t
+lh_os_system_shared_get_by_addr(lh_ptr addr);
+
+/**
+ * @brief Symbol @p name from the on-disk symbol table of @p handle's image,
+ *        or ::lh_null (always on Windows).
+ */
+lh_ptr
+lh_os_system_shared_get_local_sym(lh_os_system_shared_handle_t handle, const lh_str_ptr name);
 
 LH_COMPILER_EXTERN_C_END
 

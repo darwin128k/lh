@@ -61,27 +61,9 @@ typedef struct lh_os_shared lh_os_shared_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/**
- * @brief Closed image, empty path. Does not touch the OS.
- */
-lh_void
-lh_os_shared_init(lh_os_shared_t *self);
-
-/**
- * @brief ::lh_os_shared_close, then release the stored path.
- */
-lh_void
-lh_os_shared_deinit(lh_os_shared_t *self);
-
 /** The native handle @p self holds. */
 lh_void
 lh_os_shared_set_handle(lh_os_shared_t *self, lh_os_system_shared_handle_t handle);
-
-/**
- * @brief True when @p self holds an image.
- */
-lh_bool_t
-lh_os_shared_is_open(const lh_os_shared_t *self);
 
 /**
  * @brief Raw handle, or ::LH_OS_SYSTEM_SHARED_HANDLE_INVALID when closed.
@@ -100,46 +82,26 @@ lh_os_shared_get_path_mut(lh_os_shared_t *self);
 const lh_fs_path_t *
 lh_os_shared_get_path(const lh_os_shared_t *self);
 
-/** True when @p self holds no image yet; otherwise sets the last OS error to "already open". */
-lh_bool_t
-lh_os_shared_is_free(const lh_os_shared_t *self);
+/**
+ * @brief Closed image, empty path. Does not touch the OS.
+ */
+lh_void
+lh_os_shared_init(lh_os_shared_t *self);
 
 /**
- * @brief Load the image at @p path (or take another reference to it, if it
- *        is already loaded).
- *
- * An open @p self fails with ::lh_os_error_code_already_open; an empty
- * @p path is an error.
+ * @brief True when @p self holds an image.
  */
 lh_bool_t
-lh_os_shared_open(lh_os_shared_t *self, const lh_fs_path_t *path);
+lh_os_shared_is_open(const lh_os_shared_t *self);
 
 /** Take @p handle into @p self with the path the OS reports for it; closes @p handle and returns
  * false when there is none. */
 lh_bool_t
 lh_os_shared_adopt(lh_os_shared_t *self, lh_os_system_shared_handle_t handle);
 
-/**
- * @brief Take the already-loaded image that contains @p addr. Its path comes
- *        from the OS.
- */
+/** True when @p self holds no image yet; otherwise sets the last OS error to "already open". */
 lh_bool_t
-lh_os_shared_bind(lh_os_shared_t *self, lh_ptr addr);
-
-/**
- * @brief Take the program itself (the executable). Its path comes from the OS.
- */
-lh_bool_t
-lh_os_shared_bind_executable(lh_os_shared_t *self);
-
-/**
- * @brief Take the already-loaded image whose file is @p name (`cs.so`,
- *        `mp.dll`) — never loads it. Its path comes from the OS.
- *
- * @return ::lh_bool_false when no such image is loaded (or @p self is not free).
- */
-lh_bool_t
-lh_os_shared_bind_name(lh_os_shared_t *self, const lh_str_ptr name);
+lh_os_shared_is_free(const lh_os_shared_t *self);
 
 /**
  * @brief Give the reference back and forget the handle. The path is kept.
@@ -185,6 +147,44 @@ lh_os_shared_get_local_sym(const lh_os_shared_t *self, const lh_str_ptr name);
  */
 lh_bool_t
 lh_os_shared_try_get_code(const lh_os_shared_t *self, lh_ptr *begin, lh_usize_t *size);
+
+/**
+ * @brief ::lh_os_shared_close, then release the stored path.
+ */
+lh_void
+lh_os_shared_deinit(lh_os_shared_t *self);
+
+/**
+ * @brief Load the image at @p path (or take another reference to it, if it
+ *        is already loaded).
+ *
+ * An open @p self fails with ::lh_os_error_code_already_open; an empty
+ * @p path is an error.
+ */
+lh_bool_t
+lh_os_shared_open(lh_os_shared_t *self, const lh_fs_path_t *path);
+
+/**
+ * @brief Take the already-loaded image that contains @p addr. Its path comes
+ *        from the OS.
+ */
+lh_bool_t
+lh_os_shared_bind(lh_os_shared_t *self, lh_ptr addr);
+
+/**
+ * @brief Take the program itself (the executable). Its path comes from the OS.
+ */
+lh_bool_t
+lh_os_shared_bind_executable(lh_os_shared_t *self);
+
+/**
+ * @brief Take the already-loaded image whose file is @p name (`cs.so`,
+ *        `mp.dll`) — never loads it. Its path comes from the OS.
+ *
+ * @return ::lh_bool_false when no such image is loaded (or @p self is not free).
+ */
+lh_bool_t
+lh_os_shared_bind_name(lh_os_shared_t *self, const lh_str_ptr name);
 
 /**
  * @brief True if open and @p name is exported.

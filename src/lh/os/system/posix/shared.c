@@ -7,7 +7,6 @@
 #include <lh/core/attribute/unused.h>
 #include <lh/os/system/posix/shared/search.h>
 #include <lh/core/memory/std.h>
-#include <lh/core/bit/ops.h>
 #include <lh/core/assert.h>
 #include <lh/core/attribute/static.h>
 #include <lh/os/alloc.h>
@@ -96,6 +95,93 @@ lh_os_system_shared_get_executable(void)
     return handle;
 }
 
+/* Read exactly @p size bytes at @p offset of @p fd into @p out. */
+LH_ATTRIBUTE_STATIC
+lh_bool_t
+lh_os_system_shared_read_at(int fd, off_t offset, lh_ptr out, size_t size)
+{
+    lh_byte_t *bytes = lh_ptr_cast(lh_byte_t, out);
+    size_t got = 0U;
+
+    if (lseek(fd, offset, SEEK_SET) < 0)
+    {
+        return lh_bool_false;
+    }
+    while (got < size)
+    {
+        const ssize_t n = read(fd, bytes + got, size - got);
+        if (n <= 0)
+        {
+            return lh_bool_false;
+        }
+        got += (size_t)n;
+    }
+    return lh_bool_true;
+}
+
+lh_bool_t
+lh_os_system_shared_get_code(lh_os_system_shared_handle_t handle, lh_ptr *begin, lh_usize_t *size)
+{
+    struct link_map *map = lh_null;
+
+    lh_assert_runtime_ref(handle);
+    if (dlinfo(handle, RTLD_DI_LINKMAP, lh_addr_of(map)) != 0 || lh_null_eq(map))
+    {
+        lh_os_system_error_capture();
+        return lh_bool_false;
+    }
+    /* dladdr identifies the mapped ELF headers; PT_LOAD marks executable code. */
+    Dl_info info;
+    if (lh_math_is_zero(dladdr(map->l_ld, lh_addr_of(info))) || lh_null_eq(info.dli_fbase))
+    {
+        return lh_bool_false;
+    }
+    const ElfW(Ehdr) *ehdr = (const ElfW(Ehdr) *)info.dli_fbase;
+    if (lh_null_ne(lh_memory_std_compare(ehdr->e_ident, ELFMAG, SELFMAG)))
+    {
+        return lh_bool_false;
+    }
+    const ElfW(Phdr) *phdr = (const ElfW(Phdr) *)((const lh_byte_t *)ehdr + ehdr->e_phoff);
+    for (lh_usize_t i = 0U; lh_math_lt(i, (lh_usize_t)ehdr->e_phnum); i = lh_math_add_one(i))
+    {
+        if (phdr[i].p_type == PT_LOAD && !lh_math_is_zero(lh_bit_and(phdr[i].p_flags, PF_X)))
+        {
+            lh_ptr_deref(begin) = (lh_ptr)(uintptr_t)(map->l_addr + phdr[i].p_vaddr);
+            lh_ptr_deref(size) = (lh_usize_t)phdr[i].p_filesz;
+            return lh_bool_true;
+        }
+    }
+    return lh_bool_false;
+}
+
+lh_str_cptr
+lh_os_system_shared_search_get_name(const struct lh_os_system_shared_search *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->name;
+}
+
+lh_void
+lh_os_system_shared_search_set_name(struct lh_os_system_shared_search *self, lh_str_cptr name)
+{
+    lh_assert_runtime_ref(self);
+    self->name = name;
+}
+
+lh_str_cptr
+lh_os_system_shared_search_get_path(const struct lh_os_system_shared_search *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->path;
+}
+
+lh_void
+lh_os_system_shared_search_set_path(struct lh_os_system_shared_search *self, lh_str_cptr path)
+{
+    lh_assert_runtime_ref(self);
+    self->path = path;
+}
+
 /* True when `base` is where the executable is mapped. dladdr may name it
    by argv[0], which dlopen(RTLD_NOLOAD) does not find; only dlopen(NULL) does. */
 LH_ATTRIBUTE_STATIC
@@ -115,30 +201,6 @@ lh_os_system_shared_is_executable(lh_ptr base)
         lh_math_ne(dladdr(map->l_ld, lh_addr_of(info)), 0) && lh_math_eq(info.dli_fbase, base);
     lh_os_system_shared_close(program);
     return is_executable;
-}
-
-lh_os_system_shared_handle_t
-lh_os_system_shared_get_by_addr(lh_ptr addr)
-{
-    Dl_info info;
-
-    lh_assert_runtime_ref(addr);
-    if (lh_math_is_zero(dladdr(addr, lh_addr_of(info))))
-    {
-        lh_os_system_error_capture();
-        return LH_OS_SYSTEM_SHARED_HANDLE_INVALID;
-    }
-    /* The executable is found only as dlopen(NULL), never by its name. */
-    lh_str_cptr const name =
-        lh_os_system_shared_is_executable(info.dli_fbase) || lh_str_ptr_is_empty(info.dli_fname)
-            ? lh_null
-            : info.dli_fname;
-    const lh_os_system_shared_handle_t handle = dlopen(name, RTLD_NOW | RTLD_NOLOAD);
-    if (lh_null_eq(handle))
-    {
-        lh_os_system_error_capture();
-    }
-    return handle;
 }
 
 lh_bool_t
@@ -206,30 +268,6 @@ lh_os_system_shared_get_by_name(lh_str_cptr name)
     return handle;
 }
 
-/* Read exactly @p size bytes at @p offset of @p fd into @p out. */
-LH_ATTRIBUTE_STATIC
-lh_bool_t
-lh_os_system_shared_read_at(int fd, off_t offset, lh_ptr out, size_t size)
-{
-    lh_byte_t *bytes = lh_ptr_cast(lh_byte_t, out);
-    size_t got = 0U;
-
-    if (lseek(fd, offset, SEEK_SET) < 0)
-    {
-        return lh_bool_false;
-    }
-    while (got < size)
-    {
-        const ssize_t n = read(fd, bytes + got, size - got);
-        if (n <= 0)
-        {
-            return lh_bool_false;
-        }
-        got += (size_t)n;
-    }
-    return lh_bool_true;
-}
-
 /* A heap copy of @p size bytes at @p offset of @p fd, or null. Free it with
    lh_runtime_allocator_free. */
 LH_ATTRIBUTE_STATIC
@@ -244,6 +282,30 @@ lh_os_system_shared_read_alloc(int fd, off_t offset, size_t size)
         return lh_null;
     }
     return out;
+}
+
+lh_os_system_shared_handle_t
+lh_os_system_shared_get_by_addr(lh_ptr addr)
+{
+    Dl_info info;
+
+    lh_assert_runtime_ref(addr);
+    if (lh_math_is_zero(dladdr(addr, lh_addr_of(info))))
+    {
+        lh_os_system_error_capture();
+        return LH_OS_SYSTEM_SHARED_HANDLE_INVALID;
+    }
+    /* The executable is found only as dlopen(NULL), never by its name. */
+    lh_str_cptr const name =
+        lh_os_system_shared_is_executable(info.dli_fbase) || lh_str_ptr_is_empty(info.dli_fname)
+            ? lh_null
+            : info.dli_fname;
+    const lh_os_system_shared_handle_t handle = dlopen(name, RTLD_NOW | RTLD_NOLOAD);
+    if (lh_null_eq(handle))
+    {
+        lh_os_system_error_capture();
+    }
+    return handle;
 }
 
 /* Walk the .symtab of the ELF file @p fd for @p name; its value plus @p bias. */
@@ -307,42 +369,6 @@ lh_os_system_shared_find_in_symtab(int fd, uintptr_t bias, lh_str_cptr name)
     return result;
 }
 
-lh_bool_t
-lh_os_system_shared_get_code(lh_os_system_shared_handle_t handle, lh_ptr *begin, lh_usize_t *size)
-{
-    struct link_map *map = lh_null;
-
-    lh_assert_runtime_ref(handle);
-    if (dlinfo(handle, RTLD_DI_LINKMAP, lh_addr_of(map)) != 0 || lh_null_eq(map))
-    {
-        lh_os_system_error_capture();
-        return lh_bool_false;
-    }
-    /* The ELF and program headers are mapped with the image's first segment,
-       whose address dladdr gives; the code is the executable PT_LOAD segment. */
-    Dl_info info;
-    if (lh_math_is_zero(dladdr(map->l_ld, lh_addr_of(info))) || lh_null_eq(info.dli_fbase))
-    {
-        return lh_bool_false;
-    }
-    const ElfW(Ehdr) *ehdr = (const ElfW(Ehdr) *)info.dli_fbase;
-    if (lh_null_ne(lh_memory_std_compare(ehdr->e_ident, ELFMAG, SELFMAG)))
-    {
-        return lh_bool_false;
-    }
-    const ElfW(Phdr) *phdr = (const ElfW(Phdr) *)((const lh_byte_t *)ehdr + ehdr->e_phoff);
-    for (lh_usize_t i = 0U; lh_math_lt(i, (lh_usize_t)ehdr->e_phnum); i = lh_math_add_one(i))
-    {
-        if (phdr[i].p_type == PT_LOAD && !lh_math_is_zero(lh_bit_and(phdr[i].p_flags, PF_X)))
-        {
-            lh_ptr_deref(begin) = (lh_ptr)(uintptr_t)(map->l_addr + phdr[i].p_vaddr);
-            lh_ptr_deref(size) = (lh_usize_t)phdr[i].p_filesz;
-            return lh_bool_true;
-        }
-    }
-    return lh_bool_false;
-}
-
 lh_ptr
 lh_os_system_shared_get_local_sym(lh_os_system_shared_handle_t handle, lh_str_cptr name)
 {
@@ -366,32 +392,4 @@ lh_os_system_shared_get_local_sym(lh_os_system_shared_handle_t handle, lh_str_cp
     lh_ptr const result = lh_os_system_shared_find_in_symtab(fd, (uintptr_t)map->l_addr, name);
     close(fd);
     return result;
-}
-
-lh_str_cptr
-lh_os_system_shared_search_get_name(const struct lh_os_system_shared_search *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->name;
-}
-
-lh_void
-lh_os_system_shared_search_set_name(struct lh_os_system_shared_search *self, lh_str_cptr name)
-{
-    lh_assert_runtime_ref(self);
-    self->name = name;
-}
-
-lh_str_cptr
-lh_os_system_shared_search_get_path(const struct lh_os_system_shared_search *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->path;
-}
-
-lh_void
-lh_os_system_shared_search_set_path(struct lh_os_system_shared_search *self, lh_str_cptr path)
-{
-    lh_assert_runtime_ref(self);
-    self->path = path;
 }

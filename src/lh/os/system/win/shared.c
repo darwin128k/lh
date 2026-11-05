@@ -1,7 +1,6 @@
 #include <lh/os/system/shared.h>
 #include <lh/core/memory/std.h>
 #include <lh/core/cast/const.h>
-#include <lh/core/bit/ops.h>
 #include <lh/core/attribute/unused.h>
 #include <lh/core/assert.h>
 #include <lh/os.h>
@@ -175,8 +174,8 @@ lh_os_system_shared_get_code(lh_os_system_shared_handle_t handle, lh_ptr *begin,
         return lh_bool_false;
     }
     lh_u16_t sections;
-    lh_u16_t optional_size;
     lh_memory_std_copy(lh_addr_of(sections), nt + 6, sizeof(sections));
+    lh_u16_t optional_size;
     lh_memory_std_copy(lh_addr_of(optional_size), nt + 20, sizeof(optional_size));
     lh_byte_cptr section = nt + 24 + optional_size;
     for (lh_u16_t i = 0U; lh_math_lt(i, sections); i = lh_math_add_one(i))
@@ -186,8 +185,8 @@ lh_os_system_shared_get_code(lh_os_system_shared_handle_t handle, lh_ptr *begin,
         if (!lh_math_is_zero(lh_bit_and(characteristics, 0x20000000UL))) /* MEM_EXECUTE */
         {
             lh_u32_t virtual_size;
-            lh_u32_t virtual_address;
             lh_memory_std_copy(lh_addr_of(virtual_size), section + 8, sizeof(virtual_size));
+            lh_u32_t virtual_address;
             lh_memory_std_copy(lh_addr_of(virtual_address), section + 12, sizeof(virtual_address));
             lh_ptr_deref(begin) = lh_cast_const(lh_byte_t *, base + virtual_address);
             lh_ptr_deref(size) = virtual_size;

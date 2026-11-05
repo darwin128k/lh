@@ -256,6 +256,15 @@ else ()
 endif ()
 lh_add_test_core(lh_test_math ${LH_TEST_MATH_SOURCES})
 
+# MSVC 14.51.36231 x86 reports C1001 in overlapping_backward_copy while
+# generating this test under /LTCG for XP. Keep all tests and library LTO,
+# but compile this test translation unit without /GL to avoid that codegen path.
+if (MSVC AND MSVC_VERSION EQUAL 1951 AND CMAKE_SIZEOF_VOID_P EQUAL 4
+        AND LH_OS_WINDOWS_VERSION STREQUAL "0x0501" AND LH_TEST_IPO)
+    set_source_files_properties(${LH_TEST_SRC_PATH}/lh/core/memory/std.cpp
+            PROPERTIES COMPILE_OPTIONS "/GL-")
+endif ()
+
 lh_add_test_core(lh_test_memory
         ${LH_TEST_SRC_PATH}/lh/core/memory/allocator.cpp
         ${LH_TEST_SRC_PATH}/lh/core/memory/bounds.cpp
