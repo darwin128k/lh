@@ -13,6 +13,6 @@ outlive the queue. Allocation failure is recoverable: creation returns `lh_null`
 Changing the runtime allocator does not change how an existing queue is released.
 
 Background work (a thread that runs tasks, results delivered on the owner's
-thread) is the execution part, `lh/exec/`: see
+thread) is the execution part, `lh/rail/`: see
 [docs/design/execution.md](../design/execution.md). It replaced the removed
 `lh/os/worker.h`.

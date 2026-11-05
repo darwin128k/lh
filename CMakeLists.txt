@@ -125,12 +125,16 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/atomic/ptr.c
         ${LH_LIB_SRC_PATH}/core/atomic/uint.c
         ${LH_LIB_SRC_PATH}/core/spsc.c
-        ${LH_LIB_SRC_PATH}/exec/task.c
-        ${LH_LIB_SRC_PATH}/exec/queue.c
-        ${LH_LIB_SRC_PATH}/exec/mailbox.c
-        ${LH_LIB_SRC_PATH}/exec/executor.c
-        ${LH_LIB_SRC_PATH}/exec/inline.c
-        ${LH_LIB_SRC_PATH}/exec/context.c
+        ${LH_LIB_SRC_PATH}/rail/task.c
+        ${LH_LIB_SRC_PATH}/rail/queue.c
+        ${LH_LIB_SRC_PATH}/rail/mailbox.c
+        ${LH_LIB_SRC_PATH}/rail/executor.c
+        ${LH_LIB_SRC_PATH}/rail/inline.c
+        ${LH_LIB_SRC_PATH}/rail/context.c
+        ${LH_LIB_SRC_PATH}/rail/base.c
+        ${LH_LIB_SRC_PATH}/rail/runtime/base.c
+        ${LH_LIB_SRC_PATH}/rail/loop.c
+        ${LH_LIB_SRC_PATH}/rail/thread.c
         ${LH_LIB_SRC_PATH}/core/array.c
         ${LH_LIB_SRC_PATH}/core/list.c
         ${LH_LIB_SRC_PATH}/core/value.c
@@ -311,9 +315,8 @@ set(LH_LIB_SOURCES
 )
 
 if (LH_LIBRARY_OPTION_OS)
-    # The thread executor runs on the OS thread, mutex and condition.
-    list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/exec/loop.c)
-    list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/exec/thread.c)
+    # The OS implementation of the rail base (lh/os/rail/base.h).
+    list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/rail/base.c)
     list(APPEND LH_LIB_SOURCES
             ${LH_LIB_SRC_PATH}/os.c
             ${LH_LIB_SRC_PATH}/os/error.c

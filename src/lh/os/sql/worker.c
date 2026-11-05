@@ -6,16 +6,16 @@
 #include <lh/os/sql/worker.h>
 #include <lh/core/assert/runtime.h>
 #include <lh/core/attribute/unused.h>
-#include <lh/exec/context/initializer.h>
+#include <lh/rail/context/initializer.h>
 
-const lh_exec_thread_t *
+const lh_rail_thread_t *
 lh_os_sql_worker_get_thread(const lh_os_sql_worker_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->thread);
 }
 
-lh_exec_thread_t *
+lh_rail_thread_t *
 lh_os_sql_worker_get_thread_mut(lh_os_sql_worker_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -115,27 +115,27 @@ lh_os_sql_worker_try_start(lh_os_sql_worker_t *self, lh_os_sql_worker_connect_cb
     lh_os_sql_worker_set_connect_cb(self, connect_cb);
     lh_os_sql_worker_set_release_cb(self, release_cb);
     lh_os_sql_worker_set_user(self, user);
-    const lh_exec_context_t context =
-        lh_exec_context_initializer(lh_os_sql_worker_open, lh_os_sql_worker_close, self);
-    return lh_exec_thread_try_start(lh_os_sql_worker_get_thread_mut(self), lh_addr_of(context));
+    const lh_rail_context_t context =
+        lh_rail_context_initializer(lh_os_sql_worker_open, lh_os_sql_worker_close, self);
+    return lh_rail_thread_try_start(lh_os_sql_worker_get_thread_mut(self), lh_addr_of(context));
 }
 
-const lh_exec_executor_t *
+const lh_rail_executor_t *
 lh_os_sql_worker_get_executor(const lh_os_sql_worker_t *self)
 {
-    return lh_exec_thread_get_executor(lh_os_sql_worker_get_thread(self));
+    return lh_rail_thread_get_executor(lh_os_sql_worker_get_thread(self));
 }
 
 lh_bool_t
-lh_os_sql_worker_try_stop(lh_os_sql_worker_t *self, lh_exec_stop_kind_t kind, lh_u32_t timeout_ms)
+lh_os_sql_worker_try_stop(lh_os_sql_worker_t *self, lh_rail_stop_kind_t kind, lh_u32_t timeout_ms)
 {
-    return lh_exec_thread_try_stop(lh_os_sql_worker_get_thread_mut(self), kind, timeout_ms);
+    return lh_rail_thread_try_stop(lh_os_sql_worker_get_thread_mut(self), kind, timeout_ms);
 }
 
 lh_void
 lh_os_sql_worker_destroy(lh_os_sql_worker_t *self)
 {
-    lh_exec_thread_destroy(lh_os_sql_worker_get_thread_mut(self));
+    lh_rail_thread_destroy(lh_os_sql_worker_get_thread_mut(self));
 }
 
 lh_bool_t

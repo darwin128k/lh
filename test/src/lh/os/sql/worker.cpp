@@ -6,7 +6,7 @@
 
 #include <gtest/gtest.h>
 
-#include <lh/exec/mailbox.h>
+#include <lh/rail/mailbox.h>
 #include <lh/os/sql/sqlite.h>
 #include <lh/os/sql/worker.h>
 #include <lh/os/tick.h>
@@ -54,7 +54,7 @@ release_thread(lh_ptr user)
 /* One query task: a statement run on the worker, its outcome read at dispatch. */
 struct query
 {
-    lh_exec_task_t task;
+    lh_rail_task_t task;
     std::string sql;
     bool ok = false;
     bool open = false;
@@ -102,17 +102,17 @@ void
 make(query &q, const std::string &sql)
 {
     q.sql = sql;
-    lh_exec_task_init(&q.task, run_query, done_query, lh_null, &q);
+    lh_rail_task_init(&q.task, run_query, done_query, lh_null, &q);
 }
 
 void
-dispatch_all(lh_exec_mailbox_t *mailbox, unsigned count)
+dispatch_all(lh_rail_mailbox_t *mailbox, unsigned count)
 {
     unsigned delivered = 0U;
     const auto until = std::chrono::steady_clock::now() + std::chrono::seconds(20);
     while (delivered < count && std::chrono::steady_clock::now() < until)
     {
-        delivered += lh_exec_mailbox_dispatch(mailbox);
+        delivered += lh_rail_mailbox_dispatch(mailbox);
         std::this_thread::yield();
     }
     ASSERT_EQ(delivered, count);
@@ -127,8 +127,8 @@ TEST(os_sql_worker, tasks_share_one_connection_opened_once)
     link l;
     lh_os_sql_worker_t worker;
     ASSERT_TRUE(lh_os_sql_worker_try_start(&worker, connect_memory, release_thread, &l));
-    lh_exec_mailbox_t mailbox;
-    lh_exec_mailbox_init(&mailbox, 16U);
+    lh_rail_mailbox_t mailbox;
+    lh_rail_mailbox_init(&mailbox, 16U);
     std::vector<query> queries(5);
     make(queries[0], "CREATE TABLE t (v INTEGER)");
     make(queries[1], "INSERT INTO t VALUES (40)");
@@ -138,10 +138,10 @@ TEST(os_sql_worker, tasks_share_one_connection_opened_once)
     for (auto &q : queries)
     {
         ASSERT_TRUE(
-            lh_exec_executor_try_submit(lh_os_sql_worker_get_executor(&worker), &q.task, &mailbox));
+            lh_rail_executor_try_submit(lh_os_sql_worker_get_executor(&worker), &q.task, &mailbox));
     }
     dispatch_all(&mailbox, 5U);
-    EXPECT_TRUE(lh_os_sql_worker_try_stop(&worker, lh_exec_stop_kind_drain, 10000U));
+    EXPECT_TRUE(lh_os_sql_worker_try_stop(&worker, lh_rail_stop_kind_drain, 10000U));
     lh_os_sql_worker_destroy(&worker);
     for (auto &q : queries)
     {
@@ -164,18 +164,18 @@ TEST(os_sql_worker, a_task_reconnects_a_closed_connection)
     l.fail = true;
     lh_os_sql_worker_t worker;
     ASSERT_TRUE(lh_os_sql_worker_try_start(&worker, connect_memory, lh_null, &l));
-    lh_exec_mailbox_t mailbox;
-    lh_exec_mailbox_init(&mailbox, 4U);
+    lh_rail_mailbox_t mailbox;
+    lh_rail_mailbox_init(&mailbox, 4U);
     query first;
     make(first, "SELECT 1");
     ASSERT_TRUE(
-        lh_exec_executor_try_submit(lh_os_sql_worker_get_executor(&worker), &first.task, &mailbox));
+        lh_rail_executor_try_submit(lh_os_sql_worker_get_executor(&worker), &first.task, &mailbox));
     dispatch_all(&mailbox, 1U);
     EXPECT_FALSE(first.open);
     l.fail = false; /* the server is back */
     query second;
     make(second, "SELECT 7");
-    ASSERT_TRUE(lh_exec_executor_try_submit(lh_os_sql_worker_get_executor(&worker), &second.task,
+    ASSERT_TRUE(lh_rail_executor_try_submit(lh_os_sql_worker_get_executor(&worker), &second.task,
                                             &mailbox));
     dispatch_all(&mailbox, 1U);
     lh_os_sql_worker_destroy(&worker);

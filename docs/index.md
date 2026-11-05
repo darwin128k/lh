@@ -55,4 +55,4 @@ The HTML output is written to `docs/html/index.html`. It covers every public
 header under `include/lh/` and every implementation file under `src/lh/`.
 
 - [SPSC queue](subsystems/spsc.md) - fixed-record buffering between two threads.
-- [Execution](design/execution.md) - tasks, executors, mailboxes and stops (`lh/exec/`).
+- [Execution](design/execution.md) - tasks, executors, mailboxes and stops (`lh/rail/`).

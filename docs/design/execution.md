@@ -75,7 +75,7 @@ Execution needs six words, and each comes with laws.
 
 | Today | Becomes |
 |---|---|
-| `lh_os_loop_t` | the loop, with its waiter as the source of world readiness (`lh_exec_loop_t` since step 5) |
+| `lh_os_loop_t` | the loop, with its waiter as the source of world readiness (`lh_rail_loop_t` since step 5) |
 | `lh_os_worker_t` and its job | the *thread* executor and the task (worker removed in step 4b) |
 | `lh_os_logger_queue_t` | a thread executor whose tasks are records, plus a sink |
 | web host request reading | sockets as loop sources instead of blocking reads with timeouts |
@@ -106,8 +106,8 @@ compositions: web host, logger queue, SQL, Authum tasks
 
 ## 5. Decisions (owner, 2026-11-04)
 
-1. **Name: `exec`.** Headers in `include/lh/exec/`, sources in `src/lh/exec/`,
-   names `lh_exec_*` (the part carries its name, AGENTS.md section 5).
+1. **Name: `exec`.** Headers in `include/lh/rail/`, sources in `src/lh/rail/`,
+   names `lh_rail_*` (the part carries its name, AGENTS.md section 5).
 2. **Any thread may submit.** The submission queue is multi-producer,
    single-consumer: a task may submit a follow-up, two subsystems may share one
    executor.
@@ -115,8 +115,8 @@ compositions: web host, logger queue, SQL, Authum tasks
    exceed it is refused at once (`try_submit` is false), never queued.
 4. **Pool later.** One thread per executor keeps tasks in order; the pool comes
    when something needs it.
-5. **Beside `lh/os` first.** `lh/exec` is built next to `lh/os` and uses its
-   thread, mutex and condition for now; `lh/os` users move onto `lh/exec` one by
+5. **Beside `lh/os` first.** `lh/rail` is built next to `lh/os` and uses its
+   thread, mutex and condition for now; `lh/os` users move onto `lh/rail` one by
    one, and the primitives move out of `lh/os` last.
 
 ## 6. API draft
@@ -124,69 +124,69 @@ compositions: web host, logger queue, SQL, Authum tasks
 Every entity has its own header, `fields.h`, getters and setters, as AGENTS.md
 asks. Only the shape is shown here.
 
-### Task — `lh/exec/task.h`
+### Task — `lh/rail/task.h`
 
 ```c
-typedef lh_void(lh_exec_task_fn)(lh_ptr user, lh_ptr local);  /* work: local = thread context state */
-typedef lh_void(lh_exec_done_fn)(lh_ptr user);                /* complete and destroy */
+typedef lh_void(lh_rail_task_fn)(lh_ptr user, lh_ptr local);  /* work: local = thread context state */
+typedef lh_void(lh_rail_done_fn)(lh_ptr user);                /* complete and destroy */
 
-struct lh_exec_task {
-    lh_exec_task_fields(lh_exec_task_fn, lh_exec_done_fn, lh_ptr, lh_atomic_ptr_t,
-                        struct lh_exec_mailbox *);
+struct lh_rail_task {
+    lh_rail_task_fields(lh_rail_task_fn, lh_rail_done_fn, lh_ptr, lh_atomic_ptr_t,
+                        struct lh_rail_mailbox *);
     /* work_cb, complete_cb, destroy_cb, user, next (queue link), mailbox */
 };
 
-lh_void lh_exec_task_init(lh_exec_task_t *self, lh_exec_task_cb work, lh_exec_done_cb complete,
-                          lh_exec_done_cb destroy, lh_ptr user);
+lh_void lh_rail_task_init(lh_rail_task_t *self, lh_rail_task_cb work, lh_rail_done_cb complete,
+                          lh_rail_done_cb destroy, lh_ptr user);
 ```
 
 - The task record belongs to the caller: embedded in the caller's own object,
-  or allocated by the caller. `lh/exec` allocates nothing per task. `destroy`
+  or allocated by the caller. `lh/rail` allocates nothing per task. `destroy`
   is where the caller frees it.
 - `next` is the intrusive link of the queues below, `mailbox` the owner that
   gets `complete`; both are set by the executor, not by the caller.
 
-### Queue — `lh/exec/queue.h`
+### Queue — `lh/rail/queue.h`
 
-A multi-producer, single-consumer intrusive queue of tasks: `lh_exec_queue_push`
-from any thread (lock-free, one `exchange` on the tail), `lh_exec_queue_try_pop`
+A multi-producer, single-consumer intrusive queue of tasks: `lh_rail_queue_push`
+from any thread (lock-free, one `exchange` on the tail), `lh_rail_queue_try_pop`
 on the one consumer thread. Needs one new brick:
 `lh_atomic_ptr_exchange_acq_rel`.
 
-### Mailbox — `lh/exec/mailbox.h`
+### Mailbox — `lh/rail/mailbox.h`
 
 ```c
-lh_void   lh_exec_mailbox_init(lh_exec_mailbox_t *self, lh_uint_t capacity);
-lh_bool_t lh_exec_mailbox_try_reserve(lh_exec_mailbox_t *self);   /* any thread, at submit */
-lh_void   lh_exec_mailbox_release(lh_exec_mailbox_t *self);       /* a place never posted */
-lh_void   lh_exec_mailbox_post(lh_exec_mailbox_t *self, lh_exec_task_t *task); /* after work */
-lh_exec_task_t *lh_exec_mailbox_try_take(lh_exec_mailbox_t *self);           /* owner thread */
-lh_void   lh_exec_mailbox_deliver(lh_exec_mailbox_t *self, lh_exec_task_t *task);
-lh_uint_t lh_exec_mailbox_dispatch(lh_exec_mailbox_t *self);       /* take + deliver, owner */
+lh_void   lh_rail_mailbox_init(lh_rail_mailbox_t *self, lh_uint_t capacity);
+lh_bool_t lh_rail_mailbox_try_reserve(lh_rail_mailbox_t *self);   /* any thread, at submit */
+lh_void   lh_rail_mailbox_release(lh_rail_mailbox_t *self);       /* a place never posted */
+lh_void   lh_rail_mailbox_post(lh_rail_mailbox_t *self, lh_rail_task_t *task); /* after work */
+lh_rail_task_t *lh_rail_mailbox_try_take(lh_rail_mailbox_t *self);           /* owner thread */
+lh_void   lh_rail_mailbox_deliver(lh_rail_mailbox_t *self, lh_rail_task_t *task);
+lh_uint_t lh_rail_mailbox_dispatch(lh_rail_mailbox_t *self);       /* take + deliver, owner */
 ```
 
 - The capacity counts tasks accepted for this owner and not yet dispatched —
   queued, running and finished. A full mailbox refuses the submission. The
   count is exact under contention (`lh_atomic_uint_try_compare_exchange_acq_rel`).
 - `init`, not `try_init`: the finished tasks are linked through themselves (an
-  `lh_exec_queue_t` inside the record), so nothing is allocated and nothing can
+  `lh_rail_queue_t` inside the record), so nothing is allocated and nothing can
   fail. The mailbox must not move after `init`.
 - `dispatch` runs `complete` then `destroy` for every finished task, on the
   owner's thread, and frees their places. It delivers at most as many tasks as
   there were places taken when it began, so a `complete` that submits again
   cannot keep one dispatch running forever.
 
-### Executor — `lh/exec/executor.h`
+### Executor — `lh/rail/executor.h`
 
 ```c
-struct lh_exec_executor {
-    lh_exec_executor_fields(lh_exec_executor_accept_fn, lh_ptr);  /* accept_cb, context */
+struct lh_rail_executor {
+    lh_rail_executor_fields(lh_rail_executor_accept_fn, lh_ptr);  /* accept_cb, context */
 };
 
-lh_bool_t lh_exec_executor_try_accept(const lh_exec_executor_t *self, lh_exec_task_t *task);
-lh_bool_t lh_exec_executor_try_submit(const lh_exec_executor_t *self, lh_exec_task_t *task,
-                                      lh_exec_mailbox_t *mailbox);
-lh_void   lh_exec_executor_submit(...);  /* the try_ form + lh_runtime_check */
+lh_bool_t lh_rail_executor_try_accept(const lh_rail_executor_t *self, lh_rail_task_t *task);
+lh_bool_t lh_rail_executor_try_submit(const lh_rail_executor_t *self, lh_rail_task_t *task,
+                                      lh_rail_mailbox_t *mailbox);
+lh_void   lh_rail_executor_submit(...);  /* the try_ form + lh_runtime_check */
 ```
 
 - One interface for every kind. `try_submit` reserves a place in `mailbox`,
@@ -198,26 +198,26 @@ lh_void   lh_exec_executor_submit(...);  /* the try_ form + lh_runtime_check */
   in `try_submit`.
 - A refused checked `submit` fails with `lh_runtime_error_code_not_accepted`.
 
-### Inline executor — `lh/exec/inline.h`
+### Inline executor — `lh/rail/inline.h`
 
 Runs `work` at once on the submitting thread (with `local` = null), then posts
 the task: `complete` still comes only at `dispatch`, so code behaves the same on
 the synchronous and the threaded executor. Tests use it to run logic without
 threads or timing. It has no state, so one shared record serves every caller:
-`lh_exec_inline_get_executor()`.
+`lh_rail_inline_get_executor()`.
 
-### Thread executor and its context — `lh/exec/thread.h`, `lh/exec/context.h`
+### Thread executor and its context — `lh/rail/thread.h`, `lh/rail/context.h`
 
 ```c
-struct lh_exec_context {   /* state that lives as long as the executor's thread */
-    lh_exec_context_fields(lh_exec_context_open_fn, lh_exec_context_close_fn, lh_ptr);
+struct lh_rail_context {   /* state that lives as long as the executor's thread */
+    lh_rail_context_fields(lh_rail_context_open_fn, lh_rail_context_close_fn, lh_ptr);
 };
 
-lh_bool_t lh_exec_thread_try_start(lh_exec_thread_t *self, const lh_exec_context_t *context);
-const lh_exec_executor_t *lh_exec_thread_get_executor(const lh_exec_thread_t *self);
-lh_bool_t lh_exec_thread_try_stop(lh_exec_thread_t *self, lh_exec_stop_kind_t kind,
+lh_bool_t lh_rail_thread_try_start(lh_rail_thread_t *self, const lh_rail_context_t *context);
+const lh_rail_executor_t *lh_rail_thread_get_executor(const lh_rail_thread_t *self);
+lh_bool_t lh_rail_thread_try_stop(lh_rail_thread_t *self, lh_rail_stop_kind_t kind,
                                   lh_u32_t timeout_ms);
-lh_void   lh_exec_thread_destroy(lh_exec_thread_t *self);
+lh_void   lh_rail_thread_destroy(lh_rail_thread_t *self);
 ```
 
 - One thread, tasks in submission order. `open` runs on the thread before its
@@ -226,7 +226,7 @@ lh_void   lh_exec_thread_destroy(lh_exec_thread_t *self);
 - The record is the caller's (`try_start` fills it, as `lh/os` concurrency takes
   caller storage), not allocated by `try_create`: an Authum owner or an SQL
   driver embeds it. It must not move until `destroy`.
-- `lh_exec_stop_kind_t` (`lh/exec/stop/kind.h`): `drain` runs every accepted
+- `lh_rail_stop_kind_t` (`lh/rail/stop/kind.h`): `drain` runs every accepted
   task, `cancel` marks the not-started ones cancelled; the running task always
   finishes. Every accepted task still goes to its mailbox, and the owner's
   dispatch runs `destroy` (and, unless cancelled, `complete` first) — so
@@ -241,13 +241,13 @@ lh_void   lh_exec_thread_destroy(lh_exec_thread_t *self);
   onto the loop gains nothing there; it moves when it needs the loop's waiter
   (step 6).
 
-### The loop — `lh/exec/loop.h`
+### The loop — `lh/rail/loop.h`
 
-`lh_exec_loop_t` (step 5) is the former `lh_os_loop_t`, moved and renamed, its
+`lh_rail_loop_t` (step 5) is the former `lh_os_loop_t`, moved and renamed, its
 behaviour unchanged: a thread that runs a step, fires its due timers and sleeps
 until a wake (never lost), a hint (lock-free, may be missed for one period), the
 nearest timer, the end of its period, or a stop. A loop made with a waiter
-(`lh_exec_loop_try_create_waiting`) sleeps in the waiter's `wait` — a `poll` of
+(`lh_rail_loop_try_create_waiting`) sleeps in the waiter's `wait` — a `poll` of
 sockets and a wake signal — which is how the world plugs in as sources. The
 logger queue (`lh_os_logger_queue_t`) and Authum's HTTP server run on it.
 
@@ -265,7 +265,7 @@ and committed by the owner before the next.
 3. Mailbox, executor interface, inline executor.
 4. Thread executor, context, stop (4a); Authum's tasks move onto it and
    `lh_os_worker_t`, left without users, is removed (4b, owner, 2026-11-04).
-5. The loop in `lh/exec`: `lh_os_loop_t` becomes `lh_exec_loop_t`; the logger
+5. The loop in `lh/rail`: `lh_os_loop_t` becomes `lh_rail_loop_t`; the logger
    queue and Authum's HTTP server use it under the new name. The thread
    executor moves onto the loop with step 6, its first need.
 6. The HTTP server and the web host wait through the loop, in three parts:
@@ -274,11 +274,11 @@ and committed by the owner before the next.
      `struct_size`, access-log levels, and a hand-made bounded stop: a worker
      stuck in a file call is abandoned, frees the server itself, and a reaper
      on the game thread joins it later);
-   - 6b (done): that bounded stop is the loop's own — `lh_exec_loop_try_stop`
+   - 6b (done): that bounded stop is the loop's own — `lh_rail_loop_try_stop`
      with a timeout, `_try_abandon` (the thread frees the step's state through
      a release call when it ends), `_try_reap` (frees the loop, never waits) —
      and Authum's hand-made copy (link, stop state, grace period) is gone;
-   - 6c (done): the web host is an `lh_ui_web_host_t` on an `lh_exec_loop_t`
+   - 6c (done): the web host is an `lh_ui_web_host_t` on an `lh_rail_loop_t`
      with one poll of the listener, the wake signal, the websocket clients and
      the HTTP connections; each connection (`lh_ui_web_host_conn_t`) advances a
      step when readable, and a streaming route's handler is called again as its
@@ -292,4 +292,4 @@ and committed by the owner before the next.
    instead, closed by a call the host runs at that thread's end
    (`authum_tasks_at_exit`): a module's LH copy cannot share the host's
    `lh_sql_db_t` (owner, 2026-11-04).
-8. The thread, mutex and condition move out of `lh/os` into `lh/exec`'s base.
+8. The thread, mutex and condition move out of `lh/os` into `lh/rail`'s base.
