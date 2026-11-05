@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Work around MSVC 14.51.36231 x86 C1001 during XP test link-time code generation by compiling the memory standard test translation unit without `/GL`; the tests and library LTO remain enabled.
+- Work around the MSVC x86 internal compiler error C1001 (seen on 14.44.35207 and 14.51.36231) during XP test link-time code generation by compiling the memory standard test translation unit without `/GL`, for any MSVC version so that a newer toolset does not bring it back; the tests and library LTO remain enabled.
 
 ### Added
 
