@@ -191,6 +191,21 @@ lh_bool_t
 lh_os_system_net_socket_set_reuse_addr(lh_os_system_net_socket_handle_t handle, lh_bool_t enabled);
 
 /**
+ * @brief Make the address @p handle binds its own, still allowing a quick
+ *        restart: the option a listening socket wants, before bind.
+ *
+ * POSIX: `SO_REUSEADDR`, which there only lets a new listener take the port
+ * over from connections in `TIME_WAIT`; a second listener is refused anyway.
+ * Windows: `SO_EXCLUSIVEADDRUSE`, because `SO_REUSEADDR` there would let any
+ * other socket bind the same address and take its connections.
+ *
+ * @return ::lh_bool_true on success, ::lh_bool_false if the native call failed.
+ */
+lh_bool_t
+lh_os_system_net_socket_set_exclusive_addr(lh_os_system_net_socket_handle_t handle,
+                                           lh_bool_t enabled);
+
+/**
  * @brief Enable or disable `TCP_NODELAY` (Nagle off) on a TCP @p handle.
  *
  * With Nagle on, the tail of a write smaller than a segment waits for the

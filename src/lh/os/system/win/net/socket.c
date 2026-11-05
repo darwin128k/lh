@@ -229,6 +229,18 @@ lh_os_system_net_socket_set_reuse_addr(lh_os_system_net_socket_handle_t handle, 
 }
 
 lh_bool_t
+lh_os_system_net_socket_set_exclusive_addr(lh_os_system_net_socket_handle_t handle,
+                                           lh_bool_t enabled)
+{
+    const int value = enabled ? 1 : 0;
+
+    return lh_os_system_error_check_zero(
+        setsockopt(lh_os_system_net_socket_native(handle), LH_OS_SYSTEM_WIN_SOL_SOCKET,
+                   LH_OS_SYSTEM_WIN_SO_EXCLUSIVEADDRUSE, lh_ptr_ccast(char, lh_addr_of(value)),
+                   lh_cast_static(int, sizeof(value))));
+}
+
+lh_bool_t
 lh_os_system_net_socket_set_no_delay(lh_os_system_net_socket_handle_t handle, lh_bool_t enabled)
 {
     const int value = enabled ? 1 : 0;

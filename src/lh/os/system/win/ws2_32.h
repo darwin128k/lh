@@ -46,6 +46,8 @@ typedef lh_usize_t lh_os_system_win_socket_t;
    Linux's (1 / 2). */
 #define LH_OS_SYSTEM_WIN_SOL_SOCKET 0xFFFF
 #define LH_OS_SYSTEM_WIN_SO_REUSEADDR 0x0004
+/** `SO_EXCLUSIVEADDRUSE` is defined by Winsock as `~SO_REUSEADDR`. */
+#define LH_OS_SYSTEM_WIN_SO_EXCLUSIVEADDRUSE (~LH_OS_SYSTEM_WIN_SO_REUSEADDR)
 #define LH_OS_SYSTEM_WIN_SO_ERROR 0x1007
 /** @} */
 
