@@ -241,7 +241,7 @@ option(LH_LIBRARY_OPTION_UI
 # Option: LH_LIBRARY_OPTION_SQL_SQLITE
 #
 # The SQLite backend of lh/sql (include/lh/os/sql/sqlite.h), with SQLite itself
-# (lib/sqlite, the 3.46.1 amalgamation) compiled into the lh archive.
+# (src/lh/os/sql/sqlite/third_party, the 3.46.1 amalgamation) compiled into the lh archive.
 #
 #   ON  — compile SQLite and the backend; dependents get the sqlite3_*
 #         symbols too, so they must not link a second SQLite.
@@ -251,7 +251,7 @@ option(LH_LIBRARY_OPTION_UI
 # compiled; it needs a backend to talk to a database.
 # -----------------------------------------------------------------------------
 option(LH_LIBRARY_OPTION_SQL_SQLITE
-        "Compile SQLite (lib/sqlite) and the lh/sql SQLite backend into lh."
+        "Compile SQLite (src/lh/os/sql/sqlite/third_party) and the lh/sql SQLite backend into lh."
         OFF)
 
 # -----------------------------------------------------------------------------
