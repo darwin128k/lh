@@ -288,6 +288,9 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/crypto/is_equal.c
         ${LH_LIB_SRC_PATH}/core/crypto/curve25519/field.c
         ${LH_LIB_SRC_PATH}/core/crypto/ed25519/scalar.c
+        ${LH_LIB_SRC_PATH}/core/crypto/ed25519/slide.c
+        ${LH_LIB_SRC_PATH}/core/crypto/ed25519/base.c
+        ${LH_LIB_SRC_PATH}/core/crypto/ed25519/point.c
 
         ${LH_LIB_SRC_PATH}/core/hash/fnv.c
         ${LH_LIB_SRC_PATH}/core/hash/crc.c
