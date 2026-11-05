@@ -140,6 +140,14 @@
 #define LH_LIBRARY_OPTION_REAL @ValReal@
 
 /**
+ * @def LH_LIBRARY_OPTION_ATOMIC
+ * @brief How the atomics are built: `0` the compiler's atomic instructions,
+ *        `1` plain code in the slot's critical section
+ *        (::LH_ATOMIC_COMPILER / ::LH_ATOMIC_CRITICAL, lh/core/atomic/option.h).
+ */
+#define LH_LIBRARY_OPTION_ATOMIC @ValAtomic@
+
+/**
  * @def LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED
  * @brief Zero-initialize allocated memory in ::lh_memory_allocator_alloc
  *        (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).

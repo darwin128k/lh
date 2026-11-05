@@ -140,6 +140,21 @@ set(LH_LIBRARY_OPTION_REAL "DOUBLE" CACHE STRING
 set_property(CACHE LH_LIBRARY_OPTION_REAL PROPERTY STRINGS DOUBLE FLOAT NONE)
 
 # -----------------------------------------------------------------------------
+# Option: LH_LIBRARY_OPTION_ATOMIC
+#
+# How the atomics are built (include/lh/core/atomic/option.h):
+#
+#   COMPILER — the compiler's atomic instructions (GCC/Clang __atomic, MSVC
+#              _Interlocked): lock-free. Every desktop and Cortex-M3 and up.
+#   CRITICAL — each operation is plain code inside the critical section of the
+#              slot (include/lh/core/runtime/critical.h), which the host fills:
+#              for cores without atomic read-modify-write (Cortex-M0, M0+).
+# -----------------------------------------------------------------------------
+set(LH_LIBRARY_OPTION_ATOMIC "COMPILER" CACHE STRING
+        "How the atomics are built: COMPILER or CRITICAL.")
+set_property(CACHE LH_LIBRARY_OPTION_ATOMIC PROPERTY STRINGS COMPILER CRITICAL)
+
+# -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_LTO
 #
 # Link-time optimization of the library in Release builds. lh is a static

@@ -176,11 +176,6 @@ lh_spsc_create(lh_ptr storage, lh_uint_t capacity, lh_usize_t item_size)
     lh_spsc_set_capacity(q, capacity);
     lh_spsc_set_item_size(q, item_size);
     lh_spsc_init_counters(q);
-    if (!lh_spsc_is_lock_free(q))
-    {
-        lh_memory_allocator_dealloc(lh_spsc_get_allocator_mut(q), q);
-        return lh_null;
-    }
     return q;
 }
 

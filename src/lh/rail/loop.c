@@ -361,7 +361,8 @@ lh_rail_loop_try_start_on(lh_rail_loop_t *self, lh_s32_t cpu, lh_u32_t flags)
 {
     const lh_rail_base_t *base = lh_rail_runtime_base_get();
     lh_return_if(lh_rail_loop_is_started(self) || !lh_rail_base_has_thread(base), lh_bool_false);
-    lh_rail_loop_set_thread(self, lh_rail_base_thread_start(base, lh_rail_loop_run, self, cpu, flags));
+    lh_rail_loop_set_thread(self,
+                            lh_rail_base_thread_start(base, lh_rail_loop_run, self, cpu, flags));
     lh_rail_loop_set_started(self, lh_ptr_is_set(lh_rail_loop_get_thread(self)));
     return lh_rail_loop_is_started(self);
 }
@@ -383,8 +384,9 @@ lh_rail_loop_run_step(lh_rail_loop_t *self)
     const lh_bool_t stopping = lh_rail_loop_is_stopping(self);
     LH_ATTRIBUTE_UNUSED(lh_rail_loop_take_pending(self));
     lh_rail_loop_set_last_step(self, stopping);
-    lh_timer_group_handler(lh_rail_loop_get_timers_mut(self),
-                           lh_cast_static(lh_tick_t, lh_rail_base_now_ms(lh_rail_runtime_base_get())));
+    lh_timer_group_handler(
+        lh_rail_loop_get_timers_mut(self),
+        lh_cast_static(lh_tick_t, lh_rail_base_now_ms(lh_rail_runtime_base_get())));
     lh_rail_loop_get_step_fn(self)(lh_rail_loop_get_user(self));
 }
 
@@ -393,7 +395,8 @@ lh_rail_loop_get_next_pass_ms(lh_rail_loop_t *self)
 {
     /* A wake or a stop that came during the step: the next pass is due now. */
     lh_return_if(lh_rail_loop_is_pending(self) || lh_rail_loop_is_stopping(self), 0U);
-    const lh_tick_t now = lh_cast_static(lh_tick_t, lh_rail_base_now_ms(lh_rail_runtime_base_get()));
+    const lh_tick_t now =
+        lh_cast_static(lh_tick_t, lh_rail_base_now_ms(lh_rail_runtime_base_get()));
     return lh_cast_static(
         lh_u32_t, lh_math_min(lh_cast_static(lh_tick_t, lh_rail_loop_get_period_ms(self)),
                               lh_timer_group_until_next(lh_rail_loop_get_timers_mut(self), now)));
@@ -528,9 +531,8 @@ lh_rail_loop_try_stop(lh_rail_loop_t *self, lh_u32_t timeout_ms)
     const lh_u64_t start = lh_rail_base_now_ms(base);
     /* The end is one atomic store on the loop's thread, which may sleep in a waiter
        that has no signal to wake: a short poll serves both kinds of loop. */
-    while (!lh_rail_loop_is_ended(self) &&
-           lh_math_lt(lh_math_sub(lh_rail_base_now_ms(base), start),
-                      lh_cast_static(lh_u64_t, timeout_ms)))
+    while (!lh_rail_loop_is_ended(self) && lh_math_lt(lh_math_sub(lh_rail_base_now_ms(base), start),
+                                                      lh_cast_static(lh_u64_t, timeout_ms)))
     {
         LH_ATTRIBUTE_UNUSED(lh_rail_base_sleep(base, 1U));
     }

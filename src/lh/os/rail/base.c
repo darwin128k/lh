@@ -8,13 +8,13 @@
 #include <lh/core/util/return.h>
 
 lh_u64_t
-lh_os_rail_base_now_ms(lh_void)
+lh_os_rail_base_now_ms(void)
 {
     return lh_os_tick_ms64();
 }
 
 lh_ptr
-lh_os_rail_base_lock_open(lh_void)
+lh_os_rail_base_lock_open(void)
 {
     lh_os_mutex_t *mutex =
         lh_ptr_rcast(lh_os_mutex_t, lh_runtime_allocator_try_alloc(sizeof(lh_ptr_deref(mutex))));
@@ -49,7 +49,7 @@ lh_os_rail_base_unlock(lh_ptr lock)
 }
 
 lh_ptr
-lh_os_rail_base_signal_open(lh_void)
+lh_os_rail_base_signal_open(void)
 {
     lh_os_condition_t *condition = lh_ptr_rcast(
         lh_os_condition_t, lh_runtime_allocator_try_alloc(sizeof(lh_ptr_deref(condition))));
@@ -90,8 +90,7 @@ lh_os_rail_base_signal_wake(lh_ptr signal)
 }
 
 lh_ptr
-lh_os_rail_base_thread_start(lh_rail_base_run_cb run, lh_ptr user, lh_s32_t cpu,
-                             lh_u32_t flags)
+lh_os_rail_base_thread_start(lh_rail_base_run_cb run, lh_ptr user, lh_s32_t cpu, lh_u32_t flags)
 {
     lh_os_thread_t *thread =
         lh_ptr_rcast(lh_os_thread_t, lh_runtime_allocator_try_alloc(sizeof(lh_ptr_deref(thread))));
@@ -127,7 +126,7 @@ const lh_rail_base_t m_os_rail_base = lh_rail_base_initializer(
     lh_os_rail_base_thread_start, lh_os_rail_base_thread_join, lh_os_rail_base_sleep);
 
 const lh_rail_base_t *
-lh_os_rail_base_get(lh_void)
+lh_os_rail_base_get(void)
 {
     return lh_addr_of(m_os_rail_base);
 }

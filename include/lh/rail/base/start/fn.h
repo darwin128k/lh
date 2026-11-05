@@ -25,7 +25,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *         not called).
  */
 typedef lh_ptr(lh_rail_base_start_fn)(lh_rail_base_run_cb run, lh_ptr user, lh_s32_t cpu,
-                                       lh_u32_t flags);
+                                      lh_u32_t flags);
 
 LH_COMPILER_EXTERN_C_END
 

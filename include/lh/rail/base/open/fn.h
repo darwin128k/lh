@@ -20,7 +20,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return The handle; ::lh_null when the object cannot be made (no memory, no
  *         system object).
  */
-typedef lh_ptr(lh_rail_base_open_fn)(lh_void);
+typedef lh_ptr(lh_rail_base_open_fn)(void);
 
 LH_COMPILER_EXTERN_C_END
 

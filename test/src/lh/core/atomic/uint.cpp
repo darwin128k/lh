@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <lh/core/atomic/option.h>
 #include <lh/core/atomic/uint.h>
 #include <lh/core/atomic/uint/initializer.h>
 #include <lh/expect/death.h>
@@ -18,9 +19,13 @@ TEST(atomic_uint_initializer, holds_its_value_before_any_store)
     EXPECT_EQ(lh_atomic_uint_get_acquire(&counter), 7U);
 }
 
-TEST(atomic_uint_is_lock_free, is_true_on_every_target_that_builds)
+TEST(atomic_uint_is_lock_free, follows_how_the_atomics_are_built)
 {
+#if LH_LIBRARY_OPTION_ATOMIC == LH_ATOMIC_CRITICAL
+    EXPECT_FALSE(lh_atomic_uint_is_lock_free());
+#else
     EXPECT_TRUE(lh_atomic_uint_is_lock_free());
+#endif
 }
 
 TEST(atomic_uint_set, relaxed_and_release_store_the_value)

@@ -26,14 +26,14 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return The slot; never ::lh_null.
  */
 lh_rail_base_t *
-lh_rail_runtime_base_get_mut(lh_void);
+lh_rail_runtime_base_get_mut(void);
 
 /**
  * @brief The rail base slot.
  * @return The slot; never ::lh_null.
  */
 const lh_rail_base_t *
-lh_rail_runtime_base_get(lh_void);
+lh_rail_runtime_base_get(void);
 
 LH_COMPILER_EXTERN_C_END
 

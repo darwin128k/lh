@@ -163,6 +163,8 @@ lh_add_test_core(lh_test_core
 
 lh_add_test_core(lh_test_runtime
         ${LH_TEST_SRC_PATH}/lh/core/runtime/allocator.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/runtime/critical.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/critical.cpp
         ${LH_TEST_SRC_PATH}/lh/core/runtime/check.cpp
         ${LH_TEST_SRC_PATH}/lh/core/runtime/check/handler.cpp
         ${LH_TEST_SRC_PATH}/lh/core/runtime/error.cpp

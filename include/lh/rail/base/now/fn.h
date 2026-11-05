@@ -19,7 +19,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @return The milliseconds now.
  */
-typedef lh_u64_t(lh_rail_base_now_fn)(lh_void);
+typedef lh_u64_t(lh_rail_base_now_fn)(void);
 
 LH_COMPILER_EXTERN_C_END
 

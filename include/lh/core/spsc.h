@@ -7,7 +7,13 @@
  * or allocation; overflow rejects the newest item. Only the producer calls push.
  * Only the consumer calls peek/release; a peek pointer remains valid until release.
  * Release requires a successful peek. Capacity must be a power of two, at most
- * LH_UINT_T_MAX / 2; item_size must be nonzero. Create fails if indices are not lock-free.
+ * LH_UINT_T_MAX / 2; item_size must be nonzero.
+ *
+ * The two counters are atomics. Built on the compiler's atomic instructions they
+ * are lock-free (::lh_spsc_is_lock_free). Built on the critical section of the
+ * slot (::LH_LIBRARY_OPTION_ATOMIC = ::LH_ATOMIC_CRITICAL, a core without atomic
+ * instructions) each counter access is a short critical section: on a single core
+ * that masks interrupts, so an interrupt handler may still push without waiting.
  */
 
 #ifndef LH_SPSC_H
@@ -107,7 +113,11 @@ lh_spsc_is_valid_shape(lh_ptr storage, lh_uint_t capacity, lh_usize_t item_size)
 lh_void
 lh_spsc_init_counters(lh_spsc_t *self);
 
-/** @brief Whether both counters are lock-free atomics on this target. */
+/**
+ * @brief Whether both counters are lock-free atomics on this target.
+ *
+ * Informative: the queue works either way (see the file comment).
+ */
 lh_bool_t
 lh_spsc_is_lock_free(const lh_spsc_t *self);
 

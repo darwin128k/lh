@@ -124,6 +124,8 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/atomic/bool.c
         ${LH_LIB_SRC_PATH}/core/atomic/ptr.c
         ${LH_LIB_SRC_PATH}/core/atomic/uint.c
+        ${LH_LIB_SRC_PATH}/core/critical.c
+        ${LH_LIB_SRC_PATH}/core/runtime/critical.c
         ${LH_LIB_SRC_PATH}/core/spsc.c
         ${LH_LIB_SRC_PATH}/rail/task.c
         ${LH_LIB_SRC_PATH}/rail/queue.c
