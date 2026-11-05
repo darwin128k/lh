@@ -84,6 +84,21 @@ TEST(util_bit_endian, unpack_le24_reads_exactly_three_bytes)
     EXPECT_EQ(lh_bit_unpack_le24(top), 0xffffffu);
 }
 
+TEST(util_bit_endian, le32_words_round_trip_lowest_word_first)
+{
+    const lh_byte_t bytes[8] = {0x01u, 0x02u, 0x03u, 0x04u, 0x05u, 0x06u, 0x07u, 0x08u};
+    lh_u32_t words[2] = {0u, 0u};
+    lh_bit_unpack_le32_words(words, bytes, 2u);
+    EXPECT_EQ(words[0], 0x04030201u);
+    EXPECT_EQ(words[1], 0x08070605u);
+    lh_byte_t back[8] = {0};
+    lh_bit_pack_le32_words(words, 2u, back);
+    for (int i = 0; i < 8; ++i)
+    {
+        EXPECT_EQ(back[i], bytes[i]) << i;
+    }
+}
+
 TEST(util_bit_endian, pack_and_unpack_be64_round_trip)
 {
     lh_byte_t bytes[8];
