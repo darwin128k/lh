@@ -2,19 +2,22 @@
  * @file ed25519.h
  * @brief Ed25519 signatures (RFC 8032): key pair, sign, check.
  *
- * Deterministic signing, cofactorless verification. Pure computation — no OS,
- * no allocator. The arithmetic is Monocypher's (vendored in `lib/monocypher`,
- * see `licenses/Monocypher.txt`), so a program linking lh gets the `crypto_*`
- * symbols from it and must not link a second Monocypher.
+ * Deterministic signing; cofactored verification ([8]([S]B - [h]A - R) = 0,
+ * which agrees with batch verification), refusing S >= L. Pure computation — no
+ * OS, no allocator. Composed of LH's bricks: SHA-512 (lh/core/crypto/sha.h),
+ * scalars modulo L (lh/core/crypto/ed25519/scalar.h) and curve points
+ * (lh/core/crypto/ed25519/point.h), ported from Monocypher 4 (CC0 /
+ * BSD-2-Clause, Loup Vaillant; see `licenses/Monocypher.txt`) and checked
+ * against it and against RFC 8032.
  */
 
 #ifndef LH_CRYPTO_ED25519_H
 #define LH_CRYPTO_ED25519_H
 
 #include <lh/core/bool.h>
+#include <lh/core/byte/ptr.h>
 #include <lh/core/compiler/extern/c.h>
 #include <lh/core/size.h>
-#include <lh/core/void.h>
 
 /**
  * @def LH_CRYPTO_ED25519_SEED_SIZE
@@ -41,6 +44,25 @@
 #define LH_CRYPTO_ED25519_SIGNATURE_SIZE 64U
 
 LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief SHA-512 of @p a, @p b and @p c one after another, reduced modulo L: the
+ *        nonce r and the challenge h of RFC 8032 5.1.6.
+ *
+ * A part may be null when its size is 0.
+ *
+ * @param h      Destination of 32 bytes.
+ * @param a      First part.
+ * @param a_size Bytes of @p a.
+ * @param b      Second part.
+ * @param b_size Bytes of @p b.
+ * @param c      Third part.
+ * @param c_size Bytes of @p c.
+ */
+lh_void
+lh_crypto_ed25519_hash_reduce(lh_byte_t h[32], const lh_byte_t *a, lh_usize_t a_size,
+                              const lh_byte_t *b, lh_usize_t b_size, const lh_byte_t *c,
+                              lh_usize_t c_size);
 
 /**
  * @brief Derive a key pair from @p seed.
