@@ -263,6 +263,22 @@ lh_bool_t
 lh_os_net_socket_set_reuse_addr(lh_os_net_socket_t *self, lh_bool_t enabled);
 
 /**
+ * @brief Make the address @p self binds its own, still allowing a quick
+ *        restart (lh_os_system_net_socket_set_exclusive_addr).
+ *
+ * The option for a listening socket, set before bind: on every platform a
+ * restart may take the port over from connections in `TIME_WAIT`, and no other
+ * socket can bind next to it. Use it instead of ::lh_os_net_socket_set_reuse_addr
+ * for a listener: on Windows `SO_REUSEADDR` lets another socket share the port.
+ *
+ * @param self    Open socket, not bound yet.
+ * @param enabled ::lh_bool_true to claim the address, ::lh_bool_false to clear it.
+ * @return ::lh_bool_true on success, ::lh_bool_false if the OS call failed.
+ */
+lh_bool_t
+lh_os_net_socket_set_exclusive_addr(lh_os_net_socket_t *self, lh_bool_t enabled);
+
+/**
  * @brief Enable or disable `TCP_NODELAY` on a TCP @p self.
  *
  * A connection that answers every input with one write (a frame, a reply)

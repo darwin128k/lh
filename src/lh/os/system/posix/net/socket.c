@@ -252,6 +252,15 @@ lh_os_system_net_socket_set_reuse_addr(lh_os_system_net_socket_handle_t handle, 
 }
 
 lh_bool_t
+lh_os_system_net_socket_set_exclusive_addr(lh_os_system_net_socket_handle_t handle,
+                                           lh_bool_t enabled)
+{
+    /* A POSIX listener already owns its address: SO_REUSEADDR only passes over
+       TIME_WAIT. */
+    return lh_os_system_net_socket_set_reuse_addr(handle, enabled);
+}
+
+lh_bool_t
 lh_os_system_net_socket_set_no_delay(lh_os_system_net_socket_handle_t handle, lh_bool_t enabled)
 {
     const int value = enabled ? 1 : 0;

@@ -43,12 +43,14 @@ receive_within(lh_os_net_socket_t *self, lh_char_t *byte)
     }
     return result;
 }
+
 class nonblocking_socket : public lh_test::network_test
 {
   protected:
     lh_test::socket_owner listener, client, accepted;
     lh_net_ip4_t ip;
     lh_net_ip4_socket_addr_t address, peer;
+
     void
     SetUp() override
     {
@@ -65,6 +67,7 @@ class nonblocking_socket : public lh_test::network_test
         ASSERT_TRUE(lh_os_net_socket_get_local_addr(&listener.value, &address));
         ASSERT_NE(lh_net_ip4_socket_addr_get_port(&address), 0u);
     }
+
     void
     TearDown() override
     {
@@ -77,6 +80,30 @@ class nonblocking_socket : public lh_test::network_test
 
 using nonblocking_udp = lh_test::network_test;
 } // namespace
+
+TEST_F(nonblocking_udp, an_exclusive_listener_keeps_its_port)
+{
+    /* A listener that claimed its address: another socket, even one asking for
+       SO_REUSEADDR, must not bind the same address (on Windows it otherwise
+       could, and take the connections). */
+    lh_net_ip4_t ip;
+    lh_net_ip4_init(&ip, 127, 0, 0, 1);
+    lh_net_ip4_socket_addr_t address;
+    lh_net_ip4_socket_addr_init(&address, &ip, 0);
+    lh_test::socket_owner listener;
+    ASSERT_TRUE(
+        lh_os_net_socket_open_nonblocking(&listener.value, lh_os_system_net_socket_type_tcp));
+    ASSERT_TRUE(lh_os_net_socket_set_exclusive_addr(&listener.value, lh_bool_true));
+    ASSERT_TRUE(lh_os_net_socket_bind(&listener.value, &address));
+    ASSERT_TRUE(lh_os_net_socket_listen(&listener.value, 4));
+    ASSERT_TRUE(lh_os_net_socket_get_local_addr(&listener.value, &address));
+
+    lh_test::socket_owner thief;
+    ASSERT_TRUE(lh_os_net_socket_open_nonblocking(&thief.value, lh_os_system_net_socket_type_tcp));
+    ASSERT_TRUE(lh_os_net_socket_set_reuse_addr(&thief.value, lh_bool_true));
+    EXPECT_FALSE(lh_os_net_socket_bind(&thief.value, &address));
+}
+
 TEST_F(nonblocking_udp, opens_with_noninheritable_handle)
 {
     lh_test::socket_owner socket;

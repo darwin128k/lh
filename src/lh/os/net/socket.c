@@ -126,6 +126,12 @@ lh_os_net_socket_set_reuse_addr(lh_os_net_socket_t *self, lh_bool_t enabled)
 }
 
 lh_bool_t
+lh_os_net_socket_set_exclusive_addr(lh_os_net_socket_t *self, lh_bool_t enabled)
+{
+    return lh_os_system_net_socket_set_exclusive_addr(lh_os_net_socket_get_handle(self), enabled);
+}
+
+lh_bool_t
 lh_os_net_socket_set_no_delay(lh_os_net_socket_t *self, lh_bool_t enabled)
 {
     return lh_os_system_net_socket_set_no_delay(lh_os_net_socket_get_handle(self), enabled);
