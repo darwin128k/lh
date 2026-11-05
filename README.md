@@ -413,7 +413,7 @@ How to build a tree of them — by hand or from a stylesheet with
 
 ## Version
 
-Current version: **0.4.0** — history and release notes in [CHANGELOG](CHANGELOG.md).
+Current version: **0.5.0** — history and release notes in [CHANGELOG](CHANGELOG.md).
 
 Documentation for tools is in [tools/README.md](tools/README.md).
 
