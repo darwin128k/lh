@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - A listening socket can own its address on every platform: `lh_os_net_socket_set_exclusive_addr` / `lh_os_system_net_socket_set_exclusive_addr` set `SO_REUSEADDR` on POSIX (a quick restart over `TIME_WAIT`; a second listener is refused there anyway) and `SO_EXCLUSIVEADDRUSE` on Windows, where `SO_REUSEADDR` lets any other socket bind the same port and take its connections. Use it for listeners instead of `_set_reuse_addr`.
+- The web host's listener (`lh_ui_web_host_try_listen`) uses it: on Windows another process could bind the host's port and take its connections.
 - Work around the MSVC x86 internal compiler error C1001 (seen on 14.44.35207 and 14.51.36231) during XP test link-time code generation by compiling the memory standard test translation unit without `/GL`, for any MSVC version so that a newer toolset does not bring it back; the tests and library LTO remain enabled.
 
 ### Added
