@@ -528,7 +528,9 @@ lh_ui_web_host_try_listen(lh_os_net_socket_t *listener, lh_net_port_t port)
     {
         return lh_bool_false;
     }
-    LH_ATTRIBUTE_UNUSED(lh_os_net_socket_set_reuse_addr(listener, lh_bool_true));
+    /* The port is ours alone: on Windows SO_REUSEADDR would let another process
+       bind next to the listener. */
+    LH_ATTRIBUTE_UNUSED(lh_os_net_socket_set_exclusive_addr(listener, lh_bool_true));
     lh_net_ip4_t ip;
     lh_net_ip4_init(lh_addr_of(ip), 127, 0, 0, 1);
     lh_net_ip4_socket_addr_t addr;
