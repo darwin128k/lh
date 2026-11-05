@@ -24,7 +24,7 @@
  * (lh/rail/runtime/base.h). Pass ::lh_null for a call the platform has not; a
  * group with any null call is missing as a whole.
  */
-#define lh_rail_base_initializer(now, lock_open, lock_close, lock, unlock, signal_open,           \
+#define lh_rail_base_initializer(now, lock_open, lock_close, lock, unlock, signal_open,            \
                                  signal_close, signal_wait, signal_wake, thread_start,             \
                                  thread_join, sleep)                                               \
     lh_initializer(lh_cast_static(lh_rail_base_now_cb, now),                                       \
@@ -47,7 +47,7 @@
  * The slot starts so, until the host fills it.
  */
 #define lh_rail_base_empty_initializer()                                                           \
-    lh_rail_base_initializer(lh_null, lh_null, lh_null, lh_null, lh_null, lh_null, lh_null,       \
+    lh_rail_base_initializer(lh_null, lh_null, lh_null, lh_null, lh_null, lh_null, lh_null,        \
                              lh_null, lh_null, lh_null, lh_null, lh_null)
 
 #endif /* LH_RAIL_BASE_INITIALIZER_H */

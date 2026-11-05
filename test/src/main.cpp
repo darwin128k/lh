@@ -1,7 +1,10 @@
 #include <gtest/gtest.h>
 
 #include <lh/config.h>
+#include <lh/core/atomic/option.h>
+#include <lh/core/critical/initializer.h>
 #include <lh/core/memory/allocator/initializer.h>
+#include <lh/core/runtime/critical.h>
 #include <lh/core/runtime/allocator.h>
 #include <lh/core/runtime/logger.h>
 #include <lh/core/runtime/terminate.h>
@@ -18,6 +21,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <mutex>
 
 /* The runner is a host like any other: the core starts with every runtime slot
    empty, and the runner fills them over the C library before any test runs,
@@ -97,6 +101,27 @@ const lh_logger_t runner_logger = {lh_logger_level_flags_all,
 const lh_runtime_terminate_handler_t runner_terminate =
     lh_runtime_terminate_handler_initializer(runner_abort, lh_null);
 
+/* A host with threads makes a critical section of one process-wide lock;
+   recursive, so sections may nest as the contract allows. */
+std::recursive_mutex runner_critical_lock;
+
+lh_usize_t
+runner_critical_enter(void)
+{
+    runner_critical_lock.lock();
+    return 0u;
+}
+
+lh_void
+runner_critical_leave(lh_usize_t state)
+{
+    (void)state;
+    runner_critical_lock.unlock();
+}
+
+const lh_critical_t runner_critical =
+    lh_critical_initializer(runner_critical_enter, runner_critical_leave);
+
 } // namespace
 
 int
@@ -106,6 +131,10 @@ main(int argc, char **argv)
     lh_io_writer_assign(lh_runtime_writer_get_mut(), &runner_writer);
     lh_logger_assign(lh_runtime_logger_get_mut(), &runner_logger);
     lh_runtime_terminate_handler_assign(lh_runtime_terminate_get_mut(), &runner_terminate);
+#if LH_LIBRARY_OPTION_ATOMIC == LH_ATOMIC_CRITICAL
+    /* The atomics run in the slot's section: the tests start threads. */
+    lh_critical_assign(lh_runtime_critical_get_mut(), &runner_critical);
+#endif
 #if LH_LIBRARY_OPTION_OS
     /* rail runs on the OS here; a build without the OS leaves the slot empty. */
     lh_rail_base_assign(lh_rail_runtime_base_get_mut(), lh_os_rail_base_get());

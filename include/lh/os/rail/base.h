@@ -27,7 +27,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return The milliseconds now; 0 when the OS clock fails.
  */
 lh_u64_t
-lh_os_rail_base_now_ms(lh_void);
+lh_os_rail_base_now_ms(void);
 
 /**
  * @brief Make an open ::lh_os_mutex_t (an ::lh_rail_base_open_fn).
@@ -35,7 +35,7 @@ lh_os_rail_base_now_ms(lh_void);
  *         memory or the OS refuses the mutex.
  */
 lh_ptr
-lh_os_rail_base_lock_open(lh_void);
+lh_os_rail_base_lock_open(void);
 
 /**
  * @brief Close the mutex @p lock and free it (an ::lh_rail_base_handle_fn).
@@ -67,7 +67,7 @@ lh_os_rail_base_unlock(lh_ptr lock);
  *         memory or the OS refuses it.
  */
 lh_ptr
-lh_os_rail_base_signal_open(lh_void);
+lh_os_rail_base_signal_open(void);
 
 /**
  * @brief Close the condition @p signal and free it (an ::lh_rail_base_handle_fn).
@@ -110,8 +110,7 @@ lh_os_rail_base_signal_wake(lh_ptr signal);
  *         memory or the OS does not start it (@p run is not called).
  */
 lh_ptr
-lh_os_rail_base_thread_start(lh_rail_base_run_cb run, lh_ptr user, lh_s32_t cpu,
-                             lh_u32_t flags);
+lh_os_rail_base_thread_start(lh_rail_base_run_cb run, lh_ptr user, lh_s32_t cpu, lh_u32_t flags);
 
 /**
  * @brief Join the thread @p thread and free it (an ::lh_rail_base_handle_fn).
@@ -134,7 +133,7 @@ lh_os_rail_base_sleep(lh_u32_t milliseconds);
  * @return A constant base with every group; copy it into the slot.
  */
 const lh_rail_base_t *
-lh_os_rail_base_get(lh_void);
+lh_os_rail_base_get(void);
 
 LH_COMPILER_EXTERN_C_END
 

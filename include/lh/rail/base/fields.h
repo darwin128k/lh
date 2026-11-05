@@ -25,7 +25,7 @@
  * @param start_fn_type  ::lh_rail_base_start_fn.
  * @param sleep_fn_type  ::lh_rail_base_sleep_fn.
  */
-#define lh_rail_base_fields(now_fn_type, open_fn_type, handle_fn_type, wait_fn_type,              \
+#define lh_rail_base_fields(now_fn_type, open_fn_type, handle_fn_type, wait_fn_type,               \
                             start_fn_type, sleep_fn_type)                                          \
     now_fn_type *now_cb;                                                                           \
     open_fn_type *lock_open_cb;                                                                    \

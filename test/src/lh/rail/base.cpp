@@ -27,21 +27,21 @@ int g_signal_object;
 int g_thread_object;
 
 lh_u64_t
-fake_now(lh_void)
+fake_now(void)
 {
     ++g_record.calls;
     return 1234u;
 }
 
 lh_ptr
-fake_lock_open(lh_void)
+fake_lock_open(void)
 {
     ++g_record.calls;
     return &g_lock_object;
 }
 
 lh_ptr
-fake_signal_open(lh_void)
+fake_signal_open(void)
 {
     ++g_record.calls;
     return &g_signal_object;
