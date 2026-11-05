@@ -445,7 +445,8 @@ endif ()
 # UI model (color, paint, style, canvas, entity tree). OFF leaves it out.
 # SQLite and its lh/sql backend (LH_LIBRARY_OPTION_SQL_SQLITE). The amalgamation
 # is someone else's code: built with its own defines and without warnings.
-set(LH_SQLITE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/sqlite)
+# Kept beside its driver, in a third_party folder the checkers skip.
+set(LH_SQLITE_PATH ${LH_LIB_SRC_PATH}/os/sql/sqlite/third_party)
 if (LH_LIBRARY_OPTION_SQL_SQLITE)
     list(APPEND LH_LIB_SOURCES
             ${LH_LIB_SRC_PATH}/os/sql/sqlite.c

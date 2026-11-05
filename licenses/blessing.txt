@@ -1,4 +1,4 @@
-SQLite (lib/sqlite/sqlite3.c, lib/sqlite/sqlite3.h), version 3.46.1
+SQLite (src/lh/os/sql/sqlite/third_party/sqlite3.c, sqlite3.h), version 3.46.1
 https://sqlite.org
 
 The author disclaims copyright to this source code.  In place of
