@@ -204,16 +204,12 @@ lh_add_test_core(lh_test_cpu
 lh_add_test_core(lh_test_crypto
         ${LH_TEST_SRC_PATH}/lh/core/crypto/curve25519/field.cpp
         ${LH_TEST_SRC_PATH}/lh/core/crypto/ed25519.cpp
-        ${LH_TEST_SRC_PATH}/lh/core/crypto/ed25519/monocypher.cpp
         ${LH_TEST_SRC_PATH}/lh/core/crypto/ed25519/point.cpp
         ${LH_TEST_SRC_PATH}/lh/core/crypto/ed25519/scalar.cpp
         ${LH_TEST_SRC_PATH}/lh/core/crypto/is_equal.cpp
         ${LH_TEST_SRC_PATH}/lh/core/crypto/rijndael.cpp
         ${LH_TEST_SRC_PATH}/lh/core/crypto/sha.cpp
 )
-# The differential test compares LH's Ed25519 with the vendored Monocypher it was
-# ported from; both go when lib/monocypher goes.
-target_include_directories(lh_test_crypto PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../lib/monocypher)
 
 lh_add_test_core(lh_test_hash
         ${LH_TEST_SRC_PATH}/lh/core/hash/fnv.cpp
