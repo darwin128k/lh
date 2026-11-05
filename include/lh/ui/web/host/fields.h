@@ -26,7 +26,7 @@
     lh_ui_web_app_t *app;                                                                          \
     lh_os_net_socket_t listener;                                                                   \
     lh_os_wake_t wake;                                                                             \
-    lh_exec_loop_t *loop;                                                                          \
+    lh_rail_loop_t *loop;                                                                          \
     lh_ui_web_host_client_t clients[LH_UI_WEB_HOST_WS_MAX];                                        \
     lh_ui_web_host_stream_t stream;                                                                \
     lh_ui_web_host_conn_t conns[LH_UI_WEB_HOST_CONN_MAX];                                          \

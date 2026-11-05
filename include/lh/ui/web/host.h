@@ -11,7 +11,7 @@
  * The Canvas2D player is one application built on this transport
  * (::lh_ui_web_player_t), not the transport's default.
  *
- * The host is an ::lh_ui_web_host_t on an ::lh_exec_loop_t that sleeps in one
+ * The host is an ::lh_ui_web_host_t on an ::lh_rail_loop_t that sleeps in one
  * poll of the listener, its wake signal, the websocket clients and the HTTP
  * connections still sending their requests. Each connection advances one step
  * when its socket is readable (::lh_ui_web_host_conn_t): a client sending its
@@ -35,7 +35,7 @@
 
 #include <lh/config.h>
 #include <lh/ui/web/host/hooks.h>
-#include <lh/exec/loop.h>
+#include <lh/rail/loop.h>
 #include <lh/os/wake.h>
 #include <lh/ui/web/host/conn.h>
 #include <lh/ui/web/host/fields.h>
@@ -127,7 +127,7 @@ lh_ui_web_host_get_wake_mut(lh_ui_web_host_t *self);
  * @param self Must not be null.
  * @return The value.
  */
-lh_exec_loop_t *
+lh_rail_loop_t *
 lh_ui_web_host_get_loop(const lh_ui_web_host_t *self);
 
 /**
@@ -136,7 +136,7 @@ lh_ui_web_host_get_loop(const lh_ui_web_host_t *self);
  * @param value The new value.
  */
 lh_void
-lh_ui_web_host_set_loop(lh_ui_web_host_t *self, lh_exec_loop_t *value);
+lh_ui_web_host_set_loop(lh_ui_web_host_t *self, lh_rail_loop_t *value);
 
 /**
  * @brief The websocket clients, read-only (level 1).
@@ -612,7 +612,7 @@ lh_void
 lh_ui_web_host_prepare_poll(lh_ui_web_host_t *self);
 
 /**
- * @brief The host's loop wake (an ::lh_exec_loop_wake_fn): signal the wake socket.
+ * @brief The host's loop wake (an ::lh_rail_loop_wake_fn): signal the wake socket.
  * @param waiter The ::lh_ui_web_host_t.
  */
 lh_void
@@ -627,7 +627,7 @@ lh_bool_t
 lh_ui_web_host_try_start(lh_ui_web_host_t *self);
 
 /**
- * @brief Ask the host's thread to stop and wait at most @p timeout_ms (::lh_exec_loop_try_stop).
+ * @brief Ask the host's thread to stop and wait at most @p timeout_ms (::lh_rail_loop_try_stop).
  * @param self       The host; must not be null.
  * @param timeout_ms Longest wait.
  * @return ::lh_bool_true when the thread has ended (or never started).
@@ -734,7 +734,7 @@ lh_void
 lh_ui_web_host_advance_conns(lh_ui_web_host_t *self, lh_u64_t now);
 
 /**
- * @brief The host's loop wait (an ::lh_exec_loop_wait_fn): one poll of everything.
+ * @brief The host's loop wait (an ::lh_rail_loop_wait_fn): one poll of everything.
  *
  * Sleeps until a connection, a request's bytes, a client's input or room for its
  * queued output, a wake — or @p timeout_ms. A poll that fails (a socket gone bad
@@ -877,7 +877,7 @@ lh_ui_web_host_try_finish_request(lh_os_net_socket_t *client, lh_str_ptr buf, lh
                                   lh_usize_t *length, lh_str_view_t *body);
 
 /**
- * @brief The host's loop step (an ::lh_exec_loop_step_fn).
+ * @brief The host's loop step (an ::lh_rail_loop_step_fn).
  *
  * Ticks the application, steps the connections, accepts new ones, pumps the
  * websocket clients and sends them a frame. Never waits.

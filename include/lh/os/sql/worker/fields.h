@@ -10,7 +10,7 @@
  * @def lh_os_sql_worker_fields(thread_type, db_type, connect_cb_type, release_cb_type, user_type)
  * @brief The thread executor, its connection, and how the connection is made and let go.
  *
- * @param thread_type     ::lh_exec_thread_t: `thread`.
+ * @param thread_type     ::lh_rail_thread_t: `thread`.
  * @param db_type         ::lh_sql_db_t: `db`, used on the worker's thread only.
  * @param connect_cb_type ::lh_os_sql_worker_connect_cb: `connect_cb`.
  * @param release_cb_type ::lh_os_sql_worker_release_cb: `release_cb` (may be null).

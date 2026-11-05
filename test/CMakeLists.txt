@@ -92,24 +92,27 @@ else ()
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/module/event/bus.cpp)
 endif ()
 
-# The execution part: tasks, the queue that carries them between threads, the
-# owner's mailbox, the executor interface, the inline executor, the thread
-# context and (with the OS) the thread executor.
-set(LH_TEST_EXEC_SOURCES
-        ${LH_TEST_SRC_PATH}/lh/exec/task.cpp
-        ${LH_TEST_SRC_PATH}/lh/exec/queue.cpp
-        ${LH_TEST_SRC_PATH}/lh/exec/mailbox.cpp
-        ${LH_TEST_SRC_PATH}/lh/exec/executor.cpp
-        ${LH_TEST_SRC_PATH}/lh/exec/inline.cpp
-        ${LH_TEST_SRC_PATH}/lh/exec/context.cpp)
+# rail: tasks, the queue that carries them between threads, the owner's
+# mailbox, the executor interface, the inline executor, the thread context, the
+# base a platform gives rail and its slot, and (on the OS base) the thread
+# executor and the loop.
+set(LH_TEST_RAIL_SOURCES
+        ${LH_TEST_SRC_PATH}/lh/rail/base.cpp
+        ${LH_TEST_SRC_PATH}/lh/rail/runtime/base.cpp
+        ${LH_TEST_SRC_PATH}/lh/rail/task.cpp
+        ${LH_TEST_SRC_PATH}/lh/rail/queue.cpp
+        ${LH_TEST_SRC_PATH}/lh/rail/mailbox.cpp
+        ${LH_TEST_SRC_PATH}/lh/rail/executor.cpp
+        ${LH_TEST_SRC_PATH}/lh/rail/inline.cpp
+        ${LH_TEST_SRC_PATH}/lh/rail/context.cpp)
 if (LH_LIBRARY_OPTION_OS)
-    list(APPEND LH_TEST_EXEC_SOURCES ${LH_TEST_SRC_PATH}/lh/exec/thread.cpp
-            ${LH_TEST_SRC_PATH}/lh/exec/loop.cpp)
+    list(APPEND LH_TEST_RAIL_SOURCES ${LH_TEST_SRC_PATH}/lh/rail/thread.cpp
+            ${LH_TEST_SRC_PATH}/lh/rail/loop.cpp)
 else ()
-    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/exec/thread.cpp
-            ${LH_TEST_SRC_PATH}/lh/exec/loop.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/rail/thread.cpp
+            ${LH_TEST_SRC_PATH}/lh/rail/loop.cpp)
 endif ()
-lh_add_test_core(lh_test_exec ${LH_TEST_EXEC_SOURCES})
+lh_add_test_core(lh_test_rail ${LH_TEST_RAIL_SOURCES})
 
 # Types, errors and the few pieces every core leans on.
 lh_add_test_core(lh_test_console ${LH_TEST_SRC_PATH}/lh/core/console/console.cpp)
@@ -322,6 +325,7 @@ set(LH_TEST_OS_SOURCES
 )
 set(LH_TEST_OS_PRIMITIVE_SOURCES
         ${LH_TEST_SRC_PATH}/lh/os/concurrency.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/rail/base.cpp
         ${LH_TEST_SRC_PATH}/lh/os/net/nonblocking.cpp
         ${LH_TEST_SRC_PATH}/lh/os/poll_file.cpp
 )

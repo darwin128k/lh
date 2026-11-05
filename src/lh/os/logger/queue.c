@@ -1,6 +1,6 @@
 /**
  * @file queue.c
- * @brief ::lh_os_logger_queue_t: a single-producer record queue drained by an ::lh_exec_loop_t.
+ * @brief ::lh_os_logger_queue_t: a single-producer record queue drained by an ::lh_rail_loop_t.
  *
  * The producer side is lock-free: a push copies into the SPSC ring and hints the
  * loop, which runs the step soon or at the latest after one flush period. The loop's step hands
@@ -24,7 +24,7 @@ struct lh_os_logger_queue
     lh_spsc_t *records;
     lh_os_logger_sink_t sink;
     lh_u32_t flush_ms;
-    lh_exec_loop_t *loop;
+    lh_rail_loop_t *loop;
     lh_u64_t last_flush;
     lh_u32_t reported;
     lh_os_mutex_t mutex;
@@ -99,7 +99,7 @@ lh_os_logger_queue_set_flush_ms(lh_os_logger_queue_t *self, lh_u32_t flush_ms)
     self->flush_ms = flush_ms;
 }
 
-lh_exec_loop_t *
+lh_rail_loop_t *
 lh_os_logger_queue_get_loop(const lh_os_logger_queue_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -107,7 +107,7 @@ lh_os_logger_queue_get_loop(const lh_os_logger_queue_t *self)
 }
 
 lh_void
-lh_os_logger_queue_set_loop(lh_os_logger_queue_t *self, lh_exec_loop_t *loop)
+lh_os_logger_queue_set_loop(lh_os_logger_queue_t *self, lh_rail_loop_t *loop)
 {
     lh_assert_runtime_ref(self);
     self->loop = loop;
@@ -276,7 +276,7 @@ lh_os_logger_queue_flush(lh_os_logger_queue_t *self, lh_u32_t request)
 lh_void
 lh_os_logger_queue_free(lh_os_logger_queue_t *self)
 {
-    lh_exec_loop_destroy(lh_os_logger_queue_get_loop(self));
+    lh_rail_loop_destroy(lh_os_logger_queue_get_loop(self));
     LH_ATTRIBUTE_UNUSED(lh_os_condition_close(lh_os_logger_queue_get_done_mut(self)));
     LH_ATTRIBUTE_UNUSED(lh_os_mutex_close(lh_os_logger_queue_get_mutex_mut(self)));
     lh_spsc_destroy(lh_os_logger_queue_get_records(self));
@@ -294,7 +294,7 @@ lh_os_logger_queue_push(lh_os_logger_queue_t *self, const lh_os_logger_record_t 
         lh_os_logger_queue_add_dropped(self);
         return lh_bool_false;
     }
-    lh_exec_loop_hint(lh_os_logger_queue_get_loop(self));
+    lh_rail_loop_hint(lh_os_logger_queue_get_loop(self));
     return lh_bool_true;
 }
 
@@ -307,7 +307,7 @@ lh_os_logger_queue_sync(lh_os_logger_queue_t *self, lh_u32_t timeout_ms)
     LH_ATTRIBUTE_UNUSED(lh_os_mutex_lock(lh_os_logger_queue_get_mutex_mut(self)));
     lh_u32_t request = lh_os_logger_queue_add_requested(self);
 
-    lh_exec_loop_wake(lh_os_logger_queue_get_loop(self));
+    lh_rail_loop_wake(lh_os_logger_queue_get_loop(self));
     for (;;)
     {
         const lh_u64_t waited = lh_os_logger_queue_now_ms() - start;
@@ -336,7 +336,7 @@ lh_void
 lh_os_logger_queue_step(lh_ptr user)
 {
     lh_os_logger_queue_t *self = lh_ptr_rcast(lh_os_logger_queue_t, user);
-    const lh_bool_t last = lh_exec_loop_is_last_step(lh_os_logger_queue_get_loop(self));
+    const lh_bool_t last = lh_rail_loop_is_last_step(lh_os_logger_queue_get_loop(self));
     const lh_u32_t request = lh_os_logger_queue_load_requested(self);
     const lh_os_logger_sink_t *sink = lh_os_logger_queue_get_sink(self);
 
@@ -358,7 +358,7 @@ lh_os_logger_queue_step(lh_ptr user)
     else if (!lh_os_logger_queue_is_empty(self))
     {
         /* The batch stopped short: come back at once, not at the end of the period. */
-        lh_exec_loop_wake(lh_os_logger_queue_get_loop(self));
+        lh_rail_loop_wake(lh_os_logger_queue_get_loop(self));
     }
 }
 
@@ -397,12 +397,12 @@ lh_os_logger_queue_try_create(lh_uint_t capacity, lh_u32_t flush_ms,
                                                       capacity, sizeof(lh_os_logger_record_t)));
     }
     lh_os_logger_queue_set_loop(self,
-                                lh_exec_loop_try_create(flush_ms, lh_os_logger_queue_step, self));
+                                lh_rail_loop_try_create(flush_ms, lh_os_logger_queue_step, self));
     if (lh_null_eq(lh_os_logger_queue_get_records(self)) ||
         lh_null_eq(lh_os_logger_queue_get_loop(self)) ||
         !lh_os_mutex_open(lh_os_logger_queue_get_mutex_mut(self)) ||
         !lh_os_condition_open(lh_os_logger_queue_get_done_mut(self)) ||
-        !lh_exec_loop_try_start(lh_os_logger_queue_get_loop(self)))
+        !lh_rail_loop_try_start(lh_os_logger_queue_get_loop(self)))
     {
         lh_os_logger_queue_free(self);
         return lh_null;

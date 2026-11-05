@@ -451,7 +451,7 @@ lh_ui_web_host_get_wake_mut(lh_ui_web_host_t *self)
     return lh_addr_of(self->wake);
 }
 
-lh_exec_loop_t *
+lh_rail_loop_t *
 lh_ui_web_host_get_loop(const lh_ui_web_host_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -459,7 +459,7 @@ lh_ui_web_host_get_loop(const lh_ui_web_host_t *self)
 }
 
 lh_void
-lh_ui_web_host_set_loop(lh_ui_web_host_t *self, lh_exec_loop_t *value)
+lh_ui_web_host_set_loop(lh_ui_web_host_t *self, lh_rail_loop_t *value)
 {
     lh_assert_runtime_ref(self);
     self->loop = value;
@@ -960,13 +960,13 @@ lh_ui_web_host_wake(lh_ptr waiter)
 lh_bool_t
 lh_ui_web_host_try_start(lh_ui_web_host_t *self)
 {
-    return lh_exec_loop_try_start(lh_ui_web_host_get_loop(self));
+    return lh_rail_loop_try_start(lh_ui_web_host_get_loop(self));
 }
 
 lh_bool_t
 lh_ui_web_host_try_stop(lh_ui_web_host_t *self, lh_u32_t timeout_ms)
 {
-    return lh_exec_loop_try_stop(lh_ui_web_host_get_loop(self), timeout_ms);
+    return lh_rail_loop_try_stop(lh_ui_web_host_get_loop(self), timeout_ms);
 }
 
 lh_void
@@ -974,7 +974,7 @@ lh_ui_web_host_destroy(lh_ui_web_host_t *self)
 {
     lh_return_if(lh_null_eq(self));
     /* Joins a started loop after its last step; frees one never started. */
-    lh_exec_loop_destroy(lh_ui_web_host_get_loop(self));
+    lh_rail_loop_destroy(lh_ui_web_host_get_loop(self));
     for (lh_uint_t i = 0U; lh_math_lt(i, LH_UI_WEB_HOST_CONN_MAX); i = lh_math_add_one(i))
     {
         lh_ui_web_host_conn_t *conn = lh_ui_web_host_get_conns_mut(self) + i;
@@ -1337,7 +1337,7 @@ lh_ui_web_host_try_create(lh_ui_web_app_t *app, lh_net_port_t port)
         return lh_null;
     }
     lh_ui_web_host_set_loop(
-        self, lh_exec_loop_try_create_waiting(LH_UI_WEB_HOST_TICK_MS, lh_ui_web_host_step, self,
+        self, lh_rail_loop_try_create_waiting(LH_UI_WEB_HOST_TICK_MS, lh_ui_web_host_step, self,
                                               lh_ui_web_host_wait, lh_ui_web_host_wake, self));
     if (lh_null_eq(lh_ui_web_host_get_loop(self)))
     {
@@ -1503,7 +1503,7 @@ lh_ui_web_host_run(lh_ui_web_app_t *app, lh_net_port_t port)
     lh_ui_web_host_t *self = lh_ui_web_host_try_create(app, port);
     lh_return_if(lh_null_eq(self), lh_bool_false);
     /* The loop's body on this thread: it ends only when the loop is stopped. */
-    lh_exec_loop_run(lh_ui_web_host_get_loop(self));
+    lh_rail_loop_run(lh_ui_web_host_get_loop(self));
     lh_ui_web_host_destroy(self);
     return lh_bool_true;
 }

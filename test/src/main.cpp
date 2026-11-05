@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <lh/config.h>
 #include <lh/core/memory/allocator/initializer.h>
 #include <lh/core/runtime/allocator.h>
 #include <lh/core/runtime/logger.h>
@@ -7,6 +8,11 @@
 #include <lh/core/runtime/terminate/handler/initializer.h>
 #include <lh/core/runtime/writer.h>
 #include <lh/core/str/format/text.h>
+#include <lh/rail/runtime/base.h>
+
+#if LH_LIBRARY_OPTION_OS
+#    include <lh/os/rail/base.h>
+#endif
 
 #include <cstdarg>
 #include <cstdio>
@@ -100,6 +106,10 @@ main(int argc, char **argv)
     lh_io_writer_assign(lh_runtime_writer_get_mut(), &runner_writer);
     lh_logger_assign(lh_runtime_logger_get_mut(), &runner_logger);
     lh_runtime_terminate_handler_assign(lh_runtime_terminate_get_mut(), &runner_terminate);
+#if LH_LIBRARY_OPTION_OS
+    /* rail runs on the OS here; a build without the OS leaves the slot empty. */
+    lh_rail_base_assign(lh_rail_runtime_base_get_mut(), lh_os_rail_base_get());
+#endif
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

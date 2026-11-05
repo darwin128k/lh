@@ -27,7 +27,7 @@ handlers are the same.
   serves an application on the calling thread; `lh_ui_web_host_try_create` +
   `_try_start` run the same host on a thread of its own, and `_try_stop` /
   `_destroy` end it. The host waits for all its sockets in one poll (an
-  `lh_exec_loop_t`) and serves many connections at once: a client sending its
+  `lh_rail_loop_t`) and serves many connections at once: a client sending its
   request slowly holds only its own connection. The host is the transport: it
   knows nothing about pages, routes or scaling. The Canvas2D player is one application built on it
   (`lh_ui_web_player_t`, `lh/ui/web/player.h`):
