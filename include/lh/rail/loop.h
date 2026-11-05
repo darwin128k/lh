@@ -22,6 +22,11 @@
  * The loop's timers (::lh_rail_loop_get_timers_mut) are touched by the loop's thread
  * only: add them before ::lh_rail_loop_try_start or from inside a step.
  *
+ * The thread is nothing but passes (::lh_rail_loop_pass: one round of timers and
+ * step, then how long until the next) and sleeps. A loop that is never started
+ * can be driven the same way by its owner, on a thread of the owner's or from
+ * `main` on a board without threads.
+ *
  * Ending. ::lh_rail_loop_destroy stops, joins and frees, waiting as long as the last
  * step takes. An owner that must not wait that long (a game thread unloading a module
  * while the step is stuck in a call on a network share) stops with
@@ -347,6 +352,31 @@ lh_rail_loop_try_abandon(lh_rail_loop_t *self, lh_rail_loop_release_cb release,
                          lh_ptr release_user);
 
 /**
+ * @brief One round of the loop: fire the due timers, then run the step once.
+ *
+ * Clears the pending wake first, so a wake that comes during the step asks for
+ * another round. When a stop was asked before the round, this step is the last
+ * one (::lh_rail_loop_is_last_step).
+ *
+ * @param self The loop. The loop's own thread, or the owner of a loop it never
+ *             started (one round at a time).
+ */
+lh_void
+lh_rail_loop_run_step(lh_rail_loop_t *self);
+
+/**
+ * @brief How long the loop may sleep before its next round, in milliseconds.
+ *
+ * 0 when a wake or a stop is already there; otherwise the shorter of the period
+ * and the time until the nearest timer is due.
+ *
+ * @param self The loop, created.
+ * @return The milliseconds until the next round is due.
+ */
+lh_u32_t
+lh_rail_loop_get_next_pass_ms(lh_rail_loop_t *self);
+
+/**
  * @brief Have the thread run its step soon; never lost.
  *
  * Takes the loop's mutex for a moment. Any thread may call it, many times: wakes
@@ -369,15 +399,21 @@ lh_void
 lh_rail_loop_hint(lh_rail_loop_t *self);
 
 /**
- * @brief Ask the thread to run one last step and end; does not wait.
+ * @brief Ask the loop to run one last step and end; does not wait.
  *
- * @param self The loop, started.
+ * @param self The loop: started, or driven by ::lh_rail_loop_pass.
  */
 lh_void
 lh_rail_loop_ask_stop(lh_rail_loop_t *self);
 
 /**
  * @brief Sleep at most @p timeout_ms, unless a wake or a stop is already there.
+ *
+ * On the loop's signal, or in its waiter when it has one; a wake, hint or stop
+ * cuts the sleep short.
+ *
+ * @param self       The loop, created. The thread that runs its passes.
+ * @param timeout_ms Longest sleep, in milliseconds (::lh_rail_loop_pass gives it).
  */
 lh_void
 lh_rail_loop_sleep(lh_rail_loop_t *self, lh_u32_t timeout_ms);
@@ -416,6 +452,29 @@ lh_bool_t
 lh_rail_loop_try_start(lh_rail_loop_t *self);
 
 /**
+ * @brief One pass of the loop: a round (::lh_rail_loop_run_step), then how long
+ *        until the next one (::lh_rail_loop_get_next_pass_ms).
+ *
+ * The loop's thread is nothing but passes and sleeps. A loop may also be driven
+ * without a thread of its own, LVGL style — on a board without threads this is
+ * the whole loop:
+ *
+ *     while (!lh_rail_loop_is_last_step(loop))
+ *         lh_rail_loop_sleep(loop, lh_rail_loop_pass(loop));
+ *
+ * Wakes, hints and timers work the same. To end such a loop ask a stop
+ * (::lh_rail_loop_ask_stop): the next pass is the last one; then destroy the
+ * loop, which is just freed since it was never started.
+ *
+ * @param self The loop. The loop's own thread, or the owner of a loop it never
+ *             started; never both.
+ * @return Milliseconds until the next pass is due; 0 for at once. After the last
+ *         step the value means nothing: stop passing.
+ */
+lh_u32_t
+lh_rail_loop_pass(lh_rail_loop_t *self);
+
+/**
  * @brief Stop the thread after one last step, join it and free the loop.
  *
  * Call it from another thread than the loop's. A loop never started is just freed.
@@ -426,7 +485,8 @@ lh_void
 lh_rail_loop_destroy(lh_rail_loop_t *self);
 
 /**
- * @brief The body of the loop's thread (an ::lh_rail_base_run_fn).
+ * @brief The body of the loop's thread (an ::lh_rail_base_run_fn): passes and
+ *        sleeps until the last step, then the end.
  * @param user The ::lh_rail_loop_t.
  */
 lh_void

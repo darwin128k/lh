@@ -81,6 +81,82 @@ TEST(rail_loop_try_start, refuses_on_a_base_without_threads)
     EXPECT_EQ(c.steps.load(), 0);
 }
 
+TEST(rail_loop_pass, runs_one_step_and_waits_up_to_the_period)
+{
+    counter c;
+    c.loop = lh_rail_loop_try_create(50U, count, &c);
+    ASSERT_NE(c.loop, nullptr);
+    const lh_u32_t next = lh_rail_loop_pass(c.loop);
+    EXPECT_EQ(c.steps.load(), 1);
+    EXPECT_GT(next, 0U);
+    EXPECT_LE(next, 50U);
+    EXPECT_FALSE(lh_rail_loop_is_last_step(c.loop));
+    lh_rail_loop_destroy(c.loop);
+    /* Never started: destroy frees it and runs no last step of its own. */
+    EXPECT_EQ(c.steps.load(), 1);
+}
+
+TEST(rail_loop_pass, a_due_timer_shortens_the_wait_and_fires_on_the_next_pass)
+{
+    counter c;
+    std::atomic<int> fired{0};
+    lh_timer_t timer;
+    c.loop = lh_rail_loop_try_create(60000U, count, &c);
+    ASSERT_NE(c.loop, nullptr);
+    lh_timer_init(&timer);
+    lh_timer_start(lh_rail_loop_get_timers_mut(c.loop), &timer, 20U, lh_bool_true, 0U, fire, &fired,
+                   lh_os_tick_ms());
+    EXPECT_LE(lh_rail_loop_pass(c.loop), 20U);
+    for (int i = 0; i < 200 && fired.load() == 0; ++i)
+    {
+        lh_rail_loop_sleep(c.loop, lh_rail_loop_pass(c.loop));
+    }
+    EXPECT_GE(fired.load(), 1);
+    lh_rail_loop_destroy(c.loop);
+}
+
+lh_void
+hint_self(lh_ptr user)
+{
+    auto *self = static_cast<counter *>(user);
+    count(user);
+    lh_rail_loop_hint(self->loop);
+}
+
+TEST(rail_loop_pass, a_wake_during_the_step_asks_for_the_next_pass_at_once)
+{
+    counter c;
+    c.loop = lh_rail_loop_try_create(60000U, hint_self, &c);
+    ASSERT_NE(c.loop, nullptr);
+    EXPECT_EQ(lh_rail_loop_pass(c.loop), 0U);
+    lh_rail_loop_destroy(c.loop);
+}
+
+TEST(rail_loop_pass, a_wake_before_the_pass_is_taken_by_it)
+{
+    counter c;
+    c.loop = lh_rail_loop_try_create(60000U, count, &c);
+    ASSERT_NE(c.loop, nullptr);
+    lh_rail_loop_wake(c.loop);
+    EXPECT_GT(lh_rail_loop_pass(c.loop), 0U);
+    lh_rail_loop_destroy(c.loop);
+}
+
+TEST(rail_loop_pass, after_a_stop_the_next_pass_is_the_last)
+{
+    counter c;
+    c.loop = lh_rail_loop_try_create(60000U, count, &c);
+    ASSERT_NE(c.loop, nullptr);
+    LH_ATTRIBUTE_UNUSED(lh_rail_loop_pass(c.loop));
+    EXPECT_FALSE(lh_rail_loop_is_last_step(c.loop));
+    lh_rail_loop_ask_stop(c.loop);
+    LH_ATTRIBUTE_UNUSED(lh_rail_loop_pass(c.loop));
+    EXPECT_TRUE(lh_rail_loop_is_last_step(c.loop));
+    EXPECT_EQ(c.last.load(), 1);
+    lh_rail_loop_destroy(c.loop);
+    EXPECT_EQ(c.steps.load(), 2);
+}
+
 TEST(rail_loop, a_wake_runs_a_step_well_before_the_period)
 {
     counter c;
