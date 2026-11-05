@@ -204,6 +204,7 @@ lh_add_test_core(lh_test_cpu
 lh_add_test_core(lh_test_crypto
         ${LH_TEST_SRC_PATH}/lh/core/crypto/curve25519/field.cpp
         ${LH_TEST_SRC_PATH}/lh/core/crypto/ed25519.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/crypto/ed25519/point.cpp
         ${LH_TEST_SRC_PATH}/lh/core/crypto/ed25519/scalar.cpp
         ${LH_TEST_SRC_PATH}/lh/core/crypto/is_equal.cpp
         ${LH_TEST_SRC_PATH}/lh/core/crypto/rijndael.cpp
