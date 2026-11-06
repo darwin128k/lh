@@ -30,11 +30,12 @@
 #include <lh/os/result.h>
 #include <lh/os/net/socket/poll.h>
 #include <lh/core/net/socket/type.h>
-#include <lh/os/system/fs/file/handle.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/net/socket.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
 #endif
+
+struct lh_os_fs_file;
 
 /**
  * @struct lh_os_net_socket
@@ -457,7 +458,7 @@ lh_os_net_socket_send_all(lh_os_net_socket_t *self, const lh_ptr buf, lh_usize_t
  *         ::LH_OS_RESULT_INVALID on failure (the native error is captured).
  */
 lh_ssize_t
-lh_os_net_socket_send_file(lh_os_net_socket_t *self, lh_os_system_fs_file_handle_t file,
+lh_os_net_socket_send_file(lh_os_net_socket_t *self, const struct lh_os_fs_file *file,
                            lh_u64_t *offset, lh_usize_t size);
 
 /**

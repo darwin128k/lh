@@ -6,6 +6,7 @@
 #include <gtest/gtest.h>
 
 #include <lh/os/net.h>
+#include <lh/os/fs/file.h>
 #include <lh/os/net/socket.h>
 #include <lh/os/system/net/socket/handle.h>
 #include <lh/os/tick.h>
@@ -13,9 +14,6 @@
 #include <cstdio>
 #include <cstring>
 #include <memory>
-#if defined(_WIN32)
-#    include <io.h>
-#endif
 
 namespace
 {
@@ -139,16 +137,15 @@ TEST(os_net_socket, an_empty_poll_entry_is_skipped)
 TEST(os_net_socket, send_file_sends_from_the_offset_and_advances_it)
 {
     pair p;
-    std::unique_ptr<std::FILE, decltype(&std::fclose)> file(std::tmpfile(), std::fclose);
+    const char *name = "lh-test-socket-send-file.tmp";
+    std::unique_ptr<std::FILE, decltype(&std::fclose)> file(std::fopen(name, "wb"), std::fclose);
     ASSERT_TRUE(file);
     ASSERT_EQ(std::fwrite("0123456789", 1, 10, file.get()), 10u);
     ASSERT_EQ(std::fflush(file.get()), 0);
-#if defined(_WIN32)
-    const lh_os_system_fs_file_handle_t source =
-        static_cast<lh_os_system_fs_file_handle_t>(_get_osfhandle(_fileno(file.get())));
-#else
-    const lh_os_system_fs_file_handle_t source = fileno(file.get());
-#endif
+    file.reset();
+    lh_os_fs_file_t source;
+    lh_os_fs_file_init(&source);
+    ASSERT_TRUE(lh_os_fs_file_open_cstr(&source, name, lh_fs_file_mode_read));
     lh_u64_t offset = 4;
     char got[8] = {0};
     lh_usize_t received = 0;
@@ -156,11 +153,11 @@ TEST(os_net_socket, send_file_sends_from_the_offset_and_advances_it)
     while (offset < 10)
     {
         const lh_u64_t before = offset;
-        const lh_ssize_t sent = lh_os_net_socket_send_file(&p.server, source, &offset, 64u);
+        const lh_ssize_t sent = lh_os_net_socket_send_file(&p.server, &source, &offset, 64u);
         ASSERT_GT(sent, 0);
         ASSERT_EQ(offset, before + static_cast<lh_u64_t>(sent));
     }
-    EXPECT_EQ(lh_os_net_socket_send_file(&p.server, source, &offset, 64u), 0);
+    EXPECT_EQ(lh_os_net_socket_send_file(&p.server, &source, &offset, 64u), 0);
     EXPECT_EQ(offset, 10u);
     while (received < 6u)
     {
@@ -169,4 +166,6 @@ TEST(os_net_socket, send_file_sends_from_the_offset_and_advances_it)
         received += static_cast<lh_usize_t>(n);
     }
     EXPECT_EQ(std::memcmp(got, "456789", 6), 0);
+    lh_os_fs_file_deinit(&source);
+    EXPECT_EQ(std::remove(name), 0);
 }
