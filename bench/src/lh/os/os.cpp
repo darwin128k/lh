@@ -231,10 +231,10 @@ BM_os_net_tcp_roundtrip(benchmark::State &state)
     lh_os_net_socket_init(&listener);
     lh_os_net_socket_init(&client);
     lh_os_net_socket_init(&server);
-    if (!lh_os_net_socket_open(&listener, lh_os_system_net_socket_type_tcp) ||
+    if (!lh_os_net_socket_open(&listener, lh_net_socket_type_tcp) ||
         !lh_os_net_socket_bind(&listener, &addr) || !lh_os_net_socket_listen(&listener, 1) ||
         !lh_os_net_socket_get_local_addr(&listener, &bound) ||
-        !lh_os_net_socket_open(&client, lh_os_system_net_socket_type_tcp) ||
+        !lh_os_net_socket_open(&client, lh_net_socket_type_tcp) ||
         !lh_os_net_socket_connect(&client, &bound) || !lh_os_net_socket_accept(&listener, &server, &peer))
     {
         state.SkipWithError("loopback TCP setup failed");
@@ -288,9 +288,9 @@ BM_os_net_udp_send_recv(benchmark::State &state)
 
     lh_os_net_socket_init(&rx);
     lh_os_net_socket_init(&tx);
-    if (!lh_os_net_socket_open(&rx, lh_os_system_net_socket_type_udp) || !lh_os_net_socket_bind(&rx, &addr) ||
+    if (!lh_os_net_socket_open(&rx, lh_net_socket_type_udp) || !lh_os_net_socket_bind(&rx, &addr) ||
         !lh_os_net_socket_get_local_addr(&rx, &bound) ||
-        !lh_os_net_socket_open(&tx, lh_os_system_net_socket_type_udp))
+        !lh_os_net_socket_open(&tx, lh_net_socket_type_udp))
     {
         state.SkipWithError("loopback UDP setup failed");
     }

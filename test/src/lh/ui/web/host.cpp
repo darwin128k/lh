@@ -1262,7 +1262,7 @@ free_port()
     lh_net_ip4_init(lh_addr_of(ip), 127, 0, 0, 1);
     lh_net_ip4_socket_addr_init(lh_addr_of(addr), lh_addr_of(ip), 0);
     lh_os_net_socket_init(lh_addr_of(probe));
-    if (lh_os_net_socket_open(lh_addr_of(probe), lh_os_system_net_socket_type_tcp) &&
+    if (lh_os_net_socket_open(lh_addr_of(probe), lh_net_socket_type_tcp) &&
         lh_os_net_socket_bind(lh_addr_of(probe), lh_addr_of(addr)) &&
         lh_os_net_socket_get_local_addr(lh_addr_of(probe), lh_addr_of(addr)))
     {
@@ -1281,7 +1281,7 @@ connect_to_host(lh_os_net_socket_t *sock)
     lh_net_ip4_init(lh_addr_of(ip), 127, 0, 0, 1);
     lh_net_ip4_socket_addr_init(lh_addr_of(addr), lh_addr_of(ip), s_world.port);
     lh_os_net_socket_init(sock);
-    if (!lh_os_net_socket_open(sock, lh_os_system_net_socket_type_tcp))
+    if (!lh_os_net_socket_open(sock, lh_net_socket_type_tcp))
     {
         return false;
     }

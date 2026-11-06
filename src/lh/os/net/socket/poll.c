@@ -70,3 +70,9 @@ lh_os_net_socket_poll_is_readable(const lh_os_net_socket_poll_t *self)
     return lh_math_ne(lh_bit_and(lh_os_net_socket_poll_get_ready(self), lh_os_net_socket_poll_read),
                       0U);
 }
+
+lh_void
+lh_os_net_socket_poll_init_empty(lh_os_net_socket_poll_t *self)
+{
+    lh_os_net_socket_poll_init(self, LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID, 0U);
+}

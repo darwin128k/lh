@@ -56,7 +56,7 @@ struct device
         lh_net_ip4_socket_addr_t addr = loopback(0);
 
         lh_os_net_socket_init(&listener);
-        EXPECT_TRUE(lh_os_net_socket_open(&listener, lh_os_system_net_socket_type_tcp));
+        EXPECT_TRUE(lh_os_net_socket_open(&listener, lh_net_socket_type_tcp));
         EXPECT_TRUE(lh_os_net_socket_bind(&listener, &addr));
         EXPECT_TRUE(lh_os_net_socket_listen(&listener, 16));
         EXPECT_TRUE(lh_os_net_socket_get_local_addr(&listener, &addr));
@@ -101,7 +101,7 @@ struct connection
     open(const lh_net_ip4_socket_addr_t &addr, lh_u32_t timeout_ms)
     {
         lh_os_net_socket_close(&socket);
-        if (!lh_os_net_socket_open(&socket, lh_os_system_net_socket_type_tcp) ||
+        if (!lh_os_net_socket_open(&socket, lh_net_socket_type_tcp) ||
             !lh_os_net_socket_connect_within(&socket, &addr, timeout_ms))
         {
             lh_os_net_socket_close(&socket);

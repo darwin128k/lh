@@ -98,6 +98,18 @@ lh_os_net_socket_poll_init(lh_os_net_socket_poll_t *self, lh_os_system_net_socke
                            lh_uint_t events);
 
 /**
+ * @brief Fill @p self as an entry the poll skips: no socket, no interest.
+ *
+ * ::lh_os_net_socket_poll_init with the invalid handle and no events. A slot of
+ * a fixed poll array whose connection is gone stays in place this way, so the
+ * slots keep their indices.
+ *
+ * @param self Entry; must not be null.
+ */
+lh_void
+lh_os_net_socket_poll_init_empty(lh_os_net_socket_poll_t *self);
+
+/**
  * @brief Add readiness @p bits to what @p self reports (backends, after a poll).
  * @param self Entry; must not be null.
  * @param bits ::lh_os_net_socket_poll_event_t bits.

@@ -113,3 +113,9 @@ lh_os_wake_set_writer(lh_os_wake_t *self, lh_os_system_net_socket_handle_t write
     lh_assert_runtime_ref(self);
     self->writer = writer;
 }
+
+lh_void
+lh_os_wake_get_poll(const lh_os_wake_t *self, lh_os_net_socket_poll_t *out)
+{
+    lh_os_net_socket_poll_init(out, lh_os_wake_get_handle(self), lh_os_net_socket_poll_read);
+}

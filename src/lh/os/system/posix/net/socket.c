@@ -61,13 +61,13 @@ lh_os_system_net_socket_result(lh_ssize_t result)
 }
 
 lh_os_system_net_socket_handle_t
-lh_os_system_net_socket_open(lh_os_system_net_socket_type_t type)
+lh_os_system_net_socket_open(lh_net_socket_type_t type)
 {
-    lh_assert_runtime_if(lh_math_ne(type, lh_os_system_net_socket_type_tcp) &&
-                             lh_math_ne(type, lh_os_system_net_socket_type_udp),
+    lh_assert_runtime_if(lh_math_ne(type, lh_net_socket_type_tcp) &&
+                             lh_math_ne(type, lh_net_socket_type_udp),
                          lh_runtime_error_code_invalid_argument);
 
-    const int native = lh_math_eq(type, lh_os_system_net_socket_type_tcp)
+    const int native = lh_math_eq(type, lh_net_socket_type_tcp)
                            ? socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)
                            : socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (lh_math_is_negative(native))
@@ -416,14 +416,13 @@ lh_os_system_net_socket_configure_nonblocking(lh_os_system_net_socket_handle_t h
 #endif
 
 lh_os_system_net_socket_handle_t
-lh_os_system_net_socket_open_nonblocking(lh_os_system_net_socket_type_t type)
+lh_os_system_net_socket_open_nonblocking(lh_net_socket_type_t type)
 {
 #if defined(__linux__)
-    lh_assert_runtime_if(lh_math_ne(type, lh_os_system_net_socket_type_tcp) &&
-                             lh_math_ne(type, lh_os_system_net_socket_type_udp),
+    lh_assert_runtime_if(lh_math_ne(type, lh_net_socket_type_tcp) &&
+                             lh_math_ne(type, lh_net_socket_type_udp),
                          lh_runtime_error_code_invalid_argument);
-    const int native_type =
-        lh_math_eq(type, lh_os_system_net_socket_type_tcp) ? SOCK_STREAM : SOCK_DGRAM;
+    const int native_type = lh_math_eq(type, lh_net_socket_type_tcp) ? SOCK_STREAM : SOCK_DGRAM;
     const int native = socket(AF_INET, native_type | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
     if (lh_math_is_negative(native))
     {

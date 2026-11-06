@@ -11,7 +11,7 @@ lh_os_net_socket_init(lh_os_net_socket_t *self)
 }
 
 lh_bool_t
-lh_os_net_socket_open(lh_os_net_socket_t *self, lh_os_system_net_socket_type_t type)
+lh_os_net_socket_open(lh_os_net_socket_t *self, lh_net_socket_type_t type)
 {
     const lh_os_system_net_socket_handle_t handle = lh_os_system_net_socket_open(type);
     if (lh_math_eq(handle, LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID))
@@ -288,7 +288,7 @@ lh_os_net_socket_get_dgram(lh_os_net_socket_t *self, lh_io_dgram_t *out)
 }
 
 lh_bool_t
-lh_os_net_socket_open_nonblocking(lh_os_net_socket_t *self, lh_os_system_net_socket_type_t type)
+lh_os_net_socket_open_nonblocking(lh_os_net_socket_t *self, lh_net_socket_type_t type)
 {
     const lh_os_system_net_socket_handle_t handle = lh_os_system_net_socket_open_nonblocking(type);
     if (lh_math_eq(handle, LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID))
@@ -325,4 +325,18 @@ lh_os_net_socket_set_handle(lh_os_net_socket_t *self, lh_os_system_net_socket_ha
 {
     lh_assert_runtime_ref(self);
     self->handle = handle;
+}
+
+lh_void
+lh_os_net_socket_get_poll(const lh_os_net_socket_t *self, lh_uint_t events,
+                          lh_os_net_socket_poll_t *out)
+{
+    lh_os_net_socket_poll_init(out, lh_os_net_socket_get_handle(self), events);
+}
+
+lh_ssize_t
+lh_os_net_socket_send_file(lh_os_net_socket_t *self, lh_os_system_fs_file_handle_t file,
+                           lh_u64_t *offset, lh_usize_t size)
+{
+    return lh_os_system_net_socket_send_file(lh_os_net_socket_get_handle(self), file, offset, size);
 }

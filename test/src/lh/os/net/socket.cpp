@@ -7,7 +7,15 @@
 
 #include <lh/os/net.h>
 #include <lh/os/net/socket.h>
+#include <lh/os/system/net/socket/handle.h>
 #include <lh/os/tick.h>
+
+#include <cstdio>
+#include <cstring>
+#include <memory>
+#if defined(_WIN32)
+#    include <io.h>
+#endif
 
 namespace
 {
@@ -30,11 +38,11 @@ struct pair
         lh_os_net_socket_init(&listener);
         lh_os_net_socket_init(&client);
         lh_os_net_socket_init(&server);
-        EXPECT_TRUE(lh_os_net_socket_open(&listener, lh_os_system_net_socket_type_tcp));
+        EXPECT_TRUE(lh_os_net_socket_open(&listener, lh_net_socket_type_tcp));
         EXPECT_TRUE(lh_os_net_socket_bind(&listener, &addr));
         EXPECT_TRUE(lh_os_net_socket_listen(&listener, 4));
         EXPECT_TRUE(lh_os_net_socket_get_local_addr(&listener, &addr));
-        EXPECT_TRUE(lh_os_net_socket_open(&client, lh_os_system_net_socket_type_tcp));
+        EXPECT_TRUE(lh_os_net_socket_open(&client, lh_net_socket_type_tcp));
         EXPECT_TRUE(lh_os_net_socket_connect(&client, &addr));
         EXPECT_TRUE(lh_os_net_socket_accept(&listener, &server, &peer));
     }
@@ -78,7 +86,7 @@ TEST(os_net_socket, a_listener_is_readable_when_a_connection_waits)
     EXPECT_EQ(lh_os_net_socket_wait(read, 1u, lh_null, 0u, 0u), LH_OS_RESULT_PENDING);
     ASSERT_TRUE(lh_os_net_socket_get_local_addr(&p.listener, &addr));
     lh_os_net_socket_init(&late);
-    ASSERT_TRUE(lh_os_net_socket_open(&late, lh_os_system_net_socket_type_tcp));
+    ASSERT_TRUE(lh_os_net_socket_open(&late, lh_net_socket_type_tcp));
     ASSERT_TRUE(lh_os_net_socket_connect(&late, &addr));
     EXPECT_EQ(lh_os_net_socket_wait(read, 1u, lh_null, 0u, 2000u), 1);
     lh_os_net_socket_close(&late);
@@ -92,4 +100,73 @@ TEST(os_net_socket, a_connected_socket_is_writable_and_takes_no_delay)
     EXPECT_TRUE(lh_os_net_socket_set_no_delay(&p.server, lh_bool_true));
     EXPECT_TRUE(lh_os_net_socket_set_no_delay(&p.server, lh_bool_false));
     EXPECT_EQ(lh_os_net_socket_wait(lh_null, 0u, write, 1u, 2000u), 1);
+}
+
+TEST(os_net_socket, get_poll_watches_the_socket_for_the_events)
+{
+    pair p;
+    lh_os_net_socket_poll_t entry;
+    const char byte = 'x';
+
+    lh_os_net_socket_get_poll(&p.server, lh_os_net_socket_poll_read, &entry);
+    EXPECT_EQ(lh_os_net_socket_poll_get_handle(&entry), lh_os_net_socket_get_handle(&p.server));
+    EXPECT_EQ(lh_os_net_socket_poll_get_events(&entry), lh_os_net_socket_poll_read);
+    EXPECT_EQ(lh_os_net_socket_poll_get_ready(&entry), 0u);
+    EXPECT_EQ(lh_os_net_socket_poll(&entry, 1u, 0u), LH_OS_RESULT_PENDING);
+    ASSERT_EQ(lh_os_net_socket_send(&p.client, (lh_ptr)&byte, 1u), 1);
+    EXPECT_EQ(lh_os_net_socket_poll(&entry, 1u, 2000u), 1);
+    EXPECT_TRUE(lh_os_net_socket_poll_is_readable(&entry));
+}
+
+TEST(os_net_socket, an_empty_poll_entry_is_skipped)
+{
+    pair p;
+    lh_os_net_socket_poll_t entries[2];
+    const char byte = 'x';
+
+    lh_os_net_socket_poll_init_empty(&entries[0]);
+    EXPECT_EQ(lh_os_net_socket_poll_get_handle(&entries[0]),
+              LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID);
+    EXPECT_EQ(lh_os_net_socket_poll_get_events(&entries[0]), 0u);
+    EXPECT_EQ(lh_os_net_socket_poll_get_ready(&entries[0]), 0u);
+    lh_os_net_socket_get_poll(&p.server, lh_os_net_socket_poll_read, &entries[1]);
+    ASSERT_EQ(lh_os_net_socket_send(&p.client, (lh_ptr)&byte, 1u), 1);
+    EXPECT_EQ(lh_os_net_socket_poll(entries, 2u, 2000u), 1);
+    EXPECT_EQ(lh_os_net_socket_poll_get_ready(&entries[0]), 0u);
+    EXPECT_TRUE(lh_os_net_socket_poll_is_readable(&entries[1]));
+}
+
+TEST(os_net_socket, send_file_sends_from_the_offset_and_advances_it)
+{
+    pair p;
+    std::unique_ptr<std::FILE, decltype(&std::fclose)> file(std::tmpfile(), std::fclose);
+    ASSERT_TRUE(file);
+    ASSERT_EQ(std::fwrite("0123456789", 1, 10, file.get()), 10u);
+    ASSERT_EQ(std::fflush(file.get()), 0);
+#if defined(_WIN32)
+    const lh_os_system_fs_file_handle_t source =
+        static_cast<lh_os_system_fs_file_handle_t>(_get_osfhandle(_fileno(file.get())));
+#else
+    const lh_os_system_fs_file_handle_t source = fileno(file.get());
+#endif
+    lh_u64_t offset = 4;
+    char got[8] = {0};
+    lh_usize_t received = 0;
+
+    while (offset < 10)
+    {
+        const lh_u64_t before = offset;
+        const lh_ssize_t sent = lh_os_net_socket_send_file(&p.server, source, &offset, 64u);
+        ASSERT_GT(sent, 0);
+        ASSERT_EQ(offset, before + static_cast<lh_u64_t>(sent));
+    }
+    EXPECT_EQ(lh_os_net_socket_send_file(&p.server, source, &offset, 64u), 0);
+    EXPECT_EQ(offset, 10u);
+    while (received < 6u)
+    {
+        const lh_ssize_t n = lh_os_net_socket_recv(&p.client, got + received, 6u - received);
+        ASSERT_GT(n, 0);
+        received += static_cast<lh_usize_t>(n);
+    }
+    EXPECT_EQ(std::memcmp(got, "456789", 6), 0);
 }
