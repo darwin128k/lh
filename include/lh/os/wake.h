@@ -12,12 +12,9 @@
 #ifndef LH_OS_WAKE_H
 #define LH_OS_WAKE_H
 
-#include <lh/os/system/net/socket/handle.h>
+#include <lh/os/net/socket/poll.h>
 #include <lh/os/wake/fields.h>
-#include <lh/core/bool.h>
-#include <lh/core/void.h>
 #include <lh/config.h>
-#include <lh/core/compiler/extern/c.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/wake.h requires LH_LIBRARY_OPTION_OS"
@@ -80,6 +77,19 @@ lh_os_wake_reset(lh_os_wake_t *self);
  */
 lh_os_system_net_socket_handle_t
 lh_os_wake_get_handle(const lh_os_wake_t *self);
+
+/**
+ * @brief Fill the poll entry @p out: watch @p self for a signal.
+ *
+ * ::lh_os_net_socket_poll_init over ::lh_os_wake_get_handle with
+ * ::lh_os_net_socket_poll_read. The entry borrows the handle; after the poll
+ * reports it readable, ::lh_os_wake_reset consumes the signal.
+ *
+ * @param self Non-null initialized object.
+ * @param out  Entry to fill; must not be null.
+ */
+lh_void
+lh_os_wake_get_poll(const lh_os_wake_t *self, lh_os_net_socket_poll_t *out);
 
 /**
  * @brief Close both endpoints; safe on an initialized empty object.

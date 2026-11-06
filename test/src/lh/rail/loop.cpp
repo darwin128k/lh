@@ -257,7 +257,7 @@ poll_wait(lh_ptr waiter, lh_u32_t timeout_ms)
     auto *wake = static_cast<lh_os_wake_t *>(waiter);
     lh_os_net_socket_poll_t entry;
 
-    lh_os_net_socket_poll_init(&entry, lh_os_wake_get_handle(wake), lh_os_net_socket_poll_read);
+    lh_os_wake_get_poll(wake, &entry);
     if (lh_os_net_socket_poll(&entry, 1U, timeout_ms) > 0 &&
         lh_os_net_socket_poll_is_readable(&entry))
     {

@@ -42,14 +42,14 @@ lh_os_system_net_socket_result(int result)
 }
 
 lh_os_system_net_socket_handle_t
-lh_os_system_net_socket_open(lh_os_system_net_socket_type_t type)
+lh_os_system_net_socket_open(lh_net_socket_type_t type)
 {
-    lh_assert_runtime_if(lh_math_ne(type, lh_os_system_net_socket_type_tcp) &&
-                             lh_math_ne(type, lh_os_system_net_socket_type_udp),
+    lh_assert_runtime_if(lh_math_ne(type, lh_net_socket_type_tcp) &&
+                             lh_math_ne(type, lh_net_socket_type_udp),
                          lh_runtime_error_code_invalid_argument);
 
     const lh_os_system_win_socket_t native =
-        lh_math_eq(type, lh_os_system_net_socket_type_tcp)
+        lh_math_eq(type, lh_net_socket_type_tcp)
             ? socket(LH_OS_SYSTEM_WIN_AF_INET, LH_OS_SYSTEM_WIN_SOCK_STREAM,
                      LH_OS_SYSTEM_WIN_IPPROTO_TCP)
             : socket(LH_OS_SYSTEM_WIN_AF_INET, LH_OS_SYSTEM_WIN_SOCK_DGRAM,
@@ -386,7 +386,7 @@ lh_os_system_net_socket_configure_nonblocking(lh_os_system_net_socket_handle_t h
 }
 
 lh_os_system_net_socket_handle_t
-lh_os_system_net_socket_open_nonblocking(lh_os_system_net_socket_type_t type)
+lh_os_system_net_socket_open_nonblocking(lh_net_socket_type_t type)
 {
     const lh_os_system_net_socket_handle_t handle = lh_os_system_net_socket_open(type);
     if (lh_math_eq(handle, LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID))
@@ -562,7 +562,7 @@ lh_os_system_net_socket_pair(lh_os_system_net_socket_handle_t *pair, lh_u32_t ti
     lh_net_ip4_socket_addr_t address, expected, peer;
 
     lh_net_ip4_socket_addr_init(lh_addr_of(address), lh_addr_of(ip), 0);
-    listener = lh_os_system_net_socket_open_nonblocking(lh_os_system_net_socket_type_tcp);
+    listener = lh_os_system_net_socket_open_nonblocking(lh_net_socket_type_tcp);
     if (listener == LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID)
     {
         goto failed;
@@ -573,7 +573,7 @@ lh_os_system_net_socket_pair(lh_os_system_net_socket_handle_t *pair, lh_u32_t ti
     {
         goto failed;
     }
-    writer = lh_os_system_net_socket_open_nonblocking(lh_os_system_net_socket_type_tcp);
+    writer = lh_os_system_net_socket_open_nonblocking(lh_net_socket_type_tcp);
     if (writer == LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID)
     {
         goto failed;

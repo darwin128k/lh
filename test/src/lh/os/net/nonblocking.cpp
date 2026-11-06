@@ -58,8 +58,7 @@ class nonblocking_socket : public lh_test::network_test
         lh_net_ip4_init(&ip, 127, 0, 0, 1);
         lh_net_ip4_socket_addr_init(&address, &ip, 0);
         lh_net_ip4_socket_addr_init(&peer, &ip, 77);
-        ASSERT_TRUE(
-            lh_os_net_socket_open_nonblocking(&listener.value, lh_os_system_net_socket_type_tcp));
+        ASSERT_TRUE(lh_os_net_socket_open_nonblocking(&listener.value, lh_net_socket_type_tcp));
         ASSERT_NO_FATAL_FAILURE(check_flags(&listener.value));
         ASSERT_TRUE(lh_os_net_socket_set_reuse_addr(&listener.value, lh_bool_true));
         ASSERT_TRUE(lh_os_net_socket_bind(&listener.value, &address));
@@ -91,15 +90,14 @@ TEST_F(nonblocking_udp, an_exclusive_listener_keeps_its_port)
     lh_net_ip4_socket_addr_t address;
     lh_net_ip4_socket_addr_init(&address, &ip, 0);
     lh_test::socket_owner listener;
-    ASSERT_TRUE(
-        lh_os_net_socket_open_nonblocking(&listener.value, lh_os_system_net_socket_type_tcp));
+    ASSERT_TRUE(lh_os_net_socket_open_nonblocking(&listener.value, lh_net_socket_type_tcp));
     ASSERT_TRUE(lh_os_net_socket_set_exclusive_addr(&listener.value, lh_bool_true));
     ASSERT_TRUE(lh_os_net_socket_bind(&listener.value, &address));
     ASSERT_TRUE(lh_os_net_socket_listen(&listener.value, 4));
     ASSERT_TRUE(lh_os_net_socket_get_local_addr(&listener.value, &address));
 
     lh_test::socket_owner thief;
-    ASSERT_TRUE(lh_os_net_socket_open_nonblocking(&thief.value, lh_os_system_net_socket_type_tcp));
+    ASSERT_TRUE(lh_os_net_socket_open_nonblocking(&thief.value, lh_net_socket_type_tcp));
     ASSERT_TRUE(lh_os_net_socket_set_reuse_addr(&thief.value, lh_bool_true));
     EXPECT_FALSE(lh_os_net_socket_bind(&thief.value, &address));
 }
@@ -113,13 +111,13 @@ TEST_F(nonblocking_udp, an_exclusive_datagram_socket_keeps_its_port)
     lh_net_ip4_socket_addr_t address;
     lh_net_ip4_socket_addr_init(&address, &ip, 0);
     lh_test::socket_owner owner;
-    ASSERT_TRUE(lh_os_net_socket_open(&owner.value, lh_os_system_net_socket_type_udp));
+    ASSERT_TRUE(lh_os_net_socket_open(&owner.value, lh_net_socket_type_udp));
     ASSERT_TRUE(lh_os_net_socket_set_exclusive_addr(&owner.value, lh_bool_true));
     ASSERT_TRUE(lh_os_net_socket_bind(&owner.value, &address));
     ASSERT_TRUE(lh_os_net_socket_get_local_addr(&owner.value, &address));
 
     lh_test::socket_owner thief;
-    ASSERT_TRUE(lh_os_net_socket_open(&thief.value, lh_os_system_net_socket_type_udp));
+    ASSERT_TRUE(lh_os_net_socket_open(&thief.value, lh_net_socket_type_udp));
     ASSERT_TRUE(lh_os_net_socket_set_reuse_addr(&thief.value, lh_bool_true));
     EXPECT_FALSE(lh_os_net_socket_bind(&thief.value, &address));
 }
@@ -127,7 +125,7 @@ TEST_F(nonblocking_udp, an_exclusive_datagram_socket_keeps_its_port)
 TEST_F(nonblocking_udp, opens_with_noninheritable_handle)
 {
     lh_test::socket_owner socket;
-    ASSERT_TRUE(lh_os_net_socket_open_nonblocking(&socket.value, lh_os_system_net_socket_type_udp));
+    ASSERT_TRUE(lh_os_net_socket_open_nonblocking(&socket.value, lh_net_socket_type_udp));
     check_flags(&socket.value);
 }
 
@@ -145,7 +143,7 @@ TEST_F(nonblocking_socket, empty_accept_preserves_destination_peer_and_error)
 
 TEST_F(nonblocking_socket, accepts_peer_with_nonblocking_io_and_bidirectional_data)
 {
-    ASSERT_TRUE(lh_os_net_socket_open(&client.value, lh_os_system_net_socket_type_tcp));
+    ASSERT_TRUE(lh_os_net_socket_open(&client.value, lh_net_socket_type_tcp));
     ASSERT_TRUE(lh_os_net_socket_connect(&client.value, &address));
     lh_os_net_socket_t *read[] = {&listener.value};
     ASSERT_GT(lh_os_net_socket_wait(read, 1, nullptr, 0, 5000), 0);

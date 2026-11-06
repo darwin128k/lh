@@ -4,7 +4,7 @@
  *        (a socket "today", per that file's doc).
  *
  * One struct, one open function for both transports (see
- * ::lh_os_system_net_socket_type_t): TCP and UDP are not different kinds of
+ * ::lh_net_socket_type_t): TCP and UDP are not different kinds of
  * object, just the `type`/`protocol` argument to the same `socket()` call.
  * The same handle is a client after ::lh_os_net_socket_connect or a
  * listening server after ::lh_os_net_socket_bind / ::lh_os_net_socket_listen
@@ -29,7 +29,8 @@
 #include <lh/core/io/stream.h>
 #include <lh/os/result.h>
 #include <lh/os/net/socket/poll.h>
-#include <lh/os/system/net/socket/type.h>
+#include <lh/core/net/socket/type.h>
+#include <lh/os/system/fs/file/handle.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/net/socket.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
@@ -68,11 +69,11 @@ lh_os_net_socket_init(lh_os_net_socket_t *self);
  *
  * @param self Socket object to open; must be in the empty state
  *             (::lh_os_net_socket_init or freshly ::lh_os_net_socket_close'd).
- * @param type ::lh_os_system_net_socket_type_tcp or ::lh_os_system_net_socket_type_udp.
+ * @param type ::lh_net_socket_type_tcp or ::lh_net_socket_type_udp.
  * @return ::lh_bool_true on success, ::lh_bool_false if the OS call failed.
  */
 lh_bool_t
-lh_os_net_socket_open(lh_os_net_socket_t *self, lh_os_system_net_socket_type_t type);
+lh_os_net_socket_open(lh_os_net_socket_t *self, lh_net_socket_type_t type);
 
 /**
  * @brief Open a non-blocking IPv4 socket with child-execution inheritance disabled.
@@ -87,7 +88,7 @@ lh_os_net_socket_open(lh_os_net_socket_t *self, lh_os_system_net_socket_type_t t
  * @return ::lh_bool_true on success; ::lh_bool_false on failure.
  */
 lh_bool_t
-lh_os_net_socket_open_nonblocking(lh_os_net_socket_t *self, lh_os_system_net_socket_type_t type);
+lh_os_net_socket_open_nonblocking(lh_os_net_socket_t *self, lh_net_socket_type_t type);
 
 /**
  * @brief Close @p self's handle (if open) and return it to the empty state.
@@ -323,6 +324,21 @@ lh_ssize_t
 lh_os_net_socket_poll(lh_os_net_socket_poll_t *entries, lh_usize_t count, lh_u32_t timeout_ms);
 
 /**
+ * @brief Fill the poll entry @p out: watch @p self for @p events.
+ *
+ * ::lh_os_net_socket_poll_init over ::lh_os_net_socket_get_handle. The entry
+ * borrows the handle: @p self keeps it, and a closed @p self gives an entry the
+ * poll skips.
+ *
+ * @param self   Socket to watch; must not be null.
+ * @param events ::lh_os_net_socket_poll_read and/or ::lh_os_net_socket_poll_write.
+ * @param out    Entry to fill; must not be null.
+ */
+lh_void
+lh_os_net_socket_get_poll(const lh_os_net_socket_t *self, lh_uint_t events,
+                          lh_os_net_socket_poll_t *out);
+
+/**
  * @brief ::lh_io_writer_write_fn backed by @p context's socket.
  *
  * @param self An ::lh_os_net_socket_t* (passed as the writer's context).
@@ -424,12 +440,33 @@ lh_bool_t
 lh_os_net_socket_send_all(lh_os_net_socket_t *self, const lh_ptr buf, lh_usize_t size);
 
 /**
+ * @brief Send up to @p size bytes of @p file, from @p offset, over the
+ *        connected @p self.
+ *
+ * ::lh_os_system_net_socket_send_file on the socket's handle: sendfile on
+ * Linux, a bounded read and send elsewhere. Advances @p offset only by the
+ * bytes actually sent; a partial transfer is normal. The file is borrowed and
+ * stays the caller's; on Windows its current position may move.
+ *
+ * @param self   Connected TCP socket; may be non-blocking.
+ * @param file   Readable regular file (a synchronous handle on Windows).
+ * @param offset Non-null file position, at most the signed 64-bit maximum.
+ * @param size   Maximum bytes to send in this call.
+ * @return Bytes sent; `0` at end of file or for a zero @p size;
+ *         ::LH_OS_RESULT_PENDING when a non-blocking socket is full;
+ *         ::LH_OS_RESULT_INVALID on failure (the native error is captured).
+ */
+lh_ssize_t
+lh_os_net_socket_send_file(lh_os_net_socket_t *self, lh_os_system_fs_file_handle_t file,
+                           lh_u64_t *offset, lh_usize_t size);
+
+/**
  * @brief Build an ::lh_io_stream_t (reader + writer) over @p self.
  *
  * This is the point of ::lh_io_stream_t: everything above this call sees a
  * generic duplex stream and does not need to know a socket is behind it.
  *
- * @p self should be a ::lh_os_system_net_socket_type_tcp socket — a stream has no
+ * @p self should be a ::lh_net_socket_type_tcp socket — a stream has no
  * message boundaries, and treating a UDP socket this way would silently
  * lose the fact that each ::lh_os_net_socket_recv call actually returns one
  * whole datagram (or drops the rest of one that didn't fit in @c buf).
@@ -469,7 +506,7 @@ lh_os_net_socket_get_dgram_writer(lh_os_net_socket_t *self, lh_io_dgram_writer_t
  * above this call sees datagrams plus addresses and does not need to know a
  * socket is behind it.
  *
- * @p self should be a ::lh_os_system_net_socket_type_udp socket — TCP has no
+ * @p self should be a ::lh_net_socket_type_udp socket — TCP has no
  * message boundaries or per-call destination, which is exactly what a
  * datagram pair is for.
  *

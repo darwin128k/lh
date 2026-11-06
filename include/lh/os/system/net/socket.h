@@ -27,7 +27,7 @@
 #include <lh/os/result.h>
 #include <lh/os/net/socket/poll.h>
 #include <lh/os/system/fs/file/handle.h>
-#include <lh/os/system/net/socket/type.h>
+#include <lh/core/net/socket/type.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error                                                                                         \
@@ -39,12 +39,12 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Create a new IPv4 socket of the given transport type.
  *
- * @param type ::lh_os_system_net_socket_type_tcp or
- *             ::lh_os_system_net_socket_type_udp.
+ * @param type ::lh_net_socket_type_tcp or
+ *             ::lh_net_socket_type_udp.
  * @return Open handle, or ::LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID on failure.
  */
 lh_os_system_net_socket_handle_t
-lh_os_system_net_socket_open(lh_os_system_net_socket_type_t type);
+lh_os_system_net_socket_open(lh_net_socket_type_t type);
 
 /**
  * @brief Open a non-blocking IPv4 socket with child-execution inheritance disabled.
@@ -58,7 +58,7 @@ lh_os_system_net_socket_open(lh_os_system_net_socket_type_t type);
  * @return New handle, or ::LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID on failure.
  */
 lh_os_system_net_socket_handle_t
-lh_os_system_net_socket_open_nonblocking(lh_os_system_net_socket_type_t type);
+lh_os_system_net_socket_open_nonblocking(lh_net_socket_type_t type);
 
 /**
  * @brief Create two connected non-blocking, non-inheritable byte-stream endpoints.

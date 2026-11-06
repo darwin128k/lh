@@ -524,7 +524,7 @@ lh_ui_web_host_get_events_mut(lh_ui_web_host_t *self)
 lh_bool_t
 lh_ui_web_host_try_listen(lh_os_net_socket_t *listener, lh_net_port_t port)
 {
-    if (!lh_os_net_socket_open(listener, lh_os_system_net_socket_type_tcp))
+    if (!lh_os_net_socket_open(listener, lh_net_socket_type_tcp))
     {
         return lh_bool_false;
     }
@@ -919,36 +919,36 @@ lh_void
 lh_ui_web_host_prepare_poll(lh_ui_web_host_t *self)
 {
     lh_os_net_socket_poll_t *entries = lh_ui_web_host_get_events_mut(self);
-    lh_os_net_socket_poll_init(entries,
-                               lh_os_net_socket_get_handle(lh_ui_web_host_get_listener(self)),
-                               lh_os_net_socket_poll_read);
-    lh_os_net_socket_poll_init(entries + 1, lh_os_wake_get_handle(lh_ui_web_host_get_wake(self)),
-                               lh_os_net_socket_poll_read);
+    lh_os_net_socket_get_poll(lh_ui_web_host_get_listener(self), lh_os_net_socket_poll_read,
+                              entries);
+    lh_os_wake_get_poll(lh_ui_web_host_get_wake(self), entries + 1);
     entries = entries + 2;
     for (lh_uint_t i = 0U; lh_math_lt(i, LH_UI_WEB_HOST_WS_MAX); i = lh_math_add_one(i))
     {
         const lh_ui_web_host_client_t *c = lh_ui_web_host_get_clients(self) + i;
         if (!lh_ui_web_host_client_is_used(c))
         {
-            lh_os_net_socket_poll_init(entries + i, LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID, 0U);
+            lh_os_net_socket_poll_init_empty(entries + i);
             continue;
         }
         const lh_uint_t write =
             lh_null_ne(lh_ui_web_host_client_get_qhead(c)) ? lh_os_net_socket_poll_write : 0U;
-        lh_os_net_socket_poll_init(entries + i,
-                                   lh_os_net_socket_get_handle(lh_ui_web_host_client_get_sock(c)),
-                                   lh_bit_or(lh_os_net_socket_poll_read, write));
+        lh_os_net_socket_get_poll(lh_ui_web_host_client_get_sock(c),
+                                  lh_bit_or(lh_os_net_socket_poll_read, write), entries + i);
     }
     entries = entries + LH_UI_WEB_HOST_WS_MAX;
     for (lh_uint_t i = 0U; lh_math_lt(i, LH_UI_WEB_HOST_CONN_MAX); i = lh_math_add_one(i))
     {
         const lh_ui_web_host_conn_t *conn = lh_ui_web_host_get_conns(self) + i;
-        lh_os_net_socket_poll_init(
-            entries + i,
-            lh_ui_web_host_conn_is_active(conn)
-                ? lh_os_net_socket_get_handle(lh_ui_web_host_conn_get_sock(conn))
-                : LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID,
-            lh_os_net_socket_poll_read);
+        if (lh_ui_web_host_conn_is_active(conn))
+        {
+            lh_os_net_socket_get_poll(lh_ui_web_host_conn_get_sock(conn),
+                                      lh_os_net_socket_poll_read, entries + i);
+        }
+        else
+        {
+            lh_os_net_socket_poll_init_empty(entries + i);
+        }
     }
 }
 

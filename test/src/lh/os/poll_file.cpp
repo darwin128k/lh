@@ -312,3 +312,21 @@ TEST_F(socket_poll, interruption_preserves_captured_error_and_clears_readiness)
     lh_os_wake_close(&wake);
 }
 #endif
+
+TEST_F(socket_poll, a_wake_entry_is_readable_once_signalled)
+{
+    lh_test::wake_owner wake_owner;
+    auto &wake = wake_owner.value;
+    lh_os_net_socket_poll_t entry;
+
+    ASSERT_TRUE(lh_os_wake_open(&wake, 1000));
+    lh_os_wake_get_poll(&wake, &entry);
+    EXPECT_EQ(lh_os_net_socket_poll_get_handle(&entry), lh_os_wake_get_handle(&wake));
+    EXPECT_EQ(lh_os_net_socket_poll_get_events(&entry), lh_os_net_socket_poll_read);
+    EXPECT_EQ(lh_os_net_socket_poll(&entry, 1u, 0u), LH_OS_RESULT_PENDING);
+    ASSERT_TRUE(lh_os_wake_signal(&wake));
+    EXPECT_EQ(lh_os_net_socket_poll(&entry, 1u, 2000u), 1);
+    EXPECT_TRUE(lh_os_net_socket_poll_is_readable(&entry));
+    ASSERT_TRUE(lh_os_wake_reset(&wake));
+    lh_os_wake_close(&wake);
+}
