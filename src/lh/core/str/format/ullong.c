@@ -43,13 +43,15 @@ lh_str_ptr_format_ullong(lh_ullong_t value, lh_str_ptr str, lh_usize_t str_size)
         lh_usize_t pad;
 
         i = lh_math_sub_one(i);
-        n = lh_str_ptr_format_uint(parts[lh_math_sub_one(i)], digits, LH_STR_FORMAT_ULLONG_CHUNK_DIGITS);
-        if (lh_math_is_zero(n))
+        n = lh_str_ptr_format_uint(parts[lh_math_sub_one(i)], digits,
+                                   LH_STR_FORMAT_ULLONG_CHUNK_DIGITS);
+        if (lh_math_is_zero(n) || lh_math_gt(n, LH_STR_FORMAT_ULLONG_CHUNK_DIGITS))
         {
             return 0;
         }
         pad = lh_math_sub(LH_STR_FORMAT_ULLONG_CHUNK_DIGITS, n);
-        if (lh_math_gt(lh_math_add(written, LH_STR_FORMAT_ULLONG_CHUNK_DIGITS), str_size))
+        if (lh_math_gt(written, str_size) ||
+            lh_math_gt(LH_STR_FORMAT_ULLONG_CHUNK_DIGITS, lh_math_sub(str_size, written)))
         {
             return 0;
         }

@@ -511,7 +511,8 @@ TEST(compress_gzip_put_trailer, appends_values_the_trailer_check_accepts)
 {
     lh_byte_t output[9] = {0};
     lh_usize_t written = 1U;
-    lh_compress_gzip_put_trailer(0x11223344U, 0x100000005ULL, output, sizeof(output), &written);
+    lh_compress_gzip_put_trailer(0x11223344U, static_cast<lh_usize_t>(0x100000005ULL), output,
+                                 sizeof(output), &written);
     EXPECT_EQ(written, 9U);
     EXPECT_EQ(output[1], 0x44U);
     EXPECT_EQ(output[5], 0x05U);
