@@ -255,9 +255,21 @@ lh_bool_t
 lh_os_system_net_socket_set_exclusive_addr(lh_os_system_net_socket_handle_t handle,
                                            lh_bool_t enabled)
 {
-    /* A POSIX listener already owns its address: SO_REUSEADDR only passes over
-       TIME_WAIT. */
-    return lh_os_system_net_socket_set_reuse_addr(handle, enabled);
+    int type = 0;
+    socklen_t type_len = sizeof(type);
+
+    if (!lh_os_system_error_check_zero(getsockopt(lh_os_system_net_socket_native(handle),
+                                                  SOL_SOCKET, SO_TYPE, lh_addr_of(type),
+                                                  lh_addr_of(type_len))))
+    {
+        return lh_bool_false;
+    }
+    /* A POSIX stream listener already owns its address: SO_REUSEADDR only passes
+       over TIME_WAIT. A datagram socket has no TIME_WAIT, and SO_REUSEADDR there
+       lets a second socket with the flag bind the same port and read the
+       datagrams, so the address is owned by leaving the flag off. */
+    return lh_os_system_net_socket_set_reuse_addr(handle,
+                                                  type == SOCK_STREAM ? enabled : lh_bool_false);
 }
 
 lh_bool_t

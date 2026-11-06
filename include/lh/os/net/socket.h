@@ -270,6 +270,8 @@ lh_os_net_socket_set_reuse_addr(lh_os_net_socket_t *self, lh_bool_t enabled);
  * restart may take the port over from connections in `TIME_WAIT`, and no other
  * socket can bind next to it. Use it instead of ::lh_os_net_socket_set_reuse_addr
  * for a listener: on Windows `SO_REUSEADDR` lets another socket share the port.
+ * A datagram socket that serves a port (a UDP server) wants it too: on POSIX
+ * it keeps `SO_REUSEADDR` off there, which would let a second socket share it.
  *
  * @param self    Open socket, not bound yet.
  * @param enabled ::lh_bool_true to claim the address, ::lh_bool_false to clear it.

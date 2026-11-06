@@ -194,8 +194,10 @@ lh_os_system_net_socket_set_reuse_addr(lh_os_system_net_socket_handle_t handle, 
  * @brief Make the address @p handle binds its own, still allowing a quick
  *        restart: the option a listening socket wants, before bind.
  *
- * POSIX: `SO_REUSEADDR`, which there only lets a new listener take the port
- * over from connections in `TIME_WAIT`; a second listener is refused anyway.
+ * POSIX: on a stream socket `SO_REUSEADDR`, which there only lets a new
+ * listener take the port over from connections in `TIME_WAIT`; a second
+ * listener is refused anyway. On a datagram socket `SO_REUSEADDR` is cleared:
+ * there it would let a second socket with the flag share the port.
  * Windows: `SO_EXCLUSIVEADDRUSE`, because `SO_REUSEADDR` there would let any
  * other socket bind the same address and take its connections.
  *
