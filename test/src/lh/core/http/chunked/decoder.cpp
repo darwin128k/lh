@@ -32,7 +32,10 @@ TEST(http_chunked_decoder_feed, decodes_one_byte_at_a_time_and_stops_before_next
         ASSERT_LE(written, 1U);
         ASSERT_TRUE(consumed || written);
         offset += consumed;
-        result.append(output, written);
+        if (written == 1U)
+        {
+            result.push_back(output[0]);
+        }
     }
     EXPECT_EQ(status, lh_http_parse_complete);
     EXPECT_EQ(result, std::string("a\0bc", 4U));

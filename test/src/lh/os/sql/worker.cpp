@@ -21,7 +21,7 @@ namespace
 {
 
 /* What the connect and release calls saw. */
-struct link
+struct connection_state
 {
     std::atomic<int> connects{0};
     std::atomic<int> releases{0};
@@ -33,7 +33,7 @@ struct link
 lh_bool_t
 connect_memory(lh_ptr user, lh_sql_db_t *db)
 {
-    auto *l = static_cast<link *>(user);
+    auto *l = static_cast<connection_state *>(user);
     l->connects.fetch_add(1);
     l->connect_on = std::this_thread::get_id();
     if (l->fail)
@@ -46,7 +46,7 @@ connect_memory(lh_ptr user, lh_sql_db_t *db)
 void
 release_thread(lh_ptr user)
 {
-    auto *l = static_cast<link *>(user);
+    auto *l = static_cast<connection_state *>(user);
     l->releases.fetch_add(1);
     l->release_on = std::this_thread::get_id();
 }
@@ -124,7 +124,7 @@ dispatch_all(lh_rail_mailbox_t *mailbox, unsigned count)
    next (":memory:" is one database per connection), and it was opened once. */
 TEST(os_sql_worker, tasks_share_one_connection_opened_once)
 {
-    link l;
+    connection_state l;
     lh_os_sql_worker_t worker;
     ASSERT_TRUE(lh_os_sql_worker_try_start(&worker, connect_memory, release_thread, &l));
     lh_rail_mailbox_t mailbox;
@@ -160,7 +160,7 @@ TEST(os_sql_worker, tasks_share_one_connection_opened_once)
 /* A connection that failed at the start is opened again by the next task. */
 TEST(os_sql_worker, a_task_reconnects_a_closed_connection)
 {
-    link l;
+    connection_state l;
     l.fail = true;
     lh_os_sql_worker_t worker;
     ASSERT_TRUE(lh_os_sql_worker_try_start(&worker, connect_memory, lh_null, &l));

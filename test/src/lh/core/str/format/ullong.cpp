@@ -45,4 +45,20 @@ TEST(str_ptr_format_ullong, returns_zero_when_buffer_too_small)
     EXPECT_EQ(lh_str_ptr_format_ullong(1000000000ULL, buf, sizeof(buf)), 0U);
 }
 
+TEST(str_ptr_format_ullong, respects_every_buffer_boundary_for_the_maximum_value)
+{
+    for (lh_usize_t capacity = 0U; capacity <= 20U; ++capacity)
+    {
+        std::string buf(22U, '#');
+        const lh_usize_t written =
+            lh_str_ptr_format_ullong(18446744073709551615ULL, &buf[1], capacity);
+        EXPECT_EQ(written, capacity == 20U ? 20U : 0U);
+        EXPECT_EQ(buf[0], '#');
+        EXPECT_EQ(buf[capacity + 1U], '#');
+        if (capacity == 20U)
+        {
+            EXPECT_EQ(buf.substr(1U, written), "18446744073709551615");
+        }
+    }
+}
 } // namespace
