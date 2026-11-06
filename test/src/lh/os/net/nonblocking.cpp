@@ -104,6 +104,26 @@ TEST_F(nonblocking_udp, an_exclusive_listener_keeps_its_port)
     EXPECT_FALSE(lh_os_net_socket_bind(&thief.value, &address));
 }
 
+TEST_F(nonblocking_udp, an_exclusive_datagram_socket_keeps_its_port)
+{
+    /* The same for UDP: on Linux two sockets that both ask for SO_REUSEADDR
+       share a datagram port, so the claimed one must not carry the flag. */
+    lh_net_ip4_t ip;
+    lh_net_ip4_init(&ip, 127, 0, 0, 1);
+    lh_net_ip4_socket_addr_t address;
+    lh_net_ip4_socket_addr_init(&address, &ip, 0);
+    lh_test::socket_owner owner;
+    ASSERT_TRUE(lh_os_net_socket_open(&owner.value, lh_os_system_net_socket_type_udp));
+    ASSERT_TRUE(lh_os_net_socket_set_exclusive_addr(&owner.value, lh_bool_true));
+    ASSERT_TRUE(lh_os_net_socket_bind(&owner.value, &address));
+    ASSERT_TRUE(lh_os_net_socket_get_local_addr(&owner.value, &address));
+
+    lh_test::socket_owner thief;
+    ASSERT_TRUE(lh_os_net_socket_open(&thief.value, lh_os_system_net_socket_type_udp));
+    ASSERT_TRUE(lh_os_net_socket_set_reuse_addr(&thief.value, lh_bool_true));
+    EXPECT_FALSE(lh_os_net_socket_bind(&thief.value, &address));
+}
+
 TEST_F(nonblocking_udp, opens_with_noninheritable_handle)
 {
     lh_test::socket_owner socket;
