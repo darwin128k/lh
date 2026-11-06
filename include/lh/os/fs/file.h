@@ -23,6 +23,7 @@
 #include <lh/os/result.h>
 #include <lh/os/system/fs/file/handle.h>
 #include <lh/core/fs/file/mode.h>
+#include <lh/core/fs/size.h>
 
 #include <stdarg.h>
 
@@ -98,14 +99,27 @@ const lh_os_system_fs_file_handle_t *
 lh_os_fs_file_get_handle(const lh_os_fs_file_t *self);
 
 /**
+ * @brief Store @p handle without opening or closing it.
+ *
+ * The caller manages any old handle and transfers ownership of a valid new
+ * handle to @p self. Passing the invalid handle transfers no resource.
+ *
+ * @param self Initialized file.
+ * @param handle New owned handle, or the invalid handle.
+ */
+lh_void
+lh_os_fs_file_set_handle(lh_os_fs_file_t *self, lh_os_system_fs_file_handle_t handle);
+
+/**
  * @brief True when @p self currently holds an open handle.
  */
 lh_bool_t
 lh_os_fs_file_is_valid(const lh_os_fs_file_t *self);
 
 /**
- * @brief Mode last passed to a successful ::lh_os_fs_file_open, or
- *        ::lh_fs_file_mode_none when closed.
+ * @brief Mode of the open handle, or ::lh_fs_file_mode_none when closed.
+ *
+ * Handle-relative opens and directory roots use ::lh_fs_file_mode_read.
  */
 lh_fs_file_mode_t
 lh_os_fs_file_get_mode(const lh_os_fs_file_t *self);
@@ -113,8 +127,8 @@ lh_os_fs_file_get_mode(const lh_os_fs_file_t *self);
 /**
  * @brief Overwrite the stored mode. Does not touch the path or handle.
  *
- * Internal bookkeeping for ::lh_os_fs_file_open/::lh_os_fs_file_close —
- * does not itself open or close anything.
+ * Internal bookkeeping for the open and close operations; does not itself
+ * open or close anything.
  */
 lh_void
 lh_os_fs_file_set_mode(lh_os_fs_file_t *self, lh_fs_file_mode_t mode);
@@ -141,6 +155,84 @@ lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_fs_path_t *path, lh_fs_file_m
  */
 lh_bool_t
 lh_os_fs_file_open_cstr(lh_os_fs_file_t *self, const lh_str_ptr path, lh_fs_file_mode_t mode);
+
+/**
+ * @brief Open a directory as a trusted root for handle-relative file lookup.
+ *
+ * @p self must be initialized. The previous handle is closed. On success the
+ * file owns the directory handle and a copy of @p path; deinit releases both.
+ * On failure the handle is closed and the OS error is retained. The root
+ * itself may be a link: the caller chooses which directory to trust.
+ *
+ * @param self Initialized destination.
+ * @param path Directory path, borrowed for this call.
+ * @return True on success, false on failure.
+ */
+lh_bool_t
+lh_os_fs_file_try_open_root(lh_os_fs_file_t *self, const lh_fs_path_t *path);
+
+/**
+ * @brief Open a trusted directory root, terminating when the open fails.
+ *
+ * @p self and @p path have the same ownership and initialization requirements
+ * as ::lh_os_fs_file_try_open_root. The call delegates to that function and
+ * checks its result.
+ */
+lh_void
+lh_os_fs_file_open_root(lh_os_fs_file_t *self, const lh_fs_path_t *path);
+
+/**
+ * @brief Parse native text and open it as a trusted directory root.
+ *
+ * @p self is initialized; @p path is borrowed and NUL-terminated. The path
+ * is parsed using the host's native style before opening. Returns false on
+ * failure, with the reason in the OS error slot.
+ *
+ * @param self Initialized destination.
+ * @param path Non-null native-style text, borrowed for the call.
+ * @return True on success, false on failure.
+ */
+lh_bool_t
+lh_os_fs_file_try_open_root_cstr(lh_os_fs_file_t *self, const lh_str_ptr path);
+
+/**
+ * @brief Open a trusted directory root from native text, terminating on failure.
+ *
+ * Arguments and ownership are as in ::lh_os_fs_file_try_open_root_cstr;
+ * this call delegates to it and checks its result.
+ */
+lh_void
+lh_os_fs_file_open_root_cstr(lh_os_fs_file_t *self, const lh_str_ptr path);
+
+/**
+ * @brief Open a regular file below an already-open directory without following links.
+ *
+ * @p self and @p root must be distinct initialized objects. The root is
+ * borrowed and must remain open during the call. @p path is relative, and its
+ * normalized text is checked by the system operation, which rejects dot and
+ * parent components, backslashes, colons and links. Mount points and hard
+ * links are not excluded. The previous destination handle is closed; on
+ * success @p self owns the file and a copy of the relative path.
+ *
+ * @param self Initialized destination, distinct from @p root.
+ * @param root Open trusted directory, borrowed.
+ * @param path Relative path, borrowed.
+ * @param size Non-null output receiving the file size on success; unchanged on failure.
+ * @return True on success, false on failure.
+ */
+lh_bool_t
+lh_os_fs_file_try_open_read_at(lh_os_fs_file_t *self, const lh_os_fs_file_t *root,
+                               const lh_fs_path_t *path, lh_fs_size_t *size);
+
+/**
+ * @brief Open a file below a trusted root, terminating when the open fails.
+ *
+ * Arguments and ownership are as in ::lh_os_fs_file_try_open_read_at; this
+ * call delegates to it and checks its result.
+ */
+lh_void
+lh_os_fs_file_open_read_at(lh_os_fs_file_t *self, const lh_os_fs_file_t *root,
+                           const lh_fs_path_t *path, lh_fs_size_t *size);
 
 /**
  * @brief ::lh_io_reader_read_fn backed by @p context's file.

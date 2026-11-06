@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <cstdio>
+#include <string>
+
 #include <lh/os/system/fs/file.h>
 #include <lh/os.h>
 #include <lh/os/error/code.h>
@@ -7,7 +10,6 @@
 
 #if defined(_WIN32)
 
-#    include <cstdio>
 #    include <direct.h>
 
 /* Handle-relative lookup on Windows: NtCreateFile relative to each directory. */
@@ -33,7 +35,7 @@ TEST(os_fs_file_at, opens_a_file_below_the_root_and_refuses_escapes)
     size = 123U;
     EXPECT_EQ(lh_os_system_fs_file_open_read_at(root, "../lh-test-file-at/a/b.txt", &size),
               LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID);
-    EXPECT_EQ(lh_os_system_fs_file_open_read_at(root, "a\b.txt", &size),
+    EXPECT_EQ(lh_os_system_fs_file_open_read_at(root, "a\\b.txt", &size),
               LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID);
     EXPECT_EQ(lh_os_system_fs_file_open_read_at(root, "a/missing.txt", &size),
               LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID);
@@ -53,8 +55,6 @@ TEST(os_fs_file_at, opens_a_file_below_the_root_and_refuses_escapes)
 #else
 
 #    include <cstdlib>
-#    include <cstdio>
-#    include <string>
 #    include <fcntl.h>
 #    include <sys/stat.h>
 #    include <unistd.h>
@@ -185,9 +185,70 @@ TEST_F(os_fs_file_at, follows_the_open_root_after_its_path_is_renamed)
 #endif
 
 #include <lh/os/fs/file.h>
+#include <lh/expect/death.h>
 
 namespace
 {
+
+TEST(os_fs_file, opens_a_file_relative_to_a_borrowed_root)
+{
+    const char *name = "lh-test-open-read-at.txt";
+    std::FILE *created = std::fopen(name, "wb");
+    ASSERT_NE(created, nullptr);
+    ASSERT_EQ(std::fwrite("hello", 1U, 5U, created), 5U);
+    ASSERT_EQ(std::fclose(created), 0);
+
+    lh_fs_path_t path;
+    lh_fs_path_init(&path);
+    lh_str_view_t text;
+    lh_str_view_init(&text, ".");
+    lh_fs_path_set(&path, text, lh_fs_path_style_posix);
+    lh_os_fs_file_t root;
+    lh_os_fs_file_init(&root);
+    ASSERT_TRUE(lh_os_fs_file_try_open_root(&root, &path));
+    lh_os_fs_file_open_root(&root, &path);
+    ASSERT_TRUE(lh_os_fs_file_is_valid(&root));
+    lh_os_fs_file_open_root_cstr(&root, ".");
+    ASSERT_TRUE(lh_os_fs_file_is_valid(&root));
+    EXPECT_EQ(lh_os_fs_file_get_mode(&root), lh_fs_file_mode_read);
+
+    lh_str_view_init(&text, name);
+    lh_fs_path_set(&path, text, lh_fs_path_style_posix);
+    lh_os_fs_file_t file;
+    lh_os_fs_file_init(&file);
+    lh_fs_size_t size = 0U;
+    ASSERT_TRUE(lh_os_fs_file_try_open_read_at(&file, &root, &path, &size));
+    EXPECT_EQ(size, 5U);
+    lh_os_fs_file_open_read_at(&file, &root, &path, &size);
+    EXPECT_EQ(size, 5U);
+    EXPECT_EQ(lh_os_fs_file_get_mode(&file), lh_fs_file_mode_read);
+    char data[5];
+    ASSERT_EQ(lh_os_fs_file_read(&file, data, sizeof(data)), 5);
+    EXPECT_EQ(std::string(data, sizeof(data)), "hello");
+    EXPECT_TRUE(lh_os_fs_file_is_valid(&root));
+
+    lh_str_view_init(&text, "../lh-test-open-read-at.txt");
+    lh_fs_path_set(&path, text, lh_fs_path_style_posix);
+    size = 99U;
+    EXPECT_FALSE(lh_os_fs_file_try_open_read_at(&file, &root, &path, &size));
+    EXPECT_EQ(size, 99U);
+    EXPECT_FALSE(lh_os_fs_file_is_valid(&file));
+    EXPECT_EQ(lh_os_fs_file_get_mode(&file), lh_fs_file_mode_none);
+    LH_EXPECT_CHECK_DEATH(lh_os_fs_file_open_read_at(&file, &root, &path, &size));
+
+    lh_str_view_init(&text, "lh-test-missing-root/child");
+    lh_fs_path_set(&path, text, lh_fs_path_style_posix);
+    EXPECT_FALSE(lh_os_fs_file_try_open_root(&root, &path));
+    EXPECT_FALSE(lh_os_fs_file_is_valid(&root));
+    LH_EXPECT_CHECK_DEATH(lh_os_fs_file_open_root(&root, &path));
+    EXPECT_FALSE(lh_os_fs_file_try_open_root_cstr(&root, "lh-test-missing-root/child"));
+    LH_EXPECT_CHECK_DEATH(lh_os_fs_file_open_root_cstr(&root, "lh-test-missing-root/child"));
+
+    lh_os_fs_file_deinit(&file);
+    lh_os_fs_file_deinit(&root);
+    lh_fs_path_deinit(&path);
+    EXPECT_EQ(std::remove(name), 0);
+}
 
 /* Appends from two opens land one after the other; the file then goes. */
 TEST(os_fs_file, append_adds_at_the_end_and_remove_deletes)

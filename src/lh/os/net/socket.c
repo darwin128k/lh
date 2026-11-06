@@ -1,4 +1,5 @@
 #include <lh/os/net/socket.h>
+#include <lh/os/fs/file.h>
 #include <lh/core/assert.h>
 #include <lh/os/system/net/socket.h>
 #include <lh/core/math.h>
@@ -335,8 +336,10 @@ lh_os_net_socket_get_poll(const lh_os_net_socket_t *self, lh_uint_t events,
 }
 
 lh_ssize_t
-lh_os_net_socket_send_file(lh_os_net_socket_t *self, lh_os_system_fs_file_handle_t file,
-                           lh_u64_t *offset, lh_usize_t size)
+lh_os_net_socket_send_file(lh_os_net_socket_t *self, const lh_os_fs_file_t *file, lh_u64_t *offset,
+                           lh_usize_t size)
 {
-    return lh_os_system_net_socket_send_file(lh_os_net_socket_get_handle(self), file, offset, size);
+    return lh_os_system_net_socket_send_file(lh_os_net_socket_get_handle(self),
+                                             lh_ptr_deref(lh_os_fs_file_get_handle(file)), offset,
+                                             size);
 }

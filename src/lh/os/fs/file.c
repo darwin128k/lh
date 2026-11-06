@@ -37,6 +37,13 @@ lh_os_fs_file_get_handle(const lh_os_fs_file_t *self)
     return lh_addr_of(self->handle);
 }
 
+lh_void
+lh_os_fs_file_set_handle(lh_os_fs_file_t *self, lh_os_system_fs_file_handle_t handle)
+{
+    lh_assert_runtime_ref(self);
+    self->handle = handle;
+}
+
 lh_bool_t
 lh_os_fs_file_is_valid(const lh_os_fs_file_t *self)
 {
@@ -68,7 +75,7 @@ lh_void
 lh_os_fs_file_init(lh_os_fs_file_t *self)
 {
     lh_fs_path_init(lh_os_fs_file_get_path_mut(self));
-    lh_ptr_deref(lh_os_fs_file_get_handle_mut(self)) = LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID;
+    lh_os_fs_file_set_handle(self, LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID);
     lh_os_fs_file_set_mode(self, lh_fs_file_mode_none);
 }
 
@@ -81,7 +88,7 @@ lh_os_fs_file_close(lh_os_fs_file_t *self)
         return;
     }
     lh_os_system_fs_file_close(lh_ptr_deref(lh_os_fs_file_get_handle(self)));
-    lh_ptr_deref(lh_os_fs_file_get_handle_mut(self)) = LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID;
+    lh_os_fs_file_set_handle(self, LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID);
     lh_os_fs_file_set_mode(self, lh_fs_file_mode_none);
 }
 
@@ -111,9 +118,53 @@ lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_fs_path_t *path, lh_fs_file_m
     {
         return lh_bool_false;
     }
-    lh_ptr_deref(lh_os_fs_file_get_handle_mut(self)) = handle;
+    lh_os_fs_file_set_handle(self, handle);
     lh_fs_path_assign(lh_os_fs_file_get_path_mut(self), path);
     lh_os_fs_file_set_mode(self, mode);
+    return lh_bool_true;
+}
+
+lh_bool_t
+lh_os_fs_file_try_open_root(lh_os_fs_file_t *self, const lh_fs_path_t *path)
+{
+    lh_str_t text;
+    lh_str_cptr native = lh_os_fs_path_to_cstr(path, lh_addr_of(text));
+    lh_os_fs_file_close(self);
+    if (lh_null_eq(native))
+    {
+        lh_str_deinit(lh_addr_of(text));
+        return lh_bool_false;
+    }
+    lh_os_system_fs_file_handle_t handle = lh_os_system_fs_file_open_root(native);
+    lh_str_deinit(lh_addr_of(text));
+    if (lh_math_eq(handle, LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID))
+    {
+        return lh_bool_false;
+    }
+    lh_os_fs_file_set_handle(self, handle);
+    lh_os_fs_file_set_path(self, path);
+    lh_os_fs_file_set_mode(self, lh_fs_file_mode_read);
+    return lh_bool_true;
+}
+
+lh_bool_t
+lh_os_fs_file_try_open_read_at(lh_os_fs_file_t *self, const lh_os_fs_file_t *root,
+                               const lh_fs_path_t *path, lh_fs_size_t *size)
+{
+    lh_assert_runtime_if(lh_math_eq(self, root), lh_runtime_error_code_invalid_argument);
+    lh_str_t text;
+    lh_str_cptr relative = lh_fs_path_to_cstr(path, lh_fs_path_style_posix, lh_addr_of(text));
+    lh_os_fs_file_close(self);
+    lh_os_system_fs_file_handle_t handle = lh_os_system_fs_file_open_read_at(
+        lh_ptr_deref(lh_os_fs_file_get_handle(root)), relative, size);
+    lh_str_deinit(lh_addr_of(text));
+    if (lh_math_eq(handle, LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID))
+    {
+        return lh_bool_false;
+    }
+    lh_os_fs_file_set_handle(self, handle);
+    lh_os_fs_file_set_path(self, path);
+    lh_os_fs_file_set_mode(self, lh_fs_file_mode_read);
     return lh_bool_true;
 }
 
@@ -131,6 +182,41 @@ lh_os_fs_file_open_cstr(lh_os_fs_file_t *self, lh_str_cptr path, lh_fs_file_mode
 
     lh_fs_path_deinit(lh_addr_of(fp));
     return ok;
+}
+
+lh_void
+lh_os_fs_file_open_root(lh_os_fs_file_t *self, const lh_fs_path_t *path)
+{
+    lh_runtime_check_if(!lh_os_fs_file_try_open_root(self, path),
+                        lh_runtime_error_code_not_accepted);
+}
+
+lh_bool_t
+lh_os_fs_file_try_open_root_cstr(lh_os_fs_file_t *self, lh_str_cptr path)
+{
+    lh_fs_path_t parsed;
+    lh_fs_path_init(lh_addr_of(parsed));
+    lh_str_view_t text;
+    lh_str_view_init(lh_addr_of(text), path);
+    lh_fs_path_set(lh_addr_of(parsed), text, lh_os_system_fs_path_style_native());
+    lh_bool_t opened = lh_os_fs_file_try_open_root(self, lh_addr_of(parsed));
+    lh_fs_path_deinit(lh_addr_of(parsed));
+    return opened;
+}
+
+lh_void
+lh_os_fs_file_open_read_at(lh_os_fs_file_t *self, const lh_os_fs_file_t *root,
+                           const lh_fs_path_t *path, lh_fs_size_t *size)
+{
+    lh_runtime_check_if(!lh_os_fs_file_try_open_read_at(self, root, path, size),
+                        lh_runtime_error_code_not_accepted);
+}
+
+lh_void
+lh_os_fs_file_open_root_cstr(lh_os_fs_file_t *self, lh_str_cptr path)
+{
+    lh_runtime_check_if(!lh_os_fs_file_try_open_root_cstr(self, path),
+                        lh_runtime_error_code_not_accepted);
 }
 
 lh_ssize_t
