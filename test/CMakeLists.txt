@@ -295,6 +295,7 @@ lh_add_test_core(lh_test_net
         ${LH_TEST_SRC_PATH}/lh/core/net/modbus.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/modbus_link.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/port.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/net/authority.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/socket/addr.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/socket/addr/ip4.cpp
 )

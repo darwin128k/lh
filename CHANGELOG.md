@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh/core/net/authority`: `lh_net_authority_try_split` cuts the host and the port out
+  of `host:port`, `[ipv6]:port`, a bare host or a bare IPv6 address.
 - `lh/os/debug`: `lh_os_debug_print_line` hands a line to the attached debugger
   (`OutputDebugStringW`, Visual Studio's Output; nothing on POSIX) and
   `lh_os_debug_log` is a logger sink over it.

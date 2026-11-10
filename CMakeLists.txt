@@ -305,6 +305,7 @@ set(LH_LIB_SOURCES
 
         ${LH_LIB_SRC_PATH}/core/net/ip.c
         ${LH_LIB_SRC_PATH}/core/net/port.c
+        ${LH_LIB_SRC_PATH}/core/net/authority.c
         ${LH_LIB_SRC_PATH}/core/net/socket/addr/ip4.c
         ${LH_LIB_SRC_PATH}/core/net/socket/addr.c
         ${LH_LIB_SRC_PATH}/core/net/modbus.c
