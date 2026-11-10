@@ -362,6 +362,13 @@ lh_os_logger_queue_step(lh_ptr user)
     }
 }
 
+lh_void
+lh_os_logger_queue_destroy(lh_os_logger_queue_t *self)
+{
+    lh_return_if(lh_null_eq(self));
+    lh_os_logger_queue_free(self);
+}
+
 lh_os_logger_queue_t *
 lh_os_logger_queue_try_create(lh_uint_t capacity, lh_u32_t flush_ms,
                               const lh_os_logger_sink_t *sink)
@@ -408,11 +415,4 @@ lh_os_logger_queue_try_create(lh_uint_t capacity, lh_u32_t flush_ms,
         return lh_null;
     }
     return self;
-}
-
-lh_void
-lh_os_logger_queue_destroy(lh_os_logger_queue_t *self)
-{
-    lh_return_if(lh_null_eq(self));
-    lh_os_logger_queue_free(self);
 }

@@ -268,20 +268,6 @@ lh_void
 lh_rail_loop_set_release_user(lh_rail_loop_t *self, lh_ptr release_user);
 
 /**
- * @brief ::lh_rail_loop_try_start with the thread's CPU and flags, hints the rail
- *        base may ignore (lh/rail/base/start/fn.h).
- *
- * @param self  The loop, created and not started.
- * @param cpu   Logical CPU index, or -1 to inherit affinity.
- * @param flags The base's own options (the OS base: zero or
- *              ::lh_os_thread_block_sigpipe).
- * @return ::lh_bool_false when the rail base has no thread group or the thread
- *         could not start.
- */
-lh_bool_t
-lh_rail_loop_try_start_on(lh_rail_loop_t *self, lh_s32_t cpu, lh_u32_t flags);
-
-/**
  * @brief Take the loop's lock; a failure is ignored.
  * @param self The loop, created.
  */
@@ -442,16 +428,6 @@ lh_bool_t
 lh_rail_loop_try_reap(lh_rail_loop_t *self);
 
 /**
- * @brief Start the thread; the first step runs at once.
- *
- * @param self The loop, created and not started.
- * @return ::lh_bool_false when the rail base has no thread group or the thread
- *         could not start.
- */
-lh_bool_t
-lh_rail_loop_try_start(lh_rail_loop_t *self);
-
-/**
  * @brief One pass of the loop: a round (::lh_rail_loop_run_step), then how long
  *        until the next one (::lh_rail_loop_get_next_pass_ms).
  *
@@ -508,6 +484,20 @@ lh_bool_t
 lh_rail_loop_try_stop(lh_rail_loop_t *self, lh_u32_t timeout_ms);
 
 /**
+ * @brief ::lh_rail_loop_try_start with the thread's CPU and flags, hints the rail
+ *        base may ignore (lh/rail/base/start/fn.h).
+ *
+ * @param self  The loop, created and not started.
+ * @param cpu   Logical CPU index, or -1 to inherit affinity.
+ * @param flags The base's own options (the OS base: zero or
+ *              ::lh_os_thread_block_sigpipe).
+ * @return ::lh_bool_false when the rail base has no thread group or the thread
+ *         could not start.
+ */
+lh_bool_t
+lh_rail_loop_try_start_on(lh_rail_loop_t *self, lh_s32_t cpu, lh_u32_t flags);
+
+/**
  * @brief Create a loop, without its thread yet.
  *
  * @param period_ms Longest sleep, in milliseconds; not 0.
@@ -518,6 +508,16 @@ lh_rail_loop_try_stop(lh_rail_loop_t *self, lh_u32_t timeout_ms);
  */
 lh_rail_loop_t *
 lh_rail_loop_try_create(lh_u32_t period_ms, lh_rail_loop_step_cb step, lh_ptr user);
+
+/**
+ * @brief Start the thread; the first step runs at once.
+ *
+ * @param self The loop, created and not started.
+ * @return ::lh_bool_false when the rail base has no thread group or the thread
+ *         could not start.
+ */
+lh_bool_t
+lh_rail_loop_try_start(lh_rail_loop_t *self);
 
 /**
  * @brief ::lh_rail_loop_try_create for a loop that sleeps in @p wait, woken by @p wake.

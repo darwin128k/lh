@@ -357,17 +357,6 @@ lh_rail_loop_free(lh_rail_loop_t *self)
 }
 
 lh_bool_t
-lh_rail_loop_try_start_on(lh_rail_loop_t *self, lh_s32_t cpu, lh_u32_t flags)
-{
-    const lh_rail_base_t *base = lh_rail_runtime_base_get();
-    lh_return_if(lh_rail_loop_is_started(self) || !lh_rail_base_has_thread(base), lh_bool_false);
-    lh_rail_loop_set_thread(self,
-                            lh_rail_base_thread_start(base, lh_rail_loop_run, self, cpu, flags));
-    lh_rail_loop_set_started(self, lh_ptr_is_set(lh_rail_loop_get_thread(self)));
-    return lh_rail_loop_is_started(self);
-}
-
-lh_bool_t
 lh_rail_loop_try_abandon(lh_rail_loop_t *self, lh_rail_loop_release_cb release, lh_ptr release_user)
 {
     /* Published by the compare-exchange below, read by the thread after it lost it. */
@@ -484,12 +473,6 @@ lh_rail_loop_try_reap(lh_rail_loop_t *self)
     return lh_bool_true;
 }
 
-lh_bool_t
-lh_rail_loop_try_start(lh_rail_loop_t *self)
-{
-    return lh_rail_loop_try_start_on(self, -1, 0U);
-}
-
 lh_u32_t
 lh_rail_loop_pass(lh_rail_loop_t *self)
 {
@@ -539,6 +522,17 @@ lh_rail_loop_try_stop(lh_rail_loop_t *self, lh_u32_t timeout_ms)
     return lh_rail_loop_is_ended(self);
 }
 
+lh_bool_t
+lh_rail_loop_try_start_on(lh_rail_loop_t *self, lh_s32_t cpu, lh_u32_t flags)
+{
+    const lh_rail_base_t *base = lh_rail_runtime_base_get();
+    lh_return_if(lh_rail_loop_is_started(self) || !lh_rail_base_has_thread(base), lh_bool_false);
+    lh_rail_loop_set_thread(self,
+                            lh_rail_base_thread_start(base, lh_rail_loop_run, self, cpu, flags));
+    lh_rail_loop_set_started(self, lh_ptr_is_set(lh_rail_loop_get_thread(self)));
+    return lh_rail_loop_is_started(self);
+}
+
 lh_rail_loop_t *
 lh_rail_loop_try_create(lh_u32_t period_ms, lh_rail_loop_step_cb step, lh_ptr user)
 {
@@ -573,6 +567,12 @@ lh_rail_loop_try_create(lh_u32_t period_ms, lh_rail_loop_step_cb step, lh_ptr us
         return lh_null;
     }
     return self;
+}
+
+lh_bool_t
+lh_rail_loop_try_start(lh_rail_loop_t *self)
+{
+    return lh_rail_loop_try_start_on(self, -1, 0U);
 }
 
 lh_rail_loop_t *

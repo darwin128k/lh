@@ -130,6 +130,12 @@ lh_os_logger_daily_channel_t *
 lh_os_logger_daily_find(const lh_os_logger_daily_t *self, lh_u32_t id);
 
 /**
+ * @brief Close (internal).
+ */
+lh_void
+lh_os_logger_daily_close(lh_ptr user);
+
+/**
  * @brief Delete the channel's daily files older than its retention allows on @p today.
  */
 lh_void
@@ -156,6 +162,13 @@ lh_void
 lh_os_logger_daily_open(lh_os_logger_daily_t *self, const lh_os_logger_record_t *record);
 
 /**
+ * @brief Lines are written straight to the files: there is no buffer of ours to flush.
+   A flush is when a quiet channel notices a new day and cleans up.
+ */
+lh_void
+lh_os_logger_daily_flush(lh_ptr user);
+
+/**
  * @brief Write (internal).
  */
 lh_void
@@ -166,19 +179,6 @@ lh_os_logger_daily_write(lh_os_logger_daily_t *self, const lh_os_logger_record_t
  */
 lh_void
 lh_os_logger_daily_emit(lh_ptr user, const lh_os_logger_record_t *record);
-
-/**
- * @brief Lines are written straight to the files: there is no buffer of ours to flush.
-   A flush is when a quiet channel notices a new day and cleans up.
- */
-lh_void
-lh_os_logger_daily_flush(lh_ptr user);
-
-/**
- * @brief Close (internal).
- */
-lh_void
-lh_os_logger_daily_close(lh_ptr user);
 
 LH_COMPILER_EXTERN_C_END
 

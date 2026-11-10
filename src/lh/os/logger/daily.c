@@ -236,30 +236,6 @@ lh_os_logger_daily_find(const lh_os_logger_daily_t *self, lh_u32_t id)
     return lh_null;
 }
 
-/* -- The API ------------------------------------------------------------------ */
-
-lh_os_logger_daily_t *
-lh_os_logger_daily_try_create(lh_os_logger_daily_format_cb format,
-                              lh_os_logger_daily_clock_cb clock, lh_ptr user)
-{
-    lh_memory_allocator_t allocator = lh_ptr_deref(lh_runtime_allocator_get());
-    lh_os_logger_daily_t *self = lh_ptr_rcast(
-        lh_os_logger_daily_t,
-        lh_memory_allocator_try_alloc_zero(lh_addr_of(allocator), 1U, sizeof(lh_ptr_deref(self))));
-
-    lh_return_if(lh_null_eq(self), lh_null);
-    lh_memory_allocator_assign(lh_os_logger_daily_get_allocator_mut(self), lh_addr_of(allocator));
-    lh_list_init(lh_os_logger_daily_get_channels_mut(self));
-    lh_os_logger_daily_set_format_fn(self, lh_null_ne(format) ? format
-                                                              : lh_os_logger_daily_format_standard);
-    lh_os_logger_daily_set_clock_fn(self,
-                                    lh_null_ne(clock) ? clock : lh_os_logger_daily_get_system_now);
-    lh_os_logger_daily_set_user(self, user);
-    lh_str_init(lh_os_logger_daily_get_line_mut(self));
-    lh_os_logger_daily_set_reported(self, lh_bool_false);
-    return self;
-}
-
 lh_void
 lh_os_logger_daily_format_standard(lh_ptr user, const lh_os_logger_record_t *record,
                                    lh_timestamp_t local, lh_str_t *out)
@@ -286,6 +262,44 @@ lh_os_logger_daily_format_standard(lh_ptr user, const lh_os_logger_record_t *rec
     }
     lh_str_deinit(lh_addr_of(head));
     lh_os_logger_daily_append_text(out, lh_os_logger_record_get_text(record));
+}
+
+lh_void
+lh_os_logger_daily_close(lh_ptr user)
+{
+    lh_os_logger_daily_t *self = lh_ptr_rcast(lh_os_logger_daily_t, user);
+    lh_list_t *list = lh_os_logger_daily_get_channels_mut(self);
+
+    while (!lh_list_is_empty(list))
+    {
+        lh_list_node_t *node = lh_list_pop_front(list);
+
+        lh_os_logger_daily_channel_destroy(lh_os_logger_daily_get_channel(node));
+    }
+}
+
+/* -- The API ------------------------------------------------------------------ */
+
+lh_os_logger_daily_t *
+lh_os_logger_daily_try_create(lh_os_logger_daily_format_cb format,
+                              lh_os_logger_daily_clock_cb clock, lh_ptr user)
+{
+    lh_memory_allocator_t allocator = lh_ptr_deref(lh_runtime_allocator_get());
+    lh_os_logger_daily_t *self = lh_ptr_rcast(
+        lh_os_logger_daily_t,
+        lh_memory_allocator_try_alloc_zero(lh_addr_of(allocator), 1U, sizeof(lh_ptr_deref(self))));
+
+    lh_return_if(lh_null_eq(self), lh_null);
+    lh_memory_allocator_assign(lh_os_logger_daily_get_allocator_mut(self), lh_addr_of(allocator));
+    lh_list_init(lh_os_logger_daily_get_channels_mut(self));
+    lh_os_logger_daily_set_format_fn(self, lh_null_ne(format) ? format
+                                                              : lh_os_logger_daily_format_standard);
+    lh_os_logger_daily_set_clock_fn(self,
+                                    lh_null_ne(clock) ? clock : lh_os_logger_daily_get_system_now);
+    lh_os_logger_daily_set_user(self, user);
+    lh_str_init(lh_os_logger_daily_get_line_mut(self));
+    lh_os_logger_daily_set_reported(self, lh_bool_false);
+    return self;
 }
 
 /* Delete the channel's daily files older than its retention allows on @p today. */
@@ -340,6 +354,15 @@ lh_os_logger_daily_close_channel(lh_os_logger_daily_t *self, const lh_os_logger_
     lh_return_if(lh_null_eq(channel));
     lh_list_node_unlink(lh_os_logger_daily_channel_get_node_mut(channel));
     lh_os_logger_daily_channel_destroy(channel);
+}
+
+lh_void
+lh_os_logger_daily_destroy(lh_os_logger_daily_t *self)
+{
+    lh_return_if(lh_null_eq(self));
+    lh_os_logger_daily_close(self);
+    lh_str_deinit(lh_os_logger_daily_get_line_mut(self));
+    lh_memory_allocator_dealloc(lh_os_logger_daily_get_allocator_mut(self), self);
 }
 
 /* The channel's file for @p day: the open one, or the next one opened. */
@@ -409,6 +432,30 @@ lh_os_logger_daily_open(lh_os_logger_daily_t *self, const lh_os_logger_record_t 
     }
 }
 
+/* Lines are written straight to the files: there is no buffer of ours to flush.
+   A flush is when a quiet channel notices a new day and cleans up. */
+lh_void
+lh_os_logger_daily_flush(lh_ptr user)
+{
+    lh_os_logger_daily_t *self = lh_ptr_rcast(lh_os_logger_daily_t, user);
+    const lh_list_t *list = lh_os_logger_daily_get_channels(self);
+    lh_timestamp_t now;
+
+    lh_return_ifn(
+        lh_os_logger_daily_get_clock_fn(self)(lh_os_logger_daily_get_user(self), lh_addr_of(now)));
+    lh_s64_t today = lh_os_logger_daily_get_local_day(now);
+    for (lh_list_node_t *node = lh_list_get_first(list); lh_null_ne(node);
+         node = lh_list_get_next(list, node))
+    {
+        lh_os_logger_daily_channel_t *channel = lh_os_logger_daily_get_channel(node);
+
+        if (lh_os_logger_daily_channel_get_pruned_day(channel) != today)
+        {
+            lh_os_logger_daily_prune(self, channel, today);
+        }
+    }
+}
+
 lh_void
 lh_os_logger_daily_write(lh_os_logger_daily_t *self, const lh_os_logger_record_t *record)
 {
@@ -461,44 +508,6 @@ lh_os_logger_daily_emit(lh_ptr user, const lh_os_logger_record_t *record)
     }
 }
 
-/* Lines are written straight to the files: there is no buffer of ours to flush.
-   A flush is when a quiet channel notices a new day and cleans up. */
-lh_void
-lh_os_logger_daily_flush(lh_ptr user)
-{
-    lh_os_logger_daily_t *self = lh_ptr_rcast(lh_os_logger_daily_t, user);
-    const lh_list_t *list = lh_os_logger_daily_get_channels(self);
-    lh_timestamp_t now;
-
-    lh_return_ifn(
-        lh_os_logger_daily_get_clock_fn(self)(lh_os_logger_daily_get_user(self), lh_addr_of(now)));
-    lh_s64_t today = lh_os_logger_daily_get_local_day(now);
-    for (lh_list_node_t *node = lh_list_get_first(list); lh_null_ne(node);
-         node = lh_list_get_next(list, node))
-    {
-        lh_os_logger_daily_channel_t *channel = lh_os_logger_daily_get_channel(node);
-
-        if (lh_os_logger_daily_channel_get_pruned_day(channel) != today)
-        {
-            lh_os_logger_daily_prune(self, channel, today);
-        }
-    }
-}
-
-lh_void
-lh_os_logger_daily_close(lh_ptr user)
-{
-    lh_os_logger_daily_t *self = lh_ptr_rcast(lh_os_logger_daily_t, user);
-    lh_list_t *list = lh_os_logger_daily_get_channels_mut(self);
-
-    while (!lh_list_is_empty(list))
-    {
-        lh_list_node_t *node = lh_list_pop_front(list);
-
-        lh_os_logger_daily_channel_destroy(lh_os_logger_daily_get_channel(node));
-    }
-}
-
 lh_void
 lh_os_logger_daily_copy_sink(lh_os_logger_daily_t *self, lh_os_logger_sink_t *out)
 {
@@ -508,13 +517,4 @@ lh_os_logger_daily_copy_sink(lh_os_logger_daily_t *self, lh_os_logger_sink_t *ou
     lh_os_logger_sink_set_close_fn(out, lh_os_logger_daily_close);
     lh_os_logger_sink_set_dropped_fn(out, lh_null);
     lh_os_logger_sink_set_user(out, self);
-}
-
-lh_void
-lh_os_logger_daily_destroy(lh_os_logger_daily_t *self)
-{
-    lh_return_if(lh_null_eq(self));
-    lh_os_logger_daily_close(self);
-    lh_str_deinit(lh_os_logger_daily_get_line_mut(self));
-    lh_memory_allocator_dealloc(lh_os_logger_daily_get_allocator_mut(self), self);
 }

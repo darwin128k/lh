@@ -28,61 +28,6 @@ typedef struct lh_os_logger_queue lh_os_logger_queue_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Copy @p record into the queue without waiting.
- *
- * The producer's call: one thread only.
- *
- * @param self   The queue.
- * @param record The record; copied.
- * @return ::lh_bool_false when the queue was full and the record was dropped.
- */
-lh_bool_t
-lh_os_logger_queue_push(lh_os_logger_queue_t *self, const lh_os_logger_record_t *record);
-
-/**
- * @brief Wait until everything pushed before this call is written and flushed.
- *
- * For tests and administration, not for a frame loop.
- *
- * @param self       The queue.
- * @param timeout_ms Longest wait, in milliseconds.
- * @return ::lh_bool_false when the time ran out first.
- */
-lh_bool_t
-lh_os_logger_queue_sync(lh_os_logger_queue_t *self, lh_u32_t timeout_ms);
-
-/**
- * @brief How many records were dropped since the queue was created.
- *
- * @param self The queue.
- */
-lh_u32_t
-lh_os_logger_queue_get_dropped(const lh_os_logger_queue_t *self);
-
-/**
- * @brief Create a queue of @p capacity records and start its worker.
- *
- * @param capacity How many records it holds; a power of two.
- * @param flush_ms How often the worker flushes the sink, in milliseconds; not 0.
- * @param sink     Where records go: emit, flush and close set. Copied.
- * @return The queue, or ::lh_null when the arguments are wrong, memory is short or
- *         the worker could not start.
- */
-lh_os_logger_queue_t *
-lh_os_logger_queue_try_create(lh_uint_t capacity, lh_u32_t flush_ms,
-                              const lh_os_logger_sink_t *sink);
-
-/**
- * @brief Drain the queue, flush and close the sink, join the worker and free it all.
- *
- * The producer must have stopped pushing.
- *
- * @param self The queue, or ::lh_null.
- */
-lh_void
-lh_os_logger_queue_destroy(lh_os_logger_queue_t *self);
-
-/**
  * @brief The allocator of @p self, to change in place (level 1).
  */
 lh_memory_allocator_t *
@@ -238,6 +183,38 @@ lh_bool_t
 lh_os_logger_queue_has_reached(lh_u32_t done, lh_u32_t wanted);
 
 /**
+ * @brief Copy @p record into the queue without waiting.
+ *
+ * The producer's call: one thread only.
+ *
+ * @param self   The queue.
+ * @param record The record; copied.
+ * @return ::lh_bool_false when the queue was full and the record was dropped.
+ */
+lh_bool_t
+lh_os_logger_queue_push(lh_os_logger_queue_t *self, const lh_os_logger_record_t *record);
+
+/**
+ * @brief Wait until everything pushed before this call is written and flushed.
+ *
+ * For tests and administration, not for a frame loop.
+ *
+ * @param self       The queue.
+ * @param timeout_ms Longest wait, in milliseconds.
+ * @return ::lh_bool_false when the time ran out first.
+ */
+lh_bool_t
+lh_os_logger_queue_sync(lh_os_logger_queue_t *self, lh_u32_t timeout_ms);
+
+/**
+ * @brief How many records were dropped since the queue was created.
+ *
+ * @param self The queue.
+ */
+lh_u32_t
+lh_os_logger_queue_get_dropped(const lh_os_logger_queue_t *self);
+
+/**
  * @brief Whether @p self is empty (level 1).
  */
 lh_bool_t
@@ -269,10 +246,33 @@ lh_void
 lh_os_logger_queue_free(lh_os_logger_queue_t *self);
 
 /**
+ * @brief Drain the queue, flush and close the sink, join the worker and free it all.
+ *
+ * The producer must have stopped pushing.
+ *
+ * @param self The queue, or ::lh_null.
+ */
+lh_void
+lh_os_logger_queue_destroy(lh_os_logger_queue_t *self);
+
+/**
  * @brief One round of the loop: records, drops, then a flush when one is due.
  */
 lh_void
 lh_os_logger_queue_step(lh_ptr user);
+
+/**
+ * @brief Create a queue of @p capacity records and start its worker.
+ *
+ * @param capacity How many records it holds; a power of two.
+ * @param flush_ms How often the worker flushes the sink, in milliseconds; not 0.
+ * @param sink     Where records go: emit, flush and close set. Copied.
+ * @return The queue, or ::lh_null when the arguments are wrong, memory is short or
+ *         the worker could not start.
+ */
+lh_os_logger_queue_t *
+lh_os_logger_queue_try_create(lh_uint_t capacity, lh_u32_t flush_ms,
+                              const lh_os_logger_sink_t *sink);
 
 LH_COMPILER_EXTERN_C_END
 
