@@ -263,23 +263,33 @@ lh_timer_group_handler(lh_timer_group_t *self, lh_tick_t now)
     timers = lh_timer_group_get_timers_mut(self);
     for (node = lh_list_get_first(timers); lh_null_ne(node); node = next)
     {
+        lh_tick_t late;
+
         next = lh_list_get_next(timers, node);
         timer = lh_timer_get_by_node_mut(node);
         if (lh_timer_get_paused(timer))
         {
             continue;
         }
-        if ((now - lh_timer_get_last(timer)) < lh_timer_get_period(timer))
+        late = now - lh_timer_get_last(timer);
+        if (late < lh_timer_get_period(timer))
         {
             continue;
         }
-        lh_timer_set_last(timer, now);
-        lh_assert_runtime_ref(lh_timer_get_cb(timer));
-        lh_timer_get_cb(timer)(timer, lh_timer_get_context(timer));
-        if (!lh_timer_get_repeat(timer) && lh_timer_is_running(timer))
+        /* Keep the timer's phase; when a whole period was missed, start again from
+           now instead of firing a burst of catch-up calls. */
+        lh_timer_set_last(timer, late - lh_timer_get_period(timer) < lh_timer_get_period(timer)
+                                     ? lh_timer_get_last(timer) + lh_timer_get_period(timer)
+                                     : now);
+        if (!lh_timer_get_repeat(timer))
         {
             lh_timer_stop(timer);
         }
+        lh_assert_runtime_ref(lh_timer_get_cb(timer));
+        lh_timer_get_cb(timer)(timer, lh_timer_get_context(timer));
+        /* The callback may have stopped or started any timer, `next` too: walk again
+           from the first one. What fired is no longer due, so nothing fires twice. */
+        next = lh_list_get_first(timers);
     }
 }
 
@@ -383,4 +393,17 @@ lh_timer_cmp_priority(const lh_list_node_t *a, const lh_list_node_t *b, lh_ptr c
         return 1;
     }
     return 0;
+}
+
+lh_void
+lh_timer_start_after(lh_timer_group_t *group, lh_timer_t *self, lh_tick_t delay, lh_tick_t period,
+                     lh_bool_t repeat, lh_u8_t priority, lh_timer_cb cb, lh_ptr context,
+                     lh_tick_t now)
+{
+    /* A one-shot timer fires once, at the delay: its period is the delay itself. */
+    const lh_tick_t step = repeat ? period : lh_math_max(delay, 1U);
+
+    lh_timer_start(group, self, step, repeat, priority, cb, context, now);
+    /* Due when now - last >= step: the first time at now + delay. */
+    lh_timer_set_last(self, now + delay - step);
 }

@@ -168,3 +168,107 @@ TEST(timer_set_priority, relinks_while_running)
 }
 
 } // namespace
+
+TEST(timer_group, start_after_waits_its_delay_then_its_period)
+{
+    lh_timer_group_t group{};
+    lh_timer_t timer{};
+    FireLog log{};
+
+    lh_timer_group_init(lh_addr_of(group));
+    lh_timer_init(lh_addr_of(timer));
+    lh_timer_start_after(lh_addr_of(group), lh_addr_of(timer), 3, 10, lh_bool_true, 0, on_fire,
+                         lh_addr_of(log), 100);
+    lh_timer_group_handler(lh_addr_of(group), 102);
+    EXPECT_EQ(log.count, 0);
+    lh_timer_group_handler(lh_addr_of(group), 103);
+    EXPECT_EQ(log.count, 1);
+    lh_timer_group_handler(lh_addr_of(group), 112);
+    EXPECT_EQ(log.count, 1);
+    lh_timer_group_handler(lh_addr_of(group), 113);
+    EXPECT_EQ(log.count, 2);
+    lh_timer_deinit(lh_addr_of(timer));
+    lh_timer_group_deinit(lh_addr_of(group));
+}
+
+TEST(timer_group, a_zero_delay_fires_at_the_next_handler_once)
+{
+    lh_timer_group_t group{};
+    lh_timer_t timer{};
+    FireLog log{};
+
+    lh_timer_group_init(lh_addr_of(group));
+    lh_timer_init(lh_addr_of(timer));
+    lh_timer_start_after(lh_addr_of(group), lh_addr_of(timer), 0, 0, lh_bool_false, 0, on_fire,
+                         lh_addr_of(log), 50);
+    lh_timer_group_handler(lh_addr_of(group), 50);
+    lh_timer_group_handler(lh_addr_of(group), 60);
+    EXPECT_EQ(log.count, 1);
+    EXPECT_FALSE(lh_timer_is_running(lh_addr_of(timer)));
+    lh_timer_group_deinit(lh_addr_of(group));
+}
+
+TEST(timer_group, keeps_its_phase_and_skips_missed_periods)
+{
+    lh_timer_group_t group{};
+    lh_timer_t timer{};
+    FireLog log{};
+
+    lh_timer_group_init(lh_addr_of(group));
+    lh_timer_init(lh_addr_of(timer));
+    lh_timer_start(lh_addr_of(group), lh_addr_of(timer), 10, lh_bool_true, 0, on_fire,
+                   lh_addr_of(log), 0);
+    /* A late frame keeps the phase: the next fire is at 20, not 13 + 10. */
+    lh_timer_group_handler(lh_addr_of(group), 13);
+    EXPECT_EQ(lh_timer_get_last(lh_addr_of(timer)), 10U);
+    /* Three periods missed: one call, then a fresh start from now. */
+    lh_timer_group_handler(lh_addr_of(group), 47);
+    EXPECT_EQ(log.count, 2);
+    EXPECT_EQ(lh_timer_get_last(lh_addr_of(timer)), 47U);
+    lh_timer_deinit(lh_addr_of(timer));
+    lh_timer_group_deinit(lh_addr_of(group));
+}
+
+namespace
+{
+
+/* Stops the other timer from inside its own callback. */
+struct stopper
+{
+    lh_timer_t *other;
+    int calls;
+};
+
+lh_void
+on_stop_other(lh_timer_t * /*self*/, lh_ptr context)
+{
+    auto *s = static_cast<stopper *>(context);
+
+    ++s->calls;
+    lh_timer_stop(s->other);
+}
+
+} // namespace
+
+TEST(timer_group, a_callback_may_stop_the_next_timer)
+{
+    lh_timer_group_t group{};
+    lh_timer_t first{};
+    lh_timer_t second{};
+    FireLog log{};
+    stopper s{&second, 0};
+
+    lh_timer_group_init(lh_addr_of(group));
+    lh_timer_init(lh_addr_of(first));
+    lh_timer_init(lh_addr_of(second));
+    lh_timer_start(lh_addr_of(group), lh_addr_of(first), 5, lh_bool_true, 9, on_stop_other,
+                   lh_addr_of(s), 0);
+    lh_timer_start(lh_addr_of(group), lh_addr_of(second), 5, lh_bool_true, 1, on_fire,
+                   lh_addr_of(log), 0);
+    lh_timer_group_handler(lh_addr_of(group), 5);
+    EXPECT_EQ(s.calls, 1);
+    EXPECT_EQ(log.count, 0);
+    lh_timer_deinit(lh_addr_of(first));
+    lh_timer_deinit(lh_addr_of(second));
+    lh_timer_group_deinit(lh_addr_of(group));
+}

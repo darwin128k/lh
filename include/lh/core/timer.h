@@ -182,6 +182,28 @@ lh_timer_start(lh_timer_group_t *group, lh_timer_t *self, lh_tick_t period, lh_b
                lh_u8_t priority, lh_timer_cb cb, lh_ptr context, lh_tick_t now);
 
 /**
+ * @brief ::lh_timer_start whose first fire comes @p delay after @p now, the next ones
+ *        every @p period.
+ *
+ * A @p delay of 0 fires at the next ::lh_timer_group_handler. Ticks wrap: @p delay and
+ * @p period stay below half the tick range (24 days of milliseconds).
+ *
+ * @param group    The group to arm on.
+ * @param self     The timer.
+ * @param delay    Ticks until the first fire.
+ * @param period   Ticks between the next fires; > 0 (a one-shot timer ignores it).
+ * @param repeat   Whether it fires again after the first time.
+ * @param priority Higher runs first when several are due.
+ * @param cb       The callback; not ::lh_null.
+ * @param context  The value @p cb is given.
+ * @param now      The current tick.
+ */
+lh_void
+lh_timer_start_after(lh_timer_group_t *group, lh_timer_t *self, lh_tick_t delay, lh_tick_t period,
+                     lh_bool_t repeat, lh_u8_t priority, lh_timer_cb cb, lh_ptr context,
+                     lh_tick_t now);
+
+/**
  * @brief True if @p self's priority is strictly greater than @p other's.
  */
 lh_bool_t

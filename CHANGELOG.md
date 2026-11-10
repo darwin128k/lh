@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_timer_start_after`: a first delay apart from the period (0 fires at the next
+  handler). The group handler keeps a repeating timer's phase and starts it again
+  from now after a missed period (no catch-up burst); a callback may stop or start
+  any timer, the next one included, and a one-shot timer may re-arm itself.
 - `lh/core/net/authority`: `lh_net_authority_try_split` cuts the host and the port out
   of `host:port`, `[ipv6]:port`, a bare host or a bare IPv6 address.
 - `lh/os/debug`: `lh_os_debug_print_line` hands a line to the attached debugger
