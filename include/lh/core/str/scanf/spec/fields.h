@@ -7,24 +7,27 @@
 #define LH_STR_SCANF_SPEC_FIELDS_H
 
 /**
- * @def lh_str_scanf_spec_fields(kind_type, bool_type, uint_type, text_type, size_type)
+ * @def lh_str_scanf_spec_fields(kind_type, bool_type, uint_type, text_type, size_type, length_type)
  * @brief One literal run or conversion from a format mask.
  *
  * - `kind`: a literal run or which conversion.
  * - `zero_pad`: the `0` flag, pad with zeros.
  * - `left_justify`: the `-` flag, pad on the right.
  * - `uppercase`: upper-case form of the conversion (`%X`).
+ * - `length`: the length modifier (`l`, `ll`, `z`, ...), an ::lh_str_scanf_spec_length_t.
  * - `width`: minimum field width; `0` when none was given.
  * - `have_precision`: whether a `.precision` was given.
  * - `precision`: the precision, when `have_precision`.
  * - `literal`: start of a literal run in the mask (not owned).
  * - `literal_size`: bytes in `literal`.
  */
-#define lh_str_scanf_spec_fields(kind_type, bool_type, uint_type, text_type, size_type)            \
+#define lh_str_scanf_spec_fields(kind_type, bool_type, uint_type, text_type, size_type,            \
+                                 length_type)                                                      \
     kind_type kind;                                                                                \
     bool_type zero_pad;                                                                            \
     bool_type left_justify;                                                                        \
     bool_type uppercase;                                                                           \
+    length_type length;                                                                            \
     uint_type width;                                                                               \
     bool_type have_precision;                                                                      \
     uint_type precision;                                                                           \

@@ -3,6 +3,9 @@
 #include <lh/core/memory/std.h>
 #include <lh/core/str/format/hex.h>
 #include <lh/core/str/format/sint.h>
+#include <lh/core/str/format/sllong.h>
+#include <lh/core/str/format/ullong.h>
+#include <lh/core/str/format/real.h>
 #include <lh/core/str/scanf/next.h>
 #include <lh/core/util/str/ptr.h>
 #include <lh/core/char/map.h>
@@ -40,6 +43,46 @@ lh_str_ptr_format_text_put_run(lh_str_ptr str, lh_usize_t str_size, lh_usize_t *
     return lh_bool_true;
 }
 
+lh_sllong_t
+lh_str_ptr_format_text_read_sint(const lh_str_scanf_spec_t *spec, va_list *args)
+{
+    switch (lh_str_scanf_spec_get_length(spec))
+    {
+    case lh_str_scanf_spec_length_char:
+        return lh_cast_static(lh_s8_t, va_arg(lh_ptr_deref(args), lh_sint_t));
+    case lh_str_scanf_spec_length_short:
+        return lh_cast_static(lh_s16_t, va_arg(lh_ptr_deref(args), lh_sint_t));
+    case lh_str_scanf_spec_length_long:
+        return va_arg(lh_ptr_deref(args), lh_slong_t);
+    case lh_str_scanf_spec_length_long_long:
+        return va_arg(lh_ptr_deref(args), lh_sllong_t);
+    case lh_str_scanf_spec_length_size:
+        return va_arg(lh_ptr_deref(args), lh_ssize_t);
+    default:
+        return va_arg(lh_ptr_deref(args), lh_sint_t);
+    }
+}
+
+lh_ullong_t
+lh_str_ptr_format_text_read_uint(const lh_str_scanf_spec_t *spec, va_list *args)
+{
+    switch (lh_str_scanf_spec_get_length(spec))
+    {
+    case lh_str_scanf_spec_length_char:
+        return lh_cast_static(lh_u8_t, va_arg(lh_ptr_deref(args), lh_uint_t));
+    case lh_str_scanf_spec_length_short:
+        return lh_cast_static(lh_u16_t, va_arg(lh_ptr_deref(args), lh_uint_t));
+    case lh_str_scanf_spec_length_long:
+        return va_arg(lh_ptr_deref(args), lh_ulong_t);
+    case lh_str_scanf_spec_length_long_long:
+        return va_arg(lh_ptr_deref(args), lh_ullong_t);
+    case lh_str_scanf_spec_length_size:
+        return va_arg(lh_ptr_deref(args), lh_usize_t);
+    default:
+        return va_arg(lh_ptr_deref(args), lh_uint_t);
+    }
+}
+
 lh_bool_t
 lh_str_ptr_format_text_get_value(const lh_str_scanf_spec_t *spec, va_list *args, lh_str_ptr buf,
                                  lh_str_cptr *content, lh_usize_t *size)
@@ -59,17 +102,38 @@ lh_str_ptr_format_text_get_value(const lh_str_scanf_spec_t *spec, va_list *args,
         n = 1U;
         break;
     case lh_str_scanf_spec_kind_uint:
-        n = lh_str_ptr_format_uint(va_arg(lh_ptr_deref(args), lh_uint_t), buf,
-                                   LH_STR_FORMAT_TEXT_VALUE_BUF_MAX);
+        n = lh_str_ptr_format_ullong(lh_str_ptr_format_text_read_uint(spec, args), buf,
+                                     LH_STR_FORMAT_TEXT_VALUE_BUF_MAX);
         break;
     case lh_str_scanf_spec_kind_sint:
-        n = lh_str_ptr_format_sint(va_arg(lh_ptr_deref(args), lh_sint_t), buf,
-                                   LH_STR_FORMAT_TEXT_VALUE_BUF_MAX);
+        n = lh_str_ptr_format_sllong(lh_str_ptr_format_text_read_sint(spec, args), buf,
+                                     LH_STR_FORMAT_TEXT_VALUE_BUF_MAX);
         break;
     case lh_str_scanf_spec_kind_hex:
-        n = lh_str_ptr_format_hex(va_arg(lh_ptr_deref(args), lh_uint_t), lh_str_scanf_spec_get_uppercase(spec), buf,
-                                  LH_STR_FORMAT_TEXT_VALUE_BUF_MAX);
+        n = lh_str_ptr_format_hex_ullong(lh_str_ptr_format_text_read_uint(spec, args),
+                                         lh_str_scanf_spec_get_uppercase(spec), buf,
+                                         LH_STR_FORMAT_TEXT_VALUE_BUF_MAX);
         break;
+    case lh_str_scanf_spec_kind_pointer:
+        buf[0] = lh_char_map_digit_0;
+        buf[1] = lh_char_map_small_x;
+        n = lh_str_ptr_format_hex_ullong(
+            lh_cast_static(lh_ullong_t,
+                           lh_cast_reinterpret(lh_usize_t, va_arg(lh_ptr_deref(args), lh_ptr))),
+            lh_bool_false, buf + 2, LH_STR_FORMAT_TEXT_VALUE_BUF_MAX - 2U);
+        n = lh_math_is_zero(n) ? 0U : n + 2U;
+        break;
+#if LH_REAL_ENABLED
+    case lh_str_scanf_spec_kind_real:
+        /* A float argument arrives promoted to double, whatever lh_real_t is. */
+        n = lh_str_ptr_format_real_fixed(
+            lh_cast_static(lh_real_t, va_arg(lh_ptr_deref(args), double)),
+            lh_str_scanf_spec_get_have_precision(spec)
+                ? lh_cast_static(lh_usize_t, lh_str_scanf_spec_get_precision(spec))
+                : 6U,
+            buf, LH_STR_FORMAT_TEXT_VALUE_BUF_MAX);
+        break;
+#endif
     case lh_str_scanf_spec_kind_str:
         lh_ptr_deref(content) = va_arg(lh_ptr_deref(args), lh_str_cptr);
         n = lh_str_ptr_len(lh_ptr_deref(content));

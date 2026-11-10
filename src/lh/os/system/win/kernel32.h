@@ -206,6 +206,10 @@ SystemTimeToTzSpecificLocalTime(const lh_ptr lpTimeZoneInformation,
 /* Errors. `Arguments` is a `va_list *`; we always pass null with
    FORMAT_MESSAGE_IGNORE_INSERTS. */
 
+/** Hand text to the attached debugger. Present since Windows NT 3.1. */
+LH_OS_SYSTEM_WIN_IMPORT void LH_OS_SYSTEM_WIN_CALL
+OutputDebugStringW(lh_wstr_cptr lpOutputString);
+
 /** The calling thread's last error code. Present since Windows 95. */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_dword_t LH_OS_SYSTEM_WIN_CALL
 GetLastError(void);

@@ -350,6 +350,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/wake.c
             ${LH_LIB_SRC_PATH}/os/net/socket/poll.c
             ${LH_LIB_SRC_PATH}/os/env.c
+            ${LH_LIB_SRC_PATH}/os/debug.c
             ${LH_LIB_SRC_PATH}/os/memory.c
             ${LH_LIB_SRC_PATH}/os/input.c
             ${LH_LIB_SRC_PATH}/os/fs/path.c
@@ -396,6 +397,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/tick.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/concurrency.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/env.c
+            ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/debug.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/memory.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/fs/path.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/fs/file.c

@@ -180,7 +180,28 @@ lh_str_scanf_spec_set_conversion(lh_str_scanf_spec_t *self, lh_char_t conversion
         lh_str_scanf_spec_set_kind(self, lh_str_scanf_spec_kind_hex);
         lh_str_scanf_spec_set_uppercase(self, lh_bool_true);
         break;
+    case lh_char_map_small_f:
+    case lh_char_map_capital_f:
+        lh_str_scanf_spec_set_kind(self, lh_str_scanf_spec_kind_real);
+        break;
+    case lh_char_map_small_p:
+        lh_str_scanf_spec_set_kind(self, lh_str_scanf_spec_kind_pointer);
+        break;
     default:
         break; /* kind stays invalid */
     }
+}
+
+lh_str_scanf_spec_length_t
+lh_str_scanf_spec_get_length(const lh_str_scanf_spec_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->length;
+}
+
+lh_void
+lh_str_scanf_spec_set_length(lh_str_scanf_spec_t *self, lh_str_scanf_spec_length_t length)
+{
+    lh_assert_runtime_ref(self);
+    self->length = length;
 }

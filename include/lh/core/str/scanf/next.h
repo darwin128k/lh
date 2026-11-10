@@ -64,6 +64,19 @@ lh_str_ptr_scanf_next_number(const lh_str_ptr fmt, lh_usize_t *pos, lh_uint_t *v
 lh_bool_t
 lh_str_ptr_scanf_next(const lh_str_ptr fmt, lh_usize_t *pos, lh_str_scanf_spec_t *out);
 
+/**
+ * @brief Read a length modifier at @p pos into @p out, if one is there.
+ *
+ * `hh`, `h`, `l`, `ll`, `j`, `z` and `t`; anything else leaves @p pos and the
+ * length untouched.
+ *
+ * @param fmt NUL-terminated format mask.
+ * @param pos In: where the modifier may start; out: just past it.
+ * @param out Receives the length.
+ */
+lh_void
+lh_str_ptr_scanf_next_length(const lh_str_ptr fmt, lh_usize_t *pos, lh_str_scanf_spec_t *out);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_STR_SCANF_NEXT_H */

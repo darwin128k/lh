@@ -312,4 +312,33 @@ TEST(str_ptr_format_real, every_number_reads_back_and_is_nearly_always_shortest)
 
 } // namespace
 
+std::string
+fixed(lh_real_t value, lh_usize_t decimals)
+{
+    char buf[64];
+    const lh_usize_t n = lh_str_ptr_format_real_fixed(value, decimals, buf, sizeof(buf));
+    return std::string(buf, n);
+}
+
+TEST(str_ptr_format_real_fixed, rounds_to_the_decimals_asked)
+{
+    EXPECT_EQ(fixed(static_cast<lh_real_t>(3.14159), 2U), "3.14");
+    EXPECT_EQ(fixed(static_cast<lh_real_t>(2.5), 0U), "3");
+    EXPECT_EQ(fixed(static_cast<lh_real_t>(9.995), 2U), "10.00");
+    EXPECT_EQ(fixed(static_cast<lh_real_t>(-0.004), 2U), "-0.00");
+    EXPECT_EQ(fixed(static_cast<lh_real_t>(0), 6U), "0.000000");
+    EXPECT_EQ(fixed(static_cast<lh_real_t>(1500), 1U), "1500.0");
+    EXPECT_EQ(fixed(static_cast<lh_real_t>(0.0001234), 6U), "0.000123");
+    EXPECT_EQ(fixed(static_cast<lh_real_t>(-12.75), 1U), "-12.8");
+}
+
+TEST(str_ptr_format_real_fixed, refuses_what_has_no_number_text_or_no_room)
+{
+    char buf[3];
+
+    EXPECT_EQ(fixed(std::numeric_limits<lh_real_t>::infinity(), 2U), "");
+    EXPECT_EQ(fixed(std::numeric_limits<lh_real_t>::quiet_NaN(), 2U), "");
+    EXPECT_EQ(lh_str_ptr_format_real_fixed(static_cast<lh_real_t>(1.5), 2U, buf, sizeof(buf)), 0U);
+}
+
 #endif /* LH_REAL_ENABLED */

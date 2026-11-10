@@ -58,6 +58,18 @@
 #define lh_str_scanf_spec_kind_hex 7
 
 /**
+ * @def lh_str_scanf_spec_kind_real
+ * @brief `%f` / `%F`: a `double` in fixed notation, 6 decimals unless a precision.
+ */
+#define lh_str_scanf_spec_kind_real 8
+
+/**
+ * @def lh_str_scanf_spec_kind_pointer
+ * @brief `%p`: a pointer, as `0x` and its hexadecimal value.
+ */
+#define lh_str_scanf_spec_kind_pointer 9
+
+/**
  * @typedef lh_str_scanf_spec_kind_t
  * @brief Format-mask token kind; one of the `lh_str_scanf_spec_kind_*` constants.
  */

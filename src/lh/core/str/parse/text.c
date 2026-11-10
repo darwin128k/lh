@@ -172,6 +172,12 @@ lh_str_ptr_parse_text_field(lh_str_cptr str, lh_usize_t str_size, lh_usize_t *po
     const lh_usize_t limit =
         (lh_str_scanf_spec_get_width(spec) > 0U && lh_str_scanf_spec_get_width(spec) < remaining) ? lh_str_scanf_spec_get_width(spec) : remaining;
 
+    /* Parsing stores into int-sized targets: a length modifier would name a target
+       of another size, so the mask is refused rather than written past. */
+    if (lh_math_ne(lh_str_scanf_spec_get_length(spec), lh_str_scanf_spec_length_none))
+    {
+        return lh_bool_false;
+    }
     switch (lh_str_scanf_spec_get_kind(spec))
     {
     case lh_str_scanf_spec_kind_literal:

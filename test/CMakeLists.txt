@@ -319,6 +319,7 @@ set(LH_TEST_OS_SOURCES
         ${LH_TEST_SRC_PATH}/lh/os/shared.cpp
         ${LH_TEST_SRC_PATH}/lh/os/tick.cpp
         ${LH_TEST_SRC_PATH}/lh/os/timestamp.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/debug.cpp
         ${LH_TEST_SRC_PATH}/lh/os/thread/group.cpp
         ${LH_TEST_SRC_PATH}/lh/os/logger/queue.cpp
         ${LH_TEST_SRC_PATH}/lh/os/logger/daily.cpp
@@ -368,6 +369,8 @@ if (NOT LH_LIBRARY_OPTION_OS)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/sql/mysql.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/timestamp.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/timestamp.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/debug.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/debug.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/thread/group.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/thread/group.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/logger/queue.cpp)

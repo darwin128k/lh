@@ -1,4 +1,6 @@
 #include <lh/core/str/format/real.h>
+#include <lh/core/memory/std.h>
+#include <lh/core/util/return.h>
 
 #if LH_REAL_ENABLED
 
@@ -131,3 +133,97 @@ lh_str_ptr_format_real(lh_real_t value, lh_str_ptr str, lh_usize_t str_size)
 }
 
 #endif /* LH_REAL_ENABLED */
+
+lh_usize_t
+lh_str_ptr_format_real_fixed(lh_real_t value, lh_usize_t decimals, lh_str_ptr str,
+                             lh_usize_t str_size)
+{
+    const lh_u64_t bits = lh_real_to_bits(value);
+    const lh_u64_t magnitude = lh_real_bits_get_magnitude(bits);
+    lh_char_t digits[LH_REAL_GRISU_DIGITS_MAX];
+    lh_usize_t count = 0U;
+    lh_s32_t k = 0;
+    lh_s32_t point;
+    lh_s32_t keep;
+    lh_usize_t pos = 0U;
+    lh_bool_t carry = lh_bool_false;
+
+    lh_assert_runtime_ref(str);
+    lh_return_ifn(lh_real_bits_is_finite(bits), 0U);
+    if (!lh_math_is_zero(magnitude))
+    {
+        lh_real_grisu(lh_real_from_bits(magnitude), digits, lh_addr_of(count), lh_addr_of(k));
+    }
+    /* digits[0 .. count) with the point `point` digits from the left. */
+    point = lh_math_add(lh_cast_static(lh_s32_t, count), k);
+    keep = lh_math_add(point, lh_cast_static(lh_s32_t, decimals));
+    if (lh_math_lt(keep, lh_cast_static(lh_s32_t, count)))
+    {
+        /* Round half away from zero at the last digit kept. */
+        carry = lh_math_ge(keep, 0) && lh_math_ge(digits[keep], lh_char_map_digit_5)
+                    ? lh_bool_true
+                    : lh_bool_false;
+        if (lh_math_lt(keep, 0))
+        {
+            count = 0U;
+        }
+        else
+        {
+            count = lh_cast_static(lh_usize_t, keep);
+        }
+        for (lh_usize_t i = count; carry && lh_math_gt(i, 0U); --i)
+        {
+            if (lh_math_eq(digits[i - 1U], lh_char_map_digit_9))
+            {
+                digits[i - 1U] = lh_char_map_digit_0;
+            }
+            else
+            {
+                digits[i - 1U] = lh_cast_static(lh_char_t, digits[i - 1U] + 1);
+                carry = lh_bool_false;
+            }
+        }
+        if (carry)
+        {
+            /* 9.99 -> 10.0: one more digit on the left. */
+            lh_memory_std_move(digits + 1, digits, count);
+            digits[0] = lh_char_map_digit_1;
+            count = lh_math_add_one(count);
+            point = lh_math_add_one(point);
+        }
+    }
+    {
+        /* All or nothing, as every formatter: the size first, then the text. */
+        const lh_bool_t negative = lh_real_bits_is_negative(bits) && !lh_math_is_zero(magnitude)
+                                       ? lh_bool_true
+                                       : lh_bool_false;
+        const lh_usize_t whole = lh_math_gt(point, 0) ? lh_cast_static(lh_usize_t, point) : 1U;
+        const lh_usize_t size = (negative ? 1U : 0U) + whole +
+                                (lh_math_is_zero(decimals) ? 0U : lh_math_add_one(decimals));
+
+        lh_return_if(lh_math_gt(size, str_size), 0U);
+        if (negative)
+        {
+            str[pos++] = lh_char_map_minus;
+        }
+        if (lh_math_le(point, 0))
+        {
+            str[pos++] = lh_char_map_digit_0;
+        }
+        for (lh_s32_t i = 0; lh_math_lt(i, point); ++i)
+        {
+            str[pos++] =
+                lh_math_lt(i, lh_cast_static(lh_s32_t, count)) ? digits[i] : lh_char_map_digit_0;
+        }
+        lh_return_if(lh_math_is_zero(decimals), pos);
+        str[pos++] = lh_char_map_period;
+        for (lh_s32_t i = point;
+             lh_math_lt(i, lh_math_add(point, lh_cast_static(lh_s32_t, decimals))); ++i)
+        {
+            str[pos++] = lh_math_ge(i, 0) && lh_math_lt(i, lh_cast_static(lh_s32_t, count))
+                             ? digits[i]
+                             : lh_char_map_digit_0;
+        }
+    }
+    return pos;
+}

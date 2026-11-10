@@ -17,6 +17,7 @@
 #include <lh/core/str/ptr.h>
 #include <lh/core/str/scanf/spec/fields.h>
 #include <lh/core/str/scanf/spec/kind.h>
+#include <lh/core/str/scanf/spec/length.h>
 
 /**
  * @struct lh_str_scanf_spec
@@ -27,7 +28,7 @@ struct lh_str_scanf_spec
 {
     /** Members: ::lh_str_scanf_spec_fields. */
     lh_str_scanf_spec_fields(lh_str_scanf_spec_kind_t, lh_bool_t, lh_uint_t, const lh_str_ptr,
-                             lh_usize_t);
+                             lh_usize_t, lh_str_scanf_spec_length_t);
 };
 /** @copybrief lh_str_scanf_spec */
 typedef struct lh_str_scanf_spec lh_str_scanf_spec_t;
@@ -133,6 +134,25 @@ lh_str_scanf_spec_get_pad(const lh_str_scanf_spec_t *self, lh_usize_t size);
  */
 lh_void
 lh_str_scanf_spec_set_conversion(lh_str_scanf_spec_t *self, lh_char_t conversion);
+
+/**
+ * @brief The length modifier, an ::lh_str_scanf_spec_length_t (level 1).
+ *
+ * @param self The spec; checked by ::lh_assert_runtime_ref.
+ */
+lh_str_scanf_spec_length_t
+lh_str_scanf_spec_get_length(const lh_str_scanf_spec_t *self);
+
+/**
+ * @brief Store the length modifier, an ::lh_str_scanf_spec_length_t (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The spec; checked by ::lh_assert_runtime_ref.
+ * @param length The new value.
+ */
+lh_void
+lh_str_scanf_spec_set_length(lh_str_scanf_spec_t *self, lh_str_scanf_spec_length_t length);
 
 LH_COMPILER_EXTERN_C_END
 

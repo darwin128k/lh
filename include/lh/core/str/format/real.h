@@ -56,6 +56,26 @@ lh_str_ptr_format_real_layout(const lh_str_ptr digits, lh_usize_t count, lh_s32_
 lh_usize_t
 lh_str_ptr_format_real(lh_real_t value, lh_str_ptr str, lh_usize_t str_size);
 
+/**
+ * @brief Format @p value in fixed notation with @p decimals digits after the point,
+ *        as `%.{decimals}f` does.
+ *
+ * Rounds the shortest decimal text of @p value (::lh_str_ptr_format_real's digits)
+ * half away from zero. That is printf's result except where the shortest text ends
+ * exactly in the 5 being dropped: `0.125` gives `0.13` here, `0.12` in printf, which
+ * rounds the exact binary value. Enough for logs and messages; not for money.
+ *
+ * @param value    Value to format.
+ * @param decimals Digits after the point; 0 writes no point.
+ * @param str      Destination buffer.
+ * @param str_size Capacity of @p str in characters.
+ * @return Characters written (no NUL), or 0 when @p value is an infinity or a NaN or
+ *         the text does not fit.
+ */
+lh_usize_t
+lh_str_ptr_format_real_fixed(lh_real_t value, lh_usize_t decimals, lh_str_ptr str,
+                             lh_usize_t str_size);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_REAL_ENABLED */

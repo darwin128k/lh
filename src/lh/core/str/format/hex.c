@@ -1,4 +1,6 @@
 #include <lh/core/str/format/hex.h>
+#include <lh/core/memory/std.h>
+#include <lh/core/util/return.h>
 #include <lh/core/math.h>
 #include <lh/core/char/digit.h>
 
@@ -73,4 +75,24 @@ lh_str_ptr_format_hex_bytes(const lh_byte_ptr bytes, lh_usize_t size, lh_str_ptr
     }
     str[written] = lh_char_map_nul;
     return written;
+}
+
+lh_usize_t
+lh_str_ptr_format_hex_ullong(lh_ullong_t value, lh_bool_t uppercase, lh_str_ptr str,
+                             lh_usize_t str_size)
+{
+    const lh_uint_t high = lh_cast_static(lh_uint_t, value >> 32);
+    const lh_uint_t low = lh_cast_static(lh_uint_t, value);
+    lh_char_t half[8];
+    lh_usize_t size;
+    lh_usize_t low_size;
+
+    lh_return_if(lh_math_is_zero(high), lh_str_ptr_format_hex(low, uppercase, str, str_size));
+    size = lh_str_ptr_format_hex(high, uppercase, str, str_size);
+    lh_return_if(lh_math_is_zero(size) || lh_math_gt(lh_math_add(size, 8U), str_size), 0U);
+    /* The low half keeps its leading zeros: eight digits, always. */
+    low_size = lh_str_ptr_format_hex(low, uppercase, half, sizeof(half));
+    lh_memory_std_set(str + size, lh_char_map_digit_0, 8U - low_size);
+    lh_memory_std_copy(str + size + 8U - low_size, half, low_size);
+    return lh_math_add(size, 8U);
 }

@@ -10,15 +10,15 @@
  * result does not fit; ::lh_str_ptr_format_cstr writes the terminator too, and a
  * buffer that is too small comes out empty, never half a line.
  *
- * Supported conversions: `%%`, `%c`, `%s`, `%d`, `%i`, `%u`, `%x`, `%X`.
+ * Supported conversions: `%%`, `%c`, `%s`, `%d`, `%i`, `%u`, `%x`, `%X`, `%f`, `%F`
+ * (fixed notation, ::lh_str_ptr_format_real_fixed) and `%p`. Integer conversions
+ * take the length modifiers `hh`, `h`, `l`, `ll`, `j`, `z` and `t`.
  * Supported flags: `0` (zero-pad), `-` (left-justify). Supported field: a
  * decimal width, and — for `%s` only — a `.` precision (max characters).
  *
- * Not supported (rejected — see return value): length modifiers (`l`, `h`,
- * ...; every integer argument is ::lh_sint_t / ::lh_uint_t width), `%f`/`%e`/
- * `%g`, `%p`, `%o`, `+`/space flags, and `*` (width or precision taken from
- * an argument). Add them if a real use needs them — this covers what the
- * library itself formats today.
+ * Not supported (rejected — see return value): `%e`/`%g`, `%o`, `+`/space flags,
+ * `*` (width or precision taken from an argument) and a `%f` longer than
+ * ::LH_STR_FORMAT_TEXT_VALUE_BUF_MAX. Add them if a real use needs them.
  */
 
 #ifndef LH_STR_FORMAT_TEXT_H
@@ -31,11 +31,11 @@
 #include <stdarg.h>
 
 /**
- * @brief Bytes of the local buffer one value conversion is built in: a sign
- *        and the longest ::lh_uint_t, so the most negative ::lh_sint_t fits
- *        whatever `int`'s width. `%s` never goes through it.
+ * @brief Bytes of the local buffer one value conversion is built in: the widest
+ *        `%f` of a double (309 integer digits, a sign, a point and a precision of
+ *        up to 40) fits; `%s` never goes through it.
  */
-#define LH_STR_FORMAT_TEXT_VALUE_BUF_MAX lh_math_add_one(LH_STR_FORMAT_UINT_DIGITS_MAX)
+#define LH_STR_FORMAT_TEXT_VALUE_BUF_MAX 352U
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -60,6 +60,18 @@ lh_str_ptr_format_text_put_text(lh_str_ptr str, lh_usize_t str_size, lh_usize_t 
 lh_bool_t
 lh_str_ptr_format_text_put_run(lh_str_ptr str, lh_usize_t str_size, lh_usize_t *pos, lh_char_t ch,
                                lh_usize_t n);
+
+/**
+ * @brief The signed integer argument of @p spec, read as its length modifier says.
+ */
+lh_sllong_t
+lh_str_ptr_format_text_read_sint(const lh_str_scanf_spec_t *spec, va_list *args);
+
+/**
+ * @brief The unsigned integer argument of @p spec, read as its length modifier says.
+ */
+lh_ullong_t
+lh_str_ptr_format_text_read_uint(const lh_str_scanf_spec_t *spec, va_list *args);
 
 /**
  * @brief The text one conversion token turns its argument into.

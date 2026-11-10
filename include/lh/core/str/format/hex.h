@@ -39,6 +39,19 @@ lh_usize_t
 lh_str_ptr_format_hex(lh_uint_t value, lh_bool_t uppercase, lh_str_ptr str, lh_usize_t str_size);
 
 /**
+ * @brief ::lh_str_ptr_format_hex for a 64-bit value.
+ *
+ * @param value     Value to format.
+ * @param uppercase Whether the digits above 9 are `A`-`F`.
+ * @param str       Destination buffer.
+ * @param str_size  Capacity of @p str in characters.
+ * @return Characters written (no NUL), or 0 when they do not fit.
+ */
+lh_usize_t
+lh_str_ptr_format_hex_ullong(lh_ullong_t value, lh_bool_t uppercase, lh_str_ptr str,
+                             lh_usize_t str_size);
+
+/**
  * @brief Write @p size bytes as hexadecimal text — two characters per byte,
  *        high nibble first — into @p str.
  *

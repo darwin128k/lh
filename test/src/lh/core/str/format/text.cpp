@@ -149,3 +149,21 @@ TEST(str_format_cstr, a_result_that_does_not_fit_leaves_it_empty)
     EXPECT_EQ(lh_str_ptr_format_cstr(text, sizeof(text), "%s", "hell"), 4U);
     EXPECT_STREQ(text, "hell");
 }
+
+TEST(str_ptr_format_text, formats_length_modifiers)
+{
+    EXPECT_EQ(format("%ld|%lu", -5L, 7UL), "-5|7");
+    EXPECT_EQ(format("%lld|%llu", -9000000000LL, 18000000000ULL), "-9000000000|18000000000");
+    EXPECT_EQ(format("%llx|%llX", 0x1ffffffffULL, 0xabcdef0123ULL), "1ffffffff|ABCDEF0123");
+    EXPECT_EQ(format("%hd|%hhu", -1, 300), "-1|44");
+    EXPECT_EQ(format("%zu|%jd", static_cast<lh_usize_t>(42), static_cast<long long>(-3)), "42|-3");
+    EXPECT_EQ(format("%5ld|%-4lu|", 12L, 3UL), "   12|3   |");
+}
+
+TEST(str_ptr_format_text, formats_fixed_reals_and_pointers)
+{
+    EXPECT_EQ(format("%f", 1.5), "1.500000");
+    EXPECT_EQ(format("%.2f|%.0F", 3.14159, 2.5), "3.14|3");
+    EXPECT_EQ(format("%8.3f", -1.25), "  -1.250");
+    EXPECT_EQ(format("%p", reinterpret_cast<void *>(0x1234)), "0x1234");
+}

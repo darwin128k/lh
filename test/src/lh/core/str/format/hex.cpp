@@ -75,3 +75,18 @@ TEST(str_ptr_format_hex_bytes, returns_zero_for_nothing_to_write)
 }
 
 } // namespace
+
+TEST(str_ptr_format_hex_ullong, keeps_the_low_half_zero_padded)
+{
+    char buf[17] = {};
+
+    EXPECT_EQ(lh_str_ptr_format_hex_ullong(0x1ULL, lh_bool_false, buf, 16U), 1U);
+    EXPECT_STREQ(buf, "1");
+    EXPECT_EQ(lh_str_ptr_format_hex_ullong(0x100000002ULL, lh_bool_false, buf, 16U), 9U);
+    buf[9] = 0;
+    EXPECT_STREQ(buf, "100000002");
+    EXPECT_EQ(lh_str_ptr_format_hex_ullong(0xFFFFFFFFFFFFFFFFULL, lh_bool_true, buf, 16U), 16U);
+    buf[16] = 0;
+    EXPECT_STREQ(buf, "FFFFFFFFFFFFFFFF");
+    EXPECT_EQ(lh_str_ptr_format_hex_ullong(0x100000000ULL, lh_bool_false, buf, 8U), 0U);
+}

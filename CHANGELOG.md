@@ -16,6 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh/os/debug`: `lh_os_debug_print_line` hands a line to the attached debugger
+  (`OutputDebugStringW`, Visual Studio's Output; nothing on POSIX) and
+  `lh_os_debug_log` is a logger sink over it.
+- `lh/core/str/format/text`: length modifiers `hh h l ll j z t`, `%f` / `%F` and `%p`;
+  `lh_str_ptr_format_real_fixed` (`%.Nf`), `lh_str_ptr_format_hex_ullong`, the
+  spec's `length` (`lh/core/str/scanf/spec/length.h`). Parsing refuses a length
+  modifier instead of writing into a target of another size.
+
 - Handle-relative filesystem access through `lh_os_fs_file_t`: `lh_os_fs_file_try_open_root` / `_open_root` (and their `_cstr` forms) open a directory as a trusted root, `lh_os_fs_file_try_open_read_at` / `_open_read_at` open a regular file below it without following links (dot and parent components, backslashes and colons are refused), and `lh_os_fs_file_set_handle` stores a handle. Authum's HTTP server opens its sources and files with them instead of `lh_os_system_fs_file_open_root` / `_open_read_at`.
 - What a program over the portable socket needs without reaching into `lh/os/system/`: `lh_os_net_socket_get_poll(socket, events, entry)` fills a poll entry that watches the socket (the web host and the rail tests used `lh_os_net_socket_poll_init` over `lh_os_net_socket_get_handle`), `lh_os_wake_get_poll(wake, entry)` one that watches a wake signal, `lh_os_net_socket_poll_init_empty(entry)` a slot the poll skips, and `lh_os_net_socket_send_file(socket, file, offset, size)` the file transfer of `lh_os_system_net_socket_send_file` on the socket's handle (Authum's HTTP server sends its files with it).
 - Masked memory comparison and search, and access to the executable code span of an already loaded shared image on Windows and POSIX.
