@@ -72,9 +72,10 @@ lh_ui_label_shorten(const lh_ui_font_t *font, const lh_char_t *text, lh_s32_t ro
                     lh_u32_t size)
 {
     const lh_bool_t has_ellipsis = lh_ui_font_has_code(font, 0x2026U);
-    const lh_s32_t tail = has_ellipsis
-                              ? lh_ui_font_get_advance(font, 0x2026U)
-                              : 3 * lh_ui_font_get_advance(font, (lh_u32_t)lh_char_map_period);
+    const lh_s32_t tail =
+        has_ellipsis
+            ? lh_ui_font_get_advance(font, 0x2026U)
+            : 3 * lh_ui_font_get_advance(font, lh_cast_static(lh_u32_t, lh_char_map_period));
     /* `…` is three bytes of UTF-8, and so are three dots. */
     const lh_u32_t tail_bytes = 3U;
     const lh_char_t *cursor = text;
@@ -93,14 +94,13 @@ lh_ui_label_shorten(const lh_ui_font_t *font, const lh_char_t *text, lh_s32_t ro
     while ((code = lh_ui_text_next_code(lh_addr_of(cursor))) != 0U)
     {
         width += lh_ui_font_get_advance(font, code);
-        if (width + tail > room ||
-            lh_cast_static(lh_u32_t, (cursor - text)) + tail_bytes + 1U > size)
+        if (width + tail > room || lh_cast_static(lh_u32_t, cursor - text) + tail_bytes + 1U > size)
         {
             break;
         }
         fits = cursor;
     }
-    lh_u32_t used = lh_cast_static(lh_u32_t, (fits - text));
+    lh_u32_t used = lh_cast_static(lh_u32_t, fits - text);
     for (cursor = text; cursor < fits; ++cursor)
     {
         out[cursor - text] = lh_ptr_deref(cursor);

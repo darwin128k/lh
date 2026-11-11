@@ -45,7 +45,7 @@ lh_ui_display_init(lh_ui_display_t *self)
     lh_ui_canvas_sw_init(lh_ui_display_get_sw_mut(self));
     lh_ui_canvas_init(lh_ui_display_get_canvas_mut(self), lh_addr_of(lh_ui_canvas_backend_sw),
                       lh_ui_display_get_sw_mut(self));
-    for (i = 0; i < (lh_u32_t)LH_UI_PRESENT_SINKS_MAX; ++i)
+    for (i = 0; i < lh_cast_static(lh_u32_t, LH_UI_PRESENT_SINKS_MAX); ++i)
     {
         lh_ui_present_sink_init(lh_addr_of(lh_ui_display_get_sinks_mut(self)[i]), lh_null, lh_null, lh_null);
     }
@@ -90,7 +90,7 @@ lh_ui_display_set_strip_y(lh_ui_display_t *self, lh_ui_scalar_t y)
 lh_void
 lh_ui_display_set_sink(lh_ui_display_t *self, lh_u32_t index, const lh_ui_present_sink_t *sink)
 {
-    if (index >= (lh_u32_t)LH_UI_PRESENT_SINKS_MAX || sink == lh_null)
+    if (index >= lh_cast_static(lh_u32_t, LH_UI_PRESENT_SINKS_MAX) || sink == lh_null)
     {
         return;
     }
@@ -105,7 +105,7 @@ lh_ui_display_set_sink(lh_ui_display_t *self, lh_u32_t index, const lh_ui_presen
 lh_void
 lh_ui_display_set_sink_enabled(lh_ui_display_t *self, lh_u32_t index, lh_bool_t enabled)
 {
-    if (index >= (lh_u32_t)LH_UI_PRESENT_SINKS_MAX)
+    if (index >= lh_cast_static(lh_u32_t, LH_UI_PRESENT_SINKS_MAX))
     {
         return;
     }

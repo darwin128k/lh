@@ -54,11 +54,11 @@ lh_crypto_ed25519_scalar_multiply(lh_u32_t p[2U * LH_CRYPTO_ED25519_SCALAR_WORDS
         lh_u64_t carry = 0U;
         for (lh_usize_t j = 0U; j < LH_CRYPTO_ED25519_SCALAR_WORDS; j = lh_math_add_one(j))
         {
-            carry += p[i + j] + (lh_u64_t)a[i] * b[j];
-            p[i + j] = (lh_u32_t)carry;
+            carry += p[i + j] + lh_cast_static(lh_u64_t, a[i]) * b[j];
+            p[i + j] = lh_cast_static(lh_u32_t, carry);
             carry >>= 32;
         }
-        p[i + LH_CRYPTO_ED25519_SCALAR_WORDS] = (lh_u32_t)carry;
+        p[i + LH_CRYPTO_ED25519_SCALAR_WORDS] = lh_cast_static(lh_u32_t, carry);
     }
 }
 
@@ -70,7 +70,7 @@ lh_crypto_ed25519_scalar_is_above_l(const lh_u32_t x[LH_CRYPTO_ED25519_SCALAR_WO
     lh_u64_t carry = 1U;
     for (lh_usize_t i = 0U; i < LH_CRYPTO_ED25519_SCALAR_WORDS; i = lh_math_add_one(i))
     {
-        carry += (lh_u64_t)x[i] + (~l[i] & 0xffffffffU);
+        carry += lh_cast_static(lh_u64_t, x[i]) + (~l[i] & 0xffffffffU);
         carry >>= 32;
     }
     return (lh_bool_t)carry;
@@ -81,12 +81,12 @@ lh_crypto_ed25519_scalar_remove_l(lh_u32_t r[LH_CRYPTO_ED25519_SCALAR_WORDS],
                                   const lh_u32_t x[LH_CRYPTO_ED25519_SCALAR_WORDS])
 {
     const lh_u32_t *l = lh_crypto_ed25519_scalar_get_l();
-    lh_u64_t carry = (lh_u64_t)lh_crypto_ed25519_scalar_is_above_l(x);
-    const lh_u32_t mask = ~(lh_u32_t)carry + 1U; /* 0 or all ones */
+    lh_u64_t carry = lh_cast_static(lh_u64_t, lh_crypto_ed25519_scalar_is_above_l(x));
+    const lh_u32_t mask = ~lh_cast_static(lh_u32_t, carry) + 1U; /* 0 or all ones */
     for (lh_usize_t i = 0U; i < LH_CRYPTO_ED25519_SCALAR_WORDS; i = lh_math_add_one(i))
     {
-        carry += (lh_u64_t)x[i] + (~l[i] & mask);
-        r[i] = (lh_u32_t)carry;
+        carry += lh_cast_static(lh_u64_t, x[i]) + (~l[i] & mask);
+        r[i] = lh_cast_static(lh_u32_t, carry);
         carry >>= 32;
     }
 }
@@ -105,11 +105,11 @@ lh_crypto_ed25519_scalar_mod_l(lh_byte_t reduced[LH_CRYPTO_ED25519_SCALAR_SIZE],
         lh_u64_t carry = 0U;
         for (lh_usize_t j = 0U; j < 16U; j = lh_math_add_one(j))
         {
-            carry += xr[i + j] + (lh_u64_t)barrett[i] * x[j];
-            xr[i + j] = (lh_u32_t)carry;
+            carry += xr[i + j] + lh_cast_static(lh_u64_t, barrett[i]) * x[j];
+            xr[i + j] = lh_cast_static(lh_u32_t, carry);
             carry >>= 32;
         }
-        xr[i + 16U] = (lh_u32_t)carry;
+        xr[i + 16U] = lh_cast_static(lh_u32_t, carry);
     }
     /* xr = floor(xr / 2^512) * L, its lowest 256 bits only: the result is below
        2L. Reading xr[i + 16] is the division. */
@@ -119,8 +119,8 @@ lh_crypto_ed25519_scalar_mod_l(lh_byte_t reduced[LH_CRYPTO_ED25519_SCALAR_SIZE],
         lh_u64_t carry = 0U;
         for (lh_usize_t j = 0U; j < 8U - i; j = lh_math_add_one(j))
         {
-            carry += xr[i + j] + (lh_u64_t)xr[i + 16U] * l[j];
-            xr[i + j] = (lh_u32_t)carry;
+            carry += xr[i + j] + lh_cast_static(lh_u64_t, xr[i + 16U]) * l[j];
+            xr[i + j] = lh_cast_static(lh_u32_t, carry);
             carry >>= 32;
         }
     }
@@ -128,8 +128,8 @@ lh_crypto_ed25519_scalar_mod_l(lh_byte_t reduced[LH_CRYPTO_ED25519_SCALAR_SIZE],
     lh_u64_t carry = 1U;
     for (lh_usize_t i = 0U; i < 8U; i = lh_math_add_one(i))
     {
-        carry += (lh_u64_t)x[i] + (~xr[i] & 0xffffffffU);
-        xr[i] = (lh_u32_t)carry;
+        carry += lh_cast_static(lh_u64_t, x[i]) + (~xr[i] & 0xffffffffU);
+        xr[i] = lh_cast_static(lh_u32_t, carry);
         carry >>= 32;
     }
     /* Below 2L now: one conditional subtraction ends it. */

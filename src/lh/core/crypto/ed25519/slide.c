@@ -53,7 +53,7 @@ lh_crypto_ed25519_slide_init(lh_crypto_ed25519_slide_t *self,
     {
         i = lh_math_sub(i, 1);
     }
-    lh_crypto_ed25519_slide_set_next_check(self, (lh_u8_t)(i + 1));
+    lh_crypto_ed25519_slide_set_next_check(self, lh_cast_static(lh_u8_t, i + 1));
     lh_crypto_ed25519_slide_set_next_index(self, -1);
     lh_crypto_ed25519_slide_set_next_digit(self, -1);
 }
@@ -68,7 +68,7 @@ lh_crypto_ed25519_slide_step(lh_crypto_ed25519_slide_t *self, lh_s32_t width, lh
             lh_crypto_ed25519_scalar_get_bit(scalar, i - 1))
         {
             lh_crypto_ed25519_slide_set_next_check(
-                self, (lh_u8_t)(lh_crypto_ed25519_slide_get_next_check(self) - 1U));
+                self, lh_cast_static(lh_u8_t, lh_crypto_ed25519_slide_get_next_check(self) - 1U));
         }
         else
         {
@@ -83,10 +83,11 @@ lh_crypto_ed25519_slide_step(lh_crypto_ed25519_slide_t *self, lh_s32_t width, lh
             const lh_s32_t lsb = v & (~v + 1); /* the lowest set bit of v */
             const lh_s32_t s = (((lsb & 0xAA) != 0) << 0) | (((lsb & 0xCC) != 0) << 1) |
                                (((lsb & 0xF0) != 0) << 2); /* log2(lsb) */
-            lh_crypto_ed25519_slide_set_next_index(self, (lh_s16_t)(i - (w - 1) + s));
-            lh_crypto_ed25519_slide_set_next_digit(self, (lh_s8_t)(v >> s));
+            lh_crypto_ed25519_slide_set_next_index(self, lh_cast_static(lh_s16_t, i - (w - 1) + s));
+            lh_crypto_ed25519_slide_set_next_digit(self, lh_cast_static(lh_s8_t, v >> s));
             lh_crypto_ed25519_slide_set_next_check(
-                self, (lh_u8_t)(lh_crypto_ed25519_slide_get_next_check(self) - (lh_u8_t)w));
+                self, lh_cast_static(lh_u8_t, lh_crypto_ed25519_slide_get_next_check(self) -
+                                                  lh_cast_static(lh_u8_t, w)));
         }
     }
     return i == lh_crypto_ed25519_slide_get_next_index(self)

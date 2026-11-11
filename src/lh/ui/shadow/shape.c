@@ -100,9 +100,7 @@ lh_ui_shadow_shape_alpha(const lh_ui_shadow_shape_t *self, lh_s32_t row, lh_s32_
 {
     const lh_s32_t px = x * LH_UI_RADIUS_SUBPIXEL + LH_UI_RADIUS_SUBPIXEL / 2;
     const lh_s32_t dx =
-        (px > lh_ui_shadow_shape_get_cx(self) ? px - lh_ui_shadow_shape_get_cx(self)
-                                              : lh_ui_shadow_shape_get_cx(self) - px) -
-        lh_ui_shadow_shape_get_hx(self);
+        lh_math_abs(px - lh_ui_shadow_shape_get_cx(self)) - lh_ui_shadow_shape_get_hx(self);
     const lh_s32_t ox = lh_math_max(dx, 0);
     const lh_s32_t oy = lh_math_max(row, 0);
     const lh_s32_t most = lh_math_max(dx, row);
@@ -156,9 +154,9 @@ lh_ui_shadow_shape_span(const lh_ui_shadow_shape_t *self, const struct lh_ui_sha
     lh_assert_runtime_ref(ramp);
     if (lh_ui_shadow_shape_get_peak(self) == 0)
     {
-        for (x = x0; x < x1; ++x)
+        if (x1 > x0)
         {
-            out[x - x0] = 0;
+            lh_memory_set(out, lh_cast_static(lh_usize_t, x1 - x0), 0U);
         }
         return;
     }
@@ -174,9 +172,7 @@ lh_ui_shadow_shape_span(const lh_ui_shadow_shape_t *self, const struct lh_ui_sha
     for (x = x0; x < x1;)
     {
         const lh_s32_t dx =
-            (px > lh_ui_shadow_shape_get_cx(self) ? px - lh_ui_shadow_shape_get_cx(self)
-                                                  : lh_ui_shadow_shape_get_cx(self) - px) -
-            lh_ui_shadow_shape_get_hx(self);
+            lh_math_abs(px - lh_ui_shadow_shape_get_cx(self)) - lh_ui_shadow_shape_get_hx(self);
         const lh_s32_t ox = lh_math_max(dx, 0);
         const lh_s32_t most = lh_math_max(dx, row);
         lh_s32_t end;
@@ -184,7 +180,7 @@ lh_ui_shadow_shape_span(const lh_ui_shadow_shape_t *self, const struct lh_ui_sha
         if (x >= full0 && x < full1)
         {
             end = lh_math_min(full1, x1);
-            lh_memory_set(out + (x - x0), lh_cast_static(lh_usize_t, (end - x)), 0U);
+            lh_memory_set(out + (x - x0), lh_cast_static(lh_usize_t, end - x), 0U);
         }
         else if (ox == 0 && oy > 0)
         {
@@ -197,7 +193,7 @@ lh_ui_shadow_shape_span(const lh_ui_shadow_shape_t *self, const struct lh_ui_sha
                   1;
             end = lh_math_min(end, x1);
             end = x < full0 && full0 < end ? full0 : end;
-            lh_memory_set(out + (x - x0), lh_cast_static(lh_usize_t, (end - x)),
+            lh_memory_set(out + (x - x0), lh_cast_static(lh_usize_t, end - x),
                           lh_ui_shadow_shape_fade(self, oy - lh_ui_shadow_shape_get_r(self)));
         }
         else

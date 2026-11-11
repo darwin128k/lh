@@ -24,7 +24,8 @@ lh_ui_renderer3d_begin(lh_ui_renderer3d_t *self, lh_ui_pixmap_t *target, lh_math
     const lh_s32_t width = lh_ui_pixmap_get_width(target);
     const lh_s32_t height = lh_ui_pixmap_get_height(target);
     lh_return_if(width < 1 || height < 1 || width > 8192 || height > 8192 ||
-                     (lh_usize_t)width * (lh_usize_t)height > depth_count ||
+                     lh_cast_static(lh_usize_t, width) * lh_cast_static(lh_usize_t, height) >
+                         depth_count ||
                      !lh_ui_renderer3d_camera_is_usable(camera),
                  lh_bool_false);
     lh_ui_renderer3d_set_target(self, target);
@@ -50,7 +51,8 @@ lh_ui_renderer3d_clear(lh_ui_renderer3d_t *self, lh_u32_t background_argb)
         for (lh_s32_t x = 0; x < lh_ui_renderer3d_get_width(self); x++)
         {
             row[x] = background_argb;
-            lh_ui_renderer3d_get_depth(self)[(lh_usize_t)y * lh_ui_renderer3d_get_width(self) + x] =
+            lh_ui_renderer3d_get_depth(
+                self)[lh_cast_static(lh_usize_t, y) * lh_ui_renderer3d_get_width(self) + x] =
                 LH_FLOAT_T_MAX;
         }
     }
@@ -145,7 +147,7 @@ lh_bool_t
 lh_ui_renderer3d_put_fragment(lh_ui_renderer3d_t *self, lh_s32_t x, lh_s32_t y,
                               lh_math_fscalar_t depth, lh_u32_t color_argb)
 {
-    const lh_usize_t i = (lh_usize_t)y * lh_ui_renderer3d_get_width(self) + x;
+    const lh_usize_t i = lh_cast_static(lh_usize_t, y) * lh_ui_renderer3d_get_width(self) + x;
     lh_return_ifn(depth < lh_ui_renderer3d_get_depth(self)[i], lh_bool_false);
     lh_ui_renderer3d_get_depth(self)[i] = depth;
     lh_cast_reinterpret(lh_u32_t *, lh_ui_pixmap_get_row(lh_ui_renderer3d_get_target(self), y))[x] =
@@ -218,9 +220,9 @@ lh_ui_renderer3d_triangle(lh_ui_renderer3d_t *self, lh_math_vec3_t a, lh_math_ve
     lh_s32_t from = 0;
     for (lh_s32_t plane = 0; plane < lh_ui_renderer3d_plane_count && count > 0; plane++)
     {
-        count =
-            lh_ui_renderer3d_clip_plane(self, (lh_ui_renderer3d_plane_t)plane, polygon[from], count,
-                                        polygon[1 - from], lh_ui_renderer3d_clip_capacity);
+        count = lh_ui_renderer3d_clip_plane(self, lh_cast_static(lh_ui_renderer3d_plane_t, plane),
+                                            polygon[from], count, polygon[1 - from],
+                                            lh_ui_renderer3d_clip_capacity);
         lh_return_if(count < 0);
         from = 1 - from;
     }

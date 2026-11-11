@@ -113,52 +113,52 @@ lh_crypto_curve25519_field_carry(lh_crypto_curve25519_field_t *h,
     lh_s64_t t8 = t[8];
     lh_s64_t t9 = t[9];
     lh_s64_t c;
-    c = (t0 + ((lh_s64_t)1 << 25)) >> 26;
-    t0 -= c * ((lh_s64_t)1 << 26);
+    c = (t0 + (lh_cast_static(lh_s64_t, 1) << 25)) >> 26;
+    t0 -= c * (lh_cast_static(lh_s64_t, 1) << 26);
     t1 += c;
-    c = (t4 + ((lh_s64_t)1 << 25)) >> 26;
-    t4 -= c * ((lh_s64_t)1 << 26);
+    c = (t4 + (lh_cast_static(lh_s64_t, 1) << 25)) >> 26;
+    t4 -= c * (lh_cast_static(lh_s64_t, 1) << 26);
     t5 += c;
-    c = (t1 + ((lh_s64_t)1 << 24)) >> 25;
-    t1 -= c * ((lh_s64_t)1 << 25);
+    c = (t1 + (lh_cast_static(lh_s64_t, 1) << 24)) >> 25;
+    t1 -= c * (lh_cast_static(lh_s64_t, 1) << 25);
     t2 += c;
-    c = (t5 + ((lh_s64_t)1 << 24)) >> 25;
-    t5 -= c * ((lh_s64_t)1 << 25);
+    c = (t5 + (lh_cast_static(lh_s64_t, 1) << 24)) >> 25;
+    t5 -= c * (lh_cast_static(lh_s64_t, 1) << 25);
     t6 += c;
-    c = (t2 + ((lh_s64_t)1 << 25)) >> 26;
-    t2 -= c * ((lh_s64_t)1 << 26);
+    c = (t2 + (lh_cast_static(lh_s64_t, 1) << 25)) >> 26;
+    t2 -= c * (lh_cast_static(lh_s64_t, 1) << 26);
     t3 += c;
-    c = (t6 + ((lh_s64_t)1 << 25)) >> 26;
-    t6 -= c * ((lh_s64_t)1 << 26);
+    c = (t6 + (lh_cast_static(lh_s64_t, 1) << 25)) >> 26;
+    t6 -= c * (lh_cast_static(lh_s64_t, 1) << 26);
     t7 += c;
-    c = (t3 + ((lh_s64_t)1 << 24)) >> 25;
-    t3 -= c * ((lh_s64_t)1 << 25);
+    c = (t3 + (lh_cast_static(lh_s64_t, 1) << 24)) >> 25;
+    t3 -= c * (lh_cast_static(lh_s64_t, 1) << 25);
     t4 += c;
-    c = (t7 + ((lh_s64_t)1 << 24)) >> 25;
-    t7 -= c * ((lh_s64_t)1 << 25);
+    c = (t7 + (lh_cast_static(lh_s64_t, 1) << 24)) >> 25;
+    t7 -= c * (lh_cast_static(lh_s64_t, 1) << 25);
     t8 += c;
-    c = (t4 + ((lh_s64_t)1 << 25)) >> 26;
-    t4 -= c * ((lh_s64_t)1 << 26);
+    c = (t4 + (lh_cast_static(lh_s64_t, 1) << 25)) >> 26;
+    t4 -= c * (lh_cast_static(lh_s64_t, 1) << 26);
     t5 += c;
-    c = (t8 + ((lh_s64_t)1 << 25)) >> 26;
-    t8 -= c * ((lh_s64_t)1 << 26);
+    c = (t8 + (lh_cast_static(lh_s64_t, 1) << 25)) >> 26;
+    t8 -= c * (lh_cast_static(lh_s64_t, 1) << 26);
     t9 += c;
-    c = (t9 + ((lh_s64_t)1 << 24)) >> 25;
-    t9 -= c * ((lh_s64_t)1 << 25);
+    c = (t9 + (lh_cast_static(lh_s64_t, 1) << 24)) >> 25;
+    t9 -= c * (lh_cast_static(lh_s64_t, 1) << 25);
     t0 += c * 19;
-    c = (t0 + ((lh_s64_t)1 << 25)) >> 26;
-    t0 -= c * ((lh_s64_t)1 << 26);
+    c = (t0 + (lh_cast_static(lh_s64_t, 1) << 25)) >> 26;
+    t0 -= c * (lh_cast_static(lh_s64_t, 1) << 26);
     t1 += c;
-    h->limb[0] = (lh_s32_t)t0;
-    h->limb[1] = (lh_s32_t)t1;
-    h->limb[2] = (lh_s32_t)t2;
-    h->limb[3] = (lh_s32_t)t3;
-    h->limb[4] = (lh_s32_t)t4;
-    h->limb[5] = (lh_s32_t)t5;
-    h->limb[6] = (lh_s32_t)t6;
-    h->limb[7] = (lh_s32_t)t7;
-    h->limb[8] = (lh_s32_t)t8;
-    h->limb[9] = (lh_s32_t)t9;
+    h->limb[0] = lh_cast_static(lh_s32_t, t0);
+    h->limb[1] = lh_cast_static(lh_s32_t, t1);
+    h->limb[2] = lh_cast_static(lh_s32_t, t2);
+    h->limb[3] = lh_cast_static(lh_s32_t, t3);
+    h->limb[4] = lh_cast_static(lh_s32_t, t4);
+    h->limb[5] = lh_cast_static(lh_s32_t, t5);
+    h->limb[6] = lh_cast_static(lh_s32_t, t6);
+    h->limb[7] = lh_cast_static(lh_s32_t, t7);
+    h->limb[8] = lh_cast_static(lh_s32_t, t8);
+    h->limb[9] = lh_cast_static(lh_s32_t, t9);
 }
 
 lh_void
@@ -171,7 +171,7 @@ lh_crypto_curve25519_field_to_bytes(lh_byte_t s[LH_CRYPTO_CURVE25519_FIELD_SIZE]
         t[i] = h->limb[i];
     }
     /* |h| < 2^255 - 19: q ends 0 when h >= 0 and -1 when h < 0. */
-    lh_s32_t q = (19 * t[9] + ((lh_s32_t)1 << 24)) >> 25;
+    lh_s32_t q = (19 * t[9] + (lh_cast_static(lh_s32_t, 1) << 24)) >> 25;
     for (lh_usize_t i = 0U; i < 5U; i = lh_math_add_one(i))
     {
         q += t[2U * i];
@@ -185,19 +185,27 @@ lh_crypto_curve25519_field_to_bytes(lh_byte_t s[LH_CRYPTO_CURVE25519_FIELD_SIZE]
     {
         t[2U * i] += q;
         q = t[2U * i] >> 26;
-        t[2U * i] -= q * ((lh_s32_t)1 << 26);
+        t[2U * i] -= q * (lh_cast_static(lh_s32_t, 1) << 26);
         t[2U * i + 1U] += q;
         q = t[2U * i + 1U] >> 25;
-        t[2U * i + 1U] -= q * ((lh_s32_t)1 << 25);
+        t[2U * i + 1U] -= q * (lh_cast_static(lh_s32_t, 1) << 25);
     }
-    lh_bit_pack_le32(((lh_u32_t)t[0] >> 0) | ((lh_u32_t)t[1] << 26), s + 0);
-    lh_bit_pack_le32(((lh_u32_t)t[1] >> 6) | ((lh_u32_t)t[2] << 19), s + 4);
-    lh_bit_pack_le32(((lh_u32_t)t[2] >> 13) | ((lh_u32_t)t[3] << 13), s + 8);
-    lh_bit_pack_le32(((lh_u32_t)t[3] >> 19) | ((lh_u32_t)t[4] << 6), s + 12);
-    lh_bit_pack_le32(((lh_u32_t)t[5] >> 0) | ((lh_u32_t)t[6] << 25), s + 16);
-    lh_bit_pack_le32(((lh_u32_t)t[6] >> 7) | ((lh_u32_t)t[7] << 19), s + 20);
-    lh_bit_pack_le32(((lh_u32_t)t[7] >> 13) | ((lh_u32_t)t[8] << 12), s + 24);
-    lh_bit_pack_le32(((lh_u32_t)t[8] >> 20) | ((lh_u32_t)t[9] << 6), s + 28);
+    lh_bit_pack_le32((lh_cast_static(lh_u32_t, t[0]) >> 0) | (lh_cast_static(lh_u32_t, t[1]) << 26),
+                     s + 0);
+    lh_bit_pack_le32((lh_cast_static(lh_u32_t, t[1]) >> 6) | (lh_cast_static(lh_u32_t, t[2]) << 19),
+                     s + 4);
+    lh_bit_pack_le32(
+        (lh_cast_static(lh_u32_t, t[2]) >> 13) | (lh_cast_static(lh_u32_t, t[3]) << 13), s + 8);
+    lh_bit_pack_le32((lh_cast_static(lh_u32_t, t[3]) >> 19) | (lh_cast_static(lh_u32_t, t[4]) << 6),
+                     s + 12);
+    lh_bit_pack_le32((lh_cast_static(lh_u32_t, t[5]) >> 0) | (lh_cast_static(lh_u32_t, t[6]) << 25),
+                     s + 16);
+    lh_bit_pack_le32((lh_cast_static(lh_u32_t, t[6]) >> 7) | (lh_cast_static(lh_u32_t, t[7]) << 19),
+                     s + 20);
+    lh_bit_pack_le32(
+        (lh_cast_static(lh_u32_t, t[7]) >> 13) | (lh_cast_static(lh_u32_t, t[8]) << 12), s + 24);
+    lh_bit_pack_le32((lh_cast_static(lh_u32_t, t[8]) >> 20) | (lh_cast_static(lh_u32_t, t[9]) << 6),
+                     s + 28);
     lh_crypto_wipe(t, sizeof(t));
 }
 
@@ -213,17 +221,17 @@ lh_crypto_curve25519_field_from_bytes(lh_crypto_curve25519_field_t *h,
                                       const lh_byte_t s[LH_CRYPTO_CURVE25519_FIELD_SIZE])
 {
     lh_s64_t t[LH_CRYPTO_CURVE25519_FIELD_LIMBS];
-    t[0] = (lh_s64_t)lh_bit_unpack_le32(s);           /* < 2^32 */
-    t[1] = (lh_s64_t)lh_bit_unpack_le24(s + 4) << 6;  /* < 2^30 */
-    t[2] = (lh_s64_t)lh_bit_unpack_le24(s + 7) << 5;  /* < 2^29 */
-    t[3] = (lh_s64_t)lh_bit_unpack_le24(s + 10) << 3; /* < 2^27 */
-    t[4] = (lh_s64_t)lh_bit_unpack_le24(s + 13) << 2; /* < 2^26 */
-    t[5] = (lh_s64_t)lh_bit_unpack_le32(s + 16);      /* < 2^32 */
-    t[6] = (lh_s64_t)lh_bit_unpack_le24(s + 20) << 7; /* < 2^31 */
-    t[7] = (lh_s64_t)lh_bit_unpack_le24(s + 23) << 5; /* < 2^29 */
-    t[8] = (lh_s64_t)lh_bit_unpack_le24(s + 26) << 4; /* < 2^28 */
+    t[0] = lh_cast_static(lh_s64_t, lh_bit_unpack_le32(s));           /* < 2^32 */
+    t[1] = lh_cast_static(lh_s64_t, lh_bit_unpack_le24(s + 4)) << 6;  /* < 2^30 */
+    t[2] = lh_cast_static(lh_s64_t, lh_bit_unpack_le24(s + 7)) << 5;  /* < 2^29 */
+    t[3] = lh_cast_static(lh_s64_t, lh_bit_unpack_le24(s + 10)) << 3; /* < 2^27 */
+    t[4] = lh_cast_static(lh_s64_t, lh_bit_unpack_le24(s + 13)) << 2; /* < 2^26 */
+    t[5] = lh_cast_static(lh_s64_t, lh_bit_unpack_le32(s + 16));      /* < 2^32 */
+    t[6] = lh_cast_static(lh_s64_t, lh_bit_unpack_le24(s + 20)) << 7; /* < 2^31 */
+    t[7] = lh_cast_static(lh_s64_t, lh_bit_unpack_le24(s + 23)) << 5; /* < 2^29 */
+    t[8] = lh_cast_static(lh_s64_t, lh_bit_unpack_le24(s + 26)) << 4; /* < 2^28 */
     /* The top bit is not part of the value. */
-    t[9] = (lh_s64_t)(lh_bit_unpack_le24(s + 29) & 0x7fffffU) << 2; /* < 2^25 */
+    t[9] = lh_cast_static(lh_s64_t, lh_bit_unpack_le24(s + 29) & 0x7fffffU) << 2; /* < 2^25 */
     lh_crypto_curve25519_field_carry(h, t);
 }
 
@@ -234,7 +242,7 @@ lh_crypto_curve25519_field_mul_small(lh_crypto_curve25519_field_t *h,
     lh_s64_t t[LH_CRYPTO_CURVE25519_FIELD_LIMBS];
     for (lh_usize_t i = 0U; i < LH_CRYPTO_CURVE25519_FIELD_LIMBS; i = lh_math_add_one(i))
     {
-        t[i] = f->limb[i] * (lh_s64_t)g;
+        t[i] = f->limb[i] * lh_cast_static(lh_s64_t, g);
     }
     lh_crypto_curve25519_field_carry(h, t);
 }
@@ -280,36 +288,56 @@ lh_crypto_curve25519_field_mul(lh_crypto_curve25519_field_t *h,
     const lh_s32_t G8 = g8 * 19;
     const lh_s32_t G9 = g9 * 19;
     lh_s64_t t[LH_CRYPTO_CURVE25519_FIELD_LIMBS];
-    t[0] = f0 * (lh_s64_t)g0 + F1 * (lh_s64_t)G9 + f2 * (lh_s64_t)G8 + F3 * (lh_s64_t)G7 +
-           f4 * (lh_s64_t)G6 + F5 * (lh_s64_t)G5 + f6 * (lh_s64_t)G4 + F7 * (lh_s64_t)G3 +
-           f8 * (lh_s64_t)G2 + F9 * (lh_s64_t)G1;
-    t[1] = f0 * (lh_s64_t)g1 + f1 * (lh_s64_t)g0 + f2 * (lh_s64_t)G9 + f3 * (lh_s64_t)G8 +
-           f4 * (lh_s64_t)G7 + f5 * (lh_s64_t)G6 + f6 * (lh_s64_t)G5 + f7 * (lh_s64_t)G4 +
-           f8 * (lh_s64_t)G3 + f9 * (lh_s64_t)G2;
-    t[2] = f0 * (lh_s64_t)g2 + F1 * (lh_s64_t)g1 + f2 * (lh_s64_t)g0 + F3 * (lh_s64_t)G9 +
-           f4 * (lh_s64_t)G8 + F5 * (lh_s64_t)G7 + f6 * (lh_s64_t)G6 + F7 * (lh_s64_t)G5 +
-           f8 * (lh_s64_t)G4 + F9 * (lh_s64_t)G3;
-    t[3] = f0 * (lh_s64_t)g3 + f1 * (lh_s64_t)g2 + f2 * (lh_s64_t)g1 + f3 * (lh_s64_t)g0 +
-           f4 * (lh_s64_t)G9 + f5 * (lh_s64_t)G8 + f6 * (lh_s64_t)G7 + f7 * (lh_s64_t)G6 +
-           f8 * (lh_s64_t)G5 + f9 * (lh_s64_t)G4;
-    t[4] = f0 * (lh_s64_t)g4 + F1 * (lh_s64_t)g3 + f2 * (lh_s64_t)g2 + F3 * (lh_s64_t)g1 +
-           f4 * (lh_s64_t)g0 + F5 * (lh_s64_t)G9 + f6 * (lh_s64_t)G8 + F7 * (lh_s64_t)G7 +
-           f8 * (lh_s64_t)G6 + F9 * (lh_s64_t)G5;
-    t[5] = f0 * (lh_s64_t)g5 + f1 * (lh_s64_t)g4 + f2 * (lh_s64_t)g3 + f3 * (lh_s64_t)g2 +
-           f4 * (lh_s64_t)g1 + f5 * (lh_s64_t)g0 + f6 * (lh_s64_t)G9 + f7 * (lh_s64_t)G8 +
-           f8 * (lh_s64_t)G7 + f9 * (lh_s64_t)G6;
-    t[6] = f0 * (lh_s64_t)g6 + F1 * (lh_s64_t)g5 + f2 * (lh_s64_t)g4 + F3 * (lh_s64_t)g3 +
-           f4 * (lh_s64_t)g2 + F5 * (lh_s64_t)g1 + f6 * (lh_s64_t)g0 + F7 * (lh_s64_t)G9 +
-           f8 * (lh_s64_t)G8 + F9 * (lh_s64_t)G7;
-    t[7] = f0 * (lh_s64_t)g7 + f1 * (lh_s64_t)g6 + f2 * (lh_s64_t)g5 + f3 * (lh_s64_t)g4 +
-           f4 * (lh_s64_t)g3 + f5 * (lh_s64_t)g2 + f6 * (lh_s64_t)g1 + f7 * (lh_s64_t)g0 +
-           f8 * (lh_s64_t)G9 + f9 * (lh_s64_t)G8;
-    t[8] = f0 * (lh_s64_t)g8 + F1 * (lh_s64_t)g7 + f2 * (lh_s64_t)g6 + F3 * (lh_s64_t)g5 +
-           f4 * (lh_s64_t)g4 + F5 * (lh_s64_t)g3 + f6 * (lh_s64_t)g2 + F7 * (lh_s64_t)g1 +
-           f8 * (lh_s64_t)g0 + F9 * (lh_s64_t)G9;
-    t[9] = f0 * (lh_s64_t)g9 + f1 * (lh_s64_t)g8 + f2 * (lh_s64_t)g7 + f3 * (lh_s64_t)g6 +
-           f4 * (lh_s64_t)g5 + f5 * (lh_s64_t)g4 + f6 * (lh_s64_t)g3 + f7 * (lh_s64_t)g2 +
-           f8 * (lh_s64_t)g1 + f9 * (lh_s64_t)g0;
+    t[0] = f0 * lh_cast_static(lh_s64_t, g0) + F1 * lh_cast_static(lh_s64_t, G9) +
+           f2 * lh_cast_static(lh_s64_t, G8) + F3 * lh_cast_static(lh_s64_t, G7) +
+           f4 * lh_cast_static(lh_s64_t, G6) + F5 * lh_cast_static(lh_s64_t, G5) +
+           f6 * lh_cast_static(lh_s64_t, G4) + F7 * lh_cast_static(lh_s64_t, G3) +
+           f8 * lh_cast_static(lh_s64_t, G2) + F9 * lh_cast_static(lh_s64_t, G1);
+    t[1] = f0 * lh_cast_static(lh_s64_t, g1) + f1 * lh_cast_static(lh_s64_t, g0) +
+           f2 * lh_cast_static(lh_s64_t, G9) + f3 * lh_cast_static(lh_s64_t, G8) +
+           f4 * lh_cast_static(lh_s64_t, G7) + f5 * lh_cast_static(lh_s64_t, G6) +
+           f6 * lh_cast_static(lh_s64_t, G5) + f7 * lh_cast_static(lh_s64_t, G4) +
+           f8 * lh_cast_static(lh_s64_t, G3) + f9 * lh_cast_static(lh_s64_t, G2);
+    t[2] = f0 * lh_cast_static(lh_s64_t, g2) + F1 * lh_cast_static(lh_s64_t, g1) +
+           f2 * lh_cast_static(lh_s64_t, g0) + F3 * lh_cast_static(lh_s64_t, G9) +
+           f4 * lh_cast_static(lh_s64_t, G8) + F5 * lh_cast_static(lh_s64_t, G7) +
+           f6 * lh_cast_static(lh_s64_t, G6) + F7 * lh_cast_static(lh_s64_t, G5) +
+           f8 * lh_cast_static(lh_s64_t, G4) + F9 * lh_cast_static(lh_s64_t, G3);
+    t[3] = f0 * lh_cast_static(lh_s64_t, g3) + f1 * lh_cast_static(lh_s64_t, g2) +
+           f2 * lh_cast_static(lh_s64_t, g1) + f3 * lh_cast_static(lh_s64_t, g0) +
+           f4 * lh_cast_static(lh_s64_t, G9) + f5 * lh_cast_static(lh_s64_t, G8) +
+           f6 * lh_cast_static(lh_s64_t, G7) + f7 * lh_cast_static(lh_s64_t, G6) +
+           f8 * lh_cast_static(lh_s64_t, G5) + f9 * lh_cast_static(lh_s64_t, G4);
+    t[4] = f0 * lh_cast_static(lh_s64_t, g4) + F1 * lh_cast_static(lh_s64_t, g3) +
+           f2 * lh_cast_static(lh_s64_t, g2) + F3 * lh_cast_static(lh_s64_t, g1) +
+           f4 * lh_cast_static(lh_s64_t, g0) + F5 * lh_cast_static(lh_s64_t, G9) +
+           f6 * lh_cast_static(lh_s64_t, G8) + F7 * lh_cast_static(lh_s64_t, G7) +
+           f8 * lh_cast_static(lh_s64_t, G6) + F9 * lh_cast_static(lh_s64_t, G5);
+    t[5] = f0 * lh_cast_static(lh_s64_t, g5) + f1 * lh_cast_static(lh_s64_t, g4) +
+           f2 * lh_cast_static(lh_s64_t, g3) + f3 * lh_cast_static(lh_s64_t, g2) +
+           f4 * lh_cast_static(lh_s64_t, g1) + f5 * lh_cast_static(lh_s64_t, g0) +
+           f6 * lh_cast_static(lh_s64_t, G9) + f7 * lh_cast_static(lh_s64_t, G8) +
+           f8 * lh_cast_static(lh_s64_t, G7) + f9 * lh_cast_static(lh_s64_t, G6);
+    t[6] = f0 * lh_cast_static(lh_s64_t, g6) + F1 * lh_cast_static(lh_s64_t, g5) +
+           f2 * lh_cast_static(lh_s64_t, g4) + F3 * lh_cast_static(lh_s64_t, g3) +
+           f4 * lh_cast_static(lh_s64_t, g2) + F5 * lh_cast_static(lh_s64_t, g1) +
+           f6 * lh_cast_static(lh_s64_t, g0) + F7 * lh_cast_static(lh_s64_t, G9) +
+           f8 * lh_cast_static(lh_s64_t, G8) + F9 * lh_cast_static(lh_s64_t, G7);
+    t[7] = f0 * lh_cast_static(lh_s64_t, g7) + f1 * lh_cast_static(lh_s64_t, g6) +
+           f2 * lh_cast_static(lh_s64_t, g5) + f3 * lh_cast_static(lh_s64_t, g4) +
+           f4 * lh_cast_static(lh_s64_t, g3) + f5 * lh_cast_static(lh_s64_t, g2) +
+           f6 * lh_cast_static(lh_s64_t, g1) + f7 * lh_cast_static(lh_s64_t, g0) +
+           f8 * lh_cast_static(lh_s64_t, G9) + f9 * lh_cast_static(lh_s64_t, G8);
+    t[8] = f0 * lh_cast_static(lh_s64_t, g8) + F1 * lh_cast_static(lh_s64_t, g7) +
+           f2 * lh_cast_static(lh_s64_t, g6) + F3 * lh_cast_static(lh_s64_t, g5) +
+           f4 * lh_cast_static(lh_s64_t, g4) + F5 * lh_cast_static(lh_s64_t, g3) +
+           f6 * lh_cast_static(lh_s64_t, g2) + F7 * lh_cast_static(lh_s64_t, g1) +
+           f8 * lh_cast_static(lh_s64_t, g0) + F9 * lh_cast_static(lh_s64_t, G9);
+    t[9] = f0 * lh_cast_static(lh_s64_t, g9) + f1 * lh_cast_static(lh_s64_t, g8) +
+           f2 * lh_cast_static(lh_s64_t, g7) + f3 * lh_cast_static(lh_s64_t, g6) +
+           f4 * lh_cast_static(lh_s64_t, g5) + f5 * lh_cast_static(lh_s64_t, g4) +
+           f6 * lh_cast_static(lh_s64_t, g3) + f7 * lh_cast_static(lh_s64_t, g2) +
+           f8 * lh_cast_static(lh_s64_t, g1) + f9 * lh_cast_static(lh_s64_t, g0);
     lh_crypto_curve25519_field_carry(h, t);
 }
 
@@ -341,26 +369,36 @@ lh_crypto_curve25519_field_square(lh_crypto_curve25519_field_t *h,
     const lh_s32_t f8_19 = f8 * 19;
     const lh_s32_t f9_38 = f9 * 38;
     lh_s64_t t[LH_CRYPTO_CURVE25519_FIELD_LIMBS];
-    t[0] = f0 * (lh_s64_t)f0 + f1_2 * (lh_s64_t)f9_38 + f2_2 * (lh_s64_t)f8_19 +
-           f3_2 * (lh_s64_t)f7_38 + f4_2 * (lh_s64_t)f6_19 + f5 * (lh_s64_t)f5_38;
-    t[1] = f0_2 * (lh_s64_t)f1 + f2 * (lh_s64_t)f9_38 + f3_2 * (lh_s64_t)f8_19 +
-           f4 * (lh_s64_t)f7_38 + f5_2 * (lh_s64_t)f6_19;
-    t[2] = f0_2 * (lh_s64_t)f2 + f1_2 * (lh_s64_t)f1 + f3_2 * (lh_s64_t)f9_38 +
-           f4_2 * (lh_s64_t)f8_19 + f5_2 * (lh_s64_t)f7_38 + f6 * (lh_s64_t)f6_19;
-    t[3] = f0_2 * (lh_s64_t)f3 + f1_2 * (lh_s64_t)f2 + f4 * (lh_s64_t)f9_38 +
-           f5_2 * (lh_s64_t)f8_19 + f6 * (lh_s64_t)f7_38;
-    t[4] = f0_2 * (lh_s64_t)f4 + f1_2 * (lh_s64_t)f3_2 + f2 * (lh_s64_t)f2 +
-           f5_2 * (lh_s64_t)f9_38 + f6_2 * (lh_s64_t)f8_19 + f7 * (lh_s64_t)f7_38;
-    t[5] = f0_2 * (lh_s64_t)f5 + f1_2 * (lh_s64_t)f4 + f2_2 * (lh_s64_t)f3 + f6 * (lh_s64_t)f9_38 +
-           f7_2 * (lh_s64_t)f8_19;
-    t[6] = f0_2 * (lh_s64_t)f6 + f1_2 * (lh_s64_t)f5_2 + f2_2 * (lh_s64_t)f4 + f3_2 * (lh_s64_t)f3 +
-           f7_2 * (lh_s64_t)f9_38 + f8 * (lh_s64_t)f8_19;
-    t[7] = f0_2 * (lh_s64_t)f7 + f1_2 * (lh_s64_t)f6 + f2_2 * (lh_s64_t)f5 + f3_2 * (lh_s64_t)f4 +
-           f8 * (lh_s64_t)f9_38;
-    t[8] = f0_2 * (lh_s64_t)f8 + f1_2 * (lh_s64_t)f7_2 + f2_2 * (lh_s64_t)f6 +
-           f3_2 * (lh_s64_t)f5_2 + f4 * (lh_s64_t)f4 + f9 * (lh_s64_t)f9_38;
-    t[9] = f0_2 * (lh_s64_t)f9 + f1_2 * (lh_s64_t)f8 + f2_2 * (lh_s64_t)f7 + f3_2 * (lh_s64_t)f6 +
-           f4 * (lh_s64_t)f5_2;
+    t[0] = f0 * lh_cast_static(lh_s64_t, f0) + f1_2 * lh_cast_static(lh_s64_t, f9_38) +
+           f2_2 * lh_cast_static(lh_s64_t, f8_19) + f3_2 * lh_cast_static(lh_s64_t, f7_38) +
+           f4_2 * lh_cast_static(lh_s64_t, f6_19) + f5 * lh_cast_static(lh_s64_t, f5_38);
+    t[1] = f0_2 * lh_cast_static(lh_s64_t, f1) + f2 * lh_cast_static(lh_s64_t, f9_38) +
+           f3_2 * lh_cast_static(lh_s64_t, f8_19) + f4 * lh_cast_static(lh_s64_t, f7_38) +
+           f5_2 * lh_cast_static(lh_s64_t, f6_19);
+    t[2] = f0_2 * lh_cast_static(lh_s64_t, f2) + f1_2 * lh_cast_static(lh_s64_t, f1) +
+           f3_2 * lh_cast_static(lh_s64_t, f9_38) + f4_2 * lh_cast_static(lh_s64_t, f8_19) +
+           f5_2 * lh_cast_static(lh_s64_t, f7_38) + f6 * lh_cast_static(lh_s64_t, f6_19);
+    t[3] = f0_2 * lh_cast_static(lh_s64_t, f3) + f1_2 * lh_cast_static(lh_s64_t, f2) +
+           f4 * lh_cast_static(lh_s64_t, f9_38) + f5_2 * lh_cast_static(lh_s64_t, f8_19) +
+           f6 * lh_cast_static(lh_s64_t, f7_38);
+    t[4] = f0_2 * lh_cast_static(lh_s64_t, f4) + f1_2 * lh_cast_static(lh_s64_t, f3_2) +
+           f2 * lh_cast_static(lh_s64_t, f2) + f5_2 * lh_cast_static(lh_s64_t, f9_38) +
+           f6_2 * lh_cast_static(lh_s64_t, f8_19) + f7 * lh_cast_static(lh_s64_t, f7_38);
+    t[5] = f0_2 * lh_cast_static(lh_s64_t, f5) + f1_2 * lh_cast_static(lh_s64_t, f4) +
+           f2_2 * lh_cast_static(lh_s64_t, f3) + f6 * lh_cast_static(lh_s64_t, f9_38) +
+           f7_2 * lh_cast_static(lh_s64_t, f8_19);
+    t[6] = f0_2 * lh_cast_static(lh_s64_t, f6) + f1_2 * lh_cast_static(lh_s64_t, f5_2) +
+           f2_2 * lh_cast_static(lh_s64_t, f4) + f3_2 * lh_cast_static(lh_s64_t, f3) +
+           f7_2 * lh_cast_static(lh_s64_t, f9_38) + f8 * lh_cast_static(lh_s64_t, f8_19);
+    t[7] = f0_2 * lh_cast_static(lh_s64_t, f7) + f1_2 * lh_cast_static(lh_s64_t, f6) +
+           f2_2 * lh_cast_static(lh_s64_t, f5) + f3_2 * lh_cast_static(lh_s64_t, f4) +
+           f8 * lh_cast_static(lh_s64_t, f9_38);
+    t[8] = f0_2 * lh_cast_static(lh_s64_t, f8) + f1_2 * lh_cast_static(lh_s64_t, f7_2) +
+           f2_2 * lh_cast_static(lh_s64_t, f6) + f3_2 * lh_cast_static(lh_s64_t, f5_2) +
+           f4 * lh_cast_static(lh_s64_t, f4) + f9 * lh_cast_static(lh_s64_t, f9_38);
+    t[9] = f0_2 * lh_cast_static(lh_s64_t, f9) + f1_2 * lh_cast_static(lh_s64_t, f8) +
+           f2_2 * lh_cast_static(lh_s64_t, f7) + f3_2 * lh_cast_static(lh_s64_t, f6) +
+           f4 * lh_cast_static(lh_s64_t, f5_2);
     lh_crypto_curve25519_field_carry(h, t);
 }
 
@@ -369,7 +407,7 @@ lh_crypto_curve25519_field_is_odd(const lh_crypto_curve25519_field_t *f)
 {
     lh_byte_t s[LH_CRYPTO_CURVE25519_FIELD_SIZE];
     lh_crypto_curve25519_field_to_bytes(s, f);
-    const lh_bool_t odd = (lh_bool_t)(s[0] & 1U);
+    const lh_bool_t odd = lh_cast_static(lh_bool_t, s[0] & 1U);
     lh_crypto_wipe(s, sizeof(s));
     return odd;
 }
@@ -459,13 +497,16 @@ lh_crypto_curve25519_field_invsqrt(lh_crypto_curve25519_field_t *isr,
 
     lh_crypto_curve25519_field_t *check = lh_addr_of(t2);
     lh_crypto_curve25519_field_zero(check);
-    const lh_s32_t z0 = (lh_s32_t)lh_crypto_curve25519_field_is_equal(x, check);
+    const lh_s32_t z0 = lh_cast_static(lh_s32_t, lh_crypto_curve25519_field_is_equal(x, check));
     lh_crypto_curve25519_field_one(check);
-    const lh_s32_t p1 = (lh_s32_t)lh_crypto_curve25519_field_is_equal(quartic, check);
+    const lh_s32_t p1 =
+        lh_cast_static(lh_s32_t, lh_crypto_curve25519_field_is_equal(quartic, check));
     lh_crypto_curve25519_field_neg(check, check);
-    const lh_s32_t m1 = (lh_s32_t)lh_crypto_curve25519_field_is_equal(quartic, check);
+    const lh_s32_t m1 =
+        lh_cast_static(lh_s32_t, lh_crypto_curve25519_field_is_equal(quartic, check));
     lh_crypto_curve25519_field_neg(check, lh_crypto_curve25519_field_get_sqrt_m1());
-    const lh_s32_t ms = (lh_s32_t)lh_crypto_curve25519_field_is_equal(quartic, check);
+    const lh_s32_t ms =
+        lh_cast_static(lh_s32_t, lh_crypto_curve25519_field_is_equal(quartic, check));
 
     /* quartic -1 or -sqrt(-1): isr = t0 * sqrt(-1); otherwise isr = t0. */
     lh_crypto_curve25519_field_mul(isr, lh_addr_of(t0), lh_crypto_curve25519_field_get_sqrt_m1());

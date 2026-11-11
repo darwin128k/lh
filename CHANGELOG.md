@@ -152,6 +152,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- No C-style casts left in portable LH: 266 `(T)x` became `lh_cast_static(T, x)` — 224
+  in `crypto/curve25519/field.c`, the rest in `ed25519`, `ui`, `http`, `str/parse/hex.c`.
+  In C the macro is `((T)(x))`, so the code is the same; the crypto test vectors pass.
+  `(void)x` stays the discard idiom (`lh/core/compiler/attribute/unused.h`). The memory
+  kernel uses `lh_math_abs` / `lh_memory_set` in `ui/shadow/shape.c` instead of a
+  conditional difference and a zero-fill loop.
 - **No `static` functions left in LH.** The memory kernel's tiers
   (`memory/std/words.h`, `x86/cpuid.h`, `x86/sse2.h`, `x86/avx2.h`, the dispatchers in
   `memory/std.c`), the AES-NI path of `crypto/rijndael.c`, and the POSIX / Windows

@@ -7,9 +7,9 @@
 lh_u32_t
 lh_ui_present_enable_all(lh_u32_t count)
 {
-    if (count > (lh_u32_t)LH_UI_PRESENT_SINKS_MAX)
+    if (count > lh_cast_static(lh_u32_t, LH_UI_PRESENT_SINKS_MAX))
     {
-        count = (lh_u32_t)LH_UI_PRESENT_SINKS_MAX;
+        count = lh_cast_static(lh_u32_t, LH_UI_PRESENT_SINKS_MAX);
     }
     if (count == 0u)
     {
@@ -32,9 +32,9 @@ lh_ui_present_run(const lh_ui_present_sink_t *sinks, lh_u32_t count, lh_u32_t en
     {
         return;
     }
-    if (count > (lh_u32_t)LH_UI_PRESENT_SINKS_MAX)
+    if (count > lh_cast_static(lh_u32_t, LH_UI_PRESENT_SINKS_MAX))
     {
-        count = (lh_u32_t)LH_UI_PRESENT_SINKS_MAX;
+        count = lh_cast_static(lh_u32_t, LH_UI_PRESENT_SINKS_MAX);
     }
     for (i = 0; i < count; ++i)
     {

@@ -20,13 +20,13 @@ lh_http_is_token_char(lh_char_t c)
 lh_bool_t
 lh_http_is_target_char(lh_char_t c)
 {
-    const lh_u8_t byte = (lh_u8_t)c;
+    const lh_u8_t byte = lh_cast_static(lh_u8_t, c);
     return byte >= lh_char_map_exclamation && byte <= lh_char_map_tilde;
 }
 
 lh_bool_t
 lh_http_is_field_char(lh_char_t c)
 {
-    const lh_u8_t byte = (lh_u8_t)c;
+    const lh_u8_t byte = lh_cast_static(lh_u8_t, c);
     return byte == lh_char_map_ht || (byte >= lh_char_map_space && byte != lh_char_map_del);
 }

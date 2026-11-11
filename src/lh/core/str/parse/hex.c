@@ -83,8 +83,8 @@ lh_str_ptr_parse_hex_bytes(lh_str_cptr str, lh_usize_t str_size, lh_byte_ptr out
     {
         lh_usize_t digit = lh_math_mul(i, 2U);
 
-        out[i] = (lh_byte_t)((lh_char_to_xdigit(str[digit]) << 4) |
-                             lh_char_to_xdigit(str[lh_math_add_one(digit)]));
+        out[i] = lh_cast_static(lh_byte_t, (lh_char_to_xdigit(str[digit]) << 4) |
+                                               lh_char_to_xdigit(str[lh_math_add_one(digit)]));
     }
     return lh_bool_true;
 }

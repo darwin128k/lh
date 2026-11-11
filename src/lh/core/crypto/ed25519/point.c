@@ -70,7 +70,7 @@ lh_crypto_ed25519_point_to_bytes(lh_byte_t s[LH_CRYPTO_ED25519_POINT_SIZE],
     lh_crypto_curve25519_field_t y;
     lh_crypto_curve25519_field_mul(lh_addr_of(y), lh_addr_of(h->y), lh_addr_of(recip));
     lh_crypto_curve25519_field_to_bytes(s, lh_addr_of(y));
-    s[31] ^= (lh_byte_t)(lh_crypto_curve25519_field_is_odd(lh_addr_of(x)) << 7);
+    s[31] ^= lh_cast_static(lh_byte_t, lh_crypto_curve25519_field_is_odd(lh_addr_of(x)) << 7);
     lh_crypto_wipe(lh_addr_of(recip), sizeof(recip));
     lh_crypto_wipe(lh_addr_of(x), sizeof(x));
     lh_crypto_wipe(lh_addr_of(y), sizeof(y));
@@ -166,7 +166,8 @@ lh_crypto_ed25519_point_from_bytes_neg_vartime(lh_crypto_ed25519_point_t *h,
     }
     lh_crypto_curve25519_field_mul(lh_addr_of(h->x), lh_addr_of(h->t), lh_addr_of(h->x));
     /* The negation: x takes the sign opposite to the encoded one. */
-    if ((lh_s32_t)lh_crypto_curve25519_field_is_odd(lh_addr_of(h->x)) == (s[31] >> 7))
+    if (lh_cast_static(lh_s32_t, lh_crypto_curve25519_field_is_odd(lh_addr_of(h->x))) ==
+        (s[31] >> 7))
     {
         lh_crypto_curve25519_field_neg(lh_addr_of(h->x), lh_addr_of(h->x));
     }
@@ -218,14 +219,16 @@ lh_crypto_ed25519_point_comb_add(lh_crypto_ed25519_point_t *p,
                                  const lh_crypto_ed25519_point_precomp_t *comb,
                                  const lh_byte_t scalar[LH_CRYPTO_ED25519_SCALAR_SIZE], lh_s32_t i)
 {
-    const lh_u8_t teeth = (lh_u8_t)((lh_crypto_ed25519_scalar_get_bit(scalar, i)) +
+    const lh_u8_t teeth =
+        lh_cast_static(lh_u8_t, (lh_crypto_ed25519_scalar_get_bit(scalar, i)) +
                                     (lh_crypto_ed25519_scalar_get_bit(scalar, i + 32) << 1) +
                                     (lh_crypto_ed25519_scalar_get_bit(scalar, i + 64) << 2) +
                                     (lh_crypto_ed25519_scalar_get_bit(scalar, i + 96) << 3));
-    const lh_u8_t high = (lh_u8_t)(teeth >> 3);
-    const lh_u8_t index = (lh_u8_t)((teeth ^ (high - 1)) & 7);
+    const lh_u8_t high = lh_cast_static(lh_u8_t, teeth >> 3);
+    const lh_u8_t index = lh_cast_static(lh_u8_t, (teeth ^ (high - 1)) & 7);
     /* Read every entry, keep the one selected: no index depends on the secret. */
-    for (lh_s32_t j = 0; j < (lh_s32_t)LH_CRYPTO_ED25519_BASE_TABLE_SIZE; j = lh_math_add_one(j))
+    for (lh_s32_t j = 0; j < lh_cast_static(lh_s32_t, LH_CRYPTO_ED25519_BASE_TABLE_SIZE);
+         j = lh_math_add_one(j))
     {
         const lh_s32_t select = 1 & (((j ^ index) - 1) >> 8);
         lh_crypto_curve25519_field_ccopy(lh_addr_of(tmp_c->yp), lh_addr_of(comb[j].yp), select);
@@ -322,8 +325,9 @@ lh_crypto_ed25519_point_check_equation(const lh_byte_t signature[2U * LH_CRYPTO_
     lh_crypto_ed25519_slide_init(lh_addr_of(h_slide), h);
     lh_crypto_ed25519_slide_t s_slide;
     lh_crypto_ed25519_slide_init(lh_addr_of(s_slide), s);
-    lh_s32_t i = lh_math_max((lh_s32_t)lh_crypto_ed25519_slide_get_next_check(lh_addr_of(h_slide)),
-                             (lh_s32_t)lh_crypto_ed25519_slide_get_next_check(lh_addr_of(s_slide)));
+    lh_s32_t i = lh_math_max(
+        lh_cast_static(lh_s32_t, lh_crypto_ed25519_slide_get_next_check(lh_addr_of(h_slide))),
+        lh_cast_static(lh_s32_t, lh_crypto_ed25519_slide_get_next_check(lh_addr_of(s_slide))));
     lh_crypto_ed25519_point_t *sum = lh_addr_of(minus_a); /* -A is in the table now */
     lh_crypto_ed25519_point_zero(sum);
     const lh_crypto_ed25519_point_precomp_t *window = lh_crypto_ed25519_base_get_window();

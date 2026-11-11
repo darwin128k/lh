@@ -223,9 +223,9 @@ lh_http_parser_parse_status_line(lh_http_parser_t *self, lh_str_view_t input, lh
     }
     lh_http_response_set_version_minor(response, minor);
     lh_http_response_set_status(response,
-                                (lh_u16_t)(lh_char_to_digit(text[9]) * 100 +
-                                           lh_char_to_digit(text[10]) * 10 +
-                                           lh_char_to_digit(text[11])));
+                                lh_cast_static(lh_u16_t, lh_char_to_digit(text[9]) * 100 +
+                                                             lh_char_to_digit(text[10]) * 10 +
+                                                             lh_char_to_digit(text[11])));
     lh_str_view_from_offset(lh_addr_of(input), 13, end - 13, lh_addr_of(part));
     lh_http_response_set_reason(response, part);
     return lh_http_parse_complete;
