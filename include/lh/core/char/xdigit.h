@@ -15,7 +15,6 @@
 #define LH_CHAR_XDIGIT_H
 
 #include <lh/core/char/digit.h>
-#include <lh/core/char/letter.h>
 
 /**
  * @def LH_CHAR_XDIGIT_RADIX

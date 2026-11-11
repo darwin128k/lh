@@ -53,18 +53,19 @@ Writes to `src/lh/core/util/wstr/case/map.c`.
 
 ### Case Map (narrow)
 
-Generates narrow `lh_char_t` case mapping tables (`lh_str_ptr_to_lower` / `lh_str_ptr_to_upper`)
-from the same UnicodeData.txt, restricted to code points where both the source and mapped
+Generates the narrow `lh_char_t` case mapping of 128..255 (`lh_char_to_lower_nonascii` /
+`lh_char_to_upper_nonascii`; ASCII is inline in `lh_char_to_lower` / `_to_upper`, and the
+buffer forms `lh_str_ptr_to_lower` / `_to_upper` are built on them) from the same UnicodeData.txt, restricted to code points where both the source and mapped
 scalar fit in a single byte (0..255) — a handful of Latin-1 mappings whose target escapes that
 range (e.g. MICRO SIGN, LATIN SMALL LETTER Y WITH DIAERESIS) are dropped, since they can't be
 represented. Emits both implementations selected by `LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE`
-(see that option in `cmake/library_options.cmake`): a dense 256-entry lookup table, and the
+(see that option in `cmake/library_options.cmake`): a dense 128-entry lookup table, and the
 sorted sparse pair table with binary search.
 
 ```sh
-python3 gen_str_case_map.py
+python3 gen_char_case_map.py
 ```
-Writes to `src/lh/core/util/str/case/map.c`.
+Writes to `src/lh/core/util/char/case/map.c`.
 
 ### Case Fold
 

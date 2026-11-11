@@ -7,7 +7,6 @@
 
 #include <lh/core/cast/const.h>
 #include <lh/core/util/return.h>
-#include <lh/core/char/letter.h>
 #include <lh/core/char/digit.h>
 
 const lh_list_t *

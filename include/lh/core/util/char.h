@@ -12,8 +12,8 @@
 #ifndef LH_UTIL_CHAR_H
 #define LH_UTIL_CHAR_H
 
-#include <lh/core/attribute/force_inline.h>
-#include <lh/core/cast/static.h>
+#include <lh/core/char/ascii.h>
+#include <lh/core/char/letter.h>
 #include <lh/core/util/char/case/fold.h>
 
 /** @brief Code of character @p c as type @p T. */
@@ -39,17 +39,11 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_char_t
 lh_char_fold_case(lh_char_t c)
 {
-    const lh_uchar_t u = lh_cast_static(lh_uchar_t, c);
-
-    if (u < 128U)
+    if (lh_char_is_upper(c))
     {
-        if (u >= 65U && u <= 90U)
-        {
-            return lh_cast_static(lh_char_t, u + 32U);
-        }
-        return c;
+        return lh_cast_static(lh_char_t, c + (lh_char_map_small_a - lh_char_map_capital_a));
     }
-    return lh_char_fold_case_nonascii(c);
+    return lh_char_is_ascii(c) ? c : lh_char_fold_case_nonascii(c);
 }
 
 LH_COMPILER_EXTERN_C_END

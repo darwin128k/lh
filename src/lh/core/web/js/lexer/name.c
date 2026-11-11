@@ -6,7 +6,6 @@
 #include <lh/core/web/js/lexer/name.h>
 
 #include <lh/core/char/digit.h>
-#include <lh/core/char/letter.h>
 
 lh_bool_t
 lh_web_js_lexer_is_name_start(lh_char_t ch)

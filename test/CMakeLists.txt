@@ -195,6 +195,7 @@ lh_add_test_core(lh_test_char
         ${LH_TEST_SRC_PATH}/lh/core/char/digit.cpp
         ${LH_TEST_SRC_PATH}/lh/core/char/dot.cpp
         ${LH_TEST_SRC_PATH}/lh/core/char/word.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/char/ascii.cpp
         ${LH_TEST_SRC_PATH}/lh/core/char/letter.cpp
         ${LH_TEST_SRC_PATH}/lh/core/char/slash.cpp
         ${LH_TEST_SRC_PATH}/lh/core/char/xdigit.cpp
@@ -499,6 +500,7 @@ lh_add_test_core(lh_test_util
         ${LH_TEST_SRC_PATH}/lh/core/util/interval.cpp
         ${LH_TEST_SRC_PATH}/lh/core/util/memory.cpp
         ${LH_TEST_SRC_PATH}/lh/core/util/null.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/util/char/case/map.cpp
         ${LH_TEST_SRC_PATH}/lh/core/util/str/case/map.cpp
         ${LH_TEST_SRC_PATH}/lh/core/util/str/ptr.cpp
         ${LH_TEST_SRC_PATH}/lh/core/util/str/ptr/dot.cpp

@@ -12,7 +12,6 @@
 #define LH_CHAR_WORD_H
 
 #include <lh/core/char/digit.h>
-#include <lh/core/char/letter.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

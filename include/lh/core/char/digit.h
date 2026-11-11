@@ -22,7 +22,6 @@
 #define LH_CHAR_DIGIT_H
 
 #include <lh/core/assert/runtime.h>
-#include <lh/core/char/map.h>
 #include <lh/core/util/char.h>
 
 /**

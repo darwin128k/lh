@@ -5,7 +5,6 @@
 
 #include <lh/core/web/xml/name.h>
 #include <lh/core/char/digit.h>
-#include <lh/core/char/letter.h>
 
 lh_bool_t
 lh_web_xml_name_is_start_char(lh_char_t ch)

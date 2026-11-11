@@ -2,7 +2,6 @@
 #include <lh/core/attribute/sanitize.h>
 #include <lh/core/bit/swar.h>
 #include <lh/core/memory/word.h>
-#include <lh/core/char/map.h>
 #include <lh/core/memory.h>
 #include <lh/core/optional/ref.h>
 #include <lh/core/util/char.h>

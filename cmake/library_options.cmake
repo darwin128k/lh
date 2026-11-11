@@ -354,21 +354,23 @@ set(LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK "16" CACHE STRING
 # -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE
 #
-# Implementation lh_str_ptr_to_lower / lh_str_ptr_to_upper (src/lh/core/util/str/case/map.c)
-# use for single-byte (0..255) simple case mapping:
+# Implementation lh_char_to_lower_nonascii / lh_char_to_upper_nonascii
+# (src/lh/core/util/char/case/map.c, generated) use for the 128..255 half of single-byte
+# simple case mapping; ASCII is mapped inline by lh_char_to_lower / _to_upper, and
+# lh_str_ptr_to_lower / _to_upper are built on them:
 #
-#   ON  — direct 256-entry lookup table per direction (512 bytes total flash/ROM).
-#         O(1) per character, no branch: table[(unsigned char)c] is always the
+#   ON  — direct 128-entry lookup table per direction (256 bytes total flash/ROM).
+#         O(1) per character, no branch: table[(unsigned char)c - 128] is always the
 #         mapped byte (identity for characters with no case mapping).
-#   OFF — binary search over the existing sorted sparse pair table (~112 bytes
-#         total). O(log n) per character (~6 comparisons for the current ~56
-#         entries per direction) — smaller, slower.
+#   OFF — binary search over the sorted sparse pairs of 128..255 (~60 bytes
+#         total). O(log n) per non-ASCII character (~5 comparisons for the current
+#         30 entries per direction) — smaller, slower.
 #
 # Pure speed/flash trade-off, same shape as LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK:
 # no way to know which matters more for a given target without measuring on it.
 # -----------------------------------------------------------------------------
 option(LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE
-        "lh_str_ptr_to_lower/_to_upper use a dense 256-entry table (ON, faster, +~400B) instead of binary search over the sparse pair table (OFF, smaller)."
+        "lh_char_to_lower/_to_upper (and the lh_str_ptr forms) map 128..255 with a dense 128-entry table (ON, faster, +~200B) instead of binary search over the sparse pairs (OFF, smaller)."
         ON)
 
 # -----------------------------------------------------------------------------
