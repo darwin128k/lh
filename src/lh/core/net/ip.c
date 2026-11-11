@@ -1,4 +1,6 @@
 #include <lh/core/net/ip.h>
+#include <lh/core/bit/endian.h>
+#include <lh/core/cast/const.h>
 #include <lh/core/char/map.h>
 #include <lh/core/assert.h>
 #include <lh/core/memory.h>
@@ -201,4 +203,49 @@ lh_net_ip4_get_octets(const lh_net_ip4_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->octets;
+}
+
+lh_u32_t
+lh_net_ip4_to_u32(const lh_net_ip4_t *self)
+{
+    /* The octets are in network order: their big-endian reading is the number. */
+    return lh_bit_unpack_be32(lh_cast_const(lh_byte_t *, lh_net_ip4_get_octets(self)));
+}
+
+lh_void
+lh_net_ip4_init_by_u32(lh_net_ip4_t *self, lh_u32_t value)
+{
+    lh_byte_t octets[4];
+
+    lh_bit_pack_be32(value, octets);
+    lh_net_ip4_init(self, octets[0], octets[1], octets[2], octets[3]);
+}
+
+/* The special-purpose blocks (RFC 6890) a public address is in none of. */
+static const lh_u32_t m_net_ip4_special[][2] = {
+    {0x00000000U, 0xff000000U}, /* 0.0.0.0/8 this network */
+    {0x0a000000U, 0xff000000U}, /* 10.0.0.0/8 private */
+    {0x64400000U, 0xffc00000U}, /* 100.64.0.0/10 carrier-grade NAT */
+    {0x7f000000U, 0xff000000U}, /* 127.0.0.0/8 loopback */
+    {0xa9fe0000U, 0xffff0000U}, /* 169.254.0.0/16 link-local */
+    {0xac100000U, 0xfff00000U}, /* 172.16.0.0/12 private */
+    {0xc0000000U, 0xffffff00U}, /* 192.0.0.0/24 IETF */
+    {0xc0a80000U, 0xffff0000U}, /* 192.168.0.0/16 private */
+    {0xc6120000U, 0xfffe0000U}, /* 198.18.0.0/15 benchmark */
+    {0xe0000000U, 0xe0000000U}, /* 224.0.0.0/3 multicast and reserved */
+};
+
+lh_bool_t
+lh_net_ip4_is_public(const lh_net_ip4_t *self)
+{
+    const lh_u32_t value = lh_net_ip4_to_u32(self);
+
+    for (lh_usize_t i = 0U; i < lh_array_ptr_get_size(m_net_ip4_special); ++i)
+    {
+        if ((value & m_net_ip4_special[i][1]) == m_net_ip4_special[i][0])
+        {
+            return lh_bool_false;
+        }
+    }
+    return lh_bool_true;
 }

@@ -169,6 +169,9 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/http/response.c
         ${LH_LIB_SRC_PATH}/core/http/status.c
         ${LH_LIB_SRC_PATH}/core/http/version.c
+        ${LH_LIB_SRC_PATH}/core/http/forwarded.c
+        ${LH_LIB_SRC_PATH}/core/http/limit/bucket.c
+        ${LH_LIB_SRC_PATH}/core/http/limit/peer.c
         ${LH_LIB_SRC_PATH}/core/sql/db.c
         ${LH_LIB_SRC_PATH}/core/sql/driver.c
         ${LH_LIB_SRC_PATH}/core/sql/mysql/query.c
@@ -266,6 +269,9 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/str/scanf/spec.c
         ${LH_LIB_SRC_PATH}/core/str/scanf/next.c
         ${LH_LIB_SRC_PATH}/core/str/list.c
+        ${LH_LIB_SRC_PATH}/core/str/template.c
+        ${LH_LIB_SRC_PATH}/core/str/template/registry/entry.c
+        ${LH_LIB_SRC_PATH}/core/str/template/registry.c
         ${LH_LIB_SRC_PATH}/core/wstr/list.c
         ${LH_LIB_SRC_PATH}/core/str/list/span.c
 
@@ -306,6 +312,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/net/ip.c
         ${LH_LIB_SRC_PATH}/core/net/port.c
         ${LH_LIB_SRC_PATH}/core/net/authority.c
+        ${LH_LIB_SRC_PATH}/core/net/cidr.c
         ${LH_LIB_SRC_PATH}/core/net/socket/addr/ip4.c
         ${LH_LIB_SRC_PATH}/core/net/socket/addr.c
         ${LH_LIB_SRC_PATH}/core/net/modbus.c
@@ -368,9 +375,13 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/module/event/entry.c
             ${LH_LIB_SRC_PATH}/os/module/event/subscription.c
             ${LH_LIB_SRC_PATH}/os/module/event/bus.c
+            ${LH_LIB_SRC_PATH}/os/module/hook/handler.c
+            ${LH_LIB_SRC_PATH}/os/module/hook.c
             ${LH_LIB_SRC_PATH}/os/thread/group/member.c
             ${LH_LIB_SRC_PATH}/os/thread/group.c
             ${LH_LIB_SRC_PATH}/os/logger/record.c
+            ${LH_LIB_SRC_PATH}/os/logger/capture/line.c
+            ${LH_LIB_SRC_PATH}/os/logger/capture.c
             ${LH_LIB_SRC_PATH}/os/logger/sink.c
             ${LH_LIB_SRC_PATH}/os/logger/queue.c
             ${LH_LIB_SRC_PATH}/os/logger/daily/channel.c

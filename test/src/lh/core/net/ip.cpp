@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <cstring>
 #include <string>
 
 #include <lh/core/net/ip.h>
@@ -189,3 +190,31 @@ TEST(net_ip4_initializer, takes_octets_in_dotted_order)
 }
 
 } // namespace
+
+TEST(net_ip4, public_excludes_every_special_purpose_block)
+{
+    const char *special[] = {"0.1.2.3",     "10.0.0.1",   "100.64.0.1",     "127.0.0.1",
+                             "169.254.1.1", "172.16.0.1", "192.0.0.5",      "192.168.1.1",
+                             "198.18.0.1",  "224.0.0.1",  "255.255.255.255"};
+    lh_net_ip4_t ip;
+
+    for (const char *text : special)
+    {
+        ASSERT_TRUE(lh_net_ip4_parse(text, std::strlen(text), &ip)) << text;
+        EXPECT_FALSE(lh_net_ip4_is_public(&ip)) << text;
+    }
+    ASSERT_TRUE(lh_net_ip4_parse("8.8.8.8", 7, &ip));
+    EXPECT_TRUE(lh_net_ip4_is_public(&ip));
+    ASSERT_TRUE(lh_net_ip4_parse("100.128.0.1", 11, &ip));
+    EXPECT_TRUE(lh_net_ip4_is_public(&ip));
+}
+
+TEST(net_ip4, round_trips_through_a_host_order_number)
+{
+    lh_net_ip4_t ip;
+
+    lh_net_ip4_init_by_u32(&ip, 0x01020304U);
+    EXPECT_EQ(lh_net_ip4_get_octet(&ip, 0), 1U);
+    EXPECT_EQ(lh_net_ip4_get_octet(&ip, 3), 4U);
+    EXPECT_EQ(lh_net_ip4_to_u32(&ip), 0x01020304U);
+}

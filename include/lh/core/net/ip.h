@@ -146,6 +146,31 @@ lh_net_ip4_is_loopback(const lh_net_ip4_t *self);
 lh_bool_t
 lh_net_ip4_is_private(const lh_net_ip4_t *self);
 
+/**
+ * @brief Test whether @p self is routable on the public internet.
+ *
+ * False for this-network `0.0.0.0/8`, RFC 1918 private space, carrier-grade NAT
+ * `100.64.0.0/10`, loopback, link-local `169.254.0.0/16`, IETF `192.0.0.0/24`, the
+ * benchmark `198.18.0.0/15`, multicast and the reserved `224.0.0.0/3`.
+ *
+ * @param self Address to classify.
+ * @return ::lh_bool_true when no special-purpose block holds @p self.
+ */
+lh_bool_t
+lh_net_ip4_is_public(const lh_net_ip4_t *self);
+
+/**
+ * @brief @p self as one 32-bit number in host order (`1.2.3.4` is `0x01020304`).
+ */
+lh_u32_t
+lh_net_ip4_to_u32(const lh_net_ip4_t *self);
+
+/**
+ * @brief Set @p self from a 32-bit number in host order, as ::lh_net_ip4_to_u32 gives it.
+ */
+lh_void
+lh_net_ip4_init_by_u32(lh_net_ip4_t *self, lh_u32_t value);
+
 /* -- parse / format / compare ---------------------------------------------- */
 
 /**

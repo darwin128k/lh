@@ -16,6 +16,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh/core/net/cidr`: `lh_net_cidr_t`, an IPv4 block (`a.b.c.d/n` or a bare
+  address), `lh_net_cidr_try_parse`, `_contains` and `lh_net_cidr_list_contains`.
+- `lh/core/http/forwarded`: `lh_http_forwarded_copy_client` walks `X-Forwarded-For`
+  right to left past trusted proxies to the client.
+- `lh/core/http/limit`: `lh_http_limit_bucket_get_refilled` (a token bucket for a
+  byte rate) and `lh_http_limit_peer_t`, a fixed table of client addresses with
+  open-connection, per-second and unfinished-request counts
+  (`lh_http_limit_peer_try_acquire` reuses the oldest idle peer when full).
+- `lh/os/module/hook`: `lh_os_module_hook_t`, a chain of up to 16 handlers that stand
+  in a call, beside the event bus. The handler added last runs first; one may stop
+  the call (its owner's tag is reported); one that overruns the time budget is
+  dropped; handlers go by owner. Never allocates.
+- `lh/core/str/template`: `lh_str_template_try_expand` replaces every `{name}` of a
+  template with the value a lookup gives (a stray brace or an unknown name fails);
+  `lh_str_template_is_name`; `lh_str_template_registry_t` keeps named values with
+  their owners (unique names, removal by the owner, by name or all at once) and
+  serves as a lookup.
+- `lh/core/char/word.h`: `lh_char_is_word` (ASCII letter, digit or `_`).
+- `lh/os/logger/capture`: `lh_os_logger_capture_t` holds the lines a thread logs inside
+  a capture scope (`_begin` / `_end`, per thread, nesting) in a bounded buffer over
+  the caller's storage, each with an opaque target; `_replay` hands them out in order
+  with capture suspended, a full buffer drops and counts.
+- `lh/core/net/ip`: `lh_net_ip4_is_public` (the RFC 6890 special-purpose table),
+  `lh_net_ip4_to_u32` and `lh_net_ip4_init_by_u32` (host order, big-endian octets).
 - `lh_timer_start_after`: a first delay apart from the period (0 fires at the next
   handler). The group handler keeps a repeating timer's phase and starts it again
   from now after a missed period (no catch-up burst); a callback may stop or start

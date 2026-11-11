@@ -83,13 +83,17 @@ lh_add_test_core(lh_test_http_parser ${LH_TEST_SRC_PATH}/lh/core/http/parser.cpp
         ${LH_TEST_SRC_PATH}/lh/core/http/method.cpp
         ${LH_TEST_SRC_PATH}/lh/core/http/status.cpp
         ${LH_TEST_SRC_PATH}/lh/core/http/request.cpp
-        ${LH_TEST_SRC_PATH}/lh/core/http/char.cpp ${LH_TEST_SRC_PATH}/lh/core/http/version.cpp)
+        ${LH_TEST_SRC_PATH}/lh/core/http/char.cpp ${LH_TEST_SRC_PATH}/lh/core/http/version.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/http/forwarded.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/http/limit.cpp)
 
 # The event bus modules talk through: registry, subscribers, deferred removal.
 if (LH_LIBRARY_OPTION_OS)
-    lh_add_test_core(lh_test_events ${LH_TEST_SRC_PATH}/lh/os/module/event/bus.cpp)
+    lh_add_test_core(lh_test_events ${LH_TEST_SRC_PATH}/lh/os/module/event/bus.cpp
+                     ${LH_TEST_SRC_PATH}/lh/os/module/hook.cpp)
 else ()
-    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/module/event/bus.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/module/event/bus.cpp
+         ${LH_TEST_SRC_PATH}/lh/os/module/hook.cpp)
 endif ()
 
 # rail: tasks, the queue that carries them between threads, the owner's
@@ -189,6 +193,7 @@ lh_add_test_core(lh_test_bit
 lh_add_test_core(lh_test_char
         ${LH_TEST_SRC_PATH}/lh/core/char/digit.cpp
         ${LH_TEST_SRC_PATH}/lh/core/char/dot.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/char/word.cpp
         ${LH_TEST_SRC_PATH}/lh/core/char/letter.cpp
         ${LH_TEST_SRC_PATH}/lh/core/char/slash.cpp
         ${LH_TEST_SRC_PATH}/lh/core/char/xdigit.cpp
@@ -296,6 +301,7 @@ lh_add_test_core(lh_test_net
         ${LH_TEST_SRC_PATH}/lh/core/net/modbus_link.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/port.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/authority.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/net/cidr.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/socket/addr.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/socket/addr/ip4.cpp
 )
@@ -324,6 +330,7 @@ set(LH_TEST_OS_SOURCES
         ${LH_TEST_SRC_PATH}/lh/os/thread/group.cpp
         ${LH_TEST_SRC_PATH}/lh/os/logger/queue.cpp
         ${LH_TEST_SRC_PATH}/lh/os/logger/daily.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/logger/capture.cpp
         ${LH_TEST_SRC_PATH}/lh/os/sql/mysql.cpp
         ${LH_TEST_SRC_PATH}/lh/os/window.cpp
         ${LH_TEST_SRC_PATH}/lh/os/render/backend/gdi.cpp
@@ -378,6 +385,8 @@ if (NOT LH_LIBRARY_OPTION_OS)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/logger/queue.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/logger/daily.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/logger/daily.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/logger/capture.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/logger/capture.cpp)
 endif ()
 if (NOT (LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW))
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/window.cpp)
@@ -412,6 +421,8 @@ set(LH_TEST_STR_SOURCES
         ${LH_TEST_SRC_PATH}/lh/core/str/format/bytes.cpp
         ${LH_TEST_SRC_PATH}/lh/core/str/format/base64.cpp
         ${LH_TEST_SRC_PATH}/lh/core/str/format/hex.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/template.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/template/registry.cpp
         ${LH_TEST_SRC_PATH}/lh/core/str/format/sint.cpp
         ${LH_TEST_SRC_PATH}/lh/core/str/format/sllong.cpp
         ${LH_TEST_SRC_PATH}/lh/core/str/format/text.cpp
