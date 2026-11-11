@@ -8,6 +8,11 @@
  * (@c size <= capacity). Growing @c size past the current capacity
  * reallocates the underlying block.
  *
+ * The block comes from the runtime allocator (::lh_array_init) or from an
+ * allocator the caller names (::lh_array_init_by): a memory tree, a module's
+ * sandbox, an arena. Every growth and the final free go through that one
+ * allocator, which must outlive the array.
+ *
  * @see lh_memory_typed_allocated_t
  */
 
@@ -33,7 +38,7 @@
 struct lh_array
 {
     /** Members: ::lh_array_fields. */
-    lh_array_fields(lh_memory_typed_allocated_t, lh_usize_t);
+    lh_array_fields(lh_memory_typed_allocated_t, lh_usize_t, lh_memory_allocator_t *);
 };
 /** @copybrief lh_array */
 typedef struct lh_array lh_array_t;
@@ -77,6 +82,22 @@ lh_array_get_size(const lh_array_t *self);
  */
 lh_void
 lh_array_set_size(lh_array_t *self, lh_usize_t size);
+
+/**
+ * @brief The allocator that makes, grows and frees the block of @p self.
+ * @param self Array to inspect.
+ */
+lh_memory_allocator_t *
+lh_array_get_allocator_mut(const lh_array_t *self);
+
+/**
+ * @brief Store the allocator of @p self, without touching the block.
+ *
+ * @warning Unsafe — the block (if any) must have come from @p allocator.
+ *          Only ::lh_array_init_by calls it, on an array with no block.
+ */
+lh_void
+lh_array_set_allocator(lh_array_t *self, lh_memory_allocator_t *allocator);
 
 /**
  * @brief Compute the capacity @p self would grow to for a given minimum.
@@ -146,6 +167,20 @@ lh_array_clear(lh_array_t *self);
  */
 lh_void
 lh_array_init(lh_array_t *self, lh_usize_t type_size);
+
+/**
+ * @brief Initialize @p self as an empty array of @p type_size-byte elements
+ *        whose block comes from @p allocator.
+ *
+ * Nothing is allocated yet. @p allocator must outlive the array: every growth
+ * and ::lh_array_deinit go through it.
+ *
+ * @param self      Array to initialize.
+ * @param type_size Size of one element, in bytes.
+ * @param allocator The allocator of the block (not null).
+ */
+lh_void
+lh_array_init_by(lh_array_t *self, lh_usize_t type_size, lh_memory_allocator_t *allocator);
 
 /**
  * @brief Free the block owned by @p self and reset it to an empty array.

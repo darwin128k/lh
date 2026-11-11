@@ -16,6 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_array_t` over a caller's allocator: `lh_array_init_by(self, type_size, allocator)`
+  (a memory tree, a sandbox, an arena); growth, sorting scratch and the final free go
+  through it, and `lh_array_merge` takes the other block whole only when both arrays
+  share one allocator. `lh_array_init` names the runtime allocator;
+  `lh_array_get_allocator_mut` reads it. Under it, `_by` forms of the heap-owning memory
+  helpers: `lh_memory_bounds_allocated_clear_by` / `_try_resize_by` / `_exchange_by` and
+  `lh_memory_typed_allocated_clear_by` / `_try_resize_by` / `_resize_by` /
+  `_exchange_by`; the plain forms are these over the runtime allocator.
 - The INI parser reads a sectionless text: `lh_ini_parser_init_flat` allows pairs
   before the first header (their section is empty), so a plain `key = value` file
   reads whole; `lh_ini_parser_is_flat` / `_set_flat`. A lenient reader goes past a bad

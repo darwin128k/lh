@@ -7,6 +7,7 @@
 #include <lh/core/array.h>
 
 #include <algorithm>
+#include <cstdlib>
 #include <initializer_list>
 #include <vector>
 
@@ -367,4 +368,151 @@ TEST(array_try_reserve, failure_and_size_overflow_leave_array_intact)
     EXPECT_EQ(lh_array_get_capacity(&array), capacity);
     EXPECT_EQ(lh_array_get_begin(&array), begin);
     EXPECT_EQ(*static_cast<int *>(lh_array_get_ptr(&array, 0)), 42);
+}
+
+namespace
+{
+
+/* An allocator that counts what goes through it, over malloc. */
+struct counting
+{
+    int allocs = 0;
+    int reallocs = 0;
+    int frees = 0;
+    lh_memory_allocator_t allocator{};
+
+    static lh_ptr
+    alloc(lh_self_ptr self, lh_usize_t size)
+    {
+        ++static_cast<counting *>(self)->allocs;
+        return std::malloc(size);
+    }
+
+    static lh_ptr
+    realloc(lh_self_ptr self, lh_ptr ptr, lh_usize_t, lh_usize_t new_size)
+    {
+        ++static_cast<counting *>(self)->reallocs;
+        return std::realloc(ptr, new_size);
+    }
+
+    static lh_void
+    dealloc(lh_self_ptr self, lh_ptr ptr)
+    {
+        ++static_cast<counting *>(self)->frees;
+        std::free(ptr);
+    }
+
+    counting()
+    {
+        lh_memory_allocator_init(&allocator, &counting::alloc, &counting::dealloc);
+        lh_memory_allocator_set_realloc_cb(&allocator, &counting::realloc);
+        lh_memory_allocator_set_context(&allocator, this);
+    }
+
+    int
+    taken() const
+    {
+        return allocs + reallocs;
+    }
+};
+
+int
+compare_ints(const lh_ptr a, const lh_ptr b, lh_ptr)
+{
+    const int x = *static_cast<const int *>(a);
+    const int y = *static_cast<const int *>(b);
+    return (x > y) - (x < y);
+}
+
+} // namespace
+
+TEST(array_init, uses_the_runtime_allocator)
+{
+    lh_array_t array;
+    lh_array_init(&array, sizeof(int));
+
+    EXPECT_EQ(lh_array_get_allocator_mut(&array), lh_runtime_allocator_get_mut());
+    lh_array_deinit(&array);
+}
+
+TEST(array_init_by, grows_and_frees_through_the_given_allocator)
+{
+    counting heap;
+    lh_array_t array;
+    lh_array_init_by(&array, sizeof(int), &heap.allocator);
+
+    EXPECT_EQ(lh_array_get_allocator_mut(&array), &heap.allocator);
+    EXPECT_EQ(heap.taken(), 0);
+    for (int i = 0; i < 100; ++i)
+    {
+        lh_array_push_back(&array, &i);
+    }
+    EXPECT_GT(heap.taken(), 0);
+    EXPECT_EQ(*static_cast<int *>(lh_array_get_ptr(&array, 99)), 99);
+    lh_array_deinit(&array);
+    EXPECT_EQ(heap.frees, 1);
+}
+
+TEST(array_init_by, sorts_with_scratch_from_the_given_allocator)
+{
+    counting heap;
+    lh_array_t array;
+    lh_array_init_by(&array, sizeof(int), &heap.allocator);
+    for (int value : {5, 3, 9, 1})
+    {
+        lh_array_push_back(&array, &value);
+    }
+    const int before = heap.taken();
+    const int freed = heap.frees;
+
+    lh_array_sort(&array, compare_ints, lh_null);
+    EXPECT_EQ(heap.taken(), before + 1);
+    EXPECT_EQ(heap.frees, freed + 1);
+    EXPECT_EQ(*static_cast<int *>(lh_array_get_ptr(&array, 0)), 1);
+    EXPECT_EQ(*static_cast<int *>(lh_array_get_ptr(&array, 3)), 9);
+    lh_array_deinit(&array);
+}
+
+TEST(array_init_by, merge_across_allocators_copies_instead_of_taking_the_block)
+{
+    counting mine;
+    counting theirs;
+    lh_array_t self;
+    lh_array_t other;
+    lh_array_init_by(&self, sizeof(int), &mine.allocator);
+    lh_array_init_by(&other, sizeof(int), &theirs.allocator);
+    for (int value : {1, 2, 3})
+    {
+        lh_array_push_back(&other, &value);
+    }
+
+    lh_array_merge(&self, &other);
+    EXPECT_EQ(lh_array_get_size(&self), 3U);
+    EXPECT_TRUE(lh_array_is_empty(&other));
+    EXPECT_GT(mine.taken(), 0);
+    lh_array_deinit(&self);
+    lh_array_deinit(&other);
+    EXPECT_EQ(mine.frees, 1);
+    EXPECT_EQ(theirs.frees, 1);
+}
+
+TEST(array_init_by, merge_within_one_allocator_takes_the_block)
+{
+    counting heap;
+    lh_array_t self;
+    lh_array_t other;
+    lh_array_init_by(&self, sizeof(int), &heap.allocator);
+    lh_array_init_by(&other, sizeof(int), &heap.allocator);
+    for (int value : {1, 2, 3})
+    {
+        lh_array_push_back(&other, &value);
+    }
+    const lh_ptr block = lh_array_get_begin(&other);
+    const int taken = heap.taken();
+
+    lh_array_merge(&self, &other);
+    EXPECT_EQ(lh_array_get_begin(&self), block);
+    EXPECT_EQ(heap.taken(), taken);
+    lh_array_deinit(&self);
+    lh_array_deinit(&other);
 }

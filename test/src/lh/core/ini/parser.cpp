@@ -251,10 +251,7 @@ TEST(ini_parser, line_at_end_counts_trailing_comments)
 
 TEST(ini_parser, flat_reads_text_without_headers)
 {
-    const parsed p = parse("; comment
-k = v
-other=1
-", true);
+    const parsed p = parse("; comment\nk = v\nother=1\n", true);
 
     EXPECT_EQ(p.entries, (entries_t{".k=v", ".other=1"}));
     EXPECT_EQ(p.error, lh_ini_error_none);
@@ -262,10 +259,7 @@ other=1
 
 TEST(ini_parser, flat_reads_pairs_before_first_header)
 {
-    const parsed p = parse("k=v
-[a]
-x=y
-", true);
+    const parsed p = parse("k=v\n[a]\nx=y\n", true);
 
     EXPECT_EQ(p.entries, (entries_t{".k=v", "[a]", "a.x=y"}));
     EXPECT_EQ(p.error, lh_ini_error_none);
@@ -273,11 +267,8 @@ x=y
 
 TEST(ini_parser, flat_still_reports_bad_lines)
 {
-    EXPECT_EQ(parse("k=v
-just text
-", true).error, lh_ini_error_missing_equals);
-    EXPECT_EQ(parse("= v
-", true).error, lh_ini_error_empty_key);
+    EXPECT_EQ(parse("k=v\njust text\n", true).error, lh_ini_error_missing_equals);
+    EXPECT_EQ(parse("= v\n", true).error, lh_ini_error_empty_key);
 }
 
 TEST(ini_parser, init_is_not_flat_and_init_flat_is)
@@ -294,9 +285,8 @@ TEST(ini_parser, init_is_not_flat_and_init_flat_is)
 
 TEST(ini_parser, resumes_on_next_line_after_error_is_cleared)
 {
-    const std::string ini = "k=v
-        bad x = y ";
-        lh_str_view_t view;
+    const std::string ini = "k=v\nbad\nx=y\n";
+    lh_str_view_t view;
     lh_str_view_init_by_size(&view, ini.data(), ini.size());
     lh_ini_parser_t parser;
     lh_ini_parser_init_flat(&parser, view);

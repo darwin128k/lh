@@ -2,6 +2,7 @@
 #include <lh/core/byte/ptr.h>
 #include <lh/core/memory.h>
 #include <lh/core/math.h>
+#include <lh/core/runtime/allocator.h>
 #include <lh/core/util/return.h>
 #include <lh/config.h>
 #include <lh/core/assert.h>
@@ -32,6 +33,20 @@ lh_array_set_size(lh_array_t *self, lh_usize_t size)
 {
     lh_assert_runtime_ref(self);
     self->size = size;
+}
+
+lh_memory_allocator_t *
+lh_array_get_allocator_mut(const lh_array_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->allocator;
+}
+
+lh_void
+lh_array_set_allocator(lh_array_t *self, lh_memory_allocator_t *allocator)
+{
+    lh_assert_runtime_ref(self);
+    self->allocator = allocator;
 }
 
 lh_usize_t
@@ -76,16 +91,25 @@ lh_array_clear(lh_array_t *self)
 }
 
 lh_void
-lh_array_init(lh_array_t *self, lh_usize_t type_size)
+lh_array_init_by(lh_array_t *self, lh_usize_t type_size, lh_memory_allocator_t *allocator)
 {
+    lh_assert_runtime_ref(allocator);
     lh_memory_typed_init_empty(lh_array_get_typed_mut(self), type_size);
     lh_array_set_size(self, 0);
+    lh_array_set_allocator(self, allocator);
+}
+
+lh_void
+lh_array_init(lh_array_t *self, lh_usize_t type_size)
+{
+    lh_array_init_by(self, type_size, lh_runtime_allocator_get_mut());
 }
 
 lh_void
 lh_array_deinit(lh_array_t *self)
 {
-    lh_memory_typed_allocated_clear(lh_array_get_typed_mut(self));
+    lh_memory_typed_allocated_clear_by(lh_array_get_typed_mut(self),
+                                       lh_array_get_allocator_mut(self));
     lh_array_set_size(self, 0);
 }
 
@@ -96,7 +120,8 @@ lh_array_try_reserve(lh_array_t *self, lh_usize_t min_capacity)
     {
         return lh_bool_true;
     }
-    return lh_memory_typed_allocated_try_resize(lh_array_get_typed_mut(self), min_capacity);
+    return lh_memory_typed_allocated_try_resize_by(lh_array_get_typed_mut(self),
+                                                   lh_array_get_allocator_mut(self), min_capacity);
 }
 
 lh_void
@@ -339,10 +364,12 @@ lh_array_sort(lh_array_t *self, lh_array_cmp_cb cmp, lh_ptr context)
     const lh_usize_t size = lh_array_get_size(self);
     lh_return_if(size < 2U);
 
+    /* The scratch run comes from the array's own allocator, like its block. */
+    lh_memory_allocator_t *const allocator = lh_array_get_allocator_mut(self);
     const lh_usize_t type_size = lh_array_get_type_size(self);
     lh_memory_typed_allocated_t scratch;
     lh_memory_typed_init_empty(lh_addr_of(scratch), type_size);
-    lh_memory_typed_allocated_resize(lh_addr_of(scratch), size);
+    lh_memory_typed_allocated_resize_by(lh_addr_of(scratch), allocator, size);
 
     /* Bottom-up merge sort, ping-ponging runs between the array and scratch. */
     lh_byte_ptr const data = lh_ptr_cast(lh_byte_t, lh_array_get_begin(self));
@@ -379,7 +406,7 @@ lh_array_sort(lh_array_t *self, lh_array_cmp_cb cmp, lh_ptr context)
     {
         lh_memory_std_copy(data, src, lh_array_get_size_of_bytes(self));
     }
-    lh_memory_typed_allocated_clear(lh_addr_of(scratch));
+    lh_memory_typed_allocated_clear_by(lh_addr_of(scratch), allocator);
 }
 
 lh_uindex_t
@@ -450,10 +477,12 @@ lh_array_merge(lh_array_t *self, lh_array_t *other)
     lh_assert_runtime_if(lh_array_get_type_size(self) != lh_array_get_type_size(other),
                          lh_runtime_error_code_invalid_argument);
 
-    if (lh_array_is_empty(self))
+    /* Taking the block whole needs both blocks from one allocator; otherwise copy. */
+    lh_memory_allocator_t *const allocator = lh_array_get_allocator_mut(self);
+    if (lh_array_is_empty(self) && lh_math_eq(allocator, lh_array_get_allocator_mut(other)))
     {
-        lh_memory_typed_allocated_exchange(lh_array_get_typed_mut(self),
-                                           lh_array_get_typed_mut(other));
+        lh_memory_typed_allocated_exchange_by(lh_array_get_typed_mut(self), allocator,
+                                              lh_array_get_typed_mut(other));
         lh_array_set_size(self, lh_array_get_size(other));
         lh_array_set_size(other, 0);
         return;
