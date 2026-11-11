@@ -451,7 +451,7 @@ lh_os_sql_mysql_connect(lh_sql_db_t *db, const lh_os_sql_mysql_api_t *api, lh_st
         return lh_null;
     }
 
-    if (lh_os_sql_mysql_api_get_options(api))
+    if (lh_ptr_is_set(lh_os_sql_mysql_api_get_options(api)))
     {
         const lh_uint_t seconds = 5U;
         /* Stable C client ABI: CONNECT_TIMEOUT, READ_TIMEOUT, WRITE_TIMEOUT.

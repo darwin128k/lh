@@ -184,7 +184,7 @@ lh_memory_allocator_try_alloc_zero(lh_memory_allocator_t *self, lh_usize_t count
 lh_bool_t
 lh_memory_allocator_try_dealloc(lh_memory_allocator_t *self, lh_ptr ptr)
 {
-    lh_return_ifn(ptr, lh_bool_true);
+    lh_return_if(lh_ptr_is_null(ptr), lh_bool_true);
     lh_memory_allocator_dealloc_cb const release = lh_memory_allocator_get_dealloc_cb(self);
     lh_return_if(lh_null_eq(release), lh_bool_false);
     release(lh_memory_allocator_get_context(self), ptr);

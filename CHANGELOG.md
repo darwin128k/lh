@@ -162,6 +162,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- A pointer is never used as a truth value: `!p`, `if (p)`, `p && …` on a pointer are
+  `lh_ptr_is_null(p)` / `lh_ptr_is_set(p)` (40 sites, found by type in clang's AST), and
+  `lh_return_ifn(p, …)` is `lh_return_if(lh_ptr_is_null(p), …)` (7). `!x` stays for
+  flags.
 - No C-style casts left in portable LH: 266 `(T)x` became `lh_cast_static(T, x)` — 224
   in `crypto/curve25519/field.c`, the rest in `ed25519`, `ui`, `http`, `str/parse/hex.c`.
   In C the macro is `((T)(x))`, so the code is the same; the crypto test vectors pass.

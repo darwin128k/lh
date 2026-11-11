@@ -33,7 +33,7 @@ lh_memory_tree_alloc_child(lh_ptr parent, lh_usize_t size)
 lh_void
 lh_memory_tree_free(lh_ptr ptr)
 {
-    lh_return_ifn(ptr);
+    lh_return_if(lh_ptr_is_null(ptr));
 
     lh_memory_tree_header_t *const top = lh_memory_tree_header_of(ptr);
     lh_list_node_unlink(lh_memory_tree_header_get_sibling(top));
@@ -63,7 +63,7 @@ lh_memory_tree_free(lh_ptr ptr)
             header == top ? lh_null : lh_memory_tree_header_get_parent(header);
         lh_list_node_unlink(lh_memory_tree_header_get_sibling(header));
         lh_memory_sized_allocator_dealloc(lh_memory_tree_header_get_allocator(header), header);
-        lh_return_ifn(parent);
+        lh_return_if(lh_ptr_is_null(parent));
         header = parent;
     }
 }
@@ -118,7 +118,7 @@ lh_memory_tree_get_next_sibling(const lh_ptr ptr)
     lh_assert_runtime_ref(ptr);
     lh_memory_tree_header_t *const header = lh_memory_tree_header_of(ptr);
     lh_memory_tree_header_t *const parent = lh_memory_tree_header_get_parent(header);
-    lh_return_ifn(parent, lh_null);
+    lh_return_if(lh_ptr_is_null(parent), lh_null);
     const lh_memory_tree_header_t *const next = lh_memory_tree_header_of_sibling(
         lh_list_get_next(lh_memory_tree_header_get_children(parent),
                          lh_memory_tree_header_get_sibling(header)));

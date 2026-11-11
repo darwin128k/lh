@@ -57,7 +57,7 @@ lh_os_thread_sleep(lh_u32_t milliseconds)
 lh_void
 lh_os_thread_init(lh_os_thread_t *self)
 {
-    if (self)
+    if (lh_ptr_is_set(self))
     {
         lh_os_thread_set_handle(self, lh_null);
     }
@@ -70,7 +70,7 @@ lh_bool_t
 lh_os_thread_start(lh_os_thread_t *self, lh_os_thread_fn run, lh_ptr user, lh_s32_t cpu,
                    lh_u32_t flags)
 {
-    if (!self || lh_os_thread_get_handle(self))
+    if (lh_ptr_is_null(self) || lh_ptr_is_set(lh_os_thread_get_handle(self)))
     {
         return lh_os_fail(m_os_thread_invalid);
     }
@@ -78,12 +78,12 @@ lh_os_thread_start(lh_os_thread_t *self, lh_os_thread_fn run, lh_ptr user, lh_s3
     lh_memory_allocator_assign(allocator, lh_runtime_allocator_get());
     lh_ptr storage =
         lh_memory_allocator_try_alloc_zero(allocator, 1U, lh_os_system_thread_get_size());
-    if (!storage)
+    if (lh_ptr_is_null(storage))
     {
         return lh_os_fail_lit(lh_os_error_code_out_of_memory, "no memory for a thread");
     }
     lh_os_thread_set_handle(self, lh_os_system_thread_start(storage, run, user, cpu, flags));
-    if (!lh_os_thread_get_handle(self))
+    if (lh_ptr_is_null(lh_os_thread_get_handle(self)))
     {
         lh_memory_allocator_dealloc(allocator, storage);
         return lh_bool_false;
@@ -97,11 +97,11 @@ lh_os_thread_start(lh_os_thread_t *self, lh_os_thread_fn run, lh_ptr user, lh_s3
 lh_bool_t
 lh_os_thread_join(lh_os_thread_t *self)
 {
-    if (!self)
+    if (lh_ptr_is_null(self))
     {
         return lh_os_fail(m_os_thread_invalid);
     }
-    if (!lh_os_thread_get_handle(self))
+    if (lh_ptr_is_null(lh_os_thread_get_handle(self)))
     {
         return lh_bool_true;
     }

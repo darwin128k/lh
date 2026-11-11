@@ -294,7 +294,8 @@ lh_memory_find_needle_by_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_pt
     {
         lh_byte_cptr cand = lh_ptr_add_by_offset(const lh_byte_t, base, off);
         if (lh_ptr_deref(cand) == first &&
-            !lh_memory_compare(cand, lh_memory_size_rest(lhs_size, off), rhs, rhs_size))
+            lh_ptr_is_null(
+                lh_memory_compare(cand, lh_memory_size_rest(lhs_size, off), rhs, rhs_size)))
         {
             return cand;
         }

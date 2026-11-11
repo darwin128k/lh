@@ -76,7 +76,7 @@ lh_str_ptr_parse_text_str(lh_str_cptr str, lh_usize_t str_size, lh_usize_t *pos,
                             lh_str_scanf_spec_get_literal_size(lh_addr_of(next)), lh_bool_false);
         lh_usize_t offset;
 
-        lh_return_ifn(found, lh_bool_false);
+        lh_return_if(lh_ptr_is_null(found), lh_bool_false);
         offset = lh_ptr_udiff(found, from);
         lh_return_if(lh_math_gt(offset, field_size), lh_bool_false);
         field_size = offset;

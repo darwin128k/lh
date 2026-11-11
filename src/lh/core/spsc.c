@@ -129,8 +129,8 @@ lh_spsc_is_read_lock_free(const lh_spsc_t *self)
 lh_bool_t
 lh_spsc_is_valid_shape(lh_ptr storage, lh_uint_t capacity, lh_usize_t item_size)
 {
-    return storage && capacity && !(capacity & (capacity - 1)) && capacity <= LH_UINT_T_MAX / 2 &&
-           item_size && item_size <= LH_USIZE_T_MAX / capacity;
+    return lh_ptr_is_set(storage) && capacity && !(capacity & (capacity - 1)) &&
+           capacity <= LH_UINT_T_MAX / 2 && item_size && item_size <= LH_USIZE_T_MAX / capacity;
 }
 
 lh_void
