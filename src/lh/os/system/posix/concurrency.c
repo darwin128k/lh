@@ -15,7 +15,7 @@
 /**
  * @brief Return success for zero, or capture the POSIX error on this thread.
  */
-static lh_bool_t
+lh_bool_t
 lh_os_concurrency_capture(int code)
 {
     if (!code)
@@ -30,7 +30,7 @@ lh_os_concurrency_capture(int code)
 /**
  * @brief Complete the startup handshake and invoke user code only when startup succeeds.
  */
-static void *
+void *
 lh_os_thread_native_run(void *arg)
 {
     lh_os_native_thread_t *self = arg;
@@ -64,7 +64,7 @@ lh_os_thread_native_run(void *arg)
  * @brief Release startup synchronization after the native worker has exited; the
  *        storage stays the caller's.
  */
-static void
+void
 lh_os_thread_native_destroy(lh_os_native_thread_t *self)
 {
     pthread_cond_destroy(lh_os_native_thread_get_ready_mut(self));

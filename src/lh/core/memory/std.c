@@ -112,22 +112,22 @@ typedef lh_void (*lh_memory_std_set_simd_fn)(lh_byte_ptr dst, lh_byte_t val, lh_
 typedef const lh_ptr (*lh_memory_std_compare_fn)(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
 typedef const lh_ptr (*lh_memory_std_rcompare_fn)(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
 
-static lh_void
+lh_void
 lh_memory_std_copy_simd_dispatch(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n);
 
-static lh_void
+lh_void
 lh_memory_std_copy_rev_simd_dispatch(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n);
 
-static lh_void
+lh_void
 lh_memory_std_rcopy_simd_dispatch(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n);
 
-static lh_void
+lh_void
 lh_memory_std_set_simd_dispatch(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n);
 
-static const lh_ptr
+const lh_ptr
 lh_memory_std_compare_dispatch(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
 
-static const lh_ptr
+const lh_ptr
 lh_memory_std_rcompare_dispatch(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
 
 static lh_memory_std_copy_simd_fn m_copy_simd_impl = lh_memory_std_copy_simd_dispatch;
@@ -144,7 +144,7 @@ static lh_memory_std_rcompare_fn m_rcompare_impl = lh_memory_std_rcompare_dispat
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 
-static lh_void
+lh_void
 lh_memory_std_copy_simd_dispatch(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
@@ -318,7 +318,7 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 
-static lh_void
+lh_void
 lh_memory_std_copy_rev_simd_dispatch(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
@@ -410,7 +410,7 @@ lh_memory_std_copy_rev(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 
-static lh_void
+lh_void
 lh_memory_std_rcopy_simd_dispatch(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
@@ -544,7 +544,7 @@ lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 
-static lh_void
+lh_void
 lh_memory_std_set_simd_dispatch(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 {
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
@@ -649,7 +649,7 @@ lh_memory_std_set(lh_ptr dst, lh_byte_t val, lh_usize_t n)
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 
-static lh_void
+lh_void
 lh_memory_std_xor_resolve_kind(void)
 {
     if (lh_cpu_simd_has_avx2())
@@ -709,7 +709,7 @@ lh_memory_std_xor(lh_ptr dst, const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 
-static const lh_ptr
+const lh_ptr
 lh_memory_std_compare_dispatch(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
@@ -781,7 +781,7 @@ lh_memory_std_compare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 
-static const lh_ptr
+const lh_ptr
 lh_memory_std_rcompare_dispatch(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2

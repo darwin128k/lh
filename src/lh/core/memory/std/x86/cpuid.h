@@ -45,9 +45,7 @@ lh_memory_std_use_erms_copy(void)
     return lh_cast_static(lh_bool_t, m_erms_copy_kind == 1U);
 }
 
-LH_COMPILER_EXTERN_C_END
-
-static lh_usize_t
+lh_usize_t
 lh_memory_std_stream_cache_size_resolve(void)
 {
     const lh_usize_t l3 = lh_cpu_cache_get_l3_size();
@@ -55,8 +53,6 @@ lh_memory_std_stream_cache_size_resolve(void)
     m_stream_cache_size = lh_math_max(l3, LH_MEMORY_STD_STREAM_FLOOR);
     return m_stream_cache_size;
 }
-
-LH_COMPILER_EXTERN_C_BEGIN
 
 LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t

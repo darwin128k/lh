@@ -54,7 +54,7 @@ lh_memory_std_copy256_store(lh_byte_ptr dst, lh_byte_cptr src)
 
 LH_MEMORY_STD_SIMD_TARGET("avx2")
 
-static lh_void
+lh_void
 lh_memory_std_copy_avx2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
     /* 16-31: overlapping XMM. Compiled under target("avx2") so GCC/Clang emit
@@ -168,7 +168,7 @@ lh_memory_std_copy_avx2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 
 LH_MEMORY_STD_SIMD_TARGET("avx2")
 
-static lh_void
+lh_void
 lh_memory_std_copy_avx2_stream(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
     lh_byte_ptr dst_end = dst + n;
@@ -234,7 +234,7 @@ lh_memory_std_copy_avx2_stream(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 
 LH_MEMORY_STD_SIMD_TARGET("avx2")
 
-static lh_void
+lh_void
 lh_memory_std_copy_rev_avx2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
     const __m256i lane_rev = _mm256_setr_epi8(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0,
@@ -330,7 +330,7 @@ lh_memory_std_copy_rev_avx2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 
 LH_MEMORY_STD_SIMD_TARGET("avx2")
 
-static lh_void
+lh_void
 lh_memory_std_rcopy_avx2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
     if (n < 64U)
@@ -396,7 +396,7 @@ lh_memory_std_rcopy_avx2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 
 LH_MEMORY_STD_SIMD_TARGET("avx2")
 
-static lh_void
+lh_void
 lh_memory_std_set_avx2(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 {
     const __m256i v = _mm256_set1_epi8(lh_cast_static(char, val));
@@ -496,7 +496,7 @@ lh_memory_std_set_avx2(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 
 LH_MEMORY_STD_SIMD_TARGET("avx2")
 
-static lh_void
+lh_void
 lh_memory_std_set_avx2_stream(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 {
     const __m256i v = _mm256_set1_epi8(lh_cast_static(char, val));
@@ -542,7 +542,7 @@ lh_memory_std_set_avx2_stream(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 
 LH_MEMORY_STD_SIMD_TARGET("avx2")
 
-static lh_void
+lh_void
 lh_memory_std_xor_avx2(lh_byte_ptr dst, lh_byte_cptr lhs, lh_byte_cptr rhs, lh_usize_t n)
 {
     lh_usize_t i = 0U;
@@ -568,7 +568,7 @@ lh_memory_std_xor_avx2(lh_byte_ptr dst, lh_byte_cptr lhs, lh_byte_cptr rhs, lh_u
 
 LH_MEMORY_STD_SIMD_TARGET("avx2")
 
-static const lh_ptr
+const lh_ptr
 lh_memory_std_compare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
     lh_byte_cptr l = lh_ptr_ccast(lh_byte_t, lhs);
@@ -687,7 +687,7 @@ lh_memory_std_compare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
 LH_MEMORY_STD_SIMD_TARGET("avx2")
 
-static const lh_ptr
+const lh_ptr
 lh_memory_std_rcompare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
     const lh_usize_t orig = n;

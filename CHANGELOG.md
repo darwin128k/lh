@@ -139,6 +139,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **No `static` functions left in LH.** The memory kernel's tiers
+  (`memory/std/words.h`, `x86/cpuid.h`, `x86/sse2.h`, `x86/avx2.h`, the dispatchers in
+  `memory/std.c`), the AES-NI path of `crypto/rijndael.c`, and the POSIX / Windows
+  thread backends and the X11 loaders now have external linkage; `static` is left on
+  file-local data only (the chosen SIMD tier, the dispatch pointers, tables). The
+  kernel is still one translation unit. Measured with `bench/` (`BM_memory_std_*`,
+  1 B – 16 MiB, MinGW i686 Release, LTO FAT and OFF, median of 9, both orders A/B and
+  B/A): no change beyond the noise — the first A/B order showed `move` +5…+20%, the
+  reversed order −0.8% on the same cases, so the difference was the run order, not
+  the code. `bench/src/lh/core/memory/std.cpp` now covers copies and fills of 1, 4,
+  8, 16 and 32 bytes.
+- Writing a C string's terminator goes through `lh_str_ptr_erase` / `lh_str_ptr_clear`
+  instead of `str[n] = nul` (the trims in `util/str/ptr.c`, `str/format/text.c`,
+  `str/format/hex.c`, `ui/label.c`). `runtime/check.c` keeps its own: it sits below
+  `util/str/ptr`, whose bricks check through it.
 - **Breaking:** `lh_os_module_event_entry_try_create` / `_create` take the name as an
   `lh_str_view_t` instead of `(const lh_char_t *name, lh_usize_t length)`. The name
   need not be NUL-terminated any more: the entry copies it with

@@ -32,7 +32,13 @@ BM_memory_std_copy(benchmark::State &state)
     }
     state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * state.range(0));
 }
+
 BENCHMARK(BM_memory_std_copy)
+    ->Arg(1)
+    ->Arg(4)
+    ->Arg(8)
+    ->Arg(16)
+    ->Arg(32)
     ->Arg(64)
     ->Arg(128)
     ->Arg(256)
@@ -85,7 +91,13 @@ BM_crt_memcpy(benchmark::State &state)
     }
     state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * state.range(0));
 }
+
 BENCHMARK(BM_crt_memcpy)
+    ->Arg(1)
+    ->Arg(4)
+    ->Arg(8)
+    ->Arg(16)
+    ->Arg(32)
     ->Arg(64)
     ->Arg(128)
     ->Arg(256)
@@ -112,7 +124,13 @@ BM_memory_std_set(benchmark::State &state)
     }
     state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * state.range(0));
 }
+
 BENCHMARK(BM_memory_std_set)
+    ->Arg(1)
+    ->Arg(4)
+    ->Arg(8)
+    ->Arg(16)
+    ->Arg(32)
     ->Arg(64)
     ->Arg(128)
     ->Arg(256)
@@ -141,7 +159,13 @@ BM_crt_memset(benchmark::State &state)
     }
     state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * state.range(0));
 }
+
 BENCHMARK(BM_crt_memset)
+    ->Arg(1)
+    ->Arg(4)
+    ->Arg(8)
+    ->Arg(16)
+    ->Arg(32)
     ->Arg(64)
     ->Arg(128)
     ->Arg(256)

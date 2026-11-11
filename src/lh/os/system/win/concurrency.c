@@ -9,7 +9,7 @@
 /**
  * @brief Capture a Win32 failure on this thread and return false.
  */
-static lh_bool_t
+lh_bool_t
 lh_os_concurrency_capture(DWORD code)
 {
     SetLastError(code);
@@ -20,7 +20,7 @@ lh_os_concurrency_capture(DWORD code)
 /**
  * @brief Complete the startup handshake and invoke user code only when startup succeeds.
  */
-static unsigned __stdcall
+unsigned __stdcall
 lh_os_thread_native_run(void *arg)
 {
     lh_os_native_thread_t *self = arg;

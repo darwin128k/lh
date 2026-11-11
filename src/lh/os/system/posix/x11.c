@@ -50,7 +50,7 @@ static int lh_os_system_posix_xrender_state;
 /** @} */
 
 /** Load libX11 and every symbol the backend calls; ::lh_null when it is not there. */
-static const lh_os_system_posix_x11_t *
+const lh_os_system_posix_x11_t *
 lh_os_system_posix_x11_open(void)
 {
     /* The versioned name is the one every distribution installs with the runtime;
@@ -123,7 +123,7 @@ lh_os_system_posix_x11_load(void)
 }
 
 /** Load libXext (MIT-SHM, SHAPE); ::lh_null when it is not there. */
-static const lh_os_system_posix_xext_t *
+const lh_os_system_posix_xext_t *
 lh_os_system_posix_xext_open(void)
 {
     void *library = dlopen("libXext.so.6", RTLD_NOW | RTLD_LOCAL);
@@ -157,7 +157,7 @@ lh_os_system_posix_xext_load(void)
 }
 
 /** Load libXrender; ::lh_null when it is not there. */
-static const lh_os_system_posix_xrender_t *
+const lh_os_system_posix_xrender_t *
 lh_os_system_posix_xrender_open(void)
 {
     void *library = dlopen("libXrender.so.1", RTLD_NOW | RTLD_LOCAL);

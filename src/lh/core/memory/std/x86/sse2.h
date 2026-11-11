@@ -133,7 +133,7 @@ lh_memory_std_copy_sse2_small(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
 
-static lh_void
+lh_void
 lh_memory_std_copy_sse2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
     if (n < 512U)
@@ -192,7 +192,7 @@ lh_memory_std_copy_sse2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
 
-static lh_void
+lh_void
 lh_memory_std_copy_sse2_stream(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
     lh_byte_ptr dst_end = dst + n;
@@ -259,7 +259,7 @@ lh_memory_std_copy_sse2_stream(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 /* Reverse 16 bytes inside an SSE register using only SSE2 (no SSSE3 pshufb):
  * shuffle dwords end-to-end, swap 16-bit lanes inside each half, then swap the
  * two bytes of every u16. Verified against the scalar reverse-copy path. */
-LH_MEMORY_STD_SIMD_TARGET("sse2") static __m128i lh_memory_std_reverse_epi8_sse2(__m128i v)
+LH_MEMORY_STD_SIMD_TARGET("sse2") __m128i lh_memory_std_reverse_epi8_sse2(__m128i v)
 {
     v = _mm_shuffle_epi32(v, _MM_SHUFFLE(0, 1, 2, 3));
     v = _mm_shufflelo_epi16(v, _MM_SHUFFLE(2, 3, 0, 1));
@@ -269,7 +269,7 @@ LH_MEMORY_STD_SIMD_TARGET("sse2") static __m128i lh_memory_std_reverse_epi8_sse2
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
 
-static lh_void
+lh_void
 lh_memory_std_copy_rev_sse2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
     lh_byte_ptr d_end = dst + n;
@@ -318,7 +318,7 @@ lh_memory_std_copy_rev_sse2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
  * own GCC/MinGW toolchain (the mid-size band, ~1KB-4KB, saw the largest win: 2.6x
  * and 2.1x respectively). SSSE3 (2006+ on Intel, Bulldozer+ on AMD) is not part of
  * any baseline ISA, unlike SSE2 on x86-64, so this tier is still runtime-checked. */
-LH_MEMORY_STD_SIMD_TARGET("ssse3") static __m128i lh_memory_std_reverse_epi8_ssse3(__m128i v)
+LH_MEMORY_STD_SIMD_TARGET("ssse3") __m128i lh_memory_std_reverse_epi8_ssse3(__m128i v)
 {
     const __m128i mask = _mm_setr_epi8(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
     return _mm_shuffle_epi8(v, mask);
@@ -326,7 +326,7 @@ LH_MEMORY_STD_SIMD_TARGET("ssse3") static __m128i lh_memory_std_reverse_epi8_sss
 
 LH_MEMORY_STD_SIMD_TARGET("ssse3")
 
-static lh_void
+lh_void
 lh_memory_std_copy_rev_ssse3(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
     lh_byte_ptr d_end = dst + n;
@@ -372,7 +372,7 @@ lh_memory_std_copy_rev_ssse3(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
 
-static lh_void
+lh_void
 lh_memory_std_rcopy_sse2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
     if (n < 64U)
@@ -499,7 +499,7 @@ lh_memory_std_move_small_sse2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
 
-static lh_void
+lh_void
 lh_memory_std_move_forward_sse2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
     const __m128i tail = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + n - 16U));
@@ -615,7 +615,7 @@ lh_memory_std_set_sse2(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
 
-static lh_void
+lh_void
 lh_memory_std_set_sse2_stream(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 {
     const __m128i v = _mm_set1_epi8(lh_cast_static(char, val));
@@ -661,7 +661,7 @@ lh_memory_std_set_sse2_stream(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
 
-static const lh_ptr
+const lh_ptr
 lh_memory_std_compare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
     lh_byte_cptr l = lh_ptr_ccast(lh_byte_t, lhs);
@@ -736,7 +736,7 @@ lh_memory_std_compare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
 
-static const lh_ptr
+const lh_ptr
 lh_memory_std_rcompare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
     lh_byte_cptr l = lh_ptr_ccast(lh_byte_t, lhs) + (n - 1U);
@@ -802,7 +802,7 @@ lh_memory_std_rcompare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
 
-static const lh_ptr
+const lh_ptr
 lh_memory_std_find_sse2(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, lh_usize_t m)
 {
     const __m128i first = _mm_set1_epi8(lh_cast_static(char, needle[0]));
@@ -835,7 +835,7 @@ lh_memory_std_find_sse2(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, lh_
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
 
-static const lh_ptr
+const lh_ptr
 lh_memory_std_rfind_sse2(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, lh_usize_t m)
 {
     const __m128i first = _mm_set1_epi8(lh_cast_static(char, needle[0]));
@@ -899,7 +899,7 @@ lh_memory_std_rfind_sse2(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, lh
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
 
-static lh_void
+lh_void
 lh_memory_std_xor_sse2(lh_byte_ptr dst, lh_byte_cptr lhs, lh_byte_cptr rhs, lh_usize_t n)
 {
     while (n >= 32U)

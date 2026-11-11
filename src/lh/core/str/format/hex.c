@@ -3,6 +3,7 @@
 #include <lh/core/util/return.h>
 #include <lh/core/math.h>
 #include <lh/core/char/digit.h>
+#include <lh/core/util/str/ptr.h>
 
 /* Every 4 bits is one hex digit: the highest set bit's position (0-based) divided
  * by 4, plus 1, gives the digit count directly — no trial-and-error extraction
@@ -73,7 +74,7 @@ lh_str_ptr_format_hex_bytes(const lh_byte_ptr bytes, lh_usize_t size, lh_str_ptr
         str[written + 1U] = alphabet[byte & 0x0fU];
         written = lh_math_add(written, 2U);
     }
-    str[written] = lh_char_map_nul;
+    lh_str_ptr_erase(str, written);
     return written;
 }
 

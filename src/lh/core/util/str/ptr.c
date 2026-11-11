@@ -1025,7 +1025,7 @@ lh_str_ptr_rtrim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr wh
             --end;
         }
 
-        str[end] = lh_char_map_nul;
+        lh_str_ptr_erase(str, end);
     }
     return str;
 }
@@ -1199,7 +1199,7 @@ lh_str_ptr_trim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr whi
 
     if (lh_math_eq(start, 0))
     {
-        str[end] = lh_char_map_nul;
+        lh_str_ptr_erase(str, end);
         return str;
     }
     if (lh_math_eq(start, end))
@@ -1210,7 +1210,7 @@ lh_str_ptr_trim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr whi
     {
         const lh_usize_t n = end - start;
         lh_str_ptr_move(str, n + 1, str + start, n);
-        str[n] = lh_char_map_nul;
+        lh_str_ptr_erase(str, n);
     }
     return str;
 }

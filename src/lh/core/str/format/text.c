@@ -322,7 +322,7 @@ lh_str_ptr_format_cstr_v(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr f
 
     const lh_usize_t size = lh_str_ptr_format_text_v(str, str_size - 1U, fmt, args);
 
-    str[size] = lh_char_map_nul;
+    lh_str_ptr_erase(str, size);
     return size;
 }
 
@@ -334,7 +334,7 @@ lh_str_ptr_format_cstr_cut_v(lh_str_ptr str, lh_usize_t str_size, const lh_str_p
 
     const lh_usize_t size = lh_str_ptr_format_text_cut_v(str, str_size - 1U, fmt, args);
 
-    str[size] = lh_char_map_nul;
+    lh_str_ptr_erase(str, size);
     return size;
 }
 

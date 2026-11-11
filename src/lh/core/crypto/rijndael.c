@@ -277,7 +277,7 @@ lh_crypto_rijndael_get_block_size(const lh_crypto_rijndael_t *self)
    same answer. */
 static lh_byte_t m_aesni = LH_CRYPTO_RIJNDAEL_AESNI_UNKNOWN;
 
-static lh_bool_t
+lh_bool_t
 lh_crypto_rijndael_has_aesni(void)
 {
     if (m_aesni == LH_CRYPTO_RIJNDAEL_AESNI_UNKNOWN)
@@ -290,14 +290,14 @@ lh_crypto_rijndael_has_aesni(void)
 
 /* Byte offset of round key @p round in a 16-byte-block schedule (expanded_key and
    aesni_dec_key alike). */
-static lh_usize_t
+lh_usize_t
 lh_crypto_rijndael_aesni_key_offset(lh_usize_t round)
 {
     return round * LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MIN;
 }
 
 LH_CRYPTO_RIJNDAEL_AESNI_TARGET
-static __m128i
+__m128i
 lh_crypto_rijndael_aesni_round_key(const lh_crypto_rijndael_t *self, lh_usize_t round)
 {
     const lh_byte_t *key =
@@ -307,7 +307,7 @@ lh_crypto_rijndael_aesni_round_key(const lh_crypto_rijndael_t *self, lh_usize_t 
 }
 
 LH_CRYPTO_RIJNDAEL_AESNI_TARGET
-static lh_void
+lh_void
 lh_crypto_rijndael_aesni_encrypt(const lh_crypto_rijndael_t *self, lh_byte_cptr in, lh_byte_ptr out)
 {
     const lh_usize_t nr = lh_crypto_rijndael_get_round_count(self);
@@ -324,7 +324,7 @@ lh_crypto_rijndael_aesni_encrypt(const lh_crypto_rijndael_t *self, lh_byte_cptr 
 }
 
 LH_CRYPTO_RIJNDAEL_AESNI_TARGET
-static __m128i
+__m128i
 lh_crypto_rijndael_aesni_dec_round_key(const lh_crypto_rijndael_t *self, lh_usize_t round)
 {
     const lh_byte_t *key =
@@ -338,7 +338,7 @@ lh_crypto_rijndael_aesni_dec_round_key(const lh_crypto_rijndael_t *self, lh_usiz
    the AESDEC key schedule (lh_crypto_rijndael_get_aesni_dec_key) at the same round index;
    rounds 0 and nr are used unchanged from the expanded key. */
 LH_CRYPTO_RIJNDAEL_AESNI_TARGET
-static lh_void
+lh_void
 lh_crypto_rijndael_aesni_expand_dec_key(lh_crypto_rijndael_t *self)
 {
     const lh_usize_t nr = lh_crypto_rijndael_get_round_count(self);
@@ -355,7 +355,7 @@ lh_crypto_rijndael_aesni_expand_dec_key(lh_crypto_rijndael_t *self)
 }
 
 LH_CRYPTO_RIJNDAEL_AESNI_TARGET
-static lh_void
+lh_void
 lh_crypto_rijndael_aesni_decrypt(const lh_crypto_rijndael_t *self, lh_byte_cptr in, lh_byte_ptr out)
 {
     const lh_usize_t nr = lh_crypto_rijndael_get_round_count(self);
@@ -373,7 +373,7 @@ lh_crypto_rijndael_aesni_decrypt(const lh_crypto_rijndael_t *self, lh_byte_cptr 
 
 /* Fills the AESDEC key schedule when the AES-NI decrypt path will be taken; done for every
    key setup since it is cheap and init does not know whether decrypt follows. */
-static lh_void
+lh_void
 lh_crypto_rijndael_aesni_setup(lh_crypto_rijndael_t *self)
 {
     lh_memory_std_set(lh_crypto_rijndael_get_aesni_dec_key_mut(self), 0,

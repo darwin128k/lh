@@ -115,7 +115,7 @@ lh_ui_label_shorten(const lh_ui_font_t *font, const lh_char_t *text, lh_s32_t ro
         out[used++] = lh_char_map_period;
         out[used++] = lh_char_map_period;
     }
-    out[used] = lh_char_map_nul;
+    lh_str_ptr_erase(out, used);
     return lh_bool_true;
 }
 

@@ -333,11 +333,9 @@ lh_memory_std_rcompare_word_byte(lh_byte_cptr lhs, lh_byte_cptr rhs, lh_usize_t 
     return lhs + i;
 }
 
-LH_COMPILER_EXTERN_C_END
-
 /** Scalar ::lh_memory_std_compare: the first differing byte of @p lhs, or ::lh_null.
  *  Equal runs go by machine word once both pointers are aligned. */
-static const lh_ptr
+const lh_ptr
 lh_memory_std_compare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
     const lh_usize_t w = sizeof(lh_usize_t);
@@ -401,7 +399,7 @@ lh_memory_std_compare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
 /** Scalar ::lh_memory_std_rcompare: the last differing byte of @p lhs, or ::lh_null.
  *  The suffix is compared by machine word once both ends are aligned. */
-static const lh_ptr
+const lh_ptr
 lh_memory_std_rcompare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
     const lh_usize_t w = sizeof(lh_usize_t);
@@ -456,14 +454,12 @@ lh_memory_std_rcompare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 }
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
-static lh_void
+lh_void
 lh_memory_std_copy_simd_scalar(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
     lh_memory_std_copy_bytes(dst, src, n);
 }
 #endif
-
-LH_COMPILER_EXTERN_C_BEGIN
 
 lh_ptr
 lh_memory_std_copy_words(lh_ptr dst, const lh_ptr src, lh_usize_t n)
@@ -527,29 +523,25 @@ lh_memory_std_fill_words(lh_ptr dst, lh_usize_t word, lh_usize_t n)
     return lh_ptr_cast(lh_void, d);
 }
 
-LH_COMPILER_EXTERN_C_END
-
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
-static lh_void
+lh_void
 lh_memory_std_copy_rev_simd_scalar(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
     lh_memory_std_copy_rev_bytes(dst, src, n);
 }
 
-static lh_void
+lh_void
 lh_memory_std_rcopy_simd_scalar(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
     lh_memory_std_rcopy_bytes(dst, src, n);
 }
 
-static lh_void
+lh_void
 lh_memory_std_set_simd_scalar(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 {
     lh_memory_std_set_bytes(dst, val, n);
 }
 #endif
-
-LH_COMPILER_EXTERN_C_BEGIN
 
 /** Scalar ::lh_memory_std_xor: machine words, then a byte tail. */
 LH_ATTRIBUTE_FORCE_INLINE
@@ -579,23 +571,19 @@ lh_memory_std_xor_bytes(lh_byte_ptr dst, lh_byte_cptr lhs, lh_byte_cptr rhs, lh_
     }
 }
 
-LH_COMPILER_EXTERN_C_END
-
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
-static const lh_ptr
+const lh_ptr
 lh_memory_std_compare_scalar(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
     return lh_memory_std_compare_bytes(lhs, rhs, n);
 }
 
-static const lh_ptr
+const lh_ptr
 lh_memory_std_rcompare_scalar(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
     return lh_memory_std_rcompare_bytes(lhs, rhs, n);
 }
 #endif
-
-LH_COMPILER_EXTERN_C_BEGIN
 
 /** Whether @p cand matches @p needle between its first and last byte (already checked).
  *  Short middles stay local: routing a one-byte gap through ::lh_memory_std_compare
@@ -626,13 +614,11 @@ lh_memory_std_find_at(lh_byte_cptr hay, lh_usize_t off, lh_byte_cptr needle, lh_
                                          lh_memory_std_find_is_match(hay + off, needle, m));
 }
 
-LH_COMPILER_EXTERN_C_END
-
 /** Scalar ::lh_memory_std_find from offset @p off.
  *  Full words of candidates move by sizeof(::lh_usize_t); the tail steps one byte.
  *  The word filter watches one needle end only: the last byte when @p m > 1 (so a
  *  repeated first byte does not light every lane), otherwise the single byte. */
-static const lh_ptr
+const lh_ptr
 lh_memory_std_find_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, lh_usize_t m,
                           lh_usize_t off)
 {
@@ -681,7 +667,7 @@ lh_memory_std_find_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, l
 }
 
 /** Scalar ::lh_memory_std_rfind: same single-end word filter, highest candidate first. */
-static const lh_ptr
+const lh_ptr
 lh_memory_std_rfind_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, lh_usize_t m)
 {
     const lh_byte_t first = needle[0];
@@ -754,5 +740,7 @@ lh_memory_std_rfind_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, 
     }
     return lh_null;
 }
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_MEMORY_STD_WORDS_H */
