@@ -16,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_os_fail(error)` and `lh_os_fail_lit(code, text)` (`lh/os.h`): store the error in
+  the OS-layer slot and yield `lh_bool_false`, so a failing check is one
+  `return lh_os_fail_lit(...)`. They replace 14 two-line "set the error, return false"
+  sites in `lh/os` and its backends, and the three identical `static` helpers
+  `lh_os_mutex_invalid` / `lh_os_thread_invalid` / `lh_os_condition_invalid` (now
+  file-local `lh_os_error_t` data passed to `lh_os_fail`).
 - `lh_array_t` over a caller's allocator: `lh_array_init_by(self, type_size, allocator)`
   (a memory tree, a sandbox, an arena); growth, sorting scratch and the final free go
   through it, and `lh_array_merge` takes the other block whole only when both arrays
@@ -124,6 +130,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- LH uses its own bricks where it open-coded them: `a < b ? a : b` is `lh_math_min` /
+  `lh_math_max` in `crypto/rijndael.c`, `crypto/sha.c`, `memory/std/x86/cpuid.h`,
+  `net/modbus.c`, `os/window.c`, `ui/blur.c`, `ui/shadow.c`, `ui/shadow/shape.c` and
+  `ui/web/host.c`; the merge sort's buffer swap is `lh_swap`; the JS lexer terminates
+  with `lh_char_map_nul`, not `'\0'`.
 - `lh_os_net_socket_send_file` takes a borrowed `lh_os_fs_file_t` instead of a system file handle; socket clients can transfer files without reaching into the system backend.
 - The socket type moved to the core, where data lives: `lh/os/system/net/socket/type.h` is `lh/core/net/socket/type.h`, and `lh_os_system_net_socket_type_t` / `_tcp` / `_udp` are `lh_net_socket_type_t` / `lh_net_socket_type_tcp` / `lh_net_socket_type_udp`. It is a constant of LH, not a call of the platform; `lh_os_net_socket_open` and the backends take it as before. Callers rename; the values are unchanged.
 - The execution part is renamed `lh/exec` → `lh/rail`: headers `include/lh/rail/`, sources `src/lh/rail/`, functions and types `lh_exec_*` → `lh_rail_*`, macros `LH_EXEC_*` → `LH_RAIL_*`, the test executable `lh_test_exec` → `lh_test_rail`. Behaviour is unchanged; callers rename their includes and names.

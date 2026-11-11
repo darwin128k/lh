@@ -9,8 +9,7 @@ lh_os_memory_protect(lh_ptr address, lh_usize_t size, lh_os_memory_access_t acce
 {
     if (lh_null_eq(address) || lh_math_is_zero(size))
     {
-        lh_os_set_last_error_lit(lh_os_error_code_empty_range, "empty memory range");
-        return lh_bool_false;
+        return lh_os_fail_lit(lh_os_error_code_empty_range, "empty memory range");
     }
     return lh_os_system_memory_protect(address, size, access);
 }

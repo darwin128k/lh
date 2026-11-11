@@ -131,7 +131,7 @@ lh_ui_web_host_ws_msg_add(lh_ui_web_host_client_t *c, lh_byte_cptr p, lh_usize_t
         const lh_uint_t next = (lh_ui_web_host_client_get_msg_cap(c) == 0u)
                                    ? 256u
                                    : (lh_ui_web_host_client_get_msg_cap(c) * 2u);
-        const lh_uint_t want = (cap > next) ? cap : next;
+        const lh_uint_t want = lh_math_max(cap, next);
 
         grow = lh_ptr_rcast(
             lh_byte_t, lh_runtime_allocator_realloc(lh_ui_web_host_client_get_msg(c),

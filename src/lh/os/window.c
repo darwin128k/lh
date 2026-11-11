@@ -368,7 +368,7 @@ lh_os_window_set_frame_v(lh_os_window_t *self, lh_os_window_frame_t frame)
 lh_void
 lh_os_window_set_corner_radius(lh_os_window_t *self, int radius)
 {
-    lh_os_window_set_corner(self, radius > 0 ? radius : 0);
+    lh_os_window_set_corner(self, lh_math_max(radius, 0));
     if (lh_os_system_window_is_valid(lh_os_window_get_handle(self)))
     {
         lh_os_system_window_set_corner_radius(lh_os_window_get_handle(self),

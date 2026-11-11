@@ -4,6 +4,7 @@
 #include <lh/core/math.h>
 #include <lh/core/runtime/allocator.h>
 #include <lh/core/util/return.h>
+#include <lh/core/util/swap.h>
 #include <lh/config.h>
 #include <lh/core/assert.h>
 
@@ -397,9 +398,7 @@ lh_array_sort(lh_array_t *self, lh_array_cmp_cb cmp, lh_ptr context)
             }
         }
 
-        lh_byte_ptr const swap = src;
-        src = dst;
-        dst = swap;
+        lh_swap(lh_byte_ptr, src, dst);
     }
 
     if (src != data)

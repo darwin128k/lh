@@ -10,15 +10,9 @@
 #include <lh/core/assert/runtime.h>
 #include <lh/core/runtime/allocator.h>
 
-/**
- * @brief Report an invalid thread or lifecycle state in the LH error slot.
- */
-static lh_bool_t
-lh_os_thread_invalid(void)
-{
-    lh_os_set_last_error_lit(lh_os_error_code_invalid_argument, "invalid thread or state");
-    return lh_bool_false;
-}
+/* What an invalid thread or lifecycle state reports in the LH error slot. */
+static const lh_os_error_t m_os_thread_invalid = lh_os_error_initializer(
+    lh_os_error_code_invalid_argument, lh_os_error_desc_lit("invalid thread or state"));
 
 const lh_memory_allocator_t *
 lh_os_thread_get_allocator(const lh_os_thread_t *self)
@@ -78,7 +72,7 @@ lh_os_thread_start(lh_os_thread_t *self, lh_os_thread_fn run, lh_ptr user, lh_s3
 {
     if (!self || lh_os_thread_get_handle(self))
     {
-        return lh_os_thread_invalid();
+        return lh_os_fail(m_os_thread_invalid);
     }
     lh_memory_allocator_t *allocator = lh_os_thread_get_allocator_mut(self);
     lh_memory_allocator_assign(allocator, lh_runtime_allocator_get());
@@ -86,8 +80,7 @@ lh_os_thread_start(lh_os_thread_t *self, lh_os_thread_fn run, lh_ptr user, lh_s3
         lh_memory_allocator_try_alloc_zero(allocator, 1U, lh_os_system_thread_get_size());
     if (!storage)
     {
-        lh_os_set_last_error_lit(lh_os_error_code_out_of_memory, "no memory for a thread");
-        return lh_bool_false;
+        return lh_os_fail_lit(lh_os_error_code_out_of_memory, "no memory for a thread");
     }
     lh_os_thread_set_handle(self, lh_os_system_thread_start(storage, run, user, cpu, flags));
     if (!lh_os_thread_get_handle(self))
@@ -106,7 +99,7 @@ lh_os_thread_join(lh_os_thread_t *self)
 {
     if (!self)
     {
-        return lh_os_thread_invalid();
+        return lh_os_fail(m_os_thread_invalid);
     }
     if (!lh_os_thread_get_handle(self))
     {

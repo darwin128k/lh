@@ -65,8 +65,7 @@ lh_os_system_fs_stat(lh_str_cptr path, lh_fs_stat_t *out)
     }
     if (lh_math_is_negative(info.st_size))
     {
-        lh_os_set_last_error_lit(lh_os_error_code_negative_size, "file size is negative");
-        return lh_bool_false;
+        return lh_os_fail_lit(lh_os_error_code_negative_size, "file size is negative");
     }
     const lh_os_system_fs_unix_mode_t mode_bits =
         lh_cast_static(lh_os_system_fs_unix_mode_t, info.st_mode);

@@ -85,8 +85,7 @@ lh_os_shared_is_free(const lh_os_shared_t *self)
 {
     if (lh_os_shared_is_open(self))
     {
-        lh_os_set_last_error_lit(lh_os_error_code_already_open, "image already open");
-        return lh_bool_false;
+        return lh_os_fail_lit(lh_os_error_code_already_open, "image already open");
     }
     return lh_bool_true;
 }
@@ -122,8 +121,7 @@ lh_os_shared_try_get_code(const lh_os_shared_t *self, lh_ptr *begin, lh_usize_t 
 {
     if (!lh_os_shared_is_open(self))
     {
-        lh_os_set_last_error_lit(lh_os_error_code_not_open, "image not open");
-        return lh_bool_false;
+        return lh_os_fail_lit(lh_os_error_code_not_open, "image not open");
     }
     return lh_os_system_shared_get_code(lh_os_shared_get_handle(self), begin, size);
 }

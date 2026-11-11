@@ -31,7 +31,7 @@ lh_ui_blur_band(const lh_ui_pixmap_t *pixmap, lh_s32_t top, lh_s32_t height, lh_
                 lh_s32_t *y0, lh_s32_t *y1)
 {
     const lh_s32_t pix_h = lh_ui_pixmap_get_height(pixmap);
-    lh_s32_t last = top + height + (radius > 0 ? radius : 0);
+    lh_s32_t last = top + height + lh_math_max(radius, 0);
 
     lh_ptr_deref(y0) = radius > 0 && top > radius ? top - radius : 0;
     if (last > pix_h)
@@ -47,7 +47,7 @@ lh_ui_blur_row_x(const lh_ui_pixmap_t *pixmap, lh_s32_t y, lh_s32_t left, lh_s32
 {
     const lh_s32_t pix_w = lh_ui_pixmap_get_width(pixmap);
     const lh_s32_t read0 = radius > 0 && left > radius ? left - radius : 0;
-    lh_s32_t read1 = left + width + (radius > 0 ? radius : 0);
+    lh_s32_t read1 = left + width + lh_math_max(radius, 0);
     lh_ui_blur_window_t sum = {0, 0, 0, 0};
 
     if (read1 > pix_w)

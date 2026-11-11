@@ -73,6 +73,16 @@ lh_os_last_error(void);
 lh_void
 lh_os_set_last_error(lh_os_error_t error);
 
+/**
+ * @brief Store @p error as the last OS-layer error and report failure.
+ *
+ * ::lh_os_set_last_error for a check that fails: `return lh_os_fail(...)`.
+ *
+ * @return ::lh_bool_false, always.
+ */
+lh_bool_t
+lh_os_fail(lh_os_error_t error);
+
 LH_COMPILER_EXTERN_C_END
 
 /**
@@ -93,6 +103,26 @@ LH_COMPILER_EXTERN_C_END
 #define lh_os_set_last_error_lit(code, text)                                                       \
     lh_os_set_last_error(lh_initializer_of(lh_os_error_t, lh_os_error_initializer, code,           \
                                            lh_os_error_desc_lit(text)))
+
+/**
+ * @def lh_os_fail_lit(code, text)
+ * @brief ::lh_os_fail with @p code and the literal @p text: store the error,
+ *        yield ::lh_bool_false.
+ *
+ * Example usage:
+ * @code{.c}
+ * if (!path)
+ * {
+ *     return lh_os_fail_lit(lh_os_error_code_path_empty, "path is empty");
+ * }
+ * @endcode
+ *
+ * @param code An ::lh_os_error_code_t (`lh/os/error/code.h`).
+ * @param text A string literal.
+ */
+#define lh_os_fail_lit(code, text)                                                                 \
+    lh_os_fail(lh_initializer_of(lh_os_error_t, lh_os_error_initializer, code,                     \
+                                 lh_os_error_desc_lit(text)))
 
 LH_COMPILER_EXTERN_C_BEGIN
 

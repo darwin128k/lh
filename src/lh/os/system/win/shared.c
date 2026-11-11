@@ -123,8 +123,7 @@ lh_os_system_shared_get_path(lh_os_system_shared_handle_t handle, lh_str_t *out)
         }
         lh_runtime_allocator_free(buf);
     }
-    lh_os_set_last_error_lit(lh_os_error_code_name_too_long, "image path is too long");
-    return lh_bool_false;
+    return lh_os_fail_lit(lh_os_error_code_name_too_long, "image path is too long");
 }
 
 lh_os_system_shared_handle_t

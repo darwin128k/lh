@@ -52,7 +52,7 @@ lh_memory_std_stream_cache_size_resolve(void)
 {
     const lh_usize_t l3 = lh_cpu_cache_get_l3_size();
 
-    m_stream_cache_size = l3 > LH_MEMORY_STD_STREAM_FLOOR ? l3 : LH_MEMORY_STD_STREAM_FLOOR;
+    m_stream_cache_size = lh_math_max(l3, LH_MEMORY_STD_STREAM_FLOOR);
     return m_stream_cache_size;
 }
 

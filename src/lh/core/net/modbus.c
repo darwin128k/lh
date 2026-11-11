@@ -186,7 +186,7 @@ lh_mb_parse_pdu(lh_byte_cptr pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expect, 
     }
     if (values != lh_null)
     {
-        const lh_u16_t take = got < cap ? got : cap;
+        const lh_u16_t take = lh_math_min(got, cap);
 
         for (lh_u16_t i = 0; i < take; ++i)
         {
@@ -339,7 +339,7 @@ lh_mb_reach(lh_u16_t start, lh_u16_t end, const lh_mb_want_t *next)
     const lh_u16_t next_end = lh_cast_static(
         lh_u16_t, (lh_mb_want_get_address(next) +
                    (lh_mb_want_get_registers(next) ? lh_mb_want_get_registers(next) : 1)));
-    const lh_u16_t reach = next_end > end ? next_end : end;
+    const lh_u16_t reach = lh_math_max(next_end, end);
 
     if (lh_mb_want_get_address(next) > end && lh_mb_want_get_address(next) - end > LH_MB_GAP_MAX)
     {

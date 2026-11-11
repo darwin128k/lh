@@ -22,6 +22,13 @@ lh_os_set_last_error(lh_os_error_t error)
     lh_os_error_assign(lh_os_last_error(), lh_addr_of(error));
 }
 
+lh_bool_t
+lh_os_fail(lh_os_error_t error)
+{
+    lh_os_set_last_error(error);
+    return lh_bool_false;
+}
+
 lh_void
 lh_os_get_last_error(lh_os_error_t *out)
 {

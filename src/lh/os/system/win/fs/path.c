@@ -27,17 +27,15 @@ lh_os_system_fs_path_canonical(lh_str_cptr path, lh_str_t *out)
     lh_assert_runtime_ref(out);
     if (!lh_ptr_deref(path))
     {
-        lh_os_set_last_error_lit(lh_os_error_code_path_empty, "path is empty");
-        return lh_bool_false;
+        return lh_os_fail_lit(lh_os_error_code_path_empty, "path is empty");
     }
     const lh_os_system_fs_path_final_fn final_path = lh_cast_reinterpret(
         lh_os_system_fs_path_final_fn,
         GetProcAddress(GetModuleHandleA("kernel32.dll"), "GetFinalPathNameByHandleW"));
     if (lh_null_eq(final_path))
     {
-        lh_os_set_last_error_lit(lh_os_error_code_not_supported,
-                                 "final path resolution is not supported by this system");
-        return lh_bool_false;
+        return lh_os_fail_lit(lh_os_error_code_not_supported,
+                              "final path resolution is not supported by this system");
     }
     lh_os_str_t native;
     const lh_bool_t converted = lh_os_system_str_init_by_utf8(lh_addr_of(native), path);
@@ -74,8 +72,7 @@ lh_os_system_fs_path_canonical(lh_str_cptr path, lh_str_t *out)
     }
     if (lh_math_ge(count, capacity))
     {
-        lh_os_set_last_error_lit(lh_os_error_code_name_too_long, "resolved path is too long");
-        return lh_bool_false;
+        return lh_os_fail_lit(lh_os_error_code_name_too_long, "resolved path is too long");
     }
     lh_str_t resolved;
     lh_str_init(lh_addr_of(resolved));

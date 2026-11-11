@@ -19,8 +19,7 @@ lh_os_system_fs_path_canonical(lh_str_cptr path, lh_str_t *out)
     lh_assert_runtime_ref(out);
     if (!lh_ptr_deref(path))
     {
-        lh_os_set_last_error_lit(lh_os_error_code_path_empty, "path is empty");
-        return lh_bool_false;
+        return lh_os_fail_lit(lh_os_error_code_path_empty, "path is empty");
     }
     lh_char_t resolved[PATH_MAX];
     if (lh_null_eq(realpath(path, resolved)))

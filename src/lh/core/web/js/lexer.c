@@ -457,7 +457,7 @@ lh_web_js_lexer_set_error(lh_web_js_lexer_t *self, lh_str_cptr message, lh_usize
         size = LH_WEB_JS_LEXER_ERROR_MESSAGE_MAX - 1U;
     }
     lh_str_ptr_copy(buffer, LH_WEB_JS_LEXER_ERROR_MESSAGE_MAX, message, size);
-    buffer[size] = '\0';
+    buffer[size] = lh_char_map_nul;
     lh_web_js_lexer_set_error_message(self, buffer);
     lh_web_js_lexer_set_error_message_len(self, size);
     lh_web_js_lexer_set_error_line(self, lh_web_js_lexer_get_line(self));

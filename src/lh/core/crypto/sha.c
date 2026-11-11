@@ -529,7 +529,7 @@ lh_crypto_sha_update(lh_crypto_sha_t *self, const lh_ptr data, lh_usize_t size)
     if (lh_crypto_sha_get_block_fill(self) != 0)
     {
         lh_usize_t room = block_size - lh_crypto_sha_get_block_fill(self);
-        lh_usize_t take = remaining < room ? remaining : room;
+        lh_usize_t take = lh_math_min(remaining, room);
 
         lh_crypto_sha_fill_block(self, bytes, take);
         bytes += take;

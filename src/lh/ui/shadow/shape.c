@@ -103,9 +103,9 @@ lh_ui_shadow_shape_alpha(const lh_ui_shadow_shape_t *self, lh_s32_t row, lh_s32_
         (px > lh_ui_shadow_shape_get_cx(self) ? px - lh_ui_shadow_shape_get_cx(self)
                                               : lh_ui_shadow_shape_get_cx(self) - px) -
         lh_ui_shadow_shape_get_hx(self);
-    const lh_s32_t ox = dx > 0 ? dx : 0;
-    const lh_s32_t oy = row > 0 ? row : 0;
-    const lh_s32_t most = dx > row ? dx : row;
+    const lh_s32_t ox = lh_math_max(dx, 0);
+    const lh_s32_t oy = lh_math_max(row, 0);
+    const lh_s32_t most = lh_math_max(dx, row);
 
     lh_return_if(lh_ui_shadow_shape_get_peak(self) == 0, 0);
     /* A pixel the fill covers wholly is the fill's. It is decided from the pixel's
@@ -137,7 +137,7 @@ lh_ui_shadow_shape_alpha(const lh_ui_shadow_shape_t *self, lh_s32_t row, lh_s32_
             lh_math_isqrt_u64(lh_cast_static(lh_u64_t, ox) * lh_cast_static(lh_u64_t, ox) +
                               lh_cast_static(lh_u64_t, oy) * lh_cast_static(lh_u64_t, oy)));
     }
-    lh_s32_t distance = length + (most < 0 ? most : 0) - lh_ui_shadow_shape_get_r(self);
+    lh_s32_t distance = length + lh_math_min(most, 0) - lh_ui_shadow_shape_get_r(self);
     return lh_ui_shadow_shape_fade(self, distance);
 }
 
@@ -146,7 +146,7 @@ lh_ui_shadow_shape_span(const lh_ui_shadow_shape_t *self, const struct lh_ui_sha
                         lh_s32_t y, lh_s32_t x0, lh_s32_t x1, lh_byte_ptr out)
 {
     const lh_s32_t row = lh_ui_shadow_shape_row(self, y);
-    const lh_s32_t oy = row > 0 ? row : 0;
+    const lh_s32_t oy = lh_math_max(row, 0);
     lh_s32_t full0 = x1;
     lh_s32_t full1 = x1;
     lh_s32_t px = x0 * LH_UI_RADIUS_SUBPIXEL + LH_UI_RADIUS_SUBPIXEL / 2;
@@ -177,13 +177,13 @@ lh_ui_shadow_shape_span(const lh_ui_shadow_shape_t *self, const struct lh_ui_sha
             (px > lh_ui_shadow_shape_get_cx(self) ? px - lh_ui_shadow_shape_get_cx(self)
                                                   : lh_ui_shadow_shape_get_cx(self) - px) -
             lh_ui_shadow_shape_get_hx(self);
-        const lh_s32_t ox = dx > 0 ? dx : 0;
-        const lh_s32_t most = dx > row ? dx : row;
+        const lh_s32_t ox = lh_math_max(dx, 0);
+        const lh_s32_t most = lh_math_max(dx, row);
         lh_s32_t end;
 
         if (x >= full0 && x < full1)
         {
-            end = full1 < x1 ? full1 : x1;
+            end = lh_math_min(full1, x1);
             lh_memory_set(out + (x - x0), lh_cast_static(lh_usize_t, (end - x)), 0U);
         }
         else if (ox == 0 && oy > 0)
@@ -195,7 +195,7 @@ lh_ui_shadow_shape_span(const lh_ui_shadow_shape_t *self, const struct lh_ui_sha
                   (lh_ui_shadow_shape_get_cx(self) + lh_ui_shadow_shape_get_hx(self) - px) /
                       LH_UI_RADIUS_SUBPIXEL +
                   1;
-            end = end < x1 ? end : x1;
+            end = lh_math_min(end, x1);
             end = x < full0 && full0 < end ? full0 : end;
             lh_memory_set(out + (x - x0), lh_cast_static(lh_usize_t, (end - x)),
                           lh_ui_shadow_shape_fade(self, oy - lh_ui_shadow_shape_get_r(self)));
@@ -218,7 +218,7 @@ lh_ui_shadow_shape_span(const lh_ui_shadow_shape_t *self, const struct lh_ui_sha
             else
             {
                 out[x - x0] =
-                    lh_ui_shadow_shape_fade(self, (ox > 0 ? ox : oy) + (most < 0 ? most : 0) -
+                    lh_ui_shadow_shape_fade(self, (ox > 0 ? ox : oy) + lh_math_min(most, 0) -
                                                       lh_ui_shadow_shape_get_r(self));
             }
         }

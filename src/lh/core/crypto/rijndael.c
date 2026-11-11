@@ -472,7 +472,7 @@ lh_crypto_rijndael_init(lh_crypto_rijndael_t *self, const lh_ptr key, lh_usize_t
 
     const lh_usize_t nk = key_size / 4U;
     const lh_usize_t nb = block_size / 4U;
-    const lh_usize_t nr = (nk > nb ? nk : nb) + 6U;
+    const lh_usize_t nr = lh_math_max(nk, nb) + 6U;
 
     lh_crypto_rijndael_set_mode(self, mode);
     lh_crypto_rijndael_set_block_size(self, block_size);

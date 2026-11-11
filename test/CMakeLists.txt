@@ -315,6 +315,7 @@ lh_add_test_core(lh_test_numeric
 )
 
 set(LH_TEST_OS_SOURCES
+        ${LH_TEST_SRC_PATH}/lh/os.cpp
         ${LH_TEST_SRC_PATH}/lh/os/fs/dir.cpp
         ${LH_TEST_SRC_PATH}/lh/os/fs/file.cpp
         ${LH_TEST_SRC_PATH}/lh/os/fs/path.cpp

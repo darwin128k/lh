@@ -11,8 +11,7 @@ lh_os_loader_scan(const lh_fs_path_t *dir, lh_os_loader_scan_cb cb, lh_ptr user)
     lh_assert_runtime_ref(cb);
     if (lh_fs_path_is_empty(dir))
     {
-        lh_os_set_last_error_lit(lh_os_error_code_path_empty, "path is empty");
-        return lh_bool_false;
+        return lh_os_fail_lit(lh_os_error_code_path_empty, "path is empty");
     }
     if (!lh_os_fs_is_dir(dir))
     {

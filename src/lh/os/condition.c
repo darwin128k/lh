@@ -9,16 +9,9 @@
 #include <lh/core/assert/runtime.h>
 #include <lh/core/runtime/allocator.h>
 
-/**
- * @brief Report an invalid condition variable or lifecycle state in the LH error slot.
- */
-static lh_bool_t
-lh_os_condition_invalid(void)
-{
-    lh_os_set_last_error_lit(lh_os_error_code_invalid_argument,
-                             "invalid condition variable or state");
-    return lh_bool_false;
-}
+/* What an invalid condition variable or lifecycle state reports in the LH error slot. */
+static const lh_os_error_t m_os_condition_invalid = lh_os_error_initializer(
+    lh_os_error_code_invalid_argument, lh_os_error_desc_lit("invalid condition variable or state"));
 
 const lh_memory_allocator_t *
 lh_os_condition_get_allocator(const lh_os_condition_t *self)
@@ -68,7 +61,7 @@ lh_os_condition_open(lh_os_condition_t *self)
 {
     if (!self || lh_os_condition_get_handle(self))
     {
-        return lh_os_condition_invalid();
+        return lh_os_fail(m_os_condition_invalid);
     }
     lh_memory_allocator_t *allocator = lh_os_condition_get_allocator_mut(self);
     lh_memory_allocator_assign(allocator, lh_runtime_allocator_get());
@@ -76,9 +69,7 @@ lh_os_condition_open(lh_os_condition_t *self)
         lh_memory_allocator_try_alloc_zero(allocator, 1U, lh_os_system_condition_get_size());
     if (!storage)
     {
-        lh_os_set_last_error_lit(lh_os_error_code_out_of_memory,
-                                 "no memory for a condition variable");
-        return lh_bool_false;
+        return lh_os_fail_lit(lh_os_error_code_out_of_memory, "no memory for a condition variable");
     }
     lh_os_condition_set_handle(self, lh_os_system_condition_open(storage));
     if (!lh_os_condition_get_handle(self))
@@ -97,7 +88,7 @@ lh_os_condition_close(lh_os_condition_t *self)
 {
     if (!self)
     {
-        return lh_os_condition_invalid();
+        return lh_os_fail(m_os_condition_invalid);
     }
     if (!lh_os_condition_get_handle(self))
     {
@@ -122,7 +113,7 @@ lh_os_condition_wait(lh_os_condition_t *self, lh_os_mutex_t *mutex)
     return self && lh_os_condition_get_handle(self) && mutex && lh_os_mutex_get_handle(mutex)
                ? lh_os_system_condition_wait(lh_os_condition_get_handle(self),
                                              lh_os_mutex_get_handle(mutex))
-               : lh_os_condition_invalid();
+               : lh_os_fail(m_os_condition_invalid);
 }
 
 /**
@@ -134,7 +125,7 @@ lh_os_condition_wait_for(lh_os_condition_t *self, lh_os_mutex_t *mutex, lh_u32_t
     return self && lh_os_condition_get_handle(self) && mutex && lh_os_mutex_get_handle(mutex)
                ? lh_os_system_condition_wait_for(lh_os_condition_get_handle(self),
                                                  lh_os_mutex_get_handle(mutex), timeout_ms)
-               : lh_os_condition_invalid();
+               : lh_os_fail(m_os_condition_invalid);
 }
 
 /**
@@ -145,7 +136,7 @@ lh_os_condition_signal(lh_os_condition_t *self)
 {
     return self && lh_os_condition_get_handle(self)
                ? lh_os_system_condition_signal(lh_os_condition_get_handle(self))
-               : lh_os_condition_invalid();
+               : lh_os_fail(m_os_condition_invalid);
 }
 
 /**
@@ -156,5 +147,5 @@ lh_os_condition_broadcast(lh_os_condition_t *self)
 {
     return self && lh_os_condition_get_handle(self)
                ? lh_os_system_condition_broadcast(lh_os_condition_get_handle(self))
-               : lh_os_condition_invalid();
+               : lh_os_fail(m_os_condition_invalid);
 }

@@ -51,7 +51,7 @@ lh_ui_shadow_get_spread(const lh_ui_shadow_t *self)
 lh_void
 lh_ui_shadow_set_spread_v(lh_ui_shadow_t *self, lh_ui_scalar_t spread)
 {
-    lh_ui_shadow_set_spread(self, spread > 0 ? spread : 0);
+    lh_ui_shadow_set_spread(self, lh_math_max(spread, 0));
 }
 
 lh_void
@@ -111,7 +111,7 @@ lh_ui_shadow_signed_distance(lh_s64_t px, lh_s64_t py, const lh_ui_rect_t *rect,
     const lh_s64_t oy = lh_math_max(dy, 0);
     lh_s64_t inside = lh_math_max(dx, dy);
 
-    inside = inside < 0 ? inside : 0;
+    inside = lh_math_min(inside, 0);
     if (ox == 0 && oy == 0)
     {
         return inside - r;
