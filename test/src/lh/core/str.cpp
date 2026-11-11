@@ -329,4 +329,21 @@ TEST(str_clear, keeps_the_buffer_for_reuse)
     lh_str_deinit(&s);
 }
 
+TEST(str_is_equal, compares_the_characters_byte_for_byte)
+{
+    lh_str_t a;
+    lh_str_t b;
+    lh_str_init(&a);
+    lh_str_init(&b);
+    EXPECT_TRUE(lh_str_is_equal(&a, &b));
+    lh_str_assign_view(&a, lh_str_view_lit("host"));
+    EXPECT_FALSE(lh_str_is_equal(&a, &b));
+    lh_str_assign_view(&b, lh_str_view_lit("HOST"));
+    EXPECT_FALSE(lh_str_is_equal(&a, &b));
+    lh_str_assign_view(&b, lh_str_view_lit("host"));
+    EXPECT_TRUE(lh_str_is_equal(&a, &b));
+    lh_str_deinit(&a);
+    lh_str_deinit(&b);
+}
+
 } // namespace

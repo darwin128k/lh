@@ -16,6 +16,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh/core/sql/address`: `lh_sql_address_t`, where a database is (backend, file,
+  host, user, password, database, port) as owned text, with `_assign`, `_is_equal`
+  and a password wiped on `_clear` / `_deinit`.
+- `lh_os_sql_address_try_open` (`lh/os/sql/address.h`) opens an `lh_sql_db_t` on
+  SQLite or MySQL by an address.
+- `lh/os/sql/keep`: `lh_os_sql_keep_t`, the connection a thread keeps between jobs
+  (`_try_get_db` uses it again for the same address, reopens for another;
+  `_deinit` closes it and calls `mysql_thread_end` when MySQL was used). The piece
+  of `lh_os_sql_worker_t` for a thread someone else runs.
+- `lh_str_is_equal`: two strings with the same bytes.
 - `lh/os/loader/image`: `lh_os_loader_image_has_ext`, `_is_named` and
   `_try_resolve` — a module named by its folder (`qproto`) becomes
   `qproto/qproto.so|.dll`, a file is taken as it is.

@@ -160,6 +160,7 @@ lh_add_test_core(lh_test_core
         ${LH_TEST_SRC_PATH}/lh/core/web/js/op.cpp
         ${LH_TEST_SRC_PATH}/lh/core/web/js/node.cpp
         ${LH_TEST_SRC_PATH}/lh/core/web/js/writer.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/sql/address.cpp
         ${LH_TEST_SRC_PATH}/lh/core/sql/db.cpp
         ${LH_TEST_SRC_PATH}/lh/core/sql/mysql/query.cpp
         ${LH_TEST_SRC_PATH}/lh/core/version.cpp
@@ -584,10 +585,12 @@ endif ()
 # The SQLite backend exists only with LH_LIBRARY_OPTION_SQL_SQLITE.
 if (LH_LIBRARY_OPTION_SQL_SQLITE)
     lh_add_test_core(lh_test_sql ${LH_TEST_SRC_PATH}/lh/os/sql/sqlite.cpp
-            ${LH_TEST_SRC_PATH}/lh/os/sql/worker.cpp)
+            ${LH_TEST_SRC_PATH}/lh/os/sql/worker.cpp
+            ${LH_TEST_SRC_PATH}/lh/os/sql/keep.cpp)
 else ()
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/sql/sqlite.cpp
-            ${LH_TEST_SRC_PATH}/lh/os/sql/worker.cpp)
+            ${LH_TEST_SRC_PATH}/lh/os/sql/worker.cpp
+            ${LH_TEST_SRC_PATH}/lh/os/sql/keep.cpp)
 endif ()
 
 # scripts/css2decl.py, run the two ways it can go wrong: its self-test asks whether it

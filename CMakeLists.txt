@@ -172,6 +172,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/http/forwarded.c
         ${LH_LIB_SRC_PATH}/core/http/limit/bucket.c
         ${LH_LIB_SRC_PATH}/core/http/limit/peer.c
+        ${LH_LIB_SRC_PATH}/core/sql/address.c
         ${LH_LIB_SRC_PATH}/core/sql/db.c
         ${LH_LIB_SRC_PATH}/core/sql/driver.c
         ${LH_LIB_SRC_PATH}/core/sql/mysql/query.c
@@ -391,6 +392,8 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/loader/scan.c
             ${LH_LIB_SRC_PATH}/os/loader/list.c
             ${LH_LIB_SRC_PATH}/os/sql/mysql.c
+            ${LH_LIB_SRC_PATH}/os/sql/address.c
+            ${LH_LIB_SRC_PATH}/os/sql/keep.c
             ${LH_LIB_SRC_PATH}/os/sql/worker.c
             ${LH_LIB_SRC_PATH}/os/sql/mysql/api.c
             ${LH_LIB_SRC_PATH}/os/sql/mysql/conn.c

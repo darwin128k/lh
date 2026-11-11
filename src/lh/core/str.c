@@ -224,3 +224,16 @@ lh_str_assign(lh_str_t *self, const lh_str_t *other)
     lh_str_clear(self);
     lh_str_append_str(self, other);
 }
+
+lh_bool_t
+lh_str_is_equal(const lh_str_t *self, const lh_str_t *other)
+{
+    lh_str_view_t left;
+
+    lh_str_as_view(self, lh_addr_of(left));
+
+    lh_str_view_t right;
+
+    lh_str_as_view(other, lh_addr_of(right));
+    return lh_str_view_equals(lh_addr_of(left), lh_addr_of(right), lh_bool_false);
+}

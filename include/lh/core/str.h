@@ -239,6 +239,16 @@ lh_str_append_str(lh_str_t *self, const lh_str_t *other);
 lh_void
 lh_str_assign(lh_str_t *self, const lh_str_t *other);
 
+/**
+ * @brief Whether @p self and @p other hold the same characters, byte for byte
+ *        (::lh_str_view_equals of their views).
+ *
+ * @param self  The first string.
+ * @param other The second string.
+ */
+lh_bool_t
+lh_str_is_equal(const lh_str_t *self, const lh_str_t *other);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_STR_H */
