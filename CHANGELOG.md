@@ -24,11 +24,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   helpers: `lh_memory_bounds_allocated_clear_by` / `_try_resize_by` / `_exchange_by` and
   `lh_memory_typed_allocated_clear_by` / `_try_resize_by` / `_resize_by` /
   `_exchange_by`; the plain forms are these over the runtime allocator.
-- The INI parser reads a sectionless text: `lh_ini_parser_init_flat` allows pairs
-  before the first header (their section is empty), so a plain `key = value` file
-  reads whole; `lh_ini_parser_is_flat` / `_set_flat`. A lenient reader goes past a bad
-  line by clearing the error and calling `lh_ini_parser_next` again (documented and
-  tested).
+- The INI parser has a global section: the pairs before the first header are in it
+  (their section is empty, `lh_ini_entry_has_section` is false), so a plain
+  `key = value` file, a sectioned file and a mix of both all read whole. Whether a
+  format uses sections is its reader's business; the parser has no mode for it, and
+  `lh_ini_error_no_section` is gone. A lenient reader goes past a bad line by clearing
+  the error and calling `lh_ini_parser_next` again (documented and tested).
 - A database failure says what kind it is: `lh_sql_error_kind_t` (`usage`,
   `unsupported`, `no_client`, `unreachable`, `denied`, `not_found`, `statement`,
   `other`), read with `lh_sql_db_get_error_kind`, and the backend's own number with

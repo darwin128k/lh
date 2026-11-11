@@ -51,6 +51,14 @@ lh_ini_entry_has_kind(const lh_ini_entry_t *self, lh_ini_entry_kind_t kind)
     return lh_cast_static(lh_bool_t, lh_math_eq(lh_ini_entry_get_kind(self), kind));
 }
 
+lh_bool_t
+lh_ini_entry_has_section(const lh_ini_entry_t *self)
+{
+    const lh_str_view_t section = lh_ini_entry_get_section(self);
+
+    return lh_cast_static(lh_bool_t, !lh_str_view_is_empty(lh_addr_of(section)));
+}
+
 const lh_pair_t *
 lh_ini_entry_get_pair_v(const lh_ini_entry_t *self)
 {

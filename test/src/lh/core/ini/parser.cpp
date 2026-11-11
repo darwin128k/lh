@@ -23,7 +23,7 @@ struct parsed
 };
 
 parsed
-parse(const std::string &ini, bool flat = false)
+parse(const std::string &ini)
 {
     lh_str_view_t view;
     if (ini.empty())
@@ -36,14 +36,7 @@ parse(const std::string &ini, bool flat = false)
     }
 
     lh_ini_parser_t parser;
-    if (flat)
-    {
-        lh_ini_parser_init_flat(&parser, view);
-    }
-    else
-    {
-        lh_ini_parser_init(&parser, view);
-    }
+    lh_ini_parser_init(&parser, view);
 
     parsed out;
     lh_ini_entry_t entry;
@@ -143,13 +136,20 @@ TEST(ini_parser, empty_text_has_no_entries)
     EXPECT_EQ(p.line, 0U);
 }
 
-TEST(ini_parser, reports_pair_before_first_section)
+TEST(ini_parser, reads_pairs_before_first_header_in_global_section)
 {
-    const parsed p = parse("; comment\nk = v\n[a]\n");
+    const parsed p = parse("; comment\nk = v\n[a]\nx=y\n");
 
-    EXPECT_TRUE(p.entries.empty());
-    EXPECT_EQ(p.error, lh_ini_error_no_section);
-    EXPECT_EQ(p.line, 2U);
+    EXPECT_EQ(p.entries, (entries_t{".k=v", "[a]", "a.x=y"}));
+    EXPECT_EQ(p.error, lh_ini_error_none);
+}
+
+TEST(ini_parser, reads_text_without_headers)
+{
+    const parsed p = parse("k = v\nother=1\n");
+
+    EXPECT_EQ(p.entries, (entries_t{".k=v", ".other=1"}));
+    EXPECT_EQ(p.error, lh_ini_error_none);
 }
 
 TEST(ini_parser, reports_unclosed_section)
@@ -249,38 +249,27 @@ TEST(ini_parser, line_at_end_counts_trailing_comments)
     EXPECT_EQ(p.line, 4U);
 }
 
-TEST(ini_parser, flat_reads_text_without_headers)
+TEST(ini_parser, reports_bad_lines_in_global_section)
 {
-    const parsed p = parse("; comment\nk = v\nother=1\n", true);
-
-    EXPECT_EQ(p.entries, (entries_t{".k=v", ".other=1"}));
-    EXPECT_EQ(p.error, lh_ini_error_none);
+    EXPECT_EQ(parse("k=v\njust text\n").error, lh_ini_error_missing_equals);
+    EXPECT_EQ(parse("= v\n").error, lh_ini_error_empty_key);
 }
 
-TEST(ini_parser, flat_reads_pairs_before_first_header)
+TEST(ini_entry, has_section_is_false_only_in_global_section)
 {
-    const parsed p = parse("k=v\n[a]\nx=y\n", true);
-
-    EXPECT_EQ(p.entries, (entries_t{".k=v", "[a]", "a.x=y"}));
-    EXPECT_EQ(p.error, lh_ini_error_none);
-}
-
-TEST(ini_parser, flat_still_reports_bad_lines)
-{
-    EXPECT_EQ(parse("k=v\njust text\n", true).error, lh_ini_error_missing_equals);
-    EXPECT_EQ(parse("= v\n", true).error, lh_ini_error_empty_key);
-}
-
-TEST(ini_parser, init_is_not_flat_and_init_flat_is)
-{
+    const std::string ini = "k=v\n[a]\nx=y\n";
     lh_str_view_t view;
-    lh_str_view_init_empty(&view);
+    lh_str_view_init_by_size(&view, ini.data(), ini.size());
     lh_ini_parser_t parser;
-
-    lh_ini_parser_init_flat(&parser, view);
-    EXPECT_TRUE(lh_ini_parser_is_flat(&parser));
     lh_ini_parser_init(&parser, view);
-    EXPECT_FALSE(lh_ini_parser_is_flat(&parser));
+    lh_ini_entry_t entry;
+
+    ASSERT_TRUE(lh_ini_parser_next(&parser, &entry));
+    EXPECT_FALSE(lh_ini_entry_has_section(&entry));
+    ASSERT_TRUE(lh_ini_parser_next(&parser, &entry));
+    EXPECT_TRUE(lh_ini_entry_has_section(&entry));
+    ASSERT_TRUE(lh_ini_parser_next(&parser, &entry));
+    EXPECT_TRUE(lh_ini_entry_has_section(&entry));
 }
 
 TEST(ini_parser, resumes_on_next_line_after_error_is_cleared)
@@ -289,7 +278,7 @@ TEST(ini_parser, resumes_on_next_line_after_error_is_cleared)
     lh_str_view_t view;
     lh_str_view_init_by_size(&view, ini.data(), ini.size());
     lh_ini_parser_t parser;
-    lh_ini_parser_init_flat(&parser, view);
+    lh_ini_parser_init(&parser, view);
     lh_ini_entry_t entry;
 
     ASSERT_TRUE(lh_ini_parser_next(&parser, &entry));
@@ -306,7 +295,7 @@ TEST(ini_parser, resumes_on_next_line_after_error_is_cleared)
 TEST(ini_error_get_message, describes_every_error)
 {
     EXPECT_STREQ(lh_ini_error_get_message(lh_ini_error_none), "no error");
-    EXPECT_STREQ(lh_ini_error_get_message(lh_ini_error_no_section), "pair before the first section");
+    EXPECT_STREQ(lh_ini_error_get_message(lh_ini_error_empty_key), "pair has no key");
     EXPECT_STREQ(lh_ini_error_get_message(200U), "unknown error");
 }
 

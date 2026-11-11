@@ -4,7 +4,8 @@
  *
  * Either a section header or a key/value pair. Every entry carries the name
  * of the section it is in (a header carries its own name), so a pair can be
- * matched without remembering the last header seen.
+ * matched without remembering the last header seen. A pair before the first
+ * header is in the global section, which has no name.
  *
  * The key and value are held as an ::lh_pair_t of two str values. Like the
  * pair, an entry owns nothing: all its text points into the INI text it was
@@ -45,7 +46,8 @@ void
 lh_ini_entry_set_kind(lh_ini_entry_t *self, lh_ini_entry_kind_t kind);
 
 /**
- * @brief The section @p self is in; for a header, its own name.
+ * @brief The section @p self is in; for a header, its own name. Empty in
+ *        the global section.
  */
 lh_str_view_t
 lh_ini_entry_get_section(const lh_ini_entry_t *self);
@@ -67,6 +69,13 @@ lh_ini_entry_get_pair(const lh_ini_entry_t *self);
  */
 lh_bool_t
 lh_ini_entry_has_kind(const lh_ini_entry_t *self, lh_ini_entry_kind_t kind);
+
+/**
+ * @brief True when @p self is in a named section; false for a pair of the
+ *        global section (before the first header). A header is its own section.
+ */
+lh_bool_t
+lh_ini_entry_has_section(const lh_ini_entry_t *self);
 
 /**
  * @brief The key (`first`) and value (`second`), both str values.

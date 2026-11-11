@@ -14,10 +14,11 @@
  * - Surrounding whitespace is ignored on every line, key and value.
  * - An empty line, or one whose first character is `;` or `#`, is skipped.
  *   Comments take the whole line: `key = a ; b` has the value `a ; b`.
- * - `[name]` starts section `name`. Every pair must be in a section — unless
- *   the parser is flat (::lh_ini_parser_init_flat): then the pairs before the
- *   first header are in no section (an empty ::lh_ini_entry_get_section), and
- *   a text with no headers at all is a plain `key = value` list.
+ * - `[name]` starts section `name`. The pairs before the first header are in
+ *   the global section, which has no name (::lh_ini_entry_has_section is
+ *   false): a text with no headers at all is a plain `key = value` list, one
+ *   with only sections is a sectioned file, and both mix. Whether a format
+ *   uses sections is its reader's business, not the parser's.
  * - `key = value` is a pair. The first `=` splits it, so the value may hold
  *   more. The value may be empty. No quotes, escapes or continuation lines:
  *   the value is the rest of the line, as written.
@@ -63,7 +64,7 @@
 struct lh_ini_parser
 {
     /** Members: ::lh_ini_parser_fields. */
-    lh_ini_parser_fields(lh_str_line_reader_t, lh_str_view_t, lh_ini_error_t, lh_bool_t);
+    lh_ini_parser_fields(lh_str_line_reader_t, lh_str_view_t, lh_ini_error_t);
 };
 /** @copybrief lh_ini_parser */
 typedef struct lh_ini_parser lh_ini_parser_t;
@@ -86,7 +87,8 @@ lh_usize_t
 lh_ini_parser_get_line(const lh_ini_parser_t *self);
 
 /**
- * @brief The name of the last section header read; empty before the first.
+ * @brief The name of the last section header read; empty in the global
+ *        section, before the first.
  *
  * While reading, every entry already carries its section
  * (::lh_ini_entry_get_section). This is for when there is no entry: after
@@ -124,38 +126,16 @@ lh_ini_parser_fail(lh_ini_parser_t *self, lh_ini_error_t error);
 lh_bool_t
 lh_ini_parser_has_error(const lh_ini_parser_t *self);
 
-/**
- * @brief True when pairs may come before the first header of @p self
- *        (see ::lh_ini_parser_init_flat).
- */
-lh_bool_t
-lh_ini_parser_is_flat(const lh_ini_parser_t *self);
-
-/** Make pairs before the first header of @p self allowed (@p flat) or an error. */
-void
-lh_ini_parser_set_flat(lh_ini_parser_t *self, lh_bool_t flat);
-
 /* ── init ────────────────────────────────────────────────────────────────── */
 
 /**
- * @brief Start reading @p text from its first line.
+ * @brief Start reading @p text from its first line, in the global section.
  *
  * The parser owns nothing; @p text must outlive it and every entry it
  * returns.
  */
 void
 lh_ini_parser_init(lh_ini_parser_t *self, lh_str_view_t text);
-
-/**
- * @brief Start reading @p text from its first line, pairs before the first
- *        header allowed: a sectionless `key = value` text reads whole.
- *
- * Their entries have an empty section. Headers still work as in
- * ::lh_ini_parser_init. The parser owns nothing; @p text must outlive it and
- * every entry it returns.
- */
-void
-lh_ini_parser_init_flat(lh_ini_parser_t *self, lh_str_view_t text);
 
 /* ── lines ───────────────────────────────────────────────────────────────── */
 
@@ -175,11 +155,11 @@ lh_ini_parser_read_section(lh_ini_parser_t *self, const lh_str_view_t *line, lh_
 
 /**
  * @brief Read the trimmed, not skipped, non-header @p line as `key = value`
- *        in the current section into @p entry.
+ *        in the current section (the global one before the first header)
+ *        into @p entry.
  *
  * @return ::lh_bool_true if @p entry was filled; ::lh_bool_false on a missing
- *         `=`, an empty key or, unless @p self is flat, no section yet, which
- *         stops the parse.
+ *         `=` or an empty key, which stops the parse.
  */
 lh_bool_t
 lh_ini_parser_read_pair(lh_ini_parser_t *self, const lh_str_view_t *line, lh_ini_entry_t *entry);

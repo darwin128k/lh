@@ -15,8 +15,6 @@ lh_ini_error_get_message(lh_ini_error_t error)
         return "line is not key = value";
     case lh_ini_error_empty_key:
         return "pair has no key";
-    case lh_ini_error_no_section:
-        return "pair before the first section";
     default:
         return "unknown error";
     }

@@ -47,12 +47,6 @@ typedef lh_u8_t lh_ini_error_t;
  */
 #define lh_ini_error_empty_key 4U
 
-/**
- * @def lh_ini_error_no_section
- * @brief A pair before the first section header.
- */
-#define lh_ini_error_no_section 5U
-
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
