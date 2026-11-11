@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_datetime_format_by(self, str, size, separator)`: a date-time with the date's
+  separator chosen, as `lh_date_format_by` does for a date (`2026-09-16 09:05:00`);
+  `lh_datetime_format` is it with `/`. Authum's `authum_time_format_utc` writes its
+  text with it instead of placing every character by hand.
 - `lh_os_fail(error)` and `lh_os_fail_lit(code, text)` (`lh/os.h`): store the error in
   the OS-layer slot and yield `lh_bool_false`, so a failing check is one
   `return lh_os_fail_lit(...)`. They replace 14 two-line "set the error, return false"

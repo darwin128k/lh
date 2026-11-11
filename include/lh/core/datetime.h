@@ -184,6 +184,24 @@ lh_bool_t
 lh_datetime_parse(const lh_str_ptr str, lh_usize_t str_size, lh_datetime_t *out);
 
 /**
+ * @brief Format @p self as `YYYY<sep>MM<sep>DD HH:MM:SS` (the date as
+ *        ::lh_date_format_by, a space, the time as ::lh_time_format).
+ *
+ * No NUL terminator. A buffer of ::LH_DATETIME_TEXT_MAX + 1 always has room
+ * to add one after the returned length.
+ *
+ * @param self      Date-time to format (not null).
+ * @param str       Destination buffer.
+ * @param str_size  Capacity of @p str in characters.
+ * @param separator The character between the date's parts (`/`, `-`, `.`).
+ *
+ * @return Characters written, or 0 if @p str_size was too small.
+ */
+lh_usize_t
+lh_datetime_format_by(const lh_datetime_t *self, lh_str_ptr str, lh_usize_t str_size,
+                      lh_char_t separator);
+
+/**
  * @brief Format @p self as `YYYY/MM/DD HH:MM:SS`.
  *
  * No NUL terminator. A buffer of ::LH_DATETIME_TEXT_MAX + 1 always has room

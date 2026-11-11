@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include <lh/core/char/map.h>
 #include <lh/core/date/initializer.h>
 #include <lh/core/datetime.h>
 #include <lh/core/datetime/initializer.h>
@@ -20,6 +21,17 @@ TEST(datetime_roundtrip, parse_format)
     lh_char_t buf[LH_DATETIME_TEXT_MAX];
     const lh_usize_t n = lh_datetime_format(&dt, buf, sizeof(buf));
     EXPECT_EQ(std::string(buf, n), "2026/09/16 09:05:00");
+}
+
+TEST(datetime_format_by, puts_the_separator_between_the_date_parts)
+{
+    const lh_datetime_t dt =
+        lh_datetime_initializer(lh_date_initializer(2026, 9, 16), lh_time_initializer(9, 5, 0));
+    lh_char_t buf[LH_DATETIME_TEXT_MAX];
+
+    const lh_usize_t n = lh_datetime_format_by(&dt, buf, sizeof(buf), lh_char_map_minus);
+    EXPECT_EQ(std::string(buf, n), "2026-09-16 09:05:00");
+    EXPECT_EQ(lh_datetime_format_by(&dt, buf, 10U, lh_char_map_minus), 0U);
 }
 
 TEST(datetime_is_at_least, later_time_same_date)

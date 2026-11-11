@@ -193,33 +193,38 @@ lh_datetime_parse(lh_str_cptr str, lh_usize_t str_size, lh_datetime_t *out)
 }
 
 lh_usize_t
-lh_datetime_format(const lh_datetime_t *self, lh_str_ptr str, lh_usize_t str_size)
+lh_datetime_format_by(const lh_datetime_t *self, lh_str_ptr str, lh_usize_t str_size,
+                      lh_char_t separator)
 {
-    lh_char_t scratch[LH_DATETIME_TEXT_MAX];
     lh_date_t date;
-    lh_time_t time;
-    lh_usize_t date_len;
-    lh_usize_t time_len;
-    lh_usize_t total;
-
     lh_datetime_get_date(self, lh_addr_of(date));
-    lh_datetime_get_time(self, lh_addr_of(time));
-    date_len = lh_date_format(lh_addr_of(date), scratch, LH_DATE_TEXT_MAX);
+    lh_char_t scratch[LH_DATETIME_TEXT_MAX];
+    const lh_usize_t date_len =
+        lh_date_format_by(lh_addr_of(date), scratch, LH_DATE_TEXT_MAX, separator);
     if (date_len == 0)
     {
         return 0;
     }
     scratch[date_len] = lh_char_map_space;
-    time_len = lh_time_format(lh_addr_of(time), scratch + date_len + 1U, LH_TIME_TEXT_MAX);
+    lh_time_t time;
+    lh_datetime_get_time(self, lh_addr_of(time));
+    const lh_usize_t time_len =
+        lh_time_format(lh_addr_of(time), scratch + date_len + 1U, LH_TIME_TEXT_MAX);
     if (time_len == 0)
     {
         return 0;
     }
-    total = date_len + 1U + time_len;
+    const lh_usize_t total = date_len + 1U + time_len;
     if (total > str_size)
     {
         return 0;
     }
     lh_memory_std_copy(str, scratch, total);
     return total;
+}
+
+lh_usize_t
+lh_datetime_format(const lh_datetime_t *self, lh_str_ptr str, lh_usize_t str_size)
+{
+    return lh_datetime_format_by(self, str, str_size, lh_char_map_slash);
 }
