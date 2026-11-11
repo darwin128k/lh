@@ -448,16 +448,11 @@ lh_void
 lh_web_js_lexer_set_error(lh_web_js_lexer_t *self, lh_str_cptr message, lh_usize_t len)
 {
     lh_str_ptr buffer;
-    lh_usize_t size = len;
 
     lh_assert_runtime_ref(message);
     buffer = lh_web_js_lexer_get_error_buffer_mut(self);
-    if (lh_math_ge(size, LH_WEB_JS_LEXER_ERROR_MESSAGE_MAX))
-    {
-        size = LH_WEB_JS_LEXER_ERROR_MESSAGE_MAX - 1U;
-    }
-    lh_str_ptr_copy(buffer, LH_WEB_JS_LEXER_ERROR_MESSAGE_MAX, message, size);
-    buffer[size] = lh_char_map_nul;
+    const lh_usize_t size =
+        lh_str_ptr_copy_cstr(buffer, LH_WEB_JS_LEXER_ERROR_MESSAGE_MAX, message, len);
     lh_web_js_lexer_set_error_message(self, buffer);
     lh_web_js_lexer_set_error_message_len(self, size);
     lh_web_js_lexer_set_error_line(self, lh_web_js_lexer_get_line(self));

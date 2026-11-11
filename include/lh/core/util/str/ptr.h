@@ -287,6 +287,26 @@ lh_str_ptr
 lh_str_ptr_copy(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src, lh_usize_t src_size);
 
 /**
+ * @brief Copy up to @c min(str_size - 1, src_size) characters from @p src to
+ *        @p str and terminate the C string after them.
+ *
+ * ::lh_str_ptr_copy with one character of @p str kept for the terminator,
+ * then ::lh_str_ptr_erase at the end of the copy. A longer @p src is cut; the
+ * result is always a C string. @p src need not be NUL-terminated.
+ *
+ * @param str      Destination buffer (not null).
+ * @param str_size Capacity of @p str in characters, the terminator included;
+ *                 must not be 0 (runtime check failure).
+ * @param src      Source characters.
+ * @param src_size Number of characters to take from @p src.
+ *
+ * @return Characters copied, the terminator not counted.
+ */
+lh_usize_t
+lh_str_ptr_copy_cstr(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                     lh_usize_t src_size);
+
+/**
  * @brief Move up to @c min(str_size, src_size)
  *        characters from @p src to @p str.
  *

@@ -586,6 +586,34 @@ TEST(str_raw_copy, respects_dst_size_limit)
     EXPECT_EQ(dst[1], 'b');
 }
 
+TEST(str_ptr_copy_cstr, copies_and_terminates)
+{
+    const lh_char_t src[] = {'a', 'b', 'c'};
+    lh_char_t dst[8];
+
+    EXPECT_EQ(lh_str_ptr_copy_cstr(dst, sizeof(dst), src, 3), 3U);
+    EXPECT_STREQ(dst, "abc");
+}
+
+TEST(str_ptr_copy_cstr, cuts_to_keep_room_for_the_terminator)
+{
+    const lh_char_t src[] = {'a', 'b', 'c', 'd'};
+    lh_char_t dst[3];
+
+    EXPECT_EQ(lh_str_ptr_copy_cstr(dst, sizeof(dst), src, 4), 2U);
+    EXPECT_STREQ(dst, "ab");
+    EXPECT_EQ(lh_str_ptr_copy_cstr(dst, 1, src, 4), 0U);
+    EXPECT_STREQ(dst, "");
+}
+
+TEST(str_ptr_copy_cstr, empty_source_is_an_empty_string)
+{
+    lh_char_t dst[4] = {'x', 'x', 'x', 'x'};
+
+    EXPECT_EQ(lh_str_ptr_copy_cstr(dst, sizeof(dst), "", 0), 0U);
+    EXPECT_STREQ(dst, "");
+}
+
 TEST(str_raw_move, handles_overlapping_buffers)
 {
     lh_char_t buf[] = {'a', 'b', 'c', 'd', 'e'};

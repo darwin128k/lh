@@ -11,6 +11,7 @@
 #define LH_OS_MODULE_EVENT_ENTRY_H
 
 #include <lh/core/list.h>
+#include <lh/core/str/view.h>
 #include <lh/os/module/event/entry/fields.h>
 
 /** @brief Entry state; use accessors rather than fields. */
@@ -105,13 +106,18 @@ lh_void
 lh_os_module_event_entry_destroy(lh_os_module_event_entry_t *self);
 
 /**
- * @brief Allocate an entry and copy length characters plus their NUL terminator.
- * name must point to length characters followed by NUL. Returns null for a null
- * name, zero/overflowing length, or allocation failure. Owns the copy on success;
- * caller must destroy the entry after its subscribers have been removed.
+ * @brief Allocate an entry that owns a NUL-terminated copy of @p name.
+ *
+ * @p name need not be NUL-terminated: its characters are copied and the
+ * terminator is added (::lh_str_ptr_copy_cstr). The caller destroys the entry
+ * after its subscribers have been removed.
+ *
+ * @param name The event's name; borrowed for the call only.
+ *
+ * @return The new entry; ::lh_null for an empty @p name or allocation failure.
  */
 lh_os_module_event_entry_t *
-lh_os_module_event_entry_try_create(const lh_char_t *name, lh_usize_t length);
+lh_os_module_event_entry_try_create(lh_str_view_t name);
 
 /**
  * @brief ::lh_os_module_event_entry_try_create that fails at run time instead of returning
@@ -121,7 +127,7 @@ lh_os_module_event_entry_try_create(const lh_char_t *name, lh_usize_t length);
  *        The name is invalid or the entry could not be allocated.
  */
 lh_os_module_event_entry_t *
-lh_os_module_event_entry_create(const lh_char_t *name, lh_usize_t length);
+lh_os_module_event_entry_create(lh_str_view_t name);
 
 LH_COMPILER_EXTERN_C_END
 

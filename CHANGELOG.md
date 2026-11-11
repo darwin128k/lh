@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_str_ptr_copy_cstr(str, str_size, src, src_size)` (`lh/core/util/str/ptr.h`): copy
+  up to `str_size - 1` characters and terminate the C string — `lh_str_ptr_copy` plus
+  `lh_str_ptr_erase`. It returns the characters copied. It replaces the hand-written
+  "cut, copy, write the NUL" in the JS lexer's error message and the web player's page,
+  and in Authum's cfg, `authum_cstr_copy`, json, path, sql and the HTTP host.
 - `lh_datetime_format_by(self, str, size, separator)`: a date-time with the date's
   separator chosen, as `lh_date_format_by` does for a date (`2026-09-16 09:05:00`);
   `lh_datetime_format` is it with `/`. Authum's `authum_time_format_utc` writes its
@@ -134,6 +139,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking:** `lh_os_module_event_entry_try_create` / `_create` take the name as an
+  `lh_str_view_t` instead of `(const lh_char_t *name, lh_usize_t length)`. The name
+  need not be NUL-terminated any more: the entry copies it with
+  `lh_str_ptr_copy_cstr`. `entry.h` includes `lh/core/str/view.h`.
 - LH uses its own bricks where it open-coded them: `a < b ? a : b` is `lh_math_min` /
   `lh_math_max` in `crypto/rijndael.c`, `crypto/sha.c`, `memory/std/x86/cpuid.h`,
   `net/modbus.c`, `os/window.c`, `ui/blur.c`, `ui/shadow.c`, `ui/shadow/shape.c` and

@@ -8,7 +8,6 @@
 #include <lh/core/util/return.h>
 #include <lh/core/runtime/allocator.h>
 #include <lh/core/assert.h>
-#include <lh/core/util/str/ptr.h>
 #include <lh/core/memory/std.h>
 
 const lh_array_t *
@@ -202,21 +201,20 @@ lh_os_module_event_id_t
 lh_os_module_event_bus_try_get_id(lh_os_module_event_bus_t *self, const lh_char_t *name)
 {
     lh_os_module_event_id_t id = lh_os_module_event_bus_find_id(self, name);
-    lh_usize_t length;
-    lh_os_module_event_entry_t *entry;
     lh_array_t *entries = lh_os_module_event_bus_get_entries_mut(self);
     lh_usize_t count = lh_array_get_size(entries);
     if (lh_math_ne(id, 0u) || lh_ptr_is_null(name))
     {
         return id;
     }
-    length = lh_str_ptr_len(name);
     /* An empty name and a length past the index space are refused by the entry itself. */
     if (lh_math_eq(count, LH_USIZE_T_MAX))
     {
         return 0u;
     }
-    entry = lh_os_module_event_entry_try_create(name, length);
+    lh_str_view_t text;
+    lh_str_view_init(lh_addr_of(text), name);
+    lh_os_module_event_entry_t *entry = lh_os_module_event_entry_try_create(text);
     if (lh_ptr_is_null(entry))
     {
         return 0u;

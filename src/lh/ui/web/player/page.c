@@ -3420,9 +3420,8 @@ lh_ui_web_player_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len
                                       lh_math_lt(lh_str_get_size(lh_addr_of(page)), cap));
     if (built)
     {
-        lh_memory_std_copy(mem, lh_str_get_data(lh_addr_of(page)),
-                           lh_str_get_size(lh_addr_of(page)));
-        mem[lh_str_get_size(lh_addr_of(page))] = lh_char_map_nul;
+        lh_str_ptr_copy_cstr(mem, cap, lh_str_get_data(lh_addr_of(page)),
+                             lh_str_get_size(lh_addr_of(page)));
         if (lh_null_ne(out_len))
         {
             lh_ptr_deref(out_len) = lh_str_get_size(lh_addr_of(page));

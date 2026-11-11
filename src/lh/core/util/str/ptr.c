@@ -452,6 +452,17 @@ lh_str_ptr_copy(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src, lh_us
     return lh_memory_copy(str, str_size, src, src_size);
 }
 
+lh_usize_t
+lh_str_ptr_copy_cstr(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src, lh_usize_t src_size)
+{
+    lh_assert_runtime_if(lh_math_is_zero(str_size), lh_runtime_error_code_invalid_argument);
+
+    lh_str_ptr end = lh_str_ptr_copy(str, lh_math_sub_one(str_size), src, src_size);
+
+    lh_str_ptr_erase(end, 0U);
+    return lh_cast_static(lh_usize_t, lh_ptr_udiff(end, str));
+}
+
 lh_str_ptr
 lh_str_ptr_move(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src, lh_usize_t src_size)
 {

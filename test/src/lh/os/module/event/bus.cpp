@@ -286,16 +286,18 @@ TEST_F(event_bus, cached_ids_retry_failures_and_survive_subscription_clear)
 TEST_F(event_bus, entry_owns_its_name_and_checked_constructor_reports_failure)
 {
     char name[] = "entry";
-    auto *entry = lh_os_module_event_entry_create(name, 5);
+    lh_str_view_t view;
+    lh_str_view_init_by_size(&view, name, 5);
+    auto *entry = lh_os_module_event_entry_create(view);
     name[0] = 'X';
     EXPECT_STREQ(lh_os_module_event_entry_get_name(entry), "entry");
     EXPECT_EQ(lh_os_module_event_entry_get_length(entry), 5u);
     EXPECT_TRUE(lh_list_is_empty(lh_os_module_event_entry_get_subscriptions(entry)));
     lh_os_module_event_entry_destroy(entry);
-    EXPECT_EQ(lh_os_module_event_entry_try_create(nullptr, 1), nullptr);
-    EXPECT_EQ(lh_os_module_event_entry_try_create("", 0), nullptr);
-    EXPECT_EQ(lh_os_module_event_entry_try_create("x", LH_USIZE_T_MAX), nullptr);
-    LH_EXPECT_CHECK_DEATH(lh_os_module_event_entry_create(nullptr, 1));
+    lh_str_view_t empty;
+    lh_str_view_init_empty(&empty);
+    EXPECT_EQ(lh_os_module_event_entry_try_create(empty), nullptr);
+    LH_EXPECT_CHECK_DEATH(lh_os_module_event_entry_create(empty));
 }
 
 using allocation_state = std::array<int, 2>;
