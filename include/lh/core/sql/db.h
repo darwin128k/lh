@@ -25,6 +25,7 @@
 
 #include <lh/core/sql/db/fields.h>
 #include <lh/core/sql/driver.h>
+#include <lh/core/sql/error/kind.h>
 #include <lh/core/str.h>
 
 /**
@@ -34,7 +35,7 @@
 struct lh_sql_db
 {
     /** Members: ::lh_sql_db_fields. */
-    lh_sql_db_fields(const lh_sql_driver_t *, lh_ptr, lh_str_t);
+    lh_sql_db_fields(const lh_sql_driver_t *, lh_ptr, lh_str_t, lh_sql_error_kind_t, lh_sint_t);
 };
 /** @copybrief lh_sql_db */
 typedef struct lh_sql_db lh_sql_db_t;
@@ -69,40 +70,78 @@ lh_sql_db_get_error_mut(lh_sql_db_t *self);
 lh_str_view_t
 lh_sql_db_get_error(const lh_sql_db_t *self);
 
-/** Make @p message (copied) the message of the last failure. For backends. */
-lh_void
-lh_sql_db_set_error(lh_sql_db_t *self, lh_str_view_t message);
+/** The kind of the last failure; ::lh_sql_error_kind_none after a success. */
+lh_sql_error_kind_t
+lh_sql_db_get_error_kind(const lh_sql_db_t *self);
 
-/** Forget the last failure. */
+/** Store the kind of the last failure (level 1). For backends. */
 lh_void
-lh_sql_db_clear_error(lh_sql_db_t *self);
+lh_sql_db_set_error_kind(lh_sql_db_t *self, lh_sql_error_kind_t kind);
 
 /**
- * @brief Set @p message as the last failure and return ::lh_bool_false, so
- *        a backend can `return lh_sql_db_fail(...)`.
+ * @brief The backend's own number for the last failure (`mysql_errno`, SQLite's
+ *        extended result code); 0 when it gave none or after a success.
  */
-lh_bool_t
-lh_sql_db_fail(lh_sql_db_t *self, lh_str_view_t message);
+lh_sint_t
+lh_sql_db_get_error_code(const lh_sql_db_t *self);
+
+/** Store the backend's number for the last failure (level 1). For backends. */
+lh_void
+lh_sql_db_set_error_code(lh_sql_db_t *self, lh_sint_t code);
+
+/**
+ * @brief Make @p message (copied), @p kind and @p code the last failure. For
+ *        backends.
+ */
+lh_void
+lh_sql_db_set_error_as(lh_sql_db_t *self, lh_sql_error_kind_t kind, lh_sint_t code,
+                       lh_str_view_t message);
+
+/** Forget the last failure: no message, ::lh_sql_error_kind_none, code 0. */
+lh_void
+lh_sql_db_clear_error(lh_sql_db_t *self);
 
 /** True when a backend opened @p self and it is not closed yet. */
 lh_bool_t
 lh_sql_db_is_open(const lh_sql_db_t *self);
 
-/* ── init / deinit ───────────────────────────────────────────────────────── */
-
 /** Set @p self to closed, without an error. */
 lh_void
 lh_sql_db_init(lh_sql_db_t *self);
+
+/**
+ * @brief Make @p message (copied) the message of the last failure, of kind
+ *        ::lh_sql_error_kind_other and without a code. For backends.
+ */
+lh_void
+lh_sql_db_set_error(lh_sql_db_t *self, lh_str_view_t message);
+
+/**
+ * @brief ::lh_sql_db_set_error_as and return ::lh_bool_false, so a backend can
+ *        `return lh_sql_db_fail_as(...)`.
+ */
+lh_bool_t
+lh_sql_db_fail_as(lh_sql_db_t *self, lh_sql_error_kind_t kind, lh_sint_t code,
+                  lh_str_view_t message);
 
 /** Close @p self if open; it stays usable for another open. */
 lh_void
 lh_sql_db_close(lh_sql_db_t *self);
 
+/** The row id of the last `INSERT` on @p self; `0` while closed. */
+lh_sllong_t
+lh_sql_db_get_last_insert_id(lh_sql_db_t *self);
+
+/**
+ * @brief Set @p message as the last failure (kind ::lh_sql_error_kind_other)
+ *        and return ::lh_bool_false, so a backend can `return lh_sql_db_fail(...)`.
+ */
+lh_bool_t
+lh_sql_db_fail(lh_sql_db_t *self, lh_str_view_t message);
+
 /** Close @p self and free its error text. */
 lh_void
 lh_sql_db_deinit(lh_sql_db_t *self);
-
-/* ── operations ──────────────────────────────────────────────────────────── */
 
 /**
  * @brief Run every statement in @p sql (`;`-separated where the backend
@@ -113,10 +152,6 @@ lh_sql_db_deinit(lh_sql_db_t *self);
  */
 lh_bool_t
 lh_sql_db_exec(lh_sql_db_t *self, lh_str_view_t sql);
-
-/** The row id of the last `INSERT` on @p self; `0` while closed. */
-lh_sllong_t
-lh_sql_db_get_last_insert_id(lh_sql_db_t *self);
 
 /**
  * @brief Compile the statement @p sql into @p stmt, with `?` for the values

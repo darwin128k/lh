@@ -112,8 +112,8 @@ lh_sql_stmt_step(lh_sql_stmt_t *self)
     {
         if (lh_null_ne(lh_sql_stmt_get_db(self)))
         {
-            lh_sql_db_set_error(lh_sql_stmt_get_db_mut(self),
-                                lh_str_view_lit("statement is not prepared"));
+            lh_sql_db_set_error_as(lh_sql_stmt_get_db_mut(self), lh_sql_error_kind_usage, 0,
+                                   lh_str_view_lit("statement is not prepared"));
         }
         return lh_sql_step_error;
     }

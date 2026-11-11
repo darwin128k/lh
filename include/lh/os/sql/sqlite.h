@@ -26,6 +26,17 @@
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/**
+ * @brief The kind of SQLite result code @p code (extended or primary): a file
+ *        that cannot be opened (`SQLITE_CANTOPEN`, `SQLITE_NOTADB`) is not found,
+ *        `SQLITE_PERM`, `SQLITE_AUTH` and `SQLITE_READONLY` are denied,
+ *        `SQLITE_ERROR`, `SQLITE_CONSTRAINT`, `SQLITE_MISMATCH`, `SQLITE_RANGE` and
+ *        `SQLITE_TOOBIG` a rejected statement, `SQLITE_NOMEM` no client, the rest
+ *        other.
+ */
+lh_sql_error_kind_t
+lh_os_sql_sqlite_get_error_kind(lh_sint_t code);
+
 /** Copy SQLite's message for the last failure on @p db into its error; ::lh_bool_false. */
 lh_bool_t
 lh_os_sql_sqlite_fail(lh_sql_db_t *db);

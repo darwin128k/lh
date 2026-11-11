@@ -231,4 +231,26 @@ TEST(sql_db, close_calls_the_driver_once_and_leaves_it_closed)
     EXPECT_EQ(o.backend.calls, (std::vector<std::string>{"close"}));
 }
 
+TEST(sql_db_error, carries_a_kind_and_a_code_until_cleared)
+{
+    lh_sql_db_t db;
+    lh_sql_db_init(&db);
+    EXPECT_EQ(lh_sql_db_get_error_kind(&db), lh_sql_error_kind_none);
+    EXPECT_EQ(lh_sql_db_get_error_code(&db), 0);
+
+    EXPECT_FALSE(lh_sql_db_fail_as(&db, lh_sql_error_kind_denied, 1045, lh_str_view_lit("no")));
+    EXPECT_EQ(lh_sql_db_get_error_kind(&db), lh_sql_error_kind_denied);
+    EXPECT_EQ(lh_sql_db_get_error_code(&db), 1045);
+
+    EXPECT_FALSE(lh_sql_db_fail(&db, lh_str_view_lit("plain")));
+    EXPECT_EQ(lh_sql_db_get_error_kind(&db), lh_sql_error_kind_other);
+    EXPECT_EQ(lh_sql_db_get_error_code(&db), 0);
+
+    lh_sql_db_clear_error(&db);
+    EXPECT_EQ(lh_sql_db_get_error_kind(&db), lh_sql_error_kind_none);
+    EXPECT_FALSE(lh_sql_db_exec(&db, lh_str_view_lit("SELECT 1")));
+    EXPECT_EQ(lh_sql_db_get_error_kind(&db), lh_sql_error_kind_usage);
+    lh_sql_db_deinit(&db);
+}
+
 } // namespace

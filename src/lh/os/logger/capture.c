@@ -125,14 +125,11 @@ lh_os_logger_capture_try_push_v(lh_os_logger_capture_t *self, lh_cptr_of(lh_void
 
     lh_os_logger_capture_line_set_target(line, target);
     lh_os_logger_capture_line_set_context(line, context);
-    /* Formatted whole, then cut by the record: lh has no cutting format into a
-       fixed buffer yet (docs/cleanup.md). */
-    lh_str_t text;
+    /* Formatted straight to the record's size: a longer line is cut. */
+    lh_char_t text[LH_OS_LOGGER_RECORD_TEXT_SIZE];
 
-    lh_str_init(lh_addr_of(text));
-    LH_ATTRIBUTE_UNUSED(lh_str_format_v(lh_addr_of(text), fmt, args));
-    lh_os_logger_record_init_line(record, 0U, level, 0, lh_null, lh_str_get_data(lh_addr_of(text)));
-    lh_str_deinit(lh_addr_of(text));
+    LH_ATTRIBUTE_UNUSED(lh_str_ptr_format_cstr_cut_v(text, sizeof text, fmt, args));
+    lh_os_logger_record_init_line(record, 0U, level, 0, lh_null, text);
     lh_os_logger_capture_set_count(self, lh_math_add_one(count));
     return lh_bool_true;
 }

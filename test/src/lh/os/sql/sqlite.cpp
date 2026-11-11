@@ -175,4 +175,30 @@ TEST(sql_sqlite, reopening_closes_the_old_database)
     EXPECT_FALSE(lh_sql_db_exec(&m.db, lh_str_view_lit("SELECT * FROM gone")));
 }
 
+TEST(sql_sqlite, failures_say_their_kind_and_sqlite_code)
+{
+    memory_db m;
+    EXPECT_FALSE(lh_sql_db_exec(&m.db, lh_str_view_lit("SELECT * FROM missing")));
+    EXPECT_EQ(lh_sql_db_get_error_kind(&m.db), lh_sql_error_kind_statement);
+    EXPECT_EQ(lh_sql_db_get_error_code(&m.db), 1); /* SQLITE_ERROR */
+
+    lh_sql_db_t db;
+    lh_sql_db_init(&db);
+    EXPECT_FALSE(lh_os_sql_sqlite_open(&db, lh_str_view_lit("")));
+    EXPECT_EQ(lh_sql_db_get_error_kind(&db), lh_sql_error_kind_usage);
+    EXPECT_FALSE(lh_os_sql_sqlite_open(&db, lh_str_view_lit("lh_test_no_such_dir/deeper/x.db")));
+    EXPECT_EQ(lh_sql_db_get_error_kind(&db), lh_sql_error_kind_not_found);
+    EXPECT_EQ(lh_sql_db_get_error_code(&db) & 0xFF, 14); /* SQLITE_CANTOPEN */
+    lh_sql_db_deinit(&db);
+}
+
+TEST(sql_sqlite, get_error_kind_reads_the_primary_code_of_an_extended_one)
+{
+    EXPECT_EQ(lh_os_sql_sqlite_get_error_kind(0), lh_sql_error_kind_other);
+    EXPECT_EQ(lh_os_sql_sqlite_get_error_kind(19), lh_sql_error_kind_statement);
+    EXPECT_EQ(lh_os_sql_sqlite_get_error_kind(19 | (8 << 8)), lh_sql_error_kind_statement);
+    EXPECT_EQ(lh_os_sql_sqlite_get_error_kind(8), lh_sql_error_kind_denied);
+    EXPECT_EQ(lh_os_sql_sqlite_get_error_kind(26), lh_sql_error_kind_not_found);
+}
+
 } // namespace

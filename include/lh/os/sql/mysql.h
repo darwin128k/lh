@@ -53,6 +53,16 @@
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/**
+ * @brief The kind of MySQL failure number @p code (`mysql_errno`): access denied
+ *        (1044, 1045, 1698, 1251), unknown database (1049), the server not
+ *        reached or lost (2002, 2003, 2005, 2006, 2013, 2055, 4031), any other
+ *        server number (below 2000) a rejected statement, and the rest the
+ *        client's own.
+ */
+lh_sql_error_kind_t
+lh_os_sql_mysql_get_error_kind(lh_uint_t code);
+
 /** The connection record of @p db, opened on MySQL. */
 lh_os_sql_mysql_conn_t *
 lh_os_sql_mysql_get_conn(const lh_sql_db_t *db);
@@ -69,7 +79,18 @@ lh_os_sql_mysql_get_native(const lh_sql_db_t *db);
 lh_os_sql_mysql_prepared_t *
 lh_os_sql_mysql_get_prepared(const lh_sql_stmt_t *stmt);
 
-/** Copy the client's message for the last failure on @p db into its error; ::lh_bool_false. */
+/**
+ * @brief Copy the client's last failure on @p native into @p db's error: its
+ *        message (@p fallback when the client has none), its number and the
+ *        kind of that number (::lh_os_sql_mysql_get_error_kind).
+ *
+ * @return ::lh_bool_false, so a backend can `return` it.
+ */
+lh_bool_t
+lh_os_sql_mysql_fail_with(lh_sql_db_t *db, const lh_os_sql_mysql_api_t *api, lh_ptr native,
+                          lh_str_view_t fallback);
+
+/** ::lh_os_sql_mysql_fail_with on @p db's own connection; ::lh_bool_false. */
 lh_bool_t
 lh_os_sql_mysql_fail(lh_sql_db_t *db);
 

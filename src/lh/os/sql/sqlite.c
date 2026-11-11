@@ -29,14 +29,44 @@ lh_os_sql_sqlite_to_int(lh_usize_t index, int *out)
 
 /* ── driver callbacks ────────────────────────────────────────────────────── */
 
+lh_sql_error_kind_t
+lh_os_sql_sqlite_get_error_kind(lh_sint_t code)
+{
+    /* The low byte of an extended code is its primary code. */
+    switch (lh_bit_and(code, 0xFF))
+    {
+    case SQLITE_CANTOPEN:
+    case SQLITE_NOTADB:
+        return lh_sql_error_kind_not_found;
+    case SQLITE_PERM:
+    case SQLITE_AUTH:
+    case SQLITE_READONLY:
+        return lh_sql_error_kind_denied;
+    case SQLITE_ERROR:
+    case SQLITE_CONSTRAINT:
+    case SQLITE_MISMATCH:
+    case SQLITE_RANGE:
+    case SQLITE_TOOBIG:
+        return lh_sql_error_kind_statement;
+    case SQLITE_NOMEM:
+        return lh_sql_error_kind_no_client;
+    default:
+        return lh_sql_error_kind_other;
+    }
+}
+
 lh_bool_t
 lh_os_sql_sqlite_fail(lh_sql_db_t *db)
 {
+    sqlite3 *native = lh_os_sql_sqlite_get_native_db(db);
     lh_str_view_t message;
 
     /* sqlite3_errmsg is never null: without a connection it says "out of memory". */
-    lh_str_view_init(lh_addr_of(message), sqlite3_errmsg(lh_os_sql_sqlite_get_native_db(db)));
-    return lh_sql_db_fail(db, message);
+    lh_str_view_init(lh_addr_of(message), sqlite3_errmsg(native));
+
+    const lh_sint_t code = sqlite3_extended_errcode(native);
+
+    return lh_sql_db_fail_as(db, lh_os_sql_sqlite_get_error_kind(code), code, message);
 }
 
 lh_void
@@ -63,7 +93,8 @@ lh_os_sql_sqlite_exec(lh_sql_db_t *db, lh_str_view_t sql)
 
         if (!lh_os_sql_sqlite_to_int(lh_cast_static(lh_usize_t, end - at), lh_addr_of(size)))
         {
-            return lh_sql_db_fail(db, lh_str_view_lit("SQL text too long"));
+            return lh_sql_db_fail_as(db, lh_sql_error_kind_usage, 0,
+                                     lh_str_view_lit("SQL text too long"));
         }
         if (lh_math_ne(sqlite3_prepare_v2(lh_os_sql_sqlite_get_native_db(db), at, size,
                                           lh_addr_of(stmt), lh_addr_of(tail)),
@@ -105,7 +136,8 @@ lh_os_sql_sqlite_prepare(lh_sql_db_t *db, lh_sql_stmt_t *stmt, lh_str_view_t sql
 
     if (!lh_os_sql_sqlite_to_int(lh_str_view_get_size(lh_addr_of(sql)), lh_addr_of(size)))
     {
-        return lh_sql_db_fail(db, lh_str_view_lit("SQL text too long"));
+        return lh_sql_db_fail_as(db, lh_sql_error_kind_usage, 0,
+                                 lh_str_view_lit("SQL text too long"));
     }
     if (lh_math_ne(sqlite3_prepare_v2(lh_os_sql_sqlite_get_native_db(db),
                                       lh_str_view_get_begin(lh_addr_of(sql)), size,
@@ -116,7 +148,8 @@ lh_os_sql_sqlite_prepare(lh_sql_db_t *db, lh_sql_stmt_t *stmt, lh_str_view_t sql
     }
     if (lh_null_eq(native))
     {
-        return lh_sql_db_fail(db, lh_str_view_lit("no statement in the SQL text"));
+        return lh_sql_db_fail_as(db, lh_sql_error_kind_usage, 0,
+                                 lh_str_view_lit("no statement in the SQL text"));
     }
     lh_sql_stmt_set_handle(stmt, native);
     return lh_bool_true;
@@ -288,7 +321,8 @@ lh_os_sql_sqlite_open(lh_sql_db_t *db, lh_str_view_t path)
     lh_sql_db_clear_error(db);
     if (lh_str_view_is_empty(lh_addr_of(path)))
     {
-        return lh_sql_db_fail(db, lh_str_view_lit("empty database path"));
+        return lh_sql_db_fail_as(db, lh_sql_error_kind_usage, 0,
+                                 lh_str_view_lit("empty database path"));
     }
 
     /* SQLite wants a NUL-terminated name; the view need not have one. */

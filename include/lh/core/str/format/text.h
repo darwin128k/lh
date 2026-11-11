@@ -74,6 +74,22 @@ lh_ullong_t
 lh_str_ptr_format_text_read_uint(const lh_str_scanf_spec_t *spec, va_list *args);
 
 /**
+ * @brief How many of @p n characters to write at @p pos: in cut mode the most
+ *        that fit in @p str_size, else all @p n.
+ *
+ * With a ::lh_null @p str (counting) nothing is cut.
+ *
+ * @param str      Destination, or ::lh_null when counting.
+ * @param str_size Capacity of @p str.
+ * @param pos      Where the next character goes; at most @p str_size.
+ * @param n        Characters to write.
+ * @param cut      Whether to cut at the end of @p str.
+ */
+lh_usize_t
+lh_str_ptr_format_text_get_fit(const lh_str_ptr str, lh_usize_t str_size, lh_usize_t pos,
+                               lh_usize_t n, lh_bool_t cut);
+
+/**
  * @brief The text one conversion token turns its argument into.
  *
  * Numbers and characters are built in @p buf; a `%s` argument is used in
@@ -97,12 +113,15 @@ lh_str_ptr_format_text_get_value(const lh_str_scanf_spec_t *spec, va_list *args,
  *
  * With a ::lh_null @p str nothing is written: `*pos` only counts.
  *
- * @return ::lh_bool_false, writing nothing, when the field does not fit.
+ * @param cut In cut mode the field is written as far as it fits (padding and
+ *            content in their order) and `*pos` stops at @p str_size.
+ * @return ::lh_bool_false when the field does not fit: nothing is written
+ *         then, or, in cut mode, its first characters up to @p str_size.
  */
 lh_bool_t
 lh_str_ptr_format_text_put_field(lh_str_ptr str, lh_usize_t str_size, lh_usize_t *pos,
                                  const lh_str_scanf_spec_t *spec, const lh_str_ptr content,
-                                 lh_usize_t size);
+                                 lh_usize_t size, lh_bool_t cut);
 
 /**
  * @brief The engine both forms run on: format @p fmt with @p args into @p str,
@@ -112,11 +131,15 @@ lh_str_ptr_format_text_put_field(lh_str_ptr str, lh_usize_t str_size, lh_usize_t
  * @param str_size Capacity of @p str (ignored when counting).
  * @param fmt      NUL-terminated format mask.
  * @param args     The values, in mask order.
- * @return Characters written (or needed); @c 0 when they do not fit, and
+ * @param cut      Whether a result that does not fit is cut at @p str_size
+ *                 instead of failing.
+ * @return Characters written (or needed); @c 0 when they do not fit (in cut
+ *         mode @p str_size: the first characters were written), and
  *         ::LH_STR_PTR_INVALID for a malformed mask when counting.
  */
 lh_usize_t
-lh_str_ptr_format_text_walk(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr fmt, va_list args);
+lh_str_ptr_format_text_walk(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr fmt, va_list args,
+                            lh_bool_t cut);
 
 /**
  * @brief Format @p fmt and @p args into @p str (the `va_list` primitive;
@@ -136,6 +159,24 @@ lh_str_ptr_format_text_walk(lh_str_ptr str, lh_usize_t str_size, const lh_str_pt
  */
 lh_usize_t
 lh_str_ptr_format_text_v(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr fmt, va_list args);
+
+/**
+ * @brief Format @p fmt and @p args into @p str, cut at @p str_size when the
+ *        result is longer.
+ *
+ * The cut falls on a byte: a multi-byte UTF-8 character at the end may be
+ * left incomplete.
+ *
+ * @param str      Destination buffer; checked by ::lh_assert_runtime_ref.
+ * @param str_size Capacity of @p str in characters.
+ * @param fmt      NUL-terminated format string.
+ * @param args     Arguments, one per conversion in @p fmt.
+ * @return Characters written: the whole result, or @p str_size when it was
+ *         cut; 0 for an unknown conversion or a malformed @p fmt.
+ */
+lh_usize_t
+lh_str_ptr_format_text_cut_v(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr fmt,
+                             va_list args);
 
 /**
  * @brief Characters ::lh_str_ptr_format_text_v would write for @p fmt.
@@ -179,6 +220,22 @@ lh_str_ptr_format_text_size(const lh_str_ptr fmt, ...);
  */
 lh_usize_t
 lh_str_ptr_format_cstr_v(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr fmt, va_list args);
+
+/**
+ * @brief Format @p fmt and @p args into @p str, NUL-terminated, cut to
+ *        @p str_size - 1 characters when the result is longer
+ *        (::lh_str_ptr_format_text_cut_v).
+ *
+ * @param str      Destination buffer; checked by ::lh_assert_runtime_ref.
+ * @param str_size Capacity of @p str in characters, the NUL included; not 0.
+ * @param fmt      NUL-terminated format string.
+ * @param args     Arguments, one per conversion in @p fmt.
+ * @return Characters written before the NUL; 0, with @p str empty, for an
+ *         unknown conversion or a malformed @p fmt.
+ */
+lh_usize_t
+lh_str_ptr_format_cstr_cut_v(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr fmt,
+                             va_list args);
 
 /**
  * @brief ::lh_str_ptr_format_cstr_v with variadic arguments.

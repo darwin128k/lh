@@ -83,6 +83,13 @@ lh_str_ptr_format_text_read_uint(const lh_str_scanf_spec_t *spec, va_list *args)
     }
 }
 
+lh_usize_t
+lh_str_ptr_format_text_get_fit(lh_str_cptr str, lh_usize_t str_size, lh_usize_t pos, lh_usize_t n,
+                               lh_bool_t cut)
+{
+    return (cut && lh_ptr_is_set(str)) ? lh_math_min(n, lh_math_sub(str_size, pos)) : n;
+}
+
 lh_bool_t
 lh_str_ptr_format_text_get_value(const lh_str_scanf_spec_t *spec, va_list *args, lh_str_ptr buf,
                                  lh_str_cptr *content, lh_usize_t *size)
@@ -152,55 +159,63 @@ lh_str_ptr_format_text_get_value(const lh_str_scanf_spec_t *spec, va_list *args,
 lh_bool_t
 lh_str_ptr_format_text_put_field(lh_str_ptr str, lh_usize_t str_size, lh_usize_t *pos,
                                  const lh_str_scanf_spec_t *spec, lh_str_cptr content,
-                                 lh_usize_t size)
+                                 lh_usize_t size, lh_bool_t cut)
 {
     const lh_usize_t width = lh_cast_static(lh_usize_t, lh_str_scanf_spec_get_width(spec));
     const lh_usize_t pad = lh_math_gt(width, size) ? lh_math_sub(width, size) : 0U;
-    lh_usize_t at = lh_ptr_deref(pos);
+    const lh_usize_t start = lh_ptr_deref(pos);
+    lh_usize_t at = start;
 
-    /* All or nothing: room for the whole field first, then its pieces. */
-    lh_return_if(lh_ptr_is_set(str) && lh_math_gt(lh_math_add(pad, size), lh_math_sub(str_size, at)),
+    /* All or nothing: room for the whole field first, then its pieces. In cut
+       mode each piece is written as far as it fits instead. */
+    lh_return_if(!cut && lh_ptr_is_set(str) &&
+                     lh_math_gt(lh_math_add(pad, size), lh_math_sub(str_size, at)),
                  lh_bool_false);
 
-    /* Common path: no width padding — one copy, no put_run(0). */
+    const lh_bool_t has_sign = lh_math_gt(size, 0U) && lh_math_eq(content[0], lh_char_map_minus);
+
     if (lh_math_is_zero(pad))
     {
-        lh_str_ptr_format_text_put_text(str, str_size, lh_addr_of(at), content, size);
-        lh_ptr_deref(pos) = at;
-        return lh_bool_true;
+        /* Common path: no width padding — one copy, no put_run(0). */
+        lh_str_ptr_format_text_put_text(
+            str, str_size, lh_addr_of(at), content,
+            lh_str_ptr_format_text_get_fit(str, str_size, at, size, cut));
     }
-
+    else if (lh_str_scanf_spec_get_left_justify(spec))
     {
-        const lh_bool_t has_sign =
-            lh_math_gt(size, 0U) && lh_math_eq(content[0], lh_char_map_minus);
-
-        if (lh_str_scanf_spec_get_left_justify(spec))
-        {
-            lh_str_ptr_format_text_put_text(str, str_size, lh_addr_of(at), content, size);
-            lh_str_ptr_format_text_put_run(str, str_size, lh_addr_of(at), lh_char_map_space, pad);
-        }
-        else if (lh_str_scanf_spec_get_zero_pad(spec) && has_sign)
-        {
-            lh_str_ptr_format_text_put_text(str, str_size, lh_addr_of(at), content, 1U);
-            lh_str_ptr_format_text_put_run(str, str_size, lh_addr_of(at), lh_char_map_digit_0, pad);
-            lh_str_ptr_format_text_put_text(str, str_size, lh_addr_of(at),
-                                            lh_ptr_add_by_offset(const lh_char_t, content, 1U),
-                                            lh_math_sub_one(size));
-        }
-        else
-        {
-            lh_str_ptr_format_text_put_run(str, str_size, lh_addr_of(at),
-                                            lh_str_scanf_spec_get_zero_pad(spec) ? lh_char_map_digit_0 : lh_char_map_space,
-                                            pad);
-            lh_str_ptr_format_text_put_text(str, str_size, lh_addr_of(at), content, size);
-        }
+        lh_str_ptr_format_text_put_text(
+            str, str_size, lh_addr_of(at), content,
+            lh_str_ptr_format_text_get_fit(str, str_size, at, size, cut));
+        lh_str_ptr_format_text_put_run(str, str_size, lh_addr_of(at), lh_char_map_space,
+                                       lh_str_ptr_format_text_get_fit(str, str_size, at, pad, cut));
+    }
+    else if (lh_str_scanf_spec_get_zero_pad(spec) && has_sign)
+    {
+        lh_str_ptr_format_text_put_text(str, str_size, lh_addr_of(at), content,
+                                        lh_str_ptr_format_text_get_fit(str, str_size, at, 1U, cut));
+        lh_str_ptr_format_text_put_run(str, str_size, lh_addr_of(at), lh_char_map_digit_0,
+                                       lh_str_ptr_format_text_get_fit(str, str_size, at, pad, cut));
+        lh_str_ptr_format_text_put_text(
+            str, str_size, lh_addr_of(at), lh_ptr_add_by_offset(const lh_char_t, content, 1U),
+            lh_str_ptr_format_text_get_fit(str, str_size, at, lh_math_sub_one(size), cut));
+    }
+    else
+    {
+        lh_str_ptr_format_text_put_run(str, str_size, lh_addr_of(at),
+                                       lh_str_scanf_spec_get_zero_pad(spec) ? lh_char_map_digit_0
+                                                                            : lh_char_map_space,
+                                       lh_str_ptr_format_text_get_fit(str, str_size, at, pad, cut));
+        lh_str_ptr_format_text_put_text(
+            str, str_size, lh_addr_of(at), content,
+            lh_str_ptr_format_text_get_fit(str, str_size, at, size, cut));
     }
     lh_ptr_deref(pos) = at;
-    return lh_bool_true;
+    return lh_math_eq(lh_math_sub(at, start), lh_math_add(pad, size));
 }
 
 lh_usize_t
-lh_str_ptr_format_text_walk(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, va_list args)
+lh_str_ptr_format_text_walk(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, va_list args,
+                            lh_bool_t cut)
 {
     /* Counting (no str) reports a bad mask as LH_STR_PTR_INVALID, writing as 0. */
     const lh_usize_t failed = lh_ptr_is_null(str) ? LH_STR_PTR_INVALID : 0U;
@@ -213,16 +228,25 @@ lh_str_ptr_format_text_walk(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt
     va_copy(ap, args);
     while (lh_str_ptr_scanf_next(fmt, lh_addr_of(fmt_pos), lh_addr_of(spec)))
     {
+        /* Where a value's text is and how long: get_value writes both. */
         lh_str_cptr content;
         lh_usize_t size;
-        lh_bool_t ok;
 
-        if (lh_math_eq(lh_str_scanf_spec_get_kind(lh_addr_of(spec)), lh_str_scanf_spec_kind_literal))
+        lh_bool_t ok = lh_bool_false;
+
+        if (lh_math_eq(lh_str_scanf_spec_get_kind(lh_addr_of(spec)),
+                       lh_str_scanf_spec_kind_literal))
         {
-            ok = lh_str_ptr_format_text_put_text(str, str_size, lh_addr_of(out_pos), lh_str_scanf_spec_get_literal(lh_addr_of(spec)),
-                                                 lh_str_scanf_spec_get_literal_size(lh_addr_of(spec)));
+            const lh_usize_t n = lh_str_scanf_spec_get_literal_size(lh_addr_of(spec));
+            const lh_usize_t fit = lh_str_ptr_format_text_get_fit(str, str_size, out_pos, n, cut);
+
+            ok = lh_str_ptr_format_text_put_text(str, str_size, lh_addr_of(out_pos),
+                                                 lh_str_scanf_spec_get_literal(lh_addr_of(spec)),
+                                                 fit) &&
+                 lh_math_eq(fit, n);
         }
-        else if (lh_math_eq(lh_str_scanf_spec_get_kind(lh_addr_of(spec)), lh_str_scanf_spec_kind_invalid) ||
+        else if (lh_math_eq(lh_str_scanf_spec_get_kind(lh_addr_of(spec)),
+                            lh_str_scanf_spec_kind_invalid) ||
                  !lh_str_ptr_format_text_get_value(lh_addr_of(spec), lh_addr_of(ap), buf,
                                                    lh_addr_of(content), lh_addr_of(size)))
         {
@@ -232,12 +256,13 @@ lh_str_ptr_format_text_walk(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt
         else
         {
             ok = lh_str_ptr_format_text_put_field(str, str_size, lh_addr_of(out_pos),
-                                                  lh_addr_of(spec), content, size);
+                                                  lh_addr_of(spec), content, size, cut);
         }
         if (!ok)
         {
             va_end(ap);
-            return 0U;
+            /* Cut: what fitted stays, and it fills the buffer. */
+            return cut ? out_pos : 0U;
         }
     }
     va_end(ap);
@@ -248,49 +273,67 @@ lh_usize_t
 lh_str_ptr_format_text_v(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, va_list args)
 {
     lh_assert_runtime_ref(str);
-    return lh_str_ptr_format_text_walk(str, str_size, fmt, args);
+    return lh_str_ptr_format_text_walk(str, str_size, fmt, args, lh_bool_false);
+}
+
+lh_usize_t
+lh_str_ptr_format_text_cut_v(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, va_list args)
+{
+    lh_assert_runtime_ref(str);
+    return lh_str_ptr_format_text_walk(str, str_size, fmt, args, lh_bool_true);
 }
 
 lh_usize_t
 lh_str_ptr_format_text_size_v(lh_str_cptr fmt, va_list args)
 {
-    return lh_str_ptr_format_text_walk(lh_null, 0, fmt, args);
+    return lh_str_ptr_format_text_walk(lh_null, 0, fmt, args, lh_bool_false);
 }
 
 lh_usize_t
 lh_str_ptr_format_text(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, ...)
 {
-    lh_usize_t result;
     va_list args;
 
     va_start(args, fmt);
-    result = lh_str_ptr_format_text_v(str, str_size, fmt, args);
-    va_end(args);
 
+    const lh_usize_t result = lh_str_ptr_format_text_v(str, str_size, fmt, args);
+
+    va_end(args);
     return result;
 }
 
 lh_usize_t
 lh_str_ptr_format_text_size(lh_str_cptr fmt, ...)
 {
-    lh_usize_t result;
     va_list args;
 
     va_start(args, fmt);
-    result = lh_str_ptr_format_text_size_v(fmt, args);
-    va_end(args);
 
+    const lh_usize_t result = lh_str_ptr_format_text_size_v(fmt, args);
+
+    va_end(args);
     return result;
 }
 
 lh_usize_t
 lh_str_ptr_format_cstr_v(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr fmt, va_list args)
 {
-    lh_usize_t size;
-
-    lh_assert_runtime_ref(str);
     lh_assert_runtime_if(str_size == 0U, lh_runtime_error_code_invalid_argument);
-    size = lh_str_ptr_format_text_v(str, str_size - 1U, fmt, args);
+
+    const lh_usize_t size = lh_str_ptr_format_text_v(str, str_size - 1U, fmt, args);
+
+    str[size] = lh_char_map_nul;
+    return size;
+}
+
+lh_usize_t
+lh_str_ptr_format_cstr_cut_v(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr fmt,
+                             va_list args)
+{
+    lh_assert_runtime_if(str_size == 0U, lh_runtime_error_code_invalid_argument);
+
+    const lh_usize_t size = lh_str_ptr_format_text_cut_v(str, str_size - 1U, fmt, args);
+
     str[size] = lh_char_map_nul;
     return size;
 }
@@ -299,10 +342,11 @@ lh_usize_t
 lh_str_ptr_format_cstr(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr fmt, ...)
 {
     va_list args;
-    lh_usize_t size;
 
     va_start(args, fmt);
-    size = lh_str_ptr_format_cstr_v(str, str_size, fmt, args);
+
+    const lh_usize_t size = lh_str_ptr_format_cstr_v(str, str_size, fmt, args);
+
     va_end(args);
     return size;
 }

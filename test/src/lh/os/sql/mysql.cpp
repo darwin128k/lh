@@ -551,4 +551,17 @@ TEST(sql_mysql_api, thread_cleanup_is_optional_and_cleared_on_deinit)
     EXPECT_EQ(thread_ends, 1);
 }
 
+TEST(sql_mysql_error, get_error_kind_sorts_the_failure_numbers)
+{
+    EXPECT_EQ(lh_os_sql_mysql_get_error_kind(1045U), lh_sql_error_kind_denied);
+    EXPECT_EQ(lh_os_sql_mysql_get_error_kind(1044U), lh_sql_error_kind_denied);
+    EXPECT_EQ(lh_os_sql_mysql_get_error_kind(1049U), lh_sql_error_kind_not_found);
+    EXPECT_EQ(lh_os_sql_mysql_get_error_kind(2003U), lh_sql_error_kind_unreachable);
+    EXPECT_EQ(lh_os_sql_mysql_get_error_kind(2013U), lh_sql_error_kind_unreachable);
+    EXPECT_EQ(lh_os_sql_mysql_get_error_kind(4031U), lh_sql_error_kind_unreachable);
+    EXPECT_EQ(lh_os_sql_mysql_get_error_kind(1146U), lh_sql_error_kind_statement);
+    EXPECT_EQ(lh_os_sql_mysql_get_error_kind(2008U), lh_sql_error_kind_other);
+    EXPECT_EQ(lh_os_sql_mysql_get_error_kind(0U), lh_sql_error_kind_other);
+}
+
 } // namespace

@@ -16,6 +16,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- A database failure says what kind it is: `lh_sql_error_kind_t` (`usage`,
+  `unsupported`, `no_client`, `unreachable`, `denied`, `not_found`, `statement`,
+  `other`), read with `lh_sql_db_get_error_kind`, and the backend's own number with
+  `lh_sql_db_get_error_code` (`mysql_errno`, SQLite's extended code). Backends set
+  them with `lh_sql_db_fail_as` / `_set_error_as`; `lh_os_sql_mysql_get_error_kind`
+  and `lh_os_sql_sqlite_get_error_kind` sort the native numbers. `lh_sql_db_fail`
+  alone now means kind `other`.
+- A cutting format: `lh_str_ptr_format_text_cut_v` writes as much of the result as
+  fits and returns how much, `lh_str_ptr_format_cstr_cut_v` keeps the NUL after the
+  cut. The engine takes the mode as a flag (`lh_str_ptr_format_text_walk`,
+  `_put_field`) and `lh_str_ptr_format_text_get_fit` says how much of a piece fits.
+  `lh_os_logger_capture_try_push_v` formats into its record's size with it instead
+  of through an allocated string.
 - `lh/core/sql/address`: `lh_sql_address_t`, where a database is (backend, file,
   host, user, password, database, port) as owned text, with `_assign`, `_is_equal`
   and a password wiped on `_clear` / `_deinit`.

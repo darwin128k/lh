@@ -82,6 +82,8 @@ TEST(os_sql_keep, a_failed_open_keeps_nothing_and_says_why)
 
     EXPECT_EQ(lh_os_sql_keep_try_get_db(&keep, &nowhere), nullptr);
     EXPECT_GT(error_size(lh_os_sql_keep_get_db(&keep)), 0U);
+    EXPECT_EQ(lh_sql_db_get_error_kind(lh_os_sql_keep_get_db(&keep)),
+              lh_sql_error_kind_unsupported);
     EXPECT_FALSE(lh_sql_address_is_set(lh_os_sql_keep_get_address(&keep)));
     EXPECT_FALSE(lh_sql_db_is_open(lh_os_sql_keep_get_db(&keep)));
 

@@ -41,5 +41,6 @@ lh_os_sql_address_try_open(const lh_sql_address_t *address, lh_sql_db_t *db)
         return lh_os_sql_sqlite_open(db, path);
     }
 #endif
-    return lh_sql_db_fail(db, lh_str_view_lit("the address names no backend this build opens"));
+    return lh_sql_db_fail_as(db, lh_sql_error_kind_unsupported, 0,
+                             lh_str_view_lit("the address names no backend this build opens"));
 }

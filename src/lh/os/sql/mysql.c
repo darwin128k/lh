@@ -1,6 +1,8 @@
 #include <lh/os/sql/mysql.h>
 #include <lh/core/assert.h>
 #include <lh/core/char/map.h>
+#include <lh/core/util/return.h>
+#include <lh/core/attribute/unused.h>
 #include <lh/core/str/format/sllong.h>
 #include <lh/core/str/parse/sllong.h>
 
@@ -30,14 +32,49 @@ lh_os_sql_mysql_get_prepared(const lh_sql_stmt_t *stmt)
     return lh_ptr_cast(lh_os_sql_mysql_prepared_t, lh_sql_stmt_get_handle(stmt));
 }
 
+/* MySQL failure numbers the kinds are told by. */
+static const lh_uint_t m_os_sql_mysql_denied[] = {1044U, 1045U, 1698U, 1251U};
+static const lh_uint_t m_os_sql_mysql_unreachable[] = {2002U, 2003U, 2005U, 2006U,
+                                                       2013U, 2055U, 4031U};
+
+lh_sql_error_kind_t
+lh_os_sql_mysql_get_error_kind(lh_uint_t code)
+{
+    for (lh_usize_t i = 0U; lh_math_lt(i, lh_array_ptr_get_size(m_os_sql_mysql_denied));
+         i = lh_math_add_one(i))
+    {
+        lh_return_if(lh_math_eq(code, m_os_sql_mysql_denied[i]), lh_sql_error_kind_denied);
+    }
+    for (lh_usize_t i = 0U; lh_math_lt(i, lh_array_ptr_get_size(m_os_sql_mysql_unreachable));
+         i = lh_math_add_one(i))
+    {
+        lh_return_if(lh_math_eq(code, m_os_sql_mysql_unreachable[i]),
+                     lh_sql_error_kind_unreachable);
+    }
+    lh_return_if(lh_math_eq(code, 1049U), lh_sql_error_kind_not_found);
+    lh_return_if(lh_math_ge(code, 1000U) && lh_math_lt(code, 2000U), lh_sql_error_kind_statement);
+    return lh_sql_error_kind_other;
+}
+
+/* The client's last failure on @p native into @p db: message, kind, number. */
+lh_bool_t
+lh_os_sql_mysql_fail_with(lh_sql_db_t *db, const lh_os_sql_mysql_api_t *api, lh_ptr native,
+                          lh_str_view_t fallback)
+{
+    const lh_str_view_t message = lh_os_sql_mysql_api_error(api, native);
+    const lh_uint_t code = lh_os_sql_mysql_api_error_code(api, native);
+
+    return lh_sql_db_fail_as(db, lh_os_sql_mysql_get_error_kind(code),
+                             lh_cast_static(lh_sint_t, code),
+                             lh_str_view_is_empty(lh_addr_of(message)) ? fallback : message);
+}
+
 lh_bool_t
 lh_os_sql_mysql_fail(lh_sql_db_t *db)
 {
-    const lh_str_view_t message =
-        lh_os_sql_mysql_api_error(lh_os_sql_mysql_get_api(db), lh_os_sql_mysql_get_native(db));
-
-    return lh_sql_db_fail(
-        db, lh_str_view_is_empty(lh_addr_of(message)) ? lh_str_view_lit("MySQL error") : message);
+    return lh_os_sql_mysql_fail_with(db, lh_os_sql_mysql_get_api(db),
+                                     lh_os_sql_mysql_get_native(db),
+                                     lh_str_view_lit("MySQL error"));
 }
 
 lh_void
@@ -161,7 +198,8 @@ lh_os_sql_mysql_prepare(lh_sql_db_t *db, lh_sql_stmt_t *stmt, lh_str_view_t sql)
 {
     if (lh_str_view_is_empty(lh_addr_of(sql)))
     {
-        return lh_sql_db_fail(db, lh_str_view_lit("no statement in the SQL text"));
+        return lh_sql_db_fail_as(db, lh_sql_error_kind_usage, 0,
+                                 lh_str_view_lit("no statement in the SQL text"));
     }
     lh_sql_stmt_set_handle(stmt, lh_os_sql_mysql_prepared_create(sql));
     return lh_bool_true;
@@ -236,7 +274,8 @@ lh_os_sql_mysql_execute(lh_sql_stmt_t *stmt)
     if (!lh_os_sql_mysql_prepared_build(prepared, lh_addr_of(query)))
     {
         lh_str_deinit(lh_addr_of(query));
-        return lh_sql_db_fail(db, lh_str_view_lit("a parameter is not bound"));
+        return lh_sql_db_fail_as(db, lh_sql_error_kind_usage, 0,
+                                 lh_str_view_lit("a parameter is not bound"));
     }
     lh_str_view_t text;
 
@@ -407,7 +446,8 @@ lh_os_sql_mysql_connect(lh_sql_db_t *db, const lh_os_sql_mysql_api_t *api, lh_st
 
     if (lh_null_eq(native))
     {
-        lh_sql_db_set_error(db, lh_str_view_lit("mysql_init failed"));
+        lh_sql_db_set_error_as(db, lh_sql_error_kind_no_client, 0,
+                               lh_str_view_lit("mysql_init failed"));
         return lh_null;
     }
 
@@ -420,7 +460,8 @@ lh_os_sql_mysql_connect(lh_sql_db_t *db, const lh_os_sql_mysql_api_t *api, lh_st
             lh_os_sql_mysql_api_get_options(api)(native, 11, lh_addr_of(seconds)) ||
             lh_os_sql_mysql_api_get_options(api)(native, 12, lh_addr_of(seconds)))
         {
-            lh_sql_db_set_error(db, lh_str_view_lit("cannot set MySQL I/O timeouts"));
+            lh_sql_db_set_error_as(db, lh_sql_error_kind_no_client, 0,
+                                   lh_str_view_lit("cannot set MySQL I/O timeouts"));
             lh_os_sql_mysql_api_close(api, native);
             return lh_null;
         }
@@ -454,11 +495,8 @@ lh_os_sql_mysql_connect(lh_sql_db_t *db, const lh_os_sql_mysql_api_t *api, lh_st
 
     if (!charset)
     {
-        const lh_str_view_t message = lh_os_sql_mysql_api_error(api, native);
-
-        lh_sql_db_set_error(db, lh_str_view_is_empty(lh_addr_of(message))
-                                    ? lh_str_view_lit("cannot connect to MySQL")
-                                    : message);
+        LH_ATTRIBUTE_UNUSED(
+            lh_os_sql_mysql_fail_with(db, api, native, lh_str_view_lit("cannot connect to MySQL")));
         lh_os_sql_mysql_api_close(api, native);
         return lh_null;
     }
@@ -476,7 +514,8 @@ lh_os_sql_mysql_open_with(lh_sql_db_t *db, const lh_os_sql_mysql_api_t *api, lh_
     lh_sql_db_clear_error(db);
     if (lh_null_eq(api) || !lh_os_sql_mysql_api_is_loaded(api))
     {
-        return lh_sql_db_fail(db, lh_str_view_lit("MySQL client library not found"));
+        return lh_sql_db_fail_as(db, lh_sql_error_kind_no_client, 0,
+                                 lh_str_view_lit("MySQL client library not found"));
     }
     if (lh_math_is_zero(port))
     {
