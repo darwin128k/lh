@@ -56,6 +56,20 @@ lh_ini_parser_fail(lh_ini_parser_t *self, lh_ini_error_t error)
 }
 
 lh_bool_t
+lh_ini_parser_is_flat(const lh_ini_parser_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->flat;
+}
+
+lh_void
+lh_ini_parser_set_flat(lh_ini_parser_t *self, lh_bool_t flat)
+{
+    lh_assert_runtime_ref(self);
+    self->flat = flat;
+}
+
+lh_bool_t
 lh_ini_parser_has_error(const lh_ini_parser_t *self)
 {
     return lh_cast_static(lh_bool_t, lh_math_ne(lh_ini_parser_get_error(self), lh_ini_error_none));
@@ -70,6 +84,14 @@ lh_ini_parser_init(lh_ini_parser_t *self, lh_str_view_t text)
     lh_str_line_reader_init(lh_ini_parser_get_reader_mut(self), text);
     lh_ini_parser_set_section(self, lh_str_view_empty());
     lh_ini_parser_set_error(self, lh_ini_error_none);
+    lh_ini_parser_set_flat(self, lh_bool_false);
+}
+
+lh_void
+lh_ini_parser_init_flat(lh_ini_parser_t *self, lh_str_view_t text)
+{
+    lh_ini_parser_init(self, text);
+    lh_ini_parser_set_flat(self, lh_bool_true);
 }
 
 /* ── lines ───────────────────────────────────────────────────────────────── */
@@ -124,7 +146,6 @@ lh_ini_parser_read_pair(lh_ini_parser_t *self, const lh_str_view_t *line, lh_ini
 {
     lh_str_view_t key;
     lh_str_view_t value;
-    lh_str_view_t section;
 
     if (!lh_str_view_split_once(line, lh_char_map_equals, lh_addr_of(key), lh_addr_of(value)))
     {
@@ -136,10 +157,10 @@ lh_ini_parser_read_pair(lh_ini_parser_t *self, const lh_str_view_t *line, lh_ini
         return lh_ini_parser_fail(self, lh_ini_error_empty_key);
     }
 
-    section = lh_ini_parser_get_section(self);
+    lh_str_view_t section = lh_ini_parser_get_section(self);
 
     /* A header never has an empty name, so an empty section is "none yet". */
-    if (lh_str_view_is_empty(lh_addr_of(section)))
+    if (lh_str_view_is_empty(lh_addr_of(section)) && !lh_ini_parser_is_flat(self))
     {
         return lh_ini_parser_fail(self, lh_ini_error_no_section);
     }

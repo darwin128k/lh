@@ -23,7 +23,7 @@ struct parsed
 };
 
 parsed
-parse(const std::string &ini)
+parse(const std::string &ini, bool flat = false)
 {
     lh_str_view_t view;
     if (ini.empty())
@@ -36,7 +36,14 @@ parse(const std::string &ini)
     }
 
     lh_ini_parser_t parser;
-    lh_ini_parser_init(&parser, view);
+    if (flat)
+    {
+        lh_ini_parser_init_flat(&parser, view);
+    }
+    else
+    {
+        lh_ini_parser_init(&parser, view);
+    }
 
     parsed out;
     lh_ini_entry_t entry;
@@ -240,6 +247,70 @@ TEST(ini_parser, line_at_end_counts_trailing_comments)
 
     EXPECT_EQ(p.error, lh_ini_error_none);
     EXPECT_EQ(p.line, 4U);
+}
+
+TEST(ini_parser, flat_reads_text_without_headers)
+{
+    const parsed p = parse("; comment
+k = v
+other=1
+", true);
+
+    EXPECT_EQ(p.entries, (entries_t{".k=v", ".other=1"}));
+    EXPECT_EQ(p.error, lh_ini_error_none);
+}
+
+TEST(ini_parser, flat_reads_pairs_before_first_header)
+{
+    const parsed p = parse("k=v
+[a]
+x=y
+", true);
+
+    EXPECT_EQ(p.entries, (entries_t{".k=v", "[a]", "a.x=y"}));
+    EXPECT_EQ(p.error, lh_ini_error_none);
+}
+
+TEST(ini_parser, flat_still_reports_bad_lines)
+{
+    EXPECT_EQ(parse("k=v
+just text
+", true).error, lh_ini_error_missing_equals);
+    EXPECT_EQ(parse("= v
+", true).error, lh_ini_error_empty_key);
+}
+
+TEST(ini_parser, init_is_not_flat_and_init_flat_is)
+{
+    lh_str_view_t view;
+    lh_str_view_init_empty(&view);
+    lh_ini_parser_t parser;
+
+    lh_ini_parser_init_flat(&parser, view);
+    EXPECT_TRUE(lh_ini_parser_is_flat(&parser));
+    lh_ini_parser_init(&parser, view);
+    EXPECT_FALSE(lh_ini_parser_is_flat(&parser));
+}
+
+TEST(ini_parser, resumes_on_next_line_after_error_is_cleared)
+{
+    const std::string ini = "k=v
+        bad x = y ";
+        lh_str_view_t view;
+    lh_str_view_init_by_size(&view, ini.data(), ini.size());
+    lh_ini_parser_t parser;
+    lh_ini_parser_init_flat(&parser, view);
+    lh_ini_entry_t entry;
+
+    ASSERT_TRUE(lh_ini_parser_next(&parser, &entry));
+    ASSERT_FALSE(lh_ini_parser_next(&parser, &entry));
+    EXPECT_EQ(lh_ini_parser_get_error(&parser), lh_ini_error_missing_equals);
+    lh_ini_parser_set_error(&parser, lh_ini_error_none);
+    ASSERT_TRUE(lh_ini_parser_next(&parser, &entry));
+    EXPECT_EQ(text(lh_ini_entry_get_key(&entry)), "x");
+    EXPECT_EQ(lh_ini_parser_get_line(&parser), 3U);
+    EXPECT_FALSE(lh_ini_parser_next(&parser, &entry));
+    EXPECT_FALSE(lh_ini_parser_has_error(&parser));
 }
 
 TEST(ini_error_get_message, describes_every_error)

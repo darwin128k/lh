@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- The INI parser reads a sectionless text: `lh_ini_parser_init_flat` allows pairs
+  before the first header (their section is empty), so a plain `key = value` file
+  reads whole; `lh_ini_parser_is_flat` / `_set_flat`. A lenient reader goes past a bad
+  line by clearing the error and calling `lh_ini_parser_next` again (documented and
+  tested).
 - A database failure says what kind it is: `lh_sql_error_kind_t` (`usage`,
   `unsupported`, `no_client`, `unreachable`, `denied`, `not_found`, `statement`,
   `other`), read with `lh_sql_db_get_error_kind`, and the backend's own number with
