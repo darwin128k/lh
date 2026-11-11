@@ -16,6 +16,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- A request target as a safe relative file path (`lh/core/http/target.h`), moved down
+  from Authum's static file host: `lh_http_target_try_decode_path` (drop the query and
+  fragment, require a leading `/`, decode `%XX` once — an encoded `/` or NUL never
+  becomes one), `lh_http_target_get_path_error` (no empty, hidden or dot components,
+  nothing Windows would trim or alias: a trailing `.` or space, `NAME~1`), and
+  `lh_http_target_try_copy_path`, the two in turn. Refusals are
+  `lh_http_target_error_t` (`lh/core/http/target/error.h`) with
+  `lh_http_target_error_get_name` for a log line. `lh_http_is_name_char`
+  (`lh/core/http/char.h`): the bytes a published name may hold, the same on every
+  platform.
 - `lh_char_to_lower` / `lh_char_to_upper` (`lh/core/util/char/case/map.h`): the simple
   case mapping of one `lh_char_t` (0..255) — ASCII inline, 128..255 through
   `lh_char_to_lower_nonascii` / `_upper_nonascii`, whose tables are generated into

@@ -9,6 +9,11 @@ static const lh_char_t lh_http_token_symbols[] = {
     lh_char_map_minus,       lh_char_map_period,   lh_char_map_caret,      lh_char_map_underscore,
     lh_char_map_grave,       lh_char_map_pipe,     lh_char_map_tilde};
 
+/* What Windows reserves in a file name; refused in a published name everywhere. */
+static const lh_char_t lh_http_name_reserved[] = {
+    lh_char_map_backslash, lh_char_map_colon, lh_char_map_asterisk, lh_char_map_question,
+    lh_char_map_dquot,     lh_char_map_less,  lh_char_map_greater,  lh_char_map_pipe};
+
 lh_bool_t
 lh_http_is_token_char(lh_char_t c)
 {
@@ -29,4 +34,13 @@ lh_http_is_field_char(lh_char_t c)
 {
     const lh_u8_t byte = lh_cast_static(lh_u8_t, c);
     return byte == lh_char_map_ht || (byte >= lh_char_map_space && byte != lh_char_map_del);
+}
+
+lh_bool_t
+lh_http_is_name_char(lh_char_t c)
+{
+    const lh_u8_t byte = lh_cast_static(lh_u8_t, c);
+    return lh_math_gt(byte, lh_char_map_us) && lh_math_ne(byte, lh_char_map_del) &&
+           !lh_str_ptr_contains_char(lh_http_name_reserved,
+                                     lh_array_ptr_get_size(lh_http_name_reserved), c);
 }

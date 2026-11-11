@@ -166,6 +166,8 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/http/method.c
         ${LH_LIB_SRC_PATH}/core/http/parser.c
         ${LH_LIB_SRC_PATH}/core/http/request.c
+        ${LH_LIB_SRC_PATH}/core/http/target.c
+        ${LH_LIB_SRC_PATH}/core/http/target/error.c
         ${LH_LIB_SRC_PATH}/core/http/response.c
         ${LH_LIB_SRC_PATH}/core/http/status.c
         ${LH_LIB_SRC_PATH}/core/http/version.c

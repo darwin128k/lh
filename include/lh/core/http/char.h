@@ -48,6 +48,22 @@ lh_http_is_target_char(lh_char_t c);
 lh_bool_t
 lh_http_is_field_char(lh_char_t c);
 
+/**
+ * @brief Whether @p c may appear in a published file name once a request path is
+ *        decoded (::lh_http_target_try_decode_path).
+ *
+ * The rule is the same on every platform: what Windows reserves in a name is
+ * refused on Linux too, so one tree serves the same files everywhere.
+ *
+ * @param c Byte to test.
+ * @return ::lh_bool_false for the control bytes (`0x00`..`0x1f`), DEL, and
+ *         `\ : * ? " < > |`; ::lh_bool_true for anything else, `0x80` and up
+ *         included. `/` is the separator and is not a name byte here either
+ *         way: the caller handles it.
+ */
+lh_bool_t
+lh_http_is_name_char(lh_char_t c);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_HTTP_CHAR_H */

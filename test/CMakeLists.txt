@@ -83,6 +83,7 @@ lh_add_test_core(lh_test_http_parser ${LH_TEST_SRC_PATH}/lh/core/http/parser.cpp
         ${LH_TEST_SRC_PATH}/lh/core/http/method.cpp
         ${LH_TEST_SRC_PATH}/lh/core/http/status.cpp
         ${LH_TEST_SRC_PATH}/lh/core/http/request.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/http/target.cpp
         ${LH_TEST_SRC_PATH}/lh/core/http/char.cpp ${LH_TEST_SRC_PATH}/lh/core/http/version.cpp
         ${LH_TEST_SRC_PATH}/lh/core/http/forwarded.cpp
         ${LH_TEST_SRC_PATH}/lh/core/http/limit.cpp)
