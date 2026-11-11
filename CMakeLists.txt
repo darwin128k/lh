@@ -236,6 +236,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/util/wstr/case/map.c
         ${LH_LIB_SRC_PATH}/core/util/wstr/ptr.c
         ${LH_LIB_SRC_PATH}/core/util/char/case/fold.c
+        ${LH_LIB_SRC_PATH}/core/util/char/case/map.c
         ${LH_LIB_SRC_PATH}/core/util/str/case/map.c
         ${LH_LIB_SRC_PATH}/core/util/str/ptr.c
         ${LH_LIB_SRC_PATH}/core/util/wchar.c

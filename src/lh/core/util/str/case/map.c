@@ -11,6 +11,7 @@
 #include <lh/core/util/str/case/map.h>
 #include <lh/core/assert.h>
 #include <lh/core/bit/swar.h>
+#include <lh/core/byte/ptr.h>
 #include <lh/core/memory/word.h>
 #include <lh/core/util/char/case/map.h>
 

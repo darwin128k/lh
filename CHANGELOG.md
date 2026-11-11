@@ -16,6 +16,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_char_to_lower` / `lh_char_to_upper` (`lh/core/util/char/case/map.h`): the simple
+  case mapping of one `lh_char_t` (0..255) — ASCII inline, 128..255 through
+  `lh_char_to_lower_nonascii` / `_upper_nonascii`, whose tables are generated into
+  `src/lh/core/util/char/case/map.c` by `tools/gen_char_case_map.py` (it replaces
+  `gen_str_case_map.py`, which had drifted from the file it claimed to write). The
+  dense tables cover 128..255 only: 128 bytes per direction instead of 256.
+  `lh_str_ptr_to_lower` / `_to_upper` are built on them: one SWAR path for ASCII words
+  in both table modes (the binary-search mode used to search for ASCII too).
+  Measured, `BM_str_ptr_to_lower_45B`, MinGW i686 Release, three alternating A/B rounds:
+  LTO 28.6 → 27.6 ns (same within noise), no LTO 45.3 → 29.9 ns.
+- `lh_char_is_ascii` (`lh/core/char/ascii.h`): 0..127 as an unsigned byte. Used by the
+  case mapping and by `lh_char_fold_case`, which no longer spells out `65U` / `90U` /
+  `128U`.
 - `lh_str_ptr_copy_cstr(str, str_size, src, src_size)` (`lh/core/util/str/ptr.h`): copy
   up to `str_size - 1` characters and terminate the C string — `lh_str_ptr_copy` plus
   `lh_str_ptr_erase`. It returns the characters copied. It replaces the hand-written
