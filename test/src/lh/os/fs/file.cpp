@@ -282,4 +282,36 @@ TEST(os_fs_file, append_adds_at_the_end_and_remove_deletes)
     lh_fs_path_deinit(&path);
 }
 
+TEST(os_fs_file, read_all_by_path_appends_the_whole_file)
+{
+    const char *const name = "lh-test-read-all.txt";
+    std::string body(LH_OS_FS_FILE_READ_CHUNK + 7U, 'x');
+    body[LH_OS_FS_FILE_READ_CHUNK] = 'y';
+    std::FILE *raw = std::fopen(name, "wb");
+    ASSERT_NE(raw, nullptr);
+    std::fwrite(body.data(), 1U, body.size(), raw);
+    std::fclose(raw);
+
+    lh_fs_path_t path;
+    lh_str_view_t view;
+    lh_fs_path_init(&path);
+    lh_str_view_init(&view, name);
+    lh_fs_path_set(&path, view, lh_fs_path_style_posix);
+
+    lh_str_t text;
+    lh_str_init(&text);
+    lh_str_append(&text, "<", 1U);
+    ASSERT_TRUE(lh_os_fs_file_read_all_by_path(&path, &text));
+    ASSERT_EQ(lh_str_get_size(&text), body.size() + 1U);
+    EXPECT_EQ(std::string(lh_str_get_data(&text) + 1, body.size()), body);
+    lh_str_deinit(&text);
+
+    EXPECT_TRUE(lh_os_fs_file_remove(&path));
+    lh_str_init(&text);
+    EXPECT_FALSE(lh_os_fs_file_read_all_by_path(&path, &text));
+    EXPECT_EQ(lh_str_get_size(&text), 0U);
+    lh_str_deinit(&text);
+    lh_fs_path_deinit(&path);
+}
+
 } // namespace

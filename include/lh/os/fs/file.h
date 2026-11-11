@@ -32,6 +32,12 @@
 #endif
 
 /**
+ * @def LH_OS_FS_FILE_READ_CHUNK
+ * @brief Bytes ::lh_os_fs_file_read_all asks for in one read (a stack buffer).
+ */
+#define LH_OS_FS_FILE_READ_CHUNK 4096U
+
+/**
  * @struct lh_os_fs_file
  * @brief Path plus handle. Fields via ::lh_os_fs_file_fields.
  */
@@ -296,6 +302,33 @@ lh_os_fs_file_get_stream(lh_os_fs_file_t *self, lh_io_stream_t *out);
  */
 lh_bool_t
 lh_os_fs_file_write_all(lh_os_fs_file_t *self, const lh_ptr buf, lh_usize_t size);
+
+/**
+ * @brief Read @p self from where it stands to its end, appending to @p out.
+ *
+ * Reads in chunks through ::lh_os_fs_file_read until it reports the end. The
+ * bytes go to the end of @p out as they are (no BOM or line-ending handling).
+ *
+ * @param self An open file; checked by ::lh_os_fs_file_read.
+ * @param out  The string to append to; checked by ::lh_assert_runtime_ref.
+ * @return ::lh_bool_false if a read failed (the reason is in
+ *         ::lh_os_system_last_error); what was read before stays in @p out.
+ */
+lh_bool_t
+lh_os_fs_file_read_all(lh_os_fs_file_t *self, lh_str_t *out);
+
+/**
+ * @brief Open @p path for reading, ::lh_os_fs_file_read_all it into @p out,
+ *        close it.
+ *
+ * @param path The file to read.
+ * @param out  The string to append to; checked by ::lh_assert_runtime_ref.
+ * @return ::lh_bool_false if the file did not open or a read failed (the
+ *         reason is in ::lh_os_last_error / ::lh_os_system_last_error); what
+ *         was read before a failed read stays in @p out.
+ */
+lh_bool_t
+lh_os_fs_file_read_all_by_path(const lh_fs_path_t *path, lh_str_t *out);
 
 /**
  * @brief Format @p fmt with ::lh_str_format_v and write the result.

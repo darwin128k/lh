@@ -281,6 +281,44 @@ lh_os_fs_file_write_all(lh_os_fs_file_t *self, const lh_ptr buf, lh_usize_t size
 }
 
 lh_bool_t
+lh_os_fs_file_read_all(lh_os_fs_file_t *self, lh_str_t *out)
+{
+    lh_assert_runtime_ref(out);
+
+    lh_char_t chunk[LH_OS_FS_FILE_READ_CHUNK];
+
+    for (;;)
+    {
+        const lh_ssize_t got = lh_os_fs_file_read(self, chunk, sizeof chunk);
+
+        if (lh_math_is_negative(got))
+        {
+            return lh_bool_false;
+        }
+        if (lh_math_is_zero(got))
+        {
+            return lh_bool_true;
+        }
+        lh_str_append(out, chunk, lh_cast_static(lh_usize_t, got));
+    }
+}
+
+lh_bool_t
+lh_os_fs_file_read_all_by_path(const lh_fs_path_t *path, lh_str_t *out)
+{
+    lh_os_fs_file_t file;
+
+    lh_os_fs_file_init(lh_addr_of(file));
+
+    const lh_bool_t ok = lh_cast_static(
+        lh_bool_t, lh_os_fs_file_open(lh_addr_of(file), path, lh_fs_file_mode_read) &&
+                       lh_os_fs_file_read_all(lh_addr_of(file), out));
+
+    lh_os_fs_file_deinit(lh_addr_of(file));
+    return ok;
+}
+
+lh_bool_t
 lh_os_fs_file_print_v(lh_os_fs_file_t *self, lh_str_cptr fmt, va_list args)
 {
     lh_str_t text;

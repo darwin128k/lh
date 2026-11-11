@@ -129,6 +129,20 @@ lh_void
 lh_fs_path_get_segment(const lh_fs_path_t *self, lh_uindex_t index, lh_str_view_t *out);
 
 /**
+ * @brief The last segment of @p self (`c.so` of `a/b/c.so`), as a view into
+ *        @p self's own text.
+ *
+ * Valid until @p self is next modified or deinitialized.
+ *
+ * @param self The path.
+ * @param out  Receives the segment; checked by ::lh_assert_runtime_ref.
+ * @return ::lh_bool_false when @p self has no segment (empty, or a root
+ *         alone); @p out is untouched then.
+ */
+lh_bool_t
+lh_fs_path_try_get_name(const lh_fs_path_t *self, lh_str_view_t *out);
+
+/**
  * @brief True when @p self has neither a root nor any segments.
  */
 lh_bool_t

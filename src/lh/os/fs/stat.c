@@ -73,3 +73,25 @@ lh_os_fs_is_executable(const lh_fs_path_t *path, lh_bool_t *out)
     lh_ptr_deref(out) = lh_fs_perm_is_executable(lh_fs_stat_get_perm(lh_addr_of(st)));
     return lh_bool_true;
 }
+
+lh_bool_t
+lh_os_fs_is_kind(const lh_fs_path_t *path, lh_fs_kind_t kind)
+{
+    lh_fs_stat_t st;
+
+    lh_fs_stat_init(lh_addr_of(st));
+    return lh_cast_static(lh_bool_t, lh_os_fs_stat(path, lh_addr_of(st)) &&
+                                         lh_math_eq(lh_fs_stat_get_kind(lh_addr_of(st)), kind));
+}
+
+lh_bool_t
+lh_os_fs_is_file(const lh_fs_path_t *path)
+{
+    return lh_os_fs_is_kind(path, lh_fs_kind_file);
+}
+
+lh_bool_t
+lh_os_fs_is_dir(const lh_fs_path_t *path)
+{
+    return lh_os_fs_is_kind(path, lh_fs_kind_dir);
+}

@@ -387,6 +387,9 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/logger/daily/channel.c
             ${LH_LIB_SRC_PATH}/os/logger/daily.c
             ${LH_LIB_SRC_PATH}/os/loader.c
+            ${LH_LIB_SRC_PATH}/os/loader/image.c
+            ${LH_LIB_SRC_PATH}/os/loader/scan.c
+            ${LH_LIB_SRC_PATH}/os/loader/list.c
             ${LH_LIB_SRC_PATH}/os/sql/mysql.c
             ${LH_LIB_SRC_PATH}/os/sql/worker.c
             ${LH_LIB_SRC_PATH}/os/sql/mysql/api.c
@@ -407,6 +410,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/error/kind.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/timestamp.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/tick.c
+            ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/name.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/concurrency.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/env.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/debug.c

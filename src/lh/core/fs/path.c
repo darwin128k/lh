@@ -173,6 +173,19 @@ lh_fs_path_get_segment(const lh_fs_path_t *self, lh_uindex_t index, lh_str_view_
 }
 
 lh_bool_t
+lh_fs_path_try_get_name(const lh_fs_path_t *self, lh_str_view_t *out)
+{
+    const lh_usize_t count = lh_fs_path_get_segment_count(self);
+
+    if (lh_math_is_zero(count))
+    {
+        return lh_bool_false;
+    }
+    lh_fs_path_get_segment(self, lh_math_sub_one(count), out);
+    return lh_bool_true;
+}
+
+lh_bool_t
 lh_fs_path_is_empty(const lh_fs_path_t *self)
 {
     return lh_str_is_empty(lh_fs_path_get_text(self));

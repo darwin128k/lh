@@ -17,8 +17,9 @@
  *
  * Which paths to load — a list, a directory scan, a config file — is the
  * caller's policy, not the loader's: it takes one path at a time. The
- * pieces for building such a policy are elsewhere (::lh_os_fs_dir_t,
- * ::lh_os_system_shared_get_ext, `lh/os/system/error/kind.h`).
+ * pieces for building such a policy sit beside it: `lh/os/loader/image.h`
+ * (a module folder to its image), `lh/os/loader/scan.h` (every image in a
+ * folder) and `lh/os/loader/list.h` (a list file with per-system sections).
  *
  * Requires ::LH_LIBRARY_OPTION_OS.
  */

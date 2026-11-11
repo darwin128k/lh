@@ -79,6 +79,31 @@ lh_os_fs_is_writable(const lh_fs_path_t *path, lh_bool_t *out);
 lh_bool_t
 lh_os_fs_is_executable(const lh_fs_path_t *path, lh_bool_t *out);
 
+/**
+ * @brief Whether @p path exists and is of kind @p kind.
+ *
+ * Delegates to ::lh_os_fs_stat. A path that cannot be stat'd (missing, no
+ * access, empty) is not of any kind; the reason stays in ::lh_os_last_error /
+ * ::lh_os_system_last_error.
+ *
+ * @param path The path to look at.
+ * @param kind The kind wanted (::lh_fs_kind_file, ::lh_fs_kind_dir, ...).
+ */
+lh_bool_t
+lh_os_fs_is_kind(const lh_fs_path_t *path, lh_fs_kind_t kind);
+
+/**
+ * @brief Whether @p path exists and is a regular file (::lh_os_fs_is_kind).
+ */
+lh_bool_t
+lh_os_fs_is_file(const lh_fs_path_t *path);
+
+/**
+ * @brief Whether @p path exists and is a directory (::lh_os_fs_is_kind).
+ */
+lh_bool_t
+lh_os_fs_is_dir(const lh_fs_path_t *path);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_FS_STAT_H */

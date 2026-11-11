@@ -331,6 +331,11 @@ set(LH_TEST_OS_SOURCES
         ${LH_TEST_SRC_PATH}/lh/os/logger/queue.cpp
         ${LH_TEST_SRC_PATH}/lh/os/logger/daily.cpp
         ${LH_TEST_SRC_PATH}/lh/os/logger/capture.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/loader/image.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/loader/scan.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/loader/list.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/system/name.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/fs/stat.cpp
         ${LH_TEST_SRC_PATH}/lh/os/sql/mysql.cpp
         ${LH_TEST_SRC_PATH}/lh/os/window.cpp
         ${LH_TEST_SRC_PATH}/lh/os/render/backend/gdi.cpp

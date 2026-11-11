@@ -16,6 +16,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh/os/loader/image`: `lh_os_loader_image_has_ext`, `_is_named` and
+  `_try_resolve` — a module named by its folder (`qproto`) becomes
+  `qproto/qproto.so|.dll`, a file is taken as it is.
+- `lh/os/loader/scan`: `lh_os_loader_scan` hands every module image of a folder to a
+  callback. `lh/os/loader/list`: `lh_os_loader_list_try_read` reads a module list
+  with `;`/`#` comments and `[any]` / `[modules]` / `[<system>]` sections.
+- `lh_os_system_get_name` (`lh/os/system/name.h`): `"win32"`, `"linux"`, `"mac"` or
+  `"posix"`.
+- `lh_os_fs_is_kind`, `lh_os_fs_is_file`, `lh_os_fs_is_dir` (`lh/os/fs/stat.h`);
+  `lh_os_fs_dir_create` uses `_is_dir`.
+- `lh_os_fs_file_read_all` and `_read_all_by_path` (`lh/os/fs/file.h`) read a file to
+  its end into an `lh_str_t`.
+- `lh_fs_path_try_get_name`: the last segment of a path.
 - `lh/core/net/cidr`: `lh_net_cidr_t`, an IPv4 block (`a.b.c.d/n` or a bare
   address), `lh_net_cidr_try_parse`, `_contains` and `lh_net_cidr_list_contains`.
 - `lh/core/http/forwarded`: `lh_http_forwarded_copy_client` walks `X-Forwarded-For`

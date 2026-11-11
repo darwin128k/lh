@@ -155,4 +155,22 @@ TEST(fs_path_network, preserves_windows_network_root_through_rendering)
     lh_fs_path_deinit(&path);
 }
 
+TEST(fs_path_try_get_name, is_the_last_segment)
+{
+    lh_fs_path_t path;
+    lh_str_view_t name = lh_str_view_lit("untouched");
+
+    lh_fs_path_init(&path);
+    EXPECT_FALSE(lh_fs_path_try_get_name(&path, &name));
+    lh_fs_path_set(&path, lh_str_view_lit("/"), lh_fs_path_style_posix);
+    EXPECT_FALSE(lh_fs_path_try_get_name(&path, &name));
+    EXPECT_EQ(lh_str_view_get_size(&name), 9u);
+
+    lh_fs_path_set(&path, lh_str_view_lit("/a/b/c.so/"), lh_fs_path_style_posix);
+    ASSERT_TRUE(lh_fs_path_try_get_name(&path, &name));
+    const lh_str_view_t want = lh_str_view_lit("c.so");
+    EXPECT_TRUE(lh_str_view_equals(&name, &want, lh_bool_false));
+    lh_fs_path_deinit(&path);
+}
+
 } // namespace

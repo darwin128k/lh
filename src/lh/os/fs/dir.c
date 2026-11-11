@@ -114,12 +114,7 @@ lh_os_fs_dir_create(const lh_fs_path_t *path)
         return lh_bool_true;
     }
     /* Already there is fine — as long as it is a directory. */
-    lh_fs_stat_t info;
-
-    lh_fs_stat_init(lh_addr_of(info));
-    return lh_cast_static(lh_bool_t, lh_os_fs_stat(path, lh_addr_of(info)) &&
-                                         lh_math_eq(lh_fs_stat_get_kind(lh_addr_of(info)),
-                                                    lh_fs_kind_dir));
+    return lh_os_fs_is_dir(path);
 }
 
 lh_bool_t
