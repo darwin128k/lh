@@ -56,11 +56,21 @@ every brick.
 - A hand-written loop, `switch`, range test or literal that duplicates a brick
   is replaced by the brick — in the file being edited and, per section 8,
   everywhere else it occurs.
-- **A `for` loop counts with an assignment in its third clause**:
-  `for (i = 0U; lh_math_lt(i, n); i = lh_math_add_one(i))`. The bare form
+- **Operators are not bricks; meanings are** (owner, 2026-11-11). A plain
+  comparison or arithmetic is written with its operator: `a == b`, `a + b * c`,
+  `++i`. A wrapper that is only the operator again (`lh_math_eq`, `lh_math_add`,
+  `lh_math_add_one`) is allowed but not required, and existing ones are not
+  rewritten either way. What has a brick of its own is always written with it:
+  min / max / abs / clamp (`lh/math`), overflow (`lh_interval_*_is_*_overflow`),
+  pointer arithmetic and comparison (`lh_ptr_*`), a null check of a pointer
+  (`lh_ptr_is_null` / `lh_null_eq`, `authum_null_eq` — never `!p`, which does not
+  say whether `p` is a pointer or a flag), characters (`lh_char_map_*`,
+  `lh_char_is_*`), and casts (`lh_cast_*`).
+- **A `for` loop that counts with `lh_math_add_one` assigns it** in its third
+  clause: `for (i = 0U; lh_math_lt(i, n); i = lh_math_add_one(i))`. The bare form
   `lh_math_add_one(i)` — the value discarded — is dropped by GCC 16 (MSYS2
   MinGW): the loop then runs forever or stops on another condition, with no
-  warning. The LH sources always assign; keep it that way.
+  warning. `++i` has no such trap.
 - **A variable is declared where it is used.** The code is C11, so a
   declaration lives in the innermost block that needs it, right before the
   statement that uses it — not in a pile at the top of the function (that is
