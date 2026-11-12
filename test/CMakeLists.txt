@@ -302,6 +302,7 @@ lh_add_test_core(lh_test_net
         ${LH_TEST_SRC_PATH}/lh/core/net/ip.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/modbus.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/modbus_link.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/net/modbus_server.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/port.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/authority.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/cidr.cpp
@@ -324,6 +325,7 @@ set(LH_TEST_OS_SOURCES
         ${LH_TEST_SRC_PATH}/lh/os/input.cpp
         ${LH_TEST_SRC_PATH}/lh/os/memory.cpp
         ${LH_TEST_SRC_PATH}/lh/os/net/interface.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/net/modbus_emu.cpp
         ${LH_TEST_SRC_PATH}/lh/os/net/modbus_tcp.cpp
         ${LH_TEST_SRC_PATH}/lh/os/net/socket.cpp
         ${LH_TEST_SRC_PATH}/lh/os/serial.cpp
@@ -374,6 +376,8 @@ if (NOT LH_LIBRARY_OPTION_OS)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/input.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/tick.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/tick.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/net/modbus_emu.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/net/modbus_emu.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/net/modbus_tcp.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/net/modbus_tcp.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/net/socket.cpp)

@@ -1196,3 +1196,204 @@ TEST(lh_mb_link, a_new_stream_forgets_the_question_in_flight)
     EXPECT_EQ(count, (lh_u16_t)3);
     EXPECT_EQ(lh_mb_link_counters_get_failed(lh_mb_link_get_counters(&t.link)), (lh_u32_t)1) << "the counters are the device's and are kept";
 }
+
+/* -- RTU: what the emulator found (test/emu/modbus) ---------------------------
+   Each of these is a fault the device emulator put on a real line, and the link
+   got wrong before; here it is again with no line, no process and no clock but the
+   test's own. */
+namespace
+{
+
+/* The answer @p unit gives to a read of @p words starting at value @p first. */
+lh_u16_t
+rtu_answer(lh_byte_t *out, lh_u8_t unit, lh_u16_t words, lh_u16_t first)
+{
+    lh_byte_t pdu[2 + 2 * LH_MB_READ_MAX];
+
+    pdu[0] = LH_MB_FC_READ_HOLDING;
+    pdu[1] = (lh_byte_t)(words * 2);
+    for (lh_u16_t i = 0; i < words; ++i)
+    {
+        pdu[2 + 2 * i] = (lh_byte_t)((first + i) >> 8);
+        pdu[3 + 2 * i] = (lh_byte_t)(first + i);
+    }
+    return lh_mb_encode(lh_mb_framing_rtu, unit, 0, pdu, (lh_u16_t)(2 + 2 * words), out,
+                        LH_MB_ADU_MAX);
+}
+
+void
+setup_rtu(lh_test_link *t)
+{
+    setup(t, LH_MB_FC_READ_HOLDING);
+    lh_mb_link_set_framing(&t->link, lh_mb_framing_rtu);
+}
+
+} // namespace
+
+TEST(lh_mb_link, rtu_what_came_before_the_question_is_not_its_answer)
+{
+    lh_u16_t count = 0;
+
+    /* The late answer to the question before: same function, same width. */
+    lh_test_link t;
+    setup_rtu(&t);
+    lh_byte_t stale[LH_MB_ADU_MAX];
+    feed(&t, stale, rtu_answer(stale, 1, 3, 100));
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 3));
+    EXPECT_EQ(t.tcp.in_at, t.tcp.in_size) << "read off the line before the question went out";
+    lh_byte_t fresh[LH_MB_ADU_MAX];
+    append(&t, fresh, rtu_answer(fresh, 1, 3, 200));
+    ASSERT_EQ(lh_mb_link_poll(&t.link, 1000000), lh_mb_link_answered);
+    EXPECT_EQ(lh_mb_link_take(&t.link, &count)[0], (lh_u16_t)200);
+}
+
+TEST(lh_mb_link, mbap_keeps_what_came_before_the_question)
+{
+    lh_test_link t;
+    setup(&t, LH_MB_FC_READ_HOLDING);
+    feed(&t, kRead3Holding, (lh_u16_t)sizeof(kRead3Holding));
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 3));
+    EXPECT_EQ(t.tcp.in_at, (lh_u16_t)0)
+        << "a transaction id tells it apart; nothing is thrown away";
+}
+
+TEST(lh_mb_link, rtu_a_bad_crc_from_our_unit_fails_at_once)
+{
+    lh_test_link t;
+    setup_rtu(&t);
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 3));
+    lh_byte_t answer[LH_MB_ADU_MAX];
+    const lh_u16_t length = rtu_answer(answer, 1, 3, 7);
+    answer[length - 1] ^= 0xFF;
+    feed(&t, answer, length);
+    ASSERT_EQ(lh_mb_link_poll(&t.link, 1000000), lh_mb_link_failed)
+        << "no timeout: the answer is here";
+    EXPECT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_crc);
+    EXPECT_EQ(lh_mb_link_counters_get_failed(lh_mb_link_get_counters(&t.link)), (lh_u32_t)1);
+}
+
+TEST(lh_mb_link, rtu_another_units_answer_and_ours_back_to_back)
+{
+    lh_u16_t count = 0;
+
+    lh_test_link t;
+    setup_rtu(&t);
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 3));
+    lh_byte_t other[LH_MB_ADU_MAX];
+    feed(&t, other, rtu_answer(other, 2, 3, 50));
+    lh_byte_t ours[LH_MB_ADU_MAX];
+    append(&t, ours, rtu_answer(ours, 1, 3, 60));
+    ASSERT_EQ(lh_mb_link_poll(&t.link, 1000000), lh_mb_link_answered);
+    EXPECT_EQ(lh_mb_link_take(&t.link, &count)[0], (lh_u16_t)60);
+}
+
+TEST(lh_mb_link, rtu_another_units_broken_frame_loses_the_place_and_not_the_question)
+{
+    lh_test_link t;
+    setup_rtu(&t);
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 3));
+    lh_byte_t other[LH_MB_ADU_MAX];
+    const lh_u16_t length = rtu_answer(other, 2, 3, 50);
+    other[3] ^= 0x01;
+    feed(&t, other, length);
+    EXPECT_EQ(lh_mb_link_poll(&t.link, 1000000), lh_mb_link_waiting);
+    EXPECT_EQ(lh_mb_link_get_held(&t.link), (lh_u16_t)0);
+}
+
+TEST(lh_mb_link, rtu_silence_longer_than_the_gap_breaks_a_frame)
+{
+    lh_test_link t;
+    setup_rtu(&t);
+    lh_mb_link_set_gap_us(&t.link, 4000);
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 3));
+    lh_byte_t answer[LH_MB_ADU_MAX];
+    const lh_u16_t length = rtu_answer(answer, 1, 3, 9);
+    feed(&t, answer, 4);
+    EXPECT_EQ(lh_mb_link_poll(&t.link, 1000000), lh_mb_link_waiting);
+    t.now_us += 5000;
+    append(&t, answer + 4, (lh_u16_t)(length - 4));
+    EXPECT_EQ(lh_mb_link_poll(&t.link, 1000000), lh_mb_link_waiting)
+        << "the tail alone is no frame";
+    EXPECT_EQ(lh_mb_link_get_held(&t.link), (lh_u16_t)(length - 4));
+}
+
+TEST(lh_mb_link, rtu_silence_within_the_gap_does_not)
+{
+    lh_test_link t;
+    setup_rtu(&t);
+    lh_mb_link_set_gap_us(&t.link, 4000);
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 3));
+    lh_byte_t answer[LH_MB_ADU_MAX];
+    const lh_u16_t length = rtu_answer(answer, 1, 3, 9);
+    feed(&t, answer, 4);
+    EXPECT_EQ(lh_mb_link_poll(&t.link, 1000000), lh_mb_link_waiting);
+    t.now_us += 3000;
+    append(&t, answer + 4, (lh_u16_t)(length - 4));
+    EXPECT_EQ(lh_mb_link_poll(&t.link, 1000000), lh_mb_link_answered);
+}
+
+TEST(lh_mb_link, rtu_a_broadcast_write_is_done_once_sent)
+{
+    lh_test_link t;
+    setup_rtu(&t);
+    lh_mb_link_set_unit(&t.link, LH_MB_UNIT_BROADCAST);
+    EXPECT_TRUE(lh_mb_link_is_broadcast(&t.link));
+    ASSERT_TRUE(lh_mb_link_write_one(&t.link, 5, 6));
+    EXPECT_EQ(lh_mb_link_get_state(&t.link), (lh_u8_t)lh_mb_link_answered);
+    EXPECT_EQ(lh_mb_link_counters_get_done(lh_mb_link_get_counters(&t.link)), (lh_u32_t)1);
+    lh_mb_link_release(&t.link);
+    EXPECT_FALSE(lh_mb_link_ask(&t.link, 0, 1)) << "nobody would answer a broadcast read";
+}
+
+TEST(lh_mb_link, mbap_unit_zero_is_not_a_broadcast)
+{
+    lh_test_link t;
+    setup(&t, LH_MB_FC_READ_HOLDING);
+    lh_mb_link_set_unit(&t.link, LH_MB_UNIT_BROADCAST);
+    EXPECT_FALSE(lh_mb_link_is_broadcast(&t.link));
+}
+
+TEST(lh_mb_link, a_refusal_keeps_its_exception_code_until_the_next_question)
+{
+    const lh_byte_t busy[] = {0x00, 0x01, 0x00, 0x00, 0x00, 0x03, 0x01, 0x83, 0x06};
+
+    lh_test_link t;
+    setup(&t, LH_MB_FC_READ_HOLDING);
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 3));
+    feed(&t, busy, (lh_u16_t)sizeof(busy));
+    ASSERT_EQ(lh_mb_link_poll(&t.link, 1000000), lh_mb_link_failed);
+    EXPECT_EQ(lh_mb_link_get_exception(&t.link), (lh_u8_t)0x06)
+        << "busy: ask again, not stop asking";
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 3));
+    EXPECT_EQ(lh_mb_link_get_exception(&t.link), (lh_u8_t)0);
+}
+
+TEST(lh_mb_link, settle_sends_each_kind_of_answer_to_its_own_counter)
+{
+    lh_test_link t;
+    setup(&t, LH_MB_FC_READ_HOLDING);
+    const lh_mb_link_counters_t *c = lh_mb_link_get_counters(&t.link);
+
+    EXPECT_EQ(lh_mb_link_settle(&t.link, lh_mb_status_ok), lh_mb_link_answered);
+    EXPECT_EQ(lh_mb_link_settle(&t.link, lh_mb_status_partial), lh_mb_link_answered);
+    EXPECT_EQ(lh_mb_link_counters_get_done(c), (lh_u32_t)2);
+    EXPECT_EQ(lh_mb_link_settle(&t.link, lh_mb_status_exception), lh_mb_link_failed);
+    EXPECT_EQ(lh_mb_link_counters_get_refused(c), (lh_u32_t)1);
+    EXPECT_EQ(lh_mb_link_counters_get_failed(c), (lh_u32_t)0) << "a refusal is an answer";
+    EXPECT_EQ(lh_mb_link_settle(&t.link, lh_mb_status_garbage), lh_mb_link_failed);
+    EXPECT_EQ(lh_mb_link_counters_get_failed(c), (lh_u32_t)1);
+    EXPECT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_garbage);
+    EXPECT_EQ(lh_mb_link_get_state(&t.link), (lh_u8_t)lh_mb_link_idle)
+        << "failed is a result, not a place";
+}
+
+TEST(lh_mb_link, rtu_a_flush_that_finds_the_stream_closed_loses_it)
+{
+    lh_test_link t;
+    setup(&t, LH_MB_FC_READ_HOLDING);
+    lh_mb_link_set_framing(&t.link, lh_mb_framing_rtu);
+    t.tcp.closed = true;
+    EXPECT_FALSE(lh_mb_link_try_flush(&t.link));
+    EXPECT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_lost);
+    EXPECT_FALSE(lh_mb_link_ask(&t.link, 0, 1)) << "and no question goes out on it";
+}

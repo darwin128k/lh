@@ -9,6 +9,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Modbus server: `lh_mb_server_t` (`lh/core/net/modbus/server.h`), the device side of
+  `lh_mb_link_t` over the same streams and framings (RTU, Modbus TCP). Codes 0x03, 0x04,
+  0x06, 0x10; every other code is refused as an illegal function. The register map is the
+  application's, behind `lh_mb_server_read_fn` / `lh_mb_server_write_fn`
+  (`server/read/`, `server/write/`); a request reaches them only after every check the
+  protocol makes, and what fails one is refused with the exception the specification names
+  for it. Over RTU another unit's request is stepped over, unit 0 is a broadcast (done, not
+  answered), and with `lh_mb_server_set_gap_us` silence ends a frame and an unknown code is
+  refused at the silence. Over Modbus TCP the answer carries the transaction id and
+  requests that arrive together are served one by one. Non-blocking, one request per
+  `lh_mb_server_poll`, result in `lh_mb_server_result_t`, counters in
+  `lh_mb_server_counters_t`. Tested in memory (`modbus_server.cpp`, including 5 000 random
+  questions from an LH link over RTU and over TCP with bytes arriving in pieces) and against
+  pymodbus and a raw misbehaving master over a pseudo-terminal and TCP.
+- Server wire bricks in `lh/core/net/modbus.h`: `lh_mb_is_fc_supported`,
+  `lh_mb_rtu_request_length` (a request is sized differently from its answer),
+  `lh_mb_build_pdu_exception`, `lh_mb_build_pdu_read_answer`, the exception codes
+  `LH_MB_EXCEPTION_*`; `lh_mb_rtu_is_crc_valid`, now the one CRC check of a frame.
+- `lh_mb_link_get_exception`: the exception code of the last refusal. "Server device busy"
+  (ask again) and "illegal data address" (stop asking) were the same `reason` and the code
+  was thrown away.
+- `lh_mb_link_set_gap_us` (RTU): silence longer than the gap breaks a frame, as the
+  specification says; off by default, since a USB serial adapter delivers bytes in bursts.
+  `lh_mb_link_get_time_us`, `lh_mb_link_is_broadcast`, `lh_mb_link_try_flush`.
+- Modbus emulator bench (`test/emu/modbus/`, `test/src/lh/os/net/modbus_emu.cpp`):
+  `run.sh BUILD_DIR` starts socat pseudo-terminal pairs, a pymodbus server (the reference),
+  a device that breaks one answer on request (25 faults: bad CRC, other units, late,
+  duplicated, truncated, in pieces, lying byte counts, wrong codes and echoes, MBAP
+  transaction and protocol faults, a closed connection) and pymodbus plus raw masters for
+  the server, then runs the tests against them. Skipped when not started by it.
+
 - `lh_ui_display_backend` (`lh/ui/display/backend.h`): a canvas backend whose context is
   the display. `begin_area` moves the display's strip to the area, `end` presents what was
   drawn, the drawing slots are the software backend's. `lh_ui_display_backend_bind` puts a
@@ -41,6 +72,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Modbus RTU link: an answer that came late, or a device's answer sent twice, was taken
+  for the answer to the next question asking the same function and width -- with the
+  values of the one before (found by the emulator: 30 read back where 6000 was asked).
+  `lh_mb_link_send` now throws away what the line delivered before the question
+  (`lh_mb_link_try_flush`); Modbus TCP keeps it, the transaction id tells it apart.
+- Modbus RTU link: another unit's answer followed at once by ours lost ours (everything
+  held was dropped with the other frame); a whole frame with a good CRC is now stepped
+  over by its length. An answer from our unit with a bad CRC failed only at the timeout,
+  as `short`; it now fails at once as `lh_mb_status_crc`.
+- Modbus link: a broadcast write (RTU, unit 0) waited for an answer nobody sends and was
+  counted as a failure; it is done once sent, and a broadcast read is not sent.
+- `lh_mb_parse_pdu`: an answer with more words than were asked for was accepted as `ok`;
+  it is `lh_mb_status_garbage`.
+
 - The rail CPU layer was chosen by `CMAKE_SYSTEM_PROCESSOR` alone, so a board whose
   toolchain file said `arm` got the PC model: interrupts were never masked, `wait for
   interrupt` did not wait, and with LTO the tick clock folded to a constant (0 ms elapsed
@@ -52,6 +97,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `memory/std.c` had `/*` inside a comment (`-Wcomment`).
 
 ### Changed
+
+- Modbus frames pack and read their big- and little-endian words with
+  `lh_bit_pack_be16` / `lh_bit_unpack_be16` / `lh_bit_pack_le16` / `lh_bit_unpack_le16`
+  instead of shifting by hand. `lh_mb_link_consume` keeps what follows the consumed bytes
+  over RTU too.
 
 - The check macros (`lh_runtime_check_fail_here`) take the origin's address with
   `lh_addr_of`; no header writes a bare address-of any more (checked in clang's AST).

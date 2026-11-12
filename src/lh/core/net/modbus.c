@@ -5,6 +5,7 @@
 
 #include <lh/core/net/modbus.h>
 #include <lh/core/hash/crc.h>
+#include <lh/core/bit/endian.h>
 
 #include <lh/core/memory/std.h>
 #include <lh/core/util/return.h>
@@ -20,6 +21,14 @@ lh_mb_crc16(lh_byte_cptr bytes, lh_u16_t length)
 {
     lh_return_if(lh_null_eq(bytes), lh_cast_static(lh_u16_t, 0xFFFFU));
     return lh_cast_static(lh_u16_t, lh_hash_crc_reflected_update(0xFFFFU, bytes, length, 0xA001U));
+}
+
+lh_bool_t
+lh_mb_rtu_is_crc_valid(lh_byte_cptr frame, lh_u16_t length)
+{
+    lh_return_ifn(lh_null_ne(frame) && length >= 4, lh_bool_false);
+    return lh_cast_static(lh_bool_t, lh_mb_crc16(frame, lh_cast_static(lh_u16_t, (length - 2))) ==
+                                         lh_bit_unpack_le16(lh_addr_of(frame[length - 2])));
 }
 
 /* -- Frames ----------------------------------------------------------------
@@ -40,10 +49,8 @@ lh_mb_build_pdu_read(lh_byte_ptr pdu, lh_u16_t cap, lh_u8_t fc, lh_u16_t address
                   lh_cast_static(lh_u16_t, 0));
 
     pdu[0] = fc;
-    pdu[1] = lh_cast_static(lh_byte_t, ((address >> 8) & 0xFF));
-    pdu[2] = lh_cast_static(lh_byte_t, (address & 0xFF));
-    pdu[3] = lh_cast_static(lh_byte_t, ((count >> 8) & 0xFF));
-    pdu[4] = lh_cast_static(lh_byte_t, (count & 0xFF));
+    lh_bit_pack_be16(address, lh_addr_of(pdu[1]));
+    lh_bit_pack_be16(count, lh_addr_of(pdu[3]));
     return 5;
 }
 
@@ -56,15 +63,12 @@ lh_mb_build_pdu_write(lh_byte_ptr pdu, lh_u16_t cap, lh_u16_t address, const lh_
     lh_return_if(cap < lh_cast_static(lh_u16_t, (6 + count * 2)), lh_cast_static(lh_u16_t, 0));
 
     pdu[0] = LH_MB_FC_WRITE_MANY;
-    pdu[1] = lh_cast_static(lh_byte_t, ((address >> 8) & 0xFF));
-    pdu[2] = lh_cast_static(lh_byte_t, (address & 0xFF));
-    pdu[3] = lh_cast_static(lh_byte_t, ((count >> 8) & 0xFF));
-    pdu[4] = lh_cast_static(lh_byte_t, (count & 0xFF));
+    lh_bit_pack_be16(address, lh_addr_of(pdu[1]));
+    lh_bit_pack_be16(count, lh_addr_of(pdu[3]));
     pdu[5] = lh_cast_static(lh_byte_t, (count * 2));
     for (lh_u16_t i = 0; i < count; ++i)
     {
-        pdu[6 + i * 2] = lh_cast_static(lh_byte_t, ((values[i] >> 8) & 0xFF));
-        pdu[7 + i * 2] = lh_cast_static(lh_byte_t, (values[i] & 0xFF));
+        lh_bit_pack_be16(values[i], lh_addr_of(pdu[6 + i * 2]));
     }
     return (lh_u16_t)(6 + count * 2);
 }
@@ -74,10 +78,8 @@ lh_mb_build_pdu_write_one(lh_byte_ptr pdu, lh_u16_t cap, lh_u16_t address, lh_u1
 {
     lh_return_if(lh_null_eq(pdu) || cap < 5, lh_cast_static(lh_u16_t, 0));
     pdu[0] = LH_MB_FC_WRITE_ONE;
-    pdu[1] = lh_cast_static(lh_byte_t, ((address >> 8) & 0xFF));
-    pdu[2] = lh_cast_static(lh_byte_t, (address & 0xFF));
-    pdu[3] = lh_cast_static(lh_byte_t, ((value >> 8) & 0xFF));
-    pdu[4] = lh_cast_static(lh_byte_t, (value & 0xFF));
+    lh_bit_pack_be16(address, lh_addr_of(pdu[1]));
+    lh_bit_pack_be16(value, lh_addr_of(pdu[3]));
     return 5;
 }
 
@@ -96,8 +98,7 @@ lh_mb_build_read(lh_byte_ptr adu, lh_u16_t cap, lh_u8_t unit, lh_u8_t fc, lh_u16
     adu[0] = unit;
     lh_memory_std_copy(lh_addr_of(adu[1]), pdu, pdu_length);
     lh_u16_t crc = lh_mb_crc16(adu, lh_cast_static(lh_u16_t, (1 + pdu_length)));
-    adu[1 + pdu_length] = lh_cast_static(lh_byte_t, (crc & 0xFF));
-    adu[2 + pdu_length] = lh_cast_static(lh_byte_t, ((crc >> 8) & 0xFF));
+    lh_bit_pack_le16(crc, lh_addr_of(adu[1 + pdu_length]));
     return (lh_u16_t)(3 + pdu_length);
 }
 
@@ -117,8 +118,7 @@ lh_mb_build_write(lh_byte_ptr adu, lh_u16_t cap, lh_u8_t unit, lh_u16_t address,
     adu[0] = unit;
     lh_memory_std_copy(lh_addr_of(adu[1]), pdu, pdu_length);
     lh_u16_t crc = lh_mb_crc16(adu, lh_cast_static(lh_u16_t, (1 + pdu_length)));
-    adu[1 + pdu_length] = lh_cast_static(lh_byte_t, (crc & 0xFF));
-    adu[2 + pdu_length] = lh_cast_static(lh_byte_t, ((crc >> 8) & 0xFF));
+    lh_bit_pack_le16(crc, lh_addr_of(adu[1 + pdu_length]));
     return (lh_u16_t)(3 + pdu_length);
 }
 
@@ -180,14 +180,21 @@ lh_mb_parse_pdu(lh_byte_cptr pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expect, 
     {
         return lh_mb_status_short;
     }
+    /* More words than were asked for is not a generous answer, it is an answer to
+       some other question -- or a byte count that is wrong and a frame whose end is
+       somewhere else. Neither can be taken: the words cannot be told from the bytes
+       of whatever was mistaken for them. */
+    if (got > expect)
+    {
+        return lh_mb_status_garbage;
+    }
     if (values != lh_null)
     {
         const lh_u16_t take = lh_math_min(got, cap);
 
         for (lh_u16_t i = 0; i < take; ++i)
         {
-            values[i] = lh_cast_static(
-                lh_u16_t, (lh_cast_static(lh_u16_t, pdu[2 + i * 2]) << 8 | pdu[3 + i * 2]));
+            values[i] = lh_bit_unpack_be16(lh_addr_of(pdu[2 + i * 2]));
         }
     }
     if (out != lh_null)
@@ -220,10 +227,9 @@ lh_mb_parse_pdu_write(lh_byte_cptr pdu, lh_u16_t length, lh_u16_t address, lh_u1
     lh_return_if(length < 5, lh_mb_status_short);
     lh_return_if(pdu[0] != LH_MB_FC_WRITE_MANY, lh_mb_status_wrong_code);
     /* The echo has to be this write: the same address and the same count. */
-    lh_return_if(
-        (lh_cast_static(lh_u16_t, (lh_cast_static(lh_u16_t, pdu[1]) << 8 | pdu[2]))) != address ||
-            (lh_cast_static(lh_u16_t, (lh_cast_static(lh_u16_t, pdu[3]) << 8 | pdu[4]))) != count,
-        lh_mb_status_garbage);
+    lh_return_if(lh_bit_unpack_be16(lh_addr_of(pdu[1])) != address ||
+                     lh_bit_unpack_be16(lh_addr_of(pdu[3])) != count,
+                 lh_mb_status_garbage);
     return lh_mb_status_ok;
 }
 
@@ -249,10 +255,9 @@ lh_mb_parse_pdu_write_one(lh_byte_cptr pdu, lh_u16_t length, lh_u16_t address, l
     lh_return_if(pdu[0] != LH_MB_FC_WRITE_ONE, lh_mb_status_wrong_code);
     /* The whole request comes back, so the value is checked as well as the
        address: a device that stored something else says so here. */
-    lh_return_if(
-        (lh_cast_static(lh_u16_t, (lh_cast_static(lh_u16_t, pdu[1]) << 8 | pdu[2]))) != address ||
-            (lh_cast_static(lh_u16_t, (lh_cast_static(lh_u16_t, pdu[3]) << 8 | pdu[4]))) != value,
-        lh_mb_status_garbage);
+    lh_return_if(lh_bit_unpack_be16(lh_addr_of(pdu[1])) != address ||
+                     lh_bit_unpack_be16(lh_addr_of(pdu[3])) != value,
+                 lh_mb_status_garbage);
     return lh_mb_status_ok;
 }
 
@@ -305,9 +310,7 @@ lh_mb_parse_read(lh_byte_cptr adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc, lh
     /* The CRC covers everything but the last two bytes, and it is checked before
        anything is taken out of the frame: a corrupted byte count would send the
        copy off the end of the buffer on the strength of a bad byte. */
-    if (lh_mb_crc16(adu, lh_cast_static(lh_u16_t, (length - 2))) !=
-        lh_cast_static(lh_u16_t,
-                       (lh_cast_static(lh_u16_t, adu[length - 1]) << 8 | adu[length - 2])))
+    if (!lh_mb_rtu_is_crc_valid(adu, length))
     {
         return lh_mb_status_crc;
     }
@@ -317,6 +320,55 @@ lh_mb_parse_read(lh_byte_cptr adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc, lh
                        lh_cast_static(lh_usize_t, (length - 4)));
     pdu_length = lh_cast_static(lh_u16_t, (length - 3));
     return lh_mb_parse_pdu(pdu, pdu_length, fc, expect, values, cap, out, lh_null);
+}
+
+/* -- The server's side of the wire ------------------------------------------ */
+
+lh_bool_t
+lh_mb_is_fc_supported(lh_u8_t fc)
+{
+    return lh_cast_static(lh_bool_t, (fc == LH_MB_FC_READ_HOLDING || fc == LH_MB_FC_READ_INPUT ||
+                                      fc == LH_MB_FC_WRITE_ONE || fc == LH_MB_FC_WRITE_MANY));
+}
+
+lh_u16_t
+lh_mb_rtu_request_length(lh_byte_cptr frame, lh_u16_t have)
+{
+    lh_return_if(lh_null_eq(frame) || have < 2, lh_cast_static(lh_u16_t, 0));
+    lh_return_ifn(lh_mb_is_fc_supported(frame[1]), lh_cast_static(lh_u16_t, 0));
+    if (frame[1] != LH_MB_FC_WRITE_MANY)
+    {
+        return 8; /* unit, code, address, count or value, CRC */
+    }
+    /* unit, code, address, count, byte count, the words, CRC */
+    lh_return_if(have < 7, lh_cast_static(lh_u16_t, 0));
+    return lh_cast_static(lh_u16_t, (9 + frame[6]));
+}
+
+lh_u16_t
+lh_mb_build_pdu_exception(lh_byte_ptr pdu, lh_u16_t cap, lh_u8_t fc, lh_u8_t code)
+{
+    lh_return_if(lh_null_eq(pdu) || cap < 2, lh_cast_static(lh_u16_t, 0));
+    pdu[0] = lh_cast_static(lh_byte_t, (fc | 0x80));
+    pdu[1] = code;
+    return 2;
+}
+
+lh_u16_t
+lh_mb_build_pdu_read_answer(lh_byte_ptr pdu, lh_u16_t cap, lh_u8_t fc, const lh_u16_t *values,
+                            lh_u16_t count)
+{
+    lh_return_if(lh_null_eq(pdu) || lh_null_eq(values), lh_cast_static(lh_u16_t, 0));
+    lh_return_if(count == 0 || count > LH_MB_READ_MAX, lh_cast_static(lh_u16_t, 0));
+    lh_return_if(cap < lh_cast_static(lh_u16_t, (2 + count * 2)), lh_cast_static(lh_u16_t, 0));
+
+    pdu[0] = fc;
+    pdu[1] = lh_cast_static(lh_byte_t, (count * 2));
+    for (lh_u16_t i = 0; i < count; ++i)
+    {
+        lh_bit_pack_be16(values[i], lh_addr_of(pdu[2 + i * 2]));
+    }
+    return lh_cast_static(lh_u16_t, (2 + count * 2));
 }
 
 /* -- The plan --------------------------------------------------------------

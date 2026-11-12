@@ -145,6 +145,14 @@ typedef struct lh_mb_link
     lh_u16_t got;      /**< how many the answer carried */
     /** @brief The word a "write one register" sent, which its echo has to carry back. */
     lh_u16_t written;
+    /** @brief The device's exception code when the last answer was a refusal
+     *  (::lh_mb_status_exception), 0 otherwise.
+     *
+     *  The reason says *that* the device refused, this says *why*, and the two
+     *  refusals an app meets most want opposite things: 0x02 "illegal data address"
+     *  means stop asking that address, 0x06 "server device busy" means ask again in
+     *  a moment. */
+    lh_u8_t exception;
     /** @brief Bytes received and not yet consumed.
      *
      *  Over MBAP this is a window on a byte stream, and it outlives a question: what
@@ -178,6 +186,18 @@ typedef struct lh_mb_link
      * device that is not there.
      */
     lh_u64_t since_us;
+    /** @brief When the last bytes of an answer arrived, on the link's own clock. */
+    lh_u64_t heard_us;
+    /** @brief RTU only: silence, in microseconds, that ends a frame; 0 does not
+     *  look at silence (the default).
+     *
+     *  RTU marks the end of a frame by three and a half characters of silence and
+     *  nothing else (about 4 ms at 9600 baud, 1.75 ms above 19200). Bytes that
+     *  arrive after that much silence start a new frame, so what was held before
+     *  them is a broken frame and goes. Off by default because a USB serial adapter
+     *  delivers bytes in bursts up to 16 ms apart, and a gap measured on the far
+     *  side of one is not the gap on the wire. */
+    lh_u32_t gap_us;
     lh_u16_t values[LH_MB_LINK_VALUES]; /**< words of the last answer (::lh_mb_link_take) */
     lh_byte_t frame[LH_MB_ADU_MAX];     /**< bytes received, the first ::held of them live */
     lh_mb_link_counters_t counters;     /**< what this link has cost so far */
@@ -414,6 +434,63 @@ lh_mb_link_get_written(const lh_mb_link_t *self);
  */
 lh_void
 lh_mb_link_set_written(lh_mb_link_t *self, lh_u16_t written);
+
+/**
+ * @brief The device's exception code when the last answer was a refusal, 0
+ *        otherwise (level 1).
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_u8_t
+lh_mb_link_get_exception(const lh_mb_link_t *self);
+
+/**
+ * @brief Store the device's exception code (level 1).
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @param exception The new value.
+ */
+lh_void
+lh_mb_link_set_exception(lh_mb_link_t *self, lh_u8_t exception);
+
+/**
+ * @brief When the last bytes of an answer arrived, on the link's clock (level 1).
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_u64_t
+lh_mb_link_get_heard_us(const lh_mb_link_t *self);
+
+/**
+ * @brief Store when the last bytes of an answer arrived (level 1).
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @param heard_us The new value.
+ */
+lh_void
+lh_mb_link_set_heard_us(lh_mb_link_t *self, lh_u64_t heard_us);
+
+/**
+ * @brief RTU only: the silence, in microseconds, that ends a frame; 0 when the
+ *        link does not look at silence (level 1).
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_u32_t
+lh_mb_link_get_gap_us(const lh_mb_link_t *self);
+
+/**
+ * @brief Set the silence that ends an RTU frame (level 1).
+ *
+ * Three and a half characters is the specification's figure: 4 ms at 9600 baud,
+ * 1750 µs at any rate above 19200. It needs the link's clock; without one it has
+ * no effect. Over Modbus TCP it is ignored.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @param gap_us The silence in microseconds; 0 turns the check off.
+ */
+lh_void
+lh_mb_link_set_gap_us(lh_mb_link_t *self, lh_u32_t gap_us);
 
 /**
  * @brief How many bytes of ::lh_mb_link_get_frame are received and not yet consumed (level 1).
@@ -659,10 +736,32 @@ lh_mb_link_set_fc(lh_mb_link_t *self, lh_u8_t fc);
 lh_mb_link_state_t
 lh_mb_link_lose(lh_mb_link_t *self);
 
-/** Drop the first @p n bytes held. Over MBAP what follows them is the start of the
-   next frame and is kept: TCP is a stream, a recv hands over whatever has arrived,
-   and an answer and the frame behind it come in one piece as often as not. Over RTU
-   there is no length to find the next frame by, so everything goes. */
+/**
+ * @brief The link's clock now, in microseconds; 0 when the link has no clock
+ *        (level 2: ::lh_mb_link_get_now_us and ::lh_mb_link_get_clock).
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_u64_t
+lh_mb_link_get_time_us(const lh_mb_link_t *self);
+
+/**
+ * @brief Whether a question from @p self goes to every unit and is answered by
+ *        none: RTU with unit ::LH_MB_UNIT_BROADCAST (level 2).
+ *
+ * Over Modbus TCP unit 0 is not a broadcast: a TCP server answers it as its own
+ * address, so a link there waits for the answer like for any other unit.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_bool_t
+lh_mb_link_is_broadcast(const lh_mb_link_t *self);
+
+/** Drop the first @p n bytes held and keep what follows them: it is the start of
+   the next frame. TCP is a stream, a recv hands over whatever has arrived, and an
+   answer and the frame behind it come in one piece as often as not; on an RTU line
+   another unit's answer and ours can come back to back the same way. @p n at or
+   past ::lh_mb_link_get_held empties the buffer. */
 lh_void
 lh_mb_link_consume(lh_mb_link_t *self, lh_u16_t n);
 
@@ -680,6 +779,53 @@ lh_mb_link_consume(lh_mb_link_t *self, lh_u16_t n);
  */
 const lh_u16_t *
 lh_mb_link_take(lh_mb_link_t *self, lh_u16_t *count);
+
+/**
+ * @brief End the question in flight as a failure: idle, @p reason, and one more in
+ *        ::lh_mb_link_counters_t.failed.
+ *
+ * @param self   The link; checked by ::lh_assert_runtime_ref.
+ * @param reason Why, as ::lh_mb_link_get_reason will say.
+ *
+ * @return ::lh_mb_link_failed, for the caller to return.
+ */
+lh_mb_link_state_t
+lh_mb_link_fail(lh_mb_link_t *self, lh_mb_status_t reason);
+
+/**
+ * @brief Read the answer's @p pdu by the question that was asked: the words of a
+ *        read, the echo of a write, or a refusal.
+ *
+ * Stores the words (::lh_mb_link_get_values, ::lh_mb_link_get_got), the reason and
+ * the exception code.
+ *
+ * @param self       The link; checked by ::lh_assert_runtime_ref.
+ * @param pdu        The answer's PDU.
+ * @param pdu_length How long it is.
+ *
+ * @return What the answer is. @see lh_mb_status_t
+ */
+lh_mb_status_t
+lh_mb_link_parse_answer(lh_mb_link_t *self, const lh_byte_ptr pdu, lh_u16_t pdu_length);
+
+/**
+ * @brief RTU: throw away whatever the line has delivered and nobody asked for.
+ *
+ * Called by ::lh_mb_link_send before a question goes out. An RTU answer carries
+ * nothing that says which question it answers, so the late answer to a question
+ * that timed out, or an answer a device sent twice, parses perfectly as the answer
+ * to the next question that asks the same function and width -- with the values of
+ * the one before. What is on the line before a question is not its answer, so it
+ * goes. Over MBAP nothing is thrown away: the transaction id tells a late answer
+ * from this one, and dropping bytes there puts every later frame out of step.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ *
+ * @return ::lh_bool_false when the stream ended or failed while it was read (the
+ *         link is then lost, ::lh_mb_link_lose); ::lh_bool_true otherwise.
+ */
+lh_bool_t
+lh_mb_link_try_flush(lh_mb_link_t *self);
 
 /**
  * @brief Hand the answer back and go idle.
@@ -707,6 +853,52 @@ lh_void
 lh_mb_link_init(lh_mb_link_t *self, const lh_io_stream_t *stream, lh_mb_framing_t framing,
                 lh_u8_t unit, lh_mb_link_clock_cb now_us, lh_ptr clock);
 
+/**
+ * @brief Find the answer to the question in flight in what is held, stepping over
+ *        every whole frame that is not it.
+ *
+ * @param self       The link; checked by ::lh_assert_runtime_ref.
+ * @param timeout_us How long the question may stay unanswered.
+ * @param pdu        Where the answer's PDU goes; ::LH_MB_ADU_MAX bytes.
+ * @param pdu_length How long it is.
+ *
+ * @return ::lh_mb_link_answered when @p pdu holds the answer, still to be parsed;
+ *         ::lh_mb_link_waiting when it has not all come yet; ::lh_mb_link_failed
+ *         (::lh_mb_link_fail) on a timeout, a header that is no Modbus header, or our
+ *         unit's frame with a bad CRC.
+ */
+lh_mb_link_state_t
+lh_mb_link_find_answer(lh_mb_link_t *self, lh_u32_t timeout_us, lh_byte_ptr pdu,
+                       lh_u16_t *pdu_length);
+
+/**
+ * @brief End the question in flight by what its answer was: answered for
+ *        ::lh_mb_status_ok and ::lh_mb_status_partial, refused for an exception,
+ *        failed for anything else -- each to its own counter.
+ *
+ * @param self   The link; checked by ::lh_assert_runtime_ref.
+ * @param status What ::lh_mb_link_parse_answer said.
+ *
+ * @return ::lh_mb_link_answered or ::lh_mb_link_failed.
+ */
+lh_mb_link_state_t
+lh_mb_link_settle(lh_mb_link_t *self, lh_mb_status_t status);
+
+/**
+ * @brief One read of the stream into what is held, without waiting.
+ *
+ * Counts the bytes, and over RTU with a gap (::lh_mb_link_set_gap_us) drops what
+ * was held before a silence longer than the gap. Reads nothing when the buffer is
+ * full.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ *
+ * @return ::lh_bool_false when the stream ended or failed (the link is then lost,
+ *         ::lh_mb_link_lose); ::lh_bool_true otherwise, whether or not anything came.
+ */
+lh_bool_t
+lh_mb_link_try_receive(lh_mb_link_t *self);
+
 /** Everything after the PDU is the same for a read and a write: the envelope, the send,
    and the bookkeeping that makes the answer this question's. @p fc is the code the
    answer will carry, and ::lh_mb_link_poll reads it by that. */
@@ -728,17 +920,6 @@ lh_mb_link_send(lh_mb_link_t *self, const lh_byte_ptr pdu, lh_u16_t pdu_length, 
  */
 lh_mb_link_state_t
 lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us);
-
-/**
- * @brief Ask for @p count registers at @p address, if nothing else is in flight.
- *
- * @return Whether a question went out. False means the link is busy, which is
- *         what keeps one device from being asked two things at once: a second
- *         request while the first is unanswered would arrive after its own answer
- *         and be answered as somebody else's frame.
- */
-lh_bool_t
-lh_mb_link_ask(lh_mb_link_t *self, lh_u16_t address, lh_u16_t count);
 
 /**
  * @brief Write @p count registers from @p values at @p address ("write many
@@ -767,6 +948,17 @@ lh_mb_link_write(lh_mb_link_t *self, lh_u16_t address, const lh_u16_t *values, l
  */
 lh_bool_t
 lh_mb_link_write_one(lh_mb_link_t *self, lh_u16_t address, lh_u16_t value);
+
+/**
+ * @brief Ask for @p count registers at @p address, if nothing else is in flight.
+ *
+ * @return Whether a question went out. False means the link is busy, which is
+ *         what keeps one device from being asked two things at once: a second
+ *         request while the first is unanswered would arrive after its own answer
+ *         and be answered as somebody else's frame.
+ */
+lh_bool_t
+lh_mb_link_ask(lh_mb_link_t *self, lh_u16_t address, lh_u16_t count);
 
 LH_COMPILER_EXTERN_C_END
 

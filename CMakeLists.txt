@@ -322,6 +322,8 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/net/modbus.c
         ${LH_LIB_SRC_PATH}/core/net/modbus/link.c
         ${LH_LIB_SRC_PATH}/core/net/modbus/link/counters.c
+        ${LH_LIB_SRC_PATH}/core/net/modbus/server.c
+        ${LH_LIB_SRC_PATH}/core/net/modbus/server/counters.c
         ${LH_LIB_SRC_PATH}/core/net/modbus/read.c
         ${LH_LIB_SRC_PATH}/core/net/modbus/want.c
 

@@ -99,6 +99,20 @@ lh_u16_t
 lh_mb_crc16(const lh_byte_ptr bytes, lh_u16_t length);
 
 /**
+ * @brief Whether the last two bytes of an RTU frame are the CRC of the bytes before
+ *        them, low byte first.
+ *
+ * @param frame  A whole RTU frame: unit, PDU, CRC.
+ * @param length How many bytes @p frame holds.
+ *
+ * @return ::lh_bool_true when the CRC checks; ::lh_bool_false when it does not,
+ *         when @p frame is `lh_null` or when it is too short to hold a unit, a
+ *         function code and a CRC (4 bytes).
+ */
+lh_bool_t
+lh_mb_rtu_is_crc_valid(const lh_byte_ptr frame, lh_u16_t length);
+
+/**
  * @brief Build a read request into @p adu.
  *
  * @param adu   Buffer for the whole frame, CRC included.
@@ -254,6 +268,83 @@ lh_mb_parse_pdu_write(const lh_byte_ptr pdu, lh_u16_t length, lh_u16_t address, 
 lh_mb_status_t
 lh_mb_parse_pdu_write_one(const lh_byte_ptr pdu, lh_u16_t length, lh_u16_t address, lh_u16_t value,
                           lh_u8_t *exception);
+
+/* -- The server's side of the wire ------------------------------------------
+   What a device does with a request: tell how long it is, and build the answer or
+   the refusal. `lh/core/net/modbus/server.h` is the device built on these. */
+
+LH_COMPILER_EXTERN_C_END
+
+/** @brief Exception code: the function code is not one the device supports. */
+#define LH_MB_EXCEPTION_ILLEGAL_FUNCTION (lh_cast_static(lh_u8_t, 0x01))
+/** @brief Exception code: an address in the request is not on the device. */
+#define LH_MB_EXCEPTION_ILLEGAL_ADDRESS (lh_cast_static(lh_u8_t, 0x02))
+/** @brief Exception code: a value in the request is not one the protocol allows. */
+#define LH_MB_EXCEPTION_ILLEGAL_VALUE (lh_cast_static(lh_u8_t, 0x03))
+/** @brief Exception code: the device failed doing what was asked. */
+#define LH_MB_EXCEPTION_DEVICE_FAILURE (lh_cast_static(lh_u8_t, 0x04))
+/** @brief Exception code: the device is busy; ask again later. */
+#define LH_MB_EXCEPTION_DEVICE_BUSY (lh_cast_static(lh_u8_t, 0x06))
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief Whether @p fc is a function code LH speaks: ::LH_MB_FC_READ_HOLDING,
+ *        ::LH_MB_FC_READ_INPUT, ::LH_MB_FC_WRITE_ONE or ::LH_MB_FC_WRITE_MANY.
+ *
+ * Every one of them has a request whose length can be told from its first bytes;
+ * a code outside the set can only be framed by the silence after it.
+ */
+lh_bool_t
+lh_mb_is_fc_supported(lh_u8_t fc);
+
+/**
+ * @brief How long the RTU **request** that starts @p frame is, CRC included.
+ *
+ * The request and the answer to it are different lengths, so this is not
+ * ::lh_mb_rtu_frame_length, which sizes answers: a read request is always 8 bytes,
+ * "write one register" 8, and "write many registers" 9 plus the byte count it
+ * carries in its seventh byte.
+ *
+ * @param frame What has arrived, unit first.
+ * @param have  How many bytes of it.
+ *
+ * @return The length, or 0 while it cannot be told yet (fewer than 2 bytes, or a
+ *         "write many" with fewer than 7), when @p frame is `lh_null`, and for a
+ *         function code ::lh_mb_is_fc_supported does not know.
+ */
+lh_u16_t
+lh_mb_rtu_request_length(const lh_byte_ptr frame, lh_u16_t have);
+
+/**
+ * @brief Build a refusal **PDU**: @p fc with its high bit set, and @p code.
+ *
+ * @param pdu  Where the PDU goes.
+ * @param cap  How much @p pdu really has; 2 bytes is enough.
+ * @param fc   The function code that was asked.
+ * @param code The exception code (::LH_MB_EXCEPTION_ILLEGAL_ADDRESS, ...).
+ *
+ * @return 2, or 0 when @p pdu is `lh_null` or @p cap is under 2.
+ */
+lh_u16_t
+lh_mb_build_pdu_exception(lh_byte_ptr pdu, lh_u16_t cap, lh_u8_t fc, lh_u8_t code);
+
+/**
+ * @brief Build the **PDU** of the answer to a read: @p fc, the byte count, and the
+ *        @p count words of @p values, high byte first.
+ *
+ * @param pdu    Where the PDU goes.
+ * @param cap    How much @p pdu really has: 2 + 2 · @p count bytes.
+ * @param fc     ::LH_MB_FC_READ_HOLDING or ::LH_MB_FC_READ_INPUT.
+ * @param values The words, first register first.
+ * @param count  How many, 1..::LH_MB_READ_MAX.
+ *
+ * @return The length of the PDU, or 0 when it does not fit, @p count is out of
+ *         range or a pointer is `lh_null`.
+ */
+lh_u16_t
+lh_mb_build_pdu_read_answer(lh_byte_ptr pdu, lh_u16_t cap, lh_u8_t fc, const lh_u16_t *values,
+                            lh_u16_t count);
 
 /* -- The plan -------------------------------------------------------------- */
 

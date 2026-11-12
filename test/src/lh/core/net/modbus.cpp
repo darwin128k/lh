@@ -495,3 +495,32 @@ TEST(mb_read_initializer, fills_members_in_order)
     EXPECT_EQ(read.first, 0);
     EXPECT_EQ(read.last, 1);
 }
+
+TEST(lh_mb, an_rtu_crc_checks_its_own_frame_and_nothing_else)
+{
+    lh_byte_t adu[16];
+    const lh_u16_t length =
+        lh_mb_build_read(adu, (lh_u16_t)sizeof(adu), 1, LH_MB_FC_READ_HOLDING, 0, 10);
+
+    ASSERT_EQ(length, (lh_u16_t)8);
+    EXPECT_TRUE(lh_mb_rtu_is_crc_valid(adu, length));
+    adu[3] ^= 0x01;
+    EXPECT_FALSE(lh_mb_rtu_is_crc_valid(adu, length));
+    EXPECT_FALSE(lh_mb_rtu_is_crc_valid(adu, 3)) << "no room for a unit, a code and a CRC";
+    EXPECT_FALSE(lh_mb_rtu_is_crc_valid(lh_null, 8));
+}
+
+TEST(lh_mb, more_words_than_asked_for_is_not_an_answer)
+{
+    /* Three words to a question for two. */
+    const lh_byte_t pdu[] = {0x03, 0x06, 0x00, 0x01, 0x00, 0x02, 0x00, 0x03};
+    lh_u16_t values[4] = {};
+    lh_u16_t got = 0;
+
+    EXPECT_EQ(lh_mb_parse_pdu(pdu, (lh_u16_t)sizeof(pdu), LH_MB_FC_READ_HOLDING, 2, values, 4, &got,
+                              lh_null),
+              lh_mb_status_garbage);
+    EXPECT_EQ(lh_mb_parse_pdu(pdu, (lh_u16_t)sizeof(pdu), LH_MB_FC_READ_HOLDING, 3, values, 4, &got,
+                              lh_null),
+              lh_mb_status_ok);
+}
