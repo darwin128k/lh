@@ -12,13 +12,21 @@
 #ifndef LH_OS_WAKE_H
 #define LH_OS_WAKE_H
 
-#include <lh/os/net/socket/poll.h>
+#include <lh/os/system/net/socket.h>
 #include <lh/os/wake/fields.h>
 #include <lh/config.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/wake.h requires LH_LIBRARY_OPTION_OS"
 #endif
+
+/**
+ * @def LH_OS_WAKE_OPEN_TIMEOUT_MS
+ * @brief The `timeout_ms` to pass to ::lh_os_wake_open unless a caller has a reason
+ *        of its own: ::LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS, since the signal is a
+ *        socket pair (see there why 1000 ms is not enough on Windows).
+ */
+#define LH_OS_WAKE_OPEN_TIMEOUT_MS LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS
 
 /** @brief Owner of the two non-blocking endpoints of a wake signal. */
 struct lh_os_wake
@@ -43,7 +51,8 @@ lh_os_wake_init(lh_os_wake_t *self);
  * @brief Open an initialized, empty wake signal.
  * @param self Object to open; unchanged on failure.
  * @param timeout_ms Maximum wait for each loopback setup phase on Windows;
- *                   ignored by the native POSIX socket-pair backend.
+ *                   ignored by the native POSIX socket-pair backend. Pass
+ *                   ::LH_OS_WAKE_OPEN_TIMEOUT_MS.
  * @return ::lh_bool_true on success; ::lh_bool_false with LH/native last error on failure.
  */
 lh_bool_t

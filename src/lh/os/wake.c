@@ -1,5 +1,4 @@
 #include <lh/os/wake.h>
-#include <lh/os/system/net/socket.h>
 #include <lh/os.h>
 #include <lh/os/error/code.h>
 #include <lh/core/assert.h>

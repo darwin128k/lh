@@ -1333,7 +1333,7 @@ lh_ui_web_host_try_create(lh_ui_web_app_t *app, lh_net_port_t port)
         return lh_null;
     }
     if (!lh_ui_web_host_try_listen(lh_ui_web_host_get_listener_mut(self), port) ||
-        !lh_os_wake_open(lh_ui_web_host_get_wake_mut(self), 1000U))
+        !lh_os_wake_open(lh_ui_web_host_get_wake_mut(self), LH_OS_WAKE_OPEN_TIMEOUT_MS))
     {
         lh_ui_web_host_destroy(self);
         return lh_null;

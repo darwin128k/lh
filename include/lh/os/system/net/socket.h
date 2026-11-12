@@ -34,6 +34,20 @@
         "lh/os/system/net/socket.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
 #endif
 
+/**
+ * @def LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS
+ * @brief The `timeout_ms` to pass to ::lh_os_system_net_socket_pair unless a caller
+ *        has a reason of its own: 5000 ms.
+ *
+ * On Windows the pair is a private loopback connection. A loopback `connect`
+ * usually takes well under 250 ms, but when the first SYN is dropped under load,
+ * Windows sends it again only after 1 s, and the next time after 2 s more. Measured
+ * (2026-11-12, eight test processes at once): about 1 in 50 pairs took ~1090 ms, so
+ * 1000 ms failed them with `WSAETIMEDOUT`. 5000 ms covers two retransmissions with
+ * room; the wait is paid only when a SYN was lost.
+ */
+#define LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS 5000U
+
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
@@ -70,6 +84,8 @@ lh_os_system_net_socket_open_nonblocking(lh_net_socket_type_t type);
  *
  * @param pair Output array with room for two handles; must not be null.
  * @param timeout_ms Maximum wait per Windows connect/accept phase; ignored on POSIX.
+ *                   Pass ::LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS: less than
+ *                   1000 ms + 2000 ms fails whenever a SYN is retransmitted.
  * @return True on success, false with captured native error on failure.
  */
 lh_bool_t

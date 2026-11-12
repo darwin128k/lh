@@ -280,7 +280,7 @@ TEST(rail_loop, a_waiter_on_a_wake_signal_runs_steps_and_stops)
 
     ASSERT_TRUE(lh_os_net_init());
     lh_os_wake_init(&wake);
-    ASSERT_TRUE(lh_os_wake_open(&wake, 1000U));
+    ASSERT_TRUE(lh_os_wake_open(&wake, LH_OS_WAKE_OPEN_TIMEOUT_MS));
     c.loop = lh_rail_loop_try_create_waiting(60000U, count, &c, poll_wait, poll_wake, &wake);
     ASSERT_NE(c.loop, nullptr);
     ASSERT_TRUE(lh_rail_loop_try_start(c.loop));
@@ -405,7 +405,7 @@ TEST(rail_loop_try_abandon, works_for_a_loop_with_a_waiter)
 
     ASSERT_TRUE(lh_os_net_init());
     lh_os_wake_init(&wake);
-    ASSERT_TRUE(lh_os_wake_open(&wake, 1000U));
+    ASSERT_TRUE(lh_os_wake_open(&wake, LH_OS_WAKE_OPEN_TIMEOUT_MS));
     lh_rail_loop_t *loop =
         lh_rail_loop_try_create_waiting(60000U, stuck_step, &s, poll_wait, poll_wake, &wake);
     ASSERT_NE(loop, nullptr);

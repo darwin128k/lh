@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A wake signal or socket pair could fail to open on Windows under load: the loopback
+  `connect` waits for a dropped SYN to be resent after 1 s, and every caller passed
+  `timeout_ms` 1000 (measured ~1090 ms, `WSAETIMEDOUT`; 12–19 of 48 runs failed with
+  eight test processes at once). `LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS` and
+  `LH_OS_WAKE_OPEN_TIMEOUT_MS` (5000 ms, covering two retransmissions) are the timeouts
+  to pass; the web host and the tests use them, and 0 of 80 such runs failed after.
 - A listening socket can own its address on every platform: `lh_os_net_socket_set_exclusive_addr` / `lh_os_system_net_socket_set_exclusive_addr` set `SO_REUSEADDR` on POSIX (a quick restart over `TIME_WAIT`; a second listener is refused there anyway) and `SO_EXCLUSIVEADDRUSE` on Windows, where `SO_REUSEADDR` lets any other socket bind the same port and take its connections. Use it for listeners instead of `_set_reuse_addr`.
 - `lh_os_net_socket_set_exclusive_addr` on a UDP socket no longer opens the port on POSIX: it set `SO_REUSEADDR` there too, and on Linux two datagram sockets that both carry the flag share a port, so another process could bind next to a UDP server and read its datagrams. A datagram socket now gets the flag cleared; a stream listener keeps it for the restart over `TIME_WAIT`.
 - The web host's listener (`lh_ui_web_host_try_listen`) uses it: on Windows another process could bind the host's port and take its connections.

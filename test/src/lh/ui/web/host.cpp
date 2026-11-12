@@ -77,7 +77,7 @@ TEST(ui_web_host_try_read_request, returns_parsed_request_and_borrowed_headers)
 {
     ASSERT_TRUE(lh_os_net_init());
     lh_os_system_net_socket_handle_t handles[2];
-    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t reader;
     lh_os_net_socket_t writer;
     lh_os_net_socket_init(lh_addr_of(reader));
@@ -118,7 +118,7 @@ TEST(ui_web_host_try_read_request, waits_for_the_complete_body)
 {
     ASSERT_TRUE(lh_os_net_init());
     lh_os_system_net_socket_handle_t handles[2];
-    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t reader;
     lh_os_net_socket_t writer;
     lh_os_net_socket_init(lh_addr_of(reader));
@@ -156,7 +156,7 @@ TEST(ui_web_host_try_read_request, decodes_fragmented_chunked_binary_body)
 {
     ASSERT_TRUE(lh_os_net_init());
     lh_os_system_net_socket_handle_t handles[2];
-    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t reader;
     lh_os_net_socket_init(&reader);
     lh_os_net_socket_set_handle(&reader, handles[0]);
@@ -199,7 +199,7 @@ TEST(ui_web_host_try_read_request, rejects_ambiguous_chunked_framing)
 {
     ASSERT_TRUE(lh_os_net_init());
     lh_os_system_net_socket_handle_t handles[2];
-    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t reader;
     lh_os_net_socket_init(&reader);
     lh_os_net_socket_set_handle(&reader, handles[0]);
@@ -227,7 +227,7 @@ TEST(ui_web_host_try_read_request, rejects_chunked_http_1_0)
 {
     ASSERT_TRUE(lh_os_net_init());
     lh_os_system_net_socket_handle_t handles[2];
-    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t reader;
     lh_os_net_socket_init(&reader);
     lh_os_net_socket_set_handle(&reader, handles[0]);
@@ -258,7 +258,7 @@ TEST(ui_web_host_try_read_request, rejects_oversized_and_incomplete_bodies)
     for (const char *text : requests)
     {
         lh_os_system_net_socket_handle_t handles[2];
-        ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+        ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
         lh_os_net_socket_t reader;
         lh_os_net_socket_t writer;
         lh_os_net_socket_init(lh_addr_of(reader));
@@ -299,7 +299,7 @@ TEST(ui_web_host_handle_request_is_upgraded, dispatches_complete_binary_body)
 {
     ASSERT_TRUE(lh_os_net_init());
     lh_os_system_net_socket_handle_t handles[2];
-    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t server;
     lh_os_net_socket_t client;
     lh_os_net_socket_init(lh_addr_of(server));
@@ -338,7 +338,7 @@ TEST(ui_web_host_handle_request_is_upgraded, dispatches_decoded_chunked_body)
 {
     ASSERT_TRUE(lh_os_net_init());
     lh_os_system_net_socket_handle_t handles[2];
-    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t server;
     lh_os_net_socket_init(&server);
     lh_os_net_socket_set_handle(&server, handles[0]);
@@ -428,7 +428,7 @@ TEST(ui_web_host_deadline, reads_available_data_and_obeys_expired_deadline)
 {
     ASSERT_TRUE(lh_os_net_init());
     lh_os_system_net_socket_handle_t handles[2];
-    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t server;
     lh_os_net_socket_t client;
     lh_os_net_socket_init(&server);
@@ -455,7 +455,7 @@ TEST(ui_web_host_handle_request_is_upgraded, streams_large_bodies_with_continue)
     {
         ASSERT_TRUE(lh_os_net_init());
         lh_os_system_net_socket_handle_t handles[2];
-        ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+        ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
         lh_os_net_socket_t server;
         lh_os_net_socket_t client;
         lh_os_net_socket_init(&server);
@@ -543,7 +543,7 @@ TEST(ui_web_host_handle_request_is_upgraded,
         const bool oversize = scenario == 1;
         ASSERT_TRUE(lh_os_net_init());
         lh_os_system_net_socket_handle_t handles[2];
-        ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+        ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
         lh_os_net_socket_t server;
         lh_os_net_socket_t client;
         lh_os_net_socket_init(&server);
@@ -598,7 +598,7 @@ TEST(ui_web_host_handle_request_is_upgraded, streams_gzip_and_aborts_on_corrupti
     {
         ASSERT_TRUE(lh_os_net_init());
         lh_os_system_net_socket_handle_t handles[2];
-        ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+        ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
         lh_os_net_socket_t server;
         lh_os_net_socket_t client;
         lh_os_net_socket_init(&server);
@@ -797,7 +797,7 @@ TEST(ui_web_host_handle_request_is_upgraded, commits_only_after_every_gzip_membe
     {
         ASSERT_TRUE(lh_os_net_init());
         lh_os_system_net_socket_handle_t handles[2];
-        ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+        ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
         lh_os_net_socket_t server, client;
         lh_os_net_socket_init(&server);
         lh_os_net_socket_init(&client);
@@ -850,7 +850,7 @@ TEST(ui_web_host_handle_request_is_upgraded, accepts_empty_gzip_with_zero_decode
 {
     ASSERT_TRUE(lh_os_net_init());
     lh_os_system_net_socket_handle_t handles[2];
-    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t server;
     lh_os_net_socket_t client;
     lh_os_net_socket_init(&server);
@@ -892,7 +892,7 @@ TEST(ui_web_host_handle_request_is_upgraded, rejects_unsupported_coding_before_c
     {
         ASSERT_TRUE(lh_os_net_init());
         lh_os_system_net_socket_handle_t handles[2];
-        ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+        ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
         lh_os_net_socket_t server;
         lh_os_net_socket_t client;
         lh_os_net_socket_init(&server);
@@ -937,7 +937,7 @@ TEST(ui_web_host_handle_request_is_upgraded, streams_fragmented_large_gzip_chunk
 {
     ASSERT_TRUE(lh_os_net_init());
     lh_os_system_net_socket_handle_t handles[2];
-    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t server;
     lh_os_net_socket_t client;
     lh_os_net_socket_init(&server);
@@ -1014,7 +1014,7 @@ TEST(ui_web_host_handle_request_is_upgraded, rejects_oversized_stream_before_con
 {
     ASSERT_TRUE(lh_os_net_init());
     lh_os_system_net_socket_handle_t handles[2];
-    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t server;
     lh_os_net_socket_t client;
     lh_os_net_socket_init(&server);
@@ -1051,7 +1051,7 @@ TEST(ui_web_host_handle_request_is_upgraded, validates_and_decodes_buffered_gzip
     {
         ASSERT_TRUE(lh_os_net_init());
         lh_os_system_net_socket_handle_t handles[2];
-        ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+        ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
         lh_os_net_socket_t server;
         lh_os_net_socket_t client;
         lh_os_net_socket_init(&server);
@@ -1505,7 +1505,7 @@ TEST(ui_web_host_try_read_request, sends_continue_before_waiting_for_content)
 {
     ASSERT_TRUE(lh_os_net_init());
     lh_os_system_net_socket_handle_t handles[2];
-    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t server;
     lh_os_net_socket_init(&server);
     lh_os_net_socket_set_handle(&server, handles[0]);
@@ -1546,7 +1546,7 @@ TEST(ui_web_host_try_read_request, rejects_unsupported_expectation_with_417)
 {
     ASSERT_TRUE(lh_os_net_init());
     lh_os_system_net_socket_handle_t handles[2];
-    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t server;
     lh_os_net_socket_init(&server);
     lh_os_net_socket_set_handle(&server, handles[0]);
@@ -1582,7 +1582,7 @@ TEST(ui_web_host_try_send_response, sends_caller_fields_and_body)
 {
     ASSERT_TRUE(lh_os_net_init());
     lh_os_system_net_socket_handle_t handles[2];
-    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t reader;
     lh_os_net_socket_init(&reader);
     lh_os_net_socket_set_handle(&reader, handles[0]);
@@ -1665,7 +1665,7 @@ TEST(web_host, head_preserves_a_64_bit_representation_length)
     }
     ASSERT_TRUE(lh_os_net_init());
     lh_os_system_net_socket_handle_t handles[2];
-    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t reader;
     lh_os_net_socket_t writer;
     lh_os_net_socket_init(lh_addr_of(reader));
@@ -1691,7 +1691,7 @@ TEST(web_host, head_and_connect_responses_do_not_send_content)
     for (lh_http_method_kind_t method : methods)
     {
         lh_os_system_net_socket_handle_t handles[2];
-        ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+        ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
         lh_os_net_socket_t reader;
         lh_os_net_socket_t writer;
         lh_os_net_socket_init(lh_addr_of(reader));
@@ -1729,7 +1729,7 @@ TEST(web_host, content_forbidden_statuses_send_no_body_or_content_length)
     for (lh_uint_t status : statuses)
     {
         lh_os_system_net_socket_handle_t handles[2];
-        ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+        ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
         lh_os_net_socket_t reader;
         lh_os_net_socket_t writer;
         lh_os_net_socket_init(lh_addr_of(reader));

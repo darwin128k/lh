@@ -313,7 +313,7 @@ TEST(ui_web_host_gate, receives_once_per_readiness)
 {
     ASSERT_TRUE(lh_os_net_init());
     lh_os_system_net_socket_handle_t handles[2];
-    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, 1000));
+    ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t a;
     lh_os_net_socket_t b;
     lh_os_net_socket_init(&a);

@@ -66,9 +66,9 @@ TEST_F(socket_poll, wakes_across_threads_and_coalesces_notifications)
     auto &thread = thread_owner.value;
     lh_os_net_socket_poll_t watch[LH_OS_NET_SOCKET_POLL_MAX];
     lh_os_wake_close(&wake);
-    ASSERT_TRUE(lh_os_wake_open(&wake, 1000));
+    ASSERT_TRUE(lh_os_wake_open(&wake, LH_OS_WAKE_OPEN_TIMEOUT_MS));
     const lh_os_system_net_socket_handle_t original = lh_os_wake_get_handle(&wake);
-    ASSERT_FALSE(lh_os_wake_open(&wake, 1000));
+    ASSERT_FALSE(lh_os_wake_open(&wake, LH_OS_WAKE_OPEN_TIMEOUT_MS));
     ASSERT_EQ(lh_os_wake_get_handle(&wake), original);
     ASSERT_NO_FATAL_FAILURE(check_flags(wake.reader));
     ASSERT_NO_FATAL_FAILURE(check_flags(wake.writer));
@@ -108,7 +108,8 @@ TEST_F(socket_poll, wakes_across_threads_and_coalesces_notifications)
     lh_os_wake_close(&wake);
     ASSERT_EQ(lh_os_wake_get_handle(&wake), LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID);
     lh_os_wake_close(&wake);
-    ASSERT_TRUE(lh_os_wake_open(&wake, 1000));
+    ASSERT_TRUE(lh_os_wake_open(&wake, LH_OS_WAKE_OPEN_TIMEOUT_MS))
+        << "os error " << lh_os_system_get_last_error_code();
     ASSERT_TRUE(lh_os_wake_signal(&wake));
     watch[LH_OS_NET_SOCKET_POLL_MAX - 1].handle = lh_os_wake_get_handle(&wake);
     watch[0].handle = watch[1].handle = LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID;
@@ -124,7 +125,7 @@ TEST_F(socket_poll, supports_more_than_64_active_descriptors)
     lh_os_net_socket_poll_t watch[70];
     for (lh_usize_t i = 0; i < 70; ++i)
     {
-        ASSERT_TRUE(lh_os_wake_open(&wakes[i].value, 1000));
+        ASSERT_TRUE(lh_os_wake_open(&wakes[i].value, LH_OS_WAKE_OPEN_TIMEOUT_MS));
         watch[i].handle = lh_os_wake_get_handle(&wakes[i].value);
         watch[i].events = lh_os_net_socket_poll_read;
     }
@@ -301,7 +302,7 @@ TEST_F(socket_poll, interruption_preserves_captured_error_and_clears_readiness)
         });
     interrupted = 0;
     main_thread = pthread_self();
-    ASSERT_TRUE(lh_os_wake_open(&wake, 1000));
+    ASSERT_TRUE(lh_os_wake_open(&wake, LH_OS_WAKE_OPEN_TIMEOUT_MS));
     lh_os_net_socket_poll_t watch = {lh_os_wake_get_handle(&wake), lh_os_net_socket_poll_read, 99};
     lh_os_system_error_set_code(lh_os_system_last_error(), 12345);
     ASSERT_TRUE(lh_os_thread_start(&thread, interrupt_later, lh_null, -1, 0));
@@ -319,7 +320,7 @@ TEST_F(socket_poll, a_wake_entry_is_readable_once_signalled)
     auto &wake = wake_owner.value;
     lh_os_net_socket_poll_t entry;
 
-    ASSERT_TRUE(lh_os_wake_open(&wake, 1000));
+    ASSERT_TRUE(lh_os_wake_open(&wake, LH_OS_WAKE_OPEN_TIMEOUT_MS));
     lh_os_wake_get_poll(&wake, &entry);
     EXPECT_EQ(lh_os_net_socket_poll_get_handle(&entry), lh_os_wake_get_handle(&wake));
     EXPECT_EQ(lh_os_net_socket_poll_get_events(&entry), lh_os_net_socket_poll_read);
