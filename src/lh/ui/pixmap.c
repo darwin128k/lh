@@ -898,8 +898,8 @@ lh_ui_pixmap_blend_cover_8(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_s32_
                                          lh_cast_static(lh_usize_t, count), cover, src);
         return;
     }
-    lh_byte_t alpha[8];
 #endif
+    lh_byte_t alpha[8];
     for (lh_s32_t i = 0; i < count; ++i)
     {
         alpha[i] = lh_cast_static(lh_byte_t, cover >> (8 * i));

@@ -4,7 +4,8 @@
  *
  * One translation unit: pieces share static path-choice state and are inlined into
  * the entry points, so the words and x86 pieces are private headers beside this
- * file (`std/words.h`, `std/x86/*.h`), included below after the macros they use.
+ * file (`std/words.h` and the headers in `std/x86/`), included below after the macros
+ * they use.
  */
 #include <lh/core/memory/std.h>
 #include <lh/core/attribute/unused.h>
