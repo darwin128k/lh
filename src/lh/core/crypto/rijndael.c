@@ -1,6 +1,7 @@
 #include <lh/core/crypto/rijndael.h>
+#include <lh/core/crypto/rijndael/rounds.h>
+#include <lh/core/attribute/fast_data.h>
 #include <lh/core/compiler/unreachable.h>
-#include <lh/core/memory/std.h>
 #include <lh/core/bit/endian.h>
 #include <lh/core/bit/rotate.h>
 #include <lh/config.h>
@@ -18,7 +19,8 @@
 #    endif
 #endif
 
-static const lh_byte_t m_sbox[256] = {
+/* Read by index every round: worth RAM on a board (LH_ATTRIBUTE_FAST_DATA). */
+LH_ATTRIBUTE_FAST_DATA static const lh_byte_t m_sbox[256] = {
     0x63U, 0x7CU, 0x77U, 0x7BU, 0xF2U, 0x6BU, 0x6FU, 0xC5U, 0x30U, 0x01U, 0x67U, 0x2BU, 0xFEU,
     0xD7U, 0xABU, 0x76U, 0xCAU, 0x82U, 0xC9U, 0x7DU, 0xFAU, 0x59U, 0x47U, 0xF0U, 0xADU, 0xD4U,
     0xA2U, 0xAFU, 0x9CU, 0xA4U, 0x72U, 0xC0U, 0xB7U, 0xFDU, 0x93U, 0x26U, 0x36U, 0x3FU, 0xF7U,
@@ -40,7 +42,7 @@ static const lh_byte_t m_sbox[256] = {
     0x87U, 0xE9U, 0xCEU, 0x55U, 0x28U, 0xDFU, 0x8CU, 0xA1U, 0x89U, 0x0DU, 0xBFU, 0xE6U, 0x42U,
     0x68U, 0x41U, 0x99U, 0x2DU, 0x0FU, 0xB0U, 0x54U, 0xBBU, 0x16U};
 
-static const lh_byte_t m_inv_sbox[256] = {
+LH_ATTRIBUTE_FAST_DATA static const lh_byte_t m_inv_sbox[256] = {
     0x52U, 0x09U, 0x6AU, 0xD5U, 0x30U, 0x36U, 0xA5U, 0x38U, 0xBFU, 0x40U, 0xA3U, 0x9EU, 0x81U,
     0xF3U, 0xD7U, 0xFBU, 0x7CU, 0xE3U, 0x39U, 0x82U, 0x9BU, 0x2FU, 0xFFU, 0x87U, 0x34U, 0x8EU,
     0x43U, 0x44U, 0xC4U, 0xDEU, 0xE9U, 0xCBU, 0x54U, 0x7BU, 0x94U, 0x32U, 0xA6U, 0xC2U, 0x23U,
@@ -394,8 +396,6 @@ lh_crypto_rijndael_cipher(const lh_crypto_rijndael_t *self, lh_byte_cptr in, lh_
 {
     const lh_usize_t block_size = lh_crypto_rijndael_get_block_size(self);
     lh_byte_t state[LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX];
-    const lh_usize_t nb = block_size / 4U;
-    const lh_usize_t nr = lh_crypto_rijndael_get_round_count(self);
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_AESNI
     if (block_size == LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MIN && lh_crypto_rijndael_has_aesni())
@@ -413,36 +413,15 @@ lh_crypto_rijndael_cipher(const lh_crypto_rijndael_t *self, lh_byte_cptr in, lh_
 #endif
 
     lh_memory_std_copy(state, in, block_size);
-
-    if (!decrypt)
+    /* AES is the 16-byte block: with the size a constant, every step specialises
+       (lh/core/crypto/rijndael/rounds.h). The other Rijndael sizes read it. */
+    if (block_size == LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MIN)
     {
-        lh_memory_std_xor(state, state, lh_crypto_rijndael_get_round_key(self, 0U), block_size);
-        for (lh_usize_t round = 1U; round < nr; ++round)
-        {
-            lh_crypto_rijndael_sub_bytes(state, block_size, lh_bool_false);
-            lh_crypto_rijndael_shift_rows(state, nb, lh_bool_false);
-            lh_crypto_rijndael_mix_columns(state, nb, lh_bool_false);
-            lh_memory_std_xor(state, state, lh_crypto_rijndael_get_round_key(self, round),
-                              block_size);
-        }
-        lh_crypto_rijndael_sub_bytes(state, block_size, lh_bool_false);
-        lh_crypto_rijndael_shift_rows(state, nb, lh_bool_false);
-        lh_memory_std_xor(state, state, lh_crypto_rijndael_get_round_key(self, nr), block_size);
+        lh_crypto_rijndael_rounds(self, state, LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MIN, decrypt);
     }
     else
     {
-        lh_memory_std_xor(state, state, lh_crypto_rijndael_get_round_key(self, nr), block_size);
-        for (lh_usize_t round = nr; round > 1U; --round)
-        {
-            lh_crypto_rijndael_shift_rows(state, nb, lh_bool_true);
-            lh_crypto_rijndael_sub_bytes(state, block_size, lh_bool_true);
-            lh_memory_std_xor(state, state, lh_crypto_rijndael_get_round_key(self, round - 1U),
-                              block_size);
-            lh_crypto_rijndael_mix_columns(state, nb, lh_bool_true);
-        }
-        lh_crypto_rijndael_shift_rows(state, nb, lh_bool_true);
-        lh_crypto_rijndael_sub_bytes(state, block_size, lh_bool_true);
-        lh_memory_std_xor(state, state, lh_crypto_rijndael_get_round_key(self, 0U), block_size);
+        lh_crypto_rijndael_rounds(self, state, block_size, decrypt);
     }
 
     lh_memory_std_copy(out, state, block_size);

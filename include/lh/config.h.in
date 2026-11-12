@@ -305,6 +305,20 @@
 #define LH_LIBRARY_OPTION_SIMD_HAVE_AESNI @ValSimdHaveAesni@
 
 /**
+ * @def LH_LIBRARY_OPTION_HAVE_FAST_DATA_SECTION
+ * @brief 1 when the build names a section for hot constant tables
+ *        (::LH_LIBRARY_OPTION_FAST_DATA_SECTION), 0 otherwise.
+ */
+#define LH_LIBRARY_OPTION_HAVE_FAST_DATA_SECTION @ValHaveFastDataSection@
+
+/**
+ * @def LH_LIBRARY_OPTION_FAST_DATA_SECTION
+ * @brief The section ::LH_ATTRIBUTE_FAST_DATA puts hot constant tables in; an empty
+ *        string when the build names none.
+ */
+#define LH_LIBRARY_OPTION_FAST_DATA_SECTION "@ValFastDataSection@"
+
+/**
  * @def LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD
  * @brief ::lh_memory_std_copy / ::lh_memory_std_copy_rev / ::lh_memory_std_rcopy:
  *        below this size (bytes), skip SIMD entirely.

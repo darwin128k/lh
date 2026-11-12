@@ -23,6 +23,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   frame without LTO, 614 000 with it. The whole UI test suite passes on a build without SSE2
   (`-DLH_SIMD_HAVE_SSE2=0`), and the words forms match the SSE2 ones on 8 192 random rows.
 
+- `LH_ATTRIBUTE_FAST_DATA` (`lh/core/attribute/fast_data.h`) over
+  `LH_COMPILER_ATTRIBUTE_SECTION`, and the build option `LH_LIBRARY_OPTION_FAST_DATA_SECTION`:
+  constant tables a hot loop reads by index go to a section the board puts in RAM (empty by
+  default: nothing changes on a PC). The AES S-boxes carry it. On an STM32F407 with
+  `.data.lh_fast`: SubBytes of a block 140 → 114 cycles.
+- Rijndael rounds on words: `lh_crypto_rijndael_xtime_word`,
+  `lh_crypto_rijndael_mix_column_word`, `lh_crypto_rijndael_inv_mix_column_word`; xtime has no
+  branch; ShiftRows no division per byte; InvMixColumns is a two-doubling step before
+  MixColumns instead of sixteen GF(2^8) products a column.
+- `lh_crypto_rijndael_rounds` (`lh/core/crypto/rijndael/rounds.h`, force-inline): the rounds
+  of one state, called by `lh_crypto_rijndael_cipher` with the literal 16 for AES and with
+  the run-time size for the other Rijndael blocks, so every step specialises for AES. On an
+  STM32F407 (168 MHz, no AES-NI), one AES-128 block: 8 758 → 4 080 cycles to encrypt,
+  13 690 → 4 952 to decrypt, all three changes together. Running the cipher from SRAM was
+  measured too and was slower (code and data share the system bus); it was not kept.
+
 ### Fixed
 
 - The rail CPU layer was chosen by `CMAKE_SYSTEM_PROCESSOR` alone, so a board whose

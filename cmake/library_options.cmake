@@ -423,6 +423,19 @@ option(LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE
 # heuristics, and are not something a config value could safely change.
 # -----------------------------------------------------------------------------
 
+# -----------------------------------------------------------------------------
+# Option: LH_LIBRARY_OPTION_FAST_DATA_SECTION
+#
+# The section constant tables read in hot loops go to (LH_ATTRIBUTE_FAST_DATA,
+# lh/core/attribute/fast_data.h). Empty (the default): they stay where the
+# compiler puts constants. A board names a section its linker script puts in RAM,
+# e.g. ".data.lh_fast", which startup code copies from flash like any initialized
+# variable: on an STM32F407 at 168 MHz a flash read the data cache misses waits
+# 5 cycles, a RAM read does not.
+# -----------------------------------------------------------------------------
+set(LH_LIBRARY_OPTION_FAST_DATA_SECTION "" CACHE STRING
+        "Section for constant tables read in hot loops (LH_ATTRIBUTE_FAST_DATA); empty keeps them with the other constants.")
+
 set(LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD "16" CACHE STRING
         "lh_memory_std_copy/copy_rev/rcopy: below this size (bytes), skip SIMD entirely (below one SSE register, there is nothing for it to do) and use the plain scalar/tiny-ladder path instead. Must be a positive decimal integer.")
 
