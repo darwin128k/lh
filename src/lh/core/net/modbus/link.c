@@ -385,7 +385,7 @@ lh_mb_link_set_since_us(lh_mb_link_t *self, lh_u64_t since_us)
     self->since_us = since_us;
 }
 
-lh_mb_link_clock_cb
+lh_mb_clock_cb
 lh_mb_link_get_now_us(const lh_mb_link_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -393,7 +393,7 @@ lh_mb_link_get_now_us(const lh_mb_link_t *self)
 }
 
 lh_void
-lh_mb_link_set_now_us(lh_mb_link_t *self, lh_mb_link_clock_cb now_us)
+lh_mb_link_set_now_us(lh_mb_link_t *self, lh_mb_clock_cb now_us)
 {
     lh_assert_runtime_ref(self);
     self->now_us = now_us;
@@ -678,7 +678,7 @@ lh_mb_link_release(lh_mb_link_t *self)
 
 lh_void
 lh_mb_link_init(lh_mb_link_t *self, const lh_io_stream_t *stream, lh_mb_framing_t framing,
-                lh_u8_t unit, lh_mb_link_clock_cb now_us, lh_ptr clock)
+                lh_u8_t unit, lh_mb_clock_cb now_us, lh_ptr clock)
 {
     lh_assert_runtime_ref(self);
 

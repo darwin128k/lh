@@ -102,6 +102,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `lh_bit_pack_be16` / `lh_bit_unpack_be16` / `lh_bit_pack_le16` / `lh_bit_unpack_le16`
   instead of shifting by hand. `lh_mb_link_consume` keeps what follows the consumed bytes
   over RTU too.
+- The Modbus clock is one type for the link and the server: `lh_mb_link_clock_fn` /
+  `lh_mb_link_clock_cb` (`lh/core/net/modbus/link/clock/`) become `lh_mb_clock_fn` /
+  `lh_mb_clock_cb` (`lh/core/net/modbus/clock/`); the server no longer borrows the link's.
 
 - The check macros (`lh_runtime_check_fail_here`) take the origin's address with
   `lh_addr_of`; no header writes a bare address-of any more (checked in clang's AST).

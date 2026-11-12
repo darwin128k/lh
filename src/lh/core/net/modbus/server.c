@@ -75,7 +75,7 @@ lh_mb_server_set_owner(lh_mb_server_t *self, lh_ptr owner)
     self->owner = owner;
 }
 
-lh_mb_link_clock_cb
+lh_mb_clock_cb
 lh_mb_server_get_now_us(const lh_mb_server_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -83,7 +83,7 @@ lh_mb_server_get_now_us(const lh_mb_server_t *self)
 }
 
 lh_void
-lh_mb_server_set_now_us(lh_mb_server_t *self, lh_mb_link_clock_cb now_us)
+lh_mb_server_set_now_us(lh_mb_server_t *self, lh_mb_clock_cb now_us)
 {
     lh_assert_runtime_ref(self);
     self->now_us = now_us;
@@ -368,7 +368,7 @@ lh_mb_server_answer_write_many(lh_mb_server_t *self, lh_byte_cptr pdu, lh_u16_t 
 lh_void
 lh_mb_server_init(lh_mb_server_t *self, const lh_io_stream_t *stream, lh_mb_framing_t framing,
                   lh_u8_t unit, lh_mb_server_read_cb read, lh_mb_server_write_cb write,
-                  lh_ptr owner, lh_mb_link_clock_cb now_us, lh_ptr clock)
+                  lh_ptr owner, lh_mb_clock_cb now_us, lh_ptr clock)
 {
     lh_assert_runtime_ref(self);
 

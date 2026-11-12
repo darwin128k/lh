@@ -35,7 +35,7 @@
 #include <lh/core/net/modbus/framing.h>
 #include <lh/core/net/modbus/link/state.h>
 #include <lh/core/net/modbus/link/counters.h>
-#include <lh/core/net/modbus/link/clock/cb.h>
+#include <lh/core/net/modbus/clock/cb.h>
 #include <lh/core/net/modbus/link/change/cb.h>
 
 /* -- Framing --------------------------------------------------------------- */
@@ -204,7 +204,7 @@ typedef struct lh_mb_link
     /* The clock, in microseconds. A link does not read the system clock itself:
        a test has to be able to move time by hand, and an app has to be able to
        decide what a microsecond is worth. */
-    lh_mb_link_clock_cb now_us; /**< the clock; ::lh_null counts nothing */
+    lh_mb_clock_cb now_us;      /**< the clock; ::lh_null counts nothing */
     lh_ptr clock;               /**< passed to every ::now_us call */
     /** Not called by the link: a slot for the application's own notification. */
     lh_mb_link_change_cb on_change;
@@ -579,7 +579,7 @@ lh_mb_link_set_since_us(lh_mb_link_t *self, lh_u64_t since_us);
  *
  * @param self The link; checked by ::lh_assert_runtime_ref.
  */
-lh_mb_link_clock_cb
+lh_mb_clock_cb
 lh_mb_link_get_now_us(const lh_mb_link_t *self);
 
 /**
@@ -591,7 +591,7 @@ lh_mb_link_get_now_us(const lh_mb_link_t *self);
  * @param now_us The new value.
  */
 lh_void
-lh_mb_link_set_now_us(lh_mb_link_t *self, lh_mb_link_clock_cb now_us);
+lh_mb_link_set_now_us(lh_mb_link_t *self, lh_mb_clock_cb now_us);
 
 /**
  * @brief The value passed to every ::lh_mb_link_get_now_us call (level 1).
@@ -851,7 +851,7 @@ lh_mb_link_release(lh_mb_link_t *self);
  */
 lh_void
 lh_mb_link_init(lh_mb_link_t *self, const lh_io_stream_t *stream, lh_mb_framing_t framing,
-                lh_u8_t unit, lh_mb_link_clock_cb now_us, lh_ptr clock);
+                lh_u8_t unit, lh_mb_clock_cb now_us, lh_ptr clock);
 
 /**
  * @brief Find the answer to the question in flight in what is held, stepping over
