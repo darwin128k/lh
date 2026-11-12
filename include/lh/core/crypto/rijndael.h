@@ -167,9 +167,35 @@ lh_crypto_rijndael_decrypt_block(lh_crypto_rijndael_t *self, const lh_ptr in, lh
 lh_bool_t
 lh_crypto_rijndael_size_ok(lh_usize_t n);
 
-/** @p x times 2 in GF(2^8), reduced by the AES polynomial. */
+/** @p x times 2 in GF(2^8), reduced by the AES polynomial; no branch. */
 lh_byte_t
 lh_crypto_rijndael_xtime(lh_byte_t x);
+
+/**
+ * @brief ::lh_crypto_rijndael_xtime on each of the four bytes of @p w at once:
+ *        every byte doubled and reduced, no byte carrying into the next.
+ */
+lh_u32_t
+lh_crypto_rijndael_xtime_word(lh_u32_t w);
+
+/**
+ * @brief MixColumns of one column held as a word, row `i` in byte `i` (bits
+ *        `8i .. 8i + 7`): `b_i = a_i ^ t ^ xtime(a_i ^ a_(i+1))`, `t` the XOR of all
+ *        four, computed for the four rows with rotations of the word.
+ */
+lh_u32_t
+lh_crypto_rijndael_mix_column_word(lh_u32_t w);
+
+/**
+ * @brief InvMixColumns of one column held as a word (rows as in
+ *        ::lh_crypto_rijndael_mix_column_word).
+ *
+ * The inverse matrix is the forward one after a step of its own: each row gets
+ * `xtime(xtime(a_i ^ a_(i+2)))` added, then MixColumns runs. Two doublings of a word
+ * instead of sixteen products in GF(2^8).
+ */
+lh_u32_t
+lh_crypto_rijndael_inv_mix_column_word(lh_u32_t w);
 
 /** @p a times @p b in GF(2^8). */
 lh_byte_t

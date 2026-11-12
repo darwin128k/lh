@@ -18,6 +18,56 @@ bytes_hex(const lh_byte_t *data, lh_usize_t n)
     return std::string(hex, written);
 }
 
+TEST(crypto_rijndael, xtime_word_doubles_each_byte_alone)
+{
+    for (unsigned x = 0; x < 256U; ++x)
+    {
+        const lh_byte_t b = static_cast<lh_byte_t>(x);
+        const lh_byte_t want = lh_crypto_rijndael_xtime(b);
+        EXPECT_EQ(want, static_cast<lh_byte_t>(((x << 1) ^ ((x & 0x80U) != 0U ? 0x1BU : 0U)) & 0xFFU));
+        const lh_u32_t w = x | ((x ^ 0x5AU) << 8) | ((255U - x) << 16) | (((x * 7U) & 0xFFU) << 24);
+        const lh_u32_t got = lh_crypto_rijndael_xtime_word(w);
+        for (unsigned i = 0; i < 4U; ++i)
+        {
+            EXPECT_EQ((got >> (8U * i)) & 0xFFU,
+                      lh_crypto_rijndael_xtime(static_cast<lh_byte_t>(w >> (8U * i))));
+        }
+    }
+}
+
+TEST(crypto_rijndael, mix_column_words_match_the_gf_products)
+{
+    lh_u32_t state = 0x9E3779B9U;
+    for (int round = 0; round < 4096; ++round)
+    {
+        state ^= state << 13;
+        state ^= state >> 17;
+        state ^= state << 5;
+        lh_byte_t a[4];
+        for (unsigned i = 0; i < 4U; ++i)
+        {
+            a[i] = static_cast<lh_byte_t>(state >> (8U * i));
+        }
+        const lh_u32_t forward = lh_crypto_rijndael_mix_column_word(state);
+        const lh_u32_t inverse = lh_crypto_rijndael_inv_mix_column_word(state);
+        static const lh_byte_t m[4] = {2U, 3U, 1U, 1U};
+        static const lh_byte_t im[4] = {0x0EU, 0x0BU, 0x0DU, 0x09U};
+        for (unsigned row = 0; row < 4U; ++row)
+        {
+            lh_byte_t f = 0U;
+            lh_byte_t g = 0U;
+            for (unsigned k = 0; k < 4U; ++k)
+            {
+                f ^= lh_crypto_rijndael_gf_mul(a[(row + k) % 4U], m[k]);
+                g ^= lh_crypto_rijndael_gf_mul(a[(row + k) % 4U], im[k]);
+            }
+            ASSERT_EQ((forward >> (8U * row)) & 0xFFU, f) << std::hex << state << " row " << row;
+            ASSERT_EQ((inverse >> (8U * row)) & 0xFFU, g) << std::hex << state << " row " << row;
+        }
+        EXPECT_EQ(lh_crypto_rijndael_inv_mix_column_word(forward), state);
+    }
+}
+
 TEST(crypto_rijndael, aes128_ecb_fips197)
 {
     const lh_byte_t key[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,

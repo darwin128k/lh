@@ -71,7 +71,33 @@ lh_crypto_rijndael_size_ok(lh_usize_t n)
 lh_byte_t
 lh_crypto_rijndael_xtime(lh_byte_t x)
 {
-    return lh_cast_static(lh_byte_t, ((x << 1) ^ ((x & 0x80U) ? 0x1BU : 0U)));
+    /* The reduction is masked in, not branched to: the time does not depend on x. */
+    const lh_u32_t high = lh_cast_static(lh_u32_t, x) >> 7;
+    return lh_cast_static(lh_byte_t, (lh_cast_static(lh_u32_t, x) << 1) ^ (0x1BU & (0U - high)));
+}
+
+lh_u32_t
+lh_crypto_rijndael_xtime_word(lh_u32_t w)
+{
+    /* Shift every byte left inside its own lane, then add 0x1B where a top bit fell out. */
+    return ((w & 0x7F7F7F7FU) << 1) ^ (((w >> 7) & 0x01010101U) * 0x1BU);
+}
+
+lh_u32_t
+lh_crypto_rijndael_mix_column_word(lh_u32_t w)
+{
+    /* Byte i of rotate_right(w, 8) is a_(i+1), of rotate_right(w, 16) a_(i+2). */
+    const lh_u32_t next = lh_bit_rotate_right_u32(w, 8U);
+    const lh_u32_t all = w ^ next ^ lh_bit_rotate_right_u32(w, 16U) ^ lh_bit_rotate_right_u32(w, 24U);
+    return w ^ all ^ lh_crypto_rijndael_xtime_word(w ^ next);
+}
+
+lh_u32_t
+lh_crypto_rijndael_inv_mix_column_word(lh_u32_t w)
+{
+    const lh_u32_t across = w ^ lh_bit_rotate_right_u32(w, 16U);
+    return lh_crypto_rijndael_mix_column_word(
+        w ^ lh_crypto_rijndael_xtime_word(lh_crypto_rijndael_xtime_word(across)));
 }
 
 lh_byte_t
@@ -119,11 +145,12 @@ lh_crypto_rijndael_shift_row(lh_byte_ptr state, lh_usize_t nb, lh_usize_t row, l
     {
         tmp[i] = state[row + 4U * i];
     }
+    /* shift < n, so one subtraction wraps the index: no division per byte. */
+    lh_usize_t src = inverse ? n - shift : shift;
     for (lh_usize_t i = 0U; i < n; ++i)
     {
-        const lh_usize_t src = inverse ? (i + n - (shift % n)) % n : (i + shift) % n;
-
         state[row + 4U * i] = tmp[src];
+        src = (src + 1U == n) ? 0U : src + 1U;
     }
 }
 
@@ -156,45 +183,21 @@ lh_crypto_rijndael_sub_bytes(lh_byte_ptr state, lh_usize_t block_size, lh_bool_t
 lh_void
 lh_crypto_rijndael_mix_columns(lh_byte_ptr state, lh_usize_t nb, lh_bool_t inverse)
 {
+    /* A column is four bytes in a row of the state: row i goes to byte i of a word
+       (built by shifts, so the host's byte order does not matter). */
     for (lh_usize_t c = 0U; c < nb; ++c)
     {
         lh_byte_ptr col = state + c * 4U;
-        lh_byte_t a0 = col[0];
-        lh_byte_t a1 = col[1];
-        lh_byte_t a2 = col[2];
-        lh_byte_t a3 = col[3];
-
-        if (inverse)
-        {
-            col[0] = lh_cast_static(
-                lh_byte_t,
-                (lh_crypto_rijndael_gf_mul(a0, 0x0EU) ^ lh_crypto_rijndael_gf_mul(a1, 0x0BU) ^
-                 lh_crypto_rijndael_gf_mul(a2, 0x0DU) ^ lh_crypto_rijndael_gf_mul(a3, 0x09U)));
-            col[1] = lh_cast_static(
-                lh_byte_t,
-                (lh_crypto_rijndael_gf_mul(a0, 0x09U) ^ lh_crypto_rijndael_gf_mul(a1, 0x0EU) ^
-                 lh_crypto_rijndael_gf_mul(a2, 0x0BU) ^ lh_crypto_rijndael_gf_mul(a3, 0x0DU)));
-            col[2] = lh_cast_static(
-                lh_byte_t,
-                (lh_crypto_rijndael_gf_mul(a0, 0x0DU) ^ lh_crypto_rijndael_gf_mul(a1, 0x09U) ^
-                 lh_crypto_rijndael_gf_mul(a2, 0x0EU) ^ lh_crypto_rijndael_gf_mul(a3, 0x0BU)));
-            col[3] = lh_cast_static(
-                lh_byte_t,
-                (lh_crypto_rijndael_gf_mul(a0, 0x0BU) ^ lh_crypto_rijndael_gf_mul(a1, 0x0DU) ^
-                 lh_crypto_rijndael_gf_mul(a2, 0x09U) ^ lh_crypto_rijndael_gf_mul(a3, 0x0EU)));
-        }
-        else
-        {
-            lh_byte_t t = lh_cast_static(lh_byte_t, (a0 ^ a1 ^ a2 ^ a3));
-            col[0] = lh_cast_static(
-                lh_byte_t, a0 ^ t ^ lh_crypto_rijndael_xtime(lh_cast_static(lh_byte_t, a0 ^ a1)));
-            col[1] = lh_cast_static(
-                lh_byte_t, a1 ^ t ^ lh_crypto_rijndael_xtime(lh_cast_static(lh_byte_t, a1 ^ a2)));
-            col[2] = lh_cast_static(
-                lh_byte_t, a2 ^ t ^ lh_crypto_rijndael_xtime(lh_cast_static(lh_byte_t, a2 ^ a3)));
-            col[3] = lh_cast_static(
-                lh_byte_t, a3 ^ t ^ lh_crypto_rijndael_xtime(lh_cast_static(lh_byte_t, a3 ^ a0)));
-        }
+        const lh_u32_t w = lh_cast_static(lh_u32_t, col[0]) |
+                           (lh_cast_static(lh_u32_t, col[1]) << 8) |
+                           (lh_cast_static(lh_u32_t, col[2]) << 16) |
+                           (lh_cast_static(lh_u32_t, col[3]) << 24);
+        const lh_u32_t mixed = inverse ? lh_crypto_rijndael_inv_mix_column_word(w)
+                                       : lh_crypto_rijndael_mix_column_word(w);
+        col[0] = lh_cast_static(lh_byte_t, mixed);
+        col[1] = lh_cast_static(lh_byte_t, mixed >> 8);
+        col[2] = lh_cast_static(lh_byte_t, mixed >> 16);
+        col[3] = lh_cast_static(lh_byte_t, mixed >> 24);
     }
 }
 
