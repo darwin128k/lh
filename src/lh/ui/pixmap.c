@@ -878,6 +878,21 @@ lh_ui_pixmap_blend_alpha_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh
 }
 
 lh_void
+lh_ui_pixmap_blend_cover_16_words(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_usize_t count,
+                                  lh_u64_t cover, lh_u32_t src)
+{
+    const lh_u32_t solid = lh_ui_pixmap_order_16(self, lh_ui_pixmap_pack_rgb(self, src));
+    /* Two 32-bit halves keep a 32-bit core off 64-bit shifts. */
+    const lh_u32_t half[2] = {lh_cast_static(lh_u32_t, cover),
+                              lh_cast_static(lh_u32_t, cover >> 32)};
+    for (lh_usize_t i = 0U; i < count; ++i)
+    {
+        const lh_u32_t a = (half[i >> 2] >> (8U * (i & 3U))) & 0xFFU;
+        at[i] = lh_cast_static(lh_u16_t, lh_ui_pixmap_blend_16_one(self, at[i], src, solid, a));
+    }
+}
+
+lh_void
 lh_ui_pixmap_blend_cover_8(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_s32_t count,
                            lh_u64_t cover, lh_u32_t src)
 {
@@ -899,6 +914,13 @@ lh_ui_pixmap_blend_cover_8(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_s32_
         return;
     }
 #endif
+    if (lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self)))
+    {
+        lh_ui_pixmap_blend_cover_16_words(
+            self, lh_ptr_rcast(lh_u16_t, lh_ui_pixmap_get_address(self, x, y)),
+            lh_cast_static(lh_usize_t, count), cover, src);
+        return;
+    }
     lh_byte_t alpha[8];
     for (lh_s32_t i = 0; i < count; ++i)
     {

@@ -1,4 +1,7 @@
 #include <gtest/gtest.h>
+
+#include <algorithm>
+#include <iterator>
 #include <vector>
 
 #include <lh/core/cpu/simd.h>
@@ -86,6 +89,40 @@ TEST(ui_pixmap, set_and_get_pixel_round_trip_through_argb)
     EXPECT_EQ(f.at(3, 1), 0x04010203u);
     const lh_ui_color_t back = lh_test::out(lh_ui_pixmap_get_pixel, lh_addr_of(f.pixmap), 3, 1);
     EXPECT_TRUE(lh_ui_color_equals(lh_addr_of(back), lh_addr_of(c)));
+}
+
+TEST(ui_pixmap, blend_cover_16_words_matches_the_alpha_span)
+{
+    /* Every kind of coverage: none, full, and the ones in between. */
+    const lh_byte_t alpha[8] = {0U, 255U, 17U, 128U, 200U, 1U, 254U, 99U};
+    lh_u64_t cover = 0U;
+    for (unsigned i = 0; i < 8U; ++i)
+    {
+        cover |= static_cast<lh_u64_t>(alpha[i]) << (8U * i);
+    }
+    for (lh_ui_pixmap_format_t format :
+         {lh_ui_pixmap_format_rgb565, lh_ui_pixmap_format_rgb565_swapped})
+    {
+        for (unsigned count = 1U; count <= 8U; ++count)
+        {
+            lh_u16_t words[8] = {0x0000U, 0xFFFFU, 0xF800U, 0x07E0U,
+                                 0x001FU, 0x1234U, 0xABCDU, 0x8410U};
+            lh_u16_t expected[8];
+            std::copy(std::begin(words), std::end(words), expected);
+            lh_ui_pixmap_t pixmap;
+            lh_ui_pixmap_init(lh_addr_of(pixmap), lh_ptr_rcast(lh_byte_t, words), 8, 1, 16, format);
+            lh_ui_pixmap_t reference;
+            lh_ui_pixmap_init(lh_addr_of(reference), lh_ptr_rcast(lh_byte_t, expected), 8, 1, 16,
+                              format);
+            lh_ui_pixmap_blend_alpha_16_words(lh_addr_of(reference), expected,
+                                              const_cast<lh_byte_ptr>(alpha), count, 0x3C78B4U);
+            lh_ui_pixmap_blend_cover_16_words(lh_addr_of(pixmap), words, count, cover, 0x3C78B4U);
+            for (unsigned i = 0; i < 8U; ++i)
+            {
+                EXPECT_EQ(words[i], expected[i]) << "count " << count << " pixel " << i;
+            }
+        }
+    }
 }
 
 TEST(ui_pixmap, rgb565_stores_16_bit_words_and_reads_opaque)

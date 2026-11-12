@@ -564,6 +564,7 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/present.c
             ${LH_LIB_SRC_PATH}/ui/present/sink.c
             ${LH_LIB_SRC_PATH}/ui/display.c
+            ${LH_LIB_SRC_PATH}/ui/display/backend.c
             ${LH_LIB_SRC_PATH}/ui/viewport3d.c
             ${LH_LIB_SRC_PATH}/ui/web/ws.c
             ${LH_LIB_SRC_PATH}/ui/web/buf.c

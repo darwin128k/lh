@@ -93,6 +93,24 @@ lh_ui_mask_get_coverage(const lh_ui_mask_t *self, lh_s32_t x, lh_s32_t y)
                                               lh_bit_packed_max(lh_ui_mask_get_bpp(self)), 255U));
 }
 
+lh_u64_t
+lh_ui_mask_unpack_4_words(lh_u64_t bytes, lh_bool_t odd)
+{
+    /* Nibble k of the row counts from the high nibble of the lowest byte; pixel i
+       is nibble i, or i + 1 when the row starts on a low nibble. Two 32-bit halves
+       keep a 32-bit core off 64-bit shifts. */
+    const lh_u32_t first = odd ? 1U : 0U;
+    lh_u32_t half[2] = {0U, 0U};
+    for (lh_u32_t i = 0U; i < 8U; ++i)
+    {
+        const lh_u32_t k = i + first;
+        const lh_u32_t byte = lh_cast_static(lh_u32_t, bytes >> (8U * (k >> 1))) & 0xFFU;
+        const lh_u32_t sample = ((k & 1U) != 0U) ? (byte & 0x0FU) : (byte >> 4);
+        half[i >> 2] |= (sample * 17U) << (8U * (i & 3U));
+    }
+    return (lh_cast_static(lh_u64_t, half[1]) << 32) | half[0];
+}
+
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
 lh_u64_t
 lh_ui_mask_unpack_4_sse2(lh_u64_t bytes, lh_bool_t odd)
@@ -130,7 +148,6 @@ lh_ui_mask_get_coverage_8(const lh_ui_mask_t *self, lh_s32_t x, lh_s32_t y)
     lh_return_if(y < 0 || y >= lh_ui_mask_get_height(self) || x >= lh_ui_mask_get_width(self) ||
                      x + 8 <= 0,
                  0U);
-#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
     if (lh_ui_mask_get_bpp(self) == 4U && x >= 0)
     {
         lh_byte_cptr row = lh_ui_mask_get_row(self, y);
@@ -157,12 +174,15 @@ lh_ui_mask_get_coverage_8(const lh_ui_mask_t *self, lh_s32_t x, lh_s32_t y)
                 bytes = (bytes << 8) | row[at + i];
             }
         }
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
         cover = lh_ui_mask_unpack_4_sse2(bytes, (x & 1) != 0);
+#else
+        cover = lh_ui_mask_unpack_4_words(bytes, (x & 1) != 0);
+#endif
         /* Past the width is outside: the padding nibble of an odd width, or the
            next row's first pixels. */
         return inside >= 8 ? cover : cover & ((lh_cast_static(lh_u64_t, 1U) << (8 * inside)) - 1U);
     }
-#endif
     lh_ui_mask_coverage_run(self, x, x + 8, y, run);
     return lh_memory_load_u64(run);
 }

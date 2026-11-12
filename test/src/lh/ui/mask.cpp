@@ -214,4 +214,35 @@ TEST(ui_mask_initializer, fills_members_in_order)
     EXPECT_EQ(mask.bpp, 1);
 }
 
+TEST(ui_mask, unpack_4_words_rescales_each_nibble_in_pixel_order)
+{
+    /* Nibbles 1 2 3 4 5 6 7 8 9 A from the high nibble of the lowest byte up. */
+    const lh_u64_t bytes = 0x9A78563412ULL;
+    const lh_u64_t even = lh_ui_mask_unpack_4_words(bytes, lh_bool_false);
+    const lh_u64_t odd = lh_ui_mask_unpack_4_words(bytes, lh_bool_true);
+    for (unsigned i = 0; i < 8U; ++i)
+    {
+        EXPECT_EQ((even >> (8U * i)) & 0xFFU, (i + 1U) * 17U) << "pixel " << i;
+        EXPECT_EQ((odd >> (8U * i)) & 0xFFU, (i + 2U) * 17U) << "pixel " << i;
+    }
+}
+
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+TEST(ui_mask, unpack_4_words_matches_the_sse2_unpack)
+{
+    lh_u64_t state = 0x243F6A8885A308D3ULL;
+    for (int round = 0; round < 4096; ++round)
+    {
+        state ^= state << 13;
+        state ^= state >> 7;
+        state ^= state << 17;
+        for (lh_bool_t odd : {lh_bool_false, lh_bool_true})
+        {
+            ASSERT_EQ(lh_ui_mask_unpack_4_words(state, odd), lh_ui_mask_unpack_4_sse2(state, odd))
+                << std::hex << state << " odd " << odd;
+        }
+    }
+}
+#endif
+
 } // namespace

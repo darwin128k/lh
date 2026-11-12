@@ -108,7 +108,7 @@ lh_ui_mask_coverage_run(const lh_ui_mask_t *self, lh_s32_t x0, lh_s32_t x1, lh_s
  *        `x + i` in byte `i` (`0` outside the mask): eight of
  *        ::lh_ui_mask_coverage_run without a buffer, which is how
  *        ::lh_ui_pixmap_blend_cover_8 takes them. A four-bit row is read with
- *        ::lh_ui_mask_unpack_4_sse2.
+ *        ::lh_ui_mask_unpack_4_sse2, or ::lh_ui_mask_unpack_4_words without SSE2.
  */
 lh_u64_t
 lh_ui_mask_get_coverage_8(const lh_ui_mask_t *self, lh_s32_t x, lh_s32_t y);
@@ -124,6 +124,17 @@ lh_ui_mask_get_coverage_8(const lh_ui_mask_t *self, lh_s32_t x, lh_s32_t y);
  */
 lh_u64_t
 lh_ui_mask_unpack_4_sse2(lh_u64_t bytes, lh_bool_t odd);
+
+/**
+ * @brief ::lh_ui_mask_unpack_4_sse2 in plain integer code, for every target: the
+ *        same eight coverages from the same bytes.
+ *
+ * The text of a frame on a microcontroller is this call: before it, a four-bit
+ * row without SSE2 went pixel by pixel through ::lh_ui_mask_coverage_run into a
+ * buffer and back into the register.
+ */
+lh_u64_t
+lh_ui_mask_unpack_4_words(lh_u64_t bytes, lh_bool_t odd);
 
 /**
  * @brief The rect @p self covers when its top-left pixel is at @p origin.

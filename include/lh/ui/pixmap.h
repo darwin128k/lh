@@ -445,6 +445,21 @@ lh_ui_pixmap_blend_cover_16_sse2(lh_u16_t *at, lh_usize_t count, lh_u64_t cover,
                                  lh_bool_t swap);
 
 /**
+ * @brief ::lh_ui_pixmap_blend_cover_16_sse2 in plain integer code, for every target:
+ *        the first @p count (1 .. 8) RGB565 words at @p at, pixel `i` at byte `i` of
+ *        @p cover, in the byte order of @p self's format. A coverage of 0 leaves the
+ *        pixel, 255 stores @p src packed once, any other goes through
+ *        ::lh_ui_pixmap_mix_16.
+ *
+ * What ::lh_ui_pixmap_blend_cover_8 runs on RGB565 without SSE2. Before it the
+ * coverages went from the register to a buffer and through
+ * ::lh_ui_pixmap_blend_alpha_span, a call chain per eight pixels of every glyph.
+ */
+lh_void
+lh_ui_pixmap_blend_cover_16_words(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_usize_t count,
+                                  lh_u64_t cover, lh_u32_t src);
+
+/**
  * @brief The row kernel: blend @p src (`0xRRGGBB`) over pixels `x0 .. x1 - 1`
  *        of row @p y, pixel `x0 + i` at `alpha[i]`; at most
  *        ::LH_UI_PIXMAP_RUN pixels. The same result as
