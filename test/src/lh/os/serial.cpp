@@ -83,29 +83,29 @@ struct cable
 TEST(os_serial, a_quiet_line_is_pending_and_not_the_end)
 {
     cable line;
-    lh_os_serial_t port;
-    lh_byte_t buf[16];
 
     ASSERT_NE(line.port_name, nullptr);
+    lh_os_serial_t port;
     lh_os_serial_init(&port);
     ASSERT_TRUE(lh_os_serial_open(&port, line.port_name, 9600, lh_os_serial_parity_even, 1));
     /* Nothing sent: not 0 -- a serial line has no end -- but "nothing yet". */
+    lh_byte_t buf[16];
     EXPECT_EQ(lh_os_serial_read(&port, buf, sizeof(buf)), LH_IO_PENDING);
     lh_os_serial_close(&port);
 }
 
 TEST(os_serial, bytes_go_both_ways_through_the_stream)
 {
-    cable line;
-    lh_os_serial_t port;
-    lh_io_stream_t stream;
     const lh_byte_t hello[] = {0x01, 0x0D, 0x0A, 0x00, 0xFF}; /* a CR and an LF stay bytes */
     lh_byte_t got[sizeof(hello)] = {};
     lh_ssize_t n = LH_IO_PENDING;
 
+    cable line;
     ASSERT_NE(line.port_name, nullptr);
+    lh_os_serial_t port;
     lh_os_serial_init(&port);
     ASSERT_TRUE(lh_os_serial_open(&port, line.port_name, 115200, lh_os_serial_parity_none, 2));
+    lh_io_stream_t stream;
     lh_os_serial_get_stream(&port, &stream);
 
     ASSERT_EQ(lh_io_stream_write(&stream, (lh_ptr)hello, sizeof(hello)), (lh_ssize_t)sizeof(hello));
@@ -129,28 +129,26 @@ TEST(os_serial, bytes_go_both_ways_through_the_stream)
 
 TEST(os_serial, a_modbus_rtu_question_is_answered_over_the_port)
 {
-    cable line;
-    lh_os_serial_t port;
-    lh_io_stream_t stream;
-    lh_mb_link_t link;
-    lh_byte_t request[8];
-    lh_byte_t answer[LH_MB_ADU_MAX];
     /* The PDU of three holding registers, 1, 2 and 3: code, byte count, six bytes. */
     const lh_byte_t pdu[] = {0x03, 0x06, 0x00, 0x01, 0x00, 0x02, 0x00, 0x03};
-    lh_u16_t answer_length;
     lh_mb_link_state_t state = lh_mb_link_waiting;
     const lh_u16_t *values;
     lh_u16_t count = 0;
 
+    cable line;
     ASSERT_NE(line.port_name, nullptr);
+    lh_os_serial_t port;
     lh_os_serial_init(&port);
     ASSERT_TRUE(lh_os_serial_open(&port, line.port_name, 9600, lh_os_serial_parity_even, 1));
+    lh_io_stream_t stream;
     lh_os_serial_get_stream(&port, &stream);
+    lh_mb_link_t link;
     lh_mb_link_init(&link, &stream, lh_mb_framing_rtu, 1, lh_null, lh_null);
 
     ASSERT_TRUE(lh_mb_link_ask(&link, 10, 3));
     /* What arrives at the device is an RTU request: unit, code, address, count and a
        CRC that checks. */
+    lh_byte_t request[8];
     ASSERT_TRUE(line.read_exactly(request, sizeof(request)));
     EXPECT_EQ(request[0], 0x01);
     EXPECT_EQ(request[1], LH_MB_FC_READ_HOLDING);
@@ -158,7 +156,9 @@ TEST(os_serial, a_modbus_rtu_question_is_answered_over_the_port)
     EXPECT_EQ(request[5], 3);
     EXPECT_EQ(lh_mb_crc16(request, 6), (lh_u16_t)((lh_u16_t)request[7] << 8 | request[6]));
 
-    answer_length = lh_mb_encode(lh_mb_framing_rtu, 1, 0, pdu, (lh_u16_t)sizeof(pdu), answer, (lh_u16_t)sizeof(answer));
+    lh_byte_t answer[LH_MB_ADU_MAX];
+    lh_u16_t answer_length = lh_mb_encode(lh_mb_framing_rtu, 1, 0, pdu, (lh_u16_t)sizeof(pdu),
+                                          answer, (lh_u16_t)sizeof(answer));
     ASSERT_EQ(write(line.device, answer, answer_length), (ssize_t)answer_length);
     for (int i = 0; i < 1000 && state == lh_mb_link_waiting; ++i)
     {

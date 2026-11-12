@@ -129,10 +129,10 @@ lh_os_system_shared_get_path(lh_os_system_shared_handle_t handle, lh_str_t *out)
 lh_os_system_shared_handle_t
 lh_os_system_shared_get_by_name(lh_str_cptr name)
 {
-    lh_os_str_t os_name;
     lh_os_system_win_handle_t native = lh_null;
 
     lh_assert_runtime_ref(name);
+    lh_os_str_t os_name;
     const lh_bool_t ok = lh_os_system_str_init_by_utf8(lh_addr_of(os_name), name);
     /* Flags 0: take a reference, released by lh_os_system_shared_close. */
     const lh_bool_t found = lh_cast_static(

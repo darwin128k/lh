@@ -535,7 +535,6 @@ TEST(os_window, a_long_press_comes_due_on_the_window_timer_alone)
     lh_os_controller_t controller{};
     ControllerLog log{};
     lh_os_input_event_t down{};
-    lh_tick_t started;
 
     lh_os_app_init(lh_addr_of(app));
     lh_os_window_init(lh_addr_of(window));
@@ -551,7 +550,7 @@ TEST(os_window, a_long_press_comes_due_on_the_window_timer_alone)
     lh_os_input_event_set_buttons(lh_addr_of(down),
                                   lh_os_input_button_to_mask(lh_os_input_button_primary));
     lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(down));
-    started = lh_os_tick_ms();
+    lh_tick_t started = lh_os_tick_ms();
     while (log.long_presses == 0 && lh_tick_elapsed(started, lh_os_tick_ms()) < 3000U)
     {
         (void)lh_os_system_window_pump_wait(50U);

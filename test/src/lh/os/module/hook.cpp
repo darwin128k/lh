@@ -48,15 +48,15 @@ char c = 'c';
 
 TEST(lh_os_module_hook, last_added_runs_first)
 {
-    lh_os_module_hook_t hook;
-    trace call;
     const lh_char_t *stopped_by = "x";
     lh_bool_t overran = lh_bool_true;
     int owner = 0;
 
+    lh_os_module_hook_t hook;
     lh_os_module_hook_init(&hook);
     ASSERT_TRUE(lh_os_module_hook_try_add(&hook, &owner, "A", pass, &a));
     ASSERT_TRUE(lh_os_module_hook_try_add(&hook, &owner, "B", pass, &b));
+    trace call;
     EXPECT_TRUE(lh_os_module_hook_call(&hook, &call, 0U, &stopped_by, &overran));
     EXPECT_EQ(call.order, "ba");
     EXPECT_EQ(stopped_by, nullptr);
@@ -65,15 +65,15 @@ TEST(lh_os_module_hook, last_added_runs_first)
 
 TEST(lh_os_module_hook, a_handler_stops_the_chain_and_is_named)
 {
-    lh_os_module_hook_t hook;
-    trace call;
     const lh_char_t *stopped_by = lh_null;
     int owner = 0;
 
+    lh_os_module_hook_t hook;
     lh_os_module_hook_init(&hook);
     ASSERT_TRUE(lh_os_module_hook_try_add(&hook, &owner, "A", pass, &a));
     ASSERT_TRUE(lh_os_module_hook_try_add(&hook, &owner, "B", stop, &b));
     ASSERT_TRUE(lh_os_module_hook_try_add(&hook, &owner, "C", pass, &c));
+    trace call;
     EXPECT_FALSE(lh_os_module_hook_call(&hook, &call, 0U, &stopped_by, lh_null));
     EXPECT_EQ(call.order, "cb");
     EXPECT_STREQ(stopped_by, "B");
@@ -81,16 +81,16 @@ TEST(lh_os_module_hook, a_handler_stops_the_chain_and_is_named)
 
 TEST(lh_os_module_hook, an_overrunning_handler_is_dropped)
 {
-    lh_os_module_hook_t hook;
-    trace call;
     lh_bool_t overran = lh_bool_false;
     const lh_char_t *stopped_by = "x";
     int owner = 0;
 
+    lh_os_module_hook_t hook;
     lh_os_module_hook_init(&hook);
     ASSERT_TRUE(lh_os_module_hook_try_add(&hook, &owner, "A", pass, &a));
     ASSERT_TRUE(lh_os_module_hook_try_add(&hook, &owner, "S", slow, &b));
     /* The slow one stops the call, but it overran: it is dropped and does not count. */
+    trace call;
     EXPECT_TRUE(lh_os_module_hook_call(&hook, &call, 1000U, &stopped_by, &overran));
     EXPECT_EQ(call.order, "ba");
     EXPECT_TRUE(overran);
@@ -100,11 +100,10 @@ TEST(lh_os_module_hook, an_overrunning_handler_is_dropped)
 
 TEST(lh_os_module_hook, removal_by_handler_and_by_owner)
 {
-    lh_os_module_hook_t hook;
-    trace call;
     int one = 0;
     int two = 0;
 
+    lh_os_module_hook_t hook;
     lh_os_module_hook_init(&hook);
     ASSERT_TRUE(lh_os_module_hook_try_add(&hook, &one, lh_null, pass, &a));
     ASSERT_TRUE(lh_os_module_hook_try_add(&hook, &two, lh_null, pass, &b));
@@ -113,15 +112,16 @@ TEST(lh_os_module_hook, removal_by_handler_and_by_owner)
     EXPECT_TRUE(lh_os_module_hook_try_remove(&hook, &one, pass, &a));
     EXPECT_FALSE(lh_os_module_hook_try_remove(&hook, &one, pass, &a));
     lh_os_module_hook_remove_owner(&hook, &one);
+    trace call;
     EXPECT_TRUE(lh_os_module_hook_call(&hook, &call, 0U, lh_null, lh_null));
     EXPECT_EQ(call.order, "b");
 }
 
 TEST(lh_os_module_hook, the_chain_is_bounded)
 {
-    lh_os_module_hook_t hook;
     int owner = 0;
 
+    lh_os_module_hook_t hook;
     lh_os_module_hook_init(&hook);
     EXPECT_FALSE(lh_os_module_hook_try_add(&hook, &owner, lh_null, lh_null, lh_null));
     for (lh_usize_t i = 0U; i < LH_OS_MODULE_HOOK_SIZE; ++i)

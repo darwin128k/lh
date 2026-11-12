@@ -74,12 +74,12 @@ static const lh_usize_t m_char_case_fold_table_size = lh_array_ptr_get_size(m_ch
 lh_char_t
 lh_char_fold_case_nonascii(lh_char_t c)
 {
-    lh_char_case_pair_t r;
     lh_bool_t is_founded = lh_bool_false;
 
     /* Key cast to lh_usize_t (the macro's own `type`) so it undergoes the same signed -> unsigned
      * conversion as the table's lh_char_t field does inside the macro; matches by construction
      * instead of mixing signed/unsigned operands in the comparison. */
+    lh_char_case_pair_t r;
     lh_interval_ropen_binary_search(lh_usize_t, m_char_case_fold_table, m_char_case_fold_table_size,
                                     lh_cast_static(lh_usize_t, c), first, r, is_founded);
 

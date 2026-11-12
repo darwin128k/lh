@@ -53,11 +53,10 @@ lh_os_system_fs_kind_from_unix_mode(lh_os_system_fs_unix_mode_t mode)
 lh_bool_t
 lh_os_system_fs_stat(lh_str_cptr path, lh_fs_stat_t *out)
 {
-    struct stat info;
-
     lh_assert_runtime_ref(path);
     lh_assert_runtime_ref(out);
 
+    struct stat info;
     if (lh_math_ne(lstat(path, lh_addr_of(info)), 0))
     {
         lh_os_system_error_capture();

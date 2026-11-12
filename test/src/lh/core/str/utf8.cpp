@@ -11,12 +11,11 @@ constexpr lh_u32_t k_cyrillic = 0x041AU;
 
 TEST(str_utf8, a_code_that_is_not_encodable_is_refused)
 {
-    lh_char_t out[4];
-
     EXPECT_EQ(lh_str_utf8_get_encoded_size(0), 0U);       /* the terminator */
     EXPECT_EQ(lh_str_utf8_get_encoded_size(0xD800U), 0U); /* a surrogate half */
     EXPECT_EQ(lh_str_utf8_get_encoded_size(0xDFFFU), 0U);
     EXPECT_EQ(lh_str_utf8_get_encoded_size(0x110000U), 0U); /* above the last one */
+    lh_char_t out[4];
     EXPECT_EQ(lh_str_utf8_encode(out, 4U, 0xD800U), 0U);
     /* A code point that does not fit is refused whole, never half of one. */
     EXPECT_EQ(lh_str_utf8_encode(out, 1U, k_cyrillic), 0U);

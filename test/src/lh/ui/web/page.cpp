@@ -29,10 +29,10 @@ text_of(const lh_str_t *text)
 std::string
 js(lh_web_js_node_t *node)
 {
-    lh_web_js_writer_t writer;
     lh_str_t out;
 
     lh_str_init(&out);
+    lh_web_js_writer_t writer;
     lh_web_js_writer_init(&writer, &out);
     EXPECT_TRUE(lh_web_js_writer_try_write(&writer, node));
     std::string text = text_of(&out);
@@ -45,10 +45,10 @@ js(lh_web_js_node_t *node)
 std::string
 js_expression(lh_web_js_node_t *node)
 {
-    lh_web_js_writer_t writer;
     lh_str_t out;
 
     lh_str_init(&out);
+    lh_web_js_writer_t writer;
     lh_web_js_writer_init(&writer, &out);
     EXPECT_TRUE(lh_web_js_writer_try_write_expression(&writer, node, lh_web_js_precedence_lowest));
     std::string text = text_of(&out);
@@ -185,11 +185,11 @@ TEST(web_page, every_part_writes_its_statement)
 TEST(web_page, script_is_every_part_in_order)
 {
     lh_web_js_node_t *script = lh_ui_web_player_page_create_script();
-    lh_str_t out;
 
     /* The parts above plus the two key tables. */
     EXPECT_EQ(lh_web_js_node_get_size(script), sizeof(m_parts) / sizeof(m_parts[0]) + 2U);
     lh_web_js_node_destroy(script);
+    lh_str_t out;
     lh_str_init(&out);
     ASSERT_TRUE(lh_ui_web_player_page_try_write_script(&out));
     const std::string text = text_of(&out);
@@ -331,17 +331,17 @@ TEST(web_page, open_ws_falls_back_to_polling)
 TEST(web_page, the_page_reads_back_as_html_and_writes_the_same_bytes)
 {
     const std::string page = page_text();
-    lh_web_html_reader_t reader;
-    lh_web_xml_node_t doc;
-    lh_web_xml_writer_t writer;
     lh_str_view_t view;
-    lh_str_t out;
 
     lh_str_view_init_by_size(&view, page.data(), page.size());
+    lh_web_xml_node_t doc;
     lh_web_xml_node_init(&doc);
+    lh_web_html_reader_t reader;
     lh_web_html_reader_init(&reader, view);
     ASSERT_TRUE(lh_web_html_reader_read(&reader, &doc));
+    lh_str_t out;
     lh_str_init(&out);
+    lh_web_xml_writer_t writer;
     lh_web_xml_writer_init(&writer, &out);
     lh_web_xml_writer_set_dialect(&writer, lh_web_xml_dialect_html);
     EXPECT_TRUE(lh_web_xml_writer_try_write(&writer, &doc));

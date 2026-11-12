@@ -59,11 +59,11 @@ TEST(http_body_reader_read, streams_chunked_across_fragments_and_reports_truncat
     lh_str_cursor_init(&source_cursor, lh_str_view_lit("3\r\nabc\r\n2\r\nde\r\n0\r\n\r\n"));
     lh_io_reader_t source;
     lh_io_reader_init(&source, http_body_test_read, &source_cursor);
-    char wire[3];
     char line[16];
     lh_http_chunked_decoder_t decoder;
     lh_http_chunked_decoder_init(&decoder, line, sizeof(line), 20U, 64U);
     lh_http_body_reader_t body;
+    char wire[3];
     lh_http_body_reader_init_chunked(&body, &source, wire, sizeof(wire), 0U, &decoder);
     char out[3];
     std::string result;

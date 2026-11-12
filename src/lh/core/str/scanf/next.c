@@ -83,14 +83,11 @@ lh_str_ptr_scanf_next_number(lh_str_cptr fmt, lh_usize_t *pos, lh_uint_t *value)
 lh_void
 lh_str_ptr_scanf_next_length(lh_str_cptr fmt, lh_usize_t *pos, lh_str_scanf_spec_t *out)
 {
-    lh_usize_t fmt_pos;
-    lh_char_t ch;
-
     lh_assert_runtime_ref(fmt);
     lh_assert_runtime_ref(pos);
     lh_assert_runtime_ref(out);
-    fmt_pos = lh_ptr_deref(pos);
-    ch = fmt[fmt_pos];
+    lh_usize_t fmt_pos = lh_ptr_deref(pos);
+    lh_char_t ch = fmt[fmt_pos];
     if (lh_math_eq(ch, lh_char_map_small_h) || lh_math_eq(ch, lh_char_map_small_l))
     {
         const lh_bool_t twice = lh_math_eq(fmt[lh_math_add_one(fmt_pos)], ch);
@@ -125,9 +122,7 @@ lh_str_ptr_scanf_next(lh_str_cptr fmt, lh_usize_t *pos, lh_str_scanf_spec_t *out
         lh_uint_t number;
         lh_char_t ch;
 
-        /* kind_invalid is 0; wipe + keep fmt as the default literal base. */
-        lh_ptr_deref(out) = (lh_str_scanf_spec_t){0};
-        lh_str_scanf_spec_set_literal(out, fmt);
+        lh_str_scanf_spec_clear(out, fmt);
 
         ch = fmt[fmt_pos];
         if (lh_math_eq(ch, lh_char_map_nul))

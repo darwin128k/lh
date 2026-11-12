@@ -103,12 +103,11 @@ lh_fs_path_assign(lh_fs_path_t *self, const lh_fs_path_t *other)
 lh_char_t
 lh_fs_path_get_root_drive(const lh_fs_path_t *self)
 {
-    lh_str_view_t text;
-
     if (lh_math_ne(lh_fs_path_get_root_kind(self), lh_fs_path_root_kind_drive))
     {
         return 0;
     }
+    lh_str_view_t text;
     lh_str_as_view(lh_fs_path_get_text(self), lh_addr_of(text));
     return lh_str_view_get_first_char(lh_addr_of(text));
 }
@@ -118,10 +117,6 @@ lh_fs_path_get_segment_count(const lh_fs_path_t *self)
 {
     lh_str_view_t rest;
     lh_fs_path_get_rest(self, lh_addr_of(rest));
-    const lh_char_t *data;
-    lh_usize_t size;
-    lh_usize_t count;
-    lh_usize_t i;
 
     /* Normalized text (see Layout above): segments joined by a single '/',
        none empty, no trailing '/' — so there is one more segment than there
@@ -130,10 +125,10 @@ lh_fs_path_get_segment_count(const lh_fs_path_t *self)
     {
         return 0U;
     }
-    data = lh_str_view_get_data(lh_addr_of(rest));
-    size = lh_str_view_get_size(lh_addr_of(rest));
-    count = 1U;
-    for (i = 0U; lh_math_lt(i, size); i = lh_math_add_one(i))
+    const lh_char_t *data = lh_str_view_get_data(lh_addr_of(rest));
+    const lh_usize_t size = lh_str_view_get_size(lh_addr_of(rest));
+    lh_usize_t count = 1U;
+    for (lh_usize_t i = 0U; i < size; ++i)
     {
         if (lh_math_eq(data[i], lh_char_map_slash))
         {
@@ -148,14 +143,11 @@ lh_fs_path_get_segment(const lh_fs_path_t *self, lh_uindex_t index, lh_str_view_
 {
     lh_assert_runtime_ref(out);
     lh_str_view_t rest;
-    lh_str_view_t field;
-    lh_usize_t pos;
-    lh_uindex_t seen;
-    lh_bool_t had_delim;
-
     lh_fs_path_get_rest(self, lh_addr_of(rest));
-    pos = 0U;
-    seen = 0U;
+    lh_usize_t pos = 0U;
+    lh_bool_t had_delim = lh_bool_false;
+    lh_uindex_t seen = 0U;
+    lh_str_view_t field;
     while (lh_str_view_split_next_of(lh_addr_of(rest), m_fs_path_posix_seps, 1U, lh_addr_of(pos),
                                      lh_addr_of(field), lh_addr_of(had_delim)))
     {
@@ -167,9 +159,7 @@ lh_fs_path_get_segment(const lh_fs_path_t *self, lh_uindex_t index, lh_str_view_
         seen = lh_math_add_one(seen);
     }
     lh_assert_runtime_if(lh_bool_true, lh_runtime_error_code_out_of_range);
-    lh_str_view_t _lh_tmp;
-    lh_str_view_init_empty(lh_addr_of(_lh_tmp));
-    lh_ptr_deref(out) = _lh_tmp;
+    lh_str_view_init_empty(out);
 }
 
 lh_bool_t
@@ -212,16 +202,13 @@ lh_bool_t
 lh_fs_path_is_hidden(const lh_fs_path_t *self)
 {
     lh_str_view_t rest;
-    lh_str_view_t last;
-    lh_usize_t slash;
-    lh_usize_t size;
-
     lh_fs_path_get_rest(self, lh_addr_of(rest));
     if (lh_str_view_is_empty(lh_addr_of(rest)))
     {
         return lh_bool_false;
     }
-    slash = lh_str_view_rfind_char(lh_addr_of(rest), lh_char_map_slash);
+    const lh_usize_t slash = lh_str_view_rfind_char(lh_addr_of(rest), lh_char_map_slash);
+    lh_str_view_t last;
     if (lh_math_eq(slash, LH_STR_VIEW_INVALID))
     {
         last = rest;
@@ -234,7 +221,7 @@ lh_fs_path_is_hidden(const lh_fs_path_t *self)
     {
         return lh_bool_false;
     }
-    size = lh_str_view_get_size(lh_addr_of(last));
+    const lh_usize_t size = lh_str_view_get_size(lh_addr_of(last));
     if (lh_math_eq(size, 1U))
     {
         return lh_bool_false;
@@ -266,14 +253,11 @@ lh_fs_path_is_drive(lh_str_view_t part)
 lh_usize_t
 lh_fs_path_take_root(lh_fs_path_t *self, const lh_str_view_t *text, lh_fs_path_style_t style)
 {
-    lh_str_t *out;
-    lh_str_view_t head;
-    lh_bool_t drive;
-
-    out = lh_fs_path_get_text_mut(self);
-    drive = lh_bool_false;
+    lh_str_t *out = lh_fs_path_get_text_mut(self);
+    lh_bool_t drive = lh_bool_false;
     if (lh_math_eq(style, lh_fs_path_style_windows) && lh_math_ge(lh_str_view_get_size(text), 2U))
     {
+        lh_str_view_t head;
         lh_str_view_from_offset(text, 0U, 2U, lh_addr_of(head));
         drive = lh_fs_path_is_drive(head);
     }
@@ -305,13 +289,6 @@ lh_fs_path_take_root(lh_fs_path_t *self, const lh_str_view_t *text, lh_fs_path_s
 lh_void
 lh_fs_path_set(lh_fs_path_t *self, lh_str_view_t text, lh_fs_path_style_t style)
 {
-    lh_str_t *out;
-    lh_str_view_t rest;
-    lh_str_view_t field;
-    lh_usize_t root_len;
-    lh_usize_t pos;
-    lh_bool_t had_delim;
-
     lh_assert_runtime_if(lh_math_ne(style, lh_fs_path_style_posix) &&
                              lh_math_ne(style, lh_fs_path_style_windows),
                          lh_runtime_error_code_invalid_argument);
@@ -320,14 +297,17 @@ lh_fs_path_set(lh_fs_path_t *self, lh_str_view_t text, lh_fs_path_style_t style)
     {
         return;
     }
-    out = lh_fs_path_get_text_mut(self);
+    lh_str_t *out = lh_fs_path_get_text_mut(self);
     /* Normalizing never grows the text by more than the "C:" -> "C:/" slash. */
     lh_str_reserve(out, lh_math_add_one(lh_str_view_get_size(lh_addr_of(text))));
+    lh_str_view_t rest;
     lh_str_view_tail(lh_addr_of(text), lh_fs_path_take_root(self, lh_addr_of(text), style),
                      lh_addr_of(rest));
-    root_len = lh_str_get_size(out);
+    const lh_usize_t root_len = lh_str_get_size(out);
 
-    pos = 0U;
+    lh_usize_t pos = 0U;
+    lh_bool_t had_delim = lh_bool_false;
+    lh_str_view_t field;
     while (
         lh_math_eq(style, lh_fs_path_style_windows)
             ? lh_str_view_split_next_of(lh_addr_of(rest), m_fs_path_windows_seps, 2U,
@@ -350,11 +330,6 @@ lh_fs_path_set(lh_fs_path_t *self, lh_str_view_t text, lh_fs_path_style_t style)
 lh_void
 lh_fs_path_to_str(const lh_fs_path_t *self, lh_fs_path_style_t style, lh_str_t *out)
 {
-    lh_str_view_t text;
-    lh_str_view_t field;
-    lh_usize_t pos;
-    lh_bool_t had_delim;
-
     lh_str_clear(out);
     if (lh_math_eq(style, lh_fs_path_style_posix))
     {
@@ -364,8 +339,11 @@ lh_fs_path_to_str(const lh_fs_path_t *self, lh_fs_path_style_t style, lh_str_t *
 
     /* Only `/` is ever a separator in `text`; copy the runs between them. */
     lh_str_reserve(out, lh_str_get_size(lh_fs_path_get_text(self)));
+    lh_str_view_t text;
     lh_str_as_view(lh_fs_path_get_text(self), lh_addr_of(text));
-    pos = 0U;
+    lh_usize_t pos = 0U;
+    lh_bool_t had_delim = lh_bool_false;
+    lh_str_view_t field;
     while (lh_str_view_split_next_of(lh_addr_of(text), m_fs_path_posix_seps, 1U, lh_addr_of(pos),
                                      lh_addr_of(field), lh_addr_of(had_delim)))
     {
@@ -389,9 +367,6 @@ lh_bool_t
 lh_fs_path_join(lh_fs_path_t *self, const lh_fs_path_t *dir, const lh_fs_path_t *name)
 {
     lh_str_view_t rest;
-    lh_str_t copy;
-    lh_bool_t aliased;
-
     lh_fs_path_get_rest(name, lh_addr_of(rest));
     if (lh_str_view_is_empty(lh_addr_of(rest)))
     {
@@ -399,8 +374,10 @@ lh_fs_path_join(lh_fs_path_t *self, const lh_fs_path_t *dir, const lh_fs_path_t 
         return lh_bool_false;
     }
 
-    /* self == name: name's text is about to be overwritten by dir's. */
-    aliased = lh_cast_static(lh_bool_t, lh_math_eq(self, name));
+    /* self == name: name's text is about to be overwritten by dir's. The copy
+       outlives the branch: `rest` names it until the append below. */
+    const lh_bool_t aliased = lh_cast_static(lh_bool_t, lh_math_eq(self, name));
+    lh_str_t copy;
     if (aliased)
     {
         lh_str_init_by_view(lh_addr_of(copy), rest);
@@ -422,14 +399,13 @@ lh_fs_path_join(lh_fs_path_t *self, const lh_fs_path_t *dir, const lh_fs_path_t 
 lh_bool_t
 lh_fs_path_equals(const lh_fs_path_t *self, const lh_fs_path_t *other, lh_bool_t ignore_case)
 {
-    lh_str_view_t a;
-    lh_str_view_t b;
-
     if (lh_math_ne(lh_fs_path_get_root_kind(self), lh_fs_path_get_root_kind(other)))
     {
         return lh_bool_false;
     }
+    lh_str_view_t a;
     lh_str_as_view(lh_fs_path_get_text(self), lh_addr_of(a));
+    lh_str_view_t b;
     lh_str_as_view(lh_fs_path_get_text(other), lh_addr_of(b));
     return lh_str_view_equals(lh_addr_of(a), lh_addr_of(b), ignore_case);
 }
@@ -438,16 +414,13 @@ lh_bool_t
 lh_fs_path_parent(lh_fs_path_t *self, const lh_fs_path_t *path)
 {
     lh_str_view_t rest;
-    lh_usize_t slash;
-    lh_usize_t root;
-
     lh_fs_path_get_rest(path, lh_addr_of(rest));
     if (lh_str_view_is_empty(lh_addr_of(rest)))
     {
         return lh_bool_false;
     }
-    slash = lh_str_view_rfind_char(lh_addr_of(rest), lh_char_map_slash);
-    root = lh_fs_path_root_len(lh_fs_path_get_root_kind(path));
+    const lh_usize_t slash = lh_str_view_rfind_char(lh_addr_of(rest), lh_char_map_slash);
+    const lh_usize_t root = lh_fs_path_root_len(lh_fs_path_get_root_kind(path));
     lh_fs_path_assign(self, path);
     /* One segment: keep only the root prefix ("" for a relative path). */
     lh_str_truncate(lh_fs_path_get_text_mut(self),
@@ -458,14 +431,12 @@ lh_fs_path_parent(lh_fs_path_t *self, const lh_fs_path_t *path)
 lh_bool_t
 lh_fs_path_is_text_absolute(lh_str_cptr text, lh_fs_path_style_t style)
 {
-    lh_fs_path_t parsed;
     lh_str_view_t view;
-    lh_bool_t absolute;
-
     lh_str_view_init(lh_addr_of(view), text);
+    lh_fs_path_t parsed;
     lh_fs_path_init(lh_addr_of(parsed));
     lh_fs_path_set(lh_addr_of(parsed), view, style);
-    absolute = lh_fs_path_is_absolute(lh_addr_of(parsed));
+    const lh_bool_t absolute = lh_fs_path_is_absolute(lh_addr_of(parsed));
     lh_fs_path_deinit(lh_addr_of(parsed));
     return absolute;
 }

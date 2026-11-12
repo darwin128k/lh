@@ -36,9 +36,9 @@ TEST(wstr_init, allocates_nothing_and_reads_empty)
 TEST(wstr_bufferless, readers_and_resets_work_before_first_grow)
 {
     lh_wstr_t s;
-    lh_wstr_t other;
 
     lh_wstr_init(&s);
+    lh_wstr_t other;
     lh_wstr_init(&other);
     lh_wstr_clear(&s);
     lh_wstr_truncate(&s, 0);

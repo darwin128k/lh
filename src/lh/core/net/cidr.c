@@ -69,10 +69,10 @@ lh_net_cidr_try_parse(const lh_str_ptr text, lh_usize_t text_size, lh_net_cidr_t
 
     lh_str_view_init_by_size(lh_addr_of(whole), text, text_size);
 
-    lh_str_view_t address_text;
-    lh_str_view_t bits_text;
     lh_uint_t bits = 32U;
 
+    lh_str_view_t address_text;
+    lh_str_view_t bits_text;
     if (lh_str_view_split_once(lh_addr_of(whole), lh_char_map_slash, lh_addr_of(address_text),
                                lh_addr_of(bits_text)))
     {

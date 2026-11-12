@@ -26,12 +26,10 @@ struct pair
 
     pair()
     {
-        lh_net_ip4_t ip;
-        lh_net_ip4_socket_addr_t addr;
-        lh_net_ip4_socket_addr_t peer;
-
         EXPECT_TRUE(lh_os_net_init());
+        lh_net_ip4_t ip;
         lh_net_ip4_init(&ip, 127, 0, 0, 1);
+        lh_net_ip4_socket_addr_t addr;
         lh_net_ip4_socket_addr_init(&addr, &ip, 0);
         lh_os_net_socket_init(&listener);
         lh_os_net_socket_init(&client);
@@ -42,6 +40,7 @@ struct pair
         EXPECT_TRUE(lh_os_net_socket_get_local_addr(&listener, &addr));
         EXPECT_TRUE(lh_os_net_socket_open(&client, lh_net_socket_type_tcp));
         EXPECT_TRUE(lh_os_net_socket_connect(&client, &addr));
+        lh_net_ip4_socket_addr_t peer;
         EXPECT_TRUE(lh_os_net_socket_accept(&listener, &server, &peer));
     }
 
@@ -78,11 +77,11 @@ TEST(os_net_socket, a_listener_is_readable_when_a_connection_waits)
 {
     pair p;
     lh_os_net_socket_t *const read[1] = {&p.listener};
-    lh_os_net_socket_t late;
-    lh_net_ip4_socket_addr_t addr;
 
     EXPECT_EQ(lh_os_net_socket_wait(read, 1u, lh_null, 0u, 0u), LH_OS_RESULT_PENDING);
+    lh_net_ip4_socket_addr_t addr;
     ASSERT_TRUE(lh_os_net_socket_get_local_addr(&p.listener, &addr));
+    lh_os_net_socket_t late;
     lh_os_net_socket_init(&late);
     ASSERT_TRUE(lh_os_net_socket_open(&late, lh_net_socket_type_tcp));
     ASSERT_TRUE(lh_os_net_socket_connect(&late, &addr));
@@ -102,10 +101,10 @@ TEST(os_net_socket, a_connected_socket_is_writable_and_takes_no_delay)
 
 TEST(os_net_socket, get_poll_watches_the_socket_for_the_events)
 {
-    pair p;
-    lh_os_net_socket_poll_t entry;
     const char byte = 'x';
 
+    lh_os_net_socket_poll_t entry;
+    pair p;
     lh_os_net_socket_get_poll(&p.server, lh_os_net_socket_poll_read, &entry);
     EXPECT_EQ(lh_os_net_socket_poll_get_handle(&entry), lh_os_net_socket_get_handle(&p.server));
     EXPECT_EQ(lh_os_net_socket_poll_get_events(&entry), lh_os_net_socket_poll_read);
@@ -118,15 +117,15 @@ TEST(os_net_socket, get_poll_watches_the_socket_for_the_events)
 
 TEST(os_net_socket, an_empty_poll_entry_is_skipped)
 {
-    pair p;
-    lh_os_net_socket_poll_t entries[2];
     const char byte = 'x';
 
+    lh_os_net_socket_poll_t entries[2];
     lh_os_net_socket_poll_init_empty(&entries[0]);
     EXPECT_EQ(lh_os_net_socket_poll_get_handle(&entries[0]),
               LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID);
     EXPECT_EQ(lh_os_net_socket_poll_get_events(&entries[0]), 0u);
     EXPECT_EQ(lh_os_net_socket_poll_get_ready(&entries[0]), 0u);
+    pair p;
     lh_os_net_socket_get_poll(&p.server, lh_os_net_socket_poll_read, &entries[1]);
     ASSERT_EQ(lh_os_net_socket_send(&p.client, (lh_ptr)&byte, 1u), 1);
     EXPECT_EQ(lh_os_net_socket_poll(entries, 2u, 2000u), 1);
@@ -136,7 +135,6 @@ TEST(os_net_socket, an_empty_poll_entry_is_skipped)
 
 TEST(os_net_socket, send_file_sends_from_the_offset_and_advances_it)
 {
-    pair p;
     const char *name = "lh-test-socket-send-file.tmp";
     std::unique_ptr<std::FILE, decltype(&std::fclose)> file(std::fopen(name, "wb"), std::fclose);
     ASSERT_TRUE(file);
@@ -150,6 +148,7 @@ TEST(os_net_socket, send_file_sends_from_the_offset_and_advances_it)
     char got[8] = {0};
     lh_usize_t received = 0;
 
+    pair p;
     while (offset < 10)
     {
         const lh_u64_t before = offset;

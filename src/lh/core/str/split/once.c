@@ -5,8 +5,6 @@ lh_bool_t
 lh_str_view_split_once(const lh_str_view_t *self, lh_char_t delim, lh_str_view_t *head,
                        lh_str_view_t *tail)
 {
-    lh_usize_t at;
-
     lh_assert_runtime_ref(head);
     lh_assert_runtime_ref(tail);
     if (lh_str_view_is_empty(self))
@@ -14,7 +12,7 @@ lh_str_view_split_once(const lh_str_view_t *self, lh_char_t delim, lh_str_view_t
         return lh_bool_false;
     }
 
-    at = lh_str_view_find_char(self, delim);
+    lh_usize_t at = lh_str_view_find_char(self, delim);
 
     if (lh_math_eq(at, LH_STR_VIEW_INVALID))
     {

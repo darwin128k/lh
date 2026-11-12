@@ -141,11 +141,11 @@ lh_console_entry_try_create(lh_ptr owner, const lh_char_t *scope,
 {
     lh_console_entry_t *self = lh_ptr_rcast(
         lh_console_entry_t, lh_runtime_allocator_try_alloc_zero(1U, sizeof(lh_ptr_deref(self))));
-    lh_str_view_t text;
 
     lh_return_if(lh_ptr_is_null(self), lh_null);
     lh_list_node_init(lh_console_entry_get_node_mut(self));
     lh_console_entry_set_owner(self, owner);
+    lh_str_view_t text;
     lh_str_view_init(lh_addr_of(text), scope);
     lh_str_init_by_view(lh_console_entry_get_scope_mut(self), text);
     lh_str_view_init(lh_addr_of(text), lh_console_command_get_name(command));

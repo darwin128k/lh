@@ -48,11 +48,11 @@ TEST(ui_web_host_try_read_request, leaves_length_unchanged_when_storage_is_empty
 {
     lh_os_net_socket_t socket;
     lh_os_net_socket_init(&socket);
-    char buffer;
     lh_usize_t length = 17;
-    lh_http_request_t request;
     lh_str_view_t request_body = lh_str_view_initializer_lit("unchanged");
 
+    char buffer;
+    lh_http_request_t request;
     EXPECT_FALSE(lh_ui_web_host_try_read_request(lh_addr_of(socket), lh_addr_of(buffer), 0, 10,
                                                  lh_addr_of(length), lh_addr_of(request_body),
                                                  lh_addr_of(request), nullptr, 0));
@@ -79,19 +79,19 @@ TEST(ui_web_host_try_read_request, returns_parsed_request_and_borrowed_headers)
     lh_os_system_net_socket_handle_t handles[2];
     ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t reader;
-    lh_os_net_socket_t writer;
     lh_os_net_socket_init(lh_addr_of(reader));
+    lh_os_net_socket_t writer;
     lh_os_net_socket_init(lh_addr_of(writer));
     lh_os_net_socket_set_handle(lh_addr_of(reader), handles[0]);
     lh_os_net_socket_set_handle(lh_addr_of(writer), handles[1]);
     ASSERT_TRUE(lh_os_net_socket_set_blocking(lh_addr_of(reader), lh_bool_true));
     const char text[] = "GET /ui HTTP/1.1\r\nX-Example: value\r\n\r\n";
     ASSERT_TRUE(lh_os_net_socket_send_all(lh_addr_of(writer), text, sizeof(text) - 1));
-    char buffer[128];
     lh_usize_t length = 0;
     lh_http_request_t request;
     lh_str_view_t request_body;
     lh_http_header_t headers[2];
+    char buffer[128];
     ASSERT_TRUE(lh_ui_web_host_try_read_request(lh_addr_of(reader), buffer, sizeof(buffer), 1000,
                                                 lh_addr_of(length), lh_addr_of(request_body),
                                                 lh_addr_of(request), headers, 2));
@@ -120,8 +120,8 @@ TEST(ui_web_host_try_read_request, waits_for_the_complete_body)
     lh_os_system_net_socket_handle_t handles[2];
     ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t reader;
-    lh_os_net_socket_t writer;
     lh_os_net_socket_init(lh_addr_of(reader));
+    lh_os_net_socket_t writer;
     lh_os_net_socket_init(lh_addr_of(writer));
     lh_os_net_socket_set_handle(lh_addr_of(reader), handles[0]);
     lh_os_net_socket_set_handle(lh_addr_of(writer), handles[1]);
@@ -134,11 +134,11 @@ TEST(ui_web_host_try_read_request, waits_for_the_complete_body)
             std::this_thread::sleep_for(std::chrono::milliseconds(20));
             LH_ATTRIBUTE_UNUSED(lh_os_net_socket_send_all(lh_addr_of(writer), "cd", 2));
         });
-    char buffer[128];
     lh_usize_t length = 0;
     lh_http_request_t request;
     lh_str_view_t request_body;
     lh_http_header_t headers[2];
+    char buffer[128];
     const bool received = lh_ui_web_host_try_read_request(
         lh_addr_of(reader), buffer, sizeof(buffer), 1000, lh_addr_of(length),
         lh_addr_of(request_body), lh_addr_of(request), headers, 2);
@@ -174,11 +174,11 @@ TEST(ui_web_host_try_read_request, decodes_fragmented_chunked_binary_body)
             const char rest[] = "\0\r\n2;foo=bar\r\nbc\r\n0\r\nX-Trailer: discarded\r\n\r\n";
             LH_ATTRIBUTE_UNUSED(lh_os_net_socket_send_all(&writer, rest, sizeof(rest) - 1U));
         });
-    char buffer[256];
     lh_usize_t length = 0U;
     lh_str_view_t body;
     lh_http_request_t request;
     lh_http_header_t headers[4];
+    char buffer[256];
     const bool ok = lh_ui_web_host_try_read_request(&reader, buffer, sizeof(buffer), 1000U, &length,
                                                     &body, &request, headers, 4U);
     sender.join();
@@ -210,11 +210,11 @@ TEST(ui_web_host_try_read_request, rejects_ambiguous_chunked_framing)
     const char input[] =
         "POST / HTTP/1.1\r\nTransfer-Encoding: chunked\r\nContent-Length: 0\r\n\r\n0\r\n\r\n";
     ASSERT_TRUE(lh_os_net_socket_send_all(&writer, input, sizeof(input) - 1U));
-    char buffer[128];
     lh_usize_t length = 17U;
     lh_str_view_t body = lh_str_view_lit("unchanged");
     lh_http_request_t request;
     lh_http_header_t headers[4];
+    char buffer[128];
     EXPECT_FALSE(lh_ui_web_host_try_read_request(&reader, buffer, sizeof(buffer), 1000U, &length,
                                                  &body, &request, headers, 4U));
     EXPECT_EQ(length, 17U);
@@ -237,11 +237,11 @@ TEST(ui_web_host_try_read_request, rejects_chunked_http_1_0)
     lh_os_net_socket_set_handle(&writer, handles[1]);
     const char input[] = "POST / HTTP/1.0\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\n";
     ASSERT_TRUE(lh_os_net_socket_send_all(&writer, input, sizeof(input) - 1U));
-    char buffer[128];
     lh_usize_t length = 17U;
     lh_str_view_t body = lh_str_view_lit("unchanged");
     lh_http_request_t request;
     lh_http_header_t headers[2];
+    char buffer[128];
     EXPECT_FALSE(lh_ui_web_host_try_read_request(&reader, buffer, sizeof(buffer), 1000U, &length,
                                                  &body, &request, headers, 2U));
     EXPECT_EQ(length, 17U);
@@ -301,8 +301,8 @@ TEST(ui_web_host_handle_request_is_upgraded, dispatches_complete_binary_body)
     lh_os_system_net_socket_handle_t handles[2];
     ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t server;
-    lh_os_net_socket_t client;
     lh_os_net_socket_init(lh_addr_of(server));
+    lh_os_net_socket_t client;
     lh_os_net_socket_init(lh_addr_of(client));
     lh_os_net_socket_set_handle(lh_addr_of(server), handles[0]);
     lh_os_net_socket_set_handle(lh_addr_of(client), handles[1]);
@@ -430,8 +430,8 @@ TEST(ui_web_host_deadline, reads_available_data_and_obeys_expired_deadline)
     lh_os_system_net_socket_handle_t handles[2];
     ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t server;
-    lh_os_net_socket_t client;
     lh_os_net_socket_init(&server);
+    lh_os_net_socket_t client;
     lh_os_net_socket_init(&client);
     lh_os_net_socket_set_handle(&server, handles[0]);
     lh_os_net_socket_set_handle(&client, handles[1]);
@@ -852,8 +852,8 @@ TEST(ui_web_host_handle_request_is_upgraded, accepts_empty_gzip_with_zero_decode
     lh_os_system_net_socket_handle_t handles[2];
     ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t server;
-    lh_os_net_socket_t client;
     lh_os_net_socket_init(&server);
+    lh_os_net_socket_t client;
     lh_os_net_socket_init(&client);
     lh_os_net_socket_set_handle(&server, handles[0]);
     lh_os_net_socket_set_handle(&client, handles[1]);
@@ -939,8 +939,8 @@ TEST(ui_web_host_handle_request_is_upgraded, streams_fragmented_large_gzip_chunk
     lh_os_system_net_socket_handle_t handles[2];
     ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t server;
-    lh_os_net_socket_t client;
     lh_os_net_socket_init(&server);
+    lh_os_net_socket_t client;
     lh_os_net_socket_init(&client);
     lh_os_net_socket_set_handle(&server, handles[0]);
     lh_os_net_socket_set_handle(&client, handles[1]);
@@ -1016,8 +1016,8 @@ TEST(ui_web_host_handle_request_is_upgraded, rejects_oversized_stream_before_con
     lh_os_system_net_socket_handle_t handles[2];
     ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t server;
-    lh_os_net_socket_t client;
     lh_os_net_socket_init(&server);
+    lh_os_net_socket_t client;
     lh_os_net_socket_init(&client);
     lh_os_net_socket_set_handle(&server, handles[0]);
     lh_os_net_socket_set_handle(&client, handles[1]);
@@ -1104,8 +1104,8 @@ TEST(ui_web_host_handle_request_is_upgraded, validates_and_decodes_buffered_gzip
 
 TEST(ui_web_host_query, searches_only_the_parsed_query_and_exact_keys)
 {
-    lh_http_request_t request;
     const lh_str_view_t target = lh_str_view_initializer_lit("/ui?dx=7&x=12&x=99&flag=0");
+    lh_http_request_t request;
     lh_http_request_set_target(lh_addr_of(request), target);
     lh_str_cptr value = nullptr;
     EXPECT_EQ(lh_ui_web_host_get_query_value_size(lh_addr_of(request), lh_str_lit("x="),
@@ -1139,13 +1139,13 @@ TEST(ui_web_host_query, searches_only_the_parsed_query_and_exact_keys)
 
 TEST(ui_web_host_is_route, matches_only_complete_paths_for_get_and_post)
 {
-    lh_http_request_t request;
     const lh_str_view_t get = lh_str_view_initializer_lit("GET");
     const lh_str_view_t post = lh_str_view_initializer_lit("POST");
     const lh_str_view_t put = lh_str_view_initializer_lit("PUT");
     const lh_str_view_t path = lh_str_view_initializer_lit("/ui/key?x=1");
     const lh_str_view_t longer = lh_str_view_initializer_lit("/ui/keyboard");
 
+    lh_http_request_t request;
     lh_http_request_set_method(lh_addr_of(request), get);
     lh_http_request_set_target(lh_addr_of(request), path);
     EXPECT_TRUE(lh_ui_web_host_is_route(lh_addr_of(request), "/ui/key", 7));
@@ -1254,13 +1254,13 @@ world_update(lh_self_ptr self, lh_tick_t /*now*/)
 lh_net_port_t
 free_port()
 {
-    lh_os_net_socket_t probe;
-    lh_net_ip4_t ip;
-    lh_net_ip4_socket_addr_t addr;
     lh_net_port_t port = 0u;
 
+    lh_net_ip4_t ip;
     lh_net_ip4_init(lh_addr_of(ip), 127, 0, 0, 1);
+    lh_net_ip4_socket_addr_t addr;
     lh_net_ip4_socket_addr_init(lh_addr_of(addr), lh_addr_of(ip), 0);
+    lh_os_net_socket_t probe;
     lh_os_net_socket_init(lh_addr_of(probe));
     if (lh_os_net_socket_open(lh_addr_of(probe), lh_net_socket_type_tcp) &&
         lh_os_net_socket_bind(lh_addr_of(probe), lh_addr_of(addr)) &&
@@ -1276,9 +1276,9 @@ bool
 connect_to_host(lh_os_net_socket_t *sock)
 {
     lh_net_ip4_t ip;
-    lh_net_ip4_socket_addr_t addr;
 
     lh_net_ip4_init(lh_addr_of(ip), 127, 0, 0, 1);
+    lh_net_ip4_socket_addr_t addr;
     lh_net_ip4_socket_addr_init(lh_addr_of(addr), lh_addr_of(ip), s_world.port);
     lh_os_net_socket_init(sock);
     if (!lh_os_net_socket_open(sock, lh_net_socket_type_tcp))
@@ -1412,10 +1412,10 @@ read_head(lh_os_net_socket_t *sock)
 std::string
 http_get(const std::string &path)
 {
-    lh_os_net_socket_t sock;
     const std::string req = "GET " + path + " HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n";
     std::string head;
 
+    lh_os_net_socket_t sock;
     if (!connect_to_host(lh_addr_of(sock)))
     {
         return head;
@@ -1516,12 +1516,12 @@ TEST(ui_web_host_try_read_request, sends_continue_before_waiting_for_content)
     ASSERT_TRUE(lh_os_net_socket_set_blocking(&client, lh_bool_true));
     const char head[] = "POST / HTTP/1.1\r\nContent-Length: 4\r\nExpect: 100-continue\r\n\r\n";
     ASSERT_TRUE(lh_os_net_socket_send_all(&client, head, sizeof(head) - 1U));
-    char buffer[256];
     lh_usize_t length = 0U;
+    bool ok = false;
+    char buffer[256];
     lh_str_view_t body;
     lh_http_request_t request;
     lh_http_header_t headers[4];
-    bool ok = false;
     std::thread worker(
         [&]
         {
@@ -1557,11 +1557,11 @@ TEST(ui_web_host_try_read_request, rejects_unsupported_expectation_with_417)
     ASSERT_TRUE(lh_os_net_socket_set_blocking(&client, lh_bool_true));
     const char head[] = "POST / HTTP/1.1\r\nContent-Length: 4\r\nExpect: unknown\r\n\r\n";
     ASSERT_TRUE(lh_os_net_socket_send_all(&client, head, sizeof(head) - 1U));
-    char buffer[256];
     lh_usize_t length = 0U;
     lh_str_view_t body;
     lh_http_request_t request;
     lh_http_header_t headers[4];
+    char buffer[256];
     EXPECT_FALSE(lh_ui_web_host_try_read_request(&server, buffer, sizeof(buffer), 1000U, &length,
                                                  &body, &request, headers, 4U));
     EXPECT_NE(read_head(&client).find("HTTP/1.1 417 Expectation Failed\r\n"), std::string::npos);
@@ -1667,8 +1667,8 @@ TEST(web_host, head_preserves_a_64_bit_representation_length)
     lh_os_system_net_socket_handle_t handles[2];
     ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t reader;
-    lh_os_net_socket_t writer;
     lh_os_net_socket_init(lh_addr_of(reader));
+    lh_os_net_socket_t writer;
     lh_os_net_socket_init(lh_addr_of(writer));
     lh_os_net_socket_set_handle(lh_addr_of(reader), handles[0]);
     lh_os_net_socket_set_handle(lh_addr_of(writer), handles[1]);
@@ -1723,8 +1723,8 @@ TEST(web_host, content_forbidden_statuses_send_no_body_or_content_length)
     ASSERT_TRUE(lh_os_net_init());
     const lh_uint_t statuses[] = {100, lh_http_status_no_content, lh_http_status_reset_content,
                                   lh_http_status_not_modified};
-    lh_http_request_t request;
     const lh_str_view_t method = lh_str_view_initializer_lit("GET");
+    lh_http_request_t request;
     lh_http_request_set_method(lh_addr_of(request), method);
     for (lh_uint_t status : statuses)
     {

@@ -69,10 +69,10 @@ lh_ui_gradient_sampler_fill(lh_ui_gradient_sampler_t *self)
 {
     const lh_ui_gradient_t *gradient = lh_ui_gradient_sampler_get_gradient(self);
     const lh_s32_t count = lh_ui_gradient_get_stop_count(gradient);
-    lh_ui_gradient_sampler_lerp_t lerp;
     lh_s32_t carried = 0;
     lh_s32_t segment = 1;
 
+    lh_ui_gradient_sampler_lerp_t lerp;
     for (lh_s32_t frac = 0; frac < 256; ++frac)
     {
         lh_s32_t start;
@@ -126,14 +126,13 @@ lh_ui_gradient_sampler_radial_run(const lh_ui_gradient_sampler_t *self, lh_s32_t
     lh_s64_t along =
         (2 * lh_cast_static(lh_s64_t, x0) + 1 - lh_ui_gradient_sampler_get_middle_x(self)) * 1024;
     lh_s32_t level = 0;
-    lh_s32_t x;
 
     lh_return_if(x1 <= x0);
     lh_s64_t quotient = lh_math_floor_div(along, lh_ui_gradient_sampler_get_width(self));
     lh_s64_t rest = lh_math_floor_mod(along, lh_ui_gradient_sampler_get_width(self));
     lh_s64_t step = lh_math_floor_div(2048, lh_ui_gradient_sampler_get_width(self));
     lh_s64_t step_rest = lh_math_floor_mod(2048, lh_ui_gradient_sampler_get_width(self));
-    for (x = x0; x < x1; ++x)
+    for (lh_s32_t x = x0; x < x1; ++x)
     {
         const lh_s64_t ux = (along < 0 && rest != 0) ? quotient + 1 : quotient;
         const lh_u64_t square = lh_cast_static(lh_u64_t, (ux * ux + uy2));
@@ -162,7 +161,6 @@ lh_void
 lh_ui_gradient_sampler_init(lh_ui_gradient_sampler_t *self, const lh_ui_gradient_t *gradient,
                             const lh_ui_rect_t *rect)
 {
-
     lh_assert_runtime_ref(gradient);
     lh_assert_runtime_ref(rect);
     const lh_ui_point_t *origin = lh_ui_rect_get_origin(rect);
@@ -259,14 +257,13 @@ lh_ui_gradient_sampler_radial_row(const lh_ui_gradient_sampler_t *self, lh_s32_t
     const lh_s32_t right = lh_math_max(x0, centre);
     const lh_s32_t lone =
         lh_math_min(lh_math_min(x1, centre), lh_cast_static(lh_s32_t, (middle - x1)));
-    lh_s32_t x;
 
     lh_ui_gradient_sampler_radial_run(self, right, x1, dy, out + (right - x0));
     if (x0 < lone)
     {
         lh_ui_gradient_sampler_radial_run(self, x0, lone, dy, out);
     }
-    for (x = lh_math_max(x0, lone); x < lh_math_min(x1, centre); ++x)
+    for (lh_s32_t x = lh_math_max(x0, lone); x < lh_math_min(x1, centre); ++x)
     {
         out[x - x0] = out[lh_cast_static(lh_s32_t, (middle - 1 - x)) - x0];
     }
@@ -306,7 +303,6 @@ lh_ui_gradient_sampler_column(lh_ui_gradient_sampler_t *self, lh_s32_t x, lh_s32
         2 * lh_cast_static(lh_s64_t, x) + 1 - lh_ui_gradient_sampler_get_middle_x(self);
     const lh_s64_t dy =
         2 * lh_cast_static(lh_s64_t, y0) + 1 - lh_ui_gradient_sampler_get_middle_y(self);
-    lh_s32_t y;
 
     lh_assert_runtime_ref(out);
     if (lh_ui_gradient_sampler_get_shape(self) == lh_ui_gradient_shape_radial ||
@@ -314,7 +310,7 @@ lh_ui_gradient_sampler_column(lh_ui_gradient_sampler_t *self, lh_s32_t x, lh_s32
         lh_ui_gradient_sampler_get_height(self) <= 0 ||
         lh_ui_gradient_sampler_get_length(self) == 0)
     {
-        for (y = y0; y < y1; ++y)
+        for (lh_s32_t y = y0; y < y1; ++y)
         {
             lh_ui_gradient_sampler_row(self, x, x + 1, y, out + (y - y0));
         }

@@ -93,11 +93,11 @@ TEST(str_ptr_split_next_of, matches_char_split_for_single_delim)
 {
     lh_str_cptr str = "a..b";
     lh_usize_t pos = 0;
-    lh_str_cptr field;
-    lh_usize_t field_size;
-    lh_bool_t had_delim;
     const lh_char_t delims[] = {'.'};
 
+    lh_usize_t field_size;
+    lh_bool_t had_delim;
+    lh_str_cptr field;
     ASSERT_TRUE(
         lh_str_ptr_split_next_of(str, 4, delims, 1, &pos, &field, &field_size, &had_delim));
     EXPECT_EQ(field_size, 1U);
@@ -112,13 +112,13 @@ TEST(str_ptr_split_next_of, matches_char_split_for_single_delim)
 
 TEST(str_view_split_next_of, splits_on_either_slash)
 {
-    lh_str_view_t text;
-    lh_str_view_t field;
     lh_usize_t pos = 0;
-    lh_bool_t had_delim;
     const lh_char_t seps[] = {'/', '\\'};
 
+    lh_str_view_t text;
     lh_str_view_init(&text, "a/b\\c");
+    lh_str_view_t field;
+    lh_bool_t had_delim;
     ASSERT_TRUE(lh_str_view_split_next_of(&text, seps, 2, &pos, &field, &had_delim));
     EXPECT_EQ(lh_str_view_get_size(&field), 1U);
     EXPECT_EQ(lh_str_view_get_char_from_begin(&field, 0U), 'a');

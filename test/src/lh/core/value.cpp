@@ -69,9 +69,9 @@ TEST(value_get_or, falls_back_on_another_kind)
 
 TEST(value_assign, copies_kind_and_content)
 {
-    lh_value_t a;
     const lh_value_t b = lh_value_make_str(view("x"));
 
+    lh_value_t a;
     lh_value_init(&a);
     lh_value_assign(&a, &b);
     EXPECT_TRUE(lh_value_equals(&a, &b));

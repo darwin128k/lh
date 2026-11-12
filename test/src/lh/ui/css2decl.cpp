@@ -64,19 +64,18 @@ expect_the_first_layout_moves_nothing(const lh_ui_decl_t *decls, lh_u32_t count,
 {
     alignas(16) static lh_byte_t pool[64 * LH_UI_DECL_NODE_MAX];
     lh_ui_entity_t *nodes[64];
-    lh_ui_rect_t before[64];
     lh_ui_entity_t *root;
-    lh_ui_decl_fault_t fault;
-    lh_ui_entity_transform_t transform;
-    lh_u32_t i;
 
     ASSERT_LE(count, 64u);
+    lh_ui_decl_fault_t fault;
     ASSERT_EQ(lh_ui_decl_build(decls, count, nodes, pool, sizeof pool, &root, &fault), lh_bool_true);
-    for (i = 0; i < count; ++i)
+    lh_ui_rect_t before[64];
+    for (lh_u32_t i = 0; i < count; ++i)
     {
         before[i] = lh_test::out(lh_ui_entity_copy_rect, nodes[i]);
     }
-    for (i = 0; i < count; ++i)
+    lh_ui_entity_transform_t transform;
+    for (lh_u32_t i = 0; i < count; ++i)
     {
         lh_ui_container_t *box = lh_ui_entity_as_container(nodes[i]);
 
@@ -86,7 +85,7 @@ expect_the_first_layout_moves_nothing(const lh_ui_decl_t *decls, lh_u32_t count,
             lh_ui_container_place_children(box, lh_addr_of(transform));
         }
     }
-    for (i = 0; i < count; ++i)
+    for (lh_u32_t i = 0; i < count; ++i)
     {
         const lh_ui_rect_t after = lh_test::out(lh_ui_entity_copy_rect, nodes[i]);
 
@@ -168,9 +167,9 @@ TEST(ui_css2decl, display_none_is_built_hidden)
     alignas(16) static lh_byte_t pool[64 * LH_UI_DECL_NODE_MAX];
     lh_ui_entity_t *nodes[64];
     lh_ui_entity_t *root;
-    lh_ui_decl_fault_t fault;
 
     lh_test_flow_init();
+    lh_ui_decl_fault_t fault;
     ASSERT_EQ(lh_ui_decl_build(lh_test_flow_decls, lh_test_flow_decl_count, nodes, pool, sizeof pool, &root,
                                &fault),
               lh_bool_true);
@@ -374,11 +373,10 @@ TEST(ui_css2decl_app, a_field_starts_with_its_value)
 TEST(ui_css2decl_app, a_row_placed_by_hand_over_a_flow_stays_where_it_is_after_a_layout)
 {
     app_screen s;
-    lh_ui_entity_transform_t transform;
-    lh_u32_t i;
 
     ASSERT_EQ(s.built, lh_bool_true);
-    for (i = 0; i < lh_test_app_decl_count; ++i)
+    lh_ui_entity_transform_t transform;
+    for (lh_u32_t i = 0; i < lh_test_app_decl_count; ++i)
     {
         lh_ui_container_t *box = lh_ui_entity_as_container(s.nodes[i]);
 

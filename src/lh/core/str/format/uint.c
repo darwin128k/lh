@@ -6,11 +6,11 @@
 lh_usize_t
 lh_str_ptr_format_uint(lh_uint_t value, lh_str_ptr str, lh_usize_t str_size)
 {
-    lh_char_t digits[LH_STR_FORMAT_UINT_DIGITS_MAX];
     lh_usize_t digit_count = 0;
 
     lh_assert_runtime_ref(str);
 
+    lh_char_t digits[LH_STR_FORMAT_UINT_DIGITS_MAX];
     do
     {
         digits[digit_count] =

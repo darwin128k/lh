@@ -40,11 +40,11 @@ TEST(math_point, offset_size_is_far_corner)
 TEST(math_point, compare_suite_is_lexicographic)
 {
     lh_math_point_t a;
-    lh_math_point_t b;
-    lh_math_point_t c;
 
     lh_math_point_init(lh_addr_of(a), 1, 8);
+    lh_math_point_t b;
     lh_math_point_init(lh_addr_of(b), 1, 9);
+    lh_math_point_t c;
     lh_math_point_init(lh_addr_of(c), 2, 0);
 
     EXPECT_EQ(lh_math_point_equals(lh_addr_of(a), lh_addr_of(a)), lh_bool_true);

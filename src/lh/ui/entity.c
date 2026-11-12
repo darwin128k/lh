@@ -298,9 +298,8 @@ lh_ui_entity_walk_children(const lh_ui_entity_t *self, lh_ui_entity_visit_cb vis
 lh_void
 lh_ui_entity_send(const lh_ui_entity_t *self, lh_ui_entity_event_code_t code, lh_ptr context)
 {
-    lh_ui_entity_event_t event;
-
     lh_assert_runtime_ref(lh_ui_entity_get_class(self));
+    lh_ui_entity_event_t event;
     lh_ui_entity_event_init(lh_addr_of(event), code, context);
     lh_ui_entity_class_get_event_fn(lh_ui_entity_get_class(self))(self, lh_addr_of(event));
 }
@@ -373,9 +372,8 @@ lh_ui_entity_ask_children(const lh_ui_entity_t *self, lh_ui_entity_transform_t *
 lh_bool_t
 lh_ui_entity_get_children_transform(const lh_ui_entity_t *self, lh_ui_point_t *offset)
 {
-    lh_ui_entity_transform_t transform;
-
     lh_assert_runtime_ref(offset);
+    lh_ui_entity_transform_t transform;
     lh_ui_entity_ask_children(self, lh_addr_of(transform));
     lh_ui_entity_transform_copy_offset(lh_addr_of(transform), offset);
     return lh_ui_entity_transform_is_clip(lh_addr_of(transform));
@@ -485,7 +483,6 @@ lh_ui_entity_get_root_offset(const lh_ui_entity_t *self, lh_ui_point_t *out)
 lh_void
 lh_ui_entity_note_rect(const lh_ui_entity_t *self, const lh_ui_rect_t *rect)
 {
-
     lh_return_if(lh_null_eq(self) || lh_null_eq(rect) || lh_ui_rect_is_empty(rect));
     lh_return_if(!lh_ui_entity_chain_shown(self));
     struct lh_ui_view *view = lh_ui_entity_own_view(self);
@@ -515,9 +512,8 @@ lh_void
 lh_ui_entity_send_pointer(const lh_ui_entity_t *self, lh_ui_entity_event_code_t code,
                           lh_ui_point_t point)
 {
-    lh_ui_point_t local;
-
     lh_return_if(lh_null_eq(self));
+    lh_ui_point_t local;
     lh_ui_entity_to_local(self, point, lh_addr_of(local));
     lh_ui_entity_send(self, code, lh_addr_of(local));
 }
@@ -543,7 +539,6 @@ lh_ui_entity_is_hit(const lh_ui_entity_t *self, lh_ui_point_t point)
 lh_bool_t
 lh_ui_entity_push_children(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
 {
-
     lh_return_if(lh_null_eq(canvas), lh_bool_false);
     lh_ui_entity_transform_t transform;
     lh_ui_entity_ask_children(self, lh_addr_of(transform));
@@ -638,7 +633,6 @@ lh_ui_entity_find_at(lh_ui_entity_t *self, lh_ui_point_t point)
 lh_ui_entity_t *
 lh_ui_entity_click(lh_ui_entity_t *self, lh_ui_point_t point)
 {
-
     lh_ui_entity_t *hit = lh_ui_entity_find_at(self, point);
     lh_return_if(lh_null_eq(hit), lh_null);
     /* What is under the pointer is where the click landed; who takes it is asked
@@ -678,10 +672,9 @@ lh_ui_entity_get_painted_rect(const lh_ui_entity_t *self, lh_ui_rect_t *out)
 lh_void
 lh_ui_entity_note(const lh_ui_entity_t *self)
 {
-    lh_ui_rect_t rect;
-
     lh_return_if(lh_null_eq(self));
     lh_return_if(!lh_ui_entity_chain_shown(self));
+    lh_ui_rect_t rect;
     lh_ui_entity_get_painted_rect(self, lh_addr_of(rect));
     /* A label draws past its box and on purpose (::lh_ui_label_on_children: the tail
        of a 'p', and any text wider than the box it was given), so the box alone is
@@ -796,7 +789,6 @@ lh_ui_entity_set_hidden_v(lh_ui_entity_t *self, lh_bool_t hidden)
 lh_bool_t
 lh_ui_entity_shows_on(const lh_ui_entity_t *self, const lh_ui_canvas_t *canvas)
 {
-
     lh_return_if(lh_null_eq(canvas), lh_bool_true);
     lh_ui_rect_t painted;
     lh_ui_entity_get_painted_rect(self, lh_addr_of(painted));
@@ -834,9 +826,8 @@ lh_void
 lh_ui_entity_fill_edge(lh_ui_canvas_t *canvas, lh_ui_scalar_t x, lh_ui_scalar_t y,
                        lh_ui_scalar_t width, lh_ui_scalar_t height, const lh_ui_color_t *color)
 {
-    lh_ui_rect_t strip;
-
     lh_return_if(width <= lh_ui_scalar(0) || height <= lh_ui_scalar(0));
+    lh_ui_rect_t strip;
     lh_ui_rect_init(lh_addr_of(strip), x, y, width, height);
     lh_ui_canvas_fill_rect(canvas, lh_addr_of(strip), color);
 }
@@ -844,7 +835,6 @@ lh_ui_entity_fill_edge(lh_ui_canvas_t *canvas, lh_ui_scalar_t x, lh_ui_scalar_t 
 lh_void
 lh_ui_entity_draw_border(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
 {
-
     lh_return_if(lh_null_eq(canvas));
     const lh_ui_style_t *style = lh_ui_entity_get_style_now(self);
     lh_return_if(lh_null_eq(style));
@@ -902,10 +892,8 @@ lh_ui_entity_draw_each_child(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
 lh_void
 lh_ui_entity_draw_children(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
 {
-    lh_bool_t pushed;
-
     lh_return_if(!lh_ui_entity_shows_children_on(self, canvas));
-    pushed = lh_ui_entity_push_children(self, canvas);
+    lh_bool_t pushed = lh_ui_entity_push_children(self, canvas);
     lh_ui_entity_draw_each_child(self, canvas);
     lh_return_if(!pushed);
     lh_ui_canvas_pop(canvas);
@@ -927,9 +915,8 @@ lh_ui_entity_draw(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
 lh_void
 lh_ui_entity_add_damage(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
 {
-    lh_ui_rect_t rect;
-
     lh_return_if(lh_null_eq(self) || lh_null_eq(canvas));
+    lh_ui_rect_t rect;
     lh_ui_entity_get_root_rect(self, lh_addr_of(rect));
     lh_ui_canvas_add_damage(canvas, lh_addr_of(rect));
 }

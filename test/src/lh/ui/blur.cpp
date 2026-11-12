@@ -61,7 +61,6 @@ struct blur_fixture
 TEST(ui_blur, a_flat_picture_stays_flat)
 {
     blur_fixture f;
-    lh_ui_rect_t rect;
 
     for (int y = 0; y < blur_fixture::height; ++y)
     {
@@ -70,6 +69,7 @@ TEST(ui_blur, a_flat_picture_stays_flat)
             f.words[y * blur_fixture::width + x] = 0xFF404040;
         }
     }
+    lh_ui_rect_t rect;
     lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(2), lh_ui_scalar(1), lh_ui_scalar(10), lh_ui_scalar(5));
     lh_ui_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_ui_scalar(2), f.scratch);
 
@@ -79,17 +79,15 @@ TEST(ui_blur, a_flat_picture_stays_flat)
 
 TEST(ui_blur, an_edge_becomes_a_ramp_and_stays_a_ramp)
 {
-    blur_fixture f;
     lh_ui_rect_t rect;
-    lh_u8_t middle;
-    lh_u8_t near_edge;
 
     lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar_of(blur_fixture::width),
                     lh_ui_scalar_of(blur_fixture::height));
+    blur_fixture f;
     lh_ui_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_ui_scalar(3), f.scratch);
 
-    middle = f.red_at(blur_fixture::width / 2 - 1, 3);
-    near_edge = f.red_at(blur_fixture::width / 2, 3);
+    lh_u8_t middle = f.red_at(blur_fixture::width / 2 - 1, 3);
+    lh_u8_t near_edge = f.red_at(blur_fixture::width / 2, 3);
 
     /* The step was 0 -> 255. A normalised kernel moves the shades around without
        inventing any, so the two pixels straddling the step still add up to what
@@ -108,11 +106,11 @@ TEST(ui_blur, an_edge_becomes_a_ramp_and_stays_a_ramp)
 
 TEST(ui_blur, a_radius_of_zero_changes_nothing)
 {
-    blur_fixture f;
     lh_ui_rect_t rect;
 
     lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar_of(blur_fixture::width),
                     lh_ui_scalar_of(blur_fixture::height));
+    blur_fixture f;
     lh_ui_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_ui_scalar(0), f.scratch);
 
     EXPECT_EQ(f.red_at(0, 3), 0);
@@ -121,10 +119,10 @@ TEST(ui_blur, a_radius_of_zero_changes_nothing)
 
 TEST(ui_blur, only_the_rect_moves)
 {
-    blur_fixture f;
     lh_ui_rect_t rect;
 
     lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(6), lh_ui_scalar(2), lh_ui_scalar(10), lh_ui_scalar(5));
+    blur_fixture f;
     lh_ui_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_ui_scalar(3), f.scratch);
 
     /* Left of the rect the step is untouched; inside it has been spread. */
@@ -135,10 +133,10 @@ TEST(ui_blur, only_the_rect_moves)
 
 TEST(ui_blur, a_rect_hanging_over_the_edge_blurs_what_is_there)
 {
-    blur_fixture f;
     lh_ui_rect_t rect;
 
     lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(-8), lh_ui_scalar(-8), lh_ui_scalar(64), lh_ui_scalar(64));
+    blur_fixture f;
     lh_ui_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_ui_scalar(2), f.scratch);
 
     /* Cut to the pixmap first: every pixel is in range afterwards, and the
@@ -157,11 +155,11 @@ TEST(ui_blur, a_rect_hanging_over_the_edge_blurs_what_is_there)
  * it, so the buffer is the caller's and nothing happens without one. */
 TEST(ui_blur, without_a_scratch_nothing_is_blurred)
 {
-    blur_fixture f;
     lh_ui_rect_t rect;
 
     lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar_of(blur_fixture::width),
                     lh_ui_scalar_of(blur_fixture::height));
+    blur_fixture f;
     lh_ui_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_ui_scalar(3), static_cast<lh_u8_t *>(nullptr));
 
     EXPECT_EQ(f.red_at(0, 3), 0);
@@ -186,9 +184,9 @@ TEST(ui_blur, a_window_sums_and_gives_back_what_it_took)
 {
     lh_ui_blur_window_t window = {0, 0, 0, 0};
     lh_ui_color_t a;
-    lh_ui_color_t b;
 
     lh_ui_color_init(&a, 10, 20, 30, 40);
+    lh_ui_color_t b;
     lh_ui_color_init(&b, 50, 60, 70, 80);
     lh_ui_blur_window_take(&window, &a);
     lh_ui_blur_window_take(&window, &b);
@@ -210,7 +208,6 @@ TEST(ui_blur, a_window_sums_and_gives_back_what_it_took)
 TEST(ui_blur, the_bottom_rows_are_blurred_and_not_read_past)
 {
     blur_fixture f;
-    lh_ui_rect_t rect;
     lh_ui_color_t color;
 
     /* Top half black, bottom half white: after the blur every row still has to be
@@ -225,6 +222,7 @@ TEST(ui_blur, the_bottom_rows_are_blurred_and_not_read_past)
             f.words[y * blur_fixture::width + x] = lh_ui_color_get_argb(&color);
         }
     }
+    lh_ui_rect_t rect;
     lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar_of(blur_fixture::width),
                     lh_ui_scalar_of(blur_fixture::height));
     lh_ui_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_ui_scalar(2), f.scratch);
@@ -288,14 +286,11 @@ TEST(ui_blur, the_picture_does_not_depend_on_what_follows_the_scratch)
 TEST(ui_blur, a_transparent_pixel_does_not_tint_its_neighbours)
 {
     blur_fixture f;
-    lh_ui_rect_t rect;
     lh_ui_color_t color;
-    int x;
-    int y;
 
-    for (y = 0; y < blur_fixture::height; ++y)
+    for (int y = 0; y < blur_fixture::height; ++y)
     {
-        for (x = 0; x < blur_fixture::width; ++x)
+        for (int x = 0; x < blur_fixture::width; ++x)
         {
             lh_ui_color_init(&color, 200, 0, 0, 255);
             f.words[y * blur_fixture::width + x] = lh_ui_color_get_argb(&color);
@@ -303,13 +298,14 @@ TEST(ui_blur, a_transparent_pixel_does_not_tint_its_neighbours)
     }
     lh_ui_color_init(&color, 0, 255, 0, 0);
     f.words[4 * blur_fixture::width + 8] = lh_ui_color_get_argb(&color);
+    lh_ui_rect_t rect;
     lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar_of(blur_fixture::width),
                     lh_ui_scalar_of(blur_fixture::height));
     lh_ui_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_ui_scalar(1), f.scratch);
 
-    for (y = 3; y <= 5; ++y)
+    for (int y = 3; y <= 5; ++y)
     {
-        for (x = 7; x <= 9; ++x)
+        for (int x = 7; x <= 9; ++x)
         {
             const lh_ui_color_t pixel = lh_test::out(lh_ui_pixmap_get_pixel, lh_addr_of(f.pixmap), x, y);
 
@@ -324,14 +320,11 @@ TEST(ui_blur, a_transparent_pixel_does_not_tint_its_neighbours)
 TEST(ui_blur, a_neighbour_outside_the_rect_still_counts)
 {
     blur_fixture f;
-    lh_ui_rect_t rect;
     lh_ui_color_t color;
-    int x;
-    int y;
 
-    for (y = 0; y < blur_fixture::height; ++y)
+    for (int y = 0; y < blur_fixture::height; ++y)
     {
-        for (x = 0; x < blur_fixture::width; ++x)
+        for (int x = 0; x < blur_fixture::width; ++x)
         {
             lh_ui_color_init(&color, 0, 0, 0, 255);
             f.words[y * blur_fixture::width + x] = lh_ui_color_get_argb(&color);
@@ -339,6 +332,7 @@ TEST(ui_blur, a_neighbour_outside_the_rect_still_counts)
     }
     lh_ui_color_init(&color, 255, 255, 255, 255);
     f.words[3 * blur_fixture::width + 1] = lh_ui_color_get_argb(&color);
+    lh_ui_rect_t rect;
     lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(3), lh_ui_scalar(2), lh_ui_scalar(8), lh_ui_scalar(4));
     lh_ui_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_ui_scalar(2), f.scratch);
 
@@ -396,12 +390,12 @@ TEST(ui_blur_bricks, samples_taken_then_dropped_leave_nothing)
 
 TEST(ui_blur_bricks, pass_init_refuses_nothing_to_write)
 {
-    blur_fixture f;
-    lh_ui_blur_pass_t pass;
-    lh_ui_rect_t rect;
     const lh_u8_t scratch[4] = {0, 0, 0, 0};
 
+    lh_ui_rect_t rect;
     lh_ui_rect_init(&rect, lh_ui_scalar(2), lh_ui_scalar(1), lh_ui_scalar(4), lh_ui_scalar(3));
+    lh_ui_blur_pass_t pass;
+    blur_fixture f;
     EXPECT_TRUE(lh_ui_blur_pass_init(&f.pixmap, &rect, 1, scratch, lh_null, lh_ui_scalar(0), &pass));
     EXPECT_EQ(pass.left, 2);
     EXPECT_EQ(pass.top, 1);

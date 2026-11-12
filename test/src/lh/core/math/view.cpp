@@ -79,11 +79,11 @@ TEST(math_view, init_by_slice_is_every_element)
 
 TEST(math_view, empty_views)
 {
-    lh_math_slice_t empty;
-    lh_math_view_t v;
     const lh_math_view_t none = view_of(12U, 3U, 0U);
 
+    lh_math_slice_t empty;
     lh_math_slice_init_empty(lh_addr_of(empty));
+    lh_math_view_t v;
     lh_math_view_init_by_slice(lh_addr_of(v), lh_addr_of(empty));
     EXPECT_TRUE(lh_math_view_is_empty(lh_addr_of(v)));
     EXPECT_EQ(lh_math_view_get_size(lh_addr_of(v)), 0U);
@@ -97,12 +97,12 @@ TEST(math_view, dot_length_sq_and_length)
     const lh_math_view_t row = view_of(0U, 1U, 3U);     /* 0, 1, 2 */
     const lh_math_view_t column = view_of(1U, 4U, 3U);  /* 1, 11, 21 */
     const lh_float_t three_four[] = {3.0f, 4.0f};
-    lh_math_slice_t s;
-    lh_math_view_t v;
 
     EXPECT_EQ(lh_math_view_dot(lh_addr_of(row), lh_addr_of(column)), 0.0f * 1.0f + 1.0f * 11.0f + 2.0f * 21.0f);
     EXPECT_EQ(lh_math_view_length_sq(lh_addr_of(row)), 5.0f);
+    lh_math_slice_t s;
     lh_math_slice_init(lh_addr_of(s), three_four, 2U);
+    lh_math_view_t v;
     lh_math_view_init_by_slice(lh_addr_of(v), lh_addr_of(s));
     EXPECT_EQ(lh_math_view_length_sq(lh_addr_of(v)), 25.0f);
     EXPECT_EQ(lh_math_view_length(lh_addr_of(v)), 5.0f);

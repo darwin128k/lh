@@ -66,7 +66,6 @@ lh_bool_t
 lh_ui_text_line_measure(lh_ui_text_line_t *self, const lh_ui_font_t *font, const lh_char_t *text,
                         lh_ui_scalar_t width)
 {
-    lh_ui_text_line_t at_space;
     lh_bool_t has_space = lh_bool_false;
     const lh_char_t *cursor = text;
 
@@ -74,6 +73,7 @@ lh_ui_text_line_measure(lh_ui_text_line_t *self, const lh_ui_font_t *font, const
     lh_return_if(lh_null_eq(text), lh_bool_false);
     lh_assert_runtime_ref(font);
     lh_ui_text_line_set_begin(self, text);
+    lh_ui_text_line_t at_space;
     for (;;)
     {
         const lh_char_t *before = cursor;

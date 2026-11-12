@@ -108,8 +108,33 @@ lh_void
 lh_str_scanf_spec_set_literal_size(lh_str_scanf_spec_t *self, lh_usize_t literal_size);
 
 /**
+ * @brief The length modifier, an ::lh_str_scanf_spec_length_t (level 1).
+ *
+ * @param self The spec; checked by ::lh_assert_runtime_ref.
+ */
+lh_str_scanf_spec_length_t
+lh_str_scanf_spec_get_length(const lh_str_scanf_spec_t *self);
+
+/**
+ * @brief Store the length modifier, an ::lh_str_scanf_spec_length_t (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The spec; checked by ::lh_assert_runtime_ref.
+ * @param length The new value.
+ */
+lh_void
+lh_str_scanf_spec_set_length(lh_str_scanf_spec_t *self, lh_str_scanf_spec_length_t length);
+
+/**
  * @brief Reset @p self to an invalid conversion with no flags, an empty
  *        literal at @p fmt.
+ *
+ * Every field is written through its level-1 setter, so @p self is checked
+ * by ::lh_assert_runtime_ref before the first write.
+ *
+ * @param self The spec to reset.
+ * @param fmt Where the empty literal starts; stored as given.
  */
 lh_void
 lh_str_scanf_spec_clear(lh_str_scanf_spec_t *self, const lh_str_ptr fmt);
@@ -134,25 +159,6 @@ lh_str_scanf_spec_get_pad(const lh_str_scanf_spec_t *self, lh_usize_t size);
  */
 lh_void
 lh_str_scanf_spec_set_conversion(lh_str_scanf_spec_t *self, lh_char_t conversion);
-
-/**
- * @brief The length modifier, an ::lh_str_scanf_spec_length_t (level 1).
- *
- * @param self The spec; checked by ::lh_assert_runtime_ref.
- */
-lh_str_scanf_spec_length_t
-lh_str_scanf_spec_get_length(const lh_str_scanf_spec_t *self);
-
-/**
- * @brief Store the length modifier, an ::lh_str_scanf_spec_length_t (level 1).
- *
- * A level-1 setter: the value is stored as given and is not validated.
- *
- * @param self The spec; checked by ::lh_assert_runtime_ref.
- * @param length The new value.
- */
-lh_void
-lh_str_scanf_spec_set_length(lh_str_scanf_spec_t *self, lh_str_scanf_spec_length_t length);
 
 LH_COMPILER_EXTERN_C_END
 

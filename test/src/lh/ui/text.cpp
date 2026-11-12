@@ -135,22 +135,21 @@ TEST(ui_text, a_text_with_no_ink_in_it_has_no_height)
 TEST(ui_text, the_pixels_land_where_the_ink_rect_says)
 {
     lh_test::draw_log log;
-    lh_ui_canvas_t canvas;
-    lh_ui_color_t color;
     const lh_ui_font_t *font = lh_ui_font_get_default();
     const lh_ui_point_t origin = point_of(3, 4);
     const lh_ui_rect_t ink = lh_test::out(lh_ui_text_get_ink_rect, font, "Hide panel", origin);
     lh_s32_t top = 0;
     lh_s32_t bottom = 0;
-    int i;
 
+    lh_ui_color_t color;
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_canvas_t canvas;
     lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), false, false, true);
 
     lh_ui_text_draw(lh_addr_of(canvas), font, "Hide panel", origin, lh_addr_of(color));
 
     ASSERT_GT(log.mask_count, 0);
-    for (i = 0; i < log.mask_count; ++i)
+    for (int i = 0; i < log.mask_count; ++i)
     {
         const lh_ui_point_t *at = lh_ui_rect_get_origin(lh_addr_of(log.masks[i]));
         const lh_ui_size_t *size = lh_ui_rect_get_size(lh_addr_of(log.masks[i]));
@@ -174,10 +173,10 @@ TEST(ui_text, the_pixels_land_where_the_ink_rect_says)
 TEST(ui_text, draw_places_each_glyph_at_the_pen)
 {
     lh_test::draw_log log;
-    lh_ui_canvas_t canvas;
     lh_ui_color_t color;
 
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_canvas_t canvas;
     lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), false, false, true);
 
     lh_ui_text_draw(lh_addr_of(canvas), tiny_font(), "AZB\nB", point_of(10, 20), lh_addr_of(color));
@@ -191,10 +190,10 @@ TEST(ui_text, draw_places_each_glyph_at_the_pen)
 TEST(ui_text, draw_code_returns_the_advance)
 {
     lh_test::draw_log log;
-    lh_ui_canvas_t canvas;
     lh_ui_color_t color;
 
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_canvas_t canvas;
     lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), false, false, true);
 
     EXPECT_EQ(lh_ui_text_draw_code(lh_addr_of(canvas), tiny_font(), 'B', point_of(0, 0), lh_addr_of(color)),
@@ -207,11 +206,11 @@ TEST(ui_text, draw_code_returns_the_advance)
 TEST(ui_text, lines_outside_the_clip_are_skipped)
 {
     lh_test::draw_log log;
-    lh_ui_canvas_t canvas;
-    lh_ui_color_t color;
     const lh_ui_rect_t clip = rect_of(0, 0, 100, 3);
 
+    lh_ui_color_t color;
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_canvas_t canvas;
     lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), false, true, true);
     lh_ui_canvas_push(lh_addr_of(canvas), point_of(0, 0), lh_addr_of(clip));
 
@@ -231,11 +230,11 @@ aligned_at(int box_x, int box_y, int box_w, int box_h, int pad, lh_ui_scalar_t t
            lh_ui_text_align_h_t horizontal, lh_ui_text_align_v_t vertical)
 {
     lh_ui_rect_t box;
-    lh_ui_insets_t padding;
-    lh_ui_size_t size;
 
     lh_ui_rect_init(lh_addr_of(box), box_x, box_y, box_w, box_h);
+    lh_ui_insets_t padding;
     lh_ui_insets_init_all(lh_addr_of(padding), pad);
+    lh_ui_size_t size;
     lh_ui_size_init(lh_addr_of(size), text_w, text_h);
     return lh_test::out(lh_ui_text_align_get_origin, lh_addr_of(box), lh_addr_of(padding), size, horizontal, vertical);
 }
@@ -280,9 +279,9 @@ TEST(ui_text_align, text_wider_or_taller_than_its_box_starts_at_the_near_edge)
 TEST(ui_text_align, a_null_box_is_the_empty_one_and_a_null_padding_is_none)
 {
     lh_ui_size_t size;
-    lh_ui_rect_t box;
 
     lh_ui_size_init(lh_addr_of(size), 10, 10);
+    lh_ui_rect_t box;
     lh_ui_rect_init(lh_addr_of(box), 7, 9, 30, 20);
 
     expect_origin(lh_test::out(lh_ui_text_align_get_origin, lh_addr_of(box), (const lh_ui_insets_t *)lh_null, size,
@@ -308,17 +307,15 @@ TEST(ui_text, roboto_16_has_the_metrics_the_measured_numbers_come_from)
 {
     const lh_ui_font_t *font = lh_ui_font_get_default();
     const char *text = "Hide panel";
-    lh_ui_point_t origin;
-    lh_ui_size_t size;
-    lh_ui_rect_t ink;
-    lh_ui_mask_t cap_mask;
-    lh_ui_mask_t x_mask;
     int x = 0;
 
+    lh_ui_point_t origin;
     lh_ui_point_init(lh_addr_of(origin), x, 0);
-    size = lh_test::out(lh_ui_text_get_size, font, text);
-    ink = lh_test::out(lh_ui_text_get_ink_rect, font, text, origin);
+    lh_ui_size_t size = lh_test::out(lh_ui_text_get_size, font, text);
+    lh_ui_rect_t ink = lh_test::out(lh_ui_text_get_ink_rect, font, text, origin);
+    lh_ui_mask_t cap_mask;
     lh_ui_font_get_glyph(font, 'H', lh_addr_of(cap_mask));
+    lh_ui_mask_t x_mask;
     lh_ui_font_get_glyph(font, 'x', lh_addr_of(x_mask));
 
     fprintf(stderr,
@@ -382,13 +379,10 @@ TEST(ui_text, russian_is_measured_and_drawn_and_not_skipped)
     const char *russian = "\xD0\x9F\xD1\x80\xD0\xB8\xD0\xB2\xD0\xB5\xD1\x82";
     static const lh_u32_t codes[] = {0x041F, 0x0440, 0x0438, 0x0432, 0x0435, 0x0442};
     lh_test::draw_log log;
-    lh_ui_canvas_t canvas;
-    lh_ui_color_t color;
     int summed = 0;
-    int i;
 
     ASSERT_EQ(lh_null_eq(font), lh_bool_false);
-    for (i = 0; i < 6; ++i)
+    for (int i = 0; i < 6; ++i)
     {
         ASSERT_EQ(lh_ui_font_has_code(font, codes[i]), lh_bool_true)
             << "code point U+" << std::hex << codes[i] << " is not in the font at all";
@@ -398,12 +392,14 @@ TEST(ui_text, russian_is_measured_and_drawn_and_not_skipped)
     EXPECT_EQ(lh_ui_text_get_width(font, russian), lh_ui_scalar_of(summed));
     EXPECT_NE(lh_ui_text_get_width(font, russian), lh_ui_text_get_width(font, "Privet"));
 
+    lh_ui_color_t color;
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_canvas_t canvas;
     lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), false, false, true);
     lh_ui_text_draw(lh_addr_of(canvas), font, russian, point_of(10, 20), lh_addr_of(color));
 
     ASSERT_EQ(log.mask_count, 6) << "six letters should have handed the canvas six masks";
-    for (i = 0; i < log.mask_count; ++i)
+    for (int i = 0; i < log.mask_count; ++i)
     {
         const lh_ui_rect_t *mask = lh_addr_of(log.masks[i]);
 
@@ -432,8 +428,6 @@ TEST(ui_text, a_code_the_font_has_no_glyph_for_draws_nothing_and_moves_nothing)
        become a space. */
     const lh_ui_font_t *font = lh_ui_font_get_default();
     lh_test::draw_log log;
-    lh_ui_canvas_t canvas;
-    lh_ui_color_t color;
 
     ASSERT_EQ(lh_null_eq(font), lh_bool_false);
     ASSERT_EQ(lh_ui_font_has_code(font, 0x00ADU), lh_bool_false); /* soft hyphen */
@@ -441,7 +435,9 @@ TEST(ui_text, a_code_the_font_has_no_glyph_for_draws_nothing_and_moves_nothing)
     EXPECT_EQ(lh_ui_font_get_advance(font, 0x00ADU), 0);
     EXPECT_EQ(lh_ui_text_get_width(font, "\xC2\xAD"), lh_ui_scalar(0));
 
+    lh_ui_color_t color;
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_canvas_t canvas;
     lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), false, false, true);
     lh_ui_text_draw(lh_addr_of(canvas), font, "\xC2\xAD", point_of(10, 20), lh_addr_of(color));
     EXPECT_EQ(log.mask_count, 0);
@@ -486,12 +482,12 @@ TEST(ui_text, a_word_wider_than_the_width_is_cut_and_a_line_always_takes_a_lette
 TEST(ui_text, wrapped_lines_are_drawn_and_a_centred_line_is_centred_on_its_own)
 {
     lh_test::draw_log log;
-    lh_ui_canvas_t canvas;
-    lh_ui_color_t color;
     const lh_ui_font_t *font = lh_test::tiny_font();
     const lh_ui_point_t origin = point_of(0, 10);
 
+    lh_ui_color_t color;
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_canvas_t canvas;
     lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), false, false, true);
     lh_ui_text_draw_wrapped(lh_addr_of(canvas), font, "AAA A", origin, lh_addr_of(color), lh_ui_scalar(10),
                             lh_ui_text_align_h_center);

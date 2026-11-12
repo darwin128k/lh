@@ -13,8 +13,8 @@ std::string
 format(std::uint32_t bits, lh_usize_t digits)
 {
     float value;
-    char out[64];
     std::memcpy(&value, &bits, sizeof value);
+    char out[64];
     const lh_usize_t n = lh_str_ptr_format_float(value, digits, out, sizeof out);
     return std::string(out, n);
 }

@@ -35,12 +35,11 @@ lh_usize_t
 lh_exception_format_put(lh_str_ptr str, lh_usize_t str_size, lh_usize_t pos, lh_str_cptr fmt, ...)
 {
     va_list args;
-    lh_usize_t n;
 
     va_start(args, fmt);
-    n = lh_ptr_is_null(str)
-            ? lh_str_ptr_format_text_size_v(fmt, args)
-            : lh_str_ptr_format_text_v(str + pos, lh_math_sub(str_size, pos), fmt, args);
+    lh_usize_t n = lh_ptr_is_null(str)
+                       ? lh_str_ptr_format_text_size_v(fmt, args)
+                       : lh_str_ptr_format_text_v(str + pos, lh_math_sub(str_size, pos), fmt, args);
     va_end(args);
     return lh_math_add(pos, n);
 }
@@ -51,10 +50,10 @@ lh_exception_format_walk(const lh_exception_t *self, lh_str_ptr str, lh_usize_t 
 {
     const lh_exception_origin_t *origin = lh_exception_get_origin(self);
     const lh_str_cptr desc = lh_runtime_error_get_desc(lh_exception_get_error(self));
-    lh_usize_t pos;
 
-    pos = lh_exception_format_put(str, str_size, 0U, "lh: runtime check failed: error %d",
-                                  lh_cast_static(lh_sint_t, lh_exception_get_code(self)));
+    lh_usize_t pos =
+        lh_exception_format_put(str, str_size, 0U, "lh: runtime check failed: error %d",
+                                lh_cast_static(lh_sint_t, lh_exception_get_code(self)));
     if (!lh_str_ptr_is_empty(desc))
     {
         const lh_usize_t desc_size = lh_str_ptr_len(desc);

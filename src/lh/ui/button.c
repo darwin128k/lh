@@ -123,10 +123,8 @@ lh_ui_button_get_on_click(const lh_ui_button_t *self)
 lh_void
 lh_ui_button_on_click(const lh_ui_button_t *self, const lh_ui_entity_event_t *event)
 {
-    lh_ui_button_on_click_cb on_click;
-
     lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_click);
-    on_click = lh_ui_button_get_on_click(self);
+    lh_ui_button_on_click_cb on_click = lh_ui_button_get_on_click(self);
     lh_return_if(lh_null_eq(on_click));
     /* The app is handed the button it already has a pointer to, not the entity
        inside it. */

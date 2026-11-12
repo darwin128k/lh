@@ -72,11 +72,11 @@ struct layout_fixture
 TEST(ui_layout, a_column_places_children_by_their_own_size)
 {
     layout_fixture f;
-    lh_ui_layout_t layout;
 
     place_child(&f.kids[0], lh_ui_place_size_fixed, lh_ui_scalar(20), lh_ui_place_align_start);
     place_child(&f.kids[1], lh_ui_place_size_fixed, lh_ui_scalar(25), lh_ui_place_align_start);
     place_child(&f.kids[2], lh_ui_place_size_fixed, lh_ui_scalar(30), lh_ui_place_align_start);
+    lh_ui_layout_t layout;
     lh_ui_layout_init(&layout, lh_ui_axis_vertical, lh_ui_scalar(4));
     lh_ui_layout_apply(&layout, &f.parent);
 
@@ -89,10 +89,10 @@ TEST(ui_layout, a_column_places_children_by_their_own_size)
 TEST(ui_layout, a_row_places_children_by_their_own_width)
 {
     layout_fixture f;
-    lh_ui_layout_t layout;
 
     place_child(&f.kids[0], lh_ui_place_size_fixed, lh_ui_scalar(30), lh_ui_place_align_start);
     place_child(&f.kids[1], lh_ui_place_size_fixed, lh_ui_scalar(40), lh_ui_place_align_start);
+    lh_ui_layout_t layout;
     lh_ui_layout_init(&layout, lh_ui_axis_horizontal, lh_ui_scalar(2));
     lh_ui_layout_apply(&layout, &f.parent);
 
@@ -106,11 +106,11 @@ TEST(ui_layout, a_row_places_children_by_their_own_width)
 TEST(ui_layout, align_fill_takes_the_whole_cross_side)
 {
     layout_fixture f;
-    lh_ui_layout_t layout;
 
     place_child(&f.kids[0], lh_ui_place_size_fixed, lh_ui_scalar(20), lh_ui_place_align_fill);
     place_child(&f.kids[1], lh_ui_place_size_fixed, lh_ui_scalar(25), lh_ui_place_align_fill);
     place_child(&f.kids[2], lh_ui_place_size_fixed, lh_ui_scalar(30), lh_ui_place_align_fill);
+    lh_ui_layout_t layout;
     lh_ui_layout_init(&layout, lh_ui_axis_vertical, lh_ui_scalar(4));
     lh_ui_layout_apply(&layout, &f.parent);
 
@@ -124,11 +124,11 @@ TEST(ui_layout, align_fill_takes_the_whole_cross_side)
 TEST(ui_layout, a_fill_child_takes_what_is_left_over)
 {
     layout_fixture f;
-    lh_ui_layout_t layout;
 
     place_child(&f.kids[0], lh_ui_place_size_fixed, lh_ui_scalar(20), lh_ui_place_align_start);
     place_child(&f.kids[1], lh_ui_place_size_fill, lh_ui_scalar(0), lh_ui_place_align_start);
     place_child(&f.kids[2], lh_ui_place_size_fixed, lh_ui_scalar(30), lh_ui_place_align_start);
+    lh_ui_layout_t layout;
     lh_ui_layout_init(&layout, lh_ui_axis_vertical, lh_ui_scalar(4));
     lh_ui_layout_apply(&layout, &f.parent);
 
@@ -142,12 +142,12 @@ TEST(ui_layout, a_fill_child_takes_what_is_left_over)
 TEST(ui_layout, hidden_children_take_no_room)
 {
     layout_fixture f;
-    lh_ui_layout_t layout;
 
     place_child(&f.kids[0], lh_ui_place_size_fixed, lh_ui_scalar(20), lh_ui_place_align_start);
     place_child(&f.kids[1], lh_ui_place_size_fixed, lh_ui_scalar(25), lh_ui_place_align_start);
     place_child(&f.kids[2], lh_ui_place_size_fixed, lh_ui_scalar(30), lh_ui_place_align_start);
     lh_ui_entity_set_hidden_v(&f.kids[1], lh_bool_true);
+    lh_ui_layout_t layout;
     lh_ui_layout_init(&layout, lh_ui_axis_vertical, lh_ui_scalar(4));
     lh_ui_layout_apply(&layout, &f.parent);
 
@@ -160,9 +160,9 @@ TEST(ui_layout, hidden_children_take_no_room)
 TEST(ui_layout, justify_puts_what_is_left_over)
 {
     layout_fixture f;
-    lh_ui_layout_t layout;
 
     place_child(&f.kids[0], lh_ui_place_size_fixed, lh_ui_scalar(30), lh_ui_place_align_start);
+    lh_ui_layout_t layout;
     lh_ui_layout_init(&layout, lh_ui_axis_horizontal, lh_ui_scalar(0));
     EXPECT_EQ(lh_ui_layout_get_justify(&layout), lh_ui_justify_start);
     lh_ui_layout_set_justify(&layout, lh_ui_justify_center);
@@ -181,11 +181,11 @@ TEST(ui_layout, justify_puts_what_is_left_over)
 TEST(ui_layout, fills_share_what_is_left_by_weight)
 {
     layout_fixture f;
-    lh_ui_layout_t layout;
 
     place_child(&f.kids[0], lh_ui_place_size_fill, lh_ui_scalar(1), lh_ui_place_align_start);
     place_child(&f.kids[1], lh_ui_place_size_fill, lh_ui_scalar(3), lh_ui_place_align_start);
     place_child(&f.kids[2], lh_ui_place_size_fixed, lh_ui_scalar(24), lh_ui_place_align_start);
+    lh_ui_layout_t layout;
     lh_ui_layout_init(&layout, lh_ui_axis_horizontal, lh_ui_scalar(0));
     lh_ui_layout_apply(&layout, &f.parent);
 
@@ -205,11 +205,11 @@ TEST(ui_layout, fills_share_what_is_left_by_weight)
 TEST(ui_layout, space_justify_puts_the_leftover_between_the_children)
 {
     layout_fixture f;
-    lh_ui_layout_t layout;
 
     place_child(&f.kids[0], lh_ui_place_size_fixed, lh_ui_scalar(30), lh_ui_place_align_start);
     place_child(&f.kids[1], lh_ui_place_size_fixed, lh_ui_scalar(40), lh_ui_place_align_start);
     place_child(&f.kids[2], lh_ui_place_size_fixed, lh_ui_scalar(50), lh_ui_place_align_start);
+    lh_ui_layout_t layout;
     lh_ui_layout_init(&layout, lh_ui_axis_horizontal, lh_ui_scalar(4));
 
     /* between: 48 in each of two spaces, none at the ends. */
@@ -237,11 +237,11 @@ TEST(ui_layout, space_justify_puts_the_leftover_between_the_children)
 TEST(ui_layout, space_between_puts_a_single_child_at_the_start)
 {
     layout_fixture f;
-    lh_ui_layout_t layout;
 
     place_child(&f.kids[0], lh_ui_place_size_fixed, lh_ui_scalar(30), lh_ui_place_align_start);
     lh_ui_entity_set_hidden_v(&f.kids[1], lh_bool_true);
     lh_ui_entity_set_hidden_v(&f.kids[2], lh_bool_true);
+    lh_ui_layout_t layout;
     lh_ui_layout_init(&layout, lh_ui_axis_horizontal, lh_ui_scalar(0));
     lh_ui_layout_set_justify(&layout, lh_ui_justify_space_between);
     lh_ui_layout_apply(&layout, &f.parent);
@@ -253,18 +253,18 @@ TEST(ui_layout, space_between_puts_a_single_child_at_the_start)
    is that much narrower. */
 TEST(ui_layout, a_margin_is_kept_clear_around_the_child)
 {
-    layout_fixture f;
-    lh_ui_layout_t layout;
     lh_ui_place_t place;
-    lh_ui_insets_t margin;
 
     lh_ui_place_init(&place, lh_ui_place_size_fixed, lh_ui_scalar(20));
     lh_ui_place_set_align(&place, lh_ui_place_align_fill);
+    lh_ui_insets_t margin;
     lh_ui_insets_init(&margin, lh_ui_scalar(5), lh_ui_scalar(3), lh_ui_scalar(7), lh_ui_scalar(2));
     lh_ui_place_assign_margin(&place, &margin);
+    layout_fixture f;
     lh_ui_entity_set_place_v(&f.kids[0], &place);
     place_child(&f.kids[1], lh_ui_place_size_fixed, lh_ui_scalar(25), lh_ui_place_align_start);
     lh_ui_entity_set_hidden_v(&f.kids[2], lh_bool_true);
+    lh_ui_layout_t layout;
     lh_ui_layout_init(&layout, lh_ui_axis_vertical, lh_ui_scalar(4));
     lh_ui_layout_apply(&layout, &f.parent);
 
@@ -276,18 +276,18 @@ TEST(ui_layout, a_margin_is_kept_clear_around_the_child)
 /* A maximum holds a fill and a stretch, and a minimum holds a fixed length. */
 TEST(ui_layout, min_and_max_hold_the_length_a_child_is_given)
 {
-    layout_fixture f;
-    lh_ui_layout_t layout;
     lh_ui_place_t place;
 
     lh_ui_place_init(&place, lh_ui_place_size_fill, lh_ui_scalar(0));
     lh_ui_place_set_align(&place, lh_ui_place_align_fill);
     lh_ui_place_set_max_size(&place, lh_ui_scalar(100), lh_ui_scalar(50));
+    layout_fixture f;
     lh_ui_entity_set_place_v(&f.kids[0], &place);
     lh_ui_place_init(&place, lh_ui_place_size_fixed, lh_ui_scalar(25));
     lh_ui_place_set_min_size(&place, lh_ui_scalar(0), lh_ui_scalar(40));
     lh_ui_entity_set_place_v(&f.kids[1], &place);
     lh_ui_entity_set_hidden_v(&f.kids[2], lh_bool_true);
+    lh_ui_layout_t layout;
     lh_ui_layout_init(&layout, lh_ui_axis_vertical, lh_ui_scalar(4));
     lh_ui_layout_apply(&layout, &f.parent);
 
@@ -344,10 +344,10 @@ struct button_fixture
 TEST(ui_layout, a_child_that_wraps_to_nothing_collapses_and_leaves_no_gap)
 {
     button_fixture f;
-    lh_ui_rect_t caption_rect;
 
     lh_ui_layout_apply(&f.layout, &f.parent);
-    caption_rect = lh_test::out(lh_ui_entity_copy_rect, lh_ui_label_as_entity(&f.caption));
+    lh_ui_rect_t caption_rect =
+        lh_test::out(lh_ui_entity_copy_rect, lh_ui_label_as_entity(&f.caption));
 
     /* 16 of picture in a 224 wide box, centred on its own: x 108 + (224 - 16) / 2,
        and 16 tall in a 144 tall box: y 58 + (144 - 16) / 2. */
@@ -359,18 +359,16 @@ TEST(ui_layout, a_child_that_wraps_to_nothing_collapses_and_leaves_no_gap)
 TEST(ui_layout, the_same_flow_centres_the_row_once_the_caption_has_text)
 {
     button_fixture f;
-    lh_ui_rect_t picture_rect;
-    lh_ui_rect_t caption_rect;
-    lh_ui_point_t picture_at;
 
     lh_ui_label_set_text_v(&f.caption, "AB");
     lh_ui_layout_apply(&f.layout, &f.parent);
 
     /* 16 + 8 + the width of "AB" is what the row takes, centred as a whole, so
        the picture is no longer in the middle of the button. */
-    picture_rect = lh_test::out(lh_ui_entity_copy_rect, &f.picture);
-    caption_rect = lh_test::out(lh_ui_entity_copy_rect, lh_ui_label_as_entity(&f.caption));
-    picture_at = *lh_ui_rect_get_origin(lh_addr_of(picture_rect));
+    lh_ui_rect_t picture_rect = lh_test::out(lh_ui_entity_copy_rect, &f.picture);
+    lh_ui_rect_t caption_rect =
+        lh_test::out(lh_ui_entity_copy_rect, lh_ui_label_as_entity(&f.caption));
+    lh_ui_point_t picture_at = *lh_ui_rect_get_origin(lh_addr_of(picture_rect));
 
     EXPECT_LT(lh_ui_point_get_x(&picture_at), 212) << "the picture did not move aside";
     EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size(lh_addr_of(caption_rect))), 7)
@@ -381,13 +379,13 @@ TEST(ui_layout, the_same_flow_centres_the_row_once_the_caption_has_text)
    whatever sits under one has to move with it. */
 TEST(ui_layout, a_moved_child_takes_its_subtree_along)
 {
-    layout_fixture f;
-    lh_ui_layout_t layout;
     lh_ui_entity_t grandchild;
 
     lh_ui_entity_init(&grandchild, rect_of(5, 6, 3, 3));
+    layout_fixture f;
     lh_ui_entity_add_child(&f.kids[0], &grandchild);
     place_child(&f.kids[0], lh_ui_place_size_fixed, lh_ui_scalar(20), lh_ui_place_align_start);
+    lh_ui_layout_t layout;
     lh_ui_layout_init(&layout, lh_ui_axis_vertical, lh_ui_scalar(0));
     lh_ui_layout_apply(&layout, &f.parent);
 
@@ -400,18 +398,17 @@ TEST(ui_layout, a_moved_child_takes_its_subtree_along)
    does before it draws them, and the children are placed there and then. */
 TEST(ui_layout, a_container_places_its_own_children_and_takes_them_along_when_it_moves)
 {
-    lh_ui_container_t box;
-    lh_ui_entity_t kids[2];
     lh_ui_style_t style;
-    lh_ui_layout_t layout;
-    lh_ui_point_t offset;
 
     lh_ui_style_init(&style);
     lh_ui_style_set_padding_all(&style, lh_ui_scalar(8));
+    lh_ui_container_t box;
     lh_ui_container_init(&box, rect_of(100, 50, 240, 160));
     lh_ui_entity_set_style_v(lh_ui_container_as_entity(&box), &style);
+    lh_ui_layout_t layout;
     lh_ui_layout_init(&layout, lh_ui_axis_vertical, lh_ui_scalar(4));
     lh_ui_container_set_layout(&box, &layout);
+    lh_ui_entity_t kids[2];
     for (int i = 0; i < 2; ++i)
     {
         lh_ui_entity_init(&kids[i], rect_of(0, 0, 30, 20 + i * 10));
@@ -420,6 +417,7 @@ TEST(ui_layout, a_container_places_its_own_children_and_takes_them_along_when_it
         lh_ui_entity_add_child(lh_ui_container_as_entity(&box), &kids[i]);
     }
 
+    lh_ui_point_t offset;
     lh_ui_entity_get_children_transform(lh_ui_container_as_entity(&box), &offset);
     EXPECT_TRUE(rect_at(&kids[0], 108, 58, 30, 20));
     EXPECT_TRUE(rect_at(&kids[1], 108, 82, 30, 30));
@@ -435,7 +433,6 @@ TEST(ui_layout, a_container_places_its_own_children_and_takes_them_along_when_it
 
 TEST(ui_place, an_entity_carries_what_it_wants_and_gets_it_back)
 {
-    lh_ui_entity_t entity;
     lh_ui_place_t place;
 
     lh_ui_place_init(&place, lh_ui_place_size_fixed, lh_ui_scalar(12));
@@ -445,6 +442,7 @@ TEST(ui_place, an_entity_carries_what_it_wants_and_gets_it_back)
 
     lh_ui_place_set_align(&place, lh_ui_place_align_fill);
     lh_ui_place_set_sizing(&place, lh_ui_place_size_wrap, lh_ui_scalar(0));
+    lh_ui_entity_t entity;
     lh_ui_entity_init(&entity, rect_of(0, 0, 10, 10));
     EXPECT_EQ(lh_ui_place_get_align(lh_ui_entity_get_place(&entity)), lh_ui_place_align_start)
         << "a new entity did not start at the beginning";
@@ -530,20 +528,17 @@ struct baseline_row
 TEST(ui_layout, an_icon_and_a_caption_in_a_row_stand_on_one_line)
 {
     baseline_row f(true);
-    lh_ui_rect_t icon_rect;
-    lh_ui_rect_t caption_rect;
-    int icon_bottom;
-    int caption_baseline;
 
     lh_ui_image_set_baseline(&f.icon, lh_ui_scalar(1));
     lh_ui_layout_apply(&f.flow, lh_ui_container_as_entity(&f.box));
 
-    icon_rect = lh_test::out(lh_ui_entity_copy_rect, lh_ui_image_as_entity(&f.icon));
-    caption_rect = lh_test::out(lh_ui_entity_copy_rect, lh_ui_label_as_entity(&f.caption));
-    icon_bottom = (int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(icon_rect))) +
-                  (int)lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(icon_rect)));
-    caption_baseline = (int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(caption_rect))) +
-                       (int)lh_ui_font_get_cap_height(tiny_font());
+    lh_ui_rect_t icon_rect = lh_test::out(lh_ui_entity_copy_rect, lh_ui_image_as_entity(&f.icon));
+    lh_ui_rect_t caption_rect =
+        lh_test::out(lh_ui_entity_copy_rect, lh_ui_label_as_entity(&f.caption));
+    int icon_bottom = (int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(icon_rect))) +
+                      (int)lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(icon_rect)));
+    int caption_baseline = (int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(caption_rect))) +
+                           (int)lh_ui_font_get_cap_height(tiny_font());
 
     /* The row prints the numbers, because "they look aligned" is not a
        measurement and a failure here has to say what it got. */
@@ -572,18 +567,17 @@ TEST(ui_layout, the_line_is_the_deepest_baseline_and_not_the_first_child)
 {
     baseline_row icon_first(true);
     baseline_row caption_first(false);
-    lh_ui_rect_t a;
-    lh_ui_rect_t b;
-    int y;
 
     lh_ui_image_set_baseline(&icon_first.icon, lh_ui_scalar(1));
     lh_ui_layout_apply(&icon_first.flow, lh_ui_container_as_entity(&icon_first.box));
     lh_ui_image_set_baseline(&caption_first.icon, lh_ui_scalar(1));
     lh_ui_layout_apply(&caption_first.flow, lh_ui_container_as_entity(&caption_first.box));
 
-    a = lh_test::out(lh_ui_entity_copy_rect, lh_ui_label_as_entity(&icon_first.caption));
-    b = lh_test::out(lh_ui_entity_copy_rect, lh_ui_label_as_entity(&caption_first.caption));
-    y = (int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(b)));
+    lh_ui_rect_t a =
+        lh_test::out(lh_ui_entity_copy_rect, lh_ui_label_as_entity(&icon_first.caption));
+    lh_ui_rect_t b =
+        lh_test::out(lh_ui_entity_copy_rect, lh_ui_label_as_entity(&caption_first.caption));
+    int y = (int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(b)));
     fprintf(stderr, "        caption at y %d icon first, y %d caption first\n",
             (int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(a))), y);
     EXPECT_EQ((int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(a))), y)
@@ -628,8 +622,6 @@ TEST(ui_layout, a_child_with_no_baseline_is_centred_and_not_pulled_onto_the_line
 TEST(ui_layout, a_vertical_flow_has_no_line_to_line_up_on)
 {
     baseline_row f(true);
-    lh_ui_rect_t icon_rect;
-    lh_ui_rect_t caption_rect;
 
     lh_ui_image_set_baseline(&f.icon, lh_ui_scalar(1));
     lh_ui_layout_init(&f.flow, lh_ui_axis_vertical, lh_ui_scalar(0));
@@ -641,10 +633,11 @@ TEST(ui_layout, a_vertical_flow_has_no_line_to_line_up_on)
        and the content box itself starts at x 2, so x 20. */
     EXPECT_TRUE(rect_at(lh_ui_image_as_entity(&f.icon), 20, 2, 1, 1));
     EXPECT_TRUE(rect_at(lh_ui_label_as_entity(&f.caption), 19, 3, 3, 2));
-    icon_rect = lh_test::out(lh_ui_entity_copy_rect, lh_ui_image_as_entity(&f.icon));
+    lh_ui_rect_t icon_rect = lh_test::out(lh_ui_entity_copy_rect, lh_ui_image_as_entity(&f.icon));
     EXPECT_EQ((int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(icon_rect))), 2);
     /* The caption goes under it, in its own 2-row box. */
-    caption_rect = lh_test::out(lh_ui_entity_copy_rect, lh_ui_label_as_entity(&f.caption));
+    lh_ui_rect_t caption_rect =
+        lh_test::out(lh_ui_entity_copy_rect, lh_ui_label_as_entity(&f.caption));
     EXPECT_EQ((int)lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(caption_rect))), 3);
 }
 
@@ -655,30 +648,30 @@ TEST(ui_layout, a_vertical_flow_has_no_line_to_line_up_on)
    itself, until the stack ran out. A flow runs once now, and this returns. */
 TEST(ui_layout, a_flow_does_not_run_again_from_inside_itself)
 {
-    lh_ui_container_t column;
-    lh_ui_container_t row;
-    lh_ui_label_t caption;
-    lh_ui_layout_t down;
-    lh_ui_layout_t across;
     lh_ui_style_t text_style;
-    lh_ui_entity_transform_t transform;
 
     lh_ui_style_init(&text_style);
     lh_ui_style_set_font(&text_style, tiny_font());
     lh_ui_style_set_align_v(&text_style, lh_ui_text_align_v_center);
+    lh_ui_container_t column;
     lh_ui_container_init(&column, rect_of(0, 0, 200, 100));
+    lh_ui_container_t row;
     lh_ui_container_init(&row, rect_of(0, 0, 0, 0));
+    lh_ui_label_t caption;
     lh_ui_label_init(&caption, rect_of(0, 0, 0, 0), "Ag");
     lh_ui_entity_set_style_v(lh_ui_label_as_entity(&caption), &text_style);
     lh_ui_entity_add_child(lh_ui_container_as_entity(&column), lh_ui_container_as_entity(&row));
     lh_ui_entity_add_child(lh_ui_container_as_entity(&row), lh_ui_label_as_entity(&caption));
     place_child(lh_ui_container_as_entity(&row), lh_ui_place_size_wrap, lh_ui_scalar(0), lh_ui_place_align_fill);
     place_child(lh_ui_label_as_entity(&caption), lh_ui_place_size_wrap, lh_ui_scalar(0), lh_ui_place_align_fill);
+    lh_ui_layout_t down;
     lh_ui_layout_init(&down, lh_ui_axis_vertical, lh_ui_scalar(0));
+    lh_ui_layout_t across;
     lh_ui_layout_init(&across, lh_ui_axis_horizontal, lh_ui_scalar(0));
     lh_ui_container_set_layout(&column, &down);
     lh_ui_container_set_layout(&row, &across);
 
+    lh_ui_entity_transform_t transform;
     for (int frame = 0; frame < 3; ++frame)
     {
         lh_ui_entity_transform_init(&transform);
@@ -696,11 +689,11 @@ TEST(ui_layout, a_flow_does_not_run_again_from_inside_itself)
 TEST(ui_layout, a_flow_that_wraps_starts_a_new_line_for_what_does_not_fit)
 {
     layout_fixture f;
-    lh_ui_layout_t layout;
 
     place_child(&f.kids[0], lh_ui_place_size_fixed, lh_ui_scalar(100), lh_ui_place_align_start);
     place_child(&f.kids[1], lh_ui_place_size_fixed, lh_ui_scalar(100), lh_ui_place_align_start);
     place_child(&f.kids[2], lh_ui_place_size_fixed, lh_ui_scalar(100), lh_ui_place_align_start);
+    lh_ui_layout_t layout;
     lh_ui_layout_init(&layout, lh_ui_axis_horizontal, lh_ui_scalar(4));
     lh_ui_layout_set_wrapping(&layout, lh_bool_true, lh_ui_scalar(6));
     EXPECT_EQ(lh_ui_layout_get_wrap(&layout), lh_bool_true);
@@ -715,11 +708,11 @@ TEST(ui_layout, a_flow_that_wraps_starts_a_new_line_for_what_does_not_fit)
 TEST(ui_layout, children_that_stretch_fill_the_depth_of_their_line)
 {
     layout_fixture f;
-    lh_ui_layout_t layout;
 
     place_child(&f.kids[0], lh_ui_place_size_fixed, lh_ui_scalar(150), lh_ui_place_align_fill);
     place_child(&f.kids[1], lh_ui_place_size_fixed, lh_ui_scalar(150), lh_ui_place_align_fill);
     lh_ui_entity_set_hidden_v(&f.kids[2], lh_bool_true);
+    lh_ui_layout_t layout;
     lh_ui_layout_init(&layout, lh_ui_axis_horizontal, lh_ui_scalar(0));
     lh_ui_layout_set_wrapping(&layout, lh_bool_true, lh_ui_scalar(4));
     lh_ui_layout_apply(&layout, &f.parent);
@@ -759,9 +752,9 @@ TEST(ui_layout_bricks, justify_lead_shares_the_room_left)
 
 TEST(ui_layout_bricks, run_init_starts_at_the_content_origin)
 {
-    lh_ui_layout_t layout;
     const lh_ui_rect_t content = rect_of(108, 58, 224, 144);
 
+    lh_ui_layout_t layout;
     lh_ui_layout_init(&layout, lh_ui_axis_vertical, lh_ui_scalar(4));
     const lh_ui_layout_run_t run = lh_test::out(lh_ui_layout_run_init, &layout, &content);
 
@@ -793,16 +786,16 @@ TEST(ui_layout_bricks, cross_at_follows_the_align)
 
 TEST(ui_layout_bricks, run_measure_counts_gaps_between_shown_children)
 {
-    layout_fixture f;
-    lh_ui_layout_t layout;
-    lh_ui_layout_run_t run;
     const lh_ui_rect_t content = rect_of(108, 58, 224, 144);
 
+    layout_fixture f;
     for (int i = 0; i < 3; ++i)
     {
         place_child(&f.kids[i], lh_ui_place_size_fixed, lh_ui_scalar(30 + i * 10), lh_ui_place_align_start);
     }
+    lh_ui_layout_t layout;
     lh_ui_layout_init(&layout, lh_ui_axis_horizontal, lh_ui_scalar(4));
+    lh_ui_layout_run_t run;
     lh_ui_layout_run_init(&layout, &content, &run);
     lh_ui_layout_run_measure(&layout, &run, &f.parent, lh_ui_entity_get_first_child(&f.parent), nullptr, &content);
     EXPECT_EQ(run.shown, 3);

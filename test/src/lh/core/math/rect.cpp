@@ -120,11 +120,11 @@ TEST(math_rect, offset_and_inset)
 TEST(math_rect, compare_suite_origin_then_size)
 {
     lh_math_rect_t a;
-    lh_math_rect_t b;
-    lh_math_rect_t c;
 
     lh_math_rect_init(lh_addr_of(a), 0, 0, 10, 10);
+    lh_math_rect_t b;
     lh_math_rect_init(lh_addr_of(b), 0, 0, 10, 11);
+    lh_math_rect_t c;
     lh_math_rect_init(lh_addr_of(c), 1, 0, 1, 1);
 
     EXPECT_EQ(lh_math_rect_equals(lh_addr_of(a), lh_addr_of(a)), lh_bool_true);

@@ -21,12 +21,10 @@ lh_os_debug_print_line(lh_str_cptr text)
 lh_ssize_t
 lh_os_debug_log(lh_self_ptr self, lh_logger_level_t level, lh_str_cptr fmt, va_list args)
 {
-    lh_char_t text[LH_OS_DEBUG_LINE_MAX];
-    lh_char_t line[LH_OS_DEBUG_LINE_MAX + 16U];
-    lh_usize_t size;
-
     LH_ATTRIBUTE_UNUSED(self);
-    size = lh_str_ptr_format_cstr_v(text, sizeof(text), fmt, args);
+    lh_char_t text[LH_OS_DEBUG_LINE_MAX];
+    lh_usize_t size = lh_str_ptr_format_cstr_v(text, sizeof(text), fmt, args);
+    lh_char_t line[LH_OS_DEBUG_LINE_MAX + 16U];
     size = lh_str_ptr_format_cstr(line, sizeof(line), "[%s] %s", lh_logger_level_get_name(level),
                                   lh_math_is_zero(size) ? fmt : text);
     lh_return_ifn(lh_os_debug_print_line(line), -1);

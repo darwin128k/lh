@@ -25,8 +25,8 @@ sqlite_at(lh_sql_address_t *address, lh_str_view_t path)
 TEST(os_sql_keep, uses_the_kept_connection_again_for_the_same_address)
 {
     lh_os_sql_keep_t keep;
-    lh_sql_address_t address;
     lh_os_sql_keep_init(&keep);
+    lh_sql_address_t address;
     lh_sql_address_init(&address);
     sqlite_at(&address, lh_str_view_lit(":memory:"));
 
@@ -50,10 +50,10 @@ TEST(os_sql_keep, opens_anew_for_another_address)
 {
     const char *const file = "lh_test_os_sql_keep.db";
     lh_os_sql_keep_t keep;
-    lh_sql_address_t memory;
-    lh_sql_address_t disk;
     lh_os_sql_keep_init(&keep);
+    lh_sql_address_t memory;
     lh_sql_address_init(&memory);
+    lh_sql_address_t disk;
     lh_sql_address_init(&disk);
     sqlite_at(&memory, lh_str_view_lit(":memory:"));
     sqlite_at(&disk, lh_str_view_lit("lh_test_os_sql_keep.db"));
@@ -76,8 +76,8 @@ TEST(os_sql_keep, opens_anew_for_another_address)
 TEST(os_sql_keep, a_failed_open_keeps_nothing_and_says_why)
 {
     lh_os_sql_keep_t keep;
-    lh_sql_address_t nowhere;
     lh_os_sql_keep_init(&keep);
+    lh_sql_address_t nowhere;
     lh_sql_address_init(&nowhere);
 
     EXPECT_EQ(lh_os_sql_keep_try_get_db(&keep, &nowhere), nullptr);

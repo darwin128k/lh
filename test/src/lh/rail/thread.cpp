@@ -257,8 +257,8 @@ TEST(rail_thread_try_stop, drain_turns_into_cancel)
     ASSERT_TRUE(lh_rail_thread_try_start(&executor, &context));
     std::atomic<bool> gate{false};
     job first;
-    job second;
     make(first, 1);
+    job second;
     make(second, 2);
     first.gate = &gate;
     ASSERT_TRUE(
@@ -356,8 +356,8 @@ TEST(rail_thread_try_start, refuses_on_a_base_without_threads)
     lh_rail_base_assign(&saved, lh_rail_runtime_base_get());
     lh_rail_base_set_thread_start_cb(lh_rail_runtime_base_get_mut(), lh_null);
 
-    lh_rail_thread_t thread;
     lh_rail_context_t context = lh_rail_context_initializer(lh_null, lh_null, lh_null);
+    lh_rail_thread_t thread;
     EXPECT_FALSE(lh_rail_thread_try_start(&thread, &context));
 
     lh_rail_base_assign(lh_rail_runtime_base_get_mut(), &saved);

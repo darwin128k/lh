@@ -35,8 +35,6 @@ lh_ui_display_rebind_pixmap(lh_ui_display_t *self, lh_byte_ptr bits, lh_s32_t st
 lh_void
 lh_ui_display_init(lh_ui_display_t *self)
 {
-    lh_u32_t i;
-
     lh_ui_size_init(lh_ui_display_get_panel_mut(self), lh_ui_scalar(0), lh_ui_scalar(0));
     lh_ui_display_set_strip_height(self, lh_ui_scalar(0));
     lh_ui_display_set_strip_y(self, lh_ui_scalar(0));
@@ -45,7 +43,7 @@ lh_ui_display_init(lh_ui_display_t *self)
     lh_ui_canvas_sw_init(lh_ui_display_get_sw_mut(self));
     lh_ui_canvas_init(lh_ui_display_get_canvas_mut(self), lh_addr_of(lh_ui_canvas_backend_sw),
                       lh_ui_display_get_sw_mut(self));
-    for (i = 0; i < lh_cast_static(lh_u32_t, LH_UI_PRESENT_SINKS_MAX); ++i)
+    for (lh_u32_t i = 0; i < lh_cast_static(lh_u32_t, LH_UI_PRESENT_SINKS_MAX); ++i)
     {
         lh_ui_present_sink_init(lh_addr_of(lh_ui_display_get_sinks_mut(self)[i]), lh_null, lh_null, lh_null);
     }
@@ -280,6 +278,3 @@ lh_ui_display_set_panel(lh_ui_display_t *self, lh_ui_size_t panel)
     lh_assert_runtime_ref(self);
     self->panel = panel;
 }
-
-
-

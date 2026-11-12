@@ -235,9 +235,9 @@ TEST(os_controller, has_flag_needs_every_bit)
 
 TEST(os_controller, handle_passes_the_recognizer_by)
 {
-    fixture f;
     const lh_os_input_event_t down = pointer_event(lh_os_input_kind_pointer_down, 10, 10, 0U);
 
+    fixture f;
     EXPECT_TRUE(lh_os_controller_handle_event_is_handled(&f.controller, &down));
     EXPECT_EQ(f.log.events.size(), 1U);
     EXPECT_EQ(lh_os_input_recognizer_get_phase(lh_os_controller_get_recognizer(&f.controller), 0U),
@@ -250,9 +250,9 @@ TEST(os_controller, handle_passes_the_recognizer_by)
 
 TEST(os_controller, handle_without_a_handler_drops_the_event)
 {
-    fixture f;
     const lh_os_input_event_t down = pointer_event(lh_os_input_kind_pointer_down, 10, 10, 0U);
 
+    fixture f;
     lh_os_controller_set_handle_cb(&f.controller, nullptr);
     EXPECT_FALSE(lh_os_controller_handle_event_is_handled(&f.controller, &down));
     EXPECT_FALSE(lh_os_controller_feed(&f.controller, &down));
@@ -310,10 +310,10 @@ TEST(os_controller, cancel_with_no_cancel_cb_forgets_the_press)
 TEST(os_controller, cancel_keeps_the_thresholds)
 {
     lh_os_input_recognizer_config_t config = lh_os_input_recognizer_config_default_initializer();
-    handler_log log;
-    lh_os_controller_t controller;
 
     config.long_press_ms = 1000U;
+    lh_os_controller_t controller;
+    handler_log log;
     lh_os_controller_init(&controller, record, &log, &config);
     lh_os_controller_cancel(&controller);
     EXPECT_EQ(lh_os_input_recognizer_config_get_long_press_ms(
@@ -383,11 +383,11 @@ TEST(os_controller, empty_initializer_drops_every_event)
 
 TEST(os_controller, sink_feeds_the_controller_it_is_given)
 {
-    fixture f;
     const lh_os_input_sink_cb sink = lh_os_controller_sink;
     const lh_os_input_event_t down = pointer_event(lh_os_input_kind_pointer_down, 10, 10, 0U);
     const lh_os_input_event_t up = pointer_event(lh_os_input_kind_pointer_up, 10, 10, 10U);
 
+    fixture f;
     sink(&f.controller, &down);
     sink(&f.controller, &up);
     EXPECT_EQ(f.log.kinds(), (std::vector<lh_os_input_kind_t>{lh_os_input_kind_pointer_down,

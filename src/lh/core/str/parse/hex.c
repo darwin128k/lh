@@ -59,8 +59,6 @@ lh_bool_t
 lh_str_ptr_parse_hex_bytes(lh_str_cptr str, lh_usize_t str_size, lh_byte_ptr out,
                            lh_usize_t out_size)
 {
-    lh_usize_t i;
-
     lh_assert_runtime_ref(str);
     lh_assert_runtime_ref(out);
 
@@ -70,7 +68,7 @@ lh_str_ptr_parse_hex_bytes(lh_str_cptr str, lh_usize_t str_size, lh_byte_ptr out
     }
     /* The text is checked before a byte is written: a failure leaves the
      * caller's array as it was. */
-    for (i = 0U; lh_math_lt(i, out_size); i = lh_math_add_one(i))
+    for (lh_usize_t i = 0U; lh_math_lt(i, out_size); i = lh_math_add_one(i))
     {
         lh_usize_t digit = lh_math_mul(i, 2U);
 
@@ -79,7 +77,7 @@ lh_str_ptr_parse_hex_bytes(lh_str_cptr str, lh_usize_t str_size, lh_byte_ptr out
             return lh_bool_false;
         }
     }
-    for (i = 0U; lh_math_lt(i, out_size); i = lh_math_add_one(i))
+    for (lh_usize_t i = 0U; lh_math_lt(i, out_size); i = lh_math_add_one(i))
     {
         lh_usize_t digit = lh_math_mul(i, 2U);
 

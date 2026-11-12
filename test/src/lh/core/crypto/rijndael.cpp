@@ -42,26 +42,25 @@ TEST(crypto_rijndael, aes128_ecb_fips197)
 TEST(crypto_rijndael, aes256_ecb_round_trip)
 {
     lh_byte_t key[32];
-    lh_byte_t pt[16];
-    lh_byte_t ct[16];
-    lh_byte_t back[16];
-    lh_crypto_rijndael_t aes;
-    lh_usize_t i;
 
-    for (i = 0; i < 32U; ++i)
+    for (lh_usize_t i = 0; i < 32U; ++i)
     {
         key[i] = static_cast<lh_byte_t>(i);
     }
-    for (i = 0; i < 16U; ++i)
+    lh_byte_t pt[16];
+    for (lh_usize_t i = 0; i < 16U; ++i)
     {
         pt[i] = static_cast<lh_byte_t>(0xA0U + i);
     }
 
+    lh_crypto_rijndael_t aes;
     ASSERT_TRUE(lh_crypto_rijndael_init(lh_addr_of(aes), key, 32, lh_null, 0, 16,
                                         lh_crypto_rijndael_mode_ecb));
+    lh_byte_t ct[16];
     ASSERT_TRUE(lh_crypto_rijndael_encrypt_block(lh_addr_of(aes), pt, ct));
     ASSERT_TRUE(lh_crypto_rijndael_init(lh_addr_of(aes), key, 32, lh_null, 0, 16,
                                         lh_crypto_rijndael_mode_ecb));
+    lh_byte_t back[16];
     ASSERT_TRUE(lh_crypto_rijndael_decrypt_block(lh_addr_of(aes), ct, back));
     EXPECT_EQ(std::memcmp(back, pt, 16), 0);
 }
@@ -70,22 +69,21 @@ TEST(crypto_rijndael, rijndael_32_byte_block_round_trip)
 {
     lh_byte_t key[32];
     lh_byte_t pt[32];
-    lh_byte_t ct[32];
-    lh_byte_t back[32];
-    lh_crypto_rijndael_t cipher;
-    lh_usize_t i;
 
-    for (i = 0; i < 32U; ++i)
+    for (lh_usize_t i = 0; i < 32U; ++i)
     {
         key[i] = static_cast<lh_byte_t>(i + 1U);
         pt[i] = static_cast<lh_byte_t>(0x40U + i);
     }
 
+    lh_crypto_rijndael_t cipher;
     ASSERT_TRUE(lh_crypto_rijndael_init(lh_addr_of(cipher), key, 32, lh_null, 0, 32,
                                         lh_crypto_rijndael_mode_ecb));
+    lh_byte_t ct[32];
     ASSERT_TRUE(lh_crypto_rijndael_encrypt_block(lh_addr_of(cipher), pt, ct));
     ASSERT_TRUE(lh_crypto_rijndael_init(lh_addr_of(cipher), key, 32, lh_null, 0, 32,
                                         lh_crypto_rijndael_mode_ecb));
+    lh_byte_t back[32];
     ASSERT_TRUE(lh_crypto_rijndael_decrypt_block(lh_addr_of(cipher), ct, back));
     EXPECT_EQ(std::memcmp(back, pt, 32), 0);
     EXPECT_NE(std::memcmp(ct, pt, 32), 0);
@@ -98,19 +96,19 @@ TEST(crypto_rijndael, cbc_round_trip)
     const lh_byte_t iv[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
                                0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F};
     const lh_byte_t pt[16] = {0x6B, 0xC1, 0xBE, 0xE2, 0x2E, 0x40, 0x9F, 0x96,
-                               0xE9, 0x3D, 0x7E, 0x11, 0x73, 0x93, 0x17, 0x2A};
-    lh_byte_t ct[16];
-    lh_byte_t back[16];
+                              0xE9, 0x3D, 0x7E, 0x11, 0x73, 0x93, 0x17, 0x2A};
     lh_crypto_rijndael_t aes;
 
     ASSERT_TRUE(lh_crypto_rijndael_init(lh_addr_of(aes), const_cast<lh_byte_t *>(key), 16,
                                         const_cast<lh_byte_t *>(iv), 16, 16,
                                         lh_crypto_rijndael_mode_cbc));
+    lh_byte_t ct[16];
     ASSERT_TRUE(lh_crypto_rijndael_encrypt_block(lh_addr_of(aes), const_cast<lh_byte_t *>(pt), ct));
 
     ASSERT_TRUE(lh_crypto_rijndael_init(lh_addr_of(aes), const_cast<lh_byte_t *>(key), 16,
                                         const_cast<lh_byte_t *>(iv), 16, 16,
                                         lh_crypto_rijndael_mode_cbc));
+    lh_byte_t back[16];
     ASSERT_TRUE(lh_crypto_rijndael_decrypt_block(lh_addr_of(aes), ct, back));
     EXPECT_EQ(std::memcmp(back, pt, 16), 0);
 }
@@ -131,14 +129,13 @@ TEST(crypto_rijndael, aes_ecb_fips197_all_key_sizes)
         {32, "8ea2b7ca516745bfeafc49904b496089"},
     };
     lh_byte_t key[32];
-    lh_byte_t pt[16];
-    lh_usize_t i;
 
-    for (i = 0; i < 32U; ++i)
+    for (lh_usize_t i = 0; i < 32U; ++i)
     {
         key[i] = static_cast<lh_byte_t>(i);
     }
-    for (i = 0; i < 16U; ++i)
+    lh_byte_t pt[16];
+    for (lh_usize_t i = 0; i < 16U; ++i)
     {
         pt[i] = static_cast<lh_byte_t>(i * 0x11U);
     }

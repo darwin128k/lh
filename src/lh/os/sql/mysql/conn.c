@@ -117,9 +117,8 @@ lh_os_sql_mysql_conn_get_name_str(const lh_os_sql_mysql_conn_t *self)
 lh_str_view_t
 lh_os_sql_mysql_conn_get_host(const lh_os_sql_mysql_conn_t *self)
 {
-    lh_str_view_t view;
-
     lh_assert_runtime_ref(self);
+    lh_str_view_t view;
     lh_str_as_view(lh_os_sql_mysql_conn_get_host_str(self), lh_addr_of(view));
     return view;
 }
@@ -127,9 +126,8 @@ lh_os_sql_mysql_conn_get_host(const lh_os_sql_mysql_conn_t *self)
 lh_str_view_t
 lh_os_sql_mysql_conn_get_user(const lh_os_sql_mysql_conn_t *self)
 {
-    lh_str_view_t view;
-
     lh_assert_runtime_ref(self);
+    lh_str_view_t view;
     lh_str_as_view(lh_os_sql_mysql_conn_get_user_str(self), lh_addr_of(view));
     return view;
 }
@@ -137,9 +135,8 @@ lh_os_sql_mysql_conn_get_user(const lh_os_sql_mysql_conn_t *self)
 lh_str_view_t
 lh_os_sql_mysql_conn_get_password(const lh_os_sql_mysql_conn_t *self)
 {
-    lh_str_view_t view;
-
     lh_assert_runtime_ref(self);
+    lh_str_view_t view;
     lh_str_as_view(lh_os_sql_mysql_conn_get_password_str(self), lh_addr_of(view));
     return view;
 }
@@ -147,9 +144,8 @@ lh_os_sql_mysql_conn_get_password(const lh_os_sql_mysql_conn_t *self)
 lh_str_view_t
 lh_os_sql_mysql_conn_get_name(const lh_os_sql_mysql_conn_t *self)
 {
-    lh_str_view_t view;
-
     lh_assert_runtime_ref(self);
+    lh_str_view_t view;
     lh_str_as_view(lh_os_sql_mysql_conn_get_name_str(self), lh_addr_of(view));
     return view;
 }

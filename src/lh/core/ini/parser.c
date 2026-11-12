@@ -93,7 +93,6 @@ lh_bool_t
 lh_ini_parser_read_section(lh_ini_parser_t *self, const lh_str_view_t *line, lh_ini_entry_t *entry)
 {
     const lh_usize_t size = lh_str_view_get_size(line);
-    lh_str_view_t name;
     const lh_str_view_t brackets = lh_str_view_lit("[]");
 
     if (lh_math_lt(size, 2U) || lh_math_ne(lh_str_view_get_last_char(line), lh_char_map_rbracket))
@@ -101,6 +100,7 @@ lh_ini_parser_read_section(lh_ini_parser_t *self, const lh_str_view_t *line, lh_
         return lh_ini_parser_fail(self, lh_ini_error_bad_section);
     }
 
+    lh_str_view_t name;
     lh_str_view_from_offset(line, 1U, lh_math_sub(size, 2U), lh_addr_of(name));
 
     lh_str_view_trim(lh_addr_of(name));
@@ -142,14 +142,13 @@ lh_ini_parser_read_pair(lh_ini_parser_t *self, const lh_str_view_t *line, lh_ini
 lh_bool_t
 lh_ini_parser_next(lh_ini_parser_t *self, lh_ini_entry_t *entry)
 {
-    lh_str_view_t line;
-
     lh_assert_runtime_ref(entry);
     if (lh_ini_parser_has_error(self))
     {
         return lh_bool_false;
     }
 
+    lh_str_view_t line;
     while (lh_str_line_reader_next(lh_ini_parser_get_reader_mut(self), lh_addr_of(line)))
     {
         lh_str_view_trim(lh_addr_of(line));

@@ -501,12 +501,12 @@ lh_web_xml_reader_read_close(lh_web_xml_reader_t *self, const lh_web_xml_node_t 
                              lh_bool_t ignore_case)
 {
     lh_str_cursor_t *cursor = lh_web_xml_reader_get_cursor_mut(self);
-    lh_str_view_t name;
 
     if (!lh_str_cursor_skip_word(cursor, lh_str_view_lit("</"), lh_bool_false))
     {
         return lh_web_xml_reader_fail_unexpected(self);
     }
+    lh_str_view_t name;
     lh_str_as_view(lh_web_xml_node_get_name(node), lh_addr_of(name));
     /* The name must end where the open element's does: `</ab>` does not close `<a>`. */
     if (!lh_str_cursor_skip_word(cursor, name, ignore_case) ||
@@ -523,13 +523,13 @@ lh_web_xml_reader_read_attr(lh_web_xml_reader_t *self, lh_web_xml_node_t *node)
 {
     lh_str_cursor_t *cursor = lh_web_xml_reader_get_cursor_mut(self);
     lh_web_xml_attr_t *attr = lh_web_xml_attr_create();
-    lh_str_view_t name;
 
     if (!lh_web_xml_reader_read_name_into(self, lh_web_xml_attr_get_name_mut(attr)))
     {
         lh_web_xml_attr_destroy(attr);
         return lh_bool_false;
     }
+    lh_str_view_t name;
     lh_str_as_view(lh_web_xml_attr_get_name(attr), lh_addr_of(name));
     if (lh_null_ne(lh_web_xml_node_find_attr(node, name)))
     {

@@ -21,9 +21,9 @@ TEST(ui_insets, sides_and_axis_ends)
 TEST(ui_insets, shrink_moves_each_side_in_and_stops_at_zero_size)
 {
     lh_ui_insets_t in;
-    lh_ui_rect_t rect;
 
     lh_ui_insets_init(lh_addr_of(in), 1, 2, 3, 4);
+    lh_ui_rect_t rect;
     lh_ui_rect_init(lh_addr_of(rect), 10, 20, 30, 40);
     lh_ui_rect_t inner = lh_test::out(lh_ui_insets_shrink, lh_addr_of(in), lh_addr_of(rect));
     EXPECT_EQ(lh_ui_point_get_x(lh_ui_rect_get_origin(lh_addr_of(inner))), lh_ui_scalar(11));

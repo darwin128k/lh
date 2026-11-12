@@ -64,7 +64,6 @@ TEST_F(socket_poll, wakes_across_threads_and_coalesces_notifications)
     auto &wake = wake_owner.value;
     lh_test::thread_owner thread_owner;
     auto &thread = thread_owner.value;
-    lh_os_net_socket_poll_t watch[LH_OS_NET_SOCKET_POLL_MAX];
     lh_os_wake_close(&wake);
     ASSERT_TRUE(lh_os_wake_open(&wake, LH_OS_WAKE_OPEN_TIMEOUT_MS));
     const lh_os_system_net_socket_handle_t original = lh_os_wake_get_handle(&wake);
@@ -73,6 +72,7 @@ TEST_F(socket_poll, wakes_across_threads_and_coalesces_notifications)
     ASSERT_NO_FATAL_FAILURE(check_flags(wake.reader));
     ASSERT_NO_FATAL_FAILURE(check_flags(wake.writer));
     ASSERT_EQ(lh_os_net_socket_poll(lh_null, 0, 1000), LH_OS_RESULT_PENDING);
+    lh_os_net_socket_poll_t watch[LH_OS_NET_SOCKET_POLL_MAX];
     for (lh_usize_t i = 0; i < LH_OS_NET_SOCKET_POLL_MAX; ++i)
     {
         watch[i].handle = LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID;
@@ -147,12 +147,12 @@ TEST_F(socket_poll, reports_eof_as_readiness)
 {
     lh_test::socket_pair pair_owner;
     auto *pair = pair_owner.handles;
-    lh_char_t byte;
     ASSERT_TRUE(pair_owner.open());
     pair_owner.close(1);
     lh_os_net_socket_poll_t entry = {pair[0], lh_os_net_socket_poll_read, 0};
     ASSERT_EQ(lh_os_net_socket_poll(&entry, 1, 1000), 1);
     ASSERT_TRUE(entry.ready & (lh_os_net_socket_poll_read | lh_os_net_socket_poll_hangup));
+    lh_char_t byte;
     ASSERT_EQ(lh_os_system_net_socket_recv(pair[0], &byte, 1), 0);
     pair_owner.close(0);
 }
@@ -318,9 +318,9 @@ TEST_F(socket_poll, a_wake_entry_is_readable_once_signalled)
 {
     lh_test::wake_owner wake_owner;
     auto &wake = wake_owner.value;
-    lh_os_net_socket_poll_t entry;
 
     ASSERT_TRUE(lh_os_wake_open(&wake, LH_OS_WAKE_OPEN_TIMEOUT_MS));
+    lh_os_net_socket_poll_t entry;
     lh_os_wake_get_poll(&wake, &entry);
     EXPECT_EQ(lh_os_net_socket_poll_get_handle(&entry), lh_os_wake_get_handle(&wake));
     EXPECT_EQ(lh_os_net_socket_poll_get_events(&entry), lh_os_net_socket_poll_read);

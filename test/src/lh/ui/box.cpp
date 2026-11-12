@@ -73,15 +73,14 @@ blue_of(lh_u32_t argb)
    40 is a factor of two thirds. */
 TEST(ui_radii, corners_that_do_not_fit_are_scaled_down_together)
 {
-    lh_ui_radii_t radii;
-    lh_ui_radii_t fit;
     const lh_ui_rect_t rect = rect_of(0, 0, 100, 40);
 
     /* 30 + 0 fits the 40 of the left side, and CSS would draw 30. A corner here is no
        more than half the shorter side -- 20 -- because each quarter of the box is cut
        by its own corner only. */
+    lh_ui_radii_t radii;
     lh_ui_radii_init(&radii, lh_ui_scalar(30), lh_ui_scalar(30), lh_ui_scalar(0), lh_ui_scalar(0));
-    fit = lh_test::out(lh_ui_radii_clamp, &radii, &rect);
+    lh_ui_radii_t fit = lh_test::out(lh_ui_radii_clamp, &radii, &rect);
     EXPECT_EQ(fit.top_left, lh_ui_scalar(20));
     EXPECT_EQ(fit.bottom_left, lh_ui_scalar(0));
 
@@ -93,9 +92,9 @@ TEST(ui_radii, corners_that_do_not_fit_are_scaled_down_together)
 
 TEST(ui_radii, a_pixel_takes_the_radius_of_the_corner_whose_quarter_it_is_in)
 {
-    lh_ui_radii_t radii;
     const lh_ui_rect_t rect = rect_of(10, 10, 40, 20);
 
+    lh_ui_radii_t radii;
     lh_ui_radii_init(&radii, lh_ui_scalar(1), lh_ui_scalar(2), lh_ui_scalar(3), lh_ui_scalar(4));
     EXPECT_EQ(lh_ui_radii_get_at(&radii, &rect, 10, 10), lh_ui_scalar(1));
     EXPECT_EQ(lh_ui_radii_get_at(&radii, &rect, 49, 10), lh_ui_scalar(2));
@@ -109,9 +108,9 @@ TEST(ui_radii, a_pixel_takes_the_radius_of_the_corner_whose_quarter_it_is_in)
 
 TEST(ui_gradient, a_linear_gradient_runs_the_way_its_angle_points)
 {
-    lh_ui_gradient_t g;
     const lh_ui_rect_t rect = rect_of(0, 0, 10, 100);
 
+    lh_ui_gradient_t g;
     lh_ui_gradient_init(&g);
     EXPECT_EQ(lh_ui_gradient_get_angle(&g), 180) << "CSS's default is top to bottom";
     EXPECT_LT(lh_ui_gradient_frac_at(&g, &rect, 5, 0), 5);
@@ -129,9 +128,9 @@ TEST(ui_gradient, a_linear_gradient_runs_the_way_its_angle_points)
 
 TEST(ui_gradient, a_radial_gradient_runs_from_the_middle_to_the_corners)
 {
-    lh_ui_gradient_t g;
     const lh_ui_rect_t rect = rect_of(0, 0, 100, 50);
 
+    lh_ui_gradient_t g;
     lh_ui_gradient_init(&g);
     lh_ui_gradient_set_radial(&g);
     EXPECT_LT(lh_ui_gradient_frac_at(&g, &rect, 50, 25), 8);
@@ -141,13 +140,12 @@ TEST(ui_gradient, a_radial_gradient_runs_from_the_middle_to_the_corners)
 
 TEST(ui_gradient, a_colour_between_two_stops_is_the_two_mixed_in_proportion)
 {
-    lh_ui_gradient_t g;
     const lh_ui_color_t stops[2] = {color_of(200, 0, 0), color_of(0, 0, 100)};
-    lh_ui_color_t mid;
 
+    lh_ui_gradient_t g;
     lh_ui_gradient_init(&g);
     lh_ui_gradient_init_stops(&g, stops, lh_null, 2);
-    mid = lh_test::out(lh_ui_gradient_color_at, &g, 51);
+    lh_ui_color_t mid = lh_test::out(lh_ui_gradient_color_at, &g, 51);
     EXPECT_EQ(lh_ui_color_get_r(&mid), 160);
     EXPECT_EQ(lh_ui_color_get_b(&mid), 20);
 }
@@ -159,19 +157,19 @@ TEST(ui_canvas_box, a_solid_box_with_one_radius_is_the_backends_rounded_fill)
 {
     lh_test::fill_probe probe{};
     lh_ui_canvas_backend_t backend{};
-    lh_ui_canvas_t canvas;
-    lh_ui_radii_t radii;
-    lh_ui_paint_t paint;
-    lh_ui_size_t size;
 
     probe.rect = rect_of(0, 0, 40, 40);
     probe.color = color_of(1, 2, 3);
     backend.fill_rect = lh_test::fill_probe_fill_rect;
     backend.fill_round_rect = lh_test::fill_probe_fill_round_rect;
+    lh_ui_canvas_t canvas;
     lh_ui_canvas_init(&canvas, &backend, &probe);
+    lh_ui_size_t size;
     lh_ui_size_init(&size, lh_ui_scalar(100), lh_ui_scalar(100));
     lh_ui_canvas_set_size(&canvas, size);
+    lh_ui_radii_t radii;
     lh_ui_radii_init_all(&radii, lh_ui_scalar(6));
+    lh_ui_paint_t paint;
     lh_ui_paint_init_color(&paint, &probe.color);
 
     lh_ui_canvas_fill_box(&canvas, &probe.rect, &radii, &paint);
@@ -183,14 +181,14 @@ TEST(ui_canvas_box, a_solid_box_with_one_radius_is_the_backends_rounded_fill)
    square to their last pixel. */
 TEST(ui_canvas_box, each_corner_is_rounded_by_its_own_radius)
 {
-    surface s;
-    lh_ui_radii_t radii;
-    lh_ui_paint_t paint;
     const lh_ui_color_t red = color_of(255, 0, 0);
     const lh_ui_rect_t rect = rect_of(10, 10, 40, 40);
 
+    lh_ui_radii_t radii;
     lh_ui_radii_init(&radii, lh_ui_scalar(10), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar(0));
+    lh_ui_paint_t paint;
     lh_ui_paint_init_color(&paint, &red);
+    surface s;
     lh_ui_canvas_fill_box(&s.canvas, &rect, &radii, &paint);
 
     EXPECT_EQ(s.at(10, 10) >> 24, 0u) << "the rounded corner's outermost pixel is cut away";
@@ -205,17 +203,17 @@ TEST(ui_canvas_box, each_corner_is_rounded_by_its_own_radius)
    the two mixed half way. */
 TEST(ui_canvas_box, a_gradient_fill_runs_from_its_first_stop_to_its_last)
 {
-    surface s;
-    lh_ui_radii_t radii;
-    lh_ui_gradient_t g;
-    lh_ui_paint_t paint;
     const lh_ui_color_t stops[2] = {color_of(255, 0, 0), color_of(0, 0, 255)};
     const lh_ui_rect_t rect = rect_of(0, 0, 20, 100);
 
+    lh_ui_gradient_t g;
     lh_ui_gradient_init(&g);
     lh_ui_gradient_init_stops(&g, stops, lh_null, 2);
+    lh_ui_paint_t paint;
     lh_ui_paint_init_gradient(&paint, &g);
+    lh_ui_radii_t radii;
     lh_ui_radii_init_all(&radii, lh_ui_scalar(0));
+    surface s;
     lh_ui_canvas_fill_box(&s.canvas, &rect, &radii, &paint);
 
     EXPECT_GT(red_of(s.at(10, 0)), 245);
@@ -259,14 +257,14 @@ TEST(ui_canvas_box_bricks, row_reach_finds_the_corners_of_a_row)
 {
     const lh_ui_rect_t box = rect_of(0, 0, 40, 20);
     lh_ui_canvas_box_frame_t frame;
-    lh_ui_radii_t radii;
-    lh_s32_t near_end;
-    lh_s32_t far_start;
 
     lh_ui_canvas_box_frame_init(&box, &box, &frame);
+    lh_ui_radii_t radii;
     lh_ui_radii_init(&radii, lh_ui_scalar(4), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar(6));
     EXPECT_TRUE(lh_ui_canvas_box_row_is_upper(&frame, 9));
     EXPECT_FALSE(lh_ui_canvas_box_row_is_upper(&frame, 10));
+    lh_s32_t near_end;
+    lh_s32_t far_start;
     EXPECT_TRUE(lh_ui_canvas_box_row_reach(&frame, &radii, 0, &near_end, &far_start));
     EXPECT_EQ(near_end, 4);
     EXPECT_EQ(far_start, 40);

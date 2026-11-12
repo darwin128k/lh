@@ -33,9 +33,9 @@ TEST(entity_label, init_keeps_the_rect_and_the_text_pointer)
 
 TEST(entity_label, set_text_replaces_the_pointer)
 {
-    lh_ui_label_t label;
     lh_ui_rect_t rect;
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 1, 1);
+    lh_ui_label_t label;
     lh_ui_label_init(lh_addr_of(label), rect, "one");
     const lh_char_t *text = "two";
 
@@ -46,12 +46,12 @@ TEST(entity_label, set_text_replaces_the_pointer)
 
 TEST(entity_label, draw_goes_through_the_embedded_entity)
 {
-    lh_ui_label_t label;
     lh_ui_rect_t rect;
-    lh_ui_canvas_t canvas;
 
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 1, 1);
+    lh_ui_label_t label;
     lh_ui_label_init(lh_addr_of(label), rect, "x");
+    lh_ui_canvas_t canvas;
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
 
     lh_ui_entity_draw(lh_ui_label_as_entity(lh_addr_of(label)), lh_addr_of(canvas));
@@ -61,21 +61,21 @@ TEST(entity_label, draw_goes_through_the_embedded_entity)
  * lh_ui_entity_class_event_base. The label class does. */
 TEST(entity_label, draw_keeps_the_base_class_fill)
 {
-    lh_ui_label_t label;
     lh_ui_rect_t rect;
-    lh_ui_color_t color;
-    lh_ui_paint_t paint;
-    lh_ui_style_t style;
-    lh_ui_canvas_t canvas;
     lh_test::fill_probe probe;
 
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 4, 4);
+    lh_ui_color_t color;
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_paint_t paint;
     lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(color));
+    lh_ui_style_t style;
     lh_ui_style_init(lh_addr_of(style));
     lh_ui_style_assign_fill(lh_addr_of(style), lh_addr_of(paint));
+    lh_ui_label_t label;
     lh_ui_label_init(lh_addr_of(label), rect, "x");
     lh_ui_entity_set_style_v(lh_ui_label_as_entity(lh_addr_of(label)), lh_addr_of(style));
+    lh_ui_canvas_t canvas;
     lh_test::fill_probe_init(lh_addr_of(probe), lh_addr_of(canvas), lh_test::fill_probe_backend(), rect,
                              color);
 
@@ -86,12 +86,12 @@ TEST(entity_label, draw_keeps_the_base_class_fill)
 
 TEST(entity_label, padding_moves_the_text_in_from_the_corner)
 {
-    lh_ui_label_t label;
-    lh_ui_style_t style;
     lh_ui_rect_t rect;
 
     lh_ui_rect_init(&rect, 10, 20, 100, 50);
+    lh_ui_label_t label;
     lh_ui_label_init(&label, rect, "x");
+    lh_ui_style_t style;
     lh_ui_style_init(&style);
     lh_ui_style_set_padding_all(&style, lh_ui_scalar(6));
     lh_ui_entity_set_style_v(lh_ui_label_as_entity(&label), &style);
@@ -103,14 +103,14 @@ TEST(entity_label, padding_moves_the_text_in_from_the_corner)
 
 TEST(entity_label, padding_sides_move_the_text_by_left_and_top)
 {
-    lh_ui_label_t label;
-    lh_ui_style_t style;
-    lh_ui_insets_t sides;
     lh_ui_rect_t rect;
 
     lh_ui_rect_init(&rect, 10, 20, 100, 50);
+    lh_ui_label_t label;
     lh_ui_label_init(&label, rect, "x");
+    lh_ui_style_t style;
     lh_ui_style_init(&style);
+    lh_ui_insets_t sides;
     lh_ui_insets_init(&sides, 3, 5, 30, 50);
     lh_ui_style_set_padding_v(&style, &sides);
     lh_ui_entity_set_style_v(lh_ui_label_as_entity(&label), &style);
@@ -128,12 +128,12 @@ TEST(entity_label, padding_sides_move_the_text_by_left_and_top)
 lh_ui_point_t
 text_origin_with(lh_ui_text_align_h_t horizontal, lh_ui_text_align_v_t vertical, const lh_char_t *text)
 {
-    lh_ui_label_t label;
-    lh_ui_style_t style;
     lh_ui_rect_t rect;
 
     lh_ui_rect_init(&rect, 10, 20, 100, 50);
+    lh_ui_label_t label;
     lh_ui_label_init(&label, rect, text);
+    lh_ui_style_t style;
     lh_ui_style_init(&style);
     lh_ui_style_set_align_h(&style, horizontal);
     lh_ui_style_set_align_v(&style, vertical);
@@ -143,14 +143,14 @@ text_origin_with(lh_ui_text_align_h_t horizontal, lh_ui_text_align_v_t vertical,
 
 TEST(entity_label, a_style_that_says_nothing_keeps_the_text_at_the_corner)
 {
-    lh_ui_label_t label;
-    lh_ui_style_t style;
     lh_ui_rect_t rect;
-    lh_ui_insets_t sides;
 
     lh_ui_rect_init(&rect, 10, 20, 100, 50);
+    lh_ui_insets_t sides;
     lh_ui_insets_init(&sides, 6, 6, 6, 6);
+    lh_ui_label_t label;
     lh_ui_label_init(&label, rect, "x");
+    lh_ui_style_t style;
     lh_ui_style_init(&style);
     lh_ui_style_set_padding_v(&style, &sides);
     lh_ui_entity_set_style_v(lh_ui_label_as_entity(&label), &style);
@@ -188,25 +188,21 @@ TEST(entity_label, align_h_moves_the_text_across_the_padded_box)
    every word the font draws. */
 TEST(entity_label, centring_puts_the_cap_line_on_the_middle_of_the_box)
 {
-    lh_ui_label_t label;
-    lh_ui_style_t style;
     lh_ui_rect_t rect;
-    lh_ui_rect_t ink;
-    lh_ui_size_t size;
-    lh_ui_point_t origin;
-    lh_ui_scalar_t middle;
 
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 132, 28);
+    lh_ui_label_t label;
     lh_ui_label_init(lh_addr_of(label), rect, "Hide panel");
+    lh_ui_style_t style;
     lh_ui_style_init(lh_addr_of(style));
     lh_ui_style_set_align_h(lh_addr_of(style), lh_ui_text_align_h_center);
     lh_ui_style_set_align_v(lh_addr_of(style), lh_ui_text_align_v_center);
     lh_ui_entity_set_style_v(lh_ui_label_as_entity(lh_addr_of(label)), lh_addr_of(style));
 
-    size = lh_test::out(lh_ui_text_get_size, lh_ui_font_get_default(), "Hide panel");
-    origin = lh_test::out(lh_ui_label_get_text_origin, lh_addr_of(label));
-    ink = lh_test::out(lh_ui_label_get_text_rect, lh_addr_of(label));
-    middle = lh_ui_scalar(14);
+    lh_ui_size_t size = lh_test::out(lh_ui_text_get_size, lh_ui_font_get_default(), "Hide panel");
+    lh_ui_point_t origin = lh_test::out(lh_ui_label_get_text_origin, lh_addr_of(label));
+    lh_ui_rect_t ink = lh_test::out(lh_ui_label_get_text_rect, lh_addr_of(label));
+    lh_ui_scalar_t middle = lh_ui_scalar(14);
 
     /* Exactly, not nearly: the leftover of 28 - 12 is even, and this is the whole
        reason the cap line was chosen over both the line box and the ink. */
@@ -231,42 +227,38 @@ TEST(entity_label, centring_puts_the_cap_line_on_the_middle_of_the_box)
 TEST(entity_label, the_ink_is_not_cut_by_the_box_the_text_is_centred_in)
 {
     lh_u32_t words[64 * 40];
-    lh_ui_pixmap_t pixmap;
-    lh_ui_canvas_sw_t sw;
-    lh_ui_canvas_t canvas;
-    lh_ui_label_t label;
-    lh_ui_style_t style;
-    lh_ui_rect_t box;
-    lh_ui_rect_t ink;
-    lh_ui_color_t ink_color;
-    lh_ui_paint_t text_paint;
-    lh_ui_scalar_t box_bottom;
-    lh_ui_scalar_t lit_below;
-    lh_u32_t w;
 
     for (lh_u32_t &word : words)
     {
         word = 0x00204060u;
     }
+    lh_ui_pixmap_t pixmap;
     lh_ui_pixmap_init(lh_addr_of(pixmap), lh_ptr_rcast(lh_byte_t, words), lh_ui_scalar(64), lh_ui_scalar(40),
                       lh_ui_scalar_of(64 * 4), lh_ui_pixmap_format_argb8888);
+    lh_ui_canvas_sw_t sw;
     lh_ui_canvas_sw_init(lh_addr_of(sw));
     lh_ui_canvas_sw_use_pixmap(lh_addr_of(sw), lh_addr_of(pixmap));
+    lh_ui_canvas_t canvas;
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_sw), lh_addr_of(sw));
 
+    lh_ui_rect_t box;
     lh_ui_rect_init(lh_addr_of(box), 0, 0, 132, 12);
+    lh_ui_label_t label;
     lh_ui_label_init(lh_addr_of(label), box, "Hide panel");
+    lh_ui_style_t style;
     lh_ui_style_init(lh_addr_of(style));
     /* White on purpose: a style starts with black text, and a test that counts
        bright pixels of black text counts nothing and would pass on a label that
        draws no tail at all. */
+    lh_ui_color_t ink_color;
     lh_ui_color_init(lh_addr_of(ink_color), 255, 255, 255, 255);
+    lh_ui_paint_t text_paint;
     lh_ui_paint_init_color(lh_addr_of(text_paint), lh_addr_of(ink_color));
     lh_ui_style_assign_text(lh_addr_of(style), lh_addr_of(text_paint));
     lh_ui_entity_set_style_v(lh_ui_label_as_entity(lh_addr_of(label)), lh_addr_of(style));
-    ink = lh_test::out(lh_ui_label_get_text_rect, lh_addr_of(label));
-    box_bottom = lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(box))) +
-                 lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(box)));
+    lh_ui_rect_t ink = lh_test::out(lh_ui_label_get_text_rect, lh_addr_of(label));
+    lh_ui_scalar_t box_bottom = lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(box))) +
+                                lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(box)));
 
     lh_ui_canvas_begin(lh_addr_of(canvas));
     lh_ui_entity_draw(lh_ui_label_as_entity(lh_addr_of(label)), lh_addr_of(canvas));
@@ -277,7 +269,8 @@ TEST(entity_label, the_ink_is_not_cut_by_the_box_the_text_is_centred_in)
     EXPECT_GT(lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(ink))) +
                   lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(ink))),
               box_bottom);
-    lit_below = lh_ui_scalar(0);
+    lh_ui_scalar_t lit_below = lh_ui_scalar(0);
+    lh_u32_t w;
     for (int y = static_cast<int>(box_bottom); y < 40; ++y)
     {
         for (int x = 0; x < 64; ++x)
@@ -296,38 +289,35 @@ TEST(entity_label, the_ink_is_not_cut_by_the_box_the_text_is_centred_in)
 TEST(entity_label, a_label_shows_on_a_clip_that_catches_only_the_ink_below_its_box)
 {
     lh_test::fill_probe probe;
-    lh_ui_canvas_t canvas;
-    lh_ui_label_t label;
-    lh_ui_style_t style;
     lh_ui_rect_t box;
-    lh_ui_rect_t ink;
-    lh_ui_rect_t tail;
-    lh_ui_point_t none;
     lh_ui_entity_t *entity;
-    lh_ui_scalar_t box_bottom;
-    lh_ui_scalar_t ink_bottom;
 
     lh_ui_rect_init(lh_addr_of(box), 0, 0, 132, 12);
+    lh_ui_label_t label;
     lh_ui_label_init(lh_addr_of(label), box, "Hide panel");
     /* The font is a field of the style, so a label with none has no ink to
        overflow and the whole test would pass on a label that draws nothing. */
+    lh_ui_style_t style;
     lh_ui_style_init(lh_addr_of(style));
     lh_ui_entity_set_style_v(lh_ui_label_as_entity(lh_addr_of(label)), lh_addr_of(style));
     entity = lh_ui_label_as_entity(lh_addr_of(label));
-    ink = lh_test::out(lh_ui_label_get_text_rect, lh_addr_of(label));
+    lh_ui_rect_t ink = lh_test::out(lh_ui_label_get_text_rect, lh_addr_of(label));
 
     /* Denominator first: the tail has to be under the box, or the clip below
        catches the box too and the whole test would pass on its own. */
-    box_bottom = lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(box))) +
-                 lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(box)));
-    ink_bottom = lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(ink))) +
-                 lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(ink)));
+    lh_ui_scalar_t box_bottom = lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(box))) +
+                                lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(box)));
+    lh_ui_scalar_t ink_bottom = lh_ui_point_get_y(lh_ui_rect_get_origin(lh_addr_of(ink))) +
+                                lh_ui_size_get_height(lh_ui_rect_get_size(lh_addr_of(ink)));
     EXPECT_GT(ink_bottom, box_bottom);
 
+    lh_ui_rect_t tail;
     lh_ui_rect_init(lh_addr_of(tail), 0, box_bottom, 132, ink_bottom - box_bottom);
     EXPECT_EQ(lh_ui_rect_intersects(lh_addr_of(box), lh_addr_of(tail)), lh_bool_false);
 
+    lh_ui_point_t none;
     lh_ui_point_init(lh_addr_of(none), 0, 0);
+    lh_ui_canvas_t canvas;
     lh_test::fill_probe_init(lh_addr_of(probe), lh_addr_of(canvas), lh_test::fill_probe_backend(), box,
                              lh_ui_color_t{0, 0, 0, 255});
     lh_ui_canvas_begin(lh_addr_of(canvas));
@@ -364,18 +354,17 @@ TEST(entity_label, align_v_moves_the_text_down_the_padded_box)
 
 TEST(entity_label, the_baseline_is_a_cap_height_below_where_the_ink_goes)
 {
-    lh_ui_label_t label;
-    lh_ui_style_t style;
     lh_ui_rect_t rect;
-    lh_ui_point_t origin;
 
     lh_ui_rect_init(&rect, 10, 20, 100, 50);
+    lh_ui_label_t label;
     lh_ui_label_init(&label, rect, "A");
+    lh_ui_style_t style;
     lh_ui_style_init(&style);
     lh_ui_style_set_font(&style, lh_test::tiny_font());
     lh_ui_entity_set_style_v(lh_ui_label_as_entity(&label), &style);
 
-    origin = lh_test::out(lh_ui_label_get_text_origin, &label);
+    lh_ui_point_t origin = lh_test::out(lh_ui_label_get_text_origin, &label);
     fprintf(stderr, "        ink at y %d, baseline %d\n", (int)lh_ui_point_get_y(&origin),
             (int)lh_ui_label_get_baseline(&label));
     EXPECT_EQ(lh_ui_label_get_baseline(&label), lh_ui_scalar(2));
@@ -393,21 +382,20 @@ TEST(entity_label, the_baseline_is_a_cap_height_below_where_the_ink_goes)
    both rules the same answer and stay green either way. */
 TEST(entity_label, the_baseline_is_where_the_tallest_letter_of_the_run_ends)
 {
-    lh_ui_label_t label;
-    lh_ui_style_t style;
-    lh_ui_rect_t rect;
     const lh_ui_font_t *font = lh_test::cap_font();
-    lh_ui_point_t origin;
 
+    lh_ui_rect_t rect;
     lh_ui_rect_init(&rect, 0, 0, 100, 20);
+    lh_ui_style_t style;
     lh_ui_style_init(&style);
     lh_ui_style_set_font(&style, font);
 
+    lh_ui_label_t label;
     lh_ui_label_init(&label, rect, "f");
     lh_ui_entity_set_style_v(lh_ui_label_as_entity(&label), &style);
     fprintf(stderr, "        cap %d, ascent %d, line %d\n", (int)lh_ui_font_get_cap_height(font),
             (int)lh_ui_font_get_ascent(font), (int)lh_ui_font_get_line_height(font));
-    origin = lh_test::out(lh_ui_label_get_text_origin, &label);
+    lh_ui_point_t origin = lh_test::out(lh_ui_label_get_text_origin, &label);
     fprintf(stderr, "        \"f\" ink at y %d, baseline %d\n", (int)lh_ui_point_get_y(&origin),
             (int)lh_ui_label_get_baseline(&label));
     EXPECT_EQ(lh_ui_label_get_baseline(&label), lh_ui_scalar(4)) << "a capital is the cap line";
@@ -426,16 +414,16 @@ TEST(entity_label, the_baseline_is_where_the_tallest_letter_of_the_run_ends)
    icon beside it asks the caption, not the screen. */
 TEST(entity_label, the_baseline_is_measured_from_the_box_and_not_from_the_page)
 {
-    lh_ui_label_t here;
-    lh_ui_label_t there;
-    lh_ui_style_t style;
     lh_ui_rect_t near_rect;
-    lh_ui_rect_t far_rect;
 
     lh_ui_rect_init(&near_rect, 0, 0, 100, 20);
+    lh_ui_rect_t far_rect;
     lh_ui_rect_init(&far_rect, 0, 180, 100, 20);
+    lh_ui_label_t here;
     lh_ui_label_init(&here, near_rect, "A");
+    lh_ui_label_t there;
     lh_ui_label_init(&there, far_rect, "A");
+    lh_ui_style_t style;
     lh_ui_style_init(&style);
     lh_ui_style_set_font(&style, lh_test::tiny_font());
     lh_ui_entity_set_style_v(lh_ui_label_as_entity(&here), &style);
@@ -449,12 +437,12 @@ TEST(entity_label, the_baseline_is_measured_from_the_box_and_not_from_the_page)
    5 rows in from the top has its text 5 rows down and its line 7. */
 TEST(entity_label, padding_moves_the_baseline_with_the_text)
 {
-    lh_ui_label_t label;
-    lh_ui_style_t style;
     lh_ui_rect_t rect;
 
     lh_ui_rect_init(&rect, 0, 0, 100, 20);
+    lh_ui_label_t label;
     lh_ui_label_init(&label, rect, "A");
+    lh_ui_style_t style;
     lh_ui_style_init(&style);
     lh_ui_style_set_font(&style, lh_test::tiny_font());
     lh_ui_style_set_padding_all(&style, lh_ui_scalar(5));
@@ -468,14 +456,14 @@ TEST(entity_label, padding_moves_the_baseline_with_the_text)
    none either and centres them as it did before. */
 TEST(entity_label, a_label_with_nothing_in_it_has_no_line)
 {
-    lh_ui_label_t label;
-    lh_ui_style_t style;
     lh_ui_rect_t rect;
 
     lh_ui_rect_init(&rect, 0, 0, 100, 20);
+    lh_ui_style_t style;
     lh_ui_style_init(&style);
     lh_ui_style_set_font(&style, lh_test::tiny_font());
 
+    lh_ui_label_t label;
     lh_ui_label_init(&label, rect, "A");
     lh_ui_entity_set_style_v(lh_ui_label_as_entity(&label), &style);
     EXPECT_NE(lh_ui_label_get_baseline(&label), lh_ui_scalar(-1)) << "a drawn label has no line";
@@ -547,19 +535,19 @@ struct label_in_view
 TEST(entity_label, set_text_with_the_same_bytes_records_nothing)
 {
     label_in_view t;
-    lh_ui_rect_t damage;
 
     std::strcpy(t.buffer, "A");
     lh_ui_label_set_text_v(&t.label, t.buffer); /* the bytes it was built with */
+    lh_ui_rect_t damage;
     EXPECT_EQ(t.take(&damage), lh_bool_false) << "same text at a new address is no change";
 }
 
 TEST(entity_label, set_text_records_the_text_that_overflows_the_box)
 {
     label_in_view t;
-    lh_ui_rect_t damage;
 
     lh_ui_label_set_text_v(&t.label, "AAAAAA");
+    lh_ui_rect_t damage;
     ASSERT_EQ(t.take(&damage), lh_bool_true);
     EXPECT_GE(label_in_view::right_of(&damage), t.right_of_ink("AAAAAA") - 1)
         << "the box is 4 wide and the text is not: the damage has to reach the text";
@@ -568,10 +556,10 @@ TEST(entity_label, set_text_records_the_text_that_overflows_the_box)
 TEST(entity_label, set_text_erases_a_longer_text_whose_buffer_was_rewritten_first)
 {
     label_in_view t;
-    lh_ui_rect_t damage;
 
     std::strcpy(t.buffer, "AAAAAA");
     lh_ui_label_set_text_v(&t.label, t.buffer);
+    lh_ui_rect_t damage;
     (void)t.take(&damage);
 
     /* The usual way a cell is updated: the bytes change first, then the label is told.
@@ -590,15 +578,15 @@ TEST(entity_label, set_text_erases_a_longer_text_whose_buffer_was_rewritten_firs
 TEST(ui_label, an_ellipsis_shortens_a_line_that_does_not_fit)
 {
     lh_test::draw_log log;
-    lh_ui_canvas_t canvas;
-    lh_ui_label_t label;
     lh_ui_style_t style;
 
     lh_ui_style_init(&style);
     lh_ui_style_set_font(&style, lh_test::tiny_font());
+    lh_ui_label_t label;
     lh_ui_label_init(&label, lh_test::rect_of(0, 0, 10, 8), "AAAAAAAA");
     lh_ui_entity_set_style_v(lh_ui_label_as_entity(&label), &style);
 
+    lh_ui_canvas_t canvas;
     lh_test::draw_log_init(&log, &canvas, false, false, true);
     lh_ui_label_draw_text(&label, &canvas);
     EXPECT_EQ(log.mask_count, 8) << "clipped is drawn whole";
@@ -621,15 +609,15 @@ TEST(ui_label, an_ellipsis_shortens_a_line_that_does_not_fit)
    sizes by its content. */
 TEST(ui_label, a_label_that_wraps_breaks_its_text_at_its_padded_width)
 {
-    lh_ui_label_t label;
-    lh_ui_style_t style;
-    lh_ui_insets_t padding;
     const lh_ui_font_t *font = lh_test::tiny_font();
 
+    lh_ui_style_t style;
     lh_ui_style_init(&style);
     lh_ui_style_set_font(&style, font);
+    lh_ui_insets_t padding;
     lh_ui_insets_init(&padding, lh_ui_scalar(2), lh_ui_scalar(0), lh_ui_scalar(2), lh_ui_scalar(0));
     lh_ui_style_set_padding_v(&style, &padding);
+    lh_ui_label_t label;
     lh_ui_label_init(&label, lh_test::rect_of(0, 0, 11, 40), "AA AA AA");
     lh_ui_entity_set_style_v(lh_ui_label_as_entity(&label), &style);
 

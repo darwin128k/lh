@@ -256,9 +256,9 @@ TEST(os_input_recognizer, a_second_button_while_one_is_held_is_passed_on_and_ign
 
 TEST(os_input_recognizer, held_still_is_a_long_press_on_update_and_then_no_click)
 {
-    fixture f;
     lh_tick_t due = 0U;
 
+    fixture f;
     f.down(10, 10, 1000U);
     ASSERT_TRUE(lh_os_input_recognizer_get_next_deadline(&f.recognizer, &due));
     EXPECT_EQ(due, 1500U);
@@ -290,9 +290,9 @@ TEST(os_input_recognizer, a_late_event_sends_the_long_press_it_passed_first)
 
 TEST(os_input_recognizer, a_long_press_across_the_wrap_of_the_tick)
 {
-    fixture f;
     lh_tick_t due = 0U;
 
+    fixture f;
     f.down(10, 10, 0xFFFFFF00U);
     ASSERT_TRUE(lh_os_input_recognizer_get_next_deadline(&f.recognizer, &due));
     EXPECT_EQ(due, 0xFFFFFF00U + 500U);
@@ -464,9 +464,9 @@ TEST(os_input_recognizer, two_pointers_are_independent)
 
 TEST(os_input_recognizer, a_pointer_id_past_the_limit_is_passed_on_without_gestures)
 {
-    fixture f;
     const lh_u8_t id = LH_OS_INPUT_POINTER_MAX;
 
+    fixture f;
     f.down(10, 10, 0U, id);
     f.up(10, 10, 10U, id);
     EXPECT_EQ(f.seen.kinds(), (kinds{lh_os_input_kind_pointer_down, lh_os_input_kind_pointer_up}));
@@ -476,13 +476,13 @@ TEST(os_input_recognizer, a_pointer_id_past_the_limit_is_passed_on_without_gestu
 
 TEST(os_input_recognizer, a_synthesized_event_fed_back_is_passed_on_and_not_recognized)
 {
-    fixture f;
     lh_os_input_event_t event;
 
     lh_os_input_event_init_pointer(&event, lh_os_input_kind_pointer_down,
                                    lh_os_input_device_kind_mouse, 0U, lh_os_input_button_primary, 0,
                                    0, 0U);
     lh_os_input_event_set_flags(&event, LH_OS_INPUT_FLAG_SYNTHESIZED);
+    fixture f;
     lh_os_input_recognizer_feed(&f.recognizer, &event, record, &f.seen);
     EXPECT_EQ(f.seen.events.size(), 1U);
     EXPECT_EQ(lh_os_input_recognizer_get_phase(&f.recognizer, 0U),
@@ -491,11 +491,11 @@ TEST(os_input_recognizer, a_synthesized_event_fed_back_is_passed_on_and_not_reco
 
 TEST(os_input_recognizer, shift_turns_a_vertical_wheel_sideways)
 {
-    fixture f;
     lh_os_input_event_t event;
 
     lh_os_input_event_init_wheel(&event, 0, 0, 0, LH_OS_INPUT_WHEEL_NOTCH, 0U);
     lh_os_input_event_set_mods(&event, LH_OS_INPUT_MODS_SHIFT);
+    fixture f;
     lh_os_input_recognizer_feed(&f.recognizer, &event, record, &f.seen);
     lh_os_input_event_set_mods(&event, LH_OS_INPUT_MODS_NONE);
     lh_os_input_recognizer_feed(&f.recognizer, &event, record, &f.seen);
@@ -522,9 +522,9 @@ TEST(os_input_recognizer, shift_policy_off_leaves_the_wheel_alone)
 
 TEST(os_input_recognizer, the_earliest_deadline_of_several_presses)
 {
-    fixture f;
     lh_tick_t due = 0U;
 
+    fixture f;
     f.down(10, 10, 300U, 0U);
     f.down(50, 50, 100U, 1U);
     ASSERT_TRUE(lh_os_input_recognizer_get_next_deadline(&f.recognizer, &due));

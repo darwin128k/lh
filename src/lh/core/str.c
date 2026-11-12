@@ -65,17 +65,14 @@ lh_str_terminate(lh_str_t *self)
 lh_void
 lh_str_append(lh_str_t *self, lh_str_cptr text, lh_usize_t count)
 {
-    lh_usize_t needed;
-    lh_usize_t capacity;
-
     if (lh_math_is_zero(count))
     {
         return;
     }
     /* Grow once, for the text and the terminator together — push_back_of
        alone would size for the text and then need a second grow for the NUL. */
-    needed = lh_math_add_one(lh_math_add(lh_array_get_size(self), count));
-    capacity = lh_array_get_capacity(self);
+    const lh_usize_t needed = lh_math_add_one(lh_math_add(lh_array_get_size(self), count));
+    const lh_usize_t capacity = lh_array_get_capacity(self);
     if (lh_math_lt(capacity, needed))
     {
         lh_array_reserve(self, lh_array_get_grown_capacity(capacity, needed));
@@ -111,10 +108,8 @@ lh_usize_t
 lh_str_format_v(lh_str_t *self, lh_str_cptr fmt, va_list args)
 {
     va_list measure;
-    lh_usize_t n;
-
     va_copy(measure, args);
-    n = lh_str_ptr_format_text_size_v(fmt, measure);
+    const lh_usize_t n = lh_str_ptr_format_text_size_v(fmt, measure);
     va_end(measure);
     if (n == LH_STR_PTR_INVALID)
     {
@@ -156,11 +151,9 @@ lh_str_init_by_view(lh_str_t *self, lh_str_view_t view)
 lh_usize_t
 lh_str_format(lh_str_t *self, lh_str_cptr fmt, ...)
 {
-    lh_usize_t result;
     va_list args;
-
     va_start(args, fmt);
-    result = lh_str_format_v(self, fmt, args);
+    const lh_usize_t result = lh_str_format_v(self, fmt, args);
     va_end(args);
     return result;
 }
@@ -175,14 +168,12 @@ lh_str_assign_view(lh_str_t *self, lh_str_view_t view)
 lh_void
 lh_str_join(lh_str_t *self, const lh_str_view_t *parts, lh_usize_t count, lh_char_t sep)
 {
-    lh_usize_t i;
-
     if (count > 0U)
     {
         lh_assert_runtime_ref(parts);
     }
     lh_str_clear(self);
-    for (i = 0U; i < count; ++i)
+    for (lh_usize_t i = 0U; i < count; ++i)
     {
         if (i > 0U)
         {

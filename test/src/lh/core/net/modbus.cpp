@@ -73,8 +73,8 @@ TEST(lh_mb, a_read_that_the_protocol_forbids_is_not_built)
 
 TEST(lh_mb, a_write_carries_the_words_and_stays_inside_the_frame)
 {
-    lh_byte_t adu[LH_MB_ADU_MAX];
     const lh_u16_t values[2] = {0x1234, 0xABCD};
+    lh_byte_t adu[LH_MB_ADU_MAX];
     const lh_u16_t length = lh_mb_build_write(adu, LH_MB_ADU_MAX, 1, 0x0020,
                                               values, 2);
 
@@ -94,13 +94,13 @@ TEST(lh_mb, a_write_carries_the_words_and_stays_inside_the_frame)
 
 TEST(lh_mb, a_write_of_many_stops_at_123_registers_and_not_at_the_read_limit)
 {
-    lh_byte_t pdu[LH_MB_ADU_MAX];
     lh_u16_t values[LH_MB_READ_MAX] = {};
 
     /* 0x10 carries a byte count, an address and a quantity on top of its words, and
        its limit is 123 (0x7B). 124 and 125 are reads' numbers: a device asked to
        write them refuses with "illegal data value". */
     EXPECT_EQ(LH_MB_WRITE_MAX, (lh_u16_t)123);
+    lh_byte_t pdu[LH_MB_ADU_MAX];
     EXPECT_EQ(lh_mb_build_pdu_write(pdu, (lh_u16_t)sizeof(pdu), 0, values, 123), (lh_u16_t)(6 + 123 * 2))
         << "123 registers is a write";
     EXPECT_EQ(lh_mb_build_pdu_write(pdu, (lh_u16_t)sizeof(pdu), 0, values, 124), (lh_u16_t)0)
@@ -155,12 +155,10 @@ static void
 mb_answer(lh_byte_t *adu, lh_u8_t unit, lh_u8_t fc, const lh_u16_t *values, lh_u16_t count,
           lh_u16_t *length)
 {
-    lh_u16_t i;
-
     adu[0] = unit;
     adu[1] = fc;
     adu[2] = (lh_byte_t)(count * 2);
-    for (i = 0; i < count; ++i)
+    for (lh_u16_t i = 0; i < count; ++i)
     {
         adu[3 + i * 2] = (lh_byte_t)(values[i] >> 8);
         adu[4 + i * 2] = (lh_byte_t)(values[i] & 0xFF);
@@ -177,12 +175,12 @@ mb_answer(lh_byte_t *adu, lh_u8_t unit, lh_u8_t fc, const lh_u16_t *values, lh_u
 
 TEST(lh_mb, an_answer_comes_back_as_the_words_it_carried)
 {
-    lh_byte_t adu[LH_MB_ADU_MAX];
     lh_u16_t values[4] = {0, 0, 0, 0};
     const lh_u16_t sent[2] = {0x1234, 0xABCD};
     lh_u16_t length = 0;
     lh_u16_t got = 0;
 
+    lh_byte_t adu[LH_MB_ADU_MAX];
     mb_answer(adu, 1, LH_MB_FC_READ_HOLDING, sent, 2, lh_addr_of(length));
 
     EXPECT_EQ(lh_mb_parse_read(adu, length, 1, LH_MB_FC_READ_HOLDING, 2, values, 4,
@@ -195,16 +193,16 @@ TEST(lh_mb, an_answer_comes_back_as_the_words_it_carried)
 
 TEST(lh_mb, a_frame_that_has_not_all_arrived_asks_for_the_rest)
 {
-    lh_byte_t adu[LH_MB_ADU_MAX];
-    lh_u16_t values[4];
     const lh_u16_t sent[2] = {1, 2};
     lh_u16_t length = 0;
 
+    lh_byte_t adu[LH_MB_ADU_MAX];
     mb_answer(adu, 1, LH_MB_FC_READ_HOLDING, sent, 2, lh_addr_of(length));
 
     /* Every prefix of a frame is a frame that has not finished arriving, and the
        last one in particular: the byte count inside a frame whose CRC has not
        been read yet cannot be trusted to be a length. */
+    lh_u16_t values[4];
     for (lh_u16_t i = 0; i < length; ++i)
     {
         const lh_mb_status_t status =
@@ -216,13 +214,13 @@ TEST(lh_mb, a_frame_that_has_not_all_arrived_asks_for_the_rest)
 
 TEST(lh_mb, a_frame_for_another_unit_is_not_ours_and_not_a_fault)
 {
-    lh_byte_t adu[LH_MB_ADU_MAX];
-    lh_u16_t values[4];
     const lh_u16_t sent[2] = {1, 2};
     lh_u16_t length = 0;
 
+    lh_byte_t adu[LH_MB_ADU_MAX];
     mb_answer(adu, 7, LH_MB_FC_READ_HOLDING, sent, 2, lh_addr_of(length));
 
+    lh_u16_t values[4];
     EXPECT_EQ(lh_mb_parse_read(adu, length, 1, LH_MB_FC_READ_HOLDING, 2, values, 4,
                                lh_null, lh_null),
               lh_mb_status_wrong_unit)
@@ -231,11 +229,11 @@ TEST(lh_mb, a_frame_for_another_unit_is_not_ours_and_not_a_fault)
 
 TEST(lh_mb, a_device_that_refuses_says_which_way_and_by_how_much)
 {
-    lh_byte_t adu[LH_MB_ADU_MAX];
     lh_u8_t exception = 0;
     const lh_byte_t body[] = {0x01, 0x83, 0x02};
     const lh_u16_t crc = lh_mb_crc16(body, 3);
 
+    lh_byte_t adu[LH_MB_ADU_MAX];
     adu[0] = body[0];
     adu[1] = body[1];
     adu[2] = body[2];
@@ -312,11 +310,11 @@ TEST(lh_mb, an_exception_to_another_function_is_not_our_answer)
 
 TEST(lh_mb, a_frame_with_a_broken_crc_is_not_read_as_its_bytes_say)
 {
-    lh_byte_t adu[LH_MB_ADU_MAX];
     lh_u16_t values[4] = {0, 0, 0, 0};
     const lh_u16_t sent[2] = {0x1234, 0xABCD};
     lh_u16_t length = 0;
 
+    lh_byte_t adu[LH_MB_ADU_MAX];
     mb_answer(adu, 1, LH_MB_FC_READ_HOLDING, sent, 2, lh_addr_of(length));
     adu[3] ^= 0x01; /* one bit, in the first word */
 
@@ -385,15 +383,14 @@ TEST(lh_mb, a_gap_inside_the_worth_crossing_is_crossed)
 TEST(lh_mb, a_run_longer_than_one_read_may_ask_for_is_cut_where_the_protocol_says)
 {
     lh_mb_want_t wants[LH_MB_READ_MAX + 4];
-    lh_mb_read_t reads[4];
-    lh_u16_t i;
 
-    for (i = 0; i < LH_MB_READ_MAX + 4; ++i)
+    for (lh_u16_t i = 0; i < LH_MB_READ_MAX + 4; ++i)
     {
         wants[i].address = (lh_u16_t)(0x1000 + i);
         wants[i].registers = 1;
     }
 
+    lh_mb_read_t reads[4];
     EXPECT_EQ(lh_mb_plan_reads(wants, (lh_u16_t)(LH_MB_READ_MAX + 4), reads, 4),
               (lh_u16_t)2);
     EXPECT_EQ(reads[0].count, LH_MB_READ_MAX);
@@ -459,14 +456,13 @@ TEST(lh_mb, a_scattered_card_costs_far_fewer_requests_than_registers)
        hundred questions. The number is printed so the claim and the measurement
        are the same number and not two numbers from two runs. */
     lh_mb_want_t wants[128];
-    lh_mb_read_t reads[128];
-    lh_u16_t i;
 
-    for (i = 0; i < 128; ++i)
+    for (lh_u16_t i = 0; i < 128; ++i)
     {
         wants[i].address = (lh_u16_t)(0x8000 + i * 6);
         wants[i].registers = 2;
     }
+    lh_mb_read_t reads[128];
     const lh_u16_t planned = lh_mb_plan_reads(wants, 128, reads, 128);
 
     fprintf(stderr, "        128 registers, 6 apart: %u requests\n", planned);

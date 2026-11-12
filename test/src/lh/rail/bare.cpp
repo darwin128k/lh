@@ -119,8 +119,8 @@ raise_on_third_tick(lh_ptr user)
 
 TEST_F(rail_bare, a_wake_from_an_interrupt_ends_the_wait)
 {
-    raiser r;
     lh_ptr lock = lh_rail_bare_lock_open();
+    raiser r;
     r.signal = lh_rail_bare_signal_open();
     lh_rail_system_sim_cpu_set_interrupt(raise_on_third_tick, &r);
     ASSERT_TRUE(lh_rail_bare_lock(lock));

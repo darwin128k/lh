@@ -49,10 +49,10 @@ TEST(str_cursor, advance_stops_at_the_end)
 TEST(str_cursor, rest_and_since_are_views_of_the_text)
 {
     lh_str_cursor_t cursor;
-    lh_str_view_t view;
 
     lh_str_cursor_init(&cursor, lh_str_view_lit("key=value"));
     lh_str_cursor_advance(&cursor, 4U);
+    lh_str_view_t view;
     lh_str_cursor_get_rest(&cursor, &view);
     EXPECT_EQ(text_of(view), "value");
     lh_str_cursor_get_since(&cursor, 0U, &view);

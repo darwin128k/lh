@@ -121,12 +121,12 @@ TEST(math_slice, taking_or_dropping_everything_or_nothing)
     const lh_math_slice_t all = lh_test::out(lh_math_slice_take_last, lh_addr_of(s), 5U);
     const lh_math_slice_t gone = lh_test::out(lh_math_slice_drop_first, lh_addr_of(s), 5U);
     const lh_math_slice_t kept = lh_test::out(lh_math_slice_drop_last, lh_addr_of(s), 0U);
-    lh_math_slice_t empty;
 
     EXPECT_TRUE(lh_math_slice_is_empty(lh_addr_of(none)));
     EXPECT_TRUE(lh_math_slice_equals(lh_addr_of(all), lh_addr_of(s)));
     EXPECT_TRUE(lh_math_slice_is_empty(lh_addr_of(gone)));
     EXPECT_TRUE(lh_math_slice_equals(lh_addr_of(kept), lh_addr_of(s)));
+    lh_math_slice_t empty;
     lh_math_slice_init_empty(lh_addr_of(empty));
     EXPECT_TRUE(lh_math_slice_is_empty(lh_addr_of(empty)));
     const lh_math_slice_t still = lh_test::out(lh_math_slice_take_first, lh_addr_of(empty), 0U);
@@ -141,17 +141,15 @@ TEST(math_slice, equals_compares_sizes_and_elements)
     const lh_float_t negative_zeros[] = {-0.0f};
     const lh_float_t nan[] = {NAN};
     const lh_math_slice_t s = slice_of(data, 3U);
-    lh_math_slice_t a;
-    lh_math_slice_t b;
 
-    a = slice_of(other, 3U);
+    lh_math_slice_t a = slice_of(other, 3U);
     EXPECT_TRUE(lh_math_slice_equals(lh_addr_of(s), lh_addr_of(a)));
     a = slice_of(differs, 3U);
     EXPECT_FALSE(lh_math_slice_equals(lh_addr_of(s), lh_addr_of(a)));
     a = slice_of(other, 2U);
     EXPECT_FALSE(lh_math_slice_equals(lh_addr_of(s), lh_addr_of(a)));
     a = slice_of(zeros, 1U);
-    b = slice_of(negative_zeros, 1U);
+    lh_math_slice_t b = slice_of(negative_zeros, 1U);
     EXPECT_TRUE(lh_math_slice_equals(lh_addr_of(a), lh_addr_of(b)));
     a = slice_of(nan, 1U);
     EXPECT_FALSE(lh_math_slice_equals(lh_addr_of(a), lh_addr_of(a)));
@@ -167,11 +165,11 @@ TEST(math_slice, sum_and_dot)
     const lh_math_slice_t tail = lh_test::out(lh_math_slice_take_last, lh_addr_of(s), 3U);
     const lh_float_t negative_zeros[] = {-0.0f, -0.0f};
     const lh_math_slice_t nz = slice_of(negative_zeros, 2U);
-    lh_math_slice_t empty;
 
     EXPECT_EQ(lh_math_slice_sum(lh_addr_of(s)), 15.0f);
     EXPECT_EQ(lh_math_slice_dot(lh_addr_of(head), lh_addr_of(tail)), 1.0f * 3.0f + 2.0f * 4.0f + 3.0f * 5.0f);
     EXPECT_TRUE(std::signbit(lh_math_slice_sum(lh_addr_of(nz)))) << "-0 + -0 is -0, as written by hand";
+    lh_math_slice_t empty;
     lh_math_slice_init_empty(lh_addr_of(empty));
     EXPECT_EQ(lh_math_slice_sum(lh_addr_of(empty)), 0.0f);
     EXPECT_EQ(lh_math_slice_dot(lh_addr_of(empty), lh_addr_of(empty)), 0.0f);
@@ -202,10 +200,10 @@ TEST(math_slice_death, sub_past_the_end)
 
 TEST(math_slice_death, size_of_a_reversed_slice_and_dot_of_different_sizes)
 {
-    lh_math_slice_t reversed;
     const lh_math_slice_t a = slice_of(data, 2U);
     const lh_math_slice_t b = slice_of(data, 3U);
 
+    lh_math_slice_t reversed;
     lh_math_slice_set(lh_addr_of(reversed), data + 3, data + 1);
     LH_EXPECT_DEATH(lh_math_slice_get_size(lh_addr_of(reversed)));
     LH_EXPECT_DEATH(lh_math_slice_dot(lh_addr_of(a), lh_addr_of(b)));

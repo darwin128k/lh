@@ -95,8 +95,6 @@ lh_io_writer_write_all(lh_io_writer_t *self, const lh_ptr buf, lh_usize_t size)
 lh_ssize_t
 lh_io_writer_print_v(lh_io_writer_t *self, const lh_str_ptr fmt, va_list args)
 {
-    lh_char_t buf[LH_IO_WRITER_PRINT_CAPACITY];
-
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(fmt);
 
@@ -118,6 +116,7 @@ lh_io_writer_print_v(lh_io_writer_t *self, const lh_str_ptr fmt, va_list args)
     va_list args_format;
 
     va_copy(args_format, args);
+    lh_char_t buf[LH_IO_WRITER_PRINT_CAPACITY];
     lh_usize_t n = lh_str_ptr_format_text_v(buf, LH_IO_WRITER_PRINT_CAPACITY, fmt, args_format);
     va_end(args_format);
 

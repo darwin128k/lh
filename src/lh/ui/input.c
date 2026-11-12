@@ -55,10 +55,9 @@ lh_ui_input_on_focus(const lh_ui_input_t *self, const lh_ui_entity_event_t *even
 {
     lh_ui_input_t *input = lh_ptr_rcast(lh_ui_input_t, self);
     const lh_ui_entity_event_code_t code = lh_ui_entity_event_get_code(event);
-    lh_bool_t focused;
 
     lh_return_if(code != lh_ui_entity_event_focus && code != lh_ui_entity_event_defocus);
-    focused = code == lh_ui_entity_event_focus ? lh_bool_true : lh_bool_false;
+    lh_bool_t focused = code == lh_ui_entity_event_focus ? lh_bool_true : lh_bool_false;
     /* No damage: the caret appearing is the application invalidating, the same as
        after a scroll or a state change anywhere else in the tree. */
     lh_ui_input_set_focused(input, focused);
@@ -201,7 +200,6 @@ lh_bool_t
 lh_ui_input_insert(lh_ui_input_t *self, lh_u32_t code)
 {
     const lh_u32_t size = lh_str_utf8_get_encoded_size(code);
-    lh_u16_t at;
 
     lh_return_if(lh_null_eq(lh_ui_input_get_buffer(self)), lh_bool_false);
     /* Nothing is written in either of the two refusals. A character that does not
@@ -210,7 +208,7 @@ lh_ui_input_insert(lh_ui_input_t *self, lh_u32_t code)
     lh_return_if(size == 0U, lh_bool_false);
     lh_return_if(lh_ui_input_get_used(self) + size > lh_ui_input_get_capacity(self), lh_bool_false);
 
-    for (at = lh_ui_input_get_used(self); at > lh_ui_input_get_caret(self); --at)
+    for (lh_u16_t at = lh_ui_input_get_used(self); at > lh_ui_input_get_caret(self); --at)
     {
         lh_ui_input_get_buffer(self)[at] = lh_ui_input_get_buffer(self)[at - 1U];
     }
@@ -229,12 +227,11 @@ lh_bool_t
 lh_ui_input_backspace(lh_ui_input_t *self)
 {
     const lh_u16_t from = lh_ui_input_boundary_before(self, lh_ui_input_get_caret(self));
-    lh_u16_t at;
 
     lh_return_if(lh_null_eq(lh_ui_input_get_buffer(self)), lh_bool_false);
     lh_return_if(lh_ui_input_get_caret(self) == 0U, lh_bool_false);
 
-    for (at = from; at < lh_ui_input_get_used(self) - 1U; ++at)
+    for (lh_u16_t at = from; at < lh_ui_input_get_used(self) - 1U; ++at)
     {
         lh_ui_input_get_buffer(self)[at] = lh_ui_input_get_buffer(self)[at + 1U];
     }
@@ -251,7 +248,6 @@ lh_ui_input_delete_forward(lh_ui_input_t *self)
 {
     const lh_u32_t size = lh_str_utf8_get_lead_size(
         lh_cast_static(lh_byte_t, lh_ui_input_get_buffer(self)[lh_ui_input_get_caret(self)]));
-    lh_u16_t at;
 
     lh_return_if(lh_null_eq(lh_ui_input_get_buffer(self)), lh_bool_false);
     lh_return_if(lh_ui_input_get_caret(self) >= lh_ui_input_get_used(self), lh_bool_false);
@@ -266,7 +262,7 @@ lh_ui_input_delete_forward(lh_ui_input_t *self)
         size > lh_cast_static(lh_u32_t, lh_ui_input_get_used(self) - lh_ui_input_get_caret(self)),
         lh_bool_false);
 
-    for (at = lh_ui_input_get_caret(self); at < lh_ui_input_get_used(self) - size; ++at)
+    for (lh_u16_t at = lh_ui_input_get_caret(self); at < lh_ui_input_get_used(self) - size; ++at)
     {
         lh_ui_input_get_buffer(self)[at] = lh_ui_input_get_buffer(self)[at + size];
     }
@@ -363,7 +359,6 @@ lh_ui_input_on_key(const lh_ui_input_t *self, const lh_ui_entity_event_t *event)
 {
     const lh_ui_key_input_t *key;
     lh_ui_input_t *input = lh_ptr_rcast(lh_ui_input_t, self);
-    lh_u32_t code;
 
     lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_key, lh_bool_false);
     lh_return_if(lh_ui_input_is_focused(self) == lh_bool_false, lh_bool_false);
@@ -372,7 +367,7 @@ lh_ui_input_on_key(const lh_ui_input_t *self, const lh_ui_entity_event_t *event)
 
     /* A typed character first: it arrives with a code and no key, and a field that
        looked for a key first would answer "not mine" to every letter. */
-    code = lh_ui_key_input_get_code(key);
+    lh_u32_t code = lh_ui_key_input_get_code(key);
     if (code != 0U)
     {
         return lh_ui_input_insert(input, code);
@@ -531,7 +526,6 @@ lh_ui_input_get_caret_color(const lh_ui_input_t *self)
 lh_void
 lh_ui_input_on_draw_caret(const lh_ui_input_t *self, const lh_ui_entity_event_t *event)
 {
-
     lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_draw);
     /* A caret that is not focused is not drawn. That is the whole of "focused" as
        far as this component is concerned, and it is why the field needs no clock. */

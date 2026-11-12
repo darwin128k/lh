@@ -12,10 +12,9 @@ lh_ui_gradient_sampler_lerp_init(lh_ui_gradient_sampler_lerp_t *self, const lh_u
                            lh_ui_color_get_b(from), lh_ui_color_get_a(from)};
     const lh_s32_t t[4] = {lh_ui_color_get_r(to), lh_ui_color_get_g(to), lh_ui_color_get_b(to),
                            lh_ui_color_get_a(to)};
-    lh_s32_t c;
 
     lh_ui_gradient_sampler_lerp_set_span(self, span);
-    for (c = 0; c < 4; ++c)
+    for (lh_s32_t c = 0; c < 4; ++c)
     {
         const lh_s32_t moved = t[c] - f[c];
         const lh_s32_t whole = f[c] * (span - at) + t[c] * at;

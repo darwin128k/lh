@@ -216,18 +216,18 @@ lh_console_run(lh_console_t *self, const lh_char_t *scope, const lh_char_t *name
                const lh_console_entry_t **ran)
 {
     const lh_console_entry_t *entry = lh_console_find(self, scope, name);
-    lh_console_call_t call;
-    lh_bool_t accepted;
 
     if (lh_ptr_is_set(ran))
     {
         lh_ptr_deref(ran) = entry;
     }
     lh_return_if(lh_ptr_is_null(entry), lh_console_result_not_found);
+    lh_console_call_t call;
     lh_console_call_init(lh_addr_of(call), lh_str_get_data(lh_console_entry_get_scope(entry)),
                          lh_str_get_data(lh_console_entry_get_name(entry)), argc, argv, sink, out);
     lh_console_set_depth(self, lh_math_add_one(lh_console_get_depth(self)));
-    accepted = lh_console_entry_get_fn(entry)(lh_addr_of(call), lh_console_entry_get_user(entry));
+    lh_bool_t accepted =
+        lh_console_entry_get_fn(entry)(lh_addr_of(call), lh_console_entry_get_user(entry));
     lh_console_set_depth(self, lh_math_sub_one(lh_console_get_depth(self)));
     /* The handler may have removed itself: the entry stays readable until this
        collect, which the caller's use of `ran` must come before. */

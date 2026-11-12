@@ -21,15 +21,15 @@ TEST(surface, starts_empty_and_argb8888)
 TEST(surface, the_format_decides_the_pixmap_under_it)
 {
     lh_ui_surface_t surface;
-    lh_ui_size_t size;
-    lh_ui_pixmap_t pixmap;
 
     lh_ui_surface_init(lh_addr_of(surface));
+    lh_ui_size_t size;
     lh_ui_size_init(lh_addr_of(size), lh_ui_scalar(64), lh_ui_scalar(8));
 
     lh_ui_surface_set_format_v(lh_addr_of(surface), lh_ui_pixmap_format_rgb565);
     ASSERT_TRUE(lh_ui_surface_set_size_v(lh_addr_of(surface), size));
     ASSERT_TRUE(lh_ui_surface_is_valid(lh_addr_of(surface)));
+    lh_ui_pixmap_t pixmap;
     ASSERT_TRUE(lh_ui_surface_get_pixmap(lh_addr_of(surface), lh_addr_of(pixmap)));
     EXPECT_EQ(lh_ui_pixmap_get_format(lh_addr_of(pixmap)), lh_ui_pixmap_format_rgb565);
     EXPECT_EQ(lh_ui_pixmap_get_pixel_bytes(lh_addr_of(pixmap)), 2);
@@ -57,10 +57,10 @@ TEST(surface, the_format_decides_the_pixmap_under_it)
 TEST(surface, a_swapped_format_is_not_something_to_draw_into)
 {
     lh_ui_surface_t surface;
-    lh_ui_size_t size;
 
     lh_ui_surface_init(lh_addr_of(surface));
     LH_EXPECT_DEATH(lh_ui_surface_set_format_v(lh_addr_of(surface), lh_ui_pixmap_format_rgb565_swapped));
+    lh_ui_size_t size;
     lh_ui_size_init(lh_addr_of(size), lh_ui_scalar(8), lh_ui_scalar(8));
     (void)lh_ui_surface_set_size_v(lh_addr_of(surface), size);
     /* And a live buffer keeps its format: a frame drawn in two is not a frame. */

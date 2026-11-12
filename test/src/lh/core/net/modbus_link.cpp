@@ -160,11 +160,10 @@ feed(lh_test_link *self, const lh_byte_t *bytes, lh_u16_t length)
 void
 setup(lh_test_link *self, lh_u8_t fc)
 {
-    lh_io_reader_t reader;
-    lh_io_writer_t writer;
-
     memset(self, 0, sizeof(lh_ptr_deref(self)));
+    lh_io_reader_t reader;
     lh_io_reader_init(lh_addr_of(reader), test_recv, lh_addr_of(self->tcp));
+    lh_io_writer_t writer;
     lh_io_writer_init(lh_addr_of(writer), test_send, lh_addr_of(self->tcp));
     lh_io_stream_init(lh_addr_of(self->stream), lh_addr_of(reader), lh_addr_of(writer));
     self->now_us = 1000000;
@@ -246,7 +245,6 @@ TEST(lh_mb_link, a_frame_is_not_complete_before_the_arithmetic_says_so)
 
 TEST(lh_mb_link, another_devices_frame_is_not_ours)
 {
-    lh_byte_t pdu[LH_MB_ADU_MAX];
     lh_u16_t pdu_length = 0;
 
     /* Its length is still its length: that is what lets a link step over it. Whose
@@ -255,6 +253,7 @@ TEST(lh_mb_link, another_devices_frame_is_not_ours)
                                  (lh_u16_t)sizeof(kRead3Holding), LH_MB_FC_READ_HOLDING),
               (lh_u16_t)15)
         << "another unit's frame is exactly as long as ours";
+    lh_byte_t pdu[LH_MB_ADU_MAX];
     EXPECT_FALSE(lh_mb_decode(lh_mb_framing_mbap, 2, kRead3Holding, (lh_u16_t)sizeof(kRead3Holding),
                               pdu, lh_addr_of(pdu_length)))
         << "unit 1 on the wire, asked for by unit 2";
@@ -268,9 +267,9 @@ TEST(lh_mb_link, another_devices_frame_is_not_ours)
 
 TEST(lh_mb_link, the_pdu_of_a_captured_frame_is_what_is_left_after_the_header)
 {
-    lh_byte_t pdu[LH_MB_ADU_MAX];
     lh_u16_t pdu_length = 0;
 
+    lh_byte_t pdu[LH_MB_ADU_MAX];
     ASSERT_TRUE(lh_mb_decode(lh_mb_framing_mbap, 1, kRead3Holding,
                              (lh_u16_t)sizeof(kRead3Holding), pdu, lh_addr_of(pdu_length)));
     EXPECT_EQ(pdu_length, (lh_u16_t)8) << "function code, byte count, three words";
@@ -282,17 +281,17 @@ TEST(lh_mb_link, the_pdu_of_a_captured_frame_is_what_is_left_after_the_header)
 
 TEST(lh_mb_link, decoding_does_not_truncate_the_final_register)
 {
-    lh_byte_t pdu[LH_MB_ADU_MAX];
     lh_u16_t pdu_length = 0;
-    lh_u16_t values[LH_MB_LINK_VALUES];
     lh_u16_t got = 0;
 
     /* One register whose high byte is 0xAB and whose low byte is 0xCD: a parser that
        drops the last byte of the PDU reads 0x00AB. */
     const lh_byte_t frame[] = {0x00, 0x01, 0x00, 0x00, 0x00, 0x05, 0x01, 0x03, 0x02, 0xAB, 0xCD};
 
+    lh_byte_t pdu[LH_MB_ADU_MAX];
     ASSERT_TRUE(lh_mb_decode(lh_mb_framing_mbap, 1, frame, (lh_u16_t)sizeof(frame), pdu,
                              lh_addr_of(pdu_length)));
+    lh_u16_t values[LH_MB_LINK_VALUES];
     EXPECT_EQ(lh_mb_parse_pdu(pdu, pdu_length, LH_MB_FC_READ_HOLDING, 1, values,
                               (lh_u16_t)(sizeof(values) / sizeof(values[0])), lh_addr_of(got),
                               lh_null),
@@ -311,9 +310,9 @@ TEST(lh_mb_link, decoding_does_not_truncate_the_final_register)
 TEST(lh_mb_link, an_encoded_tcp_request_is_twelve_bytes_with_no_byte_after_the_pdu)
 {
     lh_byte_t pdu[LH_MB_ADU_MAX];
-    lh_byte_t frame[LH_MB_ADU_MAX];
     const lh_u16_t pdu_length = lh_mb_build_pdu_read(pdu, (lh_u16_t)sizeof(pdu),
                                                      LH_MB_FC_READ_HOLDING, 10, 19);
+    lh_byte_t frame[LH_MB_ADU_MAX];
     const lh_u16_t length =
         lh_mb_encode(lh_mb_framing_mbap, 1, 0, pdu, pdu_length, frame, (lh_u16_t)sizeof(frame));
 
@@ -335,8 +334,6 @@ TEST(lh_mb_link, an_encoded_tcp_request_is_twelve_bytes_with_no_byte_after_the_p
 
 TEST(lh_mb_link, the_frame_buffer_holds_the_widest_answer_the_link_may_ask_for)
 {
-    lh_byte_t answer[LH_MB_ADU_MAX];
-    lh_byte_t pdu[LH_MB_ADU_MAX];
     const lh_u16_t header = LH_MB_MBAP_HEAD;
     const lh_u16_t total = (lh_u16_t)(header + 2 + LH_MB_READ_MAX * 2);
 
@@ -349,6 +346,7 @@ TEST(lh_mb_link, the_frame_buffer_holds_the_widest_answer_the_link_may_ask_for)
            " for it waits for ever on a device that answered perfectly";
     ASSERT_GT(LH_MB_ADU_MAX, total) << "with room to spare, so this is not a coincidence of sizes";
 
+    lh_byte_t answer[LH_MB_ADU_MAX];
     answer[0] = 0;
     answer[1] = 1;
     answer[2] = 0;
@@ -386,6 +384,7 @@ TEST(lh_mb_link, the_frame_buffer_holds_the_widest_answer_the_link_may_ask_for)
     }
 
     /* A request still builds inside the same buffer. */
+    lh_byte_t pdu[LH_MB_ADU_MAX];
     EXPECT_EQ(lh_mb_build_pdu_read(pdu, (lh_u16_t)sizeof(pdu), LH_MB_FC_READ_HOLDING, 0,
                                    LH_MB_READ_MAX),
               (lh_u16_t)5);
@@ -447,10 +446,10 @@ TEST(lh_mb_link, a_holding_answer_answers_a_holding_question_in_both_banks)
 
 TEST(lh_mb_link, the_answer_a_device_sent_is_the_answer_the_link_holds)
 {
-    lh_test_link t;
     const lh_u16_t *values;
     lh_u16_t count = 0;
 
+    lh_test_link t;
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
     feed(lh_addr_of(t), kRead3Holding, (lh_u16_t)sizeof(kRead3Holding));
 
@@ -471,11 +470,11 @@ TEST(lh_mb_link, the_answer_a_device_sent_is_the_answer_the_link_holds)
 
 TEST(lh_mb_link, an_answer_arriving_one_byte_at_a_time_is_the_same_answer)
 {
-    lh_test_link t;
     const lh_u16_t *values;
     lh_u16_t count = 0;
     lh_mb_link_state_t state = lh_mb_link_waiting;
 
+    lh_test_link t;
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
     feed(lh_addr_of(t), kRead3Holding, (lh_u16_t)sizeof(kRead3Holding));
     t.tcp.chunk = 1; /* one byte per recv, which is what a socket hands over when the
@@ -640,10 +639,10 @@ TEST(lh_mb_link, an_answer_to_the_other_question_is_not_an_answer_to_this_one)
 
 TEST(lh_mb_link, a_link_works_on_a_machine_that_has_been_up_for_days)
 {
-    lh_test_link t;
     const lh_u16_t *values;
     lh_u16_t count = 0;
 
+    lh_test_link t;
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
     /* Three days of uptime: 259 200 000 000 microseconds, which is sixty times past
        what 32 bits of them can hold. */
@@ -661,9 +660,9 @@ TEST(lh_mb_link, a_link_works_on_a_machine_that_has_been_up_for_days)
 
 TEST(lh_mb_link, the_timestamp_is_as_wide_as_the_clock_that_fills_it)
 {
-    lh_test_link t;
     lh_u64_t far_future = 259200000000ull;
 
+    lh_test_link t;
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
     t.now_us = far_future;
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
@@ -713,9 +712,9 @@ TEST(lh_mb_link, a_link_does_not_wait_for_an_answer_it_has_not_asked_for)
 TEST(lh_mb_link, an_rtu_request_is_the_unit_the_pdu_and_two_crc_bytes)
 {
     lh_byte_t pdu[LH_MB_ADU_MAX];
-    lh_byte_t frame[LH_MB_ADU_MAX];
     const lh_u16_t pdu_length =
         lh_mb_build_pdu_read(pdu, (lh_u16_t)sizeof(pdu), LH_MB_FC_READ_HOLDING, 0x0010, 3);
+    lh_byte_t frame[LH_MB_ADU_MAX];
     const lh_u16_t length = lh_mb_encode(lh_mb_framing_rtu, 1, 0, pdu, pdu_length, frame,
                                          (lh_u16_t)sizeof(frame));
     const lh_u16_t crc = lh_mb_crc16(frame, (lh_u16_t)(1 + pdu_length));
@@ -760,9 +759,9 @@ const lh_byte_t kWriteRefused[] = {0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x01, 0x9
 
 TEST(lh_mb_link, a_write_puts_the_captured_request_on_the_wire)
 {
-    lh_test_link t;
     const lh_u16_t values[] = {1, 2};
 
+    lh_test_link t;
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
     lh_mb_link_set_tx(&t.link, 1); /* the captured request is transaction 1 */
     ASSERT_TRUE(lh_mb_link_write(lh_addr_of(t.link), 10, values, 2));
@@ -772,10 +771,10 @@ TEST(lh_mb_link, a_write_puts_the_captured_request_on_the_wire)
 
 TEST(lh_mb_link, the_echo_of_a_write_answers_it_and_carries_no_values)
 {
-    lh_test_link t;
     const lh_u16_t values[] = {1, 2};
     lh_u16_t count = 99;
 
+    lh_test_link t;
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
     ASSERT_TRUE(lh_mb_link_write(lh_addr_of(t.link), 10, values, 2));
     feed(lh_addr_of(t), kWrite2At10Echo, (lh_u16_t)sizeof(kWrite2At10Echo));
@@ -790,9 +789,9 @@ TEST(lh_mb_link, the_echo_of_a_write_answers_it_and_carries_no_values)
    write having happened. Asked at 11, answered with the echo of 10. */
 TEST(lh_mb_link, the_echo_of_another_write_is_not_this_one)
 {
-    lh_test_link t;
     const lh_u16_t values[] = {1, 2};
 
+    lh_test_link t;
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
     ASSERT_TRUE(lh_mb_link_write(lh_addr_of(t.link), 11, values, 2));
     feed(lh_addr_of(t), kWrite2At10Echo, (lh_u16_t)sizeof(kWrite2At10Echo));
@@ -802,9 +801,9 @@ TEST(lh_mb_link, the_echo_of_another_write_is_not_this_one)
 
 TEST(lh_mb_link, a_refused_write_is_a_refusal_and_not_a_failure)
 {
-    lh_test_link t;
     const lh_u16_t values[] = {1};
 
+    lh_test_link t;
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
     lh_mb_link_set_tx(&t.link, 3); /* the captured refusal answers transaction 3 */
     ASSERT_TRUE(lh_mb_link_write(lh_addr_of(t.link), 10, values, 1));
@@ -819,10 +818,10 @@ TEST(lh_mb_link, a_refused_write_is_a_refusal_and_not_a_failure)
    with the link's own function code, and its answer is read as one. */
 TEST(lh_mb_link, after_a_write_the_link_reads_with_its_own_code_again)
 {
-    lh_test_link t;
     const lh_u16_t values[] = {1, 2};
     lh_u16_t count = 0;
 
+    lh_test_link t;
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
     ASSERT_TRUE(lh_mb_link_write(lh_addr_of(t.link), 10, values, 2));
     feed(lh_addr_of(t), kWrite2At10Echo, (lh_u16_t)sizeof(kWrite2At10Echo));
@@ -858,10 +857,10 @@ const lh_byte_t kRead3HoldingUnit2[] = {0x00, 0x01, 0x00, 0x00, 0x00, 0x09, 0x02
 
 TEST(lh_mb_link, a_late_answer_is_not_the_answer_to_the_next_question)
 {
-    lh_test_link t;
     const lh_u16_t *values;
     lh_u16_t count = 0;
 
+    lh_test_link t;
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3)); /* transaction 1 */
     t.now_us += 2000000;
@@ -886,10 +885,10 @@ TEST(lh_mb_link, a_late_answer_is_not_the_answer_to_the_next_question)
 
 TEST(lh_mb_link, a_late_answer_and_this_one_in_one_recv_is_this_one)
 {
-    lh_test_link t;
     const lh_u16_t *values;
     lh_u16_t count = 0;
 
+    lh_test_link t;
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
     t.now_us += 2000000;
@@ -907,13 +906,13 @@ TEST(lh_mb_link, a_late_answer_and_this_one_in_one_recv_is_this_one)
 
 TEST(lh_mb_link, half_a_late_answer_is_completed_and_stepped_over)
 {
-    lh_test_link t;
     const lh_u16_t *values;
     lh_u16_t count = 0;
 
     /* The timeout falls in the middle of the slow answer. What came of it is kept,
        the rest completes it, and the frame is skipped by its transaction id -- where
        dropping the first half would read the second half as a header. */
+    lh_test_link t;
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
     feed(lh_addr_of(t), kRead3Holding, 9);
@@ -934,12 +933,12 @@ TEST(lh_mb_link, half_a_late_answer_is_completed_and_stepped_over)
 
 TEST(lh_mb_link, the_bytes_after_an_answer_are_the_next_frame)
 {
-    lh_test_link t;
     const lh_u16_t *values;
     lh_u16_t count = 0;
 
     /* Two answers in one recv. The second is not this question's, but it is the
        next one's, and it must still be there, whole, when the next one is asked. */
+    lh_test_link t;
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
     feed(lh_addr_of(t), kRead3Holding, (lh_u16_t)sizeof(kRead3Holding));
@@ -959,13 +958,13 @@ TEST(lh_mb_link, the_bytes_after_an_answer_are_the_next_frame)
 
 TEST(lh_mb_link, another_units_frame_is_stepped_over_without_a_timeout)
 {
-    lh_test_link t;
     const lh_u16_t *values;
     lh_u16_t count = 0;
 
     /* Behind a gateway every unit's answer comes down the same connection. A frame
        for unit 2 used to have no length as far as unit 1 was concerned, and the
        link sat on it until the timeout -- with its own answer right behind it. */
+    lh_test_link t;
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
     feed(lh_addr_of(t), kRead3HoldingUnit2, (lh_u16_t)sizeof(kRead3HoldingUnit2));
@@ -980,11 +979,11 @@ TEST(lh_mb_link, another_units_frame_is_stepped_over_without_a_timeout)
 TEST(lh_mb_link, a_header_that_is_not_modbus_fails_at_once)
 {
     lh_test_link t;
-    lh_byte_t frame[sizeof(kRead3Holding)];
 
     /* Protocol id 1. Seven bytes in, there is nothing to wait for: the stream has
        lost its place, and saying so now beats saying it a timeout later. */
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
+    lh_byte_t frame[sizeof(kRead3Holding)];
     memcpy(frame, kRead3Holding, sizeof(frame));
     frame[3] = 1;
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
@@ -999,9 +998,9 @@ TEST(lh_mb_link, a_header_that_is_not_modbus_fails_at_once)
 TEST(lh_mb_link, a_length_no_frame_can_have_fails_at_once)
 {
     lh_test_link t;
-    lh_byte_t frame[sizeof(kRead3Holding)];
 
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
+    lh_byte_t frame[sizeof(kRead3Holding)];
     memcpy(frame, kRead3Holding, sizeof(frame));
     frame[4] = 0xFF;
     frame[5] = 0xFF;
@@ -1032,13 +1031,13 @@ TEST(lh_mb_link, a_new_connection_starts_with_nothing_held)
 
 TEST(lh_mb_link, an_rtu_frame_for_another_unit_is_not_ours)
 {
-    lh_byte_t answer[LH_MB_ADU_MAX];
-    lh_byte_t pdu[LH_MB_ADU_MAX];
     lh_u16_t pdu_length = 0;
+    lh_byte_t answer[LH_MB_ADU_MAX];
     const lh_u16_t length = lh_mb_encode(lh_mb_framing_rtu, 2, 0, kRead3Holding + 7, 8, answer,
                                          (lh_u16_t)sizeof(answer));
 
     /* A good CRC says the line is clean, not that the frame is for us. */
+    lh_byte_t pdu[LH_MB_ADU_MAX];
     EXPECT_FALSE(lh_mb_decode(lh_mb_framing_rtu, 1, answer, length, pdu, lh_addr_of(pdu_length)));
     EXPECT_TRUE(lh_mb_decode(lh_mb_framing_rtu, 2, answer, length, pdu, lh_addr_of(pdu_length)));
 }
@@ -1065,9 +1064,9 @@ TEST(lh_mb_link, a_single_write_puts_twelve_bytes_on_the_wire)
 
 TEST(lh_mb_link, the_echo_of_a_single_write_answers_it)
 {
-    lh_test_link t;
     lh_u16_t count = 99;
 
+    lh_test_link t;
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
     ASSERT_TRUE(lh_mb_link_write_one(lh_addr_of(t.link), 10, 0x1234));
     feed(lh_addr_of(t), kWriteOne1234At10, (lh_u16_t)sizeof(kWriteOne1234At10));
@@ -1103,9 +1102,9 @@ TEST(lh_mb_link, a_refused_single_write_is_a_refusal_and_not_a_failure)
 
 TEST(lh_mb_link, after_a_single_write_the_link_reads_again)
 {
-    lh_test_link t;
     lh_u16_t count = 0;
 
+    lh_test_link t;
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
     ASSERT_TRUE(lh_mb_link_write_one(lh_addr_of(t.link), 10, 0x1234));
     feed(lh_addr_of(t), kWriteOne1234At10, (lh_u16_t)sizeof(kWriteOne1234At10));
@@ -1177,9 +1176,9 @@ TEST(lh_mb_link, half_a_request_out_is_a_lost_stream)
 
 TEST(lh_mb_link, a_new_stream_forgets_the_question_in_flight)
 {
-    lh_test_link t;
     lh_u16_t count = 0;
 
+    lh_test_link t;
     setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
     t.tcp.closed = true;

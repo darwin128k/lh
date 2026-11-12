@@ -75,8 +75,6 @@ lh_os_system_serial_handle_t
 lh_os_system_serial_open(lh_str_cptr name, lh_u32_t baud, lh_os_serial_parity_t parity,
                          lh_u8_t stop_bits)
 {
-    lh_char_t path[LH_OS_SYSTEM_WIN_SERIAL_NAME_MAX];
-
     lh_assert_runtime_ref(name);
     lh_return_if(baud == 0U || (stop_bits != 1U && stop_bits != 2U),
                  LH_OS_SYSTEM_SERIAL_HANDLE_INVALID);
@@ -84,6 +82,7 @@ lh_os_system_serial_open(lh_str_cptr name, lh_u32_t baud, lh_os_serial_parity_t 
        long form works for all of them -- so a bare name gets it. */
     lh_usize_t at = 0U;
 
+    lh_char_t path[LH_OS_SYSTEM_WIN_SERIAL_NAME_MAX];
     if (!(name[0] == lh_char_map_backslash && name[1] == lh_char_map_backslash))
     {
         path[at++] = lh_char_map_backslash;

@@ -49,9 +49,9 @@ wake(lh_ptr user)
 TEST(os_thread_group, stop_wakes_joins_and_frees_one_thread)
 {
     lh_os_thread_group_t group;
-    job a;
 
     lh_os_thread_group_init(&group);
+    job a;
     lh_os_thread_group_member_t *member =
         lh_os_thread_group_try_start(&group, run, wake, &a, -1, 0U);
     ASSERT_NE(member, nullptr);
@@ -65,12 +65,12 @@ TEST(os_thread_group, stop_wakes_joins_and_frees_one_thread)
 
 TEST(os_thread_group, stop_all_wakes_every_thread_before_joining)
 {
-    lh_os_thread_group_t group;
     job a;
     job b;
 
     /* a waits for b's stop: joining a before waking b would hang. */
     a.after = &b;
+    lh_os_thread_group_t group;
     lh_os_thread_group_init(&group);
     ASSERT_NE(lh_os_thread_group_try_start(&group, run, wake, &a, -1, 0U), nullptr);
     ASSERT_NE(lh_os_thread_group_try_start(&group, run, wake, &b, -1, 0U), nullptr);
@@ -88,11 +88,11 @@ TEST(os_thread_group, stop_all_wakes_every_thread_before_joining)
 TEST(os_thread_group, bad_arguments_and_strangers_are_refused)
 {
     lh_os_thread_group_t group;
-    lh_os_thread_group_t other;
-    job a;
 
     lh_os_thread_group_init(&group);
+    lh_os_thread_group_t other;
     lh_os_thread_group_init(&other);
+    job a;
     EXPECT_EQ(lh_os_thread_group_try_start(&group, nullptr, wake, &a, -1, 0U), nullptr);
     EXPECT_EQ(lh_os_thread_group_try_start(&group, run, nullptr, &a, -1, 0U), nullptr);
     lh_os_thread_group_member_t *member =

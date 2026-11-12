@@ -50,11 +50,11 @@ TEST(math_size, inset_shrinks_both_sides)
 TEST(math_size, compare_suite_is_lexicographic)
 {
     lh_math_size_t a;
-    lh_math_size_t b;
-    lh_math_size_t c;
 
     lh_math_size_init(lh_addr_of(a), 2, 9);
+    lh_math_size_t b;
     lh_math_size_init(lh_addr_of(b), 2, 10);
+    lh_math_size_t c;
     lh_math_size_init(lh_addr_of(c), 3, 1);
 
     EXPECT_EQ(lh_math_size_equals(lh_addr_of(a), lh_addr_of(a)), lh_bool_true);
@@ -77,9 +77,9 @@ TEST(math_size_initializer, fills_width_then_height)
 TEST(math_size, min_max_are_component_wise)
 {
     lh_math_size_t a;
-    lh_math_size_t b;
 
     lh_math_size_init(lh_addr_of(a), 3, 8);
+    lh_math_size_t b;
     lh_math_size_init(lh_addr_of(b), 5, 2);
     const lh_math_size_t lo = lh_test::out(lh_math_size_min, lh_addr_of(a), lh_addr_of(b));
     const lh_math_size_t hi = lh_test::out(lh_math_size_max, lh_addr_of(a), lh_addr_of(b));
@@ -92,9 +92,9 @@ TEST(math_size, min_max_are_component_wise)
 TEST(math_size, min_side_is_the_shorter_extent)
 {
     lh_math_size_t wide;
-    lh_math_size_t tall;
 
     lh_math_size_init(lh_addr_of(wide), 10, 4);
+    lh_math_size_t tall;
     lh_math_size_init(lh_addr_of(tall), 3, 9);
     EXPECT_EQ(lh_math_size_min_side(lh_addr_of(wide)), 4);
     EXPECT_EQ(lh_math_size_min_side(lh_addr_of(tall)), 3);

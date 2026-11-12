@@ -42,8 +42,8 @@ TEST(runtime_terminate_handler_init_and_assign, copy_both_fields)
 {
     int context = 0;
     lh_runtime_terminate_handler_t a;
-    lh_runtime_terminate_handler_t b;
     lh_runtime_terminate_handler_init(&a, count_call, &context);
+    lh_runtime_terminate_handler_t b;
     lh_runtime_terminate_handler_assign(&b, &a);
     EXPECT_EQ(lh_runtime_terminate_handler_get_call_cb(&b), count_call);
     EXPECT_EQ(lh_runtime_terminate_handler_get_context(&b), &context);

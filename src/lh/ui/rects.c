@@ -48,13 +48,12 @@ lh_ui_rects_area(const lh_ui_rect_t *rect)
 lh_bool_t
 lh_ui_rects_touch(const lh_ui_rect_t *a, const lh_ui_rect_t *b)
 {
-    lh_ui_rect_t reach;
-
     lh_assert_runtime_ref(a);
     lh_assert_runtime_ref(b);
     /* One pixel of slack on every side, which is what makes sharing an edge
        count: two rects that meet can become one without covering anything
        either of them was not already covering. */
+    lh_ui_rect_t reach;
     lh_ui_rect_inset(b, lh_ui_scalar(-1), lh_ui_scalar(-1), lh_addr_of(reach));
     return lh_ui_rect_intersects(a, lh_addr_of(reach));
 }
@@ -62,10 +61,9 @@ lh_ui_rects_touch(const lh_ui_rect_t *a, const lh_ui_rect_t *b)
 lh_ui_scalar_t
 lh_ui_rects_waste(const lh_ui_rect_t *a, const lh_ui_rect_t *b)
 {
-    lh_ui_rect_t hull;
-
     lh_assert_runtime_ref(a);
     lh_assert_runtime_ref(b);
+    lh_ui_rect_t hull;
     lh_ui_rect_union(a, b, lh_addr_of(hull));
     return lh_ui_rects_area(lh_addr_of(hull)) - lh_ui_rects_area(a) - lh_ui_rects_area(b);
 }
@@ -73,10 +71,8 @@ lh_ui_rects_waste(const lh_ui_rect_t *a, const lh_ui_rect_t *b)
 lh_void
 lh_ui_rects_drop(lh_ui_rects_t *self, lh_u32_t index)
 {
-    lh_u32_t i;
-
     lh_return_if(index >= lh_ui_rects_get_count(self));
-    for (i = index; i + 1u < lh_ui_rects_get_count(self); ++i)
+    for (lh_u32_t i = index; i + 1u < lh_ui_rects_get_count(self); ++i)
     {
         lh_ui_rects_get_rects_mut(self)[i] = lh_ui_rects_get_rects(self)[i + 1u];
     }
@@ -86,7 +82,6 @@ lh_ui_rects_drop(lh_ui_rects_t *self, lh_u32_t index)
 lh_bool_t
 lh_ui_rects_join_once(lh_ui_rects_t *self)
 {
-
     for (lh_u32_t keep = 0u; keep < lh_ui_rects_get_count(self); ++keep)
     {
         for (lh_u32_t drop = keep + 1u; drop < lh_ui_rects_get_count(self); ++drop)
@@ -117,7 +112,6 @@ lh_ui_rects_close(lh_ui_rects_t *self)
 lh_void
 lh_ui_rects_squeeze(lh_ui_rects_t *self, const lh_ui_rect_t *rect)
 {
-
     lh_assert_runtime_ref(rect);
     lh_return_if(lh_ui_rects_get_count(self) == 0u);
     lh_u32_t cheapest = 0u;

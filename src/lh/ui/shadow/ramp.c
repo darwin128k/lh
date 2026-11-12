@@ -9,11 +9,9 @@
 lh_void
 lh_ui_shadow_ramp_init(lh_ui_shadow_ramp_t *self, const lh_ui_shadow_shape_t *shape)
 {
-    lh_s32_t level;
-
     lh_assert_runtime_ref(shape);
     lh_ui_shadow_ramp_set_count(self, lh_ui_shadow_shape_get_peak(shape));
-    for (level = 0; level < lh_ui_shadow_ramp_get_count(self); ++level)
+    for (lh_s32_t level = 0; level < lh_ui_shadow_ramp_get_count(self); ++level)
     {
         /* The least distance `d` past the corner's edge whose alpha is `level` or
            less: from a spread out, where nothing is left, back to just past a spread

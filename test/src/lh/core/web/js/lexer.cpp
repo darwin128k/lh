@@ -53,10 +53,10 @@ scan(const std::string &source)
 std::string
 failure_of(const std::string &source)
 {
-    lh_web_js_lexer_t lexer;
     lh_str_ptr message = nullptr;
     lh_usize_t len = 0;
 
+    lh_web_js_lexer_t lexer;
     lh_web_js_lexer_init(&lexer, source.c_str(), source.size());
     while (lh_web_js_lexer_next(&lexer))
     {
@@ -225,10 +225,10 @@ TEST(js_lexer, counts_the_line_and_the_column)
 TEST(js_lexer, ends_at_the_end_of_the_text)
 {
     std::string source = "a";
-    lh_web_js_lexer_t lexer;
     lh_str_ptr message = nullptr;
     lh_usize_t len = 0;
 
+    lh_web_js_lexer_t lexer;
     lh_web_js_lexer_init(&lexer, source.c_str(), source.size());
     ASSERT_TRUE(lh_web_js_lexer_next(&lexer));
     EXPECT_FALSE(lh_web_js_lexer_next(&lexer));
@@ -339,10 +339,10 @@ TEST(js_lexer, reports_a_character_that_starts_nothing)
 TEST(js_lexer, forgets_the_last_failure)
 {
     std::string source = "@";
-    lh_web_js_lexer_t lexer;
     lh_str_ptr message = nullptr;
     lh_usize_t len = 0;
 
+    lh_web_js_lexer_t lexer;
     lh_web_js_lexer_init(&lexer, source.c_str(), source.size());
     EXPECT_FALSE(lh_web_js_lexer_next(&lexer));
     EXPECT_TRUE(lh_web_js_lexer_get_error(&lexer, &message, &len));

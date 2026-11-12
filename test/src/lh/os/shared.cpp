@@ -52,11 +52,10 @@ struct opened
 
     opened()
     {
-        lh_fs_path_t path;
-        lh_str_view_t name;
-
         lh_os_shared_init(&image);
+        lh_fs_path_t path;
         lh_fs_path_init(&path);
+        lh_str_view_t name;
         lh_str_view_init(&name, k_library);
         lh_fs_path_set(&path, name, lh_os_system_fs_path_style_native());
         ok = lh_os_shared_open(&image, &path);
@@ -133,10 +132,10 @@ TEST(os_shared, get_local_sym_finds_what_the_image_keeps_to_itself)
 /* The program's code holds LH's, linked in: one of its functions lies inside. */
 TEST(os_shared, try_get_code_spans_the_code_of_the_image)
 {
-    lh_os_shared_t image;
     lh_ptr begin = nullptr;
     lh_usize_t size = 0U;
 
+    lh_os_shared_t image;
     lh_os_shared_init(&image);
     EXPECT_FALSE(lh_os_shared_try_get_code(&image, &begin, &size)); /* not open */
     ASSERT_TRUE(lh_os_shared_bind_executable(&image));

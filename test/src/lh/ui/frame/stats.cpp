@@ -27,9 +27,9 @@ count_calls(const lh_ui_frame_t *frame, lh_ptr context)
 
 TEST(ui_frame_stats, a_known_frame_adds_drawn_and_asked_pixels)
 {
-    lh_ui_frame_stats_t s;
     const lh_ui_frame_t f = frame_of(10, 4, lh_bool_true, 30, 2, 100);
 
+    lh_ui_frame_stats_t s;
     lh_ui_frame_stats_init(&s);
     lh_ui_frame_stats_record(&s, &f);
 
@@ -47,9 +47,9 @@ TEST(ui_frame_stats, a_known_frame_adds_drawn_and_asked_pixels)
    would make the ratio worse by an amount nobody measured. */
 TEST(ui_frame_stats, an_unknown_frame_counts_its_time_and_not_its_pixels)
 {
-    lh_ui_frame_stats_t s;
     const lh_ui_frame_t f = frame_of(10, 4, lh_bool_false, 0, 0, 70);
 
+    lh_ui_frame_stats_t s;
     lh_ui_frame_stats_init(&s);
     lh_ui_frame_stats_record(&s, &f);
 
@@ -64,10 +64,10 @@ TEST(ui_frame_stats, an_unknown_frame_counts_its_time_and_not_its_pixels)
    counting, and "twice" is the line, inclusive. */
 TEST(ui_frame_stats, a_frame_that_drew_twice_the_request_is_wasteful)
 {
-    lh_ui_frame_stats_t s;
     const lh_ui_frame_t twice = frame_of(10, 4, lh_bool_true, 20, 2, 1);
     const lh_ui_frame_t under = frame_of(10, 4, lh_bool_true, 21, 2, 1);
 
+    lh_ui_frame_stats_t s;
     lh_ui_frame_stats_init(&s);
     lh_ui_frame_stats_record(&s, &twice);
     lh_ui_frame_stats_record(&s, &under);
@@ -77,11 +77,11 @@ TEST(ui_frame_stats, a_frame_that_drew_twice_the_request_is_wasteful)
 
 TEST(ui_frame_stats, the_worst_frame_is_kept)
 {
-    lh_ui_frame_stats_t s;
     const lh_ui_frame_t a = frame_of(1, 1, lh_bool_true, 1, 1, 300);
     const lh_ui_frame_t b = frame_of(1, 1, lh_bool_true, 1, 1, 900);
     const lh_ui_frame_t c = frame_of(1, 1, lh_bool_true, 1, 1, 200);
 
+    lh_ui_frame_stats_t s;
     lh_ui_frame_stats_init(&s);
     lh_ui_frame_stats_record(&s, &a);
     lh_ui_frame_stats_record(&s, &b);
@@ -93,10 +93,10 @@ TEST(ui_frame_stats, the_worst_frame_is_kept)
 
 TEST(ui_frame_stats, the_callback_sees_every_frame_and_stops_when_cleared)
 {
-    lh_ui_frame_stats_t s;
     const lh_ui_frame_t f = frame_of(1, 1, lh_bool_true, 1, 1, 1);
     int calls = 0;
 
+    lh_ui_frame_stats_t s;
     lh_ui_frame_stats_init(&s);
     lh_ui_frame_stats_set_on_frame(&s, count_calls, &calls);
     lh_ui_frame_stats_record(&s, &f);

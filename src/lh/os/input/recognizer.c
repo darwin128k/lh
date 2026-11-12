@@ -25,8 +25,6 @@ lh_void
 lh_os_input_recognizer_init(lh_os_input_recognizer_t *self,
                             lh_os_input_recognizer_config_cptr config)
 {
-    lh_u8_t i;
-
     lh_assert_runtime_ref(self);
     if (lh_null_eq(config))
     {
@@ -36,7 +34,7 @@ lh_os_input_recognizer_init(lh_os_input_recognizer_t *self,
     {
         lh_os_input_recognizer_set_config(self, config);
     }
-    for (i = 0U; i < LH_OS_INPUT_POINTER_MAX; ++i)
+    for (lh_u8_t i = 0U; i < LH_OS_INPUT_POINTER_MAX; ++i)
     {
         lh_os_input_recognizer_pointer_clear(lh_os_input_recognizer_get_pointer_mut(self, i));
     }
@@ -66,10 +64,8 @@ lh_os_input_recognizer_find_const(lh_os_input_recognizer_cptr self, lh_u8_t poin
 lh_os_input_recognizer_phase_t
 lh_os_input_recognizer_get_phase(lh_os_input_recognizer_cptr self, lh_u8_t pointer)
 {
-    lh_os_input_recognizer_pointer_cptr state;
-
     lh_assert_runtime_ref(self);
-    state = lh_os_input_recognizer_find_const(self, pointer);
+    lh_os_input_recognizer_pointer_cptr state = lh_os_input_recognizer_find_const(self, pointer);
     lh_return_if(lh_null_eq(state), lh_os_input_recognizer_phase_idle);
     return lh_os_input_recognizer_pointer_get_phase(state);
 }
@@ -325,15 +321,13 @@ lh_os_input_recognizer_send_shifted_wheel(lh_os_input_recognizer_t *self,
                                           lh_os_input_event_cptr event, lh_os_input_sink_cb sink,
                                           lh_ptr context)
 {
-    lh_os_input_event_t sideways;
-
     lh_return_if(lh_os_input_event_get_kind(event) != lh_os_input_kind_wheel ||
                      !lh_os_input_recognizer_config_is_wheel_shift_horizontal(
                          lh_os_input_recognizer_get_config(self)) ||
                      !lh_os_input_event_has_mods(event, LH_OS_INPUT_MODS_SHIFT) ||
                      lh_os_input_event_get_dx(event) != 0,
                  lh_bool_false);
-    sideways = lh_ptr_deref(event);
+    lh_os_input_event_t sideways = lh_ptr_deref(event);
     lh_os_input_event_set_delta(lh_addr_of(sideways), lh_os_input_event_get_dy(event), 0);
     sink(context, lh_addr_of(sideways));
     return lh_bool_true;

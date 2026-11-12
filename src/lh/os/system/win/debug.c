@@ -6,9 +6,8 @@
 lh_bool_t
 lh_os_system_debug_print(lh_str_cptr text)
 {
-    lh_os_str_t wide;
-
     lh_assert_runtime_ref(text);
+    lh_os_str_t wide;
     if (!lh_os_system_str_init_by_utf8(lh_addr_of(wide), text))
     {
         return lh_bool_false;

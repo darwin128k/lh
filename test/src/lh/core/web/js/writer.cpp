@@ -54,10 +54,10 @@ un(lh_web_js_op_t op, lh_web_js_node_t *operand)
 std::string
 write(lh_web_js_node_t *node, bool *ok = nullptr)
 {
-    lh_web_js_writer_t writer;
     lh_str_t out;
 
     lh_str_init(&out);
+    lh_web_js_writer_t writer;
     lh_web_js_writer_init(&writer, &out);
     const bool written = lh_web_js_writer_try_write(&writer, node);
     if (ok != nullptr)
@@ -78,10 +78,10 @@ write(lh_web_js_node_t *node, bool *ok = nullptr)
 std::string
 expr(lh_web_js_node_t *node, bool *ok = nullptr)
 {
-    lh_web_js_writer_t writer;
     lh_str_t out;
 
     lh_str_init(&out);
+    lh_web_js_writer_t writer;
     lh_web_js_writer_init(&writer, &out);
     const bool written =
         lh_web_js_writer_try_write_expression(&writer, node, lh_web_js_precedence_lowest);

@@ -141,9 +141,9 @@ TEST(str_truncate, shrinks_and_stays_terminated)
 TEST(str_append_view, appends_view_and_skips_empty)
 {
     lh_str_t s;
-    lh_str_view_t empty;
 
     lh_str_init(&s);
+    lh_str_view_t empty;
     lh_str_view_init_empty(&empty);
     lh_str_append_view(&s, empty);
     EXPECT_TRUE(lh_str_is_empty(&s));
@@ -158,9 +158,9 @@ TEST(str_append_view, appends_view_and_skips_empty)
 TEST(str_append_str, appends_other_string)
 {
     lh_str_t a;
-    lh_str_t b;
 
     lh_str_init(&a);
+    lh_str_t b;
     lh_str_init(&b);
     lh_str_append(&a, "xy", 2);
     lh_str_append_str(&b, &a);
@@ -177,9 +177,9 @@ TEST(str_append_str, appends_other_string)
 TEST(str_assign, replaces_contents)
 {
     lh_str_t a;
-    lh_str_t b;
 
     lh_str_init(&a);
+    lh_str_t b;
     lh_str_init(&b);
     lh_str_append(&a, "src", 3);
     lh_str_append(&b, "dst", 3);
@@ -198,9 +198,9 @@ TEST(str_assign, replaces_contents)
 TEST(str_join, glues_views_with_sep)
 {
     lh_str_t s;
-    lh_str_view_t parts[3];
 
     lh_str_init(&s);
+    lh_str_view_t parts[3];
     parts[0] = lh_str_view_lit("a");
     parts[1] = lh_str_view_lit("b");
     parts[2] = lh_str_view_lit("c");
@@ -247,9 +247,9 @@ TEST(str_bufferless, every_reader_and_reset_works_before_first_grow)
 {
     lh_test::alloc_counter counter;
     lh_str_t s;
-    lh_str_t other;
 
     lh_str_init(&s);
+    lh_str_t other;
     lh_str_init(&other);
 
     lh_str_clear(&s);
@@ -270,9 +270,9 @@ TEST(str_bufferless, every_reader_and_reset_works_before_first_grow)
 TEST(str_assign, from_empty_string_empties_target)
 {
     lh_str_t s;
-    lh_str_t empty;
 
     lh_str_init(&s);
+    lh_str_t empty;
     lh_str_init(&empty);
     lh_str_append(&s, "abc", 3);
     lh_str_assign(&s, &empty);
@@ -299,13 +299,12 @@ TEST(str_reserve, then_appends_within_it_do_not_allocate)
 {
     lh_test::alloc_counter counter;
     lh_str_t s;
-    int i;
 
     lh_str_init(&s);
     lh_str_reserve(&s, 64);
     EXPECT_EQ(counter.count(), 1);
     EXPECT_EQ(std::strcmp(lh_str_get_data(&s), ""), 0);
-    for (i = 0; i < 64; ++i)
+    for (int i = 0; i < 64; ++i)
     {
         lh_str_push_back(&s, 'x');
     }
@@ -332,8 +331,8 @@ TEST(str_clear, keeps_the_buffer_for_reuse)
 TEST(str_is_equal, compares_the_characters_byte_for_byte)
 {
     lh_str_t a;
-    lh_str_t b;
     lh_str_init(&a);
+    lh_str_t b;
     lh_str_init(&b);
     EXPECT_TRUE(lh_str_is_equal(&a, &b));
     lh_str_assign_view(&a, lh_str_view_lit("host"));

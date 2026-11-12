@@ -73,9 +73,9 @@ parse(const std::string &json)
         lh_str_view_init_by_size(&view, json.data(), json.size());
     }
 
-    lh_web_json_reader_t reader;
     lh_web_json_node_t root;
     lh_web_json_node_init(&root);
+    lh_web_json_reader_t reader;
     lh_web_json_reader_init(&reader, view);
 
     parsed out;
@@ -225,11 +225,11 @@ TEST(json_reader, limits_the_nesting_depth)
 
 TEST(json_reader, a_failed_read_stays_failed)
 {
-    lh_web_json_reader_t reader;
-    lh_web_json_node_t root;
     lh_str_view_t view = lh_str_view_lit("[1,]");
 
+    lh_web_json_node_t root;
     lh_web_json_node_init(&root);
+    lh_web_json_reader_t reader;
     lh_web_json_reader_init(&reader, view);
     EXPECT_FALSE(lh_web_json_reader_read(&reader, &root));
     EXPECT_TRUE(lh_web_json_reader_has_error(&reader));
@@ -241,12 +241,12 @@ TEST(json_reader, a_failed_read_stays_failed)
 
 TEST(json_reader, reads_an_api_reply)
 {
-    lh_web_json_reader_t reader;
-    lh_web_json_node_t root;
     lh_str_view_t view =
         lh_str_view_lit("{\"ip\":\"8.8.8.8\",\"countryCode\":\"US\",\"asn\":15169,\"block\":0}");
 
+    lh_web_json_node_t root;
     lh_web_json_node_init(&root);
+    lh_web_json_reader_t reader;
     lh_web_json_reader_init(&reader, view);
     ASSERT_TRUE(lh_web_json_reader_read(&reader, &root));
 

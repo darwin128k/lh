@@ -147,7 +147,6 @@ struct open_db
 TEST(sql_db, a_closed_database_refuses_and_says_why)
 {
     lh_sql_db_t db;
-    lh_sql_stmt_t stmt;
 
     lh_sql_db_init(&db);
     EXPECT_FALSE(lh_sql_db_is_open(&db));
@@ -155,6 +154,7 @@ TEST(sql_db, a_closed_database_refuses_and_says_why)
     EXPECT_EQ(text(lh_sql_db_get_error(&db)), "database is not open");
     EXPECT_EQ(lh_sql_db_get_last_insert_id(&db), 0);
 
+    lh_sql_stmt_t stmt;
     EXPECT_FALSE(lh_sql_db_prepare(&db, &stmt, lh_str_view_lit("SELECT 1")));
     EXPECT_FALSE(lh_sql_stmt_is_prepared(&stmt));
     EXPECT_EQ(lh_sql_stmt_step(&stmt), lh_sql_step_error);

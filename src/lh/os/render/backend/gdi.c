@@ -155,7 +155,6 @@ lh_void
 lh_os_render_backend_gdi_begin_area(lh_ptr context, const lh_ui_rect_t *area)
 {
     lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
-    lh_ui_pixmap_t pixmap;
 
     /* The surface is the area and nothing more: a whole frame of 800x600 is
        960 KB of RGB565 DIB, a 32-row strip is 48 KB, and the pixels that did not
@@ -164,6 +163,7 @@ lh_os_render_backend_gdi_begin_area(lh_ptr context, const lh_ui_rect_t *area)
     LH_ATTRIBUTE_UNUSED(
         lh_ui_surface_set_size_v(lh_os_render_backend_gdi_context_get_surface_mut(gdi),
                                  lh_ptr_deref(lh_ui_rect_get_size(area))));
+    lh_ui_pixmap_t pixmap;
     lh_ui_pixmap_init_empty(lh_addr_of(pixmap));
     LH_ATTRIBUTE_UNUSED(lh_ui_surface_get_pixmap(
         lh_os_render_backend_gdi_context_get_surface_mut(gdi), lh_addr_of(pixmap)));

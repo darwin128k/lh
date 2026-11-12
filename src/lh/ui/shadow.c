@@ -78,7 +78,6 @@ lh_ui_shadow_get_offset_y(const lh_ui_shadow_t *self)
 lh_ui_scalar_t
 lh_ui_shadow_get_outset(const lh_ui_shadow_t *self, const lh_ui_rect_t *rect)
 {
-
     lh_assert_runtime_ref(rect);
     if (lh_ui_shadow_get_spread(self) <= 0 || lh_ui_rect_is_empty(rect) ||
         lh_ui_color_get_a(lh_ui_shadow_get_color(self)) == 0)
@@ -141,13 +140,12 @@ lh_byte_t
 lh_ui_shadow_falloff_sub(lh_s64_t distance, lh_s64_t spread, lh_byte_t peak)
 {
     const lh_s64_t span = spread * 2;
-    lh_s64_t fade;
 
     if (spread <= 0 || peak == 0)
     {
         return 0;
     }
-    fade = lh_cast_static(lh_s64_t, peak) * (spread - distance);
+    lh_s64_t fade = lh_cast_static(lh_s64_t, peak) * (spread - distance);
     if (fade <= 0)
     {
         return 0;
@@ -172,8 +170,6 @@ lh_ui_shadow_distance(lh_ui_scalar_t x, lh_ui_scalar_t y, const lh_ui_rect_t *re
 lh_byte_t
 lh_ui_shadow_falloff(lh_s32_t distance, lh_ui_scalar_t spread, lh_byte_t peak)
 {
-    lh_s32_t fade;
-
     if (spread <= 0 || peak == 0)
     {
         return 0;
@@ -181,7 +177,7 @@ lh_ui_shadow_falloff(lh_s32_t distance, lh_ui_scalar_t spread, lh_byte_t peak)
     /* The fade straddles the edge: full inside, nothing a spread past it, and a
        smooth curve between. A flat band for the whole offset is what makes a
        shadow look like a second box instead of like light. */
-    fade = peak * (spread - distance) / (2 * spread);
+    lh_s32_t fade = peak * (spread - distance) / (2 * spread);
     fade = lh_math_clamp(fade, 0, peak);
     return lh_cast_static(lh_byte_t, fade);
 }
@@ -192,7 +188,6 @@ lh_ui_shadow_alpha_at(const lh_ui_shadow_t *self, lh_ui_scalar_t x, lh_ui_scalar
 {
     const lh_byte_t peak = lh_ui_color_get_a(lh_ui_shadow_get_color(self));
     const lh_s32_t corner = lh_ui_radius_clamp(rect, radius);
-    lh_ui_rect_t shifted;
 
     lh_assert_runtime_ref(rect);
     const lh_ui_size_t *size = lh_ui_rect_get_size(rect);
@@ -217,7 +212,7 @@ lh_ui_shadow_alpha_at(const lh_ui_shadow_t *self, lh_ui_scalar_t x, lh_ui_scalar
         return 0;
     }
 
-    shifted = lh_ptr_deref(rect);
+    lh_ui_rect_t shifted = lh_ptr_deref(rect);
     /* ::lh_ui_rect_offset hands back the moved rect: it does not move its argument.
        Calling it for its effect left every shadow where its box was, whatever offset
        the style gave it. */
@@ -231,13 +226,12 @@ lh_byte_t
 lh_ui_shadow_alpha_at_pixel(const lh_ui_shadow_t *self, lh_s32_t x, lh_s32_t y,
                             const lh_ui_rect_t *rect, lh_ui_scalar_t radius)
 {
-    lh_ui_shadow_shape_t shape;
-
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(rect);
     /* The one reading of a shadow (::lh_ui_shadow_shape_t), so a backend that draws a
        whole shadow through the shape and the canvas that asks pixel by pixel give the
        same alpha. */
+    lh_ui_shadow_shape_t shape;
     lh_ui_shadow_shape_init(lh_addr_of(shape), self, rect, radius);
     return lh_ui_shadow_shape_alpha(lh_addr_of(shape), lh_ui_shadow_shape_row(lh_addr_of(shape), y),
                                     x, y);

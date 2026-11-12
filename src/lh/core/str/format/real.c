@@ -17,20 +17,19 @@ lh_usize_t
 lh_str_ptr_format_real_layout(const lh_str_ptr digits, lh_usize_t count, lh_s32_t point,
                               lh_str_ptr str, lh_usize_t str_size)
 {
-    lh_char_t text[LH_STR_FORMAT_REAL_SIZE_MAX];
     const lh_s32_t n = lh_cast_static(lh_s32_t, count);
     lh_usize_t length = 0U;
-    lh_s32_t i;
 
     lh_assert_runtime_ref(digits);
     lh_assert_runtime_if(lh_math_is_zero(count) || lh_math_gt(count, LH_REAL_GRISU_DIGITS_MAX),
                          lh_runtime_error_code_invalid_argument);
 
+    lh_char_t text[LH_STR_FORMAT_REAL_SIZE_MAX];
     if (lh_math_le(n, point) && lh_math_le(point, 21))
     {
         /* An integer: the digits, then zeros up to the point. 1e21 is the
            first that goes to exponent notation. */
-        for (i = 0; lh_math_lt(i, point); i = lh_math_add_one(i))
+        for (lh_s32_t i = 0; lh_math_lt(i, point); i = lh_math_add_one(i))
         {
             text[length] = lh_math_lt(i, n) ? digits[i] : lh_char_map_digit_0;
             length = lh_math_add_one(length);
@@ -39,7 +38,7 @@ lh_str_ptr_format_real_layout(const lh_str_ptr digits, lh_usize_t count, lh_s32_
     else if (lh_math_gt(point, 0) && lh_math_le(point, 21))
     {
         /* The point falls inside the digits. */
-        for (i = 0; lh_math_lt(i, n); i = lh_math_add_one(i))
+        for (lh_s32_t i = 0; lh_math_lt(i, n); i = lh_math_add_one(i))
         {
             if (lh_math_eq(i, point))
             {
@@ -56,12 +55,12 @@ lh_str_ptr_format_real_layout(const lh_str_ptr digits, lh_usize_t count, lh_s32_
         text[0] = lh_char_map_digit_0;
         text[1] = lh_char_map_period;
         length = 2U;
-        for (i = point; lh_math_lt(i, 0); i = lh_math_add_one(i))
+        for (lh_s32_t i = point; lh_math_lt(i, 0); i = lh_math_add_one(i))
         {
             text[length] = lh_char_map_digit_0;
             length = lh_math_add_one(length);
         }
-        for (i = 0; lh_math_lt(i, n); i = lh_math_add_one(i))
+        for (lh_s32_t i = 0; lh_math_lt(i, n); i = lh_math_add_one(i))
         {
             text[length] = digits[i];
             length = lh_math_add_one(length);
@@ -78,7 +77,7 @@ lh_str_ptr_format_real_layout(const lh_str_ptr digits, lh_usize_t count, lh_s32_
         {
             text[length] = lh_char_map_period;
             length = lh_math_add_one(length);
-            for (i = 1; lh_math_lt(i, n); i = lh_math_add_one(i))
+            for (lh_s32_t i = 1; lh_math_lt(i, n); i = lh_math_add_one(i))
             {
                 text[length] = digits[i];
                 length = lh_math_add_one(length);
@@ -102,11 +101,6 @@ lh_str_ptr_format_real(lh_real_t value, lh_str_ptr str, lh_usize_t str_size)
     const lh_u64_t bits = lh_real_to_bits(value);
     const lh_u64_t magnitude = lh_real_bits_get_magnitude(bits);
     const lh_bool_t negative = lh_real_bits_is_negative(bits);
-    lh_char_t text[LH_STR_FORMAT_REAL_SIZE_MAX];
-    lh_char_t digits[LH_REAL_GRISU_DIGITS_MAX];
-    lh_usize_t count;
-    lh_usize_t length;
-    lh_s32_t k;
 
     lh_assert_runtime_ref(str);
     if (!lh_real_bits_is_finite(bits))
@@ -114,8 +108,9 @@ lh_str_ptr_format_real(lh_real_t value, lh_str_ptr str, lh_usize_t str_size)
         return 0U;
     }
 
+    lh_char_t text[LH_STR_FORMAT_REAL_SIZE_MAX];
     text[0] = lh_char_map_minus;
-    length = negative ? 1U : 0U;
+    lh_usize_t length = negative ? 1U : 0U;
     if (lh_math_is_zero(magnitude))
     {
         /* Zero has no digits for Grisu to find. */
@@ -124,6 +119,9 @@ lh_str_ptr_format_real(lh_real_t value, lh_str_ptr str, lh_usize_t str_size)
     }
 
     /* Grisu wants the magnitude; the sign is already written. */
+    lh_char_t digits[LH_REAL_GRISU_DIGITS_MAX];
+    lh_usize_t count;
+    lh_s32_t k;
     lh_real_grisu(lh_real_from_bits(magnitude), digits, lh_addr_of(count), lh_addr_of(k));
     length =
         lh_math_add(length, lh_str_ptr_format_real_layout(
@@ -140,23 +138,21 @@ lh_str_ptr_format_real_fixed(lh_real_t value, lh_usize_t decimals, lh_str_ptr st
 {
     const lh_u64_t bits = lh_real_to_bits(value);
     const lh_u64_t magnitude = lh_real_bits_get_magnitude(bits);
-    lh_char_t digits[LH_REAL_GRISU_DIGITS_MAX];
     lh_usize_t count = 0U;
     lh_s32_t k = 0;
-    lh_s32_t point;
-    lh_s32_t keep;
     lh_usize_t pos = 0U;
     lh_bool_t carry = lh_bool_false;
 
     lh_assert_runtime_ref(str);
     lh_return_ifn(lh_real_bits_is_finite(bits), 0U);
+    lh_char_t digits[LH_REAL_GRISU_DIGITS_MAX];
     if (!lh_math_is_zero(magnitude))
     {
         lh_real_grisu(lh_real_from_bits(magnitude), digits, lh_addr_of(count), lh_addr_of(k));
     }
     /* digits[0 .. count) with the point `point` digits from the left. */
-    point = lh_math_add(lh_cast_static(lh_s32_t, count), k);
-    keep = lh_math_add(point, lh_cast_static(lh_s32_t, decimals));
+    lh_s32_t point = lh_math_add(lh_cast_static(lh_s32_t, count), k);
+    lh_s32_t keep = lh_math_add(point, lh_cast_static(lh_s32_t, decimals));
     if (lh_math_lt(keep, lh_cast_static(lh_s32_t, count)))
     {
         /* Round half away from zero at the last digit kept. */

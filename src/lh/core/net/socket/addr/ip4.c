@@ -107,9 +107,7 @@ lh_net_ip4_socket_addr_format(const lh_net_ip4_socket_addr_t *self, lh_str_ptr s
      * lh_net_ip4_format: call lh_str_ptr_format_uint directly and splice in '.'/':' by hand.
      * Builds into a fixed-size scratch buffer first and only copies out once the full result
      * is known to fit — all-or-nothing on failure, same as lh_net_ip4_format. */
-    lh_char_t scratch[LH_NET_IP4_SOCKET_ADDR_TEXT_MAX];
     lh_usize_t pos = 0;
-    lh_usize_t written;
 
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(str);
@@ -118,6 +116,7 @@ lh_net_ip4_socket_addr_format(const lh_net_ip4_socket_addr_t *self, lh_str_ptr s
 
     lh_net_ip4_socket_addr_get_ip(self, lh_addr_of(ip));
 
+    lh_char_t scratch[LH_NET_IP4_SOCKET_ADDR_TEXT_MAX];
     for (lh_usize_t octet_index = 0; octet_index < LH_NET_IP4_OCTET_COUNT; octet_index++)
     {
         if (octet_index > 0)
@@ -126,7 +125,7 @@ lh_net_ip4_socket_addr_format(const lh_net_ip4_socket_addr_t *self, lh_str_ptr s
             pos++;
         }
 
-        written = lh_str_ptr_format_uint(
+        const lh_usize_t written = lh_str_ptr_format_uint(
             lh_cast_static(lh_uint_t, lh_net_ip4_get_octet(lh_addr_of(ip), octet_index)),
             scratch + pos, LH_NET_IP4_SOCKET_ADDR_TEXT_MAX - pos);
         if (written == 0)
@@ -139,7 +138,7 @@ lh_net_ip4_socket_addr_format(const lh_net_ip4_socket_addr_t *self, lh_str_ptr s
     scratch[pos] = lh_char_map_colon;
     pos++;
 
-    written =
+    const lh_usize_t written =
         lh_str_ptr_format_uint(lh_cast_static(lh_uint_t, lh_net_ip4_socket_addr_get_port(self)),
                                scratch + pos, LH_NET_IP4_SOCKET_ADDR_TEXT_MAX - pos);
     if (written == 0)

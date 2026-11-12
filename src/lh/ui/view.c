@@ -76,9 +76,8 @@ lh_ui_view_get_clear(const lh_ui_view_t *self)
 lh_void
 lh_ui_view_fit_canvas(lh_ui_view_t *self)
 {
-    lh_ui_rect_t rect;
-
     lh_return_if(lh_null_eq(lh_ui_view_get_root(self)));
+    lh_ui_rect_t rect;
     lh_ui_entity_copy_rect(lh_ui_view_get_root(self), lh_addr_of(rect));
     lh_ui_canvas_set_size(lh_ui_view_get_canvas(self),
                           lh_ptr_deref(lh_ui_rect_get_size(lh_addr_of(rect))));
@@ -168,9 +167,9 @@ lh_ui_view_draw_frame_on(lh_ui_view_t *self, const lh_ui_rect_t *area, const lh_
 {
     lh_ui_rect_t part;
     lh_ui_canvas_damage_in(area, damage, lh_addr_of(part));
-    lh_ui_point_t zero;
 
     lh_return_if(lh_ui_rect_is_empty(lh_addr_of(part)));
+    lh_ui_point_t zero;
     lh_ui_point_init(lh_addr_of(zero), lh_ui_scalar(0), lh_ui_scalar(0));
     lh_ui_canvas_begin_area(lh_ui_view_get_canvas(self), area);
     lh_ui_canvas_push(lh_ui_view_get_canvas(self), zero, lh_addr_of(part));
@@ -380,9 +379,8 @@ lh_bool_t
 lh_ui_view_scroll_by(lh_ui_view_t *self, lh_ui_container_t *box, lh_ui_scalar_t dx,
                      lh_ui_scalar_t dy)
 {
-    lh_ui_point_t before;
-
     lh_return_if(lh_null_eq(box), lh_bool_false);
+    lh_ui_point_t before;
     lh_ui_container_get_clamped_scroll(box, lh_addr_of(before));
     lh_ui_container_scroll_by(box, dx, dy);
     return lh_ui_view_damage_scroll(self, box, before);
@@ -411,10 +409,8 @@ lh_ui_view_stop_throw(lh_ui_view_t *self)
 lh_bool_t
 lh_ui_view_wheel(lh_ui_view_t *self, lh_ui_point_t point, lh_ui_scalar_t dx, lh_ui_scalar_t dy)
 {
-    lh_bool_t changed;
-
     lh_ui_view_stop_throw(self);
-    changed = lh_ui_view_scroll_by(
+    lh_bool_t changed = lh_ui_view_scroll_by(
         self, lh_ui_scrollbar_find_scrolled(lh_ui_view_hit_test(self, point)), dx, dy);
     lh_ui_view_end_scroll(self);
     return changed;
@@ -470,7 +466,6 @@ lh_ui_view_get_pointer(const lh_ui_view_t *self, lh_os_input_pointer_id_t id)
 lh_void
 lh_ui_view_init(lh_ui_view_t *self)
 {
-
     lh_ui_view_set_canvas(self, lh_null);
     lh_ui_view_set_root(self, lh_null);
     lh_ui_view_set_clear(self, lh_null);
@@ -513,10 +508,8 @@ lh_bool_t
 lh_ui_view_is_driven_by_other(const lh_ui_view_t *self, const lh_ui_view_pointer_t *pointer,
                               const lh_ui_container_t *box)
 {
-    lh_os_input_pointer_id_t id;
-
     lh_return_if(lh_null_eq(box), lh_bool_false);
-    for (id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
+    for (lh_os_input_pointer_id_t id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
     {
         const lh_ui_view_pointer_t *other = lh_addr_of(lh_ui_view_get_pointers(self)[id]);
         const lh_ui_scrollbar_t *grab = lh_ui_view_pointer_get_grab(other);
@@ -534,10 +527,8 @@ lh_bool_t
 lh_ui_view_is_held_by_other(const lh_ui_view_t *self, const lh_ui_view_pointer_t *pointer,
                             const lh_ui_entity_t *entity)
 {
-    lh_os_input_pointer_id_t id;
-
     lh_return_if(lh_null_eq(entity), lh_bool_false);
-    for (id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
+    for (lh_os_input_pointer_id_t id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
     {
         const lh_ui_view_pointer_t *other = lh_addr_of(lh_ui_view_get_pointers(self)[id]);
 
@@ -560,9 +551,8 @@ lh_void
 lh_ui_view_grab_thumb(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_scrollbar_t *bar,
                       lh_ui_point_t point)
 {
-    lh_ui_point_t local;
-
     lh_return_if(lh_null_eq(bar));
+    lh_ui_point_t local;
     lh_ui_entity_to_local(lh_ui_scrollbar_as_entity(bar), point, lh_addr_of(local));
     lh_return_if(!lh_ui_scrollbar_contains_thumb(bar, local));
     lh_return_if(lh_ui_view_is_driven_by_other(self, pointer, lh_ui_scrollbar_get_container(bar)));
@@ -582,16 +572,13 @@ lh_void
 lh_ui_view_damage_looks(lh_ui_view_t *self, const lh_ui_entity_t *entity,
                         const lh_ui_style_t *first, const lh_ui_style_t *second)
 {
-
-    lh_ui_point_t offset;
-
     lh_return_if(lh_null_eq(entity));
     lh_ui_rect_t rect;
     lh_ui_entity_copy_rect(entity, lh_addr_of(rect));
-    lh_ui_scalar_t outset;
-    outset = lh_null_eq(first)
-                 ? lh_ui_scalar(0)
-                 : lh_ui_shadow_get_outset(lh_ui_style_get_shadow(first), lh_addr_of(rect));
+    lh_ui_scalar_t outset =
+        lh_null_eq(first)
+            ? lh_ui_scalar(0)
+            : lh_ui_shadow_get_outset(lh_ui_style_get_shadow(first), lh_addr_of(rect));
     if (lh_null_ne(second))
     {
         outset = lh_math_max(
@@ -607,6 +594,7 @@ lh_ui_view_damage_looks(lh_ui_view_t *self, const lh_ui_entity_t *entity,
     {
         lh_ui_canvas_add_damage(lh_ui_view_get_canvas(self), lh_addr_of(bounds));
     }
+    lh_ui_point_t offset;
     lh_ui_entity_get_root_offset(entity, lh_addr_of(offset));
     lh_ui_rect_offset(lh_addr_of(bounds), lh_ui_point_get_x(lh_addr_of(offset)),
                       lh_ui_point_get_y(lh_addr_of(offset)), lh_addr_of(bounds));
@@ -638,7 +626,6 @@ lh_ui_view_click_plain(lh_ui_view_t *self, lh_ui_point_t point)
 lh_ui_entity_t *
 lh_ui_view_click_scrolling(lh_ui_view_t *self, lh_ui_container_t *box, lh_ui_point_t point)
 {
-
     lh_return_if(lh_null_eq(box), lh_ui_view_click_plain(self, point));
     lh_ui_point_t before;
     lh_ui_container_get_clamped_scroll(box, lh_addr_of(before));
@@ -730,7 +717,6 @@ lh_ui_view_drag_content(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui
 lh_bool_t
 lh_ui_view_move_pointer(lh_ui_view_t *self, lh_os_input_pointer_id_t id, lh_ui_point_t point)
 {
-
     lh_ui_view_pointer_t *pointer = lh_ui_view_get_slot(self, id);
     lh_return_if(lh_null_eq(pointer), lh_bool_false);
     lh_ui_scrollbar_t *grab = lh_ui_view_pointer_get_grab(pointer);
@@ -769,7 +755,6 @@ lh_ui_view_finish_gesture(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer)
 lh_ui_entity_t *
 lh_ui_view_release_pointer(lh_ui_view_t *self, lh_os_input_pointer_id_t id, lh_ui_point_t point)
 {
-
     lh_ui_view_pointer_t *pointer = lh_ui_view_get_slot(self, id);
     lh_return_if(lh_null_eq(pointer), lh_null);
     lh_ui_entity_t *target = lh_ui_view_pointer_get_target(pointer);
@@ -779,10 +764,9 @@ lh_ui_view_release_pointer(lh_ui_view_t *self, lh_os_input_pointer_id_t id, lh_u
        pressed. */
     lh_ui_view_unpress_target(self, pointer);
     lh_ui_view_finish_gesture(self, pointer);
-    lh_bool_t clicked;
     /* A click is a press and a release on one thing: a finger that slid off the
        button it went down on and lifted over another one clicked neither. */
-    clicked = lh_type_cast(
+    lh_bool_t clicked = lh_type_cast(
         lh_bool_t, lh_ui_view_pointer_is_pressed(pointer) &&
                        !lh_ui_view_pointer_is_dragged(pointer) &&
                        lh_ui_entity_click_target(lh_ui_view_hit_test(self, point)) == target);
@@ -920,14 +904,13 @@ lh_ui_view_send_input(lh_ui_view_t *self, const lh_ui_key_input_t *input)
 lh_bool_t
 lh_ui_view_key(lh_ui_view_t *self, lh_os_key_t key, lh_bool_t pressed)
 {
-    lh_ui_key_input_t input;
-
     lh_assert_runtime_ref(self);
     if (key == lh_os_key_tab && pressed)
     {
         lh_ui_view_set_focus_v(self, lh_ui_view_get_next_focus(self));
         return lh_bool_false;
     }
+    lh_ui_key_input_t input;
     lh_ui_key_input_init_key(lh_addr_of(input), key, pressed);
     return lh_ui_view_send_input(self, lh_addr_of(input));
 }
@@ -968,7 +951,6 @@ lh_ui_view_land(lh_ui_transition_t *slot)
 lh_bool_t
 lh_ui_view_start_transition(lh_ui_view_t *self, lh_ui_entity_t *entity, const lh_ui_style_t *to)
 {
-
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(entity);
     lh_assert_runtime_ref(to);
@@ -993,7 +975,6 @@ lh_ui_view_start_transition(lh_ui_view_t *self, lh_ui_entity_t *entity, const lh
 lh_void
 lh_ui_view_cancel_pointer(lh_ui_view_t *self, lh_os_input_pointer_id_t id)
 {
-
     lh_ui_view_pointer_t *pointer = lh_ui_view_get_slot(self, id);
     lh_return_if(lh_null_eq(pointer) || !lh_ui_view_pointer_is_active(pointer));
     lh_ui_point_t last;
@@ -1140,10 +1121,8 @@ lh_ui_view_drop_transition(lh_ui_view_t *self, const lh_ui_entity_t *entity)
 lh_void
 lh_ui_view_finish_transitions(lh_ui_view_t *self, const lh_ui_entity_t *subtree)
 {
-    int i;
-
     lh_assert_runtime_ref(self);
-    for (i = 0; i < LH_UI_VIEW_TRANSITION_MAX; ++i)
+    for (int i = 0; i < LH_UI_VIEW_TRANSITION_MAX; ++i)
     {
         lh_ui_transition_t *slot = lh_addr_of(lh_ui_view_get_transitions_mut(self)[i]);
         const lh_ui_entity_t *up = lh_ui_transition_get_entity(slot);
@@ -1205,11 +1184,10 @@ lh_bool_t
 lh_ui_view_advance(lh_ui_view_t *self, lh_u16_t ms)
 {
     lh_bool_t moved = lh_bool_false;
-    int i;
 
     lh_assert_runtime_ref(self);
     lh_return_if(ms == 0, lh_bool_false);
-    for (i = 0; i < LH_UI_VIEW_TRANSITION_MAX; ++i)
+    for (int i = 0; i < LH_UI_VIEW_TRANSITION_MAX; ++i)
     {
         lh_ui_transition_t *slot = lh_addr_of(lh_ui_view_get_transitions_mut(self)[i]);
         lh_ui_entity_t *entity = lh_ui_transition_get_entity(slot);
@@ -1234,19 +1212,15 @@ lh_ui_view_advance(lh_ui_view_t *self, lh_u16_t ms)
 lh_bool_t
 lh_ui_view_tick(lh_ui_view_t *self)
 {
-    lh_bool_t moved;
-
-    lh_bool_t faded;
-
     /* Looks first, whether or not anything glides: a frame that only fades is a
        frame to paint. */
-    faded = lh_ui_view_advance(self, LH_UI_VIEW_FRAME_MS);
+    lh_bool_t faded = lh_ui_view_advance(self, LH_UI_VIEW_FRAME_MS);
     lh_return_if(lh_null_eq(lh_ui_view_get_throwing(self)), faded);
     lh_ui_view_slow_down(lh_ptr_deref(lh_ui_view_get_velocity(self)),
                          lh_ui_view_get_velocity_mut(self));
-    moved = lh_ui_view_scroll_by(self, lh_ui_view_get_throwing(self),
-                                 lh_ui_point_get_x(lh_ui_view_get_velocity_mut(self)),
-                                 lh_ui_point_get_y(lh_ui_view_get_velocity_mut(self)));
+    lh_bool_t moved = lh_ui_view_scroll_by(self, lh_ui_view_get_throwing(self),
+                                           lh_ui_point_get_x(lh_ui_view_get_velocity_mut(self)),
+                                           lh_ui_point_get_y(lh_ui_view_get_velocity_mut(self)));
     lh_return_if(
         moved && !lh_ui_view_is_slow(lh_ptr_deref(lh_ui_view_get_velocity(self)), lh_ui_scalar(1)),
         lh_bool_true);

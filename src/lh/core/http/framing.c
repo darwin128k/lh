@@ -35,9 +35,9 @@ lh_http_framing_try_get_transfer(const lh_http_header_t *headers, lh_usize_t cou
     const lh_str_view_t chunked_value = lh_http_header_value_chunked;
     const lh_str_view_t gzip_value = lh_http_header_value_gzip;
     const lh_char_t comma = lh_char_map_comma;
-    lh_str_view_t part;
     lh_usize_t position = 0U;
     lh_bool_t delimiter;
+    lh_str_view_t part;
     if (!lh_str_view_split_next_of(value, &comma, 1U, &position, &part, &delimiter))
     {
         return lh_bool_false;

@@ -16,11 +16,11 @@ text(const lh_str_view_t &v)
 TEST(str_line_reader, reads_lines_and_counts_them)
 {
     lh_str_line_reader_t reader;
-    lh_str_view_t line;
 
     lh_str_line_reader_init(&reader, lh_str_view_lit("a\r\n\nb"));
     EXPECT_EQ(lh_str_line_reader_get_number(&reader), 0u);
 
+    lh_str_view_t line;
     ASSERT_TRUE(lh_str_line_reader_next(&reader, &line));
     EXPECT_EQ(text(line), "a");
     EXPECT_EQ(lh_str_line_reader_get_number(&reader), 1u);
@@ -40,9 +40,9 @@ TEST(str_line_reader, reads_lines_and_counts_them)
 TEST(str_line_reader, empty_text_has_no_lines)
 {
     lh_str_line_reader_t reader;
-    lh_str_view_t line;
 
     lh_str_line_reader_init(&reader, lh_str_view_empty());
+    lh_str_view_t line;
     EXPECT_FALSE(lh_str_line_reader_next(&reader, &line));
     EXPECT_EQ(lh_str_line_reader_get_number(&reader), 0u);
 }

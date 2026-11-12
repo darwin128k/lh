@@ -17,9 +17,8 @@ lh_os_timestamp_try_get_zone_offset(lh_timestamp_t utc, lh_s32_t *out)
 lh_bool_t
 lh_os_timestamp_try_get_local(lh_timestamp_t utc, lh_timestamp_t *out)
 {
-    lh_s32_t offset;
-
     lh_assert_runtime_ref(out);
+    lh_s32_t offset;
     if (!lh_os_timestamp_try_get_zone_offset(utc, lh_addr_of(offset)))
     {
         return lh_bool_false;
@@ -31,11 +30,10 @@ lh_os_timestamp_try_get_local(lh_timestamp_t utc, lh_timestamp_t *out)
 lh_bool_t
 lh_os_timestamp_try_get_utc(lh_timestamp_t local, lh_timestamp_t *out)
 {
-    lh_s32_t guess;
-
     lh_assert_runtime_ref(out);
     /* The offset at the wall clock read as UTC is off by at most one change; the
        offset at that first answer is the one in force there. */
+    lh_s32_t guess;
     if (!lh_os_timestamp_try_get_zone_offset(local, lh_addr_of(guess)))
     {
         return lh_bool_false;

@@ -186,9 +186,9 @@ class counting_runtime_allocator
    to the same allocator on close even when the runtime slot changed since. */
 TEST(os_mutex, native_storage_comes_from_the_runtime_allocator)
 {
-    storage_counter counter;
     lh_os_mutex_t mutex;
     lh_os_mutex_init(&mutex);
+    storage_counter counter;
     {
         counting_runtime_allocator scope(counter);
         ASSERT_TRUE(lh_os_mutex_open(&mutex));
@@ -216,9 +216,9 @@ TEST(os_mutex, open_fails_without_memory)
 
 TEST(os_condition, native_storage_comes_from_the_runtime_allocator)
 {
-    storage_counter counter;
     lh_os_condition_t condition;
     lh_os_condition_init(&condition);
+    storage_counter counter;
     {
         counting_runtime_allocator scope(counter);
         ASSERT_TRUE(lh_os_condition_open(&condition));
@@ -243,10 +243,10 @@ TEST(os_condition, open_fails_without_memory)
 
 TEST(os_thread, native_storage_comes_from_the_runtime_allocator)
 {
-    storage_counter counter;
     std::atomic_int callbacks{0};
     lh_os_thread_t thread;
     lh_os_thread_init(&thread);
+    storage_counter counter;
     {
         counting_runtime_allocator scope(counter);
         ASSERT_TRUE(lh_os_thread_start(&thread, count_callback, &callbacks, -1, 0));
@@ -259,10 +259,10 @@ TEST(os_thread, native_storage_comes_from_the_runtime_allocator)
 
 TEST(os_thread, a_rejected_start_gives_its_storage_back)
 {
-    storage_counter counter;
     std::atomic_int callbacks{0};
     lh_os_thread_t thread;
     lh_os_thread_init(&thread);
+    storage_counter counter;
     {
         counting_runtime_allocator scope(counter);
         EXPECT_FALSE(lh_os_thread_start(&thread, count_callback, &callbacks, -2, 0));
@@ -316,8 +316,8 @@ TEST(os_thread, invalid_starts_never_run_callbacks_and_join_is_idempotent)
 
 TEST(os_thread, self_join_preserves_worker_and_owner_error)
 {
-    self_join self;
     bool locked = false;
+    self_join self;
     lh_os_thread_init(&self.thread);
     lh_os_mutex_init(&self.gate);
     lh_test::scope_exit cleanup(
@@ -517,9 +517,9 @@ TEST(os_thread, applies_affinity_and_rejects_unavailable_cpu)
 TEST(os_condition, wait_for_returns_after_the_timeout)
 {
     lh_os_condition_t condition;
-    lh_os_mutex_t mutex;
 
     lh_os_condition_init(&condition);
+    lh_os_mutex_t mutex;
     lh_os_mutex_init(&mutex);
     ASSERT_TRUE(lh_os_condition_open(&condition));
     ASSERT_TRUE(lh_os_mutex_open(&mutex));

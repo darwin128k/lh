@@ -33,8 +33,8 @@ TEST(sql_address, init_names_nothing)
 TEST(sql_address, assign_copies_and_is_equal_compares_every_field)
 {
     lh_sql_address_t a;
-    lh_sql_address_t b;
     lh_sql_address_init(&a);
+    lh_sql_address_t b;
     lh_sql_address_init(&b);
     fill(&a);
     EXPECT_TRUE(lh_sql_address_is_set(&a));

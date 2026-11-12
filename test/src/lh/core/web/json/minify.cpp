@@ -53,9 +53,9 @@ TEST(json_minify, its_output_reads_like_the_input)
 
     lh_str_view_t view;
     lh_str_view_init_by_size(&view, text.data(), text.size());
-    lh_web_json_reader_t reader;
     lh_web_json_node_t root;
     lh_web_json_node_init(&root);
+    lh_web_json_reader_t reader;
     lh_web_json_reader_init(&reader, view);
     EXPECT_TRUE(lh_web_json_reader_read(&reader, &root)) << text;
     EXPECT_EQ(lh_web_json_node_get_size(&root), 2U);

@@ -3296,11 +3296,11 @@ lh_ui_web_player_page_create_mods(lh_void)
 lh_bool_t
 lh_ui_web_player_page_try_write_document(lh_str_t *out, lh_str_view_t script)
 {
-    lh_web_xml_writer_t writer;
     lh_web_xml_node_t *document = lh_web_xml_node_create_document();
 
     lh_web_xml_node_push_child(document, lh_web_xml_node_create_doctype(lh_str_view_lit("html")));
     lh_web_xml_node_push_child(document, lh_ui_web_player_page_create_html(script));
+    lh_web_xml_writer_t writer;
     lh_web_xml_writer_init(lh_addr_of(writer), out);
     lh_web_xml_writer_set_dialect(lh_addr_of(writer), lh_web_xml_dialect_html);
 
@@ -3363,12 +3363,11 @@ lh_ui_web_player_page_create_script(lh_void)
 lh_bool_t
 lh_ui_web_player_page_try_write_script(lh_str_t *out)
 {
-    lh_web_js_writer_t writer;
     lh_web_js_node_t *script = lh_ui_web_player_page_create_script();
-    lh_bool_t written;
 
+    lh_web_js_writer_t writer;
     lh_web_js_writer_init(lh_addr_of(writer), out);
-    written = lh_web_js_writer_try_write(lh_addr_of(writer), script);
+    lh_bool_t written = lh_web_js_writer_try_write(lh_addr_of(writer), script);
     lh_web_js_node_destroy(script);
     return written;
 }

@@ -31,13 +31,13 @@ struct parsed
 parsed
 read(const std::string &text)
 {
-    lh_web_xml_reader_t reader;
-    lh_web_xml_node_t doc;
-    lh_str_view_t view;
     parsed result{};
 
+    lh_str_view_t view;
     lh_str_view_init_by_size(&view, text.data(), text.size());
+    lh_web_xml_node_t doc;
     lh_web_xml_node_init(&doc);
+    lh_web_xml_reader_t reader;
     lh_web_xml_reader_init(&reader, view);
     result.ok = lh_web_xml_reader_read(&reader, &doc);
     result.error = lh_web_xml_reader_get_error(&reader);
@@ -71,10 +71,10 @@ error_of(const std::string &text)
 
 TEST(web_xml_reader, a_document_reads_into_a_tree)
 {
-    lh_web_xml_reader_t reader;
     lh_web_xml_node_t doc;
 
     lh_web_xml_node_init(&doc);
+    lh_web_xml_reader_t reader;
     lh_web_xml_reader_init(&reader, lh_str_view_lit("<a x=\"1\" y='2'>b &amp; c<d/></a>"));
     ASSERT_TRUE(lh_web_xml_reader_read(&reader, &doc));
     EXPECT_TRUE(lh_web_xml_node_has_kind(&doc, lh_web_xml_kind_document));
@@ -177,10 +177,10 @@ TEST(web_xml_reader, depth_is_limited)
 
 TEST(web_xml_reader, steps_work_on_their_own)
 {
-    lh_web_xml_reader_t reader;
     lh_str_t out;
 
     lh_str_init(&out);
+    lh_web_xml_reader_t reader;
     lh_web_xml_reader_init(&reader, lh_str_view_lit("ab:c-1 rest"));
     EXPECT_TRUE(lh_web_xml_reader_read_name_into(&reader, &out));
     EXPECT_EQ(text_of(&out), "ab:c-1");

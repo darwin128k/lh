@@ -51,8 +51,6 @@ lh_u16_t
 lh_mb_build_pdu_write(lh_byte_ptr pdu, lh_u16_t cap, lh_u16_t address, const lh_u16_t *values,
                       lh_u16_t count)
 {
-    lh_u16_t i;
-
     lh_return_if(lh_null_eq(pdu) || lh_null_eq(values), lh_cast_static(lh_u16_t, 0));
     lh_return_if(count == 0 || count > LH_MB_WRITE_MAX, lh_cast_static(lh_u16_t, 0));
     lh_return_if(cap < lh_cast_static(lh_u16_t, (6 + count * 2)), lh_cast_static(lh_u16_t, 0));
@@ -63,7 +61,7 @@ lh_mb_build_pdu_write(lh_byte_ptr pdu, lh_u16_t cap, lh_u16_t address, const lh_
     pdu[3] = lh_cast_static(lh_byte_t, ((count >> 8) & 0xFF));
     pdu[4] = lh_cast_static(lh_byte_t, (count & 0xFF));
     pdu[5] = lh_cast_static(lh_byte_t, (count * 2));
-    for (i = 0; i < count; ++i)
+    for (lh_u16_t i = 0; i < count; ++i)
     {
         pdu[6 + i * 2] = lh_cast_static(lh_byte_t, ((values[i] >> 8) & 0xFF));
         pdu[7 + i * 2] = lh_cast_static(lh_byte_t, (values[i] & 0xFF));
@@ -87,11 +85,10 @@ lh_u16_t
 lh_mb_build_read(lh_byte_ptr adu, lh_u16_t cap, lh_u8_t unit, lh_u8_t fc, lh_u16_t address,
                  lh_u16_t count)
 {
-    lh_byte_t pdu[16];
-
     lh_return_if(lh_null_eq(adu), lh_cast_static(lh_u16_t, 0));
     /* unit, PDU, CRC. */
     lh_return_if(cap < 8, lh_cast_static(lh_u16_t, 0));
+    lh_byte_t pdu[16];
     lh_u16_t pdu_length =
         lh_mb_build_pdu_read(pdu, lh_cast_static(lh_u16_t, sizeof(pdu)), fc, address, count);
     lh_return_if(pdu_length == 0, lh_cast_static(lh_u16_t, 0));
@@ -108,12 +105,11 @@ lh_u16_t
 lh_mb_build_write(lh_byte_ptr adu, lh_u16_t cap, lh_u8_t unit, lh_u16_t address,
                   const lh_u16_t *values, lh_u16_t count)
 {
-    lh_byte_t pdu[LH_MB_ADU_MAX];
-
     lh_return_if(lh_null_eq(adu) || lh_null_eq(values), lh_cast_static(lh_u16_t, 0));
     /* unit, PDU, CRC. */
     lh_return_if(count == 0 || count > LH_MB_READ_MAX, lh_cast_static(lh_u16_t, 0));
     lh_return_if(cap < lh_cast_static(lh_u16_t, (9 + count * 2)), lh_cast_static(lh_u16_t, 0));
+    lh_byte_t pdu[LH_MB_ADU_MAX];
     lh_u16_t pdu_length =
         lh_mb_build_pdu_write(pdu, lh_cast_static(lh_u16_t, sizeof(pdu)), address, values, count);
     lh_return_if(pdu_length == 0, lh_cast_static(lh_u16_t, 0));
@@ -264,7 +260,6 @@ lh_mb_status_t
 lh_mb_parse_read(lh_byte_cptr adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc, lh_u16_t expect,
                  lh_u16_t *values, lh_u16_t cap, lh_u16_t *out, lh_u8_t *exception)
 {
-    lh_byte_t pdu[LH_MB_ADU_MAX];
     lh_u16_t pdu_length = 0;
 
     if (out != lh_null)
@@ -316,6 +311,7 @@ lh_mb_parse_read(lh_byte_cptr adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc, lh
     {
         return lh_mb_status_crc;
     }
+    lh_byte_t pdu[LH_MB_ADU_MAX];
     pdu[0] = adu[1];
     lh_memory_std_copy(lh_addr_of(pdu[1]), lh_addr_of(adu[2]),
                        lh_cast_static(lh_usize_t, (length - 4)));

@@ -31,9 +31,9 @@ TEST(http_method_get_name, returns_known_wire_tokens)
 
 TEST(http_request_is_method, compares_case_sensitively_and_rejects_unknown_kinds)
 {
-    lh_http_request_t request;
     const lh_str_view_t upper = lh_str_view_initializer_lit("HEAD");
     const lh_str_view_t lower = lh_str_view_initializer_lit("head");
+    lh_http_request_t request;
     lh_http_request_set_method(lh_addr_of(request), upper);
     EXPECT_TRUE(lh_http_request_is_method(lh_addr_of(request), lh_http_method_head));
     EXPECT_FALSE(lh_http_request_is_method(lh_addr_of(request), lh_http_method_get));

@@ -9,9 +9,9 @@ namespace
 TEST(os_input_contacts, the_empty_initializer_is_what_init_leaves)
 {
     lh_os_input_contacts_t initialized = lh_os_input_contacts_empty_initializer();
-    lh_os_input_contacts_t contacts;
     lh_os_input_pointer_id_t pointer = 9U;
 
+    lh_os_input_contacts_t contacts;
     lh_os_input_contacts_init(lh_addr_of(contacts));
     EXPECT_EQ(lh_os_input_contacts_get_count(lh_addr_of(contacts)), 0U);
     EXPECT_EQ(lh_os_input_contacts_get_count(lh_addr_of(initialized)), 0U);
@@ -24,9 +24,9 @@ TEST(os_input_contacts, the_empty_initializer_is_what_init_leaves)
    the contacts went down, and 0 stays the mouse's. */
 TEST(os_input_contacts, contacts_take_the_lowest_free_ids_from_one)
 {
-    lh_os_input_contacts_t contacts;
     lh_os_input_pointer_id_t pointer = 0U;
 
+    lh_os_input_contacts_t contacts;
     lh_os_input_contacts_init(lh_addr_of(contacts));
     ASSERT_TRUE(lh_os_input_contacts_take(lh_addr_of(contacts), 1123U,
                                           lh_os_input_device_kind_touch, lh_addr_of(pointer)));
@@ -43,9 +43,9 @@ TEST(os_input_contacts, contacts_take_the_lowest_free_ids_from_one)
 
 TEST(os_input_contacts, a_second_down_of_one_contact_keeps_its_id)
 {
-    lh_os_input_contacts_t contacts;
     lh_os_input_pointer_id_t pointer = 0U;
 
+    lh_os_input_contacts_t contacts;
     lh_os_input_contacts_init(lh_addr_of(contacts));
     ASSERT_TRUE(lh_os_input_contacts_take(lh_addr_of(contacts), 40U, lh_os_input_device_kind_touch,
                                           lh_addr_of(pointer)));
@@ -57,9 +57,9 @@ TEST(os_input_contacts, a_second_down_of_one_contact_keeps_its_id)
 
 TEST(os_input_contacts, a_released_id_goes_to_the_next_contact)
 {
-    lh_os_input_contacts_t contacts;
     lh_os_input_pointer_id_t pointer = 0U;
 
+    lh_os_input_contacts_t contacts;
     lh_os_input_contacts_init(lh_addr_of(contacts));
     (void)lh_os_input_contacts_take(lh_addr_of(contacts), 10U, lh_os_input_device_kind_touch,
                                     lh_addr_of(pointer));
@@ -80,12 +80,11 @@ TEST(os_input_contacts, a_released_id_goes_to_the_next_contact)
 
 TEST(os_input_contacts, a_contact_past_the_ids_gets_none)
 {
-    lh_os_input_contacts_t contacts;
     lh_os_input_pointer_id_t pointer = 0U;
-    lh_os_input_contact_id_t contact;
 
+    lh_os_input_contacts_t contacts;
     lh_os_input_contacts_init(lh_addr_of(contacts));
-    for (contact = 0U; contact + 1U < LH_OS_INPUT_POINTER_MAX; ++contact)
+    for (lh_os_input_contact_id_t contact = 0U; contact + 1U < LH_OS_INPUT_POINTER_MAX; ++contact)
     {
         ASSERT_TRUE(lh_os_input_contacts_take(lh_addr_of(contacts), 100U + contact,
                                               lh_os_input_device_kind_touch, lh_addr_of(pointer)));

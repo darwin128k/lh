@@ -80,26 +80,26 @@ TEST(crypto_ed25519, rfc8032_vectors)
 
 TEST(crypto_ed25519, key_pair_wipes_the_seed)
 {
-    lh_byte_t seed[LH_CRYPTO_ED25519_SEED_SIZE];
-    lh_byte_t secret_key[LH_CRYPTO_ED25519_SECRET_KEY_SIZE];
-    lh_byte_t public_key[LH_CRYPTO_ED25519_PUBLIC_KEY_SIZE];
     lh_byte_t zero[LH_CRYPTO_ED25519_SEED_SIZE] = {};
 
+    lh_byte_t seed[LH_CRYPTO_ED25519_SEED_SIZE];
     std::memset(seed, 0x5A, sizeof(seed));
+    lh_byte_t secret_key[LH_CRYPTO_ED25519_SECRET_KEY_SIZE];
+    lh_byte_t public_key[LH_CRYPTO_ED25519_PUBLIC_KEY_SIZE];
     lh_crypto_ed25519_key_pair(secret_key, public_key, seed);
     EXPECT_EQ(std::memcmp(seed, zero, sizeof(seed)), 0);
 }
 
 TEST(crypto_ed25519, check_rejects_tampering)
 {
-    lh_byte_t seed[LH_CRYPTO_ED25519_SEED_SIZE];
-    lh_byte_t secret_key[LH_CRYPTO_ED25519_SECRET_KEY_SIZE];
-    lh_byte_t public_key[LH_CRYPTO_ED25519_PUBLIC_KEY_SIZE];
-    lh_byte_t signature[LH_CRYPTO_ED25519_SIGNATURE_SIZE];
     lh_byte_t message[] = {'l', 'h'};
 
+    lh_byte_t seed[LH_CRYPTO_ED25519_SEED_SIZE];
     std::memset(seed, 0x11, sizeof(seed));
+    lh_byte_t secret_key[LH_CRYPTO_ED25519_SECRET_KEY_SIZE];
+    lh_byte_t public_key[LH_CRYPTO_ED25519_PUBLIC_KEY_SIZE];
     lh_crypto_ed25519_key_pair(secret_key, public_key, seed);
+    lh_byte_t signature[LH_CRYPTO_ED25519_SIGNATURE_SIZE];
     lh_crypto_ed25519_sign(signature, secret_key, message, sizeof(message));
     ASSERT_TRUE(lh_crypto_ed25519_check(signature, public_key, message, sizeof(message)));
 
@@ -118,9 +118,9 @@ TEST(crypto_ed25519, null_arguments)
     lh_byte_t secret_key[LH_CRYPTO_ED25519_SECRET_KEY_SIZE] = {};
     lh_byte_t public_key[LH_CRYPTO_ED25519_PUBLIC_KEY_SIZE] = {};
     lh_byte_t signature[LH_CRYPTO_ED25519_SIGNATURE_SIZE];
-    lh_byte_t untouched[LH_CRYPTO_ED25519_SIGNATURE_SIZE];
 
     std::memset(signature, 0xA5, sizeof(signature));
+    lh_byte_t untouched[LH_CRYPTO_ED25519_SIGNATURE_SIZE];
     std::memcpy(untouched, signature, sizeof(signature));
     lh_crypto_ed25519_key_pair(nullptr, public_key, nullptr);
     lh_crypto_ed25519_sign(signature, secret_key, nullptr, 1U);
@@ -131,9 +131,9 @@ TEST(crypto_ed25519, null_arguments)
 
 TEST(crypto_wipe, zeroes_the_bytes)
 {
-    lh_byte_t secret[17];
     lh_byte_t zero[17] = {};
 
+    lh_byte_t secret[17];
     std::memset(secret, 0xFF, sizeof(secret));
     lh_crypto_wipe(secret, sizeof(secret));
     EXPECT_EQ(std::memcmp(secret, zero, sizeof(secret)), 0);

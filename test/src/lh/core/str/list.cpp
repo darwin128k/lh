@@ -111,10 +111,8 @@ TEST_F(str_list, push_back_str_copies_the_string)
 
 TEST_F(str_list, growth_keeps_earlier_elements)
 {
-    int i;
-
     lh_str_list_push_back(&list, lh_str_view_lit("first"));
-    for (i = 0; i < 1000; ++i)
+    for (int i = 0; i < 1000; ++i)
     {
         lh_str_list_push_back(&list, lh_str_view_lit("grow"));
     }
@@ -137,11 +135,10 @@ TEST_F(str_list, clear_keeps_buffers_for_reuse)
 
 TEST_F(str_list, join_glues_with_separator)
 {
-    lh_str_t out;
-
     lh_str_list_push_back(&list, lh_str_view_lit("one"));
     lh_str_list_push_back(&list, lh_str_view_lit(""));
     lh_str_list_push_back(&list, lh_str_view_lit("three"));
+    lh_str_t out;
     lh_str_init(&out);
     lh_str_list_join(&list, &out, ',');
     EXPECT_STREQ(lh_str_get_data(&out), "one,,three");
@@ -150,10 +147,9 @@ TEST_F(str_list, join_glues_with_separator)
 
 TEST_F(str_list, assign_copies_every_element)
 {
-    lh_str_list_t copy;
-
     lh_str_list_push_back(&list, lh_str_view_lit("x"));
     lh_str_list_push_back(&list, lh_str_view_lit("yy"));
+    lh_str_list_t copy;
     lh_str_list_init(&copy);
     lh_str_list_push_back(&copy, lh_str_view_lit("old"));
     lh_str_list_assign(&copy, &list);
@@ -166,9 +162,8 @@ TEST_F(str_list, assign_copies_every_element)
 
 TEST_F(str_list, append_other_and_self)
 {
-    lh_str_list_t other;
-
     lh_str_list_push_back(&list, lh_str_view_lit("a"));
+    lh_str_list_t other;
     lh_str_list_init(&other);
     lh_str_list_push_back(&other, lh_str_view_lit("b"));
     lh_str_list_push_back(&other, lh_str_view_lit("c"));

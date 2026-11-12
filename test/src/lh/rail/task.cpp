@@ -51,13 +51,13 @@ TEST(rail_task_initializer, holds_the_calls_and_an_empty_link)
 
 TEST(rail_task_set, each_field_stands_alone)
 {
-    calls c;
     lh_rail_task_t task = lh_rail_task_initializer(record_work, lh_null, lh_null, lh_null);
     lh_rail_task_set_complete_cb(&task, record_complete);
     EXPECT_EQ(lh_rail_task_get_complete_cb(&task), record_complete);
     EXPECT_EQ(lh_rail_task_get_destroy_cb(&task), nullptr);
     lh_rail_task_set_destroy_cb(&task, record_destroy);
     EXPECT_EQ(lh_rail_task_get_destroy_cb(&task), record_destroy);
+    calls c;
     lh_rail_task_set_user(&task, &c);
     EXPECT_EQ(lh_rail_task_get_user(&task), &c);
     lh_rail_task_set_work_cb(&task, lh_null);
@@ -72,10 +72,10 @@ TEST(rail_task_set, each_field_stands_alone)
 
 TEST(rail_task_init, clears_the_link)
 {
-    calls c;
     lh_rail_task_t other = lh_rail_task_initializer(record_work, lh_null, lh_null, lh_null);
     lh_rail_task_t task;
     lh_atomic_ptr_set_relaxed(lh_rail_task_get_next_mut(&task), &other);
+    calls c;
     lh_rail_task_set_mailbox(&task, reinterpret_cast<struct lh_rail_mailbox *>(&c));
     lh_rail_task_set_cancelled(&task, lh_bool_true);
     lh_rail_task_init(&task, record_work, record_complete, record_destroy, &c);
@@ -96,8 +96,8 @@ TEST(rail_task_get_next_task, reads_the_link)
 
 TEST(rail_task_run, work_complete_and_destroy_receive_their_pointers)
 {
-    calls c;
     int local = 0;
+    calls c;
     lh_rail_task_t task =
         lh_rail_task_initializer(record_work, record_complete, record_destroy, &c);
     lh_rail_task_run_work(&task, &local);

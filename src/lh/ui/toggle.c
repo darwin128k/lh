@@ -148,14 +148,12 @@ lh_ui_toggle_get_on_click(const lh_ui_toggle_t *self)
 lh_void
 lh_ui_toggle_on_click(const lh_ui_toggle_t *self, const lh_ui_entity_event_t *event)
 {
-    lh_ui_toggle_on_click_cb on_click;
-
     lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_click);
     /* A toggle answers with itself: what a click means here is that the state
        changed, and that is this component's business. The app is told after the
        flip, so it reads the new state rather than tracking which way it went. */
     lh_ui_toggle_set_checked_v(lh_ptr_rcast(lh_ui_toggle_t, self), !lh_ui_toggle_get_checked(self));
-    on_click = lh_ui_toggle_get_on_click(self);
+    lh_ui_toggle_on_click_cb on_click = lh_ui_toggle_get_on_click(self);
     lh_return_if(lh_null_eq(on_click));
     on_click(lh_ptr_rcast(lh_ui_toggle_t, self), lh_ui_toggle_get_click_context(self));
 }

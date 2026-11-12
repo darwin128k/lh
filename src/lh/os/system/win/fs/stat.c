@@ -64,13 +64,12 @@ LH_ATTRIBUTE_STATIC
 lh_bool_t
 lh_os_system_fs_is_symlink(lh_wstr_cptr path, lh_os_system_win_dword_t attrs, lh_bool_t *out)
 {
-    lh_os_system_win_find_data_t data;
-
     if (lh_math_is_zero(lh_bit_and(attrs, LH_OS_SYSTEM_WIN_FILE_ATTRIBUTE_REPARSE_POINT)))
     {
         lh_ptr_deref(out) = lh_bool_false;
         return lh_bool_true;
     }
+    lh_os_system_win_find_data_t data;
     const lh_os_system_win_handle_t find = FindFirstFileW(path, lh_addr_of(data));
     if (lh_math_eq(find, LH_OS_SYSTEM_WIN_INVALID_HANDLE))
     {

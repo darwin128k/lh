@@ -326,10 +326,8 @@ lh_web_js_lexer_get_error_buffer_mut(lh_web_js_lexer_t *self)
 lh_bool_t
 lh_web_js_lexer_is_keyword(const lh_str_view_t *text)
 {
-    lh_usize_t i;
-
     lh_assert_runtime_ref(text);
-    for (i = 0U; i < lh_array_ptr_get_size(LH_WEB_JS_KEYWORDS); ++i)
+    for (lh_usize_t i = 0U; i < lh_array_ptr_get_size(LH_WEB_JS_KEYWORDS); ++i)
     {
         if (lh_str_view_equals(text, lh_addr_of(LH_WEB_JS_KEYWORDS[i]), lh_bool_false))
         {
@@ -430,11 +428,9 @@ lh_web_js_lexer_init(lh_web_js_lexer_t *self, lh_str_cptr text, lh_usize_t len)
 lh_bool_t
 lh_web_js_lexer_get_error(const lh_web_js_lexer_t *self, lh_str_ptr *message, lh_usize_t *len)
 {
-    lh_usize_t size;
-
     lh_assert_runtime_ref(message);
     lh_assert_runtime_ref(len);
-    size = lh_web_js_lexer_get_error_message_len(self);
+    lh_usize_t size = lh_web_js_lexer_get_error_message_len(self);
     if (lh_math_is_zero(size))
     {
         return lh_bool_false;
@@ -447,10 +443,8 @@ lh_web_js_lexer_get_error(const lh_web_js_lexer_t *self, lh_str_ptr *message, lh
 lh_void
 lh_web_js_lexer_set_error(lh_web_js_lexer_t *self, lh_str_cptr message, lh_usize_t len)
 {
-    lh_str_ptr buffer;
-
     lh_assert_runtime_ref(message);
-    buffer = lh_web_js_lexer_get_error_buffer_mut(self);
+    lh_str_ptr buffer = lh_web_js_lexer_get_error_buffer_mut(self);
     const lh_usize_t size =
         lh_str_ptr_copy_cstr(buffer, LH_WEB_JS_LEXER_ERROR_MESSAGE_MAX, message, len);
     lh_web_js_lexer_set_error_message(self, buffer);
@@ -735,14 +729,13 @@ lh_bool_t
 lh_web_js_lexer_scan_code_point(lh_web_js_lexer_t *self)
 {
     lh_usize_t start = lh_web_js_lexer_get_pos(self);
-    lh_usize_t digits;
     lh_uint_t value = 0;
 
     while (!lh_web_js_lexer_is_at_end(self) && lh_char_is_xdigit(lh_web_js_lexer_get_char(self)))
     {
         lh_web_js_lexer_advance(self);
     }
-    digits = lh_web_js_lexer_get_pos(self) - start;
+    lh_usize_t digits = lh_web_js_lexer_get_pos(self) - start;
     if (lh_math_is_zero(digits) || lh_math_gt(digits, 6U) ||
         !lh_str_ptr_parse_hex(lh_web_js_lexer_get_text(self) + start, digits, LH_UINT_T_MAX,
                               lh_addr_of(value)) ||
@@ -781,11 +774,10 @@ lh_bool_t
 lh_web_js_lexer_scan_punctuation(lh_web_js_lexer_t *self)
 {
     lh_usize_t start = lh_web_js_lexer_get_pos(self);
-    lh_usize_t len;
 
     lh_str_view_t rest;
     lh_web_js_lexer_get_rest(self, lh_addr_of(rest));
-    len = lh_web_js_lexer_find_punctuation(lh_addr_of(rest));
+    lh_usize_t len = lh_web_js_lexer_find_punctuation(lh_addr_of(rest));
     if (lh_math_is_zero(len))
     {
         lh_web_js_lexer_set_error(self, LH_WEB_JS_ERROR_UNEXPECTED_CHAR,
@@ -911,8 +903,6 @@ lh_web_js_lexer_scan_string(lh_web_js_lexer_t *self)
 lh_bool_t
 lh_web_js_lexer_next(lh_web_js_lexer_t *self)
 {
-    lh_char_t ch;
-
     lh_web_js_lexer_clear_error(self);
 
     if (!lh_web_js_lexer_skip_space(self))
@@ -931,7 +921,7 @@ lh_web_js_lexer_next(lh_web_js_lexer_t *self)
         return lh_bool_false;
     }
 
-    ch = lh_web_js_lexer_get_char(self);
+    lh_char_t ch = lh_web_js_lexer_get_char(self);
     if (lh_web_js_lexer_is_name_start(ch))
     {
         return lh_web_js_lexer_scan_name(self);

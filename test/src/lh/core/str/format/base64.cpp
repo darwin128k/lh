@@ -31,10 +31,10 @@ TEST(str_ptr_format_base64, rfc4648_vectors)
 
 TEST(str_ptr_format_base64, size_and_no_room)
 {
-    char out[4];
     EXPECT_EQ(lh_str_ptr_format_base64_size(0U), 0U);
     EXPECT_EQ(lh_str_ptr_format_base64_size(1U), 4U);
     EXPECT_EQ(lh_str_ptr_format_base64_size(20U), 28U);
+    char out[4];
     EXPECT_EQ(lh_str_ptr_format_base64(const_cast<char *>("foob"), 4U, out, sizeof(out)), 0U);
 }
 

@@ -134,19 +134,15 @@ lh_real_grisu_digits(lh_real_diy_t w, lh_real_diy_t upper, lh_u64_t delta, lh_ch
 lh_void
 lh_real_grisu(lh_real_t value, lh_char_t *digits, lh_usize_t *count, lh_s32_t *k)
 {
+    lh_assert_runtime_ref(k);
     lh_real_diy_t minus;
     lh_real_diy_t plus;
-    lh_real_diy_t power;
-    lh_real_diy_t w;
-    lh_usize_t index;
-
-    lh_assert_runtime_ref(k);
     lh_real_diy_get_boundaries(value, lh_addr_of(minus), lh_addr_of(plus));
-    index = lh_real_cached_find(lh_real_diy_get_e(lh_addr_of(plus)));
-    power = lh_real_cached_get(index);
+    lh_usize_t index = lh_real_cached_find(lh_real_diy_get_e(lh_addr_of(plus)));
+    lh_real_diy_t power = lh_real_cached_get(index);
     lh_ptr_deref(k) = lh_math_neg(lh_real_cached_get_k(index));
 
-    w = lh_real_diy_mul(lh_real_diy_normalize(lh_real_diy_from_real(value)), power);
+    lh_real_diy_t w = lh_real_diy_mul(lh_real_diy_normalize(lh_real_diy_from_real(value)), power);
     plus = lh_real_diy_mul(plus, power);
     minus = lh_real_diy_mul(minus, power);
     /* One unit in from each boundary: the products are rounded, and a digit

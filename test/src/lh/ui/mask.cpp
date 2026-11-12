@@ -72,9 +72,9 @@ TEST(ui_mask, one_bit_pixels_are_off_or_full)
 TEST(ui_mask, rect_starts_at_the_origin)
 {
     lh_ui_mask_t mask;
-    lh_ui_point_t origin;
 
     lh_ui_mask_init(lh_addr_of(mask), g_bits4, 3, 2, 2, 4);
+    lh_ui_point_t origin;
     lh_ui_point_init(lh_addr_of(origin), 5, 6);
     EXPECT_TRUE(rect_is(lh_test::out(lh_ui_mask_get_rect, lh_addr_of(mask), origin), rect_of(5, 6, 3, 2)));
 }
@@ -85,17 +85,17 @@ TEST(ui_mask, rect_starts_at_the_origin)
    The answer to compare against is the per-pixel one the loop ends up being. */
 TEST(ui_mask, coverage_run_is_the_per_pixel_coverage_for_every_start_and_length)
 {
-    lh_byte_t bits[4 * 12];
-    lh_ui_mask_t mask;
     const int width = 20;
     const int row_bytes = (width * 4) / 8;
 
     /* Two rows of distinct nibbles, no two alike, so a swapped or shifted sample
        cannot land on the value it should have. */
+    lh_byte_t bits[4 * 12];
     for (int i = 0; i < 4 * 12; ++i)
     {
         bits[i] = static_cast<lh_byte_t>((i * 37 + 11) & 0xFF);
     }
+    lh_ui_mask_t mask;
     lh_ui_mask_init(lh_addr_of(mask), bits, width, 2, row_bytes, 4);
 
     for (int y = -1; y < 3; ++y)

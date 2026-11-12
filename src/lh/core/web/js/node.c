@@ -282,9 +282,8 @@ lh_web_js_node_reset_operator(lh_web_js_node_t *self, lh_web_js_kind_t kind, lh_
 lh_void
 lh_web_js_node_set_number(lh_web_js_node_t *self, lh_ullong_t value)
 {
-    lh_char_t digits[LH_WEB_JS_NODE_INTEGER_DIGITS_MAX];
-
     lh_web_js_node_reset(self, lh_web_js_kind_number);
+    lh_char_t digits[LH_WEB_JS_NODE_INTEGER_DIGITS_MAX];
     lh_str_append(lh_web_js_node_get_text_mut(self), digits,
                   lh_str_ptr_format_ullong(value, digits, LH_WEB_JS_NODE_INTEGER_DIGITS_MAX));
 }

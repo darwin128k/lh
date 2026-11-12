@@ -145,7 +145,6 @@ lh_ui_radius_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t
         lh_ptr_deref(out_x1) = right;
         return;
     }
-    lh_s64_t reach;
 
     /* How far past the corner center a pixel still counts as wholly inside.
        lh_ui_radius_cover_from_square answers 255 while dx * dx + dy * dy is at
@@ -159,16 +158,17 @@ lh_ui_radius_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t
        by ~256, not by one. An incrementing walk therefore costs ~256 steps per
        pixel where lh_math_isqrt_u64 costs 62 ns for the whole root, and measured
        against it the walk made a 240x160 r8 rectangle 18% slower (r16 22%). */
-    reach = inner > 0
-                ? lh_cast_static(lh_s64_t, lh_math_isqrt_u64(lh_cast_static(
-                                               lh_u64_t, lh_math_max(inner * inner - dy * dy, 0))))
-                : 0;
+    lh_s64_t reach =
+        inner > 0
+            ? lh_cast_static(lh_s64_t, lh_math_isqrt_u64(lh_cast_static(
+                                           lh_u64_t, lh_math_max(inner * inner - dy * dy, 0))))
+            : 0;
     lh_s64_t inside = near - reach;
-    lh_s32_t at;
     /* The first pixel whose center is at or past that point: center(x) is
        x * SUBPIXEL + half, so x is the ceiling of (inside - half) / SUBPIXEL. */
-    at = lh_cast_static(lh_s32_t, lh_math_neg(lh_math_floor_div(LH_UI_RADIUS_SUBPIXEL / 2 - inside,
-                                                                LH_UI_RADIUS_SUBPIXEL)));
+    lh_s32_t at = lh_cast_static(
+        lh_s32_t,
+        lh_math_neg(lh_math_floor_div(LH_UI_RADIUS_SUBPIXEL / 2 - inside, LH_UI_RADIUS_SUBPIXEL)));
     lh_ptr_deref(out_x0) = lh_math_max(at, left);
     lh_ptr_deref(out_x1) = lh_math_max(right - (lh_ptr_deref(out_x0) - left), lh_ptr_deref(out_x0));
 }

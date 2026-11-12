@@ -135,10 +135,10 @@ lh_os_input_queue_pop(lh_os_input_queue_t *self, lh_os_input_event_t *out)
 lh_u16_t
 lh_os_input_queue_drain(lh_os_input_queue_t *self, lh_os_input_sink_cb sink, lh_ptr context)
 {
-    lh_os_input_event_t event;
     lh_u16_t count = 0U;
 
     lh_assert_runtime_ref(sink);
+    lh_os_input_event_t event;
     while (lh_os_input_queue_pop(self, lh_addr_of(event)))
     {
         sink(context, lh_addr_of(event));

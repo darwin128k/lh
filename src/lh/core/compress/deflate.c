@@ -354,7 +354,6 @@ lh_compress_deflate_try_dynamic(const lh_byte_t *input, lh_usize_t input_size, l
     }
     lh_byte_t code_lengths[19];
     lh_memory_std_set(code_lengths, 0U, sizeof(code_lengths));
-    lh_byte_t lengths[320];
     for (lh_uint_t i = 0U; lh_math_lt(i, hclen); i = lh_math_add_one(i))
     {
         lh_uint_t n;
@@ -371,6 +370,7 @@ lh_compress_deflate_try_dynamic(const lh_byte_t *input, lh_usize_t input_size, l
         return lh_bool_false;
     }
     const lh_uint_t total = lh_math_add(hlit, hdist);
+    lh_byte_t lengths[320];
     for (lh_uint_t i = 0U; lh_math_lt(i, total);)
     {
         lh_uint_t symbol;

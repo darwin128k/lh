@@ -25,10 +25,10 @@ view_of(const std::string &s)
 std::string
 write(const lh_web_json_node_t *node, lh_usize_t indent)
 {
-    lh_web_json_writer_t writer;
     lh_str_t out;
 
     lh_str_init(&out);
+    lh_web_json_writer_t writer;
     lh_web_json_writer_init(&writer, &out, indent);
     lh_web_json_writer_write(&writer, node);
     std::string text(lh_str_get_data(&out) ? lh_str_get_data(&out) : "", lh_str_get_size(&out));
@@ -40,10 +40,10 @@ write(const lh_web_json_node_t *node, lh_usize_t indent)
 std::string
 rewrite(const std::string &json, lh_usize_t indent = 0U)
 {
-    lh_web_json_reader_t reader;
     lh_web_json_node_t root;
 
     lh_web_json_node_init(&root);
+    lh_web_json_reader_t reader;
     lh_web_json_reader_init(&reader, view_of(json));
     EXPECT_TRUE(lh_web_json_reader_read(&reader, &root)) << json;
     std::string text = write(&root, indent);
@@ -110,13 +110,13 @@ TEST(json_writer, a_node_holding_nothing_is_null)
 TEST(json_writer, appends_and_never_clears)
 {
     lh_web_json_node_t node;
-    lh_web_json_writer_t writer;
-    lh_str_t out;
 
     lh_web_json_node_init(&node);
     lh_web_json_node_set_bool(&node, lh_bool_true);
+    lh_str_t out;
     lh_str_init(&out);
     lh_str_append_view(&out, lh_str_view_lit("x="));
+    lh_web_json_writer_t writer;
     lh_web_json_writer_init(&writer, &out, 0U);
     lh_web_json_writer_write(&writer, &node);
     EXPECT_EQ(std::string(lh_str_get_data(&out), lh_str_get_size(&out)), "x=true");

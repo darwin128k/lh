@@ -225,8 +225,6 @@ lh_logger_assign(lh_logger_t *self, const lh_logger_t *other)
 lh_ssize_t
 lh_logger_log_v(lh_logger_t *self, lh_logger_level_t level, lh_str_cptr fmt, va_list args)
 {
-    lh_logger_emit_cb emit_cb;
-
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(fmt);
     lh_assert_runtime_if(level > lh_logger_level_debug, lh_runtime_error_code_invalid_argument);
@@ -236,7 +234,7 @@ lh_logger_log_v(lh_logger_t *self, lh_logger_level_t level, lh_str_cptr fmt, va_
         return 0;
     }
 
-    emit_cb = lh_logger_get_emit_cb(self, level);
+    lh_logger_emit_cb emit_cb = lh_logger_get_emit_cb(self, level);
     if (lh_null_eq(lh_ptr_rcast(lh_void, emit_cb)))
     {
         return 0;

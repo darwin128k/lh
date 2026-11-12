@@ -75,13 +75,11 @@ lh_str_format_float_big_as_u64(const lh_numeric_big_t *self, lh_u64_t *out)
 lh_bool_t
 lh_str_format_float_u64_mul_pow10(lh_u64_t *x, lh_usize_t k)
 {
-    lh_u64_t p;
-
     if (lh_math_ge(k, 20U))
     {
         return lh_bool_false;
     }
-    p = lh_str_format_float_pow10[k];
+    lh_u64_t p = lh_str_format_float_pow10[k];
     if (lh_math_gt(lh_ptr_deref(x), lh_math_div(LH_U64_T_MAX, p)))
     {
         return lh_bool_false;
@@ -111,13 +109,11 @@ lh_str_format_float_unpack(lh_u32_t bits, lh_u32_t *mantissa, lh_sint_t *e)
 lh_bool_t
 lh_str_format_float_u32_mul_pow10(lh_u32_t *x, lh_usize_t k)
 {
-    lh_u32_t p;
-
     if (lh_math_ge(k, 10U)) /* 10^10 does not fit in u32 */
     {
         return lh_bool_false;
     }
-    p = lh_cast_static(lh_u32_t, lh_str_format_float_pow10[k]);
+    lh_u32_t p = lh_cast_static(lh_u32_t, lh_str_format_float_pow10[k]);
     if (lh_math_gt(lh_ptr_deref(x), lh_math_div(LH_U32_T_MAX, p)))
     {
         return lh_bool_false;
@@ -156,19 +152,15 @@ lh_bool_t
 lh_str_format_float_scale_u32(lh_u32_t mantissa, lh_sint_t e, lh_u32_t *num, lh_u32_t *den,
                               lh_sint_t *d10_out)
 {
-    lh_sint_t d10;
-    lh_u32_t n;
-    lh_u32_t d;
-
     if (lh_math_lt(e, -31) || lh_math_gt(e, 31))
     {
         return lh_bool_false;
     }
 
-    d10 = lh_str_format_float_floor_log10_pow2(
+    lh_sint_t d10 = lh_str_format_float_floor_log10_pow2(
         lh_math_add(e, lh_cast_static(lh_sint_t, lh_bit_scan_reverse_u32(mantissa))));
-    n = mantissa;
-    d = 1U;
+    lh_u32_t n = mantissa;
+    lh_u32_t d = 1U;
 
     if (lh_math_gt(e, 0))
     {
@@ -242,7 +234,6 @@ lh_str_format_float_get_digits_u32(lh_u32_t num, lh_u32_t den, lh_usize_t precis
                                    lh_str_ptr digits)
 {
     lh_u32_t rem = num;
-    lh_sint_t order;
 
     for (lh_usize_t i = 0U; lh_math_lt(i, precision); i = lh_math_add_one(i))
     {
@@ -257,7 +248,7 @@ lh_str_format_float_get_digits_u32(lh_u32_t num, lh_u32_t den, lh_usize_t precis
     }
 
     rem = lh_math_mul(rem, 2U);
-    order = lh_math_lt(rem, den) ? -1 : (lh_math_eq(rem, den) ? 0 : 1);
+    lh_sint_t order = lh_math_lt(rem, den) ? -1 : (lh_math_eq(rem, den) ? 0 : 1);
     return lh_str_format_float_round_digits(order, precision, digits);
 }
 
@@ -265,21 +256,16 @@ lh_bool_t
 lh_str_format_float_scale_u64(lh_u32_t mantissa, lh_sint_t e, lh_u64_t *num, lh_u64_t *den,
                               lh_sint_t *d10_out)
 {
-    lh_sint_t d10;
-    lh_u64_t n;
-    lh_u64_t d;
-    lh_bool_t ok;
-
     if (lh_math_lt(e, -63) || lh_math_gt(e, 63))
     {
         return lh_bool_false;
     }
 
-    d10 = lh_str_format_float_floor_log10_pow2(
+    lh_sint_t d10 = lh_str_format_float_floor_log10_pow2(
         lh_math_add(e, lh_cast_static(lh_sint_t, lh_bit_scan_reverse_u32(mantissa))));
-    n = lh_cast_static(lh_u64_t, mantissa);
-    d = 1ULL;
-    ok = lh_bool_true;
+    lh_u64_t n = lh_cast_static(lh_u64_t, mantissa);
+    lh_u64_t d = 1ULL;
+    lh_bool_t ok = lh_bool_true;
 
     if (lh_math_gt(e, 0))
     {
@@ -343,7 +329,6 @@ lh_str_format_float_get_digits_u64(lh_u64_t num, lh_u64_t den, lh_usize_t precis
                                    lh_str_ptr digits)
 {
     lh_u64_t rem = num;
-    lh_sint_t order;
 
     for (lh_usize_t i = 0U; lh_math_lt(i, precision); i = lh_math_add_one(i))
     {
@@ -358,7 +343,7 @@ lh_str_format_float_get_digits_u64(lh_u64_t num, lh_u64_t den, lh_usize_t precis
     }
 
     rem = lh_math_mul(rem, 2U);
-    order = lh_math_lt(rem, den) ? -1 : (lh_math_eq(rem, den) ? 0 : 1);
+    lh_sint_t order = lh_math_lt(rem, den) ? -1 : (lh_math_eq(rem, den) ? 0 : 1);
     return lh_str_format_float_round_digits(order, precision, digits);
 }
 
@@ -413,12 +398,9 @@ lh_str_format_float_scale(lh_u32_t bits, lh_numeric_big_t *num, lh_numeric_big_t
 {
     lh_u32_t mantissa;
     lh_sint_t e;
-    lh_sint_t d10;
-    lh_u64_t n64;
-    lh_u64_t d64;
-    lh_numeric_big_t next;
 
     lh_str_format_float_unpack(bits, lh_addr_of(mantissa), lh_addr_of(e));
+    lh_sint_t d10;
     {
         lh_u32_t n32;
         lh_u32_t d32;
@@ -431,6 +413,8 @@ lh_str_format_float_scale(lh_u32_t bits, lh_numeric_big_t *num, lh_numeric_big_t
             return d10;
         }
     }
+    lh_u64_t n64;
+    lh_u64_t d64;
     if (lh_str_format_float_scale_u64(mantissa, e, lh_addr_of(n64), lh_addr_of(d64),
                                       lh_addr_of(d10)))
     {
@@ -459,6 +443,7 @@ lh_str_format_float_scale(lh_u32_t bits, lh_numeric_big_t *num, lh_numeric_big_t
     {
         lh_numeric_big_mul_u32(num, 10U);
     }
+    lh_numeric_big_t next;
     for (;;)
     {
         next = lh_ptr_deref(den);
@@ -482,7 +467,6 @@ lh_bool_t
 lh_str_format_float_get_digits(lh_numeric_big_t *num, const lh_numeric_big_t *den,
                                lh_usize_t precision, lh_str_ptr digits)
 {
-    lh_sint_t order;
     lh_usize_t k = precision;
     lh_u64_t num64;
     lh_u64_t den64;
@@ -511,7 +495,7 @@ lh_str_format_float_get_digits(lh_numeric_big_t *num, const lh_numeric_big_t *de
     }
 
     lh_numeric_big_mul_u32(num, 2U);
-    order = lh_numeric_big_compare(num, den);
+    lh_sint_t order = lh_numeric_big_compare(num, den);
     if (lh_math_lt(order, 0) ||
         (lh_math_eq(order, 0) &&
          lh_math_is_zero(lh_bit_and(lh_char_to_digit(digits[lh_math_sub_one(precision)]), 1U))))
@@ -602,27 +586,17 @@ lh_usize_t
 lh_str_ptr_format_float(lh_float_t value, lh_usize_t digits, lh_str_ptr str, lh_usize_t str_size)
 {
     lh_u32_t bits;
-    lh_char_t tmp[LH_STR_FORMAT_FLOAT_TMP];
-    lh_char_t d[LH_STR_FORMAT_FLOAT_DIGITS_MAX];
-    lh_usize_t n;
-    lh_usize_t precision;
-    lh_usize_t nd;
-    lh_sint_t d10;
-    lh_u32_t mantissa;
-    lh_sint_t e;
-    lh_u64_t num64;
-    lh_u64_t den64;
-    lh_numeric_big_t num;
-    lh_numeric_big_t den;
 
     lh_memory_std_copy(lh_addr_of(bits), lh_addr_of(value), sizeof(bits));
-    n = lh_str_format_float_put_special(bits, tmp);
+    lh_char_t tmp[LH_STR_FORMAT_FLOAT_TMP];
+    lh_usize_t n = lh_str_format_float_put_special(bits, tmp);
     if (lh_math_ne(n, 0U))
     {
         return lh_str_ptr_format_put(str, str_size, tmp, n);
     }
 
     /* Exact integers with |v| < 2^24 when %g would use fixed form (not e+XX). */
+    lh_usize_t precision;
     {
         const lh_u32_t exp_bits = lh_bit_and(lh_bit_shr(bits, 23U), 0xFFU);
         const lh_u32_t man = lh_bit_and(bits, 0x7FFFFFU);
@@ -670,23 +644,29 @@ lh_str_ptr_format_float(lh_float_t value, lh_usize_t digits, lh_str_ptr str, lh_
     }
 
     precision = lh_str_format_float_get_precision(digits);
+    lh_u32_t mantissa;
+    lh_sint_t e;
     lh_str_format_float_unpack(bits, lh_addr_of(mantissa), lh_addr_of(e));
 
+    lh_char_t d[LH_STR_FORMAT_FLOAT_DIGITS_MAX];
     /* Prefer u32 (HW div), then u64, then 256-bit big. */
+    lh_sint_t d10;
+    lh_u32_t num32;
+    lh_u32_t den32;
+    if (lh_str_format_float_scale_u32(mantissa, e, lh_addr_of(num32), lh_addr_of(den32),
+                                      lh_addr_of(d10)))
     {
-        lh_u32_t num32;
-        lh_u32_t den32;
-
-        if (lh_str_format_float_scale_u32(mantissa, e, lh_addr_of(num32), lh_addr_of(den32),
-                                          lh_addr_of(d10)))
+        if (lh_str_format_float_get_digits_u32(num32, den32, precision, d))
         {
-            if (lh_str_format_float_get_digits_u32(num32, den32, precision, d))
-            {
-                d10 = lh_math_add_one(d10);
-            }
+            d10 = lh_math_add_one(d10);
         }
-        else if (lh_str_format_float_scale_u64(mantissa, e, lh_addr_of(num64), lh_addr_of(den64),
-                                               lh_addr_of(d10)))
+    }
+    else
+    {
+        lh_u64_t num64;
+        lh_u64_t den64;
+        if (lh_str_format_float_scale_u64(mantissa, e, lh_addr_of(num64), lh_addr_of(den64),
+                                          lh_addr_of(d10)))
         {
             if (lh_str_format_float_get_digits_u64(num64, den64, precision, d))
             {
@@ -695,6 +675,8 @@ lh_str_ptr_format_float(lh_float_t value, lh_usize_t digits, lh_str_ptr str, lh_
         }
         else
         {
+            lh_numeric_big_t num;
+            lh_numeric_big_t den;
             d10 = lh_str_format_float_scale(bits, lh_addr_of(num), lh_addr_of(den));
             if (lh_str_format_float_get_digits(lh_addr_of(num), lh_addr_of(den), precision, d))
             {
@@ -702,7 +684,7 @@ lh_str_ptr_format_float(lh_float_t value, lh_usize_t digits, lh_str_ptr str, lh_
             }
         }
     }
-    nd = lh_str_format_float_trim(d, precision);
+    lh_usize_t nd = lh_str_format_float_trim(d, precision);
 
     if (lh_math_ne(lh_bit_shr(bits, 31U), 0U))
     {

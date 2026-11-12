@@ -111,7 +111,6 @@ lh_os_sql_mysql_reconnect(lh_sql_db_t *db)
 lh_bool_t
 lh_os_sql_mysql_send(lh_sql_db_t *db, lh_str_view_t sql)
 {
-    lh_uint_t code;
     lh_os_sql_mysql_conn_t *conn = lh_os_sql_mysql_get_conn(db);
 
     if (lh_os_sql_mysql_conn_get_broken(conn) && !lh_os_sql_mysql_reconnect(db))
@@ -124,6 +123,7 @@ lh_os_sql_mysql_send(lh_sql_db_t *db, lh_str_view_t sql)
     {
         return lh_bool_true;
     }
+    lh_uint_t code;
     code =
         lh_os_sql_mysql_api_error_code(lh_os_sql_mysql_get_api(db), lh_os_sql_mysql_get_native(db));
     /* Unknown outcome: never replay this statement, but don't reuse the
@@ -164,7 +164,6 @@ lh_bool_t
 lh_os_sql_mysql_exec(lh_sql_db_t *db, lh_str_view_t sql)
 {
     const lh_os_sql_mysql_api_t *api = lh_os_sql_mysql_get_api(db);
-    lh_ptr result;
 
     if (!lh_os_sql_mysql_send(db, sql))
     {
@@ -173,7 +172,7 @@ lh_os_sql_mysql_exec(lh_sql_db_t *db, lh_str_view_t sql)
     /* Rows nobody asked for still have to be taken off the connection, or
        the next query is "out of sync". No result where one was due is an
        error of its own. */
-    result = lh_os_sql_mysql_api_store_result(api, lh_os_sql_mysql_get_native(db));
+    lh_ptr result = lh_os_sql_mysql_api_store_result(api, lh_os_sql_mysql_get_native(db));
     if (lh_null_ne(result))
     {
         lh_os_sql_mysql_api_free_result(api, result);
@@ -234,7 +233,6 @@ lh_os_sql_mysql_bind_sint(lh_sql_stmt_t *stmt, lh_usize_t index, lh_sllong_t val
 {
     lh_os_sql_mysql_prepared_t *prepared = lh_os_sql_mysql_get_prepared(stmt);
     lh_str_t *literal = lh_os_sql_mysql_prepared_get_literal_mut(prepared, index);
-    lh_char_t digits[LH_OS_SQL_MYSQL_INTEGER_DIGITS_MAX];
 
     if (lh_null_eq(literal))
     {
@@ -242,6 +240,7 @@ lh_os_sql_mysql_bind_sint(lh_sql_stmt_t *stmt, lh_usize_t index, lh_sllong_t val
     }
     lh_os_sql_mysql_prepared_rewind(prepared, lh_os_sql_mysql_get_api(lh_sql_stmt_get_db(stmt)));
     lh_str_clear(literal);
+    lh_char_t digits[LH_OS_SQL_MYSQL_INTEGER_DIGITS_MAX];
     lh_str_append(literal, digits,
                   lh_str_ptr_format_sllong(value, digits, LH_OS_SQL_MYSQL_INTEGER_DIGITS_MAX));
     return lh_bool_true;
@@ -306,14 +305,13 @@ lh_os_sql_mysql_step(lh_sql_stmt_t *stmt)
 {
     lh_os_sql_mysql_prepared_t *prepared = lh_os_sql_mysql_get_prepared(stmt);
     const lh_os_sql_mysql_api_t *api = lh_os_sql_mysql_get_api(lh_sql_stmt_get_db(stmt));
-    lh_ptr result;
     lh_char_t **row;
 
     if (!lh_os_sql_mysql_prepared_is_executed(prepared) && !lh_os_sql_mysql_execute(stmt))
     {
         return lh_sql_step_error;
     }
-    result = lh_os_sql_mysql_prepared_get_result(prepared);
+    lh_ptr result = lh_os_sql_mysql_prepared_get_result(prepared);
     /* An INSERT or UPDATE: run, and nothing to hand out. */
     if (lh_null_eq(result))
     {
@@ -508,8 +506,6 @@ lh_os_sql_mysql_open_with(lh_sql_db_t *db, const lh_os_sql_mysql_api_t *api, lh_
                           lh_str_view_t user, lh_str_view_t password, lh_str_view_t name,
                           lh_uint_t port)
 {
-    lh_ptr native;
-
     lh_sql_db_close(db);
     lh_sql_db_clear_error(db);
     if (lh_null_eq(api) || !lh_os_sql_mysql_api_is_loaded(api))
@@ -521,7 +517,7 @@ lh_os_sql_mysql_open_with(lh_sql_db_t *db, const lh_os_sql_mysql_api_t *api, lh_
     {
         port = LH_OS_SQL_MYSQL_PORT_DEFAULT;
     }
-    native = lh_os_sql_mysql_connect(db, api, host, user, password, name, port);
+    lh_ptr native = lh_os_sql_mysql_connect(db, api, host, user, password, name, port);
     if (lh_null_eq(native))
     {
         return lh_bool_false;

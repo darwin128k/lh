@@ -357,9 +357,8 @@ lh_void
 lh_ui_color_with_coverage(const lh_ui_color_t *color, lh_byte_t coverage, lh_ui_color_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_ui_color_t result;
     lh_assert_runtime_ref(color);
-    result = lh_ptr_deref(color);
+    lh_ui_color_t result = lh_ptr_deref(color);
     lh_ui_color_set_a(
         lh_addr_of(result),
         lh_cast_static(lh_ui_color_channel_t,

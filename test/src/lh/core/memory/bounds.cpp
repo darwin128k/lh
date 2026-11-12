@@ -103,14 +103,13 @@ TEST(memory_bounds_by_size, copies_moves_and_finds)
 
 TEST(memory_bounds_classification, distinguishes_states)
 {
-    unsigned char buf[4];
-
     lh_memory_bounds_t empty = bounds(lh_null, lh_null);
     EXPECT_TRUE(lh_memory_bounds_is_uninitialized(&empty));
     EXPECT_TRUE(lh_memory_bounds_is_valid(&empty)); /* empty at null */
     EXPECT_TRUE(lh_memory_bounds_is_empty(&empty));
 
     // A null end leaves begin + size wrapping: set, but not valid.
+    unsigned char buf[4];
     lh_memory_bounds_t null_end = bounds(p(buf), lh_null);
     EXPECT_FALSE(lh_memory_bounds_is_uninitialized(&null_end));
     EXPECT_FALSE(lh_memory_bounds_is_valid(&null_end));
@@ -310,8 +309,8 @@ TEST(memory_bounds_raw_fill, fills_with_value_and_pattern)
 
 TEST(memory_bounds_mutation, clears_assigns_sets_and_initializes)
 {
-    unsigned char buf[8];
     lh_memory_bounds_t b = bounds(lh_null, lh_null);
+    unsigned char buf[8];
     lh_memory_bounds_t other = bounds(p(buf + 1), p(buf + 5));
 
     lh_memory_bounds_assign_v(&b, &other);
@@ -393,8 +392,6 @@ TEST(memory_bounds_get_begin_v, accepts_empty_at_null)
 
 TEST(memory_bounds_make_v, rejects_invalid_range_death)
 {
-    unsigned char buf[2];
-
     LH_EXPECT_DEATH(([&] {
         lh_memory_bounds_t v;
         lh_memory_bounds_init(lh_addr_of(v), nullptr, 4);

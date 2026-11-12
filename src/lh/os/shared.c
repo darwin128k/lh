@@ -56,12 +56,11 @@ lh_os_shared_init(lh_os_shared_t *self)
 lh_bool_t
 lh_os_shared_adopt(lh_os_shared_t *self, lh_os_system_shared_handle_t handle)
 {
-    lh_str_t text;
-
     if (lh_null_eq(handle))
     {
         return lh_bool_false;
     }
+    lh_str_t text;
     lh_str_init(lh_addr_of(text));
     const lh_bool_t ok = lh_os_system_shared_get_path(handle, lh_addr_of(text));
     if (ok)
@@ -144,12 +143,11 @@ lh_os_shared_get_local_sym(const lh_os_shared_t *self, lh_str_cptr name)
 lh_bool_t
 lh_os_shared_open(lh_os_shared_t *self, const lh_fs_path_t *path)
 {
-    lh_str_t buf;
-
     if (!lh_os_shared_is_free(self))
     {
         return lh_bool_false;
     }
+    lh_str_t buf;
     lh_str_cptr const cstr = lh_os_fs_path_to_cstr(path, lh_addr_of(buf));
     const lh_os_system_shared_handle_t handle =
         lh_null_eq(cstr) ? LH_OS_SYSTEM_SHARED_HANDLE_INVALID : lh_os_system_shared_open(cstr);

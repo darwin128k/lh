@@ -10,8 +10,8 @@ lh_usize_t
 segment_count(const char *text, lh_fs_path_style_t style)
 {
     lh_fs_path_t path;
-    lh_str_view_t view;
     lh_fs_path_init(&path);
+    lh_str_view_t view;
     lh_str_view_init(&view, text);
     lh_fs_path_set(&path, view, style);
     const lh_usize_t count = lh_fs_path_get_segment_count(&path);
@@ -83,9 +83,9 @@ TEST(fs_path_get_segment_count, after_join)
 TEST(fs_path_equals, same_root_and_text)
 {
     lh_fs_path_t a;
-    lh_fs_path_t b;
 
     lh_fs_path_init(&a);
+    lh_fs_path_t b;
     lh_fs_path_init(&b);
     lh_fs_path_set(&a, lh_str_view_lit("C:\\Foo\\bar"), lh_fs_path_style_windows);
     lh_fs_path_set(&b, lh_str_view_lit("C:/Foo/bar"), lh_fs_path_style_windows);
@@ -105,9 +105,9 @@ TEST(fs_path_equals, same_root_and_text)
 TEST(fs_path_parent, drops_the_last_segment)
 {
     lh_fs_path_t path;
-    lh_str_t text;
 
     lh_fs_path_init(&path);
+    lh_str_t text;
     lh_str_init(&text);
 
     lh_fs_path_set(&path, lh_str_view_lit("C:\\a\\b\\c.txt"), lh_fs_path_style_windows);
@@ -135,9 +135,9 @@ TEST(fs_path_parent, drops_the_last_segment)
 TEST(fs_path_network, preserves_windows_network_root_through_rendering)
 {
     lh_fs_path_t path, copy;
-    lh_str_t text;
     lh_fs_path_init(&path);
     lh_fs_path_init(&copy);
+    lh_str_t text;
     lh_str_init(&text);
     lh_fs_path_set(&path, lh_str_view_lit("//server/share/folder"), lh_fs_path_style_windows);
     EXPECT_EQ(lh_fs_path_get_root_kind(&path), lh_fs_path_root_kind_network);
@@ -157,9 +157,9 @@ TEST(fs_path_network, preserves_windows_network_root_through_rendering)
 
 TEST(fs_path_try_get_name, is_the_last_segment)
 {
-    lh_fs_path_t path;
     lh_str_view_t name = lh_str_view_lit("untouched");
 
+    lh_fs_path_t path;
     lh_fs_path_init(&path);
     EXPECT_FALSE(lh_fs_path_try_get_name(&path, &name));
     lh_fs_path_set(&path, lh_str_view_lit("/"), lh_fs_path_style_posix);

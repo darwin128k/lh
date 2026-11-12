@@ -12,10 +12,10 @@ static std::string
 digest_hex(lh_crypto_sha_kind_t kind, const char *text)
 {
     lh_byte_t digest[LH_CRYPTO_SHA_DIGEST_SIZE_MAX];
-    lh_char_t hex[LH_CRYPTO_SHA_DIGEST_SIZE_MAX * 2U];
     lh_usize_t n = lh_crypto_sha_hash(kind, const_cast<char *>(text),
                                       static_cast<lh_usize_t>(std::string(text).size()), digest,
                                       sizeof(digest));
+    lh_char_t hex[LH_CRYPTO_SHA_DIGEST_SIZE_MAX * 2U];
     lh_usize_t hex_n = lh_str_ptr_format_bytes_hex(digest, n, lh_bool_false, hex, sizeof(hex));
     return std::string(hex, hex_n);
 }
@@ -70,15 +70,15 @@ TEST(crypto_sha, incremental_matches_oneshot)
 {
     const char *text = "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq";
     lh_byte_t a[32];
-    lh_byte_t b[32];
-    lh_crypto_sha_t hasher;
 
     ASSERT_EQ(lh_crypto_sha_hash(lh_crypto_sha_kind_256, const_cast<char *>(text), 56, a, sizeof(a)),
               32U);
 
+    lh_crypto_sha_t hasher;
     lh_crypto_sha_init(lh_addr_of(hasher), lh_crypto_sha_kind_256);
     lh_crypto_sha_update(lh_addr_of(hasher), const_cast<char *>(text), 10);
     lh_crypto_sha_update(lh_addr_of(hasher), const_cast<char *>(text) + 10, 46);
+    lh_byte_t b[32];
     ASSERT_EQ(lh_crypto_sha_finish(lh_addr_of(hasher), b, sizeof(b)), 32U);
     EXPECT_EQ(std::string(reinterpret_cast<char *>(a), 32),
               std::string(reinterpret_cast<char *>(b), 32));
@@ -121,9 +121,9 @@ TEST(crypto_sha, add_state_word_32_wraps_at_32_bits)
 
 TEST(crypto_sha, fill_block_appends_and_moves_the_fill)
 {
-    lh_crypto_sha_t hasher;
     const lh_byte_t bytes[3] = {1, 2, 3};
 
+    lh_crypto_sha_t hasher;
     lh_crypto_sha_init(lh_addr_of(hasher), lh_crypto_sha_kind_256);
     lh_crypto_sha_fill_block(lh_addr_of(hasher), bytes, 2);
     lh_crypto_sha_fill_block(lh_addr_of(hasher), bytes + 2, 1);

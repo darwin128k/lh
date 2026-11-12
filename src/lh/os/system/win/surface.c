@@ -140,12 +140,11 @@ lh_os_system_surface_present_part(lh_os_system_surface_handle_t handle, lh_ptr d
                                   int src_x, int src_y, int width, int height)
 {
     const lh_os_system_win_surface_t *surface;
-    lh_os_system_win_hdc_t dest_dc;
 
     lh_return_if(lh_null_eq(handle) || lh_null_eq(dest), lh_bool_false);
     lh_return_if(width <= 0 || height <= 0, lh_bool_false);
     surface = lh_ptr_rcast(const lh_os_system_win_surface_t, handle);
-    dest_dc = lh_cast_reinterpret(lh_os_system_win_hdc_t, dest);
+    lh_os_system_win_hdc_t dest_dc = lh_cast_reinterpret(lh_os_system_win_hdc_t, dest);
     return lh_cast_static(lh_bool_t, BitBlt(dest_dc, x, y, width, height,
                                             lh_os_system_win_surface_get_dc(surface), src_x, src_y,
                                             LH_OS_SYSTEM_WIN_SRCCOPY) != 0);

@@ -98,11 +98,11 @@ TEST(rail_loop_pass, runs_one_step_and_waits_up_to_the_period)
 
 TEST(rail_loop_pass, a_due_timer_shortens_the_wait_and_fires_on_the_next_pass)
 {
-    counter c;
     std::atomic<int> fired{0};
-    lh_timer_t timer;
+    counter c;
     c.loop = lh_rail_loop_try_create(60000U, count, &c);
     ASSERT_NE(c.loop, nullptr);
+    lh_timer_t timer;
     lh_timer_init(&timer);
     lh_timer_start(lh_rail_loop_get_timers_mut(c.loop), &timer, 20U, lh_bool_true, 0U, fire, &fired,
                    lh_os_tick_ms());
@@ -200,10 +200,10 @@ TEST(rail_loop, a_timer_cuts_a_long_period_short)
 {
     std::atomic<int> fired{0};
     counter c;
-    lh_timer_t timer;
     c.loop = lh_rail_loop_try_create(60000U, count, &c);
 
     ASSERT_NE(c.loop, nullptr);
+    lh_timer_t timer;
     lh_timer_init(&timer);
     lh_timer_start(lh_rail_loop_get_timers_mut(c.loop), &timer, 20U, lh_bool_true, 0U, fire, &fired,
                    lh_os_tick_ms());
@@ -275,12 +275,11 @@ poll_wake(lh_ptr waiter)
 
 TEST(rail_loop, a_waiter_on_a_wake_signal_runs_steps_and_stops)
 {
-    lh_os_wake_t wake;
-    counter c;
-
     ASSERT_TRUE(lh_os_net_init());
+    lh_os_wake_t wake;
     lh_os_wake_init(&wake);
     ASSERT_TRUE(lh_os_wake_open(&wake, LH_OS_WAKE_OPEN_TIMEOUT_MS));
+    counter c;
     c.loop = lh_rail_loop_try_create_waiting(60000U, count, &c, poll_wait, poll_wake, &wake);
     ASSERT_NE(c.loop, nullptr);
     ASSERT_TRUE(lh_rail_loop_try_start(c.loop));
@@ -399,11 +398,11 @@ TEST(rail_loop_try_abandon, the_thread_releases_and_the_owner_reaps)
 
 TEST(rail_loop_try_abandon, works_for_a_loop_with_a_waiter)
 {
-    lh_os_wake_t wake;
     stuck s;
     s.hold = true;
 
     ASSERT_TRUE(lh_os_net_init());
+    lh_os_wake_t wake;
     lh_os_wake_init(&wake);
     ASSERT_TRUE(lh_os_wake_open(&wake, LH_OS_WAKE_OPEN_TIMEOUT_MS));
     lh_rail_loop_t *loop =

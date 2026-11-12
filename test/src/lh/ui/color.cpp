@@ -56,11 +56,10 @@ TEST(ui_color, setters)
 TEST(ui_color, over_opaque_replaces_dst)
 {
     lh_ui_color_t dst;
-    lh_ui_color_t src;
-    lh_ui_color_t out;
     lh_ui_color_init(lh_addr_of(dst), 10, 20, 30, 255);
+    lh_ui_color_t src;
     lh_ui_color_init(lh_addr_of(src), 100, 110, 120, 255);
-    out = lh_test::out(lh_ui_color_over, lh_addr_of(dst), lh_addr_of(src));
+    lh_ui_color_t out = lh_test::out(lh_ui_color_over, lh_addr_of(dst), lh_addr_of(src));
     EXPECT_EQ(lh_ui_color_get_r(lh_addr_of(out)), 100);
     EXPECT_EQ(lh_ui_color_get_g(lh_addr_of(out)), 110);
     EXPECT_EQ(lh_ui_color_get_b(lh_addr_of(out)), 120);
@@ -70,11 +69,10 @@ TEST(ui_color, over_opaque_replaces_dst)
 TEST(ui_color, over_transparent_keeps_dst)
 {
     lh_ui_color_t dst;
-    lh_ui_color_t src;
-    lh_ui_color_t out;
     lh_ui_color_init(lh_addr_of(dst), 10, 20, 30, 255);
+    lh_ui_color_t src;
     lh_ui_color_init(lh_addr_of(src), 100, 110, 120, 0);
-    out = lh_test::out(lh_ui_color_over, lh_addr_of(dst), lh_addr_of(src));
+    lh_ui_color_t out = lh_test::out(lh_ui_color_over, lh_addr_of(dst), lh_addr_of(src));
     EXPECT_EQ(lh_ui_color_get_r(lh_addr_of(out)), 10);
     EXPECT_EQ(lh_ui_color_get_g(lh_addr_of(out)), 20);
     EXPECT_EQ(lh_ui_color_get_b(lh_addr_of(out)), 30);
@@ -84,11 +82,10 @@ TEST(ui_color, over_transparent_keeps_dst)
 TEST(ui_color, over_translucent_dst_divides_by_out_alpha)
 {
     lh_ui_color_t dst;
-    lh_ui_color_t src;
-    lh_ui_color_t out;
     lh_ui_color_init(lh_addr_of(dst), 200, 0, 0, 128);
+    lh_ui_color_t src;
     lh_ui_color_init(lh_addr_of(src), 0, 0, 200, 128);
-    out = lh_test::out(lh_ui_color_over, lh_addr_of(dst), lh_addr_of(src));
+    lh_ui_color_t out = lh_test::out(lh_ui_color_over, lh_addr_of(dst), lh_addr_of(src));
     /* out_a = 0.502 + 0.502 * 0.498 = 0.752; r = 200 * 0.25 / 0.752; b = 200 * 0.502 / 0.752. */
     EXPECT_EQ(lh_ui_color_get_r(lh_addr_of(out)), 66);
     EXPECT_EQ(lh_ui_color_get_g(lh_addr_of(out)), 0);
@@ -99,34 +96,32 @@ TEST(ui_color, over_translucent_dst_divides_by_out_alpha)
 TEST(ui_color, over_opaque_on_transparent_dst_is_src)
 {
     lh_ui_color_t dst;
-    lh_ui_color_t src;
-    lh_ui_color_t out;
     lh_ui_color_init(lh_addr_of(dst), 10, 20, 30, 0);
+    lh_ui_color_t src;
     lh_ui_color_init(lh_addr_of(src), 100, 110, 120, 77);
-    out = lh_test::out(lh_ui_color_over, lh_addr_of(dst), lh_addr_of(src));
+    lh_ui_color_t out = lh_test::out(lh_ui_color_over, lh_addr_of(dst), lh_addr_of(src));
     EXPECT_TRUE(lh_ui_color_equals(lh_addr_of(out), lh_addr_of(src)));
 }
 
 TEST(ui_color, over_two_transparent_is_zero)
 {
     lh_ui_color_t dst;
-    lh_ui_color_t src;
-    lh_ui_color_t out;
-    lh_ui_color_t zero;
     lh_ui_color_init(lh_addr_of(dst), 10, 20, 30, 0);
+    lh_ui_color_t src;
     lh_ui_color_init(lh_addr_of(src), 100, 110, 120, 0);
+    lh_ui_color_t zero;
     lh_ui_color_init(lh_addr_of(zero), 0, 0, 0, 0);
-    out = lh_test::out(lh_ui_color_over, lh_addr_of(dst), lh_addr_of(src));
+    lh_ui_color_t out = lh_test::out(lh_ui_color_over, lh_addr_of(dst), lh_addr_of(src));
     EXPECT_TRUE(lh_ui_color_equals(lh_addr_of(out), lh_addr_of(zero)));
 }
 
 TEST(ui_color, argb_is_the_pixel_word_and_round_trips)
 {
     lh_ui_color_t c;
-    lh_ui_color_t back;
 
     lh_ui_color_init(lh_addr_of(c), 0x11, 0x22, 0x33, 0x44);
     EXPECT_EQ(lh_ui_color_get_argb(lh_addr_of(c)), 0x44112233u);
+    lh_ui_color_t back;
     lh_ui_color_init_argb(lh_addr_of(back), 0x44112233u);
     EXPECT_TRUE(lh_ui_color_equals(lh_addr_of(back), lh_addr_of(c)));
 }
@@ -157,10 +152,10 @@ TEST(ui_color, over_an_opaque_dst_matches_the_general_formula)
 TEST(ui_color, rgb565_packs_the_top_bits_and_widens_back)
 {
     lh_ui_color_t c;
-    lh_ui_color_t back;
 
     lh_ui_color_init(lh_addr_of(c), 0xFF, 0x80, 0x07, 0x10);
     EXPECT_EQ(lh_ui_color_get_rgb565(lh_addr_of(c)), (0x1Fu << 11) | (0x20u << 5) | 0x00u);
+    lh_ui_color_t back;
     lh_ui_color_init_rgb565(lh_addr_of(back), 0xFFFFu);
     EXPECT_EQ(lh_ui_color_get_r(lh_addr_of(back)), 255);
     EXPECT_EQ(lh_ui_color_get_g(lh_addr_of(back)), 255);
@@ -179,9 +174,9 @@ TEST(ui_color, rgb565_packs_the_top_bits_and_widens_back)
 TEST(ui_color, equals_compares_channels)
 {
     lh_ui_color_t a;
-    lh_ui_color_t b;
 
     lh_ui_color_init(lh_addr_of(a), 1, 2, 3, 4);
+    lh_ui_color_t b;
     lh_ui_color_init(lh_addr_of(b), 1, 2, 3, 4);
     EXPECT_EQ(lh_ui_color_equals(lh_addr_of(a), lh_addr_of(b)), lh_bool_true);
     lh_ui_color_set_a(lh_addr_of(b), 5);

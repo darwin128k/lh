@@ -69,10 +69,10 @@ TEST(lh_net_cidr, malformed_text_is_refused)
 TEST(lh_net_cidr, a_list_holds_what_any_block_holds)
 {
     lh_net_cidr_t list[2];
-    lh_net_ip4_t address;
 
     ASSERT_TRUE(parse("10.0.0.0/8", &list[0]));
     ASSERT_TRUE(parse("127.0.0.1", &list[1]));
+    lh_net_ip4_t address;
     lh_net_ip4_init(&address, 127, 0, 0, 1);
     EXPECT_TRUE(lh_net_cidr_list_contains(list, 2U, &address));
     lh_net_ip4_init(&address, 127, 0, 0, 2);

@@ -16,9 +16,9 @@ lh_ui_canvas_sw_shadow_pass_init(const lh_ui_canvas_sw_t *self, const lh_ui_rect
     const lh_ui_size_t *size = lh_ui_rect_get_size(rect);
     const lh_ui_point_t *origin = lh_ui_rect_get_origin(rect);
     const lh_s32_t outset = lh_ui_shadow_get_outset(shadow, rect);
-    lh_ui_color_t color;
 
     lh_assert_runtime_ref(out);
+    lh_ui_color_t color;
     lh_ui_shadow_copy_color(shadow, lh_addr_of(color));
     lh_ui_canvas_sw_shadow_pass_set_rect(out, rect);
     lh_ui_canvas_sw_shadow_pass_set_rgb(out, lh_ui_color_get_argb(lh_addr_of(color)) & 0x00FFFFFFU);

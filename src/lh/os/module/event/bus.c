@@ -98,13 +98,12 @@ lh_os_module_event_bus_collect(lh_os_module_event_bus_t *self)
 lh_os_module_event_id_t
 lh_os_module_event_bus_find_id(const lh_os_module_event_bus_t *self, const lh_char_t *name)
 {
-    lh_usize_t length;
     lh_usize_t count = lh_array_get_size(lh_os_module_event_bus_get_entries(self));
     if (lh_ptr_is_null(name))
     {
         return 0u;
     }
-    length = lh_str_ptr_len(name);
+    lh_usize_t length = lh_str_ptr_len(name);
     for (lh_os_module_event_id_t id = 1u; lh_math_le(id, count); id = lh_math_add_one(id))
     {
         lh_os_module_event_entry_t *entry = lh_os_module_event_bus_get_entry(self, id);

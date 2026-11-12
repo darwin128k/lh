@@ -28,7 +28,6 @@ lh_bool_t
 lh_os_system_timestamp_try_get_zone_offset(lh_timestamp_t utc, lh_s32_t *out)
 {
     const time_t moment = lh_cast_static(time_t, utc);
-    struct tm local;
 
     lh_assert_runtime_ref(out);
     /* A 32-bit time_t cannot hold every moment. */
@@ -38,6 +37,7 @@ lh_os_system_timestamp_try_get_zone_offset(lh_timestamp_t utc, lh_s32_t *out)
         lh_os_system_error_capture();
         return lh_bool_false;
     }
+    struct tm local;
     if (localtime_r(lh_addr_of(moment), lh_addr_of(local)) == lh_null)
     {
         lh_os_system_error_capture();

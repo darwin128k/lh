@@ -78,14 +78,13 @@ lh_net_ip4_is_private(const lh_net_ip4_t *self)
 lh_bool_t
 lh_net_ip4_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_ip4_t *out)
 {
-    lh_net_ip4_t result;
     lh_usize_t pos = 0;
-    lh_usize_t octet_index;
 
     lh_assert_runtime_ref(str);
     lh_assert_runtime_ref(out);
 
-    for (octet_index = 0; octet_index < LH_NET_IP4_OCTET_COUNT; octet_index++)
+    lh_net_ip4_t result;
+    for (lh_usize_t octet_index = 0; octet_index < LH_NET_IP4_OCTET_COUNT; octet_index++)
     {
         lh_bool_t is_last = octet_index == LH_NET_IP4_OCTET_COUNT - 1U;
         lh_str_cptr field;
@@ -126,13 +125,12 @@ lh_net_ip4_format(const lh_net_ip4_t *self, lh_str_ptr str, lh_usize_t str_size)
      * fixed-size scratch buffer first and only copies out once the full result is known to
      * fit — all-or-nothing on failure, same as every other lh_str_ptr_format_* function (see
      * lh_str_ptr_format_uint itself), so a too-small str_size leaves str untouched. */
-    lh_char_t scratch[LH_NET_IP4_TEXT_MAX];
     lh_usize_t pos = 0;
-    lh_usize_t octet_index;
 
     lh_assert_runtime_ref(str);
 
-    for (octet_index = 0; octet_index < LH_NET_IP4_OCTET_COUNT; octet_index++)
+    lh_char_t scratch[LH_NET_IP4_TEXT_MAX];
+    for (lh_usize_t octet_index = 0; octet_index < LH_NET_IP4_OCTET_COUNT; octet_index++)
     {
         lh_usize_t written;
 

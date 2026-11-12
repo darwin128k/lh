@@ -38,14 +38,13 @@ point_of(int x, int y)
 void
 build_style(lh_ui_style_t *style, lh_byte_t grey, lh_ui_scalar_t spread)
 {
-    lh_ui_paint_t paint;
-    lh_ui_color_t color;
-    lh_ui_shadow_t shadow;
-
     lh_ui_style_init(style);
+    lh_ui_color_t color;
     lh_ui_color_init(&color, grey, grey, grey, 255);
+    lh_ui_paint_t paint;
     lh_ui_paint_init_color(&paint, &color);
     lh_ui_style_assign_fill(style, &paint);
+    lh_ui_shadow_t shadow;
     if (spread > lh_ui_scalar(0))
     {
         lh_ui_shadow_init(&shadow);
@@ -101,10 +100,10 @@ click(lh_ui_toggle_t *toggle)
    the toggle's own search does not find a plain button. */
 TEST(entity_toggle, init_is_a_button_with_nothing_declared)
 {
-    lh_ui_toggle_t toggle;
     lh_ui_rect_t rect;
 
     lh_ui_rect_init(&rect, 0, 0, 40, 20);
+    lh_ui_toggle_t toggle;
     lh_ui_toggle_init(&toggle, rect);
 
     EXPECT_EQ(lh_ui_entity_get_class(lh_ui_toggle_as_entity(&toggle)),
@@ -120,14 +119,14 @@ TEST(entity_toggle, init_is_a_button_with_nothing_declared)
 
 TEST(entity_toggle, as_toggle_tells_a_toggle_from_a_button_or_a_plain_entity)
 {
-    lh_ui_toggle_t toggle;
-    lh_ui_button_t button;
-    lh_ui_entity_t plain;
     lh_ui_rect_t rect;
 
     lh_ui_rect_init(&rect, 0, 0, 40, 20);
+    lh_ui_toggle_t toggle;
     lh_ui_toggle_init(&toggle, rect);
+    lh_ui_button_t button;
     lh_ui_button_init(&button, rect);
+    lh_ui_entity_t plain;
     lh_ui_entity_init(&plain, rect);
 
     EXPECT_TRUE(lh_null_eq(lh_ui_entity_as_toggle(lh_ui_button_as_entity(&button))))
@@ -141,10 +140,10 @@ TEST(entity_toggle, as_toggle_tells_a_toggle_from_a_button_or_a_plain_entity)
    and both directions are the same rule. */
 TEST(entity_toggle, the_state_picks_the_pair_the_entity_paints)
 {
-    lh_ui_toggle_t toggle;
     looks l;
 
     build_looks(l);
+    lh_ui_toggle_t toggle;
     build_toggle(&toggle, l);
     EXPECT_EQ(lh_ui_entity_get_style(lh_ui_toggle_as_entity(&toggle)), &l.off);
 
@@ -161,10 +160,10 @@ TEST(entity_toggle, the_state_picks_the_pair_the_entity_paints)
    keeps the hot look, and it is the hot look of the state it moved to. */
 TEST(entity_toggle, a_flip_while_hovered_keeps_the_hot_look_of_the_new_state)
 {
-    lh_ui_toggle_t toggle;
     looks l;
 
     build_looks(l);
+    lh_ui_toggle_t toggle;
     build_toggle(&toggle, l);
     lh_ui_button_set_hot_v(lh_ui_toggle_as_button(&toggle), lh_bool_true);
     EXPECT_EQ(lh_ui_entity_get_style(lh_ui_toggle_as_entity(&toggle)), &l.off_hot);
@@ -183,12 +182,12 @@ TEST(entity_toggle, a_flip_while_hovered_keeps_the_hot_look_of_the_new_state)
    the same as a hot style that arrives under the pointer. */
 TEST(entity_toggle, looks_declared_while_on_show_at_once)
 {
-    lh_ui_toggle_t toggle;
     looks l;
-    lh_ui_rect_t rect;
 
     build_looks(l);
+    lh_ui_rect_t rect;
     lh_ui_rect_init(&rect, 0, 0, 40, 20);
+    lh_ui_toggle_t toggle;
     lh_ui_toggle_init(&toggle, rect);
     lh_ui_toggle_set_checked_v(&toggle, lh_bool_true);
     lh_ui_toggle_set_on_styles(&toggle, &l.on, &l.on_hot);
@@ -203,10 +202,10 @@ TEST(entity_toggle, looks_declared_while_on_show_at_once)
    nothing, and must not put an empty style on the entity. */
 TEST(entity_toggle, a_state_with_no_hot_look_paints_the_resting_one)
 {
-    lh_ui_toggle_t toggle;
     looks l;
 
     build_looks(l);
+    lh_ui_toggle_t toggle;
     build_toggle(&toggle, l);
     lh_ui_toggle_set_on_styles(&toggle, &l.on, lh_null);
     lh_ui_toggle_set_checked_v(&toggle, lh_bool_true);
@@ -219,11 +218,11 @@ TEST(entity_toggle, a_state_with_no_hot_look_paints_the_resting_one)
 
 TEST(entity_toggle, a_click_flips_before_it_calls_the_callback)
 {
-    lh_ui_toggle_t toggle;
-    looks l;
     int context = 7;
 
+    looks l;
     build_looks(l);
+    lh_ui_toggle_t toggle;
     build_toggle(&toggle, l);
     g_clicks = 0;
     g_clicked = lh_null;
@@ -243,10 +242,10 @@ TEST(entity_toggle, a_click_flips_before_it_calls_the_callback)
 /* No callback is not a broken toggle: the state is the component's business. */
 TEST(entity_toggle, a_click_without_a_callback_still_flips)
 {
-    lh_ui_toggle_t toggle;
     looks l;
 
     build_looks(l);
+    lh_ui_toggle_t toggle;
     build_toggle(&toggle, l);
     g_clicks = 0;
 
@@ -264,18 +263,18 @@ TEST(entity_toggle, a_click_without_a_callback_still_flips)
    on the surface until something else paints over it. */
 TEST(entity_toggle, a_flip_damages_the_look_it_arrives_on)
 {
-    lh_ui_entity_t root;
-    lh_ui_toggle_t toggle;
-    lh_ui_canvas_t canvas;
-    lh_ui_view_t view;
     looks l;
     const lh_ui_rect_t *damage;
 
     build_looks(l);
+    lh_ui_toggle_t toggle;
     build_toggle(&toggle, l);
+    lh_ui_entity_t root;
     lh_ui_entity_init(&root, rect_of(0, 0, 200, 200));
     lh_ui_entity_add_child(&root, lh_ui_toggle_as_entity(&toggle));
+    lh_ui_canvas_t canvas;
     lh_ui_canvas_init(&canvas, lh_addr_of(lh_ui_canvas_backend_null), lh_null);
+    lh_ui_view_t view;
     lh_ui_view_init(&view);
     lh_ui_view_set_canvas(&view, &canvas);
     lh_ui_view_set_root_v(&view, &root);

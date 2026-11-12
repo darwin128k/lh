@@ -35,8 +35,6 @@ lh_usize_t
 lh_str_ptr_format_bytes_hex(const lh_ptr data, lh_usize_t data_size, lh_bool_t uppercase,
                             lh_str_ptr str, lh_usize_t str_size)
 {
-    lh_byte_cptr bytes;
-
     lh_assert_runtime_ref(str);
     if (lh_math_is_zero(data_size))
     {
@@ -49,7 +47,7 @@ lh_str_ptr_format_bytes_hex(const lh_ptr data, lh_usize_t data_size, lh_bool_t u
         return 0U;
     }
 
-    bytes = lh_ptr_rcast(const lh_byte_t, data);
+    lh_byte_cptr bytes = lh_ptr_rcast(const lh_byte_t, data);
     for (lh_usize_t i = 0U; lh_math_lt(i, data_size); i = lh_math_add_one(i))
     {
         lh_str_ptr_format_bytes_hex_byte(bytes[i], uppercase,
@@ -101,7 +99,6 @@ lh_usize_t
 lh_str_ptr_format_bytes_hex_dump(const lh_ptr data, lh_usize_t data_size, lh_bool_t uppercase,
                                  lh_str_ptr str, lh_usize_t str_size)
 {
-    lh_usize_t needed;
     lh_usize_t pos = 0U;
 
     lh_assert_runtime_ref(str);
@@ -110,7 +107,7 @@ lh_str_ptr_format_bytes_hex_dump(const lh_ptr data, lh_usize_t data_size, lh_boo
         return 0U;
     }
     lh_assert_runtime_ref(data);
-    needed = lh_str_ptr_format_bytes_hex_dump_size(data_size);
+    lh_usize_t needed = lh_str_ptr_format_bytes_hex_dump_size(data_size);
     if (lh_math_is_zero(needed) || lh_math_gt(needed, str_size))
     {
         return 0U;

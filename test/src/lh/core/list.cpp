@@ -66,9 +66,9 @@ TEST(list_node_init, is_unlinked)
 
 TEST(list_push, keeps_order_both_ways)
 {
-    lh_list_t list;
     Item a(1), b(2), c(3);
 
+    lh_list_t list;
     lh_list_init(&list);
     lh_list_push_back(&list, &b.node);
     lh_list_push_back(&list, &c.node);
@@ -83,9 +83,9 @@ TEST(list_push, keeps_order_both_ways)
 
 TEST(list_node_unlink, removes_from_the_middle)
 {
-    lh_list_t list;
     Item a(1), b(2), c(3);
 
+    lh_list_t list;
     lh_list_init(&list);
     lh_list_push_back(&list, &a.node);
     lh_list_push_back(&list, &b.node);
@@ -103,9 +103,9 @@ TEST(list_node_unlink, removes_from_the_middle)
 
 TEST(list_node_insert, after_and_before_an_element)
 {
-    lh_list_t list;
     Item a(1), b(2), c(3), d(4);
 
+    lh_list_t list;
     lh_list_init(&list);
     lh_list_push_back(&list, &a.node);
     lh_list_push_back(&list, &d.node);
@@ -117,9 +117,9 @@ TEST(list_node_insert, after_and_before_an_element)
 
 TEST(list_pop, takes_from_either_end)
 {
-    lh_list_t list;
     Item a(1), b(2), c(3);
 
+    lh_list_t list;
     lh_list_init(&list);
     lh_list_push_back(&list, &a.node);
     lh_list_push_back(&list, &b.node);
@@ -137,9 +137,9 @@ TEST(list_pop, takes_from_either_end)
 
 TEST(list_get_at, counts_from_the_front)
 {
-    lh_list_t list;
     Item a(1), b(2), c(3);
 
+    lh_list_t list;
     lh_list_init(&list);
     EXPECT_EQ(lh_list_get_at(&list, 0), nullptr);
 
@@ -156,9 +156,9 @@ TEST(list_get_at, counts_from_the_front)
 
 TEST(list_index_of, finds_position_or_invalid)
 {
-    lh_list_t list;
     Item a(1), b(2), c(3), stranger(9);
 
+    lh_list_t list;
     lh_list_init(&list);
     lh_list_push_back(&list, &a.node);
     lh_list_push_back(&list, &b.node);
@@ -222,9 +222,9 @@ TEST(list_splice, joins_in_order_and_empties_the_other)
 
 TEST(list_clear, unlinks_every_node)
 {
-    lh_list_t list;
     Item a(1), b(2);
 
+    lh_list_t list;
     lh_list_init(&list);
     lh_list_push_back(&list, &a.node);
     lh_list_push_back(&list, &b.node);
@@ -255,9 +255,9 @@ by_key(const lh_list_node_t *a, const lh_list_node_t *b, lh_ptr context)
 
 TEST(list_sort, empty_and_single)
 {
-    lh_list_t list;
     Item a(1);
 
+    lh_list_t list;
     lh_list_init(&list);
     lh_list_sort(&list, by_key, nullptr);
     EXPECT_TRUE(lh_list_is_empty(&list));
@@ -271,9 +271,9 @@ TEST(list_sort, empty_and_single)
 
 TEST(list_insert_sorted, stable_by_key)
 {
-    lh_list_t list;
     Keyed items[] = {{2, 0, {}}, {1, 1, {}}, {2, 2, {}}, {0, 3, {}}, {1, 4, {}}};
 
+    lh_list_t list;
     lh_list_init(&list);
     for (Keyed &k : items)
     {
@@ -346,9 +346,9 @@ TEST(list_entry, null_node_gives_null)
 
 TEST(list_walk, removing_while_walking_with_next_read_first)
 {
-    lh_list_t list;
     Item a(1), b(2), c(3), d(4);
 
+    lh_list_t list;
     lh_list_init(&list);
     for (Item *item : {&a, &b, &c, &d})
     {

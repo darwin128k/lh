@@ -8,7 +8,6 @@
 
 TEST(http_request_get_path, keeps_the_path_before_the_first_query_delimiter)
 {
-    lh_http_request_t request;
     const lh_str_view_t cases[] = {
         lh_str_view_initializer_lit("/ui"), lh_str_view_initializer_lit("/ui?x=1?y=2"),
         lh_str_view_initializer_lit("?x=1"), lh_str_view_initializer_lit("/ui?")};
@@ -16,6 +15,7 @@ TEST(http_request_get_path, keeps_the_path_before_the_first_query_delimiter)
         lh_str_view_initializer_lit("/ui"), lh_str_view_initializer_lit("/ui"),
         lh_str_view_initializer_lit(""), lh_str_view_initializer_lit("/ui")};
 
+    lh_http_request_t request;
     for (lh_usize_t i = 0; i < 4; i = lh_math_add_one(i))
     {
         lh_http_request_set_target(lh_addr_of(request), cases[i]);

@@ -88,9 +88,8 @@ lh_bool_t
 lh_os_system_net_socket_connect(lh_os_system_net_socket_handle_t handle,
                                 const lh_net_ip4_socket_addr_t *addr)
 {
-    struct sockaddr_in native_addr;
-
     lh_assert_runtime_ref(addr);
+    struct sockaddr_in native_addr;
     lh_os_system_net_socket_native_addr_from_ip4(lh_addr_of(native_addr), addr);
     return lh_os_system_error_check_zero(
         connect(lh_os_system_net_socket_native(handle),
@@ -116,9 +115,8 @@ lh_ssize_t
 lh_os_system_net_socket_connect_start(lh_os_system_net_socket_handle_t handle,
                                       const lh_net_ip4_socket_addr_t *addr)
 {
-    struct sockaddr_in native_addr;
-
     lh_assert_runtime_ref(addr);
+    struct sockaddr_in native_addr;
     lh_os_system_net_socket_native_addr_from_ip4(lh_addr_of(native_addr), addr);
     if (lh_math_is_zero(connect(lh_os_system_net_socket_native(handle),
                                 lh_ptr_rcast(struct sockaddr, lh_addr_of(native_addr)),
@@ -139,13 +137,13 @@ lh_os_system_net_socket_connect_start(lh_os_system_net_socket_handle_t handle,
 lh_ssize_t
 lh_os_system_net_socket_connect_wait(lh_os_system_net_socket_handle_t handle, lh_u32_t timeout_ms)
 {
-    struct pollfd watch;
     int error = 0;
     socklen_t error_size = sizeof(error);
 
     /* poll, not select: select's fd_set is a bit set of FD_SETSIZE (1024) bits,
        and a descriptor numbered past it -- which a client holding many
        connections gets -- writes outside the set. */
+    struct pollfd watch;
     watch.fd = lh_os_system_net_socket_native(handle);
     watch.events = POLLOUT;
     watch.revents = 0;
@@ -185,9 +183,8 @@ lh_bool_t
 lh_os_system_net_socket_bind(lh_os_system_net_socket_handle_t handle,
                              const lh_net_ip4_socket_addr_t *addr)
 {
-    struct sockaddr_in native_addr;
-
     lh_assert_runtime_ref(addr);
+    struct sockaddr_in native_addr;
     lh_os_system_net_socket_native_addr_from_ip4(lh_addr_of(native_addr), addr);
     return lh_os_system_error_check_zero(
         bind(lh_os_system_net_socket_native(handle),
@@ -306,9 +303,8 @@ lh_os_system_net_socket_wait(const lh_os_system_net_socket_handle_t *read, lh_us
                              const lh_os_system_net_socket_handle_t *write, lh_usize_t write_count,
                              lh_u32_t timeout_ms)
 {
-    struct pollfd watch[2U * LH_OS_SYSTEM_NET_SOCKET_WAIT_MAX];
-
     lh_return_if(lh_math_is_zero(read_count + write_count), LH_OS_RESULT_PENDING);
+    struct pollfd watch[2U * LH_OS_SYSTEM_NET_SOCKET_WAIT_MAX];
     lh_usize_t count = lh_os_system_net_socket_fill_watch(watch, read, read_count, POLLIN);
 
     count += lh_os_system_net_socket_fill_watch(watch + count, write, write_count, POLLOUT);
@@ -367,9 +363,8 @@ lh_ssize_t
 lh_os_system_net_socket_sendto(lh_os_system_net_socket_handle_t handle, const lh_ptr buf,
                                lh_usize_t size, const lh_net_ip4_socket_addr_t *addr)
 {
-    struct sockaddr_in native_addr;
-
     lh_assert_runtime_ref(addr);
+    struct sockaddr_in native_addr;
     lh_os_system_net_socket_native_addr_from_ip4(lh_addr_of(native_addr), addr);
     return lh_os_system_net_socket_result(lh_cast_static(
         lh_ssize_t,
@@ -487,13 +482,13 @@ lh_ssize_t
 lh_os_system_net_socket_poll(lh_os_net_socket_poll_t *entries, lh_usize_t count,
                              lh_u32_t timeout_ms)
 {
-    struct pollfd native[LH_OS_NET_SOCKET_POLL_MAX];
     lh_usize_t active = 0;
     lh_assert_runtime_if(count > LH_OS_NET_SOCKET_POLL_MAX, lh_runtime_error_code_invalid_argument);
     if (count)
     {
         lh_assert_runtime_ref(entries);
     }
+    struct pollfd native[LH_OS_NET_SOCKET_POLL_MAX];
     for (lh_usize_t i = 0; i < count; ++i)
     {
         const lh_uint_t events = lh_os_net_socket_poll_get_events(lh_addr_of(entries[i]));
@@ -556,9 +551,9 @@ lh_os_system_net_socket_poll(lh_os_net_socket_poll_t *entries, lh_usize_t count,
 lh_bool_t
 lh_os_system_net_socket_pair(lh_os_system_net_socket_handle_t *pair, lh_u32_t timeout_ms)
 {
-    int native[2];
     lh_assert_runtime_ref(pair);
     (lh_void) timeout_ms;
+    int native[2];
 #if defined(__linux__)
     const int result = socketpair(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0, native);
 #else

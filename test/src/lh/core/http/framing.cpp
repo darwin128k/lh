@@ -21,8 +21,8 @@ TEST(http_framing, accepts_one_decimal_length_and_missing_length)
 
 TEST(http_framing, rejects_ambiguous_unsupported_and_invalid_lengths)
 {
-    lh_http_header_t fields[2];
     const lh_str_view_t name = lh_str_view_initializer_lit("Content-Length");
+    lh_http_header_t fields[2];
     lh_http_header_set(lh_addr_of(fields[0]), name, lh_str_view_initializer_lit("1"));
     lh_http_header_set(lh_addr_of(fields[1]), name, lh_str_view_initializer_lit("1"));
     lh_usize_t length = 17;
@@ -65,12 +65,12 @@ TEST(http_framing_is_chunked, checks_coding_and_ambiguous_lengths)
 
 TEST(http_framing_get_transfer, validates_gzip_chunked_and_rejects_ambiguous_chains)
 {
-    lh_http_header_t fields[2];
     lh_bool_t chunked = lh_bool_false;
     lh_bool_t gzip = lh_bool_false;
     EXPECT_TRUE(lh_http_framing_try_get_transfer(nullptr, 0U, &chunked, &gzip));
     EXPECT_FALSE(chunked);
     EXPECT_FALSE(gzip);
+    lh_http_header_t fields[2];
     lh_http_header_set(&fields[0], lh_str_view_lit("Transfer-Encoding"),
                        lh_str_view_lit(" GzIp , ChUnKeD "));
     lh_http_framing_get_transfer(fields, 1U, &chunked, &gzip);

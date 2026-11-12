@@ -134,10 +134,9 @@ lh_ui_canvas_web_intern(lh_ui_canvas_web_t *self, lh_byte_cptr px, lh_s32_t w, l
     lh_ui_canvas_web_atlas_t *atlas = lh_addr_of(g_web_atlas);
     lh_ui_canvas_web_glyphs_t *glyphs;
     lh_uint_t slot = 0;
-    lh_sint_t id;
 
     lh_ptr_deref(is_new) = lh_bool_true;
-    id = lh_ui_canvas_web_atlas_find(atlas, px, n, w, h, hash, lh_addr_of(slot));
+    lh_sint_t id = lh_ui_canvas_web_atlas_find(atlas, px, n, w, h, hash, lh_addr_of(slot));
     if (id < 0)
     {
         id = lh_ui_canvas_web_atlas_add(atlas, px, n, w, h, hash, slot);
@@ -258,7 +257,6 @@ lh_void
 lh_ui_canvas_web_put_cover(lh_ui_canvas_web_t *self, const lh_ui_mask_t *mask, lh_s32_t w,
                            lh_s32_t h)
 {
-
     for (lh_s32_t y = 0; y < h; ++y)
     {
         for (lh_s32_t x0 = 0; x0 < w; x0 += LH_UI_CANVAS_WEB_ATLAS_PIX)
@@ -282,10 +280,8 @@ lh_ui_canvas_web_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh
     const lh_s32_t h = lh_ui_mask_get_height(mask);
     const lh_uint_t n =
         (w > 0 && h > 0) ? lh_cast_static(lh_uint_t, w) * lh_cast_static(lh_uint_t, h) : 0u;
-    lh_byte_t px[LH_UI_CANVAS_WEB_ATLAS_PIX];
     lh_bool_t is_new = lh_bool_true;
     lh_sint_t id = -1;
-    lh_s32_t y;
 
     lh_ui_canvas_web_begin_op(self);
     lh_ui_canvas_web_put_lit(self, "{\"op\":\"fill_mask\",\"origin\":[");
@@ -308,7 +304,8 @@ lh_ui_canvas_web_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh
         lh_ui_canvas_web_put_lit(self, "\"}");
         return lh_bool_true;
     }
-    for (y = 0; y < h; ++y)
+    lh_byte_t px[LH_UI_CANVAS_WEB_ATLAS_PIX];
+    for (lh_s32_t y = 0; y < h; ++y)
     {
         lh_ui_mask_coverage_run(mask, 0, w, y,
                                 px + lh_cast_static(lh_uint_t, y) * lh_cast_static(lh_uint_t, w));

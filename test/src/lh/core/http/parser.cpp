@@ -26,12 +26,12 @@ equal(lh_str_view_t value, const char *text)
 
 TEST(http_header_find, matches_case_insensitively_and_returns_first)
 {
-    lh_http_header_t headers[2];
     const lh_str_view_t first = view("X-Test", 6);
     const lh_str_view_t second = view("x-test", 6);
     const lh_str_view_t search = view("x-TeSt", 6);
     const lh_str_view_t absent = view("missing", 7);
 
+    lh_http_header_t headers[2];
     lh_http_header_set_name(&headers[0], first);
     lh_http_header_set_name(&headers[1], second);
     EXPECT_EQ(lh_http_header_find(headers, 2, &search), &headers[0]);
@@ -45,9 +45,9 @@ TEST(http_parser, prefixes_complete_only_after_the_full_head)
                            "HEAD /maps/test.bsp HTTP/1.1\r\nHost: example\r\n\r\n",
                            "CUSTOM! /a?x=1 HTTP/1.1\r\nX-A: one\r\nx-a: two\r\nEmpty:\r\n\r\n"};
     lh_http_parser_t parser;
+    lh_http_parser_init(&parser);
     lh_http_request_t request;
     lh_http_header_t headers[4];
-    lh_http_parser_init(&parser);
     for (unsigned i = 0; i < sizeof valid / sizeof valid[0]; ++i)
     {
         SCOPED_TRACE(valid[i]);
@@ -100,12 +100,12 @@ TEST(http_parser, rejects_invalid_request_syntax)
                              "GET / HTTP/1.1\r\nX: value\r\n\tcontinued\r\n\r\n",
                              "GET /\x80 HTTP/1.1\r\n\r\n"};
     lh_http_parser_t parser;
-    lh_http_request_t request;
-    lh_http_header_t headers[4];
     lh_http_parser_init(&parser);
     for (unsigned i = 0; i < sizeof invalid / sizeof invalid[0]; ++i)
     {
         SCOPED_TRACE(invalid[i]);
+        lh_http_request_t request;
+        lh_http_header_t headers[4];
         EXPECT_EQ(lh_http_parser_request(&parser, view(invalid[i], std::strlen(invalid[i])),
                                          &request, headers, 4),
                   lh_http_parse_error);
@@ -123,9 +123,8 @@ TEST(http_parser, enforces_limits_and_argument_contracts)
     const char *empty = "GET / HTTP/1.1\r\n\r\n";
     const char *field = "GET / HTTP/1.1\r\nX: a\r\n\r\n";
     lh_http_parser_t parser;
-    lh_http_request_t request;
-    lh_http_header_t header;
     lh_http_parser_init(&parser);
+    lh_http_request_t request;
     ASSERT_EQ(
         lh_http_parser_request(&parser, view(empty, std::strlen(empty)), &request, nullptr, 0),
         lh_http_parse_complete);
@@ -137,6 +136,7 @@ TEST(http_parser, enforces_limits_and_argument_contracts)
         lh_http_parser_request(&parser, view(field, std::strlen(field)), &request, nullptr, 1),
         lh_http_parse_error);
     EXPECT_EQ(lh_http_parser_get_error(&parser), lh_http_error_argument);
+    lh_http_header_t header;
     EXPECT_EQ(lh_http_parser_request(&parser, view(nullptr, 1), &request, &header, 1),
               lh_http_parse_error);
     EXPECT_EQ(lh_http_parser_request(&parser, view(nullptr, 0), &request, &header, 1),
@@ -171,9 +171,9 @@ TEST(http_parser, parses_responses_and_rejects_invalid_status_lines)
 {
     const char *text = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\n";
     lh_http_parser_t parser;
+    lh_http_parser_init(&parser);
     lh_http_response_t response;
     lh_http_header_t headers[2];
-    lh_http_parser_init(&parser);
     for (lh_usize_t size = 0; size < std::strlen(text); ++size)
     {
         EXPECT_EQ(lh_http_parser_response(&parser, view(text, size), &response, headers, 2),
@@ -205,21 +205,20 @@ TEST(http_parser, parses_responses_and_rejects_invalid_status_lines)
 TEST(http_parser, arbitrary_bytes_preserve_bounds)
 {
     lh_u32_t seed = 0x594ea13U;
-    char input[512];
     struct guarded
     {
         lh_u32_t before;
         lh_http_header_t headers[2];
         lh_u32_t after;
     } guarded;
+
     lh_http_parser_t parser;
-    lh_http_request_t request;
-    lh_http_response_t response;
     lh_http_parser_init(&parser);
     lh_http_parser_set_limits(&parser, 256, 128);
     for (unsigned iteration = 0; iteration < 10000; ++iteration)
     {
         SCOPED_TRACE(iteration);
+        char input[512];
         unsigned size = iteration % sizeof input;
         for (unsigned i = 0; i < size; ++i)
         {
@@ -227,11 +226,13 @@ TEST(http_parser, arbitrary_bytes_preserve_bounds)
             input[i] = static_cast<char>(seed >> 24);
         }
         guarded.before = guarded.after = 0x12345678U;
+        lh_http_request_t request;
         lh_http_parse_status_t result =
             lh_http_parser_request(&parser, view(input, size), &request, guarded.headers, 2);
         EXPECT_LE(result, lh_http_parse_error);
         EXPECT_LE(parser.consumed, size);
         EXPECT_TRUE(guarded.before == 0x12345678U && guarded.after == 0x12345678U);
+        lh_http_response_t response;
         result = lh_http_parser_response(&parser, view(input, size), &response, guarded.headers, 2);
         EXPECT_LE(result, lh_http_parse_error);
         EXPECT_LE(parser.consumed, size);
@@ -253,9 +254,9 @@ TEST(http_parser_fail, records_and_reports_an_error)
 TEST(http_parser_begin, clears_diagnostics_and_checks_arguments)
 {
     lh_http_parser_t parser;
-    lh_http_request_t request;
     lh_http_parser_init(&parser);
     lh_http_parser_fail(&parser, lh_http_error_header, 3);
+    lh_http_request_t request;
     EXPECT_TRUE(lh_http_parser_begin(&parser, view("", 0), &request, nullptr, 0));
     EXPECT_EQ(lh_http_parser_get_error(&parser), lh_http_error_none);
     EXPECT_FALSE(lh_http_parser_begin(&parser, view("", 0), nullptr, nullptr, 0));
@@ -282,9 +283,9 @@ TEST(http_parser_find_line, finds_crlf_and_rejects_bare_endings)
 TEST(http_parser_parse_field, splits_name_and_trims_the_value)
 {
     lh_http_parser_t parser;
-    lh_http_header_t header;
     lh_http_parser_init(&parser);
     const char line[] = "X-Name: \t value \t";
+    lh_http_header_t header;
     ASSERT_EQ(lh_http_parser_parse_field(&parser, view(line, sizeof line - 1), 0, sizeof line - 1,
                                          &header),
               lh_http_parse_complete);
@@ -298,9 +299,9 @@ TEST(http_parser_parse_field, splits_name_and_trims_the_value)
 TEST(http_parser_parse_status_line, reads_code_and_reason)
 {
     lh_http_parser_t parser;
-    lh_http_response_t response;
     lh_http_parser_init(&parser);
     const char line[] = "HTTP/1.1 404 Not Found";
+    lh_http_response_t response;
     ASSERT_EQ(lh_http_parser_parse_status_line(&parser, view(line, sizeof line - 1),
                                                sizeof line - 1, &response),
               lh_http_parse_complete);

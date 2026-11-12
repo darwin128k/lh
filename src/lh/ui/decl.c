@@ -171,14 +171,13 @@ lh_ui_decl_build(const lh_ui_decl_t *decls, lh_u32_t count, lh_ui_entity_t **nod
     lh_ui_entity_t *tree = lh_null;
     lh_u32_t roots = 0;
     lh_u32_t needed = 0;
-    lh_u32_t index;
 
     lh_ui_decl_fault(fault, lh_ui_decl_error_none, count);
     lh_return_if(lh_null_eq(decls) || lh_null_eq(nodes) || lh_null_eq(storage) ||
                      lh_null_eq(root) || count == 0,
                  lh_bool_false);
 
-    for (index = 0; index < count; ++index)
+    for (lh_u32_t index = 0; index < count; ++index)
     {
         lh_ui_decl_error_t code = lh_ui_decl_check(decls, index);
 
@@ -215,7 +214,7 @@ lh_ui_decl_build(const lh_ui_decl_t *decls, lh_u32_t count, lh_ui_entity_t **nod
     {
         lh_u32_t used = 0;
 
-        for (index = 0; index < count; ++index)
+        for (lh_u32_t index = 0; index < count; ++index)
         {
             const lh_ui_decl_t *row = lh_addr_of(decls[index]);
             lh_byte_ptr slot = storage + used;
@@ -266,7 +265,7 @@ lh_ui_decl_build(const lh_ui_decl_t *decls, lh_u32_t count, lh_ui_entity_t **nod
         }
     }
 
-    for (index = 0; index < count; ++index)
+    for (lh_u32_t index = 0; index < count; ++index)
     {
         const lh_ui_decl_t *row = lh_addr_of(decls[index]);
 

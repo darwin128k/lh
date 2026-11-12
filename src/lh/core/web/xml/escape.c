@@ -9,8 +9,6 @@
 lh_str_view_t
 lh_web_xml_escape_get_entity(lh_char_t ch, lh_bool_t in_attr)
 {
-    lh_str_view_t none;
-
     switch (ch)
     {
     case lh_char_map_ampersand:
@@ -46,6 +44,7 @@ lh_web_xml_escape_get_entity(lh_char_t ch, lh_bool_t in_attr)
     default:
         break;
     }
+    lh_str_view_t none;
     lh_str_view_init_empty(lh_addr_of(none));
     return none;
 }

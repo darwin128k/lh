@@ -61,7 +61,6 @@ lh_ui_surface_set_format_v(lh_ui_surface_t *self, lh_ui_pixmap_format_t format)
 lh_bool_t
 lh_ui_surface_set_size_v(lh_ui_surface_t *self, lh_ui_size_t size)
 {
-
     int width = lh_cast_static(int, lh_ui_size_get_width(lh_addr_of(size)));
     int height = lh_cast_static(int, lh_ui_size_get_height(lh_addr_of(size)));
     if (lh_ui_surface_is_valid(self) &&
@@ -133,11 +132,9 @@ lh_bool_t
 lh_ui_surface_present_rects(const lh_ui_surface_t *self, lh_ptr dest, const lh_ui_rects_t *rects,
                             lh_ui_point_t at)
 {
-    lh_u32_t i;
-
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(rects);
-    for (i = 0u; i < lh_ui_rects_get_count(rects); ++i)
+    for (lh_u32_t i = 0u; i < lh_ui_rects_get_count(rects); ++i)
     {
         lh_return_if(!lh_ui_surface_present_part(self, dest, lh_ui_rects_get(rects, i), at),
                      lh_bool_false);

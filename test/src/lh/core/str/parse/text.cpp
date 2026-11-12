@@ -50,8 +50,8 @@ TEST(str_ptr_parse_text, parses_char)
 
 TEST(str_ptr_parse_text, parses_string_until_literal)
 {
-    lh_char_t buf[16];
     lh_uint_t port = 0;
+    lh_char_t buf[16];
     EXPECT_EQ(parse("id:7", "%s:%u", buf, sizeof(buf), &port), 4U);
     EXPECT_EQ(std::string(buf, 2), "id");
     EXPECT_EQ(port, 7U);
@@ -90,8 +90,8 @@ TEST(str_ptr_parse_text, roundtrip_with_format)
         lh_str_ptr_format_text(formatted, sizeof(formatted), "%s:%u", "host", 27015U);
     ASSERT_GT(written, 0U);
 
-    lh_char_t host[16];
     lh_uint_t port = 0;
+    lh_char_t host[16];
     EXPECT_EQ(lh_str_ptr_parse_text(formatted, written, "%s:%u", host, sizeof(host), &port),
               written);
     EXPECT_EQ(std::string(host, 4), "host");

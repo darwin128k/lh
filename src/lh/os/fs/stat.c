@@ -21,9 +21,8 @@ lh_os_fs_stat(const lh_fs_path_t *path, lh_fs_stat_t *out)
 lh_bool_t
 lh_os_fs_mtime(const lh_fs_path_t *path, lh_fs_time_t *out)
 {
-    lh_fs_stat_t st;
-
     lh_assert_runtime_ref(out);
+    lh_fs_stat_t st;
     if (!lh_os_fs_stat(path, lh_addr_of(st)))
     {
         return lh_bool_false;
@@ -35,9 +34,8 @@ lh_os_fs_mtime(const lh_fs_path_t *path, lh_fs_time_t *out)
 lh_bool_t
 lh_os_fs_is_readable(const lh_fs_path_t *path, lh_bool_t *out)
 {
-    lh_fs_stat_t st;
-
     lh_assert_runtime_ref(out);
+    lh_fs_stat_t st;
     if (!lh_os_fs_stat(path, lh_addr_of(st)))
     {
         return lh_bool_false;
@@ -49,9 +47,8 @@ lh_os_fs_is_readable(const lh_fs_path_t *path, lh_bool_t *out)
 lh_bool_t
 lh_os_fs_is_writable(const lh_fs_path_t *path, lh_bool_t *out)
 {
-    lh_fs_stat_t st;
-
     lh_assert_runtime_ref(out);
+    lh_fs_stat_t st;
     if (!lh_os_fs_stat(path, lh_addr_of(st)))
     {
         return lh_bool_false;
@@ -63,9 +60,8 @@ lh_os_fs_is_writable(const lh_fs_path_t *path, lh_bool_t *out)
 lh_bool_t
 lh_os_fs_is_executable(const lh_fs_path_t *path, lh_bool_t *out)
 {
-    lh_fs_stat_t st;
-
     lh_assert_runtime_ref(out);
+    lh_fs_stat_t st;
     if (!lh_os_fs_stat(path, lh_addr_of(st)))
     {
         return lh_bool_false;

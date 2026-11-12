@@ -46,10 +46,10 @@ field_init(field *self, lh_u16_t capacity)
 bool
 type(lh_ui_input_t *self, lh_u32_t code)
 {
-    lh_ui_entity_event_t event;
     lh_ui_key_input_t key;
 
     lh_ui_key_input_init_text(lh_addr_of(key), code);
+    lh_ui_entity_event_t event;
     lh_ui_entity_event_init(lh_addr_of(event), lh_ui_entity_event_key, lh_addr_of(key));
     return lh_ui_input_on_key(self, lh_addr_of(event)) == lh_bool_true;
 }
@@ -58,10 +58,10 @@ type(lh_ui_input_t *self, lh_u32_t code)
 bool
 press_key(lh_ui_input_t *self, lh_os_key_t key_id)
 {
-    lh_ui_entity_event_t event;
     lh_ui_key_input_t key;
 
     lh_ui_key_input_init_key(lh_addr_of(key), key_id, lh_bool_true);
+    lh_ui_entity_event_t event;
     lh_ui_entity_event_init(lh_addr_of(event), lh_ui_entity_event_key, lh_addr_of(key));
     return lh_ui_input_on_key(self, lh_addr_of(event)) == lh_bool_true;
 }
@@ -108,13 +108,13 @@ TEST(entity_input, init_keeps_the_buffer_and_starts_empty)
 TEST(entity_input, a_field_is_found_as_a_label_and_a_label_is_not_a_field)
 {
     field f;
-    lh_ui_label_t label;
-    lh_ui_rect_t rect;
 
     field_init(lh_addr_of(f), 16);
     EXPECT_EQ(lh_ui_entity_as_input(lh_ui_input_as_entity(lh_addr_of(f.input))), lh_addr_of(f.input));
 
+    lh_ui_rect_t rect;
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 10, 10);
+    lh_ui_label_t label;
     lh_ui_label_init(lh_addr_of(label), rect, lh_null);
     EXPECT_EQ(lh_ui_entity_as_input(lh_ui_label_as_entity(lh_addr_of(label))), static_cast<lh_ui_input_t *>(lh_null));
 }
@@ -217,12 +217,12 @@ TEST(entity_input, a_caret_inside_a_character_is_refused_and_the_caret_stays)
 TEST(entity_input, set_text_that_does_not_fit_keeps_whole_characters)
 {
     field f;
-    lh_char_t text[8];
 
     /* Four bytes, and a string whose fourth byte is the **lead** byte of a two-byte
        character: a cut that only trimmed trailing continuation bytes would keep the
        first half of that character and call the text three bytes long. */
     field_init(lh_addr_of(f), 3);
+    lh_char_t text[8];
     text[0] = 'A';
     text[1] = 'B';
     /* Encoded by the engine rather than spelled out in the test: U+041A is
@@ -240,7 +240,6 @@ TEST(entity_input, set_text_that_does_not_fit_keeps_whole_characters)
 
 TEST(entity_input, a_three_byte_character_deletes_as_a_whole_and_not_as_two_bytes)
 {
-    field f;
     /* U+20AC, the euro sign: a three-byte character. Its lead byte is `0xE0`, and
        `0xE0` **as a code point** is below `0x800` -- so a walk over the buffer that
        asked `lh_str_utf8_get_encoded_size` what a code point takes would answer two, cut
@@ -249,6 +248,7 @@ TEST(entity_input, a_three_byte_character_deletes_as_a_whole_and_not_as_two_byte
        written with Cyrillic in it stays green over it. */
     constexpr lh_u32_t k_three = 0x20ACU;
 
+    field f;
     field_init(lh_addr_of(f), 16);
 
     ASSERT_EQ(lh_ui_input_insert(lh_addr_of(f.input), 'A'), lh_bool_true);
@@ -289,10 +289,10 @@ TEST(entity_input, a_three_byte_character_deletes_as_a_whole_and_not_as_two_byte
 
 TEST(entity_input, a_four_byte_character_is_a_character_and_not_a_pair_of_surrogates)
 {
-    field f;
     /* U+1F600: four bytes, lead `0xF0`. */
     constexpr lh_u32_t k_four = 0x1F600U;
 
+    field f;
     field_init(lh_addr_of(f), 16);
 
     ASSERT_EQ(lh_ui_input_insert(lh_addr_of(f.input), k_four), lh_bool_true);
@@ -421,11 +421,10 @@ TEST(entity_input, the_caret_sits_where_the_text_before_it_ends)
 {
     field f;
     field_init(lh_addr_of(f), 16);
-    lh_ui_rect_t caret;
 
     lh_ui_input_set_text(lh_addr_of(f.input), "AB");
     lh_ui_input_set_caret_v(lh_addr_of(f.input), 1);
-    caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
+    lh_ui_rect_t caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
 
     /* The tiny font gives 'A' an advance of 3 and the field no padding, so the caret
        after one character is three columns from the text's own corner. */
@@ -475,10 +474,9 @@ TEST(entity_input, the_caret_is_as_tall_as_the_font_line_whatever_the_text)
 {
     field f;
     lh_ui_style_t style;
-    lh_ui_rect_t caret;
 
     cap_field(lh_addr_of(f), lh_addr_of(style));
-    caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
+    lh_ui_rect_t caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
     EXPECT_EQ(height_of(lh_addr_of(caret)), 8) << "empty";
     lh_ui_input_set_text(lh_addr_of(f.input), "d");
     caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
@@ -495,11 +493,10 @@ TEST(entity_input, the_caret_stands_on_the_baseline_the_text_is_drawn_on)
 {
     field f;
     lh_ui_style_t style;
-    lh_ui_rect_t caret;
 
     cap_field(lh_addr_of(f), lh_addr_of(style));
     lh_ui_input_set_text(lh_addr_of(f.input), "d");
-    caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
+    lh_ui_rect_t caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
     EXPECT_EQ(top_of(lh_addr_of(caret)), lh_ui_label_get_baseline(lh_addr_of(f.input.label)) - 6);
 }
 
@@ -509,10 +506,9 @@ TEST(entity_input, an_empty_field_puts_the_caret_where_capitals_would_stand)
 {
     field f;
     lh_ui_style_t style;
-    lh_ui_rect_t caret;
 
     cap_field(lh_addr_of(f), lh_addr_of(style));
-    caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
+    lh_ui_rect_t caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
     EXPECT_EQ(top_of(lh_addr_of(caret)), 4 - 6);
 }
 
@@ -520,14 +516,13 @@ TEST(entity_input, a_block_caret_is_as_wide_as_the_character_under_it)
 {
     field f;
     lh_ui_style_t style;
-    lh_ui_rect_t caret;
 
     cap_field(lh_addr_of(f), lh_addr_of(style));
     lh_ui_input_set_caret_shape(lh_addr_of(f.input), lh_ui_input_caret_block);
     EXPECT_EQ(lh_ui_input_get_caret_shape(lh_addr_of(f.input)), lh_ui_input_caret_block);
     lh_ui_input_set_text(lh_addr_of(f.input), "fe");
     lh_ui_input_set_caret_v(lh_addr_of(f.input), 0);
-    caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
+    lh_ui_rect_t caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
     EXPECT_EQ(width_of(lh_addr_of(caret)), 6) << "over 'f'";
     lh_ui_input_set_caret_v(lh_addr_of(f.input), 1);
     caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
@@ -539,30 +534,28 @@ TEST(entity_input, a_bar_caret_is_one_column)
 {
     field f;
     lh_ui_style_t style;
-    lh_ui_rect_t caret;
 
     cap_field(lh_addr_of(f), lh_addr_of(style));
     EXPECT_EQ(lh_ui_input_get_caret_shape(lh_addr_of(f.input)), lh_ui_input_caret_bar) << "the default";
     lh_ui_input_set_text(lh_addr_of(f.input), "fe");
     lh_ui_input_set_caret_v(lh_addr_of(f.input), 0);
-    caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
+    lh_ui_rect_t caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
     EXPECT_EQ(width_of(lh_addr_of(caret)), 1);
 }
 
 TEST(entity_input, a_field_with_no_font_has_no_caret_rect)
 {
-    field f;
     lh_ui_rect_t rect;
-    lh_ui_rect_t caret;
 
     /* No style at all, so no font: there is nothing to measure the text with, and a
        caret at (0, 0) would be a mark in the corner of every field that has not been
        given a look yet. */
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 200, 24);
+    field f;
     lh_ui_input_init(lh_addr_of(f.input), rect, f.buffer, 16);
     lh_ui_input_set_text(lh_addr_of(f.input), "A");
 
-    caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
+    lh_ui_rect_t caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
     EXPECT_EQ(lh_ui_rect_is_empty(lh_addr_of(caret)), lh_bool_true);
 }
 
@@ -571,7 +564,6 @@ TEST(entity_input, a_field_with_no_font_has_no_caret_rect)
 TEST(entity_input, a_press_puts_the_caret_where_the_pointer_is)
 {
     field f;
-    lh_ui_point_t at;
 
     field_init(lh_addr_of(f), 16);
     give_focus(lh_addr_of(f.input));
@@ -584,6 +576,7 @@ TEST(entity_input, a_press_puts_the_caret_where_the_pointer_is)
        is the second byte of the text and every character in "ABC" is one byte long.
        The first version compared against where the text starts, which is a constant,
        so every press landed on the same byte and a click in a field did nothing. */
+    lh_ui_point_t at;
     lh_ui_point_init(lh_addr_of(at), 4, 2);
     EXPECT_EQ(press_at(lh_addr_of(f.input), at), true);
     EXPECT_EQ(lh_ui_input_get_caret(lh_addr_of(f.input)), 1);
@@ -608,7 +601,6 @@ TEST(entity_input, a_press_puts_the_caret_where_the_pointer_is)
 TEST(entity_input, a_press_counts_a_multi_byte_character_as_the_one_step_it_is)
 {
     field f;
-    lh_ui_point_t at;
 
     field_init(lh_addr_of(f), 16);
     give_focus(lh_addr_of(f.input));
@@ -619,6 +611,7 @@ TEST(entity_input, a_press_counts_a_multi_byte_character_as_the_one_step_it_is)
        so it takes **no room** and the whole text is three columns wide. A press past
        those three columns is the end of the text, which is byte 3, not byte 1: the
        caret is a position in the bytes, and the pixels are only how it was found. */
+    lh_ui_point_t at;
     lh_ui_point_init(lh_addr_of(at), 100, 2);
     EXPECT_EQ(press_at(lh_addr_of(f.input), at), true);
     EXPECT_EQ(lh_ui_input_get_caret(lh_addr_of(f.input)), 3);

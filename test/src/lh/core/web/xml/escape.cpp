@@ -23,9 +23,9 @@ std::string
 escape(const std::string &text, lh_bool_t in_attr)
 {
     lh_str_t out;
-    lh_str_view_t view;
 
     lh_str_init(&out);
+    lh_str_view_t view;
     lh_str_view_init_by_size(&view, text.data(), text.size());
     lh_web_xml_escape_append(&out, view, in_attr);
     std::string result(lh_str_get_data(&out) ? lh_str_get_data(&out) : "", lh_str_get_size(&out));

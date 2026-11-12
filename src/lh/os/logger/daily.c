@@ -241,9 +241,9 @@ lh_os_logger_daily_format_standard(lh_ptr user, const lh_os_logger_record_t *rec
                                    lh_timestamp_t local, lh_str_t *out)
 {
     const lh_char_t *tag = lh_os_logger_record_get_tag(record);
-    lh_str_t head;
 
     LH_ATTRIBUTE_UNUSED(user);
+    lh_str_t head;
     lh_str_init(lh_addr_of(head));
     LH_ATTRIBUTE_UNUSED(
         lh_str_format(lh_addr_of(head), "%04d-%02d-%02d %02d:%02d:%02d [%s] ",
@@ -408,7 +408,6 @@ lh_os_logger_daily_open(lh_os_logger_daily_t *self, const lh_os_logger_record_t 
 {
     lh_os_logger_daily_channel_t *channel =
         lh_os_logger_daily_find(self, lh_os_logger_record_get_channel(record));
-    lh_str_view_t dir;
 
     if (lh_null_eq(channel))
     {
@@ -419,6 +418,7 @@ lh_os_logger_daily_open(lh_os_logger_daily_t *self, const lh_os_logger_record_t 
                           lh_os_logger_daily_channel_get_node_mut(channel));
     }
     lh_os_logger_daily_channel_close_file(channel);
+    lh_str_view_t dir;
     lh_str_view_init(lh_addr_of(dir), lh_os_logger_record_get_text(record));
     lh_fs_path_set(lh_os_logger_daily_channel_get_dir_mut(channel), dir, lh_fs_path_style_posix);
     lh_os_logger_daily_channel_set_keep_days(channel, lh_os_logger_record_get_keep_days(record));
@@ -462,9 +462,9 @@ lh_os_logger_daily_write(lh_os_logger_daily_t *self, const lh_os_logger_record_t
     lh_os_logger_daily_channel_t *channel =
         lh_os_logger_daily_find(self, lh_os_logger_record_get_channel(record));
     lh_str_t *line = lh_os_logger_daily_get_line_mut(self);
-    lh_timestamp_t local;
 
     lh_return_if(lh_null_eq(channel));
+    lh_timestamp_t local;
     if (!lh_os_timestamp_try_get_local(lh_os_logger_record_get_time(record), lh_addr_of(local)))
     {
         local = lh_os_logger_record_get_time(record);

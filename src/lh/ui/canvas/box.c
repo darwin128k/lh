@@ -50,14 +50,12 @@ lh_void
 lh_ui_canvas_box_paint_row(const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t *sampler,
                            lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_ui_color_t *out)
 {
-    lh_s32_t x;
-
     if (lh_null_ne(sampler))
     {
         lh_ui_gradient_sampler_row(sampler, x0, x1, y, out);
         return;
     }
-    for (x = x0; x < x1; ++x)
+    for (lh_s32_t x = x0; x < x1; ++x)
     {
         out[x - x0] = lh_ptr_deref(lh_ui_paint_get_color_v(paint));
     }
@@ -68,13 +66,13 @@ lh_ui_canvas_box_row_colour(const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t
                             lh_s32_t x, lh_s32_t y, lh_ui_color_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_ui_color_t colour;
 
     if (lh_null_eq(sampler))
     {
         lh_ptr_deref(out) = lh_ptr_deref(lh_ui_paint_get_color_v(paint));
         return;
     }
+    lh_ui_color_t colour;
     lh_ui_gradient_sampler_column(sampler, x, y, y + 1, lh_addr_of(colour));
     lh_ptr_deref(out) = colour;
 }
@@ -105,7 +103,6 @@ lh_ui_canvas_box_row(lh_ui_canvas_t *self, const lh_ui_paint_t *paint,
                      lh_s32_t near_end, const struct lh_ui_radius_run *near, lh_s32_t far_start,
                      const struct lh_ui_radius_run *far)
 {
-
     near_end = lh_math_max(x0, lh_math_min(x1, near_end));
     far_start = lh_math_min(x1, lh_math_max(near_end, far_start));
     if (lh_ui_canvas_box_rows_are_one_colour(paint))
@@ -314,7 +311,6 @@ lh_void
 lh_ui_canvas_fill_box(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, const lh_ui_radii_t *radii,
                       const lh_ui_paint_t *paint)
 {
-    lh_ui_gradient_sampler_t sampler;
     lh_ui_gradient_sampler_t *colours = lh_null;
 
     lh_return_if(lh_null_eq(self) || lh_null_eq(rect) || lh_null_eq(radii) || lh_null_eq(paint));
@@ -336,6 +332,7 @@ lh_ui_canvas_fill_box(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, const lh_u
     lh_return_if(lh_ui_rect_is_empty(lh_addr_of(cut)));
     lh_ui_canvas_box_frame_t frame;
     lh_return_if(!lh_ui_canvas_box_frame_init(lh_addr_of(box), lh_addr_of(cut), lh_addr_of(frame)));
+    lh_ui_gradient_sampler_t sampler;
     if (lh_null_ne(lh_ui_paint_get_gradient_v(paint)))
     {
         lh_ui_gradient_sampler_init(lh_addr_of(sampler), lh_ui_paint_get_gradient_v(paint),

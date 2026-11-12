@@ -108,7 +108,6 @@ lh_ui_canvas_sw_blend_run(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_
     const lh_byte_t alpha = lh_ui_color_get_a(color);
     lh_s32_t mid0 = x0;
     lh_s32_t mid1 = x1;
-    lh_s32_t i;
 
     /* The middle of the row lies wholly inside every rounded cut, so its clip
        coverage is 255 and only the shape's own alpha applies. Outside the middle
@@ -120,7 +119,7 @@ lh_ui_canvas_sw_blend_run(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_
                                     lh_addr_of(mid1));
     }
 
-    for (i = 0; i < mid0 - x0; ++i)
+    for (lh_s32_t i = 0; i < mid0 - x0; ++i)
     {
         coverage[i] = lh_ui_canvas_sw_edge_alpha(self, alpha, coverage[i], x0 + i, y);
     }
@@ -128,12 +127,12 @@ lh_ui_canvas_sw_blend_run(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_
        drawn in one, and this loop was a multiply per pixel of every glyph row. */
     if (alpha != LH_BYTE_T_MAX)
     {
-        for (i = mid0 - x0; i < mid1 - x0; ++i)
+        for (lh_s32_t i = mid0 - x0; i < mid1 - x0; ++i)
         {
             coverage[i] = lh_ui_radius_scale(alpha, coverage[i]);
         }
     }
-    for (i = mid1 - x0; i < x1 - x0; ++i)
+    for (lh_s32_t i = mid1 - x0; i < x1 - x0; ++i)
     {
         coverage[i] = lh_ui_canvas_sw_edge_alpha(self, alpha, coverage[i], x0 + i, y);
     }
@@ -160,7 +159,6 @@ lh_void
 lh_ui_canvas_sw_fill_span(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
                           const lh_ui_color_t *color)
 {
-
     x0 = lh_ui_canvas_sw_cut_x0(self, x0);
     x1 = lh_ui_canvas_sw_cut_x1(self, x1);
     {
@@ -298,14 +296,13 @@ lh_ui_canvas_sw_cover_row(lh_ui_canvas_sw_t *self, const lh_ui_mask_t *mask, lh_
     const lh_s32_t x1 = lh_ui_canvas_sw_cut_x1(self, x0 + lh_ui_mask_get_width(mask));
     const lh_byte_t alpha = lh_ui_color_get_a(color);
     const lh_u32_t src = lh_ui_color_get_argb(color) & 0x00FFFFFFU;
-    lh_s32_t x;
 
     lh_assert_runtime(!lh_ui_canvas_sw_is_rounded(self), lh_runtime_error_code_invalid_argument);
     /* Eight pixels a step, the coverages never leaving a register: a glyph row is
        one or two steps. The buffered run (::lh_ui_canvas_sw_mask_row) took a
        coverage pass, an alpha pass and a blend pass per row, each through its own
        calls, and on rows this short that was the cost of the text. */
-    for (x = lh_ui_canvas_sw_cut_x0(self, x0); x < x1; x += 8)
+    for (lh_s32_t x = lh_ui_canvas_sw_cut_x0(self, x0); x < x1; x += 8)
     {
         lh_u64_t cover = lh_ui_mask_get_coverage_8(mask, x - x0, y - y0);
 
@@ -383,7 +380,6 @@ lh_void
 lh_ui_canvas_sw_shadow_span(lh_ui_canvas_sw_t *self, const lh_ui_canvas_sw_shadow_pass_t *pass,
                             lh_s32_t x0, lh_s32_t x1, lh_s32_t y)
 {
-
     x0 = lh_ui_canvas_sw_cut_x0(self, x0);
     x1 = lh_ui_canvas_sw_cut_x1(self, x1);
     while (x0 < x1)
@@ -516,20 +512,19 @@ lh_ui_canvas_sw_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_
     const lh_s32_t x0 = lh_ui_scalar_floor_s32(lh_ui_point_get_x(origin));
     const lh_s32_t y0 = lh_ui_scalar_floor_s32(lh_ui_point_get_y(origin));
     const lh_s32_t y1 = lh_ui_canvas_sw_cut_y1(self, y0 + lh_ui_mask_get_height(mask));
-    lh_s32_t y;
 
     /* A rounded cut is a coverage a pixel of its own, which the run path
        multiplies in; without one, the mask's coverages go to the pixels straight
        from the register. */
     if (lh_ui_canvas_sw_is_rounded(self))
     {
-        for (y = lh_ui_canvas_sw_cut_y0(self, y0); y < y1; ++y)
+        for (lh_s32_t y = lh_ui_canvas_sw_cut_y0(self, y0); y < y1; ++y)
         {
             lh_ui_canvas_sw_mask_row(self, mask, x0, y0, y, color);
         }
         return lh_bool_true;
     }
-    for (y = lh_ui_canvas_sw_cut_y0(self, y0); y < y1; ++y)
+    for (lh_s32_t y = lh_ui_canvas_sw_cut_y0(self, y0); y < y1; ++y)
     {
         lh_ui_canvas_sw_cover_row(self, mask, x0, y0, y, color);
     }
@@ -544,13 +539,12 @@ lh_ui_canvas_sw_fill_colors(lh_ptr context, lh_s32_t x, lh_s32_t y, lh_s32_t w, 
     const lh_s32_t x0 = lh_ui_canvas_sw_cut_x0(self, x);
     const lh_s32_t x1 = lh_ui_canvas_sw_cut_x1(self, x + w);
     const lh_s32_t y1 = lh_ui_canvas_sw_cut_y1(self, y + h);
-    lh_s32_t row;
 
     /* A rounded cut is a coverage a pixel on top of the colours' own alpha; the
        canvas sends the box through fill_rect, which knows it. */
     lh_return_if(lh_ui_canvas_sw_is_rounded(self), lh_bool_false);
     lh_return_if(x1 <= x0, lh_bool_true);
-    for (row = lh_ui_canvas_sw_cut_y0(self, y); row < y1; ++row)
+    for (lh_s32_t row = lh_ui_canvas_sw_cut_y0(self, y); row < y1; ++row)
     {
         if (axis == lh_ui_axis_horizontal)
         {

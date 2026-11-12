@@ -271,10 +271,9 @@ lh_web_json_node_get_bool(const lh_web_json_node_t *self)
 lh_str_view_t
 lh_web_json_node_get_str(const lh_web_json_node_t *self)
 {
-    lh_str_view_t view;
-
     lh_assert_runtime_if(!lh_web_json_node_has_kind(self, lh_web_json_kind_string),
                          lh_runtime_error_code_invalid_argument, "json node is not a string");
+    lh_str_view_t view;
     lh_str_as_view(lh_web_json_node_get_text(self), lh_addr_of(view));
     return view;
 }
@@ -387,10 +386,9 @@ lh_web_json_node_set_bool(lh_web_json_node_t *self, lh_bool_t value)
 lh_void
 lh_web_json_node_set_sint(lh_web_json_node_t *self, lh_sllong_t value)
 {
-    lh_char_t digits[LH_WEB_JSON_NODE_INTEGER_DIGITS_MAX];
-
     lh_web_json_node_clear(self);
     lh_web_json_node_set_kind(self, lh_web_json_kind_number);
+    lh_char_t digits[LH_WEB_JSON_NODE_INTEGER_DIGITS_MAX];
     lh_str_append(lh_web_json_node_get_text_mut(self), digits,
                   lh_str_ptr_format_sllong(value, digits, LH_WEB_JSON_NODE_INTEGER_DIGITS_MAX));
 }
@@ -398,10 +396,9 @@ lh_web_json_node_set_sint(lh_web_json_node_t *self, lh_sllong_t value)
 lh_void
 lh_web_json_node_set_uint(lh_web_json_node_t *self, lh_ullong_t value)
 {
-    lh_char_t digits[LH_WEB_JSON_NODE_INTEGER_DIGITS_MAX];
-
     lh_web_json_node_clear(self);
     lh_web_json_node_set_kind(self, lh_web_json_kind_number);
+    lh_char_t digits[LH_WEB_JSON_NODE_INTEGER_DIGITS_MAX];
     lh_str_append(lh_web_json_node_get_text_mut(self), digits,
                   lh_str_ptr_format_ullong(value, digits, LH_WEB_JSON_NODE_INTEGER_DIGITS_MAX));
 }
@@ -409,9 +406,8 @@ lh_web_json_node_set_uint(lh_web_json_node_t *self, lh_ullong_t value)
 lh_bool_t
 lh_web_json_node_set_number(lh_web_json_node_t *self, lh_str_view_t text)
 {
-    lh_web_json_reader_t reader;
-
     lh_web_json_node_clear(self);
+    lh_web_json_reader_t reader;
     lh_web_json_reader_init(lh_addr_of(reader), text);
     if (!lh_web_json_reader_read_number(lh_addr_of(reader), self) ||
         !lh_web_json_reader_is_end(lh_addr_of(reader)))

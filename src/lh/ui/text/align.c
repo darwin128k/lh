@@ -14,7 +14,6 @@ lh_ui_text_align_get_origin(const lh_ui_rect_t *box, const lh_ui_insets_t *paddi
     lh_assert_runtime_ref(out);
     lh_ui_scalar_t dx = 0;
     lh_ui_scalar_t dy = 0;
-    lh_ui_point_t origin;
 
     /* The empty box lives here, not inside the branch below: the pointer that
        names it is read after the branch ends, so a variable declared inside it
@@ -67,6 +66,7 @@ lh_ui_text_align_get_origin(const lh_ui_rect_t *box, const lh_ui_insets_t *paddi
                                 lh_ui_size_get_height(lh_addr_of(size)));
     }
 
+    lh_ui_point_t origin;
     lh_ui_point_init(
         lh_addr_of(origin),
         lh_ui_point_get_x(lh_ui_rect_get_origin(box)) + lh_ui_insets_get_left((padding)) + dx,

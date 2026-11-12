@@ -132,9 +132,8 @@ lh_console_call_print(const lh_console_call_t *self, const lh_char_t *text)
 lh_void
 lh_console_call_printf_v(const lh_console_call_t *self, const lh_char_t *fmt, va_list args)
 {
-    lh_str_t line;
-
     lh_return_if(lh_ptr_is_null(lh_console_call_get_sink_fn(self)) || lh_ptr_is_null(fmt));
+    lh_str_t line;
     lh_str_init(lh_addr_of(line));
     LH_ATTRIBUTE_UNUSED(lh_str_format_v(lh_addr_of(line), fmt, args));
     lh_console_call_print(self, lh_str_get_data(lh_addr_of(line)));

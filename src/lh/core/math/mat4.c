@@ -86,10 +86,9 @@ lh_math_mat4_set_column_vec3(lh_math_mat4_t *self, unsigned index, lh_math_vec3_
 lh_void
 lh_math_mat4_from_quat(lh_math_quat_t q, lh_math_mat4_t *out)
 {
-    lh_math_vec3_t axis;
-
     /* Column c is where the rotation takes axis c; the last stays (0, 0, 0, 1). */
     lh_math_mat4_identity(out);
+    lh_math_vec3_t axis;
     lh_math_quat_axis_x(q, lh_addr_of(axis));
     lh_math_mat4_set_column_vec3(out, 0, axis, 0.0f);
     lh_math_quat_axis_y(q, lh_addr_of(axis));

@@ -602,12 +602,11 @@ lh_usize_t
 lh_crypto_sha_hash(lh_crypto_sha_kind_t kind, const lh_ptr data, lh_usize_t size, lh_ptr out,
                    lh_usize_t out_size)
 {
-    lh_crypto_sha_t hasher;
-
     if (lh_crypto_sha_digest_size(kind) == 0)
     {
         return 0;
     }
+    lh_crypto_sha_t hasher;
     lh_crypto_sha_init(lh_addr_of(hasher), kind);
     lh_crypto_sha_update(lh_addr_of(hasher), data, size);
     return lh_crypto_sha_finish(lh_addr_of(hasher), out, out_size);

@@ -115,10 +115,10 @@ TEST(array_push_back, crossing_reserved_capacity_falls_back_and_still_grows)
 TEST(array_assign, copies_elements)
 {
     IntVector a;
-    IntVector b;
 
     a.push(1);
     a.push(2);
+    IntVector b;
     b.push(9);
     lh_array_assign(&b.v, &a.v);
     ASSERT_EQ(lh_array_get_size(&b.v), 2u);
@@ -176,8 +176,8 @@ TEST(array_erase_of, removes_a_range_and_keeps_order)
 TEST(array_append, copies_other_and_leaves_it_untouched)
 {
     IntVector a;
-    IntVector b;
     fill_with(a, {1, 2});
+    IntVector b;
     fill_with(b, {3, 4, 5});
     lh_array_append(&a.v, &b.v);
     EXPECT_EQ(contents(a), (std::vector<int>{1, 2, 3, 4, 5}));
@@ -195,10 +195,10 @@ TEST(array_append, to_itself_doubles_even_when_growing)
 
 TEST(array_merge, into_empty_takes_the_block)
 {
-    IntVector a;
     IntVector b;
     fill_with(b, {7, 8, 9});
     const lh_ptr block = lh_array_get_data(&b.v);
+    IntVector a;
     lh_array_merge(&a.v, &b.v);
     EXPECT_EQ(contents(a), (std::vector<int>{7, 8, 9}));
     EXPECT_EQ(lh_array_get_data(&a.v), block);
@@ -211,8 +211,8 @@ TEST(array_merge, into_empty_takes_the_block)
 TEST(array_merge, into_non_empty_appends_and_drains)
 {
     IntVector a;
-    IntVector b;
     fill_with(a, {1});
+    IntVector b;
     fill_with(b, {2, 3});
     lh_array_merge(&a.v, &b.v);
     EXPECT_EQ(contents(a), (std::vector<int>{1, 2, 3}));
@@ -269,9 +269,9 @@ TEST(array_reverse, odd_even_and_tiny)
 
 TEST(array_sort, sorts_many_values)
 {
-    IntVector iv;
     std::vector<int> expected;
     unsigned state = 12345u;
+    IntVector iv;
     for (int i = 0; i < 1000; ++i)
     {
         state = state * 1103515245u + 12345u;
@@ -476,10 +476,10 @@ TEST(array_init_by, sorts_with_scratch_from_the_given_allocator)
 TEST(array_init_by, merge_across_allocators_copies_instead_of_taking_the_block)
 {
     counting mine;
-    counting theirs;
     lh_array_t self;
-    lh_array_t other;
     lh_array_init_by(&self, sizeof(int), &mine.allocator);
+    lh_array_t other;
+    counting theirs;
     lh_array_init_by(&other, sizeof(int), &theirs.allocator);
     for (int value : {1, 2, 3})
     {
@@ -500,8 +500,8 @@ TEST(array_init_by, merge_within_one_allocator_takes_the_block)
 {
     counting heap;
     lh_array_t self;
-    lh_array_t other;
     lh_array_init_by(&self, sizeof(int), &heap.allocator);
+    lh_array_t other;
     lh_array_init_by(&other, sizeof(int), &heap.allocator);
     for (int value : {1, 2, 3})
     {

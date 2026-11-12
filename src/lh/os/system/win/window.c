@@ -193,9 +193,9 @@ lh_os_system_win_window_read_pointer(lh_os_system_win_pointer_id_t pointer_id,
                                      lh_os_system_win_pointer_flags_t *flags,
                                      lh_os_system_win_point_t *at)
 {
-    lh_os_system_win_pointer_info_t info;
     lh_os_system_win_pointer_input_type_t type = 0UL;
 
+    lh_os_system_win_pointer_info_t info;
     if (lh_null_ne(lh_ptr_rcast(lh_void, lh_os_system_win_window_get_pointer_info)) &&
         lh_os_system_win_window_get_pointer_info(pointer_id, lh_addr_of(info)))
     {
@@ -259,9 +259,9 @@ lh_os_system_win_window_send_contact(lh_os_window_t *window, lh_os_system_win_hw
     lh_return_if(device_kind != lh_os_input_device_kind_touch &&
                      device_kind != lh_os_input_device_kind_pen,
                  lh_bool_false);
-    lh_os_input_kind_t kind;
 
-    kind = lh_os_system_win_input_pointer_kind_of(lh_type_cast(lh_u32_t, msg), flags);
+    lh_os_input_kind_t kind =
+        lh_os_system_win_input_pointer_kind_of(lh_type_cast(lh_u32_t, msg), flags);
     /* A contact with no id is not delivered at all, and not handed on either: its
        mouse echo would only be skipped. */
     lh_return_if(!lh_os_system_win_window_contact_pointer(pointer_id, kind, device_kind,
@@ -306,11 +306,11 @@ lh_void
 lh_os_system_win_window_send_key(lh_os_window_t *window, lh_os_system_win_uint_t msg,
                                  lh_os_system_win_wparam_t wparam, lh_os_system_win_lparam_t lparam)
 {
-    lh_os_input_event_t event;
     const lh_u32_t vk = lh_type_cast(lh_u32_t, wparam);
     const lh_bool_t down = lh_type_cast(lh_bool_t, msg == LH_OS_SYSTEM_WIN_WM_KEYDOWN ||
                                                        msg == LH_OS_SYSTEM_WIN_WM_SYSKEYDOWN);
 
+    lh_os_input_event_t event;
     lh_os_input_event_init_key(lh_addr_of(event), lh_os_system_win_key_from_vk(vk), down,
                                down ? lh_os_system_win_input_is_repeat(lparam) : lh_bool_false, vk,
                                lh_os_tick_ms());
@@ -371,13 +371,11 @@ lh_os_system_win_window_centered_origin(const lh_os_system_win_rect_t *window_re
 lh_void
 lh_os_system_window_set_corner_radius(lh_os_system_window_handle_t handle, int radius)
 {
-    lh_os_system_win_hwnd_t hwnd;
-
     if (lh_null_eq(handle))
     {
         return;
     }
-    hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
+    lh_os_system_win_hwnd_t hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
     if (radius <= 0)
     {
         /* A region is the window's shape, and the shape of the size it was cut for: a
@@ -717,26 +715,22 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
 lh_void
 lh_os_system_window_minimize(lh_os_system_window_handle_t handle)
 {
-    lh_os_system_win_hwnd_t hwnd;
-
     if (lh_null_eq(handle))
     {
         return;
     }
-    hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
+    lh_os_system_win_hwnd_t hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
     ShowWindow(hwnd, LH_OS_SYSTEM_WIN_SW_MINIMIZE);
 }
 
 lh_void
 lh_os_system_window_set_maximized(lh_os_system_window_handle_t handle, lh_bool_t maximized)
 {
-    lh_os_system_win_hwnd_t hwnd;
-
     if (lh_null_eq(handle))
     {
         return;
     }
-    hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
+    lh_os_system_win_hwnd_t hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
     ShowWindow(hwnd, maximized ? LH_OS_SYSTEM_WIN_SW_MAXIMIZE : LH_OS_SYSTEM_WIN_SW_RESTORE);
 }
 
@@ -749,26 +743,22 @@ lh_os_system_window_is_valid(lh_os_system_window_handle_t handle)
 lh_void
 lh_os_system_window_set_enabled(lh_os_system_window_handle_t handle, lh_bool_t enabled)
 {
-    lh_os_system_win_hwnd_t hwnd;
-
     if (lh_null_eq(handle))
     {
         return;
     }
-    hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
+    lh_os_system_win_hwnd_t hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
     EnableWindow(hwnd, enabled ? LH_OS_SYSTEM_WIN_TRUE : LH_OS_SYSTEM_WIN_FALSE);
 }
 
 lh_void
 lh_os_system_window_close(lh_os_system_window_handle_t handle)
 {
-    lh_os_system_win_hwnd_t hwnd;
-
     if (lh_null_eq(handle))
     {
         return;
     }
-    hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
+    lh_os_system_win_hwnd_t hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
     DestroyWindow(hwnd);
 }
 
@@ -811,13 +801,11 @@ lh_os_system_window_post_quit(void)
 lh_void
 lh_os_system_window_invalidate(lh_os_system_window_handle_t handle)
 {
-    lh_os_system_win_hwnd_t hwnd;
-
     if (lh_null_eq(handle))
     {
         return;
     }
-    hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
+    lh_os_system_win_hwnd_t hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
     InvalidateRect(hwnd, lh_null, LH_OS_SYSTEM_WIN_FALSE);
 }
 
@@ -825,13 +813,11 @@ lh_void
 lh_os_system_window_invalidate_rect(lh_os_system_window_handle_t handle, int left, int top,
                                     int right, int bottom)
 {
-    lh_os_system_win_hwnd_t hwnd;
-
     if (lh_null_eq(handle))
     {
         return;
     }
-    hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
+    lh_os_system_win_hwnd_t hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
     lh_os_system_win_rect_t area;
 
     area.left = left;
@@ -850,13 +836,11 @@ lh_os_system_window_invalidate_rect(lh_os_system_window_handle_t handle, int lef
 lh_void
 lh_os_system_window_set_timer(lh_os_system_window_handle_t handle, lh_u32_t ms)
 {
-    lh_os_system_win_hwnd_t hwnd;
-
     if (lh_null_eq(handle))
     {
         return;
     }
-    hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
+    lh_os_system_win_hwnd_t hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
     if (ms == 0U)
     {
         KillTimer(hwnd, LH_OS_SYSTEM_WIN_TIMER_ID);
@@ -879,10 +863,8 @@ lh_os_system_window_set_timer(lh_os_system_window_handle_t handle, lh_u32_t ms)
 lh_bool_t
 lh_os_system_window_get_client_size(lh_os_system_window_handle_t handle, int *width, int *height)
 {
-    lh_os_system_win_hwnd_t hwnd;
-
     lh_return_if(lh_null_eq(handle) || lh_null_eq(width) || lh_null_eq(height), lh_bool_false);
-    hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
+    lh_os_system_win_hwnd_t hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
     lh_os_system_win_rect_t client;
 
     lh_return_if(GetClientRect(hwnd, lh_addr_of(client)) == 0, lh_bool_false);
@@ -947,10 +929,8 @@ lh_os_system_window_get_paint_region(lh_ptr paint_dc, lh_u64_t *area, lh_u32_t *
 lh_bool_t
 lh_os_system_window_get_position(lh_os_system_window_handle_t handle, int *x, int *y)
 {
-    lh_os_system_win_hwnd_t hwnd;
-
     lh_return_if(lh_null_eq(handle) || lh_null_eq(x) || lh_null_eq(y), lh_bool_false);
-    hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
+    lh_os_system_win_hwnd_t hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
     lh_os_system_win_rect_t window;
 
     lh_return_if(GetWindowRect(hwnd, lh_addr_of(window)) == 0, lh_bool_false);

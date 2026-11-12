@@ -74,8 +74,8 @@ TEST(ui_radius, coverage_is_the_same_in_every_corner)
 TEST(ui_radius, coverage_follows_a_moved_rect)
 {
     lh_ui_rect_t rect;
-    lh_ui_rect_t moved;
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 10, 10);
+    lh_ui_rect_t moved;
     lh_ui_rect_init(lh_addr_of(moved), -20, -30, 10, 10);
 
     EXPECT_EQ(lh_ui_radius_coverage(lh_addr_of(moved), lh_ui_scalar(4), -20, -28),
@@ -105,9 +105,9 @@ TEST(ui_radius, cover_from_square_matches_the_square_root_everywhere)
 TEST(ui_radius, contains_follows_the_rounded_shape)
 {
     lh_ui_rect_t rect;
-    lh_ui_point_t point;
 
     lh_ui_rect_init(&rect, 10, 10, 40, 30);
+    lh_ui_point_t point;
     lh_ui_point_init(&point, 10, 10); /* the cut corner pixel */
     EXPECT_EQ(lh_ui_radius_contains(&rect, lh_ui_scalar(10), point), lh_bool_false);
     EXPECT_EQ(lh_ui_radius_contains(&rect, lh_ui_scalar(0), point), lh_bool_true);
@@ -134,10 +134,10 @@ TEST(ui_radius, contains_follows_the_rounded_shape)
 TEST(ui_radius_coverage_run, same_bytes_as_per_pixel)
 {
     lh_ui_rect_t rect;
-    lh_byte_t run[64];
 
     lh_ui_rect_init(lh_addr_of(rect), 10, 20, 42, 30);
 
+    lh_byte_t run[64];
     for (const lh_ui_scalar_t radius : {lh_ui_scalar(0), lh_ui_scalar(3), lh_ui_scalar(10), lh_ui_scalar(16),
                                         LH_UI_RADIUS_CIRCLE})
     {

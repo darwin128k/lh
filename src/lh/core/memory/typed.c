@@ -187,10 +187,9 @@ lh_memory_typed_get_index_from_offset(const lh_memory_typed_t *self, lh_uoffset_
 lh_void
 lh_memory_typed_set_v(lh_memory_typed_t *self, lh_ptr begin, lh_usize_t count, lh_usize_t type_size)
 {
-    lh_memory_typed_t typed;
-
     lh_assert_runtime_if(lh_interval_closed_is_mul_overflow(count, type_size, 0, LH_USIZE_T_MAX),
                          lh_runtime_error_code_invalid_range);
+    lh_memory_typed_t typed;
     lh_memory_typed_set(lh_addr_of(typed), begin, count, type_size);
     lh_memory_typed_assign_v(self, lh_addr_of(typed));
 }

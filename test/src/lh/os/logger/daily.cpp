@@ -23,9 +23,9 @@ std::string
 day_file(lh_timestamp_t utc)
 {
     lh_timestamp_t local = utc;
-    char name[64];
 
     EXPECT_TRUE(lh_os_timestamp_try_get_local(utc, &local));
+    char name[64];
     std::snprintf(name, sizeof(name), "%s/%04d-%02d-%02d.log", k_dir,
                   static_cast<int>(lh_timestamp_get_year(local)),
                   static_cast<int>(lh_timestamp_get_month(local)),
@@ -138,9 +138,9 @@ TEST(os_logger_daily, lines_go_to_the_file_of_their_local_day)
     const std::string first = read_file(day_file(g_first));
     const std::string second = read_file(day_file(g_second));
     lh_timestamp_t local = g_first;
-    char head[32];
 
     ASSERT_TRUE(lh_os_timestamp_try_get_local(g_first, &local));
+    char head[32];
     std::snprintf(head, sizeof(head), "%04d-%02d-%02d %02d:%02d:%02d",
                   static_cast<int>(lh_timestamp_get_year(local)),
                   static_cast<int>(lh_timestamp_get_month(local)),
@@ -192,9 +192,9 @@ TEST(os_logger_daily, a_custom_format_writes_the_line)
 TEST(os_logger_daily, opening_a_channel_deletes_old_day_files_only)
 {
     lh_fs_path_t dir;
-    lh_str_view_t view;
 
     lh_fs_path_init(&dir);
+    lh_str_view_t view;
     lh_str_view_init(&view, k_dir);
     lh_fs_path_set(&dir, view, lh_fs_path_style_posix);
     ASSERT_TRUE(lh_os_fs_dir_create_tree(&dir));

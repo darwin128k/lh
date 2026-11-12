@@ -58,17 +58,14 @@ lh_wstr_terminate(lh_wstr_t *self)
 lh_void
 lh_wstr_append(lh_wstr_t *self, lh_wstr_cptr text, lh_usize_t count)
 {
-    lh_usize_t needed;
-    lh_usize_t capacity;
-
     if (lh_math_is_zero(count))
     {
         return;
     }
     /* Grow once, for the text and the terminator together — push_back_of
        alone would size for the text and then need a second grow for the NUL. */
-    needed = lh_math_add_one(lh_math_add(lh_array_get_size(self), count));
-    capacity = lh_array_get_capacity(self);
+    const lh_usize_t needed = lh_math_add_one(lh_math_add(lh_array_get_size(self), count));
+    const lh_usize_t capacity = lh_array_get_capacity(self);
     if (lh_math_lt(capacity, needed))
     {
         lh_array_reserve(self, lh_array_get_grown_capacity(capacity, needed));
@@ -125,14 +122,12 @@ lh_wstr_assign_view(lh_wstr_t *self, lh_wstr_view_t view)
 lh_void
 lh_wstr_join(lh_wstr_t *self, const lh_wstr_view_t *parts, lh_usize_t count, lh_wchar_t sep)
 {
-    lh_usize_t i;
-
     if (count > 0U)
     {
         lh_assert_runtime_ref(parts);
     }
     lh_wstr_clear(self);
-    for (i = 0U; i < count; ++i)
+    for (lh_usize_t i = 0U; i < count; ++i)
     {
         if (i > 0U)
         {

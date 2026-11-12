@@ -453,10 +453,9 @@ lh_ui_label_get_wrap_width(const lh_ui_label_t *self)
                  lh_ui_scalar(0));
     lh_ui_insets_t padding;
     lh_ui_entity_get_padding(entity, lh_addr_of(padding));
-    lh_ui_scalar_t width;
-    width = lh_ui_size_get_width(lh_ui_rect_get_size(lh_ui_entity_get_rect(entity))) -
-            lh_ui_insets_get_left(lh_addr_of(padding)) -
-            lh_ui_insets_get_right(lh_addr_of(padding));
+    lh_ui_scalar_t width =
+        lh_ui_size_get_width(lh_ui_rect_get_size(lh_ui_entity_get_rect(entity))) -
+        lh_ui_insets_get_left(lh_addr_of(padding)) - lh_ui_insets_get_right(lh_addr_of(padding));
     /* A box with no room still wraps, one letter a line, rather than not at all. */
     return lh_math_max(width, lh_ui_scalar(1));
 }
@@ -500,7 +499,6 @@ lh_ui_label_measured(const lh_ui_label_t *self)
     const lh_ui_text_align_v_t align_v =
         lh_null_eq(style) ? lh_ui_text_align_v_top : lh_ui_style_get_align_v(style);
     const lh_ui_scalar_t wrap = lh_ui_label_get_wrap_width(self);
-    lh_ui_size_t aligned;
 
     if (lh_ui_label_is_metrics_ready(self) && lh_ui_label_get_metrics_font(self) == font &&
         lh_ui_label_get_metrics_wrap(self) == wrap &&
@@ -536,6 +534,7 @@ lh_ui_label_measured(const lh_ui_label_t *self)
        (::lh_ui_text_get_size), so what is aligned here is the pixels and every
        v_* means what it says: a 22 px line box with 15 px of ink used to be what
        got centred, and the caption sat five rows low. */
+    lh_ui_size_t aligned;
     lh_ui_size_init(lh_addr_of(aligned), 0, 0);
     if (lh_null_ne(style))
     {
@@ -587,7 +586,6 @@ lh_ui_label_get_baseline(const lh_ui_label_t *self)
     const lh_ui_label_t *measured = lh_ui_label_measured(self);
     const lh_ui_point_t origin = lh_ptr_deref(lh_ui_label_get_metrics_origin(measured));
     const lh_ui_point_t *box = lh_ui_rect_get_origin(lh_ui_entity_get_rect(entity));
-    lh_ui_scalar_t baseline;
 
     /* Nothing stands on a line that is not drawn. */
     if (lh_null_eq(font) || lh_null_eq(lh_ui_label_get_text(self)))
@@ -612,9 +610,9 @@ lh_ui_label_get_baseline(const lh_ui_label_t *self)
        "H" gives 4 and "d" gives 5, and both letters' ink ends on row 6.
 
        The first line's, which is what a row lines up on. */
-    baseline = lh_ui_point_get_y(lh_addr_of(origin)) - lh_ui_point_get_y(box) +
-               lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_ascent(font)) -
-               lh_ui_label_get_metrics_ink_top(measured);
+    lh_ui_scalar_t baseline = lh_ui_point_get_y(lh_addr_of(origin)) - lh_ui_point_get_y(box) +
+                              lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_ascent(font)) -
+                              lh_ui_label_get_metrics_ink_top(measured);
     return baseline;
 }
 
@@ -642,7 +640,6 @@ lh_ui_label_on_baseline(const lh_ui_label_t *self, const lh_ui_entity_event_t *e
 lh_void
 lh_ui_label_on_measure(const lh_ui_label_t *self, const lh_ui_entity_event_t *event)
 {
-
     lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_measure);
     lh_ui_rect_t *bounds = lh_ui_entity_event_get_bounds(event);
     lh_ui_rect_t text;

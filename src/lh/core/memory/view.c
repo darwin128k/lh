@@ -476,9 +476,9 @@ lh_memory_view_get_offset_from_ptr(const lh_memory_view_t *self, const lh_ptr pt
                                    lh_soffset_t offset)
 {
     lh_uoffset_t result = 0U;
-    lh_runtime_error_code_t code;
 
-    code = lh_memory_view_find_offset_from_ptr(self, ptr, offset, lh_addr_of(result));
+    lh_runtime_error_code_t code =
+        lh_memory_view_find_offset_from_ptr(self, ptr, offset, lh_addr_of(result));
     lh_assert_runtime_if(lh_math_ne(code, lh_runtime_error_code_ok), code);
     return result;
 }

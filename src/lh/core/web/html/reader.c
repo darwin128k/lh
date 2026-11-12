@@ -127,13 +127,13 @@ lh_web_html_reader_read_attr(lh_web_html_reader_t *self, lh_web_xml_node_t *node
     lh_web_xml_reader_t *xml = lh_web_html_reader_get_xml_mut(self);
     lh_str_cursor_t *cursor = lh_web_xml_reader_get_cursor_mut(xml);
     lh_web_xml_attr_t *attr = lh_web_xml_attr_create();
-    lh_str_view_t name;
 
     if (!lh_web_xml_reader_read_name_into(xml, lh_web_xml_attr_get_name_mut(attr)))
     {
         lh_web_xml_attr_destroy(attr);
         return lh_bool_false;
     }
+    lh_str_view_t name;
     lh_str_as_view(lh_web_xml_attr_get_name(attr), lh_addr_of(name));
     if (lh_null_ne(lh_web_xml_node_find_attr(node, name)))
     {

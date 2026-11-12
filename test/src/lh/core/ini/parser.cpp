@@ -211,10 +211,10 @@ TEST(ini_parser, names_section_of_error)
     lh_str_view_init_by_size(&view, ini.data(), ini.size());
     lh_ini_parser_t parser;
     lh_ini_parser_init(&parser, view);
-    lh_ini_entry_t entry;
 
     lh_str_view_t section = lh_ini_parser_get_section(&parser);
     EXPECT_TRUE(lh_str_view_is_empty(&section));
+    lh_ini_entry_t entry;
     while (lh_ini_parser_next(&parser, &entry))
     {
     }
@@ -230,9 +230,9 @@ TEST(ini_parser, counts_lines_and_tags_entries_with_section)
     lh_str_view_init_by_size(&view, ini.data(), ini.size());
     lh_ini_parser_t parser;
     lh_ini_parser_init(&parser, view);
-    lh_ini_entry_t entry;
 
     EXPECT_EQ(lh_ini_parser_get_line(&parser), 0U);
+    lh_ini_entry_t entry;
     ASSERT_TRUE(lh_ini_parser_next(&parser, &entry));
     EXPECT_EQ(text(lh_ini_entry_get_section(&entry)), "a");
     EXPECT_EQ(lh_ini_parser_get_line(&parser), 1U);

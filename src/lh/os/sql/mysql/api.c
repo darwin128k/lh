@@ -527,9 +527,8 @@ lh_os_sql_mysql_api_bind(lh_os_sql_mysql_api_t *self)
 lh_bool_t
 lh_os_sql_mysql_api_load(lh_os_sql_mysql_api_t *self, lh_str_view_t name)
 {
-    lh_fs_path_t path;
-
     lh_os_sql_mysql_api_deinit(self);
+    lh_fs_path_t path;
     lh_fs_path_init(lh_addr_of(path));
     lh_fs_path_set(lh_addr_of(path), name, lh_os_system_fs_path_style_native());
     const lh_bool_t opened =

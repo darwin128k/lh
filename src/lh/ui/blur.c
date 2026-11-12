@@ -12,13 +12,12 @@ lh_usize_t
 lh_ui_blur_scratch_size(const lh_ui_rect_t *rect, lh_s32_t radius)
 {
     const lh_ui_size_t *size = lh_ui_rect_get_size(rect);
-    lh_s32_t rows;
 
     if (lh_ui_rect_is_empty(rect))
     {
         return 0;
     }
-    rows = lh_ui_size_get_height(size);
+    lh_s32_t rows = lh_ui_size_get_height(size);
     if (radius > 0)
     {
         rows += radius * 2;
@@ -64,15 +63,14 @@ lh_ui_blur_row_x(const lh_ui_pixmap_t *pixmap, lh_s32_t y, lh_s32_t left, lh_s32
     {
         win1 = read1;
     }
-    lh_s32_t x;
-    for (x = win0; x < win1; ++x)
+    for (lh_s32_t x = win0; x < win1; ++x)
     {
         lh_ui_color_t pixel;
         lh_ui_pixmap_get_pixel(pixmap, x, y, lh_addr_of(pixel));
 
         lh_ui_blur_window_take(lh_addr_of(sum), lh_addr_of(pixel));
     }
-    for (x = left; x < left + width; ++x)
+    for (lh_s32_t x = left; x < left + width; ++x)
     {
         lh_s32_t next0 = x + 1 - radius;
         lh_s32_t next1 = x + 1 + radius + 1;
@@ -134,8 +132,6 @@ lh_void
 lh_ui_blur_put(lh_ui_pixmap_t *pixmap, lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color,
                const lh_ui_rect_t *shape, lh_ui_scalar_t corner)
 {
-    lh_byte_t cover;
-
     if (lh_null_eq(shape) || corner <= lh_ui_scalar(0))
     {
         lh_ui_pixmap_set_pixel(pixmap, x, y, color);
@@ -146,7 +142,7 @@ lh_ui_blur_put(lh_ui_pixmap_t *pixmap, lh_s32_t x, lh_s32_t y, const lh_ui_color
        trusting the tint to cover it leaves a square halo, because the tint
        follows the arc and the arc does not reach this pixel. A pixel the arc
        covers in part is the arc's edge, so the blur replaces it in that part. */
-    cover = lh_ui_radius_coverage(shape, corner, x, y);
+    lh_byte_t cover = lh_ui_radius_coverage(shape, corner, x, y);
     lh_return_if(cover == 0U);
     if (cover == 255U)
     {

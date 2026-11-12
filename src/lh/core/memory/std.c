@@ -854,9 +854,6 @@ lh_memory_std_rcompare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 const lh_ptr
 lh_memory_std_find(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size)
 {
-    lh_byte_cptr hay;
-    lh_byte_cptr needle;
-
     lh_assert_runtime_ref(lhs);
     lh_assert_runtime_ref(rhs);
 
@@ -864,8 +861,8 @@ lh_memory_std_find(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_u
     {
         return lh_null;
     }
-    hay = lh_ptr_ccast(lh_byte_t, lhs);
-    needle = lh_ptr_ccast(lh_byte_t, rhs);
+    lh_byte_cptr hay = lh_ptr_ccast(lh_byte_t, lhs);
+    lh_byte_cptr needle = lh_ptr_ccast(lh_byte_t, rhs);
     if (rhs_size == 1U)
     {
         return lh_memory_std_find_scalar(hay, lhs_size, needle, 1U, 0U);
@@ -883,9 +880,6 @@ lh_memory_std_find(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_u
 const lh_ptr
 lh_memory_std_rfind(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size)
 {
-    lh_byte_cptr hay;
-    lh_byte_cptr needle;
-
     lh_assert_runtime_ref(lhs);
     lh_assert_runtime_ref(rhs);
 
@@ -893,8 +887,8 @@ lh_memory_std_rfind(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
     {
         return lh_null;
     }
-    hay = lh_ptr_ccast(lh_byte_t, lhs);
-    needle = lh_ptr_ccast(lh_byte_t, rhs);
+    lh_byte_cptr hay = lh_ptr_ccast(lh_byte_t, lhs);
+    lh_byte_cptr needle = lh_ptr_ccast(lh_byte_t, rhs);
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
     if (lh_memory_std_has_sse2())
     {

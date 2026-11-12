@@ -38,13 +38,12 @@ lh_os_error_desc_ptr
 lh_os_system_error_format(lh_os_system_error_code_t code, lh_os_error_desc_ptr dest,
                           lh_usize_t dest_size)
 {
-    lh_wchar_t wide[LH_OS_SYSTEM_ERROR_BUFFER_SIZE];
-
     lh_assert_runtime_ref(dest);
     if (lh_math_is_zero(dest_size))
     {
         return dest;
     }
+    lh_wchar_t wide[LH_OS_SYSTEM_ERROR_BUFFER_SIZE];
     const lh_os_system_win_dword_t n =
         FormatMessageW(LH_OS_SYSTEM_WIN_FORMAT_MESSAGE_FROM_SYSTEM |
                            LH_OS_SYSTEM_WIN_FORMAT_MESSAGE_IGNORE_INSERTS,

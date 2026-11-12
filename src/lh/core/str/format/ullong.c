@@ -14,14 +14,13 @@
 lh_usize_t
 lh_str_ptr_format_ullong(lh_ullong_t value, lh_str_ptr str, lh_usize_t str_size)
 {
-    lh_uint_t parts[LH_STR_FORMAT_ULLONG_PARTS_MAX];
     lh_usize_t count = 0;
     lh_usize_t written = 0;
     lh_ullong_t x = value;
-    lh_usize_t i;
 
     lh_assert_runtime_ref(str);
 
+    lh_uint_t parts[LH_STR_FORMAT_ULLONG_PARTS_MAX];
     do
     {
         parts[count] = lh_cast_static(lh_uint_t, lh_math_mod(x, LH_STR_FORMAT_ULLONG_CHUNK));
@@ -35,7 +34,7 @@ lh_str_ptr_format_ullong(lh_ullong_t value, lh_str_ptr str, lh_usize_t str_size)
         return 0;
     }
 
-    i = count;
+    lh_usize_t i = count;
     while (lh_math_gt(i, 1U))
     {
         lh_char_t digits[LH_STR_FORMAT_ULLONG_CHUNK_DIGITS];

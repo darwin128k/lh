@@ -315,7 +315,6 @@ lh_bool_t
 lh_os_sql_sqlite_open(lh_sql_db_t *db, lh_str_view_t path)
 {
     sqlite3 *native = lh_null;
-    lh_str_t name;
 
     lh_sql_db_close(db);
     lh_sql_db_clear_error(db);
@@ -326,6 +325,7 @@ lh_os_sql_sqlite_open(lh_sql_db_t *db, lh_str_view_t path)
     }
 
     /* SQLite wants a NUL-terminated name; the view need not have one. */
+    lh_str_t name;
     lh_str_init_by_view(lh_addr_of(name), path);
     const int rc = sqlite3_open_v2(lh_str_get_data(lh_addr_of(name)), lh_addr_of(native),
                                    SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, lh_null);

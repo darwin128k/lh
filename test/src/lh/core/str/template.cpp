@@ -30,9 +30,9 @@ std::string
 expand(const char *pattern, const values_t &values)
 {
     lh_str_view_t view;
-    lh_str_t out;
 
     lh_str_view_init(&view, pattern);
+    lh_str_t out;
     lh_str_init(&out);
 
     const lh_bool_t ok =

@@ -140,11 +140,11 @@ TEST(net_ip4_is_loopback, matches_127_net)
 TEST(net_ip4_compare, lexicographic_octets)
 {
     lh_net_ip4_t a;
-    lh_net_ip4_t b;
-    lh_net_ip4_t c;
 
     lh_net_ip4_init(lh_addr_of(a), 10, 0, 0, 1);
+    lh_net_ip4_t b;
     lh_net_ip4_init(lh_addr_of(b), 10, 0, 0, 2);
+    lh_net_ip4_t c;
     lh_net_ip4_init(lh_addr_of(c), 11, 0, 0, 0);
 
     EXPECT_EQ(lh_net_ip4_equals(lh_addr_of(a), lh_addr_of(a)), lh_bool_true);

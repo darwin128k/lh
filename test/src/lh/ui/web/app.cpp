@@ -39,10 +39,10 @@ TEST(ui_web_app, handler_receives_parsed_request_and_headers)
 {
     const char text[] = "GET /state HTTP/1.1\r\nX-Test: yes\r\n\r\n";
     lh_http_parser_t parser;
-    lh_http_request_t request;
-    lh_http_header_t headers[2];
     lh_http_parser_init(lh_addr_of(parser));
     const lh_str_view_t input = lh_str_view_initializer(text, sizeof(text) - 1);
+    lh_http_request_t request;
+    lh_http_header_t headers[2];
     ASSERT_EQ(lh_http_parser_request(lh_addr_of(parser), input, lh_addr_of(request), headers, 2),
               lh_http_parse_complete);
     lh_ui_web_route_t route;
@@ -118,14 +118,14 @@ TEST(ui_web_app, set_ws_path_and_set_ws_path_len_store_one_field_each)
 
 TEST(ui_web_app, is_websocket_matches_the_parsed_target_path)
 {
-    lh_ui_web_app_t app;
-    lh_http_request_t request;
     const lh_str_view_t path = lh_str_view_initializer_lit("/ws");
     const lh_str_view_t query = lh_str_view_initializer_lit("/ws?x=1");
     const lh_str_view_t longer = lh_str_view_initializer_lit("/wsx");
 
+    lh_ui_web_app_t app;
     lh_ui_web_app_init(lh_addr_of(app), lh_null, 0u);
     lh_ui_web_app_set_ws_path(lh_addr_of(app), "/ws");
+    lh_http_request_t request;
     lh_http_request_set_target(lh_addr_of(request), path);
     EXPECT_FALSE(lh_ui_web_app_is_websocket(lh_addr_of(app), lh_addr_of(request)));
     lh_ui_web_app_set_ws_path_len(lh_addr_of(app), lh_str_lit_size("/ws"));

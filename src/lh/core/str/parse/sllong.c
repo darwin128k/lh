@@ -13,36 +13,27 @@ lh_str_ptr_parse_sllong(lh_str_cptr str, lh_usize_t str_size, lh_sllong_t min, l
        -(magnitude - 1) - 1, which never leaves the type. */
     const lh_ullong_t magnitude_max =
         lh_math_add_one(lh_cast_static(lh_ullong_t, lh_numeric_limit_max(lh_sllong_t)));
-    lh_bool_t negative;
-    lh_ullong_t magnitude;
-    lh_sllong_t value;
 
     lh_assert_runtime_ref(str);
     lh_assert_runtime_ref(out);
 
-    negative = lh_cast_static(lh_bool_t,
-                              lh_math_gt(str_size, 0U) && lh_math_eq(str[0], lh_char_map_minus));
-    if (negative)
+    const lh_bool_t negative = lh_cast_static(lh_bool_t, lh_math_gt(str_size, 0U) &&
+                                                             lh_math_eq(str[0], lh_char_map_minus));
+    /* The digits after the sign; a negative number reaches one further than a positive one. */
+    const lh_usize_t sign = negative ? 1U : 0U;
+    lh_ullong_t magnitude;
+    if (!lh_str_ptr_parse_ullong(str + sign, str_size - sign,
+                                 negative ? magnitude_max : lh_math_sub_one(magnitude_max),
+                                 lh_addr_of(magnitude)))
     {
-        if (!lh_str_ptr_parse_ullong(str + 1, lh_math_sub_one(str_size), magnitude_max,
-                                     lh_addr_of(magnitude)))
-        {
-            return lh_bool_false;
-        }
-        value = lh_math_is_zero(magnitude)
-                    ? 0
-                    : lh_math_sub_one(
-                          lh_math_neg(lh_cast_static(lh_sllong_t, lh_math_sub_one(magnitude))));
+        return lh_bool_false;
     }
-    else
-    {
-        if (!lh_str_ptr_parse_ullong(str, str_size, lh_math_sub_one(magnitude_max),
-                                     lh_addr_of(magnitude)))
-        {
-            return lh_bool_false;
-        }
-        value = lh_cast_static(lh_sllong_t, magnitude);
-    }
+    /* -magnitude without overflow: -(magnitude - 1) - 1 reaches the minimum. */
+    const lh_sllong_t value =
+        !negative ? lh_cast_static(lh_sllong_t, magnitude)
+        : lh_math_is_zero(magnitude)
+            ? 0
+            : lh_math_sub_one(lh_math_neg(lh_cast_static(lh_sllong_t, lh_math_sub_one(magnitude))));
 
     if (lh_math_lt(value, min) || lh_math_gt(value, max))
     {

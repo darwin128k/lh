@@ -39,9 +39,9 @@ lh_net_ip4_socket_addr_t
 loopback(lh_u16_t port)
 {
     lh_net_ip4_t ip;
-    lh_net_ip4_socket_addr_t addr;
 
     lh_net_ip4_init(&ip, 127, 0, 0, 1);
+    lh_net_ip4_socket_addr_t addr;
     lh_net_ip4_socket_addr_init(&addr, &ip, port);
     return addr;
 }
@@ -180,19 +180,19 @@ class os_net_modbus_tcp : public ::testing::Test
 
 TEST_F(os_net_modbus_tcp, a_question_is_answered_over_a_real_socket)
 {
-    device dev;
-    connection to;
-    lh_mb_link_t link;
-    lh_os_net_socket_t client;
-    lh_byte_t request[kRequestSize];
     const lh_u16_t *values;
     lh_u16_t count = 0;
 
+    device dev;
+    connection to;
     ASSERT_TRUE(to.open(loopback(dev.port), 1000));
+    lh_os_net_socket_t client;
     dev.accept(&client);
+    lh_mb_link_t link;
     lh_mb_link_init(&link, &to.stream, lh_mb_framing_mbap, 1, tick_us, lh_null);
 
     ASSERT_TRUE(lh_mb_link_ask(&link, 10, 3));
+    lh_byte_t request[kRequestSize];
     ASSERT_TRUE(read_request(&client, request));
     EXPECT_EQ(request[7], LH_MB_FC_READ_HOLDING);
     answer(&client, request);
@@ -210,14 +210,14 @@ TEST_F(os_net_modbus_tcp, a_poll_with_nothing_on_the_wire_does_not_wait)
 {
     device dev;
     connection to;
-    lh_mb_link_t link;
-    lh_os_net_socket_t client;
 
     /* The device has the question and has not answered. A blocking read would sit
        here until it did -- and with eight devices in a pass, one quiet device would
        hold up the other seven. */
     ASSERT_TRUE(to.open(loopback(dev.port), 1000));
+    lh_os_net_socket_t client;
     dev.accept(&client);
+    lh_mb_link_t link;
     lh_mb_link_init(&link, &to.stream, lh_mb_framing_mbap, 1, tick_us, lh_null);
     ASSERT_TRUE(lh_mb_link_ask(&link, 10, 3));
 
@@ -236,14 +236,14 @@ TEST_F(os_net_modbus_tcp, a_device_that_hangs_up_is_a_lost_stream_and_a_new_one_
 {
     device dev;
     connection to;
-    lh_mb_link_t link;
-    lh_os_net_socket_t client;
-    lh_byte_t request[kRequestSize];
 
     ASSERT_TRUE(to.open(loopback(dev.port), 1000));
+    lh_os_net_socket_t client;
     dev.accept(&client);
+    lh_mb_link_t link;
     lh_mb_link_init(&link, &to.stream, lh_mb_framing_mbap, 1, tick_us, lh_null);
     ASSERT_TRUE(lh_mb_link_ask(&link, 10, 3));
+    lh_byte_t request[kRequestSize];
     ASSERT_TRUE(read_request(&client, request));
 
     /* The device closes without answering. A read of 0 is the peer hanging up, and
@@ -268,7 +268,6 @@ TEST_F(os_net_modbus_tcp, a_device_that_hangs_up_is_a_lost_stream_and_a_new_one_
 TEST_F(os_net_modbus_tcp, a_port_nobody_listens_on_is_not_connected_and_costs_no_more_than_the_timeout)
 {
     lh_u16_t port;
-    connection to;
 
     {
         device gone; /* a port that was just in use and is not any more */
@@ -278,6 +277,7 @@ TEST_F(os_net_modbus_tcp, a_port_nobody_listens_on_is_not_connected_and_costs_no
        reset and says "refused" only after about two seconds, even on loopback --
        so on Windows it is the timeout that answers, and the timeout is the bound. */
     const lh_u64_t before = lh_os_tick_us();
+    connection to;
     EXPECT_FALSE(to.open(loopback(port), 300));
     EXPECT_LT(lh_os_tick_us() - before, 300000u + 500000u) << "never much longer than the timeout";
 }
@@ -285,32 +285,35 @@ TEST_F(os_net_modbus_tcp, a_port_nobody_listens_on_is_not_connected_and_costs_no
 TEST_F(os_net_modbus_tcp, an_address_that_never_answers_costs_the_timeout_and_no_more)
 {
     lh_net_ip4_t ip;
-    lh_net_ip4_socket_addr_t nowhere;
-    connection to;
 
     /* 10.255.255.1 is private and routed nowhere: a connect to it is not refused,
        it is simply never answered, which is what a switched-off device looks like.
        Left to the operating system that is tens of seconds; here it is 200 ms. A
        machine with no route at all refuses it at once, which is as good. */
     lh_net_ip4_init(&ip, 10, 255, 255, 1);
+    lh_net_ip4_socket_addr_t nowhere;
     lh_net_ip4_socket_addr_init(&nowhere, &ip, 502);
     const lh_u64_t before = lh_os_tick_us();
+    connection to;
     EXPECT_FALSE(to.open(nowhere, 200));
     EXPECT_LT(lh_os_tick_us() - before, 1500000u);
 }
 
 TEST_F(os_net_modbus_tcp, eight_devices_answer_in_any_order_on_eight_connections)
 {
-    enum { k_devices = 8 };
-    device dev;
-    connection to[k_devices];
-    lh_mb_link_t link[k_devices];
-    lh_os_net_socket_t client[k_devices];
+    enum
+    {
+        k_devices = 8
+    };
     lh_byte_t request[k_devices][kRequestSize];
     int answered = 0;
 
     /* Every link has a question out at once, and the devices answer last first.
        Nobody waits for anybody: the first answer to arrive is the first one read. */
+    lh_mb_link_t link[k_devices];
+    lh_os_net_socket_t client[k_devices];
+    device dev;
+    connection to[k_devices];
     for (int i = 0; i < k_devices; ++i)
     {
         ASSERT_TRUE(to[i].open(loopback(dev.port), 1000));

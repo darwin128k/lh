@@ -26,8 +26,6 @@ lh_void
 lh_ui_present_run(const lh_ui_present_sink_t *sinks, lh_u32_t count, lh_u32_t enable,
                   const lh_ui_pixmap_t *pixels, const lh_ui_rects_t *drawn)
 {
-    lh_u32_t i;
-
     if (sinks == lh_null || pixels == lh_null)
     {
         return;
@@ -36,7 +34,7 @@ lh_ui_present_run(const lh_ui_present_sink_t *sinks, lh_u32_t count, lh_u32_t en
     {
         count = lh_cast_static(lh_u32_t, LH_UI_PRESENT_SINKS_MAX);
     }
-    for (i = 0; i < count; ++i)
+    for (lh_u32_t i = 0; i < count; ++i)
     {
         if ((enable & (1u << i)) != 0u)
         {

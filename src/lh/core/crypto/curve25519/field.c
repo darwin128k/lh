@@ -112,8 +112,7 @@ lh_crypto_curve25519_field_carry(lh_crypto_curve25519_field_t *h,
     lh_s64_t t7 = t[7];
     lh_s64_t t8 = t[8];
     lh_s64_t t9 = t[9];
-    lh_s64_t c;
-    c = (t0 + (lh_cast_static(lh_s64_t, 1) << 25)) >> 26;
+    lh_s64_t c = (t0 + (lh_cast_static(lh_s64_t, 1) << 25)) >> 26;
     t0 -= c * (lh_cast_static(lh_s64_t, 1) << 26);
     t1 += c;
     c = (t4 + (lh_cast_static(lh_s64_t, 1) << 25)) >> 26;

@@ -360,7 +360,6 @@ lh_web_js_writer_try_write_statement(lh_web_js_writer_t *self, const lh_web_js_n
     const lh_web_js_node_t *first;
     const lh_web_js_node_t *second;
     const lh_web_js_node_t *third;
-    lh_bool_t written;
 
     if (lh_null_eq(node))
     {
@@ -369,6 +368,7 @@ lh_web_js_writer_try_write_statement(lh_web_js_writer_t *self, const lh_web_js_n
     first = lh_web_js_node_get_first(node);
     second = lh_null_ne(first) ? lh_web_js_node_get_next(node, first) : lh_null;
     third = lh_null_ne(second) ? lh_web_js_node_get_next(node, second) : lh_null;
+    lh_bool_t written;
     switch (lh_web_js_node_get_kind(node))
     {
     case lh_web_js_kind_function_declaration:

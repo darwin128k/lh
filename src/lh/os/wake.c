@@ -14,13 +14,12 @@ lh_os_wake_init(lh_os_wake_t *self)
 lh_bool_t
 lh_os_wake_open(lh_os_wake_t *self, lh_u32_t timeout_ms)
 {
-    lh_os_system_net_socket_handle_t pair[2];
-
     if (lh_math_ne(lh_os_wake_get_reader(self), LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID) ||
         lh_math_ne(lh_os_wake_get_writer(self), LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID))
     {
         return lh_os_fail_lit(lh_os_error_code_invalid_argument, "wake signal is already open");
     }
+    lh_os_system_net_socket_handle_t pair[2];
     if (!lh_os_system_net_socket_pair(pair, timeout_ms))
     {
         return lh_bool_false;

@@ -221,13 +221,14 @@ lh_str_ptr_format_text_walk(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt
     const lh_usize_t failed = lh_ptr_is_null(str) ? LH_STR_PTR_INVALID : 0U;
     lh_usize_t out_pos = 0U;
     lh_usize_t fmt_pos = 0U;
-    lh_str_scanf_spec_t spec;
-    lh_char_t buf[LH_STR_FORMAT_TEXT_VALUE_BUF_MAX];
     va_list ap;
 
     va_copy(ap, args);
+    lh_str_scanf_spec_t spec;
     while (lh_str_ptr_scanf_next(fmt, lh_addr_of(fmt_pos), lh_addr_of(spec)))
     {
+        /* The value's own text when it has to be built; `content` may point into it. */
+        lh_char_t buf[LH_STR_FORMAT_TEXT_VALUE_BUF_MAX];
         /* Where a value's text is and how long: get_value writes both. */
         lh_str_cptr content;
         lh_usize_t size;

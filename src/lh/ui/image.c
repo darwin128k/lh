@@ -141,11 +141,10 @@ lh_ui_image_get_origin(const lh_ui_image_t *self, lh_ui_point_t *out)
 lh_void
 lh_ui_image_draw(const lh_ui_image_t *self, lh_ui_canvas_t *canvas)
 {
-    lh_ui_point_t origin;
-
     lh_return_if(lh_null_eq(canvas) || lh_null_eq(lh_ui_image_get_mask(self)));
     /* The mask starts where lh_ui_image_get_origin says and is as big as it is:
        it is not scaled, so there is nothing to centre. */
+    lh_ui_point_t origin;
     lh_ui_image_get_origin(self, lh_addr_of(origin));
     lh_ui_canvas_fill_mask(canvas, lh_ui_image_get_mask(self), origin, lh_ui_image_get_tint(self));
 }

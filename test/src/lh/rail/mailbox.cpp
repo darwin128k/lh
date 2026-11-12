@@ -125,8 +125,8 @@ TEST(rail_mailbox_dispatch, delivers_complete_then_destroy_in_post_order)
 {
     log out;
     item a;
-    item b;
     make(a, out, 1);
+    item b;
     make(b, out, 2);
     lh_rail_mailbox_t mailbox;
     lh_rail_mailbox_init(&mailbox, 4U);
@@ -210,8 +210,8 @@ TEST(rail_mailbox_post, from_many_threads)
 {
     constexpr int threads_count = 4;
     constexpr int per_thread = 5000;
-    log out;
     std::vector<item> items(threads_count * per_thread);
+    log out;
     for (int i = 0; i < threads_count * per_thread; ++i)
     {
         make(items[i], out, i + 1);

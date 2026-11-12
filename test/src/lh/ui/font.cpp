@@ -166,7 +166,6 @@ TEST(ui_font, glyph_is_cropped_to_its_ink)
 TEST(ui_font, roboto_is_the_default_and_has_its_metrics)
 {
     const lh_ui_font_t *font = lh_ui_font_get_default();
-    lh_ui_mask_t glyph;
 
     ASSERT_EQ(font, lh_addr_of(lh_ui_font_roboto));
     EXPECT_EQ(lh_ui_font_get_line_height(font), 22);
@@ -177,6 +176,7 @@ TEST(ui_font, roboto_is_the_default_and_has_its_metrics)
     EXPECT_EQ(lh_ui_font_get_advance(font, 'A'), 10);
     EXPECT_EQ(lh_ui_font_get_advance(font, ' '), 4);
     EXPECT_LT(lh_ui_font_get_top(font, 'A'), 0);
+    lh_ui_mask_t glyph;
     ASSERT_EQ(lh_ui_font_get_glyph(font, ' ', lh_addr_of(glyph)), lh_bool_true);
     EXPECT_EQ(lh_ui_mask_get_width(lh_addr_of(glyph)), 0);
     EXPECT_EQ(lh_ui_mask_get_height(lh_addr_of(glyph)), 0);
@@ -207,7 +207,6 @@ TEST(ui_font, roboto_draws_russian_and_its_latin_is_untouched)
        a hole with a zero advance in it: `scripts/font.py` drops them and the runs close
        either side, so U+00AD is not a code this font answers for. */
     const lh_ui_font_t *font = lh_ui_font_get_default();
-    lh_ui_mask_t glyph;
 
     EXPECT_EQ(lh_ui_font_has_code(font, 0x0410U), lh_bool_true); /* А */
     EXPECT_EQ(lh_ui_font_has_code(font, 0x044FU), lh_bool_true); /* я */
@@ -224,6 +223,7 @@ TEST(ui_font, roboto_draws_russian_and_its_latin_is_untouched)
     EXPECT_GT(lh_ui_font_get_index(font, 0x0410U), static_cast<lh_u32_t>(95));
     EXPECT_EQ(lh_ui_font_get_index(font, 0x0411U), lh_ui_font_get_index(font, 0x0410U) + 1U);
 
+    lh_ui_mask_t glyph;
     ASSERT_EQ(lh_ui_font_get_glyph(font, 0x0416U, lh_addr_of(glyph)), lh_bool_true);
     EXPECT_GT(lh_ui_mask_get_width(lh_addr_of(glyph)), 0);
     EXPECT_GT(lh_ui_mask_get_height(lh_addr_of(glyph)), 0);

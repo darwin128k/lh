@@ -42,9 +42,7 @@ lh_os_system_posix_surface_share(lh_os_system_posix_surface_t *surface, lh_usize
     lh_os_system_posix_display_t *display = lh_os_system_posix_connection_get_display();
     const lh_os_system_posix_x11_t *x = lh_os_system_posix_x11_load();
     const lh_os_system_posix_xext_t *ext = lh_os_system_posix_xext_load();
-    lh_bool_t refused;
     void *address;
-    int id;
 
     lh_return_if(lh_os_system_posix_surface_shm == 0, lh_bool_false);
     lh_return_if(lh_null_eq(display) || lh_null_eq(x) || lh_null_eq(ext), lh_bool_false);
@@ -53,7 +51,7 @@ lh_os_system_posix_surface_share(lh_os_system_posix_surface_t *surface, lh_usize
         lh_os_system_posix_surface_shm = 0;
         return lh_bool_false;
     }
-    id = shmget(IPC_PRIVATE, lh_cast_static(size_t, bytes), IPC_CREAT | 0600);
+    int id = shmget(IPC_PRIVATE, lh_cast_static(size_t, bytes), IPC_CREAT | 0600);
     lh_return_if(id < 0, lh_bool_false);
     address = shmat(id, lh_null, 0);
     if (address == LH_PTR_T_MAX)
@@ -71,7 +69,7 @@ lh_os_system_posix_surface_share(lh_os_system_posix_surface_t *surface, lh_usize
     LH_ATTRIBUTE_UNUSED(
         ext->XShmAttach(display, lh_os_system_posix_surface_get_segment_mut(surface)));
     LH_ATTRIBUTE_UNUSED(x->XSync(display, 0));
-    refused = lh_os_system_posix_connection_take_error();
+    lh_bool_t refused = lh_os_system_posix_connection_take_error();
     LH_ATTRIBUTE_UNUSED(shmctl(id, IPC_RMID, lh_null));
     if (refused)
     {
@@ -238,7 +236,6 @@ lh_os_system_surface_present_part(lh_os_system_surface_handle_t handle, lh_ptr d
 {
     lh_os_system_posix_surface_t *surface;
     const lh_os_system_posix_paint_t *paint;
-    lh_os_system_posix_ximage_t image;
     const lh_u32_t one = 1U;
 
     lh_return_if(lh_null_eq(handle) || lh_null_eq(dest), lh_bool_false);
@@ -256,6 +253,7 @@ lh_os_system_surface_present_part(lh_os_system_surface_handle_t handle, lh_ptr d
                      lh_os_system_posix_paint_get_depth(paint) != 32,
                  lh_bool_false);
 
+    lh_os_system_posix_ximage_t image;
     {
         lh_byte_ptr data;
         int image_width;

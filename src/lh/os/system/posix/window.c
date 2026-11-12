@@ -299,7 +299,6 @@ lh_void
 lh_os_system_posix_window_cut(lh_os_system_posix_window_t *self)
 {
     const lh_os_system_posix_xext_t *ext = lh_os_system_posix_xext_load();
-    lh_os_system_posix_xrectangle_t rows[2 * LH_OS_WINDOW_CORNER_MAX + 1];
     const int radius = lh_os_window_corner_clamp(
         lh_os_system_posix_window_get_corner(self), lh_os_system_posix_window_get_width(self),
         lh_os_system_posix_window_get_height(self), lh_os_system_posix_window_is_maximized(self));
@@ -330,6 +329,7 @@ lh_os_system_posix_window_cut(lh_os_system_posix_window_t *self)
                                LH_OS_SYSTEM_POSIX_X_SHAPE_SET);
         return;
     }
+    lh_os_system_posix_xrectangle_t rows[2 * LH_OS_WINDOW_CORNER_MAX + 1];
     ext->XShapeCombineRectangles(
         lh_os_system_posix_display, lh_os_system_posix_window_get_window(self),
         LH_OS_SYSTEM_POSIX_X_SHAPE_BOUNDING, 0, 0, rows,
@@ -403,13 +403,13 @@ lh_os_system_posix_window_back(lh_os_system_posix_window_t *self)
 lh_void
 lh_os_system_posix_window_paint(lh_os_system_posix_window_t *self)
 {
-    lh_os_system_posix_paint_t paint;
     const int left = lh_os_system_posix_window_get_dirty_left(self);
     const int top = lh_os_system_posix_window_get_dirty_top(self);
     const int right = lh_os_system_posix_window_get_dirty_right(self);
     const int bottom = lh_os_system_posix_window_get_dirty_bottom(self);
 
     lh_os_system_posix_window_set_dirty(self, lh_bool_false);
+    lh_os_system_posix_paint_t paint;
     lh_os_system_posix_paint_set_x11(lh_addr_of(paint), lh_os_system_posix_x);
     lh_os_system_posix_paint_set_display(lh_addr_of(paint), lh_os_system_posix_display);
     lh_os_system_posix_paint_set_window(
@@ -470,7 +470,6 @@ lh_os_system_posix_window_read_maximized(const lh_os_system_posix_window_t *self
     lh_byte_ptr data = lh_null;
     lh_bool_t vertical = lh_bool_false;
     lh_bool_t horizontal = lh_bool_false;
-    unsigned long i;
 
     if (x->XGetWindowProperty(
             lh_os_system_posix_display, lh_os_system_posix_window_get_window(self),
@@ -485,7 +484,7 @@ lh_os_system_posix_window_read_maximized(const lh_os_system_posix_window_t *self
         /* Format 32 comes back as `long`s whatever the width of a long is. */
         const lh_os_system_posix_xid_t *atoms = lh_ptr_rcast(const lh_os_system_posix_xid_t, data);
 
-        for (i = 0UL; format == 32 && i < count; ++i)
+        for (unsigned long i = 0UL; format == 32 && i < count; ++i)
         {
             vertical =
                 atoms[i] == lh_os_system_posix_atom_net_wm_state_max_vert ? lh_bool_true : vertical;
@@ -611,11 +610,10 @@ lh_os_system_posix_window_begin_moveresize(lh_os_system_posix_window_t *self,
 lh_bool_t
 lh_os_system_posix_is_repeat(const lh_os_system_posix_xevent_t *release)
 {
-    lh_os_system_posix_xevent_t next;
-
     lh_return_if(lh_os_system_posix_x->XEventsQueued(
                      lh_os_system_posix_display, LH_OS_SYSTEM_POSIX_X_QUEUED_AFTER_READING) == 0,
                  lh_bool_false);
+    lh_os_system_posix_xevent_t next;
     LH_ATTRIBUTE_UNUSED(
         lh_os_system_posix_x->XPeekEvent(lh_os_system_posix_display, lh_addr_of(next)));
     return next.type == LH_OS_SYSTEM_POSIX_X_KEY_PRESS && next.key.window == release->key.window &&
@@ -660,12 +658,12 @@ lh_os_system_posix_window_wait_placed(lh_os_system_posix_window_t *self)
 {
     const lh_u64_t until =
         lh_os_tick_us() + lh_cast_static(lh_u64_t, LH_OS_SYSTEM_POSIX_WINDOW_MAP_WAIT_MS) * 1000U;
-    lh_os_system_posix_xevent_t event;
     lh_bool_t mapped = lh_bool_false;
     struct pollfd watch;
 
     watch.fd = lh_os_system_posix_x->XConnectionNumber(lh_os_system_posix_display);
     watch.events = POLLIN;
+    lh_os_system_posix_xevent_t event;
     for (;;)
     {
         const lh_u64_t now = lh_os_tick_us();
@@ -694,7 +692,6 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     const lh_os_system_posix_x11_t *x;
     lh_os_system_posix_window_t *self;
     lh_os_system_posix_window_t *owner_window;
-    lh_os_system_posix_xset_window_attributes_t attributes;
     const lh_os_system_posix_xrender_t *render;
     const unsigned long mask = LH_OS_SYSTEM_POSIX_X_CW_BACK_PIXMAP |
                                LH_OS_SYSTEM_POSIX_X_CW_BIT_GRAVITY |
@@ -743,6 +740,7 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
         at_y = at_y > area_y ? at_y : area_y;
     }
 
+    lh_os_system_posix_xset_window_attributes_t attributes;
     lh_memory_set(lh_addr_of(attributes), sizeof(attributes), 0);
     /* No background: the server would clear every exposed area to it before the
        paint, which is a flash of it on every resize. The app paints all of it. */
@@ -953,11 +951,11 @@ lh_void
 lh_os_system_window_set_maximized(lh_os_system_window_handle_t handle, lh_bool_t maximized)
 {
     lh_os_system_posix_window_t *self = lh_os_system_posix_window_find(handle);
-    lh_os_system_posix_xevent_t event;
 
     lh_return_if(lh_null_eq(self));
     /* Asked of the window manager, which owns the window's state: the answer comes
        back as a change of _NET_WM_STATE and is reported from there. */
+    lh_os_system_posix_xevent_t event;
     lh_memory_set(lh_addr_of(event), sizeof(event), 0);
     event.client.type = LH_OS_SYSTEM_POSIX_X_CLIENT_MESSAGE;
     event.client.window = lh_os_system_posix_window_get_window(self);
@@ -1084,13 +1082,13 @@ lh_void
 lh_os_system_posix_window_send_button(lh_os_system_posix_window_t *self,
                                       const lh_os_system_posix_xevent_t *event, lh_bool_t down)
 {
-    lh_os_input_event_t input;
     const lh_os_input_button_t button = lh_os_system_posix_input_button_of(event->button.button);
     const lh_u32_t mask = lh_os_input_button_to_mask(button);
     const lh_u32_t held = lh_os_system_posix_input_buttons_held(
         event->button.state,
         lh_os_window_get_pressed_buttons(lh_os_system_posix_window_get_user(self)));
 
+    lh_os_input_event_t input;
     lh_os_input_event_init_pointer(
         lh_addr_of(input), down ? lh_os_input_kind_pointer_down : lh_os_input_kind_pointer_up,
         lh_os_input_device_kind_mouse, 0U, button, lh_os_input_coord_from_int(event->button.x),
@@ -1107,7 +1105,6 @@ lh_void
 lh_os_system_posix_window_send_key(lh_os_system_posix_window_t *self,
                                    lh_os_system_posix_xevent_t *event)
 {
-    char text[8];
     lh_os_system_posix_xid_t keysym = LH_OS_SYSTEM_POSIX_X_NONE;
     const lh_u32_t keycode = lh_type_cast(lh_u32_t, event->key.keycode);
     const lh_os_input_mods_t mods = lh_os_system_posix_input_mods_of(event->key.state);
@@ -1126,6 +1123,7 @@ lh_os_system_posix_window_send_key(lh_os_system_posix_window_t *self,
     }
     lh_os_system_posix_repeat_keycode = 0U;
     /* The keysym with the layout and Shift applied: what the key means now. */
+    char text[8];
     LH_ATTRIBUTE_UNUSED(lh_os_system_posix_x->XLookupString(lh_addr_of(event->key), text,
                                                             lh_type_cast(int, sizeof(text)),
                                                             lh_addr_of(keysym), lh_null));

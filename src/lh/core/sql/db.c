@@ -42,9 +42,8 @@ lh_sql_db_get_error_mut(lh_sql_db_t *self)
 lh_str_view_t
 lh_sql_db_get_error(const lh_sql_db_t *self)
 {
-    lh_str_view_t view;
-
     lh_assert_runtime_ref(self);
+    lh_str_view_t view;
     lh_str_as_view(lh_addr_of(self->error), lh_addr_of(view));
     return view;
 }

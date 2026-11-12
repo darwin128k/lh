@@ -140,9 +140,9 @@ TEST(mat4_initializer, takes_one_column_per_argument)
 TEST(math_mat4_bricks, set_column_vec3_writes_xyz_and_w)
 {
     lh_math_mat4_t m;
-    lh_math_vec3_t v;
 
     lh_math_mat4_identity(&m);
+    lh_math_vec3_t v;
     lh_math_vec3_init(&v, 1.0f, 2.0f, 3.0f);
     lh_math_mat4_set_column_vec3(&m, 2, v, 4.0f);
     const lh_math_vec4_t c = lh_test::out(lh_math_mat4_get_column, &m, 2u);
@@ -156,9 +156,9 @@ TEST(math_mat4_bricks, from_quat_is_the_textbook_matrix_exactly)
 {
     const lh_float_t x = 0.1f, y = -0.7f, z = 0.3f, w = 0.62f;
     lh_math_quat_t q;
-    lh_math_mat4_t m;
 
     lh_math_quat_init(&q, x, y, z, w);
+    lh_math_mat4_t m;
     lh_math_mat4_from_quat(q, &m);
     const lh_float_t xx = x * x, yy = y * y, zz = z * z, xy = x * y, xz = x * z, yz = y * z;
     const lh_float_t wx = w * x, wy = w * y, wz = w * z;

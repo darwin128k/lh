@@ -64,14 +64,12 @@ lh_datetime_add(lh_datetime_t *self, const lh_datetime_t *other)
     lh_datetime_get_date(self, lh_addr_of(date));
     lh_time_t time;
     lh_datetime_get_time(self, lh_addr_of(time));
-    lh_uint_t day_carry;
-    lh_uint_t overflow;
 
     /* Day-carry from the time addition lands first, then the y/m/d duration -
        order matters for day-of-month clamping, see
        datetime_add.day_carry_applies_before_month_duration. */
-    day_carry = lh_time_add(lh_addr_of(time), lh_addr_of(other_time));
-    overflow = lh_date_add_day(lh_addr_of(date), day_carry);
+    lh_uint_t day_carry = lh_time_add(lh_addr_of(time), lh_addr_of(other_time));
+    lh_uint_t overflow = lh_date_add_day(lh_addr_of(date), day_carry);
     overflow = lh_math_add(overflow, lh_date_add(lh_addr_of(date), lh_addr_of(other_date)));
     lh_datetime_set(self, lh_addr_of(date), lh_addr_of(time));
     return overflow;
@@ -88,14 +86,12 @@ lh_datetime_sub(lh_datetime_t *self, const lh_datetime_t *other)
     lh_datetime_get_date(self, lh_addr_of(date));
     lh_time_t time;
     lh_datetime_get_time(self, lh_addr_of(time));
-    lh_uint_t day_borrow;
-    lh_uint_t overflow;
 
     /* Mirror of lh_datetime_add with the two steps swapped: the y/m/d
        duration lands first, then the day-borrow from the time subtraction -
        see datetime_sub.day_borrow_applies_after_month_duration. */
-    overflow = lh_date_sub(lh_addr_of(date), lh_addr_of(other_date));
-    day_borrow = lh_time_sub(lh_addr_of(time), lh_addr_of(other_time));
+    lh_uint_t overflow = lh_date_sub(lh_addr_of(date), lh_addr_of(other_date));
+    lh_uint_t day_borrow = lh_time_sub(lh_addr_of(time), lh_addr_of(other_time));
     overflow = lh_math_add(overflow, lh_date_sub_day(lh_addr_of(date), day_borrow));
     lh_datetime_set(self, lh_addr_of(date), lh_addr_of(time));
     return overflow;
@@ -125,14 +121,14 @@ lh_datetime_is_at_least(const lh_datetime_t *self, const lh_datetime_t *minimum)
     lh_datetime_get_date(self, lh_addr_of(self_date));
     lh_date_t minimum_date;
     lh_datetime_get_date(minimum, lh_addr_of(minimum_date));
-    lh_time_t self_time;
-    lh_time_t minimum_time;
 
     if (!lh_date_equals(lh_addr_of(self_date), lh_addr_of(minimum_date)))
     {
         return lh_date_is_at_least(lh_addr_of(self_date), lh_addr_of(minimum_date));
     }
+    lh_time_t self_time;
     lh_datetime_get_time(self, lh_addr_of(self_time));
+    lh_time_t minimum_time;
     lh_datetime_get_time(minimum, lh_addr_of(minimum_time));
     return lh_time_is_at_least(lh_addr_of(self_time), lh_addr_of(minimum_time));
 }
@@ -152,15 +148,11 @@ lh_datetime_is_greater(const lh_datetime_t *self, const lh_datetime_t *other)
 lh_bool_t
 lh_datetime_parse(lh_str_cptr str, lh_usize_t str_size, lh_datetime_t *out)
 {
+    lh_usize_t pos = 0;
+
     lh_str_cptr date_field;
     lh_usize_t date_size;
-    lh_str_cptr time_field;
-    lh_usize_t time_size;
     lh_bool_t had_delim;
-    lh_usize_t pos = 0;
-    lh_date_t date;
-    lh_time_t time;
-
     if (!lh_str_ptr_split_next(str, str_size, lh_char_map_space, lh_addr_of(pos), lh_addr_of(date_field),
                                lh_addr_of(date_size), lh_addr_of(had_delim)))
     {
@@ -170,6 +162,8 @@ lh_datetime_parse(lh_str_cptr str, lh_usize_t str_size, lh_datetime_t *out)
     {
         return lh_bool_false;
     }
+    lh_str_cptr time_field;
+    lh_usize_t time_size;
     if (!lh_str_ptr_split_next(str, str_size, lh_char_map_space, lh_addr_of(pos), lh_addr_of(time_field),
                                lh_addr_of(time_size), lh_addr_of(had_delim)))
     {
@@ -179,10 +173,12 @@ lh_datetime_parse(lh_str_cptr str, lh_usize_t str_size, lh_datetime_t *out)
     {
         return lh_bool_false;
     }
+    lh_date_t date;
     if (!lh_date_parse(date_field, date_size, lh_addr_of(date)))
     {
         return lh_bool_false;
     }
+    lh_time_t time;
     if (!lh_time_parse(time_field, time_size, lh_addr_of(time)))
     {
         return lh_bool_false;

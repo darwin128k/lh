@@ -245,8 +245,8 @@ TEST(version_format, writes_max_and_refuses_short_buffer)
 TEST(version_format, roundtrip_via_parse)
 {
     const lh_version_t src = lh_version_initializer(12, 0, 9);
-    lh_char_t buf[LH_VERSION_TEXT_MAX];
     lh_version_t dst{};
+    lh_char_t buf[LH_VERSION_TEXT_MAX];
     const lh_usize_t n = lh_version_format(&src, buf, sizeof(buf));
     ASSERT_NE(n, 0U);
     ASSERT_EQ(lh_version_parse(buf, n, &dst), lh_bool_true);

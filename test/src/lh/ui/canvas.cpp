@@ -129,25 +129,24 @@ const lh_ui_canvas_backend_t g_effect_backend = {nullptr,         effect_begin_a
 TEST(ui_canvas, a_sheet_across_the_strip_line_is_refused_until_the_part_holds_it)
 {
     effect_log log{};
-    lh_ui_canvas_t canvas;
     lh_ui_size_t size;
-    lh_ui_point_t zero;
-    lh_ui_rect_t area;  /* the strip: rows 32..64 */
-    lh_ui_rect_t part;  /* what the damage leaves of it: the same rows */
-    lh_ui_rect_t whole; /* the strip grown to the sheet: rows 32..88 */
-    lh_ui_rect_t sheet;
-    lh_ui_color_t tint;
-    lh_u8_t scratch[64];
-
     lh_ui_size_init(lh_addr_of(size), 800, 600);
+    lh_ui_color_t tint;
     lh_ui_color_init(lh_addr_of(tint), 1, 2, 3, 46);
+    lh_ui_point_t zero;
     lh_ui_point_init(lh_addr_of(zero), 0, 0);
+    lh_ui_rect_t area; /* the strip: rows 32..64 */
     lh_ui_rect_init(lh_addr_of(area), 0, 32, 800, 32);
+    lh_ui_rect_t part; /* what the damage leaves of it: the same rows */
     lh_ui_rect_init(lh_addr_of(part), 0, 32, 800, 32);
+    lh_ui_rect_t whole; /* the strip grown to the sheet: rows 32..88 */
     lh_ui_rect_init(lh_addr_of(whole), 0, 32, 800, 56);
+    lh_ui_rect_t sheet;
     lh_ui_rect_init(lh_addr_of(sheet), 360, 48, 240, 40);
+    lh_ui_canvas_t canvas;
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_effect_backend), lh_addr_of(log));
     lh_ui_canvas_set_size(lh_addr_of(canvas), size);
+    lh_u8_t scratch[64];
     lh_ui_canvas_use_scratch(lh_addr_of(canvas), scratch, sizeof(scratch));
 
     lh_ui_canvas_begin_area(lh_addr_of(canvas), lh_addr_of(area));
@@ -181,25 +180,25 @@ TEST(ui_canvas, a_sheet_across_the_strip_line_is_refused_until_the_part_holds_it
 TEST(ui_canvas, a_clip_that_cuts_a_shape_still_cuts_the_effect_that_reads_it)
 {
     effect_log log{};
-    lh_ui_canvas_t canvas;
     lh_ui_size_t size;
-    lh_ui_point_t zero;
-    lh_ui_rect_t inside;
-    lh_ui_rect_t across;
-    lh_ui_rect_t panel;
-    lh_ui_rect_t cut_panel;
-    lh_ui_color_t tint;
-    lh_u8_t scratch[64];
 
     lh_ui_size_init(lh_addr_of(size), 160, 120);
+    lh_ui_color_t tint;
     lh_ui_color_init(lh_addr_of(tint), 1, 2, 3, 46);
+    lh_ui_point_t zero;
     lh_ui_point_init(lh_addr_of(zero), 0, 0);
+    lh_ui_rect_t inside;
     lh_ui_rect_init(lh_addr_of(inside), 0, 0, 160, 120);
+    lh_ui_rect_t across;
     lh_ui_rect_init(lh_addr_of(across), 0, 40, 160, 20);
+    lh_ui_rect_t panel;
     lh_ui_rect_init(lh_addr_of(panel), 20, 40, 40, 20);
+    lh_ui_rect_t cut_panel;
     lh_ui_rect_init(lh_addr_of(cut_panel), 20, 55, 40, 20);
+    lh_ui_canvas_t canvas;
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_effect_backend), lh_addr_of(log));
     lh_ui_canvas_set_size(lh_addr_of(canvas), size);
+    lh_u8_t scratch[64];
     lh_ui_canvas_use_scratch(lh_addr_of(canvas), scratch, sizeof(scratch));
 
     /* The clip holds the panel: the shape and the effect both go to the slots. */
@@ -298,25 +297,25 @@ const lh_ui_canvas_backend_t g_drawn_backend = {
 TEST(ui_canvas, end_is_handed_the_clips_the_frame_was_cut_to)
 {
     drawn_log log{};
-    lh_ui_canvas_t canvas;
     lh_ui_size_t size;
-    lh_ui_point_t zero;
-    lh_ui_rect_t area;
-    lh_ui_rect_t first;
-    lh_ui_rect_t second;
-    lh_ui_rect_t first_in_buffer;
-    lh_ui_rect_t second_in_buffer;
 
     lh_ui_size_init(lh_addr_of(size), 240, 10);
+    lh_ui_point_t zero;
     lh_ui_point_init(lh_addr_of(zero), 0, 0);
     /* A strip at y 30, so the frame's own origin is not (0, 0): the list is in the
        buffer's space, which is what a backend presents out of, and passing the
        target-space clips through unchanged would put the present 30 rows too low. */
+    lh_ui_rect_t area;
     lh_ui_rect_init(lh_addr_of(area), 0, 30, 240, 10);
+    lh_ui_rect_t first;
     lh_ui_rect_init(lh_addr_of(first), 0, 30, 80, 10);
+    lh_ui_rect_t second;
     lh_ui_rect_init(lh_addr_of(second), 160, 30, 80, 10);
+    lh_ui_rect_t first_in_buffer;
     lh_ui_rect_init(lh_addr_of(first_in_buffer), 0, 0, 80, 10);
+    lh_ui_rect_t second_in_buffer;
     lh_ui_rect_init(lh_addr_of(second_in_buffer), 160, 0, 80, 10);
+    lh_ui_canvas_t canvas;
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_drawn_backend), lh_addr_of(log));
     lh_ui_canvas_set_size(lh_addr_of(canvas), size);
 
@@ -348,14 +347,14 @@ TEST(ui_canvas, end_is_handed_the_clips_the_frame_was_cut_to)
 TEST(ui_canvas, a_frame_with_no_clip_hands_end_an_empty_list_and_starts_the_next_one_clean)
 {
     drawn_log log{};
-    lh_ui_canvas_t canvas;
     lh_ui_size_t size;
-    lh_ui_point_t zero;
-    lh_ui_rect_t part;
 
     lh_ui_size_init(lh_addr_of(size), 240, 10);
+    lh_ui_point_t zero;
     lh_ui_point_init(lh_addr_of(zero), 0, 0);
+    lh_ui_rect_t part;
     lh_ui_rect_init(lh_addr_of(part), 0, 0, 80, 10);
+    lh_ui_canvas_t canvas;
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_drawn_backend), lh_addr_of(log));
     lh_ui_canvas_set_size(lh_addr_of(canvas), size);
 
@@ -374,12 +373,12 @@ TEST(ui_canvas, a_frame_with_no_clip_hands_end_an_empty_list_and_starts_the_next
 TEST(ui_canvas, dispatches_every_call_with_the_context)
 {
     call_log log{};
-    lh_ui_canvas_t canvas;
     lh_ui_color_t color;
-    lh_ui_rect_t rect;
 
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_rect_t rect;
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 1, 1);
+    lh_ui_canvas_t canvas;
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_log_backend), lh_addr_of(log));
     EXPECT_EQ(lh_ui_canvas_get_backend(lh_addr_of(canvas)), lh_addr_of(g_log_backend));
     EXPECT_EQ(lh_ui_canvas_get_context(lh_addr_of(canvas)), lh_addr_of(log));
@@ -398,13 +397,13 @@ TEST(ui_canvas, dispatches_every_call_with_the_context)
 
 TEST(ui_canvas, null_backend_and_null_slots_are_no_ops)
 {
-    lh_ui_canvas_t canvas;
     lh_ui_color_t color;
-    lh_ui_rect_t rect;
 
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_rect_t rect;
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 1, 1);
 
+    lh_ui_canvas_t canvas;
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), nullptr);
     lh_ui_canvas_begin(lh_addr_of(canvas));
     lh_ui_canvas_clear(lh_addr_of(canvas), lh_addr_of(color));
@@ -450,12 +449,12 @@ const lh_ui_canvas_backend_t g_target_backend = {nullptr, nullptr, nullptr, null
 TEST(ui_canvas, round_rect_slot_gets_the_clamped_radius)
 {
     lh_test::fill_probe probe;
-    lh_ui_canvas_t canvas;
     lh_ui_rect_t rect;
-    lh_ui_color_t color;
 
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 10, 6);
+    lh_ui_color_t color;
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_canvas_t canvas;
     lh_test::fill_probe_init(lh_addr_of(probe), lh_addr_of(canvas), lh_test::fill_probe_round_backend(),
                              rect, color);
 
@@ -470,12 +469,12 @@ TEST(ui_canvas, round_rect_slot_gets_the_clamped_radius)
 TEST(ui_canvas, round_rect_with_zero_radius_is_a_plain_fill)
 {
     lh_test::fill_probe probe;
-    lh_ui_canvas_t canvas;
     lh_ui_rect_t rect;
-    lh_ui_color_t color;
 
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 10, 6);
+    lh_ui_color_t color;
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_canvas_t canvas;
     lh_test::fill_probe_init(lh_addr_of(probe), lh_addr_of(canvas), lh_test::fill_probe_round_backend(),
                              rect, color);
 
@@ -488,12 +487,12 @@ TEST(ui_canvas, round_rect_with_zero_radius_is_a_plain_fill)
 TEST(ui_canvas, round_rect_fallback_is_anti_aliased_and_draws_each_pixel_once)
 {
     alpha_target target{};
-    lh_ui_canvas_t canvas;
     lh_ui_rect_t rect;
-    lh_ui_color_t color;
 
     lh_ui_rect_init(lh_addr_of(rect), 2, 3, 11, 9);
+    lh_ui_color_t color;
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_canvas_t canvas;
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_target_backend), lh_addr_of(target));
 
     lh_ui_canvas_fill_round_rect(lh_addr_of(canvas), lh_addr_of(rect), LH_UI_RADIUS_CIRCLE,
@@ -520,17 +519,17 @@ TEST(ui_canvas, begin_area_moves_the_primitives_and_the_clip_into_the_buffer)
 {
     lh_test::draw_log log;
     lh_ui_canvas_t canvas;
-    lh_ui_color_t color;
-    lh_ui_rect_t area;
-    lh_ui_rect_t clip;
-    lh_ui_rect_t rect;
-    lh_ui_point_t zero;
 
     lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), false, true);
+    lh_ui_color_t color;
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_point_t zero;
     lh_ui_point_init(lh_addr_of(zero), 0, 0);
+    lh_ui_rect_t area;
     lh_ui_rect_init(lh_addr_of(area), 0, 64, 160, 32);
+    lh_ui_rect_t clip;
     lh_ui_rect_init(lh_addr_of(clip), 0, 70, 160, 20);
+    lh_ui_rect_t rect;
     lh_ui_rect_init(lh_addr_of(rect), 10, 75, 20, 5);
 
     lh_ui_canvas_begin_area(lh_addr_of(canvas), lh_addr_of(area));
@@ -554,18 +553,18 @@ TEST(ui_canvas, begin_area_without_the_slot_draws_the_whole_target)
 {
     lh_test::draw_log log;
     lh_ui_canvas_backend_t whole = *lh_test::draw_log_backend(false, true);
-    lh_ui_canvas_t canvas;
-    lh_ui_color_t color;
-    lh_ui_rect_t area;
-    lh_ui_rect_t rect;
 
     /* The fallback is the whole-target frame: the same drawing, no smaller
        buffer and nothing gained. */
     whole.begin_area = nullptr;
+    lh_ui_canvas_t canvas;
     lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), false, true);
     lh_ui_canvas_set_backend(lh_addr_of(canvas), lh_addr_of(whole));
+    lh_ui_color_t color;
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_rect_t area;
     lh_ui_rect_init(lh_addr_of(area), 0, 64, 160, 32);
+    lh_ui_rect_t rect;
     lh_ui_rect_init(lh_addr_of(rect), 10, 75, 20, 5);
 
     lh_ui_canvas_begin_area(lh_addr_of(canvas), lh_addr_of(area));
@@ -581,13 +580,13 @@ TEST(ui_canvas, damage_of_an_area_frame_stays_in_target_space)
 {
     lh_test::draw_log log;
     lh_ui_canvas_t canvas;
-    lh_ui_color_t color;
-    lh_ui_rect_t area;
-    lh_ui_rect_t rect;
 
     lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), false, true);
+    lh_ui_color_t color;
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_rect_t area;
     lh_ui_rect_init(lh_addr_of(area), 0, 64, 160, 32);
+    lh_ui_rect_t rect;
     lh_ui_rect_init(lh_addr_of(rect), 10, 75, 20, 5);
 
     lh_ui_canvas_begin_area(lh_addr_of(canvas), lh_addr_of(area));
@@ -607,17 +606,16 @@ TEST(ui_canvas, damage_between_frames_is_not_moved_by_the_strip_that_was_drawn_l
 {
     effect_log log{};
     lh_ui_canvas_t canvas;
-    lh_ui_color_t color;
-    lh_ui_rect_t area;
-    lh_ui_rect_t rect;
-    lh_ui_rect_t hit;
 
     /* A backend with an `end` slot: the frame origin is dropped whether there is
        a slot to present through or not, so the fixture needs one to be able to
        tell the two apart. */
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_effect_backend), lh_addr_of(log));
+    lh_ui_color_t color;
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_rect_t area;
     lh_ui_rect_init(lh_addr_of(area), 0, 64, 160, 32);
+    lh_ui_rect_t rect;
     lh_ui_rect_init(lh_addr_of(rect), 10, 75, 20, 5);
 
     lh_ui_canvas_begin_area(lh_addr_of(canvas), lh_addr_of(area));
@@ -627,7 +625,7 @@ TEST(ui_canvas, damage_between_frames_is_not_moved_by_the_strip_that_was_drawn_l
 
     /* What the app says afterwards, in the space it says it in. */
     lh_ui_canvas_add_damage(lh_addr_of(canvas), lh_addr_of(rect));
-    hit = *lh_ui_canvas_get_damage_v(lh_addr_of(canvas));
+    lh_ui_rect_t hit = *lh_ui_canvas_get_damage_v(lh_addr_of(canvas));
     EXPECT_TRUE(lh_test::rect_is(hit, lh_test::rect_of(10, 75, 20, 5)));
 }
 
@@ -673,12 +671,12 @@ point_of(int x, int y)
 
 TEST(ui_canvas, push_moves_every_primitive_and_pop_restores)
 {
-    draw_log log;
-    lh_ui_canvas_t canvas;
-    lh_ui_color_t color;
     const lh_ui_rect_t rect = rect_of(1, 1, 2, 2);
 
+    lh_ui_color_t color;
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_canvas_t canvas;
+    draw_log log;
     lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), true, false);
 
     lh_ui_canvas_push(lh_addr_of(canvas), point_of(5, 7), nullptr);
@@ -702,11 +700,11 @@ TEST(ui_canvas, push_moves_every_primitive_and_pop_restores)
 
 TEST(ui_canvas, push_clip_is_moved_by_the_old_offset_and_intersected)
 {
-    draw_log log;
-    lh_ui_canvas_t canvas;
     const lh_ui_rect_t outer = rect_of(0, 0, 20, 20);
     const lh_ui_rect_t inner = rect_of(5, 5, 30, 30);
 
+    lh_ui_canvas_t canvas;
+    draw_log log;
     lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), false, false);
 
     lh_ui_canvas_push(lh_addr_of(canvas), point_of(10, 0), lh_addr_of(outer));
@@ -725,14 +723,14 @@ TEST(ui_canvas, push_clip_is_moved_by_the_old_offset_and_intersected)
 
 TEST(ui_canvas, without_set_clip_the_canvas_cuts_fill_rect)
 {
-    draw_log log;
-    lh_ui_canvas_t canvas;
-    lh_ui_color_t color;
     const lh_ui_rect_t clip = rect_of(0, 0, 10, 10);
     const lh_ui_rect_t half_out = rect_of(5, 5, 10, 10);
     const lh_ui_rect_t all_out = rect_of(20, 20, 4, 4);
 
+    lh_ui_color_t color;
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_canvas_t canvas;
+    draw_log log;
     lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), false, false);
 
     lh_ui_canvas_push(lh_addr_of(canvas), point_of(0, 0), lh_addr_of(clip));
@@ -746,13 +744,13 @@ TEST(ui_canvas, without_set_clip_the_canvas_cuts_fill_rect)
 
 TEST(ui_canvas, set_clip_slot_gets_each_change_and_primitives_arrive_uncut)
 {
-    draw_log log;
-    lh_ui_canvas_t canvas;
-    lh_ui_color_t color;
     const lh_ui_rect_t clip = rect_of(0, 0, 10, 10);
     const lh_ui_rect_t half_out = rect_of(5, 5, 10, 10);
 
+    lh_ui_color_t color;
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_canvas_t canvas;
+    draw_log log;
     lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), true, true);
 
     lh_ui_canvas_push(lh_addr_of(canvas), point_of(0, 0), lh_addr_of(clip));
@@ -778,13 +776,13 @@ TEST(ui_canvas, set_clip_slot_gets_each_change_and_primitives_arrive_uncut)
 
 TEST(ui_canvas, round_rect_inside_the_clip_still_reaches_the_slot)
 {
-    draw_log log;
-    lh_ui_canvas_t canvas;
-    lh_ui_color_t color;
     const lh_ui_rect_t clip = rect_of(0, 0, 20, 20);
     const lh_ui_rect_t inside = rect_of(2, 2, 10, 10);
 
+    lh_ui_color_t color;
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_canvas_t canvas;
+    draw_log log;
     lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), true, false);
 
     lh_ui_canvas_push(lh_addr_of(canvas), point_of(0, 0), lh_addr_of(clip));
@@ -798,8 +796,6 @@ TEST(ui_canvas, round_rect_inside_the_clip_still_reaches_the_slot)
 TEST(ui_canvas, round_rect_across_the_clip_goes_through_the_cut_fallback)
 {
     alpha_target target{};
-    lh_ui_canvas_t canvas;
-    lh_ui_color_t color;
     /* Slot present but no set_clip: the canvas must cut, so it falls back. */
     const lh_ui_canvas_backend_t backend = {nullptr, nullptr, nullptr, nullptr, target_fill_rect,
                                             lh_test::draw_log_fill_round_rect, nullptr, nullptr,
@@ -807,7 +803,9 @@ TEST(ui_canvas, round_rect_across_the_clip_goes_through_the_cut_fallback)
     const lh_ui_rect_t clip = rect_of(0, 0, 8, 16);
     const lh_ui_rect_t rect = rect_of(2, 3, 11, 9);
 
+    lh_ui_color_t color;
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_canvas_t canvas;
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(backend), lh_addr_of(target));
 
     lh_ui_canvas_push(lh_addr_of(canvas), point_of(0, 0), lh_addr_of(clip));
@@ -858,13 +856,13 @@ const lh_ui_canvas_backend_t g_declining_backend = {nullptr, nullptr, nullptr, n
 TEST(ui_canvas, round_rect_the_slot_declines_is_drawn_by_the_canvas)
 {
     alpha_target target{};
-    lh_ui_canvas_t canvas;
-    lh_ui_color_t color;
     const lh_ui_rect_t rect = rect_of(2, 3, 11, 9);
     const lh_ui_scalar_t radius = lh_ui_radius_clamp(lh_addr_of(rect), LH_UI_RADIUS_CIRCLE);
 
     g_declined = 0;
+    lh_ui_color_t color;
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_canvas_t canvas;
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_declining_backend), lh_addr_of(target));
 
     lh_ui_canvas_fill_round_rect(lh_addr_of(canvas), lh_addr_of(rect), LH_UI_RADIUS_CIRCLE, lh_addr_of(color));
@@ -885,13 +883,13 @@ TEST(ui_canvas, mask_the_slot_declines_is_painted_by_the_canvas)
 {
     static const lh_byte_t bits[] = {0x00, 0xff, 0x80, 0x00};
     alpha_target target{};
-    lh_ui_canvas_t canvas;
-    lh_ui_color_t color;
-    lh_ui_mask_t mask;
 
     g_declined = 0;
+    lh_ui_mask_t mask;
     lh_ui_mask_init(lh_addr_of(mask), bits, 2, 2, 2, 8);
+    lh_ui_color_t color;
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_canvas_t canvas;
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_declining_backend), lh_addr_of(target));
 
     lh_ui_canvas_fill_mask(lh_addr_of(canvas), lh_addr_of(mask), point_of(4, 5), lh_addr_of(color));

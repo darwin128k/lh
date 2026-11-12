@@ -235,10 +235,9 @@ lh_bool_t
 lh_web_json_reader_read_hex4(lh_web_json_reader_t *self, lh_u32_t *code)
 {
     lh_uint_t value = 0U;
-    lh_usize_t i;
 
     lh_assert_runtime_ref(code);
-    for (i = 0U; lh_math_lt(i, 4U); i = lh_math_add_one(i))
+    for (lh_usize_t i = 0U; lh_math_lt(i, 4U); i = lh_math_add_one(i))
     {
         const lh_char_t ch = lh_web_json_reader_get_char(self);
 

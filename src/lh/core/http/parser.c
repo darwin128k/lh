@@ -187,8 +187,8 @@ lh_http_parser_parse_request_line(lh_http_parser_t *self, lh_str_view_t input, l
     lh_return_if(version == target || version == end,
                  lh_http_parser_fail(self, lh_http_error_start_line, version));
     lh_str_view_t part;
-    lh_u8_t minor;
     lh_str_view_from_offset(lh_addr_of(input), version + 1, end - version - 1, lh_addr_of(part));
+    lh_u8_t minor;
     lh_return_ifn(lh_http_parse_version(part, lh_addr_of(minor)),
                   lh_http_parser_fail(self, lh_http_error_start_line, version));
     lh_http_request_set_version_minor(request, minor);
@@ -206,8 +206,8 @@ lh_http_parser_parse_status_line(lh_http_parser_t *self, lh_str_view_t input, lh
     const lh_char_t *text = lh_str_view_get_data(lh_addr_of(input));
     lh_return_if(end < 13, lh_http_parser_fail(self, lh_http_error_start_line, 0));
     lh_str_view_t part;
-    lh_u8_t minor;
     lh_str_view_from_offset(lh_addr_of(input), 0, 8, lh_addr_of(part));
+    lh_u8_t minor;
     if (!lh_http_parse_version(part, lh_addr_of(minor)) || text[8] != lh_char_map_space ||
         text[9] < lh_char_map_digit_1 || text[9] > lh_char_map_digit_5 ||
         !lh_char_is_digit(text[10]) || !lh_char_is_digit(text[11]) || text[12] != lh_char_map_space)
@@ -298,11 +298,11 @@ lh_http_parser_request(lh_http_parser_t *self, lh_str_view_t input, lh_http_requ
     lh_return_ifn(lh_http_parser_begin(self, input, request, headers, header_capacity),
                   lh_http_parse_error);
     lh_usize_t end;
-    lh_usize_t count;
     lh_http_parse_status_t status = lh_http_parser_find_line(self, input, 0, lh_addr_of(end));
     lh_return_if(status != lh_http_parse_complete, status);
     status = lh_http_parser_parse_request_line(self, input, end, request);
     lh_return_if(status != lh_http_parse_complete, status);
+    lh_usize_t count;
     status = lh_http_parser_parse_fields(self, input, end + 2, headers, header_capacity,
                                          lh_addr_of(count));
     lh_return_if(status != lh_http_parse_complete, status);
@@ -317,11 +317,11 @@ lh_http_parser_response(lh_http_parser_t *self, lh_str_view_t input, lh_http_res
     lh_return_ifn(lh_http_parser_begin(self, input, response, headers, header_capacity),
                   lh_http_parse_error);
     lh_usize_t end;
-    lh_usize_t count;
     lh_http_parse_status_t status = lh_http_parser_find_line(self, input, 0, lh_addr_of(end));
     lh_return_if(status != lh_http_parse_complete, status);
     status = lh_http_parser_parse_status_line(self, input, end, response);
     lh_return_if(status != lh_http_parse_complete, status);
+    lh_usize_t count;
     status = lh_http_parser_parse_fields(self, input, end + 2, headers, header_capacity,
                                          lh_addr_of(count));
     lh_return_if(status != lh_http_parse_complete, status);

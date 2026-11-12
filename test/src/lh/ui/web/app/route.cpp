@@ -68,15 +68,15 @@ TEST(ui_web_route, set_path_and_set_path_len_store_one_field_each)
 
 TEST(ui_web_route, is_match_uses_the_parsed_method_and_path)
 {
-    lh_ui_web_route_t route;
-    lh_http_request_t request;
     const lh_str_view_t get = lh_str_view_initializer_lit("GET");
     const lh_str_view_t post = lh_str_view_initializer_lit("POST");
     const lh_str_view_t plain = lh_str_view_initializer_lit("/state");
     const lh_str_view_t query = lh_str_view_initializer_lit("/state?x=1");
     const lh_str_view_t longer = lh_str_view_initializer_lit("/states");
 
+    lh_ui_web_route_t route;
     start(lh_addr_of(route), "GET", lh_str_lit_size("GET"), "/state", lh_str_lit_size("/state"));
+    lh_http_request_t request;
     lh_http_request_set_method(lh_addr_of(request), get);
     lh_http_request_set_target(lh_addr_of(request), plain);
     EXPECT_TRUE(lh_ui_web_route_is_match(lh_addr_of(route), lh_addr_of(request)));

@@ -15,11 +15,10 @@ lh_os_system_net_interface_each_ip4(lh_os_net_interface_ip4_fn *fn, lh_ptr user)
     lh_os_system_win_mib_ipaddrtable_t *table = lh_null;
     lh_os_system_win_dword_t size = 0UL;
     lh_os_system_win_dword_t result = LH_OS_SYSTEM_WIN_ERROR_INSUFFICIENT_BUFFER;
-    lh_usize_t i;
 
     lh_assert_runtime_ref(fn);
-    for (i = 0U; i < LH_OS_SYSTEM_NET_INTERFACE_TRIES &&
-                 lh_math_eq(result, LH_OS_SYSTEM_WIN_ERROR_INSUFFICIENT_BUFFER);
+    for (lh_usize_t i = 0U; i < LH_OS_SYSTEM_NET_INTERFACE_TRIES &&
+                            lh_math_eq(result, LH_OS_SYSTEM_WIN_ERROR_INSUFFICIENT_BUFFER);
          ++i)
     {
         if (lh_null_ne(table))
@@ -46,7 +45,7 @@ lh_os_system_net_interface_each_ip4(lh_os_net_interface_ip4_fn *fn, lh_ptr user)
         lh_os_system_error_capture();
         return lh_bool_false;
     }
-    for (i = 0U; i < (lh_usize_t)table->dwNumEntries; ++i)
+    for (lh_usize_t i = 0U; i < (lh_usize_t)table->dwNumEntries; ++i)
     {
         lh_net_ip4_t ip;
         /* dwAddr is in network order: its bytes are the octets as written. */

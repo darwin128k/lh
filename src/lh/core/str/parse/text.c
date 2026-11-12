@@ -57,7 +57,6 @@ lh_str_ptr_parse_text_str(lh_str_cptr str, lh_usize_t str_size, lh_usize_t *pos,
     const lh_usize_t at = lh_ptr_deref(pos);
     lh_str_cptr from = lh_ptr_add_by_offset(const lh_char_t, str, at);
     lh_usize_t field_size = limit;
-    lh_str_scanf_spec_t next;
 
     lh_assert_runtime_ref(out);
     if (lh_str_scanf_spec_get_have_precision(spec))
@@ -67,6 +66,7 @@ lh_str_ptr_parse_text_str(lh_str_cptr str, lh_usize_t str_size, lh_usize_t *pos,
     }
 
     /* A literal right after %s ends the field where it starts. */
+    lh_str_scanf_spec_t next;
     if (lh_str_ptr_scanf_next(fmt, lh_addr_of(fmt_pos), lh_addr_of(next)) &&
         lh_math_eq(lh_str_scanf_spec_get_kind(lh_addr_of(next)), lh_str_scanf_spec_kind_literal) &&
         lh_math_gt(lh_str_scanf_spec_get_literal_size(lh_addr_of(next)), 0U))
@@ -93,12 +93,11 @@ lh_str_ptr_parse_text_uint(lh_str_cptr str, lh_usize_t *pos, lh_usize_t limit, v
 {
     lh_uint_t *out = va_arg(lh_ptr_deref(args), lh_uint_t *);
     const lh_usize_t at = lh_ptr_deref(pos);
-    lh_uint_t value;
-    lh_usize_t consumed;
 
     lh_assert_runtime_ref(out);
-    consumed = lh_str_ptr_parse_uint_prefix(lh_ptr_add_by_offset(const lh_char_t, str, at), limit,
-                                            LH_UINT_T_MAX, lh_addr_of(value));
+    lh_uint_t value;
+    lh_usize_t consumed = lh_str_ptr_parse_uint_prefix(
+        lh_ptr_add_by_offset(const lh_char_t, str, at), limit, LH_UINT_T_MAX, lh_addr_of(value));
     lh_return_if(lh_math_is_zero(consumed), lh_bool_false);
     lh_ptr_deref(out) = value;
     lh_ptr_deref(pos) = lh_math_add(at, consumed);
@@ -114,8 +113,6 @@ lh_str_ptr_parse_text_sint(lh_str_cptr str, lh_usize_t *pos, lh_usize_t limit, v
     lh_usize_t at = lh_ptr_deref(pos);
     lh_usize_t digit_limit = limit;
     lh_bool_t is_negative = lh_bool_false;
-    lh_uint_t magnitude;
-    lh_usize_t consumed;
 
     lh_assert_runtime_ref(out);
     lh_return_if(lh_math_is_zero(limit), lh_bool_false);
@@ -125,9 +122,11 @@ lh_str_ptr_parse_text_sint(lh_str_cptr str, lh_usize_t *pos, lh_usize_t limit, v
         at = lh_math_add_one(at);
         digit_limit = lh_math_sub_one(limit);
     }
-    consumed = lh_str_ptr_parse_uint_prefix(
+    lh_uint_t magnitude;
+    lh_usize_t consumed = lh_str_ptr_parse_uint_prefix(
         lh_ptr_add_by_offset(const lh_char_t, str, at), digit_limit,
-        is_negative ? min_magnitude : lh_cast_static(lh_uint_t, LH_SINT_T_MAX), lh_addr_of(magnitude));
+        is_negative ? min_magnitude : lh_cast_static(lh_uint_t, LH_SINT_T_MAX),
+        lh_addr_of(magnitude));
     lh_return_if(lh_math_is_zero(consumed), lh_bool_false);
 
     if (!is_negative)
@@ -151,12 +150,11 @@ lh_str_ptr_parse_text_hex(lh_str_cptr str, lh_usize_t *pos, lh_usize_t limit, va
 {
     lh_uint_t *out = va_arg(lh_ptr_deref(args), lh_uint_t *);
     const lh_usize_t at = lh_ptr_deref(pos);
-    lh_uint_t value;
-    lh_usize_t consumed;
 
     lh_assert_runtime_ref(out);
-    consumed = lh_str_ptr_parse_hex_prefix(lh_ptr_add_by_offset(const lh_char_t, str, at), limit,
-                                           LH_UINT_T_MAX, lh_addr_of(value));
+    lh_uint_t value;
+    lh_usize_t consumed = lh_str_ptr_parse_hex_prefix(
+        lh_ptr_add_by_offset(const lh_char_t, str, at), limit, LH_UINT_T_MAX, lh_addr_of(value));
     lh_return_if(lh_math_is_zero(consumed), lh_bool_false);
     lh_ptr_deref(out) = value;
     lh_ptr_deref(pos) = lh_math_add(at, consumed);
@@ -205,11 +203,11 @@ lh_str_ptr_parse_text_v(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, v
     lh_usize_t in_pos = 0U;
     lh_usize_t fmt_pos = 0U;
     lh_bool_t matched = lh_bool_true;
-    lh_str_scanf_spec_t spec;
-    va_list ap;
 
     lh_assert_runtime_ref(str);
+    va_list ap;
     va_copy(ap, args);
+    lh_str_scanf_spec_t spec;
     while (matched && lh_str_ptr_scanf_next(fmt, lh_addr_of(fmt_pos), lh_addr_of(spec)))
     {
         matched = lh_str_ptr_parse_text_field(str, str_size, lh_addr_of(in_pos), lh_addr_of(spec), fmt,
@@ -222,11 +220,10 @@ lh_str_ptr_parse_text_v(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, v
 lh_usize_t
 lh_str_ptr_parse_text(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, ...)
 {
-    lh_usize_t result;
     va_list args;
 
     va_start(args, fmt);
-    result = lh_str_ptr_parse_text_v(str, str_size, fmt, args);
+    lh_usize_t result = lh_str_ptr_parse_text_v(str, str_size, fmt, args);
     va_end(args);
 
     return result;

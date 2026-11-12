@@ -14,11 +14,11 @@ TEST(ui_style, init_has_empty_fill)
 TEST(ui_style, set_fill_copies_paint)
 {
     lh_ui_color_t color;
-    lh_ui_paint_t paint;
-    lh_ui_style_t style;
 
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 4);
+    lh_ui_paint_t paint;
     lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(color));
+    lh_ui_style_t style;
     lh_ui_style_init(lh_addr_of(style));
     lh_ui_style_assign_fill(lh_addr_of(style), lh_addr_of(paint));
     EXPECT_FALSE(lh_ui_paint_is_empty(lh_ui_style_get_fill(lh_addr_of(style))));
@@ -30,11 +30,11 @@ TEST(ui_style, set_fill_copies_paint)
 TEST(ui_style, set_fill_null_clears)
 {
     lh_ui_color_t color;
-    lh_ui_paint_t paint;
-    lh_ui_style_t style;
 
     lh_ui_color_init(lh_addr_of(color), 10, 20, 30, 255);
+    lh_ui_paint_t paint;
     lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(color));
+    lh_ui_style_t style;
     lh_ui_style_init(lh_addr_of(style));
     lh_ui_style_assign_fill(lh_addr_of(style), lh_addr_of(paint));
     lh_ui_style_assign_fill(lh_addr_of(style), lh_null);
@@ -122,12 +122,12 @@ TEST(ui_style, init_casts_no_shadow)
 TEST(ui_style, set_shadow_copies_it_and_null_clears)
 {
     lh_ui_shadow_t shadow;
-    lh_ui_style_t style;
 
     lh_ui_shadow_init(lh_addr_of(shadow));
     lh_ui_shadow_set_color(lh_addr_of(shadow), lh_ui_color_t{0, 0, 0, 150});
     lh_ui_shadow_set_spread_v(lh_addr_of(shadow), lh_ui_scalar(14));
     lh_ui_shadow_set_offset(lh_addr_of(shadow), lh_ui_scalar(0), lh_ui_scalar(4));
+    lh_ui_style_t style;
     lh_ui_style_init(lh_addr_of(style));
     lh_ui_style_set_shadow_v(lh_addr_of(style), lh_addr_of(shadow));
 
@@ -143,9 +143,9 @@ TEST(ui_style, set_shadow_copies_it_and_null_clears)
 TEST(ui_style, a_fresh_style_has_no_pressed_look)
 {
     lh_ui_style_t pressed;
-    lh_ui_style_t style;
 
     lh_ui_style_init(lh_addr_of(pressed));
+    lh_ui_style_t style;
     lh_ui_style_init(lh_addr_of(style));
     EXPECT_TRUE(lh_null_eq(lh_ui_style_get_pressed(lh_addr_of(style))));
 

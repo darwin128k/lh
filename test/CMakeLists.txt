@@ -446,6 +446,7 @@ set(LH_TEST_STR_SOURCES
         ${LH_TEST_SRC_PATH}/lh/core/str/parse/ullong.cpp
         ${LH_TEST_SRC_PATH}/lh/core/str/parse/sllong.cpp
         ${LH_TEST_SRC_PATH}/lh/core/str/scanf/next.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/scanf/spec.cpp
         ${LH_TEST_SRC_PATH}/lh/core/str/split/next.cpp
         ${LH_TEST_SRC_PATH}/lh/core/str/split/line.cpp
         ${LH_TEST_SRC_PATH}/lh/core/str/split/once.cpp

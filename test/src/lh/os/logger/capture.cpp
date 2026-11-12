@@ -51,18 +51,18 @@ push(lh_os_logger_capture_t *capture, const lh_void *target, lh_ptr context,
 
 TEST(lh_os_logger_capture, holds_lines_in_order_with_their_target)
 {
-    lh_os_logger_capture_line_t lines[4];
-    lh_os_logger_capture_t capture;
     int target = 0;
     int context = 0;
-    replay_log log;
 
+    lh_os_logger_capture_line_t lines[4];
+    lh_os_logger_capture_t capture;
     lh_os_logger_capture_init(&capture, lines, 4U);
     EXPECT_TRUE(push(&capture, &target, &context, lh_logger_level_info, "a %d", 1));
     EXPECT_TRUE(push(&capture, &target, lh_null, lh_logger_level_error, "%s", "b"));
     EXPECT_EQ(lh_os_logger_capture_get_count(&capture), 2U);
     EXPECT_EQ(lh_os_logger_capture_get_line(&capture, 2U), nullptr);
 
+    replay_log log;
     lh_os_logger_capture_replay(&capture, replay_log::replay, &log);
     ASSERT_EQ(log.texts.size(), 2U);
     EXPECT_EQ(log.texts[0], "a 1");
@@ -95,10 +95,10 @@ TEST(lh_os_logger_capture, full_buffer_drops_and_counts)
 
 TEST(lh_os_logger_capture, long_text_is_cut)
 {
-    lh_os_logger_capture_line_t lines[1];
-    lh_os_logger_capture_t capture;
     const std::string text(LH_OS_LOGGER_RECORD_TEXT_SIZE + 10U, 'x');
 
+    lh_os_logger_capture_line_t lines[1];
+    lh_os_logger_capture_t capture;
     lh_os_logger_capture_init(&capture, lines, 1U);
     EXPECT_TRUE(push(&capture, lh_null, lh_null, lh_logger_level_info, "%s", text.c_str()));
     const lh_os_logger_record_t *record =
@@ -111,10 +111,9 @@ TEST(lh_os_logger_capture, scope_nests_and_replay_suspends_it)
 {
     lh_os_logger_capture_line_t lines[1];
     lh_os_logger_capture_t outer;
-    lh_os_logger_capture_t inner;
-    replay_log log;
 
     lh_os_logger_capture_init(&outer, lines, 1U);
+    lh_os_logger_capture_t inner;
     lh_os_logger_capture_init(&inner, lines, 1U);
     EXPECT_EQ(lh_os_logger_capture_get_current(), nullptr);
 
@@ -125,6 +124,7 @@ TEST(lh_os_logger_capture, scope_nests_and_replay_suspends_it)
     EXPECT_EQ(previous, &outer);
     EXPECT_EQ(lh_os_logger_capture_get_current(), &inner);
     EXPECT_TRUE(push(&inner, lh_null, lh_null, lh_logger_level_info, "x"));
+    replay_log log;
     lh_os_logger_capture_replay(&inner, replay_log::replay, &log);
     EXPECT_TRUE(log.suspended);
     EXPECT_EQ(lh_os_logger_capture_get_current(), &inner);
@@ -136,12 +136,12 @@ TEST(lh_os_logger_capture, scope_nests_and_replay_suspends_it)
 
 TEST(lh_os_logger_capture, scope_is_per_thread)
 {
-    lh_os_logger_capture_line_t lines[1];
     lh_os_logger_capture_t capture;
-    lh_os_thread_t thread;
     lh_os_logger_capture_t *seen = &capture;
 
+    lh_os_logger_capture_line_t lines[1];
     lh_os_logger_capture_init(&capture, lines, 1U);
+    lh_os_thread_t thread;
     lh_os_thread_init(&thread);
     lh_os_logger_capture_t *const previous = lh_os_logger_capture_begin(&capture);
     ASSERT_TRUE(lh_os_thread_start(

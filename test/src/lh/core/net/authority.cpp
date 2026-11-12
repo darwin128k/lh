@@ -12,10 +12,10 @@ namespace
 std::string
 split(const char *text)
 {
-    lh_str_view_t host;
     lh_net_port_t port = 7U;
     lh_bool_t has_port = lh_bool_false;
 
+    lh_str_view_t host;
     if (!lh_net_authority_try_split(text, std::strlen(text), &host, &port, &has_port))
     {
         return "fail";

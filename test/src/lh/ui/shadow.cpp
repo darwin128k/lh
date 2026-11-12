@@ -21,9 +21,9 @@ alpha_at(const lh_ui_shadow_t *shadow, lh_ui_scalar_t x, lh_ui_scalar_t y)
 TEST(ui_shadow, a_fresh_one_paints_nothing)
 {
     lh_ui_shadow_t shadow;
-    lh_ui_rect_t rect;
 
     lh_ui_shadow_init(lh_addr_of(shadow));
+    lh_ui_rect_t rect;
     lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(20), lh_ui_scalar(20), lh_ui_scalar(40), lh_ui_scalar(40));
     EXPECT_EQ(lh_test::out(lh_ui_shadow_copy_color, lh_addr_of(shadow)).a, 0);
     EXPECT_EQ(lh_ui_shadow_get_spread(lh_addr_of(shadow)), 0);
@@ -37,10 +37,10 @@ TEST(ui_shadow, a_fresh_one_paints_nothing)
    one call and not a rectangle of measurements. */
 TEST(ui_shadow, empty_means_no_peak_or_no_fade)
 {
-    lh_ui_shadow_t shadow;
     lh_ui_rect_t rect;
 
     lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(20), lh_ui_scalar(20), lh_ui_scalar(40), lh_ui_scalar(40));
+    lh_ui_shadow_t shadow;
     lh_ui_shadow_init(lh_addr_of(shadow));
 
     lh_ui_shadow_set_color(lh_addr_of(shadow), lh_ui_color_t{0, 0, 0, 200});
@@ -108,8 +108,6 @@ TEST(ui_shadow, the_colour_alpha_is_the_peak)
 TEST(ui_shadow, an_offset_moves_the_whole_fade)
 {
     lh_ui_shadow_t shadow;
-    lh_ui_rect_t rect;
-    lh_s32_t untouched_side;
 
     lh_ui_shadow_init(lh_addr_of(shadow));
     lh_ui_shadow_set_color(lh_addr_of(shadow), lh_ui_color_t{0, 0, 0, 255});
@@ -121,20 +119,21 @@ TEST(ui_shadow, an_offset_moves_the_whole_fade)
 
     /* Light from the left: the shadow lies to the right of the box, so the left
        side is already past the fade while the right side is still under it. */
-    untouched_side = alpha_at(lh_addr_of(shadow), lh_ui_scalar(14), lh_ui_scalar(40));
+    lh_s32_t untouched_side = alpha_at(lh_addr_of(shadow), lh_ui_scalar(14), lh_ui_scalar(40));
     EXPECT_EQ(untouched_side, 0);
     EXPECT_GT(alpha_at(lh_addr_of(shadow), lh_ui_scalar(64), lh_ui_scalar(40)), 0);
 
+    lh_ui_rect_t rect;
     lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(20), lh_ui_scalar(20), lh_ui_scalar(40), lh_ui_scalar(40));
     EXPECT_EQ(lh_ui_shadow_get_outset(lh_addr_of(shadow), lh_addr_of(rect)), 11);
 }
 
 TEST(ui_shadow, the_outset_leaves_room_for_the_fade_and_the_shift)
 {
-    lh_ui_shadow_t shadow;
     lh_ui_rect_t rect;
 
     lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(20), lh_ui_scalar(20), lh_ui_scalar(40), lh_ui_scalar(40));
+    lh_ui_shadow_t shadow;
     lh_ui_shadow_init(lh_addr_of(shadow));
     lh_ui_shadow_set_color(lh_addr_of(shadow), lh_ui_color_t{0, 0, 0, 255});
     lh_ui_shadow_set_spread_v(lh_addr_of(shadow), lh_ui_scalar(8));
@@ -173,7 +172,6 @@ TEST(ui_shadow, the_falloff_runs_from_the_peak_to_nothing)
 TEST(ui_shadow, an_offset_moves_the_pixels_it_paints)
 {
     lh_ui_shadow_t shadow;
-    lh_ui_rect_t rect;
 
     /* The same distance out from either side of the box: without the offset the
        two pixels are as dark as each other. The offset was once handed back by
@@ -181,6 +179,7 @@ TEST(ui_shadow, an_offset_moves_the_pixels_it_paints)
     lh_ui_shadow_init(lh_addr_of(shadow));
     lh_ui_shadow_set_color(lh_addr_of(shadow), lh_ui_color_t{0, 0, 0, 255});
     lh_ui_shadow_set_spread_v(lh_addr_of(shadow), lh_ui_scalar(6));
+    lh_ui_rect_t rect;
     lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(20), lh_ui_scalar(20), lh_ui_scalar(40), lh_ui_scalar(40));
     EXPECT_EQ(lh_ui_shadow_alpha_at_pixel(lh_addr_of(shadow), 17, 40, lh_addr_of(rect), lh_ui_scalar(0)),
               lh_ui_shadow_alpha_at_pixel(lh_addr_of(shadow), 62, 40, lh_addr_of(rect), lh_ui_scalar(0)));

@@ -40,8 +40,8 @@ TEST(memory_typed_fields, are_bounds_plus_type_size)
 
 TEST(memory_typed_set_value, writes_value_at_index)
 {
-    IntTyped t;
     int value = 42;
+    IntTyped t;
     lh_memory_typed_set_value(&t.typed, 3, &value);
     EXPECT_EQ(t.buf[3], 42);
 }
@@ -79,8 +79,8 @@ TEST(memory_typed_get_value_into, reads_value_at_index)
 
 TEST(memory_typed_get_value_into, roundtrips_with_set_value)
 {
-    IntTyped t;
     int in = 12345;
+    IntTyped t;
     lh_memory_typed_set_value(&t.typed, 2, &in);
     int out = 0;
     lh_memory_typed_get_value_into(&t.typed, 2, &out);

@@ -168,13 +168,11 @@ lh_ui_web_ws_read(lh_byte_cptr p, lh_usize_t n, lh_uint_t *opcode, lh_bool_t *fi
 lh_void
 lh_ui_web_ws_unmask(lh_byte_ptr data, lh_usize_t len, const lh_byte_t mask[4])
 {
-    lh_usize_t i;
-
     if (data == lh_null || mask == lh_null)
     {
         return;
     }
-    for (i = 0; i < len; ++i)
+    for (lh_usize_t i = 0; i < len; ++i)
     {
         data[i] = lh_cast_static(lh_byte_t, (data[i] ^ mask[i & 3u]));
     }

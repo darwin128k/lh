@@ -26,7 +26,6 @@ lh_ui_layout_run_measure_child(const lh_ui_layout_t *self, lh_ui_layout_run_t *r
     const lh_ui_place_t *place = lh_ui_entity_get_place(child);
     const lh_bool_t fills_too = lh_ui_place_get_size_mode(place) == lh_ui_place_size_fill;
     const lh_ui_scalar_t margin = lh_ui_layout_margin_along(self, place);
-    lh_ui_scalar_t wants;
 
     lh_assert_runtime_ref(run);
     lh_return_if(lh_ui_entity_is_hidden(child));
@@ -34,7 +33,7 @@ lh_ui_layout_run_measure_child(const lh_ui_layout_t *self, lh_ui_layout_run_t *r
     {
         lh_ui_layout_run_set_weights(run, lh_ui_layout_run_get_weights(run) + (lh_ui_layout_weight(place)));
     }
-    wants = lh_ui_layout_wants(self, child);
+    lh_ui_scalar_t wants = lh_ui_layout_wants(self, child);
     /* A child that asked to fill has room to take even before anyone has said
        how much, so it counts for a gap; one that asked for nothing does not,
        and neither does one that is not there to be seen. A margin is room too. */
@@ -90,10 +89,9 @@ lh_ui_layout_run_measure(const lh_ui_layout_t *self, lh_ui_layout_run_t *run,
 lh_void
 lh_ui_layout_run_justify(const lh_ui_layout_t *self, lh_ui_layout_run_t *run)
 {
-    lh_ui_scalar_t lead;
-
     lh_assert_runtime_ref(run);
     lh_return_if(lh_ui_layout_run_get_weights(run) > lh_ui_scalar(0) || lh_ui_layout_run_get_shown(run) <= 0);
+    lh_ui_scalar_t lead;
     lh_ui_layout_justify_lead(lh_ui_layout_get_justify(self), lh_ui_layout_run_get_left(run), lh_ui_layout_run_get_shown(run),
                               lh_addr_of(lead), lh_addr_of(run->spread));
     lh_ui_layout_run_set_along(run, lh_ui_layout_run_get_along(run) + (lead));
@@ -104,13 +102,13 @@ lh_ui_layout_run_length(const lh_ui_layout_t *self, const lh_ui_layout_run_t *ru
                         lh_ui_entity_t *child)
 {
     const lh_ui_place_t *place = lh_ui_entity_get_place(child);
-    lh_ui_scalar_t share;
 
     lh_assert_runtime_ref(run);
     if (lh_ui_place_get_size_mode(place) != lh_ui_place_size_fill)
     {
         return lh_ui_layout_wants(self, child);
     }
+    lh_ui_scalar_t share;
     lh_ui_scalar_trunc(lh_ui_layout_run_get_left(run) * lh_ui_layout_weight(place) / lh_ui_layout_run_get_weights(run), lh_addr_of(share));
     return lh_ui_place_clamp(place, lh_ui_layout_get_axis(self), share);
 }
@@ -126,16 +124,15 @@ lh_ui_layout_run_place_child(const lh_ui_layout_t *self, lh_ui_layout_run_t *run
     const lh_ui_insets_t *margin = lh_ui_place_get_margin(lh_ui_entity_get_place(child));
     const lh_ui_scalar_t before = lh_ui_insets_get_start(margin, lh_ui_layout_get_axis(self));
     const lh_ui_scalar_t after = lh_ui_insets_get_end(margin, lh_ui_layout_get_axis(self));
-    lh_ui_scalar_t wants;
     lh_ui_scalar_t across_start = lh_ui_scalar(0);
     lh_ui_scalar_t across_length = lh_ui_scalar(0);
-    lh_ui_rect_t placed;
 
     lh_assert_runtime_ref(run);
     lh_return_if(lh_ui_entity_is_hidden(child));
-    wants = lh_ui_layout_run_length(self, run, child);
+    lh_ui_scalar_t wants = lh_ui_layout_run_length(self, run, child);
     lh_ui_layout_across(self, child, content, lh_ui_layout_run_get_line(run), lh_addr_of(across_start),
                         lh_addr_of(across_length));
+    lh_ui_rect_t placed;
     lh_ui_rect_init_along(lh_addr_of(placed), lh_addr_of(nowhere), lh_ui_layout_get_axis(self), lh_ui_layout_run_get_along(run) + before,
                           wants);
     lh_ui_rect_init_along(lh_addr_of(placed), lh_addr_of(placed), lh_ui_axis_get_cross(lh_ui_layout_get_axis(self)),

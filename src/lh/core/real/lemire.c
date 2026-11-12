@@ -57,13 +57,6 @@ lh_void
 lh_real_lemire_compute(lh_s64_t q, lh_u64_t w, lh_u64_t *fraction, lh_s32_t *exponent)
 {
     const lh_u64_t hidden = lh_math_bit_shl(1ULL, LH_REAL_MANTISSA_BITS);
-    lh_u64_t high;
-    lh_u64_t low;
-    lh_u64_t mantissa;
-    lh_s32_t lz;
-    lh_s32_t upperbit;
-    lh_s32_t shift;
-    lh_s32_t power2;
 
     lh_assert_runtime_ref(fraction);
     lh_assert_runtime_ref(exponent);
@@ -81,15 +74,18 @@ lh_real_lemire_compute(lh_s64_t q, lh_u64_t w, lh_u64_t *fraction, lh_s32_t *exp
         return;
     }
 
-    lz = lh_cast_static(lh_s32_t, lh_math_sub(63U, lh_bit_scan_reverse_u64(w)));
+    lh_s32_t lz = lh_cast_static(lh_s32_t, lh_math_sub(63U, lh_bit_scan_reverse_u64(w)));
     w = lh_math_bit_shl(w, lz);
+    lh_u64_t high;
+    lh_u64_t low;
     lh_real_lemire_multiply(q, w, lh_addr_of(high), lh_addr_of(low));
 
-    upperbit = lh_cast_static(lh_s32_t, lh_math_bit_shr(high, 63));
-    shift = lh_math_sub(lh_math_add(upperbit, 64), LH_REAL_MANTISSA_BITS + 3);
-    mantissa = lh_math_bit_shr(high, shift);
-    power2 = lh_math_add(lh_math_sub(lh_math_add(lh_real_lemire_get_power2(q), upperbit), lz),
-                         LH_REAL_EXPONENT_BIAS);
+    lh_s32_t upperbit = lh_cast_static(lh_s32_t, lh_math_bit_shr(high, 63));
+    lh_s32_t shift = lh_math_sub(lh_math_add(upperbit, 64), LH_REAL_MANTISSA_BITS + 3);
+    lh_u64_t mantissa = lh_math_bit_shr(high, shift);
+    lh_s32_t power2 =
+        lh_math_add(lh_math_sub(lh_math_add(lh_real_lemire_get_power2(q), upperbit), lz),
+                    LH_REAL_EXPONENT_BIAS);
 
     if (lh_math_le(power2, 0))
     {

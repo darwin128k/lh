@@ -135,10 +135,10 @@ TEST(math_quat_initializer, fills_components_in_order)
 TEST(math_quat_bricks, axes_are_where_the_rotation_takes_them)
 {
     lh_math_vec3_t z;
-    lh_math_quat_t q;
 
     /* 90 degrees about z takes x to y, y to -x and leaves z. */
     lh_math_vec3_init(&z, 0.0f, 0.0f, 1.0f);
+    lh_math_quat_t q;
     lh_math_quat_from_axis_angle(z, k_pi / 2.0f, &q);
     expect_vec3_near(lh_test::out(lh_math_quat_axis_x, q), 0.0f, 1.0f, 0.0f);
     expect_vec3_near(lh_test::out(lh_math_quat_axis_y, q), -1.0f, 0.0f, 0.0f);

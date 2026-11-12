@@ -32,12 +32,12 @@ namespace
 lh_net_port_t
 free_port()
 {
-    lh_os_net_socket_t probe;
-    lh_net_ip4_t ip;
-    lh_net_ip4_socket_addr_t addr;
     lh_net_port_t port = 0u;
+    lh_net_ip4_t ip;
     lh_net_ip4_init(&ip, 127, 0, 0, 1);
+    lh_net_ip4_socket_addr_t addr;
     lh_net_ip4_socket_addr_init(&addr, &ip, 0);
+    lh_os_net_socket_t probe;
     lh_os_net_socket_init(&probe);
     if (lh_os_net_socket_open(&probe, lh_net_socket_type_tcp) &&
         lh_os_net_socket_bind(&probe, &addr) && lh_os_net_socket_get_local_addr(&probe, &addr))
@@ -52,8 +52,8 @@ bool
 connect_to(lh_os_net_socket_t *sock, lh_net_port_t port)
 {
     lh_net_ip4_t ip;
-    lh_net_ip4_socket_addr_t addr;
     lh_net_ip4_init(&ip, 127, 0, 0, 1);
+    lh_net_ip4_socket_addr_t addr;
     lh_net_ip4_socket_addr_init(&addr, &ip, port);
     lh_os_net_socket_init(sock);
     if (!lh_os_net_socket_open(sock, lh_net_socket_type_tcp))
@@ -315,8 +315,8 @@ TEST(ui_web_host_gate, receives_once_per_readiness)
     lh_os_system_net_socket_handle_t handles[2];
     ASSERT_TRUE(lh_os_system_net_socket_pair(handles, LH_OS_SYSTEM_NET_SOCKET_PAIR_TIMEOUT_MS));
     lh_os_net_socket_t a;
-    lh_os_net_socket_t b;
     lh_os_net_socket_init(&a);
+    lh_os_net_socket_t b;
     lh_os_net_socket_init(&b);
     lh_os_net_socket_set_handle(&a, handles[0]);
     lh_os_net_socket_set_handle(&b, handles[1]);

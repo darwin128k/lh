@@ -592,12 +592,12 @@ lh_mb_link_send(lh_mb_link_t *self, lh_byte_cptr pdu, lh_u16_t pdu_length, lh_u1
        building the request there wrote it over those bytes, and the request -- which
        carries this question's own transaction id -- was then read back as the
        answer. */
-    lh_byte_t out[LH_MB_ADU_MAX];
 
     if (pdu_length == 0)
     {
         return lh_bool_false;
     }
+    lh_byte_t out[LH_MB_ADU_MAX];
     pdu_length = lh_mb_encode(lh_mb_link_get_framing(self), lh_mb_link_get_unit(self),
                               lh_mb_link_get_tx(self), pdu, pdu_length, out,
                               lh_cast_static(lh_u16_t, sizeof(out)));
@@ -654,9 +654,7 @@ lh_mb_link_send(lh_mb_link_t *self, lh_byte_cptr pdu, lh_u16_t pdu_length, lh_u1
 lh_mb_link_state_t
 lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us)
 {
-    lh_byte_t pdu[LH_MB_ADU_MAX];
     lh_u16_t pdu_length = 0;
-    lh_mb_status_t status;
 
     lh_return_ifn(lh_mb_link_get_state(self) == lh_cast_static(lh_u8_t, lh_mb_link_waiting),
                   lh_cast_static(lh_mb_link_state_t, lh_mb_link_get_state(self)));
@@ -703,6 +701,7 @@ lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us)
        loop goes on to the one behind it: a recv can hand over another unit's frame,
        or the late answer to a question that timed out, and this answer right after
        it in the same bytes. */
+    lh_byte_t pdu[LH_MB_ADU_MAX];
     for (;;)
     {
         lh_bool_t ours;
@@ -774,6 +773,7 @@ lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us)
             break;
         }
     }
+    lh_mb_status_t status;
     if (lh_mb_link_get_asked_fc(self) == LH_MB_FC_WRITE_MANY)
     {
         /* A write's answer is its own header echoed and carries no values. */
@@ -833,8 +833,6 @@ lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us)
 lh_bool_t
 lh_mb_link_ask(lh_mb_link_t *self, lh_u16_t address, lh_u16_t count)
 {
-    lh_byte_t pdu[LH_MB_ADU_MAX];
-
     /* One question at a time. A second request sent while the first is unanswered
        comes back after its own answer and is read as somebody else's frame, which
        is a bug that looks like a device answering the wrong question. */
@@ -850,6 +848,7 @@ lh_mb_link_ask(lh_mb_link_t *self, lh_u16_t address, lh_u16_t count)
        else's frame. It looked like a device
        answering the wrong question, which is the most expensive kind of bug to
        chase and the least likely — the answer was fine, the reader was wrong. */
+    lh_byte_t pdu[LH_MB_ADU_MAX];
     lh_u16_t pdu_length = lh_mb_build_pdu_read(pdu, lh_cast_static(lh_u16_t, sizeof(pdu)),
                                                lh_mb_link_get_fc(self), address, count);
     return lh_mb_link_send(self, pdu, pdu_length, address, count, lh_mb_link_get_fc(self));
@@ -858,11 +857,10 @@ lh_mb_link_ask(lh_mb_link_t *self, lh_u16_t address, lh_u16_t count)
 lh_bool_t
 lh_mb_link_write(lh_mb_link_t *self, lh_u16_t address, const lh_u16_t *values, lh_u16_t count)
 {
-    lh_byte_t pdu[LH_MB_ADU_MAX];
-
     lh_return_ifn(lh_mb_link_get_state(self) == lh_cast_static(lh_u8_t, lh_mb_link_idle),
                   lh_bool_false);
     lh_return_ifn(lh_null_ne(values) && count > 0, lh_bool_false);
+    lh_byte_t pdu[LH_MB_ADU_MAX];
     return lh_mb_link_send(
         self, pdu,
         lh_mb_build_pdu_write(pdu, lh_cast_static(lh_u16_t, sizeof(pdu)), address, values, count),
@@ -872,10 +870,9 @@ lh_mb_link_write(lh_mb_link_t *self, lh_u16_t address, const lh_u16_t *values, l
 lh_bool_t
 lh_mb_link_write_one(lh_mb_link_t *self, lh_u16_t address, lh_u16_t value)
 {
-    lh_byte_t pdu[LH_MB_ADU_MAX];
-
     lh_return_ifn(lh_mb_link_get_state(self) == lh_cast_static(lh_u8_t, lh_mb_link_idle),
                   lh_bool_false);
+    lh_byte_t pdu[LH_MB_ADU_MAX];
     lh_return_ifn(lh_mb_link_send(self, pdu,
                                   lh_mb_build_pdu_write_one(
                                       pdu, lh_cast_static(lh_u16_t, sizeof(pdu)), address, value),

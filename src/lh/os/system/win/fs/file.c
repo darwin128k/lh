@@ -172,24 +172,24 @@ lh_os_system_fs_file_open_step(lh_os_system_win_handle_t ntdll,
     attributes.Attributes = LH_OS_SYSTEM_WIN_OBJ_CASE_INSENSITIVE;
     attributes.SecurityDescriptor = lh_null;
     attributes.SecurityQualityOfService = lh_null;
-    lh_os_system_win_io_status_block_t status_block;
 
     lh_os_system_win_handle_t handle = LH_OS_SYSTEM_WIN_INVALID_HANDLE;
-    lh_long_t status;
 
-    status = create(lh_addr_of(handle),
-                    more ? (LH_OS_SYSTEM_WIN_FILE_LIST_DIRECTORY | LH_OS_SYSTEM_WIN_FILE_TRAVERSE |
-                            LH_OS_SYSTEM_WIN_FILE_READ_ATTRIBUTES | LH_OS_SYSTEM_WIN_SYNCHRONIZE)
-                         : (LH_OS_SYSTEM_WIN_GENERIC_READ | LH_OS_SYSTEM_WIN_SYNCHRONIZE),
-                    lh_addr_of(attributes), lh_addr_of(status_block), lh_null, 0UL,
-                    LH_OS_SYSTEM_WIN_FILE_SHARE_READ | LH_OS_SYSTEM_WIN_FILE_SHARE_WRITE |
-                        LH_OS_SYSTEM_WIN_FILE_SHARE_DELETE,
-                    LH_OS_SYSTEM_WIN_NT_FILE_OPEN,
-                    LH_OS_SYSTEM_WIN_NT_FILE_SYNCHRONOUS_IO_NONALERT |
-                        LH_OS_SYSTEM_WIN_NT_FILE_OPEN_REPARSE_POINT |
-                        (more ? LH_OS_SYSTEM_WIN_NT_FILE_DIRECTORY_FILE
-                              : LH_OS_SYSTEM_WIN_NT_FILE_NON_DIRECTORY_FILE),
-                    lh_null, 0UL);
+    lh_os_system_win_io_status_block_t status_block;
+    lh_long_t status =
+        create(lh_addr_of(handle),
+               more ? (LH_OS_SYSTEM_WIN_FILE_LIST_DIRECTORY | LH_OS_SYSTEM_WIN_FILE_TRAVERSE |
+                       LH_OS_SYSTEM_WIN_FILE_READ_ATTRIBUTES | LH_OS_SYSTEM_WIN_SYNCHRONIZE)
+                    : (LH_OS_SYSTEM_WIN_GENERIC_READ | LH_OS_SYSTEM_WIN_SYNCHRONIZE),
+               lh_addr_of(attributes), lh_addr_of(status_block), lh_null, 0UL,
+               LH_OS_SYSTEM_WIN_FILE_SHARE_READ | LH_OS_SYSTEM_WIN_FILE_SHARE_WRITE |
+                   LH_OS_SYSTEM_WIN_FILE_SHARE_DELETE,
+               LH_OS_SYSTEM_WIN_NT_FILE_OPEN,
+               LH_OS_SYSTEM_WIN_NT_FILE_SYNCHRONOUS_IO_NONALERT |
+                   LH_OS_SYSTEM_WIN_NT_FILE_OPEN_REPARSE_POINT |
+                   (more ? LH_OS_SYSTEM_WIN_NT_FILE_DIRECTORY_FILE
+                         : LH_OS_SYSTEM_WIN_NT_FILE_NON_DIRECTORY_FILE),
+               lh_null, 0UL);
     lh_os_str_deinit(lh_addr_of(wide));
     if (status < 0)
     {
@@ -209,7 +209,6 @@ lh_os_system_fs_file_open_read_at(lh_os_system_fs_file_handle_t root, lh_str_cpt
         lh_ptr raw;
         lh_os_system_win_nt_create_file_fn create;
     } procedure;
-    lh_os_system_win_handle_t directory;
     lh_bool_t owned = lh_bool_false;
     lh_str_cptr part = path;
 
@@ -227,7 +226,7 @@ lh_os_system_fs_file_open_read_at(lh_os_system_fs_file_handle_t root, lh_str_cpt
         return LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID;
     }
     /* Borrow root until the first component is open; every later directory is ours. */
-    directory = lh_os_system_fs_file_native(root);
+    lh_os_system_win_handle_t directory = lh_os_system_fs_file_native(root);
     for (;;)
     {
         lh_char_t name[LH_OS_SYSTEM_WIN_FS_NAME_MAX + 1U];
@@ -288,9 +287,8 @@ lh_os_system_fs_file_open_read_at(lh_os_system_fs_file_handle_t root, lh_str_cpt
 lh_os_system_fs_file_handle_t
 lh_os_system_fs_file_open_root(lh_str_cptr path)
 {
-    lh_os_str_t os_path;
-
     lh_assert_runtime_ref(path);
+    lh_os_str_t os_path;
     const lh_bool_t ok = lh_os_system_str_init_by_utf8(lh_addr_of(os_path), path);
     const lh_os_system_win_handle_t native =
         ok ? CreateFileW(lh_os_str_get_data(lh_addr_of(os_path)),
@@ -317,9 +315,8 @@ lh_os_system_fs_file_open_root(lh_str_cptr path)
 lh_bool_t
 lh_os_system_fs_file_remove(lh_str_cptr path)
 {
-    lh_os_str_t os_path;
-
     lh_assert_runtime_ref(path);
+    lh_os_str_t os_path;
     const lh_bool_t ok = lh_os_system_str_init_by_utf8(lh_addr_of(os_path), path);
     const lh_bool_t removed = lh_cast_static(
         lh_bool_t, ok && lh_math_ne(DeleteFileW(lh_os_str_get_data(lh_addr_of(os_path))), 0));

@@ -23,7 +23,6 @@ lh_str_ptr_format_hex(lh_uint_t value, lh_bool_t uppercase, lh_str_ptr str, lh_u
     const lh_usize_t digit_count =
         lh_math_is_zero(value) ? 1U
                                : lh_math_add_one(lh_math_div(lh_bit_scan_reverse_u32(value), 4U));
-    lh_usize_t i;
 
     lh_assert_runtime_ref(str);
 
@@ -35,7 +34,7 @@ lh_str_ptr_format_hex(lh_uint_t value, lh_bool_t uppercase, lh_str_ptr str, lh_u
     /* Extracts least-significant-digit-first (same as lh_char_digit_extract always
      * does), but writes each one directly into its final position from the end
      * backward — nothing is ever written to a scratch buffer or copied a second time. */
-    i = digit_count;
+    lh_usize_t i = digit_count;
     do
     {
         i = lh_math_sub_one(i);
@@ -50,9 +49,7 @@ lh_str_ptr_format_hex_bytes(const lh_byte_ptr bytes, lh_usize_t size, lh_str_ptr
                             lh_usize_t str_size, lh_bool_t uppercase)
 {
     lh_str_cptr alphabet = uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
-    lh_usize_t room;
     lh_usize_t written = 0U;
-    lh_usize_t i;
 
     lh_assert_runtime_ref(str);
 
@@ -61,8 +58,8 @@ lh_str_ptr_format_hex_bytes(const lh_byte_ptr bytes, lh_usize_t size, lh_str_ptr
         return 0U;
     }
     /* The terminator is part of the room: what is written is a C string. */
-    room = lh_math_sub_one(str_size);
-    for (i = 0U; lh_math_lt(i, size); i = lh_math_add_one(i))
+    lh_usize_t room = lh_math_sub_one(str_size);
+    for (lh_usize_t i = 0U; lh_math_lt(i, size); i = lh_math_add_one(i))
     {
         lh_byte_t byte = bytes[i];
 
@@ -84,15 +81,13 @@ lh_str_ptr_format_hex_ullong(lh_ullong_t value, lh_bool_t uppercase, lh_str_ptr 
 {
     const lh_uint_t high = lh_cast_static(lh_uint_t, value >> 32);
     const lh_uint_t low = lh_cast_static(lh_uint_t, value);
-    lh_char_t half[8];
-    lh_usize_t size;
-    lh_usize_t low_size;
 
     lh_return_if(lh_math_is_zero(high), lh_str_ptr_format_hex(low, uppercase, str, str_size));
-    size = lh_str_ptr_format_hex(high, uppercase, str, str_size);
+    lh_usize_t size = lh_str_ptr_format_hex(high, uppercase, str, str_size);
     lh_return_if(lh_math_is_zero(size) || lh_math_gt(lh_math_add(size, 8U), str_size), 0U);
     /* The low half keeps its leading zeros: eight digits, always. */
-    low_size = lh_str_ptr_format_hex(low, uppercase, half, sizeof(half));
+    lh_char_t half[8];
+    lh_usize_t low_size = lh_str_ptr_format_hex(low, uppercase, half, sizeof(half));
     lh_memory_std_set(str + size, lh_char_map_digit_0, 8U - low_size);
     lh_memory_std_copy(str + size + 8U - low_size, half, low_size);
     return lh_math_add(size, 8U);

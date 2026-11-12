@@ -68,13 +68,12 @@ lh_void
 lh_ui_gradient_init_stops(lh_ui_gradient_t *self, const lh_ui_color_t *colors, lh_byte_cptr fracs,
                           lh_ui_gradient_stop_count_t num_stops)
 {
-    lh_ui_gradient_stop_count_t i;
     lh_assert_runtime_ref(colors);
     lh_assert_runtime_ifn(num_stops >= 1U, lh_runtime_error_code_invalid_argument);
     lh_assert_runtime_ifn(num_stops <= LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS,
                           lh_runtime_error_code_invalid_argument);
     lh_ui_gradient_set_stops_count(self, num_stops);
-    for (i = 0; i < num_stops; ++i)
+    for (lh_ui_gradient_stop_count_t i = 0; i < num_stops; ++i)
     {
         lh_byte_t frac;
         if (lh_null_eq(fracs))
@@ -166,9 +165,9 @@ lh_ui_gradient_frac_at(const lh_ui_gradient_t *self, const lh_ui_rect_t *rect, l
     const lh_s64_t dy =
         2 * lh_cast_static(lh_s64_t, y) + 1 -
         (2 * lh_cast_static(lh_s64_t, lh_ui_scalar_floor_s32(lh_ui_point_get_y(origin))) + h);
-    lh_s64_t frac;
 
     lh_return_if(w <= 0 || h <= 0, 0);
+    lh_s64_t frac;
     if (lh_ui_gradient_get_shape(self) == lh_ui_gradient_shape_radial)
     {
         /* On an ellipse the shape of the box, through its corners: the middle is 0

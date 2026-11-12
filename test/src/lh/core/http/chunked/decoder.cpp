@@ -49,8 +49,8 @@ TEST(http_chunked_decoder_feed, resumes_when_output_is_full)
     lh_http_chunked_decoder_t decoder;
     lh_http_chunked_decoder_init(&decoder, line, sizeof(line), 10U, 64U);
     const lh_str_view_t wire = lh_str_view_lit("4\r\ndata\r\n0\r\n\r\n");
-    char output[4];
     lh_usize_t consumed = 0U, written = 0U;
+    char output[4];
     EXPECT_EQ(lh_http_chunked_decoder_feed(&decoder, wire, output, 2U, &consumed, &written),
               lh_http_parse_incomplete);
     EXPECT_EQ(consumed, 5U);
@@ -67,10 +67,10 @@ TEST(http_chunked_decoder_feed, resumes_when_output_is_full)
 TEST(http_chunked_decoder_feed, enforces_body_metadata_and_line_limits)
 {
     char line[4];
-    char output[8];
     lh_http_chunked_decoder_t decoder;
-    lh_usize_t consumed = 0U, written = 0U;
     lh_http_chunked_decoder_init(&decoder, line, sizeof(line), 1U, 64U);
+    lh_usize_t consumed = 0U, written = 0U;
+    char output[8];
     EXPECT_EQ(lh_http_chunked_decoder_feed(&decoder, lh_str_view_lit("2\r\nab\r\n0\r\n\r\n"),
                                            output, sizeof(output), &consumed, &written),
               lh_http_parse_error);

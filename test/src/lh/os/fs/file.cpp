@@ -254,11 +254,9 @@ TEST(os_fs_file, opens_a_file_relative_to_a_borrowed_root)
 TEST(os_fs_file, append_adds_at_the_end_and_remove_deletes)
 {
     const lh_char_t *name = "lh-test-append.log";
-    lh_os_fs_file_t file;
     lh_char_t text[8] = {};
-    lh_fs_path_t path;
-    lh_str_view_t view;
 
+    lh_os_fs_file_t file;
     lh_os_fs_file_init(&file);
     ASSERT_TRUE(lh_os_fs_file_open_cstr(&file, name, lh_fs_file_mode_write));
     lh_os_fs_file_close(&file);
@@ -274,7 +272,9 @@ TEST(os_fs_file, append_adds_at_the_end_and_remove_deletes)
     lh_os_fs_file_deinit(&file);
     EXPECT_STREQ(text, "abcd");
 
+    lh_fs_path_t path;
     lh_fs_path_init(&path);
+    lh_str_view_t view;
     lh_str_view_init(&view, name);
     lh_fs_path_set(&path, view, lh_fs_path_style_posix);
     EXPECT_TRUE(lh_os_fs_file_remove(&path));
@@ -293,8 +293,8 @@ TEST(os_fs_file, read_all_by_path_appends_the_whole_file)
     std::fclose(raw);
 
     lh_fs_path_t path;
-    lh_str_view_t view;
     lh_fs_path_init(&path);
+    lh_str_view_t view;
     lh_str_view_init(&view, name);
     lh_fs_path_set(&path, view, lh_fs_path_style_posix);
 

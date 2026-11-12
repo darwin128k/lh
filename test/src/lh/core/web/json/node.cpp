@@ -31,8 +31,8 @@ make_number(const char *digits)
 void
 read(lh_web_json_node_t *root, lh_str_view_t json)
 {
-    lh_web_json_reader_t reader;
     lh_web_json_node_init(root);
+    lh_web_json_reader_t reader;
     lh_web_json_reader_init(&reader, json);
     ASSERT_TRUE(lh_web_json_reader_read(&reader, root));
 }
@@ -162,10 +162,10 @@ TEST(json_node, an_empty_string_is_a_string)
 std::string
 compact(const lh_web_json_node_t *node)
 {
-    lh_web_json_writer_t writer;
     lh_str_t out;
 
     lh_str_init(&out);
+    lh_web_json_writer_t writer;
     lh_web_json_writer_init(&writer, &out, 0U);
     lh_web_json_writer_write(&writer, node);
     std::string s(lh_str_get_data(&out) ? lh_str_get_data(&out) : "", lh_str_get_size(&out));

@@ -80,6 +80,7 @@ TEST(runtime_logger, the_runner_installed_its_logger)
 TEST(runtime_logger, an_installed_sink_gets_the_records)
 {
     keep_runtime_logger keep;
+    /* Declared after `keep`: the runtime logger points at `c` until `keep` puts it back. */
     capture c;
 
     lh_logger_init(lh_runtime_logger_get_mut(), lh_logger_level_flags_all, capture_emit, &c);
@@ -113,6 +114,7 @@ info_cb_on_new_thread(void)
 TEST(runtime_logger, is_one_slot_for_every_thread)
 {
     keep_runtime_logger keep;
+    /* Declared after `keep`: the runtime logger points at `c` until `keep` puts it back. */
     capture c;
 
     lh_logger_init(lh_runtime_logger_get_mut(), lh_logger_level_flags_all, capture_emit, &c);

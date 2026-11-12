@@ -333,8 +333,6 @@ lh_bool_t
 lh_ui_web_player_draw(lh_ui_web_player_t *self, lh_ui_canvas_web_glyphs_t *glyphs,
                       const lh_str_ptr *bytes, lh_usize_t *len)
 {
-    lh_ui_canvas_t canvas;
-
     lh_ui_canvas_web_t *web = lh_ui_web_player_get_web_mut(self);
     if (!lh_ui_canvas_web_open_mem(
             web, lh_ui_web_player_get_json(self), lh_ui_web_player_get_json_cap(self),
@@ -343,6 +341,7 @@ lh_ui_web_player_draw(lh_ui_web_player_t *self, lh_ui_canvas_web_glyphs_t *glyph
         return lh_bool_false;
     }
     lh_ui_canvas_web_set_glyphs_v(web, glyphs);
+    lh_ui_canvas_t canvas;
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_web), web);
     lh_ui_view_set_canvas(lh_ui_web_player_get_view(self), lh_addr_of(canvas));
     lh_ui_view_draw(lh_ui_web_player_get_view(self), lh_null);
@@ -430,12 +429,12 @@ lh_bool_t
 lh_ui_web_player_pointer(lh_ui_web_player_t *self, lh_os_input_kind_t kind, lh_sint_t x,
                          lh_sint_t y)
 {
-    lh_os_input_event_t event;
     const lh_bool_t up = lh_type_cast(lh_bool_t, kind == lh_os_input_kind_pointer_up);
     const lh_os_input_button_t button = kind == lh_os_input_kind_pointer_move
                                             ? lh_os_input_button_none
                                             : lh_os_input_button_primary;
 
+    lh_os_input_event_t event;
     lh_os_input_event_init_pointer(lh_addr_of(event), kind, lh_os_input_device_kind_mouse, 0U,
                                    button, lh_os_input_coord_from_int(x),
                                    lh_os_input_coord_from_int(y), lh_os_tick_ms());
@@ -460,13 +459,12 @@ lh_ui_web_player_wheel(lh_ui_web_player_t *self, lh_sint_t x, lh_sint_t y, lh_si
 lh_bool_t
 lh_ui_web_player_key(lh_ui_web_player_t *self, lh_sint_t k, lh_bool_t pressed)
 {
-    lh_os_input_event_t event;
-
     if (k < lh_cast_static(lh_sint_t, lh_os_key_other) ||
         k > lh_cast_static(lh_sint_t, lh_os_key_alt))
     {
         k = lh_cast_static(lh_sint_t, lh_os_key_other);
     }
+    lh_os_input_event_t event;
     lh_os_input_event_init_key(lh_addr_of(event), lh_type_cast(lh_os_key_t, k), pressed,
                                lh_bool_false, 0U, lh_os_tick_ms());
     return lh_ui_web_player_input(self, lh_addr_of(event));
@@ -475,9 +473,8 @@ lh_ui_web_player_key(lh_ui_web_player_t *self, lh_sint_t k, lh_bool_t pressed)
 lh_bool_t
 lh_ui_web_player_text(lh_ui_web_player_t *self, lh_u32_t code)
 {
-    lh_os_input_event_t event;
-
     lh_return_if(code == 0U, lh_bool_false);
+    lh_os_input_event_t event;
     lh_os_input_event_init_text(lh_addr_of(event), code, lh_os_tick_ms());
     return lh_ui_web_player_input(self, lh_addr_of(event));
 }
@@ -527,7 +524,6 @@ lh_void
 lh_ui_web_player_tick(lh_ptr ctx)
 {
     lh_ui_web_player_t *self = lh_ptr_rcast(lh_ui_web_player_t, ctx);
-    lh_ui_rect_t damage;
 
     /* The controller's timers before the app's tick, as a window does: a long
        press that came due is in the view by the time the app looks. */
@@ -541,6 +537,7 @@ lh_ui_web_player_tick(lh_ptr ctx)
         lh_ui_web_host_hooks_get_tick_fn(lh_ui_web_player_get_routed(self))(
             lh_ui_web_host_hooks_get_ctx(lh_ui_web_player_get_routed(self)));
     }
+    lh_ui_rect_t damage;
     if (lh_ui_view_take_damage(lh_ui_web_player_get_view(self), lh_addr_of(damage)))
     {
         lh_ui_web_app_bump(lh_ui_web_player_get_app(self));

@@ -52,10 +52,10 @@ value_of(const lh_str_template_registry_t *registry, const char *name)
 
 TEST(lh_str_template_registry, names_are_unique_and_valid)
 {
-    lh_str_template_registry_t registry;
     int a = 0;
     int b = 0;
 
+    lh_str_template_registry_t registry;
     lh_str_template_registry_init(&registry);
     EXPECT_TRUE(add(&registry, &a, "maps", "/srv/maps"));
     EXPECT_FALSE(add(&registry, &b, "maps", "/elsewhere"));
@@ -69,10 +69,10 @@ TEST(lh_str_template_registry, names_are_unique_and_valid)
 
 TEST(lh_str_template_registry, only_the_owner_removes_by_name)
 {
-    lh_str_template_registry_t registry;
     int a = 0;
     int b = 0;
 
+    lh_str_template_registry_t registry;
     lh_str_template_registry_init(&registry);
     EXPECT_TRUE(add(&registry, &a, "maps", "/srv/maps"));
     EXPECT_FALSE(remove(&registry, &b, "maps"));
@@ -84,10 +84,10 @@ TEST(lh_str_template_registry, only_the_owner_removes_by_name)
 
 TEST(lh_str_template_registry, remove_owner_takes_all_of_theirs)
 {
-    lh_str_template_registry_t registry;
     int a = 0;
     int b = 0;
 
+    lh_str_template_registry_t registry;
     lh_str_template_registry_init(&registry);
     EXPECT_TRUE(add(&registry, &a, "one", "1"));
     EXPECT_TRUE(add(&registry, &b, "two", "2"));
@@ -101,12 +101,12 @@ TEST(lh_str_template_registry, remove_owner_takes_all_of_theirs)
 
 TEST(lh_str_template_registry, feeds_an_expansion)
 {
-    lh_str_template_registry_t registry;
     int a = 0;
-    lh_str_t out;
     const lh_str_view_t pattern = view("{root}/{sub}");
 
+    lh_str_template_registry_t registry;
     lh_str_template_registry_init(&registry);
+    lh_str_t out;
     lh_str_init(&out);
     EXPECT_TRUE(add(&registry, &a, "root", "/srv"));
     EXPECT_TRUE(add(&registry, &a, "sub", "data"));

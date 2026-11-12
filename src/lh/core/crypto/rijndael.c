@@ -112,9 +112,9 @@ lh_void
 lh_crypto_rijndael_shift_row(lh_byte_ptr state, lh_usize_t nb, lh_usize_t row, lh_usize_t shift,
                              lh_bool_t inverse)
 {
-    lh_byte_t tmp[8];
     const lh_usize_t n = nb;
 
+    lh_byte_t tmp[8];
     for (lh_usize_t i = 0U; i < n; ++i)
     {
         tmp[i] = state[row + 4U * i];
@@ -312,10 +312,9 @@ lh_crypto_rijndael_aesni_encrypt(const lh_crypto_rijndael_t *self, lh_byte_cptr 
 {
     const lh_usize_t nr = lh_crypto_rijndael_get_round_count(self);
     __m128i state = _mm_loadu_si128(lh_ptr_rcast(const __m128i, in));
-    lh_usize_t round;
 
     state = _mm_xor_si128(state, lh_crypto_rijndael_aesni_round_key(self, 0U));
-    for (round = 1; round < nr; ++round)
+    for (lh_usize_t round = 1; round < nr; ++round)
     {
         state = _mm_aesenc_si128(state, lh_crypto_rijndael_aesni_round_key(self, round));
     }
@@ -360,10 +359,9 @@ lh_crypto_rijndael_aesni_decrypt(const lh_crypto_rijndael_t *self, lh_byte_cptr 
 {
     const lh_usize_t nr = lh_crypto_rijndael_get_round_count(self);
     __m128i state = _mm_loadu_si128(lh_ptr_rcast(const __m128i, in));
-    lh_usize_t round;
 
     state = _mm_xor_si128(state, lh_crypto_rijndael_aesni_round_key(self, nr));
-    for (round = nr - 1U; round > 0U; --round)
+    for (lh_usize_t round = nr - 1U; round > 0U; --round)
     {
         state = _mm_aesdec_si128(state, lh_crypto_rijndael_aesni_dec_round_key(self, round));
     }

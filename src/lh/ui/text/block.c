@@ -22,10 +22,8 @@ lh_void
 lh_ui_text_block_measure_layout(lh_ui_text_block_t *self, const lh_ui_font_t *font,
                                 const lh_char_t *text, lh_ui_scalar_t width)
 {
-    lh_ui_text_line_t laid;
-
     lh_ui_text_block_init(self);
-    for (; lh_ui_text_line_measure(lh_addr_of(laid), font, text, width);
+    for (lh_ui_text_line_t laid; lh_ui_text_line_measure(lh_addr_of(laid), font, text, width);
          text = lh_ui_text_line_get_next(lh_addr_of(laid)))
     {
         lh_ui_text_block_set_width(self, lh_math_max(lh_ui_text_block_get_width(self),

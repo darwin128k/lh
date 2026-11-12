@@ -13,8 +13,8 @@
 
 TEST(web_ws, text_roundtrip_unmasked)
 {
-    unsigned char buf[64];
     const char *hi = "hi";
+    unsigned char buf[64];
     const lh_usize_t n =
         lh_ui_web_ws_write(buf, sizeof(buf), LH_UI_WEB_WS_TEXT, lh_bool_true, hi, 2u);
     unsigned opcode = 99;
@@ -43,13 +43,13 @@ TEST(web_ws, masked_client_frame_unmasks)
     const unsigned char *payload = lh_null;
     lh_usize_t plen = 0;
     const unsigned char *mask = lh_null;
-    unsigned char copy[3];
 
     ASSERT_EQ(lh_ui_web_ws_read(frame, sizeof(frame), lh_addr_of(opcode), lh_addr_of(fin),
                                 lh_addr_of(payload), lh_addr_of(plen), lh_addr_of(mask)),
               sizeof(frame));
     ASSERT_EQ(plen, 3u);
     ASSERT_NE(mask, static_cast<const unsigned char *>(lh_null));
+    unsigned char copy[3];
     std::memcpy(copy, payload, 3);
     lh_ui_web_ws_unmask(copy, 3, mask);
     EXPECT_EQ(copy[0], 'a');
@@ -86,10 +86,10 @@ TEST(web_ws, length_127_rejects_over_max)
 
 TEST(web_ws, ping_pong_close_opcodes)
 {
-    unsigned char buf[16];
     unsigned opcode = 0;
     const char *pay = "xy";
 
+    unsigned char buf[16];
     ASSERT_GT(lh_ui_web_ws_write(buf, sizeof(buf), LH_UI_WEB_WS_PING, lh_bool_true, pay, 2u), 0u);
     ASSERT_EQ(lh_ui_web_ws_read(buf, 16u, lh_addr_of(opcode), lh_null, lh_null, lh_null, lh_null) > 0u,
               true);
@@ -134,12 +134,12 @@ TEST(web_ws, bad_opcode_is_error)
 
 TEST(web_ws, continuation_second_frame_has_cont_opcode)
 {
-    unsigned char a[16];
-    unsigned char b[16];
     unsigned opcode = 0;
     lh_bool_t fin = lh_bool_true;
 
+    unsigned char a[16];
     ASSERT_GT(lh_ui_web_ws_write(a, sizeof(a), LH_UI_WEB_WS_TEXT, lh_bool_false, "ab", 2u), 0u);
+    unsigned char b[16];
     ASSERT_GT(lh_ui_web_ws_write(b, sizeof(b), LH_UI_WEB_WS_CONT, lh_bool_true, "cd", 2u), 0u);
     ASSERT_EQ(lh_ui_web_ws_read(a, sizeof(a), lh_addr_of(opcode), lh_addr_of(fin), lh_null, lh_null,
                                 lh_null) > 0u,

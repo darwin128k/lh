@@ -7,8 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Every variable is declared where it is used (sources and tests, about 1600
+  declarations): moved down to the statement that first uses it, joined with its first
+  assignment, or put into its `for` header; unused locals are gone. A few functions read
+  better for it: `lh_str_ptr_parse_sllong` parses once and derives the value,
+  `lh_str_format_float` scopes each tier's numerator and denominator to its branch, and
+  `lh_fs_path_get_segment` ends with `lh_str_view_init_empty(out)`. Behaviour is
+  unchanged.
+
 ### Fixed
 
+- `lh_str_scanf_spec_clear` wrote the whole struct before anything checked `self`; it
+  now resets every field through its level-1 setter, so a null `self` dies in the
+  first one before any write. `lh_str_ptr_scanf_next` calls it instead of its own copy
+  of the wipe. The format benchmarks are unchanged (`BM_str_format_text_*`, Release LTO:
+  15.7 / 72 / 109 ns before and after). `spec.c` / `spec.h` are ordered by level, and
+  the spec has its own test (`test/src/lh/core/str/scanf/spec.cpp`); the scanf tests
+  read the spec through its getters.
 - A wake signal or socket pair could fail to open on Windows under load: the loopback
   `connect` waits for a dropped SYN to be resent after 1 s, and every caller passed
   `timeout_ms` 1000 (measured ~1090 ms, `WSAETIMEDOUT`; 12–19 of 48 runs failed with

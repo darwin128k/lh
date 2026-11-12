@@ -129,12 +129,18 @@ lh_str_scanf_spec_set_literal_size(lh_str_scanf_spec_t *self, lh_usize_t literal
     self->literal_size = literal_size;
 }
 
-lh_void
-lh_str_scanf_spec_clear(lh_str_scanf_spec_t *self, const lh_str_ptr fmt)
+lh_str_scanf_spec_length_t
+lh_str_scanf_spec_get_length(const lh_str_scanf_spec_t *self)
 {
-    /* kind_invalid is 0; one wipe instead of nine setters per scanf_next. */
-    lh_ptr_deref(self) = (lh_str_scanf_spec_t){0};
-    lh_str_scanf_spec_set_literal(self, fmt);
+    lh_assert_runtime_ref(self);
+    return self->length;
+}
+
+lh_void
+lh_str_scanf_spec_set_length(lh_str_scanf_spec_t *self, lh_str_scanf_spec_length_t length)
+{
+    lh_assert_runtime_ref(self);
+    self->length = length;
 }
 
 lh_usize_t
@@ -192,16 +198,18 @@ lh_str_scanf_spec_set_conversion(lh_str_scanf_spec_t *self, lh_char_t conversion
     }
 }
 
-lh_str_scanf_spec_length_t
-lh_str_scanf_spec_get_length(const lh_str_scanf_spec_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->length;
-}
-
 lh_void
-lh_str_scanf_spec_set_length(lh_str_scanf_spec_t *self, lh_str_scanf_spec_length_t length)
+lh_str_scanf_spec_clear(lh_str_scanf_spec_t *self, const lh_str_ptr fmt)
 {
-    lh_assert_runtime_ref(self);
-    self->length = length;
+    /* Every field through its setter: the first one checks self before any write. */
+    lh_str_scanf_spec_set_kind(self, lh_str_scanf_spec_kind_invalid);
+    lh_str_scanf_spec_set_zero_pad(self, lh_bool_false);
+    lh_str_scanf_spec_set_left_justify(self, lh_bool_false);
+    lh_str_scanf_spec_set_uppercase(self, lh_bool_false);
+    lh_str_scanf_spec_set_length(self, lh_str_scanf_spec_length_none);
+    lh_str_scanf_spec_set_width(self, 0U);
+    lh_str_scanf_spec_set_have_precision(self, lh_bool_false);
+    lh_str_scanf_spec_set_precision(self, 0U);
+    lh_str_scanf_spec_set_literal(self, fmt);
+    lh_str_scanf_spec_set_literal_size(self, 0U);
 }

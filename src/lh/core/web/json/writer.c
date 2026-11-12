@@ -89,14 +89,12 @@ lh_web_json_writer_put_view(lh_web_json_writer_t *self, lh_str_view_t text)
 lh_void
 lh_web_json_writer_put_newline(lh_web_json_writer_t *self)
 {
-    lh_usize_t spaces;
-
     if (!lh_web_json_writer_is_pretty(self))
     {
         return;
     }
     lh_web_json_writer_put_char(self, lh_char_map_lf);
-    for (spaces =
+    for (lh_usize_t spaces =
              lh_math_mul(lh_web_json_writer_get_indent(self), lh_web_json_writer_get_depth(self));
          !lh_math_is_zero(spaces); spaces = lh_math_sub_one(spaces))
     {
@@ -152,10 +150,9 @@ lh_web_json_writer_put_string(lh_web_json_writer_t *self, lh_str_view_t text)
     const lh_usize_t size = lh_str_view_get_size(lh_addr_of(text));
     lh_str_t *out = lh_web_json_writer_get_out_mut(self);
     lh_usize_t start = 0U;
-    lh_usize_t i;
 
     lh_web_json_writer_put_char(self, lh_char_map_dquot);
-    for (i = 0U; lh_math_lt(i, size); i = lh_math_add_one(i))
+    for (lh_usize_t i = 0U; lh_math_lt(i, size); i = lh_math_add_one(i))
     {
         if (!lh_web_json_writer_needs_escape(chars[i]))
         {
@@ -182,7 +179,6 @@ lh_void
 lh_web_json_writer_write_object(lh_web_json_writer_t *self, const lh_web_json_node_t *node)
 {
     const lh_web_json_node_t *child = lh_web_json_node_get_first(node);
-    lh_str_view_t key;
 
     lh_web_json_writer_put_char(self, lh_char_map_lbrace);
     if (lh_null_eq(child))
@@ -191,6 +187,7 @@ lh_web_json_writer_write_object(lh_web_json_writer_t *self, const lh_web_json_no
         return;
     }
     lh_web_json_writer_set_depth(self, lh_math_add_one(lh_web_json_writer_get_depth(self)));
+    lh_str_view_t key;
     for (; lh_null_ne(child); child = lh_web_json_node_get_next(node, child))
     {
         lh_web_json_writer_put_newline(self);

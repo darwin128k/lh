@@ -112,10 +112,10 @@ lh_ui_style_mix_paint(lh_ui_paint_t *out, const lh_ui_paint_t *from, const lh_ui
 {
     const lh_ui_color_t *a = lh_ui_paint_get_color_v(from);
     const lh_ui_color_t *b = lh_ui_paint_get_color_v(to);
-    lh_ui_color_t mixed;
 
     lh_ui_paint_init_copy(out, to);
     lh_return_if(lh_null_eq(a) || lh_null_eq(b) || weight >= 255U);
+    lh_ui_color_t mixed;
     lh_ui_style_mix_color(a, b, weight, lh_addr_of(mixed));
     lh_ui_paint_init_color(out, lh_addr_of(mixed));
 }
@@ -162,7 +162,6 @@ lh_void
 lh_ui_style_init_blend(lh_ui_style_t *self, const lh_ui_style_t *from, const lh_ui_style_t *to,
                        lh_u32_t weight)
 {
-
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(from);
     lh_assert_runtime_ref(to);

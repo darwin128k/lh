@@ -28,12 +28,12 @@ lh_ui_shadow_shape_init(lh_ui_shadow_shape_t *self, const lh_ui_shadow_t *shadow
     lh_ui_shadow_shape_set_box_x1(self, lh_ui_canvas_round_right(rect));
     lh_ui_shadow_shape_set_box_y0(self, lh_ui_canvas_round_top(rect));
     lh_ui_shadow_shape_set_box_y1(self, lh_ui_canvas_round_bottom(rect));
-    lh_s32_t lo_x;
-    lo_x = lh_cast_static(lh_s32_t, lh_ui_radius_to_fixed(lh_ui_point_get_x(origin) +
-                                                          lh_ui_shadow_get_offset_x(shadow)));
-    lh_s32_t lo_y;
-    lo_y = lh_cast_static(lh_s32_t, lh_ui_radius_to_fixed(lh_ui_point_get_y(origin) +
-                                                          lh_ui_shadow_get_offset_y(shadow)));
+    lh_s32_t lo_x =
+        lh_cast_static(lh_s32_t, lh_ui_radius_to_fixed(lh_ui_point_get_x(origin) +
+                                                       lh_ui_shadow_get_offset_x(shadow)));
+    lh_s32_t lo_y =
+        lh_cast_static(lh_s32_t, lh_ui_radius_to_fixed(lh_ui_point_get_y(origin) +
+                                                       lh_ui_shadow_get_offset_y(shadow)));
     lh_s32_t half_x =
         lh_cast_static(lh_s32_t, lh_ui_radius_to_fixed(lh_ui_size_get_width(size))) / 2;
     lh_s32_t half_y =
@@ -81,14 +81,12 @@ lh_ui_shadow_shape_row(const lh_ui_shadow_shape_t *self, lh_s32_t y)
 lh_byte_t
 lh_ui_shadow_shape_fade(const lh_ui_shadow_shape_t *self, lh_s32_t distance)
 {
-    lh_s64_t fade;
-
     lh_return_if(distance >= lh_ui_shadow_shape_get_spread(self), 0);
     lh_return_if(distance <= lh_math_neg(lh_ui_shadow_shape_get_spread(self)),
                  lh_cast_static(lh_byte_t, lh_ui_shadow_shape_get_peak(self)));
-    fade = (lh_ui_shadow_shape_get_start(self) -
-            lh_cast_static(lh_s64_t, distance) * lh_ui_shadow_shape_get_step(self)) >>
-           16;
+    lh_s64_t fade = (lh_ui_shadow_shape_get_start(self) -
+                     lh_cast_static(lh_s64_t, distance) * lh_ui_shadow_shape_get_step(self)) >>
+                    16;
     return (lh_byte_t)(fade <= 0 ? 0
                                  : (fade > lh_ui_shadow_shape_get_peak(self)
                                         ? lh_ui_shadow_shape_get_peak(self)

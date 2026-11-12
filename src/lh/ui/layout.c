@@ -75,7 +75,6 @@ lh_ui_scalar_t
 lh_ui_layout_wants(const lh_ui_layout_t *self, lh_ui_entity_t *child)
 {
     const lh_ui_place_t *place = lh_ui_entity_get_place(child);
-    lh_ui_rect_t content;
 
     if (lh_ui_place_get_size_mode(place) == lh_ui_place_size_fill)
     {
@@ -85,6 +84,7 @@ lh_ui_layout_wants(const lh_ui_layout_t *self, lh_ui_entity_t *child)
     {
         return lh_ui_place_clamp(place, lh_ui_layout_get_axis(self), lh_ui_place_get_size(place));
     }
+    lh_ui_rect_t content;
     lh_ui_entity_get_content_bounds(child, lh_addr_of(content));
     return lh_ui_place_clamp(place, lh_ui_layout_get_axis(self),
                              lh_ui_size_get_along(lh_ui_rect_get_size(lh_addr_of(content)),
@@ -131,9 +131,9 @@ lh_ui_layout_across(const lh_ui_layout_t *self, lh_ui_entity_t *child, const lh_
 {
     const lh_ui_place_t *place = lh_ui_entity_get_place(child);
     const lh_ui_place_align_t align = lh_ui_place_get_align(place);
-    lh_ui_layout_cross_t fit;
     lh_ui_scalar_t at = lh_ui_scalar(0);
 
+    lh_ui_layout_cross_t fit;
     lh_ui_layout_cross_fit(self, child, content, lh_addr_of(fit));
     if (align == lh_ui_place_align_fill)
     {
@@ -160,7 +160,6 @@ lh_ui_layout_child_line(const lh_ui_layout_t *self, lh_ui_entity_t *child,
                         const lh_ui_rect_t *content)
 {
     const lh_ui_scalar_t at = lh_ui_entity_get_baseline(child);
-    lh_ui_layout_cross_t fit;
 
     /* A **vertical** flow has no cross row to line up and never asks. */
     if (lh_ui_axis_get_cross(lh_ui_layout_get_axis(self)) != lh_ui_axis_vertical ||
@@ -169,6 +168,7 @@ lh_ui_layout_child_line(const lh_ui_layout_t *self, lh_ui_entity_t *child,
     {
         return lh_ui_scalar(-1);
     }
+    lh_ui_layout_cross_t fit;
     lh_ui_layout_cross_fit(self, child, content, lh_addr_of(fit));
     return lh_ui_layout_cross_get_before(lh_addr_of(fit)) +
            lh_ui_scalar_centre(lh_ui_layout_cross_get_room(lh_addr_of(fit)),
@@ -215,9 +215,9 @@ lh_ui_layout_run(const lh_ui_layout_t *self, lh_ui_entity_t *parent, lh_ui_entit
                  lh_ui_entity_t *end, const lh_ui_rect_t *content_box)
 {
     const lh_ui_rect_t content = lh_ptr_deref(content_box);
-    lh_ui_layout_run_t run;
 
     lh_assert_runtime_ref(parent);
+    lh_ui_layout_run_t run;
     lh_ui_layout_run_init(self, lh_addr_of(content), lh_addr_of(run));
     lh_ui_layout_run_measure(self, lh_addr_of(run), parent, first, end, lh_addr_of(content));
     lh_ui_layout_run_justify(self, lh_addr_of(run));

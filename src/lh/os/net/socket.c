@@ -75,10 +75,8 @@ lh_bool_t
 lh_os_net_socket_connect_within(lh_os_net_socket_t *self, const lh_net_ip4_socket_addr_t *addr,
                                 lh_u32_t timeout_ms)
 {
-    lh_ssize_t connected;
-
     lh_return_ifn(lh_os_net_socket_set_blocking(self, lh_bool_false), lh_bool_false);
-    connected = lh_os_net_socket_connect_start(self, addr);
+    lh_ssize_t connected = lh_os_net_socket_connect_start(self, addr);
     if (connected == LH_OS_RESULT_PENDING)
     {
         connected = lh_os_net_socket_connect_wait(self, timeout_ms);
@@ -142,11 +140,9 @@ lh_usize_t
 lh_os_net_socket_get_handles(lh_os_system_net_socket_handle_t *out,
                              lh_os_net_socket_t *const *sockets, lh_usize_t count)
 {
-    lh_usize_t i;
-
     lh_assert_runtime_if(count > LH_OS_SYSTEM_NET_SOCKET_WAIT_MAX,
                          lh_runtime_error_code_invalid_argument);
-    for (i = 0; i < count; ++i)
+    for (lh_usize_t i = 0; i < count; ++i)
     {
         out[i] = lh_os_net_socket_get_handle(sockets[i]);
     }

@@ -45,8 +45,8 @@ TEST(runtime_check_handler_init_and_assign, copy_both_fields)
 {
     int context = 0;
     lh_runtime_check_handler_t a;
-    lh_runtime_check_handler_t b;
     lh_runtime_check_handler_init(&a, count_fail, &context);
+    lh_runtime_check_handler_t b;
     lh_runtime_check_handler_assign(&b, &a);
     EXPECT_EQ(lh_runtime_check_handler_get_fail_cb(&b), count_fail);
     EXPECT_EQ(lh_runtime_check_handler_get_context(&b), &context);

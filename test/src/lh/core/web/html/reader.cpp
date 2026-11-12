@@ -30,13 +30,13 @@ struct parsed
 parsed
 read(const std::string &text)
 {
-    lh_web_html_reader_t reader;
-    lh_web_xml_node_t doc;
-    lh_str_view_t view;
     parsed result{};
 
+    lh_str_view_t view;
     lh_str_view_init_by_size(&view, text.data(), text.size());
+    lh_web_xml_node_t doc;
     lh_web_xml_node_init(&doc);
+    lh_web_html_reader_t reader;
     lh_web_html_reader_init(&reader, view);
     result.ok = lh_web_html_reader_read(&reader, &doc);
     result.error = lh_web_html_reader_get_error(&reader);
@@ -69,10 +69,10 @@ error_of(const std::string &text)
 
 TEST(web_html_reader, a_page_reads_into_an_xml_tree)
 {
-    lh_web_html_reader_t reader;
     lh_web_xml_node_t doc;
 
     lh_web_xml_node_init(&doc);
+    lh_web_html_reader_t reader;
     lh_web_html_reader_init(&reader,
                             lh_str_view_lit("<!DOCTYPE html><p class=x hidden>a<br>b</P>"));
     ASSERT_TRUE(lh_web_html_reader_read(&reader, &doc));

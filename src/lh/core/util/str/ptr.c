@@ -86,16 +86,13 @@ lh_str_ptr_chars_ascending_range(const lh_str_ptr chars, lh_usize_t chars_size, 
                                  lh_byte_t *hi)
 {
     const lh_usize_t w = sizeof(lh_usize_t);
-    lh_byte_cptr p;
-    lh_byte_t first;
-    lh_usize_t i;
 
     if (chars_size < 2U)
     {
         return lh_bool_false;
     }
 
-    first = lh_cast_static(lh_byte_t, chars[0]);
+    lh_byte_t first = lh_cast_static(lh_byte_t, chars[0]);
     if (lh_cast_static(lh_usize_t, first) + chars_size - 1U > 255U ||
         lh_cast_static(lh_byte_t, chars[chars_size - 1U]) !=
             lh_cast_static(lh_byte_t, lh_cast_static(lh_usize_t, first) + chars_size - 1U))
@@ -103,8 +100,8 @@ lh_str_ptr_chars_ascending_range(const lh_str_ptr chars, lh_usize_t chars_size, 
         return lh_bool_false;
     }
 
-    p = lh_ptr_cast(const lh_byte_t, chars);
-    i = 0U;
+    lh_byte_cptr p = lh_ptr_cast(const lh_byte_t, chars);
+    lh_usize_t i = 0U;
     while (i + w <= chars_size)
     {
         /* Ascending from first + i, one per lane. */
@@ -532,10 +529,6 @@ const lh_str_ptr
 lh_str_ptr_find_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
                          lh_usize_t chars_size)
 {
-    lh_byte_t set[LH_STR_PTR_CHAR_SET_BYTES];
-    lh_byte_t lo;
-    lh_byte_t hi;
-
     lh_assert_runtime_ref(str);
     lh_assert_runtime_ref(chars);
     lh_return_ifn(chars_size, lh_null);
@@ -562,11 +555,14 @@ lh_str_ptr_find_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str
         return lh_null;
     }
 
+    lh_byte_t lo;
+    lh_byte_t hi;
     if (lh_str_ptr_chars_ascending_range(chars, chars_size, lh_addr_of(lo), lh_addr_of(hi)))
     {
         return lh_str_ptr_find_byte_in_range(lh_ptr_cast(const lh_byte_t, str), str_size, lo, hi);
     }
 
+    lh_byte_t set[LH_STR_PTR_CHAR_SET_BYTES];
     lh_str_ptr_fill_char_set(set, chars, chars_size);
     for (lh_usize_t i = 0; i < str_size; ++i)
     {
@@ -582,10 +578,6 @@ const lh_str_ptr
 lh_str_ptr_rfind_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
                           lh_usize_t chars_size)
 {
-    lh_byte_t set[LH_STR_PTR_CHAR_SET_BYTES];
-    lh_byte_t lo;
-    lh_byte_t hi;
-
     lh_assert_runtime_ref(str);
     lh_assert_runtime_ref(chars);
     lh_return_ifn(chars_size, lh_null);
@@ -616,11 +608,14 @@ lh_str_ptr_rfind_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_st
         return lh_null;
     }
 
+    lh_byte_t lo;
+    lh_byte_t hi;
     if (lh_str_ptr_chars_ascending_range(chars, chars_size, lh_addr_of(lo), lh_addr_of(hi)))
     {
         return lh_str_ptr_rfind_byte_in_range(lh_ptr_cast(const lh_byte_t, str), str_size, lo, hi);
     }
 
+    lh_byte_t set[LH_STR_PTR_CHAR_SET_BYTES];
     lh_str_ptr_fill_char_set(set, chars, chars_size);
     {
         lh_usize_t i = str_size;
@@ -640,19 +635,18 @@ const lh_str_ptr
 lh_str_ptr_find_not_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
                              lh_usize_t chars_size)
 {
-    lh_byte_t set[LH_STR_PTR_CHAR_SET_BYTES];
-    lh_byte_t lo;
-    lh_byte_t hi;
-
     lh_assert_runtime_ref(str);
     lh_assert_runtime_ref(chars);
 
+    lh_byte_t lo;
+    lh_byte_t hi;
     if (lh_str_ptr_chars_ascending_range(chars, chars_size, lh_addr_of(lo), lh_addr_of(hi)))
     {
         return lh_str_ptr_find_byte_not_in_range(lh_ptr_cast(const lh_byte_t, str), str_size, lo,
                                                  hi);
     }
 
+    lh_byte_t set[LH_STR_PTR_CHAR_SET_BYTES];
     lh_str_ptr_fill_char_set(set, chars, chars_size);
     for (lh_usize_t i = 0; i < str_size; ++i)
     {
@@ -668,22 +662,21 @@ const lh_str_ptr
 lh_str_ptr_rfind_not_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
                               lh_usize_t chars_size)
 {
-    lh_byte_t set[LH_STR_PTR_CHAR_SET_BYTES];
-    lh_byte_t lo;
-    lh_byte_t hi;
-
     lh_assert_runtime_ref(str);
     lh_assert_runtime_ref(chars);
 
     /* do-while starts with i = str_size; --i would wrap on unsigned 0 */
     lh_return_ifn(str_size, lh_null);
 
+    lh_byte_t lo;
+    lh_byte_t hi;
     if (lh_str_ptr_chars_ascending_range(chars, chars_size, lh_addr_of(lo), lh_addr_of(hi)))
     {
         return lh_str_ptr_rfind_byte_not_in_range(lh_ptr_cast(const lh_byte_t, str), str_size, lo,
                                                   hi);
     }
 
+    lh_byte_t set[LH_STR_PTR_CHAR_SET_BYTES];
     lh_str_ptr_fill_char_set(set, chars, chars_size);
     {
         lh_usize_t i = str_size;
@@ -964,24 +957,21 @@ lh_str_ptr_copy_except(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src
                        lh_usize_t src_size, const lh_str_ptr except, lh_usize_t except_size,
                        const lh_char_t *replace)
 {
-    lh_byte_t set[LH_STR_PTR_CHAR_SET_BYTES];
-    lh_usize_t si;
-    lh_usize_t di;
-    lh_char_t only;
     const lh_bool_t single = lh_cast_static(lh_bool_t, except_size == 1U);
 
     lh_assert_runtime_ref(str);
     lh_assert_runtime_ref(src);
     lh_assert_runtime_ref(except);
 
+    lh_byte_t set[LH_STR_PTR_CHAR_SET_BYTES];
     if (!single && except_size > 1U)
     {
         lh_str_ptr_fill_char_set(set, except, except_size);
     }
-    only = single ? except[0] : lh_char_map_nul;
+    lh_char_t only = single ? except[0] : lh_char_map_nul;
 
-    di = 0;
-    for (si = 0; si < src_size && di < str_size; ++si)
+    lh_usize_t di = 0;
+    for (lh_usize_t si = 0; si < src_size && di < str_size; ++si)
     {
         const lh_char_t c = src[si];
         const lh_bool_t hit = single ? lh_cast_static(lh_bool_t, c == only)
@@ -1004,7 +994,6 @@ lh_str_ptr
 lh_str_ptr_rtrim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr whitespace_chars,
                         lh_usize_t whitespace_size)
 {
-    lh_byte_t scratch[LH_STR_PTR_CHAR_SET_BYTES];
     const lh_byte_t *set;
 
     lh_assert_runtime_ref(str);
@@ -1015,6 +1004,7 @@ lh_str_ptr_rtrim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr wh
         return str;
     }
 
+    lh_byte_t scratch[LH_STR_PTR_CHAR_SET_BYTES];
     set = lh_str_ptr_whitespace_set(whitespace_chars, whitespace_size, scratch);
 
     {
@@ -1033,7 +1023,6 @@ lh_str_ptr
 lh_str_ptr_ltrim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr whitespace_chars,
                         lh_usize_t whitespace_size)
 {
-    lh_byte_t scratch[LH_STR_PTR_CHAR_SET_BYTES];
     const lh_byte_t *set;
 
     lh_assert_runtime_ref(str);
@@ -1044,6 +1033,7 @@ lh_str_ptr_ltrim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr wh
         return str;
     }
 
+    lh_byte_t scratch[LH_STR_PTR_CHAR_SET_BYTES];
     set = lh_str_ptr_whitespace_set(whitespace_chars, whitespace_size, scratch);
 
     {
@@ -1169,10 +1159,7 @@ lh_str_ptr
 lh_str_ptr_trim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr whitespace_chars,
                        lh_usize_t whitespace_size)
 {
-    lh_byte_t scratch[LH_STR_PTR_CHAR_SET_BYTES];
     const lh_byte_t *set;
-    lh_usize_t start;
-    lh_usize_t end;
 
     lh_assert_runtime_ref(str);
     lh_assert_runtime_ref(whitespace_chars);
@@ -1182,15 +1169,16 @@ lh_str_ptr_trim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr whi
         return str;
     }
 
+    lh_byte_t scratch[LH_STR_PTR_CHAR_SET_BYTES];
     set = lh_str_ptr_whitespace_set(whitespace_chars, whitespace_size, scratch);
 
-    end = str_size;
+    lh_usize_t end = str_size;
     while (lh_math_is_positive(end) && lh_str_ptr_char_set_has(set, str[end - 1]))
     {
         --end;
     }
 
-    start = 0;
+    lh_usize_t start = 0;
     while (lh_math_lt(start, end) && lh_str_ptr_char_set_has(set, str[start]))
     {
         ++start;

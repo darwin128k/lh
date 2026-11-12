@@ -103,13 +103,12 @@ lh_bool_t
 lh_str_template_registry_try_add(lh_str_template_registry_t *self, lh_ptr owner,
                                  const lh_str_view_t *name, const lh_str_view_t *value)
 {
-    lh_str_template_registry_entry_t entry;
-
     if (!lh_str_template_is_name(name) ||
         lh_math_ne(lh_str_template_registry_find(self, name), LH_STR_VIEW_INVALID))
     {
         return lh_bool_false;
     }
+    lh_str_template_registry_entry_t entry;
     lh_str_template_registry_entry_init(lh_addr_of(entry), owner, lh_ptr_deref(name),
                                         lh_ptr_deref(value));
     lh_array_push_back(lh_str_template_registry_get_entries_mut(self), lh_addr_of(entry));

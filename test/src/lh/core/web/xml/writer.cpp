@@ -17,10 +17,10 @@ namespace
 std::string
 write(lh_web_xml_node_t *node, bool *ok = nullptr)
 {
-    lh_web_xml_writer_t writer;
     lh_str_t out;
 
     lh_str_init(&out);
+    lh_web_xml_writer_t writer;
     lh_web_xml_writer_init(&writer, &out);
     const bool written = lh_web_xml_writer_try_write(&writer, node);
     if (ok != nullptr)
@@ -138,10 +138,10 @@ namespace
 std::string
 write_html(lh_web_xml_node_t *node, bool *ok = nullptr)
 {
-    lh_web_xml_writer_t writer;
     lh_str_t out;
 
     lh_str_init(&out);
+    lh_web_xml_writer_t writer;
     lh_web_xml_writer_init(&writer, &out);
     lh_web_xml_writer_set_dialect(&writer, lh_web_xml_dialect_html);
     EXPECT_TRUE(lh_web_xml_writer_is_html(&writer));
@@ -164,10 +164,10 @@ write_html(lh_web_xml_node_t *node, bool *ok = nullptr)
 
 TEST(web_xml_writer, init_writes_xml)
 {
-    lh_web_xml_writer_t writer;
     lh_str_t out;
 
     lh_str_init(&out);
+    lh_web_xml_writer_t writer;
     lh_web_xml_writer_init(&writer, &out);
     EXPECT_EQ(lh_web_xml_writer_get_dialect(&writer), lh_web_xml_dialect_xml);
     EXPECT_FALSE(lh_web_xml_writer_is_html(&writer));

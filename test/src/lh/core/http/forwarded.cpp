@@ -14,20 +14,20 @@ namespace
 std::string
 client_of(const char *proxy, const std::vector<const char *> &fields)
 {
-    lh_net_cidr_t trusted;
-    lh_net_ip4_t from;
-    lh_net_ip4_t client;
     std::vector<lh_str_view_t> views(fields.size());
     std::vector<const lh_str_view_t *> values(fields.size());
     char text[16] = {0};
 
+    lh_net_cidr_t trusted;
     EXPECT_TRUE(lh_net_cidr_try_parse("10.0.0.0/8", 10U, &trusted));
+    lh_net_ip4_t from;
     EXPECT_TRUE(lh_net_ip4_parse(proxy, std::strlen(proxy), &from));
     for (std::size_t i = 0; i < fields.size(); ++i)
     {
         lh_str_view_init(&views[i], fields[i]);
         values[i] = &views[i];
     }
+    lh_net_ip4_t client;
     lh_http_forwarded_copy_client(values.data(), values.size(), &from, &trusted, 1U, &client);
     lh_net_ip4_format(&client, text, sizeof(text) - 1U);
     return text;

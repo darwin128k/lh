@@ -9,9 +9,9 @@
 TEST(entity_container, init_keeps_the_rect_and_container_class)
 {
     lh_ui_rect_t rect;
-    lh_ui_container_t box;
 
     lh_ui_rect_init(lh_addr_of(rect), 1, 2, 3, 4);
+    lh_ui_container_t box;
     lh_ui_container_init(lh_addr_of(box), rect);
     lh_ui_entity_t *entity = lh_ui_container_as_entity(lh_addr_of(box));
     const lh_ui_rect_t stored = lh_test::out(lh_ui_entity_copy_rect, entity);
@@ -22,21 +22,21 @@ TEST(entity_container, init_keeps_the_rect_and_container_class)
 
 TEST(entity_container, draw_keeps_the_base_class_fill)
 {
-    lh_ui_container_t box;
     lh_ui_rect_t rect;
-    lh_ui_color_t color;
-    lh_ui_paint_t paint;
-    lh_ui_style_t style;
-    lh_ui_canvas_t canvas;
     lh_test::fill_probe probe;
 
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 4, 4);
+    lh_ui_color_t color;
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_paint_t paint;
     lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(color));
+    lh_ui_style_t style;
     lh_ui_style_init(lh_addr_of(style));
     lh_ui_style_assign_fill(lh_addr_of(style), lh_addr_of(paint));
+    lh_ui_container_t box;
     lh_ui_container_init(lh_addr_of(box), rect);
     lh_ui_entity_set_style_v(lh_ui_container_as_entity(lh_addr_of(box)), lh_addr_of(style));
+    lh_ui_canvas_t canvas;
     lh_test::fill_probe_init(lh_addr_of(probe), lh_addr_of(canvas), lh_test::fill_probe_backend(), rect,
                              color);
 
@@ -154,29 +154,29 @@ TEST(entity_container, scroll_by_moves_and_clamps)
 TEST(entity_container, answers_children_with_minus_scroll_and_a_clip)
 {
     scroll_fixture f;
-    lh_ui_point_t offset;
 
     lh_ui_container_set_scroll_v(lh_addr_of(f.box), point_of(0, 25));
+    lh_ui_point_t offset;
     EXPECT_EQ(lh_ui_entity_get_children_transform(f.entity(), lh_addr_of(offset)), lh_bool_true);
     EXPECT_TRUE(point_is(offset, 0, -25));
 }
 
 TEST(entity_container, children_are_drawn_moved_and_cut_to_the_viewport)
 {
-    scroll_fixture f;
     lh_test::draw_log log;
-    lh_ui_canvas_t canvas;
     lh_ui_color_t color;
-    lh_ui_paint_t paint;
-    lh_ui_style_t style;
 
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_paint_t paint;
     lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(color));
+    lh_ui_style_t style;
     lh_ui_style_init(lh_addr_of(style));
     lh_ui_style_assign_fill(lh_addr_of(style), lh_addr_of(paint));
+    scroll_fixture f;
     lh_ui_entity_set_style_v(lh_addr_of(f.a), lh_addr_of(style));
     lh_ui_entity_set_style_v(lh_addr_of(f.b), lh_addr_of(style));
     lh_ui_container_set_scroll_v(lh_addr_of(f.box), point_of(0, 30));
+    lh_ui_canvas_t canvas;
     lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), false, false);
 
     lh_ui_entity_draw(f.entity(), lh_addr_of(canvas));
@@ -219,13 +219,13 @@ TEST(entity_container, clamp_scroll_keeps_each_axis_in_zero_to_max)
 TEST(entity_container, get_scroll_is_clamped_when_the_content_shrinks)
 {
     scroll_fixture f;
-    lh_ui_entity_transform_t transform;
 
     lh_ui_container_set_scroll_v(lh_addr_of(f.box), point_of(0, 30));
     /* b leaves the content: it now ends at a, 40 tall in a 50 viewport. */
     lh_ui_entity_set_hidden_v(lh_addr_of(f.b), lh_bool_true);
 
     EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(f.box)), 0, 0));
+    lh_ui_entity_transform_t transform;
     lh_ui_entity_transform_init(lh_addr_of(transform));
     lh_ui_container_place_children(lh_addr_of(f.box), lh_addr_of(transform));
     EXPECT_TRUE(point_is(lh_test::out(lh_ui_entity_transform_copy_offset, lh_addr_of(transform)), 0, 0));
@@ -235,11 +235,11 @@ TEST(entity_container, get_scroll_is_clamped_when_the_content_shrinks)
 TEST(entity_container, event_is_public_and_answers_children)
 {
     scroll_fixture f;
-    lh_ui_entity_transform_t transform;
-    lh_ui_entity_event_t event;
 
     lh_ui_container_set_scroll_v(lh_addr_of(f.box), point_of(0, 10));
+    lh_ui_entity_transform_t transform;
     lh_ui_entity_transform_init(lh_addr_of(transform));
+    lh_ui_entity_event_t event;
     lh_ui_entity_event_init(lh_addr_of(event), lh_ui_entity_event_children, lh_addr_of(transform));
 
     lh_ui_container_event(f.entity(), lh_addr_of(event));
@@ -251,13 +251,12 @@ TEST(entity_container, event_is_public_and_answers_children)
  * scroll reaches it), but an empty container stays empty. */
 TEST(entity_container, padding_extends_the_content_past_the_last_child)
 {
-    lh_ui_container_t box;
-    lh_ui_entity_t child;
-    lh_ui_style_t style;
     lh_ui_rect_t rect;
 
     lh_ui_rect_init(&rect, 0, 0, 100, 100);
+    lh_ui_container_t box;
     lh_ui_container_init(&box, rect);
+    lh_ui_style_t style;
     lh_ui_style_init(&style);
     lh_ui_style_set_padding_all(&style, lh_ui_scalar(8));
     lh_ui_entity_set_style_v(lh_ui_container_as_entity(&box), &style);
@@ -266,6 +265,7 @@ TEST(entity_container, padding_extends_the_content_past_the_last_child)
     EXPECT_EQ(lh_ui_size_get_height(&size), lh_ui_scalar(0));
 
     lh_ui_rect_init(&rect, 0, 0, 50, 150);
+    lh_ui_entity_t child;
     lh_ui_entity_init(&child, rect);
     lh_ui_entity_add_child(lh_ui_container_as_entity(&box), &child);
     size = lh_test::out(lh_ui_container_get_content_size, &box);

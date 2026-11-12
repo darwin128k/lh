@@ -189,13 +189,13 @@ lh_bool_t
 lh_os_system_shared_is_executable(lh_ptr base)
 {
     struct link_map *map = lh_null;
-    Dl_info info;
 
     const lh_os_system_shared_handle_t program = lh_os_system_shared_get_executable();
     if (lh_null_eq(program))
     {
         return lh_bool_false;
     }
+    Dl_info info;
     const lh_bool_t is_executable =
         lh_math_is_zero(dlinfo(program, RTLD_DI_LINKMAP, lh_addr_of(map))) && lh_null_ne(map) &&
         lh_math_ne(dladdr(map->l_ld, lh_addr_of(info)), 0) && lh_math_eq(info.dli_fbase, base);
@@ -287,9 +287,8 @@ lh_os_system_shared_read_alloc(int fd, off_t offset, size_t size)
 lh_os_system_shared_handle_t
 lh_os_system_shared_get_by_addr(lh_ptr addr)
 {
-    Dl_info info;
-
     lh_assert_runtime_ref(addr);
+    Dl_info info;
     if (lh_math_is_zero(dladdr(addr, lh_addr_of(info))))
     {
         lh_os_system_error_capture();
@@ -318,7 +317,6 @@ lh_os_system_shared_find_in_symtab(int fd, uintptr_t bias, lh_str_cptr name)
     ElfW(Sym) *syms = lh_null;
     char *strs = lh_null;
     lh_ptr result = lh_null;
-    size_t i;
 
     if (!lh_os_system_shared_read_at(fd, 0, lh_addr_of(ehdr), sizeof ehdr) ||
         lh_memory_std_compare(ehdr.e_ident, ELFMAG, SELFMAG) != 0 ||
@@ -329,7 +327,7 @@ lh_os_system_shared_find_in_symtab(int fd, uintptr_t bias, lh_str_cptr name)
     shdrs =
         lh_ptr_cast(ElfW(Shdr), lh_os_system_shared_read_alloc(fd, (off_t)ehdr.e_shoff,
                                                                sizeof(ElfW(Shdr)) * ehdr.e_shnum));
-    for (i = 0U; lh_null_ne(shdrs) && i < ehdr.e_shnum && lh_null_eq(syms); ++i)
+    for (size_t i = 0U; lh_null_ne(shdrs) && i < ehdr.e_shnum && lh_null_eq(syms); ++i)
     {
         const ElfW(Shdr) *const symtab = shdrs + i;
         if (symtab->sh_type != SHT_SYMTAB || symtab->sh_link >= ehdr.e_shnum ||

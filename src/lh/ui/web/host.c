@@ -118,12 +118,11 @@ lh_ui_web_host_ws_drop(lh_ui_web_host_client_t *c)
 lh_bool_t
 lh_ui_web_host_ws_msg_add(lh_ui_web_host_client_t *c, lh_byte_cptr p, lh_usize_t n)
 {
-    lh_byte_ptr grow;
-
     if (lh_ui_web_host_client_get_msg_len(c) + lh_cast_static(lh_uint_t, n) > LH_UI_WEB_WS_MAX_MSG)
     {
         return lh_bool_false;
     }
+    lh_byte_ptr grow;
     if (lh_ui_web_host_client_get_msg_len(c) + lh_cast_static(lh_uint_t, n) >
         lh_ui_web_host_client_get_msg_cap(c))
     {
@@ -590,8 +589,8 @@ lh_ui_web_host_try_reply(lh_os_net_socket_t *client, const lh_http_request_t *re
     lh_http_response_set_status(lh_addr_of(response), lh_cast_static(lh_u16_t, code));
     lh_http_response_set_version_minor(lh_addr_of(response), 1U);
     lh_http_response_set_reason(lh_addr_of(response), reason);
-    lh_http_header_t headers[4];
     lh_usize_t count = 0U;
+    lh_http_header_t headers[4];
     lh_http_header_set(
         lh_addr_of(headers[count]), lh_http_header_name_content_type,
         lh_initializer_of(lh_str_view_t, lh_str_view_initializer, type, lh_str_ptr_len(type)));
@@ -1362,8 +1361,6 @@ lh_ui_web_host_reply_text(lh_os_net_socket_t *client, const lh_http_request_t *r
 lh_void
 lh_ui_web_host_ws_pump(lh_ui_web_host_client_t *c, lh_ui_web_app_t *app, lh_uint_t now)
 {
-    lh_ssize_t got;
-
     if (!lh_ui_web_host_client_is_used(c))
     {
         return;
@@ -1387,6 +1384,7 @@ lh_ui_web_host_ws_pump(lh_ui_web_host_client_t *c, lh_ui_web_app_t *app, lh_uint
         lh_ui_web_host_ws_drop(c);
         return;
     }
+    lh_ssize_t got;
     got =
         lh_os_net_socket_recv(lh_ui_web_host_client_get_sock_mut(c),
                               lh_ui_web_host_client_get_rx(c) + lh_ui_web_host_client_get_rx_len(c),
@@ -1484,9 +1482,9 @@ lh_ui_web_host_handle_buffered_gzip_is_handled(lh_ui_web_app_t *app,
                                                const lh_str_view_t *body,
                                                lh_os_net_socket_t *client)
 {
-    lh_usize_t size;
     const lh_usize_t encoded_size = lh_str_view_get_size(body);
     lh_byte_t decoded[LH_UI_WEB_HOST_REQUEST_CAPACITY];
+    lh_usize_t size;
     if (!lh_compress_gzip_try_decode(lh_ptr_rcast(const lh_byte_t, lh_str_view_get_data(body)),
                                      encoded_size, decoded, sizeof(decoded), &size))
     {

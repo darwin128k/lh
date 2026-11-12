@@ -135,9 +135,9 @@ static const lh_char_case_pair_t m_char_to_upper_table[] = {
 lh_char_t
 lh_char_to_lower_nonascii(lh_char_t c)
 {
-    lh_char_case_pair_t r;
     lh_bool_t is_founded = lh_bool_false;
 
+    lh_char_case_pair_t r;
     lh_interval_ropen_binary_search(lh_usize_t, m_char_to_lower_table,
                                     lh_array_ptr_get_size(m_char_to_lower_table),
                                     lh_cast_static(lh_usize_t, c), first, r, is_founded);
@@ -147,9 +147,9 @@ lh_char_to_lower_nonascii(lh_char_t c)
 lh_char_t
 lh_char_to_upper_nonascii(lh_char_t c)
 {
-    lh_char_case_pair_t r;
     lh_bool_t is_founded = lh_bool_false;
 
+    lh_char_case_pair_t r;
     lh_interval_ropen_binary_search(lh_usize_t, m_char_to_upper_table,
                                     lh_array_ptr_get_size(m_char_to_upper_table),
                                     lh_cast_static(lh_usize_t, c), first, r, is_founded);

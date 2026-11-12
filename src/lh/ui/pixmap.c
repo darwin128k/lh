@@ -314,14 +314,13 @@ lh_void
 lh_ui_pixmap_cover_pixel(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color,
                          lh_byte_t coverage)
 {
-    lh_ui_color_t edge;
-
     lh_return_if(coverage == 0U);
     if (coverage == LH_BYTE_T_MAX)
     {
         lh_ui_pixmap_blend_pixel(self, x, y, color);
         return;
     }
+    lh_ui_color_t edge;
     lh_ui_color_with_coverage(color, coverage, lh_addr_of(edge));
     lh_ui_pixmap_blend_pixel(self, x, y, lh_addr_of(edge));
 }
@@ -538,11 +537,10 @@ lh_void
 lh_ui_pixmap_blend_alpha_32_sse2(const lh_ui_pixmap_t *self, lh_u32_t *at, lh_byte_cptr alpha,
                                  lh_usize_t count, lh_u32_t src)
 {
-    lh_usize_t i;
-
     LH_ATTRIBUTE_UNUSED(self);
     /* The block itself, not the exported quad: inlined, its constants are set up
        once for the run instead of once a block. */
+    lh_usize_t i;
     for (i = 0U; i + 4U <= count; i += 4U)
     {
         const __m128i a8 = _mm_cvtsi32_si128(lh_ptr_rcast(const lh_s32_t, alpha + i)[0]);
@@ -816,9 +814,8 @@ lh_ui_pixmap_blend_16_pair_at(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_byte_
 lh_u32_t
 lh_ui_pixmap_pack_rgb(const lh_ui_pixmap_t *self, lh_u32_t src)
 {
-    lh_ui_color_t color;
-
     LH_ATTRIBUTE_UNUSED(self);
+    lh_ui_color_t color;
     lh_ui_color_init_argb(lh_addr_of(color), 0xFF000000U | src);
     return lh_ui_color_get_rgb565(lh_addr_of(color));
 }
@@ -884,7 +881,6 @@ lh_void
 lh_ui_pixmap_blend_cover_8(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_s32_t count,
                            lh_u64_t cover, lh_u32_t src)
 {
-
     lh_assert_runtime(count >= 1 && count <= 8, lh_runtime_error_code_invalid_argument);
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
     if (lh_cpu_simd_has_sse2())
@@ -946,13 +942,12 @@ lh_ui_pixmap_fill_colors_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh
 {
     const lh_usize_t count = x1 > x0 ? lh_cast_static(lh_usize_t, x1 - x0) : 0U;
     lh_byte_ptr row = lh_ui_pixmap_get_address(self, x0, y);
-    lh_usize_t i;
 
     if (lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self)))
     {
         lh_u16_t *at = lh_ptr_rcast(lh_u16_t, row);
 
-        for (i = 0U; i < count; ++i)
+        for (lh_usize_t i = 0U; i < count; ++i)
         {
             at[i] = lh_cast_static(lh_u16_t, lh_ui_pixmap_over_16(self, at[i], colors + i));
         }
@@ -961,7 +956,7 @@ lh_ui_pixmap_fill_colors_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh
     {
         lh_u32_t *at = lh_ptr_rcast(lh_u32_t, row);
 
-        for (i = 0U; i < count; ++i)
+        for (lh_usize_t i = 0U; i < count; ++i)
         {
             at[i] = lh_ui_pixmap_over_argb(self, at[i], colors + i);
         }

@@ -54,13 +54,13 @@ TEST(os_input_queue, empty_initializer_matches_init)
 
 TEST(os_input_queue, pops_in_push_order_across_many_wraps)
 {
-    lh_os_input_event_t storage[3];
-    lh_os_input_queue_t queue;
-    lh_os_input_event_t event;
     lh_tick_t next_in = 0U;
     lh_tick_t next_out = 0U;
 
+    lh_os_input_event_t storage[3];
+    lh_os_input_queue_t queue;
     lh_os_input_queue_init(&queue, storage, 3U);
+    lh_os_input_event_t event;
     EXPECT_FALSE(lh_os_input_queue_pop(&queue, &event));
     for (int round = 0; round < 50; ++round)
     {
@@ -83,10 +83,9 @@ TEST(os_input_queue, full_ring_uses_every_slot_then_drops_and_counts)
 {
     lh_os_input_event_t storage[2];
     lh_os_input_queue_t queue;
-    lh_os_input_event_t event;
 
     lh_os_input_queue_init(&queue, storage, 2U);
-    event = key(1U);
+    lh_os_input_event_t event = key(1U);
     EXPECT_TRUE(lh_os_input_queue_push(&queue, &event));
     event = key(2U);
     EXPECT_TRUE(lh_os_input_queue_push(&queue, &event));
@@ -104,10 +103,9 @@ TEST(os_input_queue, a_move_folds_into_the_last_move_when_full)
 {
     lh_os_input_event_t storage[2];
     lh_os_input_queue_t queue;
-    lh_os_input_event_t event;
 
     lh_os_input_queue_init(&queue, storage, 2U);
-    event = key(1U);
+    lh_os_input_event_t event = key(1U);
     ASSERT_TRUE(lh_os_input_queue_push(&queue, &event));
     event = move_to(10, 2U);
     ASSERT_TRUE(lh_os_input_queue_push(&queue, &event));
@@ -128,10 +126,9 @@ TEST(os_input_queue, a_move_of_another_pointer_does_not_fold)
 {
     lh_os_input_event_t storage[2];
     lh_os_input_queue_t queue;
-    lh_os_input_event_t event;
 
     lh_os_input_queue_init(&queue, storage, 2U);
-    event = move_to(1, 1U);
+    lh_os_input_event_t event = move_to(1, 1U);
     ASSERT_TRUE(lh_os_input_queue_push(&queue, &event));
     event = move_to(2, 2U);
     ASSERT_TRUE(lh_os_input_queue_push(&queue, &event));
@@ -146,15 +143,13 @@ TEST(os_input_queue, drain_hands_everything_on_in_order)
 {
     lh_os_input_event_t storage[4];
     lh_os_input_queue_t queue;
-    lh_os_input_event_t event;
-    std::vector<lh_tick_t> seen;
-
     lh_os_input_queue_init(&queue, storage, 4U);
     for (lh_tick_t t = 10U; t < 13U; ++t)
     {
-        event = key(t);
+        lh_os_input_event_t event = key(t);
         ASSERT_TRUE(lh_os_input_queue_push(&queue, &event));
     }
+    std::vector<lh_tick_t> seen;
     EXPECT_EQ(lh_os_input_queue_drain(&queue, collect, &seen), 3U);
     EXPECT_EQ(seen, (std::vector<lh_tick_t>{10U, 11U, 12U}));
     EXPECT_TRUE(lh_os_input_queue_is_empty(&queue));

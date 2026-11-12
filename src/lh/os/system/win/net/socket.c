@@ -72,9 +72,8 @@ lh_bool_t
 lh_os_system_net_socket_connect(lh_os_system_net_socket_handle_t handle,
                                 const lh_net_ip4_socket_addr_t *addr)
 {
-    lh_os_system_win_sockaddr_in_t native_addr;
-
     lh_assert_runtime_ref(addr);
+    lh_os_system_win_sockaddr_in_t native_addr;
     lh_os_system_net_socket_native_addr_from_ip4(lh_addr_of(native_addr), addr);
     return lh_os_system_error_check_zero(connect(
         lh_os_system_net_socket_native(handle),
@@ -95,9 +94,8 @@ lh_ssize_t
 lh_os_system_net_socket_connect_start(lh_os_system_net_socket_handle_t handle,
                                       const lh_net_ip4_socket_addr_t *addr)
 {
-    lh_os_system_win_sockaddr_in_t native_addr;
-
     lh_assert_runtime_ref(addr);
+    lh_os_system_win_sockaddr_in_t native_addr;
     lh_os_system_net_socket_native_addr_from_ip4(lh_addr_of(native_addr), addr);
     /* Winsock says WSAEWOULDBLOCK for a connect under way, which the result
        helper already turns into PENDING. */
@@ -160,9 +158,8 @@ lh_bool_t
 lh_os_system_net_socket_bind(lh_os_system_net_socket_handle_t handle,
                              const lh_net_ip4_socket_addr_t *addr)
 {
-    lh_os_system_win_sockaddr_in_t native_addr;
-
     lh_assert_runtime_ref(addr);
+    lh_os_system_win_sockaddr_in_t native_addr;
     lh_os_system_net_socket_native_addr_from_ip4(lh_addr_of(native_addr), addr);
     return lh_os_system_error_check_zero(bind(
         lh_os_system_net_socket_native(handle),
@@ -256,12 +253,10 @@ lh_void
 lh_os_system_net_socket_fill_set(lh_os_system_win_fd_set_t *set,
                                  const lh_os_system_net_socket_handle_t *handles, lh_usize_t count)
 {
-    lh_usize_t i;
-
     lh_assert_runtime_if(count > LH_OS_SYSTEM_NET_SOCKET_WAIT_MAX,
                          lh_runtime_error_code_invalid_argument);
     set->fd_count = lh_cast_static(lh_uint_t, count);
-    for (i = 0; i < count; ++i)
+    for (lh_usize_t i = 0; i < count; ++i)
     {
         set->fd_array[i] = lh_os_system_net_socket_native(handles[i]);
     }
@@ -272,11 +267,10 @@ lh_os_system_net_socket_wait(const lh_os_system_net_socket_handle_t *read, lh_us
                              const lh_os_system_net_socket_handle_t *write, lh_usize_t write_count,
                              lh_u32_t timeout_ms)
 {
-    lh_os_system_win_fd_set_t readable;
-
     /* Winsock refuses a select with every set empty (WSAEINVAL) where POSIX
        would sleep; neither is what a caller with nothing to watch wants. */
     lh_return_if(lh_math_is_zero(read_count + write_count), LH_OS_RESULT_PENDING);
+    lh_os_system_win_fd_set_t readable;
     lh_os_system_net_socket_fill_set(lh_addr_of(readable), read, read_count);
     lh_os_system_win_fd_set_t writable;
 
@@ -341,9 +335,8 @@ lh_ssize_t
 lh_os_system_net_socket_sendto(lh_os_system_net_socket_handle_t handle, const lh_ptr buf,
                                lh_usize_t size, const lh_net_ip4_socket_addr_t *addr)
 {
-    lh_os_system_win_sockaddr_in_t native_addr;
-
     lh_assert_runtime_ref(addr);
+    lh_os_system_win_sockaddr_in_t native_addr;
     lh_os_system_net_socket_native_addr_from_ip4(lh_addr_of(native_addr), addr);
     return lh_os_system_net_socket_result(sendto(
         lh_os_system_net_socket_native(handle), lh_ptr_ccast(char, buf),
@@ -555,9 +548,9 @@ lh_os_system_net_socket_pair(lh_os_system_net_socket_handle_t *pair, lh_u32_t ti
     lh_os_system_net_socket_handle_t listener = LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID;
     lh_os_system_net_socket_handle_t writer = LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID;
     lh_os_system_net_socket_handle_t reader = LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID;
-    lh_net_ip4_t ip;
 
     lh_assert_runtime_ref(pair);
+    lh_net_ip4_t ip;
     lh_net_ip4_init(lh_addr_of(ip), 127, 0, 0, 1);
     lh_net_ip4_socket_addr_t address, expected, peer;
 
@@ -649,8 +642,6 @@ lh_os_system_net_socket_send_file(lh_os_system_net_socket_handle_t handle,
                                   lh_os_system_fs_file_handle_t file, lh_u64_t *offset,
                                   lh_usize_t size)
 {
-    lh_byte_t buffer[16384];
-
     lh_assert_runtime_ref(offset);
     if (!size)
     {
@@ -662,12 +653,13 @@ lh_os_system_net_socket_send_file(lh_os_system_net_socket_handle_t handle,
         lh_os_system_error_capture();
         return LH_OS_RESULT_INVALID;
     }
-    lh_os_system_win_large_integer_t position;
     lh_os_system_win_dword_t read_size = 0;
 
+    lh_os_system_win_large_integer_t position;
     position.QuadPart = lh_cast_static(lh_s64_t, *offset);
     const lh_os_system_win_handle_t native_file =
         lh_cast_reinterpret(lh_os_system_win_handle_t, file);
+    lh_byte_t buffer[16384];
     if (!SetFilePointerEx(native_file, position, lh_null, LH_OS_SYSTEM_WIN_FILE_BEGIN) ||
         !ReadFile(native_file, buffer,
                   lh_cast_static(lh_os_system_win_dword_t, lh_math_min(size, sizeof buffer)),

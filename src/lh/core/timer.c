@@ -170,11 +170,10 @@ lh_timer_group_until_next(const lh_timer_group_t *self, lh_tick_t now)
     const lh_list_t *timers;
     lh_list_node_t *node;
     const lh_timer_t *timer;
-    lh_tick_t best;
-    lh_tick_t remain;
 
     timers = lh_timer_group_get_timers(self);
-    best = LH_TICK_T_MAX;
+    lh_tick_t best = LH_TICK_T_MAX;
+    lh_tick_t remain;
     for (node = lh_list_get_first(timers); lh_null_ne(node); node = lh_list_get_next(timers, node))
     {
         timer = lh_timer_get_by_node(node);
@@ -304,7 +303,6 @@ lh_timer_group_set_priority(lh_timer_group_t *group, lh_timer_t *self, lh_u8_t p
 {
     lh_list_t *timers;
     lh_list_node_t *node;
-    lh_bool_t running;
 
     lh_assert_runtime_ref(group);
     lh_assert_runtime_ref(self);
@@ -314,7 +312,7 @@ lh_timer_group_set_priority(lh_timer_group_t *group, lh_timer_t *self, lh_u8_t p
     }
     timers = lh_timer_group_get_timers_mut(group);
     node = lh_timer_get_node_mut(self);
-    running = lh_timer_is_running(self);
+    lh_bool_t running = lh_timer_is_running(self);
     if (running)
     {
         lh_assert_runtime_if(!lh_list_contains(timers, node),

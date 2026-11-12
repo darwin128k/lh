@@ -55,10 +55,10 @@ partial_probe_is_inside(const partial_probe *probe, const lh_ui_rect_t *buffer)
 {
     const lh_ui_size_t *size = lh_ui_rect_get_size(lh_addr_of(probe->area));
     lh_ui_rect_t window;
-    lh_ui_rect_t part;
 
     lh_ui_rect_init(lh_addr_of(window), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_size_get_width(lh_addr_of(lh_ptr_deref(size))),
                     lh_ui_size_get_height(lh_addr_of(lh_ptr_deref(size))));
+    lh_ui_rect_t part;
     lh_ui_rect_intersection(lh_addr_of(window), buffer, lh_addr_of(part));
     return lh_ui_rect_equals(lh_addr_of(part), buffer);
 }
@@ -146,8 +146,6 @@ partial_probe_backend()
 void
 partial_probe_init(partial_probe *probe)
 {
-    lh_ui_size_t size;
-
     lh_ptr_deref(probe) = partial_probe{};
     for (lh_u32_t &w : probe->words)
     {
@@ -159,6 +157,7 @@ partial_probe_init(partial_probe *probe)
     lh_ui_canvas_sw_init(lh_addr_of(probe->sw));
     lh_ui_canvas_sw_use_pixmap(lh_addr_of(probe->sw), lh_addr_of(probe->pixmap));
     lh_ui_canvas_init(lh_addr_of(probe->canvas), partial_probe_backend(), probe);
+    lh_ui_size_t size;
     lh_ui_size_init(lh_addr_of(size), lh_ui_scalar_of(partial_probe::width), lh_ui_scalar_of(partial_probe::height));
     lh_ui_canvas_set_size(lh_addr_of(probe->canvas), size);
 }
@@ -291,19 +290,17 @@ TEST(view, drag_moves_the_thumb_and_does_not_click)
 TEST(view, drag_finds_the_thumb_of_a_bar_inside_a_scrolled_container)
 {
     lh_ui_entity_t root;
-    lh_ui_container_t outer;
-    lh_ui_entity_t filler;
-    lh_ui_container_t inner;
-    lh_ui_entity_t content;
-    lh_ui_scrollbar_t bar;
-    lh_ui_canvas_t canvas;
-    lh_ui_view_t view;
 
     lh_ui_entity_init(lh_addr_of(root), rect_of(0, 0, 300, 300));
+    lh_ui_container_t outer;
     lh_ui_container_init(lh_addr_of(outer), rect_of(0, 0, 200, 100));
+    lh_ui_entity_t filler;
     lh_ui_entity_init(lh_addr_of(filler), rect_of(0, 0, 10, 400));
+    lh_ui_container_t inner;
     lh_ui_container_init(lh_addr_of(inner), rect_of(0, 60, 100, 100));
+    lh_ui_entity_t content;
     lh_ui_entity_init(lh_addr_of(content), rect_of(0, 60, 100, 400));
+    lh_ui_scrollbar_t bar;
     lh_ui_scrollbar_init(lh_addr_of(bar), rect_of(100, 60, 10, 200), lh_ui_axis_vertical,
                                 lh_addr_of(inner));
     lh_ui_entity_add_child(lh_addr_of(root), lh_ui_container_as_entity(lh_addr_of(outer)));
@@ -314,7 +311,9 @@ TEST(view, drag_finds_the_thumb_of_a_bar_inside_a_scrolled_container)
                            lh_ui_scrollbar_as_entity(lh_addr_of(bar)));
     lh_ui_entity_add_child(lh_ui_container_as_entity(lh_addr_of(inner)), lh_addr_of(content));
     lh_ui_container_set_scroll_v(lh_addr_of(outer), point_of(0, 50));
+    lh_ui_canvas_t canvas;
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
+    lh_ui_view_t view;
     lh_ui_view_init(lh_addr_of(view));
     lh_ui_view_set_canvas(lh_addr_of(view), lh_addr_of(canvas));
     lh_ui_view_set_root_v(lh_addr_of(view), lh_addr_of(root));
@@ -411,15 +410,15 @@ build_scene(scene &s)
 TEST(view, strips_draw_the_same_picture_as_one_whole_frame)
 {
     scene s;
-    partial_probe whole;
-    partial_probe strips;
-    lh_ui_view_t one;
-    lh_ui_view_t many;
 
     build_scene(s);
+    partial_probe whole;
     partial_probe_init(lh_addr_of(whole));
+    partial_probe strips;
     partial_probe_init(lh_addr_of(strips));
+    lh_ui_view_t one;
     lh_ui_view_init(lh_addr_of(one));
+    lh_ui_view_t many;
     lh_ui_view_init(lh_addr_of(many));
     lh_ui_view_set_canvas(lh_addr_of(one), lh_addr_of(whole.canvas));
     lh_ui_view_set_canvas(lh_addr_of(many), lh_addr_of(strips.canvas));
@@ -446,15 +445,15 @@ TEST(view, strips_draw_the_same_picture_as_one_whole_frame)
 TEST(view, strips_greater_than_the_target_draw_it_as_one)
 {
     scene s;
-    partial_probe whole;
-    partial_probe strips;
-    lh_ui_view_t one;
-    lh_ui_view_t many;
 
     build_scene(s);
+    partial_probe whole;
     partial_probe_init(lh_addr_of(whole));
+    partial_probe strips;
     partial_probe_init(lh_addr_of(strips));
+    lh_ui_view_t one;
     lh_ui_view_init(lh_addr_of(one));
+    lh_ui_view_t many;
     lh_ui_view_init(lh_addr_of(many));
     lh_ui_view_set_canvas(lh_addr_of(one), lh_addr_of(whole.canvas));
     lh_ui_view_set_canvas(lh_addr_of(many), lh_addr_of(strips.canvas));
@@ -472,17 +471,17 @@ TEST(view, strips_greater_than_the_target_draw_it_as_one)
 
 TEST(view, damage_skips_the_strips_it_does_not_reach)
 {
-    scene s;
-    partial_probe one;
-    partial_probe strips;
-    lh_ui_view_t whole_view;
-    lh_ui_view_t strip_view;
     const lh_ui_rect_t damage = lh_test::rect_of(0, 64, 160, 56);
 
+    scene s;
     build_scene(s);
+    partial_probe one;
     partial_probe_init(lh_addr_of(one));
+    partial_probe strips;
     partial_probe_init(lh_addr_of(strips));
+    lh_ui_view_t whole_view;
     lh_ui_view_init(lh_addr_of(whole_view));
+    lh_ui_view_t strip_view;
     lh_ui_view_init(lh_addr_of(strip_view));
     lh_ui_view_set_canvas(lh_addr_of(whole_view), lh_addr_of(one.canvas));
     lh_ui_view_set_canvas(lh_addr_of(strip_view), lh_addr_of(strips.canvas));
@@ -503,18 +502,18 @@ TEST(view, damage_skips_the_strips_it_does_not_reach)
 
 TEST(view, a_whole_area_makes_the_strip_that_reaches_it_wide_and_the_ones_inside_it_are_not_repeated)
 {
-    scene s;
-    partial_probe whole;
-    partial_probe strips;
-    lh_ui_view_t one;
-    lh_ui_view_t many;
     /* Rows 20..80: crosses two strip lines, so no strip holds all of it. */
     const lh_ui_rect_t region = lh_test::rect_of(0, 20, 160, 60);
 
+    scene s;
     build_scene(s);
+    partial_probe whole;
     partial_probe_init(lh_addr_of(whole));
+    partial_probe strips;
     partial_probe_init(lh_addr_of(strips));
+    lh_ui_view_t one;
     lh_ui_view_init(lh_addr_of(one));
+    lh_ui_view_t many;
     lh_ui_view_init(lh_addr_of(many));
     lh_ui_view_set_canvas(lh_addr_of(one), lh_addr_of(whole.canvas));
     lh_ui_view_set_canvas(lh_addr_of(many), lh_addr_of(strips.canvas));
@@ -542,18 +541,18 @@ TEST(view, a_whole_area_makes_the_strip_that_reaches_it_wide_and_the_ones_inside
 
 TEST(view, a_whole_area_the_view_has_no_room_for_is_refused)
 {
-    lh_ui_view_t view;
-    lh_ui_canvas_t canvas;
     lh_ui_size_t size;
-    lh_ui_rect_t at;
 
     lh_ui_size_init(lh_addr_of(size), 160, 120);
+    lh_ui_canvas_t canvas;
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
     lh_ui_canvas_set_size(lh_addr_of(canvas), size);
+    lh_ui_view_t view;
     lh_ui_view_init(lh_addr_of(view));
     lh_ui_view_set_canvas(lh_addr_of(view), lh_addr_of(canvas));
 
     /* An empty region is not a region. */
+    lh_ui_rect_t at;
     lh_ui_rect_init(lh_addr_of(at), 0, 0, 0, 40);
     EXPECT_FALSE(lh_ui_view_add_whole_area(lh_addr_of(view), lh_addr_of(at)));
     for (int i = 0; i < LH_UI_VIEW_WHOLE_MAX; ++i)
@@ -592,12 +591,10 @@ struct pressed_panel
 void
 build_pressed_panel(pressed_panel &p)
 {
-    lh_ui_paint_t paint;
-    lh_ui_color_t normal;
-    lh_ui_color_t hot;
-
     lh_ui_style_init(lh_addr_of(p.style));
+    lh_ui_color_t normal;
     lh_ui_color_init(lh_addr_of(normal), 30, 60, 90, 255);
+    lh_ui_paint_t paint;
     lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(normal));
     lh_ui_style_assign_fill(lh_addr_of(p.style), lh_addr_of(paint));
     lh_ui_shadow_init(lh_addr_of(p.shadow));
@@ -605,6 +602,7 @@ build_pressed_panel(pressed_panel &p)
     lh_ui_shadow_set_spread_v(lh_addr_of(p.shadow), lh_ui_scalar(6));
     lh_ui_shadow_set_offset(lh_addr_of(p.shadow), lh_ui_scalar(0), lh_ui_scalar(3));
     lh_ui_style_set_shadow_v(lh_addr_of(p.style), lh_addr_of(p.shadow));
+    lh_ui_color_t hot;
     lh_ui_style_init(lh_addr_of(p.hot));
     lh_ui_color_init(lh_addr_of(hot), 200, 60, 90, 255);
     lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(hot));
@@ -620,21 +618,21 @@ build_pressed_panel(pressed_panel &p)
    have caught. */
 TEST(view, a_press_and_a_release_leave_the_picture_as_it_was)
 {
-    scene s;
-    partial_probe before;
-    partial_probe after;
-    pressed_panel p;
-    lh_ui_view_t plain;
-    lh_ui_view_t pressed;
     /* Where only the panel is: its box ends at x 110 and its label at y 60. */
     const lh_ui_point_t on_panel = point_of(140, 100);
 
+    scene s;
     build_scene(s);
+    pressed_panel p;
     build_pressed_panel(p);
     lh_ui_entity_set_style_v(lh_addr_of(s.panel), lh_addr_of(p.style));
+    partial_probe before;
     partial_probe_init(lh_addr_of(before));
+    partial_probe after;
     partial_probe_init(lh_addr_of(after));
+    lh_ui_view_t plain;
     lh_ui_view_init(lh_addr_of(plain));
+    lh_ui_view_t pressed;
     lh_ui_view_init(lh_addr_of(pressed));
     lh_ui_view_set_canvas(lh_addr_of(plain), lh_addr_of(before.canvas));
     lh_ui_view_set_canvas(lh_addr_of(pressed), lh_addr_of(after.canvas));
@@ -662,18 +660,18 @@ TEST(view, a_press_and_a_release_leave_the_picture_as_it_was)
 TEST(view, a_press_damages_what_both_looks_painted)
 {
     scene s;
-    pressed_panel p;
-    lh_ui_view_t view;
-    lh_ui_canvas_t canvas;
-    lh_ui_size_t size;
     const lh_ui_rect_t *damage;
 
     build_scene(s);
+    pressed_panel p;
     build_pressed_panel(p);
     lh_ui_entity_set_style_v(lh_addr_of(s.panel), lh_addr_of(p.style));
+    lh_ui_size_t size;
     lh_ui_size_init(lh_addr_of(size), 160, 120);
+    lh_ui_canvas_t canvas;
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
     lh_ui_canvas_set_size(lh_addr_of(canvas), size);
+    lh_ui_view_t view;
     lh_ui_view_init(lh_addr_of(view));
     lh_ui_view_set_canvas(lh_addr_of(view), lh_addr_of(canvas));
     lh_ui_view_set_root_v(lh_addr_of(view), lh_addr_of(s.panel));
@@ -692,17 +690,17 @@ TEST(view, a_press_damages_what_both_looks_painted)
 TEST(view, a_press_still_open_when_the_next_one_starts_is_let_go)
 {
     scene s;
-    pressed_panel p;
-    lh_ui_view_t view;
-    lh_ui_canvas_t canvas;
-    lh_ui_size_t size;
 
     build_scene(s);
+    pressed_panel p;
     build_pressed_panel(p);
     lh_ui_entity_set_style_v(lh_addr_of(s.panel), lh_addr_of(p.style));
+    lh_ui_size_t size;
     lh_ui_size_init(lh_addr_of(size), 160, 120);
+    lh_ui_canvas_t canvas;
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
     lh_ui_canvas_set_size(lh_addr_of(canvas), size);
+    lh_ui_view_t view;
     lh_ui_view_init(lh_addr_of(view));
     lh_ui_view_set_canvas(lh_addr_of(view), lh_addr_of(canvas));
     lh_ui_view_set_root_v(lh_addr_of(view), lh_addr_of(s.panel));
@@ -725,42 +723,42 @@ TEST(view, a_press_still_open_when_the_next_one_starts_is_let_go)
    damage both of them — the one leaving casts its shadow past its own box too. */
 TEST(view, a_hover_damages_what_both_looks_painted)
 {
-    lh_ui_view_t view;
-    lh_ui_canvas_t canvas;
-    lh_ui_button_t button;
-    lh_ui_style_t rest;
-    lh_ui_style_t hot;
     lh_ui_shadow_t small;
-    lh_ui_shadow_t wide;
-    lh_ui_paint_t paint;
-    lh_ui_color_t color;
-    lh_ui_size_t size;
     const lh_ui_rect_t *damage;
 
     lh_ui_shadow_init(lh_addr_of(small));
     lh_ui_shadow_set_color(lh_addr_of(small), lh_ui_color_t{0, 0, 0, 200});
     lh_ui_shadow_set_spread_v(lh_addr_of(small), lh_ui_scalar(6));
     lh_ui_shadow_set_offset(lh_addr_of(small), lh_ui_scalar(0), lh_ui_scalar(3));
+    lh_ui_shadow_t wide;
     lh_ui_shadow_init(lh_addr_of(wide));
     lh_ui_shadow_set_color(lh_addr_of(wide), lh_ui_color_t{0, 0, 0, 200});
     lh_ui_shadow_set_spread_v(lh_addr_of(wide), lh_ui_scalar(12));
 
+    lh_ui_style_t rest;
     lh_ui_style_init(lh_addr_of(rest));
+    lh_ui_color_t color;
     lh_ui_color_init(&color, 30, 60, 90, 255);
+    lh_ui_paint_t paint;
     lh_ui_paint_init_color(&paint, &color);
     lh_ui_style_assign_fill(lh_addr_of(rest), &paint);
     lh_ui_style_set_shadow_v(lh_addr_of(rest), lh_addr_of(small));
+    lh_ui_style_t hot;
     lh_ui_style_init(lh_addr_of(hot));
     lh_ui_style_set_shadow_v(lh_addr_of(hot), lh_addr_of(wide));
     lh_ui_style_set_hit_radius_v(lh_addr_of(rest), LH_UI_RADIUS_CIRCLE);
 
+    lh_ui_button_t button;
     lh_ui_button_init(lh_addr_of(button), lh_test::rect_of(20, 10, 40, 24));
     lh_ui_button_set_style(lh_addr_of(button), lh_addr_of(rest));
     lh_ui_button_set_hot_style_v(lh_addr_of(button), lh_addr_of(hot));
 
+    lh_ui_size_t size;
     lh_ui_size_init(lh_addr_of(size), 160, 120);
+    lh_ui_canvas_t canvas;
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
     lh_ui_canvas_set_size(lh_addr_of(canvas), size);
+    lh_ui_view_t view;
     lh_ui_view_init(lh_addr_of(view));
     lh_ui_view_set_canvas(lh_addr_of(view), lh_addr_of(canvas));
     lh_ui_view_set_root_v(lh_addr_of(view), lh_ui_button_as_entity(lh_addr_of(button)));
@@ -780,21 +778,20 @@ TEST(view, a_hover_damages_what_both_looks_painted)
 
 TEST(view, a_strip_height_is_the_buffer_and_not_the_step)
 {
-    lh_ui_view_t view;
-    lh_ui_canvas_t canvas;
     lh_ui_size_t size;
-    lh_ui_rect_t strip;
 
     lh_ui_size_init(lh_addr_of(size), 160, 120);
+    lh_ui_canvas_t canvas;
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
     lh_ui_canvas_set_size(lh_addr_of(canvas), size);
+    lh_ui_view_t view;
     lh_ui_view_init(lh_addr_of(view));
     lh_ui_view_set_canvas(lh_addr_of(view), lh_addr_of(canvas));
     lh_ui_view_set_strip_height(lh_addr_of(view), lh_ui_scalar(32));
 
     /* Every strip is the same height, the last pulled up: the backend sizes its
        buffer once instead of once per strip. */
-    strip = lh_test::out(lh_ui_view_get_strip, lh_addr_of(view), 0);
+    lh_ui_rect_t strip = lh_test::out(lh_ui_view_get_strip, lh_addr_of(view), 0);
     EXPECT_TRUE(rect_is(strip, lh_test::rect_of(0, 0, 160, 32)));
     strip = lh_test::out(lh_ui_view_get_strip, lh_addr_of(view), 1);
     EXPECT_TRUE(rect_is(strip, lh_test::rect_of(0, 32, 160, 32)));
@@ -932,10 +929,9 @@ TEST(view, input_a_move_drags_the_thumb)
    the end, a notch up comes back. */
 TEST(view, input_a_wheel_notch_scrolls_one_step)
 {
-    view_fixture f;
-
     ASSERT_GT(wheel_step(), 0) << "the system is set not to scroll on the wheel";
     ASSERT_LE(wheel_step(), 300) << "the fixture scrolls 300 at most";
+    view_fixture f;
     EXPECT_TRUE(feed(f, wheel_event(50, 50, 0, -LH_OS_INPUT_WHEEL_NOTCH)));
     EXPECT_EQ(scroll_y_of(f.box), wheel_step());
     EXPECT_TRUE(feed(f, wheel_event(50, 50, 0, LH_OS_INPUT_WHEEL_NOTCH)));
@@ -965,17 +961,17 @@ TEST(view, input_a_cancel_ends_the_press_without_a_click)
 
 TEST(view, input_losing_the_focus_lets_the_press_go)
 {
-    scene s;
-    pressed_panel p;
-    lh_ui_view_t view;
-    lh_ui_canvas_t canvas;
     lh_os_input_event_t down = pointer_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, 140, 100);
     lh_os_input_event_t focus_out{};
 
+    scene s;
     build_scene(s);
+    pressed_panel p;
     build_pressed_panel(p);
     lh_ui_entity_set_style_v(lh_addr_of(s.panel), lh_addr_of(p.style));
+    lh_ui_canvas_t canvas;
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
+    lh_ui_view_t view;
     lh_ui_view_init(lh_addr_of(view));
     lh_ui_view_set_canvas(lh_addr_of(view), lh_addr_of(canvas));
     lh_ui_view_set_root_v(lh_addr_of(view), lh_addr_of(s.panel));
@@ -999,12 +995,12 @@ TEST(view, input_a_cancel_with_no_press_open_does_nothing)
    the click twice. */
 TEST(view, input_a_synthesized_event_is_not_for_the_view)
 {
-    view_fixture f;
     lh_os_input_event_t click = pointer_event(lh_os_input_kind_click, lh_os_input_button_primary, 105, 150);
     lh_os_input_event_t down = pointer_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, 105, 150);
 
     lh_os_input_event_set_flags(lh_addr_of(click), LH_OS_INPUT_FLAG_SYNTHESIZED);
     lh_os_input_event_set_flags(lh_addr_of(down), LH_OS_INPUT_FLAG_SYNTHESIZED);
+    view_fixture f;
     EXPECT_FALSE(feed(f, click));
     EXPECT_FALSE(feed(f, down));
     EXPECT_EQ(scroll_y_of(f.box), 0);
@@ -1012,7 +1008,6 @@ TEST(view, input_a_synthesized_event_is_not_for_the_view)
 
 TEST(view, input_keys_and_text_go_to_the_view)
 {
-    view_fixture f;
     lh_os_input_event_t key{};
     lh_os_input_event_t text{};
     lh_os_input_event_t axis{};
@@ -1020,6 +1015,7 @@ TEST(view, input_keys_and_text_go_to_the_view)
     lh_os_input_event_init_key(lh_addr_of(key), lh_os_key_tab, lh_bool_true, lh_bool_false, 0U, 0U);
     lh_os_input_event_init_text(lh_addr_of(text), 0x0416U, 0U);
     lh_os_input_event_init_controller_axis(lh_addr_of(axis), 0U, lh_os_input_axis_left_x, 100, 0U);
+    view_fixture f;
     EXPECT_TRUE(feed(f, key));
     EXPECT_TRUE(feed(f, text));
     EXPECT_FALSE(feed(f, axis)) << "a controller is not for the view";
@@ -1031,13 +1027,13 @@ TEST(view, input_keys_and_text_go_to_the_view)
    the synthesized click after them is not a second page. */
 TEST(view, controller_handle_gives_the_view_the_raw_events)
 {
-    view_fixture f;
-    lh_os_controller_t controller;
     const lh_os_input_event_t down =
         pointer_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, 105, 150);
     const lh_os_input_event_t up =
         pointer_event(lh_os_input_kind_pointer_up, lh_os_input_button_primary, 105, 150);
 
+    lh_os_controller_t controller;
+    view_fixture f;
     lh_os_controller_init(lh_addr_of(controller), lh_ui_view_controller_handle_event_is_handled,
                           lh_addr_of(f.view), lh_null);
     EXPECT_TRUE(lh_os_controller_feed(lh_addr_of(controller), lh_addr_of(down)));
@@ -1047,13 +1043,13 @@ TEST(view, controller_handle_gives_the_view_the_raw_events)
 
 TEST(view, controller_cancel_ends_the_press_without_a_click)
 {
-    view_fixture f;
-    lh_os_controller_t controller;
     const lh_os_input_event_t down =
         pointer_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, 105, 150);
     const lh_os_input_event_t up =
         pointer_event(lh_os_input_kind_pointer_up, lh_os_input_button_primary, 105, 150);
 
+    lh_os_controller_t controller;
+    view_fixture f;
     lh_os_controller_init(lh_addr_of(controller), lh_ui_view_controller_handle_event_is_handled,
                           lh_addr_of(f.view), lh_null);
     lh_os_controller_set_cancel_cb(lh_addr_of(controller), lh_ui_view_controller_cancel);
@@ -1256,21 +1252,20 @@ TEST(view, a_pointer_cancel_ends_that_pointer_only)
 
 TEST(view, a_cancel_resets_every_pointer)
 {
-    two_buttons f;
     lh_os_input_event_t focus_out{};
     lh_os_input_event_t mouse_down =
         pointer_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, 40, 20);
     lh_os_input_event_t mouse_up =
         pointer_event(lh_os_input_kind_pointer_up, lh_os_input_button_primary, 40, 20);
-    lh_os_input_pointer_id_t id;
 
     lh_os_input_event_init(lh_addr_of(focus_out), lh_os_input_kind_focus_out,
                            lh_os_input_device_kind_keyboard, 0U);
+    two_buttons f;
     EXPECT_TRUE(lh_ui_view_input(lh_addr_of(f.view), lh_addr_of(mouse_down)));
     EXPECT_TRUE(feed(f, touch_event(lh_os_input_kind_pointer_down, 180, 20, 2U)));
     EXPECT_TRUE(feed(f, touch_event(lh_os_input_kind_pointer_down, 200, 30, 4U)));
     EXPECT_TRUE(lh_ui_view_input(lh_addr_of(f.view), lh_addr_of(focus_out)));
-    for (id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
+    for (lh_os_input_pointer_id_t id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
     {
         EXPECT_FALSE(slot_is_active(f.view, id)) << "pointer " << static_cast<int>(id);
     }
@@ -1286,10 +1281,10 @@ TEST(view_pointer, the_idle_initializer_is_what_init_leaves)
 {
     const lh_ui_view_pointer_t idle = lh_ui_view_pointer_idle_initializer();
     lh_ui_view_pointer_t pointer;
-    lh_ui_point_t point;
 
     lh_ui_view_pointer_init(lh_addr_of(pointer));
     const lh_ui_view_pointer_t *const both[] = {lh_addr_of(idle), lh_addr_of(pointer)};
+    lh_ui_point_t point;
     for (const lh_ui_view_pointer_t *each : both)
     {
         EXPECT_FALSE(lh_ui_view_pointer_is_active(each));
@@ -1310,7 +1305,6 @@ TEST(view_pointer, the_idle_initializer_is_what_init_leaves)
 TEST(view_pointer, a_press_past_the_threshold_is_a_drag_and_tracks_its_speed)
 {
     lh_ui_view_pointer_t pointer;
-    lh_ui_point_t velocity;
 
     lh_ui_view_pointer_init(lh_addr_of(pointer));
     lh_ui_view_pointer_start(lh_addr_of(pointer), point_of(10, 10));
@@ -1318,6 +1312,7 @@ TEST(view_pointer, a_press_past_the_threshold_is_a_drag_and_tracks_its_speed)
     EXPECT_FALSE(lh_ui_view_pointer_is_past_threshold(lh_addr_of(pointer), point_of(13, 7)));
     EXPECT_TRUE(lh_ui_view_pointer_is_past_threshold(lh_addr_of(pointer), point_of(10, 14)));
     lh_ui_view_pointer_track(lh_addr_of(pointer), point_of(10, 2));
+    lh_ui_point_t velocity;
     lh_ui_view_pointer_copy_velocity(lh_addr_of(pointer), lh_addr_of(velocity));
     EXPECT_EQ(lh_ui_point_get_y(lh_addr_of(velocity)), lh_ui_scalar(4)) << "half of the 8 step";
     lh_ui_view_pointer_reset(lh_addr_of(pointer));

@@ -29,11 +29,10 @@ count_click(lh_ui_button_t *self, lh_ptr context)
 void
 build_styles(lh_ui_style_t *rest, lh_ui_style_t *hot, lh_ui_style_t *pressed)
 {
-    lh_ui_paint_t paint;
-    lh_ui_color_t color;
-
     lh_ui_style_init(rest);
+    lh_ui_color_t color;
     lh_ui_color_init(&color, 10, 20, 30, 255);
+    lh_ui_paint_t paint;
     lh_ui_paint_init_color(&paint, &color);
     lh_ui_style_assign_fill(rest, &paint);
     lh_ui_style_set_radius_v(rest, lh_ui_scalar(8));
@@ -61,14 +60,14 @@ click(lh_ui_button_t *button)
 
 TEST(entity_button, init_is_an_entity_with_nothing_declared)
 {
-    lh_ui_button_t button;
     lh_ui_rect_t rect;
-    lh_ui_rect_t stored;
 
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 40, 20);
+    lh_ui_button_t button;
     lh_ui_button_init(lh_addr_of(button), rect);
 
-    stored = lh_test::out(lh_ui_entity_copy_rect, lh_ui_button_as_entity(lh_addr_of(button)));
+    lh_ui_rect_t stored =
+        lh_test::out(lh_ui_entity_copy_rect, lh_ui_button_as_entity(lh_addr_of(button)));
     EXPECT_TRUE(lh_ui_rect_eq(lh_addr_of(rect), lh_addr_of(stored)));
     EXPECT_EQ(lh_ui_entity_get_class(lh_ui_button_as_entity(lh_addr_of(button))),
               lh_addr_of(lh_ui_button_class));
@@ -79,12 +78,12 @@ TEST(entity_button, init_is_an_entity_with_nothing_declared)
 
 TEST(entity_button, as_button_tells_a_button_from_anything_else)
 {
-    lh_ui_button_t button;
-    lh_ui_entity_t plain;
     lh_ui_rect_t rect;
 
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 40, 20);
+    lh_ui_button_t button;
     lh_ui_button_init(lh_addr_of(button), rect);
+    lh_ui_entity_t plain;
     lh_ui_entity_init(lh_addr_of(plain), rect);
 
     EXPECT_EQ(lh_ui_entity_as_button(lh_ui_button_as_entity(lh_addr_of(button))), lh_addr_of(button));
@@ -106,10 +105,9 @@ struct captioned_fixture
     captioned_fixture()
     {
         lh_ui_mask_t mask;
-        lh_ui_rect_t rect;
-
         lh_ui_mask_init(&mask, g_block, 4, 2, 4, 8);
         lh_ui_entity_init(&root, rect_of(0, 0, 200, 60));
+        lh_ui_rect_t rect;
         lh_ui_rect_init(&rect, 10, 10, 120, 30);
         lh_ui_button_init(&button, rect);
         lh_ui_button_set_on_click(&button, count_click, lh_null);
@@ -150,9 +148,9 @@ TEST(entity_button, a_caption_and_a_picture_hand_the_pointer_to_their_button)
 
 TEST(entity_button, a_click_on_the_caption_reaches_the_button)
 {
-    captioned_fixture f;
     lh_ui_point_t on_text = point_of(70, 24);
 
+    captioned_fixture f;
     EXPECT_EQ(lh_ui_entity_click(&f.root, on_text), lh_ui_button_as_entity(&f.button))
         << "the caption took the click away from the button";
     EXPECT_EQ(g_clicks, 1);
@@ -161,9 +159,9 @@ TEST(entity_button, a_click_on_the_caption_reaches_the_button)
 
 TEST(entity_button, a_click_on_the_picture_reaches_the_button)
 {
-    captioned_fixture f;
     lh_ui_point_t on_picture = point_of(21, 20);
 
+    captioned_fixture f;
     EXPECT_EQ(lh_ui_entity_click(&f.root, on_picture), lh_ui_button_as_entity(&f.button));
     EXPECT_EQ(g_clicks, 1);
 }
@@ -173,9 +171,9 @@ TEST(entity_button, a_click_on_the_picture_reaches_the_button)
 TEST(entity_button, a_click_nobody_claims_still_lands_where_it_pointed)
 {
     lh_ui_entity_t root;
-    lh_ui_label_t caption;
 
     lh_ui_entity_init(&root, rect_of(0, 0, 200, 60));
+    lh_ui_label_t caption;
     lh_ui_label_init(&caption, rect_of(20, 20, 40, 10), "Hi");
     lh_ui_entity_add_child(&root, lh_ui_label_as_entity(&caption));
 
@@ -188,12 +186,12 @@ TEST(entity_button, a_click_nobody_claims_still_lands_where_it_pointed)
    somewhere it comes from is the container the button is. */
 TEST(entity_button, a_button_is_the_container_its_flow_comes_from)
 {
-    lh_ui_button_t button;
-    lh_ui_layout_t layout;
     lh_ui_rect_t rect;
 
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 40, 20);
+    lh_ui_button_t button;
     lh_ui_button_init(lh_addr_of(button), rect);
+    lh_ui_layout_t layout;
     lh_ui_layout_init(lh_addr_of(layout), lh_ui_axis_horizontal, lh_ui_scalar(6));
 
     EXPECT_EQ(lh_ui_container_as_entity(lh_ui_button_as_container(lh_addr_of(button))),
@@ -210,14 +208,14 @@ TEST(entity_button, a_button_is_the_container_its_flow_comes_from)
    puts the resting one back without the app touching a pointer. */
 TEST(entity_button, a_hot_button_shows_the_hot_style_and_leaves_it)
 {
-    lh_ui_button_t button;
     lh_ui_style_t rest;
     lh_ui_style_t hot;
     lh_ui_style_t pressed;
-    lh_ui_rect_t rect;
 
     build_styles(lh_addr_of(rest), lh_addr_of(hot), lh_addr_of(pressed));
+    lh_ui_rect_t rect;
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 40, 20);
+    lh_ui_button_t button;
     lh_ui_button_init(lh_addr_of(button), rect);
     lh_ui_button_set_style(lh_addr_of(button), lh_addr_of(rest));
     lh_ui_button_set_hot_style_v(lh_addr_of(button), lh_addr_of(hot));
@@ -239,17 +237,17 @@ TEST(entity_button, a_hot_button_shows_the_hot_style_and_leaves_it)
    hot one, because that is what its entity style is. */
 TEST(entity_button, hover_and_press_stack_without_the_button_knowing)
 {
-    lh_ui_button_t button;
     lh_ui_style_t rest;
     lh_ui_style_t hot;
     lh_ui_style_t pressed;
-    lh_ui_style_t hot_pressed;
-    lh_ui_rect_t rect;
 
     build_styles(lh_addr_of(rest), lh_addr_of(hot), lh_addr_of(pressed));
+    lh_ui_style_t hot_pressed;
     lh_ui_style_init(lh_addr_of(hot_pressed));
     lh_ui_style_set_pressed(lh_addr_of(hot), lh_addr_of(hot_pressed));
+    lh_ui_rect_t rect;
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 40, 20);
+    lh_ui_button_t button;
     lh_ui_button_init(lh_addr_of(button), rect);
     lh_ui_button_set_style(lh_addr_of(button), lh_addr_of(rest));
     lh_ui_button_set_hot_style_v(lh_addr_of(button), lh_addr_of(hot));
@@ -269,14 +267,14 @@ TEST(entity_button, hover_and_press_stack_without_the_button_knowing)
    button would sit in a look that was asked for and never arrived. */
 TEST(entity_button, styles_set_while_hot_show_at_once)
 {
-    lh_ui_button_t button;
     lh_ui_style_t rest;
     lh_ui_style_t hot;
     lh_ui_style_t pressed;
-    lh_ui_rect_t rect;
 
     build_styles(lh_addr_of(rest), lh_addr_of(hot), lh_addr_of(pressed));
+    lh_ui_rect_t rect;
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 40, 20);
+    lh_ui_button_t button;
     lh_ui_button_init(lh_addr_of(button), rect);
     lh_ui_button_set_style(lh_addr_of(button), lh_addr_of(rest));
     lh_ui_button_set_hot_v(lh_addr_of(button), lh_bool_true);
@@ -293,14 +291,14 @@ TEST(entity_button, styles_set_while_hot_show_at_once)
    nothing, and must not put an empty style on the entity. */
 TEST(entity_button, a_button_with_no_hot_style_ignores_hover)
 {
-    lh_ui_button_t button;
     lh_ui_style_t rest;
     lh_ui_style_t hot;
     lh_ui_style_t pressed;
-    lh_ui_rect_t rect;
 
     build_styles(lh_addr_of(rest), lh_addr_of(hot), lh_addr_of(pressed));
+    lh_ui_rect_t rect;
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 40, 20);
+    lh_ui_button_t button;
     lh_ui_button_init(lh_addr_of(button), rect);
     lh_ui_button_set_style(lh_addr_of(button), lh_addr_of(rest));
 
@@ -312,15 +310,15 @@ TEST(entity_button, a_button_with_no_hot_style_ignores_hover)
 
 TEST(entity_button, a_click_calls_the_callback_with_its_context)
 {
-    lh_ui_button_t button;
+    int context = 7;
+
     lh_ui_style_t rest;
     lh_ui_style_t hot;
     lh_ui_style_t pressed;
-    lh_ui_rect_t rect;
-    int context = 7;
-
     build_styles(lh_addr_of(rest), lh_addr_of(hot), lh_addr_of(pressed));
+    lh_ui_rect_t rect;
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 40, 20);
+    lh_ui_button_t button;
     lh_ui_button_init(lh_addr_of(button), rect);
     lh_ui_button_set_style(lh_addr_of(button), lh_addr_of(rest));
     g_clicks = 0;
@@ -340,10 +338,10 @@ TEST(entity_button, a_click_calls_the_callback_with_its_context)
    null call. */
 TEST(entity_button, a_click_without_a_callback_does_nothing)
 {
-    lh_ui_button_t button;
     lh_ui_rect_t rect;
 
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 40, 20);
+    lh_ui_button_t button;
     lh_ui_button_init(lh_addr_of(button), rect);
     g_clicks = 0;
 
@@ -357,13 +355,13 @@ TEST(entity_button, a_click_without_a_callback_does_nothing)
    that cares still hears it through the tree. */
 TEST(entity_button, a_click_still_reaches_the_tree)
 {
-    lh_ui_button_t button;
-    lh_ui_rect_t rect;
     int clicks = 0;
-    lh_ui_point_t local;
 
+    lh_ui_rect_t rect;
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 40, 20);
+    lh_ui_button_t button;
     lh_ui_button_init(lh_addr_of(button), rect);
+    lh_ui_point_t local;
     lh_ui_point_init(lh_addr_of(local), lh_ui_scalar(0), lh_ui_scalar(0));
     EXPECT_EQ(lh_ui_entity_click(lh_ui_button_as_entity(lh_addr_of(button)), local),
               lh_ui_button_as_entity(lh_addr_of(button)));

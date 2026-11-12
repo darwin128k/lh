@@ -50,8 +50,8 @@ struct sw_fixture
     push_clip(int x, int y, int w, int h)
     {
         lh_ui_rect_t clip;
-        lh_ui_point_t zero;
         lh_ui_rect_init(lh_addr_of(clip), x, y, w, h);
+        lh_ui_point_t zero;
         lh_ui_point_init(lh_addr_of(zero), 0, 0);
         lh_ui_canvas_push(lh_addr_of(canvas), zero, lh_addr_of(clip));
     }
@@ -108,10 +108,10 @@ expect_same_pixels(const sw_fixture &a, const sw_fixture &b)
 
 TEST(ui_canvas_sw, fill_rect_stores_the_box_and_nothing_else)
 {
-    sw_fixture f;
     const lh_ui_color_t c = color_of(1, 2, 3, 255);
     const lh_ui_rect_t rect = rect_of(2, 3, 4, 5);
 
+    sw_fixture f;
     lh_ui_canvas_fill_rect(lh_addr_of(f.canvas), lh_addr_of(rect), lh_addr_of(c));
 
     for (int y = 0; y < side; ++y)
@@ -126,10 +126,10 @@ TEST(ui_canvas_sw, fill_rect_stores_the_box_and_nothing_else)
 
 TEST(ui_canvas_sw, fill_rect_off_the_pixmap_is_cut_to_it)
 {
-    sw_fixture f;
     const lh_ui_color_t c = color_of(1, 2, 3, 255);
     const lh_ui_rect_t rect = rect_of(-5, side - 2, 8, 10);
 
+    sw_fixture f;
     lh_ui_canvas_fill_rect(lh_addr_of(f.canvas), lh_addr_of(rect), lh_addr_of(c));
 
     EXPECT_EQ(f.at(0, side - 1), 0xff010203u);
@@ -140,10 +140,10 @@ TEST(ui_canvas_sw, fill_rect_off_the_pixmap_is_cut_to_it)
 
 TEST(ui_canvas_sw, clip_cuts_and_pop_restores)
 {
-    sw_fixture f;
     const lh_ui_color_t c = color_of(1, 2, 3, 255);
     const lh_ui_rect_t rect = rect_of(0, 0, side, side);
 
+    sw_fixture f;
     f.push_clip(4, 4, 2, 3);
     lh_ui_canvas_fill_rect(lh_addr_of(f.canvas), lh_addr_of(rect), lh_addr_of(c));
     lh_ui_canvas_pop(lh_addr_of(f.canvas));
@@ -158,9 +158,9 @@ TEST(ui_canvas_sw, clip_cuts_and_pop_restores)
 
 TEST(ui_canvas_sw, clear_fills_everything_even_under_a_clip)
 {
-    sw_fixture f;
     const lh_ui_color_t c = color_of(5, 6, 7, 255);
 
+    sw_fixture f;
     f.push_clip(1, 1, 2, 2);
     lh_ui_canvas_clear(lh_addr_of(f.canvas), lh_addr_of(c));
     lh_ui_canvas_pop(lh_addr_of(f.canvas));
@@ -172,11 +172,11 @@ TEST(ui_canvas_sw, clear_fills_everything_even_under_a_clip)
 /* On a transparent pixmap a pixel's alpha is exactly its coverage. */
 TEST(ui_canvas_sw, round_rect_alpha_is_the_radius_coverage)
 {
-    sw_fixture f;
     const lh_ui_color_t c = color_of(10, 20, 30, 255);
     const lh_ui_rect_t rect = rect_of(2, 3, 17, 13);
     const lh_ui_scalar_t radius = lh_ui_radius_clamp(lh_addr_of(rect), lh_ui_scalar(5));
 
+    sw_fixture f;
     lh_ui_canvas_fill_round_rect(lh_addr_of(f.canvas), lh_addr_of(rect), lh_ui_scalar(5), lh_addr_of(c));
 
     for (int y = 0; y < side; ++y)
@@ -197,11 +197,11 @@ TEST(ui_canvas_sw, round_rect_alpha_is_the_radius_coverage)
 
 TEST(ui_canvas_sw, round_rect_matches_the_canvas_fallback_pixel_for_pixel)
 {
-    sw_fixture sw;
     sw_fixture fallback(&g_rect_only);
     const lh_ui_color_t c = color_of(200, 100, 50, 255);
     const lh_ui_rect_t rect = rect_of(1, 2, 21, 19);
 
+    sw_fixture sw;
     lh_ui_canvas_fill_round_rect(lh_addr_of(sw.canvas), lh_addr_of(rect), LH_UI_RADIUS_CIRCLE, lh_addr_of(c));
     lh_ui_canvas_fill_round_rect(lh_addr_of(fallback.canvas), lh_addr_of(rect), LH_UI_RADIUS_CIRCLE,
                                  lh_addr_of(c));
@@ -211,11 +211,11 @@ TEST(ui_canvas_sw, round_rect_matches_the_canvas_fallback_pixel_for_pixel)
 
 TEST(ui_canvas_sw, clipped_round_rect_matches_the_canvas_fallback)
 {
-    sw_fixture sw;
     sw_fixture fallback(&g_rect_only);
     const lh_ui_color_t c = color_of(200, 100, 50, 180);
     const lh_ui_rect_t rect = rect_of(1, 2, 21, 19);
 
+    sw_fixture sw;
     sw.push_clip(3, 0, 9, 7);
     fallback.push_clip(3, 0, 9, 7);
     lh_ui_canvas_fill_round_rect(lh_addr_of(sw.canvas), lh_addr_of(rect), lh_ui_scalar(8), lh_addr_of(c));
@@ -228,12 +228,12 @@ TEST(ui_canvas_sw, clipped_round_rect_matches_the_canvas_fallback)
 
 TEST(ui_canvas_sw, mask_alpha_is_the_mask_coverage)
 {
-    sw_fixture f;
     const lh_ui_color_t c = color_of(1, 2, 3, 255);
     const lh_ui_mask_t mask = glyph();
     lh_ui_point_t at;
 
     lh_ui_point_init(lh_addr_of(at), 6, 9);
+    sw_fixture f;
     lh_ui_canvas_fill_mask(lh_addr_of(f.canvas), lh_addr_of(mask), at, lh_addr_of(c));
 
     for (int y = 0; y < 4; ++y)
@@ -254,13 +254,13 @@ TEST(ui_canvas_sw, mask_alpha_is_the_mask_coverage)
 
 TEST(ui_canvas_sw, clipped_mask_matches_the_canvas_fallback)
 {
-    sw_fixture sw;
     sw_fixture fallback(&g_rect_only);
     const lh_ui_color_t c = color_of(1, 2, 3, 255);
     const lh_ui_mask_t mask = glyph();
     lh_ui_point_t at;
 
     lh_ui_point_init(lh_addr_of(at), 6, 9);
+    sw_fixture sw;
     sw.push_clip(7, 10, 2, 2);
     fallback.push_clip(7, 10, 2, 2);
     lh_ui_canvas_fill_mask(lh_addr_of(sw.canvas), lh_addr_of(mask), at, lh_addr_of(c));
@@ -273,12 +273,12 @@ TEST(ui_canvas_sw, clipped_mask_matches_the_canvas_fallback)
 
 TEST(ui_canvas_sw, mask_off_the_pixmap_is_cut_to_it)
 {
-    sw_fixture f;
     const lh_ui_color_t c = color_of(1, 2, 3, 255);
     const lh_ui_mask_t mask = glyph();
     lh_ui_point_t at;
 
     lh_ui_point_init(lh_addr_of(at), side - 2, -1);
+    sw_fixture f;
     lh_ui_canvas_fill_mask(lh_addr_of(f.canvas), lh_addr_of(mask), at, lh_addr_of(c));
 
     /* Glyph row 1 starts 200, 255 and lands on pixmap row 0; the rest is cut. */
@@ -289,12 +289,12 @@ TEST(ui_canvas_sw, mask_off_the_pixmap_is_cut_to_it)
 
 TEST(ui_canvas_sw, an_empty_context_cuts_every_write_away)
 {
-    lh_ui_canvas_sw_t sw;
-    lh_ui_canvas_t canvas;
     const lh_ui_color_t c = color_of(1, 2, 3, 255);
     const lh_ui_rect_t rect = rect_of(0, 0, 10, 10);
 
+    lh_ui_canvas_sw_t sw;
     lh_ui_canvas_sw_init(lh_addr_of(sw));
+    lh_ui_canvas_t canvas;
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_sw), lh_addr_of(sw));
     lh_ui_canvas_fill_rect(lh_addr_of(canvas), lh_addr_of(rect), lh_addr_of(c));
     lh_ui_canvas_fill_round_rect(lh_addr_of(canvas), lh_addr_of(rect), lh_ui_scalar(3), lh_addr_of(c));
@@ -341,8 +341,8 @@ void
 push_round_clip(sw_fixture &f, int x, int y, int w, int h, int radius)
 {
     lh_ui_rect_t clip;
-    lh_ui_point_t zero;
     lh_ui_rect_init(lh_addr_of(clip), x, y, w, h);
+    lh_ui_point_t zero;
     lh_ui_point_init(lh_addr_of(zero), 0, 0);
     lh_ui_canvas_push_round(lh_addr_of(f.canvas), zero, lh_addr_of(clip), static_cast<lh_ui_scalar_t>(radius));
 }
@@ -367,19 +367,19 @@ draw_everything(sw_fixture &f)
 
 TEST(ui_canvas_sw, a_gradient_box_matches_the_canvas_fallback_pixel_for_pixel)
 {
-    lh_ui_color_t colors[2];
-    lh_ui_gradient_t gradient;
-    lh_ui_paint_t paint;
-    lh_ui_radii_t radii;
     const lh_ui_rect_t rect = rect_of(1, 2, 21, 19);
 
     /* A row of colours sent whole has to land as the same row sent a run of one
        colour at a time through fill_rect: corners, see-through stops, clip and all. */
+    lh_ui_color_t colors[2];
     colors[0] = color_of(10, 200, 30, 255);
     colors[1] = color_of(250, 20, 140, 120);
+    lh_ui_gradient_t gradient;
     lh_ui_gradient_init(lh_addr_of(gradient));
     lh_ui_gradient_init_stops(lh_addr_of(gradient), colors, lh_null, 2);
+    lh_ui_paint_t paint;
     lh_ui_paint_init_gradient(lh_addr_of(paint), lh_addr_of(gradient));
+    lh_ui_radii_t radii;
     lh_ui_radii_init(lh_addr_of(radii), 0, 7, 3, 11);
     for (int angle = -1; angle < 360; angle += 45)
     {
@@ -500,13 +500,13 @@ TEST(ui_canvas_sw, every_glyph_of_the_font_matches_the_canvas_fallback_pixel_for
 
 TEST(ui_canvas_clip, coverage_is_the_product_of_the_rounds)
 {
-    lh_ui_canvas_clip_round_t rounds[2];
-    lh_ui_canvas_clip_t clip;
     const lh_ui_rect_t a = rect_of(0, 0, 20, 20);
     const lh_ui_rect_t b = rect_of(2, 2, 20, 20);
 
+    lh_ui_canvas_clip_round_t rounds[2];
     lh_ui_canvas_clip_round_init(rounds + 0, &a, lh_ui_scalar(8));
     lh_ui_canvas_clip_round_init(rounds + 1, &b, lh_ui_scalar(8));
+    lh_ui_canvas_clip_t clip;
     lh_ui_canvas_clip_init(lh_addr_of(clip), &a, rounds, 2U);
     for (int y = 0; y < 22; ++y)
     {
@@ -522,13 +522,13 @@ TEST(ui_canvas_clip, coverage_is_the_product_of_the_rounds)
 /* The middle a row is split into must be wholly inside: coverage 255. */
 TEST(ui_canvas_clip, split_row_middle_is_fully_covered)
 {
-    lh_ui_canvas_clip_round_t rounds[2];
-    lh_ui_canvas_clip_t clip;
     const lh_ui_rect_t a = rect_of(1, 0, 20, 21);
     const lh_ui_rect_t b = rect_of(4, 3, 17, 15);
 
+    lh_ui_canvas_clip_round_t rounds[2];
     lh_ui_canvas_clip_round_init(rounds + 0, &a, lh_ui_scalar(9));
     lh_ui_canvas_clip_round_init(rounds + 1, &b, LH_UI_RADIUS_CIRCLE);
+    lh_ui_canvas_clip_t clip;
     lh_ui_canvas_clip_init(lh_addr_of(clip), &b, rounds, 2U);
     for (int y = -1; y < 23; ++y)
     {
@@ -547,12 +547,12 @@ TEST(ui_canvas_clip, split_row_middle_is_fully_covered)
 
 TEST(ui_canvas_sw, rounded_clip_alpha_is_the_clip_coverage)
 {
-    sw_fixture f;
     const lh_ui_color_t c = color_of(10, 20, 30, 255);
     const lh_ui_rect_t all = rect_of(0, 0, side, side);
     const lh_ui_rect_t clip = rect_of(3, 2, 18, 16);
     const lh_ui_scalar_t radius = lh_ui_radius_clamp(&clip, lh_ui_scalar(7));
 
+    sw_fixture f;
     push_round_clip(f, 3, 2, 18, 16, 7);
     lh_ui_canvas_fill_rect(lh_addr_of(f.canvas), lh_addr_of(all), lh_addr_of(c));
     lh_ui_canvas_pop(lh_addr_of(f.canvas));
@@ -598,9 +598,9 @@ TEST(ui_canvas_sw, rounded_clip_matches_the_canvas_fallback_for_every_primitive)
 
 TEST(ui_canvas_sw, nested_rounded_clips_match_the_canvas_fallback)
 {
-    sw_fixture sw;
     sw_fixture fallback(&g_rect_only);
 
+    sw_fixture sw;
     push_round_clip(sw, 0, 0, 20, 20, 9);
     push_round_clip(fallback, 0, 0, 20, 20, 9);
     push_round_clip(sw, 4, 3, 19, 18, 6);
@@ -615,10 +615,10 @@ TEST(ui_canvas_sw, nested_rounded_clips_match_the_canvas_fallback)
 
 TEST(ui_canvas_sw, pop_drops_the_rounded_cut)
 {
-    sw_fixture f;
     const lh_ui_color_t c = color_of(1, 2, 3, 255);
     const lh_ui_rect_t corner = rect_of(3, 2, 1, 1);
 
+    sw_fixture f;
     push_round_clip(f, 3, 2, 18, 16, 7);
     EXPECT_EQ(lh_ui_canvas_get_round_count(lh_addr_of(f.canvas)), 1U);
     lh_ui_canvas_pop(lh_addr_of(f.canvas));
@@ -642,26 +642,26 @@ TEST(ui_canvas_sw, radius_zero_push_is_a_plain_rect_clip)
 /* A container with a corner radius cuts its children along the same corner. */
 TEST(ui_canvas_sw, container_cuts_its_children_along_its_corners)
 {
-    sw_fixture f;
     lh_ui_color_t c = color_of(9, 9, 9, 255);
-    lh_ui_paint_t paint;
-    lh_ui_style_t box_style;
-    lh_ui_style_t child_style;
-    lh_ui_container_t box;
-    lh_ui_entity_t child;
     const lh_ui_rect_t box_rect = rect_of(2, 2, 20, 20);
 
+    lh_ui_paint_t paint;
     lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(c));
+    lh_ui_style_t box_style;
     lh_ui_style_init(lh_addr_of(box_style));
     lh_ui_style_set_radius_v(lh_addr_of(box_style), lh_ui_scalar(8));
+    lh_ui_style_t child_style;
     lh_ui_style_init(lh_addr_of(child_style));
     lh_ui_style_assign_fill(lh_addr_of(child_style), lh_addr_of(paint));
+    lh_ui_container_t box;
     lh_ui_container_init(lh_addr_of(box), box_rect);
     lh_ui_entity_set_style_v(lh_ui_container_as_entity(lh_addr_of(box)), lh_addr_of(box_style));
+    lh_ui_entity_t child;
     lh_ui_entity_init(lh_addr_of(child), rect_of(0, 0, side, side));
     lh_ui_entity_set_style_v(lh_addr_of(child), lh_addr_of(child_style));
     lh_ui_entity_add_child(lh_ui_container_as_entity(lh_addr_of(box)), lh_addr_of(child));
 
+    sw_fixture f;
     lh_ui_entity_draw(lh_ui_container_as_entity(lh_addr_of(box)), lh_addr_of(f.canvas));
 
     EXPECT_EQ(f.at(2, 2), sentinel);     /* the cut corner */
@@ -674,10 +674,10 @@ TEST(ui_canvas_sw, container_cuts_its_children_along_its_corners)
 lh_ui_shadow_t
 shadow_of(int peak, int spread, int dx, int dy)
 {
-    lh_ui_shadow_t shadow;
     lh_ui_color_t black;
 
     lh_ui_color_init(lh_addr_of(black), 0, 0, 0, static_cast<lh_u8_t>(peak));
+    lh_ui_shadow_t shadow;
     lh_ui_shadow_init(lh_addr_of(shadow));
     lh_ui_shadow_set_color(lh_addr_of(shadow), black);
     lh_ui_shadow_set_spread_v(lh_addr_of(shadow), lh_ui_scalar_of(spread));
@@ -687,11 +687,11 @@ shadow_of(int peak, int spread, int dx, int dy)
 
 TEST(ui_canvas_sw, a_shadow_reaches_out_of_its_box_and_is_gone_one_spread_past_it)
 {
-    sw_fixture f;
     const lh_ui_shadow_t shadow = shadow_of(255, 4, 0, 0);
     const lh_ui_rect_t box = rect_of(8, 8, 8, 8);
     const lh_ui_color_t white = color_of(255, 255, 255, 255);
 
+    sw_fixture f;
     lh_ui_canvas_clear(lh_addr_of(f.canvas), lh_addr_of(white));
     EXPECT_TRUE(lh_ui_canvas_shadow(lh_addr_of(f.canvas), lh_addr_of(box), lh_ui_scalar(2), lh_addr_of(shadow)));
 
@@ -707,11 +707,11 @@ TEST(ui_canvas_sw, a_shadow_reaches_out_of_its_box_and_is_gone_one_spread_past_i
  * the left. Both edges are the same distance from the middle of the box. */
 TEST(ui_canvas_sw, a_shadow_is_the_same_on_both_sides_of_an_odd_box)
 {
-    sw_fixture f;
     const lh_ui_shadow_t shadow = shadow_of(255, 4, 0, 0);
     const lh_ui_rect_t box = rect_of(8, 8, 5, 8);
     const lh_ui_color_t white = color_of(255, 255, 255, 255);
 
+    sw_fixture f;
     lh_ui_canvas_clear(lh_addr_of(f.canvas), lh_addr_of(white));
     EXPECT_TRUE(lh_ui_canvas_shadow(lh_addr_of(f.canvas), lh_addr_of(box), lh_ui_scalar(0), lh_addr_of(shadow)));
 
@@ -722,11 +722,11 @@ TEST(ui_canvas_sw, a_shadow_is_the_same_on_both_sides_of_an_odd_box)
  * would have shaded: the shadow asks the same coverage the fill does. */
 TEST(ui_canvas_sw, a_rounded_shadow_stays_off_pixels_the_fill_covers)
 {
-    sw_fixture f;
     const lh_ui_shadow_t shadow = shadow_of(255, 4, 0, 0);
     const lh_ui_rect_t box = rect_of(6, 6, 12, 12);
     const lh_ui_color_t white = color_of(255, 255, 255, 255);
 
+    sw_fixture f;
     lh_ui_canvas_clear(lh_addr_of(f.canvas), lh_addr_of(white));
     EXPECT_TRUE(lh_ui_canvas_shadow(lh_addr_of(f.canvas), lh_addr_of(box), lh_ui_scalar(6), lh_addr_of(shadow)));
 
@@ -740,15 +740,15 @@ TEST(ui_canvas_sw, a_rounded_shadow_stays_off_pixels_the_fill_covers)
  * shadow. This is what a partial frame in strips does, every frame. */
 TEST(ui_canvas_sw, a_shadow_cut_by_the_area_is_the_same_shadow)
 {
-    sw_fixture whole;
-    sw_fixture cut;
     const lh_ui_shadow_t shadow = shadow_of(200, 5, 1, 2);
     const lh_ui_rect_t box = rect_of(9, 9, 6, 6);
     const lh_ui_color_t white = color_of(250, 250, 250, 255);
 
+    sw_fixture whole;
     lh_ui_canvas_clear(lh_addr_of(whole.canvas), lh_addr_of(white));
     lh_ui_canvas_shadow(lh_addr_of(whole.canvas), lh_addr_of(box), lh_ui_scalar(3), lh_addr_of(shadow));
 
+    sw_fixture cut;
     lh_ui_canvas_clear(lh_addr_of(cut.canvas), lh_addr_of(white));
     for (int y = 0; y < side; ++y)
     {
@@ -764,7 +764,6 @@ TEST(ui_canvas_sw, a_shadow_cut_by_the_area_is_the_same_shadow)
  * same shadow: a backend that has no shadow renderer still gets this effect. */
 TEST(ui_canvas_sw, the_shadow_without_a_slot_is_the_shadow_with_one)
 {
-    sw_fixture slot;
     sw_fixture fallback(lh_addr_of(g_rect_only));
     const lh_ui_shadow_t shadow = shadow_of(180, 5, 2, 3);
     const lh_ui_rect_t box = rect_of(7, 6, 9, 10);
@@ -773,6 +772,7 @@ TEST(ui_canvas_sw, the_shadow_without_a_slot_is_the_shadow_with_one)
 
     /* fill_rect, not clear: g_rect_only has no clear slot, so the two
        backgrounds would not have been the same pixels to begin with. */
+    sw_fixture slot;
     lh_ui_canvas_fill_rect(lh_addr_of(slot.canvas), lh_addr_of(everything), lh_addr_of(white));
     lh_ui_canvas_shadow(lh_addr_of(slot.canvas), lh_addr_of(box), lh_ui_scalar(4), lh_addr_of(shadow));
 
@@ -786,10 +786,10 @@ TEST(ui_canvas_sw, the_shadow_without_a_slot_is_the_shadow_with_one)
  * paying for a pixel loop that every pixel of which is cut away. */
 TEST(ui_canvas_sw, a_shadow_the_clip_cannot_see_paints_nothing_and_says_so)
 {
-    sw_fixture f;
     const lh_ui_shadow_t shadow = shadow_of(255, 4, 0, 0);
     const lh_ui_rect_t box = rect_of(0, 0, 4, 4);
 
+    sw_fixture f;
     f.push_clip(12, 12, 4, 4);
     EXPECT_FALSE(lh_ui_canvas_shadow(lh_addr_of(f.canvas), lh_addr_of(box), lh_ui_scalar(1), lh_addr_of(shadow)));
     lh_ui_canvas_pop(lh_addr_of(f.canvas));
@@ -802,7 +802,6 @@ TEST(ui_canvas_sw, a_shadow_the_clip_cannot_see_paints_nothing_and_says_so)
  * different from its neighbour is the window reading something it should not. */
 TEST(ui_canvas_sw, glass_over_a_flat_picture_stays_flat)
 {
-    sw_fixture f;
     const lh_ui_rect_t rect = rect_of(2, 2, 20, 20);
     const lh_ui_rect_t everything = rect_of(0, 0, side, side);
     const lh_ui_color_t dark = color_of(33, 37, 43, 255);
@@ -810,9 +809,10 @@ TEST(ui_canvas_sw, glass_over_a_flat_picture_stays_flat)
     const lh_ui_color_t tint = color_of(236, 240, 248, 46);
     /* Radius 5 keeps five rows above the panel and five below, so the rect
        alone is not enough scratch. */
-    lh_u8_t scratch[side * (side + 16) * 4];
     int odd = 0;
 
+    lh_u8_t scratch[side * (side + 16) * 4];
+    sw_fixture f;
     lh_ui_canvas_use_scratch(lh_addr_of(f.canvas), scratch, sizeof(scratch));
     lh_ui_canvas_fill_rect(lh_addr_of(f.canvas), lh_addr_of(everything), lh_addr_of(dark));
     lh_ui_canvas_fill_rect(lh_addr_of(f.canvas), lh_addr_of(rect), lh_addr_of(row));
@@ -842,13 +842,12 @@ TEST(ui_canvas_sw, glass_over_a_flat_picture_stays_flat)
  * from the last. */
 TEST(ui_canvas_sw, glass_is_the_same_panel_in_a_clipped_frame_as_in_a_whole_one)
 {
-    sw_fixture whole;
-    sw_fixture clipped;
     const lh_ui_rect_t rect = rect_of(4, 4, 16, 14);
     const lh_ui_color_t tint = color_of(236, 240, 248, 46);
-    lh_u8_t scratch[side * side * 4];
 
     /* Something with edges in it: a blur of one flat colour is invisible. */
+    sw_fixture whole;
+    sw_fixture clipped;
     for (int y = 0; y < side; ++y)
     {
         for (int x = 0; x < side; ++x)
@@ -860,6 +859,7 @@ TEST(ui_canvas_sw, glass_is_the_same_panel_in_a_clipped_frame_as_in_a_whole_one)
             lh_ui_canvas_fill_rect(lh_addr_of(clipped.canvas), lh_addr_of(one), lh_addr_of(c));
         }
     }
+    lh_u8_t scratch[side * side * 4];
     lh_ui_canvas_use_scratch(lh_addr_of(whole.canvas), scratch, sizeof(scratch));
     EXPECT_TRUE(lh_ui_canvas_glass(lh_addr_of(whole.canvas), lh_addr_of(rect), lh_ui_scalar(4), lh_ui_scalar(4),
                                    lh_addr_of(tint)));
@@ -878,7 +878,6 @@ TEST(ui_canvas_sw, glass_is_the_same_panel_in_a_clipped_frame_as_in_a_whole_one)
  * was there — here a single white pixel on black, which a blur would grey. */
 TEST(ui_canvas_sw, glass_leaves_the_square_corner_of_a_round_panel)
 {
-    sw_fixture f;
     const lh_ui_rect_t rect = rect_of(4, 4, 16, 16);
     const lh_ui_rect_t everything = rect_of(0, 0, side, side);
     const lh_ui_rect_t speck = rect_of(4, 4, 1, 1);
@@ -887,6 +886,7 @@ TEST(ui_canvas_sw, glass_leaves_the_square_corner_of_a_round_panel)
     const lh_ui_color_t tint = color_of(236, 240, 248, 80);
     lh_u8_t scratch[side * (side + 16) * 4];
 
+    sw_fixture f;
     lh_ui_canvas_use_scratch(lh_addr_of(f.canvas), scratch, sizeof(scratch));
     lh_ui_canvas_fill_rect(lh_addr_of(f.canvas), lh_addr_of(everything), lh_addr_of(black));
     lh_ui_canvas_fill_rect(lh_addr_of(f.canvas), lh_addr_of(speck), lh_addr_of(white));
@@ -900,14 +900,15 @@ TEST(ui_canvas_sw, glass_leaves_the_square_corner_of_a_round_panel)
 
 TEST(ui_canvas_sw_bricks, shadow_pass_is_the_box_grown_by_the_outset)
 {
-    sw_fixture f;
     const lh_ui_shadow_t shadow = shadow_of(255, 4, 0, 0);
     const lh_ui_shadow_t none = shadow_of(0, 0, 0, 0);
     const lh_ui_rect_t box = rect_of(8, 8, 8, 8);
-    const lh_s32_t outset = static_cast<lh_s32_t>(lh_ui_shadow_get_outset(lh_addr_of(shadow), lh_addr_of(box)));
-    lh_ui_canvas_sw_shadow_pass_t pass;
+    const lh_s32_t outset =
+        static_cast<lh_s32_t>(lh_ui_shadow_get_outset(lh_addr_of(shadow), lh_addr_of(box)));
 
     ASSERT_GT(outset, 0);
+    lh_ui_canvas_sw_shadow_pass_t pass;
+    sw_fixture f;
     EXPECT_TRUE(lh_ui_canvas_sw_shadow_pass_init(lh_addr_of(f.sw), lh_addr_of(box), lh_ui_scalar(2), lh_addr_of(shadow),
                                                  lh_addr_of(pass)));
     EXPECT_EQ(pass.left, 8 - outset);
@@ -922,13 +923,13 @@ TEST(ui_canvas_sw_bricks, shadow_pass_is_the_box_grown_by_the_outset)
 
 TEST(ui_canvas_sw_bricks, shadow_rows_draw_what_the_backend_draws)
 {
-    sw_fixture a;
-    sw_fixture b;
     const lh_ui_shadow_t shadow = shadow_of(200, 4, 1, 2);
     const lh_ui_rect_t box = rect_of(6, 7, 9, 8);
-    lh_ui_canvas_sw_shadow_pass_t pass;
 
+    sw_fixture a;
     EXPECT_TRUE(lh_ui_canvas_sw_shadow(lh_addr_of(a.sw), lh_addr_of(box), lh_ui_scalar(3), lh_addr_of(shadow)));
+    lh_ui_canvas_sw_shadow_pass_t pass;
+    sw_fixture b;
     ASSERT_TRUE(lh_ui_canvas_sw_shadow_pass_init(lh_addr_of(b.sw), lh_addr_of(box), lh_ui_scalar(3), lh_addr_of(shadow),
                                                  lh_addr_of(pass)));
     for (lh_s32_t y = 0; y < side; ++y)

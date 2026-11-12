@@ -32,9 +32,9 @@ TEST(wstr_view_make, empty_string_is_empty)
    characters between the endpoints, and the same terminator at the start. */
 TEST(wstr_view_make, empty_string_matches_the_literal_spelling)
 {
-    lh_wstr_view_t v;
     const lh_wstr_view_t lit = lh_wstr_view_lit(L"");
 
+    lh_wstr_view_t v;
     lh_wstr_view_init(lh_addr_of(v), L"");
 
     ASSERT_NE(lh_wstr_view_get_data(&v), lh_null);

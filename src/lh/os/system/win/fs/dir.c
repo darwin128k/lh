@@ -46,9 +46,8 @@ lh_os_system_fs_dir_pattern(lh_str_cptr path, lh_os_str_t *out)
 lh_os_system_fs_dir_handle_t
 lh_os_system_fs_dir_open(lh_str_cptr path)
 {
-    lh_os_str_t pattern;
-
     lh_assert_runtime_ref(path);
+    lh_os_str_t pattern;
     struct lh_os_system_fs_dir_state *const state =
         lh_os_system_fs_dir_pattern(path, lh_addr_of(pattern))
             ? lh_ptr_cast(struct lh_os_system_fs_dir_state,
@@ -130,9 +129,8 @@ lh_os_system_fs_dir_name_max(void)
 lh_bool_t
 lh_os_system_fs_dir_create(lh_str_cptr path)
 {
-    lh_os_str_t os_path;
-
     lh_assert_runtime_ref(path);
+    lh_os_str_t os_path;
     const lh_bool_t ok = lh_os_system_str_init_by_utf8(lh_addr_of(os_path), path);
     const lh_bool_t created = lh_cast_static(
         lh_bool_t, ok && lh_math_ne(CreateDirectoryW(lh_os_str_get_data(lh_addr_of(os_path)), lh_null), 0));

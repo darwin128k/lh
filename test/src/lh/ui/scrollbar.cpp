@@ -116,15 +116,15 @@ TEST(entity_scrollbar, thumb_never_gets_shorter_than_the_minimum)
 TEST(entity_scrollbar, horizontal_thumb_runs_along_x)
 {
     lh_ui_container_t box;
-    lh_ui_entity_t content;
-    lh_ui_scrollbar_t bar;
-    lh_ui_point_t scroll;
 
     lh_ui_container_init(lh_addr_of(box), rect_of(0, 0, 100, 100));
+    lh_ui_entity_t content;
     lh_ui_entity_init(lh_addr_of(content), rect_of(0, 0, 400, 100));
     lh_ui_entity_add_child(lh_ui_container_as_entity(lh_addr_of(box)), lh_addr_of(content));
+    lh_ui_scrollbar_t bar;
     lh_ui_scrollbar_init(lh_addr_of(bar), rect_of(0, 100, 200, 10),
                                 lh_ui_axis_horizontal, lh_addr_of(box));
+    lh_ui_point_t scroll;
     lh_ui_point_init(lh_addr_of(scroll), 300, 0);
     lh_ui_container_set_scroll_v(lh_addr_of(box), scroll);
 
@@ -156,25 +156,25 @@ TEST(entity_scrollbar, draw_fills_the_track_then_the_thumb)
 {
     bar_fixture f(400);
     lh_test::draw_log log;
-    lh_ui_canvas_t canvas;
     lh_ui_color_t track_color;
-    lh_ui_color_t thumb_color;
-    lh_ui_paint_t track_paint;
-    lh_ui_paint_t thumb_paint;
-    lh_ui_style_t track_style;
-    lh_ui_style_t thumb_style;
 
     lh_ui_color_init(lh_addr_of(track_color), 1, 1, 1, 255);
+    lh_ui_color_t thumb_color;
     lh_ui_color_init(lh_addr_of(thumb_color), 2, 2, 2, 255);
+    lh_ui_paint_t track_paint;
     lh_ui_paint_init_color(lh_addr_of(track_paint), lh_addr_of(track_color));
+    lh_ui_paint_t thumb_paint;
     lh_ui_paint_init_color(lh_addr_of(thumb_paint), lh_addr_of(thumb_color));
+    lh_ui_style_t track_style;
     lh_ui_style_init(lh_addr_of(track_style));
+    lh_ui_style_t thumb_style;
     lh_ui_style_init(lh_addr_of(thumb_style));
     lh_ui_style_assign_fill(lh_addr_of(track_style), lh_addr_of(track_paint));
     lh_ui_style_assign_fill(lh_addr_of(thumb_style), lh_addr_of(thumb_paint));
     lh_ui_style_set_radius_v(lh_addr_of(thumb_style), LH_UI_RADIUS_CIRCLE);
     lh_ui_entity_set_style_v(f.bar_entity(), lh_addr_of(track_style));
     lh_ui_scrollbar_set_thumb_style(lh_addr_of(f.bar), lh_addr_of(thumb_style));
+    lh_ui_canvas_t canvas;
     lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), true, false);
 
     lh_ui_entity_draw(f.bar_entity(), lh_addr_of(canvas));
@@ -208,17 +208,17 @@ TEST_P(entity_scrollbar_mode, decides_draw_and_click)
     const mode_case c = GetParam();
     bar_fixture f(c.content_height);
     lh_test::draw_log log;
-    lh_ui_canvas_t canvas;
     lh_ui_color_t color;
-    lh_ui_paint_t paint;
-    lh_ui_style_t style;
 
     lh_ui_color_init(lh_addr_of(color), 1, 1, 1, 255);
+    lh_ui_paint_t paint;
     lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(color));
+    lh_ui_style_t style;
     lh_ui_style_init(lh_addr_of(style));
     lh_ui_style_assign_fill(lh_addr_of(style), lh_addr_of(paint));
     lh_ui_entity_set_style_v(f.bar_entity(), lh_addr_of(style));
     lh_ui_scrollbar_set_mode(lh_addr_of(f.bar), c.mode);
+    lh_ui_canvas_t canvas;
     lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), true, false);
 
     EXPECT_EQ(lh_ui_entity_is_shown(f.bar_entity()) != 0, c.shown);
@@ -292,9 +292,9 @@ TEST(entity_scrollbar, page_toward_without_a_click)
 {
     bar_fixture f(400);
     lh_ui_point_t below;
-    lh_ui_point_t on;
 
     lh_ui_point_init(lh_addr_of(below), 105, 180);
+    lh_ui_point_t on;
     lh_ui_point_init(lh_addr_of(on), 105, 10);
     EXPECT_EQ(lh_ui_scrollbar_get_page_toward(lh_addr_of(f.bar), below), lh_ui_scalar(100));
     EXPECT_EQ(lh_ui_scrollbar_get_page_toward(lh_addr_of(f.bar), on), lh_ui_scalar(0));
@@ -307,10 +307,9 @@ TEST(entity_scrollbar, contains_thumb_and_set_scroll_at)
 {
     bar_fixture f(400);
     lh_ui_point_t on_thumb;
-    lh_ui_point_t off_thumb;
-    lh_ui_point_t at_mid;
 
     lh_ui_point_init(lh_addr_of(on_thumb), 105, 10);
+    lh_ui_point_t off_thumb;
     lh_ui_point_init(lh_addr_of(off_thumb), 105, 180);
     EXPECT_EQ(lh_ui_scrollbar_contains_thumb(lh_addr_of(f.bar), on_thumb), lh_bool_true);
     EXPECT_EQ(lh_ui_scrollbar_contains_thumb(lh_addr_of(f.bar), off_thumb), lh_bool_false);
@@ -318,6 +317,7 @@ TEST(entity_scrollbar, contains_thumb_and_set_scroll_at)
     EXPECT_EQ(lh_ui_scrollbar_get_thumb_start_at(lh_addr_of(f.bar), on_thumb), lh_ui_scalar(10));
 
     /* Thumb start at y 75 → scroll 150 (track 200, thumb 50, max 300). */
+    lh_ui_point_t at_mid;
     lh_ui_point_init(lh_addr_of(at_mid), 105, 75);
     lh_ui_scrollbar_set_scroll_at(lh_addr_of(f.bar), at_mid);
     EXPECT_EQ(f.scroll_y(), 150);
@@ -357,10 +357,9 @@ TEST(entity_scrollbar, draw_thumb_needs_a_canvas_and_a_thumb_style)
 TEST(entity_scrollbar, thumb_within_a_known_max_matches_the_measured_thumb)
 {
     bar_fixture f(400);
-    lh_ui_point_t max;
 
     f.scroll_to(150);
-    max = lh_test::out(lh_ui_container_get_scroll_max, lh_addr_of(f.box));
+    lh_ui_point_t max = lh_test::out(lh_ui_container_get_scroll_max, lh_addr_of(f.box));
     EXPECT_EQ(lh_ui_scrollbar_get_thumb_length_within(lh_addr_of(f.bar), max),
               lh_ui_scrollbar_get_thumb_length(lh_addr_of(f.bar)));
     EXPECT_EQ(lh_ui_scrollbar_get_thumb_start_within(lh_addr_of(f.bar), max), lh_ui_scalar(75));
@@ -394,15 +393,15 @@ TEST(entity_scrollbar, get_bound_needs_the_same_container)
 TEST(entity_scrollbar, scroll_damage_covers_the_viewport_and_every_bound_track)
 {
     bar_fixture f(400);
-    lh_ui_scrollbar_t across;
-    lh_ui_canvas_t canvas;
     const lh_ui_rect_t *damage;
 
     lh_ui_entity_remove_child(lh_addr_of(f.root), f.bar_entity());
+    lh_ui_scrollbar_t across;
     lh_ui_scrollbar_init(lh_addr_of(across), rect_of(0, 100, 100, 10), lh_ui_axis_horizontal,
                                 lh_addr_of(f.box));
     lh_ui_entity_add_child(lh_addr_of(f.root), lh_ui_scrollbar_as_entity(lh_addr_of(across)));
     lh_ui_entity_add_child(lh_addr_of(f.root), f.bar_entity());
+    lh_ui_canvas_t canvas;
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
 
     lh_ui_scrollbar_add_scroll_damage(lh_addr_of(f.box), lh_addr_of(canvas));

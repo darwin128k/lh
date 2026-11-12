@@ -6,13 +6,11 @@
 lh_uint_t
 lh_date_month_index_add(lh_date_month_index_t *self, lh_uint_t value)
 {
-    lh_ullong_t cur;
-    lh_uint_t overflow;
-
     lh_assert_runtime_ref(self);
-    cur = lh_cast_static(lh_ullong_t, lh_ptr_deref(self));
-    overflow = lh_interval_closed_wrap_add(lh_addr_of(cur), lh_cast_static(lh_ullong_t, value), 0,
-                                           lh_cast_static(lh_ullong_t, LH_DATE_MONTH_INDEX_MAX));
+    lh_ullong_t cur = lh_cast_static(lh_ullong_t, lh_ptr_deref(self));
+    lh_uint_t overflow =
+        lh_interval_closed_wrap_add(lh_addr_of(cur), lh_cast_static(lh_ullong_t, value), 0,
+                                    lh_cast_static(lh_ullong_t, LH_DATE_MONTH_INDEX_MAX));
     lh_ptr_deref(self) = lh_cast_static(lh_date_month_index_t, cur);
     return overflow;
 }
@@ -20,13 +18,11 @@ lh_date_month_index_add(lh_date_month_index_t *self, lh_uint_t value)
 lh_uint_t
 lh_date_month_index_sub(lh_date_month_index_t *self, lh_uint_t value)
 {
-    lh_ullong_t cur;
-    lh_uint_t overflow;
-
     lh_assert_runtime_ref(self);
-    cur = lh_cast_static(lh_ullong_t, lh_ptr_deref(self));
-    overflow = lh_interval_closed_wrap_sub(lh_addr_of(cur), lh_cast_static(lh_ullong_t, value), 0,
-                                           lh_cast_static(lh_ullong_t, LH_DATE_MONTH_INDEX_MAX));
+    lh_ullong_t cur = lh_cast_static(lh_ullong_t, lh_ptr_deref(self));
+    lh_uint_t overflow =
+        lh_interval_closed_wrap_sub(lh_addr_of(cur), lh_cast_static(lh_ullong_t, value), 0,
+                                    lh_cast_static(lh_ullong_t, LH_DATE_MONTH_INDEX_MAX));
     lh_ptr_deref(self) = lh_cast_static(lh_date_month_index_t, cur);
     return overflow;
 }

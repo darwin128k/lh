@@ -106,7 +106,6 @@ snapshot(built *out, lh_ui_entity_t **nodes, lh_ui_entity_t *root, lh_ui_canvas_
     /* Ask the root for its children the way a frame does: that is the step that
        places a flow, so the rects compared below are the ones a drawn frame uses. */
     lh_ui_point_t offset;
-    lh_ui_point_t on_caption;
 
     lh_ui_entity_get_children_transform(root, &offset);
     for (int i = 0; i < k_rows; ++i)
@@ -121,6 +120,7 @@ snapshot(built *out, lh_ui_entity_t **nodes, lh_ui_entity_t *root, lh_ui_canvas_
        says whether the pointer reaches the button or only the text on it. */
     g_clicks = 0;
     g_clicked_a_button = lh_bool_false;
+    lh_ui_point_t on_caption;
     lh_ui_point_init(&on_caption, lh_ui_scalar(70), lh_ui_scalar(88));
     out->clicked = lh_ui_entity_click(root, on_caption);
     out->clicks = g_clicks;
@@ -273,10 +273,10 @@ build_by_decl(scene &s, lh_ui_entity_t **nodes, lh_ui_entity_t **root, lh_ui_can
               lh_ui_decl_fault_t *fault)
 {
     lh_ui_decl_t rows[k_rows];
-    lh_bool_t ok;
 
     fill_rows(s, rows);
-    ok = lh_ui_decl_build(rows, k_rows, nodes, g_storage, (lh_u32_t)sizeof(g_storage), root, fault);
+    lh_bool_t ok =
+        lh_ui_decl_build(rows, k_rows, nodes, g_storage, (lh_u32_t)sizeof(g_storage), root, fault);
     lh_ui_canvas_init(canvas, lh_addr_of(lh_ui_canvas_backend_null), lh_null);
     return ok == lh_bool_true;
 }
@@ -288,23 +288,23 @@ build_by_decl(scene &s, lh_ui_entity_t **nodes, lh_ui_entity_t **root, lh_ui_can
    same click. */
 TEST(ui_decl, a_tree_from_a_table_is_the_tree_written_by_hand)
 {
-    scene hand_materials;
-    scene decl_materials;
-    hand_tree tree;
     lh_ui_entity_t *hand_nodes[k_rows] = {};
     lh_ui_entity_t *decl_nodes[k_rows] = {};
     lh_ui_entity_t *hand_root = nullptr;
     lh_ui_entity_t *decl_root = nullptr;
+
+    scene hand_materials;
+    hand_tree tree;
+    build_by_hand(hand_materials, tree, hand_nodes, &hand_root);
     lh_ui_canvas_t decl_canvas;
     lh_ui_decl_fault_t fault;
-    built hand;
-    built from_decl;
-
-    build_by_hand(hand_materials, tree, hand_nodes, &hand_root);
+    scene decl_materials;
     ASSERT_TRUE(build_by_decl(decl_materials, decl_nodes, &decl_root, &decl_canvas, &fault) !=
                 lh_bool_false)
         << "the declaration was refused: code " << (int)fault.code << " row " << (int)fault.index;
+    built hand;
     snapshot(&hand, hand_nodes, hand_root, &tree.canvas);
+    built from_decl;
     snapshot(&from_decl, decl_nodes, decl_root, &decl_canvas);
 
     for (int i = 0; i < k_rows; ++i)
@@ -353,15 +353,15 @@ TEST(ui_decl, a_tree_from_a_table_is_the_tree_written_by_hand)
    is a mistake an app actually makes. */
 TEST(ui_decl, a_child_cannot_be_declared_before_the_thing_that_holds_it)
 {
-    scene materials;
     lh_ui_entity_t *nodes[k_rows] = {};
     lh_ui_entity_t *root = nullptr;
-    lh_ui_decl_fault_t fault;
     lh_ui_decl_t rows[k_rows];
 
+    scene materials;
     fill_rows(materials, rows);
     rows[2].parent = 4; /* row 2 claims a parent that is declared after it */
 
+    lh_ui_decl_fault_t fault;
     EXPECT_FALSE(lh_ui_decl_build(rows, k_rows, nodes, g_storage, (lh_u32_t)sizeof(g_storage), &root,
                                   &fault) == lh_bool_true);
     EXPECT_EQ(fault.code, lh_ui_decl_error_parent);
@@ -372,7 +372,6 @@ TEST(ui_decl, a_table_with_no_root_is_not_a_tree)
 {
     lh_ui_entity_t *nodes[2] = {};
     lh_ui_entity_t *root = nullptr;
-    lh_ui_decl_fault_t fault;
     lh_ui_decl_t rows[2] = {};
 
     rows[0].kind = lh_ui_decl_kind_entity;
@@ -380,6 +379,7 @@ TEST(ui_decl, a_table_with_no_root_is_not_a_tree)
     rows[1].kind = lh_ui_decl_kind_label;
     rows[1].parent = LH_UI_DECL_ROOT; /* two roots: not a mistake a build can guess at */
 
+    lh_ui_decl_fault_t fault;
     EXPECT_FALSE(lh_ui_decl_build(rows, 2, nodes, g_storage, (lh_u32_t)sizeof(g_storage), &root,
                                   &fault) == lh_bool_true);
     EXPECT_EQ(fault.code, lh_ui_decl_error_roots);
@@ -387,16 +387,16 @@ TEST(ui_decl, a_table_with_no_root_is_not_a_tree)
 
 TEST(ui_decl, a_pool_too_small_for_the_rows_is_refused_not_overrun)
 {
-    scene materials;
     lh_ui_entity_t *nodes[k_rows] = {};
     lh_ui_entity_t *root = nullptr;
-    lh_ui_decl_fault_t fault;
     lh_ui_decl_t rows[k_rows];
-    lh_byte_t small[k_rows * 16];
 
+    scene materials;
     fill_rows(materials, rows);
     /* A pool for a few rows: the build measures what the rows need before it writes
        any of them, so this is a refusal and not a row outside the buffer. */
+    lh_ui_decl_fault_t fault;
+    lh_byte_t small[k_rows * 16];
     EXPECT_FALSE(lh_ui_decl_build(rows, k_rows, nodes, small, (lh_u32_t)sizeof(small), &root,
                                   &fault) == lh_bool_true);
     EXPECT_EQ(fault.code, lh_ui_decl_error_storage) << "the pool was written past instead of refused";
@@ -404,15 +404,15 @@ TEST(ui_decl, a_pool_too_small_for_the_rows_is_refused_not_overrun)
 
 TEST(ui_decl, a_scrollbar_naming_a_row_that_is_not_a_container_is_refused)
 {
-    scene materials;
     lh_ui_entity_t *nodes[k_rows] = {};
     lh_ui_entity_t *root = nullptr;
-    lh_ui_decl_fault_t fault;
     lh_ui_decl_t rows[k_rows];
 
+    scene materials;
     fill_rows(materials, rows);
     rows[7].as.scrollbar.box = 5; /* row 5 is a picture, not a container */
 
+    lh_ui_decl_fault_t fault;
     EXPECT_FALSE(lh_ui_decl_build(rows, k_rows, nodes, g_storage, (lh_u32_t)sizeof(g_storage), &root,
                                   &fault) == lh_bool_true);
     EXPECT_EQ(fault.code, lh_ui_decl_error_box);
@@ -423,12 +423,12 @@ TEST(ui_decl, an_unknown_kind_is_refused_with_its_row)
 {
     lh_ui_entity_t *nodes[1] = {};
     lh_ui_entity_t *root = nullptr;
-    lh_ui_decl_fault_t fault;
     lh_ui_decl_t rows[1] = {};
 
     rows[0].kind = (lh_ui_decl_kind_t)42;
     rows[0].parent = LH_UI_DECL_ROOT;
 
+    lh_ui_decl_fault_t fault;
     EXPECT_FALSE(lh_ui_decl_build(rows, 1, nodes, g_storage, (lh_u32_t)sizeof(g_storage), &root,
                                   &fault) == lh_bool_true);
     EXPECT_EQ(fault.code, lh_ui_decl_error_kind);
@@ -439,7 +439,6 @@ TEST(ui_decl, a_hidden_row_is_built_hidden_and_the_rest_are_not)
 {
     lh_ui_entity_t *nodes[2] = {};
     lh_ui_entity_t *root = nullptr;
-    lh_ui_decl_fault_t fault;
     lh_ui_decl_t rows[2] = {};
 
     rows[0].kind = lh_ui_decl_kind_container;
@@ -450,6 +449,7 @@ TEST(ui_decl, a_hidden_row_is_built_hidden_and_the_rest_are_not)
     rows[1].parent = 0;
     rows[1].hidden = lh_bool_true;
 
+    lh_ui_decl_fault_t fault;
     ASSERT_TRUE(lh_ui_decl_build(rows, 2, nodes, g_storage, (lh_u32_t)sizeof(g_storage), &root, &fault) ==
                 lh_bool_true);
     EXPECT_EQ(lh_ui_entity_is_hidden(nodes[0]), lh_bool_false);
@@ -460,7 +460,6 @@ TEST(ui_decl, an_input_row_edits_the_buffer_it_names_and_starts_with_its_text)
 {
     lh_ui_entity_t *nodes[2] = {};
     lh_ui_entity_t *root = nullptr;
-    lh_ui_decl_fault_t fault;
     lh_ui_decl_t rows[2] = {};
     static lh_char_t buffer[9];
 
@@ -476,6 +475,7 @@ TEST(ui_decl, an_input_row_edits_the_buffer_it_names_and_starts_with_its_text)
     rows[1].as.input.capacity = 8;
     rows[1].as.input.text = "hello";
 
+    lh_ui_decl_fault_t fault;
     ASSERT_TRUE(lh_ui_decl_build(rows, 2, nodes, g_storage, (lh_u32_t)sizeof(g_storage), &root, &fault) ==
                 lh_bool_true);
     EXPECT_STREQ(buffer, "hello");

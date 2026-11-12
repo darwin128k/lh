@@ -76,8 +76,9 @@ every brick.
   statement that uses it — not in a pile at the top of the function (that is
   the C89 habit). A variable the whole body works with may stay at the top.
   `python tools/check-decls.py <paths>` (the Authum repository holds the
-  checker) reports the piles: two or more declarations in a row at the start of
-  a block.
+  checker) reports the piles — two or more declarations in a row that the next
+  statement does not all use — and must report 0; `--fix` moves them (see the
+  Authum AGENTS.md for what it does and does not move).
 - **A loop counter lives in the `for` header.** A variable that belongs to the
   loop alone is declared in the header itself: `for (lh_usize_t i = 0; i < 8u;
   ++i)`. A separate `lh_usize_t i;` line above the loop is right only when the

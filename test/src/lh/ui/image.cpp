@@ -41,12 +41,11 @@ plain_style(lh_ui_scalar_t padding)
 
 TEST(entity_image, init_keeps_the_mask_the_rect_and_the_class)
 {
-    lh_ui_image_t image;
     const lh_ui_mask_t mask = block_mask();
-    lh_ui_size_t size;
 
+    lh_ui_image_t image;
     lh_ui_image_init(&image, rect_of(10, 20, 16, 16), &mask);
-    size = lh_test::out(lh_ui_image_get_size, &image);
+    lh_ui_size_t size = lh_test::out(lh_ui_image_get_size, &image);
 
     EXPECT_TRUE(rect_is(lh_test::out(lh_ui_entity_copy_rect, lh_ui_image_as_entity(&image)), rect_of(10, 20, 16, 16)));
     EXPECT_EQ(lh_ui_image_get_mask(&image), &mask);
@@ -63,9 +62,9 @@ TEST(entity_image, init_keeps_the_mask_the_rect_and_the_class)
 TEST(entity_image, as_image_tells_an_image_from_anything_else)
 {
     lh_ui_image_t image;
-    lh_ui_entity_t plain;
 
     lh_ui_image_init(&image, rect_of(0, 0, 4, 3), lh_null);
+    lh_ui_entity_t plain;
     lh_ui_entity_init(&plain, rect_of(0, 0, 4, 3));
 
     EXPECT_EQ(lh_ui_entity_as_image(lh_ui_image_as_entity(&image)), &image);
@@ -77,12 +76,12 @@ TEST(entity_image, as_image_tells_an_image_from_anything_else)
    left corner, so the rest of the box stays empty rather than stretching. */
 TEST(entity_image, the_picture_is_drawn_as_it_is_at_the_corner_of_the_box)
 {
-    lh_ui_image_t image;
     const lh_ui_mask_t mask = block_mask();
+
+    lh_ui_image_t image;
+    lh_ui_image_init(&image, rect_of(10, 20, 16, 16), &mask);
     lh_ui_canvas_t canvas;
     draw_log log;
-
-    lh_ui_image_init(&image, rect_of(10, 20, 16, 16), &mask);
     draw_log_init(&log, &canvas, false, false, true);
 
     lh_ui_entity_draw(lh_ui_image_as_entity(&image), &canvas);
@@ -96,14 +95,14 @@ TEST(entity_image, the_picture_is_drawn_as_it_is_at_the_corner_of_the_box)
    label's text gets. */
 TEST(entity_image, the_picture_starts_inside_the_padding)
 {
-    lh_ui_image_t image;
     const lh_ui_mask_t mask = block_mask();
     const lh_ui_style_t style = plain_style(lh_ui_scalar(2));
-    lh_ui_canvas_t canvas;
-    draw_log log;
 
+    lh_ui_image_t image;
     lh_ui_image_init(&image, rect_of(10, 20, 16, 16), &mask);
     lh_ui_entity_set_style_v(lh_ui_image_as_entity(&image), &style);
+    lh_ui_canvas_t canvas;
+    draw_log log;
     draw_log_init(&log, &canvas, false, false, true);
 
     lh_ui_entity_draw(lh_ui_image_as_entity(&image), &canvas);
@@ -116,15 +115,14 @@ TEST(entity_image, the_picture_starts_inside_the_padding)
 TEST(entity_image, nothing_is_drawn_without_a_mask)
 {
     lh_ui_image_t image;
-    lh_ui_canvas_t canvas;
-    lh_ui_size_t size;
-    draw_log log;
 
     lh_ui_image_init(&image, rect_of(10, 20, 16, 16), lh_null);
+    lh_ui_canvas_t canvas;
+    draw_log log;
     draw_log_init(&log, &canvas, false, false, true);
 
     lh_ui_entity_draw(lh_ui_image_as_entity(&image), &canvas);
-    size = lh_test::out(lh_ui_image_get_size, &image);
+    lh_ui_size_t size = lh_test::out(lh_ui_image_get_size, &image);
 
     EXPECT_EQ(log.mask_count, 0);
     EXPECT_EQ(lh_ui_size_get_width(&size), lh_ui_scalar(0));
@@ -133,15 +131,15 @@ TEST(entity_image, nothing_is_drawn_without_a_mask)
 
 TEST(entity_image, the_tint_is_the_colour_the_picture_is_drawn_in)
 {
-    lh_ui_image_t image;
     const lh_ui_mask_t mask = block_mask();
     lh_ui_color_t red;
-    lh_ui_canvas_t canvas;
-    draw_log log;
 
     lh_ui_color_init(&red, 10, 20, 30, 255);
+    lh_ui_image_t image;
     lh_ui_image_init(&image, rect_of(0, 0, 4, 3), &mask);
     lh_ui_image_set_tint_v(&image, &red);
+    lh_ui_canvas_t canvas;
+    draw_log log;
     draw_log_init(&log, &canvas, false, false, true);
 
     lh_ui_entity_draw(lh_ui_image_as_entity(&image), &canvas);
@@ -156,20 +154,20 @@ TEST(entity_image, the_tint_is_the_colour_the_picture_is_drawn_in)
    a picture on it is one style and one class rather than two entities. */
 TEST(entity_image, draw_keeps_the_base_class_fill)
 {
-    lh_ui_image_t image;
     const lh_ui_mask_t mask = block_mask();
     lh_ui_color_t color;
-    lh_ui_paint_t paint;
-    lh_ui_style_t style;
-    lh_ui_canvas_t canvas;
     lh_test::fill_probe probe;
 
     lh_ui_color_init(&color, 1, 2, 3, 255);
+    lh_ui_paint_t paint;
     lh_ui_paint_init_color(&paint, &color);
+    lh_ui_style_t style;
     lh_ui_style_init(&style);
     lh_ui_style_assign_fill(&style, &paint);
+    lh_ui_image_t image;
     lh_ui_image_init(&image, rect_of(0, 0, 4, 3), &mask);
     lh_ui_entity_set_style_v(lh_ui_image_as_entity(&image), &style);
+    lh_ui_canvas_t canvas;
     lh_test::fill_probe_init(&probe, &canvas, lh_test::fill_probe_backend(), rect_of(0, 0, 4, 3), color);
 
     lh_ui_entity_draw(lh_ui_image_as_entity(&image), &canvas);
@@ -182,12 +180,12 @@ TEST(entity_image, draw_keeps_the_base_class_fill)
    width and nothing more. */
 TEST(entity_image, an_image_measures_as_its_mask)
 {
-    lh_ui_image_t image;
     const lh_ui_mask_t mask = block_mask();
-    lh_ui_rect_t bounds;
 
+    lh_ui_image_t image;
     lh_ui_image_init(&image, rect_of(10, 20, 16, 16), &mask);
-    bounds = lh_test::out(lh_ui_entity_get_content_bounds, lh_ui_image_as_entity(&image));
+    lh_ui_rect_t bounds =
+        lh_test::out(lh_ui_entity_get_content_bounds, lh_ui_image_as_entity(&image));
     EXPECT_TRUE(rect_is(bounds, rect_of(10, 20, 4, 3)))
         << "the image measured the box it was given instead of the picture it shows";
 
@@ -202,18 +200,17 @@ TEST(entity_image, an_image_measures_as_its_mask)
    picture is 4 wide, and the flow believes the picture. */
 TEST(entity_image, a_wrap_place_gets_the_picture_its_own_width)
 {
-    lh_ui_container_t box;
-    lh_ui_image_t picture;
-    lh_ui_label_t caption;
     const lh_ui_mask_t mask = block_mask();
     const lh_ui_style_t style = plain_style(lh_ui_scalar(8));
-    lh_ui_layout_t layout;
-    lh_ui_place_t place;
 
+    lh_ui_container_t box;
     lh_ui_container_init(&box, rect_of(100, 50, 240, 160));
     lh_ui_entity_set_style_v(lh_ui_container_as_entity(&box), &style);
+    lh_ui_image_t picture;
     lh_ui_image_init(&picture, rect_of(0, 0, 16, 3), &mask);
+    lh_ui_label_t caption;
     lh_ui_label_init(&caption, rect_of(0, 0, 0, 16), "");
+    lh_ui_place_t place;
     lh_ui_place_init(&place, lh_ui_place_size_wrap, lh_ui_scalar(0));
     lh_ui_place_set_align(&place, lh_ui_place_align_center);
     lh_ui_entity_set_place_v(lh_ui_image_as_entity(&picture), &place);
@@ -222,6 +219,7 @@ TEST(entity_image, a_wrap_place_gets_the_picture_its_own_width)
     lh_ui_entity_set_place_v(lh_ui_label_as_entity(&caption), &place);
     lh_ui_entity_add_child(lh_ui_container_as_entity(&box), lh_ui_image_as_entity(&picture));
     lh_ui_entity_add_child(lh_ui_container_as_entity(&box), lh_ui_label_as_entity(&caption));
+    lh_ui_layout_t layout;
     lh_ui_layout_init(&layout, lh_ui_axis_horizontal, lh_ui_scalar(4));
     lh_ui_layout_set_justify(&layout, lh_ui_justify_center);
     lh_ui_container_set_layout(&box, &layout);
@@ -251,9 +249,9 @@ TEST(entity_image, a_wrap_place_gets_the_picture_its_own_width)
    a child that answers -1, because -1 is not a line to stand on. */
 TEST(entity_image, a_picture_has_no_baseline_until_it_is_given_one)
 {
-    lh_ui_image_t image;
     const lh_ui_mask_t mask = block_mask();
 
+    lh_ui_image_t image;
     lh_ui_image_init(&image, rect_of(0, 0, 4, 3), &mask);
 
     EXPECT_EQ(lh_ui_image_get_baseline(&image), lh_ui_scalar(-1));

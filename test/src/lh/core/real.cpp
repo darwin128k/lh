@@ -88,9 +88,9 @@ TEST(real_decimal, takes_the_text_apart)
 
 TEST(real_decimal, keeps_nineteen_digits_and_notes_the_rest)
 {
-    lh_real_decimal_t d;
     const std::string many = "12345678901234567890123";
 
+    lh_real_decimal_t d;
     ASSERT_TRUE(lh_real_decimal_parse(&d, many.data(), many.size()));
     EXPECT_EQ(lh_real_decimal_get_mantissa(&d), 1234567890123456789ULL);
     EXPECT_EQ(lh_real_decimal_get_exponent(&d), 4);
@@ -242,10 +242,10 @@ TEST(str_ptr_format_real, gives_the_shortest_float_digits)
 
 TEST(str_ptr_format_real, refuses_infinity_and_nan_and_a_short_buffer)
 {
-    char buf[4];
     EXPECT_EQ(format(std::numeric_limits<lh_real_t>::infinity()), "");
     EXPECT_EQ(format(-std::numeric_limits<lh_real_t>::infinity()), "");
     EXPECT_EQ(format(std::numeric_limits<lh_real_t>::quiet_NaN()), "");
+    char buf[4];
     EXPECT_EQ(lh_str_ptr_format_real(static_cast<lh_real_t>(123.5), buf, sizeof(buf)), 0U);
     EXPECT_EQ(lh_str_ptr_format_real(static_cast<lh_real_t>(12.5), buf, sizeof(buf)), 4U);
 }
@@ -334,10 +334,9 @@ TEST(str_ptr_format_real_fixed, rounds_to_the_decimals_asked)
 
 TEST(str_ptr_format_real_fixed, refuses_what_has_no_number_text_or_no_room)
 {
-    char buf[3];
-
     EXPECT_EQ(fixed(std::numeric_limits<lh_real_t>::infinity(), 2U), "");
     EXPECT_EQ(fixed(std::numeric_limits<lh_real_t>::quiet_NaN(), 2U), "");
+    char buf[3];
     EXPECT_EQ(lh_str_ptr_format_real_fixed(static_cast<lh_real_t>(1.5), 2U, buf, sizeof(buf)), 0U);
 }
 

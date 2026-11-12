@@ -101,8 +101,8 @@ TEST(util_bit_endian, le32_words_round_trip_lowest_word_first)
 
 TEST(util_bit_endian, pack_and_unpack_be64_round_trip)
 {
-    lh_byte_t bytes[8];
     const lh_u64_t value = 0x0123456789ABCDEFULL;
+    lh_byte_t bytes[8];
     lh_bit_pack_be64(value, bytes);
     EXPECT_EQ(bytes[0], 0x01u);
     EXPECT_EQ(bytes[7], 0xEFu);
@@ -111,8 +111,8 @@ TEST(util_bit_endian, pack_and_unpack_be64_round_trip)
 
 TEST(util_bit_endian, pack_and_unpack_le64_round_trip)
 {
-    lh_byte_t bytes[8];
     const lh_u64_t value = 0x0123456789ABCDEFULL;
+    lh_byte_t bytes[8];
     lh_bit_pack_le64(value, bytes);
     EXPECT_EQ(bytes[0], 0xEFu);
     EXPECT_EQ(bytes[7], 0x01u);

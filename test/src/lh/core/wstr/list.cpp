@@ -63,15 +63,14 @@ TEST_F(wstr_list, elements_are_wide_characters_not_bytes)
 
 TEST_F(wstr_list, join_assign_append_self)
 {
-    lh_wstr_list_t copy;
-    lh_wstr_t out;
-
     lh_wstr_list_push_back(&list, lh_wstr_view_lit(L"a"));
     lh_wstr_list_push_back(&list, lh_wstr_view_lit(L"bc"));
+    lh_wstr_t out;
     lh_wstr_init(&out);
     lh_wstr_list_join(&list, &out, L'|');
     EXPECT_EQ(std::wcscmp(lh_wstr_get_data(&out), L"a|bc"), 0);
 
+    lh_wstr_list_t copy;
     lh_wstr_list_init(&copy);
     lh_wstr_list_assign(&copy, &list);
     lh_wstr_list_append(&copy, &copy);

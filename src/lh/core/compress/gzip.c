@@ -172,9 +172,9 @@ lh_compress_gzip_put_trailer(lh_u32_t crc, lh_usize_t decoded_size, lh_byte_t *o
 lh_bool_t
 lh_compress_gzip_try_bound(lh_usize_t size, lh_usize_t *bound)
 {
-    lh_usize_t stream;
     const lh_usize_t frame =
         lh_math_add(LH_COMPRESS_GZIP_HEADER_SIZE, LH_COMPRESS_GZIP_TRAILER_SIZE);
+    lh_usize_t stream;
     if (!lh_compress_deflate_try_bound(size, &stream) ||
         lh_interval_closed_is_add_overflow(stream, frame, 0U, LH_USIZE_T_MAX))
     {

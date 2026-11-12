@@ -46,11 +46,11 @@ TEST(pair_equals_and_assign, compare_both_halves)
     const lh_pair_t a = lh_pair_make(lh_value_make_uint(1u), lh_value_make_sint(-1));
     const lh_pair_t b = lh_pair_make(lh_value_make_uint(1u), lh_value_make_sint(-1));
     const lh_pair_t c = lh_pair_make(lh_value_make_uint(1u), lh_value_make_sint(-2));
-    lh_pair_t d;
 
     EXPECT_TRUE(lh_pair_equals(&a, &b));
     EXPECT_FALSE(lh_pair_equals(&a, &c));
 
+    lh_pair_t d;
     lh_pair_init(&d);
     lh_pair_assign(&d, &c);
     EXPECT_TRUE(lh_pair_equals(&d, &c));

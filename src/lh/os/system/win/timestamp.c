@@ -6,9 +6,8 @@
 lh_bool_t
 lh_os_system_timestamp_try_get_now(lh_timestamp_t *out)
 {
-    lh_os_system_win_filetime_t ft;
-
     lh_assert_runtime_ref(out);
+    lh_os_system_win_filetime_t ft;
     GetSystemTimeAsFileTime(lh_addr_of(ft));
     lh_ptr_deref(out) = lh_os_system_timestamp_from_filetime(lh_addr_of(ft));
     return lh_bool_true;
@@ -17,11 +16,10 @@ lh_os_system_timestamp_try_get_now(lh_timestamp_t *out)
 lh_bool_t
 lh_os_system_timestamp_try_get_zone_offset(lh_timestamp_t utc, lh_s32_t *out)
 {
-    lh_os_system_win_filetime_t ft;
-
     lh_assert_runtime_ref(out);
     lh_os_system_win_systemtime_t universal;
 
+    lh_os_system_win_filetime_t ft;
     if (!lh_os_system_timestamp_to_filetime(utc, lh_addr_of(ft)) ||
         !FileTimeToSystemTime(lh_addr_of(ft), lh_addr_of(universal)))
     {

@@ -29,11 +29,10 @@ lh_timestamp_from_time(const lh_time_t *self)
 lh_timestamp_t
 lh_timestamp_from_datetime(const lh_datetime_t *self)
 {
-    lh_date_t date;
-    lh_time_t time;
-
     lh_assert_runtime_ref(self);
+    lh_date_t date;
     lh_datetime_get_date(self, lh_addr_of(date));
+    lh_time_t time;
     lh_datetime_get_time(self, lh_addr_of(time));
     return lh_timestamp_from_date(lh_addr_of(date)) + lh_timestamp_from_time(lh_addr_of(time));
 }

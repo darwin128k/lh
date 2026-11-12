@@ -53,8 +53,8 @@ TEST(compress_gzip, validates_optional_header_fields_and_header_crc)
                                    99, 111, 109, 109, 101, 110, 116, 0,   121, 41,  203, 47,
                                    40, 201, 204, 207, 75,  204, 81,  200, 72,  77,  76,  73,
                                    45, 2,   0,   135, 48,  239, 52,  15,  0,   0,   0};
-    lh_byte_t out[64];
     lh_usize_t written = 0;
+    lh_byte_t out[64];
     ASSERT_TRUE(lh_compress_gzip_try_decode(wire.data(), wire.size(), out, sizeof(out), &written));
     EXPECT_EQ(std::string(reinterpret_cast<char *>(out), written), "optional header");
     wire[13] ^= 1U;
@@ -577,8 +577,8 @@ TEST(compress_gzip_encode, reports_insufficient_output)
     std::unique_ptr<lh_compress_deflate_encoder_t> encoder(new lh_compress_deflate_encoder_t);
     lh_compress_deflate_encoder_init(encoder.get(), LH_COMPRESS_DEFLATE_MATCHER_CHAIN_LIMIT);
     const lh_byte_t input[] = {'a', 'b', 'c'};
-    lh_byte_t output[64];
     lh_usize_t written = 7U;
+    lh_byte_t output[64];
     EXPECT_FALSE(
         lh_compress_gzip_try_encode(encoder.get(), input, sizeof(input), output, 12U, &written));
     EXPECT_FALSE(

@@ -220,7 +220,6 @@ lh_ui_container_get_key_delta(const lh_ui_container_t *self, const lh_ui_key_inp
 lh_void
 lh_ui_container_place_children(const lh_ui_container_t *self, lh_ui_entity_transform_t *transform)
 {
-
     /* First, because everything below is about where the content ended up: the
        flow is the container's own job and this is the only place in a frame that
        can do it. The event carries a const self because events do; the children
@@ -269,9 +268,8 @@ lh_ui_container_scroll_by(lh_ui_container_t *self, lh_ui_scalar_t dx, lh_ui_scal
 lh_void
 lh_ui_container_on_key(lh_ui_container_t *self, const lh_ui_entity_event_t *event)
 {
-    lh_ui_point_t delta;
-
     lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_key);
+    lh_ui_point_t delta;
     lh_ui_container_get_key_delta(self, lh_ui_entity_event_get_key(event), lh_addr_of(delta));
     lh_ui_container_scroll_by(self, lh_ui_point_get_x(lh_addr_of(delta)),
                               lh_ui_point_get_y(lh_addr_of(delta)));
