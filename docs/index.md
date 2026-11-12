@@ -56,3 +56,4 @@ header under `include/lh/` and every implementation file under `src/lh/`.
 
 - [SPSC queue](subsystems/spsc.md) - fixed-record buffering between two threads.
 - [Execution](design/execution.md) - tasks, executors, mailboxes and stops (`lh/rail/`).
+- [Asynchronous I/O](design/io.md) - draft: LH beside libuv; poller, stream, pool, files and DNS.
