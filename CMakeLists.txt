@@ -337,9 +337,24 @@ set(LH_LIB_SOURCES
 
 # The CPU layer under the rail base without an OS (lh/rail/system/cpu.h): the
 # real one on a Cortex-M, the model elsewhere (tests run the base on a PC).
-if (CMAKE_SYSTEM_PROCESSOR MATCHES "^cortex-m")
+#
+# Decided by what the compiler targets (ACLE: __ARM_ARCH_PROFILE == 'M'), not
+# only by CMAKE_SYSTEM_PROCESSOR, which a toolchain file may spell any way: a
+# board build that said "arm" got the model, whose "masked interrupts" are a
+# variable and whose "wait for interrupt" does not wait, and LTO then folded the
+# tick clock to a constant (found on an STM32F407, 2026-11-12).
+include(CheckCSourceCompiles)
+check_c_source_compiles("
+#if !defined(__ARM_ARCH_PROFILE) || __ARM_ARCH_PROFILE != 'M'
+#error not an M-profile core
+#endif
+int lh_rail_system_cpu_probe;
+int main(void) { return 0; }" LH_RAIL_SYSTEM_CPU_IS_CORTEX_M)
+if (LH_RAIL_SYSTEM_CPU_IS_CORTEX_M OR CMAKE_SYSTEM_PROCESSOR MATCHES "^cortex-m")
+    message(STATUS "lh: rail CPU layer: Cortex-M (lh/rail/system/cortexm)")
     list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/rail/system/cortexm/cpu.c)
 else ()
+    message(STATUS "lh: rail CPU layer: the model (lh/rail/system/sim), for tests on a host")
     list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/rail/system/sim/cpu.c)
 endif ()
 

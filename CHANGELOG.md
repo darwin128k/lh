@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `lh_ui_display_backend` (`lh/ui/display/backend.h`): a canvas backend whose context is
+  the display. `begin_area` moves the display's strip to the area, `end` presents what was
+  drawn, the drawing slots are the software backend's. `lh_ui_display_backend_bind` puts a
+  display's canvas on it, so a view with a strip height draws a 240-row panel through a
+  48-row buffer strip by strip and every strip reaches the sinks while it is still in the
+  buffer. Before, the software backend had no `begin_area` and a stripped view fell back to
+  one whole frame. Tested against a whole-frame render pixel for pixel.
+- `lh_ui_mask_unpack_4_words` and `lh_ui_pixmap_blend_cover_16_words`: the text path in
+  plain integer code. Without SSE2 a glyph's coverages went through a byte buffer and the
+  span kernels for every eight pixels; now they are unpacked into a register and blended
+  from it. Measured on an STM32F407 (168 MHz, RGB565): text 1 143 670 → 1 051 817 cycles a
+  frame without LTO, 614 000 with it. The whole UI test suite passes on a build without SSE2
+  (`-DLH_SIMD_HAVE_SSE2=0`), and the words forms match the SSE2 ones on 8 192 random rows.
+
+### Fixed
+
+- The rail CPU layer was chosen by `CMAKE_SYSTEM_PROCESSOR` alone, so a board whose
+  toolchain file said `arm` got the PC model: interrupts were never masked, `wait for
+  interrupt` did not wait, and with LTO the tick clock folded to a constant (0 ms elapsed
+  over 100 ms on an STM32F407). CMake now asks the compiler (ACLE `__ARM_ARCH_PROFILE ==
+  'M'`) and says which layer it took.
+- `lh_ui_pixmap_blend_cover_8` declared its buffer inside the SSE2 branch and used it after:
+  every build without SSE2 (any ARM target) failed to compile `ui/pixmap.c`.
+- `ui/web/player/page.c` passed a byte buffer as a char string (`-Wpointer-sign`);
+  `memory/std.c` had `/*` inside a comment (`-Wcomment`).
+
 ### Changed
 
 - The check macros (`lh_runtime_check_fail_here`) take the origin's address with
