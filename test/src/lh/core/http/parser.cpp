@@ -114,6 +114,8 @@ TEST(http_parser, rejects_invalid_request_syntax)
         EXPECT_LE(lh_http_parser_get_error_offset(&parser), std::strlen(invalid[i]));
     }
     const char nul[] = "GET / HTTP/1.1\r\nX: a\0b\r\n\r\n";
+    lh_http_request_t request;
+    lh_http_header_t headers[4];
     EXPECT_EQ(lh_http_parser_request(&parser, view(nul, sizeof nul - 1), &request, headers, 4),
               lh_http_parse_error);
 }

@@ -120,7 +120,8 @@
         {                                                                                          \
             static const lh_exception_origin_t _lh_exception_origin = {                            \
                 __FILE__, __func__, #expr, lh_runtime_check_desc(__VA_ARGS__), __LINE__};          \
-            lh_runtime_check_fail(&_lh_exception_origin, lh_runtime_check_code(__VA_ARGS__));      \
+            lh_runtime_check_fail(lh_addr_of(_lh_exception_origin),                                \
+                                  lh_runtime_check_code(__VA_ARGS__));                             \
         } while (0)
 #elif (LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT == LH_RUNTIME_CHECK_REPORT_LOCATION)
 #    define lh_runtime_check_fail_here(expr, ...)                                                  \
@@ -130,7 +131,8 @@
                 __FILE__, lh_cast_static(const lh_str_ptr, lh_null),                               \
                 lh_cast_static(const lh_str_ptr, lh_null), lh_runtime_check_desc(__VA_ARGS__),     \
                 __LINE__};                                                                         \
-            lh_runtime_check_fail(&_lh_exception_origin, lh_runtime_check_code(__VA_ARGS__));      \
+            lh_runtime_check_fail(lh_addr_of(_lh_exception_origin),                                \
+                                  lh_runtime_check_code(__VA_ARGS__));                             \
         } while (0)
 #else
 #    define lh_runtime_check_fail_here(expr, ...)                                                  \

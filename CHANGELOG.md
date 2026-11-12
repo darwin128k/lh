@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The check macros (`lh_runtime_check_fail_here`) take the origin's address with
+  `lh_addr_of`; no header writes a bare address-of any more (checked in clang's AST).
+
 - Every variable is declared where it is used (sources and tests, about 1600
   declarations): moved down to the statement that first uses it, joined with its first
   assignment, or put into its `for` header; unused locals are gone. A few functions read
