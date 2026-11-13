@@ -9,7 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `lh_mb_bus_t` (`lh/core/net/modbus/bus.h`): one line, one job at a time, without
+- `lh_mb_batch_t` (`lh/core/net/modbus/batch.h`, with `batch/item.h` and `batch/phase.h`):
+  several values at scattered holding registers written as one action with one outcome, no
+  I/O of its own. `lh_mb_batch_try_begin` takes up to `LH_MB_BATCH_MAX` values at ascending
+  addresses; `lh_mb_batch_try_next` hands out the next `lh_mb_job_t` and
+  `lh_mb_batch_settle` takes what became of it. Values at consecutive addresses go in one
+  write many, a lone value in a write one, a gap is never written; then one read-back that
+  crosses gaps of at most `gap` registers (and at most `LH_MB_READ_MAX` wide). A value that
+  reads back as another word is written once more, alone, up to `max_tries` writes; each
+  value ends confirmed, refused (with the device's code), failed, mismatched (with the word
+  the device holds) or unverified. A user that has a one-frame write for scattered registers
+  replaces the write steps and keeps the rest.- `lh_mb_bus_t` (`lh/core/net/modbus/bus.h`): one line, one job at a time, without
   blocking. It takes an `lh_mb_job_t` -- a read or a write, any unit -- so requests from a
   poll, a screen and a gateway go down the same line; sends a request that timed out or
   came back broken again up to `lh_mb_bus_get_retries` times (`lh_mb_bus_is_retryable`: a

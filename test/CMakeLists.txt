@@ -305,6 +305,7 @@ lh_add_test_core(lh_test_net
         ${LH_TEST_SRC_PATH}/lh/core/net/modbus/bus.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/modbus/health.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/modbus/image.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/net/modbus/batch.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/modbus/job.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/modbus/job/queue.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/modbus/link.cpp

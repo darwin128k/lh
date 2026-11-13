@@ -324,6 +324,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/net/modbus/bus.c
         ${LH_LIB_SRC_PATH}/core/net/modbus/health.c
         ${LH_LIB_SRC_PATH}/core/net/modbus/image.c
+        ${LH_LIB_SRC_PATH}/core/net/modbus/batch.c
         ${LH_LIB_SRC_PATH}/core/net/modbus/job.c
         ${LH_LIB_SRC_PATH}/core/net/modbus/job/queue.c
         ${LH_LIB_SRC_PATH}/core/net/modbus/schedule.c
