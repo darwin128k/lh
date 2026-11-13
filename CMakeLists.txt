@@ -554,6 +554,7 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/canvas/state.c
             ${LH_LIB_SRC_PATH}/ui/canvas/round.c
             ${LH_LIB_SRC_PATH}/ui/canvas/box.c
+            ${LH_LIB_SRC_PATH}/ui/canvas/stroke.c
             ${LH_LIB_SRC_PATH}/ui/canvas/clip.c
             ${LH_LIB_SRC_PATH}/ui/canvas/clip/round.c
             ${LH_LIB_SRC_PATH}/ui/pen.c

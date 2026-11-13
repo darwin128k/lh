@@ -668,9 +668,11 @@ lh_void
 lh_ui_entity_fill_edge(lh_ui_canvas_t *canvas, lh_ui_scalar_t x, lh_ui_scalar_t y,
                        lh_ui_scalar_t width, lh_ui_scalar_t height, const lh_ui_color_t *color);
 
-/** The edge is a straight strip, not a stroke that follows the radius. The rows
-   it replaces were filled rectangles one pixel tall laid across the box, and a
-   rounded card's top pixel was already that strip sitting on the arc. */
+/** Draw the style's solid border after the children. Uniform widths follow the
+ * four corner radii through canvas_stroke_box. Unequal widths retain their
+ * straight-edge contract (for table separators and independently styled sides).
+ * Empty border paints and zero widths draw nothing.
+ */
 lh_void
 lh_ui_entity_draw_border(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas);
 

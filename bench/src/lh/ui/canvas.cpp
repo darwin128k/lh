@@ -11,6 +11,7 @@
 #include "fixture.h"
 
 #include <lh/ui/canvas/box.h>
+#include <lh/ui/canvas/stroke.h>
 #include <lh/ui/canvas/mask.h>
 #include <lh/ui/text.h>
 
@@ -486,3 +487,22 @@ BM_ui_color_rgb565_roundtrip(benchmark::State &state)
     }
 }
 BENCHMARK(BM_ui_color_rgb565_roundtrip);
+
+/** Native rounded outline: no fill underneath, one requested border. */
+void
+BM_ui_canvas_stroke_box(benchmark::State &state)
+{
+    surface s(static_cast<int>(state.range(0)));
+    const lh_ui_rect_t r = rect(8, 8, 222, 96);
+    const lh_ui_color_t color = rgb(83, 100, 113);
+    lh_ui_radii_t radii;
+    lh_ui_radii_init_all(&radii, lh_ui_scalar(10));
+    for (auto _ : state)
+    {
+        lh_ui_canvas_stroke_box(&s.canvas, &r, &radii,
+                                lh_ui_scalar_of(state.range(1)), &color);
+        benchmark::ClobberMemory();
+    }
+    state.SetLabel(format_name(static_cast<int>(state.range(0))));
+}
+BENCHMARK(BM_ui_canvas_stroke_box)->ArgsProduct({{0, 1}, {1, 3}});

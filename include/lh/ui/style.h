@@ -8,8 +8,8 @@
  * the same. `pressed` is the one style that is chosen rather than shared: an
  * entity that is pressed paints it instead (::lh_ui_entity_is_pressed), and it
  * may change how the entity looks — fill, radius, shadow, text paint — not its
- * geometry. `border` is a straight edge painted after the children, in
- * `border_fill`.
+ * geometry. `border` is painted after the children in `border_fill`; uniform widths
+ * follow the fill's corner radii.
  */
 
 #ifndef LH_UI_STYLE_H

@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_ui_canvas_stroke_box`: inset rounded borders with independent corner radii,
+  alpha and clipping; native entity borders with uniform widths now follow the
+  same corners as their gradient or solid fill. Straight sides use bulk fills.
+
 - `lh/core/math/fit.h`: centred aspect-preserving viewport geometry and inverse
   point mapping, shared by Windows presentation, X11 presentation and input.
 - X11 `surface_present_fit` now scales with nearest-neighbour sampling and fills

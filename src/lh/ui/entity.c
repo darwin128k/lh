@@ -2,6 +2,9 @@
  * @file entity.c
  * @brief Implementation of `lh/ui/entity.h`.
  */
+#include <lh/ui/entity.h>
+#include <lh/ui/canvas/stroke.h>
+
 #include <lh/core/assert.h>
 #include <lh/core/attribute/unused.h>
 
@@ -849,6 +852,13 @@ lh_ui_entity_draw_border(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
     lh_return_if(lh_null_eq(color));
     lh_ui_rect_t rect;
     lh_ui_entity_copy_rect(self, lh_addr_of(rect));
+    if (left == top && top == right && right == bottom && left > lh_ui_scalar(0) &&
+        (lh_ui_radii_get_min(lh_ui_style_get_radii(style)) > lh_ui_scalar(0) ||
+         !lh_ui_radii_is_uniform(lh_ui_style_get_radii(style))))
+    {
+        lh_ui_canvas_stroke_box(canvas, lh_addr_of(rect), lh_ui_style_get_radii(style), left, color);
+        return;
+    }
     const lh_ui_point_t *origin = lh_ui_rect_get_origin(lh_addr_of(rect));
     const lh_ui_size_t *size = lh_ui_rect_get_size(lh_addr_of(rect));
     lh_ui_scalar_t x = lh_ui_point_get_x(origin);
