@@ -524,3 +524,35 @@ TEST(lh_mb, more_words_than_asked_for_is_not_an_answer)
                               lh_null),
               lh_mb_status_ok);
 }
+
+TEST(lh_mb, a_want_for_the_last_register_is_planned_and_read)
+{
+    /* The end of register 65535 is 65536, which 16 bits hold as 0: a want for it
+       behind another want folded into a request that ended before it. */
+    const lh_mb_want_t wants[2] = {{65530, 1}, {65535, 1}};
+    lh_mb_read_t reads[4];
+
+    EXPECT_EQ(lh_mb_want_get_end(&wants[1]), 65536U);
+    ASSERT_EQ(lh_mb_plan_reads(wants, 2, reads, 4), 1);
+    EXPECT_EQ(lh_mb_read_get_start(&reads[0]), 65530);
+    EXPECT_EQ(lh_mb_read_get_count(&reads[0]), 6) << "65530 up to and including 65535";
+    EXPECT_EQ(lh_mb_count_requests(wants, 2), 1);
+
+    const lh_mb_want_t top[2] = {{65411, 1}, {65535, 1}}; /* exactly 125 registers apart */
+    ASSERT_EQ(lh_mb_plan_reads(top, 2, reads, 4), 1);
+    EXPECT_EQ(lh_mb_read_get_count(&reads[0]), LH_MB_READ_MAX);
+    const lh_mb_want_t over[2] = {{65410, 1}, {65535, 1}}; /* one too many */
+    EXPECT_EQ(lh_mb_plan_reads(over, 2, reads, 4), 2);
+    EXPECT_EQ(lh_mb_count_requests(over, 2), 2);
+}
+
+TEST(lh_mb, the_run_of_a_request_ends_where_the_rule_says)
+{
+    const lh_mb_want_t wants[3] = {{10, 2}, {14, 0}, {40, 1}};
+    lh_u32_t end = 0;
+
+    EXPECT_EQ(lh_mb_find_run_last(wants, 3, 0, &end), 1) << "a gap of 2 is crossed, of 25 not";
+    EXPECT_EQ(end, 15U) << "a want of 0 registers is one register";
+    EXPECT_EQ(lh_mb_find_run_last(wants, 3, 2, &end), 2);
+    EXPECT_EQ(end, 41U);
+}

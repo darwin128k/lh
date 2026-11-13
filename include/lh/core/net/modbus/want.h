@@ -42,6 +42,22 @@ lh_mb_want_get_registers(const lh_mb_want_t *self);
 lh_void
 lh_mb_want_set_registers(lh_mb_want_t *self, lh_u16_t registers);
 
+/**
+ * @brief One past the last register @p self wants (level 2): its address plus its
+ *        register count, a count of 0 counting as 1.
+ *
+ * 32 bits, because the end of a want that takes the last register, 65535, is 65536,
+ * and in 16 bits that is 0. The planner held it in 16 bits once, and a want for
+ * register 65535 behind another want folded into a request that ended before it:
+ * the register was planned, counted, and never read.
+ *
+ * @param self The want; checked by ::lh_assert_runtime_ref.
+ *
+ * @return 1..65536.
+ */
+lh_u32_t
+lh_mb_want_get_end(const lh_mb_want_t *self);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_NET_MODBUS_WANT_H */

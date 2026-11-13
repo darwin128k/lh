@@ -28,3 +28,10 @@ lh_mb_want_set_registers(lh_mb_want_t *self, lh_u16_t registers)
     lh_assert_runtime_ref(self);
     self->registers = registers;
 }
+
+lh_u32_t
+lh_mb_want_get_end(const lh_mb_want_t *self)
+{
+    return lh_cast_static(lh_u32_t, lh_mb_want_get_address(self)) +
+           lh_math_max(lh_cast_static(lh_u32_t, lh_mb_want_get_registers(self)), 1U);
+}

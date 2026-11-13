@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_mb_want_get_end` (one past a want's last register, 32 bits) and `lh_mb_find_run_last`
+  (the last want of a request: the one rule `lh_mb_plan_reads` and `lh_mb_count_requests`
+  both follow, so they cannot disagree). `LH_MB_EXCEPTION_GATEWAY_PATH` (0x0A) and
+  `LH_MB_EXCEPTION_GATEWAY_TARGET` (0x0B), the exceptions a Modbus gateway answers with.
+
 - Modbus server: `lh_mb_server_t` (`lh/core/net/modbus/server.h`), the device side of
   `lh_mb_link_t` over the same streams and framings (RTU, Modbus TCP). Codes 0x03, 0x04,
   0x06, 0x10; every other code is refused as an illegal function. The register map is the
@@ -71,6 +76,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   measured too and was slower (code and data share the system bus); it was not kept.
 
 ### Fixed
+
+- `lh_mb_plan_reads` never read register 65535 behind another want: the end of a request
+  was held in 16 bits, the end of register 65535 is 65536, which is 0 there, so
+  `{65530,1}, {65535,1}` became one read of one register at 65530, and
+  `lh_mb_count_requests` agreed. Ends are 32 bits now (`lh_mb_reach` returns `lh_u32_t`).
+  Found by an application's poller tests.
+- `cmake_minimum_required` said 3.12, but the library calls `target_link_options` (3.13)
+  and its GoogleTest asks for 3.13: a 3.12 configure failed. It says 3.13 now.
 
 - Modbus RTU link: an answer that came late, or a device's answer sent twice, was taken
   for the answer to the next question asking the same function and width -- with the

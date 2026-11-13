@@ -47,7 +47,7 @@ from Windows XP up, X11) and a browser — see [Usage](#usage).
 
 | Tool        | Minimum version |
 |-------------|-----------------|
-| CMake       | 3.12 (3.13 with tests) |
+| CMake       | 3.13 |
 | C compiler  | **C11** or later |
 | C++ compiler | **C++17** for tests |
 | Doxygen     | any (optional, for docs) |

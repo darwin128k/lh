@@ -285,6 +285,10 @@ LH_COMPILER_EXTERN_C_END
 #define LH_MB_EXCEPTION_DEVICE_FAILURE (lh_cast_static(lh_u8_t, 0x04))
 /** @brief Exception code: the device is busy; ask again later. */
 #define LH_MB_EXCEPTION_DEVICE_BUSY (lh_cast_static(lh_u8_t, 0x06))
+/** @brief Exception code a gateway answers with: it has no path to the unit asked. */
+#define LH_MB_EXCEPTION_GATEWAY_PATH (lh_cast_static(lh_u8_t, 0x0A))
+/** @brief Exception code a gateway answers with: the unit behind it did not answer. */
+#define LH_MB_EXCEPTION_GATEWAY_TARGET (lh_cast_static(lh_u8_t, 0x0B))
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -366,11 +370,29 @@ LH_COMPILER_EXTERN_C_END
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/** How far a run that currently ends at `end` reaches once `next` is folded in, or
-   0 when it must not be — the two reasons being a gap worth crossing and a run
-   longer than one read may ask for. */
+/** How far a run that starts at `start` and currently ends at `end` (one past its last
+   register, up to 65536) reaches once `next` is folded in, or 0 when it must not be —
+   the two reasons being a gap not worth crossing and a run longer than one read may
+   ask for. 32 bits: see ::lh_mb_want_get_end. */
+lh_u32_t
+lh_mb_reach(lh_u16_t start, lh_u32_t end, const lh_mb_want_t *next);
+
+/**
+ * @brief The last want of the request that starts at want @p first: every want after
+ *        it that ::lh_mb_reach lets the request carry.
+ *
+ * The one rule both ::lh_mb_plan_reads and ::lh_mb_count_requests follow, so the
+ * two cannot disagree.
+ *
+ * @param wants The registers, address-ordered and non-overlapping.
+ * @param count How many there are.
+ * @param first The want the request starts at, below @p count.
+ * @param end   Where one past the request's last register goes (up to 65536).
+ *
+ * @return The index of the request's last want, @p first or above.
+ */
 lh_u16_t
-lh_mb_reach(lh_u16_t start, lh_u16_t end, const lh_mb_want_t *next);
+lh_mb_find_run_last(const lh_mb_want_t *wants, lh_u16_t count, lh_u16_t first, lh_u32_t *end);
 
 /**
  * @brief Turn a sorted list of wants into the fewest requests that cover them.
