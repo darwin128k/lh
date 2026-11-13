@@ -303,6 +303,7 @@ lh_add_test_core(lh_test_net
         ${LH_TEST_SRC_PATH}/lh/core/net/modbus.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/modbus_image.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/modbus_link.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/net/modbus_schedule.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/modbus_server.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/port.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/authority.cpp

@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_mb_schedule_t` (`lh/core/net/modbus/schedule.h`): which request of a plan is due
+  next. Each want has a period (a card's "refresh every"), a request is polled at the
+  shortest period of its wants, the most overdue request goes first
+  (`lh_mb_schedule_find_due`), and every attempt, answered or not, schedules the next one
+  a period later (`lh_mb_schedule_mark_done`), so a dead device is not asked as fast as a
+  loop can spin. What is on a screen is watched (`lh_mb_schedule_watch`, counted): polled
+  at the fast period (`LH_MB_SCHEDULE_FAST_US`, 0.5 s) and due at once, so a screen that
+  opens shows fresh values.
+
 - `lh_mb_image_t` (`lh/core/net/modbus/image.h`): what a master knows of a device, want by
   want -- the registers it reads, how much each value can be trusted
   (`lh_mb_value_status_t`, `value/status.h`: unread, fresh, stale, refused) and when it was
