@@ -5,8 +5,9 @@
  *
  * One request that fails says little: a controller busy for a second, a packet lost on
  * a VPN, a frame hit by noise. Declaring the device gone on the first failure is what
- * made a panel show "no link" every few seconds on a line that was working (the test
- * stand's controller holds requests for 1.05-1.2 s every 1.3-7 s). The device is gone after
+ * makes a master show "no link" every few seconds on a line that is working (a real
+ * controller was measured holding requests for 1.05-1.2 s every 1.3-7 s). The device is
+ * gone after
  * ::lh_mb_health_get_limit failures **in a row**; any answer, a refusal included,
  * starts the count again -- a device that says "no" is talking.
  */
@@ -22,8 +23,8 @@
 /**
  * @brief Failures in a row after which a device counts as gone, by default.
  *
- * Ten, as the panel's own Modbus core has it (all variables of a device become "no
- * answer" on the tenth failure in a row).
+ * Ten: long enough that a busy device or a lost packet never counts as a lost device,
+ * short enough that a device that is really gone is said to be within a few periods.
  */
 #define LH_MB_HEALTH_LIMIT (lh_cast_static(lh_u16_t, 10U))
 

@@ -24,11 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   last stored. Built from the wants `lh_mb_plan_reads` plans from; an answer is stored by
   its request (`lh_mb_image_store`), a failed request keeps the values and marks them stale
   or refused (`lh_mb_image_fail`); `lh_mb_image_find` resolves an address to a want once.
-  A panel no longer blanks a value because one request waited out a busy controller.
+  A master no longer blanks a value because one request waited out a busy device.
 - `lh_mb_health_t` (`lh/core/net/modbus/health.h`): a device is gone after
   `LH_MB_HEALTH_LIMIT` (10) failures in a row, not on the first; any answer, a refusal
-  included, starts the count again. A real controller was measured holding requests for a
-  second every few seconds; one failed request is not a lost device.
+  included, starts the count again. A real controller was measured holding requests for
+  a second every few seconds; one failed request is not a lost device.
 
 - `lh_mb_want_get_end` (one past a want's last register, 32 bits) and `lh_mb_find_run_last`
   (the last want of a request: the one rule `lh_mb_plan_reads` and `lh_mb_count_requests`

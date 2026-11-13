@@ -11,8 +11,8 @@
  * @brief How much a value held in an image can be trusted.
  *
  * A failed read does not throw a value away: the register still holds what the device
- * said last, and a panel that blanks a temperature because one request waited out a
- * busy controller shows less than it knows. The status says what kind of value it is,
+ * said last, and a master that blanks a value because one request waited out a busy
+ * device shows less than it knows. The status says what kind of value it is,
  * and the time of the last update (::lh_mb_image_get_updated_us) says how old.
  */
 typedef enum lh_mb_value_status

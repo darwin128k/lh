@@ -148,7 +148,7 @@ TEST(lh_mb_health, a_stall_is_not_a_lost_device)
     lh_mb_health_t h;
 
     lh_mb_health_init(&h, LH_MB_HEALTH_LIMIT);
-    /* The stand: one or two requests lost to a stall, then answers again. */
+    /* A device busy for a second: one or two requests lost, then answers again. */
     lh_mb_health_count_failure(&h);
     lh_mb_health_count_failure(&h);
     EXPECT_FALSE(lh_mb_health_is_lost(&h));
