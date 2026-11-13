@@ -206,6 +206,7 @@ set(LH_LIB_SOURCES
 
         ${LH_LIB_SRC_PATH}/core/math/point.c
         ${LH_LIB_SRC_PATH}/core/math/size.c
+        ${LH_LIB_SRC_PATH}/core/math/fit.c
         ${LH_LIB_SRC_PATH}/core/math/rect.c
 
         ${LH_LIB_SRC_PATH}/core/version.c

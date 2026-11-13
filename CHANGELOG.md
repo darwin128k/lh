@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh/core/math/fit.h`: centred aspect-preserving viewport geometry and inverse
+  point mapping, shared by Windows presentation, X11 presentation and input.
+- X11 `surface_present_fit` now scales with nearest-neighbour sampling and fills
+  letterboxes, reusing a native surface until the destination size changes.
+  Previously the 480x320 frame stayed in the corner of a 960x640 window.
+
 - `lh_mb_batch_t` (`lh/core/net/modbus/batch.h`, with `batch/item.h` and `batch/phase.h`):
   several values at scattered holding registers written as one action with one outcome, no
   I/O of its own. `lh_mb_batch_try_begin` takes up to `LH_MB_BATCH_MAX` values at ascending

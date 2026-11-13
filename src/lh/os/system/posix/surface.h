@@ -7,9 +7,10 @@
 #define LH_SRC_OS_SYSTEM_POSIX_SURFACE_H
 
 #include <lh/core/bool.h>
+#include <lh/core/byte/ptr.h>
+#include <lh/os/system/posix/x11.h>
 #include <lh/os/system/posix/surface/fields.h>
 #include <lh/core/size.h>
-#include <lh/core/compiler/extern/c.h>
 
 /** @brief A surface: its pixels and what they look like. */
 struct lh_os_system_posix_surface
@@ -21,6 +22,41 @@ struct lh_os_system_posix_surface
 typedef struct lh_os_system_posix_surface lh_os_system_posix_surface_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
+
+/** Cached full-destination surface (level 1), or null until the first fit. */
+lh_os_system_posix_surface_t *
+lh_os_system_posix_surface_get_fit(const lh_os_system_posix_surface_t *self);
+
+/** Store the cached surface (level 1); ownership belongs to self. */
+lh_void
+lh_os_system_posix_surface_set_fit(lh_os_system_posix_surface_t *self,
+                                   lh_os_system_posix_surface_t *fit);
+
+/** Prepare nearest-neighbour pixels with centred letterboxes; no presentation.
+ * Returns a cached 32-bit surface owned by self, or null for invalid sizes or
+ * allocation failure. It lives until self is destroyed or a later fit resizes it.
+ * fill is native COLORREF (0x00BBGGRR), as in surface_present_fit. Source pixels
+ * are not changed. Repeated same-size calls do not allocate.
+ */
+lh_os_system_posix_surface_t *
+lh_os_system_posix_surface_try_prepare_fit(lh_os_system_posix_surface_t *self, int width,
+                                           int height, lh_u32_t fill);
+
+/** Checked try_prepare_fit; valid dimensions are required; terminates on failure. */
+lh_os_system_posix_surface_t *
+lh_os_system_posix_surface_prepare_fit(lh_os_system_posix_surface_t *self, int width, int height,
+                                       lh_u32_t fill);
+
+/** One native pixel as 0x00RRGGBB; index must be inside the source. */
+lh_u32_t
+lh_os_system_posix_surface_get_pixel(const lh_os_system_posix_surface_t *self, lh_usize_t index);
+
+/** Scale one source row into width output words, nearest neighbour, no allocation.
+ * Positive width and a source_y inside self are required; row has width words.
+ */
+lh_void
+lh_os_system_posix_surface_scale_row(const lh_os_system_posix_surface_t *self, lh_u32_t *row,
+                                     int width, int source_y);
 
 /**
  * @brief Put @p surface's pixels in a segment the server is attached to.

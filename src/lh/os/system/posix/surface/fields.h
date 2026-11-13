@@ -25,6 +25,7 @@
     lh_os_system_posix_xshm_segment_info_t segment;                                                \
     lh_os_system_posix_display_t *display;                                                         \
     lh_bool_t shared;                                                                              \
+    struct lh_os_system_posix_surface *fit;                                                        \
     lh_bool_t pending
 
 #endif /* LH_SRC_OS_SYSTEM_POSIX_SURFACE_FIELDS_H */

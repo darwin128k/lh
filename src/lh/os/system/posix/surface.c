@@ -14,15 +14,19 @@
  * for that first (::lh_os_system_surface_get_pixels) — the same promise GdiFlush
  * keeps on Windows. Anywhere else, the plain path: the pixels in the request.
  */
+#include <lh/os/system/posix/surface.h>
+
 #include <lh/core/assert.h>
+#include <lh/core/math/fit.h>
+#include <limits.h>
+#include <lh/core/size/limits.h>
+#include <lh/core/util/interval.h>
 #include <lh/core/attribute/unused.h>
 
-#include <lh/core/byte/ptr.h>
 #include <lh/core/memory.h>
 #include <lh/os/alloc.h>
 #include <lh/os/system/posix/connection.h>
 #include <lh/os/system/posix/paint.h>
-#include <lh/os/system/posix/surface.h>
 #include <lh/os/system/posix/surface/rgb565.h>
 #include <lh/os/system/surface.h>
 #include <lh/core/runtime/allocator.h>
@@ -102,8 +106,12 @@ lh_os_system_surface_create(int width, int height, int bits)
 
     lh_return_if(width <= 0 || height <= 0, LH_OS_SYSTEM_SURFACE_HANDLE_INVALID);
     lh_return_if(bits != 16 && bits != 32, LH_OS_SYSTEM_SURFACE_HANDLE_INVALID);
-    surface =
-        lh_ptr_rcast(lh_os_system_posix_surface_t, lh_os_alloc(sizeof(lh_ptr_deref(surface))));
+    lh_return_if(lh_interval_closed_is_mul_overflow(lh_cast_static(lh_usize_t, width),
+                                                    lh_cast_static(lh_usize_t, height), 0U,
+                                                    LH_USIZE_T_MAX / (bits / 8)),
+                 LH_OS_SYSTEM_SURFACE_HANDLE_INVALID);
+    surface = lh_ptr_rcast(lh_os_system_posix_surface_t,
+                           lh_runtime_allocator_try_alloc(sizeof(lh_ptr_deref(surface))));
     lh_return_if(lh_null_eq(surface), LH_OS_SYSTEM_SURFACE_HANDLE_INVALID);
     lh_memory_set(surface, sizeof(lh_ptr_deref(surface)), 0);
     /* Only 32 bits are shared: a 16-bit surface is widened on its way out, so the
@@ -113,9 +121,10 @@ lh_os_system_surface_create(int width, int height, int bits)
                                                        lh_cast_static(lh_usize_t, height) * 4U))
     {
         lh_os_system_posix_surface_set_bits(
-            surface, lh_ptr_rcast(lh_byte_t, lh_os_alloc(lh_cast_static(lh_usize_t, width) *
-                                                         lh_cast_static(lh_usize_t, height) *
-                                                         lh_cast_static(lh_usize_t, (bits / 8)))));
+            surface, lh_ptr_rcast(lh_byte_t, lh_runtime_allocator_try_alloc(
+                                                 lh_cast_static(lh_usize_t, width) *
+                                                 lh_cast_static(lh_usize_t, height) *
+                                                 lh_cast_static(lh_usize_t, (bits / 8)))));
         if (lh_null_eq(lh_os_system_posix_surface_get_bits(surface)))
         {
             lh_runtime_allocator_free(surface);
@@ -135,6 +144,7 @@ lh_os_system_surface_destroy(lh_os_system_surface_handle_t handle)
 
     lh_return_if(lh_null_eq(handle));
     surface = lh_ptr_rcast(lh_os_system_posix_surface_t, handle);
+    lh_os_system_surface_destroy(lh_os_system_posix_surface_get_fit(surface));
     if (lh_null_ne(lh_os_system_posix_surface_get_staging(surface)))
     {
         lh_runtime_allocator_free(lh_os_system_posix_surface_get_staging(surface));
@@ -337,10 +347,12 @@ lh_bool_t
 lh_os_system_surface_present_fit(lh_os_system_surface_handle_t handle, lh_ptr dest, int dest_w,
                                  int dest_h, lh_u32_t fill)
 {
-    LH_ATTRIBUTE_UNUSED(dest_w);
-    LH_ATTRIBUTE_UNUSED(dest_h);
-    LH_ATTRIBUTE_UNUSED(fill);
-    return lh_os_system_surface_present_at(handle, dest, 0, 0);
+    lh_return_if(lh_null_eq(handle) || lh_null_eq(dest), lh_bool_false);
+    lh_os_system_posix_surface_t *surface = lh_ptr_rcast(lh_os_system_posix_surface_t, handle);
+    lh_os_system_posix_surface_t *fit =
+        lh_os_system_posix_surface_try_prepare_fit(surface, dest_w, dest_h, fill);
+    lh_return_if(lh_null_eq(fit), lh_bool_false);
+    return lh_os_system_surface_present_at(fit, dest, 0, 0);
 }
 
 lh_byte_ptr
@@ -483,4 +495,91 @@ lh_os_system_posix_surface_set_pending(lh_os_system_posix_surface_t *self, lh_bo
 {
     lh_assert_runtime_ref(self);
     self->pending = pending;
+}
+
+lh_os_system_posix_surface_t *
+lh_os_system_posix_surface_get_fit(const lh_os_system_posix_surface_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->fit;
+}
+
+lh_void
+lh_os_system_posix_surface_set_fit(lh_os_system_posix_surface_t *self,
+                                   lh_os_system_posix_surface_t *fit)
+{
+    lh_assert_runtime_ref(self);
+    self->fit = fit;
+}
+
+lh_os_system_posix_surface_t *
+lh_os_system_posix_surface_try_prepare_fit(lh_os_system_posix_surface_t *self, int width,
+                                           int height, lh_u32_t fill)
+{
+    lh_return_if(lh_null_eq(self) || width <= 0 || height <= 0 || width > INT_MAX / 4, lh_null);
+    int src_w = lh_os_system_posix_surface_get_width(self);
+    int src_h = lh_os_system_posix_surface_get_height(self);
+    lh_math_rect_t rect;
+    lh_return_ifn(lh_math_fit_try_rect(lh_addr_of(rect), src_w, src_h, width, height), lh_null);
+    lh_os_system_posix_surface_t *fit = lh_os_system_posix_surface_get_fit(self);
+    if (lh_null_eq(fit) || lh_os_system_posix_surface_get_width(fit) != width ||
+        lh_os_system_posix_surface_get_height(fit) != height)
+    {
+        lh_os_system_posix_surface_t *grown = lh_ptr_rcast(
+            lh_os_system_posix_surface_t, lh_os_system_surface_create(width, height, 32));
+        lh_return_if(lh_null_eq(grown), lh_null);
+        lh_os_system_surface_destroy(fit);
+        lh_os_system_posix_surface_set_fit(self, grown);
+        fit = grown;
+    }
+    lh_u32_t *pixels = lh_ptr_rcast(lh_u32_t, lh_os_system_surface_get_pixels(fit));
+    const lh_u32_t background = ((fill & 0xffU) << 16) | (fill & 0xff00U) | ((fill >> 16) & 0xffU);
+    lh_memory_set_u32(pixels, lh_cast_static(lh_usize_t, width) * height, background);
+    int left = lh_math_point_get_x(lh_math_rect_get_origin(lh_addr_of(rect)));
+    int top = lh_math_point_get_y(lh_math_rect_get_origin(lh_addr_of(rect)));
+    int fit_w = lh_math_size_get_width(lh_math_rect_get_size(lh_addr_of(rect)));
+    int fit_h = lh_math_size_get_height(lh_math_rect_get_size(lh_addr_of(rect)));
+    for (int y = 0; y < fit_h; ++y)
+    {
+        int sy = lh_cast_static(int, lh_cast_static(lh_s64_t, y) * src_h / fit_h);
+        lh_u32_t *row = lh_ptr_add_by_offset(lh_u32_t, pixels,
+                                             (lh_cast_static(lh_usize_t, top + y) * width + left) *
+                                                 sizeof(lh_u32_t));
+        lh_os_system_posix_surface_scale_row(self, row, fit_w, sy);
+    }
+    return fit;
+}
+
+lh_u32_t
+lh_os_system_posix_surface_get_pixel(const lh_os_system_posix_surface_t *self, lh_usize_t index)
+{
+    if (lh_os_system_posix_surface_get_pixel_bits(self) == 16)
+    {
+        return lh_os_system_posix_surface_from_565(
+            lh_ptr_rcast(const lh_u16_t, lh_os_system_posix_surface_get_bits(self))[index]);
+    }
+    return lh_ptr_rcast(const lh_u32_t, lh_os_system_posix_surface_get_bits(self))[index];
+}
+
+lh_void
+lh_os_system_posix_surface_scale_row(const lh_os_system_posix_surface_t *self, lh_u32_t *row,
+                                     int width, int source_y)
+{
+    int source_w = lh_os_system_posix_surface_get_width(self);
+    for (int x = 0; x < width; ++x)
+    {
+        lh_usize_t sx = lh_cast_static(lh_usize_t, lh_cast_static(lh_s64_t, x) * source_w / width);
+        row[x] = lh_os_system_posix_surface_get_pixel(
+            self, lh_cast_static(lh_usize_t, source_y) * source_w + sx);
+    }
+}
+
+lh_os_system_posix_surface_t *
+lh_os_system_posix_surface_prepare_fit(lh_os_system_posix_surface_t *self, int width, int height,
+                                       lh_u32_t fill)
+{
+    lh_os_system_posix_surface_t *fit =
+        lh_os_system_posix_surface_try_prepare_fit(self, width, height, fill);
+    lh_runtime_check_ifn(fit, lh_runtime_error_code_memory_not_allocated);
+    return fit;
 }

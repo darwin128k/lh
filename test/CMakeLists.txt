@@ -266,6 +266,7 @@ set(LH_TEST_MATH_SOURCES
         ${LH_TEST_SRC_PATH}/lh/core/math/size.cpp
         ${LH_TEST_SRC_PATH}/lh/core/math/rect.cpp
         ${LH_TEST_SRC_PATH}/lh/core/math/rescale.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/fit.cpp
         ${LH_TEST_SRC_PATH}/lh/core/math/scalar/centre.cpp
 )
 if (LH_LIBRARY_OPTION_MATH_FPU)
@@ -431,9 +432,15 @@ if (NOT (WIN32 AND LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW))
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/system/win/input.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/system/win/input.cpp)
 endif ()
+if (NOT WIN32 AND LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW)
+    list(APPEND LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/system/posix/surface.cpp)
+else ()
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/system/posix/surface.cpp)
+endif ()
 if (LH_TEST_OS_SOURCES)
     # os is being rebuilt from scratch, one piece at a time.
     lh_add_test_core(lh_test_os ${LH_TEST_OS_SOURCES})
+    target_include_directories(lh_test_os PRIVATE "${LH_LIB_SRC_PATH}/..")
     set_tests_properties(lh_test_os PROPERTIES TIMEOUT 120)
 endif ()
 

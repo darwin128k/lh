@@ -3,13 +3,15 @@
  * @brief Win32 off-screen surface: DIB section + memory DC + BitBlt present.
  */
 
+#include <lh/os/system/win/surface.h>
+
 #include <lh/core/assert/runtime.h>
 #include <lh/core/attribute/unused.h>
 #include <lh/core/memory.h>
+#include <lh/core/math/fit.h>
 #include <lh/os/alloc.h>
 #include <lh/os/system/surface.h>
 #include <lh/os/system/win/gdi32.h>
-#include <lh/os/system/win/surface.h>
 #include <lh/core/runtime/allocator.h>
 #include <lh/core/util/return.h>
 
@@ -174,32 +176,15 @@ lh_os_system_surface_present_fit(lh_os_system_surface_handle_t handle, lh_ptr de
     lh_os_system_win_hdc_t dest_dc = lh_cast_reinterpret(lh_os_system_win_hdc_t, dest);
 
     {
-        int dw;
-        int dh;
-
-        if (dest_w * lh_os_system_win_surface_get_height(surface) >
-            dest_h * lh_os_system_win_surface_get_width(surface))
-        {
-            dh = dest_h;
-            dw = dest_h * lh_os_system_win_surface_get_width(surface) /
-                 lh_os_system_win_surface_get_height(surface);
-        }
-        else
-        {
-            dw = dest_w;
-            dh = dest_w * lh_os_system_win_surface_get_height(surface) /
-                 lh_os_system_win_surface_get_width(surface);
-        }
-        if (dw < 1)
-        {
-            dw = 1;
-        }
-        if (dh < 1)
-        {
-            dh = 1;
-        }
-        const int ox = (dest_w - dw) / 2;
-        const int oy = (dest_h - dh) / 2;
+        lh_math_rect_t fit;
+        lh_return_ifn(
+            lh_math_fit_try_rect(lh_addr_of(fit), lh_os_system_win_surface_get_width(surface),
+                                 lh_os_system_win_surface_get_height(surface), dest_w, dest_h),
+            lh_bool_false);
+        const int dw = lh_math_size_get_width(lh_math_rect_get_size(lh_addr_of(fit)));
+        const int dh = lh_math_size_get_height(lh_math_rect_get_size(lh_addr_of(fit)));
+        const int ox = lh_math_point_get_x(lh_math_rect_get_origin(lh_addr_of(fit)));
+        const int oy = lh_math_point_get_y(lh_math_rect_get_origin(lh_addr_of(fit)));
         lh_os_system_win_handle_t brush = CreateSolidBrush(fill);
         lh_os_system_win_handle_t previous = SelectObject(dest_dc, brush);
 

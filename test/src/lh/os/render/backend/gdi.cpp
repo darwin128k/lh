@@ -278,6 +278,34 @@ TEST(os_render_backend_gdi, a_present_leaves_the_gap_between_two_cuts_alone)
     EXPECT_EQ(kept, 24 * 10);
 }
 
+
+TEST(os_render_backend_gdi, fitted_present_scales_and_centres_with_the_requested_fill)
+{
+    auto source = lh_os_system_surface_create(2, 2, 32);
+    auto destination = lh_os_system_surface_create(6, 4, 32);
+    ASSERT_NE(source, nullptr);
+    ASSERT_NE(destination, nullptr);
+    auto pixels = static_cast<lh_u32_t *>(lh_os_system_surface_get_pixels(source));
+    pixels[0] = 0x00ff0000U;
+    pixels[1] = 0x0000ff00U;
+    pixels[2] = 0x000000ffU;
+    pixels[3] = 0x00ffffffU;
+    EXPECT_TRUE(lh_os_system_surface_present_fit(source, lh_os_system_surface_get_dc(destination),
+                                                 6, 4, 0x00332211U));
+    auto out = static_cast<const lh_u32_t *>(lh_os_system_surface_get_pixels(destination));
+    for (int y = 0; y < 4; ++y)
+    {
+        EXPECT_EQ(out[y * 6] & 0x00ffffffU, 0x00112233U);
+        EXPECT_EQ(out[y * 6 + 5] & 0x00ffffffU, 0x00112233U);
+        for (int x = 1; x < 5; ++x)
+        {
+            EXPECT_EQ(out[y * 6 + x] & 0x00ffffffU, pixels[(y / 2) * 2 + (x - 1) / 2]);
+        }
+    }
+    lh_os_system_surface_destroy(destination);
+    lh_os_system_surface_destroy(source);
+}
+
 } // namespace
 
 #endif // LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
