@@ -1375,13 +1375,16 @@ TEST(lh_mb_link, settle_sends_each_kind_of_answer_to_its_own_counter)
     const lh_mb_link_counters_t *c = lh_mb_link_get_counters(&t.link);
 
     EXPECT_EQ(lh_mb_link_settle(&t.link, lh_mb_status_ok), lh_mb_link_answered);
-    EXPECT_EQ(lh_mb_link_settle(&t.link, lh_mb_status_partial), lh_mb_link_answered);
-    EXPECT_EQ(lh_mb_link_counters_get_done(c), (lh_u32_t)2);
+    EXPECT_EQ(lh_mb_link_counters_get_done(c), (lh_u32_t)1);
+    EXPECT_EQ(lh_mb_link_settle(&t.link, lh_mb_status_partial), lh_mb_link_failed);
+    EXPECT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_partial);
+    EXPECT_EQ(lh_mb_link_counters_get_failed(c), (lh_u32_t)1) << "a short answer is a fault";
+    EXPECT_EQ(lh_mb_link_counters_get_done(c), (lh_u32_t)1);
     EXPECT_EQ(lh_mb_link_settle(&t.link, lh_mb_status_exception), lh_mb_link_failed);
     EXPECT_EQ(lh_mb_link_counters_get_refused(c), (lh_u32_t)1);
-    EXPECT_EQ(lh_mb_link_counters_get_failed(c), (lh_u32_t)0) << "a refusal is an answer";
+    EXPECT_EQ(lh_mb_link_counters_get_failed(c), (lh_u32_t)1) << "a refusal is an answer";
     EXPECT_EQ(lh_mb_link_settle(&t.link, lh_mb_status_garbage), lh_mb_link_failed);
-    EXPECT_EQ(lh_mb_link_counters_get_failed(c), (lh_u32_t)1);
+    EXPECT_EQ(lh_mb_link_counters_get_failed(c), (lh_u32_t)2);
     EXPECT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_garbage);
     EXPECT_EQ(lh_mb_link_get_state(&t.link), (lh_u8_t)lh_mb_link_idle)
         << "failed is a result, not a place";
@@ -1642,4 +1645,69 @@ TEST(lh_mb_link, rtu_a_broadcast_is_not_held_back)
     lh_mb_link_set_unit(&t.link, LH_MB_UNIT_BROADCAST);
     ASSERT_TRUE(lh_mb_link_write(&t.link, 0, &value, 1));
     EXPECT_GT(t.tcp.out_size, first) << "nobody answers it, so there is nothing to confuse";
+}
+
+/* -- An answer of another width is not this question's answer --------------------
+   A question for nineteen registers is answered with nineteen words. An RTU answer
+   that carries one, with a good CRC, the right unit and the right function, is the late
+   answer to some other question, and its words are the values of other registers: taken
+   for the answer, they land in the image at the first address of this one. Asked for
+   fewer is no kind of answer, so it fails the question, and on RTU it holds the next
+   one back like any other failure. */
+TEST(lh_mb_link, rtu_an_answer_of_another_width_fails_the_question_and_holds_the_next_back)
+{
+    lh_u16_t count = 0;
+    lh_test_link t;
+
+    setup_rtu(&t);
+    lh_mb_link_set_quiet_us(&t.link, kQuietUs);
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 19));
+    lh_byte_t late[LH_MB_ADU_MAX];
+    feed(&t, late, rtu_answer(late, 1, 1, 8743));
+    ASSERT_EQ(lh_mb_link_poll(&t.link, kTimeoutUs), lh_mb_link_failed);
+    EXPECT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_partial);
+    EXPECT_EQ(lh_mb_link_take(&t.link, &count), lh_null) << "no words from a failed question";
+    EXPECT_EQ(lh_mb_link_counters_get_failed(lh_mb_link_get_counters(&t.link)), (lh_u32_t)1);
+    EXPECT_EQ(lh_mb_link_counters_get_done(lh_mb_link_get_counters(&t.link)), (lh_u32_t)0);
+
+    const lh_u16_t first = t.tcp.out_size;
+
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 19));
+    EXPECT_EQ(t.tcp.out_size, first) << "held back: the line has not been quiet yet";
+    EXPECT_EQ(lh_mb_link_get_state(&t.link), (lh_u8_t)lh_mb_link_waiting);
+}
+
+TEST(lh_mb_link, rtu_the_whole_width_is_still_an_answer)
+{
+    lh_u16_t count = 0;
+    lh_test_link t;
+
+    setup_rtu(&t);
+    lh_mb_link_set_quiet_us(&t.link, kQuietUs);
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 19));
+    lh_byte_t answer[LH_MB_ADU_MAX];
+    feed(&t, answer, rtu_answer(answer, 1, 19, 100));
+    ASSERT_EQ(lh_mb_link_poll(&t.link, kTimeoutUs), lh_mb_link_answered);
+    EXPECT_NE(lh_mb_link_take(&t.link, &count), lh_null);
+    EXPECT_EQ(count, (lh_u16_t)19);
+}
+
+TEST(lh_mb_link, mbap_an_answer_of_another_width_fails_the_question_without_a_wait)
+{
+    lh_u16_t count = 0;
+    lh_test_link t;
+
+    setup(&t, LH_MB_FC_READ_HOLDING);
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 19));
+    const lh_byte_t pdu[4] = {LH_MB_FC_READ_HOLDING, 2, 0x22, 0x27};
+    lh_byte_t frame[LH_MB_ADU_MAX];
+    feed(&t, frame, lh_mb_encode(lh_mb_framing_mbap, 1, 1, pdu, 4, frame, LH_MB_ADU_MAX));
+    ASSERT_EQ(lh_mb_link_poll(&t.link, kTimeoutUs), lh_mb_link_failed);
+    EXPECT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_partial);
+    EXPECT_EQ(lh_mb_link_take(&t.link, &count), lh_null);
+
+    const lh_u16_t first = t.tcp.out_size;
+
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 19));
+    EXPECT_GT(t.tcp.out_size, first) << "a transaction id says what is late: nothing to wait for";
 }

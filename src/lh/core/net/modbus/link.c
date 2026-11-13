@@ -926,9 +926,17 @@ lh_mb_link_settle(lh_mb_link_t *self, lh_mb_status_t status)
         lh_mb_link_counters_count_refused(lh_mb_link_get_counters_mut(self));
         return lh_mb_link_failed;
     }
-    if (status != lh_mb_status_ok && status != lh_mb_status_partial)
+    if (status != lh_mb_status_ok)
     {
-        return lh_mb_link_fail(self, status); /* an answer that does not parse is a fault */
+        /* An answer that does not parse is a fault, and so is one of another width
+           (::lh_mb_status_partial). A short answer was once taken for what it carried;
+           but it is the late answer to some other question, or a frame broken so that it
+           still checks out, and its words belong to other registers -- stored at the
+           first address of this question they put a value where it was never read, and
+           the next question went out at once behind it. It fails like any other answer
+           that is not this one: the question may be asked again, and over RTU the line
+           has to be quiet first. */
+        return lh_mb_link_fail(self, status);
     }
     lh_mb_link_counters_count_done(lh_mb_link_get_counters_mut(self));
     if (lh_mb_link_get_now_us(self) != lh_null)

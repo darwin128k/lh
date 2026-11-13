@@ -105,7 +105,7 @@ lh_mb_bus_is_retryable(lh_mb_status_t reason)
 {
     return lh_cast_static(lh_bool_t,
                           (reason != lh_mb_status_exception && reason != lh_mb_status_lost &&
-                           reason != lh_mb_status_ok && reason != lh_mb_status_partial));
+                           reason != lh_mb_status_ok));
 }
 
 lh_void

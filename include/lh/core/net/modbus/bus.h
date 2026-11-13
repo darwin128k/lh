@@ -165,7 +165,8 @@ lh_mb_bus_set_resent(lh_mb_bus_t *self, lh_u32_t resent);
 /**
  * @brief Whether a request that failed for @p reason is worth sending again.
  *
- * A timeout or a broken answer, yes: the next try may well get through. A refusal
+ * A timeout or a broken answer (an answer of another width too), yes: the next try may
+ * well get through. A refusal
  * (::lh_mb_status_exception) is an answer -- the same question gets the same "no" --
  * and a lost stream (::lh_mb_status_lost) has to be opened again first.
  *

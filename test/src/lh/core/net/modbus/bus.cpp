@@ -119,10 +119,10 @@ TEST(lh_mb_bus, retries_what_may_pass_the_second_time_only)
     EXPECT_TRUE(lh_mb_bus_is_retryable(lh_mb_status_crc));
     EXPECT_TRUE(lh_mb_bus_is_retryable(lh_mb_status_garbage));
     EXPECT_TRUE(lh_mb_bus_is_retryable(lh_mb_status_wrong_code));
+    EXPECT_TRUE(lh_mb_bus_is_retryable(lh_mb_status_partial)) << "an answer of another width";
     EXPECT_FALSE(lh_mb_bus_is_retryable(lh_mb_status_exception));
     EXPECT_FALSE(lh_mb_bus_is_retryable(lh_mb_status_lost));
     EXPECT_FALSE(lh_mb_bus_is_retryable(lh_mb_status_ok));
-    EXPECT_FALSE(lh_mb_bus_is_retryable(lh_mb_status_partial));
 }
 
 TEST(lh_mb_bus, a_read_is_answered_and_its_words_are_on_the_link)

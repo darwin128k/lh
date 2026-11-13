@@ -1023,8 +1023,9 @@ lh_mb_link_find_answer(lh_mb_link_t *self, lh_u32_t timeout_us, lh_byte_ptr pdu,
 
 /**
  * @brief End the question in flight by what its answer was: answered for
- *        ::lh_mb_status_ok and ::lh_mb_status_partial, refused for an exception,
- *        failed for anything else -- each to its own counter.
+ *        ::lh_mb_status_ok, refused for an exception, failed for anything else --
+ *        an answer of another width (::lh_mb_status_partial) included -- each to its
+ *        own counter.
  *
  * @param self   The link; checked by ::lh_assert_runtime_ref.
  * @param status What ::lh_mb_link_parse_answer said.

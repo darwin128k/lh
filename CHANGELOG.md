@@ -167,6 +167,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `lh_mb_link_settle` no longer takes an answer of fewer words than were asked for
+  (`lh_mb_status_partial`) as an answer. Over RTU, with no request id, the late answer to
+  an earlier question of another width (one word to a question for nineteen) passed with a
+  good CRC, was stored by its user at the first address of the new question and let the
+  next question out at once. It now fails the question like any answer that is not this one:
+  over RTU the next question waits for the quiet line, and `lh_mb_bus_is_retryable` is true
+  for it, so the bus asks again.
+
 - `lh_mb_plan_reads` never read register 65535 behind another want: the end of a request
   was held in 16 bits, the end of register 65535 is 65536, which is 0 there, so
   `{65530,1}, {65535,1}` became one read of one register at 65530, and

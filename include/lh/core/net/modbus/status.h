@@ -10,7 +10,7 @@
 typedef enum lh_mb_status
 {
     lh_mb_status_ok = 0,     /**< the frame is an answer to what was asked */
-    lh_mb_status_partial,    /**< a good frame, but with fewer words than were asked for */
+    lh_mb_status_partial,    /**< a good frame, but with fewer words than were asked for: not an answer to it */
     lh_mb_status_short,      /**< not a whole frame yet: ask for the rest */
     lh_mb_status_crc,        /**< a whole frame with the wrong CRC: the line is noisy */
     lh_mb_status_exception,  /**< the device understood and refused; `exception` says how */
