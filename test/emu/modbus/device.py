@@ -234,8 +234,8 @@ def send(out, plan) -> None:
         out(data)
 
 
-def serve_rtu(path: str, device: Device) -> None:
-    line = serial.Serial(path, 9600, timeout=0)
+def serve_rtu(path: str, device: Device, baud: int = 9600) -> None:
+    line = serial.Serial(path, baud, timeout=0)
     held = b""
     last = time.monotonic()
     while True:
