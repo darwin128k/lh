@@ -18,6 +18,15 @@
  * request's period, not as fast as the loop can go. The values of a failed request
  * stay in the image, stale (::lh_mb_image_fail).
  *
+ * When the line cannot carry every period (a register map can ask for 40 requests a
+ * second where a VPN carries 15), the order decides what suffers. Watched requests go
+ * first: what is on a screen keeps its period. The rest go by how late they are
+ * **relative to their period** -- a request one second late on a one-second period is
+ * as late as one ten seconds late on a ten-second period -- so every period stretches
+ * by the same factor and none starves. Ordering by absolute lateness, the first
+ * version did the opposite: the slow requests, many seconds late, always beat the
+ * fast ones, one second late.
+ *
  * The schedule says *what* to ask; it sends nothing. Whoever owns the bus asks it
  * (::lh_mb_schedule_find_due) when the bus is free.
  *
@@ -228,15 +237,13 @@ lh_u16_t
 lh_mb_schedule_find_read(const lh_mb_schedule_t *self, lh_u16_t want);
 
 /**
- * @brief The most overdue request at @p now_us (level 3).
+ * @brief Whether a want of request @p index is watched (level 3).
  *
- * @param self   The schedule; checked by ::lh_assert_runtime_ref.
- * @param now_us The master's clock.
- *
- * @return Its index, or ::lh_mb_schedule_get_count when none is due yet.
+ * @param self  The schedule; checked by ::lh_assert_runtime_ref.
+ * @param index Below ::lh_mb_schedule_get_count; not checked.
  */
-lh_u16_t
-lh_mb_schedule_find_due(const lh_mb_schedule_t *self, lh_u64_t now_us);
+lh_bool_t
+lh_mb_schedule_is_read_watched(const lh_mb_schedule_t *self, lh_u16_t index);
 
 /**
  * @brief When the next request falls due, µs: how long a master may sleep (level 3).
@@ -266,6 +273,17 @@ lh_mb_schedule_try_assign(lh_mb_schedule_t *self, const lh_mb_read_t *reads, lh_
                           lh_u16_t want_count, lh_u64_t now_us);
 
 /**
+ * @brief How late request @p index is at @p now_us relative to its period, in 1/1024
+ *        of a period; 0 when it is not due yet (level 4).
+ *
+ * @param self   The schedule; checked by ::lh_assert_runtime_ref.
+ * @param index  Below ::lh_mb_schedule_get_count; not checked.
+ * @param now_us The master's clock.
+ */
+lh_u64_t
+lh_mb_schedule_get_lateness(const lh_mb_schedule_t *self, lh_u16_t index, lh_u64_t now_us);
+
+/**
  * @brief Request @p index was attempted at @p now_us, answered or not: it is due again
  *        one period later.
  *
@@ -288,6 +306,18 @@ lh_mb_schedule_mark_done(lh_mb_schedule_t *self, lh_u16_t index, lh_u64_t now_us
  */
 lh_void
 lh_mb_schedule_watch(lh_mb_schedule_t *self, lh_u16_t want, lh_u64_t now_us);
+
+/**
+ * @brief The request to send next at @p now_us: a due watched one first, then the due
+ *        one latest relative to its period (level 5).
+ *
+ * @param self   The schedule; checked by ::lh_assert_runtime_ref.
+ * @param now_us The master's clock.
+ *
+ * @return Its index, or ::lh_mb_schedule_get_count when none is due yet.
+ */
+lh_u16_t
+lh_mb_schedule_find_due(const lh_mb_schedule_t *self, lh_u64_t now_us);
 
 LH_COMPILER_EXTERN_C_END
 

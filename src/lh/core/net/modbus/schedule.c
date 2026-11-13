@@ -186,22 +186,20 @@ lh_mb_schedule_find_read(const lh_mb_schedule_t *self, lh_u16_t want)
     return count;
 }
 
-lh_u16_t
-lh_mb_schedule_find_due(const lh_mb_schedule_t *self, lh_u64_t now_us)
+lh_bool_t
+lh_mb_schedule_is_read_watched(const lh_mb_schedule_t *self, lh_u16_t index)
 {
-    const lh_u16_t count = lh_mb_schedule_get_count(self);
-    lh_u16_t best = count;
+    const lh_mb_read_t *read = lh_mb_schedule_get_read(self, index);
 
-    for (lh_u16_t i = 0; i < count; ++i)
+    for (lh_u32_t want = lh_mb_read_get_first(read); want <= lh_mb_read_get_last(read); ++want)
     {
-        const lh_u64_t due = lh_mb_schedule_get_due_us(self, i);
-
-        if (due <= now_us && (best == count || due < lh_mb_schedule_get_due_us(self, best)))
+        if (lh_ptr_deref(lh_ptr_ccast(
+                lh_u16_t, lh_array_get_ptr(lh_mb_schedule_get_watched(self), want))) != 0)
         {
-            best = i;
+            return lh_bool_true;
         }
     }
-    return best;
+    return lh_bool_false;
 }
 
 lh_u64_t
@@ -245,6 +243,21 @@ lh_mb_schedule_try_assign(lh_mb_schedule_t *self, const lh_mb_read_t *reads, lh_
     return lh_bool_true;
 }
 
+lh_u64_t
+lh_mb_schedule_get_lateness(const lh_mb_schedule_t *self, lh_u16_t index, lh_u64_t now_us)
+{
+    const lh_u64_t due = lh_mb_schedule_get_due_us(self, index);
+
+    if (now_us < due)
+    {
+        return 0;
+    }
+    /* Late by one period is 1024; a period of 0 would be due all the time, count it as 1. */
+    return (now_us - due) * 1024U /
+           lh_math_max(lh_cast_static(lh_u64_t, lh_mb_schedule_get_read_period_us(self, index)),
+                       lh_cast_static(lh_u64_t, 1U));
+}
+
 lh_void
 lh_mb_schedule_mark_done(lh_mb_schedule_t *self, lh_u16_t index, lh_u64_t now_us)
 {
@@ -270,4 +283,33 @@ lh_mb_schedule_watch(lh_mb_schedule_t *self, lh_u16_t want, lh_u64_t now_us)
             lh_ptr_cast(lh_u64_t, lh_array_get_ptr(lh_mb_schedule_get_due_mut(self), read));
         lh_ptr_deref(due) = lh_math_min(lh_ptr_deref(due), now_us);
     }
+}
+
+lh_u16_t
+lh_mb_schedule_find_due(const lh_mb_schedule_t *self, lh_u64_t now_us)
+{
+    const lh_u16_t count = lh_mb_schedule_get_count(self);
+    lh_u16_t best = count;
+    lh_bool_t best_watched = lh_bool_false;
+    lh_u64_t best_lateness = 0;
+
+    for (lh_u16_t i = 0; i < count; ++i)
+    {
+        if (lh_mb_schedule_get_due_us(self, i) > now_us)
+        {
+            continue;
+        }
+        const lh_bool_t watched = lh_mb_schedule_is_read_watched(self, i);
+        const lh_u64_t lateness = lh_mb_schedule_get_lateness(self, i, now_us);
+
+        /* What is on a screen first; then the latest for its period. */
+        if (best == count || (watched && !best_watched) ||
+            (watched == best_watched && lateness > best_lateness))
+        {
+            best = i;
+            best_watched = watched;
+            best_lateness = lateness;
+        }
+    }
+    return best;
 }

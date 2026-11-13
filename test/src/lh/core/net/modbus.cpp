@@ -560,3 +560,22 @@ TEST(lh_mb, the_run_of_a_request_ends_where_the_rule_says)
     EXPECT_EQ(lh_mb_find_run_last(wants, 3, 2, &end), 2);
     EXPECT_EQ(end, 41U);
 }
+
+TEST(lh_mb, a_wider_gap_folds_values_ten_registers_apart_into_one_read)
+{
+    /* Values every ten registers, as status words of slots are laid out: a gap of nine
+       registers between each. LH_MB_GAP_MAX (8) does not cross it; 16 does. */
+    const lh_mb_want_t wants[4] = {{32831, 1}, {32841, 1}, {32851, 1}, {32861, 1}};
+    lh_mb_read_t reads[4];
+
+    EXPECT_EQ(lh_mb_plan_reads(wants, 4, reads, 4), 4);
+    EXPECT_EQ(lh_mb_plan_reads_with_gap(wants, 4, LH_MB_GAP_MAX, reads, 4), 4)
+        << "the form without a gap is this one with LH_MB_GAP_MAX";
+    ASSERT_EQ(lh_mb_plan_reads_with_gap(wants, 4, 16, reads, 4), 1);
+    EXPECT_EQ(lh_mb_read_get_start(&reads[0]), 32831);
+    EXPECT_EQ(lh_mb_read_get_count(&reads[0]), 31);
+    EXPECT_EQ(lh_mb_count_requests_with_gap(wants, 4, 16), 1);
+    EXPECT_EQ(lh_mb_count_requests_with_gap(wants, 4, 9), 1) << "a gap of exactly nine";
+    EXPECT_EQ(lh_mb_count_requests_with_gap(wants, 4, 8), 4);
+    EXPECT_EQ(lh_mb_plan_reads_with_gap(wants, 4, 0, reads, 4), 4) << "no gap at all";
+}

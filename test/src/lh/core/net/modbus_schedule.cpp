@@ -156,3 +156,42 @@ TEST(lh_mb_schedule, finds_the_request_that_carries_a_want)
     EXPECT_EQ(lh_mb_schedule_find_read(&s.schedule, 4), 2);
     EXPECT_EQ(lh_mb_schedule_find_read(&s.schedule, 5), 3) << "no such want";
 }
+
+TEST(lh_mb_schedule, an_overloaded_line_stretches_every_period_alike)
+{
+    scheduled s;
+
+    s.run(kStart);
+    /* 6 s later nothing has been asked: request 0 (1 s) is 5 periods late, request 1
+       (5 s) is 0.2 of a period late, request 2 (10 s) is not due. By absolute lateness
+       request 0 and 1 tie at nothing useful; by lateness for the period, request 0 is
+       far more behind and goes first. */
+    EXPECT_EQ(lh_mb_schedule_find_due(&s.schedule, kStart + 6000000U), 0);
+    EXPECT_EQ(lh_mb_schedule_get_lateness(&s.schedule, 0, kStart + 6000000U), 5U * 1024U);
+    EXPECT_EQ(lh_mb_schedule_get_lateness(&s.schedule, 1, kStart + 6000000U), 1024U / 5U);
+    EXPECT_EQ(lh_mb_schedule_get_lateness(&s.schedule, 2, kStart + 6000000U), 0U);
+}
+
+TEST(lh_mb_schedule, a_slow_request_long_overdue_does_not_starve_a_fast_one)
+{
+    scheduled s;
+
+    s.run(kStart);
+    /* Request 2 (10 s) is 12 s late, request 0 (1 s) is 2 s late: the slow one is
+       later in seconds, the fast one is later for what it is -- 2 periods against 1.2. */
+    lh_mb_schedule_mark_done(&s.schedule, 0, kStart + 19000000U); /* due at +20 s */
+    lh_mb_schedule_mark_done(&s.schedule, 1, kStart + 30000000U); /* not due */
+    EXPECT_EQ(lh_mb_schedule_find_due(&s.schedule, kStart + 22000000U), 0);
+}
+
+TEST(lh_mb_schedule, what_is_on_a_screen_goes_before_what_is_later)
+{
+    scheduled s;
+
+    s.run(kStart);
+    lh_mb_schedule_watch(&s.schedule, 3, kStart + 5000000U); /* request 2, due at once */
+    EXPECT_TRUE(lh_mb_schedule_is_read_watched(&s.schedule, 2));
+    EXPECT_FALSE(lh_mb_schedule_is_read_watched(&s.schedule, 0));
+    /* Request 0 is four periods late; the watched one goes first all the same. */
+    EXPECT_EQ(lh_mb_schedule_find_due(&s.schedule, kStart + 5000000U), 2);
+}

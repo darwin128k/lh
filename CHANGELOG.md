@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_mb_plan_reads_with_gap`, `lh_mb_count_requests_with_gap`, `lh_mb_find_run_last_with_gap`,
+  `lh_mb_reach_with_gap`: the gap a request may cross is an argument; the forms without it
+  use `LH_MB_GAP_MAX` (8). Over Modbus TCP a request costs a round trip and the bytes
+  almost nothing: on a real register map, values every second laid out ten registers
+  apart took 24 requests with a gap of 8 and 8 with a gap of 16.
+- `lh_mb_schedule_find_due` sends a watched request first, then the one latest **relative
+  to its period** (`lh_mb_schedule_get_lateness`, `lh_mb_schedule_is_read_watched`). On a
+  line that cannot carry every period, every period now stretches by the same factor;
+  ordered by absolute lateness, slow requests many seconds late always beat fast ones one
+  second late.
+
 - `lh_mb_schedule_t` (`lh/core/net/modbus/schedule.h`): which request of a plan is due
   next. Each want has a period (a card's "refresh every"), a request is polled at the
   shortest period of its wants, the most overdue request goes first

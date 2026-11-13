@@ -363,8 +363,11 @@ LH_COMPILER_EXTERN_C_END
  * received, copied, checked and thrown away, and that is the whole cost this
  * program is trying to avoid.
  *
- * `8` is where it was worth measuring, and the measurement is the number to move
- * if a register map turns out to be denser than the ones it was measured on.
+ * `8` is the default for a serial line, where every register read costs its two
+ * bytes on the wire. Over Modbus TCP a request costs a round trip and the bytes
+ * almost nothing, so wider gaps pay: the `_with_gap` forms below take the gap as an
+ * argument. Measured on a real register map with values every second scattered ten
+ * registers apart: a gap of 8 needs 24 requests for them, a gap of 16 needs 8.
  */
 #define LH_MB_GAP_MAX (lh_cast_static(lh_u16_t, 8))
 
@@ -376,6 +379,11 @@ LH_COMPILER_EXTERN_C_BEGIN
    ask for. 32 bits: see ::lh_mb_want_get_end. */
 lh_u32_t
 lh_mb_reach(lh_u16_t start, lh_u32_t end, const lh_mb_want_t *next);
+
+/** ::lh_mb_reach with a gap of at most @p gap unwanted registers instead of
+   ::LH_MB_GAP_MAX. */
+lh_u32_t
+lh_mb_reach_with_gap(lh_u16_t start, lh_u32_t end, const lh_mb_want_t *next, lh_u16_t gap);
 
 /**
  * @brief The last want of the request that starts at want @p first: every want after
@@ -393,6 +401,11 @@ lh_mb_reach(lh_u16_t start, lh_u32_t end, const lh_mb_want_t *next);
  */
 lh_u16_t
 lh_mb_find_run_last(const lh_mb_want_t *wants, lh_u16_t count, lh_u16_t first, lh_u32_t *end);
+
+/** ::lh_mb_find_run_last crossing gaps of at most @p gap unwanted registers. */
+lh_u16_t
+lh_mb_find_run_last_with_gap(const lh_mb_want_t *wants, lh_u16_t count, lh_u16_t first,
+                             lh_u16_t gap, lh_u32_t *end);
 
 /**
  * @brief Turn a sorted list of wants into the fewest requests that cover them.
@@ -419,6 +432,24 @@ lh_u16_t
 lh_mb_plan_reads(const lh_mb_want_t *wants, lh_u16_t count, lh_mb_read_t *reads, lh_u16_t cap);
 
 /**
+ * @brief ::lh_mb_plan_reads crossing gaps of at most @p gap unwanted registers.
+ *
+ * A wider gap trades bytes for requests: worth it where a request costs more than
+ * the registers it carries (Modbus TCP, a line with a long turnaround).
+ *
+ * @param wants The registers, address-ordered and non-overlapping.
+ * @param count How many there are.
+ * @param gap   The most unwanted registers one request may carry between two wants.
+ * @param reads Where the requests go.
+ * @param cap   How many @p reads really holds.
+ *
+ * @return How many requests were produced, as ::lh_mb_plan_reads.
+ */
+lh_u16_t
+lh_mb_plan_reads_with_gap(const lh_mb_want_t *wants, lh_u16_t count, lh_u16_t gap,
+                          lh_mb_read_t *reads, lh_u16_t cap);
+
+/**
  * @brief How many requests a list of wants would need, without building them.
  *
  * The number to put in front of a customer, and the one to check against
@@ -427,6 +458,10 @@ lh_mb_plan_reads(const lh_mb_want_t *wants, lh_u16_t count, lh_mb_read_t *reads,
  */
 lh_u16_t
 lh_mb_count_requests(const lh_mb_want_t *wants, lh_u16_t count);
+
+/** ::lh_mb_count_requests crossing gaps of at most @p gap unwanted registers. */
+lh_u16_t
+lh_mb_count_requests_with_gap(const lh_mb_want_t *wants, lh_u16_t count, lh_u16_t gap);
 
 LH_COMPILER_EXTERN_C_END
 

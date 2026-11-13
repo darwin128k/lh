@@ -230,18 +230,20 @@ lh_mb_build_pdu_read_answer(lh_byte_ptr pdu, lh_u16_t cap, lh_u8_t fc, const lh_
    device map is sorted for exactly this reason, and sorting it here would put a
    second pass on the one path that runs for every device.
 
-   The rule for merging is written once, in `lh_mb_reach` and
-   `lh_mb_find_run_last`, because the planner and the counter have to agree: a counter that disagrees with the planner is a number on
-   a slide that the code does not produce, and nobody finds out which of the two is
-   wrong until a device is asked for something it was never sent. */
+   The rule for merging is written once, in `lh_mb_reach_with_gap` and
+   `lh_mb_find_run_last_with_gap`, because the planner and the counter have to agree:
+   a counter that disagrees with the planner is a number on a slide that the code
+   does not produce, and nobody finds out which of the two is wrong until a device
+   is asked for something it was never sent. The forms without a gap are these with
+   LH_MB_GAP_MAX. */
 
 lh_u32_t
-lh_mb_reach(lh_u16_t start, lh_u32_t end, const lh_mb_want_t *next)
+lh_mb_reach_with_gap(lh_u16_t start, lh_u32_t end, const lh_mb_want_t *next, lh_u16_t gap)
 {
     const lh_u32_t address = lh_mb_want_get_address(next);
     const lh_u32_t reach = lh_math_max(lh_mb_want_get_end(next), end);
 
-    if (address > end && address - end > LH_MB_GAP_MAX)
+    if (address > end && address - end > gap)
     {
         return 0; /* nobody wants what is between, and there is a lot of it */
     }
@@ -342,8 +344,15 @@ lh_mb_rtu_request_length(lh_byte_cptr frame, lh_u16_t have)
     return lh_cast_static(lh_u16_t, (9 + frame[6]));
 }
 
+lh_u32_t
+lh_mb_reach(lh_u16_t start, lh_u32_t end, const lh_mb_want_t *next)
+{
+    return lh_mb_reach_with_gap(start, end, next, LH_MB_GAP_MAX);
+}
+
 lh_u16_t
-lh_mb_find_run_last(const lh_mb_want_t *wants, lh_u16_t count, lh_u16_t first, lh_u32_t *end)
+lh_mb_find_run_last_with_gap(const lh_mb_want_t *wants, lh_u16_t count, lh_u16_t first,
+                             lh_u16_t gap, lh_u32_t *end)
 {
     const lh_u16_t start = lh_mb_want_get_address(lh_addr_of(wants[first]));
     lh_u32_t reached = lh_mb_want_get_end(lh_addr_of(wants[first]));
@@ -352,7 +361,8 @@ lh_mb_find_run_last(const lh_mb_want_t *wants, lh_u16_t count, lh_u16_t first, l
     /* Take every want this request can carry for free. */
     while (last + 1 < count)
     {
-        const lh_u32_t reach = lh_mb_reach(start, reached, lh_addr_of(wants[last + 1]));
+        const lh_u32_t reach =
+            lh_mb_reach_with_gap(start, reached, lh_addr_of(wants[last + 1]), gap);
 
         if (reach == 0)
         {
@@ -363,6 +373,12 @@ lh_mb_find_run_last(const lh_mb_want_t *wants, lh_u16_t count, lh_u16_t first, l
     }
     lh_ptr_deref(end) = reached;
     return last;
+}
+
+lh_u16_t
+lh_mb_find_run_last(const lh_mb_want_t *wants, lh_u16_t count, lh_u16_t first, lh_u32_t *end)
+{
+    return lh_mb_find_run_last_with_gap(wants, count, first, LH_MB_GAP_MAX, end);
 }
 
 lh_mb_status_t
@@ -427,7 +443,8 @@ lh_mb_parse_read(lh_byte_cptr adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc, lh
 }
 
 lh_u16_t
-lh_mb_plan_reads(const lh_mb_want_t *wants, lh_u16_t count, lh_mb_read_t *reads, lh_u16_t cap)
+lh_mb_plan_reads_with_gap(const lh_mb_want_t *wants, lh_u16_t count, lh_u16_t gap,
+                          lh_mb_read_t *reads, lh_u16_t cap)
 {
     lh_u16_t made = 0;
     lh_u16_t i = 0;
@@ -439,7 +456,7 @@ lh_mb_plan_reads(const lh_mb_want_t *wants, lh_u16_t count, lh_mb_read_t *reads,
     {
         const lh_u16_t start = lh_mb_want_get_address(lh_addr_of(wants[i]));
         lh_u32_t end = 0;
-        const lh_u16_t j = lh_mb_find_run_last(wants, count, i, lh_addr_of(end));
+        const lh_u16_t j = lh_mb_find_run_last_with_gap(wants, count, i, gap, lh_addr_of(end));
         lh_mb_read_t *one = lh_addr_of(reads[made]);
 
         lh_mb_read_set_start(one, start);
@@ -453,7 +470,7 @@ lh_mb_plan_reads(const lh_mb_want_t *wants, lh_u16_t count, lh_mb_read_t *reads,
 }
 
 lh_u16_t
-lh_mb_count_requests(const lh_mb_want_t *wants, lh_u16_t count)
+lh_mb_count_requests_with_gap(const lh_mb_want_t *wants, lh_u16_t count, lh_u16_t gap)
 {
     lh_u16_t made = 0;
     lh_u16_t i = 0;
@@ -466,7 +483,20 @@ lh_mb_count_requests(const lh_mb_want_t *wants, lh_u16_t count)
         lh_u32_t end = 0;
 
         ++made;
-        i = lh_cast_static(lh_u16_t, (lh_mb_find_run_last(wants, count, i, lh_addr_of(end)) + 1));
+        i = lh_cast_static(
+            lh_u16_t, (lh_mb_find_run_last_with_gap(wants, count, i, gap, lh_addr_of(end)) + 1));
     }
     return made;
+}
+
+lh_u16_t
+lh_mb_plan_reads(const lh_mb_want_t *wants, lh_u16_t count, lh_mb_read_t *reads, lh_u16_t cap)
+{
+    return lh_mb_plan_reads_with_gap(wants, count, LH_MB_GAP_MAX, reads, cap);
+}
+
+lh_u16_t
+lh_mb_count_requests(const lh_mb_want_t *wants, lh_u16_t count)
+{
+    return lh_mb_count_requests_with_gap(wants, count, LH_MB_GAP_MAX);
 }
