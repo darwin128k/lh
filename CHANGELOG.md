@@ -24,6 +24,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `lh_lanes_t` (`lh/core/lanes.h`): which of several queues gets the next turn -- the
   lowest ready lane, unless a lower one has let its patience of turns go by. Patience 1
   makes two busy lanes alternate; nothing starves.
+- `lh_mb_link_set_quiet_us` (`lh/core/net/modbus/link.h`): over RTU, a question that follows
+  a failed one waits until the line has been quiet for that long, and what arrives
+  meanwhile is thrown away. An RTU answer has no request id, so an answer that comes after
+  its question timed out was read as the answer to the next question -- same unit, same
+  function, same width, the values of the one before. The wait is inside the link
+  (`lh_mb_link_poll` sends the held-back question once the line is quiet, its timeout
+  starting then; a line that never goes quiet ends it as a timeout), so `lh_mb_bus_t`
+  and every other user of the link get it. It is off while the quiet is 0, and over MBAP,
+  where the transaction id tells the late answer. A line that has just been opened may
+  still carry what the last session left on it: `lh_mb_link_set_stream` makes the first
+  question wait for the same quiet, and `lh_mb_link_require_quiet(link, silence_us)` asks
+  for a longer one -- a device can sit on an answer for as long as the timeout, so a master
+  that opens a line wants at least the timeout -- or for any line opened some other way.
 - `lh_mb_image_t` says what moved: `lh_mb_image_store` and `lh_mb_image_fail` return how
   many wants changed (words or status) and mark them (`lh_mb_image_is_value_changed`,
   `lh_mb_image_clear_value_changed`), so a master can tell a screen "this value changed"

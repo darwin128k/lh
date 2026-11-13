@@ -1397,3 +1397,249 @@ TEST(lh_mb_link, rtu_a_flush_that_finds_the_stream_closed_loses_it)
     EXPECT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_lost);
     EXPECT_FALSE(lh_mb_link_ask(&t.link, 0, 1)) << "and no question goes out on it";
 }
+
+/* -- RTU: an answer that comes after its question timed out --------------------
+   An RTU answer carries no request id. A device that sits on a question longer than
+   the timeout answers it after the next question has gone out, and the link reads that
+   answer -- same unit, same function, same width -- as the answer to the next one, with
+   the values of the one before. The only thing that tells them apart is time: a question
+   goes out after a failed one only when the line has been quiet (::lh_mb_link_set_quiet_us),
+   and what arrives meanwhile is thrown away. */
+namespace
+{
+
+constexpr lh_u32_t kTimeoutUs = 1000000;
+constexpr lh_u32_t kQuietUs = 500000;
+
+/* A question that nobody answers within the timeout; the link is idle and failed after it. */
+void
+ask_and_time_out(lh_test_link *t)
+{
+    ASSERT_TRUE(lh_mb_link_ask(&t->link, 10, 3));
+    t->now_us += kTimeoutUs + 1;
+    ASSERT_EQ(lh_mb_link_poll(&t->link, kTimeoutUs), lh_mb_link_failed);
+    ASSERT_EQ(lh_mb_link_get_reason(&t->link), lh_mb_status_short);
+}
+
+} // namespace
+
+TEST(lh_mb_link, rtu_without_a_quiet_the_late_answer_is_taken_for_the_next_one)
+{
+    lh_u16_t count = 0;
+    lh_test_link t;
+
+    setup_rtu(&t);
+    ask_and_time_out(&t);
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 3));
+    lh_byte_t late[LH_MB_ADU_MAX];
+    feed(&t, late, rtu_answer(late, 1, 3, 100));
+    ASSERT_EQ(lh_mb_link_poll(&t.link, kTimeoutUs), lh_mb_link_answered);
+    EXPECT_EQ(lh_mb_link_take(&t.link, &count)[0], (lh_u16_t)100)
+        << "the values of the question before, accepted: the default does not guard";
+}
+
+TEST(lh_mb_link, rtu_a_late_answer_after_a_timeout_is_thrown_away)
+{
+    lh_u16_t count = 0;
+    lh_test_link t;
+
+    setup_rtu(&t);
+    lh_mb_link_set_quiet_us(&t.link, kQuietUs);
+    ask_and_time_out(&t);
+    const lh_u16_t first = t.tcp.out_size;
+
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 3));
+    EXPECT_EQ(t.tcp.out_size, first) << "held back: the line has not been quiet yet";
+    EXPECT_EQ(lh_mb_link_get_state(&t.link), (lh_u8_t)lh_mb_link_waiting);
+
+    /* The device answers the first question now. */
+    t.now_us += 100000;
+    lh_byte_t late[LH_MB_ADU_MAX];
+    feed(&t, late, rtu_answer(late, 1, 3, 100));
+    EXPECT_EQ(lh_mb_link_poll(&t.link, kTimeoutUs), lh_mb_link_waiting);
+    EXPECT_EQ(lh_mb_link_get_held(&t.link), (lh_u16_t)0) << "thrown away, not kept";
+
+    /* Quiet counts from the last byte: 400 ms after it is not enough, 500 ms is. */
+    t.now_us += kQuietUs - 100000;
+    EXPECT_EQ(lh_mb_link_poll(&t.link, kTimeoutUs), lh_mb_link_waiting);
+    EXPECT_EQ(t.tcp.out_size, first);
+    t.now_us += 100000;
+    EXPECT_EQ(lh_mb_link_poll(&t.link, kTimeoutUs), lh_mb_link_waiting);
+    EXPECT_EQ(t.tcp.out_size, (lh_u16_t)(2 * first)) << "now the second question goes out";
+
+    lh_byte_t fresh[LH_MB_ADU_MAX];
+    feed(&t, fresh, rtu_answer(fresh, 1, 3, 200));
+    ASSERT_EQ(lh_mb_link_poll(&t.link, kTimeoutUs), lh_mb_link_answered);
+    EXPECT_EQ(lh_mb_link_take(&t.link, &count)[0], (lh_u16_t)200) << "its own answer";
+}
+
+TEST(lh_mb_link, rtu_the_timeout_of_a_held_back_question_starts_when_it_goes_out)
+{
+    lh_u16_t count = 0;
+    lh_test_link t;
+
+    setup_rtu(&t);
+    lh_mb_link_set_quiet_us(&t.link, kQuietUs);
+    ask_and_time_out(&t);
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 3));
+    t.now_us += kQuietUs;
+    EXPECT_EQ(lh_mb_link_poll(&t.link, kTimeoutUs), lh_mb_link_waiting);
+    /* 900 ms after it went out, 1.4 s after it was asked: not a timeout yet. */
+    t.now_us += 900000;
+    EXPECT_EQ(lh_mb_link_poll(&t.link, kTimeoutUs), lh_mb_link_waiting);
+    lh_byte_t answer[LH_MB_ADU_MAX];
+    feed(&t, answer, rtu_answer(answer, 1, 3, 7));
+    ASSERT_EQ(lh_mb_link_poll(&t.link, kTimeoutUs), lh_mb_link_answered);
+    EXPECT_EQ(lh_mb_link_take(&t.link, &count)[0], (lh_u16_t)7);
+}
+
+TEST(lh_mb_link, rtu_a_line_that_never_goes_quiet_ends_the_question_as_a_timeout)
+{
+    lh_test_link t;
+
+    setup_rtu(&t);
+    lh_mb_link_set_quiet_us(&t.link, kQuietUs);
+    ask_and_time_out(&t);
+    const lh_u16_t first = t.tcp.out_size;
+
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 3));
+    lh_byte_t noise[LH_MB_ADU_MAX];
+    const lh_u16_t length = rtu_answer(noise, 1, 3, 1);
+    lh_mb_link_state_t state = lh_mb_link_waiting;
+
+    for (int i = 0; i < 20 && state == lh_mb_link_waiting; ++i)
+    {
+        t.now_us += 100000; /* a frame every 100 ms: never 500 ms of silence */
+        feed(&t, noise, length);
+        state = lh_mb_link_poll(&t.link, kTimeoutUs);
+    }
+    EXPECT_EQ(state, lh_mb_link_failed);
+    EXPECT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_short);
+    EXPECT_EQ(t.tcp.out_size, first) << "and nothing was sent into the noise";
+    EXPECT_EQ(lh_mb_link_get_pending_length(&t.link), (lh_u16_t)0);
+}
+
+TEST(lh_mb_link, rtu_a_new_stream_has_to_be_heard_quiet_too)
+{
+    lh_test_link t;
+
+    setup_rtu(&t);
+    lh_mb_link_set_quiet_us(&t.link, kQuietUs);
+    lh_mb_link_set_stream(&t.link, &t.stream);
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 3));
+    EXPECT_EQ(t.tcp.out_size, (lh_u16_t)0) << "what the last session left may still come";
+    t.now_us += kQuietUs;
+    EXPECT_EQ(lh_mb_link_poll(&t.link, kTimeoutUs), lh_mb_link_waiting);
+    EXPECT_GT(t.tcp.out_size, (lh_u16_t)0);
+}
+
+TEST(lh_mb_link, rtu_a_line_just_opened_can_be_made_to_owe_more_than_a_failed_one)
+{
+    lh_test_link t;
+
+    setup_rtu(&t);
+    lh_mb_link_set_quiet_us(&t.link, kQuietUs);
+    lh_mb_link_require_quiet(&t.link, 3 * kQuietUs);
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 3));
+    EXPECT_EQ(t.tcp.out_size, (lh_u16_t)0);
+
+    /* Silence counts from the last byte: a frame at 1 s puts the end at 2.5 s. */
+    t.now_us += 2 * kQuietUs;
+    lh_byte_t late[LH_MB_ADU_MAX];
+    feed(&t, late, rtu_answer(late, 1, 3, 100));
+    EXPECT_EQ(lh_mb_link_poll(&t.link, kTimeoutUs), lh_mb_link_waiting);
+    t.now_us += 2 * kQuietUs;
+    EXPECT_EQ(lh_mb_link_poll(&t.link, kTimeoutUs), lh_mb_link_waiting);
+    EXPECT_EQ(t.tcp.out_size, (lh_u16_t)0) << "0.5 s is the quiet after a failure, not this";
+    t.now_us += kQuietUs;
+    EXPECT_EQ(lh_mb_link_poll(&t.link, kTimeoutUs), lh_mb_link_waiting);
+    EXPECT_GT(t.tcp.out_size, (lh_u16_t)0);
+}
+
+TEST(lh_mb_link, rtu_a_failure_does_not_shorten_what_the_opening_asked_for)
+{
+    lh_test_link t;
+
+    setup_rtu(&t);
+    lh_mb_link_set_quiet_us(&t.link, kQuietUs);
+    lh_mb_link_require_quiet(&t.link, 3 * kQuietUs);
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 3));
+    /* Noise all the way to the bound (the wait and the timeout) ends the question; the
+       link goes on owing the longer of the two. */
+    lh_byte_t noise[LH_MB_ADU_MAX];
+    const lh_u16_t length = rtu_answer(noise, 1, 3, 1);
+    lh_mb_link_state_t state = lh_mb_link_waiting;
+
+    for (int i = 0; i < 40 && state == lh_mb_link_waiting; ++i)
+    {
+        t.now_us += 100000;
+        feed(&t, noise, length);
+        state = lh_mb_link_poll(&t.link, kTimeoutUs);
+    }
+    ASSERT_EQ(state, lh_mb_link_failed);
+    EXPECT_EQ(lh_mb_link_get_settle_us(&t.link), 3 * kQuietUs);
+}
+
+TEST(lh_mb_link, rtu_a_question_after_an_answer_is_not_held_back)
+{
+    lh_test_link t;
+
+    setup_rtu(&t);
+    lh_mb_link_set_quiet_us(&t.link, kQuietUs);
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 3));
+    lh_byte_t answer[LH_MB_ADU_MAX];
+    feed(&t, answer, rtu_answer(answer, 1, 3, 7));
+    ASSERT_EQ(lh_mb_link_poll(&t.link, kTimeoutUs), lh_mb_link_answered);
+    lh_mb_link_release(&t.link);
+    const lh_u16_t first = t.tcp.out_size;
+
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 3));
+    EXPECT_GT(t.tcp.out_size, first) << "a good answer leaves nothing to wait for";
+}
+
+TEST(lh_mb_link, rtu_a_refusal_is_an_answer_and_does_not_hold_the_next_question_back)
+{
+    lh_test_link t;
+
+    setup_rtu(&t);
+    lh_mb_link_set_quiet_us(&t.link, kQuietUs);
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 3));
+    const lh_u16_t first = t.tcp.out_size;
+    lh_byte_t refusal[LH_MB_ADU_MAX];
+    const lh_byte_t pdu[2] = {(lh_byte_t)(LH_MB_FC_READ_HOLDING | 0x80), 0x02};
+    feed(&t, refusal, lh_mb_encode(lh_mb_framing_rtu, 1, 0, pdu, 2, refusal, LH_MB_ADU_MAX));
+    ASSERT_EQ(lh_mb_link_poll(&t.link, kTimeoutUs), lh_mb_link_failed);
+    ASSERT_EQ(lh_mb_link_get_reason(&t.link), lh_mb_status_exception);
+
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 3));
+    EXPECT_GT(t.tcp.out_size, first);
+}
+
+TEST(lh_mb_link, mbap_a_timeout_does_not_hold_the_next_question_back)
+{
+    lh_test_link t;
+
+    setup(&t, LH_MB_FC_READ_HOLDING);
+    lh_mb_link_set_quiet_us(&t.link, kQuietUs);
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 3));
+    const lh_u16_t first = t.tcp.out_size;
+    t.now_us += kTimeoutUs + 1;
+    ASSERT_EQ(lh_mb_link_poll(&t.link, kTimeoutUs), lh_mb_link_failed);
+    ASSERT_TRUE(lh_mb_link_ask(&t.link, 10, 3));
+    EXPECT_GT(t.tcp.out_size, first) << "the transaction id tells a late answer; nothing waits";
+}
+
+TEST(lh_mb_link, rtu_a_broadcast_is_not_held_back)
+{
+    lh_test_link t;
+
+    setup_rtu(&t);
+    lh_mb_link_set_quiet_us(&t.link, kQuietUs);
+    ask_and_time_out(&t);
+    const lh_u16_t first = t.tcp.out_size;
+    const lh_u16_t value = 5;
+
+    lh_mb_link_set_unit(&t.link, LH_MB_UNIT_BROADCAST);
+    ASSERT_TRUE(lh_mb_link_write(&t.link, 0, &value, 1));
+    EXPECT_GT(t.tcp.out_size, first) << "nobody answers it, so there is nothing to confuse";
+}

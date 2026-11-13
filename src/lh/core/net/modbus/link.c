@@ -2,7 +2,6 @@
  * @file link.c
  * @brief Framing, and a link that never waits.
  */
-
 #include <lh/core/net/modbus/link.h>
 #include <lh/core/attribute/unused.h>
 #include <lh/core/bit/endian.h>
@@ -469,6 +468,62 @@ lh_mb_link_get_frame_mut(lh_mb_link_t *self)
     return self->frame;
 }
 
+lh_u32_t
+lh_mb_link_get_quiet_us(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->quiet_us;
+}
+
+lh_void
+lh_mb_link_set_quiet_us(lh_mb_link_t *self, lh_u32_t quiet_us)
+{
+    lh_assert_runtime_ref(self);
+    self->quiet_us = quiet_us;
+}
+
+const lh_byte_t *
+lh_mb_link_get_pending(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->pending;
+}
+
+lh_byte_t *
+lh_mb_link_get_pending_mut(lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->pending;
+}
+
+lh_u16_t
+lh_mb_link_get_pending_length(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->pending_length;
+}
+
+lh_void
+lh_mb_link_set_pending_length(lh_mb_link_t *self, lh_u16_t pending_length)
+{
+    lh_assert_runtime_ref(self);
+    self->pending_length = pending_length;
+}
+
+lh_u32_t
+lh_mb_link_get_settle_us(const lh_mb_link_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->settle_us;
+}
+
+lh_void
+lh_mb_link_set_settle_us(lh_mb_link_t *self, lh_u32_t settle_us)
+{
+    lh_assert_runtime_ref(self);
+    self->settle_us = settle_us;
+}
+
 lh_u16_t
 lh_mb_frame_length(lh_mb_framing_t framing, lh_byte_cptr frame, lh_u16_t have, lh_u8_t fc)
 {
@@ -531,17 +586,6 @@ lh_mb_link_set_fc(lh_mb_link_t *self, lh_u8_t fc)
     self->fc = fc;
 }
 
-lh_void
-lh_mb_link_set_stream(lh_mb_link_t *self, const lh_io_stream_t *stream)
-{
-    lh_io_stream_assign(lh_mb_link_get_stream_mut(self), stream);
-    /* A new connection is a new stream: whatever was held belonged to the old one,
-       and the first byte that arrives now is the first byte of a frame. */
-    lh_mb_link_set_held(self, 0);
-    lh_mb_link_set_state(self, lh_cast_static(lh_u8_t, lh_mb_link_idle));
-    lh_mb_link_set_reason(self, lh_mb_status_ok);
-}
-
 lh_mb_link_state_t
 lh_mb_link_lose(lh_mb_link_t *self)
 {
@@ -592,26 +636,6 @@ lh_mb_link_take(lh_mb_link_t *self, lh_u16_t *count)
     return lh_mb_link_get_values(self);
 }
 
-lh_mb_link_state_t
-lh_mb_link_fail(lh_mb_link_t *self, lh_mb_status_t reason)
-{
-    /* Every failure ends the same way: **back to idle, not stuck.** A question that
-       came back wrong, came back short, or never came back is one question. Letting
-       it decide the rest of the session is how a device that answers "illegal
-       function" for one register bank gets dropped for good, and how a poll loop
-       that keeps finding the link busy spins for ever instead of moving on to the
-       other devices.
-
-       The caller learns it happened from the state the poll returns, from
-       ::lh_mb_link_t.reason and from ::lh_mb_link_counters_t.failed; deciding that a
-       device is *off* rather than *slow* is the app's business, because only it
-       knows how many failures in a row mean that. */
-    lh_mb_link_set_state(self, lh_cast_static(lh_u8_t, lh_mb_link_idle));
-    lh_mb_link_set_reason(self, reason);
-    lh_mb_link_counters_count_failed(lh_mb_link_get_counters_mut(self));
-    return lh_mb_link_failed;
-}
-
 lh_mb_status_t
 lh_mb_link_parse_answer(lh_mb_link_t *self, lh_byte_cptr pdu, lh_u16_t pdu_length)
 {
@@ -644,6 +668,40 @@ lh_mb_link_parse_answer(lh_mb_link_t *self, lh_byte_cptr pdu, lh_u16_t pdu_lengt
     lh_mb_link_set_reason(self, status);
     lh_mb_link_set_exception(self, exception);
     return status;
+}
+
+lh_void
+lh_mb_link_begin(lh_mb_link_t *self, lh_u16_t address, lh_u16_t count, lh_u8_t fc)
+{
+    lh_mb_link_set_address(self, address);
+    lh_mb_link_set_expected(self, count);
+    /* Over MBAP the held bytes stay: they arrived before this question went out, so
+       they are not its answer, but they may be the start of an answer to the last
+       one, and dropping half a frame puts every frame after it off by that much.
+       The transaction id is what keeps them from being taken for this answer. */
+    lh_mb_link_set_got(self, 0);
+    lh_mb_link_set_asked_tx(self, lh_mb_link_get_tx(self));
+    lh_mb_link_set_tx(self, lh_cast_static(lh_u16_t, (lh_mb_link_get_tx(self) + 1U)));
+    /* A new question clears the last answer's verdict: ::reason says how the
+       previous one ended, and a caller that reads it after asking the next one is
+       reading about the wrong question. */
+    lh_mb_link_set_reason(self, lh_mb_status_ok);
+    lh_mb_link_set_exception(self, 0);
+    lh_mb_link_set_asked_fc(self, fc);
+}
+
+lh_void
+lh_mb_link_require_quiet(lh_mb_link_t *self, lh_u32_t silence_us)
+{
+    lh_return_if(lh_mb_link_get_framing(self) != lh_mb_framing_rtu || silence_us == 0);
+    /* A wait already due is not made shorter: a question that failed on a line just
+       opened still owes what the opening asked for. */
+    if (silence_us > lh_mb_link_get_settle_us(self))
+    {
+        lh_mb_link_set_settle_us(self, silence_us);
+    }
+    /* The silence is counted from now, and from every byte that comes after. */
+    lh_mb_link_set_heard_us(self, lh_mb_link_get_time_us(self));
 }
 
 lh_bool_t
@@ -702,6 +760,73 @@ lh_mb_link_init(lh_mb_link_t *self, const lh_io_stream_t *stream, lh_mb_framing_
     lh_mb_link_set_reason(self, lh_mb_status_ok);
     lh_mb_link_set_now_us(self, now_us);
     lh_mb_link_set_clock(self, clock);
+}
+
+lh_bool_t
+lh_mb_link_transmit(lh_mb_link_t *self, lh_byte_cptr frame, lh_u16_t length)
+{
+    lh_ssize_t wrote = lh_io_stream_write(lh_mb_link_get_stream_mut(self), frame,
+                                          lh_cast_static(lh_usize_t, length));
+    if (wrote == LH_IO_PENDING)
+    {
+        /* Nothing went out: the send buffer is full for the moment. Not a fault --
+           the stream is fine and so is the device -- so it is not counted as one;
+           the caller gets `false` and asks again on its next pass. */
+        lh_mb_link_set_state(self, lh_cast_static(lh_u8_t, lh_mb_link_idle));
+        return lh_bool_false;
+    }
+    if (wrote != lh_cast_static(lh_ssize_t, length))
+    {
+        /* A failure, or half a request out. The second is worse than none: what is
+           on the line now is a frame nobody sent, and the device will read whatever
+           comes next as the rest of it. Either way the stream is lost. */
+        LH_ATTRIBUTE_UNUSED(lh_mb_link_lose(self));
+        return lh_bool_false;
+    }
+    lh_mb_link_counters_count_sent(lh_mb_link_get_counters_mut(self));
+    lh_mb_link_counters_add_bytes(lh_mb_link_get_counters_mut(self),
+                                  lh_cast_static(lh_u32_t, length));
+    lh_mb_link_set_since_us(self, lh_mb_link_get_time_us(self));
+    lh_mb_link_set_heard_us(self, lh_mb_link_get_since_us(self));
+    return lh_bool_true;
+}
+
+lh_void
+lh_mb_link_set_stream(lh_mb_link_t *self, const lh_io_stream_t *stream)
+{
+    lh_io_stream_assign(lh_mb_link_get_stream_mut(self), stream);
+    /* A new connection is a new stream: whatever was held belonged to the old one,
+       and the first byte that arrives now is the first byte of a frame. */
+    lh_mb_link_set_held(self, 0);
+    lh_mb_link_set_pending_length(self, 0);
+    lh_mb_link_set_state(self, lh_cast_static(lh_u8_t, lh_mb_link_idle));
+    lh_mb_link_set_reason(self, lh_mb_status_ok);
+    /* A line that was just opened may still carry what the last session left on it. */
+    lh_mb_link_set_settle_us(self, 0);
+    lh_mb_link_require_quiet(self, lh_mb_link_get_quiet_us(self));
+}
+
+lh_mb_link_state_t
+lh_mb_link_fail(lh_mb_link_t *self, lh_mb_status_t reason)
+{
+    /* Every failure ends the same way: **back to idle, not stuck.** A question that
+       came back wrong, came back short, or never came back is one question. Letting
+       it decide the rest of the session is how a device that answers "illegal
+       function" for one register bank gets dropped for good, and how a poll loop
+       that keeps finding the link busy spins for ever instead of moving on to the
+       other devices.
+
+       The caller learns it happened from the state the poll returns, from
+       ::lh_mb_link_t.reason and from ::lh_mb_link_counters_t.failed; deciding that a
+       device is *off* rather than *slow* is the app's business, because only it
+       knows how many failures in a row mean that. */
+    lh_mb_link_set_state(self, lh_cast_static(lh_u8_t, lh_mb_link_idle));
+    lh_mb_link_set_reason(self, reason);
+    lh_mb_link_counters_count_failed(lh_mb_link_get_counters_mut(self));
+    lh_mb_link_set_pending_length(self, 0);
+    /* The device may still answer: the next question waits for the line to go quiet. */
+    lh_mb_link_require_quiet(self, lh_mb_link_get_quiet_us(self));
+    return lh_mb_link_failed;
 }
 
 lh_mb_link_state_t
@@ -853,6 +978,53 @@ lh_mb_link_try_receive(lh_mb_link_t *self)
     return lh_bool_true;
 }
 
+lh_mb_link_state_t
+lh_mb_link_poll_quiet(lh_mb_link_t *self, lh_u32_t timeout_us)
+{
+    if (!lh_mb_link_try_receive(self))
+    {
+        lh_mb_link_set_pending_length(self, 0);
+        return lh_mb_link_failed;
+    }
+    /* What arrives now answers nothing: the question it belonged to is over. It is
+       thrown away, and the silence is counted from it (::lh_mb_link_try_receive
+       noted when it came). */
+    lh_mb_link_set_held(self, 0);
+
+    const lh_u64_t now = lh_mb_link_get_time_us(self);
+
+    /* A line that never goes quiet is a line that cannot be asked: the question
+       fails as one that timed out, after the wait for quiet and the timeout it would
+       have had, and the next one tries again. */
+    if (timeout_us > 0 && now - lh_mb_link_get_since_us(self) >
+                              lh_cast_static(lh_u64_t, timeout_us) +
+                                  lh_cast_static(lh_u64_t, lh_mb_link_get_settle_us(self)))
+    {
+        return lh_mb_link_fail(self, lh_mb_status_short);
+    }
+    if (now - lh_mb_link_get_heard_us(self) <
+        lh_cast_static(lh_u64_t, lh_mb_link_get_settle_us(self)))
+    {
+        return lh_mb_link_waiting;
+    }
+    if (!lh_mb_link_transmit(self, lh_mb_link_get_pending(self),
+                             lh_mb_link_get_pending_length(self)))
+    {
+        /* The stream is lost, or its send buffer was full for the moment: the first
+           ended the question, the second tries again on the next poll. */
+        if (lh_mb_link_get_reason(self) == lh_mb_status_lost)
+        {
+            lh_mb_link_set_pending_length(self, 0);
+            return lh_mb_link_failed;
+        }
+        lh_mb_link_set_state(self, lh_cast_static(lh_u8_t, lh_mb_link_waiting));
+        return lh_mb_link_waiting;
+    }
+    lh_mb_link_set_pending_length(self, 0);
+    lh_mb_link_set_settle_us(self, 0);
+    return lh_mb_link_waiting;
+}
+
 lh_bool_t
 lh_mb_link_send(lh_mb_link_t *self, lh_byte_cptr pdu, lh_u16_t pdu_length, lh_u16_t address,
                 lh_u16_t count, lh_u8_t fc)
@@ -876,44 +1048,26 @@ lh_mb_link_send(lh_mb_link_t *self, lh_byte_cptr pdu, lh_u16_t pdu_length, lh_u1
     {
         return lh_bool_false;
     }
-    lh_ssize_t wrote = lh_io_stream_write(lh_mb_link_get_stream_mut(self), out,
-                                          lh_cast_static(lh_usize_t, pdu_length));
-    if (wrote == LH_IO_PENDING)
+    const lh_bool_t held_back = lh_cast_static(
+        lh_bool_t, (lh_mb_link_get_settle_us(self) > 0 && !lh_mb_link_is_broadcast(self)));
+
+    if (!held_back)
     {
-        /* Nothing went out: the send buffer is full for the moment. Not a fault --
-           the stream is fine and so is the device -- so it is not counted as one;
-           the caller gets `false` and asks again on its next pass. */
-        lh_mb_link_set_state(self, lh_cast_static(lh_u8_t, lh_mb_link_idle));
-        return lh_bool_false;
+        lh_return_ifn(lh_mb_link_transmit(self, out, pdu_length), lh_bool_false);
     }
-    if (wrote != lh_cast_static(lh_ssize_t, pdu_length))
+    lh_mb_link_begin(self, address, count, fc);
+    if (held_back)
     {
-        /* A failure, or half a request out. The second is worse than none: what is
-           on the line now is a frame nobody sent, and the device will read whatever
-           comes next as the rest of it. Either way the stream is lost. */
-        LH_ATTRIBUTE_UNUSED(lh_mb_link_lose(self));
-        return lh_bool_false;
+        /* The device may still be about to answer the question before: this one waits
+           for the line to be quiet (::lh_mb_link_poll_quiet) and is asked, as far as
+           the caller can tell, now. ::lh_mb_link_t.since_us is when it was asked and
+           bounds the wait; the answer's timeout starts when the bytes go out. */
+        lh_memory_std_copy(lh_mb_link_get_pending_mut(self), out, pdu_length);
+        lh_mb_link_set_pending_length(self, pdu_length);
+        lh_mb_link_set_since_us(self, lh_mb_link_get_time_us(self));
+        lh_mb_link_set_state(self, lh_cast_static(lh_u8_t, lh_mb_link_waiting));
+        return lh_bool_true;
     }
-    lh_mb_link_set_address(self, address);
-    lh_mb_link_set_expected(self, count);
-    /* Over MBAP the held bytes stay: they arrived before this question went out, so
-       they are not its answer, but they may be the start of an answer to the last
-       one, and dropping half a frame puts every frame after it off by that much.
-       The transaction id is what keeps them from being taken for this answer. */
-    lh_mb_link_set_got(self, 0);
-    lh_mb_link_set_asked_tx(self, lh_mb_link_get_tx(self));
-    lh_mb_link_set_tx(self, lh_cast_static(lh_u16_t, (lh_mb_link_get_tx(self) + 1U)));
-    lh_mb_link_counters_count_sent(lh_mb_link_get_counters_mut(self));
-    lh_mb_link_counters_add_bytes(lh_mb_link_get_counters_mut(self),
-                                  lh_cast_static(lh_u32_t, pdu_length));
-    /* A new question clears the last answer's verdict: ::reason says how the
-       previous one ended, and a caller that reads it after asking the next one is
-       reading about the wrong question. */
-    lh_mb_link_set_reason(self, lh_mb_status_ok);
-    lh_mb_link_set_exception(self, 0);
-    lh_mb_link_set_since_us(self, lh_mb_link_get_time_us(self));
-    lh_mb_link_set_heard_us(self, lh_mb_link_get_since_us(self));
-    lh_mb_link_set_asked_fc(self, fc);
     if (lh_mb_link_is_broadcast(self))
     {
         /* Every device on the line did it, and none of them says so: a broadcast is
@@ -932,6 +1086,7 @@ lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us)
 {
     lh_return_ifn(lh_mb_link_get_state(self) == lh_cast_static(lh_u8_t, lh_mb_link_waiting),
                   lh_cast_static(lh_mb_link_state_t, lh_mb_link_get_state(self)));
+    lh_return_if(lh_mb_link_get_pending_length(self) > 0, lh_mb_link_poll_quiet(self, timeout_us));
     lh_return_ifn(lh_mb_link_try_receive(self), lh_mb_link_failed);
 
     lh_byte_t pdu[LH_MB_ADU_MAX];

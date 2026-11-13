@@ -198,14 +198,42 @@ typedef struct lh_mb_link
      *  delivers bytes in bursts up to 16 ms apart, and a gap measured on the far
      *  side of one is not the gap on the wire. */
     lh_u32_t gap_us;
+    /** @brief RTU only: silence, in microseconds, the line must keep before a question
+     *  goes out after a failed one and after a new stream; 0 sends at once (the default).
+     *
+     *  An RTU frame carries no request id, so an answer that comes after its question
+     *  timed out is, to the link, the answer to the *next* question: same unit, same
+     *  function, and when the next question asks the same registers, which a poll
+     *  does every pass, the stale values are accepted with nothing to say so. The
+     *  guard is to wait. After a failed question (and after
+     *  ::lh_mb_link_require_quiet) a question is held back until nothing has arrived
+     *  for this long, and what does arrive meanwhile is thrown away. Set it to more
+     *  than the longest a device may sit on an answer beyond the timeout.
+     *
+     *  Over MBAP the transaction id tells the late answer, and this is not looked at. */
+    lh_u32_t quiet_us;
+    /** @brief The silence, in microseconds, the line still has to keep before the next
+     *  question goes out; 0 when none is due.
+     *
+     *  Set to ::quiet_us by a failed question and by ::lh_mb_link_set_stream, or to what
+     *  ::lh_mb_link_require_quiet is given (a line that has just been opened may owe more
+     *  than one that has just failed); cleared when the held-back question goes out. */
+    lh_u32_t settle_us;
+    /** @brief The bytes of a question that is waiting for the line to go quiet, the
+     *  first ::pending_length of them live. */
+    lh_byte_t pending[LH_MB_ADU_MAX];
+    /** @brief How long the question held back by ::quiet_us is, in bytes; 0 when
+     *  nothing waits. It counts as asked: the link is waiting, and ::since_us is when
+     *  it was asked, which bounds the wait. */
+    lh_u16_t pending_length;
     lh_u16_t values[LH_MB_LINK_VALUES]; /**< words of the last answer (::lh_mb_link_take) */
     lh_byte_t frame[LH_MB_ADU_MAX];     /**< bytes received, the first ::held of them live */
     lh_mb_link_counters_t counters;     /**< what this link has cost so far */
     /* The clock, in microseconds. A link does not read the system clock itself:
        a test has to be able to move time by hand, and an app has to be able to
        decide what a microsecond is worth. */
-    lh_mb_clock_cb now_us;      /**< the clock; ::lh_null counts nothing */
-    lh_ptr clock;               /**< passed to every ::now_us call */
+    lh_mb_clock_cb now_us; /**< the clock; ::lh_null counts nothing */
+    lh_ptr clock;          /**< passed to every ::now_us call */
     /** Not called by the link: a slot for the application's own notification. */
     lh_mb_link_change_cb on_change;
     lh_ptr owner; /**< not read by the link: the application's own back pointer */
@@ -693,16 +721,78 @@ lh_byte_t *
 lh_mb_link_get_frame_mut(lh_mb_link_t *self);
 
 /**
- * @brief Carry on over a new @p stream: the connection was made again.
+ * @brief The silence the line must keep before a question follows a failed one (level 1).
  *
- * Whatever was held belonged to the old stream and is dropped, and any question in
- * flight is forgotten -- its answer, if it comes, comes on the old one. This is
- * what an app does when ::lh_mb_link_t.reason says ::lh_mb_status_lost: open a new
- * socket or port, and hand it here. The counters are kept; they are the device's,
- * not the connection's.
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_u32_t
+lh_mb_link_get_quiet_us(const lh_mb_link_t *self);
+
+/**
+ * @brief Store the silence the line must keep before a question follows a failed one (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @param quiet_us The new value.
  */
 lh_void
-lh_mb_link_set_stream(lh_mb_link_t *self, const lh_io_stream_t *stream);
+lh_mb_link_set_quiet_us(lh_mb_link_t *self, lh_u32_t quiet_us);
+
+/**
+ * @brief The bytes of a question held back until the line is quiet (level 1).
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+const lh_byte_t *
+lh_mb_link_get_pending(const lh_mb_link_t *self);
+
+/**
+ * @brief The bytes of a question held back until the line is quiet, to change in place (level 1).
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_byte_t *
+lh_mb_link_get_pending_mut(lh_mb_link_t *self);
+
+/**
+ * @brief The length of the question held back until the line is quiet (level 1).
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_u16_t
+lh_mb_link_get_pending_length(const lh_mb_link_t *self);
+
+/**
+ * @brief Store the length of the question held back until the line is quiet (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @param pending_length The new value.
+ */
+lh_void
+lh_mb_link_set_pending_length(lh_mb_link_t *self, lh_u16_t pending_length);
+
+/**
+ * @brief The silence the line still has to keep before the next question (level 1).
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ */
+lh_u32_t
+lh_mb_link_get_settle_us(const lh_mb_link_t *self);
+
+/**
+ * @brief Store the silence the line still has to keep before the next question (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The link; checked by ::lh_assert_runtime_ref.
+ * @param settle_us The new value.
+ */
+lh_void
+lh_mb_link_set_settle_us(lh_mb_link_t *self, lh_u32_t settle_us);
 
 /**
  * @brief Ask ::LH_MB_FC_READ_INPUT or ::LH_MB_FC_READ_HOLDING on this link.
@@ -781,18 +871,6 @@ const lh_u16_t *
 lh_mb_link_take(lh_mb_link_t *self, lh_u16_t *count);
 
 /**
- * @brief End the question in flight as a failure: idle, @p reason, and one more in
- *        ::lh_mb_link_counters_t.failed.
- *
- * @param self   The link; checked by ::lh_assert_runtime_ref.
- * @param reason Why, as ::lh_mb_link_get_reason will say.
- *
- * @return ::lh_mb_link_failed, for the caller to return.
- */
-lh_mb_link_state_t
-lh_mb_link_fail(lh_mb_link_t *self, lh_mb_status_t reason);
-
-/**
  * @brief Read the answer's @p pdu by the question that was asked: the words of a
  *        read, the echo of a write, or a refusal.
  *
@@ -807,6 +885,21 @@ lh_mb_link_fail(lh_mb_link_t *self, lh_mb_status_t reason);
  */
 lh_mb_status_t
 lh_mb_link_parse_answer(lh_mb_link_t *self, const lh_byte_ptr pdu, lh_u16_t pdu_length);
+
+/**
+ * @brief Write down the question that is being asked, the bookkeeping that makes its
+ *        answer this question's (level 2).
+ *
+ * Over MBAP the held bytes stay: they may be the start of an answer to the last
+ * question, and the transaction id is what tells it from this one's.
+ *
+ * @param self    The link; checked by ::lh_assert_runtime_ref.
+ * @param address What the question asks for.
+ * @param count   How many words.
+ * @param fc      The function code the answer will carry.
+ */
+lh_void
+lh_mb_link_begin(lh_mb_link_t *self, lh_u16_t address, lh_u16_t count, lh_u8_t fc);
 
 /**
  * @brief RTU: throw away whatever the line has delivered and nobody asked for.
@@ -854,6 +947,63 @@ lh_mb_link_init(lh_mb_link_t *self, const lh_io_stream_t *stream, lh_mb_framing_
                 lh_u8_t unit, lh_mb_clock_cb now_us, lh_ptr clock);
 
 /**
+ * @brief RTU: make the next question wait until the line has kept @p silence_us of
+ *        quiet (level 3).
+ *
+ * The link does it by itself after a failed question and when a stream is set
+ * (::lh_mb_link_set_stream), both for ::lh_mb_link_get_quiet_us. A master that
+ * knows a line owes more -- one it has just opened may still carry what the last
+ * session left, an answer a device sat on for as long as its timeout -- calls it
+ * with that. The silence is counted from the call and from every byte that arrives
+ * after; it never shortens a wait that is already due. Does nothing over MBAP, or
+ * for 0.
+ *
+ * @param self       The link; checked by ::lh_assert_runtime_ref.
+ * @param silence_us The silence to wait for, in microseconds.
+ */
+lh_void
+lh_mb_link_require_quiet(lh_mb_link_t *self, lh_u32_t silence_us);
+
+/**
+ * @brief Put an encoded question on the stream and count it (level 3).
+ *
+ * Starts the clock of its timeout: ::lh_mb_link_t.since_us and ::lh_mb_link_t.heard_us.
+ *
+ * @param self   The link; checked by ::lh_assert_runtime_ref.
+ * @param frame  The frame, as ::lh_mb_encode made it.
+ * @param length How many bytes it is.
+ *
+ * @return ::lh_bool_false when nothing went out: the link is then idle (the send buffer
+ *         was full for the moment) or lost (::lh_mb_link_lose); ::lh_bool_true otherwise.
+ */
+lh_bool_t
+lh_mb_link_transmit(lh_mb_link_t *self, const lh_byte_ptr frame, lh_u16_t length);
+
+/**
+ * @brief Carry on over a new @p stream: the connection was made again.
+ *
+ * Whatever was held belonged to the old stream and is dropped, and any question in
+ * flight is forgotten -- its answer, if it comes, comes on the old one. This is
+ * what an app does when ::lh_mb_link_t.reason says ::lh_mb_status_lost: open a new
+ * socket or port, and hand it here. The counters are kept; they are the device's,
+ * not the connection's.
+ */
+lh_void
+lh_mb_link_set_stream(lh_mb_link_t *self, const lh_io_stream_t *stream);
+
+/**
+ * @brief End the question in flight as a failure: idle, @p reason, and one more in
+ *        ::lh_mb_link_counters_t.failed.
+ *
+ * @param self   The link; checked by ::lh_assert_runtime_ref.
+ * @param reason Why, as ::lh_mb_link_get_reason will say.
+ *
+ * @return ::lh_mb_link_failed, for the caller to return.
+ */
+lh_mb_link_state_t
+lh_mb_link_fail(lh_mb_link_t *self, lh_mb_status_t reason);
+
+/**
  * @brief Find the answer to the question in flight in what is held, stepping over
  *        every whole frame that is not it.
  *
@@ -898,6 +1048,27 @@ lh_mb_link_settle(lh_mb_link_t *self, lh_mb_status_t status);
  */
 lh_bool_t
 lh_mb_link_try_receive(lh_mb_link_t *self);
+
+/**
+ * @brief One look at a question held back until the line is quiet; sends it when it is
+ *        (level 7).
+ *
+ * Reads what has arrived and throws it away -- an answer to a question that is over --
+ * and counts the silence from it. Once the line has kept ::lh_mb_link_get_quiet_us the
+ * question goes out and its own timeout starts. A line that stays busy for longer than
+ * the quiet it was waiting for and @p timeout_us ends the question as a timeout
+ * (::lh_mb_status_short).
+ * Called by ::lh_mb_link_poll while a question is held back.
+ *
+ * @param self       The link; checked by ::lh_assert_runtime_ref.
+ * @param timeout_us How long the question may wait for its answer; it may wait that long
+ *                   and the quiet again for the line, from when it was asked.
+ *
+ * @return ::lh_mb_link_waiting while it waits or once it has gone out;
+ *         ::lh_mb_link_failed when the line was lost or stayed busy.
+ */
+lh_mb_link_state_t
+lh_mb_link_poll_quiet(lh_mb_link_t *self, lh_u32_t timeout_us);
 
 /** Everything after the PDU is the same for a read and a write: the envelope, the send,
    and the bookkeeping that makes the answer this question's. @p fc is the code the
