@@ -74,6 +74,20 @@ lh_mb_image_get_updated_mut(lh_mb_image_t *self)
     return lh_addr_of(self->updated);
 }
 
+const lh_array_t *
+lh_mb_image_get_changed(const lh_mb_image_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->changed);
+}
+
+lh_array_t *
+lh_mb_image_get_changed_mut(lh_mb_image_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->changed);
+}
+
 lh_u16_t
 lh_mb_image_get_count(const lh_mb_image_t *self)
 {
@@ -110,20 +124,55 @@ lh_mb_image_get_updated_us(const lh_mb_image_t *self, lh_u16_t index)
         lh_ptr_ccast(lh_u64_t, lh_array_get_ptr(lh_mb_image_get_updated(self), index)));
 }
 
+lh_bool_t
+lh_mb_image_is_value_changed(const lh_mb_image_t *self, lh_u16_t index)
+{
+    return lh_cast_static(
+        lh_bool_t, lh_ptr_deref(lh_ptr_ccast(
+                       lh_u8_t, lh_array_get_ptr(lh_mb_image_get_changed(self), index))) != 0);
+}
+
 lh_void
+lh_mb_image_clear_value_changed(lh_mb_image_t *self, lh_u16_t index)
+{
+    lh_ptr_deref(lh_ptr_cast(lh_u8_t, lh_array_get_ptr(lh_mb_image_get_changed_mut(self), index))) =
+        0;
+}
+
+lh_void
+lh_mb_image_mark_value_changed(lh_mb_image_t *self, lh_u16_t index)
+{
+    lh_ptr_deref(lh_ptr_cast(lh_u8_t, lh_array_get_ptr(lh_mb_image_get_changed_mut(self), index))) =
+        1;
+}
+
+lh_u16_t
+lh_mb_image_set_value_status(lh_mb_image_t *self, lh_u16_t index, lh_mb_value_status_t status)
+{
+    lh_return_if(lh_mb_image_get_value_status(self, index) == status, 0);
+    lh_ptr_deref(lh_ptr_cast(lh_u8_t, lh_array_get_ptr(lh_mb_image_get_status_mut(self), index))) =
+        lh_cast_static(lh_u8_t, status);
+    lh_mb_image_mark_value_changed(self, index);
+    return 1;
+}
+
+lh_u16_t
 lh_mb_image_fail(lh_mb_image_t *self, const lh_mb_read_t *read, lh_mb_value_status_t status)
 {
     lh_assert_runtime_ref(read);
-    lh_u8_t *statuses = lh_ptr_cast(lh_u8_t, lh_array_get_data(lh_mb_image_get_status_mut(self)));
+    lh_u16_t changed = 0;
 
-    for (lh_u32_t i = lh_mb_read_get_first(read); i <= lh_mb_read_get_last(read); ++i)
+    for (lh_u16_t i = lh_mb_read_get_first(read); i <= lh_mb_read_get_last(read); ++i)
     {
         /* A value never read stays unread on a timeout: there is nothing to be old. */
-        if (status == lh_mb_value_refused || statuses[i] != lh_mb_value_unread)
+        if (status == lh_mb_value_refused ||
+            lh_mb_image_get_value_status(self, i) != lh_mb_value_unread)
         {
-            statuses[i] = lh_cast_static(lh_u8_t, status);
+            changed =
+                lh_cast_static(lh_u16_t, changed + lh_mb_image_set_value_status(self, i, status));
         }
     }
+    return changed;
 }
 
 lh_void
@@ -134,6 +183,7 @@ lh_mb_image_init(lh_mb_image_t *self)
     lh_array_init(lh_mb_image_get_values_mut(self), sizeof(lh_u16_t));
     lh_array_init(lh_mb_image_get_status_mut(self), sizeof(lh_u8_t));
     lh_array_init(lh_mb_image_get_updated_mut(self), sizeof(lh_u64_t));
+    lh_array_init(lh_mb_image_get_changed_mut(self), sizeof(lh_u8_t));
 }
 
 lh_void
@@ -144,10 +194,11 @@ lh_mb_image_deinit(lh_mb_image_t *self)
     lh_array_deinit(lh_mb_image_get_values_mut(self));
     lh_array_deinit(lh_mb_image_get_status_mut(self));
     lh_array_deinit(lh_mb_image_get_updated_mut(self));
+    lh_array_deinit(lh_mb_image_get_changed_mut(self));
 }
 
 lh_u16_t
-lh_mb_image_find(const lh_mb_image_t *self, lh_u16_t address)
+lh_mb_image_find_from(const lh_mb_image_t *self, lh_u16_t address)
 {
     const lh_u16_t count = lh_mb_image_get_count(self);
     lh_u16_t low = 0;
@@ -167,11 +218,20 @@ lh_mb_image_find(const lh_mb_image_t *self, lh_u16_t address)
             high = middle;
         }
     }
-    lh_return_if(low == count, count);
-    return lh_mb_want_get_address(lh_mb_image_get_want(self, low)) <= address ? low : count;
+    return low;
 }
 
-lh_void
+lh_u16_t
+lh_mb_image_find(const lh_mb_image_t *self, lh_u16_t address)
+{
+    const lh_u16_t count = lh_mb_image_get_count(self);
+    const lh_u16_t from = lh_mb_image_find_from(self, address);
+
+    lh_return_if(from == count, count);
+    return lh_mb_want_get_address(lh_mb_image_get_want(self, from)) <= address ? from : count;
+}
+
+lh_u16_t
 lh_mb_image_store(lh_mb_image_t *self, const lh_mb_read_t *read, const lh_u16_t *values,
                   lh_u16_t count, lh_u64_t now_us)
 {
@@ -180,8 +240,8 @@ lh_mb_image_store(lh_mb_image_t *self, const lh_mb_read_t *read, const lh_u16_t 
     lh_u16_t *registers =
         lh_ptr_cast(lh_u16_t, lh_array_get_data(lh_mb_image_get_values_mut(self)));
     const lh_u32_t *first = lh_ptr_ccast(lh_u32_t, lh_array_get_data(lh_mb_image_get_first(self)));
-    lh_u8_t *statuses = lh_ptr_cast(lh_u8_t, lh_array_get_data(lh_mb_image_get_status_mut(self)));
     lh_u64_t *updated = lh_ptr_cast(lh_u64_t, lh_array_get_data(lh_mb_image_get_updated_mut(self)));
+    lh_u16_t changed = 0;
 
     for (lh_u16_t i = lh_mb_read_get_first(read); i <= lh_mb_read_get_last(read); ++i)
     {
@@ -192,17 +252,58 @@ lh_mb_image_store(lh_mb_image_t *self, const lh_mb_read_t *read, const lh_u16_t 
         if (offset + size > count)
         {
             /* The answer stopped short of this want: it keeps what it had. */
-            if (statuses[i] != lh_mb_value_unread)
+            if (lh_mb_image_get_value_status(self, i) != lh_mb_value_unread)
             {
-                statuses[i] = lh_cast_static(lh_u8_t, lh_mb_value_stale);
+                changed = lh_cast_static(
+                    lh_u16_t, changed + lh_mb_image_set_value_status(self, i, lh_mb_value_stale));
             }
             continue;
         }
-        lh_memory_std_copy(registers + first[i], values + offset,
-                           lh_cast_static(lh_usize_t, size * sizeof(lh_u16_t)));
-        statuses[i] = lh_cast_static(lh_u8_t, lh_mb_value_fresh);
+        const lh_usize_t bytes = lh_cast_static(lh_usize_t, size * sizeof(lh_u16_t));
+        const lh_bool_t moved =
+            lh_null_ne(lh_memory_std_compare(registers + first[i], values + offset, bytes));
+
+        lh_memory_std_copy(registers + first[i], values + offset, bytes);
         updated[i] = now_us;
+        if (lh_mb_image_set_value_status(self, i, lh_mb_value_fresh) != 0)
+        {
+            changed = lh_cast_static(lh_u16_t, changed + 1U);
+        }
+        else if (moved)
+        {
+            lh_mb_image_mark_value_changed(self, i);
+            changed = lh_cast_static(lh_u16_t, changed + 1U);
+        }
     }
+    return changed;
+}
+
+lh_bool_t
+lh_mb_image_try_copy_read(const lh_mb_image_t *self, lh_u16_t address, lh_u16_t count,
+                          lh_mb_read_t *read)
+{
+    lh_assert_runtime_ref(read);
+    const lh_u16_t wants = lh_mb_image_get_count(self);
+    const lh_u32_t end = lh_cast_static(lh_u32_t, address) + count;
+    lh_u16_t first = lh_mb_image_find_from(self, address);
+
+    /* A want that starts before the answer is only partly in it. */
+    if (first < wants && lh_mb_want_get_address(lh_mb_image_get_want(self, first)) < address)
+    {
+        first = lh_cast_static(lh_u16_t, first + 1U);
+    }
+    lh_u16_t last = first;
+
+    while (last < wants && lh_mb_want_get_end(lh_mb_image_get_want(self, last)) <= end)
+    {
+        last = lh_cast_static(lh_u16_t, last + 1U);
+    }
+    lh_return_if(last == first, lh_bool_false);
+    lh_mb_read_set_start(read, address);
+    lh_mb_read_set_count(read, count);
+    lh_mb_read_set_first(read, first);
+    lh_mb_read_set_last(read, lh_cast_static(lh_u16_t, last - 1U));
+    return lh_bool_true;
 }
 
 lh_bool_t
@@ -220,7 +321,8 @@ lh_mb_image_try_assign(lh_mb_image_t *self, const lh_mb_want_t *wants, lh_u16_t 
         !lh_array_try_reserve(lh_mb_image_get_first_mut(self), count) ||
         !lh_array_try_reserve(lh_mb_image_get_values_mut(self), registers) ||
         !lh_array_try_reserve(lh_mb_image_get_status_mut(self), count) ||
-        !lh_array_try_reserve(lh_mb_image_get_updated_mut(self), count))
+        !lh_array_try_reserve(lh_mb_image_get_updated_mut(self), count) ||
+        !lh_array_try_reserve(lh_mb_image_get_changed_mut(self), count))
     {
         lh_mb_image_deinit(self);
         return lh_bool_false;
@@ -231,6 +333,7 @@ lh_mb_image_try_assign(lh_mb_image_t *self, const lh_mb_want_t *wants, lh_u16_t 
     lh_array_resize(lh_mb_image_get_values_mut(self), registers);
     lh_array_resize(lh_mb_image_get_status_mut(self), count);
     lh_array_resize(lh_mb_image_get_updated_mut(self), count);
+    lh_array_resize(lh_mb_image_get_changed_mut(self), count);
     lh_memory_std_copy(lh_array_get_data(lh_mb_image_get_wants(self)), wants,
                        lh_cast_static(lh_usize_t, count * sizeof(lh_mb_want_t)));
     lh_memory_std_set(lh_array_get_data(lh_mb_image_get_values(self)), 0,
@@ -239,6 +342,8 @@ lh_mb_image_try_assign(lh_mb_image_t *self, const lh_mb_want_t *wants, lh_u16_t 
                       lh_cast_static(lh_usize_t, count));
     lh_memory_std_set(lh_array_get_data(lh_mb_image_get_updated(self)), 0,
                       lh_cast_static(lh_usize_t, count * sizeof(lh_u64_t)));
+    lh_memory_std_set(lh_array_get_data(lh_mb_image_get_changed(self)), 0,
+                      lh_cast_static(lh_usize_t, count));
     lh_u32_t *first = lh_ptr_cast(lh_u32_t, lh_array_get_data(lh_mb_image_get_first(self)));
     lh_u32_t at = 0;
     for (lh_u16_t i = 0; i < count; ++i)

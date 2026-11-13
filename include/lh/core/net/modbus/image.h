@@ -14,6 +14,12 @@
  * when the device answered with an exception. A reader finds a want once, by address
  * (::lh_mb_image_find), and reads it by index from then on: no search per read.
  *
+ * Storing and failing say what they changed: a want whose registers or status moved
+ * is marked changed (::lh_mb_image_is_value_changed) until the reader clears it
+ * (::lh_mb_image_clear_value_changed), and both return how many wants they marked. A
+ * master that tells a screen "this value changed" reads that, instead of keeping a
+ * second copy of every value to compare with.
+ *
  * Ownership: the image owns its arrays (runtime allocator); ::lh_mb_image_try_assign
  * fills them, ::lh_mb_image_deinit frees them. Storing and reading never allocate.
  *
@@ -35,6 +41,7 @@ typedef struct lh_mb_image
     lh_array_t values;  /**< lh_u16_t: the registers of every want, one after another */
     lh_array_t status;  /**< lh_u8_t per want: an ::lh_mb_value_status_t */
     lh_array_t updated; /**< lh_u64_t per want: when it was last stored, master's clock, µs */
+    lh_array_t changed; /**< lh_u8_t per want: 1 when its value or status moved, until cleared */
 } lh_mb_image_t;        /**< What a master knows of a device, want by want. */
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -121,6 +128,22 @@ lh_array_t *
 lh_mb_image_get_updated_mut(lh_mb_image_t *self);
 
 /**
+ * @brief Whether each want changed, lh_u8_t per want (level 1).
+ *
+ * @param self The image; checked by ::lh_assert_runtime_ref.
+ */
+const lh_array_t *
+lh_mb_image_get_changed(const lh_mb_image_t *self);
+
+/**
+ * @brief Whether each want changed, to change (level 1).
+ *
+ * @param self The image; checked by ::lh_assert_runtime_ref.
+ */
+lh_array_t *
+lh_mb_image_get_changed_mut(lh_mb_image_t *self);
+
+/**
  * @brief How many wants the image holds (level 2).
  *
  * @param self The image; checked by ::lh_assert_runtime_ref.
@@ -169,6 +192,48 @@ lh_u64_t
 lh_mb_image_get_updated_us(const lh_mb_image_t *self, lh_u16_t index);
 
 /**
+ * @brief Whether the registers or the status of want @p index moved since it was last
+ *        cleared (level 2).
+ *
+ * @param self  The image; checked by ::lh_assert_runtime_ref.
+ * @param index Below ::lh_mb_image_get_count; not checked.
+ */
+lh_bool_t
+lh_mb_image_is_value_changed(const lh_mb_image_t *self, lh_u16_t index);
+
+/**
+ * @brief The change of want @p index is seen: it is not changed until it moves again
+ *        (level 2).
+ *
+ * @param self  The image; checked by ::lh_assert_runtime_ref.
+ * @param index Below ::lh_mb_image_get_count; not checked.
+ */
+lh_void
+lh_mb_image_clear_value_changed(lh_mb_image_t *self, lh_u16_t index);
+
+/**
+ * @brief Mark want @p index changed, whatever it was (level 2).
+ *
+ * @param self  The image; checked by ::lh_assert_runtime_ref.
+ * @param index Below ::lh_mb_image_get_count; not checked.
+ */
+lh_void
+lh_mb_image_mark_value_changed(lh_mb_image_t *self, lh_u16_t index);
+
+/**
+ * @brief Mark want @p index changed when its status becomes @p status, and set it
+ *        (level 3).
+ *
+ * @param self   The image; checked by ::lh_assert_runtime_ref.
+ * @param index  Below ::lh_mb_image_get_count; not checked.
+ * @param status The new status.
+ *
+ * @return 1 when the status moved, 0 when it was @p status already.
+ */
+lh_u16_t
+lh_mb_image_set_value_status(lh_mb_image_t *self, lh_u16_t index, lh_mb_value_status_t status);
+
+/**
  * @brief Request @p read failed: every want it covers keeps its value and becomes
  *        stale, or refused.
  *
@@ -180,8 +245,10 @@ lh_mb_image_get_updated_us(const lh_mb_image_t *self, lh_u16_t index);
  * @param self   The image; checked by ::lh_assert_runtime_ref.
  * @param read   The request, planned over this image's wants.
  * @param status ::lh_mb_value_stale or ::lh_mb_value_refused.
+ *
+ * @return How many wants changed status (::lh_mb_image_is_value_changed).
  */
-lh_void
+lh_u16_t
 lh_mb_image_fail(lh_mb_image_t *self, const lh_mb_read_t *read, lh_mb_value_status_t status);
 
 /**
@@ -201,7 +268,20 @@ lh_void
 lh_mb_image_deinit(lh_mb_image_t *self);
 
 /**
- * @brief The want whose registers include @p address (level 3: binary search).
+ * @brief The first want that ends past @p address: the one that covers it, or the
+ *        next one after it (level 3: binary search).
+ *
+ * @param self    The image; checked by ::lh_assert_runtime_ref.
+ * @param address A register address.
+ *
+ * @return Its index, or ::lh_mb_image_get_count when every want ends at or before
+ *         @p address.
+ */
+lh_u16_t
+lh_mb_image_find_from(const lh_mb_image_t *self, lh_u16_t address);
+
+/**
+ * @brief The want whose registers include @p address (level 4).
  *
  * @param self    The image; checked by ::lh_assert_runtime_ref.
  * @param address A register address.
@@ -223,14 +303,36 @@ lh_mb_image_find(const lh_mb_image_t *self, lh_u16_t address);
  * @param values The words of the answer, first register of the request first.
  * @param count  How many words the answer carried.
  * @param now_us The master's clock.
+ *
+ * @return How many wants changed, registers or status (::lh_mb_image_is_value_changed).
  */
-lh_void
+lh_u16_t
 lh_mb_image_store(lh_mb_image_t *self, const lh_mb_read_t *read, const lh_u16_t *values,
                   lh_u16_t count, lh_u64_t now_us);
 
 /**
+ * @brief The request that stores @p count registers from @p address: it covers every
+ *        want lying wholly inside them (level 4).
+ *
+ * What a master read or wrote outside its plan -- the read-back that checks a write,
+ * the answer to a gateway client -- refreshes the image too: with this request,
+ * ::lh_mb_image_store takes the words of that answer. A want only partly inside is
+ * left alone: half a 32-bit value is not a value.
+ *
+ * @param self    The image; checked by ::lh_assert_runtime_ref.
+ * @param address The first register of the answer.
+ * @param count   How many registers it carries.
+ * @param read    Where the request goes; checked by ::lh_assert_runtime_ref.
+ *
+ * @return ::lh_bool_false when no want lies wholly inside; @p read is untouched then.
+ */
+lh_bool_t
+lh_mb_image_try_copy_read(const lh_mb_image_t *self, lh_u16_t address, lh_u16_t count,
+                          lh_mb_read_t *read);
+
+/**
  * @brief Make @p self an image of @p count wants: copies them, lays their registers out
- *        one after another, every value unread.
+ *        one after another, every value unread and not changed.
  *
  * @param self  The image, initialized; checked by ::lh_assert_runtime_ref.
  * @param wants Address-ordered, non-overlapping, as ::lh_mb_plan_reads takes them.

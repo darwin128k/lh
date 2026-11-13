@@ -134,6 +134,7 @@ lh_add_test_core(lh_test_core
         ${LH_TEST_SRC_PATH}/lh/core/exception/origin.cpp
         ${LH_TEST_SRC_PATH}/lh/core/foreach.cpp
         ${LH_TEST_SRC_PATH}/lh/core/list.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/lanes.cpp
         ${LH_TEST_SRC_PATH}/lh/core/logger.cpp
         ${LH_TEST_SRC_PATH}/lh/core/value.cpp
         ${LH_TEST_SRC_PATH}/lh/core/real.cpp
@@ -265,7 +266,7 @@ set(LH_TEST_MATH_SOURCES
         ${LH_TEST_SRC_PATH}/lh/core/math/size.cpp
         ${LH_TEST_SRC_PATH}/lh/core/math/rect.cpp
         ${LH_TEST_SRC_PATH}/lh/core/math/rescale.cpp
-        ${LH_TEST_SRC_PATH}/lh/core/math/scalar_centre.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/scalar/centre.cpp
 )
 if (LH_LIBRARY_OPTION_MATH_FPU)
     list(APPEND LH_TEST_MATH_SOURCES ${LH_TEST_MATH_FPU_SOURCES})
@@ -301,10 +302,14 @@ lh_add_test_core(lh_test_memory
 lh_add_test_core(lh_test_net
         ${LH_TEST_SRC_PATH}/lh/core/net/ip.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/modbus.cpp
-        ${LH_TEST_SRC_PATH}/lh/core/net/modbus_image.cpp
-        ${LH_TEST_SRC_PATH}/lh/core/net/modbus_link.cpp
-        ${LH_TEST_SRC_PATH}/lh/core/net/modbus_schedule.cpp
-        ${LH_TEST_SRC_PATH}/lh/core/net/modbus_server.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/net/modbus/bus.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/net/modbus/health.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/net/modbus/image.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/net/modbus/job.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/net/modbus/job/queue.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/net/modbus/link.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/net/modbus/schedule.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/net/modbus/server.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/port.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/authority.cpp
         ${LH_TEST_SRC_PATH}/lh/core/net/cidr.cpp

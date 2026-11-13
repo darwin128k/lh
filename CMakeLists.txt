@@ -140,6 +140,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/rail/bare.c
         ${LH_LIB_SRC_PATH}/core/array.c
         ${LH_LIB_SRC_PATH}/core/list.c
+        ${LH_LIB_SRC_PATH}/core/lanes.c
         ${LH_LIB_SRC_PATH}/core/value.c
         ${LH_LIB_SRC_PATH}/core/real/bits.c
         ${LH_LIB_SRC_PATH}/core/real/cached.c
@@ -320,8 +321,11 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/net/socket/addr/ip4.c
         ${LH_LIB_SRC_PATH}/core/net/socket/addr.c
         ${LH_LIB_SRC_PATH}/core/net/modbus.c
+        ${LH_LIB_SRC_PATH}/core/net/modbus/bus.c
         ${LH_LIB_SRC_PATH}/core/net/modbus/health.c
         ${LH_LIB_SRC_PATH}/core/net/modbus/image.c
+        ${LH_LIB_SRC_PATH}/core/net/modbus/job.c
+        ${LH_LIB_SRC_PATH}/core/net/modbus/job/queue.c
         ${LH_LIB_SRC_PATH}/core/net/modbus/schedule.c
         ${LH_LIB_SRC_PATH}/core/net/modbus/link.c
         ${LH_LIB_SRC_PATH}/core/net/modbus/link/counters.c

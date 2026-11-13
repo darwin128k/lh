@@ -9,6 +9,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_mb_bus_t` (`lh/core/net/modbus/bus.h`): one line, one job at a time, without
+  blocking. It takes an `lh_mb_job_t` -- a read or a write, any unit -- so requests from a
+  poll, a screen and a gateway go down the same line; sends a request that timed out or
+  came back broken again up to `lh_mb_bus_get_retries` times (`lh_mb_bus_is_retryable`: a
+  refusal is an answer and a lost stream must be reopened, neither is retried);
+  `lh_mb_bus_try_start` sends, `lh_mb_bus_poll` looks once, `lh_mb_bus_release` frees
+  the line. The retry loop a master wrote around `lh_mb_link_t` itself is now here, once.
+- `lh_mb_job_t` (`lh/core/net/modbus/job.h`): one request written down -- unit, function,
+  first register, count, the words of a write -- with `owner` and `ticket` that belong to
+  the submitter and come back with the outcome. `lh_mb_job_queue_t` (`job/queue.h`): a
+  ring of jobs over lent storage that drops every job of one owner
+  (`lh_mb_job_queue_discard_owner`), for a gateway client that went away.
+- `lh_lanes_t` (`lh/core/lanes.h`): which of several queues gets the next turn -- the
+  lowest ready lane, unless a lower one has let its patience of turns go by. Patience 1
+  makes two busy lanes alternate; nothing starves.
+- `lh_mb_image_t` says what moved: `lh_mb_image_store` and `lh_mb_image_fail` return how
+  many wants changed (words or status) and mark them (`lh_mb_image_is_value_changed`,
+  `lh_mb_image_clear_value_changed`), so a master can tell a screen "this value changed"
+  without a second copy of every value. `lh_mb_image_try_copy_read` makes the request that
+  stores an answer from outside the plan (a write's read-back, a gateway client's read)
+  into the wants wholly inside it; `lh_mb_image_find_from` finds the first want at or after
+  an address.
+
+### Changed
+
+- The tests of the Modbus bricks mirror their headers: `test/src/lh/core/net/modbus/<brick>.cpp`
+  (and `math/scalar/centre.cpp`) instead of names glued with `_`; the health tests left
+  `image.cpp` for `health.cpp`.
+
 - `lh_mb_plan_reads_with_gap`, `lh_mb_count_requests_with_gap`, `lh_mb_find_run_last_with_gap`,
   `lh_mb_reach_with_gap`: the gap a request may cross is an argument; the forms without it
   use `LH_MB_GAP_MAX` (8). Over Modbus TCP a request costs a round trip and the bytes

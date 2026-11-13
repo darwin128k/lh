@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <lh/core/net/modbus/health.h>
 #include <lh/core/net/modbus/image.h>
 
 #include <vector>
@@ -141,38 +140,93 @@ TEST(lh_mb_image, assigning_again_starts_over)
     EXPECT_EQ(lh_mb_image_find(&p.image, 3), 0);
 }
 
-/* -- Health: gone only after failures in a row --------------------------------- */
+/* -- What changed --------------------------------------------------------------
+   A master tells a screen "this value changed" from what the image says moved: the
+   first answer, a register that is different, a value that went stale or came back.
+   An answer that brings the same words again changes nothing. */
 
-TEST(lh_mb_health, a_stall_is_not_a_lost_device)
+TEST(lh_mb_image, the_first_answer_changes_every_want_it_brings)
 {
-    lh_mb_health_t h;
+    planned p;
+    const lh_u16_t answer[] = {0, 0, 0, 0, 0, 0};
 
-    lh_mb_health_init(&h, LH_MB_HEALTH_LIMIT);
-    /* A device busy for a second: one or two requests lost, then answers again. */
-    lh_mb_health_count_failure(&h);
-    lh_mb_health_count_failure(&h);
-    EXPECT_FALSE(lh_mb_health_is_lost(&h));
-    lh_mb_health_count_answer(&h);
-    EXPECT_EQ(lh_mb_health_get_failures(&h), 0);
-    for (int i = 0; i < 9; ++i)
+    EXPECT_EQ(lh_mb_image_store(&p.image, &p.reads[0], answer, 6, 5000), 3)
+        << "zeros are a value too: unread to fresh is a change";
+    for (lh_u16_t i = 0; i < 3; ++i)
     {
-        lh_mb_health_count_failure(&h);
+        EXPECT_TRUE(lh_mb_image_is_value_changed(&p.image, i));
+        lh_mb_image_clear_value_changed(&p.image, i);
     }
-    EXPECT_FALSE(lh_mb_health_is_lost(&h)) << "nine in a row";
-    lh_mb_health_count_failure(&h);
-    EXPECT_TRUE(lh_mb_health_is_lost(&h)) << "the tenth";
-    lh_mb_health_count_failure(&h);
-    EXPECT_EQ(lh_mb_health_get_failures(&h), LH_MB_HEALTH_LIMIT) << "counted up to the limit only";
-    lh_mb_health_count_answer(&h);
-    EXPECT_FALSE(lh_mb_health_is_lost(&h)) << "one answer and it is back";
+    EXPECT_FALSE(lh_mb_image_is_value_changed(&p.image, 3)) << "not in the read";
 }
 
-TEST(lh_mb_health, a_limit_of_zero_is_one)
+TEST(lh_mb_image, the_same_words_again_change_nothing_and_one_new_word_changes_its_want)
 {
-    lh_mb_health_t h;
+    planned p;
+    const lh_u16_t first[] = {100, 101, 0, 0, 7, 8};
+    const lh_u16_t again[] = {100, 101, 0xEEEE, 0xEEEE, 7, 8};
+    const lh_u16_t moved[] = {100, 101, 0, 0, 7, 9};
 
-    lh_mb_health_init(&h, 0);
-    EXPECT_EQ(lh_mb_health_get_limit(&h), 1);
-    lh_mb_health_count_failure(&h);
-    EXPECT_TRUE(lh_mb_health_is_lost(&h));
+    lh_mb_image_store(&p.image, &p.reads[0], first, 6, 5000);
+    for (lh_u16_t i = 0; i < 3; ++i)
+    {
+        lh_mb_image_clear_value_changed(&p.image, i);
+    }
+    EXPECT_EQ(lh_mb_image_store(&p.image, &p.reads[0], again, 6, 6000), 0)
+        << "the gap is not a want: its words do not count";
+    EXPECT_EQ(lh_mb_image_get_updated_us(&p.image, 0), 6000U) << "still stamped: it is fresh";
+    EXPECT_EQ(lh_mb_image_store(&p.image, &p.reads[0], moved, 6, 7000), 1);
+    EXPECT_FALSE(lh_mb_image_is_value_changed(&p.image, 0));
+    EXPECT_FALSE(lh_mb_image_is_value_changed(&p.image, 1));
+    EXPECT_TRUE(lh_mb_image_is_value_changed(&p.image, 2)) << "the high word of the 32-bit value";
+}
+
+TEST(lh_mb_image, going_stale_and_coming_back_are_changes)
+{
+    planned p;
+    const lh_u16_t answer[] = {100, 101, 0, 0, 7, 8};
+
+    lh_mb_image_store(&p.image, &p.reads[0], answer, 6, 5000);
+    lh_mb_image_clear_value_changed(&p.image, 0);
+    EXPECT_EQ(lh_mb_image_fail(&p.image, &p.reads[0], lh_mb_value_stale), 3);
+    EXPECT_TRUE(lh_mb_image_is_value_changed(&p.image, 0));
+    lh_mb_image_clear_value_changed(&p.image, 0);
+    EXPECT_EQ(lh_mb_image_fail(&p.image, &p.reads[0], lh_mb_value_stale), 0) << "stale again";
+    EXPECT_EQ(lh_mb_image_store(&p.image, &p.reads[0], answer, 6, 6000), 3)
+        << "the same words, but fresh again";
+    EXPECT_EQ(lh_mb_image_fail(&p.image, &p.reads[1], lh_mb_value_stale), 0)
+        << "never read: nothing to go stale";
+}
+
+/* -- A read for an answer outside the plan ---------------------------------------
+   The read-back after a write, the answer to a gateway client: the image takes what
+   lies wholly inside, and half a 32-bit value is not a value. */
+
+TEST(lh_mb_image, an_answer_outside_the_plan_stores_the_wants_wholly_inside_it)
+{
+    planned p;
+    lh_mb_read_t read;
+
+    ASSERT_TRUE(lh_mb_image_try_copy_read(&p.image, 11, 5, &read)) << "11..15";
+    EXPECT_EQ(lh_mb_read_get_first(&read), 1);
+    EXPECT_EQ(lh_mb_read_get_last(&read), 2);
+    const lh_u16_t answer[] = {55, 0, 0, 0x1111, 0x2222};
+    EXPECT_EQ(lh_mb_image_store(&p.image, &read, answer, 5, 9000), 2);
+    EXPECT_EQ(lh_mb_image_get_value(&p.image, 1)[0], 55);
+    EXPECT_EQ(lh_mb_image_get_value(&p.image, 2)[1], 0x2222);
+    EXPECT_EQ(lh_mb_image_get_value_status(&p.image, 0), lh_mb_value_unread) << "10 is not in it";
+}
+
+TEST(lh_mb_image, half_a_value_or_a_gap_is_no_read)
+{
+    planned p;
+    lh_mb_read_t read;
+
+    EXPECT_FALSE(lh_mb_image_try_copy_read(&p.image, 15, 1, &read)) << "the high word alone";
+    EXPECT_FALSE(lh_mb_image_try_copy_read(&p.image, 14, 1, &read)) << "the low word alone";
+    EXPECT_FALSE(lh_mb_image_try_copy_read(&p.image, 12, 2, &read)) << "the gap";
+    EXPECT_FALSE(lh_mb_image_try_copy_read(&p.image, 100, 10, &read)) << "nothing there";
+    ASSERT_TRUE(lh_mb_image_try_copy_read(&p.image, 65535, 1, &read)) << "the last register";
+    EXPECT_EQ(lh_mb_read_get_first(&read), 3);
+    EXPECT_EQ(lh_mb_image_find_from(&p.image, 12), 2) << "the next want after the gap";
 }
