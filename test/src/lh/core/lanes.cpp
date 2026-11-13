@@ -3,8 +3,8 @@
 #include <lh/core/lanes.h>
 
 /* -- Lanes: priority that starves nobody ------------------------------------
-   Three lanes as a Modbus master has them: 0 writes from a screen, 1 requests of
-   gateway clients, 2 the poll. Ready masks are written as bits: 0b101 is lanes 0 and 2. */
+   Three lanes: 0 urgent requests, 1 interactive ones, 2 background work. Ready
+   masks are written as bits: 0b101 is lanes 0 and 2. */
 
 TEST(lh_lanes, with_no_patience_the_lowest_ready_lane_always_goes)
 {
@@ -43,12 +43,12 @@ TEST(lh_lanes, patience_three_gives_a_lane_every_fourth_turn)
 
     lh_lanes_init(&lanes, 3);
     lh_lanes_set_patience(&lanes, 2, 3);
-    int poll = 0;
+    int background = 0;
     for (int i = 0; i < 40; ++i)
     {
-        poll += lh_lanes_pick(&lanes, 0b111) == 2 ? 1 : 0;
+        background += lh_lanes_pick(&lanes, 0b111) == 2 ? 1 : 0;
     }
-    EXPECT_EQ(poll, 10);
+    EXPECT_EQ(background, 10);
 }
 
 TEST(lh_lanes, a_lane_that_was_idle_has_not_been_waiting)

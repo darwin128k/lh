@@ -3,10 +3,10 @@
  * @brief ::lh_lanes_t — which of several queues gets the next turn: by priority, but
  *        none waits for ever.
  *
- * One server, several kinds of work: a line that carries writes from a screen,
- * requests of gateway clients and the poll that keeps values fresh. Strict priority
- * starves the lower lanes as soon as a higher one is busy; taking turns ignores that a
- * write should not wait behind a poll. Lanes do both: the ready lane with the lowest
+ * One server, several kinds of work: urgent requests, interactive ones and background
+ * work that may lag. Strict priority starves the lower lanes as soon as a higher one
+ * is busy; taking turns ignores that an urgent request should not wait behind
+ * background work. Lanes do both: the ready lane with the lowest
  * index goes first, **unless** a ready lane has let ::lh_lanes_get_patience other
  * turns go by since it last had one -- then it goes, however low it is.
  *
