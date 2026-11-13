@@ -538,10 +538,14 @@ TEST(lh_mb, a_want_for_the_last_register_is_planned_and_read)
     EXPECT_EQ(lh_mb_read_get_count(&reads[0]), 6) << "65530 up to and including 65535";
     EXPECT_EQ(lh_mb_count_requests(wants, 2), 1);
 
-    const lh_mb_want_t top[2] = {{65411, 1}, {65535, 1}}; /* exactly 125 registers apart */
+    /* 65411..65527, a gap of 7 (under LH_MB_GAP_MAX), then 65535: exactly 125 registers
+       to the end of the address space, one read. */
+    const lh_mb_want_t top[2] = {{65411, 117}, {65535, 1}};
     ASSERT_EQ(lh_mb_plan_reads(top, 2, reads, 4), 1);
+    EXPECT_EQ(lh_mb_read_get_start(&reads[0]), 65411);
     EXPECT_EQ(lh_mb_read_get_count(&reads[0]), LH_MB_READ_MAX);
-    const lh_mb_want_t over[2] = {{65410, 1}, {65535, 1}}; /* one too many */
+    /* One register more at the front: 126, which no read may ask for. */
+    const lh_mb_want_t over[2] = {{65410, 118}, {65535, 1}};
     EXPECT_EQ(lh_mb_plan_reads(over, 2, reads, 4), 2);
     EXPECT_EQ(lh_mb_count_requests(over, 2), 2);
 }

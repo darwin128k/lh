@@ -320,6 +320,8 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/net/socket/addr/ip4.c
         ${LH_LIB_SRC_PATH}/core/net/socket/addr.c
         ${LH_LIB_SRC_PATH}/core/net/modbus.c
+        ${LH_LIB_SRC_PATH}/core/net/modbus/health.c
+        ${LH_LIB_SRC_PATH}/core/net/modbus/image.c
         ${LH_LIB_SRC_PATH}/core/net/modbus/link.c
         ${LH_LIB_SRC_PATH}/core/net/modbus/link/counters.c
         ${LH_LIB_SRC_PATH}/core/net/modbus/server.c
