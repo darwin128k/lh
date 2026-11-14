@@ -106,10 +106,10 @@ lh_void
 lh_ui_view_draw_frame(lh_ui_view_t *self, const lh_ui_rect_t *damage)
 {
     lh_ui_point_t zero;
-
     lh_ui_point_init(lh_addr_of(zero), lh_ui_scalar(0), lh_ui_scalar(0));
-    lh_ui_rect_t whole;
     const lh_ui_size_t *size = lh_ui_canvas_get_size(lh_ui_view_get_canvas(self));
+
+    lh_ui_rect_t whole;
     lh_ui_rect_init(lh_addr_of(whole), lh_ui_scalar(0), lh_ui_scalar(0),
                     lh_ui_size_get_width(size), lh_ui_size_get_height(size));
     lh_ui_canvas_begin(lh_ui_view_get_canvas(self));
