@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- A pixmap strokes a rectangle, a circle and a rounded rectangle on the outside of the shape. The band is as thick as the pen. The interior is left alone. A width below 1 draws nothing.
+
 - A pixel center is inside a rounded rectangle, a circle or a triangle, or it is not (`lh_gl_cover_*`). The pixmap fills those shapes. A gradient fill stores a radius and leaves a corner outside that arc unpainted. Radius `0` stays a rectangle. The edge is the pixel center, with no partial coverage.
 
 - `lh_gl_gradient_fill_t` stores an angle in degrees: `0` up, `90` right, `180` down. `lh_gl_gradient_linear_frac` places the two colors along that line, in whole numbers. Init leaves the angle at `180`.

@@ -73,7 +73,7 @@ as of 2026-11-14 and the plan agreed with Egor.
 - Layout: `lh_gl_layout_t` is one gap. Pack writes direct children's origins along one axis from zero, in list order. The other axis and the sizes stay. It does not draw, search or scroll.
 - Fill: `lh_gl_fill_t` starts with an entity and borrows one color. The shared draw call reads that pointer. A layer's own draw call stays null; a background is a fill added first. The fill class is not opaque.
 - Gradient: two colors and an angle on the fill. `180` runs down the box, `135` runs down-right. A radius clips that paint to the rounded rectangle; `0` leaves the rectangle. Radial placement is not implemented.
-- Cover: a pixel center is inside a rounded rectangle, a circle or a triangle, or it is outside. The pixmap fills those three shapes. The edge is hard.
+- Cover: a pixel center is inside a rounded rectangle, a circle or a triangle, or it is outside. The pixmap fills those three shapes and strokes the first two plus a plain rectangle, outside the fill, one pen thick. The edge is hard. A triangle has no stroke.
 - Shadow: a peak color, a spread and a shift. The box interior stays clear. The fade crosses the shifted edge. Corners are square.
 - Known pre-existing warnings: `check-fields` on `self->cls` in
   `entity.c` get/set_class; `entity.c` function order vs levels.

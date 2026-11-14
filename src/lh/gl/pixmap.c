@@ -8,9 +8,11 @@
 #include <lh/gl/cover.h>
 
 static const lh_gl_canvas_backend_t lh_gl_pixmap_canvas_backend =
-    lh_gl_canvas_backend_initializer(lh_gl_pixmap_canvas_fill_rect, lh_null,
-                                     lh_gl_pixmap_canvas_fill_circle, lh_null,
-                                     lh_gl_pixmap_canvas_fill_round_rect, lh_null,
+    lh_gl_canvas_backend_initializer(lh_gl_pixmap_canvas_fill_rect, lh_gl_pixmap_canvas_stroke_rect,
+                                     lh_gl_pixmap_canvas_fill_circle,
+                                     lh_gl_pixmap_canvas_stroke_circle,
+                                     lh_gl_pixmap_canvas_fill_round_rect,
+                                     lh_gl_pixmap_canvas_stroke_round_rect,
                                      lh_gl_pixmap_canvas_fill_triangle);
 
 lh_gl_color_t *
@@ -317,6 +319,173 @@ lh_gl_pixmap_canvas_fill_triangle(lh_ptr target, const lh_gl_rect_t *clip, const
         return;
     }
     lh_gl_pixmap_fill_triangle(lh_ptr_cast(lh_gl_pixmap_t, target), clip, a, b, c, color);
+}
+
+lh_void
+lh_gl_pixmap_blend_outside(lh_gl_pixmap_t *self, lh_gl_scalar_t x, lh_gl_scalar_t y,
+                           lh_gl_color_channel_t outer, lh_gl_color_channel_t inner,
+                           const lh_gl_color_t *color)
+{
+    if (outer == 0 || inner != 0)
+    {
+        return;
+    }
+    lh_gl_color_t ink;
+
+    lh_gl_color_scale_alpha(color, outer, lh_addr_of(ink));
+    lh_gl_pixmap_blend_pixel(self, x, y, lh_addr_of(ink));
+}
+
+lh_void
+lh_gl_pixmap_stroke_rect(lh_gl_pixmap_t *self, const lh_gl_rect_t *clip, const lh_gl_rect_t *rect,
+                         const lh_gl_pen_t *pen)
+{
+    lh_assert_runtime_ref(rect);
+    lh_assert_runtime_ref(pen);
+    lh_gl_scalar_t width = lh_gl_pen_get_width(pen);
+
+    if (width < 1)
+    {
+        return;
+    }
+    lh_gl_rect_t outer;
+
+    lh_gl_rect_inset(rect, -width, -width, lh_addr_of(outer));
+    lh_gl_rect_t area;
+
+    if (lh_gl_pixmap_limit(self, clip, lh_addr_of(outer), lh_addr_of(area)) == lh_bool_false)
+    {
+        return;
+    }
+    const lh_gl_color_t *color = lh_gl_pen_get_color(pen);
+    const lh_gl_point_t *origin = lh_gl_rect_get_origin(lh_addr_of(area));
+    const lh_gl_size_t *area_size = lh_gl_rect_get_size(lh_addr_of(area));
+
+    for (lh_gl_scalar_t y = lh_gl_point_get_y(origin);
+         y < lh_gl_point_get_y(origin) + lh_gl_size_get_height(area_size); ++y)
+    {
+        for (lh_gl_scalar_t x = lh_gl_point_get_x(origin);
+             x < lh_gl_point_get_x(origin) + lh_gl_size_get_width(area_size); ++x)
+        {
+            lh_gl_pixmap_blend_outside(self, x, y,
+                                       lh_gl_cover_round_rect(lh_addr_of(outer), 0, x, y),
+                                       lh_gl_cover_round_rect(rect, 0, x, y), color);
+        }
+    }
+}
+
+lh_void
+lh_gl_pixmap_canvas_stroke_rect(lh_ptr target, const lh_gl_rect_t *clip, const lh_gl_rect_t *rect,
+                                const lh_gl_pen_t *pen)
+{
+    if (lh_ptr_is_null(target))
+    {
+        return;
+    }
+    lh_gl_pixmap_stroke_rect(lh_ptr_cast(lh_gl_pixmap_t, target), clip, rect, pen);
+}
+
+lh_void
+lh_gl_pixmap_stroke_circle(lh_gl_pixmap_t *self, const lh_gl_rect_t *clip, lh_gl_point_t center,
+                           lh_gl_scalar_t radius, const lh_gl_pen_t *pen)
+{
+    lh_assert_runtime_ref(pen);
+    lh_gl_scalar_t width = lh_gl_pen_get_width(pen);
+
+    if (radius < 1 || width < 1)
+    {
+        return;
+    }
+    lh_gl_scalar_t outer_radius = radius + width;
+    lh_gl_rect_t bounds;
+
+    lh_gl_rect_init(lh_addr_of(bounds), lh_gl_point_get_x(lh_addr_of(center)) - outer_radius,
+                    lh_gl_point_get_y(lh_addr_of(center)) - outer_radius,
+                    outer_radius + outer_radius, outer_radius + outer_radius);
+    lh_gl_rect_t area;
+
+    if (lh_gl_pixmap_limit(self, clip, lh_addr_of(bounds), lh_addr_of(area)) == lh_bool_false)
+    {
+        return;
+    }
+    const lh_gl_color_t *color = lh_gl_pen_get_color(pen);
+    const lh_gl_point_t *origin = lh_gl_rect_get_origin(lh_addr_of(area));
+    const lh_gl_size_t *area_size = lh_gl_rect_get_size(lh_addr_of(area));
+
+    for (lh_gl_scalar_t y = lh_gl_point_get_y(origin);
+         y < lh_gl_point_get_y(origin) + lh_gl_size_get_height(area_size); ++y)
+    {
+        for (lh_gl_scalar_t x = lh_gl_point_get_x(origin);
+             x < lh_gl_point_get_x(origin) + lh_gl_size_get_width(area_size); ++x)
+        {
+            lh_gl_pixmap_blend_outside(self, x, y,
+                                       lh_gl_cover_circle(lh_addr_of(center), outer_radius, x, y),
+                                       lh_gl_cover_circle(lh_addr_of(center), radius, x, y), color);
+        }
+    }
+}
+
+lh_void
+lh_gl_pixmap_canvas_stroke_circle(lh_ptr target, const lh_gl_rect_t *clip, lh_gl_point_t center,
+                                  lh_gl_scalar_t radius, const lh_gl_pen_t *pen)
+{
+    if (lh_ptr_is_null(target))
+    {
+        return;
+    }
+    lh_gl_pixmap_stroke_circle(lh_ptr_cast(lh_gl_pixmap_t, target), clip, center, radius, pen);
+}
+
+lh_void
+lh_gl_pixmap_stroke_round_rect(lh_gl_pixmap_t *self, const lh_gl_rect_t *clip,
+                               const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
+                               const lh_gl_pen_t *pen)
+{
+    lh_assert_runtime_ref(rect);
+    lh_assert_runtime_ref(pen);
+    lh_gl_scalar_t width = lh_gl_pen_get_width(pen);
+
+    if (width < 1)
+    {
+        return;
+    }
+    lh_gl_rect_t outer;
+
+    lh_gl_rect_inset(rect, -width, -width, lh_addr_of(outer));
+    lh_gl_rect_t area;
+
+    if (lh_gl_pixmap_limit(self, clip, lh_addr_of(outer), lh_addr_of(area)) == lh_bool_false)
+    {
+        return;
+    }
+    const lh_gl_color_t *color = lh_gl_pen_get_color(pen);
+    const lh_gl_point_t *origin = lh_gl_rect_get_origin(lh_addr_of(area));
+    const lh_gl_size_t *area_size = lh_gl_rect_get_size(lh_addr_of(area));
+
+    for (lh_gl_scalar_t y = lh_gl_point_get_y(origin);
+         y < lh_gl_point_get_y(origin) + lh_gl_size_get_height(area_size); ++y)
+    {
+        for (lh_gl_scalar_t x = lh_gl_point_get_x(origin);
+             x < lh_gl_point_get_x(origin) + lh_gl_size_get_width(area_size); ++x)
+        {
+            lh_gl_pixmap_blend_outside(self, x, y,
+                                       lh_gl_cover_round_rect(lh_addr_of(outer), radius + width, x,
+                                                              y),
+                                       lh_gl_cover_round_rect(rect, radius, x, y), color);
+        }
+    }
+}
+
+lh_void
+lh_gl_pixmap_canvas_stroke_round_rect(lh_ptr target, const lh_gl_rect_t *clip,
+                                      const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
+                                      const lh_gl_pen_t *pen)
+{
+    if (lh_ptr_is_null(target))
+    {
+        return;
+    }
+    lh_gl_pixmap_stroke_round_rect(lh_ptr_cast(lh_gl_pixmap_t, target), clip, rect, radius, pen);
 }
 
 const lh_gl_canvas_backend_t *

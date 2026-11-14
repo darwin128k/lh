@@ -5,8 +5,10 @@
  * The pixmap is one canvas target. It stores straight ::lh_gl_color_t pixels
  * and blends a fill over them (::lh_gl_color_over). A circle, a rounded
  * rectangle and a triangle are filled the same way, and a pixel outside the
- * shape is left alone. It does not stroke or draw text, and it does not know
- * about a layer or a surface. The caller owns the pixel memory.
+ * shape is left alone. A stroke of a rectangle, a circle or a rounded
+ * rectangle paints the band outside the shape, as thick as the pen. It does
+ * not draw text, and it does not know about a layer or a surface. The caller
+ * owns the pixel memory.
  *
  * ::lh_gl_pixmap_get_canvas_backend is the table for ::lh_gl_canvas_set_backend.
  * The canvas still translates and clips; the pixmap clips again to its own size.
@@ -156,7 +158,57 @@ lh_gl_pixmap_canvas_fill_triangle(lh_ptr target, const lh_gl_rect_t *clip, const
                                   const lh_gl_point_t *b, const lh_gl_point_t *c,
                                   const lh_gl_color_t *color);
 
-/** @brief Canvas table for the pixmap fills. Strokes stay null. */
+/**
+ * @brief Blend @p color at (@p x, @p y) when @p outer covers the pixel and
+ *        @p inner does not. Either coverage `0` skips the outside.
+ */
+lh_void
+lh_gl_pixmap_blend_outside(lh_gl_pixmap_t *self, lh_gl_scalar_t x, lh_gl_scalar_t y,
+                           lh_gl_color_channel_t outer, lh_gl_color_channel_t inner,
+                           const lh_gl_color_t *color);
+
+/**
+ * @brief Stroke @p rect on the outside. Thickness is the pen width. A width
+ *        below 1 writes nothing. The interior stays.
+ */
+lh_void
+lh_gl_pixmap_stroke_rect(lh_gl_pixmap_t *self, const lh_gl_rect_t *clip, const lh_gl_rect_t *rect,
+                         const lh_gl_pen_t *pen);
+
+/** @brief ::lh_gl_canvas_stroke_rect_fn for a pixmap stored in @p target. */
+lh_void
+lh_gl_pixmap_canvas_stroke_rect(lh_ptr target, const lh_gl_rect_t *clip, const lh_gl_rect_t *rect,
+                                const lh_gl_pen_t *pen);
+
+/**
+ * @brief Stroke the circle on the outside, from @p radius out to
+ *        @p radius plus the pen width. A radius or a width below 1 writes nothing.
+ */
+lh_void
+lh_gl_pixmap_stroke_circle(lh_gl_pixmap_t *self, const lh_gl_rect_t *clip, lh_gl_point_t center,
+                           lh_gl_scalar_t radius, const lh_gl_pen_t *pen);
+
+/** @brief ::lh_gl_canvas_stroke_circle_fn for a pixmap stored in @p target. */
+lh_void
+lh_gl_pixmap_canvas_stroke_circle(lh_ptr target, const lh_gl_rect_t *clip, lh_gl_point_t center,
+                                  lh_gl_scalar_t radius, const lh_gl_pen_t *pen);
+
+/**
+ * @brief Stroke the rounded rectangle on the outside. The arc grows by the
+ *        pen width. A width below 1 writes nothing.
+ */
+lh_void
+lh_gl_pixmap_stroke_round_rect(lh_gl_pixmap_t *self, const lh_gl_rect_t *clip,
+                               const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
+                               const lh_gl_pen_t *pen);
+
+/** @brief ::lh_gl_canvas_stroke_round_rect_fn for a pixmap stored in @p target. */
+lh_void
+lh_gl_pixmap_canvas_stroke_round_rect(lh_ptr target, const lh_gl_rect_t *clip,
+                                      const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
+                                      const lh_gl_pen_t *pen);
+
+/** @brief Canvas table for the pixmap fills and strokes. */
 const lh_gl_canvas_backend_t *
 lh_gl_pixmap_get_canvas_backend(void);
 
