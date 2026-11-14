@@ -56,20 +56,29 @@ typedef lh_void(lh_gl_canvas_stroke_round_rect_fn)(lh_ptr target, const lh_gl_re
                                                    const lh_gl_rect_t *rect,
                                                    lh_gl_scalar_t radius, const lh_gl_pen_t *pen);
 
+/**
+ * @brief Fill the triangle @p a @p b @p c, in root coordinates.
+ */
+typedef lh_void(lh_gl_canvas_fill_triangle_fn)(lh_ptr target, const lh_gl_rect_t *clip,
+                                               const lh_gl_point_t *a, const lh_gl_point_t *b,
+                                               const lh_gl_point_t *c, const lh_gl_color_t *color);
+
 LH_COMPILER_EXTERN_C_END
 
 /**
  * @def lh_gl_canvas_backend_fields(...)
- * @brief The six drawing calls. A null call skips that shape.
+ * @brief The drawing calls. A null call skips that shape.
  */
 #define lh_gl_canvas_backend_fields(fill_rect_fn, stroke_rect_fn, fill_circle_fn,                  \
-                                    stroke_circle_fn, fill_round_rect_fn, stroke_round_rect_fn)   \
+                                    stroke_circle_fn, fill_round_rect_fn, stroke_round_rect_fn,   \
+                                    fill_triangle_fn)                                              \
     fill_rect_fn *fill_rect;                                                                       \
     stroke_rect_fn *stroke_rect;                                                                   \
     fill_circle_fn *fill_circle;                                                                   \
     stroke_circle_fn *stroke_circle;                                                               \
     fill_round_rect_fn *fill_round_rect;                                                           \
-    stroke_round_rect_fn *stroke_round_rect
+    stroke_round_rect_fn *stroke_round_rect;                                                       \
+    fill_triangle_fn *fill_triangle
 
 /** @brief Calls a canvas forwards to its target. */
 struct lh_gl_canvas_backend
@@ -77,7 +86,8 @@ struct lh_gl_canvas_backend
     /** Members: ::lh_gl_canvas_backend_fields. */
     lh_gl_canvas_backend_fields(lh_gl_canvas_fill_rect_fn, lh_gl_canvas_stroke_rect_fn,
                                 lh_gl_canvas_fill_circle_fn, lh_gl_canvas_stroke_circle_fn,
-                                lh_gl_canvas_fill_round_rect_fn, lh_gl_canvas_stroke_round_rect_fn);
+                                lh_gl_canvas_fill_round_rect_fn, lh_gl_canvas_stroke_round_rect_fn,
+                                lh_gl_canvas_fill_triangle_fn);
 };
 /** @copybrief lh_gl_canvas_backend */
 typedef struct lh_gl_canvas_backend lh_gl_canvas_backend_t;
@@ -86,9 +96,9 @@ typedef struct lh_gl_canvas_backend lh_gl_canvas_backend_t;
  * @brief Brace initializer in field order. A null call skips that shape.
  */
 #define lh_gl_canvas_backend_initializer(fill_rect, stroke_rect, fill_circle, stroke_circle,       \
-                                         fill_round_rect, stroke_round_rect)                       \
+                                         fill_round_rect, stroke_round_rect, fill_triangle)        \
     lh_initializer(fill_rect, stroke_rect, fill_circle, stroke_circle, fill_round_rect,            \
-                   stroke_round_rect)
+                   stroke_round_rect, fill_triangle)
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -131,8 +141,15 @@ lh_void
 lh_gl_canvas_backend_set_stroke_round_rect(lh_gl_canvas_backend_t *self,
                                            lh_gl_canvas_stroke_round_rect_fn *fn);
 
+lh_gl_canvas_fill_triangle_fn *
+lh_gl_canvas_backend_get_fill_triangle(const lh_gl_canvas_backend_t *self);
+
+lh_void
+lh_gl_canvas_backend_set_fill_triangle(lh_gl_canvas_backend_t *self,
+                                       lh_gl_canvas_fill_triangle_fn *fn);
+
 /**
- * @brief Store the six calls. Any of them may be null.
+ * @brief Store the calls. Any of them may be null.
  */
 lh_void
 lh_gl_canvas_backend_init(lh_gl_canvas_backend_t *self, lh_gl_canvas_fill_rect_fn *fill_rect,
@@ -140,7 +157,8 @@ lh_gl_canvas_backend_init(lh_gl_canvas_backend_t *self, lh_gl_canvas_fill_rect_f
                           lh_gl_canvas_fill_circle_fn *fill_circle,
                           lh_gl_canvas_stroke_circle_fn *stroke_circle,
                           lh_gl_canvas_fill_round_rect_fn *fill_round_rect,
-                          lh_gl_canvas_stroke_round_rect_fn *stroke_round_rect);
+                          lh_gl_canvas_stroke_round_rect_fn *stroke_round_rect,
+                          lh_gl_canvas_fill_triangle_fn *fill_triangle);
 
 LH_COMPILER_EXTERN_C_END
 

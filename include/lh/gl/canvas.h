@@ -127,6 +127,14 @@ lh_void
 lh_gl_canvas_stroke_round_rect(lh_gl_canvas_t *self, const lh_gl_rect_t *rect,
                                lh_gl_scalar_t radius, const lh_gl_pen_t *pen);
 
+/**
+ * @brief Fill the triangle @p a @p b @p c. The points are origin-relative.
+ *        A triangle with no area draws nothing.
+ */
+lh_void
+lh_gl_canvas_fill_triangle(lh_gl_canvas_t *self, const lh_gl_point_t *a, const lh_gl_point_t *b,
+                           const lh_gl_point_t *c, const lh_gl_color_t *color);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_GL_CANVAS_H */

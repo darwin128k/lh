@@ -303,3 +303,71 @@ lh_gl_canvas_stroke_round_rect(lh_gl_canvas_t *self, const lh_gl_rect_t *rect,
 
     stroke(lh_gl_canvas_get_target(self), clip, lh_addr_of(root), lh_math_min(radius, half), pen);
 }
+
+lh_void
+lh_gl_canvas_fill_triangle(lh_gl_canvas_t *self, const lh_gl_point_t *a, const lh_gl_point_t *b,
+                           const lh_gl_point_t *c, const lh_gl_color_t *color)
+{
+    lh_assert_runtime_ref(a);
+    lh_assert_runtime_ref(b);
+    lh_assert_runtime_ref(c);
+    lh_assert_runtime_ref(color);
+    const lh_gl_canvas_backend_t *backend = lh_gl_canvas_get_backend(self);
+
+    if (lh_ptr_is_null(backend))
+    {
+        return;
+    }
+    lh_gl_canvas_fill_triangle_fn *fill = lh_gl_canvas_backend_get_fill_triangle(backend);
+
+    if (lh_ptr_is_null(fill))
+    {
+        return;
+    }
+    const lh_gl_point_t *origin = lh_gl_canvas_get_origin(self);
+    lh_gl_point_t root_a;
+
+    lh_gl_point_init(lh_addr_of(root_a),
+                     lh_gl_point_get_x(a) + lh_gl_point_get_x(origin),
+                     lh_gl_point_get_y(a) + lh_gl_point_get_y(origin));
+    lh_gl_point_t root_b;
+
+    lh_gl_point_init(lh_addr_of(root_b),
+                     lh_gl_point_get_x(b) + lh_gl_point_get_x(origin),
+                     lh_gl_point_get_y(b) + lh_gl_point_get_y(origin));
+    lh_gl_point_t root_c;
+
+    lh_gl_point_init(lh_addr_of(root_c),
+                     lh_gl_point_get_x(c) + lh_gl_point_get_x(origin),
+                     lh_gl_point_get_y(c) + lh_gl_point_get_y(origin));
+    lh_gl_rect_t bounds;
+
+    lh_gl_rect_init(
+        lh_addr_of(bounds),
+        lh_math_min(lh_gl_point_get_x(lh_addr_of(root_a)),
+                    lh_math_min(lh_gl_point_get_x(lh_addr_of(root_b)),
+                                lh_gl_point_get_x(lh_addr_of(root_c)))),
+        lh_math_min(lh_gl_point_get_y(lh_addr_of(root_a)),
+                    lh_math_min(lh_gl_point_get_y(lh_addr_of(root_b)),
+                                lh_gl_point_get_y(lh_addr_of(root_c)))),
+        lh_math_max(lh_gl_point_get_x(lh_addr_of(root_a)),
+                    lh_math_max(lh_gl_point_get_x(lh_addr_of(root_b)),
+                                lh_gl_point_get_x(lh_addr_of(root_c)))) -
+            lh_math_min(lh_gl_point_get_x(lh_addr_of(root_a)),
+                        lh_math_min(lh_gl_point_get_x(lh_addr_of(root_b)),
+                                    lh_gl_point_get_x(lh_addr_of(root_c)))),
+        lh_math_max(lh_gl_point_get_y(lh_addr_of(root_a)),
+                    lh_math_max(lh_gl_point_get_y(lh_addr_of(root_b)),
+                                lh_gl_point_get_y(lh_addr_of(root_c)))) -
+            lh_math_min(lh_gl_point_get_y(lh_addr_of(root_a)),
+                        lh_math_min(lh_gl_point_get_y(lh_addr_of(root_b)),
+                                    lh_gl_point_get_y(lh_addr_of(root_c)))));
+    const lh_gl_rect_t *clip = lh_gl_canvas_get_clip(self);
+
+    if (lh_gl_rect_intersects(lh_addr_of(bounds), clip) == lh_bool_false)
+    {
+        return;
+    }
+    fill(lh_gl_canvas_get_target(self), clip, lh_addr_of(root_a), lh_addr_of(root_b),
+         lh_addr_of(root_c), color);
+}

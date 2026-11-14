@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- A pixel center is inside a rounded rectangle, a circle or a triangle, or it is not (`lh_gl_cover_*`). The pixmap fills those shapes. A gradient fill stores a radius and leaves a corner outside that arc unpainted. Radius `0` stays a rectangle. The edge is the pixel center, with no partial coverage.
+
 - `lh_gl_gradient_fill_t` stores an angle in degrees: `0` up, `90` right, `180` down. `lh_gl_gradient_linear_frac` places the two colors along that line, in whole numbers. Init leaves the angle at `180`.
 
 - `lh_gl_shadow_t` stores a peak color, a spread and a shift. Coverage is zero inside the box and fades across the shifted edge: full one spread inside, nothing one spread outside. `lh_gl_shadow_fill_t` paints that coverage. Corners are square.

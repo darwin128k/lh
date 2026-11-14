@@ -224,6 +224,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/gl/input.c
         ${LH_LIB_SRC_PATH}/gl/layout.c
         ${LH_LIB_SRC_PATH}/gl/fill.c
+        ${LH_LIB_SRC_PATH}/gl/cover.c
         ${LH_LIB_SRC_PATH}/gl/gradient.c
         ${LH_LIB_SRC_PATH}/gl/gradient/sine.c
         ${LH_LIB_SRC_PATH}/gl/gradient/fill.c

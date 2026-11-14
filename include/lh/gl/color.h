@@ -93,6 +93,15 @@ lh_void
 lh_gl_color_mix(const lh_gl_color_t *from, const lh_gl_color_t *to, lh_gl_color_channel_t frac,
                 lh_gl_color_t *out);
 
+/**
+ * @brief Copy @p color with its alpha multiplied by @p cover / 255, half up.
+ *
+ * Cover `255` keeps the alpha. Cover `0` clears it. @p out may alias @p color.
+ */
+lh_void
+lh_gl_color_scale_alpha(const lh_gl_color_t *color, lh_gl_color_channel_t cover,
+                        lh_gl_color_t *out);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_GL_COLOR_H */

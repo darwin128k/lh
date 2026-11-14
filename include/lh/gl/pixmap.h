@@ -3,13 +3,13 @@
  * @brief A borrowed grid of colors: ::lh_gl_pixmap_t.
  *
  * The pixmap is one canvas target. It stores straight ::lh_gl_color_t pixels
- * and blends a fill over them (::lh_gl_color_over). It does not draw circles,
- * strokes or text, and it does not know about
- * a layer or a surface. The caller owns the pixel memory.
+ * and blends a fill over them (::lh_gl_color_over). A circle, a rounded
+ * rectangle and a triangle are filled the same way, and a pixel outside the
+ * shape is left alone. It does not stroke or draw text, and it does not know
+ * about a layer or a surface. The caller owns the pixel memory.
  *
  * ::lh_gl_pixmap_get_canvas_backend is the table for ::lh_gl_canvas_set_backend.
- * Only the rectangle fill is set. The canvas still translates and clips; the
- * pixmap clips again to its own size.
+ * The canvas still translates and clips; the pixmap clips again to its own size.
  */
 
 #ifndef LH_GL_PIXMAP_H
@@ -74,6 +74,16 @@ lh_gl_color_t *
 lh_gl_pixmap_get_pixel_mut(lh_gl_pixmap_t *self, lh_gl_scalar_t x, lh_gl_scalar_t y);
 
 /**
+ * @brief The part of @p rect that @p clip and the pixmap both contain.
+ *
+ * Writes that rectangle to @p out. Returns false when @p self has no pixels or
+ * the intersection is empty. @p out is untouched on failure.
+ */
+lh_bool_t
+lh_gl_pixmap_limit(const lh_gl_pixmap_t *self, const lh_gl_rect_t *clip, const lh_gl_rect_t *rect,
+                   lh_gl_rect_t *out);
+
+/**
  * @brief Replace each pixel of @p rect with @p color.
  *
  * @p rect and @p clip are half-open and in pixmap coordinates, origin at the
@@ -94,7 +104,59 @@ lh_void
 lh_gl_pixmap_canvas_fill_rect(lh_ptr target, const lh_gl_rect_t *clip, const lh_gl_rect_t *rect,
                               const lh_gl_color_t *color);
 
-/** @brief Canvas table whose only call is ::lh_gl_pixmap_canvas_fill_rect. */
+/**
+ * @brief Blend @p color over the one pixel (@p x, @p y).
+ *
+ * @p x and @p y are inside the size. A null pixel row writes nothing.
+ */
+lh_void
+lh_gl_pixmap_blend_pixel(lh_gl_pixmap_t *self, lh_gl_scalar_t x, lh_gl_scalar_t y,
+                         const lh_gl_color_t *color);
+
+/**
+ * @brief Fill the circle of @p radius around @p center. A radius below 1
+ *        writes nothing. Pixels outside the circle stay.
+ */
+lh_void
+lh_gl_pixmap_fill_circle(lh_gl_pixmap_t *self, const lh_gl_rect_t *clip, lh_gl_point_t center,
+                         lh_gl_scalar_t radius, const lh_gl_color_t *color);
+
+/** @brief ::lh_gl_canvas_fill_circle_fn for a pixmap stored in @p target. */
+lh_void
+lh_gl_pixmap_canvas_fill_circle(lh_ptr target, const lh_gl_rect_t *clip, lh_gl_point_t center,
+                                lh_gl_scalar_t radius, const lh_gl_color_t *color);
+
+/**
+ * @brief Fill @p rect with corners of @p radius. Radius `0` is the rectangle.
+ *        A corner pixel outside the arc stays.
+ */
+lh_void
+lh_gl_pixmap_fill_round_rect(lh_gl_pixmap_t *self, const lh_gl_rect_t *clip,
+                             const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
+                             const lh_gl_color_t *color);
+
+/** @brief ::lh_gl_canvas_fill_round_rect_fn for a pixmap stored in @p target. */
+lh_void
+lh_gl_pixmap_canvas_fill_round_rect(lh_ptr target, const lh_gl_rect_t *clip,
+                                    const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
+                                    const lh_gl_color_t *color);
+
+/**
+ * @brief Fill triangle @p a @p b @p c. A pixel outside it stays. No area
+ *        writes nothing.
+ */
+lh_void
+lh_gl_pixmap_fill_triangle(lh_gl_pixmap_t *self, const lh_gl_rect_t *clip, const lh_gl_point_t *a,
+                           const lh_gl_point_t *b, const lh_gl_point_t *c,
+                           const lh_gl_color_t *color);
+
+/** @brief ::lh_gl_canvas_fill_triangle_fn for a pixmap stored in @p target. */
+lh_void
+lh_gl_pixmap_canvas_fill_triangle(lh_ptr target, const lh_gl_rect_t *clip, const lh_gl_point_t *a,
+                                  const lh_gl_point_t *b, const lh_gl_point_t *c,
+                                  const lh_gl_color_t *color);
+
+/** @brief Canvas table for the pixmap fills. Strokes stay null. */
 const lh_gl_canvas_backend_t *
 lh_gl_pixmap_get_canvas_backend(void);
 

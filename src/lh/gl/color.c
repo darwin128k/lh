@@ -156,3 +156,16 @@ lh_gl_color_mix(const lh_gl_color_t *from, const lh_gl_color_t *to, lh_gl_color_
                                              lh_gl_color_get_a(to) * frac,
                                          LH_BYTE_T_MAX)));
 }
+
+lh_void
+lh_gl_color_scale_alpha(const lh_gl_color_t *color, lh_gl_color_channel_t cover,
+                        lh_gl_color_t *out)
+{
+    lh_assert_runtime_ref(color);
+    lh_assert_runtime_ref(out);
+    lh_gl_color_init(out, lh_gl_color_get_r(color), lh_gl_color_get_g(color),
+                     lh_gl_color_get_b(color),
+                     lh_cast_static(lh_gl_color_channel_t,
+                                    lh_math_div_round(lh_gl_color_get_a(color) * cover,
+                                                      LH_BYTE_T_MAX)));
+}
