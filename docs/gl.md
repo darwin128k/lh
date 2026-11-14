@@ -48,10 +48,10 @@ as of 2026-11-14 and the plan agreed with Egor.
   are separate managers that move entities' rects. Widgets are composed
   (label + image = button).
 - **canvas**: portable drawing abstraction (pen, rect, circle, rounded rect,
-  border, fill), a "half driver" that knows how to draw but has no output.
-  The native target (HDC, X11/GL, STM32 framebuffer/TFT) is an opaque handle
-  inside the canvas implementation. A layer is given a canvas when asked to
-  draw. Its origin and clip state are implemented; drawing primitives are later.
+  border, fill), a half driver that knows how to draw but has no output.
+  The native target is an opaque handle plus a call table
+  (`lh_gl_canvas_backend_t`). The canvas adds its origin, drops a shape that
+  misses the clip, and forwards the rest. It does not name a device.
 - **renderer as a server**: the UI sends it packets (dirty areas, draw
   requests), possibly via rail mailbox/queue. Rail (per-device HAL: bare
   base, mailbox, queues, loop) is the HAL. Must run on bare STM32. Later.
@@ -60,6 +60,7 @@ as of 2026-11-14 and the plan agreed with Egor.
 
 - point, size, rect, entity, layer, fixed-storage surface dirty regions, layer z-order, entity coordinate conversion, and clipped layer drawing.
 - Renderer: one deferred pass over the surface dirty list. A positive band slices each rectangle into horizontal stripes. Children that miss the clip are skipped, and so is a child whose visible area is fully inside a later opaque sibling. The class flag `opaque` says so. `lh_gl_rect_contains` is the cover test.
+- Canvas primitives: fill and stroke of a rectangle, a circle and a rounded rectangle, through `lh_gl_color_t`, `lh_gl_pen_t` and `lh_gl_canvas_backend_t`.
 - Known pre-existing warnings: `check-fields` on `self->cls` in
   `entity.c` get/set_class; `entity.c` function order vs levels.
 - `docs/roadmap.md` section 5: a general allocator with a real free over a
@@ -68,8 +69,8 @@ as of 2026-11-14 and the plan agreed with Egor.
 
 ## Next, in order
 
-1. Canvas drawing primitives; renderer server and packets over rail; scene, input,
-   scroll and layout managers; try on the panel.
+1. Renderer server and packets over rail; scene, input, scroll and layout
+   managers; try on the panel.
 
 ## Rules that matter to Egor
 
