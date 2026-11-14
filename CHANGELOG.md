@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- `lh_gl_layout_t` stores one gap. Packing writes the origins of a layer's direct children along one axis, from zero, in list order. The other axis and the sizes stay. A null layer is ignored.
+
 - `lh_gl_pixmap_t` is a borrowed grid of straight colors. Its canvas backend fills a rectangle by replacing pixels and does not blend. The other canvas calls stay null.
 
 - `lh_gl_scalar_t` is the integer screen coordinate of `lh/gl`. Point, size, rectangle, pen width, scroll offset and renderer band use it. It is `lh_math_scalar_t` and does not follow the FPU option.
