@@ -53,6 +53,21 @@ lh_gl_shadow_fill_set_box(lh_gl_shadow_fill_t *self, lh_gl_rect_t box)
     lh_gl_shadow_fill_place(self);
 }
 
+lh_gl_scalar_t
+lh_gl_shadow_fill_get_radius(const lh_gl_shadow_fill_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->radius;
+}
+
+lh_void
+lh_gl_shadow_fill_set_radius(lh_gl_shadow_fill_t *self, lh_gl_scalar_t radius)
+{
+    lh_assert_runtime_ref(self);
+    self->radius = radius < 0 ? 0 : radius;
+    lh_gl_entity_invalidate(lh_gl_shadow_fill_get_entity_mut(self));
+}
+
 lh_void
 lh_gl_shadow_fill_place(lh_gl_shadow_fill_t *self)
 {
@@ -94,6 +109,7 @@ lh_gl_shadow_fill_init(lh_gl_shadow_fill_t *self, lh_gl_rect_t rect, const lh_gl
     lh_gl_entity_init(lh_gl_shadow_fill_get_entity_mut(self), rect, lh_gl_shadow_fill_get_class());
     lh_gl_shadow_fill_set_box(self, rect);
     lh_gl_shadow_fill_set_shadow(self, shadow);
+    lh_gl_shadow_fill_set_radius(self, 0);
 }
 
 lh_void
@@ -127,7 +143,9 @@ lh_gl_shadow_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
     {
         for (lh_gl_scalar_t x = 0; x < width; ++x)
         {
-            lh_gl_color_channel_t coverage = lh_gl_shadow_alpha_at(shadow, x, y, lh_addr_of(local));
+            lh_gl_color_channel_t coverage = lh_gl_shadow_alpha_at(
+                shadow, x, y, lh_addr_of(local),
+                lh_gl_shadow_fill_get_radius(lh_ptr_ccast(lh_gl_shadow_fill_t, entity)));
 
             if (coverage == 0)
             {

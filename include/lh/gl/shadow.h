@@ -8,8 +8,9 @@
  * the full alpha, one spread outside is nothing. The fade is
  * `peak * (spread - distance) / (2 * spread)`, truncated, then clamped.
  *
- * Corners are square. A rounded edge is not this object. ::lh_gl_shadow_fill_t
- * paints the coverage.
+ * A radius rounds that edge. `0` leaves the square. The radius is not stored
+ * here: the box that casts the shadow brings it. ::lh_gl_shadow_fill_t paints
+ * the coverage.
  */
 
 #ifndef LH_GL_SHADOW_H
@@ -84,11 +85,19 @@ lh_void
 lh_gl_shadow_init(lh_gl_shadow_t *self);
 
 /**
- * @brief Signed distance from (@p x, @p y) to @p rect. Negative inside, zero
- *        on the outside edge. Square corners.
+ * @brief Radius limited to half the short side of @p rect. Negative and an
+ *        empty rect are zero.
  */
 lh_gl_scalar_t
-lh_gl_shadow_distance(lh_gl_scalar_t x, lh_gl_scalar_t y, const lh_gl_rect_t *rect);
+lh_gl_shadow_clamp_radius(const lh_gl_rect_t *rect, lh_gl_scalar_t radius);
+
+/**
+ * @brief Signed distance from (@p x, @p y) to @p rect. Negative inside, zero
+ *        on the outside edge. @p radius rounds the corners; `0` is square.
+ */
+lh_gl_scalar_t
+lh_gl_shadow_distance(lh_gl_scalar_t x, lh_gl_scalar_t y, const lh_gl_rect_t *rect,
+                      lh_gl_scalar_t radius);
 
 /**
  * @brief `peak` one spread inside the edge, zero one spread outside.
@@ -102,11 +111,11 @@ lh_gl_shadow_falloff(lh_gl_scalar_t distance, lh_gl_scalar_t spread, lh_gl_color
  * @brief Coverage at (@p x, @p y) of @p rect, already scaled by the peak alpha.
  *
  * Zero inside @p rect. Outside, the fade of the distance to @p rect shifted by
- * the shadow's offset.
+ * the shadow's offset. @p radius rounds the box; `0` is square.
  */
 lh_gl_color_channel_t
 lh_gl_shadow_alpha_at(const lh_gl_shadow_t *self, lh_gl_scalar_t x, lh_gl_scalar_t y,
-                      const lh_gl_rect_t *rect);
+                      const lh_gl_rect_t *rect, lh_gl_scalar_t radius);
 
 LH_COMPILER_EXTERN_C_END
 

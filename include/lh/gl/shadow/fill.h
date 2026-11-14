@@ -8,7 +8,8 @@
  * in the same coordinates. The draw leaves that box clear. Put the solid fill
  * of the box in front of this one.
  *
- * The class is not opaque. Replacing the pointer marks the area.
+ * The class is not opaque. `radius` rounds the box the fade follows. `0` is
+ * square. Replacing the pointer or the radius marks the area.
  */
 
 #ifndef LH_GL_SHADOW_FILL_H
@@ -25,7 +26,7 @@
 struct lh_gl_shadow_fill
 {
     /** Members: ::lh_gl_shadow_fill_fields. */
-    lh_gl_shadow_fill_fields(lh_gl_entity_t, lh_gl_shadow_t, lh_gl_rect_t);
+    lh_gl_shadow_fill_fields(lh_gl_entity_t, lh_gl_shadow_t, lh_gl_rect_t, lh_gl_scalar_t);
 };
 /** @copybrief lh_gl_shadow_fill */
 typedef struct lh_gl_shadow_fill lh_gl_shadow_fill_t;
@@ -51,6 +52,14 @@ lh_gl_shadow_fill_get_box(const lh_gl_shadow_fill_t *self);
 /** @brief Store @p box and refit the paint bounds. */
 lh_void
 lh_gl_shadow_fill_set_box(lh_gl_shadow_fill_t *self, lh_gl_rect_t box);
+
+/** @brief Corner radius of the box. `0` is square. */
+lh_gl_scalar_t
+lh_gl_shadow_fill_get_radius(const lh_gl_shadow_fill_t *self);
+
+/** @brief Store the radius and mark the area. A negative value is stored as zero. */
+lh_void
+lh_gl_shadow_fill_set_radius(lh_gl_shadow_fill_t *self, lh_gl_scalar_t radius);
 
 /** @brief Borrow @p shadow. @p shadow may be ::lh_null. Refits the paint bounds. */
 lh_void

@@ -28,13 +28,16 @@ TEST(gl_shadow, inside_the_box_is_clear_and_the_edge_fades)
     lh_gl_shadow_set_color(lh_addr_of(shadow), lh_addr_of(color));
     lh_gl_shadow_set_spread(lh_addr_of(shadow), 2);
     lh_gl_rect_t box = rect_of(0, 0, 4, 4);
-    EXPECT_EQ(lh_gl_shadow_alpha_at(lh_addr_of(shadow), 1, 1, lh_addr_of(box)), 0);
-    EXPECT_EQ(lh_gl_shadow_alpha_at(lh_addr_of(shadow), 4, 2, lh_addr_of(box)), 127);
-    EXPECT_EQ(lh_gl_shadow_alpha_at(lh_addr_of(shadow), 5, 2, lh_addr_of(box)), 63);
-    EXPECT_EQ(lh_gl_shadow_alpha_at(lh_addr_of(shadow), 6, 2, lh_addr_of(box)), 0);
+    EXPECT_EQ(lh_gl_shadow_alpha_at(lh_addr_of(shadow), 1, 1, lh_addr_of(box), 0), 0);
+    EXPECT_EQ(lh_gl_shadow_alpha_at(lh_addr_of(shadow), 4, 2, lh_addr_of(box), 0), 127);
+    EXPECT_EQ(lh_gl_shadow_alpha_at(lh_addr_of(shadow), 5, 2, lh_addr_of(box), 0), 63);
+    EXPECT_EQ(lh_gl_shadow_alpha_at(lh_addr_of(shadow), 6, 2, lh_addr_of(box), 0), 0);
     lh_gl_shadow_set_offset(lh_addr_of(shadow), 2, 0);
-    EXPECT_EQ(lh_gl_shadow_alpha_at(lh_addr_of(shadow), 0, 1, lh_addr_of(box)), 0);
-    EXPECT_EQ(lh_gl_shadow_alpha_at(lh_addr_of(shadow), 5, 1, lh_addr_of(box)), 191);
+    EXPECT_EQ(lh_gl_shadow_alpha_at(lh_addr_of(shadow), 0, 1, lh_addr_of(box), 0), 0);
+    EXPECT_EQ(lh_gl_shadow_alpha_at(lh_addr_of(shadow), 5, 1, lh_addr_of(box), 0), 191);
+    lh_gl_shadow_set_offset(lh_addr_of(shadow), 0, 0);
+    EXPECT_EQ(lh_gl_shadow_alpha_at(lh_addr_of(shadow), 1, 1, lh_addr_of(box), 2), 0);
+    EXPECT_EQ(lh_gl_shadow_alpha_at(lh_addr_of(shadow), 0, 0, lh_addr_of(box), 2), 127);
 }
 
 TEST(gl_shadow_fill, paints_the_fade_and_leaves_the_box)

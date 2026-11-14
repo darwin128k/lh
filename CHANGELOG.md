@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- `lh_gl_text_t` is an entity plus a borrowed font, color and string. One byte is one code. `lh_gl_font_t` is one borrowed run of `lh_gl_glyph_t`. A code outside the run is skipped.
+
+- `lh_gl_shadow_distance` and `lh_gl_shadow_alpha_at` take a corner radius. `0` stays square. `lh_gl_shadow_fill_t` stores that radius. A negative radius is stored as zero.
+
 - `lh_gl_gradient_radial_frac` puts the first color at the middle of a box and the second toward the corners. `lh_gl_gradient_fill_set_radial` selects that placement. Init leaves it off, so the angle still runs the line.
 
 - A pixmap strokes a rectangle, a circle and a rounded rectangle on the outside of the shape. The band is as thick as the pen. The interior is left alone. A width below 1 draws nothing.
@@ -15,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `lh_gl_gradient_fill_t` stores an angle in degrees: `0` up, `90` right, `180` down. `lh_gl_gradient_linear_frac` places the two colors along that line, in whole numbers. Init leaves the angle at `180`.
 
-- `lh_gl_shadow_t` stores a peak color, a spread and a shift. Coverage is zero inside the box and fades across the shifted edge: full one spread inside, nothing one spread outside. `lh_gl_shadow_fill_t` paints that coverage. Corners are square.
+- `lh_gl_shadow_t` stores a peak color, a spread and a shift. Coverage is zero inside the box and fades across the shifted edge: full one spread inside, nothing one spread outside. `lh_gl_shadow_fill_t` paints that coverage.
 
 - `lh_gl_gradient_t` stores two colors. Fraction `0` is the first, `255` is the second, and the channels mix in between. `lh_gl_gradient_fill_t` borrows one. A null gradient draws nothing. The class is not opaque.
 

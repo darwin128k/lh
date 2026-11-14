@@ -74,7 +74,8 @@ as of 2026-11-14 and the plan agreed with Egor.
 - Fill: `lh_gl_fill_t` starts with an entity and borrows one color. The shared draw call reads that pointer. A layer's own draw call stays null; a background is a fill added first. The fill class is not opaque.
 - Gradient: two colors and an angle on the fill. `180` runs down the box, `135` runs down-right. `radial` puts the first color at the middle and the second toward the corners; the angle is then unused. A radius clips that paint to the rounded rectangle; `0` leaves the rectangle.
 - Cover: a pixel center is inside a rounded rectangle, a circle or a triangle, or it is outside. The pixmap fills those three shapes and strokes the first two plus a plain rectangle, outside the fill, one pen thick. The edge is hard. A triangle has no stroke.
-- Shadow: a peak color, a spread and a shift. The box interior stays clear. The fade crosses the shifted edge. Corners are square.
+- Shadow: a peak color, a spread and a shift. The box interior stays clear. The fade crosses the shifted edge. A radius on the fill rounds that edge; `0` is square.
+- Text: `lh_gl_text_t` borrows a font, a color and a string. `lh_gl_font_t` is one run of `lh_gl_glyph_t`. One byte is one code. A code outside the run is skipped.
 - Known pre-existing warnings: `check-fields` on `self->cls` in
   `entity.c` get/set_class; `entity.c` function order vs levels.
 - `docs/roadmap.md` section 5: a general allocator with a real free over a
@@ -83,11 +84,12 @@ as of 2026-11-14 and the plan agreed with Egor.
 
 ## Next, in order
 
-1. The same 480×320 card scene still needs rounded shadow corners and text.
-   A linear gradient takes an angle: `180` down, `135` down-right. A radial
-   gradient puts the first color at the middle.
-2. Time that scene beside the existing `bench/lvgl` numbers.
-3. A scene stays an ordinary child layer until a swipe and a back stack need
+1. The 24-card scene draws, and each pixel is its own rectangle. Release, this
+   machine, clear plus draw, 8 frames: cards 5877 µs, partial 326, vertical
+   5923, radial 8275, shadow 11767. The old table is an i7-13700K (cards 200 µs,
+   partial 9.3, vertical 322, radial 1030, shadow 1024). The captions here are
+   an 8×12 block, not Roboto 16 px.
+2. A scene stays an ordinary child layer until a swipe and a back stack need
    their own behaviour. Renderer packets over rail when another loop draws.
    Try on the panel after that.
 

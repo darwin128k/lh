@@ -98,34 +98,60 @@ lh_gl_shadow_init(lh_gl_shadow_t *self)
 }
 
 lh_gl_scalar_t
-lh_gl_shadow_distance(lh_gl_scalar_t x, lh_gl_scalar_t y, const lh_gl_rect_t *rect)
+lh_gl_shadow_clamp_radius(const lh_gl_rect_t *rect, lh_gl_scalar_t radius)
 {
     lh_assert_runtime_ref(rect);
+    if (radius <= 0 || lh_gl_rect_is_empty(rect) == lh_bool_true)
+    {
+        return 0;
+    }
+    lh_gl_scalar_t limit = lh_gl_size_min_side(lh_gl_rect_get_size(rect)) / 2;
+
+    if (radius > limit)
+    {
+        return limit;
+    }
+    return radius;
+}
+
+lh_gl_scalar_t
+lh_gl_shadow_distance(lh_gl_scalar_t x, lh_gl_scalar_t y, const lh_gl_rect_t *rect,
+                      lh_gl_scalar_t radius)
+{
+    lh_assert_runtime_ref(rect);
+    radius = lh_gl_shadow_clamp_radius(rect, radius);
     const lh_gl_point_t *origin = lh_gl_rect_get_origin(rect);
     lh_gl_scalar_t width = lh_gl_size_get_width(lh_gl_rect_get_size(rect));
+    lh_gl_scalar_t dx;
+
+    dx = lh_math_abs(x - (lh_gl_point_get_x(origin) + width / 2));
+    dx = dx - (width / 2 - radius);
     lh_gl_scalar_t height = lh_gl_size_get_height(lh_gl_rect_get_size(rect));
-    lh_gl_scalar_t dx = lh_math_abs(x - (lh_gl_point_get_x(origin) + width / 2)) - width / 2;
-    lh_gl_scalar_t dy = lh_math_abs(y - (lh_gl_point_get_y(origin) + height / 2)) - height / 2;
+    lh_gl_scalar_t dy;
+
+    dy = lh_math_abs(y - (lh_gl_point_get_y(origin) + height / 2));
+    dy = dy - (height / 2 - radius);
     lh_gl_scalar_t ax = lh_math_max(dx, 0);
     lh_gl_scalar_t ay = lh_math_max(dy, 0);
-    lh_gl_scalar_t inside = lh_math_min(lh_math_max(dx, dy), 0);
 
     if (ax == 0 && ay == 0)
     {
-        return inside;
+        return lh_math_min(lh_math_max(dx, dy), 0) - radius;
     }
     if (ay == 0)
     {
-        return ax + inside;
+        return ax + lh_math_min(lh_math_max(dx, dy), 0) - radius;
     }
     if (ax == 0)
     {
-        return ay + inside;
+        return ay + lh_math_min(lh_math_max(dx, dy), 0) - radius;
     }
-    return lh_cast_static(lh_gl_scalar_t,
-                          lh_math_isqrt_u64(lh_cast_static(lh_u64_t, ax) * lh_cast_static(lh_u64_t, ax) +
-                                            lh_cast_static(lh_u64_t, ay) * lh_cast_static(lh_u64_t, ay))) +
-           inside;
+    lh_u64_t square = lh_cast_static(lh_u64_t, ax) * lh_cast_static(lh_u64_t, ax);
+
+    square = square + lh_cast_static(lh_u64_t, ay) * lh_cast_static(lh_u64_t, ay);
+    lh_gl_scalar_t along = lh_math_min(lh_math_max(dx, dy), 0);
+
+    return lh_cast_static(lh_gl_scalar_t, lh_math_isqrt_u64(square)) + along - radius;
 }
 
 lh_gl_color_channel_t
@@ -143,15 +169,26 @@ lh_gl_shadow_falloff(lh_gl_scalar_t distance, lh_gl_scalar_t spread, lh_gl_color
 
 lh_gl_color_channel_t
 lh_gl_shadow_alpha_at(const lh_gl_shadow_t *self, lh_gl_scalar_t x, lh_gl_scalar_t y,
-                      const lh_gl_rect_t *rect)
+                      const lh_gl_rect_t *rect, lh_gl_scalar_t radius)
 {
     lh_assert_runtime_ref(rect);
     lh_gl_color_channel_t peak = lh_gl_color_get_a(lh_gl_shadow_get_color(self));
+    lh_gl_scalar_t corner = lh_gl_shadow_clamp_radius(rect, radius);
     lh_gl_point_t point;
 
     lh_gl_point_init(lh_addr_of(point), x, y);
-    if (lh_gl_shadow_is_empty(self) || lh_gl_rect_is_empty(rect) ||
-        lh_gl_rect_contains_point(rect, point) == lh_bool_true)
+    if (lh_gl_shadow_is_empty(self) || lh_gl_rect_is_empty(rect) == lh_bool_true)
+    {
+        return 0;
+    }
+    if (corner == 0)
+    {
+        if (lh_gl_rect_contains_point(rect, point) == lh_bool_true)
+        {
+            return 0;
+        }
+    }
+    else if (lh_gl_shadow_distance(x, y, rect, corner) < 0)
     {
         return 0;
     }
@@ -159,6 +196,6 @@ lh_gl_shadow_alpha_at(const lh_gl_shadow_t *self, lh_gl_scalar_t x, lh_gl_scalar
 
     lh_gl_rect_offset(rect, lh_gl_shadow_get_offset_x(self), lh_gl_shadow_get_offset_y(self),
                       lh_addr_of(shifted));
-    return lh_gl_shadow_falloff(lh_gl_shadow_distance(x, y, lh_addr_of(shifted)),
+    return lh_gl_shadow_falloff(lh_gl_shadow_distance(x, y, lh_addr_of(shifted), corner),
                                 lh_gl_shadow_get_spread(self), peak);
 }
