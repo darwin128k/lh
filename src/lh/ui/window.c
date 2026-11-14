@@ -130,7 +130,7 @@ lh_ui_window_open(lh_ui_window_t *self, struct lh_os_app *app, const char *title
 lh_bool_t
 lh_ui_window_needs_paint(const lh_ui_window_t *self)
 {
-    return lh_ui_view_is_has_pending(lh_ui_window_get_view(self)) ||
+    return lh_ui_view_has_damage(lh_ui_window_get_view(self)) ||
            lh_ui_canvas_has_damage(lh_ui_window_get_canvas(self));
 }
 
@@ -157,7 +157,7 @@ lh_ui_window_paint(lh_ui_window_t *self)
     lh_os_render_backend_gdi_context_set_hdc(
         lh_ui_window_get_screen_mut(self),
         lh_os_window_get_paint_dc(lh_ui_window_get_window(self)));
-    lh_ui_rect_t damage;
+    lh_ui_rects_t damage;
     LH_ATTRIBUTE_UNUSED(
         lh_ui_view_take_damage(lh_ui_window_get_view_mut(self), lh_addr_of(damage)));
     lh_ui_view_paint(lh_ui_window_get_view_mut(self));

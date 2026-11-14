@@ -30,25 +30,22 @@ lh_ui_view_get_canvas(const lh_ui_view_t *self)
 lh_void
 lh_ui_view_add_damage(lh_ui_view_t *self, const lh_ui_rect_t *rect)
 {
-    lh_assert_runtime_ref(rect);
-    lh_return_if(lh_ui_rect_is_empty(rect));
-    if (!lh_ui_view_is_has_pending(self))
-    {
-        lh_ui_view_set_pending(self, lh_ptr_deref(rect));
-        lh_ui_view_set_has_pending(self, lh_bool_true);
-        return;
-    }
-    lh_ui_rect_union(lh_ui_view_get_pending_mut(self), rect, lh_ui_view_get_pending_mut(self));
+    lh_ui_rects_add(lh_ui_view_get_pending_mut(self), rect);
 }
 
 lh_bool_t
-lh_ui_view_take_damage(lh_ui_view_t *self, lh_ui_rect_t *out)
+lh_ui_view_has_damage(const lh_ui_view_t *self)
+{
+    return !lh_ui_rects_is_empty(lh_ui_view_get_pending(self));
+}
+
+lh_bool_t
+lh_ui_view_take_damage(lh_ui_view_t *self, lh_ui_rects_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_return_if(!lh_ui_view_is_has_pending(self), lh_bool_false);
+    lh_return_if(!lh_ui_view_has_damage(self), lh_bool_false);
     lh_ptr_deref(out) = lh_ptr_deref(lh_ui_view_get_pending(self));
-    lh_ui_view_set_has_pending(self, lh_bool_false);
-    lh_ui_rect_init_empty(lh_ui_view_get_pending_mut(self));
+    lh_ui_rects_init(lh_ui_view_get_pending_mut(self));
     return lh_bool_true;
 }
 
@@ -481,8 +478,7 @@ lh_ui_view_init(lh_ui_view_t *self)
     lh_ui_view_set_throwing(self, lh_null);
     lh_ui_view_set_focus(self, lh_null);
     lh_ui_view_set_whole_count(self, 0);
-    lh_ui_rect_init_empty(lh_ui_view_get_pending_mut(self));
-    lh_ui_view_set_has_pending(self, lh_bool_false);
+    lh_ui_rects_init(lh_ui_view_get_pending_mut(self));
     lh_ui_point_init(lh_ui_view_get_velocity_mut(self), lh_ui_scalar(0), lh_ui_scalar(0));
     for (lh_os_input_pointer_id_t id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
     {
@@ -1334,14 +1330,14 @@ lh_ui_view_set_whole_count(lh_ui_view_t *self, lh_u32_t whole_count)
     self->whole_count = whole_count;
 }
 
-const lh_ui_rect_t *
+const lh_ui_rects_t *
 lh_ui_view_get_pending(const lh_ui_view_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->pending);
 }
 
-lh_ui_rect_t *
+lh_ui_rects_t *
 lh_ui_view_get_pending_mut(lh_ui_view_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -1349,24 +1345,10 @@ lh_ui_view_get_pending_mut(lh_ui_view_t *self)
 }
 
 lh_void
-lh_ui_view_set_pending(lh_ui_view_t *self, lh_ui_rect_t pending)
+lh_ui_view_set_pending(lh_ui_view_t *self, lh_ui_rects_t pending)
 {
     lh_assert_runtime_ref(self);
     self->pending = pending;
-}
-
-lh_bool_t
-lh_ui_view_is_has_pending(const lh_ui_view_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->has_pending;
-}
-
-lh_void
-lh_ui_view_set_has_pending(lh_ui_view_t *self, lh_bool_t has_pending)
-{
-    lh_assert_runtime_ref(self);
-    self->has_pending = has_pending;
 }
 
 const lh_ui_transition_t *

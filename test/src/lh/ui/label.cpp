@@ -511,10 +511,23 @@ struct label_in_view
         lh_ui_view_set_root_v(&view, &root);
     }
 
+    /* The pending region as one rect: the hull of what the view handed out. These
+       tests ask whether the damage reaches the text, not how many pieces it is. */
     lh_bool_t
     take(lh_ui_rect_t *out)
     {
-        return lh_ui_view_take_damage(&view, out);
+        lh_ui_rects_t region;
+
+        if (!lh_ui_view_take_damage(&view, &region))
+        {
+            return lh_bool_false;
+        }
+        *out = *lh_ui_rects_get(&region, 0);
+        for (lh_u32_t i = 1U; i < lh_ui_rects_get_count(&region); ++i)
+        {
+            lh_ui_rect_union(out, lh_ui_rects_get(&region, i), out);
+        }
+        return lh_bool_true;
     }
 
     static lh_ui_scalar_t

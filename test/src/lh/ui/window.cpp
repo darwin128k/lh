@@ -75,7 +75,7 @@ class ui_window : public ::testing::Test
     void
     clear_damage()
     {
-        lh_ui_rect_t ignored;
+        lh_ui_rects_t ignored;
         (void)lh_ui_view_take_damage(lh_ui_window_get_view_mut(&host), &ignored);
         lh_ui_canvas_reset_damage(lh_ui_window_get_canvas_mut(&host));
     }
@@ -240,7 +240,7 @@ TEST_F(ui_window, paint_request_includes_view_and_canvas_damage)
     clear_damage();
     lh_ui_canvas_add_damage(lh_ui_window_get_canvas_mut(&host), &damage);
     EXPECT_TRUE(lh_ui_window_needs_paint(&host));
-    EXPECT_FALSE(lh_ui_view_is_has_pending(lh_ui_window_get_view(&host)));
+    EXPECT_FALSE(lh_ui_view_has_damage(lh_ui_window_get_view(&host)));
     clear_damage();
     EXPECT_FALSE(lh_ui_window_needs_paint(&host));
 }
