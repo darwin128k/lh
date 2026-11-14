@@ -19,6 +19,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_gl_point_t` (`lh/gl/point.h`, `lh/gl/point/initializer.h`): the first brick of the
+  `lh/gl` part, an integer point on the graphics plane (`x` right, `y` down). It reuses
+  `lh_math_point_fields` for its members and has the accessors `lh_gl_point_get_x` /
+  `_get_y` / `_set_x` / `_set_y`, `lh_gl_point_init` / `_init_empty`, and the
+  comparisons `lh_gl_point_eq`, `_is_at_least`, `_is_less` and `_is_greater`, and the
+  moves `lh_gl_point_offset`, `_min` and `_max`.
+
+- `lh_gl_rect_t` (`lh/gl/rect.h`, `lh/gl/rect/initializer.h`): an axis-aligned,
+  half-open rectangle on the graphics plane: an `lh_gl_point_t` origin plus an `lh_gl_size_t`,
+  with the members of `lh_math_rect_fields`. Fields are private; the methods use only the
+  accessors and the `lh_gl_point_*` / `lh_gl_size_*` methods:
+  `lh_gl_rect_get_origin` / `_get_origin_mut` / `_get_size` / `_get_size_mut`,
+  `_set_origin`, `_set_size`, `_init`, `_init_origin_size`, `_init_empty`,
+  `_from_extent`, `_from_min_max`, `_get_end`, `_get_origin_min` / `_get_origin_max` /
+  `_get_end_min` / `_get_end_max`, `_is_empty`, `_contains_point`, `_eq`,
+  `_is_at_least` / `_is_less` / `_is_greater`, `_intersection`, `_intersects`,
+  `_union`, `_offset` and `_inset`.
+
+- `lh_gl_size_t` (`lh/gl/size.h`, `lh/gl/size/initializer.h`): a size on the graphics
+  plane. In LH terms a size is a point, so it is a direct alias of `lh_gl_point_t` (`x` is the
+  width, `y` the height) with its own methods, built only on `lh_gl_point_*`:
+  `lh_gl_size_get_width` / `_get_height` / `_set_width` / `_set_height`, `_init`,
+  `_init_empty`, `_from_extent`, `_eq`, `_is_at_least`, `_is_less`, `_is_greater`,
+  `_is_empty`, `_min`, `_max`, `_min_side` and `_inset`. The fields stay private:
+  callers use the methods only.
+
 - Container `scroll_enabled` separates native scrolling from holding children.
   Containers enable it by default; buttons disable it. Programmatic positioning
   remains available, and scroll_chain independently controls ancestor routing.

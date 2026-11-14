@@ -120,6 +120,11 @@ else ()
 endif ()
 lh_add_test_core(lh_test_rail ${LH_TEST_RAIL_SOURCES})
 
+# gl: the graphics bricks. For now the integer point, the size that is a point and the rectangle.
+lh_add_test_core(lh_test_gl ${LH_TEST_SRC_PATH}/lh/gl/point.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/size.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/rect.cpp)
+
 # Types, errors and the few pieces every core leans on.
 lh_add_test_core(lh_test_console ${LH_TEST_SRC_PATH}/lh/core/console/console.cpp)
 
