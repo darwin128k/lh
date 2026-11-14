@@ -209,6 +209,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/math/fit.c
         ${LH_LIB_SRC_PATH}/core/math/rect.c
 
+        ${LH_LIB_SRC_PATH}/gl/canvas.c
         ${LH_LIB_SRC_PATH}/gl/point.c
         ${LH_LIB_SRC_PATH}/gl/size.c
         ${LH_LIB_SRC_PATH}/gl/rect.c

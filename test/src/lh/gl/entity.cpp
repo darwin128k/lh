@@ -2,17 +2,13 @@
 
 #include <lh/core/util/addr.h>
 #include <lh/core/null.h>
+#include <lh/gl/canvas.h>
 #include <lh/gl/entity.h>
 #include <lh/gl/entity/initializer.h>
 #include <lh/gl/layer.h>
 #include <lh/gl/point/initializer.h>
 #include <lh/gl/rect/initializer.h>
 #include <lh/gl/size/initializer.h>
-
-struct lh_gl_canvas
-{
-    int tag;
-};
 
 namespace
 {
@@ -149,7 +145,10 @@ TEST(gl_entity, draw_calls_the_class_with_entity_and_canvas)
     lh_gl_entity_t entity;
 
     lh_gl_entity_init(lh_addr_of(entity), rect_of(0, 0, 1, 1), lh_addr_of(cls));
-    lh_gl_canvas canvas = {1};
+    lh_gl_canvas_t canvas;
+    lh_gl_point_t origin;
+    lh_gl_point_init(lh_addr_of(origin), 0, 0);
+    lh_gl_canvas_init(lh_addr_of(canvas), origin, rect_of(0, 0, 1, 1));
 
     draw_calls = 0;
     lh_gl_entity_draw(lh_addr_of(entity), lh_addr_of(canvas));
@@ -166,7 +165,10 @@ TEST(gl_entity, draw_without_a_call_does_nothing)
     lh_gl_entity_t entity;
 
     lh_gl_entity_init(lh_addr_of(entity), rect_of(0, 0, 1, 1), lh_addr_of(cls));
-    lh_gl_canvas canvas = {1};
+    lh_gl_canvas_t canvas;
+    lh_gl_point_t origin;
+    lh_gl_point_init(lh_addr_of(origin), 0, 0);
+    lh_gl_canvas_init(lh_addr_of(canvas), origin, rect_of(0, 0, 1, 1));
 
     draw_calls = 0;
     lh_gl_entity_draw(lh_addr_of(entity), lh_addr_of(canvas));
@@ -185,6 +187,58 @@ TEST(gl_entity, initializer_fills_fields_in_order)
     EXPECT_TRUE(has_rect(lh_addr_of(entity), 1, 2, 3, 4));
     EXPECT_TRUE(lh_gl_entity_is_root(lh_addr_of(entity)));
     EXPECT_EQ(lh_gl_entity_get_class(lh_addr_of(entity)), lh_addr_of(cls));
+}
+
+TEST(gl_entity, coordinate_conversion_without_parent)
+{
+    lh_gl_entity_class_t cls;
+    lh_gl_entity_class_init(lh_addr_of(cls), lh_gl_entity_class_kind_entity, lh_null);
+    lh_gl_entity_t entity;
+    lh_gl_entity_init(lh_addr_of(entity), rect_of(7, -4, 9, 11), lh_addr_of(cls));
+    lh_gl_rect_t result;
+    lh_gl_entity_get_absolute_rect(lh_addr_of(entity), lh_addr_of(result));
+    lh_gl_rect_t expected = rect_of(7, -4, 9, 11);
+    EXPECT_TRUE(lh_gl_rect_eq(lh_addr_of(result), lh_addr_of(expected)));
+    lh_gl_point_t point;
+    lh_gl_point_init(lh_addr_of(point), 3, 5);
+    lh_gl_entity_to_root(lh_addr_of(entity), point, lh_addr_of(point));
+    EXPECT_EQ(lh_gl_point_get_x(lh_addr_of(point)), 10);
+    EXPECT_EQ(lh_gl_point_get_y(lh_addr_of(point)), 1);
+    lh_gl_entity_to_local(lh_addr_of(entity), point, lh_addr_of(point));
+    EXPECT_EQ(lh_gl_point_get_x(lh_addr_of(point)), 3);
+    EXPECT_EQ(lh_gl_point_get_y(lh_addr_of(point)), 5);
+}
+
+TEST(gl_entity, coordinate_conversion_accumulates_nested_origins)
+{
+    lh_gl_layer_t root;
+    lh_gl_layer_t middle;
+    lh_gl_layer_t inner;
+    lh_gl_layer_init(lh_addr_of(root), rect_of(5, -6, 200, 200));
+    lh_gl_layer_init(lh_addr_of(middle), rect_of(10, 20, 100, 100));
+    lh_gl_layer_init(lh_addr_of(inner), rect_of(-3, 4, 50, 50));
+    lh_gl_layer_add(lh_addr_of(root), lh_gl_layer_get_entity_mut(lh_addr_of(middle)));
+    lh_gl_layer_add(lh_addr_of(middle), lh_gl_layer_get_entity_mut(lh_addr_of(inner)));
+    lh_gl_entity_class_t cls;
+    lh_gl_entity_class_init(lh_addr_of(cls), lh_gl_entity_class_kind_entity, lh_null);
+    lh_gl_entity_t entity;
+    lh_gl_entity_init(lh_addr_of(entity), rect_of(2, -1, 8, 9), lh_addr_of(cls));
+    lh_gl_layer_add(lh_addr_of(inner), lh_addr_of(entity));
+    lh_gl_rect_t result;
+    lh_gl_entity_get_absolute_rect(lh_addr_of(entity), lh_addr_of(result));
+    lh_gl_rect_t expected = rect_of(14, 17, 8, 9);
+    EXPECT_TRUE(lh_gl_rect_eq(lh_addr_of(result), lh_addr_of(expected)));
+    lh_gl_point_t point;
+    lh_gl_point_init(lh_addr_of(point), -4, 6);
+    lh_gl_point_t converted;
+    lh_gl_entity_to_root(lh_addr_of(entity), point, lh_addr_of(converted));
+    EXPECT_EQ(lh_gl_point_get_x(lh_addr_of(converted)), 10);
+    EXPECT_EQ(lh_gl_point_get_y(lh_addr_of(converted)), 23);
+    lh_gl_entity_to_local(lh_addr_of(entity), converted, lh_addr_of(converted));
+    EXPECT_TRUE(lh_gl_point_eq(lh_addr_of(converted), lh_addr_of(point)));
+    lh_gl_layer_deinit(lh_addr_of(root));
+    lh_gl_layer_deinit(lh_addr_of(middle));
+    lh_gl_layer_deinit(lh_addr_of(inner));
 }
 
 } // namespace

@@ -245,6 +245,91 @@ lh_void
 lh_gl_layer_add(lh_gl_layer_t *self, lh_gl_entity_t *entity);
 
 /**
+ * @brief Move a child to the front (last in z-order).
+ *
+ * The changed area is invalidated. Already-front children are left unchanged.
+ * @param self Layer to change; must not be null.
+ * @param entity Child of @p self; must not be null.
+ * @fails ::lh_runtime_error_code_not_accepted when @p entity is not a child.
+ */
+lh_void
+lh_gl_layer_raise(lh_gl_layer_t *self, lh_gl_entity_t *entity);
+
+/**
+ * @brief Move a child to the back (first in z-order).
+ *
+ * The changed area is invalidated. Already-back children are left unchanged.
+ * @param self Layer to change; must not be null.
+ * @param entity Child of @p self; must not be null.
+ * @fails ::lh_runtime_error_code_not_accepted when @p entity is not a child.
+ */
+lh_void
+lh_gl_layer_lower(lh_gl_layer_t *self, lh_gl_entity_t *entity);
+
+/**
+ * @brief Insert a parentless entity immediately behind a sibling.
+ *
+ * Uses the same acceptance conditions as ::lh_gl_layer_try_add. The sibling
+ * must be a child of @p self; on success the entity becomes a child and its
+ * area is invalidated. On refusal nothing changes. List operations and the
+ * acceptance check for an ordinary entity are O(1); an inserted layer requires
+ * an O(depth) ancestor check. Invalidation propagates through the parent tree.
+ * @param self Layer to change; must not be null.
+ * @param entity Parentless entity to insert; must not be null and must outlive membership.
+ * @param sibling Existing child whose list node is changed; must not be null.
+ * @return ::lh_bool_true on insertion, ::lh_bool_false on refusal.
+ */
+lh_bool_t
+lh_gl_layer_try_insert_before(lh_gl_layer_t *self, lh_gl_entity_t *entity, lh_gl_entity_t *sibling);
+
+/**
+ * @brief Insert a parentless entity immediately in front of a sibling.
+ *
+ * Uses the same acceptance conditions and ownership rules as
+ * ::lh_gl_layer_try_insert_before; on refusal nothing changes.
+ * @param self Layer to change; must not be null.
+ * @param entity Parentless entity to insert; must not be null and must outlive membership.
+ * @param sibling Existing child whose list node is changed; must not be null.
+ * @return ::lh_bool_true on insertion, ::lh_bool_false on refusal.
+ */
+lh_bool_t
+lh_gl_layer_try_insert_after(lh_gl_layer_t *self, lh_gl_entity_t *entity, lh_gl_entity_t *sibling);
+
+/**
+ * @brief Draw a layer subtree from a known absolute rectangle.
+ *
+ * The caller supplies the layer's actual rectangle in root coordinates. The
+ * clip is in the same coordinates. Visits children back to front, clipping to
+ * each ancestor and passing absolute origins down without walking parents. The
+ * canvas state is restored on return. Callbacks must not mutate the tree.
+ *
+ * @param self Layer to draw; must not be null.
+ * @param canvas Drawing state, borrowed; must not be null.
+ * @param bounds Absolute rectangle of @p self; must not be null.
+ * @param clip Dirty area in root coordinates; must not be null.
+ */
+lh_void
+lh_gl_layer_draw_at(const lh_gl_layer_t *self, lh_gl_canvas_t *canvas, const lh_gl_rect_t *bounds,
+                    const lh_gl_rect_t *clip);
+
+/**
+ * @brief Draw a layer and its visible descendants in z-order.
+ *
+ * Intersects @p clip with this layer and each ancestor encountered below it.
+ * Calls this layer's class draw callback first, then visits children back to
+ * front, recursively drawing layers. Each callback receives the current
+ * entity's absolute origin and effective root-coordinate clip in @p canvas.
+ * Empty intersections are skipped. The caller's canvas state is restored.
+ * The tree must not be mutated during callbacks, and depth consumes stack.
+ *
+ * @param self Layer to draw; must not be null.
+ * @param canvas Drawing state, borrowed for this call; must not be null.
+ * @param clip Root-coordinate dirty area; must not be null, copied.
+ */
+lh_void
+lh_gl_layer_draw(const lh_gl_layer_t *self, lh_gl_canvas_t *canvas, const lh_gl_rect_t *clip);
+
+/**
  * @brief Remove the child at @p index; the children after it keep their order.
  *
  * The removed child has no parent afterwards and its node is unlinked.

@@ -200,6 +200,48 @@ lh_bool_t
 lh_gl_entity_is_root(const lh_gl_entity_t *self);
 
 /**
+ * @brief Copy the entity rectangle translated by every parent origin.
+ *
+ * The entity's own origin and every ancestor origin, including the root's,
+ * contribute to the result. With no parent, the result equals its rectangle.
+ * Walks the parents in O(depth), without caching. All intermediate coordinates
+ * must be representable by ::lh_math_scalar_t.
+ *
+ * @param self Entity to read; must not be null (asserted in debug builds).
+ * @param out Receives the rectangle; must not be null (asserted in debug builds).
+ */
+lh_void
+lh_gl_entity_get_absolute_rect(const lh_gl_entity_t *self, lh_gl_rect_t *out);
+
+/**
+ * @brief Translate a root-coordinate point to the entity's local coordinates.
+ *
+ * Uses ::lh_gl_entity_get_absolute_rect; O(depth), without caching. The
+ * absolute origin, its negation and the resulting coordinates must fit in
+ * ::lh_math_scalar_t. The input point is passed by value.
+ *
+ * @param self Entity defining local coordinates; must not be null.
+ * @param point Point in root coordinates, copied.
+ * @param out Receives the local point; must not be null.
+ */
+lh_void
+lh_gl_entity_to_local(const lh_gl_entity_t *self, lh_gl_point_t point, lh_gl_point_t *out);
+
+/**
+ * @brief Translate an entity-local point to root coordinates.
+ *
+ * Uses ::lh_gl_entity_get_absolute_rect; O(depth), without caching. The
+ * absolute origin and resulting coordinates must fit in ::lh_math_scalar_t.
+ * The input point is passed by value.
+ *
+ * @param self Entity defining local coordinates; must not be null.
+ * @param point Point in local coordinates, copied.
+ * @param out Receives the root point; must not be null.
+ */
+lh_void
+lh_gl_entity_to_root(const lh_gl_entity_t *self, lh_gl_point_t point, lh_gl_point_t *out);
+
+/**
  * @brief Draw @p self on @p canvas with the draw call of its class.
  *
  * Does nothing when the class has no draw call. Draws the entity only: it does

@@ -10,6 +10,7 @@
 #include <lh/gl/layer.h>
 
 #include <lh/core/assert/runtime.h>
+#include <lh/gl/canvas.h>
 #include <lh/gl/entity/class/initializer.h>
 #include <lh/gl/surface.h>
 
@@ -190,7 +191,8 @@ lh_gl_layer_is_valid_index(const lh_gl_layer_t *self, lh_uindex_t index)
 lh_bool_t
 lh_gl_layer_try_add(lh_gl_layer_t *self, lh_gl_entity_t *entity)
 {
-    if (!lh_gl_entity_is_root(entity) || lh_gl_layer_is_within(self, entity))
+    if (!lh_gl_entity_is_root(entity) ||
+        (lh_gl_entity_is_layer(entity) && lh_gl_layer_is_within(self, entity)))
     {
         return lh_bool_false;
     }
@@ -237,4 +239,122 @@ lh_gl_layer_try_remove(lh_gl_layer_t *self, lh_gl_entity_t *entity)
     lh_list_node_unlink(lh_gl_entity_get_node_mut(entity));
     lh_gl_entity_set_parent(entity, lh_null);
     return lh_bool_true;
+}
+
+lh_void
+lh_gl_layer_raise(lh_gl_layer_t *self, lh_gl_entity_t *entity)
+{
+    lh_list_t *items = lh_gl_layer_get_items_mut(self);
+    lh_runtime_check_ifn(lh_ptr_eq(lh_gl_entity_get_parent(entity), self),
+                         lh_runtime_error_code_not_accepted);
+    lh_list_node_t *node = lh_gl_entity_get_node_mut(entity);
+    if (lh_ptr_eq(lh_list_get_last(items), node))
+    {
+        return;
+    }
+    lh_list_node_unlink(node);
+    lh_list_push_back(items, node);
+    lh_gl_entity_invalidate(entity);
+}
+
+lh_void
+lh_gl_layer_lower(lh_gl_layer_t *self, lh_gl_entity_t *entity)
+{
+    lh_list_t *items = lh_gl_layer_get_items_mut(self);
+    lh_runtime_check_ifn(lh_ptr_eq(lh_gl_entity_get_parent(entity), self),
+                         lh_runtime_error_code_not_accepted);
+    lh_list_node_t *node = lh_gl_entity_get_node_mut(entity);
+    if (lh_ptr_eq(lh_list_get_first(items), node))
+    {
+        return;
+    }
+    lh_list_node_unlink(node);
+    lh_list_push_front(items, node);
+    lh_gl_entity_invalidate(entity);
+}
+
+lh_bool_t
+lh_gl_layer_try_insert_before(lh_gl_layer_t *self, lh_gl_entity_t *entity, lh_gl_entity_t *sibling)
+{
+    lh_assert_runtime_ref(self);
+    if (lh_ptr_ne(lh_gl_entity_get_parent(sibling), self) || !lh_gl_layer_try_add(self, entity))
+    {
+        return lh_bool_false;
+    }
+    lh_list_node_move_before(lh_gl_entity_get_node_mut(entity), lh_gl_entity_get_node_mut(sibling));
+    return lh_bool_true;
+}
+
+lh_bool_t
+lh_gl_layer_try_insert_after(lh_gl_layer_t *self, lh_gl_entity_t *entity, lh_gl_entity_t *sibling)
+{
+    lh_assert_runtime_ref(self);
+    if (lh_ptr_ne(lh_gl_entity_get_parent(sibling), self) || !lh_gl_layer_try_add(self, entity))
+    {
+        return lh_bool_false;
+    }
+    lh_list_node_move_after(lh_gl_entity_get_node_mut(entity), lh_gl_entity_get_node_mut(sibling));
+    return lh_bool_true;
+}
+
+lh_void
+lh_gl_layer_draw_at(const lh_gl_layer_t *self, lh_gl_canvas_t *canvas, const lh_gl_rect_t *bounds,
+                    const lh_gl_rect_t *clip)
+{
+    lh_gl_rect_t visible;
+
+    lh_gl_rect_intersection(bounds, clip, lh_addr_of(visible));
+    if (lh_gl_rect_is_empty(lh_addr_of(visible)))
+    {
+        return;
+    }
+    lh_gl_point_t saved_origin = lh_ptr_deref(lh_gl_canvas_get_origin(canvas));
+    lh_gl_rect_t saved_clip = lh_ptr_deref(lh_gl_canvas_get_clip(canvas));
+    const lh_gl_point_t *origin = lh_gl_rect_get_origin(bounds);
+
+    lh_gl_canvas_set_origin(canvas, lh_ptr_deref(origin));
+    lh_gl_canvas_set_clip(canvas, visible);
+    lh_gl_entity_draw(lh_gl_layer_get_entity(self), canvas);
+    const lh_list_t *items = lh_gl_layer_get_items(self);
+
+    for (lh_list_node_t *node = lh_list_get_first(items); lh_ptr_is_set(node);
+         node = lh_list_get_next(items, node))
+    {
+        const lh_gl_entity_t *child = lh_gl_entity_from_node(node);
+        lh_gl_rect_t child_bounds;
+
+        lh_gl_rect_offset(lh_gl_entity_get_rect(child), lh_gl_point_get_x(origin),
+                          lh_gl_point_get_y(origin), lh_addr_of(child_bounds));
+        lh_gl_rect_t child_clip;
+
+        lh_gl_rect_intersection(lh_addr_of(child_bounds), lh_addr_of(visible),
+                                lh_addr_of(child_clip));
+        if (lh_gl_rect_is_empty(lh_addr_of(child_clip)))
+        {
+            continue;
+        }
+        if (lh_gl_entity_is_layer(child))
+        {
+            lh_gl_layer_draw_at(lh_ptr_ccast(lh_gl_layer_t, child), canvas,
+                                lh_addr_of(child_bounds), lh_addr_of(child_clip));
+        }
+        else
+        {
+            lh_gl_canvas_set_origin(canvas,
+                                    lh_ptr_deref(lh_gl_rect_get_origin(lh_addr_of(child_bounds))));
+            lh_gl_canvas_set_clip(canvas, child_clip);
+            lh_gl_entity_draw(child, canvas);
+        }
+    }
+    lh_gl_canvas_set_origin(canvas, saved_origin);
+    lh_gl_canvas_set_clip(canvas, saved_clip);
+}
+
+lh_void
+lh_gl_layer_draw(const lh_gl_layer_t *self, lh_gl_canvas_t *canvas, const lh_gl_rect_t *clip)
+{
+    lh_gl_rect_t bounds;
+
+    lh_gl_entity_get_absolute_rect(lh_gl_layer_get_entity(self), lh_addr_of(bounds));
+    lh_gl_layer_draw_at(self, canvas, lh_addr_of(bounds), clip);
 }

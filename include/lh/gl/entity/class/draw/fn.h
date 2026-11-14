@@ -19,8 +19,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  *        an entity drawing itself.
  *
  * @p entity is the object being drawn, read-only: drawing never changes it.
- * Its rect is relative to its parent, so what the call draws and where is up
- * to the class and the canvas. @p canvas is the surface to draw on. The call
+ * The canvas supplies the entity's absolute origin and effective clip, both in
+ * root coordinates, when called by a layer. The call
  * knows nothing about input, styles or drivers. Not a pointer type by itself;
  * use ::lh_gl_entity_class_draw_cb.
  */

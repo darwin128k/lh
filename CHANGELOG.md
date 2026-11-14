@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Pass absolute origins through layer drawing and make insertion siblings mutable.
+
+- Added canvas origin and clip state and clipped, back-to-front layer drawing.
+
+- Added entity rectangle and point conversion through the layer tree.
+
+- Added layer z-order changes and insertion relative to a sibling.
+
 - Added fixed-storage dirty regions to a display-sized gl surface, with root
   attach, detach and resize, and entity invalidation. The capacity is set by
   `LH_LIBRARY_OPTION_GL_SURFACE_DIRTY_MAX` (default 8).

@@ -142,6 +142,49 @@ lh_gl_entity_is_root(const lh_gl_entity_t *self)
 }
 
 lh_void
+lh_gl_entity_get_absolute_rect(const lh_gl_entity_t *self, lh_gl_rect_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_gl_rect_t rect = lh_ptr_deref(lh_gl_entity_get_rect(self));
+    const lh_gl_layer_t *parent = lh_gl_entity_get_parent(self);
+
+    while (lh_ptr_is_set(parent))
+    {
+        const lh_gl_entity_t *ancestor = lh_gl_layer_get_entity(parent);
+        const lh_gl_point_t *origin = lh_gl_rect_get_origin(lh_gl_entity_get_rect(ancestor));
+
+        lh_gl_rect_offset(lh_addr_of(rect), lh_gl_point_get_x(origin), lh_gl_point_get_y(origin),
+                          lh_addr_of(rect));
+        parent = lh_gl_entity_get_parent(ancestor);
+    }
+    lh_ptr_deref(out) = rect;
+}
+
+lh_void
+lh_gl_entity_to_local(const lh_gl_entity_t *self, lh_gl_point_t point, lh_gl_point_t *out)
+{
+    lh_gl_rect_t rect;
+
+    lh_gl_entity_get_absolute_rect(self, lh_addr_of(rect));
+    const lh_gl_point_t *origin = lh_gl_rect_get_origin(lh_addr_of(rect));
+
+    lh_gl_point_offset(lh_addr_of(point), -lh_gl_point_get_x(origin), -lh_gl_point_get_y(origin),
+                       out);
+}
+
+lh_void
+lh_gl_entity_to_root(const lh_gl_entity_t *self, lh_gl_point_t point, lh_gl_point_t *out)
+{
+    lh_gl_rect_t rect;
+
+    lh_gl_entity_get_absolute_rect(self, lh_addr_of(rect));
+    const lh_gl_point_t *origin = lh_gl_rect_get_origin(lh_addr_of(rect));
+
+    lh_gl_point_offset(lh_addr_of(point), lh_gl_point_get_x(origin), lh_gl_point_get_y(origin),
+                       out);
+}
+
+lh_void
 lh_gl_entity_draw(const lh_gl_entity_t *self, lh_gl_canvas_t *canvas)
 {
     lh_gl_entity_class_draw_cb draw_cb =

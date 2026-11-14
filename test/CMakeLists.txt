@@ -122,7 +122,8 @@ lh_add_test_core(lh_test_rail ${LH_TEST_RAIL_SOURCES})
 
 # gl: the graphics bricks. The integer point, the size that is a point, the rectangle, and the portable
 # UI core on top of them: the entity class, the entity and the layer.
-lh_add_test_core(lh_test_gl ${LH_TEST_SRC_PATH}/lh/gl/point.cpp
+lh_add_test_core(lh_test_gl ${LH_TEST_SRC_PATH}/lh/gl/canvas.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/point.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/size.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/rect.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/entity/class.cpp

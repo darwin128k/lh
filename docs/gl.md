@@ -28,8 +28,11 @@ as of 2026-11-14 and the plan agreed with Egor.
 - **layer** `lh_gl_layer_t`: an entity as its first field + an intrusive
   `lh_list_t` of children. Only a layer can own an entity; an entity's parent
   is `lh_gl_layer_t *`. Layers nest (a layer is an entity). List order is
-  z-order: first = back, last = front. View, scene, window are layers; the
-  root has no parent and may be attached to a surface.
+  z-order: first = back, last = front. The root has no parent and is attached
+  to one surface. A scene is an ordinary child layer of the root; no separate
+  scene type is needed until it has its own behaviour. A future separate scene
+  manager handles swipes and the back stack by moving or selecting these layers.
+  Windows and applications belong to the platform, outside `lh/gl`.
 - **surface** `lh_gl_surface_t`: owns the display size and a fixed dirty-region
   array, and borrows a root layer. Attach and resize set the root rect to the
   surface size and invalidate the whole surface; detach keeps the root rect.
@@ -48,14 +51,14 @@ as of 2026-11-14 and the plan agreed with Egor.
   border, fill), a "half driver" that knows how to draw but has no output.
   The native target (HDC, X11/GL, STM32 framebuffer/TFT) is an opaque handle
   inside the canvas implementation. A layer is given a canvas when asked to
-  draw. Only `canvas/decl.h` exists. Not now.
+  draw. Its origin and clip state are implemented; drawing primitives are later.
 - **renderer as a server**: the UI sends it packets (dirty areas, draw
   requests), possibly via rail mailbox/queue. Rail (per-device HAL: bare
   base, mailbox, queues, loop) is the HAL. Must run on bare STM32. Later.
 
 ## Done
 
-- point, size, rect, entity, layer, and fixed-storage surface dirty regions.
+- point, size, rect, entity, layer, fixed-storage surface dirty regions, layer z-order, entity coordinate conversion, and clipped layer drawing.
 - Known pre-existing warnings: `check-fields` on `self->cls` in
   `entity.c` get/set_class; `entity.c` function order vs levels.
 - `docs/roadmap.md` section 5: a general allocator with a real free over a
@@ -66,8 +69,8 @@ as of 2026-11-14 and the plan agreed with Egor.
 
 1. Renderer: skip children fully covered by an opaque sibling, draw only
    intersecting children, and support partial buffers and deferred redraw.
-2. Canvas abstraction; renderer server and packets over rail; input, scroll
-   and layout managers; try on the panel.
+2. Canvas drawing primitives; renderer server and packets over rail; scene, input,
+   scroll and layout managers; try on the panel.
 
 ## Rules that matter to Egor
 
