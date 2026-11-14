@@ -4,6 +4,7 @@
 #include <lh/core/util/addr.h>
 #include <lh/gl/canvas.h>
 #include <lh/gl/gradient/fill.h>
+#include <lh/gl/gradient/sine.h>
 #include <lh/gl/layer.h>
 #include <lh/gl/pixmap.h>
 
@@ -44,6 +45,15 @@ TEST(gl_gradient, fraction_zero_is_the_first_color_and_255_is_the_second)
     EXPECT_TRUE(is_color(lh_addr_of(out), 255, 0, 0, 255));
     lh_gl_gradient_color_at(lh_addr_of(gradient), 128, lh_addr_of(out));
     EXPECT_TRUE(is_color(lh_addr_of(out), 128, 0, 0, 255));
+    EXPECT_EQ(lh_gl_gradient_sine(90), 4096);
+    EXPECT_EQ(lh_gl_gradient_sine(180), 0);
+    EXPECT_EQ(lh_gl_gradient_sine(45), 2896);
+    EXPECT_EQ(lh_gl_gradient_linear_frac(180, 2, 2, 0, 0), 63);
+    EXPECT_EQ(lh_gl_gradient_linear_frac(180, 2, 2, 0, 1), 191);
+    EXPECT_EQ(lh_gl_gradient_linear_frac(135, 2, 2, 0, 0), 63);
+    EXPECT_EQ(lh_gl_gradient_linear_frac(135, 2, 2, 1, 0), 127);
+    EXPECT_EQ(lh_gl_gradient_linear_frac(135, 2, 2, 0, 1), 127);
+    EXPECT_EQ(lh_gl_gradient_linear_frac(135, 2, 2, 1, 1), 191);
 }
 
 TEST(gl_gradient_fill, paints_the_top_row_from_the_first_color)
@@ -73,15 +83,48 @@ TEST(gl_gradient_fill, paints_the_top_row_from_the_first_color)
     lh_gl_layer_add(lh_addr_of(layer), lh_gl_gradient_fill_get_entity_mut(lh_addr_of(fill)));
     lh_gl_rect_t clip = rect_of(0, 0, 2, 2);
     lh_gl_layer_draw(lh_addr_of(layer), lh_addr_of(canvas), lh_addr_of(clip));
-    EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 0, 0), 10, 20, 30, 255));
-    EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 0), 10, 20, 30, 255));
-    EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 0, 1), 40, 50, 60, 255));
-    EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 1), 40, 50, 60, 255));
+    lh_gl_color_t top;
+    lh_gl_gradient_color_at(lh_addr_of(gradient), lh_gl_gradient_linear_frac(180, 2, 2, 0, 0),
+                            lh_addr_of(top));
+    lh_gl_color_t bottom;
+    lh_gl_gradient_color_at(lh_addr_of(gradient), lh_gl_gradient_linear_frac(180, 2, 2, 0, 1),
+                            lh_addr_of(bottom));
+    EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 0, 0),
+                         lh_gl_color_get_r(lh_addr_of(top)),
+                         lh_gl_color_get_g(lh_addr_of(top)),
+                         lh_gl_color_get_b(lh_addr_of(top)), 255));
+    EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 0),
+                         lh_gl_color_get_r(lh_addr_of(top)),
+                         lh_gl_color_get_g(lh_addr_of(top)),
+                         lh_gl_color_get_b(lh_addr_of(top)), 255));
+    EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 0, 1),
+                         lh_gl_color_get_r(lh_addr_of(bottom)),
+                         lh_gl_color_get_g(lh_addr_of(bottom)),
+                         lh_gl_color_get_b(lh_addr_of(bottom)), 255));
+    EXPECT_NE(lh_gl_color_get_r(lh_addr_of(top)), lh_gl_color_get_r(lh_addr_of(bottom)));
     EXPECT_FALSE(lh_gl_entity_class_get_opaque(lh_gl_gradient_fill_get_class()));
     lh_gl_color_init(lh_addr_of(to), 1, 2, 3, 255);
     lh_gl_gradient_set_to(lh_addr_of(gradient), lh_addr_of(to));
     lh_gl_layer_draw(lh_addr_of(layer), lh_addr_of(canvas), lh_addr_of(clip));
-    EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 0, 1), 1, 2, 3, 255));
+    lh_gl_gradient_color_at(lh_addr_of(gradient), lh_gl_gradient_linear_frac(180, 2, 2, 0, 1),
+                            lh_addr_of(bottom));
+    EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 0, 1),
+                         lh_gl_color_get_r(lh_addr_of(bottom)),
+                         lh_gl_color_get_g(lh_addr_of(bottom)),
+                         lh_gl_color_get_b(lh_addr_of(bottom)), 255));
+    lh_gl_gradient_fill_set_angle(lh_addr_of(fill), 135);
+    lh_gl_layer_draw(lh_addr_of(layer), lh_addr_of(canvas), lh_addr_of(clip));
+    lh_gl_color_t down_right;
+    lh_gl_gradient_color_at(lh_addr_of(gradient), lh_gl_gradient_linear_frac(135, 2, 2, 1, 1),
+                            lh_addr_of(down_right));
+    EXPECT_NE(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 0, 0)),
+              lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 1)));
+    EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 1),
+                         lh_gl_color_get_r(lh_addr_of(down_right)),
+                         lh_gl_color_get_g(lh_addr_of(down_right)),
+                         lh_gl_color_get_b(lh_addr_of(down_right)), 255));
+    EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 0)),
+              lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 0, 1)));
     lh_gl_gradient_fill_set_gradient(lh_addr_of(fill), lh_null);
     lh_memory_std_set(pixels, 0, sizeof pixels);
     lh_gl_layer_draw(lh_addr_of(layer), lh_addr_of(canvas), lh_addr_of(clip));

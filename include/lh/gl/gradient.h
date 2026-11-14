@@ -4,8 +4,9 @@
  *
  * `0` is the first color and `255` is the second. A fraction between them mixes
  * the channels, including alpha (::lh_gl_color_mix). The gradient does not know
- * which way a rectangle is painted: a ::lh_gl_gradient_fill_t paints it from
- * the first color at the top row to the second at the bottom.
+ * which way a rectangle is painted. ::lh_gl_gradient_linear_frac lays the axis
+ * over a box: `0` degrees points up, `90` to the right, `180` down.
+ * ::lh_gl_gradient_fill_t stores that angle.
  *
  * The colors are stored here, not borrowed. Two fills can share one gradient
  * by pointing at it.
@@ -16,6 +17,7 @@
 
 #include <lh/gl/color.h>
 #include <lh/gl/gradient/fields.h>
+#include <lh/gl/scalar.h>
 
 /**
  * @struct lh_gl_gradient
@@ -67,6 +69,17 @@ lh_gl_gradient_init(lh_gl_gradient_t *self, const lh_gl_color_t *from, const lh_
 lh_void
 lh_gl_gradient_color_at(const lh_gl_gradient_t *self, lh_gl_color_channel_t frac,
                         lh_gl_color_t *out);
+
+/**
+ * @brief Where the pixel (@p x, @p y) sits on a linear axis over a box of
+ *        @p width by @p height. `0 .. 255`.
+ *
+ * The box origin is (0, 0). @p angle is degrees: `0` up, `90` right, `180` down.
+ * The ends of the axis meet the corners the line reaches.
+ */
+lh_gl_color_channel_t
+lh_gl_gradient_linear_frac(lh_gl_scalar_t angle, lh_gl_scalar_t width, lh_gl_scalar_t height,
+                           lh_gl_scalar_t x, lh_gl_scalar_t y);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -3,13 +3,13 @@
  * @brief A rectangle painted with a borrowed gradient: ::lh_gl_gradient_fill_t.
  *
  * The fill starts with an ::lh_gl_entity_t. Beside it is a borrowed
- * ::lh_gl_gradient_t. The shared draw call paints one row at a time, top to
- * bottom: the first row is fraction `0`, the last row is `255`. A single row
- * stays on the first color. Left and right are the same color. Diagonal and
- * radial placement are not this object.
- *
- * The class is not opaque. A null gradient draws nothing. Replacing the
- * pointer marks the area; writing a channel of the gradient does not.
+ * ::lh_gl_gradient_t and an angle in degrees: `0` points up, `90` to the right,
+ * `180` down. Init leaves the angle at `180`. Each pixel takes
+ * ::lh_gl_gradient_linear_frac. A row is one color when the axis is vertical,
+ * and a column when it is horizontal. A diagonal paints pixel by pixel.
+ * A null gradient draws nothing. The class is not opaque. Replacing the
+ * gradient pointer or the angle marks the area. Writing a channel of the
+ * gradient does not.
  */
 
 #ifndef LH_GL_GRADIENT_FILL_H
@@ -27,7 +27,7 @@
 struct lh_gl_gradient_fill
 {
     /** Members: ::lh_gl_gradient_fill_fields. */
-    lh_gl_gradient_fill_fields(lh_gl_entity_t, lh_gl_gradient_t);
+    lh_gl_gradient_fill_fields(lh_gl_entity_t, lh_gl_gradient_t, lh_gl_scalar_t);
 };
 /** @copybrief lh_gl_gradient_fill */
 typedef struct lh_gl_gradient_fill lh_gl_gradient_fill_t;
@@ -49,6 +49,14 @@ lh_gl_gradient_fill_get_gradient(const lh_gl_gradient_fill_t *self);
 /** @brief Borrow @p gradient. @p gradient may be ::lh_null. Marks the area. */
 lh_void
 lh_gl_gradient_fill_set_gradient(lh_gl_gradient_fill_t *self, const lh_gl_gradient_t *gradient);
+
+/** @brief Degrees. `0` up, `90` right, `180` down. */
+lh_gl_scalar_t
+lh_gl_gradient_fill_get_angle(const lh_gl_gradient_fill_t *self);
+
+/** @brief Store the angle and mark the area. */
+lh_void
+lh_gl_gradient_fill_set_angle(lh_gl_gradient_fill_t *self, lh_gl_scalar_t angle);
 
 /** @brief The class every gradient fill has. Kind entity, not opaque. */
 const lh_gl_entity_class_t *

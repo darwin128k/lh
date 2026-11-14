@@ -7,7 +7,7 @@
 #define LH_GL_GRADIENT_FILL_FIELDS_H
 
 /**
- * @def lh_gl_gradient_fill_fields(entity_type, gradient_type)
+ * @def lh_gl_gradient_fill_fields(entity_type, gradient_type, scalar_type)
  * @brief The entity a gradient fill starts with, and the gradient it borrows.
  *
  * The `entity` member comes first, so a pointer to the fill is also a pointer
@@ -16,9 +16,12 @@
  * @param entity_type   ::lh_gl_entity_t. Must be the first member.
  * @param gradient_type ::lh_gl_gradient_t. The member is `gradient`, borrowed.
  *                      Null draws nothing.
+ * @param scalar_type   ::lh_gl_scalar_t. The member is `angle`, degrees.
+ *                      `0` points up, `90` right, `180` down.
  */
-#define lh_gl_gradient_fill_fields(entity_type, gradient_type)                                     \
+#define lh_gl_gradient_fill_fields(entity_type, gradient_type, scalar_type)                        \
     entity_type entity;                                                                            \
-    const gradient_type *gradient
+    const gradient_type *gradient;                                                                 \
+    scalar_type angle
 
 #endif /* LH_GL_GRADIENT_FILL_FIELDS_H */

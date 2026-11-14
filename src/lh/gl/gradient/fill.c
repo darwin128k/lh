@@ -5,9 +5,9 @@
 #include <lh/gl/gradient/fill.h>
 
 #include <lh/core/assert/runtime.h>
-#include <lh/core/byte/limits.h>
 #include <lh/gl/canvas.h>
 #include <lh/gl/entity/class/initializer.h>
+#include <lh/gl/gradient/sine.h>
 
 lh_gl_entity_t *
 lh_gl_gradient_fill_get_entity_mut(lh_gl_gradient_fill_t *self)
@@ -38,6 +38,21 @@ lh_gl_gradient_fill_set_gradient(lh_gl_gradient_fill_t *self, const lh_gl_gradie
     lh_gl_entity_invalidate(lh_gl_gradient_fill_get_entity_mut(self));
 }
 
+lh_gl_scalar_t
+lh_gl_gradient_fill_get_angle(const lh_gl_gradient_fill_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->angle;
+}
+
+lh_void
+lh_gl_gradient_fill_set_angle(lh_gl_gradient_fill_t *self, lh_gl_scalar_t angle)
+{
+    lh_assert_runtime_ref(self);
+    self->angle = angle;
+    lh_gl_entity_invalidate(lh_gl_gradient_fill_get_entity_mut(self));
+}
+
 const lh_gl_entity_class_t *
 lh_gl_gradient_fill_get_class(void)
 {
@@ -54,6 +69,7 @@ lh_gl_gradient_fill_init(lh_gl_gradient_fill_t *self, lh_gl_rect_t rect,
     lh_gl_entity_init(lh_gl_gradient_fill_get_entity_mut(self), rect,
                       lh_gl_gradient_fill_get_class());
     lh_gl_gradient_fill_set_gradient(self, gradient);
+    lh_gl_gradient_fill_set_angle(self, 180);
 }
 
 lh_void
@@ -74,19 +90,54 @@ lh_gl_gradient_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
     {
         return;
     }
-    lh_u32_t span = height == 1 ? 0U : lh_cast_static(lh_u32_t, height - 1);
+    lh_gl_scalar_t angle =
+        lh_gl_gradient_fill_get_angle(lh_ptr_ccast(lh_gl_gradient_fill_t, entity));
 
+    if (lh_gl_gradient_sine(lh_cast_static(lh_s32_t, angle)) == 0)
+    {
+        for (lh_gl_scalar_t y = 0; y < height; ++y)
+        {
+            lh_gl_color_t color;
+
+            lh_gl_gradient_color_at(gradient,
+                                    lh_gl_gradient_linear_frac(angle, width, height, 0, y),
+                                    lh_addr_of(color));
+            lh_gl_rect_t strip;
+
+            lh_gl_rect_init(lh_addr_of(strip), 0, y, width, 1);
+            lh_gl_canvas_fill_rect(canvas, lh_addr_of(strip), lh_addr_of(color));
+        }
+        return;
+    }
+    if (lh_gl_gradient_sine(lh_cast_static(lh_s32_t, angle + 90)) == 0)
+    {
+        for (lh_gl_scalar_t x = 0; x < width; ++x)
+        {
+            lh_gl_color_t color;
+
+            lh_gl_gradient_color_at(gradient,
+                                    lh_gl_gradient_linear_frac(angle, width, height, x, 0),
+                                    lh_addr_of(color));
+            lh_gl_rect_t strip;
+
+            lh_gl_rect_init(lh_addr_of(strip), x, 0, 1, height);
+            lh_gl_canvas_fill_rect(canvas, lh_addr_of(strip), lh_addr_of(color));
+        }
+        return;
+    }
     for (lh_gl_scalar_t y = 0; y < height; ++y)
     {
-        lh_gl_color_channel_t frac =
-            span == 0U ? 0 : lh_cast_static(lh_gl_color_channel_t,
-                                            lh_cast_static(lh_u32_t, y) * LH_BYTE_T_MAX / span);
-        lh_gl_color_t color;
+        for (lh_gl_scalar_t x = 0; x < width; ++x)
+        {
+            lh_gl_color_t color;
 
-        lh_gl_gradient_color_at(gradient, frac, lh_addr_of(color));
-        lh_gl_rect_t row;
+            lh_gl_gradient_color_at(gradient,
+                                    lh_gl_gradient_linear_frac(angle, width, height, x, y),
+                                    lh_addr_of(color));
+            lh_gl_rect_t strip;
 
-        lh_gl_rect_init(lh_addr_of(row), 0, y, width, 1);
-        lh_gl_canvas_fill_rect(canvas, lh_addr_of(row), lh_addr_of(color));
+            lh_gl_rect_init(lh_addr_of(strip), x, y, 1, 1);
+            lh_gl_canvas_fill_rect(canvas, lh_addr_of(strip), lh_addr_of(color));
+        }
     }
 }
