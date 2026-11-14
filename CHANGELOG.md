@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- `lh_gl_input_t` holds one borrowed entity. A press stores whatever `lh_gl_layer_find_entity` returns, a move keeps that entity without searching again, and a release clears it.
+
 - `lh_gl_layer_find_entity` returns the entity under a root-coordinate point: front to back, then the deepest child. The layer itself is the result when no child contains the point. A point outside the layer is ::lh_null. `opaque` is not consulted.
 
 - Canvas primitives forward to a borrowed backend: fill and stroke for a rectangle, a circle and a rounded rectangle. Coordinates are relative to the canvas origin; a shape that misses the clip is not passed on. `lh_gl_color_t` is straight 8-bit RGBA and `lh_gl_pen_t` is the stroke.

@@ -131,6 +131,7 @@ lh_add_test_core(lh_test_gl ${LH_TEST_SRC_PATH}/lh/gl/canvas.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/entity/class.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/entity.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/layer.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/input.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/surface.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/renderer.cpp)
 
