@@ -7,11 +7,13 @@
  * `180` down. Init leaves the angle at `180`. Each pixel takes
  * ::lh_gl_gradient_linear_frac. A row is one color when the axis is vertical,
  * and a column when it is horizontal. A diagonal paints pixel by pixel.
+ * `radial` uses ::lh_gl_gradient_radial_frac instead: the first color is the
+ * middle, and the angle is not used. Init leaves `radial` false.
  * `radius` clips that paint to the rounded rectangle: a corner outside the
  * arc is not painted. Radius `0` is the plain rectangle. A null gradient
  * draws nothing. The class is not opaque. Replacing the gradient pointer,
- * the angle or the radius marks the area. Writing a channel of the gradient
- * does not.
+ * the angle, the radius or the radial flag marks the area. Writing a channel
+ * of the gradient does not.
  */
 
 #ifndef LH_GL_GRADIENT_FILL_H
@@ -29,7 +31,7 @@
 struct lh_gl_gradient_fill
 {
     /** Members: ::lh_gl_gradient_fill_fields. */
-    lh_gl_gradient_fill_fields(lh_gl_entity_t, lh_gl_gradient_t, lh_gl_scalar_t);
+    lh_gl_gradient_fill_fields(lh_gl_entity_t, lh_gl_gradient_t, lh_gl_scalar_t, lh_bool_t);
 };
 /** @copybrief lh_gl_gradient_fill */
 typedef struct lh_gl_gradient_fill lh_gl_gradient_fill_t;
@@ -67,6 +69,14 @@ lh_gl_gradient_fill_get_radius(const lh_gl_gradient_fill_t *self);
 /** @brief Store the radius and mark the area. A negative value is stored as zero. */
 lh_void
 lh_gl_gradient_fill_set_radius(lh_gl_gradient_fill_t *self, lh_gl_scalar_t radius);
+
+/** @brief True when the paint spreads from the middle. */
+lh_bool_t
+lh_gl_gradient_fill_is_radial(const lh_gl_gradient_fill_t *self);
+
+/** @brief Store the placement and mark the area. */
+lh_void
+lh_gl_gradient_fill_set_radial(lh_gl_gradient_fill_t *self, lh_bool_t radial);
 
 /** @brief The class every gradient fill has. Kind entity, not opaque. */
 const lh_gl_entity_class_t *

@@ -7,7 +7,7 @@
 #define LH_GL_GRADIENT_FILL_FIELDS_H
 
 /**
- * @def lh_gl_gradient_fill_fields(entity_type, gradient_type, scalar_type)
+ * @def lh_gl_gradient_fill_fields(entity_type, gradient_type, scalar_type, bool_type)
  * @brief The entity a gradient fill starts with, and the gradient it borrows.
  *
  * The `entity` member comes first, so a pointer to the fill is also a pointer
@@ -20,11 +20,14 @@
  *                      `0` points up, `90` right, `180` down. The member `radius`
  *                      rounds the rectangle the gradient is clipped to. `0` leaves
  *                      the rectangle.
+ * @param bool_type     ::lh_bool_t. The member `radial` is true when the paint
+ *                      spreads from the middle. False keeps the angle.
  */
-#define lh_gl_gradient_fill_fields(entity_type, gradient_type, scalar_type)                        \
+#define lh_gl_gradient_fill_fields(entity_type, gradient_type, scalar_type, bool_type)             \
     entity_type entity;                                                                            \
     const gradient_type *gradient;                                                                 \
     scalar_type angle;                                                                             \
-    scalar_type radius
+    scalar_type radius;                                                                            \
+    bool_type radial
 
 #endif /* LH_GL_GRADIENT_FILL_FIELDS_H */

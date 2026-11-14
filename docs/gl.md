@@ -72,7 +72,7 @@ as of 2026-11-14 and the plan agreed with Egor.
 - Scroll axis: one offset, not stored on an entity or a layer. Container: borrowed layer plus a horizontal axis, a vertical axis, or neither. Placement is the window origin minus the offsets. Rectangles stay put. `lh_gl_container_invalidate` marks the window; changing an axis does not.
 - Layout: `lh_gl_layout_t` is one gap. Pack writes direct children's origins along one axis from zero, in list order. The other axis and the sizes stay. It does not draw, search or scroll.
 - Fill: `lh_gl_fill_t` starts with an entity and borrows one color. The shared draw call reads that pointer. A layer's own draw call stays null; a background is a fill added first. The fill class is not opaque.
-- Gradient: two colors and an angle on the fill. `180` runs down the box, `135` runs down-right. A radius clips that paint to the rounded rectangle; `0` leaves the rectangle. Radial placement is not implemented.
+- Gradient: two colors and an angle on the fill. `180` runs down the box, `135` runs down-right. `radial` puts the first color at the middle and the second toward the corners; the angle is then unused. A radius clips that paint to the rounded rectangle; `0` leaves the rectangle.
 - Cover: a pixel center is inside a rounded rectangle, a circle or a triangle, or it is outside. The pixmap fills those three shapes and strokes the first two plus a plain rectangle, outside the fill, one pen thick. The edge is hard. A triangle has no stroke.
 - Shadow: a peak color, a spread and a shift. The box interior stays clear. The fade crosses the shifted edge. Corners are square.
 - Known pre-existing warnings: `check-fields` on `self->cls` in
@@ -83,9 +83,9 @@ as of 2026-11-14 and the plan agreed with Egor.
 
 ## Next, in order
 
-1. The same 480×320 card scene still needs a radial gradient, rounded shadow
-   corners, and text. A linear gradient takes an angle: `180` down, `135`
-   down-right.
+1. The same 480×320 card scene still needs rounded shadow corners and text.
+   A linear gradient takes an angle: `180` down, `135` down-right. A radial
+   gradient puts the first color at the middle.
 2. Time that scene beside the existing `bench/lvgl` numbers.
 3. A scene stays an ordinary child layer until a swipe and a back stack need
    their own behaviour. Renderer packets over rail when another loop draws.

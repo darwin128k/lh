@@ -5,6 +5,7 @@
 #include <lh/gl/gradient.h>
 
 #include <lh/core/assert/runtime.h>
+#include <lh/core/math/isqrt.h>
 #include <lh/gl/gradient/sine.h>
 
 const lh_gl_color_t *
@@ -87,6 +88,30 @@ lh_gl_gradient_linear_frac(lh_gl_scalar_t angle, lh_gl_scalar_t width, lh_gl_sca
         return 0;
     }
     lh_s64_t frac = ((2 * along + length) * 255) / (2 * length);
+
+    frac = lh_math_clamp(frac, 0, 255);
+    return lh_cast_static(lh_gl_color_channel_t, frac);
+}
+
+lh_gl_color_channel_t
+lh_gl_gradient_radial_frac(lh_gl_scalar_t width, lh_gl_scalar_t height, lh_gl_scalar_t x,
+                           lh_gl_scalar_t y)
+{
+    if (width <= 0 || height <= 0)
+    {
+        return 0;
+    }
+    lh_s64_t dx = x;
+    dx = dx * 2 + 1 - width;
+    lh_s64_t dy = y;
+    dy = dy * 2 + 1 - height;
+    lh_s64_t ux = dx * 1024 / width;
+    lh_s64_t uy = dy * 1024 / height;
+    lh_u64_t square = lh_cast_static(lh_u64_t, ux * ux) + lh_cast_static(lh_u64_t, uy * uy);
+    lh_s64_t frac;
+
+    /* 1448 is floor(1024 * sqrt(2)): the corner of this ellipse. */
+    frac = lh_cast_static(lh_s64_t, lh_math_isqrt_u64(square)) * 255 / 1448;
 
     frac = lh_math_clamp(frac, 0, 255);
     return lh_cast_static(lh_gl_color_channel_t, frac);
