@@ -207,7 +207,7 @@ lh_void
 lh_ui_view_draw_root(lh_ui_view_t *self);
 
 /**
- * @brief begin → push the @p damage clip (::lh_null keeps none) → clear → root
+ * @brief begin → push the @p damage clip (::lh_null uses the whole target) → clear → root
  *        → pop → end.
  */
 lh_void

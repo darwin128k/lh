@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Full view frames retain a whole-target presentation clip when child widgets
+  introduce smaller clips, so unscaled windows also present headers and footers.
+
 ### Added
 
 - `lh_ui_canvas_stroke_box`: inset rounded borders with independent corner radii,

@@ -581,6 +581,7 @@ set(LH_TEST_UI_SOURCES
         ${LH_TEST_SRC_PATH}/lh/ui/umbrella.c
         ${LH_TEST_SRC_PATH}/lh/ui/umbrella.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/view.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/view/present.cpp
         # lh_ui_surface_t is a Windows DIB behind an OS surface, so it is only
         # there when there is a native window to hold one — the same guard its
         # source has.
