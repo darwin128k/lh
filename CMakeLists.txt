@@ -211,6 +211,7 @@ set(LH_LIB_SOURCES
 
         ${LH_LIB_SRC_PATH}/gl/canvas.c
         ${LH_LIB_SRC_PATH}/gl/pixmap.c
+        ${LH_LIB_SRC_PATH}/gl/bmp.c
         ${LH_LIB_SRC_PATH}/gl/canvas/backend.c
         ${LH_LIB_SRC_PATH}/gl/color.c
         ${LH_LIB_SRC_PATH}/gl/pen.c

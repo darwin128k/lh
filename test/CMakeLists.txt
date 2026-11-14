@@ -126,6 +126,7 @@ lh_add_test_core(lh_test_gl ${LH_TEST_SRC_PATH}/lh/gl/canvas.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/color.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/pen.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/pixmap.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/bmp.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/scalar.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/point.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/size.cpp

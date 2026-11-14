@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- `lh_gl_bmp_try_store` writes a pixmap as an uncompressed 32-bit bitmap: bottom-up pixels, blue green red alpha, alpha copied. A non-positive size, a missing pixel row, or a file that does not fit in 32 bits stores nothing.
+
 - `lh_gl_layout_t` stores one gap. Packing writes the origins of a layer's direct children along one axis, from zero, in list order. The other axis and the sizes stay. A null layer is ignored.
 
 - `lh_gl_pixmap_t` is a borrowed grid of straight colors. Its canvas backend fills a rectangle by replacing pixels and does not blend. The other canvas calls stay null.
