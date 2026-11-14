@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Added fixed-storage dirty regions to gl layers and entity invalidation;
+  `LH_LIBRARY_OPTION_GL_LAYER_DIRTY_MAX` sets the capacity (default 8).
+- Added a central configuration validation header, starting with the gl layer dirty limit.
+
 ### Fixed
 
 - Pointer drags and wheel input skip fitting button/container interiors when

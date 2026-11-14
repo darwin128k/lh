@@ -90,3 +90,16 @@ as of 2026-11-14 and the plan agreed with Egor.
 - Never `git add` or commit; Egor stages and commits himself.
 - LH must not mention devices, the panel or stand addresses.
 - Replies to Egor: Russian, brief, with numbers.
+## Dirty regions (decided)
+
+- `LH_LIBRARY_OPTION_GL_LAYER_DIRTY_MAX` is a CMake cache option, defaults to 8,
+  and must be a positive integer.
+  Each layer has fixed storage and a count; only the root accumulates regions.
+- Areas are clipped to `(0, 0, width, height)` and empty areas are dropped.
+  A non-root layer offsets the clipped area by its origin and forwards it.
+- A bounding union is merged when its area is at most the sum of the two areas.
+  On overflow all regions and the new area collapse to one bounding rectangle.
+- `lh_gl_layer_invalidate`, `lh_gl_layer_get_dirty_count`,
+  `lh_gl_layer_get_dirty`, and `lh_gl_layer_clear_dirty` expose the root list.
+  `lh_gl_entity_invalidate` forwards the entity's rectangle to its parent;
+  its rectangle, origin and size setters invalidate the old and new rectangles.

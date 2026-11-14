@@ -9,7 +9,7 @@
 #include <lh/gl/entity.h>
 
 #include <lh/core/assert/runtime.h>
-#include <lh/core/list.h>
+#include <lh/gl/layer.h>
 
 /* -- Accessors ------------------------------------------------------------- */
 
@@ -30,7 +30,9 @@ lh_gl_entity_get_rect(const lh_gl_entity_t *self)
 lh_void
 lh_gl_entity_set_rect(lh_gl_entity_t *self, lh_gl_rect_t rect)
 {
+    lh_gl_entity_invalidate(self);
     lh_ptr_deref(lh_gl_entity_get_rect_mut(self)) = rect;
+    lh_gl_entity_invalidate(self);
 }
 
 lh_gl_layer_t *
@@ -86,10 +88,39 @@ lh_gl_entity_from_node(const lh_list_node_t *node)
 lh_void
 lh_gl_entity_init(lh_gl_entity_t *self, lh_gl_rect_t rect, const lh_gl_entity_class_t *cls)
 {
-    lh_gl_entity_set_rect(self, rect);
     lh_gl_entity_set_parent(self, lh_null);
+    lh_gl_entity_set_rect(self, rect);
     lh_gl_entity_set_class(self, cls);
     lh_list_node_init(lh_gl_entity_get_node_mut(self));
+}
+
+lh_void
+lh_gl_entity_invalidate(lh_gl_entity_t *self)
+{
+    lh_gl_layer_t *parent = lh_gl_entity_get_parent(self);
+
+    if (lh_ptr_is_set(parent))
+    {
+        lh_gl_layer_invalidate(parent, lh_gl_entity_get_rect(self));
+    }
+}
+
+lh_void
+lh_gl_entity_set_origin(lh_gl_entity_t *self, lh_gl_point_t origin)
+{
+    lh_gl_rect_t rect = lh_ptr_deref(lh_gl_entity_get_rect(self));
+
+    lh_gl_rect_set_origin(lh_addr_of(rect), origin);
+    lh_gl_entity_set_rect(self, rect);
+}
+
+lh_void
+lh_gl_entity_set_size(lh_gl_entity_t *self, lh_gl_size_t size)
+{
+    lh_gl_rect_t rect = lh_ptr_deref(lh_gl_entity_get_rect(self));
+
+    lh_gl_rect_set_size(lh_addr_of(rect), size);
+    lh_gl_entity_set_rect(self, rect);
 }
 
 lh_gl_entity_class_kind_t

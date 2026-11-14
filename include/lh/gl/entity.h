@@ -70,7 +70,7 @@ lh_gl_entity_get_rect(const lh_gl_entity_t *self);
 /**
  * @brief Replace the area of @p self with @p rect.
  *
- * Does not tell the parent: nothing is redrawn because of this call.
+ * Invalidates the old and new areas in the parent.
  *
  * @param self Entity to change; must not be null (asserted in debug builds).
  * @param rect New area, relative to the parent; copied.
@@ -149,6 +149,18 @@ lh_gl_entity_get_node(const lh_gl_entity_t *self);
  */
 lh_gl_entity_t *
 lh_gl_entity_from_node(const lh_list_node_t *node);
+
+/** @brief Invalidate the entity's area in its parent; a root does nothing. */
+lh_void
+lh_gl_entity_invalidate(lh_gl_entity_t *self);
+
+/** @brief Replace the origin, invalidating the old and new areas. */
+lh_void
+lh_gl_entity_set_origin(lh_gl_entity_t *self, lh_gl_point_t origin);
+
+/** @brief Replace the size, invalidating the old and new areas. */
+lh_void
+lh_gl_entity_set_size(lh_gl_entity_t *self, lh_gl_size_t size);
 
 /* -- Init and queries, by level -------------------------------------------- */
 

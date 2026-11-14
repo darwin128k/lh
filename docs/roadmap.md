@@ -135,6 +135,16 @@ over `work_mem_int[LV_MEM_SIZE]`. It plugs into `lh_runtime_allocator` or
 any `*_init_by`, so `lh_array_t` and the `lh/gl` layer run on it without
 changes. Needed for UI on a heapless target, where entities are created and
 destroyed all the time.
+## 6. Config validation in one file
+
+**Today.** `include/lh/config.h` (from `config.h.in`) only defines the
+`LH_LIBRARY_OPTION_*` values. Nothing checks them at C level, so a brick
+that needs a sane value is tempted to `#error` on it in its own header.
+
+**Target.** One separate header, for example `include/lh/config/check.h`,
+included by `lh/config.h`, that holds every `#if ... #error` for config
+values (ranges, required combinations). Bricks only read options and never
+validate them. CMake keeps its own checks for a clear configure-time error.
 ## Not a game layer
 
 The gamepad belongs to the applications that use the desktop stack — the 3D
