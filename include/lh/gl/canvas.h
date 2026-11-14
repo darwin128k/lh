@@ -104,12 +104,12 @@ lh_gl_canvas_stroke_rect(lh_gl_canvas_t *self, const lh_gl_rect_t *rect, const l
  *        A radius below 1 draws nothing.
  */
 lh_void
-lh_gl_canvas_fill_circle(lh_gl_canvas_t *self, lh_gl_point_t center, lh_math_scalar_t radius,
+lh_gl_canvas_fill_circle(lh_gl_canvas_t *self, lh_gl_point_t center, lh_gl_scalar_t radius,
                          const lh_gl_color_t *color);
 
 /** @brief Stroke that circle. The pen width grows the tested bounds. */
 lh_void
-lh_gl_canvas_stroke_circle(lh_gl_canvas_t *self, lh_gl_point_t center, lh_math_scalar_t radius,
+lh_gl_canvas_stroke_circle(lh_gl_canvas_t *self, lh_gl_point_t center, lh_gl_scalar_t radius,
                            const lh_gl_pen_t *pen);
 
 /**
@@ -120,12 +120,12 @@ lh_gl_canvas_stroke_circle(lh_gl_canvas_t *self, lh_gl_point_t center, lh_math_s
  */
 lh_void
 lh_gl_canvas_fill_round_rect(lh_gl_canvas_t *self, const lh_gl_rect_t *rect,
-                             lh_math_scalar_t radius, const lh_gl_color_t *color);
+                             lh_gl_scalar_t radius, const lh_gl_color_t *color);
 
 /** @brief Stroke that rounded rectangle. */
 lh_void
 lh_gl_canvas_stroke_round_rect(lh_gl_canvas_t *self, const lh_gl_rect_t *rect,
-                               lh_math_scalar_t radius, const lh_gl_pen_t *pen);
+                               lh_gl_scalar_t radius, const lh_gl_pen_t *pen);
 
 LH_COMPILER_EXTERN_C_END
 

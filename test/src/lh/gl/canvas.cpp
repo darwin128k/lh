@@ -11,7 +11,7 @@ namespace
 
 lh_gl_rect_t got_rect;
 lh_gl_point_t got_center;
-lh_math_scalar_t got_radius;
+lh_gl_scalar_t got_radius;
 const lh_gl_color_t *got_color;
 const lh_gl_pen_t *got_pen;
 lh_usize_t got_count;
@@ -40,7 +40,7 @@ record_stroke_rect(lh_ptr target, const lh_gl_rect_t *clip, const lh_gl_rect_t *
 
 lh_void
 record_fill_circle(lh_ptr target, const lh_gl_rect_t *clip, lh_gl_point_t center,
-                   lh_math_scalar_t radius, const lh_gl_color_t *color)
+                   lh_gl_scalar_t radius, const lh_gl_color_t *color)
 {
     (void)target;
     (void)clip;
@@ -52,7 +52,7 @@ record_fill_circle(lh_ptr target, const lh_gl_rect_t *clip, lh_gl_point_t center
 
 lh_void
 record_round(lh_ptr target, const lh_gl_rect_t *clip, const lh_gl_rect_t *rect,
-             lh_math_scalar_t radius, const lh_gl_color_t *color)
+             lh_gl_scalar_t radius, const lh_gl_color_t *color)
 {
     (void)target;
     (void)clip;
@@ -63,7 +63,7 @@ record_round(lh_ptr target, const lh_gl_rect_t *clip, const lh_gl_rect_t *rect,
 }
 
 lh_gl_canvas_t
-canvas_at(lh_math_scalar_t x, lh_math_scalar_t y, const lh_gl_canvas_backend_t *backend)
+canvas_at(lh_gl_scalar_t x, lh_gl_scalar_t y, const lh_gl_canvas_backend_t *backend)
 {
     lh_gl_point_t origin;
 

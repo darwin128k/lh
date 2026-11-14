@@ -11,7 +11,7 @@
  * @brief The stroke color and its thickness.
  *
  * @param color_type ::lh_gl_color_t: `color`, copied by value.
- * @param width_type ::lh_math_scalar_t: `width`. Zero draws nothing extra
+ * @param width_type ::lh_gl_scalar_t: `width`. Zero draws nothing extra
  *                   around the shape. Negative is stored as given; a stroke
  *                   treats it as zero.
  */

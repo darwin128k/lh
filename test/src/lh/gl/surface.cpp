@@ -7,7 +7,7 @@ namespace
 {
 
 lh_gl_rect_t
-rect_of(lh_math_scalar_t x, lh_math_scalar_t y, lh_math_scalar_t w, lh_math_scalar_t h)
+rect_of(lh_gl_scalar_t x, lh_gl_scalar_t y, lh_gl_scalar_t w, lh_gl_scalar_t h)
 {
     lh_gl_rect_t rect;
     lh_gl_rect_init(lh_addr_of(rect), x, y, w, h);

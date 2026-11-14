@@ -3,7 +3,7 @@
  * @brief A size on the graphics plane: ::lh_gl_size_t, a ::lh_gl_point_t read as `width, height`.
  *
  * In LH terminology a size is a point: ::lh_gl_size_t is a direct alias of
- * ::lh_gl_point_t, the same two ::lh_math_scalar_t values, with `x` holding the
+ * ::lh_gl_point_t, the same two ::lh_gl_scalar_t values, with `x` holding the
  * width and `y` the height. No second struct and no second field macro exist.
  * What the alias adds is a vocabulary: this header names the operations that
  * make sense when the pair is an extent ("how much") rather than a place
@@ -41,7 +41,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param self Size to read; must not be null (asserted in debug builds).
  * @return The horizontal extent. Nothing is checked or changed.
  */
-lh_math_scalar_t
+lh_gl_scalar_t
 lh_gl_size_get_width(const lh_gl_size_t *self);
 
 /**
@@ -50,7 +50,7 @@ lh_gl_size_get_width(const lh_gl_size_t *self);
  * @param self Size to read; must not be null (asserted in debug builds).
  * @return The vertical extent. Nothing is checked or changed.
  */
-lh_math_scalar_t
+lh_gl_scalar_t
 lh_gl_size_get_height(const lh_gl_size_t *self);
 
 /**
@@ -60,7 +60,7 @@ lh_gl_size_get_height(const lh_gl_size_t *self);
  * @param width New horizontal extent; any value is accepted.
  */
 lh_void
-lh_gl_size_set_width(lh_gl_size_t *self, lh_math_scalar_t width);
+lh_gl_size_set_width(lh_gl_size_t *self, lh_gl_scalar_t width);
 
 /**
  * @brief Set the height of @p self.
@@ -69,7 +69,7 @@ lh_gl_size_set_width(lh_gl_size_t *self, lh_math_scalar_t width);
  * @param height New vertical extent; any value is accepted.
  */
 lh_void
-lh_gl_size_set_height(lh_gl_size_t *self, lh_math_scalar_t height);
+lh_gl_size_set_height(lh_gl_size_t *self, lh_gl_scalar_t height);
 
 /* -- Init and queries, by level -------------------------------------------- */
 
@@ -83,7 +83,7 @@ lh_gl_size_set_height(lh_gl_size_t *self, lh_math_scalar_t height);
  * @param height Vertical extent.
  */
 lh_void
-lh_gl_size_init(lh_gl_size_t *self, lh_math_scalar_t width, lh_math_scalar_t height);
+lh_gl_size_init(lh_gl_size_t *self, lh_gl_scalar_t width, lh_gl_scalar_t height);
 
 /**
  * @brief Fill @p self with the empty size `(0, 0)`.
@@ -193,7 +193,7 @@ lh_gl_size_is_empty(const lh_gl_size_t *self);
  * @param self Size to read; must not be null (asserted in debug builds).
  * @return The smaller of the two extents.
  */
-lh_math_scalar_t
+lh_gl_scalar_t
 lh_gl_size_min_side(const lh_gl_size_t *self);
 
 /**
@@ -209,7 +209,7 @@ lh_gl_size_min_side(const lh_gl_size_t *self);
  * @param out Receives the result; must not be null (asserted in debug builds).
  */
 lh_void
-lh_gl_size_inset(const lh_gl_size_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy,
+lh_gl_size_inset(const lh_gl_size_t *self, lh_gl_scalar_t dx, lh_gl_scalar_t dy,
                  lh_gl_size_t *out);
 
 LH_COMPILER_EXTERN_C_END

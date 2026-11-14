@@ -26,7 +26,7 @@ record_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
 }
 
 lh_gl_rect_t
-rect_of(lh_math_scalar_t x, lh_math_scalar_t y, lh_math_scalar_t width, lh_math_scalar_t height)
+rect_of(lh_gl_scalar_t x, lh_gl_scalar_t y, lh_gl_scalar_t width, lh_gl_scalar_t height)
 {
     lh_gl_rect_t rect;
 
@@ -35,8 +35,8 @@ rect_of(lh_math_scalar_t x, lh_math_scalar_t y, lh_math_scalar_t width, lh_math_
 }
 
 bool
-has_rect(const lh_gl_entity_t *entity, lh_math_scalar_t x, lh_math_scalar_t y,
-         lh_math_scalar_t width, lh_math_scalar_t height)
+has_rect(const lh_gl_entity_t *entity, lh_gl_scalar_t x, lh_gl_scalar_t y,
+         lh_gl_scalar_t width, lh_gl_scalar_t height)
 {
     const lh_gl_rect_t expected = rect_of(x, y, width, height);
 

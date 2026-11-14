@@ -3,7 +3,7 @@
  * @brief A point on the graphics plane: ::lh_gl_point_t with integer `x, y`.
  *
  * The first brick of the `lh/gl` part. A point is a plain value of two
- * ::lh_math_scalar_t coordinates: `x` is horizontal, `y` is vertical, the
+ * ::lh_gl_scalar_t coordinates: `x` is horizontal, `y` is vertical, the
  * origin is the top-left corner and both grow right and down, like every OS
  * window coordinate system. The coordinates are integers; there is no
  * floating-point variant here.
@@ -25,8 +25,8 @@
 #include <lh/core/bool.h>
 #include <lh/core/compiler/extern/c.h>
 #include <lh/core/math/point/fields.h>
-#include <lh/core/math/scalar.h>
 #include <lh/core/void.h>
+#include <lh/gl/scalar.h>
 
 /**
  * @struct lh_gl_point
@@ -35,7 +35,7 @@
 struct lh_gl_point
 {
     /** Members: ::lh_math_point_fields. */
-    lh_math_point_fields(lh_math_scalar_t);
+    lh_math_point_fields(lh_gl_scalar_t);
 };
 /** @copybrief lh_gl_point */
 typedef struct lh_gl_point lh_gl_point_t;
@@ -50,7 +50,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param self Point to read; must not be null (asserted in debug builds).
  * @return The horizontal coordinate. Nothing is checked or changed.
  */
-lh_math_scalar_t
+lh_gl_scalar_t
 lh_gl_point_get_x(const lh_gl_point_t *self);
 
 /**
@@ -59,7 +59,7 @@ lh_gl_point_get_x(const lh_gl_point_t *self);
  * @param self Point to read; must not be null (asserted in debug builds).
  * @return The vertical coordinate. Nothing is checked or changed.
  */
-lh_math_scalar_t
+lh_gl_scalar_t
 lh_gl_point_get_y(const lh_gl_point_t *self);
 
 /**
@@ -69,7 +69,7 @@ lh_gl_point_get_y(const lh_gl_point_t *self);
  * @param x New horizontal coordinate; any value is accepted.
  */
 lh_void
-lh_gl_point_set_x(lh_gl_point_t *self, lh_math_scalar_t x);
+lh_gl_point_set_x(lh_gl_point_t *self, lh_gl_scalar_t x);
 
 /**
  * @brief Set the Y coordinate of @p self.
@@ -78,7 +78,7 @@ lh_gl_point_set_x(lh_gl_point_t *self, lh_math_scalar_t x);
  * @param y New vertical coordinate; any value is accepted.
  */
 lh_void
-lh_gl_point_set_y(lh_gl_point_t *self, lh_math_scalar_t y);
+lh_gl_point_set_y(lh_gl_point_t *self, lh_gl_scalar_t y);
 
 /**
  * @brief Fill @p self from explicit coordinates.
@@ -91,7 +91,7 @@ lh_gl_point_set_y(lh_gl_point_t *self, lh_math_scalar_t y);
  * @param y Vertical coordinate.
  */
 lh_void
-lh_gl_point_init(lh_gl_point_t *self, lh_math_scalar_t x, lh_math_scalar_t y);
+lh_gl_point_init(lh_gl_point_t *self, lh_gl_scalar_t x, lh_gl_scalar_t y);
 
 /* -- Init and queries, by level -------------------------------------------- */
 
@@ -142,7 +142,7 @@ lh_gl_point_is_less(const lh_gl_point_t *self, const lh_gl_point_t *other);
  * @brief Translate @p self by `(@p dx, @p dy)` into @p out.
  *
  * @p out may be the same object as @p self. Nothing is checked: the sums may
- * overflow like any `lh_math_scalar_t` addition.
+ * overflow like any `lh_gl_scalar_t` addition.
  *
  * @param self Point to move; must not be null (asserted in debug builds).
  * @param dx Horizontal shift.
@@ -150,7 +150,7 @@ lh_gl_point_is_less(const lh_gl_point_t *self, const lh_gl_point_t *other);
  * @param out Receives the moved point; must not be null (asserted in debug builds).
  */
 lh_void
-lh_gl_point_offset(const lh_gl_point_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy,
+lh_gl_point_offset(const lh_gl_point_t *self, lh_gl_scalar_t dx, lh_gl_scalar_t dy,
                    lh_gl_point_t *out);
 
 /**

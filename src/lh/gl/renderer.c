@@ -36,7 +36,7 @@ lh_gl_renderer_set_canvas(lh_gl_renderer_t *self, lh_gl_canvas_t *canvas)
     self->canvas = canvas;
 }
 
-lh_math_scalar_t
+lh_gl_scalar_t
 lh_gl_renderer_get_band(const lh_gl_renderer_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -44,7 +44,7 @@ lh_gl_renderer_get_band(const lh_gl_renderer_t *self)
 }
 
 lh_void
-lh_gl_renderer_set_band(lh_gl_renderer_t *self, lh_math_scalar_t band)
+lh_gl_renderer_set_band(lh_gl_renderer_t *self, lh_gl_scalar_t band)
 {
     lh_assert_runtime_ref(self);
     self->band = band;
@@ -52,7 +52,7 @@ lh_gl_renderer_set_band(lh_gl_renderer_t *self, lh_math_scalar_t band)
 
 lh_void
 lh_gl_renderer_init(lh_gl_renderer_t *self, lh_gl_surface_t *surface, lh_gl_canvas_t *canvas,
-                    lh_math_scalar_t band)
+                    lh_gl_scalar_t band)
 {
     lh_gl_renderer_set_surface(self, surface);
     lh_gl_renderer_set_canvas(self, canvas);
@@ -84,25 +84,25 @@ lh_gl_renderer_render(lh_gl_renderer_t *self)
     {
         areas[i] = lh_ptr_deref(lh_gl_surface_get_dirty(surface, i));
     }
-    lh_math_scalar_t band = lh_gl_renderer_get_band(self);
+    lh_gl_scalar_t band = lh_gl_renderer_get_band(self);
 
     for (lh_uindex_t i = 0; i < count; ++i)
     {
         const lh_gl_rect_t *area = lh_addr_of(areas[i]);
         const lh_gl_size_t *size = lh_gl_rect_get_size(area);
-        lh_math_scalar_t height = lh_gl_size_get_height(size);
+        lh_gl_scalar_t height = lh_gl_size_get_height(size);
 
         if (band <= 0 || band >= height)
         {
             lh_gl_layer_draw(root, canvas, area);
             continue;
         }
-        lh_math_scalar_t y = lh_gl_point_get_y(lh_gl_rect_get_origin(area));
-        lh_math_scalar_t y_end = y + height;
+        lh_gl_scalar_t y = lh_gl_point_get_y(lh_gl_rect_get_origin(area));
+        lh_gl_scalar_t y_end = y + height;
 
         while (y < y_end)
         {
-            lh_math_scalar_t stripe = lh_math_min(band, y_end - y);
+            lh_gl_scalar_t stripe = lh_math_min(band, y_end - y);
             lh_gl_rect_t clip;
 
             lh_gl_rect_init(lh_addr_of(clip), lh_gl_point_get_x(lh_gl_rect_get_origin(area)), y,

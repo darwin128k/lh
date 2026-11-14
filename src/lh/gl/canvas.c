@@ -122,7 +122,7 @@ lh_gl_canvas_stroke_rect(lh_gl_canvas_t *self, const lh_gl_rect_t *rect, const l
     lh_gl_rect_t root;
 
     lh_gl_rect_offset(rect, lh_gl_point_get_x(origin), lh_gl_point_get_y(origin), lh_addr_of(root));
-    lh_math_scalar_t width = lh_gl_pen_get_width(pen);
+    lh_gl_scalar_t width = lh_gl_pen_get_width(pen);
 
     if (width < 0)
     {
@@ -141,7 +141,7 @@ lh_gl_canvas_stroke_rect(lh_gl_canvas_t *self, const lh_gl_rect_t *rect, const l
 }
 
 lh_void
-lh_gl_canvas_fill_circle(lh_gl_canvas_t *self, lh_gl_point_t center, lh_math_scalar_t radius,
+lh_gl_canvas_fill_circle(lh_gl_canvas_t *self, lh_gl_point_t center, lh_gl_scalar_t radius,
                          const lh_gl_color_t *color)
 {
     lh_assert_runtime_ref(color);
@@ -176,7 +176,7 @@ lh_gl_canvas_fill_circle(lh_gl_canvas_t *self, lh_gl_point_t center, lh_math_sca
 }
 
 lh_void
-lh_gl_canvas_stroke_circle(lh_gl_canvas_t *self, lh_gl_point_t center, lh_math_scalar_t radius,
+lh_gl_canvas_stroke_circle(lh_gl_canvas_t *self, lh_gl_point_t center, lh_gl_scalar_t radius,
                            const lh_gl_pen_t *pen)
 {
     lh_assert_runtime_ref(pen);
@@ -192,7 +192,7 @@ lh_gl_canvas_stroke_circle(lh_gl_canvas_t *self, lh_gl_point_t center, lh_math_s
     {
         return;
     }
-    lh_math_scalar_t width = lh_gl_pen_get_width(pen);
+    lh_gl_scalar_t width = lh_gl_pen_get_width(pen);
 
     if (width < 0)
     {
@@ -203,7 +203,7 @@ lh_gl_canvas_stroke_circle(lh_gl_canvas_t *self, lh_gl_point_t center, lh_math_s
 
     lh_gl_point_init(lh_addr_of(root), lh_gl_point_get_x(lh_addr_of(center)) + lh_gl_point_get_x(origin),
                      lh_gl_point_get_y(lh_addr_of(center)) + lh_gl_point_get_y(origin));
-    lh_math_scalar_t reach = radius + width;
+    lh_gl_scalar_t reach = radius + width;
     lh_gl_rect_t bounds;
 
     lh_gl_rect_init(lh_addr_of(bounds), lh_gl_point_get_x(lh_addr_of(root)) - reach,
@@ -219,7 +219,7 @@ lh_gl_canvas_stroke_circle(lh_gl_canvas_t *self, lh_gl_point_t center, lh_math_s
 
 lh_void
 lh_gl_canvas_fill_round_rect(lh_gl_canvas_t *self, const lh_gl_rect_t *rect,
-                             lh_math_scalar_t radius, const lh_gl_color_t *color)
+                             lh_gl_scalar_t radius, const lh_gl_color_t *color)
 {
     lh_assert_runtime_ref(rect);
     lh_assert_runtime_ref(color);
@@ -250,7 +250,7 @@ lh_gl_canvas_fill_round_rect(lh_gl_canvas_t *self, const lh_gl_rect_t *rect,
         radius = 0;
     }
     const lh_gl_size_t *size = lh_gl_rect_get_size(lh_addr_of(root));
-    lh_math_scalar_t half =
+    lh_gl_scalar_t half =
         lh_math_min(lh_gl_size_get_width(size), lh_gl_size_get_height(size)) / 2;
 
     fill(lh_gl_canvas_get_target(self), clip, lh_addr_of(root), lh_math_min(radius, half), color);
@@ -258,7 +258,7 @@ lh_gl_canvas_fill_round_rect(lh_gl_canvas_t *self, const lh_gl_rect_t *rect,
 
 lh_void
 lh_gl_canvas_stroke_round_rect(lh_gl_canvas_t *self, const lh_gl_rect_t *rect,
-                               lh_math_scalar_t radius, const lh_gl_pen_t *pen)
+                               lh_gl_scalar_t radius, const lh_gl_pen_t *pen)
 {
     lh_assert_runtime_ref(rect);
     lh_assert_runtime_ref(pen);
@@ -278,7 +278,7 @@ lh_gl_canvas_stroke_round_rect(lh_gl_canvas_t *self, const lh_gl_rect_t *rect,
     lh_gl_rect_t root;
 
     lh_gl_rect_offset(rect, lh_gl_point_get_x(origin), lh_gl_point_get_y(origin), lh_addr_of(root));
-    lh_math_scalar_t width = lh_gl_pen_get_width(pen);
+    lh_gl_scalar_t width = lh_gl_pen_get_width(pen);
 
     if (width < 0)
     {
@@ -298,7 +298,7 @@ lh_gl_canvas_stroke_round_rect(lh_gl_canvas_t *self, const lh_gl_rect_t *rect,
         radius = 0;
     }
     const lh_gl_size_t *size = lh_gl_rect_get_size(lh_addr_of(root));
-    lh_math_scalar_t half =
+    lh_gl_scalar_t half =
         lh_math_min(lh_gl_size_get_width(size), lh_gl_size_get_height(size)) / 2;
 
     stroke(lh_gl_canvas_get_target(self), clip, lh_addr_of(root), lh_math_min(radius, half), pen);

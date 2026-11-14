@@ -63,14 +63,14 @@ lh_gl_container_content_origin(const lh_gl_container_t *self, const lh_gl_point_
                                lh_gl_point_t *out)
 {
     const lh_gl_scroll_axis_t *horizontal = lh_gl_container_get_horizontal(self);
-    lh_math_scalar_t dx = 0;
+    lh_gl_scalar_t dx = 0;
 
     if (lh_ptr_is_set(horizontal))
     {
         dx = lh_gl_scroll_axis_get_offset(horizontal);
     }
     const lh_gl_scroll_axis_t *vertical = lh_gl_container_get_vertical(self);
-    lh_math_scalar_t dy = 0;
+    lh_gl_scalar_t dy = 0;
 
     if (lh_ptr_is_set(vertical))
     {

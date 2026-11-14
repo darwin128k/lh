@@ -11,7 +11,7 @@ namespace
 {
 
 lh_gl_point_t
-point_at(lh_math_scalar_t x, lh_math_scalar_t y)
+point_at(lh_gl_scalar_t x, lh_gl_scalar_t y)
 {
     lh_gl_point_t point;
 

@@ -15,8 +15,8 @@
 #define LH_GL_SCROLL_AXIS_H
 
 #include <lh/core/compiler/extern/c.h>
-#include <lh/core/math/scalar.h>
 #include <lh/core/void.h>
+#include <lh/gl/scalar.h>
 #include <lh/gl/scroll/axis/fields.h>
 
 /**
@@ -26,7 +26,7 @@
 struct lh_gl_scroll_axis
 {
     /** Members: ::lh_gl_scroll_axis_fields. */
-    lh_gl_scroll_axis_fields(lh_math_scalar_t);
+    lh_gl_scroll_axis_fields(lh_gl_scalar_t);
 };
 /** @copybrief lh_gl_scroll_axis */
 typedef struct lh_gl_scroll_axis lh_gl_scroll_axis_t;
@@ -34,28 +34,28 @@ typedef struct lh_gl_scroll_axis lh_gl_scroll_axis_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /** @brief The stored offset. */
-lh_math_scalar_t
+lh_gl_scalar_t
 lh_gl_scroll_axis_get_offset(const lh_gl_scroll_axis_t *self);
 
 /** @brief Store @p offset. */
 lh_void
-lh_gl_scroll_axis_set_offset(lh_gl_scroll_axis_t *self, lh_math_scalar_t offset);
+lh_gl_scroll_axis_set_offset(lh_gl_scroll_axis_t *self, lh_gl_scalar_t offset);
 
 /** @brief Store @p offset. */
 lh_void
-lh_gl_scroll_axis_init(lh_gl_scroll_axis_t *self, lh_math_scalar_t offset);
+lh_gl_scroll_axis_init(lh_gl_scroll_axis_t *self, lh_gl_scalar_t offset);
 
 /**
  * @brief Add @p delta to the stored offset.
  *
- * The sum is unchecked, like any ::lh_math_scalar_t addition. No rectangle
+ * The sum is unchecked, like any ::lh_gl_scalar_t addition. No rectangle
  * changes.
  *
  * @param self  Axis; must not be null.
  * @param delta Amount to add. Negative scrolls the other way.
  */
 lh_void
-lh_gl_scroll_axis_add(lh_gl_scroll_axis_t *self, lh_math_scalar_t delta);
+lh_gl_scroll_axis_add(lh_gl_scroll_axis_t *self, lh_gl_scalar_t delta);
 
 LH_COMPILER_EXTERN_C_END
 

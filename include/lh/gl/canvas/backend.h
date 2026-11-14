@@ -35,12 +35,12 @@ typedef lh_void(lh_gl_canvas_stroke_rect_fn)(lh_ptr target, const lh_gl_rect_t *
  * @brief Fill the circle of @p radius around @p center, in root coordinates.
  */
 typedef lh_void(lh_gl_canvas_fill_circle_fn)(lh_ptr target, const lh_gl_rect_t *clip,
-                                             lh_gl_point_t center, lh_math_scalar_t radius,
+                                             lh_gl_point_t center, lh_gl_scalar_t radius,
                                              const lh_gl_color_t *color);
 
 /** @brief Stroke that circle with @p pen. */
 typedef lh_void(lh_gl_canvas_stroke_circle_fn)(lh_ptr target, const lh_gl_rect_t *clip,
-                                               lh_gl_point_t center, lh_math_scalar_t radius,
+                                               lh_gl_point_t center, lh_gl_scalar_t radius,
                                                const lh_gl_pen_t *pen);
 
 /**
@@ -48,13 +48,13 @@ typedef lh_void(lh_gl_canvas_stroke_circle_fn)(lh_ptr target, const lh_gl_rect_t
  *        @p radius is already limited to half the shorter side.
  */
 typedef lh_void(lh_gl_canvas_fill_round_rect_fn)(lh_ptr target, const lh_gl_rect_t *clip,
-                                                 const lh_gl_rect_t *rect, lh_math_scalar_t radius,
+                                                 const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
                                                  const lh_gl_color_t *color);
 
 /** @brief Stroke that rounded rectangle with @p pen. */
 typedef lh_void(lh_gl_canvas_stroke_round_rect_fn)(lh_ptr target, const lh_gl_rect_t *clip,
                                                    const lh_gl_rect_t *rect,
-                                                   lh_math_scalar_t radius, const lh_gl_pen_t *pen);
+                                                   lh_gl_scalar_t radius, const lh_gl_pen_t *pen);
 
 LH_COMPILER_EXTERN_C_END
 

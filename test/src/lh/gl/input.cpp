@@ -8,7 +8,7 @@ namespace
 {
 
 lh_gl_rect_t
-rect_of(lh_math_scalar_t x, lh_math_scalar_t y, lh_math_scalar_t width, lh_math_scalar_t height)
+rect_of(lh_gl_scalar_t x, lh_gl_scalar_t y, lh_gl_scalar_t width, lh_gl_scalar_t height)
 {
     lh_gl_rect_t rect;
 
@@ -17,7 +17,7 @@ rect_of(lh_math_scalar_t x, lh_math_scalar_t y, lh_math_scalar_t width, lh_math_
 }
 
 lh_gl_point_t
-point_of(lh_math_scalar_t x, lh_math_scalar_t y)
+point_of(lh_gl_scalar_t x, lh_gl_scalar_t y)
 {
     lh_gl_point_t point;
 

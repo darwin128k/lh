@@ -14,7 +14,7 @@ lh_gl_rect_t clips[8];
 lh_usize_t drawn_count;
 
 lh_gl_rect_t
-rect_of(lh_math_scalar_t x, lh_math_scalar_t y, lh_math_scalar_t w, lh_math_scalar_t h)
+rect_of(lh_gl_scalar_t x, lh_gl_scalar_t y, lh_gl_scalar_t w, lh_gl_scalar_t h)
 {
     lh_gl_rect_t rect;
 

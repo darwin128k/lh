@@ -16,7 +16,7 @@
 #define LH_GL_RENDERER_H
 
 #include <lh/core/compiler/extern/c.h>
-#include <lh/core/math/scalar.h>
+#include <lh/gl/scalar.h>
 #include <lh/core/void.h>
 #include <lh/gl/canvas/decl.h>
 #include <lh/gl/renderer/fields.h>
@@ -26,7 +26,7 @@
 struct lh_gl_renderer
 {
     /** Members: ::lh_gl_renderer_fields. */
-    lh_gl_renderer_fields(lh_gl_surface_t, lh_gl_canvas_t, lh_math_scalar_t);
+    lh_gl_renderer_fields(lh_gl_surface_t, lh_gl_canvas_t, lh_gl_scalar_t);
 };
 /** @copybrief lh_gl_renderer */
 typedef struct lh_gl_renderer lh_gl_renderer_t;
@@ -54,12 +54,12 @@ lh_gl_renderer_set_canvas(lh_gl_renderer_t *self, lh_gl_canvas_t *canvas);
  *
  * Zero and negative values mean one pass per dirty rectangle.
  */
-lh_math_scalar_t
+lh_gl_scalar_t
 lh_gl_renderer_get_band(const lh_gl_renderer_t *self);
 
 /** @brief Store the partial-buffer stripe height. */
 lh_void
-lh_gl_renderer_set_band(lh_gl_renderer_t *self, lh_math_scalar_t band);
+lh_gl_renderer_set_band(lh_gl_renderer_t *self, lh_gl_scalar_t band);
 
 /**
  * @brief Borrow @p surface and @p canvas. @p band is the stripe height.
@@ -69,7 +69,7 @@ lh_gl_renderer_set_band(lh_gl_renderer_t *self, lh_math_scalar_t band);
  */
 lh_void
 lh_gl_renderer_init(lh_gl_renderer_t *self, lh_gl_surface_t *surface, lh_gl_canvas_t *canvas,
-                    lh_math_scalar_t band);
+                    lh_gl_scalar_t band);
 
 /**
  * @brief Draw the surface's dirty rectangles and clear them.

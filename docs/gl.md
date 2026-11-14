@@ -18,7 +18,10 @@ as of 2026-11-14 and the plan agreed with Egor.
 
 ## Concept (agreed)
 
-- **point** `lh_gl_point_t`: two fields x, y (`lh_math_scalar_t`), via
+- **scalar** `lh_gl_scalar_t`: the integer screen coordinate. It is
+  `lh_math_scalar_t` and does not follow the FPU option. 3D stays on
+  `lh_math_fscalar_t`.
+- **point** `lh_gl_point_t`: two fields x, y (`lh_gl_scalar_t`), via
   `lh_math_point_fields`. 2D only.
 - **size** `lh_gl_size_t`: `typedef` of point, own methods (width/height).
 - **rect**: origin (point) + size, via `lh_math_rect_fields`.

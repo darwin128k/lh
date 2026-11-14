@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- `lh_gl_scalar_t` is the integer screen coordinate of `lh/gl`. Point, size, rectangle, pen width, scroll offset and renderer band use it. It is `lh_math_scalar_t` and does not follow the FPU option.
+
 - `lh_gl_scroll_axis_t` stores one offset. `lh_gl_container_t` borrows a layer and up to two axes, and places children at the window origin minus those offsets. The window and the children's rectangles stay where they are. Changing an axis does not invalidate; `lh_gl_container_invalidate` marks the window.
 
 - `lh_gl_input_t` holds one borrowed entity. A press stores whatever `lh_gl_layer_find_entity` returns, a move keeps that entity without searching again, and a release clears it.

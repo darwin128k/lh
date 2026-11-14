@@ -244,8 +244,8 @@ lh_gl_rect_is_less(const lh_gl_rect_t *self, const lh_gl_rect_t *other);
  * @param height Vertical extent.
  */
 lh_void
-lh_gl_rect_init(lh_gl_rect_t *self, lh_math_scalar_t x, lh_math_scalar_t y, lh_math_scalar_t width,
-                lh_math_scalar_t height);
+lh_gl_rect_init(lh_gl_rect_t *self, lh_gl_scalar_t x, lh_gl_scalar_t y, lh_gl_scalar_t width,
+                lh_gl_scalar_t height);
 
 /**
  * @brief True if @p self is strictly lexicographically later than @p other.
@@ -270,7 +270,7 @@ lh_gl_rect_is_greater(const lh_gl_rect_t *self, const lh_gl_rect_t *other);
  * @param out Receives the result; must not be null (asserted in debug builds).
  */
 lh_void
-lh_gl_rect_offset(const lh_gl_rect_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy,
+lh_gl_rect_offset(const lh_gl_rect_t *self, lh_gl_scalar_t dx, lh_gl_scalar_t dy,
                   lh_gl_rect_t *out);
 
 /**
@@ -308,8 +308,8 @@ lh_gl_rect_from_extent(const lh_gl_point_t *min, const lh_gl_point_t *max, lh_gl
  * @param out Receives the rectangle; must not be null (asserted in debug builds).
  */
 lh_void
-lh_gl_rect_from_min_max(lh_math_scalar_t x_min, lh_math_scalar_t y_min, lh_math_scalar_t x_max,
-                        lh_math_scalar_t y_max, lh_gl_rect_t *out);
+lh_gl_rect_from_min_max(lh_gl_scalar_t x_min, lh_gl_scalar_t y_min, lh_gl_scalar_t x_max,
+                        lh_gl_scalar_t y_max, lh_gl_rect_t *out);
 
 /**
  * @brief Intersection of @p a and @p b.
@@ -360,7 +360,7 @@ lh_gl_rect_intersects(const lh_gl_rect_t *a, const lh_gl_rect_t *b);
  * @param out Receives the result; must not be null (asserted in debug builds).
  */
 lh_void
-lh_gl_rect_inset(const lh_gl_rect_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy,
+lh_gl_rect_inset(const lh_gl_rect_t *self, lh_gl_scalar_t dx, lh_gl_scalar_t dy,
                  lh_gl_rect_t *out);
 
 LH_COMPILER_EXTERN_C_END

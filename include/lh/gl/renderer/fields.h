@@ -14,7 +14,7 @@
  *                     Borrowed; may be null until set.
  * @param canvas_type  ::lh_gl_canvas_t: `canvas`, the drawing state passed to
  *                     the layer walk. Borrowed; may be null until set.
- * @param band_type    ::lh_math_scalar_t: `band`, the partial-buffer height. Zero
+ * @param band_type    ::lh_gl_scalar_t: `band`, the partial-buffer height. Zero
  *                     or a negative value draws each dirty rectangle in one
  *                     pass. A positive value slices it into horizontal stripes
  *                     of at most this height.

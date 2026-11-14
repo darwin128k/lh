@@ -8,26 +8,26 @@
 
 /* -- Accessors ------------------------------------------------------------- */
 
-lh_math_scalar_t
+lh_gl_scalar_t
 lh_gl_size_get_width(const lh_gl_size_t *self)
 {
     return lh_gl_point_get_x(self);
 }
 
-lh_math_scalar_t
+lh_gl_scalar_t
 lh_gl_size_get_height(const lh_gl_size_t *self)
 {
     return lh_gl_point_get_y(self);
 }
 
 lh_void
-lh_gl_size_set_width(lh_gl_size_t *self, lh_math_scalar_t width)
+lh_gl_size_set_width(lh_gl_size_t *self, lh_gl_scalar_t width)
 {
     lh_gl_point_set_x(self, width);
 }
 
 lh_void
-lh_gl_size_set_height(lh_gl_size_t *self, lh_math_scalar_t height)
+lh_gl_size_set_height(lh_gl_size_t *self, lh_gl_scalar_t height)
 {
     lh_gl_point_set_y(self, height);
 }
@@ -35,7 +35,7 @@ lh_gl_size_set_height(lh_gl_size_t *self, lh_math_scalar_t height)
 /* -- Init and queries, by level -------------------------------------------- */
 
 lh_void
-lh_gl_size_init(lh_gl_size_t *self, lh_math_scalar_t width, lh_math_scalar_t height)
+lh_gl_size_init(lh_gl_size_t *self, lh_gl_scalar_t width, lh_gl_scalar_t height)
 {
     lh_gl_point_init(self, width, height);
 }
@@ -96,14 +96,14 @@ lh_gl_size_is_empty(const lh_gl_size_t *self)
                           lh_gl_size_get_width(self) <= 0 || lh_gl_size_get_height(self) <= 0);
 }
 
-lh_math_scalar_t
+lh_gl_scalar_t
 lh_gl_size_min_side(const lh_gl_size_t *self)
 {
     return lh_math_min(lh_gl_size_get_width(self), lh_gl_size_get_height(self));
 }
 
 lh_void
-lh_gl_size_inset(const lh_gl_size_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy,
+lh_gl_size_inset(const lh_gl_size_t *self, lh_gl_scalar_t dx, lh_gl_scalar_t dy,
                  lh_gl_size_t *out)
 {
     lh_gl_size_init(out, lh_gl_size_get_width(self) - dx - dx,
