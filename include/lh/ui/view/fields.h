@@ -36,7 +36,7 @@
 #endif
 
 /**
- * @def lh_ui_view_fields(canvas_type, entity_type, color_type, rect_type, pointer_type)
+ * @def lh_ui_view_fields(canvas_type, entity_type, color_type, rect_type, rects_type, pointer_type)
  * @brief Canvas, root entity, optional clear color, partial strip height,
  *        pointer sessions, scroll gesture, throw, and keyboard focus.
  *
@@ -51,9 +51,11 @@
  * a release. `focus`: keys go here.
  * `whole`: regions a frame reads pixels of (::lh_ui_view_add_whole_area), and
  * `whole_count` how many are in use.
- * `pending` is the one rect a setter, a press or a scroll has asked the window
- * to paint again (::lh_ui_view_add_damage). `has_pending` is false when nothing
- * has, and ::lh_ui_view_take_damage hands the rect to the window and clears it.
+ * `pending` is the region a setter, a press or a scroll has asked the window
+ * to paint again (::lh_ui_view_add_damage): up to ::LH_UI_RECTS_MAX rects, the
+ * ones that touch merged and the ones that stand apart kept apart. An empty
+ * list is "nothing waits" (::lh_ui_view_has_damage), and
+ * ::lh_ui_view_take_damage hands the whole list to the window and clears it.
  * It is not the canvas damage: that one is what the frame just drew, and the
  * frame resets it.
  * `transitions`: the looks in flight (::lh_ui_view_advance), a slot with no entity
@@ -63,9 +65,11 @@
  * @param entity_type  Pointer type of ::lh_ui_entity_t.
  * @param color_type   Pointer type of ::lh_ui_color_t.
  * @param rect_type    Type of ::lh_ui_rect_t.
+ * @param rects_type   Type of ::lh_ui_rects_t, the pending region.
  * @param pointer_type Type of ::lh_ui_view_pointer_t.
  */
-#define lh_ui_view_fields(canvas_type, entity_type, color_type, rect_type, pointer_type)           \
+#define lh_ui_view_fields(canvas_type, entity_type, color_type, rect_type, rects_type,             \
+                          pointer_type)                                                            \
     canvas_type *canvas;                                                                           \
     entity_type *root;                                                                             \
     const color_type *clear;                                                                       \
@@ -77,8 +81,7 @@
     entity_type *focus;                                                                            \
     rect_type whole[LH_UI_VIEW_WHOLE_MAX];                                                         \
     lh_u32_t whole_count;                                                                          \
-    rect_type pending;                                                                             \
-    lh_bool_t has_pending;                                                                         \
+    rects_type pending;                                                                            \
     lh_ui_transition_t transitions[LH_UI_VIEW_TRANSITION_MAX]
 
 #endif /* LH_UI_VIEW_FIELDS_H */

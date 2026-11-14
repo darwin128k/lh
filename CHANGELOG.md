@@ -155,6 +155,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `LH_UI_RECTS_MAX` is `16` instead of `8`: `lh_ui_rects_t` (the canvas's drawn list, the view's
+  pending damage) keeps up to sixteen rects apart before it starts squeezing; each list costs
+  about 128 bytes more.
+
+- The view's pending damage is a region, not one rect. `lh_ui_view_fields` takes a sixth
+  parameter, `rects_type` (`lh_ui_rects_t`), and holds `rects_type pending` instead of
+  `rect_type pending` + `has_pending`; `lh_ui_view_is_has_pending` and
+  `lh_ui_view_set_has_pending` are removed (`lh_ui_view_has_damage` answers "does anything
+  wait"), and `lh_ui_view_get_pending`, `_get_pending_mut`, `_set_pending` work on
+  `lh_ui_rects_t`. `lh_ui_view_add_damage` adds through `lh_ui_rects_add` (touching rects
+  merge, rects apart stay apart, a full list squeezes) instead of taking the hull with
+  `lh_ui_rect_union`, and `lh_ui_view_take_damage` now hands out `lh_ui_rects_t *` and clears
+  it. A caller that took one `lh_ui_rect_t` invalidates each rect of the list instead.
+
 - The tests of the Modbus bricks mirror their headers: `test/src/lh/core/net/modbus/<brick>.cpp`
   (and `math/scalar/centre.cpp`) instead of names glued with `_`; the health tests left
   `image.cpp` for `health.cpp`.

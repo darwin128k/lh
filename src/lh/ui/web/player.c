@@ -537,7 +537,7 @@ lh_ui_web_player_tick(lh_ptr ctx)
         lh_ui_web_host_hooks_get_tick_fn(lh_ui_web_player_get_routed(self))(
             lh_ui_web_host_hooks_get_ctx(lh_ui_web_player_get_routed(self)));
     }
-    lh_ui_rect_t damage;
+    lh_ui_rects_t damage;
     if (lh_ui_view_take_damage(lh_ui_web_player_get_view(self), lh_addr_of(damage)))
     {
         lh_ui_web_app_bump(lh_ui_web_player_get_app(self));

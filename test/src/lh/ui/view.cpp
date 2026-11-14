@@ -1318,3 +1318,112 @@ TEST(view_pointer, a_press_past_the_threshold_is_a_drag_and_tracks_its_speed)
     lh_ui_view_pointer_reset(lh_addr_of(pointer));
     EXPECT_FALSE(lh_ui_view_pointer_is_active(lh_addr_of(pointer)));
 }
+
+namespace
+{
+/* Test helper: add the rect `x, y, w, h` to the pending damage of @p view. */
+void
+view_damage_add(lh_ui_view_t *view, int x, int y, int w, int h)
+{
+    const lh_ui_rect_t rect = lh_test::rect_of(x, y, w, h);
+
+    lh_ui_view_add_damage(view, lh_addr_of(rect));
+}
+} // namespace
+
+/* The view's pending damage is a region, not one rect: two changes at the two
+   ends of a screen are two rects, and the window is not asked to paint the band
+   between them. These pin add_damage / has_damage / take_damage on that list. */
+TEST(view_damage, a_fresh_view_has_none_and_take_leaves_the_out_untouched)
+{
+    lh_ui_view_t view;
+    lh_ui_rects_t out;
+
+    lh_ui_view_init(lh_addr_of(view));
+    lh_ui_rects_init(lh_addr_of(out));
+    lh_ui_rects_set_count(lh_addr_of(out), 1u);
+    EXPECT_FALSE(lh_ui_view_has_damage(lh_addr_of(view)));
+    EXPECT_FALSE(lh_ui_view_take_damage(lh_addr_of(view), lh_addr_of(out)));
+    EXPECT_EQ(lh_ui_rects_get_count(lh_addr_of(out)), 1u);
+}
+
+TEST(view_damage, rects_apart_stay_two_rects)
+{
+    lh_ui_view_t view;
+    lh_ui_rects_t out;
+    const lh_ui_rect_t top = lh_test::rect_of(0, 0, 40, 10);
+    const lh_ui_rect_t bottom = lh_test::rect_of(0, 300, 40, 10);
+
+    lh_ui_view_init(lh_addr_of(view));
+    lh_ui_view_add_damage(lh_addr_of(view), lh_addr_of(top));
+    lh_ui_view_add_damage(lh_addr_of(view), lh_addr_of(bottom));
+    ASSERT_TRUE(lh_ui_view_take_damage(lh_addr_of(view), lh_addr_of(out)));
+    ASSERT_EQ(lh_ui_rects_get_count(lh_addr_of(out)), 2u);
+    EXPECT_TRUE(lh_test::rect_is(lh_ptr_deref(lh_ui_rects_get(lh_addr_of(out), 0)), top));
+    EXPECT_TRUE(lh_test::rect_is(lh_ptr_deref(lh_ui_rects_get(lh_addr_of(out), 1)), bottom));
+}
+
+TEST(view_damage, touching_and_overlapping_rects_merge)
+{
+    lh_ui_view_t view;
+    lh_ui_rects_t out;
+
+    lh_ui_view_init(lh_addr_of(view));
+    view_damage_add(lh_addr_of(view), 0, 0, 10, 10);
+    view_damage_add(lh_addr_of(view), 10, 0, 10, 10);
+    view_damage_add(lh_addr_of(view), 5, 5, 10, 10);
+    ASSERT_TRUE(lh_ui_view_take_damage(lh_addr_of(view), lh_addr_of(out)));
+    ASSERT_EQ(lh_ui_rects_get_count(lh_addr_of(out)), 1u);
+    EXPECT_TRUE(lh_test::rect_is(lh_ptr_deref(lh_ui_rects_get(lh_addr_of(out), 0)),
+                                 lh_test::rect_of(0, 0, 20, 15)));
+}
+
+TEST(view_damage, an_empty_rect_is_ignored)
+{
+    lh_ui_view_t view;
+
+    lh_ui_view_init(lh_addr_of(view));
+    view_damage_add(lh_addr_of(view), 5, 5, 0, 10);
+    EXPECT_FALSE(lh_ui_view_has_damage(lh_addr_of(view)));
+}
+
+TEST(view_damage, asking_does_not_consume_and_take_clears)
+{
+    lh_ui_view_t view;
+    lh_ui_rects_t out;
+
+    lh_ui_view_init(lh_addr_of(view));
+    view_damage_add(lh_addr_of(view), 0, 0, 4, 4);
+    EXPECT_TRUE(lh_ui_view_has_damage(lh_addr_of(view)));
+    EXPECT_TRUE(lh_ui_view_has_damage(lh_addr_of(view)));
+    EXPECT_TRUE(lh_ui_view_take_damage(lh_addr_of(view), lh_addr_of(out)));
+    EXPECT_FALSE(lh_ui_view_has_damage(lh_addr_of(view)));
+    EXPECT_FALSE(lh_ui_view_take_damage(lh_addr_of(view), lh_addr_of(out)));
+}
+
+TEST(view_damage, a_full_list_squeezes_and_never_drops_a_rect)
+{
+    lh_ui_view_t view;
+    lh_ui_rects_t out;
+
+    lh_ui_view_init(lh_addr_of(view));
+    for (int i = 0; i < LH_UI_RECTS_MAX + 3; ++i)
+    {
+        view_damage_add(lh_addr_of(view), i * 20, 0, 4, 4);
+    }
+    ASSERT_TRUE(lh_ui_view_take_damage(lh_addr_of(view), lh_addr_of(out)));
+    EXPECT_EQ(lh_ui_rects_get_count(lh_addr_of(out)), static_cast<lh_u32_t>(LH_UI_RECTS_MAX));
+    for (int i = 0; i < LH_UI_RECTS_MAX + 3; ++i)
+    {
+        const lh_ui_rect_t probe = lh_test::rect_of(i * 20, 0, 4, 4);
+        bool covered = false;
+        for (lh_u32_t k = 0U; k < lh_ui_rects_get_count(lh_addr_of(out)); ++k)
+        {
+            const lh_ui_rect_t *held = lh_ui_rects_get(lh_addr_of(out), k);
+            lh_ui_rect_t hull;
+            lh_ui_rect_union(held, lh_addr_of(probe), lh_addr_of(hull));
+            covered = covered || lh_test::rect_is(hull, lh_ptr_deref(held));
+        }
+        EXPECT_TRUE(covered) << "rect " << i << " is inside what the view hands out";
+    }
+}

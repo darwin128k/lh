@@ -177,12 +177,18 @@ on_paint(lh_os_window_t *window, lh_ptr context)
 ```
 
 To repaint only what changed, take the damage from the view and invalidate
-that rect of the window:
+each rect of it in the window. The damage is a list (`lh_ui_rects_t`, up to
+sixteen rects): rects that touch are merged, rects that stand apart stay apart,
+so two changes at the two ends of the screen are two invalidations and not the
+band between them:
 
 ```c
-lh_ui_rect_t damage;
+lh_ui_rects_t damage;
 if (lh_ui_view_take_damage(lh_addr_of(self->view), lh_addr_of(damage)))
-    lh_os_window_invalidate_rect(window, x0, y0, x1, y1);   /* from damage */
+{
+    for (lh_u32_t i = 0U; i < lh_ui_rects_get_count(lh_addr_of(damage)); ++i)
+        lh_os_window_invalidate_rect(window, x0, y0, x1, y1);   /* from rect i */
+}
 ```
 
 **Buffer format.** ARGB8888 by default, and on the desktop that is the right

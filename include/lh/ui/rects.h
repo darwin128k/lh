@@ -28,15 +28,23 @@
  * @def LH_UI_RECTS_MAX
  * @brief How many rects ::lh_ui_rects_t keeps apart at most.
  *
- * `8`, which is more than one strip of any scene so far holds: rects that
+ * `16`, which is more than one strip of any scene so far holds: rects that
  * touch collapse into one, so what a strip really needs is the number of
- * widgets standing apart in it, not the number drawn.
+ * widgets standing apart in it, not the number drawn. It was `8`; the table
+ * is doubled so that a screen of many separate cards or rows changing in one
+ * frame keeps each of them apart instead of squeezing neighbours together.
+ * The price is storage: one rect per slot (16 bytes with a 32-bit scalar), so
+ * every ::lh_ui_rects_t, the canvas's drawn list and the view's pending
+ * region among them, is about 260 bytes.
+ *
+ * The count is a ::lh_u32_t and the loops over the table read it, so nothing
+ * but this number depends on the size of the table.
  *
  * @note Past this the list stops being the region exactly: the added rect is
  *       merged into whichever stored one the pair wastes the fewest pixels on
  *       (::lh_ui_rects_squeeze). It never drops a rect.
  */
-#define LH_UI_RECTS_MAX 8
+#define LH_UI_RECTS_MAX 16
 
 #include <lh/ui/rects/fields.h>
 

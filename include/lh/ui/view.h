@@ -54,7 +54,7 @@
 struct lh_ui_view
 {
     /** Members: ::lh_ui_view_fields. */
-    lh_ui_view_fields(lh_ui_canvas_t, lh_ui_entity_t, lh_ui_color_t, lh_ui_rect_t,
+    lh_ui_view_fields(lh_ui_canvas_t, lh_ui_entity_t, lh_ui_color_t, lh_ui_rect_t, lh_ui_rects_t,
                       lh_ui_view_pointer_t);
 };
 /** @copybrief lh_ui_view */
@@ -137,19 +137,45 @@ lh_void
 lh_ui_view_set_root_v(lh_ui_view_t *self, lh_ui_entity_t *root);
 
 /**
- * @brief Union @p rect (root space) into the one rect the window has yet to
- *        paint. An empty rect is ignored.
+ * @brief Add @p rect (root space) to the region the window has yet to paint.
+ *
+ * The region is a ::lh_ui_rects_t (::lh_ui_rects_add): @p rect is merged with
+ * every pending rect it touches, and kept apart from the ones it does not, so
+ * two changes at the two ends of a screen are two rects and not the band
+ * between them. A full list squeezes @p rect into the stored rect the pair
+ * wastes the fewest pixels on; nothing is dropped. An empty rect is ignored.
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ * @param rect The rect that changed, in root space; checked by ::lh_assert_runtime_ref.
  */
 lh_void
 lh_ui_view_add_damage(lh_ui_view_t *self, const lh_ui_rect_t *rect);
 
 /**
- * @brief Hand back the rect ::lh_ui_view_add_damage has collected and clear it.
+ * @brief Whether ::lh_ui_view_add_damage has collected anything that
+ *        ::lh_ui_view_take_damage has not yet handed out.
  *
- * False when nothing has been recorded, and @p out is left untouched then.
+ * Asking does not consume the region.
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ * @return False for an empty pending region.
  */
 lh_bool_t
-lh_ui_view_take_damage(lh_ui_view_t *self, lh_ui_rect_t *out);
+lh_ui_view_has_damage(const lh_ui_view_t *self);
+
+/**
+ * @brief Hand back the region ::lh_ui_view_add_damage has collected and clear it.
+ *
+ * @p out receives the whole list, one rect per stretch that stands apart; a
+ * caller that can only invalidate one rect at a time invalidates each of them,
+ * and one that takes a single rect has to take the hull on purpose.
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ * @param out  Receives the region; checked by ::lh_assert_runtime_ref.
+ * @return False when nothing has been recorded, and @p out is left untouched then.
+ */
+lh_bool_t
+lh_ui_view_take_damage(lh_ui_view_t *self, lh_ui_rects_t *out);
 
 /**
  * @brief Root entity of @p self, or ::lh_null.
@@ -947,24 +973,24 @@ lh_void
 lh_ui_view_set_whole_count(lh_ui_view_t *self, lh_u32_t whole_count);
 
 /**
- * @brief The area that waits to be drawn, as one rectangle (level 1).
+ * @brief The region that waits to be drawn, as a list of rectangles (level 1).
  *
  * @param self The view; checked by ::lh_assert_runtime_ref.
  */
-const lh_ui_rect_t *
+const lh_ui_rects_t *
 lh_ui_view_get_pending(const lh_ui_view_t *self);
 
 /**
- * @brief The area that waits to be drawn, as one rectangle, to change in place (level 1).
+ * @brief The region that waits to be drawn, to change in place (level 1).
  *
  * @param self The view; checked by ::lh_assert_runtime_ref.
  * @return The member itself, never ::lh_null.
  */
-lh_ui_rect_t *
+lh_ui_rects_t *
 lh_ui_view_get_pending_mut(lh_ui_view_t *self);
 
 /**
- * @brief Store the area that waits to be drawn, as one rectangle (level 1).
+ * @brief Store the region that waits to be drawn (level 1).
  *
  * A level-1 setter: the value is stored as given and is not validated.
  *
@@ -972,26 +998,7 @@ lh_ui_view_get_pending_mut(lh_ui_view_t *self);
  * @param pending The new value.
  */
 lh_void
-lh_ui_view_set_pending(lh_ui_view_t *self, lh_ui_rect_t pending);
-
-/**
- * @brief Whether anything waits to be drawn (level 1).
- *
- * @param self The view; checked by ::lh_assert_runtime_ref.
- */
-lh_bool_t
-lh_ui_view_is_has_pending(const lh_ui_view_t *self);
-
-/**
- * @brief Store whether anything waits to be drawn (level 1).
- *
- * A level-1 setter: the value is stored as given and is not validated.
- *
- * @param self The view; checked by ::lh_assert_runtime_ref.
- * @param has_pending The new value.
- */
-lh_void
-lh_ui_view_set_has_pending(lh_ui_view_t *self, lh_bool_t has_pending);
+lh_ui_view_set_pending(lh_ui_view_t *self, lh_ui_rects_t pending);
 
 /**
  * @brief The transitions running (level 1).

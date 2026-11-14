@@ -363,10 +363,13 @@ Then draw with `lh_ui_view_draw(view, damage)`. `damage` is the rectangle to
 repaint; `lh_null` means "everything".
 
 **Repaint only what changed.** Each time something changes (a button is
-pressed, a list scrolls), the view grows its damage rectangle. Ask for it with
-`lh_ui_view_take_damage(view, &rect)`: it returns true when there is
-something to repaint, gives you the rectangle and starts collecting again. On
-the desktop you then tell the window to repaint that rectangle
+pressed, a list scrolls), the view adds its rectangle to a damage list
+(`lh_ui_rects_t`, at most `LH_UI_RECTS_MAX` = 16 rects: rects that touch are
+merged, rects that stand apart stay apart). Ask for it with
+`lh_ui_view_take_damage(view, &rects)`: it returns true when there is
+something to repaint, gives you the whole list and starts collecting again
+(`lh_ui_view_has_damage` asks without taking). On the desktop you then tell
+the window to repaint each rectangle of the list
 (`lh_os_window_invalidate_rect`). The window does not do this for you, not
 even when input changed something: you decide when to repaint.
 
@@ -759,11 +762,11 @@ static lh_void
 on_tick(lh_os_window_t *window, lh_ptr context)
 {
     struct my_main *self = lh_ptr_rcast(struct my_main, context);
-    lh_ui_rect_t damage;
+    lh_ui_rects_t damage;
 
     lh_ui_view_tick(lh_addr_of(self->view));                  /* glide, transitions     */
     if (lh_ui_view_take_damage(lh_addr_of(self->view), lh_addr_of(damage)))
-        my_invalidate(window, &damage);                       /* yours: invalidate_rect */
+        my_invalidate(window, &damage);                       /* yours: invalidate_rect per rect */
 }
 
 static lh_void
@@ -1375,10 +1378,11 @@ The same walk in words:
    calls `lh_ui_view_press_pointer(view, 1, point)`. The view ignores
    gestures.
 7. The view finds the button under the finger, marks it pressed, tells it
-   with an entity event, and grows its damage rectangle around the button.
+   with an entity event, and adds the button's rectangle to its damage list.
 8. On the next tick the window first calls `lh_os_controller_update` (a long
    press may come due), then your `on_tick`. There you call
-   `lh_ui_view_take_damage` and `lh_os_window_invalidate_rect`.
+   `lh_ui_view_take_damage` and `lh_os_window_invalidate_rect` for each rect of
+   the list it returns.
 9. Windows asks for a repaint. Your `on_paint` calls `lh_ui_view_draw` for the
    damaged rectangle. The button now looks pressed.
 10. The finger lifts: `WM_POINTERUP`, a `pointer_up` for pointer `1`, id `1`
