@@ -45,6 +45,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `_is_empty`, `_min`, `_max`, `_min_side` and `_inset`. The fields stay private:
   callers use the methods only.
 
+- `lh_gl_entity_t` (`lh/gl/entity.h`, `entity/fields.h`, `entity/initializer.h`) and
+  `lh_gl_entity_class_t` (`lh/gl/entity/class.h`, `class/fields.h`, `class/initializer.h`,
+  `class/kind.h`, `class/draw/fn.h`, `class/draw/cb.h`): the portable UI core. An entity is
+  a `rect` (relative to its parent), a `parent` (`lh_gl_layer_t *`, null for a root), a
+  pointer to a `const` class table (a kind, entity or layer, and a draw callback
+  `draw(const entity*, canvas*)`) and an `lh_list_node_t` that links it into its parent's
+  list. It knows nothing about input, styles or drivers, and nothing is allocated.
+  Methods: `lh_gl_entity_get_rect` / `_get_rect_mut` / `_set_rect`, `_get_parent` /
+  `_set_parent`, `_get_class` / `_set_class`, `_get_node` / `_get_node_mut`, `_from_node`,
+  `_init`, `_get_kind`, `_is_layer`, `_is_root` and `_draw`; the class has
+  `lh_gl_entity_class_get_kind` / `_set_kind`, `_get_draw_cb` / `_set_draw_cb`, `_init` and
+  `_is_layer`. The forward declarations `lh/gl/entity/decl.h`, `lh/gl/layer/decl.h` and
+  `lh/gl/canvas/decl.h` break the include cycles and give the draw callback its signature.
+
+- `lh_gl_layer_t` (`lh/gl/layer.h`, `layer/fields.h`, `layer/initializer.h`): an entity
+  that holds other entities, so a layer can be put into a layer. The children are an
+  `lh_list_t` of intrusive nodes that live in the entities; the layer owns the links, not
+  the children, and allocates nothing. List order is z-order (the last child is the
+  front). Methods: `lh_gl_layer_get_entity` / `_get_entity_mut`, `_get_items` /
+  `_get_items_mut`, `_get_count`, `_get_class`, `_init`, `_deinit`, `_is_empty`,
+  `_is_valid_index`, `_get_item`, `_try_find`, `_is_within`, `_try_add` / `_add`,
+  `_remove_at` and `_try_remove`. `_try_add` makes the layer the parent of the child and
+  refuses a child that already has a parent, and the layer itself or one of its
+  ancestors. `_deinit` unlinks every remaining child and clears its parent.
 - Container `scroll_enabled` separates native scrolling from holding children.
   Containers enable it by default; buttons disable it. Programmatic positioning
   remains available, and scroll_chain independently controls ancestor routing.

@@ -121,6 +121,20 @@ the kinds already promise.
 a test against a fake backend), evdev (about 200 lines, and it brings the
 device events with it).
 
+## 5. A general allocator over a static buffer
+
+**Today.** `lh/core/memory` has the allocator interface
+(`lh_memory_allocator_t`), the size-remembering wrapper
+(`sized/allocator.h`) and byte kernels. There is no allocator of its own:
+no pool, no arena, no free-list. Bare-metal projects write their own bump
+pools, whose `free` returns nothing.
+
+**Target.** One brick that takes a caller's static buffer and hands out and
+takes back blocks with a real `free`, the way LVGL's builtin heap runs TLSF
+over `work_mem_int[LV_MEM_SIZE]`. It plugs into `lh_runtime_allocator` or
+any `*_init_by`, so `lh_array_t` and the `lh/gl` layer run on it without
+changes. Needed for UI on a heapless target, where entities are created and
+destroyed all the time.
 ## Not a game layer
 
 The gamepad belongs to the applications that use the desktop stack — the 3D
