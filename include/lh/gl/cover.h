@@ -29,6 +29,17 @@ lh_gl_cover_round_rect(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_gl_sc
                        lh_gl_scalar_t y);
 
 /**
+ * @brief Half-open horizontal run of pixels on row @p y that
+ *        ::lh_gl_cover_round_rect covers.
+ *
+ * Writes [@p x0, @p x1). Returns false when the row misses the shape, and then
+ * leaves @p x0 and @p x1 untouched.
+ */
+lh_bool_t
+lh_gl_cover_round_rect_span(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_gl_scalar_t y,
+                            lh_gl_scalar_t *x0, lh_gl_scalar_t *x1);
+
+/**
  * @brief `255` when the center of pixel (@p x, @p y) lies in the circle.
  *        A radius below 1 covers nothing.
  */

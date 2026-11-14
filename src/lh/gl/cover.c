@@ -4,7 +4,8 @@
  */
 #include <lh/gl/cover.h>
 
-#include <lh/core/math/ops.h>
+#include <lh/core/assert/runtime.h>
+#include <lh/core/math/isqrt.h>
 
 lh_gl_color_channel_t
 lh_gl_cover_round_rect(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_gl_scalar_t x,
@@ -73,6 +74,78 @@ lh_gl_cover_round_rect(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_gl_sc
         return 255;
     }
     return 0;
+}
+
+lh_bool_t
+lh_gl_cover_round_rect_span(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_gl_scalar_t y,
+                            lh_gl_scalar_t *x0, lh_gl_scalar_t *x1)
+{
+    lh_assert_runtime_ref(rect);
+    lh_assert_runtime_ref(x0);
+    lh_assert_runtime_ref(x1);
+    const lh_gl_point_t *origin = lh_gl_rect_get_origin(rect);
+    lh_gl_scalar_t left = lh_gl_point_get_x(origin);
+    lh_gl_scalar_t top = lh_gl_point_get_y(origin);
+    lh_gl_scalar_t width = lh_gl_size_get_width(lh_gl_rect_get_size(rect));
+    lh_gl_scalar_t height = lh_gl_size_get_height(lh_gl_rect_get_size(rect));
+
+    if (y < top || y >= top + height || width <= 0)
+    {
+        return lh_bool_false;
+    }
+    if (radius < 0)
+    {
+        radius = 0;
+    }
+    lh_gl_scalar_t limit_r = lh_math_min(width, height) / 2;
+
+    if (radius > limit_r)
+    {
+        radius = limit_r;
+    }
+    if (radius == 0 || (y >= top + radius && y < top + height - radius))
+    {
+        lh_ptr_deref(x0) = left;
+        lh_ptr_deref(x1) = left + width;
+        return lh_bool_true;
+    }
+    {
+        lh_gl_scalar_t cy = y < top + radius ? top + radius : top + height - radius;
+        lh_s64_t py = 2 * lh_cast_static(lh_s64_t, y) + 1 - 2 * lh_cast_static(lh_s64_t, cy);
+        lh_s64_t reach = 2 * lh_cast_static(lh_s64_t, radius);
+        lh_s64_t remain = reach * reach - py * py;
+
+        if (remain <= 0)
+        {
+            return lh_bool_false;
+        }
+        lh_s64_t limit =
+            lh_cast_static(lh_s64_t, lh_math_isqrt_u64(lh_cast_static(lh_u64_t, remain)));
+
+        if (limit <= 0)
+        {
+            return lh_bool_false;
+        }
+        lh_gl_scalar_t start = left + radius + lh_cast_static(lh_gl_scalar_t, (-limit - 1) / 2);
+        lh_gl_scalar_t end =
+            left + width - radius + lh_cast_static(lh_gl_scalar_t, (limit - 1) / 2) + 1;
+
+        if (start < left)
+        {
+            start = left;
+        }
+        if (end > left + width)
+        {
+            end = left + width;
+        }
+        if (start >= end)
+        {
+            return lh_bool_false;
+        }
+        lh_ptr_deref(x0) = start;
+        lh_ptr_deref(x1) = end;
+    }
+    return lh_bool_true;
 }
 
 lh_gl_color_channel_t

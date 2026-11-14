@@ -103,7 +103,7 @@ TEST(gl_canvas, primitives_move_by_origin_and_skip_a_miss)
 {
     const lh_gl_canvas_backend_t backend = lh_gl_canvas_backend_initializer(
         record_fill_rect, record_stroke_rect, record_fill_circle, lh_null, record_round, lh_null,
-        lh_null);
+        lh_null, lh_null);
     lh_gl_canvas_t canvas = canvas_at(10, 20, lh_addr_of(backend));
     lh_gl_color_t color;
 

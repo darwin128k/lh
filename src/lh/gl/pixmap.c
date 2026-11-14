@@ -13,7 +13,8 @@ static const lh_gl_canvas_backend_t lh_gl_pixmap_canvas_backend =
                                      lh_gl_pixmap_canvas_stroke_circle,
                                      lh_gl_pixmap_canvas_fill_round_rect,
                                      lh_gl_pixmap_canvas_stroke_round_rect,
-                                     lh_gl_pixmap_canvas_fill_triangle);
+                                     lh_gl_pixmap_canvas_fill_triangle,
+                                     lh_gl_pixmap_canvas_fill_colors);
 
 lh_gl_color_t *
 lh_gl_pixmap_get_pixels_mut(lh_gl_pixmap_t *self)
@@ -118,16 +119,37 @@ lh_gl_pixmap_fill_rect(lh_gl_pixmap_t *self, const lh_gl_rect_t *clip, const lh_
     {
         return;
     }
+    lh_gl_color_channel_t alpha = lh_gl_color_get_a(color);
+
+    if (alpha == 0)
+    {
+        return;
+    }
     const lh_gl_point_t *origin = lh_gl_rect_get_origin(lh_addr_of(area));
     const lh_gl_size_t *area_size = lh_gl_rect_get_size(lh_addr_of(area));
+    lh_gl_scalar_t x0 = lh_gl_point_get_x(origin);
+    lh_gl_scalar_t y0 = lh_gl_point_get_y(origin);
+    lh_gl_scalar_t row_width = lh_gl_size_get_width(area_size);
+    lh_gl_scalar_t row_height = lh_gl_size_get_height(area_size);
 
-    for (lh_gl_scalar_t y = lh_gl_point_get_y(origin);
-         y < lh_gl_point_get_y(origin) + lh_gl_size_get_height(area_size); ++y)
+    for (lh_gl_scalar_t row = 0; row < row_height; ++row)
     {
-        for (lh_gl_scalar_t x = lh_gl_point_get_x(origin);
-             x < lh_gl_point_get_x(origin) + lh_gl_size_get_width(area_size); ++x)
+        lh_gl_color_t *pixel = lh_gl_pixmap_get_pixel_mut(self, x0, y0 + row);
+
+        for (lh_gl_scalar_t col = 0; col < row_width; ++col)
         {
-            lh_gl_pixmap_blend_pixel(self, x, y, color);
+            if (alpha == 255)
+            {
+                lh_ptr_deref(pixel) = lh_ptr_deref(color);
+            }
+            else
+            {
+                lh_gl_color_t mixed;
+
+                lh_gl_color_over(pixel, color, lh_addr_of(mixed));
+                lh_ptr_deref(pixel) = mixed;
+            }
+            pixel = lh_ptr_add_by_offset(lh_gl_color_t, pixel, sizeof(lh_gl_color_t));
         }
     }
 }
@@ -141,6 +163,88 @@ lh_gl_pixmap_canvas_fill_rect(lh_ptr target, const lh_gl_rect_t *clip, const lh_
         return;
     }
     lh_gl_pixmap_fill_rect(lh_ptr_cast(lh_gl_pixmap_t, target), clip, rect, color);
+}
+
+lh_void
+lh_gl_pixmap_fill_colors(lh_gl_pixmap_t *self, const lh_gl_rect_t *clip, lh_gl_scalar_t x,
+                         lh_gl_scalar_t y, const lh_gl_color_t *colors, lh_gl_scalar_t count)
+{
+    lh_assert_runtime_ref(clip);
+    lh_assert_runtime_ref(colors);
+    if (count <= 0 || lh_ptr_is_null(lh_gl_pixmap_get_pixels(self)))
+    {
+        return;
+    }
+    const lh_gl_point_t *clip_origin = lh_gl_rect_get_origin(clip);
+    lh_gl_scalar_t clip_x = lh_gl_point_get_x(clip_origin);
+    lh_gl_scalar_t clip_y = lh_gl_point_get_y(clip_origin);
+    lh_gl_scalar_t clip_right = clip_x + lh_gl_size_get_width(lh_gl_rect_get_size(clip));
+    lh_gl_scalar_t clip_bottom = clip_y + lh_gl_size_get_height(lh_gl_rect_get_size(clip));
+    const lh_gl_size_t *size = lh_gl_pixmap_get_size(self);
+    lh_gl_scalar_t pixmap_width = lh_gl_size_get_width(size);
+    lh_gl_scalar_t pixmap_height = lh_gl_size_get_height(size);
+
+    if (y < 0 || y < clip_y || y >= clip_bottom || y >= pixmap_height)
+    {
+        return;
+    }
+    lh_gl_scalar_t from = x;
+    lh_gl_scalar_t to = x + count;
+
+    if (from < 0)
+    {
+        from = 0;
+    }
+    if (from < clip_x)
+    {
+        from = clip_x;
+    }
+    if (to > clip_right)
+    {
+        to = clip_right;
+    }
+    if (to > pixmap_width)
+    {
+        to = pixmap_width;
+    }
+    if (from >= to)
+    {
+        return;
+    }
+    lh_gl_color_t *pixel = lh_gl_pixmap_get_pixel_mut(self, from, y);
+    const lh_gl_color_t *sample =
+        lh_ptr_add_by_offset(const lh_gl_color_t, colors,
+                             (lh_uaddr_t)(from - x) * sizeof(lh_gl_color_t));
+
+    for (lh_gl_scalar_t at = from; at < to; ++at)
+    {
+        lh_gl_color_channel_t alpha = lh_gl_color_get_a(sample);
+
+        if (alpha == 255)
+        {
+            lh_ptr_deref(pixel) = lh_ptr_deref(sample);
+        }
+        else if (alpha != 0)
+        {
+            lh_gl_color_t mixed;
+
+            lh_gl_color_over(pixel, sample, lh_addr_of(mixed));
+            lh_ptr_deref(pixel) = mixed;
+        }
+        pixel = lh_ptr_add_by_offset(lh_gl_color_t, pixel, sizeof(lh_gl_color_t));
+        sample = lh_ptr_add_by_offset(const lh_gl_color_t, sample, sizeof(lh_gl_color_t));
+    }
+}
+
+lh_void
+lh_gl_pixmap_canvas_fill_colors(lh_ptr target, const lh_gl_rect_t *clip, lh_gl_scalar_t x,
+                                lh_gl_scalar_t y, const lh_gl_color_t *colors, lh_gl_scalar_t count)
+{
+    if (lh_ptr_is_null(target))
+    {
+        return;
+    }
+    lh_gl_pixmap_fill_colors(lh_ptr_cast(lh_gl_pixmap_t, target), clip, x, y, colors, count);
 }
 
 lh_void

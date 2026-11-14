@@ -127,27 +127,45 @@ lh_gl_text_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
             if (lh_ptr_is_set(bits) && width > 0 && height > 0)
             {
                 lh_gl_scalar_t top = lh_gl_glyph_get_top(glyph);
+                lh_gl_scalar_t baseline = lh_gl_font_get_ascent(font) + top;
 
                 for (lh_gl_scalar_t row = 0; row < height; ++row)
                 {
-                    for (lh_gl_scalar_t col = 0; col < width; ++col)
-                    {
-                        const lh_byte_t *sample = lh_ptr_add_by_offset(
-                            const lh_byte_t, bits,
-                            (lh_uaddr_t)row * (lh_uaddr_t)width + (lh_uaddr_t)col);
+                    const lh_byte_t *samples = lh_ptr_add_by_offset(
+                        const lh_byte_t, bits, (lh_uaddr_t)row * (lh_uaddr_t)width);
 
-                        if (lh_ptr_deref(sample) == 0)
+                    for (lh_gl_scalar_t col = 0; col < width;)
+                    {
+                        lh_byte_t cover = lh_ptr_deref(
+                            lh_ptr_add_by_offset(const lh_byte_t, samples, (lh_uaddr_t)col));
+
+                        if (cover == 0)
                         {
+                            col = col + 1;
+                            continue;
+                        }
+                        lh_gl_scalar_t start = col;
+
+                        col = col + 1;
+                        while (col < width &&
+                               lh_ptr_deref(lh_ptr_add_by_offset(const lh_byte_t, samples,
+                                                                 (lh_uaddr_t)col)) == cover)
+                        {
+                            col = col + 1;
+                        }
+                        lh_gl_rect_t run;
+
+                        lh_gl_rect_init(lh_addr_of(run), pen + start, baseline + row, col - start,
+                                        1);
+                        if (cover == 255)
+                        {
+                            lh_gl_canvas_fill_rect(canvas, lh_addr_of(run), color);
                             continue;
                         }
                         lh_gl_color_t ink;
 
-                        lh_gl_color_scale_alpha(color, lh_ptr_deref(sample), lh_addr_of(ink));
-                        lh_gl_rect_t pixel;
-
-                        lh_gl_rect_init(lh_addr_of(pixel), pen + col,
-                                        lh_gl_font_get_ascent(font) + top + row, 1, 1);
-                        lh_gl_canvas_fill_rect(canvas, lh_addr_of(pixel), lh_addr_of(ink));
+                        lh_gl_color_scale_alpha(color, cover, lh_addr_of(ink));
+                        lh_gl_canvas_fill_rect(canvas, lh_addr_of(run), lh_addr_of(ink));
                     }
                 }
             }

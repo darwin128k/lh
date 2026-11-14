@@ -100,6 +100,15 @@ lh_gl_shadow_distance(lh_gl_scalar_t x, lh_gl_scalar_t y, const lh_gl_rect_t *re
                       lh_gl_scalar_t radius);
 
 /**
+ * @brief ::lh_gl_shadow_distance for a box already reduced to its center and
+ *        half sizes. @p radius is used as given.
+ */
+lh_gl_scalar_t
+lh_gl_shadow_distance_at(lh_gl_scalar_t x, lh_gl_scalar_t y, lh_gl_scalar_t center_x,
+                         lh_gl_scalar_t center_y, lh_gl_scalar_t half_width,
+                         lh_gl_scalar_t half_height, lh_gl_scalar_t radius);
+
+/**
  * @brief `peak` one spread inside the edge, zero one spread outside.
  *
  * Truncates. A spread that is not positive, or a zero peak, returns 0.

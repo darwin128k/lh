@@ -92,6 +92,16 @@ lh_void
 lh_gl_canvas_fill_rect(lh_gl_canvas_t *self, const lh_gl_rect_t *rect, const lh_gl_color_t *color);
 
 /**
+ * @brief Paint @p count colors along one row, origin-relative.
+ *
+ * @p colors[i] is pixel @p x + i on row @p y. Without a backend call, each
+ * pixel is one ::lh_gl_canvas_fill_rect.
+ */
+lh_void
+lh_gl_canvas_fill_colors(lh_gl_canvas_t *self, lh_gl_scalar_t x, lh_gl_scalar_t y,
+                         const lh_gl_color_t *colors, lh_gl_scalar_t count);
+
+/**
  * @brief Stroke the border of @p rect with @p pen, in origin-relative coordinates.
  *
  * The pen grows the tested bounds outward. A negative pen width tests as zero.

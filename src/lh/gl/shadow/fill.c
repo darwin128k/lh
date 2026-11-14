@@ -139,27 +139,355 @@ lh_gl_shadow_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
                     lh_gl_point_get_y(box_origin) - lh_gl_point_get_y(entity_origin),
                     lh_gl_size_get_width(lh_gl_rect_get_size(box)),
                     lh_gl_size_get_height(lh_gl_rect_get_size(box)));
+    lh_gl_scalar_t radius =
+        lh_gl_shadow_fill_get_radius(lh_ptr_ccast(lh_gl_shadow_fill_t, entity));
+    lh_gl_scalar_t corner = lh_gl_shadow_clamp_radius(lh_addr_of(local), radius);
+    lh_gl_scalar_t box_left = lh_gl_point_get_x(box_origin) - lh_gl_point_get_x(entity_origin);
+    lh_gl_scalar_t box_top = lh_gl_point_get_y(box_origin) - lh_gl_point_get_y(entity_origin);
+    lh_gl_scalar_t box_width = lh_gl_size_get_width(lh_gl_rect_get_size(box));
+    lh_gl_scalar_t box_height = lh_gl_size_get_height(lh_gl_rect_get_size(box));
+    lh_gl_scalar_t center_x = box_left + box_width / 2;
+    lh_gl_scalar_t center_y = box_top + box_height / 2;
+    lh_gl_scalar_t half_width = box_width / 2;
+    lh_gl_scalar_t half_height = box_height / 2;
+    lh_gl_scalar_t shift_x = lh_gl_shadow_get_offset_x(shadow);
+    lh_gl_scalar_t shift_y = lh_gl_shadow_get_offset_y(shadow);
+    lh_gl_scalar_t spread = lh_gl_shadow_get_spread(shadow);
+    lh_gl_color_channel_t peak = lh_gl_color_get_a(lh_gl_shadow_get_color(shadow));
+    lh_gl_color_channel_t ramp[257];
+    lh_bool_t use_ramp = spread > 0 && spread <= 128 ? lh_bool_true : lh_bool_false;
+
+    if (use_ramp == lh_bool_true)
+    {
+        for (lh_gl_scalar_t distance = -spread; distance <= spread; ++distance)
+        {
+            ramp[distance + spread] = lh_gl_shadow_falloff(distance, spread, peak);
+        }
+    }
+    lh_gl_color_channel_t red = lh_gl_color_get_r(lh_gl_shadow_get_color(shadow));
+    lh_gl_color_channel_t green = lh_gl_color_get_g(lh_gl_shadow_get_color(shadow));
+    lh_gl_color_channel_t blue = lh_gl_color_get_b(lh_gl_shadow_get_color(shadow));
+
     for (lh_gl_scalar_t y = 0; y < height; ++y)
     {
+        lh_gl_color_t chunk[128];
+        lh_gl_scalar_t run_x = 0;
+        lh_gl_scalar_t run_n = 0;
+        lh_gl_scalar_t dy_box = lh_math_abs(y - center_y) - (half_height - corner);
+        lh_gl_scalar_t dy_shift =
+            lh_math_abs(y - (center_y + shift_y)) - (half_height - corner);
+
+        if (corner > 0 && shift_x == 0 && dy_box <= 0 && dy_shift <= 0)
+        {
+            lh_gl_scalar_t edge = center_x - half_width;
+            lh_gl_scalar_t from = edge - spread;
+            lh_gl_scalar_t to = edge;
+
+            if (from < 0)
+            {
+                from = 0;
+            }
+            if (to >= width)
+            {
+                to = width - 1;
+            }
+            for (lh_gl_scalar_t side = 0; side < 2; ++side)
+            {
+                if (side == 1)
+                {
+                    edge = center_x + half_width;
+                    from = edge;
+                    to = edge + spread;
+                    if (from < 0)
+                    {
+                        from = 0;
+                    }
+                    if (to >= width)
+                    {
+                        to = width - 1;
+                    }
+                }
+                run_n = 0;
+                for (lh_gl_scalar_t x = from; x <= to; ++x)
+                {
+                    lh_gl_scalar_t distance = side == 0 ? edge - x : x - edge;
+                    lh_gl_color_channel_t coverage;
+
+                    if (use_ramp == lh_bool_true)
+                    {
+                        if (distance < -spread)
+                        {
+                            distance = -spread;
+                        }
+                        if (distance > spread)
+                        {
+                            distance = spread;
+                        }
+                        coverage = ramp[distance + spread];
+                    }
+                    else
+                    {
+                        coverage = lh_gl_shadow_falloff(distance, spread, peak);
+                    }
+                    if (coverage == 0)
+                    {
+                        if (run_n > 0)
+                        {
+                            lh_gl_canvas_fill_colors(canvas, run_x, y, chunk, run_n);
+                            run_n = 0;
+                        }
+                        continue;
+                    }
+                    if (run_n == 128)
+                    {
+                        lh_gl_canvas_fill_colors(canvas, run_x, y, chunk, run_n);
+                        run_n = 0;
+                    }
+                    if (run_n == 0)
+                    {
+                        run_x = x;
+                    }
+                    lh_gl_color_t *ink = lh_ptr_add_by_offset(
+                        lh_gl_color_t, chunk, (lh_uaddr_t)run_n * sizeof(lh_gl_color_t));
+
+                    lh_gl_color_init(ink, red, green, blue, coverage);
+                    run_n = run_n + 1;
+                }
+                if (run_n > 0)
+                {
+                    lh_gl_canvas_fill_colors(canvas, run_x, y, chunk, run_n);
+                }
+            }
+            continue;
+        }
+        if (corner > 0 && shift_x == 0 && dy_box > 0 && dy_shift > 0)
+        {
+            lh_gl_scalar_t inner = half_width - corner;
+            lh_gl_scalar_t mid_left = center_x - inner;
+            lh_gl_scalar_t mid_right = center_x + inner;
+
+            if (dy_box - corner >= 0)
+            {
+                lh_gl_scalar_t distance = dy_shift - corner;
+                lh_gl_color_channel_t coverage;
+                lh_gl_scalar_t from = mid_left;
+                lh_gl_scalar_t to = mid_right;
+
+                if (use_ramp == lh_bool_true)
+                {
+                    if (distance < -spread)
+                    {
+                        distance = -spread;
+                    }
+                    if (distance > spread)
+                    {
+                        distance = spread;
+                    }
+                    coverage = ramp[distance + spread];
+                }
+                else
+                {
+                    coverage = lh_gl_shadow_falloff(distance, spread, peak);
+                }
+                if (from < 0)
+                {
+                    from = 0;
+                }
+                if (to >= width)
+                {
+                    to = width - 1;
+                }
+                if (coverage != 0 && from <= to)
+                {
+                    lh_gl_color_t ink;
+
+                    lh_gl_color_init(lh_addr_of(ink), red, green, blue, coverage);
+                    lh_gl_rect_t band;
+
+                    lh_gl_rect_init(lh_addr_of(band), from, y, to - from + 1, 1);
+                    lh_gl_canvas_fill_rect(canvas, lh_addr_of(band), lh_addr_of(ink));
+                }
+            }
+            lh_u64_t ay2_box = lh_cast_static(lh_u64_t, dy_box) * lh_cast_static(lh_u64_t, dy_box);
+            lh_u64_t ay2_shift =
+                lh_cast_static(lh_u64_t, dy_shift) * lh_cast_static(lh_u64_t, dy_shift);
+            lh_gl_scalar_t root_box = 0;
+            lh_gl_scalar_t root_shift = 0;
+            lh_gl_scalar_t x_begin = mid_left - (spread + corner + 2);
+
+            if (x_begin < 0)
+            {
+                x_begin = 0;
+            }
+            run_n = 0;
+            for (lh_gl_scalar_t side = 0; side < 2; ++side)
+            {
+                lh_gl_scalar_t x_from = side == 0 ? x_begin : mid_right + 1;
+                lh_gl_scalar_t x_to = side == 0 ? mid_left : width;
+
+                root_box = 0;
+                root_shift = 0;
+                run_n = 0;
+                for (lh_gl_scalar_t x = x_from; x < x_to; ++x)
+                {
+                    lh_gl_scalar_t dx = side == 0 ? mid_left - x : x - mid_right;
+                    lh_u64_t dx2 = lh_cast_static(lh_u64_t, dx) * lh_cast_static(lh_u64_t, dx);
+                    lh_u64_t square_box = dx2 + ay2_box;
+                    lh_u64_t square_shift = dx2 + ay2_shift;
+
+                    while (root_box > 0 &&
+                           lh_cast_static(lh_u64_t, root_box) * root_box > square_box)
+                    {
+                        root_box = root_box - 1;
+                    }
+                    while (lh_cast_static(lh_u64_t, root_box + 1) * (root_box + 1) <= square_box)
+                    {
+                        root_box = root_box + 1;
+                    }
+                    while (root_shift > 0 &&
+                           lh_cast_static(lh_u64_t, root_shift) * root_shift > square_shift)
+                    {
+                        root_shift = root_shift - 1;
+                    }
+                    while (lh_cast_static(lh_u64_t, root_shift + 1) * (root_shift + 1) <=
+                           square_shift)
+                    {
+                        root_shift = root_shift + 1;
+                    }
+                    if (root_box - corner < 0)
+                    {
+                        if (side == 0)
+                        {
+                            break;
+                        }
+                        continue;
+                    }
+                    lh_gl_scalar_t distance = root_shift - corner;
+
+                    if (distance >= spread)
+                    {
+                        if (side == 1)
+                        {
+                            break;
+                        }
+                        continue;
+                    }
+                    lh_gl_color_channel_t coverage;
+
+                    if (use_ramp == lh_bool_true)
+                    {
+                        if (distance < -spread)
+                        {
+                            distance = -spread;
+                        }
+                        coverage = ramp[distance + spread];
+                    }
+                    else
+                    {
+                        coverage = lh_gl_shadow_falloff(distance, spread, peak);
+                    }
+                    if (coverage == 0)
+                    {
+                        continue;
+                    }
+                    if (run_n == 128)
+                    {
+                        lh_gl_canvas_fill_colors(canvas, run_x, y, chunk, run_n);
+                        run_n = 0;
+                    }
+                    if (run_n == 0)
+                    {
+                        run_x = x;
+                    }
+                    lh_gl_color_t *ink = lh_ptr_add_by_offset(
+                        lh_gl_color_t, chunk, (lh_uaddr_t)run_n * sizeof(lh_gl_color_t));
+
+                    lh_gl_color_init(ink, red, green, blue, coverage);
+                    run_n = run_n + 1;
+                }
+                if (run_n > 0)
+                {
+                    lh_gl_canvas_fill_colors(canvas, run_x, y, chunk, run_n);
+                }
+            }
+            continue;
+        }
+
         for (lh_gl_scalar_t x = 0; x < width; ++x)
         {
-            lh_gl_color_channel_t coverage = lh_gl_shadow_alpha_at(
-                shadow, x, y, lh_addr_of(local),
-                lh_gl_shadow_fill_get_radius(lh_ptr_ccast(lh_gl_shadow_fill_t, entity)));
+            lh_gl_color_channel_t coverage = 0;
+
+            if (corner == 0)
+            {
+                if (x >= box_left && x < box_left + box_width && y >= box_top &&
+                    y < box_top + box_height)
+                {
+                    coverage = 0;
+                }
+                else
+                {
+                    coverage = 1;
+                }
+            }
+            else if (lh_gl_shadow_distance_at(x, y, center_x, center_y, half_width, half_height,
+                                              corner) < 0)
+            {
+                coverage = 0;
+            }
+            else
+            {
+                coverage = 1;
+            }
+            if (coverage != 0)
+            {
+                lh_gl_scalar_t distance =
+                    lh_gl_shadow_distance_at(x, y, center_x + shift_x, center_y + shift_y,
+                                             half_width, half_height, corner);
+
+                if (use_ramp == lh_bool_true)
+                {
+                    if (distance < -spread)
+                    {
+                        distance = -spread;
+                    }
+                    if (distance > spread)
+                    {
+                        distance = spread;
+                    }
+                    coverage = ramp[distance + spread];
+                }
+                else
+                {
+                    coverage = lh_gl_shadow_falloff(distance, spread, peak);
+                }
+            }
 
             if (coverage == 0)
             {
+                if (run_n > 0)
+                {
+                    lh_gl_canvas_fill_colors(canvas, run_x, y, chunk, run_n);
+                    run_n = 0;
+                }
                 continue;
             }
-            lh_gl_color_t ink;
-
-            lh_gl_color_init(lh_addr_of(ink), lh_gl_color_get_r(lh_gl_shadow_get_color(shadow)),
-                             lh_gl_color_get_g(lh_gl_shadow_get_color(shadow)),
-                             lh_gl_color_get_b(lh_gl_shadow_get_color(shadow)), coverage);
-            lh_gl_rect_t pixel;
-
-            lh_gl_rect_init(lh_addr_of(pixel), x, y, 1, 1);
-            lh_gl_canvas_fill_rect(canvas, lh_addr_of(pixel), lh_addr_of(ink));
+            if (run_n == 128)
+            {
+                lh_gl_canvas_fill_colors(canvas, run_x, y, chunk, run_n);
+                run_n = 0;
+            }
+            if (run_n == 0)
+            {
+                run_x = x;
+            }
+            lh_gl_color_init(lh_ptr_add_by_offset(lh_gl_color_t, chunk,
+                                                  (lh_uaddr_t)run_n * sizeof(lh_gl_color_t)),
+                             red, green, blue, coverage);
+            run_n = run_n + 1;
+        }
+        if (run_n > 0)
+        {
+            lh_gl_canvas_fill_colors(canvas, run_x, y, chunk, run_n);
         }
     }
 }

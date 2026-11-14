@@ -107,6 +107,22 @@ lh_gl_pixmap_canvas_fill_rect(lh_ptr target, const lh_gl_rect_t *clip, const lh_
                               const lh_gl_color_t *color);
 
 /**
+ * @brief Paint @p count colors starting at (@p x, @p y), one pixel each.
+ *
+ * @p colors[i] is pixel @p x + i. The run is clipped to @p clip and to the
+ * pixmap. Alpha 255 replaces. A lower alpha blends. A null row writes nothing.
+ */
+lh_void
+lh_gl_pixmap_fill_colors(lh_gl_pixmap_t *self, const lh_gl_rect_t *clip, lh_gl_scalar_t x,
+                         lh_gl_scalar_t y, const lh_gl_color_t *colors, lh_gl_scalar_t count);
+
+/** @brief ::lh_gl_canvas_fill_colors_fn for a pixmap stored in @p target. */
+lh_void
+lh_gl_pixmap_canvas_fill_colors(lh_ptr target, const lh_gl_rect_t *clip, lh_gl_scalar_t x,
+                                lh_gl_scalar_t y, const lh_gl_color_t *colors,
+                                lh_gl_scalar_t count);
+
+/**
  * @brief Blend @p color over the one pixel (@p x, @p y).
  *
  * @p x and @p y are inside the size. A null pixel row writes nothing.

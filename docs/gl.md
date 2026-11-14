@@ -84,11 +84,12 @@ as of 2026-11-14 and the plan agreed with Egor.
 
 ## Next, in order
 
-1. The 24-card scene draws, and each pixel is its own rectangle. Release, this
-   machine, clear plus draw, 8 frames: cards 5877 µs, partial 326, vertical
-   5923, radial 8275, shadow 11767. The old table is an i7-13700K (cards 200 µs,
-   partial 9.3, vertical 322, radial 1030, shadow 1024). The captions here are
-   an 8×12 block, not Roboto 16 px.
+1. The 24-card scene is in the old range. Release, this machine, 8 frames:
+   cards 285 µs, partial 9 (one card on an already drawn frame), vertical 283,
+   radial 1249, shadow 1335. Before the row fills those were 5877, 326, 5923,
+   8275, 11767. The i7-13700K table is cards 200 µs, partial 9.3, vertical 322,
+   radial 1030, shadow 1024. Radial and shadow are still about a third over
+   that table. Captions are an 8×12 block, not Roboto 16 px.
 2. A scene stays an ordinary child layer until a swipe and a back stack need
    their own behaviour. Renderer packets over rail when another loop draws.
    Try on the panel after that.

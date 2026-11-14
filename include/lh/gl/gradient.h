@@ -93,6 +93,20 @@ lh_gl_color_channel_t
 lh_gl_gradient_radial_frac(lh_gl_scalar_t width, lh_gl_scalar_t height, lh_gl_scalar_t x,
                            lh_gl_scalar_t y);
 
+/**
+ * @brief Pixel @p along on an axis of @p length, scaled by 1024. Zero when
+ *        @p length is not positive. The middle sample is 0.
+ */
+lh_s64_t
+lh_gl_gradient_radial_axis(lh_gl_scalar_t along, lh_gl_scalar_t length);
+
+/**
+ * @brief ::lh_gl_gradient_radial_frac from `ux*ux + uy*uy`, the squares of
+ *        ::lh_gl_gradient_radial_axis.
+ */
+lh_gl_color_channel_t
+lh_gl_gradient_radial_frac_from_square(lh_u64_t square);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_GL_GRADIENT_H */

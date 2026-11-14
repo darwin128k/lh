@@ -102,6 +102,43 @@ lh_gl_canvas_fill_rect(lh_gl_canvas_t *self, const lh_gl_rect_t *rect, const lh_
 }
 
 lh_void
+lh_gl_canvas_fill_colors(lh_gl_canvas_t *self, lh_gl_scalar_t x, lh_gl_scalar_t y,
+                         const lh_gl_color_t *colors, lh_gl_scalar_t count)
+{
+    lh_assert_runtime_ref(colors);
+    if (count <= 0)
+    {
+        return;
+    }
+    const lh_gl_canvas_backend_t *backend = lh_gl_canvas_get_backend(self);
+
+    if (lh_ptr_is_null(backend))
+    {
+        return;
+    }
+    const lh_gl_point_t *origin = lh_gl_canvas_get_origin(self);
+    lh_gl_scalar_t root_x = x + lh_gl_point_get_x(origin);
+    lh_gl_scalar_t root_y = y + lh_gl_point_get_y(origin);
+    lh_gl_canvas_fill_colors_fn *fill = lh_gl_canvas_backend_get_fill_colors(backend);
+
+    if (lh_ptr_is_set(fill))
+    {
+        fill(lh_gl_canvas_get_target(self), lh_gl_canvas_get_clip(self), root_x, root_y, colors,
+             count);
+        return;
+    }
+    for (lh_gl_scalar_t i = 0; i < count; ++i)
+    {
+        lh_gl_rect_t pixel;
+
+        lh_gl_rect_init(lh_addr_of(pixel), x + i, y, 1, 1);
+        lh_gl_canvas_fill_rect(self, lh_addr_of(pixel),
+                               lh_ptr_add_by_offset(const lh_gl_color_t, colors,
+                                                    (lh_uaddr_t)i * sizeof(lh_gl_color_t)));
+    }
+}
+
+lh_void
 lh_gl_canvas_stroke_rect(lh_gl_canvas_t *self, const lh_gl_rect_t *rect, const lh_gl_pen_t *pen)
 {
     lh_assert_runtime_ref(rect);

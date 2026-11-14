@@ -125,70 +125,170 @@ lh_gl_gradient_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
     }
     lh_gl_scalar_t radius =
         lh_gl_gradient_fill_get_radius(lh_ptr_ccast(lh_gl_gradient_fill_t, entity));
+    lh_gl_scalar_t angle =
+        lh_gl_gradient_fill_get_angle(lh_ptr_ccast(lh_gl_gradient_fill_t, entity));
+    lh_gl_rect_t shape;
 
-    if (radius > 0 ||
-        lh_gl_gradient_fill_is_radial(lh_ptr_ccast(lh_gl_gradient_fill_t, entity)) == lh_bool_true)
+    lh_gl_rect_init(lh_addr_of(shape), 0, 0, width, height);
+    if (lh_gl_gradient_fill_is_radial(lh_ptr_ccast(lh_gl_gradient_fill_t, entity)) == lh_bool_true)
     {
-        lh_bool_t radial =
-            lh_gl_gradient_fill_is_radial(lh_ptr_ccast(lh_gl_gradient_fill_t, entity));
-        lh_gl_scalar_t angle =
-            lh_gl_gradient_fill_get_angle(lh_ptr_ccast(lh_gl_gradient_fill_t, entity));
-        lh_gl_rect_t shape;
+        lh_gl_color_t table[256];
+        lh_u64_t reach[256];
 
-        lh_gl_rect_init(lh_addr_of(shape), 0, 0, width, height);
-        for (lh_gl_scalar_t y = 0; y < height; ++y)
+        reach[0] = 0;
+        for (lh_gl_scalar_t frac = 0; frac < 256; ++frac)
+        {
+            lh_gl_gradient_color_at(gradient, lh_cast_static(lh_gl_color_channel_t, frac),
+                                    lh_ptr_add_by_offset(lh_gl_color_t, table,
+                                                         (lh_uaddr_t)frac * sizeof(lh_gl_color_t)));
+            if (frac == 0)
+            {
+                continue;
+            }
+            lh_u64_t need = (lh_cast_static(lh_u64_t, frac) * 1448U + 254U) / 255U;
+
+            reach[frac] = need * need;
+        }
+        lh_u64_t column_square[256];
+        lh_bool_t columns = width <= 256 ? lh_bool_true : lh_bool_false;
+
+        if (columns == lh_bool_true)
         {
             for (lh_gl_scalar_t x = 0; x < width; ++x)
             {
-                lh_gl_color_channel_t cover = 255;
+                lh_s64_t ux = lh_gl_gradient_radial_axis(x, width);
 
-                if (radius > 0)
-                {
-                    cover = lh_gl_cover_round_rect(lh_addr_of(shape), radius, x, y);
-                }
-                if (cover == 0)
-                {
-                    continue;
-                }
-                lh_gl_color_channel_t frac =
-                    radial == lh_bool_true
-                        ? lh_gl_gradient_radial_frac(width, height, x, y)
-                        : lh_gl_gradient_linear_frac(angle, width, height, x, y);
-                lh_gl_color_t color;
+                column_square[x] = lh_cast_static(lh_u64_t, ux * ux);
+            }
+        }
+        for (lh_gl_scalar_t y = 0; y < height; ++y)
+        {
+            lh_gl_scalar_t x0 = 0;
+            lh_gl_scalar_t x1 = width;
 
-                lh_gl_gradient_color_at(gradient, frac, lh_addr_of(color));
-                if (radius > 0)
-                {
-                    lh_gl_color_scale_alpha(lh_addr_of(color), cover, lh_addr_of(color));
-                }
-                lh_gl_rect_t pixel;
+            if (radius > 0 &&
+                lh_gl_cover_round_rect_span(lh_addr_of(shape), radius, y, lh_addr_of(x0),
+                                            lh_addr_of(x1)) == lh_bool_false)
+            {
+                continue;
+            }
+            lh_s64_t uy = lh_gl_gradient_radial_axis(y, height);
+            lh_u64_t row_square = lh_cast_static(lh_u64_t, uy * uy);
+            lh_gl_scalar_t level = 0;
 
-                lh_gl_rect_init(lh_addr_of(pixel), x, y, 1, 1);
-                lh_gl_canvas_fill_rect(canvas, lh_addr_of(pixel), lh_addr_of(color));
+            for (lh_gl_scalar_t x = x0; x < x1;)
+            {
+                lh_gl_color_t chunk[256];
+                lh_gl_scalar_t n = x1 - x;
+
+                if (n > 256)
+                {
+                    n = 256;
+                }
+                for (lh_gl_scalar_t i = 0; i < n; ++i)
+                {
+                    lh_u64_t square = row_square;
+
+                    if (columns == lh_bool_true)
+                    {
+                        square = square + column_square[x + i];
+                    }
+                    else
+                    {
+                        lh_s64_t ux = lh_gl_gradient_radial_axis(x + i, width);
+
+                        square = square + lh_cast_static(lh_u64_t, ux * ux);
+                    }
+                    while (level < 255 && square >= reach[level + 1])
+                    {
+                        level = level + 1;
+                    }
+                    while (level > 0 && square < reach[level])
+                    {
+                        level = level - 1;
+                    }
+                    chunk[i] = table[level];
+                }
+                lh_gl_canvas_fill_colors(canvas, x, y, chunk, n);
+                x = x + n;
             }
         }
         return;
     }
-    lh_gl_scalar_t angle =
-        lh_gl_gradient_fill_get_angle(lh_ptr_ccast(lh_gl_gradient_fill_t, entity));
-
     if (lh_gl_gradient_sine(lh_cast_static(lh_s32_t, angle)) == 0)
     {
+        lh_gl_scalar_t run_y = 0;
+        lh_gl_scalar_t run_x0 = 0;
+        lh_gl_scalar_t run_x1 = 0;
+        lh_gl_color_t run_color;
+        lh_bool_t open = lh_bool_false;
+
         for (lh_gl_scalar_t y = 0; y < height; ++y)
         {
+            lh_gl_scalar_t x0 = 0;
+            lh_gl_scalar_t x1 = width;
+
+            if (radius > 0 &&
+                lh_gl_cover_round_rect_span(lh_addr_of(shape), radius, y, lh_addr_of(x0),
+                                            lh_addr_of(x1)) == lh_bool_false)
+            {
+                if (open == lh_bool_true)
+                {
+                    lh_gl_rect_t strip;
+
+                    lh_gl_rect_init(lh_addr_of(strip), run_x0, run_y, run_x1 - run_x0, y - run_y);
+                    lh_gl_canvas_fill_rect(canvas, lh_addr_of(strip), lh_addr_of(run_color));
+                    open = lh_bool_false;
+                }
+                continue;
+            }
             lh_gl_color_t color;
 
             lh_gl_gradient_color_at(gradient,
                                     lh_gl_gradient_linear_frac(angle, width, height, 0, y),
                                     lh_addr_of(color));
+            lh_bool_t same = lh_bool_false;
+
+            if (open == lh_bool_true && x0 == run_x0 && x1 == run_x1)
+            {
+                same = lh_gl_color_get_r(lh_addr_of(color)) ==
+                               lh_gl_color_get_r(lh_addr_of(run_color)) &&
+                           lh_gl_color_get_g(lh_addr_of(color)) ==
+                               lh_gl_color_get_g(lh_addr_of(run_color)) &&
+                           lh_gl_color_get_b(lh_addr_of(color)) ==
+                               lh_gl_color_get_b(lh_addr_of(run_color)) &&
+                           lh_gl_color_get_a(lh_addr_of(color)) ==
+                               lh_gl_color_get_a(lh_addr_of(run_color))
+                       ? lh_bool_true
+                       : lh_bool_false;
+            }
+            if (same == lh_bool_true)
+            {
+                continue;
+            }
+            if (open == lh_bool_true)
+            {
+                lh_gl_rect_t strip;
+
+                lh_gl_rect_init(lh_addr_of(strip), run_x0, run_y, run_x1 - run_x0, y - run_y);
+                lh_gl_canvas_fill_rect(canvas, lh_addr_of(strip), lh_addr_of(run_color));
+            }
+            run_y = y;
+            run_x0 = x0;
+            run_x1 = x1;
+            run_color = color;
+            open = lh_bool_true;
+        }
+        if (open == lh_bool_true)
+        {
             lh_gl_rect_t strip;
 
-            lh_gl_rect_init(lh_addr_of(strip), 0, y, width, 1);
-            lh_gl_canvas_fill_rect(canvas, lh_addr_of(strip), lh_addr_of(color));
+            lh_gl_rect_init(lh_addr_of(strip), run_x0, run_y, run_x1 - run_x0, height - run_y);
+            lh_gl_canvas_fill_rect(canvas, lh_addr_of(strip), lh_addr_of(run_color));
         }
         return;
     }
-    if (lh_gl_gradient_sine(lh_cast_static(lh_s32_t, angle + 90)) == 0)
+    if (radius == 0 && lh_gl_gradient_sine(lh_cast_static(lh_s32_t, angle + 90)) == 0)
     {
         for (lh_gl_scalar_t x = 0; x < width; ++x)
         {
@@ -206,7 +306,15 @@ lh_gl_gradient_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
     }
     for (lh_gl_scalar_t y = 0; y < height; ++y)
     {
-        for (lh_gl_scalar_t x = 0; x < width; ++x)
+        lh_gl_scalar_t x0 = 0;
+        lh_gl_scalar_t x1 = width;
+
+        if (radius > 0 && lh_gl_cover_round_rect_span(lh_addr_of(shape), radius, y, lh_addr_of(x0),
+                                                      lh_addr_of(x1)) == lh_bool_false)
+        {
+            continue;
+        }
+        for (lh_gl_scalar_t x = x0; x < x1; ++x)
         {
             lh_gl_color_t color;
 

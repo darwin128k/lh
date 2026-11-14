@@ -115,22 +115,12 @@ lh_gl_shadow_clamp_radius(const lh_gl_rect_t *rect, lh_gl_scalar_t radius)
 }
 
 lh_gl_scalar_t
-lh_gl_shadow_distance(lh_gl_scalar_t x, lh_gl_scalar_t y, const lh_gl_rect_t *rect,
-                      lh_gl_scalar_t radius)
+lh_gl_shadow_distance_at(lh_gl_scalar_t x, lh_gl_scalar_t y, lh_gl_scalar_t center_x,
+                         lh_gl_scalar_t center_y, lh_gl_scalar_t half_width,
+                         lh_gl_scalar_t half_height, lh_gl_scalar_t radius)
 {
-    lh_assert_runtime_ref(rect);
-    radius = lh_gl_shadow_clamp_radius(rect, radius);
-    const lh_gl_point_t *origin = lh_gl_rect_get_origin(rect);
-    lh_gl_scalar_t width = lh_gl_size_get_width(lh_gl_rect_get_size(rect));
-    lh_gl_scalar_t dx;
-
-    dx = lh_math_abs(x - (lh_gl_point_get_x(origin) + width / 2));
-    dx = dx - (width / 2 - radius);
-    lh_gl_scalar_t height = lh_gl_size_get_height(lh_gl_rect_get_size(rect));
-    lh_gl_scalar_t dy;
-
-    dy = lh_math_abs(y - (lh_gl_point_get_y(origin) + height / 2));
-    dy = dy - (height / 2 - radius);
+    lh_gl_scalar_t dx = lh_math_abs(x - center_x) - (half_width - radius);
+    lh_gl_scalar_t dy = lh_math_abs(y - center_y) - (half_height - radius);
     lh_gl_scalar_t ax = lh_math_max(dx, 0);
     lh_gl_scalar_t ay = lh_math_max(dy, 0);
 
@@ -152,6 +142,21 @@ lh_gl_shadow_distance(lh_gl_scalar_t x, lh_gl_scalar_t y, const lh_gl_rect_t *re
     lh_gl_scalar_t along = lh_math_min(lh_math_max(dx, dy), 0);
 
     return lh_cast_static(lh_gl_scalar_t, lh_math_isqrt_u64(square)) + along - radius;
+}
+
+lh_gl_scalar_t
+lh_gl_shadow_distance(lh_gl_scalar_t x, lh_gl_scalar_t y, const lh_gl_rect_t *rect,
+                      lh_gl_scalar_t radius)
+{
+    lh_assert_runtime_ref(rect);
+    radius = lh_gl_shadow_clamp_radius(rect, radius);
+    const lh_gl_point_t *origin = lh_gl_rect_get_origin(rect);
+    lh_gl_scalar_t width = lh_gl_size_get_width(lh_gl_rect_get_size(rect));
+    lh_gl_scalar_t height = lh_gl_size_get_height(lh_gl_rect_get_size(rect));
+
+    return lh_gl_shadow_distance_at(x, y, lh_gl_point_get_x(origin) + width / 2,
+                                    lh_gl_point_get_y(origin) + height / 2, width / 2, height / 2,
+                                    radius);
 }
 
 lh_gl_color_channel_t
