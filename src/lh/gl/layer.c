@@ -298,14 +298,14 @@ lh_gl_layer_try_insert_after(lh_gl_layer_t *self, lh_gl_entity_t *entity, lh_gl_
 }
 
 const lh_gl_entity_t *
-lh_gl_layer_find_entity_at(const lh_gl_layer_t *self, lh_gl_point_t point, const lh_gl_rect_t *bounds)
+lh_gl_layer_find_entity_at_origin(const lh_gl_layer_t *self, lh_gl_point_t point,
+                                  const lh_gl_rect_t *bounds, const lh_gl_point_t *origin)
 {
     if (lh_gl_rect_contains_point(bounds, point) == lh_bool_false)
     {
         return lh_null;
     }
     const lh_list_t *items = lh_gl_layer_get_items(self);
-    const lh_gl_point_t *origin = lh_gl_rect_get_origin(bounds);
 
     for (lh_list_node_t *node = lh_list_get_last(items); lh_ptr_is_set(node);
          node = lh_list_get_prev(items, node))
@@ -330,6 +330,12 @@ lh_gl_layer_find_entity_at(const lh_gl_layer_t *self, lh_gl_point_t point, const
 }
 
 const lh_gl_entity_t *
+lh_gl_layer_find_entity_at(const lh_gl_layer_t *self, lh_gl_point_t point, const lh_gl_rect_t *bounds)
+{
+    return lh_gl_layer_find_entity_at_origin(self, point, bounds, lh_gl_rect_get_origin(bounds));
+}
+
+const lh_gl_entity_t *
 lh_gl_layer_find_entity(const lh_gl_layer_t *self, lh_gl_point_t point)
 {
     lh_gl_rect_t bounds;
@@ -339,8 +345,9 @@ lh_gl_layer_find_entity(const lh_gl_layer_t *self, lh_gl_point_t point)
 }
 
 lh_void
-lh_gl_layer_draw_at(const lh_gl_layer_t *self, lh_gl_canvas_t *canvas, const lh_gl_rect_t *bounds,
-                    const lh_gl_rect_t *clip)
+lh_gl_layer_draw_at_origin(const lh_gl_layer_t *self, lh_gl_canvas_t *canvas,
+                           const lh_gl_rect_t *bounds, const lh_gl_rect_t *clip,
+                           const lh_gl_point_t *origin)
 {
     lh_gl_rect_t visible;
 
@@ -351,9 +358,8 @@ lh_gl_layer_draw_at(const lh_gl_layer_t *self, lh_gl_canvas_t *canvas, const lh_
     }
     lh_gl_point_t saved_origin = lh_ptr_deref(lh_gl_canvas_get_origin(canvas));
     lh_gl_rect_t saved_clip = lh_ptr_deref(lh_gl_canvas_get_clip(canvas));
-    const lh_gl_point_t *origin = lh_gl_rect_get_origin(bounds);
 
-    lh_gl_canvas_set_origin(canvas, lh_ptr_deref(origin));
+    lh_gl_canvas_set_origin(canvas, lh_ptr_deref(lh_gl_rect_get_origin(bounds)));
     lh_gl_canvas_set_clip(canvas, visible);
     lh_gl_entity_draw(lh_gl_layer_get_entity(self), canvas);
     const lh_list_t *items = lh_gl_layer_get_items(self);
@@ -415,6 +421,13 @@ lh_gl_layer_draw_at(const lh_gl_layer_t *self, lh_gl_canvas_t *canvas, const lh_
     }
     lh_gl_canvas_set_origin(canvas, saved_origin);
     lh_gl_canvas_set_clip(canvas, saved_clip);
+}
+
+lh_void
+lh_gl_layer_draw_at(const lh_gl_layer_t *self, lh_gl_canvas_t *canvas, const lh_gl_rect_t *bounds,
+                    const lh_gl_rect_t *clip)
+{
+    lh_gl_layer_draw_at_origin(self, canvas, bounds, clip, lh_gl_rect_get_origin(bounds));
 }
 
 lh_void

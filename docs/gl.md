@@ -44,9 +44,11 @@ as of 2026-11-14 and the plan agreed with Egor.
   one allocation per window holding all its widgets. Reason: no heap
   fragmentation, memory known at link time, add/remove O(1) and cannot fail.
   Debt: debug assert that an entity being deinit'ed has no parent.
-- **Composition, not LVGL's fat lv_obj:** input, scroll, container, layout
-  are separate managers that move entities' rects. Widgets are composed
-  (label + image = button).
+- **Composition, not LVGL's fat lv_obj:** input, scroll, container and layout
+  are separate objects. Layout moves rectangles. A scroll axis is one number,
+  and a container borrows a layer plus up to two axes; it places children at
+  the window origin minus those numbers and does not write the rectangles.
+  Widgets are composed (label + image = button).
 - **canvas**: portable drawing abstraction (pen, rect, circle, rounded rect,
   border, fill), a half driver that knows how to draw but has no output.
   The native target is an opaque handle plus a call table
@@ -63,6 +65,7 @@ as of 2026-11-14 and the plan agreed with Egor.
 - Canvas primitives: fill and stroke of a rectangle, a circle and a rounded rectangle, through `lh_gl_color_t`, `lh_gl_pen_t` and `lh_gl_canvas_backend_t`.
 - Point hit: `lh_gl_layer_find_entity` walks front to back and returns the deepest entity whose rectangle contains the point. No child means the layer itself. Outside the layer is null. `opaque` is draw occlusion only.
 - Input hold: `lh_gl_input_t` stores one borrowed entity. Press uses the point hit. Move does not search again. Release clears the hold. No keys and no device.
+- Scroll axis: one offset, not stored on an entity or a layer. Container: borrowed layer plus a horizontal axis, a vertical axis, or neither. Placement is the window origin minus the offsets. Rectangles stay put. `lh_gl_container_invalidate` marks the window; changing an axis does not.
 - Known pre-existing warnings: `check-fields` on `self->cls` in
   `entity.c` get/set_class; `entity.c` function order vs levels.
 - `docs/roadmap.md` section 5: a general allocator with a real free over a
@@ -71,9 +74,9 @@ as of 2026-11-14 and the plan agreed with Egor.
 
 ## Next, in order
 
-1. Scroll and layout managers, which only move rectangles. A scene stays an
-   ordinary child layer until a swipe and a back stack need their own behaviour.
-   Renderer packets over rail when another loop draws. Try on the panel after that.
+1. Layout, which places children's rectangles. A scene stays an ordinary child
+   layer until a swipe and a back stack need their own behaviour. Renderer
+   packets over rail when another loop draws. Try on the panel after that.
 
 ## Rules that matter to Egor
 

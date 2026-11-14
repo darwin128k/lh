@@ -18,7 +18,9 @@
  * **List order is z-order.** The first entity is the back one, the last one is
  * the front. ::lh_gl_layer_try_add appends, so a new child is drawn on top.
  * ::lh_gl_layer_find_entity walks the other way: the front rectangle that
- * contains the point, then the deepest entity inside it.
+ * contains the point, then the deepest entity inside it. The window and the
+ * origin that places children are separate: a caller can pass another origin
+ * and leave the children's rectangles unchanged.
  *
  * A child's `rect` is relative to the origin of the layer's own rect. A layer
  * never holds the same entity twice and never holds itself or one of its
@@ -298,17 +300,31 @@ lh_bool_t
 lh_gl_layer_try_insert_after(lh_gl_layer_t *self, lh_gl_entity_t *entity, lh_gl_entity_t *sibling);
 
 /**
+ * @brief Entity under a point, with children placed at @p origin.
+ *
+ * @p bounds is the window in root coordinates and does not move with @p origin.
+ * A point outside that window is ::lh_null. Each child rectangle is added to
+ * @p origin, not written back. A child layer is entered with its placed
+ * rectangle as both its window and its own origin. `opaque` is not read.
+ *
+ * @param self   Layer to search; must not be null.
+ * @param point  Point in root coordinates, copied.
+ * @param bounds Window of @p self; must not be null.
+ * @param origin Where child rectangles are placed; must not be null.
+ * @return The entity that contains @p point, or ::lh_null when the window does not.
+ */
+const lh_gl_entity_t *
+lh_gl_layer_find_entity_at_origin(const lh_gl_layer_t *self, lh_gl_point_t point,
+                                  const lh_gl_rect_t *bounds, const lh_gl_point_t *origin);
+
+/**
  * @brief Entity under a root-coordinate point, given this layer's absolute rectangle.
  *
- * @p bounds is this layer in root coordinates, the same rectangle
- * ::lh_gl_layer_draw_at receives. The point is half-open against that rectangle
- * and against each child (::lh_gl_rect_contains_point). Children are visited
- * front to back. A child layer that contains the point is entered, and the
- * deepest containing entity is returned; when none of its children contain the
- * point, the layer itself is that entity. Siblings behind a containing child
- * are not considered. A point outside @p bounds returns ::lh_null, including a
- * point that lies only in a child sticking out of the layer. `opaque` is not
- * read: covering for drawing and containing a point are different questions.
+ * Places children at the origin of @p bounds and calls
+ * ::lh_gl_layer_find_entity_at_origin. The point is half-open. Children are
+ * visited front to back. The deepest containing entity is returned; when none
+ * of a child layer's children contain the point, that layer is the entity. A
+ * point outside @p bounds returns ::lh_null.
  *
  * @param self   Layer to search; must not be null.
  * @param point  Point in root coordinates, copied.
@@ -334,8 +350,28 @@ const lh_gl_entity_t *
 lh_gl_layer_find_entity(const lh_gl_layer_t *self, lh_gl_point_t point);
 
 /**
+ * @brief Draw a layer, placing children at @p origin and clipping to @p bounds.
+ *
+ * @p bounds stays the window: it is intersected with @p clip and is the origin
+ * the layer's own callback sees. Child rectangles are added to @p origin and
+ * are not written back. A child layer is drawn with its placed rectangle as
+ * both its window and its own origin. The canvas state is restored on return.
+ *
+ * @param self   Layer to draw; must not be null.
+ * @param canvas Drawing state, borrowed; must not be null.
+ * @param bounds Window of @p self; must not be null.
+ * @param clip   Dirty area in root coordinates; must not be null.
+ * @param origin Where child rectangles are placed; must not be null.
+ */
+lh_void
+lh_gl_layer_draw_at_origin(const lh_gl_layer_t *self, lh_gl_canvas_t *canvas,
+                           const lh_gl_rect_t *bounds, const lh_gl_rect_t *clip,
+                           const lh_gl_point_t *origin);
+
+/**
  * @brief Draw a layer subtree from a known absolute rectangle.
  *
+ * Places children at the origin of @p bounds and calls ::lh_gl_layer_draw_at_origin.
  * The caller supplies the layer's actual rectangle in root coordinates. The
  * clip is in the same coordinates. Visits children back to front, clipping to
  * each ancestor and passing absolute origins down without walking parents. A
