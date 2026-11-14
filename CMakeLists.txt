@@ -226,6 +226,8 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/gl/fill.c
         ${LH_LIB_SRC_PATH}/gl/gradient.c
         ${LH_LIB_SRC_PATH}/gl/gradient/fill.c
+        ${LH_LIB_SRC_PATH}/gl/shadow.c
+        ${LH_LIB_SRC_PATH}/gl/shadow/fill.c
         ${LH_LIB_SRC_PATH}/gl/scroll/axis.c
         ${LH_LIB_SRC_PATH}/gl/container.c
         ${LH_LIB_SRC_PATH}/gl/surface.c

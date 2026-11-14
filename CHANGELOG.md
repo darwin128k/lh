@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- `lh_gl_shadow_t` stores a peak color, a spread and a shift. Coverage is zero inside the box and fades across the shifted edge: full one spread inside, nothing one spread outside. `lh_gl_shadow_fill_t` paints that coverage. Corners are square.
+
 - `lh_gl_gradient_t` stores two colors. Fraction `0` is the first, `255` is the second, and the channels mix in between. `lh_gl_gradient_fill_t` borrows one and paints a rectangle from the first color on the top row to the second on the bottom. A null gradient draws nothing. The class is not opaque.
 
 - `lh_gl_color_over` paints one straight color over another. A pixmap fill uses it, so an alpha below 255 shows the pixel behind. Alpha 255 still replaces the pixel.
