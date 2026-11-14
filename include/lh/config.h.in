@@ -11,7 +11,7 @@
  * version macros from the root `VERSION` file; library options use `0` or `1`
  * except `LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS` (must be 1..255),
  * `LH_LIBRARY_OPTION_UI_CANVAS_DEPTH` (must be 1..255),
- * `LH_LIBRARY_OPTION_GL_LAYER_DIRTY_MAX` (must be > 0),
+ * `LH_LIBRARY_OPTION_GL_SURFACE_DIRTY_MAX` (must be > 0),
  * `LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY` (must be > 0),
  * `LH_LIBRARY_OPTION_ARRAY_GROWTH_FACTOR` (must be > 1),
  * `LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK` (must be > 0), and the
@@ -213,13 +213,13 @@
 #define LH_LIBRARY_OPTION_UI_CANVAS_DEPTH @ValUiCanvasDepth@
 
 /**
- * @def LH_LIBRARY_OPTION_GL_LAYER_DIRTY_MAX
- * @brief Number of dirty rectangle slots in each ::lh_gl_layer_t.
+ * @def LH_LIBRARY_OPTION_GL_SURFACE_DIRTY_MAX
+ * @brief Number of dirty rectangle slots in each ::lh_gl_surface_t.
  *
  * Set at build time; all consumers must use the same generated configuration.
  * Defaults to 8 and must be a positive integer.
  */
-#define LH_LIBRARY_OPTION_GL_LAYER_DIRTY_MAX @ValGlLayerDirtyMax@
+#define LH_LIBRARY_OPTION_GL_SURFACE_DIRTY_MAX @ValGlSurfaceDirtyMax@
 
 /**
  * @def LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY

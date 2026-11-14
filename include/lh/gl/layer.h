@@ -20,9 +20,8 @@
  *
  * A child's `rect` is relative to the origin of the layer's own rect. A layer
  * never holds the same entity twice and never holds itself or one of its
- * ancestors, so the tree has no cycles. Whether and how a layer draws its
- * children, and what happens to the screen when a child changes, is not part of
- * this brick yet.
+ * ancestors, so the tree has no cycles. Invalidated areas are forwarded to the attached root
+ * surface.
  *
  * Fields are private. Nobody names `entity` or `items` outside the
  * level-1 accessors; everything else, here and in callers, goes through them.
@@ -34,6 +33,7 @@
 #include <lh/core/list.h>
 #include <lh/gl/entity.h>
 #include <lh/gl/layer/fields.h>
+#include <lh/gl/surface/decl.h>
 
 /**
  * @struct lh_gl_layer
@@ -42,7 +42,7 @@
 struct lh_gl_layer
 {
     /** Members: ::lh_gl_layer_fields. */
-    lh_gl_layer_fields(lh_gl_entity_t, lh_list_t, lh_gl_rect_t, lh_usize_t);
+    lh_gl_layer_fields(lh_gl_entity_t, lh_list_t, lh_gl_surface_t);
 };
 
 /* -- Accessors ------------------------------------------------------------- */
@@ -86,55 +86,25 @@ const lh_list_t *
 lh_gl_layer_get_items(const lh_gl_layer_t *self);
 
 /**
- * @brief Mutable pointer to a slot in the fixed dirty rectangle storage.
- *
- * This level-1 accessor does not change the count. A slot may be prepared
- * before increasing the count with ::lh_gl_layer_set_dirty_count.
- *
- * @param self Layer to read; must not be null (asserted in debug builds).
- * @param index Slot index, less than ::LH_LIBRARY_OPTION_GL_LAYER_DIRTY_MAX (asserted).
- * @return Pointer into @p self, valid as long as @p self lives. Not null.
+ * @brief The surface attached to this root, or ::lh_null.
+ * @param self Layer to read; must not be null.
+ * @return Borrowed surface pointer, or ::lh_null.
  */
-lh_gl_rect_t *
-lh_gl_layer_get_dirty_mut(lh_gl_layer_t *self, lh_uindex_t index);
-
-/** @brief Number of dirty rectangles held by this layer. */
-lh_usize_t
-lh_gl_layer_get_dirty_count(const lh_gl_layer_t *self);
+lh_gl_surface_t *
+lh_gl_layer_get_surface(const lh_gl_layer_t *self);
 
 /**
- * @brief Store the number of occupied dirty rectangle slots.
- *
- * This level-1 accessor does not initialize or clear any slots. The caller
- * must ensure the first @p count slots contain valid dirty rectangles.
- *
- * @param self Layer to change; must not be null (asserted in debug builds).
- * @param count Number of occupied slots, at most ::LH_LIBRARY_OPTION_GL_LAYER_DIRTY_MAX.
+ * @brief Store a borrowed surface pointer. Use surface attach/detach to keep both sides in step.
+ * @param self Layer to change; must not be null.
+ * @param surface Surface, or ::lh_null.
  */
 lh_void
-lh_gl_layer_set_dirty_count(lh_gl_layer_t *self, lh_usize_t count);
+lh_gl_layer_set_surface(lh_gl_layer_t *self, lh_gl_surface_t *surface);
 
 /**
- * @brief Dirty rectangle at an occupied index.
- *
- * @param self Layer to read; must not be null (asserted in debug builds).
- * @param index Index below ::lh_gl_layer_get_dirty_count (asserted).
- * @return Pointer into @p self, valid until the dirty list changes. Not null.
- */
-const lh_gl_rect_t *
-lh_gl_layer_get_dirty(const lh_gl_layer_t *self, lh_uindex_t index);
-
-/** @brief Clear the dirty list. */
-lh_void
-lh_gl_layer_clear_dirty(lh_gl_layer_t *self);
-
-/**
- * @brief Invalidate area in this layer's coordinates.
- *
- * Clips to the layer, forwards through parents, and stores at the root only.
- * Rectangles are merged when their bounding area is no larger than their sum;
- * a full list collapses to one bounding rectangle. No memory is allocated.
- * Both arguments must be non-null. The area is copied.
+ * @brief Clip an area in local coordinates and forward it to the parent or surface.
+ * @param self Layer to invalidate; must not be null.
+ * @param area Area in local coordinates; must not be null and is copied.
  */
 lh_void
 lh_gl_layer_invalidate(lh_gl_layer_t *self, const lh_gl_rect_t *area);

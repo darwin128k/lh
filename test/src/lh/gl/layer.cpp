@@ -7,6 +7,7 @@
 #include <lh/gl/point/initializer.h>
 #include <lh/gl/rect/initializer.h>
 #include <lh/gl/size/initializer.h>
+#include <lh/gl/surface.h>
 
 namespace
 {
@@ -314,33 +315,6 @@ TEST(gl_layer, deinit_clears_remaining_parents)
     EXPECT_FALSE(lh_list_node_is_linked(lh_gl_entity_get_node(lh_addr_of(b))));
 }
 
-TEST(gl_layer, dirty_clips_merges_and_collapses)
-{
-    lh_gl_layer_t layer;
-    lh_gl_layer_init(lh_addr_of(layer), rect_of(0, 0, 1000, 1000));
-    lh_gl_rect_t area = rect_of(-5, -5, 10, 10);
-    lh_gl_layer_invalidate(lh_addr_of(layer), lh_addr_of(area));
-    EXPECT_EQ(lh_gl_layer_get_dirty_count(lh_addr_of(layer)), 1U);
-    lh_gl_rect_t expected = rect_of(0, 0, 5, 5);
-    EXPECT_TRUE(lh_gl_rect_eq(lh_gl_layer_get_dirty(lh_addr_of(layer), 0), lh_addr_of(expected)));
-    area = rect_of(5, 0, 5, 5);
-    lh_gl_layer_invalidate(lh_addr_of(layer), lh_addr_of(area));
-    expected = rect_of(0, 0, 10, 5);
-    EXPECT_EQ(lh_gl_layer_get_dirty_count(lh_addr_of(layer)), 1U);
-    EXPECT_TRUE(lh_gl_rect_eq(lh_gl_layer_get_dirty(lh_addr_of(layer), 0), lh_addr_of(expected)));
-    lh_gl_layer_clear_dirty(lh_addr_of(layer));
-    for (lh_uindex_t i = 0; i <= LH_LIBRARY_OPTION_GL_LAYER_DIRTY_MAX; ++i)
-    {
-        area = rect_of(10 * i, 10 * i, 1, 1);
-        lh_gl_layer_invalidate(lh_addr_of(layer), lh_addr_of(area));
-    }
-    EXPECT_EQ(lh_gl_layer_get_dirty_count(lh_addr_of(layer)), 1U);
-    expected = rect_of(0, 0, 10 * LH_LIBRARY_OPTION_GL_LAYER_DIRTY_MAX + 1,
-                       10 * LH_LIBRARY_OPTION_GL_LAYER_DIRTY_MAX + 1);
-    EXPECT_TRUE(lh_gl_rect_eq(lh_gl_layer_get_dirty(lh_addr_of(layer), 0), lh_addr_of(expected)));
-    lh_gl_layer_deinit(lh_addr_of(layer));
-}
-
 TEST(gl_layer, dirty_propagates_through_nested_layers_and_set_rect)
 {
     lh_gl_layer_t root;
@@ -348,20 +322,61 @@ TEST(gl_layer, dirty_propagates_through_nested_layers_and_set_rect)
     lh_gl_entity_t child;
     lh_gl_entity_class_t cls = plain_class();
     lh_gl_layer_init(lh_addr_of(root), rect_of(0, 0, 100, 100));
+    lh_gl_surface_t surface;
+    lh_gl_size_t size;
+    lh_gl_size_init(lh_addr_of(size), 100, 100);
+    lh_gl_surface_init(lh_addr_of(surface), size);
+    lh_gl_surface_attach(lh_addr_of(surface), lh_addr_of(root));
     lh_gl_layer_init(lh_addr_of(nested), rect_of(10, 20, 20, 20));
     lh_gl_entity_init(lh_addr_of(child), rect_of(15, 15, 10, 10), lh_addr_of(cls));
     lh_gl_layer_add(lh_addr_of(root), lh_gl_layer_get_entity_mut(lh_addr_of(nested)));
     lh_gl_layer_add(lh_addr_of(nested), lh_addr_of(child));
+    lh_gl_surface_clear_dirty(lh_addr_of(surface));
     lh_gl_entity_invalidate(lh_addr_of(child));
     lh_gl_rect_t expected = rect_of(25, 35, 5, 5);
-    EXPECT_EQ(lh_gl_layer_get_dirty_count(lh_addr_of(nested)), 0U);
-    ASSERT_EQ(lh_gl_layer_get_dirty_count(lh_addr_of(root)), 1U);
-    EXPECT_TRUE(lh_gl_rect_eq(lh_gl_layer_get_dirty(lh_addr_of(root), 0), lh_addr_of(expected)));
-    lh_gl_layer_clear_dirty(lh_addr_of(root));
+    ASSERT_EQ(lh_gl_surface_get_dirty_count(lh_addr_of(surface)), 1U);
+    EXPECT_TRUE(
+        lh_gl_rect_eq(lh_gl_surface_get_dirty(lh_addr_of(surface), 0), lh_addr_of(expected)));
+    lh_gl_surface_clear_dirty(lh_addr_of(surface));
     lh_gl_entity_set_rect(lh_addr_of(child), rect_of(0, 0, 2, 2));
-    EXPECT_EQ(lh_gl_layer_get_dirty_count(lh_addr_of(root)), 2U);
+    EXPECT_EQ(lh_gl_surface_get_dirty_count(lh_addr_of(surface)), 2U);
     lh_gl_layer_deinit(lh_addr_of(root));
     lh_gl_layer_deinit(lh_addr_of(nested));
+}
+
+TEST(gl_layer, mutations_invalidate_and_remove_checks_owner)
+{
+    lh_gl_layer_t root;
+    lh_gl_layer_t other;
+    lh_gl_entity_t child;
+    lh_gl_entity_class_t cls = plain_class();
+    lh_gl_surface_t surface;
+    lh_gl_size_t size;
+    lh_gl_size_init(lh_addr_of(size), 100, 100);
+    lh_gl_surface_init(lh_addr_of(surface), size);
+    lh_gl_layer_init(lh_addr_of(root), rect_of(0, 0, 1, 1));
+    lh_gl_layer_init(lh_addr_of(other), rect_of(0, 0, 100, 100));
+    lh_gl_surface_attach(lh_addr_of(surface), lh_addr_of(root));
+    lh_gl_entity_init(lh_addr_of(child), rect_of(10, 20, 5, 6), lh_addr_of(cls));
+    lh_gl_surface_clear_dirty(lh_addr_of(surface));
+    lh_gl_layer_add(lh_addr_of(root), lh_addr_of(child));
+    lh_gl_rect_t expected = rect_of(10, 20, 5, 6);
+    ASSERT_EQ(lh_gl_surface_get_dirty_count(lh_addr_of(surface)), 1U);
+    EXPECT_TRUE(
+        lh_gl_rect_eq(lh_gl_surface_get_dirty(lh_addr_of(surface), 0), lh_addr_of(expected)));
+    lh_gl_surface_clear_dirty(lh_addr_of(surface));
+    EXPECT_FALSE(lh_gl_layer_try_remove(lh_addr_of(other), lh_addr_of(child)));
+    EXPECT_EQ(lh_gl_surface_get_dirty_count(lh_addr_of(surface)), 0U);
+    EXPECT_TRUE(lh_gl_layer_try_remove(lh_addr_of(root), lh_addr_of(child)));
+    ASSERT_EQ(lh_gl_surface_get_dirty_count(lh_addr_of(surface)), 1U);
+    EXPECT_TRUE(
+        lh_gl_rect_eq(lh_gl_surface_get_dirty(lh_addr_of(surface), 0), lh_addr_of(expected)));
+    lh_gl_layer_add(lh_addr_of(root), lh_addr_of(child));
+    lh_gl_surface_clear_dirty(lh_addr_of(surface));
+    lh_gl_layer_deinit(lh_addr_of(root));
+    EXPECT_EQ(lh_gl_surface_get_dirty_count(lh_addr_of(surface)), 1U);
+    EXPECT_EQ(lh_gl_surface_get_root(lh_addr_of(surface)), nullptr);
+    lh_gl_layer_deinit(lh_addr_of(other));
 }
 
 } // namespace

@@ -10,7 +10,7 @@
 #ifndef LH_ADDR_LIMITS_H
 #define LH_ADDR_LIMITS_H
 
-#include <lh/core/compiler/arch.h>
+#include <lh/config.h>
 #include <lh/core/numeric/fixed/limits.h>
 
 #if LH_COMPILER_ARCH == LH_COMPILER_ARCH_64
@@ -212,10 +212,6 @@
  */
 #        define LH_SADDR_T_SIZE LH_S8_T_SIZE
 #    endif /* LH_SADDR_T_SIZE */
-
-#else
-
-#    error "LH_COMPILER_ARCH must be 8, 16, 32, or 64 for lh/core/addr/limits.h"
 
 #endif
 

@@ -15,7 +15,7 @@
 #define LH_ADDR_H
 
 #include <lh/core/byte.h>
-#include <lh/core/compiler/arch.h>
+#include <lh/config.h>
 
 #if LH_COMPILER_ARCH == LH_COMPILER_ARCH_64
 
@@ -72,10 +72,6 @@ typedef lh_byte_t lh_uaddr_t;
  * @brief Signed 8-bit address storage (`LH_COMPILER_ARCH == 8`, manual).
  */
 typedef lh_schar_t lh_saddr_t;
-
-#else
-
-#    error "LH_COMPILER_ARCH must be 8, 16, 32, or 64 for lh/core/addr.h"
 
 #endif
 

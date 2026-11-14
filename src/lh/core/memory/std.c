@@ -42,9 +42,6 @@
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 && (LH_COMPILER_ARCH == LH_COMPILER_ARCH_64)
 #    define LH_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD                                           \
         (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD))
-#    if LH_LIBRARY_OPTION_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD > 512
-#        error "LH_LIBRARY_OPTION_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD must be <= 512"
-#    endif
 #endif
 
 /** @brief 1 when MSVC's `__movsb` intrinsic (`REP MOVSB`) is available. */

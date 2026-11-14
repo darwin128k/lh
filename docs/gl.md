@@ -29,7 +29,11 @@ as of 2026-11-14 and the plan agreed with Egor.
   `lh_list_t` of children. Only a layer can own an entity; an entity's parent
   is `lh_gl_layer_t *`. Layers nest (a layer is an entity). List order is
   z-order: first = back, last = front. View, scene, window are layers; the
-  root has no parent.
+  root has no parent and may be attached to a surface.
+- **surface** `lh_gl_surface_t`: owns the display size and a fixed dirty-region
+  array, and borrows a root layer. Attach and resize set the root rect to the
+  surface size and invalidate the whole surface; detach keeps the root rect.
+  Layers forward clipped areas, translated through their origins, to the surface.
 - **Memory (important, decided against the LVGL model):** a layer never
   allocates or frees children. It only links/unlinks nodes and sets/clears
   parent; `lh_gl_layer_deinit` unlinks children and clears their parent.
@@ -49,12 +53,9 @@ as of 2026-11-14 and the plan agreed with Egor.
   requests), possibly via rail mailbox/queue. Rail (per-device HAL: bare
   base, mailbox, queues, loop) is the HAL. Must run on bare STM32. Later.
 
-## Done (uncommitted unless Egor committed it)
+## Done
 
-- point, size, rect: headers, src, tests, CHANGELOG. Egor commits these.
-- entity, entity class, layer on `lh_list_t`: staged by Egor, with unstaged
-  edits on top (list switch). Checkers, clang-format 19, gcc -fsyntax-only
-  pass. Tests NOT run since the list switch.
+- point, size, rect, entity, layer, and fixed-storage surface dirty regions.
 - Known pre-existing warnings: `check-fields` on `self->cls` in
   `entity.c` get/set_class; `entity.c` function order vs levels.
 - `docs/roadmap.md` section 5: a general allocator with a real free over a
@@ -63,20 +64,10 @@ as of 2026-11-14 and the plan agreed with Egor.
 
 ## Next, in order
 
-1. Build and run `lh_test_gl` once, fix what fails (Egor: run tests only at
-   checkpoints or before a commit, not on every change).
-2. Dirty regions in the layer, on a fixed array (no allocation):
-   - `lh_gl_entity_invalidate(self)` and rect setters report old and new
-     area to `parent` in parent coordinates;
-   - layer accumulates areas: clip to own rect, drop areas inside an
-     existing one, merge overlapping/adjacent when the union is not much
-     bigger, collapse to one bounding rect past N areas;
-   - propagate up to the root, which hands the list to the renderer.
-3. Later, with the renderer: skip children fully covered by an opaque
-   sibling, draw only children intersecting the area, banded partial buffer
-   + DMA on STM32, deferred redraw per frame.
-4. canvas abstraction; renderer server and packets over rail; managers
-   (input, scroll, layout); try on the panel.
+1. Renderer: skip children fully covered by an opaque sibling, draw only
+   intersecting children, and support partial buffers and deferred redraw.
+2. Canvas abstraction; renderer server and packets over rail; input, scroll
+   and layout managers; try on the panel.
 
 ## Rules that matter to Egor
 
@@ -92,14 +83,12 @@ as of 2026-11-14 and the plan agreed with Egor.
 - Replies to Egor: Russian, brief, with numbers.
 ## Dirty regions (decided)
 
-- `LH_LIBRARY_OPTION_GL_LAYER_DIRTY_MAX` is a CMake cache option, defaults to 8,
-  and must be a positive integer.
-  Each layer has fixed storage and a count; only the root accumulates regions.
-- Areas are clipped to `(0, 0, width, height)` and empty areas are dropped.
-  A non-root layer offsets the clipped area by its origin and forwards it.
-- A bounding union is merged when its area is at most the sum of the two areas.
-  On overflow all regions and the new area collapse to one bounding rectangle.
-- `lh_gl_layer_invalidate`, `lh_gl_layer_get_dirty_count`,
-  `lh_gl_layer_get_dirty`, and `lh_gl_layer_clear_dirty` expose the root list.
-  `lh_gl_entity_invalidate` forwards the entity's rectangle to its parent;
-  its rectangle, origin and size setters invalidate the old and new rectangles.
+- Surface storage has `LH_LIBRARY_OPTION_GL_SURFACE_DIRTY_MAX` slots (default 8).
+- A surface clips incoming areas to its size, drops empty and contained areas,
+  merges when the bounding area is no larger than the sum, and collapses to one
+  bounding rectangle on overflow. Layers forward only and own no dirty storage.
+- Attach and resize synchronize the root rectangle and invalidate the whole
+  surface; detach clears the link without changing the rectangle. Fixed-size
+  displays do not need resize. The root does not change its own size.
+- Entity geometry changes and layer add, remove and deinit invalidate affected
+  areas; try_remove checks ownership and unlinks in O(1).

@@ -17,10 +17,6 @@
 #include <errno.h>
 #include <string.h>
 
-#if LH_LIBRARY_OPTION_OS_WERROR
-#    error "lh/os/system/posix/error/capture.c: LH_LIBRARY_OPTION_OS_WERROR is Windows-only for now"
-#endif
-
 lh_os_system_error_code_t
 lh_os_system_error_get_native_code(void)
 {

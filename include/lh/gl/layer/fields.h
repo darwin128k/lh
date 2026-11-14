@@ -6,10 +6,8 @@
 #ifndef LH_GL_LAYER_FIELDS_H
 #define LH_GL_LAYER_FIELDS_H
 
-#include <lh/config.h>
-
 /**
- * @def lh_gl_layer_fields(entity_type, items_type, rect_type, count_type)
+ * @def lh_gl_layer_fields(entity_type, items_type, surface_type)
  * @brief The entity a layer starts with and the list of its children.
  *
  * The `entity` member comes first, so a pointer to a layer is also a pointer to
@@ -20,13 +18,11 @@
  * @param items_type  ::lh_list_t: `items`, the intrusive list of children,
  *                    linked through each child's `node`. The layer does not
  *                    own the children themselves, only the links to them.
- * @param rect_type Rectangle type for the fixed dirty storage.
- * @param count_type Unsigned count type.
+ * @param surface_type Surface type; only an attached root has a surface.
  */
-#define lh_gl_layer_fields(entity_type, items_type, rect_type, count_type)                         \
+#define lh_gl_layer_fields(entity_type, items_type, surface_type)                                  \
     entity_type entity;                                                                            \
     items_type items;                                                                              \
-    rect_type dirty[LH_LIBRARY_OPTION_GL_LAYER_DIRTY_MAX];                                         \
-    count_type dirty_count
+    surface_type *surface
 
 #endif /* LH_GL_LAYER_FIELDS_H */

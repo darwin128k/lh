@@ -311,10 +311,10 @@ set(LH_LIBRARY_OPTION_UI_CANVAS_DEPTH "8" CACHE STRING
         "Max nested lh_ui_canvas_push levels (must be 1..255; default 8).")
 
 # -----------------------------------------------------------------------------
-# Maximum dirty rectangles held by a gl layer, fixed at build time.
+# Maximum dirty rectangles held by a gl surface, fixed at build time.
 # -----------------------------------------------------------------------------
-set(LH_LIBRARY_OPTION_GL_LAYER_DIRTY_MAX "8" CACHE STRING
-        "Maximum dirty rectangles per gl layer (positive integer; default 8).")
+set(LH_LIBRARY_OPTION_GL_SURFACE_DIRTY_MAX "8" CACHE STRING
+        "Maximum dirty rectangles per gl surface (positive integer; default 8).")
 
 # -----------------------------------------------------------------------------
 # LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY

@@ -137,14 +137,20 @@ changes. Needed for UI on a heapless target, where entities are created and
 destroyed all the time.
 ## 6. Config validation in one file
 
-**Today.** `include/lh/config.h` (from `config.h.in`) only defines the
-`LH_LIBRARY_OPTION_*` values. Nothing checks them at C level, so a brick
-that needs a sane value is tempted to `#error` on it in its own header.
+**Today.** `lh/config.h` includes `lh/config/check.h` after defining options.
+The dirty-region capacity, memory dispatch threshold, OS wide-error setting and
+address width are validated there. Some checks remain in their defining headers.
 
 **Target.** One separate header, for example `include/lh/config/check.h`,
 included by `lh/config.h`, that holds every `#if ... #error` for config
 values (ranges, required combinations). Bricks only read options and never
 validate them. CMake keeps its own checks for a clear configure-time error.
+**Follow-up.** Replace the repeated `header requires LH_LIBRARY_OPTION_*`
+preprocessor guards with one shared macro; compiler-capability checks stay in
+compiler and atomic bricks. The `REAL` and wheel default value checks remain in
+their defining headers until their constants can be made available without a
+configuration include cycle.
+
 ## Not a game layer
 
 The gamepad belongs to the applications that use the desktop stack — the 3D

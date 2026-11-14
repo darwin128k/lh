@@ -127,7 +127,8 @@ lh_add_test_core(lh_test_gl ${LH_TEST_SRC_PATH}/lh/gl/point.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/rect.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/entity/class.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/entity.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/layer.cpp)
+        ${LH_TEST_SRC_PATH}/lh/gl/layer.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/surface.cpp)
 
 # Types, errors and the few pieces every core leans on.
 lh_add_test_core(lh_test_console ${LH_TEST_SRC_PATH}/lh/core/console/console.cpp)
