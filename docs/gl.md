@@ -66,6 +66,7 @@ as of 2026-11-14 and the plan agreed with Egor.
 - point, size, rect, entity, layer, fixed-storage surface dirty regions, layer z-order, entity coordinate conversion, and clipped layer drawing.
 - Renderer: one deferred pass over the surface dirty list. A positive band slices each rectangle into horizontal stripes. Children that miss the clip are skipped, and so is a child whose visible area is fully inside a later opaque sibling. The class flag `opaque` says so. `lh_gl_rect_contains` is the cover test.
 - Canvas primitives: fill and stroke of a rectangle, a circle and a rounded rectangle, through `lh_gl_color_t`, `lh_gl_pen_t` and `lh_gl_canvas_backend_t`.
+- Pixmap: a borrowed grid of those colors. One canvas call fills a rectangle by replacing pixels. No blend, no other shapes.
 - Point hit: `lh_gl_layer_find_entity` walks front to back and returns the deepest entity whose rectangle contains the point. No child means the layer itself. Outside the layer is null. `opaque` is draw occlusion only.
 - Input hold: `lh_gl_input_t` stores one borrowed entity. Press uses the point hit. Move does not search again. Release clears the hold. No keys and no device.
 - Scroll axis: one offset, not stored on an entity or a layer. Container: borrowed layer plus a horizontal axis, a vertical axis, or neither. Placement is the window origin minus the offsets. Rectangles stay put. `lh_gl_container_invalidate` marks the window; changing an axis does not.
