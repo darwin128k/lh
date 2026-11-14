@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- `lh_gl_fill_t` is an entity plus a borrowed color. One class draws that color into the entity rectangle and does not blend. A null color draws nothing. The class is not opaque. Changing the color pointer marks the area; writing a channel does not.
+
 - `lh_gl_bmp_try_store` writes a pixmap as an uncompressed 32-bit bitmap: bottom-up pixels, blue green red alpha, alpha copied. A non-positive size, a missing pixel row, or a file that does not fit in 32 bits stores nothing.
 
 - `lh_gl_layout_t` stores one gap. Packing writes the origins of a layer's direct children along one axis, from zero, in list order. The other axis and the sizes stay. A null layer is ignored.

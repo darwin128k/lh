@@ -223,6 +223,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/gl/layer.c
         ${LH_LIB_SRC_PATH}/gl/input.c
         ${LH_LIB_SRC_PATH}/gl/layout.c
+        ${LH_LIB_SRC_PATH}/gl/fill.c
         ${LH_LIB_SRC_PATH}/gl/scroll/axis.c
         ${LH_LIB_SRC_PATH}/gl/container.c
         ${LH_LIB_SRC_PATH}/gl/surface.c
