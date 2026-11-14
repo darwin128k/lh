@@ -19,6 +19,7 @@ lh_ui_entity_init(lh_ui_entity_t *self, lh_ui_rect_t rect)
     lh_ui_entity_set_class(self, lh_addr_of(lh_ui_entity_class));
     lh_ui_entity_set_hidden(self, lh_bool_false);
     lh_ui_entity_set_pressed(self, lh_bool_false);
+    lh_ui_entity_set_scroll_chain(self, lh_bool_true);
     lh_ui_entity_set_parent(self, lh_null);
     lh_ui_entity_set_view(self, lh_null);
     lh_ui_place_init(lh_ui_entity_get_place_mut(self), lh_ui_place_size_fixed, lh_ui_scalar(0));
@@ -856,7 +857,8 @@ lh_ui_entity_draw_border(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
         (lh_ui_radii_get_min(lh_ui_style_get_radii(style)) > lh_ui_scalar(0) ||
          !lh_ui_radii_is_uniform(lh_ui_style_get_radii(style))))
     {
-        lh_ui_canvas_stroke_box(canvas, lh_addr_of(rect), lh_ui_style_get_radii(style), left, color);
+        lh_ui_canvas_stroke_box(canvas, lh_addr_of(rect), lh_ui_style_get_radii(style), left,
+                                color);
         return;
     }
     const lh_ui_point_t *origin = lh_ui_rect_get_origin(lh_addr_of(rect));
@@ -1048,4 +1050,18 @@ lh_ui_entity_set_style(lh_ui_entity_t *self, const lh_ui_style_t *style)
 {
     lh_assert_runtime_ref(self);
     self->style = style;
+}
+
+lh_bool_t
+lh_ui_entity_is_scroll_chain_enabled(const lh_ui_entity_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->scroll_chain;
+}
+
+lh_void
+lh_ui_entity_set_scroll_chain(lh_ui_entity_t *self, lh_bool_t enabled)
+{
+    lh_assert_runtime_ref(self);
+    self->scroll_chain = enabled;
 }

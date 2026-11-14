@@ -297,6 +297,49 @@ lh_ui_container_get_scroll(const lh_ui_container_t *self);
 lh_void
 lh_ui_container_set_scroll(lh_ui_container_t *self, lh_ui_point_t scroll);
 
+/**
+ * @brief Whether native input may scroll overflowing content on either axis.
+ * @param self Initialized container, never null.
+ * @return True when scrolling is enabled and get_scroll_max is positive on at
+ *         least one axis. A container at a scroll limit remains scrollable.
+ */
+lh_bool_t
+lh_ui_container_can_scroll(const lh_ui_container_t *self);
+
+/**
+ * @brief Nearest container at or above an entity whose content can scroll.
+ *
+ * Uses as_container and can_scroll, visiting every entity on the parent path.
+ * Fitting containers, including buttons, permit an ancestor to scroll only
+ * while scroll_chain is enabled on every intervening entity. A false flag stops
+ * the search after considering that entity's own scrolling; it never searches
+ * siblings or visually underlying objects.
+ * @param entity Starting entity; may be null.
+ * @return Borrowed scrollable container, or null when no ancestor overflows.
+ */
+lh_ui_container_t *
+lh_ui_entity_find_scrollable(lh_ui_entity_t *entity);
+
+/**
+ * @brief Whether native input may scroll this container (level 1).
+ * @param self Initialized container, never null.
+ * @return Stored permission. True for containers, false for buttons by default.
+ */
+lh_bool_t
+lh_ui_container_is_scroll_enabled(const lh_ui_container_t *self);
+
+/**
+ * @brief Enable or disable this container's native scrolling (level 1).
+ * @param self Initialized container, never null.
+ * @param enabled Permission for pointer, wheel, scrollbar and keyboard scrolling.
+ *
+ * Independent of the entity's scroll_chain permission: a button may refuse its
+ * own scrolling yet pass a drag to its parent. Direct container scroll setters
+ * and geometry remain available for programmatic positioning.
+ */
+lh_void
+lh_ui_container_set_scroll_enabled(lh_ui_container_t *self, lh_bool_t enabled);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_CONTAINER_H */

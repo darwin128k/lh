@@ -41,6 +41,7 @@ lh_ui_container_init(lh_ui_container_t *self, lh_ui_rect_t rect)
     lh_ui_point_init(lh_ui_container_get_scroll_mut(self), lh_ui_scalar(0), lh_ui_scalar(0));
     lh_ui_container_set_layout(self, lh_null);
     lh_ui_container_set_placing(self, lh_bool_false);
+    lh_ui_container_set_scroll_enabled(self, lh_bool_true);
 }
 
 lh_ui_entity_t *
@@ -269,6 +270,7 @@ lh_void
 lh_ui_container_on_key(lh_ui_container_t *self, const lh_ui_entity_event_t *event)
 {
     lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_key);
+    lh_return_if(!lh_ui_container_is_scroll_enabled(self));
     lh_ui_point_t delta;
     lh_ui_container_get_key_delta(self, lh_ui_entity_event_get_key(event), lh_addr_of(delta));
     lh_ui_container_scroll_by(self, lh_ui_point_get_x(lh_addr_of(delta)),
@@ -342,4 +344,40 @@ lh_ui_container_set_scroll(lh_ui_container_t *self, lh_ui_point_t scroll)
 {
     lh_assert_runtime_ref(self);
     self->scroll = scroll;
+}
+
+lh_bool_t
+lh_ui_container_can_scroll(const lh_ui_container_t *self)
+{
+    lh_return_if(!lh_ui_container_is_scroll_enabled(self), lh_bool_false);
+    lh_ui_point_t max;
+    lh_ui_container_get_scroll_max(self, lh_addr_of(max));
+    return lh_ui_point_get_x(lh_addr_of(max)) > lh_ui_scalar(0) ||
+           lh_ui_point_get_y(lh_addr_of(max)) > lh_ui_scalar(0);
+}
+
+lh_ui_container_t *
+lh_ui_entity_find_scrollable(lh_ui_entity_t *entity)
+{
+    for (; lh_null_ne(entity); entity = lh_ui_entity_get_parent(entity))
+    {
+        lh_ui_container_t *box = lh_ui_entity_as_container(entity);
+        lh_return_if(lh_null_ne(box) && lh_ui_container_can_scroll(box), box);
+        lh_return_if(!lh_ui_entity_is_scroll_chain_enabled(entity), lh_null);
+    }
+    return lh_null;
+}
+
+lh_bool_t
+lh_ui_container_is_scroll_enabled(const lh_ui_container_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->scroll_enabled;
+}
+
+lh_void
+lh_ui_container_set_scroll_enabled(lh_ui_container_t *self, lh_bool_t enabled)
+{
+    lh_assert_runtime_ref(self);
+    self->scroll_enabled = enabled;
 }

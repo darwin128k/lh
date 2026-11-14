@@ -285,7 +285,7 @@ lh_ui_scrollbar_get_driven(lh_ui_entity_t *entity);
 /**
  * @brief The container a pointer over @p entity scrolls: the one a scrollbar
  *        drives (::lh_ui_scrollbar_get_driven), else the nearest
- *        container at or above @p entity (::lh_ui_entity_find_container).
+ *        scrollable container at or above @p entity (::lh_ui_entity_find_scrollable).
  */
 lh_ui_container_t *
 lh_ui_scrollbar_find_scrolled(lh_ui_entity_t *entity);
@@ -365,7 +365,7 @@ lh_ui_scrollbar_set_axis(lh_ui_scrollbar_t *self, lh_ui_axis_t axis);
  * @param container The new value.
  */
 lh_void
-lh_ui_scrollbar_set_container(lh_ui_scrollbar_t *self, lh_ui_container_t * container);
+lh_ui_scrollbar_set_container(lh_ui_scrollbar_t *self, lh_ui_container_t *container);
 
 LH_COMPILER_EXTERN_C_END
 

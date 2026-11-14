@@ -18,6 +18,7 @@ lh_ui_button_init(lh_ui_button_t *self, lh_ui_rect_t rect)
     /* The button is a container: that is what gives it somewhere to put a
        caption and a picture, and the flow that places them. */
     lh_ui_container_init(lh_ui_button_get_container_mut(self), rect);
+    lh_ui_container_set_scroll_enabled(lh_ui_button_get_container_mut(self), lh_bool_false);
     lh_ui_entity_set_class_v(lh_ui_container_as_entity(lh_ui_button_get_container_mut(self)),
                              lh_addr_of(lh_ui_button_class));
     lh_ui_button_set_rest_style(self, lh_null);

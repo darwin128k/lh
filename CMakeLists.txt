@@ -623,6 +623,7 @@ if (LH_LIBRARY_OPTION_UI)
     # window presents. Needs both the UI and a native window.
     if (LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/surface.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/window.c)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/render/backend/gdi.c)
     endif ()
     if (LH_LIBRARY_OPTION_UI_FONT_ROBOTO)

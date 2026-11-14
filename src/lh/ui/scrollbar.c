@@ -311,6 +311,8 @@ lh_void
 lh_ui_scrollbar_on_click(const lh_ui_scrollbar_t *self, const lh_ui_entity_event_t *event)
 {
     lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_click);
+    lh_ui_container_t *box = lh_ui_scrollbar_get_container(self);
+    lh_return_if(lh_null_eq(box) || !lh_ui_container_is_scroll_enabled(box));
     lh_ui_point_t point;
     lh_ui_entity_event_get_point(event, lh_addr_of(point));
     lh_ui_scrollbar_page_toward(self, point);
@@ -350,7 +352,7 @@ lh_ui_scrollbar_find_scrolled(lh_ui_entity_t *entity)
 {
     lh_ui_container_t *container = lh_ui_scrollbar_get_driven(entity);
 
-    return lh_null_ne(container) ? container : lh_ui_entity_find_container(entity);
+    return lh_null_ne(container) ? container : lh_ui_entity_find_scrollable(entity);
 }
 
 lh_ui_scrollbar_t *

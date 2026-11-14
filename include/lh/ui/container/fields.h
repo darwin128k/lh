@@ -23,6 +23,10 @@
  * hands the transform on, which is why a container that moved carries its
  * children with it and the app never places anything by hand.
  *
+ * `scroll_enabled` permits native input to move this container. It starts true;
+ * a button turns it off because holding a caption does not imply scrolling.
+ * Programmatic scroll setters remain available.
+ *
  * `placing` is true while the flow runs. Placing a child moves it, moving it asks
  * where it is on screen, and that asks every container above it for its children's
  * transform -- this one included, which ran the flow again from inside itself. A
@@ -39,6 +43,7 @@
     entity_type entity;                                                                            \
     point_type scroll;                                                                             \
     const layout_type *layout;                                                                     \
+    bool_type scroll_enabled;                                                                      \
     bool_type placing
 
 #endif /* LH_UI_CONTAINER_FIELDS_H */

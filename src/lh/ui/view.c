@@ -110,12 +110,13 @@ lh_ui_view_draw_frame(lh_ui_view_t *self, const lh_ui_rect_t *damage)
     const lh_ui_size_t *size = lh_ui_canvas_get_size(lh_ui_view_get_canvas(self));
 
     lh_ui_rect_t whole;
-    lh_ui_rect_init(lh_addr_of(whole), lh_ui_scalar(0), lh_ui_scalar(0),
-                    lh_ui_size_get_width(size), lh_ui_size_get_height(size));
+    lh_ui_rect_init(lh_addr_of(whole), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_size_get_width(size),
+                    lh_ui_size_get_height(size));
     lh_ui_canvas_begin(lh_ui_view_get_canvas(self));
     /* A full frame must be presented as a full frame even after descendants
        establish smaller clips. Otherwise only those internal clips reach end. */
-    lh_ui_canvas_push(lh_ui_view_get_canvas(self), zero, lh_null_eq(damage) ? lh_addr_of(whole) : damage);
+    lh_ui_canvas_push(lh_ui_view_get_canvas(self), zero,
+                      lh_null_eq(damage) ? lh_addr_of(whole) : damage);
     lh_ui_view_clear(self, damage);
     lh_ui_view_draw_root(self);
     lh_ui_canvas_pop(lh_ui_view_get_canvas(self));
@@ -385,7 +386,7 @@ lh_bool_t
 lh_ui_view_scroll_by(lh_ui_view_t *self, lh_ui_container_t *box, lh_ui_scalar_t dx,
                      lh_ui_scalar_t dy)
 {
-    lh_return_if(lh_null_eq(box), lh_bool_false);
+    lh_return_if(lh_null_eq(box) || !lh_ui_container_is_scroll_enabled(box), lh_bool_false);
     lh_ui_point_t before;
     lh_ui_container_get_clamped_scroll(box, lh_addr_of(before));
     lh_ui_container_scroll_by(box, dx, dy);
@@ -558,6 +559,8 @@ lh_ui_view_grab_thumb(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_s
                       lh_ui_point_t point)
 {
     lh_return_if(lh_null_eq(bar));
+    lh_ui_container_t *box = lh_ui_scrollbar_get_container(bar);
+    lh_return_if(lh_null_eq(box) || !lh_ui_container_is_scroll_enabled(box));
     lh_ui_point_t local;
     lh_ui_entity_to_local(lh_ui_scrollbar_as_entity(bar), point, lh_addr_of(local));
     lh_return_if(!lh_ui_scrollbar_contains_thumb(bar, local));
@@ -571,7 +574,7 @@ lh_ui_container_t *
 lh_ui_view_get_drag_box(lh_ui_entity_t *hit)
 {
     lh_return_if(lh_null_ne(lh_ui_entity_as_scrollbar(hit)), lh_null);
-    return lh_ui_entity_find_container(hit);
+    return lh_ui_entity_find_scrollable(hit);
 }
 
 lh_void
@@ -666,6 +669,16 @@ lh_ui_view_unpress_target(lh_ui_view_t *self, const lh_ui_view_pointer_t *pointe
     lh_ui_view_set_pressed(self, target, lh_bool_false);
 }
 
+lh_ui_entity_t *
+lh_ui_view_release_target(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_point_t point)
+{
+    lh_ui_entity_t *target = lh_ui_view_pointer_get_target(pointer);
+    lh_ui_entity_send_pointer(target, lh_ui_entity_event_release, point);
+    lh_ui_view_unpress_target(self, pointer);
+    lh_ui_view_pointer_set_target(pointer, lh_null);
+    return target;
+}
+
 lh_void
 lh_ui_view_start_pointer(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_point_t point)
 {
@@ -674,7 +687,8 @@ lh_ui_view_start_pointer(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_u
     /* A press of this pointer still open when it goes down again (an app that
        went away without a release) is let go rather than left pressed under
        nothing — that is the one way a pressed look could stick. */
-    lh_ui_view_unpress_target(self, pointer);
+    LH_ATTRIBUTE_UNUSED(lh_ui_view_release_target(
+        self, pointer, lh_ptr_deref(lh_ui_view_pointer_get_last_point(pointer))));
     lh_ui_view_pointer_start(pointer, point);
 }
 
@@ -695,6 +709,7 @@ lh_ui_view_drag_thumb(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_s
                       lh_ui_point_t point)
 {
     lh_ui_container_t *box = lh_ui_scrollbar_get_container(bar);
+    lh_return_if(lh_null_eq(box) || !lh_ui_container_is_scroll_enabled(box), lh_bool_false);
     lh_ui_point_t before;
     lh_ui_container_get_clamped_scroll(box, lh_addr_of(before));
 
@@ -712,6 +727,10 @@ lh_ui_view_drag_content(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui
     lh_return_if(!lh_ui_view_pointer_is_dragged(pointer) &&
                      !lh_ui_view_pointer_is_past_threshold(pointer, point),
                  lh_bool_false);
+    if (!lh_ui_view_pointer_is_dragged(pointer))
+    {
+        LH_ATTRIBUTE_UNUSED(lh_ui_view_release_target(self, pointer, point));
+    }
     lh_ui_view_pointer_set_dragged(pointer, lh_bool_true);
     lh_ui_view_pointer_track(pointer, point);
     return lh_ui_view_scroll_by(
@@ -731,9 +750,7 @@ lh_ui_view_move_pointer(lh_ui_view_t *self, lh_os_input_pointer_id_t id, lh_ui_p
         lh_ui_view_pointer_set_dragged(pointer, lh_bool_true);
         return lh_ui_view_drag_thumb(self, pointer, grab, point);
     }
-    lh_return_if(!lh_ui_view_pointer_is_pressed(pointer) ||
-                     lh_null_eq(lh_ui_view_pointer_get_drag(pointer)),
-                 lh_bool_false);
+    lh_return_if(!lh_ui_view_pointer_is_pressed(pointer), lh_bool_false);
     return lh_ui_view_drag_content(self, pointer, point);
 }
 
@@ -763,12 +780,7 @@ lh_ui_view_release_pointer(lh_ui_view_t *self, lh_os_input_pointer_id_t id, lh_u
 {
     lh_ui_view_pointer_t *pointer = lh_ui_view_get_slot(self, id);
     lh_return_if(lh_null_eq(pointer), lh_null);
-    lh_ui_entity_t *target = lh_ui_view_pointer_get_target(pointer);
-    lh_ui_entity_send_pointer(target, lh_ui_entity_event_release, point);
-    /* Released before the click, and on the entity the press went down on: a
-       click may move the pointer onto something else, and that thing was never
-       pressed. */
-    lh_ui_view_unpress_target(self, pointer);
+    lh_ui_entity_t *target = lh_ui_view_release_target(self, pointer, point);
     lh_ui_view_finish_gesture(self, pointer);
     /* A click is a press and a release on one thing: a finger that slid off the
        button it went down on and lifted over another one clicked neither. */
@@ -811,19 +823,19 @@ lh_void
 lh_ui_view_press_on(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_entity_t *hit,
                     lh_ui_point_t point)
 {
-    lh_ui_container_t *box;
-
     lh_assert_runtime_ref(pointer);
-    lh_ui_view_pointer_set_target(pointer, hit);
+    lh_ui_entity_t *target = lh_ui_entity_click_target(hit);
+    lh_ui_view_pointer_set_target(pointer, target);
     /* Pressed is the entity's own state and this is the one place that sets it:
        a press is a look (::lh_ui_entity_get_style_now), so it has to be paired
        with the rect it changed, or the picture keeps the old look until
        something else draws. The rect is ::lh_ui_view_take_damage's. */
-    lh_ui_view_set_pressed(self, hit, lh_bool_true);
-    lh_ui_entity_send_pointer(hit, lh_ui_entity_event_press, point);
-    lh_ui_view_set_focus_v(self, lh_ui_entity_find_focusable(hit));
-    lh_ui_view_grab_thumb(self, pointer, lh_ui_entity_as_scrollbar(hit), point);
-    box = lh_null_eq(lh_ui_view_pointer_get_grab(pointer)) ? lh_ui_view_get_drag_box(hit) : lh_null;
+    lh_ui_view_set_pressed(self, target, lh_bool_true);
+    lh_ui_entity_send_pointer(target, lh_ui_entity_event_press, point);
+    lh_ui_view_set_focus_v(self, lh_ui_entity_find_focusable(target));
+    lh_ui_view_grab_thumb(self, pointer, lh_ui_entity_as_scrollbar(target), point);
+    lh_ui_container_t *box =
+        lh_null_eq(lh_ui_view_pointer_get_grab(pointer)) ? lh_ui_view_get_drag_box(hit) : lh_null;
     /* A container another pointer drags stays that pointer's: this one presses and
        may click inside it, but does not pull the content from under the other. */
     lh_ui_view_pointer_set_drag(pointer,
@@ -840,8 +852,7 @@ lh_ui_view_press_pointer(lh_ui_view_t *self, lh_os_input_pointer_id_t id, lh_ui_
     lh_ui_view_start_pointer(self, pointer, point);
     /* Pressing is clicking: what the pointer went down on is the thing that takes
        the pointer, not whatever is painted under it. */
-    lh_ui_view_press_on(self, pointer, lh_ui_entity_click_target(lh_ui_view_hit_test(self, point)),
-                        point);
+    lh_ui_view_press_on(self, pointer, lh_ui_view_hit_test(self, point), point);
 }
 
 lh_void
@@ -985,9 +996,7 @@ lh_ui_view_cancel_pointer(lh_ui_view_t *self, lh_os_input_pointer_id_t id)
     lh_return_if(lh_null_eq(pointer) || !lh_ui_view_pointer_is_active(pointer));
     lh_ui_point_t last;
     lh_ui_view_pointer_copy_last_point(pointer, lh_addr_of(last));
-    lh_ui_entity_send_pointer(lh_ui_view_pointer_get_target(pointer), lh_ui_entity_event_release,
-                              last);
-    lh_ui_view_unpress_target(self, pointer);
+    LH_ATTRIBUTE_UNUSED(lh_ui_view_release_target(self, pointer, last));
     lh_ui_view_end_scroll_of(self, pointer);
     lh_ui_view_pointer_reset(pointer);
 }

@@ -742,7 +742,7 @@ lh_ui_entity_get_rect_mut(lh_ui_entity_t *self);
  * @param parent The new value.
  */
 lh_void
-lh_ui_entity_set_parent(lh_ui_entity_t *self, struct lh_ui_entity * parent);
+lh_ui_entity_set_parent(lh_ui_entity_t *self, struct lh_ui_entity *parent);
 
 /**
  * @brief The view the entity is shown in (level 1).
@@ -761,7 +761,7 @@ lh_ui_entity_get_view(const lh_ui_entity_t *self);
  * @param view The new value.
  */
 lh_void
-lh_ui_entity_set_view(lh_ui_entity_t *self, struct lh_ui_view * view);
+lh_ui_entity_set_view(lh_ui_entity_t *self, struct lh_ui_view *view);
 
 /**
  * @brief How the entity is placed in its parent, to change in place (level 1).
@@ -889,7 +889,29 @@ lh_ui_entity_set_hidden(lh_ui_entity_t *self, lh_bool_t hidden);
  * @param style The new value.
  */
 lh_void
-lh_ui_entity_set_style(lh_ui_entity_t *self, const lh_ui_style_t * style);
+lh_ui_entity_set_style(lh_ui_entity_t *self, const lh_ui_style_t *style);
+
+/**
+ * @brief Whether scroll target selection may continue to this entity's parent.
+ * @param self Initialized entity, never null.
+ * @return Stored permission; true by default. This does not enable or disable
+ *         a container's own scrolling and does not change visual stacking.
+ */
+lh_bool_t
+lh_ui_entity_is_scroll_chain_enabled(const lh_ui_entity_t *self);
+
+/**
+ * @brief Allow or block passing scroll input toward ancestors (level 1).
+ * @param self Initialized entity, never null.
+ * @param enabled True permits parent selection, false stops at this entity.
+ *
+ * A scrollable container can still scroll itself when false. The view selects
+ * the owner at pointer-down and keeps it until release/cancel; set this before
+ * a new pointer sequence. Wheel routing reads it for each event. This flag
+ * does not hand remaining motion to another container at a scroll boundary.
+ */
+lh_void
+lh_ui_entity_set_scroll_chain(lh_ui_entity_t *self, lh_bool_t enabled);
 
 LH_COMPILER_EXTERN_C_END
 

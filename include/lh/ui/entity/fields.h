@@ -23,6 +23,9 @@ struct lh_ui_view;
  * is doing on it right now, kept by the view
  * (::lh_ui_view_press / ::lh_ui_view_release): it paints the pressed style of
  * ::lh_ui_style_t when there is one, and changes nothing about the entity.
+ * `scroll_chain` allows input selection to continue toward a scrollable parent
+ * after this entity's own scrolling was considered. It starts true; false is a
+ * barrier for both pointer drags and wheel routing, independent of draw order.
  * `parent` is ::lh_null for a root. `view` is set on that root by
  * ::lh_ui_view_set_root_v and is ::lh_null everywhere else: a setter that changes
  * what is on screen walks up to it and records one rect
@@ -32,7 +35,7 @@ struct lh_ui_view;
  * @param rect_type   Type of the area.
  * @param style_type  Type of the paint recipe pointed at.
  * @param class_type  Type of the class pointer.
- * @param bool_type   Type of the hidden and pressed flags.
+ * @param bool_type   Type of the visibility, scroll-chain and pressed flags.
  * @param entity_type Type of the parent pointer.
  * @param place_type  Type of ::lh_ui_place_t — how this entity wants a flow to place it.
  */
@@ -43,6 +46,7 @@ struct lh_ui_view;
         const style_type *style;                                                                   \
         const class_type *klass;                                                                   \
         bool_type hidden;                                                                          \
+        bool_type scroll_chain;                                                                    \
         bool_type pressed;                                                                         \
         entity_type *parent;                                                                       \
         struct lh_ui_view *view;                                                                   \
@@ -56,6 +60,7 @@ struct lh_ui_view;
         const style_type *style;                                                                   \
         const class_type *class;                                                                   \
         bool_type hidden;                                                                          \
+        bool_type scroll_chain;                                                                    \
         bool_type pressed;                                                                         \
         entity_type *parent;                                                                       \
         struct lh_ui_view *view;                                                                   \

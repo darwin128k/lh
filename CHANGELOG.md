@@ -9,10 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Pointer drags and wheel input skip fitting button/container interiors when
+  selecting a surrounding scrollable container. A standalone fitting button
+  still suppresses a click after a drag. Added `lh_ui_container_can_scroll`
+  and `lh_ui_entity_find_scrollable` as the shared selection bricks.
+
 - Full view frames retain a whole-target presentation clip when child widgets
   introduce smaller clips, so unscaled windows also present headers and footers.
 
 ### Added
+
+- Container `scroll_enabled` separates native scrolling from holding children.
+  Containers enable it by default; buttons disable it. Programmatic positioning
+  remains available, and scroll_chain independently controls ancestor routing.
+
+- Entity `scroll_chain` permission: pointer and wheel routing can be stopped on
+  any entity in the parent path, independently of hit-test stacking. Defaults
+  to enabled; selection is fixed for a pointer sequence. Drag takeover ends the
+  target's press once without a click, preserving scrolling and inertia.
+
+- `lh_ui_window_t` (`lh/ui/window.h`): native window, software screen, canvas,
+  view and controller composed around a caller-owned entity tree. Standard
+  input, resize cancellation, animation ticks and exposure painting are wired
+  once; an optional update hook keeps application values in the application.
 
 - `lh_ui_canvas_stroke_box`: inset rounded borders with independent corner radii,
   alpha and clipping; native entity borders with uniform widths now follow the

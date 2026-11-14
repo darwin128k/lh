@@ -518,8 +518,8 @@ lh_ui_view_drag_thumb(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_s
                       lh_ui_point_t point);
 
 /**
- * @brief The container a press on @p hit may drag: the nearest one at or
- *        above it, none on a scrollbar.
+ * @brief The scrollable container a press on @p hit may drag: the nearest
+ *        overflowing ancestor allowed by scroll_chain; none on a scrollbar.
  */
 lh_ui_container_t *
 lh_ui_view_get_drag_box(lh_ui_entity_t *hit);
@@ -540,6 +540,8 @@ lh_ui_view_start_pointer(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_u
  * @brief The press of @p pointer reaching @p hit: press event, focus, thumb grab,
  *        drag box -- none when another pointer already drags that container.
  *
+ * The actual hit (possibly a caption) determines the permitted parent path;
+ * click_target determines the button that receives press/release and focus.
  * Also presses it (::lh_ui_entity_set_pressed), so an entity paints its pressed
  * style and the caller has the damage to show it.
  */
@@ -598,8 +600,11 @@ lh_void
 lh_ui_view_set_hot(lh_ui_view_t *self, lh_ui_button_t *button, lh_bool_t hot);
 
 /**
- * @brief Drag the content of the drag box of @p pointer with it once past the
- *        threshold. Returns ::lh_ui_view_damage_scroll.
+ * @brief Track a pointer past the drag threshold and move its drag box, if any.
+ *
+ * A pointer without a scrollable box still becomes dragged, so sliding across a
+ * fitting button cannot turn into a click on release. Returns the result of
+ * ::lh_ui_view_scroll_by, false when no container moved.
  */
 lh_bool_t
 lh_ui_view_drag_content(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_point_t point);
@@ -884,7 +889,7 @@ lh_ui_view_get_scrolling(const lh_ui_view_t *self);
  * @param scrolling The new value.
  */
 lh_void
-lh_ui_view_set_scrolling(lh_ui_view_t *self, lh_ui_container_t * scrolling);
+lh_ui_view_set_scrolling(lh_ui_view_t *self, lh_ui_container_t *scrolling);
 
 /**
  * @brief The container coasting after a throw; ::lh_null for none (level 1).
@@ -903,7 +908,7 @@ lh_ui_view_get_throwing(const lh_ui_view_t *self);
  * @param throwing The new value.
  */
 lh_void
-lh_ui_view_set_throwing(lh_ui_view_t *self, lh_ui_container_t * throwing);
+lh_ui_view_set_throwing(lh_ui_view_t *self, lh_ui_container_t *throwing);
 
 /**
  * @brief The areas that wait to be drawn (level 1).
@@ -1014,7 +1019,7 @@ lh_ui_view_get_transitions_mut(lh_ui_view_t *self);
  * @param root The new value.
  */
 lh_void
-lh_ui_view_set_root(lh_ui_view_t *self, lh_ui_entity_t * root);
+lh_ui_view_set_root(lh_ui_view_t *self, lh_ui_entity_t *root);
 
 /**
  * @brief Store the entity that has the focus; ::lh_null for none (level 1).
@@ -1025,7 +1030,22 @@ lh_ui_view_set_root(lh_ui_view_t *self, lh_ui_entity_t * root);
  * @param focus The new value.
  */
 lh_void
-lh_ui_view_set_focus(lh_ui_view_t *self, lh_ui_entity_t * focus);
+lh_ui_view_set_focus(lh_ui_view_t *self, lh_ui_entity_t *focus);
+
+/**
+ * @brief End the target's press once without ending its pointer session.
+ * @param self Initialized view, never null.
+ * @param pointer Its initialized pointer session, never null.
+ * @param point Position in root coordinates.
+ * @return The previous target, or null. Sends its paired release, clears its
+ *         pressed look unless another pointer holds it, and clears the target.
+ *
+ * Used on release/cancel and when a drag takes over a click. Calling again is
+ * harmless: a target detached by a drag gets no second release or click when
+ * the finger finally lifts. Scroll ownership and velocity remain intact.
+ */
+lh_ui_entity_t *
+lh_ui_view_release_target(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_point_t point);
 
 LH_COMPILER_EXTERN_C_END
 

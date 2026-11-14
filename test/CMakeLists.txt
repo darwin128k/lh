@@ -586,6 +586,7 @@ set(LH_TEST_UI_SOURCES
         # there when there is a native window to hold one — the same guard its
         # source has.
         ${LH_TEST_SRC_PATH}/lh/ui/surface.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/window.cpp
 )
 if (LH_LIBRARY_OPTION_UI AND LH_LIBRARY_OPTION_MATH_FPU)
     list(APPEND LH_TEST_UI_SOURCES ${LH_TEST_SRC_PATH}/lh/ui/renderer3d.cpp)
@@ -593,19 +594,19 @@ else ()
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/ui/renderer3d.cpp)
 endif ()
 if (NOT LH_LIBRARY_OPTION_UI)
-    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/ui/surface.cpp)
-    list(REMOVE_ITEM LH_TEST_UI_SOURCES ${LH_TEST_SRC_PATH}/lh/ui/surface.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/ui/surface.cpp ${LH_TEST_SRC_PATH}/lh/ui/window.cpp)
+    list(REMOVE_ITEM LH_TEST_UI_SOURCES ${LH_TEST_SRC_PATH}/lh/ui/surface.cpp ${LH_TEST_SRC_PATH}/lh/ui/window.cpp)
 endif ()
 if (LH_LIBRARY_OPTION_UI AND NOT (LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW))
-    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/ui/surface.cpp)
-    list(REMOVE_ITEM LH_TEST_UI_SOURCES ${LH_TEST_SRC_PATH}/lh/ui/surface.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/ui/surface.cpp ${LH_TEST_SRC_PATH}/lh/ui/window.cpp)
+    list(REMOVE_ITEM LH_TEST_UI_SOURCES ${LH_TEST_SRC_PATH}/lh/ui/surface.cpp ${LH_TEST_SRC_PATH}/lh/ui/window.cpp)
 endif ()
 if (LH_LIBRARY_OPTION_UI)
     # surface.cpp is already in or out of the list above; the rest is the whole
     # of the ui core, which only exists when the option does.
     lh_add_test_core(lh_test_ui ${LH_TEST_UI_SOURCES})
 else ()
-    list(REMOVE_ITEM LH_TEST_UI_SOURCES ${LH_TEST_SRC_PATH}/lh/ui/surface.cpp)
+    list(REMOVE_ITEM LH_TEST_UI_SOURCES ${LH_TEST_SRC_PATH}/lh/ui/surface.cpp ${LH_TEST_SRC_PATH}/lh/ui/window.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_UI_SOURCES})
 endif ()
 

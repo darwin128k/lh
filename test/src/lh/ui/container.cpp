@@ -4,6 +4,7 @@
 #include <lh/test/ui/fill_probe.h>
 
 #include <lh/ui/container.h>
+#include <lh/ui/button.h>
 #include <lh/test/out.h>
 
 TEST(entity_container, init_keeps_the_rect_and_container_class)
@@ -37,8 +38,8 @@ TEST(entity_container, draw_keeps_the_base_class_fill)
     lh_ui_container_init(lh_addr_of(box), rect);
     lh_ui_entity_set_style_v(lh_ui_container_as_entity(lh_addr_of(box)), lh_addr_of(style));
     lh_ui_canvas_t canvas;
-    lh_test::fill_probe_init(lh_addr_of(probe), lh_addr_of(canvas), lh_test::fill_probe_backend(), rect,
-                             color);
+    lh_test::fill_probe_init(lh_addr_of(probe), lh_addr_of(canvas), lh_test::fill_probe_backend(),
+                             rect, color);
 
     lh_ui_entity_draw(lh_ui_container_as_entity(lh_addr_of(box)), lh_addr_of(canvas));
 
@@ -132,11 +133,14 @@ TEST(entity_container, set_scroll_clamps_to_zero_and_max)
     scroll_fixture f;
 
     lh_ui_container_set_scroll_v(lh_addr_of(f.box), point_of(5, 12));
-    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(f.box)), 0, 12));
+    EXPECT_TRUE(
+        point_is(lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(f.box)), 0, 12));
     lh_ui_container_set_scroll_v(lh_addr_of(f.box), point_of(-5, 99));
-    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(f.box)), 0, 30));
+    EXPECT_TRUE(
+        point_is(lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(f.box)), 0, 30));
     lh_ui_container_set_scroll_v(lh_addr_of(f.box), point_of(0, -1));
-    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(f.box)), 0, 0));
+    EXPECT_TRUE(
+        point_is(lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(f.box)), 0, 0));
 }
 
 TEST(entity_container, scroll_by_moves_and_clamps)
@@ -144,11 +148,14 @@ TEST(entity_container, scroll_by_moves_and_clamps)
     scroll_fixture f;
 
     lh_ui_container_scroll_by(lh_addr_of(f.box), lh_ui_scalar(0), lh_ui_scalar(20));
-    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(f.box)), 0, 20));
+    EXPECT_TRUE(
+        point_is(lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(f.box)), 0, 20));
     lh_ui_container_scroll_by(lh_addr_of(f.box), lh_ui_scalar(0), lh_ui_scalar(20));
-    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(f.box)), 0, 30));
+    EXPECT_TRUE(
+        point_is(lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(f.box)), 0, 30));
     lh_ui_container_scroll_by(lh_addr_of(f.box), lh_ui_scalar(0), lh_ui_scalar(-100));
-    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(f.box)), 0, 0));
+    EXPECT_TRUE(
+        point_is(lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(f.box)), 0, 0));
 }
 
 TEST(entity_container, answers_children_with_minus_scroll_and_a_clip)
@@ -212,8 +219,10 @@ TEST(entity_container, clamp_scroll_keeps_each_axis_in_zero_to_max)
 {
     scroll_fixture f;
 
-    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_clamp_scroll, lh_addr_of(f.box), point_of(-3, 50)), 0, 30));
-    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_clamp_scroll, lh_addr_of(f.box), point_of(7, 12)), 0, 12));
+    EXPECT_TRUE(point_is(
+        lh_test::out(lh_ui_container_clamp_scroll, lh_addr_of(f.box), point_of(-3, 50)), 0, 30));
+    EXPECT_TRUE(point_is(
+        lh_test::out(lh_ui_container_clamp_scroll, lh_addr_of(f.box), point_of(7, 12)), 0, 12));
 }
 
 TEST(entity_container, get_scroll_is_clamped_when_the_content_shrinks)
@@ -224,11 +233,13 @@ TEST(entity_container, get_scroll_is_clamped_when_the_content_shrinks)
     /* b leaves the content: it now ends at a, 40 tall in a 50 viewport. */
     lh_ui_entity_set_hidden_v(lh_addr_of(f.b), lh_bool_true);
 
-    EXPECT_TRUE(point_is(lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(f.box)), 0, 0));
+    EXPECT_TRUE(
+        point_is(lh_test::out(lh_ui_container_get_clamped_scroll, lh_addr_of(f.box)), 0, 0));
     lh_ui_entity_transform_t transform;
     lh_ui_entity_transform_init(lh_addr_of(transform));
     lh_ui_container_place_children(lh_addr_of(f.box), lh_addr_of(transform));
-    EXPECT_TRUE(point_is(lh_test::out(lh_ui_entity_transform_copy_offset, lh_addr_of(transform)), 0, 0));
+    EXPECT_TRUE(
+        point_is(lh_test::out(lh_ui_entity_transform_copy_offset, lh_addr_of(transform)), 0, 0));
     EXPECT_EQ(lh_ui_entity_transform_is_clip(lh_addr_of(transform)), lh_bool_true);
 }
 
@@ -244,7 +255,8 @@ TEST(entity_container, event_is_public_and_answers_children)
 
     lh_ui_container_event(f.entity(), lh_addr_of(event));
 
-    EXPECT_TRUE(point_is(lh_test::out(lh_ui_entity_transform_copy_offset, lh_addr_of(transform)), 0, -10));
+    EXPECT_TRUE(
+        point_is(lh_test::out(lh_ui_entity_transform_copy_offset, lh_addr_of(transform)), 0, -10));
 }
 
 /* Padding is room after the last child: it adds to the content size (so the
@@ -273,4 +285,102 @@ TEST(entity_container, padding_extends_the_content_past_the_last_child)
     EXPECT_EQ(lh_ui_size_get_height(&size), lh_ui_scalar(158));
     const lh_ui_point_t max = lh_test::out(lh_ui_container_get_scroll_max, &box);
     EXPECT_EQ(lh_ui_point_get_y(&max), lh_ui_scalar(58));
+}
+
+TEST(entity_container, scrollability_uses_content_overflow_on_either_axis)
+{
+    lh_ui_container_t box;
+    lh_ui_container_init(&box, lh_test::rect_of(0, 0, 100, 60));
+    EXPECT_FALSE(lh_ui_container_can_scroll(&box));
+    lh_ui_entity_t child;
+    lh_ui_entity_init(&child, lh_test::rect_of(0, 0, 100, 60));
+    lh_ui_entity_add_child(lh_ui_container_as_entity(&box), &child);
+    EXPECT_FALSE(lh_ui_container_can_scroll(&box));
+    lh_ui_entity_set_rect_v(&child, lh_test::rect_of(0, 0, 101, 60));
+    EXPECT_TRUE(lh_ui_container_can_scroll(&box));
+    lh_ui_entity_set_rect_v(&child, lh_test::rect_of(0, 0, 100, 61));
+    EXPECT_TRUE(lh_ui_container_can_scroll(&box));
+    lh_ui_entity_set_hidden_v(&child, lh_bool_true);
+    EXPECT_FALSE(lh_ui_container_can_scroll(&box));
+}
+
+TEST(entity_container, nearest_scrollable_skips_fitting_buttons_and_empty_containers)
+{
+    lh_ui_container_t outer;
+    lh_ui_container_init(&outer, lh_test::rect_of(0, 0, 100, 60));
+    lh_ui_container_t inner;
+    lh_ui_container_init(&inner, lh_test::rect_of(0, 0, 100, 200));
+    lh_ui_entity_add_child(lh_ui_container_as_entity(&outer), lh_ui_container_as_entity(&inner));
+    lh_ui_button_t button;
+    lh_ui_button_init(&button, lh_test::rect_of(0, 0, 100, 200));
+    lh_ui_entity_add_child(lh_ui_container_as_entity(&inner), lh_ui_button_as_entity(&button));
+    EXPECT_EQ(lh_ui_entity_find_container(lh_ui_button_as_entity(&button)),
+              lh_ui_button_get_container_mut(&button));
+    EXPECT_EQ(lh_ui_entity_find_scrollable(lh_ui_button_as_entity(&button)), &outer);
+    lh_ui_entity_t caption;
+    lh_ui_entity_init(&caption, lh_test::rect_of(0, 0, 10, 10));
+    lh_ui_entity_add_child(lh_ui_button_as_entity(&button), &caption);
+    EXPECT_EQ(lh_ui_entity_find_scrollable(&caption), &outer);
+    lh_ui_entity_t overflow;
+    lh_ui_entity_init(&overflow, lh_test::rect_of(0, 200, 100, 100));
+    lh_ui_entity_add_child(lh_ui_container_as_entity(&inner), &overflow);
+    EXPECT_EQ(lh_ui_entity_find_scrollable(&caption), &inner);
+    EXPECT_EQ(lh_ui_entity_find_scrollable(nullptr), nullptr);
+    lh_ui_entity_t unattached;
+    lh_ui_entity_init(&unattached, lh_test::rect_of(0, 0, 10, 10));
+    EXPECT_EQ(lh_ui_entity_find_scrollable(&unattached), nullptr);
+}
+
+TEST(entity_container, a_barrier_on_a_plain_entity_blocks_ancestor_selection)
+{
+    lh_ui_container_t outer;
+    lh_ui_container_init(&outer, lh_test::rect_of(0, 0, 100, 60));
+    lh_ui_entity_t wrapper;
+    lh_ui_entity_init(&wrapper, lh_test::rect_of(0, 0, 500, 60));
+    lh_ui_entity_add_child(lh_ui_container_as_entity(&outer), &wrapper);
+    lh_ui_button_t button;
+    lh_ui_button_init(&button, lh_test::rect_of(0, 0, 50, 50));
+    lh_ui_entity_add_child(&wrapper, lh_ui_button_as_entity(&button));
+    EXPECT_TRUE(lh_ui_entity_is_scroll_chain_enabled(&wrapper));
+    EXPECT_EQ(lh_ui_entity_find_scrollable(lh_ui_button_as_entity(&button)), &outer);
+    lh_ui_entity_set_scroll_chain(&wrapper, lh_bool_false);
+    EXPECT_EQ(lh_ui_entity_find_scrollable(lh_ui_button_as_entity(&button)), nullptr);
+    lh_ui_entity_set_scroll_chain(&wrapper, lh_bool_true);
+    EXPECT_EQ(lh_ui_entity_find_scrollable(lh_ui_button_as_entity(&button)), &outer);
+}
+
+TEST(entity_container, chain_permission_does_not_disable_the_containers_own_scroll)
+{
+    lh_ui_container_t box;
+    lh_ui_container_init(&box, lh_test::rect_of(0, 0, 100, 60));
+    lh_ui_entity_t content;
+    lh_ui_entity_init(&content, lh_test::rect_of(0, 0, 500, 60));
+    lh_ui_entity_add_child(lh_ui_container_as_entity(&box), &content);
+    lh_ui_entity_set_scroll_chain(lh_ui_container_as_entity(&box), lh_bool_false);
+    EXPECT_TRUE(lh_ui_container_can_scroll(&box));
+    EXPECT_EQ(lh_ui_entity_find_scrollable(&content), &box);
+}
+
+TEST(entity_container, buttons_do_not_scroll_their_caption_unless_explicitly_enabled)
+{
+    lh_ui_container_t outer;
+    lh_ui_container_init(&outer, lh_test::rect_of(0, 0, 100, 60));
+    lh_ui_button_t button;
+    lh_ui_button_init(&button, lh_test::rect_of(0, 0, 500, 60));
+    lh_ui_entity_add_child(lh_ui_container_as_entity(&outer), lh_ui_button_as_entity(&button));
+    lh_ui_entity_t caption;
+    lh_ui_entity_init(&caption, lh_test::rect_of(0, 0, 500, 61));
+    lh_ui_entity_add_child(lh_ui_button_as_entity(&button), &caption);
+    EXPECT_FALSE(lh_ui_container_is_scroll_enabled(lh_ui_button_get_container(&button)));
+    EXPECT_FALSE(lh_ui_container_can_scroll(lh_ui_button_get_container(&button)));
+    EXPECT_EQ(lh_ui_entity_find_scrollable(&caption), &outer);
+    lh_ui_container_set_scroll_enabled(lh_ui_button_get_container_mut(&button), lh_bool_true);
+    EXPECT_TRUE(lh_ui_container_can_scroll(lh_ui_button_get_container(&button)));
+    EXPECT_EQ(lh_ui_entity_find_scrollable(&caption), lh_ui_button_get_container_mut(&button));
+    lh_ui_container_set_scroll_enabled(&outer, lh_bool_false);
+    EXPECT_FALSE(lh_ui_container_can_scroll(&outer));
+    lh_ui_point_t position;
+    lh_ui_point_init(&position, 20, 0);
+    lh_ui_container_set_scroll_v(&outer, position);
+    EXPECT_EQ(lh_ui_point_get_x(lh_ui_container_get_scroll(&outer)), 20);
 }
