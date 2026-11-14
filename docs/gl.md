@@ -61,6 +61,7 @@ as of 2026-11-14 and the plan agreed with Egor.
 - point, size, rect, entity, layer, fixed-storage surface dirty regions, layer z-order, entity coordinate conversion, and clipped layer drawing.
 - Renderer: one deferred pass over the surface dirty list. A positive band slices each rectangle into horizontal stripes. Children that miss the clip are skipped, and so is a child whose visible area is fully inside a later opaque sibling. The class flag `opaque` says so. `lh_gl_rect_contains` is the cover test.
 - Canvas primitives: fill and stroke of a rectangle, a circle and a rounded rectangle, through `lh_gl_color_t`, `lh_gl_pen_t` and `lh_gl_canvas_backend_t`.
+- Point hit: `lh_gl_layer_find_entity` walks front to back and returns the deepest entity whose rectangle contains the point. No child means the layer itself. Outside the layer is null. `opaque` is draw occlusion only.
 - Known pre-existing warnings: `check-fields` on `self->cls` in
   `entity.c` get/set_class; `entity.c` function order vs levels.
 - `docs/roadmap.md` section 5: a general allocator with a real free over a

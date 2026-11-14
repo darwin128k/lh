@@ -297,6 +297,47 @@ lh_gl_layer_try_insert_after(lh_gl_layer_t *self, lh_gl_entity_t *entity, lh_gl_
     return lh_bool_true;
 }
 
+const lh_gl_entity_t *
+lh_gl_layer_find_entity_at(const lh_gl_layer_t *self, lh_gl_point_t point, const lh_gl_rect_t *bounds)
+{
+    if (lh_gl_rect_contains_point(bounds, point) == lh_bool_false)
+    {
+        return lh_null;
+    }
+    const lh_list_t *items = lh_gl_layer_get_items(self);
+    const lh_gl_point_t *origin = lh_gl_rect_get_origin(bounds);
+
+    for (lh_list_node_t *node = lh_list_get_last(items); lh_ptr_is_set(node);
+         node = lh_list_get_prev(items, node))
+    {
+        const lh_gl_entity_t *child = lh_gl_entity_from_node(node);
+        lh_gl_rect_t child_bounds;
+
+        lh_gl_rect_offset(lh_gl_entity_get_rect(child), lh_gl_point_get_x(origin),
+                          lh_gl_point_get_y(origin), lh_addr_of(child_bounds));
+        if (lh_gl_rect_contains_point(lh_addr_of(child_bounds), point) == lh_bool_false)
+        {
+            continue;
+        }
+        if (lh_gl_entity_is_layer(child))
+        {
+            return lh_gl_layer_find_entity_at(lh_ptr_ccast(lh_gl_layer_t, child), point,
+                                              lh_addr_of(child_bounds));
+        }
+        return child;
+    }
+    return lh_gl_layer_get_entity(self);
+}
+
+const lh_gl_entity_t *
+lh_gl_layer_find_entity(const lh_gl_layer_t *self, lh_gl_point_t point)
+{
+    lh_gl_rect_t bounds;
+
+    lh_gl_entity_get_absolute_rect(lh_gl_layer_get_entity(self), lh_addr_of(bounds));
+    return lh_gl_layer_find_entity_at(self, point, lh_addr_of(bounds));
+}
+
 lh_void
 lh_gl_layer_draw_at(const lh_gl_layer_t *self, lh_gl_canvas_t *canvas, const lh_gl_rect_t *bounds,
                     const lh_gl_rect_t *clip)

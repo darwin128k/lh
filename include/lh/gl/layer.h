@@ -17,6 +17,8 @@
  *
  * **List order is z-order.** The first entity is the back one, the last one is
  * the front. ::lh_gl_layer_try_add appends, so a new child is drawn on top.
+ * ::lh_gl_layer_find_entity walks the other way: the front rectangle that
+ * contains the point, then the deepest entity inside it.
  *
  * A child's `rect` is relative to the origin of the layer's own rect. A layer
  * never holds the same entity twice and never holds itself or one of its
@@ -294,6 +296,42 @@ lh_gl_layer_try_insert_before(lh_gl_layer_t *self, lh_gl_entity_t *entity, lh_gl
  */
 lh_bool_t
 lh_gl_layer_try_insert_after(lh_gl_layer_t *self, lh_gl_entity_t *entity, lh_gl_entity_t *sibling);
+
+/**
+ * @brief Entity under a root-coordinate point, given this layer's absolute rectangle.
+ *
+ * @p bounds is this layer in root coordinates, the same rectangle
+ * ::lh_gl_layer_draw_at receives. The point is half-open against that rectangle
+ * and against each child (::lh_gl_rect_contains_point). Children are visited
+ * front to back. A child layer that contains the point is entered, and the
+ * deepest containing entity is returned; when none of its children contain the
+ * point, the layer itself is that entity. Siblings behind a containing child
+ * are not considered. A point outside @p bounds returns ::lh_null, including a
+ * point that lies only in a child sticking out of the layer. `opaque` is not
+ * read: covering for drawing and containing a point are different questions.
+ *
+ * @param self   Layer to search; must not be null.
+ * @param point  Point in root coordinates, copied.
+ * @param bounds Absolute rectangle of @p self; must not be null.
+ * @return The entity that contains @p point, or ::lh_null when @p bounds does not.
+ */
+const lh_gl_entity_t *
+lh_gl_layer_find_entity_at(const lh_gl_layer_t *self, lh_gl_point_t point,
+                           const lh_gl_rect_t *bounds);
+
+/**
+ * @brief Entity under a root-coordinate point.
+ *
+ * Computes this layer's absolute rectangle and calls ::lh_gl_layer_find_entity_at.
+ * The walk is O(children) per layer entered and uses no heap.
+ *
+ * @param self  Layer to search; must not be null.
+ * @param point Point in root coordinates, copied.
+ * @return The front-most, then deepest, entity that contains @p point, or
+ *         ::lh_null when this layer's absolute rectangle does not.
+ */
+const lh_gl_entity_t *
+lh_gl_layer_find_entity(const lh_gl_layer_t *self, lh_gl_point_t point);
 
 /**
  * @brief Draw a layer subtree from a known absolute rectangle.

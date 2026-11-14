@@ -646,4 +646,77 @@ TEST(gl_layer, draw_skips_a_child_fully_covered_by_a_later_opaque_sibling)
     lh_gl_layer_deinit(lh_addr_of(root));
 }
 
+lh_gl_point_t
+point_of(lh_math_scalar_t x, lh_math_scalar_t y)
+{
+    lh_gl_point_t point;
+
+    lh_gl_point_init(lh_addr_of(point), x, y);
+    return point;
+}
+
+TEST(gl_layer, find_entity_returns_the_layer_when_no_child_contains_the_point)
+{
+    lh_gl_layer_t root;
+
+    lh_gl_layer_init(lh_addr_of(root), rect_of(0, 0, 100, 50));
+    EXPECT_EQ(lh_gl_layer_find_entity(lh_addr_of(root), point_of(0, 0)),
+              lh_gl_layer_get_entity(lh_addr_of(root)));
+    EXPECT_EQ(lh_gl_layer_find_entity(lh_addr_of(root), point_of(99, 49)),
+              lh_gl_layer_get_entity(lh_addr_of(root)));
+    EXPECT_EQ(lh_gl_layer_find_entity(lh_addr_of(root), point_of(100, 0)), nullptr);
+    EXPECT_EQ(lh_gl_layer_find_entity(lh_addr_of(root), point_of(0, 50)), nullptr);
+    lh_gl_layer_deinit(lh_addr_of(root));
+}
+
+TEST(gl_layer, find_entity_picks_the_front_sibling_and_the_deepest_child)
+{
+    lh_gl_entity_class_t plain = plain_class();
+    lh_gl_entity_class_t solid = plain_class();
+    lh_gl_entity_class_set_opaque(lh_addr_of(solid), lh_bool_true);
+    lh_gl_layer_t root;
+    lh_gl_layer_init(lh_addr_of(root), rect_of(0, 0, 100, 100));
+    lh_gl_layer_t nested;
+    lh_gl_layer_init(lh_addr_of(nested), rect_of(40, 40, 40, 40));
+    lh_gl_entity_t back;
+    lh_gl_entity_init(lh_addr_of(back), rect_of(0, 0, 30, 30), lh_addr_of(plain));
+    lh_gl_entity_t front;
+    lh_gl_entity_init(lh_addr_of(front), rect_of(10, 10, 20, 20), lh_addr_of(solid));
+    lh_gl_entity_t leaf;
+    lh_gl_entity_init(lh_addr_of(leaf), rect_of(5, 5, 10, 10), lh_addr_of(plain));
+    lh_gl_layer_add(lh_addr_of(root), lh_addr_of(back));
+    lh_gl_layer_add(lh_addr_of(root), lh_addr_of(front));
+    lh_gl_layer_add(lh_addr_of(root), lh_gl_layer_get_entity_mut(lh_addr_of(nested)));
+    lh_gl_layer_add(lh_addr_of(nested), lh_addr_of(leaf));
+    EXPECT_EQ(lh_gl_layer_find_entity(lh_addr_of(root), point_of(46, 46)), lh_addr_of(leaf));
+    EXPECT_EQ(lh_gl_layer_find_entity(lh_addr_of(root), point_of(42, 42)),
+              lh_gl_layer_get_entity(lh_addr_of(nested)));
+    EXPECT_EQ(lh_gl_layer_find_entity(lh_addr_of(root), point_of(15, 15)), lh_addr_of(front));
+    EXPECT_EQ(lh_gl_layer_find_entity(lh_addr_of(root), point_of(5, 5)), lh_addr_of(back));
+    EXPECT_EQ(lh_gl_layer_find_entity(lh_addr_of(root), point_of(30, 15)),
+              lh_gl_layer_get_entity(lh_addr_of(root)));
+    EXPECT_EQ(lh_gl_layer_find_entity(lh_addr_of(root), point_of(90, 90)),
+              lh_gl_layer_get_entity(lh_addr_of(root)));
+    lh_gl_layer_deinit(lh_addr_of(nested));
+    lh_gl_layer_deinit(lh_addr_of(root));
+}
+
+TEST(gl_layer, find_entity_at_uses_the_supplied_bounds)
+{
+    lh_gl_entity_class_t plain = plain_class();
+    lh_gl_layer_t root;
+    lh_gl_layer_init(lh_addr_of(root), rect_of(0, 0, 40, 40));
+    lh_gl_entity_t child;
+    lh_gl_entity_init(lh_addr_of(child), rect_of(5, 5, 10, 10), lh_addr_of(plain));
+    lh_gl_rect_t bounds = rect_of(100, 200, 40, 40);
+    lh_gl_layer_add(lh_addr_of(root), lh_addr_of(child));
+    EXPECT_EQ(lh_gl_layer_find_entity_at(lh_addr_of(root), point_of(106, 206), lh_addr_of(bounds)),
+              lh_addr_of(child));
+    EXPECT_EQ(lh_gl_layer_find_entity_at(lh_addr_of(root), point_of(100, 200), lh_addr_of(bounds)),
+              lh_gl_layer_get_entity(lh_addr_of(root)));
+    EXPECT_EQ(lh_gl_layer_find_entity_at(lh_addr_of(root), point_of(6, 6), lh_addr_of(bounds)),
+              nullptr);
+    lh_gl_layer_deinit(lh_addr_of(root));
+}
+
 } // namespace
