@@ -71,6 +71,18 @@ lh_gl_color_set_b(lh_gl_color_t *self, lh_gl_color_channel_t b);
 lh_void
 lh_gl_color_set_a(lh_gl_color_t *self, lh_gl_color_channel_t a);
 
+/**
+ * @brief Paint @p color over @p dst. Straight alpha, Porter-Duff "over".
+ *
+ * Alpha 255 copies @p color. Alpha 0 copies @p dst. Otherwise each channel is
+ * `(src * src_a + dst * dst_a * (255 - src_a) / 255) / out_a`, rounded half up,
+ * and the result alpha is `src_a + dst_a * (255 - src_a) / 255`. An opaque
+ * destination keeps alpha 255 and skips the second divide. @p out may alias
+ * either input.
+ */
+lh_void
+lh_gl_color_over(const lh_gl_color_t *dst, const lh_gl_color_t *color, lh_gl_color_t *out);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_GL_COLOR_H */

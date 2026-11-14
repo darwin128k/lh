@@ -66,12 +66,12 @@ as of 2026-11-14 and the plan agreed with Egor.
 - point, size, rect, entity, layer, fixed-storage surface dirty regions, layer z-order, entity coordinate conversion, and clipped layer drawing.
 - Renderer: one deferred pass over the surface dirty list. A positive band slices each rectangle into horizontal stripes. Children that miss the clip are skipped, and so is a child whose visible area is fully inside a later opaque sibling. The class flag `opaque` says so. `lh_gl_rect_contains` is the cover test.
 - Canvas primitives: fill and stroke of a rectangle, a circle and a rounded rectangle, through `lh_gl_color_t`, `lh_gl_pen_t` and `lh_gl_canvas_backend_t`.
-- Pixmap: a borrowed grid of those colors. One canvas call fills a rectangle by replacing pixels. No blend, no other shapes. `lh_gl_bmp_try_store` writes that grid as a 32-bit bitmap a viewer opens. Alpha is copied.
+- Pixmap: a borrowed grid of those colors. One canvas call fills a rectangle by blending (`lh_gl_color_over`). Alpha 255 replaces the pixel. No other shapes. `lh_gl_bmp_try_store` writes that grid as a 32-bit bitmap a viewer opens. Alpha is copied.
 - Point hit: `lh_gl_layer_find_entity` walks front to back and returns the deepest entity whose rectangle contains the point. No child means the layer itself. Outside the layer is null. `opaque` is draw occlusion only.
 - Input hold: `lh_gl_input_t` stores one borrowed entity. Press uses the point hit. Move does not search again. Release clears the hold. No keys and no device.
 - Scroll axis: one offset, not stored on an entity or a layer. Container: borrowed layer plus a horizontal axis, a vertical axis, or neither. Placement is the window origin minus the offsets. Rectangles stay put. `lh_gl_container_invalidate` marks the window; changing an axis does not.
 - Layout: `lh_gl_layout_t` is one gap. Pack writes direct children's origins along one axis from zero, in list order. The other axis and the sizes stay. It does not draw, search or scroll.
-- Fill: `lh_gl_fill_t` starts with an entity and borrows one color. The shared draw call reads that pointer. A layer's own draw call stays null; a background is a fill added first. Alpha is stored, not blended, and the fill class is not opaque.
+- Fill: `lh_gl_fill_t` starts with an entity and borrows one color. The shared draw call reads that pointer. A layer's own draw call stays null; a background is a fill added first. The fill class is not opaque.
 - Known pre-existing warnings: `check-fields` on `self->cls` in
   `entity.c` get/set_class; `entity.c` function order vs levels.
 - `docs/roadmap.md` section 5: a general allocator with a real free over a
@@ -80,9 +80,8 @@ as of 2026-11-14 and the plan agreed with Egor.
 
 ## Next, in order
 
-1. Blend, so an alpha below 255 shows what is behind. Then the same 480×320
-   card scene: gradient, shadow, and text. The pixmap still only replaces a
-   solid rectangle.
+1. The same 480×320 card scene: gradient, shadow, and text. The pixmap blends
+   a solid rectangle and does not draw those yet.
 2. Time that scene beside the existing `bench/lvgl` numbers.
 3. A scene stays an ordinary child layer until a swipe and a back stack need
    their own behaviour. Renderer packets over rail when another loop draws.

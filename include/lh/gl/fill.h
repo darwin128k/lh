@@ -8,9 +8,9 @@
  * the class can show different colors because the colors live outside the call.
  *
  * The layer stays empty. A background is a fill added first, so it is the back
- * child. Alpha is handed to the canvas as stored. This fill does not blend, and
- * its class is not opaque: a color can change to a lower alpha without the
- * class knowing, so siblings behind a fill are still drawn.
+ * child. The fill hands the color to the canvas; the pixmap blends it. The
+ * class is not opaque: a color can change to a lower alpha without the class
+ * knowing, so siblings behind a fill are still drawn.
  *
  * Mutating the color's channels does not mark the area. ::lh_gl_fill_set_color
  * does, because the pointer itself changed. The caller invalidates after a

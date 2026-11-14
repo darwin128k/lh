@@ -1,6 +1,6 @@
 /**
  * @file pixmap.c
- * @brief Replace rectangle pixels in a borrowed color grid.
+ * @brief Blend rectangle pixels in a borrowed color grid.
  */
 #include <lh/gl/pixmap.h>
 
@@ -110,7 +110,10 @@ lh_gl_pixmap_fill_rect(lh_gl_pixmap_t *self, const lh_gl_rect_t *clip, const lh_
         for (lh_gl_scalar_t x = lh_gl_point_get_x(origin);
              x < lh_gl_point_get_x(origin) + lh_gl_size_get_width(area_size); ++x)
         {
-            lh_ptr_deref(lh_gl_pixmap_get_pixel_mut(self, x, y)) = lh_ptr_deref(color);
+            lh_gl_color_t mixed;
+
+            lh_gl_color_over(lh_gl_pixmap_get_pixel(self, x, y), color, lh_addr_of(mixed));
+            lh_ptr_deref(lh_gl_pixmap_get_pixel_mut(self, x, y)) = mixed;
         }
     }
 }

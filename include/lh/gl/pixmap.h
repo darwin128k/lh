@@ -3,8 +3,8 @@
  * @brief A borrowed grid of colors: ::lh_gl_pixmap_t.
  *
  * The pixmap is one canvas target. It stores straight ::lh_gl_color_t pixels
- * and replaces them: a fill writes the color over the rectangle and does not
- * blend. It does not draw circles, strokes or text, and it does not know about
+ * and blends a fill over them (::lh_gl_color_over). It does not draw circles,
+ * strokes or text, and it does not know about
  * a layer or a surface. The caller owns the pixel memory.
  *
  * ::lh_gl_pixmap_get_canvas_backend is the table for ::lh_gl_canvas_set_backend.
@@ -78,7 +78,8 @@ lh_gl_pixmap_get_pixel_mut(lh_gl_pixmap_t *self, lh_gl_scalar_t x, lh_gl_scalar_
  *
  * @p rect and @p clip are half-open and in pixmap coordinates, origin at the
  * top left. Their intersection is clipped to the pixmap. A null pixel row or
- * an empty intersection writes nothing. Alpha is stored, not blended.
+ * an empty intersection writes nothing. Alpha 255 replaces the pixel. A lower
+ * alpha blends over the pixel that is already there.
  */
 lh_void
 lh_gl_pixmap_fill_rect(lh_gl_pixmap_t *self, const lh_gl_rect_t *clip, const lh_gl_rect_t *rect,

@@ -59,7 +59,7 @@ TEST(gl_fill, layer_stays_empty_and_the_fill_reads_its_color)
     lh_gl_rect_t clip = rect_of(0, 0, 4, 4);
     lh_gl_layer_draw(lh_addr_of(layer), lh_addr_of(canvas), lh_addr_of(clip));
     EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 0, 0), 200, 10, 10, 255));
-    EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 0), 0, 180, 20, 100));
+    EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 0), 122, 77, 14, 255));
     EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 2, 0), 200, 10, 10, 255));
     EXPECT_FALSE(lh_gl_entity_class_get_opaque(lh_gl_fill_get_class()));
     EXPECT_EQ(lh_gl_entity_class_get_draw_cb(lh_gl_layer_get_class()), lh_null);
