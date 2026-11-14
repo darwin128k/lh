@@ -72,6 +72,7 @@ as of 2026-11-14 and the plan agreed with Egor.
 - Scroll axis: one offset, not stored on an entity or a layer. Container: borrowed layer plus a horizontal axis, a vertical axis, or neither. Placement is the window origin minus the offsets. Rectangles stay put. `lh_gl_container_invalidate` marks the window; changing an axis does not.
 - Layout: `lh_gl_layout_t` is one gap. Pack writes direct children's origins along one axis from zero, in list order. The other axis and the sizes stay. It does not draw, search or scroll.
 - Fill: `lh_gl_fill_t` starts with an entity and borrows one color. The shared draw call reads that pointer. A layer's own draw call stays null; a background is a fill added first. The fill class is not opaque.
+- Gradient: two colors. `lh_gl_gradient_fill_t` paints them from the top row to the bottom row. Diagonal and radial placement are not implemented.
 - Known pre-existing warnings: `check-fields` on `self->cls` in
   `entity.c` get/set_class; `entity.c` function order vs levels.
 - `docs/roadmap.md` section 5: a general allocator with a real free over a
@@ -80,8 +81,9 @@ as of 2026-11-14 and the plan agreed with Egor.
 
 ## Next, in order
 
-1. The same 480×320 card scene: gradient, shadow, and text. The pixmap blends
-   a solid rectangle and does not draw those yet.
+1. The same 480×320 card scene still needs a diagonal gradient, a radial
+   gradient, a shadow, and text. A vertical two-color gradient fills a
+   rectangle.
 2. Time that scene beside the existing `bench/lvgl` numbers.
 3. A scene stays an ordinary child layer until a swipe and a back stack need
    their own behaviour. Renderer packets over rail when another loop draws.

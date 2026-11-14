@@ -83,6 +83,16 @@ lh_gl_color_set_a(lh_gl_color_t *self, lh_gl_color_channel_t a);
 lh_void
 lh_gl_color_over(const lh_gl_color_t *dst, const lh_gl_color_t *color, lh_gl_color_t *out);
 
+/**
+ * @brief Mix @p from and @p to. @p frac `0` is @p from, `255` is @p to.
+ *
+ * Each channel is `(from * (255 - frac) + to * frac) / 255`, rounded half up.
+ * This is not ::lh_gl_color_over: alpha is mixed like the other channels.
+ */
+lh_void
+lh_gl_color_mix(const lh_gl_color_t *from, const lh_gl_color_t *to, lh_gl_color_channel_t frac,
+                lh_gl_color_t *out);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_GL_COLOR_H */
