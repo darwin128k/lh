@@ -209,6 +209,20 @@ lh_bool_t
 lh_gl_rect_contains_point(const lh_gl_rect_t *self, lh_gl_point_t point);
 
 /**
+ * @brief True when @p self covers every column and row of @p inner.
+ *
+ * Half-open, like ::lh_gl_rect_contains_point: @p inner's exclusive far corner
+ * may sit on @p self's exclusive far corner. An empty rectangle covers nothing
+ * and is not covered.
+ *
+ * @param self  Covering rectangle; must not be null (asserted in debug builds).
+ * @param inner Rectangle that would be fully inside; must not be null.
+ * @return ::lh_bool_true when @p inner lies inside @p self.
+ */
+lh_bool_t
+lh_gl_rect_contains(const lh_gl_rect_t *self, const lh_gl_rect_t *inner);
+
+/**
  * @brief True if @p self is strictly lexicographically earlier than @p other.
  *
  * Same order as ::lh_gl_rect_is_at_least.

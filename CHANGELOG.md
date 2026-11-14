@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Added `lh_gl_renderer_t`: one deferred frame over the surface dirty list, sliced into horizontal stripes when the band height is positive. A later opaque sibling covers a child completely, and that child is not drawn. `lh_gl_rect_contains` is the half-open cover test. A class stores `opaque`; init leaves it false.
+
 - Pass absolute origins through layer drawing and make insertion siblings mutable.
 
 - Added canvas origin and clip state and clipped, back-to-front layer drawing.

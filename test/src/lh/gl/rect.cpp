@@ -154,6 +154,28 @@ TEST(gl_rect, contains_point_is_half_open)
     EXPECT_FALSE(lh_gl_rect_contains_point(lh_addr_of(empty), point_at(0, 0)));
 }
 
+TEST(gl_rect, contains_rect_is_half_open)
+{
+    lh_gl_rect_t outer;
+
+    lh_gl_rect_init(lh_addr_of(outer), 10, 20, 5, 3);
+    lh_gl_rect_t same = outer;
+    lh_gl_rect_t inside;
+
+    lh_gl_rect_init(lh_addr_of(inside), 11, 21, 2, 1);
+    lh_gl_rect_t past;
+
+    lh_gl_rect_init(lh_addr_of(past), 10, 20, 6, 3);
+    lh_gl_rect_t empty;
+
+    lh_gl_rect_init(lh_addr_of(empty), 10, 20, 0, 3);
+    EXPECT_TRUE(lh_gl_rect_contains(lh_addr_of(outer), lh_addr_of(same)));
+    EXPECT_TRUE(lh_gl_rect_contains(lh_addr_of(outer), lh_addr_of(inside)));
+    EXPECT_FALSE(lh_gl_rect_contains(lh_addr_of(outer), lh_addr_of(past)));
+    EXPECT_FALSE(lh_gl_rect_contains(lh_addr_of(outer), lh_addr_of(empty)));
+    EXPECT_FALSE(lh_gl_rect_contains(lh_addr_of(empty), lh_addr_of(inside)));
+}
+
 TEST(gl_rect, intersection_and_union)
 {
     lh_gl_rect_t a;

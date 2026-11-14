@@ -23,8 +23,8 @@ as of 2026-11-14 and the plan agreed with Egor.
 - **size** `lh_gl_size_t`: `typedef` of point, own methods (width/height).
 - **rect**: origin (point) + size, via `lh_math_rect_fields`.
 - **entity** `lh_gl_entity_t`: rect (relative to parent) + parent + class
-  table (kind, draw callback) + intrusive `lh_list_node_t`. It knows nothing
-  about drivers, input, styles or events.
+  table (kind, draw callback, opaque flag) + intrusive `lh_list_node_t`. It knows nothing
+  about drivers, input, styles or events. Opaque means the rectangle covers every pixel.
 - **layer** `lh_gl_layer_t`: an entity as its first field + an intrusive
   `lh_list_t` of children. Only a layer can own an entity; an entity's parent
   is `lh_gl_layer_t *`. Layers nest (a layer is an entity). List order is
@@ -59,6 +59,7 @@ as of 2026-11-14 and the plan agreed with Egor.
 ## Done
 
 - point, size, rect, entity, layer, fixed-storage surface dirty regions, layer z-order, entity coordinate conversion, and clipped layer drawing.
+- Renderer: one deferred pass over the surface dirty list. A positive band slices each rectangle into horizontal stripes. Children that miss the clip are skipped, and so is a child whose visible area is fully inside a later opaque sibling. The class flag `opaque` says so. `lh_gl_rect_contains` is the cover test.
 - Known pre-existing warnings: `check-fields` on `self->cls` in
   `entity.c` get/set_class; `entity.c` function order vs levels.
 - `docs/roadmap.md` section 5: a general allocator with a real free over a
@@ -67,9 +68,7 @@ as of 2026-11-14 and the plan agreed with Egor.
 
 ## Next, in order
 
-1. Renderer: skip children fully covered by an opaque sibling, draw only
-   intersecting children, and support partial buffers and deferred redraw.
-2. Canvas drawing primitives; renderer server and packets over rail; scene, input,
+1. Canvas drawing primitives; renderer server and packets over rail; scene, input,
    scroll and layout managers; try on the panel.
 
 ## Rules that matter to Egor

@@ -158,6 +158,31 @@ lh_gl_rect_contains_point(const lh_gl_rect_t *self, lh_gl_point_t point)
 }
 
 lh_bool_t
+lh_gl_rect_contains(const lh_gl_rect_t *self, const lh_gl_rect_t *inner)
+{
+    if (lh_gl_rect_is_empty(self) || lh_gl_rect_is_empty(inner))
+    {
+        return lh_bool_false;
+    }
+    lh_gl_point_t end;
+
+    lh_gl_rect_get_end(self, lh_addr_of(end));
+    lh_gl_point_t inner_end;
+
+    lh_gl_rect_get_end(inner, lh_addr_of(inner_end));
+    const lh_gl_point_t *origin = lh_gl_rect_get_origin(self);
+    const lh_gl_point_t *inner_origin = lh_gl_rect_get_origin(inner);
+
+    return lh_cast_static(lh_bool_t,
+                          lh_gl_point_get_x(inner_origin) >= lh_gl_point_get_x(origin) &&
+                              lh_gl_point_get_y(inner_origin) >= lh_gl_point_get_y(origin) &&
+                              lh_gl_point_get_x(lh_addr_of(inner_end)) <=
+                                  lh_gl_point_get_x(lh_addr_of(end)) &&
+                              lh_gl_point_get_y(lh_addr_of(inner_end)) <=
+                                  lh_gl_point_get_y(lh_addr_of(end)));
+}
+
+lh_bool_t
 lh_gl_rect_is_less(const lh_gl_rect_t *self, const lh_gl_rect_t *other)
 {
     return lh_cast_static(lh_bool_t, !lh_gl_rect_is_at_least(self, other));

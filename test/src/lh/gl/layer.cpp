@@ -615,4 +615,35 @@ TEST(gl_layer, draw_visits_own_callback_then_children_with_clipped_canvas)
     lh_gl_layer_deinit(lh_addr_of(nested));
 }
 
+TEST(gl_layer, draw_skips_a_child_fully_covered_by_a_later_opaque_sibling)
+{
+    lh_gl_entity_class_t plain;
+    lh_gl_entity_class_init(lh_addr_of(plain), lh_gl_entity_class_kind_entity, record_layer_draw);
+    lh_gl_entity_class_t solid;
+    lh_gl_entity_class_init(lh_addr_of(solid), lh_gl_entity_class_kind_entity, record_layer_draw);
+    lh_gl_entity_class_set_opaque(lh_addr_of(solid), lh_bool_true);
+    lh_gl_layer_t root;
+    lh_gl_layer_init(lh_addr_of(root), rect_of(0, 0, 40, 40));
+    lh_gl_entity_t back;
+    lh_gl_entity_t partial;
+    lh_gl_entity_t front;
+    lh_gl_entity_init(lh_addr_of(back), rect_of(0, 0, 20, 20), lh_addr_of(plain));
+    lh_gl_entity_init(lh_addr_of(partial), rect_of(0, 0, 30, 10), lh_addr_of(plain));
+    lh_gl_entity_init(lh_addr_of(front), rect_of(0, 0, 20, 20), lh_addr_of(solid));
+    lh_gl_layer_add(lh_addr_of(root), lh_addr_of(back));
+    lh_gl_layer_add(lh_addr_of(root), lh_addr_of(partial));
+    lh_gl_layer_add(lh_addr_of(root), lh_addr_of(front));
+    lh_gl_canvas_t canvas;
+    lh_gl_point_t origin;
+    lh_gl_point_init(lh_addr_of(origin), 0, 0);
+    lh_gl_canvas_init(lh_addr_of(canvas), origin, rect_of(0, 0, 1, 1));
+    lh_gl_rect_t dirty = rect_of(0, 0, 40, 40);
+    draw_count = 0;
+    lh_gl_layer_draw(lh_addr_of(root), lh_addr_of(canvas), lh_addr_of(dirty));
+    ASSERT_EQ(draw_count, 2U);
+    EXPECT_EQ(draw_entities[0], lh_addr_of(partial));
+    EXPECT_EQ(draw_entities[1], lh_addr_of(front));
+    lh_gl_layer_deinit(lh_addr_of(root));
+}
+
 } // namespace

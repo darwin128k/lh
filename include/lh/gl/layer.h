@@ -300,8 +300,9 @@ lh_gl_layer_try_insert_after(lh_gl_layer_t *self, lh_gl_entity_t *entity, lh_gl_
  *
  * The caller supplies the layer's actual rectangle in root coordinates. The
  * clip is in the same coordinates. Visits children back to front, clipping to
- * each ancestor and passing absolute origins down without walking parents. The
- * canvas state is restored on return. Callbacks must not mutate the tree.
+ * each ancestor and passing absolute origins down without walking parents. A
+ * child whose visible area sits fully inside a later opaque sibling is skipped.
+ * The canvas state is restored on return. Callbacks must not mutate the tree.
  *
  * @param self Layer to draw; must not be null.
  * @param canvas Drawing state, borrowed; must not be null.

@@ -97,7 +97,7 @@ const lh_gl_entity_class_t *
 lh_gl_layer_get_class(void)
 {
     static const lh_gl_entity_class_t layer_class =
-        lh_gl_entity_class_initializer(lh_gl_entity_class_kind_layer, lh_null);
+        lh_gl_entity_class_initializer(lh_gl_entity_class_kind_layer, lh_null, lh_bool_false);
 
     return lh_addr_of(layer_class);
 }
@@ -330,6 +330,32 @@ lh_gl_layer_draw_at(const lh_gl_layer_t *self, lh_gl_canvas_t *canvas, const lh_
         lh_gl_rect_intersection(lh_addr_of(child_bounds), lh_addr_of(visible),
                                 lh_addr_of(child_clip));
         if (lh_gl_rect_is_empty(lh_addr_of(child_clip)))
+        {
+            continue;
+        }
+        lh_bool_t covered = lh_bool_false;
+
+        for (lh_list_node_t *front = lh_list_get_next(items, node); lh_ptr_is_set(front);
+             front = lh_list_get_next(items, front))
+        {
+            const lh_gl_entity_t *sibling = lh_gl_entity_from_node(front);
+
+            if (lh_gl_entity_class_get_opaque(lh_gl_entity_get_class(sibling)) == lh_bool_false)
+            {
+                continue;
+            }
+            lh_gl_rect_t sibling_bounds;
+
+            lh_gl_rect_offset(lh_gl_entity_get_rect(sibling), lh_gl_point_get_x(origin),
+                              lh_gl_point_get_y(origin), lh_addr_of(sibling_bounds));
+            if (lh_gl_rect_contains(lh_addr_of(sibling_bounds), lh_addr_of(child_clip)) ==
+                lh_bool_true)
+            {
+                covered = lh_bool_true;
+                break;
+            }
+        }
+        if (covered == lh_bool_true)
         {
             continue;
         }

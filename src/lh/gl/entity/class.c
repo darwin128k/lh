@@ -2,8 +2,7 @@
  * @file class.c
  * @brief Implementation of lh/gl/entity/class.h.
  *
- * Only the four level-1 accessors name a field; everything else goes through
- * them.
+ * Only the level-1 accessors name a field; everything else goes through them.
  */
 
 #include <lh/core/assert/runtime.h>
@@ -39,6 +38,20 @@ lh_gl_entity_class_set_draw_cb(lh_gl_entity_class_t *self, lh_gl_entity_class_dr
     self->draw_cb = draw_cb;
 }
 
+lh_bool_t
+lh_gl_entity_class_get_opaque(const lh_gl_entity_class_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->opaque;
+}
+
+lh_void
+lh_gl_entity_class_set_opaque(lh_gl_entity_class_t *self, lh_bool_t opaque)
+{
+    lh_assert_runtime_ref(self);
+    self->opaque = opaque;
+}
+
 /* -- Init and queries, by level -------------------------------------------- */
 
 lh_void
@@ -47,6 +60,7 @@ lh_gl_entity_class_init(lh_gl_entity_class_t *self, lh_gl_entity_class_kind_t ki
 {
     lh_gl_entity_class_set_kind(self, kind);
     lh_gl_entity_class_set_draw_cb(self, draw_cb);
+    lh_gl_entity_class_set_opaque(self, lh_bool_false);
 }
 
 lh_bool_t
