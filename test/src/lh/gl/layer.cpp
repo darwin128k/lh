@@ -21,13 +21,14 @@ lh_gl_point_t draw_origins[8];
 lh_usize_t draw_count;
 
 lh_void
-record_layer_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
+record_layer_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas, const lh_gl_place_t *place)
 {
     const lh_usize_t index = draw_count++;
     draw_entities[index] = entity;
     lh_gl_entity_get_absolute_rect(entity, lh_addr_of(draw_rects[index]));
-    draw_clips[index] = *lh_gl_canvas_get_clip(canvas);
-    draw_origins[index] = *lh_gl_canvas_get_origin(canvas);
+    (void)canvas;
+    draw_clips[index] = *lh_gl_place_get_clip(place);
+    draw_origins[index] = *lh_gl_place_get_origin(place);
 }
 
 lh_gl_rect_t
@@ -44,7 +45,7 @@ plain_class()
 {
     lh_gl_entity_class_t cls;
 
-    lh_gl_entity_class_init(lh_addr_of(cls), lh_gl_entity_class_kind_entity, lh_null);
+    lh_gl_entity_class_init(lh_addr_of(cls), lh_gl_entity_class_kind_entity, nullptr);
     return cls;
 }
 
@@ -566,11 +567,9 @@ TEST(gl_layer, draw_visits_own_callback_then_children_with_clipped_canvas)
     lh_gl_layer_add(lh_addr_of(nested), lh_addr_of(inner));
     lh_gl_layer_add(lh_addr_of(root), lh_addr_of(outside));
     lh_gl_layer_add(lh_addr_of(root), lh_addr_of(front));
-    lh_gl_point_t original_origin;
-    lh_gl_point_init(lh_addr_of(original_origin), 77, 88);
-    lh_gl_rect_t original_clip = rect_of(40, 40, 2, 2);
     lh_gl_canvas_t canvas;
-    lh_gl_canvas_init(lh_addr_of(canvas), original_origin, original_clip);
+
+    lh_gl_canvas_init(lh_addr_of(canvas));
     lh_gl_rect_t dirty = rect_of(5, 5, 50, 50);
     draw_count = 0;
     lh_gl_layer_draw(lh_addr_of(root), lh_addr_of(canvas), lh_addr_of(dirty));
@@ -586,10 +585,6 @@ TEST(gl_layer, draw_visits_own_callback_then_children_with_clipped_canvas)
     EXPECT_TRUE(lh_gl_rect_eq(lh_addr_of(draw_clips[3]), lh_addr_of(expected)));
     EXPECT_EQ(lh_gl_point_get_x(lh_addr_of(draw_origins[3])), 25);
     EXPECT_EQ(lh_gl_point_get_y(lh_addr_of(draw_origins[3])), 25);
-    EXPECT_TRUE(
-        lh_gl_point_eq(lh_gl_canvas_get_origin(lh_addr_of(canvas)), lh_addr_of(original_origin)));
-    EXPECT_TRUE(
-        lh_gl_rect_eq(lh_gl_canvas_get_clip(lh_addr_of(canvas)), lh_addr_of(original_clip)));
     draw_count = 0;
     lh_gl_layer_draw(lh_addr_of(nested), lh_addr_of(canvas), lh_addr_of(dirty));
     ASSERT_EQ(draw_count, 2U);
@@ -599,18 +594,10 @@ TEST(gl_layer, draw_visits_own_callback_then_children_with_clipped_canvas)
     EXPECT_TRUE(lh_gl_rect_eq(lh_addr_of(draw_clips[1]), lh_addr_of(expected)));
     EXPECT_EQ(lh_gl_point_get_x(lh_addr_of(draw_origins[1])), 25);
     EXPECT_EQ(lh_gl_point_get_y(lh_addr_of(draw_origins[1])), 25);
-    EXPECT_TRUE(
-        lh_gl_point_eq(lh_gl_canvas_get_origin(lh_addr_of(canvas)), lh_addr_of(original_origin)));
-    EXPECT_TRUE(
-        lh_gl_rect_eq(lh_gl_canvas_get_clip(lh_addr_of(canvas)), lh_addr_of(original_clip)));
     draw_count = 0;
     dirty = rect_of(90, 90, 5, 5);
     lh_gl_layer_draw(lh_addr_of(root), lh_addr_of(canvas), lh_addr_of(dirty));
     EXPECT_EQ(draw_count, 0U);
-    EXPECT_TRUE(
-        lh_gl_point_eq(lh_gl_canvas_get_origin(lh_addr_of(canvas)), lh_addr_of(original_origin)));
-    EXPECT_TRUE(
-        lh_gl_rect_eq(lh_gl_canvas_get_clip(lh_addr_of(canvas)), lh_addr_of(original_clip)));
     lh_gl_layer_deinit(lh_addr_of(root));
     lh_gl_layer_deinit(lh_addr_of(nested));
 }
@@ -636,7 +623,7 @@ TEST(gl_layer, draw_skips_a_child_fully_covered_by_a_later_opaque_sibling)
     lh_gl_canvas_t canvas;
     lh_gl_point_t origin;
     lh_gl_point_init(lh_addr_of(origin), 0, 0);
-    lh_gl_canvas_init(lh_addr_of(canvas), origin, rect_of(0, 0, 1, 1));
+    lh_gl_canvas_init(lh_addr_of(canvas));
     lh_gl_rect_t dirty = rect_of(0, 0, 40, 40);
     draw_count = 0;
     lh_gl_layer_draw(lh_addr_of(root), lh_addr_of(canvas), lh_addr_of(dirty));

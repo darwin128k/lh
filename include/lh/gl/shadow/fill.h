@@ -83,7 +83,7 @@ lh_gl_shadow_fill_init(lh_gl_shadow_fill_t *self, lh_gl_rect_t rect, const lh_gl
 
 /** @brief Draw call of ::lh_gl_shadow_fill_get_class. */
 lh_void
-lh_gl_shadow_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas);
+lh_gl_shadow_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas, const lh_gl_place_t *place);
 
 /** @brief A shadow never takes a press. The search continues behind it. */
 lh_bool_t

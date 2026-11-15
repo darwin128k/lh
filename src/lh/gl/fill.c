@@ -102,7 +102,7 @@ lh_gl_fill_init(lh_gl_fill_t *self, lh_gl_rect_t rect, const lh_gl_color_t *colo
 }
 
 lh_void
-lh_gl_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
+lh_gl_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas, const lh_gl_place_t *place)
 {
     const lh_gl_fill_t *fill = lh_ptr_ccast(lh_gl_fill_t, entity);
     const lh_gl_color_t *color = lh_gl_fill_get_color(fill);
@@ -132,7 +132,7 @@ lh_gl_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
             lh_gl_rect_t row;
 
             lh_gl_rect_init(lh_addr_of(row), x0, y, x1 - x0, 1);
-            lh_gl_canvas_fill_rect(canvas, lh_addr_of(row), color);
+            lh_gl_canvas_fill_rect(canvas, place,  lh_addr_of(row), color);
         }
         return;
     }
@@ -141,7 +141,7 @@ lh_gl_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
 
     lh_gl_rect_init(lh_addr_of(local), 0, 0, lh_gl_size_get_width(lh_gl_rect_get_size(area)),
                     lh_gl_size_get_height(lh_gl_rect_get_size(area)));
-    lh_gl_canvas_fill_rect(canvas, lh_addr_of(local), color);
+    lh_gl_canvas_fill_rect(canvas, place,  lh_addr_of(local), color);
 }
 
 lh_bool_t

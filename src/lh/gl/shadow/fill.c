@@ -115,7 +115,7 @@ lh_gl_shadow_fill_init(lh_gl_shadow_fill_t *self, lh_gl_rect_t rect, const lh_gl
 }
 
 lh_void
-lh_gl_shadow_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
+lh_gl_shadow_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas, const lh_gl_place_t *place)
 {
     const lh_gl_shadow_t *shadow =
         lh_gl_shadow_fill_get_shadow(lh_ptr_ccast(lh_gl_shadow_fill_t, entity));
@@ -235,14 +235,14 @@ lh_gl_shadow_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
                     {
                         if (run_n > 0)
                         {
-                            lh_gl_canvas_fill_colors(canvas, run_x, y, chunk, run_n);
+                            lh_gl_canvas_fill_colors(canvas, place,  run_x, y, chunk, run_n);
                             run_n = 0;
                         }
                         continue;
                     }
                     if (run_n == 128)
                     {
-                        lh_gl_canvas_fill_colors(canvas, run_x, y, chunk, run_n);
+                        lh_gl_canvas_fill_colors(canvas, place,  run_x, y, chunk, run_n);
                         run_n = 0;
                     }
                     if (run_n == 0)
@@ -257,7 +257,7 @@ lh_gl_shadow_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
                 }
                 if (run_n > 0)
                 {
-                    lh_gl_canvas_fill_colors(canvas, run_x, y, chunk, run_n);
+                    lh_gl_canvas_fill_colors(canvas, place,  run_x, y, chunk, run_n);
                 }
             }
             continue;
@@ -307,7 +307,7 @@ lh_gl_shadow_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
                     lh_gl_rect_t band;
 
                     lh_gl_rect_init(lh_addr_of(band), from, y, to - from + 1, 1);
-                    lh_gl_canvas_fill_rect(canvas, lh_addr_of(band), lh_addr_of(ink));
+                    lh_gl_canvas_fill_rect(canvas, place,  lh_addr_of(band), lh_addr_of(ink));
                 }
             }
             lh_u64_t ay2_box = lh_cast_static(lh_u64_t, dy_box) * lh_cast_static(lh_u64_t, dy_box);
@@ -384,7 +384,7 @@ lh_gl_shadow_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
                     }
                     if (run_n == 128)
                     {
-                        lh_gl_canvas_fill_colors(canvas, run_x, y, chunk, run_n);
+                        lh_gl_canvas_fill_colors(canvas, place,  run_x, y, chunk, run_n);
                         run_n = 0;
                     }
                     if (run_n == 0)
@@ -399,7 +399,7 @@ lh_gl_shadow_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
                 }
                 if (run_n > 0)
                 {
-                    lh_gl_canvas_fill_colors(canvas, run_x, y, chunk, run_n);
+                    lh_gl_canvas_fill_colors(canvas, place,  run_x, y, chunk, run_n);
                 }
             }
             continue;
@@ -444,14 +444,14 @@ lh_gl_shadow_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
                     {
                         if (run_n > 0)
                         {
-                            lh_gl_canvas_fill_colors(canvas, run_x, y, chunk, run_n);
+                            lh_gl_canvas_fill_colors(canvas, place,  run_x, y, chunk, run_n);
                             run_n = 0;
                         }
                         continue;
                     }
                     if (run_n == 128)
                     {
-                        lh_gl_canvas_fill_colors(canvas, run_x, y, chunk, run_n);
+                        lh_gl_canvas_fill_colors(canvas, place,  run_x, y, chunk, run_n);
                         run_n = 0;
                     }
                     if (run_n == 0)
@@ -466,7 +466,7 @@ lh_gl_shadow_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
                 }
                 if (run_n > 0)
                 {
-                    lh_gl_canvas_fill_colors(canvas, run_x, y, chunk, run_n);
+                    lh_gl_canvas_fill_colors(canvas, place,  run_x, y, chunk, run_n);
                 }
             }
             continue;
@@ -525,14 +525,14 @@ lh_gl_shadow_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
             {
                 if (run_n > 0)
                 {
-                    lh_gl_canvas_fill_colors(canvas, run_x, y, chunk, run_n);
+                    lh_gl_canvas_fill_colors(canvas, place,  run_x, y, chunk, run_n);
                     run_n = 0;
                 }
                 continue;
             }
             if (run_n == 128)
             {
-                lh_gl_canvas_fill_colors(canvas, run_x, y, chunk, run_n);
+                lh_gl_canvas_fill_colors(canvas, place,  run_x, y, chunk, run_n);
                 run_n = 0;
             }
             if (run_n == 0)
@@ -546,7 +546,7 @@ lh_gl_shadow_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
         }
         if (run_n > 0)
         {
-            lh_gl_canvas_fill_colors(canvas, run_x, y, chunk, run_n);
+            lh_gl_canvas_fill_colors(canvas, place,  run_x, y, chunk, run_n);
         }
     }
 }

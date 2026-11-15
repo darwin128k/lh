@@ -116,7 +116,8 @@ lh_gl_container_draw(const lh_gl_container_t *self, lh_gl_canvas_t *canvas,
 
     lh_gl_container_content_origin(self, lh_gl_rect_get_origin(lh_addr_of(window)),
                                    lh_addr_of(origin));
-    lh_gl_layer_draw_at_origin(layer, canvas, lh_addr_of(window), clip, lh_addr_of(origin));
+    lh_gl_layer_draw_at_origin(layer, canvas, lh_addr_of(window), clip, lh_addr_of(origin),
+                               lh_null);
 }
 
 lh_void

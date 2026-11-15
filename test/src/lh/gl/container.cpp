@@ -14,11 +14,12 @@ lh_gl_rect_t drawn_clip;
 lh_usize_t drawn_count;
 
 lh_void
-record_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
+record_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas, const lh_gl_place_t *place)
 {
     (void)entity;
-    drawn_origin = *lh_gl_canvas_get_origin(canvas);
-    drawn_clip = *lh_gl_canvas_get_clip(canvas);
+    (void)canvas;
+    drawn_origin = *lh_gl_place_get_origin(place);
+    drawn_clip = *lh_gl_place_get_clip(place);
     ++drawn_count;
 }
 
@@ -71,9 +72,8 @@ TEST(gl_container, axes_shift_placement_and_leave_rectangles_unchanged)
     EXPECT_EQ(lh_gl_container_find(lh_addr_of(container), point_of(25, 25)),
               lh_gl_layer_get_entity(lh_addr_of(layer)));
     EXPECT_EQ(lh_gl_container_find(lh_addr_of(container), point_of(105, 1)), nullptr);
-    lh_gl_point_t canvas_origin = point_of(0, 0);
     lh_gl_canvas_t canvas;
-    lh_gl_canvas_init(lh_addr_of(canvas), canvas_origin, rect_of(0, 0, 1, 1));
+    lh_gl_canvas_init(lh_addr_of(canvas));
     lh_gl_rect_t clip = rect_of(0, 0, 100, 100);
     drawn_count = 0;
     lh_gl_container_draw(lh_addr_of(container), lh_addr_of(canvas), lh_addr_of(clip));
@@ -93,7 +93,7 @@ TEST(gl_container, one_axis_shifts_only_its_coordinate)
     lh_gl_scroll_axis_t vertical;
     lh_gl_scroll_axis_init(lh_addr_of(vertical), 8);
     lh_gl_container_t container;
-    lh_gl_container_init(lh_addr_of(container), lh_addr_of(layer), lh_null, lh_addr_of(vertical));
+    lh_gl_container_init(lh_addr_of(container), lh_addr_of(layer), nullptr, lh_addr_of(vertical));
     lh_gl_point_t origin;
     lh_gl_container_content_origin(
         lh_addr_of(container),
@@ -108,7 +108,7 @@ TEST(gl_container, a_null_layer_does_nothing)
 {
     lh_gl_container_t container;
 
-    lh_gl_container_init(lh_addr_of(container), lh_null, lh_null, lh_null);
+    lh_gl_container_init(lh_addr_of(container), nullptr, nullptr, nullptr);
     EXPECT_EQ(lh_gl_container_find(lh_addr_of(container), point_of(0, 0)), nullptr);
     lh_gl_container_invalidate(lh_addr_of(container));
 }
@@ -126,7 +126,7 @@ TEST(gl_container, invalidate_marks_the_window_and_add_does_not)
     lh_gl_scroll_axis_t vertical;
     lh_gl_scroll_axis_init(lh_addr_of(vertical), 0);
     lh_gl_container_t container;
-    lh_gl_container_init(lh_addr_of(container), lh_addr_of(layer), lh_null, lh_addr_of(vertical));
+    lh_gl_container_init(lh_addr_of(container), lh_addr_of(layer), nullptr, lh_addr_of(vertical));
     lh_gl_scroll_axis_add(lh_addr_of(vertical), 12);
     EXPECT_EQ(lh_gl_surface_get_dirty_count(lh_addr_of(surface)), 0U);
     lh_gl_container_invalidate(lh_addr_of(container));

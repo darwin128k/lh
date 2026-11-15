@@ -185,7 +185,8 @@ lh_gl_text_shadow_init(lh_gl_text_shadow_t *self, const lh_gl_text_t *line,
 }
 
 lh_void
-lh_gl_text_shadow_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
+lh_gl_text_shadow_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas,
+                       const lh_gl_place_t *place)
 {
     const lh_gl_text_shadow_t *self = lh_ptr_ccast(lh_gl_text_shadow_t, entity);
     const lh_gl_text_t *line = lh_gl_text_shadow_get_line(self);
@@ -239,14 +240,18 @@ lh_gl_text_shadow_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
     lh_gl_rect_init(lh_addr_of(bounds), 0, 0, width, height);
     lh_gl_canvas_t local;
 
-    lh_gl_canvas_init(lh_addr_of(local), zero, bounds);
+    lh_gl_canvas_init(lh_addr_of(local));
+    lh_gl_place_t local_place;
+
+    lh_gl_place_init(lh_addr_of(local_place), zero, bounds, lh_null);
     lh_gl_canvas_set_target(lh_addr_of(local), lh_addr_of(ink));
     lh_gl_canvas_set_backend(lh_addr_of(local), lh_gl_pixmap_get_canvas_backend());
     const lh_gl_rect_t *box = lh_gl_entity_get_rect(lh_gl_text_get_entity(line));
     const lh_gl_point_t *from = lh_gl_rect_get_origin(box);
     const lh_gl_point_t *at = lh_gl_rect_get_origin(area);
 
-    lh_gl_text_paint(line, lh_addr_of(local), lh_gl_shadow_get_color(shadow),
+    lh_gl_text_paint(line, lh_addr_of(local), lh_addr_of(local_place),
+                     lh_gl_shadow_get_color(shadow),
                      lh_gl_point_get_x(from) - lh_gl_point_get_x(at) +
                          lh_gl_shadow_get_offset_x(shadow),
                      lh_gl_point_get_y(from) - lh_gl_point_get_y(at) +
@@ -258,18 +263,13 @@ lh_gl_text_shadow_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
 
         lh_gl_blur_rect(lh_addr_of(ink), lh_addr_of(bounds), spread, blur);
     }
-    lh_gl_pixmap_t *dest = lh_ptr_cast(lh_gl_pixmap_t, lh_gl_canvas_get_target(canvas));
-    const lh_gl_point_t *origin = lh_gl_canvas_get_origin(canvas);
-    lh_gl_scalar_t x0 = lh_gl_point_get_x(origin);
-    lh_gl_scalar_t y0 = lh_gl_point_get_y(origin);
-
     for (lh_gl_scalar_t row = 0; row < height; ++row)
     {
         lh_uaddr_t step = lh_type_cast(lh_uaddr_t, row) * lh_type_cast(lh_uaddr_t, width);
         const lh_gl_color_t *samples = lh_ptr_add_by_offset(const lh_gl_color_t, pixels,
                                                             step * sizeof(lh_gl_color_t));
 
-        lh_gl_pixmap_fill_colors(dest, lh_gl_canvas_get_clip(canvas), x0, y0 + row, samples, width);
+        lh_gl_canvas_fill_colors(canvas, place, 0, row, samples, width);
     }
 }
 

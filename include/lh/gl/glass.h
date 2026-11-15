@@ -122,7 +122,7 @@ lh_gl_glass_init(lh_gl_glass_t *self, lh_gl_rect_t rect, const lh_gl_color_t *ti
  * scratch shorter than ::lh_gl_blur_scratch_count, returns without writing.
  */
 lh_void
-lh_gl_glass_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas);
+lh_gl_glass_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas, const lh_gl_place_t *place);
 
 /**
  * @brief True when this panel takes @p point.

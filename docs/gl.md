@@ -52,11 +52,11 @@ as of 2026-11-14 and the plan agreed with Egor.
   and a container borrows a layer plus up to two axes; it places children at
   the window origin minus those numbers and does not write the rectangles.
   Widgets are composed (label + image = button).
-- **canvas**: portable drawing abstraction (pen, rect, circle, rounded rect,
-  border, fill), a half driver that knows how to draw but has no output.
-  The native target is an opaque handle plus a call table
-  (`lh_gl_canvas_backend_t`). The canvas adds its origin, drops a shape that
-  misses the clip, and forwards the rest. It does not name a device.
+- **canvas**: the drawing tool. It keeps the target and the backend and
+  nothing else. Origin, rectangular clip and mask arrive on `lh_gl_place_t`
+  for that call. A fill walks the mask and scales the colour. A stroke, a
+  circle, a rounded rectangle and a triangle still use only the rectangle.
+  It does not name a device.
 - **renderer as a server**: the UI sends it packets (dirty areas, draw
   requests), possibly via rail mailbox/queue. Rail (per-device HAL: bare
   base, mailbox, queues, loop) is the HAL. Must run on bare STM32. Later.
@@ -65,7 +65,7 @@ as of 2026-11-14 and the plan agreed with Egor.
 
 - point, size, rect, entity, layer, fixed-storage surface dirty regions, layer z-order, entity coordinate conversion, and clipped layer drawing.
 - Renderer: one deferred pass over the surface dirty list. A positive band slices each rectangle into horizontal stripes. Children that miss the clip are skipped, and so is a child whose visible area is fully inside a later opaque sibling. The class flag `opaque` says so. `lh_gl_rect_contains` is the cover test. `lh_gl_renderer_packet_post` hands that frame to a rail executor: the packet keeps the dirty rectangles, the surface list is cleared, and a full mailbox leaves the list.
-- Canvas primitives: fill and stroke of a rectangle, a circle and a rounded rectangle, through `lh_gl_color_t`, `lh_gl_pen_t` and `lh_gl_canvas_backend_t`.
+- Canvas primitives: fill and stroke of a rectangle, a circle and a rounded rectangle, a straight line and a sector, through `lh_gl_color_t`, `lh_gl_pen_t` and `lh_gl_canvas_backend_t`. The sector's 0 degrees points right and a positive sweep turns toward +y.
 - Pixmap: a borrowed grid of those colors. One canvas call fills a rectangle by blending (`lh_gl_color_over`). Alpha 255 replaces the pixel. No other shapes. `lh_gl_bmp_try_store` writes that grid as a 32-bit bitmap a viewer opens. Alpha is copied.
 - Point hit: `lh_gl_layer_find_entity` walks front to back and returns the deepest entity that accepts the point. A null class pick means the rectangle. A pick that declines continues to whoever is behind. `lh_gl_layer_find_entity_slop` grows that test by one number. No child means the layer itself. Outside the layer is null. `opaque` is draw occlusion only.
 - Input hold: `lh_gl_input_t` stores one borrowed entity and one finger thickness. Press uses the point hit. Move does not search again. Release clears the hold. `lh_gl_input_apply` follows one pointer event: the first pointer down owns the hold, another pointer does not take it, and a key does not either. `lh_gl_input_controller_handle_event_is_handled` is the handler a controller calls itself. A click, a drag or a swipe counts when something is already held.
@@ -74,7 +74,8 @@ as of 2026-11-14 and the plan agreed with Egor.
 - Fill: `lh_gl_fill_t` starts with an entity and borrows one color. The shared draw call reads that pointer. A layer's own draw call stays null; a background is a fill added first. The fill class is not opaque.
 - Blur and glass: `lh_gl_blur_rect` averages a pixmap rectangle in place, two box passes, caller scratch, no allocation. The sums of a row stay inside `lh_gl_blur_window_slide`. An opaque window sums the channels as they are and divides by one factor for that run. `lh_gl_glass` writes that blur only inside the rounded panel, one slide of the covered rows, and paints a tint over it; a corner the arc misses stays. With no blur the tint is a row fill. `lh_gl_glass_t` is the panel. The canvas target is the pixmap it reads. A short scratch draws nothing. The class is not opaque.
 - Gradient: two colors and an angle on the fill. `180` runs down the box, `135` runs down-right. `radial` puts the first color at the middle and the second toward the corners; the angle is then unused. A radius clips that paint to the rounded rectangle; `0` leaves the rectangle.
-- Cover: a pixel center is inside a rounded rectangle, a circle or a triangle, or it is outside. The pixmap fills those three shapes and strokes the first two plus a plain rectangle, outside the fill, one pen thick. The edge is hard. A triangle has no stroke.
+- Cover: a pixel center is inside a rounded rectangle, a circle or a triangle, or it is outside. `lh_gl_cover_round_rect_band` is the same arc with coverage 1–254 on the edge. The pixmap fills those three shapes and strokes the first two plus a plain rectangle, outside the fill, one pen thick. A triangle has no stroke.
+- Mask: `lh_gl_mask_t` is one rounded rectangle or a combination of two masks. Intersection is the lesser coverage, union the greater, exclusion the left scaled by `(255 - right) / 255`. A null side covers 0. The layer stores one radius. On draw that radius is a mask in root coordinates, intersected with the mask from outside, and handed to each child on the place. `lh_gl_card_set_radius` sets that radius and clears the face radius, so the fill and the line are rectangles and the mask cuts them. A box shadow stays a sibling outside the mask.
 - Shadow: a peak color, a spread and a shift. The box interior stays clear. The fade crosses the shifted edge. A radius on the fill rounds that edge; `0` is square.
 - Text: `lh_gl_text_t` borrows a font, a color and a string. `lh_gl_font_t` is one run of `lh_gl_glyph_t`. One byte is one code. A code outside the run is skipped. `lh_gl_text_shadow_t` is a separate entity: the same glyphs, shifted and blurred by a borrowed shadow. A spread of `0` leaves a hard edge. The scratch is the caller's. A press passes through.
 - Known pre-existing warnings: `check-fields` on `self->cls` in
@@ -125,9 +126,10 @@ with no call from the application.
 
 The application does not assemble a fill, a radius and a text. Those stay
 inside the library. One thing on a screen is `lh_gl_card_init`, then
-`lh_gl_layer_add`. The line color is `lh_gl_card_set_ink`. A box shadow and a
-glass panel stay separate entities, added around the card. The pick is one
-more call in the search that already exists.
+`lh_gl_layer_add`. The line color is `lh_gl_card_set_ink`. The radius is one
+number on the card and becomes the layer mask; the face stays a rectangle.
+A box shadow and a glass panel stay separate entities, added around the
+card. The pick is one more call in the search that already exists.
 
 ## Rules that matter to Egor
 

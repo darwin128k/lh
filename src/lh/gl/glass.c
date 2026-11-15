@@ -144,11 +144,11 @@ lh_gl_glass_init(lh_gl_glass_t *self, lh_gl_rect_t rect, const lh_gl_color_t *ti
 }
 
 lh_void
-lh_gl_glass_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
+lh_gl_glass_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas, const lh_gl_place_t *place)
 {
     const lh_gl_glass_t *glass = lh_ptr_ccast(lh_gl_glass_t, entity);
     const lh_gl_rect_t *area = lh_gl_entity_get_rect(entity);
-    const lh_gl_point_t *origin = lh_gl_canvas_get_origin(canvas);
+    const lh_gl_point_t *origin = lh_gl_place_get_origin(place);
 
     if (lh_gl_glass_get_shown(glass) == lh_bool_false)
     {
@@ -169,7 +169,7 @@ lh_gl_glass_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
     lh_gl_glass(lh_ptr_cast(lh_gl_pixmap_t, lh_gl_canvas_get_target(canvas)), lh_addr_of(panel),
                 lh_gl_glass_get_radius(glass), lh_gl_glass_get_blur(glass),
                 lh_gl_glass_get_tint(glass), lh_gl_glass_get_scratch(glass),
-                lh_gl_canvas_get_clip(canvas));
+                lh_gl_place_get_clip(place));
 }
 
 lh_bool_t

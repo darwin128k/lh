@@ -6,6 +6,7 @@
 
 #include <lh/core/assert/runtime.h>
 #include <lh/core/math/isqrt.h>
+#include <lh/core/math/ops.h>
 
 lh_bool_t
 lh_gl_cover_hits(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_gl_scalar_t slop,
@@ -109,6 +110,75 @@ lh_gl_cover_round_rect(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_gl_sc
         return 255;
     }
     return 0;
+}
+
+lh_gl_color_channel_t
+lh_gl_cover_round_rect_band(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_gl_scalar_t x,
+                            lh_gl_scalar_t y)
+{
+    const lh_gl_point_t *origin = lh_gl_rect_get_origin(rect);
+    const lh_gl_size_t *size = lh_gl_rect_get_size(rect);
+    lh_gl_scalar_t left = lh_gl_point_get_x(origin);
+    lh_gl_scalar_t top = lh_gl_point_get_y(origin);
+    lh_gl_scalar_t width = lh_gl_size_get_width(size);
+    lh_gl_scalar_t height = lh_gl_size_get_height(size);
+
+    if (x < left || y < top || x >= left + width || y >= top + height)
+    {
+        return 0;
+    }
+    if (radius < 0)
+    {
+        radius = 0;
+    }
+    lh_gl_scalar_t limit = lh_math_min(width, height) / 2;
+
+    if (radius > limit)
+    {
+        radius = limit;
+    }
+    if (radius == 0)
+    {
+        return 255;
+    }
+    lh_gl_scalar_t dx = x - left;
+    lh_gl_scalar_t dy = y - top;
+
+    if (dx >= radius && dx < width - radius)
+    {
+        return 255;
+    }
+    if (dy >= radius && dy < height - radius)
+    {
+        return 255;
+    }
+    lh_gl_scalar_t cx = left + radius;
+    lh_gl_scalar_t cy = top + radius;
+
+    if (dx >= radius)
+    {
+        cx = left + width - radius;
+    }
+    if (dy >= radius)
+    {
+        cy = top + height - radius;
+    }
+    lh_s64_t px = 2 * lh_cast_static(lh_s64_t, x) + 1 - 2 * lh_cast_static(lh_s64_t, cx);
+    lh_s64_t py = 2 * lh_cast_static(lh_s64_t, y) + 1 - 2 * lh_cast_static(lh_s64_t, cy);
+    lh_u64_t ax = px < 0 ? lh_type_cast(lh_u64_t, -px) : lh_type_cast(lh_u64_t, px);
+    lh_u64_t ay = py < 0 ? lh_type_cast(lh_u64_t, -py) : lh_type_cast(lh_u64_t, py);
+    lh_u64_t dist = lh_math_isqrt_u64(ax * ax + ay * ay);
+    lh_s64_t delta = 2 * lh_cast_static(lh_s64_t, radius) - lh_cast_static(lh_s64_t, dist);
+
+    if (delta >= 1)
+    {
+        return 255;
+    }
+    if (delta <= -1)
+    {
+        return 0;
+    }
+    return lh_type_cast(lh_gl_color_channel_t, (delta + 1) * 255 / 2);
 }
 
 lh_bool_t
@@ -237,4 +307,98 @@ lh_gl_cover_triangle(const lh_gl_point_t *a, const lh_gl_point_t *b, const lh_gl
         return 255;
     }
     return 0;
+}
+
+static const lh_s16_t lh_gl_cover_sin_quarter[91] = {
+    0,    18,   36,   54,   71,   89,   107,  125,  143,  160,  178,  195,  213,  230,  248,  265,
+    282,  299,  316,  333,  350,  367,  384,  400,  416,  433,  449,  465,  481,  496,  512,  527,
+    543,  558,  573,  587,  602,  616,  630,  644,  658,  672,  685,  698,  711,  724,  737,  749,
+    761,  773,  784,  796,  807,  818,  828,  839,  849,  859,  868,  878,  887,  896,  904,  912,
+    920,  928,  935,  943,  949,  956,  962,  968,  974,  979,  984,  989,  994,  998,  1002, 1005,
+    1008, 1011, 1014, 1016, 1018, 1020, 1022, 1023, 1023, 1024, 1024};
+
+lh_void
+lh_gl_cover_degree_direction(lh_gl_scalar_t degree, lh_s32_t *x, lh_s32_t *y)
+{
+    lh_assert_runtime_ref(x);
+    lh_assert_runtime_ref(y);
+    lh_gl_scalar_t turn = degree % 360;
+
+    if (turn < 0)
+    {
+        turn += 360;
+    }
+    lh_s32_t sine;
+    lh_s32_t cosine;
+
+    if (turn <= 90)
+    {
+        sine = lh_gl_cover_sin_quarter[turn];
+        cosine = lh_gl_cover_sin_quarter[90 - turn];
+    }
+    else if (turn <= 180)
+    {
+        sine = lh_gl_cover_sin_quarter[180 - turn];
+        cosine = -lh_gl_cover_sin_quarter[turn - 90];
+    }
+    else if (turn <= 270)
+    {
+        sine = -lh_gl_cover_sin_quarter[turn - 180];
+        cosine = -lh_gl_cover_sin_quarter[270 - turn];
+    }
+    else
+    {
+        sine = -lh_gl_cover_sin_quarter[360 - turn];
+        cosine = lh_gl_cover_sin_quarter[turn - 270];
+    }
+    *x = cosine;
+    *y = sine;
+}
+
+lh_gl_color_channel_t
+lh_gl_cover_sector(const lh_gl_point_t *center, lh_gl_scalar_t radius, lh_gl_scalar_t start,
+                   lh_gl_scalar_t sweep, lh_gl_scalar_t x, lh_gl_scalar_t y)
+{
+    lh_assert_runtime_ref(center);
+    if (radius < 1 || sweep == 0)
+    {
+        return 0;
+    }
+    if (lh_gl_cover_circle(center, radius, x, y) == 0)
+    {
+        return 0;
+    }
+    if (sweep >= 360 || sweep <= -360)
+    {
+        return 255;
+    }
+    if (sweep < 0)
+    {
+        start += sweep;
+        sweep = -sweep;
+    }
+    lh_s32_t start_x;
+    lh_s32_t start_y;
+
+    lh_gl_cover_degree_direction(start, lh_addr_of(start_x), lh_addr_of(start_y));
+    lh_s32_t end_x;
+    lh_s32_t end_y;
+
+    lh_gl_cover_degree_direction(start + sweep, lh_addr_of(end_x), lh_addr_of(end_y));
+    lh_s64_t px = 2 * lh_cast_static(lh_s64_t, x - lh_gl_point_get_x(center)) + 1;
+    lh_s64_t py = 2 * lh_cast_static(lh_s64_t, y - lh_gl_point_get_y(center)) + 1;
+    lh_s64_t from_start =
+        lh_cast_static(lh_s64_t, start_x) * py - lh_cast_static(lh_s64_t, start_y) * px;
+    lh_s64_t to_end = px * end_y - py * end_x;
+    lh_bool_t inside;
+
+    if (sweep <= 180)
+    {
+        inside = from_start >= 0 && to_end >= 0 ? lh_bool_true : lh_bool_false;
+    }
+    else
+    {
+        inside = from_start >= 0 || to_end >= 0 ? lh_bool_true : lh_bool_false;
+    }
+    return inside == lh_bool_true ? 255 : 0;
 }

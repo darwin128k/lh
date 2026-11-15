@@ -100,7 +100,7 @@ TEST(gl_scene, a_card_is_round_and_its_caption_is_ink)
     lh_gl_point_init(lh_addr_of(origin), 0, 0);
     lh_gl_canvas_t canvas;
 
-    lh_gl_canvas_init(lh_addr_of(canvas), origin, rect_of(0, 0, 480, 320));
+    lh_gl_canvas_init(lh_addr_of(canvas));
     lh_gl_canvas_set_target(lh_addr_of(canvas), lh_addr_of(pixmap));
     lh_gl_canvas_set_backend(lh_addr_of(canvas), lh_gl_pixmap_get_canvas_backend());
     lh_gl_layer_t layer;
@@ -155,6 +155,8 @@ TEST(gl_scene, a_card_is_round_and_its_caption_is_ink)
     EXPECT_EQ(lh_gl_color_get_b(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 40, 40)), 184);
     EXPECT_EQ(lh_gl_color_get_a(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 40, 40)), 255);
     EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 8, 8)), 18);
+    EXPECT_NE(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 10, 8)), 255);
+    EXPECT_NE(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 9, 9)), 255);
     EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 18, 12)), 255);
     lh_gl_layer_deinit(lh_addr_of(layer));
 }

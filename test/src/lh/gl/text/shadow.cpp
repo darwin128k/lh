@@ -67,10 +67,14 @@ TEST(gl_text_shadow, a_shift_moves_the_glyph_and_leaves_its_place)
     lh_gl_point_init(lh_addr_of(origin), 1, 1);
     lh_gl_canvas_t canvas;
 
-    lh_gl_canvas_init(lh_addr_of(canvas), origin, rect_of(0, 0, 4, 4));
+    lh_gl_canvas_init(lh_addr_of(canvas));
+    lh_gl_place_t place;
+
+    lh_gl_place_init(lh_addr_of(place), origin, rect_of(0, 0, 4, 4), nullptr);
     lh_gl_canvas_set_target(lh_addr_of(canvas), lh_addr_of(pixmap));
     lh_gl_canvas_set_backend(lh_addr_of(canvas), lh_gl_pixmap_get_canvas_backend());
-    lh_gl_text_shadow_draw(lh_gl_text_shadow_get_entity(lh_addr_of(cast)), lh_addr_of(canvas));
+    lh_gl_text_shadow_draw(lh_gl_text_shadow_get_entity(lh_addr_of(cast)), lh_addr_of(canvas),
+                           lh_addr_of(place));
     EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 1)), 255);
     EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 2, 1)), 0);
     EXPECT_FALSE(lh_gl_text_shadow_pick(lh_gl_text_shadow_get_entity(lh_addr_of(cast)), origin, 0));
@@ -114,10 +118,14 @@ TEST(gl_text_shadow, a_spread_softens_the_glyph)
     lh_gl_point_init(lh_addr_of(origin), 1, 1);
     lh_gl_canvas_t canvas;
 
-    lh_gl_canvas_init(lh_addr_of(canvas), origin, rect_of(0, 0, 8, 8));
+    lh_gl_canvas_init(lh_addr_of(canvas));
+    lh_gl_place_t place;
+
+    lh_gl_place_init(lh_addr_of(place), origin, rect_of(0, 0, 8, 8), nullptr);
     lh_gl_canvas_set_target(lh_addr_of(canvas), lh_addr_of(pixmap));
     lh_gl_canvas_set_backend(lh_addr_of(canvas), lh_gl_pixmap_get_canvas_backend());
-    lh_gl_text_shadow_draw(lh_gl_text_shadow_get_entity(lh_addr_of(cast)), lh_addr_of(canvas));
+    lh_gl_text_shadow_draw(lh_gl_text_shadow_get_entity(lh_addr_of(cast)), lh_addr_of(canvas),
+                           lh_addr_of(place));
     EXPECT_LT(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 2, 2)), 255);
     EXPECT_LT(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 2)), 255);
     EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 0, 0)), 255);
@@ -160,9 +168,13 @@ TEST(gl_text_shadow, a_short_scratch_draws_nothing)
     lh_gl_point_init(lh_addr_of(origin), 0, 0);
     lh_gl_canvas_t canvas;
 
-    lh_gl_canvas_init(lh_addr_of(canvas), origin, rect_of(0, 0, 1, 1));
+    lh_gl_canvas_init(lh_addr_of(canvas));
+    lh_gl_place_t place;
+
+    lh_gl_place_init(lh_addr_of(place), origin, rect_of(0, 0, 1, 1), nullptr);
     lh_gl_canvas_set_target(lh_addr_of(canvas), lh_addr_of(pixmap));
     lh_gl_canvas_set_backend(lh_addr_of(canvas), lh_gl_pixmap_get_canvas_backend());
-    lh_gl_text_shadow_draw(lh_gl_text_shadow_get_entity(lh_addr_of(cast)), lh_addr_of(canvas));
+    lh_gl_text_shadow_draw(lh_gl_text_shadow_get_entity(lh_addr_of(cast)), lh_addr_of(canvas),
+                           lh_addr_of(place));
     EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 0, 0)), 255);
 }

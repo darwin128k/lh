@@ -9,10 +9,11 @@ namespace
 {
 
 lh_void
-draw_nothing(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
+draw_nothing(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas, const lh_gl_place_t *place)
 {
     (void)entity;
     (void)canvas;
+    (void)place;
 }
 
 TEST(gl_entity_class, init_stores_kind_and_draw_call)

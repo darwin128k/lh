@@ -100,12 +100,12 @@ lh_gl_text_init(lh_gl_text_t *self, lh_gl_rect_t rect, const lh_gl_font_t *font,
  * paints nothing. @p shown is not read: the caller decides.
  */
 lh_void
-lh_gl_text_paint(const lh_gl_text_t *self, lh_gl_canvas_t *canvas, const lh_gl_color_t *color,
+lh_gl_text_paint(const lh_gl_text_t *self, lh_gl_canvas_t *canvas, const lh_gl_place_t *place, const lh_gl_color_t *color,
                  lh_gl_scalar_t dx, lh_gl_scalar_t dy);
 
 /** @brief Draw call of ::lh_gl_text_get_class. */
 lh_void
-lh_gl_text_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas);
+lh_gl_text_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas, const lh_gl_place_t *place);
 
 /** @brief True when this line takes @p point. Hidden or not a target is false. */
 lh_bool_t

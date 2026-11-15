@@ -15,8 +15,9 @@
  * Expands to ::lh_initializer with the arguments in the field order of
  * ::lh_gl_layer_fields. For a layer that is ready to use, prefer
  * ::lh_gl_layer_init, which also sets the class and an empty list; this macro
- * sets the surface to null. The list must be initialized in place; it
- * cannot be copied after initialization because its head links to itself.
+ * sets the surface to null and the radius to 0. The list must be initialized
+ * in place; it cannot be copied after initialization because its head links
+ * to itself.
  *
  * @param entity Initializer of the ::lh_gl_entity_t @c entity (::lh_gl_entity_initializer).
  * @param items  Initializer of the ::lh_list_t @c items.
@@ -24,6 +25,6 @@
  * @see lh_initializer
  * @see lh_gl_layer_t
  */
-#define lh_gl_layer_initializer(entity, items) lh_initializer(entity, items, 0)
+#define lh_gl_layer_initializer(entity, items) lh_initializer(entity, items, 0, 0)
 
 #endif /* LH_GL_LAYER_INITIALIZER_H */

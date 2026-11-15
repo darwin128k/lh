@@ -32,6 +32,7 @@
 #include <lh/gl/entity/class.h>
 #include <lh/gl/entity/fields.h>
 #include <lh/gl/layer/decl.h>
+#include <lh/gl/place.h>
 #include <lh/gl/rect.h>
 
 /**
@@ -268,7 +269,7 @@ lh_gl_entity_to_root(const lh_gl_entity_t *self, lh_gl_point_t point, lh_gl_poin
  * @param canvas Surface to draw on; passed to the draw call as is.
  */
 lh_void
-lh_gl_entity_draw(const lh_gl_entity_t *self, lh_gl_canvas_t *canvas);
+lh_gl_entity_draw(const lh_gl_entity_t *self, lh_gl_canvas_t *canvas, const lh_gl_place_t *place);
 
 LH_COMPILER_EXTERN_C_END
 

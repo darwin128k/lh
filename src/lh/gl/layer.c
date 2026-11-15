@@ -116,6 +116,22 @@ lh_gl_layer_init(lh_gl_layer_t *self, lh_gl_rect_t rect)
     lh_gl_entity_init(lh_gl_layer_get_entity_mut(self), rect, lh_gl_layer_get_class());
     lh_list_init(lh_gl_layer_get_items_mut(self));
     lh_gl_layer_set_surface(self, lh_null);
+    lh_gl_layer_set_radius(self, 0);
+}
+
+lh_gl_scalar_t
+lh_gl_layer_get_radius(const lh_gl_layer_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->radius;
+}
+
+lh_void
+lh_gl_layer_set_radius(lh_gl_layer_t *self, lh_gl_scalar_t radius)
+{
+    lh_assert_runtime_ref(self);
+    self->radius = radius < 0 ? 0 : radius;
+    lh_gl_entity_invalidate(lh_gl_layer_get_entity_mut(self));
 }
 
 lh_bool_t
@@ -399,7 +415,7 @@ lh_gl_layer_find_entity_slop(const lh_gl_layer_t *self, lh_gl_point_t point, lh_
 lh_void
 lh_gl_layer_draw_at_origin(const lh_gl_layer_t *self, lh_gl_canvas_t *canvas,
                            const lh_gl_rect_t *bounds, const lh_gl_rect_t *clip,
-                           const lh_gl_point_t *origin)
+                           const lh_gl_point_t *origin, const lh_gl_mask_t *mask)
 {
     lh_gl_rect_t visible;
 
@@ -408,12 +424,30 @@ lh_gl_layer_draw_at_origin(const lh_gl_layer_t *self, lh_gl_canvas_t *canvas,
     {
         return;
     }
-    lh_gl_point_t saved_origin = lh_ptr_deref(lh_gl_canvas_get_origin(canvas));
-    lh_gl_rect_t saved_clip = lh_ptr_deref(lh_gl_canvas_get_clip(canvas));
+    const lh_gl_mask_t *active = mask;
+    lh_gl_mask_t round_mask;
 
-    lh_gl_canvas_set_origin(canvas, lh_ptr_deref(lh_gl_rect_get_origin(bounds)));
-    lh_gl_canvas_set_clip(canvas, visible);
-    lh_gl_entity_draw(lh_gl_layer_get_entity(self), canvas);
+    if (lh_gl_layer_get_radius(self) > 0)
+    {
+        lh_gl_mask_init_round(lh_addr_of(round_mask), lh_ptr_deref(bounds),
+                              lh_gl_layer_get_radius(self));
+    }
+    lh_gl_mask_t both;
+
+    if (lh_gl_layer_get_radius(self) > 0 && lh_ptr_is_set(mask))
+    {
+        lh_gl_mask_init_intersect(lh_addr_of(both), mask, lh_addr_of(round_mask));
+        active = lh_addr_of(both);
+    }
+    else if (lh_gl_layer_get_radius(self) > 0)
+    {
+        active = lh_addr_of(round_mask);
+    }
+    lh_gl_place_t place;
+
+    lh_gl_place_init(lh_addr_of(place), lh_ptr_deref(lh_gl_rect_get_origin(bounds)), visible,
+                     active);
+    lh_gl_entity_draw(lh_gl_layer_get_entity(self), canvas, lh_addr_of(place));
     const lh_list_t *items = lh_gl_layer_get_items(self);
 
     for (lh_list_node_t *node = lh_list_get_first(items); lh_ptr_is_set(node);
@@ -460,26 +494,27 @@ lh_gl_layer_draw_at_origin(const lh_gl_layer_t *self, lh_gl_canvas_t *canvas,
         }
         if (lh_gl_entity_is_layer(child))
         {
-            lh_gl_layer_draw_at(lh_ptr_ccast(lh_gl_layer_t, child), canvas,
-                                lh_addr_of(child_bounds), lh_addr_of(child_clip));
+            lh_gl_layer_draw_at_origin(lh_ptr_ccast(lh_gl_layer_t, child), canvas,
+                                      lh_addr_of(child_bounds), lh_addr_of(child_clip),
+                                      lh_gl_rect_get_origin(lh_addr_of(child_bounds)), active);
         }
         else
         {
-            lh_gl_canvas_set_origin(canvas,
-                                    lh_ptr_deref(lh_gl_rect_get_origin(lh_addr_of(child_bounds))));
-            lh_gl_canvas_set_clip(canvas, child_clip);
-            lh_gl_entity_draw(child, canvas);
+            lh_gl_place_t child_place;
+
+            lh_gl_place_init(lh_addr_of(child_place),
+                             lh_ptr_deref(lh_gl_rect_get_origin(lh_addr_of(child_bounds))),
+                             child_clip, active);
+            lh_gl_entity_draw(child, canvas, lh_addr_of(child_place));
         }
     }
-    lh_gl_canvas_set_origin(canvas, saved_origin);
-    lh_gl_canvas_set_clip(canvas, saved_clip);
 }
 
 lh_void
 lh_gl_layer_draw_at(const lh_gl_layer_t *self, lh_gl_canvas_t *canvas, const lh_gl_rect_t *bounds,
                     const lh_gl_rect_t *clip)
 {
-    lh_gl_layer_draw_at_origin(self, canvas, bounds, clip, lh_gl_rect_get_origin(bounds));
+    lh_gl_layer_draw_at_origin(self, canvas, bounds, clip, lh_gl_rect_get_origin(bounds), lh_null);
 }
 
 lh_void

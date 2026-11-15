@@ -54,10 +54,10 @@ TEST(gl_bmp, stores_bottom_up_bgra)
     EXPECT_FALSE(lh_gl_bmp_try_store(lh_addr_of(pixmap), bytes, sizeof bytes));
     lh_gl_size_init(lh_addr_of(size), 1, 2);
     lh_gl_pixmap_set_size(lh_addr_of(pixmap), size);
-    lh_gl_pixmap_set_pixels(lh_addr_of(pixmap), lh_null);
+    lh_gl_pixmap_set_pixels(lh_addr_of(pixmap), nullptr);
     EXPECT_FALSE(lh_gl_bmp_try_store(lh_addr_of(pixmap), bytes, sizeof bytes));
     lh_gl_pixmap_set_pixels(lh_addr_of(pixmap), pixels);
-    EXPECT_FALSE(lh_gl_bmp_try_store(lh_addr_of(pixmap), lh_null, sizeof bytes));
+    EXPECT_FALSE(lh_gl_bmp_try_store(lh_addr_of(pixmap), nullptr, sizeof bytes));
     EXPECT_FALSE(lh_gl_bmp_try_store(lh_addr_of(pixmap), bytes, 54U));
 }
 
@@ -85,22 +85,25 @@ TEST(gl_bmp, writes_three_bars_a_viewer_can_open)
     lh_gl_point_t origin;
     lh_gl_point_init(lh_addr_of(origin), 0, 0);
     lh_gl_canvas_t canvas;
-    lh_gl_canvas_init(lh_addr_of(canvas), origin, rect_of(0, 0, 480, 320));
+    lh_gl_canvas_init(lh_addr_of(canvas));
+    lh_gl_place_t place;
+
+    lh_gl_place_init(lh_addr_of(place), origin, rect_of(0, 0, 480, 320), nullptr);
     lh_gl_canvas_set_target(lh_addr_of(canvas), lh_addr_of(pixmap));
     lh_gl_canvas_set_backend(lh_addr_of(canvas), lh_gl_pixmap_get_canvas_backend());
     lh_gl_color_t color;
     lh_gl_color_init(lh_addr_of(color), 32, 36, 40, 255);
     lh_gl_rect_t full = rect_of(0, 0, 480, 320);
-    lh_gl_canvas_fill_rect(lh_addr_of(canvas), lh_addr_of(full), lh_addr_of(color));
+    lh_gl_canvas_fill_rect(lh_addr_of(canvas), lh_addr_of(place),  lh_addr_of(full), lh_addr_of(color));
     lh_gl_color_init(lh_addr_of(color), 220, 64, 48, 255);
     lh_gl_rect_t left = rect_of(40, 40, 120, 240);
-    lh_gl_canvas_fill_rect(lh_addr_of(canvas), lh_addr_of(left), lh_addr_of(color));
+    lh_gl_canvas_fill_rect(lh_addr_of(canvas), lh_addr_of(place),  lh_addr_of(left), lh_addr_of(color));
     lh_gl_color_init(lh_addr_of(color), 48, 140, 220, 255);
     lh_gl_rect_t middle = rect_of(180, 40, 120, 240);
-    lh_gl_canvas_fill_rect(lh_addr_of(canvas), lh_addr_of(middle), lh_addr_of(color));
+    lh_gl_canvas_fill_rect(lh_addr_of(canvas), lh_addr_of(place),  lh_addr_of(middle), lh_addr_of(color));
     lh_gl_color_init(lh_addr_of(color), 48, 180, 96, 255);
     lh_gl_rect_t right = rect_of(320, 40, 120, 240);
-    lh_gl_canvas_fill_rect(lh_addr_of(canvas), lh_addr_of(right), lh_addr_of(color));
+    lh_gl_canvas_fill_rect(lh_addr_of(canvas), lh_addr_of(place),  lh_addr_of(right), lh_addr_of(color));
     lh_usize_t count = lh_gl_bmp_byte_count(lh_addr_of(pixmap));
     std::vector<lh_byte_t> bytes(count);
     lh_gl_bmp_store(lh_addr_of(pixmap), bytes.data(), count);

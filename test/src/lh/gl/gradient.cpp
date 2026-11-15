@@ -72,7 +72,7 @@ TEST(gl_gradient_fill, paints_the_top_row_from_the_first_color)
     lh_gl_point_t origin;
     lh_gl_point_init(lh_addr_of(origin), 0, 0);
     lh_gl_canvas_t canvas;
-    lh_gl_canvas_init(lh_addr_of(canvas), origin, rect_of(0, 0, 2, 2));
+    lh_gl_canvas_init(lh_addr_of(canvas));
     lh_gl_canvas_set_target(lh_addr_of(canvas), lh_addr_of(pixmap));
     lh_gl_canvas_set_backend(lh_addr_of(canvas), lh_gl_pixmap_get_canvas_backend());
     lh_gl_layer_t layer;
@@ -130,7 +130,7 @@ TEST(gl_gradient_fill, paints_the_top_row_from_the_first_color)
                          lh_gl_color_get_b(lh_addr_of(down_right)), 255));
     EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 0)),
               lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 0, 1)));
-    lh_gl_gradient_fill_set_gradient(lh_addr_of(fill), lh_null);
+    lh_gl_gradient_fill_set_gradient(lh_addr_of(fill), nullptr);
     lh_memory_std_set(pixels, 0, sizeof pixels);
     lh_gl_layer_draw(lh_addr_of(layer), lh_addr_of(canvas), lh_addr_of(clip));
     EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 0, 0), 0, 0, 0, 0));
@@ -148,7 +148,7 @@ TEST(gl_gradient_fill, a_radius_leaves_the_corner_clear)
     lh_gl_point_t origin;
     lh_gl_point_init(lh_addr_of(origin), 0, 0);
     lh_gl_canvas_t canvas;
-    lh_gl_canvas_init(lh_addr_of(canvas), origin, rect_of(0, 0, 4, 4));
+    lh_gl_canvas_init(lh_addr_of(canvas));
     lh_gl_canvas_set_target(lh_addr_of(canvas), lh_addr_of(pixmap));
     lh_gl_canvas_set_backend(lh_addr_of(canvas), lh_gl_pixmap_get_canvas_backend());
     lh_gl_layer_t layer;
@@ -180,7 +180,7 @@ TEST(gl_gradient_fill, radial_is_the_first_color_near_the_middle)
     lh_gl_point_t origin;
     lh_gl_point_init(lh_addr_of(origin), 0, 0);
     lh_gl_canvas_t canvas;
-    lh_gl_canvas_init(lh_addr_of(canvas), origin, rect_of(0, 0, 4, 4));
+    lh_gl_canvas_init(lh_addr_of(canvas));
     lh_gl_canvas_set_target(lh_addr_of(canvas), lh_addr_of(pixmap));
     lh_gl_canvas_set_backend(lh_addr_of(canvas), lh_gl_pixmap_get_canvas_backend());
     lh_gl_layer_t layer;

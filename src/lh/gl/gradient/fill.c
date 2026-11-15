@@ -138,7 +138,7 @@ lh_gl_gradient_fill_init(lh_gl_gradient_fill_t *self, lh_gl_rect_t rect,
 }
 
 lh_void
-lh_gl_gradient_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
+lh_gl_gradient_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas, const lh_gl_place_t *place)
 {
     const lh_gl_gradient_t *gradient =
         lh_gl_gradient_fill_get_gradient(lh_ptr_ccast(lh_gl_gradient_fill_t, entity));
@@ -250,7 +250,7 @@ lh_gl_gradient_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
                     }
                     row[x] = table[lone];
                 }
-                lh_gl_canvas_fill_colors(canvas, x0, y, row + x0, x1 - x0);
+                lh_gl_canvas_fill_colors(canvas, place,  x0, y, row + x0, x1 - x0);
                 continue;
             }
             lh_gl_scalar_t level = 0;
@@ -279,7 +279,7 @@ lh_gl_gradient_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
                     }
                     chunk[i] = table[level];
                 }
-                lh_gl_canvas_fill_colors(canvas, x, y, chunk, n);
+                lh_gl_canvas_fill_colors(canvas, place,  x, y, chunk, n);
                 x = x + n;
             }
         }
@@ -307,7 +307,7 @@ lh_gl_gradient_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
                     lh_gl_rect_t strip;
 
                     lh_gl_rect_init(lh_addr_of(strip), run_x0, run_y, run_x1 - run_x0, y - run_y);
-                    lh_gl_canvas_fill_rect(canvas, lh_addr_of(strip), lh_addr_of(run_color));
+                    lh_gl_canvas_fill_rect(canvas, place,  lh_addr_of(strip), lh_addr_of(run_color));
                     open = lh_bool_false;
                 }
                 continue;
@@ -341,7 +341,7 @@ lh_gl_gradient_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
                 lh_gl_rect_t strip;
 
                 lh_gl_rect_init(lh_addr_of(strip), run_x0, run_y, run_x1 - run_x0, y - run_y);
-                lh_gl_canvas_fill_rect(canvas, lh_addr_of(strip), lh_addr_of(run_color));
+                lh_gl_canvas_fill_rect(canvas, place,  lh_addr_of(strip), lh_addr_of(run_color));
             }
             run_y = y;
             run_x0 = x0;
@@ -354,7 +354,7 @@ lh_gl_gradient_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
             lh_gl_rect_t strip;
 
             lh_gl_rect_init(lh_addr_of(strip), run_x0, run_y, run_x1 - run_x0, height - run_y);
-            lh_gl_canvas_fill_rect(canvas, lh_addr_of(strip), lh_addr_of(run_color));
+            lh_gl_canvas_fill_rect(canvas, place,  lh_addr_of(strip), lh_addr_of(run_color));
         }
         return;
     }
@@ -370,7 +370,7 @@ lh_gl_gradient_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
             lh_gl_rect_t strip;
 
             lh_gl_rect_init(lh_addr_of(strip), x, 0, 1, height);
-            lh_gl_canvas_fill_rect(canvas, lh_addr_of(strip), lh_addr_of(color));
+            lh_gl_canvas_fill_rect(canvas, place,  lh_addr_of(strip), lh_addr_of(color));
         }
         return;
     }
@@ -394,7 +394,7 @@ lh_gl_gradient_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
             lh_gl_rect_t strip;
 
             lh_gl_rect_init(lh_addr_of(strip), x, y, 1, 1);
-            lh_gl_canvas_fill_rect(canvas, lh_addr_of(strip), lh_addr_of(color));
+            lh_gl_canvas_fill_rect(canvas, place,  lh_addr_of(strip), lh_addr_of(color));
         }
     }
 }

@@ -116,7 +116,7 @@ lh_gl_text_shadow_init(lh_gl_text_shadow_t *self, const lh_gl_text_t *line,
 
 /** @brief Draw call of ::lh_gl_text_shadow_get_class. */
 lh_void
-lh_gl_text_shadow_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas);
+lh_gl_text_shadow_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas, const lh_gl_place_t *place);
 
 /** @brief A text shadow never takes a press. The search continues behind it. */
 lh_bool_t

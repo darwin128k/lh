@@ -23,12 +23,13 @@ rect_of(lh_gl_scalar_t x, lh_gl_scalar_t y, lh_gl_scalar_t w, lh_gl_scalar_t h)
 }
 
 lh_void
-record_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
+record_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas, const lh_gl_place_t *place)
 {
     const lh_usize_t index = drawn_count++;
 
+    (void)canvas;
     drawn[index] = entity;
-    clips[index] = lh_ptr_deref(lh_gl_canvas_get_clip(canvas));
+    clips[index] = lh_ptr_deref(lh_gl_place_get_clip(place));
 }
 
 TEST(gl_renderer, render_is_deferred_and_slices_the_dirty_rect)
@@ -53,7 +54,7 @@ TEST(gl_renderer, render_is_deferred_and_slices_the_dirty_rect)
     lh_gl_point_t origin;
 
     lh_gl_point_init(lh_addr_of(origin), 0, 0);
-    lh_gl_canvas_init(lh_addr_of(canvas), origin, rect_of(0, 0, 1, 1));
+    lh_gl_canvas_init(lh_addr_of(canvas));
     lh_gl_renderer_t renderer;
 
     lh_gl_renderer_init(lh_addr_of(renderer), lh_addr_of(surface), lh_addr_of(canvas), 40);
@@ -94,7 +95,7 @@ TEST(gl_renderer, band_zero_draws_the_dirty_rect_once)
     lh_gl_point_t origin;
 
     lh_gl_point_init(lh_addr_of(origin), 0, 0);
-    lh_gl_canvas_init(lh_addr_of(canvas), origin, rect_of(0, 0, 1, 1));
+    lh_gl_canvas_init(lh_addr_of(canvas));
     lh_gl_renderer_t renderer;
 
     lh_gl_renderer_init(lh_addr_of(renderer), lh_addr_of(surface), lh_addr_of(canvas), 0);

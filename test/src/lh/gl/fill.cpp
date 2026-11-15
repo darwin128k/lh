@@ -41,7 +41,7 @@ TEST(gl_fill, layer_stays_empty_and_the_fill_reads_its_color)
     lh_gl_point_t origin;
     lh_gl_point_init(lh_addr_of(origin), 0, 0);
     lh_gl_canvas_t canvas;
-    lh_gl_canvas_init(lh_addr_of(canvas), origin, rect_of(0, 0, 4, 4));
+    lh_gl_canvas_init(lh_addr_of(canvas));
     lh_gl_canvas_set_target(lh_addr_of(canvas), lh_addr_of(pixmap));
     lh_gl_canvas_set_backend(lh_addr_of(canvas), lh_gl_pixmap_get_canvas_backend());
     lh_gl_layer_t layer;
@@ -62,8 +62,8 @@ TEST(gl_fill, layer_stays_empty_and_the_fill_reads_its_color)
     EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 0), 122, 77, 14, 255));
     EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 2, 0), 200, 10, 10, 255));
     EXPECT_FALSE(lh_gl_entity_class_get_opaque(lh_gl_fill_get_class()));
-    EXPECT_EQ(lh_gl_entity_class_get_draw_cb(lh_gl_layer_get_class()), lh_null);
-    lh_gl_fill_set_color(lh_addr_of(mark), lh_null);
+    EXPECT_EQ(lh_gl_entity_class_get_draw_cb(lh_gl_layer_get_class()), nullptr);
+    lh_gl_fill_set_color(lh_addr_of(mark), nullptr);
     lh_gl_layer_draw(lh_addr_of(layer), lh_addr_of(canvas), lh_addr_of(clip));
     EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 0), 200, 10, 10, 255));
     lh_gl_layer_deinit(lh_addr_of(layer));
@@ -80,7 +80,7 @@ TEST(gl_fill, one_color_paints_two_fills)
     lh_gl_point_t origin;
     lh_gl_point_init(lh_addr_of(origin), 0, 0);
     lh_gl_canvas_t canvas;
-    lh_gl_canvas_init(lh_addr_of(canvas), origin, rect_of(0, 0, 4, 1));
+    lh_gl_canvas_init(lh_addr_of(canvas));
     lh_gl_canvas_set_target(lh_addr_of(canvas), lh_addr_of(pixmap));
     lh_gl_canvas_set_backend(lh_addr_of(canvas), lh_gl_pixmap_get_canvas_backend());
     lh_gl_layer_t layer;

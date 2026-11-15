@@ -19,10 +19,13 @@
  *                    linked through each child's `node`. The layer does not
  *                    own the children themselves, only the links to them.
  * @param surface_type Surface type; only an attached root has a surface.
+ * @param radius_type  ::lh_gl_scalar_t: `radius`, one rounded mask for the
+ *                     children. 0 leaves the rectangle.
  */
-#define lh_gl_layer_fields(entity_type, items_type, surface_type)                                  \
+#define lh_gl_layer_fields(entity_type, items_type, surface_type, radius_type)                     \
     entity_type entity;                                                                            \
     items_type items;                                                                              \
-    surface_type *surface
+    surface_type *surface;                                                                         \
+    radius_type radius
 
 #endif /* LH_GL_LAYER_FIELDS_H */

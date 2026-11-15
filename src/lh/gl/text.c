@@ -120,7 +120,8 @@ lh_gl_text_init(lh_gl_text_t *self, lh_gl_rect_t rect, const lh_gl_font_t *font,
 }
 
 lh_void
-lh_gl_text_paint(const lh_gl_text_t *self, lh_gl_canvas_t *canvas, const lh_gl_color_t *color,
+lh_gl_text_paint(const lh_gl_text_t *self, lh_gl_canvas_t *canvas, const lh_gl_place_t *place,
+                 const lh_gl_color_t *color,
                  lh_gl_scalar_t dx, lh_gl_scalar_t dy)
 {
     lh_assert_runtime_ref(self);
@@ -188,13 +189,13 @@ lh_gl_text_paint(const lh_gl_text_t *self, lh_gl_canvas_t *canvas, const lh_gl_c
                                         col - start, 1);
                         if (cover == 255)
                         {
-                            lh_gl_canvas_fill_rect(canvas, lh_addr_of(run), color);
+                            lh_gl_canvas_fill_rect(canvas, place,  lh_addr_of(run), color);
                             continue;
                         }
                         lh_gl_color_t ink;
 
                         lh_gl_color_scale_alpha(color, cover, lh_addr_of(ink));
-                        lh_gl_canvas_fill_rect(canvas, lh_addr_of(run), lh_addr_of(ink));
+                        lh_gl_canvas_fill_rect(canvas, place,  lh_addr_of(run), lh_addr_of(ink));
                     }
                 }
             }
@@ -205,7 +206,7 @@ lh_gl_text_paint(const lh_gl_text_t *self, lh_gl_canvas_t *canvas, const lh_gl_c
 }
 
 lh_void
-lh_gl_text_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
+lh_gl_text_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas, const lh_gl_place_t *place)
 {
     const lh_gl_text_t *text = lh_ptr_ccast(lh_gl_text_t, entity);
 
@@ -213,7 +214,7 @@ lh_gl_text_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
     {
         return;
     }
-    lh_gl_text_paint(text, canvas, lh_gl_text_get_color(text), 0, 0);
+    lh_gl_text_paint(text, canvas, place, lh_gl_text_get_color(text), 0, 0);
 }
 
 lh_bool_t

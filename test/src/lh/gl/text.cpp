@@ -35,7 +35,7 @@ TEST(gl_text, one_glyph_paints_its_coverage)
     lh_gl_point_t origin;
     lh_gl_point_init(lh_addr_of(origin), 0, 0);
     lh_gl_canvas_t canvas;
-    lh_gl_canvas_init(lh_addr_of(canvas), origin, rect_of(0, 0, 1, 1));
+    lh_gl_canvas_init(lh_addr_of(canvas));
     lh_gl_canvas_set_target(lh_addr_of(canvas), lh_addr_of(pixmap));
     lh_gl_canvas_set_backend(lh_addr_of(canvas), lh_gl_pixmap_get_canvas_backend());
     lh_gl_layer_t layer;

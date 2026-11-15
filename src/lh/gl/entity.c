@@ -202,8 +202,9 @@ lh_gl_entity_to_root(const lh_gl_entity_t *self, lh_gl_point_t point, lh_gl_poin
 }
 
 lh_void
-lh_gl_entity_draw(const lh_gl_entity_t *self, lh_gl_canvas_t *canvas)
+lh_gl_entity_draw(const lh_gl_entity_t *self, lh_gl_canvas_t *canvas, const lh_gl_place_t *place)
 {
+    lh_assert_runtime_ref(place);
     lh_gl_entity_class_draw_cb draw_cb =
         lh_gl_entity_class_get_draw_cb(lh_gl_entity_get_class(self));
 
@@ -211,5 +212,5 @@ lh_gl_entity_draw(const lh_gl_entity_t *self, lh_gl_canvas_t *canvas)
     {
         return;
     }
-    draw_cb(self, canvas);
+    draw_cb(self, canvas, place);
 }

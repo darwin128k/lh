@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- The canvas keeps the target and the backend. Origin, clip and mask travel on `lh_gl_place_t`, one per call. A layer radius is one rounded mask for every child drawn inside it; `lh_gl_card_set_radius` installs that mask and leaves the face square. Coverage on the arc is 1–254. Intersection takes the lesser coverage, union the greater, exclusion the left scaled by `(255 - right) / 255`. `lh_gl_canvas_stroke_line` paints a straight segment. `lh_gl_canvas_fill_sector` paints a pie: 0 degrees is to the right, a positive sweep turns toward +y, and the edges are integer.
+
 - `lh_gl_card_set_ink` stores the line color apart from the face. `lh_gl_card_get_line` and `lh_gl_card_get_layer_mut` are the line and the layer, so a glyph shadow can sit between them. `lh_gl_font_caption` is a static 8×12 face for space, the digits, `C`, `a`, `d` and `r`. The 24-card scene is built with `lh_gl_card_init`, a box shadow, a glass panel and that face. Release, this machine, 32 frames of that scene: 4.2 and 4.5 ms a frame.
 
 - `lh_gl_text_shadow_t` paints a line's glyphs in the shadow color, shifted by the offset and blurred by the spread. The blur follows the ink. A spread of `0` is the shifted glyphs with a hard edge. The scratch is the caller's.

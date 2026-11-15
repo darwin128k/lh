@@ -46,7 +46,7 @@
 struct lh_gl_layer
 {
     /** Members: ::lh_gl_layer_fields. */
-    lh_gl_layer_fields(lh_gl_entity_t, lh_list_t, lh_gl_surface_t);
+    lh_gl_layer_fields(lh_gl_entity_t, lh_list_t, lh_gl_surface_t, lh_gl_scalar_t);
 };
 
 /* -- Accessors ------------------------------------------------------------- */
@@ -144,6 +144,17 @@ lh_gl_layer_get_count(const lh_gl_layer_t *self);
  */
 lh_void
 lh_gl_layer_init(lh_gl_layer_t *self, lh_gl_rect_t rect);
+
+/** @brief Corner radius of the mask applied to children. Zero does not round. */
+lh_gl_scalar_t
+lh_gl_layer_get_radius(const lh_gl_layer_t *self);
+
+/**
+ * @brief Store the mask radius for children. A negative value is zero.
+ *        The layer's own rectangle is the mask. Marks the area.
+ */
+lh_void
+lh_gl_layer_set_radius(lh_gl_layer_t *self, lh_gl_scalar_t radius);
 
 /**
  * @brief Unlink every remaining child of @p self and clear its parent.
@@ -381,18 +392,21 @@ lh_gl_layer_find_entity_slop(const lh_gl_layer_t *self, lh_gl_point_t point, lh_
  * @p bounds stays the window: it is intersected with @p clip and is the origin
  * the layer's own callback sees. Child rectangles are added to @p origin and
  * are not written back. A child layer is drawn with its placed rectangle as
- * both its window and its own origin. The canvas state is restored on return.
+ * both its window and its own origin. A positive layer radius is a rounded
+ * mask, intersected with @p mask when that pointer is set. The place passed
+ * to each callback carries that coverage. The canvas is not written.
  *
  * @param self   Layer to draw; must not be null.
- * @param canvas Drawing state, borrowed; must not be null.
+ * @param canvas Drawing tool, borrowed; must not be null.
  * @param bounds Window of @p self; must not be null.
  * @param clip   Dirty area in root coordinates; must not be null.
  * @param origin Where child rectangles are placed; must not be null.
+ * @param mask   Coverage already in force, or null.
  */
 lh_void
 lh_gl_layer_draw_at_origin(const lh_gl_layer_t *self, lh_gl_canvas_t *canvas,
                            const lh_gl_rect_t *bounds, const lh_gl_rect_t *clip,
-                           const lh_gl_point_t *origin);
+                           const lh_gl_point_t *origin, const lh_gl_mask_t *mask);
 
 /**
  * @brief Draw a layer subtree from a known absolute rectangle.
@@ -402,7 +416,7 @@ lh_gl_layer_draw_at_origin(const lh_gl_layer_t *self, lh_gl_canvas_t *canvas,
  * clip is in the same coordinates. Visits children back to front, clipping to
  * each ancestor and passing absolute origins down without walking parents. A
  * child whose visible area sits fully inside a later opaque sibling is skipped.
- * The canvas state is restored on return. Callbacks must not mutate the tree.
+ * The canvas is not written. Callbacks must not mutate the tree.
  *
  * @param self Layer to draw; must not be null.
  * @param canvas Drawing state, borrowed; must not be null.
@@ -419,8 +433,8 @@ lh_gl_layer_draw_at(const lh_gl_layer_t *self, lh_gl_canvas_t *canvas, const lh_
  * Intersects @p clip with this layer and each ancestor encountered below it.
  * Calls this layer's class draw callback first, then visits children back to
  * front, recursively drawing layers. Each callback receives the current
- * entity's absolute origin and effective root-coordinate clip in @p canvas.
- * Empty intersections are skipped. The caller's canvas state is restored.
+ * entity's absolute origin, the clip and the layer mask in the place.
+ * Empty intersections are skipped. The canvas is not written.
  * The tree must not be mutated during callbacks, and depth consumes stack.
  *
  * @param self Layer to draw; must not be null.

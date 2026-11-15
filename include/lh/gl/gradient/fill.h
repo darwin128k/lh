@@ -105,7 +105,7 @@ lh_gl_gradient_fill_init(lh_gl_gradient_fill_t *self, lh_gl_rect_t rect,
 
 /** @brief Draw call of ::lh_gl_gradient_fill_get_class. */
 lh_void
-lh_gl_gradient_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas);
+lh_gl_gradient_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas, const lh_gl_place_t *place);
 
 /** @brief True when this fill takes @p point. A rounded corner can refuse it. */
 lh_bool_t

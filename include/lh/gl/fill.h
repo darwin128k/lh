@@ -105,7 +105,7 @@ lh_gl_fill_init(lh_gl_fill_t *self, lh_gl_rect_t rect, const lh_gl_color_t *colo
  * origin. A null color returns. A null @p entity is a failed check.
  */
 lh_void
-lh_gl_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas);
+lh_gl_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas, const lh_gl_place_t *place);
 
 /**
  * @brief True when this fill takes @p point.

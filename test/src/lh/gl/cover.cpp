@@ -37,6 +37,28 @@ TEST(gl_cover, a_circle_drops_the_corner_of_its_box)
     EXPECT_EQ(lh_gl_cover_circle(lh_addr_of(center), 0, 2, 2), 0);
 }
 
+TEST(gl_cover, a_quarter_sector_keeps_the_right_and_the_bottom)
+{
+    lh_s32_t x;
+    lh_s32_t y;
+
+    lh_gl_cover_degree_direction(0, lh_addr_of(x), lh_addr_of(y));
+    EXPECT_EQ(x, 1024);
+    EXPECT_EQ(y, 0);
+    lh_gl_cover_degree_direction(90, lh_addr_of(x), lh_addr_of(y));
+    EXPECT_EQ(x, 0);
+    EXPECT_EQ(y, 1024);
+    lh_gl_point_t center;
+
+    lh_gl_point_init(lh_addr_of(center), 8, 8);
+    EXPECT_EQ(lh_gl_cover_sector(lh_addr_of(center), 6, 0, 90, 12, 8), 255);
+    EXPECT_EQ(lh_gl_cover_sector(lh_addr_of(center), 6, 0, 90, 10, 10), 255);
+    EXPECT_EQ(lh_gl_cover_sector(lh_addr_of(center), 6, 0, 90, 4, 8), 0);
+    EXPECT_EQ(lh_gl_cover_sector(lh_addr_of(center), 6, 0, 90, 8, 4), 0);
+    EXPECT_EQ(lh_gl_cover_sector(lh_addr_of(center), 6, 0, 0, 12, 8), 0);
+    EXPECT_EQ(lh_gl_cover_sector(lh_addr_of(center), 6, 0, 360, 4, 8), 255);
+}
+
 TEST(gl_cover, a_triangle_keeps_its_interior)
 {
     lh_gl_point_t a;

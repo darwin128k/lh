@@ -125,6 +125,7 @@ lh_add_test_core(lh_test_rail ${LH_TEST_RAIL_SOURCES})
 lh_add_test_core(lh_test_gl ${LH_TEST_SRC_PATH}/lh/gl/canvas.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/color.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/cover.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/mask.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/pen.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/pixmap.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/bmp.cpp

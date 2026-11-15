@@ -49,7 +49,8 @@ lh_gl_card_set_radius(lh_gl_card_t *self, lh_gl_scalar_t radius)
 {
     lh_assert_runtime_ref(self);
     self->radius = radius < 0 ? 0 : radius;
-    lh_gl_fill_set_radius(lh_addr_of(self->face), lh_gl_card_get_radius(self));
+    lh_gl_layer_set_radius(lh_addr_of(self->layer), lh_gl_card_get_radius(self));
+    lh_gl_fill_set_radius(lh_addr_of(self->face), 0);
 }
 
 lh_bool_t

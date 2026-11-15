@@ -12,6 +12,7 @@
 #ifndef LH_GL_COVER_H
 #define LH_GL_COVER_H
 
+#include <lh/core/numeric/fixed/types.h>
 #include <lh/gl/color.h>
 #include <lh/gl/rect.h>
 
@@ -27,6 +28,16 @@ LH_COMPILER_EXTERN_C_BEGIN
 lh_gl_color_channel_t
 lh_gl_cover_round_rect(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_gl_scalar_t x,
                        lh_gl_scalar_t y);
+
+/**
+ * @brief Coverage of pixel (@p x, @p y) in a rounded rectangle, 0 through 255.
+ *
+ * The flat interior is 255. Outside the rectangle is 0. The arc fades across
+ * one pixel. A radius of 0 is 255 inside the rectangle.
+ */
+lh_gl_color_channel_t
+lh_gl_cover_round_rect_band(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_gl_scalar_t x,
+                            lh_gl_scalar_t y);
 
 /**
  * @brief True when (@p x, @p y) is inside @p rect grown by @p slop, following
@@ -65,6 +76,27 @@ lh_gl_cover_circle(const lh_gl_point_t *center, lh_gl_scalar_t radius, lh_gl_sca
 lh_gl_color_channel_t
 lh_gl_cover_triangle(const lh_gl_point_t *a, const lh_gl_point_t *b, const lh_gl_point_t *c,
                      lh_gl_scalar_t x, lh_gl_scalar_t y);
+
+/**
+ * @brief `255` when pixel (@p x, @p y) lies in a sector of the circle.
+ *
+ * @p start is degrees from the right, toward +y. A positive @p sweep turns
+ * that way. Both edges count as inside. A sweep of 0 covers nothing. A sweep
+ * of 360 or more, either way, is the whole circle. A radius below 1 covers
+ * nothing. The coordinates stay integers.
+ */
+lh_gl_color_channel_t
+lh_gl_cover_sector(const lh_gl_point_t *center, lh_gl_scalar_t radius, lh_gl_scalar_t start,
+                   lh_gl_scalar_t sweep, lh_gl_scalar_t x, lh_gl_scalar_t y);
+
+/**
+ * @brief Unit direction of @p degree, scaled by 1024.
+ *
+ * 0 is +x. 90 is +y. The values are written to @p x and @p y. Both must not
+ * be null. The scale is the quarter-degree sine table, so 90 is exactly 1024.
+ */
+lh_void
+lh_gl_cover_degree_direction(lh_gl_scalar_t degree, lh_s32_t *x, lh_s32_t *y);
 
 LH_COMPILER_EXTERN_C_END
 
