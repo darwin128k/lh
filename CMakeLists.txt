@@ -228,6 +228,9 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/gl/layout.c
         ${LH_LIB_SRC_PATH}/gl/fill.c
         ${LH_LIB_SRC_PATH}/gl/cover.c
+        ${LH_LIB_SRC_PATH}/gl/blur/window.c
+        ${LH_LIB_SRC_PATH}/gl/blur.c
+        ${LH_LIB_SRC_PATH}/gl/glass.c
         ${LH_LIB_SRC_PATH}/gl/gradient.c
         ${LH_LIB_SRC_PATH}/gl/gradient/sine.c
         ${LH_LIB_SRC_PATH}/gl/gradient/fill.c

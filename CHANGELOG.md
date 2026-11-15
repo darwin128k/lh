@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- `lh_gl_blur_rect` softens a pixmap rectangle in place: two box passes, a sliding window, colour summed already multiplied by alpha. The scratch is the caller's (`lh_gl_blur_scratch_count`); nothing allocates. `lh_gl_glass` writes that blur only where the rounded panel covers, then paints a tint. `lh_gl_glass_t` is that panel as an entity. The canvas target is the pixmap. A short scratch draws nothing. The class is not opaque.
+
 - An opaque pixmap rectangle is one `lh_memory_set_u32` per row. An opaque run of `lh_gl_pixmap_fill_colors` is one `lh_memory_std_copy`. A lower alpha still blends one pixel at a time.
 
 - `lh_gl_entity_hit` answers a rounded press: radius 0 keeps the rectangle the search already accepted, and a positive radius asks `lh_gl_cover_hits` on the absolute rectangle. A fill, a gradient fill and a card call it. `lh_gl_layer_bounds_hit` and `lh_gl_layer_entity_takes` are the two steps of that search.
