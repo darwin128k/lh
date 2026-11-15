@@ -239,7 +239,9 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/gl/shadow/fill.c
         ${LH_LIB_SRC_PATH}/gl/glyph.c
         ${LH_LIB_SRC_PATH}/gl/font.c
+        ${LH_LIB_SRC_PATH}/gl/font/caption.c
         ${LH_LIB_SRC_PATH}/gl/text.c
+        ${LH_LIB_SRC_PATH}/gl/text/shadow.c
         ${LH_LIB_SRC_PATH}/gl/scroll/axis.c
         ${LH_LIB_SRC_PATH}/gl/container.c
         ${LH_LIB_SRC_PATH}/gl/surface.c

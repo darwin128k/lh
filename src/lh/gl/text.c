@@ -120,22 +120,18 @@ lh_gl_text_init(lh_gl_text_t *self, lh_gl_rect_t rect, const lh_gl_font_t *font,
 }
 
 lh_void
-lh_gl_text_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
+lh_gl_text_paint(const lh_gl_text_t *self, lh_gl_canvas_t *canvas, const lh_gl_color_t *color,
+                 lh_gl_scalar_t dx, lh_gl_scalar_t dy)
 {
-    const lh_gl_text_t *text = lh_ptr_ccast(lh_gl_text_t, entity);
-    const lh_gl_font_t *font = lh_gl_text_get_font(text);
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(canvas);
+    const lh_gl_font_t *font = lh_gl_text_get_font(self);
 
-    if (lh_gl_text_get_shown(text) == lh_bool_false || lh_ptr_is_null(font))
+    if (lh_ptr_is_null(font) || lh_ptr_is_null(color))
     {
         return;
     }
-    const lh_gl_color_t *color = lh_gl_text_get_color(lh_ptr_ccast(lh_gl_text_t, entity));
-
-    if (lh_ptr_is_null(color))
-    {
-        return;
-    }
-    const lh_char_t *cursor = lh_gl_text_get_text(lh_ptr_ccast(lh_gl_text_t, entity));
+    const lh_char_t *cursor = lh_gl_text_get_text(self);
 
     if (lh_ptr_is_null(cursor))
     {
@@ -188,8 +184,8 @@ lh_gl_text_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
                         }
                         lh_gl_rect_t run;
 
-                        lh_gl_rect_init(lh_addr_of(run), pen + start, baseline + row, col - start,
-                                        1);
+                        lh_gl_rect_init(lh_addr_of(run), pen + start + dx, baseline + row + dy,
+                                        col - start, 1);
                         if (cover == 255)
                         {
                             lh_gl_canvas_fill_rect(canvas, lh_addr_of(run), color);
@@ -206,6 +202,18 @@ lh_gl_text_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
         pen = pen + advance;
         cursor = lh_ptr_add_by_offset(const lh_char_t, cursor, 1);
     }
+}
+
+lh_void
+lh_gl_text_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
+{
+    const lh_gl_text_t *text = lh_ptr_ccast(lh_gl_text_t, entity);
+
+    if (lh_gl_text_get_shown(text) == lh_bool_false)
+    {
+        return;
+    }
+    lh_gl_text_paint(text, canvas, lh_gl_text_get_color(text), 0, 0);
 }
 
 lh_bool_t

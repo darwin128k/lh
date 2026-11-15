@@ -76,7 +76,7 @@ as of 2026-11-14 and the plan agreed with Egor.
 - Gradient: two colors and an angle on the fill. `180` runs down the box, `135` runs down-right. `radial` puts the first color at the middle and the second toward the corners; the angle is then unused. A radius clips that paint to the rounded rectangle; `0` leaves the rectangle.
 - Cover: a pixel center is inside a rounded rectangle, a circle or a triangle, or it is outside. The pixmap fills those three shapes and strokes the first two plus a plain rectangle, outside the fill, one pen thick. The edge is hard. A triangle has no stroke.
 - Shadow: a peak color, a spread and a shift. The box interior stays clear. The fade crosses the shifted edge. A radius on the fill rounds that edge; `0` is square.
-- Text: `lh_gl_text_t` borrows a font, a color and a string. `lh_gl_font_t` is one run of `lh_gl_glyph_t`. One byte is one code. A code outside the run is skipped.
+- Text: `lh_gl_text_t` borrows a font, a color and a string. `lh_gl_font_t` is one run of `lh_gl_glyph_t`. One byte is one code. A code outside the run is skipped. `lh_gl_text_shadow_t` is a separate entity: the same glyphs, shifted and blurred by a borrowed shadow. A spread of `0` leaves a hard edge. The scratch is the caller's. A press passes through.
 - Known pre-existing warnings: `check-fields` on `self->cls` in
   `entity.c` get/set_class; `entity.c` function order vs levels.
 - `docs/roadmap.md` section 5: a general allocator with a real free over a
@@ -90,16 +90,19 @@ as of 2026-11-14 and the plan agreed with Egor.
    radial 1249, shadow 1335. Before the row fills those were 5877, 326, 5923,
    8275, 11767. The i7-13700K table is cards 200 µs, partial 9.3, vertical 322,
    radial 1030, shadow 1024. Radial and shadow are still about a third over
-   that table. Captions are an 8×12 block, not Roboto 16 px.
+   that table. Captions in the scene are `lh_gl_font_caption` (8×12), not
+   Roboto 16 px.
 2. Screens are the child layers of the root (`lh_gl_screen_open`,
    `lh_gl_screen_back`). The front child is the one drawn on top. A swipe
    stays a gesture on the input and does not move a layer. A frame on another
-   loop is `lh_gl_renderer_packet_post`. Try on the panel after that.
+   loop is `lh_gl_renderer_packet_post`. A picture of the 24-card scene stands
+   in for a live frame. Release, this machine, that frame is 4.2 and 4.5 ms.
+   The panel is still the remaining step.
 
 ## Held: a press and a one-line screen
 
-Agreed 2026-11-15. Built the same day. The scene test still builds a card
-from the separate bricks.
+Agreed 2026-11-15. Built the same day. The scene test builds each card with
+`lh_gl_card_init`, then a box shadow and a glass panel as siblings.
 
 The entity stays four fields. No `visible`, no clickable, no alpha and no
 hit radius on it. `opaque` stays draw occlusion only.
@@ -121,9 +124,10 @@ each store `shown` and `target`. A shadow is built to draw and to decline,
 with no call from the application.
 
 The application does not assemble a fill, a radius and a text. Those stay
-inside the library. One thing on a screen is one or two lines:
-`lh_gl_card_init`, then `lh_gl_layer_add`. The scene test is still five calls
-per card. The pick is one more call in the search that already exists.
+inside the library. One thing on a screen is `lh_gl_card_init`, then
+`lh_gl_layer_add`. The line color is `lh_gl_card_set_ink`. A box shadow and a
+glass panel stay separate entities, added around the card. The pick is one
+more call in the search that already exists.
 
 ## Rules that matter to Egor
 

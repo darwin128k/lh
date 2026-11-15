@@ -23,6 +23,13 @@ lh_gl_card_get_entity_mut(lh_gl_card_t *self)
     return lh_gl_layer_get_entity_mut(lh_addr_of(self->layer));
 }
 
+lh_gl_layer_t *
+lh_gl_card_get_layer_mut(lh_gl_card_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->layer);
+}
+
 const lh_gl_entity_t *
 lh_gl_card_get_entity(const lh_gl_card_t *self)
 {
@@ -59,6 +66,34 @@ lh_gl_card_set_shown(lh_gl_card_t *self, lh_bool_t shown)
     self->shown = shown;
     lh_gl_fill_set_shown(lh_addr_of(self->face), shown);
     lh_gl_text_set_shown(lh_addr_of(self->label), shown);
+}
+
+lh_gl_text_t *
+lh_gl_card_get_line_mut(lh_gl_card_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->label);
+}
+
+const lh_gl_text_t *
+lh_gl_card_get_line(const lh_gl_card_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->label);
+}
+
+const lh_gl_color_t *
+lh_gl_card_get_ink(const lh_gl_card_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_gl_text_get_color(lh_gl_card_get_line(self));
+}
+
+lh_void
+lh_gl_card_set_ink(lh_gl_card_t *self, const lh_gl_color_t *ink)
+{
+    lh_assert_runtime_ref(self);
+    lh_gl_text_set_color(lh_gl_card_get_line_mut(self), ink);
 }
 
 lh_void

@@ -38,6 +38,10 @@ lh_gl_card_get_entity_mut(lh_gl_card_t *self);
 const lh_gl_entity_t *
 lh_gl_card_get_entity(const lh_gl_card_t *self);
 
+/** @brief The layer that owns the face and the line. */
+lh_gl_layer_t *
+lh_gl_card_get_layer_mut(lh_gl_card_t *self);
+
 /** @brief Corner radius. `0` is a rectangle. */
 lh_gl_scalar_t
 lh_gl_card_get_radius(const lh_gl_card_t *self);
@@ -53,6 +57,22 @@ lh_gl_card_get_shown(const lh_gl_card_t *self);
 /** @brief Store whether the card is drawn and takes a press. */
 lh_void
 lh_gl_card_set_shown(lh_gl_card_t *self, lh_bool_t shown);
+
+/** @brief Borrowed line, the card's second child. */
+lh_gl_text_t *
+lh_gl_card_get_line_mut(lh_gl_card_t *self);
+
+/** @brief Borrowed line, the card's second child. */
+const lh_gl_text_t *
+lh_gl_card_get_line(const lh_gl_card_t *self);
+
+/** @brief Color of the line. The face keeps its own color. */
+const lh_gl_color_t *
+lh_gl_card_get_ink(const lh_gl_card_t *self);
+
+/** @brief Borrow @p ink for the line. @p ink may be ::lh_null. Marks the area. */
+lh_void
+lh_gl_card_set_ink(lh_gl_card_t *self, const lh_gl_color_t *ink);
 
 /**
  * @brief A layer of @p rect with a face of @p color and a line of @p text.
