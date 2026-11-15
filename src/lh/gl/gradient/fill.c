@@ -207,6 +207,52 @@ lh_gl_gradient_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
             }
             lh_s64_t uy = lh_gl_gradient_radial_axis(y, height);
             lh_u64_t row_square = lh_cast_static(lh_u64_t, uy * uy);
+
+            if (columns == lh_bool_true)
+            {
+                /* `axis(x)` and `axis(width - 1 - x)` are the same distance:
+                   the division cuts toward zero, and the squares match. The
+                   right half is walked; the left half copies it. */
+                lh_gl_color_t row[256];
+                lh_gl_scalar_t centre = width / 2;
+                lh_gl_scalar_t right = x0 > centre ? x0 : centre;
+                lh_gl_scalar_t level = 0;
+
+                for (lh_gl_scalar_t x = right; x < x1; ++x)
+                {
+                    lh_u64_t square = row_square + column_square[x];
+
+                    while (level < 255 && square >= reach[level + 1])
+                    {
+                        level = level + 1;
+                    }
+                    while (level > 0 && square < reach[level])
+                    {
+                        level = level - 1;
+                    }
+                    row[x] = table[level];
+                }
+                for (lh_gl_scalar_t x = x0; x < centre && x < x1; ++x)
+                {
+                    lh_gl_scalar_t mirror = width - 1 - x;
+
+                    if (mirror >= right && mirror < x1)
+                    {
+                        row[x] = row[mirror];
+                        continue;
+                    }
+                    lh_u64_t square = row_square + column_square[x];
+                    lh_gl_scalar_t lone = 0;
+
+                    while (lone < 255 && square >= reach[lone + 1])
+                    {
+                        lone = lone + 1;
+                    }
+                    row[x] = table[lone];
+                }
+                lh_gl_canvas_fill_colors(canvas, x0, y, row + x0, x1 - x0);
+                continue;
+            }
             lh_gl_scalar_t level = 0;
 
             for (lh_gl_scalar_t x = x0; x < x1;)
@@ -220,18 +266,9 @@ lh_gl_gradient_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
                 }
                 for (lh_gl_scalar_t i = 0; i < n; ++i)
                 {
-                    lh_u64_t square = row_square;
+                    lh_s64_t ux = lh_gl_gradient_radial_axis(x + i, width);
+                    lh_u64_t square = row_square + lh_cast_static(lh_u64_t, ux * ux);
 
-                    if (columns == lh_bool_true)
-                    {
-                        square = square + column_square[x + i];
-                    }
-                    else
-                    {
-                        lh_s64_t ux = lh_gl_gradient_radial_axis(x + i, width);
-
-                        square = square + lh_cast_static(lh_u64_t, ux * ux);
-                    }
                     while (level < 255 && square >= reach[level + 1])
                     {
                         level = level + 1;
