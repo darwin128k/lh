@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- A blend onto an opaque pixel divides by 255 with one multiply, `lh_math_div_round_255`, exact for a numerator up to 65025. A glass column is averaged into a 64-colour buffer and written once. `lh_gl_blur_window_slide` stays a call (`LH_ATTRIBUTE_NOINLINE`): pasting that walk into every column makes some frames slower. Linked with `-flto`, 8 frames: the shadow scene is 35 ms, was 55 ms; the full 24-card scene is 94 ms, was 97 ms.
+
 - Glass takes the place mask. A null mask is the same frost as before. A mask scales the frost and leaves a pixel it does not cover. `lh_gl_blur_blend_covered` is that blend.
 
 - A stroke, a circle, a rounded rectangle and a triangle scale each covered pixel by the place mask. `lh_gl_canvas_fill_ink` is that one pixel: shape coverage times the mask.

@@ -140,7 +140,6 @@ lh_gl_blur_column(lh_gl_pixmap_t *pixmap, const lh_gl_color_t *scratch, lh_gl_sc
 {
     const lh_gl_color_t *column = scratch + x;
     lh_usize_t stride = lh_type_cast(lh_usize_t, width);
-    lh_gl_scalar_t pix_w = lh_gl_size_get_width(lh_gl_pixmap_get_size(pixmap));
     lh_gl_scalar_t y_from = top;
     lh_gl_scalar_t y_to = top + height;
 
@@ -204,20 +203,33 @@ lh_gl_blur_column(lh_gl_pixmap_t *pixmap, const lh_gl_color_t *scratch, lh_gl_sc
         }
         return;
     }
-    lh_gl_blur_window_slide(column, stride, y0, y1, radius, y_from, y_to - y_from,
-                            lh_gl_pixmap_get_pixel_mut(pixmap, left + x, y_from),
-                            lh_type_cast(lh_usize_t, pix_w));
-    if (lh_ptr_is_null(tint))
+    for (lh_gl_scalar_t y = y_from; y < y_to;)
     {
-        return;
-    }
-    for (lh_gl_scalar_t y = y_from; y < y_to; ++y)
-    {
-        lh_gl_color_t *pixel = lh_gl_pixmap_get_pixel_mut(pixmap, left + x, y);
-        lh_gl_color_t mixed;
+        lh_gl_scalar_t count = y_to - y;
+        lh_gl_color_t tmp[64];
 
-        lh_gl_color_over(pixel, tint, lh_addr_of(mixed));
-        lh_ptr_deref(pixel) = mixed;
+        if (count > 64)
+        {
+            count = 64;
+        }
+        lh_gl_blur_window_slide(column, stride, y0, y1, radius, y, count, tmp, 1U);
+        for (lh_gl_scalar_t i = 0; i < count; ++i)
+        {
+            lh_gl_color_t *pixel = lh_gl_pixmap_get_pixel_mut(pixmap, left + x, y + i);
+
+            if (lh_ptr_is_set(tint))
+            {
+                lh_gl_color_t mixed;
+
+                lh_gl_color_over(lh_addr_of(tmp[i]), tint, lh_addr_of(mixed));
+                lh_ptr_deref(pixel) = mixed;
+            }
+            else
+            {
+                lh_ptr_deref(pixel) = tmp[i];
+            }
+        }
+        y = y + count;
     }
 }
 

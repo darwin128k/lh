@@ -12,6 +12,7 @@
 #ifndef LH_GL_BLUR_WINDOW_H
 #define LH_GL_BLUR_WINDOW_H
 
+#include <lh/core/attribute/noinline.h>
 #include <lh/core/bool.h>
 #include <lh/core/size.h>
 #include <lh/gl/blur/window/fields.h>
@@ -179,9 +180,10 @@ lh_gl_blur_window_write_straight(lh_s32_t red, lh_s32_t green, lh_s32_t blue, lh
  * and is written `out_stride` colours after the previous one. The sums stay in
  * this call: a row does not go through ::lh_gl_blur_window_take. A run of full
  * opaque windows (every alpha is 255, length up to 400) sums the channels as
- * they are and divides by one factor for that whole run.
+ * they are and divides by one factor for that whole run. The walk stays a
+ * call: pasting it into every column makes the frame slower.
  */
-lh_void
+LH_ATTRIBUTE_NOINLINE lh_void
 lh_gl_blur_window_slide(const lh_gl_color_t *samples, lh_usize_t stride, lh_gl_scalar_t lo,
                         lh_gl_scalar_t hi, lh_gl_scalar_t radius, lh_gl_scalar_t first,
                         lh_gl_scalar_t count, lh_gl_color_t *out, lh_usize_t out_stride);

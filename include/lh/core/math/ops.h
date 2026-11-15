@@ -76,6 +76,18 @@
     lh_math_div(lh_math_add((numer), lh_math_div((denom), 2)), (denom))
 
 /**
+ * @def lh_math_div_round_255(numer)
+ * @brief ::lh_math_div_round of a numerator in `0..65025` by 255.
+ *
+ * ::lh_math_bit_shr(::lh_math_mul(::lh_math_add(numer, 128), 257), 16) is
+ * `(numer + 127) / 255` on that range, which is every blend of two 8-bit
+ * channels. A wider sum stays on ::lh_math_div_round. @p numer is evaluated
+ * once.
+ */
+#define lh_math_div_round_255(numer)                                                               \
+    lh_math_bit_shr(lh_math_mul(lh_math_add((numer), 128), 257), 16)
+
+/**
  * @def lh_math_div_ceil(a, b)
  * @brief Integer division rounded up: `(a + b - 1) / b`.
  * @param a Dividend, non-negative.

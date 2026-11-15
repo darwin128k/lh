@@ -6,6 +6,7 @@
 #include <lh/gl/blur/window.h>
 
 #include <lh/core/assert/runtime.h>
+#include <lh/core/bit/ops.h>
 #include <lh/core/math.h>
 #include <lh/core/util/return.h>
 
@@ -261,8 +262,13 @@ lh_gl_blur_window_round_apply(lh_s32_t sum, lh_u64_t mul, lh_gl_scalar_t shift, 
     {
         return 0;
     }
-    lh_u64_t numer = lh_cast_static(lh_u64_t, sum) + lh_cast_static(lh_u64_t, add);
-    lh_s32_t value = lh_cast_static(lh_s32_t, (numer * mul) >> shift);
+    /* round_factor's multiplier fits in 32 bits for every count it accepts, and
+     * a straight sum plus the half-up add does too. A 32x32 product is the same
+     * bits as the wide multiply without a 64-bit multiply call. */
+    lh_u32_t numer = lh_cast_static(lh_u32_t, sum) + lh_cast_static(lh_u32_t, add);
+    lh_u32_t factor = lh_cast_static(lh_u32_t, mul);
+    lh_u64_t product = lh_cast_static(lh_u64_t, numer) * factor;
+    lh_s32_t value = lh_cast_static(lh_s32_t, lh_bit_shr(product, shift));
 
     return lh_type_cast(lh_gl_color_channel_t, lh_math_clamp(value, 0, 255));
 }

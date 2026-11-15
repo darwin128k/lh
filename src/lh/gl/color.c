@@ -104,17 +104,17 @@ lh_gl_color_over(const lh_gl_color_t *dst, const lh_gl_color_t *color, lh_gl_col
         lh_gl_color_init(
             out,
             lh_cast_static(lh_gl_color_channel_t,
-                           lh_math_div_round(lh_gl_color_get_r(color) * src_a +
-                                                 lh_gl_color_get_r(dst) * (LH_BYTE_T_MAX - src_a),
-                                             LH_BYTE_T_MAX)),
+                           lh_math_div_round_255(lh_gl_color_get_r(color) * src_a +
+                                                     lh_gl_color_get_r(dst) *
+                                                         (LH_BYTE_T_MAX - src_a))),
             lh_cast_static(lh_gl_color_channel_t,
-                           lh_math_div_round(lh_gl_color_get_g(color) * src_a +
-                                                 lh_gl_color_get_g(dst) * (LH_BYTE_T_MAX - src_a),
-                                             LH_BYTE_T_MAX)),
+                           lh_math_div_round_255(lh_gl_color_get_g(color) * src_a +
+                                                     lh_gl_color_get_g(dst) *
+                                                         (LH_BYTE_T_MAX - src_a))),
             lh_cast_static(lh_gl_color_channel_t,
-                           lh_math_div_round(lh_gl_color_get_b(color) * src_a +
-                                                 lh_gl_color_get_b(dst) * (LH_BYTE_T_MAX - src_a),
-                                             LH_BYTE_T_MAX)),
+                           lh_math_div_round_255(lh_gl_color_get_b(color) * src_a +
+                                                     lh_gl_color_get_b(dst) *
+                                                         (LH_BYTE_T_MAX - src_a))),
             LH_BYTE_T_MAX);
         return;
     }
@@ -136,7 +136,7 @@ lh_gl_color_over(const lh_gl_color_t *dst, const lh_gl_color_t *color, lh_gl_col
                        lh_math_div_round(lh_gl_color_get_b(color) * src_w +
                                              lh_gl_color_get_b(dst) * dst_w,
                                          total)),
-        lh_cast_static(lh_gl_color_channel_t, lh_math_div_round(total, LH_BYTE_T_MAX)));
+        lh_cast_static(lh_gl_color_channel_t, lh_math_div_round_255(total)));
 }
 
 lh_void
@@ -151,21 +151,17 @@ lh_gl_color_mix(const lh_gl_color_t *from, const lh_gl_color_t *to, lh_gl_color_
     lh_gl_color_init(
         out,
         lh_cast_static(lh_gl_color_channel_t,
-                       lh_math_div_round(lh_gl_color_get_r(from) * rest +
-                                             lh_gl_color_get_r(to) * frac,
-                                         LH_BYTE_T_MAX)),
+                       lh_math_div_round_255(lh_gl_color_get_r(from) * rest +
+                                                 lh_gl_color_get_r(to) * frac)),
         lh_cast_static(lh_gl_color_channel_t,
-                       lh_math_div_round(lh_gl_color_get_g(from) * rest +
-                                             lh_gl_color_get_g(to) * frac,
-                                         LH_BYTE_T_MAX)),
+                       lh_math_div_round_255(lh_gl_color_get_g(from) * rest +
+                                                 lh_gl_color_get_g(to) * frac)),
         lh_cast_static(lh_gl_color_channel_t,
-                       lh_math_div_round(lh_gl_color_get_b(from) * rest +
-                                             lh_gl_color_get_b(to) * frac,
-                                         LH_BYTE_T_MAX)),
+                       lh_math_div_round_255(lh_gl_color_get_b(from) * rest +
+                                                 lh_gl_color_get_b(to) * frac)),
         lh_cast_static(lh_gl_color_channel_t,
-                       lh_math_div_round(lh_gl_color_get_a(from) * rest +
-                                             lh_gl_color_get_a(to) * frac,
-                                         LH_BYTE_T_MAX)));
+                       lh_math_div_round_255(lh_gl_color_get_a(from) * rest +
+                                                 lh_gl_color_get_a(to) * frac)));
 }
 
 lh_void
@@ -177,6 +173,5 @@ lh_gl_color_scale_alpha(const lh_gl_color_t *color, lh_gl_color_channel_t cover,
     lh_gl_color_init(out, lh_gl_color_get_r(color), lh_gl_color_get_g(color),
                      lh_gl_color_get_b(color),
                      lh_cast_static(lh_gl_color_channel_t,
-                                    lh_math_div_round(lh_gl_color_get_a(color) * cover,
-                                                      LH_BYTE_T_MAX)));
+                                    lh_math_div_round_255(lh_gl_color_get_a(color) * cover)));
 }
