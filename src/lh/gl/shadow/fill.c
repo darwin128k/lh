@@ -313,7 +313,8 @@ lh_gl_shadow_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
             lh_u64_t ay2_box = lh_cast_static(lh_u64_t, dy_box) * lh_cast_static(lh_u64_t, dy_box);
             lh_u64_t ay2_shift =
                 lh_cast_static(lh_u64_t, dy_shift) * lh_cast_static(lh_u64_t, dy_shift);
-            lh_gl_scalar_t root_box = 0;
+            lh_u64_t corner_square =
+                lh_cast_static(lh_u64_t, corner) * lh_cast_static(lh_u64_t, corner);
             lh_gl_scalar_t root_shift = 0;
             lh_gl_scalar_t x_begin = mid_left - (spread + corner + 2);
 
@@ -327,25 +328,14 @@ lh_gl_shadow_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
                 lh_gl_scalar_t x_from = side == 0 ? x_begin : mid_right + 1;
                 lh_gl_scalar_t x_to = side == 0 ? mid_left : width;
 
-                root_box = 0;
                 root_shift = 0;
                 run_n = 0;
                 for (lh_gl_scalar_t x = x_from; x < x_to; ++x)
                 {
                     lh_gl_scalar_t dx = side == 0 ? mid_left - x : x - mid_right;
                     lh_u64_t dx2 = lh_cast_static(lh_u64_t, dx) * lh_cast_static(lh_u64_t, dx);
-                    lh_u64_t square_box = dx2 + ay2_box;
                     lh_u64_t square_shift = dx2 + ay2_shift;
 
-                    while (root_box > 0 &&
-                           lh_cast_static(lh_u64_t, root_box) * root_box > square_box)
-                    {
-                        root_box = root_box - 1;
-                    }
-                    while (lh_cast_static(lh_u64_t, root_box + 1) * (root_box + 1) <= square_box)
-                    {
-                        root_box = root_box + 1;
-                    }
                     while (root_shift > 0 &&
                            lh_cast_static(lh_u64_t, root_shift) * root_shift > square_shift)
                     {
@@ -356,7 +346,7 @@ lh_gl_shadow_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
                     {
                         root_shift = root_shift + 1;
                     }
-                    if (root_box - corner < 0)
+                    if (dx2 + ay2_box < corner_square)
                     {
                         if (side == 0)
                         {
