@@ -5,6 +5,7 @@
 #include <lh/gl/text.h>
 
 #include <lh/core/assert/runtime.h>
+#include <lh/core/attribute/unused.h>
 #include <lh/core/char/map.h>
 #include <lh/gl/canvas.h>
 #include <lh/gl/entity/class/initializer.h>
@@ -68,11 +69,40 @@ lh_gl_text_set_text(lh_gl_text_t *self, const lh_char_t *text)
     lh_gl_entity_invalidate(lh_gl_text_get_entity_mut(self));
 }
 
+lh_bool_t
+lh_gl_text_get_shown(const lh_gl_text_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->shown;
+}
+
+lh_void
+lh_gl_text_set_shown(lh_gl_text_t *self, lh_bool_t shown)
+{
+    lh_assert_runtime_ref(self);
+    self->shown = shown;
+    lh_gl_entity_invalidate(lh_gl_text_get_entity_mut(self));
+}
+
+lh_bool_t
+lh_gl_text_get_target(const lh_gl_text_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->target;
+}
+
+lh_void
+lh_gl_text_set_target(lh_gl_text_t *self, lh_bool_t target)
+{
+    lh_assert_runtime_ref(self);
+    self->target = target;
+}
+
 const lh_gl_entity_class_t *
 lh_gl_text_get_class(void)
 {
     static const lh_gl_entity_class_t text_class = lh_gl_entity_class_initializer(
-        lh_gl_entity_class_kind_entity, lh_gl_text_draw, lh_bool_false);
+        lh_gl_entity_class_kind_entity, lh_gl_text_draw, lh_gl_text_pick, lh_bool_false);
 
     return lh_addr_of(text_class);
 }
@@ -82,6 +112,8 @@ lh_gl_text_init(lh_gl_text_t *self, lh_gl_rect_t rect, const lh_gl_font_t *font,
                 const lh_gl_color_t *color, const lh_char_t *text)
 {
     lh_gl_entity_init(lh_gl_text_get_entity_mut(self), rect, lh_gl_text_get_class());
+    lh_gl_text_set_shown(self, lh_bool_true);
+    lh_gl_text_set_target(self, lh_bool_true);
     lh_gl_text_set_font(self, font);
     lh_gl_text_set_color(self, color);
     lh_gl_text_set_text(self, text);
@@ -90,9 +122,10 @@ lh_gl_text_init(lh_gl_text_t *self, lh_gl_rect_t rect, const lh_gl_font_t *font,
 lh_void
 lh_gl_text_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
 {
-    const lh_gl_font_t *font = lh_gl_text_get_font(lh_ptr_ccast(lh_gl_text_t, entity));
+    const lh_gl_text_t *text = lh_ptr_ccast(lh_gl_text_t, entity);
+    const lh_gl_font_t *font = lh_gl_text_get_font(text);
 
-    if (lh_ptr_is_null(font))
+    if (lh_gl_text_get_shown(text) == lh_bool_false || lh_ptr_is_null(font))
     {
         return;
     }
@@ -173,4 +206,18 @@ lh_gl_text_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
         pen = pen + advance;
         cursor = lh_ptr_add_by_offset(const lh_char_t, cursor, 1);
     }
+}
+
+lh_bool_t
+lh_gl_text_pick(const lh_gl_entity_t *entity, lh_gl_point_t point, lh_gl_scalar_t slop)
+{
+    const lh_gl_text_t *text = lh_ptr_ccast(lh_gl_text_t, entity);
+
+    LH_ATTRIBUTE_UNUSED(point);
+    LH_ATTRIBUTE_UNUSED(slop);
+    if (lh_gl_text_get_shown(text) == lh_bool_false || lh_gl_text_get_target(text) == lh_bool_false)
+    {
+        return lh_bool_false;
+    }
+    return lh_bool_true;
 }

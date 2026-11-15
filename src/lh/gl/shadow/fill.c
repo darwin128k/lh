@@ -5,6 +5,7 @@
 #include <lh/gl/shadow/fill.h>
 
 #include <lh/core/assert/runtime.h>
+#include <lh/core/attribute/unused.h>
 #include <lh/core/memory/std.h>
 #include <lh/gl/canvas.h>
 #include <lh/gl/entity/class/initializer.h>
@@ -97,7 +98,8 @@ const lh_gl_entity_class_t *
 lh_gl_shadow_fill_get_class(void)
 {
     static const lh_gl_entity_class_t shadow_fill_class = lh_gl_entity_class_initializer(
-        lh_gl_entity_class_kind_entity, lh_gl_shadow_fill_draw, lh_bool_false);
+        lh_gl_entity_class_kind_entity, lh_gl_shadow_fill_draw, lh_gl_shadow_fill_pick,
+        lh_bool_false);
 
     return lh_addr_of(shadow_fill_class);
 }
@@ -490,4 +492,13 @@ lh_gl_shadow_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
             lh_gl_canvas_fill_colors(canvas, run_x, y, chunk, run_n);
         }
     }
+}
+
+lh_bool_t
+lh_gl_shadow_fill_pick(const lh_gl_entity_t *entity, lh_gl_point_t point, lh_gl_scalar_t slop)
+{
+    LH_ATTRIBUTE_UNUSED(entity);
+    LH_ATTRIBUTE_UNUSED(point);
+    LH_ATTRIBUTE_UNUSED(slop);
+    return lh_bool_false;
 }

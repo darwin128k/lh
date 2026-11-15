@@ -38,6 +38,20 @@ lh_gl_entity_class_set_draw_cb(lh_gl_entity_class_t *self, lh_gl_entity_class_dr
     self->draw_cb = draw_cb;
 }
 
+lh_gl_entity_class_pick_cb
+lh_gl_entity_class_get_pick_cb(const lh_gl_entity_class_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->pick_cb;
+}
+
+lh_void
+lh_gl_entity_class_set_pick_cb(lh_gl_entity_class_t *self, lh_gl_entity_class_pick_cb pick_cb)
+{
+    lh_assert_runtime_ref(self);
+    self->pick_cb = pick_cb;
+}
+
 lh_bool_t
 lh_gl_entity_class_get_opaque(const lh_gl_entity_class_t *self)
 {
@@ -60,6 +74,7 @@ lh_gl_entity_class_init(lh_gl_entity_class_t *self, lh_gl_entity_class_kind_t ki
 {
     lh_gl_entity_class_set_kind(self, kind);
     lh_gl_entity_class_set_draw_cb(self, draw_cb);
+    lh_gl_entity_class_set_pick_cb(self, lh_null);
     lh_gl_entity_class_set_opaque(self, lh_bool_false);
 }
 

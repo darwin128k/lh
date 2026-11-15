@@ -52,7 +52,8 @@ TEST(gl_entity_class, is_layer_follows_the_kind)
 TEST(gl_entity_class, initializer_fills_fields_in_order)
 {
     const lh_gl_entity_class_t cls =
-        lh_gl_entity_class_initializer(lh_gl_entity_class_kind_layer, draw_nothing, lh_bool_false);
+        lh_gl_entity_class_initializer(lh_gl_entity_class_kind_layer, draw_nothing, lh_null,
+                                       lh_bool_false);
 
     EXPECT_EQ(lh_gl_entity_class_get_kind(lh_addr_of(cls)), lh_gl_entity_class_kind_layer);
     EXPECT_EQ(lh_gl_entity_class_get_draw_cb(lh_addr_of(cls)), draw_nothing);

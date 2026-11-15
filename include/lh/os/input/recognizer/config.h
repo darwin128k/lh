@@ -48,21 +48,25 @@ lh_os_input_recognizer_config_get_double_click_slop(const lh_os_input_recognizer
 lh_u16_t
 lh_os_input_recognizer_config_get_long_press_ms(const lh_os_input_recognizer_config_ptr self);
 
-/** @brief Milliseconds before a held controller button repeats (reserved). */
+/** @brief Milliseconds before a held controller button repeats. `0` does not. */
 lh_u16_t
 lh_os_input_recognizer_config_get_repeat_delay_ms(const lh_os_input_recognizer_config_ptr self);
 
-/** @brief Milliseconds between repeats of a held controller button (reserved). */
+/** @brief Milliseconds between repeats of a held controller button. `0` does not. */
 lh_u16_t
 lh_os_input_recognizer_config_get_repeat_rate_ms(const lh_os_input_recognizer_config_ptr self);
 
-/** @brief Stick dead zone (reserved). */
+/** @brief Absolute stick value that still counts as centered. `0` leaves the axis alone. */
 lh_u16_t
 lh_os_input_recognizer_config_get_axis_deadzone(const lh_os_input_recognizer_config_ptr self);
 
-/** @brief Stick hysteresis (reserved). */
+/** @brief How far back inside the dead zone a live stick must come to center. */
 lh_u16_t
 lh_os_input_recognizer_config_get_axis_hysteresis(const lh_os_input_recognizer_config_ptr self);
+
+/** @brief Pixels a released drag must have travelled to also be a swipe. `0` is never. */
+lh_u16_t
+lh_os_input_recognizer_config_get_swipe_px(const lh_os_input_recognizer_config_ptr self);
 
 /** @brief True when Shift turns a vertical wheel sideways. */
 lh_bool_t

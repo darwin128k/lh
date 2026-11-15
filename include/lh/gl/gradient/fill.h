@@ -78,6 +78,22 @@ lh_gl_gradient_fill_is_radial(const lh_gl_gradient_fill_t *self);
 lh_void
 lh_gl_gradient_fill_set_radial(lh_gl_gradient_fill_t *self, lh_bool_t radial);
 
+/** @brief True when this fill is drawn. */
+lh_bool_t
+lh_gl_gradient_fill_get_shown(const lh_gl_gradient_fill_t *self);
+
+/** @brief Store whether this fill is drawn. False also refuses a press. */
+lh_void
+lh_gl_gradient_fill_set_shown(lh_gl_gradient_fill_t *self, lh_bool_t shown);
+
+/** @brief True when a press stops at this fill. */
+lh_bool_t
+lh_gl_gradient_fill_get_target(const lh_gl_gradient_fill_t *self);
+
+/** @brief Store whether a press stops at this fill. */
+lh_void
+lh_gl_gradient_fill_set_target(lh_gl_gradient_fill_t *self, lh_bool_t target);
+
 /** @brief The class every gradient fill has. Kind entity, not opaque. */
 const lh_gl_entity_class_t *
 lh_gl_gradient_fill_get_class(void);
@@ -90,6 +106,10 @@ lh_gl_gradient_fill_init(lh_gl_gradient_fill_t *self, lh_gl_rect_t rect,
 /** @brief Draw call of ::lh_gl_gradient_fill_get_class. */
 lh_void
 lh_gl_gradient_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas);
+
+/** @brief True when this fill takes @p point. A rounded corner can refuse it. */
+lh_bool_t
+lh_gl_gradient_fill_pick(const lh_gl_entity_t *entity, lh_gl_point_t point, lh_gl_scalar_t slop);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -306,7 +306,7 @@ TEST(os_input_recognizer, a_long_press_across_the_wrap_of_the_tick)
 TEST(os_input_recognizer, long_press_off_keeps_a_slow_press_a_click)
 {
     lh_os_input_recognizer_config_t config = lh_os_input_recognizer_config_initializer(
-        4U, 500U, 4U, 0U, 400U, 50U, 8000U, 2000U, lh_bool_true);
+        4U, 500U, 4U, 0U, 400U, 50U, 8000U, 2000U, 48U, lh_bool_true);
     fixture f(config);
     lh_tick_t due = 0U;
 
@@ -509,7 +509,7 @@ TEST(os_input_recognizer, shift_turns_a_vertical_wheel_sideways)
 TEST(os_input_recognizer, shift_policy_off_leaves_the_wheel_alone)
 {
     lh_os_input_recognizer_config_t config = lh_os_input_recognizer_config_initializer(
-        4U, 500U, 4U, 500U, 400U, 50U, 8000U, 2000U, lh_bool_false);
+        4U, 500U, 4U, 500U, 400U, 50U, 8000U, 2000U, 48U, lh_bool_false);
     fixture f(config);
     lh_os_input_event_t event;
 
@@ -529,6 +529,73 @@ TEST(os_input_recognizer, the_earliest_deadline_of_several_presses)
     f.down(50, 50, 100U, 1U);
     ASSERT_TRUE(lh_os_input_recognizer_get_next_deadline(&f.recognizer, &due));
     EXPECT_EQ(due, 600U);
+}
+
+TEST(os_input_recognizer, a_long_drag_released_is_a_swipe)
+{
+    fixture f;
+
+    f.down(10, 10, 0U);
+    f.move(70, 10, 10U);
+    f.up(80, 10, 20U);
+    EXPECT_EQ(f.seen.gestures(), (kinds{lh_os_input_kind_drag_begin, lh_os_input_kind_drag_end,
+                                        lh_os_input_kind_swipe}));
+    EXPECT_EQ(lh_os_input_event_get_dx(f.seen.last(lh_os_input_kind_swipe)) / LH_OS_INPUT_COORD_ONE,
+              70);
+}
+
+TEST(os_input_recognizer, an_arrow_and_the_south_button_are_steps)
+{
+    fixture f;
+    lh_os_input_event_t key;
+    lh_os_input_event_t button;
+
+    lh_os_input_event_init_key(&key, lh_os_key_left, lh_bool_true, lh_bool_false, 0U, 1U);
+    lh_os_input_recognizer_feed(&f.recognizer, &key, record, &f.seen);
+    ASSERT_NE(f.seen.last(lh_os_input_kind_navigate), nullptr);
+    EXPECT_EQ(lh_os_input_event_get_dx(f.seen.last(lh_os_input_kind_navigate)), -1);
+    lh_os_input_event_init_controller_button(&button, 1U, lh_os_input_button_south, lh_bool_true, 2U);
+    lh_os_input_recognizer_feed(&f.recognizer, &button, record, &f.seen);
+    EXPECT_NE(f.seen.last(lh_os_input_kind_activate), nullptr);
+}
+
+TEST(os_input_recognizer, a_stick_inside_the_dead_zone_is_centered)
+{
+    fixture f;
+    lh_os_input_event_t axis;
+
+    lh_os_input_event_init_controller_axis(&axis, 0U, lh_os_input_axis_left_x, 100, 0U);
+    lh_os_input_recognizer_feed(&f.recognizer, &axis, record, &f.seen);
+    EXPECT_TRUE(f.seen.events.empty());
+    lh_os_input_event_init_controller_axis(&axis, 0U, lh_os_input_axis_left_x, 9000, 1U);
+    lh_os_input_recognizer_feed(&f.recognizer, &axis, record, &f.seen);
+    ASSERT_EQ(f.seen.events.size(), 1U);
+    EXPECT_EQ(lh_os_input_event_get_value(&f.seen.events[0]), 9000);
+    lh_os_input_event_init_controller_axis(&axis, 0U, lh_os_input_axis_left_x, 7000, 2U);
+    lh_os_input_recognizer_feed(&f.recognizer, &axis, record, &f.seen);
+    ASSERT_EQ(f.seen.events.size(), 2U);
+    EXPECT_EQ(lh_os_input_event_get_value(&f.seen.events[1]), 7000);
+    lh_os_input_event_init_controller_axis(&axis, 0U, lh_os_input_axis_left_x, 5000, 3U);
+    lh_os_input_recognizer_feed(&f.recognizer, &axis, record, &f.seen);
+    ASSERT_EQ(f.seen.events.size(), 3U);
+    EXPECT_EQ(lh_os_input_event_get_value(&f.seen.events[2]), 0);
+}
+
+TEST(os_input_recognizer, a_held_south_button_repeats)
+{
+    fixture f;
+    lh_os_input_event_t button;
+
+    lh_os_input_event_init_controller_button(&button, 0U, lh_os_input_button_south, lh_bool_true, 0U);
+    lh_os_input_recognizer_feed(&f.recognizer, &button, record, &f.seen);
+    f.seen.events.clear();
+    f.update(399U);
+    EXPECT_TRUE(f.seen.events.empty());
+    f.update(400U);
+    ASSERT_FALSE(f.seen.events.empty());
+    EXPECT_EQ(lh_os_input_event_get_kind(&f.seen.events[0]), lh_os_input_kind_controller_button_down);
+    EXPECT_EQ(lh_os_input_event_is_repeat(&f.seen.events[0]), lh_bool_true);
+    EXPECT_EQ(lh_os_input_event_get_kind(&f.seen.events[1]), lh_os_input_kind_activate);
 }
 
 } // namespace

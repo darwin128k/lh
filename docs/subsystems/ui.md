@@ -1051,7 +1051,13 @@ missing one is pointer up. Each finger keeps a pointer id from 1. A stick or
 pad calls `lh_os_input_pad_report_axis` and `lh_os_input_pad_report_button`;
 an event goes out only when the value changed. A polled keyboard calls
 `lh_os_input_keys_report` the same way: a key event only when that key
-changed, and Shift, Control and Alt are the modifiers on it. A character is
+changed, and Shift, Control and Alt are the modifiers on it. The library
+does not read a gamepad from the system: the driver reports each button and
+axis. The recognizer then keeps a stick inside its dead zone (default 8000,
+inner edge 6000) at zero, repeats a held pad button after 400 ms and then
+every 50 ms, and turns an arrow or a d-pad into `navigate` and Enter, Space
+or the south button into `activate`. A drag that travels at least 48 px and
+goes up is also a `swipe`. A character is
 still a text event the driver builds itself. The chip stays in the driver.
 
 1. In the touch interrupt, build an event:

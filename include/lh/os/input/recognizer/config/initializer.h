@@ -28,6 +28,7 @@
  *                                               50U,            // repeat_rate_ms
  *                                               8000U,          // axis_deadzone
  *                                               2000U,          // axis_hysteresis
+ *                                               48U,            // swipe_px
  *                                               lh_bool_true);  // wheel_shift_horizontal
  * @endcode
  *
@@ -36,15 +37,16 @@
  */
 #define lh_os_input_recognizer_config_initializer(                                                 \
     slop, double_click_ms, double_click_slop, long_press_ms, repeat_delay_ms, repeat_rate_ms,      \
-    axis_deadzone, axis_hysteresis, wheel_shift_horizontal)                                        \
+    axis_deadzone, axis_hysteresis, swipe_px, wheel_shift_horizontal)                              \
     lh_initializer(slop, double_click_ms, double_click_slop, long_press_ms, repeat_delay_ms,       \
-                   repeat_rate_ms, axis_deadzone, axis_hysteresis, wheel_shift_horizontal)
+                   repeat_rate_ms, axis_deadzone, axis_hysteresis, swipe_px,                       \
+                   wheel_shift_horizontal)
 
 /**
  * @def lh_os_input_recognizer_config_default_initializer()
  * @brief The defaults: slop 4 px, double click 500 ms within 4 px, long press
- *        500 ms, repeat 400 / 50 ms, dead zone 8000 with 2000 hysteresis, Shift
- *        turns the wheel sideways.
+ *        500 ms, repeat 400 / 50 ms, dead zone 8000 with 2000 hysteresis, swipe
+ *        48 px, Shift turns the wheel sideways.
  *
  * Example usage:
  * @code{.c}
@@ -55,7 +57,7 @@
  * @see lh_os_input_recognizer_config_initializer
  */
 #define lh_os_input_recognizer_config_default_initializer()                                        \
-    lh_os_input_recognizer_config_initializer(4U, 500U, 4U, 500U, 400U, 50U, 8000U, 2000U,         \
+    lh_os_input_recognizer_config_initializer(4U, 500U, 4U, 500U, 400U, 50U, 8000U, 2000U, 48U,    \
                                               lh_bool_true)
 
 #endif /* LH_OS_INPUT_RECOGNIZER_CONFIG_INITIALIZER_H */

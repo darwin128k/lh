@@ -28,6 +28,7 @@
  * @see lh_initializer
  * @see lh_os_input_recognizer_t
  */
-#define lh_os_input_recognizer_initializer(config, pointers) lh_initializer(config, pointers)
+#define lh_os_input_recognizer_initializer(config, pointers)                                       \
+    lh_initializer(config, pointers, 0, 0U, 0U, lh_bool_false, 0, {lh_bool_false}, {0})
 
 #endif /* LH_OS_INPUT_RECOGNIZER_INITIALIZER_H */

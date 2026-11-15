@@ -29,7 +29,7 @@
 struct lh_gl_text
 {
     /** Members: ::lh_gl_text_fields. */
-    lh_gl_text_fields(lh_gl_entity_t, lh_gl_font_t, lh_gl_color_t, lh_char_t);
+    lh_gl_text_fields(lh_gl_entity_t, lh_gl_font_t, lh_gl_color_t, lh_char_t, lh_bool_t);
 };
 /** @copybrief lh_gl_text */
 typedef struct lh_gl_text lh_gl_text_t;
@@ -68,6 +68,22 @@ lh_gl_text_get_text(const lh_gl_text_t *self);
 lh_void
 lh_gl_text_set_text(lh_gl_text_t *self, const lh_char_t *text);
 
+/** @brief True when this line is drawn. */
+lh_bool_t
+lh_gl_text_get_shown(const lh_gl_text_t *self);
+
+/** @brief Store whether this line is drawn. False also refuses a press. */
+lh_void
+lh_gl_text_set_shown(lh_gl_text_t *self, lh_bool_t shown);
+
+/** @brief True when a press on this line stops at it. */
+lh_bool_t
+lh_gl_text_get_target(const lh_gl_text_t *self);
+
+/** @brief Store whether a press stops at this line. */
+lh_void
+lh_gl_text_set_target(lh_gl_text_t *self, lh_bool_t target);
+
 /** @brief The class every text has. Kind entity, not opaque. */
 const lh_gl_entity_class_t *
 lh_gl_text_get_class(void);
@@ -80,6 +96,10 @@ lh_gl_text_init(lh_gl_text_t *self, lh_gl_rect_t rect, const lh_gl_font_t *font,
 /** @brief Draw call of ::lh_gl_text_get_class. */
 lh_void
 lh_gl_text_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas);
+
+/** @brief True when this line takes @p point. Hidden or not a target is false. */
+lh_bool_t
+lh_gl_text_pick(const lh_gl_entity_t *entity, lh_gl_point_t point, lh_gl_scalar_t slop);
 
 LH_COMPILER_EXTERN_C_END
 

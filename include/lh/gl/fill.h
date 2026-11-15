@@ -31,7 +31,7 @@
 struct lh_gl_fill
 {
     /** Members: ::lh_gl_fill_fields. */
-    lh_gl_fill_fields(lh_gl_entity_t, lh_gl_color_t);
+    lh_gl_fill_fields(lh_gl_entity_t, lh_gl_color_t, lh_gl_scalar_t, lh_bool_t);
 };
 /** @copybrief lh_gl_fill */
 typedef struct lh_gl_fill lh_gl_fill_t;
@@ -58,6 +58,30 @@ lh_gl_fill_get_color(const lh_gl_fill_t *self);
 lh_void
 lh_gl_fill_set_color(lh_gl_fill_t *self, const lh_gl_color_t *color);
 
+/** @brief Corner radius. `0` is a rectangle. A negative value is stored as zero. */
+lh_gl_scalar_t
+lh_gl_fill_get_radius(const lh_gl_fill_t *self);
+
+/** @brief Store the radius and mark the area. */
+lh_void
+lh_gl_fill_set_radius(lh_gl_fill_t *self, lh_gl_scalar_t radius);
+
+/** @brief True when this fill is drawn and may take a press. */
+lh_bool_t
+lh_gl_fill_get_shown(const lh_gl_fill_t *self);
+
+/** @brief Store whether this fill is drawn. False also refuses a press. */
+lh_void
+lh_gl_fill_set_shown(lh_gl_fill_t *self, lh_bool_t shown);
+
+/** @brief True when a press on this fill stops at it. */
+lh_bool_t
+lh_gl_fill_get_target(const lh_gl_fill_t *self);
+
+/** @brief Store whether a press stops at this fill. False lets it pass behind. */
+lh_void
+lh_gl_fill_set_target(lh_gl_fill_t *self, lh_bool_t target);
+
 /**
  * @brief The class every fill has.
  *
@@ -82,6 +106,15 @@ lh_gl_fill_init(lh_gl_fill_t *self, lh_gl_rect_t rect, const lh_gl_color_t *colo
  */
 lh_void
 lh_gl_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas);
+
+/**
+ * @brief True when this fill takes @p point.
+ *
+ * False when it is hidden or not a target, and when a rounded corner does not
+ * cover @p point even with @p slop.
+ */
+lh_bool_t
+lh_gl_fill_pick(const lh_gl_entity_t *entity, lh_gl_point_t point, lh_gl_scalar_t slop);
 
 LH_COMPILER_EXTERN_C_END
 

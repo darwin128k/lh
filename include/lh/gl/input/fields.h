@@ -18,9 +18,10 @@
  * @param flag_type   ::lh_bool_t. The member is `tracking`: true when
  *                    ::lh_gl_input_apply is following `pointer`.
  */
-#define lh_gl_input_fields(entity_type, flag_type)                                                 \
+#define lh_gl_input_fields(entity_type, flag_type, scalar_type)                                    \
     const entity_type *captured;                                                                   \
     lh_u8_t pointer;                                                                               \
-    flag_type tracking
+    flag_type tracking;                                                                            \
+    scalar_type slop
 
 #endif /* LH_GL_INPUT_FIELDS_H */

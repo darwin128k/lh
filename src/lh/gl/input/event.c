@@ -31,7 +31,8 @@ lh_gl_input_apply(lh_gl_input_t *self, const lh_gl_layer_t *layer,
                                       lh_os_input_coord_to_int(lh_os_input_event_get_x(event))),
                          lh_type_cast(lh_gl_scalar_t,
                                       lh_os_input_coord_to_int(lh_os_input_event_get_y(event))));
-        const lh_gl_entity_t *found = lh_gl_layer_find_entity(layer, point);
+        const lh_gl_entity_t *found =
+            lh_gl_layer_find_entity_slop(layer, point, lh_gl_input_get_slop(self));
 
         lh_gl_input_set_captured(self, found);
         lh_gl_input_set_pointer(self, pointer);

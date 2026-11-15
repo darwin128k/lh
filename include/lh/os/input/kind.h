@@ -43,8 +43,9 @@ typedef enum lh_os_input_kind
     lh_os_input_kind_drag_begin,             /**< Moved past the slop while down. */
     lh_os_input_kind_drag,                   /**< Moved while dragging (`dx` / `dy`). */
     lh_os_input_kind_drag_end,               /**< Let go (or cancelled) while dragging. */
-    lh_os_input_kind_navigate,               /**< Move the focus (not produced yet). */
-    lh_os_input_kind_activate                /**< Activate the focus (not produced yet). */
+    lh_os_input_kind_navigate,               /**< Move the focus one step (`dx`, `dy` are -1, 0 or 1). */
+    lh_os_input_kind_activate,               /**< Activate the focus. */
+    lh_os_input_kind_swipe                   /**< A drag released past the swipe distance. */
 } lh_os_input_kind_t;                        /**< The kind of one input event. */
 
 #endif /* LH_OS_INPUT_KIND_H */

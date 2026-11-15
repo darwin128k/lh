@@ -84,11 +84,41 @@ lh_gl_gradient_fill_set_radial(lh_gl_gradient_fill_t *self, lh_bool_t radial)
     lh_gl_entity_invalidate(lh_gl_gradient_fill_get_entity_mut(self));
 }
 
+lh_bool_t
+lh_gl_gradient_fill_get_shown(const lh_gl_gradient_fill_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->shown;
+}
+
+lh_void
+lh_gl_gradient_fill_set_shown(lh_gl_gradient_fill_t *self, lh_bool_t shown)
+{
+    lh_assert_runtime_ref(self);
+    self->shown = shown;
+    lh_gl_entity_invalidate(lh_gl_gradient_fill_get_entity_mut(self));
+}
+
+lh_bool_t
+lh_gl_gradient_fill_get_target(const lh_gl_gradient_fill_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->target;
+}
+
+lh_void
+lh_gl_gradient_fill_set_target(lh_gl_gradient_fill_t *self, lh_bool_t target)
+{
+    lh_assert_runtime_ref(self);
+    self->target = target;
+}
+
 const lh_gl_entity_class_t *
 lh_gl_gradient_fill_get_class(void)
 {
     static const lh_gl_entity_class_t gradient_fill_class = lh_gl_entity_class_initializer(
-        lh_gl_entity_class_kind_entity, lh_gl_gradient_fill_draw, lh_bool_false);
+        lh_gl_entity_class_kind_entity, lh_gl_gradient_fill_draw, lh_gl_gradient_fill_pick,
+        lh_bool_false);
 
     return lh_addr_of(gradient_fill_class);
 }
@@ -103,6 +133,8 @@ lh_gl_gradient_fill_init(lh_gl_gradient_fill_t *self, lh_gl_rect_t rect,
     lh_gl_gradient_fill_set_angle(self, 180);
     lh_gl_gradient_fill_set_radius(self, 0);
     lh_gl_gradient_fill_set_radial(self, lh_bool_false);
+    lh_gl_gradient_fill_set_shown(self, lh_bool_true);
+    lh_gl_gradient_fill_set_target(self, lh_bool_true);
 }
 
 lh_void
@@ -111,7 +143,8 @@ lh_gl_gradient_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
     const lh_gl_gradient_t *gradient =
         lh_gl_gradient_fill_get_gradient(lh_ptr_ccast(lh_gl_gradient_fill_t, entity));
 
-    if (lh_ptr_is_null(gradient))
+    if (lh_gl_gradient_fill_get_shown(lh_ptr_ccast(lh_gl_gradient_fill_t, entity)) == lh_bool_false ||
+        lh_ptr_is_null(gradient))
     {
         return;
     }
@@ -327,4 +360,25 @@ lh_gl_gradient_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
             lh_gl_canvas_fill_rect(canvas, lh_addr_of(strip), lh_addr_of(color));
         }
     }
+}
+
+lh_bool_t
+lh_gl_gradient_fill_pick(const lh_gl_entity_t *entity, lh_gl_point_t point, lh_gl_scalar_t slop)
+{
+    const lh_gl_gradient_fill_t *fill = lh_ptr_ccast(lh_gl_gradient_fill_t, entity);
+    lh_gl_rect_t absolute;
+
+    if (lh_gl_gradient_fill_get_shown(fill) == lh_bool_false ||
+        lh_gl_gradient_fill_get_target(fill) == lh_bool_false)
+    {
+        return lh_bool_false;
+    }
+    if (lh_gl_gradient_fill_get_radius(fill) <= 0)
+    {
+        return lh_bool_true;
+    }
+    lh_gl_entity_get_absolute_rect(entity, lh_addr_of(absolute));
+    return lh_gl_cover_hits(lh_addr_of(absolute), lh_gl_gradient_fill_get_radius(fill), slop,
+                            lh_gl_point_get_x(lh_addr_of(point)),
+                            lh_gl_point_get_y(lh_addr_of(point)));
 }

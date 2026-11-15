@@ -73,6 +73,13 @@ lh_os_input_recognizer_config_get_axis_hysteresis(lh_os_input_recognizer_config_
     return self->axis_hysteresis;
 }
 
+lh_u16_t
+lh_os_input_recognizer_config_get_swipe_px(lh_os_input_recognizer_config_cptr self)
+{
+    lh_assert_runtime_ref(self);
+    return self->swipe_px;
+}
+
 lh_bool_t
 lh_os_input_recognizer_config_is_wheel_shift_horizontal(lh_os_input_recognizer_config_cptr self)
 {

@@ -15,8 +15,10 @@
  *   click must follow the last one to count as the next of a series;
  * - `long_press_ms` — how long a still press waits for a long press (`0`
  *   turns long presses off);
- * - `repeat_delay_ms`, `repeat_rate_ms` — held controller buttons (reserved);
- * - `axis_deadzone`, `axis_hysteresis` — controller sticks (reserved);
+ * - `repeat_delay_ms`, `repeat_rate_ms` — a held controller button repeats;
+ * - `axis_deadzone`, `axis_hysteresis` — a stick inside the dead zone is 0;
+ * - `swipe_px` — a drag released at least this far is also a swipe (`0` is
+ *   never);
  * - `wheel_shift_horizontal` — a vertical wheel with Shift held scrolls across.
  *
  * @param value_type ::lh_u16_t.
@@ -31,6 +33,7 @@
     value_type repeat_rate_ms;                                                                     \
     value_type axis_deadzone;                                                                      \
     value_type axis_hysteresis;                                                                    \
+    value_type swipe_px;                                                                           \
     bool_type wheel_shift_horizontal
 
 #endif /* LH_OS_INPUT_RECOGNIZER_CONFIG_FIELDS_H */

@@ -29,6 +29,16 @@ lh_gl_cover_round_rect(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_gl_sc
                        lh_gl_scalar_t y);
 
 /**
+ * @brief True when (@p x, @p y) is inside @p rect grown by @p slop, following
+ *        a corner of @p radius also grown by @p slop.
+ *
+ * @p slop below 0 is 0. A radius of 0 is the rectangle.
+ */
+lh_bool_t
+lh_gl_cover_hits(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_gl_scalar_t slop,
+                 lh_gl_scalar_t x, lh_gl_scalar_t y);
+
+/**
  * @brief Half-open horizontal run of pixels on row @p y that
  *        ::lh_gl_cover_round_rect covers.
  *

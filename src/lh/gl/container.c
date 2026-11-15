@@ -95,8 +95,8 @@ lh_gl_container_find(const lh_gl_container_t *self, lh_gl_point_t point)
 
     lh_gl_container_content_origin(self, lh_gl_rect_get_origin(lh_addr_of(window)),
                                    lh_addr_of(origin));
-    return lh_gl_layer_find_entity_at_origin(layer, point, lh_addr_of(window),
-                                            lh_addr_of(origin));
+    return lh_gl_layer_find_entity_at_origin(layer, point, lh_addr_of(window), lh_addr_of(origin),
+                                            0);
 }
 
 lh_void

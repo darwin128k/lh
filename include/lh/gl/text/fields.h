@@ -18,11 +18,14 @@
  * @param color_type  ::lh_gl_color_t. The member is `color`, borrowed.
  * @param char_type   ::lh_char_t. The member is `text`, borrowed. One byte is
  *                    one code. A zero byte ends it.
+ * @param bool_type   ::lh_bool_t. `shown` draws. `target` takes a press.
  */
-#define lh_gl_text_fields(entity_type, font_type, color_type, char_type)                           \
+#define lh_gl_text_fields(entity_type, font_type, color_type, char_type, bool_type)                \
     entity_type entity;                                                                            \
     const font_type *font;                                                                         \
     const color_type *color;                                                                       \
-    const char_type *text
+    const char_type *text;                                                                         \
+    bool_type shown;                                                                               \
+    bool_type target
 
 #endif /* LH_GL_TEXT_FIELDS_H */

@@ -67,8 +67,8 @@ as of 2026-11-14 and the plan agreed with Egor.
 - Renderer: one deferred pass over the surface dirty list. A positive band slices each rectangle into horizontal stripes. Children that miss the clip are skipped, and so is a child whose visible area is fully inside a later opaque sibling. The class flag `opaque` says so. `lh_gl_rect_contains` is the cover test.
 - Canvas primitives: fill and stroke of a rectangle, a circle and a rounded rectangle, through `lh_gl_color_t`, `lh_gl_pen_t` and `lh_gl_canvas_backend_t`.
 - Pixmap: a borrowed grid of those colors. One canvas call fills a rectangle by blending (`lh_gl_color_over`). Alpha 255 replaces the pixel. No other shapes. `lh_gl_bmp_try_store` writes that grid as a 32-bit bitmap a viewer opens. Alpha is copied.
-- Point hit: `lh_gl_layer_find_entity` walks front to back and returns the deepest entity whose rectangle contains the point. No child means the layer itself. Outside the layer is null. `opaque` is draw occlusion only.
-- Input hold: `lh_gl_input_t` stores one borrowed entity. Press uses the point hit. Move does not search again. Release clears the hold. `lh_gl_input_apply` follows one pointer event: the first pointer down owns the hold, another pointer does not take it, and a key does not either.
+- Point hit: `lh_gl_layer_find_entity` walks front to back and returns the deepest entity that accepts the point. A null class pick means the rectangle. A pick that declines continues to whoever is behind. `lh_gl_layer_find_entity_slop` grows that test by one number. No child means the layer itself. Outside the layer is null. `opaque` is draw occlusion only.
+- Input hold: `lh_gl_input_t` stores one borrowed entity and one finger thickness. Press uses the point hit. Move does not search again. Release clears the hold. `lh_gl_input_apply` follows one pointer event: the first pointer down owns the hold, another pointer does not take it, and a key does not either. `lh_gl_input_controller_handle_event_is_handled` is the handler a controller calls itself. A click, a drag or a swipe counts when something is already held.
 - Scroll axis: one offset, not stored on an entity or a layer. Container: borrowed layer plus a horizontal axis, a vertical axis, or neither. Placement is the window origin minus the offsets. Rectangles stay put. `lh_gl_container_invalidate` marks the window; changing an axis does not.
 - Layout: `lh_gl_layout_t` is one gap. Pack writes direct children's origins along one axis from zero, in list order. The other axis and the sizes stay. It does not draw, search or scroll.
 - Fill: `lh_gl_fill_t` starts with an entity and borrows one color. The shared draw call reads that pointer. A layer's own draw call stays null; a background is a fill added first. The fill class is not opaque.
@@ -90,21 +90,20 @@ as of 2026-11-14 and the plan agreed with Egor.
    8275, 11767. The i7-13700K table is cards 200 µs, partial 9.3, vertical 322,
    radial 1030, shadow 1024. Radial and shadow are still about a third over
    that table. Captions are an 8×12 block, not Roboto 16 px.
-2. A scene stays an ordinary child layer until a swipe and a back stack need
-   their own behaviour. Renderer packets over rail when another loop draws.
-   Try on the panel after that.
+2. A scene stays an ordinary child layer. A swipe is a gesture: a drag that
+   travels at least `swipe_px` (default 48) and then goes up. The back stack
+   still waits for how a layer moves. Renderer packets over rail when another
+   loop draws. Try on the panel after that.
 
 ## Held: a press and a one-line screen
 
-Agreed 2026-11-15. Not built. Come back here before adding a press, a hide
-or a ready-made card. Do not start it while the driver is still open.
+Agreed 2026-11-15. Built the same day. The scene test still builds a card
+from the separate bricks.
 
 The entity stays four fields. No `visible`, no clickable, no alpha and no
-hit radius on it. `opaque` stays draw occlusion only. Today
-`lh_gl_layer_find_entity` is the rectangle: a point inside takes the press,
-including a rounded corner and a shadow halo.
+hit radius on it. `opaque` stays draw occlusion only.
 
-When this is built, the walk still goes front to back. A rectangle miss
+The walk goes front to back. A rectangle miss
 skips. A hit asks the class. A decline continues to whoever is behind. The
 fill already stores the shape radius, and the same radius answers the
 finger, so an unpainted corner does not take the press. Finger thickness is
@@ -115,14 +114,14 @@ whose rectangle is the target and whose ink is a smaller child.
 Hide has two strengths. Remove the entity from the layer and it is neither
 drawn nor found. Leave it in, and a flag on the painter (beside the color,
 not on the entity) makes the draw return and the pick decline.
-`lh_gl_card_set_shown` is that one call. A shadow is built to draw and to
-decline, with no call from the application.
+`lh_gl_card_set_shown` is that one call. A fill, a text and a gradient fill
+each store `shown` and `target`. A shadow is built to draw and to decline,
+with no call from the application.
 
 The application does not assemble a fill, a radius and a text. Those stay
 inside the library. One thing on a screen is one or two lines:
-`lh_gl_card_init`, then `lh_gl_layer_add`. The scene test is five calls per
-card only because that composition does not exist yet. The pick is one more
-call in the search that already exists.
+`lh_gl_card_init`, then `lh_gl_layer_add`. The scene test is still five calls
+per card. The pick is one more call in the search that already exists.
 
 ## Rules that matter to Egor
 

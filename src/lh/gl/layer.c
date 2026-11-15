@@ -11,6 +11,7 @@
 
 #include <lh/core/assert/runtime.h>
 #include <lh/gl/canvas.h>
+#include <lh/gl/cover.h>
 #include <lh/gl/entity/class/initializer.h>
 #include <lh/gl/surface.h>
 
@@ -97,7 +98,8 @@ const lh_gl_entity_class_t *
 lh_gl_layer_get_class(void)
 {
     static const lh_gl_entity_class_t layer_class =
-        lh_gl_entity_class_initializer(lh_gl_entity_class_kind_layer, lh_null, lh_bool_false);
+        lh_gl_entity_class_initializer(lh_gl_entity_class_kind_layer, lh_null, lh_null,
+                                       lh_bool_false);
 
     return lh_addr_of(layer_class);
 }
@@ -297,11 +299,36 @@ lh_gl_layer_try_insert_after(lh_gl_layer_t *self, lh_gl_entity_t *entity, lh_gl_
     return lh_bool_true;
 }
 
+lh_bool_t
+lh_gl_layer_bounds_hit(const lh_gl_rect_t *bounds, lh_gl_point_t point, lh_gl_scalar_t slop)
+{
+    lh_gl_point_t at;
+
+    lh_gl_point_init(lh_addr_of(at), lh_gl_point_get_x(lh_addr_of(point)),
+                     lh_gl_point_get_y(lh_addr_of(point)));
+    return lh_gl_cover_hits(bounds, 0, slop < 0 ? 0 : slop, lh_gl_point_get_x(lh_addr_of(at)),
+                            lh_gl_point_get_y(lh_addr_of(at)));
+}
+
+lh_bool_t
+lh_gl_layer_entity_takes(const lh_gl_entity_t *entity, lh_gl_point_t point, lh_gl_scalar_t slop)
+{
+    lh_gl_entity_class_pick_cb pick =
+        lh_gl_entity_class_get_pick_cb(lh_gl_entity_get_class(entity));
+
+    if (lh_ptr_is_null(pick))
+    {
+        return lh_bool_true;
+    }
+    return pick(entity, point, slop);
+}
+
 const lh_gl_entity_t *
 lh_gl_layer_find_entity_at_origin(const lh_gl_layer_t *self, lh_gl_point_t point,
-                                  const lh_gl_rect_t *bounds, const lh_gl_point_t *origin)
+                                  const lh_gl_rect_t *bounds, const lh_gl_point_t *origin,
+                                  lh_gl_scalar_t slop)
 {
-    if (lh_gl_rect_contains_point(bounds, point) == lh_bool_false)
+    if (lh_gl_layer_bounds_hit(bounds, point, slop) == lh_bool_false)
     {
         return lh_null;
     }
@@ -315,16 +342,31 @@ lh_gl_layer_find_entity_at_origin(const lh_gl_layer_t *self, lh_gl_point_t point
 
         lh_gl_rect_offset(lh_gl_entity_get_rect(child), lh_gl_point_get_x(origin),
                           lh_gl_point_get_y(origin), lh_addr_of(child_bounds));
-        if (lh_gl_rect_contains_point(lh_addr_of(child_bounds), point) == lh_bool_false)
+        if (lh_gl_layer_bounds_hit(lh_addr_of(child_bounds), point, slop) == lh_bool_false)
         {
             continue;
         }
         if (lh_gl_entity_is_layer(child))
         {
-            return lh_gl_layer_find_entity_at(lh_ptr_ccast(lh_gl_layer_t, child), point,
-                                              lh_addr_of(child_bounds));
+            const lh_gl_entity_t *found = lh_gl_layer_find_entity_at_origin(
+                lh_ptr_ccast(lh_gl_layer_t, child), point, lh_addr_of(child_bounds),
+                lh_gl_rect_get_origin(lh_addr_of(child_bounds)), slop);
+
+            if (lh_ptr_is_null(found))
+            {
+                continue;
+            }
+            return found;
+        }
+        if (lh_gl_layer_entity_takes(child, point, slop) == lh_bool_false)
+        {
+            continue;
         }
         return child;
+    }
+    if (lh_gl_layer_entity_takes(lh_gl_layer_get_entity(self), point, slop) == lh_bool_false)
+    {
+        return lh_null;
     }
     return lh_gl_layer_get_entity(self);
 }
@@ -332,7 +374,7 @@ lh_gl_layer_find_entity_at_origin(const lh_gl_layer_t *self, lh_gl_point_t point
 const lh_gl_entity_t *
 lh_gl_layer_find_entity_at(const lh_gl_layer_t *self, lh_gl_point_t point, const lh_gl_rect_t *bounds)
 {
-    return lh_gl_layer_find_entity_at_origin(self, point, bounds, lh_gl_rect_get_origin(bounds));
+    return lh_gl_layer_find_entity_at_origin(self, point, bounds, lh_gl_rect_get_origin(bounds), 0);
 }
 
 const lh_gl_entity_t *
@@ -342,6 +384,16 @@ lh_gl_layer_find_entity(const lh_gl_layer_t *self, lh_gl_point_t point)
 
     lh_gl_entity_get_absolute_rect(lh_gl_layer_get_entity(self), lh_addr_of(bounds));
     return lh_gl_layer_find_entity_at(self, point, lh_addr_of(bounds));
+}
+
+const lh_gl_entity_t *
+lh_gl_layer_find_entity_slop(const lh_gl_layer_t *self, lh_gl_point_t point, lh_gl_scalar_t slop)
+{
+    lh_gl_rect_t bounds;
+
+    lh_gl_entity_get_absolute_rect(lh_gl_layer_get_entity(self), lh_addr_of(bounds));
+    return lh_gl_layer_find_entity_at_origin(self, point, lh_addr_of(bounds),
+                                             lh_gl_rect_get_origin(lh_addr_of(bounds)), slop);
 }
 
 lh_void

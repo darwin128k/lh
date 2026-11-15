@@ -49,18 +49,34 @@ lh_gl_input_set_tracking(lh_gl_input_t *self, lh_bool_t tracking)
     self->tracking = tracking;
 }
 
+lh_gl_scalar_t
+lh_gl_input_get_slop(const lh_gl_input_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->slop;
+}
+
+lh_void
+lh_gl_input_set_slop(lh_gl_input_t *self, lh_gl_scalar_t slop)
+{
+    lh_assert_runtime_ref(self);
+    self->slop = slop < 0 ? 0 : slop;
+}
+
 lh_void
 lh_gl_input_init(lh_gl_input_t *self)
 {
     lh_gl_input_set_captured(self, lh_null);
     lh_gl_input_set_pointer(self, 0U);
     lh_gl_input_set_tracking(self, lh_bool_false);
+    lh_gl_input_set_slop(self, 0);
 }
 
 const lh_gl_entity_t *
 lh_gl_input_press(lh_gl_input_t *self, const lh_gl_layer_t *layer, lh_gl_point_t point)
 {
-    const lh_gl_entity_t *entity = lh_gl_layer_find_entity(layer, point);
+    const lh_gl_entity_t *entity =
+        lh_gl_layer_find_entity_slop(layer, point, lh_gl_input_get_slop(self));
 
     lh_gl_input_set_captured(self, entity);
     lh_gl_input_set_tracking(self, lh_bool_false);

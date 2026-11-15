@@ -27,7 +27,7 @@
 struct lh_gl_input
 {
     /** Members: ::lh_gl_input_fields. */
-    lh_gl_input_fields(lh_gl_entity_t, lh_bool_t);
+    lh_gl_input_fields(lh_gl_entity_t, lh_bool_t, lh_gl_scalar_t);
 };
 /** @copybrief lh_gl_input */
 typedef struct lh_gl_input lh_gl_input_t;
@@ -65,6 +65,14 @@ lh_gl_input_get_tracking(const lh_gl_input_t *self);
 /** @brief Store whether a pointer event owns the hold. */
 lh_void
 lh_gl_input_set_tracking(lh_gl_input_t *self, lh_bool_t tracking);
+
+/** @brief Finger thickness in pixels. Below 0 is stored as 0. */
+lh_gl_scalar_t
+lh_gl_input_get_slop(const lh_gl_input_t *self);
+
+/** @brief Store the finger thickness. A press within this many pixels still hits. */
+lh_void
+lh_gl_input_set_slop(lh_gl_input_t *self, lh_gl_scalar_t slop);
 
 /** @brief Hold nothing. */
 lh_void

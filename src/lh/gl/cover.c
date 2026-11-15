@@ -7,6 +7,41 @@
 #include <lh/core/assert/runtime.h>
 #include <lh/core/math/isqrt.h>
 
+lh_bool_t
+lh_gl_cover_hits(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_gl_scalar_t slop,
+                 lh_gl_scalar_t x, lh_gl_scalar_t y)
+{
+    lh_gl_point_t point;
+
+    lh_assert_runtime_ref(rect);
+    if (slop < 0)
+    {
+        slop = 0;
+    }
+    if (radius < 0)
+    {
+        radius = 0;
+    }
+    lh_gl_point_init(lh_addr_of(point), x, y);
+    if (radius == 0 && slop == 0)
+    {
+        return lh_gl_rect_contains_point(rect, point);
+    }
+    const lh_gl_point_t *origin = lh_gl_rect_get_origin(rect);
+    const lh_gl_size_t *size = lh_gl_rect_get_size(rect);
+    lh_gl_rect_t grown;
+
+    lh_gl_rect_init(lh_addr_of(grown), lh_gl_point_get_x(origin) - slop,
+                    lh_gl_point_get_y(origin) - slop, lh_gl_size_get_width(size) + slop + slop,
+                    lh_gl_size_get_height(size) + slop + slop);
+    if (radius == 0)
+    {
+        return lh_gl_rect_contains_point(lh_addr_of(grown), point);
+    }
+    return lh_type_cast(lh_bool_t, lh_gl_cover_round_rect(lh_addr_of(grown), radius + slop, x, y) !=
+                                       0);
+}
+
 lh_gl_color_channel_t
 lh_gl_cover_round_rect(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_gl_scalar_t x,
                        lh_gl_scalar_t y)

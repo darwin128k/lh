@@ -21,13 +21,16 @@
  *                      rounds the rectangle the gradient is clipped to. `0` leaves
  *                      the rectangle.
  * @param bool_type     ::lh_bool_t. The member `radial` is true when the paint
- *                      spreads from the middle. False keeps the angle.
+ *                      spreads from the middle. False keeps the angle. `shown`
+ *                      draws. `target` takes a press.
  */
 #define lh_gl_gradient_fill_fields(entity_type, gradient_type, scalar_type, bool_type)             \
     entity_type entity;                                                                            \
     const gradient_type *gradient;                                                                 \
     scalar_type angle;                                                                             \
     scalar_type radius;                                                                            \
-    bool_type radial
+    bool_type radial;                                                                              \
+    bool_type shown;                                                                               \
+    bool_type target
 
 #endif /* LH_GL_GRADIENT_FILL_FIELDS_H */

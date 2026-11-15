@@ -315,7 +315,8 @@ lh_gl_layer_try_insert_after(lh_gl_layer_t *self, lh_gl_entity_t *entity, lh_gl_
  */
 const lh_gl_entity_t *
 lh_gl_layer_find_entity_at_origin(const lh_gl_layer_t *self, lh_gl_point_t point,
-                                  const lh_gl_rect_t *bounds, const lh_gl_point_t *origin);
+                                  const lh_gl_rect_t *bounds, const lh_gl_point_t *origin,
+                                  lh_gl_scalar_t slop);
 
 /**
  * @brief Entity under a root-coordinate point, given this layer's absolute rectangle.
@@ -348,6 +349,15 @@ lh_gl_layer_find_entity_at(const lh_gl_layer_t *self, lh_gl_point_t point,
  */
 const lh_gl_entity_t *
 lh_gl_layer_find_entity(const lh_gl_layer_t *self, lh_gl_point_t point);
+
+/**
+ * @brief ::lh_gl_layer_find_entity with a finger thickness of @p slop pixels.
+ *
+ * A point within @p slop of a rectangle still hits it. A class pick can still
+ * refuse the point. @p slop below 0 is 0.
+ */
+const lh_gl_entity_t *
+lh_gl_layer_find_entity_slop(const lh_gl_layer_t *self, lh_gl_point_t point, lh_gl_scalar_t slop);
 
 /**
  * @brief Draw a layer, placing children at @p origin and clipping to @p bounds.

@@ -15,6 +15,11 @@
  * | move past the slop while down            | ::lh_os_input_kind_drag_begin             |
  * | every move after that                    | ::lh_os_input_kind_drag (`dx`, `dy`)      |
  * | up, or pointer cancel, while dragging    | ::lh_os_input_kind_drag_end               |
+ * | that up, when the drag travelled         | also ::lh_os_input_kind_swipe (`dx`, `dy` |
+ * | `swipe_px`                               | from where it went down)                  |
+ * | arrow key, or a d-pad button down        | ::lh_os_input_kind_navigate (`dx`, `dy`   |
+ * |                                          | are -1, 0 or 1)                           |
+ * | Enter, Space, or the south button down   | ::lh_os_input_kind_activate               |
  * | focus out with pointers down             | a synthesized pointer cancel for each     |
  *
  * A gesture follows one button per pointer: the first one down. Pointer ids
@@ -115,6 +120,32 @@ lh_os_input_recognizer_send_shifted_wheel(lh_os_input_recognizer_t *self,
  * passed on and not looked at again. @p sink gets @p context as its `self`,
  * here and in ::lh_os_input_recognizer_update and ::lh_os_input_recognizer_reset.
  */
+/**
+ * @brief Replace a controller axis with the dead-zone value, or swallow it when
+ *        that value did not change.
+ *
+ * @return True when @p event was an axis and the dead zone is on. The raw event
+ *         must not be handed on as well.
+ */
+lh_bool_t
+lh_os_input_recognizer_take_axis(lh_os_input_recognizer_t *self, const lh_os_input_event_ptr event,
+                                 lh_os_input_sink_cb sink, lh_ptr context);
+
+/** @brief A navigate or activate step copied from @p event. */
+lh_void
+lh_os_input_recognizer_send_step(const lh_os_input_event_ptr event, lh_os_input_kind_t kind,
+                                 lh_s32_t dx, lh_s32_t dy, lh_os_input_sink_cb sink, lh_ptr context);
+
+/** @brief Arrow keys, Enter, Space and the d-pad and south button become steps. */
+lh_void
+lh_os_input_recognizer_on_command(lh_os_input_recognizer_t *self, const lh_os_input_event_ptr event,
+                                  lh_os_input_sink_cb sink, lh_ptr context);
+
+/** @brief Repeat the held controller buttons that are due by @p now. */
+lh_void
+lh_os_input_recognizer_repeat_pad(lh_os_input_recognizer_t *self, lh_tick_t now,
+                                  lh_os_input_sink_cb sink, lh_ptr context);
+
 lh_void
 lh_os_input_recognizer_feed(lh_os_input_recognizer_t *self, const lh_os_input_event_ptr event,
                             lh_os_input_sink_cb sink, lh_ptr context);
@@ -232,6 +263,68 @@ lh_os_input_recognizer_get_pointer(const lh_os_input_recognizer_ptr self, lh_u8_
  */
 lh_os_input_recognizer_pointer_ptr
 lh_os_input_recognizer_get_pointer_mut(lh_os_input_recognizer_t *self, lh_u8_t pointer);
+
+/** @brief The controller whose buttons this recognizer repeats. */
+lh_u8_t
+lh_os_input_recognizer_get_pad_device(const lh_os_input_recognizer_t *self);
+
+/** @brief Store the controller whose buttons this recognizer repeats. */
+lh_void
+lh_os_input_recognizer_set_pad_device(lh_os_input_recognizer_t *self, lh_u8_t pad_device);
+
+/** @brief Buttons held on that controller. */
+lh_u32_t
+lh_os_input_recognizer_get_pad_buttons(const lh_os_input_recognizer_t *self);
+
+/** @brief Store the buttons held on that controller. */
+lh_void
+lh_os_input_recognizer_set_pad_buttons(lh_os_input_recognizer_t *self, lh_u32_t pad_buttons);
+
+/** @brief When the next button repeat is due. */
+lh_tick_t
+lh_os_input_recognizer_get_pad_repeat_at(const lh_os_input_recognizer_t *self);
+
+/** @brief Store when the next button repeat is due. */
+lh_void
+lh_os_input_recognizer_set_pad_repeat_at(lh_os_input_recognizer_t *self, lh_tick_t pad_repeat_at);
+
+/** @brief True when a held button is waiting to repeat. */
+lh_bool_t
+lh_os_input_recognizer_get_pad_armed(const lh_os_input_recognizer_t *self);
+
+/** @brief Store whether a held button is waiting to repeat. */
+lh_void
+lh_os_input_recognizer_set_pad_armed(lh_os_input_recognizer_t *self, lh_bool_t pad_armed);
+
+/** @brief The controller whose axes this recognizer is filtering. */
+lh_u8_t
+lh_os_input_recognizer_get_axis_device(const lh_os_input_recognizer_t *self);
+
+/** @brief Store the controller whose axes this recognizer is filtering. */
+lh_void
+lh_os_input_recognizer_set_axis_device(lh_os_input_recognizer_t *self, lh_u8_t axis_device);
+
+/**
+ * @brief True when @p axis is outside the dead zone.
+ *
+ * @p axis is not checked. It must be below ::LH_OS_INPUT_AXIS_COUNT.
+ */
+lh_bool_t
+lh_os_input_recognizer_get_axis_hot(const lh_os_input_recognizer_t *self, lh_os_input_axis_t axis);
+
+/** @brief Store whether @p axis is outside the dead zone. @p axis is not checked. */
+lh_void
+lh_os_input_recognizer_set_axis_hot(lh_os_input_recognizer_t *self, lh_os_input_axis_t axis,
+                                    lh_bool_t hot);
+
+/** @brief The last value handed on for @p axis. @p axis is not checked. */
+lh_s16_t
+lh_os_input_recognizer_get_axis_out(const lh_os_input_recognizer_t *self, lh_os_input_axis_t axis);
+
+/** @brief Store the last value handed on for @p axis. @p axis is not checked. */
+lh_void
+lh_os_input_recognizer_set_axis_out(lh_os_input_recognizer_t *self, lh_os_input_axis_t axis,
+                                    lh_s16_t value);
 
 LH_COMPILER_EXTERN_C_END
 

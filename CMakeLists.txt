@@ -223,6 +223,8 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/gl/layer.c
         ${LH_LIB_SRC_PATH}/gl/input.c
         ${LH_LIB_SRC_PATH}/gl/input/event.c
+        ${LH_LIB_SRC_PATH}/gl/input/controller.c
+        ${LH_LIB_SRC_PATH}/gl/card.c
         ${LH_LIB_SRC_PATH}/gl/layout.c
         ${LH_LIB_SRC_PATH}/gl/fill.c
         ${LH_LIB_SRC_PATH}/gl/cover.c
