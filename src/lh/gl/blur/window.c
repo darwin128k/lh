@@ -7,6 +7,7 @@
 
 #include <lh/core/assert/runtime.h>
 #include <lh/core/math.h>
+#include <lh/core/util/return.h>
 
 lh_s32_t
 lh_gl_blur_window_get_r(const lh_gl_blur_window_t *self)
@@ -134,18 +135,46 @@ lh_gl_blur_window_drop_colors(lh_gl_blur_window_t *self, const lh_gl_color_t *sa
 }
 
 lh_gl_color_channel_t
+lh_gl_blur_window_average_sum(lh_s32_t sum, lh_s32_t alpha_sum, lh_gl_scalar_t count,
+                              lh_bool_t is_alpha)
+{
+    if (count <= 0)
+    {
+        return 0;
+    }
+    if (is_alpha == lh_bool_true)
+    {
+        lh_s32_t alpha = lh_math_div_round(sum, count);
+
+        return lh_type_cast(lh_gl_color_channel_t, lh_math_clamp(alpha, 0, 255));
+    }
+    if (sum == 0 || alpha_sum <= 0)
+    {
+        return 0;
+    }
+    if (alpha_sum == 255 * count)
+    {
+        lh_s32_t straight = lh_math_div_round(sum / 255, count);
+
+        return lh_type_cast(lh_gl_color_channel_t, lh_math_clamp(straight, 0, 255));
+    }
+    lh_s32_t weighted = lh_math_div_round(sum, alpha_sum);
+
+    return lh_type_cast(lh_gl_color_channel_t, lh_math_clamp(weighted, 0, 255));
+}
+
+lh_gl_color_channel_t
 lh_gl_blur_window_average(const lh_gl_blur_window_t *self, lh_gl_scalar_t channel,
                           lh_gl_scalar_t count)
 {
-    if (channel < 0 || channel > 3 || count <= 0)
+    if (channel < 0 || channel > 3)
     {
         return 0;
     }
     if (channel == 3)
     {
-        lh_s32_t alpha = lh_math_div_round(lh_gl_blur_window_get_a(self), count);
-
-        return lh_type_cast(lh_gl_color_channel_t, lh_math_clamp(alpha, 0, 255));
+        return lh_gl_blur_window_average_sum(lh_gl_blur_window_get_a(self),
+                                             lh_gl_blur_window_get_a(self), count, lh_bool_true);
     }
     lh_s32_t sum = lh_gl_blur_window_get_b(self);
 
@@ -157,30 +186,84 @@ lh_gl_blur_window_average(const lh_gl_blur_window_t *self, lh_gl_scalar_t channe
     {
         sum = lh_gl_blur_window_get_g(self);
     }
-    if (sum == 0 || lh_gl_blur_window_get_a(self) <= 0)
-    {
-        return 0;
-    }
-    if (lh_gl_blur_window_get_a(self) == 255 * count)
-    {
-        lh_s32_t straight = lh_math_div_round(sum / 255, count);
+    return lh_gl_blur_window_average_sum(sum, lh_gl_blur_window_get_a(self), count, lh_bool_false);
+}
 
-        return lh_type_cast(lh_gl_color_channel_t, lh_math_clamp(straight, 0, 255));
-    }
-    lh_s32_t weighted = lh_math_div_round(sum, lh_gl_blur_window_get_a(self));
-
-    return lh_type_cast(lh_gl_color_channel_t, lh_math_clamp(weighted, 0, 255));
+lh_void
+lh_gl_blur_window_write_average(lh_s32_t red, lh_s32_t green, lh_s32_t blue, lh_s32_t alpha,
+                                lh_gl_scalar_t count, lh_gl_color_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_gl_color_set_r(out, lh_gl_blur_window_average_sum(red, alpha, count, lh_bool_false));
+    lh_gl_color_set_g(out, lh_gl_blur_window_average_sum(green, alpha, count, lh_bool_false));
+    lh_gl_color_set_b(out, lh_gl_blur_window_average_sum(blue, alpha, count, lh_bool_false));
+    lh_gl_color_set_a(out, lh_gl_blur_window_average_sum(alpha, alpha, count, lh_bool_true));
 }
 
 lh_void
 lh_gl_blur_window_average_color(const lh_gl_blur_window_t *self, lh_gl_scalar_t count,
                                 lh_gl_color_t *out)
 {
-    lh_assert_runtime_ref(out);
-    lh_gl_color_set_r(out, lh_gl_blur_window_average(self, 0, count));
-    lh_gl_color_set_g(out, lh_gl_blur_window_average(self, 1, count));
-    lh_gl_color_set_b(out, lh_gl_blur_window_average(self, 2, count));
-    lh_gl_color_set_a(out, lh_gl_blur_window_average(self, 3, count));
+    lh_gl_blur_window_write_average(lh_gl_blur_window_get_r(self), lh_gl_blur_window_get_g(self),
+                                    lh_gl_blur_window_get_b(self), lh_gl_blur_window_get_a(self),
+                                    count, out);
+}
+
+lh_void
+lh_gl_blur_window_slide(const lh_gl_color_t *samples, lh_usize_t stride, lh_gl_scalar_t lo,
+                        lh_gl_scalar_t hi, lh_gl_scalar_t radius, lh_gl_scalar_t first,
+                        lh_gl_scalar_t count, lh_gl_color_t *out, lh_usize_t out_stride)
+{
+    lh_return_if(count <= 0 || lh_ptr_is_null(samples) || lh_ptr_is_null(out));
+    lh_gl_scalar_t win0;
+    lh_gl_scalar_t win1;
+
+    lh_gl_blur_window_span(first, radius, lo, hi, lh_addr_of(win0), lh_addr_of(win1));
+    lh_s32_t red = 0;
+    lh_s32_t green = 0;
+    lh_s32_t blue = 0;
+    lh_s32_t alpha = 0;
+
+    for (lh_gl_scalar_t i = win0; i < win1; ++i)
+    {
+        const lh_gl_color_t *pixel = samples + lh_type_cast(lh_usize_t, i - lo) * stride;
+        lh_s32_t weight = lh_gl_color_get_a(pixel);
+
+        red += lh_gl_color_get_r(pixel) * weight;
+        green += lh_gl_color_get_g(pixel) * weight;
+        blue += lh_gl_color_get_b(pixel) * weight;
+        alpha += weight;
+    }
+    for (lh_gl_scalar_t n = 0; n < count; ++n)
+    {
+        lh_gl_scalar_t next0;
+        lh_gl_scalar_t next1;
+
+        lh_gl_blur_window_write_average(red, green, blue, alpha, win1 - win0, out);
+        out += out_stride;
+        lh_gl_blur_window_span(first + n + 1, radius, lo, hi, lh_addr_of(next0),
+                               lh_addr_of(next1));
+        for (; win0 < next0; ++win0)
+        {
+            const lh_gl_color_t *pixel = samples + lh_type_cast(lh_usize_t, win0 - lo) * stride;
+            lh_s32_t weight = lh_gl_color_get_a(pixel);
+
+            red -= lh_gl_color_get_r(pixel) * weight;
+            green -= lh_gl_color_get_g(pixel) * weight;
+            blue -= lh_gl_color_get_b(pixel) * weight;
+            alpha -= weight;
+        }
+        for (; win1 < next1; ++win1)
+        {
+            const lh_gl_color_t *pixel = samples + lh_type_cast(lh_usize_t, win1 - lo) * stride;
+            lh_s32_t weight = lh_gl_color_get_a(pixel);
+
+            red += lh_gl_color_get_r(pixel) * weight;
+            green += lh_gl_color_get_g(pixel) * weight;
+            blue += lh_gl_color_get_b(pixel) * weight;
+            alpha += weight;
+        }
+    }
 }
 
 lh_void

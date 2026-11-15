@@ -57,34 +57,9 @@ lh_gl_blur_row(const lh_gl_pixmap_t *pixmap, lh_gl_scalar_t y, lh_gl_scalar_t le
     {
         read1 = pix_w;
     }
-    lh_gl_blur_window_t sum;
+    const lh_gl_color_t *row = lh_gl_pixmap_get_pixel(pixmap, read0, y);
 
-    lh_gl_blur_window_init(lh_addr_of(sum));
-    lh_gl_scalar_t win0;
-    lh_gl_scalar_t win1;
-
-    lh_gl_blur_window_span(left, radius, read0, read1, lh_addr_of(win0), lh_addr_of(win1));
-    for (lh_gl_scalar_t x = win0; x < win1; ++x)
-    {
-        lh_gl_blur_window_take(lh_addr_of(sum), lh_gl_pixmap_get_pixel(pixmap, x, y));
-    }
-    for (lh_gl_scalar_t x = left; x < left + width; ++x)
-    {
-        lh_gl_blur_window_average_color(lh_addr_of(sum), win1 - win0, out);
-        ++out;
-        lh_gl_scalar_t next0;
-        lh_gl_scalar_t next1;
-
-        lh_gl_blur_window_span(x + 1, radius, read0, read1, lh_addr_of(next0), lh_addr_of(next1));
-        for (; win0 < next0; ++win0)
-        {
-            lh_gl_blur_window_drop(lh_addr_of(sum), lh_gl_pixmap_get_pixel(pixmap, win0, y));
-        }
-        for (; win1 < next1; ++win1)
-        {
-            lh_gl_blur_window_take(lh_addr_of(sum), lh_gl_pixmap_get_pixel(pixmap, win1, y));
-        }
-    }
+    lh_gl_blur_window_slide(row, 1U, read0, read1, radius, left, width, out, 1U);
 }
 
 lh_void
@@ -137,31 +112,31 @@ lh_gl_blur_column(lh_gl_pixmap_t *pixmap, const lh_gl_color_t *scratch, lh_gl_sc
 {
     const lh_gl_color_t *column = scratch + x;
     lh_usize_t stride = lh_type_cast(lh_usize_t, width);
-    lh_gl_blur_window_t sum;
 
-    lh_gl_blur_window_init(lh_addr_of(sum));
-    lh_gl_scalar_t win0;
-    lh_gl_scalar_t win1;
-
-    lh_gl_blur_window_span(top, radius, y0, y1, lh_addr_of(win0), lh_addr_of(win1));
-    lh_gl_blur_window_take_colors(lh_addr_of(sum), column + (win0 - y0) * width, stride,
-                                  win1 - win0);
-    for (lh_gl_scalar_t y = top; y < top + height; ++y)
+    if (lh_ptr_is_null(shape) && lh_ptr_is_null(tint))
     {
-        lh_gl_color_t out;
+        lh_gl_scalar_t pix_w = lh_gl_size_get_width(lh_gl_pixmap_get_size(pixmap));
 
-        lh_gl_blur_window_average_color(lh_addr_of(sum), win1 - win0, lh_addr_of(out));
-        lh_gl_blur_put(pixmap, left + x, y, lh_addr_of(out), shape, corner, tint);
-        lh_gl_scalar_t next0;
-        lh_gl_scalar_t next1;
+        lh_gl_blur_window_slide(column, stride, y0, y1, radius, top, height,
+                                lh_gl_pixmap_get_pixel_mut(pixmap, left + x, top),
+                                lh_type_cast(lh_usize_t, pix_w));
+        return;
+    }
+    for (lh_gl_scalar_t y = top; y < top + height;)
+    {
+        lh_gl_color_t span[64];
+        lh_gl_scalar_t n = top + height - y;
 
-        lh_gl_blur_window_span(y + 1, radius, y0, y1, lh_addr_of(next0), lh_addr_of(next1));
-        lh_gl_blur_window_drop_colors(lh_addr_of(sum), column + (win0 - y0) * width, stride,
-                                      next0 - win0);
-        lh_gl_blur_window_take_colors(lh_addr_of(sum), column + (win1 - y0) * width, stride,
-                                      next1 - win1);
-        win0 = lh_math_max(win0, next0);
-        win1 = lh_math_max(win1, next1);
+        if (n > 64)
+        {
+            n = 64;
+        }
+        lh_gl_blur_window_slide(column, stride, y0, y1, radius, y, n, span, 1U);
+        for (lh_gl_scalar_t i = 0; i < n; ++i)
+        {
+            lh_gl_blur_put(pixmap, left + x, y + i, span + i, shape, corner, tint);
+        }
+        y += n;
     }
 }
 
@@ -229,19 +204,37 @@ lh_gl_glass(lh_gl_pixmap_t *pixmap, const lh_gl_rect_t *panel, lh_gl_scalar_t co
         lh_gl_scalar_t height = lh_gl_size_get_height(lh_gl_rect_get_size(lh_addr_of(write)));
 
         lh_return_if(lh_ptr_is_null(tint));
+        if (corner <= 0)
+        {
+            lh_gl_pixmap_fill_rect(pixmap, lh_addr_of(bounds), lh_addr_of(write), tint);
+            return;
+        }
         for (lh_gl_scalar_t y = top; y < top + height; ++y)
         {
-            for (lh_gl_scalar_t x = left; x < left + width; ++x)
-            {
-                lh_gl_color_t kept;
+            lh_gl_scalar_t x0;
+            lh_gl_scalar_t x1;
 
-                if (corner > 0 && lh_gl_cover_round_rect(panel, corner, x, y) == 0)
-                {
-                    continue;
-                }
-                kept = lh_ptr_deref(lh_gl_pixmap_get_pixel(pixmap, x, y));
-                lh_gl_blur_put(pixmap, x, y, lh_addr_of(kept), lh_null, 0, tint);
+            if (lh_gl_cover_round_rect_span(panel, corner, y, lh_addr_of(x0), lh_addr_of(x1)) ==
+                lh_bool_false)
+            {
+                continue;
             }
+            if (x0 < left)
+            {
+                x0 = left;
+            }
+            if (x1 > left + width)
+            {
+                x1 = left + width;
+            }
+            if (x0 >= x1)
+            {
+                continue;
+            }
+            lh_gl_rect_t row;
+
+            lh_gl_rect_init(lh_addr_of(row), x0, y, x1 - x0, 1);
+            lh_gl_pixmap_fill_rect(pixmap, lh_addr_of(bounds), lh_addr_of(row), tint);
         }
         return;
     }

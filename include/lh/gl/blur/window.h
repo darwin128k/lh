@@ -12,6 +12,7 @@
 #ifndef LH_GL_BLUR_WINDOW_H
 #define LH_GL_BLUR_WINDOW_H
 
+#include <lh/core/bool.h>
 #include <lh/core/size.h>
 #include <lh/gl/blur/window/fields.h>
 #include <lh/gl/color.h>
@@ -103,10 +104,44 @@ lh_gl_color_channel_t
 lh_gl_blur_window_average(const lh_gl_blur_window_t *self, lh_gl_scalar_t channel,
                           lh_gl_scalar_t count);
 
+/**
+ * @brief One channel of an average held in running sums, rounded half up and
+ *        held to `0 .. 255`.
+ *
+ * @p is_alpha selects the alpha sum in @p sum: it divides by @p count. A colour
+ * channel divides by @p alpha_sum, except when every pixel is opaque
+ * (`@p alpha_sum == 255 * count`), which divides by @p count after taking the
+ * factor of 255 back out. A @p count of `0` or below is `0`.
+ */
+lh_gl_color_channel_t
+lh_gl_blur_window_average_sum(lh_s32_t sum, lh_s32_t alpha_sum, lh_gl_scalar_t count,
+                              lh_bool_t is_alpha);
+
 /** @brief All four channels of ::lh_gl_blur_window_average into @p out. */
 lh_void
 lh_gl_blur_window_average_color(const lh_gl_blur_window_t *self, lh_gl_scalar_t count,
                                 lh_gl_color_t *out);
+
+/**
+ * @brief Write the average of four running sums into @p out.
+ *        @p count is how many pixels those sums cover.
+ */
+lh_void
+lh_gl_blur_window_write_average(lh_s32_t red, lh_s32_t green, lh_s32_t blue, lh_s32_t alpha,
+                                lh_gl_scalar_t count, lh_gl_color_t *out);
+
+/**
+ * @brief Slide a window of @p radius along @p count samples and write each average.
+ *
+ * Index @p i is the colour `samples[(i - lo) * stride]`. Indices run over
+ * `[lo, hi)`. Output @p n, `0 .. count`, is the average at index `first + n`
+ * and is written `out_stride` colours after the previous one. The sums stay in
+ * this call: a row does not go through ::lh_gl_blur_window_take.
+ */
+lh_void
+lh_gl_blur_window_slide(const lh_gl_color_t *samples, lh_usize_t stride, lh_gl_scalar_t lo,
+                        lh_gl_scalar_t hi, lh_gl_scalar_t radius, lh_gl_scalar_t first,
+                        lh_gl_scalar_t count, lh_gl_color_t *out, lh_usize_t out_stride);
 
 /**
  * @brief The window `[at - radius, at + radius + 1)` cut to `[lo, hi)`.
