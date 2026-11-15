@@ -244,6 +244,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/gl/container.c
         ${LH_LIB_SRC_PATH}/gl/surface.c
         ${LH_LIB_SRC_PATH}/gl/renderer.c
+        ${LH_LIB_SRC_PATH}/gl/renderer/packet.c
 
         ${LH_LIB_SRC_PATH}/core/version.c
         ${LH_LIB_SRC_PATH}/core/date.c

@@ -148,7 +148,8 @@ lh_add_test_core(lh_test_gl ${LH_TEST_SRC_PATH}/lh/gl/canvas.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/scroll/axis.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/container.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/surface.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/renderer.cpp)
+        ${LH_TEST_SRC_PATH}/lh/gl/renderer.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/renderer/packet.cpp)
 
 # Types, errors and the few pieces every core leans on.
 lh_add_test_core(lh_test_console ${LH_TEST_SRC_PATH}/lh/core/console/console.cpp)

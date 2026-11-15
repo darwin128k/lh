@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- `lh_gl_renderer_packet_post` copies the dirty rectangles, clears the surface list, and submits a rail task that draws the copy. A full mailbox posts nothing and leaves the list. The inline executor draws before post returns; another executor draws on its own loop.
+
 - An opaque blur window stores alpha 255 without dividing, and takes the factor of 255 back out of the colour with a multiply (`lh_gl_blur_window_average_opaque`). A stretch of full windows keeps that same divisor.
 
 - A rounded shadow whose shift puts one edge in the corner and the other on the flat side walks only the pixels outside the box (`lh_gl_shadow_row_outside`). The middle of that row stays clear. On a corner row the box itself is a compare of squares, not a second root.

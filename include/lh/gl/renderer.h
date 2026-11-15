@@ -6,7 +6,8 @@
  * is invalidated. ::lh_gl_renderer_render reads the dirty rectangles that have
  * accumulated, draws each one, and clears the list. A positive band height
  * slices a dirty rectangle into horizontal stripes so the caller can reuse one
- * partial buffer. The renderer stores no pixels and sends no packets.
+ * partial buffer. The renderer stores no pixels. A draw on another loop is a
+ * ::lh_gl_renderer_packet_t carried by rail.
  *
  * Skipping children that miss the clip, and children fully covered by a later
  * opaque sibling, happens in the layer walk the renderer calls.
@@ -16,6 +17,8 @@
 #define LH_GL_RENDERER_H
 
 #include <lh/core/compiler/extern/c.h>
+#include <lh/core/index.h>
+#include <lh/gl/rect.h>
 #include <lh/gl/scalar.h>
 #include <lh/core/void.h>
 #include <lh/gl/canvas/decl.h>
@@ -70,6 +73,15 @@ lh_gl_renderer_set_band(lh_gl_renderer_t *self, lh_gl_scalar_t band);
 lh_void
 lh_gl_renderer_init(lh_gl_renderer_t *self, lh_gl_surface_t *surface, lh_gl_canvas_t *canvas,
                     lh_gl_scalar_t band);
+
+/**
+ * @brief Draw @p count rectangles. Does not read or clear the dirty list.
+ *
+ * @p area may be null when @p count is 0. A missing surface, root or canvas
+ * draws nothing.
+ */
+lh_void
+lh_gl_renderer_draw(lh_gl_renderer_t *self, const lh_gl_rect_t *area, lh_usize_t count);
 
 /**
  * @brief Draw the surface's dirty rectangles and clear them.

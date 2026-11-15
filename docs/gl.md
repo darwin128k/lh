@@ -64,7 +64,7 @@ as of 2026-11-14 and the plan agreed with Egor.
 ## Done
 
 - point, size, rect, entity, layer, fixed-storage surface dirty regions, layer z-order, entity coordinate conversion, and clipped layer drawing.
-- Renderer: one deferred pass over the surface dirty list. A positive band slices each rectangle into horizontal stripes. Children that miss the clip are skipped, and so is a child whose visible area is fully inside a later opaque sibling. The class flag `opaque` says so. `lh_gl_rect_contains` is the cover test.
+- Renderer: one deferred pass over the surface dirty list. A positive band slices each rectangle into horizontal stripes. Children that miss the clip are skipped, and so is a child whose visible area is fully inside a later opaque sibling. The class flag `opaque` says so. `lh_gl_rect_contains` is the cover test. `lh_gl_renderer_packet_post` hands that frame to a rail executor: the packet keeps the dirty rectangles, the surface list is cleared, and a full mailbox leaves the list.
 - Canvas primitives: fill and stroke of a rectangle, a circle and a rounded rectangle, through `lh_gl_color_t`, `lh_gl_pen_t` and `lh_gl_canvas_backend_t`.
 - Pixmap: a borrowed grid of those colors. One canvas call fills a rectangle by blending (`lh_gl_color_over`). Alpha 255 replaces the pixel. No other shapes. `lh_gl_bmp_try_store` writes that grid as a 32-bit bitmap a viewer opens. Alpha is copied.
 - Point hit: `lh_gl_layer_find_entity` walks front to back and returns the deepest entity that accepts the point. A null class pick means the rectangle. A pick that declines continues to whoever is behind. `lh_gl_layer_find_entity_slop` grows that test by one number. No child means the layer itself. Outside the layer is null. `opaque` is draw occlusion only.
@@ -93,8 +93,8 @@ as of 2026-11-14 and the plan agreed with Egor.
    that table. Captions are an 8×12 block, not Roboto 16 px.
 2. Screens are the child layers of the root (`lh_gl_screen_open`,
    `lh_gl_screen_back`). The front child is the one drawn on top. A swipe
-   stays a gesture on the input and does not move a layer. Renderer packets
-   over rail when another loop draws. Try on the panel after that.
+   stays a gesture on the input and does not move a layer. A frame on another
+   loop is `lh_gl_renderer_packet_post`. Try on the panel after that.
 
 ## Held: a press and a one-line screen
 
