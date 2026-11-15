@@ -21,10 +21,40 @@ lh_gl_input_set_captured(lh_gl_input_t *self, const lh_gl_entity_t *captured)
     self->captured = captured;
 }
 
+lh_u8_t
+lh_gl_input_get_pointer(const lh_gl_input_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->pointer;
+}
+
+lh_void
+lh_gl_input_set_pointer(lh_gl_input_t *self, lh_u8_t pointer)
+{
+    lh_assert_runtime_ref(self);
+    self->pointer = pointer;
+}
+
+lh_bool_t
+lh_gl_input_get_tracking(const lh_gl_input_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->tracking;
+}
+
+lh_void
+lh_gl_input_set_tracking(lh_gl_input_t *self, lh_bool_t tracking)
+{
+    lh_assert_runtime_ref(self);
+    self->tracking = tracking;
+}
+
 lh_void
 lh_gl_input_init(lh_gl_input_t *self)
 {
     lh_gl_input_set_captured(self, lh_null);
+    lh_gl_input_set_pointer(self, 0U);
+    lh_gl_input_set_tracking(self, lh_bool_false);
 }
 
 const lh_gl_entity_t *
@@ -33,6 +63,7 @@ lh_gl_input_press(lh_gl_input_t *self, const lh_gl_layer_t *layer, lh_gl_point_t
     const lh_gl_entity_t *entity = lh_gl_layer_find_entity(layer, point);
 
     lh_gl_input_set_captured(self, entity);
+    lh_gl_input_set_tracking(self, lh_bool_false);
     return entity;
 }
 
@@ -48,5 +79,6 @@ lh_gl_input_release(lh_gl_input_t *self)
     const lh_gl_entity_t *captured = lh_gl_input_get_captured(self);
 
     lh_gl_input_set_captured(self, lh_null);
+    lh_gl_input_set_tracking(self, lh_bool_false);
     return captured;
 }

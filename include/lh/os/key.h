@@ -37,4 +37,7 @@ typedef enum lh_os_key
     lh_os_key_alt
 } lh_os_key_t; /**< One key. */
 
+/** @brief How many ::lh_os_key_t values there are, including ::lh_os_key_other. */
+#define LH_OS_KEY_COUNT (lh_os_key_alt + 1)
+
 #endif /* LH_OS_KEY_H */

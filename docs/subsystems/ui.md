@@ -1049,7 +1049,10 @@ x, y) and calls `lh_os_input_touch_report`. That compares the list with the
 previous frame: a new id is pointer down, a moved one is pointer move, a
 missing one is pointer up. Each finger keeps a pointer id from 1. A stick or
 pad calls `lh_os_input_pad_report_axis` and `lh_os_input_pad_report_button`;
-an event goes out only when the value changed. The chip stays in the driver.
+an event goes out only when the value changed. A polled keyboard calls
+`lh_os_input_keys_report` the same way: a key event only when that key
+changed, and Shift, Control and Alt are the modifiers on it. A character is
+still a text event the driver builds itself. The chip stays in the driver.
 
 1. In the touch interrupt, build an event:
    `lh_os_input_event_init_pointer(&e, lh_os_input_kind_pointer_down,

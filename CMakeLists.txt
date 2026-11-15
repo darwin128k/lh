@@ -222,6 +222,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/gl/entity.c
         ${LH_LIB_SRC_PATH}/gl/layer.c
         ${LH_LIB_SRC_PATH}/gl/input.c
+        ${LH_LIB_SRC_PATH}/gl/input/event.c
         ${LH_LIB_SRC_PATH}/gl/layout.c
         ${LH_LIB_SRC_PATH}/gl/fill.c
         ${LH_LIB_SRC_PATH}/gl/cover.c
@@ -256,6 +257,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/os/input/sample.c
         ${LH_LIB_SRC_PATH}/os/input/touch.c
         ${LH_LIB_SRC_PATH}/os/input/pad.c
+        ${LH_LIB_SRC_PATH}/os/input/keys.c
         ${LH_LIB_SRC_PATH}/os/input/event.c
         ${LH_LIB_SRC_PATH}/os/input/queue.c
         ${LH_LIB_SRC_PATH}/os/input/recognizer.c

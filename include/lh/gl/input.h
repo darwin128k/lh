@@ -3,10 +3,11 @@
  * @brief One held entity: ::lh_gl_input_t.
  *
  * The input manager answers which entity a press is on. It stores that one
- * borrowed pointer and nothing else: no scroll, no layout, no packets. A press
- * asks ::lh_gl_layer_find_entity and remembers the result, including a miss.
- * A move does not search again, so the hold stays when the point leaves the
- * entity. A release forgets it.
+ * borrowed pointer: no scroll, no layout, no packets. A press asks
+ * ::lh_gl_layer_find_entity and remembers the result, including a miss. A move
+ * does not search again, so the hold stays when the point leaves the entity.
+ * A release forgets it. ::lh_gl_input_apply is the same hold for one pointer
+ * event: a second pointer does not take it, and a key does not either.
  *
  * The caller owns the entity and keeps it alive while it is stored here.
  */
@@ -26,7 +27,7 @@
 struct lh_gl_input
 {
     /** Members: ::lh_gl_input_fields. */
-    lh_gl_input_fields(lh_gl_entity_t);
+    lh_gl_input_fields(lh_gl_entity_t, lh_bool_t);
 };
 /** @copybrief lh_gl_input */
 typedef struct lh_gl_input lh_gl_input_t;
@@ -45,6 +46,26 @@ lh_gl_input_get_captured(const lh_gl_input_t *self);
 lh_void
 lh_gl_input_set_captured(lh_gl_input_t *self, const lh_gl_entity_t *captured);
 
+/** @brief The pointer ::lh_gl_input_apply is following. Meaningful while tracking. */
+lh_u8_t
+lh_gl_input_get_pointer(const lh_gl_input_t *self);
+
+/** @brief Store the pointer id. Does not search and does not change the hold. */
+lh_void
+lh_gl_input_set_pointer(lh_gl_input_t *self, lh_u8_t pointer);
+
+/**
+ * @brief True when the hold came from ::lh_gl_input_apply.
+ *
+ * A point press clears it. Release clears it.
+ */
+lh_bool_t
+lh_gl_input_get_tracking(const lh_gl_input_t *self);
+
+/** @brief Store whether a pointer event owns the hold. */
+lh_void
+lh_gl_input_set_tracking(lh_gl_input_t *self, lh_bool_t tracking);
+
 /** @brief Hold nothing. */
 lh_void
 lh_gl_input_init(lh_gl_input_t *self);
@@ -53,7 +74,8 @@ lh_gl_input_init(lh_gl_input_t *self);
  * @brief Remember the entity under @p point and return it.
  *
  * @p point is in root coordinates. A miss stores ::lh_null, which also drops
- * whatever was held. A second press replaces the hold.
+ * whatever was held. A second press replaces the hold. Tracking is cleared:
+ * this hold is not owned by a pointer event.
  *
  * @param self  Input state; must not be null.
  * @param layer Layer to search; must not be null.
