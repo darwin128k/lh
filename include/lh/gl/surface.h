@@ -1,91 +1,213 @@
 /**
  * @file surface.h
- * @brief Display-sized owner of fixed dirty-region storage.
+ * @brief Off-screen draw target: ::lh_gl_surface_t.
  *
- * A surface borrows one root layer. Its size is independent of the layer tree;
- * attach and resize synchronize the root rectangle and invalidate the whole
- * surface. Detach does not change the root rectangle. Neither side allocates.
+ * A surface is a standalone pixel buffer the canvas backends can paint into,
+ * then present to a real target in one blit. Size and life cycle are ours;
+ * the pixels live in ::lh_os_system_surface_t behind a handle.
+ *
+ * Requires ::LH_LIBRARY_OPTION_GL and ::LH_LIBRARY_OPTION_OS.
  */
 
 #ifndef LH_GL_SURFACE_H
 #define LH_GL_SURFACE_H
 
-#include <lh/core/index.h>
-#include <lh/gl/rect.h>
-#include <lh/gl/layer/decl.h>
-#include <lh/gl/surface/decl.h>
+#include <lh/config.h>
+#include <lh/os/system/surface/handle.h>
+#include <lh/gl/pixmap.h>
+#include <lh/gl/rects.h>
 #include <lh/gl/surface/fields.h>
 
-/** @brief Surface size, borrowed root, and fixed dirty-region storage. */
+#if !LH_LIBRARY_OPTION_GL
+#    error "lh/gl/surface.h requires LH_LIBRARY_OPTION_GL"
+#endif
+
+#if !LH_LIBRARY_OPTION_OS
+#    error "lh/gl/surface.h requires LH_LIBRARY_OPTION_OS"
+#endif
+
+#if !LH_LIBRARY_OPTION_OS_WINDOW
+#    error "lh/gl/surface.h requires LH_LIBRARY_OPTION_OS_WINDOW"
+#endif
+
+/**
+ * @struct lh_gl_surface
+ * @brief Off-screen target: size, pixel format and OS handle.
+ */
 struct lh_gl_surface
 {
-    lh_gl_surface_fields(lh_gl_size_t, lh_gl_layer_t, lh_gl_rect_t, lh_usize_t);
+    /** Members: ::lh_gl_surface_fields. */
+    lh_gl_surface_fields(lh_gl_size_t, lh_gl_pixmap_format_t, lh_os_system_surface_handle_t);
 };
+/** @copybrief lh_gl_surface */
+typedef struct lh_gl_surface lh_gl_surface_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/** @brief Mutable surface size; pointer remains valid for the surface lifetime. */
+/**
+ * @brief Empty surface: size zero, no handle, ::lh_gl_pixmap_format_argb8888.
+ */
+lh_void
+lh_gl_surface_init(lh_gl_surface_t *self);
+
+/**
+ * @brief Destroy the OS buffer of @p self and clear it.
+ */
+lh_void
+lh_gl_surface_deinit(lh_gl_surface_t *self);
+
+/**
+ * @brief True when @p self holds a live OS buffer.
+ */
+lh_bool_t
+lh_gl_surface_is_valid(const lh_gl_surface_t *self);
+
+/**
+ * @brief Pixel size of @p self (zero when empty).
+ */
+lh_void
+lh_gl_surface_copy_size(const lh_gl_surface_t *self, lh_gl_size_t *out);
+
+/**
+ * @brief Pixel format of @p self. The format decides how many bytes a pixel is,
+ *        and so what ::lh_gl_surface_get_pixmap hands out.
+ */
+lh_gl_pixmap_format_t
+lh_gl_surface_get_format(const lh_gl_surface_t *self);
+
+/**
+ * @brief Make @p format the format of @p self, recreating the buffer when it does
+ *        not already hold one. Only while empty: a live buffer's format belongs to
+ *        whatever is drawing into it.
+ *
+ * The cheapest pixels are the ones never stored twice, and fewer bytes is the
+ * lever a draw-bound frame pulls. It is not the whole frame, though: whatever
+ * presents the buffer decides the rest of it, and a 32-bit window DC expands a
+ * 16-bit one back to full size, one pixel at a time. On this machine the present
+ * out of ARGB8888 is 382 400 ns and out of RGB565 is 839 050 ns, against 137 750
+ * and 94 100 ns to draw them — so RGB565 pays where the buffer goes straight to a
+ * 16-bit panel, and loses where GDI sits in between. See
+ * ::lh_os_render_backend_gdi_context_get_format.
+ */
+lh_void
+lh_gl_surface_set_format_v(lh_gl_surface_t *self, lh_gl_pixmap_format_t format);
+
+/**
+ * @brief Recreate @p self for @p size. No-op when the size already matches
+ *        and the handle is live. Drops the old buffer first when changing.
+ *
+ * @return True when @p self is valid at @p size afterwards.
+ */
+lh_bool_t
+lh_gl_surface_set_size_v(lh_gl_surface_t *self, lh_gl_size_t size);
+
+/**
+ * @brief Set @p pixmap over the pixels of @p self (::lh_os_system_surface_get_pixels),
+ *        in the format ::lh_gl_surface_get_format reports: rows a pixel apart by its
+ *        own width. False, @p pixmap left alone, when @p self is empty.
+ */
+lh_bool_t
+lh_gl_surface_get_pixmap(const lh_gl_surface_t *self, lh_gl_pixmap_t *pixmap);
+
+/**
+ * @brief Present @p self into @p dest (Win32 paint DC as ::lh_ptr) with its
+ *        top-left pixel at @p at, the client coordinates of the strip it
+ *        covers. `(0, 0)` presents a whole-target frame.
+ *
+ * @return True when the blit ran.
+ */
+lh_bool_t
+lh_gl_surface_present_at(const lh_gl_surface_t *self, lh_ptr dest, lh_gl_point_t at);
+
+/**
+ * @brief Present the @p part of @p self — in the surface's own pixels, (0, 0)
+ *        its corner — into @p dest with that part's top-left pixel at @p at.
+ *
+ * What a partial frame needs, and the reason the whole surface is the wrong
+ * thing to present: the view clears and draws the damage, not the area, and a
+ * surface holds no promise about the rest of it. The pixels nobody drew are
+ * whatever the buffer of this size held last, and they are on the screen after
+ * one blit.
+ *
+ * @return True when the blit ran.
+ */
+lh_bool_t
+lh_gl_surface_present_part(const lh_gl_surface_t *self, lh_ptr dest, const lh_gl_rect_t *part,
+                           lh_gl_point_t at);
+
+/**
+ * @brief Present every rect of @p rects — in the surface's own pixels, (0, 0)
+ *        its corner — into @p dest with each one's top-left pixel at @p at.
+ *
+ * The drawn region of a frame is not one rect whenever two widgets stand apart
+ * in it, and presenting their hull would present the gap between them as well.
+ * One blit per rect, and nothing nobody drew.
+ *
+ * @return True when every blit ran.
+ */
+lh_bool_t
+lh_gl_surface_present_rects(const lh_gl_surface_t *self, lh_ptr dest, const lh_gl_rects_t *rects,
+                            lh_gl_point_t at);
+
+/**
+ * @brief The OS surface that holds the pixels; ::LH_OS_SYSTEM_SURFACE_HANDLE_INVALID for none
+ * (level 1).
+ *
+ * @param self The surface; checked by ::lh_assert_runtime_ref.
+ */
+lh_os_system_surface_handle_t
+lh_gl_surface_get_handle(const lh_gl_surface_t *self);
+
+/**
+ * @brief Store the OS surface that holds the pixels; ::LH_OS_SYSTEM_SURFACE_HANDLE_INVALID for none
+ * (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The surface; checked by ::lh_assert_runtime_ref.
+ * @param handle The new value.
+ */
+lh_void
+lh_gl_surface_set_handle(lh_gl_surface_t *self, lh_os_system_surface_handle_t handle);
+
+/**
+ * @brief The size of the surface, to change in place (level 1).
+ *
+ * @param self The surface; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
 lh_gl_size_t *
 lh_gl_surface_get_size_mut(lh_gl_surface_t *self);
 
-/** @brief Surface size; pointer remains valid for the surface lifetime. */
+/**
+ * @brief The size of the surface (level 1).
+ *
+ * @param self The surface; checked by ::lh_assert_runtime_ref.
+ */
 const lh_gl_size_t *
 lh_gl_surface_get_size(const lh_gl_surface_t *self);
 
-/** @brief Borrowed root layer, or ::lh_null. */
-lh_gl_layer_t *
-lh_gl_surface_get_root(const lh_gl_surface_t *self);
-
-/** @brief Store a borrowed root; attach/detach maintain the reciprocal link. */
-lh_void
-lh_gl_surface_set_root(lh_gl_surface_t *self, lh_gl_layer_t *root);
-
-/** @brief Mutable dirty storage slot; index must be below the configured capacity. */
-lh_gl_rect_t *
-lh_gl_surface_get_dirty_mut(lh_gl_surface_t *self, lh_uindex_t index);
-
-/** @brief Number of occupied dirty slots. */
-lh_usize_t
-lh_gl_surface_get_dirty_count(const lh_gl_surface_t *self);
-
-/** @brief Store the number of occupied slots; count must fit the capacity. */
-lh_void
-lh_gl_surface_set_dirty_count(lh_gl_surface_t *self, lh_usize_t count);
-
-/** @brief Dirty area at index below the count; valid until the list changes. */
-const lh_gl_rect_t *
-lh_gl_surface_get_dirty(const lh_gl_surface_t *self, lh_uindex_t index);
-
-/** @brief Initialize an unattached surface of size, with no dirty areas. */
-lh_void
-lh_gl_surface_init(lh_gl_surface_t *self, lh_gl_size_t size);
-
-/** @brief Attach an unattached root, set its rectangle to the surface and invalidate all.
- * The layer must have no parent or surface; both objects must outlive attachment.
- * Any previous root is detached. Both arguments must be non-null.
+/**
+ * @brief Store the size of the surface (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The surface; checked by ::lh_assert_runtime_ref.
+ * @param size The new value.
  */
 lh_void
-lh_gl_surface_attach(lh_gl_surface_t *self, lh_gl_layer_t *root);
+lh_gl_surface_set_size(lh_gl_surface_t *self, lh_gl_size_t size);
 
-/** @brief Detach the root if present; its rectangle remains unchanged. */
-lh_void
-lh_gl_surface_detach(lh_gl_surface_t *self);
-
-/** @brief Set size, synchronize the attached root and invalidate the whole surface. */
-lh_void
-lh_gl_surface_resize(lh_gl_surface_t *self, lh_gl_size_t size);
-
-/** @brief Remove all dirty areas. */
-lh_void
-lh_gl_surface_clear_dirty(lh_gl_surface_t *self);
-
-/** @brief Clip an area to the surface and accumulate it without allocation.
- * Contained areas are dropped; a union is merged when its area does not exceed
- * the sum of its inputs. A full array collapses to one bounding rectangle.
- * Both pointers must be non-null; the area is copied.
+/**
+ * @brief Store the pixel format of the surface (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The surface; checked by ::lh_assert_runtime_ref.
+ * @param format The new value.
  */
 lh_void
-lh_gl_surface_invalidate(lh_gl_surface_t *self, const lh_gl_rect_t *area);
+lh_gl_surface_set_format(lh_gl_surface_t *self, lh_gl_pixmap_format_t format);
 
 LH_COMPILER_EXTERN_C_END
 

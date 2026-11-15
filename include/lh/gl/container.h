@@ -1,125 +1,344 @@
 /**
  * @file container.h
- * @brief A layer plus up to two scroll axes: ::lh_gl_container_t.
+ * @brief A scrollable content box in the entity tree: ::lh_gl_container_t.
  *
- * The container borrows a layer and, optionally, a horizontal axis and a
- * vertical axis. It does not own them and it does not write their rectangles
- * or the children's. A positive axis offset moves that axis of the content
- * toward the start: the window stays where the layer rectangle is, and the
- * children are placed at the window origin minus the offsets.
+ * Embeds an ::lh_gl_entity_t. Use ::lh_gl_container_as_entity for rect,
+ * style, class, children, and draw. The rect is the viewport; the children
+ * are the content, laid out in the same space with scroll `(0, 0)`. Class
+ * ::lh_gl_container_class extends ::lh_gl_entity_class, keeps the base
+ * fill, and answers ::lh_gl_entity_event_children with offset `-scroll` and a
+ * clip, so draw and hit test move and cut the children in the core.
  *
- * Either axis pointer may be null. Nested layers are placed as whole
- * rectangles; a child layer's own container is applied only when that
- * container is drawn or searched itself.
+ * Scrollbars are separate components (::lh_gl_scrollbar_t) that point
+ * at a container; the container knows nothing about them.
  */
 
 #ifndef LH_GL_CONTAINER_H
 #define LH_GL_CONTAINER_H
 
-#include <lh/gl/canvas/decl.h>
 #include <lh/gl/container/fields.h>
-#include <lh/gl/entity/decl.h>
-#include <lh/gl/layer/decl.h>
-#include <lh/gl/rect.h>
-#include <lh/gl/scroll/axis.h>
+#include <lh/gl/layout.h>
+#include <lh/gl/key.h>
 
 /**
- * @struct lh_gl_container
- * @brief Borrowed layer and borrowed axes. Fields via ::lh_gl_container_fields.
+ * @struct lh_gl_entity_container
+ * @brief An entity used as a scrollable content box.
  */
-struct lh_gl_container
+struct lh_gl_entity_container
 {
     /** Members: ::lh_gl_container_fields. */
-    lh_gl_container_fields(lh_gl_layer_t, lh_gl_scroll_axis_t);
+    lh_gl_container_fields(lh_gl_entity_t, lh_gl_point_t, lh_gl_layout_t, lh_bool_t);
 };
-/** @copybrief lh_gl_container */
-typedef struct lh_gl_container lh_gl_container_t;
+/** @copybrief lh_gl_entity_container */
+typedef struct lh_gl_entity_container lh_gl_container_t;
+
+/**
+ * @def LH_GL_CONTAINER_KEY_STEP
+ * @brief Scroll step of one arrow key press, in content units.
+ */
+#define LH_GL_CONTAINER_KEY_STEP lh_gl_scalar(40)
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/** @brief Borrowed layer, or ::lh_null. */
-lh_gl_layer_t *
-lh_gl_container_get_layer(const lh_gl_container_t *self);
-
-/** @brief Store a borrowed layer. @p layer may be ::lh_null. */
-lh_void
-lh_gl_container_set_layer(lh_gl_container_t *self, lh_gl_layer_t *layer);
-
-/** @brief Borrowed horizontal axis, or ::lh_null. */
-const lh_gl_scroll_axis_t *
-lh_gl_container_get_horizontal(const lh_gl_container_t *self);
-
-/** @brief Store a borrowed horizontal axis. @p horizontal may be ::lh_null. */
-lh_void
-lh_gl_container_set_horizontal(lh_gl_container_t *self, const lh_gl_scroll_axis_t *horizontal);
-
-/** @brief Borrowed vertical axis, or ::lh_null. */
-const lh_gl_scroll_axis_t *
-lh_gl_container_get_vertical(const lh_gl_container_t *self);
-
-/** @brief Store a borrowed vertical axis. @p vertical may be ::lh_null. */
-lh_void
-lh_gl_container_set_vertical(lh_gl_container_t *self, const lh_gl_scroll_axis_t *vertical);
+/**
+ * @brief Class of ::lh_gl_container_t, derived from ::lh_gl_entity_class.
+ */
+extern const lh_gl_entity_class_t lh_gl_container_class;
 
 /**
- * @brief Borrow @p layer and the axes. Either axis may be ::lh_null.
+ * @brief Event function of ::lh_gl_container_class.
  *
- * None of the pointers is owned.
+ * Answers ::lh_gl_entity_event_children through
+ * ::lh_gl_container_place_children; every other event goes to the base
+ * class (the fill is kept). A derived class may call it directly.
  */
 lh_void
-lh_gl_container_init(lh_gl_container_t *self, lh_gl_layer_t *layer,
-                     const lh_gl_scroll_axis_t *horizontal, const lh_gl_scroll_axis_t *vertical);
+lh_gl_container_event(const struct lh_gl_entity *self, const lh_gl_entity_event_t *event);
 
 /**
- * @brief Window origin minus the axis offsets.
- *
- * A null axis subtracts nothing. @p out may be @p viewport.
- *
- * @param self     Container; must not be null.
- * @param viewport Window origin, copied from; must not be null.
- * @param out      Receives the content origin; must not be null.
+ * @brief ::lh_gl_entity_event_children: offset `-scroll`, clip on.
  */
 lh_void
-lh_gl_container_content_origin(const lh_gl_container_t *self, const lh_gl_point_t *viewport,
-                               lh_gl_point_t *out);
+lh_gl_container_on_children(const lh_gl_container_t *self, const lh_gl_entity_event_t *event);
 
 /**
- * @brief Entity under @p point inside this container's window.
+ * @brief ::lh_gl_entity_event_focusable: yes (a container scrolls by keys).
+ */
+lh_void
+lh_gl_container_on_focusable(const lh_gl_entity_event_t *event);
+
+/**
+ * @brief ::lh_gl_entity_event_key: scroll by ::lh_gl_container_get_key_delta.
+ */
+lh_void
+lh_gl_container_on_key(lh_gl_container_t *self, const lh_gl_entity_event_t *event);
+
+/**
+ * @brief How far @p key moves the scroll on its axis: arrows
+ *        ::LH_GL_CONTAINER_KEY_STEP, page keys one viewport height,
+ *        Home / End to the top / bottom; `0` for any other key.
+ */
+lh_gl_scalar_t
+lh_gl_container_get_key_step(const lh_gl_container_t *self, lh_os_key_t key);
+
+/**
+ * @brief The scroll change @p input asks for: left / right across, every
+ *        other key along y; zero for text and key-up.
+ */
+lh_void
+lh_gl_container_get_key_delta(const lh_gl_container_t *self, const lh_gl_key_input_t *input,
+                              lh_gl_point_t *out);
+
+/**
+ * @brief Answer for the children of @p self: place them by
+ *        ::lh_gl_container_get_layout, then offset `-scroll`, clip on.
  *
- * Uses the layer's absolute rectangle as the window and
- * ::lh_gl_container_content_origin as the child placement. A null layer
- * returns ::lh_null. Children's rectangles are not changed.
+ * The placement is the container's own and happens here, so a container that
+ * moved carries its children with it — the rects a flow writes are absolute, and
+ * nothing else in the tree is in a position to rewrite them.
+ */
+lh_void
+lh_gl_container_place_children(const lh_gl_container_t *self, lh_gl_entity_transform_t *transform);
+
+/**
+ * @brief The flow @p self places its children by, or ::lh_null when it has none
+ *        and its children keep the rects they were given.
+ */
+const lh_gl_layout_t *
+lh_gl_container_get_layout(const lh_gl_container_t *self);
+
+/**
+ * @brief Place the children of @p self by @p layout from now on: axis, gap and
+ *        where the leftovers go. Not owned — the rule belongs to the caller, like
+ *        a style, and ::lh_null takes it away again.
+ */
+lh_void
+lh_gl_container_set_layout(lh_gl_container_t *self, const lh_gl_layout_t *layout);
+
+/**
+ * @brief Fill @p self so it covers @p rect with no style, no children, and
+ *        scroll `(0, 0)`.
+ */
+lh_void
+lh_gl_container_init(lh_gl_container_t *self, lh_gl_rect_t rect);
+
+/**
+ * @brief The entity @p self embeds.
+ */
+lh_gl_entity_t *
+lh_gl_container_as_entity(lh_gl_container_t *self);
+
+/**
+ * @brief @p entity as a container when its class is
+ *        ::lh_gl_container_class or extends it (e.g. a label), else
+ *        ::lh_null. The entity must be the first field of the container.
+ */
+lh_gl_container_t *
+lh_gl_entity_as_container(lh_gl_entity_t *entity);
+
+/**
+ * @brief Nearest container on @p entity or an ancestor, or ::lh_null.
+ */
+lh_gl_container_t *
+lh_gl_entity_find_container(lh_gl_entity_t *entity);
+
+/**
+ * @brief Size of the viewport: the size of the rect of @p self.
+ */
+lh_void
+lh_gl_container_get_viewport_size(const lh_gl_container_t *self, lh_gl_size_t *out);
+
+/**
+ * @brief @p far moved out by the right and bottom padding of @p self: the room
+ *        left after the last child, as CSS scroll size counts it.
+ */
+lh_void
+lh_gl_container_pad_far(const lh_gl_container_t *self, lh_gl_point_t far, lh_gl_point_t *out);
+
+/**
+ * @brief Far corner of the content (::lh_gl_entity_get_content_bounds) plus
+ *        the padding, or the origin of @p self when the content is empty.
+ */
+lh_void
+lh_gl_container_get_content_far(const lh_gl_container_t *self, lh_gl_point_t *out);
+
+/**
+ * @brief Size of the content: from the container origin to
+ *        ::lh_gl_container_get_content_far, never negative.
  *
- * @param self  Container; must not be null.
- * @param point Point in root coordinates, copied.
- * @return The entity under the point, or ::lh_null.
+ * Computed on each call, not stored.
+ */
+lh_void
+lh_gl_container_get_content_size(const lh_gl_container_t *self, lh_gl_size_t *out);
+
+/**
+ * @brief Largest scroll per axis: content minus viewport, never below `0`.
+ */
+lh_void
+lh_gl_container_get_scroll_max(const lh_gl_container_t *self, lh_gl_point_t *out);
+
+/**
+ * @brief @p scroll clamped per axis to `0 .. @p max`: the one scroll clamp.
+ *        For a caller that already holds the max, so content is not measured
+ *        again.
+ */
+lh_void
+lh_gl_container_clamp_scroll_to(lh_gl_point_t scroll, lh_gl_point_t max, lh_gl_point_t *out);
+
+/**
+ * @brief @p scroll clamped per axis to `0 .. max`
+ *        (::lh_gl_container_get_scroll_max).
+ */
+lh_void
+lh_gl_container_clamp_scroll(const lh_gl_container_t *self, lh_gl_point_t scroll,
+                             lh_gl_point_t *out);
+
+/**
+ * @brief The stored scroll of @p self clamped to @p max, which the caller got
+ *        from ::lh_gl_container_get_scroll_max (no second measure).
+ */
+lh_void
+lh_gl_container_get_scroll_within(const lh_gl_container_t *self, lh_gl_point_t max,
+                                  lh_gl_point_t *out);
+
+/**
+ * @brief How far the content of @p self is scrolled, clamped on read: when the
+ *        content shrank since the last set, this is already the new max.
+ */
+lh_void
+lh_gl_container_get_clamped_scroll(const lh_gl_container_t *self, lh_gl_point_t *out);
+
+/**
+ * @brief Scroll @p self to @p scroll, clamped with
+ *        ::lh_gl_container_clamp_scroll.
+ */
+lh_void
+lh_gl_container_set_scroll_v(lh_gl_container_t *self, lh_gl_point_t scroll);
+
+/**
+ * @brief Scroll @p self by `(@p dx, @p dy)`, clamped like
+ *        ::lh_gl_container_set_scroll_v.
+ */
+lh_void
+lh_gl_container_scroll_by(lh_gl_container_t *self, lh_gl_scalar_t dx, lh_gl_scalar_t dy);
+
+/**
+ * @brief The entity the container is built on (level 1).
+ *
+ * @param self The container; checked by ::lh_assert_runtime_ref.
  */
 const lh_gl_entity_t *
-lh_gl_container_find(const lh_gl_container_t *self, lh_gl_point_t point);
+lh_gl_container_get_entity(const lh_gl_container_t *self);
 
 /**
- * @brief Draw this container's layer, with children placed by the axes.
+ * @brief The entity the container is built on, to change in place (level 1).
  *
- * A null layer returns without drawing. The clip is the dirty area in root
- * coordinates. Children's rectangles are not changed.
- *
- * @param self   Container; must not be null.
- * @param canvas Drawing state, borrowed; must not be null.
- * @param clip   Dirty area; must not be null.
+ * @param self The container; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
  */
-lh_void
-lh_gl_container_draw(const lh_gl_container_t *self, lh_gl_canvas_t *canvas,
-                     const lh_gl_rect_t *clip);
+lh_gl_entity_t *
+lh_gl_container_get_entity_mut(lh_gl_container_t *self);
 
 /**
- * @brief Mark the layer's whole window dirty.
+ * @brief Store the entity the container is built on (level 1).
  *
- * A null layer does nothing. Changing an axis does not call this.
+ * A level-1 setter: the value is stored as given and is not validated.
  *
- * @param self Container; must not be null.
+ * @param self The container; checked by ::lh_assert_runtime_ref.
+ * @param entity The new value.
  */
 lh_void
-lh_gl_container_invalidate(const lh_gl_container_t *self);
+lh_gl_container_set_entity(lh_gl_container_t *self, lh_gl_entity_t entity);
+
+/**
+ * @brief How far the content is scrolled, to change in place (level 1).
+ *
+ * @param self The container; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_gl_point_t *
+lh_gl_container_get_scroll_mut(lh_gl_container_t *self);
+
+/**
+ * @brief Whether the container is placing its children now (level 1).
+ *
+ * @param self The container; checked by ::lh_assert_runtime_ref.
+ */
+lh_bool_t
+lh_gl_container_is_placing(const lh_gl_container_t *self);
+
+/**
+ * @brief Store whether the container is placing its children now (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The container; checked by ::lh_assert_runtime_ref.
+ * @param placing The new value.
+ */
+lh_void
+lh_gl_container_set_placing(lh_gl_container_t *self, lh_bool_t placing);
+
+/**
+ * @brief How far the content is scrolled (level 1).
+ *
+ * @param self The container; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gl_point_t *
+lh_gl_container_get_scroll(const lh_gl_container_t *self);
+
+/**
+ * @brief Store how far the content is scrolled (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The container; checked by ::lh_assert_runtime_ref.
+ * @param scroll The new value.
+ */
+lh_void
+lh_gl_container_set_scroll(lh_gl_container_t *self, lh_gl_point_t scroll);
+
+/**
+ * @brief Whether native input may scroll overflowing content on either axis.
+ * @param self Initialized container, never null.
+ * @return True when scrolling is enabled and get_scroll_max is positive on at
+ *         least one axis. A container at a scroll limit remains scrollable.
+ */
+lh_bool_t
+lh_gl_container_can_scroll(const lh_gl_container_t *self);
+
+/**
+ * @brief Nearest container at or above an entity whose content can scroll.
+ *
+ * Uses as_container and can_scroll, visiting every entity on the parent path.
+ * Fitting containers, including buttons, permit an ancestor to scroll only
+ * while scroll_chain is enabled on every intervening entity. A false flag stops
+ * the search after considering that entity's own scrolling; it never searches
+ * siblings or visually underlying objects.
+ * @param entity Starting entity; may be null.
+ * @return Borrowed scrollable container, or null when no ancestor overflows.
+ */
+lh_gl_container_t *
+lh_gl_entity_find_scrollable(lh_gl_entity_t *entity);
+
+/**
+ * @brief Whether native input may scroll this container (level 1).
+ * @param self Initialized container, never null.
+ * @return Stored permission. True for containers, false for buttons by default.
+ */
+lh_bool_t
+lh_gl_container_is_scroll_enabled(const lh_gl_container_t *self);
+
+/**
+ * @brief Enable or disable this container's native scrolling (level 1).
+ * @param self Initialized container, never null.
+ * @param enabled Permission for pointer, wheel, scrollbar and keyboard scrolling.
+ *
+ * Independent of the entity's scroll_chain permission: a button may refuse its
+ * own scrolling yet pass a drag to its parent. Direct container scroll setters
+ * and geometry remain available for programmatic positioning.
+ */
+lh_void
+lh_gl_container_set_scroll_enabled(lh_gl_container_t *self, lh_bool_t enabled);
 
 LH_COMPILER_EXTERN_C_END
 

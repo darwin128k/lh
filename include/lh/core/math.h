@@ -14,7 +14,7 @@
  * - **Float geometry / 3D** (`fpoint`, `fsize`, `frect`, `vec` / `quat` /
  *   `mat4`) use ::lh_math_fscalar_t (`float`) and are built when
  *   ::LH_LIBRARY_OPTION_MATH_FPU is ON. UI picks which scalar (and which
- *   geometry) through <lh/ui/scalar.h> and friends.
+ *   geometry) through <lh/gl/scalar.h> and friends.
  *
  * Requires nothing from `lh/os`. Safe in STM/embedded.
  *

@@ -6,25 +6,67 @@
 #ifndef LH_GL_ENTITY_FIELDS_H
 #define LH_GL_ENTITY_FIELDS_H
 
+struct lh_gl_view;
+
+#include <lh/core/list.h>
+
 /**
- * @def lh_gl_entity_fields(rect_type, layer_type, class_type, node_type)
- * @brief The area of an entity, its owner, its class and its list node.
+ * @def lh_gl_entity_fields(rect_type, style_type, class_type, bool_type, entity_type)
+ * @brief The area this entity covers, how it is painted, the class it
+ *        belongs to, visibility, pressed state, parent, and its place in a
+ *        child list.
  *
- * @param rect_type  ::lh_gl_rect_t: `rect`, the area of the entity, relative to
- *                   the origin of its parent.
- * @param layer_type ::lh_gl_layer_t; the member is `parent`, a pointer to the
- *                   layer that owns the entity (::lh_null for a root).
- * @param class_type ::lh_gl_entity_class_t; the member is `cls`, a pointer to
- *                   the `const` table of the entity's class. The member is not
- *                   called `class`, which is a keyword in C++.
- * @param node_type  ::lh_list_node_t: `node`, the intrusive link of the entity
- *                   in its parent's list of children. An entity is in at most
- *                   one list.
+ * The rect is in the same space as the parent's (absolute), not relative to
+ * it. The style is not copied: several entities may share one. Children are
+ * not owned: the caller keeps them alive. When `hidden` is true, paint and
+ * hit tests skip this node and its descendants. `pressed` is what the pointer
+ * is doing on it right now, kept by the view
+ * (::lh_gl_view_press / ::lh_gl_view_release): it paints the pressed style of
+ * ::lh_gl_style_t when there is one, and changes nothing about the entity.
+ * `scroll_chain` allows input selection to continue toward a scrollable parent
+ * after this entity's own scrolling was considered. It starts true; false is a
+ * barrier for both pointer drags and wheel routing, independent of draw order.
+ * `parent` is ::lh_null for a root. `view` is set on that root by
+ * ::lh_gl_view_set_root_v and is ::lh_null everywhere else: a setter that changes
+ * what is on screen walks up to it and records one rect
+ * (::lh_gl_entity_note). In C++ the class member is `klass` (`class` is a
+ * keyword).
+ *
+ * @param rect_type   Type of the area.
+ * @param style_type  Type of the paint recipe pointed at.
+ * @param class_type  Type of the class pointer.
+ * @param bool_type   Type of the visibility, scroll-chain and pressed flags.
+ * @param entity_type Type of the parent pointer.
+ * @param place_type  Type of ::lh_gl_place_t — how this entity wants a flow to place it.
  */
-#define lh_gl_entity_fields(rect_type, layer_type, class_type, node_type)                          \
-    rect_type rect;                                                                                \
-    layer_type *parent;                                                                            \
-    const class_type *cls;                                                                         \
-    node_type node
+#ifdef LH_COMPILER_CXX
+#    define lh_gl_entity_fields(rect_type, style_type, class_type, bool_type, entity_type,         \
+                                place_type)                                                        \
+        rect_type rect;                                                                            \
+        const style_type *style;                                                                   \
+        const class_type *klass;                                                                   \
+        bool_type hidden;                                                                          \
+        bool_type scroll_chain;                                                                    \
+        bool_type pressed;                                                                         \
+        entity_type *parent;                                                                       \
+        struct lh_gl_view *view;                                                                   \
+        place_type place;                                                                          \
+        lh_list_t children;                                                                        \
+        lh_list_node_t link
+#else
+#    define lh_gl_entity_fields(rect_type, style_type, class_type, bool_type, entity_type,         \
+                                place_type)                                                        \
+        rect_type rect;                                                                            \
+        const style_type *style;                                                                   \
+        const class_type *class;                                                                   \
+        bool_type hidden;                                                                          \
+        bool_type scroll_chain;                                                                    \
+        bool_type pressed;                                                                         \
+        entity_type *parent;                                                                       \
+        struct lh_gl_view *view;                                                                   \
+        place_type place;                                                                          \
+        lh_list_t children;                                                                        \
+        lh_list_node_t link
+#endif
 
 #endif /* LH_GL_ENTITY_FIELDS_H */

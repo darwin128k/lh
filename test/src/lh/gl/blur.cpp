@@ -1,231 +1,409 @@
 #include <gtest/gtest.h>
 
-#include <lh/core/memory/std.h>
-#include <lh/core/util/addr.h>
 #include <lh/gl/blur.h>
-#include <lh/gl/canvas.h>
-#include <lh/gl/glass.h>
-#include <lh/gl/layer.h>
-#include <lh/gl/pixmap.h>
+#include <lh/test/out.h>
 
 namespace
 {
 
-const int k_width = 16;
-const int k_height = 8;
+/* 16 x 8 of ARGB8888. Blur reads neighbours, so the test wants a picture with
+   edges in it rather than one flat colour. */
+struct blur_fixture
+{
+    static const int width = 16;
+    static const int height = 8;
+    /* Room for the radius rows the scratch now keeps above and below the rect. */
+    static const int radius_room = 8;
+    lh_u32_t words[width * height];
+    lh_u8_t scratch[width * (height + 2 * radius_room) * 4];
+    /* Memory right after the scratch, filled with whatever the test is testing: a
+       blur that reads past its buffer reads *this*, and a test that only checks
+       values cannot tell a right answer from a lucky one. */
+    lh_u8_t poison[8192];
+    lh_gl_pixmap_t pixmap;
 
-lh_gl_rect_t
-rect_of(lh_gl_scalar_t x, lh_gl_scalar_t y, lh_gl_scalar_t width, lh_gl_scalar_t height)
+    blur_fixture()
+    {
+        lh_gl_color_t color;
+
+        for (int y = 0; y < height; ++y)
+        {
+            for (int x = 0; x < width; ++x)
+            {
+                /* A vertical step: black on the left half, white on the right. */
+                lh_gl_color_init(&color, x < width / 2 ? 0 : 255, x < width / 2 ? 0 : 255,
+                                 x < width / 2 ? 0 : 255, 255);
+                words[y * width + x] = lh_gl_color_get_argb(&color);
+            }
+        }
+        lh_gl_pixmap_init(lh_addr_of(pixmap), lh_ptr_rcast(lh_byte_t, words), width, height, width * 4,
+                          lh_gl_pixmap_format_argb8888);
+    }
+
+    void
+    fill_poison(lh_u8_t value)
+    {
+        for (lh_u8_t &b : poison)
+        {
+            b = value;
+        }
+    }
+
+    lh_u8_t
+    red_at(int x, int y) const
+    {
+        const lh_gl_color_t pixel = lh_test::out(lh_gl_pixmap_get_pixel, lh_addr_of(pixmap), x, y);
+
+        return lh_gl_color_get_r(&pixel);
+    }
+};
+
+TEST(ui_blur, a_flat_picture_stays_flat)
+{
+    blur_fixture f;
+
+    for (int y = 0; y < blur_fixture::height; ++y)
+    {
+        for (int x = 0; x < blur_fixture::width; ++x)
+        {
+            f.words[y * blur_fixture::width + x] = 0xFF404040;
+        }
+    }
+    lh_gl_rect_t rect;
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(2), lh_gl_scalar(1), lh_gl_scalar(10), lh_gl_scalar(5));
+    lh_gl_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_gl_scalar(2), f.scratch);
+
+    /* Every channel keeps its value when there is nothing to average towards. */
+    EXPECT_EQ(f.red_at(5, 3), 0x40);
+}
+
+TEST(ui_blur, an_edge_becomes_a_ramp_and_stays_a_ramp)
 {
     lh_gl_rect_t rect;
 
-    lh_gl_rect_init(lh_addr_of(rect), x, y, width, height);
-    return rect;
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(0), lh_gl_scalar(0), lh_gl_scalar_of(blur_fixture::width),
+                    lh_gl_scalar_of(blur_fixture::height));
+    blur_fixture f;
+    lh_gl_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_gl_scalar(3), f.scratch);
+
+    lh_u8_t middle = f.red_at(blur_fixture::width / 2 - 1, 3);
+    lh_u8_t near_edge = f.red_at(blur_fixture::width / 2, 3);
+
+    /* The step was 0 -> 255. A normalised kernel moves the shades around without
+       inventing any, so the two pixels straddling the step still add up to what
+       was there: the darker one gained exactly what the lighter one lost. */
+    EXPECT_GT(middle, 0);
+    EXPECT_LT(middle, 255);
+    EXPECT_EQ(middle + near_edge, 255);
+    /* Radius 3 reaches three pixels back from the step, so four is still solid
+       black and three is already touched. */
+    EXPECT_EQ(f.red_at(blur_fixture::width / 2 - 4, 3), 0);
+    EXPECT_GT(f.red_at(blur_fixture::width / 2 - 3, 3), 0);
+    /* Two past the step the window still reaches back over it; four does not. */
+    EXPECT_LT(f.red_at(blur_fixture::width / 2 + 2, 3), 255);
+    EXPECT_EQ(f.red_at(blur_fixture::width / 2 + 4, 3), 255);
 }
 
-void
-fill_column(lh_gl_color_t *pixels, int x, lh_gl_color_channel_t r, lh_gl_color_channel_t a)
+TEST(ui_blur, a_radius_of_zero_changes_nothing)
 {
-    for (int y = 0; y < k_height; ++y)
+    lh_gl_rect_t rect;
+
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(0), lh_gl_scalar(0), lh_gl_scalar_of(blur_fixture::width),
+                    lh_gl_scalar_of(blur_fixture::height));
+    blur_fixture f;
+    lh_gl_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_gl_scalar(0), f.scratch);
+
+    EXPECT_EQ(f.red_at(0, 3), 0);
+    EXPECT_EQ(f.red_at(blur_fixture::width - 1, 3), 255);
+}
+
+TEST(ui_blur, only_the_rect_moves)
+{
+    lh_gl_rect_t rect;
+
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(6), lh_gl_scalar(2), lh_gl_scalar(10), lh_gl_scalar(5));
+    blur_fixture f;
+    lh_gl_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_gl_scalar(3), f.scratch);
+
+    /* Left of the rect the step is untouched; inside it has been spread. */
+    EXPECT_EQ(f.red_at(0, 3), 0);
+    EXPECT_EQ(f.red_at(4, 3), 0);
+    EXPECT_GT(f.red_at(7, 3), 0);
+}
+
+TEST(ui_blur, a_rect_hanging_over_the_edge_blurs_what_is_there)
+{
+    lh_gl_rect_t rect;
+
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(-8), lh_gl_scalar(-8), lh_gl_scalar(64), lh_gl_scalar(64));
+    blur_fixture f;
+    lh_gl_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_gl_scalar(2), f.scratch);
+
+    /* Cut to the pixmap first: every pixel is in range afterwards, and the
+       picture is blurred rather than half written. */
+    for (int y = 0; y < blur_fixture::height; ++y)
     {
-        lh_gl_color_init(pixels + y * k_width + x, r, r, r, a);
+        for (int x = 0; x < blur_fixture::width; ++x)
+        {
+            EXPECT_LE(f.red_at(x, y), 255);
+        }
     }
+    EXPECT_GT(f.red_at(blur_fixture::width / 2 - 2, 3), 0);
+}
+
+/* A blur that has to allocate is a blur that faults on an app with no heap under
+ * it, so the buffer is the caller's and nothing happens without one. */
+TEST(ui_blur, without_a_scratch_nothing_is_blurred)
+{
+    lh_gl_rect_t rect;
+
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(0), lh_gl_scalar(0), lh_gl_scalar_of(blur_fixture::width),
+                    lh_gl_scalar_of(blur_fixture::height));
+    blur_fixture f;
+    lh_gl_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_gl_scalar(3), static_cast<lh_u8_t *>(nullptr));
+
+    EXPECT_EQ(f.red_at(0, 3), 0);
+    EXPECT_EQ(f.red_at(blur_fixture::width / 2 - 1, 3), 0);
+    EXPECT_EQ(f.red_at(blur_fixture::width / 2, 3), 255);
+    EXPECT_EQ(f.red_at(blur_fixture::width - 1, 3), 255);
+}
+
+TEST(ui_blur, the_scratch_holds_the_rect_and_a_margin_of_the_radius)
+{
+    lh_gl_rect_t rect;
+
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(2), lh_gl_scalar(3), lh_gl_scalar(20), lh_gl_scalar(10));
+    EXPECT_EQ(lh_gl_blur_scratch_size(lh_addr_of(rect), 0), 20u * 10u * 4u);
+    EXPECT_EQ(lh_gl_blur_scratch_size(lh_addr_of(rect), 3), 20u * (10u + 6u) * 4u);
+
+    lh_gl_rect_init_empty(lh_addr_of(rect));
+    EXPECT_EQ(lh_gl_blur_scratch_size(lh_addr_of(rect), 3), 0u);
+}
+
+TEST(ui_blur, a_window_sums_and_gives_back_what_it_took)
+{
+    lh_gl_blur_window_t window = {0, 0, 0, 0};
+    lh_gl_color_t a;
+
+    lh_gl_color_init(&a, 10, 20, 30, 40);
+    lh_gl_color_t b;
+    lh_gl_color_init(&b, 50, 60, 70, 80);
+    lh_gl_blur_window_take(&window, &a);
+    lh_gl_blur_window_take(&window, &b);
+    /* (10*40 + 50*80 + 120/2) / 120. Straight 30 would be the green of a
+       transparent pixel leaking into the average; the weights are colour times
+       alpha, so this is not that. */
+    EXPECT_EQ(lh_gl_blur_window_average(&window, 0, 2), 37);
+    EXPECT_EQ(lh_gl_blur_window_average(&window, 3, 2), 60);
+
+    lh_gl_blur_window_drop(&window, &a);
+    EXPECT_EQ(lh_gl_blur_window_average(&window, 0, 1), 50);
 }
 
 } // namespace
-
-TEST(gl_blur, a_flat_picture_stays_flat)
+/* The bottom rows are where a sliding window runs off the end of its own buffer:
+ * the pass that slides has to stop taking when there is nothing left to take, or
+ * it averages whatever memory follows the scratch and the bottom of the picture
+ * goes dark for no reason at all. */
+TEST(ui_blur, the_bottom_rows_are_blurred_and_not_read_past)
 {
-    lh_gl_color_t pixels[k_width * k_height];
+    blur_fixture f;
+    lh_gl_color_t color;
 
-    for (int i = 0; i < k_width * k_height; ++i)
+    /* Top half black, bottom half white: after the blur every row still has to be
+     * somewhere between its own value and its neighbour's, and the last row of a
+     * white half is white. */
+    for (int y = 0; y < blur_fixture::height; ++y)
     {
-        lh_gl_color_init(pixels + i, 0x40, 0x40, 0x40, 255);
+        for (int x = 0; x < blur_fixture::width; ++x)
+        {
+            lh_gl_color_init(&color, y < blur_fixture::height / 2 ? 0 : 255, y < blur_fixture::height / 2 ? 0 : 255,
+                             y < blur_fixture::height / 2 ? 0 : 255, 255);
+            f.words[y * blur_fixture::width + x] = lh_gl_color_get_argb(&color);
+        }
     }
-    lh_gl_size_t size;
+    lh_gl_rect_t rect;
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(0), lh_gl_scalar(0), lh_gl_scalar_of(blur_fixture::width),
+                    lh_gl_scalar_of(blur_fixture::height));
+    lh_gl_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_gl_scalar(2), f.scratch);
 
-    lh_gl_size_init(lh_addr_of(size), k_width, k_height);
-    lh_gl_pixmap_t pixmap;
-
-    lh_gl_pixmap_init(lh_addr_of(pixmap), pixels, size);
-    lh_gl_rect_t rect = rect_of(2, 1, 10, 5);
-    lh_gl_color_t scratch[k_width * (k_height + 8)];
-    lh_gl_blur_rect(lh_addr_of(pixmap), lh_addr_of(rect), 2, scratch);
-    EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 5, 3)), 0x40);
+    EXPECT_EQ(f.red_at(0, 0), 0);
+    EXPECT_EQ(f.red_at(0, blur_fixture::height - 1), 255);
+    for (int y = 1; y < blur_fixture::height; ++y)
+    {
+        EXPECT_GE(f.red_at(0, y), f.red_at(0, y - 1)) << y;
+    }
 }
 
-TEST(gl_blur, an_edge_becomes_a_ramp)
+/* The sharpest detector there is for a blur that reads past its own buffer: the
+ * same picture, the same radius, and whatever memory follows the scratch filled
+ * two different ways. A blur that stays inside its buffer cannot tell them
+ * apart; one that does not, cannot. */
+TEST(ui_blur, the_picture_does_not_depend_on_what_follows_the_scratch)
 {
-    lh_gl_color_t pixels[k_width * k_height];
+    blur_fixture low;
+    blur_fixture high;
 
-    for (int x = 0; x < k_width; ++x)
+    for (int y = 0; y < blur_fixture::height; ++y)
     {
-        fill_column(pixels, x, x < k_width / 2 ? 0 : 255, 255);
+        for (int x = 0; x < blur_fixture::width; ++x)
+        {
+            lh_gl_color_t color;
+
+            lh_gl_color_init(&color, x * 16, y * 32, 128, 255);
+            low.words[y * blur_fixture::width + x] = lh_gl_color_get_argb(&color);
+            high.words[y * blur_fixture::width + x] = lh_gl_color_get_argb(&color);
+        }
     }
-    lh_gl_size_t size;
+    low.fill_poison(0);
+    high.fill_poison(255);
 
-    lh_gl_size_init(lh_addr_of(size), k_width, k_height);
-    lh_gl_pixmap_t pixmap;
+    lh_gl_rect_t rect;
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(0), lh_gl_scalar(0), lh_gl_scalar_of(blur_fixture::width),
+                    lh_gl_scalar_of(blur_fixture::height));
+    lh_gl_blur_rect(lh_addr_of(low.pixmap), lh_addr_of(rect), lh_gl_scalar(3), low.scratch);
+    lh_gl_blur_rect(lh_addr_of(high.pixmap), lh_addr_of(rect), lh_gl_scalar(3), high.scratch);
 
-    lh_gl_pixmap_init(lh_addr_of(pixmap), pixels, size);
-    lh_gl_rect_t rect = rect_of(0, 0, k_width, k_height);
-    lh_gl_color_t scratch[k_width * (k_height + 8)];
-    lh_gl_blur_rect(lh_addr_of(pixmap), lh_addr_of(rect), 3, scratch);
-    const lh_gl_color_t *at_step = lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), k_width / 2 - 1, 3);
-    const lh_gl_color_t *past_step = lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), k_width / 2, 3);
-    lh_u8_t middle = lh_gl_color_get_r(at_step);
-    lh_u8_t near = lh_gl_color_get_r(past_step);
+    int different = 0;
+    for (int y = 0; y < blur_fixture::height; ++y)
+    {
+        for (int x = 0; x < blur_fixture::width; ++x)
+        {
+            const lh_gl_color_t a = lh_test::out(lh_gl_pixmap_get_pixel, lh_addr_of(low.pixmap), x, y);
+            const lh_gl_color_t b = lh_test::out(lh_gl_pixmap_get_pixel, lh_addr_of(high.pixmap), x, y);
 
-    EXPECT_GT(middle, 0);
-    EXPECT_LT(middle, 255);
-    EXPECT_EQ(middle + near, 255);
-    const lh_gl_color_t *untouched = lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), k_width / 2 - 4, 3);
-
-    EXPECT_EQ(lh_gl_color_get_r(untouched), 0);
+            if (a.r != b.r || a.g != b.g || a.b != b.b)
+            {
+                ++different;
+            }
+        }
+    }
+    EXPECT_EQ(different, 0);
 }
 
-TEST(gl_blur, a_hidden_colour_does_not_tint)
+/* A transparent pixel keeps whatever colour was written into it. Averaging that
+ * colour straight paints it into the neighbours; premultiplying does not. */
+TEST(ui_blur, a_transparent_pixel_does_not_tint_its_neighbours)
 {
-    lh_gl_color_t pixels[2];
+    blur_fixture f;
+    lh_gl_color_t color;
 
-    lh_gl_color_init(pixels + 0, 255, 0, 0, 0);
-    lh_gl_color_init(pixels + 1, 0, 0, 0, 255);
-    lh_gl_size_t size;
+    for (int y = 0; y < blur_fixture::height; ++y)
+    {
+        for (int x = 0; x < blur_fixture::width; ++x)
+        {
+            lh_gl_color_init(&color, 200, 0, 0, 255);
+            f.words[y * blur_fixture::width + x] = lh_gl_color_get_argb(&color);
+        }
+    }
+    lh_gl_color_init(&color, 0, 255, 0, 0);
+    f.words[4 * blur_fixture::width + 8] = lh_gl_color_get_argb(&color);
+    lh_gl_rect_t rect;
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(0), lh_gl_scalar(0), lh_gl_scalar_of(blur_fixture::width),
+                    lh_gl_scalar_of(blur_fixture::height));
+    lh_gl_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_gl_scalar(1), f.scratch);
 
-    lh_gl_size_init(lh_addr_of(size), 2, 1);
-    lh_gl_pixmap_t pixmap;
+    for (int y = 3; y <= 5; ++y)
+    {
+        for (int x = 7; x <= 9; ++x)
+        {
+            const lh_gl_color_t pixel = lh_test::out(lh_gl_pixmap_get_pixel, lh_addr_of(f.pixmap), x, y);
 
-    lh_gl_pixmap_init(lh_addr_of(pixmap), pixels, size);
-    lh_gl_rect_t rect = rect_of(0, 0, 2, 1);
-    lh_gl_color_t scratch[8];
-    lh_gl_blur_rect(lh_addr_of(pixmap), lh_addr_of(rect), 1, scratch);
-    EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 0, 0)), 0);
-    EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 0)), 0);
+            EXPECT_EQ(lh_gl_color_get_g(&pixel), 0) << x << "," << y;
+        }
+    }
 }
 
-TEST(gl_glass, a_rounded_corner_stays_and_the_middle_takes_the_tint)
+/* The window reaches past the rect into the pixmap. A bright pixel just outside
+ * has to move the edge of the rect, and must itself stay put: only the rect is
+ * written. */
+TEST(ui_blur, a_neighbour_outside_the_rect_still_counts)
 {
-    lh_gl_color_t pixels[8 * 8];
+    blur_fixture f;
+    lh_gl_color_t color;
 
-    lh_memory_std_set(pixels, 0, sizeof pixels);
-    lh_gl_size_t size;
-
-    lh_gl_size_init(lh_addr_of(size), 8, 8);
-    lh_gl_pixmap_t pixmap;
-
-    lh_gl_pixmap_init(lh_addr_of(pixmap), pixels, size);
-    lh_gl_rect_t panel = rect_of(1, 1, 6, 6);
-    lh_gl_color_t tint;
-    for (int i = 0; i < 64; ++i)
+    for (int y = 0; y < blur_fixture::height; ++y)
     {
-        lh_gl_color_init(pixels + i, 255, 255, 255, 255);
+        for (int x = 0; x < blur_fixture::width; ++x)
+        {
+            lh_gl_color_init(&color, 0, 0, 0, 255);
+            f.words[y * blur_fixture::width + x] = lh_gl_color_get_argb(&color);
+        }
     }
-    lh_gl_color_init(lh_addr_of(tint), 0, 0, 0, 255);
-    lh_gl_glass(lh_addr_of(pixmap), lh_addr_of(panel), 3, 0, lh_addr_of(tint), nullptr, nullptr,
-                nullptr);
-    EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 1)), 255);
-    EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 4, 4)), 0);
+    lh_gl_color_init(&color, 255, 255, 255, 255);
+    f.words[3 * blur_fixture::width + 1] = lh_gl_color_get_argb(&color);
+    lh_gl_rect_t rect;
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(3), lh_gl_scalar(2), lh_gl_scalar(8), lh_gl_scalar(4));
+    lh_gl_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_gl_scalar(2), f.scratch);
+
+    EXPECT_EQ(f.red_at(1, 3), 255);
+    EXPECT_GT(f.red_at(3, 3), 0);
 }
 
-TEST(gl_glass, a_rounded_blur_keeps_the_missed_corner)
+/* -- Column-pass bricks ---------------------------------------------------- */
+
+TEST(ui_blur_bricks, sample_color_reads_four_bytes)
 {
-    lh_gl_color_t pixels[8 * 8];
+    const lh_u8_t sample[4] = {10, 20, 30, 40};
+    const lh_gl_color_t c = lh_test::out(lh_gl_blur_sample_color, sample);
 
-    for (int i = 0; i < 64; ++i)
-    {
-        lh_gl_color_init(pixels + i, 255, 255, 255, 255);
-    }
-    lh_gl_size_t size;
-
-    lh_gl_size_init(lh_addr_of(size), 8, 8);
-    lh_gl_pixmap_t pixmap;
-
-    lh_gl_pixmap_init(lh_addr_of(pixmap), pixels, size);
-    lh_gl_rect_t panel = rect_of(1, 1, 6, 6);
-    lh_gl_color_t tint;
-
-    lh_gl_color_init(lh_addr_of(tint), 0, 0, 0, 255);
-    lh_gl_color_t scratch[8 * 16];
-    lh_gl_glass(lh_addr_of(pixmap), lh_addr_of(panel), 3, 1, lh_addr_of(tint), scratch, nullptr,
-                nullptr);
-    EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 1)), 255);
-    EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 4, 4)), 0);
+    EXPECT_EQ(lh_gl_color_get_r(&c), 10);
+    EXPECT_EQ(lh_gl_color_get_g(&c), 20);
+    EXPECT_EQ(lh_gl_color_get_b(&c), 30);
+    EXPECT_EQ(lh_gl_color_get_a(&c), 40);
 }
 
-TEST(gl_glass, a_mask_keeps_the_pixel_it_misses)
+TEST(ui_blur_bricks, window_span_is_cut_to_the_band)
 {
-    lh_gl_color_t pixels[8 * 8];
+    lh_s32_t win0;
+    lh_s32_t win1;
 
-    for (int i = 0; i < 64; ++i)
-    {
-        lh_gl_color_init(pixels + i, 255, 255, 255, 255);
-    }
-    lh_gl_size_t size;
-
-    lh_gl_size_init(lh_addr_of(size), 8, 8);
-    lh_gl_pixmap_t pixmap;
-
-    lh_gl_pixmap_init(lh_addr_of(pixmap), pixels, size);
-    lh_gl_rect_t panel = rect_of(1, 1, 6, 6);
-    lh_gl_color_t tint;
-
-    lh_gl_color_init(lh_addr_of(tint), 0, 0, 0, 255);
-    lh_gl_mask_t mask;
-
-    lh_gl_mask_init_round(lh_addr_of(mask), rect_of(0, 0, 4, 8), 0);
-    lh_gl_glass(lh_addr_of(pixmap), lh_addr_of(panel), 3, 0, lh_addr_of(tint), nullptr, nullptr,
-                lh_addr_of(mask));
-    EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 3, 4)), 0);
-    EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 4, 4)), 255);
-    for (int i = 0; i < 64; ++i)
-    {
-        lh_gl_color_init(pixels + i, 255, 255, 255, 255);
-    }
-    lh_gl_color_t scratch[8 * 16];
-
-    lh_gl_glass(lh_addr_of(pixmap), lh_addr_of(panel), 3, 1, lh_addr_of(tint), scratch, nullptr,
-                lh_addr_of(mask));
-    EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 1)), 255);
-    EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 4, 4)), 255);
-    EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 3, 4)), 0);
+    lh_gl_blur_window_span(5, 2, 0, 10, &win0, &win1);
+    EXPECT_EQ(win0, 3);
+    EXPECT_EQ(win1, 8);
+    lh_gl_blur_window_span(1, 3, 0, 3, &win0, &win1);
+    EXPECT_EQ(win0, 0);
+    EXPECT_EQ(win1, 3);
 }
 
-TEST(gl_glass, a_short_scratch_draws_nothing)
+TEST(ui_blur_bricks, samples_taken_then_dropped_leave_nothing)
 {
-    lh_gl_color_t pixels[4 * 4];
+    /* Two samples in a column of a 2-pixel-wide scratch: stride 8 bytes. */
+    const lh_u8_t scratch[16] = {255, 0, 0, 255, 9, 9, 9, 9, 0, 0, 255, 255, 9, 9, 9, 9};
+    lh_gl_blur_window_t sum = {0, 0, 0, 0};
 
-    for (int i = 0; i < 16; ++i)
-    {
-        lh_gl_color_init(pixels + i, 10, 20, 30, 255);
-    }
-    lh_gl_size_t size;
+    lh_gl_blur_window_take_samples(&sum, scratch, 8, 2);
+    EXPECT_EQ(sum.r, 255 * 255);
+    EXPECT_EQ(sum.b, 255 * 255);
+    EXPECT_EQ(sum.a, 510);
+    const lh_gl_color_t avg = lh_test::out(lh_gl_blur_window_average_color, &sum, 2);
+    EXPECT_EQ(lh_gl_color_get_r(&avg), 128);
+    EXPECT_EQ(lh_gl_color_get_b(&avg), 128);
+    EXPECT_EQ(lh_gl_color_get_a(&avg), 255);
+    lh_gl_blur_window_drop_samples(&sum, scratch, 8, 2);
+    lh_gl_blur_window_take_samples(&sum, scratch, 8, 0);
+    EXPECT_EQ(sum.r, 0);
+    EXPECT_EQ(sum.g, 0);
+    EXPECT_EQ(sum.b, 0);
+    EXPECT_EQ(sum.a, 0);
+}
 
-    lh_gl_size_init(lh_addr_of(size), 4, 4);
-    lh_gl_pixmap_t pixmap;
+TEST(ui_blur_bricks, pass_init_refuses_nothing_to_write)
+{
+    const lh_u8_t scratch[4] = {0, 0, 0, 0};
 
-    lh_gl_pixmap_init(lh_addr_of(pixmap), pixels, size);
-    lh_gl_point_t origin;
-
-    lh_gl_point_init(lh_addr_of(origin), 0, 0);
-    lh_gl_rect_t clip = rect_of(0, 0, 4, 4);
-    lh_gl_canvas_t canvas;
-
-    lh_gl_canvas_init(lh_addr_of(canvas));
-    lh_gl_canvas_set_target(lh_addr_of(canvas), lh_addr_of(pixmap));
-    lh_gl_canvas_set_backend(lh_addr_of(canvas), lh_gl_pixmap_get_canvas_backend());
-    lh_gl_layer_t layer;
-
-    lh_gl_layer_init(lh_addr_of(layer), clip);
-    lh_gl_color_t tint;
-
-    lh_gl_color_init(lh_addr_of(tint), 0, 0, 0, 128);
-    lh_gl_color_t scratch[1];
-    lh_gl_glass_t panel;
-    lh_gl_glass_init(lh_addr_of(panel), clip, lh_addr_of(tint), scratch, 1);
-    lh_gl_glass_set_blur(lh_addr_of(panel), 2);
-    lh_gl_layer_add(lh_addr_of(layer), lh_gl_glass_get_entity_mut(lh_addr_of(panel)));
-    lh_gl_layer_draw(lh_addr_of(layer), lh_addr_of(canvas), lh_addr_of(clip));
-    EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 1)), 10);
-    EXPECT_FALSE(lh_gl_entity_class_get_opaque(lh_gl_glass_get_class()));
-    lh_gl_layer_deinit(lh_addr_of(layer));
+    lh_gl_rect_t rect;
+    lh_gl_rect_init(&rect, lh_gl_scalar(2), lh_gl_scalar(1), lh_gl_scalar(4), lh_gl_scalar(3));
+    lh_gl_blur_pass_t pass;
+    blur_fixture f;
+    EXPECT_TRUE(lh_gl_blur_pass_init(&f.pixmap, &rect, 1, scratch, lh_null, lh_gl_scalar(0), &pass));
+    EXPECT_EQ(pass.left, 2);
+    EXPECT_EQ(pass.top, 1);
+    EXPECT_EQ(pass.width, 4);
+    EXPECT_EQ(pass.height, 3);
+    EXPECT_EQ(pass.y0, 0);
+    EXPECT_EQ(pass.y1, 5);
+    EXPECT_EQ(pass.shape, lh_null);
+    EXPECT_FALSE(lh_gl_blur_pass_init(&f.pixmap, &rect, -1, scratch, lh_null, lh_gl_scalar(0), &pass));
+    EXPECT_FALSE(lh_gl_blur_pass_init(&f.pixmap, &rect, 1, lh_null, lh_null, lh_gl_scalar(0), &pass));
 }

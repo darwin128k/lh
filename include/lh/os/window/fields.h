@@ -16,9 +16,9 @@
 #include <lh/os/window/on/tick/cb.h>
 #include <lh/os/window/placement.h>
 
-/* Declared here and defined in `lh/ui/frame/stats.h`: a window holds a pointer to it
+/* Declared here and defined in `lh/gl/frame/stats.h`: a window holds a pointer to it
    and needs nothing else from the UI to do so. */
-struct lh_ui_frame_stats;
+struct lh_gl_frame_stats;
 
 /**
  * @def lh_os_window_fields(handle_type, app_type, window_type, controller_type)
@@ -88,7 +88,7 @@ struct lh_ui_frame_stats;
     int paint_bottom;                                                                              \
     lh_os_window_on_paint_cb on_paint;                                                             \
     lh_ptr on_paint_context;                                                                       \
-    struct lh_ui_frame_stats *frame_stats;                                                         \
+    struct lh_gl_frame_stats *frame_stats;                                                         \
     lh_os_input_sink_cb on_input;                                                                  \
     lh_ptr on_input_context;                                                                       \
     controller_type *controller;                                                                   \

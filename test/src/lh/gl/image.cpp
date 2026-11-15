@@ -1,0 +1,266 @@
+#include <gtest/gtest.h>
+
+#include <lh/test/gl/draw_log.h>
+#include <lh/test/gl/fill_probe.h>
+
+#include <lh/gl/image.h>
+#include <lh/gl/label.h>
+#include <lh/test/out.h>
+
+namespace
+{
+using lh_test::draw_log;
+using lh_test::draw_log_init;
+using lh_test::rect_is;
+using lh_test::rect_of;
+
+/* 4 x 3 at 8 bpp, three rows of four bytes: a solid block. Every number below
+   is read off it. */
+const lh_byte_t g_block[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                             0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+
+lh_gl_mask_t
+block_mask()
+{
+    lh_gl_mask_t mask;
+
+    lh_gl_mask_init(&mask, g_block, 4, 3, 4, 8);
+    return mask;
+}
+
+lh_gl_style_t
+plain_style(lh_gl_scalar_t padding)
+{
+    lh_gl_style_t style;
+
+    lh_gl_style_init(&style);
+    lh_gl_style_set_padding_all(&style, padding);
+    return style;
+}
+} // namespace
+
+TEST(entity_image, init_keeps_the_mask_the_rect_and_the_class)
+{
+    const lh_gl_mask_t mask = block_mask();
+
+    lh_gl_image_t image;
+    lh_gl_image_init(&image, rect_of(10, 20, 16, 16), &mask);
+    lh_gl_size_t size = lh_test::out(lh_gl_image_get_size, &image);
+
+    EXPECT_TRUE(rect_is(lh_test::out(lh_gl_entity_copy_rect, lh_gl_image_as_entity(&image)), rect_of(10, 20, 16, 16)));
+    EXPECT_EQ(lh_gl_image_get_mask(&image), &mask);
+    EXPECT_EQ(lh_gl_entity_get_class(lh_gl_image_as_entity(&image)), &lh_gl_image_class);
+    EXPECT_EQ(lh_gl_size_get_width(&size), lh_gl_scalar(4)) << "the picture is not the mask";
+    EXPECT_EQ(lh_gl_size_get_height(&size), lh_gl_scalar(3));
+
+    /* White and opaque: an image with no style of its own still paints. */
+    const lh_gl_color_t *tint = lh_gl_image_get_tint(&image);
+    EXPECT_EQ(lh_gl_color_get_r(tint), 255);
+    EXPECT_EQ(lh_gl_color_get_a(tint), 255);
+}
+
+TEST(entity_image, as_image_tells_an_image_from_anything_else)
+{
+    lh_gl_image_t image;
+
+    lh_gl_image_init(&image, rect_of(0, 0, 4, 3), lh_null);
+    lh_gl_entity_t plain;
+    lh_gl_entity_init(&plain, rect_of(0, 0, 4, 3));
+
+    EXPECT_EQ(lh_gl_entity_as_image(lh_gl_image_as_entity(&image)), &image);
+    EXPECT_EQ(lh_gl_entity_as_image(&plain), lh_null) << "a plain entity is not an image";
+    EXPECT_EQ(lh_gl_entity_as_image(lh_null), lh_null);
+}
+
+/* A mask is not scaled: the box is 16 x 16 and the picture is 4 x 3 at its top
+   left corner, so the rest of the box stays empty rather than stretching. */
+TEST(entity_image, the_picture_is_drawn_as_it_is_at_the_corner_of_the_box)
+{
+    const lh_gl_mask_t mask = block_mask();
+
+    lh_gl_image_t image;
+    lh_gl_image_init(&image, rect_of(10, 20, 16, 16), &mask);
+    lh_gl_canvas_t canvas;
+    draw_log log;
+    draw_log_init(&log, &canvas, false, false, true);
+
+    lh_gl_entity_draw(lh_gl_image_as_entity(&image), &canvas);
+
+    EXPECT_EQ(log.mask_count, 1) << "the picture did not reach the backend";
+    EXPECT_TRUE(rect_is(log.masks[0], rect_of(10, 20, 4, 3)));
+    EXPECT_EQ(log.fill_count, 0) << "no style was set, so nothing should have been filled";
+}
+
+/* The picture keeps the padding that keeps it off the edges, the same origin a
+   label's text gets. */
+TEST(entity_image, the_picture_starts_inside_the_padding)
+{
+    const lh_gl_mask_t mask = block_mask();
+    const lh_gl_style_t style = plain_style(lh_gl_scalar(2));
+
+    lh_gl_image_t image;
+    lh_gl_image_init(&image, rect_of(10, 20, 16, 16), &mask);
+    lh_gl_entity_set_style_v(lh_gl_image_as_entity(&image), &style);
+    lh_gl_canvas_t canvas;
+    draw_log log;
+    draw_log_init(&log, &canvas, false, false, true);
+
+    lh_gl_entity_draw(lh_gl_image_as_entity(&image), &canvas);
+
+    EXPECT_TRUE(rect_is(log.masks[0], rect_of(12, 22, 4, 3)));
+}
+
+/* Nothing to show is nothing drawn: a mask is a pointer, and the one that is not
+   there must not reach the backend or be asked for its size. */
+TEST(entity_image, nothing_is_drawn_without_a_mask)
+{
+    lh_gl_image_t image;
+
+    lh_gl_image_init(&image, rect_of(10, 20, 16, 16), lh_null);
+    lh_gl_canvas_t canvas;
+    draw_log log;
+    draw_log_init(&log, &canvas, false, false, true);
+
+    lh_gl_entity_draw(lh_gl_image_as_entity(&image), &canvas);
+    lh_gl_size_t size = lh_test::out(lh_gl_image_get_size, &image);
+
+    EXPECT_EQ(log.mask_count, 0);
+    EXPECT_EQ(lh_gl_size_get_width(&size), lh_gl_scalar(0));
+    EXPECT_EQ(lh_gl_size_get_height(&size), lh_gl_scalar(0));
+}
+
+TEST(entity_image, the_tint_is_the_colour_the_picture_is_drawn_in)
+{
+    const lh_gl_mask_t mask = block_mask();
+    lh_gl_color_t red;
+
+    lh_gl_color_init(&red, 10, 20, 30, 255);
+    lh_gl_image_t image;
+    lh_gl_image_init(&image, rect_of(0, 0, 4, 3), &mask);
+    lh_gl_image_set_tint_v(&image, &red);
+    lh_gl_canvas_t canvas;
+    draw_log log;
+    draw_log_init(&log, &canvas, false, false, true);
+
+    lh_gl_entity_draw(lh_gl_image_as_entity(&image), &canvas);
+
+    EXPECT_EQ(log.mask_count, 1);
+    EXPECT_EQ(lh_gl_color_get_r(&log.mask_colors[0]), 10);
+    EXPECT_EQ(lh_gl_color_get_g(&log.mask_colors[0]), 20);
+    EXPECT_EQ(lh_gl_color_get_b(&log.mask_colors[0]), 30);
+}
+
+/* Contract of a derived class: the base fill still goes through, so a card with
+   a picture on it is one style and one class rather than two entities. */
+TEST(entity_image, draw_keeps_the_base_class_fill)
+{
+    const lh_gl_mask_t mask = block_mask();
+    lh_gl_color_t color;
+    lh_test::fill_probe probe;
+
+    lh_gl_color_init(&color, 1, 2, 3, 255);
+    lh_gl_paint_t paint;
+    lh_gl_paint_init_color(&paint, &color);
+    lh_gl_style_t style;
+    lh_gl_style_init(&style);
+    lh_gl_style_assign_fill(&style, &paint);
+    lh_gl_image_t image;
+    lh_gl_image_init(&image, rect_of(0, 0, 4, 3), &mask);
+    lh_gl_entity_set_style_v(lh_gl_image_as_entity(&image), &style);
+    lh_gl_canvas_t canvas;
+    lh_test::fill_probe_init(&probe, &canvas, lh_test::fill_probe_backend(), rect_of(0, 0, 4, 3), color);
+
+    lh_gl_entity_draw(lh_gl_image_as_entity(&image), &canvas);
+
+    EXPECT_EQ(probe.matches, 1);
+}
+
+/* What `wrap` asks and gets back: the picture, padding included. This is what a
+   flow measures, so a row of an image and a caption gives the image its own
+   width and nothing more. */
+TEST(entity_image, an_image_measures_as_its_mask)
+{
+    const lh_gl_mask_t mask = block_mask();
+
+    lh_gl_image_t image;
+    lh_gl_image_init(&image, rect_of(10, 20, 16, 16), &mask);
+    lh_gl_rect_t bounds =
+        lh_test::out(lh_gl_entity_get_content_bounds, lh_gl_image_as_entity(&image));
+    EXPECT_TRUE(rect_is(bounds, rect_of(10, 20, 4, 3)))
+        << "the image measured the box it was given instead of the picture it shows";
+
+    const lh_gl_style_t style = plain_style(lh_gl_scalar(2));
+    lh_gl_entity_set_style_v(lh_gl_image_as_entity(&image), &style);
+    bounds = lh_test::out(lh_gl_entity_get_content_bounds, lh_gl_image_as_entity(&image));
+    EXPECT_TRUE(rect_is(bounds, rect_of(12, 22, 4, 3))) << "the padding was not measured with it";
+}
+
+/* The point of the whole piece, measured through a flow: a picture that wraps
+   takes its own width and the caption follows it. The box said 16 wide, the
+   picture is 4 wide, and the flow believes the picture. */
+TEST(entity_image, a_wrap_place_gets_the_picture_its_own_width)
+{
+    const lh_gl_mask_t mask = block_mask();
+    const lh_gl_style_t style = plain_style(lh_gl_scalar(8));
+
+    lh_gl_container_t box;
+    lh_gl_container_init(&box, rect_of(100, 50, 240, 160));
+    lh_gl_entity_set_style_v(lh_gl_container_as_entity(&box), &style);
+    lh_gl_image_t picture;
+    lh_gl_image_init(&picture, rect_of(0, 0, 16, 3), &mask);
+    lh_gl_label_t caption;
+    lh_gl_label_init(&caption, rect_of(0, 0, 0, 16), "");
+    lh_gl_place_t place;
+    lh_gl_place_init(&place, lh_gl_place_size_wrap, lh_gl_scalar(0));
+    lh_gl_place_set_align(&place, lh_gl_place_align_center);
+    lh_gl_entity_set_place_v(lh_gl_image_as_entity(&picture), &place);
+    lh_gl_place_init(&place, lh_gl_place_size_fixed, lh_gl_scalar(20));
+    lh_gl_place_set_align(&place, lh_gl_place_align_center);
+    lh_gl_entity_set_place_v(lh_gl_label_as_entity(&caption), &place);
+    lh_gl_entity_add_child(lh_gl_container_as_entity(&box), lh_gl_image_as_entity(&picture));
+    lh_gl_entity_add_child(lh_gl_container_as_entity(&box), lh_gl_label_as_entity(&caption));
+    lh_gl_layout_t layout;
+    lh_gl_layout_init(&layout, lh_gl_axis_horizontal, lh_gl_scalar(4));
+    lh_gl_layout_set_justify(&layout, lh_gl_justify_center);
+    lh_gl_container_set_layout(&box, &layout);
+
+    /* Nothing runs the pass by hand: the frame asks the box for its children. */
+    lh_gl_point_t offset;
+    lh_gl_entity_get_children_transform(lh_gl_container_as_entity(&box), &offset);
+
+    const lh_gl_rect_t picture_rect = lh_test::out(lh_gl_entity_copy_rect, lh_gl_image_as_entity(&picture));
+    const lh_gl_rect_t caption_rect = lh_test::out(lh_gl_entity_copy_rect, lh_gl_label_as_entity(&caption));
+    /* 4 of picture, 4 of gap, 20 of caption, in a 224 wide content box. */
+    const int start = 108 + (224 - 28) / 2;
+
+    /* Along the row the picture is as long as what it shows. Across the row a
+       child keeps the size it was given — that is the flow's rule, not the
+       image's, so the height here is the 3 it was handed. */
+    EXPECT_EQ(lh_gl_size_get_width(lh_gl_rect_get_size(&picture_rect)), 4)
+        << "the flow stretched the picture to the box it was given";
+    EXPECT_EQ(lh_gl_size_get_height(lh_gl_rect_get_size(&picture_rect)), 3);
+    EXPECT_EQ(lh_gl_point_get_x(lh_gl_rect_get_origin(&caption_rect)), start + 4 + 4)
+        << "the caption did not follow the picture";
+}
+
+/* A mask is cropped to ink and knows nothing about the type it came out of, so a
+   picture starts with no line at all — and saying so is the contract: a row that
+   lines up on a baseline (::lh_gl_place_align_baseline) falls back to centring for
+   a child that answers -1, because -1 is not a line to stand on. */
+TEST(entity_image, a_picture_has_no_baseline_until_it_is_given_one)
+{
+    const lh_gl_mask_t mask = block_mask();
+
+    lh_gl_image_t image;
+    lh_gl_image_init(&image, rect_of(0, 0, 4, 3), &mask);
+
+    EXPECT_EQ(lh_gl_image_get_baseline(&image), lh_gl_scalar(-1));
+    EXPECT_EQ(lh_gl_entity_get_baseline(lh_gl_image_as_entity(&image)), lh_gl_scalar(-1))
+        << "the entity answered for itself instead of asking the picture";
+
+    lh_gl_image_set_baseline(&image, lh_gl_scalar(3));
+
+    EXPECT_EQ(lh_gl_image_get_baseline(&image), lh_gl_scalar(3));
+    EXPECT_EQ(lh_gl_entity_get_baseline(lh_gl_image_as_entity(&image)), lh_gl_scalar(3))
+        << "the baseline did not get out through the event";
+}

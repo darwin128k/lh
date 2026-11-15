@@ -1,12 +1,12 @@
 /* example/window_stats.c
  *
- * A runnable window that prints the live numbers from ::lh_ui_frame_stats_t
+ * A runnable window that prints the live numbers from ::lh_gl_frame_stats_t
  * back into itself. The hook is what every faster-than-LVGL renderer rests on:
  * a paint that sees both what the window system asked for (the union of small
  * dirty rects) and what the renderer actually drew (often a single bounding
  * rectangle around the request). The ratio `drawn / asked` is the cost of
  * choosing one rectangle over a list of them, and the
- * `lh_ui_frame_stats_get_wasteful` count is the frames that ratio exceeds.
+ * `lh_gl_frame_stats_get_wasteful` count is the frames that ratio exceeds.
  *
  * Two invalidations far apart still arrive as one paint; this window forces
  * that by invalidating only a quarter band at the top of the client every
@@ -22,7 +22,7 @@
 #include <lh/core/runtime/terminate.h>
 #include <lh/os/window.h>
 #include <lh/core/math/rect.h>
-#include <lh/ui/frame/stats.h>
+#include <lh/gl/frame/stats.h>
 
 #if defined(_WIN32)
 #    define WIN32_LEAN_AND_MEAN
@@ -52,18 +52,18 @@ on_paint(lh_os_window_t *self, lh_ptr context)
     rc.bottom = b;
     FillRect(dc, &rc, (HBRUSH)(COLOR_BTNFACE + 1));
 
-    struct lh_ui_frame_stats *stats = lh_os_window_get_frame_stats(self);
+    struct lh_gl_frame_stats *stats = lh_os_window_get_frame_stats(self);
     if (stats == NULL)
     {
         return;
     }
 
-    lh_u32_t frames = lh_ui_frame_stats_get_frames(stats);
-    lh_u32_t wasteful = lh_ui_frame_stats_get_wasteful(stats);
-    lh_u64_t drawn = lh_ui_frame_stats_get_drawn_px(stats);
-    lh_u64_t asked = lh_ui_frame_stats_get_asked_px(stats);
-    lh_u64_t us = lh_ui_frame_stats_get_us(stats);
-    lh_u64_t worst = lh_ui_frame_stats_get_worst_us(stats);
+    lh_u32_t frames = lh_gl_frame_stats_get_frames(stats);
+    lh_u32_t wasteful = lh_gl_frame_stats_get_wasteful(stats);
+    lh_u64_t drawn = lh_gl_frame_stats_get_drawn_px(stats);
+    lh_u64_t asked = lh_gl_frame_stats_get_asked_px(stats);
+    lh_u64_t us = lh_gl_frame_stats_get_us(stats);
+    lh_u64_t worst = lh_gl_frame_stats_get_worst_us(stats);
 
     double ratio = (asked != 0) ? ((double)drawn / (double)asked) : 0.0;
     double pct = (frames != 0u) ? (100.0 * (double)wasteful / (double)frames) : 0.0;
@@ -120,7 +120,7 @@ on_tick(lh_os_window_t *self, lh_ptr context)
  * as on the screen. Useful when the window is hidden under another one.
  */
 static lh_void
-on_frame(const lh_ui_frame_t *frame, lh_ptr context)
+on_frame(const lh_gl_frame_t *frame, lh_ptr context)
 {
     (void)context;
     const lh_math_point_t *origin = lh_math_rect_get_origin(&frame->drawn);
@@ -181,15 +181,15 @@ main(void)
 {
     lh_os_app_t app;
     lh_os_window_t win;
-    lh_ui_frame_stats_t stats;
+    lh_gl_frame_stats_t stats;
 
     lh_memory_allocator_init(lh_runtime_allocator_get_mut(), example_alloc, example_dealloc);
     lh_runtime_terminate_handler_init(lh_runtime_terminate_get_mut(), example_abort, NULL);
     lh_os_app_init(lh_addr_of(app));
     lh_os_window_init(lh_addr_of(win));
-    lh_ui_frame_stats_init(lh_addr_of(stats));
+    lh_gl_frame_stats_init(lh_addr_of(stats));
 
-    lh_ui_frame_stats_set_on_frame(lh_addr_of(stats), on_frame, NULL);
+    lh_gl_frame_stats_set_on_frame(lh_addr_of(stats), on_frame, NULL);
     lh_os_window_set_frame_stats(lh_addr_of(win), lh_addr_of(stats));
     lh_os_window_set_on_paint(lh_addr_of(win), on_paint, NULL);
     lh_os_window_set_on_tick(lh_addr_of(win), on_tick, NULL, 100);

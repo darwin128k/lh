@@ -63,7 +63,7 @@ function(lh_generate_config)
     else ()
         set(ValOsWerror 0)
     endif ()
-    if (LH_LIBRARY_OPTION_UI)
+    if (LH_LIBRARY_OPTION_GL)
         set(ValUi 1)
     else ()
         set(ValUi 0)
@@ -79,7 +79,7 @@ function(lh_generate_config)
         set(ValJs 0)
     endif ()
     # Roboto may ship without the full UI tree (bare-metal TFT text, etc.).
-    if (LH_LIBRARY_OPTION_UI_FONT_ROBOTO)
+    if (LH_LIBRARY_OPTION_GL_FONT_ROBOTO)
         set(ValUiFontRoboto 1)
     else ()
         set(ValUiFontRoboto 0)
@@ -123,27 +123,21 @@ function(lh_generate_config)
         set(ValAllocatorInitAllocated 0)
     endif ()
 
-    if (NOT LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS MATCHES "^[0-9]+$" OR
-            LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS LESS 1 OR
-            LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS GREATER 255)
-        message(FATAL_ERROR "LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS must be an integer in 1..255 "
-                "(got '${LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS}')")
+    if (NOT LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS MATCHES "^[0-9]+$" OR
+            LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS LESS 1 OR
+            LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS GREATER 255)
+        message(FATAL_ERROR "LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS must be an integer in 1..255 "
+                "(got '${LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS}')")
     endif ()
-    set(ValUiGradientMaxStops "${LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS}")
+    set(ValUiGradientMaxStops "${LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS}")
 
-    if (NOT LH_LIBRARY_OPTION_UI_CANVAS_DEPTH MATCHES "^[0-9]+$" OR
-            LH_LIBRARY_OPTION_UI_CANVAS_DEPTH LESS 1 OR
-            LH_LIBRARY_OPTION_UI_CANVAS_DEPTH GREATER 255)
-        message(FATAL_ERROR "LH_LIBRARY_OPTION_UI_CANVAS_DEPTH must be an integer in 1..255 "
-                "(got '${LH_LIBRARY_OPTION_UI_CANVAS_DEPTH}')")
+    if (NOT LH_LIBRARY_OPTION_GL_CANVAS_DEPTH MATCHES "^[0-9]+$" OR
+            LH_LIBRARY_OPTION_GL_CANVAS_DEPTH LESS 1 OR
+            LH_LIBRARY_OPTION_GL_CANVAS_DEPTH GREATER 255)
+        message(FATAL_ERROR "LH_LIBRARY_OPTION_GL_CANVAS_DEPTH must be an integer in 1..255 "
+                "(got '${LH_LIBRARY_OPTION_GL_CANVAS_DEPTH}')")
     endif ()
-    set(ValUiCanvasDepth "${LH_LIBRARY_OPTION_UI_CANVAS_DEPTH}")
-
-    if (NOT LH_LIBRARY_OPTION_GL_SURFACE_DIRTY_MAX MATCHES "^[1-9][0-9]*$")
-        message(FATAL_ERROR "LH_LIBRARY_OPTION_GL_SURFACE_DIRTY_MAX must be a positive decimal integer "
-                "(got '${LH_LIBRARY_OPTION_GL_SURFACE_DIRTY_MAX}')")
-    endif ()
-    set(ValGlSurfaceDirtyMax "${LH_LIBRARY_OPTION_GL_SURFACE_DIRTY_MAX}")
+    set(ValUiCanvasDepth "${LH_LIBRARY_OPTION_GL_CANVAS_DEPTH}")
 
     set(ValArrayInitialCapacity "${LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY}")
     set(ValArrayGrowthFactor "${LH_LIBRARY_OPTION_ARRAY_GROWTH_FACTOR}")

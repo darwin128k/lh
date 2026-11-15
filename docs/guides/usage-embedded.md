@@ -24,10 +24,10 @@ if (F4VE_USE_LH)
     set(LH_LIBRARY_OPTION_OS        OFF CACHE BOOL "" FORCE)
     set(LH_LIBRARY_OPTION_OS_WINDOW OFF CACHE BOOL "" FORCE)
 
-    # Software canvas + present sinks (lh_ui_display_t)
-    set(LH_LIBRARY_OPTION_UI              ON CACHE BOOL "" FORCE)
+    # Software canvas + present sinks (lh_gl_display_t)
+    set(LH_LIBRARY_OPTION_GL              ON CACHE BOOL "" FORCE)
     # Roboto 16 px / 4bpp — text on the TFT
-    set(LH_LIBRARY_OPTION_UI_FONT_ROBOTO  ON CACHE BOOL "" FORCE)
+    set(LH_LIBRARY_OPTION_GL_FONT_ROBOTO  ON CACHE BOOL "" FORCE)
 
     # No TLS; lh has no C library — the host wires allocator/terminate/output itself
     set(LH_LIBRARY_OPTION_THREAD_LOCAL OFF CACHE BOOL "" FORCE)
@@ -143,42 +143,42 @@ The firmware installs no allocator: the UI and display run on static buffers.
 
 ---
 
-## 3. Display: `src/display.c` — `lh_ui_display_t`
+## 3. Display: `src/display.c` — `lh_gl_display_t`
 
-`lh_ui_display_t` (`lh/ui/display.h`) packages "a software canvas over an
+`lh_gl_display_t` (`lh/gl/display.h`) packages "a software canvas over an
 application-owned buffer + a table of present sinks". The application owns
 the buffer; on an MCU it is a **strip** — part of the screen, not the whole
 frame.
 
 ```c
-#include <lh/ui/display.h>
-#include <lh/ui/pixmap/format.h>
-#include <lh/ui/present/sink.h>
-#include <lh/ui/size.h>
+#include <lh/gl/display.h>
+#include <lh/gl/pixmap/format.h>
+#include <lh/gl/present/sink.h>
+#include <lh/gl/size.h>
 #include <lh/core/util/addr.h>
 
 /* 320 × 48 RGB565 ≈ 30 KB — about 1/5 of the panel, like LVGL PARTIAL */
 static uint16_t s_fb[F4VE_TFT_WIDTH * F4VE_FB_STRIP_H];
 static uint16_t s_strip_y;
-static lh_ui_display_t s_disp;
-static lh_ui_present_sink_t s_sink;
+static lh_gl_display_t s_disp;
+static lh_gl_present_sink_t s_sink;
 
 void
 f4ve_display_init(void)
 {
-    lh_ui_size_t panel;
+    lh_gl_size_t panel;
 
-    lh_ui_size_init(lh_addr_of(panel), lh_ui_scalar(F4VE_TFT_WIDTH), lh_ui_scalar(F4VE_TFT_HEIGHT));
+    lh_gl_size_init(lh_addr_of(panel), lh_gl_scalar(F4VE_TFT_WIDTH), lh_gl_scalar(F4VE_TFT_HEIGHT));
 
-    lh_ui_display_init(lh_addr_of(s_disp));
-    lh_ui_display_set_panel(lh_addr_of(s_disp), panel);
-    lh_ui_display_set_format(lh_addr_of(s_disp), lh_ui_pixmap_format_rgb565);
-    lh_ui_display_set_strip_height(lh_addr_of(s_disp), lh_ui_scalar(F4VE_FB_STRIP_H));
-    lh_ui_display_set_buffer(lh_addr_of(s_disp), (lh_byte_ptr)s_fb,
+    lh_gl_display_init(lh_addr_of(s_disp));
+    lh_gl_display_set_panel(lh_addr_of(s_disp), panel);
+    lh_gl_display_set_format(lh_addr_of(s_disp), lh_gl_pixmap_format_rgb565);
+    lh_gl_display_set_strip_height(lh_addr_of(s_disp), lh_gl_scalar(F4VE_FB_STRIP_H));
+    lh_gl_display_set_buffer(lh_addr_of(s_disp), (lh_byte_ptr)s_fb,
                              (lh_s32_t)(F4VE_TFT_WIDTH * 2u));   /* stride in bytes */
 
-    lh_ui_present_sink_init(lh_addr_of(s_sink), "f4ve", f4ve_lh_present, lh_addr_of(s_strip_y));
-    lh_ui_display_set_sink(lh_addr_of(s_disp), 0u, lh_addr_of(s_sink));
+    lh_gl_present_sink_init(lh_addr_of(s_sink), "f4ve", f4ve_lh_present, lh_addr_of(s_strip_y));
+    lh_gl_display_set_sink(lh_addr_of(s_disp), 0u, lh_addr_of(s_sink));
 }
 ```
 
@@ -189,13 +189,13 @@ void
 f4ve_display_set_strip_y(uint16_t y0)
 {
     s_strip_y = y0;                                         /* for the sink */
-    lh_ui_display_set_strip_y(lh_addr_of(s_disp), lh_ui_scalar(y0));
+    lh_gl_display_set_strip_y(lh_addr_of(s_disp), lh_gl_scalar(y0));
 }
 
 void
 f4ve_display_present(void)
 {
-    lh_ui_display_present(lh_addr_of(s_disp), lh_null);    /* NULL = whole strip */
+    lh_gl_display_present(lh_addr_of(s_disp), lh_null);    /* NULL = whole strip */
 }
 ```
 
@@ -206,21 +206,21 @@ Rules:
   [usage-desktop.md](usage-desktop.md)).
 - **Strip height** — 1/10 to 1/5 of the panel. `0` = a full-screen buffer.
 - **The buffer is neither copied nor freed** — it is the application's static.
-- You can keep several sinks (`index` < `LH_UI_PRESENT_SINKS_MAX`) and toggle
-  them with `lh_ui_display_set_sink_enabled`. One frame goes to every enabled
+- You can keep several sinks (`index` < `LH_GL_PRESENT_SINKS_MAX`) and toggle
+  them with `lh_gl_display_set_sink_enabled`. One frame goes to every enabled
   sink.
 
 ---
 
 ## 4. Present sink: `src/lh_present.c`
 
-A sink is an `lh_ui_present_fn`: "show these rects of this pixmap". The
+A sink is an `lh_gl_present_fn`: "show these rects of this pixmap". The
 `drawn` coordinates are **strip-local**, so the sink gets the strip offset
 through `context`.
 
 ```c
 lh_void
-f4ve_lh_present(lh_ptr context, const lh_ui_pixmap_t *pixels, const lh_ui_rects_t *drawn)
+f4ve_lh_present(lh_ptr context, const lh_gl_pixmap_t *pixels, const lh_gl_rects_t *drawn)
 {
     uint16_t strip_y = context != lh_null ? *(const uint16_t *)context : 0;
     lh_u32_t i, n;
@@ -229,29 +229,29 @@ f4ve_lh_present(lh_ptr context, const lh_ui_pixmap_t *pixels, const lh_ui_rects_
         return;
 
     /* Empty / NULL drawn = the whole pixmap */
-    if (drawn == lh_null || lh_ui_rects_is_empty(drawn))
+    if (drawn == lh_null || lh_gl_rects_is_empty(drawn))
     {
-        flush_rect(pixels, 0, 0, lh_ui_pixmap_get_width(pixels),
-                   lh_ui_pixmap_get_height(pixels), strip_y);
+        flush_rect(pixels, 0, 0, lh_gl_pixmap_get_width(pixels),
+                   lh_gl_pixmap_get_height(pixels), strip_y);
         return;
     }
 
-    n = lh_ui_rects_get_count(drawn);
+    n = lh_gl_rects_get_count(drawn);
     for (i = 0; i < n; ++i)
     {
-        const lh_ui_rect_t *r = lh_ui_rects_get(drawn, i);
-        const lh_ui_point_t *o = lh_ui_rect_get_origin(r);
-        const lh_ui_size_t *s = lh_ui_rect_get_size(r);
+        const lh_gl_rect_t *r = lh_gl_rects_get(drawn, i);
+        const lh_gl_point_t *o = lh_gl_rect_get_origin(r);
+        const lh_gl_size_t *s = lh_gl_rect_get_size(r);
 
-        flush_rect(pixels, lh_ui_point_get_x(o), lh_ui_point_get_y(o),
-                   lh_ui_size_get_width(s), lh_ui_size_get_height(s), strip_y);
+        flush_rect(pixels, lh_gl_point_get_x(o), lh_gl_point_get_y(o),
+                   lh_gl_size_get_width(s), lh_gl_size_get_height(s), strip_y);
     }
 }
 ```
 
 `flush_rect` takes the address of the first row with
-`lh_ui_pixmap_get_address(pixels, x, y)` and hands it to the panel driver
-(`f4ve_tft_flush`) with a stride of `lh_ui_pixmap_get_width(pixels)` pixels.
+`lh_gl_pixmap_get_address(pixels, x, y)` and hands it to the panel driver
+(`f4ve_tft_flush`) with a stride of `lh_gl_pixmap_get_width(pixels)` pixels.
 Everything that knows the hardware (MADCTL, mirroring, the ILI9341 write
 window) stays in the driver — **lh never names a concrete peripheral**.
 
@@ -262,27 +262,27 @@ Plugging in your own display is exactly one such function.
 ## 5. Text: `src/tft.c` — Roboto without the UI tree
 
 The font can be used directly, without a canvas or widgets
-(`LH_LIBRARY_OPTION_UI_FONT_ROBOTO=ON` works even with `UI=OFF`):
+(`LH_LIBRARY_OPTION_GL_FONT_ROBOTO=ON` works even with `UI=OFF`):
 
 ```c
-#include <lh/ui/font/roboto.h>
-#include <lh/ui/mask.h>
+#include <lh/gl/font/roboto.h>
+#include <lh/gl/mask.h>
 
-const lh_ui_font_t *font = lh_addr_of(lh_ui_font_roboto);
-lh_ui_mask_t glyph;
-int32_t advance = lh_ui_font_get_advance(font, code);
+const lh_gl_font_t *font = lh_addr_of(lh_gl_font_roboto);
+lh_gl_mask_t glyph;
+int32_t advance = lh_gl_font_get_advance(font, code);
 
-if (lh_ui_font_get_glyph(font, code, lh_addr_of(glyph)))
+if (lh_gl_font_get_glyph(font, code, lh_addr_of(glyph)))
 {
-    int32_t gw = lh_ui_mask_get_width(lh_addr_of(glyph));
-    int32_t gh = lh_ui_mask_get_height(lh_addr_of(glyph));
+    int32_t gw = lh_gl_mask_get_width(lh_addr_of(glyph));
+    int32_t gh = lh_gl_mask_get_height(lh_addr_of(glyph));
     /* origin_y is the top of the line box; ink starts at ascent + glyph top */
-    int32_t gy0 = origin_y + lh_ui_font_get_ascent(font) + lh_ui_font_get_top(font, code);
+    int32_t gy0 = origin_y + lh_gl_font_get_ascent(font) + lh_gl_font_get_top(font, code);
 
     for (row = 0; row < gh; ++row)
         for (col = 0; col < gw; ++col)
         {
-            uint8_t cover = lh_ui_mask_get_coverage(lh_addr_of(glyph), col, row);
+            uint8_t cover = lh_gl_mask_get_coverage(lh_addr_of(glyph), col, row);
             if (cover)
                 put_pixel(origin_x + col, gy0 + row, blend565(fg, bg, cover));
         }
@@ -298,22 +298,22 @@ the cheapest way to decent text on an MCU.
 ## 6. Next step: the UI tree on an MCU
 
 Today f4ve-bare draws its interface with the `tft.c` functions, while
-`lh_ui_display_t` is wired and ready. To draw with an lh widget tree (the same
-one the desktop uses), bind an `lh_ui_view_t` to the display's canvas:
+`lh_gl_display_t` is wired and ready. To draw with an lh widget tree (the same
+one the desktop uses), bind an `lh_gl_view_t` to the display's canvas:
 
 ```c
-static lh_ui_view_t s_view;
+static lh_gl_view_t s_view;
 
-lh_ui_view_init(lh_addr_of(s_view));
-lh_ui_view_set_canvas(lh_addr_of(s_view), lh_ui_display_get_canvas(lh_addr_of(s_disp)));
-lh_ui_view_set_root(lh_addr_of(s_view), root);   /* the tree — usage-desktop.md, section 4 */
+lh_gl_view_init(lh_addr_of(s_view));
+lh_gl_view_set_canvas(lh_addr_of(s_view), lh_gl_display_get_canvas(lh_addr_of(s_disp)));
+lh_gl_view_set_root(lh_addr_of(s_view), root);   /* the tree — usage-desktop.md, section 4 */
 
 /* once per strip: */
 for (y = 0; y < F4VE_TFT_HEIGHT; y += F4VE_FB_STRIP_H)
 {
     f4ve_display_set_strip_y(y);
-    lh_ui_view_draw(lh_addr_of(s_view), lh_null);
-    lh_ui_display_present(lh_addr_of(s_disp), lh_null);
+    lh_gl_view_draw(lh_addr_of(s_view), lh_null);
+    lh_gl_display_present(lh_addr_of(s_disp), lh_null);
 }
 ```
 
@@ -322,21 +322,21 @@ needed): the touch interrupt builds a `pointer_down` / `pointer_move` /
 `pointer_up` with `lh_os_input_event_init_pointer` (device kind `touch`,
 panel coordinates via `lh_os_input_coord_from_int`) and pushes it into an
 `lh_os_input_queue_t`; the main loop drains the queue into a sink that calls
-`lh_ui_view_input`. A single-touch panel is pointer `0`; a multi-touch one
+`lh_gl_view_input`. A single-touch panel is pointer `0`; a multi-touch one
 gives each contact its own id below `LH_OS_INPUT_POINTER_MAX`, and the view
-keeps a press session for each. `lh_ui_view_press` / `lh_ui_view_release`
-(pointer `0`) and `lh_ui_view_press_pointer` / `_release_pointer` still work
-directly. `lh_ui_view_tick` from a ~60 Hz timer drives kinetic scrolling;
+keeps a press session for each. `lh_gl_view_press` / `lh_gl_view_release`
+(pointer `0`) and `lh_gl_view_press_pointer` / `_release_pointer` still work
+directly. `lh_gl_view_tick` from a ~60 Hz timer drives kinetic scrolling;
 for long press or double tap, feed the events through an
 `lh_os_input_recognizer_t` and call `lh_os_input_recognizer_update` from the
 same timer.
 
 A wheel or rotary encoder sends `wheel` events in 1/120 notch
 (`LH_OS_INPUT_WHEEL_NOTCH` a detent). With `LH_LIBRARY_OPTION_OS=OFF` there
-is no system to ask how far a notch goes, so `lh_ui_view_input` scrolls
-`LH_UI_VIEW_WHEEL_STEP` content units a notch: 40, the OS layer's own
+is no system to ask how far a notch goes, so `lh_gl_view_input` scrolls
+`LH_GL_VIEW_WHEEL_STEP` content units a notch: 40, the OS layer's own
 default `LH_OS_INPUT_WHEEL_STEP_DEFAULT`. Both are `#ifndef`; define
-`LH_UI_VIEW_WHEEL_STEP` for the build (e.g. `-DLH_UI_VIEW_WHEEL_STEP=20` in
+`LH_GL_VIEW_WHEEL_STEP` for the build (e.g. `-DLH_GL_VIEW_WHEEL_STEP=20` in
 the compile definitions) to change it. A build with the OS layer on a
 platform without a kernel for it (STM32 and the like) gets the same 40 from
 `lh_os_input_get_wheel_step`.
@@ -348,6 +348,6 @@ platform without a kernel for it (STM32 and the like) gets the same 40 from
 1. A toolchain file with `-fno-pic -fno-pie`, `-ffunction-sections`, `--gc-sections`.
 2. The `set(... FORCE)` block from section 1 before `add_subdirectory(lib/lh)`.
 3. Fill `lh_runtime_terminate_get_mut()` and `lh_runtime_writer_get_mut()` at the start of `main`.
-4. A static strip buffer + `lh_ui_display_t` in the panel's format.
-5. One `lh_ui_present_fn` → the panel driver.
+4. A static strip buffer + `lh_gl_display_t` in the panel's format.
+5. One `lh_gl_present_fn` → the panel driver.
 6. An allocator and a logger if needed.

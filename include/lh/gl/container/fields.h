@@ -7,18 +7,43 @@
 #define LH_GL_CONTAINER_FIELDS_H
 
 /**
- * @def lh_gl_container_fields(layer_type, axis_type)
- * @brief A layer and the axes that shift its children.
+ * @def lh_gl_container_fields(entity_type, point_type, layout_type, bool_type)
+ * @brief The entity this container is, how far its content is scrolled, the
+ *        flow its children are placed by, and whether that flow is running.
  *
- * @param layer_type ::lh_gl_layer_t. The member is `layer`, borrowed. The
- *                   container does not own it and does not change its
- *                   rectangle.
- * @param axis_type  ::lh_gl_scroll_axis_t. `horizontal` and `vertical` are
- *                   borrowed and may be null. A null axis contributes no shift.
+ * `scroll` is kept in `0 .. max` per axis, clamped on set and again on read
+ * (::lh_gl_container_clamp_scroll). Scrollbars are separate
+ * components that point at the container; it keeps no fields for them.
+ *
+ * `layout` is the flow, **not owned**, and `lh_null` for none — the same rule
+ * as a style: a container nobody gave a flow to keeps its children exactly where
+ * they were put, and a default flow would silently move them (measured: fourteen
+ * tests that place children by hand went red on a default that nobody asked for).
+ * When there is one, ::lh_gl_container_place_children applies it before it
+ * hands the transform on, which is why a container that moved carries its
+ * children with it and the app never places anything by hand.
+ *
+ * `scroll_enabled` permits native input to move this container. It starts true;
+ * a button turns it off because holding a caption does not imply scrolling.
+ * Programmatic scroll setters remain available.
+ *
+ * `placing` is true while the flow runs. Placing a child moves it, moving it asks
+ * where it is on screen, and that asks every container above it for its children's
+ * transform -- this one included, which ran the flow again from inside itself. A
+ * flow that does not settle (a box sized by a caption that is centred in the box)
+ * then recursed until the stack ran out; with the flag the question is answered
+ * from where the flow has got to, and the flow runs once.
+ *
+ * @param entity_type Type of the embedded entity.
+ * @param point_type  Type of the scroll position.
+ * @param layout_type Type of the flow.
+ * @param bool_type   Type of the flag.
  */
-#define lh_gl_container_fields(layer_type, axis_type)                                              \
-    layer_type *layer;                                                                             \
-    const axis_type *horizontal;                                                                   \
-    const axis_type *vertical
+#define lh_gl_container_fields(entity_type, point_type, layout_type, bool_type)                    \
+    entity_type entity;                                                                            \
+    point_type scroll;                                                                             \
+    const layout_type *layout;                                                                     \
+    bool_type scroll_enabled;                                                                      \
+    bool_type placing
 
 #endif /* LH_GL_CONTAINER_FIELDS_H */

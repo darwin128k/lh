@@ -1,208 +1,711 @@
 /**
  * @file canvas.h
- * @brief Drawing commands for one borrowed target.
+ * @brief Where an entity tree draws: ::lh_gl_canvas_t, a backend plus context.
  *
- * A canvas is the tool: it fills and strokes shapes into the target. It does
- * not remember an origin, a clip or a mask. Each command takes a ::lh_gl_place_t
- * for that call. Coordinates on the shape are relative to the place origin.
- * The canvas shifts them, drops a shape that misses the clip, and scales a
- * pixel by the mask when the place has one. It owns no pixels.
+ * Callers use begin / clear / fill_rect / end; the bound
+ * ::lh_gl_canvas_backend_t does the pixels. ::lh_gl_entity_draw hands the
+ * canvas to every class draw event. No style cascade, no draw-task queue.
+ *
+ * A small fixed stack (::LH_LIBRARY_OPTION_GL_CANVAS_DEPTH) holds an offset
+ * and a clip: ::lh_gl_canvas_push / ::lh_gl_canvas_pop. The canvas adds the
+ * offset to every primitive and, for a backend without `set_clip`, cuts it
+ * to the clip; backends never see the offset.
  */
 
 #ifndef LH_GL_CANVAS_H
 #define LH_GL_CANVAS_H
 
 #include <lh/gl/canvas/backend.h>
-#include <lh/gl/canvas/decl.h>
 #include <lh/gl/canvas/fields.h>
-#include <lh/gl/place.h>
+#include <lh/gl/canvas/state.h>
 
-/** @brief Borrowed target and call table. */
+/**
+ * @struct lh_gl_canvas
+ * @brief Active draw target: backend, context, offset / clip stack, damage.
+ */
 struct lh_gl_canvas
 {
-    lh_gl_canvas_fields(lh_ptr, lh_gl_canvas_backend_t);
+    /** Members: ::lh_gl_canvas_fields. */
+    lh_gl_canvas_fields(lh_gl_canvas_backend_t, lh_ptr, lh_gl_canvas_state_t, lh_u8_t, lh_gl_size_t,
+                        lh_gl_point_t, lh_gl_rect_t, lh_bool_t, lh_gl_canvas_clip_round_t, lh_u8_t,
+                        lh_usize_t, lh_gl_rects_t);
 };
+/** @copybrief lh_gl_canvas */
+typedef struct lh_gl_canvas lh_gl_canvas_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/** @brief Clear the target and the backend. */
+/**
+ * @brief Bind @p self to @p backend and @p context. Neither is owned.
+ *
+ * ::lh_null @p backend makes every call a no-op until
+ * ::lh_gl_canvas_set_backend. ::lh_gl_canvas_backend_null says the same
+ * thing explicitly. Starts with offset `(0, 0)`, no clip, nothing pushed.
+ */
 lh_void
-lh_gl_canvas_init(lh_gl_canvas_t *self);
+lh_gl_canvas_init(lh_gl_canvas_t *self, const lh_gl_canvas_backend_t *backend, lh_ptr context);
 
-/** @brief Opaque target the backend draws into, or ::lh_null. */
-lh_ptr
-lh_gl_canvas_get_target(const lh_gl_canvas_t *self);
-
-/** @brief Store the opaque target. Not owned. */
+/**
+ * @brief Drop the backend and context of @p self.
+ */
 lh_void
-lh_gl_canvas_set_target(lh_gl_canvas_t *self, lh_ptr target);
+lh_gl_canvas_deinit(lh_gl_canvas_t *self);
 
-/** @brief Borrowed call table, or ::lh_null when the canvas draws nothing. */
-const lh_gl_canvas_backend_t *
-lh_gl_canvas_get_backend(const lh_gl_canvas_t *self);
-
-/** @brief Store the call table. Not owned. ::lh_null draws nothing. */
+/**
+ * @brief Replace the backend of @p self. Not owned.
+ */
 lh_void
 lh_gl_canvas_set_backend(lh_gl_canvas_t *self, const lh_gl_canvas_backend_t *backend);
 
 /**
- * @brief Fill @p rect. Coordinates are relative to the place origin.
- *
- * The root rectangle is @p rect shifted by the origin. A rectangle that misses
- * the clip is not passed on. Without a backend call, nothing is drawn. A round
- * mask fills the flat cross as rectangles and asks
- * ::lh_gl_cover_round_rect_band only inside the corner squares.
+ * @brief Backend of @p self, or ::lh_null.
  */
-lh_void
-lh_gl_canvas_fill_rect(lh_gl_canvas_t *self, const lh_gl_place_t *place, const lh_gl_rect_t *rect,
-                       const lh_gl_color_t *color);
+const lh_gl_canvas_backend_t *
+lh_gl_canvas_get_backend(const lh_gl_canvas_t *self);
 
 /**
- * @brief Paint one root pixel of @p color scaled by @p cover.
- *
- * Coverage 0 draws nothing. 255 draws @p color. A value between scales the
- * alpha. @p x and @p y are already in root coordinates.
+ * @brief Replace the context of @p self.
  */
 lh_void
-lh_gl_canvas_fill_covered(lh_gl_canvas_t *self, const lh_gl_rect_t *clip, lh_gl_scalar_t x,
-                          lh_gl_scalar_t y, lh_gl_color_channel_t cover,
-                          const lh_gl_color_t *color);
+lh_gl_canvas_set_context(lh_gl_canvas_t *self, lh_ptr context);
 
 /**
- * @brief Fill @p hit under the place's round mask.
- *
- * @p hit is the root rectangle already clipped. The flat cross, where the
- * rounded rectangle covers every pixel, is one rectangle. A corner row is a
- * solid run plus the arc, and only the arc asks ::lh_gl_cover_round_rect_band.
- * The place mask is that one rounded rectangle.
+ * @brief Context of @p self.
+ */
+lh_ptr
+lh_gl_canvas_get_context(const lh_gl_canvas_t *self);
+
+/**
+ * @brief Target size of @p self (for `clear` damage). Zero until set.
  */
 lh_void
-lh_gl_canvas_fill_round(lh_gl_canvas_t *self, const lh_gl_place_t *place, const lh_gl_rect_t *hit,
-                        const lh_gl_color_t *color);
+lh_gl_canvas_set_size(lh_gl_canvas_t *self, lh_gl_size_t size);
 
 /**
- * @brief Paint rows [@p y0, @p y1) of a rounded @p shape, limited to [@p x0, @p x1).
- *
- * The run between the corner squares is one rectangle of @p color. The squares
- * ask ::lh_gl_cover_round_rect_band. @p radius is already clamped.
+ * @brief Target size of @p self.
  */
 lh_void
-lh_gl_canvas_fill_round_rows(lh_gl_canvas_t *self, const lh_gl_rect_t *clip,
-                             const lh_gl_rect_t *shape, lh_gl_scalar_t radius, lh_gl_scalar_t y0,
-                             lh_gl_scalar_t y1,
-                             lh_gl_scalar_t x0, lh_gl_scalar_t x1, const lh_gl_color_t *color);
+lh_gl_canvas_copy_size(const lh_gl_canvas_t *self, lh_gl_size_t *out);
 
 /**
- * @brief Paint @p count colors along one row under the place's round mask.
+ * @brief Union @p rect (target space) into the accumulated damage of @p self.
  *
- * Coordinates are origin-relative. A row through the flat cross is one run.
- * A corner row keeps the middle as one run and asks
- * ::lh_gl_cover_round_rect_band only in the corner squares.
+ * Empty @p rect is ignored. The one place damage is recorded.
  */
 lh_void
-lh_gl_canvas_fill_round_colors(lh_gl_canvas_t *self, const lh_gl_place_t *place, lh_gl_scalar_t x,
-                               lh_gl_scalar_t y, const lh_gl_color_t *colors, lh_gl_scalar_t count);
+lh_gl_canvas_add_damage(lh_gl_canvas_t *self, const lh_gl_rect_t *rect);
 
 /**
- * @brief Paint @p count colors along one row, origin-relative.
- *
- * @p colors[i] is pixel @p x + i on row @p y. Without a backend call, each
- * pixel is one ::lh_gl_canvas_fill_rect. A round mask keeps a flat row as one
- * run and asks the band only in the corner squares.
+ * @brief Drop the accumulated damage of @p self.
  */
 lh_void
-lh_gl_canvas_fill_colors(lh_gl_canvas_t *self, const lh_gl_place_t *place, lh_gl_scalar_t x,
-                         lh_gl_scalar_t y, const lh_gl_color_t *colors, lh_gl_scalar_t count);
+lh_gl_canvas_reset_damage(lh_gl_canvas_t *self);
 
 /**
- * @brief Paint one root pixel whose shape coverage is @p shape.
- *
- * @p shape of 0 draws nothing. A mask multiplies that coverage; the product
- * is what reaches the target. No mask leaves @p shape as it is.
- */
-lh_void
-lh_gl_canvas_fill_ink(lh_gl_canvas_t *self, const lh_gl_place_t *place, lh_gl_scalar_t x,
-                      lh_gl_scalar_t y, lh_gl_color_channel_t shape, const lh_gl_color_t *color);
-
-/**
- * @brief Clip @p bounds to the place and write that rectangle to @p hit.
- *
- * Returns false when the intersection is empty. @p hit is still written.
+ * @brief True when @p self has accumulated damage.
  */
 lh_bool_t
-lh_gl_canvas_clip_hit(const lh_gl_place_t *place, const lh_gl_rect_t *bounds, lh_gl_rect_t *hit);
+lh_gl_canvas_has_damage(const lh_gl_canvas_t *self);
 
 /**
- * @brief Stroke the border of @p rect with @p pen, in origin-relative coordinates.
+ * @brief Accumulated damage of @p self, or ::lh_null when none.
+ */
+const lh_gl_rect_t *
+lh_gl_canvas_get_damage_v(const lh_gl_canvas_t *self);
+
+/**
+ * @brief @p damage clipped to @p area; empty where the two do not meet.
  *
- * The pen grows the tested bounds outward. A negative pen width tests as zero.
- * A mask scales each pixel of the border.
+ * ::lh_null @p damage is the whole target and answers @p area. Whether a piece of
+ * the target still holds what was drawn there is the one question every frame asks
+ * of every part of itself, so it is asked once here, beside the damage the canvas
+ * keeps, and not again by whoever walks the target.
  */
 lh_void
-lh_gl_canvas_stroke_rect(lh_gl_canvas_t *self, const lh_gl_place_t *place, const lh_gl_rect_t *rect,
-                         const lh_gl_pen_t *pen);
+lh_gl_canvas_damage_in(const lh_gl_rect_t *area, const lh_gl_rect_t *damage, lh_gl_rect_t *out);
 
 /**
- * @brief Fill the circle around @p center. @p center is origin-relative.
- *        A radius below 1 draws nothing. A mask scales each covered pixel.
- */
-lh_void
-lh_gl_canvas_fill_circle(lh_gl_canvas_t *self, const lh_gl_place_t *place, lh_gl_point_t center,
-                         lh_gl_scalar_t radius, const lh_gl_color_t *color);
-
-/** @brief Stroke that circle. The pen width grows the tested bounds. A mask scales the ring. */
-lh_void
-lh_gl_canvas_stroke_circle(lh_gl_canvas_t *self, const lh_gl_place_t *place, lh_gl_point_t center,
-                           lh_gl_scalar_t radius, const lh_gl_pen_t *pen);
-
-/**
- * @brief Fill @p rect with corner radius @p radius, origin-relative.
+ * @brief Save the offset and clip of @p self, then move and cut later draws.
  *
- * @p radius is limited to half the shorter side before the backend sees it.
- * A negative radius becomes zero. A mask scales each covered pixel.
+ * The new offset is the old one plus @p offset_delta. @p clip_rect is in the
+ * current (pre-push) space, like every rect handed to a primitive; it is
+ * moved by the old offset and intersected with the old clip. ::lh_null
+ * @p clip_rect keeps the old clip. When the clip changes, the backend
+ * `set_clip` slot (if any) gets the new one.
+ *
+ * More than ::LH_LIBRARY_OPTION_GL_CANVAS_DEPTH pushes without a pop fail a
+ * runtime assertion.
  */
 lh_void
-lh_gl_canvas_fill_round_rect(lh_gl_canvas_t *self, const lh_gl_place_t *place,
-                             const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
+lh_gl_canvas_push(lh_gl_canvas_t *self, lh_gl_point_t offset_delta, const lh_gl_rect_t *clip_rect);
+
+/**
+ * @brief ::lh_gl_canvas_push that also cuts later draws to @p clip_rect with
+ *        rounded corners of @p radius (clamped to it, ::lh_gl_radius_clamp),
+ *        on top of every rounded cut already pushed.
+ *
+ * Radius `0` or a ::lh_null @p clip_rect is a plain ::lh_gl_canvas_push.
+ */
+lh_void
+lh_gl_canvas_push_round(lh_gl_canvas_t *self, lh_gl_point_t offset_delta,
+                        const lh_gl_rect_t *clip_rect, lh_gl_scalar_t radius);
+
+/**
+ * @brief Add the rounded cut @p clip_rect (pre-offset space) with @p radius to
+ *        the current state; nothing for ::lh_null or radius `<= 0`.
+ */
+lh_void
+lh_gl_canvas_add_round(lh_gl_canvas_t *self, const lh_gl_rect_t *clip_rect, lh_gl_scalar_t radius);
+
+/**
+ * @brief The current clip of @p self as @p out (rect and active rounds), or
+ *        ::lh_null when nothing is cut.
+ */
+const lh_gl_canvas_clip_t *
+lh_gl_canvas_describe_clip(const lh_gl_canvas_t *self, lh_gl_canvas_clip_t *out);
+
+/**
+ * @brief How many rounded cuts are active.
+ */
+lh_u32_t
+lh_gl_canvas_get_round_count(const lh_gl_canvas_t *self);
+
+/**
+ * @brief Restore the offset and clip saved by the matching ::lh_gl_canvas_push.
+ *
+ * Popping with nothing pushed fails a runtime assertion.
+ */
+lh_void
+lh_gl_canvas_pop(lh_gl_canvas_t *self);
+
+/**
+ * @brief Offset @p self adds to every primitive (sum of the pushed deltas).
+ */
+lh_void
+lh_gl_canvas_get_offset(const lh_gl_canvas_t *self, lh_gl_point_t *out);
+
+/**
+ * @brief Clip of @p self in target space, or ::lh_null when nothing is cut.
+ */
+const lh_gl_rect_t *
+lh_gl_canvas_get_clip(const lh_gl_canvas_t *self);
+
+/**
+ * @brief True when @p self has a clip and its backend has no `set_clip`, so
+ *        the canvas cuts primitives itself.
+ */
+lh_bool_t
+lh_gl_canvas_is_cutting(const lh_gl_canvas_t *self);
+
+/**
+ * @brief Hand the current clip to the backend `set_clip` (if it has one).
+ */
+lh_void
+lh_gl_canvas_send_clip(lh_gl_canvas_t *self);
+
+/**
+ * @brief ::lh_gl_canvas_send_clip when the clip differs from @p before.
+ */
+lh_void
+lh_gl_canvas_sync_clip(lh_gl_canvas_t *self, const lh_gl_canvas_state_t *before);
+
+/**
+ * @brief Save the current offset and clip on the stack (first half of push).
+ */
+lh_void
+lh_gl_canvas_save(lh_gl_canvas_t *self);
+
+/**
+ * @brief Cut the current clip to @p clip_rect (pre-offset space);
+ *        ::lh_null leaves it.
+ */
+lh_void
+lh_gl_canvas_clip_to(lh_gl_canvas_t *self, const lh_gl_rect_t *clip_rect);
+
+/**
+ * @brief Start a frame.
+ */
+lh_void
+lh_gl_canvas_begin(lh_gl_canvas_t *self);
+
+/**
+ * @brief Start a frame that covers @p area only, so the backend can keep a
+ *        buffer no larger than that.
+ *
+ * @p area is in target space, on whole pixels. Every primitive, clip and
+ * rounded cut the backend sees afterwards is already moved so that its
+ * `(0, 0)` is the top-left of @p area; `end` presents it back there. Damage
+ * (:lh_gl_canvas_get_damage_v) stays in target space either way.
+ *
+ * Falls back to ::lh_gl_canvas_begin when the backend has no
+ * ::lh_gl_canvas_begin_area_fn: the frame is then the whole target and the
+ * drawing is unchanged.
+ */
+lh_void
+lh_gl_canvas_begin_area(lh_gl_canvas_t *self, const lh_gl_rect_t *area);
+
+/**
+ * @brief Finish a frame.
+ */
+lh_void
+lh_gl_canvas_end(lh_gl_canvas_t *self);
+
+/**
+ * @brief Fill the whole target with @p color. Ignores the offset and clip.
+ */
+lh_void
+lh_gl_canvas_clear(lh_gl_canvas_t *self, const lh_gl_color_t *color);
+
+/**
+ * @brief Send the one-row box `x0 .. x1 - 1` of row @p y to the backend
+ *        `fill_rect` as is (no offset, no cut); nothing when empty.
+ */
+lh_void
+lh_gl_canvas_send_box(lh_gl_canvas_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                      const lh_gl_color_t *color);
+
+/**
+ * @brief Send pixel (@p x, @p y) with @p color at its @p clip coverage
+ *        (::lh_gl_canvas_clip_coverage); nothing where it is `0`.
+ */
+lh_void
+lh_gl_canvas_send_clip_pixel(lh_gl_canvas_t *self, const lh_gl_canvas_clip_t *clip, lh_s32_t x,
+                             lh_s32_t y, const lh_gl_color_t *color);
+
+/**
+ * @brief ::lh_gl_canvas_send_clip_pixel for `x0 .. x1 - 1` of row @p y.
+ */
+lh_void
+lh_gl_canvas_send_clip_pixels(lh_gl_canvas_t *self, const lh_gl_canvas_clip_t *clip, lh_s32_t x0,
+                              lh_s32_t x1, lh_s32_t y, const lh_gl_color_t *color);
+
+/**
+ * @brief Row @p y of `x0 .. x1 - 1` under the rounded cuts of @p clip: the
+ *        middle as one box, the ends per pixel (::lh_gl_canvas_clip_split_row).
+ */
+lh_void
+lh_gl_canvas_send_clip_row(lh_gl_canvas_t *self, const lh_gl_canvas_clip_t *clip, lh_s32_t x0,
+                           lh_s32_t x1, lh_s32_t y, const lh_gl_color_t *color);
+
+/**
+ * @brief ::lh_gl_canvas_send_clip_row for every row of @p cut (already cut to
+ *        the clip rect, target space).
+ */
+lh_void
+lh_gl_canvas_send_clip_rows(lh_gl_canvas_t *self, const lh_gl_rect_t *cut,
+                            const lh_gl_color_t *color);
+
+/**
+ * @brief Send @p cut (cut to the clip rect) when the canvas cuts itself: one
+ *        `fill_rect`, or rows under the rounded cuts when there are any.
+ */
+lh_void
+lh_gl_canvas_send_cut(lh_gl_canvas_t *self, const lh_gl_rect_t *cut, const lh_gl_color_t *color);
+
+/**
+ * @brief True when the clip leaves @p target whole: no clip at all, or @p target
+ *        inside a plain (unrounded) clip rect.
+ *
+ * The bar for a slot that *reads* its target rather than drawing it —
+ * ::lh_gl_canvas_blur and ::lh_gl_canvas_glass, which need the pixels they are
+ * about to work on to be in the buffer. It says nothing about who does the
+ * clipping: a backend with a `set_clip` slot is not exempt from it, because a
+ * clip that cuts the target means those pixels are not in the buffer at all.
+ * A slot that draws a shape may rely on the backend's own clip instead; see
+ * ::lh_gl_canvas_can_fill_round.
+ */
+lh_bool_t
+lh_gl_canvas_can_send_whole(const lh_gl_canvas_t *self, const lh_gl_rect_t *target);
+
+/**
+ * @brief Fill a rect already in target space: cut to the clip when the canvas
+ *        cuts, nothing sent when nothing is left. The one place that sends
+ *        `fill_rect`.
+ */
+lh_void
+lh_gl_canvas_fill_target_rect(lh_gl_canvas_t *self, const lh_gl_rect_t *target,
+                              const lh_gl_color_t *color);
+
+/**
+ * @brief True when some of @p target (target space) is left inside the clip;
+ *        always true when nothing is cut. Lets a caller skip work early.
+ */
+lh_bool_t
+lh_gl_canvas_shows(const lh_gl_canvas_t *self, const lh_gl_rect_t *target);
+
+/**
+ * @brief ::lh_gl_canvas_shows for @p rect in the current (offset) space.
+ */
+lh_bool_t
+lh_gl_canvas_shows_rect(const lh_gl_canvas_t *self, const lh_gl_rect_t *rect);
+
+/**
+ * @brief True when the clip holds all of @p rect, not merely some of it.
+ *
+ * ::lh_gl_canvas_shows_rect is the question "is any of it visible". This one is
+ * "is all of it visible", which is what lets a caller skip a measurement that
+ * would only have learned the same thing. With no clip, the answer is yes
+ * whenever @p rect is not empty.
+ */
+lh_bool_t
+lh_gl_canvas_covers_rect(const lh_gl_canvas_t *self, const lh_gl_rect_t *rect);
+
+/**
+ * @brief Fill @p rect with the solid @p color.
+ *
+ * @p rect is moved by the offset; without a backend `set_clip` it is cut to
+ * the clip here, and nothing is sent when nothing is left.
+ */
+lh_void
+lh_gl_canvas_fill_rect(lh_gl_canvas_t *self, const lh_gl_rect_t *rect, const lh_gl_color_t *color);
+
+/**
+ * @brief Fill @p rect with @p color, corners rounded by @p radius.
+ *
+ * The one place a radius is normalized: it is clamped with
+ * ::lh_gl_radius_clamp, `0` falls back to ::lh_gl_canvas_fill_rect, and a
+ * backend without `fill_round_rect` gets the anti-aliased shape drawn here
+ * through `fill_rect` (edge pixels carry the coverage in their alpha).
+ * @p rect is moved by the offset. Without a backend `set_clip`, a shape that
+ * sticks out of the clip goes through that fallback, which is cut pixel-exact
+ * like ::lh_gl_canvas_fill_rect.
+ */
+lh_void
+lh_gl_canvas_fill_round_rect(lh_gl_canvas_t *self, const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
                              const lh_gl_color_t *color);
 
-/** @brief Stroke that rounded rectangle. A mask scales the ring. */
-lh_void
-lh_gl_canvas_stroke_round_rect(lh_gl_canvas_t *self, const lh_gl_place_t *place,
-                               const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
-                               const lh_gl_pen_t *pen);
+/**
+ * @brief True when the backend `fill_round_rect` can take @p target as is:
+ *        the slot exists, and the canvas need not cut it.
+ */
+lh_bool_t
+lh_gl_canvas_can_fill_round(const lh_gl_canvas_t *self, const lh_gl_rect_t *target);
 
 /**
- * @brief Fill the triangle @p a @p b @p c. The points are origin-relative.
- *        A triangle with no area draws nothing. A mask scales each covered pixel.
+ * @brief Send a rounded fill of @p target to the backend `fill_round_rect`
+ *        when it can take it (::lh_gl_canvas_can_fill_round). True only when
+ *        the slot drew.
+ */
+lh_bool_t
+lh_gl_canvas_try_fill_round(lh_gl_canvas_t *self, const lh_gl_rect_t *target, lh_gl_scalar_t radius,
+                            const lh_gl_color_t *color);
+
+/**
+ * @brief Rounded fill of a target-space rect with an already clamped radius:
+ *        `0` → ::lh_gl_canvas_fill_target_rect, else the backend slot, else
+ *        (no slot, or it drew nothing) ::lh_gl_canvas_fill_round_rect_by_rects.
  */
 lh_void
-lh_gl_canvas_fill_triangle(lh_gl_canvas_t *self, const lh_gl_place_t *place, const lh_gl_point_t *a,
-                           const lh_gl_point_t *b, const lh_gl_point_t *c,
-                           const lh_gl_color_t *color);
+lh_gl_canvas_fill_target_round_rect(lh_gl_canvas_t *self, const lh_gl_rect_t *target,
+                                    lh_gl_scalar_t radius, const lh_gl_color_t *color);
+
+/* -- Effects --------------------------------------------------------------- */
 
 /**
- * @brief Stroke the straight segment from @p a to @p b with @p pen.
+ * @brief Paint @p shadow behind @p rect (corners @p radius), anti-aliased.
  *
- * Both points are origin-relative. A pen width below 1 draws nothing. Width
- * 1 is one pixel. A wider pen paints a square of that side on each pixel,
- * centered on it. The mask, when the place has one, scales each pixel.
+ * The three effects are here rather than on the pixmap because a shadow is
+ * something the frame draws *into*, and the canvas is what a frame draws
+ * through; ::lh/gl/shadow.h holds the description and the geometry, and this is
+ * the call that puts it down. @p rect is moved by the offset like any other
+ * primitive, and the shadow may reach past it by a spread.
+ *
+ * @return True when something was painted. A backend with no `shadow` slot gets
+ *         the shadow drawn here, pixel by pixel through `fill_rect` with the
+ *         coverage in the alpha — the same way a mask is drawn without its slot.
+ *         The shadow is the box and ::lh_gl_shadow_t alone, so a frame drawn in
+ *         strips paints it strip by strip and the picture does not change; a
+ *         shadow that is nowhere near the clip paints nothing and says so.
  */
-lh_void
-lh_gl_canvas_stroke_line(lh_gl_canvas_t *self, const lh_gl_place_t *place, const lh_gl_point_t *a,
-                         const lh_gl_point_t *b, const lh_gl_pen_t *pen);
+lh_bool_t
+lh_gl_canvas_shadow(lh_gl_canvas_t *self, const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
+                    const lh_gl_shadow_t *shadow);
 
 /**
- * @brief Fill a sector. @p center is origin-relative.
+ * @brief The pixel-by-pixel shadow ::lh_gl_canvas_shadow falls back on.
  *
- * @p start and @p sweep are degrees, the same way as ::lh_gl_cover_sector.
- * A radius below 1 draws nothing. Each covered pixel is one fill, so the
- * place mask scales it.
+ * @p bounds is the shadow's own box (the box @p target grown by the outset), and
+ * only the part of it the clip lets through is touched. Public because the canvas
+ * hands it to a backend that has no `shadow` slot and wants the same pixels.
  */
 lh_void
-lh_gl_canvas_fill_sector(lh_gl_canvas_t *self, const lh_gl_place_t *place, lh_gl_point_t center,
-                         lh_gl_scalar_t radius, lh_gl_scalar_t start, lh_gl_scalar_t sweep,
-                         const lh_gl_color_t *color);
+lh_gl_canvas_shadow_fallback(lh_gl_canvas_t *self, const lh_gl_rect_t *bounds,
+                             const lh_gl_rect_t *target, lh_gl_scalar_t radius,
+                             const lh_gl_shadow_t *shadow);
+
+/**
+ * @brief Soften what is already on @p rect of the target, @p blur_radius out.
+ *
+ * Reads the target, so this is the one primitive with no fallback: a backend
+ * without a `blur` slot cannot do it, and the canvas returns ::lh_bool_false
+ * rather than drawing something that only looks blurred. It is also the one that
+ * needs a buffer of its own (::lh_gl_canvas_set_scratch) and the one that needs
+ * @p rect whole: the pixels it is about to blur have to be in the buffer, and in a
+ * frame drawn in strips they are not there across the strip line.
+ *
+ * @return True when the target was blurred.
+ */
+lh_bool_t
+lh_gl_canvas_blur(lh_gl_canvas_t *self, const lh_gl_rect_t *rect, lh_gl_scalar_t blur_radius);
+
+/**
+ * @brief A glass panel over @p rect: blur what is behind it by @p blur_radius,
+ *        then lay @p tint over it inside corners rounded by @p corner.
+ *
+ * @return True when the panel was drawn; false without a `glass` slot, and when
+ *         there is nothing to draw.
+ */
+lh_bool_t
+lh_gl_canvas_glass(lh_gl_canvas_t *self, const lh_gl_rect_t *rect, lh_gl_scalar_t corner,
+                   lh_gl_scalar_t blur_radius, const lh_gl_color_t *tint);
+
+/**
+ * @brief Memory the effects that read pixels may use as a second buffer.
+ *
+ * Not owned, never allocated and never freed: a frame is not the place to reach
+ * for a heap, and an app with no allocator under it would get a fault instead of
+ * a "no". @p bytes is how much of @p scratch there is; a blur needs
+ * ::lh_gl_blur_scratch_size of the rect and the radius, and is not drawn when it
+ * was given less. With no scratch at all (the default), ::lh_gl_canvas_blur and
+ * ::lh_gl_canvas_glass return ::lh_bool_false.
+ */
+lh_void
+lh_gl_canvas_use_scratch(lh_gl_canvas_t *self, lh_u8_t *scratch, lh_usize_t bytes);
+
+/**
+ * @brief Scratch of @p self, or null when it has none.
+ */
+lh_u8_t *
+lh_gl_canvas_get_scratch(const lh_gl_canvas_t *self);
+
+/**
+ * @brief Bytes of scratch @p self was given.
+ */
+lh_usize_t
+lh_gl_canvas_get_scratch_bytes(const lh_gl_canvas_t *self);
+
+/**
+ * @brief The drawing state now in effect (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gl_canvas_state_t *
+lh_gl_canvas_get_state(const lh_gl_canvas_t *self);
+
+/**
+ * @brief The drawing state now in effect, to change in place (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_gl_canvas_state_t *
+lh_gl_canvas_get_state_mut(lh_gl_canvas_t *self);
+
+/**
+ * @brief Store the drawing state now in effect (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @param state The new value.
+ */
+lh_void
+lh_gl_canvas_set_state(lh_gl_canvas_t *self, lh_gl_canvas_state_t state);
+
+/**
+ * @brief The stack of saved drawing states (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gl_canvas_state_t *
+lh_gl_canvas_get_saved(const lh_gl_canvas_t *self);
+
+/**
+ * @brief The stack of saved drawing states, to change in place (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_gl_canvas_state_t *
+lh_gl_canvas_get_saved_mut(lh_gl_canvas_t *self);
+
+/**
+ * @brief How many states are saved (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ */
+lh_u8_t
+lh_gl_canvas_get_depth(const lh_gl_canvas_t *self);
+
+/**
+ * @brief Store how many states are saved (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @param depth The new value.
+ */
+lh_void
+lh_gl_canvas_set_depth(lh_gl_canvas_t *self, lh_u8_t depth);
+
+/**
+ * @brief The size of the canvas, to change in place (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_gl_size_t *
+lh_gl_canvas_get_size_mut(lh_gl_canvas_t *self);
+
+/**
+ * @brief Where the frame being drawn sits in the target (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gl_point_t *
+lh_gl_canvas_get_frame_at(const lh_gl_canvas_t *self);
+
+/**
+ * @brief Where the frame being drawn sits in the target, to change in place (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_gl_point_t *
+lh_gl_canvas_get_frame_at_mut(lh_gl_canvas_t *self);
+
+/**
+ * @brief Store where the frame being drawn sits in the target (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @param frame_at The new value.
+ */
+lh_void
+lh_gl_canvas_set_frame_at(lh_gl_canvas_t *self, lh_gl_point_t frame_at);
+
+/**
+ * @brief The area changed since the last frame, to change in place (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_gl_rect_t *
+lh_gl_canvas_get_damage_mut(lh_gl_canvas_t *self);
+
+/**
+ * @brief Store the area changed since the last frame (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @param damage The new value.
+ */
+lh_void
+lh_gl_canvas_set_damage(lh_gl_canvas_t *self, lh_gl_rect_t damage);
+
+/**
+ * @brief Whether anything changed since the last frame (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ */
+lh_bool_t
+lh_gl_canvas_is_has_damage(const lh_gl_canvas_t *self);
+
+/**
+ * @brief Store whether anything changed since the last frame (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @param has_damage The new value.
+ */
+lh_void
+lh_gl_canvas_set_has_damage(lh_gl_canvas_t *self, lh_bool_t has_damage);
+
+/**
+ * @brief The rounded clips in effect (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gl_canvas_clip_round_t *
+lh_gl_canvas_get_rounds(const lh_gl_canvas_t *self);
+
+/**
+ * @brief The rounded clips in effect, to change in place (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_gl_canvas_clip_round_t *
+lh_gl_canvas_get_rounds_mut(lh_gl_canvas_t *self);
+
+/**
+ * @brief The rectangles the frame drew (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gl_rects_t *
+lh_gl_canvas_get_drawn(const lh_gl_canvas_t *self);
+
+/**
+ * @brief The rectangles the frame drew, to change in place (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_gl_rects_t *
+lh_gl_canvas_get_drawn_mut(lh_gl_canvas_t *self);
+
+/**
+ * @brief Store the rectangles the frame drew (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @param drawn The new value.
+ */
+lh_void
+lh_gl_canvas_set_drawn(lh_gl_canvas_t *self, lh_gl_rects_t drawn);
+
+/**
+ * @brief Store how many bytes of scratch the backend asked for (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @param scratch_bytes The new value.
+ */
+lh_void
+lh_gl_canvas_set_scratch_bytes(lh_gl_canvas_t *self, lh_usize_t scratch_bytes);
+
+/**
+ * @brief The size of the canvas (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gl_size_t *
+lh_gl_canvas_get_size(const lh_gl_canvas_t *self);
+
+/**
+ * @brief Store the scratch buffer the backend may use; ::lh_null for none (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ * @param scratch The new value.
+ */
+lh_void
+lh_gl_canvas_set_scratch(lh_gl_canvas_t *self, lh_u8_t * scratch);
+
+/**
+ * @brief The area changed since the last frame (level 1).
+ *
+ * @param self The canvas; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gl_rect_t *
+lh_gl_canvas_get_damage(const lh_gl_canvas_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

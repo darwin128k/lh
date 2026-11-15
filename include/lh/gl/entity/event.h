@@ -1,0 +1,143 @@
+/**
+ * @file event.h
+ * @brief One call handed to an entity's face: ::lh_gl_entity_event_t.
+ *
+ * The event lives for that call. The entity does not keep it.
+ */
+
+#ifndef LH_GL_ENTITY_EVENT_H
+#define LH_GL_ENTITY_EVENT_H
+
+#include <lh/gl/entity/event/fields.h>
+#include <lh/gl/rect.h>
+#include <lh/gl/entity/event/code.h>
+
+struct lh_gl_canvas;
+struct lh_gl_entity_transform;
+
+/**
+ * @struct lh_gl_entity_event
+ * @brief The code, and the context that goes with it.
+ */
+struct lh_gl_entity_event
+{
+    /** Members: ::lh_gl_entity_event_fields. */
+    lh_gl_entity_event_fields(lh_gl_entity_event_code_t, lh_ptr);
+};
+/** @copybrief lh_gl_entity_event */
+typedef struct lh_gl_entity_event lh_gl_entity_event_t;
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief Fill @p self with @p code and @p context. The context is not owned.
+ */
+lh_void
+lh_gl_entity_event_init(lh_gl_entity_event_t *self, lh_gl_entity_event_code_t code, lh_ptr context);
+
+/**
+ * @brief Which event @p self is.
+ */
+lh_gl_entity_event_code_t
+lh_gl_entity_event_get_code(const lh_gl_entity_event_t *self);
+
+/**
+ * @brief Context of @p self, or ::lh_null.
+ */
+lh_ptr
+lh_gl_entity_event_get_context(const lh_gl_entity_event_t *self);
+
+/**
+ * @brief Canvas a draw event draws on, or ::lh_null.
+ *
+ * @p self must be ::lh_gl_entity_event_draw.
+ */
+struct lh_gl_canvas *
+lh_gl_entity_event_get_canvas(const lh_gl_entity_event_t *self);
+
+/**
+ * @brief True for the pointer events (click, press, release), whose context
+ *        is a point.
+ */
+lh_bool_t
+lh_gl_entity_event_is_pointer(const lh_gl_entity_event_t *self);
+
+/**
+ * @brief The answer slot of ::lh_gl_entity_event_focusable (preset false).
+ */
+lh_bool_t *
+lh_gl_entity_event_get_focusable(const lh_gl_entity_event_t *self);
+
+/**
+ * @brief The answer slot of ::lh_gl_entity_event_clickable (preset false).
+ */
+lh_bool_t *
+lh_gl_entity_event_get_clickable(const lh_gl_entity_event_t *self);
+
+/**
+ * @brief The key or character of ::lh_gl_entity_event_key.
+ */
+const struct lh_gl_key_input *
+lh_gl_entity_event_get_key(const lh_gl_entity_event_t *self);
+
+/**
+ * @brief Pointer location in the rect space of the entity. @p self must be
+ *        ::lh_gl_entity_event_click, ::lh_gl_entity_event_press or
+ *        ::lh_gl_entity_event_release.
+ */
+lh_void
+lh_gl_entity_event_get_point(const lh_gl_entity_event_t *self, lh_gl_point_t *out);
+
+/**
+ * @brief Answer a children event fills. @p self must be
+ *        ::lh_gl_entity_event_children.
+ */
+struct lh_gl_entity_transform *
+lh_gl_entity_event_get_transform(const lh_gl_entity_event_t *self);
+
+/**
+ * @brief Answer a visible event fills. @p self must be
+ *        ::lh_gl_entity_event_visible.
+ */
+lh_bool_t *
+lh_gl_entity_event_get_visible(const lh_gl_entity_event_t *self);
+
+/**
+ * @brief Content bounds a measure event fills. @p self must be
+ *        ::lh_gl_entity_event_measure.
+ */
+lh_gl_rect_t *
+lh_gl_entity_event_get_bounds(const lh_gl_entity_event_t *self);
+
+/**
+ * @brief Rows a baseline event answers in. @p self must be
+ *        ::lh_gl_entity_event_baseline.
+ */
+lh_gl_scalar_t *
+lh_gl_entity_event_get_baseline(const lh_gl_entity_event_t *self);
+
+/**
+ * @brief Store what happened (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The event; checked by ::lh_assert_runtime_ref.
+ * @param code The new value.
+ */
+lh_void
+lh_gl_entity_event_set_code(lh_gl_entity_event_t *self, lh_gl_entity_event_code_t code);
+
+/**
+ * @brief Store the value the event carries (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The event; checked by ::lh_assert_runtime_ref.
+ * @param context The new value.
+ */
+lh_void
+lh_gl_entity_event_set_context(lh_gl_entity_event_t *self, lh_ptr context);
+
+LH_COMPILER_EXTERN_C_END
+
+#endif /* LH_GL_ENTITY_EVENT_H */

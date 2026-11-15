@@ -10,7 +10,7 @@ So the check is not "does the flag parse". It is that the name means the codes i
 supposed to mean, that an unknown name stops the run instead of quietly producing a
 Latin-only font, that the default still is what it was, and that `ru` reproduces the
 font this project actually ships -- which is the only external anchor here: the glyph
-count and the run count are read out of the checked-in `include/lh/ui/font/roboto.h`,
+count and the run count are read out of the checked-in `include/lh/gl/font/roboto.h`,
 which came off a real font, rather than out of anybody's memory.
 
 Nothing is written into the project. Where a whole font is needed the script is run for

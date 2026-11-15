@@ -209,46 +209,6 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/math/fit.c
         ${LH_LIB_SRC_PATH}/core/math/rect.c
 
-        ${LH_LIB_SRC_PATH}/gl/canvas.c
-        ${LH_LIB_SRC_PATH}/gl/place.c
-        ${LH_LIB_SRC_PATH}/gl/mask.c
-        ${LH_LIB_SRC_PATH}/gl/pixmap.c
-        ${LH_LIB_SRC_PATH}/gl/bmp.c
-        ${LH_LIB_SRC_PATH}/gl/canvas/backend.c
-        ${LH_LIB_SRC_PATH}/gl/color.c
-        ${LH_LIB_SRC_PATH}/gl/pen.c
-        ${LH_LIB_SRC_PATH}/gl/point.c
-        ${LH_LIB_SRC_PATH}/gl/size.c
-        ${LH_LIB_SRC_PATH}/gl/rect.c
-        ${LH_LIB_SRC_PATH}/gl/entity/class.c
-        ${LH_LIB_SRC_PATH}/gl/entity.c
-        ${LH_LIB_SRC_PATH}/gl/layer.c
-        ${LH_LIB_SRC_PATH}/gl/screen.c
-        ${LH_LIB_SRC_PATH}/gl/input.c
-        ${LH_LIB_SRC_PATH}/gl/input/event.c
-        ${LH_LIB_SRC_PATH}/gl/input/controller.c
-        ${LH_LIB_SRC_PATH}/gl/card.c
-        ${LH_LIB_SRC_PATH}/gl/layout.c
-        ${LH_LIB_SRC_PATH}/gl/fill.c
-        ${LH_LIB_SRC_PATH}/gl/cover.c
-        ${LH_LIB_SRC_PATH}/gl/blur/window.c
-        ${LH_LIB_SRC_PATH}/gl/blur.c
-        ${LH_LIB_SRC_PATH}/gl/glass.c
-        ${LH_LIB_SRC_PATH}/gl/gradient.c
-        ${LH_LIB_SRC_PATH}/gl/gradient/sine.c
-        ${LH_LIB_SRC_PATH}/gl/gradient/fill.c
-        ${LH_LIB_SRC_PATH}/gl/shadow.c
-        ${LH_LIB_SRC_PATH}/gl/shadow/fill.c
-        ${LH_LIB_SRC_PATH}/gl/glyph.c
-        ${LH_LIB_SRC_PATH}/gl/font.c
-        ${LH_LIB_SRC_PATH}/gl/font/caption.c
-        ${LH_LIB_SRC_PATH}/gl/text.c
-        ${LH_LIB_SRC_PATH}/gl/text/shadow.c
-        ${LH_LIB_SRC_PATH}/gl/scroll/axis.c
-        ${LH_LIB_SRC_PATH}/gl/container.c
-        ${LH_LIB_SRC_PATH}/gl/surface.c
-        ${LH_LIB_SRC_PATH}/gl/renderer.c
-        ${LH_LIB_SRC_PATH}/gl/renderer/packet.c
 
         ${LH_LIB_SRC_PATH}/core/version.c
         ${LH_LIB_SRC_PATH}/core/date.c
@@ -576,126 +536,126 @@ if (LH_LIBRARY_OPTION_JS)
     )
 endif ()
 
-if (LH_LIBRARY_OPTION_UI)
+if (LH_LIBRARY_OPTION_GL)
     list(APPEND LH_LIB_SOURCES
-            ${LH_LIB_SRC_PATH}/ui/axis.c
-            ${LH_LIB_SRC_PATH}/ui/frame.c
-            ${LH_LIB_SRC_PATH}/ui/frame/stats.c
-            ${LH_LIB_SRC_PATH}/ui/insets.c
-            ${LH_LIB_SRC_PATH}/ui/key.c
-            ${LH_LIB_SRC_PATH}/ui/layout.c
-            ${LH_LIB_SRC_PATH}/ui/layout/run.c
-            ${LH_LIB_SRC_PATH}/ui/layout/cross.c
-            ${LH_LIB_SRC_PATH}/ui/layout/place.c
-            ${LH_LIB_SRC_PATH}/ui/color.c
-            ${LH_LIB_SRC_PATH}/ui/paint.c
-            ${LH_LIB_SRC_PATH}/ui/gradient.c
-            ${LH_LIB_SRC_PATH}/ui/gradient/sampler.c
-            ${LH_LIB_SRC_PATH}/ui/gradient/sampler/lerp.c
-            ${LH_LIB_SRC_PATH}/ui/gradient/sine.c
-            ${LH_LIB_SRC_PATH}/ui/style.c
-            ${LH_LIB_SRC_PATH}/ui/easing.c
-            ${LH_LIB_SRC_PATH}/ui/transition.c
-            ${LH_LIB_SRC_PATH}/ui/radius.c
-            ${LH_LIB_SRC_PATH}/ui/radii.c
-            ${LH_LIB_SRC_PATH}/ui/rects.c
-            ${LH_LIB_SRC_PATH}/ui/scalar.c
-            ${LH_LIB_SRC_PATH}/ui/shadow.c
-            ${LH_LIB_SRC_PATH}/ui/shadow/ramp.c
-            ${LH_LIB_SRC_PATH}/ui/shadow/shape.c
-            ${LH_LIB_SRC_PATH}/ui/blur.c
-            ${LH_LIB_SRC_PATH}/ui/blur/pass.c
-            ${LH_LIB_SRC_PATH}/ui/blur/window.c
-            ${LH_LIB_SRC_PATH}/ui/range.c
-            ${LH_LIB_SRC_PATH}/ui/canvas.c
-            ${LH_LIB_SRC_PATH}/ui/canvas/backend.c
-            ${LH_LIB_SRC_PATH}/ui/canvas/state.c
-            ${LH_LIB_SRC_PATH}/ui/canvas/round.c
-            ${LH_LIB_SRC_PATH}/ui/canvas/box.c
-            ${LH_LIB_SRC_PATH}/ui/canvas/stroke.c
-            ${LH_LIB_SRC_PATH}/ui/canvas/clip.c
-            ${LH_LIB_SRC_PATH}/ui/canvas/clip/round.c
-            ${LH_LIB_SRC_PATH}/ui/pen.c
-            ${LH_LIB_SRC_PATH}/ui/entity.c
-            ${LH_LIB_SRC_PATH}/ui/entity/class.c
-            ${LH_LIB_SRC_PATH}/ui/entity/event.c
-            ${LH_LIB_SRC_PATH}/ui/entity/transform.c
-            ${LH_LIB_SRC_PATH}/ui/container.c
-            ${LH_LIB_SRC_PATH}/ui/decl.c
-            ${LH_LIB_SRC_PATH}/ui/image.c
-            ${LH_LIB_SRC_PATH}/ui/label.c
-            ${LH_LIB_SRC_PATH}/ui/input.c
-            ${LH_LIB_SRC_PATH}/ui/scrollbar.c
-            ${LH_LIB_SRC_PATH}/ui/button.c
-             ${LH_LIB_SRC_PATH}/ui/toggle.c
-            ${LH_LIB_SRC_PATH}/ui/view.c
-            ${LH_LIB_SRC_PATH}/ui/view/controller.c
-            ${LH_LIB_SRC_PATH}/ui/view/focus/walk.c
-            ${LH_LIB_SRC_PATH}/ui/view/pointer.c
-            ${LH_LIB_SRC_PATH}/ui/mask.c
-            ${LH_LIB_SRC_PATH}/ui/font.c
-             ${LH_LIB_SRC_PATH}/ui/font/range.c
-            ${LH_LIB_SRC_PATH}/ui/text.c
-            ${LH_LIB_SRC_PATH}/ui/text/align.c
-            ${LH_LIB_SRC_PATH}/ui/text/line.c
-            ${LH_LIB_SRC_PATH}/ui/text/block.c
-            ${LH_LIB_SRC_PATH}/ui/canvas/mask.c
-            ${LH_LIB_SRC_PATH}/ui/pixmap.c
-            ${LH_LIB_SRC_PATH}/ui/canvas/sw.c
-            ${LH_LIB_SRC_PATH}/ui/canvas/sw/shadow/pass.c
-            ${LH_LIB_SRC_PATH}/ui/canvas/web.c
-            ${LH_LIB_SRC_PATH}/ui/canvas/web/glyphs.c
-            ${LH_LIB_SRC_PATH}/ui/canvas/web/atlas.c
-            ${LH_LIB_SRC_PATH}/ui/present.c
-            ${LH_LIB_SRC_PATH}/ui/present/sink.c
-            ${LH_LIB_SRC_PATH}/ui/display.c
-            ${LH_LIB_SRC_PATH}/ui/display/backend.c
-            ${LH_LIB_SRC_PATH}/ui/viewport3d.c
-            ${LH_LIB_SRC_PATH}/ui/web/ws.c
-            ${LH_LIB_SRC_PATH}/ui/web/buf.c
-            ${LH_LIB_SRC_PATH}/ui/web/player/page.c
+            ${LH_LIB_SRC_PATH}/gl/axis.c
+            ${LH_LIB_SRC_PATH}/gl/frame.c
+            ${LH_LIB_SRC_PATH}/gl/frame/stats.c
+            ${LH_LIB_SRC_PATH}/gl/insets.c
+            ${LH_LIB_SRC_PATH}/gl/key.c
+            ${LH_LIB_SRC_PATH}/gl/layout.c
+            ${LH_LIB_SRC_PATH}/gl/layout/run.c
+            ${LH_LIB_SRC_PATH}/gl/layout/cross.c
+            ${LH_LIB_SRC_PATH}/gl/layout/place.c
+            ${LH_LIB_SRC_PATH}/gl/color.c
+            ${LH_LIB_SRC_PATH}/gl/paint.c
+            ${LH_LIB_SRC_PATH}/gl/gradient.c
+            ${LH_LIB_SRC_PATH}/gl/gradient/sampler.c
+            ${LH_LIB_SRC_PATH}/gl/gradient/sampler/lerp.c
+            ${LH_LIB_SRC_PATH}/gl/gradient/sine.c
+            ${LH_LIB_SRC_PATH}/gl/style.c
+            ${LH_LIB_SRC_PATH}/gl/easing.c
+            ${LH_LIB_SRC_PATH}/gl/transition.c
+            ${LH_LIB_SRC_PATH}/gl/radius.c
+            ${LH_LIB_SRC_PATH}/gl/radii.c
+            ${LH_LIB_SRC_PATH}/gl/rects.c
+            ${LH_LIB_SRC_PATH}/gl/scalar.c
+            ${LH_LIB_SRC_PATH}/gl/shadow.c
+            ${LH_LIB_SRC_PATH}/gl/shadow/ramp.c
+            ${LH_LIB_SRC_PATH}/gl/shadow/shape.c
+            ${LH_LIB_SRC_PATH}/gl/blur.c
+            ${LH_LIB_SRC_PATH}/gl/blur/pass.c
+            ${LH_LIB_SRC_PATH}/gl/blur/window.c
+            ${LH_LIB_SRC_PATH}/gl/range.c
+            ${LH_LIB_SRC_PATH}/gl/canvas.c
+            ${LH_LIB_SRC_PATH}/gl/canvas/backend.c
+            ${LH_LIB_SRC_PATH}/gl/canvas/state.c
+            ${LH_LIB_SRC_PATH}/gl/canvas/round.c
+            ${LH_LIB_SRC_PATH}/gl/canvas/box.c
+            ${LH_LIB_SRC_PATH}/gl/canvas/stroke.c
+            ${LH_LIB_SRC_PATH}/gl/canvas/clip.c
+            ${LH_LIB_SRC_PATH}/gl/canvas/clip/round.c
+            ${LH_LIB_SRC_PATH}/gl/pen.c
+            ${LH_LIB_SRC_PATH}/gl/entity.c
+            ${LH_LIB_SRC_PATH}/gl/entity/class.c
+            ${LH_LIB_SRC_PATH}/gl/entity/event.c
+            ${LH_LIB_SRC_PATH}/gl/entity/transform.c
+            ${LH_LIB_SRC_PATH}/gl/container.c
+            ${LH_LIB_SRC_PATH}/gl/decl.c
+            ${LH_LIB_SRC_PATH}/gl/image.c
+            ${LH_LIB_SRC_PATH}/gl/label.c
+            ${LH_LIB_SRC_PATH}/gl/input.c
+            ${LH_LIB_SRC_PATH}/gl/scrollbar.c
+            ${LH_LIB_SRC_PATH}/gl/button.c
+             ${LH_LIB_SRC_PATH}/gl/toggle.c
+            ${LH_LIB_SRC_PATH}/gl/view.c
+            ${LH_LIB_SRC_PATH}/gl/view/controller.c
+            ${LH_LIB_SRC_PATH}/gl/view/focus/walk.c
+            ${LH_LIB_SRC_PATH}/gl/view/pointer.c
+            ${LH_LIB_SRC_PATH}/gl/mask.c
+            ${LH_LIB_SRC_PATH}/gl/font.c
+             ${LH_LIB_SRC_PATH}/gl/font/range.c
+            ${LH_LIB_SRC_PATH}/gl/text.c
+            ${LH_LIB_SRC_PATH}/gl/text/align.c
+            ${LH_LIB_SRC_PATH}/gl/text/line.c
+            ${LH_LIB_SRC_PATH}/gl/text/block.c
+            ${LH_LIB_SRC_PATH}/gl/canvas/mask.c
+            ${LH_LIB_SRC_PATH}/gl/pixmap.c
+            ${LH_LIB_SRC_PATH}/gl/canvas/sw.c
+            ${LH_LIB_SRC_PATH}/gl/canvas/sw/shadow/pass.c
+            ${LH_LIB_SRC_PATH}/gl/canvas/web.c
+            ${LH_LIB_SRC_PATH}/gl/canvas/web/glyphs.c
+            ${LH_LIB_SRC_PATH}/gl/canvas/web/atlas.c
+            ${LH_LIB_SRC_PATH}/gl/present.c
+            ${LH_LIB_SRC_PATH}/gl/present/sink.c
+            ${LH_LIB_SRC_PATH}/gl/display.c
+            ${LH_LIB_SRC_PATH}/gl/display/backend.c
+            ${LH_LIB_SRC_PATH}/gl/viewport3d.c
+            ${LH_LIB_SRC_PATH}/gl/web/ws.c
+            ${LH_LIB_SRC_PATH}/gl/web/buf.c
+            ${LH_LIB_SRC_PATH}/gl/web/player/page.c
     )
     if (LH_LIBRARY_OPTION_MATH_FPU)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/renderer3d.c
-             ${LH_LIB_SRC_PATH}/ui/renderer3d/camera.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/renderer3d.c
+             ${LH_LIB_SRC_PATH}/gl/renderer3d/camera.c)
     endif ()
     if (LH_LIBRARY_OPTION_OS)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/deadline.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/gzip/workspace.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/client.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/frame.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/hooks.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/stream.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/gate.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/tap.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/finish.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/pipe.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host/conn.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/app.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/app/route.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/app/stream/route.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/player.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/host.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/host/deadline.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/host/gzip/workspace.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/host/client.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/host/frame.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/host/hooks.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/host/stream.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/host/gate.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/host/tap.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/host/finish.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/host/pipe.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/host/conn.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/app.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/app/route.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/app/stream/route.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/player.c)
     endif ()
     # A window's screen: the UI's software canvas drawn into a surface the
     # window presents. Needs both the UI and a native window.
     if (LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/surface.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/window.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/surface.c)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/window.c)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/render/backend/gdi.c)
     endif ()
-    if (LH_LIBRARY_OPTION_UI_FONT_ROBOTO)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/font/roboto.c)
+    if (LH_LIBRARY_OPTION_GL_FONT_ROBOTO)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/font/roboto.c)
     endif ()
 endif ()
 
 # Font-only: Roboto + mask/font without the widget/canvas tree (STM TFT, …).
-if (LH_LIBRARY_OPTION_UI_FONT_ROBOTO AND NOT LH_LIBRARY_OPTION_UI)
+if (LH_LIBRARY_OPTION_GL_FONT_ROBOTO AND NOT LH_LIBRARY_OPTION_GL)
     list(APPEND LH_LIB_SOURCES
-            ${LH_LIB_SRC_PATH}/ui/mask.c
-            ${LH_LIB_SRC_PATH}/ui/font.c
-            ${LH_LIB_SRC_PATH}/ui/font/range.c
-            ${LH_LIB_SRC_PATH}/ui/font/roboto.c
+            ${LH_LIB_SRC_PATH}/gl/mask.c
+            ${LH_LIB_SRC_PATH}/gl/font.c
+            ${LH_LIB_SRC_PATH}/gl/font/range.c
+            ${LH_LIB_SRC_PATH}/gl/font/roboto.c
     )
 endif ()
 

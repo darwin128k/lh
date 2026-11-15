@@ -9,9 +9,8 @@
  * **Manual build (no CMake):** copy this file to `config.h` and substitute every
  * CMake-style placeholder (at-sign delimited identifiers) with decimal integers:
  * version macros from the root `VERSION` file; library options use `0` or `1`
- * except `LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS` (must be 1..255),
- * `LH_LIBRARY_OPTION_UI_CANVAS_DEPTH` (must be 1..255),
- * `LH_LIBRARY_OPTION_GL_SURFACE_DIRTY_MAX` (must be > 0),
+ * except `LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS` (must be 1..255),
+ * `LH_LIBRARY_OPTION_GL_CANVAS_DEPTH` (must be 1..255),
  * `LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY` (must be > 0),
  * `LH_LIBRARY_OPTION_ARRAY_GROWTH_FACTOR` (must be > 1),
  * `LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK` (must be > 0), and the
@@ -156,14 +155,14 @@
 #define LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED @ValAllocatorInitAllocated@
 
 /**
- * @def LH_LIBRARY_OPTION_UI
- * @brief Compile the UI model under `lh/ui` (::LH_LIBRARY_OPTION_OFF /
+ * @def LH_LIBRARY_OPTION_GL
+ * @brief Compile the UI model under `lh/gl` (::LH_LIBRARY_OPTION_OFF /
  *        ::LH_LIBRARY_OPTION_ON).
  *
  * Color, paint, pen, style, gradient, canvas and the entity tree. Needs no
- * OS. Headers: `lh/ui.h` and `lh/ui/...`.
+ * OS. Headers: `lh/gl.h` and `lh/gl/...`.
  */
-#define LH_LIBRARY_OPTION_UI @ValUi@
+#define LH_LIBRARY_OPTION_GL @ValUi@
 
 /**
  * @def LH_LIBRARY_OPTION_SQL_SQLITE
@@ -180,46 +179,37 @@
 #define LH_LIBRARY_OPTION_JS @ValJs@
 
 /**
- * @def LH_LIBRARY_OPTION_UI_FONT_ROBOTO
- * @brief `1` when Roboto 16 px is baked in (`lh/ui/font/roboto.h`) and is the
- *        font a new ::lh_ui_style_t starts with (::LH_LIBRARY_OPTION_ON).
+ * @def LH_LIBRARY_OPTION_GL_FONT_ROBOTO
+ * @brief `1` when Roboto 16 px is baked in (`lh/gl/font/roboto.h`) and is the
+ *        font a new ::lh_gl_style_t starts with (::LH_LIBRARY_OPTION_ON).
  *
  * About 15 KB of const data. `0` leaves it out; styles start with no font.
  */
-#define LH_LIBRARY_OPTION_UI_FONT_ROBOTO @ValUiFontRoboto@
+#define LH_LIBRARY_OPTION_GL_FONT_ROBOTO @ValUiFontRoboto@
 
 /**
- * @def LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS
- * @brief Fixed capacity of ::lh_ui_gradient_t color stops.
+ * @def LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS
+ * @brief Fixed capacity of ::lh_gl_gradient_t color stops.
  *
  * Default `2` (same as LVGL `LV_GRADIENT_MAX_STOPS`). Raise to allow more
  * stops; each extra stop grows the descriptor by one
- * ::lh_ui_gradient_stop_t.
+ * ::lh_gl_gradient_stop_t.
  *
  * @note The value must be in `1..255`: the stop count is one byte.
  */
-#define LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS @ValUiGradientMaxStops@
+#define LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS @ValUiGradientMaxStops@
 
 /**
- * @def LH_LIBRARY_OPTION_UI_CANVAS_DEPTH
- * @brief Fixed depth of the ::lh_ui_canvas_t offset / clip stack.
+ * @def LH_LIBRARY_OPTION_GL_CANVAS_DEPTH
+ * @brief Fixed depth of the ::lh_gl_canvas_t offset / clip stack.
  *
- * Default `8`. Each nested ::lh_ui_canvas_push (one per scrolling container
+ * Default `8`. Each nested ::lh_gl_canvas_push (one per scrolling container
  * on the path from the root) takes one level; pushing past it fails a
  * runtime assertion.
  *
  * @note The value must be in `1..255`: the depth is one byte.
  */
-#define LH_LIBRARY_OPTION_UI_CANVAS_DEPTH @ValUiCanvasDepth@
-
-/**
- * @def LH_LIBRARY_OPTION_GL_SURFACE_DIRTY_MAX
- * @brief Number of dirty rectangle slots in each ::lh_gl_surface_t.
- *
- * Set at build time; all consumers must use the same generated configuration.
- * Defaults to 8 and must be a positive integer.
- */
-#define LH_LIBRARY_OPTION_GL_SURFACE_DIRTY_MAX @ValGlSurfaceDirtyMax@
+#define LH_LIBRARY_OPTION_GL_CANVAS_DEPTH @ValUiCanvasDepth@
 
 /**
  * @def LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY

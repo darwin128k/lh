@@ -75,38 +75,38 @@
 #endif /* LH_LIBRARY_OPTION_OS_WINDOW */
 
 /**
- * @def LH_LIBRARY_OPTION_UI
- * @brief The UI model under `lh/ui` is compiled. Fallback: off (CMake default).
+ * @def LH_LIBRARY_OPTION_GL
+ * @brief The UI model under `lh/gl` is compiled. Fallback: off (CMake default).
  */
-#ifndef LH_LIBRARY_OPTION_UI
-#    define LH_LIBRARY_OPTION_UI LH_LIBRARY_OPTION_OFF
-#endif /* LH_LIBRARY_OPTION_UI */
+#ifndef LH_LIBRARY_OPTION_GL
+#    define LH_LIBRARY_OPTION_GL LH_LIBRARY_OPTION_OFF
+#endif /* LH_LIBRARY_OPTION_GL */
 
 /**
- * @def LH_LIBRARY_OPTION_UI_FONT_ROBOTO
+ * @def LH_LIBRARY_OPTION_GL_FONT_ROBOTO
  * @brief Roboto 16 px is baked in. Fallback: on (CMake default).
  */
-#ifndef LH_LIBRARY_OPTION_UI_FONT_ROBOTO
-#    define LH_LIBRARY_OPTION_UI_FONT_ROBOTO LH_LIBRARY_OPTION_ON
-#endif /* LH_LIBRARY_OPTION_UI_FONT_ROBOTO */
+#ifndef LH_LIBRARY_OPTION_GL_FONT_ROBOTO
+#    define LH_LIBRARY_OPTION_GL_FONT_ROBOTO LH_LIBRARY_OPTION_ON
+#endif /* LH_LIBRARY_OPTION_GL_FONT_ROBOTO */
 
 /**
- * @def LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS
- * @brief Capacity of ::lh_ui_gradient_t color stops (1..255; changes the struct layout).
+ * @def LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS
+ * @brief Capacity of ::lh_gl_gradient_t color stops (1..255; changes the struct layout).
  *        Fallback: 2 (CMake default).
  */
-#ifndef LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS
-#    define LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS 2
-#endif /* LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS */
+#ifndef LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS
+#    define LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS 2
+#endif /* LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS */
 
 /**
- * @def LH_LIBRARY_OPTION_UI_CANVAS_DEPTH
- * @brief Depth of the ::lh_ui_canvas_t offset / clip stack (1..255; changes the struct layout).
+ * @def LH_LIBRARY_OPTION_GL_CANVAS_DEPTH
+ * @brief Depth of the ::lh_gl_canvas_t offset / clip stack (1..255; changes the struct layout).
  *        Fallback: 8 (CMake default).
  */
-#ifndef LH_LIBRARY_OPTION_UI_CANVAS_DEPTH
-#    define LH_LIBRARY_OPTION_UI_CANVAS_DEPTH 8
-#endif /* LH_LIBRARY_OPTION_UI_CANVAS_DEPTH */
+#ifndef LH_LIBRARY_OPTION_GL_CANVAS_DEPTH
+#    define LH_LIBRARY_OPTION_GL_CANVAS_DEPTH 8
+#endif /* LH_LIBRARY_OPTION_GL_CANVAS_DEPTH */
 
 /**
  * @def LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY

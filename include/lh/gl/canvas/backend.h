@@ -1,181 +1,441 @@
 /**
  * @file backend.h
- * @brief The opaque drawing target of a canvas: ::lh_gl_canvas_backend_t.
+ * @brief One pixel sink: ::lh_gl_canvas_backend_t (function table, no state).
  *
- * A table of calls and nothing else. The canvas translates shapes into root
- * coordinates, drops those that miss the clip, and calls the table with the
- * clip still in force. The target behind the table owns the pixels. A null
- * call means that shape is not drawn.
+ * GDI, GL, software and STM32 paths each ship one of these, wherever they
+ * live (`lh/os`, an application). ::lh_gl_canvas_t binds a backend to a
+ * context and dispatches through it.
  */
 
 #ifndef LH_GL_CANVAS_BACKEND_H
 #define LH_GL_CANVAS_BACKEND_H
 
-#include <lh/core/ptr.h>
-#include <lh/gl/pen.h>
-#include <lh/gl/rect.h>
+#include <lh/gl/axis.h>
+#include <lh/gl/canvas/backend/fields.h>
+#include <lh/gl/canvas/clip.h>
+#include <lh/gl/mask.h>
+#include <lh/gl/rects.h>
+#include <lh/gl/shadow.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Fill @p rect in root coordinates. @p clip is the canvas clip.
- *        Both are half-open. @p rect already meets @p clip.
+ * @typedef lh_gl_canvas_begin_fn
+ * @brief Start a frame on @p context.
  */
-typedef lh_void(lh_gl_canvas_fill_rect_fn)(lh_ptr target, const lh_gl_rect_t *clip,
-                                           const lh_gl_rect_t *rect, const lh_gl_color_t *color);
+typedef lh_void(lh_gl_canvas_begin_fn)(lh_ptr context);
 
 /**
- * @brief Stroke the border of @p rect with @p pen, in root coordinates.
- *        @p rect is the shape, not the pen's outer bounds.
+ * @typedef lh_gl_canvas_begin_area_fn
+ * @brief Start a frame for @p area alone: its top-left pixel is the backend's
+ *        `(0, 0)`.
+ *
+ * @p area is in target space, on whole pixels. The canvas sends every
+ * primitive, clip and rounded cut already moved into that buffer space, so the
+ * backend draws it as if the area were the whole target, and presents it back
+ * to @p area in `end`. A backend whose buffer is @p area sized (or smaller) is
+ * how a partial renderer keeps its memory down.
+ *
+ * Optional: without it the canvas calls ::lh_gl_canvas_begin_fn and the backend
+ * draws the whole target.
  */
-typedef lh_void(lh_gl_canvas_stroke_rect_fn)(lh_ptr target, const lh_gl_rect_t *clip,
-                                             const lh_gl_rect_t *rect, const lh_gl_pen_t *pen);
+typedef lh_void(lh_gl_canvas_begin_area_fn)(lh_ptr context, const lh_gl_rect_t *area);
 
 /**
- * @brief Fill the circle of @p radius around @p center, in root coordinates.
+ * @typedef lh_gl_canvas_end_fn
+ * @brief Finish a frame on @p context, presenting @p drawn (present / flush).
+ *
+ * **A backend shows what it drew and nothing else.** The canvas clears and draws
+ * the damage, which in a partial frame is smaller than the buffer `begin_area`
+ * asked for, and a buffer is not required to hold anything else: the pixels a
+ * frame never wrote are whatever the buffer held before. Presenting all of it
+ * puts them on screen, which is how a strip's leftover picture turns up beside
+ * the widget that moved.
+ *
+ * **@p drawn is what the frame drew, and the canvas is what knows it.** It is the
+ * list of the clips this frame was cut to, and it is a *list* because
+ * ::lh_gl_rect_union is a hull and not a union: two cuts standing apart merge into
+ * a rectangle spanning the gap, and the gap belongs to neither. A backend that has
+ * to work this out from the clips it was handed answers it a second time and
+ * differently from every other backend, so the canvas hands it over already done.
+ * **An empty list means the frame was never cut, which is "everything" and not
+ * "nothing"** — the whole buffer, the way a frame with no damage draws all of it.
+ *
+ * @param drawn Regions this frame drew into, in the buffer's own space.
  */
-typedef lh_void(lh_gl_canvas_fill_circle_fn)(lh_ptr target, const lh_gl_rect_t *clip,
-                                             lh_gl_point_t center, lh_gl_scalar_t radius,
-                                             const lh_gl_color_t *color);
-
-/** @brief Stroke that circle with @p pen. */
-typedef lh_void(lh_gl_canvas_stroke_circle_fn)(lh_ptr target, const lh_gl_rect_t *clip,
-                                               lh_gl_point_t center, lh_gl_scalar_t radius,
-                                               const lh_gl_pen_t *pen);
+typedef lh_void(lh_gl_canvas_end_fn)(lh_ptr context, const lh_gl_rects_t *drawn);
 
 /**
- * @brief Fill @p rect with corners of @p radius, in root coordinates.
- *        @p radius is already limited to half the shorter side.
+ * @typedef lh_gl_canvas_clear_fn
+ * @brief Fill the whole target with @p color.
  */
-typedef lh_void(lh_gl_canvas_fill_round_rect_fn)(lh_ptr target, const lh_gl_rect_t *clip,
-                                                 const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
-                                                 const lh_gl_color_t *color);
-
-/** @brief Stroke that rounded rectangle with @p pen. */
-typedef lh_void(lh_gl_canvas_stroke_round_rect_fn)(lh_ptr target, const lh_gl_rect_t *clip,
-                                                   const lh_gl_rect_t *rect,
-                                                   lh_gl_scalar_t radius, const lh_gl_pen_t *pen);
+typedef lh_void(lh_gl_canvas_clear_fn)(lh_ptr context, const lh_gl_color_t *color);
 
 /**
- * @brief Fill the triangle @p a @p b @p c, in root coordinates.
+ * @typedef lh_gl_canvas_fill_rect_fn
+ * @brief Fill @p rect with the solid @p color (axis-aligned, half-open).
  */
-typedef lh_void(lh_gl_canvas_fill_triangle_fn)(lh_ptr target, const lh_gl_rect_t *clip,
-                                               const lh_gl_point_t *a, const lh_gl_point_t *b,
-                                               const lh_gl_point_t *c, const lh_gl_color_t *color);
+typedef lh_void(lh_gl_canvas_fill_rect_fn)(lh_ptr context, const lh_gl_rect_t *rect,
+                                           const lh_gl_color_t *color);
 
 /**
- * @brief Paint @p count colors along one row, in root coordinates.
- *        @p colors[i] is pixel @p x + i on row @p y. @p clip still applies.
+ * @typedef lh_gl_canvas_fill_round_rect_fn
+ * @brief Fill @p rect with @p color, corners rounded by @p radius, anti-aliased.
+ *
+ * @p radius is already clamped by the canvas: `1 .. min(w, h) / 2`.
+ *
+ * @return ::lh_bool_false when the backend drew nothing (e.g. its renderer is
+ *         not available this frame); the canvas then draws the shape itself.
  */
-typedef lh_void(lh_gl_canvas_fill_colors_fn)(lh_ptr target, const lh_gl_rect_t *clip,
-                                             lh_gl_scalar_t x, lh_gl_scalar_t y,
-                                             const lh_gl_color_t *colors, lh_gl_scalar_t count);
+typedef lh_bool_t(lh_gl_canvas_fill_round_rect_fn)(lh_ptr context, const lh_gl_rect_t *rect,
+                                                   lh_gl_scalar_t radius,
+                                                   const lh_gl_color_t *color);
+
+/**
+ * @typedef lh_gl_canvas_set_clip_fn
+ * @brief Cut every later primitive to @p clip, in target space: its rect,
+ *        and the rounded cuts on it (::lh_gl_canvas_clip_coverage).
+ *
+ * ::lh_null removes the cut. An empty clip rect cuts everything away. The
+ * canvas calls it from ::lh_gl_canvas_push and ::lh_gl_canvas_pop whenever
+ * the clip changes; primitives then arrive uncut. The rounds @p clip points
+ * at belong to the canvas and stay valid until the next call.
+ */
+typedef lh_void(lh_gl_canvas_set_clip_fn)(lh_ptr context, const lh_gl_canvas_clip_t *clip);
+
+/**
+ * @typedef lh_gl_canvas_fill_mask_fn
+ * @brief Paint @p mask in @p color, its top-left pixel at @p origin.
+ *
+ * @p origin is in target space, on whole pixels. Each pixel is @p color with
+ * its alpha scaled by the mask coverage. The canvas sends only masks it need
+ * not cut itself.
+ *
+ * @return ::lh_bool_false when the backend drew nothing; the canvas then
+ *         paints the mask itself.
+ */
+typedef lh_bool_t(lh_gl_canvas_fill_mask_fn)(lh_ptr context, const lh_gl_point_t *origin,
+                                             const lh_gl_mask_t *mask, const lh_gl_color_t *color);
+
+/**
+ * @typedef lh_gl_canvas_shadow_fn
+ * @brief Paint @p shadow behind @p rect, corners rounded by @p radius.
+ *
+ * @p radius is already clamped by the canvas. The shadow reaches a spread past
+ * the box — that is the point of it — so the backend paints outside @p rect and
+ * cuts that to its own target like any other write.
+ *
+ * @return ::lh_bool_false when the backend painted nothing; the canvas then
+ *         paints the shadow itself, pixel by pixel.
+ */
+typedef lh_bool_t(lh_gl_canvas_shadow_fn)(lh_ptr context, const lh_gl_rect_t *rect,
+                                          lh_gl_scalar_t radius, const lh_gl_shadow_t *shadow);
+
+/**
+ * @typedef lh_gl_canvas_blur_fn
+ * @brief Soften what is already on @p rect of the target, @p blur_radius out.
+ *
+ * Unlike every other slot this one reads pixels it did not write, so there is
+ * nothing for the canvas to do instead: with no slot the effect simply cannot be
+ * drawn, and the canvas says so rather than putting down something that only
+ * looks like one. That also makes it the one slot that needs memory of its own:
+ * @p scratch is the caller's (see ::lh_gl_canvas_set_scratch) and @p bytes how
+ * much of it there is; a blur needs ::lh_gl_blur_scratch_size of @p rect and
+ * @p blur_radius, and a
+ * backend that is given less returns ::lh_bool_false instead of writing past it.
+ */
+typedef lh_bool_t(lh_gl_canvas_blur_fn)(lh_ptr context, const lh_gl_rect_t *rect,
+                                        lh_gl_scalar_t blur_radius, lh_u8_t *scratch,
+                                        lh_usize_t bytes);
+
+/**
+ * @typedef lh_gl_canvas_glass_fn
+ * @brief A glass panel over @p rect: blur what is behind it by @p blur_radius,
+ *        then lay @p tint over it inside corners rounded by @p corner.
+ *
+ * Two effects in one call because they are one look: a blurred rectangle without
+ * its tint is a smudge, and a tint without the blur is a fill. @p scratch and
+ * @p bytes are the caller's, exactly as for ::lh_gl_canvas_blur_fn.
+ */
+typedef lh_bool_t(lh_gl_canvas_glass_fn)(lh_ptr context, const lh_gl_rect_t *rect,
+                                         lh_gl_scalar_t corner, lh_gl_scalar_t blur_radius,
+                                         const lh_gl_color_t *tint, lh_u8_t *scratch,
+                                         lh_usize_t bytes);
+
+/**
+ * @typedef lh_gl_canvas_fill_colors_fn
+ * @brief Paint the pixel box (@p x, @p y, @p w, @p h) in colours that change along
+ *        @p axis, alpha included: across, @p colors holds one for each column and
+ *        every row is the same; down, one for each row and every column is.
+ *
+ * In target space, on whole pixels. A gradient is a colour a pixel, or a colour a
+ * row, and sending them as one call is what keeps it from paying a whole primitive
+ * for every pixel or every row. The box is a shape like a mask: the backend cuts it
+ * to its own clip.
+ *
+ * @return ::lh_bool_false when the backend drew nothing; the canvas then sends the
+ *         box itself, a run of one colour at a time.
+ */
+typedef lh_bool_t(lh_gl_canvas_fill_colors_fn)(lh_ptr context, lh_s32_t x, lh_s32_t y, lh_s32_t w,
+                                               lh_s32_t h, const lh_gl_color_t *colors,
+                                               lh_gl_axis_t axis);
 
 LH_COMPILER_EXTERN_C_END
 
 /**
- * @def lh_gl_canvas_backend_fields(...)
- * @brief The drawing calls. A null call skips that shape.
+ * @struct lh_gl_canvas_backend
+ * @brief Function table for one renderer implementation.
+ *
+ * Usually a static const; not owned by ::lh_gl_canvas_t. A slot may be
+ * ::lh_null until that primitive exists; dispatch skips null slots.
  */
-#define lh_gl_canvas_backend_fields(fill_rect_fn, stroke_rect_fn, fill_circle_fn,                  \
-                                    stroke_circle_fn, fill_round_rect_fn, stroke_round_rect_fn,   \
-                                    fill_triangle_fn, fill_colors_fn)                              \
-    fill_rect_fn *fill_rect;                                                                       \
-    stroke_rect_fn *stroke_rect;                                                                   \
-    fill_circle_fn *fill_circle;                                                                   \
-    stroke_circle_fn *stroke_circle;                                                               \
-    fill_round_rect_fn *fill_round_rect;                                                           \
-    stroke_round_rect_fn *stroke_round_rect;                                                       \
-    fill_triangle_fn *fill_triangle;                                                               \
-    fill_colors_fn *fill_colors
-
-/** @brief Calls a canvas forwards to its target. */
 struct lh_gl_canvas_backend
 {
     /** Members: ::lh_gl_canvas_backend_fields. */
-    lh_gl_canvas_backend_fields(lh_gl_canvas_fill_rect_fn, lh_gl_canvas_stroke_rect_fn,
-                                lh_gl_canvas_fill_circle_fn, lh_gl_canvas_stroke_circle_fn,
-                                lh_gl_canvas_fill_round_rect_fn, lh_gl_canvas_stroke_round_rect_fn,
-                                lh_gl_canvas_fill_triangle_fn, lh_gl_canvas_fill_colors_fn);
+    lh_gl_canvas_backend_fields(lh_gl_canvas_begin_fn, lh_gl_canvas_begin_area_fn,
+                                lh_gl_canvas_end_fn, lh_gl_canvas_clear_fn,
+                                lh_gl_canvas_fill_rect_fn, lh_gl_canvas_fill_round_rect_fn,
+                                lh_gl_canvas_set_clip_fn, lh_gl_canvas_fill_mask_fn,
+                                lh_gl_canvas_shadow_fn, lh_gl_canvas_blur_fn, lh_gl_canvas_glass_fn,
+                                lh_gl_canvas_fill_colors_fn);
 };
 /** @copybrief lh_gl_canvas_backend */
 typedef struct lh_gl_canvas_backend lh_gl_canvas_backend_t;
 
-/**
- * @brief Brace initializer in field order. A null call skips that shape.
- */
-#define lh_gl_canvas_backend_initializer(fill_rect, stroke_rect, fill_circle, stroke_circle,       \
-                                         fill_round_rect, stroke_round_rect, fill_triangle,        \
-                                         fill_colors)                                              \
-    lh_initializer(fill_rect, stroke_rect, fill_circle, stroke_circle, fill_round_rect,            \
-                   stroke_round_rect, fill_triangle, fill_colors)
-
 LH_COMPILER_EXTERN_C_BEGIN
 
-lh_gl_canvas_fill_rect_fn *
-lh_gl_canvas_backend_get_fill_rect(const lh_gl_canvas_backend_t *self);
-
-lh_void
-lh_gl_canvas_backend_set_fill_rect(lh_gl_canvas_backend_t *self, lh_gl_canvas_fill_rect_fn *fn);
-
-lh_gl_canvas_stroke_rect_fn *
-lh_gl_canvas_backend_get_stroke_rect(const lh_gl_canvas_backend_t *self);
-
-lh_void
-lh_gl_canvas_backend_set_stroke_rect(lh_gl_canvas_backend_t *self, lh_gl_canvas_stroke_rect_fn *fn);
-
-lh_gl_canvas_fill_circle_fn *
-lh_gl_canvas_backend_get_fill_circle(const lh_gl_canvas_backend_t *self);
-
-lh_void
-lh_gl_canvas_backend_set_fill_circle(lh_gl_canvas_backend_t *self, lh_gl_canvas_fill_circle_fn *fn);
-
-lh_gl_canvas_stroke_circle_fn *
-lh_gl_canvas_backend_get_stroke_circle(const lh_gl_canvas_backend_t *self);
-
-lh_void
-lh_gl_canvas_backend_set_stroke_circle(lh_gl_canvas_backend_t *self,
-                                       lh_gl_canvas_stroke_circle_fn *fn);
-
-lh_gl_canvas_fill_round_rect_fn *
-lh_gl_canvas_backend_get_fill_round_rect(const lh_gl_canvas_backend_t *self);
-
-lh_void
-lh_gl_canvas_backend_set_fill_round_rect(lh_gl_canvas_backend_t *self,
-                                         lh_gl_canvas_fill_round_rect_fn *fn);
-
-lh_gl_canvas_stroke_round_rect_fn *
-lh_gl_canvas_backend_get_stroke_round_rect(const lh_gl_canvas_backend_t *self);
-
-lh_void
-lh_gl_canvas_backend_set_stroke_round_rect(lh_gl_canvas_backend_t *self,
-                                           lh_gl_canvas_stroke_round_rect_fn *fn);
-
-lh_gl_canvas_fill_triangle_fn *
-lh_gl_canvas_backend_get_fill_triangle(const lh_gl_canvas_backend_t *self);
-
-lh_void
-lh_gl_canvas_backend_set_fill_triangle(lh_gl_canvas_backend_t *self,
-                                       lh_gl_canvas_fill_triangle_fn *fn);
-
-lh_gl_canvas_fill_colors_fn *
-lh_gl_canvas_backend_get_fill_colors(const lh_gl_canvas_backend_t *self);
-
-lh_void
-lh_gl_canvas_backend_set_fill_colors(lh_gl_canvas_backend_t *self, lh_gl_canvas_fill_colors_fn *fn);
+/**
+ * @brief Backend that accepts every call and draws nothing.
+ */
+extern const lh_gl_canvas_backend_t lh_gl_canvas_backend_null;
 
 /**
- * @brief Store the calls. Any of them may be null.
+ * @brief The call that starts a frame (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ */
+lh_gl_canvas_begin_fn *
+lh_gl_canvas_backend_get_begin_fn(const lh_gl_canvas_backend_t *self);
+
+/**
+ * @brief Store the call that starts a frame (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @param begin The new value.
  */
 lh_void
-lh_gl_canvas_backend_init(lh_gl_canvas_backend_t *self, lh_gl_canvas_fill_rect_fn *fill_rect,
-                          lh_gl_canvas_stroke_rect_fn *stroke_rect,
-                          lh_gl_canvas_fill_circle_fn *fill_circle,
-                          lh_gl_canvas_stroke_circle_fn *stroke_circle,
-                          lh_gl_canvas_fill_round_rect_fn *fill_round_rect,
-                          lh_gl_canvas_stroke_round_rect_fn *stroke_round_rect,
-                          lh_gl_canvas_fill_triangle_fn *fill_triangle,
-                          lh_gl_canvas_fill_colors_fn *fill_colors);
+lh_gl_canvas_backend_set_begin_fn(lh_gl_canvas_backend_t *self, lh_gl_canvas_begin_fn * begin);
+
+/**
+ * @brief The call that starts a frame limited to an area (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ */
+lh_gl_canvas_begin_area_fn *
+lh_gl_canvas_backend_get_begin_area_fn(const lh_gl_canvas_backend_t *self);
+
+/**
+ * @brief Store the call that starts a frame limited to an area (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @param begin_area The new value.
+ */
+lh_void
+lh_gl_canvas_backend_set_begin_area_fn(lh_gl_canvas_backend_t *self, lh_gl_canvas_begin_area_fn * begin_area);
+
+/**
+ * @brief The call that ends a frame (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ */
+lh_gl_canvas_end_fn *
+lh_gl_canvas_backend_get_end_fn(const lh_gl_canvas_backend_t *self);
+
+/**
+ * @brief Store the call that ends a frame (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @param end The new value.
+ */
+lh_void
+lh_gl_canvas_backend_set_end_fn(lh_gl_canvas_backend_t *self, lh_gl_canvas_end_fn * end);
+
+/**
+ * @brief The call that clears the target (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ */
+lh_gl_canvas_clear_fn *
+lh_gl_canvas_backend_get_clear_fn(const lh_gl_canvas_backend_t *self);
+
+/**
+ * @brief Store the call that clears the target (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @param clear The new value.
+ */
+lh_void
+lh_gl_canvas_backend_set_clear_fn(lh_gl_canvas_backend_t *self, lh_gl_canvas_clear_fn * clear);
+
+/**
+ * @brief The call that fills a rectangle (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ */
+lh_gl_canvas_fill_rect_fn *
+lh_gl_canvas_backend_get_fill_rect_fn(const lh_gl_canvas_backend_t *self);
+
+/**
+ * @brief Store the call that fills a rectangle (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @param fill_rect The new value.
+ */
+lh_void
+lh_gl_canvas_backend_set_fill_rect_fn(lh_gl_canvas_backend_t *self, lh_gl_canvas_fill_rect_fn * fill_rect);
+
+/**
+ * @brief The call that fills a rounded rectangle (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ */
+lh_gl_canvas_fill_round_rect_fn *
+lh_gl_canvas_backend_get_fill_round_rect_fn(const lh_gl_canvas_backend_t *self);
+
+/**
+ * @brief Store the call that fills a rounded rectangle (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @param fill_round_rect The new value.
+ */
+lh_void
+lh_gl_canvas_backend_set_fill_round_rect_fn(lh_gl_canvas_backend_t *self, lh_gl_canvas_fill_round_rect_fn * fill_round_rect);
+
+/**
+ * @brief The call that sets the clip (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ */
+lh_gl_canvas_set_clip_fn *
+lh_gl_canvas_backend_get_set_clip_fn(const lh_gl_canvas_backend_t *self);
+
+/**
+ * @brief Store the call that sets the clip (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @param set_clip The new value.
+ */
+lh_void
+lh_gl_canvas_backend_set_set_clip_fn(lh_gl_canvas_backend_t *self, lh_gl_canvas_set_clip_fn * set_clip);
+
+/**
+ * @brief The call that fills through a coverage mask (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ */
+lh_gl_canvas_fill_mask_fn *
+lh_gl_canvas_backend_get_fill_mask_fn(const lh_gl_canvas_backend_t *self);
+
+/**
+ * @brief Store the call that fills through a coverage mask (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @param fill_mask The new value.
+ */
+lh_void
+lh_gl_canvas_backend_set_fill_mask_fn(lh_gl_canvas_backend_t *self, lh_gl_canvas_fill_mask_fn * fill_mask);
+
+/**
+ * @brief The call that draws a shadow (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ */
+lh_gl_canvas_shadow_fn *
+lh_gl_canvas_backend_get_shadow_fn(const lh_gl_canvas_backend_t *self);
+
+/**
+ * @brief Store the call that draws a shadow (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @param shadow The new value.
+ */
+lh_void
+lh_gl_canvas_backend_set_shadow_fn(lh_gl_canvas_backend_t *self, lh_gl_canvas_shadow_fn * shadow);
+
+/**
+ * @brief The call that blurs an area (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ */
+lh_gl_canvas_blur_fn *
+lh_gl_canvas_backend_get_blur_fn(const lh_gl_canvas_backend_t *self);
+
+/**
+ * @brief Store the call that blurs an area (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @param blur The new value.
+ */
+lh_void
+lh_gl_canvas_backend_set_blur_fn(lh_gl_canvas_backend_t *self, lh_gl_canvas_blur_fn * blur);
+
+/**
+ * @brief The call that draws frosted glass (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ */
+lh_gl_canvas_glass_fn *
+lh_gl_canvas_backend_get_glass_fn(const lh_gl_canvas_backend_t *self);
+
+/**
+ * @brief Store the call that draws frosted glass (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @param glass The new value.
+ */
+lh_void
+lh_gl_canvas_backend_set_glass_fn(lh_gl_canvas_backend_t *self, lh_gl_canvas_glass_fn * glass);
+
+/**
+ * @brief The call that fills a rectangle with per-pixel colors (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ */
+lh_gl_canvas_fill_colors_fn *
+lh_gl_canvas_backend_get_fill_colors_fn(const lh_gl_canvas_backend_t *self);
+
+/**
+ * @brief Store the call that fills a rectangle with per-pixel colors (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @param fill_colors The new value.
+ */
+lh_void
+lh_gl_canvas_backend_set_fill_colors_fn(lh_gl_canvas_backend_t *self, lh_gl_canvas_fill_colors_fn * fill_colors);
 
 LH_COMPILER_EXTERN_C_END
 

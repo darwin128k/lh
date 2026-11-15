@@ -2,27 +2,22 @@
  * @file color.h
  * @brief One pixel: ::lh_gl_color_t, 8-bit RGBA, straight alpha.
  *
- * The canvas hands this to its target. The target converts it to the device
- * format. The color knows nothing about a surface or a layer.
+ * The canvas paints this. Whoever shows the buffer converts it to the
+ * device format. Requires nothing from `lh/os`.
  */
 
 #ifndef LH_GL_COLOR_H
 #define LH_GL_COLOR_H
 
+#include <lh/core/bool.h>
 #include <lh/core/compiler/extern/c.h>
-#include <lh/core/numeric/fixed/types.h>
-#include <lh/core/void.h>
+#include <lh/gl/color/channels.h>
 #include <lh/gl/color/fields.h>
-
-/**
- * @typedef lh_gl_color_channel_t
- * @brief One 8-bit channel, `0..255`.
- */
-typedef lh_u8_t lh_gl_color_channel_t;
+#include <lh/core/void.h>
 
 /**
  * @struct lh_gl_color
- * @brief Straight RGBA. Alpha 255 covers the pixel.
+ * @brief 8-bit RGBA. Alpha at the top of the channel is opaque.
  */
 struct lh_gl_color
 {
@@ -32,84 +27,282 @@ struct lh_gl_color
 /** @copybrief lh_gl_color */
 typedef struct lh_gl_color lh_gl_color_t;
 
+/* -- Constructors ---------------------------------------------------------- */
+
 LH_COMPILER_EXTERN_C_BEGIN
 
-/** @brief Fill @p self from channels in `0..255`. */
+/**
+ * @brief Fill @p self from channels in `0..255`.
+ */
 lh_void
 lh_gl_color_init(lh_gl_color_t *self, lh_gl_color_channel_t r, lh_gl_color_channel_t g,
                  lh_gl_color_channel_t b, lh_gl_color_channel_t a);
 
-/** @brief Red channel. */
+/**
+ * @brief Fill @p self from @p hex as `0xRRGGBBAA`.
+ *
+ * @p hex is 32 bits wide on every target, so the alpha byte is never lost to
+ * a 16-bit `unsigned int`.
+ */
+lh_void
+lh_gl_color_init_hex(lh_gl_color_t *self, lh_u32_t hex);
+
+/* -- Accessors ------------------------------------------------------------- */
+
+/**
+ * @brief Red of @p self.
+ */
 lh_gl_color_channel_t
 lh_gl_color_get_r(const lh_gl_color_t *self);
 
-/** @brief Green channel. */
+/**
+ * @brief Green of @p self.
+ */
 lh_gl_color_channel_t
 lh_gl_color_get_g(const lh_gl_color_t *self);
 
-/** @brief Blue channel. */
+/**
+ * @brief Blue of @p self.
+ */
 lh_gl_color_channel_t
 lh_gl_color_get_b(const lh_gl_color_t *self);
 
-/** @brief Alpha channel. 255 covers the pixel. */
+/**
+ * @brief Alpha of @p self.
+ */
 lh_gl_color_channel_t
 lh_gl_color_get_a(const lh_gl_color_t *self);
 
 /**
- * @brief @p self as one `0xAARRGGBB` word.
- *
- * That is the order a 32-bit top-down device bitmap stores. Alpha is the
- * high byte. The color is not changed.
+ * @brief Set the red channel of @p self.
  */
-lh_u32_t
-lh_gl_color_get_word(const lh_gl_color_t *self);
-
-/** @brief Store the red channel. */
 lh_void
 lh_gl_color_set_r(lh_gl_color_t *self, lh_gl_color_channel_t r);
 
-/** @brief Store the green channel. */
+/**
+ * @brief Set the green channel of @p self.
+ */
 lh_void
 lh_gl_color_set_g(lh_gl_color_t *self, lh_gl_color_channel_t g);
 
-/** @brief Store the blue channel. */
+/**
+ * @brief Set the blue channel of @p self.
+ */
 lh_void
 lh_gl_color_set_b(lh_gl_color_t *self, lh_gl_color_channel_t b);
 
-/** @brief Store the alpha channel. */
+/**
+ * @brief Set the alpha channel of @p self.
+ */
 lh_void
 lh_gl_color_set_a(lh_gl_color_t *self, lh_gl_color_channel_t a);
 
 /**
- * @brief Paint @p color over @p dst. Straight alpha, Porter-Duff "over".
+ * @brief True if @p self and @p other have the same RGBA channels.
+ */
+lh_bool_t
+lh_gl_color_equals(const lh_gl_color_t *self, const lh_gl_color_t *other);
+
+/* -- Blend ----------------------------------------------------------------- */
+
+/**
+ * @brief Paint @p color over @p dst (Porter-Duff "over"). Straight alpha.
  *
- * Alpha 255 copies @p color. Alpha 0 copies @p dst. Otherwise each channel is
- * `(src * src_a + dst * dst_a * (255 - src_a) / 255) / out_a`, rounded half up,
- * and the result alpha is `src_a + dst_a * (255 - src_a) / 255`. An opaque
- * destination keeps alpha 255 and skips the second divide. @p out may alias
- * either input.
+ * Both colors and the result are straight (not premultiplied). @p dst may be
+ * translucent: the result alpha is `a + dst_a * (1 - a)` and each channel is
+ * divided back by it. Two fully transparent inputs give `0, 0, 0, 0`.
  */
 lh_void
 lh_gl_color_over(const lh_gl_color_t *dst, const lh_gl_color_t *color, lh_gl_color_t *out);
 
 /**
- * @brief Mix @p from and @p to. @p frac `0` is @p from, `255` is @p to.
- *
- * Each channel is `(from * (255 - frac) + to * frac) / 255`, rounded half up.
- * This is not ::lh_gl_color_over: alpha is mixed like the other channels.
+ * @brief ::lh_gl_color_over for any @p dst: weights, then each channel divided
+ *        back by the result alpha.
  */
 lh_void
-lh_gl_color_mix(const lh_gl_color_t *from, const lh_gl_color_t *to, lh_gl_color_channel_t frac,
-                lh_gl_color_t *out);
+lh_gl_color_over_translucent(const lh_gl_color_t *dst, const lh_gl_color_t *color,
+                             lh_gl_color_t *out);
 
 /**
- * @brief Copy @p color with its alpha multiplied by @p cover / 255, half up.
- *
- * Cover `255` keeps the alpha. Cover `0` clears it. @p out may alias @p color.
+ * @brief ::lh_gl_color_over for an opaque @p dst: `(c * a + d * (255 - a)) / 255`
+ *        per channel, rounded, alpha 255. The same result as
+ *        ::lh_gl_color_over_translucent, with a constant divisor (the common
+ *        case: painting over a cleared background).
  */
 lh_void
-lh_gl_color_scale_alpha(const lh_gl_color_t *color, lh_gl_color_channel_t cover,
-                        lh_gl_color_t *out);
+lh_gl_color_over_opaque(const lh_gl_color_t *dst, const lh_gl_color_t *color, lh_gl_color_t *out);
+
+/**
+ * @brief An ARGB8888 word `0xAARRGGBB` from its four channels.
+ */
+lh_u32_t
+lh_gl_color_argb_make(lh_u32_t r, lh_u32_t g, lh_u32_t b, lh_u32_t a);
+
+/**
+ * @brief ::lh_gl_color_over_opaque on ARGB8888 words: @p src over an opaque @p dst,
+ *        per channel `(s * a + d * (255 - a) + 127) / 255`, alpha 255.
+ *
+ * The word form is the one a pixel loop wants: no ::lh_gl_color_t is built per
+ * pixel. It and the struct form are both built on the channel kernels
+ * (::lh_gl_color_over_opaque_channel, ::lh_gl_color_blend_channel,
+ * ::lh_gl_color_weight_to_alpha), so the two cannot disagree.
+ */
+lh_u32_t
+lh_gl_color_argb_over_opaque(lh_u32_t dst, lh_u32_t src);
+
+/**
+ * @brief ::lh_gl_color_over_translucent on ARGB8888 words: weights, then each
+ *        channel divided back by the result alpha; two transparent words give 0.
+ */
+lh_u32_t
+lh_gl_color_argb_over_translucent(lh_u32_t dst, lh_u32_t src);
+
+/**
+ * @brief ::lh_gl_color_over on ARGB8888 words (straight alpha): the opaque form
+ *        when @p dst is opaque, the translucent one otherwise.
+ */
+lh_u32_t
+lh_gl_color_argb_over(lh_u32_t dst, lh_u32_t src);
+
+/**
+ * @brief One channel of ::lh_gl_color_over_opaque: @p src at alpha @p a over
+ *        opaque @p dst.
+ */
+lh_gl_color_channel_t
+lh_gl_color_over_opaque_channel(lh_u32_t src, lh_u32_t dst, lh_u32_t a);
+
+/**
+ * @def LH_GL_COLOR_HAVE_SMLAD
+ * @brief `1` where the compiler targets an Arm core with the DSP extension
+ *        (`__ARM_FEATURE_DSP`, Cortex-M4 and up): ::lh_gl_color_dual_mac is then
+ *        the `SMLAD` instruction. `0` elsewhere.
+ */
+#if defined(__ARM_FEATURE_DSP) && __ARM_FEATURE_DSP && defined(__ARM_FEATURE_SIMD32) &&            \
+    __ARM_FEATURE_SIMD32
+#    define LH_GL_COLOR_HAVE_SMLAD 1
+#else
+#    define LH_GL_COLOR_HAVE_SMLAD 0
+#endif
+
+/**
+ * @brief `(x + 127) / 255`, rounded to nearest, without a divide: exact for every
+ *        @p x from `0` to `255 * 255`.
+ */
+lh_u32_t
+lh_gl_color_div255_round(lh_u32_t x);
+
+/**
+ * @brief ::lh_gl_color_div255_round in both 16-bit lanes of @p x at once; the
+ *        result has one byte a lane (`0x00FF00FF`).
+ */
+lh_u32_t
+lh_gl_color_div255_round_pair(lh_u32_t x);
+
+/**
+ * @brief Dual 16-bit multiply-accumulate: `acc + lo(x) * lo(y) + hi(x) * hi(y)`,
+ *        lanes taken unsigned below `2^15`. The `SMLAD` instruction where
+ *        ::LH_GL_COLOR_HAVE_SMLAD, two multiplies elsewhere.
+ */
+lh_u32_t
+lh_gl_color_dual_mac(lh_u32_t x, lh_u32_t y, lh_u32_t acc);
+
+/**
+ * @brief Two channels blended at once: @p src over @p dst at alpha @p a in each
+ *        byte lane of `0x00FF00FF`, rounded as ::lh_gl_color_over_opaque_channel.
+ *
+ * @param dst Two 8-bit channels, in bits 0..7 and 16..23.
+ * @param src Two 8-bit channels, the same lanes.
+ * @param a   Alpha, 0..255.
+ */
+lh_u32_t
+lh_gl_color_mix_pair(lh_u32_t dst, lh_u32_t src, lh_u32_t a);
+
+/**
+ * @brief Weight of the painted color in ::lh_gl_color_over: `a * 255`.
+ */
+lh_u32_t
+lh_gl_color_over_src_weight(const lh_gl_color_t *color);
+
+/**
+ * @brief Weight of what lies under it in ::lh_gl_color_over:
+ *        `dst_a * (255 - a)`.
+ */
+lh_u32_t
+lh_gl_color_over_dst_weight(const lh_gl_color_t *dst, const lh_gl_color_t *color);
+
+/**
+ * @brief One channel mixed by weight, rounded:
+ *        `(src * src_w + dst * dst_w) / (src_w + dst_w)`. The weights must
+ *        not both be `0`.
+ */
+lh_gl_color_channel_t
+lh_gl_color_blend_channel(lh_u32_t src, lh_u32_t dst, lh_u32_t src_w, lh_u32_t dst_w);
+
+/**
+ * @brief @p color mixed into @p dst by the weights, alpha included
+ *        (the alpha is `(src_w + dst_w) / 255`). The weights must not both
+ *        be `0`.
+ */
+lh_void
+lh_gl_color_blend(const lh_gl_color_t *dst, const lh_gl_color_t *color, lh_u32_t src_w,
+                  lh_u32_t dst_w, lh_gl_color_t *out);
+
+/**
+ * @brief A summed ::lh_gl_color_over weight (alpha scaled by 255) back to an
+ *        alpha channel, rounded.
+ */
+lh_gl_color_channel_t
+lh_gl_color_weight_to_alpha(lh_u32_t weight);
+
+/**
+ * @brief @p color with its alpha scaled by @p coverage (`0..255`), rounded.
+ *
+ * What an anti-aliased edge pixel is painted with.
+ */
+lh_void
+lh_gl_color_with_coverage(const lh_gl_color_t *color, lh_byte_t coverage, lh_gl_color_t *out);
+
+/**
+ * @brief The byte of @p hex at bit @p shift as a channel.
+ */
+lh_gl_color_channel_t
+lh_gl_color_hex_channel(lh_u32_t hex, lh_u32_t shift);
+
+/**
+ * @brief Set @p self from an ARGB8888 pixel `0xAARRGGBB` (straight alpha):
+ *        the ::lh_gl_pixmap_t pixel word, bytes B, G, R, A in memory on a
+ *        little-endian target (a Win32 32-bit DIB).
+ */
+lh_void
+lh_gl_color_init_argb(lh_gl_color_t *self, lh_u32_t argb);
+
+/**
+ * @brief @p self as an ARGB8888 pixel `0xAARRGGBB`; the inverse of
+ *        ::lh_gl_color_init_argb.
+ */
+lh_u32_t
+lh_gl_color_get_argb(const lh_gl_color_t *self);
+
+/**
+ * @brief A @p bits wide channel value (5 or 6 bits) widened to 8 bits by
+ *        repeating its top bits, so the darkest and brightest stay `0` and `255`.
+ */
+lh_gl_color_channel_t
+lh_gl_color_expand_bits(lh_u32_t value, lh_u32_t bits);
+
+/**
+ * @brief Set @p self from an RGB565 pixel (`rrrrrggg gggbbbbb` in the low 16
+ *        bits), opaque: an RGB565 target has no alpha.
+ */
+lh_void
+lh_gl_color_init_rgb565(lh_gl_color_t *self, lh_u32_t rgb565);
+
+/**
+ * @brief @p self as an RGB565 pixel, low 16 bits; the low bits of each channel
+ *        and the alpha are dropped (the target is opaque).
+ */
+lh_u32_t
+lh_gl_color_get_rgb565(const lh_gl_color_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

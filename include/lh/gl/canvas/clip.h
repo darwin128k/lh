@@ -1,0 +1,141 @@
+/**
+ * @file clip.h
+ * @brief What a primitive is cut to: ::lh_gl_canvas_clip_t.
+ *
+ * A clip is a rect (the intersection of every pushed clip rect) and, on top
+ * of it, the rounded rects of the clipping parents with a corner radius
+ * (::lh_gl_canvas_clip_round_t). A pixel inside the rect is kept at the
+ * product of its coverage in each rounded rect (::lh_gl_canvas_clip_coverage),
+ * the same anti-aliased coverage a rounded fill uses (`lh/gl/radius.h`).
+ *
+ * The canvas builds one for the backend `set_clip` slot, and cuts with it
+ * itself when the backend has no such slot. A row is split once
+ * (::lh_gl_canvas_clip_split_row): pixels in the middle are wholly inside
+ * every round, only the ends need per-pixel coverage.
+ */
+
+#ifndef LH_GL_CANVAS_CLIP_H
+#define LH_GL_CANVAS_CLIP_H
+
+#include <lh/gl/canvas/clip/round.h>
+
+/**
+ * @struct lh_gl_canvas_clip
+ * @brief A clip rect and the rounded cuts on it.
+ */
+struct lh_gl_canvas_clip
+{
+    /** Members: ::lh_gl_canvas_clip_fields. */
+    lh_gl_canvas_clip_fields(lh_gl_rect_t, lh_gl_canvas_clip_round_t, lh_u32_t);
+};
+/** @copybrief lh_gl_canvas_clip */
+typedef struct lh_gl_canvas_clip lh_gl_canvas_clip_t;
+
+/* -- One rounded cut ------------------------------------------------------- */
+
+/* -- The clip -------------------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief @p rect, and @p count rounded cuts at @p rounds (not copied).
+ */
+lh_void
+lh_gl_canvas_clip_init(lh_gl_canvas_clip_t *self, const lh_gl_rect_t *rect,
+                       const lh_gl_canvas_clip_round_t *rounds, lh_u32_t count);
+
+/**
+ * @brief No clip at all: an empty rect that is never read, no rounds.
+ */
+lh_void
+lh_gl_canvas_clip_init_empty(lh_gl_canvas_clip_t *self);
+
+/**
+ * @brief The clip rect of @p self (target space).
+ */
+const lh_gl_rect_t *
+lh_gl_canvas_clip_get_rect(const lh_gl_canvas_clip_t *self);
+
+/**
+ * @brief How many rounded cuts @p self has; `0` means a plain rect clip.
+ */
+lh_u32_t
+lh_gl_canvas_clip_get_round_count(const lh_gl_canvas_clip_t *self);
+
+/**
+ * @brief Rounded cut @p index of @p self.
+ */
+const lh_gl_canvas_clip_round_t *
+lh_gl_canvas_clip_get_round(const lh_gl_canvas_clip_t *self, lh_u32_t index);
+
+/**
+ * @brief Coverage `0..255` of pixel (@p x, @p y) by every rounded cut of
+ *        @p self: the product (::lh_gl_radius_scale), `255` without rounds.
+ *        The clip rect itself is the caller's to apply.
+ */
+lh_byte_t
+lh_gl_canvas_clip_coverage(const lh_gl_canvas_clip_t *self, lh_s32_t x, lh_s32_t y);
+
+/**
+ * @brief Cut row @p y of span `x0 .. x1 - 1` into ends and middle: the middle
+ *        `*mid0 .. *mid1 - 1` is wholly inside every rounded cut (coverage
+ *        `255`), the ends `x0 .. *mid0 - 1` and `*mid1 .. x1 - 1` need
+ *        ::lh_gl_canvas_clip_coverage per pixel. `x0 <= *mid0 <= *mid1 <= x1`.
+ */
+lh_void
+lh_gl_canvas_clip_split_row(const lh_gl_canvas_clip_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                            lh_s32_t *mid0, lh_s32_t *mid1);
+
+/**
+ * @brief The clip rectangle, to change in place (level 1).
+ *
+ * @param self The clip; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_gl_rect_t *
+lh_gl_canvas_clip_get_rect_mut(lh_gl_canvas_clip_t *self);
+
+/**
+ * @brief Store the clip rectangle (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The clip; checked by ::lh_assert_runtime_ref.
+ * @param rect The new value.
+ */
+lh_void
+lh_gl_canvas_clip_set_rect(lh_gl_canvas_clip_t *self, lh_gl_rect_t rect);
+
+/**
+ * @brief The rounded clips inside the rectangle (level 1).
+ *
+ * @param self The clip; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gl_canvas_clip_round_t *
+lh_gl_canvas_clip_get_rounds(const lh_gl_canvas_clip_t *self);
+
+/**
+ * @brief Store the rounded clips inside the rectangle (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The clip; checked by ::lh_assert_runtime_ref.
+ * @param rounds The new value.
+ */
+lh_void
+lh_gl_canvas_clip_set_rounds(lh_gl_canvas_clip_t *self, const lh_gl_canvas_clip_round_t * rounds);
+
+/**
+ * @brief Store how many rounded clips there are (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The clip; checked by ::lh_assert_runtime_ref.
+ * @param round_count The new value.
+ */
+lh_void
+lh_gl_canvas_clip_set_round_count(lh_gl_canvas_clip_t *self, lh_u32_t round_count);
+
+LH_COMPILER_EXTERN_C_END
+
+#endif /* LH_GL_CANVAS_CLIP_H */

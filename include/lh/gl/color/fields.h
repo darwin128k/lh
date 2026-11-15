@@ -8,9 +8,9 @@
 
 /**
  * @def lh_gl_color_fields(channel_type)
- * @brief Straight 8-bit channels. Alpha 255 covers the pixel.
+ * @brief Red, green, blue and alpha channels.
  *
- * @param channel_type ::lh_gl_color_channel_t.
+ * @param channel_type Type of each channel.
  */
 #define lh_gl_color_fields(channel_type)                                                           \
     channel_type r;                                                                                \

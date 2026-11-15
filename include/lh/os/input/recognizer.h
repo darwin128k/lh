@@ -3,7 +3,7 @@
  * @brief Gestures from raw input: ::lh_os_input_recognizer_t.
  *
  * Between the source of events (a window, the web host, a queue) and their
- * consumer (::lh_ui_view_input, the app). Every event fed in is passed on
+ * consumer (::lh_gl_view_input, the app). Every event fed in is passed on
  * unchanged — except a vertical wheel with Shift held, which is turned sideways
  * when the config says so — and the gestures it completes follow it:
  *

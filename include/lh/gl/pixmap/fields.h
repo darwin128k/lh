@@ -7,17 +7,18 @@
 #define LH_GL_PIXMAP_FIELDS_H
 
 /**
- * @def lh_gl_pixmap_fields(color_type, size_type)
- * @brief Borrowed pixels and the size they cover.
+ * @def lh_gl_pixmap_fields(byte_type, length_type, format_type)
+ * @brief Pixel bytes (not owned), their size, the row stride and the format.
  *
- * @param color_type ::lh_gl_color_t. The member is `pixels`, a borrowed row of
- *                   `width * height` colors, row by row, tightly packed. Null
- *                   means a fill writes nothing. The pixmap does not own them.
- * @param size_type  ::lh_gl_size_t. The member is `size`, in pixels. The first
- *                   row starts at the origin.
+ * @param byte_type   Type of one byte of pixel storage.
+ * @param length_type Type of the width, height (pixels) and stride (bytes).
+ * @param format_type ::lh_gl_pixmap_format_t.
  */
-#define lh_gl_pixmap_fields(color_type, size_type)                                                 \
-    color_type *pixels;                                                                           \
-    size_type size
+#define lh_gl_pixmap_fields(byte_type, length_type, format_type)                                   \
+    byte_type *bits;                                                                               \
+    length_type width;                                                                             \
+    length_type height;                                                                            \
+    length_type stride;                                                                            \
+    format_type format
 
 #endif /* LH_GL_PIXMAP_FIELDS_H */

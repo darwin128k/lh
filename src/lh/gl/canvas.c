@@ -1,31 +1,75 @@
 /**
  * @file canvas.c
- * @brief Primitives that forward to a backend. Placement comes in with the call.
+ * @brief Implementation of `lh/gl/canvas.h` and the null backend.
  */
+#include <lh/core/assert.h>
+#include <lh/core/attribute/unused.h>
+
+#include <lh/core/math.h>
 #include <lh/gl/canvas.h>
+#include <lh/gl/shadow/shape.h>
+#include <lh/gl/canvas/round.h>
+#include <lh/gl/radius.h>
+#include <lh/core/util/return.h>
 
-#include <lh/core/assert/runtime.h>
-#include <lh/gl/cover.h>
+/* -- Null backend ---------------------------------------------------------- */
 
-lh_void
-lh_gl_canvas_init(lh_gl_canvas_t *self)
-{
-    lh_gl_canvas_set_target(self, lh_null);
-    lh_gl_canvas_set_backend(self, lh_null);
-}
+const lh_gl_canvas_backend_t lh_gl_canvas_backend_null = {lh_null, lh_null, lh_null, lh_null,
+                                                          lh_null, lh_null, lh_null, lh_null,
+                                                          lh_null, lh_null, lh_null, lh_null};
 
-lh_ptr
-lh_gl_canvas_get_target(const lh_gl_canvas_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->target;
-}
+/* -- Lifetime -------------------------------------------------------------- */
 
 lh_void
-lh_gl_canvas_set_target(lh_gl_canvas_t *self, lh_ptr target)
+lh_gl_canvas_init(lh_gl_canvas_t *self, const lh_gl_canvas_backend_t *backend, lh_ptr context)
+{
+    lh_gl_canvas_set_backend(self, backend);
+    lh_gl_canvas_set_context(self, context);
+    lh_gl_canvas_state_init(lh_gl_canvas_get_state_mut(self));
+    lh_gl_canvas_set_depth(self, 0U);
+    lh_gl_size_init(lh_gl_canvas_get_size_mut(self), lh_gl_scalar(0), lh_gl_scalar(0));
+    lh_gl_point_init(lh_gl_canvas_get_frame_at_mut(self), lh_gl_scalar(0), lh_gl_scalar(0));
+    lh_gl_rect_init_empty(lh_gl_canvas_get_damage_mut(self));
+    lh_gl_canvas_set_has_damage(self, lh_bool_false);
+    lh_gl_rects_init(lh_gl_canvas_get_drawn_mut(self));
+    lh_gl_canvas_set_scratch(self, lh_null);
+    lh_gl_canvas_set_scratch_bytes(self, 0U);
+}
+
+lh_void
+lh_gl_canvas_use_scratch(lh_gl_canvas_t *self, lh_u8_t *scratch, lh_usize_t bytes)
+{
+    lh_gl_canvas_set_scratch(self, scratch);
+    lh_gl_canvas_set_scratch_bytes(self, lh_null_eq(scratch) ? 0U : bytes);
+}
+
+lh_u8_t *
+lh_gl_canvas_get_scratch(const lh_gl_canvas_t *self)
 {
     lh_assert_runtime_ref(self);
-    self->target = target;
+    return self->scratch;
+}
+
+lh_usize_t
+lh_gl_canvas_get_scratch_bytes(const lh_gl_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->scratch_bytes;
+}
+
+lh_void
+lh_gl_canvas_deinit(lh_gl_canvas_t *self)
+{
+    lh_gl_canvas_init(self, lh_null, lh_null);
+}
+
+/* -- Accessors ------------------------------------------------------------- */
+
+lh_void
+lh_gl_canvas_set_backend(lh_gl_canvas_t *self, const lh_gl_canvas_backend_t *backend)
+{
+    lh_assert_runtime_ref(self);
+    self->backend = backend;
 }
 
 const lh_gl_canvas_backend_t *
@@ -36,902 +80,784 @@ lh_gl_canvas_get_backend(const lh_gl_canvas_t *self)
 }
 
 lh_void
-lh_gl_canvas_set_backend(lh_gl_canvas_t *self, const lh_gl_canvas_backend_t *backend)
+lh_gl_canvas_set_context(lh_gl_canvas_t *self, lh_ptr context)
 {
     lh_assert_runtime_ref(self);
-    self->backend = backend;
+    self->context = context;
+}
+
+lh_ptr
+lh_gl_canvas_get_context(const lh_gl_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->context;
 }
 
 lh_void
-lh_gl_canvas_fill_covered(lh_gl_canvas_t *self, const lh_gl_rect_t *clip, lh_gl_scalar_t x,
-                          lh_gl_scalar_t y, lh_gl_color_channel_t cover, const lh_gl_color_t *color)
+lh_gl_canvas_set_size(lh_gl_canvas_t *self, lh_gl_size_t size)
 {
-    lh_assert_runtime_ref(clip);
-    lh_assert_runtime_ref(color);
-    if (cover == 0)
-    {
-        return;
-    }
-    const lh_gl_canvas_backend_t *backend = lh_gl_canvas_get_backend(self);
-
-    if (lh_ptr_is_null(backend))
-    {
-        return;
-    }
-    lh_gl_canvas_fill_rect_fn *fill = lh_gl_canvas_backend_get_fill_rect(backend);
-
-    if (lh_ptr_is_null(fill))
-    {
-        return;
-    }
-    lh_gl_rect_t pixel;
-
-    lh_gl_rect_init(lh_addr_of(pixel), x, y, 1, 1);
-    if (cover == 255)
-    {
-        fill(lh_gl_canvas_get_target(self), clip, lh_addr_of(pixel), color);
-        return;
-    }
-    lh_gl_color_t ink;
-
-    lh_gl_color_scale_alpha(color, cover, lh_addr_of(ink));
-    fill(lh_gl_canvas_get_target(self), clip, lh_addr_of(pixel), lh_addr_of(ink));
+    lh_assert_runtime_ref(self);
+    self->size = size;
 }
 
 lh_void
-lh_gl_canvas_fill_round_rows(lh_gl_canvas_t *self, const lh_gl_rect_t *clip,
-                             const lh_gl_rect_t *shape, lh_gl_scalar_t radius, lh_gl_scalar_t y0,
-                             lh_gl_scalar_t y1,
-                             lh_gl_scalar_t x0, lh_gl_scalar_t x1, const lh_gl_color_t *color)
+lh_gl_canvas_copy_size(const lh_gl_canvas_t *self, lh_gl_size_t *out)
 {
-    const lh_gl_point_t *origin = lh_gl_rect_get_origin(shape);
-    lh_gl_scalar_t left = lh_gl_point_get_x(origin);
-    lh_gl_scalar_t width = lh_gl_size_get_width(lh_gl_rect_get_size(shape));
-    lh_gl_scalar_t mid_x0 = left + radius;
-    lh_gl_scalar_t mid_x1 = left + width - radius;
-    const lh_gl_canvas_backend_t *backend = lh_gl_canvas_get_backend(self);
-    lh_gl_canvas_fill_rect_fn *fill = lh_gl_canvas_backend_get_fill_rect(backend);
-
-    for (lh_gl_scalar_t y = y0; y < y1; ++y)
-    {
-        lh_gl_scalar_t solid_x0 = lh_math_max(x0, mid_x0);
-        lh_gl_scalar_t solid_x1 = lh_math_min(x1, mid_x1);
-
-        if (solid_x0 < solid_x1)
-        {
-            lh_gl_rect_t span;
-
-            lh_gl_rect_init(lh_addr_of(span), solid_x0, y, solid_x1 - solid_x0, 1);
-            fill(lh_gl_canvas_get_target(self), clip, lh_addr_of(span), color);
-        }
-        lh_gl_scalar_t left_end = lh_math_min(x1, mid_x0);
-
-        for (lh_gl_scalar_t x = x0; x < left_end; ++x)
-        {
-            lh_gl_canvas_fill_covered(self, clip, x, y,
-                                      lh_gl_cover_round_rect_band(shape, radius, x, y), color);
-        }
-        lh_gl_scalar_t right_x0 = lh_math_max(x0, mid_x1);
-
-        for (lh_gl_scalar_t x = right_x0; x < x1; ++x)
-        {
-            lh_gl_canvas_fill_covered(self, clip, x, y,
-                                      lh_gl_cover_round_rect_band(shape, radius, x, y), color);
-        }
-    }
+    lh_assert_runtime_ref(out);
+    lh_ptr_deref(out) = lh_ptr_deref(lh_gl_canvas_get_size(self));
 }
 
 lh_void
-lh_gl_canvas_fill_round(lh_gl_canvas_t *self, const lh_gl_place_t *place, const lh_gl_rect_t *hit,
-                        const lh_gl_color_t *color)
+lh_gl_canvas_add_damage(lh_gl_canvas_t *self, const lh_gl_rect_t *rect)
 {
-    const lh_gl_mask_t *mask = lh_gl_place_get_mask(place);
-    const lh_gl_rect_t *shape = lh_gl_mask_get_rect(mask);
-    const lh_gl_point_t *origin = lh_gl_rect_get_origin(shape);
-    const lh_gl_size_t *shape_size = lh_gl_rect_get_size(shape);
-    lh_gl_scalar_t left = lh_gl_point_get_x(origin);
-    lh_gl_scalar_t top = lh_gl_point_get_y(origin);
-    lh_gl_scalar_t width = lh_gl_size_get_width(shape_size);
-    lh_gl_scalar_t height = lh_gl_size_get_height(shape_size);
-    const lh_gl_point_t *at = lh_gl_rect_get_origin(hit);
-    const lh_gl_size_t *hit_size = lh_gl_rect_get_size(hit);
-    lh_gl_scalar_t x0 = lh_gl_point_get_x(at);
-    lh_gl_scalar_t y0 = lh_gl_point_get_y(at);
-    lh_gl_scalar_t x1 = x0 + lh_gl_size_get_width(hit_size);
-    lh_gl_scalar_t y1 = y0 + lh_gl_size_get_height(hit_size);
-    const lh_gl_rect_t *clip = lh_gl_place_get_clip(place);
-    const lh_gl_canvas_backend_t *backend = lh_gl_canvas_get_backend(self);
-    lh_gl_canvas_fill_rect_fn *fill = lh_gl_canvas_backend_get_fill_rect(backend);
+    /* A primitive reaches the backend already moved by the frame origin, so the
+       rect given here is still in the buffer. Put it back: the damage union is
+       in target space, where the caller drew it, and stays that way whichever
+       part of the target this frame covers. */
+    lh_gl_rect_t drawn;
+    lh_gl_rect_offset(rect, lh_gl_point_get_x(lh_gl_canvas_get_frame_at_mut(self)),
+                      lh_gl_point_get_y(lh_gl_canvas_get_frame_at_mut(self)), lh_addr_of(drawn));
 
-    x0 = lh_math_max(x0, left);
-    y0 = lh_math_max(y0, top);
-    x1 = lh_math_min(x1, left + width);
-    y1 = lh_math_min(y1, top + height);
-    if (x0 >= x1 || y0 >= y1)
-    {
-        return;
-    }
-    lh_gl_scalar_t radius = lh_gl_cover_round_radius(width, height, lh_gl_mask_get_radius(mask));
-
-    if (radius < 0)
-    {
-        for (lh_gl_scalar_t y = y0; y < y1; ++y)
-        {
-            for (lh_gl_scalar_t x = x0; x < x1; ++x)
-            {
-                lh_gl_canvas_fill_covered(self, clip, x, y,
-                                          lh_gl_cover_round_rect_band(shape, radius, x, y), color);
-            }
-        }
-        return;
-    }
-    lh_gl_scalar_t flat_y0 = lh_math_max(y0, top + radius);
-    lh_gl_scalar_t flat_y1 = lh_math_min(y1, top + height - radius);
-
-    if (flat_y0 < flat_y1)
-    {
-        lh_gl_rect_t flat;
-
-        lh_gl_rect_init(lh_addr_of(flat), x0, flat_y0, x1 - x0, flat_y1 - flat_y0);
-        fill(lh_gl_canvas_get_target(self), clip, lh_addr_of(flat), color);
-    }
-    lh_gl_canvas_fill_round_rows(self, clip, shape, radius, y0, lh_math_min(y1, top + radius), x0,
-                                 x1, color);
-    lh_gl_canvas_fill_round_rows(self, clip, shape, radius, lh_math_max(y0, top + height - radius),
-                                 y1, x0, x1, color);
-}
-
-lh_void
-lh_gl_canvas_fill_rect(lh_gl_canvas_t *self, const lh_gl_place_t *place, const lh_gl_rect_t *rect,
-                       const lh_gl_color_t *color)
-{
-    lh_assert_runtime_ref(place);
     lh_assert_runtime_ref(rect);
-    lh_assert_runtime_ref(color);
-    const lh_gl_canvas_backend_t *backend = lh_gl_canvas_get_backend(self);
-
-    if (lh_ptr_is_null(backend))
+    lh_return_if(lh_gl_rect_is_empty(lh_addr_of(drawn)));
+    if (!lh_gl_canvas_is_has_damage(self))
     {
+        lh_gl_canvas_set_damage(self, drawn);
+        lh_gl_canvas_set_has_damage(self, lh_bool_true);
         return;
     }
-    lh_gl_canvas_fill_rect_fn *fill = lh_gl_canvas_backend_get_fill_rect(backend);
-
-    if (lh_ptr_is_null(fill))
-    {
-        return;
-    }
-    const lh_gl_point_t *origin = lh_gl_place_get_origin(place);
-    lh_gl_rect_t root;
-
-    lh_gl_rect_offset(rect, lh_gl_point_get_x(origin), lh_gl_point_get_y(origin), lh_addr_of(root));
-    const lh_gl_rect_t *clip = lh_gl_place_get_clip(place);
-
-    if (lh_gl_rect_intersects(lh_addr_of(root), clip) == lh_bool_false)
-    {
-        return;
-    }
-    const lh_gl_mask_t *mask = lh_gl_place_get_mask(place);
-
-    if (lh_ptr_is_null(mask))
-    {
-        fill(lh_gl_canvas_get_target(self), clip, lh_addr_of(root), color);
-        return;
-    }
-    lh_gl_rect_t hit;
-
-    lh_gl_rect_intersection(lh_addr_of(root), clip, lh_addr_of(hit));
-    if (lh_gl_mask_get_kind(mask) == lh_gl_mask_kind_round)
-    {
-        lh_gl_canvas_fill_round(self, place, lh_addr_of(hit), color);
-        return;
-    }
-    const lh_gl_point_t *at = lh_gl_rect_get_origin(lh_addr_of(hit));
-    const lh_gl_size_t *size = lh_gl_rect_get_size(lh_addr_of(hit));
-    lh_gl_scalar_t left = lh_gl_point_get_x(at);
-    lh_gl_scalar_t top = lh_gl_point_get_y(at);
-    lh_gl_scalar_t width = lh_gl_size_get_width(size);
-    lh_gl_scalar_t height = lh_gl_size_get_height(size);
-
-    for (lh_gl_scalar_t y = top; y < top + height; ++y)
-    {
-        for (lh_gl_scalar_t x = left; x < left + width; ++x)
-        {
-            lh_gl_canvas_fill_covered(self, clip, x, y, lh_gl_mask_coverage(mask, x, y), color);
-        }
-    }
+    lh_gl_rect_union(lh_gl_canvas_get_damage_mut(self), lh_addr_of(drawn),
+                     lh_gl_canvas_get_damage_mut(self));
 }
 
 lh_void
-lh_gl_canvas_fill_round_colors(lh_gl_canvas_t *self, const lh_gl_place_t *place, lh_gl_scalar_t x,
-                               lh_gl_scalar_t y, const lh_gl_color_t *colors, lh_gl_scalar_t count)
+lh_gl_canvas_reset_damage(lh_gl_canvas_t *self)
 {
-    const lh_gl_point_t *origin = lh_gl_place_get_origin(place);
-    lh_gl_scalar_t root_x = x + lh_gl_point_get_x(origin);
-    lh_gl_scalar_t root_y = y + lh_gl_point_get_y(origin);
-    const lh_gl_mask_t *mask = lh_gl_place_get_mask(place);
-    const lh_gl_rect_t *shape = lh_gl_mask_get_rect(mask);
-    const lh_gl_point_t *at = lh_gl_rect_get_origin(shape);
-    lh_gl_scalar_t left = lh_gl_point_get_x(at);
-    lh_gl_scalar_t top = lh_gl_point_get_y(at);
-    lh_gl_scalar_t width = lh_gl_size_get_width(lh_gl_rect_get_size(shape));
-    lh_gl_scalar_t height = lh_gl_size_get_height(lh_gl_rect_get_size(shape));
-    lh_gl_scalar_t x0 = lh_math_max(root_x, left);
-    lh_gl_scalar_t x1 = lh_math_min(root_x + count, left + width);
-    const lh_gl_rect_t *clip = lh_gl_place_get_clip(place);
-
-    if (root_y < top || root_y >= top + height || x0 >= x1)
-    {
-        return;
-    }
-    lh_gl_scalar_t radius = lh_gl_cover_round_radius(width, height, lh_gl_mask_get_radius(mask));
-    lh_gl_scalar_t solid0 = x0;
-    lh_gl_scalar_t solid1 = x1;
-    const lh_bool_t flat = radius >= 0 && root_y >= top + radius && root_y < top + height - radius;
-
-    if (flat == lh_bool_false)
-    {
-        solid0 = lh_math_max(x0, left + radius);
-        solid1 = lh_math_min(x1, left + width - radius);
-        for (lh_gl_scalar_t column = x0; column < lh_math_min(x1, left + radius); ++column)
-        {
-            const lh_gl_color_t *sample = lh_ptr_add_by_offset(
-                const lh_gl_color_t, colors,
-                lh_type_cast(lh_uaddr_t, column - root_x) * sizeof(lh_gl_color_t));
-
-            lh_gl_canvas_fill_covered(self, clip, column, root_y,
-                                      lh_gl_cover_round_rect_band(shape, radius, column, root_y),
-                                      sample);
-        }
-        for (lh_gl_scalar_t column = lh_math_max(x0, left + width - radius); column < x1; ++column)
-        {
-            const lh_gl_color_t *sample = lh_ptr_add_by_offset(
-                const lh_gl_color_t, colors,
-                lh_type_cast(lh_uaddr_t, column - root_x) * sizeof(lh_gl_color_t));
-
-            lh_gl_canvas_fill_covered(self, clip, column, root_y,
-                                      lh_gl_cover_round_rect_band(shape, radius, column, root_y),
-                                      sample);
-        }
-    }
-    if (solid0 >= solid1)
-    {
-        return;
-    }
-    const lh_gl_canvas_backend_t *backend = lh_gl_canvas_get_backend(self);
-    lh_gl_canvas_fill_colors_fn *fill = lh_gl_canvas_backend_get_fill_colors(backend);
-    const lh_gl_color_t *samples = lh_ptr_add_by_offset(
-        const lh_gl_color_t, colors,
-        lh_type_cast(lh_uaddr_t, solid0 - root_x) * sizeof(lh_gl_color_t));
-
-    if (lh_ptr_is_set(fill))
-    {
-        fill(lh_gl_canvas_get_target(self), clip, solid0, root_y, samples, solid1 - solid0);
-        return;
-    }
-    for (lh_gl_scalar_t column = solid0; column < solid1; ++column)
-    {
-        lh_gl_canvas_fill_covered(self, clip, column, root_y, 255, samples);
-        samples = lh_ptr_add_by_offset(const lh_gl_color_t, samples, sizeof(lh_gl_color_t));
-    }
-}
-
-lh_void
-lh_gl_canvas_fill_colors(lh_gl_canvas_t *self, const lh_gl_place_t *place, lh_gl_scalar_t x,
-                         lh_gl_scalar_t y, const lh_gl_color_t *colors, lh_gl_scalar_t count)
-{
-    lh_assert_runtime_ref(place);
-    lh_assert_runtime_ref(colors);
-    if (count <= 0)
-    {
-        return;
-    }
-    const lh_gl_canvas_backend_t *backend = lh_gl_canvas_get_backend(self);
-
-    if (lh_ptr_is_null(backend))
-    {
-        return;
-    }
-    if (lh_ptr_is_set(lh_gl_place_get_mask(place)))
-    {
-        if (lh_gl_mask_get_kind(lh_gl_place_get_mask(place)) == lh_gl_mask_kind_round)
-        {
-            lh_gl_canvas_fill_round_colors(self, place, x, y, colors, count);
-            return;
-        }
-        for (lh_gl_scalar_t i = 0; i < count; ++i)
-        {
-            lh_gl_rect_t pixel;
-
-            lh_gl_rect_init(lh_addr_of(pixel), x + i, y, 1, 1);
-            lh_gl_canvas_fill_rect(self, place, lh_addr_of(pixel),
-                                   lh_ptr_add_by_offset(const lh_gl_color_t, colors,
-                                                        (lh_uaddr_t)i * sizeof(lh_gl_color_t)));
-        }
-        return;
-    }
-    const lh_gl_point_t *origin = lh_gl_place_get_origin(place);
-    lh_gl_scalar_t root_x = x + lh_gl_point_get_x(origin);
-    lh_gl_scalar_t root_y = y + lh_gl_point_get_y(origin);
-    lh_gl_canvas_fill_colors_fn *fill = lh_gl_canvas_backend_get_fill_colors(backend);
-
-    if (lh_ptr_is_set(fill))
-    {
-        fill(lh_gl_canvas_get_target(self), lh_gl_place_get_clip(place), root_x, root_y, colors,
-             count);
-        return;
-    }
-    for (lh_gl_scalar_t i = 0; i < count; ++i)
-    {
-        lh_gl_rect_t pixel;
-
-        lh_gl_rect_init(lh_addr_of(pixel), x + i, y, 1, 1);
-        lh_gl_canvas_fill_rect(self, place, lh_addr_of(pixel),
-                               lh_ptr_add_by_offset(const lh_gl_color_t, colors,
-                                                    (lh_uaddr_t)i * sizeof(lh_gl_color_t)));
-    }
-}
-
-lh_void
-lh_gl_canvas_fill_ink(lh_gl_canvas_t *self, const lh_gl_place_t *place, lh_gl_scalar_t x,
-                      lh_gl_scalar_t y, lh_gl_color_channel_t shape, const lh_gl_color_t *color)
-{
-    if (shape == 0)
-    {
-        return;
-    }
-    lh_gl_color_channel_t cover = shape;
-    const lh_gl_mask_t *mask = lh_gl_place_get_mask(place);
-
-    if (lh_ptr_is_set(mask))
-    {
-        lh_gl_color_channel_t cut = lh_gl_mask_coverage(mask, x, y);
-
-        if (cut == 0)
-        {
-            return;
-        }
-        cover = lh_type_cast(lh_gl_color_channel_t, lh_type_cast(lh_u16_t, shape) * cut / 255U);
-    }
-    if (cover == 0)
-    {
-        return;
-    }
-    lh_gl_canvas_fill_covered(self, lh_gl_place_get_clip(place), x, y, cover, color);
+    lh_gl_rect_init_empty(lh_gl_canvas_get_damage_mut(self));
+    lh_gl_canvas_set_has_damage(self, lh_bool_false);
 }
 
 lh_bool_t
-lh_gl_canvas_clip_hit(const lh_gl_place_t *place, const lh_gl_rect_t *bounds, lh_gl_rect_t *hit)
+lh_gl_canvas_has_damage(const lh_gl_canvas_t *self)
 {
-    lh_gl_rect_intersection(bounds, lh_gl_place_get_clip(place), hit);
-    if (lh_gl_rect_is_empty(hit) == lh_bool_true)
-    {
-        return lh_bool_false;
-    }
-    return lh_bool_true;
+    lh_assert_runtime_ref(self);
+    return self->has_damage;
+}
+
+const lh_gl_rect_t *
+lh_gl_canvas_get_damage_v(const lh_gl_canvas_t *self)
+{
+    return lh_gl_canvas_is_has_damage(self) ? lh_gl_canvas_get_damage(self) : lh_null;
 }
 
 lh_void
-lh_gl_canvas_stroke_rect(lh_gl_canvas_t *self, const lh_gl_place_t *place, const lh_gl_rect_t *rect,
-                         const lh_gl_pen_t *pen)
+lh_gl_canvas_damage_in(const lh_gl_rect_t *area, const lh_gl_rect_t *damage, lh_gl_rect_t *out)
 {
-    lh_assert_runtime_ref(place);
-    lh_assert_runtime_ref(rect);
-    lh_assert_runtime_ref(pen);
-    const lh_gl_canvas_backend_t *backend = lh_gl_canvas_get_backend(self);
+    lh_assert_runtime_ref(out);
 
-    if (lh_ptr_is_null(backend))
+    lh_assert_runtime_ref(area);
+    /* No damage is the whole target: nothing was said, so everything still holds. */
+    if (lh_null_eq(damage))
     {
+        lh_ptr_deref(out) = lh_ptr_deref(area);
         return;
     }
-    lh_gl_canvas_stroke_rect_fn *stroke = lh_gl_canvas_backend_get_stroke_rect(backend);
-    const lh_gl_point_t *origin = lh_gl_place_get_origin(place);
-    lh_gl_rect_t root;
+    lh_gl_rect_t part;
+    lh_gl_rect_intersection(area, damage, lh_addr_of(part));
+    lh_ptr_deref(out) = part;
+}
 
-    lh_gl_rect_offset(rect, lh_gl_point_get_x(origin), lh_gl_point_get_y(origin), lh_addr_of(root));
-    lh_gl_scalar_t width = lh_gl_pen_get_width(pen);
+/* -- Offset and clip ------------------------------------------------------- */
 
-    if (width < 0)
-    {
-        width = 0;
-    }
-    lh_gl_rect_t bounds;
+lh_bool_t
+lh_gl_canvas_is_cutting(const lh_gl_canvas_t *self)
+{
+    lh_return_if(!lh_gl_canvas_state_is_clipped(lh_gl_canvas_get_state(self)), lh_bool_false);
+    return lh_null_eq(lh_gl_canvas_get_backend(self)) ||
+                   lh_null_eq(lh_gl_canvas_backend_get_set_clip_fn(lh_gl_canvas_get_backend(self)))
+               ? lh_bool_true
+               : lh_bool_false;
+}
 
-    lh_gl_rect_inset(lh_addr_of(root), -width, -width, lh_addr_of(bounds));
-    const lh_gl_rect_t *clip = lh_gl_place_get_clip(place);
+const lh_gl_canvas_clip_t *
+lh_gl_canvas_describe_clip(const lh_gl_canvas_t *self, lh_gl_canvas_clip_t *out)
+{
+    lh_return_if(!lh_gl_canvas_state_is_clipped(lh_gl_canvas_get_state(self)), lh_null);
+    lh_gl_canvas_clip_init(out, lh_gl_canvas_state_get_clip(lh_gl_canvas_get_state(self)),
+                           lh_gl_canvas_get_rounds(self),
+                           lh_gl_canvas_state_get_round_count(lh_gl_canvas_get_state(self)));
+    return out;
+}
 
-    if (lh_gl_rect_intersects(lh_addr_of(bounds), clip) == lh_bool_false)
-    {
-        return;
-    }
-    if (lh_ptr_is_set(lh_gl_place_get_mask(place)))
-    {
-        const lh_gl_color_t *color = lh_gl_pen_get_color(pen);
-        lh_gl_rect_t hit;
-
-        if (width < 1 ||
-            lh_gl_canvas_clip_hit(place, lh_addr_of(bounds), lh_addr_of(hit)) == lh_bool_false)
-        {
-            return;
-        }
-        const lh_gl_point_t *at = lh_gl_rect_get_origin(lh_addr_of(hit));
-        const lh_gl_size_t *hit_size = lh_gl_rect_get_size(lh_addr_of(hit));
-        lh_gl_scalar_t x0 = lh_gl_point_get_x(at);
-        lh_gl_scalar_t y0 = lh_gl_point_get_y(at);
-        lh_gl_scalar_t x1 = x0 + lh_gl_size_get_width(hit_size);
-        lh_gl_scalar_t y1 = y0 + lh_gl_size_get_height(hit_size);
-
-        for (lh_gl_scalar_t y = y0; y < y1; ++y)
-        {
-            for (lh_gl_scalar_t x = x0; x < x1; ++x)
-            {
-                if (lh_gl_cover_round_rect(lh_addr_of(bounds), 0, x, y) == 0 ||
-                    lh_gl_cover_round_rect(lh_addr_of(root), 0, x, y) != 0)
-                {
-                    continue;
-                }
-                lh_gl_canvas_fill_ink(self, place, x, y, 255, color);
-            }
-        }
-        return;
-    }
-    if (lh_ptr_is_null(stroke))
-    {
-        return;
-    }
-    stroke(lh_gl_canvas_get_target(self), clip, lh_addr_of(root), pen);
+lh_u32_t
+lh_gl_canvas_get_round_count(const lh_gl_canvas_t *self)
+{
+    return lh_gl_canvas_state_get_round_count(lh_gl_canvas_get_state(self));
 }
 
 lh_void
-lh_gl_canvas_fill_circle(lh_gl_canvas_t *self, const lh_gl_place_t *place, lh_gl_point_t center,
-                         lh_gl_scalar_t radius, const lh_gl_color_t *color)
+lh_gl_canvas_save(lh_gl_canvas_t *self)
 {
-    lh_assert_runtime_ref(place);
+    lh_assert_runtime_if(lh_gl_canvas_get_depth(self) >= LH_LIBRARY_OPTION_GL_CANVAS_DEPTH,
+                         lh_runtime_error_code_overflow);
+    lh_gl_canvas_get_saved_mut(self)[lh_gl_canvas_get_depth(self)] =
+        lh_ptr_deref(lh_gl_canvas_get_state(self));
+    lh_gl_canvas_set_depth(self, lh_gl_canvas_get_depth(self) + 1);
+}
+
+lh_void
+lh_gl_canvas_clip_to(lh_gl_canvas_t *self, const lh_gl_rect_t *clip_rect)
+{
+    lh_return_if(lh_null_eq(clip_rect));
+    lh_gl_rect_t target;
+    lh_gl_canvas_state_to_target(lh_gl_canvas_get_state_mut(self), clip_rect, lh_addr_of(target));
+    lh_gl_canvas_state_clip_to(lh_gl_canvas_get_state_mut(self), lh_addr_of(target));
+}
+
+lh_void
+lh_gl_canvas_add_round(lh_gl_canvas_t *self, const lh_gl_rect_t *clip_rect, lh_gl_scalar_t radius)
+{
+    lh_return_if(lh_null_eq(clip_rect) || radius <= lh_gl_scalar(0));
+    lh_gl_rect_t target;
+    lh_gl_canvas_state_to_target(lh_gl_canvas_get_state_mut(self), clip_rect, lh_addr_of(target));
+    lh_gl_canvas_clip_round_init(
+        lh_gl_canvas_get_rounds_mut(self) +
+            lh_gl_canvas_state_get_round_count(lh_gl_canvas_get_state(self)),
+        lh_addr_of(target), radius);
+    lh_gl_canvas_state_set_round_count(
+        lh_gl_canvas_get_state_mut(self),
+        lh_gl_canvas_state_get_round_count(lh_gl_canvas_get_state_mut(self)) + 1);
+}
+
+lh_void
+lh_gl_canvas_get_offset(const lh_gl_canvas_t *self, lh_gl_point_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_ptr_deref(out) = lh_ptr_deref(lh_gl_canvas_state_get_offset(lh_gl_canvas_get_state(self)));
+}
+
+const lh_gl_rect_t *
+lh_gl_canvas_get_clip(const lh_gl_canvas_t *self)
+{
+    return lh_gl_canvas_state_get_clip_v(lh_gl_canvas_get_state(self));
+}
+
+lh_void
+lh_gl_canvas_send_clip(lh_gl_canvas_t *self)
+{
+    lh_return_if(lh_null_eq(lh_gl_canvas_get_backend(self)) ||
+                 lh_null_eq(lh_gl_canvas_backend_get_set_clip_fn(lh_gl_canvas_get_backend(self))));
+    /* The clip is the region the frame is about to draw into, so it is what the
+       frame draws into, and this is the one place that knows both. Recorded as the
+       rect the backend is handed — in the buffer's own space, so ::lh_gl_canvas_end
+       presents exactly the pixels the backend was cut to — and as its own entry,
+       because two cuts standing apart are two entries and their gap belongs to
+       neither. A frame that sets no clip leaves the list empty, and empty means
+       "everything", the way a frame with no damage draws all of it. */
+    const lh_gl_rect_t *rect = lh_gl_canvas_get_clip(self);
+    lh_gl_canvas_clip_t clip;
+    lh_gl_canvas_backend_get_set_clip_fn(lh_gl_canvas_get_backend(self))(
+        lh_gl_canvas_get_context(self), lh_gl_canvas_describe_clip(self, lh_addr_of(clip)));
+    if (!lh_null_eq(rect))
+    {
+        lh_gl_rects_add(lh_gl_canvas_get_drawn_mut(self), rect);
+    }
+}
+
+lh_void
+lh_gl_canvas_sync_clip(lh_gl_canvas_t *self, const lh_gl_canvas_state_t *before)
+{
+    lh_return_if(lh_gl_canvas_state_has_same_clip(before, lh_gl_canvas_get_state_mut(self)));
+    lh_gl_canvas_send_clip(self);
+}
+
+lh_void
+lh_gl_canvas_push_round(lh_gl_canvas_t *self, lh_gl_point_t offset_delta,
+                        const lh_gl_rect_t *clip_rect, lh_gl_scalar_t radius)
+{
+    lh_gl_canvas_save(self);
+    lh_gl_canvas_add_round(self, clip_rect, radius);
+    lh_gl_canvas_clip_to(self, clip_rect);
+    lh_gl_canvas_state_move(lh_gl_canvas_get_state_mut(self), offset_delta);
+    lh_gl_canvas_sync_clip(
+        self, lh_addr_of(lh_gl_canvas_get_saved(self)[lh_gl_canvas_get_depth(self) - 1U]));
+}
+
+lh_void
+lh_gl_canvas_push(lh_gl_canvas_t *self, lh_gl_point_t offset_delta, const lh_gl_rect_t *clip_rect)
+{
+    lh_gl_canvas_push_round(self, offset_delta, clip_rect, lh_gl_scalar(0));
+}
+
+lh_void
+lh_gl_canvas_pop(lh_gl_canvas_t *self)
+{
+    lh_assert_runtime_if(lh_gl_canvas_get_depth(self) == 0U, lh_runtime_error_code_underflow);
+    lh_gl_canvas_state_t dropped = lh_ptr_deref(lh_gl_canvas_get_state(self));
+    lh_gl_canvas_set_depth(self, lh_cast_static(lh_u8_t, (lh_gl_canvas_get_depth(self) - 1U)));
+    lh_gl_canvas_set_state(self, lh_gl_canvas_get_saved(self)[lh_gl_canvas_get_depth(self)]);
+    lh_gl_canvas_sync_clip(self, lh_addr_of(dropped));
+}
+
+/* -- Frame ----------------------------------------------------------------- */
+
+lh_void
+lh_gl_canvas_begin(lh_gl_canvas_t *self)
+{
+    lh_return_if(lh_null_eq(lh_gl_canvas_get_backend(self)) ||
+                 lh_null_eq(lh_gl_canvas_backend_get_begin_fn(lh_gl_canvas_get_backend(self))));
+    lh_gl_point_init(lh_gl_canvas_get_frame_at_mut(self), lh_gl_scalar(0), lh_gl_scalar(0));
+    lh_gl_canvas_state_set_origin(lh_gl_canvas_get_state_mut(self),
+                                  lh_ptr_deref(lh_gl_canvas_get_frame_at(self)));
+    lh_gl_rects_init(lh_gl_canvas_get_drawn_mut(self));
+    lh_gl_canvas_backend_get_begin_fn(lh_gl_canvas_get_backend(self))(
+        lh_gl_canvas_get_context(self));
+}
+
+lh_void
+lh_gl_canvas_begin_area(lh_gl_canvas_t *self, const lh_gl_rect_t *area)
+{
+    lh_assert_runtime_ref(area);
+    /* Without the slot the frame is the whole target, which is exactly what
+       begin draws: the area is then only a slice of a full frame, and the
+       picture is the same, just no smaller buffer and no faster. */
+    if (lh_null_eq(lh_gl_canvas_get_backend(self)) ||
+        lh_null_eq(lh_gl_canvas_backend_get_begin_area_fn(lh_gl_canvas_get_backend(self))))
+    {
+        LH_ATTRIBUTE_UNUSED(lh_gl_canvas_begin(self));
+        return;
+    }
+    const lh_gl_point_t *at = lh_gl_rect_get_origin(area);
+    lh_gl_canvas_set_frame_at(self, lh_ptr_deref(at));
+    lh_gl_point_t origin;
+    /* (0, 0) of the buffer is the area corner, so the space the backend draws
+       in is the target space moved by minus the area origin. */
+    lh_gl_point_init(lh_addr_of(origin), lh_math_neg(lh_gl_point_get_x(at)),
+                     lh_math_neg(lh_gl_point_get_y(at)));
+    lh_gl_canvas_state_set_origin(lh_gl_canvas_get_state_mut(self), origin);
+    lh_gl_rects_init(lh_gl_canvas_get_drawn_mut(self));
+    lh_gl_canvas_backend_get_begin_area_fn(lh_gl_canvas_get_backend(self))(
+        lh_gl_canvas_get_context(self), area);
+}
+
+lh_void
+lh_gl_canvas_end(lh_gl_canvas_t *self)
+{
+    /* The frame is over, so the buffer's origin is over with it — even when there
+       was no `end` slot to present through. A damage recorded between frames is a
+       window rectangle, not a slice of the strip that happened to be drawn last,
+       and it would be moved by that origin (::lh_gl_canvas_add_damage): 568 rows
+       down for an 800x600 target in 32-row strips, which is a repaint of nothing.
+     */
+    lh_gl_point_init(lh_gl_canvas_get_frame_at_mut(self), lh_gl_scalar(0), lh_gl_scalar(0));
+    lh_return_if(lh_null_eq(lh_gl_canvas_get_backend(self)) ||
+                 lh_null_eq(lh_gl_canvas_backend_get_end_fn(lh_gl_canvas_get_backend(self))));
+    lh_gl_canvas_backend_get_end_fn(lh_gl_canvas_get_backend(self))(
+        lh_gl_canvas_get_context(self), lh_gl_canvas_get_drawn_mut(self));
+}
+
+lh_void
+lh_gl_canvas_clear(lh_gl_canvas_t *self, const lh_gl_color_t *color)
+{
     lh_assert_runtime_ref(color);
-    const lh_gl_canvas_backend_t *backend = lh_gl_canvas_get_backend(self);
-
-    if (lh_ptr_is_null(backend) || radius < 1)
-    {
-        return;
-    }
-    lh_gl_canvas_fill_circle_fn *fill = lh_gl_canvas_backend_get_fill_circle(backend);
-    const lh_gl_point_t *origin = lh_gl_place_get_origin(place);
-    lh_gl_point_t root;
-
-    lh_gl_point_init(lh_addr_of(root),
-                     lh_gl_point_get_x(lh_addr_of(center)) + lh_gl_point_get_x(origin),
-                     lh_gl_point_get_y(lh_addr_of(center)) + lh_gl_point_get_y(origin));
-    lh_gl_rect_t bounds;
-
-    lh_gl_rect_init(lh_addr_of(bounds), lh_gl_point_get_x(lh_addr_of(root)) - radius,
-                    lh_gl_point_get_y(lh_addr_of(root)) - radius, radius + radius, radius + radius);
-    const lh_gl_rect_t *clip = lh_gl_place_get_clip(place);
-
-    if (lh_gl_rect_intersects(lh_addr_of(bounds), clip) == lh_bool_false)
-    {
-        return;
-    }
-    if (lh_ptr_is_set(lh_gl_place_get_mask(place)))
-    {
-        lh_gl_rect_t hit;
-
-        if (lh_gl_canvas_clip_hit(place, lh_addr_of(bounds), lh_addr_of(hit)) == lh_bool_false)
-        {
-            return;
-        }
-        const lh_gl_point_t *at = lh_gl_rect_get_origin(lh_addr_of(hit));
-        const lh_gl_size_t *hit_size = lh_gl_rect_get_size(lh_addr_of(hit));
-        lh_gl_scalar_t x0 = lh_gl_point_get_x(at);
-        lh_gl_scalar_t y0 = lh_gl_point_get_y(at);
-        lh_gl_scalar_t x1 = x0 + lh_gl_size_get_width(hit_size);
-        lh_gl_scalar_t y1 = y0 + lh_gl_size_get_height(hit_size);
-
-        for (lh_gl_scalar_t y = y0; y < y1; ++y)
-        {
-            for (lh_gl_scalar_t x = x0; x < x1; ++x)
-            {
-                lh_gl_canvas_fill_ink(self, place, x, y,
-                                      lh_gl_cover_circle(lh_addr_of(root), radius, x, y), color);
-            }
-        }
-        return;
-    }
-    if (lh_ptr_is_null(fill))
-    {
-        return;
-    }
-    fill(lh_gl_canvas_get_target(self), clip, root, radius, color);
+    lh_return_if(lh_null_eq(lh_gl_canvas_get_backend(self)) ||
+                 lh_null_eq(lh_gl_canvas_backend_get_clear_fn(lh_gl_canvas_get_backend(self))));
+    lh_gl_canvas_backend_get_clear_fn(lh_gl_canvas_get_backend(self))(
+        lh_gl_canvas_get_context(self), color);
+    lh_gl_rect_t area;
+    lh_gl_rect_init(lh_addr_of(area), lh_gl_scalar(0), lh_gl_scalar(0),
+                    lh_gl_size_get_width(lh_gl_canvas_get_size_mut(self)),
+                    lh_gl_size_get_height(lh_gl_canvas_get_size_mut(self)));
+    lh_gl_canvas_add_damage(self, lh_addr_of(area));
 }
 
+/* -- Fills ----------------------------------------------------------------- */
+
 lh_void
-lh_gl_canvas_stroke_circle(lh_gl_canvas_t *self, const lh_gl_place_t *place, lh_gl_point_t center,
-                           lh_gl_scalar_t radius, const lh_gl_pen_t *pen)
+lh_gl_canvas_send_box(lh_gl_canvas_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                      const lh_gl_color_t *color)
 {
-    lh_assert_runtime_ref(place);
-    lh_assert_runtime_ref(pen);
-    const lh_gl_canvas_backend_t *backend = lh_gl_canvas_get_backend(self);
-
-    if (lh_ptr_is_null(backend) || radius < 1)
-    {
-        return;
-    }
-    lh_gl_canvas_stroke_circle_fn *stroke = lh_gl_canvas_backend_get_stroke_circle(backend);
-    lh_gl_scalar_t width = lh_gl_pen_get_width(pen);
-
-    if (width < 0)
-    {
-        width = 0;
-    }
-    const lh_gl_point_t *origin = lh_gl_place_get_origin(place);
-    lh_gl_point_t root;
-
-    lh_gl_point_init(lh_addr_of(root),
-                     lh_gl_point_get_x(lh_addr_of(center)) + lh_gl_point_get_x(origin),
-                     lh_gl_point_get_y(lh_addr_of(center)) + lh_gl_point_get_y(origin));
-    lh_gl_scalar_t reach = radius + width;
-    lh_gl_rect_t bounds;
-
-    lh_gl_rect_init(lh_addr_of(bounds), lh_gl_point_get_x(lh_addr_of(root)) - reach,
-                    lh_gl_point_get_y(lh_addr_of(root)) - reach, reach + reach, reach + reach);
-    const lh_gl_rect_t *clip = lh_gl_place_get_clip(place);
-
-    if (lh_gl_rect_intersects(lh_addr_of(bounds), clip) == lh_bool_false)
-    {
-        return;
-    }
-    if (lh_ptr_is_set(lh_gl_place_get_mask(place)))
-    {
-        const lh_gl_color_t *color = lh_gl_pen_get_color(pen);
-        lh_gl_rect_t hit;
-
-        if (width < 1 ||
-            lh_gl_canvas_clip_hit(place, lh_addr_of(bounds), lh_addr_of(hit)) == lh_bool_false)
-        {
-            return;
-        }
-        const lh_gl_point_t *at = lh_gl_rect_get_origin(lh_addr_of(hit));
-        const lh_gl_size_t *hit_size = lh_gl_rect_get_size(lh_addr_of(hit));
-        lh_gl_scalar_t x0 = lh_gl_point_get_x(at);
-        lh_gl_scalar_t y0 = lh_gl_point_get_y(at);
-        lh_gl_scalar_t x1 = x0 + lh_gl_size_get_width(hit_size);
-        lh_gl_scalar_t y1 = y0 + lh_gl_size_get_height(hit_size);
-        lh_gl_scalar_t outer = radius + width;
-
-        for (lh_gl_scalar_t y = y0; y < y1; ++y)
-        {
-            for (lh_gl_scalar_t x = x0; x < x1; ++x)
-            {
-                if (lh_gl_cover_circle(lh_addr_of(root), outer, x, y) == 0 ||
-                    lh_gl_cover_circle(lh_addr_of(root), radius, x, y) != 0)
-                {
-                    continue;
-                }
-                lh_gl_canvas_fill_ink(self, place, x, y, 255, color);
-            }
-        }
-        return;
-    }
-    if (lh_ptr_is_null(stroke))
-    {
-        return;
-    }
-    stroke(lh_gl_canvas_get_target(self), clip, root, radius, pen);
+    lh_return_if(x1 <= x0);
+    lh_gl_rect_t box;
+    lh_gl_rect_init(lh_addr_of(box), x0, y, x1 - x0, 1);
+    lh_gl_canvas_backend_get_fill_rect_fn(lh_gl_canvas_get_backend(self))(
+        lh_gl_canvas_get_context(self), lh_addr_of(box), color);
 }
 
 lh_void
-lh_gl_canvas_fill_round_rect(lh_gl_canvas_t *self, const lh_gl_place_t *place,
-                             const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
+lh_gl_canvas_send_clip_pixel(lh_gl_canvas_t *self, const lh_gl_canvas_clip_t *clip, lh_s32_t x,
+                             lh_s32_t y, const lh_gl_color_t *color)
+{
+    const lh_byte_t kept = lh_gl_canvas_clip_coverage(clip, x, y);
+    lh_gl_color_t edge;
+    lh_gl_color_with_coverage(color, kept, lh_addr_of(edge));
+
+    lh_return_if(kept == 0U);
+    lh_gl_canvas_send_box(self, x, x + 1, y, kept == 255U ? color : lh_addr_of(edge));
+}
+
+lh_void
+lh_gl_canvas_send_clip_pixels(lh_gl_canvas_t *self, const lh_gl_canvas_clip_t *clip, lh_s32_t x0,
+                              lh_s32_t x1, lh_s32_t y, const lh_gl_color_t *color)
+{
+    for (; x0 < x1; ++x0)
+    {
+        lh_gl_canvas_send_clip_pixel(self, clip, x0, y, color);
+    }
+}
+
+lh_void
+lh_gl_canvas_send_clip_row(lh_gl_canvas_t *self, const lh_gl_canvas_clip_t *clip, lh_s32_t x0,
+                           lh_s32_t x1, lh_s32_t y, const lh_gl_color_t *color)
+{
+    {
+        lh_s32_t mid0;
+        lh_s32_t mid1;
+
+        lh_gl_canvas_clip_split_row(clip, x0, x1, y, lh_addr_of(mid0), lh_addr_of(mid1));
+        lh_gl_canvas_send_clip_pixels(self, clip, x0, mid0, y, color);
+        lh_gl_canvas_send_box(self, mid0, mid1, y, color);
+        lh_gl_canvas_send_clip_pixels(self, clip, mid1, x1, y, color);
+    }
+}
+
+lh_void
+lh_gl_canvas_send_clip_rows(lh_gl_canvas_t *self, const lh_gl_rect_t *cut,
+                            const lh_gl_color_t *color)
+{
+    const lh_s32_t y1 = lh_gl_canvas_round_bottom(cut);
+
+    lh_gl_canvas_clip_t clip;
+    LH_ATTRIBUTE_UNUSED(lh_gl_canvas_describe_clip(self, lh_addr_of(clip)));
+    for (lh_s32_t y = lh_gl_canvas_round_top(cut); y < y1; ++y)
+    {
+        lh_gl_canvas_send_clip_row(self, lh_addr_of(clip), lh_gl_canvas_round_left(cut),
+                                   lh_gl_canvas_round_right(cut), y, color);
+    }
+}
+
+lh_void
+lh_gl_canvas_send_cut(lh_gl_canvas_t *self, const lh_gl_rect_t *cut, const lh_gl_color_t *color)
+{
+    if (lh_gl_canvas_state_get_round_count(lh_gl_canvas_get_state(self)) == 0U)
+    {
+        lh_gl_canvas_backend_get_fill_rect_fn(lh_gl_canvas_get_backend(self))(
+            lh_gl_canvas_get_context(self), cut, color);
+        return;
+    }
+    lh_gl_canvas_send_clip_rows(self, cut, color);
+}
+
+lh_void
+lh_gl_canvas_fill_target_rect(lh_gl_canvas_t *self, const lh_gl_rect_t *target,
+                              const lh_gl_color_t *color)
+{
+    lh_return_if(lh_null_eq(lh_gl_canvas_get_backend(self)) ||
+                 lh_null_eq(lh_gl_canvas_backend_get_fill_rect_fn(lh_gl_canvas_get_backend(self))));
+    lh_gl_rect_t cut;
+    lh_gl_canvas_state_cut(lh_gl_canvas_get_state_mut(self), target, lh_addr_of(cut));
+    lh_return_if(lh_gl_rect_is_empty(lh_addr_of(cut)));
+    lh_gl_canvas_add_damage(self, lh_addr_of(cut));
+    if (lh_gl_canvas_is_cutting(self))
+    {
+        lh_gl_canvas_send_cut(self, lh_addr_of(cut), color);
+        return;
+    }
+    lh_gl_canvas_backend_get_fill_rect_fn(lh_gl_canvas_get_backend(self))(
+        lh_gl_canvas_get_context(self), target, color);
+}
+
+lh_bool_t
+lh_gl_canvas_shows(const lh_gl_canvas_t *self, const lh_gl_rect_t *target)
+{
+    lh_gl_rect_t cut;
+    lh_gl_canvas_state_cut(lh_gl_canvas_get_state(self), target, lh_addr_of(cut));
+
+    return lh_gl_rect_is_empty(lh_addr_of(cut)) ? lh_bool_false : lh_bool_true;
+}
+
+lh_bool_t
+lh_gl_canvas_shows_rect(const lh_gl_canvas_t *self, const lh_gl_rect_t *rect)
+{
+    lh_gl_rect_t target;
+    lh_gl_canvas_state_to_target(lh_gl_canvas_get_state(self), rect, lh_addr_of(target));
+
+    return lh_gl_canvas_shows(self, lh_addr_of(target));
+}
+
+lh_bool_t
+lh_gl_canvas_covers_rect(const lh_gl_canvas_t *self, const lh_gl_rect_t *rect)
+{
+    lh_gl_rect_t target;
+    lh_gl_canvas_state_to_target(lh_gl_canvas_get_state(self), rect, lh_addr_of(target));
+    lh_gl_rect_t cut;
+    lh_gl_canvas_state_cut(lh_gl_canvas_get_state(self), lh_addr_of(target), lh_addr_of(cut));
+
+    return !lh_gl_rect_is_empty(lh_addr_of(target)) &&
+                   lh_gl_rect_eq(lh_addr_of(cut), lh_addr_of(target))
+               ? lh_bool_true
+               : lh_bool_false;
+}
+
+lh_void
+lh_gl_canvas_fill_rect(lh_gl_canvas_t *self, const lh_gl_rect_t *rect, const lh_gl_color_t *color)
+{
+    lh_assert_runtime_ref(rect);
+    lh_assert_runtime_ref(color);
+    lh_gl_rect_t target;
+    lh_gl_canvas_state_to_target(lh_gl_canvas_get_state_mut(self), rect, lh_addr_of(target));
+    lh_gl_canvas_fill_target_rect(self, lh_addr_of(target), color);
+}
+
+lh_bool_t
+lh_gl_canvas_can_send_whole(const lh_gl_canvas_t *self, const lh_gl_rect_t *target)
+{
+    /* The bar for a slot that *reads* its target: the pixels it is about to work
+       on have to be there. No clip at all, or the target inside a plain
+       (unrounded) one. A rounded cut is refused as well, because a backend that
+       clips knows it and a software one does not. */
+    lh_return_if(!lh_gl_canvas_state_is_clipped(lh_gl_canvas_get_state(self)), lh_bool_true);
+    return lh_gl_canvas_state_get_round_count(lh_gl_canvas_get_state(self)) == 0U &&
+                   lh_gl_canvas_state_contains(lh_gl_canvas_get_state(self), target)
+               ? lh_bool_true
+               : lh_bool_false;
+}
+
+lh_bool_t
+lh_gl_canvas_can_fill_round(const lh_gl_canvas_t *self, const lh_gl_rect_t *target)
+{
+    lh_return_if(
+        lh_null_eq(lh_gl_canvas_get_backend(self)) ||
+            lh_null_eq(lh_gl_canvas_backend_get_fill_round_rect_fn(lh_gl_canvas_get_backend(self))),
+        lh_bool_false);
+    /* A rounded box is a shape and not a reading: it is drawn whole and cut by
+       whoever clips, so a backend that clips may have it even when the clip
+       cuts it. Keeping that shortcut here and not in ::lh_gl_canvas_can_send_whole
+       is the whole difference between the two kinds of slot. */
+    lh_return_if(!lh_gl_canvas_is_cutting(self), lh_bool_true);
+    return lh_gl_canvas_can_send_whole(self, target);
+}
+
+lh_bool_t
+lh_gl_canvas_try_fill_round(lh_gl_canvas_t *self, const lh_gl_rect_t *target, lh_gl_scalar_t radius,
+                            const lh_gl_color_t *color)
+{
+    lh_return_if(!lh_gl_canvas_can_fill_round(self, target), lh_bool_false);
+    return lh_gl_canvas_backend_get_fill_round_rect_fn(lh_gl_canvas_get_backend(self))(
+        lh_gl_canvas_get_context(self), target, radius, color);
+}
+
+lh_void
+lh_gl_canvas_fill_target_round_rect(lh_gl_canvas_t *self, const lh_gl_rect_t *target,
+                                    lh_gl_scalar_t radius, const lh_gl_color_t *color)
+{
+    if (radius <= lh_gl_scalar(0))
+    {
+        lh_gl_canvas_fill_target_rect(self, target, color);
+        return;
+    }
+    lh_gl_rect_t cut;
+    lh_gl_canvas_state_cut(lh_gl_canvas_get_state_mut(self), target, lh_addr_of(cut));
+    lh_return_if(lh_gl_rect_is_empty(lh_addr_of(cut)));
+    lh_gl_canvas_add_damage(self, lh_addr_of(cut));
+    lh_return_if(lh_gl_canvas_try_fill_round(self, target, radius, color));
+    lh_gl_canvas_fill_round_rect_by_rects(self, target, radius, color);
+}
+
+lh_void
+lh_gl_canvas_fill_round_rect(lh_gl_canvas_t *self, const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
                              const lh_gl_color_t *color)
 {
-    lh_assert_runtime_ref(place);
     lh_assert_runtime_ref(rect);
     lh_assert_runtime_ref(color);
-    const lh_gl_canvas_backend_t *backend = lh_gl_canvas_get_backend(self);
-
-    if (lh_ptr_is_null(backend))
-    {
-        return;
-    }
-    lh_gl_canvas_fill_round_rect_fn *fill = lh_gl_canvas_backend_get_fill_round_rect(backend);
-    const lh_gl_point_t *origin = lh_gl_place_get_origin(place);
-    lh_gl_rect_t root;
-
-    lh_gl_rect_offset(rect, lh_gl_point_get_x(origin), lh_gl_point_get_y(origin), lh_addr_of(root));
-    const lh_gl_rect_t *clip = lh_gl_place_get_clip(place);
-
-    if (lh_gl_rect_intersects(lh_addr_of(root), clip) == lh_bool_false)
-    {
-        return;
-    }
-    if (radius < 0)
-    {
-        radius = 0;
-    }
-    const lh_gl_size_t *size = lh_gl_rect_get_size(lh_addr_of(root));
-    lh_gl_scalar_t half = lh_math_min(lh_gl_size_get_width(size), lh_gl_size_get_height(size)) / 2;
-
-    radius = lh_math_min(radius, half);
-    if (lh_ptr_is_set(lh_gl_place_get_mask(place)))
-    {
-        lh_gl_rect_t hit;
-
-        if (lh_gl_canvas_clip_hit(place, lh_addr_of(root), lh_addr_of(hit)) == lh_bool_false)
-        {
-            return;
-        }
-        const lh_gl_point_t *at = lh_gl_rect_get_origin(lh_addr_of(hit));
-        const lh_gl_size_t *hit_size = lh_gl_rect_get_size(lh_addr_of(hit));
-        lh_gl_scalar_t x0 = lh_gl_point_get_x(at);
-        lh_gl_scalar_t y0 = lh_gl_point_get_y(at);
-        lh_gl_scalar_t x1 = x0 + lh_gl_size_get_width(hit_size);
-        lh_gl_scalar_t y1 = y0 + lh_gl_size_get_height(hit_size);
-
-        for (lh_gl_scalar_t y = y0; y < y1; ++y)
-        {
-            for (lh_gl_scalar_t x = x0; x < x1; ++x)
-            {
-                lh_gl_color_channel_t shape =
-                    lh_gl_cover_round_rect(lh_addr_of(root), radius, x, y);
-
-                lh_gl_canvas_fill_ink(self, place, x, y, shape, color);
-            }
-        }
-        return;
-    }
-    if (lh_ptr_is_null(fill))
-    {
-        return;
-    }
-    fill(lh_gl_canvas_get_target(self), clip, lh_addr_of(root), radius, color);
+    lh_gl_rect_t target;
+    lh_gl_canvas_state_to_target(lh_gl_canvas_get_state_mut(self), rect, lh_addr_of(target));
+    lh_gl_canvas_fill_target_round_rect(self, lh_addr_of(target), lh_gl_radius_clamp(rect, radius),
+                                        color);
 }
 
 lh_void
-lh_gl_canvas_stroke_round_rect(lh_gl_canvas_t *self, const lh_gl_place_t *place,
-                               const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
-                               const lh_gl_pen_t *pen)
+lh_gl_canvas_shadow_fallback(lh_gl_canvas_t *self, const lh_gl_rect_t *bounds,
+                             const lh_gl_rect_t *target, lh_gl_scalar_t radius,
+                             const lh_gl_shadow_t *shadow)
 {
-    lh_assert_runtime_ref(place);
-    lh_assert_runtime_ref(rect);
-    lh_assert_runtime_ref(pen);
-    const lh_gl_canvas_backend_t *backend = lh_gl_canvas_get_backend(self);
+    lh_gl_rect_t cut;
 
-    if (lh_ptr_is_null(backend))
+    /* Only what the clip lets through is worth a pixel each, and a frame drawn in
+       strips clips it once per strip. */
+    lh_gl_canvas_state_cut(lh_gl_canvas_get_state_mut(self), bounds, lh_addr_of(cut));
+    lh_return_if(lh_gl_rect_is_empty(lh_addr_of(cut)));
+    const lh_gl_point_t *cut_origin = lh_gl_rect_get_origin(lh_addr_of(cut));
+    const lh_gl_size_t *cut_size = lh_gl_rect_get_size(lh_addr_of(cut));
+    lh_s32_t x1 = lh_gl_point_get_x(cut_origin) + lh_gl_size_get_width(cut_size);
+    lh_s32_t y1 = lh_gl_point_get_y(cut_origin) + lh_gl_size_get_height(cut_size);
+    lh_gl_shadow_shape_t shape;
+
+    lh_gl_shadow_shape_init(lh_addr_of(shape), shadow, target, radius);
+    for (lh_s32_t y = lh_gl_point_get_y(cut_origin); y < y1; ++y)
     {
-        return;
-    }
-    lh_gl_canvas_stroke_round_rect_fn *stroke =
-        lh_gl_canvas_backend_get_stroke_round_rect(backend);
-    const lh_gl_point_t *origin = lh_gl_place_get_origin(place);
-    lh_gl_rect_t root;
+        const lh_s32_t row = lh_gl_shadow_shape_row(lh_addr_of(shape), y);
 
-    lh_gl_rect_offset(rect, lh_gl_point_get_x(origin), lh_gl_point_get_y(origin), lh_addr_of(root));
-    lh_gl_scalar_t width = lh_gl_pen_get_width(pen);
-
-    if (width < 0)
-    {
-        width = 0;
-    }
-    lh_gl_rect_t bounds;
-
-    lh_gl_rect_inset(lh_addr_of(root), -width, -width, lh_addr_of(bounds));
-    const lh_gl_rect_t *clip = lh_gl_place_get_clip(place);
-
-    if (lh_gl_rect_intersects(lh_addr_of(bounds), clip) == lh_bool_false)
-    {
-        return;
-    }
-    if (radius < 0)
-    {
-        radius = 0;
-    }
-    const lh_gl_size_t *size = lh_gl_rect_get_size(lh_addr_of(root));
-    lh_gl_scalar_t half = lh_math_min(lh_gl_size_get_width(size), lh_gl_size_get_height(size)) / 2;
-
-    radius = lh_math_min(radius, half);
-    if (lh_ptr_is_set(lh_gl_place_get_mask(place)))
-    {
-        const lh_gl_color_t *color = lh_gl_pen_get_color(pen);
-        lh_gl_rect_t hit;
-
-        if (width < 1 ||
-            lh_gl_canvas_clip_hit(place, lh_addr_of(bounds), lh_addr_of(hit)) == lh_bool_false)
+        for (lh_s32_t x = lh_gl_point_get_x(cut_origin); x < x1; ++x)
         {
-            return;
-        }
-        const lh_gl_point_t *at = lh_gl_rect_get_origin(lh_addr_of(hit));
-        const lh_gl_size_t *hit_size = lh_gl_rect_get_size(lh_addr_of(hit));
-        lh_gl_scalar_t x0 = lh_gl_point_get_x(at);
-        lh_gl_scalar_t y0 = lh_gl_point_get_y(at);
-        lh_gl_scalar_t x1 = x0 + lh_gl_size_get_width(hit_size);
-        lh_gl_scalar_t y1 = y0 + lh_gl_size_get_height(hit_size);
+            const lh_byte_t alpha = lh_gl_shadow_shape_alpha(lh_addr_of(shape), row, x, y);
+            lh_gl_rect_t pixel;
+            lh_gl_color_t color;
 
-        for (lh_gl_scalar_t y = y0; y < y1; ++y)
-        {
-            for (lh_gl_scalar_t x = x0; x < x1; ++x)
-            {
-                if (lh_gl_cover_round_rect(lh_addr_of(bounds), radius + width, x, y) == 0 ||
-                    lh_gl_cover_round_rect(lh_addr_of(root), radius, x, y) != 0)
-                {
-                    continue;
-                }
-                lh_gl_canvas_fill_ink(self, place, x, y, 255, color);
-            }
-        }
-        return;
-    }
-    if (lh_ptr_is_null(stroke))
-    {
-        return;
-    }
-    stroke(lh_gl_canvas_get_target(self), clip, lh_addr_of(root), radius, pen);
-}
-
-lh_void
-lh_gl_canvas_fill_triangle(lh_gl_canvas_t *self, const lh_gl_place_t *place, const lh_gl_point_t *a,
-                           const lh_gl_point_t *b, const lh_gl_point_t *c,
-                           const lh_gl_color_t *color)
-{
-    lh_assert_runtime_ref(place);
-    lh_assert_runtime_ref(a);
-    lh_assert_runtime_ref(b);
-    lh_assert_runtime_ref(c);
-    lh_assert_runtime_ref(color);
-    const lh_gl_canvas_backend_t *backend = lh_gl_canvas_get_backend(self);
-
-    if (lh_ptr_is_null(backend))
-    {
-        return;
-    }
-    lh_gl_canvas_fill_triangle_fn *fill = lh_gl_canvas_backend_get_fill_triangle(backend);
-    const lh_gl_point_t *origin = lh_gl_place_get_origin(place);
-    lh_gl_point_t root_a;
-
-    lh_gl_point_init(lh_addr_of(root_a), lh_gl_point_get_x(a) + lh_gl_point_get_x(origin),
-                     lh_gl_point_get_y(a) + lh_gl_point_get_y(origin));
-    lh_gl_point_t root_b;
-
-    lh_gl_point_init(lh_addr_of(root_b), lh_gl_point_get_x(b) + lh_gl_point_get_x(origin),
-                     lh_gl_point_get_y(b) + lh_gl_point_get_y(origin));
-    lh_gl_point_t root_c;
-
-    lh_gl_point_init(lh_addr_of(root_c), lh_gl_point_get_x(c) + lh_gl_point_get_x(origin),
-                     lh_gl_point_get_y(c) + lh_gl_point_get_y(origin));
-    lh_gl_scalar_t min_x = lh_math_min(lh_gl_point_get_x(lh_addr_of(root_a)),
-                                      lh_math_min(lh_gl_point_get_x(lh_addr_of(root_b)),
-                                                  lh_gl_point_get_x(lh_addr_of(root_c))));
-    lh_gl_scalar_t min_y = lh_math_min(lh_gl_point_get_y(lh_addr_of(root_a)),
-                                      lh_math_min(lh_gl_point_get_y(lh_addr_of(root_b)),
-                                                  lh_gl_point_get_y(lh_addr_of(root_c))));
-    lh_gl_scalar_t max_x = lh_math_max(lh_gl_point_get_x(lh_addr_of(root_a)),
-                                      lh_math_max(lh_gl_point_get_x(lh_addr_of(root_b)),
-                                                  lh_gl_point_get_x(lh_addr_of(root_c))));
-    lh_gl_scalar_t max_y = lh_math_max(lh_gl_point_get_y(lh_addr_of(root_a)),
-                                      lh_math_max(lh_gl_point_get_y(lh_addr_of(root_b)),
-                                                  lh_gl_point_get_y(lh_addr_of(root_c))));
-    lh_gl_rect_t bounds;
-
-    lh_gl_rect_init(lh_addr_of(bounds), min_x, min_y, max_x - min_x, max_y - min_y);
-    const lh_gl_rect_t *clip = lh_gl_place_get_clip(place);
-
-    if (lh_gl_rect_intersects(lh_addr_of(bounds), clip) == lh_bool_false)
-    {
-        return;
-    }
-    if (lh_ptr_is_set(lh_gl_place_get_mask(place)))
-    {
-        lh_gl_rect_t hit;
-
-        if (lh_gl_canvas_clip_hit(place, lh_addr_of(bounds), lh_addr_of(hit)) == lh_bool_false)
-        {
-            return;
-        }
-        const lh_gl_point_t *at = lh_gl_rect_get_origin(lh_addr_of(hit));
-        const lh_gl_size_t *hit_size = lh_gl_rect_get_size(lh_addr_of(hit));
-        lh_gl_scalar_t x0 = lh_gl_point_get_x(at);
-        lh_gl_scalar_t y0 = lh_gl_point_get_y(at);
-        lh_gl_scalar_t x1 = x0 + lh_gl_size_get_width(hit_size);
-        lh_gl_scalar_t y1 = y0 + lh_gl_size_get_height(hit_size);
-
-        for (lh_gl_scalar_t y = y0; y < y1; ++y)
-        {
-            for (lh_gl_scalar_t x = x0; x < x1; ++x)
-            {
-                lh_gl_canvas_fill_ink(self, place, x, y,
-                                      lh_gl_cover_triangle(lh_addr_of(root_a), lh_addr_of(root_b),
-                                                           lh_addr_of(root_c), x, y),
-                                      color);
-            }
-        }
-        return;
-    }
-    if (lh_ptr_is_null(fill))
-    {
-        return;
-    }
-    fill(lh_gl_canvas_get_target(self), clip, lh_addr_of(root_a), lh_addr_of(root_b),
-         lh_addr_of(root_c), color);
-}
-
-lh_void
-lh_gl_canvas_stroke_line(lh_gl_canvas_t *self, const lh_gl_place_t *place, const lh_gl_point_t *a,
-                         const lh_gl_point_t *b, const lh_gl_pen_t *pen)
-{
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(place);
-    lh_assert_runtime_ref(a);
-    lh_assert_runtime_ref(b);
-    lh_assert_runtime_ref(pen);
-    lh_gl_scalar_t width = lh_gl_pen_get_width(pen);
-
-    if (width < 1 || lh_ptr_is_null(lh_gl_canvas_get_backend(self)))
-    {
-        return;
-    }
-    const lh_gl_color_t *color = lh_gl_pen_get_color(pen);
-    lh_gl_scalar_t x0 = lh_gl_point_get_x(a);
-    lh_gl_scalar_t y0 = lh_gl_point_get_y(a);
-    lh_gl_scalar_t x1 = lh_gl_point_get_x(b);
-    lh_gl_scalar_t y1 = lh_gl_point_get_y(b);
-    lh_s64_t dx = lh_math_abs(x1 - x0);
-    lh_s64_t step_x = x0 < x1 ? 1 : -1;
-    lh_s64_t dy = -lh_math_abs(y1 - y0);
-    lh_s64_t step_y = y0 < y1 ? 1 : -1;
-    lh_s64_t err = dx + dy;
-    lh_gl_scalar_t shift = (width - 1) / 2;
-
-    for (;;)
-    {
-        lh_gl_rect_t dot;
-
-        lh_gl_rect_init(lh_addr_of(dot), x0 - shift, y0 - shift, width, width);
-        lh_gl_canvas_fill_rect(self, place, lh_addr_of(dot), color);
-        if (x0 == x1 && y0 == y1)
-        {
-            break;
-        }
-        lh_s64_t twice = err + err;
-
-        if (twice >= dy)
-        {
-            err += dy;
-            x0 = lh_type_cast(lh_gl_scalar_t, x0 + step_x);
-        }
-        if (twice <= dx)
-        {
-            err += dx;
-            y0 = lh_type_cast(lh_gl_scalar_t, y0 + step_y);
-        }
-    }
-}
-
-lh_void
-lh_gl_canvas_fill_sector(lh_gl_canvas_t *self, const lh_gl_place_t *place, lh_gl_point_t center,
-                         lh_gl_scalar_t radius, lh_gl_scalar_t start, lh_gl_scalar_t sweep,
-                         const lh_gl_color_t *color)
-{
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(place);
-    lh_assert_runtime_ref(color);
-    if (radius < 1 || lh_ptr_is_null(lh_gl_canvas_get_backend(self)))
-    {
-        return;
-    }
-    lh_gl_scalar_t left = lh_gl_point_get_x(lh_addr_of(center)) - radius;
-    lh_gl_scalar_t top = lh_gl_point_get_y(lh_addr_of(center)) - radius;
-    lh_gl_scalar_t right = lh_gl_point_get_x(lh_addr_of(center)) + radius;
-    lh_gl_scalar_t bottom = lh_gl_point_get_y(lh_addr_of(center)) + radius;
-
-    for (lh_gl_scalar_t y = top; y < bottom; ++y)
-    {
-        for (lh_gl_scalar_t x = left; x < right; ++x)
-        {
-            if (lh_gl_cover_sector(lh_addr_of(center), radius, start, sweep, x, y) == 0)
+            if (alpha == 0)
             {
                 continue;
             }
-            lh_gl_rect_t dot;
-
-            lh_gl_rect_init(lh_addr_of(dot), x, y, 1, 1);
-            lh_gl_canvas_fill_rect(self, place, lh_addr_of(dot), color);
+            lh_gl_shadow_copy_color(shadow, lh_addr_of(color));
+            lh_gl_color_set_a(lh_addr_of(color), alpha);
+            lh_gl_rect_init(lh_addr_of(pixel), lh_gl_scalar_of(x), lh_gl_scalar_of(y),
+                            lh_gl_scalar(1), lh_gl_scalar(1));
+            lh_gl_canvas_fill_target_rect(self, lh_addr_of(pixel), lh_addr_of(color));
         }
     }
+}
+
+lh_bool_t
+lh_gl_canvas_shadow(lh_gl_canvas_t *self, const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
+                    const lh_gl_shadow_t *shadow)
+{
+    lh_assert_runtime_ref(rect);
+    lh_assert_runtime_ref(shadow);
+    lh_gl_rect_t target;
+    lh_gl_canvas_state_to_target(lh_gl_canvas_get_state_mut(self), rect, lh_addr_of(target));
+    lh_gl_scalar_t outset = lh_gl_shadow_get_outset(shadow, lh_addr_of(target));
+    lh_return_if(outset <= 0, lh_bool_false);
+    lh_gl_scalar_t corner = lh_gl_radius_clamp(lh_addr_of(target), radius);
+    lh_gl_rect_t bounds;
+    lh_gl_rect_inset(lh_addr_of(target), lh_gl_scalar_of(lh_math_neg(outset)),
+                     lh_gl_scalar_of(lh_math_neg(outset)), lh_addr_of(bounds));
+    lh_gl_canvas_add_damage(self, lh_addr_of(bounds));
+    /* No `can_send_whole` here, unlike a rounded fill: a shadow reads no pixels, it
+       is the box and the shadow alone, so every area that clips it draws its own
+       slice and the picture is the same whether the frame is drawn whole or in
+       strips. The effect that does need the whole area in one buffer is the blur. */
+    lh_return_if(!lh_gl_canvas_shows(self, lh_addr_of(bounds)), lh_bool_false);
+
+    if (!lh_null_eq(lh_gl_canvas_get_backend(self)) &&
+        !lh_null_eq(lh_gl_canvas_backend_get_shadow_fn(lh_gl_canvas_get_backend(self))) &&
+        lh_gl_canvas_backend_get_shadow_fn(lh_gl_canvas_get_backend(self))(
+            lh_gl_canvas_get_context(self), lh_addr_of(target), corner, shadow))
+    {
+        return lh_bool_true;
+    }
+    lh_gl_canvas_shadow_fallback(self, lh_addr_of(bounds), lh_addr_of(target), corner, shadow);
+    return lh_bool_true;
+}
+
+lh_bool_t
+lh_gl_canvas_blur(lh_gl_canvas_t *self, const lh_gl_rect_t *rect, lh_gl_scalar_t blur_radius)
+{
+    lh_assert_runtime_ref(rect);
+    lh_return_if(blur_radius <= 0, lh_bool_false);
+    lh_return_if(lh_null_eq(lh_gl_canvas_get_backend(self)) ||
+                     lh_null_eq(lh_gl_canvas_backend_get_blur_fn(lh_gl_canvas_get_backend(self))),
+                 lh_bool_false);
+    lh_gl_rect_t target;
+    lh_gl_canvas_state_to_target(lh_gl_canvas_get_state_mut(self), rect, lh_addr_of(target));
+    lh_return_if(!lh_gl_canvas_shows(self, lh_addr_of(target)), lh_bool_false);
+    /* A blur reads the pixels it is about to blur, so unlike a shadow it cannot
+       be cut to the area: in a frame drawn in strips the pixels across the line
+       are not in the buffer at all, and blurring what is there would leave a
+       visible seam every strip. It says it cannot be drawn instead. */
+    lh_return_if(!lh_gl_canvas_can_send_whole(self, lh_addr_of(target)), lh_bool_false);
+    lh_gl_canvas_add_damage(self, lh_addr_of(target));
+    return lh_gl_canvas_backend_get_blur_fn(lh_gl_canvas_get_backend(self))(
+        lh_gl_canvas_get_context(self), lh_addr_of(target), blur_radius,
+        lh_gl_canvas_get_scratch(self), lh_gl_canvas_get_scratch_bytes(self));
+}
+
+lh_bool_t
+lh_gl_canvas_glass(lh_gl_canvas_t *self, const lh_gl_rect_t *rect, lh_gl_scalar_t corner,
+                   lh_gl_scalar_t blur_radius, const lh_gl_color_t *tint)
+{
+    lh_assert_runtime_ref(rect);
+    lh_assert_runtime_ref(tint);
+    lh_return_if(lh_null_eq(lh_gl_canvas_get_backend(self)) ||
+                     lh_null_eq(lh_gl_canvas_backend_get_glass_fn(lh_gl_canvas_get_backend(self))),
+                 lh_bool_false);
+    lh_gl_rect_t target;
+    lh_gl_canvas_state_to_target(lh_gl_canvas_get_state_mut(self), rect, lh_addr_of(target));
+    lh_return_if(!lh_gl_canvas_shows(self, lh_addr_of(target)), lh_bool_false);
+    /* Glass is a blur plus a tint, so it needs the whole rect in the buffer for
+       the same reason, and the tint is not put down without it: a tint on its own
+       is a fill, and a fill that only looks like glass is worse than none. */
+    lh_return_if(!lh_gl_canvas_can_send_whole(self, lh_addr_of(target)), lh_bool_false);
+    lh_gl_canvas_add_damage(self, lh_addr_of(target));
+    return lh_gl_canvas_backend_get_glass_fn(lh_gl_canvas_get_backend(self))(
+        lh_gl_canvas_get_context(self), lh_addr_of(target),
+        lh_gl_radius_clamp(lh_addr_of(target), corner), blur_radius, tint,
+        lh_gl_canvas_get_scratch(self), lh_gl_canvas_get_scratch_bytes(self));
+}
+
+const lh_gl_canvas_state_t *
+lh_gl_canvas_get_state(const lh_gl_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->state);
+}
+
+lh_gl_canvas_state_t *
+lh_gl_canvas_get_state_mut(lh_gl_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->state);
+}
+
+lh_void
+lh_gl_canvas_set_state(lh_gl_canvas_t *self, lh_gl_canvas_state_t state)
+{
+    lh_assert_runtime_ref(self);
+    self->state = state;
+}
+
+const lh_gl_canvas_state_t *
+lh_gl_canvas_get_saved(const lh_gl_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->saved;
+}
+
+lh_gl_canvas_state_t *
+lh_gl_canvas_get_saved_mut(lh_gl_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->saved;
+}
+
+lh_u8_t
+lh_gl_canvas_get_depth(const lh_gl_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->depth;
+}
+
+lh_void
+lh_gl_canvas_set_depth(lh_gl_canvas_t *self, lh_u8_t depth)
+{
+    lh_assert_runtime_ref(self);
+    self->depth = depth;
+}
+
+lh_gl_size_t *
+lh_gl_canvas_get_size_mut(lh_gl_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->size);
+}
+
+const lh_gl_point_t *
+lh_gl_canvas_get_frame_at(const lh_gl_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->frame_at);
+}
+
+lh_gl_point_t *
+lh_gl_canvas_get_frame_at_mut(lh_gl_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->frame_at);
+}
+
+lh_void
+lh_gl_canvas_set_frame_at(lh_gl_canvas_t *self, lh_gl_point_t frame_at)
+{
+    lh_assert_runtime_ref(self);
+    self->frame_at = frame_at;
+}
+
+lh_gl_rect_t *
+lh_gl_canvas_get_damage_mut(lh_gl_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->damage);
+}
+
+lh_void
+lh_gl_canvas_set_damage(lh_gl_canvas_t *self, lh_gl_rect_t damage)
+{
+    lh_assert_runtime_ref(self);
+    self->damage = damage;
+}
+
+lh_bool_t
+lh_gl_canvas_is_has_damage(const lh_gl_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->has_damage;
+}
+
+lh_void
+lh_gl_canvas_set_has_damage(lh_gl_canvas_t *self, lh_bool_t has_damage)
+{
+    lh_assert_runtime_ref(self);
+    self->has_damage = has_damage;
+}
+
+const lh_gl_canvas_clip_round_t *
+lh_gl_canvas_get_rounds(const lh_gl_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->rounds;
+}
+
+lh_gl_canvas_clip_round_t *
+lh_gl_canvas_get_rounds_mut(lh_gl_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->rounds;
+}
+
+const lh_gl_rects_t *
+lh_gl_canvas_get_drawn(const lh_gl_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->drawn);
+}
+
+lh_gl_rects_t *
+lh_gl_canvas_get_drawn_mut(lh_gl_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->drawn);
+}
+
+lh_void
+lh_gl_canvas_set_drawn(lh_gl_canvas_t *self, lh_gl_rects_t drawn)
+{
+    lh_assert_runtime_ref(self);
+    self->drawn = drawn;
+}
+
+lh_void
+lh_gl_canvas_set_scratch_bytes(lh_gl_canvas_t *self, lh_usize_t scratch_bytes)
+{
+    lh_assert_runtime_ref(self);
+    self->scratch_bytes = scratch_bytes;
+}
+
+const lh_gl_size_t *
+lh_gl_canvas_get_size(const lh_gl_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->size);
+}
+
+lh_void
+lh_gl_canvas_set_scratch(lh_gl_canvas_t *self, lh_u8_t *scratch)
+{
+    lh_assert_runtime_ref(self);
+    self->scratch = scratch;
+}
+
+const lh_gl_rect_t *
+lh_gl_canvas_get_damage(const lh_gl_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->damage);
 }

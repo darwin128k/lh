@@ -7,7 +7,7 @@
  * 2D geometry (::lh_math_fpoint_t, …). Always ::lh_float_t — math
  * does not read ::LH_LIBRARY_OPTION_MATH_FPU here; that option only decides
  * whether these sources are built and what UI aliases through
- * <lh/ui/scalar.h>.
+ * <lh/gl/scalar.h>.
  */
 
 #ifndef LH_MATH_FSCALAR_H

@@ -8,7 +8,7 @@
  * ::lh_math_size_to_fsize widens the other way.
  *
  * Built only when ::LH_LIBRARY_OPTION_MATH_FPU is ON. UI picks this type or
- * the integer ::lh_math_size_t through <lh/ui/size.h>.
+ * the integer ::lh_math_size_t through <lh/gl/size.h>.
  *
  * Fields are not part of the public API: read and mutate them through the
  * accessors. The struct is defined here only so it can be embedded by value.

@@ -57,17 +57,17 @@ python scripts/image.py --cf ARGB8888 -o icon.c icon.png
 ```
 
 `image.py` reads PNG with the standard library. `font.py` needs Pillow
-(`pip install pillow`) to rasterize the TTF. It writes an `lh_ui_font_t`
-over cropped `lh_ui_mask_t` glyphs (shared `bits`, plus `glyphs` / `tops` /
-`advances` and the `lh_ui_font_range_t` table); `--header` also writes a
+(`pip install pillow`) to rasterize the TTF. It writes an `lh_gl_font_t`
+over cropped `lh_gl_mask_t` glyphs (shared `bits`, plus `glyphs` / `tops` /
+`advances` and the `lh_gl_font_range_t` table); `--header` also writes a
 header declaring them, `--notice` adds a licence line. The built-in Roboto
-(`src/lh/ui/font/roboto.c`, `include/lh/ui/font/roboto.h`) is made with:
+(`src/lh/gl/font/roboto.c`, `include/lh/gl/font/roboto.h`) is made with:
 
 ```sh
 python scripts/font.py --font fonts/Roboto-Regular.ttf --size 16 --bpp 4 --lang ru \
-    --name lh_ui_font_roboto \
+    --name lh_gl_font_roboto \
     --notice "Roboto is Copyright 2015 Google Inc. and licensed under the Apache License 2.0." \
-    --header include/lh/ui/font/roboto.h --include lh/ui/font/roboto.h -o src/lh/ui/font/roboto.c
+    --header include/lh/gl/font/roboto.h --include lh/gl/font/roboto.h -o src/lh/gl/font/roboto.c
 ```
 
 `--lang` takes a **name** rather than a range, because a range you have to remember is a
@@ -94,10 +94,10 @@ wrong font rather than an error.
 
 ## Describing a screen: `css2decl.py`
 
-`include/lh/ui/decl.h` says there is no parser and no markup language, and that a
+`include/lh/gl/decl.h` says there is no parser and no markup language, and that a
 declaration is a `const` array the compiler puts in flash. `css2decl.py` is what writes
 that array: it reads a stylesheet and emits `ui_generated.c` and `ui_generated.h` --
-`lh_ui_decl_t` rows, the styles, places and flows they point at, the theme colours by
+`lh_gl_decl_t` rows, the styles, places and flows they point at, the theme colours by
 name, and accessors by `#id`.
 
 It reads CSS the way the web writes it -- as much of it as `lh` can draw -- and refuses
@@ -168,21 +168,21 @@ the underscore would give `cfg_uidecls`.
 
 Two checks keep it honest. `css2decl-selftest.py` runs a hundred-odd sheets that must be
 refused (with the word that says why), accepted, or written a particular way. And the
-CTest target `lh_test_css2decl` generates three sheets under `test/src/lh/ui/` at build
+CTest target `lh_test_css2decl` generates three sheets under `test/src/lh/gl/` at build
 time, compiles them as C, builds the trees and checks them -- including that the first
-`lh_ui_layout_apply` moves **no** row, because the generator works layouts out with the
+`lh_gl_layout_apply` moves **no** row, because the generator works layouts out with the
 engine's own arithmetic.
 
 ## Icons: `gen-icons.py`
 
-`lh/ui/mask.h` says it in one sentence: *"A font glyph is a mask; so is a baked icon or
+`lh/gl/mask.h` says it in one sentence: *"A font glyph is a mask; so is a baked icon or
 cursor."* So an icon here is not a drawing routine and not a font -- it is **coverage**,
 one 0..15 number per pixel, packed high bit first, 16 on a side at 4 bpp, and
-`::lh_ui_canvas_fill_mask` paints it.
+`::lh_gl_canvas_fill_mask` paints it.
 
 ```sh
-python3 scripts/gen-icons.py --out src/ui/icons.c --header include/lh/ui/icons.h \
-    --prefix lh_ui_icon_
+python3 scripts/gen-icons.py --out src/ui/icons.c --header include/lh/gl/icons.h \
+    --prefix lh_gl_icon_
 python3 scripts/gen-icons.py --selftest        # 5 checks, prints the denominator first
 python3 scripts/icons-preview.py               # a PNG sheet, because packing is not shape
 ```

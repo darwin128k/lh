@@ -4,7 +4,7 @@
  *
  * A row of `count` fields, each `bits` wide (1, 2, 4 or 8), the first field
  * in the high bits of the first byte, padded to a whole byte. LVGL fonts,
- * the fonts `scripts/font.py` writes and the masks `lh/ui/mask.h` reads are
+ * the fonts `scripts/font.py` writes and the masks `lh/gl/mask.h` reads are
  * laid out this way; naming the read once keeps the shift-and-mask in one
  * place.
  *

@@ -4,7 +4,7 @@
  *
  * Pixel layout centres with a half-up bias: `(room - own + 1) / 2`, then never
  * negative. The leftover half-pixel of an odd slack goes to the far side (right
- * / bottom), matching ::lh_ui_scalar_centre and the UI text / layout callers.
+ * / bottom), matching ::lh_gl_scalar_centre and the UI text / layout callers.
  *
  * Force-inline (like `lh/core/math/floor.h`): no `.c` file.
  */
@@ -20,7 +20,7 @@
 /**
  * @def lh_math_slack(room, own)
  * @brief `max(0, room - own)` for any arithmetic type; the one slack formula
- *        (::lh_math_scalar_slack, ::lh_ui_scalar_slack). Arguments are
+ *        (::lh_math_scalar_slack, ::lh_gl_scalar_slack). Arguments are
  *        evaluated more than once.
  */
 #define lh_math_slack(room, own) lh_math_max(lh_math_sub((room), (own)), 0)
@@ -29,7 +29,7 @@
  * @def lh_math_centre_half(room, own)
  * @brief `(room - own + 1) / 2` for any arithmetic type, before truncation and
  *        the zero clamp: the one centring formula (::lh_math_scalar_centre,
- *        ::lh_ui_scalar_centre).
+ *        ::lh_gl_scalar_centre).
  */
 #define lh_math_centre_half(room, own) lh_math_div(lh_math_add(lh_math_sub((room), (own)), 1), 2)
 

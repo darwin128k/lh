@@ -4,7 +4,7 @@
  *
  * Not an umbrella, and deliberately not one. Nothing here pulls in a subsystem.
  * Each of those has its own door — `lh/core/math.h`, `lh/core/memory.h`, `lh/os.h`,
- * `lh/ui.h`, `lh/core/str.h` — so a program includes what it uses and nothing else.
+ * `lh/gl.h`, `lh/core/str.h` — so a program includes what it uses and nothing else.
  *
  * `lh/core/version.h` is a different thing and does not answer this question. That is
  * the version *value type*: assign, set components, compare, format, parse over a

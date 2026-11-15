@@ -1,118 +1,454 @@
 /**
  * @file input.h
- * @brief One held entity: ::lh_gl_input_t.
+ * @brief A line of text that can be typed into: ::lh_gl_input_t.
  *
- * The input manager answers which entity a press is on. It stores that one
- * borrowed pointer: no scroll, no layout, no packets. A press asks
- * ::lh_gl_layer_find_entity and remembers the result, including a miss. A move
- * does not search again, so the hold stays when the point leaves the entity.
- * A release forgets it. ::lh_gl_input_apply is the same hold for one pointer
- * event: a second pointer does not take it, and a key does not either.
+ * The component the configurator was missing, and the one whose absence cost a day:
+ * its add-device dialog had three fields, and each of them was a label, a second
+ * label eight pixels wide for the caret, a focus index in the application's own
+ * struct and about twenty lines of key handling. The caret was drawn with the
+ * **value's** style -- which pads by ten -- inside a box eight wide, so the text
+ * began ten pixels into an eight-pixel box and was cut away by the panel's own
+ * clip. The one thing on screen that said which field the keyboard was in was the
+ * one thing not on screen, and it took a screenshot to see it.
  *
- * The caller owns the entity and keeps it alive while it is stored here.
+ * An input **is** a ::lh_gl_label_t (::lh_gl_label_class is its base, and the label
+ * is its first field), so the text, the font, the padding, the alignment and the
+ * drawing are the label's code, unchanged. What the input adds is the three things a
+ * label has no place for: a **buffer it can edit**, a **caret**, and the keyboard.
+ *
+ * Two decisions worth writing down, because both were arrived at the hard way.
+ *
+ * **The text is a value, not a pointer.** ::lh_gl_label_set_text_v keeps the address
+ * it is given, and the rule that comes with it is that the string must outlive the
+ * label; a label handed a local buffer reads freed stack on the next paint, and the
+ * window dies with `0xC000041D` inside the window procedure. A field cannot live
+ * that way: inserting a character shifts everything after the caret right, and
+ * deleting shifts it left. So the application hands over **a buffer and a capacity**
+ * and the input edits the bytes itself. The buffer is still not owned -- it belongs
+ * to the application, which is where it should be, since `lh` has no allocator --
+ * but it is a buffer and not a string, so the lifetime rule is a field of the
+ * application's own struct rather than a local.
+ *
+ * **The caret is an index in bytes and never lands inside a code point.** Moving it
+ * left steps back over UTF-8 continuation bytes, and inserting at the end of a buffer
+ * that is one byte short writes nothing rather than half a character -- half a code
+ * point is not a character, and the next read over it walks off the end of the text.
+ *
+ * **It does not blink.** The caret is drawn whenever the field holds the focus, and
+ * that is what it does; a component that measured a clock it did not own and faded
+ * its own caret would be a second, quieter copy of the same mistake. An application
+ * that wants a blinking caret gives it one, by drawing the caret itself.
+ *
+ * Damage, as everywhere in `lh`, is the view's: every setter here changes the text
+ * or the caret and **nothing invalidates**. ::lh_gl_input_get_caret_rect is there so
+ * that the application can damage exactly the caret and the text that moved with it,
+ * rather than the whole field.
  */
 
 #ifndef LH_GL_INPUT_H
 #define LH_GL_INPUT_H
 
-#include <lh/gl/entity/decl.h>
-#include <lh/gl/input/fields.h>
-#include <lh/gl/layer/decl.h>
-#include <lh/gl/point.h>
+#include <lh/gl/label.h>
+#include <lh/gl/text.h>
+#include <lh/gl/input/caret/shape.h>
 
 /**
  * @struct lh_gl_input
- * @brief The entity captured by the current press. Fields via ::lh_gl_input_fields.
+ * @brief A label, the buffer it edits, and where the caret is.
  */
 struct lh_gl_input
 {
-    /** Members: ::lh_gl_input_fields. */
-    lh_gl_input_fields(lh_gl_entity_t, lh_bool_t, lh_gl_scalar_t);
+    lh_gl_label_t label;              /**< The label this input is (first field). */
+    lh_char_t *buffer;                /**< The text, edited in place. **Not owned**: the application
+                                           owns it and it must outlive the input, and it must be
+                                           at least @p capacity + 1 bytes, because the text is
+                                           always terminated. See ::lh_gl_input_init. */
+    lh_u16_t capacity;                /**< How many bytes may be used, terminator aside. */
+    lh_u16_t used;                    /**< How many bytes are in use, terminator aside. */
+    lh_u16_t caret;                   /**< Where the caret is, in bytes from the start. Always on a
+                                           code point boundary, and never past @p used. */
+    lh_bool_t focused;                /**< True while it holds the focus. The caret is drawn only
+                                           when this is true. */
+    const lh_gl_color_t *caret_color; /**< What the caret is drawn in, or ::lh_null for the
+                                           text's own colour. Not owned. */
+    lh_gl_input_caret_shape_t caret_shape; /**< Bar or block; bar after init. */
 };
 /** @copybrief lh_gl_input */
 typedef struct lh_gl_input lh_gl_input_t;
 
+/* -- Class ----------------------------------------------------------------- */
+
 LH_COMPILER_EXTERN_C_BEGIN
 
-/** @brief Held entity, or ::lh_null when nothing is pressed. */
-const lh_gl_entity_t *
-lh_gl_input_get_captured(const lh_gl_input_t *self);
+/** @brief Class of ::lh_gl_input_t, derived from ::lh_gl_label_class. */
+extern const lh_gl_entity_class_t lh_gl_input_class;
 
 /**
- * @brief Store a borrowed entity. @p captured may be ::lh_null.
- *
- * Does not unlink, invalidate or otherwise touch the entity.
+ * @brief Event function of ::lh_gl_input_class: the label first (its draw, its
+ *        measure, its baseline), then ::lh_gl_input_on_focus,
+ *        ::lh_gl_input_on_defocus, ::lh_gl_input_on_key, ::lh_gl_input_on_press
+ *        and ::lh_gl_input_on_draw_caret.
  */
 lh_void
-lh_gl_input_set_captured(lh_gl_input_t *self, const lh_gl_entity_t *captured);
+lh_gl_input_event(const struct lh_gl_entity *self, const lh_gl_entity_event_t *event);
 
-/** @brief The pointer ::lh_gl_input_apply is following. Meaningful while tracking. */
-lh_u8_t
-lh_gl_input_get_pointer(const lh_gl_input_t *self);
-
-/** @brief Store the pointer id. Does not search and does not change the hold. */
-lh_void
-lh_gl_input_set_pointer(lh_gl_input_t *self, lh_u8_t pointer);
+/** @brief The start of the code point before byte @p caret, or 0 at the start. */
+lh_u16_t
+lh_gl_input_boundary_before(const lh_gl_input_t *self, lh_u16_t caret);
 
 /**
- * @brief True when the hold came from ::lh_gl_input_apply.
+ * @brief Is byte @p at the start of a code point of @p self?
  *
- * A point press clears it. Release clears it.
+ * The byte that decides it is the one **at** @p at, not the one before it: a position is
+ * the start of a character when the byte it stands on is a lead byte rather than a
+ * continuation. Asking about the byte before asks the same question about the
+ * character *ending* there, which is a different character -- so every position in a
+ * field of ASCII said yes (no byte in ASCII is a continuation), which is why a caret
+ * could sit between the two halves of a Cyrillic letter and every test with plain
+ * letters stayed green over it.
  */
 lh_bool_t
-lh_gl_input_get_tracking(const lh_gl_input_t *self);
+lh_gl_input_is_boundary(const lh_gl_input_t *self, lh_u16_t at);
 
-/** @brief Store whether a pointer event owns the hold. */
+/**
+ * @brief On ::lh_gl_entity_event_focus and ::lh_gl_entity_event_defocus: remember
+ *        which of the two it was. A derived class may call it directly.
+ */
 lh_void
-lh_gl_input_set_tracking(lh_gl_input_t *self, lh_bool_t tracking);
+lh_gl_input_on_focus(const lh_gl_input_t *self, const lh_gl_entity_event_t *event);
 
-/** @brief Finger thickness in pixels. Below 0 is stored as 0. */
+/**
+ * @brief On ::lh_gl_entity_event_focusable: yes.
+ *
+ * This is not a formality. A press puts the focus on
+ * `lh_gl_entity_find_focusable` of whatever was hit, ::lh_gl_view_get_next_focus walks
+ * the focusables in order for Tab, and a key goes to whoever holds the focus -- so a
+ * field that says no cannot be clicked into, cannot be tabbed to and never receives a
+ * key, with every setter in this header working perfectly on a widget nobody can
+ * reach. The label underneath says no, which is right for a label.
+ */
+lh_void
+lh_gl_input_on_focusable(const lh_gl_entity_event_t *event);
+
+/**
+ * @brief On ::lh_gl_entity_event_key, while the field has the focus: typing,
+ *        backspace, delete, the arrows, home and end. A key it does not know is
+ *        the application's, and it says so with a false answer.
+ *
+ * @return True when the text or the caret moved. No damage either way.
+ */
+lh_bool_t
+lh_gl_input_on_key(const lh_gl_input_t *self, const lh_gl_entity_event_t *event);
+
+/**
+ * @brief On ::lh_gl_entity_event_press: put the caret on the nearest code point
+ *        boundary at or before the point. A press inside the text moves the caret;
+ *        a press past its end puts it at the end.
+ */
+lh_bool_t
+lh_gl_input_on_press(const lh_gl_input_t *self, const lh_gl_entity_event_t *event);
+
+/**
+ * @brief On ::lh_gl_entity_event_draw, after the label has drawn the text: the
+ *        caret, when the field has the focus.
+ */
+lh_void
+lh_gl_input_on_draw_caret(const lh_gl_input_t *self, const lh_gl_entity_event_t *event);
+
+/* -- Lifetime -------------------------------------------------------------- */
+
+/**
+ * @brief An empty input at @p rect, editing @p buffer (not owned).
+ *
+ * @param self     Input to set up.
+ * @param rect     Where the input sits, in its parent's space.
+ * @param buffer   At least @p capacity + 1 bytes, and it must outlive the input.
+ *                 A buffer of `0` leaves the input with a text it cannot change and
+ *                 every editing call answers false -- which is a field that refuses to
+ *                 be typed into rather than one that writes past its end.
+ * @param capacity How many bytes may be used, terminator aside.
+ *
+ * The text starts empty and the caret at the start. No styles: the look is the
+ * label's, which reads it out of the entity's style like every other label.
+ */
+lh_void
+lh_gl_input_init(lh_gl_input_t *self, lh_gl_rect_t rect, lh_char_t *buffer, lh_u16_t capacity);
+
+/**
+ * @brief The entity @p self is: what a tree holds and what a hit test returns.
+ */
+lh_gl_entity_t *
+lh_gl_input_as_entity(lh_gl_input_t *self);
+
+/**
+ * @brief The label @p self is -- the text, the font and the drawing, unchanged.
+ */
+lh_gl_label_t *
+lh_gl_input_as_label(lh_gl_input_t *self);
+
+/**
+ * @brief The input @p entity is, or ::lh_null when it is not one. The class is
+ *        what tells the two apart. A field **is** found as a label too, since it is
+ *        one, and so is one found as a button: a field that says "click me" is not
+ *        a field.
+ */
+lh_gl_input_t *
+lh_gl_entity_as_input(lh_gl_entity_t *entity);
+
+/* -- Text ------------------------------------------------------------------ */
+
+/**
+ * @brief The text @p self holds, terminated, or ::lh_null when it has no buffer.
+ *
+ * The pointer is @p self's own buffer and changes as it is typed into: keep the
+ * **text** if it is wanted, not the address.
+ */
+const lh_char_t *
+lh_gl_input_get_text(const lh_gl_input_t *self);
+
+/**
+ * @brief Put @p text in, truncated to what fits, and put the caret at the end.
+ *
+ * A cut lands on a code point boundary: a string that does not fit loses its last
+ * character rather than its last character's second byte.
+ *
+ * @return False when there was no buffer, which is the one refusal worth reporting.
+ */
+lh_bool_t
+lh_gl_input_set_text(lh_gl_input_t *self, const lh_char_t *text);
+
+/**
+ * @brief Empty the text and put the caret at the start.
+ */
+lh_void
+lh_gl_input_clear(lh_gl_input_t *self);
+
+/**
+ * @brief How many bytes the text is long, terminator aside.
+ *
+ * Bytes, not characters: this is what ::lh_gl_input_get_caret is measured in, and a
+ * caller that wants characters walks the buffer with ::lh_gl_text_next_code.
+ */
+lh_u16_t
+lh_gl_input_get_length(const lh_gl_input_t *self);
+
+/* -- Editing --------------------------------------------------------------- */
+
+/**
+ * @brief Put @p code at the caret and step over it.
+ *
+ * @return False when the code is not encodable, when there is no room, or when
+ *         there is no buffer. Nothing is written in any of those cases: a refused
+ *         character leaves the text exactly as it was.
+ */
+lh_bool_t
+lh_gl_input_insert(lh_gl_input_t *self, lh_u32_t code);
+
+/**
+ * @brief Delete the code point before the caret and step the caret over what is
+ *        now there.
+ *
+ * @return False at the start of the text, where there is nothing before the caret
+ *         to delete.
+ */
+lh_bool_t
+lh_gl_input_backspace(lh_gl_input_t *self);
+
+/**
+ * @brief Delete the code point at the caret, leaving the caret where it is.
+ *
+ * @return False at the end of the text.
+ */
+lh_bool_t
+lh_gl_input_delete_forward(lh_gl_input_t *self);
+
+/* -- Caret ----------------------------------------------------------------- */
+
+/**
+ * @brief Where the caret is, in bytes from the start.
+ */
+lh_u16_t
+lh_gl_input_get_caret(const lh_gl_input_t *self);
+
+/**
+ * @brief Put the caret at byte @p caret, or ::lh_bool_false when that is past the
+ *        end of the text or inside a code point.
+ *
+ * A refusal leaves the caret where it was, rather than moving it to the nearest
+ * boundary: a caller that asked for a byte that is not there has a number wrong,
+ * and silently giving it a different one hides that.
+ */
+lh_bool_t
+lh_gl_input_set_caret_v(lh_gl_input_t *self, lh_u16_t caret);
+
+/** @brief Put the caret before the first character. */
+lh_void
+lh_gl_input_home(lh_gl_input_t *self);
+
+/** @brief Put the caret after the last character. */
+lh_void
+lh_gl_input_end(lh_gl_input_t *self);
+
+/** The top of the font's line the text stands on, in the field's own space.
+
+   With text it is the label's own baseline, so the caret stands on the line the letters
+   do. Without text there is no run to centre, so the baseline is the one a run of
+   capitals would get: a block one cap height tall, aligned the way the style says.
+   Digits and capitals are what a field of addresses and numbers holds, so the caret
+   does not move when the first character is typed. */
 lh_gl_scalar_t
-lh_gl_input_get_slop(const lh_gl_input_t *self);
+lh_gl_input_get_line_top(const lh_gl_input_t *self, const lh_gl_font_t *font);
 
-/** @brief Store the finger thickness. A press within this many pixels still hits. */
+/**
+ * @brief Where the caret is drawn: a column on the text's own line, from the top of
+ *        the ink to the bottom of it.
+ *
+ * An empty field has no ink, and its caret is drawn over the font's ascent instead --
+ * a caret whose height comes from the text is **no caret at all** in an empty field,
+ * which is the state a field is in for exactly as long as it takes to notice it.
+ *
+ * An empty rect when the field has no font or no buffer.
+ */
 lh_void
-lh_gl_input_set_slop(lh_gl_input_t *self, lh_gl_scalar_t slop);
+lh_gl_input_get_caret_rect(const lh_gl_input_t *self, lh_gl_rect_t *out);
 
-/** @brief Hold nothing. */
+/**
+ * @brief What the caret is drawn in (not owned), or ::lh_null for the text's own
+ *        colour.
+ */
+const lh_gl_color_t *
+lh_gl_input_get_caret_color(const lh_gl_input_t *self);
+
+/**
+ * @brief Draw the caret in @p color (not owned), or in ::lh_null for the text's own.
+ */
 lh_void
-lh_gl_input_init(lh_gl_input_t *self);
+lh_gl_input_set_caret_color(lh_gl_input_t *self, const lh_gl_color_t *color);
 
 /**
- * @brief Remember the entity under @p point and return it.
- *
- * @p point is in root coordinates. A miss stores ::lh_null, which also drops
- * whatever was held. A second press replaces the hold. Tracking is cleared:
- * this hold is not owned by a pointer event.
- *
- * @param self  Input state; must not be null.
- * @param layer Layer to search; must not be null.
- * @param point Point in root coordinates, copied.
- * @return The entity ::lh_gl_layer_find_entity returned. Borrowed.
+ * @brief How @p self draws its caret.
  */
-const lh_gl_entity_t *
-lh_gl_input_press(lh_gl_input_t *self, const lh_gl_layer_t *layer, lh_gl_point_t point);
+lh_gl_input_caret_shape_t
+lh_gl_input_get_caret_shape(const lh_gl_input_t *self);
 
 /**
- * @brief The entity this press is still holding.
- *
- * Does not look at a point and does not search the layer. The hold is unchanged
- * when the caller's point has left the entity.
- *
- * @param self Input state; must not be null.
- * @return The held entity, or ::lh_null when nothing is pressed.
+ * @brief Draw the caret of @p self as a bar or a block (::lh_gl_input_caret_shape_t).
  */
-const lh_gl_entity_t *
-lh_gl_input_move(const lh_gl_input_t *self);
+lh_void
+lh_gl_input_set_caret_shape(lh_gl_input_t *self, lh_gl_input_caret_shape_t shape);
 
 /**
- * @brief Forget the held entity.
- *
- * @param self Input state; must not be null.
- * @return The entity that was held, or ::lh_null when nothing was.
+ * @brief True while @p self holds the focus.
  */
-const lh_gl_entity_t *
-lh_gl_input_release(lh_gl_input_t *self);
+lh_bool_t
+lh_gl_input_is_focused(const lh_gl_input_t *self);
+
+/**
+ * @brief The label the field is built on (level 1).
+ *
+ * @param self The input field; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gl_label_t *
+lh_gl_input_get_label(const lh_gl_input_t *self);
+
+/**
+ * @brief The label the field is built on, to change in place (level 1).
+ *
+ * @param self The input field; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_gl_label_t *
+lh_gl_input_get_label_mut(lh_gl_input_t *self);
+
+/**
+ * @brief Store the label the field is built on (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The input field; checked by ::lh_assert_runtime_ref.
+ * @param label The new value.
+ */
+lh_void
+lh_gl_input_set_label(lh_gl_input_t *self, lh_gl_label_t label);
+
+/**
+ * @brief The text the field edits (level 1).
+ *
+ * @param self The input field; checked by ::lh_assert_runtime_ref.
+ */
+lh_char_t *
+lh_gl_input_get_buffer(const lh_gl_input_t *self);
+
+/**
+ * @brief Store the text the field edits (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The input field; checked by ::lh_assert_runtime_ref.
+ * @param buffer The new value.
+ */
+lh_void
+lh_gl_input_set_buffer(lh_gl_input_t *self, lh_char_t * buffer);
+
+/**
+ * @brief How many characters the buffer holds (level 1).
+ *
+ * @param self The input field; checked by ::lh_assert_runtime_ref.
+ */
+lh_u16_t
+lh_gl_input_get_capacity(const lh_gl_input_t *self);
+
+/**
+ * @brief Store how many characters the buffer holds (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The input field; checked by ::lh_assert_runtime_ref.
+ * @param capacity The new value.
+ */
+lh_void
+lh_gl_input_set_capacity(lh_gl_input_t *self, lh_u16_t capacity);
+
+/**
+ * @brief How many characters the buffer has in use (level 1).
+ *
+ * @param self The input field; checked by ::lh_assert_runtime_ref.
+ */
+lh_u16_t
+lh_gl_input_get_used(const lh_gl_input_t *self);
+
+/**
+ * @brief Store how many characters the buffer has in use (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The input field; checked by ::lh_assert_runtime_ref.
+ * @param used The new value.
+ */
+lh_void
+lh_gl_input_set_used(lh_gl_input_t *self, lh_u16_t used);
+
+/**
+ * @brief Store whether the field has the focus (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The input field; checked by ::lh_assert_runtime_ref.
+ * @param focused The new value.
+ */
+lh_void
+lh_gl_input_set_focused(lh_gl_input_t *self, lh_bool_t focused);
+
+/**
+ * @brief Store where the caret is, in characters (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The input field; checked by ::lh_assert_runtime_ref.
+ * @param caret The new value.
+ */
+lh_void
+lh_gl_input_set_caret(lh_gl_input_t *self, lh_u16_t caret);
 
 LH_COMPILER_EXTERN_C_END
 

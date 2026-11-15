@@ -1,0 +1,182 @@
+/**
+ * @file rects.h
+ * @brief UI rects: ::lh_gl_rects_t, a fixed list of rects that stay a region.
+ *
+ * One rect is the wrong shape for a region. `lh_gl_rect_union` answers with the
+ * hull of two, and the hull of two cuts on the same strip is the rectangle
+ * spanning the space between them: a stretch of pixels that belongs to neither
+ * cut. A backend that presents its drawn region as one rect therefore presents
+ * that gap too, and the bytes it holds are whatever a DIB it just reallocated
+ * gave back.
+ *
+ * This is the shape that does not have that problem: rects that touch are
+ * merged, rects that do not are kept apart, and the result is read one rect at
+ * a time. The table is fixed and never reallocated (::LH_GL_RECTS_MAX), because
+ * a drawing path that allocates is a drawing path that cannot be stepped
+ * through.
+ *
+ * @see `lh_gl_rect_t`, `lh_gl_canvas_clip_t` (one cut),
+ *      `lh_os_render_backend_gdi_end` (the present that wanted this).
+ */
+
+#ifndef LH_GL_RECTS_H
+#define LH_GL_RECTS_H
+
+#include <lh/gl/rect.h>
+
+/**
+ * @def LH_GL_RECTS_MAX
+ * @brief How many rects ::lh_gl_rects_t keeps apart at most.
+ *
+ * `16`, which is more than one strip of any scene so far holds: rects that
+ * touch collapse into one, so what a strip really needs is the number of
+ * widgets standing apart in it, not the number drawn. It was `8`; the table
+ * is doubled so that a screen of many separate cards or rows changing in one
+ * frame keeps each of them apart instead of squeezing neighbours together.
+ * The price is storage: one rect per slot (16 bytes with a 32-bit scalar), so
+ * every ::lh_gl_rects_t, the canvas's drawn list and the view's pending
+ * region among them, is about 260 bytes.
+ *
+ * The count is a ::lh_u32_t and the loops over the table read it, so nothing
+ * but this number depends on the size of the table.
+ *
+ * @note Past this the list stops being the region exactly: the added rect is
+ *       merged into whichever stored one the pair wastes the fewest pixels on
+ *       (::lh_gl_rects_squeeze). It never drops a rect.
+ */
+#define LH_GL_RECTS_MAX 16
+
+#include <lh/gl/rects/fields.h>
+
+/**
+ * @struct lh_gl_rects
+ * @brief A region as up to ::LH_GL_RECTS_MAX rects.
+ */
+struct lh_gl_rects
+{
+    /** Members: ::lh_gl_rects_fields. */
+    lh_gl_rects_fields(lh_gl_rect_t, lh_u32_t);
+};
+/** @copybrief lh_gl_rects */
+typedef struct lh_gl_rects lh_gl_rects_t;
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief @p self with no rects in it.
+ */
+lh_void
+lh_gl_rects_init(lh_gl_rects_t *self);
+
+/**
+ * @brief Nothing in @p self.
+ */
+lh_bool_t
+lh_gl_rects_is_empty(const lh_gl_rects_t *self);
+
+/**
+ * @brief How many rects @p self keeps apart.
+ */
+lh_u32_t
+lh_gl_rects_get_count(const lh_gl_rects_t *self);
+
+/**
+ * @brief Rect @p index of @p self, ::lh_null when there is no such rect.
+ */
+const lh_gl_rect_t *
+lh_gl_rects_get(const lh_gl_rects_t *self, lh_u32_t index);
+
+/**
+ * @brief Whether @p a and @p b can become one rect without covering a pixel
+ *        neither of them covers: they overlap, or they share an edge.
+ */
+lh_bool_t
+lh_gl_rects_touch(const lh_gl_rect_t *a, const lh_gl_rect_t *b);
+
+/**
+ * @brief Pixels @p rect holds, width times height.
+ */
+lh_gl_scalar_t
+lh_gl_rects_area(const lh_gl_rect_t *rect);
+
+/**
+ * @brief Pixels @p a and @p b together cover that neither covers on its own:
+ *        what merging them would spend.
+ */
+lh_gl_scalar_t
+lh_gl_rects_waste(const lh_gl_rect_t *a, const lh_gl_rect_t *b);
+
+/**
+ * @brief Add @p rect to @p self, merging everything it touches.
+ *
+ * Nothing for an empty @p rect. A full ::lh_gl_rects_t squeezes instead
+ * (::lh_gl_rects_squeeze).
+ */
+lh_void
+lh_gl_rects_add(lh_gl_rects_t *self, const lh_gl_rect_t *rect);
+
+/**
+ * @brief Merge every pair of @p self that touches, until none does.
+ *
+ * ::lh_gl_rects_add does this for the caller; it is here because a list that
+ * was filled by hand is not a region until it is closed.
+ */
+lh_void
+lh_gl_rects_close(lh_gl_rects_t *self);
+
+/**
+ * @brief One step of ::lh_gl_rects_close: merge the first pair of @p self that
+ *        touches, and say whether there was one.
+ *
+ * False means no pair of @p self touches, which is the same thing as saying the
+ * list is a region.
+ */
+lh_bool_t
+lh_gl_rects_join_once(lh_gl_rects_t *self);
+
+/**
+ * @brief Remove rect @p index of @p self and close the gap it leaves: what
+ *        came after it moves down.
+ */
+lh_void
+lh_gl_rects_drop(lh_gl_rects_t *self, lh_u32_t index);
+
+/**
+ * @brief A full ::lh_gl_rects_t: put @p rect into the stored one the pair
+ *        wastes the fewest pixels on (::lh_gl_rects_waste), then
+ *        ::lh_gl_rects_close.
+ */
+lh_void
+lh_gl_rects_squeeze(lh_gl_rects_t *self, const lh_gl_rect_t *rect);
+
+/**
+ * @brief The rectangles (level 1).
+ *
+ * @param self The rectangle list; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gl_rect_t *
+lh_gl_rects_get_rects(const lh_gl_rects_t *self);
+
+/**
+ * @brief The rectangles, to change in place (level 1).
+ *
+ * @param self The rectangle list; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_gl_rect_t *
+lh_gl_rects_get_rects_mut(lh_gl_rects_t *self);
+
+/**
+ * @brief Store how many rectangles there are (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The rectangle list; checked by ::lh_assert_runtime_ref.
+ * @param count The new value.
+ */
+lh_void
+lh_gl_rects_set_count(lh_gl_rects_t *self, lh_u32_t count);
+
+LH_COMPILER_EXTERN_C_END
+
+#endif /* LH_GL_RECTS_H */

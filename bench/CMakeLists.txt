@@ -88,12 +88,12 @@ set(LH_BENCH_SOURCES
 
 # The software renderer, the entity tree and the web canvas. One frame of a real
 # screen is the number that matters, so these draw the screens bench/lvgl compares.
-if (LH_LIBRARY_OPTION_UI)
+if (LH_LIBRARY_OPTION_GL)
     list(APPEND LH_BENCH_SOURCES
-            ${LH_BENCH_SRC_PATH}/lh/ui/canvas.cpp
-            ${LH_BENCH_SRC_PATH}/lh/ui/view.cpp
-            ${LH_BENCH_SRC_PATH}/lh/ui/web.cpp
-            ${LH_BENCH_SRC_PATH}/lh/ui/web_buf.cpp
+            ${LH_BENCH_SRC_PATH}/lh/gl/canvas.cpp
+            ${LH_BENCH_SRC_PATH}/lh/gl/view.cpp
+            ${LH_BENCH_SRC_PATH}/lh/gl/web.cpp
+            ${LH_BENCH_SRC_PATH}/lh/gl/web_buf.cpp
     )
 endif ()
 

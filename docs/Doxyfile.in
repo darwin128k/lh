@@ -22,7 +22,7 @@ INPUT                  = @CMAKE_SOURCE_DIR@/README.md \
                          @CMAKE_SOURCE_DIR@/docs/guides/usage-embedded.md \
                          @CMAKE_SOURCE_DIR@/docs/guides/usage-desktop.md \
                          @CMAKE_SOURCE_DIR@/docs/guides/usage-web.md \
-                         @CMAKE_SOURCE_DIR@/docs/subsystems/ui.md \
+                         @CMAKE_SOURCE_DIR@/docs/subsystems/gl.md \
                          @CMAKE_SOURCE_DIR@/docs/subsystems/module-loader.md \
                          @CMAKE_SOURCE_DIR@/docs/subsystems/concurrency.md \
                          @CMAKE_SOURCE_DIR@/docs/subsystems/net-sockets.md \
@@ -111,7 +111,7 @@ PREDEFINED             = LH_COMPILER_EXTERN_C_BEGIN= \
 # Extraction
 #---------------------------------------------------------------------------
 EXTRACT_ALL            = NO
-# A `@name ... @{ @}` group of one-line forwarders (lh/ui/rect.h, ...) is
+# A `@name ... @{ @}` group of one-line forwarders (lh/gl/rect.h, ...) is
 # documented once, on its first member, and shared by the rest.
 DISTRIBUTE_GROUP_DOC   = YES
 EXTRACT_STATIC         = YES

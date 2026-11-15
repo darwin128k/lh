@@ -12,33 +12,33 @@ handlers are the same.
 ## 1. How it works
 
 ```
- application                    lh/ui/web/host.c                   browser
+ application                    lh/gl/web/host.c                   browser
  ┌────────────┐  draw   ┌──────────────────────────┐  HTTP / WS  ┌─────────────┐
- │lh_ui_view_t│────────▶│ lh_ui_canvas_backend_web │────────────▶│ Canvas2D    │
+ │lh_gl_view_t│────────▶│ lh_gl_canvas_backend_web │────────────▶│ Canvas2D    │
  │ + hooks    │◀────────│ → JSON ops               │◀────────────│ player      │
  └────────────┘ press,  └──────────────────────────┘ clicks,     └─────────────┘
                wheel…                                 resize
 ```
 
-- `lh_ui_canvas_backend_web` (`lh/ui/canvas/web.h`) records a frame's
+- `lh_gl_canvas_backend_web` (`lh/gl/canvas/web.h`) records a frame's
   primitives as JSON. Glyph covers are interned: each glyph crosses the wire
   once per client.
-- `lh_ui_web_host_run` (`lh/ui/web/host.h`) listens on `127.0.0.1:<port>` and
-  serves an application on the calling thread; `lh_ui_web_host_try_create` +
+- `lh_gl_web_host_run` (`lh/gl/web/host.h`) listens on `127.0.0.1:<port>` and
+  serves an application on the calling thread; `lh_gl_web_host_try_create` +
   `_try_start` run the same host on a thread of its own, and `_try_stop` /
   `_destroy` end it. The host waits for all its sockets in one poll (an
   `lh_rail_loop_t`) and serves many connections at once: a client sending its
   request slowly holds only its own connection. The host is the transport: it
   knows nothing about pages, routes or scaling. The Canvas2D player is one application built on it
-  (`lh_ui_web_player_t`, `lh/ui/web/player.h`):
-  - `GET /` — the Canvas2D HTML player (built by `lh_ui_web_player_page_build`);
+  (`lh_gl_web_player_t`, `lh/gl/web/player.h`):
+  - `GET /` — the Canvas2D HTML player (built by `lh_gl_web_player_page_build`);
   - `GET /ui.json` — one frame;
   - `ws://…/ws` — pushes a frame **only when the tree changed**;
   - presses, releases, moves while a button is down, wheel, keys (down and
     up), text and the tab size come back: the input as one
     `lh_os_input_event_t` each, the size through the `resize` hook.
 - A REST surface is a table of routes the caller writes
-  (`lh_ui_web_route_t`, `lh/ui/web/app/route.h`) and attaches to its
+  (`lh_gl_web_route_t`, `lh/gl/web/app/route.h`) and attaches to its
   application. Nothing is built in: an application with no routes serves
   nothing, and a desktop program has no use for a REST surface.
 - No Python, Node or external web server — everything runs in the process.
@@ -63,7 +63,7 @@ from that enum when the page is built, so the numbers cannot drift. A key
 that also types (Space) sends its `t` line after the `k` line, as the desktop
 does. A `k key` line without the flag (an older player) is a key going down.
 
-Requires `LH_LIBRARY_OPTION_UI=ON` and `LH_LIBRARY_OPTION_OS=ON` (sockets).
+Requires `LH_LIBRARY_OPTION_GL=ON` and `LH_LIBRARY_OPTION_OS=ON` (sockets).
 The host does not need a window (`OS_WINDOW`).
 
 ---
@@ -98,7 +98,7 @@ why they must survive `window == lh_null`**:
 
 ```c
 #if MY_WEB_HOST
-#include <lh/ui/web/host.h>
+#include <lh/gl/web/host.h>
 
 static lh_void web_tick  (lh_ptr c)               { on_tick(lh_null, c); }
 static lh_void web_resize(int w, int h, lh_ptr c) { on_resize(lh_null, w, h, c); }
@@ -114,10 +114,10 @@ Notes:
   `controller` (an `lh_os_controller_t *`, the standard path) gets it next and
   is updated by the host at every tick, before `tick`, so long presses come
   due. With neither, the host feeds a controller of its own made with
-  `lh_ui_view_controller_handle_event_is_handled` / `lh_ui_view_controller_cancel` on the
-  served view, which is `lh_ui_view_input` with the gestures alongside. With
+  `lh_gl_view_controller_handle_event_is_handled` / `lh_gl_view_controller_cancel` on the
+  served view, which is `lh_gl_view_input` with the gestures alongside. With
   `input` alone the hook is the only consumer, as before, and passes on to
-  `lh_ui_view_input` what the view should see. The player has no focus to
+  `lh_gl_view_input` what the view should see. The player has no focus to
   lose, so the host never cancels a controller.
 - The events carry `lh_os_tick_ms` as their time and no modifiers.
 - `tick` runs about every 20 ms **and between requests**, so device polling is
@@ -148,10 +148,10 @@ main(int argc, char **argv)
     {
         /* One JSON frame. 4 MB is ample for configurator. */
         static char json[4u * 1024u * 1024u];
-        static char page[LH_UI_WEB_PLAYER_PAGE_CAP];
+        static char page[LH_GL_WEB_PLAYER_PAGE_CAP];
         lh_net_port_t port = (lh_net_port_t)8765;
-        lh_ui_web_host_hooks_t hooks;
-        lh_ui_web_player_t player;
+        lh_gl_web_host_hooks_t hooks;
+        lh_gl_web_player_t player;
 
         (void)app; (void)window;
         if (argc > 1)
@@ -165,7 +165,7 @@ main(int argc, char **argv)
 
         /* The player is an application: the host serves it and knows nothing
            about it. */
-        if (!lh_ui_web_player_init(lh_addr_of(player), lh_addr_of(self.view), 980u, 620u,
+        if (!lh_gl_web_player_init(lh_addr_of(player), lh_addr_of(self.view), 980u, 620u,
                                    json, sizeof(json), lh_ptr_rcast(lh_byte_t, page),
                                    sizeof(page), lh_addr_of(hooks)))
         {
@@ -174,7 +174,7 @@ main(int argc, char **argv)
         }
 
         /* Does not return on success. */
-        if (!lh_ui_web_host_run(lh_ui_web_player_get_app(lh_addr_of(player)), port))
+        if (!lh_gl_web_host_run(lh_gl_web_player_get_app(lh_addr_of(player)), port))
         {
             lh_logger_error(lh_runtime_logger_get_mut(), "listen %u failed", (unsigned)port);
             return 1;
@@ -222,21 +222,21 @@ The web backend can be used on its own — e.g. to dump a frame for comparison
 against a wireframe (configurator's `CFG_DUMP_WEB`):
 
 ```c
-#include <lh/ui/canvas/web.h>
+#include <lh/gl/canvas/web.h>
 
 static char buf[4u * 1024u * 1024u];
-lh_ui_canvas_web_t web;
-lh_ui_canvas_t canvas;
+lh_gl_canvas_web_t web;
+lh_gl_canvas_t canvas;
 
-if (lh_ui_canvas_web_open_mem(&web, buf, sizeof(buf), 980u, 620u))
+if (lh_gl_canvas_web_open_mem(&web, buf, sizeof(buf), 980u, 620u))
 {
-    lh_ui_canvas_init(&canvas, lh_addr_of(lh_ui_canvas_backend_web), &web);
-    lh_ui_view_set_canvas(&self->view, &canvas);
-    lh_ui_view_draw(&self->view, lh_null);             /* whole frame */
-    lh_ui_view_set_canvas(&self->view, &self->canvas); /* restore our own */
+    lh_gl_canvas_init(&canvas, lh_addr_of(lh_gl_canvas_backend_web), &web);
+    lh_gl_view_set_canvas(&self->view, &canvas);
+    lh_gl_view_draw(&self->view, lh_null);             /* whole frame */
+    lh_gl_view_set_canvas(&self->view, &self->canvas); /* restore our own */
 
-    if (lh_ui_canvas_web_close(&web))
-        write_file(path, lh_ui_canvas_web_bytes(&web), lh_ui_canvas_web_length(&web));
+    if (lh_gl_canvas_web_close(&web))
+        write_file(path, lh_gl_canvas_web_bytes(&web), lh_gl_canvas_web_length(&web));
 }
 ```
 
@@ -244,7 +244,7 @@ if (lh_ui_canvas_web_open_mem(&web, buf, sizeof(buf), 980u, 620u))
 
 ## 7. Streaming request bodies
 
-For an upload, register an `lh_ui_web_stream_route_t` with an ordinary route
+For an upload, register an `lh_gl_web_stream_route_t` with an ordinary route
 as its method/path matcher. Its staging callback reads from the borrowed
 `lh_io_reader_t`; it should place changes in temporary application-owned state.
 The callback is called again each time more of the body has arrived: it reads
@@ -257,11 +257,11 @@ may send the error response. Neither callback may retain request or reader
 pointers after it returns.
 
 ```c
-lh_ui_web_stream_route_init(&upload, &matcher, stage_upload, commit_upload,
+lh_gl_web_stream_route_init(&upload, &matcher, stage_upload, commit_upload,
                             abort_upload, decoded_limit, metadata_limit, timeout_ms);
-lh_ui_web_stream_route_set_wire_limit(&upload, encoded_limit);
-lh_ui_web_app_set_stream_routes(&app, &upload);
-lh_ui_web_app_set_nstream_routes(&app, 1U);
+lh_gl_web_stream_route_set_wire_limit(&upload, encoded_limit);
+lh_gl_web_app_set_stream_routes(&app, &upload);
+lh_gl_web_app_set_nstream_routes(&app, 1U);
 ```
 
 `decoded_limit` bounds bytes after decompression. `encoded_limit` bounds gzip
@@ -285,7 +285,7 @@ request and decoded body must fit host scratch.
 - configurator does not wire `key` / `text` yet (`lh_null`) — keyboard input
   in the web build is wired the same way as the mouse.
 - The `json` buffer holds one frame; enlarge it for a big tree (an overflow
-  does not write past the end: the frame fails and `lh_ui_canvas_web_close`
+  does not write past the end: the frame fails and `lh_gl_canvas_web_close`
   returns `lh_bool_false`).
-- A 3D pane is not a canvas op but a separate backend (`lh/ui/viewport3d.h`).
+- A 3D pane is not a canvas op but a separate backend (`lh/gl/viewport3d.h`).
 - Windows XP does not need the player — it stays on the GDI window.

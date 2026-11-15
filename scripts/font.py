@@ -3,9 +3,9 @@
 
 Same knobs as LVGL's font converter (lv_font_conv): a font file, a pixel
 size, bits per pixel, and the characters to keep. Each glyph is cropped to
-its ink (Android/LVGL style): an lh_ui_mask_t over a slice of a shared bits
+its ink (Android/LVGL style): an lh_gl_mask_t over a slice of a shared bits
 array, plus a top relative to the baseline and an advance byte. Rows are
-packed high-bit first at 1, 2, 4 or 8 bpp. The result is an lh_ui_font_t,
+packed high-bit first at 1, 2, 4 or 8 bpp. The result is an lh_gl_font_t,
 not an operating-system font.
 """
 
@@ -362,8 +362,8 @@ def main():
             "",
             "#include <lh/core/byte.h>",
             "#include <lh/core/compiler/extern/c.h>",
-            "#include <lh/ui/font.h>",
-            "#include <lh/ui/mask.h>",
+            "#include <lh/gl/font.h>",
+            "#include <lh/gl/mask.h>",
             "",
             "LH_COMPILER_EXTERN_C_BEGIN",
             "",
@@ -371,7 +371,7 @@ def main():
             f"extern const lh_byte_t {name}_bits[];",
             "",
             f"/** Cropped masks of ::{name}, one per code. */",
-            f"extern const lh_ui_mask_t {name}_glyphs[];",
+            f"extern const lh_gl_mask_t {name}_glyphs[];",
             "",
             f"/** One advance byte per glyph of ::{name}. */",
             f"extern const lh_byte_t {name}_advances[];",
@@ -380,11 +380,11 @@ def main():
             f"extern const lh_s32_t {name}_tops[];",
             "",
             f"/** The runs of code points of ::{name}, in table order. */",
-            f"extern const lh_ui_font_range_t {name}_ranges[];",
+            f"extern const lh_gl_font_range_t {name}_ranges[];",
             "",
             f"/** {args.font.stem} at {args.size}px, {count} glyphs over {len(ranges)} run(s): {spans}",
             f" *  ({args.bpp} bits per pixel). */",
-            f"extern const lh_ui_font_t {name};",
+            f"extern const lh_gl_font_t {name};",
             "",
             "LH_COMPILER_EXTERN_C_END",
             "",
@@ -392,7 +392,7 @@ def main():
             "",
         ]
         args.header.write_text("\n".join(header), encoding="utf-8", newline="\n")
-    include = args.include or (args.header.name if args.header else "lh/ui/font.h")
+    include = args.include or (args.header.name if args.header else "lh/gl/font.h")
     lines = comment + [
         f"#include <{include}>",
         "",
@@ -407,7 +407,7 @@ def main():
         lines.append("    0,")
     lines.append("};")
     lines.append("")
-    lines.append(f"const lh_ui_mask_t {name}_glyphs[] = {{")
+    lines.append(f"const lh_gl_mask_t {name}_glyphs[] = {{")
     for g in glyphs:
         if g is None:
             lines.append(f"    {{lh_null, 0, 0, 0, {args.bpp}}},")
@@ -426,14 +426,14 @@ def main():
     write_s32s(lines, tops, 12)
     lines.append("};")
     lines.append("")
-    lines.append(f"const lh_ui_font_range_t {name}_ranges[] = {{")
+    lines.append(f"const lh_gl_font_range_t {name}_ranges[] = {{")
     for r_first, r_length, r_base in ranges:
         lines.append(f"    {{{r_first}, {r_length}, {r_base}}},")
     lines.append("};")
     lines.append("")
     lines += [
         "",
-        f"const lh_ui_font_t {name} = {{",
+        f"const lh_gl_font_t {name} = {{",
         f"    {name}_glyphs, {name}_advances, {name}_tops, {name}_ranges,",
         f"    {line_height}, {ascent}, {cap_height}, {len(ranges)}",
         "};",

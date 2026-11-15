@@ -8,7 +8,7 @@
  * ::lh_math_point_to_fpoint widens the other way.
  *
  * Built only when ::LH_LIBRARY_OPTION_MATH_FPU is ON. UI picks this type or
- * the integer ::lh_math_point_t through <lh/ui/point.h>.
+ * the integer ::lh_math_point_t through <lh/gl/point.h>.
  *
  * Fields are not part of the public API: read and mutate them through the
  * accessors. The struct is defined here only so it can be embedded by value.

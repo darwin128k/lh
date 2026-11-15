@@ -5,7 +5,7 @@
  * The scalar of screen / window geometry (::lh_math_point_t,
  * ::lh_math_size_t, ::lh_math_rect_t).
  * Always signed `int` — math does not read ::LH_LIBRARY_OPTION_MATH_FPU here.
- * UI may alias this type through <lh/ui/scalar.h> when FPU is OFF.
+ * UI may alias this type through <lh/gl/scalar.h> when FPU is OFF.
  */
 
 #ifndef LH_MATH_SCALAR_H

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Turn a CSS file into an `lh_ui_decl_t` table.
+"""Turn a CSS file into an `lh_gl_decl_t` table.
 
-`include/lh/ui/decl.h` says there is no parser and no markup language, and for a while
+`include/lh/gl/decl.h` says there is no parser and no markup language, and for a while
 that was right: the table was small, and a second language to learn was a second thing
 to keep in step with the first. It stops being right at a thousand rows, because the
 part that is painful to write by hand is not a call, it is **where a widget sits and
@@ -52,7 +52,7 @@ parent clips it. A parser that quietly drops a property is worse than no parser:
 stylesheet says the row is 8px further down and the row is not.
 
 The rects in the table are worked out with the engine's own arithmetic, so the first
-layout moves nothing; the tests check that against `lh_ui_layout_apply`.
+layout moves nothing; the tests check that against `lh_gl_layout_apply`.
 
 Usage
 -----
@@ -85,17 +85,17 @@ PREFIX = PREFIX_PLACEHOLDER
 
 # -- The vocabulary ------------------------------------------------------------
 
-#: tag -> `lh_ui_decl_kind_t`. A tag is the widget; nothing else decides it.
+#: tag -> `lh_gl_decl_kind_t`. A tag is the widget; nothing else decides it.
 KINDS = {
-    "entity": "lh_ui_decl_kind_entity",
-    "box": "lh_ui_decl_kind_container",
-    "container": "lh_ui_decl_kind_container",
-    "label": "lh_ui_decl_kind_label",
-    "button": "lh_ui_decl_kind_button",
-    "toggle": "lh_ui_decl_kind_toggle",
-    "image": "lh_ui_decl_kind_image",
-    "scrollbar": "lh_ui_decl_kind_scrollbar",
-    "input": "lh_ui_decl_kind_input",
+    "entity": "lh_gl_decl_kind_entity",
+    "box": "lh_gl_decl_kind_container",
+    "container": "lh_gl_decl_kind_container",
+    "label": "lh_gl_decl_kind_label",
+    "button": "lh_gl_decl_kind_button",
+    "toggle": "lh_gl_decl_kind_toggle",
+    "image": "lh_gl_decl_kind_image",
+    "scrollbar": "lh_gl_decl_kind_scrollbar",
+    "input": "lh_gl_decl_kind_input",
 }
 
 #: The names a page writes, and the widget each one is. A sheet copied from the web
@@ -148,7 +148,7 @@ HOLDERS = {"box", "container", "button", "toggle"}
 #: changes the fill and keeps the radius, rather than drawing a square button whenever
 #: the pointer is on it.
 #:
-#: `:active` is the pressed look (::lh_ui_style_set_pressed), and it is put on **every**
+#: `:active` is the pressed look (::lh_gl_style_set_pressed), and it is put on **every**
 #: look the row has, built on top of each: a toggle pressed while it is on has to look
 #: pressed and on, not pressed and off.
 STATES = {
@@ -169,7 +169,7 @@ LOOK_PROPS = ("background", "color", "padding", "padx", "pady", "radius-tl", "ra
               "box-shadow", "opacity", "visibility", "font-family", "font-size",
               "font-weight", "font-style", "text-overflow", "white-space")
 
-#: Narrower again for `:active`, because ::lh_ui_style_get_pressed reads only the paint
+#: Narrower again for `:active`, because ::lh_gl_style_get_pressed reads only the paint
 #: of a pressed style: "padding, font and alignment are read from the entity's own
 #: style, so nothing moves under the pointer". A `padding` under `:active` would be read
 #: and ignored.
@@ -177,12 +177,12 @@ PRESSED_PROPS = ("background", "color", "radius-tl", "radius-tr", "radius-br", "
                  "shadow", "box-shadow", "border-color",
                  "opacity")
 
-TEXT_ALIGN = {"left": "lh_ui_text_align_h_left",
-              "center": "lh_ui_text_align_h_center",
-              "right": "lh_ui_text_align_h_right"}
-VALIGN = {"top": "lh_ui_text_align_v_top",
-          "center": "lh_ui_text_align_v_center",
-          "bottom": "lh_ui_text_align_v_bottom"}
+TEXT_ALIGN = {"left": "lh_gl_text_align_h_left",
+              "center": "lh_gl_text_align_h_center",
+              "right": "lh_gl_text_align_h_right"}
+VALIGN = {"top": "lh_gl_text_align_v_top",
+          "center": "lh_gl_text_align_v_center",
+          "bottom": "lh_gl_text_align_v_bottom"}
 
 #: Properties that name the right side of a border box, with what to write instead.
 #: Listed because "it did not take" is the worst answer a stylesheet author can get.
@@ -228,25 +228,25 @@ BOUND_PROPS = ("min-width", "max-width", "min-height", "max-height")
 #: The properties CSS hands from a parent to its children when they say nothing.
 INHERITED = ("color", "text-align", "font-family", "font-size", "font-weight", "font-style",
              "text-transform", "visibility", "accent-color", "white-space")
-DIRECTIONS = {"row": "lh_ui_axis_horizontal", "column": "lh_ui_axis_vertical"}
-AXES = {"horizontal": "lh_ui_axis_horizontal", "vertical": "lh_ui_axis_vertical"}
-JUSTIFY = {"start": "lh_ui_justify_start", "flex-start": "lh_ui_justify_start",
-           "left": "lh_ui_justify_start", "normal": "lh_ui_justify_start",
-           "center": "lh_ui_justify_center",
-           "end": "lh_ui_justify_end", "flex-end": "lh_ui_justify_end",
-           "right": "lh_ui_justify_end",
-           "space-between": "lh_ui_justify_space_between",
-           "space-around": "lh_ui_justify_space_around",
-           "space-evenly": "lh_ui_justify_space_evenly"}
-ALIGN = {"start": "lh_ui_place_align_start", "flex-start": "lh_ui_place_align_start",
-         "self-start": "lh_ui_place_align_start",
-         "center": "lh_ui_place_align_center",
-         "end": "lh_ui_place_align_end", "flex-end": "lh_ui_place_align_end",
-         "self-end": "lh_ui_place_align_end",
-         "stretch": "lh_ui_place_align_fill", "normal": "lh_ui_place_align_fill",
-         "baseline": "lh_ui_place_align_baseline"}
-SIZE_MODE = {"fixed": "lh_ui_place_size_fixed", "fill": "lh_ui_place_size_fill",
-             "wrap": "lh_ui_place_size_wrap"}
+DIRECTIONS = {"row": "lh_gl_axis_horizontal", "column": "lh_gl_axis_vertical"}
+AXES = {"horizontal": "lh_gl_axis_horizontal", "vertical": "lh_gl_axis_vertical"}
+JUSTIFY = {"start": "lh_gl_justify_start", "flex-start": "lh_gl_justify_start",
+           "left": "lh_gl_justify_start", "normal": "lh_gl_justify_start",
+           "center": "lh_gl_justify_center",
+           "end": "lh_gl_justify_end", "flex-end": "lh_gl_justify_end",
+           "right": "lh_gl_justify_end",
+           "space-between": "lh_gl_justify_space_between",
+           "space-around": "lh_gl_justify_space_around",
+           "space-evenly": "lh_gl_justify_space_evenly"}
+ALIGN = {"start": "lh_gl_place_align_start", "flex-start": "lh_gl_place_align_start",
+         "self-start": "lh_gl_place_align_start",
+         "center": "lh_gl_place_align_center",
+         "end": "lh_gl_place_align_end", "flex-end": "lh_gl_place_align_end",
+         "self-end": "lh_gl_place_align_end",
+         "stretch": "lh_gl_place_align_fill", "normal": "lh_gl_place_align_fill",
+         "baseline": "lh_gl_place_align_baseline"}
+SIZE_MODE = {"fixed": "lh_gl_place_size_fixed", "fill": "lh_gl_place_size_fill",
+             "wrap": "lh_gl_place_size_wrap"}
 
 #: Every property, and how its value is read. One table, because a property that is
 #: forgotten here is a property nothing checks: the first version listed the names in
@@ -277,17 +277,17 @@ VALUE_TABLES = {
     "scrollbar-width": {"auto": "auto", "thin": "thin", "none": "none"},
     "border-style": {"solid": "solid", "none": "none", "hidden": "none"},
     "font-style": {"normal": "normal", "italic": "italic"},
-    "text-overflow": {"clip": "lh_ui_text_overflow_clip", "ellipsis": "lh_ui_text_overflow_ellipsis"},
+    "text-overflow": {"clip": "lh_gl_text_overflow_clip", "ellipsis": "lh_gl_text_overflow_ellipsis"},
     # `wrap-reverse` would put the lines the other way across, which no flow here does.
     "flex-wrap": {"nowrap": "lh_bool_false", "wrap": "lh_bool_true"},
     # `nowrap` and `pre` are what a label does unless told otherwise: its lines end
     # where the text breaks them and nowhere else. `normal` and `pre-wrap` also break
-    # before a word that would not fit the box (::lh_ui_style_set_wrap). This is the one
+    # before a word that would not fit the box (::lh_gl_style_set_wrap). This is the one
     # default that is not CSS's: a label here was always one line, and a sheet written
     # for that would see its captions fold onto a second line where they were clipped.
-    "white-space": {"nowrap": "lh_ui_text_wrap_none", "pre": "lh_ui_text_wrap_none",
-                    "pre-line": "lh_ui_text_wrap_none", "normal": "lh_ui_text_wrap_words",
-                    "pre-wrap": "lh_ui_text_wrap_words"},
+    "white-space": {"nowrap": "lh_gl_text_wrap_none", "pre": "lh_gl_text_wrap_none",
+                    "pre-line": "lh_gl_text_wrap_none", "normal": "lh_gl_text_wrap_words",
+                    "pre-wrap": "lh_gl_text_wrap_words"},
 }
 NUMERIC_PROPS = ("width", "height", "flex", "row-gap", "column-gap", "padding", "padx",
                  "pady", "radius-tl", "radius-tr", "radius-br", "radius-bl", "left", "top", "right", "bottom", "shadow", "padding-top",
@@ -1073,14 +1073,14 @@ def read_shadow(value, line, where):
 #: bare number is pixels everywhere else this parser reads one.
 TIME = re.compile(r"^(\d+(?:\.\d+)?|\.\d+)(ms|s)?$")
 
-#: The longest a transition may be: `lh_ui_style_set_transition` takes an `lh_u16_t`, and
+#: The longest a transition may be: `lh_gl_style_set_transition` takes an `lh_u16_t`, and
 #: a time that does not fit in one is not rounded into it.
 MAX_TRANSITION = 65535
 
-#: The curves CSS names, and the engine's names for them (::lh_ui_easing_t).
-EASINGS = {"ease": "lh_ui_easing_ease", "linear": "lh_ui_easing_linear",
-           "ease-in": "lh_ui_easing_ease_in", "ease-out": "lh_ui_easing_ease_out",
-           "ease-in-out": "lh_ui_easing_ease_in_out"}
+#: The curves CSS names, and the engine's names for them (::lh_gl_easing_t).
+EASINGS = {"ease": "lh_gl_easing_ease", "linear": "lh_gl_easing_linear",
+           "ease-in": "lh_gl_easing_ease_in", "ease-out": "lh_gl_easing_ease_out",
+           "ease-in-out": "lh_gl_easing_ease_in_out"}
 
 #: What a transition can be asked to move. The engine mixes everything a look has an
 #: amount of -- fills, the text and border paints, corners, the shadow -- and these are
@@ -2317,7 +2317,7 @@ def match_brace(text, open_at, limit):
 def measure(root, variables=None):
     """Fill in every node's rect and place, and check what the stylesheet forgot.
 
-    Two rules, both from what `lh_ui_place_t` can answer: a child asks for room **along**
+    Two rules, both from what `lh_gl_place_t` can answer: a child asks for room **along**
     the flow (fixed, a share, or what it measures) and sits **across** it. So in a
     column a child's height is its along size and in a row its width is, and the other
     dimension is its own.
@@ -2398,7 +2398,7 @@ def check_values(root):
                 if key in VALUE_TABLES:
                     lookup(VALUE_TABLES[key], node, key, props)
                 elif key == "text":
-                    # Only a label row carries a caption (`lh_ui_decl_t::as.label`); on a
+                    # Only a label row carries a caption (`lh_gl_decl_t::as.label`); on a
                     # button or a box the text was read and written nowhere.
                     if node.tag != "label":
                         raise Failure("`text` at line %d on %s, which is a `%s`. Only a "
@@ -2527,7 +2527,7 @@ def check_scrollbars(root, ids):
         target = [n for n in all_nodes(root) if n.name == wanted][0]
         if target.index >= node.index:
             raise Failure("%s at line %d scrolls `#%s`, which is row %d while the bar "
-                          "itself is row %d. `lh_ui_decl_build` wants the thing scrolled "
+                          "itself is row %d. `lh_gl_decl_build` wants the thing scrolled "
                           "to exist first, so put the bar after it"
                           % (describe(node), node.line, wanted, target.index, node.index))
 
@@ -2702,7 +2702,7 @@ def bounds_of(node, base_w, base_h):
 
 
 def clamp(length, least, most):
-    """::lh_ui_place_clamp: the maximum first, then the minimum."""
+    """::lh_gl_place_clamp: the maximum first, then the minimum."""
     if most > 0 and length > most:
         length = most
     if length < least:
@@ -2712,14 +2712,14 @@ def clamp(length, least, most):
 
 def lay_out(node, flowing, axis, gap, content, ids):
     """::lay_out_line once, or -- for a flow that wraps -- once a line, the way
-    `lh_ui_layout_apply` breaks the children into lines and shares out what is left
+    `lh_gl_layout_apply` breaks the children into lines and shares out what is left
     across them (CSS's `align-content: stretch`)."""
     wraps = node.props.get("flex-wrap", ("nowrap", 0))[0].strip() == "wrap"
     if not wraps:
         lay_out_line(node, flowing, axis, gap, content, ids)
         return
     cx, cy, cw, ch = content
-    vertical = axis == "lh_ui_axis_vertical"
+    vertical = axis == "lh_gl_axis_vertical"
     room_along, room_across = (ch, cw) if vertical else (cw, ch)
     line_gap = number_of(node, "column-gap" if vertical else "row-gap", 0)
 
@@ -2740,7 +2740,7 @@ def lay_out(node, flowing, axis, gap, content, ids):
         cs, ce = (left, right) if vertical else (top, bottom)
         minw, minh, maxw, maxh = child.bounds
         across_bounds = (minw, maxw) if vertical else (minh, maxh)
-        own = clamp(0, *across_bounds) if align == "lh_ui_place_align_fill" else cross
+        own = clamp(0, *across_bounds) if align == "lh_gl_place_align_fill" else cross
         return own + cs + ce
 
     lines = []
@@ -2779,7 +2779,7 @@ def lay_out(node, flowing, axis, gap, content, ids):
 
 
 def lay_out_line(node, flowing, axis, gap, content, ids):
-    """Place the flowing children of @p node the way `lh_ui_layout_apply` will.
+    """Place the flowing children of @p node the way `lh_gl_layout_apply` will.
 
     A line-for-line copy of that pass, for the cases it can know: fixed lengths,
     weighted shares of what is left, margins, bounds, `justify-content`, and where each
@@ -2788,7 +2788,7 @@ def lay_out_line(node, flowing, axis, gap, content, ids):
     FPU; a float build gives the last pixel elsewhere, and its first layout says so.
     """
     cx, cy, cw, ch = content
-    vertical = axis == "lh_ui_axis_vertical"
+    vertical = axis == "lh_gl_axis_vertical"
     room_along, room_across = (ch, cw) if vertical else (cw, ch)
     origin_along, origin_across = (cy, cx) if vertical else (cx, cy)
 
@@ -2830,18 +2830,18 @@ def lay_out_line(node, flowing, axis, gap, content, ids):
     spread = 0
     at = origin_along
     justify = (lookup(JUSTIFY, node, "justify-content") if "justify-content" in node.props
-               else "lh_ui_justify_start")
+               else "lh_gl_justify_start")
     if weights == 0 and shown > 0:
-        if justify == "lh_ui_justify_center":
+        if justify == "lh_gl_justify_center":
             at += (left + 1) // 2
-        elif justify == "lh_ui_justify_end":
+        elif justify == "lh_gl_justify_end":
             at += left
-        elif justify == "lh_ui_justify_space_between":
+        elif justify == "lh_gl_justify_space_between":
             spread = left // (shown - 1) if shown > 1 else 0
-        elif justify == "lh_ui_justify_space_around":
+        elif justify == "lh_gl_justify_space_around":
             spread = left // shown
             at += spread // 2
-        elif justify == "lh_ui_justify_space_evenly":
+        elif justify == "lh_gl_justify_space_evenly":
             spread = left // (shown + 1)
             at += spread
 
@@ -2852,16 +2852,16 @@ def lay_out_line(node, flowing, axis, gap, content, ids):
         else:
             wants = wants_of(mode, size, child)
         room = max(room_across - cs - ce, 0)
-        if align == "lh_ui_place_align_fill":
+        if align == "lh_gl_place_align_fill":
             across, length = origin_across + cs, bound_across(child, room)
         else:
             offset = 0
             # A baseline is the font's, so the table starts a baseline row where the
             # engine puts one that has none -- in the middle -- and the first layout
             # lifts it onto the line.
-            if align in ("lh_ui_place_align_center", "lh_ui_place_align_baseline"):
+            if align in ("lh_gl_place_align_center", "lh_gl_place_align_baseline"):
                 offset = max((room - cross + 1) // 2, 0)
-            elif align == "lh_ui_place_align_end":
+            elif align == "lh_gl_place_align_end":
                 offset = room - cross
             across, length = max(origin_across + cs + max(offset, 0), 0), cross
         if vertical:
@@ -2880,7 +2880,7 @@ def _measure(node, x, y, w, h, ids):
     """Give @p node the rect its parent decided, check it, and place its children.
 
     The rects in the table are what the first layout will find, worked out here with
-    the arithmetic of `lh_ui_layout_apply` (layout.c), so that a tree that has not
+    the arithmetic of `lh_gl_layout_apply` (layout.c), so that a tree that has not
     been laid out yet already looks like one that has. The one size this cannot know
     is a `wrap` row's -- that is its text, and the text is measured by a font -- so it
     starts at 0 along the flow and the first layout gives it its size.
@@ -2922,7 +2922,7 @@ def _measure(node, x, y, w, h, ids):
     # thing that makes `flex-direction`, `justify-content` and `gap` mean anything. The
     # first version gave every container a flow because it had children, which meant a
     # title bar silently became a column: the rows under it were laid out by
-    # `lh_ui_container_place_children` on every frame, and the coordinates the
+    # `lh_gl_container_place_children` on every frame, and the coordinates the
     # stylesheet wrote were overwritten before anybody could see whether they were right.
     display = node.props.get("display", ("", 0))[0].strip()
     flows = display in ("flex", "block")
@@ -2941,13 +2941,13 @@ def _measure(node, x, y, w, h, ids):
                              describe(node)))
 
     if display == "block":
-        axis = "lh_ui_axis_vertical"
+        axis = "lh_gl_axis_vertical"
     else:
         axis = (lookup(DIRECTIONS, node, "flex-direction") if "flex-direction" in node.props
-                else "lh_ui_axis_horizontal")
+                else "lh_gl_axis_horizontal")
     # `gap` is two gaps in CSS, between rows and between columns; a flow runs one way
     # and uses the one between the things it lines up.
-    gap = number_of(node, "row-gap" if axis == "lh_ui_axis_vertical" else "column-gap", 0)
+    gap = number_of(node, "row-gap" if axis == "lh_gl_axis_vertical" else "column-gap", 0)
 
     flowing = []
     cursor = 0
@@ -3020,7 +3020,7 @@ def _measure(node, x, y, w, h, ids):
             cursor += left + cw + right + gap
             continue
 
-        vertical = axis == "lh_ui_axis_vertical"
+        vertical = axis == "lh_gl_axis_vertical"
         along_key, cross_key = ("height", "width") if vertical else ("width", "height")
         share = prop(child, "flex")
         if share == 0:
@@ -3073,7 +3073,7 @@ def _measure(node, x, y, w, h, ids):
         if align_from is not None:
             align_key = "align" if align_from is child else "align-items"
             align = lookup(ALIGN, align_from, align_key)
-            if (align not in ("lh_ui_place_align_fill",) and cross is None
+            if (align not in ("lh_gl_place_align_fill",) and cross is None
                     and child.tag in ("label", "input")):
                 # A caption with no size across sits in the middle of a row in CSS
                 # because it is as tall as its text. A label here is as tall as it is
@@ -3081,16 +3081,16 @@ def _measure(node, x, y, w, h, ids):
                 # the row would have put the box: the same picture, and no number the
                 # sheet did not write.
                 text_key = "valign" if not vertical else "text-align"
-                text_value = {"lh_ui_place_align_start": "top" if not vertical else "left",
-                              "lh_ui_place_align_center": "center",
-                              "lh_ui_place_align_end": "bottom" if not vertical else "right",
-                              "lh_ui_place_align_baseline": "center"}[align]
+                text_value = {"lh_gl_place_align_start": "top" if not vertical else "left",
+                              "lh_gl_place_align_center": "center",
+                              "lh_gl_place_align_end": "bottom" if not vertical else "right",
+                              "lh_gl_place_align_baseline": "center"}[align]
                 if text_key not in child.props:
                     tucked = {text_key: (text_value, child.line)}
                     child.layers.insert(0, (frozenset(), tucked))
                     child.props[text_key] = tucked[text_key]
-                align = "lh_ui_place_align_fill"
-            elif (align not in ("lh_ui_place_align_fill",) and cross is None
+                align = "lh_gl_place_align_fill"
+            elif (align not in ("lh_gl_place_align_fill",) and cross is None
                     and child.tag in ("box", "container", "entity") and not paints_itself(child)
                     and (not child.children
                          or child.props.get("display", ("", 0))[0].strip() in ("flex", "block"))):
@@ -3099,25 +3099,25 @@ def _measure(node, x, y, w, h, ids):
                 # stretched, and what it holds is put in its middle instead. Nothing on
                 # screen is the box, so nothing on screen can tell the difference.
                 if "align-items" not in child.props and child.children:
-                    tucked = {"align-items": ({"lh_ui_place_align_start": "start",
-                                               "lh_ui_place_align_center": "center",
-                                               "lh_ui_place_align_end": "end",
-                                               "lh_ui_place_align_baseline": "baseline"}[align],
+                    tucked = {"align-items": ({"lh_gl_place_align_start": "start",
+                                               "lh_gl_place_align_center": "center",
+                                               "lh_gl_place_align_end": "end",
+                                               "lh_gl_place_align_baseline": "baseline"}[align],
                                               child.line)}
                     child.props["align-items"] = tucked["align-items"]
-                align = "lh_ui_place_align_fill"
-            if align == "lh_ui_place_align_fill" and cross is not None:
+                align = "lh_gl_place_align_fill"
+            if align == "lh_gl_place_align_fill" and cross is not None:
                 if align_from is node:
                     # `align-items: stretch` is the default every row of a flow gets;
                     # a row that states its size keeps it, as in CSS.
-                    align = "lh_ui_place_align_start"
+                    align = "lh_gl_place_align_start"
                 else:
                     raise Failure("`align: stretch` and `%s` at line %d in %s say two "
                                   "sizes across %s. Drop one: with no `%s` the row is "
                                   "stretched anyway"
                                   % (cross_key, child.props["align"][1], describe(child),
                                      describe(node), cross_key))
-            if align != "lh_ui_place_align_fill" and cross is None:
+            if align != "lh_gl_place_align_fill" and cross is None:
                 raise Failure("`%s` at line %d in %s puts %s somewhere across %s, and it "
                               "has no `%s` to be put there with. Only `stretch` takes its "
                               "size from the parent"
@@ -3125,9 +3125,9 @@ def _measure(node, x, y, w, h, ids):
                                  describe(align_from), describe(child), describe(node),
                                  cross_key))
         elif cross is not None:
-            align = "lh_ui_place_align_start"
+            align = "lh_gl_place_align_start"
         else:
-            align = "lh_ui_place_align_fill"
+            align = "lh_gl_place_align_fill"
 
         # The margin, and what an `auto` margin across means: the row is pushed to the
         # other side, or to the middle when both are -- `margin: 0 auto` is how CSS
@@ -3146,9 +3146,9 @@ def _measure(node, x, y, w, h, ids):
                 raise Failure("an `auto` margin across the flow at line %d in %s, which has "
                               "no `%s` to be pushed about with" % (child.line, describe(child),
                                                                  cross_key))
-            align = {(True, True): "lh_ui_place_align_center",
-                     (True, False): "lh_ui_place_align_end",
-                     (False, True): "lh_ui_place_align_start"}[(before == "auto", after == "auto")]
+            align = {(True, True): "lh_gl_place_align_center",
+                     (True, False): "lh_gl_place_align_end",
+                     (False, True): "lh_gl_place_align_start"}[(before == "auto", after == "auto")]
             before = 0 if before == "auto" else before
             after = 0 if after == "auto" else after
             if vertical:
@@ -3175,9 +3175,9 @@ def _measure(node, x, y, w, h, ids):
     # the 1408 rows of the parameter table and those are data the application fills;
     # tying the flow to the stylesheet's own children left that one container with no
     # flow at all, and 1408 rows with a place and nowhere to be placed by.
-    node.layout = (axis, gap, lookup(JUSTIFY, node, "justify-content") if "justify-content" in node.props else "lh_ui_justify_start",
+    node.layout = (axis, gap, lookup(JUSTIFY, node, "justify-content") if "justify-content" in node.props else "lh_gl_justify_start",
                    node.props.get("flex-wrap", ("nowrap", 0))[0].strip() == "wrap",
-                   number_of(node, "column-gap" if axis == "lh_ui_axis_vertical" else "row-gap", 0)) \
+                   number_of(node, "column-gap" if axis == "lh_gl_axis_vertical" else "row-gap", 0)) \
         if flows else None
 
 
@@ -3474,7 +3474,7 @@ def emit(nodes, variables, root, source=""):
             value, line = props["background"]
             fill = read_paint(value, line, variables, "`background` of %s" % where, node.rect)
             if fill[0] == "solid":
-                body.append("lh_ui_style_assign_fill(lh_addr_of(ui_s_%s), lh_addr_of(%s_paints));"
+                body.append("lh_gl_style_assign_fill(lh_addr_of(ui_s_%s), lh_addr_of(%s_paints));"
                             % (sname, colour_of(faded(fill[1], fade))))
             else:
                 # The stops are set on the gradient once, in this init, and the paint
@@ -3482,29 +3482,29 @@ def emit(nodes, variables, root, source=""):
                 shape, angle, stops = fill
                 gradients_used.append(len(stops))
                 body.append("{")
-                body.append("    lh_ui_color_t stops[%d];" % len(stops))
+                body.append("    lh_gl_color_t stops[%d];" % len(stops))
                 body.append("    const lh_byte_t at[%d] = {%s};"
                             % (len(stops), ", ".join("%d" % frac for _rgb, frac in stops)))
                 for index, (rgb, _frac) in enumerate(stops):
                     rgb = faded(rgb, fade)
-                    body.append("    lh_ui_color_init(lh_addr_of(stops[%d]), %d, %d, %d, %d);"
+                    body.append("    lh_gl_color_init(lh_addr_of(stops[%d]), %d, %d, %d, %d);"
                                 % (index, rgb[0], rgb[1], rgb[2], rgb[3] if len(rgb) > 3 else 255))
-                body.append("    lh_ui_gradient_init(lh_addr_of(ui_gr_%s));" % sname)
-                body.append("    lh_ui_gradient_init_stops(lh_addr_of(ui_gr_%s), stops, at, %d);"
+                body.append("    lh_gl_gradient_init(lh_addr_of(ui_gr_%s));" % sname)
+                body.append("    lh_gl_gradient_init_stops(lh_addr_of(ui_gr_%s), stops, at, %d);"
                             % (sname, len(stops)))
                 if shape == "radial":
-                    body.append("    lh_ui_gradient_set_radial(lh_addr_of(ui_gr_%s));" % sname)
+                    body.append("    lh_gl_gradient_set_radial(lh_addr_of(ui_gr_%s));" % sname)
                 else:
-                    body.append("    lh_ui_gradient_set_linear(lh_addr_of(ui_gr_%s), %d);" % (sname, angle))
+                    body.append("    lh_gl_gradient_set_linear(lh_addr_of(ui_gr_%s), %d);" % (sname, angle))
                 body.append("}")
-                body.append("lh_ui_paint_init_gradient(lh_addr_of(ui_gp_%s), lh_addr_of(ui_gr_%s));"
+                body.append("lh_gl_paint_init_gradient(lh_addr_of(ui_gp_%s), lh_addr_of(ui_gr_%s));"
                             % (sname, sname))
-                body.append("lh_ui_style_assign_fill(lh_addr_of(ui_s_%s), lh_addr_of(ui_gp_%s));"
+                body.append("lh_gl_style_assign_fill(lh_addr_of(ui_s_%s), lh_addr_of(ui_gp_%s));"
                             % (sname, sname))
-        # On an image `color` is the tint (`lh_ui_decl_t::as.image.tint`), which is
+        # On an image `color` is the tint (`lh_gl_decl_t::as.image.tint`), which is
         # what a picture's colour is; a style's text paint is read by nothing there.
         if "color" in props and node.tag != "image":
-            body.append("lh_ui_style_assign_text(lh_addr_of(ui_s_%s), lh_addr_of(%s_paints));"
+            body.append("lh_gl_style_assign_text(lh_addr_of(ui_s_%s), lh_addr_of(%s_paints));"
                         % (sname, paint("color")))
         border = border_sides(props, where)
         if border is not None:
@@ -3512,12 +3512,12 @@ def emit(nodes, variables, root, source=""):
             key = "border-color" if "border-color" in props else (
                 "color" if "color" in props else None)
             colour = paint(key) if key else colour_of(faded((0, 0, 0, 255), fade))
-            body.append("lh_ui_insets_init(lh_addr_of(ui_bd_%s), lh_ui_scalar(%d), "
-                        "lh_ui_scalar(%d), lh_ui_scalar(%d), lh_ui_scalar(%d));"
+            body.append("lh_gl_insets_init(lh_addr_of(ui_bd_%s), lh_gl_scalar(%d), "
+                        "lh_gl_scalar(%d), lh_gl_scalar(%d), lh_gl_scalar(%d));"
                         % ((sname,) + border))
-            body.append("lh_ui_style_set_border_v(lh_addr_of(ui_s_%s), lh_addr_of(ui_bd_%s));"
+            body.append("lh_gl_style_set_border_v(lh_addr_of(ui_s_%s), lh_addr_of(ui_bd_%s));"
                         % (sname, sname))
-            body.append("lh_ui_style_assign_border_fill(lh_addr_of(ui_s_%s), "
+            body.append("lh_gl_style_assign_border_fill(lh_addr_of(ui_s_%s), "
                         "lh_addr_of(%s_paints));" % (sname, colour))
         font = font_name(props, where)
         if font is not None:
@@ -3525,52 +3525,52 @@ def emit(nodes, variables, root, source=""):
             # header declares it, so a font the app forgot is a link error, not a
             # caption that draws in some other face.
             fonts_used.add(font)
-            body.append("lh_ui_style_set_font(lh_addr_of(ui_s_%s), "
+            body.append("lh_gl_style_set_font(lh_addr_of(ui_s_%s), "
                         "lh_addr_of(lh_cfg_ui_font_%s));" % (sname, font))
         sides = inner_sides(props, where)
         if sides is not None:
             if len(set(sides)) == 1:
-                body.append("lh_ui_style_set_padding_all(lh_addr_of(ui_s_%s), lh_ui_scalar(%d));"
+                body.append("lh_gl_style_set_padding_all(lh_addr_of(ui_s_%s), lh_gl_scalar(%d));"
                             % (sname, sides[0]))
             else:
                 # Per side, because **`padding` on all four sides cannot centre
                 # anything**: a label's vertical alignment happens inside the box its
                 # padding leaves, so a 28-row row with 14 of padding has a content box
                 # zero rows high and the middle of nothing is its top edge.
-                body.append("lh_ui_insets_init(lh_addr_of(ui_pad_%s), lh_ui_scalar(%d), "
-                            "lh_ui_scalar(%d), lh_ui_scalar(%d), lh_ui_scalar(%d));"
+                body.append("lh_gl_insets_init(lh_addr_of(ui_pad_%s), lh_gl_scalar(%d), "
+                            "lh_gl_scalar(%d), lh_gl_scalar(%d), lh_gl_scalar(%d));"
                             % ((sname,) + sides))
-                body.append("lh_ui_style_set_padding_v(lh_addr_of(ui_s_%s), "
+                body.append("lh_gl_style_set_padding_v(lh_addr_of(ui_s_%s), "
                             "lh_addr_of(ui_pad_%s));" % (sname, sname))
         corners = [number_in(props, key) if key in props else None
                    for key in ("radius-tl", "radius-tr", "radius-br", "radius-bl")]
         if any(c is not None for c in corners):
             corners = [c or 0 for c in corners]
             if len(set(corners)) == 1:
-                body.append("lh_ui_style_set_radius_v(lh_addr_of(ui_s_%s), lh_ui_scalar(%d));"
+                body.append("lh_gl_style_set_radius_v(lh_addr_of(ui_s_%s), lh_gl_scalar(%d));"
                             % (sname, corners[0]))
             else:
-                body.append("lh_ui_radii_init(lh_addr_of(ui_rd_%s), lh_ui_scalar(%d), "
-                            "lh_ui_scalar(%d), lh_ui_scalar(%d), lh_ui_scalar(%d));"
+                body.append("lh_gl_radii_init(lh_addr_of(ui_rd_%s), lh_gl_scalar(%d), "
+                            "lh_gl_scalar(%d), lh_gl_scalar(%d), lh_gl_scalar(%d));"
                             % ((sname,) + tuple(corners)))
-                body.append("lh_ui_style_set_radii_v(lh_addr_of(ui_s_%s), lh_addr_of(ui_rd_%s));"
+                body.append("lh_gl_style_set_radii_v(lh_addr_of(ui_s_%s), lh_addr_of(ui_rd_%s));"
                             % (sname, sname))
         # A transition is set on **every** look of the row, not only the resting one.
         # The engine reads the time off the style it is switching *to*
-        # (::lh_ui_style_get_transition), so a `:hover` that carried the time and a
+        # (::lh_gl_style_get_transition), so a `:hover` that carried the time and a
         # resting style that did not would interpolate on the way in and snap on the
         # way out. `props` here is the whole cascade for this state, so a `transition`
         # written once on the row is already in every one of these calls.
         #
         # A time of zero is the style's own default and is not written: an
-        # `lh_ui_style_set_transition(..., 0)` says nothing the `lh_ui_style_init` two
+        # `lh_gl_style_set_transition(..., 0)` says nothing the `lh_gl_style_init` two
         # lines above it does not.
         if "transition-duration" in props and int(props["transition-duration"][0]):
-            body.append("lh_ui_style_set_transition(lh_addr_of(ui_s_%s), %d);"
+            body.append("lh_gl_style_set_transition(lh_addr_of(ui_s_%s), %d);"
                         % (sname, int(props["transition-duration"][0])))
             curve = props.get("transition-timing-function", ("ease", 0))[0].strip()
             if curve != "ease":
-                body.append("lh_ui_style_set_easing(lh_addr_of(ui_s_%s), %s);" % (sname, EASINGS[curve]))
+                body.append("lh_gl_style_set_easing(lh_addr_of(ui_s_%s), %s);" % (sname, EASINGS[curve]))
         # `shadow` is the fade distance and how far down it is cast. Its **colour** is
         # `--shadow` in `:root`, because a colour is a thing a theme changes and a
         # distance is a thing a layout changes: one variable the reader can replace to
@@ -3586,28 +3586,28 @@ def emit(nodes, variables, root, source=""):
             shadow = (0, drop, spread, root.variables["shadow"])
         if shadow is not None:
             dx, dy, blur, rgb = shadow
-            body.append("lh_ui_shadow_init(lh_addr_of(ui_shadow_%s));" % sname)
-            body.append("lh_ui_shadow_set_color(lh_addr_of(ui_shadow_%s), %s);"
+            body.append("lh_gl_shadow_init(lh_addr_of(ui_shadow_%s));" % sname)
+            body.append("lh_gl_shadow_set_color(lh_addr_of(ui_shadow_%s), %s);"
                         % (sname, colour_of(faded(rgb, fade))))
-            body.append("lh_ui_shadow_set_spread_v(lh_addr_of(ui_shadow_%s), lh_ui_scalar(%d));"
+            body.append("lh_gl_shadow_set_spread_v(lh_addr_of(ui_shadow_%s), lh_gl_scalar(%d));"
                         % (sname, blur))
-            body.append("lh_ui_shadow_set_offset(lh_addr_of(ui_shadow_%s), lh_ui_scalar(%d), "
-                        "lh_ui_scalar(%d));" % (sname, dx, dy))
-            body.append("lh_ui_style_set_shadow_v(lh_addr_of(ui_s_%s), "
+            body.append("lh_gl_shadow_set_offset(lh_addr_of(ui_shadow_%s), lh_gl_scalar(%d), "
+                        "lh_gl_scalar(%d));" % (sname, dx, dy))
+            body.append("lh_gl_style_set_shadow_v(lh_addr_of(ui_s_%s), "
                         "lh_addr_of(ui_shadow_%s));" % (sname, sname))
         if "text-align" in props:
-            body.append("lh_ui_style_set_align_h(lh_addr_of(ui_s_%s), %s);"
+            body.append("lh_gl_style_set_align_h(lh_addr_of(ui_s_%s), %s);"
                         % (sname, lookup(TEXT_ALIGN, node, "text-align", props)))
         if "valign" in props:
-            body.append("lh_ui_style_set_align_v(lh_addr_of(ui_s_%s), %s);"
+            body.append("lh_gl_style_set_align_v(lh_addr_of(ui_s_%s), %s);"
                         % (sname, lookup(VALIGN, node, "valign", props)))
         if "text-overflow" in props:
-            body.append("lh_ui_style_set_overflow(lh_addr_of(ui_s_%s), %s);"
+            body.append("lh_gl_style_set_overflow(lh_addr_of(ui_s_%s), %s);"
                         % (sname, lookup(VALUE_TABLES["text-overflow"], node, "text-overflow", props)))
         if "white-space" in props and node.tag in ("label", "input"):
             wrap = lookup(VALUE_TABLES["white-space"], node, "white-space", props)
-            if wrap != "lh_ui_text_wrap_none":
-                body.append("lh_ui_style_set_wrap(lh_addr_of(ui_s_%s), %s);" % (sname, wrap))
+            if wrap != "lh_gl_text_wrap_none":
+                body.append("lh_gl_style_set_wrap(lh_addr_of(ui_s_%s), %s);" % (sname, wrap))
         return body
 
     #: sname -> whether a row in that look has a style at all, for the rows to point at.
@@ -3646,10 +3646,10 @@ def emit(nodes, variables, root, source=""):
                 describe(node), "" if not state else " in `:%s`" % ":".join(sorted(state))))
             if ("active" in said and "active" not in state and node.tag in ("button", "toggle")
                     and canonical[name + suffix + "__active"] is not None):
-                body.append("lh_ui_style_set_pressed(lh_addr_of(ui_s_@@), lh_addr_of(ui_s_%s));"
+                body.append("lh_gl_style_set_pressed(lh_addr_of(ui_s_@@), lh_addr_of(ui_s_%s));"
                             % canonical[name + suffix + "__active"])
             # Two rows that look the same share one style: that is what a class is for,
-            # and ten buttons of one class are one `lh_ui_style_t`, not ten copies.
+            # and ten buttons of one class are one `lh_gl_style_t`, not ten copies.
             key = tuple(body)
             if not body:
                 canonical[sname] = None
@@ -3695,7 +3695,7 @@ def emit(nodes, variables, root, source=""):
     add(" * screen comes from one file of CSS rather than from a thousand lines of calls.")
     add(" * Every colour, paint, style, flow and place below is what some rule said.")
     add(" *")
-    add(" * @note `lh_ui_decl_build` still does the measuring: this table says where each row")
+    add(" * @note `lh_gl_decl_build` still does the measuring: this table says where each row")
     add(" *       starts and what it wants, and the flow that gives a child its place is the")
     add(" *       one its parent carries.")
     add(" */")
@@ -3703,10 +3703,10 @@ def emit(nodes, variables, root, source=""):
     add("#include \"ui_generated.h\"")
     add("")
     add("#include <string.h>")
-    add("#include <lh/ui/gradient.h>")
-    add("#include <lh/ui/insets.h>")
-    add("#include <lh/ui/radii.h>")
-    add("#include <lh/ui/shadow.h>")
+    add("#include <lh/gl/gradient.h>")
+    add("#include <lh/gl/insets.h>")
+    add("#include <lh/gl/radii.h>")
+    add("#include <lh/gl/shadow.h>")
     add("#include <lh/core/util/addr.h>")
     add("#include <lh/core/util/ptr.h>")
     add("")
@@ -3719,12 +3719,12 @@ def emit(nodes, variables, root, source=""):
     add("   for those would have nowhere to come from but a second hand-written table of")
     add("   literals in C, and a theme would then be two files: change `--ink` here and")
     add("   that text stays the colour it was. Every `--name` in `:root` is therefore")
-    add("   emitted as an `lh_ui_color_t` the application can point a style at, which is")
+    add("   emitted as an `lh_gl_color_t` the application can point a style at, which is")
     add("   the whole of what an `lv_theme_t` is asked for here: a named set of colours the")
     add("   caller swaps by swapping a stylesheet. */")
     add("")
     for name in sorted(variables):
-        add("lh_ui_color_t lh_cfg_ui_colour_%s;" % varname(name))
+        add("lh_gl_color_t lh_cfg_ui_colour_%s;" % varname(name))
     add("")
     for name in sorted(variables):
         rgb = variables[name]
@@ -3733,17 +3733,17 @@ def emit(nodes, variables, root, source=""):
         add("/* --%s  #%02X%02X%02X%02X */" % (name, r, g, b, alpha))
         add("static lh_void lh_cfg_ui_colour_%s_init(void)" % varname(name))
         add("{")
-        add("    lh_ui_color_init(lh_addr_of(lh_cfg_ui_colour_%s), %d, %d, %d, %d);"
+        add("    lh_gl_color_init(lh_addr_of(lh_cfg_ui_colour_%s), %d, %d, %d, %d);"
             % (varname(name), r, g, b, alpha))
         add("}")
         add("")
     add("/* -- Colours and paints --------------------------------------------- */")
     add("")
     for key, rgb in sorted(colours.items()):
-        add("static lh_ui_color_t %s;" % key)
+        add("static lh_gl_color_t %s;" % key)
     add("")
     for key in sorted(colours):
-        add("static lh_ui_paint_t %s_paints;" % key)
+        add("static lh_gl_paint_t %s_paints;" % key)
     add("")
     for key, rgb in sorted(colours.items()):
         r, g, b = rgb[0], rgb[1], rgb[2]
@@ -3751,8 +3751,8 @@ def emit(nodes, variables, root, source=""):
         add("/* %s  #%02X%02X%02X%02X */" % (key, r, g, b, alpha))
         add("static lh_void %s_init(void)" % key)
         add("{")
-        add("    lh_ui_color_init(lh_addr_of(%s), %d, %d, %d, %d);" % (key, r, g, b, alpha))
-        add("    lh_ui_paint_init_color(lh_addr_of(%s_paints), lh_addr_of(%s));" % (key, key))
+        add("    lh_gl_color_init(lh_addr_of(%s), %d, %d, %d, %d);" % (key, r, g, b, alpha))
+        add("    lh_gl_paint_init_color(lh_addr_of(%s_paints), lh_addr_of(%s));" % (key, key))
         add("}")
         add("")
     add("static lh_void ui_colours_init(void)")
@@ -3767,52 +3767,52 @@ def emit(nodes, variables, root, source=""):
         # A gradient's stops are a fixed table in lh, as many as the build allows; a
         # sheet with more is told so by the compiler rather than by a gradient that
         # stops short.
-        add("#if LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS < %d" % max(gradients_used))
+        add("#if LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS < %d" % max(gradients_used))
         add("#error \"a gradient in the sheet has %d colour stops: build lh with "
-            "-DLH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS=%d or more\"" % ((max(gradients_used),) * 2))
+            "-DLH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS=%d or more\"" % ((max(gradients_used),) * 2))
         add("#endif")
         add("")
     add("/* -- Styles --------------------------------------------------------- */")
     add("")
     for sname, has_look, body in styles:
         if has_look:
-            add("static lh_ui_style_t ui_s_%s;" % sname)
+            add("static lh_gl_style_t ui_s_%s;" % sname)
     add("")
     # The per-side padding for the rows that ask for one. A separate object rather than
     # a fourth argument on every setter: it is four numbers, and a row that only has
     # `padx` would otherwise carry two zeroes it never uses.
     for sname, has_look, body in styles:
         if has_look and any("ui_pad_" in line for line in body):
-            add("static lh_ui_insets_t ui_pad_%s;" % sname)
+            add("static lh_gl_insets_t ui_pad_%s;" % sname)
     add("")
     for sname, has_look, body in styles:
         if has_look and any("ui_bd_" in line for line in body):
-            add("static lh_ui_insets_t ui_bd_%s;" % sname)
+            add("static lh_gl_insets_t ui_bd_%s;" % sname)
     for sname, has_look, body in styles:
         if has_look and any("ui_rd_" in line for line in body):
-            add("static lh_ui_radii_t ui_rd_%s;" % sname)
+            add("static lh_gl_radii_t ui_rd_%s;" % sname)
     for sname, has_look, body in styles:
         if has_look and any("ui_gr_" in line for line in body):
-            add("static lh_ui_gradient_t ui_gr_%s;" % sname)
-            add("static lh_ui_paint_t ui_gp_%s;" % sname)
+            add("static lh_gl_gradient_t ui_gr_%s;" % sname)
+            add("static lh_gl_paint_t ui_gp_%s;" % sname)
     add("")
     for sname, has_look, body in styles:
         if has_look and any("ui_shadow_" in line for line in body):
-            add("static lh_ui_shadow_t ui_shadow_%s;" % sname)
+            add("static lh_gl_shadow_t ui_shadow_%s;" % sname)
     add("")
     for sname, has_look, body in styles:
         if not has_look:
             continue
         add("static lh_void ui_style_%s_init(void)" % sname)
         add("{")
-        # `lh_ui_style_init` is what puts the **default font** in a style, and the font
-        # is where a label looks: `lh_ui_label_get_font` reads it out of the style, not
+        # `lh_gl_style_init` is what puts the **default font** in a style, and the font
+        # is where a label looks: `lh_gl_label_get_font` reads it out of the style, not
         # out of the label. A style that is only given a paint and a padding has a null
         # font, and a label with a null font draws nothing at all -- so the window came
         # up with its title bar, its headings and its status line all blank, and the one
         # thing on screen that proved the build worked was the Add button, which is
         # drawn as a fill and needs no font.
-        add("    lh_ui_style_init(lh_addr_of(ui_s_%s));" % sname)
+        add("    lh_gl_style_init(lh_addr_of(ui_s_%s));" % sname)
         for line in body:
             add("    " + line)
         add("}")
@@ -3827,13 +3827,13 @@ def emit(nodes, variables, root, source=""):
     add("/* -- Flows ---------------------------------------------------------- */")
     add("")
     for node, axis, gap, justify, wraps, line_gap in layouts:
-        add("static lh_ui_layout_t ui_l_%s;" % node.cname())
+        add("static lh_gl_layout_t ui_l_%s;" % node.cname())
         add("static lh_void ui_l_%s_init(void)" % node.cname())
         add("{")
-        add("    lh_ui_layout_init(lh_addr_of(ui_l_%s), %s, lh_ui_scalar(%d));" % (node.cname(), axis, gap))
-        add("    lh_ui_layout_set_justify(lh_addr_of(ui_l_%s), %s);" % (node.cname(), justify))
+        add("    lh_gl_layout_init(lh_addr_of(ui_l_%s), %s, lh_gl_scalar(%d));" % (node.cname(), axis, gap))
+        add("    lh_gl_layout_set_justify(lh_addr_of(ui_l_%s), %s);" % (node.cname(), justify))
         if wraps:
-            add("    lh_ui_layout_set_wrapping(lh_addr_of(ui_l_%s), lh_bool_true, lh_ui_scalar(%d));"
+            add("    lh_gl_layout_set_wrapping(lh_addr_of(ui_l_%s), lh_bool_true, lh_gl_scalar(%d));"
                 % (node.cname(), line_gap))
         add("}")
         add("")
@@ -3848,22 +3848,22 @@ def emit(nodes, variables, root, source=""):
     for node, mode, size, align, margin, least, most in places:
         name = node.cname()
         if any(margin):
-            add("static lh_ui_insets_t ui_mg_%s;" % name)
-        add("static lh_ui_place_t ui_pl_%s;" % name)
+            add("static lh_gl_insets_t ui_mg_%s;" % name)
+        add("static lh_gl_place_t ui_pl_%s;" % name)
         add("static lh_void ui_pl_%s_init(void)" % name)
         add("{")
-        add("    lh_ui_place_init(lh_addr_of(ui_pl_%s), %s, lh_ui_scalar(%d));" % (name, mode, size))
-        add("    lh_ui_place_set_align(lh_addr_of(ui_pl_%s), %s);" % (name, align))
+        add("    lh_gl_place_init(lh_addr_of(ui_pl_%s), %s, lh_gl_scalar(%d));" % (name, mode, size))
+        add("    lh_gl_place_set_align(lh_addr_of(ui_pl_%s), %s);" % (name, align))
         if any(margin):
-            add("    lh_ui_insets_init(lh_addr_of(ui_mg_%s), lh_ui_scalar(%d), lh_ui_scalar(%d), "
-                "lh_ui_scalar(%d), lh_ui_scalar(%d));" % ((name,) + tuple(margin)))
-            add("    lh_ui_place_assign_margin(lh_addr_of(ui_pl_%s), lh_addr_of(ui_mg_%s));"
+            add("    lh_gl_insets_init(lh_addr_of(ui_mg_%s), lh_gl_scalar(%d), lh_gl_scalar(%d), "
+                "lh_gl_scalar(%d), lh_gl_scalar(%d));" % ((name,) + tuple(margin)))
+            add("    lh_gl_place_assign_margin(lh_addr_of(ui_pl_%s), lh_addr_of(ui_mg_%s));"
                 % (name, name))
         if any(least):
-            add("    lh_ui_place_set_min_size(lh_addr_of(ui_pl_%s), lh_ui_scalar(%d), lh_ui_scalar(%d));"
+            add("    lh_gl_place_set_min_size(lh_addr_of(ui_pl_%s), lh_gl_scalar(%d), lh_gl_scalar(%d));"
                 % ((name,) + tuple(least)))
         if any(most):
-            add("    lh_ui_place_set_max_size(lh_addr_of(ui_pl_%s), lh_ui_scalar(%d), lh_ui_scalar(%d));"
+            add("    lh_gl_place_set_max_size(lh_addr_of(ui_pl_%s), lh_gl_scalar(%d), lh_gl_scalar(%d));"
                 % ((name,) + tuple(most)))
         add("}")
         add("")
@@ -3882,7 +3882,7 @@ def emit(nodes, variables, root, source=""):
         for node in inputs:
             add("static lh_char_t ui_buf_%s[%d + 1];" % (node.cname(), input_capacity(node)))
         add("")
-    add("const lh_ui_decl_t lh_cfg_ui_decls[] = {")
+    add("const lh_gl_decl_t lh_cfg_ui_decls[] = {")
     for node, kind, x, y, w, h, parent, text in rows:
         def style_of(sname):
             return ("lh_addr_of(ui_s_%s)" % canonical[sname]) if styled.get(sname) else "lh_null"
@@ -3909,15 +3909,15 @@ def emit(nodes, variables, root, source=""):
                                  ", ".join(n.name for n in nodes if n.name)))
             if target[0].index >= node.index:
                 raise Failure("%s at line %d scrolls `#%s`, which is **row %d** -- the "
-                              "bar itself is row %d. `lh_ui_decl_build` wants the thing "
+                              "bar itself is row %d. `lh_gl_decl_build` wants the thing "
                               "scrolled to exist first; put the bar after it"
                               % (describe(node), node.line, wanted.lstrip("#"),
                                  target[0].index, node.index))
             add("     {.scrollbar = {%d, %s, %s}}},"
                 % (target[0].index, lookup(AXES, node, "axis"),
-                   "lh_ui_scrollbar_mode_always" if node.props.get(
+                   "lh_gl_scrollbar_mode_always" if node.props.get(
                        "scrollbar-mode", ("auto", 0))[0] == "always"
-                   else "lh_ui_scrollbar_mode_auto"))
+                   else "lh_gl_scrollbar_mode_auto"))
         elif node.tag == "button":
             # The click is the application's: a callback is C, and a stylesheet that
             # named one would be a second place a function's name has to be spelled.
@@ -3984,7 +3984,7 @@ def emit(nodes, variables, root, source=""):
     return "\n".join(out)
 
 
-LH_ROOT = "LH_UI_DECL_ROOT"
+LH_ROOT = "LH_GL_DECL_ROOT"
 
 
 def index_rows(root):
@@ -4020,7 +4020,7 @@ def header(count, variables, source=""):
         theme.append(" * A `--` becomes `_`: `--accent-dim` is `lh_cfg_ui_colour_accent_dim`.")
         theme.append(" */")
         for name in sorted(variables):
-            theme.append("extern lh_ui_color_t lh_cfg_ui_colour_%s;" % varname(name))
+            theme.append("extern lh_gl_color_t lh_cfg_ui_colour_%s;" % varname(name))
         theme.append("")
     if FONTS_USED:
         theme.append("/**")
@@ -4031,7 +4031,7 @@ def header(count, variables, source=""):
         theme.append(" * its own. One that is not defined is a link error, which is the point.")
         theme.append(" */")
         for name in FONTS_USED:
-            theme.append("extern lh_ui_font_t lh_cfg_ui_font_%s;" % name)
+            theme.append("extern lh_gl_font_t lh_cfg_ui_font_%s;" % name)
         theme.append("")
     return """/**
  * @file ui_generated.h
@@ -4042,12 +4042,12 @@ def header(count, variables, source=""):
 #ifndef LH_CFG_UI_GENERATED_H
 #define LH_CFG_UI_GENERATED_H
 
-#include <lh/ui/decl.h>
+#include <lh/gl/decl.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 
 """ + "\n".join(theme) + """/** Every row of the tree, in the order `parent` refers to. */
-extern const lh_ui_decl_t lh_cfg_ui_decls[];
+extern const lh_gl_decl_t lh_cfg_ui_decls[];
 
 /** How many rows. */
 extern const lh_u32_t lh_cfg_ui_decl_count;
@@ -4060,13 +4060,13 @@ extern const char *const lh_cfg_ui_names[];
  *
  * A style, a flow and a place are **not copied** into a widget: the widget keeps the
  * address, so the things they point at have to be alive before the tree is built.
- * Calling this once, before `lh_ui_decl_build`, is that moment.
+ * Calling this once, before `lh_gl_decl_build`, is that moment.
  */
 lh_bool_t
 lh_cfg_ui_init(void);
 
 /**
- * @brief Row of the `#id`, or `LH_UI_DECL_ROOT` when there is no such row.
+ * @brief Row of the `#id`, or `LH_GL_DECL_ROOT` when there is no such row.
  *
  * A linear walk: the tree is tens of rows and this is called on a click, not on a
  * frame. An `#id` that is not in the stylesheet and a typo of one that is are the same
@@ -4079,14 +4079,14 @@ lh_cfg_ui_find(const char *id);
  * @brief Row of the `#id`, as one kind, or `lh_null` when it is another.
  *
  * The application asks for a row by name and uses it as the thing it knows it is:
- * `cfg_ui_label(self, "title")` is a `lh_ui_label_t *`. Nothing checks that
+ * `cfg_ui_label(self, "title")` is a `lh_gl_label_t *`. Nothing checks that
  * `#title` really is a label, so the first version of this did a plain cast and a
  * renamed row became a write of a label's fields into a scrollbar's memory -- with
  * no complaint from the compiler, because both are structs that begin with the same
  * entity. **These are the only functions in the program that know what a row is**,
  * so each one compares the kind and answers `lh_null` rather than reinterpreting.
  *
- * @param nodes The entities ::lh_ui_decl_build wrote, one per row, in row order.
+ * @param nodes The entities ::lh_gl_decl_build wrote, one per row, in row order.
  *
  * `lh_cfg_ui_entity` is the one that has **no** kind test, and that is not an oversight:
  * every widget begins with an entity, so every row can be read as one. The others do
@@ -4094,7 +4094,7 @@ lh_cfg_ui_find(const char *id);
  *
  * A click is set through these: a callback is C, and the stylesheet does not name one.
  */
-""" + "\n".join("%s *\nlh_cfg_ui_%s(lh_ui_entity_t **nodes, const char *id);\n" % (ctype, kind)
+""" + "\n".join("%s *\nlh_cfg_ui_%s(lh_gl_entity_t **nodes, const char *id);\n" % (ctype, kind)
                 for kind, ctype in ACCESSORS) + """
 LH_COMPILER_EXTERN_C_END
 
@@ -4107,7 +4107,7 @@ def find_impl(nodes):
     out.append("lh_s32_t")
     out.append("lh_cfg_ui_find(const char *id)")
     out.append("{")
-    out.append("    lh_s32_t found = LH_UI_DECL_ROOT;")
+    out.append("    lh_s32_t found = LH_GL_DECL_ROOT;")
     out.append("")
     out.append("    if (id == lh_null)")
     out.append("    {")
@@ -4130,14 +4130,14 @@ def find_impl(nodes):
 #: kind -> C type. The accessors are generated from this, so the cast in the generated
 #: code and the kind it checks are written down once.
 ACCESSORS = [
-    ("entity", "lh_ui_entity_t"),
-    ("label", "lh_ui_label_t"),
-    ("button", "lh_ui_button_t"),
-    ("toggle", "lh_ui_toggle_t"),
-    ("container", "lh_ui_container_t"),
-    ("image", "lh_ui_image_t"),
-    ("scrollbar", "lh_ui_scrollbar_t"),
-    ("input", "lh_ui_input_t"),
+    ("entity", "lh_gl_entity_t"),
+    ("label", "lh_gl_label_t"),
+    ("button", "lh_gl_button_t"),
+    ("toggle", "lh_gl_toggle_t"),
+    ("container", "lh_gl_container_t"),
+    ("image", "lh_gl_image_t"),
+    ("scrollbar", "lh_gl_scrollbar_t"),
+    ("input", "lh_gl_input_t"),
 ]
 
 
@@ -4145,7 +4145,7 @@ def accessors():
     out = []
     for kind, ctype in ACCESSORS:
         out.append("%s *" % ctype)
-        out.append("lh_cfg_ui_%s(lh_ui_entity_t **nodes, const char *id)" % kind)
+        out.append("lh_cfg_ui_%s(lh_gl_entity_t **nodes, const char *id)" % kind)
         out.append("{")
         out.append("    lh_s32_t at = lh_cfg_ui_find(id);")
         out.append("")
@@ -4158,12 +4158,12 @@ def accessors():
             # bar came out right anyway, because a zero-height label draws its text in
             # nearly the same place -- so a screenshot did not see it and only a row
             # with a size that mattered did.
-            out.append("    if (at == LH_UI_DECL_ROOT)")
+            out.append("    if (at == LH_GL_DECL_ROOT)")
         else:
-            out.append("    if (at == LH_UI_DECL_ROOT || lh_cfg_ui_decls[at].kind != "
-                       "lh_ui_decl_kind_%s)" % kind)
+            out.append("    if (at == LH_GL_DECL_ROOT || lh_cfg_ui_decls[at].kind != "
+                       "lh_gl_decl_kind_%s)" % kind)
         out.append("    {")
-        # `lh_null` is `void *`, and a function returning `lh_ui_label_t *` will not take
+        # `lh_null` is `void *`, and a function returning `lh_gl_label_t *` will not take
         # it without saying so. The cast is written here rather than left to a caller.
         out.append("        return lh_ptr_cast(%s, lh_null);" % ctype)
         out.append("    }")
@@ -4186,28 +4186,28 @@ PREVIEW_MAIN = r"""
 #include <stdlib.h>
 #include <string.h>
 
-#include <lh/ui/canvas.h>
-#include <lh/ui/canvas/sw.h>
-#include <lh/ui/color.h>
-#include <lh/ui/font.h>
-#include <lh/ui/pixmap.h>
-#include <lh/ui/view.h>
+#include <lh/gl/canvas.h>
+#include <lh/gl/canvas/sw.h>
+#include <lh/gl/color.h>
+#include <lh/gl/font.h>
+#include <lh/gl/pixmap.h>
+#include <lh/gl/view.h>
 
 @FONTS@
 
 int
 main(int argc, char **argv)
 {
-    static lh_byte_t pool[256 * LH_UI_DECL_NODE_MAX] __attribute__((aligned(16)));
-    static lh_ui_entity_t *nodes[256];
-    lh_ui_entity_t *root;
-    lh_ui_decl_fault_t fault;
-    lh_ui_pixmap_t pixmap;
-    lh_ui_canvas_sw_t sw;
-    lh_ui_canvas_t canvas;
-    lh_ui_view_t view;
-    lh_ui_color_t clear;
-    lh_ui_size_t size;
+    static lh_byte_t pool[256 * LH_GL_DECL_NODE_MAX] __attribute__((aligned(16)));
+    static lh_gl_entity_t *nodes[256];
+    lh_gl_entity_t *root;
+    lh_gl_decl_fault_t fault;
+    lh_gl_pixmap_t pixmap;
+    lh_gl_canvas_sw_t sw;
+    lh_gl_canvas_t canvas;
+    lh_gl_view_t view;
+    lh_gl_color_t clear;
+    lh_gl_size_t size;
     int width, height;
     unsigned char *bits;
     FILE *out;
@@ -4218,7 +4218,7 @@ main(int argc, char **argv)
     }
 @FONT_INIT@
     lh_cfg_ui_init();
-    if (!lh_ui_decl_build(lh_cfg_ui_decls, lh_cfg_ui_decl_count, nodes, pool, sizeof pool, &root, &fault))
+    if (!lh_gl_decl_build(lh_cfg_ui_decls, lh_cfg_ui_decl_count, nodes, pool, sizeof pool, &root, &fault))
     {
         fprintf(stderr, "preview: row %u refused, code %d\n", (unsigned)fault.index, (int)fault.code);
         return 1;
@@ -4226,18 +4226,18 @@ main(int argc, char **argv)
     width = (int)lh_cfg_ui_decls[0].w;
     height = (int)lh_cfg_ui_decls[0].h;
     bits = (unsigned char *)calloc((size_t)width * (size_t)height, 4);
-    lh_ui_pixmap_init(&pixmap, bits, width, height, width * 4, lh_ui_pixmap_format_argb8888);
-    lh_ui_canvas_sw_init(&sw);
-    lh_ui_canvas_sw_use_pixmap(&sw, &pixmap);
-    lh_ui_canvas_init(&canvas, &lh_ui_canvas_backend_sw, &sw);
-    lh_ui_size_init(&size, lh_ui_scalar(width), lh_ui_scalar(height));
-    lh_ui_canvas_set_size(&canvas, size);
-    lh_ui_color_init(&clear, 255, 255, 255, 255);
-    lh_ui_view_init(&view);
-    lh_ui_view_set_canvas(&view, &canvas);
-    lh_ui_view_set_root_v(&view, root);
-    lh_ui_view_set_clear(&view, &clear);
-    lh_ui_view_paint(&view);
+    lh_gl_pixmap_init(&pixmap, bits, width, height, width * 4, lh_gl_pixmap_format_argb8888);
+    lh_gl_canvas_sw_init(&sw);
+    lh_gl_canvas_sw_use_pixmap(&sw, &pixmap);
+    lh_gl_canvas_init(&canvas, &lh_gl_canvas_backend_sw, &sw);
+    lh_gl_size_init(&size, lh_gl_scalar(width), lh_gl_scalar(height));
+    lh_gl_canvas_set_size(&canvas, size);
+    lh_gl_color_init(&clear, 255, 255, 255, 255);
+    lh_gl_view_init(&view);
+    lh_gl_view_set_canvas(&view, &canvas);
+    lh_gl_view_set_root_v(&view, root);
+    lh_gl_view_set_clear(&view, &clear);
+    lh_gl_view_paint(&view);
 
     out = fopen(argv[1], "wb");
     if (out == NULL)
@@ -4290,8 +4290,8 @@ def preview(outdir, png, build, cc):
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     work = tempfile.mkdtemp(prefix="css2decl-preview-")
     try:
-        fonts = "\n".join("lh_ui_font_t lh_cfg_ui_font_%s;" % name for name in FONTS_USED)
-        font_init = "\n".join("    lh_cfg_ui_font_%s = *lh_ui_font_get_default();" % name
+        fonts = "\n".join("lh_gl_font_t lh_cfg_ui_font_%s;" % name for name in FONTS_USED)
+        font_init = "\n".join("    lh_cfg_ui_font_%s = *lh_gl_font_get_default();" % name
                               for name in FONTS_USED)
         main_c = os.path.join(work, "preview.c")
         with open(main_c, "w", encoding="utf-8", newline="\n") as fh:
@@ -4359,7 +4359,7 @@ def main(argv):
     ``--prefix`` is the C name every generated symbol hangs off -- ``lh_cfg_ui_decls``,
     ``lh_cfg_ui_colour_ink``, ``lh_cfg_ui_init``. **It is an option and not a constant
     because this script belongs to `lh` and not to the application that happens to call it
-    first.** Every one of those names is `lh_ui_*` machinery, but the `cfg` in them was
+    first.** Every one of those names is `lh_gl_*` machinery, but the `cfg` in them was
     one application's prefix written into a generator that any application on this library
     would otherwise have to copy. The generated text is written with
     ::PREFIX_PLACEHOLDER and substituted here, once, on the way out -- so a second

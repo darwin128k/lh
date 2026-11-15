@@ -39,7 +39,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * ::LH_OS_INPUT_WHEEL_LINES_PAGE lines, and `0` (wheel scrolling turned off) as `0`.
  *
  * Not cached: each call asks again, so a change in the Mouse control panel applies
- * from the next notch. ::lh_ui_view_input calls it once a wheel event.
+ * from the next notch. ::lh_gl_view_input calls it once a wheel event.
  *
  * @return Content units a notch, from `0` to
  *         `lh_os_input_wheel_step_of(LH_OS_INPUT_WHEEL_LINES_MAX)`.

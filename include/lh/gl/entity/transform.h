@@ -1,0 +1,87 @@
+/**
+ * @file transform.h
+ * @brief How an entity places its children: ::lh_gl_entity_transform_t.
+ *
+ * The answer to ::lh_gl_entity_event_children. ::lh_gl_entity_get_children_transform
+ * fills it with the defaults (no offset, no clip), sends the event, and both
+ * ::lh_gl_entity_draw and ::lh_gl_entity_find_at use the result. A class that
+ * moves or cuts its children (a scrolling container) sets the fields.
+ */
+
+#ifndef LH_GL_ENTITY_TRANSFORM_H
+#define LH_GL_ENTITY_TRANSFORM_H
+
+#include <lh/gl/entity/transform/fields.h>
+#include <lh/gl/point.h>
+
+/**
+ * @struct lh_gl_entity_transform
+ * @brief Offset added to the children, and the clip flag.
+ */
+struct lh_gl_entity_transform
+{
+    /** Members: ::lh_gl_entity_transform_fields. */
+    lh_gl_entity_transform_fields(lh_gl_point_t, lh_bool_t);
+};
+/** @copybrief lh_gl_entity_transform */
+typedef struct lh_gl_entity_transform lh_gl_entity_transform_t;
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief Fill @p self with the defaults: offset `(0, 0)`, no clip.
+ */
+lh_void
+lh_gl_entity_transform_init(lh_gl_entity_transform_t *self);
+
+/**
+ * @brief Offset added to every child rect when drawn; subtracted from the
+ *        point when the children are hit-tested.
+ */
+lh_void
+lh_gl_entity_transform_copy_offset(const lh_gl_entity_transform_t *self, lh_gl_point_t *out);
+
+/**
+ * @brief Replace the offset of @p self.
+ */
+lh_void
+lh_gl_entity_transform_set_offset(lh_gl_entity_transform_t *self, lh_gl_point_t offset);
+
+/**
+ * @brief True when the children are cut to the entity's rect.
+ */
+lh_bool_t
+lh_gl_entity_transform_is_clip(const lh_gl_entity_transform_t *self);
+
+/**
+ * @brief Cut the children to the entity's rect, or not.
+ */
+lh_void
+lh_gl_entity_transform_set_clip(lh_gl_entity_transform_t *self, lh_bool_t clip);
+
+/**
+ * @brief True when @p self changes nothing: offset `(0, 0)` and no clip.
+ */
+lh_bool_t
+lh_gl_entity_transform_is_identity(const lh_gl_entity_transform_t *self);
+
+/**
+ * @brief The offset of the transform, to change in place (level 1).
+ *
+ * @param self The transform; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_gl_point_t *
+lh_gl_entity_transform_get_offset_mut(lh_gl_entity_transform_t *self);
+
+/**
+ * @brief The offset of the transform (level 1).
+ *
+ * @param self The transform; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gl_point_t *
+lh_gl_entity_transform_get_offset(const lh_gl_entity_transform_t *self);
+
+LH_COMPILER_EXTERN_C_END
+
+#endif /* LH_GL_ENTITY_TRANSFORM_H */

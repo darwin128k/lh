@@ -1,133 +1,307 @@
 /**
  * @file gradient.c
- * @brief Mix two stored colors along `0..255`.
+ * @brief Implementation of lh/gl/gradient.h and lh/gl/gradient/stop.h.
  */
+#include <lh/core/assert.h>
+
+#include <lh/core/math.h>
+#include <lh/core/byte/limits.h>
+#include <lh/config.h>
 #include <lh/gl/gradient.h>
-
-#include <lh/core/assert/runtime.h>
-#include <lh/core/math/isqrt.h>
 #include <lh/gl/gradient/sine.h>
+#include <lh/core/util/return.h>
+
+/* -- Stop ------------------------------------------------------------------ */
 
 const lh_gl_color_t *
-lh_gl_gradient_get_from(const lh_gl_gradient_t *self)
+lh_gl_gradient_stop_get_color(const lh_gl_gradient_stop_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_addr_of(self->from);
+    return lh_addr_of(self->color);
 }
 
 lh_gl_color_t *
-lh_gl_gradient_get_from_mut(lh_gl_gradient_t *self)
+lh_gl_gradient_stop_get_color_mut(lh_gl_gradient_stop_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_addr_of(self->from);
+    return lh_addr_of(self->color);
 }
 
-const lh_gl_color_t *
-lh_gl_gradient_get_to(const lh_gl_gradient_t *self)
+lh_byte_t
+lh_gl_gradient_stop_get_frac(const lh_gl_gradient_stop_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_addr_of(self->to);
-}
-
-lh_gl_color_t *
-lh_gl_gradient_get_to_mut(lh_gl_gradient_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->to);
+    return self->frac;
 }
 
 lh_void
-lh_gl_gradient_set_from(lh_gl_gradient_t *self, const lh_gl_color_t *color)
+lh_gl_gradient_stop_set_color_v(lh_gl_gradient_stop_t *self, lh_gl_color_t color)
+{
+    lh_ptr_deref(lh_gl_gradient_stop_get_color_mut(self)) = color;
+}
+
+lh_void
+lh_gl_gradient_stop_set_frac(lh_gl_gradient_stop_t *self, lh_byte_t frac)
 {
     lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(color);
-    self->from = lh_ptr_deref(color);
+    self->frac = frac;
 }
 
 lh_void
-lh_gl_gradient_set_to(lh_gl_gradient_t *self, const lh_gl_color_t *color)
+lh_gl_gradient_stop_init(lh_gl_gradient_stop_t *self, lh_gl_color_t color, lh_byte_t frac)
 {
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(color);
-    self->to = lh_ptr_deref(color);
+    lh_gl_gradient_stop_set_color_v(self, color);
+    lh_gl_gradient_stop_set_frac(self, frac);
+}
+
+/* -- Gradient -------------------------------------------------------------- */
+
+lh_void
+lh_gl_gradient_init(lh_gl_gradient_t *self)
+{
+    lh_gl_gradient_set_stops_count(self, 0);
+    lh_gl_gradient_set_shape(self, lh_gl_gradient_shape_linear);
+    lh_gl_gradient_set_angle(self, 180);
 }
 
 lh_void
-lh_gl_gradient_init(lh_gl_gradient_t *self, const lh_gl_color_t *from, const lh_gl_color_t *to)
+lh_gl_gradient_init_stops(lh_gl_gradient_t *self, const lh_gl_color_t *colors, lh_byte_cptr fracs,
+                          lh_gl_gradient_stop_count_t num_stops)
 {
-    lh_gl_gradient_set_from(self, from);
-    lh_gl_gradient_set_to(self, to);
-}
-
-lh_void
-lh_gl_gradient_color_at(const lh_gl_gradient_t *self, lh_gl_color_channel_t frac,
-                        lh_gl_color_t *out)
-{
-    lh_gl_color_mix(lh_gl_gradient_get_from(self), lh_gl_gradient_get_to(self), frac, out);
-}
-
-lh_gl_color_channel_t
-lh_gl_gradient_linear_frac(lh_gl_scalar_t angle, lh_gl_scalar_t width, lh_gl_scalar_t height,
-                           lh_gl_scalar_t x, lh_gl_scalar_t y)
-{
-    if (width <= 0 || height <= 0)
+    lh_assert_runtime_ref(colors);
+    lh_assert_runtime_ifn(num_stops >= 1U, lh_runtime_error_code_invalid_argument);
+    lh_assert_runtime_ifn(num_stops <= LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS,
+                          lh_runtime_error_code_invalid_argument);
+    lh_gl_gradient_set_stops_count(self, num_stops);
+    for (lh_gl_gradient_stop_count_t i = 0; i < num_stops; ++i)
     {
-        return 0;
+        lh_byte_t frac;
+        if (lh_null_eq(fracs))
+        {
+            if (num_stops == 1U)
+            {
+                frac = 0;
+            }
+            else
+            {
+                frac = lh_cast_static(lh_byte_t, (i * LH_BYTE_T_MAX) / (num_stops - 1U));
+            }
+        }
+        else
+        {
+            frac = fracs[i];
+        }
+        lh_gl_gradient_stop_init(lh_addr_of(lh_gl_gradient_get_stops_mut(self)[i]), colors[i],
+                                 frac);
     }
-    lh_s64_t across = width;
-    lh_s64_t down = height;
-    lh_s64_t dx = 2 * lh_cast_static(lh_s64_t, x) + 1 - across;
-    lh_s64_t dy = 2 * lh_cast_static(lh_s64_t, y) + 1 - down;
-    lh_s64_t sine = lh_gl_gradient_sine(lh_cast_static(lh_s32_t, angle));
-    lh_s64_t cosine = lh_gl_gradient_sine(lh_cast_static(lh_s32_t, angle + 90));
-    lh_s64_t along = dx * sine - dy * cosine;
-    lh_s64_t length = (across * lh_math_abs(sine) + down * lh_math_abs(cosine)) * 2;
-
-    if (length == 0)
-    {
-        return 0;
-    }
-    lh_s64_t frac = ((2 * along + length) * 255) / (2 * length);
-
-    frac = lh_math_clamp(frac, 0, 255);
-    return lh_cast_static(lh_gl_color_channel_t, frac);
 }
 
-lh_s64_t
-lh_gl_gradient_radial_axis(lh_gl_scalar_t along, lh_gl_scalar_t length)
+lh_gl_gradient_stop_count_t
+lh_gl_gradient_get_stop_count(const lh_gl_gradient_t *self)
 {
-    if (length <= 0)
-    {
-        return 0;
-    }
-    lh_s64_t delta = along;
-
-    delta = delta * 2 + 1 - length;
-    return delta * 1024 / length;
+    lh_assert_runtime_ref(self);
+    return self->stops_count;
 }
 
-lh_gl_color_channel_t
-lh_gl_gradient_radial_frac_from_square(lh_u64_t square)
+const lh_gl_gradient_stop_t *
+lh_gl_gradient_get_stop(const lh_gl_gradient_t *self, lh_gl_gradient_stop_count_t index)
 {
+    lh_assert_runtime_ifn(index < lh_gl_gradient_get_stops_count(self),
+                          lh_runtime_error_code_invalid_argument);
+    return lh_addr_of(lh_gl_gradient_get_stops(self)[index]);
+}
+
+lh_gl_gradient_stop_t *
+lh_gl_gradient_get_stop_mut(lh_gl_gradient_t *self, lh_gl_gradient_stop_count_t index)
+{
+    lh_assert_runtime_ifn(index < lh_gl_gradient_get_stops_count(self),
+                          lh_runtime_error_code_invalid_argument);
+    return lh_addr_of(lh_gl_gradient_get_stops_mut(self)[index]);
+}
+
+/* -- Over a box ------------------------------------------------------------ */
+
+lh_void
+lh_gl_gradient_set_linear(lh_gl_gradient_t *self, lh_s32_t degrees)
+{
+    degrees %= 360;
+    lh_gl_gradient_set_shape(self, lh_gl_gradient_shape_linear);
+    lh_gl_gradient_set_angle(self, lh_cast_static(lh_s16_t, degrees < 0 ? degrees + 360 : degrees));
+}
+
+lh_void
+lh_gl_gradient_set_radial(lh_gl_gradient_t *self)
+{
+    lh_assert_runtime_ref(self);
+    self->shape = lh_gl_gradient_shape_radial;
+}
+
+lh_gl_gradient_shape_t
+lh_gl_gradient_get_shape(const lh_gl_gradient_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->shape;
+}
+
+lh_s32_t
+lh_gl_gradient_get_angle(const lh_gl_gradient_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->angle;
+}
+
+lh_byte_t
+lh_gl_gradient_frac_at(const lh_gl_gradient_t *self, const lh_gl_rect_t *rect, lh_s32_t x,
+                       lh_s32_t y)
+{
+    const lh_gl_point_t *origin = lh_gl_rect_get_origin(rect);
+    const lh_gl_size_t *size = lh_gl_rect_get_size(rect);
+    const lh_s64_t w = lh_gl_scalar_floor_s32(lh_gl_size_get_width(size));
+    const lh_s64_t h = lh_gl_scalar_floor_s32(lh_gl_size_get_height(size));
+    /* The pixel's centre from the middle of the box, both doubled so no half is lost. */
+    const lh_s64_t dx =
+        2 * lh_cast_static(lh_s64_t, x) + 1 -
+        (2 * lh_cast_static(lh_s64_t, lh_gl_scalar_floor_s32(lh_gl_point_get_x(origin))) + w);
+    const lh_s64_t dy =
+        2 * lh_cast_static(lh_s64_t, y) + 1 -
+        (2 * lh_cast_static(lh_s64_t, lh_gl_scalar_floor_s32(lh_gl_point_get_y(origin))) + h);
+
+    lh_return_if(w <= 0 || h <= 0, 0);
     lh_s64_t frac;
+    if (lh_gl_gradient_get_shape(self) == lh_gl_gradient_shape_radial)
+    {
+        /* On an ellipse the shape of the box, through its corners: the middle is 0
+           and every corner is 255. Each axis is first put on a scale of 1024 to a
+           side, so the square root has room and no product overflows. */
+        const lh_s64_t ux = dx * 1024 / w;
+        const lh_s64_t uy = dy * 1024 / h;
 
-    /* 1448 is floor(1024 * sqrt(2)): the corner of this ellipse. */
-    frac = lh_cast_static(lh_s64_t, lh_math_isqrt_u64(square)) * 255 / 1448;
-    frac = lh_math_clamp(frac, 0, 255);
-    return lh_cast_static(lh_gl_color_channel_t, frac);
+        const lh_u64_t square = lh_cast_static(lh_u64_t, ux * ux + uy * uy);
+
+        frac = lh_cast_static(lh_s64_t, lh_math_isqrt_u64(square)) * 255 / 1448;
+    }
+    else
+    {
+        /* Along (sin a, -cos a), which is up at 0 and right at 90; the line is as long
+           as the box seen along it, so 0 and 255 land on the two corners it meets. */
+        const lh_s64_t s = lh_gl_gradient_sine(lh_gl_gradient_get_angle(self));
+        const lh_s64_t c = lh_gl_gradient_sine(lh_gl_gradient_get_angle(self) + 90);
+        const lh_s64_t along = dx * s - dy * c;
+        const lh_s64_t length = (w * lh_math_abs(s) + h * lh_math_abs(c)) * 2;
+
+        lh_return_if(length == 0, 0);
+        frac = ((2 * along + length) * 255) / (2 * length);
+    }
+    return lh_cast_static(lh_byte_t, lh_math_clamp(frac, 0, 255));
 }
 
-lh_gl_color_channel_t
-lh_gl_gradient_radial_frac(lh_gl_scalar_t width, lh_gl_scalar_t height, lh_gl_scalar_t x,
-                           lh_gl_scalar_t y)
+lh_void
+lh_gl_gradient_color_at(const lh_gl_gradient_t *self, lh_byte_t frac, lh_gl_color_t *out)
 {
-    if (width <= 0 || height <= 0)
-    {
-        return 0;
-    }
-    lh_s64_t ux = lh_gl_gradient_radial_axis(x, width);
-    lh_s64_t uy = lh_gl_gradient_radial_axis(y, height);
-    lh_u64_t square = lh_cast_static(lh_u64_t, ux * ux) + lh_cast_static(lh_u64_t, uy * uy);
+    lh_assert_runtime_ref(out);
+    lh_gl_color_t result;
 
-    return lh_gl_gradient_radial_frac_from_square(square);
+    lh_gl_color_init(lh_addr_of(result), 0, 0, 0, 0);
+    if (lh_gl_gradient_get_stops_count(self) == 0)
+    {
+        lh_ptr_deref(out) = result;
+        return;
+    }
+    if (lh_gl_gradient_get_stops_count(self) == 1 ||
+        frac <= lh_gl_gradient_stop_get_frac(lh_addr_of(lh_gl_gradient_get_stops(self)[0])))
+    {
+        lh_ptr_deref(out) = lh_ptr_deref(
+            lh_gl_gradient_stop_get_color(lh_addr_of(lh_gl_gradient_get_stops(self)[0])));
+        return;
+    }
+    for (lh_gl_gradient_stop_count_t i = 1; i < lh_gl_gradient_get_stops_count(self); ++i)
+    {
+        const lh_gl_gradient_stop_t *a = lh_addr_of(lh_gl_gradient_get_stops(self)[i - 1]);
+        const lh_gl_gradient_stop_t *b = lh_addr_of(lh_gl_gradient_get_stops(self)[i]);
+        const lh_gl_color_t *from = lh_gl_gradient_stop_get_color(a);
+        const lh_gl_color_t *to = lh_gl_gradient_stop_get_color(b);
+        const lh_s32_t start = lh_gl_gradient_stop_get_frac(a);
+        const lh_s32_t end = lh_gl_gradient_stop_get_frac(b);
+
+        if (lh_cast_static(lh_s32_t, frac) <= end)
+        {
+            const lh_s32_t span = end - start;
+            const lh_s32_t at = lh_cast_static(lh_s32_t, frac) - start;
+
+            if (span <= 0)
+            {
+                lh_ptr_deref(out) = lh_ptr_deref(to);
+                return;
+            }
+            /* Each channel, alpha with them, mixed in proportion to how far along the
+               span the pixel is. */
+            lh_gl_color_init(
+                lh_addr_of(result),
+                lh_cast_static(
+                    lh_gl_color_channel_t,
+                    (lh_gl_color_get_r(from) * (span - at) + lh_gl_color_get_r(to) * at) / span),
+                lh_cast_static(
+                    lh_gl_color_channel_t,
+                    (lh_gl_color_get_g(from) * (span - at) + lh_gl_color_get_g(to) * at) / span),
+                lh_cast_static(
+                    lh_gl_color_channel_t,
+                    (lh_gl_color_get_b(from) * (span - at) + lh_gl_color_get_b(to) * at) / span),
+                lh_cast_static(
+                    lh_gl_color_channel_t,
+                    (lh_gl_color_get_a(from) * (span - at) + lh_gl_color_get_a(to) * at) / span));
+            lh_ptr_deref(out) = result;
+            return;
+        }
+    }
+    lh_ptr_deref(out) = lh_ptr_deref(lh_gl_gradient_stop_get_color(
+        lh_addr_of(lh_gl_gradient_get_stops(self)[lh_gl_gradient_get_stops_count(self) - 1])));
+}
+
+const lh_gl_gradient_stop_t *
+lh_gl_gradient_get_stops(const lh_gl_gradient_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->stops;
+}
+
+lh_gl_gradient_stop_t *
+lh_gl_gradient_get_stops_mut(lh_gl_gradient_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->stops;
+}
+
+lh_gl_gradient_stop_count_t
+lh_gl_gradient_get_stops_count(const lh_gl_gradient_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->stops_count;
+}
+
+lh_void
+lh_gl_gradient_set_stops_count(lh_gl_gradient_t *self, lh_gl_gradient_stop_count_t stops_count)
+{
+    lh_assert_runtime_ref(self);
+    self->stops_count = stops_count;
+}
+
+lh_void
+lh_gl_gradient_set_shape(lh_gl_gradient_t *self, lh_gl_gradient_shape_t shape)
+{
+    lh_assert_runtime_ref(self);
+    self->shape = shape;
+}
+
+lh_void
+lh_gl_gradient_set_angle(lh_gl_gradient_t *self, lh_s16_t angle)
+{
+    lh_assert_runtime_ref(self);
+    self->angle = angle;
+}
+
+lh_void
+lh_gl_gradient_stop_set_color(lh_gl_gradient_stop_t *self, lh_gl_color_t color)
+{
+    lh_assert_runtime_ref(self);
+    self->color = color;
 }

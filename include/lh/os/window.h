@@ -19,7 +19,7 @@
  * Input has two levels. The standard one is a controller
  * (::lh_os_window_set_controller): the window feeds it every event, cancels it when
  * the focus goes and runs its gesture timers, so a view behind
- * `lh_ui_view_controller_handle_event_is_handled` needs nothing else wired. The low level is the
+ * `lh_gl_view_controller_handle_event_is_handled` needs nothing else wired. The low level is the
  * sink (::lh_os_window_set_on_input), which sees every raw event first; with no
  * controller it is the only consumer.
  *
@@ -289,17 +289,17 @@ lh_os_window_set_on_paint(lh_os_window_t *self, lh_os_window_on_paint_cb on_pain
  * platform that cannot read the region the frame is recorded with its request unknown.
  *
  * @p stats is the caller's and must outlive the window or be cleared first; ::lh_null
- * stops recording. Costs nothing when unset. Needs ::LH_LIBRARY_OPTION_UI; without it
+ * stops recording. Costs nothing when unset. Needs ::LH_LIBRARY_OPTION_GL; without it
  * the pointer is kept and nothing is recorded.
  *
  * @note The region is the update region **cut by what is visible**: a window partly
  *       covered by another reads smaller than it was invalidated.
  */
 lh_void
-lh_os_window_set_frame_stats(lh_os_window_t *self, struct lh_ui_frame_stats *stats);
+lh_os_window_set_frame_stats(lh_os_window_t *self, struct lh_gl_frame_stats *stats);
 
 /** @brief The stats @p self records paints into, or ::lh_null. */
-struct lh_ui_frame_stats *
+struct lh_gl_frame_stats *
 lh_os_window_get_frame_stats(const lh_os_window_t *self);
 
 /**
@@ -326,7 +326,7 @@ lh_os_window_get_frame_stats(const lh_os_window_t *self);
  * {
  *     struct my_main *my = lh_ptr_rcast(struct my_main, self);
  *
- *     if (lh_ui_view_input(lh_addr_of(my->view), event))
+ *     if (lh_gl_view_input(lh_addr_of(my->view), event))
  *     {
  *         lh_os_window_invalidate(lh_addr_of(my->window));
  *     }
@@ -355,20 +355,20 @@ lh_os_window_set_on_input(lh_os_window_t *self, lh_os_input_sink_cb on_input, lh
  *   update rides on it: a deadline is then late by up to one period.
  *
  * The window does not repaint for the controller: its handler, or `on_tick`, asks
- * for the paint (`lh_ui_view_take_damage`, ::lh_os_window_invalidate_rect), as a
+ * for the paint (`lh_gl_view_take_damage`, ::lh_os_window_invalidate_rect), as a
  * sink did. Do not call ::lh_os_controller_update for this controller from
  * `on_tick` too: the window already has. The controller is the caller's and must
  * outlive the window, or be cleared first. A focus that leaves while the
  * controller is replaced is not seen by the new one.
  *
  * The OS layer knows nothing of the UI: a view becomes the handler through
- * `lh_ui_view_controller_handle_event_is_handled` (`lh/ui/view/controller.h`).
+ * `lh_gl_view_controller_handle_event_is_handled` (`lh/gl/view/controller.h`).
  *
  * Example usage:
  * @code{.c}
- * lh_os_controller_init(lh_addr_of(controller), lh_ui_view_controller_handle_event_is_handled, //
+ * lh_os_controller_init(lh_addr_of(controller), lh_gl_view_controller_handle_event_is_handled, //
  * the view lh_addr_of(view), lh_null);                           // defaults
- * lh_os_controller_set_cancel_cb(lh_addr_of(controller), lh_ui_view_controller_cancel);
+ * lh_os_controller_set_cancel_cb(lh_addr_of(controller), lh_gl_view_controller_cancel);
  * lh_os_window_set_controller(lh_addr_of(window), lh_addr_of(controller));
  * @endcode
  */

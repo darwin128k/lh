@@ -1,128 +1,128 @@
 /**
  * @file class.h
- * @brief What is shared by every entity of one kind: ::lh_gl_entity_class_t, a
- *        small table with a `kind`, a draw call and an opaque flag.
+ * @brief One kind of entity: ::lh_gl_entity_class_t.
  *
- * An entity does not carry its behaviour; it points at a class
- * (::lh_gl_entity_get_class). A class is a `const` table, normally one per
- * kind of entity, defined once and placed in flash. It holds the `kind`
- * (::lh_gl_entity_class_kind_t), which says whether the object behind an
- * entity pointer is a plain entity or a ::lh_gl_layer_t, the `draw_cb`
- * (::lh_gl_entity_class_draw_cb), which draws an entity of the class on a
- * canvas, the `pick_cb` (::lh_gl_entity_class_pick_cb), which answers a press,
- * and `opaque`, which says the entity covers every pixel of its rectangle.
- *
- * A class knows nothing about input, styles or drivers; those are separate
- * objects that act on an entity from outside. Fields are private: they are read
- * and written only by the level-1 accessors.
+ * The class holds the event function. Every instance of that kind points
+ * at the same class. The function is not copied onto the instance.
  */
 
 #ifndef LH_GL_ENTITY_CLASS_H
 #define LH_GL_ENTITY_CLASS_H
 
-#include <lh/gl/entity/class/draw/cb.h>
 #include <lh/gl/entity/class/fields.h>
-#include <lh/gl/entity/class/kind.h>
-#include <lh/gl/entity/class/pick/cb.h>
+#include <lh/gl/entity/face/cb.h>
+
+struct lh_gl_entity;
+struct lh_gl_canvas;
 
 /**
  * @struct lh_gl_entity_class
- * @brief The table shared by entities of one kind: `kind`, `draw_cb`, `pick_cb`, `opaque`.
+ * @brief The event function of one kind, and the class it extends.
  */
 struct lh_gl_entity_class
 {
     /** Members: ::lh_gl_entity_class_fields. */
-    lh_gl_entity_class_fields(lh_gl_entity_class_kind_t, lh_gl_entity_class_draw_fn,
-                              lh_gl_entity_class_pick_fn, lh_bool_t);
+    lh_gl_entity_class_fields(lh_gl_entity_face_cb, struct lh_gl_entity_class);
 };
 /** @copybrief lh_gl_entity_class */
 typedef struct lh_gl_entity_class lh_gl_entity_class_t;
 
-/* -- Accessors ------------------------------------------------------------- */
-
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief The kind of @p self: entity or layer.
+ * @brief Class of ::lh_gl_entity_t.
  *
- * @param self Class to read; must not be null (asserted in debug builds).
- * @return One of the `lh_gl_entity_class_kind_*` constants.
+ * It has no base class. On ::lh_gl_entity_event_draw it casts the style shadow
+ * and then fills the entity rect with ::lh_gl_entity_get_fill_color on the event
+ * canvas, when both exist, through ::lh_gl_canvas_fill_round_rect with the style
+ * radius. Both come from the style in effect right now
+ * (::lh_gl_entity_get_style_now), so a pressed entity paints its pressed style
+ * without a class of its own. Other events are ignored. Derived classes call the
+ * base through ::lh_gl_entity_class_event_base to keep that.
  */
-lh_gl_entity_class_kind_t
-lh_gl_entity_class_get_kind(const lh_gl_entity_class_t *self);
+extern const lh_gl_entity_class_t lh_gl_entity_class;
 
 /**
- * @brief Store the kind of @p self.
- *
- * @param self Class to change; must not be null (asserted in debug builds).
- * @param kind One of the `lh_gl_entity_class_kind_*` constants.
- */
-lh_void
-lh_gl_entity_class_set_kind(lh_gl_entity_class_t *self, lh_gl_entity_class_kind_t kind);
-
-/**
- * @brief The call that draws an entity of @p self.
- *
- * @param self Class to read; must not be null (asserted in debug builds).
- * @return The draw call; may be ::lh_null, which means "draws nothing".
- */
-lh_gl_entity_class_draw_cb
-lh_gl_entity_class_get_draw_cb(const lh_gl_entity_class_t *self);
-
-/**
- * @brief Store the call that draws an entity of @p self.
- *
- * @param self    Class to change; must not be null (asserted in debug builds).
- * @param draw_cb The draw call; ::lh_null for an entity that draws nothing.
+ * @brief Event function of ::lh_gl_entity_class: on
+ *        ::lh_gl_entity_event_draw, ::lh_gl_entity_class_shadow then
+ *        ::lh_gl_entity_class_fill; other events are ignored.
  */
 lh_void
-lh_gl_entity_class_set_draw_cb(lh_gl_entity_class_t *self, lh_gl_entity_class_draw_cb draw_cb);
-
-/** @brief The call that answers a press, or ::lh_null when the rectangle stands. */
-lh_gl_entity_class_pick_cb
-lh_gl_entity_class_get_pick_cb(const lh_gl_entity_class_t *self);
-
-/** @brief Store the call that answers a press. ::lh_null keeps the rectangle. */
-lh_void
-lh_gl_entity_class_set_pick_cb(lh_gl_entity_class_t *self, lh_gl_entity_class_pick_cb pick_cb);
+lh_gl_entity_class_event(const struct lh_gl_entity *self, const lh_gl_entity_event_t *event);
 
 /**
- * @brief True when an entity of @p self covers every pixel of its rectangle.
- *
- * @param self Class to read; must not be null (asserted in debug builds).
+ * @brief True when @p kind is @p base or extends it through `base` links.
  */
 lh_bool_t
-lh_gl_entity_class_get_opaque(const lh_gl_entity_class_t *self);
+lh_gl_entity_class_is(const lh_gl_entity_class_t *kind, const lh_gl_entity_class_t *base);
 
 /**
- * @brief Store whether an entity of @p self covers its rectangle.
+ * @brief Cast the style shadow of @p self under its fill on @p canvas.
  *
- * @param self   Class to change; must not be null (asserted in debug builds).
- * @param opaque ::lh_bool_true when the rectangle is fully covered.
+ * Nothing when @p canvas is ::lh_null, when @p self has no style, or when the
+ * shadow is empty (::lh_gl_shadow_is_empty) — which is every entity that does
+ * not ask for one. The order it is called in does not change the picture (a
+ * shadow paints nothing inside its own box); it is called first because that is
+ * the order the story goes in. Public because a class that draws its own effect,
+ * or skips the base fill on purpose, wants the same pixels.
  */
 lh_void
-lh_gl_entity_class_set_opaque(lh_gl_entity_class_t *self, lh_bool_t opaque);
-
-/* -- Init and queries, by level -------------------------------------------- */
+lh_gl_entity_class_shadow(const struct lh_gl_entity *self, struct lh_gl_canvas *canvas);
 
 /**
- * @brief Fill @p self with its kind and its draw call. The class is not opaque.
- *
- * @param self    Class to fill; must not be null (asserted in debug builds).
- * @param kind    One of the `lh_gl_entity_class_kind_*` constants.
- * @param draw_cb The draw call; ::lh_null for an entity that draws nothing.
+ * @brief Fill the rect of @p self with its style fill color and radius on
+ *        @p canvas. Nothing when @p canvas is ::lh_null or there is no solid
+ *        fill.
  */
 lh_void
-lh_gl_entity_class_init(lh_gl_entity_class_t *self, lh_gl_entity_class_kind_t kind,
-                        lh_gl_entity_class_draw_cb draw_cb);
+lh_gl_entity_class_fill(const struct lh_gl_entity *self, struct lh_gl_canvas *canvas);
 
 /**
- * @brief True when entities of @p self are layers.
+ * @brief Call the event function of the class @p class extends.
  *
- * @param self Class to read; must not be null (asserted in debug builds).
+ * Returns without calling when that class has no base.
  */
-lh_bool_t
-lh_gl_entity_class_is_layer(const lh_gl_entity_class_t *self);
+lh_void
+lh_gl_entity_class_event_base(const lh_gl_entity_class_t *, const struct lh_gl_entity *self,
+                              const lh_gl_entity_event_t *event);
+
+/**
+ * @brief The callback that handles the events of the class (level 1).
+ *
+ * @param self The class; checked by ::lh_assert_runtime_ref.
+ */
+lh_gl_entity_face_cb
+lh_gl_entity_class_get_event_fn(const lh_gl_entity_class_t *self);
+
+/**
+ * @brief Store the callback that handles the events of the class (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The class; checked by ::lh_assert_runtime_ref.
+ * @param event The new value.
+ */
+lh_void
+lh_gl_entity_class_set_event_fn(lh_gl_entity_class_t *self, lh_gl_entity_face_cb event);
+
+/**
+ * @brief The class this one extends; ::lh_null for none (level 1).
+ *
+ * @param self The class; checked by ::lh_assert_runtime_ref.
+ */
+const struct lh_gl_entity_class *
+lh_gl_entity_class_get_base(const lh_gl_entity_class_t *self);
+
+/**
+ * @brief Store the class this one extends; ::lh_null for none (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The class; checked by ::lh_assert_runtime_ref.
+ * @param base The new value.
+ */
+lh_void
+lh_gl_entity_class_set_base(lh_gl_entity_class_t *self, const struct lh_gl_entity_class * base);
 
 LH_COMPILER_EXTERN_C_END
 

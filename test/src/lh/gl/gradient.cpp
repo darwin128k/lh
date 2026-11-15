@@ -1,207 +1,185 @@
 #include <gtest/gtest.h>
 
-#include <lh/core/memory/std.h>
-#include <lh/core/util/addr.h>
-#include <lh/gl/canvas.h>
-#include <lh/gl/gradient/fill.h>
-#include <lh/gl/gradient/sine.h>
-#include <lh/gl/layer.h>
-#include <lh/gl/pixmap.h>
+#include <lh/config.h>
+#include <lh/gl/gradient/sampler.h>
+#include <lh/test/out.h>
 
 namespace
 {
 
-lh_gl_rect_t
-rect_of(lh_gl_scalar_t x, lh_gl_scalar_t y, lh_gl_scalar_t width, lh_gl_scalar_t height)
+lh_gl_color_t
+rgba(lh_gl_color_channel_t r, lh_gl_color_channel_t g, lh_gl_color_channel_t b,
+     lh_gl_color_channel_t a)
 {
-    lh_gl_rect_t rect;
-
-    lh_gl_rect_init(lh_addr_of(rect), x, y, width, height);
-    return rect;
-}
-
-lh_bool_t
-is_color(const lh_gl_color_t *color, lh_gl_color_channel_t r, lh_gl_color_channel_t g,
-         lh_gl_color_channel_t b, lh_gl_color_channel_t a)
-{
-    return lh_gl_color_get_r(color) == r && lh_gl_color_get_g(color) == g &&
-                   lh_gl_color_get_b(color) == b && lh_gl_color_get_a(color) == a
-               ? lh_bool_true
-               : lh_bool_false;
-}
-
-TEST(gl_gradient, fraction_zero_is_the_first_color_and_255_is_the_second)
-{
-    lh_gl_color_t from;
-    lh_gl_color_init(lh_addr_of(from), 0, 0, 0, 255);
-    lh_gl_color_t to;
-    lh_gl_color_init(lh_addr_of(to), 255, 0, 0, 255);
-    lh_gl_gradient_t gradient;
-    lh_gl_gradient_init(lh_addr_of(gradient), lh_addr_of(from), lh_addr_of(to));
-    lh_gl_color_t out;
-    lh_gl_gradient_color_at(lh_addr_of(gradient), 0, lh_addr_of(out));
-    EXPECT_TRUE(is_color(lh_addr_of(out), 0, 0, 0, 255));
-    lh_gl_gradient_color_at(lh_addr_of(gradient), 255, lh_addr_of(out));
-    EXPECT_TRUE(is_color(lh_addr_of(out), 255, 0, 0, 255));
-    lh_gl_gradient_color_at(lh_addr_of(gradient), 128, lh_addr_of(out));
-    EXPECT_TRUE(is_color(lh_addr_of(out), 128, 0, 0, 255));
-    EXPECT_EQ(lh_gl_gradient_sine(90), 4096);
-    EXPECT_EQ(lh_gl_gradient_sine(180), 0);
-    EXPECT_EQ(lh_gl_gradient_sine(45), 2896);
-    EXPECT_EQ(lh_gl_gradient_linear_frac(180, 2, 2, 0, 0), 63);
-    EXPECT_EQ(lh_gl_gradient_linear_frac(180, 2, 2, 0, 1), 191);
-    EXPECT_EQ(lh_gl_gradient_linear_frac(135, 2, 2, 0, 0), 63);
-    EXPECT_EQ(lh_gl_gradient_linear_frac(135, 2, 2, 1, 0), 127);
-    EXPECT_EQ(lh_gl_gradient_linear_frac(135, 2, 2, 0, 1), 127);
-    EXPECT_EQ(lh_gl_gradient_linear_frac(135, 2, 2, 1, 1), 191);
-    EXPECT_EQ(lh_gl_gradient_radial_frac(1, 1, 0, 0), 0);
-    EXPECT_EQ(lh_gl_gradient_radial_frac(4, 4, 1, 1), 63);
-    EXPECT_EQ(lh_gl_gradient_radial_frac(4, 4, 2, 2), 63);
-    EXPECT_EQ(lh_gl_gradient_radial_frac(4, 4, 0, 0), 191);
-    EXPECT_EQ(lh_gl_gradient_radial_frac(4, 4, 3, 3), 191);
-}
-
-TEST(gl_gradient_fill, paints_the_top_row_from_the_first_color)
-{
-    lh_gl_color_t pixels[4];
-    lh_memory_std_set(pixels, 0, sizeof pixels);
-    lh_gl_size_t size;
-    lh_gl_size_init(lh_addr_of(size), 2, 2);
-    lh_gl_pixmap_t pixmap;
-    lh_gl_pixmap_init(lh_addr_of(pixmap), pixels, size);
-    lh_gl_point_t origin;
-    lh_gl_point_init(lh_addr_of(origin), 0, 0);
-    lh_gl_canvas_t canvas;
-    lh_gl_canvas_init(lh_addr_of(canvas));
-    lh_gl_canvas_set_target(lh_addr_of(canvas), lh_addr_of(pixmap));
-    lh_gl_canvas_set_backend(lh_addr_of(canvas), lh_gl_pixmap_get_canvas_backend());
-    lh_gl_layer_t layer;
-    lh_gl_layer_init(lh_addr_of(layer), rect_of(0, 0, 2, 2));
-    lh_gl_color_t from;
-    lh_gl_color_init(lh_addr_of(from), 10, 20, 30, 255);
-    lh_gl_color_t to;
-    lh_gl_color_init(lh_addr_of(to), 40, 50, 60, 255);
-    lh_gl_gradient_t gradient;
-    lh_gl_gradient_init(lh_addr_of(gradient), lh_addr_of(from), lh_addr_of(to));
-    lh_gl_gradient_fill_t fill;
-    lh_gl_gradient_fill_init(lh_addr_of(fill), rect_of(0, 0, 2, 2), lh_addr_of(gradient));
-    lh_gl_layer_add(lh_addr_of(layer), lh_gl_gradient_fill_get_entity_mut(lh_addr_of(fill)));
-    lh_gl_rect_t clip = rect_of(0, 0, 2, 2);
-    lh_gl_layer_draw(lh_addr_of(layer), lh_addr_of(canvas), lh_addr_of(clip));
-    lh_gl_color_t top;
-    lh_gl_gradient_color_at(lh_addr_of(gradient), lh_gl_gradient_linear_frac(180, 2, 2, 0, 0),
-                            lh_addr_of(top));
-    lh_gl_color_t bottom;
-    lh_gl_gradient_color_at(lh_addr_of(gradient), lh_gl_gradient_linear_frac(180, 2, 2, 0, 1),
-                            lh_addr_of(bottom));
-    EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 0, 0),
-                         lh_gl_color_get_r(lh_addr_of(top)),
-                         lh_gl_color_get_g(lh_addr_of(top)),
-                         lh_gl_color_get_b(lh_addr_of(top)), 255));
-    EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 0),
-                         lh_gl_color_get_r(lh_addr_of(top)),
-                         lh_gl_color_get_g(lh_addr_of(top)),
-                         lh_gl_color_get_b(lh_addr_of(top)), 255));
-    EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 0, 1),
-                         lh_gl_color_get_r(lh_addr_of(bottom)),
-                         lh_gl_color_get_g(lh_addr_of(bottom)),
-                         lh_gl_color_get_b(lh_addr_of(bottom)), 255));
-    EXPECT_NE(lh_gl_color_get_r(lh_addr_of(top)), lh_gl_color_get_r(lh_addr_of(bottom)));
-    EXPECT_FALSE(lh_gl_entity_class_get_opaque(lh_gl_gradient_fill_get_class()));
-    lh_gl_color_init(lh_addr_of(to), 1, 2, 3, 255);
-    lh_gl_gradient_set_to(lh_addr_of(gradient), lh_addr_of(to));
-    lh_gl_layer_draw(lh_addr_of(layer), lh_addr_of(canvas), lh_addr_of(clip));
-    lh_gl_gradient_color_at(lh_addr_of(gradient), lh_gl_gradient_linear_frac(180, 2, 2, 0, 1),
-                            lh_addr_of(bottom));
-    EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 0, 1),
-                         lh_gl_color_get_r(lh_addr_of(bottom)),
-                         lh_gl_color_get_g(lh_addr_of(bottom)),
-                         lh_gl_color_get_b(lh_addr_of(bottom)), 255));
-    lh_gl_gradient_fill_set_angle(lh_addr_of(fill), 135);
-    lh_gl_layer_draw(lh_addr_of(layer), lh_addr_of(canvas), lh_addr_of(clip));
-    lh_gl_color_t down_right;
-    lh_gl_gradient_color_at(lh_addr_of(gradient), lh_gl_gradient_linear_frac(135, 2, 2, 1, 1),
-                            lh_addr_of(down_right));
-    EXPECT_NE(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 0, 0)),
-              lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 1)));
-    EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 1),
-                         lh_gl_color_get_r(lh_addr_of(down_right)),
-                         lh_gl_color_get_g(lh_addr_of(down_right)),
-                         lh_gl_color_get_b(lh_addr_of(down_right)), 255));
-    EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 0)),
-              lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 0, 1)));
-    lh_gl_gradient_fill_set_gradient(lh_addr_of(fill), nullptr);
-    lh_memory_std_set(pixels, 0, sizeof pixels);
-    lh_gl_layer_draw(lh_addr_of(layer), lh_addr_of(canvas), lh_addr_of(clip));
-    EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 0, 0), 0, 0, 0, 0));
-    lh_gl_layer_deinit(lh_addr_of(layer));
-}
-
-TEST(gl_gradient_fill, a_radius_leaves_the_corner_clear)
-{
-    lh_gl_color_t pixels[16];
-    lh_memory_std_set(pixels, 0, sizeof pixels);
-    lh_gl_size_t size;
-    lh_gl_size_init(lh_addr_of(size), 4, 4);
-    lh_gl_pixmap_t pixmap;
-    lh_gl_pixmap_init(lh_addr_of(pixmap), pixels, size);
-    lh_gl_point_t origin;
-    lh_gl_point_init(lh_addr_of(origin), 0, 0);
-    lh_gl_canvas_t canvas;
-    lh_gl_canvas_init(lh_addr_of(canvas));
-    lh_gl_canvas_set_target(lh_addr_of(canvas), lh_addr_of(pixmap));
-    lh_gl_canvas_set_backend(lh_addr_of(canvas), lh_gl_pixmap_get_canvas_backend());
-    lh_gl_layer_t layer;
-    lh_gl_layer_init(lh_addr_of(layer), rect_of(0, 0, 4, 4));
     lh_gl_color_t color;
-    lh_gl_color_init(lh_addr_of(color), 200, 10, 10, 255);
-    lh_gl_gradient_t gradient;
-    lh_gl_gradient_init(lh_addr_of(gradient), lh_addr_of(color), lh_addr_of(color));
-    lh_gl_gradient_fill_t fill;
-    lh_gl_gradient_fill_init(lh_addr_of(fill), rect_of(0, 0, 4, 4), lh_addr_of(gradient));
-    lh_gl_gradient_fill_set_radius(lh_addr_of(fill), 2);
-    lh_gl_layer_add(lh_addr_of(layer), lh_gl_gradient_fill_get_entity_mut(lh_addr_of(fill)));
-    lh_gl_rect_t clip = rect_of(0, 0, 4, 4);
-    lh_gl_layer_draw(lh_addr_of(layer), lh_addr_of(canvas), lh_addr_of(clip));
-    EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 0, 0), 0, 0, 0, 0));
-    EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 3, 3), 0, 0, 0, 0));
-    EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 1), 200, 10, 10, 255));
-    lh_gl_layer_deinit(lh_addr_of(layer));
+    lh_gl_color_init(lh_addr_of(color), r, g, b, a);
+    return color;
 }
 
-TEST(gl_gradient_fill, radial_is_the_first_color_near_the_middle)
+TEST(ui_gradient, make_empty_has_no_stops)
 {
-    lh_gl_color_t pixels[16];
-    lh_memory_std_set(pixels, 0, sizeof pixels);
-    lh_gl_size_t size;
-    lh_gl_size_init(lh_addr_of(size), 4, 4);
-    lh_gl_pixmap_t pixmap;
-    lh_gl_pixmap_init(lh_addr_of(pixmap), pixels, size);
-    lh_gl_point_t origin;
-    lh_gl_point_init(lh_addr_of(origin), 0, 0);
-    lh_gl_canvas_t canvas;
-    lh_gl_canvas_init(lh_addr_of(canvas));
-    lh_gl_canvas_set_target(lh_addr_of(canvas), lh_addr_of(pixmap));
-    lh_gl_canvas_set_backend(lh_addr_of(canvas), lh_gl_pixmap_get_canvas_backend());
-    lh_gl_layer_t layer;
-    lh_gl_layer_init(lh_addr_of(layer), rect_of(0, 0, 4, 4));
-    lh_gl_color_t from;
-    lh_gl_color_init(lh_addr_of(from), 0, 0, 0, 255);
-    lh_gl_color_t to;
-    lh_gl_color_init(lh_addr_of(to), 255, 0, 0, 255);
     lh_gl_gradient_t gradient;
-    lh_gl_gradient_init(lh_addr_of(gradient), lh_addr_of(from), lh_addr_of(to));
-    lh_gl_gradient_fill_t fill;
-    lh_gl_gradient_fill_init(lh_addr_of(fill), rect_of(0, 0, 4, 4), lh_addr_of(gradient));
-    lh_gl_gradient_fill_set_radial(lh_addr_of(fill), lh_bool_true);
-    lh_gl_layer_add(lh_addr_of(layer), lh_gl_gradient_fill_get_entity_mut(lh_addr_of(fill)));
-    lh_gl_rect_t clip = rect_of(0, 0, 4, 4);
-    lh_gl_layer_draw(lh_addr_of(layer), lh_addr_of(canvas), lh_addr_of(clip));
-    EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 1), 63, 0, 0, 255));
-    EXPECT_TRUE(is_color(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 0, 0), 191, 0, 0, 255));
-    EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 1)),
-              lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 2, 2)));
-    lh_gl_layer_deinit(lh_addr_of(layer));
+
+    lh_gl_gradient_init(lh_addr_of(gradient));
+    EXPECT_EQ(lh_gl_gradient_get_stop_count(lh_addr_of(gradient)), 0);
+}
+
+TEST(ui_gradient, init_stops_even_fracs_default_capacity)
+{
+    const lh_gl_color_t colors[2] = {
+        rgba(255, 0, 0, 255),
+        rgba(0, 0, 255, 255),
+    };
+    lh_gl_gradient_t gradient;
+    lh_gl_gradient_init_stops(lh_addr_of(gradient), colors, lh_null, 2);
+    ASSERT_EQ(lh_gl_gradient_get_stop_count(lh_addr_of(gradient)), 2);
+    EXPECT_EQ(lh_gl_gradient_stop_get_frac(lh_gl_gradient_get_stop(lh_addr_of(gradient), 0)), 0);
+    EXPECT_EQ(lh_gl_gradient_stop_get_frac(lh_gl_gradient_get_stop(lh_addr_of(gradient), 1)), 255);
+    EXPECT_EQ(lh_gl_color_get_r(
+                  lh_gl_gradient_stop_get_color(lh_gl_gradient_get_stop(lh_addr_of(gradient), 0))),
+              255);
+    EXPECT_EQ(lh_gl_color_get_b(
+                  lh_gl_gradient_stop_get_color(lh_gl_gradient_get_stop(lh_addr_of(gradient), 1))),
+              255);
+}
+
+TEST(ui_gradient, init_stops_uses_explicit_fracs)
+{
+    const lh_gl_color_t colors[2] = {
+        rgba(0, 0, 0, 255),
+        rgba(255, 255, 255, 255),
+    };
+    const lh_byte_t fracs[2] = {40, 200};
+    lh_gl_gradient_t gradient;
+    lh_gl_gradient_init_stops(lh_addr_of(gradient), colors, fracs, 2);
+    EXPECT_EQ(lh_gl_gradient_stop_get_frac(lh_gl_gradient_get_stop(lh_addr_of(gradient), 0)), 40);
+    EXPECT_EQ(lh_gl_gradient_stop_get_frac(lh_gl_gradient_get_stop(lh_addr_of(gradient), 1)), 200);
+}
+
+TEST(ui_gradient, max_stops_option_is_at_least_one)
+{
+    EXPECT_GE(LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS, 1);
+}
+
+TEST(ui_gradient, a_sampled_row_is_every_pixel_asked_alone)
+{
+    static const int boxes[][4] = {{0, 0, 40, 30}, {-7, 5, 13, 51}, {3, -9, 64, 7}, {11, 2, 1, 1}, {5, 5, 2, 90}};
+    /* Evenly, inset, on one step, and the wrong way round. */
+    static const lh_byte_t stop_fracs[][2] = {{0, 255}, {30, 220}, {60, 60}, {200, 50}};
+    lh_gl_color_t colors[2];
+
+    /* The sampler carries the place on the stop axis from pixel to pixel and walks a
+       radial one along fixed squared distances; every pixel has to come out as
+       ::lh_gl_gradient_frac_at and ::lh_gl_gradient_color_at say on their own. */
+    lh_gl_color_init(lh_addr_of(colors[0]), 10, 200, 30, 255);
+    lh_gl_color_init(lh_addr_of(colors[1]), 250, 20, 140, 90);
+    lh_gl_gradient_t gradient;
+    lh_gl_color_t row[120];
+    for (const auto &fracs : stop_fracs)
+    {
+        lh_gl_gradient_init(lh_addr_of(gradient));
+        lh_gl_gradient_init_stops(lh_addr_of(gradient), colors, fracs, 2);
+        for (int angle = -1; angle < 361; angle += 7)
+        {
+            if (angle < 0)
+            {
+                lh_gl_gradient_set_radial(lh_addr_of(gradient));
+            }
+            else
+            {
+                lh_gl_gradient_set_linear(lh_addr_of(gradient), angle);
+            }
+            for (const auto &b : boxes)
+            {
+                lh_gl_rect_t rect;
+                lh_gl_gradient_sampler_t sampler;
+
+                lh_gl_rect_init(lh_addr_of(rect), b[0], b[1], b[2], b[3]);
+                lh_gl_gradient_sampler_init(lh_addr_of(sampler), lh_addr_of(gradient), lh_addr_of(rect));
+                for (int y = b[1] - 3; y < b[1] + b[3] + 3; ++y)
+                {
+                    lh_gl_gradient_sampler_row(lh_addr_of(sampler), b[0] - 20, b[0] + 100, y, row);
+                    for (int x = b[0] - 20; x < b[0] + 100; ++x)
+                    {
+                        const lh_gl_color_t want = lh_test::out(lh_gl_gradient_color_at, 
+                            lh_addr_of(gradient), lh_gl_gradient_frac_at(lh_addr_of(gradient), lh_addr_of(rect), x, y));
+
+                        ASSERT_TRUE(lh_gl_color_equals(row + (x - (b[0] - 20)), lh_addr_of(want)))
+                            << "angle " << angle << " box " << b[0] << "," << b[1] << " " << b[2] << "x" << b[3]
+                            << " at " << x << "," << y;
+                    }
+                }
+            }
+        }
+    }
 }
 
 } // namespace
+
+/* -- Sampler bricks -------------------------------------------------------- */
+
+TEST(ui_gradient_sampler_bricks, lerp_walks_what_dividing_again_gives)
+{
+    const lh_gl_color_t from = rgba(0, 255, 10, 255);
+    const lh_gl_color_t to = rgba(255, 0, 200, 0);
+    lh_gl_gradient_sampler_lerp_t lerp;
+
+    lh_gl_gradient_sampler_lerp_init(&lerp, &from, &to, 7, 2);
+    for (lh_s32_t at = 2; at <= 7; ++at)
+    {
+        const lh_gl_color_t got = lh_test::out(lh_gl_gradient_sampler_lerp_color, &lerp);
+
+        EXPECT_EQ(lh_gl_color_get_r(&got), (0 * (7 - at) + 255 * at) / 7);
+        EXPECT_EQ(lh_gl_color_get_g(&got), (255 * (7 - at) + 0 * at) / 7);
+        EXPECT_EQ(lh_gl_color_get_b(&got), (10 * (7 - at) + 200 * at) / 7);
+        EXPECT_EQ(lh_gl_color_get_a(&got), (255 * (7 - at) + 0 * at) / 7);
+        lh_gl_gradient_sampler_lerp_next(&lerp);
+    }
+}
+
+TEST(ui_gradient_sampler_bricks, flat_sampler_repeats_its_first_colour)
+{
+    const lh_gl_color_t colors[2] = {rgba(1, 2, 3, 255), rgba(200, 100, 50, 255)};
+    lh_gl_gradient_t gradient;
+
+    lh_gl_gradient_init(&gradient);
+    lh_gl_gradient_init_stops(&gradient, colors, lh_null, 2);
+    lh_gl_rect_t empty;
+    lh_gl_rect_init(&empty, lh_gl_scalar(0), lh_gl_scalar(0), lh_gl_scalar(0), lh_gl_scalar(4));
+    lh_gl_gradient_sampler_t sampler;
+    lh_gl_gradient_sampler_init(&sampler, &gradient, &empty);
+    EXPECT_TRUE(lh_gl_gradient_sampler_is_flat(&sampler));
+    lh_gl_color_t row[3];
+    lh_gl_gradient_sampler_flat_run(&sampler, 3, row);
+    for (const lh_gl_color_t &c : row)
+    {
+        EXPECT_EQ(lh_gl_color_get_r(&c), lh_gl_color_get_r(&sampler.colors[0]));
+    }
+    EXPECT_EQ(lh_gl_gradient_sampler_stop_frac(&gradient, 0), 0);
+    EXPECT_EQ(lh_gl_gradient_sampler_stop_frac(&gradient, 1), 255);
+    EXPECT_EQ(lh_gl_gradient_sampler_segment_at(&gradient, 1, 100), 1);
+}
+
+TEST(ui_gradient_sampler_bricks, linear_run_matches_row_and_column)
+{
+    const lh_gl_color_t colors[2] = {rgba(0, 0, 0, 255), rgba(255, 255, 255, 255)};
+    lh_gl_gradient_t gradient;
+
+    lh_gl_gradient_init(&gradient);
+    lh_gl_gradient_init_stops(&gradient, colors, lh_null, 2);
+    lh_gl_gradient_set_linear(&gradient, 30);
+    lh_gl_rect_t box;
+    lh_gl_rect_init(&box, lh_gl_scalar(0), lh_gl_scalar(0), lh_gl_scalar(20), lh_gl_scalar(20));
+    lh_gl_gradient_sampler_t sampler;
+    lh_gl_gradient_sampler_init(&sampler, &gradient, &box);
+    EXPECT_FALSE(lh_gl_gradient_sampler_is_flat(&sampler));
+    lh_gl_color_t a[20];
+    lh_gl_gradient_sampler_row(&sampler, 0, 20, 5, a);
+    lh_gl_color_t b[20];
+    lh_gl_gradient_sampler_linear_run(&sampler, 1 - sampler.middle_x, 11 - sampler.middle_y, 4 * sampler.sine * 255,
+                                      20, b);
+    for (int i = 0; i < 20; ++i)
+    {
+        EXPECT_EQ(lh_gl_color_get_r(&a[i]), lh_gl_color_get_r(&b[i])) << i;
+    }
+}

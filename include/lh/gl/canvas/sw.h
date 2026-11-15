@@ -1,0 +1,429 @@
+/**
+ * @file sw.h
+ * @brief Software canvas backend: ::lh_gl_canvas_backend_sw over a
+ *        ::lh_gl_pixmap_t.
+ *
+ * Draws every primitive itself, row by row, into the pixmap: straight runs
+ * as one span, anti-aliased edges per pixel with the coverage from
+ * `lh/gl/radius.h` (round rects) or the mask (glyphs). Needs no OS: on
+ * Windows the pixmap is the DIB section a GDI context presents; on a
+ * microcontroller it is the frame buffer.
+ *
+ * It has a `set_clip` slot, so the canvas sends primitives uncut and this
+ * backend cuts each row: to its limit (pixmap ∩ clip rect), then to the
+ * rounded cuts of the clip (::lh_gl_canvas_clip_split_row — the middle as a
+ * span, the ends at ::lh_gl_canvas_clip_coverage). Coverage is applied in
+ * the same order as the canvas fallback, so both give the same pixels.
+ * `fill_round_rect` and `fill_mask` always draw. `begin` / `end` are
+ * ::lh_null: whoever owns the pixels shows them.
+ *
+ * The context passed to the canvas is an ::lh_gl_canvas_sw_t.
+ */
+
+#ifndef LH_GL_CANVAS_SW_H
+#define LH_GL_CANVAS_SW_H
+
+#include <lh/gl/canvas/sw/shadow/pass.h>
+
+/**
+ * @struct lh_gl_canvas_sw
+ * @brief Context of ::lh_gl_canvas_backend_sw.
+ */
+struct lh_gl_canvas_sw
+{
+    /** Members: ::lh_gl_canvas_sw_fields. */
+    lh_gl_canvas_sw_fields(lh_gl_pixmap_t, lh_gl_rect_t, lh_gl_canvas_clip_t);
+};
+/** @copybrief lh_gl_canvas_sw */
+typedef struct lh_gl_canvas_sw lh_gl_canvas_sw_t;
+
+/* -- Lifetime -------------------------------------------------------------- */
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief No pixmap yet: every write is cut away.
+ */
+lh_void
+lh_gl_canvas_sw_init(lh_gl_canvas_sw_t *self);
+
+/**
+ * @brief Draw into @p pixmap (copied as a view, pixels not owned); the limit
+ *        becomes its bounds, no clip.
+ */
+lh_void
+lh_gl_canvas_sw_use_pixmap(lh_gl_canvas_sw_t *self, const lh_gl_pixmap_t *pixmap);
+
+/**
+ * @brief The pixmap @p self draws into.
+ */
+const lh_gl_pixmap_t *
+lh_gl_canvas_sw_get_pixmap(const lh_gl_canvas_sw_t *self);
+
+/**
+ * @brief The rect every write is cut to: pixmap bounds ∩ clip rect.
+ */
+lh_void
+lh_gl_canvas_sw_copy_limit(const lh_gl_canvas_sw_t *self, lh_gl_rect_t *out);
+
+/**
+ * @brief True when the clip of @p self has rounded cuts.
+ */
+lh_bool_t
+lh_gl_canvas_sw_is_rounded(const lh_gl_canvas_sw_t *self);
+
+/**
+ * @brief @p context of a backend call as the software context; asserts it is
+ *        not ::lh_null.
+ */
+lh_gl_canvas_sw_t *
+lh_gl_canvas_sw_from(lh_ptr context);
+
+/* -- Cutting to the limit -------------------------------------------------- */
+
+/**
+ * @brief @p x moved right to the first column of the limit, if before it.
+ */
+lh_s32_t
+lh_gl_canvas_sw_cut_x0(const lh_gl_canvas_sw_t *self, lh_s32_t x);
+
+/**
+ * @brief @p x moved left to one past the last column of the limit, if after it.
+ */
+lh_s32_t
+lh_gl_canvas_sw_cut_x1(const lh_gl_canvas_sw_t *self, lh_s32_t x);
+
+/**
+ * @brief @p y moved down to the first row of the limit, if above it.
+ */
+lh_s32_t
+lh_gl_canvas_sw_cut_y0(const lh_gl_canvas_sw_t *self, lh_s32_t y);
+
+/**
+ * @brief @p y moved up to one past the last row of the limit, if below it.
+ */
+lh_s32_t
+lh_gl_canvas_sw_cut_y1(const lh_gl_canvas_sw_t *self, lh_s32_t y);
+
+/* -- Pixels and rows ------------------------------------------------------- */
+
+/**
+ * @brief Alpha a shape edge pixel is painted with: @p alpha at the shape
+ *        @p coverage, then at the clip coverage when the clip is rounded —
+ *        the order the canvas fallback rounds in.
+ */
+lh_byte_t
+lh_gl_canvas_sw_edge_alpha(const lh_gl_canvas_sw_t *self, lh_byte_t alpha, lh_byte_t coverage,
+                           lh_s32_t x, lh_s32_t y);
+
+/**
+ * @brief Paint `x0 .. x1 - 1` of row @p y (at most ::LH_GL_PIXMAP_RUN, cut
+ *        already) with @p color: @p coverage holds each pixel's shape
+ *        coverage and is turned into its alpha in place
+ *        (::lh_gl_canvas_sw_edge_alpha), then one row kernel blends the run.
+ */
+lh_void
+lh_gl_canvas_sw_blend_run(lh_gl_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                          const lh_gl_color_t *color, lh_byte_ptr coverage);
+
+/**
+ * @brief Paint `x0 .. x1 - 1` of row @p y with @p color at its clip coverage
+ *        only (the ends of a span under rounded cuts).
+ */
+lh_void
+lh_gl_canvas_sw_clip_pixels(lh_gl_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                            const lh_gl_color_t *color);
+
+/**
+ * @brief Paint `x0 .. x1 - 1` of row @p y, cut to the limit across (the row
+ *        itself is the caller's to cut): one ::lh_gl_pixmap_fill_span, or
+ *        under rounded cuts its middle as a span and its ends per pixel.
+ */
+lh_void
+lh_gl_canvas_sw_fill_span(lh_gl_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                          const lh_gl_color_t *color);
+
+/**
+ * @brief ::lh_gl_canvas_sw_fill_span on rows `y0 .. y1 - 1`.
+ */
+lh_void
+lh_gl_canvas_sw_fill_rows(lh_gl_canvas_sw_t *self, lh_s32_t x0, lh_s32_t y0, lh_s32_t x1,
+                          lh_s32_t y1, const lh_gl_color_t *color);
+
+/**
+ * @brief One run (at most ::LH_GL_PIXMAP_RUN, cut already) of
+ *        ::lh_gl_canvas_sw_cover_span.
+ */
+lh_void
+lh_gl_canvas_sw_cover_run(lh_gl_canvas_sw_t *self, const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
+                          lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_gl_color_t *color);
+
+/**
+ * @brief Pixels `x0 .. x1 - 1` of row @p y at their coverage of the rounded
+ *        @p rect (::lh_gl_radius_coverage), cut to the limit across, in runs.
+ */
+lh_void
+lh_gl_canvas_sw_cover_span(lh_gl_canvas_sw_t *self, const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
+                           lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_gl_color_t *color);
+
+/**
+ * @brief One run (at most ::LH_GL_PIXMAP_RUN, cut already) of
+ *        ::lh_gl_canvas_sw_cover_span, against an already prepared
+ *        ::lh_gl_radius_run.
+ */
+lh_void
+lh_gl_canvas_sw_cover_run_row(lh_gl_canvas_sw_t *self, const struct lh_gl_radius_run *run,
+                              lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_gl_color_t *color);
+
+/**
+ * @brief ::lh_gl_canvas_sw_cover_span against an already prepared
+ *        ::lh_gl_radius_run, so a run of rows pays for the rect's fixed-point
+ *        edges once instead of once per row.
+ *
+ * A corner band's ends are two or three pixels, and going round the array for that
+ * was tried and measured: it is cheaper by 5% on one isolated corner row and worth
+ * **nothing** in the frame (0% over five alternating whole runs), because the fused
+ * form pays a lh_gl_pixmap_blend_pixel call per pixel and that is exactly what the
+ * one array plus one kernel call was paying for.
+ */
+lh_void
+lh_gl_canvas_sw_cover_span_run(lh_gl_canvas_sw_t *self, const struct lh_gl_radius_run *run,
+                               lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_gl_color_t *color);
+
+/**
+ * @brief Rows `y0 .. y1 - 1` of the rounded @p rect: the span wholly inside it
+ *        painted, the corner pixels either side at their coverage.
+ *
+ * A band, not a row, because that is the shape of the work: the arc's square
+ * root and both corner spans change every row, but the rect's fixed-point edges
+ * do not, and the corner rows are always several of them together. The same
+ * pixels as ::lh_gl_canvas_sw_round_row called per row.
+ */
+lh_void
+lh_gl_canvas_sw_round_band(lh_gl_canvas_sw_t *self, const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
+                           lh_s32_t y0, lh_s32_t y1, const lh_gl_color_t *color);
+
+/**
+ * @brief Row @p y of the rounded @p rect: the span wholly inside it
+ *        (::lh_gl_canvas_round_full_span) painted, the corner pixels either
+ *        side at their coverage. The same pixels as
+ *        ::lh_gl_canvas_fill_round_rect_by_rects.
+ */
+lh_void
+lh_gl_canvas_sw_round_row(lh_gl_canvas_sw_t *self, const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
+                          lh_s32_t y, const lh_gl_color_t *color);
+
+/**
+ * @brief One run of ::lh_gl_canvas_sw_mask_row: pixmap `x0 .. x1 - 1` of row
+ *        @p y from mask pixel (@p mx, @p my) on.
+ */
+lh_void
+lh_gl_canvas_sw_mask_run(lh_gl_canvas_sw_t *self, const lh_gl_mask_t *mask, lh_s32_t mx,
+                         lh_s32_t my, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                         const lh_gl_color_t *color);
+
+/**
+ * @brief Row @p y of @p mask placed with its top-left at (@p x0, @p y0): each
+ *        pixel at its mask coverage, cut to the limit across.
+ */
+lh_void
+lh_gl_canvas_sw_mask_row(lh_gl_canvas_sw_t *self, const lh_gl_mask_t *mask, lh_s32_t x0,
+                         lh_s32_t y0, lh_s32_t y, const lh_gl_color_t *color);
+
+/**
+ * @brief Row @p y of @p mask (top-left pixel at @p x0, @p y0) in @p color, eight
+ *        pixels a step: ::lh_gl_mask_get_coverage_8 into
+ *        ::lh_gl_pixmap_blend_cover_8, the coverages never in a buffer. What
+ *        `fill_mask` draws with when the clip has no rounded cut (it asserts
+ *        so); ::lh_gl_canvas_sw_mask_row is the row with one.
+ */
+lh_void
+lh_gl_canvas_sw_cover_row(lh_gl_canvas_sw_t *self, const lh_gl_mask_t *mask, lh_s32_t x0,
+                          lh_s32_t y0, lh_s32_t y, const lh_gl_color_t *color);
+
+/* -- Backend slots (context: ::lh_gl_canvas_sw_t) -------------------------- */
+
+/**
+ * @brief Backend `clear`: store @p color in the whole pixmap (the clip does
+ *        not apply to clear).
+ */
+lh_void
+lh_gl_canvas_sw_clear(lh_ptr context, const lh_gl_color_t *color);
+
+/**
+ * @brief Backend `fill_rect`: @p rect (whole pixels it touches) cut to the
+ *        limit; one box without rounded cuts, rows under them.
+ */
+lh_void
+lh_gl_canvas_sw_fill_rect(lh_ptr context, const lh_gl_rect_t *rect, const lh_gl_color_t *color);
+
+/**
+ * @brief Backend `fill_round_rect`: ::lh_gl_canvas_sw_round_row for each row
+ *        of @p rect inside the limit. Always draws.
+ */
+lh_bool_t
+lh_gl_canvas_sw_fill_round_rect(lh_ptr context, const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
+                                const lh_gl_color_t *color);
+
+/**
+ * @brief Backend `set_clip`: the limit becomes pixmap bounds ∩ the clip rect
+ *        and the rounded cuts are kept; ::lh_null clears both.
+ */
+lh_void
+lh_gl_canvas_sw_use_clip(lh_ptr context, const lh_gl_canvas_clip_t *clip);
+
+/**
+ * @brief Backend `fill_mask`: ::lh_gl_canvas_sw_cover_row for each row of
+ *        @p mask inside the limit (::lh_gl_canvas_sw_mask_row under a rounded
+ *        cut). Always draws.
+ */
+lh_bool_t
+lh_gl_canvas_sw_fill_mask(lh_ptr context, const lh_gl_point_t *origin, const lh_gl_mask_t *mask,
+                          const lh_gl_color_t *color);
+
+/**
+ * @brief Blend the shadow of @p pass over pixels `x0 .. x1 - 1` of row @p y,
+ *        cut to the clip (and its rounded edge).
+ */
+lh_void
+lh_gl_canvas_sw_shadow_span(lh_gl_canvas_sw_t *self, const lh_gl_canvas_sw_shadow_pass_t *pass,
+                            lh_s32_t x0, lh_s32_t x1, lh_s32_t y);
+
+/**
+ * @brief Row @p y of the shadow of @p pass: both sides of the span the box
+ *        covers wholly (::lh_gl_radius_full_span), which it skips.
+ */
+lh_void
+lh_gl_canvas_sw_shadow_row(lh_gl_canvas_sw_t *self, const lh_gl_canvas_sw_shadow_pass_t *pass,
+                           lh_s32_t y);
+
+/**
+ * @brief Backend `shadow`: ::lh_gl_shadow_alpha_at_pixel over the box grown by
+ *        its outset, blended in runs, and cut to the clip like any other write.
+ *        Pixels the fill covers wholly are skipped.
+ */
+lh_bool_t
+lh_gl_canvas_sw_shadow(lh_ptr context, const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
+                       const lh_gl_shadow_t *shadow);
+
+/** Blur @p rect in place, cut to the limit; with a @p shape, only where its rounded
+ * corners cover. */
+lh_bool_t
+lh_gl_canvas_sw_soften(lh_gl_canvas_sw_t *self, const lh_gl_rect_t *rect,
+                       lh_gl_scalar_t blur_radius, lh_u8_t *scratch, lh_usize_t bytes,
+                       const lh_gl_rect_t *shape, lh_gl_scalar_t corner);
+
+/**
+ * @brief Backend `blur`: ::lh_gl_blur_rect over the rect, cut to the limit.
+ *
+ * @p scratch is the caller's buffer and @p bytes how much of it there is; a rect
+ * that needs more than that (::lh_gl_blur_scratch_size) is one this backend will
+ * not draw.
+ */
+lh_bool_t
+lh_gl_canvas_sw_blur(lh_ptr context, const lh_gl_rect_t *rect, lh_gl_scalar_t blur_radius,
+                     lh_u8_t *scratch, lh_usize_t bytes);
+
+/**
+ * @brief Backend `glass`: blur what is behind the rect, writing only where the
+ *        rounded rect covers, then fill that rounded rect with the tint.
+ */
+lh_bool_t
+lh_gl_canvas_sw_glass(lh_ptr context, const lh_gl_rect_t *rect, lh_gl_scalar_t corner,
+                      lh_gl_scalar_t blur_radius, const lh_gl_color_t *tint, lh_u8_t *scratch,
+                      lh_usize_t bytes);
+
+/**
+ * @brief Backend `fill_colors`: each row inside the limit, ::lh_gl_pixmap_fill_colors_span
+ *        when the colours change across and ::lh_gl_pixmap_fill_span in the row's
+ *        colour when they change down. A rounded clip it leaves to the canvas.
+ */
+lh_bool_t
+lh_gl_canvas_sw_fill_colors(lh_ptr context, lh_s32_t x, lh_s32_t y, lh_s32_t w, lh_s32_t h,
+                            const lh_gl_color_t *colors, lh_gl_axis_t axis);
+
+/**
+ * @brief The software backend table: clear, fill_rect, fill_round_rect,
+ *        set_clip, fill_mask, the effects and fill_colors; no begin / end.
+ */
+extern const lh_gl_canvas_backend_t lh_gl_canvas_backend_sw;
+
+/**
+ * @brief The pixmap the canvas draws into, to change in place (level 1).
+ *
+ * @param self The software canvas; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_gl_pixmap_t *
+lh_gl_canvas_sw_get_pixmap_mut(lh_gl_canvas_sw_t *self);
+
+/**
+ * @brief The area of the pixmap the frame may touch, to change in place (level 1).
+ *
+ * @param self The software canvas; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_gl_rect_t *
+lh_gl_canvas_sw_get_limit_mut(lh_gl_canvas_sw_t *self);
+
+/**
+ * @brief Store the area of the pixmap the frame may touch (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The software canvas; checked by ::lh_assert_runtime_ref.
+ * @param limit The new value.
+ */
+lh_void
+lh_gl_canvas_sw_set_limit(lh_gl_canvas_sw_t *self, lh_gl_rect_t limit);
+
+/**
+ * @brief The clip in effect (level 1).
+ *
+ * @param self The software canvas; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gl_canvas_clip_t *
+lh_gl_canvas_sw_get_clip(const lh_gl_canvas_sw_t *self);
+
+/**
+ * @brief The clip in effect, to change in place (level 1).
+ *
+ * @param self The software canvas; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_gl_canvas_clip_t *
+lh_gl_canvas_sw_get_clip_mut(lh_gl_canvas_sw_t *self);
+
+/**
+ * @brief The area of the pixmap the frame may touch (level 1).
+ *
+ * @param self The software canvas; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gl_rect_t *
+lh_gl_canvas_sw_get_limit(const lh_gl_canvas_sw_t *self);
+
+/**
+ * @brief Store the pixmap the canvas draws into (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The software canvas; checked by ::lh_assert_runtime_ref.
+ * @param pixmap The new value.
+ */
+lh_void
+lh_gl_canvas_sw_set_pixmap(lh_gl_canvas_sw_t *self, lh_gl_pixmap_t pixmap);
+
+/**
+ * @brief Store the clip in effect (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The software canvas; checked by ::lh_assert_runtime_ref.
+ * @param clip The new value.
+ */
+lh_void
+lh_gl_canvas_sw_set_clip(lh_gl_canvas_sw_t *self, lh_gl_canvas_clip_t clip);
+
+LH_COMPILER_EXTERN_C_END
+
+#endif /* LH_GL_CANVAS_SW_H */

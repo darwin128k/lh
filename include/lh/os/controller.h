@@ -8,8 +8,8 @@
  * recognizer (::lh_os_input_recognizer_t) and gives the raw events and the
  * gestures to one handler, `handle_cb`, as functions of
  * ::lh_os_controller_handlers_handle_fn. For a screen the handler is the view's
- * (`lh_ui_view_controller_handle_event_is_handled` in `lh/ui/view/controller.h`), which calls
- * `lh_ui_view_input`; the controller itself knows nothing of the UI.
+ * (`lh_gl_view_controller_handle_event_is_handled` in `lh/gl/view/controller.h`), which calls
+ * `lh_gl_view_input`; the controller itself knows nothing of the UI.
  *
  * No vtable: three plain handler pointers (`handle_cb`, `update_cb`,
  * `cancel_cb`) and the context every one of them gets as `self`, as
@@ -26,7 +26,7 @@
  * ::lh_os_controller_feed sends                 |
  *
  * A window (::lh_os_window_set_controller) and the web host (the `controller` of
- * `lh_ui_web_host_hooks_t`) drive a controller themselves: they feed it, cancel
+ * `lh_gl_web_host_hooks_t`) drive a controller themselves: they feed it, cancel
  * it when the focus goes and call ::lh_os_controller_update on their own tick.
  * ::lh_os_controller_sink is for a source that has only a sink, such as
  * ::lh_os_input_queue_drain.
@@ -41,9 +41,9 @@
  * @code{.c}
  * static lh_os_controller_t controller;
  *
- * lh_os_controller_init(lh_addr_of(controller), lh_ui_view_controller_handle_event_is_handled, //
+ * lh_os_controller_init(lh_addr_of(controller), lh_gl_view_controller_handle_event_is_handled, //
  * the view's lh_addr_of(view), lh_null);                           // default config
- * lh_os_controller_set_cancel_cb(lh_addr_of(controller), lh_ui_view_controller_cancel);
+ * lh_os_controller_set_cancel_cb(lh_addr_of(controller), lh_gl_view_controller_cancel);
  * lh_os_window_set_controller(lh_addr_of(window), lh_addr_of(controller)); // fed, ticked
  * @endcode
  */

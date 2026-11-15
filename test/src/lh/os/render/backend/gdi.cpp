@@ -9,8 +9,8 @@
 #include <gtest/gtest.h>
 
 #include <lh/os/system/surface.h>
-#include <lh/ui/canvas/sw.h>
-#include <lh/ui/surface.h>
+#include <lh/gl/canvas/sw.h>
+#include <lh/gl/surface.h>
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
 
@@ -24,7 +24,7 @@ TEST(os_render_backend_gdi, a_fresh_context_draws_into_argb8888)
     lh_os_render_backend_gdi_context_t gdi;
 
     lh_os_render_backend_gdi_context_init(lh_addr_of(gdi));
-    EXPECT_EQ(lh_os_render_backend_gdi_context_get_format(lh_addr_of(gdi)), lh_ui_pixmap_format_argb8888);
+    EXPECT_EQ(lh_os_render_backend_gdi_context_get_format(lh_addr_of(gdi)), lh_gl_pixmap_format_argb8888);
     lh_os_render_backend_gdi_context_deinit(lh_addr_of(gdi));
 }
 
@@ -35,9 +35,9 @@ TEST(os_render_backend_gdi, the_format_is_reachable_before_the_first_frame)
     /* What an MCU-sized target wants, and the only thing that costs it here is
        that the DIB it asks for is 16-bit. Reaching it is one call. */
     lh_os_render_backend_gdi_context_init(lh_addr_of(gdi));
-    lh_os_render_backend_gdi_context_set_format(lh_addr_of(gdi), lh_ui_pixmap_format_rgb565);
-    EXPECT_EQ(lh_os_render_backend_gdi_context_get_format(lh_addr_of(gdi)), lh_ui_pixmap_format_rgb565);
-    EXPECT_EQ(lh_ui_pixmap_format_get_bytes(lh_os_render_backend_gdi_context_get_format(lh_addr_of(gdi))), 2);
+    lh_os_render_backend_gdi_context_set_format(lh_addr_of(gdi), lh_gl_pixmap_format_rgb565);
+    EXPECT_EQ(lh_os_render_backend_gdi_context_get_format(lh_addr_of(gdi)), lh_gl_pixmap_format_rgb565);
+    EXPECT_EQ(lh_gl_pixmap_format_get_bytes(lh_os_render_backend_gdi_context_get_format(lh_addr_of(gdi))), 2);
     lh_os_render_backend_gdi_context_deinit(lh_addr_of(gdi));
 }
 
@@ -57,21 +57,21 @@ constexpr lh_u32_t blue_hex = 0x0000FFFFu;
 constexpr lh_u32_t green_hex = 0x00FF00FFu;
 
 void
-fill_surface(lh_ui_surface_t *surface, lh_u32_t hex)
+fill_surface(lh_gl_surface_t *surface, lh_u32_t hex)
 {
-    lh_ui_pixmap_t pixmap;
+    lh_gl_pixmap_t pixmap;
 
-    EXPECT_TRUE(lh_ui_surface_get_pixmap(surface, lh_addr_of(pixmap)));
-    lh_ui_canvas_sw_t sw;
-    lh_ui_canvas_sw_init(lh_addr_of(sw));
-    lh_ui_canvas_sw_use_pixmap(lh_addr_of(sw), lh_addr_of(pixmap));
-    lh_ui_color_t color;
-    lh_ui_color_init_hex(lh_addr_of(color), hex);
-    lh_ui_canvas_sw_clear(lh_addr_of(sw), lh_addr_of(color));
+    EXPECT_TRUE(lh_gl_surface_get_pixmap(surface, lh_addr_of(pixmap)));
+    lh_gl_canvas_sw_t sw;
+    lh_gl_canvas_sw_init(lh_addr_of(sw));
+    lh_gl_canvas_sw_use_pixmap(lh_addr_of(sw), lh_addr_of(pixmap));
+    lh_gl_color_t color;
+    lh_gl_color_init_hex(lh_addr_of(color), hex);
+    lh_gl_canvas_sw_clear(lh_addr_of(sw), lh_addr_of(color));
 }
 
 lh_u32_t
-pixel_at(const lh_ui_pixmap_t *pixmap, int x, int y)
+pixel_at(const lh_gl_pixmap_t *pixmap, int x, int y)
 {
     const lh_u32_t *row = reinterpret_cast<const lh_u32_t *>(pixmap->bits + y * pixmap->stride);
 
@@ -81,64 +81,64 @@ pixel_at(const lh_ui_pixmap_t *pixmap, int x, int y)
 /** Frame @p part of @p area onto @p screen, through the canvas, so the clip
  *  bookkeeping under test is the one a view runs. */
 void
-present_part_of(lh_ui_surface_t *screen, lh_ui_size_t size, const lh_ui_rect_t *area,
-                const lh_ui_rect_t *part, lh_u32_t hex)
+present_part_of(lh_gl_surface_t *screen, lh_gl_size_t size, const lh_gl_rect_t *area,
+                const lh_gl_rect_t *part, lh_u32_t hex)
 {
     lh_os_render_backend_gdi_context_t gdi;
 
     lh_os_render_backend_gdi_context_init(lh_addr_of(gdi));
     lh_os_render_backend_gdi_context_set_hdc(lh_addr_of(gdi), lh_os_system_surface_get_dc(screen->handle));
-    lh_ui_canvas_t canvas;
-    lh_ui_canvas_init(lh_addr_of(canvas), &lh_os_render_backend_gdi, lh_addr_of(gdi));
-    lh_ui_canvas_set_size(lh_addr_of(canvas), size);
-    lh_ui_color_t ink;
-    lh_ui_color_init_hex(lh_addr_of(ink), hex);
-    lh_ui_point_t zero;
-    lh_ui_point_init(lh_addr_of(zero), lh_ui_scalar(0), lh_ui_scalar(0));
+    lh_gl_canvas_t canvas;
+    lh_gl_canvas_init(lh_addr_of(canvas), &lh_os_render_backend_gdi, lh_addr_of(gdi));
+    lh_gl_canvas_set_size(lh_addr_of(canvas), size);
+    lh_gl_color_t ink;
+    lh_gl_color_init_hex(lh_addr_of(ink), hex);
+    lh_gl_point_t zero;
+    lh_gl_point_init(lh_addr_of(zero), lh_gl_scalar(0), lh_gl_scalar(0));
 
-    lh_ui_canvas_begin_area(lh_addr_of(canvas), area);
+    lh_gl_canvas_begin_area(lh_addr_of(canvas), area);
     if (!lh_null_eq(part))
     {
-        lh_ui_canvas_push(lh_addr_of(canvas), zero, part);
+        lh_gl_canvas_push(lh_addr_of(canvas), zero, part);
     }
-    lh_ui_canvas_fill_rect(lh_addr_of(canvas), part != nullptr ? part : area, lh_addr_of(ink));
+    lh_gl_canvas_fill_rect(lh_addr_of(canvas), part != nullptr ? part : area, lh_addr_of(ink));
     if (!lh_null_eq(part))
     {
-        lh_ui_canvas_pop(lh_addr_of(canvas));
+        lh_gl_canvas_pop(lh_addr_of(canvas));
     }
-    lh_ui_canvas_end(lh_addr_of(canvas));
+    lh_gl_canvas_end(lh_addr_of(canvas));
     lh_os_render_backend_gdi_context_deinit(lh_addr_of(gdi));
 }
 
 /** Frame two cuts of @p area onto @p screen, through the canvas, the way a
  *  strip carries two independent widgets. Nothing in between is drawn. */
 void
-present_parts_of(lh_ui_surface_t *screen, lh_ui_size_t size, const lh_ui_rect_t *area,
-                 const lh_ui_rect_t *first, const lh_ui_rect_t *second, lh_u32_t hex)
+present_parts_of(lh_gl_surface_t *screen, lh_gl_size_t size, const lh_gl_rect_t *area,
+                 const lh_gl_rect_t *first, const lh_gl_rect_t *second, lh_u32_t hex)
 {
     lh_os_render_backend_gdi_context_t gdi;
-    const lh_ui_rect_t *parts[2];
+    const lh_gl_rect_t *parts[2];
 
     lh_os_render_backend_gdi_context_init(lh_addr_of(gdi));
     lh_os_render_backend_gdi_context_set_hdc(lh_addr_of(gdi), lh_os_system_surface_get_dc(screen->handle));
-    lh_ui_canvas_t canvas;
-    lh_ui_canvas_init(lh_addr_of(canvas), &lh_os_render_backend_gdi, lh_addr_of(gdi));
-    lh_ui_canvas_set_size(lh_addr_of(canvas), size);
-    lh_ui_color_t ink;
-    lh_ui_color_init_hex(lh_addr_of(ink), hex);
-    lh_ui_point_t zero;
-    lh_ui_point_init(lh_addr_of(zero), lh_ui_scalar(0), lh_ui_scalar(0));
+    lh_gl_canvas_t canvas;
+    lh_gl_canvas_init(lh_addr_of(canvas), &lh_os_render_backend_gdi, lh_addr_of(gdi));
+    lh_gl_canvas_set_size(lh_addr_of(canvas), size);
+    lh_gl_color_t ink;
+    lh_gl_color_init_hex(lh_addr_of(ink), hex);
+    lh_gl_point_t zero;
+    lh_gl_point_init(lh_addr_of(zero), lh_gl_scalar(0), lh_gl_scalar(0));
 
     parts[0] = first;
     parts[1] = second;
-    lh_ui_canvas_begin_area(lh_addr_of(canvas), area);
+    lh_gl_canvas_begin_area(lh_addr_of(canvas), area);
     for (lh_usize_t i = 0u; i < 2u; ++i)
     {
-        lh_ui_canvas_push(lh_addr_of(canvas), zero, parts[i]);
-        lh_ui_canvas_fill_rect(lh_addr_of(canvas), parts[i], lh_addr_of(ink));
-        lh_ui_canvas_pop(lh_addr_of(canvas));
+        lh_gl_canvas_push(lh_addr_of(canvas), zero, parts[i]);
+        lh_gl_canvas_fill_rect(lh_addr_of(canvas), parts[i], lh_addr_of(ink));
+        lh_gl_canvas_pop(lh_addr_of(canvas));
     }
-    lh_ui_canvas_end(lh_addr_of(canvas));
+    lh_gl_canvas_end(lh_addr_of(canvas));
     lh_os_render_backend_gdi_context_deinit(lh_addr_of(gdi));
 }
 
@@ -147,28 +147,28 @@ TEST(os_render_backend_gdi, a_present_carries_only_the_pixels_the_frame_drew)
     int left_red = 0;
     int inked = 0;
 
-    lh_ui_size_t size;
-    lh_ui_size_init(lh_addr_of(size), lh_ui_scalar(40), lh_ui_scalar(32));
-    lh_ui_rect_t area;
-    lh_ui_rect_init(lh_addr_of(area), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar(40), lh_ui_scalar(32));
+    lh_gl_size_t size;
+    lh_gl_size_init(lh_addr_of(size), lh_gl_scalar(40), lh_gl_scalar(32));
+    lh_gl_rect_t area;
+    lh_gl_rect_init(lh_addr_of(area), lh_gl_scalar(0), lh_gl_scalar(0), lh_gl_scalar(40), lh_gl_scalar(32));
     /* Rows 8..17 of 40, the way a scrollbar thumb damages its own band and no
        more. */
-    lh_ui_rect_t part;
-    lh_ui_rect_init(lh_addr_of(part), lh_ui_scalar(0), lh_ui_scalar(8), lh_ui_scalar(40), lh_ui_scalar(10));
-    lh_ui_color_t red;
-    lh_ui_color_init_hex(lh_addr_of(red), red_hex);
-    lh_ui_color_t blue;
-    lh_ui_color_init_hex(lh_addr_of(blue), blue_hex);
+    lh_gl_rect_t part;
+    lh_gl_rect_init(lh_addr_of(part), lh_gl_scalar(0), lh_gl_scalar(8), lh_gl_scalar(40), lh_gl_scalar(10));
+    lh_gl_color_t red;
+    lh_gl_color_init_hex(lh_addr_of(red), red_hex);
+    lh_gl_color_t blue;
+    lh_gl_color_init_hex(lh_addr_of(blue), blue_hex);
 
-    lh_ui_surface_t screen;
-    lh_ui_surface_init(lh_addr_of(screen));
-    ASSERT_EQ(lh_ui_surface_set_size_v(lh_addr_of(screen), size), lh_bool_true);
+    lh_gl_surface_t screen;
+    lh_gl_surface_init(lh_addr_of(screen));
+    ASSERT_EQ(lh_gl_surface_set_size_v(lh_addr_of(screen), size), lh_bool_true);
     fill_surface(lh_addr_of(screen), red_hex);
 
     present_part_of(lh_addr_of(screen), size, lh_addr_of(area), lh_addr_of(part), blue_hex);
 
-    lh_ui_pixmap_t read_back;
-    ASSERT_TRUE(lh_ui_surface_get_pixmap(lh_addr_of(screen), lh_addr_of(read_back)));
+    lh_gl_pixmap_t read_back;
+    ASSERT_TRUE(lh_gl_surface_get_pixmap(lh_addr_of(screen), lh_addr_of(read_back)));
     for (int y = 0; y < 32; ++y)
     {
         for (int x = 0; x < 40; ++x)
@@ -176,11 +176,11 @@ TEST(os_render_backend_gdi, a_present_carries_only_the_pixels_the_frame_drew)
             const lh_u32_t argb = pixel_at(lh_addr_of(read_back), x, y);
             if (y >= 8 && y < 18)
             {
-                inked += argb == lh_ui_color_get_argb(lh_addr_of(blue)) ? 1 : 0;
+                inked += argb == lh_gl_color_get_argb(lh_addr_of(blue)) ? 1 : 0;
             }
             else
             {
-                left_red += argb == lh_ui_color_get_argb(lh_addr_of(red)) ? 1 : 0;
+                left_red += argb == lh_gl_color_get_argb(lh_addr_of(red)) ? 1 : 0;
             }
         }
     }
@@ -193,31 +193,31 @@ TEST(os_render_backend_gdi, a_frame_that_was_never_cut_presents_its_whole_surfac
     int inked = 0;
     int left_red = 0;
 
-    lh_ui_size_t size;
-    lh_ui_size_init(lh_addr_of(size), lh_ui_scalar(40), lh_ui_scalar(32));
-    lh_ui_rect_t area;
-    lh_ui_rect_init(lh_addr_of(area), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar(40), lh_ui_scalar(32));
-    lh_ui_color_t red;
-    lh_ui_color_init_hex(lh_addr_of(red), red_hex);
-    lh_ui_color_t blue;
-    lh_ui_color_init_hex(lh_addr_of(blue), blue_hex);
+    lh_gl_size_t size;
+    lh_gl_size_init(lh_addr_of(size), lh_gl_scalar(40), lh_gl_scalar(32));
+    lh_gl_rect_t area;
+    lh_gl_rect_init(lh_addr_of(area), lh_gl_scalar(0), lh_gl_scalar(0), lh_gl_scalar(40), lh_gl_scalar(32));
+    lh_gl_color_t red;
+    lh_gl_color_init_hex(lh_addr_of(red), red_hex);
+    lh_gl_color_t blue;
+    lh_gl_color_init_hex(lh_addr_of(blue), blue_hex);
 
-    lh_ui_surface_t screen;
-    lh_ui_surface_init(lh_addr_of(screen));
-    ASSERT_EQ(lh_ui_surface_set_size_v(lh_addr_of(screen), size), lh_bool_true);
+    lh_gl_surface_t screen;
+    lh_gl_surface_init(lh_addr_of(screen));
+    ASSERT_EQ(lh_gl_surface_set_size_v(lh_addr_of(screen), size), lh_bool_true);
     fill_surface(lh_addr_of(screen), red_hex);
 
     present_part_of(lh_addr_of(screen), size, lh_addr_of(area), lh_null, blue_hex);
 
-    lh_ui_pixmap_t read_back;
-    ASSERT_TRUE(lh_ui_surface_get_pixmap(lh_addr_of(screen), lh_addr_of(read_back)));
+    lh_gl_pixmap_t read_back;
+    ASSERT_TRUE(lh_gl_surface_get_pixmap(lh_addr_of(screen), lh_addr_of(read_back)));
     for (int y = 0; y < 32; ++y)
     {
         for (int x = 0; x < 40; ++x)
         {
             const lh_u32_t argb = pixel_at(lh_addr_of(read_back), x, y);
-            inked += argb == lh_ui_color_get_argb(lh_addr_of(blue)) ? 1 : 0;
-            left_red += argb == lh_ui_color_get_argb(lh_addr_of(red)) ? 1 : 0;
+            inked += argb == lh_gl_color_get_argb(lh_addr_of(blue)) ? 1 : 0;
+            left_red += argb == lh_gl_color_get_argb(lh_addr_of(red)) ? 1 : 0;
         }
     }
     EXPECT_EQ(inked, 40 * 32);
@@ -235,28 +235,28 @@ TEST(os_render_backend_gdi, a_present_leaves_the_gap_between_two_cuts_alone)
     int inked = 0;
     int kept = 0;
 
-    lh_ui_size_t size;
-    lh_ui_size_init(lh_addr_of(size), lh_ui_scalar(40), lh_ui_scalar(32));
-    lh_ui_rect_t area;
-    lh_ui_rect_init(lh_addr_of(area), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar(40), lh_ui_scalar(32));
-    lh_ui_rect_t left;
-    lh_ui_rect_init(lh_addr_of(left), lh_ui_scalar(2), lh_ui_scalar(8), lh_ui_scalar(8), lh_ui_scalar(10));
-    lh_ui_rect_t right;
-    lh_ui_rect_init(lh_addr_of(right), lh_ui_scalar(24), lh_ui_scalar(8), lh_ui_scalar(8), lh_ui_scalar(10));
-    lh_ui_color_t green;
-    lh_ui_color_init_hex(lh_addr_of(green), green_hex);
-    lh_ui_color_t blue;
-    lh_ui_color_init_hex(lh_addr_of(blue), blue_hex);
+    lh_gl_size_t size;
+    lh_gl_size_init(lh_addr_of(size), lh_gl_scalar(40), lh_gl_scalar(32));
+    lh_gl_rect_t area;
+    lh_gl_rect_init(lh_addr_of(area), lh_gl_scalar(0), lh_gl_scalar(0), lh_gl_scalar(40), lh_gl_scalar(32));
+    lh_gl_rect_t left;
+    lh_gl_rect_init(lh_addr_of(left), lh_gl_scalar(2), lh_gl_scalar(8), lh_gl_scalar(8), lh_gl_scalar(10));
+    lh_gl_rect_t right;
+    lh_gl_rect_init(lh_addr_of(right), lh_gl_scalar(24), lh_gl_scalar(8), lh_gl_scalar(8), lh_gl_scalar(10));
+    lh_gl_color_t green;
+    lh_gl_color_init_hex(lh_addr_of(green), green_hex);
+    lh_gl_color_t blue;
+    lh_gl_color_init_hex(lh_addr_of(blue), blue_hex);
 
-    lh_ui_surface_t screen;
-    lh_ui_surface_init(lh_addr_of(screen));
-    ASSERT_EQ(lh_ui_surface_set_size_v(lh_addr_of(screen), size), lh_bool_true);
+    lh_gl_surface_t screen;
+    lh_gl_surface_init(lh_addr_of(screen));
+    ASSERT_EQ(lh_gl_surface_set_size_v(lh_addr_of(screen), size), lh_bool_true);
     fill_surface(lh_addr_of(screen), green_hex);
 
     present_parts_of(lh_addr_of(screen), size, lh_addr_of(area), lh_addr_of(left), lh_addr_of(right), blue_hex);
 
-    lh_ui_pixmap_t read_back;
-    ASSERT_TRUE(lh_ui_surface_get_pixmap(lh_addr_of(screen), lh_addr_of(read_back)));
+    lh_gl_pixmap_t read_back;
+    ASSERT_TRUE(lh_gl_surface_get_pixmap(lh_addr_of(screen), lh_addr_of(read_back)));
     for (int y = 8; y < 18; ++y)
     {
         for (int x = 0; x < 40; ++x)
@@ -264,11 +264,11 @@ TEST(os_render_backend_gdi, a_present_leaves_the_gap_between_two_cuts_alone)
             const lh_u32_t argb = pixel_at(lh_addr_of(read_back), x, y);
             if ((x >= 2 && x < 10) || (x >= 24 && x < 32))
             {
-                inked += argb == lh_ui_color_get_argb(lh_addr_of(blue)) ? 1 : 0;
+                inked += argb == lh_gl_color_get_argb(lh_addr_of(blue)) ? 1 : 0;
             }
             else
             {
-                kept += argb == lh_ui_color_get_argb(lh_addr_of(green)) ? 1 : 0;
+                kept += argb == lh_gl_color_get_argb(lh_addr_of(green)) ? 1 : 0;
             }
         }
     }

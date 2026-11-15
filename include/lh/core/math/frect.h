@@ -10,7 +10,7 @@
  * Empty rectangles follow ::lh_math_fsize_is_empty on the embedded size.
  *
  * Built only when ::LH_LIBRARY_OPTION_MATH_FPU is ON. UI picks this type or
- * the integer ::lh_math_rect_t through <lh/ui/rect.h>.
+ * the integer ::lh_math_rect_t through <lh/gl/rect.h>.
  *
  * Accessors return pointers to the embedded `origin` and `size`; scalar
  * components live on ::lh_math_fpoint_t / ::lh_math_fsize_t. The struct is

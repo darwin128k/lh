@@ -3,7 +3,7 @@
  * @brief Integer square root on ::lh_u64_t, no FPU.
  *
  * Force-inline (like `lh/core/math/floor.h`): one shared primitive for fixed-point
- * code (distances in `lh/ui/radius`, …) instead of a private copy per caller.
+ * code (distances in `lh/gl/radius`, …) instead of a private copy per caller.
  */
 
 #ifndef LH_MATH_ISQRT_H

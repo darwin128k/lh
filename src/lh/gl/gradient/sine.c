@@ -1,12 +1,13 @@
 /**
  * @file sine.c
- * @brief Sine of whole degrees, times 4096.
+ * @brief Implementation of `lh/gl/gradient/sine.h`.
  */
-#include <lh/gl/gradient/sine.h>
 
 #include <lh/core/math/ops.h>
+#include <lh/gl/gradient/sine.h>
 
-/** sin(d) for d in 0 .. 90 degrees, times 4096. */
+/** sin(d) for d in 0 .. 90 degrees, times 4096. Whole degrees are all CSS angles a sheet
+   writes in practice, and a table is the same on a build with no FPU. */
 static const lh_s16_t lh_gl_gradient_sine_table[91] = {
     0,    71,   143,  214,  286,  357,  428,  499,  570,  641,  711,  782,  852,  921,  991,  1060,
     1129, 1198, 1266, 1334, 1401, 1468, 1534, 1600, 1666, 1731, 1796, 1860, 1923, 1986, 2048, 2110,

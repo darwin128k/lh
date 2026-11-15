@@ -1,0 +1,275 @@
+#include <gtest/gtest.h>
+
+#include <lh/test/gl/draw_log.h>
+#include <lh/test/gl/fill_probe.h>
+
+#include <lh/gl/canvas/box.h>
+#include <lh/gl/canvas/sw.h>
+#include <lh/test/out.h>
+
+namespace
+{
+using lh_test::rect_of;
+
+/* A real software canvas over 120 x 120 ARGB pixels, so a test reads what was drawn. */
+struct surface
+{
+    static const int side = 120;
+    lh_u32_t pixels[side * side];
+    lh_gl_pixmap_t pixmap;
+    lh_gl_canvas_sw_t sw;
+    lh_gl_canvas_t canvas;
+
+    surface()
+    {
+        lh_gl_size_t size;
+
+        for (lh_u32_t &p : pixels)
+        {
+            p = 0;
+        }
+        lh_gl_pixmap_init(&pixmap, lh_ptr_rcast(lh_byte_t, pixels), side, side, side * 4,
+                          lh_gl_pixmap_format_argb8888);
+        lh_gl_canvas_sw_init(&sw);
+        lh_gl_canvas_sw_use_pixmap(&sw, &pixmap);
+        lh_gl_canvas_init(&canvas, &lh_gl_canvas_backend_sw, &sw);
+        lh_gl_size_init(&size, lh_gl_scalar_of(side), lh_gl_scalar_of(side));
+        lh_gl_canvas_set_size(&canvas, size);
+    }
+
+    lh_u32_t
+    at(int x, int y) const
+    {
+        return pixels[y * side + x];
+    }
+};
+
+lh_gl_color_t
+color_of(int r, int g, int b)
+{
+    lh_gl_color_t c;
+    lh_gl_color_init(&c, (lh_gl_color_channel_t)r, (lh_gl_color_channel_t)g, (lh_gl_color_channel_t)b, 255);
+    return c;
+}
+
+int
+red_of(lh_u32_t argb)
+{
+    return (int)((argb >> 16) & 0xFF);
+}
+
+int
+blue_of(lh_u32_t argb)
+{
+    return (int)(argb & 0xFF);
+}
+
+} // namespace
+
+/* -- Radii ----------------------------------------------------------------- */
+
+/* Two corners on a side that add up to more than the side are scaled down together,
+   by the factor of the side that is most over-full, as CSS does. 30 + 30 on a side of
+   40 is a factor of two thirds. */
+TEST(ui_radii, corners_that_do_not_fit_are_scaled_down_together)
+{
+    const lh_gl_rect_t rect = rect_of(0, 0, 100, 40);
+
+    /* 30 + 0 fits the 40 of the left side, and CSS would draw 30. A corner here is no
+       more than half the shorter side -- 20 -- because each quarter of the box is cut
+       by its own corner only. */
+    lh_gl_radii_t radii;
+    lh_gl_radii_init(&radii, lh_gl_scalar(30), lh_gl_scalar(30), lh_gl_scalar(0), lh_gl_scalar(0));
+    lh_gl_radii_t fit = lh_test::out(lh_gl_radii_clamp, &radii, &rect);
+    EXPECT_EQ(fit.top_left, lh_gl_scalar(20));
+    EXPECT_EQ(fit.bottom_left, lh_gl_scalar(0));
+
+    lh_gl_radii_init(&radii, lh_gl_scalar(30), lh_gl_scalar(30), lh_gl_scalar(30), lh_gl_scalar(30));
+    fit = lh_test::out(lh_gl_radii_clamp, &radii, &rect);
+    EXPECT_EQ(fit.top_left, lh_gl_scalar(20));
+    EXPECT_EQ(fit.bottom_right, lh_gl_scalar(20));
+}
+
+TEST(ui_radii, a_pixel_takes_the_radius_of_the_corner_whose_quarter_it_is_in)
+{
+    const lh_gl_rect_t rect = rect_of(10, 10, 40, 20);
+
+    lh_gl_radii_t radii;
+    lh_gl_radii_init(&radii, lh_gl_scalar(1), lh_gl_scalar(2), lh_gl_scalar(3), lh_gl_scalar(4));
+    EXPECT_EQ(lh_gl_radii_get_at(&radii, &rect, 10, 10), lh_gl_scalar(1));
+    EXPECT_EQ(lh_gl_radii_get_at(&radii, &rect, 49, 10), lh_gl_scalar(2));
+    EXPECT_EQ(lh_gl_radii_get_at(&radii, &rect, 49, 29), lh_gl_scalar(3));
+    EXPECT_EQ(lh_gl_radii_get_at(&radii, &rect, 10, 29), lh_gl_scalar(4));
+    EXPECT_EQ(lh_gl_radii_is_uniform(&radii), lh_bool_false);
+    EXPECT_EQ(lh_gl_radii_get_min(&radii), lh_gl_scalar(1));
+}
+
+/* -- Gradient over a box --------------------------------------------------- */
+
+TEST(ui_gradient, a_linear_gradient_runs_the_way_its_angle_points)
+{
+    const lh_gl_rect_t rect = rect_of(0, 0, 10, 100);
+
+    lh_gl_gradient_t g;
+    lh_gl_gradient_init(&g);
+    EXPECT_EQ(lh_gl_gradient_get_angle(&g), 180) << "CSS's default is top to bottom";
+    EXPECT_LT(lh_gl_gradient_frac_at(&g, &rect, 5, 0), 5);
+    EXPECT_GT(lh_gl_gradient_frac_at(&g, &rect, 5, 99), 250);
+    EXPECT_NEAR(lh_gl_gradient_frac_at(&g, &rect, 5, 50), 128, 3);
+
+    lh_gl_gradient_set_linear(&g, 90);
+    const lh_gl_rect_t wide = rect_of(0, 0, 100, 10);
+    EXPECT_LT(lh_gl_gradient_frac_at(&g, &wide, 0, 5), 5) << "90 degrees runs left to right";
+    EXPECT_GT(lh_gl_gradient_frac_at(&g, &wide, 99, 5), 250);
+
+    lh_gl_gradient_set_linear(&g, 0);
+    EXPECT_GT(lh_gl_gradient_frac_at(&g, &rect, 5, 0), 250) << "0 degrees runs bottom to top";
+}
+
+TEST(ui_gradient, a_radial_gradient_runs_from_the_middle_to_the_corners)
+{
+    const lh_gl_rect_t rect = rect_of(0, 0, 100, 50);
+
+    lh_gl_gradient_t g;
+    lh_gl_gradient_init(&g);
+    lh_gl_gradient_set_radial(&g);
+    EXPECT_LT(lh_gl_gradient_frac_at(&g, &rect, 50, 25), 8);
+    EXPECT_GT(lh_gl_gradient_frac_at(&g, &rect, 0, 0), 245);
+    EXPECT_GT(lh_gl_gradient_frac_at(&g, &rect, 99, 49), 245);
+}
+
+TEST(ui_gradient, a_colour_between_two_stops_is_the_two_mixed_in_proportion)
+{
+    const lh_gl_color_t stops[2] = {color_of(200, 0, 0), color_of(0, 0, 100)};
+
+    lh_gl_gradient_t g;
+    lh_gl_gradient_init(&g);
+    lh_gl_gradient_init_stops(&g, stops, lh_null, 2);
+    lh_gl_color_t mid = lh_test::out(lh_gl_gradient_color_at, &g, 51);
+    EXPECT_EQ(lh_gl_color_get_r(&mid), 160);
+    EXPECT_EQ(lh_gl_color_get_b(&mid), 20);
+}
+
+/* -- Filling a box --------------------------------------------------------- */
+
+/* One colour and one radius are the backend's own rounded fill, as they always were. */
+TEST(ui_canvas_box, a_solid_box_with_one_radius_is_the_backends_rounded_fill)
+{
+    lh_test::fill_probe probe{};
+    lh_gl_canvas_backend_t backend{};
+
+    probe.rect = rect_of(0, 0, 40, 40);
+    probe.color = color_of(1, 2, 3);
+    backend.fill_rect = lh_test::fill_probe_fill_rect;
+    backend.fill_round_rect = lh_test::fill_probe_fill_round_rect;
+    lh_gl_canvas_t canvas;
+    lh_gl_canvas_init(&canvas, &backend, &probe);
+    lh_gl_size_t size;
+    lh_gl_size_init(&size, lh_gl_scalar(100), lh_gl_scalar(100));
+    lh_gl_canvas_set_size(&canvas, size);
+    lh_gl_radii_t radii;
+    lh_gl_radii_init_all(&radii, lh_gl_scalar(6));
+    lh_gl_paint_t paint;
+    lh_gl_paint_init_color(&paint, &probe.color);
+
+    lh_gl_canvas_fill_box(&canvas, &probe.rect, &radii, &paint);
+    EXPECT_EQ(probe.round_matches, 1);
+    EXPECT_EQ(probe.radius, lh_gl_scalar(6));
+}
+
+/* `border-radius: 10px 0 0 0`: the top-left corner is cut and the other three are
+   square to their last pixel. */
+TEST(ui_canvas_box, each_corner_is_rounded_by_its_own_radius)
+{
+    const lh_gl_color_t red = color_of(255, 0, 0);
+    const lh_gl_rect_t rect = rect_of(10, 10, 40, 40);
+
+    lh_gl_radii_t radii;
+    lh_gl_radii_init(&radii, lh_gl_scalar(10), lh_gl_scalar(0), lh_gl_scalar(0), lh_gl_scalar(0));
+    lh_gl_paint_t paint;
+    lh_gl_paint_init_color(&paint, &red);
+    surface s;
+    lh_gl_canvas_fill_box(&s.canvas, &rect, &radii, &paint);
+
+    EXPECT_EQ(s.at(10, 10) >> 24, 0u) << "the rounded corner's outermost pixel is cut away";
+    EXPECT_EQ(s.at(49, 10), 0xFFFF0000u) << "top right is square";
+    EXPECT_EQ(s.at(49, 49), 0xFFFF0000u) << "bottom right is square";
+    EXPECT_EQ(s.at(10, 49), 0xFFFF0000u) << "bottom left is square";
+    EXPECT_EQ(s.at(30, 30), 0xFFFF0000u);
+    EXPECT_EQ(s.at(9, 30), 0u) << "nothing outside the box";
+}
+
+/* A gradient from red to blue, top to bottom: red at the top, blue at the bottom, and
+   the two mixed half way. */
+TEST(ui_canvas_box, a_gradient_fill_runs_from_its_first_stop_to_its_last)
+{
+    const lh_gl_color_t stops[2] = {color_of(255, 0, 0), color_of(0, 0, 255)};
+    const lh_gl_rect_t rect = rect_of(0, 0, 20, 100);
+
+    lh_gl_gradient_t g;
+    lh_gl_gradient_init(&g);
+    lh_gl_gradient_init_stops(&g, stops, lh_null, 2);
+    lh_gl_paint_t paint;
+    lh_gl_paint_init_gradient(&paint, &g);
+    lh_gl_radii_t radii;
+    lh_gl_radii_init_all(&radii, lh_gl_scalar(0));
+    surface s;
+    lh_gl_canvas_fill_box(&s.canvas, &rect, &radii, &paint);
+
+    EXPECT_GT(red_of(s.at(10, 0)), 245);
+    EXPECT_LT(blue_of(s.at(10, 0)), 10);
+    EXPECT_GT(blue_of(s.at(10, 99)), 245);
+    EXPECT_NEAR(red_of(s.at(10, 50)), 127, 4);
+    EXPECT_EQ(s.at(0, 50), s.at(19, 50)) << "a row of a top-to-bottom gradient is one colour";
+}
+
+/* -- Bricks ---------------------------------------------------------------- */
+
+TEST(ui_canvas_box_bricks, zone_is_the_corner_width_while_the_row_is_in_it)
+{
+    EXPECT_EQ(lh_gl_canvas_box_zone(0, lh_gl_scalar(5), 100), 5);
+    EXPECT_EQ(lh_gl_canvas_box_zone(4, lh_gl_scalar(5), 100), 5);
+    EXPECT_EQ(lh_gl_canvas_box_zone(5, lh_gl_scalar(5), 100), 0);
+    EXPECT_EQ(lh_gl_canvas_box_zone(0, lh_gl_scalar(5), 3), 3);
+    EXPECT_EQ(lh_gl_canvas_box_zone(0, lh_gl_scalar(0), 100), 0);
+}
+
+TEST(ui_canvas_box_bricks, frame_is_the_box_cut_by_the_clip)
+{
+    const lh_gl_rect_t box = rect_of(10, 20, 30, 40);
+    const lh_gl_rect_t cut = rect_of(15, 25, 100, 5);
+    lh_gl_canvas_box_frame_t frame;
+
+    EXPECT_TRUE(lh_gl_canvas_box_frame_init(&box, &cut, &frame));
+    EXPECT_EQ(frame.left, 10);
+    EXPECT_EQ(frame.right, 40);
+    EXPECT_EQ(frame.top, 20);
+    EXPECT_EQ(frame.bottom, 60);
+    EXPECT_EQ(frame.shown_left, 15);
+    EXPECT_EQ(frame.shown_right, 40);
+    EXPECT_EQ(frame.first, 25);
+    EXPECT_EQ(frame.last, 30);
+    const lh_gl_rect_t aside = rect_of(50, 20, 10, 10);
+    EXPECT_FALSE(lh_gl_canvas_box_frame_init(&box, &aside, &frame));
+}
+
+TEST(ui_canvas_box_bricks, row_reach_finds_the_corners_of_a_row)
+{
+    const lh_gl_rect_t box = rect_of(0, 0, 40, 20);
+    lh_gl_canvas_box_frame_t frame;
+
+    lh_gl_canvas_box_frame_init(&box, &box, &frame);
+    lh_gl_radii_t radii;
+    lh_gl_radii_init(&radii, lh_gl_scalar(4), lh_gl_scalar(0), lh_gl_scalar(0), lh_gl_scalar(6));
+    EXPECT_TRUE(lh_gl_canvas_box_row_is_upper(&frame, 9));
+    EXPECT_FALSE(lh_gl_canvas_box_row_is_upper(&frame, 10));
+    lh_s32_t near_end;
+    lh_s32_t far_start;
+    EXPECT_TRUE(lh_gl_canvas_box_row_reach(&frame, &radii, 0, &near_end, &far_start));
+    EXPECT_EQ(near_end, 4);
+    EXPECT_EQ(far_start, 40);
+    EXPECT_FALSE(lh_gl_canvas_box_row_reach(&frame, &radii, 4, &near_end, &far_start));
+    EXPECT_TRUE(lh_gl_canvas_box_row_reach(&frame, &radii, 19, &near_end, &far_start));
+    EXPECT_EQ(near_end, 6); /* bottom left: 6, bottom right: none */
+    EXPECT_EQ(far_start, 40);
+}

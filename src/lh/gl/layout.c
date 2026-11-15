@@ -1,17 +1,335 @@
 /**
  * @file layout.c
- * @brief Place a layer's direct children with one gap.
+ * @brief Implementation of `lh/gl/layout.h`.
  */
-#include <lh/gl/layout.h>
+#include <lh/core/assert.h>
 
-#include <lh/core/assert/runtime.h>
-#include <lh/gl/layer.h>
+#include <lh/core/math.h>
+#include <lh/gl/layout.h>
+#include <lh/core/util/return.h>
+
+lh_void
+lh_gl_layout_init(lh_gl_layout_t *self, lh_gl_axis_t axis, lh_gl_scalar_t gap)
+{
+    lh_assert_runtime_if(gap < lh_gl_scalar(0), lh_runtime_error_code_invalid_argument);
+    lh_gl_layout_set_axis(self, axis);
+    lh_gl_layout_set_gap(self, gap);
+    lh_gl_layout_set_justify(self, lh_gl_justify_start);
+    lh_gl_layout_set_wrap(self, lh_bool_false);
+    lh_gl_layout_set_line_gap(self, lh_gl_scalar(0));
+}
+
+lh_void
+lh_gl_layout_set_wrapping(lh_gl_layout_t *self, lh_bool_t wrap, lh_gl_scalar_t line_gap)
+{
+    lh_assert_runtime_if(line_gap < lh_gl_scalar(0), lh_runtime_error_code_invalid_argument);
+    lh_gl_layout_set_wrap(self, wrap);
+    lh_gl_layout_set_line_gap(self, line_gap);
+}
+
+lh_bool_t
+lh_gl_layout_get_wrap(const lh_gl_layout_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->wrap;
+}
+
+lh_gl_scalar_t
+lh_gl_layout_get_line_gap(const lh_gl_layout_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->line_gap;
+}
+
+lh_gl_axis_t
+lh_gl_layout_get_axis(const lh_gl_layout_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->axis;
+}
 
 lh_gl_scalar_t
 lh_gl_layout_get_gap(const lh_gl_layout_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->gap;
+}
+
+lh_gl_justify_t
+lh_gl_layout_get_justify(const lh_gl_layout_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->justify;
+}
+
+lh_void
+lh_gl_layout_set_justify(lh_gl_layout_t *self, lh_gl_justify_t justify)
+{
+    lh_assert_runtime_ref(self);
+    self->justify = justify;
+}
+
+/* -- The pass -------------------------------------------------------------- */
+
+lh_gl_scalar_t
+lh_gl_layout_wants(const lh_gl_layout_t *self, lh_gl_entity_t *child)
+{
+    const lh_gl_place_t *place = lh_gl_entity_get_place(child);
+
+    if (lh_gl_place_get_size_mode(place) == lh_gl_place_size_fill)
+    {
+        return lh_gl_scalar(0);
+    }
+    if (lh_gl_place_get_size_mode(place) == lh_gl_place_size_fixed)
+    {
+        return lh_gl_place_clamp(place, lh_gl_layout_get_axis(self), lh_gl_place_get_size(place));
+    }
+    lh_gl_rect_t content;
+    lh_gl_entity_get_content_bounds(child, lh_addr_of(content));
+    return lh_gl_place_clamp(place, lh_gl_layout_get_axis(self),
+                             lh_gl_size_get_along(lh_gl_rect_get_size(lh_addr_of(content)),
+                                                  lh_gl_layout_get_axis(self)));
+}
+
+lh_gl_scalar_t
+lh_gl_layout_weight(const lh_gl_place_t *place)
+{
+    const lh_gl_scalar_t weight = lh_gl_place_get_size(place);
+
+    return weight > lh_gl_scalar(0) ? weight : lh_gl_scalar(1);
+}
+
+lh_gl_scalar_t
+lh_gl_layout_margin_along(const lh_gl_layout_t *self, const lh_gl_place_t *place)
+{
+    const lh_gl_insets_t *margin = lh_gl_place_get_margin(place);
+
+    return lh_gl_insets_get_start(margin, lh_gl_layout_get_axis(self)) +
+           lh_gl_insets_get_end(margin, lh_gl_layout_get_axis(self));
+}
+
+lh_void
+lh_gl_layout_slot(const lh_gl_layout_t *self, const lh_gl_place_t *place,
+                  const lh_gl_rect_t *content, lh_gl_rect_t *out)
+{
+    lh_assert_runtime_ref(out);
+    const lh_gl_axis_t cross = lh_gl_axis_get_cross(lh_gl_layout_get_axis(self));
+    const lh_gl_insets_t *margin = lh_gl_place_get_margin(place);
+    const lh_gl_scalar_t before = lh_gl_insets_get_start(margin, cross);
+    const lh_gl_scalar_t after = lh_gl_insets_get_end(margin, cross);
+    const lh_gl_scalar_t room = lh_gl_size_get_along(lh_gl_rect_get_size(content), cross);
+    lh_gl_rect_t slot;
+
+    lh_gl_rect_init_along(lh_addr_of(slot), content, cross, before,
+                          lh_gl_scalar_slack(room - before, after));
+    lh_ptr_deref(out) = slot;
+}
+
+lh_void
+lh_gl_layout_across(const lh_gl_layout_t *self, lh_gl_entity_t *child, const lh_gl_rect_t *content,
+                    lh_gl_scalar_t line, lh_gl_scalar_t *start, lh_gl_scalar_t *length)
+{
+    const lh_gl_place_t *place = lh_gl_entity_get_place(child);
+    const lh_gl_place_align_t align = lh_gl_place_get_align(place);
+    lh_gl_scalar_t at = lh_gl_scalar(0);
+
+    lh_gl_layout_cross_t fit;
+    lh_gl_layout_cross_fit(self, child, content, lh_addr_of(fit));
+    if (align == lh_gl_place_align_fill)
+    {
+        lh_ptr_deref(length) =
+            lh_gl_place_clamp(place, lh_gl_axis_get_cross(lh_gl_layout_get_axis(self)),
+                              lh_gl_layout_cross_get_room(lh_addr_of(fit)));
+    }
+    else
+    {
+        lh_ptr_deref(length) = lh_gl_layout_cross_get_own(lh_addr_of(fit));
+        at = lh_gl_layout_cross_at(lh_addr_of(fit), align,
+                                   align == lh_gl_place_align_baseline
+                                       ? lh_gl_entity_get_baseline(child)
+                                       : lh_gl_scalar(-1),
+                                   line);
+    }
+    lh_ptr_deref(start) = lh_math_max(lh_gl_layout_cross_get_start(lh_addr_of(fit)) +
+                                          lh_math_max(at, lh_gl_scalar(0)),
+                                      lh_gl_scalar(0));
+}
+
+lh_gl_scalar_t
+lh_gl_layout_child_line(const lh_gl_layout_t *self, lh_gl_entity_t *child,
+                        const lh_gl_rect_t *content)
+{
+    const lh_gl_scalar_t at = lh_gl_entity_get_baseline(child);
+
+    /* A **vertical** flow has no cross row to line up and never asks. */
+    if (lh_gl_axis_get_cross(lh_gl_layout_get_axis(self)) != lh_gl_axis_vertical ||
+        lh_gl_place_get_align(lh_gl_entity_get_place(child)) != lh_gl_place_align_baseline ||
+        at < lh_gl_scalar(0))
+    {
+        return lh_gl_scalar(-1);
+    }
+    lh_gl_layout_cross_t fit;
+    lh_gl_layout_cross_fit(self, child, content, lh_addr_of(fit));
+    return lh_gl_layout_cross_get_before(lh_addr_of(fit)) +
+           lh_gl_scalar_centre(lh_gl_layout_cross_get_room(lh_addr_of(fit)),
+                               lh_gl_layout_cross_get_own(lh_addr_of(fit))) +
+           at;
+}
+
+lh_void
+lh_gl_layout_justify_lead(lh_gl_justify_t justify, lh_gl_scalar_t left, int shown,
+                          lh_gl_scalar_t *lead, lh_gl_scalar_t *spread)
+{
+    lh_assert_runtime_ref(lead);
+    lh_assert_runtime_ref(spread);
+    lh_assert_runtime_if(shown <= 0, lh_runtime_error_code_invalid_argument);
+    lh_ptr_deref(lead) = lh_gl_scalar(0);
+    lh_ptr_deref(spread) = lh_gl_scalar(0);
+    switch (justify)
+    {
+    case lh_gl_justify_center:
+        lh_ptr_deref(lead) = lh_gl_scalar_centre(left, lh_gl_scalar(0));
+        break;
+    case lh_gl_justify_end:
+        lh_ptr_deref(lead) = left;
+        break;
+    case lh_gl_justify_space_between:
+        /* One child has nothing to be between, and sits at the start. */
+        lh_gl_scalar_trunc(shown > 1 ? left / (shown - 1) : lh_gl_scalar(0), spread);
+        break;
+    case lh_gl_justify_space_around:
+        lh_gl_scalar_trunc(left / shown, spread);
+        lh_gl_scalar_trunc(lh_ptr_deref(spread) / 2, lead);
+        break;
+    case lh_gl_justify_space_evenly:
+        lh_gl_scalar_trunc(left / (shown + 1), spread);
+        lh_ptr_deref(lead) = lh_ptr_deref(spread);
+        break;
+    default:
+        break;
+    }
+}
+
+lh_void
+lh_gl_layout_run(const lh_gl_layout_t *self, lh_gl_entity_t *parent, lh_gl_entity_t *first,
+                 lh_gl_entity_t *end, const lh_gl_rect_t *content_box)
+{
+    const lh_gl_rect_t content = lh_ptr_deref(content_box);
+
+    lh_assert_runtime_ref(parent);
+    lh_gl_layout_run_t run;
+    lh_gl_layout_run_init(self, lh_addr_of(content), lh_addr_of(run));
+    lh_gl_layout_run_measure(self, lh_addr_of(run), parent, first, end, lh_addr_of(content));
+    lh_gl_layout_run_justify(self, lh_addr_of(run));
+    lh_gl_layout_run_place(self, lh_addr_of(run), parent, first, end, lh_addr_of(content));
+}
+
+lh_gl_scalar_t
+lh_gl_layout_depth(const lh_gl_layout_t *self, lh_gl_entity_t *child)
+{
+    const lh_gl_axis_t cross = lh_gl_axis_get_cross(lh_gl_layout_get_axis(self));
+    const lh_gl_place_t *place = lh_gl_entity_get_place(child);
+    const lh_gl_insets_t *margin = lh_gl_place_get_margin(place);
+    lh_gl_rect_t rect;
+    lh_gl_entity_copy_rect(child, lh_addr_of(rect));
+    const lh_gl_scalar_t own =
+        lh_gl_place_get_align(place) == lh_gl_place_align_fill
+            ? lh_gl_place_clamp(place, cross, lh_gl_scalar(0))
+            : lh_gl_size_get_along(lh_gl_rect_get_size(lh_addr_of(rect)), cross);
+
+    return own + lh_gl_insets_get_start(margin, cross) + lh_gl_insets_get_end(margin, cross);
+}
+
+lh_gl_entity_t *
+lh_gl_layout_line_end(const lh_gl_layout_t *self, lh_gl_entity_t *parent, lh_gl_entity_t *first,
+                      lh_gl_scalar_t room, lh_gl_scalar_t *depth)
+{
+    lh_gl_scalar_t used = lh_gl_scalar(0);
+    int count = 0;
+    lh_gl_entity_t *child;
+
+    lh_ptr_deref(depth) = lh_gl_scalar(0);
+    for (child = first; lh_null_ne(child); child = lh_gl_entity_get_next_child(parent, child))
+    {
+        lh_gl_scalar_t size;
+
+        if (lh_gl_entity_is_hidden(child))
+        {
+            continue;
+        }
+        size = lh_gl_layout_wants(self, child) +
+               lh_gl_layout_margin_along(self, lh_gl_entity_get_place(child));
+        if (count > 0 && used + lh_gl_layout_get_gap(self) + size > room)
+        {
+            return child;
+        }
+        used += (count > 0 ? lh_gl_layout_get_gap(self) : lh_gl_scalar(0)) + size;
+        ++count;
+        lh_ptr_deref(depth) = lh_math_max(lh_ptr_deref(depth), lh_gl_layout_depth(self, child));
+    }
+    return lh_null;
+}
+
+lh_void
+lh_gl_layout_apply(const lh_gl_layout_t *self, lh_gl_entity_t *parent)
+{
+    lh_gl_insets_t padding;
+    lh_gl_entity_get_padding(parent, lh_addr_of(padding));
+    lh_gl_rect_t rect;
+    lh_gl_entity_copy_rect(parent, lh_addr_of(rect));
+    lh_gl_rect_t content;
+    lh_gl_insets_shrink(lh_addr_of(padding), lh_addr_of(rect), lh_addr_of(content));
+    const lh_gl_axis_t cross = lh_gl_axis_get_cross(lh_gl_layout_get_axis(self));
+    const lh_gl_scalar_t room =
+        lh_gl_size_get_along(lh_gl_rect_get_size(lh_addr_of(content)), lh_gl_layout_get_axis(self));
+    const lh_gl_scalar_t room_across =
+        lh_gl_size_get_along(lh_gl_rect_get_size(lh_addr_of(content)), cross);
+    lh_gl_scalar_t depths = lh_gl_scalar(0);
+    lh_gl_scalar_t extra = lh_gl_scalar(0);
+    lh_gl_scalar_t at = lh_gl_scalar(0);
+    int lines = 0;
+
+    lh_assert_runtime_ref(parent);
+    if (!lh_gl_layout_is_wrap(self))
+    {
+        lh_gl_layout_run(self, parent, lh_gl_entity_get_first_child(parent), lh_null,
+                         lh_addr_of(content));
+        return;
+    }
+    lh_gl_scalar_t depth;
+    lh_gl_entity_t *first;
+    lh_gl_entity_t *end;
+    /* How many lines, and how deep they are together; what is left across is then
+       shared between them, which is CSS's `align-content: stretch`. */
+    for (first = lh_gl_entity_get_first_child(parent); lh_null_ne(first); first = end)
+    {
+        end = lh_gl_layout_line_end(self, parent, first, room, lh_addr_of(depth));
+        depths += depth;
+        ++lines;
+    }
+    lh_return_if(lines == 0);
+    if (room_across - depths - lh_gl_layout_get_line_gap(self) * (lines - 1) > lh_gl_scalar(0))
+    {
+        lh_gl_scalar_trunc((room_across - depths - lh_gl_layout_get_line_gap(self) * (lines - 1)) /
+                               lines,
+                           lh_addr_of(extra));
+    }
+    for (first = lh_gl_entity_get_first_child(parent); lh_null_ne(first); first = end)
+    {
+        lh_gl_rect_t band;
+
+        end = lh_gl_layout_line_end(self, parent, first, room, lh_addr_of(depth));
+        lh_gl_rect_init_along(lh_addr_of(band), lh_addr_of(content), cross, at, depth + extra);
+        lh_gl_layout_run(self, parent, first, end, lh_addr_of(band));
+        at += depth + extra + lh_gl_layout_get_line_gap(self);
+    }
+}
+
+lh_void
+lh_gl_layout_set_axis(lh_gl_layout_t *self, lh_gl_axis_t axis)
+{
+    lh_assert_runtime_ref(self);
+    self->axis = axis;
 }
 
 lh_void
@@ -21,40 +339,23 @@ lh_gl_layout_set_gap(lh_gl_layout_t *self, lh_gl_scalar_t gap)
     self->gap = gap;
 }
 
-lh_void
-lh_gl_layout_init(lh_gl_layout_t *self, lh_gl_scalar_t gap)
+lh_bool_t
+lh_gl_layout_is_wrap(const lh_gl_layout_t *self)
 {
-    lh_gl_layout_set_gap(self, gap);
+    lh_assert_runtime_ref(self);
+    return self->wrap;
 }
 
 lh_void
-lh_gl_layout_pack(const lh_gl_layout_t *self, lh_gl_layer_t *layer, lh_bool_t horizontal)
+lh_gl_layout_set_line_gap(lh_gl_layout_t *self, lh_gl_scalar_t line_gap)
 {
-    lh_gl_scalar_t gap = lh_gl_layout_get_gap(self);
+    lh_assert_runtime_ref(self);
+    self->line_gap = line_gap;
+}
 
-    if (lh_ptr_is_null(layer))
-    {
-        return;
-    }
-    lh_gl_scalar_t cursor = 0;
-
-    for (lh_list_node_t *node = lh_list_get_first(lh_gl_layer_get_items_mut(layer));
-         lh_ptr_is_set(node); node = lh_list_get_next(lh_gl_layer_get_items_mut(layer), node))
-    {
-        lh_gl_entity_t *child = lh_gl_entity_from_node(node);
-        const lh_gl_rect_t *rect = lh_gl_entity_get_rect(child);
-        lh_gl_point_t origin = lh_ptr_deref(lh_gl_rect_get_origin(rect));
-
-        if (horizontal == lh_bool_true)
-        {
-            lh_gl_point_set_x(lh_addr_of(origin), cursor);
-            cursor += lh_gl_size_get_width(lh_gl_rect_get_size(rect)) + gap;
-        }
-        else
-        {
-            lh_gl_point_set_y(lh_addr_of(origin), cursor);
-            cursor += lh_gl_size_get_height(lh_gl_rect_get_size(rect)) + gap;
-        }
-        lh_gl_entity_set_origin(child, origin);
-    }
+lh_void
+lh_gl_layout_set_wrap(lh_gl_layout_t *self, lh_bool_t wrap)
+{
+    lh_assert_runtime_ref(self);
+    self->wrap = wrap;
 }

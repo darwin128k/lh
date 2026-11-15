@@ -1,148 +1,90 @@
 #include <gtest/gtest.h>
+#include <type_traits>
 
-#include <lh/core/util/addr.h>
+#include <lh/config.h>
+#include <lh/core/math/point.h>
 #include <lh/gl/point.h>
-#include <lh/gl/point/initializer.h>
-#include <lh/test/out.h>
 
 namespace
 {
 
-TEST(gl_point, init_fills_x_then_y)
+TEST(ui_point, components_are_the_scalar)
 {
-    lh_gl_point_t point;
+    lh_gl_point_t p;
 
-    lh_gl_point_init(lh_addr_of(point), 7, -3);
-    EXPECT_EQ(lh_gl_point_get_x(lh_addr_of(point)), 7);
-    EXPECT_EQ(lh_gl_point_get_y(lh_addr_of(point)), -3);
+    lh_gl_point_init(lh_addr_of(p), 1, 2);
+    using component = decltype(lh_gl_point_get_x(lh_addr_of(p)));
+    EXPECT_TRUE((std::is_same<component, lh_gl_scalar_t>::value));
 }
 
-TEST(gl_point, init_empty_is_the_origin)
+TEST(ui_point, holds_x_y)
 {
-    lh_gl_point_t point;
+    lh_gl_point_t p;
 
-    lh_gl_point_init(lh_addr_of(point), 5, 5);
-    lh_gl_point_init_empty(lh_addr_of(point));
-    EXPECT_EQ(lh_gl_point_get_x(lh_addr_of(point)), 0);
-    EXPECT_EQ(lh_gl_point_get_y(lh_addr_of(point)), 0);
+    lh_gl_point_init(lh_addr_of(p), 10, 20);
+    EXPECT_EQ(lh_gl_point_get_x(lh_addr_of(p)), 10);
+    EXPECT_EQ(lh_gl_point_get_y(lh_addr_of(p)), 20);
 }
 
-TEST(gl_point, setters_change_one_coordinate_each)
+TEST(ui_point, zero_is_origin)
 {
-    lh_gl_point_t point;
+    lh_gl_point_t p;
 
-    lh_gl_point_init(lh_addr_of(point), 1, 2);
-    lh_gl_point_set_x(lh_addr_of(point), 10);
-    EXPECT_EQ(lh_gl_point_get_x(lh_addr_of(point)), 10);
-    EXPECT_EQ(lh_gl_point_get_y(lh_addr_of(point)), 2);
-    lh_gl_point_set_y(lh_addr_of(point), 20);
-    EXPECT_EQ(lh_gl_point_get_x(lh_addr_of(point)), 10);
-    EXPECT_EQ(lh_gl_point_get_y(lh_addr_of(point)), 20);
+    lh_gl_point_init_empty(lh_addr_of(p));
+    EXPECT_EQ(lh_gl_point_get_x(lh_addr_of(p)), 0);
+    EXPECT_EQ(lh_gl_point_get_y(lh_addr_of(p)), 0);
 }
 
-TEST(gl_point, eq_needs_both_coordinates)
+TEST(ui_point, setters)
+{
+    lh_gl_point_t p;
+
+    lh_gl_point_init_empty(lh_addr_of(p));
+    lh_gl_point_set_x(lh_addr_of(p), 1);
+    lh_gl_point_set_y(lh_addr_of(p), 2);
+    EXPECT_EQ(lh_gl_point_get_x(lh_addr_of(p)), 1);
+    EXPECT_EQ(lh_gl_point_get_y(lh_addr_of(p)), 2);
+}
+
+TEST(ui_point, eq)
 {
     lh_gl_point_t a;
 
-    lh_gl_point_init(lh_addr_of(a), 1, 8);
-    lh_gl_point_t same;
-
-    lh_gl_point_init(lh_addr_of(same), 1, 8);
-    lh_gl_point_t other_x;
-
-    lh_gl_point_init(lh_addr_of(other_x), 2, 8);
-    lh_gl_point_t other_y;
-
-    lh_gl_point_init(lh_addr_of(other_y), 1, 9);
-    EXPECT_EQ(lh_gl_point_eq(lh_addr_of(a), lh_addr_of(a)), lh_bool_true);
-    EXPECT_EQ(lh_gl_point_eq(lh_addr_of(a), lh_addr_of(same)), lh_bool_true);
-    EXPECT_EQ(lh_gl_point_eq(lh_addr_of(a), lh_addr_of(other_x)), lh_bool_false);
-    EXPECT_EQ(lh_gl_point_eq(lh_addr_of(a), lh_addr_of(other_y)), lh_bool_false);
-}
-
-TEST(gl_point, compare_suite_is_lexicographic)
-{
-    lh_gl_point_t a;
-
-    lh_gl_point_init(lh_addr_of(a), 1, 8);
+    lh_gl_point_init(lh_addr_of(a), 1, 2);
     lh_gl_point_t b;
 
-    lh_gl_point_init(lh_addr_of(b), 1, 9);
+    lh_gl_point_init(lh_addr_of(b), 1, 2);
     lh_gl_point_t c;
 
-    lh_gl_point_init(lh_addr_of(c), 2, 0);
-    EXPECT_EQ(lh_gl_point_is_less(lh_addr_of(a), lh_addr_of(b)), lh_bool_true);
-    EXPECT_EQ(lh_gl_point_is_less(lh_addr_of(a), lh_addr_of(c)), lh_bool_true);
-    EXPECT_EQ(lh_gl_point_is_less(lh_addr_of(c), lh_addr_of(a)), lh_bool_false);
-    EXPECT_EQ(lh_gl_point_is_less(lh_addr_of(a), lh_addr_of(a)), lh_bool_false);
-    EXPECT_EQ(lh_gl_point_is_greater(lh_addr_of(c), lh_addr_of(a)), lh_bool_true);
-    EXPECT_EQ(lh_gl_point_is_greater(lh_addr_of(a), lh_addr_of(c)), lh_bool_false);
-    EXPECT_EQ(lh_gl_point_is_greater(lh_addr_of(a), lh_addr_of(a)), lh_bool_false);
-    EXPECT_EQ(lh_gl_point_is_at_least(lh_addr_of(b), lh_addr_of(a)), lh_bool_true);
-    EXPECT_EQ(lh_gl_point_is_at_least(lh_addr_of(a), lh_addr_of(a)), lh_bool_true);
-    EXPECT_EQ(lh_gl_point_is_at_least(lh_addr_of(a), lh_addr_of(b)), lh_bool_false);
+    lh_gl_point_init(lh_addr_of(c), 1, 3);
+    EXPECT_TRUE(lh_gl_point_eq(lh_addr_of(a), lh_addr_of(b)));
+    EXPECT_FALSE(lh_gl_point_eq(lh_addr_of(a), lh_addr_of(c)));
 }
 
-TEST(gl_point, offset_translates_both_coordinates)
+TEST(ui_point, roundtrip_through_the_screen_point)
 {
-    lh_gl_point_t point;
+    lh_math_point_t pixel;
 
-    lh_gl_point_init(lh_addr_of(point), 10, 20);
-    const lh_gl_point_t moved = lh_test::out(lh_gl_point_offset, lh_addr_of(point), 3, -5);
-    EXPECT_EQ(lh_gl_point_get_x(lh_addr_of(moved)), 13);
-    EXPECT_EQ(lh_gl_point_get_y(lh_addr_of(moved)), 15);
-    EXPECT_EQ(lh_gl_point_get_x(lh_addr_of(point)), 10);
-    EXPECT_EQ(lh_gl_point_get_y(lh_addr_of(point)), 20);
+    lh_math_point_init(lh_addr_of(pixel), -8, 15);
+    lh_gl_point_t p;
+    lh_gl_point_from_point(pixel, lh_addr_of(p));
+    lh_math_point_t back;
+    lh_gl_point_to_point(p, lh_addr_of(back));
+    EXPECT_EQ(lh_math_point_get_x(lh_addr_of(back)), -8);
+    EXPECT_EQ(lh_math_point_get_y(lh_addr_of(back)), 15);
 }
 
-TEST(gl_point, offset_may_write_into_its_input)
+#if LH_LIBRARY_OPTION_MATH_FPU
+TEST(ui_point, to_point_truncates_toward_zero)
 {
-    lh_gl_point_t point;
+    lh_gl_point_t p;
 
-    lh_gl_point_init(lh_addr_of(point), 1, 2);
-    lh_gl_point_offset(lh_addr_of(point), 4, 5, lh_addr_of(point));
-    EXPECT_EQ(lh_gl_point_get_x(lh_addr_of(point)), 5);
-    EXPECT_EQ(lh_gl_point_get_y(lh_addr_of(point)), 7);
+    lh_gl_point_init(lh_addr_of(p), 3.9f, -3.9f);
+    lh_math_point_t pixel;
+    lh_gl_point_to_point(p, lh_addr_of(pixel));
+    EXPECT_EQ(lh_math_point_get_x(lh_addr_of(pixel)), 3);
+    EXPECT_EQ(lh_math_point_get_y(lh_addr_of(pixel)), -3);
 }
+#endif
 
-TEST(gl_point, min_max_are_component_wise)
-{
-    lh_gl_point_t a;
-
-    lh_gl_point_init(lh_addr_of(a), 1, 8);
-    lh_gl_point_t b;
-
-    lh_gl_point_init(lh_addr_of(b), 4, 2);
-    const lh_gl_point_t lo = lh_test::out(lh_gl_point_min, lh_addr_of(a), lh_addr_of(b));
-    const lh_gl_point_t hi = lh_test::out(lh_gl_point_max, lh_addr_of(a), lh_addr_of(b));
-    EXPECT_EQ(lh_gl_point_get_x(lh_addr_of(lo)), 1);
-    EXPECT_EQ(lh_gl_point_get_y(lh_addr_of(lo)), 2);
-    EXPECT_EQ(lh_gl_point_get_x(lh_addr_of(hi)), 4);
-    EXPECT_EQ(lh_gl_point_get_y(lh_addr_of(hi)), 8);
-}
-
-TEST(gl_point, min_max_may_write_into_an_input)
-{
-    lh_gl_point_t a;
-
-    lh_gl_point_init(lh_addr_of(a), 1, 8);
-    lh_gl_point_t b;
-
-    lh_gl_point_init(lh_addr_of(b), 4, 2);
-    lh_gl_point_min(lh_addr_of(a), lh_addr_of(b), lh_addr_of(a));
-    EXPECT_EQ(lh_gl_point_get_x(lh_addr_of(a)), 1);
-    EXPECT_EQ(lh_gl_point_get_y(lh_addr_of(a)), 2);
-    lh_gl_point_max(lh_addr_of(a), lh_addr_of(b), lh_addr_of(b));
-    EXPECT_EQ(lh_gl_point_get_x(lh_addr_of(b)), 4);
-    EXPECT_EQ(lh_gl_point_get_y(lh_addr_of(b)), 2);
-}
-
-TEST(gl_point_initializer, fills_x_then_y)
-{
-    const lh_gl_point_t value = lh_gl_point_initializer(3, 4);
-
-    EXPECT_EQ(lh_gl_point_get_x(lh_addr_of(value)), 3);
-    EXPECT_EQ(lh_gl_point_get_y(lh_addr_of(value)), 4);
-}
-
-} // namespace
+} /* namespace */

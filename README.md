@@ -10,7 +10,7 @@ A lightweight C utility library (headers + a small static library) with portable
 
 lh is written in C11 and builds as one static library from CMake. Beyond the
 core utilities it has an optional OS layer (files, directories, sockets, clock,
-windows) and an optional UI model (`lh/ui/`). Float math is opt-in
+windows) and an optional UI model (`lh/gl/`). Float math is opt-in
 (`LH_LIBRARY_OPTION_MATH_FPU`, default `OFF`). The same code targets a
 microcontroller with no OS (STM32F407 + ILI9341), a desktop window (Win32 GDI
 from Windows XP up, X11) and a browser — see [Usage](#usage).
@@ -207,7 +207,7 @@ guides by target — options, runtime wiring, display and UI:
 [microcontroller](docs/guides/usage-embedded.md), [desktop window](docs/guides/usage-desktop.md),
 [web host](docs/guides/usage-web.md).
 
-The subsystem guides: [UI model](docs/subsystems/ui.md),
+The subsystem guides: [UI model](docs/subsystems/gl.md),
 [modules and loaders](docs/subsystems/module-loader.md),
 [OS threads and synchronization](docs/subsystems/concurrency.md),
 [HTTP/1 head parser](docs/subsystems/http.md),
@@ -367,14 +367,14 @@ subsequent operation that requires a valid slice.
 
 ## UI
 
-`LH_LIBRARY_OPTION_UI` (default `OFF`; turn it on to use any of this) compiles
-the UI model under `lh/ui/`: color, paint, gradient, shadow, blur, style,
+`LH_LIBRARY_OPTION_GL` (default `OFF`; turn it on to use any of this) compiles
+the UI model under `lh/gl/`: color, paint, gradient, shadow, blur, style,
 transition, layout, canvas and the entity tree. It needs no OS; the host
 supplies where the pixels go.
 
-- **View** — `lh_ui_view_t` (`lh/ui/view.h`) binds an entity tree to a canvas,
-  draws it (`lh_ui_view_draw`), takes input (press / move / release / wheel /
-  key / text, or one `lh_os_input_event_t` through `lh_ui_view_input`) and
+- **View** — `lh_gl_view_t` (`lh/gl/view.h`) binds an entity tree to a canvas,
+  draws it (`lh_gl_view_draw`), takes input (press / move / release / wheel /
+  key / text, or one `lh_os_input_event_t` through `lh_gl_view_input`) and
   accumulates damage for partial redraw.
 - **Input** — `lh/os/input/` (no OS needed): one event type
   `lh_os_input_event_t` for pointer, wheel, key, text, controller and focus
@@ -383,19 +383,19 @@ supplies where the pixels go.
   `lh_os_input_recognizer_t` (click count, double click, long press, drag).
   A desktop window delivers its input to one sink
   (`lh_os_window_set_on_input`), the web host to its `input` hook.
-- **Canvas backends** — software, into a pixel buffer (`lh/ui/canvas/sw.h`);
+- **Canvas backends** — software, into a pixel buffer (`lh/gl/canvas/sw.h`);
   GDI, the same software renderer plus one `BitBlt` into a window
   (`lh/os/render/backend/gdi.h`); web, recording primitives as JSON
-  (`lh/ui/canvas/web.h`).
-- **Present sink** (`lh/ui/present/sink.h`) — shows an already drawn buffer
+  (`lh/gl/canvas/web.h`).
+- **Present sink** (`lh/gl/present/sink.h`) — shows an already drawn buffer
   on a TFT, a log or a second screen.
 - **Scalar mode** — `LH_LIBRARY_OPTION_MATH_FPU` picks the UI coordinate type
-  `lh_ui_scalar_t` (`lh/ui/scalar.h`): `OFF` uses integer `lh_math_scalar_t`,
+  `lh_gl_scalar_t` (`lh/gl/scalar.h`): `OFF` uses integer `lh_math_scalar_t`,
   `ON` uses float `lh_math_fscalar_t`.
-- **Font** — `LH_LIBRARY_OPTION_UI_FONT_ROBOTO` (default `ON`) bakes Roboto
+- **Font** — `LH_LIBRARY_OPTION_GL_FONT_ROBOTO` (default `ON`) bakes Roboto
   16 px, 4 bpp, Latin + Cyrillic; it also builds with UI `OFF`.
-- **Limits** — `LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS` (default `2`) and
-  `LH_LIBRARY_OPTION_UI_CANVAS_DEPTH` (default `8`, nested `lh_ui_canvas_push`
+- **Limits** — `LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS` (default `2`) and
+  `LH_LIBRARY_OPTION_GL_CANVAS_DEPTH` (default `8`, nested `lh_gl_canvas_push`
   levels).
 
 Frame times against LVGL on the same scenes are in

@@ -15,28 +15,28 @@ them is not the application code but **the set of `LH_LIBRARY_OPTION_*`** and
 ## 1. The model
 
 ```
-   application           lh/ui                          where pixels go
+   application           lh/gl                          where pixels go
  ┌────────────┐   ┌───────────────┐   ┌──────────────────────────────────────────┐
- │ entity     │──▶│ lh_ui_view_t  │──▶│ lh_ui_canvas_t + backend                 │
- │ tree       │   │ (draw, press, │   │  • lh_ui_canvas_backend_sw  → MCU pixmap │
+ │ entity     │──▶│ lh_gl_view_t  │──▶│ lh_gl_canvas_t + backend                 │
+ │ tree       │   │ (draw, press, │   │  • lh_gl_canvas_backend_sw  → MCU pixmap │
  │ (decl/CSS) │   │  key, wheel)  │   │  • lh_os_render_backend_gdi → window     │
- └────────────┘   └───────────────┘   │  • lh_ui_canvas_backend_web → JSON       │
+ └────────────┘   └───────────────┘   │  • lh_gl_canvas_backend_web → JSON       │
                                       └──────────────────────────────────────────┘
 ```
 
-- **`lh_ui_view_t`** (`lh/ui/view.h`) — an entity tree bound to a canvas. It
-  draws (`lh_ui_view_draw`), takes input (`press` / `move` / `release` /
+- **`lh_gl_view_t`** (`lh/gl/view.h`) — an entity tree bound to a canvas. It
+  draws (`lh_gl_view_draw`), takes input (`press` / `move` / `release` /
   `wheel` / `key` / `text`, or one `lh_os_input_event_t` through
-  `lh_ui_view_input`) and accumulates damage. It needs no OS.
+  `lh_gl_view_input`) and accumulates damage. It needs no OS.
 - **Input** (`lh/os/input/`) — one event type for every input, one sink, a
   ring queue and a gesture recognizer; also no OS. A desktop window hands its
   input to one sink (`lh_os_window_set_on_input`), the web host to its `input`
   hook, an MCU's touch driver builds the same events itself.
-- **`lh_ui_canvas_t`** + **backend** — *how* to draw. The software backend
+- **`lh_gl_canvas_t`** + **backend** — *how* to draw. The software backend
   writes into a pixel buffer; the GDI backend is that same software renderer
   plus one `BitBlt` into the window; the web backend records primitives as
   JSON.
-- **Present sink** (`lh/ui/present/sink.h`) — *where to show* a buffer that is
+- **Present sink** (`lh/gl/present/sink.h`) — *where to show* a buffer that is
   already drawn. Used where the application owns the buffer (MCU): a TFT, a
   log, a second screen.
 
@@ -78,13 +78,13 @@ directory comes **first**) and the system libraries of the OS layer
 |---|---|---|---|
 | `LH_LIBRARY_OPTION_OS` | **OFF** | ON | ON (sockets) |
 | `LH_LIBRARY_OPTION_OS_WINDOW` | **OFF** | ON | not needed¹ |
-| `LH_LIBRARY_OPTION_UI` | **ON** | **ON** | **ON** |
-| `LH_LIBRARY_OPTION_UI_FONT_ROBOTO` | ON | ON | ON |
+| `LH_LIBRARY_OPTION_GL` | **ON** | **ON** | **ON** |
+| `LH_LIBRARY_OPTION_GL_FONT_ROBOTO` | ON | ON | ON |
 | `LH_LIBRARY_OPTION_THREAD_LOCAL` | **OFF** | ON | ON |
 | `LH_LIBRARY_OPTION_LTO` | **OFF** | FAT (default) | FAT |
 | `LH_POSITION_INDEPENDENT_CODE` | **OFF** | ON | ON |
 
-¹ The web host (`lh/ui/web/host.h`) does not need a window, but configurator
+¹ The web host (`lh/gl/web/host.h`) does not need a window, but configurator
 builds both targets from one build tree, so the window is on there anyway.
 
 Everything turned off in the MCU column **must be wired by the host**: the

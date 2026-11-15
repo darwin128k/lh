@@ -5,7 +5,7 @@
  * The one thing every input source produces and every consumer reads: a
  * window backend (::lh_os_window_set_on_input), the web host, a
  * microcontroller driver, ::lh_os_input_queue_t, ::lh_os_input_recognizer_t
- * and ::lh_ui_view_input. Plain data — no pointers, no heap — so it can be
+ * and ::lh_gl_view_input. Plain data — no pointers, no heap — so it can be
  * copied into a queue from an interrupt. Read it only through the accessors.
  *
  * Needs no ::LH_LIBRARY_OPTION_OS.

@@ -1,18 +1,27 @@
 /**
  * @file fields.h
- * @brief Storage fields of a surface; the surface owns no layer memory.
+ * @brief Member fields of ::lh_gl_surface_t.
  */
 
 #ifndef LH_GL_SURFACE_FIELDS_H
 #define LH_GL_SURFACE_FIELDS_H
 
-#include <lh/config.h>
-
-/** @brief Size, borrowed root, fixed dirty rectangles and their count. */
-#define lh_gl_surface_fields(size_type, layer_type, rect_type, count_type)                         \
+/**
+ * @def lh_gl_surface_fields(size_type, format_type, handle_type)
+ * @brief Pixel size, pixel format, and the OS surface handle (not a second DC
+ *        bolted on).
+ *
+ * @param size_type   ::lh_gl_size_t.
+ * @param format_type ::lh_gl_pixmap_format_t.
+ * @param handle_type ::lh_os_system_surface_handle_t.
+ *
+ * Size and format are one property of the same buffer — asking for the pixels of
+ * one size in another format is the same buffer twice over — so they are asked for
+ * together and kept in that order.
+ */
+#define lh_gl_surface_fields(size_type, format_type, handle_type)                                  \
     size_type size;                                                                                \
-    layer_type *root;                                                                              \
-    rect_type dirty[LH_LIBRARY_OPTION_GL_SURFACE_DIRTY_MAX];                                       \
-    count_type dirty_count
+    format_type format;                                                                            \
+    handle_type handle
 
 #endif /* LH_GL_SURFACE_FIELDS_H */

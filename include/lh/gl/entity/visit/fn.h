@@ -1,0 +1,29 @@
+/**
+ * @file fn.h
+ * @brief What ::lh_gl_entity_walk calls for each entity.
+ *
+ * Not a pointer type by itself. ::lh_gl_entity_visit_cb is the pointer.
+ */
+
+#ifndef LH_GL_ENTITY_VISIT_FN_H
+#define LH_GL_ENTITY_VISIT_FN_H
+
+#include <lh/core/bool.h>
+#include <lh/core/compiler/extern/c.h>
+#include <lh/core/ptr.h>
+
+struct lh_gl_entity;
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @typedef lh_gl_entity_visit_fn
+ * @brief Function type called with one entity and the walk context.
+ *
+ * Return ::lh_bool_true to go on, ::lh_bool_false to stop the whole walk.
+ */
+typedef lh_bool_t(lh_gl_entity_visit_fn)(const struct lh_gl_entity *entity, lh_ptr context);
+
+LH_COMPILER_EXTERN_C_END
+
+#endif /* LH_GL_ENTITY_VISIT_FN_H */

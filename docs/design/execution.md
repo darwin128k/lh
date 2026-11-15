@@ -24,7 +24,7 @@ Execution has no home of its own. It is spread over:
 | `lh/os/worker.h` | a serial job queue on a loop: `work` on the thread, `complete` taken by one owner thread |
 | `lh/os/logger/queue.h` | its own record queue (`lh_spsc_t`) on a loop |
 | `lh/os/thread/group.h` | threads that belong to one owner and stop together |
-| `lh/ui/web/host.c` | its own waiting: each request read in a blocking loop with its own timeouts over `lh_os_net_*` and `lh_os_tick_*` |
+| `lh/gl/web/host.c` | its own waiting: each request read in a blocking loop with its own timeouts over `lh_os_net_*` and `lh_os_tick_*` |
 | Authum `host/tasks.c`, `api/sql/thread.c` | their own task type over `lh_os_worker_t`; a new database connection per query |
 
 Each one invents "what to do, what to call when done, how to clean up" and
@@ -278,11 +278,11 @@ and committed by the owner before the next.
      with a timeout, `_try_abandon` (the thread frees the step's state through
      a release call when it ends), `_try_reap` (frees the loop, never waits) —
      and Authum's hand-made copy (link, stop state, grace period) is gone;
-   - 6c (done): the web host is an `lh_ui_web_host_t` on an `lh_rail_loop_t`
+   - 6c (done): the web host is an `lh_gl_web_host_t` on an `lh_rail_loop_t`
      with one poll of the listener, the wake signal, the websocket clients and
-     the HTTP connections; each connection (`lh_ui_web_host_conn_t`) advances a
+     the HTTP connections; each connection (`lh_gl_web_host_conn_t`) advances a
      step when readable, and a streaming route's handler is called again as its
-     body arrives (`lh_ui_web_host_pipe_t`: a socket gate, the resumable
+     body arrives (`lh_gl_web_host_pipe_t`: a socket gate, the resumable
      decoders, a tap that tells why the handler stopped). The blocking bricks
      drive one socket with the same pieces. The thread executor stays off the
      loop: nothing it runs waits for sockets (owner, 2026-11-04).

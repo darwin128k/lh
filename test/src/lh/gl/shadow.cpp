@@ -1,156 +1,253 @@
 #include <gtest/gtest.h>
 
-#include <lh/core/memory/std.h>
-#include <lh/core/util/addr.h>
-#include <lh/gl/canvas.h>
-#include <lh/gl/layer.h>
-#include <lh/gl/pixmap.h>
-#include <lh/gl/shadow/fill.h>
+#include <lh/gl/shadow/ramp.h>
+#include <lh/test/out.h>
+#include <lh/gl/shadow/initializer.h>
 
 namespace
 {
 
-lh_gl_rect_t
-rect_of(lh_gl_scalar_t x, lh_gl_scalar_t y, lh_gl_scalar_t width, lh_gl_scalar_t height)
+/* A shadow of @p shadow over the 40 x 40 box at (20, 20), and the shadow's
+   strength at one point of it. */
+lh_byte_t
+alpha_at(const lh_gl_shadow_t *shadow, lh_gl_scalar_t x, lh_gl_scalar_t y)
 {
     lh_gl_rect_t rect;
 
-    lh_gl_rect_init(lh_addr_of(rect), x, y, width, height);
-    return rect;
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(20), lh_gl_scalar(20), lh_gl_scalar(40), lh_gl_scalar(40));
+    return lh_gl_shadow_alpha_at(shadow, x, y, lh_addr_of(rect), lh_gl_scalar(0));
 }
 
-TEST(gl_shadow, inside_the_box_is_clear_and_the_edge_fades)
+TEST(ui_shadow, a_fresh_one_paints_nothing)
 {
     lh_gl_shadow_t shadow;
+
     lh_gl_shadow_init(lh_addr_of(shadow));
-    lh_gl_color_t color;
-    lh_gl_color_init(lh_addr_of(color), 0, 0, 0, 255);
-    lh_gl_shadow_set_color(lh_addr_of(shadow), lh_addr_of(color));
-    lh_gl_shadow_set_spread(lh_addr_of(shadow), 2);
-    lh_gl_rect_t box = rect_of(0, 0, 4, 4);
-    EXPECT_EQ(lh_gl_shadow_alpha_at(lh_addr_of(shadow), 1, 1, lh_addr_of(box), 0), 0);
-    EXPECT_EQ(lh_gl_shadow_alpha_at(lh_addr_of(shadow), 4, 2, lh_addr_of(box), 0), 127);
-    EXPECT_EQ(lh_gl_shadow_alpha_at(lh_addr_of(shadow), 5, 2, lh_addr_of(box), 0), 63);
-    EXPECT_EQ(lh_gl_shadow_alpha_at(lh_addr_of(shadow), 6, 2, lh_addr_of(box), 0), 0);
-    lh_gl_shadow_set_offset(lh_addr_of(shadow), 2, 0);
-    EXPECT_EQ(lh_gl_shadow_alpha_at(lh_addr_of(shadow), 0, 1, lh_addr_of(box), 0), 0);
-    EXPECT_EQ(lh_gl_shadow_alpha_at(lh_addr_of(shadow), 5, 1, lh_addr_of(box), 0), 191);
-    lh_gl_shadow_set_offset(lh_addr_of(shadow), 0, 0);
-    EXPECT_EQ(lh_gl_shadow_alpha_at(lh_addr_of(shadow), 1, 1, lh_addr_of(box), 2), 0);
-    EXPECT_EQ(lh_gl_shadow_alpha_at(lh_addr_of(shadow), 0, 0, lh_addr_of(box), 2), 127);
+    lh_gl_rect_t rect;
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(20), lh_gl_scalar(20), lh_gl_scalar(40), lh_gl_scalar(40));
+    EXPECT_EQ(lh_test::out(lh_gl_shadow_copy_color, lh_addr_of(shadow)).a, 0);
+    EXPECT_EQ(lh_gl_shadow_get_spread(lh_addr_of(shadow)), 0);
+    EXPECT_EQ(lh_gl_shadow_get_outset(lh_addr_of(shadow), lh_addr_of(rect)), 0);
+    EXPECT_EQ(alpha_at(lh_addr_of(shadow), lh_gl_scalar(18), lh_gl_scalar(40)), 0);
+    EXPECT_TRUE(lh_gl_shadow_is_empty(lh_addr_of(shadow)));
 }
 
-TEST(gl_shadow, row_outside_is_the_distance)
+/* The question a caller draws every frame asks first. It has to be the same
+   answer ::lh_gl_canvas_shadow gives — which is why a style with no shadow costs
+   one call and not a rectangle of measurements. */
+TEST(ui_shadow, empty_means_no_peak_or_no_fade)
 {
-    const lh_gl_scalar_t center_x = 48;
-    const lh_gl_scalar_t center_y = 45;
-    const lh_gl_scalar_t half_width = 36;
-    const lh_gl_scalar_t half_height = 33;
-    const lh_gl_scalar_t corner = 8;
-    const lh_gl_scalar_t width = 96;
+    lh_gl_rect_t rect;
 
-    for (lh_gl_scalar_t y = 0; y < 94; ++y)
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(20), lh_gl_scalar(20), lh_gl_scalar(40), lh_gl_scalar(40));
+    lh_gl_shadow_t shadow;
+    lh_gl_shadow_init(lh_addr_of(shadow));
+
+    lh_gl_shadow_set_color(lh_addr_of(shadow), lh_gl_color_t{0, 0, 0, 200});
+    EXPECT_TRUE(lh_gl_shadow_is_empty(lh_addr_of(shadow))) << "a colour with no fade paints nothing";
+    lh_gl_shadow_set_spread_v(lh_addr_of(shadow), lh_gl_scalar(8));
+    EXPECT_FALSE(lh_gl_shadow_is_empty(lh_addr_of(shadow)));
+
+    lh_gl_shadow_set_color(lh_addr_of(shadow), lh_gl_color_t{0, 0, 0, 0});
+    EXPECT_TRUE(lh_gl_shadow_is_empty(lh_addr_of(shadow))) << "a fade with no peak paints nothing";
+}
+
+TEST(ui_shadow, nothing_is_painted_inside_the_box)
+{
+    lh_gl_shadow_t shadow;
+
+    lh_gl_shadow_init(lh_addr_of(shadow));
+    lh_gl_shadow_set_color(lh_addr_of(shadow), lh_gl_color_t{0, 0, 0, 200});
+    lh_gl_shadow_set_spread_v(lh_addr_of(shadow), lh_gl_scalar(8));
+
+    /* The fill owns these pixels, so a shadow under it would only ever darken
+       the thing it is supposed to be standing behind. */
+    EXPECT_EQ(alpha_at(lh_addr_of(shadow), lh_gl_scalar(20), lh_gl_scalar(20)), 0);
+    EXPECT_EQ(alpha_at(lh_addr_of(shadow), lh_gl_scalar(59), lh_gl_scalar(59)), 0);
+    EXPECT_EQ(alpha_at(lh_addr_of(shadow), lh_gl_scalar(40), lh_gl_scalar(40)), 0);
+
+    /* And the column and the row just past the box are NOT the fill's: a square
+       box is half-open, so they carry the shadow. Treating them as inside is what
+       leaves a bright line between a box and the shadow under it. */
+    EXPECT_GT(alpha_at(lh_addr_of(shadow), lh_gl_scalar(60), lh_gl_scalar(40)), 0);
+    EXPECT_GT(alpha_at(lh_addr_of(shadow), lh_gl_scalar(40), lh_gl_scalar(60)), 0);
+}
+
+TEST(ui_shadow, it_fades_outwards_and_stops_one_spread_past_the_edge)
+{
+    lh_gl_shadow_t shadow;
+
+    lh_gl_shadow_init(lh_addr_of(shadow));
+    lh_gl_shadow_set_color(lh_addr_of(shadow), lh_gl_color_t{0, 0, 0, 200});
+    lh_gl_shadow_set_spread_v(lh_addr_of(shadow), lh_gl_scalar(8));
+
+    /* Just outside the edge is the strongest, and each pixel further is weaker. */
+    EXPECT_GT(alpha_at(lh_addr_of(shadow), lh_gl_scalar(19), lh_gl_scalar(40)), 0);
+    EXPECT_GE(alpha_at(lh_addr_of(shadow), lh_gl_scalar(19), lh_gl_scalar(40)),
+              alpha_at(lh_addr_of(shadow), lh_gl_scalar(17), lh_gl_scalar(40)));
+    EXPECT_GE(alpha_at(lh_addr_of(shadow), lh_gl_scalar(17), lh_gl_scalar(40)),
+              alpha_at(lh_addr_of(shadow), lh_gl_scalar(15), lh_gl_scalar(40)));
+    /* One spread past the edge is where it ends, and the pixel inside that still
+       carries something. */
+    EXPECT_GT(alpha_at(lh_addr_of(shadow), lh_gl_scalar(13), lh_gl_scalar(40)), 0);
+    EXPECT_EQ(alpha_at(lh_addr_of(shadow), lh_gl_scalar(12), lh_gl_scalar(40)), 0);
+}
+
+TEST(ui_shadow, the_colour_alpha_is_the_peak)
+{
+    lh_gl_shadow_t shadow;
+
+    lh_gl_shadow_init(lh_addr_of(shadow));
+    lh_gl_shadow_set_color(lh_addr_of(shadow), lh_gl_color_t{0, 0, 0, 128});
+    lh_gl_shadow_set_spread_v(lh_addr_of(shadow), lh_gl_scalar(8));
+
+    /* Half the alpha in the colour, half the shadow everywhere. */
+    EXPECT_LE(alpha_at(lh_addr_of(shadow), lh_gl_scalar(19), lh_gl_scalar(40)), 128);
+}
+
+TEST(ui_shadow, an_offset_moves_the_whole_fade)
+{
+    lh_gl_shadow_t shadow;
+
+    lh_gl_shadow_init(lh_addr_of(shadow));
+    lh_gl_shadow_set_color(lh_addr_of(shadow), lh_gl_color_t{0, 0, 0, 255});
+    lh_gl_shadow_set_spread_v(lh_addr_of(shadow), lh_gl_scalar(6));
+    lh_gl_shadow_set_offset(lh_addr_of(shadow), lh_gl_scalar(5), lh_gl_scalar(0));
+
+    EXPECT_EQ(lh_gl_shadow_get_offset_x(lh_addr_of(shadow)), 5);
+    EXPECT_EQ(lh_gl_shadow_get_offset_y(lh_addr_of(shadow)), 0);
+
+    /* Light from the left: the shadow lies to the right of the box, so the left
+       side is already past the fade while the right side is still under it. */
+    lh_s32_t untouched_side = alpha_at(lh_addr_of(shadow), lh_gl_scalar(14), lh_gl_scalar(40));
+    EXPECT_EQ(untouched_side, 0);
+    EXPECT_GT(alpha_at(lh_addr_of(shadow), lh_gl_scalar(64), lh_gl_scalar(40)), 0);
+
+    lh_gl_rect_t rect;
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(20), lh_gl_scalar(20), lh_gl_scalar(40), lh_gl_scalar(40));
+    EXPECT_EQ(lh_gl_shadow_get_outset(lh_addr_of(shadow), lh_addr_of(rect)), 11);
+}
+
+TEST(ui_shadow, the_outset_leaves_room_for_the_fade_and_the_shift)
+{
+    lh_gl_rect_t rect;
+
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(20), lh_gl_scalar(20), lh_gl_scalar(40), lh_gl_scalar(40));
+    lh_gl_shadow_t shadow;
+    lh_gl_shadow_init(lh_addr_of(shadow));
+    lh_gl_shadow_set_color(lh_addr_of(shadow), lh_gl_color_t{0, 0, 0, 255});
+    lh_gl_shadow_set_spread_v(lh_addr_of(shadow), lh_gl_scalar(8));
+    EXPECT_EQ(lh_gl_shadow_get_outset(lh_addr_of(shadow), lh_addr_of(rect)), 8);
+
+    lh_gl_shadow_set_offset(lh_addr_of(shadow), lh_gl_scalar(-4), lh_gl_scalar(3));
+    /* The bigger of the two shifts, not their sum: the shadow moves along one
+       axis, and the spread rides along with it. */
+    EXPECT_EQ(lh_gl_shadow_get_outset(lh_addr_of(shadow), lh_addr_of(rect)), 12);
+}
+
+TEST(ui_shadow, the_distance_is_negative_inside_and_zero_on_the_edge)
+{
+    lh_gl_rect_t rect;
+
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(10), lh_gl_scalar(10), lh_gl_scalar(30), lh_gl_scalar(30));
+    EXPECT_LT(lh_gl_shadow_distance(lh_gl_scalar(25), lh_gl_scalar(25), lh_addr_of(rect), lh_gl_scalar(0)), 0);
+    EXPECT_GT(lh_gl_shadow_distance(lh_gl_scalar(5), lh_gl_scalar(25), lh_addr_of(rect), lh_gl_scalar(0)), 0);
+    EXPECT_EQ(lh_gl_shadow_distance(lh_gl_scalar(10), lh_gl_scalar(25), lh_addr_of(rect), lh_gl_scalar(0)), 0);
+}
+
+TEST(ui_shadow, the_falloff_runs_from_the_peak_to_nothing)
+{
+    /* The fade is `spread` wide on each side of the edge and the peak sits at the
+       far end of that, so a shadow a spread inside the box is as strong as the
+       colour allows and one a spread outside is gone. */
+    EXPECT_EQ(lh_gl_shadow_falloff(-8, lh_gl_scalar(8), 200), 200);
+    EXPECT_GT(lh_gl_shadow_falloff(-8, lh_gl_scalar(8), 200), lh_gl_shadow_falloff(0, lh_gl_scalar(8), 200));
+    EXPECT_EQ(lh_gl_shadow_falloff(8, lh_gl_scalar(8), 200), 0);
+    EXPECT_GT(lh_gl_shadow_falloff(0, lh_gl_scalar(8), 200), 0);
+    EXPECT_LT(lh_gl_shadow_falloff(0, lh_gl_scalar(8), 200), 200);
+    EXPECT_EQ(lh_gl_shadow_falloff(0, lh_gl_scalar(0), 200), 0);
+    EXPECT_EQ(lh_gl_shadow_falloff(-4, lh_gl_scalar(8), 0), 0);
+}
+
+TEST(ui_shadow, an_offset_moves_the_pixels_it_paints)
+{
+    lh_gl_shadow_t shadow;
+
+    /* The same distance out from either side of the box: without the offset the
+       two pixels are as dark as each other. The offset was once handed back by
+       ::lh_gl_rect_offset and dropped, and every shadow sat square under its box. */
+    lh_gl_shadow_init(lh_addr_of(shadow));
+    lh_gl_shadow_set_color(lh_addr_of(shadow), lh_gl_color_t{0, 0, 0, 255});
+    lh_gl_shadow_set_spread_v(lh_addr_of(shadow), lh_gl_scalar(6));
+    lh_gl_rect_t rect;
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(20), lh_gl_scalar(20), lh_gl_scalar(40), lh_gl_scalar(40));
+    EXPECT_EQ(lh_gl_shadow_alpha_at_pixel(lh_addr_of(shadow), 17, 40, lh_addr_of(rect), lh_gl_scalar(0)),
+              lh_gl_shadow_alpha_at_pixel(lh_addr_of(shadow), 62, 40, lh_addr_of(rect), lh_gl_scalar(0)));
+
+    lh_gl_shadow_set_offset(lh_addr_of(shadow), lh_gl_scalar(3), lh_gl_scalar(0));
+    EXPECT_LT(lh_gl_shadow_alpha_at_pixel(lh_addr_of(shadow), 17, 40, lh_addr_of(rect), lh_gl_scalar(0)),
+              lh_gl_shadow_alpha_at_pixel(lh_addr_of(shadow), 62, 40, lh_addr_of(rect), lh_gl_scalar(0)));
+}
+
+TEST(ui_shadow, a_span_reads_the_same_alphas_as_each_pixel)
+{
+    static const lh_s32_t spreads[] = {1, 3, 6, 12, 25};
+    static const lh_s32_t radii[] = {0, 2, 8, 30};
+    static const lh_byte_t peaks[] = {1, 77, 128, 255};
+    static const lh_s32_t offsets[] = {-5, 0, 4};
+
+    /* A corner's alpha comes off the ramp's thresholds instead of a square root;
+       across shapes, fades and peaks it has to be the root's to the last alpha. */
+    for (lh_s32_t spread : spreads)
     {
-        lh_gl_scalar_t down = y >= center_y ? y - center_y : center_y - y;
-        lh_gl_scalar_t dy = down - (half_height - corner);
-        lh_gl_scalar_t left_end = 0;
-        lh_gl_scalar_t right_begin = 0;
-
-        lh_gl_shadow_row_outside(center_x, half_width, dy, corner, width, lh_addr_of(left_end),
-                                 lh_addr_of(right_begin));
-        for (lh_gl_scalar_t x = 0; x < width; ++x)
+        for (lh_s32_t radius : radii)
         {
-            lh_bool_t outside =
-                lh_gl_shadow_distance_at(x, y, center_x, center_y, half_width, half_height,
-                                         corner) >= 0
-                    ? lh_bool_true
-                    : lh_bool_false;
-            lh_bool_t covered = (x < left_end || x >= right_begin) ? lh_bool_true : lh_bool_false;
+            for (lh_byte_t peak : peaks)
+            {
+                for (lh_s32_t offset : offsets)
+                {
+                    lh_gl_shadow_t shadow;
+                    lh_gl_rect_t rect;
+                    lh_gl_shadow_shape_t shape;
+                    lh_gl_shadow_ramp_t ramp;
+                    lh_byte_t row[120];
 
-            EXPECT_EQ(covered, outside);
+                    lh_gl_shadow_init(lh_addr_of(shadow));
+                    lh_gl_shadow_set_color(lh_addr_of(shadow), lh_gl_color_t{0, 0, 0, peak});
+                    lh_gl_shadow_set_spread_v(lh_addr_of(shadow), lh_gl_scalar_of(spread));
+                    lh_gl_shadow_set_offset(lh_addr_of(shadow), lh_gl_scalar_of(offset), lh_gl_scalar_of(-offset));
+                    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(35), lh_gl_scalar(35), lh_gl_scalar(51),
+                                    lh_gl_scalar(37));
+                    lh_gl_shadow_shape_init(lh_addr_of(shape), lh_addr_of(shadow), lh_addr_of(rect),
+                                            lh_gl_scalar_of(radius));
+                    lh_gl_shadow_ramp_init(lh_addr_of(ramp), lh_addr_of(shape));
+                    for (lh_s32_t y = 0; y < 110; ++y)
+                    {
+                        lh_gl_shadow_shape_span(lh_addr_of(shape), lh_addr_of(ramp), y, 0, 120, row);
+                        for (lh_s32_t x = 0; x < 120; ++x)
+                        {
+                            ASSERT_EQ(row[x], lh_gl_shadow_alpha_at_pixel(lh_addr_of(shadow), x, y, lh_addr_of(rect),
+                                                                          lh_gl_scalar_of(radius)))
+                                << "spread " << spread << " radius " << radius << " peak " << int(peak)
+                                << " offset " << offset << " at " << x << "," << y;
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
-TEST(gl_shadow_fill, paints_the_fade_and_leaves_the_box)
+TEST(ui_shadow_initializer, fills_color_spread_and_offset)
 {
-    lh_gl_color_t pixels[64];
-    lh_memory_std_set(pixels, 0, sizeof pixels);
-    lh_gl_size_t size;
-    lh_gl_size_init(lh_addr_of(size), 8, 8);
-    lh_gl_pixmap_t pixmap;
-    lh_gl_pixmap_init(lh_addr_of(pixmap), pixels, size);
-    lh_gl_point_t origin;
-    lh_gl_point_init(lh_addr_of(origin), 0, 0);
-    lh_gl_canvas_t canvas;
-    lh_gl_canvas_init(lh_addr_of(canvas));
-    lh_gl_canvas_set_target(lh_addr_of(canvas), lh_addr_of(pixmap));
-    lh_gl_canvas_set_backend(lh_addr_of(canvas), lh_gl_pixmap_get_canvas_backend());
-    lh_gl_layer_t layer;
-    lh_gl_layer_init(lh_addr_of(layer), rect_of(0, 0, 8, 8));
-    lh_gl_shadow_t shadow;
-    lh_gl_shadow_init(lh_addr_of(shadow));
-    lh_gl_color_t color;
-    lh_gl_color_init(lh_addr_of(color), 0, 0, 0, 255);
-    lh_gl_shadow_set_color(lh_addr_of(shadow), lh_addr_of(color));
-    lh_gl_shadow_set_spread(lh_addr_of(shadow), 2);
-    lh_gl_shadow_fill_t fill;
-    lh_gl_shadow_fill_init(lh_addr_of(fill), rect_of(3, 3, 2, 2), lh_addr_of(shadow));
-    lh_gl_layer_add(lh_addr_of(layer), lh_gl_shadow_fill_get_entity_mut(lh_addr_of(fill)));
-    lh_gl_rect_t clip = rect_of(0, 0, 8, 8);
-    lh_gl_layer_draw(lh_addr_of(layer), lh_addr_of(canvas), lh_addr_of(clip));
-    EXPECT_EQ(lh_gl_color_get_a(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 3, 3)), 0);
-    EXPECT_EQ(lh_gl_color_get_a(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 2, 3)), 63);
-    EXPECT_FALSE(lh_gl_entity_class_get_opaque(lh_gl_shadow_fill_get_class()));
-    lh_gl_layer_deinit(lh_addr_of(layer));
-}
+    const lh_gl_shadow_t shadow =
+        lh_gl_shadow_initializer(lh_initializer(0x10, 0x20, 0x30, 0x40), 8, 1, 2);
 
-TEST(gl_shadow_fill, a_shifted_round_box_matches_the_distance)
-{
-    lh_gl_color_t pixels[120 * 120];
-    lh_memory_std_set(pixels, 0, sizeof pixels);
-    lh_gl_size_t size;
-    lh_gl_size_init(lh_addr_of(size), 120, 120);
-    lh_gl_pixmap_t pixmap;
-    lh_gl_pixmap_init(lh_addr_of(pixmap), pixels, size);
-    lh_gl_point_t origin;
-    lh_gl_point_init(lh_addr_of(origin), 0, 0);
-    lh_gl_canvas_t canvas;
-    lh_gl_canvas_init(lh_addr_of(canvas));
-    lh_gl_canvas_set_target(lh_addr_of(canvas), lh_addr_of(pixmap));
-    lh_gl_canvas_set_backend(lh_addr_of(canvas), lh_gl_pixmap_get_canvas_backend());
-    lh_gl_layer_t layer;
-    lh_gl_layer_init(lh_addr_of(layer), rect_of(0, 0, 120, 120));
-    lh_gl_shadow_t shadow;
-    lh_gl_shadow_init(lh_addr_of(shadow));
-    lh_gl_color_t color;
-    lh_gl_color_init(lh_addr_of(color), 0, 0, 0, 128);
-    lh_gl_shadow_set_color(lh_addr_of(shadow), lh_addr_of(color));
-    lh_gl_shadow_set_spread(lh_addr_of(shadow), 12);
-    lh_gl_shadow_set_offset(lh_addr_of(shadow), 0, 4);
-    lh_gl_rect_t box = rect_of(16, 16, 72, 66);
-    lh_gl_shadow_fill_t fill;
-    lh_gl_shadow_fill_init(lh_addr_of(fill), box, lh_addr_of(shadow));
-    lh_gl_shadow_fill_set_radius(lh_addr_of(fill), 8);
-    lh_gl_layer_add(lh_addr_of(layer), lh_gl_shadow_fill_get_entity_mut(lh_addr_of(fill)));
-    lh_gl_rect_t clip = rect_of(0, 0, 120, 120);
-    lh_gl_layer_draw(lh_addr_of(layer), lh_addr_of(canvas), lh_addr_of(clip));
-    const lh_gl_rect_t *area =
-        lh_gl_entity_get_rect(lh_gl_shadow_fill_get_entity(lh_addr_of(fill)));
-    lh_gl_scalar_t x0 = lh_gl_point_get_x(lh_gl_rect_get_origin(area));
-    lh_gl_scalar_t y0 = lh_gl_point_get_y(lh_gl_rect_get_origin(area));
-    lh_gl_scalar_t x1 = x0 + lh_gl_size_get_width(lh_gl_rect_get_size(area));
-    lh_gl_scalar_t y1 = y0 + lh_gl_size_get_height(lh_gl_rect_get_size(area));
-
-    for (lh_gl_scalar_t y = y0; y < y1; ++y)
-    {
-        for (lh_gl_scalar_t x = x0; x < x1; ++x)
-        {
-            EXPECT_EQ(lh_gl_color_get_a(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), x, y)),
-                      lh_gl_shadow_alpha_at(lh_addr_of(shadow), x, y, lh_addr_of(box), 8));
-        }
-    }
-    lh_gl_layer_deinit(lh_addr_of(layer));
+    EXPECT_EQ(shadow.color.r, 0x10);
+    EXPECT_EQ(shadow.color.a, 0x40);
+    EXPECT_EQ(shadow.spread, lh_gl_scalar(8));
+    EXPECT_EQ(shadow.offset_x, lh_gl_scalar(1));
+    EXPECT_EQ(shadow.offset_y, lh_gl_scalar(2));
 }
 
 } // namespace

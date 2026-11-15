@@ -6,4 +6,4 @@ target_link_libraries(lh_example_window_stats PRIVATE lh)
 
 # window_stats.c renders its own status line via Win32 GDI directly; it does not
 # need any extra UI source on top of the core library, so the target stays the
-# same size whatever LH_LIBRARY_OPTION_UI is set to.
+# same size whatever LH_LIBRARY_OPTION_GL is set to.

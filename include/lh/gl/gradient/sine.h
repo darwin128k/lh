@@ -1,9 +1,7 @@
 /**
  * @file sine.h
- * @brief Sine of a whole number of degrees, times 4096.
- *
- * A linear gradient is laid along this. Whole degrees are the angles a sheet
- * writes, and the table is the same on a build with no FPU.
+ * @brief ::lh_gl_gradient_sine: the sine a linear gradient is laid along, in whole
+ *        numbers.
  */
 
 #ifndef LH_GL_GRADIENT_SINE_H
@@ -15,10 +13,11 @@
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief sin(@p degrees) times 4096.
+ * @brief sin(@p degrees) times 4096, for any whole number of degrees.
  *
- * @p degrees may be any whole number. The result is negative in the third and
- * fourth quadrants.
+ * Whole degrees are all the angles a sheet writes in practice, and a table is the
+ * same on a build with no FPU. ::lh_gl_gradient_frac_at and
+ * ::lh_gl_gradient_sampler_t both lay a gradient along it, so they cannot disagree.
  */
 lh_s32_t
 lh_gl_gradient_sine(lh_s32_t degrees);

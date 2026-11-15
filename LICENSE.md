@@ -32,7 +32,7 @@ which remains under its own license.
 - License: Apache License, Version 2.0 (see `licenses/Apache-2.0.txt`,
   or https://www.apache.org/licenses/LICENSE-2.0)
 - File: `fonts/Roboto-Regular.ttf`
-- Used by: `src/lh/ui/font/roboto.c` (glyph bitmaps generated from the font by
+- Used by: `src/lh/gl/font/roboto.c` (glyph bitmaps generated from the font by
   `scripts/font.py` and compiled into the library)
 
 ### Unicode Character Database

@@ -11,8 +11,8 @@
 
 #include <lh/os/system/window.h>
 #include <lh/os/tick.h>
-#if LH_LIBRARY_OPTION_UI
-#    include <lh/ui/frame/stats.h>
+#if LH_LIBRARY_OPTION_GL
+#    include <lh/gl/frame/stats.h>
 #endif
 
 lh_void
@@ -188,13 +188,13 @@ lh_os_window_set_on_paint(lh_os_window_t *self, lh_os_window_on_paint_cb on_pain
 }
 
 lh_void
-lh_os_window_set_frame_stats(lh_os_window_t *self, struct lh_ui_frame_stats *stats)
+lh_os_window_set_frame_stats(lh_os_window_t *self, struct lh_gl_frame_stats *stats)
 {
     lh_assert_runtime_ref(self);
     self->frame_stats = stats;
 }
 
-struct lh_ui_frame_stats *
+struct lh_gl_frame_stats *
 lh_os_window_get_frame_stats(const lh_os_window_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -482,8 +482,8 @@ lh_void
 lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr paint_dc, int left, int top, int right,
                              int bottom)
 {
-#if LH_LIBRARY_OPTION_UI
-    lh_ui_frame_t frame;
+#if LH_LIBRARY_OPTION_GL
+    lh_gl_frame_t frame;
     lh_u64_t started_us = 0U;
 #endif
 
@@ -494,7 +494,7 @@ lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr paint_dc, int left, in
     lh_os_window_set_paint_bottom(self, bottom);
     lh_os_window_on_paint_cb on_paint = lh_os_window_get_on_paint_fn(self);
     lh_ptr on_paint_context = lh_os_window_get_on_paint_context(self);
-#if LH_LIBRARY_OPTION_UI
+#if LH_LIBRARY_OPTION_GL
     if (lh_null_ne(lh_os_window_get_frame_stats(self)))
     {
         /* The request is read before the paint, off the DC the paint is about to draw
@@ -503,13 +503,13 @@ lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr paint_dc, int left, in
         lh_u64_t asked_px = 0U;
         lh_u32_t rects = 0U;
 
-        lh_ui_rect_init(lh_ui_frame_get_drawn_mut(lh_addr_of(frame)), left, top, right - left,
+        lh_gl_rect_init(lh_gl_frame_get_drawn_mut(lh_addr_of(frame)), left, top, right - left,
                         bottom - top);
-        lh_ui_frame_set_asked_known(lh_addr_of(frame),
+        lh_gl_frame_set_asked_known(lh_addr_of(frame),
                                     lh_os_system_window_get_paint_region(
                                         paint_dc, lh_addr_of(asked_px), lh_addr_of(rects)));
-        lh_ui_frame_set_asked_px(lh_addr_of(frame), asked_px);
-        lh_ui_frame_set_rects(lh_addr_of(frame), rects);
+        lh_gl_frame_set_asked_px(lh_addr_of(frame), asked_px);
+        lh_gl_frame_set_rects(lh_addr_of(frame), rects);
         started_us = lh_os_tick_us();
     }
 #endif
@@ -517,11 +517,11 @@ lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr paint_dc, int left, in
     {
         on_paint(self, on_paint_context);
     }
-#if LH_LIBRARY_OPTION_UI
+#if LH_LIBRARY_OPTION_GL
     if (lh_null_ne(lh_os_window_get_frame_stats(self)))
     {
-        lh_ui_frame_set_us(lh_addr_of(frame), lh_os_tick_us() - started_us);
-        lh_ui_frame_stats_record(lh_os_window_get_frame_stats(self), lh_addr_of(frame));
+        lh_gl_frame_set_us(lh_addr_of(frame), lh_os_tick_us() - started_us);
+        lh_gl_frame_stats_record(lh_os_window_get_frame_stats(self), lh_addr_of(frame));
     }
 #endif
     lh_os_window_set_paint_dc(self, lh_null);

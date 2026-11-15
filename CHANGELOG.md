@@ -7,110 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- A blend onto an opaque pixel divides by 255 with one multiply, `lh_math_div_round_255`, exact for a numerator up to 65025. A glass column is averaged into a 64-colour buffer and written once. `lh_gl_blur_window_slide` stays a call (`LH_ATTRIBUTE_NOINLINE`): pasting that walk into every column makes some frames slower. Linked with `-flto`, 8 frames: the shadow scene is 35 ms, was 55 ms; the full 24-card scene is 94 ms, was 97 ms.
-
-- Glass takes the place mask. A null mask is the same frost as before. A mask scales the frost and leaves a pixel it does not cover. `lh_gl_blur_blend_covered` is that blend.
-
-- A stroke, a circle, a rounded rectangle and a triangle scale each covered pixel by the place mask. `lh_gl_canvas_fill_ink` is that one pixel: shape coverage times the mask.
-
-- A round mask fills its flat cross as one rectangle (`lh_gl_canvas_fill_round`) and a flat color run as one row (`lh_gl_canvas_fill_round_colors`). The arc still asks `lh_gl_cover_round_rect_band`, and `lh_gl_cover_round_radius` is the clamp those tests share. Release, this machine, 32 frames of the 24-card scene: 5.3 and 4.6 ms a frame. The same scene with a per-pixel mask was 9.9 and 10.5 ms, and before the mask it was 4.2 and 4.5 ms.
+- The scene that stood beside the UI model is removed. That model is `lh/gl` now: `lh_ui_*` is `lh_gl_*`, and `LH_LIBRARY_OPTION_UI` is `LH_LIBRARY_OPTION_GL`.
 
 - A native window on macOS is AppKit (`NSWindow`), beside Win32 and X11. The off-screen surface is the same `0xAARRGGBB` words; a present draws them into the paint. This machine does not build the AppKit backend.
 
-- `lh_gl_color_get_word` is one pixel as `0xAARRGGBB`. `lh_gl_pixmap_store_words` writes the pixmap in that order into a caller buffer, which is the word a 32-bit top-down surface already presents.
-
-- The canvas keeps the target and the backend. Origin, clip and mask travel on `lh_gl_place_t`, one per call. A layer radius is one rounded mask for every child drawn inside it; `lh_gl_card_set_radius` installs that mask and leaves the face square. Coverage on the arc is 1–254. Intersection takes the lesser coverage, union the greater, exclusion the left scaled by `(255 - right) / 255`. `lh_gl_canvas_stroke_line` paints a straight segment. `lh_gl_canvas_fill_sector` paints a pie: 0 degrees is to the right, a positive sweep turns toward +y, and the edges are integer. Release, this machine, 32 frames of the 24-card scene with that mask: 9.9 and 10.5 ms a frame. The same scene before the mask was 4.2 and 4.5 ms.
-
-- `lh_gl_card_set_ink` stores the line color apart from the face. `lh_gl_card_get_line` and `lh_gl_card_get_layer_mut` are the line and the layer, so a glyph shadow can sit between them. `lh_gl_font_caption` is a static 8×12 face for space, the digits, `C`, `a`, `d` and `r`. The 24-card scene is built with `lh_gl_card_init`, a box shadow, a glass panel and that face. Release, this machine, 32 frames of that scene: 4.2 and 4.5 ms a frame.
-
-- `lh_gl_text_shadow_t` paints a line's glyphs in the shadow color, shifted by the offset and blurred by the spread. The blur follows the ink. A spread of `0` is the shifted glyphs with a hard edge. The scratch is the caller's.
-
-- An opaque blur sums the colour channels directly and divides that run by one factor (`lh_gl_blur_window_round_factor`). A glass column is one slide of the rows the rounded panel covers. Release, this machine, 32 frames: 24 panels of radius 8 are 2.2 and 3.1 ms, one 72×66 panel is 90 µs, a 480×320 frame of radius 8 is 2.0 and 2.2 ms.
-
-- `lh_gl_renderer_packet_post` copies the dirty rectangles, clears the surface list, and submits a rail task that draws the copy. A full mailbox posts nothing and leaves the list. The inline executor draws before post returns; another executor draws on its own loop.
-
-- An opaque blur window stores alpha 255 without dividing, and takes the factor of 255 back out of the colour with a multiply (`lh_gl_blur_window_average_opaque`). A stretch of full windows keeps that same divisor.
-
-- A rounded shadow whose shift puts one edge in the corner and the other on the flat side walks only the pixels outside the box (`lh_gl_shadow_row_outside`). The middle of that row stays clear. On a corner row the box itself is a compare of squares, not a second root.
-
-- `lh_gl_screen_open` links a layer as the front child of another. `lh_gl_screen_back` unlinks that front layer and returns it. The child list is the stack. Nothing is allocated, and no gesture is read.
-
-- A radial fill walks the right half of a row and copies it to the left. The two sides are the same distance from the middle.
-
-- A blur row is one slide (`lh_gl_blur_window_slide`): the four sums stay in that call. A glass panel with no blur fills each covered row through `lh_gl_pixmap_fill_rect`.
-
-- `lh_gl_blur_rect` softens a pixmap rectangle in place: two box passes, a sliding window, colour summed already multiplied by alpha. The scratch is the caller's (`lh_gl_blur_scratch_count`); nothing allocates. `lh_gl_glass` writes that blur only where the rounded panel covers, then paints a tint. `lh_gl_glass_t` is that panel as an entity. The canvas target is the pixmap. A short scratch draws nothing. The class is not opaque.
-
-- An opaque pixmap rectangle is one `lh_memory_set_u32` per row. An opaque run of `lh_gl_pixmap_fill_colors` is one `lh_memory_std_copy`. A lower alpha still blends one pixel at a time.
-
-- `lh_gl_entity_hit` answers a rounded press: radius 0 keeps the rectangle the search already accepted, and a positive radius asks `lh_gl_cover_hits` on the absolute rectangle. A fill, a gradient fill and a card call it. `lh_gl_layer_bounds_hit` and `lh_gl_layer_entity_takes` are the two steps of that search.
-
-- A class pick answers a press. A null pick leaves the rectangle. A decline continues the walk. `lh_gl_cover_hits` is that shape plus a finger thickness, and `lh_gl_input_t` stores the thickness for the screen. A fill, a text and a gradient fill can be hidden or can decline; a shadow always declines. `lh_gl_card_init` is the fill, the text and the radius in one call. `lh_gl_input_controller_handle_event_is_handled` is what a controller calls. The recognizer turns arrows, the d-pad and the south button into `navigate` and `activate`, repeats a held pad button (400 ms, then 50 ms), drops a stick inside the dead zone (8000, hysteresis 2000), and emits `swipe` when a drag of at least 48 px goes up. A driver reports a pad through `lh_os_input_pad_report_button` and `lh_os_input_pad_report_axis`. The library does not read a gamepad from the system.
-
-- `lh_os_input_keys_report` emits a key down or key up only when that portable key changed. Shift, Control and Alt on the held mask are the event's modifiers. `lh_os_key_other` is not a key of that report. `lh_gl_input_apply` turns one pointer event into the held entity: the first pointer down owns it, another pointer leaves it, and a key leaves it.
+- `lh_os_input_keys_report` emits a key down or key up only when that portable key changed. Shift, Control and Alt on the held mask are the event's modifiers. `lh_os_key_other` is not a key of that report.
 
 - `lh_os_input_sample_t` is one contact a driver read: its own id and a position. `lh_os_input_touch_report` compares that list with the previous frame and emits pointer down, move and up. Fingers are pointer ids from 1; the mouse stays 0. A contact past the four remembered slots is skipped until one goes up. `lh_os_input_pad_report_axis` and `lh_os_input_pad_report_button` emit a controller event only when the value changed.
-
-- A pixmap stores a row of alpha 255 instead of blending each pixel. `lh_gl_pixmap_fill_colors` writes one row of colors in one call. `lh_gl_cover_round_rect_span` is the covered run of a rounded row, so a vertical gradient paints that run as one rectangle and repeats a solid color as one block. A radial row walks square thresholds (`lh_gl_gradient_radial_axis`, `lh_gl_gradient_radial_frac_from_square`) instead of a root on every pixel. A glyph row of equal coverage is one rectangle. A shadow paints the flat sides and the cap from the distance, not one rectangle per pixel. Release on this machine, 24 cards, 8 frames: cards 285 µs, partial 9 (one card, the frame already drawn), vertical 283, radial 1249, shadow 1335. The i7-13700K table was 200, 9.3, 322, 1030, 1024. Captions are still an 8×12 block.
-
-- `lh_gl_text_t` is an entity plus a borrowed font, color and string. One byte is one code. `lh_gl_font_t` is one borrowed run of `lh_gl_glyph_t`. A code outside the run is skipped.
-
-- `lh_gl_shadow_distance` and `lh_gl_shadow_alpha_at` take a corner radius. `0` stays square. `lh_gl_shadow_fill_t` stores that radius. A negative radius is stored as zero.
-
-- `lh_gl_gradient_radial_frac` puts the first color at the middle of a box and the second toward the corners. `lh_gl_gradient_fill_set_radial` selects that placement. Init leaves it off, so the angle still runs the line.
-
-- A pixmap strokes a rectangle, a circle and a rounded rectangle on the outside of the shape. The band is as thick as the pen. The interior is left alone. A width below 1 draws nothing.
-
-- A pixel center is inside a rounded rectangle, a circle or a triangle, or it is not (`lh_gl_cover_*`). The pixmap fills those shapes. A gradient fill stores a radius and leaves a corner outside that arc unpainted. Radius `0` stays a rectangle. The edge is the pixel center, with no partial coverage.
-
-- `lh_gl_gradient_fill_t` stores an angle in degrees: `0` up, `90` right, `180` down. `lh_gl_gradient_linear_frac` places the two colors along that line, in whole numbers. Init leaves the angle at `180`.
-
-- `lh_gl_shadow_t` stores a peak color, a spread and a shift. Coverage is zero inside the box and fades across the shifted edge: full one spread inside, nothing one spread outside. `lh_gl_shadow_fill_t` paints that coverage.
-
-- `lh_gl_gradient_t` stores two colors. Fraction `0` is the first, `255` is the second, and the channels mix in between. `lh_gl_gradient_fill_t` borrows one. A null gradient draws nothing. The class is not opaque.
-
-- `lh_gl_color_over` paints one straight color over another. A pixmap fill uses it, so an alpha below 255 shows the pixel behind. Alpha 255 still replaces the pixel.
-
-- `lh_gl_fill_t` is an entity plus a borrowed color. One class draws that color into the entity rectangle and does not blend. A null color draws nothing. The class is not opaque. Changing the color pointer marks the area; writing a channel does not.
-
-- `lh_gl_bmp_try_store` writes a pixmap as an uncompressed 32-bit bitmap: bottom-up pixels, blue green red alpha, alpha copied. A non-positive size, a missing pixel row, or a file that does not fit in 32 bits stores nothing.
-
-- `lh_gl_layout_t` stores one gap. Packing writes the origins of a layer's direct children along one axis, from zero, in list order. The other axis and the sizes stay. A null layer is ignored.
-
-- `lh_gl_pixmap_t` is a borrowed grid of straight colors. Its canvas backend fills a rectangle by replacing pixels and does not blend. The other canvas calls stay null.
-
-- `lh_gl_scalar_t` is the integer screen coordinate of `lh/gl`. Point, size, rectangle, pen width, scroll offset and renderer band use it. It is `lh_math_scalar_t` and does not follow the FPU option.
-
-- `lh_gl_scroll_axis_t` stores one offset. `lh_gl_container_t` borrows a layer and up to two axes, and places children at the window origin minus those offsets. The window and the children's rectangles stay where they are. Changing an axis does not invalidate; `lh_gl_container_invalidate` marks the window.
-
-- `lh_gl_input_t` holds one borrowed entity. A press stores whatever `lh_gl_layer_find_entity` returns, a move keeps that entity without searching again, and a release clears it.
-
-- `lh_gl_layer_find_entity` returns the entity under a root-coordinate point: front to back, then the deepest child. The layer itself is the result when no child contains the point. A point outside the layer is ::lh_null. `opaque` is not consulted.
-
-- Canvas primitives forward to a borrowed backend: fill and stroke for a rectangle, a circle and a rounded rectangle. Coordinates are relative to the canvas origin; a shape that misses the clip is not passed on. `lh_gl_color_t` is straight 8-bit RGBA and `lh_gl_pen_t` is the stroke.
-
-- Added `lh_gl_renderer_t`: one deferred frame over the surface dirty list, sliced into horizontal stripes when the band height is positive. A later opaque sibling covers a child completely, and that child is not drawn. `lh_gl_rect_contains` is the half-open cover test. A class stores `opaque`; init leaves it false.
-
-- Pass absolute origins through layer drawing and make insertion siblings mutable.
-
-- Added canvas origin and clip state and clipped, back-to-front layer drawing.
-
-- Added entity rectangle and point conversion through the layer tree.
-
-- Added layer z-order changes and insertion relative to a sibling.
-
-- Added fixed-storage dirty regions to a display-sized gl surface, with root
-  attach, detach and resize, and entity invalidation. The capacity is set by
-  `LH_LIBRARY_OPTION_GL_SURFACE_DIRTY_MAX` (default 8).
-- Centralized gl dirty limit, memory dispatch threshold, OS wide-error and address
-  architecture validation in the configuration check header.
 
 ### Fixed
 
 - Pointer drags and wheel input skip fitting button/container interiors when
   selecting a surrounding scrollable container. A standalone fitting button
-  still suppresses a click after a drag. Added `lh_ui_container_can_scroll`
-  and `lh_ui_entity_find_scrollable` as the shared selection bricks.
+  still suppresses a click after a drag. Added `lh_gl_container_can_scroll`
+  and `lh_gl_entity_find_scrollable` as the shared selection bricks.
 
 - Full view frames retain a whole-target presentation clip when child widgets
   introduce smaller clips, so unscaled windows also present headers and footers.
@@ -143,30 +53,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `_is_empty`, `_min`, `_max`, `_min_side` and `_inset`. The fields stay private:
   callers use the methods only.
 
-- `lh_gl_entity_t` (`lh/gl/entity.h`, `entity/fields.h`, `entity/initializer.h`) and
-  `lh_gl_entity_class_t` (`lh/gl/entity/class.h`, `class/fields.h`, `class/initializer.h`,
-  `class/kind.h`, `class/draw/fn.h`, `class/draw/cb.h`): the portable UI core. An entity is
-  a `rect` (relative to its parent), a `parent` (`lh_gl_layer_t *`, null for a root), a
-  pointer to a `const` class table (a kind, entity or layer, and a draw callback
-  `draw(const entity*, canvas*)`) and an `lh_list_node_t` that links it into its parent's
-  list. It knows nothing about input, styles or drivers, and nothing is allocated.
-  Methods: `lh_gl_entity_get_rect` / `_get_rect_mut` / `_set_rect`, `_get_parent` /
-  `_set_parent`, `_get_class` / `_set_class`, `_get_node` / `_get_node_mut`, `_from_node`,
-  `_init`, `_get_kind`, `_is_layer`, `_is_root` and `_draw`; the class has
-  `lh_gl_entity_class_get_kind` / `_set_kind`, `_get_draw_cb` / `_set_draw_cb`, `_init` and
-  `_is_layer`. The forward declarations `lh/gl/entity/decl.h`, `lh/gl/layer/decl.h` and
-  `lh/gl/canvas/decl.h` break the include cycles and give the draw callback its signature.
-
-- `lh_gl_layer_t` (`lh/gl/layer.h`, `layer/fields.h`, `layer/initializer.h`): an entity
-  that holds other entities, so a layer can be put into a layer. The children are an
-  `lh_list_t` of intrusive nodes that live in the entities; the layer owns the links, not
-  the children, and allocates nothing. List order is z-order (the last child is the
-  front). Methods: `lh_gl_layer_get_entity` / `_get_entity_mut`, `_get_items` /
-  `_get_items_mut`, `_get_count`, `_get_class`, `_init`, `_deinit`, `_is_empty`,
-  `_is_valid_index`, `_get_item`, `_try_find`, `_is_within`, `_try_add` / `_add`,
-  `_remove_at` and `_try_remove`. `_try_add` makes the layer the parent of the child and
-  refuses a child that already has a parent, and the layer itself or one of its
-  ancestors. `_deinit` unlinks every remaining child and clears its parent.
 - Container `scroll_enabled` separates native scrolling from holding children.
   Containers enable it by default; buttons disable it. Programmatic positioning
   remains available, and scroll_chain independently controls ancestor routing.
@@ -176,12 +62,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to enabled; selection is fixed for a pointer sequence. Drag takeover ends the
   target's press once without a click, preserving scrolling and inertia.
 
-- `lh_ui_window_t` (`lh/ui/window.h`): native window, software screen, canvas,
+- `lh_gl_window_t` (`lh/gl/window.h`): native window, software screen, canvas,
   view and controller composed around a caller-owned entity tree. Standard
   input, resize cancellation, animation ticks and exposure painting are wired
   once; an optional update hook keeps application values in the application.
 
-- `lh_ui_canvas_stroke_box`: inset rounded borders with independent corner radii,
+- `lh_gl_canvas_stroke_box`: inset rounded borders with independent corner radii,
   alpha and clipping; native entity borders with uniform widths now follow the
   same corners as their gradient or solid fill. Straight sides use bulk fills.
 
@@ -239,19 +125,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- `LH_UI_RECTS_MAX` is `16` instead of `8`: `lh_ui_rects_t` (the canvas's drawn list, the view's
+- `LH_GL_RECTS_MAX` is `16` instead of `8`: `lh_gl_rects_t` (the canvas's drawn list, the view's
   pending damage) keeps up to sixteen rects apart before it starts squeezing; each list costs
   about 128 bytes more.
 
-- The view's pending damage is a region, not one rect. `lh_ui_view_fields` takes a sixth
-  parameter, `rects_type` (`lh_ui_rects_t`), and holds `rects_type pending` instead of
-  `rect_type pending` + `has_pending`; `lh_ui_view_is_has_pending` and
-  `lh_ui_view_set_has_pending` are removed (`lh_ui_view_has_damage` answers "does anything
-  wait"), and `lh_ui_view_get_pending`, `_get_pending_mut`, `_set_pending` work on
-  `lh_ui_rects_t`. `lh_ui_view_add_damage` adds through `lh_ui_rects_add` (touching rects
+- The view's pending damage is a region, not one rect. `lh_gl_view_fields` takes a sixth
+  parameter, `rects_type` (`lh_gl_rects_t`), and holds `rects_type pending` instead of
+  `rect_type pending` + `has_pending`; `lh_gl_view_is_has_pending` and
+  `lh_gl_view_set_has_pending` are removed (`lh_gl_view_has_damage` answers "does anything
+  wait"), and `lh_gl_view_get_pending`, `_get_pending_mut`, `_set_pending` work on
+  `lh_gl_rects_t`. `lh_gl_view_add_damage` adds through `lh_gl_rects_add` (touching rects
   merge, rects apart stay apart, a full list squeezes) instead of taking the hull with
-  `lh_ui_rect_union`, and `lh_ui_view_take_damage` now hands out `lh_ui_rects_t *` and clears
-  it. A caller that took one `lh_ui_rect_t` invalidates each rect of the list instead.
+  `lh_gl_rect_union`, and `lh_gl_view_take_damage` now hands out `lh_gl_rects_t *` and clears
+  it. A caller that took one `lh_gl_rect_t` invalidates each rect of the list instead.
 
 - The tests of the Modbus bricks mirror their headers: `test/src/lh/core/net/modbus/<brick>.cpp`
   (and `math/scalar/centre.cpp`) instead of names glued with `_`; the health tests left
@@ -325,14 +211,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   transaction and protocol faults, a closed connection) and pymodbus plus raw masters for
   the server, then runs the tests against them. Skipped when not started by it.
 
-- `lh_ui_display_backend` (`lh/ui/display/backend.h`): a canvas backend whose context is
+- `lh_gl_display_backend` (`lh/gl/display/backend.h`): a canvas backend whose context is
   the display. `begin_area` moves the display's strip to the area, `end` presents what was
-  drawn, the drawing slots are the software backend's. `lh_ui_display_backend_bind` puts a
+  drawn, the drawing slots are the software backend's. `lh_gl_display_backend_bind` puts a
   display's canvas on it, so a view with a strip height draws a 240-row panel through a
   48-row buffer strip by strip and every strip reaches the sinks while it is still in the
   buffer. Before, the software backend had no `begin_area` and a stripped view fell back to
   one whole frame. Tested against a whole-frame render pixel for pixel.
-- `lh_ui_mask_unpack_4_words` and `lh_ui_pixmap_blend_cover_16_words`: the text path in
+- `lh_gl_mask_unpack_4_words` and `lh_gl_pixmap_blend_cover_16_words`: the text path in
   plain integer code. Without SSE2 a glyph's coverages went through a byte buffer and the
   span kernels for every eight pixels; now they are unpacked into a register and blended
   from it. Measured on an STM32F407 (168 MHz, RGB565): text 1 143 670 → 1 051 817 cycles a
@@ -392,7 +278,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   interrupt` did not wait, and with LTO the tick clock folded to a constant (0 ms elapsed
   over 100 ms on an STM32F407). CMake now asks the compiler (ACLE `__ARM_ARCH_PROFILE ==
   'M'`) and says which layer it took.
-- `lh_ui_pixmap_blend_cover_8` declared its buffer inside the SSE2 branch and used it after:
+- `lh_gl_pixmap_blend_cover_8` declared its buffer inside the SSE2 branch and used it after:
   every build without SSE2 (any ARM target) failed to compile `ui/pixmap.c`.
 - `ui/web/player/page.c` passed a byte buffer as a char string (`-Wpointer-sign`);
   `memory/std.c` had `/*` inside a comment (`-Wcomment`).
@@ -435,7 +321,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to pass; the web host and the tests use them, and 0 of 80 such runs failed after.
 - A listening socket can own its address on every platform: `lh_os_net_socket_set_exclusive_addr` / `lh_os_system_net_socket_set_exclusive_addr` set `SO_REUSEADDR` on POSIX (a quick restart over `TIME_WAIT`; a second listener is refused there anyway) and `SO_EXCLUSIVEADDRUSE` on Windows, where `SO_REUSEADDR` lets any other socket bind the same port and take its connections. Use it for listeners instead of `_set_reuse_addr`.
 - `lh_os_net_socket_set_exclusive_addr` on a UDP socket no longer opens the port on POSIX: it set `SO_REUSEADDR` there too, and on Linux two datagram sockets that both carry the flag share a port, so another process could bind next to a UDP server and read its datagrams. A datagram socket now gets the flag cleared; a stream listener keeps it for the restart over `TIME_WAIT`.
-- The web host's listener (`lh_ui_web_host_try_listen`) uses it: on Windows another process could bind the host's port and take its connections.
+- The web host's listener (`lh_gl_web_host_try_listen`) uses it: on Windows another process could bind the host's port and take its connections.
 - Work around the MSVC x86 internal compiler error C1001 (seen on 14.44.35207 and 14.51.36231) during XP test link-time code generation by compiling the memory standard test translation unit without `/GL`, for any MSVC version so that a newer toolset does not bring it back; the tests and library LTO remain enabled.
 
 ### Added
@@ -644,17 +530,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`mysql_thread_end`).
 
 - The web host serves many connections at once on an `lh_exec_loop_t`:
-  `lh_ui_web_host_t` (`lh_ui_web_host_try_create` / `_try_start` /
+  `lh_gl_web_host_t` (`lh_gl_web_host_try_create` / `_try_start` /
   `_try_stop` / `_destroy`, with its loop `_step`, `_wait` and `_wake`), one
   poll of the listener, the wake signal, the websocket clients and the HTTP
-  connections. New bricks it is built from: `lh/ui/web/host/conn.h` (one
+  connections. New bricks it is built from: `lh/gl/web/host/conn.h` (one
   connection, step by step: head, buffered body or stream), `host/pipe.h` (a
   streaming body between steps), `host/gate.h` (a socket reader that receives
   once per readiness), `host/tap.h` (a reader that remembers its last result),
-  `host/finish.h` (`lh_ui_web_host_finish_stream`: commit or abort, once),
+  `host/finish.h` (`lh_gl_web_host_finish_stream`: commit or abort, once),
   `host/capacity.h` (the host's sizes, moved out of `host.h`; adds
-  `LH_UI_WEB_HOST_HEADER_MAX` and `LH_UI_WEB_HOST_CONN_MAX`), and
-  `lh_ui_web_host_try_complete_body` (is a buffered body complete, never
+  `LH_GL_WEB_HOST_HEADER_MAX` and `LH_GL_WEB_HOST_CONN_MAX`), and
+  `lh_gl_web_host_try_complete_body` (is a buffered body complete, never
   reads). A slow client no longer holds the other connections or the
   websocket clients.
 - `lh_os_net_socket_poll_t` has level-1 accessors (`_get_handle`, `_set_ready`,
@@ -857,7 +743,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`try_write` and the checked `write`). Built without
   `LH_LIBRARY_OPTION_JS`.
 
-- `LH_UI_WEB_HOST_REQUEST_CAPACITY` sets the host request buffer at LH build time.
+- `LH_GL_WEB_HOST_REQUEST_CAPACITY` sets the host request buffer at LH build time.
 
 - HTTP request framing helpers reject ambiguous lengths and unsupported transfer encodings.
 - HTTP response status-line, field and head formatters with fallible and
@@ -868,7 +754,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `lh_http_request_get_path` returns the borrowed target before its query.
 
-- `lh_ui_web_host_try_read_request` and its checked form read a complete HTTP
+- `lh_gl_web_host_try_read_request` and its checked form read a complete HTTP
   request, including its Content-Length body, from fragmented socket input within a time limit.
 
 - `lh_http_header_find` finds a field by its ASCII case-insensitive name.
@@ -886,10 +772,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the body has arrived, and reads until `LH_IO_PENDING` (return true), 0 or an
   error — not once with a blocking reader. A handler written for one call that
   treats `LH_IO_PENDING` as a failure must return true for it instead.
-- `lh_ui_web_host_accept_all` and `lh_ui_web_host_wait` take the host record
-  (the latter is the loop's wait); `lh_ui_web_host_run` runs the host's loop on
-  the calling thread. `lh_ui_web_host_try_serve_stream` and
-  `lh_ui_web_host_handle_request_is_upgraded` keep their signatures and drive
+- `lh_gl_web_host_accept_all` and `lh_gl_web_host_wait` take the host record
+  (the latter is the loop's wait); `lh_gl_web_host_run` runs the host's loop on
+  the calling thread. `lh_gl_web_host_try_serve_stream` and
+  `lh_gl_web_host_handle_request_is_upgraded` keep their signatures and drive
   one socket with the step-by-step pieces.
 
 - **Breaking: the data bricks moved under `lh/core/`.** Every part of
@@ -898,7 +784,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tests in `test/src/lh/core/`): `<lh/array.h>` is `<lh/core/array.h>`,
   `<lh/str/view.h>` is `<lh/core/str/view.h>`, and so on. Names
   do not change: the core is transparent (`lh_array_*` stays `lh_array_*`).
-  `lh/spsc.h` is `lh/core/spsc.h` too (59 parts). `lh/os/`, `lh/ui/`,
+  `lh/spsc.h` is `lh/core/spsc.h` too (59 parts). `lh/os/`, `lh/gl/`,
   `lh/lh.h` and the generated `lh/config.h` stay where they were; `lh/sql/` is
   split (next entry). Migration: rewrite the include paths;
   the move script maps every old path to its new one.
@@ -915,9 +801,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   The build conditions are unchanged (MySQL with the OS layer, SQLite with
   `LH_LIBRARY_OPTION_SQL_SQLITE`).
 
-- `LH_LIBRARY_OPTION_UI` is now `OFF` by default, in CMake and in
+- `LH_LIBRARY_OPTION_GL` is now `OFF` by default, in CMake and in
   `lh/library/fallback.h`: most users want the bricks, not the widget toolkit.
-  Projects that use `lh/ui` (canvas, entity tree, web host) set it `ON`. The
+  Projects that use `lh/gl` (canvas, entity tree, web host) set it `ON`. The
   window's screen (`os/render/backend/gdi.c`) is built only with both the UI
   and `LH_LIBRARY_OPTION_OS_WINDOW`; before, the default window option with the
   UI off failed to compile it. Every option set below builds and passes its
@@ -928,7 +814,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   library function; the UI build only gets `memcpy` that GCC itself emits for
   large struct copies, which every GCC target must provide.
 - The `lh_bench` target builds again: the HTML/JS escaping benchmark, left on
-  the removed `lh/ui/web` string DSL, now measures `lh/web/xml/escape.h` and
+  the removed `lh/gl/web` string DSL, now measures `lh/web/xml/escape.h` and
   `lh/web/js/writer.h` (`bench/src/lh/web/escape.cpp`).
 - **Breaking: every runtime slot is one object with one shape.** Allocator,
   writer, reader, logger, terminate and check are each a single object for the
@@ -1000,18 +886,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Web route callbacks receive a borrowed view of the complete request body.
 
-- The web player page (`lh/ui/web/player/page.h`) is built as an XML tree
+- The web player page (`lh/gl/web/player/page.h`) is built as an XML tree
   (one document: the doctype and `<html>`, written in the HTML dialect) and a
   JavaScript tree and written by their writers; no part of it is held as
   code text. Every top-level script statement is its own public brick
-  (`lh_ui_web_player_page_create_rgba` ... `_create_start`), composed by
-  `lh_ui_web_player_page_create_script` and written by
-  `lh_ui_web_player_page_try_write` / `_write`; `lh_ui_web_player_page_build`
+  (`lh_gl_web_player_page_create_rgba` ... `_create_start`), composed by
+  `lh_gl_web_player_page_create_script` and written by
+  `lh_gl_web_player_page_try_write` / `_write`; `lh_gl_web_player_page_build`
   keeps its contract and the player still builds the page once at start. The
   served script is the same program with the redundant parentheses gone (8952
-  bytes instead of 9194). `lh_ui_web_page_emit_key_table` is replaced by
-  `lh_ui_web_player_page_create_key_table` (an object expression) with
-  `lh_ui_web_player_page_get_key_name` and `_is_modifier`.
+  bytes instead of 9194). `lh_gl_web_page_emit_key_table` is replaced by
+  `lh_gl_web_player_page_create_key_table` (an object expression) with
+  `lh_gl_web_player_page_get_key_name` and `_is_modifier`.
 
 - JavaScript literal serialization writes ordinary spans through the existing
   string-set search instead of appending one byte at a time. On Windows GCC
@@ -1060,7 +946,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   wherever a value spilled), so the same expression differed in the last bit between
   lh and its caller and between 32- and 64-bit builds (`lh_test_math`). lh now builds,
   and makes its consumers build, with `-msse2 -mfpmath=sse` on x86 under GCC / Clang.
-- `lh_ui_web_ws_write` encoded the 64-bit length of a frame over 64 KiB by shifting
+- `lh_gl_web_ws_write` encoded the 64-bit length of a frame over 64 KiB by shifting
   a 32-bit `lh_usize_t` by up to 56 bits on 32-bit builds: the length came out wrong
   and the peer rejected the frame. It is widened to `lh_u64_t` first.
 
@@ -1072,13 +958,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   uses its standard `Internal Server Error` phrase; unknown valid statuses have
   an empty phrase instead of being labelled `Not Found`.
 
-- Web routes match parsed HTTP request objects. `lh_ui_web_route_is_match`
-  replaces `lh_ui_web_route_match`; `lh_ui_web_host_is_route` replaces
-  `lh_ui_web_host_route`. Handlers receive the request, parsed headers and
+- Web routes match parsed HTTP request objects. `lh_gl_web_route_is_match`
+  replaces `lh_gl_web_route_match`; `lh_gl_web_host_is_route` replaces
+  `lh_gl_web_host_route`. Handlers receive the request, parsed headers and
   received bytes; the body may still be incomplete. Web query helpers now
   take a parsed request and search only its target query; the old `query*`
   names are replaced by `get_query_value_size`, `get_query_int`,
-  `get_query_uint` and `get_query_flag` under the `lh_ui_web_host_` prefix.
+  `get_query_uint` and `get_query_flag` under the `lh_gl_web_host_` prefix.
 
 - WebSocket path detection accepts a parsed HTTP request instead of raw bytes.
 
@@ -1086,10 +972,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   caller-owned storage; WebSocket upgrade consumes these headers directly.
 
 - Renamed the boolean request and input handlers to state their result:
-  `lh_ui_web_host_handle_request_is_upgraded`,
-  `lh_ui_web_app_handle_request_is_handled`,
+  `lh_gl_web_host_handle_request_is_upgraded`,
+  `lh_gl_web_app_handle_request_is_handled`,
   `lh_os_controller_handle_event_is_handled`, and
-  `lh_ui_view_controller_handle_event_is_handled` replace their `handle` names.
+  `lh_gl_view_controller_handle_event_is_handled` replace their `handle` names.
 
 - The pointer arithmetic forms follow one naming rule now: the fast form has no
   suffix and does not check (`lh_ptr_add_by_offset`, `lh_ptr_sub_by_offset`,
@@ -1147,9 +1033,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `_remove_exact` subscribe once per owner, callback and context.
 - Fallible array reserve and allocated-memory resize bricks, preserving existing
   storage on allocation failure and rejecting element-count overflow.
-- Level-1 accessors for the `lh/ui` structs (about 400: every field of insets, radii, rects, mask, pixmap, font, paint, pen, shadow, gradient and its sampler, style, layout and placement, text lines and blocks, canvas and its state, clip, backend table, software canvas and shadow pass, web canvas and atlas, display, entity, container, label, input, button, toggle, image, scrollbar, transition, view and its pointers and focus walk, frame and frame statistics, renderer3d and its camera, the web host client, frame, hooks and stream, the web buffer and HTML attributes), and the ui code calls them. New sources for the structs that had none: `ui/canvas/backend.c`, `ui/view/focus/walk.c`, `ui/frame.c`, `ui/web/host/client.c`, `frame.c`, `hooks.c`, `stream.c`
+- Level-1 accessors for the `lh/gl` structs (about 400: every field of insets, radii, rects, mask, pixmap, font, paint, pen, shadow, gradient and its sampler, style, layout and placement, text lines and blocks, canvas and its state, clip, backend table, software canvas and shadow pass, web canvas and atlas, display, entity, container, label, input, button, toggle, image, scrollbar, transition, view and its pointers and focus walk, frame and frame statistics, renderer3d and its camera, the web host client, frame, hooks and stream, the web buffer and HTML attributes), and the ui code calls them. New sources for the structs that had none: `ui/canvas/backend.c`, `ui/view/focus/walk.c`, `ui/frame.c`, `ui/web/host/client.c`, `frame.c`, `hooks.c`, `stream.c`
 - `tools/list-fields.py` lists our structs' fields (through `*_fields` macros) and the accessors they lack; `tools/use-accessors.py` rewrites member chains to accessors from the variables' declared types; `tools/gen-accessors.py` kinds `view` (get / get_mut / set) and `array`
-- Level-1 accessors for `lh_os_window_t`, and the window code calls them: `lh_os_window_set_handle`, `_set_app`, `_set_parent`, `_get_children` / `_mut`, `_is_modal` / `_set_modal`, `_is_closing` / `_set_closing`, `_get_frame` / `_set_frame`, `_get_corner` / `_set_corner`, `_set_placement`, `_set_maximized`, `_get_on_*_fn` / `_set_on_*_fn` and `_get_on_*_context` / `_set_on_*_context` for zone, resize, paint, input, close and tick, `_set_paint_dc`, `_get_paint_left` / `_top` / `_right` / `_bottom` and setters, `_is_controller_armed` / `_set_controller_armed`, `_set_pressed_buttons`, `_get_tick_ms` / `_set_tick_ms`. `lh_os_render_backend_gdi_context_*` accessors for the surface, the software canvas, `present_at`, the logical size, the call counters and the frame start; `lh_ui_surface_get_handle` / `_set_handle`
+- Level-1 accessors for `lh_os_window_t`, and the window code calls them: `lh_os_window_set_handle`, `_set_app`, `_set_parent`, `_get_children` / `_mut`, `_is_modal` / `_set_modal`, `_is_closing` / `_set_closing`, `_get_frame` / `_set_frame`, `_get_corner` / `_set_corner`, `_set_placement`, `_set_maximized`, `_get_on_*_fn` / `_set_on_*_fn` and `_get_on_*_context` / `_set_on_*_context` for zone, resize, paint, input, close and tick, `_set_paint_dc`, `_get_paint_left` / `_top` / `_right` / `_bottom` and setters, `_is_controller_armed` / `_set_controller_armed`, `_set_pressed_buttons`, `_get_tick_ms` / `_set_tick_ms`. `lh_os_render_backend_gdi_context_*` accessors for the surface, the software canvas, `present_at`, the logical size, the call counters and the frame start; `lh_gl_surface_get_handle` / `_set_handle`
 - The native backends keep their private state in headers of their own, reached through accessors: `src/lh/os/system/posix/window.h` (`lh_os_system_posix_window_t`), `posix/paint.c`, the posix and Win32 surfaces (`win/surface.h`), the thread and condition state (`win/concurrency/thread.h`, `win/concurrency/condition.h`, `posix/concurrency/thread.h`), the Win32 directory listing (`win/fs/dir/state.h`) and the loaded-image search (`posix/shared/search.h`)
 - `tools/gen-accessors.py`: kind `flag` (`is_` / `set_`), `=<meaning>` per field and `--owner` write the full briefs
 - Level-1 accessors for the portable `lh/os` layer, and the code that named the fields now calls them: `lh_os_fs_dir_set_handle`, `lh_os_net_socket_set_handle`, `lh_os_serial_get_handle` / `_set_handle`, `lh_os_thread_` / `lh_os_mutex_` / `lh_os_condition_get_handle` / `_set_handle`, `lh_os_wake_get_reader` / `_writer` and their setters, `lh_os_input_queue_get_storage` / `_head` / `_tail` and the setters, `lh_os_input_event_set_*` for every field, `lh_os_input_recognizer_pointer_get_*` / `_set_*`, `lh_os_input_recognizer_get_config_mut` / `_set_config` / `_get_pointer` / `_get_pointer_mut`, `lh_os_input_contacts_get_contact` / `_set_contact` / `_get_device_kind` / `_set_device_kind` / `_is_taken` / `_set_taken`, `lh_os_app_get_windows` / `_mut` / `_set_quit`, `lh_os_window_get_link` / `_mut`, `lh_os_module_ops_get_start_fn` / `_stop_fn` and setters (`src/lh/os/module/ops.c`)
@@ -1165,7 +1051,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Find bricks (`lh/memory.h`): `lh_memory_is_unbounded` (a sentinel scan with no real length), `lh_memory_find_byte_by_step`, `lh_memory_find_unit_by_step`, `lh_memory_find_unit_by_blocks` (real length only), `lh_memory_find_needle_by_step`; `lh_memory_find_step` only dispatches to them
 
-- `lh_math_float_is_finite` (`lh/math/float/finite.h`) and `lh_math_float_tan` (`lh/math/float/tan.h`, sine over cosine of `lh_math_float_sin_cos`); `lh_math_vec3_is_finite` and `lh_math_vec3_try_normalize` (`lh/math/vec3.h`). Renderer bricks: `lh_ui_renderer3d_camera_is_usable`, `_camera_to_view` (`lh/ui/renderer3d/camera.h`), `lh_ui_renderer3d_plane_t` (`lh/ui/renderer3d/plane.h`), `lh_ui_renderer3d_clear`, `_get_plane_distance`, `_clip_plane`, `_project`, `_get_edge`, `_put_fragment`, `_raster`
+- `lh_math_float_is_finite` (`lh/math/float/finite.h`) and `lh_math_float_tan` (`lh/math/float/tan.h`, sine over cosine of `lh_math_float_sin_cos`); `lh_math_vec3_is_finite` and `lh_math_vec3_try_normalize` (`lh/math/vec3.h`). Renderer bricks: `lh_gl_renderer3d_camera_is_usable`, `_camera_to_view` (`lh/gl/renderer3d/camera.h`), `lh_gl_renderer3d_plane_t` (`lh/gl/renderer3d/plane.h`), `lh_gl_renderer3d_clear`, `_get_plane_distance`, `_clip_plane`, `_project`, `_get_edge`, `_put_fragment`, `_raster`
 
 - Allocator bricks (`lh/memory/allocator.h`): `lh_memory_allocator_init_tail` (the zero-initialization policy, one place), `_try_dealloc`, `_try_resize` (native realloc only), `_try_move` (alloc/copy/release), `_realloc_needs_alloc`, `_try_alloc_zero` / `_alloc_zero`; runtime forms `lh_runtime_allocator_try_alloc`, `_try_alloc_zero`, `_try_free`, `_try_realloc`, `_alloc_zero`
 
@@ -1219,35 +1105,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AES-NI for `lh_crypto_rijndael_t` (`lh/crypto/rijndael.h`): 16-byte (AES) blocks encrypt and decrypt with `AESENC` / `AESDEC` when the CPU has AES-NI, in every mode and for 16/24/32-byte keys; 24/32-byte Rijndael blocks and CPUs without AES-NI keep the table path, same bytes. `lh_crypto_rijndael_init` also prepares the `AESDEC` round keys (`AESIMC`) once, so decrypt runs as fast as encrypt; the session gains `aesni_dec_key` (240 bytes) when `LH_LIBRARY_OPTION_SIMD_HAVE_AESNI` is on, so library and caller must share one `lh/config.h`. About 32x faster encrypt and 70x faster decrypt per block on an i7-3770K (AES-128: 765 → 24 ns, 1661 → 24 ns)
 - `lh_cpu_simd_has_aesni` (`lh/cpu/simd.h`) and `LH_LIBRARY_OPTION_SIMD_HAVE_AESNI` (`lh/config.h`, compile-only probe in `cmake/check_simd.cmake`): runtime and toolchain checks for AES-NI
 - FIPS-197 known answers for AES-128/192/256 (encrypt and decrypt) and SP 800-38A first blocks for CBC and CFB in `test/src/lh/crypto/rijndael.cpp`
-- Third-party notices in `LICENSE.md` with license texts in `licenses/` (`Apache-2.0.txt` for the Roboto font compiled into `lh/ui/font/roboto.c`, `Unicode-3.0.txt` for the Unicode Character Database 16.0.0 under `tools/data/unicode/`); `requirements.txt` pins Pillow for the `scripts/` generators
+- Third-party notices in `LICENSE.md` with license texts in `licenses/` (`Apache-2.0.txt` for the Roboto font compiled into `lh/gl/font/roboto.c`, `Unicode-3.0.txt` for the Unicode Character Database 16.0.0 under `tools/data/unicode/`); `requirements.txt` pins Pillow for the `scripts/` generators
 - CI: Windows legacy jobs build and test through `scripts/build-windows-xp.bat` (x86) and `build-windows-vista.bat` (x64) at the XP / Vista API level on a modern MSVC (compile and test only, not XP / Vista-deployable binaries)
-- `lh_test_ui` checks `lh/ui.h` from C++ and as C11 (`test/src/lh/ui/umbrella.cpp`, `umbrella.c`)
-- `lh_ui_layout_run` and its bricks (`lh/ui/layout.h`): `lh_ui_layout_run_t` / `lh_ui_layout_cross_t`, `lh_ui_layout_run_init`, `lh_ui_layout_run_measure_child`, `lh_ui_layout_run_measure`, `lh_ui_layout_justify_lead`, `lh_ui_layout_run_justify`, `lh_ui_layout_run_length`, `lh_ui_layout_run_place_child`, `lh_ui_layout_run_place`, `lh_ui_layout_cross_fit`, `lh_ui_layout_cross_at`, `lh_ui_layout_child_line`: one line of the flow measured, justified and placed a child at a time
-- `lh_ui_canvas_box_frame_t`, `lh_ui_canvas_box_frame_init`, `lh_ui_canvas_box_corners_init`, `lh_ui_canvas_box_row_is_upper`, `lh_ui_canvas_box_zone`, `lh_ui_canvas_box_row_reach`, `lh_ui_canvas_box_rows` (`lh/ui/canvas/box.h`): the shown edges of a box and its rows, corners and bands
-- `lh_ui_blur_pass_t`, `lh_ui_blur_pass_init`, `lh_ui_blur_column`, `lh_ui_blur_window_span`, `lh_ui_blur_window_take_samples`, `lh_ui_blur_window_drop_samples`, `lh_ui_blur_window_average_color`, `lh_ui_blur_sample_color` (`lh/ui/blur.h`): the column pass one column at a time
-- `lh_ui_canvas_sw_shadow_pass_t`, `lh_ui_canvas_sw_shadow_pass_init`, `lh_ui_canvas_sw_shadow_row`, `lh_ui_canvas_sw_shadow_span` (`lh/ui/canvas/sw.h`): the software box shadow a row at a time
+- `lh_test_gl` checks `lh/gl.h` from C++ and as C11 (`test/src/lh/gl/umbrella.cpp`, `umbrella.c`)
+- `lh_gl_layout_run` and its bricks (`lh/gl/layout.h`): `lh_gl_layout_run_t` / `lh_gl_layout_cross_t`, `lh_gl_layout_run_init`, `lh_gl_layout_run_measure_child`, `lh_gl_layout_run_measure`, `lh_gl_layout_justify_lead`, `lh_gl_layout_run_justify`, `lh_gl_layout_run_length`, `lh_gl_layout_run_place_child`, `lh_gl_layout_run_place`, `lh_gl_layout_cross_fit`, `lh_gl_layout_cross_at`, `lh_gl_layout_child_line`: one line of the flow measured, justified and placed a child at a time
+- `lh_gl_canvas_box_frame_t`, `lh_gl_canvas_box_frame_init`, `lh_gl_canvas_box_corners_init`, `lh_gl_canvas_box_row_is_upper`, `lh_gl_canvas_box_zone`, `lh_gl_canvas_box_row_reach`, `lh_gl_canvas_box_rows` (`lh/gl/canvas/box.h`): the shown edges of a box and its rows, corners and bands
+- `lh_gl_blur_pass_t`, `lh_gl_blur_pass_init`, `lh_gl_blur_column`, `lh_gl_blur_window_span`, `lh_gl_blur_window_take_samples`, `lh_gl_blur_window_drop_samples`, `lh_gl_blur_window_average_color`, `lh_gl_blur_sample_color` (`lh/gl/blur.h`): the column pass one column at a time
+- `lh_gl_canvas_sw_shadow_pass_t`, `lh_gl_canvas_sw_shadow_pass_init`, `lh_gl_canvas_sw_shadow_row`, `lh_gl_canvas_sw_shadow_span` (`lh/gl/canvas/sw.h`): the software box shadow a row at a time
 - `lh_math_quat_axis_x` / `_y` / `_z` and `lh_math_quat_axis_cyclic` (`lh/math/quat.h`): where a unit quaternion takes each axis; `lh_math_mat4_set_column_vec3` (`lh/math/mat4.h`)
-- `lh_ui_gradient_sampler_lerp_t` with `lh_ui_gradient_sampler_lerp_init` / `_next` / `_color`, `lh_ui_gradient_sampler_stop_frac`, `lh_ui_gradient_sampler_segment_at`, `lh_ui_gradient_sampler_is_flat`, `lh_ui_gradient_sampler_flat_run`, `lh_ui_gradient_sampler_linear_run`, `lh_ui_gradient_sampler_radial_row` (`lh/ui/gradient/sampler.h`)
+- `lh_gl_gradient_sampler_lerp_t` with `lh_gl_gradient_sampler_lerp_init` / `_next` / `_color`, `lh_gl_gradient_sampler_stop_frac`, `lh_gl_gradient_sampler_segment_at`, `lh_gl_gradient_sampler_is_flat`, `lh_gl_gradient_sampler_flat_run`, `lh_gl_gradient_sampler_linear_run`, `lh_gl_gradient_sampler_radial_row` (`lh/gl/gradient/sampler.h`)
 - `lh_math_scalar_slack`, `lh_math_scalar_centre` (`lh/math/scalar/centre.h`): non-negative leftover room and half-up centre offset `(room - own + 1) / 2` on discrete scalars
 - `lh_math_div_round` (`lh/math/ops.h`): half-up integer division `(numer + denom / 2) / denom` for non-negative values
 - `lh_math_size_min`, `lh_math_size_max`, `lh_math_size_min_side` (`lh/math/size.h`) and `lh_math_fsize_*` counterparts: component-wise min/max and the shorter side
-- `lh_ui_scalar_slack`, `lh_ui_scalar_centre` (`lh/ui/scalar.h`): UI leftovers and half-up centring through `lh_ui_scalar_trunc`, same pixels with FPU on or off
+- `lh_gl_scalar_slack`, `lh_gl_scalar_centre` (`lh/gl/scalar.h`): UI leftovers and half-up centring through `lh_gl_scalar_trunc`, same pixels with FPU on or off
 - `lh_math_slice_t` (`lh/math/slice.h`) and `lh_math_view_t` (`lh/math/view.h`): read-only closed slice and strided view of `lh_float_t` values, built on `lh_interval_bounds_fields` and `lh_interval_closed_*`
 - `LH_FLOAT_T_MIN`, `LH_FLOAT_T_MAX` and `LH_FLOAT_T_EPS` (`lh/numeric/float.h`): `FLT_MIN` (smallest positive normalized value), `FLT_MAX` and `FLT_EPSILON` limits for `lh_float_t`
 - `lh_math_vec4_madd` (`lh/math/vec4.h`) and `lh_math_vec3_madd` (`lh/math/vec3.h`): multiply-accumulate `a + b * s` into `out`; `out` may be the storage `a` or `b` was copied from
 - Unified input (`lh/os/input/`): one event type `lh_os_input_event_t` (`event.h`) for mouse, touch, pen, keyboard, text, controller, device and focus input and for gestures, with its kinds, device kinds, buttons (`lh_os_input_button_to_mask`), axes, modifiers (`LH_OS_INPUT_MODS_*`), flags (`LH_OS_INPUT_FLAG_*`), Q24.8 coordinates (`coord.h`, `LH_OS_INPUT_WHEEL_NOTCH` 120) and `LH_OS_INPUT_POINTER_MAX`; one sink callback `lh_os_input_sink_fn` / `_cb`; an allocation-free single-producer ring `lh_os_input_queue_t` (`queue.h`) that folds moves when full and counts what it dropped; and the gesture recognizer `lh_os_input_recognizer_t` (`recognizer.h`, config in `recognizer/config.h`): click with a count, double click, long press, drag begin / drag / drag end, cancel on focus loss, optional Shift+wheel sideways. Needs no OS; tested in `lh_test_os_input`
 - `lh_tick_elapsed` and `lh_tick_is_after` (`lh/timer/tick.h`): wrap-safe distance and order of two ticks
 - `lh_os_window_set_on_input`, `lh_os_window_get_pressed_buttons` and `lh_os_window_on_native_input` (`lh/os/window.h`): every input of a window as one event to one sink, and the buttons the last pointer event left held
-- `lh_ui_view_input`, `lh_ui_view_cancel` and `LH_UI_VIEW_WHEEL_STEP` (`lh/ui/view.h`): one input event to the right view call, and a press abandoned without a click
+- `lh_gl_view_input`, `lh_gl_view_cancel` and `LH_GL_VIEW_WHEEL_STEP` (`lh/gl/view.h`): one input event to the right view call, and a press abandoned without a click
 - `lh_os_input_get_wheel_step` (`lh/os/input.h`, needs `LH_LIBRARY_OPTION_OS`): how far one wheel notch scrolls, in content units, as the system is set up now - Windows (with the window backend) asks `SystemParametersInfoA(SPI_GETWHEELSCROLLLINES)` on each call, Linux and macOS answer the default (the driver's increment needs libinput / evdev, which lh does not use), every other platform `LH_OS_INPUT_WHEEL_STEP_DEFAULT`
 - `lh_os_input_wheel_step_of` and `LH_OS_INPUT_WHEEL_STEP_DEFAULT` (40), `LH_OS_INPUT_WHEEL_LINES_DEFAULT` (3), `LH_OS_INPUT_WHEEL_LINES_PAGE` (20), `LH_OS_INPUT_WHEEL_LINES_MAX` (100) (`lh/os/input/wheel.h`, no OS needed, all `#ifndef`): a system's lines a notch as content units, one line 40 / 3 units so the default 3 lines stay exactly 40; tested in `lh_test_os_input`
 - Kernels behind it: `lh_os_system_win_input_wheel_lines_of` / `_get_wheel_lines` (Win32, with `SystemParametersInfoA`, `SPI_GETWHEELSCROLLLINES` and `WHEEL_PAGESCROLL` declared in `src/lh/os/system/win/user32.h`), `lh_os_system_posix_input_wheel_increment_of` (X11: a core wheel press is one whole notch; XInput2 is not used) and the new Unix kernel `src/lh/os/system/unix/input.c` (`lh_os_system_unix_input_get_wheel_lines`)
 - Win32 and X11 windows deliver the right, middle, back and forward buttons, the horizontal wheel on Windows, modifiers on every event, auto-repeat as `LH_OS_INPUT_FLAG_REPEAT`, `focus_in` / `focus_out`, and a `pointer_cancel` when Windows takes the mouse capture away mid-press
 - `lh_os_controller_t` (`lh/os/controller.h`): the controller between an input source and the object its events are for. It runs `lh_os_input_recognizer_t` and hands raw and synthesized events to one handler with its context as `self` - no vtable: `handle_cb` / `update_cb` / `cancel_cb` of `lh_os_controller_handlers_handle_fn` / `_update_fn` / `_cancel_fn` (`lh/os/controller/handlers/`), `lh_os_controller_fields`, `lh_os_controller_initializer` / `_default_initializer` / `_empty_initializer`, `lh_os_controller_ptr`, flags `lh_os_controller_flags_t` with `lh_os_controller_flags_none` / `_enabled` / `_gestures` (`flags/value.h`); `lh_os_controller_init`, `_feed`, `_handle`, `_update`, `_cancel`, the flag and handler accessors, and `lh_os_controller_sink`, an `lh_os_input_sink_fn` that plugs a controller into `lh_os_window_set_on_input` or `lh_os_input_queue_drain`. Needs no OS; tested in `lh_test_os_controller`
-- `lh_ui_view_controller_handle` and `lh_ui_view_controller_cancel` (`lh/ui/view/controller.h`): `lh_ui_view_input` and `lh_ui_view_cancel` as the handlers of an `lh_os_controller_t`, the view as `self`
+- `lh_gl_view_controller_handle` and `lh_gl_view_controller_cancel` (`lh/gl/view/controller.h`): `lh_gl_view_input` and `lh_gl_view_cancel` as the handlers of an `lh_os_controller_t`, the view as `self`
 - `lh_os_window_set_controller` and `lh_os_window_get_controller` (`lh/os/window.h`): the controller as the standard input path of a window. The window feeds it every event (after the `lh_os_window_set_on_input` sink, which stays as the low-level tap), cancels it on `focus_out`, and calls `lh_os_controller_update` on every tick before `on_tick`; with no `on_tick` period it arms its own timer for the recognizer's next deadline only, so a long press arrives on time. Win32 and X11 both go through `lh_os_window_on_native_input`
-- `controller` (`lh_os_controller_t *`) in `lh_ui_web_host_hooks_t` (`lh/ui/web/host.h`): fed after the `input` hook and updated every pass of the host; with neither `input` nor `controller` the host feeds a controller of its own with `lh_ui_view_controller_handle` / `lh_ui_view_controller_cancel` on the served view
-- Several pointers in one view (`lh/ui/view.h`): every pointer id below `LH_OS_INPUT_POINTER_MAX` has a session of its own, `lh_ui_view_pointer_t` (`lh/ui/view/pointer.h`, `pointer/fields.h`, `pointer/initializer.h` with `lh_ui_view_pointer_initializer` / `_idle_initializer`; `lh_ui_view_pointer_init`, `_start`, `_reset`, `_is_active`, `_track`, `_is_past_threshold` and the field accessors), kept inside the view, no heap: its pressed entity, thumb grab, content drag and click. `lh_ui_view_press_pointer`, `lh_ui_view_move_pointer`, `lh_ui_view_release_pointer`, `lh_ui_view_cancel_pointer` and `lh_ui_view_get_pointer` take the id; `lh_ui_view_input` routes each pointer to its own. Two fingers on two buttons press and click both; a container one pointer drags (or whose thumb it holds) is not taken over by another; an entity two pointers press stays pressed until the last lets go
+- `controller` (`lh_os_controller_t *`) in `lh_gl_web_host_hooks_t` (`lh/gl/web/host.h`): fed after the `input` hook and updated every pass of the host; with neither `input` nor `controller` the host feeds a controller of its own with `lh_gl_view_controller_handle` / `lh_gl_view_controller_cancel` on the served view
+- Several pointers in one view (`lh/gl/view.h`): every pointer id below `LH_OS_INPUT_POINTER_MAX` has a session of its own, `lh_gl_view_pointer_t` (`lh/gl/view/pointer.h`, `pointer/fields.h`, `pointer/initializer.h` with `lh_gl_view_pointer_initializer` / `_idle_initializer`; `lh_gl_view_pointer_init`, `_start`, `_reset`, `_is_active`, `_track`, `_is_past_threshold` and the field accessors), kept inside the view, no heap: its pressed entity, thumb grab, content drag and click. `lh_gl_view_press_pointer`, `lh_gl_view_move_pointer`, `lh_gl_view_release_pointer`, `lh_gl_view_cancel_pointer` and `lh_gl_view_get_pointer` take the id; `lh_gl_view_input` routes each pointer to its own. Two fingers on two buttons press and click both; a container one pointer drags (or whose thumb it holds) is not taken over by another; an entity two pointers press stays pressed until the last lets go
 - `lh_os_input_pointer_id_t` (`lh/os/input/pointer/id.h`): which pointer an event is about, `0` the mouse, touch contacts and pens from `1`
 - `lh_os_input_contacts_t` (`lh/os/input/contacts.h`, `contacts/fields.h`, `contacts/initializer.h` with `lh_os_input_contacts_initializer` / `_empty_initializer`, `contacts/ptr.h`) and `lh_os_input_contact_id_t` (`lh/os/input/contact/id.h`): the pointer id each live contact of a native pointer API goes by; `lh_os_input_contacts_init`, `_take` (the lowest free id from `1`), `_find`, `_get_device_kind`, `_get_count`, `_release`. Needs no OS; tested in `lh_test_os_input`
 - Touch and pen on Windows 8 and later: the Win32 window handles `WM_POINTERDOWN` / `UPDATE` / `UP` / `CAPTURECHANGED` (`GetPointerType` / `GetPointerInfo` looked up at run time, so XP and 7 still start) as pointers `1` and up with device kind `touch` / `pen`, client coordinates and `pointer_cancel` on a cancelled or lost contact, and skips the mouse messages made out of them (`MI_WP_SIGNATURE`); on Windows 7 and XP those mouse messages stay pointer `0` with device kind `touch` / `pen`. Kernels `lh_os_system_win_input_device_kind_of_pointer_type`, `_pointer_flags_of`, `_pointer_kind_of`, `_is_promoted_mouse`, `_device_kind_of_mouse`, tested in `lh_test_os`
@@ -1258,7 +1144,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `docs/index.md`: the index of every guide — integration by target (microcontroller / desktop window / web host), subsystem (UI, modules, OS threads, HTTP, 3D renderer), project files — linked from the README
 ### Changed
 
-- ui: a name that is a level-1 accessor now stores or reads the field and nothing else; the forms that did more keep their behaviour under another name. Safe forms (a check, a side effect): `_v` — `lh_ui_label_set_text_v`, `lh_ui_view_set_focus_v` / `_set_root_v`, `lh_ui_entity_set_rect_v` / `_set_hidden_v` / `_set_class_v` / `_set_style_v` / `_set_place_v`, `lh_ui_toggle_set_checked_v`, `lh_ui_button_set_hot_v` / `_set_hot_style_v`, `lh_ui_input_set_caret_v`, `lh_ui_surface_set_format_v` / `_set_size_v`, `lh_ui_display_set_panel_v`, `lh_ui_pen_set_width_v` / `_set_paint_v`, `lh_ui_shadow_set_spread_v`, `lh_ui_style_set_radius_v` / `_set_hit_radius_v` / `_set_radii_v` / `_set_shadow_v` / `_set_border_v` / `_set_padding_v`, `lh_ui_image_set_tint_v`, `lh_ui_container_set_scroll_v`, `lh_ui_gradient_stop_set_color_v`, `lh_ui_canvas_get_damage_v`, `lh_ui_canvas_state_get_clip_v`, `lh_ui_paint_get_color_v` / `_get_gradient_v`, `lh_ui_canvas_web_get_glyphs_v` / `_set_glyphs_v`. Copies into an out parameter: `copy_` — `lh_ui_entity_copy_rect`, `lh_ui_shadow_copy_color`, `lh_ui_entity_transform_copy_offset`, `lh_ui_canvas_sw_copy_limit`, `lh_ui_view_pointer_copy_velocity` / `_copy_press_point` / `_copy_last_point`, `lh_ui_surface_copy_size`, `lh_ui_canvas_copy_size`, `lh_ui_place_copy_min` / `_copy_max`; `lh_ui_container_get_clamped_scroll`. Two fields at once: `lh_ui_canvas_use_scratch`, `lh_ui_canvas_sw_use_pixmap` / `_use_clip`, `lh_ui_toggle_set_on_styles` / `_set_off_styles`, `lh_ui_layout_set_wrapping`, `lh_ui_view_pointer_grab`, `lh_ui_place_set_sizing` / `_set_min_size` / `_set_max_size`. Copies from a pointer: `lh_ui_style_assign_fill` / `_assign_text` / `_assign_border_fill`, `lh_ui_place_assign_margin`; `lh_ui_style_set_padding_all` sets the four sides. `scripts/css2decl.py` generates the new names
+- ui: a name that is a level-1 accessor now stores or reads the field and nothing else; the forms that did more keep their behaviour under another name. Safe forms (a check, a side effect): `_v` — `lh_gl_label_set_text_v`, `lh_gl_view_set_focus_v` / `_set_root_v`, `lh_gl_entity_set_rect_v` / `_set_hidden_v` / `_set_class_v` / `_set_style_v` / `_set_place_v`, `lh_gl_toggle_set_checked_v`, `lh_gl_button_set_hot_v` / `_set_hot_style_v`, `lh_gl_input_set_caret_v`, `lh_gl_surface_set_format_v` / `_set_size_v`, `lh_gl_display_set_panel_v`, `lh_gl_pen_set_width_v` / `_set_paint_v`, `lh_gl_shadow_set_spread_v`, `lh_gl_style_set_radius_v` / `_set_hit_radius_v` / `_set_radii_v` / `_set_shadow_v` / `_set_border_v` / `_set_padding_v`, `lh_gl_image_set_tint_v`, `lh_gl_container_set_scroll_v`, `lh_gl_gradient_stop_set_color_v`, `lh_gl_canvas_get_damage_v`, `lh_gl_canvas_state_get_clip_v`, `lh_gl_paint_get_color_v` / `_get_gradient_v`, `lh_gl_canvas_web_get_glyphs_v` / `_set_glyphs_v`. Copies into an out parameter: `copy_` — `lh_gl_entity_copy_rect`, `lh_gl_shadow_copy_color`, `lh_gl_entity_transform_copy_offset`, `lh_gl_canvas_sw_copy_limit`, `lh_gl_view_pointer_copy_velocity` / `_copy_press_point` / `_copy_last_point`, `lh_gl_surface_copy_size`, `lh_gl_canvas_copy_size`, `lh_gl_place_copy_min` / `_copy_max`; `lh_gl_container_get_clamped_scroll`. Two fields at once: `lh_gl_canvas_use_scratch`, `lh_gl_canvas_sw_use_pixmap` / `_use_clip`, `lh_gl_toggle_set_on_styles` / `_set_off_styles`, `lh_gl_layout_set_wrapping`, `lh_gl_view_pointer_grab`, `lh_gl_place_set_sizing` / `_set_min_size` / `_set_max_size`. Copies from a pointer: `lh_gl_style_assign_fill` / `_assign_text` / `_assign_border_fill`, `lh_gl_place_assign_margin`; `lh_gl_style_set_padding_all` sets the four sides. `scripts/css2decl.py` generates the new names
 - `lh_os_window_set_maximized` (the window-system command) is `lh_os_window_maximize`; `lh_os_window_set_frame` and `lh_os_window_set_placement`, which accept a value only while the window is closed, are `_set_frame_v` and `_set_placement_v`; the plain names are the level-1 setters
 - `lh_os_input_contacts_get_device_kind` is the fast level-1 getter; the checked form that answers `lh_os_input_device_kind_none` for a free slot or a bad id is `lh_os_input_contacts_get_device_kind_v`
 - `lh_mb_link_init` takes the clock as `lh_mb_link_clock_cb` (the same function type as before)
@@ -1268,17 +1154,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `lh_memory_view_*` / `lh_memory_bounds_*` are built on `begin + size`, the layout they already had: `set`, `set_v` and `init` take `(begin, size)` instead of `(begin, end)` (no end is computed and turned back into a size), `set_by_size` / `init_by_size` are gone (`set` / `init` are those now), and `equals` / `contains` / `overlaps` work on the operand view directly. An empty view is valid wherever it points, null included; a null begin with a non-zero size is invalid. `lh_memory_typed_set` / `_set_v` / `_init` take an element count: `(begin, count, type_size)`
 
-- `lh/ui/renderer3d` runs on the LH math bricks: its private `vertex` type, ten `static` helpers and the libm calls (`isfinite`, `tanf`, `floorf`, `fminf`, ...) are gone; `lh_ui_renderer3d_triangle` and `_box` only compose the bricks above. The camera lives in `src/lh/ui/renderer3d/camera.c`. Output is bit-identical
+- `lh/gl/renderer3d` runs on the LH math bricks: its private `vertex` type, ten `static` helpers and the libm calls (`isfinite`, `tanf`, `floorf`, `fminf`, ...) are gone; `lh_gl_renderer3d_triangle` and `_box` only compose the bricks above. The camera lives in `src/lh/gl/renderer3d/camera.c`. Output is bit-identical
 
-- One file — one entity: enums and helper structs that shared a header with another entity now have their own, included by the old header so no include breaks. Enums: `lh_ui_entity_event_code` (`ui/entity/event/code.h`), `lh_ui_decl_kind` / `_error` (`ui/decl/`), `lh_ui_gradient_shape`, `lh_ui_input_caret_shape` (`ui/input/caret/shape.h`), `lh_ui_text_wrap` (`ui/text/wrap.h`), `lh_ui_text_align_h` / `_v` (`ui/text/align/`), `lh_ui_place_size` / `_align` (`ui/layout/place/`), `lh_ui_justify` (`ui/justify.h`), `lh_ui_web_x_kind`, `lh_ui_web_html_kind`, `lh_mb_status`, `lh_mb_framing`, `lh_mb_link_state`. Structs with their functions and sources: `lh_ui_blur_window`, `lh_ui_blur_pass`, `lh_ui_layout_cross`, `lh_ui_layout_run`, `lh_ui_canvas_clip_round`, `lh_ui_canvas_sw_shadow_pass`, `lh_ui_gradient_sampler_lerp`, `lh_ui_canvas_web_glyphs`; header only: `lh_ui_renderer3d_camera`, `lh_ui_view_focus_walk`, `lh_ui_web_host_frame` / `_client` / `_stream` / `_hooks`, `lh_mb_want`, `lh_mb_read`
+- One file — one entity: enums and helper structs that shared a header with another entity now have their own, included by the old header so no include breaks. Enums: `lh_gl_entity_event_code` (`ui/entity/event/code.h`), `lh_gl_decl_kind` / `_error` (`ui/decl/`), `lh_gl_gradient_shape`, `lh_gl_input_caret_shape` (`ui/input/caret/shape.h`), `lh_gl_text_wrap` (`ui/text/wrap.h`), `lh_gl_text_align_h` / `_v` (`ui/text/align/`), `lh_gl_place_size` / `_align` (`ui/layout/place/`), `lh_gl_justify` (`ui/justify.h`), `lh_gl_web_x_kind`, `lh_gl_web_html_kind`, `lh_mb_status`, `lh_mb_framing`, `lh_mb_link_state`. Structs with their functions and sources: `lh_gl_blur_window`, `lh_gl_blur_pass`, `lh_gl_layout_cross`, `lh_gl_layout_run`, `lh_gl_canvas_clip_round`, `lh_gl_canvas_sw_shadow_pass`, `lh_gl_gradient_sampler_lerp`, `lh_gl_canvas_web_glyphs`; header only: `lh_gl_renderer3d_camera`, `lh_gl_view_focus_walk`, `lh_gl_web_host_frame` / `_client` / `_stream` / `_hooks`, `lh_mb_want`, `lh_mb_read`
 
 - `lh_memory_allocator_try_realloc` only dispatches to the bricks above; `lh_memory_allocator_alloc` / `_dealloc` / `_realloc` are their `try_` form plus a runtime check. `try_realloc` to zero size no longer dies on a missing release callback
 
 - Every public header under `include/lh/` documents its symbols: a `@brief` plus prose, a `@param` for every parameter, a `@return` for a value, and a short brief per struct member. The API reference is built from those headers, and `lh_docs` now builds with no warning at all
-- Every public header carries a file documentation block (`@file` plus `@brief`). Without it Doxygen does not extract the header at all: no file page, no members, no warning. `include/lh/memory/typed.h` had none, so its 46 functions were in no reference and Doxygen never reported them; `include/lh/http.h`, `include/lh/os/fs.h` and `include/lh/ui/font/roboto.h` had none either
+- Every public header carries a file documentation block (`@file` plus `@brief`). Without it Doxygen does not extract the header at all: no file page, no members, no warning. `include/lh/memory/typed.h` had none, so its 46 functions were in no reference and Doxygen never reported them; `include/lh/http.h`, `include/lh/os/fs.h` and `include/lh/gl/font/roboto.h` had none either
 - `include/lh/memory/typed.h` documents its 46 functions: the bounds of a typed range, the element size, the index and offset conversions, the value and range accessors, the set / assign / swap operations, all read from the implementation and matching the contracts of the sibling `lh_memory_bounds_*` and `lh_memory_view_*` headers
 - Headers whose `#if` branches each carried their own copy of a doc block now carry it in every branch: `include/lh/os/str.h` (the non-wide branch), `include/lh/real.h`, `include/lh/real/bits.h`, `include/lh/real/lemire.h` and `include/lh/real/power5.h`. Doxygen sees one branch only, so the undocumented one was the one that reached the reference
-- `scripts/font.py` writes a file documentation block into the font headers it generates, and `include/lh/ui/font/roboto.h` is updated to match: without it the built-in font was in no reference
+- `scripts/font.py` writes a file documentation block into the font headers it generates, and `include/lh/gl/font/roboto.h` is updated to match: without it the built-in font was in no reference
 - Doxygen expands the pointer macros (`PREDEFINED`): a header may spell a parameter `const lh_os_input_event_ptr` while its definition spells it `lh_os_input_event_cptr` — the same type in C, since the `const` binds to the struct — but Doxygen read the two spellings as two signatures, never merged a declaration with its definition, and reported the definition as undocumented. The same for `lh_byte_ptr` / `lh_byte_cptr`, `lh_str_ptr` / `lh_str_cptr`, `lh_wstr_ptr` / `lh_wstr_cptr` and the `lh_os_input_*` pairs
 - The implementation-only types are out of the reference (`EXCLUDE_SYMBOLS`): `lh_os_native_thread`, `lh_os_native_condition`, `lh_os_system_shared_search`, `lh_os_controller_dispatch`, `lh_os_system_win_mib_ipaddrrow` / `_ipaddrtable` and `lh_os_system_win_window_proc` are declared in no public header
 - `docs/ui.md`, `docs/http.md`, `docs/concurrency.md`, `docs/renderer3d.md` and `bench/lvgl/RESULTS.md` are back in the Doxygen input: they were missing and never reached the HTML
@@ -1286,8 +1172,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `src/lh/math/fpoint.c` and `src/lh/math/point.c` are out of the Doxygen input: their `@copydoc` points at a signature Doxygen cannot resolve (the header spells the parameter `const struct lh_math_fsize *`, the definition `const lh_math_fsize_t *`). Every public function of both files is declared and documented in `include/lh/math/fpoint.h` and `include/lh/math/point.h`
 - The guides are split into sections: `docs/http.md`, `docs/concurrency.md` and `docs/renderer3d.md` were one wall of prose each and are now navigated by heading
 - `LICENSE.md` starts with a heading, and every include guard closes with its own name (`#endif /* LH_HTTP_ERROR_H */`)
-- The UTF-8 encoder left the UI module for `lh/str/utf8.h`, where non-UI code (JSON `\u` escapes) can use it: `lh_ui_text_encoded_size` → `lh_str_utf8_get_encoded_size`, `lh_ui_text_lead_size` → `lh_str_utf8_get_lead_size`, `lh_ui_text_encode_code` → `lh_str_utf8_encode`. `lh_ui_text_next_code` stays in `lh/ui/text.h`: it reads leniently for drawing
-- Getters that hand out a pointer into the object are named for the read-only case: `get_X` returns a const pointer and `get_X_mut` the mutable one (was `get_X` / `get_X_as_const`). Renamed everywhere `_as_const` was used: `lh_array_get_typed`, `lh_math_rect_*` / `lh_math_frect_*` / `lh_ui_rect_*` `get_origin` and `get_size`, `lh_memory_typed_get_bounds`, `lh_os_fs_file_get_handle` / `_get_path`, `lh_os_loader_get_modules`, `lh_os_module_get_image` / `_get_path`, `lh_os_shared_get_path`, `lh_str_list_*` / `lh_wstr_list_*` `get_chars` and `get_spans`, `lh_timer_get_node` / `_get_by_node`, `lh_timer_group_get_timers`, `lh_ui_gradient_get_stop`, `lh_ui_gradient_stop_get_color`, `lh_ui_rects_get`. Code calling the old mutable `get_X` must switch to `get_X_mut`; a `get_X` result passed where a non-const pointer is expected now warns about discarding `const`
+- The UTF-8 encoder left the UI module for `lh/str/utf8.h`, where non-UI code (JSON `\u` escapes) can use it: `lh_gl_text_encoded_size` → `lh_str_utf8_get_encoded_size`, `lh_gl_text_lead_size` → `lh_str_utf8_get_lead_size`, `lh_gl_text_encode_code` → `lh_str_utf8_encode`. `lh_gl_text_next_code` stays in `lh/gl/text.h`: it reads leniently for drawing
+- Getters that hand out a pointer into the object are named for the read-only case: `get_X` returns a const pointer and `get_X_mut` the mutable one (was `get_X` / `get_X_as_const`). Renamed everywhere `_as_const` was used: `lh_array_get_typed`, `lh_math_rect_*` / `lh_math_frect_*` / `lh_gl_rect_*` `get_origin` and `get_size`, `lh_memory_typed_get_bounds`, `lh_os_fs_file_get_handle` / `_get_path`, `lh_os_loader_get_modules`, `lh_os_module_get_image` / `_get_path`, `lh_os_shared_get_path`, `lh_str_list_*` / `lh_wstr_list_*` `get_chars` and `get_spans`, `lh_timer_get_node` / `_get_by_node`, `lh_timer_group_get_timers`, `lh_gl_gradient_get_stop`, `lh_gl_gradient_stop_get_color`, `lh_gl_rects_get`. Code calling the old mutable `get_X` must switch to `get_X_mut`; a `get_X` result passed where a non-const pointer is expected now warns about discarding `const`
 - `lh_memory_typed_t` holds the fields of `lh_memory_bounds_t` and `type_size`, nothing else: `lh_memory_typed_fields(elem_type)` is `lh_memory_bounds_fields(elem_type)` plus `type_size` instead of a nested `bounds` and a cached element count, so a typed value is its own bounds (`lh_memory_typed_get_bounds` returns it) and `lh_memory_typed_get_size` is the byte size divided by `type_size`. `lh_memory_typed_initializer(begin, size, type_size)` fills the three fields; `lh_memory_typed_retype` is gone: with nothing cached it was `lh_memory_typed_set_type_size` under a second name. `lh_memory_typed_get_ptr` with the minimum `lh_sindex_t` fails as out of range instead of overflowing the negation
 - `lh_memory_view_get_size` / `lh_memory_bounds_get_size` (and `lh_str_view_get_size`, `lh_wstr_view_get_size`, `lh_memory_typed_get_size_of_bytes` on top of them) return the stored `size` without validating, like `_get_begin`; `_get_size_v` validates. `_is_empty` no longer fails on an invalid view. The `[begin, end)` forms of find, rfind, compare, rcompare, copy and move now check that range (`invalid_range` for a null or backward end) instead of only a null `end`
 - `lh_memory_view_is_uninitialized` / `lh_memory_bounds_is_uninitialized` are true when `begin` is null, and `_is_valid` when `begin` is set and `begin + size` does not wrap past the address space; for every pair the old endpoints could hold this is the same answer as before, except a null `begin` with a non-null end, which used to be half-initialized and is now uninitialized
@@ -1306,30 +1192,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Death tests in `test/src/lh/memory/tree.cpp`, `memory/sized/allocator.cpp`, `util/str/ptr.cpp` and `util/wstr/ptr.cpp` are guarded by `LH_TEST_EXPECT_DEATH_ENABLED` like the rest, so where death tests cannot run they are left out instead of passing with nothing checked
 - `scripts/build-linux.sh` and `scripts/build-windows-legacy.bat` no longer take `--shared` / `--static`: they passed `LH_BUILD_SHARED`, which no CMake option reads (lh builds as a static library)
 - `LH_EXPECT_DEATH` / `LH_EXPECT_CHECK_DEATH` (`test/include/lh/expect/death.h`) are defined where death tests cannot run too, compiling their statement without running it, so tests that use them without an `LH_TEST_EXPECT_DEATH_ENABLED` guard build with `LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB=OFF`
-- `lh/ui.h` is now a complete umbrella: it also includes `lh/ui/canvas/box.h`, `canvas/web.h`, `display.h`, `display/fields.h`, `gradient/sampler.h`, `gradient/sampler/fields.h`, `gradient/sine.h`, `present.h`, `present/sink.h`, `present/sink/fields.h`, `viewport3d.h`, `web/buf.h`, `web/html.h`, `web/html/attr.h`, `web/js.h`, `web/js/x.h`, `web/page.h`, `web/ws.h`, `web/x.h`, plus `font/roboto.h` when `LH_LIBRARY_OPTION_UI_FONT_ROBOTO` is on and `web/host.h` when `LH_LIBRARY_OPTION_OS` is on
+- `lh/gl.h` is now a complete umbrella: it also includes `lh/gl/canvas/box.h`, `canvas/web.h`, `display.h`, `display/fields.h`, `gradient/sampler.h`, `gradient/sampler/fields.h`, `gradient/sine.h`, `present.h`, `present/sink.h`, `present/sink/fields.h`, `viewport3d.h`, `web/buf.h`, `web/html.h`, `web/html/attr.h`, `web/js.h`, `web/js/x.h`, `web/page.h`, `web/ws.h`, `web/x.h`, plus `font/roboto.h` when `LH_LIBRARY_OPTION_GL_FONT_ROBOTO` is on and `web/host.h` when `LH_LIBRARY_OPTION_OS` is on
 - `lh_byte_ptr` / `lh_byte_cptr` moved to `lh/util/byte/ptr.h`; `lh/byte/ptr.h` stays as a compatibility header that only includes it, and the new `lh/util/byte.h` pulls in the pointer and byte-pointer helpers in one include
 - `lh_ptr_of` / `lh_cptr_of` live in `lh/util/ptr.h`; `lh/byte/ptr.h` includes `lh/util/ptr.h` one-way (`lh/util/ptr.h` no longer includes `lh/byte/ptr.h`), breaking the include cycle; files using `lh_byte_ptr` / `lh_byte_cptr` include `lh/byte/ptr.h` directly
 - `lh_bit_*` operator macros (`lh_bit_mask`, `_and`, `_disjoint`, `_or`, `_set`, `_xor`, `_not`, `_shl`, `_shr`) moved from `lh/bit.h` to their own `lh/bit/ops.h`; `lh/bit.h` is now a pure umbrella over `lh/bit/bswap.h`, `endian.h`, `ops.h`, `packed.h`, `rotate.h` and `scan.h`. `lh/fs/attr.h`, `lh/fs/perm.h`, `lh/logger/level/flags.h`, `lh/memory/view/slice/flags.h` and `lh/util/type.h` include `lh/bit/ops.h` instead of the umbrella
 - Operator macros (arithmetic, comparison / selection, bitwise, overflow checks, `lh_math_div_round`) moved from `lh/math.h` to their own `lh/math/ops.h`; `lh/math.h` is now a pure umbrella and also pulls in `lh/math/floor.h` and `lh/math/rescale.h`. Headers under `lh/math/` include `lh/math/ops.h` instead of the umbrella, which removes the include cycle; `lh/math/div_round.h` is gone (`lh_math_div_round` lives in `lh/math/ops.h`)
-- One formula, one place: removed `lh_math_div_round_u32` (it only forwarded to `lh_math_div_round`; pass `lh_u32_t` operands for unsigned semantics); `lh_math_rescale_u32` and `lh_ui_color_blend_channel` now use `lh_math_div_round` instead of open-coding the half-add; new generic `lh_math_slack` / `lh_math_centre_half` (`lh/math/scalar/centre.h`) back both `lh_math_scalar_slack` / `_centre` and `lh_ui_scalar_slack` / `_centre`; the layout cross slot uses `lh_ui_scalar_slack`; `lh_math_size_*` and `lh_math_fsize_*` min / max / min_side share `lh_math_size_pairwise` / `lh_math_size_min_side_of` (`lh/math/size/ops.h`). Results are bit-identical with FPU on and off
+- One formula, one place: removed `lh_math_div_round_u32` (it only forwarded to `lh_math_div_round`; pass `lh_u32_t` operands for unsigned semantics); `lh_math_rescale_u32` and `lh_gl_color_blend_channel` now use `lh_math_div_round` instead of open-coding the half-add; new generic `lh_math_slack` / `lh_math_centre_half` (`lh/math/scalar/centre.h`) back both `lh_math_scalar_slack` / `_centre` and `lh_gl_scalar_slack` / `_centre`; the layout cross slot uses `lh_gl_scalar_slack`; `lh_math_size_*` and `lh_math_fsize_*` min / max / min_side share `lh_math_size_pairwise` / `lh_math_size_min_side_of` (`lh/math/size/ops.h`). Results are bit-identical with FPU on and off
 
-- Heavy functions split into the bricks above, same pixels and results with `LH_LIBRARY_OPTION_MATH_FPU` on and off: the layout pass (`layout_run`, 32 locals → `lh_ui_layout_run`, 2), `lh_ui_canvas_fill_box` (21 → 7), `lh_ui_blur_columns` (23 → 2), `lh_ui_canvas_sw_shadow` (19 → 3), `lh_math_mat4_from_quat` (13 → 1), the gradient sampler's table fill (21 → 8) and row / column (13 → 2, 8 → 3, one shared linear walk)
-- Layout / text centring and end-align leftover use `lh_ui_scalar_centre` / `lh_ui_scalar_slack` (`lh/ui/layout`, `lh/ui/text/align`, `lh/ui/text/line`, justify-center lead); blur / shadow / radius coverage use `lh_math_div_round`; gradient length and byte clamp use `lh_math_abs` / `lh_math_clamp`; radius max and insets shrink use `lh_ui_size_min_side` / `lh_ui_scalar_slack`
-- `lh_ui_scalar_trunc` (`lh/ui/scalar.h`): on the int path (`LH_LIBRARY_OPTION_MATH_FPU` off) it is now a force-inline copy in the header, so call sites pay no function call in Debug or without LTO; same signature, null check and address-takeable; the float path stays an exported function. Covered by new tests in `test/src/lh/ui/scalar.cpp`
-- Pure forward wrappers no longer assert `out` themselves when the function they forward it to already does (40 functions in `lh/math`, `lh/memory`, `lh/str`, `lh/wstr`, `lh/os`, `lh/runtime`, `lh/werror`, `lh/timestamp`, `lh/ui`); a null `out` is still caught, by the callee
+- Heavy functions split into the bricks above, same pixels and results with `LH_LIBRARY_OPTION_MATH_FPU` on and off: the layout pass (`layout_run`, 32 locals → `lh_gl_layout_run`, 2), `lh_gl_canvas_fill_box` (21 → 7), `lh_gl_blur_columns` (23 → 2), `lh_gl_canvas_sw_shadow` (19 → 3), `lh_math_mat4_from_quat` (13 → 1), the gradient sampler's table fill (21 → 8) and row / column (13 → 2, 8 → 3, one shared linear walk)
+- Layout / text centring and end-align leftover use `lh_gl_scalar_centre` / `lh_gl_scalar_slack` (`lh/gl/layout`, `lh/gl/text/align`, `lh/gl/text/line`, justify-center lead); blur / shadow / radius coverage use `lh_math_div_round`; gradient length and byte clamp use `lh_math_abs` / `lh_math_clamp`; radius max and insets shrink use `lh_gl_size_min_side` / `lh_gl_scalar_slack`
+- `lh_gl_scalar_trunc` (`lh/gl/scalar.h`): on the int path (`LH_LIBRARY_OPTION_MATH_FPU` off) it is now a force-inline copy in the header, so call sites pay no function call in Debug or without LTO; same signature, null check and address-takeable; the float path stays an exported function. Covered by new tests in `test/src/lh/gl/scalar.cpp`
+- Pure forward wrappers no longer assert `out` themselves when the function they forward it to already does (40 functions in `lh/math`, `lh/memory`, `lh/str`, `lh/wstr`, `lh/os`, `lh/runtime`, `lh/werror`, `lh/timestamp`, `lh/gl`); a null `out` is still caught, by the callee
 - `lh_math_mat4_mul_vec4`, `lh_math_mat4_mul`, `lh_math_quat_rotate` and `lh_math_quat_nlerp` use fewer temporaries (10 → 1, 5 → 1, 7 → 2, 4 → 2), built from `lh_math_vec4_madd` / `lh_math_vec3_madd`; `lh_math_mat4_mul` stays safe when `out` is where `a` or `b` came from
 
 - `lh/float/*` (`lh_float_sqrt`, `lh_float_sin_cos`, `lh_float_floor_to_int`, `lh_float_ceil_to_int`) became public functions in `.c` with headers in `include/lh/float/`
 - `lh/float` moved to `lh/math/float`; `lh_float_sqrt`, `lh_float_sin_cos`, `lh_float_floor_to_int`, `lh_float_ceil_to_int` renamed to `lh_math_float_sqrt`, `lh_math_float_sin_cos`, `lh_math_float_floor_to_int`, `lh_math_float_ceil_to_int`
 - `lh_math_vec2/3/4_dot`, `_length_sq` and `_length` compute through `lh_math_view_*` over the vector components (same results, bit for bit)
 - RGB565 and ARGB8888 alpha blending without SSE (ARM) works on words: two channels per multiply in `0x00FF00FF` lanes, an exact divide-free `/255`, `SMLAD` on cores with the DSP extension, and RGB565 pixels are processed in pairs (two 16-bit accesses, which the compiler may merge); results unchanged bit for bit
-- Window backends (Win32, X11) and the web host hand every input over as one `lh_os_input_event_t`; wheel distances are 1/120 notch, positive up / left, and the backends no longer turn Shift+wheel sideways (the recognizer does when configured). The web host's `input` hook takes the window sink's signature, so one handler serves both; without it every event goes to `lh_ui_view_input`, which scrolls `LH_UI_VIEW_WHEEL_STEP` per notch toward where the wheel turned (the old fallback passed the notch count straight to `lh_ui_view_wheel`, one unit the wrong way)
+- Window backends (Win32, X11) and the web host hand every input over as one `lh_os_input_event_t`; wheel distances are 1/120 notch, positive up / left, and the backends no longer turn Shift+wheel sideways (the recognizer does when configured). The web host's `input` hook takes the window sink's signature, so one handler serves both; without it every event goes to `lh_gl_view_input`, which scrolls `LH_GL_VIEW_WHEEL_STEP` per notch toward where the wheel turned (the old fallback passed the notch count straight to `lh_gl_view_wheel`, one unit the wrong way)
 - X11 keeps auto-repeat: the release X sends between repeats is dropped and the press after it is flagged `LH_OS_INPUT_FLAG_REPEAT`, instead of the press arriving as a fresh one
-- `lh_ui_view_input` scrolls a wheel notch by the system's step (`lh_os_input_get_wheel_step`, asked once a wheel event) instead of a fixed `LH_UI_VIEW_WHEEL_STEP`; the constant is now the fallback for builds without `LH_LIBRARY_OPTION_OS`, `#ifndef`, and defaults to `LH_OS_INPUT_WHEEL_STEP_DEFAULT` (still 40). A Windows user with 6 lines a notch now scrolls 80 units, one with scrolling turned off none. The web host's view scrolls by the host machine's step too
+- `lh_gl_view_input` scrolls a wheel notch by the system's step (`lh_os_input_get_wheel_step`, asked once a wheel event) instead of a fixed `LH_GL_VIEW_WHEEL_STEP`; the constant is now the fallback for builds without `LH_LIBRARY_OPTION_OS`, `#ifndef`, and defaults to `LH_OS_INPUT_WHEEL_STEP_DEFAULT` (still 40). A Windows user with 6 lines a notch now scrolls 80 units, one with scrolling turned off none. The web host's view scrolls by the host machine's step too
 - `lh_os_window_fields` takes a fourth parameter, the controller type; `lh_os_window_get_pressed_buttons` keeps the mask of pointer 0 (the mouse) only, so a touch contact no longer overwrites it
-- The web host without an `input` hook reaches the view through its own `lh_os_controller_t` instead of calling `lh_ui_view_input` directly: the same events, with the recognizer's Shift+wheel sideways (the default config)
-- `lh_ui_view_input` follows every pointer below `LH_OS_INPUT_POINTER_MAX`, not only pointer 0; `pointer_cancel` ends that pointer's press only (`lh_ui_view_cancel_pointer`), `focus_out` and `lh_ui_view_cancel` end all of them. `lh_ui_view_press` / `_move` / `_release` stay, as pointer 0. A release is a click only over the entity its press went down on (it used to click whatever was under the release point)
-- `lh_ui_view_fields` takes a fifth parameter, the pointer slot type, and holds `pointers[LH_OS_INPUT_POINTER_MAX]` instead of `grab`, `grab_offset`, `pressed`, `dragged`, `target`, `drag`, `press_point` and `last_point`; `velocity` is now only the glide's. The pointer bricks take the slot: `lh_ui_view_start_pointer`, `lh_ui_view_press_on`, `lh_ui_view_grab_thumb`, `lh_ui_view_drag_thumb`, `lh_ui_view_drag_content` and `lh_ui_view_finish_gesture` gain an `lh_ui_view_pointer_t *pointer` parameter; `lh_ui_view_track` and `lh_ui_view_is_past_threshold` are replaced by `lh_ui_view_pointer_track` and `lh_ui_view_pointer_is_past_threshold`; `lh_ui_view_reset_pointer` clears every slot
+- The web host without an `input` hook reaches the view through its own `lh_os_controller_t` instead of calling `lh_gl_view_input` directly: the same events, with the recognizer's Shift+wheel sideways (the default config)
+- `lh_gl_view_input` follows every pointer below `LH_OS_INPUT_POINTER_MAX`, not only pointer 0; `pointer_cancel` ends that pointer's press only (`lh_gl_view_cancel_pointer`), `focus_out` and `lh_gl_view_cancel` end all of them. `lh_gl_view_press` / `_move` / `_release` stay, as pointer 0. A release is a click only over the entity its press went down on (it used to click whatever was under the release point)
+- `lh_gl_view_fields` takes a fifth parameter, the pointer slot type, and holds `pointers[LH_OS_INPUT_POINTER_MAX]` instead of `grab`, `grab_offset`, `pressed`, `dragged`, `target`, `drag`, `press_point` and `last_point`; `velocity` is now only the glide's. The pointer bricks take the slot: `lh_gl_view_start_pointer`, `lh_gl_view_press_on`, `lh_gl_view_grab_thumb`, `lh_gl_view_drag_thumb`, `lh_gl_view_drag_content` and `lh_gl_view_finish_gesture` gain an `lh_gl_view_pointer_t *pointer` parameter; `lh_gl_view_track` and `lh_gl_view_is_past_threshold` are replaced by `lh_gl_view_pointer_track` and `lh_gl_view_pointer_is_past_threshold`; `lh_gl_view_reset_pointer` clears every slot
 - `lh_os_input_sink_fn` / `_cb` (`lh/os/input/sink/fn.h`) take the object first, like `lh_memory_allocator_alloc_fn` and `lh_io_reader_read_fn`: `(lh_self_ptr self, const lh_os_input_event_ptr event)`, where `self` is the context the sink was given (`lh_os_window_set_on_input`, `lh_os_input_queue_drain`, `lh_os_input_recognizer_feed` / `_update` / `_reset`, the web host's `ctx`); `lh_os_controller_sink` follows. A sink written as `(event, context)` swaps its parameters
 - Window corner math and the Win/POSIX input mask folds go through `lh_math_*` / `lh_bit_*` (same results; no raw `&` / `|` / `>>` on those paths)
 - `lh_wchar_case_pair_t` (`lh/wchar/case/pair.h`) holds two `lh_wchar_t` instead of two `lh_uchar32_t`, like `lh_char_case_pair_t` holds `lh_char_t`: 4 bytes a row instead of 8 on a 16-bit `wchar_t` (Windows), unchanged on a 32-bit one. The supplementary-plane rows (above `0xFFFF`) of the fold table and of the sparse case-map tables are compiled only when `LH_WCHAR_T_MAX > 0xFFFF`; a 16-bit `wchar_t` never reached them, so `lh_wchar_fold_case` and `lh_wstr_ptr_to_lower` / `_to_upper` give the same results. With `LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE` `OFF` the case maps now take about 9.5 KB instead of 23 KB on Windows
@@ -1345,10 +1231,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the tasks on one thread, `lh_exec_mailbox_t` bounds them and delivers
   `complete` / `destroy` on the owner's thread — and Authum's tasks, its only
   user, moved onto it. `docs/subsystems/worker-queue.md` is now `spsc.md`.
-- The string-built web DSL: `lh/ui/web/html.h` (`lh_ui_web_html_*`, with
-  `html/attr.h` and `html/kind.h`), `lh/ui/web/js.h` (`lh_ui_web_js_*`
-  statement emitters taking code strings), `lh/ui/web/x.h` and
-  `lh/ui/web/js/x.h` (`lh_ui_web_x_*` expressions, with `x/kind.h`). Use
+- The string-built web DSL: `lh/gl/web/html.h` (`lh_gl_web_html_*`, with
+  `html/attr.h` and `html/kind.h`), `lh/gl/web/js.h` (`lh_gl_web_js_*`
+  statement emitters taking code strings), `lh/gl/web/x.h` and
+  `lh/gl/web/js/x.h` (`lh_gl_web_x_*` expressions, with `x/kind.h`). Use
   `lh/web/xml/` (HTML dialect) and `lh/web/js/node.h` with their writers.
 
 - The `[begin, end)` forms of `lh_memory_view_*` and `lh_memory_bounds_*` (`_equals_of`, `_contains_of`, `_overlaps_of` and their `_range` aliases; `_find_range`, `_rfind_range`, `_compare_range`, `_rcompare_range`, `_copy_range`, `_move_range`, `_fill_pattern_range`; `_take_first`, `_take_last`, `_between`), `lh/memory/raw.h` (`lh_memory_raw_*`, pointer-pair byte operations) and `lh/util/memory.h`'s `lh_memory_bytes_*` (a second word-at-a-time kernel beside `lh_memory_std_*`). The view-operand forms, `_by_size` operand forms, `from_begin` / `from_end` / `from_offset` and the std kernel cover them
@@ -1359,8 +1245,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Endpoint flags and direction, which `begin` + `size` has no use for: `lh_memory_view_get_flags`, `_get_direction`, `_is_initialized`, `_is_forward`, `_is_backward` and the same `lh_memory_bounds_*` functions, and the types `lh_memory_view_slice_flags_t` / `lh_memory_view_slice_direction_t` with their `lh_memory_view_slice_flags_*` / `_direction_*` values and headers `lh/memory/view/slice/flags.h` / `direction.h`. Use `_is_uninitialized` and `_is_valid`
 - `lh_memory_bounds_slice_t` (`lh/memory/bounds/slice.h`, with `slice/fields.h` and `slice/initializer.h`) and all of its `lh_memory_bounds_slice_*` functions, and `lh_memory_bounds_to_slice`: a closed mutable slice nothing in the library used. `lh_memory_bounds_t` is now its own `struct lh_memory_bounds` over `lh_memory_bounds_fields`, same layout
 - `lh_memory_view_slice_t` (`lh/memory/view/slice.h`, with `slice/fields.h` and `slice/initializer.h`) and all of its `lh_memory_view_slice_*` functions, and `lh_memory_view_make_slice`: the closed `[first, second]` form has no empty value in place, so every half-open caller had to special-case `[x, x)`; `lh_memory_view_t` and `lh_memory_bounds_t` cover the same ground
-- The per-event window input API, replaced by one input sink (`lh_os_window_set_on_input`), with no deprecation period: `lh_os_window_set_on_press`, `_set_on_move`, `_set_on_release`, `_set_on_wheel`, `_set_on_key`, `_set_on_text`, `_set_on_click`; `lh_os_window_on_native_press`, `_on_native_move`, `_on_native_release`, `_on_native_wheel`, `_on_native_key`, `_on_native_text`, `_on_native_click`; the callback types `lh_os_window_on_{press,move,release,wheel,key,text,click}_fn` / `_cb` with their headers `lh/os/window/on/{press,move,release,wheel,key,text,click}/fn.h` and `cb.h`; and the fourteen `on_*` / `on_*_context` fields of `lh_os_window_t`. A window click was never fired by any backend; the click is made by `lh_ui_view_release`, as before
-- The `press`, `release`, `wheel`, `key` and `text` hooks of `lh_ui_web_host_hooks_t` (`lh/ui/web/host.h`), replaced by one `input` hook
+- The per-event window input API, replaced by one input sink (`lh_os_window_set_on_input`), with no deprecation period: `lh_os_window_set_on_press`, `_set_on_move`, `_set_on_release`, `_set_on_wheel`, `_set_on_key`, `_set_on_text`, `_set_on_click`; `lh_os_window_on_native_press`, `_on_native_move`, `_on_native_release`, `_on_native_wheel`, `_on_native_key`, `_on_native_text`, `_on_native_click`; the callback types `lh_os_window_on_{press,move,release,wheel,key,text,click}_fn` / `_cb` with their headers `lh/os/window/on/{press,move,release,wheel,key,text,click}/fn.h` and `cb.h`; and the fourteen `on_*` / `on_*_context` fields of `lh_os_window_t`. A window click was never fired by any backend; the click is made by `lh_gl_view_release`, as before
+- The `press`, `release`, `wheel`, `key` and `text` hooks of `lh_gl_web_host_hooks_t` (`lh/gl/web/host.h`), replaced by one `input` hook
 - `lh/uchar.h` with `lh_uchar16_t` / `lh_uchar32_t`: nothing used them once `lh_wchar_case_pair_t` moved to `lh_wchar_t`. Use `lh_u16_t` / `lh_u32_t` (`lh/numeric/fixed/types.h`)
 
 ### Fixed
@@ -1371,11 +1257,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `lh_os_controller_update` on a disabled controller advanced the recognizer and then dropped the gesture, so a long press that came due while muted was lost and the later release was no click. It now leaves the recognizer where it is, as `lh_os_controller_feed` does; `update_cb` still runs. A window does not keep a timer armed for a deadline that controller cannot meet yet
 - A Win32 touch or pen contact gave its pointer id back before the up or cancel was delivered. A handler that pumped messages could hand that id to the next contact, and the outer up released the new one. The id is freed after `lh_os_window_on_native_input` returns
-- Roboto copyright year in `lh/ui/font/roboto.h`, `src/lh/ui/font/roboto.c` and the `scripts/README.md` font example: 2015, matching the font file (was 2011)
-- Building with `LH_LIBRARY_OPTION_MATH_FPU=ON` failed: `lh_ui_scalar` (a literal-only macro that pastes `e0f`) was given variables and calls in `lh/ui` and its tests; those sites now use the new `lh_ui_scalar_of` (`lh/ui/scalar.h`), a cast for any arithmetic expression on both paths. `lh_ui_view_t::whole_count` and its loop index are `lh_u32_t` instead of `lh_ui_scalar_t` (a float cannot index an array)
-- `lh_ui_point_to_point` / `lh_ui_point_from_point` and `lh_ui_rect_to_rect` / `lh_ui_rect_from_rect` take an out-parameter on the `MATH_FPU=OFF` path too, matching the float path
+- Roboto copyright year in `lh/gl/font/roboto.h`, `src/lh/gl/font/roboto.c` and the `scripts/README.md` font example: 2015, matching the font file (was 2011)
+- Building with `LH_LIBRARY_OPTION_MATH_FPU=ON` failed: `lh_gl_scalar` (a literal-only macro that pastes `e0f`) was given variables and calls in `lh/gl` and its tests; those sites now use the new `lh_gl_scalar_of` (`lh/gl/scalar.h`), a cast for any arithmetic expression on both paths. `lh_gl_view_t::whole_count` and its loop index are `lh_u32_t` instead of `lh_gl_scalar_t` (a float cannot index an array)
+- `lh_gl_point_to_point` / `lh_gl_point_from_point` and `lh_gl_rect_to_rect` / `lh_gl_rect_from_rect` take an out-parameter on the `MATH_FPU=OFF` path too, matching the float path
 - `test/src/lh/os/serial.cpp` called `lh_os_serial_get_stream` with its old by-value signature
-- With `LH_LIBRARY_OPTION_MATH_FPU=ON`, alignment and layout landed on half pixels where the int path truncates (centring in `lh_ui_text_align_get_origin` and `lh_ui_text_line_get_shift`, `justify` center / space-*, fill shares by weight and the cross room shared between wrapped lines in `lh/ui/layout`). Those divisions now go through the new `lh_ui_scalar_trunc` (`lh/ui/scalar.h`), which drops the fraction toward zero on the float path and copies on the int path, so both paths place the same pixels
+- With `LH_LIBRARY_OPTION_MATH_FPU=ON`, alignment and layout landed on half pixels where the int path truncates (centring in `lh_gl_text_align_get_origin` and `lh_gl_text_line_get_shift`, `justify` center / space-*, fill shares by weight and the cross room shared between wrapped lines in `lh/gl/layout`). Those divisions now go through the new `lh_gl_scalar_trunc` (`lh/gl/scalar.h`), which drops the fraction toward zero on the float path and copies on the int path, so both paths place the same pixels
 
 ## [0.3.0] - 2026-09-14
 

@@ -109,7 +109,7 @@ Lessons from configurator:
   window procedure — i.e. it looks like a drawing bug.
 - **Set the timer before `open`** — the period is kept and armed on open.
 - **`on_tick` is the only thing that comes back on a schedule.** Device
-  polling, animations and `lh_ui_view_tick` belong there, not in `on_paint`.
+  polling, animations and `lh_gl_view_tick` belong there, not in `on_paint`.
 - **One pass per call.** A callback that loops "while there is work" stops
   the message pump: the window cannot paint, take a click, or be closed.
 - **All input is one event type.** Every mouse, touch, pen, wheel, key, text
@@ -129,14 +129,14 @@ section the size of the client area and shows it with one `BitBlt`.
 
 ```c
 #include <lh/os/render/backend/gdi.h>
-#include <lh/ui/canvas.h>
-#include <lh/ui/view.h>
+#include <lh/gl/canvas.h>
+#include <lh/gl/view.h>
 
 struct my_main
 {
     lh_os_render_backend_gdi_context_t gdi;
-    lh_ui_canvas_t canvas;
-    lh_ui_view_t view;
+    lh_gl_canvas_t canvas;
+    lh_gl_view_t view;
     /* tree, application state ... */
 };
 
@@ -144,11 +144,11 @@ static lh_bool_t
 my_main_init(struct my_main *self)
 {
     lh_os_render_backend_gdi_context_init(lh_addr_of(self->gdi));
-    lh_ui_canvas_init(lh_addr_of(self->canvas), lh_addr_of(lh_os_render_backend_gdi),
+    lh_gl_canvas_init(lh_addr_of(self->canvas), lh_addr_of(lh_os_render_backend_gdi),
                       lh_addr_of(self->gdi));
-    lh_ui_view_init(lh_addr_of(self->view));
-    lh_ui_view_set_canvas(lh_addr_of(self->view), lh_addr_of(self->canvas));
-    lh_ui_view_set_clear(lh_addr_of(self->view), lh_addr_of(s_colour_bg));  /* background */
+    lh_gl_view_init(lh_addr_of(self->view));
+    lh_gl_view_set_canvas(lh_addr_of(self->view), lh_addr_of(self->canvas));
+    lh_gl_view_set_clear(lh_addr_of(self->view), lh_addr_of(s_colour_bg));  /* background */
 
     return my_ui_build(self);   /* section 4 */
 }
@@ -162,31 +162,31 @@ on_paint(lh_os_window_t *window, lh_ptr context)
 {
     struct my_main *self = lh_ptr_rcast(struct my_main, context);
     int l, t, r, b;
-    lh_ui_rect_t damage;
+    lh_gl_rect_t damage;
 
     my_refresh(self);   /* update texts/styles from data — no polling here */
 
     lh_os_window_get_paint_rect(window, &l, &t, &r, &b);
-    lh_ui_rect_init(lh_addr_of(damage), l, t, r - l, b - t);
+    lh_gl_rect_init(lh_addr_of(damage), l, t, r - l, b - t);
 
     lh_os_render_backend_gdi_context_set_hwnd(lh_addr_of(self->gdi), lh_os_window_get_handle(window));
     lh_os_render_backend_gdi_context_set_hdc (lh_addr_of(self->gdi), lh_os_window_get_paint_dc(window));
-    lh_ui_view_draw(lh_addr_of(self->view), lh_addr_of(damage));
+    lh_gl_view_draw(lh_addr_of(self->view), lh_addr_of(damage));
     lh_os_render_backend_gdi_context_set_hdc (lh_addr_of(self->gdi), lh_null);
 }
 ```
 
 To repaint only what changed, take the damage from the view and invalidate
-each rect of it in the window. The damage is a list (`lh_ui_rects_t`, up to
+each rect of it in the window. The damage is a list (`lh_gl_rects_t`, up to
 sixteen rects): rects that touch are merged, rects that stand apart stay apart,
 so two changes at the two ends of the screen are two invalidations and not the
 band between them:
 
 ```c
-lh_ui_rects_t damage;
-if (lh_ui_view_take_damage(lh_addr_of(self->view), lh_addr_of(damage)))
+lh_gl_rects_t damage;
+if (lh_gl_view_take_damage(lh_addr_of(self->view), lh_addr_of(damage)))
 {
-    for (lh_u32_t i = 0U; i < lh_ui_rects_get_count(lh_addr_of(damage)); ++i)
+    for (lh_u32_t i = 0U; i < lh_gl_rects_get_count(lh_addr_of(damage)); ++i)
         lh_os_window_invalidate_rect(window, x0, y0, x1, y1);   /* from rect i */
 }
 ```
@@ -205,24 +205,24 @@ Two ways, and they can be mixed.
 ### 4.1. By hand
 
 ```c
-#include <lh/ui/button.h>
-#include <lh/ui/color.h>
-#include <lh/ui/entity.h>
-#include <lh/ui/font/roboto.h>
-#include <lh/ui/label.h>
-#include <lh/ui/paint.h>
-#include <lh/ui/style.h>
+#include <lh/gl/button.h>
+#include <lh/gl/color.h>
+#include <lh/gl/entity.h>
+#include <lh/gl/font/roboto.h>
+#include <lh/gl/label.h>
+#include <lh/gl/paint.h>
+#include <lh/gl/style.h>
 
-static lh_ui_color_t s_ink, s_card;
-static lh_ui_paint_t s_p_ink, s_p_card;
-static lh_ui_style_t s_text, s_btn;
+static lh_gl_color_t s_ink, s_card;
+static lh_gl_paint_t s_p_ink, s_p_card;
+static lh_gl_style_t s_text, s_btn;
 
-static lh_ui_entity_t s_root;
-static lh_ui_label_t  s_title;
-static lh_ui_button_t s_ok;
+static lh_gl_entity_t s_root;
+static lh_gl_label_t  s_title;
+static lh_gl_button_t s_ok;
 
 static lh_void
-on_ok(lh_ui_button_t *button, lh_ptr context)
+on_ok(lh_gl_button_t *button, lh_ptr context)
 {
     (void)button;
     /* the click has already ended; the button shows its resting style */
@@ -231,35 +231,35 @@ on_ok(lh_ui_button_t *button, lh_ptr context)
 static lh_bool_t
 my_ui_build(struct my_main *self)
 {
-    lh_ui_rect_t r;
+    lh_gl_rect_t r;
 
-    lh_ui_color_init_hex(&s_ink, 0x1B2430);
-    lh_ui_color_init_hex(&s_card, 0xFFFFFF);
-    lh_ui_paint_init_color(&s_p_ink, &s_ink);    /* a paint copies the colour */
-    lh_ui_paint_init_color(&s_p_card, &s_card);
+    lh_gl_color_init_hex(&s_ink, 0x1B2430);
+    lh_gl_color_init_hex(&s_card, 0xFFFFFF);
+    lh_gl_paint_init_color(&s_p_ink, &s_ink);    /* a paint copies the colour */
+    lh_gl_paint_init_color(&s_p_card, &s_card);
 
-    lh_ui_style_init(&s_text);
-    lh_ui_style_set_font(&s_text, &lh_ui_font_roboto);
-    lh_ui_style_set_text(&s_text, &s_p_ink);
+    lh_gl_style_init(&s_text);
+    lh_gl_style_set_font(&s_text, &lh_gl_font_roboto);
+    lh_gl_style_set_text(&s_text, &s_p_ink);
 
-    lh_ui_style_init(&s_btn);
-    lh_ui_style_set_fill(&s_btn, &s_p_card);
+    lh_gl_style_init(&s_btn);
+    lh_gl_style_set_fill(&s_btn, &s_p_card);
 
-    lh_ui_rect_init(&r, 0, 0, 980, 620);
-    lh_ui_entity_init(&s_root, r);
+    lh_gl_rect_init(&r, 0, 0, 980, 620);
+    lh_gl_entity_init(&s_root, r);
 
-    lh_ui_rect_init(&r, 24, 24, 400, 28);
-    lh_ui_label_init(&s_title, r, "Hello, lh");
-    lh_ui_entity_set_style(lh_ui_label_as_entity(&s_title), &s_text);
-    lh_ui_entity_add_child(&s_root, lh_ui_label_as_entity(&s_title));
+    lh_gl_rect_init(&r, 24, 24, 400, 28);
+    lh_gl_label_init(&s_title, r, "Hello, lh");
+    lh_gl_entity_set_style(lh_gl_label_as_entity(&s_title), &s_text);
+    lh_gl_entity_add_child(&s_root, lh_gl_label_as_entity(&s_title));
 
-    lh_ui_rect_init(&r, 24, 72, 120, 36);
-    lh_ui_button_init(&s_ok, r);
-    lh_ui_button_set_style(&s_ok, &s_btn);
-    lh_ui_button_set_on_click(&s_ok, on_ok, self);
-    lh_ui_entity_add_child(&s_root, lh_ui_button_as_entity(&s_ok));
+    lh_gl_rect_init(&r, 24, 72, 120, 36);
+    lh_gl_button_init(&s_ok, r);
+    lh_gl_button_set_style(&s_ok, &s_btn);
+    lh_gl_button_set_on_click(&s_ok, on_ok, self);
+    lh_gl_entity_add_child(&s_root, lh_gl_button_as_entity(&s_ok));
 
-    lh_ui_view_set_root(lh_addr_of(self->view), &s_root);
+    lh_gl_view_set_root(lh_addr_of(self->view), &s_root);
     return lh_bool_true;
 }
 ```
@@ -267,13 +267,13 @@ my_ui_build(struct my_main *self)
 **Lifetimes.** A widget does **not copy** styles, paints, flows or text — it
 keeps the address. Everything the tree points at must outlive the tree
 (statics or fields of the main struct). Colour is the exception:
-`lh_ui_paint_init_color` copies the four channels, so the colour must be
+`lh_gl_paint_init_color` copies the four channels, so the colour must be
 filled in **before** that call.
 
 ### 4.2. From CSS (as configurator does)
 
 The screen is described by a stylesheet, `ui/configurator.css`, and
-`lib/lh/scripts/css2decl.py` turns it into an `lh_ui_decl_t` table:
+`lib/lh/scripts/css2decl.py` turns it into an `lh_gl_decl_t` table:
 
 ```sh
 python3 lib/lh/scripts/css2decl.py ui/my.css src/my/ui --prefix my_ui_
@@ -292,30 +292,30 @@ It writes `ui_generated.c/.h` with:
 Building the tree into a static pool:
 
 ```c
-#include <lh/ui/decl.h>
+#include <lh/gl/decl.h>
 #include "ui/ui_generated.h"
 
 #define MY_UI_ROWS 48
-static lh_byte_t       s_pool[LH_UI_DECL_NODE_MAX * MY_UI_ROWS];
-static lh_ui_entity_t *s_nodes[MY_UI_ROWS];
+static lh_byte_t       s_pool[LH_GL_DECL_NODE_MAX * MY_UI_ROWS];
+static lh_gl_entity_t *s_nodes[MY_UI_ROWS];
 
 static lh_bool_t
 my_ui_build(struct my_main *self)
 {
-    lh_ui_entity_t *root = lh_null;
-    lh_ui_decl_fault_t fault;
+    lh_gl_entity_t *root = lh_null;
+    lh_gl_decl_fault_t fault;
 
     if (my_ui_decl_count > MY_UI_ROWS || !my_ui_init())
         return lh_bool_false;
-    if (!lh_ui_decl_build(my_ui_decls, my_ui_decl_count, s_nodes,
+    if (!lh_gl_decl_build(my_ui_decls, my_ui_decl_count, s_nodes,
                           s_pool, (lh_u32_t)sizeof(s_pool), &root, &fault))
     {
         /* fault.index is the row, fault.code the reason */
         return lh_bool_false;
     }
-    lh_ui_view_set_root(lh_addr_of(self->view), root);
+    lh_gl_view_set_root(lh_addr_of(self->view), root);
 
-    lh_ui_button_set_on_click(my_ui_button(s_nodes, "ok"), on_ok, self);
+    lh_gl_button_set_on_click(my_ui_button(s_nodes, "ok"), on_ok, self);
     return lh_bool_true;
 }
 ```
@@ -339,7 +339,7 @@ What CSS cannot express (resize anchors, the pitch of repeated rows)
 configurator keeps in C (`include/cfg/ir.h`) and applies in `on_resize`.
 
 Icons come from an lh generator too: `lib/lh/scripts/gen-icons.py` (16×16,
-4bpp, `lh_ui_mask_t`).
+4bpp, `lh_gl_mask_t`).
 
 ---
 
@@ -354,7 +354,7 @@ on_input(lh_self_ptr self, const lh_os_input_event_ptr event)
 {
     struct my_main *my = lh_ptr_rcast(struct my_main, self);
 
-    if (lh_ui_view_input(lh_addr_of(my->view), event)) /* pressed, scrolled, typed */
+    if (lh_gl_view_input(lh_addr_of(my->view), event)) /* pressed, scrolled, typed */
         my_invalidate(my);
 }
 ```
@@ -362,27 +362,27 @@ on_input(lh_self_ptr self, const lh_os_input_event_ptr event)
 A sink takes the object it runs on first, as `self`, like the project's other
 callbacks: it is the context given to `lh_os_window_set_on_input`.
 
-`lh_ui_view_input` reads the event and makes the call the view needs:
+`lh_gl_view_input` reads the event and makes the call the view needs:
 
 | Event | View call |
 |---|---|
-| `pointer_down` / `pointer_up`, primary button | `lh_ui_view_press_pointer` / `lh_ui_view_release_pointer` (click, focus, drag) |
-| `pointer_move` | `lh_ui_view_move_pointer` (drag-scroll the content, drag a scrollbar thumb) |
-| `pointer_cancel` | `lh_ui_view_cancel_pointer` (that pointer's press ends, no click) |
-| `focus_out` | `lh_ui_view_cancel` (every press ends, no click) |
-| `wheel` | `lh_ui_view_wheel`, `lh_os_input_get_wheel_step()` per notch (the system's setting) |
-| `key_down` / `key_up` | `lh_ui_view_key` (Tab moves focus) |
-| `text` | `lh_ui_view_text` (a character into an input) |
+| `pointer_down` / `pointer_up`, primary button | `lh_gl_view_press_pointer` / `lh_gl_view_release_pointer` (click, focus, drag) |
+| `pointer_move` | `lh_gl_view_move_pointer` (drag-scroll the content, drag a scrollbar thumb) |
+| `pointer_cancel` | `lh_gl_view_cancel_pointer` (that pointer's press ends, no click) |
+| `focus_out` | `lh_gl_view_cancel` (every press ends, no click) |
+| `wheel` | `lh_gl_view_wheel`, `lh_os_input_get_wheel_step()` per notch (the system's setting) |
+| `key_down` / `key_up` | `lh_gl_view_key` (Tab moves focus) |
+| `text` | `lh_gl_view_text` (a character into an input) |
 
-`on_tick` still drives `lh_ui_view_tick` (~60 Hz: scroll glide, transitions).
+`on_tick` still drives `lh_gl_view_tick` (~60 Hz: scroll glide, transitions).
 
 Every pointer id below `LH_OS_INPUT_POINTER_MAX` (the mouse is `0`, touch
 contacts and pens `1` and up) has a press session of its own in the view
-(`lh_ui_view_pointer_t`, inside the view, no heap). Two fingers on two
+(`lh_gl_view_pointer_t`, inside the view, no heap). Two fingers on two
 buttons press and click both; a click is a release over the entity that same
 pointer went down on; a list one finger drags stays that finger's until it
-lifts, even when another finger goes down in it. `lh_ui_view_press` /
-`_move` / `_release` are pointer `0`. Hover (`lh_ui_view_set_hot`) is the
+lifts, even when another finger goes down in it. `lh_gl_view_press` /
+`_move` / `_release` are pointer `0`. Hover (`lh_gl_view_set_hot`) is the
 app's to drive, from the mouse.
 
 What an event carries:
@@ -425,7 +425,7 @@ What an event carries:
 come from `lh_os_input_recognizer_t` (`lh/os/input/recognizer.h`): feed it
 the raw events, call `lh_os_input_recognizer_update` from `on_tick`, and it
 passes every raw event on to its own sink with the gestures among them, marked
-`LH_OS_INPUT_FLAG_SYNTHESIZED`. `lh_ui_view_input` ignores synthesized events,
+`LH_OS_INPUT_FLAG_SYNTHESIZED`. `lh_gl_view_input` ignores synthesized events,
 so one sink can take both.
 
 **The controller** (`lh/os/controller.h`) does that wiring once, and it is the
@@ -434,11 +434,11 @@ a handler and the object the handler works on, and the window drives it:
 
 ```c
 #include <lh/os/controller.h>
-#include <lh/ui/view/controller.h>
+#include <lh/gl/view/controller.h>
 
-lh_os_controller_init(lh_addr_of(self->controller), lh_ui_view_controller_handle_event_is_handled,
+lh_os_controller_init(lh_addr_of(self->controller), lh_gl_view_controller_handle_event_is_handled,
                       lh_addr_of(self->view), lh_null); /* default thresholds */
-lh_os_controller_set_cancel_cb(lh_addr_of(self->controller), lh_ui_view_controller_cancel);
+lh_os_controller_set_cancel_cb(lh_addr_of(self->controller), lh_gl_view_controller_cancel);
 lh_os_window_set_controller(lh_addr_of(self->window), lh_addr_of(self->controller));
 ```
 
@@ -473,7 +473,7 @@ into its sink through `lh_os_controller_sink` as well: it would be fed twice.
   moment to repaint. `lh_os_controller_handle_event_is_handled` skips the recognizer.
 - `lh_os_controller_update` sends what is due by `now` (a long press), then
   calls the optional `update_cb`; `lh_os_controller_cancel` drops every gesture
-  silently, then calls the optional `cancel_cb` (`lh_ui_view_cancel` for the view).
+  silently, then calls the optional `cancel_cb` (`lh_gl_view_cancel` for the view).
 - `lh_os_controller_set_enabled(..., lh_bool_false)` mutes the handler (a modal
   overlay, a screen not shown) and leaves the recognizer where it is, on
   `feed` and on `update`; `update_cb` still runs. The flags are
@@ -496,11 +496,11 @@ does.
 
 ## 6. Diagnostics
 
-- **Frame stats.** `lh_ui_frame_stats_t` + `lh_os_window_set_frame_stats`
+- **Frame stats.** `lh_gl_frame_stats_t` + `lh_os_window_set_frame_stats`
   count frames, asked vs drawn pixels, and time. See
   `example/window_stats.c` (`-DLH_BUILD_EXAMPLES=ON`).
 - **Screenshot without a screen.** configurator swaps in a file canvas
-  (`shot.c`, `CFG_SHOT=<path>`) — the same `lh_ui_view_draw`, a different
+  (`shot.c`, `CFG_SHOT=<path>`) — the same `lh_gl_view_draw`, a different
   backend. Swapping is save/restore: `set_canvas(tmp)` → `draw` →
   `set_canvas(original)`.
 - **Scripted input.** `CFG_CLICK=x,y` and `CFG_ENTER=1` call the same

@@ -122,36 +122,6 @@ lh_add_test_core(lh_test_rail ${LH_TEST_RAIL_SOURCES})
 
 # gl: the graphics bricks. The integer point, the size that is a point, the rectangle, and the portable
 # UI core on top of them: the entity class, the entity and the layer.
-lh_add_test_core(lh_test_gl ${LH_TEST_SRC_PATH}/lh/gl/canvas.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/color.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/cover.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/mask.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/pen.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/pixmap.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/bmp.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/scalar.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/point.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/size.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/rect.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/entity/class.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/entity.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/layer.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/screen.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/layout.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/fill.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/blur.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/gradient.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/shadow.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/text.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/text/shadow.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/scene.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/input.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/card.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/scroll/axis.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/container.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/surface.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/renderer.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/renderer/packet.cpp)
 
 # Types, errors and the few pieces every core leans on.
 lh_add_test_core(lh_test_console ${LH_TEST_SRC_PATH}/lh/core/console/console.cpp)
@@ -457,7 +427,7 @@ if (WIN32 OR NOT (LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW))
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/system/posix/input.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/system/posix/input.cpp)
 endif ()
-if (NOT (WIN32 AND LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW AND LH_LIBRARY_OPTION_UI))
+if (NOT (WIN32 AND LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW AND LH_LIBRARY_OPTION_GL))
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/render/backend/gdi.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/render/backend/gdi.cpp)
 endif ()
@@ -566,85 +536,85 @@ lh_add_test_core(lh_test_util
         ${LH_TEST_SRC_PATH}/lh/core/util/wstr/ptr.cpp
 )
 
-set(LH_TEST_UI_SOURCES
-        ${LH_TEST_SRC_PATH}/lh/ui/axis.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/blur.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/box.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/brush.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/canvas.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/canvas/stroke.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/display/backend.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/transition.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/canvas/sw.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/canvas/web.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/web/app.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/web/app/route.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/web/host.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/web/host/serve.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/web/buf.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/web/page.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/web/player.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/web/ws.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/viewport3d.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/color.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/decl.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/entity.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/button.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/container.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/label.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/frame/stats.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/input.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/scrollbar.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/toggle.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/font.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/gradient.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/image.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/insets.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/layout.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/mask.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/paint.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/pen.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/pixmap.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/point.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/radius.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/range.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/rect.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/rects.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/scalar.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/shadow.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/style.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/text.cpp
-        # lh/ui.h as a whole, from C++ and (umbrella.c) from C11.
-        ${LH_TEST_SRC_PATH}/lh/ui/umbrella.c
-        ${LH_TEST_SRC_PATH}/lh/ui/umbrella.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/view.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/view/present.cpp
-        # lh_ui_surface_t is a Windows DIB behind an OS surface, so it is only
+set(LH_TEST_GL_SOURCES
+        ${LH_TEST_SRC_PATH}/lh/gl/axis.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/blur.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/box.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/brush.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/canvas.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/canvas/stroke.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/display/backend.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/transition.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/canvas/sw.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/canvas/web.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/web/app.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/web/app/route.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/web/host.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/web/host/serve.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/web/buf.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/web/page.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/web/player.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/web/ws.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/viewport3d.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/color.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/decl.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/entity.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/button.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/container.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/label.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/frame/stats.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/input.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/scrollbar.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/toggle.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/font.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/gradient.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/image.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/insets.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/layout.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/mask.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/paint.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/pen.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/pixmap.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/point.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/radius.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/range.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/rect.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/rects.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/scalar.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/shadow.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/style.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/text.cpp
+        # lh/gl.h as a whole, from C++ and (umbrella.c) from C11.
+        ${LH_TEST_SRC_PATH}/lh/gl/umbrella.c
+        ${LH_TEST_SRC_PATH}/lh/gl/umbrella.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/view.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/view/present.cpp
+        # lh_gl_surface_t is a Windows DIB behind an OS surface, so it is only
         # there when there is a native window to hold one — the same guard its
         # source has.
-        ${LH_TEST_SRC_PATH}/lh/ui/surface.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/window.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/surface.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/window.cpp
 )
-if (LH_LIBRARY_OPTION_UI AND LH_LIBRARY_OPTION_MATH_FPU)
-    list(APPEND LH_TEST_UI_SOURCES ${LH_TEST_SRC_PATH}/lh/ui/renderer3d.cpp)
+if (LH_LIBRARY_OPTION_GL AND LH_LIBRARY_OPTION_MATH_FPU)
+    list(APPEND LH_TEST_GL_SOURCES ${LH_TEST_SRC_PATH}/lh/gl/renderer3d.cpp)
 else ()
-    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/ui/renderer3d.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/gl/renderer3d.cpp)
 endif ()
-if (NOT LH_LIBRARY_OPTION_UI)
-    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/ui/surface.cpp ${LH_TEST_SRC_PATH}/lh/ui/window.cpp)
-    list(REMOVE_ITEM LH_TEST_UI_SOURCES ${LH_TEST_SRC_PATH}/lh/ui/surface.cpp ${LH_TEST_SRC_PATH}/lh/ui/window.cpp)
+if (NOT LH_LIBRARY_OPTION_GL)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/gl/surface.cpp ${LH_TEST_SRC_PATH}/lh/gl/window.cpp)
+    list(REMOVE_ITEM LH_TEST_GL_SOURCES ${LH_TEST_SRC_PATH}/lh/gl/surface.cpp ${LH_TEST_SRC_PATH}/lh/gl/window.cpp)
 endif ()
-if (LH_LIBRARY_OPTION_UI AND NOT (LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW))
-    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/ui/surface.cpp ${LH_TEST_SRC_PATH}/lh/ui/window.cpp)
-    list(REMOVE_ITEM LH_TEST_UI_SOURCES ${LH_TEST_SRC_PATH}/lh/ui/surface.cpp ${LH_TEST_SRC_PATH}/lh/ui/window.cpp)
+if (LH_LIBRARY_OPTION_GL AND NOT (LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW))
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/gl/surface.cpp ${LH_TEST_SRC_PATH}/lh/gl/window.cpp)
+    list(REMOVE_ITEM LH_TEST_GL_SOURCES ${LH_TEST_SRC_PATH}/lh/gl/surface.cpp ${LH_TEST_SRC_PATH}/lh/gl/window.cpp)
 endif ()
-if (LH_LIBRARY_OPTION_UI)
+if (LH_LIBRARY_OPTION_GL)
     # surface.cpp is already in or out of the list above; the rest is the whole
     # of the ui core, which only exists when the option does.
-    lh_add_test_core(lh_test_ui ${LH_TEST_UI_SOURCES})
+    lh_add_test_core(lh_test_gl ${LH_TEST_GL_SOURCES})
 else ()
-    list(REMOVE_ITEM LH_TEST_UI_SOURCES ${LH_TEST_SRC_PATH}/lh/ui/surface.cpp ${LH_TEST_SRC_PATH}/lh/ui/window.cpp)
-    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_UI_SOURCES})
+    list(REMOVE_ITEM LH_TEST_GL_SOURCES ${LH_TEST_SRC_PATH}/lh/gl/surface.cpp ${LH_TEST_SRC_PATH}/lh/gl/window.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_GL_SOURCES})
 endif ()
 
 # The SQLite backend exists only with LH_LIBRARY_OPTION_SQL_SQLITE.
@@ -665,9 +635,9 @@ endif ()
 #
 # Both need Python, which a library build does not; without it they are not built and
 # the guard below is told so.
-set(LH_TEST_CSS2DECL_SOURCE ${LH_TEST_SRC_PATH}/lh/ui/css2decl.cpp)
+set(LH_TEST_CSS2DECL_SOURCE ${LH_TEST_SRC_PATH}/lh/gl/css2decl.cpp)
 find_package(Python3 COMPONENTS Interpreter QUIET)
-if (LH_LIBRARY_OPTION_UI AND Python3_Interpreter_FOUND)
+if (LH_LIBRARY_OPTION_GL AND Python3_Interpreter_FOUND)
     set(LH_CSS2DECL_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/css2decl.py")
     set(LH_CSS2DECL_GENERATED)
     # Each sheet is generated under its own prefix and directory, and both are linked
@@ -677,7 +647,7 @@ if (LH_LIBRARY_OPTION_UI AND Python3_Interpreter_FOUND)
         string(REPLACE ":" ";" LH_CSS2DECL_PAIR "${LH_CSS2DECL_PAIR}")
         list(GET LH_CSS2DECL_PAIR 0 LH_CSS2DECL_NAME)
         list(GET LH_CSS2DECL_PAIR 1 LH_CSS2DECL_PREFIX)
-        set(LH_CSS2DECL_SHEET "${LH_TEST_SRC_PATH}/lh/ui/${LH_CSS2DECL_NAME}.css")
+        set(LH_CSS2DECL_SHEET "${LH_TEST_SRC_PATH}/lh/gl/${LH_CSS2DECL_NAME}.css")
         set(LH_CSS2DECL_OUT "${CMAKE_CURRENT_BINARY_DIR}/${LH_CSS2DECL_NAME}_generated")
         add_custom_command(
                 OUTPUT "${LH_CSS2DECL_OUT}/ui_generated.c" "${LH_CSS2DECL_OUT}/ui_generated.h"

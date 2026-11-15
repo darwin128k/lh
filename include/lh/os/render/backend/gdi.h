@@ -2,8 +2,8 @@
  * @file gdi.h
  * @brief Win32 GDI as a screen: ::lh_os_render_backend_gdi.
  *
- * Every primitive is drawn by the software backend (::lh_ui_canvas_backend_sw)
- * into the pixels of an owned ::lh_ui_surface_t (a 32-bit DIB section). GDI
+ * Every primitive is drawn by the software backend (::lh_gl_canvas_backend_sw)
+ * into the pixels of an owned ::lh_gl_surface_t (a 32-bit DIB section). GDI
  * only shows the result: `begin` sizes the surface to the client and points
  * the software context at its pixels, `end` blits the surface into the paint
  * DC in one `BitBlt`. Set the DC from ::lh_os_window_get_paint_dc inside
@@ -14,7 +14,7 @@
  * memory and presents through `lh/os/system/surface.h`, so it is the same screen
  * on every backend that has one -- the Win32 one and the X11 one.
  *
- * Requires ::LH_LIBRARY_OPTION_OS_WINDOW and ::LH_LIBRARY_OPTION_UI: it is the
+ * Requires ::LH_LIBRARY_OPTION_OS_WINDOW and ::LH_LIBRARY_OPTION_GL: it is the
  * UI's screen, built only when both are on.
  */
 
@@ -30,8 +30,8 @@
 #    error "lh/os/render/backend/gdi.h requires LH_LIBRARY_OPTION_OS_WINDOW"
 #endif
 
-#if !LH_LIBRARY_OPTION_UI
-#    error "lh/os/render/backend/gdi.h requires LH_LIBRARY_OPTION_UI"
+#if !LH_LIBRARY_OPTION_GL
+#    error "lh/os/render/backend/gdi.h requires LH_LIBRARY_OPTION_GL"
 #endif
 
 /**
@@ -41,8 +41,8 @@
 struct lh_os_render_backend_gdi_context
 {
     /** Members: ::lh_os_render_backend_gdi_fields. */
-    lh_os_render_backend_gdi_fields(lh_os_system_window_handle_t, lh_ptr, lh_ui_surface_t,
-                                    lh_ui_canvas_sw_t, lh_u32_t, lh_u64_t, lh_ui_point_t);
+    lh_os_render_backend_gdi_fields(lh_os_system_window_handle_t, lh_ptr, lh_gl_surface_t,
+                                    lh_gl_canvas_sw_t, lh_u32_t, lh_u64_t, lh_gl_point_t);
 };
 /** @copybrief lh_os_render_backend_gdi_context */
 typedef struct lh_os_render_backend_gdi_context lh_os_render_backend_gdi_context_t;
@@ -125,7 +125,7 @@ lh_os_render_backend_gdi_context_get_hdc(const lh_os_render_backend_gdi_context_
  * half the bytes is half the time. On a desktop it is a trap, and it is one call
  * away either way.
  */
-lh_ui_pixmap_format_t
+lh_gl_pixmap_format_t
 lh_os_render_backend_gdi_context_get_format(const lh_os_render_backend_gdi_context_t *self);
 
 /**
@@ -136,7 +136,7 @@ lh_os_render_backend_gdi_context_get_format(const lh_os_render_backend_gdi_conte
  */
 lh_void
 lh_os_render_backend_gdi_context_set_format(lh_os_render_backend_gdi_context_t *self,
-                                            lh_ui_pixmap_format_t format);
+                                            lh_gl_pixmap_format_t format);
 
 /* -- Counters --------------------------------------------------------------
  * They cover what the last `begin` or `begin_area` opened, and nothing more:
@@ -196,7 +196,7 @@ lh_os_render_backend_gdi_begin(lh_ptr context);
  *        it, and remember the corner `end` presents it back at.
  */
 lh_void
-lh_os_render_backend_gdi_begin_area(lh_ptr context, const lh_ui_rect_t *area);
+lh_os_render_backend_gdi_begin_area(lh_ptr context, const lh_gl_rect_t *area);
 
 /**
  * @brief Backend `end`: blit into the paint DC, at `present_at` — the whole
@@ -204,78 +204,78 @@ lh_os_render_backend_gdi_begin_area(lh_ptr context, const lh_ui_rect_t *area);
  *        was, which is all this backend wrote.
  *
  * @p drawn arrives from the canvas, not from here: see
- * ::lh_ui_canvas_end_fn.
+ * ::lh_gl_canvas_end_fn.
  */
 lh_void
-lh_os_render_backend_gdi_end(lh_ptr context, const lh_ui_rects_t *drawn);
+lh_os_render_backend_gdi_end(lh_ptr context, const lh_gl_rects_t *drawn);
 
 /**
- * @brief Backend `clear`: ::lh_ui_canvas_sw_clear on the surface pixels.
+ * @brief Backend `clear`: ::lh_gl_canvas_sw_clear on the surface pixels.
  */
 lh_void
-lh_os_render_backend_gdi_clear(lh_ptr context, const lh_ui_color_t *color);
+lh_os_render_backend_gdi_clear(lh_ptr context, const lh_gl_color_t *color);
 
 /**
- * @brief Backend `fill_rect`: counted, then ::lh_ui_canvas_sw_fill_rect.
+ * @brief Backend `fill_rect`: counted, then ::lh_gl_canvas_sw_fill_rect.
  */
 lh_void
-lh_os_render_backend_gdi_fill_rect(lh_ptr context, const lh_ui_rect_t *rect,
-                                   const lh_ui_color_t *color);
+lh_os_render_backend_gdi_fill_rect(lh_ptr context, const lh_gl_rect_t *rect,
+                                   const lh_gl_color_t *color);
 
 /**
- * @brief Backend `fill_round_rect`: counted, then ::lh_ui_canvas_sw_fill_round_rect.
+ * @brief Backend `fill_round_rect`: counted, then ::lh_gl_canvas_sw_fill_round_rect.
  */
 lh_bool_t
-lh_os_render_backend_gdi_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect,
-                                         lh_ui_scalar_t radius, const lh_ui_color_t *color);
+lh_os_render_backend_gdi_fill_round_rect(lh_ptr context, const lh_gl_rect_t *rect,
+                                         lh_gl_scalar_t radius, const lh_gl_color_t *color);
 
 /**
- * @brief Backend `set_clip`: counted, ::lh_ui_canvas_sw_use_clip, and the
+ * @brief Backend `set_clip`: counted, ::lh_gl_canvas_sw_use_clip, and the
  *        clip added to `drawn` — what `end` presents.
  */
 lh_void
-lh_os_render_backend_gdi_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *clip);
+lh_os_render_backend_gdi_set_clip(lh_ptr context, const lh_gl_canvas_clip_t *clip);
 
 /**
- * @brief Backend `fill_mask`: counted, then ::lh_ui_canvas_sw_fill_mask.
+ * @brief Backend `fill_mask`: counted, then ::lh_gl_canvas_sw_fill_mask.
  */
 lh_bool_t
-lh_os_render_backend_gdi_fill_mask(lh_ptr context, const lh_ui_point_t *origin,
-                                   const lh_ui_mask_t *mask, const lh_ui_color_t *color);
+lh_os_render_backend_gdi_fill_mask(lh_ptr context, const lh_gl_point_t *origin,
+                                   const lh_gl_mask_t *mask, const lh_gl_color_t *color);
 
 /**
- * @brief Backend `shadow`: ::lh_ui_canvas_sw_shadow on the surface.
+ * @brief Backend `shadow`: ::lh_gl_canvas_sw_shadow on the surface.
  */
 lh_bool_t
-lh_os_render_backend_gdi_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
-                                const lh_ui_shadow_t *shadow);
+lh_os_render_backend_gdi_shadow(lh_ptr context, const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
+                                const lh_gl_shadow_t *shadow);
 
 /**
- * @brief Backend `blur`: ::lh_ui_canvas_sw_blur on the surface.
+ * @brief Backend `blur`: ::lh_gl_canvas_sw_blur on the surface.
  */
 lh_bool_t
-lh_os_render_backend_gdi_blur(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t blur_radius,
+lh_os_render_backend_gdi_blur(lh_ptr context, const lh_gl_rect_t *rect, lh_gl_scalar_t blur_radius,
                               lh_u8_t *scratch, lh_usize_t bytes);
 
 /**
- * @brief Backend `glass`: ::lh_ui_canvas_sw_glass on the surface.
+ * @brief Backend `glass`: ::lh_gl_canvas_sw_glass on the surface.
  */
 lh_bool_t
-lh_os_render_backend_gdi_glass(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t corner,
-                               lh_ui_scalar_t blur_radius, const lh_ui_color_t *tint,
+lh_os_render_backend_gdi_glass(lh_ptr context, const lh_gl_rect_t *rect, lh_gl_scalar_t corner,
+                               lh_gl_scalar_t blur_radius, const lh_gl_color_t *tint,
                                lh_u8_t *scratch, lh_usize_t bytes);
 
 /**
  * @brief The GDI backend table: software drawing into the surface, GDI blit.
  */
-extern const lh_ui_canvas_backend_t lh_os_render_backend_gdi;
+extern const lh_gl_canvas_backend_t lh_os_render_backend_gdi;
 
 /**
  * @brief The off-screen surface the frame is drawn into (level 1).
  *
  * @param self The context; checked by ::lh_assert_runtime_ref.
  */
-const lh_ui_surface_t *
+const lh_gl_surface_t *
 lh_os_render_backend_gdi_context_get_surface(const lh_os_render_backend_gdi_context_t *self);
 
 /**
@@ -284,7 +284,7 @@ lh_os_render_backend_gdi_context_get_surface(const lh_os_render_backend_gdi_cont
  * @param self The context; checked by ::lh_assert_runtime_ref.
  * @return The member itself, never ::lh_null.
  */
-lh_ui_surface_t *
+lh_gl_surface_t *
 lh_os_render_backend_gdi_context_get_surface_mut(lh_os_render_backend_gdi_context_t *self);
 
 /**
@@ -292,7 +292,7 @@ lh_os_render_backend_gdi_context_get_surface_mut(lh_os_render_backend_gdi_contex
  *
  * @param self The context; checked by ::lh_assert_runtime_ref.
  */
-const lh_ui_canvas_sw_t *
+const lh_gl_canvas_sw_t *
 lh_os_render_backend_gdi_context_get_sw(const lh_os_render_backend_gdi_context_t *self);
 
 /**
@@ -301,7 +301,7 @@ lh_os_render_backend_gdi_context_get_sw(const lh_os_render_backend_gdi_context_t
  * @param self The context; checked by ::lh_assert_runtime_ref.
  * @return The member itself, never ::lh_null.
  */
-lh_ui_canvas_sw_t *
+lh_gl_canvas_sw_t *
 lh_os_render_backend_gdi_context_get_sw_mut(lh_os_render_backend_gdi_context_t *self);
 
 /**
@@ -309,7 +309,7 @@ lh_os_render_backend_gdi_context_get_sw_mut(lh_os_render_backend_gdi_context_t *
  *
  * @param self The context; checked by ::lh_assert_runtime_ref.
  */
-const lh_ui_point_t *
+const lh_gl_point_t *
 lh_os_render_backend_gdi_context_get_present_at(const lh_os_render_backend_gdi_context_t *self);
 
 /**
@@ -318,7 +318,7 @@ lh_os_render_backend_gdi_context_get_present_at(const lh_os_render_backend_gdi_c
  * @param self The context; checked by ::lh_assert_runtime_ref.
  * @return The member itself, never ::lh_null.
  */
-lh_ui_point_t *
+lh_gl_point_t *
 lh_os_render_backend_gdi_context_get_present_at_mut(lh_os_render_backend_gdi_context_t *self);
 
 /**
@@ -439,7 +439,7 @@ lh_os_render_backend_gdi_context_set_frame_start_us(lh_os_render_backend_gdi_con
  */
 lh_void
 lh_os_render_backend_gdi_context_set_present_at(lh_os_render_backend_gdi_context_t *self,
-                                                lh_ui_point_t present_at);
+                                                lh_gl_point_t present_at);
 
 LH_COMPILER_EXTERN_C_END
 

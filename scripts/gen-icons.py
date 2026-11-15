@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Icons for the configurator, as `lh_ui_mask_t` a picture shows.
+"""Icons for the configurator, as `lh_gl_mask_t` a picture shows.
 
-`lh/ui/mask.h` says it in one sentence: "A font glyph is a mask; so is a baked icon or
+`lh/gl/mask.h` says it in one sentence: "A font glyph is a mask; so is a baked icon or
 cursor." So an icon here is not a drawing routine and not a font -- it is **coverage**,
-one 0..15 number per pixel, packed high bit first, and ::lh_ui_canvas_fill_mask paints it
+one 0..15 number per pixel, packed high bit first, and ::lh_gl_canvas_fill_mask paints it
 in one colour. That is the same kind of thing the Roboto glyphs are and the same packing,
 so the generator is deliberately shaped like `scripts/font.py` in `lh`.
 
@@ -400,7 +400,7 @@ def pack(samples, size=OUT_SIZE, bpp=BPP):
 """What the generated C is named after. Set once, from `--prefix`.
 
 **This script belongs to `lh`, so it cannot carry one application's name.** It emits
-`lh_ui_mask_t`, which is `lh/ui/mask.h`, and the mask layout -- 16 on a side, 4 bpp, high
+`lh_gl_mask_t`, which is `lh/gl/mask.h`, and the mask layout -- 16 on a side, 4 bpp, high
 bit first -- is the library's. What the *icons* are and what to call them is the
 application's: lucide's shapes here, `cfg_icon_gear` as the name. `--prefix` is where that
 last part lives, so a second application calls this script instead of copying it."""
@@ -429,8 +429,8 @@ def emit_header(names, path, source_path):
     lines.append(" *")
     lines.append(" * %d icons on a %dx%d grid, %d bits per pixel, %d bytes of coverage in"
                  % (len(names), OUT_SIZE, OUT_SIZE, BPP, total))
-    lines.append(" * total. A mask is what ::lh_ui_image_t shows and ::lh_ui_canvas_fill_mask paints;")
-    lines.append(" * see `lh/ui/mask.h`, which says a glyph is one and so is a baked icon.")
+    lines.append(" * total. A mask is what ::lh_gl_image_t shows and ::lh_gl_canvas_fill_mask paints;")
+    lines.append(" * see `lh/gl/mask.h`, which says a glyph is one and so is a baked icon.")
     lines.append(" *")
     lines.append(" * Regenerate: python3 lib/lh/scripts/gen-icons.py --out %s --header %s"
                  % (relative_source, relative_header))
@@ -440,7 +440,7 @@ def emit_header(names, path, source_path):
     lines.append("")
     lines.append("#include <lh/core/byte.h>")
     lines.append("#include <lh/core/compiler/extern/c.h>")
-    lines.append("#include <lh/ui/mask.h>")
+    lines.append("#include <lh/gl/mask.h>")
     lines.append("")
     lines.append("LH_COMPILER_EXTERN_C_BEGIN")
     lines.append("")
@@ -450,8 +450,8 @@ def emit_header(names, path, source_path):
     lines.append("/** Every icon's coverage, one array for all of them. */")
     lines.append("extern const lh_byte_t cfg_icons_bits[];")
     lines.append("")
-    lines.append("/** One ::lh_ui_mask_t per icon, pointing into ::cfg_icons_bits. */")
-    lines.append("extern const lh_ui_mask_t cfg_icons[];")
+    lines.append("/** One ::lh_gl_mask_t per icon, pointing into ::cfg_icons_bits. */")
+    lines.append("extern const lh_gl_mask_t cfg_icons[];")
     lines.append("")
     for n in names:
         lines.append("/** %s */" % ICONS[n]["label"])
@@ -484,7 +484,7 @@ def emit_source(names, path):
         lines.append("    " + ", ".join("0x%02X" % b for b in flat[i:i + 12]) + ",")
     lines.append("};")
     lines.append("")
-    lines.append("const lh_ui_mask_t cfg_icons[] = {")
+    lines.append("const lh_gl_mask_t cfg_icons[] = {")
     offset = 0
     for n in names:
         lines.append("    {cfg_icons_bits + %d, %d, %d, %d, %d},  /* %s */"

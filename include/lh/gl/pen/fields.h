@@ -7,16 +7,14 @@
 #define LH_GL_PEN_FIELDS_H
 
 /**
- * @def lh_gl_pen_fields(color_type, width_type)
- * @brief The stroke color and its thickness.
+ * @def lh_gl_pen_fields(paint_type, width_type)
+ * @brief What the outline is painted with, and how wide it is.
  *
- * @param color_type ::lh_gl_color_t: `color`, copied by value.
- * @param width_type ::lh_gl_scalar_t: `width`. Zero draws nothing extra
- *                   around the shape. Negative is stored as given; a stroke
- *                   treats it as zero.
+ * @param paint_type Type of the outline paint (held by value).
+ * @param width_type Type of the line width.
  */
-#define lh_gl_pen_fields(color_type, width_type)                                                   \
-    color_type color;                                                                              \
+#define lh_gl_pen_fields(paint_type, width_type)                                                   \
+    paint_type paint;                                                                              \
     width_type width
 
 #endif /* LH_GL_PEN_FIELDS_H */

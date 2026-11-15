@@ -4,7 +4,7 @@
 #include <lh/config.h>
 #include <lh/core/numeric/float.h>
 #include <lh/core/math.h>
-#include <lh/ui/scalar.h>
+#include <lh/gl/scalar.h>
 #if LH_LIBRARY_OPTION_MATH_FPU
 #    include <lh/core/math/fscalar.h>
 #endif
@@ -28,22 +28,22 @@ TEST(math_fscalar, is_float)
 TEST(ui_scalar, aliases_scalar_or_fscalar)
 {
 #if LH_LIBRARY_OPTION_MATH_FPU
-    EXPECT_TRUE((std::is_same<lh_ui_scalar_t, lh_math_fscalar_t>::value));
+    EXPECT_TRUE((std::is_same<lh_gl_scalar_t, lh_math_fscalar_t>::value));
 #else
-    EXPECT_TRUE((std::is_same<lh_ui_scalar_t, lh_math_scalar_t>::value));
+    EXPECT_TRUE((std::is_same<lh_gl_scalar_t, lh_math_scalar_t>::value));
 #endif
 }
 
 TEST(ui_scalar, literal_follows_the_fpu_option)
 {
-    using literal = decltype(lh_ui_scalar(3));
-    EXPECT_TRUE((std::is_same<literal, lh_ui_scalar_t>::value));
+    using literal = decltype(lh_gl_scalar(3));
+    EXPECT_TRUE((std::is_same<literal, lh_gl_scalar_t>::value));
 #if LH_LIBRARY_OPTION_MATH_FPU
-    EXPECT_FLOAT_EQ(lh_ui_scalar(3.9), 3.9f);
-    EXPECT_FLOAT_EQ(lh_ui_scalar(-2), -2.f);
+    EXPECT_FLOAT_EQ(lh_gl_scalar(3.9), 3.9f);
+    EXPECT_FLOAT_EQ(lh_gl_scalar(-2), -2.f);
 #else
-    EXPECT_EQ(lh_ui_scalar(3.9), 3);
-    EXPECT_EQ(lh_ui_scalar(-2), -2);
+    EXPECT_EQ(lh_gl_scalar(3.9), 3);
+    EXPECT_EQ(lh_gl_scalar(-2), -2);
 #endif
 }
 

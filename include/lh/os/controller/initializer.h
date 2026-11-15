@@ -55,7 +55,7 @@
  * Example usage:
  * @code{.c}
  * static lh_os_controller_t controller =
- *     lh_os_controller_default_initializer(lh_ui_view_controller_handle_event_is_handled,
+ *     lh_os_controller_default_initializer(lh_gl_view_controller_handle_event_is_handled,
  * lh_addr_of(view));
  * @endcode
  */

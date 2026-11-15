@@ -6,8 +6,8 @@
 #ifndef LH_OS_RENDER_BACKEND_GDI_FIELDS_H
 #define LH_OS_RENDER_BACKEND_GDI_FIELDS_H
 
-#include <lh/ui/canvas/sw.h>
-#include <lh/ui/surface.h>
+#include <lh/gl/canvas/sw.h>
+#include <lh/gl/surface.h>
 
 /**
  * @def lh_os_render_backend_gdi_fields(hwnd_type, hdc_type, surface_type, sw_type, count_type,
@@ -22,21 +22,21 @@
  * and is the area, never more: that is the memory a partial frame saves.
  *
  * There is no list of what the frame drew here any more, and that is the point:
- * it arrives in the `end` slot as a ::lh_ui_rects_t of the clips the canvas cut
+ * it arrives in the `end` slot as a ::lh_gl_rects_t of the clips the canvas cut
  * this frame to, in surface pixels, and the present is exactly it. A buffer holds
  * no promise about the pixels nobody wrote, and `begin_area` frees the old one
  * whenever the area changes size, so those bytes are whatever GDI hands back.
  * Empty means the frame was never clipped, which is the whole surface.
  *
- * It is a list and not one rect because ::lh_ui_rect_union is a hull and not a
+ * It is a list and not one rect because ::lh_gl_rect_union is a hull and not a
  * union: two cuts standing apart on a strip merge into their hull, and the hull
  * covers the gap between them, which belongs to neither. Two widgets 6 px apart,
  * which is one row of buttons, put a strip's leftover bytes into that gap.
  *
  * @param hwnd_type    ::lh_os_system_window_handle_t.
  * @param hdc_type     Paint DC as ::lh_ptr.
- * @param surface_type ::lh_ui_surface_t.
- * @param sw_type      ::lh_ui_canvas_sw_t.
+ * @param surface_type ::lh_gl_surface_t.
+ * @param sw_type      ::lh_gl_canvas_sw_t.
  * @param count_type   Unsigned call counter.
  * @param tick_type    Frame start time (::lh_u64_t microseconds).
  * @param point_type   Type of the present corner.

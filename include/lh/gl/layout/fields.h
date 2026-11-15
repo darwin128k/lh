@@ -7,13 +7,21 @@
 #define LH_GL_LAYOUT_FIELDS_H
 
 /**
- * @def lh_gl_layout_fields(gap_type)
- * @brief The space inserted after each packed child.
+ * @def lh_gl_layout_fields(axis_type, scalar_type, justify_type, bool_type)
+ * @brief The way children run, the room between neighbours, where the leftovers
+ *        go, and whether children that do not fit start a new line -- with the room
+ *        between lines.
  *
- * @param gap_type ::lh_gl_scalar_t. The member is `gap`. A negative gap pulls
- *                 the next child back. The layout stores nothing else.
+ * @param axis_type    Type of ::lh_gl_axis_t.
+ * @param scalar_type  Type of the gaps.
+ * @param justify_type Type of ::lh_gl_justify_t.
+ * @param bool_type    Type of the wrap flag.
  */
-#define lh_gl_layout_fields(gap_type)                                                              \
-    gap_type gap
+#define lh_gl_layout_fields(axis_type, scalar_type, justify_type, bool_type)                       \
+    axis_type axis;                                                                                \
+    scalar_type gap;                                                                               \
+    justify_type justify;                                                                          \
+    bool_type wrap;                                                                                \
+    scalar_type line_gap
 
 #endif /* LH_GL_LAYOUT_FIELDS_H */

@@ -1,81 +1,73 @@
 #include <gtest/gtest.h>
 
-#include <lh/gl/layer.h>
+#include <lh/expect/death.h>
 #include <lh/gl/surface.h>
 
 namespace
 {
 
-lh_gl_rect_t
-rect_of(lh_gl_scalar_t x, lh_gl_scalar_t y, lh_gl_scalar_t w, lh_gl_scalar_t h)
-{
-    lh_gl_rect_t rect;
-    lh_gl_rect_init(lh_addr_of(rect), x, y, w, h);
-    return rect;
-}
-
-TEST(gl_surface, dirty_clips_merges_and_collapses)
+TEST(surface, starts_empty_and_argb8888)
 {
     lh_gl_surface_t surface;
-    lh_gl_size_t size;
-    lh_gl_size_init(lh_addr_of(size), 1000, 1000);
-    lh_gl_surface_init(lh_addr_of(surface), size);
-    lh_gl_rect_t area = rect_of(1100, 1100, 10, 10);
-    lh_gl_surface_invalidate(lh_addr_of(surface), lh_addr_of(area));
-    EXPECT_EQ(lh_gl_surface_get_dirty_count(lh_addr_of(surface)), 0U);
-    area = rect_of(-5, -5, 10, 10);
-    lh_gl_surface_invalidate(lh_addr_of(surface), lh_addr_of(area));
-    EXPECT_EQ(lh_gl_surface_get_dirty_count(lh_addr_of(surface)), 1U);
-    lh_gl_rect_t expected = rect_of(0, 0, 5, 5);
-    EXPECT_TRUE(
-        lh_gl_rect_eq(lh_gl_surface_get_dirty(lh_addr_of(surface), 0), lh_addr_of(expected)));
-    area = rect_of(5, 0, 5, 5);
-    lh_gl_surface_invalidate(lh_addr_of(surface), lh_addr_of(area));
-    expected = rect_of(0, 0, 10, 5);
-    EXPECT_EQ(lh_gl_surface_get_dirty_count(lh_addr_of(surface)), 1U);
-    EXPECT_TRUE(
-        lh_gl_rect_eq(lh_gl_surface_get_dirty(lh_addr_of(surface), 0), lh_addr_of(expected)));
-    lh_gl_surface_clear_dirty(lh_addr_of(surface));
-    for (lh_uindex_t i = 0; i <= LH_LIBRARY_OPTION_GL_SURFACE_DIRTY_MAX; ++i)
-    {
-        area = rect_of(10 * i, 10 * i, 1, 1);
-        lh_gl_surface_invalidate(lh_addr_of(surface), lh_addr_of(area));
-    }
-    EXPECT_EQ(lh_gl_surface_get_dirty_count(lh_addr_of(surface)), 1U);
-    expected = rect_of(0, 0, 10 * LH_LIBRARY_OPTION_GL_SURFACE_DIRTY_MAX + 1,
-                       10 * LH_LIBRARY_OPTION_GL_SURFACE_DIRTY_MAX + 1);
-    EXPECT_TRUE(
-        lh_gl_rect_eq(lh_gl_surface_get_dirty(lh_addr_of(surface), 0), lh_addr_of(expected)));
+
+    lh_gl_surface_init(lh_addr_of(surface));
+    EXPECT_FALSE(lh_gl_surface_is_valid(lh_addr_of(surface)));
+    EXPECT_EQ(lh_gl_surface_get_format(lh_addr_of(surface)), lh_gl_pixmap_format_argb8888);
+    lh_gl_surface_deinit(lh_addr_of(surface));
 }
 
-TEST(gl_surface, attach_resize_and_detach)
+/* The format is what says how wide a pixel is, so the pixmap has to answer in the
+   format asked for and not in the one the buffer was born with. */
+TEST(surface, the_format_decides_the_pixmap_under_it)
 {
     lh_gl_surface_t surface;
-    lh_gl_layer_t root;
+
+    lh_gl_surface_init(lh_addr_of(surface));
     lh_gl_size_t size;
-    lh_gl_size_init(lh_addr_of(size), 80, 60);
-    lh_gl_surface_init(lh_addr_of(surface), size);
-    lh_gl_layer_init(lh_addr_of(root), rect_of(4, 5, 9, 9));
-    lh_gl_surface_attach(lh_addr_of(surface), lh_addr_of(root));
-    lh_gl_rect_t expected = rect_of(0, 0, 80, 60);
-    EXPECT_TRUE(lh_gl_rect_eq(lh_gl_entity_get_rect(lh_gl_layer_get_entity(lh_addr_of(root))),
-                              lh_addr_of(expected)));
-    ASSERT_EQ(lh_gl_surface_get_dirty_count(lh_addr_of(surface)), 1U);
-    EXPECT_TRUE(
-        lh_gl_rect_eq(lh_gl_surface_get_dirty(lh_addr_of(surface), 0), lh_addr_of(expected)));
-    lh_gl_size_init(lh_addr_of(size), 30, 20);
-    lh_gl_surface_resize(lh_addr_of(surface), size);
-    expected = rect_of(0, 0, 30, 20);
-    EXPECT_TRUE(lh_gl_rect_eq(lh_gl_entity_get_rect(lh_gl_layer_get_entity(lh_addr_of(root))),
-                              lh_addr_of(expected)));
-    ASSERT_EQ(lh_gl_surface_get_dirty_count(lh_addr_of(surface)), 1U);
-    EXPECT_TRUE(
-        lh_gl_rect_eq(lh_gl_surface_get_dirty(lh_addr_of(surface), 0), lh_addr_of(expected)));
-    lh_gl_surface_detach(lh_addr_of(surface));
-    EXPECT_EQ(lh_gl_layer_get_surface(lh_addr_of(root)), nullptr);
-    EXPECT_TRUE(lh_gl_rect_eq(lh_gl_entity_get_rect(lh_gl_layer_get_entity(lh_addr_of(root))),
-                              lh_addr_of(expected)));
-    lh_gl_layer_deinit(lh_addr_of(root));
+    lh_gl_size_init(lh_addr_of(size), lh_gl_scalar(64), lh_gl_scalar(8));
+
+    lh_gl_surface_set_format_v(lh_addr_of(surface), lh_gl_pixmap_format_rgb565);
+    ASSERT_TRUE(lh_gl_surface_set_size_v(lh_addr_of(surface), size));
+    ASSERT_TRUE(lh_gl_surface_is_valid(lh_addr_of(surface)));
+    lh_gl_pixmap_t pixmap;
+    ASSERT_TRUE(lh_gl_surface_get_pixmap(lh_addr_of(surface), lh_addr_of(pixmap)));
+    EXPECT_EQ(lh_gl_pixmap_get_format(lh_addr_of(pixmap)), lh_gl_pixmap_format_rgb565);
+    EXPECT_EQ(lh_gl_pixmap_get_pixel_bytes(lh_addr_of(pixmap)), 2);
+    /* 16 bits is half the stride, and every row of the buffer is that half. */
+    EXPECT_EQ(lh_gl_pixmap_get_row(lh_addr_of(pixmap), 1) - lh_gl_pixmap_get_row(lh_addr_of(pixmap), 0),
+              64 * 2);
+    EXPECT_EQ(lh_gl_pixmap_get_width(lh_addr_of(pixmap)), 64);
+    EXPECT_EQ(lh_gl_pixmap_get_height(lh_addr_of(pixmap)), 8);
+    lh_gl_surface_deinit(lh_addr_of(surface));
+
+    lh_gl_surface_init(lh_addr_of(surface));
+    ASSERT_TRUE(lh_gl_surface_set_size_v(lh_addr_of(surface), size));
+    ASSERT_TRUE(lh_gl_surface_get_pixmap(lh_addr_of(surface), lh_addr_of(pixmap)));
+    EXPECT_EQ(lh_gl_pixmap_get_format(lh_addr_of(pixmap)), lh_gl_pixmap_format_argb8888);
+    EXPECT_EQ(lh_gl_pixmap_get_row(lh_addr_of(pixmap), 1) - lh_gl_pixmap_get_row(lh_addr_of(pixmap), 0),
+              64 * 4);
+    lh_gl_surface_deinit(lh_addr_of(surface));
 }
+
+#if LH_TEST_EXPECT_DEATH_ENABLED
+
+/* A swapped word order is for a controller on the way out, not for a buffer this
+   side draws into: over native-order words every pixel would read as a different
+   colour. Asking for it here is the caller's mistake, not a quiet one. */
+TEST(surface, a_swapped_format_is_not_something_to_draw_into)
+{
+    lh_gl_surface_t surface;
+
+    lh_gl_surface_init(lh_addr_of(surface));
+    LH_EXPECT_DEATH(lh_gl_surface_set_format_v(lh_addr_of(surface), lh_gl_pixmap_format_rgb565_swapped));
+    lh_gl_size_t size;
+    lh_gl_size_init(lh_addr_of(size), lh_gl_scalar(8), lh_gl_scalar(8));
+    (void)lh_gl_surface_set_size_v(lh_addr_of(surface), size);
+    /* And a live buffer keeps its format: a frame drawn in two is not a frame. */
+    LH_EXPECT_DEATH(lh_gl_surface_set_format_v(lh_addr_of(surface), lh_gl_pixmap_format_rgb565));
+    lh_gl_surface_deinit(lh_addr_of(surface));
+}
+
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 } // namespace

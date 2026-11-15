@@ -1,6 +1,6 @@
 # Native rounded borders
 
-`lh_ui_canvas_stroke_box` is used by the entity renderer for a solid border with
+`lh_gl_canvas_stroke_box` is used by the entity renderer for a solid border with
 uniform widths. It derives the inset contour from the same four corner radii as
 the fill, then paints outer coverage minus inner coverage. The fill and shadow
 remain the standard entity style operations; the application no longer constructs

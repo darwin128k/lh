@@ -18,8 +18,8 @@
  * @brief Takes one event, raw or synthesized, from ::lh_os_controller_t.
  *
  * @p self is the controller's context (::lh_os_controller_get_context): the
- * object the events are for, the view of a screen (`lh_ui_view_controller_handle_event_is_handled`
- * in `lh/ui/view/controller.h`). @p event lives only for the call; copy it to
+ * object the events are for, the view of a screen (`lh_gl_view_controller_handle_event_is_handled`
+ * in `lh/gl/view/controller.h`). @p event lives only for the call; copy it to
  * keep it.
  *
  * @return True when @p self acted on @p event (something to repaint, say);

@@ -217,23 +217,23 @@ option(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED
         ON)
 
 # -----------------------------------------------------------------------------
-# Option: LH_LIBRARY_OPTION_UI
+# Option: LH_LIBRARY_OPTION_GL
 #
-# UI model under include/lh/ui and src/lh/ui: color, paint, pen, style,
+# UI model under include/lh/gl and src/lh/gl: color, paint, pen, style,
 # gradient, canvas (backend table), and the entity tree.
 #
 #   ON  — compile the UI sources.
-#   OFF — leave them out (default); lh/ui.h and friends refuse to compile.
+#   OFF — leave them out (default); lh/gl.h and friends refuse to compile.
 #
 # Off by default: most users of lh want its bricks, not a widget toolkit, and
 # should not pay for it in build time and archive size. Turn it on to get the
-# canvas, the entity tree and the web host (ui/web).
+# canvas, the entity tree and the web host (gl/web).
 #
 # Needs no OS: a canvas backend is supplied by the host (GDI, GL, STM32 ...).
 # With LH_LIBRARY_OPTION_OS_WINDOW it also builds the window's screen
-# (os/render/backend/gdi.c, ui/surface.c).
+# (os/render/backend/gdi.c, gl/surface.c).
 # -----------------------------------------------------------------------------
-option(LH_LIBRARY_OPTION_UI
+option(LH_LIBRARY_OPTION_GL
         "Compile the lh UI model (color, paint, style, canvas, entity tree)."
         OFF)
 
@@ -273,48 +273,42 @@ option(LH_LIBRARY_OPTION_JS
         OFF)
 
 # -----------------------------------------------------------------------------
-# LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS
+# LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS
 #
-# Fixed capacity of lh_ui_gradient_t::stops. Same role as LVGL's
+# Fixed capacity of lh_gl_gradient_t::stops. Same role as LVGL's
 # LV_GRADIENT_MAX_STOPS: raise it to allow more color stops; each extra stop
-# grows the descriptor by one lh_ui_gradient_stop_t.
+# grows the descriptor by one lh_gl_gradient_stop_t.
 #
-# CMake: -DLH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS=8 or ccmake.
+# CMake: -DLH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS=8 or ccmake.
 # Manual build: set in include/lh/config.h or -D on the compiler command line.
 # -----------------------------------------------------------------------------
-set(LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS "2" CACHE STRING
-        "Max color stops in lh_ui_gradient_t (must be 1..255; default 2 like LVGL).")
+set(LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS "2" CACHE STRING
+        "Max color stops in lh_gl_gradient_t (must be 1..255; default 2 like LVGL).")
 
 # -----------------------------------------------------------------------------
-# LH_LIBRARY_OPTION_UI_FONT_ROBOTO
+# LH_LIBRARY_OPTION_GL_FONT_ROBOTO
 #
 # Bake Roboto Regular 16 px (Latin+Cyrillic, 4 bits per pixel) as
-# lh_ui_font_roboto. With full UI ON it is the default style font; with UI OFF
+# lh_gl_font_roboto. With full UI ON it is the default style font; with UI OFF
 # it still builds (mask + font + roboto) so freestanding hosts can draw text.
 # OFF leaves it out of the image.
 # -----------------------------------------------------------------------------
-option(LH_LIBRARY_OPTION_UI_FONT_ROBOTO
+option(LH_LIBRARY_OPTION_GL_FONT_ROBOTO
         "Bake Roboto 16 px into lh (works with UI ON or OFF)."
         ON)
 
 # -----------------------------------------------------------------------------
-# LH_LIBRARY_OPTION_UI_CANVAS_DEPTH
+# LH_LIBRARY_OPTION_GL_CANVAS_DEPTH
 #
-# Fixed depth of the lh_ui_canvas_t state stack (offset + clip) that
-# lh_ui_canvas_push / lh_ui_canvas_pop save and restore. One level per nested
+# Fixed depth of the lh_gl_canvas_t state stack (offset + clip) that
+# lh_gl_canvas_push / lh_gl_canvas_pop save and restore. One level per nested
 # scrolling container; pushing past it fails an lh_assert_runtime check.
 #
-# CMake: -DLH_LIBRARY_OPTION_UI_CANVAS_DEPTH=16 or ccmake.
+# CMake: -DLH_LIBRARY_OPTION_GL_CANVAS_DEPTH=16 or ccmake.
 # Manual build: set in include/lh/config.h or -D on the compiler command line.
 # -----------------------------------------------------------------------------
-set(LH_LIBRARY_OPTION_UI_CANVAS_DEPTH "8" CACHE STRING
-        "Max nested lh_ui_canvas_push levels (must be 1..255; default 8).")
-
-# -----------------------------------------------------------------------------
-# Maximum dirty rectangles held by a gl surface, fixed at build time.
-# -----------------------------------------------------------------------------
-set(LH_LIBRARY_OPTION_GL_SURFACE_DIRTY_MAX "8" CACHE STRING
-        "Maximum dirty rectangles per gl surface (positive integer; default 8).")
+set(LH_LIBRARY_OPTION_GL_CANVAS_DEPTH "8" CACHE STRING
+        "Max nested lh_gl_canvas_push levels (must be 1..255; default 8).")
 
 # -----------------------------------------------------------------------------
 # LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY

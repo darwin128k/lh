@@ -1,85 +1,217 @@
 /**
  * @file mask.h
- * @brief Coverage of a shape: ::lh_gl_mask_t.
+ * @brief A packed alpha mask: ::lh_gl_mask_t.
  *
- * A mask answers how much of a pixel belongs to a shape, from 0 to 255. A
- * rounded rectangle is one mask. Intersection keeps the lesser coverage, union
- * the greater, exclusion the left coverage where the right one is 0. The
- * combine borrows the two masks and does not copy their pixels. Nothing is
- * allocated. The canvas does not store a mask: the caller passes one for the
- * call that paints.
+ * `width` x `height` pixels of coverage, each row packed high bit first at
+ * 1, 2, 4 or 8 bits per pixel (`lh/core/bit/packed.h`) and `row_bytes` long. The
+ * bytes are not owned. A font glyph is a mask; so is a baked icon or cursor.
+ * ::lh_gl_canvas_fill_mask paints one in a color.
  */
 
 #ifndef LH_GL_MASK_H
 #define LH_GL_MASK_H
 
-#include <lh/gl/color.h>
+#include <lh/core/byte/ptr.h>
 #include <lh/gl/mask/fields.h>
-#include <lh/gl/mask/kind.h>
 #include <lh/gl/rect.h>
 
 /**
  * @struct lh_gl_mask
- * @brief One shape or a combination of two. Fields via ::lh_gl_mask_fields.
+ * @brief A view of packed coverage pixels.
  */
 struct lh_gl_mask
 {
     /** Members: ::lh_gl_mask_fields. */
-    lh_gl_mask_fields(lh_gl_mask_kind_t, lh_gl_rect_t, lh_gl_scalar_t, struct lh_gl_mask);
+    lh_gl_mask_fields(lh_byte_t, lh_s32_t, lh_byte_t);
 };
 /** @copybrief lh_gl_mask */
 typedef struct lh_gl_mask lh_gl_mask_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/** @brief Which combination this mask is. */
-lh_gl_mask_kind_t
-lh_gl_mask_get_kind(const lh_gl_mask_t *self);
-
-/** @brief Rectangle of a rounded mask, in the coordinates coverage is asked. */
-const lh_gl_rect_t *
-lh_gl_mask_get_rect(const lh_gl_mask_t *self);
-
-/** @brief Corner radius. Zero is a rectangle. A negative value is stored as zero. */
-lh_gl_scalar_t
-lh_gl_mask_get_radius(const lh_gl_mask_t *self);
-
-/** @brief Left mask of a combination, or ::lh_null. */
-const lh_gl_mask_t *
-lh_gl_mask_get_left(const lh_gl_mask_t *self);
-
-/** @brief Right mask of a combination, or ::lh_null. */
-const lh_gl_mask_t *
-lh_gl_mask_get_right(const lh_gl_mask_t *self);
+/**
+ * @brief True when @p bpp is a depth a mask can hold: 1, 2, 4 or 8.
+ */
+lh_bool_t
+lh_gl_mask_is_bpp(lh_u32_t bpp);
 
 /**
- * @brief A rounded rectangle. @p radius below 0 is 0. The edge fades across one
- *        pixel: inside the arc is 255, outside is 0, the rim is in between.
+ * @brief Fill @p self over @p bits: @p height rows of @p row_bytes, @p width
+ *        pixels of @p bpp each. The bytes are not copied.
+ *
+ * @p row_bytes is at least ::lh_bit_packed_bytes(width, bpp).
  */
 lh_void
-lh_gl_mask_init_round(lh_gl_mask_t *self, lh_gl_rect_t rect, lh_gl_scalar_t radius);
-
-/** @brief Coverage is the lesser of @p left and @p right. Both are borrowed. */
-lh_void
-lh_gl_mask_init_intersect(lh_gl_mask_t *self, const lh_gl_mask_t *left, const lh_gl_mask_t *right);
-
-/** @brief Coverage is the greater of @p left and @p right. Both are borrowed. */
-lh_void
-lh_gl_mask_init_unite(lh_gl_mask_t *self, const lh_gl_mask_t *left, const lh_gl_mask_t *right);
+lh_gl_mask_init(lh_gl_mask_t *self, const lh_byte_ptr bits, lh_s32_t width, lh_s32_t height,
+                lh_s32_t row_bytes, lh_byte_t bpp);
 
 /**
- * @brief Coverage of @p left where @p right is 0. A partial right mask scales
- *        the left down. Both are borrowed.
+ * @brief Width of @p self, in pixels.
  */
-lh_void
-lh_gl_mask_init_exclude(lh_gl_mask_t *self, const lh_gl_mask_t *left, const lh_gl_mask_t *right);
+lh_s32_t
+lh_gl_mask_get_width(const lh_gl_mask_t *self);
 
 /**
- * @brief Coverage of pixel (@p x, @p y). A null child of a combination covers
- *        nothing. The rounded edge is one pixel wide.
+ * @brief Height of @p self, in pixels.
  */
-lh_gl_color_channel_t
-lh_gl_mask_coverage(const lh_gl_mask_t *self, lh_gl_scalar_t x, lh_gl_scalar_t y);
+lh_s32_t
+lh_gl_mask_get_height(const lh_gl_mask_t *self);
+
+/**
+ * @brief Bits per pixel of @p self.
+ */
+lh_byte_t
+lh_gl_mask_get_bpp(const lh_gl_mask_t *self);
+
+/**
+ * @brief First byte of row @p y. @p y must be in `0 .. height - 1`.
+ */
+const lh_byte_ptr
+lh_gl_mask_get_row(const lh_gl_mask_t *self, lh_s32_t y);
+
+/**
+ * @brief True when (@p x, @p y) lies inside @p self.
+ */
+lh_bool_t
+lh_gl_mask_has_pixel(const lh_gl_mask_t *self, lh_s32_t x, lh_s32_t y);
+
+/**
+ * @brief Raw sample at (@p x, @p y), `0 .. 2^bpp - 1`; `0` outside.
+ */
+lh_u32_t
+lh_gl_mask_get_sample(const lh_gl_mask_t *self, lh_s32_t x, lh_s32_t y);
+
+/**
+ * @brief Coverage at (@p x, @p y) in `0..255` (the sample rescaled); `0` outside.
+ */
+lh_byte_t
+lh_gl_mask_get_coverage(const lh_gl_mask_t *self, lh_s32_t x, lh_s32_t y);
+
+/**
+ * @brief Coverage of pixels `x0 .. x1 - 1` of row @p y, written to @p out
+ *        `x1 - x0` bytes. The same values as calling
+ *        ::lh_gl_mask_get_coverage per pixel, with the row pointer, the bits per
+ *        pixel and the rescale taken once instead of once per pixel.
+ *
+ * @param self Mask to read.
+ * @param x0  First column.
+ * @param x1  One past the last column.
+ * @param y   Row.
+ * @param out Receives `x1 - x0` bytes.
+ */
+lh_void
+lh_gl_mask_coverage_run(const lh_gl_mask_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                        lh_byte_ptr out);
+
+/**
+ * @brief Coverage of pixels `x .. x + 7` of row @p y in one register, pixel
+ *        `x + i` in byte `i` (`0` outside the mask): eight of
+ *        ::lh_gl_mask_coverage_run without a buffer, which is how
+ *        ::lh_gl_pixmap_blend_cover_8 takes them. A four-bit row is read with
+ *        ::lh_gl_mask_unpack_4_sse2, or ::lh_gl_mask_unpack_4_words without SSE2.
+ */
+lh_u64_t
+lh_gl_mask_get_coverage_8(const lh_gl_mask_t *self, lh_s32_t x, lh_s32_t y);
+
+/**
+ * @brief Eight coverages of a four-bit row: @p bytes is eight packed bytes,
+ *        lowest first, and the result is eight coverages, pixel `i` in byte `i`
+ *        (each sample times 17). The first pixel is the high nibble of the lowest
+ *        byte, or its low nibble when @p odd; five bytes are used at most.
+ *        ::lh_gl_mask_get_coverage_8 runs it on a row, a zero-padded end included.
+ *
+ * Only defined when `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2` is on.
+ */
+lh_u64_t
+lh_gl_mask_unpack_4_sse2(lh_u64_t bytes, lh_bool_t odd);
+
+/**
+ * @brief ::lh_gl_mask_unpack_4_sse2 in plain integer code, for every target: the
+ *        same eight coverages from the same bytes.
+ *
+ * The text of a frame on a microcontroller is this call: before it, a four-bit
+ * row without SSE2 went pixel by pixel through ::lh_gl_mask_coverage_run into a
+ * buffer and back into the register.
+ */
+lh_u64_t
+lh_gl_mask_unpack_4_words(lh_u64_t bytes, lh_bool_t odd);
+
+/**
+ * @brief The rect @p self covers when its top-left pixel is at @p origin.
+ */
+lh_void
+lh_gl_mask_get_rect(const lh_gl_mask_t *self, lh_gl_point_t origin, lh_gl_rect_t *out);
+
+/**
+ * @brief The coverage bits (level 1).
+ *
+ * @param self The mask; checked by ::lh_assert_runtime_ref.
+ */
+const lh_byte_t *
+lh_gl_mask_get_bits(const lh_gl_mask_t *self);
+
+/**
+ * @brief Store the coverage bits (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The mask; checked by ::lh_assert_runtime_ref.
+ * @param bits The new value.
+ */
+lh_void
+lh_gl_mask_set_bits(lh_gl_mask_t *self, const lh_byte_t * bits);
+
+/**
+ * @brief Store the width of the mask in pixels (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The mask; checked by ::lh_assert_runtime_ref.
+ * @param width The new value.
+ */
+lh_void
+lh_gl_mask_set_width(lh_gl_mask_t *self, lh_s32_t width);
+
+/**
+ * @brief Store the height of the mask in pixels (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The mask; checked by ::lh_assert_runtime_ref.
+ * @param height The new value.
+ */
+lh_void
+lh_gl_mask_set_height(lh_gl_mask_t *self, lh_s32_t height);
+
+/**
+ * @brief How many bytes one row takes (level 1).
+ *
+ * @param self The mask; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_gl_mask_get_row_bytes(const lh_gl_mask_t *self);
+
+/**
+ * @brief Store how many bytes one row takes (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The mask; checked by ::lh_assert_runtime_ref.
+ * @param row_bytes The new value.
+ */
+lh_void
+lh_gl_mask_set_row_bytes(lh_gl_mask_t *self, lh_s32_t row_bytes);
+
+/**
+ * @brief Store how many bits one pixel of coverage takes (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The mask; checked by ::lh_assert_runtime_ref.
+ * @param bpp The new value.
+ */
+lh_void
+lh_gl_mask_set_bpp(lh_gl_mask_t *self, lh_byte_t bpp);
 
 LH_COMPILER_EXTERN_C_END
 

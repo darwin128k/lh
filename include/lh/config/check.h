@@ -12,10 +12,6 @@
 #include <lh/core/compiler/arch.h>
 #include <lh/core/compiler/os.h>
 
-#if LH_LIBRARY_OPTION_GL_SURFACE_DIRTY_MAX < 1
-#    error LH_LIBRARY_OPTION_GL_SURFACE_DIRTY_MAX must be positive
-#endif
-
 #if LH_LIBRARY_OPTION_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD > 512
 #    error "LH_LIBRARY_OPTION_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD must be <= 512"
 #endif
