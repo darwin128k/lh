@@ -142,12 +142,44 @@ lh_gl_blur_window_write_average(lh_s32_t red, lh_s32_t green, lh_s32_t blue, lh_
                                 lh_gl_scalar_t count, lh_gl_color_t *out);
 
 /**
+ * @brief One multiply that is ::lh_math_div_round by @p count.
+ *
+ * @p count is `1 .. 400`. For every straight sum in `0 .. 255 * count`,
+ * ::lh_gl_blur_window_round_apply of this factor is that rounded divide.
+ * @p mul and @p shift must not be null. Computed once for a whole slide.
+ */
+lh_void
+lh_gl_blur_window_round_factor(lh_gl_scalar_t count, lh_u64_t *mul, lh_gl_scalar_t *shift);
+
+/**
+ * @brief Rounded divide of a straight channel sum by the factor from
+ *        ::lh_gl_blur_window_round_factor.
+ *
+ * @p add is `count / 2`, the same half-up as ::lh_math_div_round. A sum below
+ * `0` is `0`. The result is held to `0 .. 255`.
+ */
+lh_gl_color_channel_t
+lh_gl_blur_window_round_apply(lh_s32_t sum, lh_u64_t mul, lh_gl_scalar_t shift, lh_gl_scalar_t add);
+
+/**
+ * @brief Write an opaque average whose sums are straight channel totals.
+ *
+ * Alpha is stored as 255. @p mul, @p shift and @p add come from one call of
+ * ::lh_gl_blur_window_round_factor for this window length.
+ */
+lh_void
+lh_gl_blur_window_write_straight(lh_s32_t red, lh_s32_t green, lh_s32_t blue, lh_u64_t mul,
+                                 lh_gl_scalar_t shift, lh_gl_scalar_t add, lh_gl_color_t *out);
+
+/**
  * @brief Slide a window of @p radius along @p count samples and write each average.
  *
  * Index @p i is the colour `samples[(i - lo) * stride]`. Indices run over
  * `[lo, hi)`. Output @p n, `0 .. count`, is the average at index `first + n`
  * and is written `out_stride` colours after the previous one. The sums stay in
- * this call: a row does not go through ::lh_gl_blur_window_take.
+ * this call: a row does not go through ::lh_gl_blur_window_take. A run of full
+ * opaque windows (every alpha is 255, length up to 400) sums the channels as
+ * they are and divides by one factor for that whole run.
  */
 lh_void
 lh_gl_blur_window_slide(const lh_gl_color_t *samples, lh_usize_t stride, lh_gl_scalar_t lo,

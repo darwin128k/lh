@@ -13,8 +13,10 @@
  * and below it. Nothing here allocates.
  *
  * Glass is that blur, written only where the rounded panel covers, then the
- * tint painted over those pixels. A square corner the arc misses stays the
- * picture that was there. A blur of `0` is the tint alone.
+ * tint painted over those pixels. The column is one slide of those rows. A
+ * square corner the arc misses stays the picture that was there. A blur of
+ * `0` is the tint alone. An opaque window sums straight channels and divides
+ * by one factor for the whole run (`lh_gl_blur_window_round_factor`).
  */
 
 #ifndef LH_GL_BLUR_H
@@ -73,7 +75,9 @@ lh_gl_blur_put(lh_gl_pixmap_t *pixmap, lh_gl_scalar_t x, lh_gl_scalar_t y,
 /**
  * @brief Blur column @p x (from the rectangle's left) of @p scratch down into
  *        @p pixmap. @p scratch is what ::lh_gl_blur_rows wrote, addressed from
- *        @p y0. @p shape and @p tint are passed to ::lh_gl_blur_put.
+ *        @p y0. One slide covers the rows the rounded @p shape includes, or
+ *        the whole column when @p shape is null. @p tint is painted over those
+ *        rows afterwards.
  */
 lh_void
 lh_gl_blur_column(lh_gl_pixmap_t *pixmap, const lh_gl_color_t *scratch, lh_gl_scalar_t left,

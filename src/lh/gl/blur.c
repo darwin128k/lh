@@ -112,31 +112,50 @@ lh_gl_blur_column(lh_gl_pixmap_t *pixmap, const lh_gl_color_t *scratch, lh_gl_sc
 {
     const lh_gl_color_t *column = scratch + x;
     lh_usize_t stride = lh_type_cast(lh_usize_t, width);
+    lh_gl_scalar_t pix_w = lh_gl_size_get_width(lh_gl_pixmap_get_size(pixmap));
+    lh_gl_scalar_t y_from = top;
+    lh_gl_scalar_t y_to = top + height;
 
-    if (lh_ptr_is_null(shape) && lh_ptr_is_null(tint))
+    if (lh_ptr_is_set(shape) && corner > 0)
     {
-        lh_gl_scalar_t pix_w = lh_gl_size_get_width(lh_gl_pixmap_get_size(pixmap));
+        const lh_gl_point_t *origin = lh_gl_rect_get_origin(shape);
+        const lh_gl_size_t *box = lh_gl_rect_get_size(shape);
+        lh_gl_rect_t turned;
 
-        lh_gl_blur_window_slide(column, stride, y0, y1, radius, top, height,
-                                lh_gl_pixmap_get_pixel_mut(pixmap, left + x, top),
-                                lh_type_cast(lh_usize_t, pix_w));
+        lh_gl_rect_init(lh_addr_of(turned), lh_gl_point_get_y(origin), lh_gl_point_get_x(origin),
+                        lh_gl_size_get_height(box), lh_gl_size_get_width(box));
+        if (lh_gl_cover_round_rect_span(lh_addr_of(turned), corner, left + x, lh_addr_of(y_from),
+                                        lh_addr_of(y_to)) == lh_bool_false)
+        {
+            return;
+        }
+        if (y_from < top)
+        {
+            y_from = top;
+        }
+        if (y_to > top + height)
+        {
+            y_to = top + height;
+        }
+        if (y_from >= y_to)
+        {
+            return;
+        }
+    }
+    lh_gl_blur_window_slide(column, stride, y0, y1, radius, y_from, y_to - y_from,
+                            lh_gl_pixmap_get_pixel_mut(pixmap, left + x, y_from),
+                            lh_type_cast(lh_usize_t, pix_w));
+    if (lh_ptr_is_null(tint))
+    {
         return;
     }
-    for (lh_gl_scalar_t y = top; y < top + height;)
+    for (lh_gl_scalar_t y = y_from; y < y_to; ++y)
     {
-        lh_gl_color_t span[64];
-        lh_gl_scalar_t n = top + height - y;
+        lh_gl_color_t *pixel = lh_gl_pixmap_get_pixel_mut(pixmap, left + x, y);
+        lh_gl_color_t mixed;
 
-        if (n > 64)
-        {
-            n = 64;
-        }
-        lh_gl_blur_window_slide(column, stride, y0, y1, radius, y, n, span, 1U);
-        for (lh_gl_scalar_t i = 0; i < n; ++i)
-        {
-            lh_gl_blur_put(pixmap, left + x, y + i, span + i, shape, corner, tint);
-        }
-        y += n;
+        lh_gl_color_over(pixel, tint, lh_addr_of(mixed));
+        lh_ptr_deref(pixel) = mixed;
     }
 }
 

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- An opaque blur sums the colour channels directly and divides that run by one factor (`lh_gl_blur_window_round_factor`). A glass column is one slide of the rows the rounded panel covers. Release, this machine, 32 frames: 24 panels of radius 8 are 2.2 and 3.1 ms, one 72×66 panel is 90 µs, a 480×320 frame of radius 8 is 2.0 and 2.2 ms.
+
 - `lh_gl_renderer_packet_post` copies the dirty rectangles, clears the surface list, and submits a rail task that draws the copy. A full mailbox posts nothing and leaves the list. The inline executor draws before post returns; another executor draws on its own loop.
 
 - An opaque blur window stores alpha 255 without dividing, and takes the factor of 255 back out of the colour with a multiply (`lh_gl_blur_window_average_opaque`). A stretch of full windows keeps that same divisor.

@@ -229,6 +229,56 @@ lh_gl_blur_window_write_average(lh_s32_t red, lh_s32_t green, lh_s32_t blue, lh_
 }
 
 lh_void
+lh_gl_blur_window_round_factor(lh_gl_scalar_t count, lh_u64_t *mul, lh_gl_scalar_t *shift)
+{
+    lh_assert_runtime_ref(mul);
+    lh_assert_runtime_ref(shift);
+    lh_assert_runtime(count > 0 && count <= 400, lh_runtime_error_code_out_of_range);
+    lh_gl_scalar_t bits = 0;
+
+    if (count > 1)
+    {
+        lh_gl_scalar_t value = count - 1;
+
+        while (value > 0)
+        {
+            value >>= 1;
+            ++bits;
+        }
+    }
+    lh_gl_scalar_t places = bits + 17;
+    lh_u64_t scale = lh_cast_static(lh_u64_t, 1) << places;
+
+    lh_ptr_deref(shift) = places;
+    lh_ptr_deref(mul) =
+        (scale + lh_cast_static(lh_u64_t, count) - 1U) / lh_cast_static(lh_u64_t, count);
+}
+
+lh_gl_color_channel_t
+lh_gl_blur_window_round_apply(lh_s32_t sum, lh_u64_t mul, lh_gl_scalar_t shift, lh_gl_scalar_t add)
+{
+    if (sum <= 0)
+    {
+        return 0;
+    }
+    lh_u64_t numer = lh_cast_static(lh_u64_t, sum) + lh_cast_static(lh_u64_t, add);
+    lh_s32_t value = lh_cast_static(lh_s32_t, (numer * mul) >> shift);
+
+    return lh_type_cast(lh_gl_color_channel_t, lh_math_clamp(value, 0, 255));
+}
+
+lh_void
+lh_gl_blur_window_write_straight(lh_s32_t red, lh_s32_t green, lh_s32_t blue, lh_u64_t mul,
+                                 lh_gl_scalar_t shift, lh_gl_scalar_t add, lh_gl_color_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_gl_color_set_a(out, 255);
+    lh_gl_color_set_r(out, lh_gl_blur_window_round_apply(red, mul, shift, add));
+    lh_gl_color_set_g(out, lh_gl_blur_window_round_apply(green, mul, shift, add));
+    lh_gl_color_set_b(out, lh_gl_blur_window_round_apply(blue, mul, shift, add));
+}
+
+lh_void
 lh_gl_blur_window_average_color(const lh_gl_blur_window_t *self, lh_gl_scalar_t count,
                                 lh_gl_color_t *out)
 {
@@ -286,6 +336,23 @@ lh_gl_blur_window_slide(const lh_gl_color_t *samples, lh_usize_t stride, lh_gl_s
     {
         if (radius > 0 && n == head && n + 1 < body && win1 - win0 == full)
         {
+            lh_bool_t straight = lh_bool_false;
+
+            if (full <= 400 && alpha == 255 * full)
+            {
+                straight = lh_bool_true;
+                red /= 255;
+                green /= 255;
+                blue /= 255;
+            }
+            lh_u64_t mul = 0;
+            lh_gl_scalar_t places = 0;
+            lh_gl_scalar_t add = full / 2;
+
+            if (straight == lh_bool_true)
+            {
+                lh_gl_blur_window_round_factor(full, lh_addr_of(mul), lh_addr_of(places));
+            }
             for (; n + 1 < body; ++n)
             {
                 const lh_gl_color_t *leaving =
@@ -295,6 +362,28 @@ lh_gl_blur_window_slide(const lh_gl_color_t *samples, lh_usize_t stride, lh_gl_s
                 lh_s32_t leave = lh_gl_color_get_a(leaving);
                 lh_s32_t enter = lh_gl_color_get_a(entering);
 
+                if (straight == lh_bool_true && (leave != 255 || enter != 255))
+                {
+                    red *= 255;
+                    green *= 255;
+                    blue *= 255;
+                    alpha = 255 * full;
+                    straight = lh_bool_false;
+                }
+                if (straight == lh_bool_true)
+                {
+                    lh_gl_blur_window_write_straight(red, green, blue, mul, places, add, out);
+                    out += out_stride;
+                    red -= lh_gl_color_get_r(leaving);
+                    green -= lh_gl_color_get_g(leaving);
+                    blue -= lh_gl_color_get_b(leaving);
+                    red += lh_gl_color_get_r(entering);
+                    green += lh_gl_color_get_g(entering);
+                    blue += lh_gl_color_get_b(entering);
+                    ++win0;
+                    ++win1;
+                    continue;
+                }
                 lh_gl_blur_window_write_average(red, green, blue, alpha, full, out);
                 out += out_stride;
                 red -= lh_gl_color_get_r(leaving) * leave;
@@ -307,6 +396,13 @@ lh_gl_blur_window_slide(const lh_gl_color_t *samples, lh_usize_t stride, lh_gl_s
                 alpha += enter;
                 ++win0;
                 ++win1;
+            }
+            if (straight == lh_bool_true)
+            {
+                red *= 255;
+                green *= 255;
+                blue *= 255;
+                alpha = 255 * full;
             }
             continue;
         }
