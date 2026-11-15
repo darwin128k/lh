@@ -90,8 +90,8 @@ lh_gl_pixmap_limit(const lh_gl_pixmap_t *self, const lh_gl_rect_t *clip, const l
  *
  * @p rect and @p clip are half-open and in pixmap coordinates, origin at the
  * top left. Their intersection is clipped to the pixmap. A null pixel row or
- * an empty intersection writes nothing. Alpha 255 replaces the pixel. A lower
- * alpha blends over the pixel that is already there.
+ * an empty intersection writes nothing. Alpha 255 replaces the row with one
+ * word fill. A lower alpha blends over the pixel that is already there.
  */
 lh_void
 lh_gl_pixmap_fill_rect(lh_gl_pixmap_t *self, const lh_gl_rect_t *clip, const lh_gl_rect_t *rect,
@@ -110,7 +110,8 @@ lh_gl_pixmap_canvas_fill_rect(lh_ptr target, const lh_gl_rect_t *clip, const lh_
  * @brief Paint @p count colors starting at (@p x, @p y), one pixel each.
  *
  * @p colors[i] is pixel @p x + i. The run is clipped to @p clip and to the
- * pixmap. Alpha 255 replaces. A lower alpha blends. A null row writes nothing.
+ * pixmap. A run of alpha 255 is one copy. A lower alpha blends. A null row
+ * writes nothing.
  */
 lh_void
 lh_gl_pixmap_fill_colors(lh_gl_pixmap_t *self, const lh_gl_rect_t *clip, lh_gl_scalar_t x,
