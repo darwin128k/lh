@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- `lh_gl_entity_hit` answers a rounded press: radius 0 keeps the rectangle the search already accepted, and a positive radius asks `lh_gl_cover_hits` on the absolute rectangle. A fill, a gradient fill and a card call it. `lh_gl_layer_bounds_hit` and `lh_gl_layer_entity_takes` are the two steps of that search.
+
 - A class pick answers a press. A null pick leaves the rectangle. A decline continues the walk. `lh_gl_cover_hits` is that shape plus a finger thickness, and `lh_gl_input_t` stores the thickness for the screen. A fill, a text and a gradient fill can be hidden or can decline; a shadow always declines. `lh_gl_card_init` is the fill, the text and the radius in one call. `lh_gl_input_controller_handle_event_is_handled` is what a controller calls. The recognizer turns arrows, the d-pad and the south button into `navigate` and `activate`, repeats a held pad button (400 ms, then 50 ms), drops a stick inside the dead zone (8000, hysteresis 2000), and emits `swipe` when a drag of at least 48 px goes up. A driver reports a pad through `lh_os_input_pad_report_button` and `lh_os_input_pad_report_axis`. The library does not read a gamepad from the system.
 
 - `lh_os_input_keys_report` emits a key down or key up only when that portable key changed. Shift, Control and Alt on the held mask are the event's modifiers. `lh_os_key_other` is not a key of that report. `lh_gl_input_apply` turns one pointer event into the held entity: the first pointer down owns it, another pointer leaves it, and a key leaves it.

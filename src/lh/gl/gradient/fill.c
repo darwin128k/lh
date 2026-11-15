@@ -366,19 +366,11 @@ lh_bool_t
 lh_gl_gradient_fill_pick(const lh_gl_entity_t *entity, lh_gl_point_t point, lh_gl_scalar_t slop)
 {
     const lh_gl_gradient_fill_t *fill = lh_ptr_ccast(lh_gl_gradient_fill_t, entity);
-    lh_gl_rect_t absolute;
 
     if (lh_gl_gradient_fill_get_shown(fill) == lh_bool_false ||
         lh_gl_gradient_fill_get_target(fill) == lh_bool_false)
     {
         return lh_bool_false;
     }
-    if (lh_gl_gradient_fill_get_radius(fill) <= 0)
-    {
-        return lh_bool_true;
-    }
-    lh_gl_entity_get_absolute_rect(entity, lh_addr_of(absolute));
-    return lh_gl_cover_hits(lh_addr_of(absolute), lh_gl_gradient_fill_get_radius(fill), slop,
-                            lh_gl_point_get_x(lh_addr_of(point)),
-                            lh_gl_point_get_y(lh_addr_of(point)));
+    return lh_gl_entity_hit(entity, lh_gl_gradient_fill_get_radius(fill), point, slop);
 }

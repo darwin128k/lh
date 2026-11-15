@@ -300,6 +300,22 @@ lh_bool_t
 lh_gl_layer_try_insert_after(lh_gl_layer_t *self, lh_gl_entity_t *entity, lh_gl_entity_t *sibling);
 
 /**
+ * @brief True when @p point is inside @p bounds grown by @p slop.
+ *
+ * @p slop below 0 is 0. The rectangle is square: a corner is included.
+ */
+lh_bool_t
+lh_gl_layer_bounds_hit(const lh_gl_rect_t *bounds, lh_gl_point_t point, lh_gl_scalar_t slop);
+
+/**
+ * @brief True when @p entity accepts @p point.
+ *
+ * A class with no pick accepts it. Otherwise the class pick answers.
+ */
+lh_bool_t
+lh_gl_layer_entity_takes(const lh_gl_entity_t *entity, lh_gl_point_t point, lh_gl_scalar_t slop);
+
+/**
  * @brief Entity under a point, with children placed at @p origin.
  *
  * @p bounds is the window in root coordinates and does not move with @p origin.

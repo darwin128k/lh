@@ -104,9 +104,10 @@ The entity stays four fields. No `visible`, no clickable, no alpha and no
 hit radius on it. `opaque` stays draw occlusion only.
 
 The walk goes front to back. A rectangle miss
-skips. A hit asks the class. A decline continues to whoever is behind. The
-fill already stores the shape radius, and the same radius answers the
-finger, so an unpainted corner does not take the press. Finger thickness is
+skips. A hit asks the class. A decline continues to whoever is behind.
+`lh_gl_entity_hit` is that answer for a radius: 0 keeps the rectangle, and a
+positive radius asks the rounded shape, so an unpainted corner does not take
+the press. A fill, a gradient fill and a card call it. Finger thickness is
 one number on the input for the whole screen: the point grows by it, then
 the shape is asked again. A small picture with a large target is a layer
 whose rectangle is the target and whose ink is a smaller child.

@@ -241,4 +241,19 @@ TEST(gl_entity, coordinate_conversion_accumulates_nested_origins)
     lh_gl_layer_deinit(lh_addr_of(inner));
 }
 
+TEST(gl_entity, a_square_corner_hits_and_a_rounded_one_misses)
+{
+    lh_gl_entity_class_t cls;
+    lh_gl_entity_t entity;
+    lh_gl_point_t corner;
+
+    lh_gl_entity_class_init(lh_addr_of(cls), lh_gl_entity_class_kind_entity, lh_null);
+    lh_gl_entity_init(lh_addr_of(entity), rect_of(10, 10, 40, 40), lh_addr_of(cls));
+    lh_gl_point_init(lh_addr_of(corner), 10, 10);
+    EXPECT_TRUE(lh_gl_entity_hit(lh_addr_of(entity), 0, corner, 0));
+    EXPECT_FALSE(lh_gl_entity_hit(lh_addr_of(entity), 16, corner, 0));
+    lh_gl_point_init(lh_addr_of(corner), 30, 30);
+    EXPECT_TRUE(lh_gl_entity_hit(lh_addr_of(entity), 16, corner, 0));
+}
+
 } // namespace

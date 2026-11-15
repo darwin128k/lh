@@ -214,6 +214,23 @@ lh_void
 lh_gl_entity_get_absolute_rect(const lh_gl_entity_t *self, lh_gl_rect_t *out);
 
 /**
+ * @brief Whether @p point lies on this entity's rounded rectangle.
+ *
+ * A radius of 0 or below accepts the point: the search has already required
+ * the rectangle. A positive radius accepts it when the absolute rectangle,
+ * with that corner and grown by @p slop, contains the point.
+ *
+ * @param self   Entity; must not be null.
+ * @param radius Corner radius in pixels. Negative is 0.
+ * @param point  Point in root coordinates, copied.
+ * @param slop   Finger thickness in pixels. Negative is 0.
+ * @return True when the point is accepted.
+ */
+lh_bool_t
+lh_gl_entity_hit(const lh_gl_entity_t *self, lh_gl_scalar_t radius, lh_gl_point_t point,
+                 lh_gl_scalar_t slop);
+
+/**
  * @brief Translate a root-coordinate point to the entity's local coordinates.
  *
  * Uses ::lh_gl_entity_get_absolute_rect; O(depth), without caching. The

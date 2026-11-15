@@ -9,6 +9,7 @@
 #include <lh/gl/entity.h>
 
 #include <lh/core/assert/runtime.h>
+#include <lh/gl/cover.h>
 #include <lh/gl/layer.h>
 
 /* -- Accessors ------------------------------------------------------------- */
@@ -158,6 +159,22 @@ lh_gl_entity_get_absolute_rect(const lh_gl_entity_t *self, lh_gl_rect_t *out)
         parent = lh_gl_entity_get_parent(ancestor);
     }
     lh_ptr_deref(out) = rect;
+}
+
+lh_bool_t
+lh_gl_entity_hit(const lh_gl_entity_t *self, lh_gl_scalar_t radius, lh_gl_point_t point,
+                 lh_gl_scalar_t slop)
+{
+    lh_gl_rect_t absolute;
+
+    if (radius <= 0)
+    {
+        return lh_bool_true;
+    }
+    lh_gl_entity_get_absolute_rect(self, lh_addr_of(absolute));
+    return lh_gl_cover_hits(lh_addr_of(absolute), radius, slop,
+                            lh_gl_point_get_x(lh_addr_of(point)),
+                            lh_gl_point_get_y(lh_addr_of(point)));
 }
 
 lh_void
