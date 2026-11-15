@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- A rounded shadow whose shift puts one edge in the corner and the other on the flat side walks only the pixels outside the box (`lh_gl_shadow_row_outside`). The middle of that row stays clear.
+
 - `lh_gl_screen_open` links a layer as the front child of another. `lh_gl_screen_back` unlinks that front layer and returns it. The child list is the stack. Nothing is allocated, and no gesture is read.
 
 - A radial fill walks the right half of a row and copies it to the left. The two sides are the same distance from the middle.

@@ -109,6 +109,23 @@ lh_gl_shadow_distance_at(lh_gl_scalar_t x, lh_gl_scalar_t y, lh_gl_scalar_t cent
                          lh_gl_scalar_t half_height, lh_gl_scalar_t radius);
 
 /**
+ * @brief Where one row is outside a rounded box.
+ *
+ * @p dy is `abs(y - center_y) - (half_height - radius)` for that row, the same
+ * value ::lh_gl_shadow_distance_at uses. @p corner is a positive radius.
+ * The left run is `[0, *left_end)` and the right run is `[*right_begin, width)`.
+ * A row that is outside across its width sets both to @p width, so the right
+ * run is empty. A pixel of either run is at a distance of at least zero.
+ *
+ * @param left_end    Receives the end of the left run; must not be null.
+ * @param right_begin Receives the start of the right run; must not be null.
+ */
+lh_void
+lh_gl_shadow_row_outside(lh_gl_scalar_t center_x, lh_gl_scalar_t half_width, lh_gl_scalar_t dy,
+                         lh_gl_scalar_t corner, lh_gl_scalar_t width, lh_gl_scalar_t *left_end,
+                         lh_gl_scalar_t *right_begin);
+
+/**
  * @brief `peak` one spread inside the edge, zero one spread outside.
  *
  * Truncates. A spread that is not positive, or a zero peak, returns 0.

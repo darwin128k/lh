@@ -144,6 +144,61 @@ lh_gl_shadow_distance_at(lh_gl_scalar_t x, lh_gl_scalar_t y, lh_gl_scalar_t cent
     return lh_cast_static(lh_gl_scalar_t, lh_math_isqrt_u64(square)) + along - radius;
 }
 
+lh_void
+lh_gl_shadow_row_outside(lh_gl_scalar_t center_x, lh_gl_scalar_t half_width, lh_gl_scalar_t dy,
+                         lh_gl_scalar_t corner, lh_gl_scalar_t width, lh_gl_scalar_t *left_end,
+                         lh_gl_scalar_t *right_begin)
+{
+    lh_assert_runtime_ref(left_end);
+    lh_assert_runtime_ref(right_begin);
+    if (dy >= corner)
+    {
+        *left_end = width;
+        *right_begin = width;
+        return;
+    }
+
+    lh_gl_scalar_t end = center_x - half_width + 1;
+    lh_gl_scalar_t begin = center_x + half_width;
+
+    if (dy > 0)
+    {
+        lh_u64_t need = lh_cast_static(lh_u64_t, corner) * lh_cast_static(lh_u64_t, corner) -
+                        lh_cast_static(lh_u64_t, dy) * lh_cast_static(lh_u64_t, dy);
+        lh_gl_scalar_t min_dx = 0;
+
+        while (lh_cast_static(lh_u64_t, min_dx) * min_dx < need)
+        {
+            min_dx = min_dx + 1;
+        }
+        end = center_x - (half_width - corner) - min_dx + 1;
+        begin = center_x + (half_width - corner) + min_dx;
+    }
+    if (end < 0)
+    {
+        end = 0;
+    }
+    if (end > width)
+    {
+        end = width;
+    }
+    if (begin < 0)
+    {
+        begin = 0;
+    }
+    if (begin > width)
+    {
+        begin = width;
+    }
+    if (begin < end)
+    {
+        end = width;
+        begin = width;
+    }
+    *left_end = end;
+    *right_begin = begin;
+}
+
 lh_gl_scalar_t
 lh_gl_shadow_distance(lh_gl_scalar_t x, lh_gl_scalar_t y, const lh_gl_rect_t *rect,
                       lh_gl_scalar_t radius)

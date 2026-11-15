@@ -414,6 +414,73 @@ lh_gl_shadow_fill_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas)
             }
             continue;
         }
+        if (corner > 0 && shift_x == 0)
+        {
+            lh_gl_scalar_t left_end = 0;
+            lh_gl_scalar_t right_begin = 0;
+
+            lh_gl_shadow_row_outside(center_x, half_width, dy_box, corner, width,
+                                     lh_addr_of(left_end), lh_addr_of(right_begin));
+            for (lh_gl_scalar_t side = 0; side < 2; ++side)
+            {
+                lh_gl_scalar_t x_from = side == 0 ? 0 : right_begin;
+                lh_gl_scalar_t x_to = side == 0 ? left_end : width;
+
+                run_n = 0;
+                for (lh_gl_scalar_t x = x_from; x < x_to; ++x)
+                {
+                    lh_gl_scalar_t distance =
+                        lh_gl_shadow_distance_at(x, y, center_x + shift_x, center_y + shift_y,
+                                                 half_width, half_height, corner);
+                    lh_gl_color_channel_t coverage;
+
+                    if (use_ramp == lh_bool_true)
+                    {
+                        if (distance < -spread)
+                        {
+                            distance = -spread;
+                        }
+                        if (distance > spread)
+                        {
+                            distance = spread;
+                        }
+                        coverage = ramp[distance + spread];
+                    }
+                    else
+                    {
+                        coverage = lh_gl_shadow_falloff(distance, spread, peak);
+                    }
+                    if (coverage == 0)
+                    {
+                        if (run_n > 0)
+                        {
+                            lh_gl_canvas_fill_colors(canvas, run_x, y, chunk, run_n);
+                            run_n = 0;
+                        }
+                        continue;
+                    }
+                    if (run_n == 128)
+                    {
+                        lh_gl_canvas_fill_colors(canvas, run_x, y, chunk, run_n);
+                        run_n = 0;
+                    }
+                    if (run_n == 0)
+                    {
+                        run_x = x;
+                    }
+                    lh_gl_color_t *ink = lh_ptr_add_by_offset(
+                        lh_gl_color_t, chunk, (lh_uaddr_t)run_n * sizeof(lh_gl_color_t));
+
+                    lh_gl_color_init(ink, red, green, blue, coverage);
+                    run_n = run_n + 1;
+                }
+                if (run_n > 0)
+                {
+                    lh_gl_canvas_fill_colors(canvas, run_x, y, chunk, run_n);
+                }
+            }
+            continue;
+        }
 
         for (lh_gl_scalar_t x = 0; x < width; ++x)
         {
