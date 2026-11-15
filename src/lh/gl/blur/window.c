@@ -189,11 +189,39 @@ lh_gl_blur_window_average(const lh_gl_blur_window_t *self, lh_gl_scalar_t channe
     return lh_gl_blur_window_average_sum(sum, lh_gl_blur_window_get_a(self), count, lh_bool_false);
 }
 
+lh_gl_color_channel_t
+lh_gl_blur_window_average_opaque(lh_s32_t sum, lh_gl_scalar_t count)
+{
+    if (count <= 0 || sum <= 0)
+    {
+        return 0;
+    }
+
+    /* (sum * 0x80808081) >> 39 is sum / 255 for every sum up to 255*255*400. */
+    lh_s32_t straight = lh_cast_static(
+        lh_s32_t, (lh_cast_static(lh_u64_t, sum) * lh_cast_static(lh_u64_t, 0x80808081)) >> 39);
+
+    if (count > 400)
+    {
+        straight = sum / 255;
+    }
+    straight = lh_math_div_round(straight, count);
+    return lh_type_cast(lh_gl_color_channel_t, lh_math_clamp(straight, 0, 255));
+}
+
 lh_void
 lh_gl_blur_window_write_average(lh_s32_t red, lh_s32_t green, lh_s32_t blue, lh_s32_t alpha,
                                 lh_gl_scalar_t count, lh_gl_color_t *out)
 {
     lh_assert_runtime_ref(out);
+    if (count > 0 && count <= 400 && alpha == 255 * count)
+    {
+        lh_gl_color_set_a(out, 255);
+        lh_gl_color_set_r(out, lh_gl_blur_window_average_opaque(red, count));
+        lh_gl_color_set_g(out, lh_gl_blur_window_average_opaque(green, count));
+        lh_gl_color_set_b(out, lh_gl_blur_window_average_opaque(blue, count));
+        return;
+    }
     lh_gl_color_set_r(out, lh_gl_blur_window_average_sum(red, alpha, count, lh_bool_false));
     lh_gl_color_set_g(out, lh_gl_blur_window_average_sum(green, alpha, count, lh_bool_false));
     lh_gl_color_set_b(out, lh_gl_blur_window_average_sum(blue, alpha, count, lh_bool_false));
@@ -234,13 +262,61 @@ lh_gl_blur_window_slide(const lh_gl_color_t *samples, lh_usize_t stride, lh_gl_s
         blue += lh_gl_color_get_b(pixel) * weight;
         alpha += weight;
     }
-    for (lh_gl_scalar_t n = 0; n < count; ++n)
+    lh_gl_scalar_t head = lo + radius - first;
+    lh_gl_scalar_t body = hi - radius - first;
+    lh_gl_scalar_t full = radius * 2 + 1;
+
+    if (head < 0)
     {
-        lh_gl_scalar_t next0;
-        lh_gl_scalar_t next1;
+        head = 0;
+    }
+    if (head > count)
+    {
+        head = count;
+    }
+    if (body < head)
+    {
+        body = head;
+    }
+    if (body > count)
+    {
+        body = count;
+    }
+    for (lh_gl_scalar_t n = 0; n < count;)
+    {
+        if (radius > 0 && n == head && n + 1 < body && win1 - win0 == full)
+        {
+            for (; n + 1 < body; ++n)
+            {
+                const lh_gl_color_t *leaving =
+                    samples + lh_type_cast(lh_usize_t, win0 - lo) * stride;
+                const lh_gl_color_t *entering =
+                    samples + lh_type_cast(lh_usize_t, win1 - lo) * stride;
+                lh_s32_t leave = lh_gl_color_get_a(leaving);
+                lh_s32_t enter = lh_gl_color_get_a(entering);
+
+                lh_gl_blur_window_write_average(red, green, blue, alpha, full, out);
+                out += out_stride;
+                red -= lh_gl_color_get_r(leaving) * leave;
+                green -= lh_gl_color_get_g(leaving) * leave;
+                blue -= lh_gl_color_get_b(leaving) * leave;
+                alpha -= leave;
+                red += lh_gl_color_get_r(entering) * enter;
+                green += lh_gl_color_get_g(entering) * enter;
+                blue += lh_gl_color_get_b(entering) * enter;
+                alpha += enter;
+                ++win0;
+                ++win1;
+            }
+            continue;
+        }
 
         lh_gl_blur_window_write_average(red, green, blue, alpha, win1 - win0, out);
         out += out_stride;
+
+        lh_gl_scalar_t next0;
+        lh_gl_scalar_t next1;
+
         lh_gl_blur_window_span(first + n + 1, radius, lo, hi, lh_addr_of(next0),
                                lh_addr_of(next1));
         for (; win0 < next0; ++win0)
@@ -263,6 +339,7 @@ lh_gl_blur_window_slide(const lh_gl_color_t *samples, lh_usize_t stride, lh_gl_s
             blue += lh_gl_color_get_b(pixel) * weight;
             alpha += weight;
         }
+        ++n;
     }
 }
 

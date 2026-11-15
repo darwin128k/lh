@@ -123,8 +123,19 @@ lh_gl_blur_window_average_color(const lh_gl_blur_window_t *self, lh_gl_scalar_t 
                                 lh_gl_color_t *out);
 
 /**
+ * @brief One opaque channel: @p sum is premultiplied, every pixel in the
+ *        window had alpha 255, and @p count is that window.
+ *
+ * Same result as ::lh_gl_blur_window_average_sum for that case. @p count above
+ * 400, or a sum that is not positive, divides the ordinary way.
+ */
+lh_gl_color_channel_t
+lh_gl_blur_window_average_opaque(lh_s32_t sum, lh_gl_scalar_t count);
+
+/**
  * @brief Write the average of four running sums into @p out.
- *        @p count is how many pixels those sums cover.
+ *        @p count is how many pixels those sums cover. An opaque window
+ *        (@p alpha == 255 * @p count, @p count up to 400) does not divide alpha.
  */
 lh_void
 lh_gl_blur_window_write_average(lh_s32_t red, lh_s32_t green, lh_s32_t blue, lh_s32_t alpha,

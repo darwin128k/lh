@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- An opaque blur window stores alpha 255 without dividing, and takes the factor of 255 back out of the colour with a multiply (`lh_gl_blur_window_average_opaque`). A stretch of full windows keeps that same divisor.
+
 - A rounded shadow whose shift puts one edge in the corner and the other on the flat side walks only the pixels outside the box (`lh_gl_shadow_row_outside`). The middle of that row stays clear. On a corner row the box itself is a compare of squares, not a second root.
 
 - `lh_gl_screen_open` links a layer as the front child of another. `lh_gl_screen_back` unlinks that front layer and returns it. The child list is the stack. Nothing is allocated, and no gesture is read.
