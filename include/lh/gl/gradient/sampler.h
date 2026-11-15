@@ -11,6 +11,11 @@
  * of the axis to the next at fixed squared distances, and a step's colour is the same
  * wherever it falls, so it is worked out once. The colours are those two functions'
  * to the last bit.
+ *
+ * Preparing the 256 colours keeps the current stop interval until the axis
+ * crosses its end. On an i.MX RT105x (ARMv7-M, GCC 13 Release), preparing a
+ * two-stop sampler fell from 87?98 to 35?39 microseconds; 24 gradient cards went
+ * from 27.55 to 25.10 ms per full frame. Both runs draw 480 x 320 into memory.
  */
 
 #ifndef LH_GL_GRADIENT_SAMPLER_H

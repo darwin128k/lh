@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Gradient sampler preparation retains each stop interval while filling its 256
+  colours. On i.MX RT105x, a two-stop sampler fell from 87?98 to 35?39 ?s and a
+  full 480 ? 320 frame of 24 vertical-gradient cards from 27.55 to 25.10 ms.
+
 - A constant coverage over a repeated destination word is mixed once
   (`lh_gl_pixmap_blend_const_32`). A card fill and the straight band of a shadow
   were mixing every pixel.

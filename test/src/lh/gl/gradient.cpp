@@ -118,6 +118,39 @@ TEST(ui_gradient, a_sampled_row_is_every_pixel_asked_alone)
 
 /* -- Sampler bricks -------------------------------------------------------- */
 
+TEST(ui_gradient_sampler_bricks, prepared_colors_match_each_stop_arrangement)
+{
+    const lh_byte_t positions[][4] = {
+        {0, 80, 160, 255}, {20, 20, 220, 255}, {200, 50, 30, 10}, {0, 255, 255, 255}};
+    lh_gl_color_t colors[4];
+    for (int i = 0; i < 4; ++i)
+    {
+        lh_gl_color_init(&colors[i], 20 + 50 * i, 200 - 30 * i, 15 + 20 * i, 255 - 30 * i);
+    }
+    lh_gl_rect_t rect;
+    lh_gl_rect_init(&rect, 0, 0, 16, 16);
+    for (const auto &fracs : positions)
+    {
+        for (int count = 1; count <= 4 && count <= LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS; ++count)
+        {
+            lh_gl_gradient_t gradient;
+            lh_gl_gradient_init(&gradient);
+            lh_gl_gradient_init_stops(&gradient, colors, fracs,
+                                      lh_cast_static(lh_gl_gradient_stop_count_t, count));
+            lh_gl_gradient_sampler_t sampler;
+            lh_gl_gradient_sampler_init(&sampler, &gradient, &rect);
+            for (int frac = 0; frac < 256; ++frac)
+            {
+                const lh_gl_color_t expected = lh_test::out(lh_gl_gradient_color_at, &gradient,
+                                                            lh_cast_static(lh_byte_t, frac));
+                EXPECT_TRUE(lh_gl_color_equals(&lh_gl_gradient_sampler_get_colors(&sampler)[frac],
+                                               &expected))
+                    << "stops " << count << " fraction " << frac;
+            }
+        }
+    }
+}
+
 TEST(ui_gradient_sampler_bricks, lerp_walks_what_dividing_again_gives)
 {
     const lh_gl_color_t from = rgba(0, 255, 10, 255);

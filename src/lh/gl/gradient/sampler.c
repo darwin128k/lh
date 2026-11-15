@@ -69,28 +69,27 @@ lh_gl_gradient_sampler_fill(lh_gl_gradient_sampler_t *self)
 {
     const lh_gl_gradient_t *gradient = lh_gl_gradient_sampler_get_gradient(self);
     const lh_s32_t count = lh_gl_gradient_get_stop_count(gradient);
+    const lh_s32_t first = count > 1 ? lh_gl_gradient_sampler_stop_frac(gradient, 0) : 0;
     lh_s32_t carried = 0;
     lh_s32_t segment = 1;
+    lh_s32_t end = count > 1 ? lh_gl_gradient_sampler_stop_frac(gradient, segment) : 0;
+    lh_s32_t start = first;
+    lh_s32_t span = end - start;
 
     lh_gl_gradient_sampler_lerp_t lerp;
     for (lh_s32_t frac = 0; frac < 256; ++frac)
     {
-        lh_s32_t start;
-        lh_s32_t span;
-
-        if (count > 1 && frac > lh_gl_gradient_sampler_stop_frac(gradient, 0))
+        if (count > 1 && frac > first && segment < count && frac > end)
         {
             segment = lh_gl_gradient_sampler_segment_at(gradient, segment, frac);
+            if (segment < count)
+            {
+                start = lh_gl_gradient_sampler_stop_frac(gradient, segment - 1);
+                end = lh_gl_gradient_sampler_stop_frac(gradient, segment);
+                span = end - start;
+            }
         }
-        if (count <= 1 || frac <= lh_gl_gradient_sampler_stop_frac(gradient, 0) || segment >= count)
-        {
-            lh_gl_gradient_color_at(gradient, lh_cast_static(lh_byte_t, frac),
-                                    lh_addr_of(lh_gl_gradient_sampler_get_colors_mut(self)[frac]));
-            continue;
-        }
-        start = lh_gl_gradient_sampler_stop_frac(gradient, segment - 1);
-        span = lh_gl_gradient_sampler_stop_frac(gradient, segment) - start;
-        if (span <= 0 || frac - start < 0)
+        if (count <= 1 || frac <= first || segment >= count || span <= 0 || frac - start < 0)
         {
             lh_gl_gradient_color_at(gradient, lh_cast_static(lh_byte_t, frac),
                                     lh_addr_of(lh_gl_gradient_sampler_get_colors_mut(self)[frac]));
