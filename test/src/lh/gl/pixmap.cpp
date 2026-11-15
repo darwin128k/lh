@@ -346,7 +346,66 @@ blend_reference(lh_u32_t dst, lh_u32_t src, lh_byte_t alpha)
     return 0xff000000u | lh_gl_pixmap_mix_rgb(dst, src, alpha);
 }
 
+lh_u32_t
+mix_reference(const lh_gl_pixmap_t *pixmap, lh_u32_t dst, lh_u32_t src, lh_byte_t alpha)
+{
+    if (alpha == 0u)
+    {
+        return dst;
+    }
+    if (alpha == 255u)
+    {
+        return 0xff000000u | src;
+    }
+    return lh_gl_pixmap_mix_argb(pixmap, dst, src, alpha);
+}
+
 } // namespace
+
+/* A card fill and the straight band of a shadow are one coverage over one
+   destination word. The kernel mixes that word once; a different word in the
+   run is mixed on its own, and the dispatcher does the same for a long run. */
+TEST(ui_pixmap, blend_const_32_repeats_one_mix_and_blends_a_different_word)
+{
+    lh_gl_pixmap_t pixmap;
+    lh_u32_t at[19];
+    lh_byte_t alpha[19];
+    const lh_u32_t src = 0x002e6be6u;
+    const lh_u32_t bg = 0xff14181du;
+    const lh_u32_t other = 0x80ffffffu;
+
+    lh_gl_pixmap_init(lh_addr_of(pixmap), lh_ptr_rcast(lh_byte_t, at), 19, 1, 19 * 4,
+                      lh_gl_pixmap_format_argb8888);
+    for (int i = 0; i < 19; ++i)
+    {
+        at[i] = bg;
+        alpha[i] = 180u;
+    }
+    at[6] = other;
+    at[16] = other;
+    alpha[0] = 10u;
+    alpha[1] = 20u;
+    alpha[2] = 30u;
+    for (int i = 11; i < 15; ++i)
+    {
+        alpha[i] = 255u;
+    }
+    for (int i = 15; i < 19; ++i)
+    {
+        alpha[i] = 0u;
+    }
+
+    lh_u32_t want[19];
+    for (int i = 0; i < 19; ++i)
+    {
+        want[i] = mix_reference(lh_addr_of(pixmap), at[i], src, alpha[i]);
+    }
+    lh_gl_pixmap_blend_alpha_32(lh_addr_of(pixmap), at, alpha, 19u, src);
+    for (int i = 0; i < 19; ++i)
+    {
+        EXPECT_EQ(at[i], want[i]) << i;
+    }
+}
 
 /* The SIMD kernel trades three per-pixel branches for one unconditional
    formula, so the thing worth pinning is that it lands on exactly the same

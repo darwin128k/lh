@@ -591,26 +591,83 @@ lh_gl_pixmap_blend_cover_32_sse2(lh_u32_t *at, lh_usize_t count, lh_u64_t cover,
 }
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
 
+/* One SSE block. Shorter than this, a run of one alpha stays with that kernel.
+   A card row and the straight band of a shadow are longer, and there the
+   destination word repeats, so the mix is done once. */
+#define LH_GL_PIXMAP_BLEND_CONST_RUN 4U
+
+lh_void
+lh_gl_pixmap_blend_const_32(const lh_gl_pixmap_t *self, lh_u32_t *at, lh_usize_t count,
+                            lh_u32_t src, lh_u32_t alpha)
+{
+    lh_return_if(count == 0U || alpha == 0U);
+    if (alpha == LH_BYTE_T_MAX)
+    {
+        lh_memory_set_u32(at, count, 0xFF000000U | src);
+        return;
+    }
+    for (lh_usize_t i = 0U; i < count;)
+    {
+        const lh_u32_t dst = at[i];
+        lh_usize_t end = i + 1U;
+
+        while (end < count && at[end] == dst)
+        {
+            ++end;
+        }
+        lh_memory_set_u32(at + i, end - i, lh_gl_pixmap_mix_argb(self, dst, src, alpha));
+        i = end;
+    }
+}
+
 lh_void
 lh_gl_pixmap_blend_alpha_32(const lh_gl_pixmap_t *self, lh_u32_t *at, lh_byte_cptr alpha,
                             lh_usize_t count, lh_u32_t src)
 {
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
-    if (lh_cpu_simd_has_sse2())
-    {
-        lh_gl_pixmap_blend_alpha_32_sse2(self, at, alpha, count, src);
-        return;
-    }
+    const lh_bool_t sse = lh_cpu_simd_has_sse2();
+#else
+    const lh_bool_t sse = lh_bool_false;
 #endif
+
+    for (lh_usize_t i = 0U; i < count;)
     {
-        for (lh_usize_t i = 0U; i < count; ++i)
+        const lh_byte_t coverage = alpha[i];
+        lh_usize_t end = i + 1U;
+
+        while (end < count && alpha[end] == coverage)
         {
-            if (alpha[i] != 0U)
-            {
-                at[i] = alpha[i] == 0xFFU ? 0xFF000000U | src
-                                          : lh_gl_pixmap_mix_argb(self, at[i], src, alpha[i]);
-            }
+            ++end;
         }
+        if (!sse || end - i >= LH_GL_PIXMAP_BLEND_CONST_RUN)
+        {
+            lh_gl_pixmap_blend_const_32(self, at + i, end - i, src, coverage);
+            i = end;
+            continue;
+        }
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+        {
+            lh_usize_t stretch = end;
+
+            while (stretch < count)
+            {
+                const lh_byte_t next = alpha[stretch];
+                lh_usize_t run = stretch + 1U;
+
+                while (run < count && alpha[run] == next)
+                {
+                    ++run;
+                }
+                if (run - stretch >= LH_GL_PIXMAP_BLEND_CONST_RUN)
+                {
+                    break;
+                }
+                stretch = run;
+            }
+            lh_gl_pixmap_blend_alpha_32_sse2(self, at + i, alpha + i, stretch - i, src);
+            i = stretch;
+        }
+#endif
     }
 }
 

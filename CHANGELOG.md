@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A constant coverage over a repeated destination word is mixed once
+  (`lh_gl_pixmap_blend_const_32`). A card fill and the straight band of a shadow
+  were mixing every pixel.
+
 - Pointer drags and wheel input skip fitting button/container interiors when
   selecting a surrounding scrollable container. A standalone fitting button
   still suppresses a click after a drag. Added `lh_gl_container_can_scroll`

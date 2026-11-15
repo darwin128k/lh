@@ -309,8 +309,26 @@ lh_u32_t
 lh_gl_pixmap_pack_rgb(const lh_gl_pixmap_t *self, lh_u32_t src);
 
 /**
+ * @brief Blend @p src (`0xRRGGBB`) at one @p alpha over @p count ARGB8888 words at @p at.
+ *
+ * `0` leaves the words. `255` stores `0xFF000000 | src`. Any other coverage is
+ * ::lh_gl_pixmap_mix_argb, and a run of one destination word is that mix written
+ * through the run, not mixed again. The words match the per-pixel mix.
+ *
+ * @p at is required when @p count is not 0. @p alpha is a coverage, 0..255.
+ * Nothing else is checked.
+ */
+lh_void
+lh_gl_pixmap_blend_const_32(const lh_gl_pixmap_t *self, lh_u32_t *at, lh_usize_t count,
+                            lh_u32_t src, lh_u32_t alpha);
+
+/**
  * @brief Blend @p src over @p count ARGB8888 words at @p at, each at its own
  *        @p alpha (`0` skipped, `255` stored).
+ *
+ * A run of one alpha at least four pixels long is ::lh_gl_pixmap_blend_const_32.
+ * A shorter run stays on the SSE kernel when the CPU has it, and on the const
+ * kernel otherwise. Either way the words are the per-pixel mix.
  */
 lh_void
 lh_gl_pixmap_blend_alpha_32(const lh_gl_pixmap_t *self, lh_u32_t *at, const lh_byte_ptr alpha,
@@ -342,9 +360,11 @@ lh_gl_pixmap_blend_alpha_16(const lh_gl_pixmap_t *self, lh_u16_t *at, const lh_b
  * away.
  *
  * Only meaningful when `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2` is on and the running
- * CPU reports SSE2 (::lh_cpu_simd_has_sse2); ::lh_gl_pixmap_blend_alpha_32 is
- * what to call, and it dispatches. Exposed so the tier can be tested against
- * the scalar kernel directly instead of only through the dispatcher.
+ * CPU reports SSE2 (::lh_cpu_simd_has_sse2). ::lh_gl_pixmap_blend_alpha_32 is
+ * what to call: a run of four or more equal alphas goes to
+ * ::lh_gl_pixmap_blend_const_32, and a shorter run dispatches here. Exposed so
+ * the tier can be tested against the scalar kernel directly instead of only
+ * through the dispatcher.
  */
 lh_void
 lh_gl_pixmap_blend_alpha_32_sse2(const lh_gl_pixmap_t *self, lh_u32_t *at, const lh_byte_ptr alpha,
