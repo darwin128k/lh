@@ -20,7 +20,6 @@
 #ifndef LH_GL_FILL_H
 #define LH_GL_FILL_H
 
-#include <lh/gl/color.h>
 #include <lh/gl/entity.h>
 #include <lh/gl/fill/fields.h>
 

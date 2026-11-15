@@ -22,8 +22,9 @@
 #ifndef LH_GL_BLUR_H
 #define LH_GL_BLUR_H
 
-#include <lh/core/size.h>
 #include <lh/gl/pixmap.h>
+
+struct lh_gl_mask;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -73,17 +74,30 @@ lh_gl_blur_put(lh_gl_pixmap_t *pixmap, lh_gl_scalar_t x, lh_gl_scalar_t y,
                const lh_gl_color_t *tint);
 
 /**
+ * @brief Blend @p frost over @p pixel, scaled by @p cover.
+ *
+ * @p cover of 0 leaves @p pixel. @p cover of 255 stores @p frost when @p replace
+ * is set, and blends it when @p replace is clear. A lower cover scales @p frost
+ * and blends that over @p pixel.
+ */
+lh_void
+lh_gl_blur_blend_covered(lh_gl_color_t *pixel, const lh_gl_color_t *frost,
+                         lh_gl_color_channel_t cover, lh_bool_t replace);
+
+/**
  * @brief Blur column @p x (from the rectangle's left) of @p scratch down into
  *        @p pixmap. @p scratch is what ::lh_gl_blur_rows wrote, addressed from
  *        @p y0. One slide covers the rows the rounded @p shape includes, or
  *        the whole column when @p shape is null. @p tint is painted over those
- *        rows afterwards.
+ *        rows afterwards. A null @p mask stores that colour. A mask scales it
+ *        and blends it over the pixel that was already there.
  */
 lh_void
 lh_gl_blur_column(lh_gl_pixmap_t *pixmap, const lh_gl_color_t *scratch, lh_gl_scalar_t left,
                   lh_gl_scalar_t top, lh_gl_scalar_t width, lh_gl_scalar_t height,
                   lh_gl_scalar_t radius, lh_gl_scalar_t y0, lh_gl_scalar_t y1, lh_gl_scalar_t x,
-                  const lh_gl_rect_t *shape, lh_gl_scalar_t corner, const lh_gl_color_t *tint);
+                  const lh_gl_rect_t *shape, lh_gl_scalar_t corner, const lh_gl_color_t *tint,
+                  const struct lh_gl_mask *mask);
 
 /**
  * @brief Blur @p rect of @p pixmap in place. Cuts @p rect to the pixmap first.
@@ -100,12 +114,13 @@ lh_gl_blur_rect(lh_gl_pixmap_t *pixmap, const lh_gl_rect_t *rect, lh_gl_scalar_t
  * @p clip, when set, further limits the write. The blur still reads past that
  *        limit, up to @p blur pixels, and no further than the pixmap. A null
  *        @p tint blurs and does not paint. A @p blur of `0` or below paints the
- *        tint alone and does not read @p scratch.
+ *        tint alone and does not read @p scratch. A null @p mask does not cut.
+ *        A mask scales the frost and leaves a pixel it does not cover.
  */
 lh_void
 lh_gl_glass(lh_gl_pixmap_t *pixmap, const lh_gl_rect_t *panel, lh_gl_scalar_t corner,
             lh_gl_scalar_t blur, const lh_gl_color_t *tint, lh_gl_color_t *scratch,
-            const lh_gl_rect_t *clip);
+            const lh_gl_rect_t *clip, const struct lh_gl_mask *mask);
 
 LH_COMPILER_EXTERN_C_END
 

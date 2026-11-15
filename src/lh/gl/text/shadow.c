@@ -12,7 +12,6 @@
 #include <lh/gl/blur.h>
 #include <lh/gl/canvas.h>
 #include <lh/gl/entity/class/initializer.h>
-#include <lh/gl/pixmap.h>
 
 lh_gl_entity_t *
 lh_gl_text_shadow_get_entity_mut(lh_gl_text_shadow_t *self)

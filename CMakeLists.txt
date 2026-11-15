@@ -521,6 +521,19 @@ if (LH_LIBRARY_OPTION_OS)
             list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/input.c)
             list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/surface.c)
             list(APPEND LH_OS_SYSTEM_LINK_LIBS user32 gdi32)
+        elseif (APPLE)
+            # AppKit. The sources are Objective-C; nothing here is the X11 backend.
+            enable_language(OBJC)
+            list(APPEND LH_LIB_SOURCES
+                    ${LH_LIB_SRC_PATH}/os/system/apple/paint.c
+                    ${LH_LIB_SRC_PATH}/os/system/apple/surface.m
+                    ${LH_LIB_SRC_PATH}/os/system/apple/window.m
+            )
+            set_source_files_properties(
+                    ${LH_LIB_SRC_PATH}/os/system/apple/surface.m
+                    ${LH_LIB_SRC_PATH}/os/system/apple/window.m
+                    PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+            list(APPEND LH_OS_SYSTEM_LINK_LIBS "-framework AppKit" "-framework CoreGraphics")
         else ()
             # Xlib, opened with dlopen when the first window is: nothing to link but
             # the loader, and no X11 headers or development package to build with.

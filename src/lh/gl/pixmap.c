@@ -59,6 +59,42 @@ lh_gl_pixmap_init(lh_gl_pixmap_t *self, lh_gl_color_t *pixels, lh_gl_size_t size
     lh_gl_pixmap_set_size(self, size);
 }
 
+lh_void
+lh_gl_pixmap_store_words(const lh_gl_pixmap_t *self, lh_u32_t *words, lh_usize_t count)
+{
+    lh_assert_runtime_ref(self);
+    if (lh_ptr_is_null(words))
+    {
+        return;
+    }
+    const lh_gl_size_t *size = lh_gl_pixmap_get_size(self);
+    lh_gl_scalar_t width = lh_gl_size_get_width(size);
+    lh_gl_scalar_t height = lh_gl_size_get_height(size);
+
+    if (width <= 0 || height <= 0)
+    {
+        return;
+    }
+    lh_usize_t need = lh_type_cast(lh_usize_t, width) * lh_type_cast(lh_usize_t, height);
+
+    if (count < need)
+    {
+        return;
+    }
+    for (lh_gl_scalar_t y = 0; y < height; ++y)
+    {
+        for (lh_gl_scalar_t x = 0; x < width; ++x)
+        {
+            const lh_gl_color_t *pixel = lh_gl_pixmap_get_pixel(self, x, y);
+            lh_usize_t index =
+                lh_type_cast(lh_usize_t, y) * lh_type_cast(lh_usize_t, width) +
+                lh_type_cast(lh_usize_t, x);
+
+            words[index] = lh_gl_color_get_word(pixel);
+        }
+    }
+}
+
 const lh_gl_color_t *
 lh_gl_pixmap_get_pixel(const lh_gl_pixmap_t *self, lh_gl_scalar_t x, lh_gl_scalar_t y)
 {

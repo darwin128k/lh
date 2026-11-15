@@ -6,8 +6,6 @@
 #ifndef LH_GL_ENTITY_CLASS_DRAW_FN_H
 #define LH_GL_ENTITY_CLASS_DRAW_FN_H
 
-#include <lh/core/compiler/extern/c.h>
-#include <lh/core/void.h>
 #include <lh/gl/canvas/decl.h>
 #include <lh/gl/entity/decl.h>
 #include <lh/gl/place.h>

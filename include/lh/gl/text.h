@@ -16,7 +16,6 @@
 #ifndef LH_GL_TEXT_H
 #define LH_GL_TEXT_H
 
-#include <lh/gl/color.h>
 #include <lh/gl/entity.h>
 #include <lh/gl/font.h>
 #include <lh/gl/text/fields.h>

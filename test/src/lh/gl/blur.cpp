@@ -121,7 +121,8 @@ TEST(gl_glass, a_rounded_corner_stays_and_the_middle_takes_the_tint)
         lh_gl_color_init(pixels + i, 255, 255, 255, 255);
     }
     lh_gl_color_init(lh_addr_of(tint), 0, 0, 0, 255);
-    lh_gl_glass(lh_addr_of(pixmap), lh_addr_of(panel), 3, 0, lh_addr_of(tint), nullptr, nullptr);
+    lh_gl_glass(lh_addr_of(pixmap), lh_addr_of(panel), 3, 0, lh_addr_of(tint), nullptr, nullptr,
+                nullptr);
     EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 1)), 255);
     EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 4, 4)), 0);
 }
@@ -145,9 +146,48 @@ TEST(gl_glass, a_rounded_blur_keeps_the_missed_corner)
 
     lh_gl_color_init(lh_addr_of(tint), 0, 0, 0, 255);
     lh_gl_color_t scratch[8 * 16];
-    lh_gl_glass(lh_addr_of(pixmap), lh_addr_of(panel), 3, 1, lh_addr_of(tint), scratch, nullptr);
+    lh_gl_glass(lh_addr_of(pixmap), lh_addr_of(panel), 3, 1, lh_addr_of(tint), scratch, nullptr,
+                nullptr);
     EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 1)), 255);
     EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 4, 4)), 0);
+}
+
+TEST(gl_glass, a_mask_keeps_the_pixel_it_misses)
+{
+    lh_gl_color_t pixels[8 * 8];
+
+    for (int i = 0; i < 64; ++i)
+    {
+        lh_gl_color_init(pixels + i, 255, 255, 255, 255);
+    }
+    lh_gl_size_t size;
+
+    lh_gl_size_init(lh_addr_of(size), 8, 8);
+    lh_gl_pixmap_t pixmap;
+
+    lh_gl_pixmap_init(lh_addr_of(pixmap), pixels, size);
+    lh_gl_rect_t panel = rect_of(1, 1, 6, 6);
+    lh_gl_color_t tint;
+
+    lh_gl_color_init(lh_addr_of(tint), 0, 0, 0, 255);
+    lh_gl_mask_t mask;
+
+    lh_gl_mask_init_round(lh_addr_of(mask), rect_of(0, 0, 4, 8), 0);
+    lh_gl_glass(lh_addr_of(pixmap), lh_addr_of(panel), 3, 0, lh_addr_of(tint), nullptr, nullptr,
+                lh_addr_of(mask));
+    EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 3, 4)), 0);
+    EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 4, 4)), 255);
+    for (int i = 0; i < 64; ++i)
+    {
+        lh_gl_color_init(pixels + i, 255, 255, 255, 255);
+    }
+    lh_gl_color_t scratch[8 * 16];
+
+    lh_gl_glass(lh_addr_of(pixmap), lh_addr_of(panel), 3, 1, lh_addr_of(tint), scratch, nullptr,
+                lh_addr_of(mask));
+    EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 1, 1)), 255);
+    EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 4, 4)), 255);
+    EXPECT_EQ(lh_gl_color_get_r(lh_gl_pixmap_get_pixel(lh_addr_of(pixmap), 3, 4)), 0);
 }
 
 TEST(gl_glass, a_short_scratch_draws_nothing)

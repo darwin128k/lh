@@ -8,7 +8,6 @@
 #include <lh/core/bool.h>
 #include <lh/core/char/map.h>
 #include <lh/core/index.h>
-#include <lh/core/util/addr.h>
 #include <lh/core/util/ptr.h>
 
 enum

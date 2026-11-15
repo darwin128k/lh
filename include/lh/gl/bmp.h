@@ -13,7 +13,6 @@
 #ifndef LH_GL_BMP_H
 #define LH_GL_BMP_H
 
-#include <lh/core/size.h>
 #include <lh/core/util/byte/ptr.h>
 #include <lh/gl/pixmap.h>
 

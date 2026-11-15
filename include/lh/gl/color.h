@@ -55,6 +55,15 @@ lh_gl_color_get_b(const lh_gl_color_t *self);
 lh_gl_color_channel_t
 lh_gl_color_get_a(const lh_gl_color_t *self);
 
+/**
+ * @brief @p self as one `0xAARRGGBB` word.
+ *
+ * That is the order a 32-bit top-down device bitmap stores. Alpha is the
+ * high byte. The color is not changed.
+ */
+lh_u32_t
+lh_gl_color_get_word(const lh_gl_color_t *self);
+
 /** @brief Store the red channel. */
 lh_void
 lh_gl_color_set_r(lh_gl_color_t *self, lh_gl_color_channel_t r);

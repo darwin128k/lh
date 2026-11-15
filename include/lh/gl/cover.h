@@ -12,11 +12,20 @@
 #ifndef LH_GL_COVER_H
 #define LH_GL_COVER_H
 
-#include <lh/core/numeric/fixed/types.h>
 #include <lh/gl/color.h>
 #include <lh/gl/rect.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief @p radius clamped the way a rounded rectangle uses it.
+ *
+ * A negative radius is 0. A radius larger than half the shorter side is that
+ * half. The three rounded-rectangle tests share this, so a fill and a coverage
+ * query cannot disagree about where the arc starts.
+ */
+lh_gl_scalar_t
+lh_gl_cover_round_radius(lh_gl_scalar_t width, lh_gl_scalar_t height, lh_gl_scalar_t radius);
 
 /**
  * @brief `255` when the center of pixel (@p x, @p y) lies in @p rect with

@@ -7,7 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- The canvas keeps the target and the backend. Origin, clip and mask travel on `lh_gl_place_t`, one per call. A layer radius is one rounded mask for every child drawn inside it; `lh_gl_card_set_radius` installs that mask and leaves the face square. Coverage on the arc is 1–254. Intersection takes the lesser coverage, union the greater, exclusion the left scaled by `(255 - right) / 255`. `lh_gl_canvas_stroke_line` paints a straight segment. `lh_gl_canvas_fill_sector` paints a pie: 0 degrees is to the right, a positive sweep turns toward +y, and the edges are integer.
+- Glass takes the place mask. A null mask is the same frost as before. A mask scales the frost and leaves a pixel it does not cover. `lh_gl_blur_blend_covered` is that blend.
+
+- A stroke, a circle, a rounded rectangle and a triangle scale each covered pixel by the place mask. `lh_gl_canvas_fill_ink` is that one pixel: shape coverage times the mask.
+
+- A round mask fills its flat cross as one rectangle (`lh_gl_canvas_fill_round`) and a flat color run as one row (`lh_gl_canvas_fill_round_colors`). The arc still asks `lh_gl_cover_round_rect_band`, and `lh_gl_cover_round_radius` is the clamp those tests share. Release, this machine, 32 frames of the 24-card scene: 5.3 and 4.6 ms a frame. The same scene with a per-pixel mask was 9.9 and 10.5 ms, and before the mask it was 4.2 and 4.5 ms.
+
+- A native window on macOS is AppKit (`NSWindow`), beside Win32 and X11. The off-screen surface is the same `0xAARRGGBB` words; a present draws them into the paint. This machine does not build the AppKit backend.
+
+- `lh_gl_color_get_word` is one pixel as `0xAARRGGBB`. `lh_gl_pixmap_store_words` writes the pixmap in that order into a caller buffer, which is the word a 32-bit top-down surface already presents.
+
+- The canvas keeps the target and the backend. Origin, clip and mask travel on `lh_gl_place_t`, one per call. A layer radius is one rounded mask for every child drawn inside it; `lh_gl_card_set_radius` installs that mask and leaves the face square. Coverage on the arc is 1–254. Intersection takes the lesser coverage, union the greater, exclusion the left scaled by `(255 - right) / 255`. `lh_gl_canvas_stroke_line` paints a straight segment. `lh_gl_canvas_fill_sector` paints a pie: 0 degrees is to the right, a positive sweep turns toward +y, and the edges are integer. Release, this machine, 32 frames of the 24-card scene with that mask: 9.9 and 10.5 ms a frame. The same scene before the mask was 4.2 and 4.5 ms.
 
 - `lh_gl_card_set_ink` stores the line color apart from the face. `lh_gl_card_get_line` and `lh_gl_card_get_layer_mut` are the line and the layer, so a glyph shadow can sit between them. `lh_gl_font_caption` is a static 8×12 face for space, the digits, `C`, `a`, `d` and `r`. The 24-card scene is built with `lh_gl_card_init`, a box shadow, a glass panel and that face. Release, this machine, 32 frames of that scene: 4.2 and 4.5 ms a frame.
 

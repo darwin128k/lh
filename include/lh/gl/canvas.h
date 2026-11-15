@@ -49,26 +49,94 @@ lh_gl_canvas_set_backend(lh_gl_canvas_t *self, const lh_gl_canvas_backend_t *bac
  * @brief Fill @p rect. Coordinates are relative to the place origin.
  *
  * The root rectangle is @p rect shifted by the origin. A rectangle that misses
- * the clip is not passed on. Without a backend call, nothing is drawn.
+ * the clip is not passed on. Without a backend call, nothing is drawn. A round
+ * mask fills the flat cross as rectangles and asks
+ * ::lh_gl_cover_round_rect_band only inside the corner squares.
  */
 lh_void
 lh_gl_canvas_fill_rect(lh_gl_canvas_t *self, const lh_gl_place_t *place, const lh_gl_rect_t *rect,
                        const lh_gl_color_t *color);
 
 /**
+ * @brief Paint one root pixel of @p color scaled by @p cover.
+ *
+ * Coverage 0 draws nothing. 255 draws @p color. A value between scales the
+ * alpha. @p x and @p y are already in root coordinates.
+ */
+lh_void
+lh_gl_canvas_fill_covered(lh_gl_canvas_t *self, const lh_gl_rect_t *clip, lh_gl_scalar_t x,
+                          lh_gl_scalar_t y, lh_gl_color_channel_t cover,
+                          const lh_gl_color_t *color);
+
+/**
+ * @brief Fill @p hit under the place's round mask.
+ *
+ * @p hit is the root rectangle already clipped. The flat cross, where the
+ * rounded rectangle covers every pixel, is one rectangle. A corner row is a
+ * solid run plus the arc, and only the arc asks ::lh_gl_cover_round_rect_band.
+ * The place mask is that one rounded rectangle.
+ */
+lh_void
+lh_gl_canvas_fill_round(lh_gl_canvas_t *self, const lh_gl_place_t *place, const lh_gl_rect_t *hit,
+                        const lh_gl_color_t *color);
+
+/**
+ * @brief Paint rows [@p y0, @p y1) of a rounded @p shape, limited to [@p x0, @p x1).
+ *
+ * The run between the corner squares is one rectangle of @p color. The squares
+ * ask ::lh_gl_cover_round_rect_band. @p radius is already clamped.
+ */
+lh_void
+lh_gl_canvas_fill_round_rows(lh_gl_canvas_t *self, const lh_gl_rect_t *clip,
+                             const lh_gl_rect_t *shape, lh_gl_scalar_t radius, lh_gl_scalar_t y0,
+                             lh_gl_scalar_t y1,
+                             lh_gl_scalar_t x0, lh_gl_scalar_t x1, const lh_gl_color_t *color);
+
+/**
+ * @brief Paint @p count colors along one row under the place's round mask.
+ *
+ * Coordinates are origin-relative. A row through the flat cross is one run.
+ * A corner row keeps the middle as one run and asks
+ * ::lh_gl_cover_round_rect_band only in the corner squares.
+ */
+lh_void
+lh_gl_canvas_fill_round_colors(lh_gl_canvas_t *self, const lh_gl_place_t *place, lh_gl_scalar_t x,
+                               lh_gl_scalar_t y, const lh_gl_color_t *colors, lh_gl_scalar_t count);
+
+/**
  * @brief Paint @p count colors along one row, origin-relative.
  *
  * @p colors[i] is pixel @p x + i on row @p y. Without a backend call, each
- * pixel is one ::lh_gl_canvas_fill_rect.
+ * pixel is one ::lh_gl_canvas_fill_rect. A round mask keeps a flat row as one
+ * run and asks the band only in the corner squares.
  */
 lh_void
 lh_gl_canvas_fill_colors(lh_gl_canvas_t *self, const lh_gl_place_t *place, lh_gl_scalar_t x,
                          lh_gl_scalar_t y, const lh_gl_color_t *colors, lh_gl_scalar_t count);
 
 /**
+ * @brief Paint one root pixel whose shape coverage is @p shape.
+ *
+ * @p shape of 0 draws nothing. A mask multiplies that coverage; the product
+ * is what reaches the target. No mask leaves @p shape as it is.
+ */
+lh_void
+lh_gl_canvas_fill_ink(lh_gl_canvas_t *self, const lh_gl_place_t *place, lh_gl_scalar_t x,
+                      lh_gl_scalar_t y, lh_gl_color_channel_t shape, const lh_gl_color_t *color);
+
+/**
+ * @brief Clip @p bounds to the place and write that rectangle to @p hit.
+ *
+ * Returns false when the intersection is empty. @p hit is still written.
+ */
+lh_bool_t
+lh_gl_canvas_clip_hit(const lh_gl_place_t *place, const lh_gl_rect_t *bounds, lh_gl_rect_t *hit);
+
+/**
  * @brief Stroke the border of @p rect with @p pen, in origin-relative coordinates.
  *
  * The pen grows the tested bounds outward. A negative pen width tests as zero.
+ * A mask scales each pixel of the border.
  */
 lh_void
 lh_gl_canvas_stroke_rect(lh_gl_canvas_t *self, const lh_gl_place_t *place, const lh_gl_rect_t *rect,
@@ -76,13 +144,13 @@ lh_gl_canvas_stroke_rect(lh_gl_canvas_t *self, const lh_gl_place_t *place, const
 
 /**
  * @brief Fill the circle around @p center. @p center is origin-relative.
- *        A radius below 1 draws nothing.
+ *        A radius below 1 draws nothing. A mask scales each covered pixel.
  */
 lh_void
 lh_gl_canvas_fill_circle(lh_gl_canvas_t *self, const lh_gl_place_t *place, lh_gl_point_t center,
                          lh_gl_scalar_t radius, const lh_gl_color_t *color);
 
-/** @brief Stroke that circle. The pen width grows the tested bounds. */
+/** @brief Stroke that circle. The pen width grows the tested bounds. A mask scales the ring. */
 lh_void
 lh_gl_canvas_stroke_circle(lh_gl_canvas_t *self, const lh_gl_place_t *place, lh_gl_point_t center,
                            lh_gl_scalar_t radius, const lh_gl_pen_t *pen);
@@ -91,14 +159,14 @@ lh_gl_canvas_stroke_circle(lh_gl_canvas_t *self, const lh_gl_place_t *place, lh_
  * @brief Fill @p rect with corner radius @p radius, origin-relative.
  *
  * @p radius is limited to half the shorter side before the backend sees it.
- * A negative radius becomes zero.
+ * A negative radius becomes zero. A mask scales each covered pixel.
  */
 lh_void
 lh_gl_canvas_fill_round_rect(lh_gl_canvas_t *self, const lh_gl_place_t *place,
                              const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
                              const lh_gl_color_t *color);
 
-/** @brief Stroke that rounded rectangle. */
+/** @brief Stroke that rounded rectangle. A mask scales the ring. */
 lh_void
 lh_gl_canvas_stroke_round_rect(lh_gl_canvas_t *self, const lh_gl_place_t *place,
                                const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
@@ -106,7 +174,7 @@ lh_gl_canvas_stroke_round_rect(lh_gl_canvas_t *self, const lh_gl_place_t *place,
 
 /**
  * @brief Fill the triangle @p a @p b @p c. The points are origin-relative.
- *        A triangle with no area draws nothing.
+ *        A triangle with no area draws nothing. A mask scales each covered pixel.
  */
 lh_void
 lh_gl_canvas_fill_triangle(lh_gl_canvas_t *self, const lh_gl_place_t *place, const lh_gl_point_t *a,

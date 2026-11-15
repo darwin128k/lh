@@ -6,7 +6,22 @@
 
 #include <lh/core/assert/runtime.h>
 #include <lh/core/math/isqrt.h>
-#include <lh/core/math/ops.h>
+
+lh_gl_scalar_t
+lh_gl_cover_round_radius(lh_gl_scalar_t width, lh_gl_scalar_t height, lh_gl_scalar_t radius)
+{
+    if (radius < 0)
+    {
+        radius = 0;
+    }
+    lh_gl_scalar_t limit = lh_math_min(width, height) / 2;
+
+    if (radius > limit)
+    {
+        return limit;
+    }
+    return radius;
+}
 
 lh_bool_t
 lh_gl_cover_hits(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_gl_scalar_t slop,
@@ -58,16 +73,7 @@ lh_gl_cover_round_rect(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_gl_sc
     {
         return 0;
     }
-    if (radius < 0)
-    {
-        radius = 0;
-    }
-    lh_gl_scalar_t limit = lh_math_min(width, height) / 2;
-
-    if (radius > limit)
-    {
-        radius = limit;
-    }
+    radius = lh_gl_cover_round_radius(width, height, radius);
     if (radius == 0)
     {
         return 255;
@@ -127,16 +133,7 @@ lh_gl_cover_round_rect_band(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_
     {
         return 0;
     }
-    if (radius < 0)
-    {
-        radius = 0;
-    }
-    lh_gl_scalar_t limit = lh_math_min(width, height) / 2;
-
-    if (radius > limit)
-    {
-        radius = limit;
-    }
+    radius = lh_gl_cover_round_radius(width, height, radius);
     if (radius == 0)
     {
         return 255;
@@ -198,16 +195,7 @@ lh_gl_cover_round_rect_span(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_
     {
         return lh_bool_false;
     }
-    if (radius < 0)
-    {
-        radius = 0;
-    }
-    lh_gl_scalar_t limit_r = lh_math_min(width, height) / 2;
-
-    if (radius > limit_r)
-    {
-        radius = limit_r;
-    }
+    radius = lh_gl_cover_round_radius(width, height, radius);
     if (radius == 0 || (y >= top + radius && y < top + height - radius))
     {
         lh_ptr_deref(x0) = left;

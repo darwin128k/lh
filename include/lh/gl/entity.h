@@ -32,8 +32,6 @@
 #include <lh/gl/entity/class.h>
 #include <lh/gl/entity/fields.h>
 #include <lh/gl/layer/decl.h>
-#include <lh/gl/place.h>
-#include <lh/gl/rect.h>
 
 /**
  * @struct lh_gl_entity

@@ -169,7 +169,7 @@ lh_gl_glass_draw(const lh_gl_entity_t *entity, lh_gl_canvas_t *canvas, const lh_
     lh_gl_glass(lh_ptr_cast(lh_gl_pixmap_t, lh_gl_canvas_get_target(canvas)), lh_addr_of(panel),
                 lh_gl_glass_get_radius(glass), lh_gl_glass_get_blur(glass),
                 lh_gl_glass_get_tint(glass), lh_gl_glass_get_scratch(glass),
-                lh_gl_place_get_clip(place));
+                lh_gl_place_get_clip(place), lh_gl_place_get_mask(place));
 }
 
 lh_bool_t

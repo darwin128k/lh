@@ -16,11 +16,8 @@
 #ifndef LH_GL_RENDERER_H
 #define LH_GL_RENDERER_H
 
-#include <lh/core/compiler/extern/c.h>
 #include <lh/core/index.h>
 #include <lh/gl/rect.h>
-#include <lh/gl/scalar.h>
-#include <lh/core/void.h>
 #include <lh/gl/canvas/decl.h>
 #include <lh/gl/renderer/fields.h>
 #include <lh/gl/surface/decl.h>

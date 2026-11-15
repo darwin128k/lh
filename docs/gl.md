@@ -54,8 +54,8 @@ as of 2026-11-14 and the plan agreed with Egor.
   Widgets are composed (label + image = button).
 - **canvas**: the drawing tool. It keeps the target and the backend and
   nothing else. Origin, rectangular clip and mask arrive on `lh_gl_place_t`
-  for that call. A fill walks the mask and scales the colour. A stroke, a
-  circle, a rounded rectangle and a triangle still use only the rectangle.
+  for that call. A fill, a stroke, a circle, a rounded rectangle and a
+  triangle scale each covered pixel by the mask.
   It does not name a device.
 - **renderer as a server**: the UI sends it packets (dirty areas, draw
   requests), possibly via rail mailbox/queue. Rail (per-device HAL: bare
@@ -72,7 +72,7 @@ as of 2026-11-14 and the plan agreed with Egor.
 - Scroll axis: one offset, not stored on an entity or a layer. Container: borrowed layer plus a horizontal axis, a vertical axis, or neither. Placement is the window origin minus the offsets. Rectangles stay put. `lh_gl_container_invalidate` marks the window; changing an axis does not.
 - Layout: `lh_gl_layout_t` is one gap. Pack writes direct children's origins along one axis from zero, in list order. The other axis and the sizes stay. It does not draw, search or scroll.
 - Fill: `lh_gl_fill_t` starts with an entity and borrows one color. The shared draw call reads that pointer. A layer's own draw call stays null; a background is a fill added first. The fill class is not opaque.
-- Blur and glass: `lh_gl_blur_rect` averages a pixmap rectangle in place, two box passes, caller scratch, no allocation. The sums of a row stay inside `lh_gl_blur_window_slide`. An opaque window sums the channels as they are and divides by one factor for that run. `lh_gl_glass` writes that blur only inside the rounded panel, one slide of the covered rows, and paints a tint over it; a corner the arc misses stays. With no blur the tint is a row fill. `lh_gl_glass_t` is the panel. The canvas target is the pixmap it reads. A short scratch draws nothing. The class is not opaque.
+- Blur and glass: `lh_gl_blur_rect` averages a pixmap rectangle in place, two box passes, caller scratch, no allocation. The sums of a row stay inside `lh_gl_blur_window_slide`. An opaque window sums the channels as they are and divides by one factor for that run. `lh_gl_glass` writes that blur only inside the rounded panel, one slide of the covered rows, and paints a tint over it; a corner the arc misses stays. A mask scales that frost and leaves a pixel it misses. A null mask does not. With no blur the tint is a row fill. `lh_gl_glass_t` is the panel. The canvas target is the pixmap it reads. A short scratch draws nothing. The class is not opaque.
 - Gradient: two colors and an angle on the fill. `180` runs down the box, `135` runs down-right. `radial` puts the first color at the middle and the second toward the corners; the angle is then unused. A radius clips that paint to the rounded rectangle; `0` leaves the rectangle.
 - Cover: a pixel center is inside a rounded rectangle, a circle or a triangle, or it is outside. `lh_gl_cover_round_rect_band` is the same arc with coverage 1–254 on the edge. The pixmap fills those three shapes and strokes the first two plus a plain rectangle, outside the fill, one pen thick. A triangle has no stroke.
 - Mask: `lh_gl_mask_t` is one rounded rectangle or a combination of two masks. Intersection is the lesser coverage, union the greater, exclusion the left scaled by `(255 - right) / 255`. A null side covers 0. The layer stores one radius. On draw that radius is a mask in root coordinates, intersected with the mask from outside, and handed to each child on the place. `lh_gl_card_set_radius` sets that radius and clears the face radius, so the fill and the line are rectangles and the mask cuts them. A box shadow stays a sibling outside the mask.
@@ -83,6 +83,15 @@ as of 2026-11-14 and the plan agreed with Egor.
 - `docs/roadmap.md` section 5: a general allocator with a real free over a
   static buffer (TLSF-like, as LVGL's builtin heap), plugged via
   `lh_memory_allocator_t` / `*_init_by`. LH has no allocator of its own today.
+
+## Window
+
+The window is the one `lh/os` already opens: Win32, X11, or AppKit. `lh/gl` does
+not open it. Paint draws the layer into the pixmap, `lh_gl_pixmap_store_words`
+writes `0xAARRGGBB` into the existing off-screen surface, and that surface's
+present copies it into the paint. Input is the window's controller with
+`lh_gl_input_controller_handle_event_is_handled`. There is no tick and no slide.
+A resize does not grow the pixmap yet: the frame stays the size it was drawn.
 
 ## Next, in order
 
@@ -97,8 +106,11 @@ as of 2026-11-14 and the plan agreed with Egor.
    `lh_gl_screen_back`). The front child is the one drawn on top. A swipe
    stays a gesture on the input and does not move a layer. A frame on another
    loop is `lh_gl_renderer_packet_post`. A picture of the 24-card scene stands
-   in for a live frame. Release, this machine, that frame is 4.2 and 4.5 ms.
-   The panel is still the remaining step.
+   in for a live frame. Release, this machine, 32 frames after the layer mask:
+   9.9 and 10.5 ms a frame. The same scene before the mask was 4.2 and 4.5 ms.
+   The flat cross of that mask is now one rectangle, and a flat color run is
+   one row: the same 32 frames are 5.3 and 4.6 ms.
+   AppKit is written and is not built on this machine.
 
 ## Held: a press and a one-line screen
 

@@ -12,6 +12,7 @@ TEST(gl_color, init_stores_straight_channels)
     EXPECT_EQ(lh_gl_color_get_g(lh_addr_of(color)), 2);
     EXPECT_EQ(lh_gl_color_get_b(lh_addr_of(color)), 3);
     EXPECT_EQ(lh_gl_color_get_a(lh_addr_of(color)), 255);
+    EXPECT_EQ(lh_gl_color_get_word(lh_addr_of(color)), 0xFF010203U);
     lh_gl_color_set_a(lh_addr_of(color), 0);
     EXPECT_EQ(lh_gl_color_get_a(lh_addr_of(color)), 0);
 }

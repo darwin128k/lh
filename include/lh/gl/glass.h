@@ -11,13 +11,13 @@
  *
  * The class is not opaque. The rounded corner that the arc misses is left as
  * it was, and a tint can be translucent, so a sibling behind the panel is
- * still drawn.
+ * still drawn. A mask on the place scales that frost; a pixel the mask misses
+ * stays as it was.
  */
 
 #ifndef LH_GL_GLASS_H
 #define LH_GL_GLASS_H
 
-#include <lh/gl/color.h>
 #include <lh/gl/entity.h>
 #include <lh/gl/glass/fields.h>
 

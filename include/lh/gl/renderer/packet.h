@@ -16,11 +16,9 @@
 #ifndef LH_GL_RENDERER_PACKET_H
 #define LH_GL_RENDERER_PACKET_H
 
-#include <lh/gl/rect.h>
 #include <lh/gl/renderer.h>
 #include <lh/gl/renderer/packet/fields.h>
 #include <lh/rail/executor.h>
-#include <lh/rail/task.h>
 
 /**
  * @struct lh_gl_renderer_packet

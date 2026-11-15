@@ -17,6 +17,7 @@
 #ifndef LH_GL_PIXMAP_H
 #define LH_GL_PIXMAP_H
 
+#include <lh/core/index.h>
 #include <lh/gl/canvas/backend.h>
 #include <lh/gl/pixmap/fields.h>
 
@@ -61,6 +62,15 @@ lh_gl_pixmap_set_size(lh_gl_pixmap_t *self, lh_gl_size_t size);
  */
 lh_void
 lh_gl_pixmap_init(lh_gl_pixmap_t *self, lh_gl_color_t *pixels, lh_gl_size_t size);
+
+/**
+ * @brief Write every pixel of @p self as an `0xAARRGGBB` word into @p words.
+ *
+ * @p count is how many words @p words holds. A short buffer, a null @p words
+ * or an empty pixmap writes nothing. The pixmap is not changed.
+ */
+lh_void
+lh_gl_pixmap_store_words(const lh_gl_pixmap_t *self, lh_u32_t *words, lh_usize_t count);
 
 /**
  * @brief Pixel at @p x, @p y, or a null pointer when @p self has no pixels.

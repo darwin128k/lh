@@ -50,7 +50,7 @@ option(LH_LIBRARY_OPTION_OS
 #   OFF — no window backend, no user32 / gdi32 link.
 #
 # Win32 on Windows; Xlib on Linux, where libX11 is opened at run time (dlopen)
-# so neither the build nor a headless machine needs it. macOS has none yet.
+# so neither the build nor a headless machine needs it. AppKit on macOS.
 #
 # Requires LH_LIBRARY_OPTION_OS to be ON (windows are an OS concept).
 # -----------------------------------------------------------------------------
@@ -60,17 +60,17 @@ else ()
     set(_LH_OS_WINDOW_DEFAULT OFF)
 endif ()
 option(LH_LIBRARY_OPTION_OS_WINDOW
-        "Compile the native window backend (user32 + gdi32 on Windows, Xlib at run time on Linux; macOS has none yet). Requires LH_LIBRARY_OPTION_OS=ON."
+        "Compile the native window backend (user32 + gdi32 on Windows, Xlib at run time on Linux, AppKit on macOS). Requires LH_LIBRARY_OPTION_OS=ON."
         ${_LH_OS_WINDOW_DEFAULT})
 unset(_LH_OS_WINDOW_DEFAULT)
 if (LH_LIBRARY_OPTION_OS_WINDOW AND NOT LH_LIBRARY_OPTION_OS)
     message(FATAL_ERROR "LH_LIBRARY_OPTION_OS_WINDOW=ON requires LH_LIBRARY_OPTION_OS=ON")
 endif ()
-# The model in include/lh/os/window.h is portable and compiles anywhere, but the
-# backend that puts a window on the screen exists for Win32 and X11 only. Leaving this
-# ON elsewhere builds an archive whose lh_os_window_open has no definition and
+# The model in include/lh/os/window.h is portable and compiles anywhere. The
+# backend that puts a window on the screen is Win32, X11, or AppKit. Leaving this
+# ON anywhere else builds an archive whose lh_os_window_open has no definition and
 # fails at the link of whoever calls it — a worse surprise than not having it.
-if (LH_LIBRARY_OPTION_OS_WINDOW AND NOT (WIN32 OR (UNIX AND NOT APPLE)))
+if (LH_LIBRARY_OPTION_OS_WINDOW AND NOT (WIN32 OR UNIX))
     message(STATUS
             "LH_LIBRARY_OPTION_OS_WINDOW=ON on ${CMAKE_SYSTEM_NAME}, which has no window backend yet: turning it off")
     set(LH_LIBRARY_OPTION_OS_WINDOW OFF)

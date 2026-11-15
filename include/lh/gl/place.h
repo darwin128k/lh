@@ -12,8 +12,6 @@
 
 #include <lh/gl/mask.h>
 #include <lh/gl/place/fields.h>
-#include <lh/gl/point.h>
-#include <lh/gl/rect.h>
 
 /**
  * @struct lh_gl_place

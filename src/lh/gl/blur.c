@@ -10,6 +10,7 @@
 #include <lh/core/util/return.h>
 #include <lh/gl/blur/window.h>
 #include <lh/gl/cover.h>
+#include <lh/gl/mask.h>
 
 lh_usize_t
 lh_gl_blur_scratch_count(const lh_gl_rect_t *rect, lh_gl_scalar_t radius)
@@ -105,10 +106,37 @@ lh_gl_blur_put(lh_gl_pixmap_t *pixmap, lh_gl_scalar_t x, lh_gl_scalar_t y,
 }
 
 lh_void
+lh_gl_blur_blend_covered(lh_gl_color_t *pixel, const lh_gl_color_t *frost,
+                         lh_gl_color_channel_t cover, lh_bool_t replace)
+{
+    lh_assert_runtime_ref(pixel);
+    lh_assert_runtime_ref(frost);
+    if (cover == 0)
+    {
+        return;
+    }
+    if (replace == lh_bool_true && cover == 255)
+    {
+        lh_ptr_deref(pixel) = lh_ptr_deref(frost);
+        return;
+    }
+    if (cover == 255)
+    {
+        lh_gl_color_over(pixel, frost, pixel);
+        return;
+    }
+    lh_gl_color_t ink;
+
+    lh_gl_color_scale_alpha(frost, cover, lh_addr_of(ink));
+    lh_gl_color_over(pixel, lh_addr_of(ink), pixel);
+}
+
+lh_void
 lh_gl_blur_column(lh_gl_pixmap_t *pixmap, const lh_gl_color_t *scratch, lh_gl_scalar_t left,
                   lh_gl_scalar_t top, lh_gl_scalar_t width, lh_gl_scalar_t height,
                   lh_gl_scalar_t radius, lh_gl_scalar_t y0, lh_gl_scalar_t y1, lh_gl_scalar_t x,
-                  const lh_gl_rect_t *shape, lh_gl_scalar_t corner, const lh_gl_color_t *tint)
+                  const lh_gl_rect_t *shape, lh_gl_scalar_t corner, const lh_gl_color_t *tint,
+                  const lh_gl_mask_t *mask)
 {
     const lh_gl_color_t *column = scratch + x;
     lh_usize_t stride = lh_type_cast(lh_usize_t, width);
@@ -141,6 +169,40 @@ lh_gl_blur_column(lh_gl_pixmap_t *pixmap, const lh_gl_color_t *scratch, lh_gl_sc
         {
             return;
         }
+    }
+    if (lh_ptr_is_set(mask))
+    {
+        for (lh_gl_scalar_t y = y_from; y < y_to;)
+        {
+            lh_gl_scalar_t count = y_to - y;
+
+            if (count > 64)
+            {
+                count = 64;
+            }
+            lh_gl_color_t tmp[64];
+
+            lh_gl_blur_window_slide(column, stride, y0, y1, radius, y, count, tmp, 1U);
+            for (lh_gl_scalar_t i = 0; i < count; ++i)
+            {
+                lh_gl_color_t frost;
+                lh_gl_color_channel_t cover = lh_gl_mask_coverage(mask, left + x, y + i);
+
+                if (lh_ptr_is_set(tint))
+                {
+                    lh_gl_color_over(lh_addr_of(tmp[i]), tint, lh_addr_of(frost));
+                }
+                else
+                {
+                    frost = tmp[i];
+                }
+                lh_gl_blur_blend_covered(
+                    lh_gl_pixmap_get_pixel_mut(pixmap, left + x, y + i), lh_addr_of(frost), cover,
+                    lh_bool_true);
+            }
+            y = y + count;
+        }
+        return;
     }
     lh_gl_blur_window_slide(column, stride, y0, y1, radius, y_from, y_to - y_from,
                             lh_gl_pixmap_get_pixel_mut(pixmap, left + x, y_from),
@@ -188,14 +250,14 @@ lh_gl_blur_rect(lh_gl_pixmap_t *pixmap, const lh_gl_rect_t *rect, lh_gl_scalar_t
                           lh_gl_point_get_x(lh_gl_rect_get_origin(lh_addr_of(cut))),
                           lh_gl_point_get_y(lh_gl_rect_get_origin(lh_addr_of(cut))), width,
                           lh_gl_size_get_height(lh_gl_rect_get_size(lh_addr_of(cut))), radius, y0,
-                          y1, x, lh_null, 0, lh_null);
+                          y1, x, lh_null, 0, lh_null, lh_null);
     }
 }
 
 lh_void
 lh_gl_glass(lh_gl_pixmap_t *pixmap, const lh_gl_rect_t *panel, lh_gl_scalar_t corner,
             lh_gl_scalar_t blur, const lh_gl_color_t *tint, lh_gl_color_t *scratch,
-            const lh_gl_rect_t *clip)
+            const lh_gl_rect_t *clip, const lh_gl_mask_t *mask)
 {
     lh_return_if(lh_ptr_is_null(pixmap) || lh_ptr_is_null(panel));
     lh_gl_rect_t bounds;
@@ -225,7 +287,19 @@ lh_gl_glass(lh_gl_pixmap_t *pixmap, const lh_gl_rect_t *panel, lh_gl_scalar_t co
         lh_return_if(lh_ptr_is_null(tint));
         if (corner <= 0)
         {
-            lh_gl_pixmap_fill_rect(pixmap, lh_addr_of(bounds), lh_addr_of(write), tint);
+            if (lh_ptr_is_null(mask))
+            {
+                lh_gl_pixmap_fill_rect(pixmap, lh_addr_of(bounds), lh_addr_of(write), tint);
+                return;
+            }
+            for (lh_gl_scalar_t y = top; y < top + height; ++y)
+            {
+                for (lh_gl_scalar_t x = left; x < left + width; ++x)
+                {
+                    lh_gl_blur_blend_covered(lh_gl_pixmap_get_pixel_mut(pixmap, x, y), tint,
+                                             lh_gl_mask_coverage(mask, x, y), lh_bool_false);
+                }
+            }
             return;
         }
         for (lh_gl_scalar_t y = top; y < top + height; ++y)
@@ -250,6 +324,15 @@ lh_gl_glass(lh_gl_pixmap_t *pixmap, const lh_gl_rect_t *panel, lh_gl_scalar_t co
             {
                 continue;
             }
+            if (lh_ptr_is_set(mask))
+            {
+                for (lh_gl_scalar_t x = x0; x < x1; ++x)
+                {
+                    lh_gl_blur_blend_covered(lh_gl_pixmap_get_pixel_mut(pixmap, x, y), tint,
+                                             lh_gl_mask_coverage(mask, x, y), lh_bool_false);
+                }
+                continue;
+            }
             lh_gl_rect_t row;
 
             lh_gl_rect_init(lh_addr_of(row), x0, y, x1 - x0, 1);
@@ -272,6 +355,6 @@ lh_gl_glass(lh_gl_pixmap_t *pixmap, const lh_gl_rect_t *panel, lh_gl_scalar_t co
                           lh_gl_point_get_x(lh_gl_rect_get_origin(lh_addr_of(write))),
                           lh_gl_point_get_y(lh_gl_rect_get_origin(lh_addr_of(write))), width,
                           lh_gl_size_get_height(lh_gl_rect_get_size(lh_addr_of(write))), blur, y0,
-                          y1, x, shape, corner, tint);
+                          y1, x, shape, corner, tint, mask);
     }
 }

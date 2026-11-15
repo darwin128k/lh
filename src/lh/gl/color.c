@@ -35,6 +35,17 @@ lh_gl_color_get_a(const lh_gl_color_t *self)
     return self->a;
 }
 
+lh_u32_t
+lh_gl_color_get_word(const lh_gl_color_t *self)
+{
+    lh_u32_t alpha = lh_gl_color_get_a(self);
+    lh_u32_t red = lh_gl_color_get_r(self);
+    lh_u32_t green = lh_gl_color_get_g(self);
+    lh_u32_t blue = lh_gl_color_get_b(self);
+
+    return (alpha << 24) | (red << 16) | (green << 8) | blue;
+}
+
 lh_void
 lh_gl_color_set_r(lh_gl_color_t *self, lh_gl_color_channel_t r)
 {
