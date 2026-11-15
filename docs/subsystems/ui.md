@@ -1041,7 +1041,15 @@ smooth text: the cheapest way to good text on a microcontroller.
 ### 12.7 Touch and buttons on a microcontroller
 
 The input part needs no OS, so a touch chip uses exactly the same path as a
-desktop window:
+desktop window.
+
+A driver that already knows down, move and up builds one event and pushes it.
+A driver that polls a frame fills `lh_os_input_sample_t` (its own contact id,
+x, y) and calls `lh_os_input_touch_report`. That compares the list with the
+previous frame: a new id is pointer down, a moved one is pointer move, a
+missing one is pointer up. Each finger keeps a pointer id from 1. A stick or
+pad calls `lh_os_input_pad_report_axis` and `lh_os_input_pad_report_button`;
+an event goes out only when the value changed. The chip stays in the driver.
 
 1. In the touch interrupt, build an event:
    `lh_os_input_event_init_pointer(&e, lh_os_input_kind_pointer_down,

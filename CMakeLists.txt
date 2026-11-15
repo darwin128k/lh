@@ -253,6 +253,9 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/timer.c
         ${LH_LIB_SRC_PATH}/core/timer/tick.c
         ${LH_LIB_SRC_PATH}/os/input/contacts.c
+        ${LH_LIB_SRC_PATH}/os/input/sample.c
+        ${LH_LIB_SRC_PATH}/os/input/touch.c
+        ${LH_LIB_SRC_PATH}/os/input/pad.c
         ${LH_LIB_SRC_PATH}/os/input/event.c
         ${LH_LIB_SRC_PATH}/os/input/queue.c
         ${LH_LIB_SRC_PATH}/os/input/recognizer.c

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- `lh_os_input_sample_t` is one contact a driver read: its own id and a position. `lh_os_input_touch_report` compares that list with the previous frame and emits pointer down, move and up. Fingers are pointer ids from 1; the mouse stays 0. A contact past the four remembered slots is skipped until one goes up. `lh_os_input_pad_report_axis` and `lh_os_input_pad_report_button` emit a controller event only when the value changed.
+
 - A pixmap stores a row of alpha 255 instead of blending each pixel. `lh_gl_pixmap_fill_colors` writes one row of colors in one call. `lh_gl_cover_round_rect_span` is the covered run of a rounded row, so a vertical gradient paints that run as one rectangle and repeats a solid color as one block. A radial row walks square thresholds (`lh_gl_gradient_radial_axis`, `lh_gl_gradient_radial_frac_from_square`) instead of a root on every pixel. A glyph row of equal coverage is one rectangle. A shadow paints the flat sides and the cap from the distance, not one rectangle per pixel. Release on this machine, 24 cards, 8 frames: cards 285 µs, partial 9 (one card, the frame already drawn), vertical 283, radial 1249, shadow 1335. The i7-13700K table was 200, 9.3, 322, 1030, 1024. Captions are still an 8×12 block.
 
 - `lh_gl_text_t` is an entity plus a borrowed font, color and string. One byte is one code. `lh_gl_font_t` is one borrowed run of `lh_gl_glyph_t`. A code outside the run is skipped.

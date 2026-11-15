@@ -21,4 +21,11 @@ typedef enum lh_os_input_axis
     lh_os_input_axis_trigger_right /**< Right trigger. */
 } lh_os_input_axis_t;              /**< One controller axis. */
 
+/**
+ * @def LH_OS_INPUT_AXIS_COUNT
+ * @brief Entries in an axis table indexed by ::lh_os_input_axis_t, including
+ *        ::lh_os_input_axis_none at 0.
+ */
+#define LH_OS_INPUT_AXIS_COUNT (lh_os_input_axis_trigger_right + 1)
+
 #endif /* LH_OS_INPUT_AXIS_H */
