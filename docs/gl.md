@@ -32,10 +32,10 @@ as of 2026-11-14 and the plan agreed with Egor.
   `lh_list_t` of children. Only a layer can own an entity; an entity's parent
   is `lh_gl_layer_t *`. Layers nest (a layer is an entity). List order is
   z-order: first = back, last = front. The root has no parent and is attached
-  to one surface. A scene is an ordinary child layer of the root; no separate
-  scene type is needed until it has its own behaviour. A future separate scene
-  manager handles swipes and the back stack by moving or selecting these layers.
-  Windows and applications belong to the platform, outside `lh/gl`.
+  to one surface. A screen is an ordinary child layer of the root
+  (`lh_gl_screen_open`, `lh_gl_screen_back`): the last child is the one in
+  front, and back unlinks it. No separate scene type. A gesture is not part
+  of that list. Windows and applications belong to the platform, outside `lh/gl`.
 - **surface** `lh_gl_surface_t`: owns the display size and a fixed dirty-region
   array, and borrows a root layer. Attach and resize set the root rect to the
   surface size and invalidate the whole surface; detach keeps the root rect.
@@ -91,10 +91,10 @@ as of 2026-11-14 and the plan agreed with Egor.
    8275, 11767. The i7-13700K table is cards 200 µs, partial 9.3, vertical 322,
    radial 1030, shadow 1024. Radial and shadow are still about a third over
    that table. Captions are an 8×12 block, not Roboto 16 px.
-2. A scene stays an ordinary child layer. A swipe is a gesture: a drag that
-   travels at least `swipe_px` (default 48) and then goes up. The back stack
-   still waits for how a layer moves. Renderer packets over rail when another
-   loop draws. Try on the panel after that.
+2. Screens are the child layers of the root (`lh_gl_screen_open`,
+   `lh_gl_screen_back`). The front child is the one drawn on top. A swipe
+   stays a gesture on the input and does not move a layer. Renderer packets
+   over rail when another loop draws. Try on the panel after that.
 
 ## Held: a press and a one-line screen
 
