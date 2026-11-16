@@ -603,7 +603,7 @@ lh_gl_pixmap_blend_const_32(const lh_gl_pixmap_t *self, lh_u32_t *at, lh_usize_t
     lh_return_if(count == 0U || alpha == 0U);
     if (alpha == LH_BYTE_T_MAX)
     {
-        lh_memory_set_u32(at, count, 0xFF000000U | src);
+        lh_memory_set_u32(at, count, lh_bit_or(0xFF000000U, src));
         return;
     }
     for (lh_usize_t i = 0U; i < count;)
@@ -907,7 +907,7 @@ lh_gl_pixmap_pack_rgb(const lh_gl_pixmap_t *self, lh_u32_t src)
 {
     LH_ATTRIBUTE_UNUSED(self);
     lh_gl_color_t color;
-    lh_gl_color_init_argb(lh_addr_of(color), 0xFF000000U | src);
+    lh_gl_color_init_argb(lh_addr_of(color), lh_bit_or(0xFF000000U, src));
     return lh_gl_color_get_rgb565(lh_addr_of(color));
 }
 

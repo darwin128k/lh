@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Identical box shadows reuse one alpha mask
   (`lh_gl_canvas_sw_shadow_mask_fill`). The first builds it; the rest only blend it.
+  The side of that mask is `LH_LIBRARY_OPTION_GL_SHADOW_MASK` (default 160). A
+  larger outset is drawn row by row.
 
 - A constant coverage over a repeated destination word is mixed once
   (`lh_gl_pixmap_blend_const_32`), and a card row calls that directly. Where the

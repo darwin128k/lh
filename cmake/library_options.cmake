@@ -311,6 +311,19 @@ set(LH_LIBRARY_OPTION_GL_CANVAS_DEPTH "8" CACHE STRING
         "Max nested lh_gl_canvas_push levels (must be 1..255; default 8).")
 
 # -----------------------------------------------------------------------------
+# LH_LIBRARY_OPTION_GL_SHADOW_MASK
+#
+# Side of the static alpha mask one repeated box shadow reuses. A shadow whose
+# outset rectangle is larger on either side is drawn row by row instead. The
+# buffer is side * side bytes.
+#
+# CMake: -DLH_LIBRARY_OPTION_GL_SHADOW_MASK=256 or ccmake.
+# Manual build: set in include/lh/config.h or -D on the compiler command line.
+# -----------------------------------------------------------------------------
+set(LH_LIBRARY_OPTION_GL_SHADOW_MASK "160" CACHE STRING
+        "Side of the repeated box-shadow alpha mask, in pixels (must be 1..1024; default 160).")
+
+# -----------------------------------------------------------------------------
 # LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY
 #
 # Capacity lh_array_t grows to from empty on its first push_back/insert

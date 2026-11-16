@@ -139,6 +139,14 @@ function(lh_generate_config)
     endif ()
     set(ValUiCanvasDepth "${LH_LIBRARY_OPTION_GL_CANVAS_DEPTH}")
 
+    if (NOT LH_LIBRARY_OPTION_GL_SHADOW_MASK MATCHES "^[0-9]+$" OR
+            LH_LIBRARY_OPTION_GL_SHADOW_MASK LESS 1 OR
+            LH_LIBRARY_OPTION_GL_SHADOW_MASK GREATER 1024)
+        message(FATAL_ERROR "LH_LIBRARY_OPTION_GL_SHADOW_MASK must be an integer in 1..1024 "
+                "(got '${LH_LIBRARY_OPTION_GL_SHADOW_MASK}')")
+    endif ()
+    set(ValUiShadowMask "${LH_LIBRARY_OPTION_GL_SHADOW_MASK}")
+
     set(ValArrayInitialCapacity "${LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY}")
     set(ValArrayGrowthFactor "${LH_LIBRARY_OPTION_ARRAY_GROWTH_FACTOR}")
 

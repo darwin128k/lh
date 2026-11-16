@@ -404,11 +404,13 @@ lh_gl_canvas_sw_shadow_span(lh_gl_canvas_sw_t *self, const lh_gl_canvas_sw_shado
     }
 }
 
-/* One repeated box. Larger than this, the shadow is drawn row by row. */
-#define LH_GL_CANVAS_SW_SHADOW_MASK 160
+/* One repeated box. Larger than ::LH_LIBRARY_OPTION_GL_SHADOW_MASK on either
+   side, the shadow is drawn row by row. */
+lh_assert_static(LH_LIBRARY_OPTION_GL_SHADOW_MASK >= 1 && LH_LIBRARY_OPTION_GL_SHADOW_MASK <= 1024,
+                 "LH_LIBRARY_OPTION_GL_SHADOW_MASK must be in 1..1024");
 
-static lh_byte_t
-    lh_gl_canvas_sw_shadow_mask[LH_GL_CANVAS_SW_SHADOW_MASK * LH_GL_CANVAS_SW_SHADOW_MASK];
+static lh_byte_t lh_gl_canvas_sw_shadow_mask[LH_LIBRARY_OPTION_GL_SHADOW_MASK *
+                                             LH_LIBRARY_OPTION_GL_SHADOW_MASK];
 static lh_s32_t lh_gl_canvas_sw_shadow_kept_width;
 static lh_s32_t lh_gl_canvas_sw_shadow_kept_height;
 static lh_s32_t lh_gl_canvas_sw_shadow_kept_corner;
@@ -533,8 +535,8 @@ lh_gl_canvas_sw_shadow(lh_ptr context, const lh_gl_rect_t *rect, lh_gl_scalar_t 
         const lh_s32_t offset_y = lh_gl_scalar_floor_s32(lh_gl_shadow_get_offset_y(shadow));
         const lh_s32_t peak = lh_gl_color_get_a(lh_gl_shadow_get_color(shadow));
         const lh_bool_t fits =
-            width > 0 && height > 0 && width <= LH_GL_CANVAS_SW_SHADOW_MASK &&
-                    height <= LH_GL_CANVAS_SW_SHADOW_MASK
+            width > 0 && height > 0 && width <= LH_LIBRARY_OPTION_GL_SHADOW_MASK &&
+                    height <= LH_LIBRARY_OPTION_GL_SHADOW_MASK
                 ? lh_bool_true
                 : lh_bool_false;
         const lh_bool_t same =

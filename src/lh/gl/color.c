@@ -4,6 +4,7 @@
  */
 
 #include <lh/core/assert/runtime.h>
+#include <lh/core/bit/ops.h>
 #include <lh/core/byte/limits.h>
 #include <lh/core/math.h>
 #include <lh/gl/color.h>
@@ -30,7 +31,8 @@ lh_gl_color_channel_t
 lh_gl_color_hex_channel(lh_u32_t hex, lh_u32_t shift)
 {
     return lh_cast_static(lh_gl_color_channel_t,
-                          (hex >> shift) & lh_cast_static(lh_u32_t, LH_BYTE_T_MAX));
+                          lh_bit_and(lh_bit_shr(hex, shift),
+                                     lh_cast_static(lh_u32_t, LH_BYTE_T_MAX)));
 }
 
 lh_void
@@ -50,34 +52,36 @@ lh_gl_color_init_argb(lh_gl_color_t *self, lh_u32_t argb)
 lh_u32_t
 lh_gl_color_get_argb(const lh_gl_color_t *self)
 {
-    return (lh_cast_static(lh_u32_t, lh_gl_color_get_a(self)) << 24) |
-           (lh_cast_static(lh_u32_t, lh_gl_color_get_r(self)) << 16) |
-           (lh_cast_static(lh_u32_t, lh_gl_color_get_g(self)) << 8) |
-           lh_cast_static(lh_u32_t, lh_gl_color_get_b(self));
+    return lh_bit_or(lh_bit_or(lh_bit_shl(lh_cast_static(lh_u32_t, lh_gl_color_get_a(self)), 24),
+                               lh_bit_shl(lh_cast_static(lh_u32_t, lh_gl_color_get_r(self)), 16)),
+                     lh_bit_or(lh_bit_shl(lh_cast_static(lh_u32_t, lh_gl_color_get_g(self)), 8),
+                               lh_cast_static(lh_u32_t, lh_gl_color_get_b(self))));
 }
 
 lh_gl_color_channel_t
 lh_gl_color_expand_bits(lh_u32_t value, lh_u32_t bits)
 {
     /* Replicate the top bits into the bottom: 0 → 0, all ones → 255. */
-    return lh_cast_static(lh_gl_color_channel_t,
-                          (value << (8U - bits)) | (value >> (2U * bits - 8U)));
+    return lh_cast_static(
+        lh_gl_color_channel_t,
+        lh_bit_or(lh_bit_shl(value, 8U - bits), lh_bit_shr(value, 2U * bits - 8U)));
 }
 
 lh_void
 lh_gl_color_init_rgb565(lh_gl_color_t *self, lh_u32_t rgb565)
 {
-    lh_gl_color_init(self, lh_gl_color_expand_bits((rgb565 >> 11) & 0x1FU, 5U),
-                     lh_gl_color_expand_bits((rgb565 >> 5) & 0x3FU, 6U),
-                     lh_gl_color_expand_bits(rgb565 & 0x1FU, 5U), LH_BYTE_T_MAX);
+    lh_gl_color_init(self, lh_gl_color_expand_bits(lh_bit_and(lh_bit_shr(rgb565, 11), 0x1FU), 5U),
+                     lh_gl_color_expand_bits(lh_bit_and(lh_bit_shr(rgb565, 5), 0x3FU), 6U),
+                     lh_gl_color_expand_bits(lh_bit_and(rgb565, 0x1FU), 5U), LH_BYTE_T_MAX);
 }
 
 lh_u32_t
 lh_gl_color_get_rgb565(const lh_gl_color_t *self)
 {
-    return ((lh_cast_static(lh_u32_t, lh_gl_color_get_r(self)) >> 3) << 11) |
-           ((lh_cast_static(lh_u32_t, lh_gl_color_get_g(self)) >> 2) << 5) |
-           (lh_cast_static(lh_u32_t, lh_gl_color_get_b(self)) >> 3);
+    return lh_bit_or(
+        lh_bit_or(lh_bit_shl(lh_bit_shr(lh_cast_static(lh_u32_t, lh_gl_color_get_r(self)), 3), 11),
+                  lh_bit_shl(lh_bit_shr(lh_cast_static(lh_u32_t, lh_gl_color_get_g(self)), 2), 5)),
+        lh_bit_shr(lh_cast_static(lh_u32_t, lh_gl_color_get_b(self)), 3));
 }
 
 /* -- Accessors ------------------------------------------------------------- */
@@ -204,7 +208,7 @@ lh_gl_color_div255_round(lh_u32_t x)
        (x + 1 + (x >> 8)) >> 8 is the truncating form, not this one. */
     const lh_u32_t t = x + 128U;
 
-    return (t + (t >> 8)) >> 8;
+    return lh_bit_shr(t + lh_bit_shr(t, 8), 8);
 }
 
 lh_u32_t
@@ -215,7 +219,7 @@ lh_gl_color_div255_round_pair(lh_u32_t x)
        lane above; the mask drops what the shift brings down from it. */
     const lh_u32_t t = x + 0x00800080U;
 
-    return ((t + ((t >> 8) & 0x00FF00FFU)) >> 8) & 0x00FF00FFU;
+    return lh_bit_and(lh_bit_shr(t + lh_bit_and(lh_bit_shr(t, 8), 0x00FF00FFU), 8), 0x00FF00FFU);
 }
 
 lh_u32_t
@@ -226,7 +230,8 @@ lh_gl_color_dual_mac(lh_u32_t x, lh_u32_t y, lh_u32_t acc)
                           __smlad(lh_cast_static(int16x2_t, x), lh_cast_static(int16x2_t, y),
                                   lh_cast_static(int32_t, acc)));
 #else
-    return acc + (x & 0xFFFFU) * (y & 0xFFFFU) + (x >> 16) * (y >> 16);
+    return acc + lh_bit_and(x, 0xFFFFU) * lh_bit_and(y, 0xFFFFU) +
+           lh_bit_shr(x, 16) * lh_bit_shr(y, 16);
 #endif
 }
 
@@ -246,7 +251,8 @@ lh_gl_color_over_opaque_channel(lh_u32_t src, lh_u32_t dst, lh_u32_t a)
        with the DSP extension (Cortex-M4 and up). */
     return lh_cast_static(lh_gl_color_channel_t,
                           lh_gl_color_div255_round(lh_gl_color_dual_mac(
-                              src | (dst << 16), a | ((LH_BYTE_T_MAX - a) << 16), 0U)));
+                              lh_bit_or(src, lh_bit_shl(dst, 16)),
+                              lh_bit_or(a, lh_bit_shl(LH_BYTE_T_MAX - a, 16)), 0U)));
 #else
     /* Without SMLAD the two products are written out: packing them into halfwords
        only for lh_gl_color_dual_mac to unpack them again costs shifts, masks and
@@ -259,7 +265,8 @@ lh_gl_color_over_opaque_channel(lh_u32_t src, lh_u32_t dst, lh_u32_t a)
 lh_u32_t
 lh_gl_color_argb_make(lh_u32_t r, lh_u32_t g, lh_u32_t b, lh_u32_t a)
 {
-    return (a << 24) | (r << 16) | (g << 8) | b;
+    return lh_bit_or(lh_bit_or(lh_bit_shl(a, 24), lh_bit_shl(r, 16)),
+                     lh_bit_or(lh_bit_shl(g, 8), b));
 }
 
 lh_u32_t
@@ -268,10 +275,13 @@ lh_gl_color_argb_over_opaque(lh_u32_t dst, lh_u32_t src)
     const lh_u32_t a = lh_gl_color_hex_channel(src, 24);
     /* R and B in one word, G (and the alpha lane, which an opaque result does not
        read) in another: two multiplies a pair instead of one a channel. */
-    const lh_u32_t rb = lh_gl_color_mix_pair(dst & 0x00FF00FFU, src & 0x00FF00FFU, a);
-    const lh_u32_t ga = lh_gl_color_mix_pair((dst >> 8) & 0x00FF00FFU, (src >> 8) & 0x00FF00FFU, a);
+    const lh_u32_t rb = lh_gl_color_mix_pair(lh_bit_and(dst, 0x00FF00FFU),
+                                            lh_bit_and(src, 0x00FF00FFU), a);
+    const lh_u32_t ga =
+        lh_gl_color_mix_pair(lh_bit_and(lh_bit_shr(dst, 8), 0x00FF00FFU),
+                             lh_bit_and(lh_bit_shr(src, 8), 0x00FF00FFU), a);
 
-    return 0xFF000000U | rb | ((ga & 0xFFU) << 8);
+    return lh_bit_or(lh_bit_or(0xFF000000U, rb), lh_bit_shl(lh_bit_and(ga, 0xFFU), 8));
 }
 
 lh_void
@@ -280,11 +290,11 @@ lh_gl_color_argb_over_opaque_span(lh_u32_t *at, const lh_gl_color_channel_t *alp
 {
     /* Taken once: a shadow edge and a glyph row share one destination word. */
     {
-        const lh_u32_t dst_rb = dst & 0x00FF00FFU;
-        const lh_u32_t dst_ga = (dst >> 8) & 0x00FF00FFU;
-        const lh_u32_t src_rb = rgb & 0x00FF00FFU;
-        const lh_u32_t src_ga = (rgb >> 8) & 0x00FF00FFU;
-        const lh_u32_t solid = 0xFF000000U | rgb;
+        const lh_u32_t dst_rb = lh_bit_and(dst, 0x00FF00FFU);
+        const lh_u32_t dst_ga = lh_bit_and(lh_bit_shr(dst, 8), 0x00FF00FFU);
+        const lh_u32_t src_rb = lh_bit_and(rgb, 0x00FF00FFU);
+        const lh_u32_t src_ga = lh_bit_and(lh_bit_shr(rgb, 8), 0x00FF00FFU);
+        const lh_u32_t solid = lh_bit_or(0xFF000000U, rgb);
 
         for (lh_u32_t i = 0U; i < count; ++i)
         {
@@ -303,7 +313,7 @@ lh_gl_color_argb_over_opaque_span(lh_u32_t *at, const lh_gl_color_channel_t *alp
                 const lh_u32_t rb = lh_gl_color_mix_pair(dst_rb, src_rb, a);
                 const lh_u32_t ga = lh_gl_color_mix_pair(dst_ga, src_ga, a);
 
-                at[i] = 0xFF000000U | rb | ((ga & 0xFFU) << 8);
+                at[i] = lh_bit_or(lh_bit_or(0xFF000000U, rb), lh_bit_shl(lh_bit_and(ga, 0xFFU), 8));
             }
         }
     }

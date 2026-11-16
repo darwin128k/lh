@@ -109,6 +109,15 @@
 #endif /* LH_LIBRARY_OPTION_GL_CANVAS_DEPTH */
 
 /**
+ * @def LH_LIBRARY_OPTION_GL_SHADOW_MASK
+ * @brief Side of the repeated box-shadow alpha mask, in pixels (1..1024).
+ *        Fallback: 160 (CMake default).
+ */
+#ifndef LH_LIBRARY_OPTION_GL_SHADOW_MASK
+#    define LH_LIBRARY_OPTION_GL_SHADOW_MASK 160
+#endif /* LH_LIBRARY_OPTION_GL_SHADOW_MASK */
+
+/**
  * @def LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY
  * @brief Capacity ::lh_array_t grows to on its first insertion. Fallback: 1 (CMake default).
  */
