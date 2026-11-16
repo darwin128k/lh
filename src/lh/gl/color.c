@@ -274,6 +274,41 @@ lh_gl_color_argb_over_opaque(lh_u32_t dst, lh_u32_t src)
     return 0xFF000000U | rb | ((ga & 0xFFU) << 8);
 }
 
+lh_void
+lh_gl_color_argb_over_opaque_span(lh_u32_t *at, const lh_gl_color_channel_t *alpha, lh_u32_t count,
+                                  lh_u32_t dst, lh_u32_t rgb)
+{
+    /* Taken once: a shadow edge and a glyph row share one destination word. */
+    {
+        const lh_u32_t dst_rb = dst & 0x00FF00FFU;
+        const lh_u32_t dst_ga = (dst >> 8) & 0x00FF00FFU;
+        const lh_u32_t src_rb = rgb & 0x00FF00FFU;
+        const lh_u32_t src_ga = (rgb >> 8) & 0x00FF00FFU;
+        const lh_u32_t solid = 0xFF000000U | rgb;
+
+        for (lh_u32_t i = 0U; i < count; ++i)
+        {
+            const lh_u32_t a = alpha[i];
+
+            if (a == 0U)
+            {
+                continue;
+            }
+            if (a == LH_BYTE_T_MAX)
+            {
+                at[i] = solid;
+                continue;
+            }
+            {
+                const lh_u32_t rb = lh_gl_color_mix_pair(dst_rb, src_rb, a);
+                const lh_u32_t ga = lh_gl_color_mix_pair(dst_ga, src_ga, a);
+
+                at[i] = 0xFF000000U | rb | ((ga & 0xFFU) << 8);
+            }
+        }
+    }
+}
+
 lh_u32_t
 lh_gl_color_argb_over_translucent(lh_u32_t dst, lh_u32_t src)
 {

@@ -548,6 +548,73 @@ TEST(ui_pixmap, blend_alpha_32_over_sse2_is_exact_for_every_alpha_pair)
 
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
 
+/* The panel has no SSE, so a short run of changing coverage goes through the
+   opaque span. Every alpha, including 0 and 255, has to match the per-pixel mix. */
+TEST(ui_pixmap, opaque_span_matches_argb_over_opaque_for_every_alpha)
+{
+    lh_u32_t at[256];
+    lh_byte_t alpha[256];
+    const lh_u32_t dst = 0xff14181du;
+    const lh_u32_t rgb = 0x002e6be6u;
+
+    for (int i = 0; i < 256; ++i)
+    {
+        at[i] = dst;
+        alpha[i] = static_cast<lh_byte_t>(i);
+    }
+    lh_gl_color_argb_over_opaque_span(at, alpha, 256u, dst, rgb);
+    for (int i = 0; i < 256; ++i)
+    {
+        const lh_u32_t want =
+            i == 0 ? dst : lh_gl_color_argb_over_opaque(dst, (static_cast<lh_u32_t>(i) << 24) | rgb);
+
+        EXPECT_EQ(at[i], want) << i;
+    }
+}
+
+TEST(ui_pixmap, blend_vary_32_groups_one_opaque_word)
+{
+    lh_gl_pixmap_t pixmap;
+    lh_u32_t at[8];
+    lh_u32_t want[8];
+    lh_byte_t alpha[8];
+    const lh_u32_t src = 0x002e6be6u;
+    const lh_u32_t bg = 0xff14181du;
+    const lh_u32_t glass = 0x80ffffffu;
+
+    lh_gl_pixmap_init(lh_addr_of(pixmap), lh_ptr_rcast(lh_byte_t, at), 8, 1, 8 * 4,
+                      lh_gl_pixmap_format_argb8888);
+    for (int i = 0; i < 8; ++i)
+    {
+        at[i] = bg;
+        alpha[i] = static_cast<lh_byte_t>(i * 30);
+    }
+    at[5] = glass;
+    at[6] = glass;
+    alpha[0] = 0u;
+    alpha[3] = 255u;
+    for (int i = 0; i < 8; ++i)
+    {
+        if (alpha[i] == 0u)
+        {
+            want[i] = at[i];
+        }
+        else if (alpha[i] == 255u)
+        {
+            want[i] = 0xff000000u | src;
+        }
+        else
+        {
+            want[i] = lh_gl_pixmap_mix_argb(lh_addr_of(pixmap), at[i], src, alpha[i]);
+        }
+    }
+    lh_gl_pixmap_blend_vary_32(lh_addr_of(pixmap), at, alpha, 8u, src);
+    for (int i = 0; i < 8; ++i)
+    {
+        EXPECT_EQ(at[i], want[i]) << i;
+    }
+}
+
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
 
 /* The 16-bit kernel is the MCU path, and the format that most easily goes

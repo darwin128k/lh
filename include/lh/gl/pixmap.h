@@ -323,12 +323,24 @@ lh_gl_pixmap_blend_const_32(const lh_gl_pixmap_t *self, lh_u32_t *at, lh_usize_t
                             lh_u32_t src, lh_u32_t alpha);
 
 /**
+ * @brief Blend @p src over @p count ARGB8888 words at @p at, each at its own @p alpha.
+ *
+ * A run of one destination word is mixed once when that word is opaque
+ * (::lh_gl_color_argb_over_opaque_span). A translucent word is mixed per pixel.
+ * The words match ::lh_gl_pixmap_mix_argb. @p at and @p alpha are required when
+ * @p count is not 0.
+ */
+lh_void
+lh_gl_pixmap_blend_vary_32(const lh_gl_pixmap_t *self, lh_u32_t *at, const lh_byte_ptr alpha,
+                           lh_usize_t count, lh_u32_t src);
+
+/**
  * @brief Blend @p src over @p count ARGB8888 words at @p at, each at its own
  *        @p alpha (`0` skipped, `255` stored).
  *
  * A run of one alpha at least four pixels long is ::lh_gl_pixmap_blend_const_32.
- * A shorter run stays on the SSE kernel when the CPU has it, and on the const
- * kernel otherwise. Either way the words are the per-pixel mix.
+ * A shorter run stays on the SSE kernel when the CPU has it, and on
+ * ::lh_gl_pixmap_blend_vary_32 otherwise. Either way the words are the per-pixel mix.
  */
 lh_void
 lh_gl_pixmap_blend_alpha_32(const lh_gl_pixmap_t *self, lh_u32_t *at, const lh_byte_ptr alpha,
@@ -362,7 +374,8 @@ lh_gl_pixmap_blend_alpha_16(const lh_gl_pixmap_t *self, lh_u16_t *at, const lh_b
  * Only meaningful when `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2` is on and the running
  * CPU reports SSE2 (::lh_cpu_simd_has_sse2). ::lh_gl_pixmap_blend_alpha_32 is
  * what to call: a run of four or more equal alphas goes to
- * ::lh_gl_pixmap_blend_const_32, and a shorter run dispatches here. Exposed so
+ * ::lh_gl_pixmap_blend_const_32, and a shorter run dispatches here when the CPU
+ * has SSE2. Exposed so
  * the tier can be tested against the scalar kernel directly instead of only
  * through the dispatcher.
  */
@@ -501,8 +514,10 @@ lh_gl_pixmap_blend_cover_8(lh_gl_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_s32_
                            lh_u64_t cover, lh_u32_t src);
 
 /**
- * @brief Blend @p color over pixels `x0 .. x1 - 1` of row @p y (the row
- *        kernel, one alpha for all).
+ * @brief Blend @p color over pixels `x0 .. x1 - 1` of row @p y (one alpha for all).
+ *
+ * An ARGB8888 row is one ::lh_gl_pixmap_blend_const_32. A 16-bit row is filled
+ * in runs of ::LH_GL_PIXMAP_RUN.
  */
 lh_void
 lh_gl_pixmap_blend_span(lh_gl_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,

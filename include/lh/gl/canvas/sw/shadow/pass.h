@@ -49,6 +49,19 @@ lh_gl_canvas_sw_shadow_pass_init(const struct lh_gl_canvas_sw *self, const lh_gl
                                  lh_gl_canvas_sw_shadow_pass_t *out);
 
 /**
+ * @brief The edges and colour of ::lh_gl_canvas_sw_shadow_pass_init, without the
+ *        shape or the ramp.
+ *
+ * False, with the edges set, when the shadow has no outset. The caller that
+ * already holds an alpha mask skips the ramp, which depends only on the box
+ * size, the radius and the shadow, not on where the box sits.
+ */
+lh_bool_t
+lh_gl_canvas_sw_shadow_pass_init_bounds(const struct lh_gl_canvas_sw *self, const lh_gl_rect_t *rect,
+                                        lh_gl_scalar_t radius, const lh_gl_shadow_t *shadow,
+                                        lh_gl_canvas_sw_shadow_pass_t *out);
+
+/**
  * @brief The shape of the shadow (level 1).
  *
  * @param self The shadow pass; checked by ::lh_assert_runtime_ref.

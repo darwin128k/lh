@@ -621,13 +621,40 @@ lh_gl_pixmap_blend_const_32(const lh_gl_pixmap_t *self, lh_u32_t *at, lh_usize_t
 }
 
 lh_void
+lh_gl_pixmap_blend_vary_32(const lh_gl_pixmap_t *self, lh_u32_t *at, lh_byte_cptr alpha,
+                           lh_usize_t count, lh_u32_t src)
+{
+    for (lh_usize_t i = 0U; i < count;)
+    {
+        const lh_u32_t dst = at[i];
+        lh_usize_t end = i + 1U;
+
+        while (end < count && at[end] == dst)
+        {
+            ++end;
+        }
+        if ((dst >> 24) == LH_BYTE_T_MAX)
+        {
+            lh_gl_color_argb_over_opaque_span(at + i, alpha + i, lh_cast_static(lh_u32_t, end - i),
+                                              dst, src);
+        }
+        else
+        {
+            for (lh_usize_t pixel = i; pixel < end; ++pixel)
+            {
+                at[pixel] = lh_gl_pixmap_mix_argb(self, dst, src, alpha[pixel]);
+            }
+        }
+        i = end;
+    }
+}
+
+lh_void
 lh_gl_pixmap_blend_alpha_32(const lh_gl_pixmap_t *self, lh_u32_t *at, lh_byte_cptr alpha,
                             lh_usize_t count, lh_u32_t src)
 {
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
     const lh_bool_t sse = lh_cpu_simd_has_sse2();
-#else
-    const lh_bool_t sse = lh_bool_false;
 #endif
 
     for (lh_usize_t i = 0U; i < count;)
@@ -639,13 +666,12 @@ lh_gl_pixmap_blend_alpha_32(const lh_gl_pixmap_t *self, lh_u32_t *at, lh_byte_cp
         {
             ++end;
         }
-        if (!sse || end - i >= LH_GL_PIXMAP_BLEND_CONST_RUN)
+        if (end - i >= LH_GL_PIXMAP_BLEND_CONST_RUN)
         {
             lh_gl_pixmap_blend_const_32(self, at + i, end - i, src, coverage);
             i = end;
             continue;
         }
-#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
         {
             lh_usize_t stretch = end;
 
@@ -664,10 +690,18 @@ lh_gl_pixmap_blend_alpha_32(const lh_gl_pixmap_t *self, lh_u32_t *at, lh_byte_cp
                 }
                 stretch = run;
             }
-            lh_gl_pixmap_blend_alpha_32_sse2(self, at + i, alpha + i, stretch - i, src);
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+            if (sse)
+            {
+                lh_gl_pixmap_blend_alpha_32_sse2(self, at + i, alpha + i, stretch - i, src);
+            }
+            else
+#endif
+            {
+                lh_gl_pixmap_blend_vary_32(self, at + i, alpha + i, stretch - i, src);
+            }
             i = stretch;
         }
-#endif
     }
 }
 
@@ -990,9 +1024,20 @@ lh_void
 lh_gl_pixmap_blend_span(lh_gl_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
                         const lh_gl_color_t *color)
 {
+    const lh_u32_t coverage = lh_gl_color_get_a(color);
+
+    lh_return_if(x1 <= x0 || coverage == 0U);
+    if (!lh_gl_pixmap_format_is_16(lh_gl_pixmap_get_format(self)))
+    {
+        lh_gl_pixmap_blend_const_32(self,
+                                    lh_ptr_rcast(lh_u32_t, lh_gl_pixmap_get_address(self, x0, y)),
+                                    lh_cast_static(lh_usize_t, x1 - x0),
+                                    lh_gl_color_get_argb(color) & 0x00FFFFFFU, coverage);
+        return;
+    }
     lh_byte_t alpha[LH_GL_PIXMAP_RUN];
 
-    lh_memory_set(alpha, sizeof(alpha), lh_gl_color_get_a(color));
+    lh_memory_set(alpha, sizeof(alpha), lh_cast_static(lh_byte_t, coverage));
     while (x0 < x1)
     {
         lh_s32_t end = lh_math_min(x1, x0 + LH_GL_PIXMAP_RUN);

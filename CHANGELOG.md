@@ -21,9 +21,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   colours. On i.MX RT105x, a two-stop sampler fell from 87?98 to 35?39 ?s and a
   full 480 ? 320 frame of 24 vertical-gradient cards from 27.55 to 25.10 ms.
 
+- Identical box shadows reuse one alpha mask
+  (`lh_gl_canvas_sw_shadow_mask_fill`). The first builds it; the rest only blend it.
+
 - A constant coverage over a repeated destination word is mixed once
-  (`lh_gl_pixmap_blend_const_32`). A card fill and the straight band of a shadow
-  were mixing every pixel.
+  (`lh_gl_pixmap_blend_const_32`), and a card row calls that directly. Where the
+  coverage changes and the word does not, the channels are taken once
+  (`lh_gl_color_argb_over_opaque_span`). A card fill, a shadow edge and a glyph
+  row were mixing every pixel.
 
 - Pointer drags and wheel input skip fitting button/container interiors when
   selecting a surrounding scrollable container. A standalone fitting button

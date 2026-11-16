@@ -9,9 +9,9 @@
 #include <lh/core/assert.h>
 
 lh_bool_t
-lh_gl_canvas_sw_shadow_pass_init(const lh_gl_canvas_sw_t *self, const lh_gl_rect_t *rect,
-                                 lh_gl_scalar_t radius, const lh_gl_shadow_t *shadow,
-                                 lh_gl_canvas_sw_shadow_pass_t *out)
+lh_gl_canvas_sw_shadow_pass_init_bounds(const lh_gl_canvas_sw_t *self, const lh_gl_rect_t *rect,
+                                        lh_gl_scalar_t radius, const lh_gl_shadow_t *shadow,
+                                        lh_gl_canvas_sw_shadow_pass_t *out)
 {
     const lh_gl_size_t *size = lh_gl_rect_get_size(rect);
     const lh_gl_point_t *origin = lh_gl_rect_get_origin(rect);
@@ -26,11 +26,24 @@ lh_gl_canvas_sw_shadow_pass_init(const lh_gl_canvas_sw_t *self, const lh_gl_rect
     lh_gl_canvas_sw_shadow_pass_set_rounded(out, lh_gl_canvas_sw_is_rounded(self));
     lh_gl_canvas_sw_shadow_pass_set_left(out, lh_gl_point_get_x(origin) - outset);
     lh_gl_canvas_sw_shadow_pass_set_top(out, lh_gl_point_get_y(origin) - outset);
-    lh_gl_canvas_sw_shadow_pass_set_right(out, lh_gl_canvas_sw_shadow_pass_get_left(out) + lh_gl_size_get_width(size) + outset * 2);
-    lh_gl_canvas_sw_shadow_pass_set_bottom(out, lh_gl_canvas_sw_shadow_pass_get_top(out) + lh_gl_size_get_height(size) + outset * 2);
-    lh_return_if(outset <= 0, lh_bool_false);
-    lh_gl_shadow_shape_init(lh_gl_canvas_sw_shadow_pass_get_shape_mut(out), shadow, rect, lh_gl_canvas_sw_shadow_pass_get_corner(out));
-    lh_gl_shadow_ramp_init(lh_gl_canvas_sw_shadow_pass_get_ramp_mut(out), lh_gl_canvas_sw_shadow_pass_get_shape_mut(out));
+    lh_gl_canvas_sw_shadow_pass_set_right(
+        out, lh_gl_canvas_sw_shadow_pass_get_left(out) + lh_gl_size_get_width(size) + outset * 2);
+    lh_gl_canvas_sw_shadow_pass_set_bottom(
+        out, lh_gl_canvas_sw_shadow_pass_get_top(out) + lh_gl_size_get_height(size) + outset * 2);
+    return outset > 0 ? lh_bool_true : lh_bool_false;
+}
+
+lh_bool_t
+lh_gl_canvas_sw_shadow_pass_init(const lh_gl_canvas_sw_t *self, const lh_gl_rect_t *rect,
+                                 lh_gl_scalar_t radius, const lh_gl_shadow_t *shadow,
+                                 lh_gl_canvas_sw_shadow_pass_t *out)
+{
+    lh_return_if(!lh_gl_canvas_sw_shadow_pass_init_bounds(self, rect, radius, shadow, out),
+                 lh_bool_false);
+    lh_gl_shadow_shape_init(lh_gl_canvas_sw_shadow_pass_get_shape_mut(out), shadow, rect,
+                            lh_gl_canvas_sw_shadow_pass_get_corner(out));
+    lh_gl_shadow_ramp_init(lh_gl_canvas_sw_shadow_pass_get_ramp_mut(out),
+                           lh_gl_canvas_sw_shadow_pass_get_shape_mut(out));
     return lh_bool_true;
 }
 

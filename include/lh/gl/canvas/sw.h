@@ -298,9 +298,39 @@ lh_gl_canvas_sw_shadow_row(lh_gl_canvas_sw_t *self, const lh_gl_canvas_sw_shadow
                            lh_s32_t y);
 
 /**
+ * @brief One side of a mask row: ::lh_gl_shadow_shape_span from @p x0 to @p x1 at @p y.
+ *
+ * @p line is the mask row whose first byte is the pass's left edge. @p x1 at or
+ * left of @p x0 writes nothing.
+ */
+lh_void
+lh_gl_canvas_sw_shadow_mask_side(const lh_gl_canvas_sw_shadow_pass_t *pass, lh_byte_t *line,
+                                 lh_s32_t x0, lh_s32_t x1, lh_s32_t y);
+
+/**
+ * @brief Write the unclipped alpha of @p pass into @p mask, one row of @p width.
+ *
+ * @p height rows. The bytes match ::lh_gl_canvas_sw_shadow_span before the clip.
+ * @p mask is required. Nothing else is checked.
+ */
+lh_void
+lh_gl_canvas_sw_shadow_mask_fill(const lh_gl_canvas_sw_shadow_pass_t *pass, lh_byte_t *mask,
+                                 lh_s32_t width, lh_s32_t height);
+
+/**
+ * @brief Blend a mask from ::lh_gl_canvas_sw_shadow_mask_fill, cut to the clip.
+ *
+ * @p width is the mask row length. A rounded clip is not applied here.
+ */
+lh_void
+lh_gl_canvas_sw_shadow_mask_stamp(lh_gl_canvas_sw_t *self, const lh_gl_canvas_sw_shadow_pass_t *pass,
+                                  const lh_byte_t *mask, lh_s32_t width);
+
+/**
  * @brief Backend `shadow`: ::lh_gl_shadow_alpha_at_pixel over the box grown by
  *        its outset, blended in runs, and cut to the clip like any other write.
- *        Pixels the fill covers wholly are skipped.
+ *        Pixels the fill covers wholly are skipped. A repeated box reuses the
+ *        mask built for the first one.
  */
 lh_bool_t
 lh_gl_canvas_sw_shadow(lh_ptr context, const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
