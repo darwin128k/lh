@@ -30,6 +30,48 @@ neither belongs under `lh/gl/` once that name means the interface layer.
 part on the same draw list. Both move while `gl` is still there to test
 against — `docs/design/gx.md`, section 6 and decision 4 of phase 1.
 
+## The window is the operating system's window
+
+**The debt.** `lh/os/window.h` and `lh/os/app.h` carry the portable half of a
+window and the native half in one struct: the handle, the paint device
+context, the paint rectangle, the frame, the corner and the placement sit
+beside the place, the title, the children and the callbacks. Both headers
+require `LH_LIBRARY_OPTION_OS`, so on a board with no operating system there
+is no application and no window at all — only the display and the present
+sink.
+
+**The plan.** Split them: `lh_os_window_t` becomes the portable window, and
+`lh_os_window_native_t` (`lh/os/window/native.h`) takes the native half and
+requires the operating system. `lh_os_app_t` becomes portable too and grows a
+step, which an operating system's pump calls and rail's loop calls on a board.
+The contract is `docs/design/app-window.md`.
+
+**The date.** The owner set the model on 2026-11-17: an application owns
+windows, the first is the main one, a window may own modal children, a window
+exists before it belongs to an application, and the same abstraction has to
+work on any operating system and on none.
+
+## The window throws the damage away
+
+**The debt.** `src/lh/gl/window.c`, the paint path of `lh_gl_window_t`: it
+takes the damage into a local variable and then calls `lh_gl_view_paint`,
+which draws the whole frame — the damage is computed and dropped. The
+partial path exists (`lh_gl_view_draw_strips`, and `lh_gl_view_draw` with a
+damage), but the window does not take it. So the desktop redraws everything
+on every paint.
+
+The bench hides this: `bench/lvgl/scene_lh.c` measures the partial path
+(`lh_gl_view_draw(&view, &partial)`), which the window never takes. The
+"partial" rows of `bench/lvgl/RESULTS.md` therefore describe a path the
+product does not use.
+
+**The plan.** The window paints with the damage it took; a resize asks for the
+whole frame. In gx the same rule is structural: the canvas owns the damage
+and the window asks the canvas for it (`docs/design/gx.md`, section 5.1), so
+there is nowhere for it to be dropped.
+
+**The date.** The owner named it on 2026-11-17.
+
 ## The render backend named after GDI
 
 **The debt.** `lh/os/render/backend/gdi.h` describes itself as "the same

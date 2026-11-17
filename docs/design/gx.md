@@ -257,12 +257,13 @@ which is which.
 | `callbacks` | the reactions: kind, function, context, two slots | 48 |
 | `user` | the application's own pointer to its own state | 8 |
 
-That is **120 bytes** for a node with two callback slots, 96 with one, 72 with
-none. Against gl: one entity is 136 bytes, and the title it needs — entity,
-style, paint, colour — is **316 bytes in four objects**. So the node that
-carries the class, the place, the look, the text, the flags and the callbacks
-is less than a third of the size of gl's chain, and it is one object instead of
-four.
+That is **88 bytes** for the entity as it stands: the class, the flags, the
+place, the style, the text, the four links, the call that hears about a
+change, and the application's own pointer. Against gl: one entity is 136
+bytes, and the title it needs — entity, style, paint, colour — is **316 bytes
+in four objects**. So the node that carries the class, the place, the look,
+the text, the flags and the change-report is less than a third of the size
+of gl's chain, and it is one object instead of four.
 
 The theme holds the look: colours, font, radius — one entry per kind, plus
 the entries the application wants to name. The node says which entry is its,
@@ -299,14 +300,40 @@ header, its own implementation and its own test.
 6. **The passes** (`lh/gx/measure/`, `lh/gx/layout/`, `lh/gx/paint/`,
    `lh/gx/hit/`) — four passes over the tree, each a separate brick, each
    writing into storage the application owns.
-7. **The draw list** (`lh/gx/draw.h`) — what the paint pass produces: a flat
-   array of commands with their own bounds. One contract with the platform,
-   and the seam where the 3D renderer will draw later.
-8. **The backends** (`lh/gx/backend/`) — `sw` paints the list into pixels,
-   `web` writes the list as JSON. The browser replays the list; it does not
-   re-implement the renderer. This is what kills the 3329 lines.
+7. **The renderer** (`lh/gx/render/`) — walks the tree and produces drawing
+   primitives. This is where the 3D renderer will sit later: a second renderer
+   into the same canvas, not a special case inside the first one.
+8. **The canvas** (`lh/gx/canvas.h`) — the pure drawing abstraction: pixels,
+   colours, primitives, clipping. It knows nothing about entities and nothing
+   about layers, and it remembers nothing about the scene.
+9. **The backends** (`lh/gx/backend/`) — `sw` paints into pixels, `web` writes
+   the list as JSON. The browser replays the list; it does not re-implement
+   the renderer. This is what kills the 3329 lines.
 
-## 5.1 What makes drawing fast
+## 5.1 The canvas owns the damage
+
+The owner's decision, 2026-11-17: **a layer never remembers that it is
+invalid.** The canvas does.
+
+So the chain is: the tree says what is on screen; the renderer turns it into
+primitives; the canvas draws them and **remembers what changed**; the window
+asks the canvas what to repaint and presents that.
+
+Nothing in the scene carries a "dirty" flag. A change is reported to the
+canvas, and the canvas is the one that remembers it — which is what makes
+::lh_gx_damage_t a canvas brick rather than a tree one.
+
+**How the report travels.** The entity holds a call and the listener's state
+(`lh_gx_entity_damage_fn` and its context); when something of it changes, it
+calls that with where it was and where it is now. The tree installs the call
+when it takes the entity, and the canvas is what listens. So the entity
+depends on nothing of the drawing part: it only knows that something is
+listening, and the tree is what connects the two.
+
+The canvas stays a half-driver: it knows how to fill, to blend, to clip and
+to move a line, and it knows nothing about what a button is.
+
+## 5.2 What makes drawing fast
 
 The engine has to be fast on a small, slow device: the target is a remote
 control's display, and the yardstick is LVGL, which the remote runs today.
@@ -374,7 +401,8 @@ fixes, so the bench measures them separately.
 surface, the flush and the wait belong to `lh/os/`; gx never calls the
 platform. What gx owes the window is: a tree, a place, a list of commands to
 draw, and the damage that says which of them matter now. The window owns the
-pixels and asks for the damage.
+pixels and asks for the damage. The shape of that seam — and how the same
+window works on a board with no operating system — is `docs/design/app-window.md`.
 
 **The measure.** `bench/lvgl/` already compares lh with LVGL scene by scene:
 eight scenes at 480×320 ARGB8888, each drawn whole and one card at a time

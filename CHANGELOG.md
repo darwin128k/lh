@@ -42,6 +42,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_gx_entity_t` (`lh/gx/entity.h`, `lh/gx/entity/fields.h`, `lh/gx/entity/kind.h`,
+  `lh/gx/entity/damage/fn.h`, `lh/gx/entity/damage/cb.h`): one thing on the screen — its
+  class (`label`, `button`, `layer`, `image`, `scroll`), its place, its style, what it
+  says, its state flags and its links to the parent and the children. The links are
+  indices into the tree's array, so every entity is the same size whatever it is, and a
+  layer is the same entity as a leaf — only its class differs. **An entity never
+  remembers that it is invalid:** when something of it changes, it reports where it was
+  and where it is now (`lh_gx_entity_damage_fn`), and the canvas is what remembers.
+
 - `lh_gx_damage_t` (`lh/gx/damage.h`, `lh/gx/damage/fields.h`): the part of the screen
   that changed, as up to `LH_GX_DAMAGE_MAX` (16) rects in a fixed table that is never
   reallocated. Two rects merge only when their union is exactly a rectangle, so a
