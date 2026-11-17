@@ -44,12 +44,21 @@ The owner's decisions, 2026-11-17:
 1. **Entity.** One thing on the screen is one entity. Not a family of widget
    types with a type each: a label, a button, a container are entities that
    carry different layers.
-2. **Layers.** What an entity shows and what it does are layers, not a chain
-   of style objects pointing at each other.
+2. **Layers.** A layer is an entity that holds entities — the same node, with
+   children. There is no second type for it: the class says what a node is,
+   and the tree holds both. What an entity shows and does is not a chain of
+   style objects pointing at each other but its own fields: a theme entry, a
+   text, a set of callbacks, a set of flags.
 3. **No allocation.** gx never allocates. Every byte it uses is memory the
    application provided.
 4. **Ownership.** Where nothing is allocated, ownership is the only thing
    left to say — so every gx header says who owns what, and for how long.
+5. **No operating system.** gx runs on a board with no OS — on
+   `lh/rail/bare.h`, one core and its interrupts — as well as on a desktop.
+   Every table in it has a fixed size, nothing in it waits, nothing in it
+   reads a clock, and nothing in it calls the platform. The window, the
+   caption, the size and the flush belong to `lh/os/`; gx is above them and
+   below the application.
 
 And the unit. The chain, as the owner set it on 2026-11-17:
 
@@ -220,6 +229,56 @@ What the program already demands of the engine, before a line of it exists:
 - the **screen** (480×320) and the **place of every entity** — so the layout
   pass has a job, and it has one input: the tree.
 
+## 4.1 The node: what an entity is and where it lives
+
+The owner's model, 2026-11-17: an entity has a class, a place, a way of
+looking, callbacks that are called, and state flags. A layer is the same
+entity — one that has children. The tree holds both, and the class says which
+is which.
+
+**One type, one array.** The application provides an array of entities; the
+tree indexes into it. A child is an index, not a pointer: the node holds its
+parent, its first child, the number of its children and its next sibling. So
+there is no allocation, no pointer to chase, every node is the same size, and
+a node keeps its address for as long as the tree lives. A layer is an entity
+whose class may hold children — nothing more, and the tree does not care
+which is which.
+
+**The node** (`lh/gx/entity.h`):
+
+| field | what | bytes |
+|---|---|---|
+| `kind` | the class: label, button, layer, … | 1 |
+| `flags` | visible, enabled, invalid, hovered, pressed, focused, … | 4 |
+| `rect` | where the entity is | 16 |
+| `style` | how it looks: an index into the theme | 2 |
+| `text` | what it says | 16 |
+| `parent`, `first_child`, `child_count`, `next` | the tree links | 16 |
+| `callbacks` | the reactions: kind, function, context, two slots | 48 |
+| `user` | the application's own pointer to its own state | 8 |
+
+That is **120 bytes** for a node with two callback slots, 96 with one, 72 with
+none. Against gl: one entity is 136 bytes, and the title it needs — entity,
+style, paint, colour — is **316 bytes in four objects**. So the node that
+carries the class, the place, the look, the text, the flags and the callbacks
+is less than a third of the size of gl's chain, and it is one object instead of
+four.
+
+The theme holds the look: colours, font, radius — one entry per kind, plus
+the entries the application wants to name. The node says which entry is its,
+so changing how the whole screen looks is changing the theme, not touching
+fifty entities.
+
+**The tree** (`lh/gx/tree.h`) owns the array and the links; the application
+owns the bytes. The tree hands out slots, links children, and walks the array
+in order — the same walk for an entity and for a layer.
+
+The app program from section 4 stays as it is, and the callback is one call:
+
+```c
+lh_gx_entity_set_callback(ok, lh_gx_event_kind_clicked, on_ok, lh_addr_of(s_ok_pressed));
+```
+
 ## 5. What the engine under it must be
 
 Derived from the program above, top down. Each item is a brick with its own
@@ -227,21 +286,106 @@ header, its own implementation and its own test.
 
 1. **The tree** (`lh/gx/tree.h`) — the application's array, the root, the
    parent and child links, and the ownership rules written down.
-2. **The entity** (`lh/gx/entity.h`) — one struct: where it is, what layers
-   it carries, what state it is in.
-3. **The layers** (`lh/gx/layer/…`) — one file each: `box` (fill, border,
-   radius), `text` (string, font, alignment), `click` (callback and
-   context), `scroll` (offset and range), `stack` (children), `image`.
-4. **The passes** (`lh/gx/measure/`, `lh/gx/layout/`, `lh/gx/paint/`,
+2. **The entity** (`lh/gx/entity.h`) — one struct: its class, where it is,
+   how it looks, what it says, its callbacks, its flags and its links.
+3. **The classes** (`lh/gx/entity/kind.h`) — the kinds a node may have:
+   `label`, `button`, `layer`, `image`, `scroll`, … one enum, and what each
+   kind means for input and for painting.
+4. **The reactions** (`lh/gx/entity/event/`) — the kinds of thing that can
+   happen to a node (`pressed`, `released`, `clicked`, `shaken`, `focused`,
+   `scrolled`) and the callback type that receives them.
+5. **The theme** (`lh/gx/theme.h`) — the look: colours, font, radius, one
+   entry per class and the named entries the application wants.
+6. **The passes** (`lh/gx/measure/`, `lh/gx/layout/`, `lh/gx/paint/`,
    `lh/gx/hit/`) — four passes over the tree, each a separate brick, each
    writing into storage the application owns.
-5. **The draw list** (`lh/gx/draw.h`) — what the paint pass produces: a flat
-   array of commands with their own bounds. One contract with the platform.
-6. **The backends** (`lh/gx/backend/`) — `sw` paints the list into pixels,
+7. **The draw list** (`lh/gx/draw.h`) — what the paint pass produces: a flat
+   array of commands with their own bounds. One contract with the platform,
+   and the seam where the 3D renderer will draw later.
+8. **The backends** (`lh/gx/backend/`) — `sw` paints the list into pixels,
    `web` writes the list as JSON. The browser replays the list; it does not
    re-implement the renderer. This is what kills the 3329 lines.
-7. **The theme** (`lh/gx/theme.h`) — what the entities look like, in one
-   table the application owns.
+
+## 5.1 What makes drawing fast
+
+The engine has to be fast on a small, slow device: the target is a remote
+control's display, and the yardstick is LVGL, which the remote runs today.
+Three costs are separate and must be measured apart — LVGL's own rule is
+"useful when the system monitor says so": **render ms high, flush ms low** means
+the CPU is the bottleneck (styles, blend modes, a buffer in slow RAM); **flush
+ms high** means the transfer is (a slow SPI clock, one buffer, a blocking
+flush). A renderer that is fast and a display that is slow need different
+fixes, so the bench measures them separately.
+
+**What to redraw.**
+
+- *Dirty rectangles* — the region that changed, as a list of rects. This is
+  ::lh_gx_damage_t, and its one rule is that a merge never covers a pixel that
+  did not change.
+- *Trivial reject* — before any expensive work, compare bounding boxes. An
+  entity that does not meet the clip is skipped; one that meets it entirely is
+  taken whole. This is the cheapest large win and it is a rule, not a structure.
+- *Clipping* — set the clip to the damaged area and draw only what is inside.
+- *A hash grid* — a grid of cells, each holding a hash of what it shows; the
+  cells whose hash changed are the dirty ones. Fixed memory, no allocation,
+  and the work is proportional to the screen, not to the scene. The kind of
+  thing that fits a microcontroller.
+- *Tiles* — divide the screen into fixed tiles (32×32, 64×64, 128×128) and
+  mark the tiles dirty. Tiles make the dirty set a bitmap, which is far
+  cheaper to carry than a list of rects.
+- *Cached slices* — the scene is cut into slices (content, controls, a
+  background), each made of tiles that keep their rasterised content; a tile
+  that did not change is not drawn again.
+- *Coalescing and a frame budget* — take every event into the state at once,
+  but redraw at most once per frame window. Many small changes are one frame.
+- *Virtualisation* — draw only the part of a long list that fits, plus a small
+  overscan.
+- *Fast redraw* — an entity with a solid background behind it can be erased by
+  filling a rectangle, with no intersection tests at all.
+
+**How to draw it.**
+
+- *A command buffer* — the draw list the paint pass produces. It is the one
+  contract with the platform, and the web backend writes it as JSON while the
+  software backend replays it into pixels.
+- *A glyph atlas* — glyphs are rasterised once and then blitted.
+- *An image atlas of fixed-size tiles* — the image goes in as tiles of one
+  size, so giving one back is "a tile is free" and nothing fragments. This is
+  the answer to the fragmentation the remote suffers from today: the atlas is
+  fixed from the start, and the application owns its memory.
+- *Blending once per span* — mix a whole run of pixels under one coverage
+  instead of per pixel.
+- *A table instead of a computation* — a gradient is a table of colours built
+  once per fill, not a division per pixel.
+- *Caching the mask, not the pixels* — identical shadows share one alpha mask.
+
+**How it reaches the screen.**
+
+- *Partial, direct or full* — LVGL v9 has three render modes: partial renders
+  the screen in pieces through buffers smaller than the screen, direct renders
+  into a screen-sized buffer and copies only what changed, full redraws
+  everything every time. gx needs the first two.
+- *Two buffers, or three* — with two, the CPU draws into one while the other
+  is transferred; the third removes the idle time between the two.
+- *The buffer in fast memory* — internal RAM, not external SRAM.
+- *No blocking* — the swap waits on a signal, not on a spin.
+
+**The window is the operating system's job.** The caption, the size, the
+surface, the flush and the wait belong to `lh/os/`; gx never calls the
+platform. What gx owes the window is: a tree, a place, a list of commands to
+draw, and the damage that says which of them matter now. The window owns the
+pixels and asks for the damage.
+
+**The measure.** `bench/lvgl/` already compares lh with LVGL scene by scene:
+eight scenes at 480×320 ARGB8888, each drawn whole and one card at a time
+(`bench/lvgl/RESULTS.md`). After the gradient work of 2026-10-11 no scene is
+slower than LVGL, and the partial redraws — where the work is small and the
+difference survives any noise — win by up to 2.7x. On that machine the
+measurement noise is 9–15%, so only a difference beyond ~1.2x means anything.
+The bench is native and the numbers are a lower bound: the browser and the
+remote are the real targets, and the multiplier of a wasm build is still not
+measured. gx needs the same bench, with the same scenes, so that the two
+runtimes can be put side by side.
 
 ## 6. What leaves gl before the swap
 

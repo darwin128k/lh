@@ -42,6 +42,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_gx_damage_t` (`lh/gx/damage.h`, `lh/gx/damage/fields.h`): the part of the screen
+  that changed, as up to `LH_GX_DAMAGE_MAX` (16) rects in a fixed table that is never
+  reallocated. Two rects merge only when their union is exactly a rectangle, so a
+  merge never covers a pixel that did not change: rects that meet edge to edge become
+  one, rects that overlap in an L stay two, because the hull of an L is bigger than
+  the L. When the table is full the new rect is merged into the stored one that
+  wastes the fewest pixels (`lh_gx_damage_squeeze`); no rect is ever dropped.
+
 - The `lh/gx` part: the new graphics part of lh, written beside `lh/gl` and meant to
   replace it. It is built from the application down — the program an application writes
   is the specification, and the engine below it is derived from that program. Its
