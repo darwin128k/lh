@@ -594,6 +594,10 @@ set(LH_TEST_GL_SOURCES
         # source has.
         ${LH_TEST_SRC_PATH}/lh/gl/surface.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/window.cpp
+        ${LH_TEST_SRC_PATH}/lh/gx/scalar.cpp
+        ${LH_TEST_SRC_PATH}/lh/gx/point.cpp
+        ${LH_TEST_SRC_PATH}/lh/gx/size.cpp
+        ${LH_TEST_SRC_PATH}/lh/gx/rect.cpp
 )
 if (LH_LIBRARY_OPTION_GL AND LH_LIBRARY_OPTION_MATH_FPU)
     list(APPEND LH_TEST_GL_SOURCES ${LH_TEST_SRC_PATH}/lh/gl/renderer3d.cpp)

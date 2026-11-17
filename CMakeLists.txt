@@ -649,6 +649,17 @@ if (LH_LIBRARY_OPTION_GL)
     endif ()
 endif ()
 
+# gx: the graphics part being written beside gl and meant to replace it. Its
+# sources live under the GL option because gx is the future of that layer.
+if (LH_LIBRARY_OPTION_GL)
+    list(APPEND LH_LIB_SOURCES
+            ${LH_LIB_SRC_PATH}/gx/scalar.c
+            ${LH_LIB_SRC_PATH}/gx/point.c
+            ${LH_LIB_SRC_PATH}/gx/size.c
+            ${LH_LIB_SRC_PATH}/gx/rect.c
+    )
+endif ()
+
 # Font-only: Roboto + mask/font without the widget/canvas tree (STM TFT, …).
 if (LH_LIBRARY_OPTION_GL_FONT_ROBOTO AND NOT LH_LIBRARY_OPTION_GL)
     list(APPEND LH_LIB_SOURCES

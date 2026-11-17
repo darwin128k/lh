@@ -1,8 +1,10 @@
 # Execution in LH — concept (draft for discussion)
 
-Status: decisions taken (section 5), API draft for review (section 6),
-nothing implemented. This page decides what the execution engine is before
-any code moves; the code follows the page, not the other way.
+Status: decisions taken (section 5), API drafted (section 6) and since
+implemented: `lh/rail/` holds the task, the queue, the mailbox, the executor,
+the inline executor, the context, the loop and the base of platform calls; the
+OS base is `lh/os/rail/base.h` and the bare-metal one `lh/rail/bare.h`. Section
+7 keeps the order of the move and marks the steps that are done.
 
 ## 1. Three natures, mixed today
 

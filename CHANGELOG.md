@@ -42,6 +42,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- The `lh/gx` part: the new graphics part of lh, written beside `lh/gl` and meant to
+  replace it. It is built from the application down — the program an application writes
+  is the specification, and the engine below it is derived from that program. Its
+  rules: one entity, its facets are layers, nothing is allocated (every byte is memory
+  the application provided), and every header says who owns what. The plan is
+  `docs/design/gx.md`.
+
+- `lh_gx_scalar_t` (`lh/gx/scalar.h`): the unit of the `lh/gx` part — the number of
+  the gx plane, and the `x` and `y` of a point and the `width` and `height` of a
+  size. It is `lh_math_scalar_t` when `LH_LIBRARY_OPTION_MATH_FPU` is off and
+  `lh_math_fscalar_t` when it is on, with `lh_gx_scalar` for a literal,
+  `lh_gx_scalar_of` for an expression, `lh_gx_scalar_trunc` for the fraction dropped
+  toward zero, and the two layout numbers `lh_gx_scalar_slack` (the room left over)
+  and `lh_gx_scalar_centre` (the offset that centres a thing in a room).
+
+- `lh_gx_point_t` (`lh/gx/point.h`), `lh_gx_size_t` (`lh/gx/size.h`) and `lh_gx_rect_t`
+  (`lh/gx/rect.h`): the point (`x` right, `y` down), the size (`width`, `height`) and
+  the rectangle (a corner and an extent, half-open) of the `lh/gx` part. They are the
+  math bricks of `lh/core/math/` under the name of this part, and every function of
+  the part is a thin layer over the chosen math brick: it calls that brick and adds
+  nothing, so the contract of each one is the contract of the math brick it names.
+
 - `lh_gl_point_t` (`lh/gl/point.h`, `lh/gl/point/initializer.h`): the first brick of the
   `lh/gl` part, an integer point on the graphics plane (`x` right, `y` down). It reuses
   `lh_math_point_fields` for its members and has the accessors `lh_gl_point_get_x` /
