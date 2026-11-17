@@ -670,6 +670,8 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gx/rect.c
             ${LH_LIB_SRC_PATH}/gx/damage.c
             ${LH_LIB_SRC_PATH}/gx/pixmap.c
+            ${LH_LIB_SRC_PATH}/gx/node.c
+            ${LH_LIB_SRC_PATH}/gx/entity.c
     )
 endif ()
 

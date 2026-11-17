@@ -612,6 +612,8 @@ set(LH_TEST_GL_SOURCES
         ${LH_TEST_SRC_PATH}/lh/gx/rect.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/damage.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/pixmap.cpp
+        ${LH_TEST_SRC_PATH}/lh/gx/node.cpp
+        ${LH_TEST_SRC_PATH}/lh/gx/entity.cpp
 )
 if (LH_LIBRARY_OPTION_GL AND LH_LIBRARY_OPTION_MATH_FPU)
     list(APPEND LH_TEST_GL_SOURCES ${LH_TEST_SRC_PATH}/lh/gl/renderer3d.cpp)

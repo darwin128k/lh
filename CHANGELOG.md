@@ -133,6 +133,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_gx_node_t` (`lh/gx/node.h`, `lh/gx/node/fields.h`): one place in the tree
+  of the screen. The tree is **intrusive** and built on `lh_list_t`: the owner,
+  the list of children and the node's own link live inside the entity, and the
+  entity lives wherever the application put it — a field of its struct, a
+  static array, an `lh_array_t` reserved once. gx never allocates, frees or
+  moves an entity, so nothing in it can fragment memory. Children are drawn in
+  the order they were attached; a detached node takes its subtree with it;
+  `lh_gx_node_attach_v` refuses anything that would stop the tree being a tree.
+
+- `lh_gx_entity_t` (`lh/gx/entity.h`, `lh/gx/entity/fields.h`): one thing on the
+  screen, and the only entity type gx has — a layer, a card, a label and an
+  effect differ by their **class** (a constant table of slots) and their
+  **style** (a constant record of a theme), which the entity points at. The
+  entity embeds its bricks by value: the node, the place, the visibility, and
+  the pointers to the class, the style and the content (the class's own data,
+  the application's). The class and the style are their own bricks, next.
+
 - `lh_gx_pixmap_t` (`lh/gx/pixmap.h`, `lh/gx/pixmap/fields.h`,
   `lh/gx/pixmap/format.h`): the pixels a thing is drawn into. A pixmap is a
   **view of memory**, not a picture of its own: the bytes belong to whoever

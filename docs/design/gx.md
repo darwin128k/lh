@@ -1,8 +1,9 @@
 # gx — the new graphics part of LH
 
-Status: in design. The owner and mavis, 2026-11-17. The unit is done and
-confirmed — the scalar, the point, the size, the rectangle (`lh/gx/`) — and
-everything below it is the plan. The order of that plan is the point of this
+Status: in design. The owner and mavis, 2026-11-17 and 2026-11-18. The unit,
+the damage and the target are done (`lh/gx/`); the model of the screen is
+decided (section 4.1) and the pipeline under it is set (section 5). Everything
+below the unit is the plan, and the order of that plan is the point of this
 page.
 
 `gx` is written beside `gl` and replaces it. At the end of the road `gl` is
@@ -52,10 +53,9 @@ The owner's decisions, 2026-11-17:
    caption, the size and the flush belong to `lh/os/`; gx is above them and
    below the application.
 
-**The model of the screen is not decided yet.** The first attempt at one — an
-entity with a class, a place, a text and a set of links — was a half model
-and was removed on 2026-11-17. What the model must decide is in section 4.1;
-the bricks below it do not depend on the answer.
+**The model of the screen** is in section 4.1, decided on 2026-11-18. The
+first attempt at one — an entity with a kind enum, a place, a text and a set of
+links — was a half model and was removed on 2026-11-17.
 
 And the unit. The chain, as the owner set it on 2026-11-17:
 
@@ -146,6 +146,55 @@ there it is LH's own brick over the application's buffer, plugged into
 time asks that pool for them; gx still allocates nothing and still frees
 nothing.
 
+### Where the fragmentation comes from, and the two ways out
+
+The remote suffers from it today, and the cause is the shape above: LVGL
+**owns and stores** every object — each one is a `malloc` of its own size, the
+children of each parent are an array that is `realloc`ed on every add and
+remove, styles and event lists are more small blocks, and a screen that is
+built and torn down again and again leaves holes of every size in the heap.
+After an hour there is enough free memory and no block big enough.
+
+gx does not do that, and it has **one** rule for it, not two modes:
+
+**gx never stores an entity.** The tree owns the order, not the bytes — it is
+*intrusive*, as `lh_list_t` is, and it is built on `lh_list_t`. The links (the
+owner, the list of children, the entity's own place in its owner's list) live
+**inside** the entity, and the entity lives wherever the application put it:
+
+- a field of the application's screen struct — the common case, its size known
+  at link time;
+- a plain static array, `lh_gx_entity_t rows[32]`;
+- an `lh_array_t`, when the number of rows is known only at start-up.
+
+For gx the three are the same thing — an address. Attaching is linking a node,
+detaching is unlinking it; gx never allocates, never frees and never moves
+anything, so there is nothing in it to fragment, and the memory of the
+interface after an hour is what it was in the first second.
+
+What follows from it:
+
+- **Running out of memory is the allocator's answer, and the allocator is the
+  application's.** gx asks for nothing, so it has nothing to report; an
+  `lh_array_t` that cannot reserve says so through `lh_array_try_reserve`, and
+  the application decides — fewer rows, another screen freed, a message.
+- **An `lh_array_t` of entities is reserved once, before its entities are
+  attached, and not grown afterwards.** Growing reallocates and moves the
+  entities, and every link and every pointer the application holds is left at
+  the old place.
+- **An entity is detached before its memory goes** — the rule of every
+  intrusive list, `lh_list_t`'s included. The validating forms (`_v`) check what
+  they can.
+- **A pool of one-size slots is not gx's.** For rows that are made and dropped
+  all the time it would be the answer — slots of one size cannot fragment — but
+  it is not graphics. If it is needed, it is a brick of the core
+  (`lh/core/memory/`), added when there is a need for it, not before.
+
+The price: the node is a pointer to the owner, a list head and a list node —
+five pointers (20 bytes on a 32-bit board) where indices into one array would
+have been 6 bytes. It is the price of LH's own list instead of a second one,
+and of an entity that can live outside any array.
+
 ## 3. The method: from the application down
 
 **The application program is the specification.** We write the program an
@@ -161,237 +210,296 @@ engine is measured by the application, not the other way round.
 ## 4. The application program
 
 This is the spec. It is a complete program: an application that shows a
-title and an OK button on a 480×320 screen.
+title and an OK button on a 480×320 screen. It is written in the model of
+section 4.1; the names are a sketch, and the bricks below are derived from what
+it has to say.
 
 ```c
 /**
- * The application owns everything. gx never allocates: the tree is an array
- * the application provides, and every entity is a value inside it.
+ * The application owns everything. gx never allocates: the entities are fields
+ * of the application's own screen, the look is a table of styles in flash, and
+ * what a button does when it is clicked is the application's own record.
  */
 
-#define MY_ENTITIES 64
+enum my_style { my_style_screen, my_style_title, my_style_button, my_style_count };
 
-static lh_gx_entity_t s_entities[MY_ENTITIES];
-static lh_gx_tree_t s_tree;
-static lh_bool_t s_ok_pressed;
+static const lh_gx_style_t s_theme[my_style_count] = { /* colours, radius, font… */ };
 
-static void
+/* One screen is one struct: its memory is its size, known at link time. */
+struct my_screen
+{
+    lh_gx_entity_t root;
+    lh_gx_entity_t title;
+    lh_gx_button_t ok;               /* a control: its box, its caption, its reaction */
+    lh_bool_t ok_pressed;
+};
+
+static struct my_screen s_screen;
+
+static lh_void
 on_ok(lh_gx_entity_t *entity, lh_ptr context)
 {
     (void)entity;
     *((lh_bool_t *)context) = lh_bool_true;
 }
 
-lh_bool_t
-my_ui_build(lh_void)
+lh_void
+my_ui_build(struct my_screen *self)
 {
-    lh_gx_rect_t r;
-    lh_gx_entity_t *root;
-    lh_gx_entity_t *title;
-    lh_gx_entity_t *ok;
+    lh_gx_entity_init(&self->root, &lh_gx_class_box, &s_theme[my_style_screen],
+                      0, 0, 480, 320);
 
-    lh_gx_tree_init(lh_addr_of(s_tree), s_entities, MY_ENTITIES);
+    lh_gx_entity_init(&self->title, &lh_gx_class_text, &s_theme[my_style_title],
+                      24, 24, 400, 28);
+    lh_gx_entity_set_content(&self->title, "Hello, lh");
+    lh_gx_entity_attach(&self->root, &self->title);
 
-    root = lh_gx_tree_try_add(lh_addr_of(s_tree), lh_gx_entity_kind_layer);
-    lh_gx_rect_init(lh_addr_of(r), 0, 0, 480, 320);
-    lh_gx_entity_set_rect(root, lh_addr_of(r));
-
-    title = lh_gx_tree_try_add(lh_addr_of(s_tree), lh_gx_entity_kind_label);
-    lh_gx_rect_init(lh_addr_of(r), 24, 24, 400, 28);
-    lh_gx_entity_set_rect(title, lh_addr_of(r));
-    lh_gx_entity_set_text(title, "Hello, lh");
-    lh_gx_tree_add_child(lh_addr_of(s_tree), root, title);
-
-    ok = lh_gx_tree_try_add(lh_addr_of(s_tree), lh_gx_entity_kind_button);
-    lh_gx_rect_init(lh_addr_of(r), 24, 72, 120, 36);
-    lh_gx_entity_set_rect(ok, lh_addr_of(r));
-    lh_gx_entity_set_text(ok, "OK");
-    lh_gx_entity_set_on_click(ok, on_ok, lh_addr_of(s_ok_pressed));
-    lh_gx_tree_add_child(lh_addr_of(s_tree), root, ok);
-
-    return lh_bool_true;
+    /* The button is a composition: a box that takes input, owning a caption. */
+    lh_gx_button_init(&self->ok, &s_theme[my_style_button], 24, 72, 120, 36, "OK",
+                      on_ok, &self->ok_pressed);
+    lh_gx_entity_attach(&self->root, lh_gx_button_get_entity_mut(&self->ok));
 }
 ```
 
-The reactions — `lh_gx_entity_set_on_click` and what else a class can answer —
-come with the classes, which are the next brick after the tree.
+What the program demands of the engine, before a line of it exists:
 
-Twelve calls and two objects, against gl's twenty calls and six objects
-(`docs/subsystems/gl.md`, section 4.1) — and the difference is not brevity:
-it is that the program says *what is on the screen*, while gl's says *how
-its style objects are wired to each other*.
+- a **tree** that keeps the links and never allocates — the entities here are
+  fields of the application's screen, and they could as well be a static array
+  or an `lh_array_t` (section 2.2);
+- **one entity type** — the screen, the title, the button and its caption are
+  the same struct; what differs is the **class** (a constant table: how it
+  paints, whether it takes input) and the **style** (a constant record: how it
+  looks);
+- a button that is a **composition**: a box that takes input, owning a text.
+  There is no "button with a label inside it" — there are two entities, and
+  the owner link is what makes them one control;
+- the class's own data — the text, the reaction of the button — is the
+  application's, and the entity only points at it (`content`).
 
-What the program already demands of the engine, before a line of it exists:
+## 4.1 The model of the screen
 
-- a **tree** the application fills from its own array — so the tree is an
-  index into memory the application owns, not a heap of nodes;
-- an **entity** with a place, a text layer and a click layer — so the layers
-  are facets of the entity, not objects the application must wire up;
-- a **click layer** with a function and a context pointer — the context is
-  the application's, the callback is the application's, and gx only calls it;
-- the **screen** (480×320) and the **place of every entity** — so the layout
-  pass has a job, and it has one input: the tree.
-
-## 4.1 The model of the screen — not decided yet
-
-The first attempt was a node with a class, a place, a way of looking, a text
-and a set of links. It was a half model: it guessed what a node holds before
-anyone had said what a node *is*, and the owner removed it on 2026-11-17
-("a half model — we think separately about which one to take, what models
-exist").
-
-So: what models exist, and what each one costs on a board with no GPU.
+*Decided by the owner, 2026-11-18.* Retained plus damage (model 3 below), with
+**one entity type, classes as tables, styles as shared records**, and a
+pipeline in which every part does one job (section 5).
 
 ### The models that exist
 
 **1. Immediate mode** — Dear ImGui, Nuklear, microui. The application draws
 the whole interface every frame, from code; the framework keeps only transient
-state (what is hot, the text being typed).
+state.
 
 - For: no tree to keep, the application reads like ordinary code, and it is
   fast on a GPU — one vertex buffer, few state changes.
 - Against: **every frame is the whole screen.** On a microcontroller with no
-  GPU that is the one thing we cannot afford; and the state lives in the
-  application's code, not in anything the framework can inspect.
-- For LH: a source of ideas for the API, not the model. Its speed comes from
-  redrawing everything, which is the opposite of what the damage machinery is
-  for.
+  GPU that is the one thing we cannot afford.
 
 **2. Retained, a type per widget** — LVGL, FLTK, Qt Widgets. A tree of
 objects, each with its own type, style and state; the renderer walks it.
 
-- For: the state is in the tree; windows and modality come with it.
-- Against: **many objects per widget** (`color → paint → style → entity` in
-  gl), and the kind of a widget decides how it is drawn and how it reacts —
-  so changing what something looks like means touching its type.
-
 **3. Retained plus damage** — Windows, Android, macOS, and LVGL's partial
-mode. The system or the framework knows what changed and repaints only that.
+mode. The framework knows what changed and repaints only that. The work is
+proportional to the change, not to the screen — exactly what a small display
+needs.
 
-- For: exactly what a small display needs; the work is proportional to the
-  change, not to the screen.
-- Against: someone has to say what changed, honestly. That is the hard part,
-  and it is the part the first attempt got wrong.
+**4. Declarative plus a diff** — React, Flutter, SwiftUI, Elm, Slint. A diff
+engine and a second tree to compare against; on a microcontroller that is
+expensive, and the repaint is still driven by a comparison rather than by the
+place that knows it changed.
 
-**4. Declarative plus a diff** — React, Flutter, SwiftUI, Elm, Slint. The
-application describes what should be on screen; the framework compares that
-with what was and repaints the difference.
+**5. A command list** — what a GPU consumes. It is the output side, not a
+model: it says nothing about *what* is on screen.
 
-- For: the application only says *what should be*; nobody forgets to mark
-  something invalid.
-- Against: a diff engine and a second tree to compare against; on a
-  microcontroller that is expensive, and the repaint is still driven by a
-  comparison rather than by a place that knows it changed.
+### How LVGL does it, and why gx does not copy it
 
-**5. A description that becomes a command list** — what a GPU renderer
-consumes: the scene is turned into commands and replayed.
+LVGL 8/9 is model 2 with partial redraw. Its object (`lv_obj_t`) is not
+"everything in one" as it first looks — it has three parts:
 
-- For: one contract with the platform; the browser and the screen take the
-  same list.
-- Against: it says nothing about *what* is on screen — it is the output
-  side, not the model.
+- **the object**: the coordinates, the parent, about thirty flags (`HIDDEN`,
+  `CLICKABLE`, `SCROLLABLE`, `CHECKABLE`, …), the state (pressed, focused,
+  checked), a pointer to its styles, and a lazily allocated block of rarer
+  fields (`spec_attr`: the children, the scroll, the event list, the focus
+  group);
+- **the class** (`lv_obj_class_t`) — one table per kind of widget: the
+  constructor, the destructor, the event handler, the size of an instance. The
+  drawing is an event too: the class answers `LV_EVENT_DRAW_MAIN` with
+  `lv_draw_rect` and `lv_draw_label`;
+- **the styles**, separate objects the object only points at.
 
-### What the choice is actually about
+So the class and the look are already separate in LVGL. What is piled together
+is something else: **the base object knows about everything any widget might
+need** — the scroll, the focus, the click, the events. That is a deliberate
+trade, for three reasons: C has no inheritance, and `lv_obj_set_x()` and
+`lv_obj_add_flag()` must work on every widget, so the common part goes into the
+base; ten years of features were cheaper to add to the base than to the
+architecture, and `spec_attr` was the answer to the memory that cost; and every
+object is a `malloc`, so one object should be one block. LVGL 9 did split the
+drawing the way gx does: the tree produces *draw tasks*, and *draw units* (SW,
+VG-Lite, a GPU) execute them.
 
-Four questions decide it:
+gx takes the class and the shared style, and leaves the rest:
 
-1. **Where the state lives** — in the application's code (immediate), in a
-   tree the framework owns (retained), or in a description the framework
-   diffs (declarative).
-2. **Who decides what to repaint** — the application (it marks it), the
-   framework (it compares), or the part that owns the pixels (the canvas,
-   which is what the damage machinery says).
-3. **Where the memory is** — with the application, always (LH's rule), or in
-   a pool the framework manages.
-4. **How the layout is computed** — by hand in the application (immediate),
-   by a pass over the tree (retained), or by the diff (declarative).
+- **Many bricks in the code, one record in memory.** Every concern is a brick
+  with its own header, its own API and its own test, and the entity **embeds
+  them by value**. On a board that is one block with no pointer to follow; in
+  the code every piece has one job. This is also what gl got wrong: it split
+  the look into `color → paint → style → entity` **by pointers at run time**,
+  so the application had to keep every piece alive — twenty calls and six
+  objects for one title and one button.
+- **No flags for what a class can answer.** An entity whose class has no
+  `input` slot cannot be clicked, so there is no `CLICKABLE`. Thirty flags
+  become "which slots does the class fill".
+- **The scroll, the focus and the events are not in the base.** The scroll is
+  a class of entity that offsets its children; the focus is a brick over the
+  tree; the reactions are the class's data, which the application owns.
+- **No heap.** The entities are the application's array, the classes and the
+  styles are constants in flash.
 
-### Where LH points, and why
+### The entity
 
-Model 3 — **retained plus damage** — with the choices made explicit:
+| brick | its job | where it lives |
+|---|---|---|
+| **node** | the tree: the owner, the children, its own link — intrusive, on `lh_list_t` | embedded |
+| **place** | `x`, `y`, `width`, `height` relative to the owner (`lh_gx_rect_t`) | embedded |
+| **visibility** | whether it is drawn, hit and laid out at all | a flag in the entity |
+| **class** | *what I am and how I behave*: a table of slots — `paint`, `covers`, `hit`, `input`, `measure` | a constant, one per kind, in flash |
+| **style** | *how I look*: colours, border, radius, font — flat data the `paint` reads | a constant record of a theme, shared |
+| **content** | the class's own data: the text of a label, the reaction of a button | the application's, the entity points at it |
+| **state** | pressed, focused, checked | a small brick, only in the classes that need it |
 
-- the state is in a tree the **application** owns (rule: no allocation), so
-  the memory is the application's and the footprint is known at link time;
-- **the canvas owns the damage** (section 5.1), so nobody has to remember to
-  mark anything: the part that changed says so, and the part that owns the
-  pixels remembers;
-- the layout is a **pass** over the tree, not the application's problem;
-- the renderer is a pass too, and it produces primitives for the canvas — so
-  a 3D renderer later is a second renderer into the same canvas, not a
-  special case.
+Consequences:
 
-The tree is not what was wrong. The first attempt guessed what a node holds
-(a text, a style index, a set of links) before anyone had said what a node
-is. That guessing is what was removed.
+- **A layer and a card are not two types.** A *layer* is a class with no
+  `paint` of its own that only holds children; a *card* is a class whose
+  `paint` draws a box; a *label* is a class whose `paint` draws a run of
+  glyphs. One struct, many tables.
+- **Every control is a composition of entities.** A button is a box that
+  takes input, owning a text. A spinbox, a roller, a dropdown, a checkbox, an
+  arc, a QR code, a line, an icon — each is a class, or a few entities under
+  one owner. Nothing below the entity knows what a button is.
+- **An effect is an entity too**, beside its owner: a shadow is an entity
+  under the card that reads its owner's place and radius. A blur or a glass
+  has to read the pixels already drawn under it, so it needs an optional slot
+  of the canvas (section 5); a backend without it cannot draw the effect, and
+  says so instead of drawing something that only looks like it.
+- **The text is not inside the entity or the canvas.** The glyphs come from a
+  font, which is its own contract: it gives a mask, and the canvas draws the
+  mask (`fill_mask`).
 
-What still needs deciding, and what this page does not yet answer:
+The size, for comparison: LVGL's base object is about 40–60 bytes on a 32-bit
+MCU, plus `spec_attr` and the style list, all on the heap. A gx entity is the
+node (five pointers, on `lh_list_t`), the place (four scalars), a flags byte
+and three pointers (class, style, content) — about 50 bytes on a 32-bit board,
+in memory the application chose, with the classes and the styles in flash.
 
-- **What is a node?** A node of one type with a class, or a node per kind?
-  The owner leans to one type — a layer is the same entity that holds many —
-  but the class that says what a node *is* has not been written down.
-- **Where the content of a node lives** — in the node, in a layer beside it,
-  or in a table the node names.
-- **How a node looks** — a theme entry by index, a style the node owns, or
-  both.
-- **How the reactions are stored** — slots in the node, or a table of
-  reactions the node names.
+## 5. The pipeline
 
-The bricks that do not depend on the answer are already there: the unit and
-the geometry (`scalar`, `point`, `size`, `rect`), the damage
-(`lh_gx_damage_t`) and the target (`lh_gx_pixmap_t`).
+Every part does one job, and no part remembers what is not its own.
 
-## 5. What the engine under it must be
+```
+ entity ──"I was here, I am there"──▶ owner ──▶ … ──▶ root ──▶ RENDERER
+                                                            (keeps the damage)
+ a frame:
+ RENDERER ── takes the damage ── walks the tree ── for every entity:
+              skips the hidden and the untouched,
+              computes the absolute rectangle and the clip
+                │
+                ▼
+           class.paint(entity, …) ── "I am a box of this colour and radius"
+                │
+                ▼
+           CANVAS (a contract): fill_rect(clip, rect, colour), fill_round_rect,
+                │               fill_mask (a glyph), blit (an image), line, arc …
+                ▼
+           BACKEND: sw → into a pixmap, web → into JSON, DMA2D, GDI …
+                │
+ RENDERER ── hands only the changed rectangles ──▶ PRESENT (the OS window, or the panel)
+```
 
-Derived from the program above, top down. Each item is a brick with its own
-header, its own implementation and its own test.
+| part | knows | neither knows nor remembers |
+|---|---|---|
+| **entity** | its place, its owner, its children; reports that it changed | what a pixel or a frame is |
+| **class** (`paint`) | what an entity of its kind looks like: a box, a text, an arc | where it is drawn, what else is on screen |
+| **renderer** | what changed (the damage), the order, the clip, what to skip | how a rounded corner is drawn |
+| **canvas** | how to draw a primitive inside a clip | the scene, the damage, the entities, the last frame |
+| **backend** | where: a pixmap, a JSON stream, the hardware | anything above it |
+| **present** | how to put rectangles on a screen | what is in them |
 
-1. **The tree** (`lh/gx/tree.h`) — the application's array, the root, the
-   parent and child links, and the ownership rules written down.
-2. **The entity** (`lh/gx/entity.h`) — one struct: its class, where it is,
-   how it looks, what it says, its callbacks, its flags and its links.
-3. **The classes** (`lh/gx/entity/kind.h`) — the kinds a node may have:
-   `label`, `button`, `layer`, `image`, `scroll`, … one enum, and what each
-   kind means for input and for painting.
-4. **The reactions** (`lh/gx/entity/event/`) — the kinds of thing that can
-   happen to a node (`pressed`, `released`, `clicked`, `shaken`, `focused`,
-   `scrolled`) and the callback type that receives them.
-5. **The theme** (`lh/gx/theme.h`) — the look: colours, font, radius, one
-   entry per class and the named entries the application wants.
-6. **The passes** (`lh/gx/measure/`, `lh/gx/layout/`, `lh/gx/paint/`,
-   `lh/gx/hit/`) — four passes over the tree, each a separate brick, each
-   writing into storage the application owns.
-7. **The renderer** (`lh/gx/render/`) — walks the tree and produces drawing
-   primitives. This is where the 3D renderer will sit later: a second renderer
-   into the same canvas, not a special case inside the first one.
-8. **The canvas** (`lh/gx/canvas.h`) — the pure drawing abstraction: pixels,
-   colours, primitives, clipping. It knows nothing about entities and nothing
-   about layers, and it remembers nothing about the scene.
-9. **The backends** (`lh/gx/backend/`) — `sw` paints into pixels, `web` writes
-   the list as JSON. The browser replays the list; it does not re-implement
-   the renderer. This is what kills the 3329 lines.
+The bricks, from the bottom:
 
-## 5.1 The canvas owns the damage
+1. **The node** (`lh/gx/node.h`) — the intrusive links on `lh_list_t` (the
+   owner, the children, the entity's own link), `attach`, `detach`, the walk,
+   and the ownership rules written down.
+2. **The entity** (`lh/gx/entity.h`) — the node, the place, the visibility,
+   the class, the style, the content, embedded by value.
+3. **The class** (`lh/gx/class.h`, one `fn.h` per slot) — the table of slots,
+   each optional with its fallback written down: `paint`, `covers` (am I
+   opaque over this rectangle), `hit`, `input`, `measure`.
+4. **The style** (`lh/gx/style.h`) — one flat record; a theme is the
+   application's array of them.
+5. **The canvas** (`lh/gx/canvas.h`, one `fn.h` per slot) — a contract, as
+   `lh_os_window_backend_t` is: a table of slots and the backend's context.
+   Required: `fill_rect`. Optional, each with its fallback: `fill_round_rect`
+   (else the renderer covers it with `fill_rect` and a mask), `fill_mask`,
+   `blit`, `line`, `arc`, and the read-back slots that blur and glass need
+   (without them, those effects are reported as not drawable).
+6. **The backends** (`lh/gx/backend/`) — `sw` paints into a `lh_gx_pixmap_t`,
+   with the pixel kernels of `lh/gl/` moved in (the span blend, the masks, the
+   shadow cache, the gradients, the glyph atlas — measured on the i.MX RT, and
+   not thrown away with gl's model); `web` writes the calls as JSON, and the
+   browser replays them instead of re-implementing the renderer — this is what
+   kills the 3329 lines.
+7. **The renderer** (`lh/gx/render.h`) — the damage, the walk, the clip, the
+   cover check, the strips, and the hand-over to the present.
+8. **The font** (`lh/gx/font.h`) — a contract: a glyph in, a mask out.
+9. **The classes** — `box`, `text`, then the controls as compositions.
 
-The owner's decision, 2026-11-17: **a layer never remembers that it is
-invalid.** The canvas does.
+## 5.1 The renderer keeps the damage; the canvas keeps nothing
 
-So the chain is: the tree says what is on screen; the renderer turns it into
-primitives; the canvas draws them and **remembers what changed**; the window
-asks the canvas what to repaint and presents that.
+*Decided by the owner, 2026-11-18*, replacing the decision of 2026-11-17 that
+gave the damage to the canvas.
 
-Nothing in the scene carries a "dirty" flag. A change is reported to the
-canvas, and the canvas is the one that remembers it — which is what makes
-::lh_gx_damage_t a canvas brick rather than a tree one.
+- **An entity never remembers that it is invalid.** When something of it
+  changes — the place, the visibility, the style, the content — it reports
+  where it was and where it is now. The report goes up through the owners,
+  which turn it into screen coordinates (and drop it when an owner is hidden),
+  to the root, and the root hands it to the one listener the tree has: the
+  renderer.
+- **The renderer keeps it** in a `lh_gx_damage_t` — up to 16 rectangles in a
+  fixed table, merged only when the union is exactly a rectangle. The change
+  is known before anything is drawn, and deciding what to redraw is the
+  renderer's job, so the damage is the renderer's.
+- **The canvas keeps nothing.** The target and the clip come with every call,
+  or once per frame as the backend's context — so there is no `save` /
+  `restore` stack in the canvas, as there is in gl: the state belongs to the
+  renderer, which holds it anyway while it walks the tree. A canvas without
+  memory can be swapped (sw, web, DMA2D), used for two targets at once (the
+  screen and the browser) and tested with no scene at all.
+- **The backend owns the pixels**, and the present shows only the rectangles
+  the renderer hands it.
 
-**How the report travels.** The entity holds a call and the listener's state
-(`lh_gx_entity_damage_fn` and its context); when something of it changes, it
-calls that with where it was and where it is now. The tree installs the call
-when it takes the entity, and the canvas is what listens. So the entity
-depends on nothing of the drawing part: it only knows that something is
-listening, and the tree is what connects the two.
+### What makes it fast
 
-The canvas stays a half-driver: it knows how to fill, to blend, to clip and
-to move a line, and it knows nothing about what a button is.
+None of this is a trick on the side; it follows from the split.
+
+1. **The work is proportional to the change.** A blinking cursor redraws the
+   cursor's rectangle, not the screen. The renderer enters only the subtrees
+   that meet the damage: an owner that is not touched skips all its children
+   in one test.
+2. **An opaque entity hides what is under it.** If a card is opaque and covers
+   the damaged rectangle whole (its class's `covers`), the renderer starts the
+   frame from that card and never draws what lies under it — LVGL's cover
+   check.
+3. **Strips on a board.** The buffer is not the screen but, say, 480×40; the
+   renderer goes over the damage strip by strip by moving the clip, and the
+   canvas never knows.
+4. **Only the changed rectangles cross the wire.** A 40×40 button in RGB565
+   is 3 200 bytes, not the 307 200 of a frame — the largest win on the remote.
+5. **No heap and no pointer chasing** — the entities are one array, the
+   classes and the styles are constants.
+6. **The pixel kernels of gl**, which are measured and fast already.
+
+The measure is the bench against LVGL, with two numbers: the render time and
+the bytes sent to the screen.
 
 ## 5.2 What makes drawing fast
 
@@ -459,9 +567,9 @@ fixes, so the bench measures them separately.
 
 **The window is the operating system's job.** The caption, the size, the
 surface, the flush and the wait belong to `lh/os/`; gx never calls the
-platform. What gx owes the window is: a tree, a place, a list of commands to
-draw, and the damage that says which of them matter now. The window owns the
-pixels and asks for the damage. The shape of that seam — and how the same
+platform. What gx owes the window is: the pixels drawn into the target it was
+given, and the rectangles that changed — the renderer hands them to the
+present. The shape of that seam — and how the same
 window works on a board with no operating system — is `docs/design/app-window.md`.
 
 **The measure.** `bench/lvgl/` already compares lh with LVGL scene by scene:
@@ -475,9 +583,9 @@ remote are the real targets, and the multiplier of a wasm build is still not
 measured. gx needs the same bench, with the same scenes, so that the two
 runtimes can be put side by side.
 
-## 5.2 What else could be faster
+## 5.3 What else could be faster
 
-The drawing scheme in this plan — retained, damage, the canvas remembers — is
+The drawing scheme in this plan — retained, damage, the renderer remembers — is
 not the fastest thing that exists. It is the fastest thing that also answers
 the remote's shape. The mechanisms that beat it, and what each one buys:
 
@@ -534,16 +642,17 @@ instead of gl entities.
 | Phase | What | Who |
 |---|---|---|
 | 0 | The unit: scalar, point, size, rect; the damage; the target | **done** |
-| 1 | The model of the screen — the survey, and the choice | together |
-| 2 | The tree and the node, in the model that was chosen | me |
-| 3 | The passes: measure, layout, paint, hit | me |
-| 4 | The canvas and the backends: sw, web | me |
-| 5 | The window, the MCU path, the examples, the benches | me |
-| 6 | The swap: delete gl, rename gx to gl, rebuild every backend | together |
+| 1 | The model of the screen — the survey, and the choice | **done** (2026-11-18) |
+| 2 | The node (on `lh_list_t`) and the entity | me |
+| 3 | The canvas contract and the `sw` backend, with gl's pixel kernels moved in | me |
+| 4 | The renderer: the damage, the walk, the clip, the cover check, the strips | me |
+| 5 | The first classes: `box`, then the font contract and `text` | me |
+| 6 | The controls as compositions; input and `hit`; the `web` backend | me |
+| 7 | The window, the MCU path, the examples, the benches against LVGL | me |
+| 8 | The swap: delete gl, rename gx to gl, rebuild every backend | together |
 
-The application program in section 4 was written against the first model and
-is kept as a sketch of how short a program should be — it will be written
-again in the model that is chosen.
+The first check of phases 2–5: a card that changes its colour, and only its
+rectangle goes to the screen.
 
 From phase 2 on I work alone: every brick with its own test, the build green
 after every brick, `CHANGELOG.md` updated as the public surface grows, and
@@ -576,42 +685,46 @@ part, the bench is rewritten for gx (which is the point: an honest comparison),
 and the docs are rewritten with it.
 
 **1. The model of the screen.**
-*Open. The first attempt was removed on 2026-11-17 as a half model.* The
-models that exist, what each costs, and the four questions the choice turns
-on are in section 4.1. What is already settled around it:
+*Decided by the owner, 2026-11-18* (section 4.1):
 
-- **One node type** — the owner, 2026-11-17: a layer is the same node that
-  holds many, so there is no second type for it; the class says what a node
-  is.
-- **The memory is the application's** — the owner, 2026-11-17: an array the
-  application provides; the tree indexes into it and hands out slots.
-- **The damage belongs to the canvas** — the owner, 2026-11-17: a layer never
-  remembers that it is invalid.
-
-Still open: what a node holds (the content, the reactions), and how it looks.
+- **One entity type** — a layer, a card, a label and an effect are the same
+  struct; the **class**, a constant table of slots, says what an entity is and
+  how it behaves. No kind enum, no type per widget.
+- **The memory is the application's** — the owner, 2026-11-17 and
+  2026-11-18: wherever the application put the entity; gx never stores one
+  (decision 3, section 2.2).
+- **Many bricks in the code, one record in memory** — every concern is its own
+  brick, embedded in the entity by value, never wired by pointers at run time.
+- **Every control is a composition of entities**, and an effect is an entity
+  beside its owner.
 
 **2. Where the colours live.**
-*Recommendation: a theme, a table the application owns, and the node names
-a style by index.*
+*Decided by the owner, 2026-11-18: a theme — an array of flat style records the
+application owns, usually in flash — and the entity points at one.*
 One place to change how the screen looks, and the entity stays small. The
-alternative is per-entity colours (simple, but fifty entities later the
-palette is fifty copies of one palette) or the gl chain (three structs per
-entity).
+alternatives were per-entity colours (fifty entities later the palette is fifty
+copies of one palette) or the gl chain (three structs per entity).
+
+**2.1. Who keeps the damage.**
+*Decided by the owner, 2026-11-18: the renderer* (section 5.1), replacing the
+decision of 2026-11-17 that gave it to the canvas. The canvas is a contract
+with no memory: it knows how to draw, not where and not what was drawn
+before.
 
 **3. How the tree is stored.**
-*Decided by the owner, 2026-11-17: the application provides an array of
-entities; the tree indexes into it and hands out slots.*
-No allocation, the size is known at build time, an entity is addressable and
-stable, and the application can keep a pointer to any of its own entities.
-The alternative is the tree owning an arena of its own (also no allocation,
-but then the application cannot hold an entity pointer).
+*Decided by the owner, 2026-11-18: gx never stores an entity* (section 2.2).
+It replaces the decision of 2026-11-17 (an array the tree indexes into).
 
-So `lh_gx_tree_t` is the application's array and the links between the
-entities in it: `lh_gx_tree_try_add` takes a free slot and gives it the
-tree's own call, so a change of an entity is reported through the tree to
-whoever listens — the canvas. The links are indices, and every entity knows
-its own index, so the application works with pointers while the tree stays a
-flat array.
+1. The tree only links: the links are inside the entity, on `lh_list_t`, and
+   the tree owns the order, never the bytes.
+2. Where the entity lives is the application's: a field of its struct, a
+   static array, or an `lh_array_t` — the same to gx.
+3. Running out of memory is answered by whoever allocates — the application,
+   through `lh_array_try_reserve` and the like; gx asks for nothing.
+4. An `lh_array_t` of entities is reserved once, before they are attached, and
+   never grown afterwards.
+5. No store in gx. A pool of one-size slots, if one is ever needed, is a core
+   brick of its own.
 
 **4. What leaves gl before the swap.**
 *Recommendation: yes — the web host to `lh/os/web/`, the 3D renderer to its
@@ -624,4 +737,4 @@ there to test against. The cost is a bigger diff in the middle of the work.
 Until the swap, the tree holds both `lh/gl/` and `lh/gx/`, and the names
 `lh_gl_point_t` and `lh_gx_point_t` exist side by side over one math brick.
 That is the transitional debt of rule 3; it is listed in `docs/cleanup.md`
-and it ends with the swap in phase 7.
+and it ends with the swap in phase 8.
