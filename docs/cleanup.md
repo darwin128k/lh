@@ -65,10 +65,19 @@ The bench hides this: `bench/lvgl/scene_lh.c` measures the partial path
 "partial" rows of `bench/lvgl/RESULTS.md` therefore describe a path the
 product does not use.
 
-**The plan.** The window paints with the damage it took; a resize asks for the
-whole frame. In gx the same rule is structural: the canvas owns the damage
-and the window asks the canvas for it (`docs/design/gx.md`, section 5.1), so
-there is nowhere for it to be dropped.
+**Why it is not a three-line fix.** The damage has to be invalidated at the
+moment it appears, and it has to stay pending until the part that changed has
+been painted. The window cannot do that with the view's damage alone: it also
+has to know what it has invalidated and not yet painted — a second list, in the
+window — and the view has no way to reach the OS window to invalidate from
+there. That is the work of the part that owns the pixels, and it is why the
+first attempt at the fix was taken back: taking the damage at the invalidation
+loses whatever changed between the update and the paint.
+
+**The plan.** In gx the canvas owns the damage and the invalidation
+(`docs/design/gx.md`, section 5.1): the entity reports, the canvas remembers,
+and the canvas is what tells the platform what to repaint. The gl window is
+replaced by that same canvas in phase 7, so the fix arrives with it.
 
 **The date.** The owner named it on 2026-11-17.
 
