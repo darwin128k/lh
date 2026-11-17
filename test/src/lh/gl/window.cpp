@@ -7,6 +7,8 @@
 #include <lh/gl/window.h>
 #include <lh/gl/view/controller.h>
 #include <lh/os/app.h>
+#include <lh/os/app/backend/system.h>
+#include <lh/os/window/backend/system.h>
 #include <lh/os/system/window.h>
 #include <lh/test/gl/draw_log.h>
 #include <lh/expect/death.h>
@@ -15,6 +17,20 @@
 namespace
 {
 using lh_test::rect_of;
+
+/* The system backends, installed the way a desktop host installs them: the tables
+   are the host's and outlive every application that uses them. */
+void
+lh_test_gl_use_system(lh_os_app_t *app)
+{
+    static lh_os_app_backend_t loop;
+    static lh_os_window_backend_t windows;
+
+    lh_os_app_backend_system_init(&loop);
+    lh_os_window_backend_system_init(&windows);
+    lh_os_app_install_backend(app, &loop, lh_null);
+    lh_os_app_install_window_backend(app, &windows, lh_null);
+}
 
 bool
 window_has_display()
@@ -59,6 +75,7 @@ class ui_window : public ::testing::Test
     {
         lh_gl_entity_init(&root, rect_of(0, 0, 160, 100));
         lh_os_app_init(&app);
+        lh_test_gl_use_system(&app);
         lh_gl_window_init(&host, &root);
     }
 
@@ -578,6 +595,7 @@ TEST(ui_window_failure, missing_display_leaves_composition_reusable_and_tree_det
     }
     lh_os_app_t app;
     lh_os_app_init(&app);
+    lh_test_gl_use_system(&app);
     lh_gl_entity_t root;
     lh_gl_entity_init(&root, rect_of(0, 0, 20, 20));
     lh_gl_window_t host;
@@ -600,6 +618,7 @@ TEST(UiWindowDeathTest, checked_open_terminates_when_native_creation_fails)
         (void)setenv("DISPLAY", "", 1);
         lh_os_app_t app;
         lh_os_app_init(&app);
+        lh_test_gl_use_system(&app);
         lh_gl_window_t host;
         lh_gl_window_init(&host, nullptr);
         lh_gl_window_open(&host, &app, "Unavailable display", 20, 20);

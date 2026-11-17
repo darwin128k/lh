@@ -752,8 +752,8 @@ on_paint(lh_os_window_t *window, lh_ptr context)
     lh_os_window_get_paint_rect(window, &l, &t, &r, &b);
     lh_gl_rect_init(lh_addr_of(damage), l, t, r - l, b - t);
 
-    lh_os_render_backend_gdi_context_set_hwnd(lh_addr_of(self->gdi), lh_os_window_get_handle(window));
-    lh_os_render_backend_gdi_context_set_hdc(lh_addr_of(self->gdi), lh_os_window_get_paint_dc(window));
+    lh_os_render_backend_gdi_context_set_hwnd(lh_addr_of(self->gdi), lh_os_window_backend_system_get_handle(window));
+    lh_os_render_backend_gdi_context_set_hdc(lh_addr_of(self->gdi), lh_os_window_get_paint_target(window));
     lh_gl_view_draw(lh_addr_of(self->view), lh_addr_of(damage));
     lh_os_render_backend_gdi_context_set_hdc(lh_addr_of(self->gdi), lh_null);
 }
@@ -781,10 +781,16 @@ int
 main(void)
 {
     static struct my_main self;                               /* static: can be large   */
+    static lh_os_app_backend_t loop;                          /* the host's tables      */
+    static lh_os_window_backend_t windows;
     lh_os_app_t app;
     lh_os_window_t window;
 
     lh_os_app_init(lh_addr_of(app));
+    lh_os_app_backend_system_init(lh_addr_of(loop));      /* the contracts below the app: */
+    lh_os_window_backend_system_init(lh_addr_of(windows)); /* the system fills both        */
+    lh_os_app_install_backend(lh_addr_of(app), lh_addr_of(loop), lh_null);
+    lh_os_app_install_window_backend(lh_addr_of(app), lh_addr_of(windows), lh_null);
     lh_os_window_init(lh_addr_of(window));
 
     lh_os_render_backend_gdi_context_init(lh_addr_of(self.gdi));
@@ -1489,8 +1495,8 @@ Pictures, in the `--out` folder (default `.`):
 
 ## 16. Finding problems
 
-- **Frame statistics.** `lh_gl_frame_stats_t` with
-  `lh_os_window_set_frame_stats` counts frames, pixels asked for and drawn,
+- **Frame statistics.** `lh_gl_frame_stats_t` with a meter around the paint
+  (`lh_gl_frame_meter_t`, `lh_gl_frame_meter_attach`) counts frames, pixels asked for and drawn,
   and time. See `example/window_stats.c` (`-DLH_BUILD_EXAMPLES=ON`).
 - **A screenshot without a screen.** Swap in another canvas, draw, and swap
   back: `lh_gl_view_set_canvas(tmp)`, `lh_gl_view_draw`,

@@ -22,12 +22,8 @@
 #define LH_GX_SIZE_H
 
 #include <lh/config.h>
-#include <lh/core/bool.h>
-#include <lh/core/compiler/extern/c.h>
 #include <lh/core/math/size.h>
-#include <lh/core/void.h>
 #include <lh/gx/point.h>
-#include <lh/gx/scalar.h>
 
 #if LH_LIBRARY_OPTION_MATH_FPU
 #    include <lh/core/math/fsize.h>

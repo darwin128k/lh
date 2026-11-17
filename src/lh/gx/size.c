@@ -7,8 +7,6 @@
  * the math size it names.
  */
 
-#include <lh/core/assert/runtime.h>
-#include <lh/core/util/ptr.h>
 #include <lh/gx/size.h>
 
 lh_void

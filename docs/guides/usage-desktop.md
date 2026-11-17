@@ -69,10 +69,16 @@ main(void)
 {
     lh_os_app_t app;
     lh_os_window_t window;
+    static lh_os_app_backend_t loop;         /* the host's tables: they outlive the app */
+    static lh_os_window_backend_t windows;
     static struct my_main self;      /* static: the state can be large */
 
     my_host_install();               /* allocator, terminate, logger: see the README */
     lh_os_app_init(lh_addr_of(app));
+    lh_os_app_backend_system_init(lh_addr_of(loop));      /* the contracts below the app: */
+    lh_os_window_backend_system_init(lh_addr_of(windows)); /* the system fills both        */
+    lh_os_app_install_backend(lh_addr_of(app), lh_addr_of(loop), lh_null);
+    lh_os_app_install_window_backend(lh_addr_of(app), lh_addr_of(windows), lh_null);
     lh_os_window_init(lh_addr_of(window));
 
     if (!my_main_init(lh_addr_of(self)))   /* canvas, view, tree — sections 3–4 */
@@ -169,8 +175,8 @@ on_paint(lh_os_window_t *window, lh_ptr context)
     lh_os_window_get_paint_rect(window, &l, &t, &r, &b);
     lh_gl_rect_init(lh_addr_of(damage), l, t, r - l, b - t);
 
-    lh_os_render_backend_gdi_context_set_hwnd(lh_addr_of(self->gdi), lh_os_window_get_handle(window));
-    lh_os_render_backend_gdi_context_set_hdc (lh_addr_of(self->gdi), lh_os_window_get_paint_dc(window));
+    lh_os_render_backend_gdi_context_set_hwnd(lh_addr_of(self->gdi), lh_os_window_backend_system_get_handle(window));
+    lh_os_render_backend_gdi_context_set_hdc (lh_addr_of(self->gdi), lh_os_window_get_paint_target(window));
     lh_gl_view_draw(lh_addr_of(self->view), lh_addr_of(damage));
     lh_os_render_backend_gdi_context_set_hdc (lh_addr_of(self->gdi), lh_null);
 }
@@ -496,8 +502,8 @@ does.
 
 ## 6. Diagnostics
 
-- **Frame stats.** `lh_gl_frame_stats_t` + `lh_os_window_set_frame_stats`
-  count frames, asked vs drawn pixels, and time. See
+- **Frame stats.** `lh_gl_frame_stats_t` + `lh_gl_frame_meter_attach` around
+  the paint count frames, asked vs drawn pixels, and time. See
   `example/window_stats.c` (`-DLH_BUILD_EXAMPLES=ON`).
 - **Screenshot without a screen.** configurator swaps in a file canvas
   (`shot.c`, `CFG_SHOT=<path>`) — the same `lh_gl_view_draw`, a different

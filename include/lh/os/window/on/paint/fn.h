@@ -16,7 +16,7 @@ struct lh_os_window;
  * @typedef lh_os_window_on_paint_fn
  * @brief Called while the native window is in a paint cycle.
  *
- * On Win32, ::lh_os_window_get_paint_dc is valid for the duration of this call.
+ * On Win32, ::lh_os_window_get_paint_target is valid for the duration of this call.
  */
 typedef lh_void(lh_os_window_on_paint_fn)(struct lh_os_window *self, lh_ptr context);
 

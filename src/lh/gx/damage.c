@@ -3,10 +3,7 @@
  * @brief Implementation of `lh/gx/damage.h`.
  */
 
-#include <lh/core/assert/runtime.h>
 #include <lh/core/math.h>
-#include <lh/core/util/addr.h>
-#include <lh/core/util/ptr.h>
 #include <lh/core/util/return.h>
 #include <lh/gx/damage.h>
 

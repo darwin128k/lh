@@ -16,8 +16,8 @@
  * the same rectangle, which is how a window that "works" turned out to have asked its
  * device nothing for eight seconds.
  *
- * Pure bookkeeping: nothing here talks to a platform. A window fills it in
- * (::lh_os_window_set_frame_stats), and so can a strip renderer on a device with no
+ * Pure bookkeeping: nothing here talks to a platform. A window's paint fills it in
+ * through a meter (::lh_gl_frame_meter_t), and so can a strip renderer on a device with no
  * window at all. What to do with each frame -- print it, log it, keep the worst -- is the
  * caller's, through ::lh_gl_frame_stats_set_on_frame.
  */

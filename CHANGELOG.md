@@ -15,6 +15,90 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `lh_os_input_sample_t` is one contact a driver read: its own id and a position. `lh_os_input_touch_report` compares that list with the previous frame and emits pointer down, move and up. Fingers are pointer ids from 1; the mouse stays 0. A contact past the four remembered slots is skipped until one goes up. `lh_os_input_pad_report_axis` and `lh_os_input_pad_report_button` emit a controller event only when the value changed.
 
+### Changed
+
+- **The application and its windows run on contracts.** LH says what it needs
+  from below as two tables of calls, and a backend fills them: Win32, X11 and
+  AppKit through the system backend, a board's panel and touch driver, a test's
+  fake, a host's own. The same `lh/os/app.h` and `lh/os/window.h` are built and
+  run with an operating system and without one; no `#if` in them decides which.
+  Nothing is installed by default: an application opens a window only on a
+  window backend it was given, and runs its loop only on a loop backend it was
+  given — either missing is a checked failure. A desktop host now writes:
+
+  ```c
+  static lh_os_app_backend_t loop;
+  static lh_os_window_backend_t windows;
+
+  lh_os_app_backend_system_init(&loop);
+  lh_os_window_backend_system_init(&windows);
+  lh_os_app_install_backend(&app, &loop, lh_null);
+  lh_os_app_install_window_backend(&app, &windows, lh_null);
+  ```
+
+- `lh_os_window_backend_t` (`lh/os/window/backend.h`, `lh/os/window/backend/fields.h`,
+  `lh/os/window/backend/<slot>/fn.h`): what a window needs from below. Required:
+  `open`, `close`, `invalidate`, `invalidate_rect`, `now`. Optional, each with
+  its fallback: `set_timer`, `set_enabled`, `minimize`, `set_maximized`,
+  `set_corner_radius`, `get_client_size`, `get_position`, `get_paint_region`,
+  `now_us`. The backend keeps its own state per window behind one opaque
+  pointer (`lh_os_window_get_native` / `lh_os_window_set_native`) and calls the
+  window back through the `lh_os_window_on_native_*` up-calls, which are
+  portable now. A window takes the table from its application when it is
+  opened, a modal child from its parent.
+
+- `lh_os_app_backend_t` (`lh/os/app/backend.h`, `lh/os/app/backend/fields.h`,
+  `lh/os/app/backend/wait/fn.h`, `lh/os/app/backend/wake/fn.h`): what an
+  application's loop needs — `now`, `wait`, `wake`. `lh_os_app_run` is one
+  portable loop: the time, `lh_os_app_step`, then a wait until the next timer,
+  while `lh_os_app_is_running`. `lh_os_app_quit` wakes the backend.
+
+- The system backend is one brick per contract over the existing
+  `lh_os_system_window_*`: `lh/os/window/backend/system.h`
+  (`lh_os_window_backend_system_init`, and `lh_os_window_backend_system_get_handle`
+  for code that needs the system's handle, such as a GDI renderer) and
+  `lh/os/app/backend/system.h` (`lh_os_app_backend_system_init`). They are the
+  only part built under `LH_LIBRARY_OPTION_OS_WINDOW`.
+
+- `lh_timer_clock_fn` (`lh/core/timer/clock/fn.h`): a clock as a slot,
+  `lh_tick_t(lh_ptr)`. Both contracts take their time from one.
+
+- `lh_os_app_t` is a **step**, the timers it fires and its top-level windows,
+  everywhere. The step has the shape of a rail loop's step
+  (`lh_os_app_step_fn`), so one can stand in for the other, and
+  `lh_os_app_step(app, now)` is the whole application in one call. A host that
+  runs its own loop (rail, a browser) calls the step and never `lh_os_app_run`.
+
+- `lh_os_window_t` holds what is the application's: the tree, the reactions,
+  the input controller, and **the place** (`lh_os_window_get_rect`,
+  `lh_os_window_set_rect`, `lh_os_window_get_size`, `lh_os_window_set_size`).
+  The frame, the corner and the placement are the application's asks, read by
+  the backend in `open`; the maximized state, the zone callback, the pressed
+  buttons and the paint target are the window's, whoever fills them. Without
+  the backend's own answers, `lh_os_window_get_client_size` and
+  `lh_os_window_get_position` answer with the place.
+
+- The size of a window goes through `lh_os_window_set_size`, and that call
+  tells the application about the change (`lh_os_window_set_on_resize`). The
+  backend's resize ends in the same call, so a layout hears about a size from
+  one place whether it came from the backend or from the application.
+
+### Removed
+
+- `lh_os_window_get_handle` and `lh_os_window_set_handle`: the handle is the
+  system backend's (`lh_os_window_backend_system_get_handle`).
+
+- `lh_os_window_get_paint_dc`: it is `lh_os_window_get_paint_target`, because
+  what a paint draws on is the backend's — a device context on Win32, a paint
+  context on X11 and AppKit, a pixmap on a board.
+
+- `lh_os_window_set_frame_stats` and `lh_os_window_get_frame_stats`: the window
+  no longer knows gl's types. A paint is measured by `lh_gl_frame_meter_t`
+  (`lh/gl/frame/meter.h`), a paint that wraps the real one — the drawn rectangle
+  from the window, the request and the time from the backend's optional
+  `get_paint_region` and `now_us` slots — and records each frame into an
+  `lh_gl_frame_stats_t`. `lh_gl_frame_meter_attach` makes it a window's paint.
+
 ### Fixed
 
 - Gradient sampler preparation retains each stop interval while filling its 256
@@ -40,16 +124,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Full view frames retain a whole-target presentation clip when child widgets
   introduce smaller clips, so unscaled windows also present headers and footers.
 
+- MSVC builds the tests again: `test/src/lh/core/str/format/text.cpp` held a
+  raw NUL byte inside a character literal, which GCC only warned about.
+
+- The test configuration without an operating system builds again: the os tests
+  that need the operating system (`fs/stat`, the loader, `system/name`, `os.cpp`)
+  are marked as not built there, as the others already were.
+
 ### Added
 
-- `lh_gx_entity_t` (`lh/gx/entity.h`, `lh/gx/entity/fields.h`, `lh/gx/entity/kind.h`,
-  `lh/gx/entity/damage/fn.h`, `lh/gx/entity/damage/cb.h`): one thing on the screen — its
-  class (`label`, `button`, `layer`, `image`, `scroll`), its place, its style, what it
-  says, its state flags and its links to the parent and the children. The links are
-  indices into the tree's array, so every entity is the same size whatever it is, and a
-  layer is the same entity as a leaf — only its class differs. **An entity never
-  remembers that it is invalid:** when something of it changes, it reports where it was
-  and where it is now (`lh_gx_entity_damage_fn`), and the canvas is what remembers.
+- `lh_gx_pixmap_t` (`lh/gx/pixmap.h`, `lh/gx/pixmap/fields.h`,
+  `lh/gx/pixmap/format.h`): the pixels a thing is drawn into. A pixmap is a
+  **view of memory**, not a picture of its own: the bytes belong to whoever
+  provided them, and gx neither allocates them nor frees them. It says how
+  wide and how high the picture is, how a row steps through the memory, and
+  how one pixel is stored (`argb8888`, `rgb565`, `rgb565_swapped`). This is
+  what makes the same drawing work with and without an operating system: on a
+  desktop the bytes are the surface behind a native window, on a board they
+  are the buffer the application owns.
 
 - `lh_gx_damage_t` (`lh/gx/damage.h`, `lh/gx/damage/fields.h`): the part of the screen
   that changed, as up to `LH_GX_DAMAGE_MAX` (16) rects in a fixed table that is never

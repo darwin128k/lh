@@ -23,11 +23,7 @@
 #define LH_GX_RECT_H
 
 #include <lh/config.h>
-#include <lh/core/bool.h>
-#include <lh/core/compiler/extern/c.h>
 #include <lh/core/math/rect.h>
-#include <lh/core/void.h>
-#include <lh/gx/point.h>
 #include <lh/gx/size.h>
 
 #if LH_LIBRARY_OPTION_MATH_FPU

@@ -5,6 +5,7 @@
 
 #include <lh/gl/window.h>
 #include <lh/gl/view/controller.h>
+#include <lh/os/window/backend/system.h>
 #include <lh/core/attribute/unused.h>
 
 const lh_os_window_t *
@@ -153,10 +154,11 @@ lh_void
 lh_gl_window_paint(lh_gl_window_t *self)
 {
     lh_os_render_backend_gdi_context_set_hwnd(
-        lh_gl_window_get_screen_mut(self), lh_os_window_get_handle(lh_gl_window_get_window(self)));
+        lh_gl_window_get_screen_mut(self),
+        lh_os_window_backend_system_get_handle(lh_gl_window_get_window(self)));
     lh_os_render_backend_gdi_context_set_hdc(
         lh_gl_window_get_screen_mut(self),
-        lh_os_window_get_paint_dc(lh_gl_window_get_window(self)));
+        lh_os_window_get_paint_target(lh_gl_window_get_window(self)));
     lh_gl_rects_t damage;
     LH_ATTRIBUTE_UNUSED(
         lh_gl_view_take_damage(lh_gl_window_get_view_mut(self), lh_addr_of(damage)));

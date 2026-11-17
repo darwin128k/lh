@@ -349,6 +349,15 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/io/dgram.c
 
         ${LH_LIB_SRC_PATH}/lh.c
+
+        # The application and its windows are portable: they call the contracts
+        # below them (lh/os/app/backend.h, lh/os/window/backend.h), and whoever
+        # fills those — the system, a board, a test — is the host's choice. Built
+        # everywhere, with or without an operating system.
+        ${LH_LIB_SRC_PATH}/os/app.c
+        ${LH_LIB_SRC_PATH}/os/app/backend.c
+        ${LH_LIB_SRC_PATH}/os/window.c
+        ${LH_LIB_SRC_PATH}/os/window/backend.c
 )
 
 # The CPU layer under the rail base without an OS (lh/rail/system/cpu.h): the
@@ -471,8 +480,9 @@ if (LH_LIBRARY_OPTION_OS)
     endif ()
     if (LH_LIBRARY_OPTION_OS_WINDOW)
         list(APPEND LH_LIB_SOURCES
-                ${LH_LIB_SRC_PATH}/os/app.c
-                ${LH_LIB_SRC_PATH}/os/window.c
+                # The system backend: the contracts filled with the window system.
+                ${LH_LIB_SRC_PATH}/os/app/backend/system.c
+                ${LH_LIB_SRC_PATH}/os/window/backend/system.c
                 ${LH_LIB_SRC_PATH}/os/window/corner.c
         )
         if (WIN32)
@@ -541,6 +551,7 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gl/axis.c
             ${LH_LIB_SRC_PATH}/gl/frame.c
             ${LH_LIB_SRC_PATH}/gl/frame/stats.c
+            ${LH_LIB_SRC_PATH}/gl/frame/meter.c
             ${LH_LIB_SRC_PATH}/gl/insets.c
             ${LH_LIB_SRC_PATH}/gl/key.c
             ${LH_LIB_SRC_PATH}/gl/layout.c
@@ -658,7 +669,7 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gx/size.c
             ${LH_LIB_SRC_PATH}/gx/rect.c
             ${LH_LIB_SRC_PATH}/gx/damage.c
-            ${LH_LIB_SRC_PATH}/gx/entity.c
+            ${LH_LIB_SRC_PATH}/gx/pixmap.c
     )
 endif ()
 

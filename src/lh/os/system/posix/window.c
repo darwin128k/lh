@@ -883,7 +883,7 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     lh_os_system_posix_windows = self;
     if (lh_null_ne(lh_os_system_posix_window_get_user(self)))
     {
-        lh_os_window_set_handle(lh_os_system_posix_window_get_user(self), self);
+        lh_os_window_set_native(lh_os_system_posix_window_get_user(self), self);
     }
     LH_ATTRIBUTE_UNUSED(
         x->XMapWindow(lh_os_system_posix_display, lh_os_system_posix_window_get_window(self)));
@@ -1040,7 +1040,7 @@ lh_os_system_window_close(lh_os_system_window_handle_t handle)
        layer is told here, the same way and at the same point. */
     user = lh_os_system_posix_window_get_user(self);
     lh_runtime_allocator_free(self);
-    if (lh_null_ne(user) && lh_os_window_get_handle(user) == handle)
+    if (lh_null_ne(user) && lh_os_window_get_native(user) == handle)
     {
         lh_os_window_on_native_destroy(user);
     }

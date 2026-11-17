@@ -4,7 +4,6 @@
  */
 
 #include <lh/core/assert/runtime.h>
-#include <lh/core/bit/ops.h>
 #include <lh/core/byte/limits.h>
 #include <lh/core/math.h>
 #include <lh/gl/color.h>

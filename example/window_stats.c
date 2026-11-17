@@ -18,11 +18,13 @@
 #include <stdlib.h>
 
 #include <lh/os/app.h>
+#include <lh/os/app/backend/system.h>
 #include <lh/core/runtime/allocator.h>
 #include <lh/core/runtime/terminate.h>
 #include <lh/os/window.h>
+#include <lh/os/window/backend/system.h>
 #include <lh/core/math/rect.h>
-#include <lh/gl/frame/stats.h>
+#include <lh/gl/frame/meter.h>
 
 #if defined(_WIN32)
 #    define WIN32_LEAN_AND_MEAN
@@ -39,10 +41,10 @@
 static lh_void
 on_paint(lh_os_window_t *self, lh_ptr context)
 {
-    (void)context;
+    lh_gl_frame_stats_t *stats = (lh_gl_frame_stats_t *)context;
 
 #if defined(_WIN32)
-    HDC dc = (HDC)lh_os_window_get_paint_dc(self);
+    HDC dc = (HDC)lh_os_window_get_paint_target(self);
     int l = 0, t = 0, r = 0, b = 0;
     lh_os_window_get_paint_rect(self, &l, &t, &r, &b);
     RECT rc;
@@ -51,12 +53,6 @@ on_paint(lh_os_window_t *self, lh_ptr context)
     rc.right = r;
     rc.bottom = b;
     FillRect(dc, &rc, (HBRUSH)(COLOR_BTNFACE + 1));
-
-    struct lh_gl_frame_stats *stats = lh_os_window_get_frame_stats(self);
-    if (stats == NULL)
-    {
-        return;
-    }
 
     lh_u32_t frames = lh_gl_frame_stats_get_frames(stats);
     lh_u32_t wasteful = lh_gl_frame_stats_get_wasteful(stats);
@@ -86,6 +82,7 @@ on_paint(lh_os_window_t *self, lh_ptr context)
     TextOutA(dc, 8, 8, buf, n);
 #else
     (void)self;
+    (void)stats;
 #endif
 }
 
@@ -179,19 +176,29 @@ example_abort(lh_self_ptr self)
 int
 main(void)
 {
+    static lh_os_app_backend_t loop;
+    static lh_os_window_backend_t windows;
     lh_os_app_t app;
     lh_os_window_t win;
     lh_gl_frame_stats_t stats;
+    lh_gl_frame_meter_t meter;
 
     lh_memory_allocator_init(lh_runtime_allocator_get_mut(), example_alloc, example_dealloc);
     lh_runtime_terminate_handler_init(lh_runtime_terminate_get_mut(), example_abort, NULL);
     lh_os_app_init(lh_addr_of(app));
+    /* The application runs on contracts; on a desktop the system fills both. */
+    lh_os_app_backend_system_init(lh_addr_of(loop));
+    lh_os_window_backend_system_init(lh_addr_of(windows));
+    lh_os_app_install_backend(lh_addr_of(app), lh_addr_of(loop), lh_null);
+    lh_os_app_install_window_backend(lh_addr_of(app), lh_addr_of(windows), lh_null);
     lh_os_window_init(lh_addr_of(win));
     lh_gl_frame_stats_init(lh_addr_of(stats));
 
     lh_gl_frame_stats_set_on_frame(lh_addr_of(stats), on_frame, NULL);
-    lh_os_window_set_frame_stats(lh_addr_of(win), lh_addr_of(stats));
-    lh_os_window_set_on_paint(lh_addr_of(win), on_paint, NULL);
+    /* The meter is the window's paint: it measures the paint it wraps into the stats,
+       and the paint reads the same stats back to print them. */
+    lh_gl_frame_meter_init(lh_addr_of(meter), lh_addr_of(stats), on_paint, lh_addr_of(stats));
+    lh_gl_frame_meter_attach(lh_addr_of(meter), lh_addr_of(win));
     lh_os_window_set_on_tick(lh_addr_of(win), on_tick, NULL, 100);
     lh_os_window_set_on_close(lh_addr_of(win), on_close, NULL);
 

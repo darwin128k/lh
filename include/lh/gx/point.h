@@ -21,10 +21,7 @@
 #define LH_GX_POINT_H
 
 #include <lh/config.h>
-#include <lh/core/bool.h>
-#include <lh/core/compiler/extern/c.h>
 #include <lh/core/math/point.h>
-#include <lh/core/void.h>
 #include <lh/gx/scalar.h>
 
 #if LH_LIBRARY_OPTION_MATH_FPU

@@ -19,9 +19,18 @@
  * them also replaces that part of the hosting contract. Use the update hook for
  * changing application values and widget properties.
  *
- * Typical hosting of an existing root (allocator already configured):
+ * Typical hosting of an existing root (allocator already configured). The
+ * application runs on two contracts the host installs; on a desktop the system
+ * fills both (`lh/os/app/backend/system.h`, `lh/os/window/backend/system.h`):
  * @code{.c}
+ * static lh_os_app_backend_t loop;
+ * static lh_os_window_backend_t windows;
+ *
  * lh_os_app_init(&app);
+ * lh_os_app_backend_system_init(&loop);
+ * lh_os_window_backend_system_init(&windows);
+ * lh_os_app_install_backend(&app, &loop, lh_null);
+ * lh_os_app_install_window_backend(&app, &windows, lh_null);
  * lh_gl_window_init(&window, &root);
  * if (lh_gl_window_try_open(&window, &app, "Example", 480, 320))
  * {

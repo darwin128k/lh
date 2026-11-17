@@ -6,7 +6,7 @@
  * into the pixels of an owned ::lh_gl_surface_t (a 32-bit DIB section). GDI
  * only shows the result: `begin` sizes the surface to the client and points
  * the software context at its pixels, `end` blits the surface into the paint
- * DC in one `BitBlt`. Set the DC from ::lh_os_window_get_paint_dc inside
+ * DC in one `BitBlt`. Set the DC from ::lh_os_window_get_paint_target inside
  * `on_paint`, then paint; clear it when the paint ends. Win32 calls go
  * through ::lh_os_system_*.
  *
@@ -85,7 +85,7 @@ lh_os_system_window_handle_t
 lh_os_render_backend_gdi_context_get_hwnd(const lh_os_render_backend_gdi_context_t *self);
 
 /**
- * @brief Set the paint-time destination DC (from ::lh_os_window_get_paint_dc),
+ * @brief Set the paint-time destination DC (from ::lh_os_window_get_paint_target),
  *        or ::lh_null.
  */
 lh_void

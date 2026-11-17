@@ -7,8 +7,6 @@
  * contract of the math rectangle it names.
  */
 
-#include <lh/core/assert/runtime.h>
-#include <lh/core/util/ptr.h>
 #include <lh/gx/rect.h>
 
 lh_void

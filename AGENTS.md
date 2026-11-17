@@ -37,6 +37,33 @@ statement are; `lh/os/sql/` holds the drivers that reach a real database.
 `lh/core/spsc.h` and `lh/core/atomic/` are data too: they wait for nothing,
 and the execution part is built on them.
 
+### Contracts: LH says what it needs, a backend fills it
+
+> The owner (2026-11-17): "LH must be contracts — bricks: use this if you
+> want, use that if you want; the backends have to fit our contracts. LH is
+> cross-platform: what difference does the OS make to us — even with no OS
+> it has to be light."
+
+- Whatever needs something from below — a window, a loop, a clock, a display —
+  states it as a **contract**: a table of slots (function types plus the
+  backend's context), with every optional slot saying what happens without it.
+  The models in the tree: `lh_gl_canvas_backend_t`, `lh_gl_present_sink_t`,
+  `lh_os_window_backend_t`, `lh_os_app_backend_t`.
+- A **backend fills the table**: Win32, X11, AppKit, a board with no operating
+  system, a test's fake, a host's own (SDL, wasm, a remote). LH does not know
+  which one it got. The platform's own calls stay below, in
+  `src/lh/os/system/<backend>/` (section 0.2); the table over them is one more
+  brick.
+- **No `#if` draws the line between "with an OS" and "without one"** in the
+  portable code. A configuration option decides only which backends are
+  *built*, never what the portable code *is*. Portable code that needs an
+  `#if LH_LIBRARY_OPTION_OS*` to compile is missing a contract.
+- **Slots start empty, the host installs the table.** LH ships its system
+  backend as a brick and installs nothing by default; using a part without
+  its backend is a checked failure, not a silent default.
+- Every brick is optional: a host takes the contract and the bricks it wants
+  and leaves the rest.
+
 ## 0. LH uses its own bricks — first rule
 
 > The owner: "Why did we create all these wrappers at all, if nobody uses

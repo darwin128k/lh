@@ -356,6 +356,9 @@ set(LH_TEST_OS_SOURCES
         ${LH_TEST_SRC_PATH}/lh/os/fs/stat.cpp
         ${LH_TEST_SRC_PATH}/lh/os/sql/mysql.cpp
         ${LH_TEST_SRC_PATH}/lh/os/window.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/window/backend.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/app.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/app/backend.cpp
         ${LH_TEST_SRC_PATH}/lh/os/render/backend/gdi.cpp
         ${LH_TEST_SRC_PATH}/lh/os/system/posix/input.cpp
         ${LH_TEST_SRC_PATH}/lh/os/system/posix/key.cpp
@@ -380,6 +383,18 @@ if (NOT LH_LIBRARY_OPTION_OS)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/fs/file.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/fs/dir.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/fs/dir.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/fs/stat.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/fs/stat.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/loader/scan.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/loader/scan.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/loader/image.cpp
+         ${LH_TEST_SRC_PATH}/lh/os/loader/list.cpp
+         ${LH_TEST_SRC_PATH}/lh/os/system/name.cpp
+         ${LH_TEST_SRC_PATH}/lh/os.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/loader/image.cpp
+         ${LH_TEST_SRC_PATH}/lh/os/loader/list.cpp
+         ${LH_TEST_SRC_PATH}/lh/os/system/name.cpp
+         ${LH_TEST_SRC_PATH}/lh/os.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/memory.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/memory.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/net/interface.cpp)
@@ -412,10 +427,6 @@ if (NOT LH_LIBRARY_OPTION_OS)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/logger/daily.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/logger/capture.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/logger/capture.cpp)
-endif ()
-if (NOT (LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW))
-    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/window.cpp)
-    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/window.cpp)
 endif ()
 if (WIN32 OR NOT LH_LIBRARY_OPTION_OS)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/system/unix/input.cpp)
@@ -563,6 +574,7 @@ set(LH_TEST_GL_SOURCES
         ${LH_TEST_SRC_PATH}/lh/gl/container.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/label.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/frame/stats.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/frame/meter.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/input.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/scrollbar.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/toggle.cpp
@@ -599,7 +611,7 @@ set(LH_TEST_GL_SOURCES
         ${LH_TEST_SRC_PATH}/lh/gx/size.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/rect.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/damage.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/entity.cpp
+        ${LH_TEST_SRC_PATH}/lh/gx/pixmap.cpp
 )
 if (LH_LIBRARY_OPTION_GL AND LH_LIBRARY_OPTION_MATH_FPU)
     list(APPEND LH_TEST_GL_SOURCES ${LH_TEST_SRC_PATH}/lh/gl/renderer3d.cpp)

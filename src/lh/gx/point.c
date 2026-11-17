@@ -7,8 +7,6 @@
  * the math point it names.
  */
 
-#include <lh/core/assert/runtime.h>
-#include <lh/core/util/ptr.h>
 #include <lh/gx/point.h>
 
 lh_void

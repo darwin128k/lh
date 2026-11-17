@@ -424,7 +424,7 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
                           lh_cast_reinterpret(lh_os_system_win_lparam_t, window));
         if (lh_null_ne(window))
         {
-            lh_os_window_set_handle(window,
+            lh_os_window_set_native(window,
                                     lh_cast_reinterpret(lh_os_system_window_handle_t, hwnd));
         }
     }
