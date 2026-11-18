@@ -18,6 +18,7 @@
 
 const lh_gl_entity_class_t lh_gl_label_class = {lh_gl_label_event,
                                                 lh_addr_of(lh_gl_container_class)};
+
 lh_void
 lh_gl_label_on_children(const lh_gl_label_t *self, const lh_gl_entity_event_t *event)
 {
@@ -91,7 +92,7 @@ lh_gl_label_shorten(const lh_gl_font_t *font, const lh_char_t *text, lh_s32_t ro
 
     cursor = text;
     lh_u32_t code;
-    while ((code = lh_gl_text_next_code(lh_addr_of(cursor))) != 0U)
+    while ((code = lh_str_utf8_get_next_code(lh_addr_of(cursor))) != 0U)
     {
         width += lh_gl_font_get_advance(font, code);
         if (width + tail > room || lh_cast_static(lh_u32_t, cursor - text) + tail_bytes + 1U > size)
@@ -217,7 +218,7 @@ lh_gl_label_set_text_noted(lh_gl_label_t *self, lh_gl_rect_t text_noted)
     self->text_noted = text_noted;
 }
 
-const struct lh_gl_font *
+const struct lh_font *
 lh_gl_label_get_metrics_font(const lh_gl_label_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -225,7 +226,7 @@ lh_gl_label_get_metrics_font(const lh_gl_label_t *self)
 }
 
 lh_void
-lh_gl_label_set_metrics_font(lh_gl_label_t *self, const struct lh_gl_font *metrics_font)
+lh_gl_label_set_metrics_font(lh_gl_label_t *self, const struct lh_font *metrics_font)
 {
     lh_assert_runtime_ref(self);
     self->metrics_font = metrics_font;

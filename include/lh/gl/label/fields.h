@@ -34,7 +34,7 @@
     lh_u32_t text_hash;                                                                            \
     lh_u32_t text_length;                                                                          \
     lh_gl_rect_t text_noted;                                                                       \
-    const struct lh_gl_font *metrics_font;                                                         \
+    const struct lh_font *metrics_font;                                                         \
     lh_gl_rect_t metrics_rect;                                                                     \
     lh_gl_insets_t metrics_padding;                                                                \
     lh_gl_text_align_h_t metrics_align_h;                                                          \

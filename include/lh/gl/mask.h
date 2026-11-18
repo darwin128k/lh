@@ -11,21 +11,11 @@
 #ifndef LH_GL_MASK_H
 #define LH_GL_MASK_H
 
-#include <lh/core/byte/ptr.h>
-#include <lh/gl/mask/fields.h>
+#include <lh/core/pixel/mask.h>
 #include <lh/gl/rect.h>
 
-/**
- * @struct lh_gl_mask
- * @brief A view of packed coverage pixels.
- */
-struct lh_gl_mask
-{
-    /** Members: ::lh_gl_mask_fields. */
-    lh_gl_mask_fields(lh_byte_t, lh_s32_t, lh_byte_t);
-};
-/** @copybrief lh_gl_mask */
-typedef struct lh_gl_mask lh_gl_mask_t;
+/** @brief The core's packed mask (::lh_pixel_mask_t), under gl's name until the swap. */
+typedef lh_pixel_mask_t lh_gl_mask_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -159,7 +149,7 @@ lh_gl_mask_get_bits(const lh_gl_mask_t *self);
  * @param bits The new value.
  */
 lh_void
-lh_gl_mask_set_bits(lh_gl_mask_t *self, const lh_byte_t * bits);
+lh_gl_mask_set_bits(lh_gl_mask_t *self, const lh_byte_t *bits);
 
 /**
  * @brief Store the width of the mask in pixels (level 1).

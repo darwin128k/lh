@@ -10,6 +10,7 @@
 
 const lh_gx_class_t lh_gx_render_screen_class =
     lh_gx_class_initializer(lh_null, lh_null, lh_gx_render_report);
+
 const lh_gx_entity_t *
 lh_gx_render_get_screen(const lh_gx_render_t *self)
 {

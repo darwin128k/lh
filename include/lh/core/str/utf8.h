@@ -13,7 +13,8 @@
 #ifndef LH_STR_UTF8_H
 #define LH_STR_UTF8_H
 
-#include <lh/core/byte.h>
+#include <lh/core/attribute/force_inline.h>
+#include <lh/core/util/ptr.h>
 #include <lh/core/compiler/extern/c.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -61,6 +62,54 @@ lh_str_utf8_get_lead_size(lh_byte_t lead);
  */
 lh_u32_t
 lh_str_utf8_encode(lh_char_t *out, lh_u32_t bytes, lh_u32_t code);
+
+/**
+ * @brief Read the rest of a character whose lead byte @p lead was already read and
+ *        stepped over, and move @p cursor past it.
+ *
+ * The rare half of ::lh_str_utf8_get_next_code, out of line: the length comes from
+ * the lead byte (::lh_str_utf8_get_lead_size) and every continuation byte adds six
+ * bits. A @p lead that is not a lead byte comes back as itself; a character cut
+ * short by the end of the string comes back as far as it was read, and the cursor
+ * stays on the byte that is not a continuation.
+ *
+ * @param cursor Points just past @p lead; moved past the character.
+ * @param lead   The first byte of the character, `0x80` or above.
+ * @return The code point.
+ */
+lh_u32_t
+lh_str_utf8_read_after_lead(const lh_char_t **cursor, lh_byte_t lead);
+
+/**
+ * @brief Read the character at @p cursor and move the cursor past it.
+ *
+ * The decoder of a walk over a UTF-8 string, one code point at a time. The end of
+ * the string and ASCII — nearly every character of most text — are decided here,
+ * in line (::LH_ATTRIBUTE_FORCE_INLINE): measuring a line reads every character,
+ * and a call per character costs more than the work. Anything longer goes to
+ * ::lh_str_utf8_read_after_lead.
+ *
+ * @param cursor Points at the position to read; moved past the character. Must not
+ *               be null, nor point at null.
+ * @return The code point; `0` at the terminator, where the cursor does not move.
+ */
+LH_ATTRIBUTE_FORCE_INLINE
+lh_u32_t
+lh_str_utf8_get_next_code(const lh_char_t **cursor)
+{
+    const lh_byte_t first = lh_cast_static(lh_byte_t, lh_ptr_deref(lh_ptr_deref(cursor)));
+
+    if (first == 0U)
+    {
+        return 0U;
+    }
+    ++lh_ptr_deref(cursor);
+    if (first < 0x80U)
+    {
+        return lh_cast_static(lh_u32_t, first);
+    }
+    return lh_str_utf8_read_after_lead(cursor, first);
+}
 
 LH_COMPILER_EXTERN_C_END
 

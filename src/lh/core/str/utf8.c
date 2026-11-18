@@ -1,5 +1,4 @@
 #include <lh/core/str/utf8.h>
-#include <lh/core/null.h>
 #include <lh/core/util/return.h>
 
 lh_u32_t
@@ -89,4 +88,26 @@ lh_str_utf8_encode(lh_char_t *out, lh_u32_t bytes, lh_u32_t code)
         break;
     }
     return size;
+}
+
+lh_u32_t
+lh_str_utf8_read_after_lead(const lh_char_t **cursor, lh_byte_t lead)
+{
+    const lh_u32_t size = lh_str_utf8_get_lead_size(lead);
+
+    /* A byte that is not a lead byte at all: a broken string, and one byte is as far
+       as it is safe to go. */
+    lh_return_if(size == 1U, lh_cast_static(lh_u32_t, lead));
+    lh_u32_t code = lh_cast_static(lh_u32_t, lead & (0x7FU >> size));
+
+    for (lh_u32_t at = 1U; at < size; ++at)
+    {
+        const lh_byte_t next = lh_cast_static(lh_byte_t, lh_ptr_deref(lh_ptr_deref(cursor)));
+
+        /* Cut short by the end of the string: what was read is what there is. */
+        lh_return_if((next & 0xC0U) != 0x80U, code);
+        code = (code << 6) | lh_cast_static(lh_u32_t, next & 0x3FU);
+        ++lh_ptr_deref(cursor);
+    }
+    return code;
 }

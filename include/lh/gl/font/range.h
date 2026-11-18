@@ -11,22 +11,10 @@
 #ifndef LH_GL_FONT_RANGE_H
 #define LH_GL_FONT_RANGE_H
 
-#include <lh/core/bool.h>
-#include <lh/core/compiler/extern/c.h>
-#include <lh/gl/font/range/fields.h>
-#include <lh/core/void.h>
+#include <lh/core/font/range.h>
 
-/**
- * @struct lh_gl_font_range
- * @brief @p length consecutive code points from @p first, glyphs at @p base.
- */
-struct lh_gl_font_range
-{
-    /** Members: ::lh_gl_font_range_fields. */
-    lh_gl_font_range_fields(lh_u32_t, lh_u32_t);
-};
-/** @copybrief lh_gl_font_range */
-typedef struct lh_gl_font_range lh_gl_font_range_t;
+/** @brief The core's run of code points (::lh_font_range_t), under gl's name until the swap. */
+typedef lh_font_range_t lh_gl_font_range_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -110,4 +98,4 @@ lh_gl_font_range_set_base(lh_gl_font_range_t *self, lh_u32_t base);
 
 LH_COMPILER_EXTERN_C_END
 
-#endif /* LH_GL_FONT_RANGE_H */
+#endif /* LH_GL_FONT_RANGE_H */

@@ -133,6 +133,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_gx_text_class` (`lh/gx/text.h`): a line of text — the UTF-8 string the
+  entity's content points at, in its style's font and `fill`, from the
+  top-left of its place on the font's baseline. Each glyph row is widened to 8
+  bits and laid through `fill_mask`. `lh_gx_text_get_width` measures a line.
+
+- `lh_gx_font_t` (`lh/gx/font.h`, `lh/gx/font/fields.h`,
+  `lh/gx/font/{get_glyph,get_ascent,get_line_height}/fn.h`): where a text takes
+  its glyphs from, as a contract — a code point in, a glyph out, and the two
+  metrics of a line; the font carries its own data beside its slots. The baked
+  font (`lh/gx/font/baked.h`, `lh_gx_font_baked_init`) fills it from the core's
+  `lh_font_t`, the way Roboto ships. `lh_gx_glyph_t` (`lh/gx/glyph.h`): a mask,
+  an advance and a top. `lh_gx_style_t` gains `font`
+  (`lh_gx_style_get_font`; `lh_gx_style_init` and `lh_gx_style_initializer`
+  take it last).
+
+- The packed coverage mask, the bitmap font and its runs of code points are the
+  core's now, as data: `lh_pixel_mask_t` (`lh/core/pixel/mask.h`,
+  `lh/core/pixel/mask/fields.h`, `lh/core/pixel/mask/initializer.h`),
+  `lh_font_t` (`lh/core/font.h`, `lh/core/font/fields.h`) and
+  `lh_font_range_t` (`lh/core/font/range.h`, `lh/core/font/range/fields.h`,
+  `lh/core/font/range/initializer.h`). gl keeps its names until the swap:
+  `lh_gl_mask_t`, `lh_gl_font_t` and `lh_gl_font_range_t` are the core's types,
+  their functions call the core's, and the generated Roboto tables are
+  unchanged. `lh/gl/{mask,font,font/range}/fields.h` are gone; a forward
+  declaration of `struct lh_gl_font` is `struct lh_font` now.
+
+- `lh_str_utf8_get_next_code` (`lh/core/str/utf8.h`): the UTF-8 decoder,
+  out of gl (`lh_gl_text_next_code` calls it). The end of the string and ASCII
+  are decided in line (`LH_ATTRIBUTE_FORCE_INLINE`), anything longer in
+  `lh_str_utf8_read_after_lead`. gl's own text calls it directly. Measured A/B
+  against the commit before, in one session with `lh_bench`: `text_get_size`
+  0.71, `text_draw_cyrillic` 0.86, `text_next_code` 0.85, `text_line_measure`
+  0.93, drawing 0.93–0.98. A first version that called out of line for every
+  character was 1.15–1.30 slower on measuring; that is why the fast path is in
+  the header.
+
 - `lh_gx_box_class` (`lh/gx/box.h`): the card — a box of the entity's style,
   filled, edged with a border and with rounded, anti-aliased corners. The
   straight parts go to the canvas as a handful of rectangles whatever the size;

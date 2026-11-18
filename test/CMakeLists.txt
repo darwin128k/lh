@@ -618,6 +618,7 @@ set(LH_TEST_GL_SOURCES
         ${LH_TEST_SRC_PATH}/lh/gx/backend/sw.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/render.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/box.cpp
+        ${LH_TEST_SRC_PATH}/lh/gx/text.cpp
 )
 if (LH_LIBRARY_OPTION_GL AND LH_LIBRARY_OPTION_MATH_FPU)
     list(APPEND LH_TEST_GL_SOURCES ${LH_TEST_SRC_PATH}/lh/gl/renderer3d.cpp)

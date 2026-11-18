@@ -208,6 +208,9 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/math/size.c
         ${LH_LIB_SRC_PATH}/core/math/fit.c
         ${LH_LIB_SRC_PATH}/core/math/rect.c
+        ${LH_LIB_SRC_PATH}/core/font.c
+        ${LH_LIB_SRC_PATH}/core/font/range.c
+        ${LH_LIB_SRC_PATH}/core/pixel/mask.c
         ${LH_LIB_SRC_PATH}/core/pixel/round.c
         ${LH_LIB_SRC_PATH}/core/pixel/span.c
 
@@ -680,6 +683,10 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gx/render.c
             ${LH_LIB_SRC_PATH}/gx/style.c
             ${LH_LIB_SRC_PATH}/gx/box.c
+            ${LH_LIB_SRC_PATH}/gx/glyph.c
+            ${LH_LIB_SRC_PATH}/gx/font.c
+            ${LH_LIB_SRC_PATH}/gx/font/baked.c
+            ${LH_LIB_SRC_PATH}/gx/text.c
             ${LH_LIB_SRC_PATH}/gx/backend/sw.c
     )
 endif ()

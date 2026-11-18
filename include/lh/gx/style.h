@@ -15,6 +15,7 @@
 #define LH_GX_STYLE_H
 
 #include <lh/gx/color.h>
+#include <lh/gx/font.h>
 #include <lh/gx/scalar.h>
 #include <lh/gx/style/fields.h>
 
@@ -25,7 +26,7 @@
 struct lh_gx_style
 {
     /** Members: ::lh_gx_style_fields. */
-    lh_gx_style_fields(lh_gx_color_t, lh_gx_scalar_t);
+    lh_gx_style_fields(lh_gx_color_t, lh_gx_scalar_t, lh_gx_font_t);
 };
 /** @copybrief lh_gx_style */
 typedef struct lh_gx_style lh_gx_style_t;
@@ -101,19 +102,37 @@ lh_void
 lh_gx_style_set_radius(lh_gx_style_t *self, lh_gx_scalar_t radius);
 
 /**
- * @brief A style of @p fill, a @p border of @p border_width, and corners of
- *        @p radius — for a style built at run time; a theme in flash uses
- *        ::lh_gx_style_initializer.
+ * @brief Where a text takes its glyphs from, or ::lh_null (level 1).
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gx_font_t *
+lh_gx_style_get_font(const lh_gx_style_t *self);
+
+/**
+ * @brief Store where a text takes its glyphs from (level 1).
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @param font The font; not owned.
+ */
+lh_void
+lh_gx_style_set_font(lh_gx_style_t *self, const lh_gx_font_t *font);
+
+/**
+ * @brief A style of @p fill, a @p border of @p border_width, corners of
+ *        @p radius and @p font — for a style built at run time; a theme in flash
+ *        uses ::lh_gx_style_initializer.
  *
  * @param self         The style; must not be null.
  * @param fill         The colour inside.
  * @param border       The colour of the edge.
  * @param border_width How wide the edge is; `0` for none.
  * @param radius       How round the corners are; `0` for square.
+ * @param font         Where a text takes its glyphs; ::lh_null for none.
  */
 lh_void
 lh_gx_style_init(lh_gx_style_t *self, lh_gx_color_t fill, lh_gx_color_t border,
-                 lh_gx_scalar_t border_width, lh_gx_scalar_t radius);
+                 lh_gx_scalar_t border_width, lh_gx_scalar_t radius, const lh_gx_font_t *font);
 
 LH_COMPILER_EXTERN_C_END
 

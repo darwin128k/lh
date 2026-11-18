@@ -9,70 +9,53 @@
 lh_void
 lh_gl_font_range_init(lh_gl_font_range_t *self, lh_u32_t first, lh_u32_t length, lh_u32_t base)
 {
-    lh_gl_font_range_set_first(self, first);
-    lh_gl_font_range_set_length(self, length);
-    lh_gl_font_range_set_base(self, base);
+    lh_font_range_init(self, first, length, base);
 }
 
 lh_u32_t
 lh_gl_font_range_get_first(const lh_gl_font_range_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return self->first;
+    return lh_font_range_get_first(self);
 }
 
 lh_u32_t
 lh_gl_font_range_get_length(const lh_gl_font_range_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return self->length;
+    return lh_font_range_get_length(self);
 }
 
 lh_u32_t
 lh_gl_font_range_get_base(const lh_gl_font_range_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return self->base;
+    return lh_font_range_get_base(self);
 }
 
 lh_u32_t
 lh_gl_font_range_get_last(const lh_gl_font_range_t *self)
 {
-    /* `first - 1` and not `first + length - 1`, so an empty run -- and a run that
-       ends at the top of the code space -- has a last code below its first, and
-       ::lh_gl_font_range_has says no to every code rather than saying yes to the
-       whole space. */
-    return lh_gl_font_range_get_length(self) > 0U
-               ? lh_gl_font_range_get_first(self) + lh_gl_font_range_get_length(self) - 1U
-               : lh_gl_font_range_get_first(self) - 1U;
+    return lh_font_range_get_last(self);
 }
 
 lh_bool_t
 lh_gl_font_range_has(const lh_gl_font_range_t *self, lh_u32_t code)
 {
-    return code >= lh_gl_font_range_get_first(self) &&
-                   code - lh_gl_font_range_get_first(self) < lh_gl_font_range_get_length(self)
-               ? lh_bool_true
-               : lh_bool_false;
+    return lh_font_range_has(self, code);
 }
 
 lh_void
 lh_gl_font_range_set_first(lh_gl_font_range_t *self, lh_u32_t first)
 {
-    lh_assert_runtime_ref(self);
-    self->first = first;
+    lh_font_range_set_first(self, first);
 }
 
 lh_void
 lh_gl_font_range_set_length(lh_gl_font_range_t *self, lh_u32_t length)
 {
-    lh_assert_runtime_ref(self);
-    self->length = length;
+    lh_font_range_set_length(self, length);
 }
 
 lh_void
 lh_gl_font_range_set_base(lh_gl_font_range_t *self, lh_u32_t base)
 {
-    lh_assert_runtime_ref(self);
-    self->base = base;
+    lh_font_range_set_base(self, base);
 }

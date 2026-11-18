@@ -222,7 +222,7 @@ lh_gl_label_set_text_noted(lh_gl_label_t *self, lh_gl_rect_t text_noted);
  *
  * @param self The label; checked by ::lh_assert_runtime_ref.
  */
-const struct lh_gl_font *
+const struct lh_font *
 lh_gl_label_get_metrics_font(const lh_gl_label_t *self);
 
 /**
@@ -234,7 +234,7 @@ lh_gl_label_get_metrics_font(const lh_gl_label_t *self);
  * @param metrics_font The new value.
  */
 lh_void
-lh_gl_label_set_metrics_font(lh_gl_label_t *self, const struct lh_gl_font * metrics_font);
+lh_gl_label_set_metrics_font(lh_gl_label_t *self, const struct lh_font * metrics_font);
 
 /**
  * @brief The rectangle the metrics were measured in (level 1).

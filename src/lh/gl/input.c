@@ -318,7 +318,7 @@ lh_gl_input_on_press(const lh_gl_input_t *self, const lh_gl_entity_event_t *even
     for (; cursor < end;)
     {
         const lh_char_t *here = cursor;
-        const lh_u32_t code = lh_gl_text_next_code(lh_addr_of(cursor));
+        const lh_u32_t code = lh_str_utf8_get_next_code(lh_addr_of(cursor));
         const lh_gl_scalar_t next =
             at + lh_cast_static(lh_gl_scalar_t, lh_gl_font_get_advance(font, code));
 
@@ -493,7 +493,7 @@ lh_gl_input_get_caret_rect(const lh_gl_input_t *self, lh_gl_rect_t *out)
         const lh_char_t *next =
             lh_addr_of(lh_gl_input_get_buffer(self)[lh_gl_input_get_caret(self)]);
         const lh_u32_t code = lh_gl_input_get_caret(self) < lh_gl_input_get_used(self)
-                                  ? lh_gl_text_next_code(lh_addr_of(next))
+                                  ? lh_str_utf8_get_next_code(lh_addr_of(next))
                                   : lh_char_map_digit_0;
 
         width = lh_cast_static(lh_gl_scalar_t, lh_gl_font_get_advance(font, code));
@@ -555,7 +555,7 @@ lh_gl_input_on_draw_caret(const lh_gl_input_t *self, const lh_gl_entity_event_t 
 
         lh_gl_color_init_argb(lh_addr_of(white), 0xFFFFFFFFU);
         LH_ATTRIBUTE_UNUSED(
-            lh_gl_text_draw_code(canvas, font, lh_gl_text_next_code(lh_addr_of(at)),
+            lh_gl_text_draw_code(canvas, font, lh_str_utf8_get_next_code(lh_addr_of(at)),
                                  lh_ptr_deref(lh_gl_rect_get_origin(lh_addr_of(caret))),
                                  lh_null_eq(under) ? lh_addr_of(white) : under));
     }

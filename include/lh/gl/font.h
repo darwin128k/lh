@@ -14,21 +14,12 @@
 #ifndef LH_GL_FONT_H
 #define LH_GL_FONT_H
 
-#include <lh/gl/font/fields.h>
+#include <lh/core/font.h>
 #include <lh/gl/font/range.h>
 #include <lh/gl/mask.h>
 
-/**
- * @struct lh_gl_font
- * @brief Glyph masks, advances and tops over bytes the caller owns.
- */
-struct lh_gl_font
-{
-    /** Members: ::lh_gl_font_fields. */
-    lh_gl_font_fields(lh_byte_t, lh_gl_mask_t, lh_s32_t, lh_u32_t, lh_gl_font_range_t);
-};
-/** @copybrief lh_gl_font */
-typedef struct lh_gl_font lh_gl_font_t;
+/** @brief The core's bitmap font (::lh_font_t), under gl's name until the swap. */
+typedef lh_font_t lh_gl_font_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -326,7 +317,7 @@ lh_gl_font_get_glyphs(const lh_gl_font_t *self);
  * @param glyphs The new value.
  */
 lh_void
-lh_gl_font_set_glyphs(lh_gl_font_t *self, const lh_gl_mask_t * glyphs);
+lh_gl_font_set_glyphs(lh_gl_font_t *self, const lh_gl_mask_t *glyphs);
 
 /**
  * @brief How far each glyph moves the pen (level 1).
@@ -345,7 +336,7 @@ lh_gl_font_get_advances(const lh_gl_font_t *self);
  * @param advances The new value.
  */
 lh_void
-lh_gl_font_set_advances(lh_gl_font_t *self, const lh_byte_t * advances);
+lh_gl_font_set_advances(lh_gl_font_t *self, const lh_byte_t *advances);
 
 /**
  * @brief The top of each glyph above the baseline (level 1).
@@ -364,7 +355,7 @@ lh_gl_font_get_tops(const lh_gl_font_t *self);
  * @param tops The new value.
  */
 lh_void
-lh_gl_font_set_tops(lh_gl_font_t *self, const lh_s32_t * tops);
+lh_gl_font_set_tops(lh_gl_font_t *self, const lh_s32_t *tops);
 
 /**
  * @brief The code point ranges the font covers (level 1).
@@ -383,7 +374,7 @@ lh_gl_font_get_ranges(const lh_gl_font_t *self);
  * @param ranges The new value.
  */
 lh_void
-lh_gl_font_set_ranges(lh_gl_font_t *self, const lh_gl_font_range_t * ranges);
+lh_gl_font_set_ranges(lh_gl_font_t *self, const lh_gl_font_range_t *ranges);
 
 /**
  * @brief Store the height of one line (level 1).

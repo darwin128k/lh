@@ -7,6 +7,7 @@
 #include <lh/core/math.h>
 #include <lh/core/char/map.h>
 #include <lh/gl/text.h>
+#include <lh/core/str/utf8.h>
 #include <lh/core/util/return.h>
 
 lh_void
@@ -46,7 +47,7 @@ const lh_char_t *
 lh_gl_text_line_next_of(const lh_char_t *end, lh_gl_scalar_t width)
 {
     const lh_char_t *cursor = end;
-    const lh_u32_t code = lh_gl_text_next_code(lh_addr_of(cursor));
+    const lh_u32_t code = lh_str_utf8_get_next_code(lh_addr_of(cursor));
 
     lh_return_if(code == 0U, lh_null);
     lh_return_if(lh_gl_text_is_line_end(code), cursor);
@@ -77,7 +78,7 @@ lh_gl_text_line_measure(lh_gl_text_line_t *self, const lh_gl_font_t *font, const
     for (;;)
     {
         const lh_char_t *before = cursor;
-        const lh_u32_t code = lh_gl_text_next_code(lh_addr_of(cursor));
+        const lh_u32_t code = lh_str_utf8_get_next_code(lh_addr_of(cursor));
         lh_u32_t index = 0U;
         const lh_bool_t found = lh_gl_font_find_index(font, code, lh_addr_of(index));
         const lh_gl_scalar_t advance =
@@ -151,7 +152,7 @@ lh_gl_text_line_measure_ink(lh_gl_text_line_t *self, const lh_gl_font_t *font)
     {
         lh_u32_t index = 0U;
 
-        if (lh_gl_font_find_index(font, lh_gl_text_next_code(lh_addr_of(cursor)),
+        if (lh_gl_font_find_index(font, lh_str_utf8_get_next_code(lh_addr_of(cursor)),
                                   lh_addr_of(index)))
         {
             lh_gl_text_line_take_ink(self, font, index);
