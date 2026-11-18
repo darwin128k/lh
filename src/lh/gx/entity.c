@@ -139,6 +139,13 @@ lh_gx_entity_get_root(const lh_gx_entity_t *self)
     return lh_gx_entity_from_node(lh_gx_node_get_root(lh_gx_entity_get_node(self)));
 }
 
+lh_gx_entity_t *
+lh_gx_entity_get_next_skip(const lh_gx_entity_t *self, const lh_gx_entity_t *top)
+{
+    return lh_gx_entity_from_node(
+        lh_gx_node_get_next_skip(lh_gx_entity_get_node(self), lh_gx_entity_get_node(top)));
+}
+
 lh_bool_t
 lh_gx_entity_is_shown(const lh_gx_entity_t *self)
 {
@@ -186,6 +193,57 @@ lh_gx_entity_invalidate(const lh_gx_entity_t *self)
 
     lh_gx_entity_get_screen_rect(self, lh_addr_of(area));
     lh_gx_entity_report(self, lh_addr_of(area));
+}
+
+lh_void
+lh_gx_entity_get_owner_origin(const lh_gx_entity_t *self, lh_gx_point_t *out)
+{
+    const lh_gx_entity_t *owner = lh_gx_entity_get_owner(self);
+
+    if (lh_null_eq(owner))
+    {
+        lh_gx_point_init(out, 0, 0);
+        return;
+    }
+    lh_gx_rect_t place;
+
+    lh_gx_entity_get_screen_rect(owner, lh_addr_of(place));
+    lh_ptr_deref(out) = lh_ptr_deref(lh_gx_rect_get_origin(lh_addr_of(place)));
+}
+
+lh_void
+lh_gx_entity_get_owner_clip(const lh_gx_entity_t *self, const lh_gx_rect_t *area, lh_gx_rect_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_ptr_deref(out) = lh_ptr_deref(area);
+    const lh_gx_entity_t *up = lh_gx_entity_get_owner(self);
+
+    lh_return_if(lh_null_eq(up));
+    lh_gx_rect_t on_screen;
+
+    lh_gx_entity_get_screen_rect(up, lh_addr_of(on_screen));
+    while (lh_null_ne(up))
+    {
+        const lh_gx_rect_t clip = lh_ptr_deref(out);
+
+        lh_gx_rect_intersection(lh_addr_of(clip), lh_addr_of(on_screen), out);
+        const lh_gx_entity_t *owner = lh_gx_entity_get_owner(up);
+
+        if (lh_null_ne(owner))
+        {
+            /* The owner's screen position is this one's less this one's own place. */
+            const lh_gx_point_t *at = lh_gx_rect_get_origin(lh_addr_of(on_screen));
+            const lh_gx_point_t *local = lh_gx_rect_get_origin(lh_gx_entity_get_place(up));
+            lh_gx_point_t origin;
+
+            lh_gx_point_init(lh_addr_of(origin), lh_gx_point_get_x(at) - lh_gx_point_get_x(local),
+                             lh_gx_point_get_y(at) - lh_gx_point_get_y(local));
+            lh_gx_rect_init_origin_size(
+                lh_addr_of(on_screen), origin,
+                lh_ptr_deref(lh_gx_rect_get_size(lh_gx_entity_get_place(owner))));
+        }
+        up = owner;
+    }
 }
 
 lh_void

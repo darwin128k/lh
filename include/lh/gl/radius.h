@@ -11,6 +11,7 @@
 #ifndef LH_GL_RADIUS_H
 #define LH_GL_RADIUS_H
 
+#include <lh/core/pixel/round.h>
 #include <lh/core/byte/ptr.h>
 #include <lh/gl/rect.h>
 
@@ -28,7 +29,7 @@
  *        distances of screens up to ~65k pixels inside 64 bits and gives a
  *        256-step ramp along the arc.
  */
-#define LH_GL_RADIUS_SUBPIXEL 256
+#define LH_GL_RADIUS_SUBPIXEL LH_PIXEL_ROUND_SUBPIXEL
 
 LH_COMPILER_EXTERN_C_BEGIN
 

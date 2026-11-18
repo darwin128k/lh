@@ -133,6 +133,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_gx_box_class` (`lh/gx/box.h`): the card — a box of the entity's style,
+  filled, edged with a border and with rounded, anti-aliased corners. The
+  straight parts go to the canvas as a handful of rectangles whatever the size;
+  only the corner pixels are computed, a corner row at a time, and go through
+  `fill_mask`. It covers what is under it where it is opaque and clear of its
+  corners. Radius at most `LH_GX_BOX_RADIUS_MAX` (64).
+
+- `lh_gx_style_t` (`lh/gx/style.h`, `lh/gx/style/fields.h`,
+  `lh/gx/style/initializer.h`): how an entity looks — fill, border colour,
+  border width, radius. Flat data an entity points at; a theme is an array of
+  them in flash (`lh_gx_style_initializer`).
+
+- `lh/core/pixel/round.h`: the coverage of a rounded rectangle per pixel, in
+  fixed point (`LH_PIXEL_ROUND_SUBPIXEL`), a square root only on the edge's
+  ramp. gl's `lh_gl_radius_*` now call it instead of carrying their own copy;
+  measured A/B in one session with `lh_bench`, `fill_round_rect` 0.92–1.03.
+
+- The renderer's walks are not recursive any more: `lh_gx_render_find_cover`
+  and `lh_gx_render_paint_from` walk in drawing order through the tree's owner
+  links (`lh_gx_node_get_next`, `lh_gx_node_get_next_skip`), carrying the clip
+  and the position down and across and finding them again from the owners on
+  the way up (`lh_gx_entity_get_owner_clip`, `lh_gx_entity_get_owner_origin`).
+  The stack a frame needs no longer grows with the depth of the tree; a chain
+  4096 deep is drawn. `lh_gx_render_paint_subtree` is gone;
+  `lh_gx_render_paint_entity` draws one entity.
+
 - `lh_gx_render_t` (`lh/gx/render.h`, `lh/gx/render/fields.h`): the part of gx
   that knows what to draw. It embeds the screen — the root the application
   attaches to — and keeps the damage, the only memory of the drawing. A frame

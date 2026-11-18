@@ -73,37 +73,64 @@ lh_gx_render_from_screen(lh_gx_entity_t *screen)
     return lh_ptr_sub_by_offset(lh_gx_render_t, screen, lh_offset_of(lh_gx_render_t, screen));
 }
 
-lh_void
-lh_gx_render_find_cover(const lh_gx_entity_t *entity, lh_gx_point_t origin,
-                        const lh_gx_rect_t *area, const lh_gx_entity_t **best)
+const lh_gx_entity_t *
+lh_gx_render_find_cover(const lh_gx_render_t *self, const lh_gx_rect_t *area)
 {
-    lh_return_if(!lh_gx_entity_is_visible(entity));
+    const lh_gx_entity_t *screen = lh_gx_render_get_screen(self);
+    const lh_gx_entity_t *best = lh_null;
+    lh_gx_point_t origin;
+
+    lh_gx_point_init(lh_addr_of(origin), 0, 0);
+    /* Carried to the next step: where the children of this entity start. */
     lh_gx_rect_t place;
 
-    lh_gx_rect_offset(lh_gx_entity_get_place(entity), lh_gx_point_get_x(lh_addr_of(origin)),
-                      lh_gx_point_get_y(lh_addr_of(origin)), lh_addr_of(place));
-    lh_gx_rect_t inside;
-
-    lh_gx_rect_intersection(lh_addr_of(place), area, lh_addr_of(inside));
-    /* Its children are drawn inside it: what it does not hold whole, none of them can. */
-    lh_return_if(!lh_gx_rect_eq(lh_addr_of(inside), area));
-    const lh_gx_class_t *klass = lh_gx_entity_get_class(entity);
-
-    if (lh_null_ne(klass))
+    for (const lh_gx_entity_t *at = screen; lh_null_ne(at);)
     {
-        lh_gx_class_covers_fn *covers = lh_gx_class_get_covers(klass);
+        lh_bool_t descend = lh_bool_false;
 
-        if (lh_null_ne(lh_ptr_rcast(lh_void, covers)) && covers(entity, lh_addr_of(place), area))
+        if (lh_gx_entity_is_visible(at))
         {
-            lh_ptr_deref(best) = entity;
+            lh_gx_rect_offset(lh_gx_entity_get_place(at), lh_gx_point_get_x(lh_addr_of(origin)),
+                              lh_gx_point_get_y(lh_addr_of(origin)), lh_addr_of(place));
+            lh_gx_rect_t inside;
+
+            lh_gx_rect_intersection(lh_addr_of(place), area, lh_addr_of(inside));
+            /* Its children are drawn inside it: what it does not hold whole, none can. */
+            if (lh_gx_rect_eq(lh_addr_of(inside), area))
+            {
+                const lh_gx_class_t *klass = lh_gx_entity_get_class(at);
+
+                if (lh_null_ne(klass))
+                {
+                    lh_gx_class_covers_fn *covers = lh_gx_class_get_covers(klass);
+
+                    if (lh_null_ne(lh_ptr_rcast(lh_void, covers)) &&
+                        covers(at, lh_addr_of(place), area))
+                    {
+                        best = at;
+                    }
+                }
+                descend = lh_cast_static(lh_bool_t, lh_null_ne(lh_gx_entity_get_first_child(at)));
+            }
         }
+        const lh_gx_entity_t *next =
+            descend ? lh_gx_entity_get_first_child(at) : lh_gx_entity_get_next_skip(at, screen);
+
+        if (lh_null_eq(next))
+        {
+            break;
+        }
+        if (lh_gx_entity_get_owner(next) == at)
+        {
+            origin = lh_ptr_deref(lh_gx_rect_get_origin(lh_addr_of(place)));
+        }
+        else if (lh_gx_entity_get_owner(next) != lh_gx_entity_get_owner(at))
+        {
+            lh_gx_entity_get_owner_origin(next, lh_addr_of(origin));
+        }
+        at = next;
     }
-    for (const lh_gx_entity_t *child = lh_gx_entity_get_first_child(entity); lh_null_ne(child);
-         child = lh_gx_entity_get_next_sibling(child))
-    {
-        lh_gx_render_find_cover(child, lh_ptr_deref(lh_gx_rect_get_origin(lh_addr_of(place))), area,
-                                best);
-    }
+    return best;
 }
 
 lh_void
@@ -124,58 +151,96 @@ lh_gx_render_has_damage(const lh_gx_render_t *self)
 }
 
 lh_void
-lh_gx_render_paint_subtree(const lh_gx_render_t *self, const lh_gx_entity_t *entity,
-                           lh_gx_point_t origin, const lh_gx_rect_t *clip,
-                           const lh_gx_entity_t *cover, lh_bool_t *started)
-{
-    lh_return_if(!lh_gx_entity_is_visible(entity));
-    if (!lh_ptr_deref(started) && entity == cover)
-    {
-        lh_ptr_deref(started) = lh_bool_true;
-    }
-    /* Before the cover, only the way down to it is walked: an entity that is not its
-       owner is hidden by it whole, with its subtree. */
-    lh_return_if(
-        !lh_ptr_deref(started) &&
-        !lh_gx_node_is_ancestor_of(lh_gx_entity_get_node(entity), lh_gx_entity_get_node(cover)));
-    lh_gx_rect_t place;
-
-    lh_gx_rect_offset(lh_gx_entity_get_place(entity), lh_gx_point_get_x(lh_addr_of(origin)),
-                      lh_gx_point_get_y(lh_addr_of(origin)), lh_addr_of(place));
-    lh_gx_rect_t inside;
-
-    lh_gx_rect_intersection(lh_addr_of(place), clip, lh_addr_of(inside));
-    lh_return_if(lh_gx_rect_is_empty(lh_addr_of(inside)));
-    const lh_gx_class_t *klass = lh_gx_entity_get_class(entity);
-
-    if (lh_ptr_deref(started) && lh_null_ne(klass))
-    {
-        lh_gx_class_paint_fn *paint_fn = lh_gx_class_get_paint(klass);
-
-        if (lh_null_ne(lh_ptr_rcast(lh_void, paint_fn)))
-        {
-            lh_gx_paint_t paint;
-
-            lh_gx_paint_init(lh_addr_of(paint), lh_gx_render_get_canvas(self),
-                             lh_gx_render_get_canvas_context(self), inside, place);
-            paint_fn(entity, lh_addr_of(paint));
-        }
-    }
-    for (const lh_gx_entity_t *child = lh_gx_entity_get_first_child(entity); lh_null_ne(child);
-         child = lh_gx_entity_get_next_sibling(child))
-    {
-        lh_gx_render_paint_subtree(self, child,
-                                   lh_ptr_deref(lh_gx_rect_get_origin(lh_addr_of(place))),
-                                   lh_addr_of(inside), cover, started);
-    }
-}
-
-lh_void
 lh_gx_render_take_damage(lh_gx_render_t *self, lh_gx_damage_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_ptr_deref(out) = lh_ptr_deref(lh_gx_render_get_damage(self));
     lh_gx_damage_clear(lh_gx_render_get_damage_mut(self));
+}
+
+lh_void
+lh_gx_render_paint_entity(const lh_gx_render_t *self, const lh_gx_entity_t *entity,
+                          const lh_gx_rect_t *place, const lh_gx_rect_t *clip)
+{
+    const lh_gx_class_t *klass = lh_gx_entity_get_class(entity);
+
+    lh_return_if(lh_null_eq(klass));
+    lh_gx_class_paint_fn *paint_fn = lh_gx_class_get_paint(klass);
+
+    lh_return_if(lh_null_eq(lh_ptr_rcast(lh_void, paint_fn)));
+    lh_gx_paint_t paint;
+
+    lh_gx_paint_init(lh_addr_of(paint), lh_gx_render_get_canvas(self),
+                     lh_gx_render_get_canvas_context(self), lh_ptr_deref(clip),
+                     lh_ptr_deref(place));
+    paint_fn(entity, lh_addr_of(paint));
+}
+
+lh_void
+lh_gx_render_paint_from(const lh_gx_render_t *self, const lh_gx_rect_t *area,
+                        const lh_gx_entity_t *cover)
+{
+    const lh_gx_entity_t *screen = lh_gx_render_get_screen(self);
+    lh_bool_t started = lh_null_eq(cover);
+    lh_gx_rect_t clip = lh_ptr_deref(area);
+    lh_gx_point_t origin;
+
+    lh_gx_point_init(lh_addr_of(origin), 0, 0);
+    /* Carried from one step of the walk to the next: the place and the clip of the
+       entity just visited are where its children start. */
+    lh_gx_rect_t place;
+    lh_gx_rect_t inside;
+
+    for (const lh_gx_entity_t *at = screen; lh_null_ne(at);)
+    {
+        lh_bool_t descend = lh_bool_false;
+
+        if (lh_gx_entity_is_visible(at))
+        {
+            if (!started && at == cover)
+            {
+                started = lh_bool_true;
+            }
+            /* Before the cover, only the way down to it is walked: anything else is
+               under it, whole, with its subtree. */
+            if (started ||
+                lh_gx_node_is_ancestor_of(lh_gx_entity_get_node(at), lh_gx_entity_get_node(cover)))
+            {
+                lh_gx_rect_offset(lh_gx_entity_get_place(at), lh_gx_point_get_x(lh_addr_of(origin)),
+                                  lh_gx_point_get_y(lh_addr_of(origin)), lh_addr_of(place));
+                lh_gx_rect_intersection(lh_addr_of(place), lh_addr_of(clip), lh_addr_of(inside));
+                if (!lh_gx_rect_is_empty(lh_addr_of(inside)))
+                {
+                    if (started)
+                    {
+                        lh_gx_render_paint_entity(self, at, lh_addr_of(place), lh_addr_of(inside));
+                    }
+                    descend =
+                        lh_cast_static(lh_bool_t, lh_null_ne(lh_gx_entity_get_first_child(at)));
+                }
+            }
+        }
+        const lh_gx_entity_t *next =
+            descend ? lh_gx_entity_get_first_child(at) : lh_gx_entity_get_next_skip(at, screen);
+
+        if (lh_null_eq(next))
+        {
+            break;
+        }
+        if (lh_gx_entity_get_owner(next) == at)
+        {
+            /* Down: the children draw inside this one. */
+            origin = lh_ptr_deref(lh_gx_rect_get_origin(lh_addr_of(place)));
+            clip = inside;
+        }
+        else if (lh_gx_entity_get_owner(next) != lh_gx_entity_get_owner(at))
+        {
+            /* Up and across: what was carried down is found again from the owners. */
+            lh_gx_entity_get_owner_origin(next, lh_addr_of(origin));
+            lh_gx_entity_get_owner_clip(next, area, lh_addr_of(clip));
+        }
+        at = next;
+    }
 }
 
 lh_void
@@ -199,16 +264,7 @@ lh_gx_render_init(lh_gx_render_t *self, const lh_gx_canvas_t *canvas, lh_ptr con
 lh_void
 lh_gx_render_paint_area(const lh_gx_render_t *self, const lh_gx_rect_t *area)
 {
-    const lh_gx_entity_t *screen = lh_gx_render_get_screen(self);
-    lh_gx_point_t origin;
-
-    lh_gx_point_init(lh_addr_of(origin), 0, 0);
-    const lh_gx_entity_t *cover = lh_null;
-
-    lh_gx_render_find_cover(screen, origin, area, lh_addr_of(cover));
-    lh_bool_t started = lh_null_eq(cover);
-
-    lh_gx_render_paint_subtree(self, screen, origin, area, cover, lh_addr_of(started));
+    lh_gx_render_paint_from(self, area, lh_gx_render_find_cover(self, area));
 }
 
 lh_void

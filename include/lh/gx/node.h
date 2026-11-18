@@ -232,6 +232,32 @@ lh_gx_node_attach_v(lh_gx_node_t *owner, lh_gx_node_t *child);
 lh_void
 lh_gx_node_detach(lh_gx_node_t *self);
 
+/**
+ * @brief The node after @p self in drawing order, without entering @p self's
+ *        children: its next sibling, or the next sibling of the nearest owner
+ *        that has one — stopping at @p top.
+ *
+ * The step of a walk that skips a subtree, and the step back up: the tree has
+ * owner links, so a walk needs no stack.
+ *
+ * @param self The node; must not be null.
+ * @param top  The top of the walk: the walk never leaves its subtree.
+ * @return The next node, or ::lh_null when the walk of @p top is over.
+ */
+lh_gx_node_t *
+lh_gx_node_get_next_skip(const lh_gx_node_t *self, const lh_gx_node_t *top);
+
+/**
+ * @brief The node after @p self in drawing order — an owner before its children,
+ *        the children from the first to the last — stopping at @p top.
+ *
+ * @param self The node; must not be null.
+ * @param top  The top of the walk.
+ * @return The first child of @p self, else ::lh_gx_node_get_next_skip.
+ */
+lh_gx_node_t *
+lh_gx_node_get_next(const lh_gx_node_t *self, const lh_gx_node_t *top);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_GX_NODE_H */

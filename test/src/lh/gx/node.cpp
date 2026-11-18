@@ -146,4 +146,31 @@ TEST(gx_node, the_checked_attach_keeps_the_tree_a_tree)
     LH_EXPECT_CHECK_DEATH(lh_gx_node_attach_v(&grandchild, &owner));
 }
 
+/* Drawing order without a stack: owner first, children in order, back up by the owners. */
+TEST(gx_node, the_walk_goes_in_drawing_order_and_stays_under_its_top)
+{
+    lh_gx_node_t root;
+    lh_gx_node_t a;
+    lh_gx_node_t a1;
+    lh_gx_node_t a2;
+    lh_gx_node_t b;
+
+    for (lh_gx_node_t *node : {&root, &a, &a1, &a2, &b})
+    {
+        lh_gx_node_init(node);
+    }
+    lh_gx_node_attach(&root, &a);
+    lh_gx_node_attach(&a, &a1);
+    lh_gx_node_attach(&a, &a2);
+    lh_gx_node_attach(&root, &b);
+
+    EXPECT_EQ(lh_gx_node_get_next(&root, &root), &a);
+    EXPECT_EQ(lh_gx_node_get_next(&a, &root), &a1);
+    EXPECT_EQ(lh_gx_node_get_next(&a1, &root), &a2);
+    EXPECT_EQ(lh_gx_node_get_next(&a2, &root), &b) << "back up to the owner's next sibling";
+    EXPECT_EQ(lh_gx_node_get_next(&b, &root), nullptr);
+    EXPECT_EQ(lh_gx_node_get_next_skip(&a, &root), &b) << "a's subtree skipped";
+    EXPECT_EQ(lh_gx_node_get_next(&a2, &a), nullptr) << "the walk of a stays under a";
+}
+
 } // namespace

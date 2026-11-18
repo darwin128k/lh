@@ -23,8 +23,9 @@
  * (::lh_gx_render_paint_area with the strip as the area), or a JSON stream.
  *
  * Ownership: the renderer is the application's, as is the canvas table and the
- * backend it is used with. The walk is recursive, one level of the stack per
- * level of the tree.
+ * backend it is used with. The walks are not recursive: the owner links of the
+ * tree are the way back up, so the stack a frame needs does not grow with the
+ * depth of the tree — what a board with a small stack needs.
  */
 
 #ifndef LH_GX_RENDER_H
@@ -135,22 +136,33 @@ lh_gx_render_t *
 lh_gx_render_from_screen(lh_gx_entity_t *screen);
 
 /**
- * @brief Find, in @p entity's subtree, the front-most entity that covers the
- *        whole of @p area opaquely, into @p best.
+ * @brief The front-most entity on the screen that covers the whole of @p area
+ *        opaquely, or ::lh_null.
  *
- * An entity that is hidden, or whose rectangle does not hold the whole area, is
- * skipped with its subtree: its children are drawn inside it, so none of them
- * can cover what it does not. Entities later in the drawing order replace an
- * earlier find, so the one in front wins.
+ * A walk in drawing order, without recursion: an entity that is hidden, or whose
+ * rectangle does not hold the whole area, is skipped with its subtree — its
+ * children are drawn inside it, so none of them can cover what it does not. A
+ * later find replaces an earlier one, so the one in front wins.
  *
- * @param entity The subtree's top; must not be null.
- * @param origin The screen position of @p entity's owner.
- * @param area   The area, screen coordinates.
- * @param best   Holds the best so far, ::lh_null for none; receives the new best.
+ * @param self The renderer; must not be null.
+ * @param area The area, screen coordinates.
+ * @return The entity to start drawing from, or ::lh_null.
+ */
+const lh_gx_entity_t *
+lh_gx_render_find_cover(const lh_gx_render_t *self, const lh_gx_rect_t *area);
+
+/**
+ * @brief Draw @p entity alone through its class's `paint`, at @p place inside
+ *        @p clip; nothing when the class has no `paint`.
+ *
+ * @param self   The renderer; must not be null.
+ * @param entity The entity; must not be null.
+ * @param place  Its rectangle on the screen.
+ * @param clip   What it may touch, screen coordinates.
  */
 lh_void
-lh_gx_render_find_cover(const lh_gx_entity_t *entity, lh_gx_point_t origin,
-                        const lh_gx_rect_t *area, const lh_gx_entity_t **best);
+lh_gx_render_paint_entity(const lh_gx_render_t *self, const lh_gx_entity_t *entity,
+                          const lh_gx_rect_t *place, const lh_gx_rect_t *clip);
 
 /**
  * @brief Add @p area, cut by the screen, to what changed.
@@ -170,26 +182,6 @@ lh_bool_t
 lh_gx_render_has_damage(const lh_gx_render_t *self);
 
 /**
- * @brief Draw @p entity's subtree inside @p clip, from @p cover on.
- *
- * Drawing order is the tree's: an owner before its children, the children from
- * the first to the last. While @p started is false, entities are not drawn —
- * every entity before @p cover in that order is hidden by it — and the walk only
- * goes down towards @p cover; reaching it sets @p started.
- *
- * @param self    The renderer; must not be null.
- * @param entity  The subtree's top; must not be null.
- * @param origin  The screen position of @p entity's owner.
- * @param clip    The area to draw in, screen coordinates.
- * @param cover   The entity to start from, or ::lh_null to start at once.
- * @param started Whether drawing has started; must not be null.
- */
-lh_void
-lh_gx_render_paint_subtree(const lh_gx_render_t *self, const lh_gx_entity_t *entity,
-                           lh_gx_point_t origin, const lh_gx_rect_t *clip,
-                           const lh_gx_entity_t *cover, lh_bool_t *started);
-
-/**
  * @brief Move what changed into @p out and start the next frame with nothing
  *        changed.
  *
@@ -198,6 +190,27 @@ lh_gx_render_paint_subtree(const lh_gx_render_t *self, const lh_gx_entity_t *ent
  */
 lh_void
 lh_gx_render_take_damage(lh_gx_render_t *self, lh_gx_damage_t *out);
+
+/**
+ * @brief Draw everything on the screen inside @p area, from @p cover on.
+ *
+ * A walk in drawing order — an owner before its children, the children from the
+ * first to the last — without recursion: the tree's owner links are the way back
+ * up, so the stack does not grow with the depth of the tree. Going down and
+ * across, the clip and the position carry over; going up, they are found again
+ * from the owners (::lh_gx_entity_get_owner_clip,
+ * ::lh_gx_entity_get_owner_origin). Hidden entities and entities that miss the
+ * clip are skipped with their subtree. Until @p cover is reached nothing is
+ * drawn — everything before it is under it — and the walk goes down only
+ * towards it.
+ *
+ * @param self  The renderer; must not be null.
+ * @param area  The area, screen coordinates.
+ * @param cover The entity to start drawing from, or ::lh_null to draw everything.
+ */
+lh_void
+lh_gx_render_paint_from(const lh_gx_render_t *self, const lh_gx_rect_t *area,
+                        const lh_gx_entity_t *cover);
 
 /**
  * @brief `report` of the screen's class (::lh_gx_class_report_fn): add @p area to

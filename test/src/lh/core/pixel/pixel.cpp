@@ -11,6 +11,7 @@
 #include <gtest/gtest.h>
 
 #include <lh/core/pixel/rgb565.h>
+#include <lh/core/pixel/round.h>
 #include <lh/core/pixel/span.h>
 
 namespace
@@ -132,6 +133,35 @@ TEST(pixel_span, a_mask_scales_the_colour_pixel_by_pixel)
     lh_pixel_span_cover_rgb565(row16, cover16, 2U, 0xFFFFFFU, 255U, lh_bool_false);
     EXPECT_EQ(row16[0], 0U);
     EXPECT_EQ(row16[1], 0xFFFFU);
+}
+
+/* A 10 by 10 rectangle at 0, 0 with a radius of 4, in fixed point. */
+lh_byte_t
+round_at(int x, int y)
+{
+    const lh_s64_t s = LH_PIXEL_ROUND_SUBPIXEL;
+
+    return lh_pixel_round_coverage(0, 0, 10 * s, 10 * s, 4 * s, x, y);
+}
+
+TEST(pixel_round, the_straight_parts_are_whole_and_the_outside_is_empty)
+{
+    EXPECT_EQ(round_at(5, 5), 255U) << "the middle";
+    EXPECT_EQ(round_at(5, 0), 255U) << "the top edge between the corners";
+    EXPECT_EQ(round_at(0, 5), 255U) << "the left edge between the corners";
+    EXPECT_EQ(round_at(10, 5), 0U) << "outside";
+    EXPECT_EQ(round_at(-1, 5), 0U);
+}
+
+TEST(pixel_round, a_corner_is_cut_and_its_edge_is_a_ramp)
+{
+    EXPECT_EQ(round_at(0, 0), 0U) << "the corner pixel is outside the curve";
+    EXPECT_EQ(round_at(9, 9), 0U);
+    const lh_byte_t edge = round_at(1, 1);
+
+    EXPECT_GT(edge, 0U);
+    EXPECT_LT(edge, 255U);
+    EXPECT_EQ(round_at(3, 3), 255U) << "inside the curve";
 }
 
 } // namespace

@@ -20,7 +20,7 @@ lh_gl_radius_to_fixed(lh_gl_scalar_t v)
 lh_s64_t
 lh_gl_radius_pixel_center(lh_s32_t i)
 {
-    return lh_cast_static(lh_s64_t, i) * LH_GL_RADIUS_SUBPIXEL + LH_GL_RADIUS_SUBPIXEL / 2;
+    return lh_pixel_round_pixel_center(i);
 }
 
 lh_gl_scalar_t
@@ -40,18 +40,15 @@ lh_gl_radius_clamp(const lh_gl_rect_t *rect, lh_gl_scalar_t radius)
 lh_s64_t
 lh_gl_radius_axis_distance(lh_s64_t p, lh_gl_scalar_t start, lh_gl_scalar_t length, lh_s64_t r)
 {
-    const lh_s64_t lo = lh_gl_radius_to_fixed(start);
-    const lh_s64_t hi = lo + lh_gl_radius_to_fixed(length);
-    lh_return_if(p < lo || p >= hi, -1);
-    return lh_math_max(lh_math_max(lo + r - p, p - (hi - r)), 0);
+    return lh_pixel_round_axis_distance(
+        p, lh_gl_radius_to_fixed(start),
+        lh_gl_radius_to_fixed(start) + lh_gl_radius_to_fixed(length), r);
 }
 
 lh_byte_t
 lh_gl_radius_cover_from_distance(lh_s64_t r, lh_s64_t d)
 {
-    const lh_s64_t cover =
-        lh_math_clamp(r + LH_GL_RADIUS_SUBPIXEL / 2 - d, 0, LH_GL_RADIUS_SUBPIXEL);
-    return lh_cast_static(lh_byte_t, lh_math_div_round(cover * 255, LH_GL_RADIUS_SUBPIXEL));
+    return lh_pixel_round_cover_from_distance(r, d);
 }
 
 lh_byte_t
@@ -77,14 +74,7 @@ lh_gl_radius_scale_8(lh_byte_t a, lh_u64_t b)
 lh_byte_t
 lh_gl_radius_cover_from_square(lh_s64_t r, lh_s64_t d2)
 {
-    const lh_s64_t inner = r - LH_GL_RADIUS_SUBPIXEL / 2;
-    const lh_s64_t outer = r + LH_GL_RADIUS_SUBPIXEL / 2;
-
-    /* Whole pixels inside or outside the ramp need no square root. */
-    lh_return_if(inner >= 0 && d2 <= inner * inner, 255);
-    lh_return_if(d2 >= outer * outer, 0);
-    return lh_gl_radius_cover_from_distance(
-        r, lh_cast_static(lh_s64_t, lh_math_isqrt_u64(lh_cast_static(lh_u64_t, d2))));
+    return lh_pixel_round_cover_from_square(r, d2);
 }
 
 lh_byte_t

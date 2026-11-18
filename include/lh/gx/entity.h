@@ -234,6 +234,17 @@ lh_gx_entity_t *
 lh_gx_entity_get_root(const lh_gx_entity_t *self);
 
 /**
+ * @brief The entity after @p self in drawing order without entering its children,
+ *        stopping at @p top (::lh_gx_node_get_next_skip).
+ *
+ * @param self The entity; must not be null.
+ * @param top  The top of the walk.
+ * @return The next entity, or ::lh_null at the end of the walk.
+ */
+lh_gx_entity_t *
+lh_gx_entity_get_next_skip(const lh_gx_entity_t *self, const lh_gx_entity_t *top);
+
+/**
  * @brief True when @p self and every owner above it are visible — when it can be
  *        seen at all.
  *
@@ -275,6 +286,31 @@ lh_gx_entity_report(const lh_gx_entity_t *self, const lh_gx_rect_t *area);
  */
 lh_void
 lh_gx_entity_invalidate(const lh_gx_entity_t *self);
+
+/**
+ * @brief The screen position of @p self's owner: where its place is measured
+ *        from. `0, 0` for an entity with no owner.
+ *
+ * @param self The entity; must not be null.
+ * @param out  Receives the position; must not be null.
+ */
+lh_void
+lh_gx_entity_get_owner_origin(const lh_gx_entity_t *self, lh_gx_point_t *out);
+
+/**
+ * @brief @p area cut by the screen rectangle of every owner above @p self: the
+ *        part of the area @p self can be drawn in at all.
+ *
+ * One walk up: the screen rectangle of each owner is found from the one below
+ * it, so the cost is the depth, not its square.
+ *
+ * @param self The entity; must not be null.
+ * @param area The area, screen coordinates.
+ * @param out  Receives the clip; must not be null.
+ */
+lh_void
+lh_gx_entity_get_owner_clip(const lh_gx_entity_t *self, const lh_gx_rect_t *area,
+                            lh_gx_rect_t *out);
 
 /**
  * @brief Move @p self to @p place, reporting where it was and where it is now.

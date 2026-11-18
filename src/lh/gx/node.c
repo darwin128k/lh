@@ -163,3 +163,24 @@ lh_gx_node_detach(lh_gx_node_t *self)
     lh_list_node_unlink(lh_gx_node_get_link_mut(self));
     lh_gx_node_set_owner(self, lh_null);
 }
+
+lh_gx_node_t *
+lh_gx_node_get_next_skip(const lh_gx_node_t *self, const lh_gx_node_t *top)
+{
+    for (const lh_gx_node_t *at = self; at != top && lh_null_ne(at); at = lh_gx_node_get_owner(at))
+    {
+        lh_gx_node_t *next = lh_gx_node_get_next_sibling(at);
+
+        lh_return_if(lh_null_ne(next), next);
+    }
+    return lh_null;
+}
+
+lh_gx_node_t *
+lh_gx_node_get_next(const lh_gx_node_t *self, const lh_gx_node_t *top)
+{
+    lh_gx_node_t *child = lh_gx_node_get_first_child(self);
+
+    lh_return_if(lh_null_ne(child), child);
+    return lh_gx_node_get_next_skip(self, top);
+}
