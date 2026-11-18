@@ -135,6 +135,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A gx box with rounded corners and a border painted its corners whole in the
+  border's colour: the corner row's mask kept a copy of the fill's coverage,
+  and the border was laid through it instead of through its own ring
+  (`src/lh/gx/box.c`). It showed first on a round radio, whose square is all
+  corner.
 - Gradient sampler preparation retains each stop interval while filling its 256
   colours. On i.MX RT105x, a two-stop sampler fell from 87?98 to 35?39 ?s and a
   full 480 ? 320 frame of 24 vertical-gradient cards from 27.55 to 25.10 ms.
@@ -167,6 +172,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_gx_radio_t` (`lh/gx/radio.h`, `lh/gx/radio/fields.h`) and
+  `lh_gx_radio_group_t` (`lh/gx/radio/group.h`, `lh/gx/radio/group/fields.h`,
+  `lh/gx/radio/group/change/fn.h`): radios, one of a group chosen. A radio is
+  a checkbox whose row is of `lh_gx_radio_class`: a tap chooses it in its
+  group (`lh_gx_radio_group_choose`), which unmarks the one chosen before and
+  calls `lh_gx_radio_group_change_fn` when the choice changed;
+  `lh_gx_radio_group_select` chooses from the program without the reaction.
+  A round radio is a style with a radius of half the square.
 - `lh_gx_checkbox_t` (`lh/gx/checkbox.h`, `lh/gx/checkbox/fields.h`,
   `lh/gx/checkbox/change/fn.h`): the second control made of entities — a row
   of `lh_gx_checkbox_class` (no paint, its own `input`) owning a square, a tick

@@ -1,14 +1,17 @@
 /* example/gx_web_button.c
  *
- * A gx screen in the browser: a button that counts its clicks and a checkbox
- * that lights the background. The tree is a background, a button (a box and
- * its caption) and a checkbox (a row, a square, a tick and a caption), drawn
+ * A gx screen in the browser: a button that counts its clicks, a checkbox
+ * that lights the background and two radios that colour the button. The tree
+ * is a background, a button (a box and its caption), a checkbox (a row, a
+ * square, a tick and a caption) and two radios (each a checkbox of the radio
+ * class, round by its style, of one group), drawn
  * by the gx renderer through the web backend; the browser only plays the
  * frames and sends the pointer back (lh/gx/web.h).
  *
  * Run it, open http://127.0.0.1:8080/ and press the button: it darkens while
  * it is held, and a release over it clicks it. Tap the checkbox, or its
- * caption: the background turns light, and dark again. Open a second tab: it
+ * caption: the background turns light, and dark again. Choose "Green": the
+ * button turns green, and "Blue" is unmarked. Open a second tab: it
  * gets the whole screen, and both follow every change. The host runs on this thread
  * and does not return; stop the program with Ctrl+C.
  */
@@ -22,6 +25,7 @@
 #include <lh/gx/box.h>
 #include <lh/gx/button.h>
 #include <lh/gx/checkbox.h>
+#include <lh/gx/radio.h>
 #include <lh/gl/font.h>
 #include <lh/gx/font/baked.h>
 #include <lh/gx/style.h>
@@ -58,6 +62,14 @@ example_abort(lh_self_ptr self)
 static lh_gx_style_t back_style;
 static lh_gx_entity_t back;
 
+/* The button, and the style the radios change. */
+static lh_gx_style_t button_style;
+static lh_gx_button_t button;
+
+/* The radios: which colour the button is. */
+static lh_gx_radio_t blue;
+static lh_gx_radio_t green;
+
 /* The caption the button shows after a click: "Clicked N". */
 static lh_char_t caption[32] = "Press me";
 
@@ -87,6 +99,16 @@ on_light(lh_gx_checkbox_t *checkbox, lh_bool_t checked, lh_ptr context)
     (void)context;
     lh_gx_style_set_fill(&back_style, checked ? 0xFFE8E8ECU : 0xFF2B2B30U);
     lh_gx_entity_invalidate(&back);
+}
+
+/* The group's reaction: the button in the colour chosen. */
+static lh_void
+on_colour(lh_gx_radio_group_t *group, lh_gx_radio_t *radio, lh_ptr context)
+{
+    (void)group;
+    (void)context;
+    lh_gx_style_set_fill(&button_style, radio == &green ? 0xFF2E9E5BU : 0xFF3D7BD9U);
+    lh_gx_entity_invalidate(lh_gx_button_get_box_mut(&button));
 }
 
 int
@@ -119,14 +141,11 @@ main(void)
 
     lh_gx_web_init(&web, 320, 200);
     lh_gx_style_init(&back_style, 0xFF2B2B30U, 0U, 0, 0, 0U, lh_null);
-    static lh_gx_style_t button_style;
-
     lh_gx_style_init(&button_style, 0xFF3D7BD9U, 0xFF2A5CA8U, 1, 0, 0xFFFFFFFFU, face);
     static lh_gx_style_t pressed_style;
 
     lh_gx_style_init(&pressed_style, 0xFF2A5CA8U, 0xFF1D4480U, 1, 0, 0xFFFFFFFFU, face);
     lh_gx_entity_init(&back, &lh_gx_box_class, &back_style, 0, 0, 320, 200);
-    static lh_gx_button_t button;
     static lh_uint_t clicks;
 
     lh_gx_button_init(&button, &button_style, 90, 76, 140, 48, caption, on_click, &clicks);
@@ -144,6 +163,21 @@ main(void)
     lh_gx_checkbox_init(&light, &field_style, &tick_style, 90, 140, 140, 20, "Light", lh_bool_false,
                         on_light, lh_null);
     lh_gx_entity_attach(&back, lh_gx_checkbox_get_row_mut(&light));
+    /* Round radios: a radius of half the square, and of half the mark. */
+    static lh_gx_style_t round_style;
+
+    lh_gx_style_init(&round_style, 0xFFFFFFFFU, 0xFF3D7BD9U, 1, 10, 0xFF8A8A96U, face);
+    static lh_gx_style_t dot_style;
+
+    lh_gx_style_init(&dot_style, 0xFF3D7BD9U, 0U, 0, 5, 0U, lh_null);
+    static lh_gx_radio_group_t colour;
+
+    lh_gx_radio_group_init(&colour, on_colour, lh_null);
+    lh_gx_radio_init(&blue, &colour, &round_style, &dot_style, 16, 16, 100, 20, "Blue");
+    lh_gx_radio_init(&green, &colour, &round_style, &dot_style, 16, 42, 100, 20, "Green");
+    lh_gx_entity_attach(&back, lh_gx_radio_get_row_mut(&blue));
+    lh_gx_entity_attach(&back, lh_gx_radio_get_row_mut(&green));
+    lh_gx_radio_group_select(&colour, &blue);
     const lh_net_port_t port = 8080U;
 
     printf("open http://127.0.0.1:%u/\n", (unsigned)port);

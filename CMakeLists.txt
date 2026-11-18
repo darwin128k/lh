@@ -694,6 +694,8 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gx/tap.c
             ${LH_LIB_SRC_PATH}/gx/button.c
             ${LH_LIB_SRC_PATH}/gx/checkbox.c
+            ${LH_LIB_SRC_PATH}/gx/radio.c
+            ${LH_LIB_SRC_PATH}/gx/radio/group.c
             ${LH_LIB_SRC_PATH}/gx/backend/sw.c
             ${LH_LIB_SRC_PATH}/gx/backend/web.c
             ${LH_LIB_SRC_PATH}/gx/backend/web/player.c

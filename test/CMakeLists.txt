@@ -626,6 +626,7 @@ set(LH_TEST_GL_SOURCES
         ${LH_TEST_SRC_PATH}/lh/gx/tap.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/button.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/checkbox.cpp
+        ${LH_TEST_SRC_PATH}/lh/gx/radio.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/web/input.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/web/page.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/web.cpp

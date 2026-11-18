@@ -89,7 +89,9 @@ lh_gx_box_paint_corner_row(const lh_gx_paint_t *paint, const lh_math_rect_t *out
                       lh_gx_pixmap_format_a8);
     lh_gx_paint_fill_mask(paint, lh_addr_of(mask), origin, lh_gx_style_get_fill(style));
     lh_return_if(border == 0);
+    /* The mask holds a copy of its bounds: it is given the border's anew. */
     lh_memory_bounds_init(lh_addr_of(bits), border_cover, lh_cast_static(lh_usize_t, count));
+    lh_gx_pixmap_set_bits(lh_addr_of(mask), lh_addr_of(bits));
     lh_gx_paint_fill_mask(paint, lh_addr_of(mask), origin, lh_gx_style_get_border(style));
 }
 

@@ -135,6 +135,8 @@ TEST(gx_box, a_rounded_border_rings_the_corner)
     EXPECT_EQ(screen.at(7, 2), edge_color) << "top border past the corner";
     EXPECT_EQ(screen.at(9, 6), fill_color);
     EXPECT_EQ(screen.at(7, 4), fill_color) << "inside the border";
+    EXPECT_EQ(screen.at(5, 5), fill_color)
+        << "inside the ring, in the corner's own pixels: the border is a ring there too";
 }
 
 TEST(gx_box, it_covers_only_where_opaque_and_clear_of_the_corners)
