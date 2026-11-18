@@ -12,7 +12,7 @@
 #include <lh/gx/text.h>
 
 const lh_gx_class_t lh_gx_checkbox_class =
-    lh_gx_class_initializer(lh_null, lh_null, lh_null, lh_gx_checkbox_input, lh_null);
+    lh_gx_class_initializer(lh_null, lh_null, lh_null, lh_gx_checkbox_input, lh_null, lh_null);
 
 const lh_gx_entity_t *
 lh_gx_checkbox_get_row(const lh_gx_checkbox_t *self)

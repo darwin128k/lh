@@ -61,6 +61,20 @@ lh_gx_class_set_input(lh_gx_class_t *self, lh_gx_class_input_fn *fn)
     self->input = fn;
 }
 
+lh_gx_class_key_fn *
+lh_gx_class_get_key(const lh_gx_class_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->key;
+}
+
+lh_void
+lh_gx_class_set_key(lh_gx_class_t *self, lh_gx_class_key_fn *fn)
+{
+    lh_assert_runtime_ref(self);
+    self->key = fn;
+}
+
 lh_gx_class_report_fn *
 lh_gx_class_get_report(const lh_gx_class_t *self)
 {
@@ -82,5 +96,6 @@ lh_gx_class_init(lh_gx_class_t *self)
     lh_gx_class_set_covers(self, lh_null);
     lh_gx_class_set_hit(self, lh_null);
     lh_gx_class_set_input(self, lh_null);
+    lh_gx_class_set_key(self, lh_null);
     lh_gx_class_set_report(self, lh_null);
 }

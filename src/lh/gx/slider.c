@@ -10,7 +10,7 @@
 #include <lh/gx/class/initializer.h>
 
 const lh_gx_class_t lh_gx_slider_class =
-    lh_gx_class_initializer(lh_null, lh_null, lh_null, lh_gx_slider_input, lh_null);
+    lh_gx_class_initializer(lh_null, lh_null, lh_null, lh_gx_slider_input, lh_null, lh_null);
 
 const lh_gx_entity_t *
 lh_gx_slider_get_row(const lh_gx_slider_t *self)

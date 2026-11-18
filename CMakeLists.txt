@@ -681,6 +681,7 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gx/event.c
             ${LH_LIB_SRC_PATH}/gx/hit.c
             ${LH_LIB_SRC_PATH}/gx/pointer.c
+            ${LH_LIB_SRC_PATH}/gx/focus.c
             ${LH_LIB_SRC_PATH}/gx/canvas.c
             ${LH_LIB_SRC_PATH}/gx/class.c
             ${LH_LIB_SRC_PATH}/gx/paint.c
@@ -698,6 +699,7 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gx/radio.c
             ${LH_LIB_SRC_PATH}/gx/radio/group.c
             ${LH_LIB_SRC_PATH}/gx/slider.c
+            ${LH_LIB_SRC_PATH}/gx/field.c
             ${LH_LIB_SRC_PATH}/gx/backend/sw.c
             ${LH_LIB_SRC_PATH}/gx/backend/web.c
             ${LH_LIB_SRC_PATH}/gx/backend/web/player.c

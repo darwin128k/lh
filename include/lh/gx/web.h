@@ -9,8 +9,10 @@
  *   (`lh/gx/backend/web.h`), so a frame is the JSON of the canvas calls for
  *   what changed;
  * - the page (`lh/gx/web/page.h`) holds a canvas, the player that replays the
- *   frames and the script that sends the pointer back;
- * - the pointer lines (`lh/gx/web/input.h`) drive an ::lh_gx_pointer_t, so a
+ *   frames and the script that sends the pointer and the keys back;
+ * - the lines (`lh/gx/web/input.h`) drive an ::lh_gx_pointer_t and an
+ *   ::lh_gx_focus_t: a press focuses what takes keys under it, and the keys go
+ *   to the entity with the focus; so a
  *   press in the browser reaches the entity under it as on any other screen;
  * - the host (`lh/os/web/host.h`) is the transport: it serves ::lh_gx_web_get_app_mut,
  *   which answers `GET /` with the page, takes the websocket on
@@ -47,6 +49,7 @@
 #define LH_GX_WEB_H
 
 #include <lh/gx/backend/web.h>
+#include <lh/gx/focus.h>
 #include <lh/gx/pointer.h>
 #include <lh/gx/render.h>
 #include <lh/gx/web/fields.h>
@@ -60,7 +63,8 @@ struct lh_gx_web
 {
     /** Members: ::lh_gx_web_fields. */
     lh_gx_web_fields(lh_gx_render_t, lh_gx_canvas_t, lh_gx_backend_web_t, lh_web_json_writer_t,
-                     lh_str_t, lh_gx_pointer_t, lh_os_web_app_route_t, lh_os_web_app_t);
+                     lh_str_t, lh_gx_pointer_t, lh_gx_focus_t, lh_os_web_app_route_t,
+                     lh_os_web_app_t);
 };
 /** @copybrief lh_gx_web */
 typedef struct lh_gx_web lh_gx_web_t;
@@ -167,6 +171,24 @@ lh_gx_pointer_t *
 lh_gx_web_get_pointer_mut(lh_gx_web_t *self);
 
 /**
+ * @brief Where the browsers' keys go (level 1).
+ *
+ * @param self The application; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+const lh_gx_focus_t *
+lh_gx_web_get_focus(const lh_gx_web_t *self);
+
+/**
+ * @brief Where the keys go, to move (level 1).
+ *
+ * @param self The application; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_gx_focus_t *
+lh_gx_web_get_focus_mut(lh_gx_web_t *self);
+
+/**
  * @brief The routes of the application, to fill (level 1).
  *
  * @param self The application; checked by ::lh_assert_runtime_ref.
@@ -251,15 +273,17 @@ lh_void
 lh_gx_web_deinit(lh_gx_web_t *self);
 
 /**
- * @brief Take one pointer line from a browser (`lh/gx/web/input.h`): the
- *        event goes to the pointer (::lh_gx_pointer_take) over the screen,
- *        and a frame is asked for when it changed something.
+ * @brief Take one line from a browser (`lh/gx/web/input.h`): a pointer event
+ *        goes to the pointer (::lh_gx_pointer_take) over the screen, and a
+ *        press moves the focus to what it landed on (::lh_gx_focus_press); a
+ *        key or a text goes to the focus (::lh_gx_focus_take). A frame is asked
+ *        for when it changed something.
  *
  * @param self The application; must not be null.
  * @param text The line; not required to be NUL-terminated.
  * @param size How many characters it has.
- * @return ::lh_bool_true when the line was a pointer line; any other line is
- *         ignored.
+ * @return ::lh_bool_true when the line was one of the page's lines; any
+ *         other line is ignored.
  */
 lh_bool_t
 lh_gx_web_take_line(lh_gx_web_t *self, const lh_char_t *text, lh_usize_t size);
@@ -302,7 +326,7 @@ lh_gx_web_message(lh_ptr ctx, const lh_str_ptr text, lh_usize_t len);
  * @brief A @p width by @p height screen served to browsers.
  *
  * The renderer draws through the web backend, the page is written, the
- * pointer holds nothing, and the application answers `GET /`, takes the
+ * pointer holds nothing, nothing has the focus, and the application answers `GET /`, takes the
  * websocket on ::LH_GX_WEB_PAGE_WS_PATH and has its frame, message and tick.
  * The screen is empty: the caller attaches its entities to
  * ::lh_gx_web_get_screen_mut.

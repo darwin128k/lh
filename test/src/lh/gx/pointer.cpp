@@ -50,11 +50,11 @@ left_half_hit(const lh_gx_entity_t *, const lh_gx_rect_t *place, const lh_gx_poi
 }
 
 const lh_gx_class_t probe_class =
-    lh_gx_class_initializer(lh_null, lh_null, lh_null, probe_input, lh_null);
+    lh_gx_class_initializer(lh_null, lh_null, lh_null, probe_input, lh_null, lh_null);
 const lh_gx_class_t half_class =
-    lh_gx_class_initializer(lh_null, lh_null, left_half_hit, probe_input, lh_null);
+    lh_gx_class_initializer(lh_null, lh_null, left_half_hit, probe_input, lh_null, lh_null);
 const lh_gx_class_t layer_class =
-    lh_gx_class_initializer(lh_null, lh_null, lh_null, lh_null, lh_null);
+    lh_gx_class_initializer(lh_null, lh_null, lh_null, lh_null, lh_null, lh_null);
 
 lh_gx_point_t
 point(lh_gx_scalar_t x, lh_gx_scalar_t y)

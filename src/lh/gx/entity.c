@@ -157,6 +157,16 @@ lh_gx_entity_can_take_input(const lh_gx_entity_t *self)
 }
 
 lh_bool_t
+lh_gx_entity_can_take_keys(const lh_gx_entity_t *self)
+{
+    const lh_gx_class_t *klass = lh_gx_entity_get_class(self);
+
+    return lh_cast_static(lh_bool_t,
+                          lh_null_ne(klass) &&
+                              lh_null_ne(lh_ptr_rcast(lh_void, lh_gx_class_get_key(klass))));
+}
+
+lh_bool_t
 lh_gx_entity_is_shown(const lh_gx_entity_t *self)
 {
     for (const lh_gx_entity_t *up = self; lh_null_ne(up); up = lh_gx_entity_get_owner(up))
@@ -200,6 +210,13 @@ lh_gx_entity_take_input(lh_gx_entity_t *self, const struct lh_gx_event *event)
 {
     lh_return_if(!lh_gx_entity_can_take_input(self));
     lh_gx_class_get_input(lh_gx_entity_get_class(self))(self, event);
+}
+
+lh_void
+lh_gx_entity_take_key(lh_gx_entity_t *self, const struct lh_gx_event *event)
+{
+    lh_return_if(!lh_gx_entity_can_take_keys(self));
+    lh_gx_class_get_key(lh_gx_entity_get_class(self))(self, event);
 }
 
 lh_void

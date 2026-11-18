@@ -90,6 +90,20 @@ lh_gx_web_get_pointer_mut(lh_gx_web_t *self)
     return lh_addr_of(self->pointer);
 }
 
+const lh_gx_focus_t *
+lh_gx_web_get_focus(const lh_gx_web_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->focus);
+}
+
+lh_gx_focus_t *
+lh_gx_web_get_focus_mut(lh_gx_web_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->focus);
+}
+
 lh_os_web_app_route_t *
 lh_gx_web_get_routes_mut(lh_gx_web_t *self)
 {
@@ -171,8 +185,20 @@ lh_gx_web_take_line(lh_gx_web_t *self, const lh_char_t *text, lh_usize_t size)
     lh_gx_event_t event;
 
     lh_return_if(!lh_gx_web_input_try_parse(text, size, lh_addr_of(event)), lh_bool_false);
-    lh_gx_pointer_take(lh_gx_web_get_pointer_mut(self), lh_gx_web_get_screen_mut(self),
-                       lh_addr_of(event));
+    if (lh_gx_event_is_pointer(lh_addr_of(event)))
+    {
+        lh_gx_pointer_t *pointer = lh_gx_web_get_pointer_mut(self);
+
+        lh_gx_pointer_take(pointer, lh_gx_web_get_screen_mut(self), lh_addr_of(event));
+        if (lh_gx_event_get_kind(lh_addr_of(event)) == lh_gx_event_kind_press)
+        {
+            lh_gx_focus_press(lh_gx_web_get_focus_mut(self), lh_gx_pointer_get_captured(pointer));
+        }
+    }
+    else
+    {
+        LH_ATTRIBUTE_UNUSED(lh_gx_focus_take(lh_gx_web_get_focus(self), lh_addr_of(event)));
+    }
     LH_ATTRIBUTE_UNUSED(lh_gx_web_bump_if_changed(self));
     return lh_bool_true;
 }
@@ -218,6 +244,7 @@ lh_gx_web_init(lh_gx_web_t *self, lh_gx_scalar_t width, lh_gx_scalar_t height)
     lh_gx_backend_web_canvas_init(canvas);
     lh_gx_render_init(lh_gx_web_get_render_mut(self), canvas, backend, width, height);
     lh_gx_pointer_init(lh_gx_web_get_pointer_mut(self));
+    lh_gx_focus_init(lh_gx_web_get_focus_mut(self));
     lh_str_init(page);
     lh_gx_web_page_write(page, lh_cast_static(lh_uint_t, width), lh_cast_static(lh_uint_t, height));
     lh_os_web_app_route_set_method(route, lh_str_view_get_data(lh_addr_of(get)));

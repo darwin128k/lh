@@ -44,7 +44,7 @@ solid_covers(const lh_gx_entity_t *entity, const lh_gx_rect_t *, const lh_gx_rec
 }
 
 const lh_gx_class_t solid_class =
-    lh_gx_class_initializer(solid_paint, solid_covers, lh_null, lh_null, lh_null);
+    lh_gx_class_initializer(solid_paint, solid_covers, lh_null, lh_null, lh_null, lh_null);
 
 /* A 16 by 8 screen in ARGB, drawn by the software backend. */
 struct Screen
@@ -109,6 +109,7 @@ TEST(gx_class, a_new_table_has_every_slot_empty)
     EXPECT_TRUE(lh_gx_class_get_covers(&klass) == nullptr);
     EXPECT_TRUE(lh_gx_class_get_hit(&klass) == nullptr);
     EXPECT_TRUE(lh_gx_class_get_input(&klass) == nullptr);
+    EXPECT_TRUE(lh_gx_class_get_key(&klass) == nullptr);
     EXPECT_TRUE(lh_gx_class_get_report(&klass) == nullptr);
     lh_gx_class_set_paint(&klass, solid_paint);
     EXPECT_TRUE(lh_gx_class_get_paint(&klass) == solid_paint);

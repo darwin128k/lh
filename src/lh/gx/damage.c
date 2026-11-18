@@ -95,9 +95,9 @@ lh_gx_damage_joins(const lh_gx_rect_t *a, const lh_gx_rect_t *b)
     lh_gx_rect_t meet;
 
     lh_gx_rect_intersection(a, b, lh_addr_of(meet));
-    return lh_gx_damage_rect_area(lh_addr_of(hull)) ==
-                   lh_gx_damage_rect_area(a) + lh_gx_damage_rect_area(b) -
-                       lh_gx_damage_rect_area(lh_addr_of(meet))
+    return lh_gx_damage_rect_area(lh_addr_of(hull)) == lh_gx_damage_rect_area(a) +
+                                                           lh_gx_damage_rect_area(b) -
+                                                           lh_gx_damage_rect_area(lh_addr_of(meet))
                ? lh_bool_true
                : lh_bool_false;
 }

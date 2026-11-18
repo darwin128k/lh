@@ -8,30 +8,20 @@
 #include <lh/core/char/map.h>
 #include <lh/core/math.h>
 #include <lh/core/str/utf8.h>
+#include <lh/core/util/str/ptr.h>
 #include <lh/core/util/return.h>
 #include <lh/gx/class/initializer.h>
 
 const lh_gx_class_t lh_gx_text_class =
-    lh_gx_class_initializer(lh_gx_text_paint, lh_null, lh_null, lh_null, lh_null);
+    lh_gx_class_initializer(lh_gx_text_paint, lh_null, lh_null, lh_null, lh_null, lh_null);
 
 lh_s32_t
-lh_gx_text_get_width(const lh_gx_font_t *font, const lh_char_t *text)
+lh_gx_text_get_code_width(const lh_gx_font_t *font, lh_u32_t code)
 {
-    lh_s32_t width = 0;
-    const lh_char_t *cursor = text;
+    lh_gx_glyph_t glyph;
 
-    for (lh_u32_t code = lh_str_utf8_get_next_code(lh_addr_of(cursor));
-         code != 0U && code != lh_cast_static(lh_u32_t, lh_char_map_lf);
-         code = lh_str_utf8_get_next_code(lh_addr_of(cursor)))
-    {
-        lh_gx_glyph_t glyph;
-
-        if (lh_gx_font_get_glyph(font, code, lh_addr_of(glyph)))
-        {
-            width += lh_gx_glyph_get_advance(lh_addr_of(glyph));
-        }
-    }
-    return width;
+    lh_return_if(!lh_gx_font_get_glyph(font, code, lh_addr_of(glyph)), 0);
+    return lh_gx_glyph_get_advance(lh_addr_of(glyph));
 }
 
 lh_void
@@ -66,6 +56,22 @@ lh_gx_text_paint_glyph(const lh_gx_paint_t *paint, const lh_gx_glyph_t *glyph, l
     }
 }
 
+lh_s32_t
+lh_gx_text_get_width_n(const lh_gx_font_t *font, const lh_char_t *text, lh_usize_t size)
+{
+    lh_s32_t width = 0;
+    const lh_char_t *cursor = text;
+
+    while (lh_ptr_lt(cursor, text + size))
+    {
+        const lh_u32_t code = lh_str_utf8_get_next_code(lh_addr_of(cursor));
+
+        lh_return_if(code == 0U || code == lh_cast_static(lh_u32_t, lh_char_map_lf), width);
+        width += lh_gx_text_get_code_width(font, code);
+    }
+    return width;
+}
+
 lh_void
 lh_gx_text_paint(const lh_gx_entity_t *entity, const lh_gx_paint_t *paint)
 {
@@ -96,4 +102,10 @@ lh_gx_text_paint(const lh_gx_entity_t *entity, const lh_gx_paint_t *paint)
             pen += lh_gx_glyph_get_advance(lh_addr_of(glyph));
         }
     }
+}
+
+lh_s32_t
+lh_gx_text_get_width(const lh_gx_font_t *font, const lh_char_t *text)
+{
+    return lh_gx_text_get_width_n(font, text, lh_str_ptr_len(text));
 }

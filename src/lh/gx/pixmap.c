@@ -148,8 +148,7 @@ lh_gx_pixmap_is_valid(const lh_gx_pixmap_t *self)
     {
         return lh_bool_false;
     }
-    return lh_cast_static(lh_bool_t,
-                          lh_cast_static(lh_u64_t, lh_memory_bounds_get_size(
-                                                       lh_gx_pixmap_get_bits(self))) >=
-                              lh_gx_pixmap_size_bytes(self));
+    return lh_cast_static(lh_bool_t, lh_cast_static(lh_u64_t, lh_memory_bounds_get_size(
+                                                                  lh_gx_pixmap_get_bits(self))) >=
+                                         lh_gx_pixmap_size_bytes(self));
 }

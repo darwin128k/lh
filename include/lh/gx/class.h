@@ -21,6 +21,7 @@
 #include <lh/gx/class/fields.h>
 #include <lh/gx/class/hit/fn.h>
 #include <lh/gx/class/input/fn.h>
+#include <lh/gx/class/key/fn.h>
 #include <lh/gx/class/paint/fn.h>
 #include <lh/gx/class/report/fn.h>
 
@@ -32,7 +33,7 @@ struct lh_gx_class
 {
     /** Members: ::lh_gx_class_fields. */
     lh_gx_class_fields(lh_gx_class_paint_fn, lh_gx_class_covers_fn, lh_gx_class_hit_fn,
-                       lh_gx_class_input_fn, lh_gx_class_report_fn);
+                       lh_gx_class_input_fn, lh_gx_class_key_fn, lh_gx_class_report_fn);
 };
 /** @copybrief lh_gx_class */
 typedef struct lh_gx_class lh_gx_class_t;
@@ -110,6 +111,25 @@ lh_gx_class_get_input(const lh_gx_class_t *self);
  */
 lh_void
 lh_gx_class_set_input(lh_gx_class_t *self, lh_gx_class_input_fn *fn);
+
+/**
+ * @brief The `key` slot of @p self (level 1): take a key, a text, a focus or a
+ *        blur.
+ *
+ * @param self The table; checked by ::lh_assert_runtime_ref.
+ * @return The call, or ::lh_null when the class takes no keys.
+ */
+lh_gx_class_key_fn *
+lh_gx_class_get_key(const lh_gx_class_t *self);
+
+/**
+ * @brief Store the `key` slot of @p self (level 1).
+ *
+ * @param self The table; checked by ::lh_assert_runtime_ref.
+ * @param fn   The call; ::lh_null when the class takes no keys.
+ */
+lh_void
+lh_gx_class_set_key(lh_gx_class_t *self, lh_gx_class_key_fn *fn);
 
 /**
  * @brief The `report` slot of @p self (level 1): hear a change under the root.

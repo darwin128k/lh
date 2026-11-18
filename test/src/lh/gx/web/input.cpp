@@ -34,6 +34,11 @@ TEST(gx_web_input, a_letter_names_a_kind)
     EXPECT_EQ(kind, lh_gx_event_kind_release);
     EXPECT_TRUE(lh_gx_web_input_try_get_kind('c', &kind));
     EXPECT_EQ(kind, lh_gx_event_kind_cancel);
+    EXPECT_TRUE(lh_gx_web_input_try_get_kind('k', &kind));
+    EXPECT_EQ(kind, lh_gx_event_kind_key);
+    EXPECT_TRUE(lh_gx_web_input_try_get_kind('t', &kind));
+    EXPECT_EQ(kind, lh_gx_event_kind_text);
+    lh_gx_web_input_try_get_kind('c', &kind);
     EXPECT_FALSE(lh_gx_web_input_try_get_kind('P', &kind));
     EXPECT_EQ(kind, lh_gx_event_kind_cancel) << "untouched on failure";
 }
@@ -66,6 +71,37 @@ TEST(gx_web_input, each_line_is_read_with_its_point)
     ASSERT_TRUE(parse("c", &event));
     EXPECT_EQ(lh_gx_event_get_kind(&event), lh_gx_event_kind_cancel);
     EXPECT_EQ(lh_gx_point_get_x(lh_gx_event_get_at(&event)), 0);
+}
+
+TEST(gx_web_input, a_key_is_read_by_its_browser_name_and_a_text_by_its_code_point)
+{
+    lh_gx_event_t event;
+    lh_gx_key_t key = lh_gx_key_none;
+    lh_u32_t code = 0U;
+
+    EXPECT_TRUE(lh_gx_web_input_try_get_key("Backspace", 9U, &key));
+    EXPECT_EQ(key, lh_gx_key_backspace);
+    EXPECT_TRUE(lh_gx_web_input_try_get_key("Tab", 3U, &key));
+    EXPECT_EQ(key, lh_gx_key_tab);
+    EXPECT_FALSE(lh_gx_web_input_try_get_key("tab", 3U, &key)) << "case counts";
+    EXPECT_FALSE(lh_gx_web_input_try_get_key("F5", 2U, &key));
+    EXPECT_TRUE(lh_gx_web_input_try_parse_code("1071", 4U, &code));
+    EXPECT_EQ(code, 0x42FU);
+    EXPECT_FALSE(lh_gx_web_input_try_parse_code("13", 2U, &code)) << "a control: Enter is a key";
+    EXPECT_FALSE(lh_gx_web_input_try_parse_code("55296", 5U, &code)) << "half a surrogate pair";
+    EXPECT_FALSE(lh_gx_web_input_try_parse_code("1114112", 7U, &code)) << "past U+10FFFF";
+
+    ASSERT_TRUE(parse("k ArrowLeft", &event));
+    EXPECT_EQ(lh_gx_event_get_kind(&event), lh_gx_event_kind_key);
+    EXPECT_EQ(lh_gx_event_get_key(&event), lh_gx_key_left);
+    ASSERT_TRUE(parse("t 128512", &event));
+    EXPECT_EQ(lh_gx_event_get_kind(&event), lh_gx_event_kind_text);
+    EXPECT_EQ(lh_gx_event_get_code(&event), 0x1F600U);
+    EXPECT_FALSE(parse("k F5", &event)) << "a key the list does not name";
+    EXPECT_FALSE(parse("k", &event));
+    EXPECT_FALSE(parse("k Home End", &event));
+    EXPECT_FALSE(parse("t 97 98", &event));
+    EXPECT_FALSE(parse("t a", &event));
 }
 
 TEST(gx_web_input, anything_else_is_refused)

@@ -61,6 +61,26 @@ TEST(gx_text, the_width_is_the_advances_up_to_the_line_end)
               8);
     EXPECT_EQ(lh_gx_text_get_width(&tiny.font, "A?A"), 6) << "no glyph, no advance";
     EXPECT_EQ(lh_gx_text_get_width(&tiny.font, "A\nA"), 3) << "one line";
+    EXPECT_EQ(lh_gx_text_get_code_width(&tiny.font, 0x416U), 2);
+    EXPECT_EQ(lh_gx_text_get_code_width(&tiny.font, 0x42U), 0) << "no B";
+    EXPECT_EQ(lh_gx_text_get_width_n(&tiny.font,
+                                     "A\xD0\x96"
+                                     "A",
+                                     1U),
+              3);
+    EXPECT_EQ(lh_gx_text_get_width_n(&tiny.font,
+                                     "A\xD0\x96"
+                                     "A",
+                                     3U),
+              5)
+        << "A and Zhe";
+    EXPECT_EQ(lh_gx_text_get_width_n(&tiny.font,
+                                     "A\xD0\x96"
+                                     "A",
+                                     2U),
+              5)
+        << "a cut inside Zhe measures it whole";
+    EXPECT_EQ(lh_gx_text_get_width_n(&tiny.font, "A", 9U), 3) << "stops at the 0";
 }
 
 /* A 12 by 4 screen, black, with a white line of text at (1, 0). */

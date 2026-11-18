@@ -112,8 +112,7 @@ lh_gx_point_max(const lh_gx_point_t *a, const lh_gx_point_t *b, lh_gx_point_t *o
 }
 
 lh_bool_t
-lh_gx_point_in_extent(const lh_gx_point_t *self, const lh_gx_point_t *min,
-                      const lh_gx_point_t *max)
+lh_gx_point_in_extent(const lh_gx_point_t *self, const lh_gx_point_t *min, const lh_gx_point_t *max)
 {
     return LH_GX_POINT_FN(in_extent)(self, min, max);
 }

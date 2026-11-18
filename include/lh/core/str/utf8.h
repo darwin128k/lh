@@ -14,6 +14,8 @@
 #define LH_STR_UTF8_H
 
 #include <lh/core/attribute/force_inline.h>
+#include <lh/core/bool.h>
+#include <lh/core/size.h>
 #include <lh/core/util/ptr.h>
 #include <lh/core/compiler/extern/c.h>
 
@@ -51,6 +53,30 @@ lh_str_utf8_get_encoded_size(lh_u32_t code);
  */
 lh_u32_t
 lh_str_utf8_get_lead_size(lh_byte_t lead);
+
+/**
+ * @brief Whether @p byte continues a character (`10xxxxxx`) rather than starting
+ *        one.
+ */
+lh_bool_t
+lh_str_utf8_is_continuation(lh_byte_t byte);
+
+/**
+ * @brief How many bytes the character that **ends** at byte @p end of @p text
+ *        takes: 1, 2, 3 or 4.
+ *
+ * The walk backwards that ::lh_str_utf8_get_lead_size cannot do: from @p end it
+ * steps back over continuation bytes to the lead byte, never before the start of
+ * the text and never over more than three. What a cursor does when it moves left,
+ * and what a backspace deletes.
+ *
+ * @param text The text; must not be null.
+ * @param end  A byte offset in @p text that ends a character; at least `1`.
+ * @return The size of that character; `1` for a broken string, so a walk over
+ *         one moves a byte at a time.
+ */
+lh_u32_t
+lh_str_utf8_get_prev_size(const lh_char_t *text, lh_usize_t end);
 
 /**
  * @brief Write @p code into @p out as UTF-8 and return how many bytes it took.

@@ -130,8 +130,7 @@ lh_gx_size_min_side(const lh_gx_size_t *self)
 }
 
 lh_void
-lh_gx_size_inset(const lh_gx_size_t *self, lh_gx_scalar_t dx, lh_gx_scalar_t dy,
-                 lh_gx_size_t *out)
+lh_gx_size_inset(const lh_gx_size_t *self, lh_gx_scalar_t dx, lh_gx_scalar_t dy, lh_gx_size_t *out)
 {
     LH_GX_SIZE_FN(inset)(self, dx, dy, out);
 }

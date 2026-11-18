@@ -5,7 +5,8 @@
  * is a background, a button (a box and its caption), a checkbox (a row, a
  * square, a tick and a caption) and two radios (each a checkbox of the radio
  * class, round by its style, of one group) and a slider that sizes the
- * button (a row, a rail, a fill and a knob), drawn
+ * button (a row, a rail, a fill and a knob) and a text field that names it
+ * (a box, a view, a text and a caret), drawn
  * by the gx renderer through the web backend; the browser only plays the
  * frames and sends the pointer back (lh/gx/web.h).
  *
@@ -13,7 +14,9 @@
  * it is held, and a release over it clicks it. Tap the checkbox, or its
  * caption: the background turns light, and dark again. Choose "Green": the
  * button turns green, and "Blue" is unmarked. Drag the slider: the button
- * grows and shrinks around its centre as the knob follows the pointer. Open a second tab: it
+ * grows and shrinks around its centre as the knob follows the pointer. Click
+ * the field and type: the arrows, Home, End, Backspace and Delete edit it, and
+ * Enter puts its text on the button. Open a second tab: it
  * gets the whole screen, and both follow every change. The host runs on this thread
  * and does not return; stop the program with Ctrl+C.
  */
@@ -23,10 +26,13 @@
 
 #include <lh/core/runtime/allocator.h>
 #include <lh/core/runtime/terminate.h>
+#include <lh/core/memory/std.h>
 #include <lh/core/str/format/uint.h>
+#include <lh/core/util/str/ptr.h>
 #include <lh/gx/box.h>
 #include <lh/gx/button.h>
 #include <lh/gx/checkbox.h>
+#include <lh/gx/field.h>
 #include <lh/gx/radio.h>
 #include <lh/gx/slider.h>
 #include <lh/gl/font.h>
@@ -127,6 +133,21 @@ on_width(lh_gx_slider_t *slider, lh_s32_t value, lh_ptr context)
     lh_gx_button_center_caption(&button);
 }
 
+/* The field's text, and its reaction to Enter: the button takes the text as
+   its caption — a copy, for the field goes on editing its own buffer. */
+static lh_char_t name[32] = "";
+
+static lh_void
+on_name(lh_gx_field_t *field, lh_ptr context)
+{
+    const lh_usize_t size = lh_str_ptr_len(lh_gx_field_get_text(field));
+
+    (void)context;
+    lh_memory_std_copy(caption, lh_gx_field_get_text(field), size);
+    caption[size] = '\0';
+    lh_gx_button_set_text(&button, caption);
+}
+
 int
 main(void)
 {
@@ -205,6 +226,20 @@ main(void)
     lh_gx_slider_init(&width, &rail_style, &tick_style, &knob_style, 60, 172, 200, 20, 80, 220, 140,
                       on_width, lh_null);
     lh_gx_entity_attach(&back, lh_gx_slider_get_row_mut(&width));
+    static lh_gx_style_t entry_style;
+
+    lh_gx_style_init(&entry_style, 0xFFFFFFFFU, 0xFF8A8A96U, 1, 4, 0xFF202024U, face);
+    static lh_gx_style_t entry_focus_style;
+
+    lh_gx_style_init(&entry_focus_style, 0xFFFFFFFFU, 0xFF3D7BD9U, 2, 4, 0xFF202024U, face);
+    static lh_gx_style_t caret_style;
+
+    lh_gx_style_init(&caret_style, 0xFF202024U, 0U, 0, 0, 0U, lh_null);
+    static lh_gx_field_t entry;
+
+    lh_gx_field_init(&entry, &entry_style, &entry_focus_style, &caret_style, 130, 24, 170, 26, name,
+                     sizeof(name), lh_null, on_name, lh_null);
+    lh_gx_entity_attach(&back, lh_gx_field_get_box_mut(&entry));
     const lh_net_port_t port = 8080U;
 
     printf("open http://127.0.0.1:%u/\n", (unsigned)port);

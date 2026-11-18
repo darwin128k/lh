@@ -14,6 +14,10 @@
  * - it sends the pointer as the lines of `lh/gx/web/input.h`, in canvas
  *   pixels whatever size the canvas is shown at, a move only while the
  *   pointer is down, and keeps the pointer captured until it goes up.
+ * - it sends the keys of the document as the key and text lines of
+ *   `lh/gx/web/input.h`: a key that is one character as its code point, any
+ *   other by its `KeyboardEvent.key` name; a key held with Ctrl, Alt or Meta is
+ *   left to the browser, so its shortcuts still work.
  *
  * Nothing on the page knows an entity, a class or a style: those stay in C.
  *

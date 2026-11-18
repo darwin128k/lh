@@ -21,6 +21,7 @@
 #    include <lh/core/web/ws.h>
 #    include <lh/gx/box.h>
 #    include <lh/gx/button.h>
+#    include <lh/gx/class/initializer.h>
 #    include <lh/gx/style.h>
 #    include <lh/gx/web.h>
 #    include <lh/gx/web/page.h>
@@ -34,6 +35,7 @@
 #    include <cstring>
 #    include <string>
 #    include <thread>
+#    include <vector>
 
 namespace
 {
@@ -172,6 +174,47 @@ TEST(gx_web, a_line_that_is_not_a_pointer_line_is_ignored)
     EXPECT_FALSE(screen.line("p 20"));
     EXPECT_FALSE(lh_gx_button_is_pressed(&screen.button));
     EXPECT_EQ(screen.generation(), 1U);
+}
+
+/* A field of the test: it takes the pointer and the keys, and writes down
+   the kinds it heard. */
+lh_void
+note_kind(lh_gx_entity_t *entity, const lh_gx_event_t *event)
+{
+    static_cast<std::vector<lh_gx_event_kind_t> *>(lh_gx_entity_get_content(entity))
+        ->push_back(lh_gx_event_get_kind(event));
+}
+
+const lh_gx_class_t field_class =
+    lh_gx_class_initializer(lh_null, lh_null, lh_null, note_kind, note_kind, lh_null);
+
+TEST(gx_web, a_press_focuses_what_takes_keys_and_the_key_lines_go_to_it)
+{
+    Screen screen;
+    std::vector<lh_gx_event_kind_t> heard;
+    lh_gx_entity_t field;
+
+    lh_gx_entity_init(&field, &field_class, nullptr, 32, 2, 6, 6);
+    lh_gx_entity_set_content(&field, &heard);
+    lh_gx_entity_attach(&screen.back, &field);
+    EXPECT_TRUE(screen.line("t 97")) << "a key line with no focus is read, and goes nowhere";
+    EXPECT_TRUE(heard.empty());
+
+    ASSERT_TRUE(screen.line("p 34 4"));
+    ASSERT_TRUE(screen.line("r 34 4"));
+    EXPECT_EQ(lh_gx_focus_get_focused(lh_gx_web_get_focus(&screen.web)), &field);
+    ASSERT_TRUE(screen.line("t 97"));
+    ASSERT_TRUE(screen.line("k Backspace"));
+    EXPECT_FALSE(screen.line("k F5"));
+    ASSERT_TRUE(screen.line("p 20 10"));
+    ASSERT_TRUE(screen.line("r 20 10"));
+    EXPECT_TRUE(lh_gx_focus_get_focused(lh_gx_web_get_focus(&screen.web)) == nullptr)
+        << "the button takes no keys: the press there takes the focus away";
+    EXPECT_EQ(heard, (std::vector<lh_gx_event_kind_t>{
+                         lh_gx_event_kind_press, lh_gx_event_kind_focus, lh_gx_event_kind_release,
+                         lh_gx_event_kind_text, lh_gx_event_kind_key, lh_gx_event_kind_blur}));
+    EXPECT_EQ(screen.clicks.load(), 1);
+    lh_gx_entity_detach(&field);
 }
 
 TEST(gx_web, a_tick_asks_for_a_frame_only_when_something_changed)

@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `lh_gx_class_initializer` and `lh_gx_class_fields` take a `key` slot
+  between `input` and `report`: every constant class table gains one
+  argument (`lh_null` for a class that takes no keys).
+- `lh_gx_event_fields` takes a key type and a code type; `lh_gx_event_init`
+  clears the key and the code.
 - The button keeps its gesture in an `lh_gx_tap_t`:
   `lh_gx_button_fields` takes a `tap_type` in place of the `pressed` flag,
   `lh_gx_button_set_pressed` is gone (`lh_gx_button_get_tap` / `_get_tap_mut`
@@ -172,6 +177,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_gx_field_t` (`lh/gx/field.h`, `lh/gx/field/fields.h`,
+  `lh/gx/field/fn.h`): a one-line text field, the first control that takes
+  the focus — a box of `lh_gx_field_class` (the box's look, its own `input`
+  and `key`) holding a view that cuts and scrolls the text and the caret. The
+  text is UTF-8 in the application's buffer of fixed capacity: typing inserts
+  at the cursor by whole characters and a character that does not fit is
+  refused; Left, Right, Home, End move the cursor, Backspace and Delete remove
+  a character, Enter calls `on_submit`, a change calls `on_change`; a press
+  puts the cursor at the nearest boundary; the view scrolls to keep the
+  cursor in it; the focus shows the caret and the focus look.
+- `lh_str_utf8_is_continuation`, `lh_str_utf8_get_prev_size`: a step back over
+  one UTF-8 character, never into the middle of one.
+- `lh_gx_text_get_code_width`, `lh_gx_text_get_width_n`: the advance of one
+  code point, and the width of the first bytes of a string — where a cursor
+  stands. `lh_gx_text_get_width` is now `_get_width_n` over the whole string.
+- The keyboard in gx. `lh_gx_focus_t` (`lh/gx/focus.h`,
+  `lh/gx/focus/fields.h`): which entity the keys go to — a press gives the
+  focus to the entity it landed on or its nearest owner that takes keys, a
+  press elsewhere takes it away, each move tells the old entity (blur) and the
+  new one (focus); `lh_gx_focus_take` hands a key or a text to the entity with
+  the focus. The class's `key` slot (`lh/gx/class/key/fn.h`,
+  `lh_gx_class_get_key` / `_set_key`) is what makes an entity take keys
+  (`lh_gx_entity_can_take_keys`, `lh_gx_entity_take_key`). The event gains
+  four kinds — `key`, `text`, `focus`, `blur` — a key (`lh_gx_key_t`,
+  `lh/gx/event/key.h`) and a code point (`lh_gx_event_get_key` / `_get_code`,
+  `lh_gx_event_init_key`, `_init_text`, `_init_kind`,
+  `lh_gx_event_is_pointer`).
+- The gx web application takes the keyboard: the page sends `k name` (the
+  browser's `KeyboardEvent.key`) and `t code` lines, read by
+  `lh_gx_web_input_try_get_key` and `lh_gx_web_input_try_parse_code`, and
+  `lh_gx_web_t` keeps an `lh_gx_focus_t` (`lh_gx_web_get_focus`) that a press
+  moves and the key lines go to.
 - `lh_gx_slider_t` (`lh/gx/slider.h`, `lh/gx/slider/fields.h`,
   `lh/gx/slider/change/fn.h`): a whole value in `[min, max]` picked by
   dragging a knob — a row of `lh_gx_slider_class` (no paint, its own `input`)

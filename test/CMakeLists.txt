@@ -618,6 +618,7 @@ set(LH_TEST_GL_SOURCES
         ${LH_TEST_SRC_PATH}/lh/gx/entity.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/walk.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/pointer.cpp
+        ${LH_TEST_SRC_PATH}/lh/gx/focus.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/backend/sw.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/backend/web.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/render.cpp
@@ -629,6 +630,7 @@ set(LH_TEST_GL_SOURCES
         ${LH_TEST_SRC_PATH}/lh/gx/checkbox.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/radio.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/slider.cpp
+        ${LH_TEST_SRC_PATH}/lh/gx/field.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/web/input.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/web/page.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/web.cpp

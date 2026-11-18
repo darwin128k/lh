@@ -19,6 +19,12 @@ lh_str_utf8_get_encoded_size(lh_u32_t code)
     return code < 0x10000U ? 3U : 4U;
 }
 
+lh_bool_t
+lh_str_utf8_is_continuation(lh_byte_t byte)
+{
+    return (byte & 0xC0U) == 0x80U ? lh_bool_true : lh_bool_false;
+}
+
 lh_u32_t
 lh_str_utf8_get_lead_size(lh_byte_t lead)
 {
@@ -56,6 +62,21 @@ lh_str_utf8_get_lead_size(lh_byte_t lead)
        as it is safe to go: skipping more would step over a character somebody can see,
        and a walk one byte at a time over these is what a reader does with them. */
     return 1U;
+}
+
+lh_u32_t
+lh_str_utf8_get_prev_size(const lh_char_t *text, lh_usize_t end)
+{
+    lh_u32_t size = 1U;
+
+    /* The lead byte is at most three continuation bytes back, and never before the
+       start: a broken string is walked a byte at a time. */
+    while (size < 4U && size < end &&
+           lh_str_utf8_is_continuation(lh_cast_static(lh_byte_t, text[end - size])))
+    {
+        ++size;
+    }
+    return lh_str_utf8_is_continuation(lh_cast_static(lh_byte_t, text[end - size])) ? 1U : size;
 }
 
 lh_u32_t

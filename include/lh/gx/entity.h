@@ -258,6 +258,15 @@ lh_bool_t
 lh_gx_entity_can_take_input(const lh_gx_entity_t *self);
 
 /**
+ * @brief True when @p self takes keys and so the focus: it has a class, and the
+ *        class fills `key` (::lh_gx_class_key_fn).
+ *
+ * @param self The entity; must not be null.
+ */
+lh_bool_t
+lh_gx_entity_can_take_keys(const lh_gx_entity_t *self);
+
+/**
  * @brief True when @p self and every owner above it are visible — when it can be
  *        seen at all.
  *
@@ -297,6 +306,17 @@ lh_gx_entity_report(const lh_gx_entity_t *self, const lh_gx_rect_t *area);
  */
 lh_void
 lh_gx_entity_take_input(lh_gx_entity_t *self, const struct lh_gx_event *event);
+
+/**
+ * @brief Hand @p event — a key, a text, a focus or a blur — to the `key` slot of
+ *        @p self's class; nothing when it takes no keys
+ *        (::lh_gx_entity_can_take_keys).
+ *
+ * @param self  The entity; must not be null.
+ * @param event The event; not kept after the call.
+ */
+lh_void
+lh_gx_entity_take_key(lh_gx_entity_t *self, const struct lh_gx_event *event);
 
 /**
  * @brief Report that @p self looks different now, when it can be seen.

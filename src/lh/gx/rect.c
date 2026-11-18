@@ -185,15 +185,13 @@ lh_gx_rect_union(const lh_gx_rect_t *a, const lh_gx_rect_t *b, lh_gx_rect_t *out
 }
 
 lh_void
-lh_gx_rect_offset(const lh_gx_rect_t *self, lh_gx_scalar_t dx, lh_gx_scalar_t dy,
-                  lh_gx_rect_t *out)
+lh_gx_rect_offset(const lh_gx_rect_t *self, lh_gx_scalar_t dx, lh_gx_scalar_t dy, lh_gx_rect_t *out)
 {
     LH_GX_RECT_FN(offset)(self, dx, dy, out);
 }
 
 lh_void
-lh_gx_rect_inset(const lh_gx_rect_t *self, lh_gx_scalar_t dx, lh_gx_scalar_t dy,
-                 lh_gx_rect_t *out)
+lh_gx_rect_inset(const lh_gx_rect_t *self, lh_gx_scalar_t dx, lh_gx_scalar_t dy, lh_gx_rect_t *out)
 {
     LH_GX_RECT_FN(inset)(self, dx, dy, out);
 }

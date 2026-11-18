@@ -76,6 +76,9 @@ TEST(gx_web_page, the_transport_sends_the_lines_the_input_reads)
     EXPECT_NE(transport.find("send(\"r \" + "), std::string::npos);
     EXPECT_NE(transport.find("send(\"c\")"), std::string::npos);
     EXPECT_NE(transport.find("lhGxPlay(ctx, JSON.parse(m.data))"), std::string::npos);
+    EXPECT_NE(transport.find("document.addEventListener(\"keydown\""), std::string::npos);
+    EXPECT_NE(transport.find("send(\"t \" + "), std::string::npos);
+    EXPECT_NE(transport.find("send(\"k \" + e.key)"), std::string::npos);
 }
 
 #if LH_LIBRARY_OPTION_JS

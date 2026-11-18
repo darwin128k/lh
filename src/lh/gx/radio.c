@@ -10,7 +10,7 @@
 #include <lh/gx/class/initializer.h>
 
 const lh_gx_class_t lh_gx_radio_class =
-    lh_gx_class_initializer(lh_null, lh_null, lh_null, lh_gx_radio_input, lh_null);
+    lh_gx_class_initializer(lh_null, lh_null, lh_null, lh_gx_radio_input, lh_null, lh_null);
 
 const lh_gx_checkbox_t *
 lh_gx_radio_get_checkbox(const lh_gx_radio_t *self)

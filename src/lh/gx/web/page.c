@@ -9,7 +9,8 @@
 
 /* The transport, line by line; the size of the array less its NUL is its length. */
 static const lh_char_t m_gx_web_page_script[] =
-    "/* lh gx web page: the frames come in over the websocket, the pointer goes out. */\n"
+    "/* lh gx web page: the frames come in over the websocket, the pointer and the keys go out. "
+    "*/\n"
     "function lhGxPoint(canvas, e) {\n"
     "  const r = canvas.getBoundingClientRect();\n"
     "  return Math.round((e.clientX - r.left) * canvas.width / r.width) + \" \" +\n"
@@ -40,6 +41,16 @@ static const lh_char_t m_gx_web_page_script[] =
     "  });\n"
     "  canvas.addEventListener(\"pointercancel\", function () {\n"
     "    if (down) { down = false; send(\"c\"); }\n"
+    "  });\n"
+    "  document.addEventListener(\"keydown\", function (e) {\n"
+    "    if (e.ctrlKey || e.metaKey || e.altKey) return;\n"
+    "    if ([...e.key].length === 1) {\n"
+    "      send(\"t \" + e.key.codePointAt(0));\n"
+    "      e.preventDefault();\n"
+    "    } else {\n"
+    "      send(\"k \" + e.key);\n"
+    "      if (e.key === \"Tab\" || e.key === \"Backspace\") e.preventDefault();\n"
+    "    }\n"
     "  });\n"
     "  open();\n"
     "}\n";

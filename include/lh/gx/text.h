@@ -41,15 +41,15 @@ LH_COMPILER_EXTERN_C_BEGIN
 extern const lh_gx_class_t lh_gx_text_class;
 
 /**
- * @brief How wide @p text is in @p font, up to its first line feed: the advances
- *        of its glyphs, a code with no glyph adding nothing.
+ * @brief How far the pen moves for @p code in @p font: its glyph's advance, `0`
+ *        when the font has no glyph for it.
  *
  * @param font The font; must not be null.
- * @param text The string, UTF-8, ending in `0`; must not be null.
+ * @param code A Unicode code point.
  * @return Pixels.
  */
 lh_s32_t
-lh_gx_text_get_width(const lh_gx_font_t *font, const lh_char_t *text);
+lh_gx_text_get_code_width(const lh_gx_font_t *font, lh_u32_t code);
 
 /**
  * @brief Lay @p glyph in @p color with its pen at @p x on @p baseline: each row of
@@ -69,6 +69,19 @@ lh_gx_text_paint_glyph(const lh_gx_paint_t *paint, const lh_gx_glyph_t *glyph, l
                        lh_s32_t baseline, lh_gx_color_t color);
 
 /**
+ * @brief How wide the first @p size bytes of @p text are in @p font, stopping
+ *        early at a `0` or a line feed: where a cursor after them stands.
+ *
+ * @param font The font; must not be null.
+ * @param text The string, UTF-8; must not be null.
+ * @param size How many bytes to measure; a character it cuts in the middle is
+ *             measured whole.
+ * @return Pixels.
+ */
+lh_s32_t
+lh_gx_text_get_width_n(const lh_gx_font_t *font, const lh_char_t *text, lh_usize_t size);
+
+/**
  * @brief `paint` of the text class (::lh_gx_class_paint_fn): the entity's string in
  *        its style's font and `ink`.
  *
@@ -80,6 +93,17 @@ lh_gx_text_paint_glyph(const lh_gx_paint_t *paint, const lh_gx_glyph_t *glyph, l
  */
 lh_void
 lh_gx_text_paint(const lh_gx_entity_t *entity, const lh_gx_paint_t *paint);
+
+/**
+ * @brief How wide @p text is in @p font, up to its first line feed: the advances
+ *        of its glyphs, a code with no glyph adding nothing.
+ *
+ * @param font The font; must not be null.
+ * @param text The string, UTF-8, ending in `0`; must not be null.
+ * @return Pixels.
+ */
+lh_s32_t
+lh_gx_text_get_width(const lh_gx_font_t *font, const lh_char_t *text);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -53,3 +53,21 @@ TEST(str_utf8, the_size_of_a_character_is_read_off_its_lead_byte_and_not_off_its
     EXPECT_EQ(lh_str_utf8_get_encoded_size(0xE0U), 2U); /* **wrong**, and the reason */
     EXPECT_EQ(lh_str_utf8_get_lead_size(0xE0U), 3U);    /* the answer */
 }
+
+TEST(str_utf8, a_character_is_measured_back_from_where_it_ends)
+{
+    /* "A", Zhe (two bytes), an em dash (three), a grinning face (four). */
+    const lh_char_t text[] = "A\xD0\x96\xE2\x80\x94\xF0\x9F\x98\x80";
+
+    EXPECT_EQ(lh_str_utf8_get_prev_size(text, 1U), 1U);
+    EXPECT_EQ(lh_str_utf8_get_prev_size(text, 3U), 2U);
+    EXPECT_EQ(lh_str_utf8_get_prev_size(text, 6U), 3U);
+    EXPECT_EQ(lh_str_utf8_get_prev_size(text, 10U), 4U);
+    EXPECT_TRUE(lh_str_utf8_is_continuation(0x96U));
+    EXPECT_FALSE(lh_str_utf8_is_continuation(0xD0U));
+    EXPECT_FALSE(lh_str_utf8_is_continuation(0x41U));
+    /* Continuation bytes with no lead in front: a byte at a time. */
+    const lh_char_t broken[] = "\x80\x80";
+
+    EXPECT_EQ(lh_str_utf8_get_prev_size(broken, 2U), 1U);
+}

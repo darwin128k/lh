@@ -14,7 +14,7 @@
 
 /**
  * @def lh_gx_web_fields(render_type, canvas_type, backend_type, writer_type, text_type,
- * pointer_type, route_type, app_type)
+ * pointer_type, focus_type, route_type, app_type)
  * @brief A gx screen served to browsers, and everything that serves it.
  *
  * - `render` — the renderer of the screen; it draws through `canvas` with
@@ -24,7 +24,8 @@
  * - `writer` — the JSON writer, appending to `frame`;
  * - `frame` — the text of the frame being sent (owned);
  * - `page` — the page every browser is given (owned);
- * - `pointer` — the pointer the browsers' lines drive;
+ * - `pointer` — the pointer the browsers' pointer lines drive;
+ * - `focus` — where the browsers' key lines go;
  * - `routes` — the routes of `app`;
  * - `app` — what the host serves.
  *
@@ -32,7 +33,7 @@
  * ::lh_gx_web_init.
  */
 #define lh_gx_web_fields(render_type, canvas_type, backend_type, writer_type, text_type,           \
-                         pointer_type, route_type, app_type)                                       \
+                         pointer_type, focus_type, route_type, app_type)                           \
     render_type render;                                                                            \
     canvas_type canvas;                                                                            \
     backend_type backend;                                                                          \
@@ -40,6 +41,7 @@
     text_type frame;                                                                               \
     text_type page;                                                                                \
     pointer_type pointer;                                                                          \
+    focus_type focus;                                                                              \
     route_type routes[LH_GX_WEB_ROUTES];                                                           \
     app_type app
 
