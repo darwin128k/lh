@@ -11,23 +11,16 @@
 
 #include <gtest/gtest.h>
 
-#include <lh/core/font/range/initializer.h>
-#include <lh/core/pixel/mask/initializer.h>
 #include <lh/gx/backend/sw.h>
 #include <lh/gx/box.h>
 #include <lh/gx/button.h>
 #include <lh/gx/font/baked.h>
 #include <lh/gx/pointer.h>
 #include <lh/gx/render.h>
+#include <lh/test/gx/tiny_font.h>
 
 namespace
 {
-
-const lh_byte_t a_bits[4] = {255U, 255U, 255U, 255U};
-const lh_pixel_mask_t glyphs[1] = {lh_pixel_mask_initializer(a_bits, 2, 2, 2, 8)};
-const lh_byte_t advances[1] = {3U};
-const lh_s32_t tops[1] = {-2};
-const lh_font_range_t ranges[1] = {lh_font_range_initializer(0x41U, 1U, 0U)};
 
 constexpr lh_gx_color_t black = 0xFF000000U;
 constexpr lh_gx_color_t white = 0xFFFFFFFFU;
@@ -52,8 +45,7 @@ point(lh_gx_scalar_t x, lh_gx_scalar_t y)
 /* A 40 by 20 black screen, a white button "A" at (4,4) 20 by 10, ink red. */
 struct Screen
 {
-    lh_font_t table;
-    lh_gx_font_t font;
+    lh_test::gx_tiny_font tiny;
     lh_u32_t words[40 * 20] = {};
     lh_memory_bounds_t bits;
     lh_gx_pixmap_t pixmap;
@@ -70,16 +62,14 @@ struct Screen
 
     Screen()
     {
-        lh_font_init(&table, glyphs, advances, tops, ranges, 3, 2, 2, 1U);
-        lh_gx_font_baked_init(&font, &table);
         lh_memory_bounds_init(&bits, words, sizeof(words));
         lh_gx_pixmap_init(&pixmap, &bits, 40U, 20U, lh_gx_pixmap_format_argb8888);
         lh_gx_backend_sw_init(&sw, &pixmap, 0, 0);
         lh_gx_backend_sw_canvas_init(&canvas);
         lh_gx_render_init(&render, &canvas, &sw, 40, 20);
         lh_gx_style_init(&back_style, black, 0U, 0, 0, 0U, nullptr);
-        lh_gx_style_init(&button_style, white, 0U, 0, 0, red, &font);
-        lh_gx_style_init(&pressed_style, grey, 0U, 0, 0, red, &font);
+        lh_gx_style_init(&button_style, white, 0U, 0, 0, red, &tiny.font);
+        lh_gx_style_init(&pressed_style, grey, 0U, 0, 0, red, &tiny.font);
         lh_gx_entity_init(&back, &lh_gx_box_class, &back_style, 0, 0, 40, 20);
         lh_gx_button_init(&button, &button_style, 4, 4, 20, 10, "A", count_click, &clicks);
         lh_gx_entity_attach(lh_gx_render_get_screen_mut(&render), &back);
@@ -165,10 +155,10 @@ TEST(gx_button, a_release_outside_or_a_cancel_is_no_click)
 TEST(gx_button, the_pressed_look_redraws_only_the_button)
 {
     Screen screen;
-    lh_gx_damage_t drawn;
 
     lh_gx_button_set_pressed_style(&screen.button, &screen.pressed_style);
     screen.press(6, 6);
+    lh_gx_damage_t drawn;
     lh_gx_render_draw(&screen.render, &drawn);
     ASSERT_EQ(lh_gx_damage_get_count(&drawn), 1U);
     EXPECT_TRUE(lh_gx_rect_eq(lh_gx_damage_get_rect(&drawn, 0U),

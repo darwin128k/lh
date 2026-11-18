@@ -41,9 +41,8 @@
 #include <lh/gx/button/click/fn.h>
 #include <lh/gx/button/fields.h>
 #include <lh/gx/class.h>
-#include <lh/gx/entity.h>
-#include <lh/gx/event.h>
 #include <lh/gx/style.h>
+#include <lh/gx/tap.h>
 
 /**
  * @struct lh_gx_button
@@ -52,7 +51,7 @@
 struct lh_gx_button
 {
     /** Members: ::lh_gx_button_fields. */
-    lh_gx_button_fields(lh_gx_entity_t, lh_gx_style_t, lh_gx_button_click_fn);
+    lh_gx_button_fields(lh_gx_entity_t, lh_gx_style_t, lh_gx_button_click_fn, lh_gx_tap_t);
 };
 /** @copybrief lh_gx_button */
 typedef struct lh_gx_button lh_gx_button_t;
@@ -172,21 +171,22 @@ lh_void
 lh_gx_button_set_context(lh_gx_button_t *self, lh_ptr context);
 
 /**
- * @brief True while a press on the button is in progress (level 1).
+ * @brief The gesture on the button (level 1).
  *
  * @param self The button; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
  */
-lh_bool_t
-lh_gx_button_is_pressed(const lh_gx_button_t *self);
+const lh_gx_tap_t *
+lh_gx_button_get_tap(const lh_gx_button_t *self);
 
 /**
- * @brief Store whether a press is in progress (level 1); the look is not changed.
+ * @brief The gesture on the button, to feed (level 1).
  *
- * @param self    The button; checked by ::lh_assert_runtime_ref.
- * @param pressed Whether it is pressed.
+ * @param self The button; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
  */
-lh_void
-lh_gx_button_set_pressed(lh_gx_button_t *self, lh_bool_t pressed);
+lh_gx_tap_t *
+lh_gx_button_get_tap_mut(lh_gx_button_t *self);
 
 /**
  * @brief The button whose box is @p entity: the box's content.
@@ -196,6 +196,14 @@ lh_gx_button_set_pressed(lh_gx_button_t *self, lh_bool_t pressed);
  */
 lh_gx_button_t *
 lh_gx_button_from_entity(lh_gx_entity_t *entity);
+
+/**
+ * @brief True while a press on the button is in progress (::lh_gx_tap_is_pressed).
+ *
+ * @param self The button; must not be null.
+ */
+lh_bool_t
+lh_gx_button_is_pressed(const lh_gx_button_t *self);
 
 /**
  * @brief The caption's string.
@@ -239,7 +247,10 @@ lh_void
 lh_gx_button_center_caption(lh_gx_button_t *self);
 
 /**
- * @brief Make the button pressed, and put on the pressed look if it has one.
+ * @brief The button was pressed: put on the pressed look if it has one.
+ *
+ * Only the look; whether a press is in progress is the tap's
+ * (::lh_gx_button_get_tap_mut).
  *
  * @param self The button; must not be null.
  */
@@ -247,8 +258,8 @@ lh_void
 lh_gx_button_press(lh_gx_button_t *self);
 
 /**
- * @brief Release a pressed button: the look at rest again, and — when @p click —
- *        the reaction. Nothing for a button that is not pressed.
+ * @brief The press ended: the look at rest again, and — when @p click — the
+ *        reaction.
  *
  * @param self  The button; must not be null.
  * @param click Whether the release was on the button.
@@ -266,10 +277,10 @@ lh_void
 lh_gx_button_set_text(lh_gx_button_t *self, const lh_char_t *text);
 
 /**
- * @brief `input` of the button class (::lh_gx_class_input_fn): a press presses it;
- *        a release releases it — with a click when the release is on the box
- *        (::lh_gx_hit_is_on); a cancel releases it with no click; a move does
- *        nothing.
+ * @brief `input` of the button class (::lh_gx_class_input_fn): the event goes to
+ *        the button's tap (::lh_gx_tap_take); its step down presses the button
+ *        (::lh_gx_button_press), up releases it, and a tap releases it with a
+ *        click (::lh_gx_button_release).
  *
  * @param entity The box of a button.
  * @param event  The event.

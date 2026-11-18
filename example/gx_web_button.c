@@ -1,13 +1,15 @@
 /* example/gx_web_button.c
  *
- * A gx screen in the browser: a button that counts its clicks. The tree is
- * three entities — a background, and a button that is a box with its caption
- * — drawn by the gx renderer through the web backend; the browser only plays
- * the frames and sends the pointer back (lh/gx/web.h).
+ * A gx screen in the browser: a button that counts its clicks and a checkbox
+ * that lights the background. The tree is a background, a button (a box and
+ * its caption) and a checkbox (a row, a square, a tick and a caption), drawn
+ * by the gx renderer through the web backend; the browser only plays the
+ * frames and sends the pointer back (lh/gx/web.h).
  *
- * Run it, open http://127.0.0.1:8080/ and press the button: it greys while it
- * is held, and a release over it clicks it. Open a second tab: it gets the
- * whole screen, and both follow every change. The host runs on this thread
+ * Run it, open http://127.0.0.1:8080/ and press the button: it darkens while
+ * it is held, and a release over it clicks it. Tap the checkbox, or its
+ * caption: the background turns light, and dark again. Open a second tab: it
+ * gets the whole screen, and both follow every change. The host runs on this thread
  * and does not return; stop the program with Ctrl+C.
  */
 
@@ -19,6 +21,7 @@
 #include <lh/core/str/format/uint.h>
 #include <lh/gx/box.h>
 #include <lh/gx/button.h>
+#include <lh/gx/checkbox.h>
 #include <lh/gl/font.h>
 #include <lh/gx/font/baked.h>
 #include <lh/gx/style.h>
@@ -51,6 +54,10 @@ example_abort(lh_self_ptr self)
     abort();
 }
 
+/* The background, and the style the checkbox changes. */
+static lh_gx_style_t back_style;
+static lh_gx_entity_t back;
+
 /* The caption the button shows after a click: "Clicked N". */
 static lh_char_t caption[32] = "Press me";
 
@@ -70,6 +77,16 @@ on_click(lh_gx_button_t *button, lh_ptr context)
     n += lh_str_ptr_format_uint(*clicks, caption + n, sizeof(caption) - n - 1U);
     caption[n] = '\0';
     lh_gx_button_set_text(button, caption);
+}
+
+/* The checkbox's reaction: a light background while it is checked. */
+static lh_void
+on_light(lh_gx_checkbox_t *checkbox, lh_bool_t checked, lh_ptr context)
+{
+    (void)checkbox;
+    (void)context;
+    lh_gx_style_set_fill(&back_style, checked ? 0xFFE8E8ECU : 0xFF2B2B30U);
+    lh_gx_entity_invalidate(&back);
 }
 
 int
@@ -101,8 +118,6 @@ main(void)
     }
 
     lh_gx_web_init(&web, 320, 200);
-    static lh_gx_style_t back_style;
-
     lh_gx_style_init(&back_style, 0xFF2B2B30U, 0U, 0, 0, 0U, lh_null);
     static lh_gx_style_t button_style;
 
@@ -110,8 +125,6 @@ main(void)
     static lh_gx_style_t pressed_style;
 
     lh_gx_style_init(&pressed_style, 0xFF2A5CA8U, 0xFF1D4480U, 1, 0, 0xFFFFFFFFU, face);
-    static lh_gx_entity_t back;
-
     lh_gx_entity_init(&back, &lh_gx_box_class, &back_style, 0, 0, 320, 200);
     static lh_gx_button_t button;
     static lh_uint_t clicks;
@@ -120,6 +133,17 @@ main(void)
     lh_gx_button_set_pressed_style(&button, &pressed_style);
     lh_gx_entity_attach(lh_gx_web_get_screen_mut(&web), &back);
     lh_gx_entity_attach(&back, lh_gx_button_get_box_mut(&button));
+    static lh_gx_style_t field_style;
+
+    lh_gx_style_init(&field_style, 0xFFFFFFFFU, 0xFF3D7BD9U, 1, 0, 0xFF8A8A96U, face);
+    static lh_gx_style_t tick_style;
+
+    lh_gx_style_init(&tick_style, 0xFF3D7BD9U, 0U, 0, 0, 0U, lh_null);
+    static lh_gx_checkbox_t light;
+
+    lh_gx_checkbox_init(&light, &field_style, &tick_style, 90, 140, 140, 20, "Light", lh_bool_false,
+                        on_light, lh_null);
+    lh_gx_entity_attach(&back, lh_gx_checkbox_get_row_mut(&light));
     const lh_net_port_t port = 8080U;
 
     printf("open http://127.0.0.1:%u/\n", (unsigned)port);

@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The button keeps its gesture in an `lh_gx_tap_t`:
+  `lh_gx_button_fields` takes a `tap_type` in place of the `pressed` flag,
+  `lh_gx_button_set_pressed` is gone (`lh_gx_button_get_tap` / `_get_tap_mut`
+  instead; `lh_gx_button_is_pressed` reads the tap), and
+  `lh_gx_button_press` / `lh_gx_button_release` are only the reactions — the
+  look and the click — with the state left to the tap.
 - The web host left gl. It is transport, not interface, and it no longer
   needs `LH_LIBRARY_OPTION_GL` — only `LH_LIBRARY_OPTION_OS`; it is now built
   and tested wherever there is an operating system (MSVC and Linux included).
@@ -161,6 +167,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_gx_checkbox_t` (`lh/gx/checkbox.h`, `lh/gx/checkbox/fields.h`,
+  `lh/gx/checkbox/change/fn.h`): the second control made of entities — a row
+  of `lh_gx_checkbox_class` (no paint, its own `input`) owning a square, a tick
+  inside it shown only while checked, and a caption. A tap anywhere on the row
+  toggles it and calls `lh_gx_checkbox_change_fn`; `lh_gx_checkbox_check` sets
+  the state from the program without the reaction. Only the square is redrawn
+  when the tick changes.
+- `lh_gx_tap_t` (`lh/gx/tap.h`, `lh/gx/tap/fields.h`, `lh/gx/tap/step.h`): the
+  tap gesture shared by the controls. `lh_gx_tap_take` answers what an event
+  did — down, up (no tap), tap, or nothing — and the control reacts.
 - `lh_gx_web_t` (`lh/gx/web.h`, `lh/gx/web/fields.h`): a gx screen served to
   browsers. The renderer draws through the web backend, so a frame is the
   JSON of the canvas calls for what changed; the application answers `GET /`

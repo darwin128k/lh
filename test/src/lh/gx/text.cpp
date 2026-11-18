@@ -11,38 +11,18 @@
 
 #include <gtest/gtest.h>
 
-#include <lh/core/font/range/initializer.h>
-#include <lh/core/pixel/mask/initializer.h>
 #include <lh/core/str/utf8.h>
 #include <lh/gx/backend/sw.h>
 #include <lh/gx/box.h>
 #include <lh/gx/font/baked.h>
 #include <lh/gx/render.h>
 #include <lh/gx/text.h>
+#include <lh/test/gx/tiny_font.h>
 
 namespace
 {
 
-const lh_byte_t a_bits[4] = {255U, 255U, 255U, 255U};
-const lh_byte_t zh_bits[1] = {255U};
-const lh_pixel_mask_t glyphs[2] = {lh_pixel_mask_initializer(a_bits, 2, 2, 2, 8),
-                                   lh_pixel_mask_initializer(zh_bits, 1, 1, 1, 8)};
-const lh_byte_t advances[2] = {3U, 2U};
-const lh_s32_t tops[2] = {-2, -1};
-const lh_font_range_t ranges[2] = {lh_font_range_initializer(0x41U, 1U, 0U),
-                                   lh_font_range_initializer(0x416U, 1U, 1U)};
-
-struct Tiny
-{
-    lh_font_t table;
-    lh_gx_font_t font;
-
-    Tiny()
-    {
-        lh_font_init(&table, glyphs, advances, tops, ranges, 3, 2, 2, 2U);
-        lh_gx_font_baked_init(&font, &table);
-    }
-};
+using Tiny = lh_test::gx_tiny_font;
 
 TEST(str_utf8, the_decoder_reads_one_code_point_at_a_time)
 {
@@ -61,10 +41,10 @@ TEST(str_utf8, the_decoder_reads_one_code_point_at_a_time)
 TEST(gx_font, a_baked_table_answers_through_the_contract)
 {
     Tiny tiny;
-    lh_gx_glyph_t glyph;
 
     EXPECT_EQ(lh_gx_font_get_ascent(&tiny.font), 2);
     EXPECT_EQ(lh_gx_font_get_line_height(&tiny.font), 3);
+    lh_gx_glyph_t glyph;
     ASSERT_EQ(lh_gx_font_get_glyph(&tiny.font, 0x416U, &glyph), lh_bool_true);
     EXPECT_EQ(lh_gx_glyph_get_advance(&glyph), 2);
     EXPECT_EQ(lh_gx_glyph_get_top(&glyph), -1);
@@ -88,30 +68,30 @@ TEST(gx_text, the_glyphs_land_on_the_baseline_and_the_pen_moves)
 {
     Tiny tiny;
     lh_u32_t words[12 * 4] = {};
-    lh_memory_bounds_t bits;
-    lh_gx_pixmap_t pixmap;
-    lh_gx_backend_sw_t sw;
-    lh_gx_canvas_t canvas;
-    lh_gx_render_t render;
-    lh_gx_style_t back_style;
-    lh_gx_style_t ink;
-    lh_gx_entity_t back;
-    lh_gx_entity_t line;
-    lh_gx_damage_t drawn;
     static const lh_char_t text[] = "A\xD0\x96?A";
 
+    lh_memory_bounds_t bits;
     lh_memory_bounds_init(&bits, words, sizeof(words));
+    lh_gx_pixmap_t pixmap;
     lh_gx_pixmap_init(&pixmap, &bits, 12U, 4U, lh_gx_pixmap_format_argb8888);
+    lh_gx_backend_sw_t sw;
     lh_gx_backend_sw_init(&sw, &pixmap, 0, 0);
+    lh_gx_canvas_t canvas;
     lh_gx_backend_sw_canvas_init(&canvas);
+    lh_gx_render_t render;
     lh_gx_render_init(&render, &canvas, &sw, 12, 4);
+    lh_gx_style_t back_style;
     lh_gx_style_init(&back_style, 0xFF000000U, 0U, 0, 0, 0U, nullptr);
+    lh_gx_style_t ink;
     lh_gx_style_init(&ink, 0U, 0U, 0, 0, 0xFFFFFFFFU, &tiny.font);
+    lh_gx_entity_t back;
     lh_gx_entity_init(&back, &lh_gx_box_class, &back_style, 0, 0, 12, 4);
+    lh_gx_entity_t line;
     lh_gx_entity_init(&line, &lh_gx_text_class, &ink, 1, 0, 10, 3);
     lh_gx_entity_set_content(&line, const_cast<lh_char_t *>(text));
     lh_gx_entity_attach(lh_gx_render_get_screen_mut(&render), &back);
     lh_gx_entity_attach(&back, &line);
+    lh_gx_damage_t drawn;
     lh_gx_render_draw(&render, &drawn);
 
     const auto at = [&](int x, int y) { return words[y * 12 + x]; };
