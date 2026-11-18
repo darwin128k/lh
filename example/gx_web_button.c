@@ -4,14 +4,16 @@
  * that lights the background and two radios that colour the button. The tree
  * is a background, a button (a box and its caption), a checkbox (a row, a
  * square, a tick and a caption) and two radios (each a checkbox of the radio
- * class, round by its style, of one group), drawn
+ * class, round by its style, of one group) and a slider that sizes the
+ * button (a row, a rail, a fill and a knob), drawn
  * by the gx renderer through the web backend; the browser only plays the
  * frames and sends the pointer back (lh/gx/web.h).
  *
  * Run it, open http://127.0.0.1:8080/ and press the button: it darkens while
  * it is held, and a release over it clicks it. Tap the checkbox, or its
  * caption: the background turns light, and dark again. Choose "Green": the
- * button turns green, and "Blue" is unmarked. Open a second tab: it
+ * button turns green, and "Blue" is unmarked. Drag the slider: the button
+ * grows and shrinks around its centre as the knob follows the pointer. Open a second tab: it
  * gets the whole screen, and both follow every change. The host runs on this thread
  * and does not return; stop the program with Ctrl+C.
  */
@@ -26,6 +28,7 @@
 #include <lh/gx/button.h>
 #include <lh/gx/checkbox.h>
 #include <lh/gx/radio.h>
+#include <lh/gx/slider.h>
 #include <lh/gl/font.h>
 #include <lh/gx/font/baked.h>
 #include <lh/gx/style.h>
@@ -111,6 +114,19 @@ on_colour(lh_gx_radio_group_t *group, lh_gx_radio_t *radio, lh_ptr context)
     lh_gx_entity_invalidate(lh_gx_button_get_box_mut(&button));
 }
 
+/* The slider's reaction: the button @p value wide, centred where it was. */
+static lh_void
+on_width(lh_gx_slider_t *slider, lh_s32_t value, lh_ptr context)
+{
+    lh_gx_rect_t place;
+
+    (void)slider;
+    (void)context;
+    lh_gx_rect_init(&place, 160 - value / 2, 76, value, 48);
+    lh_gx_entity_move(lh_gx_button_get_box_mut(&button), place);
+    lh_gx_button_center_caption(&button);
+}
+
 int
 main(void)
 {
@@ -178,6 +194,17 @@ main(void)
     lh_gx_entity_attach(&back, lh_gx_radio_get_row_mut(&blue));
     lh_gx_entity_attach(&back, lh_gx_radio_get_row_mut(&green));
     lh_gx_radio_group_select(&colour, &blue);
+    static lh_gx_style_t rail_style;
+
+    lh_gx_style_init(&rail_style, 0xFF5A5A66U, 0U, 0, 2, 0U, lh_null);
+    static lh_gx_style_t knob_style;
+
+    lh_gx_style_init(&knob_style, 0xFFFFFFFFU, 0xFF3D7BD9U, 2, 10, 0U, lh_null);
+    static lh_gx_slider_t width;
+
+    lh_gx_slider_init(&width, &rail_style, &tick_style, &knob_style, 60, 172, 200, 20, 80, 220, 140,
+                      on_width, lh_null);
+    lh_gx_entity_attach(&back, lh_gx_slider_get_row_mut(&width));
     const lh_net_port_t port = 8080U;
 
     printf("open http://127.0.0.1:%u/\n", (unsigned)port);

@@ -172,6 +172,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_gx_slider_t` (`lh/gx/slider.h`, `lh/gx/slider/fields.h`,
+  `lh/gx/slider/change/fn.h`): a whole value in `[min, max]` picked by
+  dragging a knob — a row of `lh_gx_slider_class` (no paint, its own `input`)
+  owning a rail, a fill up to the knob and the knob. A press puts the knob
+  under the pointer, a move follows it, a cancel puts back the value the drag
+  began from; every change by the user calls `lh_gx_slider_change_fn`,
+  `lh_gx_slider_slide` sets the value from the program without it. The knob
+  and the fill move with `lh_gx_entity_move`, so only where they were and
+  where they are is redrawn.
+- `lh_gx_drag_t` (`lh/gx/drag.h`, `lh/gx/drag/fields.h`, `lh/gx/drag/step.h`):
+  the drag gesture — begin, move, end anywhere, cancel — and where the pointer
+  is; the slider's, and any control's that follows the pointer.
 - `lh_gx_radio_t` (`lh/gx/radio.h`, `lh/gx/radio/fields.h`) and
   `lh_gx_radio_group_t` (`lh/gx/radio/group.h`, `lh/gx/radio/group/fields.h`,
   `lh/gx/radio/group/change/fn.h`): radios, one of a group chosen. A radio is
