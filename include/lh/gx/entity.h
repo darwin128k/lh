@@ -22,6 +22,18 @@
  * The application detaches an entity (::lh_gx_entity_detach) before its memory
  * goes.
  *
+ * **A change is reported, never remembered.** When something of an entity that
+ * shows changes — it moves (::lh_gx_entity_move), it is shown or hidden
+ * (::lh_gx_entity_set_shown), it is attached or detached, or the application
+ * changed its look and says so (::lh_gx_entity_invalidate) — the entity reports
+ * its rectangle on the screen to the root of its tree, and the root's class
+ * hears it (`report` of ::lh_gx_class_t): on a renderer's screen, that is the
+ * damage. Nothing in the entity is a "dirty" flag, and the entity does not know
+ * what a renderer is — only the class contract.
+ *
+ * The level-1 setters (`set_place`, `set_visible`, …) store and report nothing;
+ * they are the bricks the reporting forms are built from.
+ *
  * The class and the style are declared here and defined by their own bricks;
  * the entity only carries the pointers.
  */
@@ -213,7 +225,79 @@ lh_gx_entity_t *
 lh_gx_entity_get_next_sibling(const lh_gx_entity_t *self);
 
 /**
- * @brief Make @p owner the owner of @p child, in front of its other children.
+ * @brief The entity at the top of @p self's tree: @p self itself when it has no
+ *        owner.
+ *
+ * @param self The entity; must not be null.
+ */
+lh_gx_entity_t *
+lh_gx_entity_get_root(const lh_gx_entity_t *self);
+
+/**
+ * @brief True when @p self and every owner above it are visible — when it can be
+ *        seen at all.
+ *
+ * @param self The entity; must not be null.
+ */
+lh_bool_t
+lh_gx_entity_is_shown(const lh_gx_entity_t *self);
+
+/**
+ * @brief The rectangle of @p self on the screen: its place moved by the places of
+ *        every owner above it.
+ *
+ * @param self The entity; must not be null.
+ * @param out  Receives the rectangle; must not be null.
+ */
+lh_void
+lh_gx_entity_get_screen_rect(const lh_gx_entity_t *self, lh_gx_rect_t *out);
+
+/**
+ * @brief Tell the root of @p self's tree that @p area of the screen changed.
+ *
+ * The root's class hears it through its `report` slot; a root whose class has
+ * none — a tree that is not on a screen — hears nothing.
+ *
+ * @param self The entity; must not be null.
+ * @param area The changed rectangle, screen coordinates.
+ */
+lh_void
+lh_gx_entity_report(const lh_gx_entity_t *self, const lh_gx_rect_t *area);
+
+/**
+ * @brief Report that @p self looks different now, when it can be seen.
+ *
+ * What the application calls after it changed what the class draws — the
+ * colour in the content, the text — so the rectangle is drawn again. Nothing is
+ * reported for an entity that is hidden, or under a hidden owner.
+ *
+ * @param self The entity; must not be null.
+ */
+lh_void
+lh_gx_entity_invalidate(const lh_gx_entity_t *self);
+
+/**
+ * @brief Move @p self to @p place, reporting where it was and where it is now.
+ *
+ * @param self  The entity; must not be null.
+ * @param place The new place, relative to the owner.
+ */
+lh_void
+lh_gx_entity_move(lh_gx_entity_t *self, lh_gx_rect_t place);
+
+/**
+ * @brief Show or hide @p self, reporting its rectangle when that changes what is
+ *        seen.
+ *
+ * @param self    The entity; must not be null.
+ * @param visible True to show it.
+ */
+lh_void
+lh_gx_entity_set_shown(lh_gx_entity_t *self, lh_bool_t visible);
+
+/**
+ * @brief Make @p owner the owner of @p child, in front of its other children,
+ *        and report the child's rectangle.
  *
  * The fast form (::lh_gx_node_attach): it does not check. See
  * ::lh_gx_entity_attach_v.
@@ -226,7 +310,7 @@ lh_gx_entity_attach(lh_gx_entity_t *owner, lh_gx_entity_t *child);
 
 /**
  * @brief ::lh_gx_entity_attach, after checking that it keeps the tree a tree
- *        (::lh_gx_node_attach_v).
+ *        (::lh_gx_node_attach_v), and report the child's rectangle.
  *
  * @param owner The new owner; must not be null.
  * @param child The entity to attach; must not be null.
@@ -235,7 +319,8 @@ lh_void
 lh_gx_entity_attach_v(lh_gx_entity_t *owner, lh_gx_entity_t *child);
 
 /**
- * @brief Take @p self out of its owner's children, with its own subtree.
+ * @brief Report the rectangle of @p self, then take it out of its owner's
+ *        children, with its own subtree.
  *
  * Call it before the memory of @p self goes. A detached entity is left as it is.
  *

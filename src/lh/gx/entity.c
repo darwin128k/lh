@@ -6,6 +6,7 @@
 #include <lh/gx/entity.h>
 
 #include <lh/core/util/return.h>
+#include <lh/gx/class.h>
 
 const lh_gx_node_t *
 lh_gx_entity_get_node(const lh_gx_entity_t *self)
@@ -132,20 +133,97 @@ lh_gx_entity_get_next_sibling(const lh_gx_entity_t *self)
     return lh_gx_entity_from_node(lh_gx_node_get_next_sibling(lh_gx_entity_get_node(self)));
 }
 
+lh_gx_entity_t *
+lh_gx_entity_get_root(const lh_gx_entity_t *self)
+{
+    return lh_gx_entity_from_node(lh_gx_node_get_root(lh_gx_entity_get_node(self)));
+}
+
+lh_bool_t
+lh_gx_entity_is_shown(const lh_gx_entity_t *self)
+{
+    for (const lh_gx_entity_t *up = self; lh_null_ne(up); up = lh_gx_entity_get_owner(up))
+    {
+        lh_return_if(!lh_gx_entity_is_visible(up), lh_bool_false);
+    }
+    return lh_bool_true;
+}
+
+lh_void
+lh_gx_entity_get_screen_rect(const lh_gx_entity_t *self, lh_gx_rect_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_ptr_deref(out) = lh_ptr_deref(lh_gx_entity_get_place(self));
+    for (const lh_gx_entity_t *up = lh_gx_entity_get_owner(self); lh_null_ne(up);
+         up = lh_gx_entity_get_owner(up))
+    {
+        const lh_gx_point_t *origin = lh_gx_rect_get_origin(lh_gx_entity_get_place(up));
+        const lh_gx_rect_t inner = lh_ptr_deref(out);
+
+        lh_gx_rect_offset(lh_addr_of(inner), lh_gx_point_get_x(origin), lh_gx_point_get_y(origin),
+                          out);
+    }
+}
+
+lh_void
+lh_gx_entity_report(const lh_gx_entity_t *self, const lh_gx_rect_t *area)
+{
+    lh_gx_entity_t *root = lh_gx_entity_get_root(self);
+    const lh_gx_class_t *klass = lh_gx_entity_get_class(root);
+
+    lh_return_if(lh_null_eq(klass));
+    lh_gx_class_report_fn *report = lh_gx_class_get_report(klass);
+
+    lh_return_if(lh_null_eq(lh_ptr_rcast(lh_void, report)));
+    report(root, area);
+}
+
+lh_void
+lh_gx_entity_invalidate(const lh_gx_entity_t *self)
+{
+    lh_return_if(!lh_gx_entity_is_shown(self));
+    lh_gx_rect_t area;
+
+    lh_gx_entity_get_screen_rect(self, lh_addr_of(area));
+    lh_gx_entity_report(self, lh_addr_of(area));
+}
+
 lh_void
 lh_gx_entity_attach(lh_gx_entity_t *owner, lh_gx_entity_t *child)
 {
     lh_gx_node_attach(lh_gx_entity_get_node_mut(owner), lh_gx_entity_get_node_mut(child));
+    lh_gx_entity_invalidate(child);
 }
 
 lh_void
 lh_gx_entity_attach_v(lh_gx_entity_t *owner, lh_gx_entity_t *child)
 {
     lh_gx_node_attach_v(lh_gx_entity_get_node_mut(owner), lh_gx_entity_get_node_mut(child));
+    lh_gx_entity_invalidate(child);
 }
 
 lh_void
 lh_gx_entity_detach(lh_gx_entity_t *self)
 {
+    lh_gx_entity_invalidate(self);
     lh_gx_node_detach(lh_gx_entity_get_node_mut(self));
+}
+
+lh_void
+lh_gx_entity_move(lh_gx_entity_t *self, lh_gx_rect_t place)
+{
+    lh_gx_entity_invalidate(self);
+    lh_gx_entity_set_place(self, place);
+    lh_gx_entity_invalidate(self);
+}
+
+lh_void
+lh_gx_entity_set_shown(lh_gx_entity_t *self, lh_bool_t visible)
+{
+    lh_return_if(lh_gx_entity_is_visible(self) == visible);
+    /* Hidden, the entity reports nothing: so the area is reported while it is still
+       shown, and after it becomes shown. */
+    lh_gx_entity_invalidate(self);
+    lh_gx_entity_set_visible(self, visible);
+    lh_gx_entity_invalidate(self);
 }

@@ -1,5 +1,5 @@
 /**
- * @file backend.h
+ * @file canvas.h
  * @brief What drawing needs from below: ::lh_gx_canvas_t.
  *
  * The canvas is a contract, not a thing: a table of the shapes a backend can

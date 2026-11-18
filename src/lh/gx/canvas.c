@@ -1,5 +1,5 @@
 /**
- * @file backend.c
+ * @file canvas.c
  * @brief Implementation of `lh/gx/canvas.h`.
  */
 

@@ -133,6 +133,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_gx_render_t` (`lh/gx/render.h`, `lh/gx/render/fields.h`): the part of gx
+  that knows what to draw. It embeds the screen — the root the application
+  attaches to — and keeps the damage, the only memory of the drawing. A frame
+  (`lh_gx_render_draw`) takes the damage and, for each rectangle, walks the tree
+  in drawing order: hidden entities and entities that miss the rectangle are
+  skipped with their subtree, every entity draws inside its owner, and the walk
+  starts from the front-most entity that covers the rectangle opaquely, so
+  nothing under it is drawn. The rectangles drawn come back for the present.
+  `lh_gx_render_paint_area` draws one area — a strip, with the backend's origin
+  moved to it.
+
+- `lh_gx_class_t` (`lh/gx/class.h`, `lh/gx/class/fields.h`,
+  `lh/gx/class/initializer.h`, `lh/gx/class/{paint,covers,report}/fn.h`): what
+  an entity is and how it behaves, as a constant table of slots — `paint`,
+  `covers` (opaque over an area), `report` (the root hears a change).
+  `lh_gx_class_initializer` makes one a constant in flash.
+
+- `lh_gx_paint_t` (`lh/gx/paint.h`, `lh/gx/paint/fields.h`): what a class draws
+  with — the canvas, the clip and the entity's rectangle on the screen. A class
+  draws through it and never sees the clip. `lh_gx_paint_fill_mask` falls back
+  to one-pixel rectangles on a canvas without `fill_mask`.
+
+- An entity reports its changes: `lh_gx_entity_invalidate`, `lh_gx_entity_move`,
+  `lh_gx_entity_set_shown`, and `lh_gx_entity_attach` / `_detach` report the
+  entity's rectangle on the screen up to the root, whose class hears it. Also
+  `lh_gx_entity_get_root`, `lh_gx_entity_is_shown`,
+  `lh_gx_entity_get_screen_rect`, `lh_gx_entity_report`.
+
 - `lh/core/pixel/`: the pixel arithmetic every renderer of LH shares, on plain
   words. `channel.h` — the rounding divide by 255, two channels mixed in one
   word, weighing, widening; `argb.h` — `0xAARRGGBB` laid over an opaque or a

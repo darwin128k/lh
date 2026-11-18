@@ -674,6 +674,9 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gx/node.c
             ${LH_LIB_SRC_PATH}/gx/entity.c
             ${LH_LIB_SRC_PATH}/gx/canvas.c
+            ${LH_LIB_SRC_PATH}/gx/class.c
+            ${LH_LIB_SRC_PATH}/gx/paint.c
+            ${LH_LIB_SRC_PATH}/gx/render.c
             ${LH_LIB_SRC_PATH}/gx/backend/sw.c
     )
 endif ()
