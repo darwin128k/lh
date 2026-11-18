@@ -37,6 +37,8 @@ struct library
 const library libraries[] = {
     {"lh", lh_scene_has, lh_scene_setup, lh_scene_frame, lh_scene_frame_partial, lh_scene_pixels,
      lh_scene_teardown},
+    {"gx", gx_scene_has, gx_scene_setup, gx_scene_frame, gx_scene_frame_partial, gx_scene_pixels,
+     gx_scene_teardown},
     {"lvgl", lvgl_scene_has, lvgl_scene_setup, lvgl_scene_frame, lvgl_scene_frame_partial, lvgl_scene_pixels,
      lvgl_scene_teardown},
 };

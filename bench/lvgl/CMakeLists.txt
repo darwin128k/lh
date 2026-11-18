@@ -28,6 +28,9 @@ set(LH_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(LH_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(LH_BUILD_BENCH OFF CACHE BOOL "" FORCE)
 set(LH_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+# The scenes are drawn by lh's interface engines: gl and gx, with the built-in font.
+set(LH_LIBRARY_OPTION_GL ON CACHE BOOL "" FORCE)
+set(LH_LIBRARY_OPTION_GL_FONT_ROBOTO ON CACHE BOOL "" FORCE)
 add_subdirectory(${LH_ROOT} lh)
 
 # LVGL from its sources, with the same flags lh is given.
@@ -52,7 +55,7 @@ set(BENCHMARK_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
 set(BENCHMARK_ENABLE_WERROR OFF CACHE BOOL "" FORCE)
 add_subdirectory("${LH_ROOT}/bench/lib/benchmark" benchmark)
 
-add_executable(bench_lh_vs_lvgl main.cpp scene_lh.c scene_lvgl.c)
+add_executable(bench_lh_vs_lvgl main.cpp scene_lh.c scene_gx.c scene_lvgl.c)
 target_link_libraries(bench_lh_vs_lvgl PRIVATE lh lvgl_bench benchmark::benchmark)
 if (LH_VS_LVGL_IPO)
     set_property(TARGET bench_lh_vs_lvgl PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
