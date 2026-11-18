@@ -237,19 +237,19 @@ struct my_screen
 static struct my_screen s_screen;
 
 static lh_void
-on_ok(lh_gx_entity_t *entity, lh_ptr context)
+on_ok(lh_gx_button_t *button, lh_ptr context)
 {
-    (void)entity;
+    (void)button;
     *((lh_bool_t *)context) = lh_bool_true;
 }
 
 lh_void
 my_ui_build(struct my_screen *self)
 {
-    lh_gx_entity_init(&self->root, &lh_gx_class_box, &s_theme[my_style_screen],
+    lh_gx_entity_init(&self->root, &lh_gx_box_class, &s_theme[my_style_screen],
                       0, 0, 480, 320);
 
-    lh_gx_entity_init(&self->title, &lh_gx_class_text, &s_theme[my_style_title],
+    lh_gx_entity_init(&self->title, &lh_gx_text_class, &s_theme[my_style_title],
                       24, 24, 400, 28);
     lh_gx_entity_set_content(&self->title, "Hello, lh");
     lh_gx_entity_attach(&self->root, &self->title);
@@ -257,7 +257,7 @@ my_ui_build(struct my_screen *self)
     /* The button is a composition: a box that takes input, owning a caption. */
     lh_gx_button_init(&self->ok, &s_theme[my_style_button], 24, 72, 120, 36, "OK",
                       on_ok, &self->ok_pressed);
-    lh_gx_entity_attach(&self->root, lh_gx_button_get_entity_mut(&self->ok));
+    lh_gx_entity_attach(&self->root, lh_gx_button_get_box_mut(&self->ok));
 }
 ```
 
@@ -647,7 +647,7 @@ instead of gl entities.
 | 3 | The canvas contract and the `sw` backend, with gl's pixel kernels moved in | **done** for `fill_rect` and `fill_mask` (2026-11-18); the kernels are shared in `lh/core/pixel/`, gl calls them; gl's SIMD alpha spans move when a slot needs them |
 | 4 | The renderer: the damage, the walk, the clip, the cover check, the strips | **done** (2026-11-18), with the class (`paint`, `covers`, `report`) and the paint; the first check passes |
 | 5 | The first classes: `box`, then the font contract and `text` | **done** (2026-11-18): the style, `box`, the font contract over the core's baked font, `text` |
-| 6 | The controls as compositions; input and `hit`; the `web` backend | me |
+| 6 | The controls as compositions; input and `hit`; the `web` backend | **started** (2026-11-18): the walk, the `hit` and `input` slots, the event, the pointer, the button — every name the program of section 4 uses exists; the `web` backend writes the canvas calls as JSON and its player replays them in the browser (37 lines of script); next: the frames served by a host, the other controls |
 | 7 | The window, the MCU path, the examples, the benches against LVGL | me |
 | 8 | The swap: delete gl, rename gx to gl, rebuild every backend | together |
 

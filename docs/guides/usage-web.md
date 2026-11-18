@@ -12,7 +12,7 @@ handlers are the same.
 ## 1. How it works
 
 ```
- application                    lh/gl/web/host.c                   browser
+ application                    lh/os/web/host.c                   browser
  ┌────────────┐  draw   ┌──────────────────────────┐  HTTP / WS  ┌─────────────┐
  │lh_gl_view_t│────────▶│ lh_gl_canvas_backend_web │────────────▶│ Canvas2D    │
  │ + hooks    │◀────────│ → JSON ops               │◀────────────│ player      │
@@ -23,8 +23,8 @@ handlers are the same.
 - `lh_gl_canvas_backend_web` (`lh/gl/canvas/web.h`) records a frame's
   primitives as JSON. Glyph covers are interned: each glyph crosses the wire
   once per client.
-- `lh_gl_web_host_run` (`lh/gl/web/host.h`) listens on `127.0.0.1:<port>` and
-  serves an application on the calling thread; `lh_gl_web_host_try_create` +
+- `lh_os_web_host_run` (`lh/os/web/host.h`) listens on `127.0.0.1:<port>` and
+  serves an application on the calling thread; `lh_os_web_host_try_create` +
   `_try_start` run the same host on a thread of its own, and `_try_stop` /
   `_destroy` end it. The host waits for all its sockets in one poll (an
   `lh_rail_loop_t`) and serves many connections at once: a client sending its
@@ -38,7 +38,7 @@ handlers are the same.
     up), text and the tab size come back: the input as one
     `lh_os_input_event_t` each, the size through the `resize` hook.
 - A REST surface is a table of routes the caller writes
-  (`lh_gl_web_route_t`, `lh/gl/web/app/route.h`) and attaches to its
+  (`lh_os_web_app_route_t`, `lh/os/web/app/route.h`) and attaches to its
   application. Nothing is built in: an application with no routes serves
   nothing, and a desktop program has no use for a REST surface.
 - No Python, Node or external web server — everything runs in the process.
@@ -98,7 +98,7 @@ why they must survive `window == lh_null`**:
 
 ```c
 #if MY_WEB_HOST
-#include <lh/gl/web/host.h>
+#include <lh/os/web/host.h>
 
 static lh_void web_tick  (lh_ptr c)               { on_tick(lh_null, c); }
 static lh_void web_resize(int w, int h, lh_ptr c) { on_resize(lh_null, w, h, c); }
@@ -150,7 +150,7 @@ main(int argc, char **argv)
         static char json[4u * 1024u * 1024u];
         static char page[LH_GL_WEB_PLAYER_PAGE_CAP];
         lh_net_port_t port = (lh_net_port_t)8765;
-        lh_gl_web_host_hooks_t hooks;
+        lh_os_web_host_hooks_t hooks;
         lh_gl_web_player_t player;
 
         (void)app; (void)window;
@@ -174,7 +174,7 @@ main(int argc, char **argv)
         }
 
         /* Does not return on success. */
-        if (!lh_gl_web_host_run(lh_gl_web_player_get_app(lh_addr_of(player)), port))
+        if (!lh_os_web_host_run(lh_gl_web_player_get_app(lh_addr_of(player)), port))
         {
             lh_logger_error(lh_runtime_logger_get_mut(), "listen %u failed", (unsigned)port);
             return 1;
@@ -244,7 +244,7 @@ if (lh_gl_canvas_web_open_mem(&web, buf, sizeof(buf), 980u, 620u))
 
 ## 7. Streaming request bodies
 
-For an upload, register an `lh_gl_web_stream_route_t` with an ordinary route
+For an upload, register an `lh_os_web_app_stream_route_t` with an ordinary route
 as its method/path matcher. Its staging callback reads from the borrowed
 `lh_io_reader_t`; it should place changes in temporary application-owned state.
 The callback is called again each time more of the body has arrived: it reads
@@ -257,11 +257,11 @@ may send the error response. Neither callback may retain request or reader
 pointers after it returns.
 
 ```c
-lh_gl_web_stream_route_init(&upload, &matcher, stage_upload, commit_upload,
+lh_os_web_app_stream_route_init(&upload, &matcher, stage_upload, commit_upload,
                             abort_upload, decoded_limit, metadata_limit, timeout_ms);
-lh_gl_web_stream_route_set_wire_limit(&upload, encoded_limit);
-lh_gl_web_app_set_stream_routes(&app, &upload);
-lh_gl_web_app_set_nstream_routes(&app, 1U);
+lh_os_web_app_stream_route_set_wire_limit(&upload, encoded_limit);
+lh_os_web_app_set_stream_routes(&app, &upload);
+lh_os_web_app_set_nstream_routes(&app, 1U);
 ```
 
 `decoded_limit` bounds bytes after decompression. `encoded_limit` bounds gzip

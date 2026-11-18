@@ -99,6 +99,46 @@ lh_web_json_writer_put_char(lh_web_json_writer_t *self, lh_char_t ch);
 lh_void
 lh_web_json_writer_put_view(lh_web_json_writer_t *self, lh_str_view_t text);
 
+/**
+ * @brief Append @p value as a JSON number: its decimal digits, a `-` before a
+ *        negative one.
+ *
+ * For a writer that writes values as it goes instead of building a tree (a
+ * stream of drawing commands): the number needs no node.
+ *
+ * @param self  The writer; checked by ::lh_assert_runtime_ref.
+ * @param value The number.
+ */
+lh_void
+lh_web_json_writer_put_sint(lh_web_json_writer_t *self, lh_sint_t value);
+
+/**
+ * @brief Append @p value as a JSON number: its decimal digits.
+ *
+ * The unsigned twin of ::lh_web_json_writer_put_sint, for values that use the
+ * top bit (a 32-bit colour).
+ *
+ * @param self  The writer; checked by ::lh_assert_runtime_ref.
+ * @param value The number.
+ */
+lh_void
+lh_web_json_writer_put_uint(lh_web_json_writer_t *self, lh_uint_t value);
+
+/**
+ * @brief Append the @p size bytes at @p data as hex digits: two lowercase
+ *        characters a byte, high nibble first, nothing between them.
+ *
+ * Only the digits: the caller writes the quotes around them when the digits
+ * are a string. The bytes are formatted in chunks through a small buffer on the
+ * stack, so any @p size is fine; `0` appends nothing.
+ *
+ * @param self The writer; checked by ::lh_assert_runtime_ref.
+ * @param data The bytes; may be ::lh_null when @p size is `0`.
+ * @param size How many bytes.
+ */
+lh_void
+lh_web_json_writer_put_hex(lh_web_json_writer_t *self, const lh_ptr data, lh_usize_t size);
+
 /** Pretty text: a line break and the indent of the current depth. Compact: nothing. */
 lh_void
 lh_web_json_writer_put_newline(lh_web_json_writer_t *self);

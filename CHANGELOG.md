@@ -17,6 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The web host no longer knows glyphs. `lh_gl_web_app_frame_fn` and
+  `lh_gl_web_app_frame` take `lh_bool_t restart` — a client that holds nothing
+  of the earlier frames gets this one — instead of the host's
+  `lh_gl_canvas_web_glyphs_t *`. The glyph set moved from the host's stream
+  (`lh_gl_web_host_stream_get_glyphs` / `_get_glyphs_mut` / `_set_glyphs`
+  removed, `lh_gl_web_host_stream_fields` loses `glyphs_type`) into the gl
+  player (`lh_gl_web_player_get_glyphs_mut`, `lh_gl_web_player_fields` gains
+  `glyphs_type`), which empties it on a restart. The last tie between the host
+  and gl's drawing is cut, so the host can move to `lh/os/web/`.
 - **The application and its windows run on contracts.** LH says what it needs
   from below as two tables of calls, and a backend fills them: Win32, X11 and
   AppKit through the system backend, a board's panel and touch driver, a test's
@@ -133,8 +142,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_gx_backend_web_t` (`lh/gx/backend/web.h`, `lh/gx/backend/web/fields.h`):
+  the canvas as JSON for a browser. Each canvas call is written as one command
+  — `["fill_rect", clip, rect, color]`, `["fill_mask", clip, rect, color,
+  "coverage"]` — through an `lh_web_json_writer_t`, a frame being one array
+  (`lh_gx_backend_web_begin` / `_end`); the browser replays the commands
+  instead of repeating the renderer. A shape wholly outside its clip is not
+  written. The backend allocates nothing.
+- `lh_gx_backend_web_player_get_script` (`lh/gx/backend/web/player.h`): the
+  browser side of the web backend — a short script whose `lhGxPlay(ctx, frame)`
+  replays a frame on a 2D canvas, each command clipped to its clip, a mask
+  drawn through an `OffscreenCanvas` so the clip and the blending apply. It
+  knows only the canvas's calls; a command it does not know is skipped. The
+  transport is the host's.
+- `lh_web_json_writer_put_sint`, `lh_web_json_writer_put_uint`,
+  `lh_web_json_writer_put_hex`: a number or hex digits appended with no node,
+  for a writer that writes values as it goes (the gx web backend).
+- `lh_gx_button_t` (`lh/gx/button.h`, `lh/gx/button/fields.h`,
+  `lh/gx/button/click/fn.h`): the first control made of entities — a box of
+  `lh_gx_button_class` (the box's `paint` and `covers`, its own `input`) owning
+  a caption of `lh_gx_text_class`, centred (`lh_gx_button_center_caption`). A
+  press presses it and puts on `pressed_style`, if it has one; a release on it
+  is a click (`lh_gx_button_click_fn`); a release elsewhere or a cancel only
+  releases it. Only the button's rectangle is reported for a change of look.
+
+- Input in gx. The class gains two slots: `hit` (`lh/gx/class/hit/fn.h`, where
+  inside its rectangle an entity is; without it, the whole rectangle) and
+  `input` (`lh/gx/class/input/fn.h`, what makes an entity take input at all —
+  there is no "clickable" flag). `lh_gx_class_initializer` takes them between
+  `covers` and `report`. `lh_gx_event_t` (`lh/gx/event.h`,
+  `lh/gx/event/fields.h`, `lh/gx/event/kind.h`): a press, a move, a release or
+  a cancel at a point of the screen. `lh_gx_hit_is_on` and `lh_gx_hit_find`
+  (`lh/gx/hit.h`): the front-most entity that shows, takes input and is hit.
+  `lh_gx_pointer_t` (`lh/gx/pointer.h`, `lh/gx/pointer/fields.h`): a press
+  captures its target, and the rest of the gesture goes to it wherever it ends.
+  `lh_gx_entity_can_take_input`, `lh_gx_entity_take_input`.
+
+- `lh_gx_walk_t` (`lh/gx/walk.h`, `lh/gx/walk/fields.h`, `lh/gx/walk/step.h`):
+  the walk of a tree in drawing order with every entity's place on the screen,
+  without a stack — once, for the renderer's cover search, its drawing and the
+  hit search, which walked the tree each by hand.
+
+- `lh_gx_style_t` gains `ink`, the colour of a text (`lh_gx_style_get_ink`;
+  `lh_gx_style_init` and `lh_gx_style_initializer` take it before `font`). A
+  text is drawn in `ink`, no longer in `fill`, so one style serves a box and
+  its caption.
+
 - `lh_gx_text_class` (`lh/gx/text.h`): a line of text — the UTF-8 string the
-  entity's content points at, in its style's font and `fill`, from the
+  entity's content points at, in its style's font and `ink`, from the
   top-left of its place on the font's baseline. Each glyph row is widened to 8
   bits and laid through `fill_mask`. `lh_gx_text_get_width` measures a line.
 

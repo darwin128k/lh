@@ -84,7 +84,7 @@ directory comes **first**) and the system libraries of the OS layer
 | `LH_LIBRARY_OPTION_LTO` | **OFF** | FAT (default) | FAT |
 | `LH_POSITION_INDEPENDENT_CODE` | **OFF** | ON | ON |
 
-¹ The web host (`lh/gl/web/host.h`) does not need a window, but configurator
+¹ The web host (`lh/os/web/host.h`) does not need a window, but configurator
 builds both targets from one build tree, so the window is on there anyway.
 
 Everything turned off in the MCU column **must be wired by the host**: the

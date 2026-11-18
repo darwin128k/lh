@@ -7,6 +7,7 @@
 
 #include <lh/core/assert.h>
 #include <lh/core/util/return.h>
+
 lh_bool_t
 lh_font_runs_are_a_runs(const lh_font_range_t *ranges, lh_u32_t count)
 {

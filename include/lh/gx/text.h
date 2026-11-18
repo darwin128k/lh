@@ -4,7 +4,7 @@
  *
  * An entity of this class draws the UTF-8 string its content points at
  * (::lh_gx_entity_set_content), one line from the top-left corner of its place,
- * in its style's `fill`, with its style's font (::lh_gx_style_get_font). The
+ * in its style's `ink`, with its style's font (::lh_gx_style_get_font). The
  * baseline is the font's ascent below the top; each glyph's mask is laid at its
  * own top from the baseline, and the pen moves by its advance. A code the font
  * has no glyph for is skipped, and the line ends at the first line feed.
@@ -70,7 +70,7 @@ lh_gx_text_paint_glyph(const lh_gx_paint_t *paint, const lh_gx_glyph_t *glyph, l
 
 /**
  * @brief `paint` of the text class (::lh_gx_class_paint_fn): the entity's string in
- *        its style's font and `fill`.
+ *        its style's font and `ink`.
  *
  * Nothing when the entity has no style, the style no font, or the entity no
  * string.

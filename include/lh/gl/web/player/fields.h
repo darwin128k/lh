@@ -7,7 +7,8 @@
 #define LH_GL_WEB_PLAYER_FIELDS_H
 
 /**
- * @def lh_gl_web_player_fields(view_type, uint_type, str_type, size_type, hooks_type, app_type, route_type, controller_type)
+ * @def lh_gl_web_player_fields(view_type, uint_type, str_type, size_type, hooks_type, app_type,
+ * route_type, controller_type)
  * @brief The Canvas2D player: the view it shows, the buffers it draws into
  *        and the application it is.
  *
@@ -24,24 +25,29 @@
  * - `controller` — the player's own view controller;
  * - `owns_controller` — whether the controller is the player's;
  * - `app` — the application the host serves;
- * - `routes` — the player's routes.
+ * - `routes` — the player's routes;
+ * - `glyphs` — the glyph masks the websocket clients already hold, so a
+ *   frame sends each one once; emptied when the host asks for a frame that
+ *   stands on its own.
  */
-#define lh_gl_web_player_fields(view_type, uint_type, str_type, size_type, hooks_type, app_type,      \
-                                route_type, controller_type, web_type, hooks_value_type)                \
-    view_type view;                                                                                     \
-    uint_type width;                                                                                    \
-    uint_type height;                                                                                   \
-    str_type json;                                                                                      \
-    size_type json_cap;                                                                                 \
-    lh_byte_ptr page;                                                                                   \
-    size_type page_cap;                                                                                 \
-    size_type page_len;                                                                                 \
-    hooks_type hooks;                                                                                   \
-    hooks_value_type routed;                                                                            \
-    controller_type controller;                                                                         \
-    lh_bool_t owns_controller;                                                                           \
-    web_type web;                                                                                       \
-    app_type app;                                                                                       \
-    route_type routes[LH_GL_WEB_PLAYER_ROUTES]
+#define lh_gl_web_player_fields(view_type, uint_type, str_type, size_type, hooks_type, app_type,   \
+                                route_type, controller_type, web_type, hooks_value_type,           \
+                                glyphs_type)                                                       \
+    view_type view;                                                                                \
+    uint_type width;                                                                               \
+    uint_type height;                                                                              \
+    str_type json;                                                                                 \
+    size_type json_cap;                                                                            \
+    lh_byte_ptr page;                                                                              \
+    size_type page_cap;                                                                            \
+    size_type page_len;                                                                            \
+    hooks_type hooks;                                                                              \
+    hooks_value_type routed;                                                                       \
+    controller_type controller;                                                                    \
+    lh_bool_t owns_controller;                                                                     \
+    web_type web;                                                                                  \
+    app_type app;                                                                                  \
+    route_type routes[LH_GL_WEB_PLAYER_ROUTES];                                                    \
+    glyphs_type glyphs
 
 #endif /* LH_GL_WEB_PLAYER_FIELDS_H */

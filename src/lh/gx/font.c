@@ -6,6 +6,7 @@
 #include <lh/gx/font.h>
 
 #include <lh/core/assert/runtime.h>
+
 lh_gx_font_get_glyph_fn *
 lh_gx_font_get_get_glyph_fn(const lh_gx_font_t *self)
 {

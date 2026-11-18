@@ -87,6 +87,41 @@ lh_web_json_writer_put_view(lh_web_json_writer_t *self, lh_str_view_t text)
 }
 
 lh_void
+lh_web_json_writer_put_sint(lh_web_json_writer_t *self, lh_sint_t value)
+{
+    lh_char_t digits[24];
+
+    lh_str_append(lh_web_json_writer_get_out_mut(self), digits,
+                  lh_str_ptr_format_sint(value, digits, sizeof(digits)));
+}
+
+lh_void
+lh_web_json_writer_put_uint(lh_web_json_writer_t *self, lh_uint_t value)
+{
+    lh_char_t digits[24];
+
+    lh_str_append(lh_web_json_writer_get_out_mut(self), digits,
+                  lh_str_ptr_format_uint(value, digits, sizeof(digits)));
+}
+
+lh_void
+lh_web_json_writer_put_hex(lh_web_json_writer_t *self, const lh_ptr data, lh_usize_t size)
+{
+    lh_char_t digits[128];
+    const lh_usize_t step = lh_math_div(sizeof(digits), 2U);
+    const lh_byte_t *bytes = lh_ptr_rcast(const lh_byte_t, data);
+
+    for (lh_usize_t done = 0U; lh_math_lt(done, size); done = lh_math_add(done, step))
+    {
+        const lh_usize_t chunk = lh_math_min(lh_math_sub(size, done), step);
+
+        lh_str_append(lh_web_json_writer_get_out_mut(self), digits,
+                      lh_str_ptr_format_bytes_hex(bytes + done, chunk, lh_bool_false, digits,
+                                                  sizeof(digits)));
+    }
+}
+
+lh_void
 lh_web_json_writer_put_newline(lh_web_json_writer_t *self)
 {
     if (!lh_web_json_writer_is_pretty(self))

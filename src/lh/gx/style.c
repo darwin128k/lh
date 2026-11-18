@@ -4,6 +4,7 @@
  */
 
 #include <lh/gx/style.h>
+
 lh_gx_color_t
 lh_gx_style_get_fill(const lh_gx_style_t *self)
 {
@@ -60,6 +61,20 @@ lh_gx_style_set_radius(lh_gx_style_t *self, lh_gx_scalar_t radius)
     self->radius = radius;
 }
 
+lh_gx_color_t
+lh_gx_style_get_ink(const lh_gx_style_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->ink;
+}
+
+lh_void
+lh_gx_style_set_ink(lh_gx_style_t *self, lh_gx_color_t ink)
+{
+    lh_assert_runtime_ref(self);
+    self->ink = ink;
+}
+
 const lh_gx_font_t *
 lh_gx_style_get_font(const lh_gx_style_t *self)
 {
@@ -76,11 +91,13 @@ lh_gx_style_set_font(lh_gx_style_t *self, const lh_gx_font_t *font)
 
 lh_void
 lh_gx_style_init(lh_gx_style_t *self, lh_gx_color_t fill, lh_gx_color_t border,
-                 lh_gx_scalar_t border_width, lh_gx_scalar_t radius, const lh_gx_font_t *font)
+                 lh_gx_scalar_t border_width, lh_gx_scalar_t radius, lh_gx_color_t ink,
+                 const lh_gx_font_t *font)
 {
     lh_gx_style_set_fill(self, fill);
     lh_gx_style_set_border(self, border);
     lh_gx_style_set_border_width(self, border_width);
     lh_gx_style_set_radius(self, radius);
+    lh_gx_style_set_ink(self, ink);
     lh_gx_style_set_font(self, font);
 }

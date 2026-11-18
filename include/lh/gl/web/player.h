@@ -14,8 +14,10 @@
 #define LH_GL_WEB_PLAYER_H
 
 #include <lh/config.h>
-#include <lh/gl/web/app.h>
-#include <lh/gl/web/host/hooks.h>
+#include <lh/gl/canvas/web.h>
+#include <lh/gl/view.h>
+#include <lh/os/web/app.h>
+#include <lh/os/web/host/hooks.h>
 #include <lh/gl/web/player/fields.h>
 
 #if !LH_LIBRARY_OPTION_GL
@@ -45,8 +47,9 @@ struct lh_gl_web_player
 {
     /** Members: ::lh_gl_web_player_fields. */
     lh_gl_web_player_fields(lh_gl_view_t *, lh_uint_t, lh_str_ptr, lh_usize_t,
-                            const lh_gl_web_host_hooks_t *, lh_gl_web_app_t, lh_gl_web_route_t,
-                            lh_os_controller_t, lh_gl_canvas_web_t, lh_gl_web_host_hooks_t);
+                            const lh_os_web_host_hooks_t *, lh_os_web_app_t, lh_os_web_app_route_t,
+                            lh_os_controller_t, lh_gl_canvas_web_t, lh_os_web_host_hooks_t,
+                            lh_gl_canvas_web_glyphs_t);
 };
 /** @copybrief lh_gl_web_player */
 typedef struct lh_gl_web_player lh_gl_web_player_t;
@@ -58,7 +61,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @param self The player; checked by ::lh_assert_runtime_ref.
  */
-lh_gl_web_app_t *
+lh_os_web_app_t *
 lh_gl_web_player_get_app(lh_gl_web_player_t *self);
 
 /**
@@ -218,7 +221,7 @@ lh_gl_web_player_set_page_len(lh_gl_web_player_t *self, lh_usize_t page_len);
  *
  * @param self The player; checked by ::lh_assert_runtime_ref.
  */
-lh_gl_web_route_t *
+lh_os_web_app_route_t *
 lh_gl_web_player_get_routes(lh_gl_web_player_t *self);
 
 /**
@@ -226,7 +229,7 @@ lh_gl_web_player_get_routes(lh_gl_web_player_t *self);
  *
  * @param self The player; checked by ::lh_assert_runtime_ref.
  */
-const lh_gl_web_host_hooks_t *
+const lh_os_web_host_hooks_t *
 lh_gl_web_player_get_hooks(const lh_gl_web_player_t *self);
 
 /**
@@ -238,7 +241,7 @@ lh_gl_web_player_get_hooks(const lh_gl_web_player_t *self);
  * @param hooks  The new hooks; may be ::lh_null.
  */
 lh_void
-lh_gl_web_player_set_hooks(lh_gl_web_player_t *self, const lh_gl_web_host_hooks_t *hooks);
+lh_gl_web_player_set_hooks(lh_gl_web_player_t *self, const lh_os_web_host_hooks_t *hooks);
 
 /**
  * @brief The hooks the player works with (level 1).
@@ -246,7 +249,7 @@ lh_gl_web_player_set_hooks(lh_gl_web_player_t *self, const lh_gl_web_host_hooks_
  * @param self The player; checked by ::lh_assert_runtime_ref.
  * @return The member itself, never ::lh_null.
  */
-const lh_gl_web_host_hooks_t *
+const lh_os_web_host_hooks_t *
 lh_gl_web_player_get_routed(const lh_gl_web_player_t *self);
 
 /**
@@ -255,7 +258,7 @@ lh_gl_web_player_get_routed(const lh_gl_web_player_t *self);
  * @param self The player; checked by ::lh_assert_runtime_ref.
  * @return The member itself, never ::lh_null.
  */
-lh_gl_web_host_hooks_t *
+lh_os_web_host_hooks_t *
 lh_gl_web_player_get_routed_mut(lh_gl_web_player_t *self);
 
 /**
@@ -312,6 +315,16 @@ lh_gl_web_player_get_web(const lh_gl_web_player_t *self);
  */
 lh_gl_canvas_web_t *
 lh_gl_web_player_get_web_mut(lh_gl_web_player_t *self);
+
+/**
+ * @brief The glyph masks the websocket clients already hold, to change in place
+ *        (level 1).
+ *
+ * @param self The player; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_gl_canvas_web_glyphs_t *
+lh_gl_web_player_get_glyphs_mut(lh_gl_web_player_t *self);
 
 /**
  * @brief The controller the player works with (level 1).
@@ -418,7 +431,7 @@ lh_gl_web_player_draw(lh_gl_web_player_t *self, lh_gl_canvas_web_glyphs_t *glyph
 lh_bool_t
 lh_gl_web_player_init(lh_gl_web_player_t *self, lh_gl_view_t *view, lh_uint_t width,
                       lh_uint_t height, lh_str_ptr json, lh_usize_t json_cap, lh_byte_ptr page,
-                      lh_usize_t page_cap, const lh_gl_web_host_hooks_t *hooks);
+                      lh_usize_t page_cap, const lh_os_web_host_hooks_t *hooks);
 
 /**
  * @brief A pointer event at view pixel (@p x, @p y).
@@ -493,16 +506,17 @@ lh_gl_web_player_serve_frame(lh_ptr ctx, const lh_http_request_t *request,
 /**
  * @brief The frame the application pushes to the websocket clients.
  *
- * The application's frame callback.
+ * The application's frame callback. Glyph masks the clients already hold go
+ * as their ids; on @p restart the player forgets them, and the frame carries
+ * every mask it uses.
  *
- * @param ctx    The player's context.
- * @param glyphs The font masks the frame uses.
- * @param bytes  Receives the frame.
- * @param len    Receives its length.
+ * @param ctx     The player's context.
+ * @param restart ::lh_bool_true when the frame must stand on its own.
+ * @param bytes   Receives the frame.
+ * @param len     Receives its length.
  */
 lh_void
-lh_gl_web_player_frame(lh_ptr ctx, lh_gl_canvas_web_glyphs_t *glyphs, const lh_str_ptr *bytes,
-                       lh_usize_t *len);
+lh_gl_web_player_frame(lh_ptr ctx, lh_bool_t restart, const lh_str_ptr *bytes, lh_usize_t *len);
 
 /**
  * @brief The application's tick: the controller, the hooks and the damage.

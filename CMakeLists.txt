@@ -185,6 +185,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/web/json/minify.c
         ${LH_LIB_SRC_PATH}/core/web/json/reader.c
         ${LH_LIB_SRC_PATH}/core/web/json/writer.c
+        ${LH_LIB_SRC_PATH}/core/web/ws.c
         ${LH_LIB_SRC_PATH}/core/web/xml/attr.c
         ${LH_LIB_SRC_PATH}/core/web/xml/char.c
         ${LH_LIB_SRC_PATH}/core/web/xml/comment.c
@@ -417,6 +418,21 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/net.c
             ${LH_LIB_SRC_PATH}/os/net/socket.c
             ${LH_LIB_SRC_PATH}/os/net/interface.c
+            ${LH_LIB_SRC_PATH}/os/web/host.c
+            ${LH_LIB_SRC_PATH}/os/web/host/deadline.c
+            ${LH_LIB_SRC_PATH}/os/web/host/gzip/workspace.c
+            ${LH_LIB_SRC_PATH}/os/web/host/client.c
+            ${LH_LIB_SRC_PATH}/os/web/host/frame.c
+            ${LH_LIB_SRC_PATH}/os/web/host/hooks.c
+            ${LH_LIB_SRC_PATH}/os/web/host/stream.c
+            ${LH_LIB_SRC_PATH}/os/web/host/gate.c
+            ${LH_LIB_SRC_PATH}/os/web/host/tap.c
+            ${LH_LIB_SRC_PATH}/os/web/host/finish.c
+            ${LH_LIB_SRC_PATH}/os/web/host/pipe.c
+            ${LH_LIB_SRC_PATH}/os/web/host/conn.c
+            ${LH_LIB_SRC_PATH}/os/web/app.c
+            ${LH_LIB_SRC_PATH}/os/web/app/route.c
+            ${LH_LIB_SRC_PATH}/os/web/app/stream/route.c
             ${LH_LIB_SRC_PATH}/os/serial.c
             ${LH_LIB_SRC_PATH}/os/shared.c
             ${LH_LIB_SRC_PATH}/os/module.c
@@ -627,7 +643,6 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gl/display.c
             ${LH_LIB_SRC_PATH}/gl/display/backend.c
             ${LH_LIB_SRC_PATH}/gl/viewport3d.c
-            ${LH_LIB_SRC_PATH}/gl/web/ws.c
             ${LH_LIB_SRC_PATH}/gl/web/buf.c
             ${LH_LIB_SRC_PATH}/gl/web/player/page.c
     )
@@ -636,21 +651,6 @@ if (LH_LIBRARY_OPTION_GL)
              ${LH_LIB_SRC_PATH}/gl/renderer3d/camera.c)
     endif ()
     if (LH_LIBRARY_OPTION_OS)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/host.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/host/deadline.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/host/gzip/workspace.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/host/client.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/host/frame.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/host/hooks.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/host/stream.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/host/gate.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/host/tap.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/host/finish.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/host/pipe.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/host/conn.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/app.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/app/route.c)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/app/stream/route.c)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/player.c)
     endif ()
     # A window's screen: the UI's software canvas drawn into a surface the
@@ -677,6 +677,10 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gx/pixmap.c
             ${LH_LIB_SRC_PATH}/gx/node.c
             ${LH_LIB_SRC_PATH}/gx/entity.c
+            ${LH_LIB_SRC_PATH}/gx/walk.c
+            ${LH_LIB_SRC_PATH}/gx/event.c
+            ${LH_LIB_SRC_PATH}/gx/hit.c
+            ${LH_LIB_SRC_PATH}/gx/pointer.c
             ${LH_LIB_SRC_PATH}/gx/canvas.c
             ${LH_LIB_SRC_PATH}/gx/class.c
             ${LH_LIB_SRC_PATH}/gx/paint.c
@@ -687,7 +691,10 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gx/font.c
             ${LH_LIB_SRC_PATH}/gx/font/baked.c
             ${LH_LIB_SRC_PATH}/gx/text.c
+            ${LH_LIB_SRC_PATH}/gx/button.c
             ${LH_LIB_SRC_PATH}/gx/backend/sw.c
+            ${LH_LIB_SRC_PATH}/gx/backend/web.c
+            ${LH_LIB_SRC_PATH}/gx/backend/web/player.c
     )
 endif ()
 

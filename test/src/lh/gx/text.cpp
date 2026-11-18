@@ -105,8 +105,8 @@ TEST(gx_text, the_glyphs_land_on_the_baseline_and_the_pen_moves)
     lh_gx_backend_sw_init(&sw, &pixmap, 0, 0);
     lh_gx_backend_sw_canvas_init(&canvas);
     lh_gx_render_init(&render, &canvas, &sw, 12, 4);
-    lh_gx_style_init(&back_style, 0xFF000000U, 0U, 0, 0, nullptr);
-    lh_gx_style_init(&ink, 0xFFFFFFFFU, 0U, 0, 0, &tiny.font);
+    lh_gx_style_init(&back_style, 0xFF000000U, 0U, 0, 0, 0U, nullptr);
+    lh_gx_style_init(&ink, 0U, 0U, 0, 0, 0xFFFFFFFFU, &tiny.font);
     lh_gx_entity_init(&back, &lh_gx_box_class, &back_style, 0, 0, 12, 4);
     lh_gx_entity_init(&line, &lh_gx_text_class, &ink, 1, 0, 10, 3);
     lh_gx_entity_set_content(&line, const_cast<lh_char_t *>(text));

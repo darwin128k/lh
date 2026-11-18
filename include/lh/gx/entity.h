@@ -46,6 +46,7 @@
 #include <lh/gx/rect.h>
 
 struct lh_gx_class;
+struct lh_gx_event;
 struct lh_gx_style;
 
 /**
@@ -245,6 +246,18 @@ lh_gx_entity_t *
 lh_gx_entity_get_next_skip(const lh_gx_entity_t *self, const lh_gx_entity_t *top);
 
 /**
+ * @brief True when @p self takes input: it has a class, and the class fills
+ *        `input` (::lh_gx_class_input_fn).
+ *
+ * An entity that does not is passed over by the pointer, so a press on it goes
+ * to what is under it.
+ *
+ * @param self The entity; must not be null.
+ */
+lh_bool_t
+lh_gx_entity_can_take_input(const lh_gx_entity_t *self);
+
+/**
  * @brief True when @p self and every owner above it are visible — when it can be
  *        seen at all.
  *
@@ -274,6 +287,16 @@ lh_gx_entity_get_screen_rect(const lh_gx_entity_t *self, lh_gx_rect_t *out);
  */
 lh_void
 lh_gx_entity_report(const lh_gx_entity_t *self, const lh_gx_rect_t *area);
+
+/**
+ * @brief Hand @p event to the `input` slot of @p self's class; nothing when it
+ *        takes no input (::lh_gx_entity_can_take_input).
+ *
+ * @param self  The entity; must not be null.
+ * @param event The event; not kept after the call.
+ */
+lh_void
+lh_gx_entity_take_input(lh_gx_entity_t *self, const struct lh_gx_event *event);
 
 /**
  * @brief Report that @p self looks different now, when it can be seen.

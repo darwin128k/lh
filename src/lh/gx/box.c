@@ -10,7 +10,7 @@
 #include <lh/gx/class/initializer.h>
 
 const lh_gx_class_t lh_gx_box_class =
-    lh_gx_class_initializer(lh_gx_box_paint, lh_gx_box_covers, lh_null);
+    lh_gx_class_initializer(lh_gx_box_paint, lh_gx_box_covers, lh_null, lh_null, lh_null);
 
 lh_s32_t
 lh_gx_box_get_radius_px(const lh_gx_style_t *style, const lh_math_rect_t *outer)

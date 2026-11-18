@@ -6,6 +6,7 @@
 #include <lh/core/font/range.h>
 
 #include <lh/core/assert.h>
+
 lh_u32_t
 lh_font_range_get_first(const lh_font_range_t *self)
 {

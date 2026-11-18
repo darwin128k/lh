@@ -9,7 +9,7 @@
 
 #include <lh/gl/canvas/web.h>
 #include <lh/gl/web/player/page.h>
-#include <lh/gl/web/ws.h>
+#include <lh/core/web/ws.h>
 
 #include <algorithm>
 #include <memory>
@@ -51,7 +51,12 @@ BM_ui_web_frame(benchmark::State &state)
     state.counters["frame_bytes"] = static_cast<double>(bytes);
     state.SetLabel(screen_name(state.range(0)));
 }
-BENCHMARK(BM_ui_web_frame)->Arg(screen_cards)->Arg(screen_flex)->Arg(screen_text)->Unit(benchmark::kMicrosecond);
+
+BENCHMARK(BM_ui_web_frame)
+    ->Arg(screen_cards)
+    ->Arg(screen_flex)
+    ->Arg(screen_text)
+    ->Unit(benchmark::kMicrosecond);
 
 /** The same frame for a reader that already holds every glyph cover: what a WS push costs. */
 static void
@@ -87,7 +92,11 @@ BM_ui_web_frame_glyphs_cached(benchmark::State &state)
     state.counters["frame_bytes"] = static_cast<double>(bytes);
     state.SetLabel(screen_name(state.range(0)));
 }
-BENCHMARK(BM_ui_web_frame_glyphs_cached)->Arg(screen_cards)->Arg(screen_text)->Unit(benchmark::kMicrosecond);
+
+BENCHMARK(BM_ui_web_frame_glyphs_cached)
+    ->Arg(screen_cards)
+    ->Arg(screen_text)
+    ->Unit(benchmark::kMicrosecond);
 
 /** One unmasked server frame of the argument's bytes written. */
 static void
@@ -95,16 +104,17 @@ BM_ui_web_ws_write(benchmark::State &state)
 {
     const lh_usize_t n = static_cast<lh_usize_t>(state.range(0));
     std::vector<lh_byte_t> payload(n, 0x5Au);
-    std::vector<lh_byte_t> out(lh_gl_web_ws_frame_size(n));
+    std::vector<lh_byte_t> out(lh_web_ws_frame_size(n));
 
     for (auto _ : state)
     {
-        benchmark::DoNotOptimize(lh_gl_web_ws_write(out.data(), out.size(), LH_GL_WEB_WS_TEXT, lh_bool_true,
-                                                    payload.data(), n));
+        benchmark::DoNotOptimize(lh_web_ws_write(out.data(), out.size(), LH_WEB_WS_TEXT,
+                                                 lh_bool_true, payload.data(), n));
         benchmark::ClobberMemory();
     }
     state.SetBytesProcessed(state.iterations() * static_cast<std::int64_t>(n));
 }
+
 BENCHMARK(BM_ui_web_ws_write)->Arg(64)->Arg(4096)->Arg(65536);
 
 /** One masked client frame parsed and unmasked: an input line from the player. */
@@ -148,15 +158,17 @@ BM_ui_web_ws_read_unmask(benchmark::State &state)
         const lh_byte_t *m = nullptr;
 
         std::copy(frame.begin(), frame.begin() + static_cast<std::ptrdiff_t>(total), work.begin());
-        benchmark::DoNotOptimize(lh_gl_web_ws_read(work.data(), total, &opcode, &fin, &payload, &plen, &m));
+        benchmark::DoNotOptimize(
+            lh_web_ws_read(work.data(), total, &opcode, &fin, &payload, &plen, &m));
         if (m != nullptr)
         {
-            lh_gl_web_ws_unmask(const_cast<lh_byte_t *>(payload), plen, m);
+            lh_web_ws_unmask(const_cast<lh_byte_t *>(payload), plen, m);
         }
         benchmark::DoNotOptimize(payload);
     }
     state.SetBytesProcessed(state.iterations() * static_cast<std::int64_t>(n));
 }
+
 BENCHMARK(BM_ui_web_ws_read_unmask)->Arg(16)->Arg(1024)->Arg(16384);
 
 /** The Canvas2D player page, built from its markup and script entities. */
@@ -173,5 +185,5 @@ BM_ui_web_page_build(benchmark::State &state)
     }
     state.SetBytesProcessed(state.iterations() * static_cast<std::int64_t>(len));
 }
-BENCHMARK(BM_ui_web_page_build);
 
+BENCHMARK(BM_ui_web_page_build);

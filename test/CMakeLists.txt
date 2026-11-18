@@ -149,6 +149,7 @@ lh_add_test_core(lh_test_core
         ${LH_TEST_SRC_PATH}/lh/core/web/json/minify.cpp
         ${LH_TEST_SRC_PATH}/lh/core/web/json/reader.cpp
         ${LH_TEST_SRC_PATH}/lh/core/web/json/writer.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/web/ws.cpp
         ${LH_TEST_SRC_PATH}/lh/core/web/xml/attr.cpp
         ${LH_TEST_SRC_PATH}/lh/core/web/xml/char.cpp
         ${LH_TEST_SRC_PATH}/lh/core/web/xml/comment.cpp
@@ -338,6 +339,10 @@ set(LH_TEST_OS_SOURCES
         ${LH_TEST_SRC_PATH}/lh/os/input.cpp
         ${LH_TEST_SRC_PATH}/lh/os/memory.cpp
         ${LH_TEST_SRC_PATH}/lh/os/net/interface.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/web/app.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/web/app/route.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/web/host.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/web/host/serve.cpp
         ${LH_TEST_SRC_PATH}/lh/os/net/modbus_emu.cpp
         ${LH_TEST_SRC_PATH}/lh/os/net/modbus_tcp.cpp
         ${LH_TEST_SRC_PATH}/lh/os/net/socket.cpp
@@ -559,14 +564,10 @@ set(LH_TEST_GL_SOURCES
         ${LH_TEST_SRC_PATH}/lh/gl/transition.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/canvas/sw.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/canvas/web.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/web/app.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/web/app/route.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/web/host.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/web/host/serve.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/web/buf.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/web/page.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/web/player.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/web/ws.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/web/player/host.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/viewport3d.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/color.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/decl.cpp
@@ -615,11 +616,21 @@ set(LH_TEST_GL_SOURCES
         ${LH_TEST_SRC_PATH}/lh/gx/pixmap.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/node.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/entity.cpp
+        ${LH_TEST_SRC_PATH}/lh/gx/walk.cpp
+        ${LH_TEST_SRC_PATH}/lh/gx/pointer.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/backend/sw.cpp
+        ${LH_TEST_SRC_PATH}/lh/gx/backend/web.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/render.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/box.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/text.cpp
+        ${LH_TEST_SRC_PATH}/lh/gx/button.cpp
 )
+# The player test reads the script with the JavaScript lexer.
+if (LH_LIBRARY_OPTION_GL AND LH_LIBRARY_OPTION_JS)
+    list(APPEND LH_TEST_GL_SOURCES ${LH_TEST_SRC_PATH}/lh/gx/backend/web/player.cpp)
+else ()
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/gx/backend/web/player.cpp)
+endif ()
 if (LH_LIBRARY_OPTION_GL AND LH_LIBRARY_OPTION_MATH_FPU)
     list(APPEND LH_TEST_GL_SOURCES ${LH_TEST_SRC_PATH}/lh/gl/renderer3d.cpp)
 else ()

@@ -124,6 +124,38 @@ TEST(json_writer, appends_and_never_clears)
     lh_web_json_node_deinit(&node);
 }
 
+TEST(json_writer, puts_numbers_and_hex_without_a_tree)
+{
+    const unsigned char bytes[] = {0x00U, 0x7fU, 0xa5U, 0xffU};
+    unsigned char many[200];
+
+    for (unsigned i = 0U; i < sizeof(many); ++i)
+    {
+        many[i] = static_cast<unsigned char>(i);
+    }
+    lh_str_t out;
+    lh_str_init(&out);
+    lh_web_json_writer_t writer;
+    lh_web_json_writer_init(&writer, &out, 0U);
+    lh_web_json_writer_put_sint(&writer, -42);
+    lh_web_json_writer_put_char(&writer, ',');
+    lh_web_json_writer_put_uint(&writer, 0xFF0000FFU);
+    lh_web_json_writer_put_char(&writer, ',');
+    lh_web_json_writer_put_hex(&writer, bytes, sizeof(bytes));
+    lh_web_json_writer_put_hex(&writer, nullptr, 0U);
+    EXPECT_EQ(std::string(lh_str_get_data(&out), lh_str_get_size(&out)), "-42,4278190335,007fa5ff");
+    lh_str_deinit(&out);
+
+    /* More bytes than the stack buffer holds at once: written in chunks, all of them. */
+    lh_str_init(&out);
+    lh_web_json_writer_init(&writer, &out, 0U);
+    lh_web_json_writer_put_hex(&writer, many, sizeof(many));
+    ASSERT_EQ(lh_str_get_size(&out), 2U * sizeof(many));
+    EXPECT_EQ(std::string(lh_str_get_data(&out), 4U), "0001");
+    EXPECT_EQ(std::string(lh_str_get_data(&out) + 2U * 199U, 2U), "c7");
+    lh_str_deinit(&out);
+}
+
 TEST(json_writer, what_it_writes_reads_back_to_an_equal_tree)
 {
     const std::string json =

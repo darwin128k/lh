@@ -1106,8 +1106,8 @@ browser's Canvas2D.
 
 - `lh_gl_canvas_backend_web` (`lh/gl/canvas/web.h`) records one frame as
   JSON. Each glyph shape crosses the wire once per browser tab.
-- `lh_gl_web_host_run` (`lh/gl/web/host.h`) listens on `127.0.0.1:<port>`
-  (on the calling thread; `lh_gl_web_host_try_create` + `_try_start` give it a
+- `lh_os_web_host_run` (`lh/os/web/host.h`) listens on `127.0.0.1:<port>`
+  (on the calling thread; `lh_os_web_host_try_create` + `_try_start` give it a
   thread of its own): `GET /` gives the player page, `GET /ui.json` one frame, and a WebSocket
   (`/ws`, a connection that stays open both ways) pushes a new frame **only
   when the tree changed**.
@@ -1148,7 +1148,7 @@ target_link_libraries(my_web PRIVATE lh)
 ### 13.3 Hooks: the same handlers, with no window
 
 The host knows nothing about windows. It takes a struct of hooks,
-`lh_gl_web_host_hooks_t`:
+`lh_os_web_host_hooks_t`:
 
 | Field | Type | Meaning |
 |---|---|---|
@@ -1168,7 +1168,7 @@ which is why they must cope with `window == lh_null`:
 
 ```c
 #if MY_WEB_HOST
-#include <lh/gl/web/host.h>
+#include <lh/os/web/host.h>
 
 static lh_void web_tick(lh_ptr c)                 { on_tick(lh_null, c); }
 static lh_void web_resize(int w, int h, lh_ptr c) { on_resize(lh_null, w, h, c); }
@@ -1188,7 +1188,7 @@ is shared:
 {
     static char json[4u * 1024u * 1024u];                      /* one frame             */
     lh_net_port_t port = (lh_net_port_t)8765;
-    lh_gl_web_host_hooks_t hooks;
+    lh_os_web_host_hooks_t hooks;
 
     hooks.ctx        = lh_addr_of(self);
     hooks.tick       = web_tick;
@@ -1196,7 +1196,7 @@ is shared:
     hooks.resize     = web_resize;
     hooks.controller = lh_addr_of(self.controller);            /* the desktop one       */
 
-    if (!lh_gl_web_host_run(lh_addr_of(self.view), 980u, 620u,
+    if (!lh_os_web_host_run(lh_addr_of(self.view), 980u, 620u,
                             json, sizeof(json), port, &hooks)) /* returns only on error */
         return 1;
     return 0;

@@ -7,13 +7,13 @@
  * their samplers, style, blur, the canvases a tree draws on (software, box,
  * web), alpha masks, bitmap fonts and text, the entity tree (container,
  * label, scrollbar, button, toggle, input) and ::lh_gl_view_t, frame stats,
- * display / present sinks, the 3D viewport, and the web page / HTML / JS /
- * WebSocket helpers.
+ * display / present sinks, the 3D viewport, and the web player and its page.
  *
  * Option-gated headers are included only when their option is on:
  * `lh/gl/font/roboto.h` (::LH_LIBRARY_OPTION_GL_FONT_ROBOTO),
  * `lh/gl/surface.h` (::LH_LIBRARY_OPTION_OS and ::LH_LIBRARY_OPTION_OS_WINDOW)
- * and `lh/gl/web/host.h` (::LH_LIBRARY_OPTION_OS).
+ * and `lh/gl/web/player.h` (::LH_LIBRARY_OPTION_OS). The web host the player
+ * is served by is not gl's: it is `lh/os/web/host.h`.
  *
  * Requires ::LH_LIBRARY_OPTION_GL.
  */
@@ -46,7 +46,6 @@
 #    include <lh/gl/renderer3d.h>
 #endif
 #include <lh/gl/web/player/page.h>
-#include <lh/gl/web/ws.h>
 #if LH_LIBRARY_OPTION_GL_FONT_ROBOTO
 #    include <lh/gl/font/roboto.h>
 #endif
@@ -54,7 +53,7 @@
 #    include <lh/gl/surface.h>
 #endif
 #if LH_LIBRARY_OPTION_OS
-#    include <lh/gl/web/host.h>
+#    include <lh/gl/web/player.h>
 #endif
 
 #endif /* LH_GL_H */

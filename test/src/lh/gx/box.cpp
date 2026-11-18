@@ -44,8 +44,8 @@ struct Screen
         lh_gx_backend_sw_init(&sw, &pixmap, 0, 0);
         lh_gx_backend_sw_canvas_init(&canvas);
         lh_gx_render_init(&render, &canvas, &sw, 20, 12);
-        lh_gx_style_init(&back_style, back_color, 0U, 0, 0, nullptr);
-        lh_gx_style_init(&card_style, fill_color, edge_color, border, radius, nullptr);
+        lh_gx_style_init(&back_style, back_color, 0U, 0, 0, 0U, nullptr);
+        lh_gx_style_init(&card_style, fill_color, edge_color, border, radius, 0U, nullptr);
         lh_gx_entity_init(&back, &lh_gx_box_class, &back_style, 0, 0, 20, 12);
         lh_gx_entity_init(&card, &lh_gx_box_class, &card_style, 2, 2, 16, 8);
         lh_gx_entity_attach(lh_gx_render_get_screen_mut(&render), &back);
@@ -73,11 +73,11 @@ rect(lh_gx_scalar_t x, lh_gx_scalar_t y, lh_gx_scalar_t w, lh_gx_scalar_t h)
 
 TEST(gx_style, a_style_reads_back_and_a_theme_is_a_constant_array)
 {
-    static const lh_gx_style_t theme[] = {lh_gx_style_initializer(1U, 2U, 3, 4, nullptr),
-                                          lh_gx_style_initializer(5U, 6U, 0, 0, nullptr)};
+    static const lh_gx_style_t theme[] = {lh_gx_style_initializer(1U, 2U, 3, 4, 0U, nullptr),
+                                          lh_gx_style_initializer(5U, 6U, 0, 0, 0U, nullptr)};
     lh_gx_style_t style;
 
-    lh_gx_style_init(&style, 0xFF112233U, 0xFF445566U, 2, 8, nullptr);
+    lh_gx_style_init(&style, 0xFF112233U, 0xFF445566U, 2, 8, 0U, nullptr);
     EXPECT_EQ(lh_gx_style_get_fill(&style), 0xFF112233U);
     EXPECT_EQ(lh_gx_style_get_border(&style), 0xFF445566U);
     EXPECT_EQ(lh_gx_style_get_border_width(&style), 2);
@@ -146,7 +146,7 @@ TEST(gx_box, it_covers_only_where_opaque_and_clear_of_the_corners)
     const lh_gx_rect_t corner = rect(0, 0, 3, 3);
     const lh_gx_rect_t top_strip = rect(4, 0, 12, 2);
 
-    lh_gx_style_init(&style, 0xFFFFFFFFU, 0U, 0, 4, nullptr);
+    lh_gx_style_init(&style, 0xFFFFFFFFU, 0U, 0, 4, 0U, nullptr);
     lh_gx_entity_init(&card, &lh_gx_box_class, &style, 0, 0, 20, 10);
     EXPECT_EQ(lh_gx_box_covers(&card, &place, &middle), lh_bool_true);
     EXPECT_EQ(lh_gx_box_covers(&card, &place, &top_strip), lh_bool_true) << "between the corners";
@@ -154,7 +154,7 @@ TEST(gx_box, it_covers_only_where_opaque_and_clear_of_the_corners)
     lh_gx_style_set_fill(&style, 0x80FFFFFFU);
     EXPECT_EQ(lh_gx_box_covers(&card, &place, &middle), lh_bool_false) << "translucent";
     lh_gx_style_set_fill(&style, 0xFFFFFFFFU);
-    lh_gx_style_init(&style, 0xFFFFFFFFU, 0x80000000U, 2, 0, nullptr);
+    lh_gx_style_init(&style, 0xFFFFFFFFU, 0x80000000U, 2, 0, 0U, nullptr);
     EXPECT_EQ(lh_gx_box_covers(&card, &place, &middle), lh_bool_false) << "translucent border";
 }
 
@@ -165,7 +165,7 @@ TEST(gx_box, a_restyled_card_is_redrawn_alone)
     lh_gx_style_t green;
     lh_gx_damage_t drawn;
 
-    lh_gx_style_init(&green, 0xFF00FF00U, 0U, 0, 0, nullptr);
+    lh_gx_style_init(&green, 0xFF00FF00U, 0U, 0, 0, 0U, nullptr);
     screen.words[0] = 0x12345678U;
     lh_gx_entity_set_style(&screen.card, &green);
     lh_gx_entity_invalidate(&screen.card);

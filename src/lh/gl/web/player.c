@@ -8,7 +8,7 @@
 #include <lh/core/http/method.h>
 #include <lh/core/attribute/unused.h>
 
-#include <lh/gl/web/host.h>
+#include <lh/os/web/host.h>
 #include <lh/gl/web/player/page.h>
 #include <lh/gl/view/controller.h>
 
@@ -29,13 +29,13 @@ static const lh_usize_t m_ui_web_player_path_lens[LH_GL_WEB_PLAYER_ROUTES] = {
     lh_str_lit_size("/ui/move"),  lh_str_lit_size("/ui/wheel"), lh_str_lit_size("/ui/key"),
     lh_str_lit_size("/ui/text"),  lh_str_lit_size("/ui/size")};
 /** What answers each of the player's routes. */
-static const lh_gl_web_route_fn m_ui_web_player_handlers[LH_GL_WEB_PLAYER_ROUTES] = {
+static const lh_os_web_app_route_fn m_ui_web_player_handlers[LH_GL_WEB_PLAYER_ROUTES] = {
     lh_gl_web_player_serve_page,  lh_gl_web_player_serve_frame, lh_gl_web_player_serve_revision,
     lh_gl_web_player_serve_input, lh_gl_web_player_serve_input, lh_gl_web_player_serve_input,
     lh_gl_web_player_serve_input, lh_gl_web_player_serve_input, lh_gl_web_player_serve_input,
     lh_gl_web_player_serve_input, lh_gl_web_player_serve_input};
 
-lh_gl_web_app_t *
+lh_os_web_app_t *
 lh_gl_web_player_get_app(lh_gl_web_player_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -154,7 +154,7 @@ lh_gl_web_player_set_page_len(lh_gl_web_player_t *self, lh_usize_t page_len)
     self->page_len = page_len;
 }
 
-const lh_gl_web_host_hooks_t *
+const lh_os_web_host_hooks_t *
 lh_gl_web_player_get_hooks(const lh_gl_web_player_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -162,20 +162,20 @@ lh_gl_web_player_get_hooks(const lh_gl_web_player_t *self)
 }
 
 lh_void
-lh_gl_web_player_set_hooks(lh_gl_web_player_t *self, const lh_gl_web_host_hooks_t *hooks)
+lh_gl_web_player_set_hooks(lh_gl_web_player_t *self, const lh_os_web_host_hooks_t *hooks)
 {
     lh_assert_runtime_ref(self);
     self->hooks = hooks;
 }
 
-const lh_gl_web_host_hooks_t *
+const lh_os_web_host_hooks_t *
 lh_gl_web_player_get_routed(const lh_gl_web_player_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->routed);
 }
 
-lh_gl_web_host_hooks_t *
+lh_os_web_host_hooks_t *
 lh_gl_web_player_get_routed_mut(lh_gl_web_player_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -224,7 +224,14 @@ lh_gl_web_player_get_web_mut(lh_gl_web_player_t *self)
     return lh_addr_of(self->web);
 }
 
-lh_gl_web_route_t *
+lh_gl_canvas_web_glyphs_t *
+lh_gl_web_player_get_glyphs_mut(lh_gl_web_player_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->glyphs);
+}
+
+lh_os_web_app_route_t *
 lh_gl_web_player_get_routes(lh_gl_web_player_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -235,25 +242,25 @@ lh_os_controller_t *
 lh_gl_web_player_get_routed_controller(const lh_gl_web_player_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_gl_web_host_hooks_get_controller(lh_gl_web_player_get_routed(self));
+    return lh_os_web_host_hooks_get_controller(lh_gl_web_player_get_routed(self));
 }
 
 lh_bool_t
 lh_gl_web_player_input(lh_gl_web_player_t *self, const lh_os_input_event_t *event)
 {
     lh_bool_t changed = lh_bool_false;
-    const lh_gl_web_host_hooks_t *hooks = lh_gl_web_player_get_routed(self);
+    const lh_os_web_host_hooks_t *hooks = lh_gl_web_player_get_routed(self);
 
-    lh_return_if(lh_gl_web_host_hooks_get_input_fn(hooks) == lh_null &&
-                     lh_gl_web_host_hooks_get_controller(hooks) == lh_null,
+    lh_return_if(lh_os_web_host_hooks_get_input_fn(hooks) == lh_null &&
+                     lh_os_web_host_hooks_get_controller(hooks) == lh_null,
                  lh_gl_view_input(lh_gl_web_player_get_view(self), event));
-    if (lh_gl_web_host_hooks_get_input_fn(hooks) != lh_null)
+    if (lh_os_web_host_hooks_get_input_fn(hooks) != lh_null)
     {
-        lh_gl_web_host_hooks_get_input_fn(hooks)(lh_gl_web_host_hooks_get_ctx(hooks), event);
+        lh_os_web_host_hooks_get_input_fn(hooks)(lh_os_web_host_hooks_get_ctx(hooks), event);
         changed = lh_bool_true;
     }
-    if (lh_gl_web_host_hooks_get_controller(hooks) != lh_null &&
-        lh_os_controller_feed(lh_gl_web_host_hooks_get_controller(hooks), event))
+    if (lh_os_web_host_hooks_get_controller(hooks) != lh_null &&
+        lh_os_controller_feed(lh_os_web_host_hooks_get_controller(hooks), event))
     {
         changed = lh_bool_true;
     }
@@ -286,10 +293,10 @@ lh_gl_web_player_resize(lh_gl_web_player_t *self, lh_sint_t w, lh_sint_t h)
     }
     lh_gl_web_player_set_width(self, lh_cast_static(lh_uint_t, w));
     lh_gl_web_player_set_height(self, lh_cast_static(lh_uint_t, h));
-    if (lh_gl_web_host_hooks_get_resize_fn(lh_gl_web_player_get_routed(self)) != lh_null)
+    if (lh_os_web_host_hooks_get_resize_fn(lh_gl_web_player_get_routed(self)) != lh_null)
     {
-        lh_gl_web_host_hooks_get_resize_fn(lh_gl_web_player_get_routed(self))(
-            w, h, lh_gl_web_host_hooks_get_ctx(lh_gl_web_player_get_routed(self)));
+        lh_os_web_host_hooks_get_resize_fn(lh_gl_web_player_get_routed(self))(
+            w, h, lh_os_web_host_hooks_get_ctx(lh_gl_web_player_get_routed(self)));
     }
     return lh_bool_true;
 }
@@ -305,7 +312,7 @@ lh_gl_web_player_serve_page(lh_ptr ctx, const lh_http_request_t *request,
     LH_ATTRIBUTE_UNUSED(request_body);
     lh_assert_runtime_ref(self);
     LH_ATTRIBUTE_UNUSED(
-        lh_gl_web_host_try_reply(client, request, lh_http_status_ok, "text/html; charset=utf-8",
+        lh_os_web_host_try_reply(client, request, lh_http_status_ok, "text/html; charset=utf-8",
                                  lh_ptr_rcast(const lh_char_t, lh_gl_web_player_get_page(self)),
                                  lh_gl_web_player_get_page_len(self)));
     return lh_bool_true;
@@ -320,12 +327,12 @@ lh_gl_web_player_serve_revision(lh_ptr ctx, const lh_http_request_t *request,
     lh_char_t body[32];
     const lh_usize_t n = lh_str_ptr_format_text(
         body, sizeof(body), "%u\n",
-        lh_cast_static(lh_uint_t, lh_gl_web_app_get_generation(lh_gl_web_player_get_app(self))));
+        lh_cast_static(lh_uint_t, lh_os_web_app_get_generation(lh_gl_web_player_get_app(self))));
 
     LH_ATTRIBUTE_UNUSED(headers);
     LH_ATTRIBUTE_UNUSED(request_body);
     lh_assert_runtime_ref(self);
-    LH_ATTRIBUTE_UNUSED(lh_gl_web_host_try_reply_text(client, request, lh_http_status_ok, body, n));
+    LH_ATTRIBUTE_UNUSED(lh_os_web_host_try_reply_text(client, request, lh_http_status_ok, body, n));
     return lh_bool_true;
 }
 
@@ -364,9 +371,9 @@ lh_gl_web_player_draw(lh_gl_web_player_t *self, lh_gl_canvas_web_glyphs_t *glyph
 lh_bool_t
 lh_gl_web_player_init(lh_gl_web_player_t *self, lh_gl_view_t *view, lh_uint_t width,
                       lh_uint_t height, lh_str_ptr json, lh_usize_t json_cap, lh_byte_ptr page,
-                      lh_usize_t page_cap, const lh_gl_web_host_hooks_t *hooks)
+                      lh_usize_t page_cap, const lh_os_web_host_hooks_t *hooks)
 {
-    lh_gl_web_route_t *routes = lh_gl_web_player_get_routes(self);
+    lh_os_web_app_route_t *routes = lh_gl_web_player_get_routes(self);
 
     lh_gl_web_player_set_view(self, view);
     lh_gl_web_player_set_width(self, width);
@@ -378,19 +385,20 @@ lh_gl_web_player_init(lh_gl_web_player_t *self, lh_gl_view_t *view, lh_uint_t wi
     lh_gl_web_player_set_page_len(self, 0u);
     lh_gl_web_player_set_hooks(self, hooks);
     lh_gl_web_player_set_owns_controller(self, lh_bool_false);
-    lh_gl_web_host_hooks_t *routed = lh_gl_web_player_get_routed_mut(self);
-    lh_memory_set(routed, sizeof(lh_gl_web_host_hooks_t), 0);
+    lh_gl_canvas_web_glyphs_reset(lh_gl_web_player_get_glyphs_mut(self));
+    lh_os_web_host_hooks_t *routed = lh_gl_web_player_get_routed_mut(self);
+    lh_memory_set(routed, sizeof(lh_os_web_host_hooks_t), 0);
     if (hooks != lh_null)
     {
-        lh_gl_web_host_hooks_set_ctx(routed, lh_gl_web_host_hooks_get_ctx(hooks));
-        lh_gl_web_host_hooks_set_tick_fn(routed, lh_gl_web_host_hooks_get_tick_fn(hooks));
-        lh_gl_web_host_hooks_set_input_fn(routed, lh_gl_web_host_hooks_get_input_fn(hooks));
-        lh_gl_web_host_hooks_set_resize_fn(routed, lh_gl_web_host_hooks_get_resize_fn(hooks));
-        lh_gl_web_host_hooks_set_controller(routed, lh_gl_web_host_hooks_get_controller(hooks));
+        lh_os_web_host_hooks_set_ctx(routed, lh_os_web_host_hooks_get_ctx(hooks));
+        lh_os_web_host_hooks_set_tick_fn(routed, lh_os_web_host_hooks_get_tick_fn(hooks));
+        lh_os_web_host_hooks_set_input_fn(routed, lh_os_web_host_hooks_get_input_fn(hooks));
+        lh_os_web_host_hooks_set_resize_fn(routed, lh_os_web_host_hooks_get_resize_fn(hooks));
+        lh_os_web_host_hooks_set_controller(routed, lh_os_web_host_hooks_get_controller(hooks));
     }
     /* With neither an input hook nor a controller, the view gets every event as
        ::lh_gl_view_input would have, the gestures go along and are ignored by it. */
-    if (lh_gl_web_host_hooks_get_input_fn(routed) == lh_null &&
+    if (lh_os_web_host_hooks_get_input_fn(routed) == lh_null &&
         lh_gl_web_player_get_routed_controller(self) == lh_null)
     {
         lh_os_controller_t *controller = lh_gl_web_player_get_controller_mut(self);
@@ -399,25 +407,25 @@ lh_gl_web_player_init(lh_gl_web_player_t *self, lh_gl_view_t *view, lh_uint_t wi
                               lh_null);
         lh_os_controller_set_cancel_cb(controller, lh_gl_view_controller_cancel);
         lh_gl_web_player_set_owns_controller(self, lh_bool_true);
-        lh_gl_web_host_hooks_set_controller(routed, controller);
+        lh_os_web_host_hooks_set_controller(routed, controller);
     }
     const lh_str_view_t method = lh_http_method_get_name(lh_http_method_get);
     for (lh_usize_t i = 0u; i < LH_GL_WEB_PLAYER_ROUTES; i = lh_math_add_one(i))
     {
-        lh_gl_web_route_set_method(routes + i, lh_str_view_get_data(lh_addr_of(method)));
-        lh_gl_web_route_set_method_len(routes + i, lh_str_view_get_size(lh_addr_of(method)));
-        lh_gl_web_route_set_path(routes + i, m_ui_web_player_paths[i]);
-        lh_gl_web_route_set_path_len(routes + i, m_ui_web_player_path_lens[i]);
-        lh_gl_web_route_set_handler(routes + i, m_ui_web_player_handlers[i]);
+        lh_os_web_app_route_set_method(routes + i, lh_str_view_get_data(lh_addr_of(method)));
+        lh_os_web_app_route_set_method_len(routes + i, lh_str_view_get_size(lh_addr_of(method)));
+        lh_os_web_app_route_set_path(routes + i, m_ui_web_player_paths[i]);
+        lh_os_web_app_route_set_path_len(routes + i, m_ui_web_player_path_lens[i]);
+        lh_os_web_app_route_set_handler(routes + i, m_ui_web_player_handlers[i]);
     }
-    lh_gl_web_app_init(lh_gl_web_player_get_app(self), routes, LH_GL_WEB_PLAYER_ROUTES);
-    lh_gl_web_app_set_ctx(lh_gl_web_player_get_app(self), self);
-    lh_gl_web_app_set_ws_path(lh_gl_web_player_get_app(self), "/ws");
-    lh_gl_web_app_set_ws_path_len(lh_gl_web_player_get_app(self), lh_str_lit_size("/ws"));
-    lh_gl_web_app_set_frame_fn(lh_gl_web_player_get_app(self), lh_gl_web_player_frame);
-    lh_gl_web_app_set_message_fn(lh_gl_web_player_get_app(self), lh_gl_web_player_message);
-    lh_gl_web_app_set_tick_fn(lh_gl_web_player_get_app(self), lh_gl_web_player_tick);
-    lh_gl_web_app_set_generation(lh_gl_web_player_get_app(self), 1u);
+    lh_os_web_app_init(lh_gl_web_player_get_app(self), routes, LH_GL_WEB_PLAYER_ROUTES);
+    lh_os_web_app_set_ctx(lh_gl_web_player_get_app(self), self);
+    lh_os_web_app_set_ws_path(lh_gl_web_player_get_app(self), "/ws");
+    lh_os_web_app_set_ws_path_len(lh_gl_web_player_get_app(self), lh_str_lit_size("/ws"));
+    lh_os_web_app_set_frame_fn(lh_gl_web_player_get_app(self), lh_gl_web_player_frame);
+    lh_os_web_app_set_message_fn(lh_gl_web_player_get_app(self), lh_gl_web_player_message);
+    lh_os_web_app_set_tick_fn(lh_gl_web_player_get_app(self), lh_gl_web_player_tick);
+    lh_os_web_app_set_generation(lh_gl_web_player_get_app(self), 1u);
     lh_usize_t page_len = 0u;
     const lh_bool_t built = lh_gl_web_player_page_build(
         lh_gl_web_player_get_page(self), lh_gl_web_player_get_page_cap(self), lh_addr_of(page_len));
@@ -492,31 +500,34 @@ lh_gl_web_player_serve_frame(lh_ptr ctx, const lh_http_request_t *request,
     lh_usize_t n = 0u;
 
     lh_assert_runtime_ref(self);
-    if (lh_gl_web_host_get_query_uint(request, lh_str_lit("rev=")) ==
-        lh_gl_web_app_get_generation(lh_gl_web_player_get_app(self)))
+    if (lh_os_web_host_get_query_uint(request, lh_str_lit("rev=")) ==
+        lh_os_web_app_get_generation(lh_gl_web_player_get_app(self)))
     {
-        LH_ATTRIBUTE_UNUSED(lh_gl_web_host_try_reply_text(
+        LH_ATTRIBUTE_UNUSED(lh_os_web_host_try_reply_text(
             client, request, lh_http_status_not_modified, lh_str_lit("")));
         return lh_bool_true;
     }
     if (!lh_gl_web_player_draw(self, lh_null, lh_addr_of(bytes), lh_addr_of(n)))
     {
-        LH_ATTRIBUTE_UNUSED(lh_gl_web_host_try_reply_text(
+        LH_ATTRIBUTE_UNUSED(lh_os_web_host_try_reply_text(
             client, request, lh_http_status_internal_server_error, lh_str_lit("draw failed\n")));
         return lh_bool_true;
     }
-    LH_ATTRIBUTE_UNUSED(lh_gl_web_host_try_reply(client, request, lh_http_status_ok,
+    LH_ATTRIBUTE_UNUSED(lh_os_web_host_try_reply(client, request, lh_http_status_ok,
                                                  "application/json; charset=utf-8", bytes, n));
     return lh_bool_true;
 }
 
 lh_void
-lh_gl_web_player_frame(lh_ptr ctx, lh_gl_canvas_web_glyphs_t *glyphs, const lh_str_ptr *bytes,
-                       lh_usize_t *len)
+lh_gl_web_player_frame(lh_ptr ctx, lh_bool_t restart, const lh_str_ptr *bytes, lh_usize_t *len)
 {
     lh_gl_web_player_t *self = lh_ptr_rcast(lh_gl_web_player_t, ctx);
+    lh_gl_canvas_web_glyphs_t *glyphs = lh_gl_web_player_get_glyphs_mut(self);
 
-    lh_assert_runtime_ref(self);
+    if (restart)
+    {
+        lh_gl_canvas_web_glyphs_reset(glyphs);
+    }
     LH_ATTRIBUTE_UNUSED(lh_gl_web_player_draw(self, glyphs, bytes, len));
 }
 
@@ -532,15 +543,15 @@ lh_gl_web_player_tick(lh_ptr ctx)
         LH_ATTRIBUTE_UNUSED(
             lh_os_controller_update(lh_gl_web_player_get_routed_controller(self), lh_os_tick_ms()));
     }
-    if (lh_gl_web_host_hooks_get_tick_fn(lh_gl_web_player_get_routed(self)) != lh_null)
+    if (lh_os_web_host_hooks_get_tick_fn(lh_gl_web_player_get_routed(self)) != lh_null)
     {
-        lh_gl_web_host_hooks_get_tick_fn(lh_gl_web_player_get_routed(self))(
-            lh_gl_web_host_hooks_get_ctx(lh_gl_web_player_get_routed(self)));
+        lh_os_web_host_hooks_get_tick_fn(lh_gl_web_player_get_routed(self))(
+            lh_os_web_host_hooks_get_ctx(lh_gl_web_player_get_routed(self)));
     }
     lh_gl_rects_t damage;
     if (lh_gl_view_take_damage(lh_gl_web_player_get_view(self), lh_addr_of(damage)))
     {
-        lh_gl_web_app_bump(lh_gl_web_player_get_app(self));
+        lh_os_web_app_bump(lh_gl_web_player_get_app(self));
     }
 }
 
@@ -607,7 +618,7 @@ lh_gl_web_player_event_line(lh_gl_web_player_t *self, const lh_str_ptr line, lh_
     {
         return;
     }
-    lh_gl_web_app_bump(lh_gl_web_player_get_app(self));
+    lh_os_web_app_bump(lh_gl_web_player_get_app(self));
 }
 
 lh_bool_t
@@ -619,60 +630,60 @@ lh_gl_web_player_serve_input(lh_ptr ctx, const lh_http_request_t *request,
     LH_ATTRIBUTE_UNUSED(request_body);
 
     lh_gl_web_player_t *self = lh_ptr_rcast(lh_gl_web_player_t, ctx);
-    const lh_sint_t x = lh_gl_web_host_get_query_int(request, lh_str_lit("x="));
-    const lh_sint_t y = lh_gl_web_host_get_query_int(request, lh_str_lit("y="));
+    const lh_sint_t x = lh_os_web_host_get_query_int(request, lh_str_lit("x="));
+    const lh_sint_t y = lh_os_web_host_get_query_int(request, lh_str_lit("y="));
 
     lh_assert_runtime_ref(self);
-    if (lh_gl_web_host_is_route(request, lh_str_lit("/ui/click")))
+    if (lh_os_web_host_is_route(request, lh_str_lit("/ui/click")))
     {
         LH_ATTRIBUTE_UNUSED(lh_gl_web_player_pointer(self, lh_os_input_kind_pointer_down, x, y));
         LH_ATTRIBUTE_UNUSED(lh_gl_web_player_pointer(self, lh_os_input_kind_pointer_up, x, y));
     }
-    else if (lh_gl_web_host_is_route(request, lh_str_lit("/ui/press")))
+    else if (lh_os_web_host_is_route(request, lh_str_lit("/ui/press")))
     {
         LH_ATTRIBUTE_UNUSED(lh_gl_web_player_pointer(self, lh_os_input_kind_pointer_down, x, y));
     }
-    else if (lh_gl_web_host_is_route(request, lh_str_lit("/ui/release")))
+    else if (lh_os_web_host_is_route(request, lh_str_lit("/ui/release")))
     {
         LH_ATTRIBUTE_UNUSED(lh_gl_web_player_pointer(self, lh_os_input_kind_pointer_up, x, y));
     }
-    else if (lh_gl_web_host_is_route(request, lh_str_lit("/ui/move")))
+    else if (lh_os_web_host_is_route(request, lh_str_lit("/ui/move")))
     {
         LH_ATTRIBUTE_UNUSED(lh_gl_web_player_pointer(self, lh_os_input_kind_pointer_move, x, y));
     }
-    else if (lh_gl_web_host_is_route(request, lh_str_lit("/ui/wheel")))
+    else if (lh_os_web_host_is_route(request, lh_str_lit("/ui/wheel")))
     {
         LH_ATTRIBUTE_UNUSED(lh_gl_web_player_wheel(
-            self, x, y, lh_gl_web_host_get_query_int(request, lh_str_lit("dx=")),
-            lh_gl_web_host_get_query_int(request, lh_str_lit("dy="))));
+            self, x, y, lh_os_web_host_get_query_int(request, lh_str_lit("dx=")),
+            lh_os_web_host_get_query_int(request, lh_str_lit("dy="))));
     }
-    else if (lh_gl_web_host_is_route(request, lh_str_lit("/ui/key")))
+    else if (lh_os_web_host_is_route(request, lh_str_lit("/ui/key")))
     {
         /* `p=` is the direction; without it the request is a key going down, as before. */
         LH_ATTRIBUTE_UNUSED(lh_gl_web_player_key(
-            self, lh_gl_web_host_get_query_int(request, lh_str_lit("k=")),
-            lh_gl_web_host_get_query_flag(request, lh_str_lit("p="), lh_bool_true)));
+            self, lh_os_web_host_get_query_int(request, lh_str_lit("k=")),
+            lh_os_web_host_get_query_flag(request, lh_str_lit("p="), lh_bool_true)));
     }
-    else if (lh_gl_web_host_is_route(request, lh_str_lit("/ui/text")))
+    else if (lh_os_web_host_is_route(request, lh_str_lit("/ui/text")))
     {
         LH_ATTRIBUTE_UNUSED(lh_gl_web_player_text(
             self,
-            lh_cast_static(lh_u32_t, lh_gl_web_host_get_query_uint(request, lh_str_lit("c=")))));
+            lh_cast_static(lh_u32_t, lh_os_web_host_get_query_uint(request, lh_str_lit("c=")))));
     }
-    else if (lh_gl_web_host_is_route(request, lh_str_lit("/ui/size")))
+    else if (lh_os_web_host_is_route(request, lh_str_lit("/ui/size")))
     {
         /* Always handled: an unchanged size is still a valid no-op, not a 404. */
         LH_ATTRIBUTE_UNUSED(
-            lh_gl_web_player_resize(self, lh_gl_web_host_get_query_int(request, lh_str_lit("w=")),
-                                    lh_gl_web_host_get_query_int(request, lh_str_lit("h="))));
+            lh_gl_web_player_resize(self, lh_os_web_host_get_query_int(request, lh_str_lit("w=")),
+                                    lh_os_web_host_get_query_int(request, lh_str_lit("h="))));
     }
     else
     {
         return lh_bool_false;
     }
-    lh_gl_web_app_bump(lh_gl_web_player_get_app(self));
+    lh_os_web_app_bump(lh_gl_web_player_get_app(self));
     LH_ATTRIBUTE_UNUSED(
-        lh_gl_web_host_try_reply_text(client, request, lh_http_status_ok, lh_str_lit("ok\n")));
+        lh_os_web_host_try_reply_text(client, request, lh_http_status_ok, lh_str_lit("ok\n")));
     return lh_bool_true;
 }
 

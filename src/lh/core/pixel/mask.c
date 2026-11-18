@@ -9,6 +9,7 @@
 #include <lh/core/bit/packed.h>
 #include <lh/core/math.h>
 #include <lh/core/util/return.h>
+
 lh_bool_t
 lh_pixel_mask_is_bpp(lh_u32_t bpp)
 {

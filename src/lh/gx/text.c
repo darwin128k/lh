@@ -11,7 +11,8 @@
 #include <lh/core/util/return.h>
 #include <lh/gx/class/initializer.h>
 
-const lh_gx_class_t lh_gx_text_class = lh_gx_class_initializer(lh_gx_text_paint, lh_null, lh_null);
+const lh_gx_class_t lh_gx_text_class =
+    lh_gx_class_initializer(lh_gx_text_paint, lh_null, lh_null, lh_null, lh_null);
 
 lh_s32_t
 lh_gx_text_get_width(const lh_gx_font_t *font, const lh_char_t *text)
@@ -80,7 +81,7 @@ lh_gx_text_paint(const lh_gx_entity_t *entity, const lh_gx_paint_t *paint)
     lh_gx_rect_to_rect(lh_gx_paint_get_place(paint), lh_addr_of(place));
     const lh_s32_t baseline = lh_math_point_get_y(lh_math_rect_get_origin(lh_addr_of(place))) +
                               lh_gx_font_get_ascent(font);
-    const lh_gx_color_t color = lh_gx_style_get_fill(style);
+    const lh_gx_color_t color = lh_gx_style_get_ink(style);
     lh_s32_t pen = lh_math_point_get_x(lh_math_rect_get_origin(lh_addr_of(place)));
 
     for (lh_u32_t code = lh_str_utf8_get_next_code(lh_addr_of(cursor));

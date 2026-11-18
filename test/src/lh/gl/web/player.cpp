@@ -41,12 +41,12 @@ ignore_input(lh_ptr ctx, const lh_os_input_event_t *event)
 
 /* Start the player of @p world, with @p hooks; true when its document built. */
 bool
-start(player_world *world, const lh_gl_web_host_hooks_t *hooks)
+start(player_world *world, const lh_os_web_host_hooks_t *hooks)
 {
     lh_gl_view_init(lh_addr_of(world->view));
     return lh_gl_web_player_init(lh_addr_of(world->player), lh_addr_of(world->view), 200u, 100u,
-                                 world->json, sizeof(world->json), world->page,
-                                 sizeof(world->page), hooks) == lh_bool_true;
+                                 world->json, sizeof(world->json), world->page, sizeof(world->page),
+                                 hooks) == lh_bool_true;
 }
 
 } // namespace
@@ -77,8 +77,7 @@ TEST(ui_web_player, the_application_carries_the_player_itself)
     lh_gl_web_player_t *player = lh_addr_of(world.player);
 
     ASSERT_TRUE(start(lh_addr_of(world), lh_null));
-    EXPECT_EQ(lh_gl_web_app_get_ctx(lh_gl_web_player_get_app(player)),
-              static_cast<lh_ptr>(player));
+    EXPECT_EQ(lh_os_web_app_get_ctx(lh_gl_web_player_get_app(player)), static_cast<lh_ptr>(player));
 }
 
 TEST(ui_web_player, without_hooks_it_routes_to_its_own_controller)
@@ -90,7 +89,7 @@ TEST(ui_web_player, without_hooks_it_routes_to_its_own_controller)
     EXPECT_EQ(lh_gl_web_player_get_owns_controller(player), lh_bool_true);
     EXPECT_EQ(lh_gl_web_player_get_routed_controller(player),
               lh_gl_web_player_get_controller_mut(player));
-    EXPECT_EQ(lh_gl_web_host_hooks_get_controller(lh_gl_web_player_get_routed(player)),
+    EXPECT_EQ(lh_os_web_host_hooks_get_controller(lh_gl_web_player_get_routed(player)),
               lh_gl_web_player_get_controller_mut(player));
 }
 
@@ -98,15 +97,14 @@ TEST(ui_web_player, with_an_input_hook_it_keeps_no_controller)
 {
     static player_world world;
     lh_gl_web_player_t *player = lh_addr_of(world.player);
-    lh_gl_web_host_hooks_t hooks;
+    lh_os_web_host_hooks_t hooks;
 
     std::memset(lh_addr_of(hooks), 0, sizeof(hooks));
-    lh_gl_web_host_hooks_set_input_fn(lh_addr_of(hooks), ignore_input);
+    lh_os_web_host_hooks_set_input_fn(lh_addr_of(hooks), ignore_input);
     ASSERT_TRUE(start(lh_addr_of(world), lh_addr_of(hooks)));
     EXPECT_EQ(lh_gl_web_player_get_owns_controller(player), lh_bool_false);
     EXPECT_EQ(lh_gl_web_player_get_routed_controller(player), lh_null);
-    EXPECT_EQ(lh_gl_web_host_hooks_get_input_fn(lh_gl_web_player_get_routed(player)),
-              ignore_input);
+    EXPECT_EQ(lh_os_web_host_hooks_get_input_fn(lh_gl_web_player_get_routed(player)), ignore_input);
     EXPECT_EQ(lh_gl_web_player_get_hooks(player), lh_addr_of(hooks));
 }
 
@@ -117,7 +115,7 @@ TEST(ui_web_player, setters)
     static lh_gl_view_t other_view;
     static lh_char_t other_json[16] = {};
     static lh_byte_t other_page[16] = {};
-    lh_gl_web_host_hooks_t hooks;
+    lh_os_web_host_hooks_t hooks;
 
     std::memset(lh_addr_of(hooks), 0, sizeof(hooks));
     ASSERT_TRUE(start(lh_addr_of(world), lh_null));
@@ -150,6 +148,25 @@ TEST(ui_web_player, a_mutable_getter_hands_out_the_member_its_const_getter_reads
     EXPECT_EQ(lh_gl_web_player_get_controller(cplayer),
               lh_gl_web_player_get_controller_mut(player));
     EXPECT_EQ(lh_gl_web_player_get_web(cplayer), lh_gl_web_player_get_web_mut(player));
+}
+
+TEST(ui_web_player, a_restart_forgets_the_glyphs_the_clients_held)
+{
+    static player_world world;
+    lh_gl_web_player_t *player = lh_addr_of(world.player);
+    const lh_char_t *bytes = lh_null;
+    lh_usize_t len = 0u;
+
+    ASSERT_TRUE(start(lh_addr_of(world), lh_null));
+    lh_byte_t *sent = lh_gl_canvas_web_glyphs_get_sent_mut(lh_gl_web_player_get_glyphs_mut(player));
+    EXPECT_EQ(sent[LH_GL_CANVAS_WEB_GLYPHS_MAX - 1u], 0u) << "a new player has sent nothing";
+
+    /* The view draws no text: the mark set by hand is the only one. */
+    sent[LH_GL_CANVAS_WEB_GLYPHS_MAX - 1u] = 1u;
+    lh_gl_web_player_frame(player, lh_bool_false, &bytes, &len);
+    EXPECT_EQ(sent[LH_GL_CANVAS_WEB_GLYPHS_MAX - 1u], 1u) << "the clients still hold it";
+    lh_gl_web_player_frame(player, lh_bool_true, &bytes, &len);
+    EXPECT_EQ(sent[LH_GL_CANVAS_WEB_GLYPHS_MAX - 1u], 0u) << "a new client holds nothing";
 }
 
 #endif /* LH_LIBRARY_OPTION_OS */

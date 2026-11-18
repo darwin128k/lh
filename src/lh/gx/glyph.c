@@ -6,6 +6,7 @@
 #include <lh/gx/glyph.h>
 
 #include <lh/core/assert/runtime.h>
+
 const lh_pixel_mask_t *
 lh_gx_glyph_get_mask(const lh_gx_glyph_t *self)
 {

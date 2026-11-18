@@ -26,7 +26,7 @@
  * ::lh_os_controller_feed sends                 |
  *
  * A window (::lh_os_window_set_controller) and the web host (the `controller` of
- * `lh_gl_web_host_hooks_t`) drive a controller themselves: they feed it, cancel
+ * `lh_os_web_host_hooks_t`) drive a controller themselves: they feed it, cancel
  * it when the focus goes and call ::lh_os_controller_update on their own tick.
  * ::lh_os_controller_sink is for a source that has only a sink, such as
  * ::lh_os_input_queue_drain.
