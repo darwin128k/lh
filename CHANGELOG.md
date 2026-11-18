@@ -17,6 +17,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The web host left gl. It is transport, not interface, and it no longer
+  needs `LH_LIBRARY_OPTION_GL` — only `LH_LIBRARY_OPTION_OS`; it is now built
+  and tested wherever there is an operating system (MSVC and Linux included).
+  - `lh/gl/web/host.h`, `lh/gl/web/host/*` → `lh/os/web/host.h`,
+    `lh/os/web/host/*`; `lh_gl_web_host_*` → `lh_os_web_host_*`,
+    `LH_GL_WEB_HOST_*` → `LH_OS_WEB_HOST_*`.
+  - `lh/gl/web/app.h`, `lh/gl/web/app/*` → `lh/os/web/app.h`,
+    `lh/os/web/app/*`; `lh_gl_web_app_*` → `lh_os_web_app_*`,
+    `LH_GL_WEB_APP_*` → `LH_OS_WEB_APP_*`. The routes take the names of their
+    path: `lh_gl_web_route_*` → `lh_os_web_app_route_*`,
+    `lh_gl_web_stream_route_*` → `lh_os_web_app_stream_route_*`.
+  - The WebSocket frames are data: `lh/gl/web/ws.h` → `lh/core/web/ws.h`,
+    `lh_gl_web_ws_*` → `lh_web_ws_*`, `LH_GL_WEB_WS_*` → `LH_WEB_WS_*`.
+  - `lh/gl.h` no longer includes the host or the frames; it includes the gl
+    player (`lh/gl/web/player.h`) when `LH_LIBRARY_OPTION_OS` is on. The gl
+    player and `lh/gl/web/buf.h` stay in gl.
 - The web host no longer knows glyphs. `lh_gl_web_app_frame_fn` and
   `lh_gl_web_app_frame` take `lh_bool_t restart` — a client that holds nothing
   of the earlier frames gets this one — instead of the host's
@@ -94,6 +110,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- `lh_font_get_default` from `lh/core/font.h`: it was declared but never
+  defined. The built-in font is `lh_gl_font_get_default` until it moves to the
+  core with the swap (`docs/cleanup.md`).
 - `lh_os_window_get_handle` and `lh_os_window_set_handle`: the handle is the
   system backend's (`lh_os_window_backend_system_get_handle`).
 
@@ -142,6 +161,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_gx_web_t` (`lh/gx/web.h`, `lh/gx/web/fields.h`): a gx screen served to
+  browsers. The renderer draws through the web backend, so a frame is the
+  JSON of the canvas calls for what changed; the application answers `GET /`
+  with the page, takes the websocket on `LH_GX_WEB_PAGE_WS_PATH`, drives an
+  `lh_gx_pointer_t` with the browsers' lines and asks the host for a frame
+  when the screen changed (`lh_gx_web_bump_if_changed`). A browser that holds
+  nothing gets the whole screen. Runs on the host's thread; needs
+  `LH_LIBRARY_OPTION_OS`.
+- `lh/gx/web/page.h`: the page — a canvas, the player and a transport script
+  (`lh_gx_web_page_get_script`) that plays the frames, reconnects, and sends
+  the pointer in canvas pixels; `lh_gx_web_page_write`.
+- `lh/gx/web/input.h`: the pointer lines (`p x y`, `m x y`, `r x y`, `c`) read
+  into an `lh_gx_event_t` (`lh_gx_web_input_try_parse`, `_try_get_kind`,
+  `_try_parse_scalar`).
+- `lh_gx_pointer_take`: an event of any kind handed to the pointer's press,
+  move, release or cancel — one entry for every source of input.
+- `lh_str_append_uint`, `lh_str_append_sint`: a number's digits appended to a
+  string. `lh_web_json_writer_put_uint` / `_put_sint` now delegate to them.
+- `example/gx_web_button.c` (`LH_BUILD_EXAMPLES`, with the GL and OS options):
+  a button that counts its clicks, in the browser at http://127.0.0.1:8080/.
 - `lh_gx_backend_web_t` (`lh/gx/backend/web.h`, `lh/gx/backend/web/fields.h`):
   the canvas as JSON for a browser. Each canvas call is written as one command
   — `["fill_rect", clip, rect, color]`, `["fill_mask", clip, rect, color,

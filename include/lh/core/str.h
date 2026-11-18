@@ -169,6 +169,28 @@ lh_void
 lh_str_append_view(lh_str_t *self, lh_str_view_t view);
 
 /**
+ * @brief Append the decimal digits of @p value to @p self.
+ *
+ * The digits are formatted by ::lh_str_ptr_format_uint into a buffer on the
+ * stack, then appended: no `0x`, no padding, no terminator counted.
+ *
+ * @param self  String to append to.
+ * @param value The number.
+ */
+lh_void
+lh_str_append_uint(lh_str_t *self, lh_uint_t value);
+
+/**
+ * @brief Append the decimal digits of @p value to @p self, a `-` before a
+ *        negative one (::lh_str_ptr_format_sint).
+ *
+ * @param self  String to append to.
+ * @param value The number.
+ */
+lh_void
+lh_str_append_sint(lh_str_t *self, lh_sint_t value);
+
+/**
  * @brief Format @p fmt into @p self, replacing current contents.
  *
  * Same conversions as ::lh_str_ptr_format_text. On a malformed mask @p self

@@ -30,8 +30,10 @@
 #    include <lh/core/web/ws.h>
 #    include <lh/test/os/net/read_head.h>
 
+#    include <chrono>
 #    include <cstring>
 #    include <string>
+#    include <thread>
 
 using lh_test::read_head;
 

@@ -39,7 +39,6 @@
 #include <lh/os/loader.h>
 #include <lh/os/net.h>
 #include <lh/os/net/socket.h>
-#include <lh/os/web/host.h>
 #include <lh/os/str.h>
 #include <lh/os/system.h>
 #include <lh/os/tick.h>

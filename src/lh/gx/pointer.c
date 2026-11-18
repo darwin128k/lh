@@ -81,3 +81,26 @@ lh_gx_pointer_press(lh_gx_pointer_t *self, lh_gx_entity_t *top, const lh_gx_poin
     lh_gx_pointer_set_captured(self, lh_gx_hit_find(top, at));
     lh_gx_pointer_send(self, lh_gx_event_kind_press, at);
 }
+
+lh_void
+lh_gx_pointer_take(lh_gx_pointer_t *self, lh_gx_entity_t *top, const lh_gx_event_t *event)
+{
+    const lh_gx_point_t *at = lh_gx_event_get_at(event);
+
+    switch (lh_gx_event_get_kind(event))
+    {
+    case lh_gx_event_kind_press:
+        lh_gx_pointer_press(self, top, at);
+        break;
+    case lh_gx_event_kind_move:
+        lh_gx_pointer_move(self, at);
+        break;
+    case lh_gx_event_kind_release:
+        lh_gx_pointer_release(self, at);
+        break;
+    case lh_gx_event_kind_cancel:
+    default:
+        lh_gx_pointer_cancel(self);
+        break;
+    }
+}

@@ -147,6 +147,22 @@ lh_gx_pointer_cancel(lh_gx_pointer_t *self);
 lh_void
 lh_gx_pointer_press(lh_gx_pointer_t *self, lh_gx_entity_t *top, const lh_gx_point_t *at);
 
+/**
+ * @brief Take @p event from whatever reports the pointer: a press goes to
+ *        ::lh_gx_pointer_press, a move to ::lh_gx_pointer_move, a release to
+ *        ::lh_gx_pointer_release and a cancel to ::lh_gx_pointer_cancel.
+ *
+ * The one entry for a source of input that has its events as values — a
+ * browser line, a window message, a touch panel's report — so each source
+ * only translates its own format into an ::lh_gx_event_t.
+ *
+ * @param self  The pointer; must not be null.
+ * @param top   The tree a press searches, usually the screen; must not be null.
+ * @param event What happened and where, screen coordinates; must not be null.
+ */
+lh_void
+lh_gx_pointer_take(lh_gx_pointer_t *self, lh_gx_entity_t *top, const lh_gx_event_t *event);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_GX_POINTER_H */

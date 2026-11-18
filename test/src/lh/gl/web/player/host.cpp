@@ -30,6 +30,7 @@
 #    include <lh/gl/web/player.h>
 #    include <lh/core/web/ws.h>
 #    include <lh/test/gl/draw_log.h>
+#    include <lh/test/os/net/loopback.h>
 #    include <lh/test/os/net/read_head.h>
 
 #    include <atomic>
@@ -133,46 +134,10 @@ world_update(lh_self_ptr self, lh_tick_t /*now*/)
 }
 
 /* A port nothing listens on right now: bind to 0, read what was given, let it go. */
-lh_net_port_t
-free_port()
-{
-    lh_net_port_t port = 0u;
-
-    lh_net_ip4_t ip;
-    lh_net_ip4_init(lh_addr_of(ip), 127, 0, 0, 1);
-    lh_net_ip4_socket_addr_t addr;
-    lh_net_ip4_socket_addr_init(lh_addr_of(addr), lh_addr_of(ip), 0);
-    lh_os_net_socket_t probe;
-    lh_os_net_socket_init(lh_addr_of(probe));
-    if (lh_os_net_socket_open(lh_addr_of(probe), lh_net_socket_type_tcp) &&
-        lh_os_net_socket_bind(lh_addr_of(probe), lh_addr_of(addr)) &&
-        lh_os_net_socket_get_local_addr(lh_addr_of(probe), lh_addr_of(addr)))
-    {
-        port = lh_net_ip4_socket_addr_get_port(lh_addr_of(addr));
-    }
-    lh_os_net_socket_close(lh_addr_of(probe));
-    return port;
-}
-
 bool
 connect_to_host(lh_os_net_socket_t *sock)
 {
-    lh_net_ip4_t ip;
-
-    lh_net_ip4_init(lh_addr_of(ip), 127, 0, 0, 1);
-    lh_net_ip4_socket_addr_t addr;
-    lh_net_ip4_socket_addr_init(lh_addr_of(addr), lh_addr_of(ip), s_world.port);
-    lh_os_net_socket_init(sock);
-    if (!lh_os_net_socket_open(sock, lh_net_socket_type_tcp))
-    {
-        return false;
-    }
-    if (!lh_os_net_socket_connect(sock, lh_addr_of(addr)))
-    {
-        lh_os_net_socket_close(sock);
-        return false;
-    }
-    return true;
+    return lh_test::connect_loopback(sock, s_world.port);
 }
 
 /* The host's own thread: it returns only when the host would not listen. */
@@ -227,7 +192,7 @@ host_up()
     {
         return false;
     }
-    s_world.port = free_port();
+    s_world.port = lh_test::free_port();
     if (s_world.port == 0u)
     {
         return false;

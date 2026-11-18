@@ -155,6 +155,30 @@ TEST(str_append_view, appends_view_and_skips_empty)
     lh_str_deinit(&s);
 }
 
+TEST(str_append_uint, appends_the_digits_of_a_number)
+{
+    lh_str_t s;
+
+    lh_str_init(&s);
+    lh_str_append_view(&s, lh_str_view_lit("w="));
+    lh_str_append_uint(&s, 0U);
+    lh_str_append_uint(&s, 4294967295U);
+    EXPECT_EQ(std::strcmp(lh_str_get_data(&s), "w=04294967295"), 0);
+    lh_str_deinit(&s);
+}
+
+TEST(str_append_sint, appends_a_minus_before_a_negative_number)
+{
+    lh_str_t s;
+
+    lh_str_init(&s);
+    lh_str_append_sint(&s, -30);
+    lh_str_append_view(&s, lh_str_view_lit(","));
+    lh_str_append_sint(&s, 7);
+    EXPECT_EQ(std::strcmp(lh_str_get_data(&s), "-30,7"), 0);
+    lh_str_deinit(&s);
+}
+
 TEST(str_append_str, appends_other_string)
 {
     lh_str_t a;

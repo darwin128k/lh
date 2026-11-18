@@ -20,15 +20,29 @@ every test. When that is done, this entry goes away with the old names.
 
 **The date.** The owner decided on 2026-11-17 that `gx` replaces `gl`.
 
-## The web host and the 3D renderer
+## The 3D renderer
 
-**The debt.** `src/lh/gl/web/host*` is transport (HTTP, WebSocket, gzip) and
-`src/lh/gl/renderer3d.c` is a 3D renderer; neither is a user interface, and
-neither belongs under `lh/gl/` once that name means the interface layer.
+**The debt.** `src/lh/gl/renderer3d.c` is a 3D renderer, not a user
+interface, and does not belong under `lh/gl/` once that name means the
+interface layer.
 
-**The plan.** The web host moves to `lh/os/web/`; the 3D renderer gets its own
-part on the same draw list. Both move while `gl` is still there to test
-against — `docs/design/gx.md`, section 6 and decision 4 of phase 1.
+**The plan.** The 3D renderer gets its own part on the same draw list, moved
+while `gl` is still there to test against — `docs/design/gx.md`, section 6 and
+decision 4 of phase 1. (The web host, the other half of this debt, moved to
+`lh/os/web/` on 2026-11-18, and the WebSocket frames to `lh/core/web/ws.h`.)
+
+## The built-in font lives in gl
+
+**The debt.** The baked Roboto (`lh/gl/font/roboto.h`) and the call that hands
+it out (`lh_gl_font_get_default`) are gl's, though the table type is the
+core's (`lh_font_t`). gx takes the table through `lh_gx_font_baked_init`, so a
+gx program that wants the built-in font includes `lh/gl/font.h`
+(`example/gx_web_button.c`). A declaration `lh_font_get_default` in
+`lh/core/font.h` promised the same from the core but had no definition; it was
+removed on 2026-11-18.
+
+**The plan.** The table and its getter move to the core's font with the swap
+(`docs/design/gx.md`, phase 8).
 
 ## The window throws the damage away
 

@@ -89,19 +89,13 @@ lh_web_json_writer_put_view(lh_web_json_writer_t *self, lh_str_view_t text)
 lh_void
 lh_web_json_writer_put_sint(lh_web_json_writer_t *self, lh_sint_t value)
 {
-    lh_char_t digits[24];
-
-    lh_str_append(lh_web_json_writer_get_out_mut(self), digits,
-                  lh_str_ptr_format_sint(value, digits, sizeof(digits)));
+    lh_str_append_sint(lh_web_json_writer_get_out_mut(self), value);
 }
 
 lh_void
 lh_web_json_writer_put_uint(lh_web_json_writer_t *self, lh_uint_t value)
 {
-    lh_char_t digits[24];
-
-    lh_str_append(lh_web_json_writer_get_out_mut(self), digits,
-                  lh_str_ptr_format_uint(value, digits, sizeof(digits)));
+    lh_str_append_uint(lh_web_json_writer_get_out_mut(self), value);
 }
 
 lh_void

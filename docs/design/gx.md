@@ -629,7 +629,9 @@ Two things in `lh/gl/` are not user interface and should not wait for gx to
 be finished:
 
 - **The web host** (`src/lh/gl/web/host*`) is transport: HTTP, WebSocket,
-  gzip. It belongs in `lh/os/web/`, and it does not wait for gx.
+  gzip. It belongs in `lh/os/web/`, and it does not wait for gx. **Moved**
+  (2026-11-18): the host and the application to `lh/os/web/`, the WebSocket
+  frames to `lh/core/web/ws.h`; the gl player is one application of it.
 - **The 3D renderer** (`src/lh/gl/renderer3d.c`) is not a widget either. It
   draws through the same canvas, so it deserves its own part on the same
   draw list.
@@ -647,7 +649,7 @@ instead of gl entities.
 | 3 | The canvas contract and the `sw` backend, with gl's pixel kernels moved in | **done** for `fill_rect` and `fill_mask` (2026-11-18); the kernels are shared in `lh/core/pixel/`, gl calls them; gl's SIMD alpha spans move when a slot needs them |
 | 4 | The renderer: the damage, the walk, the clip, the cover check, the strips | **done** (2026-11-18), with the class (`paint`, `covers`, `report`) and the paint; the first check passes |
 | 5 | The first classes: `box`, then the font contract and `text` | **done** (2026-11-18): the style, `box`, the font contract over the core's baked font, `text` |
-| 6 | The controls as compositions; input and `hit`; the `web` backend | **started** (2026-11-18): the walk, the `hit` and `input` slots, the event, the pointer, the button — every name the program of section 4 uses exists; the `web` backend writes the canvas calls as JSON and its player replays them in the browser (37 lines of script); next: the frames served by a host, the other controls |
+| 6 | The controls as compositions; input and `hit`; the `web` backend | **started** (2026-11-18): the walk, the `hit` and `input` slots, the event, the pointer, the button — every name the program of section 4 uses exists; the `web` backend writes the canvas calls as JSON and its player replays them in the browser (37 lines of script); the web host moved to `lh/os/web/` and knows nothing of gl; the gx application of the host (`lh/gx/web.h`) serves a screen to browsers, frames out and the pointer in, with a runnable example (`example/gx_web_button.c`); next: the other controls |
 | 7 | The window, the MCU path, the examples, the benches against LVGL | me |
 | 8 | The swap: delete gl, rename gx to gl, rebuild every backend | together |
 

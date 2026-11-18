@@ -695,7 +695,13 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gx/backend/sw.c
             ${LH_LIB_SRC_PATH}/gx/backend/web.c
             ${LH_LIB_SRC_PATH}/gx/backend/web/player.c
+            ${LH_LIB_SRC_PATH}/gx/web/input.c
+            ${LH_LIB_SRC_PATH}/gx/web/page.c
     )
+    # A gx screen served to browsers: the composition over the web host.
+    if (LH_LIBRARY_OPTION_OS)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gx/web.c)
+    endif ()
 endif ()
 
 # Font-only: Roboto + mask/font without the widget/canvas tree (STM TFT, …).

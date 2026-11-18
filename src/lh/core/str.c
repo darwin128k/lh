@@ -104,6 +104,22 @@ lh_str_append_view(lh_str_t *self, lh_str_view_t view)
                   lh_str_view_get_size(lh_addr_of(view)));
 }
 
+lh_void
+lh_str_append_uint(lh_str_t *self, lh_uint_t value)
+{
+    lh_char_t digits[24];
+
+    lh_str_append(self, digits, lh_str_ptr_format_uint(value, digits, sizeof(digits)));
+}
+
+lh_void
+lh_str_append_sint(lh_str_t *self, lh_sint_t value)
+{
+    lh_char_t digits[24];
+
+    lh_str_append(self, digits, lh_str_ptr_format_sint(value, digits, sizeof(digits)));
+}
+
 lh_usize_t
 lh_str_format_v(lh_str_t *self, lh_str_cptr fmt, va_list args)
 {

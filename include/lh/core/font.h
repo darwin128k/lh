@@ -33,15 +33,6 @@ typedef struct lh_font lh_font_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief The font a new style starts with: the built-in Roboto
- *        (`lh/gl/font/roboto.h`) under ::LH_LIBRARY_OPTION_GL_FONT_ROBOTO,
- *        else ::lh_null.
- *
- * @return The built-in font, or ::lh_null when it is not built in.
- */
-const lh_font_t *lh_font_get_default(lh_void);
-
-/**
  * @brief Whether the runs are in order and none of them overlaps the one before.
  *
  * The lookup walks them in order and takes the first run that holds the code, so an

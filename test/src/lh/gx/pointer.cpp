@@ -204,4 +204,32 @@ TEST(gx_pointer, a_new_press_cancels_the_gesture_in_progress)
     EXPECT_TRUE(lh_gx_pointer_get_captured(&pointer) == nullptr);
 }
 
+TEST(gx_pointer, take_hands_each_kind_to_its_call)
+{
+    Scene scene;
+    lh_gx_pointer_t pointer;
+    lh_gx_event_t event;
+
+    lh_gx_pointer_init(&pointer);
+    lh_gx_event_init(&event, lh_gx_event_kind_press, point(7, 2));
+    lh_gx_pointer_take(&pointer, &scene.screen, &event);
+    EXPECT_EQ(lh_gx_pointer_get_captured(&pointer), &scene.front);
+    lh_gx_event_init(&event, lh_gx_event_kind_move, point(2, 2));
+    lh_gx_pointer_take(&pointer, &scene.screen, &event);
+    lh_gx_event_init(&event, lh_gx_event_kind_release, point(2, 2));
+    lh_gx_pointer_take(&pointer, &scene.screen, &event);
+    EXPECT_TRUE(lh_gx_pointer_get_captured(&pointer) == nullptr);
+    lh_gx_event_init(&event, lh_gx_event_kind_press, point(2, 2));
+    lh_gx_pointer_take(&pointer, &scene.screen, &event);
+    lh_gx_event_init(&event, lh_gx_event_kind_cancel, point(0, 0));
+    lh_gx_pointer_take(&pointer, &scene.screen, &event);
+    EXPECT_TRUE(lh_gx_pointer_get_captured(&pointer) == nullptr);
+
+    ASSERT_EQ(scene.front_probe.heard.size(), 3U);
+    EXPECT_EQ(scene.front_probe.heard[1], lh_gx_event_kind_move);
+    EXPECT_EQ(scene.front_probe.heard[2], lh_gx_event_kind_release);
+    ASSERT_EQ(scene.back_probe.heard.size(), 2U);
+    EXPECT_EQ(scene.back_probe.heard[1], lh_gx_event_kind_cancel);
+}
+
 } // namespace

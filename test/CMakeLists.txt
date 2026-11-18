@@ -624,6 +624,9 @@ set(LH_TEST_GL_SOURCES
         ${LH_TEST_SRC_PATH}/lh/gx/box.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/text.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/button.cpp
+        ${LH_TEST_SRC_PATH}/lh/gx/web/input.cpp
+        ${LH_TEST_SRC_PATH}/lh/gx/web/page.cpp
+        ${LH_TEST_SRC_PATH}/lh/gx/web.cpp
 )
 # The player test reads the script with the JavaScript lexer.
 if (LH_LIBRARY_OPTION_GL AND LH_LIBRARY_OPTION_JS)
