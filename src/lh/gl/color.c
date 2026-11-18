@@ -4,10 +4,8 @@
  */
 
 #include <lh/core/assert/runtime.h>
-#include <lh/core/byte/limits.h>
-#include <lh/core/math.h>
 #include <lh/gl/color.h>
-#include <lh/core/util/return.h>
+#include <lh/core/pixel/argb.h>
 
 #if LH_GL_COLOR_HAVE_SMLAD
 #    include <arm_acle.h>
@@ -29,9 +27,7 @@ lh_gl_color_init(lh_gl_color_t *self, lh_gl_color_channel_t r, lh_gl_color_chann
 lh_gl_color_channel_t
 lh_gl_color_hex_channel(lh_u32_t hex, lh_u32_t shift)
 {
-    return lh_cast_static(lh_gl_color_channel_t,
-                          lh_bit_and(lh_bit_shr(hex, shift),
-                                     lh_cast_static(lh_u32_t, LH_BYTE_T_MAX)));
+    return lh_cast_static(lh_gl_color_channel_t, lh_pixel_argb_get_channel(hex, shift));
 }
 
 lh_void
@@ -60,10 +56,7 @@ lh_gl_color_get_argb(const lh_gl_color_t *self)
 lh_gl_color_channel_t
 lh_gl_color_expand_bits(lh_u32_t value, lh_u32_t bits)
 {
-    /* Replicate the top bits into the bottom: 0 → 0, all ones → 255. */
-    return lh_cast_static(
-        lh_gl_color_channel_t,
-        lh_bit_or(lh_bit_shl(value, 8U - bits), lh_bit_shr(value, 2U * bits - 8U)));
+    return lh_cast_static(lh_gl_color_channel_t, lh_pixel_channel_expand_bits(value, bits));
 }
 
 lh_void
@@ -173,15 +166,13 @@ lh_gl_color_over_dst_weight(const lh_gl_color_t *dst, const lh_gl_color_t *color
 lh_gl_color_channel_t
 lh_gl_color_blend_channel(lh_u32_t src, lh_u32_t dst, lh_u32_t src_w, lh_u32_t dst_w)
 {
-    const lh_u32_t total = src_w + dst_w;
-    return lh_cast_static(lh_gl_color_channel_t,
-                          lh_math_div_round(src * src_w + dst * dst_w, total));
+    return lh_cast_static(lh_gl_color_channel_t, lh_pixel_channel_blend(src, dst, src_w, dst_w));
 }
 
 lh_gl_color_channel_t
 lh_gl_color_weight_to_alpha(lh_u32_t weight)
 {
-    return lh_cast_static(lh_gl_color_channel_t, lh_math_div_round(weight, LH_BYTE_T_MAX));
+    return lh_cast_static(lh_gl_color_channel_t, lh_pixel_channel_weight_to_alpha(weight));
 }
 
 lh_void
@@ -202,23 +193,13 @@ lh_gl_color_blend(const lh_gl_color_t *dst, const lh_gl_color_t *color, lh_u32_t
 lh_u32_t
 lh_gl_color_div255_round(lh_u32_t x)
 {
-    /* (x + 127) / 255 for x up to 255 * 255, with no divide: 255 is odd, so x / 255
-       never ties at .5 and rounding to nearest is t = x + 128, (t + t / 256) / 256.
-       (x + 1 + (x >> 8)) >> 8 is the truncating form, not this one. */
-    const lh_u32_t t = x + 128U;
-
-    return lh_bit_shr(t + lh_bit_shr(t, 8), 8);
+    return lh_pixel_channel_div255_round(x);
 }
 
 lh_u32_t
 lh_gl_color_div255_round_pair(lh_u32_t x)
 {
-    /* ::lh_gl_color_div255_round in each 16-bit lane at once. A lane holds at most
-       255 * 255 + 128, so t + (t >> 8) stays below 2^16 and never carries into the
-       lane above; the mask drops what the shift brings down from it. */
-    const lh_u32_t t = x + 0x00800080U;
-
-    return lh_bit_and(lh_bit_shr(t + lh_bit_and(lh_bit_shr(t, 8), 0x00FF00FFU), 8), 0x00FF00FFU);
+    return lh_pixel_channel_div255_round_pair(x);
 }
 
 lh_u32_t
@@ -237,9 +218,7 @@ lh_gl_color_dual_mac(lh_u32_t x, lh_u32_t y, lh_u32_t acc)
 lh_u32_t
 lh_gl_color_mix_pair(lh_u32_t dst, lh_u32_t src, lh_u32_t a)
 {
-    /* Two channels a word (0x00FF00FF lanes): one multiply blends both, and the
-       products of a lane (255 * 255 at most) never reach the next one. */
-    return lh_gl_color_div255_round_pair(src * a + dst * (LH_BYTE_T_MAX - a));
+    return lh_pixel_channel_mix_pair(dst, src, a);
 }
 
 lh_gl_color_channel_t
@@ -264,23 +243,13 @@ lh_gl_color_over_opaque_channel(lh_u32_t src, lh_u32_t dst, lh_u32_t a)
 lh_u32_t
 lh_gl_color_argb_make(lh_u32_t r, lh_u32_t g, lh_u32_t b, lh_u32_t a)
 {
-    return lh_bit_or(lh_bit_or(lh_bit_shl(a, 24), lh_bit_shl(r, 16)),
-                     lh_bit_or(lh_bit_shl(g, 8), b));
+    return lh_pixel_argb_make(r, g, b, a);
 }
 
 lh_u32_t
 lh_gl_color_argb_over_opaque(lh_u32_t dst, lh_u32_t src)
 {
-    const lh_u32_t a = lh_gl_color_hex_channel(src, 24);
-    /* R and B in one word, G (and the alpha lane, which an opaque result does not
-       read) in another: two multiplies a pair instead of one a channel. */
-    const lh_u32_t rb = lh_gl_color_mix_pair(lh_bit_and(dst, 0x00FF00FFU),
-                                            lh_bit_and(src, 0x00FF00FFU), a);
-    const lh_u32_t ga =
-        lh_gl_color_mix_pair(lh_bit_and(lh_bit_shr(dst, 8), 0x00FF00FFU),
-                             lh_bit_and(lh_bit_shr(src, 8), 0x00FF00FFU), a);
-
-    return lh_bit_or(lh_bit_or(0xFF000000U, rb), lh_bit_shl(lh_bit_and(ga, 0xFFU), 8));
+    return lh_pixel_argb_over_opaque(dst, src);
 }
 
 lh_void
@@ -321,28 +290,13 @@ lh_gl_color_argb_over_opaque_span(lh_u32_t *at, const lh_gl_color_channel_t *alp
 lh_u32_t
 lh_gl_color_argb_over_translucent(lh_u32_t dst, lh_u32_t src)
 {
-    const lh_u32_t a = lh_gl_color_hex_channel(src, 24);
-    const lh_u32_t src_w = a * LH_BYTE_T_MAX;
-    const lh_u32_t dst_w =
-        lh_cast_static(lh_u32_t, lh_gl_color_hex_channel(dst, 24)) * (LH_BYTE_T_MAX - a);
-
-    lh_return_if(src_w + dst_w == 0U, 0U);
-    return lh_gl_color_argb_make(
-        lh_gl_color_blend_channel(lh_gl_color_hex_channel(src, 16),
-                                  lh_gl_color_hex_channel(dst, 16), src_w, dst_w),
-        lh_gl_color_blend_channel(lh_gl_color_hex_channel(src, 8), lh_gl_color_hex_channel(dst, 8),
-                                  src_w, dst_w),
-        lh_gl_color_blend_channel(lh_gl_color_hex_channel(src, 0), lh_gl_color_hex_channel(dst, 0),
-                                  src_w, dst_w),
-        lh_gl_color_weight_to_alpha(src_w + dst_w));
+    return lh_pixel_argb_over_translucent(dst, src);
 }
 
 lh_u32_t
 lh_gl_color_argb_over(lh_u32_t dst, lh_u32_t src)
 {
-    return lh_gl_color_hex_channel(dst, 24) == LH_BYTE_T_MAX
-               ? lh_gl_color_argb_over_opaque(dst, src)
-               : lh_gl_color_argb_over_translucent(dst, src);
+    return lh_pixel_argb_over(dst, src);
 }
 
 lh_void

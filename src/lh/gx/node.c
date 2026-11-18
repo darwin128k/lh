@@ -7,6 +7,7 @@
 
 #include <lh/core/assert/runtime.h>
 #include <lh/core/util/return.h>
+
 const lh_gx_node_t *
 lh_gx_node_get_owner(const lh_gx_node_t *self)
 {

@@ -208,6 +208,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/math/size.c
         ${LH_LIB_SRC_PATH}/core/math/fit.c
         ${LH_LIB_SRC_PATH}/core/math/rect.c
+        ${LH_LIB_SRC_PATH}/core/pixel/span.c
 
 
         ${LH_LIB_SRC_PATH}/core/version.c
@@ -672,6 +673,8 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gx/pixmap.c
             ${LH_LIB_SRC_PATH}/gx/node.c
             ${LH_LIB_SRC_PATH}/gx/entity.c
+            ${LH_LIB_SRC_PATH}/gx/canvas.c
+            ${LH_LIB_SRC_PATH}/gx/backend/sw.c
     )
 endif ()
 

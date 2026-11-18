@@ -15,7 +15,7 @@
  * A pixmap is a value: the application owns it, it is copied when it is
  * passed, and no part of gx allocates one or frees one.
  *
- * @see lh_gx_damage_t, what the canvas remembers about a pixmap's changes.
+ * @see lh_gx_damage_t, what the renderer remembers about what changed on screen.
  */
 
 #ifndef LH_GX_PIXMAP_H
@@ -43,41 +43,10 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief How many bytes one pixel of @p format takes.
  *
  * @param format The format.
- * @return The size of one pixel, 4 or 2.
+ * @return The size of one pixel: 4, 2, or 1 for a mask (`a8`); 0 for an unknown format.
  */
 lh_u32_t
 lh_gx_pixmap_bytes_per_pixel(lh_gx_pixmap_format_t format);
-
-/**
- * @brief Fill @p self with a picture of @p width by @p height over @p bits.
- *
- * The row steps through the memory by the width times the size of a pixel.
- *
- * @param self   The pixmap; must not be null.
- * @param bits   The pixel bytes; not owned by the pixmap.
- * @param width  The width in pixels.
- * @param height The height in pixels.
- * @param format How one pixel is stored.
- */
-lh_void
-lh_gx_pixmap_init(lh_gx_pixmap_t *self, const lh_memory_bounds_t *bits, lh_u32_t width,
-                  lh_u32_t height, lh_gx_pixmap_format_t format);
-
-/**
- * @brief Fill @p self with a picture whose rows step by @p stride.
- *
- * For a buffer whose rows are padded, or a window into a bigger picture.
- *
- * @param self   The pixmap; must not be null.
- * @param bits   The pixel bytes; not owned by the pixmap.
- * @param width  The width in pixels.
- * @param height The height in pixels.
- * @param stride The bytes one row steps by.
- * @param format How one pixel is stored.
- */
-lh_void
-lh_gx_pixmap_init_stride(lh_gx_pixmap_t *self, const lh_memory_bounds_t *bits, lh_u32_t width,
-                         lh_u32_t height, lh_u32_t stride, lh_gx_pixmap_format_t format);
 
 /**
  * @brief The pixel bytes of @p self.
@@ -105,15 +74,6 @@ lh_gx_pixmap_set_bits(lh_gx_pixmap_t *self, const lh_memory_bounds_t *bits);
  */
 lh_u32_t
 lh_gx_pixmap_get_width(const lh_gx_pixmap_t *self);
-
-/**
- * @brief Store the width of @p self, and the row step that follows from it.
- *
- * @param self  The pixmap; must not be null.
- * @param width The width in pixels.
- */
-lh_void
-lh_gx_pixmap_set_width(lh_gx_pixmap_t *self, lh_u32_t width);
 
 /**
  * @brief The height of @p self in pixels.
@@ -170,6 +130,15 @@ lh_void
 lh_gx_pixmap_set_format(lh_gx_pixmap_t *self, lh_gx_pixmap_format_t format);
 
 /**
+ * @brief Store the width of @p self, and the row step that follows from it.
+ *
+ * @param self  The pixmap; must not be null.
+ * @param width The width in pixels.
+ */
+lh_void
+lh_gx_pixmap_set_width(lh_gx_pixmap_t *self, lh_u32_t width);
+
+/**
  * @brief How many bytes the whole picture of @p self takes.
  *
  * @param self The pixmap; must not be null.
@@ -177,6 +146,52 @@ lh_gx_pixmap_set_format(lh_gx_pixmap_t *self, lh_gx_pixmap_format_t format);
  */
 lh_u64_t
 lh_gx_pixmap_size_bytes(const lh_gx_pixmap_t *self);
+
+/**
+ * @brief The address of the pixel at @p x, @p y of @p self.
+ *
+ * Meant once a row, not once a pixel: the offset is checked against the bits
+ * (::lh_memory_bounds_get_ptr_from_begin), and the columns of a row are then
+ * stepped by the caller, who has clipped to the picture already.
+ *
+ * @param self The pixmap; must not be null.
+ * @param x    Column, `0 <= x < width`.
+ * @param y    Row, `0 <= y < height`.
+ * @return The first byte of the pixel.
+ */
+lh_byte_t *
+lh_gx_pixmap_get_address(const lh_gx_pixmap_t *self, lh_u32_t x, lh_u32_t y);
+
+/**
+ * @brief Fill @p self with a picture of @p width by @p height over @p bits.
+ *
+ * The row steps through the memory by the width times the size of a pixel.
+ *
+ * @param self   The pixmap; must not be null.
+ * @param bits   The pixel bytes; not owned by the pixmap.
+ * @param width  The width in pixels.
+ * @param height The height in pixels.
+ * @param format How one pixel is stored.
+ */
+lh_void
+lh_gx_pixmap_init(lh_gx_pixmap_t *self, const lh_memory_bounds_t *bits, lh_u32_t width,
+                  lh_u32_t height, lh_gx_pixmap_format_t format);
+
+/**
+ * @brief Fill @p self with a picture whose rows step by @p stride.
+ *
+ * For a buffer whose rows are padded, or a window into a bigger picture.
+ *
+ * @param self   The pixmap; must not be null.
+ * @param bits   The pixel bytes; not owned by the pixmap.
+ * @param width  The width in pixels.
+ * @param height The height in pixels.
+ * @param stride The bytes one row steps by.
+ * @param format How one pixel is stored.
+ */
+lh_void
+lh_gx_pixmap_init_stride(lh_gx_pixmap_t *self, const lh_memory_bounds_t *bits, lh_u32_t width,
+                         lh_u32_t height, lh_u32_t stride, lh_gx_pixmap_format_t format);
 
 /**
  * @brief Whether the bytes of @p self hold the whole picture.

@@ -643,8 +643,8 @@ instead of gl entities.
 |---|---|---|
 | 0 | The unit: scalar, point, size, rect; the damage; the target | **done** |
 | 1 | The model of the screen — the survey, and the choice | **done** (2026-11-18) |
-| 2 | The node (on `lh_list_t`) and the entity | me |
-| 3 | The canvas contract and the `sw` backend, with gl's pixel kernels moved in | me |
+| 2 | The node (on `lh_list_t`) and the entity | **done** (2026-11-18) |
+| 3 | The canvas contract and the `sw` backend, with gl's pixel kernels moved in | **done** for `fill_rect` and `fill_mask` (2026-11-18); the kernels are shared in `lh/core/pixel/`, gl calls them; gl's SIMD alpha spans move when a slot needs them |
 | 4 | The renderer: the damage, the walk, the clip, the cover check, the strips | me |
 | 5 | The first classes: `box`, then the font contract and `text` | me |
 | 6 | The controls as compositions; input and `hit`; the `web` backend | me |

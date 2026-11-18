@@ -5,14 +5,12 @@
 #include <lh/core/assert.h>
 #include <lh/core/attribute/unused.h>
 
-#include <lh/core/bit/bswap.h>
-#include <lh/core/byte/limits.h>
 #include <lh/core/cpu/simd.h>
-#include <lh/core/math.h>
 #include <lh/core/memory.h>
 #include <lh/core/numeric/float.h>
 #include <lh/gl/pixmap.h>
-#include <lh/core/util/return.h>
+#include <lh/core/pixel/rgb565.h>
+#include <lh/core/pixel/span.h>
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 #    include <immintrin.h>
@@ -243,24 +241,19 @@ lh_gl_pixmap_over_argb(const lh_gl_pixmap_t *self, lh_u32_t dst, const lh_gl_col
 lh_u32_t
 lh_gl_pixmap_rb_of_565(lh_u32_t word)
 {
-    /* Red to bits 16.., blue at 0, each then widened to 8 bits in its lane:
-       v * 33 >> 2 is (v << 3) | (v >> 2) for a 5-bit v (lh_gl_color_expand_bits),
-       and the mask drops what the shift brings down from the red lane. */
-    return ((((word & 0xF800U) << 5) | (word & 0x001FU)) * 33U >> 2) & 0x00FF00FFU;
+    return lh_pixel_rgb565_get_rb(word);
 }
 
 lh_u32_t
 lh_gl_pixmap_g_of_565(lh_u32_t word)
 {
-    /* g * 65 >> 4 is (g << 2) | (g >> 4) for a 6-bit g. */
-    return (((word >> 5) & 0x3FU) * 65U) >> 4;
+    return lh_pixel_rgb565_get_g(word);
 }
 
 lh_u32_t
 lh_gl_pixmap_565_of(lh_u32_t rb, lh_u32_t g)
 {
-    /* Narrowing is truncation, as lh_gl_color_get_rgb565's. */
-    return ((rb >> 19) << 11) | ((g >> 2) << 5) | ((rb & 0xFFU) >> 3);
+    return lh_pixel_rgb565_make(rb, g);
 }
 
 lh_u32_t
@@ -600,24 +593,8 @@ lh_void
 lh_gl_pixmap_blend_const_32(const lh_gl_pixmap_t *self, lh_u32_t *at, lh_usize_t count,
                             lh_u32_t src, lh_u32_t alpha)
 {
-    lh_return_if(count == 0U || alpha == 0U);
-    if (alpha == LH_BYTE_T_MAX)
-    {
-        lh_memory_set_u32(at, count, lh_bit_or(0xFF000000U, src));
-        return;
-    }
-    for (lh_usize_t i = 0U; i < count;)
-    {
-        const lh_u32_t dst = at[i];
-        lh_usize_t end = i + 1U;
-
-        while (end < count && at[end] == dst)
-        {
-            ++end;
-        }
-        lh_memory_set_u32(at + i, end - i, lh_gl_pixmap_mix_argb(self, dst, src, alpha));
-        i = end;
-    }
+    LH_ATTRIBUTE_UNUSED(self);
+    lh_pixel_span_blend_argb(at, count, src, alpha);
 }
 
 lh_void

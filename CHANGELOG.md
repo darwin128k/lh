@@ -133,6 +133,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh/core/pixel/`: the pixel arithmetic every renderer of LH shares, on plain
+  words. `channel.h` — the rounding divide by 255, two channels mixed in one
+  word, weighing, widening; `argb.h` — `0xAARRGGBB` laid over an opaque or a
+  translucent pixel; `rgb565.h` — 565 to 888 and back, the swapped byte order,
+  the 565 blend; all `LH_ATTRIBUTE_FORCE_INLINE`. `span.h` — a run of pixels
+  laid over with one colour (mixed once per run of equal words) or through a
+  coverage mask, for `argb8888` and RGB565. gl's colour and pixmap now call
+  these instead of carrying their own copy (`lh_gl_color_argb_over*`,
+  `_mix_pair`, `_div255_round*`, `lh_gl_pixmap_blend_const_32`, the 565
+  helpers); measured with `lh_bench` before and after, every case within the
+  bench's noise (0.88–1.04).
+
+- `lh_gx_canvas_t` (`lh/gx/canvas.h`, `lh/gx/canvas/fields.h`,
+  `lh/gx/canvas/fill_rect/fn.h`, `lh/gx/canvas/fill_mask/fn.h`): what drawing
+  needs from below, as a contract with no memory — no clip stack, no damage, no
+  scene; the clip and the target come with every call. Required `fill_rect`,
+  optional `fill_mask`.
+
+- `lh_gx_backend_sw_t` (`lh/gx/backend/sw.h`): the software backend of the
+  canvas, into an `lh_gx_pixmap_t` (`argb8888`, `rgb565`, `rgb565_swapped`),
+  on the core's spans. Its origin is where the target sits on the screen, so a
+  strip buffer is the same backend moved down the screen.
+  `lh_gx_backend_sw_canvas_init` fills the canvas table.
+
+- `lh_gx_color_t` (`lh/gx/color.h`): a colour of gx, one word `0xAARRGGBB`.
+  `lh_gx_pixmap_format_a8`: a pixmap of coverage, the mask `fill_mask` lays a
+  colour through. `lh_gx_pixmap_get_address`: the first byte of a pixel.
+
 - `lh_gx_node_t` (`lh/gx/node.h`, `lh/gx/node/fields.h`): one place in the tree
   of the screen. The tree is **intrusive** and built on `lh_list_t`: the owner,
   the list of children and the node's own link live inside the entity, and the

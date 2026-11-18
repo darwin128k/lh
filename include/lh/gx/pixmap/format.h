@@ -20,7 +20,11 @@ enum lh_gx_pixmap_format
     lh_gx_pixmap_format_rgb565,
     /** RGB565 with the two bytes of each word swapped (big-endian in memory):
      *  what most SPI display controllers take, so a frame goes out as is. */
-    lh_gx_pixmap_format_rgb565_swapped
+    lh_gx_pixmap_format_rgb565_swapped,
+    /** One byte a pixel: coverage, 0 (nothing) to 255 (all). Not a picture but a
+     *  **mask** — a glyph, an anti-aliased edge — laid over a target in a colour
+     *  (`fill_mask` of ::lh_gx_canvas_t). */
+    lh_gx_pixmap_format_a8
 };
 
 /** @brief How one pixel is stored. */

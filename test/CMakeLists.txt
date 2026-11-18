@@ -268,6 +268,7 @@ set(LH_TEST_MATH_SOURCES
         ${LH_TEST_SRC_PATH}/lh/core/math/point.cpp
         ${LH_TEST_SRC_PATH}/lh/core/math/size.cpp
         ${LH_TEST_SRC_PATH}/lh/core/math/rect.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/pixel/pixel.cpp
         ${LH_TEST_SRC_PATH}/lh/core/math/rescale.cpp
         ${LH_TEST_SRC_PATH}/lh/core/math/fit.cpp
         ${LH_TEST_SRC_PATH}/lh/core/math/scalar/centre.cpp
@@ -614,6 +615,7 @@ set(LH_TEST_GL_SOURCES
         ${LH_TEST_SRC_PATH}/lh/gx/pixmap.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/node.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/entity.cpp
+        ${LH_TEST_SRC_PATH}/lh/gx/backend/sw.cpp
 )
 if (LH_LIBRARY_OPTION_GL AND LH_LIBRARY_OPTION_MATH_FPU)
     list(APPEND LH_TEST_GL_SOURCES ${LH_TEST_SRC_PATH}/lh/gl/renderer3d.cpp)
