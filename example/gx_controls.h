@@ -1,9 +1,10 @@
 /* example/gx_controls.h
  *
- * The screen both gx examples show — in a browser (gx_web.c) and in a desktop
- * window (gx_window.c): one tree of controls, built once, drawn by the same
- * renderer; only the backend and the present differ. That is what "LH is
- * contracts" means on a screen.
+ * The screen every gx example shows — on a display panel through a band of
+ * rows (gx_panel.c), in a browser (gx_web.c) and in a desktop window
+ * (gx_window.c): one tree of controls, built once, drawn by the same renderer;
+ * only the backend and the present differ. That is what "LH is contracts"
+ * means on a screen.
  */
 
 #ifndef LH_EXAMPLE_GX_CONTROLS_H

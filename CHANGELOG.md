@@ -209,6 +209,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   button on a 320x240 RGB565 panel through a band of 20 rows is 28 KB of flash
   (17 KB of it the Roboto font, 10 KB the code) and 13 KB of RAM (12.5 KB of it
   the band) — `bench/mcu/RESULTS.md`.
+- `example/gx_panel.c`: the controls of `example/gx_controls.c` on a display
+  panel the way a board shows them — a band of 20 rows, the panel's own frame
+  in memory, a script of taps, a drag and typing in place of a touch screen,
+  the pixels each frame sent, and the picture written to `gx_panel.ppm`. It
+  needs only gx and builds with the OS off. The same screen now runs on three
+  outputs: the panel, the browser and the window.
+- The examples build with the OS off: `example/window_stats.c` is built only
+  with the OS and its window system.
 - `lh_gx_input_take` (`lh/gx/input.h`): where an event goes on a screen — the
   pointer's to the pointer, a press also moving the focus, a key or a text to
   the focus. The web application and the window both deliver through it.
