@@ -35,7 +35,7 @@ static lh_gl_layout_t across;
 static lh_gl_style_t root_style;
 static lh_gl_style_t card_style;
 static lh_gl_style_t row_style;
-static lh_gl_gradient_t gradient;
+static lh_pixel_gradient_t gradient;
 static lh_gl_shadow_t shadow;
 static lh_gl_rect_t partial;
 static lh_gl_color_t clear_color;
@@ -84,15 +84,15 @@ gradient_fill(int linear, int degrees)
 
     stops[0] = rgb(46, 107, 230, 255);
     stops[1] = rgb(155, 77, 230, 255);
-    lh_gl_gradient_init(&gradient);
+    lh_pixel_gradient_init(&gradient);
     lh_gl_gradient_init_stops(&gradient, stops, NULL, 2);
     if (linear)
     {
-        lh_gl_gradient_set_linear(&gradient, degrees);
+        lh_pixel_gradient_set_linear(&gradient, degrees);
     }
     else
     {
-        lh_gl_gradient_set_radial(&gradient);
+        lh_pixel_gradient_set_radial(&gradient);
     }
     lh_gl_paint_init_gradient(&paint, &gradient);
     lh_gl_style_assign_fill(&card_style, &paint);
@@ -248,7 +248,7 @@ void
 lh_micro_box(int kind, int radius)
 {
     static int ready;
-    static lh_gl_gradient_t micro_gradient;
+    static lh_pixel_gradient_t micro_gradient;
     lh_gl_paint_t paint;
     lh_gl_radii_t radii;
     lh_gl_rect_t box = rect(8, 8, 72, 66);
@@ -272,15 +272,15 @@ lh_micro_box(int kind, int radius)
 
         stops[0] = fill;
         stops[1] = rgb(155, 77, 230, 255);
-        lh_gl_gradient_init(&micro_gradient);
+        lh_pixel_gradient_init(&micro_gradient);
         lh_gl_gradient_init_stops(&micro_gradient, stops, NULL, 2);
         if (kind == 3)
         {
-            lh_gl_gradient_set_radial(&micro_gradient);
+            lh_pixel_gradient_set_radial(&micro_gradient);
         }
         else
         {
-            lh_gl_gradient_set_linear(&micro_gradient, kind == 1 ? 180 : 135);
+            lh_pixel_gradient_set_linear(&micro_gradient, kind == 1 ? 180 : 135);
         }
         lh_gl_paint_init_gradient(&paint, &micro_gradient);
     }

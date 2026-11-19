@@ -58,17 +58,20 @@ lh_gl_paint_get_color_v(const lh_gl_paint_t *self)
 }
 
 lh_void
-lh_gl_paint_init_gradient(lh_gl_paint_t *self, const lh_gl_gradient_t *gradient)
+lh_gl_paint_init_gradient(lh_gl_paint_t *self, const lh_pixel_gradient_t *gradient)
 {
     lh_gl_paint_init(self);
-    lh_return_if(lh_null_eq(gradient) || lh_gl_gradient_get_stop_count(gradient) == 0);
+    lh_return_if(lh_null_eq(gradient) || lh_pixel_gradient_get_stops_count(gradient) == 0);
     lh_gl_paint_set_kind(self, lh_gl_paint_kind_gradient);
     lh_gl_paint_set_gradient(self, gradient);
-    lh_gl_paint_set_color(
-        self, lh_ptr_deref(lh_gl_gradient_stop_get_color(lh_gl_gradient_get_stop(gradient, 0))));
+    lh_gl_color_t first;
+
+    lh_gl_color_init_argb(lh_addr_of(first), lh_pixel_gradient_stop_get_color(
+                                                 lh_pixel_gradient_get_stop(gradient, 0)));
+    lh_gl_paint_set_color(self, first);
 }
 
-const lh_gl_gradient_t *
+const lh_pixel_gradient_t *
 lh_gl_paint_get_gradient_v(const lh_gl_paint_t *self)
 {
     return lh_gl_paint_get_kind(self) == lh_gl_paint_kind_gradient ? lh_gl_paint_get_gradient(self)
@@ -97,7 +100,7 @@ lh_gl_paint_set_color(lh_gl_paint_t *self, lh_gl_color_t color)
 }
 
 lh_void
-lh_gl_paint_set_gradient(lh_gl_paint_t *self, const lh_gl_gradient_t *gradient)
+lh_gl_paint_set_gradient(lh_gl_paint_t *self, const lh_pixel_gradient_t *gradient)
 {
     lh_assert_runtime_ref(self);
     self->gradient = gradient;
@@ -110,7 +113,7 @@ lh_gl_paint_get_color(const lh_gl_paint_t *self)
     return lh_addr_of(self->color);
 }
 
-const lh_gl_gradient_t *
+const lh_pixel_gradient_t *
 lh_gl_paint_get_gradient(const lh_gl_paint_t *self)
 {
     lh_assert_runtime_ref(self);

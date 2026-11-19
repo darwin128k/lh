@@ -25,11 +25,11 @@
 lh_bool_t
 lh_gl_canvas_box_rows_are_one_colour(const lh_gl_paint_t *paint)
 {
-    const lh_gl_gradient_t *gradient = lh_gl_paint_get_gradient_v(paint);
+    const lh_pixel_gradient_t *gradient = lh_gl_paint_get_gradient_v(paint);
 
     lh_return_if(lh_null_eq(gradient), lh_bool_true);
-    return lh_gl_gradient_get_shape(gradient) == lh_gl_gradient_shape_linear &&
-                   lh_math_is_multiple_of(lh_gl_gradient_get_angle(gradient), 180)
+    return lh_pixel_gradient_get_shape(gradient) == lh_pixel_gradient_shape_linear &&
+                   lh_math_is_multiple_of(lh_pixel_gradient_get_angle(gradient), 180)
                ? lh_bool_true
                : lh_bool_false;
 }
@@ -37,11 +37,11 @@ lh_gl_canvas_box_rows_are_one_colour(const lh_gl_paint_t *paint)
 lh_bool_t
 lh_gl_canvas_box_columns_are_one_colour(const lh_gl_paint_t *paint)
 {
-    const lh_gl_gradient_t *gradient = lh_gl_paint_get_gradient_v(paint);
+    const lh_pixel_gradient_t *gradient = lh_gl_paint_get_gradient_v(paint);
 
     lh_return_if(lh_null_eq(gradient), lh_bool_false);
-    return lh_gl_gradient_get_shape(gradient) == lh_gl_gradient_shape_linear &&
-                   (lh_gl_gradient_get_angle(gradient) % 180) == 90
+    return lh_pixel_gradient_get_shape(gradient) == lh_pixel_gradient_shape_linear &&
+                   (lh_pixel_gradient_get_angle(gradient) % 180) == 90
                ? lh_bool_true
                : lh_bool_false;
 }

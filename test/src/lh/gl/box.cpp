@@ -110,19 +110,19 @@ TEST(ui_gradient, a_linear_gradient_runs_the_way_its_angle_points)
 {
     const lh_gl_rect_t rect = rect_of(0, 0, 10, 100);
 
-    lh_gl_gradient_t g;
-    lh_gl_gradient_init(&g);
-    EXPECT_EQ(lh_gl_gradient_get_angle(&g), 180) << "CSS's default is top to bottom";
+    lh_pixel_gradient_t g;
+    lh_pixel_gradient_init(&g);
+    EXPECT_EQ(lh_pixel_gradient_get_angle(&g), 180) << "CSS's default is top to bottom";
     EXPECT_LT(lh_gl_gradient_frac_at(&g, &rect, 5, 0), 5);
     EXPECT_GT(lh_gl_gradient_frac_at(&g, &rect, 5, 99), 250);
     EXPECT_NEAR(lh_gl_gradient_frac_at(&g, &rect, 5, 50), 128, 3);
 
-    lh_gl_gradient_set_linear(&g, 90);
+    lh_pixel_gradient_set_linear(&g, 90);
     const lh_gl_rect_t wide = rect_of(0, 0, 100, 10);
     EXPECT_LT(lh_gl_gradient_frac_at(&g, &wide, 0, 5), 5) << "90 degrees runs left to right";
     EXPECT_GT(lh_gl_gradient_frac_at(&g, &wide, 99, 5), 250);
 
-    lh_gl_gradient_set_linear(&g, 0);
+    lh_pixel_gradient_set_linear(&g, 0);
     EXPECT_GT(lh_gl_gradient_frac_at(&g, &rect, 5, 0), 250) << "0 degrees runs bottom to top";
 }
 
@@ -130,9 +130,9 @@ TEST(ui_gradient, a_radial_gradient_runs_from_the_middle_to_the_corners)
 {
     const lh_gl_rect_t rect = rect_of(0, 0, 100, 50);
 
-    lh_gl_gradient_t g;
-    lh_gl_gradient_init(&g);
-    lh_gl_gradient_set_radial(&g);
+    lh_pixel_gradient_t g;
+    lh_pixel_gradient_init(&g);
+    lh_pixel_gradient_set_radial(&g);
     EXPECT_LT(lh_gl_gradient_frac_at(&g, &rect, 50, 25), 8);
     EXPECT_GT(lh_gl_gradient_frac_at(&g, &rect, 0, 0), 245);
     EXPECT_GT(lh_gl_gradient_frac_at(&g, &rect, 99, 49), 245);
@@ -142,8 +142,8 @@ TEST(ui_gradient, a_colour_between_two_stops_is_the_two_mixed_in_proportion)
 {
     const lh_gl_color_t stops[2] = {color_of(200, 0, 0), color_of(0, 0, 100)};
 
-    lh_gl_gradient_t g;
-    lh_gl_gradient_init(&g);
+    lh_pixel_gradient_t g;
+    lh_pixel_gradient_init(&g);
     lh_gl_gradient_init_stops(&g, stops, lh_null, 2);
     lh_gl_color_t mid = lh_test::out(lh_gl_gradient_color_at, &g, 51);
     EXPECT_EQ(lh_gl_color_get_r(&mid), 160);
@@ -206,8 +206,8 @@ TEST(ui_canvas_box, a_gradient_fill_runs_from_its_first_stop_to_its_last)
     const lh_gl_color_t stops[2] = {color_of(255, 0, 0), color_of(0, 0, 255)};
     const lh_gl_rect_t rect = rect_of(0, 0, 20, 100);
 
-    lh_gl_gradient_t g;
-    lh_gl_gradient_init(&g);
+    lh_pixel_gradient_t g;
+    lh_pixel_gradient_init(&g);
     lh_gl_gradient_init_stops(&g, stops, lh_null, 2);
     lh_gl_paint_t paint;
     lh_gl_paint_init_gradient(&paint, &g);

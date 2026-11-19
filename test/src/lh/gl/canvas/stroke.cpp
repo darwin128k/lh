@@ -120,8 +120,8 @@ TEST(ui_canvas_stroke, native_entity_gradient_and_border_share_the_rounded_shape
     lh_gl_color_t colors[2];
     lh_gl_color_init(&colors[0], 30, 60, 100, 255);
     lh_gl_color_init(&colors[1], 10, 20, 40, 255);
-    lh_gl_gradient_t gradient;
-    lh_gl_gradient_init(&gradient);
+    lh_pixel_gradient_t gradient;
+    lh_pixel_gradient_init(&gradient);
     lh_gl_gradient_init_stops(&gradient, colors, lh_null, 2);
     lh_gl_paint_t fill;
     lh_gl_paint_init_gradient(&fill, &gradient);

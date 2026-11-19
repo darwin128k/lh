@@ -1,178 +1,71 @@
 /**
  * @file gradient.h
- * @brief Color gradient: ::lh_gl_gradient_t, a fixed table of stops.
+ * @brief gl's side of a gradient: its colours and its boxes in gl's own types.
  *
- * Capacity is ::LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS (default `2`, same
- * idea as LVGL `LV_GRADIENT_MAX_STOPS`). Alpha lives on each
- * ::lh_gl_color_t — there is no separate opacity array.
- *
- * How the stops lie over a box is the gradient's too, the way CSS has it:
- * along a line at an angle through the middle (`linear-gradient(180deg, ...)`, 0 up
- * and 90 to the right), as long as `|w sin a| + |h cos a|` so the corners are the
- * ends; or out from the middle to the farthest corner on an ellipse the shape of the
- * box (`radial-gradient(...)`). ::lh_gl_gradient_frac_at says where on the stop axis
- * a pixel is and ::lh_gl_gradient_color_at what colour that is -- in whole numbers,
- * so a build with no FPU draws the same gradient.
+ * The gradient itself — the stops, the shape, where a pixel falls and what colour
+ * that is — lives in the core (`lh/core/pixel/gradient.h`, ::lh_pixel_gradient_t),
+ * in whole numbers and `0xAARRGGBB` colours, and gl uses it as it is. What gl
+ * adds here is only the step from its own types: a colour is an
+ * ::lh_gl_color_t, and a box an ::lh_gl_rect_t that may be fractional, laid
+ * over whole pixels from its floor (::lh_gl_gradient_get_box_px).
  */
 
 #ifndef LH_GL_GRADIENT_H
 #define LH_GL_GRADIENT_H
 
-#include <lh/core/byte/ptr.h>
-#include <lh/config.h>
-#include <lh/gl/gradient/fields.h>
-#include <lh/gl/gradient/stop.h>
-#include <lh/gl/gradient/stop/count.h>
+#include <lh/core/pixel/gradient.h>
+#include <lh/gl/color.h>
 #include <lh/gl/rect.h>
-#include <lh/gl/gradient/shape.h>
-
-/**
- * @struct lh_gl_gradient
- * @brief Ordered color stops on a `0..255` axis.
- */
-struct lh_gl_gradient
-{
-    /** Members: ::lh_gl_gradient_fields. */
-    lh_gl_gradient_fields(lh_gl_gradient_stop_t, lh_gl_gradient_stop_count_t,
-                          lh_gl_gradient_shape_t, lh_s16_t);
-};
-/** @copybrief lh_gl_gradient */
-typedef struct lh_gl_gradient lh_gl_gradient_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Clear @p self to zero stops, linear at 180 degrees (top to bottom), which is
- *        what CSS draws when a gradient names no direction.
- */
-lh_void
-lh_gl_gradient_init(lh_gl_gradient_t *self);
-
-/**
- * @brief Fill @p self from @p colors and optional @p fracs.
+ * @brief The whole pixels a gradient over @p rect is laid on: the floor of its
+ *        origin and of its size.
  *
- * Copies @p num_stops colors into the fixed table. When @p fracs is
- * ::lh_null, positions are spaced evenly (`0` … `255`). @p num_stops must be
- * in `1..LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS`.
+ * @param rect The box; must not be null.
+ * @param out  The box in whole pixels; must not be null.
  */
 lh_void
-lh_gl_gradient_init_stops(lh_gl_gradient_t *self, const lh_gl_color_t *colors,
-                          const lh_byte_ptr fracs, lh_gl_gradient_stop_count_t num_stops);
+lh_gl_gradient_get_box_px(const lh_gl_rect_t *rect, lh_math_rect_t *out);
 
 /**
- * @brief Number of used stops in @p self.
- */
-lh_gl_gradient_stop_count_t
-lh_gl_gradient_get_stop_count(const lh_gl_gradient_t *self);
-
-/**
- * @brief Const pointer to stop @p index (`0 .. count - 1`).
- */
-const lh_gl_gradient_stop_t *
-lh_gl_gradient_get_stop(const lh_gl_gradient_t *self, lh_gl_gradient_stop_count_t index);
-
-/**
- * @brief Mutable pointer to stop @p index (`0 .. count - 1`).
- */
-lh_gl_gradient_stop_t *
-lh_gl_gradient_get_stop_mut(lh_gl_gradient_t *self, lh_gl_gradient_stop_count_t index);
-
-/**
- * @brief Lay @p self along a line at @p degrees: 0 up, 90 right, 180 down, as CSS.
+ * @brief ::lh_pixel_gradient_init_stops with gl's colours: each is taken as
+ *        `0xAARRGGBB` (::lh_gl_color_get_argb).
+ *
+ * @param self      The gradient; checked by ::lh_pixel_gradient_init_stops.
+ * @param colors    @p num_stops colours; checked by ::lh_assert_runtime_ref. Copied.
+ * @param fracs     The positions, in order, or ::lh_null to spread them evenly.
+ * @param num_stops `1 ..` ::LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS; checked by
+ *                  ::lh_pixel_gradient_init_stops.
  */
 lh_void
-lh_gl_gradient_set_linear(lh_gl_gradient_t *self, lh_s32_t degrees);
+lh_gl_gradient_init_stops(lh_pixel_gradient_t *self, const lh_gl_color_t *colors,
+                          lh_byte_cptr fracs, lh_pixel_gradient_stop_count_t num_stops);
 
 /**
- * @brief Lay @p self out from the middle of a box to its farthest corner.
- */
-lh_void
-lh_gl_gradient_set_radial(lh_gl_gradient_t *self);
-
-/**
- * @brief How @p self lies over a box.
- */
-lh_gl_gradient_shape_t
-lh_gl_gradient_get_shape(const lh_gl_gradient_t *self);
-
-/**
- * @brief The angle of a linear @p self, in degrees `0 .. 359`.
- */
-lh_s32_t
-lh_gl_gradient_get_angle(const lh_gl_gradient_t *self);
-
-/**
- * @brief Where the pixel (@p x, @p y) is on the stop axis of @p self laid over
- *        @p rect, `0 .. 255`: the first stop's end of the box is 0.
+ * @brief ::lh_pixel_gradient_get_frac_at over gl's @p rect, laid on its whole
+ *        pixels (::lh_gl_gradient_get_box_px).
+ *
+ * @param self The gradient; must not be null.
+ * @param rect The box; must not be null.
+ * @param x    The pixel's column.
+ * @param y    The pixel's row.
+ * @return The position, `0 .. 255`.
  */
 lh_byte_t
-lh_gl_gradient_frac_at(const lh_gl_gradient_t *self, const lh_gl_rect_t *rect, lh_s32_t x,
+lh_gl_gradient_frac_at(const lh_pixel_gradient_t *self, const lh_gl_rect_t *rect, lh_s32_t x,
                        lh_s32_t y);
 
 /**
- * @brief The colour of @p self at @p frac on its stop axis: the stops either side
- *        mixed in proportion, the first stop's colour before it and the last's after.
+ * @brief ::lh_pixel_gradient_get_color_at as gl's colour.
+ *
+ * @param self The gradient; must not be null.
+ * @param frac A position, `0 .. 255`.
+ * @param out  The colour; must not be null.
  */
 lh_void
-lh_gl_gradient_color_at(const lh_gl_gradient_t *self, lh_byte_t frac, lh_gl_color_t *out);
-
-/**
- * @brief The color stops (level 1).
- *
- * @param self The gradient; checked by ::lh_assert_runtime_ref.
- */
-const lh_gl_gradient_stop_t *
-lh_gl_gradient_get_stops(const lh_gl_gradient_t *self);
-
-/**
- * @brief The color stops, to change in place (level 1).
- *
- * @param self The gradient; checked by ::lh_assert_runtime_ref.
- * @return The member itself, never ::lh_null.
- */
-lh_gl_gradient_stop_t *
-lh_gl_gradient_get_stops_mut(lh_gl_gradient_t *self);
-
-/**
- * @brief How many stops there are (level 1).
- *
- * @param self The gradient; checked by ::lh_assert_runtime_ref.
- */
-lh_gl_gradient_stop_count_t
-lh_gl_gradient_get_stops_count(const lh_gl_gradient_t *self);
-
-/**
- * @brief Store how many stops there are (level 1).
- *
- * A level-1 setter: the value is stored as given and is not validated.
- *
- * @param self The gradient; checked by ::lh_assert_runtime_ref.
- * @param stops_count The new value.
- */
-lh_void
-lh_gl_gradient_set_stops_count(lh_gl_gradient_t *self, lh_gl_gradient_stop_count_t stops_count);
-
-/**
- * @brief Store whether the gradient is linear or radial (level 1).
- *
- * A level-1 setter: the value is stored as given and is not validated.
- *
- * @param self The gradient; checked by ::lh_assert_runtime_ref.
- * @param shape The new value.
- */
-lh_void
-lh_gl_gradient_set_shape(lh_gl_gradient_t *self, lh_gl_gradient_shape_t shape);
-
-/**
- * @brief Store the angle of a linear gradient, in degrees (level 1).
- *
- * A level-1 setter: the value is stored as given and is not validated.
- *
- * @param self The gradient; checked by ::lh_assert_runtime_ref.
- * @param angle The new value.
- */
-lh_void
-lh_gl_gradient_set_angle(lh_gl_gradient_t *self, lh_s16_t angle);
+lh_gl_gradient_color_at(const lh_pixel_gradient_t *self, lh_byte_t frac, lh_gl_color_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

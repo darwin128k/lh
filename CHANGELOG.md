@@ -17,6 +17,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The gradient moved from gl to the core, in whole numbers and `0xAARRGGBB`
+  colours, so that gx draws with the same one: `lh_pixel_gradient_t`
+  (`lh/core/pixel/gradient.h`, with `gradient/fields.h`, `shape.h`, `stop.h`,
+  `stop/fields.h`, `stop/count.h`, `stop/initializer.h`), the sine it is laid
+  along (`lh_pixel_gradient_sine`), the colour between two stops carried a step
+  at a time (`lh_pixel_gradient_lerp_t`), the table of its 256 colours
+  (`lh_pixel_gradient_table_t`: `_fill`, `_map`), and the sampler that gives
+  the positions of a row or a column with additions only
+  (`lh_pixel_gradient_sampler_t`). `lh_gl_gradient_t`, `lh_gl_gradient_stop_t`,
+  `lh_gl_gradient_shape_t`, `lh_gl_gradient_stop_count_t`,
+  `lh_gl_gradient_sine` and `lh_gl_gradient_sampler_lerp_t` are gone — gl uses
+  the core's (`lh_pixel_gradient_init`, `_set_linear`, `_set_radial`,
+  `_get_stops_count`, ...; `lh_gl_gradient_get_stop_count` was a second name
+  for `_get_stops_count`). gl keeps only the step from its own types:
+  `lh_gl_gradient_init_stops` and `lh_gl_gradient_color_at` take gl's colours,
+  `lh_gl_gradient_frac_at` gl's box, laid on its whole pixels
+  (`lh_gl_gradient_get_box_px`), and `lh_gl_gradient_sampler_t` is the core's
+  sampler and the table in gl's colours (`_row`, `_column`, `_map`). Every gl
+  picture is the same to the byte; the walk now gives positions that are then
+  looked up, which costs gl's radial frame 6 % and a diagonal one 3–5 % on
+  `bench/lvgl/` — still ahead of LVGL.
 - A gx style rounds each corner on its own. Its `radius` is an
   `lh_gx_corners_t` (`lh/gx/corners.h`, `lh/gx/corners/fields.h`,
   `lh/gx/corners/initializer.h`: one length per corner, clockwise from the top

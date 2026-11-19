@@ -92,7 +92,7 @@
 
 /**
  * @def LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS
- * @brief Capacity of ::lh_gl_gradient_t color stops (1..255; changes the struct layout).
+ * @brief Capacity of ::lh_pixel_gradient_t color stops (1..255; changes the struct layout).
  *        Fallback: 2 (CMake default).
  */
 #ifndef LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS

@@ -10,10 +10,14 @@ namespace
 
 // Each of these comes from a header that lh/gl.h did not reach before it was
 // made a complete umbrella; the test compiling at all is most of the check.
-TEST(ui_umbrella, reaches_gradient_sine)
+TEST(ui_umbrella, reaches_the_gradient)
 {
-    EXPECT_EQ(lh_gl_gradient_sine(0), 0);
-    EXPECT_GT(lh_gl_gradient_sine(90), 0);
+    lh_pixel_gradient_t gradient;
+    lh_gl_rect_t box;
+
+    lh_pixel_gradient_init(&gradient);
+    lh_gl_rect_init(&box, 0, 0, 10, 10);
+    EXPECT_LT(lh_gl_gradient_frac_at(&gradient, &box, 5, 0), 30) << "180: the top row first";
 }
 
 TEST(ui_umbrella, reaches_web_buf)

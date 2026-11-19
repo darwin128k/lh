@@ -4,7 +4,7 @@
  *
  * The color is held by value, so a paint never dangles. ::lh_gl_brush_t is an
  * alias of this type; ::lh_gl_pen_t embeds one. Stop maps live on
- * ::lh_gl_gradient_t, laid over the box the paint fills (::lh_gl_paint_init_gradient).
+ * ::lh_pixel_gradient_t, laid over the box the paint fills (::lh_gl_paint_init_gradient).
  */
 
 #ifndef LH_GL_PAINT_H
@@ -21,7 +21,7 @@
 struct lh_gl_paint
 {
     /** Members: ::lh_gl_paint_fields. */
-    lh_gl_paint_fields(lh_gl_paint_kind_t, lh_gl_color_t, lh_gl_gradient_t);
+    lh_gl_paint_fields(lh_gl_paint_kind_t, lh_gl_color_t, lh_pixel_gradient_t);
 };
 /** @copybrief lh_gl_paint */
 typedef struct lh_gl_paint lh_gl_paint_t;
@@ -54,12 +54,12 @@ lh_gl_paint_init_copy(lh_gl_paint_t *self, const lh_gl_paint_t *other);
  *        is also the paint's colour, for whatever asks a gradient for one colour.
  */
 lh_void
-lh_gl_paint_init_gradient(lh_gl_paint_t *self, const lh_gl_gradient_t *gradient);
+lh_gl_paint_init_gradient(lh_gl_paint_t *self, const lh_pixel_gradient_t *gradient);
 
 /**
  * @brief The gradient of @p self, or ::lh_null when it is not one.
  */
-const lh_gl_gradient_t *
+const lh_pixel_gradient_t *
 lh_gl_paint_get_gradient_v(const lh_gl_paint_t *self);
 
 /**
@@ -122,7 +122,7 @@ lh_gl_paint_set_color(lh_gl_paint_t *self, lh_gl_color_t color);
  * @param gradient The new value.
  */
 lh_void
-lh_gl_paint_set_gradient(lh_gl_paint_t *self, const lh_gl_gradient_t * gradient);
+lh_gl_paint_set_gradient(lh_gl_paint_t *self, const lh_pixel_gradient_t * gradient);
 
 /**
  * @brief The color of a color paint (level 1).
@@ -137,7 +137,7 @@ lh_gl_paint_get_color(const lh_gl_paint_t *self);
  *
  * @param self The paint; checked by ::lh_assert_runtime_ref.
  */
-const lh_gl_gradient_t *
+const lh_pixel_gradient_t *
 lh_gl_paint_get_gradient(const lh_gl_paint_t *self);
 
 LH_COMPILER_EXTERN_C_END

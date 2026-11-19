@@ -86,3 +86,13 @@ the directory `render/backend/` looks like a family with one member.
 similar) and move the `BitBlt` into `src/lh/os/system/win/`, where the
 platform's own calls belong (rule 0.2). The public `lh_gl_window_t` then stops
 naming GDI in its own fields.
+
+## The core gradient takes gl's option
+
+**The debt.** The gradient moved to `lh/core/pixel/gradient.h` (2026-11-19),
+but the number of stops it holds is still `LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS`:
+a core type sized by an option named after gl.
+
+**The plan.** Rename the option to `LH_LIBRARY_OPTION_GRADIENT_MAX_STOPS` at
+the swap (phase 8 of `docs/design/gx.md`), when gl's names change anyway, and
+keep the old name as an alias for one release.

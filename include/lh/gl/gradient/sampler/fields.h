@@ -1,31 +1,20 @@
 /**
  * @file fields.h
- * @brief Member fields of ::lh_gl_gradient_sampler_t.
+ * @brief Macro for declaring the members of ::lh_gl_gradient_sampler_t.
  */
 
 #ifndef LH_GL_GRADIENT_SAMPLER_FIELDS_H
 #define LH_GL_GRADIENT_SAMPLER_FIELDS_H
 
 /**
- * @def lh_gl_gradient_sampler_fields(gradient_type, color_type, shape_type)
- * @brief A gradient over one box: the gradient, the colour of every step of the stop
- *        axis, the box's sizes and doubled middle, and a linear gradient's direction
- *        and the length of the line it runs along.
+ * @def lh_gl_gradient_sampler_fields(sampler_type, color_type)
+ * @brief The core's sampler over the box, and the gradient's 256 colours as gl's.
  *
- * @param gradient_type ::lh_gl_gradient_t.
- * @param color_type    ::lh_gl_color_t.
- * @param shape_type    ::lh_gl_gradient_shape_t.
+ * @param sampler_type Type of the core sampler (::lh_pixel_gradient_sampler_t).
+ * @param color_type   Type of a gl colour (::lh_gl_color_t).
  */
-#define lh_gl_gradient_sampler_fields(gradient_type, color_type, shape_type)                       \
-    const gradient_type *gradient;                                                                 \
-    color_type colors[256];                                                                        \
-    shape_type shape;                                                                              \
-    lh_s64_t width;                                                                                \
-    lh_s64_t height;                                                                               \
-    lh_s64_t middle_x;                                                                             \
-    lh_s64_t middle_y;                                                                             \
-    lh_s64_t sine;                                                                                 \
-    lh_s64_t cosine;                                                                               \
-    lh_s64_t length
+#define lh_gl_gradient_sampler_fields(sampler_type, color_type)                                    \
+    sampler_type sampler;                                                                          \
+    color_type colors[256]
 
 #endif /* LH_GL_GRADIENT_SAMPLER_FIELDS_H */

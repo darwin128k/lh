@@ -214,6 +214,12 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/pixel/mask.c
         ${LH_LIB_SRC_PATH}/core/pixel/round.c
         ${LH_LIB_SRC_PATH}/core/pixel/span.c
+        ${LH_LIB_SRC_PATH}/core/pixel/gradient.c
+        ${LH_LIB_SRC_PATH}/core/pixel/gradient/lerp.c
+        ${LH_LIB_SRC_PATH}/core/pixel/gradient/sampler.c
+        ${LH_LIB_SRC_PATH}/core/pixel/gradient/sine.c
+        ${LH_LIB_SRC_PATH}/core/pixel/gradient/stop.c
+        ${LH_LIB_SRC_PATH}/core/pixel/gradient/table.c
 
 
         ${LH_LIB_SRC_PATH}/core/version.c
@@ -583,8 +589,6 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gl/paint.c
             ${LH_LIB_SRC_PATH}/gl/gradient.c
             ${LH_LIB_SRC_PATH}/gl/gradient/sampler.c
-            ${LH_LIB_SRC_PATH}/gl/gradient/sampler/lerp.c
-            ${LH_LIB_SRC_PATH}/gl/gradient/sine.c
             ${LH_LIB_SRC_PATH}/gl/style.c
             ${LH_LIB_SRC_PATH}/gl/easing.c
             ${LH_LIB_SRC_PATH}/gl/transition.c

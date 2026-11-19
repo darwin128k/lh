@@ -17,7 +17,7 @@
  *
  * @param kind     Paint kind (::lh_gl_paint_kind_t).
  * @param color    Initializer of the ::lh_gl_color_t (::lh_gl_color_initializer).
- * @param gradient `const lh_gl_gradient_t *`, or ::lh_null.
+ * @param gradient `const lh_pixel_gradient_t *`, or ::lh_null.
  *
  * Example usage:
  * @code{.c}

@@ -101,22 +101,22 @@ BM_ui_canvas_fill_box_gradient(benchmark::State &state)
     surface s(static_cast<int>(state.range(0)));
     const lh_gl_rect_t r = rect(8, 8, 72, 66);
     lh_gl_color_t stops[2] = {rgb(46, 107, 230), rgb(155, 77, 230)};
-    lh_gl_gradient_t gradient;
+    lh_pixel_gradient_t gradient;
     lh_gl_paint_t paint;
     lh_gl_radii_t radii;
 
-    lh_gl_gradient_init(&gradient);
+    lh_pixel_gradient_init(&gradient);
     lh_gl_gradient_init_stops(&gradient, stops, nullptr, 2);
     switch (state.range(1))
     {
     case 0:
-        lh_gl_gradient_set_linear(&gradient, 180);
+        lh_pixel_gradient_set_linear(&gradient, 180);
         break;
     case 1:
-        lh_gl_gradient_set_linear(&gradient, 135);
+        lh_pixel_gradient_set_linear(&gradient, 135);
         break;
     default:
-        lh_gl_gradient_set_radial(&gradient);
+        lh_pixel_gradient_set_radial(&gradient);
         break;
     }
     lh_gl_paint_init_gradient(&paint, &gradient);

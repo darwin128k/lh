@@ -36,7 +36,6 @@
 #include <lh/gl/decl.h>
 #include <lh/gl/display.h>
 #include <lh/gl/frame/stats.h>
-#include <lh/gl/gradient/sine.h>
 #include <lh/gl/pen.h>
 #include <lh/gl/range.h>
 #include <lh/gl/view.h>

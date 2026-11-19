@@ -374,8 +374,8 @@ TEST(ui_canvas_sw, a_gradient_box_matches_the_canvas_fallback_pixel_for_pixel)
     lh_gl_color_t colors[2];
     colors[0] = color_of(10, 200, 30, 255);
     colors[1] = color_of(250, 20, 140, 120);
-    lh_gl_gradient_t gradient;
-    lh_gl_gradient_init(lh_addr_of(gradient));
+    lh_pixel_gradient_t gradient;
+    lh_pixel_gradient_init(lh_addr_of(gradient));
     lh_gl_gradient_init_stops(lh_addr_of(gradient), colors, lh_null, 2);
     lh_gl_paint_t paint;
     lh_gl_paint_init_gradient(lh_addr_of(paint), lh_addr_of(gradient));
@@ -390,11 +390,11 @@ TEST(ui_canvas_sw, a_gradient_box_matches_the_canvas_fallback_pixel_for_pixel)
 
             if (angle < 0)
             {
-                lh_gl_gradient_set_radial(lh_addr_of(gradient));
+                lh_pixel_gradient_set_radial(lh_addr_of(gradient));
             }
             else
             {
-                lh_gl_gradient_set_linear(lh_addr_of(gradient), angle);
+                lh_pixel_gradient_set_linear(lh_addr_of(gradient), angle);
             }
             if (clipped != 0)
             {
