@@ -213,10 +213,12 @@ lh_gx_window_get_screen_mut(lh_gx_window_t *self);
  *
  * @param context The window (::lh_gx_window_t).
  * @param pixels  The surface's pixels; not read — the paint copies them.
+ * @param at      Where they are: `(0, 0)`, the surface is the screen.
  * @param drawn   The rectangles drawn.
  */
 lh_void
-lh_gx_window_show(lh_ptr context, const lh_gx_pixmap_t *pixels, const lh_gx_damage_t *drawn);
+lh_gx_window_show(lh_ptr context, const lh_gx_pixmap_t *pixels, lh_gx_point_t at,
+                  const lh_gx_damage_t *drawn);
 
 /**
  * @brief Draw what changed into the surface and ask the system to show it

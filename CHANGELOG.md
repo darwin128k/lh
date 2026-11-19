@@ -197,8 +197,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   characters that type.
 - `lh_gx_present_t` (`lh/gx/present.h`, `lh/gx/present/fields.h`,
   `lh/gx/present/show/fn.h`): the contract beside the canvas — the canvas draws,
-  the present shows the rectangles that changed. `lh_gx_present_draw` is a
-  frame: draw what changed, show it.
+  the present shows the rectangles that changed, with where the pixels it gets
+  stand on the screen (`at`: a band's top). `lh_gx_present_draw` is a frame:
+  draw what changed, show it.
+- `lh_gx_strip_draw` (`lh/gx/strip.h`): a frame through a band smaller than the
+  screen, for a board with no frame buffer. The damage is cut into runs of the
+  band's rows; each run is drawn into the band and shown at once, so a panel
+  that keeps its own frame gets the screen pixel for pixel.
+- `cmake/toolchain/cortex-m4.cmake` and `bench/mcu/`: lh cross-built for a
+  Cortex-M4 with no operating system, and what a gx screen costs there. A
+  button on a 320x240 RGB565 panel through a band of 20 rows is 28 KB of flash
+  (17 KB of it the Roboto font, 10 KB the code) and 13 KB of RAM (12.5 KB of it
+  the band) — `bench/mcu/RESULTS.md`.
 - `lh_gx_input_take` (`lh/gx/input.h`): where an event goes on a screen — the
   pointer's to the pointer, a press also moving the focus, a key or a text to
   the focus. The web application and the window both deliver through it.

@@ -636,6 +636,7 @@ set(LH_TEST_GL_SOURCES
         ${LH_TEST_SRC_PATH}/lh/gx/web/page.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/web.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/present.cpp
+        ${LH_TEST_SRC_PATH}/lh/gx/strip.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/window.cpp
 )
 # The player test reads the script with the JavaScript lexer.

@@ -122,11 +122,13 @@ lh_gx_window_get_screen_mut(lh_gx_window_t *self)
 }
 
 lh_void
-lh_gx_window_show(lh_ptr context, const lh_gx_pixmap_t *pixels, const lh_gx_damage_t *drawn)
+lh_gx_window_show(lh_ptr context, const lh_gx_pixmap_t *pixels, lh_gx_point_t at,
+                  const lh_gx_damage_t *drawn)
 {
     lh_gx_window_t *self = lh_ptr_rcast(lh_gx_window_t, context);
 
     LH_ATTRIBUTE_UNUSED(pixels);
+    LH_ATTRIBUTE_UNUSED(at);
     for (lh_u32_t i = 0U; i < lh_gx_damage_get_count(drawn); ++i)
     {
         lh_math_rect_t area;

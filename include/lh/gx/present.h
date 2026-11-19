@@ -78,7 +78,9 @@ lh_gx_present_is_complete(const lh_gx_present_t *self);
  * @param self    The table; must be complete.
  * @param context The target's context, handed to `show`.
  * @param render  The renderer; its canvas draws into @p pixels.
- * @param pixels  The pixels the renderer's canvas draws into.
+ * @param pixels  The pixels the renderer's canvas draws into: the whole
+ *                screen, shown at `(0, 0)`. A band of rows is
+ *                ::lh_gx_strip_draw's.
  * @return ::lh_bool_true when something was drawn and shown.
  */
 lh_bool_t

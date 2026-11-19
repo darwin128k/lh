@@ -30,7 +30,7 @@ struct Seen
 };
 
 lh_void
-remember(lh_ptr context, const lh_gx_pixmap_t *pixels, const lh_gx_damage_t *drawn)
+remember(lh_ptr context, const lh_gx_pixmap_t *pixels, lh_gx_point_t, const lh_gx_damage_t *drawn)
 {
     auto *seen = static_cast<Seen *>(context);
 

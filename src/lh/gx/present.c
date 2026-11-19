@@ -41,6 +41,9 @@ lh_gx_present_draw(const lh_gx_present_t *self, lh_ptr context, lh_gx_render_t *
 
     lh_gx_render_draw(render, lh_addr_of(drawn));
     lh_return_if(lh_gx_damage_get_count(lh_addr_of(drawn)) == 0U, lh_bool_false);
-    lh_gx_present_get_show(self)(context, pixels, lh_addr_of(drawn));
+    lh_gx_point_t at;
+
+    lh_gx_point_init(lh_addr_of(at), 0, 0);
+    lh_gx_present_get_show(self)(context, pixels, at, lh_addr_of(drawn));
     return lh_bool_true;
 }

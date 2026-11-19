@@ -684,6 +684,7 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gx/focus.c
             ${LH_LIB_SRC_PATH}/gx/input.c
             ${LH_LIB_SRC_PATH}/gx/present.c
+            ${LH_LIB_SRC_PATH}/gx/strip.c
             ${LH_LIB_SRC_PATH}/gx/canvas.c
             ${LH_LIB_SRC_PATH}/gx/class.c
             ${LH_LIB_SRC_PATH}/gx/paint.c
