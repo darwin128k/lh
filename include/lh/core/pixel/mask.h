@@ -155,6 +155,29 @@ lh_u32_t
 lh_pixel_mask_get_sample(const lh_pixel_mask_t *self, lh_s32_t x, lh_s32_t y);
 
 /**
+ * @brief Unpack @p count pixels of row @p y, from column @p x, as coverage
+ *        `0..255` into @p out: what ::lh_pixel_mask_get_coverage answers for each,
+ *        a row at a time.
+ *
+ * The depths a mask has (1, 2, 4 and 8 bits) all divide 255, so a sample is
+ * scaled by one multiplication, exactly as the per-pixel read rounds it. A
+ * pixel outside the mask — a row past its height, a column past its width or
+ * before it — is `0`. What a glyph is drawn from: unpacking a glyph a row at a
+ * time, and handing the canvas the whole glyph instead of a row, took the
+ * `cards` scene of `bench/lvgl/` (24 captions, i7-3770K) from 257 to 185
+ * microseconds a frame, the same picture to the byte (`bench/lvgl/RESULTS.md`).
+ *
+ * @param self  The mask; must not be null.
+ * @param y     The row.
+ * @param x     The first column.
+ * @param count How many pixels.
+ * @param out   Room for @p count bytes; must not be null.
+ */
+lh_void
+lh_pixel_mask_get_row_coverage(const lh_pixel_mask_t *self, lh_s32_t y, lh_s32_t x, lh_s32_t count,
+                               lh_byte_t *out);
+
+/**
  * @brief Coverage at (@p x, @p y) in `0..255` (the sample rescaled); `0` outside.
  */
 lh_byte_t

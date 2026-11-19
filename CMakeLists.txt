@@ -682,6 +682,8 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gx/hit.c
             ${LH_LIB_SRC_PATH}/gx/pointer.c
             ${LH_LIB_SRC_PATH}/gx/focus.c
+            ${LH_LIB_SRC_PATH}/gx/input.c
+            ${LH_LIB_SRC_PATH}/gx/present.c
             ${LH_LIB_SRC_PATH}/gx/canvas.c
             ${LH_LIB_SRC_PATH}/gx/class.c
             ${LH_LIB_SRC_PATH}/gx/paint.c
@@ -709,6 +711,12 @@ if (LH_LIBRARY_OPTION_GL)
     # A gx screen served to browsers: the composition over the web host.
     if (LH_LIBRARY_OPTION_OS)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gx/web.c)
+    endif ()
+    # A gx screen in a desktop window: the system's window and surface.
+    if (LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW)
+        list(APPEND LH_LIB_SOURCES
+                ${LH_LIB_SRC_PATH}/gx/window.c
+                ${LH_LIB_SRC_PATH}/gx/window/input.c)
     endif ()
 endif ()
 

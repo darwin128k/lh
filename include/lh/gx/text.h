@@ -33,6 +33,14 @@
  */
 #define LH_GX_TEXT_GLYPH_MAX 64
 
+/**
+ * @def LH_GX_TEXT_GLYPH_BYTES
+ * @brief The bytes of the coverage a glyph is unpacked into on the stack: a glyph
+ *        `w` wide goes to the canvas in bands of `LH_GX_TEXT_GLYPH_BYTES / w`
+ *        rows — a 16-pixel font's glyph in one.
+ */
+#define LH_GX_TEXT_GLYPH_BYTES 1024
+
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**

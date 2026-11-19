@@ -1,48 +1,27 @@
-/* example/gx_web_button.c
+/* example/gx_controls.c
  *
- * A gx screen in the browser: a button that counts its clicks, a checkbox
- * that lights the background and two radios that colour the button. The tree
- * is a background, a button (a box and its caption), a checkbox (a row, a
- * square, a tick and a caption) and two radios (each a checkbox of the radio
- * class, round by its style, of one group) and a slider that sizes the
- * button (a row, a rail, a fill and a knob) and a text field that names it
- * (a box, a view, a text and a caret), drawn
- * by the gx renderer through the web backend; the browser only plays the
- * frames and sends the pointer back (lh/gx/web.h).
- *
- * Run it, open http://127.0.0.1:8080/ and press the button: it darkens while
- * it is held, and a release over it clicks it. Tap the checkbox, or its
- * caption: the background turns light, and dark again. Choose "Green": the
- * button turns green, and "Blue" is unmarked. Drag the slider: the button
- * grows and shrinks around its centre as the knob follows the pointer. Click
- * the field and type: the arrows, Home, End, Backspace and Delete edit it, and
- * Enter puts its text on the button. Open a second tab: it
- * gets the whole screen, and both follow every change. The host runs on this thread
- * and does not return; stop the program with Ctrl+C.
+ * The screen of gx_controls.h. The reactions run on the thread the screen
+ * lives on — the web host's, or the window's application thread.
  */
 
-#include <stdio.h>
+#include "gx_controls.h"
+
 #include <stdlib.h>
 
+#include <lh/core/memory/std.h>
 #include <lh/core/runtime/allocator.h>
 #include <lh/core/runtime/terminate.h>
-#include <lh/core/memory/std.h>
 #include <lh/core/str/format/uint.h>
 #include <lh/core/util/str/ptr.h>
+#include <lh/gl/font.h>
 #include <lh/gx/box.h>
 #include <lh/gx/button.h>
 #include <lh/gx/checkbox.h>
 #include <lh/gx/field.h>
+#include <lh/gx/font/baked.h>
 #include <lh/gx/radio.h>
 #include <lh/gx/slider.h>
-#include <lh/gl/font.h>
-#include <lh/gx/font/baked.h>
 #include <lh/gx/style.h>
-#include <lh/gx/web.h>
-#include <lh/rail/runtime/base.h>
-#include <lh/os/net.h>
-#include <lh/os/rail/base.h>
-#include <lh/os/web/host.h>
 
 /* The example is a host: the core starts with every runtime slot empty, so it
    binds the C library before lh allocates anything. */
@@ -67,6 +46,13 @@ example_abort(lh_self_ptr self)
     abort();
 }
 
+void
+gx_controls_bind_runtime(void)
+{
+    lh_memory_allocator_init(lh_runtime_allocator_get_mut(), example_alloc, example_dealloc);
+    lh_runtime_terminate_handler_init(lh_runtime_terminate_get_mut(), example_abort, NULL);
+}
+
 /* The background, and the style the checkbox changes. */
 static lh_gx_style_t back_style;
 static lh_gx_entity_t back;
@@ -82,7 +68,7 @@ static lh_gx_radio_t green;
 /* The caption the button shows after a click: "Clicked N". */
 static lh_char_t caption[32] = "Press me";
 
-/* The button's reaction; it runs on the host's thread, where the tree lives. */
+/* The button's reaction; it runs on the thread the tree lives on. */
 static lh_void
 on_click(lh_gx_button_t *button, lh_ptr context)
 {
@@ -148,22 +134,9 @@ on_name(lh_gx_field_t *field, lh_ptr context)
     lh_gx_button_set_text(&button, caption);
 }
 
-int
-main(void)
+void
+gx_controls_build(lh_gx_entity_t *screen)
 {
-    /* Everything the host serves lives as long as the program: the records point
-       at each other, and the host never returns. */
-    static lh_gx_web_t web;
-
-    lh_memory_allocator_init(lh_runtime_allocator_get_mut(), example_alloc, example_dealloc);
-    lh_runtime_terminate_handler_init(lh_runtime_terminate_get_mut(), example_abort, NULL);
-    /* The host is a rail loop, and rail runs on what the program gives it: the OS. */
-    lh_rail_base_assign(lh_rail_runtime_base_get_mut(), lh_os_rail_base_get());
-    if (!lh_os_net_init())
-    {
-        fprintf(stderr, "the network would not start\n");
-        return 1;
-    }
     /* The built-in Roboto still lives in gl; it moves with the swap (docs/cleanup.md).
        Without it the button still works; it only has no caption. */
     const lh_font_t *table = lh_gl_font_get_default();
@@ -176,18 +149,18 @@ main(void)
         face = &font;
     }
 
-    lh_gx_web_init(&web, 320, 200);
     lh_gx_style_init(&back_style, 0xFF2B2B30U, 0U, 0, 0, 0U, lh_null);
     lh_gx_style_init(&button_style, 0xFF3D7BD9U, 0xFF2A5CA8U, 1, 0, 0xFFFFFFFFU, face);
     static lh_gx_style_t pressed_style;
 
     lh_gx_style_init(&pressed_style, 0xFF2A5CA8U, 0xFF1D4480U, 1, 0, 0xFFFFFFFFU, face);
-    lh_gx_entity_init(&back, &lh_gx_box_class, &back_style, 0, 0, 320, 200);
+    lh_gx_entity_init(&back, &lh_gx_box_class, &back_style, 0, 0, GX_CONTROLS_WIDTH,
+                      GX_CONTROLS_HEIGHT);
     static lh_uint_t clicks;
 
     lh_gx_button_init(&button, &button_style, 90, 76, 140, 48, caption, on_click, &clicks);
     lh_gx_button_set_pressed_style(&button, &pressed_style);
-    lh_gx_entity_attach(lh_gx_web_get_screen_mut(&web), &back);
+    lh_gx_entity_attach(screen, &back);
     lh_gx_entity_attach(&back, lh_gx_button_get_box_mut(&button));
     static lh_gx_style_t field_style;
 
@@ -240,15 +213,4 @@ main(void)
     lh_gx_field_init(&entry, &entry_style, &entry_focus_style, &caret_style, 130, 24, 170, 26, name,
                      sizeof(name), lh_null, on_name, lh_null);
     lh_gx_entity_attach(&back, lh_gx_field_get_box_mut(&entry));
-    const lh_net_port_t port = 8080U;
-
-    printf("open http://127.0.0.1:%u/\n", (unsigned)port);
-    fflush(stdout);
-    if (!lh_os_web_host_run(lh_gx_web_get_app_mut(&web), port))
-    {
-        fprintf(stderr, "the web host would not start on port %u\n", (unsigned)port);
-    }
-    lh_gx_web_deinit(&web);
-    lh_os_net_deinit();
-    return 1;
 }

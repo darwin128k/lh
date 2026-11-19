@@ -126,6 +126,29 @@ lh_pixel_mask_get_sample(const lh_pixel_mask_t *self, lh_s32_t x, lh_s32_t y)
                              lh_pixel_mask_get_bpp(self));
 }
 
+lh_void
+lh_pixel_mask_get_row_coverage(const lh_pixel_mask_t *self, lh_s32_t y, lh_s32_t x, lh_s32_t count,
+                               lh_byte_t *out)
+{
+    const lh_s32_t width = lh_pixel_mask_get_width(self);
+    const lh_u32_t bpp = lh_pixel_mask_get_bpp(self);
+    const lh_u32_t scale = 255U / lh_bit_packed_max(bpp);
+    const lh_bool_t inside =
+        lh_cast_static(lh_bool_t, y >= 0 && y < lh_pixel_mask_get_height(self));
+    const lh_byte_t *row = inside ? lh_pixel_mask_get_row(self, y) : lh_null;
+
+    for (lh_s32_t i = 0; i < count; ++i)
+    {
+        const lh_s32_t column = x + i;
+
+        out[i] = inside && column >= 0 && column < width
+                     ? lh_cast_static(
+                           lh_byte_t,
+                           lh_bit_packed_get(row, lh_cast_static(lh_u32_t, column), bpp) * scale)
+                     : 0U;
+    }
+}
+
 lh_byte_t
 lh_pixel_mask_get_coverage(const lh_pixel_mask_t *self, lh_s32_t x, lh_s32_t y)
 {

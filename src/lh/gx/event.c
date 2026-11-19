@@ -62,6 +62,13 @@ lh_gx_event_set_code(lh_gx_event_t *self, lh_u32_t code)
 }
 
 lh_bool_t
+lh_gx_event_is_text_code(lh_u32_t code)
+{
+    return lh_cast_static(lh_bool_t, code >= 0x20U && code != 0x7FU &&
+                                         (code < 0xD800U || code > 0xDFFFU) && code <= 0x10FFFFU);
+}
+
+lh_bool_t
 lh_gx_event_is_pointer(const lh_gx_event_t *self)
 {
     return lh_cast_static(lh_bool_t, lh_gx_event_get_kind(self) <= lh_gx_event_kind_cancel);

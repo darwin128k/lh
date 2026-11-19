@@ -48,9 +48,8 @@ lh_gx_box_fill_px(const lh_gx_paint_t *paint, lh_s32_t x, lh_s32_t y, lh_s32_t w
 }
 
 lh_void
-lh_gx_box_paint_corner_row(const lh_gx_paint_t *paint, const lh_math_rect_t *outer, lh_s32_t radius,
-                           lh_s32_t border, const lh_gx_style_t *style, lh_s32_t x, lh_s32_t y,
-                           lh_s32_t count)
+lh_gx_box_paint_corner(const lh_gx_paint_t *paint, const lh_math_rect_t *outer, lh_s32_t radius,
+                       lh_s32_t border, const lh_gx_style_t *style, lh_s32_t x, lh_s32_t y)
 {
     const lh_math_point_t *at = lh_math_rect_get_origin(outer);
     const lh_math_size_t *size = lh_math_rect_get_size(outer);
@@ -65,34 +64,55 @@ lh_gx_box_paint_corner_row(const lh_gx_paint_t *paint, const lh_math_rect_t *out
     const lh_s64_t inset = lh_cast_static(lh_s64_t, border) * LH_PIXEL_ROUND_SUBPIXEL;
     const lh_s64_t r = lh_cast_static(lh_s64_t, radius) * LH_PIXEL_ROUND_SUBPIXEL;
     const lh_s64_t inner_r = lh_math_max(r - inset, 0);
-    lh_byte_t fill_cover[LH_GX_BOX_RADIUS_MAX];
-    lh_byte_t border_cover[LH_GX_BOX_RADIUS_MAX];
+    /* As many rows as fit in the stack's mask, at least one. */
+    const lh_s32_t band = lh_math_max(LH_GX_BOX_CORNER_BYTES / radius, 1);
+    lh_byte_t fill_cover[LH_GX_BOX_CORNER_BYTES];
+    lh_byte_t border_cover[LH_GX_BOX_CORNER_BYTES];
 
-    for (lh_s32_t i = 0; i < count; ++i)
+    for (lh_s32_t top = 0; top < radius; top += band)
     {
-        const lh_byte_t outer_cover = lh_pixel_round_coverage(lo_x, lo_y, hi_x, hi_y, r, x + i, y);
-        const lh_byte_t inner_cover = lh_pixel_round_coverage(
-            lo_x + inset, lo_y + inset, hi_x - inset, hi_y - inset, inner_r, x + i, y);
+        const lh_s32_t rows = lh_math_min(band, radius - top);
 
-        fill_cover[i] = inner_cover;
-        border_cover[i] = lh_cast_static(lh_byte_t, lh_math_max(outer_cover - inner_cover, 0));
+        for (lh_s32_t row = 0; row < rows; ++row)
+        {
+            for (lh_s32_t i = 0; i < radius; ++i)
+            {
+                const lh_byte_t outer_cover =
+                    lh_pixel_round_coverage(lo_x, lo_y, hi_x, hi_y, r, x + i, y + top + row);
+                /* With no border the inner shape is the outer one. */
+                const lh_byte_t inner_cover =
+                    border == 0
+                        ? outer_cover
+                        : lh_pixel_round_coverage(lo_x + inset, lo_y + inset, hi_x - inset,
+                                                  hi_y - inset, inner_r, x + i, y + top + row);
+
+                fill_cover[row * radius + i] = inner_cover;
+                border_cover[row * radius + i] =
+                    lh_cast_static(lh_byte_t, lh_math_max(outer_cover - inner_cover, 0));
+            }
+        }
+        lh_gx_point_t origin;
+
+        lh_gx_point_init(lh_addr_of(origin), lh_cast_static(lh_gx_scalar_t, x),
+                         lh_cast_static(lh_gx_scalar_t, y + top));
+        lh_memory_bounds_t bits;
+
+        lh_memory_bounds_init(lh_addr_of(bits), fill_cover,
+                              lh_cast_static(lh_usize_t, rows * radius));
+        lh_gx_pixmap_t mask;
+
+        lh_gx_pixmap_init(lh_addr_of(mask), lh_addr_of(bits), lh_cast_static(lh_u32_t, radius),
+                          lh_cast_static(lh_u32_t, rows), lh_gx_pixmap_format_a8);
+        lh_gx_paint_fill_mask(paint, lh_addr_of(mask), origin, lh_gx_style_get_fill(style));
+        if (border != 0)
+        {
+            /* The mask holds a copy of its bounds: it is given the border's anew. */
+            lh_memory_bounds_init(lh_addr_of(bits), border_cover,
+                                  lh_cast_static(lh_usize_t, rows * radius));
+            lh_gx_pixmap_set_bits(lh_addr_of(mask), lh_addr_of(bits));
+            lh_gx_paint_fill_mask(paint, lh_addr_of(mask), origin, lh_gx_style_get_border(style));
+        }
     }
-    lh_gx_point_t origin;
-
-    lh_gx_point_init(lh_addr_of(origin), lh_cast_static(lh_gx_scalar_t, x),
-                     lh_cast_static(lh_gx_scalar_t, y));
-    lh_memory_bounds_t bits;
-
-    lh_memory_bounds_init(lh_addr_of(bits), fill_cover, lh_cast_static(lh_usize_t, count));
-    lh_gx_pixmap_t mask;
-    lh_gx_pixmap_init(lh_addr_of(mask), lh_addr_of(bits), lh_cast_static(lh_u32_t, count), 1U,
-                      lh_gx_pixmap_format_a8);
-    lh_gx_paint_fill_mask(paint, lh_addr_of(mask), origin, lh_gx_style_get_fill(style));
-    lh_return_if(border == 0);
-    /* The mask holds a copy of its bounds: it is given the border's anew. */
-    lh_memory_bounds_init(lh_addr_of(bits), border_cover, lh_cast_static(lh_usize_t, count));
-    lh_gx_pixmap_set_bits(lh_addr_of(mask), lh_addr_of(bits));
-    lh_gx_paint_fill_mask(paint, lh_addr_of(mask), origin, lh_gx_style_get_border(style));
 }
 
 lh_void
@@ -115,20 +135,20 @@ lh_gx_box_paint(const lh_gx_entity_t *entity, const lh_gx_paint_t *paint)
     const lh_gx_color_t fill = lh_gx_style_get_fill(style);
     const lh_gx_color_t edge = lh_gx_style_get_border(style);
 
-    /* The corner bands: the corners pixel by pixel, the middle of each row as one
-       rectangle — of the border on a border row, of the fill below it. */
-    for (lh_s32_t i = 0; i < r; ++i)
+    /* The corner bands: the four corners as masks, the middle between them as a
+       rectangle of the border over one of the fill. */
+    if (r > 0)
     {
-        const lh_s32_t rows[2] = {y0 + i, y0 + h - 1 - i};
+        const lh_s32_t edge_rows = lh_math_min(b, r);
 
-        for (lh_s32_t k = 0; k < 2; ++k)
-        {
-            const lh_s32_t y = rows[k];
-
-            lh_gx_box_paint_corner_row(paint, lh_addr_of(outer), r, b, style, x0, y, r);
-            lh_gx_box_paint_corner_row(paint, lh_addr_of(outer), r, b, style, x0 + w - r, y, r);
-            lh_gx_box_fill_px(paint, x0 + r, y, w - 2 * r, 1, i < b ? edge : fill);
-        }
+        lh_gx_box_paint_corner(paint, lh_addr_of(outer), r, b, style, x0, y0);
+        lh_gx_box_paint_corner(paint, lh_addr_of(outer), r, b, style, x0 + w - r, y0);
+        lh_gx_box_paint_corner(paint, lh_addr_of(outer), r, b, style, x0, y0 + h - r);
+        lh_gx_box_paint_corner(paint, lh_addr_of(outer), r, b, style, x0 + w - r, y0 + h - r);
+        lh_gx_box_fill_px(paint, x0 + r, y0, w - 2 * r, edge_rows, edge);
+        lh_gx_box_fill_px(paint, x0 + r, y0 + edge_rows, w - 2 * r, r - edge_rows, fill);
+        lh_gx_box_fill_px(paint, x0 + r, y0 + h - r, w - 2 * r, r - edge_rows, fill);
+        lh_gx_box_fill_px(paint, x0 + r, y0 + h - edge_rows, w - 2 * r, edge_rows, edge);
     }
     /* The straight band: border rows across, then the sides and the fill as three
        rectangles. */

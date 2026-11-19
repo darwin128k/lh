@@ -17,6 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- gx draws a box's corner and a glyph whole: `lh_gx_box_paint_corner` (which
+  replaces `lh_gx_box_paint_corner_row`) hands the canvas one mask per band of
+  rows (`LH_GX_BOX_CORNER_BYTES`) and works out the inner coverage only with a
+  border; `lh_gx_text_paint_glyph` unpacks a glyph a row at a time and hands it
+  over in bands of `LH_GX_TEXT_GLYPH_BYTES`. On the `cards` scene of the bench
+  a full frame went from 337 to 188 microseconds, the picture unchanged to the
+  byte — gx is now level with gl there and ahead of LVGL; the web backend sends
+  one command per corner and per glyph instead of one per row.
 - `lh_gx_class_initializer` and `lh_gx_class_fields` take a `key` slot
   between `input` and `report`: every constant class table gains one
   argument (`lh_null` for a class that takes no keys).
@@ -177,6 +185,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `bench/lvgl/scene_gx.c`: gx in the bench against LVGL, on the scene it can
+  draw (`cards`). The bench builds lh with `LH_LIBRARY_OPTION_GL` and the
+  built-in font on, which its scenes need now that the option is off by
+  default.
+- `lh_pixel_mask_get_row_coverage`: a row of a mask as coverage `0..255`, the
+  per-pixel read a row at a time, scaled by one multiplication.
 - `lh_gx_field_t` (`lh/gx/field.h`, `lh/gx/field/fields.h`,
   `lh/gx/field/fn.h`): a one-line text field, the first control that takes
   the focus — a box of `lh_gx_field_class` (the box's look, its own `input`

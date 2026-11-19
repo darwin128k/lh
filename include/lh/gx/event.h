@@ -108,6 +108,19 @@ lh_void
 lh_gx_event_set_code(lh_gx_event_t *self, lh_u32_t code);
 
 /**
+ * @brief Whether @p code is a character a text event may carry: one that types —
+ *        not a control character (below U+0020, or U+007F) and not half of a
+ *        surrogate pair — up to U+10FFFF.
+ *
+ * A source that reports Enter or Backspace as a character as well as a key (a
+ * Windows `WM_CHAR` does) drops it here: those are key events.
+ *
+ * @param code A Unicode code point.
+ */
+lh_bool_t
+lh_gx_event_is_text_code(lh_u32_t code);
+
+/**
  * @brief Whether the event is the pointer's — a press, a move, a release or a
  *        cancel — and so goes to a class's `input` slot.
  *

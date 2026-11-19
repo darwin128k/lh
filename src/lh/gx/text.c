@@ -34,25 +34,31 @@ lh_gx_text_paint_glyph(const lh_gx_paint_t *paint, const lh_gx_glyph_t *glyph, l
 
     lh_return_if(width <= 0 || height <= 0);
     const lh_s32_t top = baseline + lh_gx_glyph_get_top(glyph);
-    lh_byte_t cover[LH_GX_TEXT_GLYPH_MAX];
-    lh_memory_bounds_t bits;
+    /* The glyph goes to the canvas whole, a band of rows at a time: one mask per
+       band, not one per row. */
+    const lh_s32_t band = lh_math_max(LH_GX_TEXT_GLYPH_BYTES / width, 1);
+    lh_byte_t cover[LH_GX_TEXT_GLYPH_BYTES];
 
-    lh_memory_bounds_init(lh_addr_of(bits), cover, lh_cast_static(lh_usize_t, width));
-    lh_gx_pixmap_t row;
-
-    lh_gx_pixmap_init(lh_addr_of(row), lh_addr_of(bits), lh_cast_static(lh_u32_t, width), 1U,
-                      lh_gx_pixmap_format_a8);
-    for (lh_s32_t y = 0; y < height; ++y)
+    for (lh_s32_t first = 0; first < height; first += band)
     {
-        for (lh_s32_t i = 0; i < width; ++i)
+        const lh_s32_t rows = lh_math_min(band, height - first);
+
+        for (lh_s32_t row = 0; row < rows; ++row)
         {
-            cover[i] = lh_pixel_mask_get_coverage(mask, i, y);
+            lh_pixel_mask_get_row_coverage(mask, first + row, 0, width, cover + row * width);
         }
+        lh_memory_bounds_t bits;
+
+        lh_memory_bounds_init(lh_addr_of(bits), cover, lh_cast_static(lh_usize_t, rows * width));
+        lh_gx_pixmap_t block;
+
+        lh_gx_pixmap_init(lh_addr_of(block), lh_addr_of(bits), lh_cast_static(lh_u32_t, width),
+                          lh_cast_static(lh_u32_t, rows), lh_gx_pixmap_format_a8);
         lh_gx_point_t at;
 
         lh_gx_point_init(lh_addr_of(at), lh_cast_static(lh_gx_scalar_t, x),
-                         lh_cast_static(lh_gx_scalar_t, top + y));
-        lh_gx_paint_fill_mask(paint, lh_addr_of(row), at, color);
+                         lh_cast_static(lh_gx_scalar_t, top + first));
+        lh_gx_paint_fill_mask(paint, lh_addr_of(block), at, color);
     }
 }
 

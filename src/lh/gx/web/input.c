@@ -83,10 +83,7 @@ lh_gx_web_input_try_parse_code(const lh_char_t *text, lh_usize_t size, lh_u32_t 
     lh_uint_t value = 0U;
 
     lh_return_if(!lh_str_ptr_parse_uint(text, size, 0x10FFFFU, lh_addr_of(value)), lh_bool_false);
-    /* What types is a character: not a control (a key does that) nor half of a
-       surrogate pair. */
-    lh_return_if(value < 0x20U || value == 0x7FU || (value >= 0xD800U && value <= 0xDFFFU),
-                 lh_bool_false);
+    lh_return_if(!lh_gx_event_is_text_code(lh_cast_static(lh_u32_t, value)), lh_bool_false);
     lh_ptr_deref(out) = lh_cast_static(lh_u32_t, value);
     return lh_bool_true;
 }

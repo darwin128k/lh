@@ -16,6 +16,7 @@
 #include <lh/gx/box.h>
 #include <lh/gx/font/baked.h>
 #include <lh/gx/render.h>
+#include <lh/gx/paint.h>
 #include <lh/gx/text.h>
 #include <lh/test/gx/tiny_font.h>
 
@@ -127,6 +128,47 @@ TEST(gx_text, the_glyphs_land_on_the_baseline_and_the_pen_moves)
     EXPECT_EQ(at(7, 1), 0xFFFFFFFFU);
     EXPECT_EQ(at(8, 0), 0xFF000000U);
     EXPECT_EQ(at(1, 2), 0xFF000000U) << "below the ink";
+}
+
+TEST(gx_text, a_glyph_too_big_for_one_band_is_drawn_whole)
+{
+    /* A 64 by 20 glyph of full coverage: 1280 bytes of coverage, more than one
+       band of LH_GX_TEXT_GLYPH_BYTES, so it goes to the canvas in two. */
+    static lh_byte_t ink[32 * 20];
+    static lh_u32_t words[70 * 24];
+
+    ASSERT_GT(64 * 20, LH_GX_TEXT_GLYPH_BYTES);
+    for (lh_byte_t &b : ink)
+    {
+        b = 0xFFU;
+    }
+    lh_pixel_mask_t mask;
+    lh_pixel_mask_init(&mask, ink, 64, 20, 32, 4U);
+    lh_gx_glyph_t glyph;
+    lh_gx_glyph_init(&glyph, mask, 64, -20);
+    lh_memory_bounds_t bits;
+    lh_memory_bounds_init(&bits, words, sizeof(words));
+    lh_gx_pixmap_t target;
+    lh_gx_pixmap_init(&target, &bits, 70U, 24U, lh_gx_pixmap_format_argb8888);
+    lh_gx_backend_sw_t sw;
+    lh_gx_backend_sw_init(&sw, &target, 0, 0);
+    lh_gx_canvas_t canvas;
+    lh_gx_backend_sw_canvas_init(&canvas);
+    lh_gx_rect_t all;
+    lh_gx_rect_init(&all, 0, 0, 70, 24);
+    lh_gx_paint_t paint;
+    lh_gx_paint_init(&paint, &canvas, &sw, all, all);
+    lh_gx_text_paint_glyph(&paint, &glyph, 2, 22, 0xFFFFFFFFU);
+
+    for (int y = 0; y < 24; ++y)
+    {
+        for (int x = 0; x < 70; ++x)
+        {
+            const bool inked = x >= 2 && x < 66 && y >= 2 && y < 22;
+
+            ASSERT_EQ(words[y * 70 + x], inked ? 0xFFFFFFFFU : 0U) << x << "," << y;
+        }
+    }
 }
 
 } // namespace

@@ -39,6 +39,17 @@
  */
 #define LH_GX_BOX_RADIUS_MAX 64
 
+/**
+ * @def LH_GX_BOX_CORNER_BYTES
+ * @brief The bytes of one corner mask kept on the stack: a corner of radius `r`
+ *        goes to the canvas in bands of `LH_GX_BOX_CORNER_BYTES / r` rows — a
+ *        whole corner up to radius 32, four bands at radius 64.
+ *
+ * Two of them are on the stack while a corner is drawn (the fill's and the
+ * border's), so the stack a box takes stays bounded whatever its radius.
+ */
+#define LH_GX_BOX_CORNER_BYTES 1024
+
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
@@ -82,23 +93,29 @@ lh_gx_box_fill_px(const lh_gx_paint_t *paint, lh_s32_t x, lh_s32_t y, lh_s32_t w
                   lh_s32_t height, lh_gx_color_t color);
 
 /**
- * @brief Draw the corner pixels of row @p y from column @p x for @p count columns:
- *        the fill through the inner rounded rectangle, the border through the ring
- *        between the inner and the outer one.
+ * @brief Draw one corner of the box: the @p radius by @p radius square from
+ *        column @p x and row @p y — the fill through the inner rounded rectangle,
+ *        the border through the ring between the inner and the outer one.
+ *
+ * The coverage of the square is worked out into a mask and handed to the
+ * canvas whole: one `fill_mask` for the fill and one for the border per band of
+ * rows (::LH_GX_BOX_CORNER_BYTES), not one per row; with no border the inner
+ * shape is the outer one and its coverage is not worked out twice. On the
+ * `cards` scene of `bench/lvgl/` (24 cards of radius 8, 480 by 320, i7-3770K)
+ * the two took a whole frame from 337 to 257 microseconds, the same picture to
+ * the byte (`bench/lvgl/RESULTS.md`).
  *
  * @param paint  The paint; must not be null.
  * @param outer  The box, whole pixels.
- * @param radius Its radius, whole pixels.
+ * @param radius Its radius, whole pixels; at most ::LH_GX_BOX_RADIUS_MAX.
  * @param border Its border width, whole pixels.
  * @param style  Its style: the colours.
- * @param x      The first column of the corner.
- * @param y      The row.
- * @param count  The columns, at most ::LH_GX_BOX_RADIUS_MAX.
+ * @param x      The corner's first column.
+ * @param y      The corner's first row.
  */
 lh_void
-lh_gx_box_paint_corner_row(const lh_gx_paint_t *paint, const lh_math_rect_t *outer, lh_s32_t radius,
-                           lh_s32_t border, const lh_gx_style_t *style, lh_s32_t x, lh_s32_t y,
-                           lh_s32_t count);
+lh_gx_box_paint_corner(const lh_gx_paint_t *paint, const lh_math_rect_t *outer, lh_s32_t radius,
+                       lh_s32_t border, const lh_gx_style_t *style, lh_s32_t x, lh_s32_t y);
 
 /**
  * @brief `paint` of the box class (::lh_gx_class_paint_fn): the box of the entity's

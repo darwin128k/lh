@@ -12,6 +12,7 @@
 #include <gtest/gtest.h>
 
 #include <lh/gx/backend/sw.h>
+#include <lh/core/pixel/round.h>
 #include <lh/gx/box.h>
 #include <lh/gx/render.h>
 #include <lh/gx/style/initializer.h>
@@ -139,16 +140,63 @@ TEST(gx_box, a_rounded_border_rings_the_corner)
         << "inside the ring, in the corner's own pixels: the border is a ring there too";
 }
 
+TEST(gx_box, a_large_corner_drawn_in_bands_is_its_coverage_pixel_by_pixel)
+{
+    /* A white box 96 square, radius 40, on black: a corner of 40 rows goes to the
+       canvas in bands of LH_GX_BOX_CORNER_BYTES / 40 rows. Each corner pixel is
+       white at its coverage, and the four corners agree. */
+    static lh_u32_t words[96 * 96];
+
+    ASSERT_GT(40, LH_GX_BOX_CORNER_BYTES / 40) << "more than one band";
+    lh_memory_bounds_t bits;
+    lh_memory_bounds_init(&bits, words, sizeof(words));
+    lh_gx_pixmap_t pixmap;
+    lh_gx_pixmap_init(&pixmap, &bits, 96U, 96U, lh_gx_pixmap_format_argb8888);
+    lh_gx_backend_sw_t sw;
+    lh_gx_backend_sw_init(&sw, &pixmap, 0, 0);
+    lh_gx_canvas_t canvas;
+    lh_gx_backend_sw_canvas_init(&canvas);
+    lh_gx_render_t render;
+    lh_gx_render_init(&render, &canvas, &sw, 96, 96);
+    lh_gx_style_t back_style;
+    lh_gx_style_init(&back_style, back_color, 0U, 0, 0, 0U, nullptr);
+    lh_gx_style_t style;
+    lh_gx_style_init(&style, fill_color, 0U, 0, 40, 0U, nullptr);
+    lh_gx_entity_t back;
+    lh_gx_entity_init(&back, &lh_gx_box_class, &back_style, 0, 0, 96, 96);
+    lh_gx_entity_t card;
+    lh_gx_entity_init(&card, &lh_gx_box_class, &style, 0, 0, 96, 96);
+    lh_gx_entity_attach(lh_gx_render_get_screen_mut(&render), &back);
+    lh_gx_entity_attach(&back, &card);
+    lh_gx_damage_t drawn;
+    lh_gx_render_draw(&render, &drawn);
+
+    const lh_s64_t one = LH_PIXEL_ROUND_SUBPIXEL;
+    for (int y = 0; y < 40; ++y)
+    {
+        for (int x = 0; x < 40; ++x)
+        {
+            const lh_u32_t c = lh_pixel_round_coverage(0, 0, 96 * one, 96 * one, 40 * one, x, y);
+            const lh_u32_t want = 0xFF000000U | (c << 16) | (c << 8) | c;
+
+            ASSERT_EQ(words[y * 96 + x], want) << x << "," << y;
+            ASSERT_EQ(words[y * 96 + (95 - x)], want) << "top right " << x << "," << y;
+            ASSERT_EQ(words[(95 - y) * 96 + x], want) << "bottom left " << x << "," << y;
+            ASSERT_EQ(words[(95 - y) * 96 + (95 - x)], want) << "bottom right " << x << "," << y;
+        }
+    }
+}
+
 TEST(gx_box, it_covers_only_where_opaque_and_clear_of_the_corners)
 {
-    lh_gx_style_t style;
-    lh_gx_entity_t card;
     const lh_gx_rect_t place = rect(0, 0, 20, 10);
     const lh_gx_rect_t middle = rect(5, 2, 4, 4);
     const lh_gx_rect_t corner = rect(0, 0, 3, 3);
     const lh_gx_rect_t top_strip = rect(4, 0, 12, 2);
 
+    lh_gx_style_t style;
     lh_gx_style_init(&style, 0xFFFFFFFFU, 0U, 0, 4, 0U, nullptr);
+    lh_gx_entity_t card;
     lh_gx_entity_init(&card, &lh_gx_box_class, &style, 0, 0, 20, 10);
     EXPECT_EQ(lh_gx_box_covers(&card, &place, &middle), lh_bool_true);
     EXPECT_EQ(lh_gx_box_covers(&card, &place, &top_strip), lh_bool_true) << "between the corners";
@@ -165,12 +213,12 @@ TEST(gx_box, a_restyled_card_is_redrawn_alone)
 {
     Screen screen(0, 0);
     lh_gx_style_t green;
-    lh_gx_damage_t drawn;
 
     lh_gx_style_init(&green, 0xFF00FF00U, 0U, 0, 0, 0U, nullptr);
     screen.words[0] = 0x12345678U;
     lh_gx_entity_set_style(&screen.card, &green);
     lh_gx_entity_invalidate(&screen.card);
+    lh_gx_damage_t drawn;
     lh_gx_render_draw(&screen.render, &drawn);
 
     EXPECT_EQ(lh_gx_damage_area(&drawn), 16U * 8U);

@@ -270,6 +270,7 @@ set(LH_TEST_MATH_SOURCES
         ${LH_TEST_SRC_PATH}/lh/core/math/size.cpp
         ${LH_TEST_SRC_PATH}/lh/core/math/rect.cpp
         ${LH_TEST_SRC_PATH}/lh/core/pixel/pixel.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/pixel/mask.cpp
         ${LH_TEST_SRC_PATH}/lh/core/math/rescale.cpp
         ${LH_TEST_SRC_PATH}/lh/core/math/fit.cpp
         ${LH_TEST_SRC_PATH}/lh/core/math/scalar/centre.cpp
@@ -634,6 +635,8 @@ set(LH_TEST_GL_SOURCES
         ${LH_TEST_SRC_PATH}/lh/gx/web/input.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/web/page.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/web.cpp
+        ${LH_TEST_SRC_PATH}/lh/gx/present.cpp
+        ${LH_TEST_SRC_PATH}/lh/gx/window.cpp
 )
 # The player test reads the script with the JavaScript lexer.
 if (LH_LIBRARY_OPTION_GL AND LH_LIBRARY_OPTION_JS)

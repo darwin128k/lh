@@ -9,6 +9,7 @@
 #include <lh/core/http/method.h>
 #include <lh/core/http/status.h>
 #include <lh/core/util/return.h>
+#include <lh/gx/input.h>
 #include <lh/gx/web/input.h>
 #include <lh/gx/web/page.h>
 #include <lh/os/web/host.h>
@@ -185,20 +186,8 @@ lh_gx_web_take_line(lh_gx_web_t *self, const lh_char_t *text, lh_usize_t size)
     lh_gx_event_t event;
 
     lh_return_if(!lh_gx_web_input_try_parse(text, size, lh_addr_of(event)), lh_bool_false);
-    if (lh_gx_event_is_pointer(lh_addr_of(event)))
-    {
-        lh_gx_pointer_t *pointer = lh_gx_web_get_pointer_mut(self);
-
-        lh_gx_pointer_take(pointer, lh_gx_web_get_screen_mut(self), lh_addr_of(event));
-        if (lh_gx_event_get_kind(lh_addr_of(event)) == lh_gx_event_kind_press)
-        {
-            lh_gx_focus_press(lh_gx_web_get_focus_mut(self), lh_gx_pointer_get_captured(pointer));
-        }
-    }
-    else
-    {
-        LH_ATTRIBUTE_UNUSED(lh_gx_focus_take(lh_gx_web_get_focus(self), lh_addr_of(event)));
-    }
+    lh_gx_input_take(lh_gx_web_get_pointer_mut(self), lh_gx_web_get_focus_mut(self),
+                     lh_gx_web_get_screen_mut(self), lh_addr_of(event));
     LH_ATTRIBUTE_UNUSED(lh_gx_web_bump_if_changed(self));
     return lh_bool_true;
 }
