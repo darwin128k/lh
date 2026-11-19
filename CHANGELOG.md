@@ -185,6 +185,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_gx_window_t` (`lh/gx/window.h`, `lh/gx/window/fields.h`): a gx screen in
+  a desktop window, with the OS and window options. The system's window is
+  opened through the installed window backend, the software backend draws into
+  a system surface the window's size, and a frame asks the system to repaint
+  only the rectangles drawn; a paint copies the surface, so an uncovered
+  window is repainted without drawing. A frame is drawn on the tick and right
+  after an input; a resize makes a new surface. `lh/gx/window/input.h`
+  translates the system's input (`lh_gx_window_input_try_get_event`,
+  `_try_get_key`): the primary button at whole pixels, the control keys, the
+  characters that type.
+- `lh_gx_present_t` (`lh/gx/present.h`, `lh/gx/present/fields.h`,
+  `lh/gx/present/show/fn.h`): the contract beside the canvas — the canvas draws,
+  the present shows the rectangles that changed. `lh_gx_present_draw` is a
+  frame: draw what changed, show it.
+- `lh_gx_input_take` (`lh/gx/input.h`): where an event goes on a screen — the
+  pointer's to the pointer, a press also moving the focus, a key or a text to
+  the focus. The web application and the window both deliver through it.
+- `lh_gx_event_is_text_code`: a code point that types; a source reporting Enter
+  or Backspace as a character (`WM_CHAR`) drops it. The web input reads with
+  it.
+- `example/gx_window.c`: the controls of `example/gx_controls.c` in a desktop
+  window. `example/gx_web_button.c` is now `example/gx_web.c` over the same
+  screen.
 - `bench/lvgl/scene_gx.c`: gx in the bench against LVGL, on the scene it can
   draw (`cards`). The bench builds lh with `LH_LIBRARY_OPTION_GL` and the
   built-in font on, which its scenes need now that the option is off by
