@@ -188,6 +188,20 @@ lh_pixel_shadow_init(lh_pixel_shadow_t *self, const lh_pixel_round_box_t *box, l
     lh_pixel_shadow_set_start(self, 0);
 }
 
+lh_bool_t
+lh_pixel_shadow_is_equal(const lh_pixel_shadow_t *self, const lh_pixel_shadow_t *other)
+{
+    /* The fade's start and step follow from the peak and the spread, and the
+       straight reaches from the box and the radius: what is left is compared. */
+    return lh_pixel_round_box_is_equal(lh_pixel_shadow_get_box(self),
+                                       lh_pixel_shadow_get_box(other)) &&
+           lh_pixel_shadow_get_cx(self) == lh_pixel_shadow_get_cx(other) &&
+           lh_pixel_shadow_get_cy(self) == lh_pixel_shadow_get_cy(other) &&
+           lh_pixel_shadow_get_r(self) == lh_pixel_shadow_get_r(other) &&
+           lh_pixel_shadow_get_spread(self) == lh_pixel_shadow_get_spread(other) &&
+           lh_pixel_shadow_get_peak(self) == lh_pixel_shadow_get_peak(other);
+}
+
 lh_s32_t
 lh_pixel_shadow_get_row(const lh_pixel_shadow_t *self, lh_s32_t y)
 {

@@ -23,6 +23,7 @@
 #include <lh/gx/class/input/fn.h>
 #include <lh/gx/class/key/fn.h>
 #include <lh/gx/class/paint/fn.h>
+#include <lh/gx/class/ink/fn.h>
 #include <lh/gx/class/report/fn.h>
 
 /**
@@ -33,7 +34,8 @@ struct lh_gx_class
 {
     /** Members: ::lh_gx_class_fields. */
     lh_gx_class_fields(lh_gx_class_paint_fn, lh_gx_class_covers_fn, lh_gx_class_hit_fn,
-                       lh_gx_class_input_fn, lh_gx_class_key_fn, lh_gx_class_report_fn);
+                       lh_gx_class_input_fn, lh_gx_class_key_fn, lh_gx_class_report_fn,
+                       lh_gx_class_ink_fn);
 };
 /** @copybrief lh_gx_class */
 typedef struct lh_gx_class lh_gx_class_t;
@@ -148,6 +150,24 @@ lh_gx_class_get_report(const lh_gx_class_t *self);
  */
 lh_void
 lh_gx_class_set_report(lh_gx_class_t *self, lh_gx_class_report_fn *fn);
+
+/**
+ * @brief The `ink` slot of @p self (level 1): where an entity draws past its place.
+ *
+ * @param self The table; checked by ::lh_assert_runtime_ref.
+ * @return The call, or ::lh_null when the class draws inside the place.
+ */
+lh_gx_class_ink_fn *
+lh_gx_class_get_ink(const lh_gx_class_t *self);
+
+/**
+ * @brief Store the `ink` slot of @p self (level 1).
+ *
+ * @param self The table; checked by ::lh_assert_runtime_ref.
+ * @param fn   The call; ::lh_null when the class draws inside the place.
+ */
+lh_void
+lh_gx_class_set_ink(lh_gx_class_t *self, lh_gx_class_ink_fn *fn);
 
 /**
  * @brief Empty table: every slot ::lh_null.

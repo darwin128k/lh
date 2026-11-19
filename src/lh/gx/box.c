@@ -6,11 +6,10 @@
 #include <lh/gx/box.h>
 
 #include <lh/core/pixel/argb.h>
-#include <lh/core/pixel/round.h>
 #include <lh/gx/class/initializer.h>
 
-const lh_gx_class_t lh_gx_box_class =
-    lh_gx_class_initializer(lh_gx_box_paint, lh_gx_box_covers, lh_null, lh_null, lh_null, lh_null);
+const lh_gx_class_t lh_gx_box_class = lh_gx_class_initializer(
+    lh_gx_box_paint, lh_gx_box_covers, lh_null, lh_null, lh_null, lh_null, lh_gx_box_get_ink);
 
 lh_s32_t
 lh_gx_box_get_radius_px(lh_gx_scalar_t radius, const lh_math_rect_t *outer)
@@ -128,6 +127,19 @@ lh_gx_box_paint_corner(const lh_gx_paint_t *paint, const lh_math_rect_t *outer, 
             lh_gx_paint_fill_mask(paint, lh_addr_of(mask), origin, edge);
         }
     }
+}
+
+lh_void
+lh_gx_box_get_ink(const lh_gx_entity_t *entity, const lh_gx_rect_t *place, lh_gx_rect_t *out)
+{
+    const lh_gx_style_t *style = lh_gx_entity_get_style(entity);
+
+    lh_ptr_deref(out) = lh_ptr_deref(place);
+    lh_return_if(lh_null_eq(style) || lh_null_eq(lh_gx_style_get_shadow(style)));
+    lh_gx_rect_t bounds;
+
+    lh_gx_shadow_get_bounds(lh_gx_style_get_shadow(style), place, lh_addr_of(bounds));
+    lh_gx_rect_union(place, lh_addr_of(bounds), out);
 }
 
 lh_s32_t
@@ -301,7 +313,16 @@ lh_gx_box_paint(const lh_gx_entity_t *entity, const lh_gx_paint_t *paint)
         lh_gx_box_get_radius_px(lh_gx_corners_get_bottom_right(radius), lh_addr_of(outer));
     const lh_s32_t bl =
         lh_gx_box_get_radius_px(lh_gx_corners_get_bottom_left(radius), lh_addr_of(outer));
+    const lh_gx_shadow_t *shadow = lh_gx_style_get_shadow(style);
 
+    /* The shadow first, under the box: one radius, the largest corner's. */
+    if (lh_null_ne(shadow))
+    {
+        lh_gx_paint_fill_shadow(
+            paint, lh_gx_paint_get_place(paint),
+            lh_cast_static(lh_gx_scalar_t, lh_math_max(lh_math_max(tl, tr), lh_math_max(br, bl))),
+            shadow);
+    }
     /* The inside one colour or the gradient over the whole box, and the border of
        one colour. */
     lh_gx_brush_t fill;

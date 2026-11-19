@@ -7,7 +7,7 @@
 #define LH_GX_CLASS_FIELDS_H
 
 /**
- * @def lh_gx_class_fields(paint_fn, covers_fn, hit_fn, input_fn, key_fn, report_fn)
+ * @def lh_gx_class_fields(paint_fn, covers_fn, hit_fn, input_fn, key_fn, report_fn, ink_fn)
  * @brief The slots of the contract: one pointer per call.
  *
  * Each parameter is a function type; the members are pointers to it. A class
@@ -20,13 +20,15 @@
  * @param input_fn  ::lh_gx_class_input_fn.
  * @param key_fn    ::lh_gx_class_key_fn.
  * @param report_fn ::lh_gx_class_report_fn.
+ * @param ink_fn    ::lh_gx_class_ink_fn.
  */
-#define lh_gx_class_fields(paint_fn, covers_fn, hit_fn, input_fn, key_fn, report_fn)               \
+#define lh_gx_class_fields(paint_fn, covers_fn, hit_fn, input_fn, key_fn, report_fn, ink_fn)       \
     paint_fn *paint;                                                                               \
     covers_fn *covers;                                                                             \
     hit_fn *hit;                                                                                   \
     input_fn *input;                                                                               \
     key_fn *key;                                                                                   \
-    report_fn *report
+    report_fn *report;                                                                             \
+    ink_fn *ink
 
 #endif /* LH_GX_CLASS_FIELDS_H */

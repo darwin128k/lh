@@ -16,6 +16,7 @@
 #define LH_CORE_PIXEL_ROUND_BOX_H
 
 #include <lh/core/pixel/round.h>
+#include <lh/core/bool.h>
 #include <lh/core/pixel/round/box/fields.h>
 #include <lh/core/void.h>
 
@@ -133,6 +134,15 @@ lh_pixel_round_box_set_r(lh_pixel_round_box_t *self, lh_s64_t r);
 lh_void
 lh_pixel_round_box_init(lh_pixel_round_box_t *self, lh_s64_t lo_x, lh_s64_t lo_y, lh_s64_t hi_x,
                         lh_s64_t hi_y, lh_s64_t r);
+
+/**
+ * @brief Whether @p self and @p other are the same box: the same five numbers.
+ *
+ * @param self  A box; checked by the getters.
+ * @param other Another; checked by the getters.
+ */
+lh_bool_t
+lh_pixel_round_box_is_equal(const lh_pixel_round_box_t *self, const lh_pixel_round_box_t *other);
 
 /**
  * @brief The first column the box touches: the whole pixel its left edge is in.

@@ -82,6 +82,18 @@ lh_gx_paint_fill_rect(const lh_gx_paint_t *self, const lh_gx_rect_t *rect,
 }
 
 lh_void
+lh_gx_paint_fill_shadow(const lh_gx_paint_t *self, const lh_gx_rect_t *box, lh_gx_scalar_t radius,
+                        const lh_gx_shadow_t *shadow)
+{
+    lh_gx_canvas_fill_shadow_fn *fill_shadow =
+        lh_gx_canvas_get_fill_shadow(lh_gx_paint_get_canvas(self));
+
+    lh_return_if(lh_null_eq(lh_ptr_rcast(lh_void, fill_shadow)));
+    fill_shadow(lh_gx_paint_get_canvas_context(self), lh_gx_paint_get_clip(self), box, radius,
+                shadow);
+}
+
+lh_void
 lh_gx_paint_fill_rect_color(const lh_gx_paint_t *self, const lh_gx_rect_t *rect,
                             lh_gx_color_t color)
 {

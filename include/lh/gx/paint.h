@@ -129,6 +129,19 @@ lh_gx_paint_fill_rect(const lh_gx_paint_t *self, const lh_gx_rect_t *rect,
                       const lh_gx_brush_t *brush);
 
 /**
+ * @brief Lay the soft @p shadow of @p box with corners of @p radius, cut by the clip:
+ *        the canvas's `fill_shadow`, or nothing when it has none.
+ *
+ * @param self   The paint; must not be null.
+ * @param box    The casting box, screen coordinates.
+ * @param radius Its corners' radius, pixels, at most half its shorter side.
+ * @param shadow The shadow; must not be null.
+ */
+lh_void
+lh_gx_paint_fill_shadow(const lh_gx_paint_t *self, const lh_gx_rect_t *box, lh_gx_scalar_t radius,
+                        const lh_gx_shadow_t *shadow);
+
+/**
  * @brief Fill @p rect with one colour, cut by the clip: ::lh_gx_paint_fill_rect
  *        with a brush of @p color (::lh_gx_brush_init_color).
  *

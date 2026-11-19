@@ -17,10 +17,15 @@
  * buffer that the renderer moves down the screen.
  *
  * @param pixmap_type Type of the target (::lh_gx_pixmap_t).
+ * `shadow` is the caller's mask the backend keeps a shadow's alphas in for the
+ * next one like it (::lh_gx_backend_sw_shadow_t), ::lh_null for none.
+ *
  * @param point_type  Type of the origin (::lh_math_point_t, whole pixels).
+ * @param shadow_type Type of the shadow mask (::lh_gx_backend_sw_shadow_t).
  */
-#define lh_gx_backend_sw_fields(pixmap_type, point_type)                                           \
+#define lh_gx_backend_sw_fields(pixmap_type, point_type, shadow_type)                              \
     pixmap_type *target;                                                                           \
-    point_type origin
+    point_type origin;                                                                             \
+    shadow_type *shadow
 
 #endif /* LH_GX_BACKEND_SW_FIELDS_H */

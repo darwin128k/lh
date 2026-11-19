@@ -89,6 +89,16 @@ lh_pixel_round_box_init(lh_pixel_round_box_t *self, lh_s64_t lo_x, lh_s64_t lo_y
     lh_pixel_round_box_set_r(self, r);
 }
 
+lh_bool_t
+lh_pixel_round_box_is_equal(const lh_pixel_round_box_t *self, const lh_pixel_round_box_t *other)
+{
+    return lh_pixel_round_box_get_lo_x(self) == lh_pixel_round_box_get_lo_x(other) &&
+           lh_pixel_round_box_get_lo_y(self) == lh_pixel_round_box_get_lo_y(other) &&
+           lh_pixel_round_box_get_hi_x(self) == lh_pixel_round_box_get_hi_x(other) &&
+           lh_pixel_round_box_get_hi_y(self) == lh_pixel_round_box_get_hi_y(other) &&
+           lh_pixel_round_box_get_r(self) == lh_pixel_round_box_get_r(other);
+}
+
 lh_s32_t
 lh_pixel_round_box_get_left(const lh_pixel_round_box_t *self)
 {

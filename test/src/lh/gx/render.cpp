@@ -44,7 +44,7 @@ solid_covers(const lh_gx_entity_t *entity, const lh_gx_rect_t *, const lh_gx_rec
 }
 
 const lh_gx_class_t solid_class =
-    lh_gx_class_initializer(solid_paint, solid_covers, lh_null, lh_null, lh_null, lh_null);
+    lh_gx_class_initializer(solid_paint, solid_covers, lh_null, lh_null, lh_null, lh_null, lh_null);
 
 /* A 16 by 8 screen in ARGB, drawn by the software backend. */
 struct Screen

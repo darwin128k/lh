@@ -41,36 +41,41 @@ lh_pixel_shadow_ramp_init(lh_pixel_shadow_ramp_t *self, const lh_pixel_shadow_t 
 {
     const lh_s64_t spread = lh_pixel_shadow_get_spread(shadow);
     const lh_s64_t step = lh_pixel_shadow_get_step(shadow);
-    const lh_s64_t start = lh_pixel_shadow_get_start(shadow);
+    const lh_s64_t r = lh_pixel_shadow_get_r(shadow);
+    const lh_s64_t one = 1 << 16;
+    /* The least distance `d` past the corner's edge whose alpha is `level` or less:
+       from a spread out, where nothing is left, back to just past a spread in, where
+       the peak gives way -- and between, where the fade `(start - d * step) >> 16`
+       first drops to `level`, which is `d > (start - ((level + 1) << 16)) / step`
+       rounded down. The numerator falls by `1 << 16` a level, so the quotient and its
+       remainder are carried down: two divisions for the ramp, not one a level. */
+    lh_s64_t limit = lh_pixel_shadow_get_start(shadow) - one;
+    lh_s64_t quotient = step > 0 ? lh_math_floor_div(limit, step) : 0;
+    lh_s64_t rest = step > 0 ? lh_math_floor_mod(limit, step) : 0;
+    const lh_s64_t fall = step > 0 ? lh_math_floor_div(one, step) : 0;
+    const lh_s64_t fall_rest = step > 0 ? lh_math_floor_mod(one, step) : 0;
 
     lh_pixel_shadow_ramp_set_count(self, lh_pixel_shadow_get_peak(shadow));
     for (lh_s32_t level = 0; level < lh_pixel_shadow_ramp_get_count(self); ++level)
     {
-        /* The least distance `d` past the corner's edge whose alpha is `level` or
-           less: from a spread out, where nothing is left, back to just past a spread
-           in, where the peak gives way -- and between, where the fade
-           `(start - d * step) >> 16` first drops to `level`, which is
-           `d * step > start - ((level + 1) << 16)`. */
-        const lh_s64_t limit = start - (lh_cast_static(lh_s64_t, level + 1) << 16);
-        lh_s64_t least = limit < 0 ? lh_math_neg(spread) : spread;
-
-        if (step > 0)
-        {
-            least = limit / step;
-            if (!lh_math_is_multiple_of(limit, step) && limit < 0)
-            {
-                --least;
-            }
-            ++least;
-        }
-        least = lh_math_clamp(least, 1 - spread, spread);
-        /* A pixel past the corner's centre by `root` is past its edge by
-           `root - r`, and `root` is the whole square root of the squared distance,
-           so `root >= least + r` is the squared distance reaching `(least + r)^2`. */
-        const lh_s64_t reach = least + lh_pixel_shadow_get_r(shadow);
+        const lh_s64_t least =
+            lh_math_clamp(step > 0 ? quotient + 1 : (limit < 0 ? lh_math_neg(spread) : spread),
+                          1 - spread, spread);
+        /* A pixel past the corner's centre by `root` is past its edge by `root - r`,
+           and `root` is the whole square root of the squared distance, so
+           `root >= least + r` is the squared distance reaching `(least + r)^2`. */
+        const lh_s64_t reach = least + r;
 
         lh_pixel_shadow_ramp_get_square_mut(self)[level] =
             reach > 0 ? lh_cast_static(lh_u64_t, reach * reach) : 0U;
+        limit -= one;
+        quotient -= fall;
+        rest -= fall_rest;
+        if (rest < 0)
+        {
+            rest += step;
+            --quotient;
+        }
     }
 }
 

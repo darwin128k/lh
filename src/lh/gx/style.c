@@ -127,6 +127,20 @@ lh_gx_style_set_gradient_table(lh_gx_style_t *self, const lh_pixel_gradient_tabl
     self->gradient_table = table;
 }
 
+const lh_gx_shadow_t *
+lh_gx_style_get_shadow(const lh_gx_style_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->shadow;
+}
+
+lh_void
+lh_gx_style_set_shadow(lh_gx_style_t *self, const lh_gx_shadow_t *shadow)
+{
+    lh_assert_runtime_ref(self);
+    self->shadow = shadow;
+}
+
 lh_bool_t
 lh_gx_style_is_fill_opaque(const lh_gx_style_t *self)
 {
@@ -155,4 +169,5 @@ lh_gx_style_init(lh_gx_style_t *self, lh_gx_color_t fill, lh_gx_color_t border,
     lh_gx_style_set_font(self, font);
     lh_gx_style_set_gradient(self, lh_null);
     lh_gx_style_set_gradient_table(self, lh_null);
+    lh_gx_style_set_shadow(self, lh_null);
 }

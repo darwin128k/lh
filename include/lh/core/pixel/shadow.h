@@ -238,6 +238,18 @@ lh_pixel_shadow_init(lh_pixel_shadow_t *self, const lh_pixel_round_box_t *box, l
                      lh_s64_t offset_y, lh_s64_t spread, lh_byte_t peak);
 
 /**
+ * @brief Whether @p self and @p other cast the same shadow: the same box, and the
+ *        same shift, radius, spread and peak — every pixel's alpha the same. A
+ *        caller that keeps the alphas of one shadow (a mask) asks this before it
+ *        uses them for another.
+ *
+ * @param self  A shadow; checked by the getters.
+ * @param other Another; checked by the getters.
+ */
+lh_bool_t
+lh_pixel_shadow_is_equal(const lh_pixel_shadow_t *self, const lh_pixel_shadow_t *other);
+
+/**
  * @brief What of a pixel's distance row @p y gives: how far the row's centre is
  *        from the shifted box's straight part, sub-pixel units — negative inside it.
  *        Worked out once a row and handed to ::lh_pixel_shadow_get_alpha.

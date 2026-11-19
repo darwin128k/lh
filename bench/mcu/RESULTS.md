@@ -19,8 +19,8 @@ is static.
 | program | text (flash) | data | bss (RAM) |
 |---|---:|---:|---:|
 | `mcu_empty` | 432 | 8 | 32 |
-| `mcu_gx` | 29 764 | 8 | 13 544 |
-| **gx's part** | **29 332** | 0 | **13 512** |
+| `mcu_gx` | 30 152 | 8 | 13 564 |
+| **gx's part** | **29 720** | 0 | **13 532** |
 
 How it grew, step by step:
 
@@ -29,10 +29,13 @@ How it grew, step by step:
 | the first measure | 28 156 | 13 452 |
 | a radius per corner (`lh_gx_corners_t`): the box's strips, four radii a style | 28 704 | 13 488 |
 | the brush (`lh_gx_brush_t`), a style's gradient and its table | 29 332 | 13 512 |
+| a style's shadow, the canvas's `fill_shadow` slot and a class's `ink` | 29 720 | 13 532 |
 
 The program draws no gradient and takes the canvas that draws colours only
 (`lh_gx_backend_sw_canvas_init_solid`): nothing of the gradient is called, so
-none of it is linked — the brush costs 628 bytes. With the full canvas
+none of it is linked — the brush costs 628 bytes. It has no `fill_shadow` slot
+either, so none of the shadow is linked: asking whether a box casts one, and
+where an entity draws, costs 388 bytes. With the full canvas
 (`lh_gx_backend_sw_canvas_init`) the same program is 36 564 bytes of flash,
 6.8 KB more: the gradient, its table and sampler (4.7 KB, the radial walk's
 table of 1 KB among them), the rows of a colour per pixel (1.5 KB) and the

@@ -194,6 +194,16 @@ lh_void
 lh_gx_backend_web_put_mask(lh_gx_backend_web_t *self, const lh_gx_pixmap_t *mask);
 
 /**
+ * @brief Append @p value, which may be below zero, as the command's next argument:
+ *        a comma, then the number.
+ *
+ * @param self  The backend; checked by ::lh_assert_runtime_ref.
+ * @param value The number.
+ */
+lh_void
+lh_gx_backend_web_put_sint(lh_gx_backend_web_t *self, lh_s32_t value);
+
+/**
  * @brief Append @p color as the command's next argument: a comma, then the
  *        ARGB value as a number (::lh_gx_backend_web_put_uint).
  *
@@ -216,6 +226,24 @@ lh_gx_backend_web_put_color(lh_gx_backend_web_t *self, lh_gx_color_t color);
  */
 lh_void
 lh_gx_backend_web_put_gradient(lh_gx_backend_web_t *self, const lh_gx_brush_t *brush);
+
+/**
+ * @brief The canvas's `fill_shadow` (::lh_gx_canvas_fill_shadow_fn) as a
+ *        `fill_shadow` command: the clip, the box, then the radius, the shift
+ *        across and down, the spread and the colour, whole pixels — the player
+ *        works every pixel's alpha out as the core does (`lh/core/pixel/shadow.h`).
+ *
+ * Nothing is written when the shadow's bounds do not meet @p clip.
+ *
+ * @param context The backend (::lh_gx_backend_web_t); must not be null.
+ * @param clip    Where drawing is allowed; screen coordinates.
+ * @param box     The casting box; screen coordinates.
+ * @param radius  Its corners' radius, pixels.
+ * @param shadow  The shadow.
+ */
+lh_void
+lh_gx_backend_web_fill_shadow(lh_ptr context, const lh_gx_rect_t *clip, const lh_gx_rect_t *box,
+                              lh_gx_scalar_t radius, const lh_gx_shadow_t *shadow);
 
 /**
  * @brief Append @p brush as the command's next argument: its colour as a number
@@ -260,7 +288,8 @@ lh_gx_backend_web_fill_mask(lh_ptr context, const lh_gx_rect_t *clip, const lh_g
                             lh_gx_point_t at, const lh_gx_brush_t *brush);
 
 /**
- * @brief Fill @p table with this backend's calls: `fill_rect` and `fill_mask`.
+ * @brief Fill @p table with this backend's calls: `fill_rect`, `fill_mask` and
+ *        `fill_shadow`.
  *
  * @param table The table; checked by ::lh_gx_canvas_init.
  */

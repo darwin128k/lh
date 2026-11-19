@@ -13,8 +13,9 @@
 #include <lh/gx/class/initializer.h>
 #include <lh/gx/text.h>
 
-const lh_gx_class_t lh_gx_field_class = lh_gx_class_initializer(
-    lh_gx_box_paint, lh_gx_box_covers, lh_null, lh_gx_field_input, lh_gx_field_key, lh_null);
+const lh_gx_class_t lh_gx_field_class =
+    lh_gx_class_initializer(lh_gx_box_paint, lh_gx_box_covers, lh_null, lh_gx_field_input,
+                            lh_gx_field_key, lh_null, lh_gx_box_get_ink);
 
 const lh_gx_entity_t *
 lh_gx_field_get_box(const lh_gx_field_t *self)

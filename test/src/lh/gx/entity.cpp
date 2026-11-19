@@ -12,24 +12,21 @@
 #include <gtest/gtest.h>
 
 #include <lh/core/array.h>
+#include <lh/gx/class.h>
+#include <lh/gx/class/initializer.h>
 #include <lh/gx/entity.h>
-
-/* Defined by their own bricks later; an entity only points at them. */
-struct lh_gx_class
-{
-    int tag;
-};
-
-struct lh_gx_style
-{
-    int tag;
-};
+#include <lh/gx/style.h>
+#include <lh/gx/style/initializer.h>
 
 namespace
 {
 
-const lh_gx_class box_class = {1};
-const lh_gx_style card_style = {2};
+/* An entity only points at its class and its style: an empty class and a plain
+   style are enough here. */
+const lh_gx_class_t box_class =
+    lh_gx_class_initializer(lh_null, lh_null, lh_null, lh_null, lh_null, lh_null, lh_null);
+const lh_gx_style_t card_style = lh_gx_style_initializer(
+    0xFFFFFFFFU, 0U, 0, lh_gx_corners_initializer_all(0), 0U, nullptr, nullptr, nullptr, nullptr);
 
 /* One screen is one struct: the memory of the interface is its size. */
 struct Screen

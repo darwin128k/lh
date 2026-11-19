@@ -43,6 +43,20 @@ lh_gx_backend_sw_set_origin(lh_gx_backend_sw_t *self, lh_math_point_t origin)
     self->origin = origin;
 }
 
+lh_gx_backend_sw_shadow_t *
+lh_gx_backend_sw_get_shadow(const lh_gx_backend_sw_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->shadow;
+}
+
+lh_void
+lh_gx_backend_sw_set_shadow(lh_gx_backend_sw_t *self, lh_gx_backend_sw_shadow_t *shadow)
+{
+    lh_assert_runtime_ref(self);
+    self->shadow = shadow;
+}
+
 lh_void
 lh_gx_backend_sw_init(lh_gx_backend_sw_t *self, lh_gx_pixmap_t *target, lh_math_scalar_t x,
                       lh_math_scalar_t y)
@@ -52,6 +66,7 @@ lh_gx_backend_sw_init(lh_gx_backend_sw_t *self, lh_gx_pixmap_t *target, lh_math_
 
     lh_math_point_init(lh_addr_of(origin), x, y);
     lh_gx_backend_sw_set_origin(self, origin);
+    lh_gx_backend_sw_set_shadow(self, lh_null);
 }
 
 lh_bool_t
@@ -290,6 +305,65 @@ lh_gx_backend_sw_fill_mask_gradient(const lh_gx_backend_sw_t *self, const lh_gx_
 }
 
 lh_void
+lh_gx_backend_sw_stamp_shadow(const lh_gx_backend_sw_t *self, const lh_math_rect_t *area,
+                              const lh_math_rect_t *bounds, const lh_gx_backend_sw_shadow_t *kept,
+                              lh_gx_color_t color)
+{
+    const lh_math_point_t *origin = lh_gx_backend_sw_get_origin(self);
+    const lh_s32_t x = lh_math_point_get_x(lh_math_rect_get_origin(area));
+    const lh_s32_t y = lh_math_point_get_y(lh_math_rect_get_origin(area));
+    const lh_s32_t w = lh_math_size_get_width(lh_math_rect_get_size(area));
+    const lh_s32_t h = lh_math_size_get_height(lh_math_rect_get_size(area));
+    const lh_s32_t width = lh_gx_backend_sw_shadow_get_width(kept);
+    /* The area's first pixel in the mask: its screen position less the bounds'. */
+    const lh_s32_t i =
+        x + lh_math_point_get_x(origin) - lh_math_point_get_x(lh_math_rect_get_origin(bounds));
+    const lh_s32_t j =
+        y + lh_math_point_get_y(origin) - lh_math_point_get_y(lh_math_rect_get_origin(bounds));
+    const lh_byte_t *bits = lh_gx_backend_sw_shadow_get_bits(kept);
+
+    for (lh_s32_t row = 0; row < h; ++row)
+    {
+        lh_gx_backend_sw_cover_row(self, lh_cast_static(lh_u32_t, x),
+                                   lh_cast_static(lh_u32_t, y + row), lh_cast_static(lh_usize_t, w),
+                                   bits + lh_cast_static(lh_usize_t, (j + row) * width + i), color);
+    }
+}
+
+lh_void
+lh_gx_backend_sw_lay_shadow(const lh_gx_backend_sw_t *self, const lh_math_rect_t *area,
+                            const lh_pixel_shadow_t *cast, lh_gx_color_t color)
+{
+    lh_return_if(lh_pixel_shadow_get_peak(cast) == 0);
+    lh_pixel_shadow_ramp_t ramp;
+
+    lh_pixel_shadow_ramp_init(lh_addr_of(ramp), cast);
+    const lh_math_point_t *origin = lh_gx_backend_sw_get_origin(self);
+    const lh_s32_t x = lh_math_point_get_x(lh_math_rect_get_origin(area));
+    const lh_s32_t y = lh_math_point_get_y(lh_math_rect_get_origin(area));
+    const lh_s32_t w = lh_math_size_get_width(lh_math_rect_get_size(area));
+    const lh_s32_t h = lh_math_size_get_height(lh_math_rect_get_size(area));
+    /* The shadow is laid over the screen; the area is in the target. */
+    const lh_s32_t sx = x + lh_math_point_get_x(origin);
+    const lh_s32_t sy = y + lh_math_point_get_y(origin);
+    lh_byte_t alphas[LH_GX_BACKEND_SW_SHADOW_RUN];
+
+    for (lh_s32_t row = 0; row < h; ++row)
+    {
+        for (lh_s32_t col = 0; col < w; col += LH_GX_BACKEND_SW_SHADOW_RUN)
+        {
+            const lh_s32_t count = lh_math_min(w - col, LH_GX_BACKEND_SW_SHADOW_RUN);
+
+            lh_pixel_shadow_get_span(cast, lh_addr_of(ramp), sy + row, sx + col, sx + col + count,
+                                     alphas);
+            lh_gx_backend_sw_cover_row(self, lh_cast_static(lh_u32_t, x + col),
+                                       lh_cast_static(lh_u32_t, y + row),
+                                       lh_cast_static(lh_usize_t, count), alphas, color);
+        }
+    }
+}
+
+lh_void
 lh_gx_backend_sw_fill_rect_solid(lh_ptr context, const lh_gx_rect_t *clip, const lh_gx_rect_t *rect,
                                  const lh_gx_brush_t *brush)
 {
@@ -330,6 +404,71 @@ lh_gx_backend_sw_fill_mask_solid(lh_ptr context, const lh_gx_rect_t *clip,
                 lh_cast_static(lh_u32_t, lh_math_point_get_y(lh_addr_of(inside)) + row)),
             color);
     }
+}
+
+lh_void
+lh_gx_backend_sw_fill_shadow(lh_ptr context, const lh_gx_rect_t *clip, const lh_gx_rect_t *box,
+                             lh_gx_scalar_t radius, const lh_gx_shadow_t *shadow)
+{
+    const lh_gx_backend_sw_t *self = lh_ptr_rcast(const lh_gx_backend_sw_t, context);
+    lh_gx_rect_t bounds;
+
+    lh_gx_shadow_get_bounds(shadow, box, lh_addr_of(bounds));
+    lh_math_rect_t area;
+
+    lh_return_if(!lh_gx_backend_sw_get_box(self, clip, lh_addr_of(bounds), lh_addr_of(area)));
+    /* Each alpha already carries the shadow's peak, so the colour goes in opaque and
+       the alpha is the coverage. */
+    const lh_gx_color_t color = lh_bit_or(0xFF000000U, lh_gx_shadow_get_color(shadow));
+    lh_gx_backend_sw_shadow_t *kept = lh_gx_backend_sw_get_shadow(self);
+
+    if (lh_null_ne(kept))
+    {
+        /* Known by its box laid at 0, 0: the same shadow anywhere is the same key,
+           and its alphas are the mask's from the bounds' corner relative to the box. */
+        lh_math_rect_t box_px;
+        lh_math_rect_t bounds_px;
+
+        lh_gx_rect_to_rect(box, lh_addr_of(box_px));
+        lh_gx_rect_to_rect(lh_addr_of(bounds), lh_addr_of(bounds_px));
+        lh_gx_rect_t at_zero;
+
+        lh_gx_rect_init(
+            lh_addr_of(at_zero), 0, 0,
+            lh_cast_static(lh_gx_scalar_t,
+                           lh_math_size_get_width(lh_math_rect_get_size(lh_addr_of(box_px)))),
+            lh_cast_static(lh_gx_scalar_t,
+                           lh_math_size_get_height(lh_math_rect_get_size(lh_addr_of(box_px)))));
+        lh_pixel_shadow_t key;
+
+        lh_gx_shadow_get_pixel_shadow(shadow, lh_addr_of(at_zero), radius, lh_addr_of(key));
+        lh_return_if(lh_pixel_shadow_get_peak(lh_addr_of(key)) == 0);
+        const lh_s32_t width = lh_math_size_get_width(lh_math_rect_get_size(lh_addr_of(bounds_px)));
+        const lh_s32_t height =
+            lh_math_size_get_height(lh_math_rect_get_size(lh_addr_of(bounds_px)));
+
+        if (!lh_gx_backend_sw_shadow_is_for(kept, lh_addr_of(key), width, height) &&
+            lh_gx_backend_sw_shadow_can_hold(kept, width, height))
+        {
+            lh_gx_backend_sw_shadow_fill(
+                kept, lh_addr_of(key),
+                lh_math_point_get_x(lh_math_rect_get_origin(lh_addr_of(bounds_px))) -
+                    lh_math_point_get_x(lh_math_rect_get_origin(lh_addr_of(box_px))),
+                lh_math_point_get_y(lh_math_rect_get_origin(lh_addr_of(bounds_px))) -
+                    lh_math_point_get_y(lh_math_rect_get_origin(lh_addr_of(box_px))),
+                width, height);
+        }
+        if (lh_gx_backend_sw_shadow_is_for(kept, lh_addr_of(key), width, height))
+        {
+            lh_gx_backend_sw_stamp_shadow(self, lh_addr_of(area), lh_addr_of(bounds_px), kept,
+                                          color);
+            return;
+        }
+    }
+    lh_pixel_shadow_t cast;
+
+    lh_gx_shadow_get_pixel_shadow(shadow, box, radius, lh_addr_of(cast));
+    lh_gx_backend_sw_lay_shadow(self, lh_addr_of(area), lh_addr_of(cast), color);
 }
 
 lh_void
@@ -380,4 +519,5 @@ lh_gx_backend_sw_canvas_init(lh_gx_canvas_t *table)
     lh_gx_canvas_init(table);
     lh_gx_canvas_set_fill_rect(table, lh_gx_backend_sw_fill_rect);
     lh_gx_canvas_set_fill_mask(table, lh_gx_backend_sw_fill_mask);
+    lh_gx_canvas_set_fill_shadow(table, lh_gx_backend_sw_fill_shadow);
 }

@@ -89,6 +89,20 @@ lh_gx_class_set_report(lh_gx_class_t *self, lh_gx_class_report_fn *fn)
     self->report = fn;
 }
 
+lh_gx_class_ink_fn *
+lh_gx_class_get_ink(const lh_gx_class_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->ink;
+}
+
+lh_void
+lh_gx_class_set_ink(lh_gx_class_t *self, lh_gx_class_ink_fn *fn)
+{
+    lh_assert_runtime_ref(self);
+    self->ink = fn;
+}
+
 lh_void
 lh_gx_class_init(lh_gx_class_t *self)
 {
@@ -98,4 +112,5 @@ lh_gx_class_init(lh_gx_class_t *self)
     lh_gx_class_set_input(self, lh_null);
     lh_gx_class_set_key(self, lh_null);
     lh_gx_class_set_report(self, lh_null);
+    lh_gx_class_set_ink(self, lh_null);
 }

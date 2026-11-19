@@ -17,6 +17,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- gx boxes cast soft shadows. `lh_gx_shadow_t` (`lh/gx/shadow.h`,
+  `shadow/fields.h`, `shadow/initializer.h`: a colour, a spread and a shift;
+  `_get_bounds`, `_get_pixel_shadow`) hangs on a style (`lh_gx_style_get_shadow`,
+  `_set_shadow`; `lh_gx_style_fields` takes its type and
+  `lh_gx_style_initializer` a ninth argument), and the box draws it under
+  itself through a new optional canvas slot, `fill_shadow`
+  (`lh_gx_canvas_fill_shadow_fn`, `lh_gx_canvas_get_fill_shadow`,
+  `_set_fill_shadow`, `lh_gx_paint_fill_shadow`); a canvas without it draws no
+  shadow and links none of its code. A class says where it draws past its place
+  through a new optional `ink` slot (`lh_gx_class_ink_fn`,
+  `lh_gx_class_get_ink`, `_set_ink`; `lh_gx_class_fields` and
+  `lh_gx_class_initializer` take a seventh slot — `lh_null` for a class that
+  draws inside its place); the box's is its place and its shadow's bounds
+  (`lh_gx_box_get_ink`), and the button and the field share it. The renderer
+  paints an entity over its ink and its children inside its place, and a change
+  is reported over the ink (`lh_gx_entity_get_ink`), so a shadow is neither cut
+  nor left behind. The software backend lays a shadow a run at a time from the
+  core (`lh_gx_backend_sw_fill_shadow`, `_lay_shadow`), or from the alphas it
+  kept of the last shadow like it in a mask the application gives it
+  (`lh_gx_backend_sw_shadow_t`, `lh/gx/backend/sw/shadow.h`;
+  `lh_gx_backend_sw_set_shadow`, `_stamp_shadow`); its canvas that draws
+  colours only has no shadow. The web backend writes
+  `["fill_shadow", clip, box, radius, x, y, spread, color]`
+  (`lh_gx_backend_web_fill_shadow`, `_put_sint`), and the player works every
+  alpha out as the core does (`lhGxFillShadow`, the same on 9468 pixels).
+  On the `shadow` scene of `bench/lvgl/` gx draws the same shadows as gl; a
+  frame takes 917 microseconds with the mask (1368 without) against gl's 688
+  and LVGL's 1046.
+- `lh_pixel_shadow_is_equal` and `lh_pixel_round_box_is_equal` say whether two
+  shadows or boxes are the same; `lh_pixel_shadow_ramp_init` carries its
+  quotient down the levels instead of dividing at each (two divisions a ramp,
+  not 255).
+- The gx entity test uses the real class and style tables in place of stand-ins
+  of its own, which no longer matched them.
 - The shadow moved from gl to the core, in sub-pixel whole numbers, so that gx
   draws with the same one: `lh_pixel_round_box_t` (`lh/core/pixel/round/box.h`,
   `round/box/fields.h`: a rounded rectangle, its coverage, the whole pixels it

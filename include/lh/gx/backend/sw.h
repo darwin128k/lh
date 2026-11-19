@@ -20,6 +20,14 @@
 #define LH_GX_BACKEND_SW_H
 
 #include <lh/gx/backend/sw/fields.h>
+#include <lh/gx/backend/sw/shadow.h>
+
+/**
+ * @def LH_GX_BACKEND_SW_SHADOW_RUN
+ * @brief The alphas of a shadow's row worked out at a time on the stack; a longer
+ *        row is done in pieces this long.
+ */
+#define LH_GX_BACKEND_SW_SHADOW_RUN 128
 #include <lh/gx/canvas.h>
 
 /**
@@ -29,7 +37,7 @@
 struct lh_gx_backend_sw
 {
     /** Members: ::lh_gx_backend_sw_fields. */
-    lh_gx_backend_sw_fields(lh_gx_pixmap_t, lh_math_point_t);
+    lh_gx_backend_sw_fields(lh_gx_pixmap_t, lh_math_point_t, lh_gx_backend_sw_shadow_t);
 };
 /** @copybrief lh_gx_backend_sw */
 typedef struct lh_gx_backend_sw lh_gx_backend_sw_t;
@@ -77,6 +85,29 @@ lh_gx_backend_sw_get_origin(const lh_gx_backend_sw_t *self);
  */
 lh_void
 lh_gx_backend_sw_set_origin(lh_gx_backend_sw_t *self, lh_math_point_t origin);
+
+/**
+ * @brief The mask a shadow's alphas are kept in for the next one like it, or
+ *        ::lh_null (level 1).
+ *
+ * @param self The backend; checked by ::lh_assert_runtime_ref.
+ * @return The caller's mask.
+ */
+lh_gx_backend_sw_shadow_t *
+lh_gx_backend_sw_get_shadow(const lh_gx_backend_sw_t *self);
+
+/**
+ * @brief Give the backend a mask to keep a shadow's alphas in (level 1): every
+ *        shadow like the last one is then that mask laid down again
+ *        (::lh_gx_backend_sw_fill_shadow); ::lh_null works every shadow out where
+ *        it falls.
+ *
+ * @param self   The backend; checked by ::lh_assert_runtime_ref.
+ * @param shadow The caller's mask (::lh_gx_backend_sw_shadow_init), or ::lh_null;
+ *               not owned.
+ */
+lh_void
+lh_gx_backend_sw_set_shadow(lh_gx_backend_sw_t *self, lh_gx_backend_sw_shadow_t *shadow);
 
 /**
  * @brief Draw into @p target, whose top-left pixel is at @p x, @p y on the screen.
@@ -231,6 +262,36 @@ lh_gx_backend_sw_fill_mask_gradient(const lh_gx_backend_sw_t *self, const lh_gx_
                                     const lh_gx_brush_t *brush);
 
 /**
+ * @brief Lay the alphas @p kept holds over @p area of the target, in @p color: the
+ *        mask placed at @p bounds on the screen.
+ *
+ * @param self   The backend; must not be null.
+ * @param area   Target coordinates, inside @p bounds less the origin.
+ * @param bounds Where the mask's first alpha lands, screen coordinates, whole pixels.
+ * @param kept   The mask; must hold the shadow's alphas.
+ * @param color  `0xFF` and the shadow's colour: the alphas are the coverage.
+ */
+lh_void
+lh_gx_backend_sw_stamp_shadow(const lh_gx_backend_sw_t *self, const lh_math_rect_t *area,
+                              const lh_math_rect_t *bounds, const lh_gx_backend_sw_shadow_t *kept,
+                              lh_gx_color_t color);
+
+/**
+ * @brief Work @p cast out over @p area of the target and lay it in @p color: its ramp
+ *        once, then every row a run of ::LH_GX_BACKEND_SW_SHADOW_RUN alphas at a time
+ *        (::lh_pixel_shadow_get_span, ::lh_gx_backend_sw_cover_row). Nothing when it
+ *        casts nothing.
+ *
+ * @param self  The backend; must not be null.
+ * @param area  Target coordinates.
+ * @param cast  The core's shadow, screen coordinates; must not be null.
+ * @param color `0xFF` and the shadow's colour.
+ */
+lh_void
+lh_gx_backend_sw_lay_shadow(const lh_gx_backend_sw_t *self, const lh_math_rect_t *area,
+                            const lh_pixel_shadow_t *cast, lh_gx_color_t color);
+
+/**
  * @brief `fill_rect` of a canvas that draws colours only: the brush's colour (a
  *        gradient's first) over the part inside the clip and the target.
  *
@@ -261,6 +322,26 @@ lh_void
 lh_gx_backend_sw_fill_mask_solid(lh_ptr context, const lh_gx_rect_t *clip,
                                  const lh_gx_pixmap_t *mask, lh_gx_point_t at,
                                  const lh_gx_brush_t *brush);
+
+/**
+ * @brief `fill_shadow` of the canvas (::lh_gx_canvas_fill_shadow_fn) into the target:
+ *        with a mask (::lh_gx_backend_sw_get_shadow) that holds or can hold this
+ *        shadow's alphas, the mask laid down (::lh_gx_backend_sw_stamp_shadow) —
+ *        worked out first when it held another; else the shadow worked out where
+ *        it falls (::lh_gx_backend_sw_lay_shadow).
+ *
+ * On the `shadow` scene of `bench/lvgl/` — 24 cards casting the same shadow — the
+ * mask took a frame from 1368 to 917 microseconds.
+ *
+ * @param context The backend (::lh_gx_backend_sw_t).
+ * @param clip    The clip, screen coordinates.
+ * @param box     The casting box, screen coordinates.
+ * @param radius  Its corners' radius, pixels.
+ * @param shadow  The shadow.
+ */
+lh_void
+lh_gx_backend_sw_fill_shadow(lh_ptr context, const lh_gx_rect_t *clip, const lh_gx_rect_t *box,
+                             lh_gx_scalar_t radius, const lh_gx_shadow_t *shadow);
 
 /**
  * @brief `fill_mask` of the canvas (::lh_gx_canvas_fill_mask_fn) into the target:
@@ -295,10 +376,11 @@ lh_gx_backend_sw_fill_rect(lh_ptr context, const lh_gx_rect_t *clip, const lh_gx
 /**
  * @brief Fill @p table with the slots of the software backend that draw colours
  *        only (::lh_gx_backend_sw_fill_rect_solid, `_fill_mask_solid`): a
- *        gradient brush draws its first colour.
+ *        gradient brush draws its first colour, and no `fill_shadow`, so no shadow
+ *        is drawn.
  *
- * For a board that draws no gradient: nothing of the gradient is called, so
- * none of it is linked. On the Cortex-M4 of `bench/mcu/` a button screen is
+ * For a board that draws no gradient and no shadow: nothing of either is called,
+ * so none of it is linked. On the Cortex-M4 of `bench/mcu/` a button screen is
  * that much smaller (`bench/mcu/RESULTS.md`).
  *
  * @param table The table; must not be null.
@@ -307,7 +389,8 @@ lh_void
 lh_gx_backend_sw_canvas_init_solid(lh_gx_canvas_t *table);
 
 /**
- * @brief Fill @p table with the slots of the software backend.
+ * @brief Fill @p table with the slots of the software backend: `fill_rect` and
+ *        `fill_mask` with one colour or a gradient, and `fill_shadow`.
  *
  * The backend itself is the context the table is used with.
  *

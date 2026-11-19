@@ -148,7 +148,7 @@ turn_green(lh_gx_entity_t *entity, const lh_gx_event_t *event)
 }
 
 const lh_gx_class_t card_class = lh_gx_class_initializer(lh_gx_box_paint, lh_gx_box_covers, lh_null,
-                                                         turn_green, lh_null, lh_null);
+                                                         turn_green, lh_null, lh_null, lh_null);
 
 struct Scene
 {

@@ -11,8 +11,9 @@
  * (`docs/design/gx.md`, section 5.1).
  *
  * Required: `fill_rect`, which every other shape can come down to. Optional:
- * `fill_mask` (glyphs, anti-aliased edges); each optional slot's type says
- * what happens without it. More slots are added when a drawing needs them.
+ * `fill_mask` (glyphs, anti-aliased edges) and `fill_shadow` (a box's soft
+ * shadow; without it none is drawn); each optional slot's type says what happens
+ * without it. More slots are added when a drawing needs them.
  */
 
 #ifndef LH_GX_CANVAS_H
@@ -21,6 +22,7 @@
 #include <lh/gx/canvas/fields.h>
 #include <lh/gx/canvas/fill_mask/fn.h>
 #include <lh/gx/canvas/fill_rect/fn.h>
+#include <lh/gx/canvas/fill_shadow/fn.h>
 
 /**
  * @struct lh_gx_canvas
@@ -29,7 +31,8 @@
 struct lh_gx_canvas
 {
     /** Members: ::lh_gx_canvas_fields. */
-    lh_gx_canvas_fields(lh_gx_canvas_fill_rect_fn, lh_gx_canvas_fill_mask_fn);
+    lh_gx_canvas_fields(lh_gx_canvas_fill_rect_fn, lh_gx_canvas_fill_mask_fn,
+                        lh_gx_canvas_fill_shadow_fn);
 };
 /** @copybrief lh_gx_canvas */
 typedef struct lh_gx_canvas lh_gx_canvas_t;
@@ -71,6 +74,23 @@ lh_gx_canvas_get_fill_mask(const lh_gx_canvas_t *self);
  */
 lh_void
 lh_gx_canvas_set_fill_mask(lh_gx_canvas_t *self, lh_gx_canvas_fill_mask_fn *fn);
+
+/**
+ * @brief The slot that lays a box's soft shadow, or ::lh_null (level 1).
+ *
+ * @param self The table; checked by ::lh_assert_runtime_ref.
+ */
+lh_gx_canvas_fill_shadow_fn *
+lh_gx_canvas_get_fill_shadow(const lh_gx_canvas_t *self);
+
+/**
+ * @brief Store the slot that lays a box's soft shadow (level 1).
+ *
+ * @param self The table; checked by ::lh_assert_runtime_ref.
+ * @param fn   The backend's function, or ::lh_null to draw no shadow.
+ */
+lh_void
+lh_gx_canvas_set_fill_shadow(lh_gx_canvas_t *self, lh_gx_canvas_fill_shadow_fn *fn);
 
 /**
  * @brief Empty table: every slot ::lh_null.

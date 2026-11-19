@@ -695,6 +695,7 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gx/paint.c
             ${LH_LIB_SRC_PATH}/gx/render.c
             ${LH_LIB_SRC_PATH}/gx/corners.c
+            ${LH_LIB_SRC_PATH}/gx/shadow.c
             ${LH_LIB_SRC_PATH}/gx/style.c
             ${LH_LIB_SRC_PATH}/gx/brush.c
             ${LH_LIB_SRC_PATH}/gx/box.c
@@ -711,6 +712,7 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gx/slider.c
             ${LH_LIB_SRC_PATH}/gx/field.c
             ${LH_LIB_SRC_PATH}/gx/backend/sw.c
+            ${LH_LIB_SRC_PATH}/gx/backend/sw/shadow.c
             ${LH_LIB_SRC_PATH}/gx/backend/web.c
             ${LH_LIB_SRC_PATH}/gx/backend/web/player.c
             ${LH_LIB_SRC_PATH}/gx/web/input.c

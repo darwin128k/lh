@@ -192,4 +192,22 @@ TEST(gx_backend_web, a_gradient_goes_as_its_box_shape_angle_and_stops)
                          "[\"gradient\",[1,2,30,20],1,135,0,4278190080,255,4294967295]]]");
 }
 
+TEST(gx_backend_web, a_shadow_goes_as_its_box_radius_shift_spread_and_colour)
+{
+    Web out;
+    const lh_gx_rect_t clip = rect(0, 0, 64, 32);
+    const lh_gx_rect_t box = rect(10, 8, 20, 12);
+    const lh_gx_rect_t far = rect(200, 200, 4, 4);
+    lh_gx_shadow_t shadow;
+
+    lh_gx_shadow_init(&shadow, 0x80000000U, 6, -2, 3);
+    EXPECT_TRUE(lh_gx_canvas_get_fill_shadow(&out.canvas) == lh_gx_backend_web_fill_shadow);
+    lh_gx_backend_web_begin(&out.web);
+    lh_gx_backend_web_fill_shadow(&out.web, &clip, &box, 4, &shadow);
+    lh_gx_backend_web_fill_shadow(&out.web, &clip, &far, 4, &shadow);
+    lh_gx_backend_web_end(&out.web);
+    EXPECT_EQ(out.str(), "[[\"fill_shadow\",[0,0,64,32],[10,8,20,12],4,-2,3,6,2147483648]]")
+        << "a shadow outside the clip is not written";
+}
+
 } // namespace

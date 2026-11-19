@@ -166,6 +166,20 @@ lh_gx_entity_can_take_keys(const lh_gx_entity_t *self)
                               lh_null_ne(lh_ptr_rcast(lh_void, lh_gx_class_get_key(klass))));
 }
 
+lh_void
+lh_gx_entity_get_ink(const lh_gx_entity_t *self, const lh_gx_rect_t *place, lh_gx_rect_t *out)
+{
+    const lh_gx_class_t *klass = lh_gx_entity_get_class(self);
+
+    lh_assert_runtime_ref(out);
+    lh_ptr_deref(out) = lh_ptr_deref(place);
+    lh_return_if(lh_null_eq(klass));
+    lh_gx_class_ink_fn *ink = lh_gx_class_get_ink(klass);
+
+    lh_return_if(lh_null_eq(lh_ptr_rcast(lh_void, ink)));
+    ink(self, place, out);
+}
+
 lh_bool_t
 lh_gx_entity_is_shown(const lh_gx_entity_t *self)
 {
@@ -223,10 +237,13 @@ lh_void
 lh_gx_entity_invalidate(const lh_gx_entity_t *self)
 {
     lh_return_if(!lh_gx_entity_is_shown(self));
-    lh_gx_rect_t area;
+    lh_gx_rect_t place;
 
-    lh_gx_entity_get_screen_rect(self, lh_addr_of(area));
-    lh_gx_entity_report(self, lh_addr_of(area));
+    lh_gx_entity_get_screen_rect(self, lh_addr_of(place));
+    lh_gx_rect_t ink;
+
+    lh_gx_entity_get_ink(self, lh_addr_of(place), lh_addr_of(ink));
+    lh_gx_entity_report(self, lh_addr_of(ink));
 }
 
 lh_void

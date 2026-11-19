@@ -13,7 +13,7 @@
 #include <lh/gx/class/initializer.h>
 
 const lh_gx_class_t lh_gx_text_class =
-    lh_gx_class_initializer(lh_gx_text_paint, lh_null, lh_null, lh_null, lh_null, lh_null);
+    lh_gx_class_initializer(lh_gx_text_paint, lh_null, lh_null, lh_null, lh_null, lh_null, lh_null);
 
 lh_s32_t
 lh_gx_text_get_code_width(const lh_gx_font_t *font, lh_u32_t code)

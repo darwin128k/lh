@@ -124,6 +124,15 @@ lh_gx_backend_web_put_mask(lh_gx_backend_web_t *self, const lh_gx_pixmap_t *mask
 }
 
 lh_void
+lh_gx_backend_web_put_sint(lh_gx_backend_web_t *self, lh_s32_t value)
+{
+    lh_web_json_writer_t *writer = lh_gx_backend_web_get_writer_mut(self);
+
+    lh_web_json_writer_put_char(writer, lh_char_map_comma);
+    lh_web_json_writer_put_sint(writer, value);
+}
+
+lh_void
 lh_gx_backend_web_put_color(lh_gx_backend_web_t *self, lh_gx_color_t color)
 {
     lh_gx_backend_web_put_uint(self, color);
@@ -151,6 +160,26 @@ lh_gx_backend_web_put_gradient(lh_gx_backend_web_t *self, const lh_gx_brush_t *b
         lh_gx_backend_web_put_color(self, lh_pixel_gradient_stop_get_color(stop));
     }
     lh_web_json_writer_put_char(writer, lh_char_map_rbracket);
+}
+
+lh_void
+lh_gx_backend_web_fill_shadow(lh_ptr context, const lh_gx_rect_t *clip, const lh_gx_rect_t *box,
+                              lh_gx_scalar_t radius, const lh_gx_shadow_t *shadow)
+{
+    lh_gx_backend_web_t *self = lh_ptr_rcast(lh_gx_backend_web_t, context);
+    lh_gx_rect_t bounds;
+
+    lh_gx_shadow_get_bounds(shadow, box, lh_addr_of(bounds));
+    lh_return_if(!lh_gx_rect_intersects(clip, lh_addr_of(bounds)));
+    lh_gx_backend_web_begin_command(self, lh_str_view_lit("fill_shadow"));
+    lh_gx_backend_web_put_rect(self, clip);
+    lh_gx_backend_web_put_rect(self, box);
+    lh_gx_backend_web_put_sint(self, lh_cast_static(lh_s32_t, radius));
+    lh_gx_backend_web_put_sint(self, lh_cast_static(lh_s32_t, lh_gx_shadow_get_offset_x(shadow)));
+    lh_gx_backend_web_put_sint(self, lh_cast_static(lh_s32_t, lh_gx_shadow_get_offset_y(shadow)));
+    lh_gx_backend_web_put_sint(self, lh_cast_static(lh_s32_t, lh_gx_shadow_get_spread(shadow)));
+    lh_gx_backend_web_put_color(self, lh_gx_shadow_get_color(shadow));
+    lh_gx_backend_web_end_command(self);
 }
 
 lh_void
@@ -204,4 +233,5 @@ lh_gx_backend_web_canvas_init(lh_gx_canvas_t *table)
     lh_gx_canvas_init(table);
     lh_gx_canvas_set_fill_rect(table, lh_gx_backend_web_fill_rect);
     lh_gx_canvas_set_fill_mask(table, lh_gx_backend_web_fill_mask);
+    lh_gx_canvas_set_fill_shadow(table, lh_gx_backend_web_fill_shadow);
 }

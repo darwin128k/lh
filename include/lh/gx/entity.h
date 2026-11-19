@@ -267,6 +267,22 @@ lh_bool_t
 lh_gx_entity_can_take_keys(const lh_gx_entity_t *self);
 
 /**
+ * @brief Where @p self draws when it stands at @p place: what its class's `ink`
+ *        slot says (::lh_gx_class_ink_fn) — a box with a shadow, the place and the
+ *        shadow's bounds — or the place.
+ *
+ * The renderer paints an entity over its ink and its children over its place, and
+ * an entity that changes reports its ink, so a shadow is neither cut at the box's
+ * edge nor left behind when the box moves.
+ *
+ * @param self  The entity; must not be null.
+ * @param place Its rectangle, in the coordinates @p out is wanted in.
+ * @param out   Receives the ink; must not be null.
+ */
+lh_void
+lh_gx_entity_get_ink(const lh_gx_entity_t *self, const lh_gx_rect_t *place, lh_gx_rect_t *out);
+
+/**
  * @brief True when @p self and every owner above it are visible — when it can be
  *        seen at all.
  *
@@ -322,8 +338,9 @@ lh_gx_entity_take_key(lh_gx_entity_t *self, const struct lh_gx_event *event);
  * @brief Report that @p self looks different now, when it can be seen.
  *
  * What the application calls after it changed what the class draws — the
- * colour in the content, the text — so the rectangle is drawn again. Nothing is
- * reported for an entity that is hidden, or under a hidden owner.
+ * colour in the content, the text — so the rectangle is drawn again: its ink on
+ * the screen (::lh_gx_entity_get_ink), its shadow with it. Nothing is reported for
+ * an entity that is hidden, or under a hidden owner.
  *
  * @param self The entity; must not be null.
  */

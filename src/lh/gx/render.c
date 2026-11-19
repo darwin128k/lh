@@ -9,8 +9,8 @@
 #include <lh/gx/class/initializer.h>
 #include <lh/gx/walk.h>
 
-const lh_gx_class_t lh_gx_render_screen_class =
-    lh_gx_class_initializer(lh_null, lh_null, lh_null, lh_null, lh_null, lh_gx_render_report);
+const lh_gx_class_t lh_gx_render_screen_class = lh_gx_class_initializer(
+    lh_null, lh_null, lh_null, lh_null, lh_null, lh_gx_render_report, lh_null);
 
 const lh_gx_entity_t *
 lh_gx_render_get_screen(const lh_gx_render_t *self)
@@ -190,16 +190,20 @@ lh_gx_render_paint_from(const lh_gx_render_t *self, const lh_gx_rect_t *area,
                 lh_gx_node_is_ancestor_of(lh_gx_entity_get_node(at), lh_gx_entity_get_node(cover)))
             {
                 const lh_gx_rect_t *place = lh_gx_walk_get_place(lh_addr_of(walk));
+                lh_gx_rect_t ink;
 
-                lh_gx_rect_intersection(place, lh_addr_of(clip), lh_addr_of(inside));
-                if (!lh_gx_rect_is_empty(lh_addr_of(inside)))
+                /* The entity is drawn over its ink -- its shadow too -- and its
+                   children inside its place. */
+                lh_gx_entity_get_ink(at, place, lh_addr_of(ink));
+                lh_gx_rect_t drawn;
+
+                lh_gx_rect_intersection(lh_addr_of(ink), lh_addr_of(clip), lh_addr_of(drawn));
+                if (started && !lh_gx_rect_is_empty(lh_addr_of(drawn)))
                 {
-                    if (started)
-                    {
-                        lh_gx_render_paint_entity(self, at, place, lh_addr_of(inside));
-                    }
-                    descend = lh_bool_true;
+                    lh_gx_render_paint_entity(self, at, place, lh_addr_of(drawn));
                 }
+                lh_gx_rect_intersection(place, lh_addr_of(clip), lh_addr_of(inside));
+                descend = lh_cast_static(lh_bool_t, !lh_gx_rect_is_empty(lh_addr_of(inside)));
             }
         }
         step = lh_gx_walk_next(lh_addr_of(walk), descend);

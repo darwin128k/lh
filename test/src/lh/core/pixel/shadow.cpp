@@ -158,4 +158,26 @@ TEST(pixel_shadow_ramp, a_level_is_the_fade_of_the_root)
     }
 }
 
+TEST(pixel_shadow, two_shadows_are_equal_when_every_number_is)
+{
+    const lh_pixel_round_box_t box = box_of(0, 0, 10 * one, 8 * one, 2 * one);
+    const lh_pixel_round_box_t other = box_of(0, 0, 10 * one, 8 * one, 3 * one);
+    lh_pixel_shadow_t a;
+    lh_pixel_shadow_t b;
+
+    EXPECT_TRUE(lh_pixel_round_box_is_equal(&box, &box));
+    EXPECT_FALSE(lh_pixel_round_box_is_equal(&box, &other));
+    lh_pixel_shadow_init(&a, &box, 0, one, 4 * one, 100);
+    lh_pixel_shadow_init(&b, &box, 0, one, 4 * one, 100);
+    EXPECT_TRUE(lh_pixel_shadow_is_equal(&a, &b));
+    lh_pixel_shadow_init(&b, &box, 0, 2 * one, 4 * one, 100);
+    EXPECT_FALSE(lh_pixel_shadow_is_equal(&a, &b)) << "the shift";
+    lh_pixel_shadow_init(&b, &box, 0, one, 5 * one, 100);
+    EXPECT_FALSE(lh_pixel_shadow_is_equal(&a, &b)) << "the spread";
+    lh_pixel_shadow_init(&b, &box, 0, one, 4 * one, 101);
+    EXPECT_FALSE(lh_pixel_shadow_is_equal(&a, &b)) << "the peak";
+    lh_pixel_shadow_init(&b, &other, 0, one, 4 * one, 100);
+    EXPECT_FALSE(lh_pixel_shadow_is_equal(&a, &b)) << "the box";
+}
+
 } // namespace

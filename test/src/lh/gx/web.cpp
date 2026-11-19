@@ -186,7 +186,7 @@ note_kind(lh_gx_entity_t *entity, const lh_gx_event_t *event)
 }
 
 const lh_gx_class_t field_class =
-    lh_gx_class_initializer(lh_null, lh_null, lh_null, note_kind, note_kind, lh_null);
+    lh_gx_class_initializer(lh_null, lh_null, lh_null, note_kind, note_kind, lh_null, lh_null);
 
 TEST(gx_web, a_press_focuses_what_takes_keys_and_the_key_lines_go_to_it)
 {

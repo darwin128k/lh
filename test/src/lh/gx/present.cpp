@@ -125,7 +125,7 @@ note(lh_gx_entity_t *entity, const lh_gx_event_t *event)
 }
 
 const lh_gx_class_t field_class =
-    lh_gx_class_initializer(lh_null, lh_null, lh_null, note, note, lh_null);
+    lh_gx_class_initializer(lh_null, lh_null, lh_null, note, note, lh_null, lh_null);
 
 TEST(gx_input, a_press_goes_to_the_pointer_and_the_focus_and_a_key_to_the_focus)
 {

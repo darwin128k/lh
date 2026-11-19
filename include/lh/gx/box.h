@@ -56,7 +56,8 @@
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief The class of a box: `paint` ::lh_gx_box_paint, `covers` ::lh_gx_box_covers.
+ * @brief The class of a box: `paint` ::lh_gx_box_paint, `covers` ::lh_gx_box_covers,
+ *        `ink` ::lh_gx_box_get_ink.
  */
 extern const lh_gx_class_t lh_gx_box_class;
 
@@ -138,6 +139,17 @@ lh_void
 lh_gx_box_paint_corner(const lh_gx_paint_t *paint, const lh_math_rect_t *outer, lh_s32_t radius,
                        lh_s32_t border, const lh_gx_brush_t *fill, const lh_gx_brush_t *edge,
                        lh_s32_t x, lh_s32_t y);
+
+/**
+ * @brief `ink` of the box class (::lh_gx_class_ink_fn): the place, and the bounds of
+ *        the style's shadow (::lh_gx_shadow_get_bounds) when it casts one.
+ *
+ * @param entity The entity.
+ * @param place  Its rectangle.
+ * @param out    Receives where it draws; must not be null.
+ */
+lh_void
+lh_gx_box_get_ink(const lh_gx_entity_t *entity, const lh_gx_rect_t *place, lh_gx_rect_t *out);
 
 /**
  * @brief The first column of row @p y that is not a left corner's: past the top
@@ -229,8 +241,9 @@ lh_gx_box_covers(const lh_gx_entity_t *entity, const lh_gx_rect_t *place, const 
 
 /**
  * @brief `paint` of the box class (::lh_gx_class_paint_fn): the box of the entity's
- *        style at the paint's place — each rounded corner a mask, the rest a strip
- *        of rows at a time.
+ *        style at the paint's place — its shadow first when the style casts one
+ *        (::lh_gx_paint_fill_shadow, with one radius: the largest corner's), then
+ *        each rounded corner a mask and the rest a strip of rows at a time.
  *
  * An entity with no style draws nothing.
  *

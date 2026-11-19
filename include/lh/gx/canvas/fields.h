@@ -7,7 +7,7 @@
 #define LH_GX_CANVAS_FIELDS_H
 
 /**
- * @def lh_gx_canvas_fields(fill_rect_fn, fill_mask_fn)
+ * @def lh_gx_canvas_fields(fill_rect_fn, fill_mask_fn, fill_shadow_fn)
  * @brief The slots of the contract: one pointer per call.
  *
  * Each parameter is a function type; the members are pointers to it. The
@@ -16,9 +16,11 @@
  *
  * @param fill_rect_fn ::lh_gx_canvas_fill_rect_fn.
  * @param fill_mask_fn ::lh_gx_canvas_fill_mask_fn.
+ * @param fill_shadow_fn ::lh_gx_canvas_fill_shadow_fn.
  */
-#define lh_gx_canvas_fields(fill_rect_fn, fill_mask_fn)                                            \
+#define lh_gx_canvas_fields(fill_rect_fn, fill_mask_fn, fill_shadow_fn)                            \
     fill_rect_fn *fill_rect;                                                                       \
-    fill_mask_fn *fill_mask
+    fill_mask_fn *fill_mask;                                                                       \
+    fill_shadow_fn *fill_shadow
 
 #endif /* LH_GX_CANVAS_FIELDS_H */

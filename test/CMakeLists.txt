@@ -627,6 +627,7 @@ set(LH_TEST_GL_SOURCES
         ${LH_TEST_SRC_PATH}/lh/gx/render.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/brush.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/box.cpp
+        ${LH_TEST_SRC_PATH}/lh/gx/shadow.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/corners.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/text.cpp
         ${LH_TEST_SRC_PATH}/lh/gx/tap.cpp

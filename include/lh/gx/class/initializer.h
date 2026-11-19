@@ -30,13 +30,15 @@
  * @param input_fn  ::lh_gx_class_input_fn, or ::lh_null.
  * @param key_fn    ::lh_gx_class_key_fn, or ::lh_null.
  * @param report_fn ::lh_gx_class_report_fn, or ::lh_null.
+ * @param ink_fn    ::lh_gx_class_ink_fn, or ::lh_null.
  */
-#define lh_gx_class_initializer(paint_fn, covers_fn, hit_fn, input_fn, key_fn, report_fn)          \
+#define lh_gx_class_initializer(paint_fn, covers_fn, hit_fn, input_fn, key_fn, report_fn, ink_fn)  \
     lh_initializer(lh_cast_static(lh_ptr_of(lh_gx_class_paint_fn), paint_fn),                      \
                    lh_cast_static(lh_ptr_of(lh_gx_class_covers_fn), covers_fn),                    \
                    lh_cast_static(lh_ptr_of(lh_gx_class_hit_fn), hit_fn),                          \
                    lh_cast_static(lh_ptr_of(lh_gx_class_input_fn), input_fn),                      \
                    lh_cast_static(lh_ptr_of(lh_gx_class_key_fn), key_fn),                          \
-                   lh_cast_static(lh_ptr_of(lh_gx_class_report_fn), report_fn))
+                   lh_cast_static(lh_ptr_of(lh_gx_class_report_fn), report_fn),                    \
+                   lh_cast_static(lh_ptr_of(lh_gx_class_ink_fn), ink_fn))
 
 #endif /* LH_GX_CLASS_INITIALIZER_H */

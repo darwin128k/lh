@@ -41,9 +41,9 @@ probe_take(lh_gx_entity_t *entity, const lh_gx_event_t *event)
 }
 
 const lh_gx_class_t field_class =
-    lh_gx_class_initializer(lh_null, lh_null, lh_null, probe_take, probe_take, lh_null);
+    lh_gx_class_initializer(lh_null, lh_null, lh_null, probe_take, probe_take, lh_null, lh_null);
 const lh_gx_class_t button_class =
-    lh_gx_class_initializer(lh_null, lh_null, lh_null, probe_take, lh_null, lh_null);
+    lh_gx_class_initializer(lh_null, lh_null, lh_null, probe_take, lh_null, lh_null, lh_null);
 
 struct Scene
 {

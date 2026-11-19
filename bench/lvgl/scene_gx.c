@@ -3,9 +3,9 @@
  * drawn by its software backend into memory.
  *
  * gx draws what it has a class for: boxes of one colour or a gradient, each corner
- * of its own radius, and one-line text -- the `cards`, `corners` and `grad_*`
- * scenes. The others need what gx does not have yet -- shadows, wrapped
- * paragraphs, a flex layout -- and are left out (gx_scene_has).
+ * of its own radius, with a soft shadow, and one-line text -- the `cards`,
+ * `corners`, `grad_*` and `shadow` scenes. The others need what gx does not have
+ * yet -- wrapped paragraphs, a flex layout -- and are left out (gx_scene_has).
  * A frame is the renderer's: the damage is the area asked for, the renderer walks the
  * tree and paints it from the entity that covers it.
  */
@@ -33,6 +33,10 @@ static lh_gx_font_t font;
 
 static lh_pixel_gradient_t gradient;
 static lh_pixel_gradient_table_t gradient_table;
+static lh_gx_shadow_t shadow;
+/* Where the backend keeps a shadow's alphas for the next one like it. */
+static lh_byte_t shadow_bits[16384];
+static lh_gx_backend_sw_shadow_t shadow_mask;
 static lh_gx_style_t back_style;
 static lh_gx_style_t card_style;
 static lh_gx_entity_t back;
@@ -46,7 +50,7 @@ int
 gx_scene_has(int scene)
 {
     return scene == SCENE_CARDS || scene == SCENE_CORNERS || scene == SCENE_GRAD_VERTICAL ||
-           scene == SCENE_GRAD_DIAGONAL || scene == SCENE_GRAD_RADIAL;
+           scene == SCENE_GRAD_DIAGONAL || scene == SCENE_GRAD_RADIAL || scene == SCENE_SHADOW;
 }
 
 void
@@ -55,6 +59,8 @@ gx_scene_setup(int scene)
     lh_memory_bounds_init(&bits, pixels, sizeof(pixels));
     lh_gx_pixmap_init(&pixmap, &bits, SCENE_W, SCENE_H, lh_gx_pixmap_format_argb8888);
     lh_gx_backend_sw_init(&sw, &pixmap, 0, 0);
+    lh_gx_backend_sw_shadow_init(&shadow_mask, shadow_bits, sizeof shadow_bits);
+    lh_gx_backend_sw_set_shadow(&sw, &shadow_mask);
     lh_gx_backend_sw_canvas_init(&canvas);
     lh_gx_render_init(&render, &canvas, &sw, SCENE_W, SCENE_H);
     lh_gx_font_baked_init(&font, lh_gl_font_get_default());
@@ -83,6 +89,12 @@ gx_scene_setup(int scene)
         lh_pixel_gradient_table_fill(&gradient_table, &gradient);
         lh_gx_style_set_gradient(&card_style, &gradient);
         lh_gx_style_set_gradient_table(&card_style, &gradient_table);
+    }
+    if (scene == SCENE_SHADOW)
+    {
+        /* As scene_lh.c: black at half alpha, fading over 12, 4 down. */
+        lh_gx_shadow_init(&shadow, 0x80000000U, 12, 0, 4);
+        lh_gx_style_set_shadow(&card_style, &shadow);
     }
     if (scene == SCENE_CORNERS)
     {
