@@ -6,7 +6,7 @@
 #ifndef LH_GX_STYLE_INITIALIZER_H
 #define LH_GX_STYLE_INITIALIZER_H
 
-#include <lh/core/initializer.h>
+#include <lh/gx/corners/initializer.h>
 
 /**
  * @def lh_gx_style_initializer(fill, border, border_width, radius, ink, font)
@@ -14,16 +14,18 @@
  *
  * A theme is the application's array of styles, usually in flash:
  * `const lh_gx_style_t my_theme[] = { lh_gx_style_initializer(0xFFFFFFFF,
- * 0xFFCCCCCC, 1, 8, 0xFF000000, lh_null), … };`, and every entity points at one of them.
+ * 0xFFCCCCCC, 1, lh_gx_corners_initializer_all(8), 0xFF000000, lh_null), … };`,
+ * and every entity points at one of them.
  *
  * @param fill         The colour inside, `0xAARRGGBB`.
  * @param border       The colour of the edge.
  * @param border_width How wide the edge is; `0` for none.
- * @param radius       How round the corners are; `0` for square.
+ * @param radius       How round each corner is: ::lh_gx_corners_initializer, or
+ *                     ::lh_gx_corners_initializer_all for one radius all round.
  * @param ink          The colour of a text.
  * @param font         Where a text takes its glyphs; ::lh_null for none.
  */
 #define lh_gx_style_initializer(fill, border, border_width, radius, ink, font)                     \
-    lh_initializer((fill), (border), (border_width), (radius), (ink), (font))
+    lh_initializer((fill), (border), (border_width), radius, (ink), (font))
 
 #endif /* LH_GX_STYLE_INITIALIZER_H */

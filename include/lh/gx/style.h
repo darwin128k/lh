@@ -15,8 +15,8 @@
 #define LH_GX_STYLE_H
 
 #include <lh/gx/color.h>
+#include <lh/gx/corners.h>
 #include <lh/gx/font.h>
-#include <lh/gx/scalar.h>
 #include <lh/gx/style/fields.h>
 
 /**
@@ -26,7 +26,7 @@
 struct lh_gx_style
 {
     /** Members: ::lh_gx_style_fields. */
-    lh_gx_style_fields(lh_gx_color_t, lh_gx_scalar_t, lh_gx_font_t);
+    lh_gx_style_fields(lh_gx_color_t, lh_gx_scalar_t, lh_gx_corners_t, lh_gx_font_t);
 };
 /** @copybrief lh_gx_style */
 typedef struct lh_gx_style lh_gx_style_t;
@@ -85,21 +85,32 @@ lh_void
 lh_gx_style_set_border_width(lh_gx_style_t *self, lh_gx_scalar_t border_width);
 
 /**
- * @brief How round the corners are; `0` for square (level 1).
+ * @brief How round each corner is, clockwise from the top left; `0` for a square
+ *        corner (level 1).
  *
  * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @return The style's own corners, valid as long as the style.
  */
-lh_gx_scalar_t
+const lh_gx_corners_t *
 lh_gx_style_get_radius(const lh_gx_style_t *self);
 
 /**
- * @brief Store how round the corners are (level 1).
+ * @brief How round each corner is, to change one corner in place (level 1).
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @return The style's own corners, valid as long as the style.
+ */
+lh_gx_corners_t *
+lh_gx_style_get_radius_mut(lh_gx_style_t *self);
+
+/**
+ * @brief Store how round each corner is: a copy of @p radius (level 1).
  *
  * @param self   The style; checked by ::lh_assert_runtime_ref.
- * @param radius The radius; `0` for square.
+ * @param radius The corners' radii; must not be null; not kept.
  */
 lh_void
-lh_gx_style_set_radius(lh_gx_style_t *self, lh_gx_scalar_t radius);
+lh_gx_style_set_radius(lh_gx_style_t *self, const lh_gx_corners_t *radius);
 
 /**
  * @brief The colour a text is drawn in (level 1).
@@ -136,15 +147,26 @@ lh_void
 lh_gx_style_set_font(lh_gx_style_t *self, const lh_gx_font_t *font);
 
 /**
- * @brief A style of @p fill, a @p border of @p border_width, corners of
- *        @p radius, text in @p ink and @p font — for a style built at run time; a theme in flash
- *        uses ::lh_gx_style_initializer.
+ * @brief Round every corner alike, to @p radius (level 2: the corners in place,
+ *        ::lh_gx_corners_init_all).
+ *
+ * @param self   The style; checked by ::lh_gx_style_get_radius_mut.
+ * @param radius The radius; `0` for square.
+ */
+lh_void
+lh_gx_style_set_radius_all(lh_gx_style_t *self, lh_gx_scalar_t radius);
+
+/**
+ * @brief A style of @p fill, a @p border of @p border_width, every corner of
+ *        @p radius, text in @p ink and @p font — for a style built at run time; a
+ *        theme in flash uses ::lh_gx_style_initializer. A corner of its own radius
+ *        is set after, through ::lh_gx_style_get_radius_mut.
  *
  * @param self         The style; must not be null.
  * @param fill         The colour inside.
  * @param border       The colour of the edge.
  * @param border_width How wide the edge is; `0` for none.
- * @param radius       How round the corners are; `0` for square.
+ * @param radius       How round every corner is; `0` for square.
  * @param ink          The colour of a text.
  * @param font         Where a text takes its glyphs; ::lh_null for none.
  */

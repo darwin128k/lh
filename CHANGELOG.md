@@ -17,6 +17,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- A gx style rounds each corner on its own. Its `radius` is an
+  `lh_gx_corners_t` (`lh/gx/corners.h`, `lh/gx/corners/fields.h`,
+  `lh/gx/corners/initializer.h`: one length per corner, clockwise from the top
+  left, as CSS's `border-radius`): `lh_gx_style_get_radius` returns the
+  corners, `lh_gx_style_get_radius_mut` changes one in place,
+  `lh_gx_style_set_radius` copies four, and `lh_gx_style_set_radius_all` rounds
+  every corner alike — `lh_gx_style_init` still takes one radius and does that.
+  `lh_gx_style_fields` takes a corners type, and `lh_gx_style_initializer` takes
+  `lh_gx_corners_initializer(...)` or `lh_gx_corners_initializer_all(r)` in place
+  of a number. `lh_gx_box_get_radius_px` clamps one corner's radius. The box
+  draws each corner with its own radius and the rest a strip of rows at a time
+  (`lh_gx_box_get_left_px`, `_get_right_px`, `_get_strip_end_px`,
+  `_paint_strip`); it covers what is under it clear of its corners
+  (`lh_gx_box_is_clear_of_corners`). The `cards` picture is unchanged to the
+  byte; on the `corners` scene of `bench/lvgl/` — cards rounded on top only —
+  gx draws a frame in 212 microseconds against gl's 253, and the same shapes.
 - gx draws a box's corner and a glyph whole: `lh_gx_box_paint_corner` (which
   replaces `lh_gx_box_paint_corner_row`) hands the canvas one mask per band of
   rows (`LH_GX_BOX_CORNER_BYTES`) and works out the inner coverage only with a
@@ -206,8 +222,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that keeps its own frame gets the screen pixel for pixel.
 - `cmake/toolchain/cortex-m4.cmake` and `bench/mcu/`: lh cross-built for a
   Cortex-M4 with no operating system, and what a gx screen costs there. A
-  button on a 320x240 RGB565 panel through a band of 20 rows is 28 KB of flash
-  (17 KB of it the Roboto font, 10 KB the code) and 13 KB of RAM (12.5 KB of it
+  button on a 320x240 RGB565 panel through a band of 20 rows is 29 KB of flash
+  (17 KB of it the Roboto font, 11 KB the code) and 13 KB of RAM (12.5 KB of it
   the band) — `bench/mcu/RESULTS.md`.
 - `example/gx_panel.c`: the controls of `example/gx_controls.c` on a display
   panel the way a board shows them — a band of 20 rows, the panel's own frame

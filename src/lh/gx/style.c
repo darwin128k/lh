@@ -47,18 +47,26 @@ lh_gx_style_set_border_width(lh_gx_style_t *self, lh_gx_scalar_t border_width)
     self->border_width = border_width;
 }
 
-lh_gx_scalar_t
+const lh_gx_corners_t *
 lh_gx_style_get_radius(const lh_gx_style_t *self)
 {
     lh_assert_runtime_ref(self);
-    return self->radius;
+    return lh_addr_of(self->radius);
+}
+
+lh_gx_corners_t *
+lh_gx_style_get_radius_mut(lh_gx_style_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->radius);
 }
 
 lh_void
-lh_gx_style_set_radius(lh_gx_style_t *self, lh_gx_scalar_t radius)
+lh_gx_style_set_radius(lh_gx_style_t *self, const lh_gx_corners_t *radius)
 {
     lh_assert_runtime_ref(self);
-    self->radius = radius;
+    lh_assert_runtime_ref(radius);
+    self->radius = *radius;
 }
 
 lh_gx_color_t
@@ -90,6 +98,12 @@ lh_gx_style_set_font(lh_gx_style_t *self, const lh_gx_font_t *font)
 }
 
 lh_void
+lh_gx_style_set_radius_all(lh_gx_style_t *self, lh_gx_scalar_t radius)
+{
+    lh_gx_corners_init_all(lh_gx_style_get_radius_mut(self), radius);
+}
+
+lh_void
 lh_gx_style_init(lh_gx_style_t *self, lh_gx_color_t fill, lh_gx_color_t border,
                  lh_gx_scalar_t border_width, lh_gx_scalar_t radius, lh_gx_color_t ink,
                  const lh_gx_font_t *font)
@@ -97,7 +111,7 @@ lh_gx_style_init(lh_gx_style_t *self, lh_gx_color_t fill, lh_gx_color_t border,
     lh_gx_style_set_fill(self, fill);
     lh_gx_style_set_border(self, border);
     lh_gx_style_set_border_width(self, border_width);
-    lh_gx_style_set_radius(self, radius);
+    lh_gx_style_set_radius_all(self, radius);
     lh_gx_style_set_ink(self, ink);
     lh_gx_style_set_font(self, font);
 }

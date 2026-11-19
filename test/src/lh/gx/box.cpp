@@ -5,8 +5,8 @@
  * The card, drawn by the software backend into a small screen the test reads
  * back: a square box is its rectangle exactly, a border is its width on every
  * side, a rounded corner leaves the corner pixel alone and anti-aliases the
- * edge, and a box covers what is under it only where it is opaque and clear of
- * its corners.
+ * edge, each corner takes its own radius, and a box covers what is under it
+ * only where it is opaque and clear of its corners.
  */
 
 #include <gtest/gtest.h>
@@ -74,17 +74,27 @@ rect(lh_gx_scalar_t x, lh_gx_scalar_t y, lh_gx_scalar_t w, lh_gx_scalar_t h)
 
 TEST(gx_style, a_style_reads_back_and_a_theme_is_a_constant_array)
 {
-    static const lh_gx_style_t theme[] = {lh_gx_style_initializer(1U, 2U, 3, 4, 0U, nullptr),
-                                          lh_gx_style_initializer(5U, 6U, 0, 0, 0U, nullptr)};
+    static const lh_gx_style_t theme[] = {
+        lh_gx_style_initializer(1U, 2U, 3, lh_gx_corners_initializer_all(4), 0U, nullptr),
+        lh_gx_style_initializer(5U, 6U, 0, lh_gx_corners_initializer(1, 2, 3, 4), 0U, nullptr)};
     lh_gx_style_t style;
 
     lh_gx_style_init(&style, 0xFF112233U, 0xFF445566U, 2, 8, 0U, nullptr);
     EXPECT_EQ(lh_gx_style_get_fill(&style), 0xFF112233U);
     EXPECT_EQ(lh_gx_style_get_border(&style), 0xFF445566U);
     EXPECT_EQ(lh_gx_style_get_border_width(&style), 2);
-    EXPECT_EQ(lh_gx_style_get_radius(&style), 8);
+    EXPECT_EQ(lh_gx_corners_get_top_left(lh_gx_style_get_radius(&style)), 8) << "every corner";
+    EXPECT_EQ(lh_gx_corners_get_bottom_left(lh_gx_style_get_radius(&style)), 8);
+    lh_gx_corners_set_top_right(lh_gx_style_get_radius_mut(&style), 0);
+    EXPECT_EQ(lh_gx_corners_get_top_right(lh_gx_style_get_radius(&style)), 0) << "one corner";
+    lh_gx_style_set_radius(&style, lh_gx_style_get_radius(&theme[1]));
+    EXPECT_EQ(lh_gx_corners_get_bottom_right(lh_gx_style_get_radius(&style)), 3) << "a copy";
+    lh_gx_style_set_radius_all(&style, 6);
+    EXPECT_EQ(lh_gx_corners_get_top_right(lh_gx_style_get_radius(&style)), 6);
     EXPECT_EQ(lh_gx_style_get_border_width(&theme[0]), 3);
+    EXPECT_EQ(lh_gx_corners_get_bottom_left(lh_gx_style_get_radius(&theme[0])), 4);
     EXPECT_EQ(lh_gx_style_get_fill(&theme[1]), 5U);
+    EXPECT_EQ(lh_gx_corners_get_top_right(lh_gx_style_get_radius(&theme[1])), 2);
 }
 
 TEST(gx_box, a_square_box_is_its_rectangle_exactly)
@@ -206,6 +216,134 @@ TEST(gx_box, it_covers_only_where_opaque_and_clear_of_the_corners)
     lh_gx_style_set_fill(&style, 0xFFFFFFFFU);
     lh_gx_style_init(&style, 0xFFFFFFFFU, 0x80000000U, 2, 0, 0U, nullptr);
     EXPECT_EQ(lh_gx_box_covers(&card, &place, &middle), lh_bool_false) << "translucent border";
+}
+
+/* A 40 by 30 screen, black, with one white box edged in red at (2, 2), 36 by 26,
+   the corners given; drawn into @p words. */
+void
+draw_box(const lh_gx_corners_t *corners, lh_gx_scalar_t border, lh_u32_t *words)
+{
+    lh_memory_bounds_t bits;
+    lh_gx_pixmap_t pixmap;
+    lh_gx_backend_sw_t sw;
+    lh_gx_canvas_t canvas;
+    lh_gx_render_t render;
+    lh_gx_style_t back_style;
+    lh_gx_style_t style;
+    lh_gx_entity_t back;
+    lh_gx_entity_t card;
+    lh_gx_damage_t drawn;
+
+    lh_memory_bounds_init(&bits, words, 40 * 30 * 4);
+    lh_gx_pixmap_init(&pixmap, &bits, 40U, 30U, lh_gx_pixmap_format_argb8888);
+    lh_gx_backend_sw_init(&sw, &pixmap, 0, 0);
+    lh_gx_backend_sw_canvas_init(&canvas);
+    lh_gx_render_init(&render, &canvas, &sw, 40, 30);
+    lh_gx_style_init(&back_style, back_color, 0U, 0, 0, 0U, nullptr);
+    lh_gx_style_init(&style, fill_color, edge_color, border, 0, 0U, nullptr);
+    lh_gx_style_set_radius(&style, corners);
+    lh_gx_entity_init(&back, &lh_gx_box_class, &back_style, 0, 0, 40, 30);
+    lh_gx_entity_init(&card, &lh_gx_box_class, &style, 2, 2, 36, 26);
+    lh_gx_entity_attach(lh_gx_render_get_screen_mut(&render), &back);
+    lh_gx_entity_attach(&back, &card);
+    lh_gx_render_draw(&render, &drawn);
+}
+
+/* Each corner of its own radius is, in its own square, the corner of a box rounded
+   alike all round to that radius; everywhere else the box is the square one. With
+   and without a border, a radius smaller than the border among them. */
+TEST(gx_box, each_corner_of_its_own_radius_is_that_radius_and_the_rest_is_square)
+{
+    static lh_u32_t mixed[40 * 30];
+    static lh_u32_t alike[40 * 30];
+    static lh_u32_t square[40 * 30];
+    const int radii[4] = {0, 1, 7, 13}; /* top left, top right, bottom right, bottom left */
+
+    for (lh_gx_scalar_t border = 0; border <= 3; border += 3)
+    {
+        lh_gx_corners_t corners;
+        lh_gx_corners_t none;
+
+        lh_gx_corners_init(&corners, radii[0], radii[1], radii[2], radii[3]);
+        lh_gx_corners_init_all(&none, 0);
+        draw_box(&corners, border, mixed);
+        draw_box(&none, border, square);
+        /* Which corner's square a pixel is in, or -1. */
+        auto corner_of = [&](int x, int y) {
+            const int x0 = 2, y0 = 2, x1 = 38, y1 = 28;
+
+            if (x < x0 + radii[0] && y < y0 + radii[0])
+                return 0;
+            if (x >= x1 - radii[1] && y < y0 + radii[1])
+                return 1;
+            if (x >= x1 - radii[2] && y >= y1 - radii[2])
+                return 2;
+            if (x < x0 + radii[3] && y >= y1 - radii[3])
+                return 3;
+            return -1;
+        };
+        for (int y = 0; y < 30; ++y)
+        {
+            for (int x = 0; x < 40; ++x)
+            {
+                const int k = corner_of(x, y);
+
+                if (k < 0)
+                {
+                    ASSERT_EQ(mixed[y * 40 + x], square[y * 40 + x])
+                        << "border " << border << " at " << x << "," << y;
+                    continue;
+                }
+                lh_gx_corners_t one;
+
+                lh_gx_corners_init_all(&one, radii[k]);
+                draw_box(&one, border, alike);
+                ASSERT_EQ(mixed[y * 40 + x], alike[y * 40 + x])
+                    << "border " << border << ", corner " << k << " at " << x << "," << y;
+            }
+        }
+    }
+}
+
+TEST(gx_box, a_strip_is_rows_where_neither_the_corners_nor_the_border_change)
+{
+    lh_math_rect_t outer;
+    lh_gx_style_t style;
+
+    lh_math_rect_init(&outer, 10, 20, 30, 16); /* rows 20 to 35 */
+    lh_gx_style_init(&style, fill_color, edge_color, 2, 0, 0U, nullptr);
+    lh_gx_corners_init(lh_gx_style_get_radius_mut(&style), 5, 3, 0, 8);
+    EXPECT_EQ(lh_gx_box_get_left_px(&style, &outer, 20), 15) << "the top left corner's rows";
+    EXPECT_EQ(lh_gx_box_get_left_px(&style, &outer, 25), 10) << "between the left corners";
+    EXPECT_EQ(lh_gx_box_get_left_px(&style, &outer, 28), 18) << "the bottom left corner's rows";
+    EXPECT_EQ(lh_gx_box_get_right_px(&style, &outer, 22), 37) << "the top right corner's rows";
+    EXPECT_EQ(lh_gx_box_get_right_px(&style, &outer, 23), 40);
+    EXPECT_EQ(lh_gx_box_get_right_px(&style, &outer, 35), 40) << "a square corner";
+    EXPECT_EQ(lh_gx_box_get_strip_end_px(&style, &outer, 20), 22) << "the border rows end";
+    EXPECT_EQ(lh_gx_box_get_strip_end_px(&style, &outer, 22), 23) << "the top right corner ends";
+    EXPECT_EQ(lh_gx_box_get_strip_end_px(&style, &outer, 23), 25) << "the top left corner ends";
+    EXPECT_EQ(lh_gx_box_get_strip_end_px(&style, &outer, 25), 28) << "the bottom left begins";
+    EXPECT_EQ(lh_gx_box_get_strip_end_px(&style, &outer, 28), 34) << "the border rows begin";
+    EXPECT_EQ(lh_gx_box_get_strip_end_px(&style, &outer, 34), 36) << "the bottom edge";
+}
+
+TEST(gx_box, a_box_rounded_on_top_covers_its_bottom_corners)
+{
+    const lh_gx_rect_t place = rect(0, 0, 20, 10);
+    const lh_gx_rect_t top_left = rect(0, 0, 3, 3);
+    const lh_gx_rect_t bottom_left = rect(0, 7, 3, 3);
+    const lh_gx_rect_t bottom_strip = rect(0, 8, 20, 2);
+    lh_gx_style_t style;
+    lh_gx_entity_t card;
+
+    lh_gx_style_init(&style, 0xFFFFFFFFU, 0U, 0, 0, 0U, nullptr);
+    lh_gx_corners_init(lh_gx_style_get_radius_mut(&style), 4, 4, 0, 0);
+    lh_gx_entity_init(&card, &lh_gx_box_class, &style, 0, 0, 20, 10);
+    EXPECT_EQ(lh_gx_box_covers(&card, &place, &top_left), lh_bool_false);
+    EXPECT_EQ(lh_gx_box_covers(&card, &place, &bottom_left), lh_bool_true) << "a square corner";
+    EXPECT_EQ(lh_gx_box_covers(&card, &place, &bottom_strip), lh_bool_true) << "edge to edge";
+    EXPECT_EQ(lh_gx_box_is_clear_of_corners(&style, &place, &bottom_strip), lh_bool_true);
+    EXPECT_EQ(lh_gx_box_is_clear_of_corners(&style, &place, &top_left), lh_bool_false);
 }
 
 /* A card is restyled: only its rectangle is drawn again, and what is under it is not. */

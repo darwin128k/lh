@@ -2,9 +2,10 @@
  * scene_gx.c -- the scenes of scene.h that gx can draw, built with gx's own API and
  * drawn by its software backend into memory.
  *
- * gx draws what it has a class for: rounded boxes of one colour and one-line text.
- * The other scenes need what gx does not have yet -- gradients, shadows, wrapped
- * paragraphs, a flex layout, a radius per corner -- and are left out (gx_scene_has).
+ * gx draws what it has a class for: boxes of one colour, each corner of its own
+ * radius, and one-line text -- the `cards` and `corners` scenes. The others need
+ * what gx does not have yet -- gradients, shadows, wrapped paragraphs, a flex
+ * layout -- and are left out (gx_scene_has).
  * A frame is the renderer's: the damage is the area asked for, the renderer walks the
  * tree and paints it from the entity that covers it.
  */
@@ -42,13 +43,12 @@ static lh_gx_rect_t whole;
 int
 gx_scene_has(int scene)
 {
-    return scene == SCENE_CARDS;
+    return scene == SCENE_CARDS || scene == SCENE_CORNERS;
 }
 
 void
 gx_scene_setup(int scene)
 {
-    (void)scene;
     lh_memory_bounds_init(&bits, pixels, sizeof(pixels));
     lh_gx_pixmap_init(&pixmap, &bits, SCENE_W, SCENE_H, lh_gx_pixmap_format_argb8888);
     lh_gx_backend_sw_init(&sw, &pixmap, 0, 0);
@@ -60,6 +60,11 @@ gx_scene_setup(int scene)
        8, white text 8 in from the corner. */
     lh_gx_style_init(&back_style, 0xFF14181DU, 0U, 0, 0, 0U, lh_null);
     lh_gx_style_init(&card_style, 0xFF2E6BE6U, 0U, 0, 8, 0xFFFFFFFFU, &font);
+    if (scene == SCENE_CORNERS)
+    {
+        /* As scene_lh.c: rounded 12 on top, square at the bottom -- a tab. */
+        lh_gx_corners_init(lh_gx_style_get_radius_mut(&card_style), 12, 12, 0, 0);
+    }
     lh_gx_entity_init(&back, &lh_gx_box_class, &back_style, 0, 0, SCENE_W, SCENE_H);
     lh_gx_entity_attach(lh_gx_render_get_screen_mut(&render), &back);
     for (int i = 0; i < CARDS; ++i)

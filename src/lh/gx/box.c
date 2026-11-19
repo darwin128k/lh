@@ -13,13 +13,13 @@ const lh_gx_class_t lh_gx_box_class =
     lh_gx_class_initializer(lh_gx_box_paint, lh_gx_box_covers, lh_null, lh_null, lh_null, lh_null);
 
 lh_s32_t
-lh_gx_box_get_radius_px(const lh_gx_style_t *style, const lh_math_rect_t *outer)
+lh_gx_box_get_radius_px(lh_gx_scalar_t radius, const lh_math_rect_t *outer)
 {
     const lh_math_size_t *size = lh_math_rect_get_size(outer);
     const lh_s32_t half =
         lh_math_min(lh_math_size_get_width(size), lh_math_size_get_height(size)) / 2;
 
-    return lh_math_clamp(lh_cast_static(lh_s32_t, lh_gx_style_get_radius(style)), 0,
+    return lh_math_clamp(lh_cast_static(lh_s32_t, radius), 0,
                          lh_math_min(half, LH_GX_BOX_RADIUS_MAX));
 }
 
@@ -115,53 +115,135 @@ lh_gx_box_paint_corner(const lh_gx_paint_t *paint, const lh_math_rect_t *outer, 
     }
 }
 
-lh_void
-lh_gx_box_paint(const lh_gx_entity_t *entity, const lh_gx_paint_t *paint)
+lh_s32_t
+lh_gx_box_get_left_px(const lh_gx_style_t *style, const lh_math_rect_t *outer, lh_s32_t y)
 {
-    const lh_gx_style_t *style = lh_gx_entity_get_style(entity);
+    const lh_gx_corners_t *radius = lh_gx_style_get_radius(style);
+    const lh_s32_t x0 = lh_math_point_get_x(lh_math_rect_get_origin(outer));
+    const lh_s32_t y0 = lh_math_point_get_y(lh_math_rect_get_origin(outer));
+    const lh_s32_t h = lh_math_size_get_height(lh_math_rect_get_size(outer));
+    const lh_s32_t top = lh_gx_box_get_radius_px(lh_gx_corners_get_top_left(radius), outer);
+    const lh_s32_t bottom = lh_gx_box_get_radius_px(lh_gx_corners_get_bottom_left(radius), outer);
 
-    lh_return_if(lh_null_eq(style));
+    lh_return_if(y < y0 + top, x0 + top);
+    lh_return_if(y >= y0 + h - bottom, x0 + bottom);
+    return x0;
+}
+
+lh_s32_t
+lh_gx_box_get_right_px(const lh_gx_style_t *style, const lh_math_rect_t *outer, lh_s32_t y)
+{
+    const lh_gx_corners_t *radius = lh_gx_style_get_radius(style);
+    const lh_s32_t x1 = lh_math_point_get_x(lh_math_rect_get_origin(outer)) +
+                        lh_math_size_get_width(lh_math_rect_get_size(outer));
+    const lh_s32_t y0 = lh_math_point_get_y(lh_math_rect_get_origin(outer));
+    const lh_s32_t h = lh_math_size_get_height(lh_math_rect_get_size(outer));
+    const lh_s32_t top = lh_gx_box_get_radius_px(lh_gx_corners_get_top_right(radius), outer);
+    const lh_s32_t bottom = lh_gx_box_get_radius_px(lh_gx_corners_get_bottom_right(radius), outer);
+
+    lh_return_if(y < y0 + top, x1 - top);
+    lh_return_if(y >= y0 + h - bottom, x1 - bottom);
+    return x1;
+}
+
+lh_s32_t
+lh_gx_box_get_strip_end_px(const lh_gx_style_t *style, const lh_math_rect_t *outer, lh_s32_t y)
+{
+    const lh_gx_corners_t *radius = lh_gx_style_get_radius(style);
+    const lh_s32_t y0 = lh_math_point_get_y(lh_math_rect_get_origin(outer));
+    const lh_s32_t y1 = y0 + lh_math_size_get_height(lh_math_rect_get_size(outer));
+    const lh_s32_t b = lh_gx_box_get_border_px(style, outer);
+    /* Where a corner ends or begins, and where the border rows end or begin. */
+    const lh_s32_t rows[6] = {
+        y0 + lh_gx_box_get_radius_px(lh_gx_corners_get_top_left(radius), outer),
+        y0 + lh_gx_box_get_radius_px(lh_gx_corners_get_top_right(radius), outer),
+        y1 - lh_gx_box_get_radius_px(lh_gx_corners_get_bottom_right(radius), outer),
+        y1 - lh_gx_box_get_radius_px(lh_gx_corners_get_bottom_left(radius), outer),
+        y0 + b,
+        y1 - b,
+    };
+    lh_s32_t end = y1;
+
+    for (lh_usize_t i = 0U; i < 6U; ++i)
+    {
+        if (rows[i] > y)
+        {
+            end = lh_math_min(end, rows[i]);
+        }
+    }
+    return end;
+}
+
+lh_bool_t
+lh_gx_box_is_clear_of_corners(const lh_gx_style_t *style, const lh_gx_rect_t *place,
+                              const lh_gx_rect_t *area)
+{
+    const lh_gx_corners_t *radius = lh_gx_style_get_radius(style);
     lh_math_rect_t outer;
 
-    lh_gx_rect_to_rect(lh_gx_paint_get_place(paint), lh_addr_of(outer));
+    lh_gx_rect_to_rect(place, lh_addr_of(outer));
     const lh_s32_t x0 = lh_math_point_get_x(lh_math_rect_get_origin(lh_addr_of(outer)));
     const lh_s32_t y0 = lh_math_point_get_y(lh_math_rect_get_origin(lh_addr_of(outer)));
     const lh_s32_t w = lh_math_size_get_width(lh_math_rect_get_size(lh_addr_of(outer)));
     const lh_s32_t h = lh_math_size_get_height(lh_math_rect_get_size(lh_addr_of(outer)));
+    const lh_s32_t tl =
+        lh_gx_box_get_radius_px(lh_gx_corners_get_top_left(radius), lh_addr_of(outer));
+    const lh_s32_t tr =
+        lh_gx_box_get_radius_px(lh_gx_corners_get_top_right(radius), lh_addr_of(outer));
+    const lh_s32_t br =
+        lh_gx_box_get_radius_px(lh_gx_corners_get_bottom_right(radius), lh_addr_of(outer));
+    const lh_s32_t bl =
+        lh_gx_box_get_radius_px(lh_gx_corners_get_bottom_left(radius), lh_addr_of(outer));
+    /* The two arms of a plus: the box less its corner columns, less its corner rows. */
+    const lh_s32_t left = lh_math_max(tl, bl);
+    const lh_s32_t right = lh_math_max(tr, br);
+    const lh_s32_t top = lh_math_max(tl, tr);
+    const lh_s32_t bottom = lh_math_max(bl, br);
+    lh_gx_rect_t arm;
 
-    lh_return_if(w <= 0 || h <= 0);
-    const lh_s32_t r = lh_gx_box_get_radius_px(style, lh_addr_of(outer));
-    const lh_s32_t b = lh_gx_box_get_border_px(style, lh_addr_of(outer));
-    const lh_gx_color_t fill = lh_gx_style_get_fill(style);
+    lh_gx_rect_init(lh_addr_of(arm), lh_cast_static(lh_gx_scalar_t, x0 + left),
+                    lh_cast_static(lh_gx_scalar_t, y0),
+                    lh_cast_static(lh_gx_scalar_t, w - left - right),
+                    lh_cast_static(lh_gx_scalar_t, h));
+    lh_gx_rect_t inside;
+
+    lh_gx_rect_intersection(lh_addr_of(arm), area, lh_addr_of(inside));
+    lh_return_if(lh_gx_rect_eq(lh_addr_of(inside), area), lh_bool_true);
+    lh_gx_rect_init(lh_addr_of(arm), lh_cast_static(lh_gx_scalar_t, x0),
+                    lh_cast_static(lh_gx_scalar_t, y0 + top), lh_cast_static(lh_gx_scalar_t, w),
+                    lh_cast_static(lh_gx_scalar_t, h - top - bottom));
+    lh_gx_rect_intersection(lh_addr_of(arm), area, lh_addr_of(inside));
+    return lh_gx_rect_eq(lh_addr_of(inside), area);
+}
+
+lh_void
+lh_gx_box_paint_strip(const lh_gx_paint_t *paint, const lh_gx_style_t *style,
+                      const lh_math_rect_t *outer, lh_s32_t top, lh_s32_t bottom)
+{
+    const lh_s32_t x0 = lh_math_point_get_x(lh_math_rect_get_origin(outer));
+    const lh_s32_t y0 = lh_math_point_get_y(lh_math_rect_get_origin(outer));
+    const lh_s32_t w = lh_math_size_get_width(lh_math_rect_get_size(outer));
+    const lh_s32_t h = lh_math_size_get_height(lh_math_rect_get_size(outer));
+    const lh_s32_t b = lh_gx_box_get_border_px(style, outer);
+    const lh_s32_t left = lh_gx_box_get_left_px(style, outer, top);
+    const lh_s32_t right = lh_gx_box_get_right_px(style, outer, top);
+    const lh_s32_t rows = bottom - top;
     const lh_gx_color_t edge = lh_gx_style_get_border(style);
 
-    /* The corner bands: the four corners as masks, the middle between them as a
-       rectangle of the border over one of the fill. */
-    if (r > 0)
+    /* A border row is the border from corner to corner. */
+    if (top < y0 + b || top >= y0 + h - b)
     {
-        const lh_s32_t edge_rows = lh_math_min(b, r);
-
-        lh_gx_box_paint_corner(paint, lh_addr_of(outer), r, b, style, x0, y0);
-        lh_gx_box_paint_corner(paint, lh_addr_of(outer), r, b, style, x0 + w - r, y0);
-        lh_gx_box_paint_corner(paint, lh_addr_of(outer), r, b, style, x0, y0 + h - r);
-        lh_gx_box_paint_corner(paint, lh_addr_of(outer), r, b, style, x0 + w - r, y0 + h - r);
-        lh_gx_box_fill_px(paint, x0 + r, y0, w - 2 * r, edge_rows, edge);
-        lh_gx_box_fill_px(paint, x0 + r, y0 + edge_rows, w - 2 * r, r - edge_rows, fill);
-        lh_gx_box_fill_px(paint, x0 + r, y0 + h - r, w - 2 * r, r - edge_rows, fill);
-        lh_gx_box_fill_px(paint, x0 + r, y0 + h - edge_rows, w - 2 * r, edge_rows, edge);
+        lh_gx_box_fill_px(paint, left, top, right - left, rows, edge);
+        return;
     }
-    /* The straight band: border rows across, then the sides and the fill as three
-       rectangles. */
-    const lh_s32_t top = y0 + r;
-    const lh_s32_t bottom = y0 + h - r;
-    const lh_s32_t inner_top = lh_math_max(top, y0 + b);
-    const lh_s32_t inner_bottom = lh_math_min(bottom, y0 + h - b);
+    /* Any other: the border on each side that is not a corner's, the fill between. */
+    const lh_s32_t inner_left = lh_math_max(left, x0 + b);
+    const lh_s32_t inner_right = lh_math_min(right, x0 + w - b);
 
-    lh_gx_box_fill_px(paint, x0, top, w, inner_top - top, edge);
-    lh_gx_box_fill_px(paint, x0, inner_bottom, w, bottom - inner_bottom, edge);
-    lh_gx_box_fill_px(paint, x0, inner_top, b, inner_bottom - inner_top, edge);
-    lh_gx_box_fill_px(paint, x0 + w - b, inner_top, b, inner_bottom - inner_top, edge);
-    lh_gx_box_fill_px(paint, x0 + b, inner_top, w - 2 * b, inner_bottom - inner_top, fill);
+    lh_gx_box_fill_px(paint, left, top, inner_left - left, rows, edge);
+    lh_gx_box_fill_px(paint, inner_right, top, right - inner_right, rows, edge);
+    lh_gx_box_fill_px(paint, inner_left, top, inner_right - inner_left, rows,
+                      lh_gx_style_get_fill(style));
 }
 
 lh_bool_t
@@ -178,17 +260,59 @@ lh_gx_box_covers(const lh_gx_entity_t *entity, const lh_gx_rect_t *place, const 
     lh_return_if(lh_gx_box_get_border_px(style, lh_addr_of(outer)) != 0 &&
                      lh_pixel_argb_get_channel(lh_gx_style_get_border(style), 24) != LH_BYTE_T_MAX,
                  lh_bool_false);
-    const lh_gx_scalar_t r =
-        lh_cast_static(lh_gx_scalar_t, lh_gx_box_get_radius_px(style, lh_addr_of(outer)));
-    /* Clear of the corners: inside the box less its corner columns, or less its
-       corner rows — the two arms of a plus. */
-    lh_gx_rect_t arm;
+    return lh_gx_box_is_clear_of_corners(style, place, area);
+}
 
-    lh_gx_rect_inset(place, r, 0, lh_addr_of(arm));
-    lh_gx_rect_t inside;
-    lh_gx_rect_intersection(lh_addr_of(arm), area, lh_addr_of(inside));
-    lh_return_if(lh_gx_rect_eq(lh_addr_of(inside), area), lh_bool_true);
-    lh_gx_rect_inset(place, 0, r, lh_addr_of(arm));
-    lh_gx_rect_intersection(lh_addr_of(arm), area, lh_addr_of(inside));
-    return lh_gx_rect_eq(lh_addr_of(inside), area);
+lh_void
+lh_gx_box_paint(const lh_gx_entity_t *entity, const lh_gx_paint_t *paint)
+{
+    const lh_gx_style_t *style = lh_gx_entity_get_style(entity);
+
+    lh_return_if(lh_null_eq(style));
+    lh_math_rect_t outer;
+
+    lh_gx_rect_to_rect(lh_gx_paint_get_place(paint), lh_addr_of(outer));
+    const lh_s32_t x0 = lh_math_point_get_x(lh_math_rect_get_origin(lh_addr_of(outer)));
+    const lh_s32_t y0 = lh_math_point_get_y(lh_math_rect_get_origin(lh_addr_of(outer)));
+    const lh_s32_t w = lh_math_size_get_width(lh_math_rect_get_size(lh_addr_of(outer)));
+    const lh_s32_t h = lh_math_size_get_height(lh_math_rect_get_size(lh_addr_of(outer)));
+
+    lh_return_if(w <= 0 || h <= 0);
+    const lh_gx_corners_t *radius = lh_gx_style_get_radius(style);
+    const lh_s32_t b = lh_gx_box_get_border_px(style, lh_addr_of(outer));
+    const lh_s32_t tl =
+        lh_gx_box_get_radius_px(lh_gx_corners_get_top_left(radius), lh_addr_of(outer));
+    const lh_s32_t tr =
+        lh_gx_box_get_radius_px(lh_gx_corners_get_top_right(radius), lh_addr_of(outer));
+    const lh_s32_t br =
+        lh_gx_box_get_radius_px(lh_gx_corners_get_bottom_right(radius), lh_addr_of(outer));
+    const lh_s32_t bl =
+        lh_gx_box_get_radius_px(lh_gx_corners_get_bottom_left(radius), lh_addr_of(outer));
+
+    /* The corners as masks, each of its own radius; a square corner is none. */
+    if (tl > 0)
+    {
+        lh_gx_box_paint_corner(paint, lh_addr_of(outer), tl, b, style, x0, y0);
+    }
+    if (tr > 0)
+    {
+        lh_gx_box_paint_corner(paint, lh_addr_of(outer), tr, b, style, x0 + w - tr, y0);
+    }
+    if (br > 0)
+    {
+        lh_gx_box_paint_corner(paint, lh_addr_of(outer), br, b, style, x0 + w - br, y0 + h - br);
+    }
+    if (bl > 0)
+    {
+        lh_gx_box_paint_corner(paint, lh_addr_of(outer), bl, b, style, x0, y0 + h - bl);
+    }
+    /* The rest as rectangles, a strip of rows at a time: within a strip neither
+       the corners beside it nor whether its rows are the border change. */
+    for (lh_s32_t top = y0; top < y0 + h;)
+    {
+        const lh_s32_t bottom = lh_gx_box_get_strip_end_px(style, lh_addr_of(outer), top);
+
+        lh_gx_box_paint_strip(paint, style, lh_addr_of(outer), top, bottom);
+        top = bottom;
+    }
 }

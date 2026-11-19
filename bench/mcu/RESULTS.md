@@ -16,23 +16,27 @@ is static.
 
 ## Totals (`arm-none-eabi-size`, bytes)
 
+With a radius per corner (`lh_gx_corners_t`): the box's strips cost 548 bytes
+of flash over one radius, and each style 12 bytes of RAM more (four radii, not
+one); the first measure was 28 156 and 13 452.
+
 | program | text (flash) | data | bss (RAM) |
 |---|---:|---:|---:|
 | `mcu_empty` | 432 | 8 | 32 |
-| `mcu_gx` | 28 588 | 8 | 13 484 |
-| **gx's part** | **28 156** | 0 | **13 452** |
+| `mcu_gx` | 29 136 | 8 | 13 520 |
+| **gx's part** | **28 704** | 0 | **13 488** |
 
 ## Flash, by what it is
 
 | part | bytes |
 |---|---:|
 | the font: Roboto's bitmaps, glyph table, tops and advances | 17 060 |
-| lh code: the renderer, the walk, box, text, button, tap, input, strip, the pixel kernels | 10 276 |
+| lh code: the renderer, the walk, box, text, button, tap, input, strip, the pixel kernels | 10 826 |
 | the program: `main`, `panel_show`, the click | 834 |
 
 The font is more than half of it. A board that has its own font, or a smaller
 one, swaps it through the font contract (`lh_gx_font_t`); the code stays at
-about 10 KB. The kernels for the ARGB format (`lh_pixel_span_*_argb`, 584
+about 11 KB. The kernels for the ARGB format (`lh_pixel_span_*_argb`, 584
 bytes) are linked too: the software backend picks the format at run time.
 
 ## RAM, by what it is
@@ -43,9 +47,9 @@ bytes) are linked too: the software backend picks the format at run time.
 | the renderer (its damage list) | 320 |
 | the button (its box, caption, tap) | 124 |
 | the background entity | 52 |
-| three styles, the font, the pixmap, the backend, the canvas, the present, the pointer, the focus | 156 |
+| three styles, the font, the pixmap, the backend, the canvas, the present, the pointer, the focus | 192 |
 
-Everything apart from the band is 652 bytes. The band is the program's choice:
+Everything apart from the band is 688 bytes. The band is the program's choice:
 10 rows halve it, a full frame (153 600 bytes) does not fit in most M4 parts,
 and the picture on the panel is the same either way (`test/src/lh/gx/strip.cpp`).
 
