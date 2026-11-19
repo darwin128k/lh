@@ -14,7 +14,7 @@
 #ifndef LH_GX_STYLE_H
 #define LH_GX_STYLE_H
 
-#include <lh/core/pixel/gradient.h>
+#include <lh/core/pixel/gradient/table.h>
 #include <lh/gx/color.h>
 #include <lh/gx/corners.h>
 #include <lh/gx/font.h>
@@ -29,7 +29,7 @@ struct lh_gx_style
 {
     /** Members: ::lh_gx_style_fields. */
     lh_gx_style_fields(lh_gx_color_t, lh_gx_scalar_t, lh_gx_corners_t, lh_gx_font_t,
-                       lh_pixel_gradient_t);
+                       lh_pixel_gradient_t, lh_pixel_gradient_table_t);
 };
 /** @copybrief lh_gx_style */
 typedef struct lh_gx_style lh_gx_style_t;
@@ -170,6 +170,26 @@ lh_void
 lh_gx_style_set_gradient(lh_gx_style_t *self, const lh_pixel_gradient_t *gradient);
 
 /**
+ * @brief The gradient's 256 colours, worked out once, or ::lh_null (level 1).
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @return Not owned.
+ */
+const lh_pixel_gradient_table_t *
+lh_gx_style_get_gradient_table(const lh_gx_style_t *self);
+
+/**
+ * @brief Store the gradient's colours (level 1): a table filled from the gradient
+ *        (::lh_pixel_gradient_table_fill), or ::lh_null to have the canvas work
+ *        them out on every call.
+ *
+ * @param self  The style; checked by ::lh_assert_runtime_ref.
+ * @param table The table; not owned, and it must outlive the style's use.
+ */
+lh_void
+lh_gx_style_set_gradient_table(lh_gx_style_t *self, const lh_pixel_gradient_table_t *table);
+
+/**
  * @brief Whether the inside is opaque: the gradient's every stop
  *        (::lh_pixel_gradient_is_opaque), else the fill colour's alpha 255.
  *
@@ -193,7 +213,7 @@ lh_gx_style_set_radius_all(lh_gx_style_t *self, lh_gx_scalar_t radius);
  *        @p radius, text in @p ink and @p font — for a style built at run time; a
  *        theme in flash uses ::lh_gx_style_initializer. A corner of its own radius
  *        is set after, through ::lh_gx_style_get_radius_mut; no gradient
- *        (::lh_gx_style_set_gradient sets one).
+ *        (::lh_gx_style_set_gradient sets one) and no table.
  *
  * @param self         The style; must not be null.
  * @param fill         The colour inside.

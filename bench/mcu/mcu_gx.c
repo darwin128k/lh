@@ -95,7 +95,9 @@ main(void)
     lh_memory_bounds_init(&band_bits, band_words, sizeof(band_words));
     lh_gx_pixmap_init(&band, &band_bits, PANEL_W, BAND_ROWS, lh_gx_pixmap_format_rgb565);
     lh_gx_backend_sw_init(&sw, &band, 0, 0);
-    lh_gx_backend_sw_canvas_init(&canvas);
+    /* A board with no gradient: the canvas that draws colours only, so nothing of
+       the gradient is linked. */
+    lh_gx_backend_sw_canvas_init_solid(&canvas);
     lh_gx_render_init(&render, &canvas, &sw, PANEL_W, PANEL_H);
     lh_gx_present_init(&present);
     lh_gx_present_set_show(&present, panel_show);

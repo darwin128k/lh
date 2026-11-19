@@ -98,17 +98,19 @@ lh_gx_box_fill_px(const lh_gx_paint_t *paint, lh_s32_t x, lh_s32_t y, lh_s32_t w
 
 /**
  * @brief The brush the inside of the box is filled with: the style's gradient laid
- *        over @p place, its colours worked out once into @p table for every piece
- *        of the box; else the fill colour (@p table untouched).
+ *        over @p place, with the style's table of its colours
+ *        (::lh_gx_style_get_gradient_table); else the fill colour.
+ *
+ * The box works nothing of the gradient out itself: the theme fills the table
+ * once, and the canvas draws. So a board whose canvas draws colours only
+ * (::lh_gx_backend_sw_canvas_init_solid) links none of the gradient's code.
  *
  * @param style The style; must not be null.
  * @param place The whole box on the screen, which the gradient is laid over.
- * @param table Room for the gradient's colours; must outlive the brush's use.
  * @param out   The brush; must not be null.
  */
 lh_void
-lh_gx_box_init_fill(const lh_gx_style_t *style, const lh_gx_rect_t *place,
-                    lh_pixel_gradient_table_t *table, lh_gx_brush_t *out);
+lh_gx_box_init_fill(const lh_gx_style_t *style, const lh_gx_rect_t *place, lh_gx_brush_t *out);
 
 /**
  * @brief Draw one corner of the box: the @p radius by @p radius square from

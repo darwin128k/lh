@@ -223,63 +223,58 @@ lh_gx_backend_sw_fill_box_gradient(const lh_gx_backend_sw_t *self, const lh_math
     }
 }
 
-lh_void
-lh_gx_backend_sw_fill_mask(lh_ptr context, const lh_gx_rect_t *clip, const lh_gx_pixmap_t *mask,
-                           lh_gx_point_t at, const lh_gx_brush_t *brush)
+lh_bool_t
+lh_gx_backend_sw_get_mask_box(const lh_gx_backend_sw_t *self, const lh_gx_rect_t *clip,
+                              const lh_gx_pixmap_t *mask, lh_gx_point_t at, lh_math_rect_t *box,
+                              lh_math_point_t *inside)
 {
-    const lh_gx_backend_sw_t *self = lh_ptr_rcast(const lh_gx_backend_sw_t, context);
     lh_gx_rect_t placed;
 
     lh_gx_rect_init(lh_addr_of(placed), lh_gx_point_get_x(lh_addr_of(at)),
                     lh_gx_point_get_y(lh_addr_of(at)),
                     lh_cast_static(lh_gx_scalar_t, lh_gx_pixmap_get_width(mask)),
                     lh_cast_static(lh_gx_scalar_t, lh_gx_pixmap_get_height(mask)));
-    lh_math_rect_t box;
-
-    lh_return_if(lh_gx_brush_is_clear(brush) ||
-                 !lh_gx_backend_sw_get_box(self, clip, lh_addr_of(placed), lh_addr_of(box)));
+    lh_return_if(!lh_gx_backend_sw_get_box(self, clip, lh_addr_of(placed), box), lh_bool_false);
     /* Where the box starts inside the mask: the mask's own top-left corner, in the
        target's coordinates, is its screen position less the origin. */
     lh_math_rect_t mask_px;
 
     lh_gx_rect_to_rect(lh_addr_of(placed), lh_addr_of(mask_px));
     const lh_math_point_t *origin = lh_gx_backend_sw_get_origin(self);
-    const lh_math_point_t *box_at = lh_math_rect_get_origin(lh_addr_of(box));
+    const lh_math_point_t *box_at = lh_math_rect_get_origin(box);
     const lh_math_point_t *mask_at = lh_math_rect_get_origin(lh_addr_of(mask_px));
-    const lh_math_scalar_t dx =
-        lh_math_point_get_x(box_at) + lh_math_point_get_x(origin) - lh_math_point_get_x(mask_at);
-    const lh_math_scalar_t dy =
-        lh_math_point_get_y(box_at) + lh_math_point_get_y(origin) - lh_math_point_get_y(mask_at);
-    const lh_s32_t w = lh_math_size_get_width(lh_math_rect_get_size(lh_addr_of(box)));
-    const lh_s32_t h = lh_math_size_get_height(lh_math_rect_get_size(lh_addr_of(box)));
-    const lh_s32_t x = lh_math_point_get_x(box_at);
-    const lh_s32_t y = lh_math_point_get_y(box_at);
 
-    if (!lh_gx_brush_is_gradient(brush))
-    {
-        for (lh_s32_t row = 0; row < h; ++row)
-        {
-            lh_gx_backend_sw_cover_row(self, lh_cast_static(lh_u32_t, x),
-                                       lh_cast_static(lh_u32_t, y + row),
-                                       lh_cast_static(lh_usize_t, w),
-                                       lh_gx_pixmap_get_address(mask, lh_cast_static(lh_u32_t, dx),
-                                                                lh_cast_static(lh_u32_t, dy + row)),
-                                       lh_gx_brush_get_color(brush));
-        }
-        return;
-    }
+    lh_math_point_init(
+        inside,
+        lh_math_point_get_x(box_at) + lh_math_point_get_x(origin) - lh_math_point_get_x(mask_at),
+        lh_math_point_get_y(box_at) + lh_math_point_get_y(origin) - lh_math_point_get_y(mask_at));
+    return lh_bool_true;
+}
+
+lh_void
+lh_gx_backend_sw_fill_mask_gradient(const lh_gx_backend_sw_t *self, const lh_gx_pixmap_t *mask,
+                                    const lh_math_rect_t *box, const lh_math_point_t *inside,
+                                    const lh_gx_brush_t *brush)
+{
     lh_pixel_gradient_table_t own;
     lh_pixel_gradient_sampler_t sampler;
     const lh_pixel_gradient_table_t *table =
         lh_gx_brush_prepare(brush, lh_addr_of(own), lh_addr_of(sampler));
+    const lh_math_point_t *origin = lh_gx_backend_sw_get_origin(self);
+    const lh_s32_t x = lh_math_point_get_x(lh_math_rect_get_origin(box));
+    const lh_s32_t y = lh_math_point_get_y(lh_math_rect_get_origin(box));
+    const lh_s32_t w = lh_math_size_get_width(lh_math_rect_get_size(box));
+    const lh_s32_t h = lh_math_size_get_height(lh_math_rect_get_size(box));
+    /* The gradient is laid over the screen; the box is in the target. */
     const lh_s32_t sx = x + lh_math_point_get_x(origin);
     const lh_s32_t sy = y + lh_math_point_get_y(origin);
     lh_u32_t colors[LH_PIXEL_GRADIENT_TABLE_RUN];
 
     for (lh_s32_t row = 0; row < h; ++row)
     {
-        const lh_byte_t *cover = lh_gx_pixmap_get_address(mask, lh_cast_static(lh_u32_t, dx),
-                                                          lh_cast_static(lh_u32_t, dy + row));
+        const lh_byte_t *cover =
+            lh_gx_pixmap_get_address(mask, lh_cast_static(lh_u32_t, lh_math_point_get_x(inside)),
+                                     lh_cast_static(lh_u32_t, lh_math_point_get_y(inside) + row));
 
         for (lh_s32_t col = 0; col < w; col += LH_PIXEL_GRADIENT_TABLE_RUN)
         {
@@ -295,20 +290,88 @@ lh_gx_backend_sw_fill_mask(lh_ptr context, const lh_gx_rect_t *clip, const lh_gx
 }
 
 lh_void
+lh_gx_backend_sw_fill_rect_solid(lh_ptr context, const lh_gx_rect_t *clip, const lh_gx_rect_t *rect,
+                                 const lh_gx_brush_t *brush)
+{
+    const lh_gx_backend_sw_t *self = lh_ptr_rcast(const lh_gx_backend_sw_t, context);
+    const lh_gx_color_t color = lh_gx_brush_get_color(brush);
+    lh_math_rect_t box;
+
+    lh_return_if(lh_pixel_argb_get_channel(color, 24) == 0U ||
+                 !lh_gx_backend_sw_get_box(self, clip, rect, lh_addr_of(box)));
+    lh_gx_backend_sw_fill_box_color(self, lh_addr_of(box), color);
+}
+
+lh_void
+lh_gx_backend_sw_fill_mask_solid(lh_ptr context, const lh_gx_rect_t *clip,
+                                 const lh_gx_pixmap_t *mask, lh_gx_point_t at,
+                                 const lh_gx_brush_t *brush)
+{
+    const lh_gx_backend_sw_t *self = lh_ptr_rcast(const lh_gx_backend_sw_t, context);
+    const lh_gx_color_t color = lh_gx_brush_get_color(brush);
+    lh_math_rect_t box;
+    lh_math_point_t inside;
+
+    lh_return_if(
+        lh_pixel_argb_get_channel(color, 24) == 0U ||
+        !lh_gx_backend_sw_get_mask_box(self, clip, mask, at, lh_addr_of(box), lh_addr_of(inside)));
+    const lh_s32_t x = lh_math_point_get_x(lh_math_rect_get_origin(lh_addr_of(box)));
+    const lh_s32_t y = lh_math_point_get_y(lh_math_rect_get_origin(lh_addr_of(box)));
+    const lh_s32_t w = lh_math_size_get_width(lh_math_rect_get_size(lh_addr_of(box)));
+    const lh_s32_t h = lh_math_size_get_height(lh_math_rect_get_size(lh_addr_of(box)));
+
+    for (lh_s32_t row = 0; row < h; ++row)
+    {
+        lh_gx_backend_sw_cover_row(
+            self, lh_cast_static(lh_u32_t, x), lh_cast_static(lh_u32_t, y + row),
+            lh_cast_static(lh_usize_t, w),
+            lh_gx_pixmap_get_address(
+                mask, lh_cast_static(lh_u32_t, lh_math_point_get_x(lh_addr_of(inside))),
+                lh_cast_static(lh_u32_t, lh_math_point_get_y(lh_addr_of(inside)) + row)),
+            color);
+    }
+}
+
+lh_void
 lh_gx_backend_sw_fill_rect(lh_ptr context, const lh_gx_rect_t *clip, const lh_gx_rect_t *rect,
                            const lh_gx_brush_t *brush)
 {
+    if (!lh_gx_brush_is_gradient(brush))
+    {
+        lh_gx_backend_sw_fill_rect_solid(context, clip, rect, brush);
+        return;
+    }
     const lh_gx_backend_sw_t *self = lh_ptr_rcast(const lh_gx_backend_sw_t, context);
     lh_math_rect_t box;
 
-    lh_return_if(lh_gx_brush_is_clear(brush) ||
-                 !lh_gx_backend_sw_get_box(self, clip, rect, lh_addr_of(box)));
-    if (lh_gx_brush_is_gradient(brush))
+    lh_return_if(!lh_gx_backend_sw_get_box(self, clip, rect, lh_addr_of(box)));
+    lh_gx_backend_sw_fill_box_gradient(self, lh_addr_of(box), brush);
+}
+
+lh_void
+lh_gx_backend_sw_fill_mask(lh_ptr context, const lh_gx_rect_t *clip, const lh_gx_pixmap_t *mask,
+                           lh_gx_point_t at, const lh_gx_brush_t *brush)
+{
+    if (!lh_gx_brush_is_gradient(brush))
     {
-        lh_gx_backend_sw_fill_box_gradient(self, lh_addr_of(box), brush);
+        lh_gx_backend_sw_fill_mask_solid(context, clip, mask, at, brush);
         return;
     }
-    lh_gx_backend_sw_fill_box_color(self, lh_addr_of(box), lh_gx_brush_get_color(brush));
+    const lh_gx_backend_sw_t *self = lh_ptr_rcast(const lh_gx_backend_sw_t, context);
+    lh_math_rect_t box;
+    lh_math_point_t inside;
+
+    lh_return_if(
+        !lh_gx_backend_sw_get_mask_box(self, clip, mask, at, lh_addr_of(box), lh_addr_of(inside)));
+    lh_gx_backend_sw_fill_mask_gradient(self, mask, lh_addr_of(box), lh_addr_of(inside), brush);
+}
+
+lh_void
+lh_gx_backend_sw_canvas_init_solid(lh_gx_canvas_t *table)
+{
+    lh_gx_canvas_init(table);
+    lh_gx_canvas_set_fill_rect(table, lh_gx_backend_sw_fill_rect_solid);
+    lh_gx_canvas_set_fill_mask(table, lh_gx_backend_sw_fill_mask_solid);
 }
 
 lh_void

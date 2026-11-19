@@ -116,7 +116,11 @@ lh_void
 lh_gx_brush_init_gradient(lh_gx_brush_t *self, const lh_pixel_gradient_t *gradient,
                           const lh_pixel_gradient_table_t *table, lh_gx_rect_t box)
 {
-    lh_gx_brush_set_color(self, lh_pixel_gradient_get_color_at(gradient, 0));
+    /* Position 0 is at or before the first stop: its colour, read, not worked out. */
+    lh_gx_brush_set_color(
+        self, lh_pixel_gradient_get_stops_count(gradient) == 0U
+                  ? 0U
+                  : lh_pixel_gradient_stop_get_color(lh_pixel_gradient_get_stop(gradient, 0)));
     lh_gx_brush_set_gradient(self, gradient);
     lh_gx_brush_set_table(self, table);
     lh_gx_brush_set_box(self, box);

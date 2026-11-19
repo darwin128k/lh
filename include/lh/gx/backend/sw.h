@@ -197,10 +197,75 @@ lh_gx_backend_sw_fill_box_gradient(const lh_gx_backend_sw_t *self, const lh_math
                                    const lh_gx_brush_t *brush);
 
 /**
+ * @brief Where a mask placed at @p at lands in the target, cut by @p clip and the
+ *        target: the box, target coordinates, and the pixel of the mask its
+ *        top-left corner is.
+ *
+ * @param self   The backend; must not be null.
+ * @param clip   The clip, screen coordinates.
+ * @param mask   The coverage; must not be null.
+ * @param at     Where the mask's top-left pixel lands, screen coordinates.
+ * @param box    Receives the box; must not be null.
+ * @param inside Receives the mask pixel at the box's top-left; must not be null.
+ * @return True when the box has at least one pixel.
+ */
+lh_bool_t
+lh_gx_backend_sw_get_mask_box(const lh_gx_backend_sw_t *self, const lh_gx_rect_t *clip,
+                              const lh_gx_pixmap_t *mask, lh_gx_point_t at, lh_math_rect_t *box,
+                              lh_math_point_t *inside);
+
+/**
+ * @brief Lay the gradient of @p brush through @p mask over @p box of the target, a
+ *        row at a time (::lh_pixel_gradient_table_get_row,
+ *        ::lh_gx_backend_sw_cover_row_each).
+ *
+ * @param self   The backend; must not be null.
+ * @param mask   The coverage; must not be null.
+ * @param box    Target coordinates (::lh_gx_backend_sw_get_mask_box).
+ * @param inside The mask pixel at the box's top-left.
+ * @param brush  A gradient brush; must not be null.
+ */
+lh_void
+lh_gx_backend_sw_fill_mask_gradient(const lh_gx_backend_sw_t *self, const lh_gx_pixmap_t *mask,
+                                    const lh_math_rect_t *box, const lh_math_point_t *inside,
+                                    const lh_gx_brush_t *brush);
+
+/**
+ * @brief `fill_rect` of a canvas that draws colours only: the brush's colour (a
+ *        gradient's first) over the part inside the clip and the target.
+ *
+ * Calls nothing of the gradient, so a program whose canvas is
+ * ::lh_gx_backend_sw_canvas_init_solid links none of it.
+ *
+ * @param context The backend (::lh_gx_backend_sw_t).
+ * @param clip    The clip, screen coordinates.
+ * @param rect    The rectangle, screen coordinates.
+ * @param brush   What to fill with; only its colour is read.
+ */
+lh_void
+lh_gx_backend_sw_fill_rect_solid(lh_ptr context, const lh_gx_rect_t *clip, const lh_gx_rect_t *rect,
+                                 const lh_gx_brush_t *brush);
+
+/**
+ * @brief `fill_mask` of a canvas that draws colours only: the brush's colour
+ *        through the mask (::lh_gx_backend_sw_cover_row). Calls nothing of the
+ *        gradient.
+ *
+ * @param context The backend (::lh_gx_backend_sw_t).
+ * @param clip    The clip, screen coordinates.
+ * @param mask    The coverage, format `a8`.
+ * @param at      Where the mask's top-left pixel lands, screen coordinates.
+ * @param brush   What to fill with; only its colour is read.
+ */
+lh_void
+lh_gx_backend_sw_fill_mask_solid(lh_ptr context, const lh_gx_rect_t *clip,
+                                 const lh_gx_pixmap_t *mask, lh_gx_point_t at,
+                                 const lh_gx_brush_t *brush);
+
+/**
  * @brief `fill_mask` of the canvas (::lh_gx_canvas_fill_mask_fn) into the target:
- *        each row of the mask inside the clip and the target laid over with one
- *        colour (::lh_gx_backend_sw_cover_row) or the gradient's colours of that
- *        row (::lh_gx_backend_sw_cover_row_each).
+ *        one colour as ::lh_gx_backend_sw_fill_mask_solid, a gradient through
+ *        ::lh_gx_backend_sw_fill_mask_gradient.
  *
  * @param context The backend (::lh_gx_backend_sw_t).
  * @param clip    The clip, screen coordinates.
@@ -214,8 +279,8 @@ lh_gx_backend_sw_fill_mask(lh_ptr context, const lh_gx_rect_t *clip, const lh_gx
 
 /**
  * @brief `fill_rect` of the canvas (::lh_gx_canvas_fill_rect_fn) into the target:
- *        nothing for a clear brush, else the part inside the clip and the target
- *        filled with one colour (::lh_gx_backend_sw_fill_box_color) or a gradient
+ *        one colour as ::lh_gx_backend_sw_fill_rect_solid, a gradient over the
+ *        part inside the clip and the target
  *        (::lh_gx_backend_sw_fill_box_gradient).
  *
  * @param context The backend (::lh_gx_backend_sw_t).
@@ -226,6 +291,20 @@ lh_gx_backend_sw_fill_mask(lh_ptr context, const lh_gx_rect_t *clip, const lh_gx
 lh_void
 lh_gx_backend_sw_fill_rect(lh_ptr context, const lh_gx_rect_t *clip, const lh_gx_rect_t *rect,
                            const lh_gx_brush_t *brush);
+
+/**
+ * @brief Fill @p table with the slots of the software backend that draw colours
+ *        only (::lh_gx_backend_sw_fill_rect_solid, `_fill_mask_solid`): a
+ *        gradient brush draws its first colour.
+ *
+ * For a board that draws no gradient: nothing of the gradient is called, so
+ * none of it is linked. On the Cortex-M4 of `bench/mcu/` a button screen is
+ * that much smaller (`bench/mcu/RESULTS.md`).
+ *
+ * @param table The table; must not be null.
+ */
+lh_void
+lh_gx_backend_sw_canvas_init_solid(lh_gx_canvas_t *table);
 
 /**
  * @brief Fill @p table with the slots of the software backend.

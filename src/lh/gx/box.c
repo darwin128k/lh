@@ -48,8 +48,7 @@ lh_gx_box_fill_px(const lh_gx_paint_t *paint, lh_s32_t x, lh_s32_t y, lh_s32_t w
 }
 
 lh_void
-lh_gx_box_init_fill(const lh_gx_style_t *style, const lh_gx_rect_t *place,
-                    lh_pixel_gradient_table_t *table, lh_gx_brush_t *out)
+lh_gx_box_init_fill(const lh_gx_style_t *style, const lh_gx_rect_t *place, lh_gx_brush_t *out)
 {
     const lh_pixel_gradient_t *gradient = lh_gx_style_get_gradient(style);
 
@@ -58,8 +57,8 @@ lh_gx_box_init_fill(const lh_gx_style_t *style, const lh_gx_rect_t *place,
         lh_gx_brush_init_color(out, lh_gx_style_get_fill(style));
         return;
     }
-    lh_pixel_gradient_table_fill(table, gradient);
-    lh_gx_brush_init_gradient(out, gradient, table, lh_ptr_deref(place));
+    lh_gx_brush_init_gradient(out, gradient, lh_gx_style_get_gradient_table(style),
+                              lh_ptr_deref(place));
 }
 
 lh_void
@@ -303,12 +302,11 @@ lh_gx_box_paint(const lh_gx_entity_t *entity, const lh_gx_paint_t *paint)
     const lh_s32_t bl =
         lh_gx_box_get_radius_px(lh_gx_corners_get_bottom_left(radius), lh_addr_of(outer));
 
-    /* The inside one colour or the gradient over the whole box, its colours worked
-       out once for every piece, and the border of one colour. */
-    lh_pixel_gradient_table_t table;
+    /* The inside one colour or the gradient over the whole box, and the border of
+       one colour. */
     lh_gx_brush_t fill;
 
-    lh_gx_box_init_fill(style, lh_gx_paint_get_place(paint), lh_addr_of(table), lh_addr_of(fill));
+    lh_gx_box_init_fill(style, lh_gx_paint_get_place(paint), lh_addr_of(fill));
     lh_gx_brush_t edge;
 
     lh_gx_brush_init_color(lh_addr_of(edge), lh_gx_style_get_border(style));

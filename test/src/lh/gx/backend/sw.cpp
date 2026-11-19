@@ -247,4 +247,36 @@ TEST(gx_backend_sw, a_gradient_is_every_pixel_the_brush_gives_it)
     }
 }
 
+TEST(gx_backend_sw, the_solid_canvas_draws_a_gradient_as_its_first_colour)
+{
+    const lh_u32_t stops[2] = {0xFF2050A0U, 0xFFF0E010U};
+    Target<lh_u32_t, 8, 4> target(lh_gx_pixmap_format_argb8888);
+    Target<lh_byte_t, 2, 1> mask(lh_gx_pixmap_format_a8);
+    lh_pixel_gradient_t gradient;
+    lh_gx_canvas_t canvas;
+    lh_gx_backend_sw_t sw;
+    lh_gx_brush_t brush;
+    lh_gx_point_t at;
+
+    lh_pixel_gradient_init(&gradient);
+    lh_pixel_gradient_init_stops(&gradient, stops, lh_null, 2);
+    lh_gx_brush_init_gradient(&brush, &gradient, nullptr, rect(0, 0, 8, 4));
+    lh_gx_backend_sw_canvas_init_solid(&canvas);
+    EXPECT_TRUE(lh_gx_canvas_get_fill_rect(&canvas) == lh_gx_backend_sw_fill_rect_solid);
+    EXPECT_TRUE(lh_gx_canvas_get_fill_mask(&canvas) == lh_gx_backend_sw_fill_mask_solid);
+    lh_gx_backend_sw_init(&sw, &target.pixmap, 0, 0);
+    const lh_gx_rect_t all = rect(0, 0, 8, 4);
+    const lh_gx_rect_t top = rect(0, 0, 8, 2);
+
+    lh_gx_canvas_get_fill_rect (&canvas)(&sw, &all, &top, &brush);
+    EXPECT_EQ(target.at(0, 0), 0xFF2050A0U);
+    EXPECT_EQ(target.at(7, 1), 0xFF2050A0U) << "the first colour everywhere";
+    EXPECT_EQ(target.at(0, 2), 0U);
+    mask.words[0] = 255U;
+    lh_gx_point_init(&at, 3, 3);
+    lh_gx_canvas_get_fill_mask (&canvas)(&sw, &all, &mask.pixmap, at, &brush);
+    EXPECT_EQ(target.at(3, 3), 0xFF2050A0U);
+    EXPECT_EQ(target.at(4, 3), 0U) << "no coverage";
+}
+
 } // namespace

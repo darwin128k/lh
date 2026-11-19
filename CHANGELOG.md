@@ -24,22 +24,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`lh_gx_brush_init_color`, `_init_gradient`, `_get_color_at`, `_prepare`,
   `_is_gradient`, `_is_clear`). `lh_gx_paint_fill_rect` and
   `lh_gx_paint_fill_mask` take a brush; `lh_gx_paint_fill_rect_color` and
-  `lh_gx_paint_fill_mask_color` fill with one colour. A gx style has a
-  `gradient` (`lh_gx_style_get_gradient`, `_set_gradient`,
-  `_is_fill_opaque`; `lh_gx_style_fields` takes its type and
-  `lh_gx_style_initializer` a seventh argument), and a box fills its inside with
-  it, laid over the whole box, its colours worked out once for every piece
+  `lh_gx_paint_fill_mask_color` fill with one colour; without a `fill_mask`
+  slot (`lh_gx_paint_fill_mask_by_rects`) a gradient brush draws its first
+  colour. A gx style has a `gradient` and the table of its colours, worked out
+  once by the theme (`lh_gx_style_get_gradient`, `_set_gradient`,
+  `_get_gradient_table`, `_set_gradient_table`, `_is_fill_opaque`;
+  `lh_gx_style_fields` takes their types and `lh_gx_style_initializer` two more
+  arguments), and a box fills its inside with it, laid over the whole box
   (`lh_gx_box_init_fill`); `lh_gx_box_fill_px`, `_paint_corner` and
   `_paint_strip` take brushes. The software backend draws a gradient a row at a
   time through the core's table and sampler — a straight-down one as one colour
-  a row (`lh_gx_backend_sw_fill_box_gradient`, `_fill_box_color`,
-  `_blend_row`, `_blend_row_each`, `_cover_row`, `_cover_row_each`); the web
-  backend writes it as `["gradient", box, shape, angle, frac, color, ...]`
-  (`lh_gx_backend_web_put_brush`, `_put_gradient`, `_put_uint`), and the player
-  draws it as the browser's gradient (`lhGxFill`). On the gradient scenes of
-  `bench/lvgl/` gx draws the same shapes as gl, and a frame in 303, 694 and
-  1197 microseconds (straight down, corner to corner, radial) against gl's 314,
-  762 and 1086 and LVGL's 307, 811 and 1296.
+  a row (`lh_gx_backend_sw_fill_box_gradient`, `_fill_mask_gradient`,
+  `_fill_box_color`, `_get_mask_box`, `_blend_row`, `_blend_row_each`,
+  `_cover_row`, `_cover_row_each`); `lh_gx_backend_sw_canvas_init_solid` is
+  its canvas that draws colours only (`_fill_rect_solid`, `_fill_mask_solid`),
+  for a board that links none of the gradient — a button screen on the
+  Cortex-M4 of `bench/mcu/` is 628 bytes over one with no brush at all. The
+  web backend writes a gradient as `["gradient", box, shape, angle, frac,
+  color, ...]` (`lh_gx_backend_web_put_brush`, `_put_gradient`, `_put_uint`),
+  and the player draws it as the browser's gradient (`lhGxFill`). On the
+  gradient scenes of `bench/lvgl/` gx draws the same shapes as gl, and a frame
+  in 254, 643 and 1119 microseconds (straight down, corner to corner, radial)
+  against gl's 309, 761 and 1082.
 - The core gradient gained what a drawer needs: `lh_pixel_gradient_is_vertical`,
   `lh_pixel_gradient_is_opaque`, and the colours of a row or a column
   (`lh_pixel_gradient_table_get_row`, `_get_column`, a run of

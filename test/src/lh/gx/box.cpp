@@ -75,9 +75,10 @@ rect(lh_gx_scalar_t x, lh_gx_scalar_t y, lh_gx_scalar_t w, lh_gx_scalar_t h)
 TEST(gx_style, a_style_reads_back_and_a_theme_is_a_constant_array)
 {
     static const lh_gx_style_t theme[] = {
-        lh_gx_style_initializer(1U, 2U, 3, lh_gx_corners_initializer_all(4), 0U, nullptr, nullptr),
+        lh_gx_style_initializer(1U, 2U, 3, lh_gx_corners_initializer_all(4), 0U, nullptr, nullptr,
+                                nullptr),
         lh_gx_style_initializer(5U, 6U, 0, lh_gx_corners_initializer(1, 2, 3, 4), 0U, nullptr,
-                                nullptr)};
+                                nullptr, nullptr)};
     lh_gx_style_t style;
 
     lh_gx_style_init(&style, 0xFF112233U, 0xFF445566U, 2, 8, 0U, nullptr);
@@ -412,6 +413,23 @@ TEST(gx_box, a_gradient_fills_the_inside_as_one_over_the_whole_card)
     EXPECT_EQ(words[2 * 40 + 2], back_color) << "the corner pixel is outside the curve";
     /* Inside a corner's ring the fill is the gradient too, at full coverage. */
     EXPECT_EQ(words[6 * 40 + 6], lh_gx_brush_get_color_at(&brush, 6, 6));
+    /* With the theme's table of its colours the card is the same, to the pixel. */
+    static lh_u32_t without[40 * 30];
+    lh_pixel_gradient_table_t table;
+
+    for (int i = 0; i < 40 * 30; ++i)
+    {
+        without[i] = words[i];
+    }
+    lh_pixel_gradient_table_fill(&table, &gradient);
+    lh_gx_style_set_gradient_table(&style, &table);
+    EXPECT_TRUE(lh_gx_style_get_gradient_table(&style) == &table);
+    lh_gx_entity_invalidate(&card);
+    lh_gx_render_draw(&render, &drawn);
+    for (int i = 0; i < 40 * 30; ++i)
+    {
+        ASSERT_EQ(words[i], without[i]) << i;
+    }
     const lh_gx_rect_t place = rect(2, 2, 36, 26);
     const lh_gx_rect_t middle = rect(10, 10, 4, 4);
 

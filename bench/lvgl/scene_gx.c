@@ -32,6 +32,7 @@ static lh_gx_render_t render;
 static lh_gx_font_t font;
 
 static lh_pixel_gradient_t gradient;
+static lh_pixel_gradient_table_t gradient_table;
 static lh_gx_style_t back_style;
 static lh_gx_style_t card_style;
 static lh_gx_entity_t back;
@@ -78,7 +79,10 @@ gx_scene_setup(int scene)
         {
             lh_pixel_gradient_set_linear(&gradient, scene == SCENE_GRAD_VERTICAL ? 180 : 135);
         }
+        /* The theme works its colours out once, not every frame. */
+        lh_pixel_gradient_table_fill(&gradient_table, &gradient);
         lh_gx_style_set_gradient(&card_style, &gradient);
+        lh_gx_style_set_gradient_table(&card_style, &gradient_table);
     }
     if (scene == SCENE_CORNERS)
     {

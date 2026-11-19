@@ -9,12 +9,14 @@
 #include <lh/gx/corners/initializer.h>
 
 /**
- * @def lh_gx_style_initializer(fill, border, border_width, radius, ink, font, gradient)
+ * @def lh_gx_style_initializer(fill, border, border_width, radius, ink, font, gradient,
+ *                              gradient_table)
  * @brief The members of a style, in order, for a constant.
  *
  * A theme is the application's array of styles, usually in flash:
  * `const lh_gx_style_t my_theme[] = { lh_gx_style_initializer(0xFFFFFFFF,
- * 0xFFCCCCCC, 1, lh_gx_corners_initializer_all(8), 0xFF000000, lh_null, lh_null),
+ * 0xFFCCCCCC, 1, lh_gx_corners_initializer_all(8), 0xFF000000, lh_null, lh_null,
+ * lh_null),
  * … };`,
  * and every entity points at one of them.
  *
@@ -27,8 +29,12 @@
  * @param font         Where a text takes its glyphs; ::lh_null for none.
  * @param gradient     What fills the inside instead of @p fill, a gradient in
  *                     flash too; ::lh_null for @p fill.
+ * @param gradient_table Its 256 colours, worked out once; ::lh_null to leave that
+ *                     to the canvas.
  */
-#define lh_gx_style_initializer(fill, border, border_width, radius, ink, font, gradient)           \
-    lh_initializer((fill), (border), (border_width), radius, (ink), (font), (gradient))
+#define lh_gx_style_initializer(fill, border, border_width, radius, ink, font, gradient,           \
+                                gradient_table)                                                    \
+    lh_initializer((fill), (border), (border_width), radius, (ink), (font), (gradient),            \
+                   (gradient_table))
 
 #endif /* LH_GX_STYLE_INITIALIZER_H */

@@ -158,7 +158,8 @@ lh_gx_brush_init_color(lh_gx_brush_t *self, lh_gx_color_t color);
 
 /**
  * @brief @p gradient laid over @p box, its colours from @p table; the colour is
- *        the gradient's first (::lh_pixel_gradient_get_color_at of `0`).
+ *        the gradient's first — its first stop's, read, clear with no stops — so
+ *        making a brush works nothing of the gradient out.
  *
  * @param self     The brush; checked by the setters.
  * @param gradient The gradient; must not be null; not owned.

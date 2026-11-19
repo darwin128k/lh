@@ -145,9 +145,13 @@ lh_gx_paint_fill_rect_color(const lh_gx_paint_t *self, const lh_gx_rect_t *rect,
  *        the clip, one pixel at a time through `fill_rect`.
  *
  * The fallback for a canvas without `fill_mask`: every pixel of the mask with
- * any coverage becomes a one-pixel rectangle of the brush's colour at that pixel
- * (::lh_gx_brush_get_color_at), at the alpha the coverage gives it. Correct on
- * every canvas, and slow — a backend that draws text fills `fill_mask`.
+ * any coverage becomes a one-pixel rectangle of the brush's colour, at the alpha
+ * the coverage gives it. A gradient brush draws its first colour here, as a
+ * canvas that draws colours only does (::lh_gx_backend_sw_canvas_init_solid): a
+ * canvas that draws gradients has its own `fill_mask`, and the fallback calls
+ * nothing of the gradient, so a board without one links none of it. Correct on
+ * every canvas for one colour, and slow — a backend that draws text fills
+ * `fill_mask`.
  *
  * @param self  The paint; must not be null.
  * @param mask  The coverage, format `a8`.
