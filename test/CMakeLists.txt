@@ -473,6 +473,7 @@ set(LH_TEST_STR_SOURCES
         ${LH_TEST_SRC_PATH}/lh/core/str/format/base64.cpp
         ${LH_TEST_SRC_PATH}/lh/core/str/format/hex.cpp
         ${LH_TEST_SRC_PATH}/lh/core/str/template.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/str/wrap.cpp
         ${LH_TEST_SRC_PATH}/lh/core/str/template/registry.cpp
         ${LH_TEST_SRC_PATH}/lh/core/str/format/sint.cpp
         ${LH_TEST_SRC_PATH}/lh/core/str/format/sllong.cpp

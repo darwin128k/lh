@@ -300,6 +300,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/str/template/registry.c
         ${LH_LIB_SRC_PATH}/core/wstr/list.c
         ${LH_LIB_SRC_PATH}/core/str/list/span.c
+        ${LH_LIB_SRC_PATH}/core/str/wrap.c
 
         ${LH_LIB_SRC_PATH}/core/console/call.c
         ${LH_LIB_SRC_PATH}/core/console/command.c

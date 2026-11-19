@@ -3,6 +3,8 @@
  * @brief Implementation of `lh/gl/text/line.h`.
  */
 #include <lh/core/assert.h>
+#include <lh/core/attribute/unused.h>
+#include <lh/core/cast/const.h>
 
 #include <lh/core/math.h>
 #include <lh/core/char/map.h>
@@ -43,81 +45,46 @@ lh_gl_text_line_take_ink(lh_gl_text_line_t *self, const lh_gl_font_t *font, lh_u
     lh_gl_text_line_set_inked(self, lh_bool_true);
 }
 
-const lh_char_t *
-lh_gl_text_line_next_of(const lh_char_t *end, lh_gl_scalar_t width)
+lh_s32_t
+lh_gl_text_line_get_code_advance(lh_ptr context, lh_u32_t code)
 {
-    const lh_char_t *cursor = end;
-    const lh_u32_t code = lh_str_utf8_get_next_code(lh_addr_of(cursor));
+    const lh_gl_font_t *font = lh_ptr_rcast(const lh_gl_font_t, context);
+    lh_u32_t index = 0U;
 
-    lh_return_if(code == 0U, lh_null);
-    lh_return_if(lh_gl_text_is_line_end(code), cursor);
-    if (width > lh_gl_scalar(0) && code == lh_cast_static(lh_u32_t, lh_char_map_space))
-    {
-        while (lh_ptr_deref(cursor) == lh_char_map_space)
-        {
-            ++cursor;
-        }
-        lh_return_if(lh_ptr_deref(cursor) == lh_char_map_nul, lh_null);
-        return cursor;
-    }
-    return end;
+    lh_return_if(!lh_gl_font_find_index(font, code, lh_addr_of(index)), 0);
+    return lh_cast_static(lh_s32_t, lh_gl_font_get_advance_at(font, index));
+}
+
+lh_s32_t
+lh_gl_text_line_get_wrap_width(lh_gl_scalar_t width)
+{
+    lh_return_if(width <= lh_gl_scalar(0), 0);
+    return lh_math_max(lh_gl_scalar_floor_s32(width), 1);
 }
 
 lh_bool_t
 lh_gl_text_line_measure(lh_gl_text_line_t *self, const lh_gl_font_t *font, const lh_char_t *text,
                         lh_gl_scalar_t width)
 {
-    lh_bool_t has_space = lh_bool_false;
-    const lh_char_t *cursor = text;
+    lh_str_wrap_t line;
 
     lh_gl_text_line_init(self);
+    {
+        extern int printf(const char *, ...);
+        printf("MEASURE w=%d ww=%d [%.12s]\n", (int)width, (int)lh_gl_text_line_get_wrap_width(width),
+               text ? text : "(null)");
+    }
     lh_return_if(lh_null_eq(text), lh_bool_false);
     lh_assert_runtime_ref(font);
-    lh_gl_text_line_set_begin(self, text);
-    lh_gl_text_line_t at_space;
-    for (;;)
-    {
-        const lh_char_t *before = cursor;
-        const lh_u32_t code = lh_str_utf8_get_next_code(lh_addr_of(cursor));
-        lh_u32_t index = 0U;
-        const lh_bool_t found = lh_gl_font_find_index(font, code, lh_addr_of(index));
-        const lh_gl_scalar_t advance =
-            found ? lh_cast_static(lh_gl_scalar_t, lh_gl_font_get_advance_at(font, index))
-                  : lh_gl_scalar(0);
-
-        if (lh_gl_text_is_line_end(code))
-        {
-            lh_gl_text_line_set_end(self, before);
-            break;
-        }
-        /* A space may hang past the edge: it is where the line breaks, not ink. */
-        if (width > lh_gl_scalar(0) && code != lh_cast_static(lh_u32_t, lh_char_map_space) &&
-            lh_gl_text_line_get_width(self) + advance > width)
-        {
-            if (has_space)
-            {
-                lh_ptr_deref(self) = at_space;
-                break;
-            }
-            if (before == text)
-            {
-                /* A first letter wider than the line still takes it. */
-                lh_gl_text_line_set_width(self, lh_gl_text_line_get_width(self) + (advance));
-                lh_gl_text_line_set_end(self, cursor);
-                break;
-            }
-            lh_gl_text_line_set_end(self, before);
-            break;
-        }
-        if (code == lh_cast_static(lh_u32_t, lh_char_map_space))
-        {
-            at_space = lh_ptr_deref(self);
-            lh_gl_text_line_set_end(lh_addr_of(at_space), before);
-            has_space = lh_bool_true;
-        }
-        lh_gl_text_line_set_width(self, lh_gl_text_line_get_width(self) + (advance));
-    }
-    lh_gl_text_line_set_next(self, lh_gl_text_line_next_of(lh_gl_text_line_get_end(self), width));
+    LH_ATTRIBUTE_UNUSED(lh_str_wrap_measure(lh_addr_of(line), text,
+                                            lh_gl_text_line_get_wrap_width(width),
+                                            lh_gl_text_line_get_code_advance,
+                                            lh_cast_const(lh_gl_font_t *, font)));
+    lh_gl_text_line_set_begin(self, lh_str_wrap_get_begin(lh_addr_of(line)));
+    lh_gl_text_line_set_end(self, lh_str_wrap_get_end(lh_addr_of(line)));
+    lh_gl_text_line_set_next(self, lh_str_wrap_get_next(lh_addr_of(line)));
+    lh_gl_text_line_set_width(self, lh_cast_static(lh_gl_scalar_t, lh_str_wrap_get_width(lh_addr_of(line))));
+    { extern int printf(const char *, ...); printf("  -> w=%d len=%d next=%p adv(T)=%d\n", (int)lh_str_wrap_get_width(&line), (int)(lh_str_wrap_get_end(&line)-text), (void*)lh_str_wrap_get_next(&line), (int)lh_gl_text_line_get_code_advance((lh_ptr)font, 84U)); }
     return lh_bool_true;
 }
 

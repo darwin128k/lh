@@ -96,3 +96,14 @@ a core type sized by an option named after gl.
 **The plan.** Rename the option to `LH_LIBRARY_OPTION_GRADIENT_MAX_STOPS` at
 the swap (phase 8 of `docs/design/gx.md`), when gl's names change anyway, and
 keep the old name as an alias for one release.
+
+## gl's 16-bit SIMD kernels
+
+**The debt.** The 32-bit alpha kernels moved to the core
+(`lh_pixel_span_blend_alphas_argb`, 2026-11-19), where gx and gl both call
+them. The RGB565 ones (`lh_gl_pixmap_blend_alpha_16_sse2` and its octet) stay
+in gl with a copy of `gather_alpha`, and gx's RGB565 rows are scalar.
+
+**The plan.** Move them beside the 32-bit ones (`lh_pixel_span_cover_rgb565`
+choosing them as `cover_argb` does) when a gx target draws RGB565 on a CPU with
+SSE2 — or at the swap, whichever comes first.

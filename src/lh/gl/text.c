@@ -19,20 +19,13 @@ lh_gl_text_next_code(const lh_char_t **cursor)
     return lh_str_utf8_get_next_code(cursor);
 }
 
-lh_bool_t
-lh_gl_text_is_line_end(lh_u32_t code)
-{
-    return code == 0U || code == lh_cast_static(lh_u32_t, lh_char_map_lf) ? lh_bool_true
-                                                                          : lh_bool_false;
-}
-
 const lh_char_t *
 lh_gl_text_get_line_end(const lh_char_t *line)
 {
     const lh_char_t *cursor = line;
     const lh_char_t *end = line;
 
-    while (!lh_gl_text_is_line_end(lh_str_utf8_get_next_code(lh_addr_of(cursor))))
+    while (!lh_str_wrap_is_line_end(lh_str_utf8_get_next_code(lh_addr_of(cursor))))
     {
         end = cursor;
     }

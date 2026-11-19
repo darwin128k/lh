@@ -24,6 +24,7 @@
 #ifndef LH_PIXEL_SPAN_H
 #define LH_PIXEL_SPAN_H
 
+#include <lh/config.h>
 #include <lh/core/bool.h>
 #include <lh/core/compiler/extern/c.h>
 #include <lh/core/size.h>
@@ -62,6 +63,128 @@ lh_pixel_span_blend_rgb565(lh_u16_t *at, lh_usize_t count, lh_u32_t src, lh_u32_
                            lh_bool_t swapped);
 
 /**
+ * @brief Lay @p rgb over @p count `0xAARRGGBB` words at @p at, all of which are the
+ *        one opaque word @p dst, each at its own alpha from @p alpha.
+ *
+ * The run's word is taken apart once and every pixel mixed two channels at a time
+ * (::lh_pixel_channel_mix_pair): a shadow's edge and a glyph's row lie over one
+ * background. The words are ::lh_pixel_argb_over's, `0` leaving the word and `255`
+ * storing `0xFF` | @p rgb. Moved from gl (where it was `lh_gl_color_argb_over_opaque_span`), the
+ * path a board with no SIMD runs.
+ *
+ * @param at    The first word; @p count words, each @p dst.
+ * @param alpha @p count alphas, 0..255.
+ * @param count How many.
+ * @param dst   The run's word; its alpha is 255.
+ * @param rgb   The colour, `0x..RRGGBB` (its alpha byte is ignored).
+ */
+lh_void
+lh_pixel_span_over_opaque_argb(lh_u32_t *at, const lh_byte_t *alpha, lh_usize_t count, lh_u32_t dst,
+                               lh_u32_t rgb);
+
+/**
+ * @brief Lay @p rgb over @p count `0xAARRGGBB` words at @p at, each at its own alpha
+ *        from @p alpha, a run of one destination word at a time: an opaque run
+ *        through ::lh_pixel_span_over_opaque_argb, a translucent one a pixel at a
+ *        time (::lh_pixel_argb_over). The scalar kernel.
+ *
+ * @param at    The first word; @p count words must be writable.
+ * @param alpha @p count alphas, 0..255.
+ * @param count How many.
+ * @param rgb   The colour, `0x..RRGGBB`.
+ */
+lh_void
+lh_pixel_span_blend_vary_argb(lh_u32_t *at, const lh_byte_t *alpha, lh_usize_t count, lh_u32_t rgb);
+
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+/**
+ * @brief SSE2 form of ::lh_pixel_span_blend_vary_argb, four pixels at a time, the
+ *        last one to three a block too.
+ *
+ * Over an opaque block every channel is `(src * a + dst * (255 - a) + 127) / 255` in
+ * 16-bit lanes, with `255` as the divisor turned into shifts: that form already is
+ * `a == 0` (the word) and `a == 255` (the colour), so a block needs no branch per
+ * pixel. A block with a translucent word goes through
+ * ::lh_pixel_span_over_alphas_sse2_argb. Every word is the scalar kernel's, bit for
+ * bit. Only for a CPU that reports SSE2 (::lh_cpu_simd_has_sse2);
+ * ::lh_pixel_span_blend_alphas_argb chooses.
+ *
+ * @param at    The first word; @p count words must be writable.
+ * @param alpha @p count alphas, 0..255.
+ * @param count How many.
+ * @param rgb   The colour, `0x..RRGGBB`.
+ */
+lh_void
+lh_pixel_span_blend_alphas_sse2_argb(lh_u32_t *at, const lh_byte_t *alpha, lh_usize_t count,
+                                     lh_u32_t rgb);
+
+/**
+ * @brief ::lh_pixel_span_blend_alphas_sse2_argb of the first @p count (1 .. 8) words
+ *        at @p at, pixel `i` at byte `i` of @p alphas: eight alphas in a register, as
+ *        a mask hands a glyph's row over eight at a time. A short count is read
+ *        into the register and written back word by word; nothing past it is
+ *        touched. Moved from gl (`lh_gl_pixmap_blend_cover_32_sse2`, which calls it).
+ *
+ * @param at     The first word; @p count words must be writable.
+ * @param count  1 .. 8.
+ * @param alphas The alphas, pixel `i` at byte `i` (the low byte first).
+ * @param rgb    The colour, `0x..RRGGBB`.
+ */
+lh_void
+lh_pixel_span_blend_alphas8_sse2_argb(lh_u32_t *at, lh_usize_t count, lh_u64_t alphas,
+                                      lh_u32_t rgb);
+
+/**
+ * @brief SSE2 ::lh_pixel_argb_over of @p rgb at each alpha onto @p count words, for
+ *        any destination alpha, four pixels a step.
+ *
+ * Each channel is divided back by the result alpha, a divisor per pixel, in single
+ * precision, and exactly: every numerator is an integer below 2^24, so it is
+ * representable, and a quotient that is not whole sits at least 1/65025 from the
+ * next integer, more than half an ulp below 256, so truncating it is the integer
+ * division the scalar kernel does. A zero alpha leaves the word.
+ *
+ * @param at    The first word; @p count words must be writable.
+ * @param alpha @p count alphas, 0..255.
+ * @param count How many.
+ * @param rgb   The colour, `0x..RRGGBB`.
+ */
+lh_void
+lh_pixel_span_over_alphas_sse2_argb(lh_u32_t *at, const lh_byte_t *alpha, lh_usize_t count,
+                                    lh_u32_t rgb);
+#endif
+
+/**
+ * @brief Lay @p rgb over @p count `0xAARRGGBB` words at @p at, each at its own alpha
+ *        from @p alpha (`0` leaves the word, `255` stores the colour): a shadow's
+ *        alphas, a glyph's coverage.
+ *
+ * The clear pixels at either end are not walked. A row shorter than 16 pixels — a
+ * corner's, a glyph's — goes to the SSE2 kernel whole when the CPU has it: looking
+ * for runs in it cost more than its blocks. In a longer row a run of one alpha at
+ * least four pixels long is one colour laid over (::lh_pixel_span_blend_argb), and
+ * the shorter runs between go through the SSE2 kernel
+ * (::lh_pixel_span_blend_alphas_sse2_argb), or the scalar one without SSE2
+ * (::lh_pixel_span_blend_vary_argb). The words are the same either way. Moved from
+ * gl (where it was `lh_gl_pixmap_blend_alpha_32`), which calls it now.
+ *
+ * Measured on `bench/lvgl/` (i7-3770K, 2026-11-19), against the build before the
+ * move, run alternately: gx's shadow frame went from 872–882 to 624–626
+ * microseconds and its cards frame from 201–202 to 189–192 (gx laid its masks a
+ * pixel at a time before); gl's shadow frame from 687–694 to 534–540 (the short
+ * rows and the clear ends); gl's text frame stayed at 236–242. Every picture is the
+ * same to the byte.
+ *
+ * @param at    The first word; @p count words must be writable.
+ * @param alpha @p count alphas, 0..255.
+ * @param count How many.
+ * @param rgb   The colour, `0x..RRGGBB`.
+ */
+lh_void
+lh_pixel_span_blend_alphas_argb(lh_u32_t *at, const lh_byte_t *alpha, lh_usize_t count,
+                                lh_u32_t rgb);
+
+/**
  * @brief Lay @p src at @p alpha over @p count `0xAARRGGBB` words at @p at,
  *        each scaled by its own coverage from @p cover.
  *
@@ -69,7 +192,9 @@ lh_pixel_span_blend_rgb565(lh_u16_t *at, lh_usize_t count, lh_u32_t src, lh_u32_
  * @param cover @p count coverages, 0..255.
  * @param count How many.
  * @param src   The colour, `0x..RRGGBB`.
- * @param alpha Its alpha, 0..255.
+ * @param alpha Its alpha, 0..255; at 255 the coverages are the alphas, else each is
+ *              scaled first, and either way ::lh_pixel_span_blend_alphas_argb lays
+ *              them.
  */
 lh_void
 lh_pixel_span_cover_argb(lh_u32_t *at, const lh_byte_t *cover, lh_usize_t count, lh_u32_t src,

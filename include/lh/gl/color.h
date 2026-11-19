@@ -151,20 +151,6 @@ lh_u32_t
 lh_gl_color_argb_over_opaque(lh_u32_t dst, lh_u32_t src);
 
 /**
- * @brief ::lh_gl_color_argb_over_opaque for @p count words that are already @p dst.
- *
- * The channels of @p dst and @p rgb (`0xRRGGBB`) are taken once. `alpha[i] == 0`
- * leaves the word, `255` stores `0xFF000000 | rgb`, and any other coverage is
- * the opaque mix. The caller has already grouped equal destination words.
- * Word `i` matches ::lh_gl_color_argb_over_opaque with source `(alpha[i] << 24) | rgb`.
- *
- * @p at and @p alpha are required when @p count is not 0. Nothing else is checked.
- */
-lh_void
-lh_gl_color_argb_over_opaque_span(lh_u32_t *at, const lh_gl_color_channel_t *alpha, lh_u32_t count,
-                                  lh_u32_t dst, lh_u32_t rgb);
-
-/**
  * @brief ::lh_gl_color_over_translucent on ARGB8888 words: weights, then each
  *        channel divided back by the result alpha; two transparent words give 0.
  */

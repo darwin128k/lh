@@ -17,6 +17,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- gl's SIMD alpha kernels moved to the core, so gx lays a mask four pixels at a
+  time too: `lh_pixel_span_blend_alphas_argb` (each pixel its own alpha: runs of
+  one alpha as one colour, short stretches through SSE2 or the scalar kernel),
+  `lh_pixel_span_blend_vary_argb`, `lh_pixel_span_over_opaque_argb` (two
+  channels at a time over one opaque word), and, with
+  `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2`, `lh_pixel_span_blend_alphas_sse2_argb`,
+  `_blend_alphas8_sse2_argb` and `_over_alphas_sse2_argb`, each the scalar word
+  bit for bit. `lh_pixel_span_cover_argb` lays through them. A row's clear ends
+  are skipped, and a row under 16 pixels goes to SSE2 whole. gl calls the core:
+  `lh_gl_pixmap_blend_alpha_32`, `_blend_vary_32`, `_blend_alpha_32_sse2`,
+  `_blend_alpha_32_quad_sse2`, `_blend_alpha_32_over_quad_sse2`,
+  `_blend_alpha_32_over_sse2` and `lh_gl_color_argb_over_opaque_span` are gone,
+  and `lh_gl_pixmap_blend_cover_32_sse2` is the core's eight-pixel form. On
+  `bench/lvgl/` gx's shadow frame went from 877 to 625 microseconds and its
+  cards from 202 to 190, gl's shadow from 690 to 537; gl's text is unchanged,
+  and every picture is the same to the byte. The RGB565 kernels stay in gl for
+  now (`docs/cleanup.md`).
 - gx boxes cast soft shadows. `lh_gx_shadow_t` (`lh/gx/shadow.h`,
   `shadow/fields.h`, `shadow/initializer.h`: a colour, a spread and a shift;
   `_get_bounds`, `_get_pixel_shadow`) hangs on a style (`lh_gx_style_get_shadow`,

@@ -31,13 +31,6 @@ TEST(ui_text, next_code_reads_one_code_and_stops_at_the_end)
     EXPECT_EQ(lh_ptr_deref(cursor), '\0');
 }
 
-TEST(ui_text, is_line_end_takes_newline_and_end)
-{
-    EXPECT_EQ(lh_gl_text_is_line_end('\n'), lh_bool_true);
-    EXPECT_EQ(lh_gl_text_is_line_end(0U), lh_bool_true);
-    EXPECT_EQ(lh_gl_text_is_line_end('A'), lh_bool_false);
-}
-
 TEST(ui_text, lines_split_on_newline)
 {
     const lh_char_t *text = "AB\nA\n";

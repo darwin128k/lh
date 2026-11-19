@@ -19,8 +19,8 @@ is static.
 | program | text (flash) | data | bss (RAM) |
 |---|---:|---:|---:|
 | `mcu_empty` | 432 | 8 | 32 |
-| `mcu_gx` | 30 152 | 8 | 13 564 |
-| **gx's part** | **29 720** | 0 | **13 532** |
+| `mcu_gx` | 30 472 | 8 | 13 564 |
+| **gx's part** | **30 040** | 0 | **13 532** |
 
 How it grew, step by step:
 
@@ -30,6 +30,7 @@ How it grew, step by step:
 | a radius per corner (`lh_gx_corners_t`): the box's strips, four radii a style | 28 704 | 13 488 |
 | the brush (`lh_gx_brush_t`), a style's gradient and its table | 29 332 | 13 512 |
 | a style's shadow, the canvas's `fill_shadow` slot and a class's `ink` | 29 720 | 13 532 |
+| the alpha kernels of gl in the core (the scalar one: the board has no SIMD) | 30 040 | 13 532 |
 
 The program draws no gradient and takes the canvas that draws colours only
 (`lh_gx_backend_sw_canvas_init_solid`): nothing of the gradient is called, so

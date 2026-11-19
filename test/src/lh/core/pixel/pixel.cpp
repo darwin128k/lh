@@ -10,6 +10,8 @@
 
 #include <gtest/gtest.h>
 
+#include <lh/core/cpu/simd.h>
+#include <lh/core/pixel/argb.h>
 #include <lh/core/pixel/rgb565.h>
 #include <lh/core/pixel/round.h>
 #include <lh/core/pixel/span.h>
@@ -174,6 +176,169 @@ TEST(pixel_span, each_pixel_of_its_own_colour_is_the_one_colour_span_per_pixel)
         EXPECT_EQ(covered16[i], one_covered16) << i;
     }
 }
+
+/* What a word becomes under @p rgb at @p alpha: the per-pixel contract every alpha
+   kernel answers to. */
+lh_u32_t
+over_reference(lh_u32_t dst, lh_u32_t rgb, lh_u32_t alpha)
+{
+    if (alpha == 0U)
+    {
+        return dst;
+    }
+    if (alpha == 255U)
+    {
+        return 0xFF000000U | rgb;
+    }
+    return lh_pixel_argb_over(dst, (alpha << 24) | rgb);
+}
+
+/* A row of alphas over a row of words, the dispatcher and the scalar kernel alike,
+   against the per-pixel word: long runs of one alpha, short ones, 0 and 255, an
+   opaque background with a translucent word in it, every length to 40 — so the
+   const runs, the short-row path, the blocks and their tails are all crossed. */
+TEST(pixel_span, a_row_of_alphas_is_every_pixel_laid_alone)
+{
+    const lh_u32_t rgb = 0x0033CCFFU;
+
+    for (int count = 1; count <= 40; ++count)
+    {
+        for (int pattern = 0; pattern < 3; ++pattern)
+        {
+            lh_u32_t row[40];
+            lh_u32_t scalar[40];
+            lh_u32_t want[40];
+            lh_byte_t alpha[40];
+
+            for (int i = 0; i < count; ++i)
+            {
+                row[i] = (pattern == 2 && i % 7 == 3) ? 0x80FFFFFFU : 0xFF14181DU;
+                alpha[i] = static_cast<lh_byte_t>(pattern == 0   ? i * 7
+                                                  : pattern == 1 ? (i / 5) * 60
+                                                                 : (i % 3 == 0 ? 0 : 255 - i));
+                scalar[i] = row[i];
+                want[i] = over_reference(row[i], rgb, alpha[i]);
+            }
+            lh_pixel_span_blend_alphas_argb(row, alpha, static_cast<lh_usize_t>(count), rgb);
+            lh_pixel_span_blend_vary_argb(scalar, alpha, static_cast<lh_usize_t>(count), rgb);
+            for (int i = 0; i < count; ++i)
+            {
+                ASSERT_EQ(row[i], want[i])
+                    << "count " << count << " pattern " << pattern << " " << i;
+                ASSERT_EQ(scalar[i], want[i]) << "scalar, count " << count << " " << i;
+            }
+        }
+    }
+}
+
+/* A board has no SIMD, so a run of changing alphas over one background goes through
+   the opaque run, two channels at a time: every alpha, 0 and 255 included. */
+TEST(pixel_span, the_opaque_run_is_the_per_pixel_word_for_every_alpha)
+{
+    lh_u32_t at[256];
+    lh_byte_t alpha[256];
+    const lh_u32_t dst = 0xFF14181DU;
+    const lh_u32_t rgb = 0x002E6BE6U;
+
+    for (int i = 0; i < 256; ++i)
+    {
+        at[i] = dst;
+        alpha[i] = static_cast<lh_byte_t>(i);
+    }
+    lh_pixel_span_over_opaque_argb(at, alpha, 256U, dst, rgb);
+    for (int i = 0; i < 256; ++i)
+    {
+        EXPECT_EQ(at[i], over_reference(dst, rgb, static_cast<lh_u32_t>(i))) << i;
+    }
+}
+
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+/* The SIMD kernel trades three branches a pixel for one formula, so what is pinned is
+   that it lands on the scalar word for every alpha — 0 and 255 included, which the
+   formula reproduces rather than special-cases — and every run length to 40: the
+   four-pixel loop, its tail, both. A translucent destination anywhere in a block
+   sends the block through the "over"; its alpha walks the range, transparent too,
+   where a zero alpha must leave the word. */
+TEST(pixel_span, the_sse2_kernel_is_the_scalar_word_for_every_alpha_and_length)
+{
+    if (!lh_cpu_simd_has_sse2())
+    {
+        GTEST_SKIP() << "SSE2 not available on this CPU";
+    }
+    const lh_u32_t rgb = 0x0077AA33U;
+    const lh_u32_t dest_alpha[] = {0xFF000000U, 0x00000000U, 0x01000000U,
+                                   0x7F000000U, 0x80000000U, 0xFE000000U};
+
+    for (lh_u32_t dst_alpha : dest_alpha)
+    {
+        for (int count = 1; count <= 40; ++count)
+        {
+            for (int hole = 0; hole < count; hole += 3)
+            {
+                lh_u32_t at[40];
+                lh_u32_t want[40];
+                lh_byte_t alpha[40];
+
+                for (int i = 0; i < count; ++i)
+                {
+                    at[i] = (i == hole ? dst_alpha : 0xFF000000U) |
+                            ((static_cast<lh_u32_t>(i) * 7U * 2654435761U) & 0x00FFFFFFU);
+                    alpha[i] = static_cast<lh_byte_t>(i % 3 == 0 ? 0 : i * 13);
+                    want[i] = over_reference(at[i], rgb, alpha[i]);
+                }
+                lh_pixel_span_blend_alphas_sse2_argb(at, alpha, static_cast<lh_usize_t>(count),
+                                                     rgb);
+                for (int i = 0; i < count; ++i)
+                {
+                    ASSERT_EQ(at[i], want[i]) << "dst alpha " << (dst_alpha >> 24) << " count "
+                                              << count << " pixel " << i;
+                }
+            }
+        }
+    }
+}
+
+/* The general "over" divides in single precision, exact only because every numerator
+   stays below 2^24 and every quotient that is not whole stays more than half an ulp
+   from the next integer. The tightest cases: a large total with channels near 255,
+   a tiny total with channels at the ends — every destination alpha and every source
+   alpha against those channels, bit for bit with the scalar word. */
+TEST(pixel_span, the_sse2_over_is_exact_for_every_alpha_pair)
+{
+    if (!lh_cpu_simd_has_sse2())
+    {
+        GTEST_SKIP() << "SSE2 not available on this CPU";
+    }
+    const lh_u32_t channels[] = {0U, 1U, 2U, 63U, 64U, 127U, 128U, 129U, 191U, 253U, 254U, 255U};
+    lh_u32_t at[256];
+    lh_u32_t want[256];
+    lh_byte_t alpha[256];
+
+    for (lh_u32_t dst_a = 0U; dst_a < 256U; ++dst_a)
+    {
+        for (const lh_u32_t s : channels)
+        {
+            for (const lh_u32_t d : channels)
+            {
+                const lh_u32_t rgb = (s << 16) | (d << 8) | (255U - s);
+                const lh_u32_t dst = (dst_a << 24) | (d << 16) | (s << 8) | (255U - d);
+
+                for (lh_u32_t a = 0U; a < 256U; ++a)
+                {
+                    at[a] = dst;
+                    alpha[a] = static_cast<lh_byte_t>(a);
+                    want[a] = a == 0U ? dst : lh_pixel_argb_over(dst, (a << 24) | rgb);
+                }
+                lh_pixel_span_over_alphas_sse2_argb(at, alpha, 256U, rgb);
+                for (lh_u32_t a = 0U; a < 256U; ++a)
+                {
+                    ASSERT_EQ(at[a], want[a]) << "dst alpha " << dst_a << " alpha " << a;
+                }
+            }
+        }
+    }
+}
+#endif
 
 /* A 10 by 10 rectangle at 0, 0 with a radius of 4, in fixed point. */
 lh_byte_t

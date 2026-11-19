@@ -323,79 +323,11 @@ lh_gl_pixmap_blend_const_32(const lh_gl_pixmap_t *self, lh_u32_t *at, lh_usize_t
                             lh_u32_t src, lh_u32_t alpha);
 
 /**
- * @brief Blend @p src over @p count ARGB8888 words at @p at, each at its own @p alpha.
- *
- * A run of one destination word is mixed once when that word is opaque
- * (::lh_gl_color_argb_over_opaque_span). A translucent word is mixed per pixel.
- * The words match ::lh_gl_pixmap_mix_argb. @p at and @p alpha are required when
- * @p count is not 0.
- */
-lh_void
-lh_gl_pixmap_blend_vary_32(const lh_gl_pixmap_t *self, lh_u32_t *at, const lh_byte_ptr alpha,
-                           lh_usize_t count, lh_u32_t src);
-
-/**
- * @brief Blend @p src over @p count ARGB8888 words at @p at, each at its own
- *        @p alpha (`0` skipped, `255` stored).
- *
- * A run of one alpha at least four pixels long is ::lh_gl_pixmap_blend_const_32.
- * A shorter run stays on the SSE kernel when the CPU has it, and on
- * ::lh_gl_pixmap_blend_vary_32 otherwise. Either way the words are the per-pixel mix.
- */
-lh_void
-lh_gl_pixmap_blend_alpha_32(const lh_gl_pixmap_t *self, lh_u32_t *at, const lh_byte_ptr alpha,
-                            lh_usize_t count, lh_u32_t src);
-
-/**
- * @brief ::lh_gl_pixmap_blend_alpha_32 for the 16-bit formats.
+ * @brief ::lh_pixel_span_blend_alphas_argb for the 16-bit formats.
  */
 lh_void
 lh_gl_pixmap_blend_alpha_16(const lh_gl_pixmap_t *self, lh_u16_t *at, const lh_byte_ptr alpha,
                             lh_usize_t count, lh_u32_t src);
-
-/**
- * @brief SSE2 form of ::lh_gl_pixmap_blend_alpha_32, four pixels at a time.
- *
- * Blocks of four, the last one to three pixels included: they are read into a
- * block and written back word by word. The scalar kernel branches per pixel three times — on
- * `alpha[i]`, on it being `255`, and (inside ::lh_gl_pixmap_mix_argb) on whether the destination is
- * opaque at all — and rebuilds a word per pixel. All three are removable: the
- * general form `(src * a + dst * (255 - a) + 127) / 255` already *is* the
- * `a == 0` case (it returns `dst`) and the `a == 255` case (it returns `src`),
- * so one branch-free pass covers every alpha, and `255` as the divisor becomes
- * `(x + 1 + (x >> 8)) >> 8` with no divide at all.
- *
- * A translucent *destination* takes the general formula, with a divisor per
- * pixel: a block of four with one in it goes through
- * ::lh_gl_pixmap_blend_alpha_32_over_sse2, which is exact too, so the result is
- * bit-identical to the scalar kernel for every input; nothing is approximated
- * away.
- *
- * Only meaningful when `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2` is on and the running
- * CPU reports SSE2 (::lh_cpu_simd_has_sse2). ::lh_gl_pixmap_blend_alpha_32 is
- * what to call: a run of four or more equal alphas goes to
- * ::lh_gl_pixmap_blend_const_32, and a shorter run dispatches here when the CPU
- * has SSE2. Exposed so
- * the tier can be tested against the scalar kernel directly instead of only
- * through the dispatcher.
- */
-lh_void
-lh_gl_pixmap_blend_alpha_32_sse2(const lh_gl_pixmap_t *self, lh_u32_t *at, const lh_byte_ptr alpha,
-                                 lh_usize_t count, lh_u32_t src);
-
-/**
- * @brief One block of ::lh_gl_pixmap_blend_alpha_32_sse2: exactly four words at
- *        @p at, pixel `i` at `alpha[i]`. A block with a translucent word in it
- *        goes through ::lh_gl_pixmap_blend_alpha_32_over_quad_sse2.
- */
-lh_void
-lh_gl_pixmap_blend_alpha_32_quad_sse2(lh_u32_t *at, const lh_byte_ptr alpha, lh_u32_t src);
-
-/**
- * @brief One block of ::lh_gl_pixmap_blend_alpha_32_over_sse2: exactly four words.
- */
-lh_void
-lh_gl_pixmap_blend_alpha_32_over_quad_sse2(lh_u32_t *at, const lh_byte_ptr alpha, lh_u32_t src);
 
 /**
  * @brief Blend @p src (`0xRRGGBB`) over the first @p count (1 .. 8) ARGB8888
@@ -408,28 +340,9 @@ lh_void
 lh_gl_pixmap_blend_cover_32_sse2(lh_u32_t *at, lh_usize_t count, lh_u64_t cover, lh_u32_t src);
 
 /**
- * @brief SSE2 ::lh_gl_color_argb_over of @p src at each @p alpha onto @p count
- *        ARGB8888 words at @p at, for any destination alpha, four pixels a step.
- *
- * The general "over": each channel is divided back by the result alpha, which
- * is a different divisor per pixel. The division is done in single precision and
- * is exact: every numerator is an integer below 2^24, so it is representable, and
- * `divps` rounds correctly; a quotient that is not whole sits at least 1/65025 from
- * the next integer, more than half an ulp below 256, so truncating it is the
- * integer division the scalar kernel does. A zero @p alpha leaves the pixel as it
- * was, as in ::lh_gl_pixmap_blend_alpha_32.
- *
- * ::lh_gl_pixmap_blend_alpha_32_sse2 runs this on a block with a translucent
- * pixel in it; exposed so it can be tested and reused on its own.
- */
-lh_void
-lh_gl_pixmap_blend_alpha_32_over_sse2(lh_u32_t *at, const lh_byte_ptr alpha, lh_usize_t count,
-                                      lh_u32_t src);
-
-/**
  * @brief SSE2 form of ::lh_gl_pixmap_blend_alpha_16, eight pixels at a time.
  *
- * Same three branches removed as in ::lh_gl_pixmap_blend_alpha_32_sse2, and the
+ * Same three branches removed as in ::lh_pixel_span_blend_alphas_sse2_argb, and the
  * same branch-free formula covering every alpha including 0 and 255. RGB565 is
  * the MCU format, so this is the kernel that path actually runs.
  *
@@ -588,7 +501,7 @@ lh_gl_pixmap_get_bits(const lh_gl_pixmap_t *self);
  * @param bits The new value.
  */
 lh_void
-lh_gl_pixmap_set_bits(lh_gl_pixmap_t *self, lh_byte_t * bits);
+lh_gl_pixmap_set_bits(lh_gl_pixmap_t *self, lh_byte_t *bits);
 
 /**
  * @brief Store the width in pixels (level 1).

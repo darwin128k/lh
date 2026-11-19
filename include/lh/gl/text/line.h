@@ -15,6 +15,7 @@
 #ifndef LH_GL_TEXT_LINE_H
 #define LH_GL_TEXT_LINE_H
 
+#include <lh/core/str/wrap.h>
 #include <lh/gl/font.h>
 #include <lh/gl/text/align.h>
 #include <lh/gl/text/line/fields.h>
@@ -52,16 +53,24 @@ lh_void
 lh_gl_text_line_take_ink(lh_gl_text_line_t *self, const lh_gl_font_t *font, lh_u32_t index);
 
 /**
- * @brief Where the line after the one ending at @p end starts: past the line end,
- *        past the spaces a wrapped line broke at, or at @p end for a word cut in
- *        two.
+ * @brief How far the pen moves past @p code in the gl font @p context
+ *        (::lh_str_wrap_advance_fn): its glyph's advance, `0` for a code the font
+ *        has no glyph for.
  *
- * @param end   Where the line ends.
- * @param width Line width to break at.
- * @return The first byte of the next line; ::lh_null after the last one.
+ * @param context The font (`const lh_gl_font_t *`).
+ * @param code    A Unicode code point.
  */
-const lh_char_t *
-lh_gl_text_line_next_of(const lh_char_t *end, lh_gl_scalar_t width);
+lh_s32_t
+lh_gl_text_line_get_code_advance(lh_ptr context, lh_u32_t code);
+
+/**
+ * @brief The width a line of gl is broken to, in the core's whole pixels: `0` (no
+ *        breaking) for @p width `0` or less, else its floor and at least `1`.
+ *
+ * @param width The line width, as gl has it.
+ */
+lh_s32_t
+lh_gl_text_line_get_wrap_width(lh_gl_scalar_t width);
 
 /**
  * @brief Lay out the line of @p text that starts at @p text, broken at @p width.
@@ -72,6 +81,10 @@ lh_gl_text_line_next_of(const lh_char_t *end, lh_gl_scalar_t width);
  * and a first letter wider than @p width still takes the line on its own. The
  * space a line broke at is not part of it, and the next line starts after the
  * spaces that follow it; a word cut in two goes on with the letter that did not fit.
+ *
+ * The breaking is the core's (::lh_str_wrap_measure), with this font's advances
+ * (::lh_gl_text_line_get_code_advance), so gl and gx break a text into the same
+ * lines.
  *
  * Only the layout: bytes, next line and width. The ink is
  * ::lh_gl_text_line_measure_ink, asked when it is wanted; until then the line

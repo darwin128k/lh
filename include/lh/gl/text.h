@@ -33,14 +33,6 @@ LH_COMPILER_EXTERN_C_BEGIN
 lh_u32_t
 lh_gl_text_next_code(const lh_char_t **cursor);
 
-/**
- * @brief True when @p code ends a line: `'\n'` or the terminating `0`.
- *
- * @param code The code to test.
- * @return ::lh_bool_true when @p code ends a line.
- */
-lh_bool_t
-lh_gl_text_is_line_end(lh_u32_t code);
 
 /**
  * @brief Where the line starting at @p line ends: its `'\n'` or the `'\0'`.

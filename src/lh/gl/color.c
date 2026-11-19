@@ -252,41 +252,6 @@ lh_gl_color_argb_over_opaque(lh_u32_t dst, lh_u32_t src)
     return lh_pixel_argb_over_opaque(dst, src);
 }
 
-lh_void
-lh_gl_color_argb_over_opaque_span(lh_u32_t *at, const lh_gl_color_channel_t *alpha, lh_u32_t count,
-                                  lh_u32_t dst, lh_u32_t rgb)
-{
-    /* Taken once: a shadow edge and a glyph row share one destination word. */
-    {
-        const lh_u32_t dst_rb = lh_bit_and(dst, 0x00FF00FFU);
-        const lh_u32_t dst_ga = lh_bit_and(lh_bit_shr(dst, 8), 0x00FF00FFU);
-        const lh_u32_t src_rb = lh_bit_and(rgb, 0x00FF00FFU);
-        const lh_u32_t src_ga = lh_bit_and(lh_bit_shr(rgb, 8), 0x00FF00FFU);
-        const lh_u32_t solid = lh_bit_or(0xFF000000U, rgb);
-
-        for (lh_u32_t i = 0U; i < count; ++i)
-        {
-            const lh_u32_t a = alpha[i];
-
-            if (a == 0U)
-            {
-                continue;
-            }
-            if (a == LH_BYTE_T_MAX)
-            {
-                at[i] = solid;
-                continue;
-            }
-            {
-                const lh_u32_t rb = lh_gl_color_mix_pair(dst_rb, src_rb, a);
-                const lh_u32_t ga = lh_gl_color_mix_pair(dst_ga, src_ga, a);
-
-                at[i] = lh_bit_or(lh_bit_or(0xFF000000U, rb), lh_bit_shl(lh_bit_and(ga, 0xFFU), 8));
-            }
-        }
-    }
-}
-
 lh_u32_t
 lh_gl_color_argb_over_translucent(lh_u32_t dst, lh_u32_t src)
 {
