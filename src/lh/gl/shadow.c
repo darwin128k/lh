@@ -2,37 +2,13 @@
  * @file shadow.c
  * @brief Implementation of `lh/gl/shadow.h`.
  */
+#include <lh/gl/shadow.h>
+
 #include <lh/core/assert.h>
 
 #include <lh/core/math.h>
-#include <lh/gl/shadow/shape.h>
 #include <lh/gl/radius.h>
 #include <lh/core/util/return.h>
-
-lh_void
-lh_gl_shadow_init(lh_gl_shadow_t *self)
-{
-    lh_gl_color_init(lh_gl_shadow_get_color_mut(self), 0, 0, 0, 0);
-    lh_gl_shadow_set_spread(self, 0);
-    lh_gl_shadow_set_offset_x(self, 0);
-    lh_gl_shadow_set_offset_y(self, 0);
-}
-
-lh_void
-lh_gl_shadow_copy_color(const lh_gl_shadow_t *self, lh_gl_color_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_ptr_deref(out) = lh_ptr_deref(lh_gl_shadow_get_color(self));
-}
-
-lh_bool_t
-lh_gl_shadow_is_empty(const lh_gl_shadow_t *self)
-{
-    return lh_gl_shadow_get_spread(self) <= 0 ||
-                   lh_gl_color_get_a(lh_gl_shadow_get_color(self)) == 0
-               ? lh_bool_true
-               : lh_bool_false;
-}
 
 lh_void
 lh_gl_shadow_set_color(lh_gl_shadow_t *self, lh_gl_color_t color)
@@ -48,19 +24,6 @@ lh_gl_shadow_get_spread(const lh_gl_shadow_t *self)
     return self->spread;
 }
 
-lh_void
-lh_gl_shadow_set_spread_v(lh_gl_shadow_t *self, lh_gl_scalar_t spread)
-{
-    lh_gl_shadow_set_spread(self, lh_math_max(spread, 0));
-}
-
-lh_void
-lh_gl_shadow_set_offset(lh_gl_shadow_t *self, lh_gl_scalar_t offset_x, lh_gl_scalar_t offset_y)
-{
-    lh_gl_shadow_set_offset_x(self, offset_x);
-    lh_gl_shadow_set_offset_y(self, offset_y);
-}
-
 lh_gl_scalar_t
 lh_gl_shadow_get_offset_x(const lh_gl_shadow_t *self)
 {
@@ -73,22 +36,6 @@ lh_gl_shadow_get_offset_y(const lh_gl_shadow_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->offset_y;
-}
-
-lh_gl_scalar_t
-lh_gl_shadow_get_outset(const lh_gl_shadow_t *self, const lh_gl_rect_t *rect)
-{
-    lh_assert_runtime_ref(rect);
-    if (lh_gl_shadow_get_spread(self) <= 0 || lh_gl_rect_is_empty(rect) ||
-        lh_gl_color_get_a(lh_gl_shadow_get_color(self)) == 0)
-    {
-        return 0;
-    }
-    lh_s32_t shift_x = lh_math_abs(lh_gl_shadow_get_offset_x(self));
-    lh_s32_t shift_y = lh_math_abs(lh_gl_shadow_get_offset_y(self));
-    /* The fade reaches `spread` past the shifted edge, and the edge itself is as
-       far as the shift carries it. */
-    return (lh_gl_scalar_t)(lh_gl_shadow_get_spread(self) + lh_math_max(shift_x, shift_y));
 }
 
 lh_s64_t
@@ -158,15 +105,6 @@ lh_gl_shadow_falloff_sub(lh_s64_t distance, lh_s64_t spread, lh_byte_t peak)
     return lh_cast_static(lh_byte_t, fade);
 }
 
-lh_s32_t
-lh_gl_shadow_distance(lh_gl_scalar_t x, lh_gl_scalar_t y, const lh_gl_rect_t *rect,
-                      lh_gl_scalar_t radius)
-{
-    return (lh_s32_t)(lh_gl_shadow_signed_distance(lh_gl_radius_to_fixed(x),
-                                                   lh_gl_radius_to_fixed(y), rect, radius) /
-                      LH_GL_RADIUS_SUBPIXEL);
-}
-
 lh_byte_t
 lh_gl_shadow_falloff(lh_s32_t distance, lh_gl_scalar_t spread, lh_byte_t peak)
 {
@@ -180,6 +118,129 @@ lh_gl_shadow_falloff(lh_s32_t distance, lh_gl_scalar_t spread, lh_byte_t peak)
     lh_s32_t fade = peak * (spread - distance) / (2 * spread);
     fade = lh_math_clamp(fade, 0, peak);
     return lh_cast_static(lh_byte_t, fade);
+}
+
+lh_gl_color_t *
+lh_gl_shadow_get_color_mut(lh_gl_shadow_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->color);
+}
+
+lh_void
+lh_gl_shadow_set_offset_x(lh_gl_shadow_t *self, lh_gl_scalar_t offset_x)
+{
+    lh_assert_runtime_ref(self);
+    self->offset_x = offset_x;
+}
+
+lh_void
+lh_gl_shadow_set_offset_y(lh_gl_shadow_t *self, lh_gl_scalar_t offset_y)
+{
+    lh_assert_runtime_ref(self);
+    self->offset_y = offset_y;
+}
+
+const lh_gl_color_t *
+lh_gl_shadow_get_color(const lh_gl_shadow_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->color);
+}
+
+lh_void
+lh_gl_shadow_set_spread(lh_gl_shadow_t *self, lh_gl_scalar_t spread)
+{
+    lh_assert_runtime_ref(self);
+    self->spread = spread;
+}
+
+lh_void
+lh_gl_shadow_init(lh_gl_shadow_t *self)
+{
+    lh_gl_color_init(lh_gl_shadow_get_color_mut(self), 0, 0, 0, 0);
+    lh_gl_shadow_set_spread(self, 0);
+    lh_gl_shadow_set_offset_x(self, 0);
+    lh_gl_shadow_set_offset_y(self, 0);
+}
+
+lh_void
+lh_gl_shadow_copy_color(const lh_gl_shadow_t *self, lh_gl_color_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_ptr_deref(out) = lh_ptr_deref(lh_gl_shadow_get_color(self));
+}
+
+lh_bool_t
+lh_gl_shadow_is_empty(const lh_gl_shadow_t *self)
+{
+    return lh_gl_shadow_get_spread(self) <= 0 ||
+                   lh_gl_color_get_a(lh_gl_shadow_get_color(self)) == 0
+               ? lh_bool_true
+               : lh_bool_false;
+}
+
+lh_void
+lh_gl_shadow_set_spread_v(lh_gl_shadow_t *self, lh_gl_scalar_t spread)
+{
+    lh_gl_shadow_set_spread(self, lh_math_max(spread, 0));
+}
+
+lh_void
+lh_gl_shadow_set_offset(lh_gl_shadow_t *self, lh_gl_scalar_t offset_x, lh_gl_scalar_t offset_y)
+{
+    lh_gl_shadow_set_offset_x(self, offset_x);
+    lh_gl_shadow_set_offset_y(self, offset_y);
+}
+
+lh_gl_scalar_t
+lh_gl_shadow_get_outset(const lh_gl_shadow_t *self, const lh_gl_rect_t *rect)
+{
+    lh_assert_runtime_ref(rect);
+    if (lh_gl_shadow_get_spread(self) <= 0 || lh_gl_rect_is_empty(rect) ||
+        lh_gl_color_get_a(lh_gl_shadow_get_color(self)) == 0)
+    {
+        return 0;
+    }
+    lh_s32_t shift_x = lh_math_abs(lh_gl_shadow_get_offset_x(self));
+    lh_s32_t shift_y = lh_math_abs(lh_gl_shadow_get_offset_y(self));
+    /* The fade reaches `spread` past the shifted edge, and the edge itself is as
+       far as the shift carries it. */
+    return (lh_gl_scalar_t)(lh_gl_shadow_get_spread(self) + lh_math_max(shift_x, shift_y));
+}
+
+lh_s32_t
+lh_gl_shadow_distance(lh_gl_scalar_t x, lh_gl_scalar_t y, const lh_gl_rect_t *rect,
+                      lh_gl_scalar_t radius)
+{
+    return (lh_s32_t)(lh_gl_shadow_signed_distance(lh_gl_radius_to_fixed(x),
+                                                   lh_gl_radius_to_fixed(y), rect, radius) /
+                      LH_GL_RADIUS_SUBPIXEL);
+}
+
+lh_void
+lh_gl_shadow_get_pixel_shadow(const lh_gl_shadow_t *self, const lh_gl_rect_t *rect,
+                              lh_gl_scalar_t radius, lh_pixel_shadow_t *out)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(rect);
+    const lh_gl_point_t *origin = lh_gl_rect_get_origin(rect);
+    lh_pixel_round_box_t box;
+
+    lh_gl_radius_get_box(rect, lh_gl_radius_clamp(rect, radius), lh_addr_of(box));
+    /* The shifted box's corner as gl places it -- the corner and the shift added
+       before they are put in sub-pixel units -- so a fractional shift lands where it
+       always did. */
+    const lh_s64_t offset_x =
+        lh_gl_radius_to_fixed(lh_gl_point_get_x(origin) + lh_gl_shadow_get_offset_x(self)) -
+        lh_pixel_round_box_get_lo_x(lh_addr_of(box));
+    const lh_s64_t offset_y =
+        lh_gl_radius_to_fixed(lh_gl_point_get_y(origin) + lh_gl_shadow_get_offset_y(self)) -
+        lh_pixel_round_box_get_lo_y(lh_addr_of(box));
+
+    lh_pixel_shadow_init(out, lh_addr_of(box), offset_x, offset_y,
+                         lh_gl_radius_to_fixed(lh_gl_shadow_get_spread(self)),
+                         lh_gl_color_get_a(lh_gl_shadow_get_color(self)));
 }
 
 lh_byte_t
@@ -228,46 +289,12 @@ lh_gl_shadow_alpha_at_pixel(const lh_gl_shadow_t *self, lh_s32_t x, lh_s32_t y,
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(rect);
-    /* The one reading of a shadow (::lh_gl_shadow_shape_t), so a backend that draws a
-       whole shadow through the shape and the canvas that asks pixel by pixel give the
+    /* The one reading of a shadow (::lh_pixel_shadow_t), so a backend that draws a
+       whole shadow a run at a time and the canvas that asks pixel by pixel give the
        same alpha. */
-    lh_gl_shadow_shape_t shape;
-    lh_gl_shadow_shape_init(lh_addr_of(shape), self, rect, radius);
-    return lh_gl_shadow_shape_alpha(lh_addr_of(shape), lh_gl_shadow_shape_row(lh_addr_of(shape), y),
-                                    x, y);
-}
+    lh_pixel_shadow_t shape;
 
-lh_gl_color_t *
-lh_gl_shadow_get_color_mut(lh_gl_shadow_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->color);
-}
-
-lh_void
-lh_gl_shadow_set_offset_x(lh_gl_shadow_t *self, lh_gl_scalar_t offset_x)
-{
-    lh_assert_runtime_ref(self);
-    self->offset_x = offset_x;
-}
-
-lh_void
-lh_gl_shadow_set_offset_y(lh_gl_shadow_t *self, lh_gl_scalar_t offset_y)
-{
-    lh_assert_runtime_ref(self);
-    self->offset_y = offset_y;
-}
-
-const lh_gl_color_t *
-lh_gl_shadow_get_color(const lh_gl_shadow_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->color);
-}
-
-lh_void
-lh_gl_shadow_set_spread(lh_gl_shadow_t *self, lh_gl_scalar_t spread)
-{
-    lh_assert_runtime_ref(self);
-    self->spread = spread;
+    lh_gl_shadow_get_pixel_shadow(self, rect, radius, lh_addr_of(shape));
+    return lh_pixel_shadow_get_alpha(lh_addr_of(shape),
+                                     lh_pixel_shadow_get_row(lh_addr_of(shape), y), x, y);
 }

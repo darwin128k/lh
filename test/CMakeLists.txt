@@ -272,6 +272,7 @@ set(LH_TEST_MATH_SOURCES
         ${LH_TEST_SRC_PATH}/lh/core/pixel/pixel.cpp
         ${LH_TEST_SRC_PATH}/lh/core/pixel/mask.cpp
         ${LH_TEST_SRC_PATH}/lh/core/pixel/gradient.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/pixel/shadow.cpp
         ${LH_TEST_SRC_PATH}/lh/core/math/rescale.cpp
         ${LH_TEST_SRC_PATH}/lh/core/math/fit.cpp
         ${LH_TEST_SRC_PATH}/lh/core/math/scalar/centre.cpp

@@ -26,10 +26,10 @@ lh_gl_canvas_sw_shadow_pass_init_bounds(const lh_gl_canvas_sw_t *self, const lh_
     lh_gl_canvas_sw_shadow_pass_set_rounded(out, lh_gl_canvas_sw_is_rounded(self));
     lh_gl_canvas_sw_shadow_pass_set_left(out, lh_gl_point_get_x(origin) - outset);
     lh_gl_canvas_sw_shadow_pass_set_top(out, lh_gl_point_get_y(origin) - outset);
-    lh_gl_canvas_sw_shadow_pass_set_right(
-        out, lh_gl_canvas_sw_shadow_pass_get_left(out) + lh_gl_size_get_width(size) + outset * 2);
-    lh_gl_canvas_sw_shadow_pass_set_bottom(
-        out, lh_gl_canvas_sw_shadow_pass_get_top(out) + lh_gl_size_get_height(size) + outset * 2);
+    lh_gl_canvas_sw_shadow_pass_set_right(out, lh_gl_canvas_sw_shadow_pass_get_left(out) +
+                                                   lh_gl_size_get_width(size) + outset * 2);
+    lh_gl_canvas_sw_shadow_pass_set_bottom(out, lh_gl_canvas_sw_shadow_pass_get_top(out) +
+                                                    lh_gl_size_get_height(size) + outset * 2);
     return outset > 0 ? lh_bool_true : lh_bool_false;
 }
 
@@ -40,21 +40,21 @@ lh_gl_canvas_sw_shadow_pass_init(const lh_gl_canvas_sw_t *self, const lh_gl_rect
 {
     lh_return_if(!lh_gl_canvas_sw_shadow_pass_init_bounds(self, rect, radius, shadow, out),
                  lh_bool_false);
-    lh_gl_shadow_shape_init(lh_gl_canvas_sw_shadow_pass_get_shape_mut(out), shadow, rect,
-                            lh_gl_canvas_sw_shadow_pass_get_corner(out));
-    lh_gl_shadow_ramp_init(lh_gl_canvas_sw_shadow_pass_get_ramp_mut(out),
-                           lh_gl_canvas_sw_shadow_pass_get_shape_mut(out));
+    lh_gl_shadow_get_pixel_shadow(shadow, rect, lh_gl_canvas_sw_shadow_pass_get_corner(out),
+                                  lh_gl_canvas_sw_shadow_pass_get_shape_mut(out));
+    lh_pixel_shadow_ramp_init(lh_gl_canvas_sw_shadow_pass_get_ramp_mut(out),
+                              lh_gl_canvas_sw_shadow_pass_get_shape_mut(out));
     return lh_bool_true;
 }
 
-const lh_gl_shadow_shape_t *
+const lh_pixel_shadow_t *
 lh_gl_canvas_sw_shadow_pass_get_shape(const lh_gl_canvas_sw_shadow_pass_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->shape);
 }
 
-lh_gl_shadow_shape_t *
+lh_pixel_shadow_t *
 lh_gl_canvas_sw_shadow_pass_get_shape_mut(lh_gl_canvas_sw_shadow_pass_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -62,20 +62,20 @@ lh_gl_canvas_sw_shadow_pass_get_shape_mut(lh_gl_canvas_sw_shadow_pass_t *self)
 }
 
 lh_void
-lh_gl_canvas_sw_shadow_pass_set_shape(lh_gl_canvas_sw_shadow_pass_t *self, lh_gl_shadow_shape_t shape)
+lh_gl_canvas_sw_shadow_pass_set_shape(lh_gl_canvas_sw_shadow_pass_t *self, lh_pixel_shadow_t shape)
 {
     lh_assert_runtime_ref(self);
     self->shape = shape;
 }
 
-const lh_gl_shadow_ramp_t *
+const lh_pixel_shadow_ramp_t *
 lh_gl_canvas_sw_shadow_pass_get_ramp(const lh_gl_canvas_sw_shadow_pass_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->ramp);
 }
 
-lh_gl_shadow_ramp_t *
+lh_pixel_shadow_ramp_t *
 lh_gl_canvas_sw_shadow_pass_get_ramp_mut(lh_gl_canvas_sw_shadow_pass_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -83,7 +83,8 @@ lh_gl_canvas_sw_shadow_pass_get_ramp_mut(lh_gl_canvas_sw_shadow_pass_t *self)
 }
 
 lh_void
-lh_gl_canvas_sw_shadow_pass_set_ramp(lh_gl_canvas_sw_shadow_pass_t *self, lh_gl_shadow_ramp_t ramp)
+lh_gl_canvas_sw_shadow_pass_set_ramp(lh_gl_canvas_sw_shadow_pass_t *self,
+                                     lh_pixel_shadow_ramp_t ramp)
 {
     lh_assert_runtime_ref(self);
     self->ramp = ramp;
@@ -97,7 +98,7 @@ lh_gl_canvas_sw_shadow_pass_get_rect(const lh_gl_canvas_sw_shadow_pass_t *self)
 }
 
 lh_void
-lh_gl_canvas_sw_shadow_pass_set_rect(lh_gl_canvas_sw_shadow_pass_t *self, const lh_gl_rect_t * rect)
+lh_gl_canvas_sw_shadow_pass_set_rect(lh_gl_canvas_sw_shadow_pass_t *self, const lh_gl_rect_t *rect)
 {
     lh_assert_runtime_ref(self);
     self->rect = rect;

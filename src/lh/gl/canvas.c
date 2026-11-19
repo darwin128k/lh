@@ -7,7 +7,6 @@
 
 #include <lh/core/math.h>
 #include <lh/gl/canvas.h>
-#include <lh/gl/shadow/shape.h>
 #include <lh/gl/canvas/round.h>
 #include <lh/gl/radius.h>
 #include <lh/core/util/return.h>
@@ -591,16 +590,16 @@ lh_gl_canvas_shadow_fallback(lh_gl_canvas_t *self, const lh_gl_rect_t *bounds,
     const lh_gl_size_t *cut_size = lh_gl_rect_get_size(lh_addr_of(cut));
     lh_s32_t x1 = lh_gl_point_get_x(cut_origin) + lh_gl_size_get_width(cut_size);
     lh_s32_t y1 = lh_gl_point_get_y(cut_origin) + lh_gl_size_get_height(cut_size);
-    lh_gl_shadow_shape_t shape;
+    lh_pixel_shadow_t shape;
 
-    lh_gl_shadow_shape_init(lh_addr_of(shape), shadow, target, radius);
+    lh_gl_shadow_get_pixel_shadow(shadow, target, radius, lh_addr_of(shape));
     for (lh_s32_t y = lh_gl_point_get_y(cut_origin); y < y1; ++y)
     {
-        const lh_s32_t row = lh_gl_shadow_shape_row(lh_addr_of(shape), y);
+        const lh_s32_t row = lh_pixel_shadow_get_row(lh_addr_of(shape), y);
 
         for (lh_s32_t x = lh_gl_point_get_x(cut_origin); x < x1; ++x)
         {
-            const lh_byte_t alpha = lh_gl_shadow_shape_alpha(lh_addr_of(shape), row, x, y);
+            const lh_byte_t alpha = lh_pixel_shadow_get_alpha(lh_addr_of(shape), row, x, y);
             lh_gl_rect_t pixel;
             lh_gl_color_t color;
 

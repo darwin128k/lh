@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <lh/gl/shadow/ramp.h>
+#include <lh/core/pixel/shadow/ramp.h>
+#include <lh/gl/shadow.h>
 #include <lh/test/out.h>
 #include <lh/gl/shadow/initializer.h>
 
@@ -14,7 +15,8 @@ alpha_at(const lh_gl_shadow_t *shadow, lh_gl_scalar_t x, lh_gl_scalar_t y)
 {
     lh_gl_rect_t rect;
 
-    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(20), lh_gl_scalar(20), lh_gl_scalar(40), lh_gl_scalar(40));
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(20), lh_gl_scalar(20), lh_gl_scalar(40),
+                    lh_gl_scalar(40));
     return lh_gl_shadow_alpha_at(shadow, x, y, lh_addr_of(rect), lh_gl_scalar(0));
 }
 
@@ -24,7 +26,8 @@ TEST(ui_shadow, a_fresh_one_paints_nothing)
 
     lh_gl_shadow_init(lh_addr_of(shadow));
     lh_gl_rect_t rect;
-    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(20), lh_gl_scalar(20), lh_gl_scalar(40), lh_gl_scalar(40));
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(20), lh_gl_scalar(20), lh_gl_scalar(40),
+                    lh_gl_scalar(40));
     EXPECT_EQ(lh_test::out(lh_gl_shadow_copy_color, lh_addr_of(shadow)).a, 0);
     EXPECT_EQ(lh_gl_shadow_get_spread(lh_addr_of(shadow)), 0);
     EXPECT_EQ(lh_gl_shadow_get_outset(lh_addr_of(shadow), lh_addr_of(rect)), 0);
@@ -39,12 +42,14 @@ TEST(ui_shadow, empty_means_no_peak_or_no_fade)
 {
     lh_gl_rect_t rect;
 
-    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(20), lh_gl_scalar(20), lh_gl_scalar(40), lh_gl_scalar(40));
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(20), lh_gl_scalar(20), lh_gl_scalar(40),
+                    lh_gl_scalar(40));
     lh_gl_shadow_t shadow;
     lh_gl_shadow_init(lh_addr_of(shadow));
 
     lh_gl_shadow_set_color(lh_addr_of(shadow), lh_gl_color_t{0, 0, 0, 200});
-    EXPECT_TRUE(lh_gl_shadow_is_empty(lh_addr_of(shadow))) << "a colour with no fade paints nothing";
+    EXPECT_TRUE(lh_gl_shadow_is_empty(lh_addr_of(shadow)))
+        << "a colour with no fade paints nothing";
     lh_gl_shadow_set_spread_v(lh_addr_of(shadow), lh_gl_scalar(8));
     EXPECT_FALSE(lh_gl_shadow_is_empty(lh_addr_of(shadow)));
 
@@ -124,7 +129,8 @@ TEST(ui_shadow, an_offset_moves_the_whole_fade)
     EXPECT_GT(alpha_at(lh_addr_of(shadow), lh_gl_scalar(64), lh_gl_scalar(40)), 0);
 
     lh_gl_rect_t rect;
-    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(20), lh_gl_scalar(20), lh_gl_scalar(40), lh_gl_scalar(40));
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(20), lh_gl_scalar(20), lh_gl_scalar(40),
+                    lh_gl_scalar(40));
     EXPECT_EQ(lh_gl_shadow_get_outset(lh_addr_of(shadow), lh_addr_of(rect)), 11);
 }
 
@@ -132,7 +138,8 @@ TEST(ui_shadow, the_outset_leaves_room_for_the_fade_and_the_shift)
 {
     lh_gl_rect_t rect;
 
-    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(20), lh_gl_scalar(20), lh_gl_scalar(40), lh_gl_scalar(40));
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(20), lh_gl_scalar(20), lh_gl_scalar(40),
+                    lh_gl_scalar(40));
     lh_gl_shadow_t shadow;
     lh_gl_shadow_init(lh_addr_of(shadow));
     lh_gl_shadow_set_color(lh_addr_of(shadow), lh_gl_color_t{0, 0, 0, 255});
@@ -149,10 +156,17 @@ TEST(ui_shadow, the_distance_is_negative_inside_and_zero_on_the_edge)
 {
     lh_gl_rect_t rect;
 
-    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(10), lh_gl_scalar(10), lh_gl_scalar(30), lh_gl_scalar(30));
-    EXPECT_LT(lh_gl_shadow_distance(lh_gl_scalar(25), lh_gl_scalar(25), lh_addr_of(rect), lh_gl_scalar(0)), 0);
-    EXPECT_GT(lh_gl_shadow_distance(lh_gl_scalar(5), lh_gl_scalar(25), lh_addr_of(rect), lh_gl_scalar(0)), 0);
-    EXPECT_EQ(lh_gl_shadow_distance(lh_gl_scalar(10), lh_gl_scalar(25), lh_addr_of(rect), lh_gl_scalar(0)), 0);
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(10), lh_gl_scalar(10), lh_gl_scalar(30),
+                    lh_gl_scalar(30));
+    EXPECT_LT(lh_gl_shadow_distance(lh_gl_scalar(25), lh_gl_scalar(25), lh_addr_of(rect),
+                                    lh_gl_scalar(0)),
+              0);
+    EXPECT_GT(
+        lh_gl_shadow_distance(lh_gl_scalar(5), lh_gl_scalar(25), lh_addr_of(rect), lh_gl_scalar(0)),
+        0);
+    EXPECT_EQ(lh_gl_shadow_distance(lh_gl_scalar(10), lh_gl_scalar(25), lh_addr_of(rect),
+                                    lh_gl_scalar(0)),
+              0);
 }
 
 TEST(ui_shadow, the_falloff_runs_from_the_peak_to_nothing)
@@ -161,7 +175,8 @@ TEST(ui_shadow, the_falloff_runs_from_the_peak_to_nothing)
        far end of that, so a shadow a spread inside the box is as strong as the
        colour allows and one a spread outside is gone. */
     EXPECT_EQ(lh_gl_shadow_falloff(-8, lh_gl_scalar(8), 200), 200);
-    EXPECT_GT(lh_gl_shadow_falloff(-8, lh_gl_scalar(8), 200), lh_gl_shadow_falloff(0, lh_gl_scalar(8), 200));
+    EXPECT_GT(lh_gl_shadow_falloff(-8, lh_gl_scalar(8), 200),
+              lh_gl_shadow_falloff(0, lh_gl_scalar(8), 200));
     EXPECT_EQ(lh_gl_shadow_falloff(8, lh_gl_scalar(8), 200), 0);
     EXPECT_GT(lh_gl_shadow_falloff(0, lh_gl_scalar(8), 200), 0);
     EXPECT_LT(lh_gl_shadow_falloff(0, lh_gl_scalar(8), 200), 200);
@@ -180,13 +195,16 @@ TEST(ui_shadow, an_offset_moves_the_pixels_it_paints)
     lh_gl_shadow_set_color(lh_addr_of(shadow), lh_gl_color_t{0, 0, 0, 255});
     lh_gl_shadow_set_spread_v(lh_addr_of(shadow), lh_gl_scalar(6));
     lh_gl_rect_t rect;
-    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(20), lh_gl_scalar(20), lh_gl_scalar(40), lh_gl_scalar(40));
-    EXPECT_EQ(lh_gl_shadow_alpha_at_pixel(lh_addr_of(shadow), 17, 40, lh_addr_of(rect), lh_gl_scalar(0)),
-              lh_gl_shadow_alpha_at_pixel(lh_addr_of(shadow), 62, 40, lh_addr_of(rect), lh_gl_scalar(0)));
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(20), lh_gl_scalar(20), lh_gl_scalar(40),
+                    lh_gl_scalar(40));
+    EXPECT_EQ(
+        lh_gl_shadow_alpha_at_pixel(lh_addr_of(shadow), 17, 40, lh_addr_of(rect), lh_gl_scalar(0)),
+        lh_gl_shadow_alpha_at_pixel(lh_addr_of(shadow), 62, 40, lh_addr_of(rect), lh_gl_scalar(0)));
 
     lh_gl_shadow_set_offset(lh_addr_of(shadow), lh_gl_scalar(3), lh_gl_scalar(0));
-    EXPECT_LT(lh_gl_shadow_alpha_at_pixel(lh_addr_of(shadow), 17, 40, lh_addr_of(rect), lh_gl_scalar(0)),
-              lh_gl_shadow_alpha_at_pixel(lh_addr_of(shadow), 62, 40, lh_addr_of(rect), lh_gl_scalar(0)));
+    EXPECT_LT(
+        lh_gl_shadow_alpha_at_pixel(lh_addr_of(shadow), 17, 40, lh_addr_of(rect), lh_gl_scalar(0)),
+        lh_gl_shadow_alpha_at_pixel(lh_addr_of(shadow), 62, 40, lh_addr_of(rect), lh_gl_scalar(0)));
 }
 
 TEST(ui_shadow, a_span_reads_the_same_alphas_as_each_pixel)
@@ -208,28 +226,31 @@ TEST(ui_shadow, a_span_reads_the_same_alphas_as_each_pixel)
                 {
                     lh_gl_shadow_t shadow;
                     lh_gl_rect_t rect;
-                    lh_gl_shadow_shape_t shape;
-                    lh_gl_shadow_ramp_t ramp;
+                    lh_pixel_shadow_t shape;
+                    lh_pixel_shadow_ramp_t ramp;
                     lh_byte_t row[120];
 
                     lh_gl_shadow_init(lh_addr_of(shadow));
                     lh_gl_shadow_set_color(lh_addr_of(shadow), lh_gl_color_t{0, 0, 0, peak});
                     lh_gl_shadow_set_spread_v(lh_addr_of(shadow), lh_gl_scalar_of(spread));
-                    lh_gl_shadow_set_offset(lh_addr_of(shadow), lh_gl_scalar_of(offset), lh_gl_scalar_of(-offset));
-                    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(35), lh_gl_scalar(35), lh_gl_scalar(51),
-                                    lh_gl_scalar(37));
-                    lh_gl_shadow_shape_init(lh_addr_of(shape), lh_addr_of(shadow), lh_addr_of(rect),
-                                            lh_gl_scalar_of(radius));
-                    lh_gl_shadow_ramp_init(lh_addr_of(ramp), lh_addr_of(shape));
+                    lh_gl_shadow_set_offset(lh_addr_of(shadow), lh_gl_scalar_of(offset),
+                                            lh_gl_scalar_of(-offset));
+                    lh_gl_rect_init(lh_addr_of(rect), lh_gl_scalar(35), lh_gl_scalar(35),
+                                    lh_gl_scalar(51), lh_gl_scalar(37));
+                    lh_gl_shadow_get_pixel_shadow(lh_addr_of(shadow), lh_addr_of(rect),
+                                                  lh_gl_scalar_of(radius), lh_addr_of(shape));
+                    lh_pixel_shadow_ramp_init(lh_addr_of(ramp), lh_addr_of(shape));
                     for (lh_s32_t y = 0; y < 110; ++y)
                     {
-                        lh_gl_shadow_shape_span(lh_addr_of(shape), lh_addr_of(ramp), y, 0, 120, row);
+                        lh_pixel_shadow_get_span(lh_addr_of(shape), lh_addr_of(ramp), y, 0, 120,
+                                                 row);
                         for (lh_s32_t x = 0; x < 120; ++x)
                         {
-                            ASSERT_EQ(row[x], lh_gl_shadow_alpha_at_pixel(lh_addr_of(shadow), x, y, lh_addr_of(rect),
+                            ASSERT_EQ(row[x], lh_gl_shadow_alpha_at_pixel(lh_addr_of(shadow), x, y,
+                                                                          lh_addr_of(rect),
                                                                           lh_gl_scalar_of(radius)))
-                                << "spread " << spread << " radius " << radius << " peak " << int(peak)
-                                << " offset " << offset << " at " << x << "," << y;
+                                << "spread " << spread << " radius " << radius << " peak "
+                                << int(peak) << " offset " << offset << " at " << x << "," << y;
                         }
                     }
                 }

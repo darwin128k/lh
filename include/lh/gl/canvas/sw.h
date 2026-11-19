@@ -298,7 +298,7 @@ lh_gl_canvas_sw_shadow_row(lh_gl_canvas_sw_t *self, const lh_gl_canvas_sw_shadow
                            lh_s32_t y);
 
 /**
- * @brief One side of a mask row: ::lh_gl_shadow_shape_span from @p x0 to @p x1 at @p y.
+ * @brief One side of a mask row: ::lh_pixel_shadow_get_span from @p x0 to @p x1 at @p y.
  *
  * @p line is the mask row whose first byte is the pass's left edge. @p x1 at or
  * left of @p x0 writes nothing.
@@ -323,8 +323,9 @@ lh_gl_canvas_sw_shadow_mask_fill(const lh_gl_canvas_sw_shadow_pass_t *pass, lh_b
  * @p width is the mask row length. A rounded clip is not applied here.
  */
 lh_void
-lh_gl_canvas_sw_shadow_mask_stamp(lh_gl_canvas_sw_t *self, const lh_gl_canvas_sw_shadow_pass_t *pass,
-                                  const lh_byte_t *mask, lh_s32_t width);
+lh_gl_canvas_sw_shadow_mask_stamp(lh_gl_canvas_sw_t *self,
+                                  const lh_gl_canvas_sw_shadow_pass_t *pass, const lh_byte_t *mask,
+                                  lh_s32_t width);
 
 /**
  * @brief Backend `shadow`: ::lh_gl_shadow_alpha_at_pixel over the box grown by

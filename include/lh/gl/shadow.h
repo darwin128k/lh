@@ -18,6 +18,7 @@
 #ifndef LH_GL_SHADOW_H
 #define LH_GL_SHADOW_H
 
+#include <lh/core/pixel/shadow.h>
 #include <lh/gl/color.h>
 #include <lh/gl/rect.h>
 
@@ -45,32 +46,6 @@ typedef struct lh_gl_shadow lh_gl_shadow_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief A shadow that paints nothing: no colour, no spread.
- *
- * Use ::lh_gl_shadow_set_color and ::lh_gl_shadow_set_spread_v, then
- * ::lh_gl_shadow_set_offset if the light is not straight ahead.
- */
-lh_void
-lh_gl_shadow_init(lh_gl_shadow_t *self);
-
-/**
- * @brief True when @p self would paint nothing: no peak alpha, or no fade to
- *        paint it over.
- *
- * The same answer ::lh_gl_canvas_shadow gives (it needs an outset and there is
- * none), told without a rect and without a canvas — what a caller draws every
- * frame asks this first instead of measuring anything.
- */
-lh_bool_t
-lh_gl_shadow_is_empty(const lh_gl_shadow_t *self);
-
-/**
- * @brief Peak colour of @p self. Its alpha is the strongest the shadow gets.
- */
-lh_void
-lh_gl_shadow_copy_color(const lh_gl_shadow_t *self, lh_gl_color_t *out);
-
-/**
  * @brief Set the peak colour.
  */
 lh_void
@@ -83,18 +58,6 @@ lh_gl_scalar_t
 lh_gl_shadow_get_spread(const lh_gl_shadow_t *self);
 
 /**
- * @brief Set the fade distance. Negative becomes zero.
- */
-lh_void
-lh_gl_shadow_set_spread_v(lh_gl_shadow_t *self, lh_gl_scalar_t spread);
-
-/**
- * @brief Shift of @p self. Positive @p offset_x is right, @p offset_y is down.
- */
-lh_void
-lh_gl_shadow_set_offset(lh_gl_shadow_t *self, lh_gl_scalar_t offset_x, lh_gl_scalar_t offset_y);
-
-/**
  * @brief Horizontal shift of @p self.
  */
 lh_gl_scalar_t
@@ -105,50 +68,6 @@ lh_gl_shadow_get_offset_x(const lh_gl_shadow_t *self);
  */
 lh_gl_scalar_t
 lh_gl_shadow_get_offset_y(const lh_gl_shadow_t *self);
-
-/**
- * @brief Pixels the shadow needs around @p rect: the spread plus the shift.
- *
- * The padding a caller has to leave around the box so nothing of the shadow is
- * cut. Zero when @p self would paint nothing.
- */
-lh_gl_scalar_t
-lh_gl_shadow_get_outset(const lh_gl_shadow_t *self, const lh_gl_rect_t *rect);
-
-/**
- * @brief How much of @p self reaches (@p x, @p y) of @p rect with corners
- *        rounded by @p radius: `0 .. 255`, already scaled by the colour's alpha.
- *
- * Zero inside the box, where the fill is, and one spread past the edge. The
- * fade straddles the *shifted* edge rather than holding a flat band for the
- * whole offset, which is what makes a shadow look like light and not like a
- * second box.
- */
-lh_byte_t
-lh_gl_shadow_alpha_at(const lh_gl_shadow_t *self, lh_gl_scalar_t x, lh_gl_scalar_t y,
-                      const lh_gl_rect_t *rect, lh_gl_scalar_t radius);
-
-/**
- * @brief ::lh_gl_shadow_alpha_at at the center of pixel (@p x, @p y).
- *
- * The same center ::lh_gl_radius_coverage samples, so a pixel the fill covers
- * wholly is outside the shadow, and a rounded corner fades along the fill's
- * circle rather than along `width / 2` of the box.
- */
-lh_byte_t
-lh_gl_shadow_alpha_at_pixel(const lh_gl_shadow_t *self, lh_s32_t x, lh_s32_t y,
-                            const lh_gl_rect_t *rect, lh_gl_scalar_t radius);
-
-/**
- * @brief Signed distance from (@p x, @p y) to @p rect with corners rounded by
- *        @p radius, in pixels: negative inside, zero on the edge.
- *
- * The one piece of geometry both this and anything that wants a soft edge of
- * its own needs, and a plain function of its arguments.
- */
-lh_s32_t
-lh_gl_shadow_distance(lh_gl_scalar_t x, lh_gl_scalar_t y, const lh_gl_rect_t *rect,
-                      lh_gl_scalar_t radius);
 
 /**
  * @brief The smoothstep of @p distance into `0 .. @p peak`: `peak` one spread
@@ -223,6 +142,108 @@ lh_gl_shadow_get_color(const lh_gl_shadow_t *self);
  */
 lh_void
 lh_gl_shadow_set_spread(lh_gl_shadow_t *self, lh_gl_scalar_t spread);
+
+/**
+ * @brief A shadow that paints nothing: no colour, no spread.
+ *
+ * Use ::lh_gl_shadow_set_color and ::lh_gl_shadow_set_spread_v, then
+ * ::lh_gl_shadow_set_offset if the light is not straight ahead.
+ */
+lh_void
+lh_gl_shadow_init(lh_gl_shadow_t *self);
+
+/**
+ * @brief True when @p self would paint nothing: no peak alpha, or no fade to
+ *        paint it over.
+ *
+ * The same answer ::lh_gl_canvas_shadow gives (it needs an outset and there is
+ * none), told without a rect and without a canvas — what a caller draws every
+ * frame asks this first instead of measuring anything.
+ */
+lh_bool_t
+lh_gl_shadow_is_empty(const lh_gl_shadow_t *self);
+
+/**
+ * @brief Peak colour of @p self. Its alpha is the strongest the shadow gets.
+ */
+lh_void
+lh_gl_shadow_copy_color(const lh_gl_shadow_t *self, lh_gl_color_t *out);
+
+/**
+ * @brief Set the fade distance. Negative becomes zero.
+ */
+lh_void
+lh_gl_shadow_set_spread_v(lh_gl_shadow_t *self, lh_gl_scalar_t spread);
+
+/**
+ * @brief Shift of @p self. Positive @p offset_x is right, @p offset_y is down.
+ */
+lh_void
+lh_gl_shadow_set_offset(lh_gl_shadow_t *self, lh_gl_scalar_t offset_x, lh_gl_scalar_t offset_y);
+
+/**
+ * @brief Pixels the shadow needs around @p rect: the spread plus the shift.
+ *
+ * The padding a caller has to leave around the box so nothing of the shadow is
+ * cut. Zero when @p self would paint nothing.
+ */
+lh_gl_scalar_t
+lh_gl_shadow_get_outset(const lh_gl_shadow_t *self, const lh_gl_rect_t *rect);
+
+/**
+ * @brief ::lh_gl_shadow_alpha_at at the center of pixel (@p x, @p y).
+ *
+ * The same center ::lh_gl_radius_coverage samples, so a pixel the fill covers
+ * wholly is outside the shadow, and a rounded corner fades along the fill's
+ * circle rather than along `width / 2` of the box.
+ */
+/**
+ * @brief @p self laid off the box @p rect with corners of @p radius, as the core's
+ *        shadow (::lh_pixel_shadow_t, `lh/core/pixel/shadow.h`): the box in
+ *        sub-pixel units (::lh_gl_radius_get_box, the radius clamped to the box),
+ *        the shift as far as the shifted box's corner moves, the spread, and the
+ *        colour's alpha as the peak.
+ *
+ * The core's shadow is the one reading of a shadow: ::lh_gl_shadow_alpha_at_pixel
+ * asks it one pixel, and every backend that draws a shadow pixel by pixel asks it
+ * a run, so they cannot disagree by a single alpha.
+ *
+ * @param self   The shadow; checked by ::lh_assert_runtime_ref.
+ * @param rect   The casting box; checked by ::lh_assert_runtime_ref.
+ * @param radius Its corners' radius.
+ * @param out    The core's shadow; must not be null.
+ */
+lh_void
+lh_gl_shadow_get_pixel_shadow(const lh_gl_shadow_t *self, const lh_gl_rect_t *rect,
+                              lh_gl_scalar_t radius, lh_pixel_shadow_t *out);
+
+/**
+ * @brief Signed distance from (@p x, @p y) to @p rect with corners rounded by
+ *        @p radius, in pixels: negative inside, zero on the edge.
+ *
+ * The one piece of geometry both this and anything that wants a soft edge of
+ * its own needs, and a plain function of its arguments.
+ */
+lh_s32_t
+lh_gl_shadow_distance(lh_gl_scalar_t x, lh_gl_scalar_t y, const lh_gl_rect_t *rect,
+                      lh_gl_scalar_t radius);
+
+/**
+ * @brief How much of @p self reaches (@p x, @p y) of @p rect with corners
+ *        rounded by @p radius: `0 .. 255`, already scaled by the colour's alpha.
+ *
+ * Zero inside the box, where the fill is, and one spread past the edge. The
+ * fade straddles the *shifted* edge rather than holding a flat band for the
+ * whole offset, which is what makes a shadow look like light and not like a
+ * second box.
+ */
+lh_byte_t
+lh_gl_shadow_alpha_at(const lh_gl_shadow_t *self, lh_gl_scalar_t x, lh_gl_scalar_t y,
+                      const lh_gl_rect_t *rect, lh_gl_scalar_t radius);
+
+lh_byte_t
+lh_gl_shadow_alpha_at_pixel(const lh_gl_shadow_t *self, lh_s32_t x, lh_s32_t y,
+                            const lh_gl_rect_t *rect, lh_gl_scalar_t radius);
 
 LH_COMPILER_EXTERN_C_END
 

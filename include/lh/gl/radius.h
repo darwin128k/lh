@@ -11,7 +11,7 @@
 #ifndef LH_GL_RADIUS_H
 #define LH_GL_RADIUS_H
 
-#include <lh/core/pixel/round.h>
+#include <lh/core/pixel/round/box.h>
 #include <lh/core/byte/ptr.h>
 #include <lh/gl/rect.h>
 
@@ -117,6 +117,18 @@ lh_gl_radius_cover_from_square(lh_s64_t r, lh_s64_t d2);
  */
 lh_gl_scalar_t
 lh_gl_radius_clamp(const lh_gl_rect_t *rect, lh_gl_scalar_t radius);
+
+/**
+ * @brief @p rect with corners of @p radius as the core's rounded box
+ *        (::lh_pixel_round_box_t), in ::LH_GL_RADIUS_SUBPIXEL units: the corner and
+ *        the size each put in those units, the far edge their sum.
+ *
+ * @param rect   The box; must not be null.
+ * @param radius The radius, as it is (not clamped).
+ * @param out    The core's box; must not be null.
+ */
+lh_void
+lh_gl_radius_get_box(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_pixel_round_box_t *out);
 
 /**
  * @brief How much of pixel (@p x, @p y) a rounded @p rect covers: `0..255`.

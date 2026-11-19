@@ -30,6 +30,24 @@ lh_gl_radius_get_max(const lh_gl_rect_t *rect)
                        lh_gl_scalar(0));
 }
 
+lh_byte_t
+lh_gl_radius_cover_from_distance(lh_s64_t r, lh_s64_t d)
+{
+    return lh_pixel_round_cover_from_distance(r, d);
+}
+
+lh_byte_t
+lh_gl_radius_scale(lh_byte_t a, lh_byte_t b)
+{
+    return lh_cast_static(lh_byte_t, (lh_cast_static(lh_u32_t, a) * b + 127U) / 255U);
+}
+
+lh_byte_t
+lh_gl_radius_cover_from_square(lh_s64_t r, lh_s64_t d2)
+{
+    return lh_pixel_round_cover_from_square(r, d2);
+}
+
 lh_gl_scalar_t
 lh_gl_radius_clamp(const lh_gl_rect_t *rect, lh_gl_scalar_t radius)
 {
@@ -43,18 +61,6 @@ lh_gl_radius_axis_distance(lh_s64_t p, lh_gl_scalar_t start, lh_gl_scalar_t leng
     return lh_pixel_round_axis_distance(
         p, lh_gl_radius_to_fixed(start),
         lh_gl_radius_to_fixed(start) + lh_gl_radius_to_fixed(length), r);
-}
-
-lh_byte_t
-lh_gl_radius_cover_from_distance(lh_s64_t r, lh_s64_t d)
-{
-    return lh_pixel_round_cover_from_distance(r, d);
-}
-
-lh_byte_t
-lh_gl_radius_scale(lh_byte_t a, lh_byte_t b)
-{
-    return lh_cast_static(lh_byte_t, (lh_cast_static(lh_u32_t, a) * b + 127U) / 255U);
 }
 
 lh_u64_t
@@ -71,96 +77,17 @@ lh_gl_radius_scale_8(lh_byte_t a, lh_u64_t b)
     return out;
 }
 
-lh_byte_t
-lh_gl_radius_cover_from_square(lh_s64_t r, lh_s64_t d2)
-{
-    return lh_pixel_round_cover_from_square(r, d2);
-}
-
-lh_byte_t
-lh_gl_radius_coverage(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_s32_t x, lh_s32_t y)
-{
-    const lh_gl_point_t *origin = lh_gl_rect_get_origin(rect);
-    const lh_gl_size_t *size = lh_gl_rect_get_size(rect);
-    const lh_s64_t r = lh_gl_radius_to_fixed(radius);
-    const lh_s64_t dx = lh_gl_radius_axis_distance(
-        lh_gl_radius_pixel_center(x), lh_gl_point_get_x(origin), lh_gl_size_get_width(size), r);
-    const lh_s64_t dy = lh_gl_radius_axis_distance(
-        lh_gl_radius_pixel_center(y), lh_gl_point_get_y(origin), lh_gl_size_get_height(size), r);
-    lh_return_if(dx < 0 || dy < 0, 0);
-    lh_return_if(dx == 0 || dy == 0, 255);
-    return lh_gl_radius_cover_from_square(r, dx * dx + dy * dy);
-}
-
-lh_bool_t
-lh_gl_radius_contains(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_gl_point_t point)
-{
-    lh_return_if(!lh_gl_rect_contains_point(rect, point), lh_bool_false);
-    lh_return_if(radius <= lh_gl_scalar(0), lh_bool_true);
-    return lh_gl_radius_coverage(rect, lh_gl_radius_clamp(rect, radius),
-                                 lh_gl_scalar_floor_s32(lh_gl_point_get_x(lh_addr_of(point))),
-                                 lh_gl_scalar_floor_s32(lh_gl_point_get_y(lh_addr_of(point)))) >=
-                   LH_GL_RADIUS_HIT_COVERAGE
-               ? lh_bool_true
-               : lh_bool_false;
-}
-
 lh_void
-lh_gl_radius_full_span(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_s32_t y,
-                       lh_s32_t *out_x0, lh_s32_t *out_x1)
+lh_gl_radius_get_box(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_pixel_round_box_t *out)
 {
     const lh_gl_point_t *origin = lh_gl_rect_get_origin(rect);
     const lh_gl_size_t *size = lh_gl_rect_get_size(rect);
-    const lh_s32_t left = lh_gl_scalar_floor_s32(lh_gl_point_get_x(origin));
-    const lh_s32_t right = left + lh_gl_scalar_ceil_s32(lh_gl_size_get_width(size));
-    const lh_s64_t r = lh_gl_radius_to_fixed(radius);
-    const lh_s64_t lo = lh_gl_radius_to_fixed(lh_gl_point_get_x(origin));
-    const lh_s64_t near = lo + r; /* the corner circle center, left side */
-    const lh_s64_t dy = lh_gl_radius_axis_distance(
-        lh_gl_radius_pixel_center(y), lh_gl_point_get_y(origin), lh_gl_size_get_height(size), r);
-    const lh_s64_t inner = r - LH_GL_RADIUS_SUBPIXEL / 2;
+    const lh_s64_t lo_x = lh_gl_radius_to_fixed(lh_gl_point_get_x(origin));
+    const lh_s64_t lo_y = lh_gl_radius_to_fixed(lh_gl_point_get_y(origin));
 
-    lh_assert_runtime_ref(out_x0);
-    if (dy < 0)
-    {
-        lh_ptr_deref(out_x0) = left;
-        lh_ptr_deref(out_x1) = left;
-        return;
-    }
-    /* The straight part between the corners: the whole width is wholly inside,
-       which is what lh_gl_radius_coverage_run answers for a dy of 0. */
-    if (dy == 0)
-    {
-        lh_ptr_deref(out_x0) = left;
-        lh_ptr_deref(out_x1) = right;
-        return;
-    }
-
-    /* How far past the corner center a pixel still counts as wholly inside.
-       lh_gl_radius_cover_from_square answers 255 while dx * dx + dy * dy is at
-       most inner * inner, so dx may be at most the root of what is left of that
-       once dy is squared off. One root per ROW, where the alternative is the
-       corner being cut as a radius-square and every pixel of it — including the
-       ones whose coverage is a flat 255 — walking the per-pixel path.
-
-       The root is not worth walking down from the row before, and the reason is
-       the fixed point: the reach is in 1/256 of a pixel, so the next row moves it
-       by ~256, not by one. An incrementing walk therefore costs ~256 steps per
-       pixel where lh_math_isqrt_u64 costs 62 ns for the whole root, and measured
-       against it the walk made a 240x160 r8 rectangle 18% slower (r16 22%). */
-    lh_s64_t reach =
-        inner > 0
-            ? lh_cast_static(lh_s64_t, lh_math_isqrt_u64(lh_cast_static(
-                                           lh_u64_t, lh_math_max(inner * inner - dy * dy, 0))))
-            : 0;
-    lh_s64_t inside = near - reach;
-    /* The first pixel whose center is at or past that point: center(x) is
-       x * SUBPIXEL + half, so x is the ceiling of (inside - half) / SUBPIXEL. */
-    lh_s32_t at = lh_cast_static(
-        lh_s32_t,
-        lh_math_neg(lh_math_floor_div(LH_GL_RADIUS_SUBPIXEL / 2 - inside, LH_GL_RADIUS_SUBPIXEL)));
-    lh_ptr_deref(out_x0) = lh_math_max(at, left);
-    lh_ptr_deref(out_x1) = lh_math_max(right - (lh_ptr_deref(out_x0) - left), lh_ptr_deref(out_x0));
+    lh_pixel_round_box_init(
+        out, lo_x, lo_y, lo_x + lh_gl_radius_to_fixed(lh_gl_size_get_width(size)),
+        lo_y + lh_gl_radius_to_fixed(lh_gl_size_get_height(size)), lh_gl_radius_to_fixed(radius));
 }
 
 lh_void
@@ -179,6 +106,38 @@ lh_gl_radius_run_init(struct lh_gl_radius_run *self, const lh_gl_rect_t *rect,
     self->far = self->hi - self->r;
     self->top = lh_gl_point_get_y(origin);
     self->height = lh_gl_size_get_height(size);
+}
+
+lh_byte_t
+lh_gl_radius_coverage(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_s32_t x, lh_s32_t y)
+{
+    lh_pixel_round_box_t box;
+
+    lh_gl_radius_get_box(rect, radius, lh_addr_of(box));
+    return lh_pixel_round_box_get_coverage(lh_addr_of(box), x, y);
+}
+
+lh_void
+lh_gl_radius_full_span(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_s32_t y,
+                       lh_s32_t *out_x0, lh_s32_t *out_x1)
+{
+    lh_pixel_round_box_t box;
+
+    lh_gl_radius_get_box(rect, radius, lh_addr_of(box));
+    lh_pixel_round_box_get_full_span(lh_addr_of(box), y, out_x0, out_x1);
+}
+
+lh_bool_t
+lh_gl_radius_contains(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_gl_point_t point)
+{
+    lh_return_if(!lh_gl_rect_contains_point(rect, point), lh_bool_false);
+    lh_return_if(radius <= lh_gl_scalar(0), lh_bool_true);
+    return lh_gl_radius_coverage(rect, lh_gl_radius_clamp(rect, radius),
+                                 lh_gl_scalar_floor_s32(lh_gl_point_get_x(lh_addr_of(point))),
+                                 lh_gl_scalar_floor_s32(lh_gl_point_get_y(lh_addr_of(point)))) >=
+                   LH_GL_RADIUS_HIT_COVERAGE
+               ? lh_bool_true
+               : lh_bool_false;
 }
 
 lh_void

@@ -213,6 +213,9 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/font/range.c
         ${LH_LIB_SRC_PATH}/core/pixel/mask.c
         ${LH_LIB_SRC_PATH}/core/pixel/round.c
+        ${LH_LIB_SRC_PATH}/core/pixel/round/box.c
+        ${LH_LIB_SRC_PATH}/core/pixel/shadow.c
+        ${LH_LIB_SRC_PATH}/core/pixel/shadow/ramp.c
         ${LH_LIB_SRC_PATH}/core/pixel/span.c
         ${LH_LIB_SRC_PATH}/core/pixel/gradient.c
         ${LH_LIB_SRC_PATH}/core/pixel/gradient/lerp.c
@@ -597,8 +600,6 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gl/rects.c
             ${LH_LIB_SRC_PATH}/gl/scalar.c
             ${LH_LIB_SRC_PATH}/gl/shadow.c
-            ${LH_LIB_SRC_PATH}/gl/shadow/ramp.c
-            ${LH_LIB_SRC_PATH}/gl/shadow/shape.c
             ${LH_LIB_SRC_PATH}/gl/blur.c
             ${LH_LIB_SRC_PATH}/gl/blur/pass.c
             ${LH_LIB_SRC_PATH}/gl/blur/window.c

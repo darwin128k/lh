@@ -17,6 +17,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The shadow moved from gl to the core, in sub-pixel whole numbers, so that gx
+  draws with the same one: `lh_pixel_round_box_t` (`lh/core/pixel/round/box.h`,
+  `round/box/fields.h`: a rounded rectangle, its coverage, the whole pixels it
+  touches, and the run of a row it covers wholly), `lh_pixel_shadow_t`
+  (`lh/core/pixel/shadow.h`, `shadow/fields.h`: a soft shadow laid off one box,
+  `_get_row`, `_get_fade`, `_get_alpha`, `_get_span`) and
+  `lh_pixel_shadow_ramp_t` (`shadow/ramp.h`, `shadow/ramp/fields.h`: the corner
+  fade as thresholds of the squared distance). `lh_gl_shadow_shape_t` and
+  `lh_gl_shadow_ramp_t` are gone; gl lays its shadow with
+  `lh_gl_shadow_get_pixel_shadow` and its boxes with `lh_gl_radius_get_box`,
+  and `lh_gl_radius_coverage` and `lh_gl_radius_full_span` call the core. Every
+  gl picture of `bench/lvgl/` is the same to the byte, and a shadow frame takes
+  as long. Holding the run to the coverage pixel by pixel, two faults of gl's
+  run came to light and are fixed: at a fractional place its right end was the
+  left one mirrored, taking pixels short of 255 for the box's, and a corner's
+  reach stopped at `inner * inner` where a pixel is at 255 up to
+  `(inner + 1)^2` less one. On whole pixels the run is the same as before.
 - The gx canvas fills with a brush: `fill_rect` and `fill_mask`
   (`lh_gx_canvas_fill_rect_fn`, `lh_gx_canvas_fill_mask_fn`) take an
   `lh_gx_brush_t` (`lh/gx/brush.h`, `lh/gx/brush/fields.h`) in place of a
