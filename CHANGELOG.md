@@ -17,6 +17,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The gx canvas fills with a brush: `fill_rect` and `fill_mask`
+  (`lh_gx_canvas_fill_rect_fn`, `lh_gx_canvas_fill_mask_fn`) take an
+  `lh_gx_brush_t` (`lh/gx/brush.h`, `lh/gx/brush/fields.h`) in place of a
+  colour — one colour, or a gradient laid over a box with its table of colours
+  (`lh_gx_brush_init_color`, `_init_gradient`, `_get_color_at`, `_prepare`,
+  `_is_gradient`, `_is_clear`). `lh_gx_paint_fill_rect` and
+  `lh_gx_paint_fill_mask` take a brush; `lh_gx_paint_fill_rect_color` and
+  `lh_gx_paint_fill_mask_color` fill with one colour. A gx style has a
+  `gradient` (`lh_gx_style_get_gradient`, `_set_gradient`,
+  `_is_fill_opaque`; `lh_gx_style_fields` takes its type and
+  `lh_gx_style_initializer` a seventh argument), and a box fills its inside with
+  it, laid over the whole box, its colours worked out once for every piece
+  (`lh_gx_box_init_fill`); `lh_gx_box_fill_px`, `_paint_corner` and
+  `_paint_strip` take brushes. The software backend draws a gradient a row at a
+  time through the core's table and sampler — a straight-down one as one colour
+  a row (`lh_gx_backend_sw_fill_box_gradient`, `_fill_box_color`,
+  `_blend_row`, `_blend_row_each`, `_cover_row`, `_cover_row_each`); the web
+  backend writes it as `["gradient", box, shape, angle, frac, color, ...]`
+  (`lh_gx_backend_web_put_brush`, `_put_gradient`, `_put_uint`), and the player
+  draws it as the browser's gradient (`lhGxFill`). On the gradient scenes of
+  `bench/lvgl/` gx draws the same shapes as gl, and a frame in 303, 694 and
+  1197 microseconds (straight down, corner to corner, radial) against gl's 314,
+  762 and 1086 and LVGL's 307, 811 and 1296.
+- The core gradient gained what a drawer needs: `lh_pixel_gradient_is_vertical`,
+  `lh_pixel_gradient_is_opaque`, and the colours of a row or a column
+  (`lh_pixel_gradient_table_get_row`, `_get_column`, a run of
+  `LH_PIXEL_GRADIENT_TABLE_RUN` at a time); the pixel spans lay a colour per
+  pixel (`lh_pixel_span_blend_each_argb`, `_blend_each_rgb565`,
+  `_cover_each_argb`, `_cover_each_rgb565`).
 - The gradient moved from gl to the core, in whole numbers and `0xAARRGGBB`
   colours, so that gx draws with the same one: `lh_pixel_gradient_t`
   (`lh/core/pixel/gradient.h`, with `gradient/fields.h`, `shape.h`, `stop.h`,

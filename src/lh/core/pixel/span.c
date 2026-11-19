@@ -100,3 +100,79 @@ lh_pixel_span_cover_rgb565(lh_u16_t *at, const lh_byte_t *cover, lh_usize_t coun
         }
     }
 }
+
+lh_void
+lh_pixel_span_blend_each_argb(lh_u32_t *at, const lh_u32_t *src, lh_usize_t count)
+{
+    for (lh_usize_t i = 0U; i < count; ++i)
+    {
+        const lh_u32_t a = lh_pixel_argb_get_channel(src[i], 24);
+
+        if (a == LH_BYTE_T_MAX)
+        {
+            at[i] = src[i];
+        }
+        else if (a != 0U)
+        {
+            at[i] = lh_pixel_argb_over(at[i], src[i]);
+        }
+    }
+}
+
+lh_void
+lh_pixel_span_blend_each_rgb565(lh_u16_t *at, const lh_u32_t *src, lh_usize_t count,
+                                lh_bool_t swapped)
+{
+    for (lh_usize_t i = 0U; i < count; ++i)
+    {
+        const lh_u32_t a = lh_pixel_argb_get_channel(src[i], 24);
+
+        if (a != 0U)
+        {
+            at[i] = lh_cast_static(
+                lh_u16_t, lh_pixel_rgb565_order(
+                              lh_pixel_rgb565_mix(lh_pixel_rgb565_order(at[i], swapped), src[i], a),
+                              swapped));
+        }
+    }
+}
+
+lh_void
+lh_pixel_span_cover_each_argb(lh_u32_t *at, const lh_byte_t *cover, const lh_u32_t *src,
+                              lh_usize_t count)
+{
+    for (lh_usize_t i = 0U; i < count; ++i)
+    {
+        const lh_u32_t a =
+            lh_pixel_channel_div255_round(cover[i] * lh_pixel_argb_get_channel(src[i], 24));
+        const lh_u32_t rgb = lh_bit_and(src[i], 0x00FFFFFFU);
+
+        if (a == LH_BYTE_T_MAX)
+        {
+            at[i] = lh_bit_or(0xFF000000U, rgb);
+        }
+        else if (a != 0U)
+        {
+            at[i] = lh_pixel_argb_over(at[i], lh_bit_or(lh_bit_shl(a, 24), rgb));
+        }
+    }
+}
+
+lh_void
+lh_pixel_span_cover_each_rgb565(lh_u16_t *at, const lh_byte_t *cover, const lh_u32_t *src,
+                                lh_usize_t count, lh_bool_t swapped)
+{
+    for (lh_usize_t i = 0U; i < count; ++i)
+    {
+        const lh_u32_t a =
+            lh_pixel_channel_div255_round(cover[i] * lh_pixel_argb_get_channel(src[i], 24));
+
+        if (a != 0U)
+        {
+            at[i] = lh_cast_static(
+                lh_u16_t, lh_pixel_rgb565_order(
+                              lh_pixel_rgb565_mix(lh_pixel_rgb565_order(at[i], swapped), src[i], a),
+                              swapped));
+        }
+    }
+}

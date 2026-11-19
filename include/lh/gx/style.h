@@ -14,6 +14,7 @@
 #ifndef LH_GX_STYLE_H
 #define LH_GX_STYLE_H
 
+#include <lh/core/pixel/gradient.h>
 #include <lh/gx/color.h>
 #include <lh/gx/corners.h>
 #include <lh/gx/font.h>
@@ -21,12 +22,14 @@
 
 /**
  * @struct lh_gx_style
- * @brief The fill, the border, the corners, the ink and the font of an entity.
+ * @brief The fill, the border, the corners, the ink, the font and the gradient of an
+ *        entity.
  */
 struct lh_gx_style
 {
     /** Members: ::lh_gx_style_fields. */
-    lh_gx_style_fields(lh_gx_color_t, lh_gx_scalar_t, lh_gx_corners_t, lh_gx_font_t);
+    lh_gx_style_fields(lh_gx_color_t, lh_gx_scalar_t, lh_gx_corners_t, lh_gx_font_t,
+                       lh_pixel_gradient_t);
 };
 /** @copybrief lh_gx_style */
 typedef struct lh_gx_style lh_gx_style_t;
@@ -147,6 +150,35 @@ lh_void
 lh_gx_style_set_font(lh_gx_style_t *self, const lh_gx_font_t *font);
 
 /**
+ * @brief The gradient that fills the inside instead of the fill colour, or
+ *        ::lh_null (level 1).
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @return Not owned.
+ */
+const lh_pixel_gradient_t *
+lh_gx_style_get_gradient(const lh_gx_style_t *self);
+
+/**
+ * @brief Store the gradient that fills the inside (level 1).
+ *
+ * @param self     The style; checked by ::lh_assert_runtime_ref.
+ * @param gradient The gradient, or ::lh_null for the fill colour; not owned, and
+ *                 it must outlive the style's use.
+ */
+lh_void
+lh_gx_style_set_gradient(lh_gx_style_t *self, const lh_pixel_gradient_t *gradient);
+
+/**
+ * @brief Whether the inside is opaque: the gradient's every stop
+ *        (::lh_pixel_gradient_is_opaque), else the fill colour's alpha 255.
+ *
+ * @param self The style; checked by the getters.
+ */
+lh_bool_t
+lh_gx_style_is_fill_opaque(const lh_gx_style_t *self);
+
+/**
  * @brief Round every corner alike, to @p radius (level 2: the corners in place,
  *        ::lh_gx_corners_init_all).
  *
@@ -160,7 +192,8 @@ lh_gx_style_set_radius_all(lh_gx_style_t *self, lh_gx_scalar_t radius);
  * @brief A style of @p fill, a @p border of @p border_width, every corner of
  *        @p radius, text in @p ink and @p font — for a style built at run time; a
  *        theme in flash uses ::lh_gx_style_initializer. A corner of its own radius
- *        is set after, through ::lh_gx_style_get_radius_mut.
+ *        is set after, through ::lh_gx_style_get_radius_mut; no gradient
+ *        (::lh_gx_style_set_gradient sets one).
  *
  * @param self         The style; must not be null.
  * @param fill         The colour inside.

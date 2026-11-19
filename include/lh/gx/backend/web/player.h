@@ -10,15 +10,21 @@
  * calls `lhGxPlay(ctx, frame)` with each frame it receives, `frame` being the
  * parsed JSON.
  *
- * The script defines three functions and nothing else:
+ * The script defines four functions and nothing else:
  *
  * - `lhGxPlay(ctx, frame)` — every command of @c frame, in order, on the
  *   `CanvasRenderingContext2D` @c ctx: clipped to the command's clip, the
  *   context's state restored after each one. A command it does not know is
  *   skipped, so an older page survives a newer backend.
  * - `lhGxColor(k)` — the ARGB number @c k as a CSS `rgba(...)`.
- * - `lhGxFillMask(ctx, rect, k, coverage)` — the colour @c k through the hex
- *   coverage, drawn with an `OffscreenCanvas` so that the clip and the blending
+ * - `lhGxFill(ctx, k, x, y, w, h)` — the rectangle filled with the brush @c k:
+ *   an ARGB number, or a gradient (::lh_gx_backend_web_put_gradient) drawn as the
+ *   browser's linear or radial gradient, laid over its box as
+ *   `lh/core/pixel/gradient.h` lays it — a radial one on a circle scaled into
+ *   the box's ellipse.
+ * - `lhGxFillMask(ctx, rect, k, coverage)` — the brush @c k through the hex
+ *   coverage: the brush filled into an `OffscreenCanvas`, kept where the
+ *   coverage is (`destination-in`), then drawn so that the clip and the blending
  *   of @c ctx apply (`putImageData` would ignore both).
  *
  * The transport — how frames reach the page — is not the player's: a host

@@ -135,6 +135,46 @@ TEST(pixel_span, a_mask_scales_the_colour_pixel_by_pixel)
     EXPECT_EQ(row16[1], 0xFFFFU);
 }
 
+/* A colour per pixel is each pixel laid over with its own colour by the one-colour
+   kernel: opaque, clear and translucent, over opaque and translucent pixels. */
+TEST(pixel_span, each_pixel_of_its_own_colour_is_the_one_colour_span_per_pixel)
+{
+    const lh_u32_t src[5] = {0xFF112233U, 0x00445566U, 0x80FF0000U, 0x4000FF00U, 0xC00000FFU};
+    const lh_u32_t base[5] = {0xFF000000U, 0xFFFFFFFFU, 0xFF102030U, 0x80FFFFFFU, 0xFF808080U};
+    const lh_byte_t cover[5] = {255U, 128U, 0U, 200U, 64U};
+    lh_u32_t row[5];
+    lh_u32_t covered[5];
+    lh_u16_t row16[5];
+    lh_u16_t covered16[5];
+
+    for (int i = 0; i < 5; ++i)
+    {
+        row[i] = covered[i] = base[i];
+        row16[i] = covered16[i] = static_cast<lh_u16_t>(0x1234U * (i + 1));
+    }
+    lh_pixel_span_blend_each_argb(row, src, 5U);
+    lh_pixel_span_cover_each_argb(covered, cover, src, 5U);
+    lh_pixel_span_blend_each_rgb565(row16, src, 5U, lh_bool_true);
+    lh_pixel_span_cover_each_rgb565(covered16, cover, src, 5U, lh_bool_false);
+    for (int i = 0; i < 5; ++i)
+    {
+        lh_u32_t one = base[i];
+        lh_u32_t one_covered = base[i];
+        lh_u16_t one16 = static_cast<lh_u16_t>(0x1234U * (i + 1));
+        lh_u16_t one_covered16 = one16;
+
+        lh_pixel_span_blend_argb(&one, 1U, src[i], src[i] >> 24);
+        lh_pixel_span_cover_argb(&one_covered, &cover[i], 1U, src[i], src[i] >> 24);
+        lh_pixel_span_blend_rgb565(&one16, 1U, src[i], src[i] >> 24, lh_bool_true);
+        lh_pixel_span_cover_rgb565(&one_covered16, &cover[i], 1U, src[i], src[i] >> 24,
+                                   lh_bool_false);
+        EXPECT_EQ(row[i], one) << i;
+        EXPECT_EQ(covered[i], one_covered) << i;
+        EXPECT_EQ(row16[i], one16) << i;
+        EXPECT_EQ(covered16[i], one_covered16) << i;
+    }
+}
+
 /* A 10 by 10 rectangle at 0, 0 with a radius of 4, in fixed point. */
 lh_byte_t
 round_at(int x, int y)

@@ -108,29 +108,124 @@ lh_gx_backend_sw_get_box(const lh_gx_backend_sw_t *self, const lh_gx_rect_t *cli
                          const lh_gx_rect_t *rect, lh_math_rect_t *out);
 
 /**
- * @brief `fill_rect` of the canvas (::lh_gx_canvas_fill_rect_fn) into the target.
+ * @brief Lay @p color over @p count pixels of the target from column @p x of row
+ *        @p y, in the target's format (::lh_pixel_span_blend_argb,
+ *        ::lh_pixel_span_blend_rgb565).
  *
- * @param context The backend (::lh_gx_backend_sw_t).
- * @param clip    The clip, screen coordinates.
- * @param rect    The rectangle, screen coordinates.
- * @param color   `0xAARRGGBB`.
+ * @param self  The backend; must not be null.
+ * @param x     The first column, target coordinates; the run must fit the target.
+ * @param y     The row, target coordinates.
+ * @param count How many pixels.
+ * @param color `0xAARRGGBB`.
  */
 lh_void
-lh_gx_backend_sw_fill_rect(lh_ptr context, const lh_gx_rect_t *clip, const lh_gx_rect_t *rect,
+lh_gx_backend_sw_blend_row(const lh_gx_backend_sw_t *self, lh_u32_t x, lh_u32_t y, lh_usize_t count,
                            lh_gx_color_t color);
 
 /**
- * @brief `fill_mask` of the canvas (::lh_gx_canvas_fill_mask_fn) into the target.
+ * @brief Lay @p count colours of @p colors over as many pixels of the target, each
+ *        at its own alpha (::lh_pixel_span_blend_each_argb, `_rgb565`).
+ *
+ * @param self   The backend; must not be null.
+ * @param x      The first column, target coordinates; the run must fit the target.
+ * @param y      The row, target coordinates.
+ * @param count  How many pixels.
+ * @param colors @p count colours, `0xAARRGGBB`.
+ */
+lh_void
+lh_gx_backend_sw_blend_row_each(const lh_gx_backend_sw_t *self, lh_u32_t x, lh_u32_t y,
+                                lh_usize_t count, const lh_u32_t *colors);
+
+/**
+ * @brief Lay @p color through @p count coverages of @p cover over as many pixels
+ *        of the target (::lh_pixel_span_cover_argb, `_rgb565`).
+ *
+ * @param self  The backend; must not be null.
+ * @param x     The first column, target coordinates; the run must fit the target.
+ * @param y     The row, target coordinates.
+ * @param count How many pixels.
+ * @param cover @p count coverages, 0..255.
+ * @param color `0xAARRGGBB`.
+ */
+lh_void
+lh_gx_backend_sw_cover_row(const lh_gx_backend_sw_t *self, lh_u32_t x, lh_u32_t y, lh_usize_t count,
+                           const lh_byte_t *cover, lh_gx_color_t color);
+
+/**
+ * @brief Lay @p count colours through as many coverages over as many pixels of the
+ *        target (::lh_pixel_span_cover_each_argb, `_rgb565`).
+ *
+ * @param self   The backend; must not be null.
+ * @param x      The first column, target coordinates; the run must fit the target.
+ * @param y      The row, target coordinates.
+ * @param count  How many pixels.
+ * @param cover  @p count coverages, 0..255.
+ * @param colors @p count colours, `0xAARRGGBB`.
+ */
+lh_void
+lh_gx_backend_sw_cover_row_each(const lh_gx_backend_sw_t *self, lh_u32_t x, lh_u32_t y,
+                                lh_usize_t count, const lh_byte_t *cover, const lh_u32_t *colors);
+
+/**
+ * @brief Fill @p box of the target with one colour, a row at a time.
+ *
+ * @param self  The backend; must not be null.
+ * @param box   Target coordinates, inside the target (::lh_gx_backend_sw_get_box).
+ * @param color `0xAARRGGBB`.
+ */
+lh_void
+lh_gx_backend_sw_fill_box_color(const lh_gx_backend_sw_t *self, const lh_math_rect_t *box,
+                                lh_gx_color_t color);
+
+/**
+ * @brief Fill @p box of the target with the gradient of @p brush, laid over the
+ *        brush's box on the screen (the target's origin taken into account).
+ *
+ * A gradient that runs straight up or down (::lh_pixel_gradient_is_vertical) has
+ * one colour a row: its column is walked once and each row is a one-colour run, a
+ * store when opaque. Any other gives each row its colours
+ * (::lh_pixel_gradient_table_get_row) and lays them over
+ * (::lh_gx_backend_sw_blend_row_each). The table is the brush's, or worked out
+ * here once for the call (::lh_gx_brush_prepare).
+ *
+ * @param self  The backend; must not be null.
+ * @param box   Target coordinates, inside the target.
+ * @param brush A gradient brush; must not be null.
+ */
+lh_void
+lh_gx_backend_sw_fill_box_gradient(const lh_gx_backend_sw_t *self, const lh_math_rect_t *box,
+                                   const lh_gx_brush_t *brush);
+
+/**
+ * @brief `fill_mask` of the canvas (::lh_gx_canvas_fill_mask_fn) into the target:
+ *        each row of the mask inside the clip and the target laid over with one
+ *        colour (::lh_gx_backend_sw_cover_row) or the gradient's colours of that
+ *        row (::lh_gx_backend_sw_cover_row_each).
  *
  * @param context The backend (::lh_gx_backend_sw_t).
  * @param clip    The clip, screen coordinates.
  * @param mask    The coverage, format `a8`.
  * @param at      Where the mask's top-left pixel lands, screen coordinates.
- * @param color   `0xAARRGGBB`.
+ * @param brush   What to fill with.
  */
 lh_void
 lh_gx_backend_sw_fill_mask(lh_ptr context, const lh_gx_rect_t *clip, const lh_gx_pixmap_t *mask,
-                           lh_gx_point_t at, lh_gx_color_t color);
+                           lh_gx_point_t at, const lh_gx_brush_t *brush);
+
+/**
+ * @brief `fill_rect` of the canvas (::lh_gx_canvas_fill_rect_fn) into the target:
+ *        nothing for a clear brush, else the part inside the clip and the target
+ *        filled with one colour (::lh_gx_backend_sw_fill_box_color) or a gradient
+ *        (::lh_gx_backend_sw_fill_box_gradient).
+ *
+ * @param context The backend (::lh_gx_backend_sw_t).
+ * @param clip    The clip, screen coordinates.
+ * @param rect    The rectangle, screen coordinates.
+ * @param brush   What to fill with.
+ */
+lh_void
+lh_gx_backend_sw_fill_rect(lh_ptr context, const lh_gx_rect_t *clip, const lh_gx_rect_t *rect,
+                           const lh_gx_brush_t *brush);
 
 /**
  * @brief Fill @p table with the slots of the software backend.

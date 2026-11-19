@@ -32,7 +32,7 @@ solid_paint(const lh_gx_entity_t *entity, const lh_gx_paint_t *paint)
     auto *solid = static_cast<Solid *>(lh_gx_entity_get_content(entity));
 
     ++solid->paints;
-    lh_gx_paint_fill_rect(paint, lh_gx_paint_get_place(paint), solid->color);
+    lh_gx_paint_fill_rect_color(paint, lh_gx_paint_get_place(paint), solid->color);
 }
 
 lh_bool_t
@@ -338,7 +338,7 @@ TEST(gx_paint, a_mask_without_fill_mask_is_drawn_through_fill_rect)
     lh_gx_canvas_set_fill_rect(&canvas, lh_gx_backend_sw_fill_rect);
     lh_gx_paint_init(&paint, &canvas, &sw, rect(0, 0, 4, 1), rect(0, 0, 4, 1));
     lh_gx_point_init(&at, 1, 0);
-    lh_gx_paint_fill_mask(&paint, &mask, at, 0xFFFFFFFFU);
+    lh_gx_paint_fill_mask_color(&paint, &mask, at, 0xFFFFFFFFU);
 
     EXPECT_EQ(words[0], 0xFF000000U);
     EXPECT_EQ(words[1], 0xFFFFFFFFU);

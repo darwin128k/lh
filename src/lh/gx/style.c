@@ -5,6 +5,8 @@
 
 #include <lh/gx/style.h>
 
+#include <lh/core/pixel/argb.h>
+
 lh_gx_color_t
 lh_gx_style_get_fill(const lh_gx_style_t *self)
 {
@@ -97,6 +99,29 @@ lh_gx_style_set_font(lh_gx_style_t *self, const lh_gx_font_t *font)
     self->font = font;
 }
 
+const lh_pixel_gradient_t *
+lh_gx_style_get_gradient(const lh_gx_style_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->gradient;
+}
+
+lh_void
+lh_gx_style_set_gradient(lh_gx_style_t *self, const lh_pixel_gradient_t *gradient)
+{
+    lh_assert_runtime_ref(self);
+    self->gradient = gradient;
+}
+
+lh_bool_t
+lh_gx_style_is_fill_opaque(const lh_gx_style_t *self)
+{
+    const lh_pixel_gradient_t *gradient = lh_gx_style_get_gradient(self);
+
+    lh_return_if(lh_null_ne(gradient), lh_pixel_gradient_is_opaque(gradient));
+    return lh_pixel_argb_get_channel(lh_gx_style_get_fill(self), 24) == LH_BYTE_T_MAX;
+}
+
 lh_void
 lh_gx_style_set_radius_all(lh_gx_style_t *self, lh_gx_scalar_t radius)
 {
@@ -114,4 +139,5 @@ lh_gx_style_init(lh_gx_style_t *self, lh_gx_color_t fill, lh_gx_color_t border,
     lh_gx_style_set_radius_all(self, radius);
     lh_gx_style_set_ink(self, ink);
     lh_gx_style_set_font(self, font);
+    lh_gx_style_set_gradient(self, lh_null);
 }

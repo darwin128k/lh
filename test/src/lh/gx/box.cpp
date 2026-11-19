@@ -75,8 +75,9 @@ rect(lh_gx_scalar_t x, lh_gx_scalar_t y, lh_gx_scalar_t w, lh_gx_scalar_t h)
 TEST(gx_style, a_style_reads_back_and_a_theme_is_a_constant_array)
 {
     static const lh_gx_style_t theme[] = {
-        lh_gx_style_initializer(1U, 2U, 3, lh_gx_corners_initializer_all(4), 0U, nullptr),
-        lh_gx_style_initializer(5U, 6U, 0, lh_gx_corners_initializer(1, 2, 3, 4), 0U, nullptr)};
+        lh_gx_style_initializer(1U, 2U, 3, lh_gx_corners_initializer_all(4), 0U, nullptr, nullptr),
+        lh_gx_style_initializer(5U, 6U, 0, lh_gx_corners_initializer(1, 2, 3, 4), 0U, nullptr,
+                                nullptr)};
     lh_gx_style_t style;
 
     lh_gx_style_init(&style, 0xFF112233U, 0xFF445566U, 2, 8, 0U, nullptr);
@@ -269,17 +270,26 @@ TEST(gx_box, each_corner_of_its_own_radius_is_that_radius_and_the_rest_is_square
         draw_box(&corners, border, mixed);
         draw_box(&none, border, square);
         /* Which corner's square a pixel is in, or -1. */
-        auto corner_of = [&](int x, int y) {
+        auto corner_of = [&](int x, int y)
+        {
             const int x0 = 2, y0 = 2, x1 = 38, y1 = 28;
 
             if (x < x0 + radii[0] && y < y0 + radii[0])
+            {
                 return 0;
+            }
             if (x >= x1 - radii[1] && y < y0 + radii[1])
+            {
                 return 1;
+            }
             if (x >= x1 - radii[2] && y >= y1 - radii[2])
+            {
                 return 2;
+            }
             if (x < x0 + radii[3] && y >= y1 - radii[3])
+            {
                 return 3;
+            }
             return -1;
         };
         for (int y = 0; y < 30; ++y)
@@ -344,6 +354,74 @@ TEST(gx_box, a_box_rounded_on_top_covers_its_bottom_corners)
     EXPECT_EQ(lh_gx_box_covers(&card, &place, &bottom_strip), lh_bool_true) << "edge to edge";
     EXPECT_EQ(lh_gx_box_is_clear_of_corners(&style, &place, &bottom_strip), lh_bool_true);
     EXPECT_EQ(lh_gx_box_is_clear_of_corners(&style, &place, &top_left), lh_bool_false);
+}
+
+/* A card filled with a gradient: the inside is the gradient laid over the whole card,
+   pixel for pixel, the strips and the corners joining into one; the border keeps its
+   colour; it covers what is under it only while every stop is opaque. */
+TEST(gx_box, a_gradient_fills_the_inside_as_one_over_the_whole_card)
+{
+    static lh_u32_t words[40 * 30];
+    const lh_u32_t stops[2] = {0xFF2050A0U, 0xFFF0E010U};
+    lh_pixel_gradient_t gradient;
+    lh_memory_bounds_t bits;
+    lh_gx_pixmap_t pixmap;
+    lh_gx_backend_sw_t sw;
+    lh_gx_canvas_t canvas;
+    lh_gx_render_t render;
+    lh_gx_style_t back_style;
+    lh_gx_style_t style;
+    lh_gx_entity_t back;
+    lh_gx_entity_t card;
+    lh_gx_damage_t drawn;
+    lh_gx_brush_t brush;
+
+    lh_pixel_gradient_init(&gradient);
+    lh_pixel_gradient_init_stops(&gradient, stops, lh_null, 2);
+    lh_pixel_gradient_set_linear(&gradient, 120);
+    lh_memory_bounds_init(&bits, words, sizeof(words));
+    lh_gx_pixmap_init(&pixmap, &bits, 40U, 30U, lh_gx_pixmap_format_argb8888);
+    lh_gx_backend_sw_init(&sw, &pixmap, 0, 0);
+    lh_gx_backend_sw_canvas_init(&canvas);
+    lh_gx_render_init(&render, &canvas, &sw, 40, 30);
+    lh_gx_style_init(&back_style, back_color, 0U, 0, 0, 0U, nullptr);
+    lh_gx_style_init(&style, fill_color, edge_color, 2, 6, 0U, nullptr);
+    lh_gx_style_set_gradient(&style, &gradient);
+    EXPECT_TRUE(lh_gx_style_get_gradient(&style) == &gradient);
+    lh_gx_entity_init(&back, &lh_gx_box_class, &back_style, 0, 0, 40, 30);
+    lh_gx_entity_init(&card, &lh_gx_box_class, &style, 2, 2, 36, 26);
+    lh_gx_entity_attach(lh_gx_render_get_screen_mut(&render), &back);
+    lh_gx_entity_attach(&back, &card);
+    lh_gx_render_draw(&render, &drawn);
+    lh_gx_brush_init_gradient(&brush, &gradient, nullptr, rect(2, 2, 36, 26));
+    /* Inside the border and clear of the corners' squares. */
+    for (int y = 4; y < 26; ++y)
+    {
+        for (int x = 4; x < 36; ++x)
+        {
+            const bool corner = (x < 8 || x >= 32) && (y < 8 || y >= 22);
+
+            if (!corner)
+            {
+                ASSERT_EQ(words[y * 40 + x], lh_gx_brush_get_color_at(&brush, x, y))
+                    << x << "," << y;
+            }
+        }
+    }
+    EXPECT_EQ(words[2 * 40 + 20], edge_color) << "the border keeps its colour";
+    EXPECT_EQ(words[2 * 40 + 2], back_color) << "the corner pixel is outside the curve";
+    /* Inside a corner's ring the fill is the gradient too, at full coverage. */
+    EXPECT_EQ(words[6 * 40 + 6], lh_gx_brush_get_color_at(&brush, 6, 6));
+    const lh_gx_rect_t place = rect(2, 2, 36, 26);
+    const lh_gx_rect_t middle = rect(10, 10, 4, 4);
+
+    EXPECT_TRUE(lh_gx_style_is_fill_opaque(&style));
+    EXPECT_EQ(lh_gx_box_covers(&card, &place, &middle), lh_bool_true);
+    const lh_u32_t half[2] = {0xFF2050A0U, 0x80F0E010U};
+
+    lh_pixel_gradient_init_stops(&gradient, half, lh_null, 2);
+    EXPECT_FALSE(lh_gx_style_is_fill_opaque(&style));
+    EXPECT_EQ(lh_gx_box_covers(&card, &place, &middle), lh_bool_false) << "a translucent stop";
 }
 
 /* A card is restyled: only its rectangle is drawn again, and what is under it is not. */

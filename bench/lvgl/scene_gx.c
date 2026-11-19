@@ -2,10 +2,10 @@
  * scene_gx.c -- the scenes of scene.h that gx can draw, built with gx's own API and
  * drawn by its software backend into memory.
  *
- * gx draws what it has a class for: boxes of one colour, each corner of its own
- * radius, and one-line text -- the `cards` and `corners` scenes. The others need
- * what gx does not have yet -- gradients, shadows, wrapped paragraphs, a flex
- * layout -- and are left out (gx_scene_has).
+ * gx draws what it has a class for: boxes of one colour or a gradient, each corner
+ * of its own radius, and one-line text -- the `cards`, `corners` and `grad_*`
+ * scenes. The others need what gx does not have yet -- shadows, wrapped
+ * paragraphs, a flex layout -- and are left out (gx_scene_has).
  * A frame is the renderer's: the damage is the area asked for, the renderer walks the
  * tree and paints it from the entity that covers it.
  */
@@ -31,6 +31,7 @@ static lh_gx_canvas_t canvas;
 static lh_gx_render_t render;
 static lh_gx_font_t font;
 
+static lh_pixel_gradient_t gradient;
 static lh_gx_style_t back_style;
 static lh_gx_style_t card_style;
 static lh_gx_entity_t back;
@@ -43,7 +44,8 @@ static lh_gx_rect_t whole;
 int
 gx_scene_has(int scene)
 {
-    return scene == SCENE_CARDS || scene == SCENE_CORNERS;
+    return scene == SCENE_CARDS || scene == SCENE_CORNERS || scene == SCENE_GRAD_VERTICAL ||
+           scene == SCENE_GRAD_DIAGONAL || scene == SCENE_GRAD_RADIAL;
 }
 
 void
@@ -60,6 +62,24 @@ gx_scene_setup(int scene)
        8, white text 8 in from the corner. */
     lh_gx_style_init(&back_style, 0xFF14181DU, 0U, 0, 0, 0U, lh_null);
     lh_gx_style_init(&card_style, 0xFF2E6BE6U, 0U, 0, 8, 0xFFFFFFFFU, &font);
+    if (scene == SCENE_GRAD_VERTICAL || scene == SCENE_GRAD_DIAGONAL || scene == SCENE_GRAD_RADIAL)
+    {
+        /* As scene_lh.c: the card's blue into violet, down, corner to corner, or out
+           from the middle. */
+        const lh_u32_t stops[2] = {0xFF2E6BE6U, 0xFF9B4DE6U};
+
+        lh_pixel_gradient_init(&gradient);
+        lh_pixel_gradient_init_stops(&gradient, stops, lh_null, 2);
+        if (scene == SCENE_GRAD_RADIAL)
+        {
+            lh_pixel_gradient_set_radial(&gradient);
+        }
+        else
+        {
+            lh_pixel_gradient_set_linear(&gradient, scene == SCENE_GRAD_VERTICAL ? 180 : 135);
+        }
+        lh_gx_style_set_gradient(&card_style, &gradient);
+    }
     if (scene == SCENE_CORNERS)
     {
         /* As scene_lh.c: rounded 12 on top, square at the bottom -- a tab. */
@@ -73,8 +93,7 @@ gx_scene_setup(int scene)
         lh_gx_entity_init(&cards[i], &lh_gx_box_class, &card_style, 8 + (i % 6) * 78,
                           8 + (i / 6) * 78, 72, 66);
         lh_gx_entity_init(&captions[i], &lh_gx_text_class, &card_style, 8, 8,
-                          lh_gx_text_get_width(&font, texts[i]),
-                          lh_gx_font_get_line_height(&font));
+                          lh_gx_text_get_width(&font, texts[i]), lh_gx_font_get_line_height(&font));
         lh_gx_entity_set_content(&captions[i], texts[i]);
         lh_gx_entity_attach(&back, &cards[i]);
         lh_gx_entity_attach(&cards[i], &captions[i]);

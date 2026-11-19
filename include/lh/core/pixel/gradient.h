@@ -184,6 +184,16 @@ lh_pixel_gradient_get_frac_at(const lh_pixel_gradient_t *self, const lh_math_rec
                               lh_s32_t x, lh_s32_t y);
 
 /**
+ * @brief Whether the gradient runs straight up or down (linear, at 0 or 180
+ *        degrees): every pixel of a row is the same colour, so a row is one
+ *        colour and only a column has to be walked.
+ *
+ * @param self The gradient; must not be null.
+ */
+lh_bool_t
+lh_pixel_gradient_is_vertical(const lh_pixel_gradient_t *self);
+
+/**
  * @brief The first stop from @p segment on that stands at or past @p frac — the
  *        end of the span @p frac falls in, walking on from where the last one was.
  *
@@ -194,6 +204,17 @@ lh_pixel_gradient_get_frac_at(const lh_pixel_gradient_t *self, const lh_math_rec
  */
 lh_s32_t
 lh_pixel_gradient_get_segment_at(const lh_pixel_gradient_t *self, lh_s32_t segment, lh_s32_t frac);
+
+/**
+ * @brief Whether every pixel the gradient colours is opaque: it has stops, and
+ *        every stop's alpha is 255 — what lies under a box filled with it does
+ *        not show through.
+ *
+ * @param self The gradient; must not be null.
+ * @return True when every stop is opaque; false with no stops.
+ */
+lh_bool_t
+lh_pixel_gradient_is_opaque(const lh_pixel_gradient_t *self);
 
 /**
  * @brief Take @p num_stops stops of @p colors at @p fracs, or spread evenly from

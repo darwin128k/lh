@@ -118,35 +118,48 @@ lh_gx_paint_init(lh_gx_paint_t *self, const lh_gx_canvas_t *canvas, lh_ptr conte
                  lh_gx_rect_t clip, lh_gx_rect_t place);
 
 /**
- * @brief Fill @p rect with @p color, cut by the clip.
+ * @brief Fill @p rect with @p brush, cut by the clip: the canvas's `fill_rect`.
+ *
+ * @param self  The paint; must not be null.
+ * @param rect  The rectangle, screen coordinates.
+ * @param brush What to fill with; must not be null.
+ */
+lh_void
+lh_gx_paint_fill_rect(const lh_gx_paint_t *self, const lh_gx_rect_t *rect,
+                      const lh_gx_brush_t *brush);
+
+/**
+ * @brief Fill @p rect with one colour, cut by the clip: ::lh_gx_paint_fill_rect
+ *        with a brush of @p color (::lh_gx_brush_init_color).
  *
  * @param self  The paint; must not be null.
  * @param rect  The rectangle, screen coordinates.
  * @param color `0xAARRGGBB`.
  */
 lh_void
-lh_gx_paint_fill_rect(const lh_gx_paint_t *self, const lh_gx_rect_t *rect, lh_gx_color_t color);
+lh_gx_paint_fill_rect_color(const lh_gx_paint_t *self, const lh_gx_rect_t *rect,
+                            lh_gx_color_t color);
 
 /**
- * @brief Lay @p color through @p mask with its top-left corner at @p at, cut by
+ * @brief Lay @p brush through @p mask with its top-left corner at @p at, cut by
  *        the clip, one pixel at a time through `fill_rect`.
  *
  * The fallback for a canvas without `fill_mask`: every pixel of the mask with
- * any coverage becomes a one-pixel rectangle of @p color at the alpha the
- * coverage gives it. Correct on every canvas, and slow — a backend that draws
- * text fills `fill_mask`.
+ * any coverage becomes a one-pixel rectangle of the brush's colour at that pixel
+ * (::lh_gx_brush_get_color_at), at the alpha the coverage gives it. Correct on
+ * every canvas, and slow — a backend that draws text fills `fill_mask`.
  *
  * @param self  The paint; must not be null.
  * @param mask  The coverage, format `a8`.
  * @param at    Where the mask's top-left pixel lands, screen coordinates.
- * @param color `0xAARRGGBB`.
+ * @param brush What to fill with; must not be null.
  */
 lh_void
 lh_gx_paint_fill_mask_by_rects(const lh_gx_paint_t *self, const lh_gx_pixmap_t *mask,
-                               lh_gx_point_t at, lh_gx_color_t color);
+                               lh_gx_point_t at, const lh_gx_brush_t *brush);
 
 /**
- * @brief Lay @p color through @p mask with its top-left corner at @p at, cut by
+ * @brief Lay @p brush through @p mask with its top-left corner at @p at, cut by
  *        the clip.
  *
  * Through the canvas's `fill_mask` when it has one, else
@@ -155,11 +168,24 @@ lh_gx_paint_fill_mask_by_rects(const lh_gx_paint_t *self, const lh_gx_pixmap_t *
  * @param self  The paint; must not be null.
  * @param mask  The coverage, format `a8`.
  * @param at    Where the mask's top-left pixel lands, screen coordinates.
- * @param color `0xAARRGGBB`.
+ * @param brush What to fill with; must not be null.
  */
 lh_void
 lh_gx_paint_fill_mask(const lh_gx_paint_t *self, const lh_gx_pixmap_t *mask, lh_gx_point_t at,
-                      lh_gx_color_t color);
+                      const lh_gx_brush_t *brush);
+
+/**
+ * @brief Lay one colour through @p mask: ::lh_gx_paint_fill_mask with a brush of
+ *        @p color — a glyph.
+ *
+ * @param self  The paint; must not be null.
+ * @param mask  The coverage, format `a8`.
+ * @param at    Where the mask's top-left pixel lands, screen coordinates.
+ * @param color `0xAARRGGBB`.
+ */
+lh_void
+lh_gx_paint_fill_mask_color(const lh_gx_paint_t *self, const lh_gx_pixmap_t *mask, lh_gx_point_t at,
+                            lh_gx_color_t color);
 
 LH_COMPILER_EXTERN_C_END
 

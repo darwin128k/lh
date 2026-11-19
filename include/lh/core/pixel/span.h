@@ -7,7 +7,8 @@
  * colour type; the caller has clipped the run and found its first pixel, and
  * the span only walks it.
  *
- * Two kinds of run:
+ * Two kinds of run, each with one colour or a colour per pixel (`_each`, a
+ * gradient's row):
  *
  * - **blend** — one colour at one alpha over the whole run. An opaque colour is a
  *   store (::lh_memory_set_u32, ::lh_memory_set_u16); a translucent one is mixed
@@ -88,6 +89,61 @@ lh_pixel_span_cover_argb(lh_u32_t *at, const lh_byte_t *cover, lh_usize_t count,
 lh_void
 lh_pixel_span_cover_rgb565(lh_u16_t *at, const lh_byte_t *cover, lh_usize_t count, lh_u32_t src,
                            lh_u32_t alpha, lh_bool_t swapped);
+
+/**
+ * @brief Lay @p count colours of @p src over as many `0xAARRGGBB` words at @p at,
+ *        each at its own alpha: a gradient's row.
+ *
+ * An opaque colour is stored, a clear one leaves the word, anything between is
+ * mixed (::lh_pixel_argb_over).
+ *
+ * @param at    The first word; @p count words must be writable.
+ * @param src   @p count colours, `0xAARRGGBB`; may not overlap @p at.
+ * @param count How many.
+ */
+lh_void
+lh_pixel_span_blend_each_argb(lh_u32_t *at, const lh_u32_t *src, lh_usize_t count);
+
+/**
+ * @brief Lay @p count colours of @p src over as many RGB565 words at @p at, each at
+ *        its own alpha (::lh_pixel_rgb565_mix).
+ *
+ * @param at      The first word; @p count words must be writable.
+ * @param src     @p count colours, `0xAARRGGBB`.
+ * @param count   How many.
+ * @param swapped True when the memory holds each word's bytes swapped.
+ */
+lh_void
+lh_pixel_span_blend_each_rgb565(lh_u16_t *at, const lh_u32_t *src, lh_usize_t count,
+                                lh_bool_t swapped);
+
+/**
+ * @brief Lay @p count colours of @p src over as many `0xAARRGGBB` words at @p at,
+ *        each at its own alpha scaled by its own coverage from @p cover: a
+ *        gradient through a mask.
+ *
+ * @param at    The first word; @p count words must be writable.
+ * @param cover @p count coverages, 0..255.
+ * @param src   @p count colours, `0xAARRGGBB`.
+ * @param count How many.
+ */
+lh_void
+lh_pixel_span_cover_each_argb(lh_u32_t *at, const lh_byte_t *cover, const lh_u32_t *src,
+                              lh_usize_t count);
+
+/**
+ * @brief Lay @p count colours of @p src over as many RGB565 words at @p at, each at
+ *        its own alpha scaled by its own coverage from @p cover.
+ *
+ * @param at      The first word; @p count words must be writable.
+ * @param cover   @p count coverages, 0..255.
+ * @param src     @p count colours, `0xAARRGGBB`.
+ * @param count   How many.
+ * @param swapped True when the memory holds each word's bytes swapped.
+ */
+lh_void
+lh_pixel_span_cover_each_rgb565(lh_u16_t *at, const lh_byte_t *cover, const lh_u32_t *src,
+                                lh_usize_t count, lh_bool_t swapped);
 
 LH_COMPILER_EXTERN_C_END
 

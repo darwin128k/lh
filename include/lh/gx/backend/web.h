@@ -171,14 +171,14 @@ lh_void
 lh_gx_backend_web_put_rect(lh_gx_backend_web_t *self, const lh_gx_rect_t *rect);
 
 /**
- * @brief Append @p color as the command's next argument: a comma, then the
- *        ARGB value as a number.
+ * @brief Append @p value as the command's next argument: a comma, then the
+ *        number.
  *
  * @param self  The backend; checked by ::lh_assert_runtime_ref.
- * @param color The colour.
+ * @param value The number.
  */
 lh_void
-lh_gx_backend_web_put_color(lh_gx_backend_web_t *self, lh_gx_color_t color);
+lh_gx_backend_web_put_uint(lh_gx_backend_web_t *self, lh_u32_t value);
 
 /**
  * @brief Append the pixels of @p mask as the command's next argument: a comma,
@@ -194,6 +194,41 @@ lh_void
 lh_gx_backend_web_put_mask(lh_gx_backend_web_t *self, const lh_gx_pixmap_t *mask);
 
 /**
+ * @brief Append @p color as the command's next argument: a comma, then the
+ *        ARGB value as a number (::lh_gx_backend_web_put_uint).
+ *
+ * @param self  The backend; checked by ::lh_assert_runtime_ref.
+ * @param color The colour.
+ */
+lh_void
+lh_gx_backend_web_put_color(lh_gx_backend_web_t *self, lh_gx_color_t color);
+
+/**
+ * @brief Append the gradient of @p brush as the command's next argument: a comma,
+ *        then `["gradient", [x, y, width, height], shape, angle, frac, color, ...]`
+ *        — the box it is laid over, `0` linear or `1` radial
+ *        (::lh_pixel_gradient_shape_t), the angle in degrees, and each stop's
+ *        position `0 .. 255` and ARGB colour. The player draws it as the
+ *        browser's gradient laid the same way (`lh/core/pixel/gradient.h`).
+ *
+ * @param self  The backend; checked by ::lh_assert_runtime_ref.
+ * @param brush A gradient brush; must not be null.
+ */
+lh_void
+lh_gx_backend_web_put_gradient(lh_gx_backend_web_t *self, const lh_gx_brush_t *brush);
+
+/**
+ * @brief Append @p brush as the command's next argument: its colour as a number
+ *        (::lh_gx_backend_web_put_color), or its gradient
+ *        (::lh_gx_backend_web_put_gradient).
+ *
+ * @param self  The backend; checked by ::lh_assert_runtime_ref.
+ * @param brush The brush; must not be null.
+ */
+lh_void
+lh_gx_backend_web_put_brush(lh_gx_backend_web_t *self, const lh_gx_brush_t *brush);
+
+/**
  * @brief The canvas's `fill_rect` (::lh_gx_canvas_fill_rect_fn) as a
  *        `fill_rect` command.
  *
@@ -202,11 +237,11 @@ lh_gx_backend_web_put_mask(lh_gx_backend_web_t *self, const lh_gx_pixmap_t *mask
  * @param context The backend (::lh_gx_backend_web_t); must not be null.
  * @param clip    Where drawing is allowed; screen coordinates.
  * @param rect    The rectangle; screen coordinates.
- * @param color   The colour.
+ * @param brush   What to fill with (::lh_gx_backend_web_put_brush).
  */
 lh_void
 lh_gx_backend_web_fill_rect(lh_ptr context, const lh_gx_rect_t *clip, const lh_gx_rect_t *rect,
-                            lh_gx_color_t color);
+                            const lh_gx_brush_t *brush);
 
 /**
  * @brief The canvas's `fill_mask` (::lh_gx_canvas_fill_mask_fn) as a
@@ -218,11 +253,11 @@ lh_gx_backend_web_fill_rect(lh_ptr context, const lh_gx_rect_t *clip, const lh_g
  * @param clip    Where drawing is allowed; screen coordinates.
  * @param mask    The coverage, format `a8`; the caller's.
  * @param at      Where the mask's top-left pixel lands; screen coordinates.
- * @param color   The colour.
+ * @param brush   What to fill with (::lh_gx_backend_web_put_brush).
  */
 lh_void
 lh_gx_backend_web_fill_mask(lh_ptr context, const lh_gx_rect_t *clip, const lh_gx_pixmap_t *mask,
-                            lh_gx_point_t at, lh_gx_color_t color);
+                            lh_gx_point_t at, const lh_gx_brush_t *brush);
 
 /**
  * @brief Fill @p table with this backend's calls: `fill_rect` and `fill_mask`.

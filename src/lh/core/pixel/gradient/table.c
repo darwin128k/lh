@@ -6,6 +6,7 @@
 #include <lh/core/pixel/gradient/table.h>
 
 #include <lh/core/assert.h>
+#include <lh/core/math.h>
 #include <lh/core/pixel/gradient/lerp.h>
 
 const lh_u32_t *
@@ -88,5 +89,37 @@ lh_pixel_gradient_table_map(const lh_pixel_gradient_table_t *self, const lh_byte
     for (lh_s32_t i = 0; i < count; ++i)
     {
         out[i] = colors[levels[i]];
+    }
+}
+
+lh_void
+lh_pixel_gradient_table_get_row(const lh_pixel_gradient_table_t *self,
+                                const lh_pixel_gradient_sampler_t *sampler, lh_s32_t x0,
+                                lh_s32_t x1, lh_s32_t y, lh_u32_t *out)
+{
+    lh_byte_t levels[LH_PIXEL_GRADIENT_TABLE_RUN];
+
+    for (lh_s32_t x = x0; x < x1; x += LH_PIXEL_GRADIENT_TABLE_RUN)
+    {
+        const lh_s32_t end = lh_math_min(x1, x + LH_PIXEL_GRADIENT_TABLE_RUN);
+
+        lh_pixel_gradient_sampler_row(sampler, x, end, y, levels);
+        lh_pixel_gradient_table_map(self, levels, end - x, out + (x - x0));
+    }
+}
+
+lh_void
+lh_pixel_gradient_table_get_column(const lh_pixel_gradient_table_t *self,
+                                   const lh_pixel_gradient_sampler_t *sampler, lh_s32_t x,
+                                   lh_s32_t y0, lh_s32_t y1, lh_u32_t *out)
+{
+    lh_byte_t levels[LH_PIXEL_GRADIENT_TABLE_RUN];
+
+    for (lh_s32_t y = y0; y < y1; y += LH_PIXEL_GRADIENT_TABLE_RUN)
+    {
+        const lh_s32_t end = lh_math_min(y1, y + LH_PIXEL_GRADIENT_TABLE_RUN);
+
+        lh_pixel_gradient_sampler_column(sampler, x, y, end, levels);
+        lh_pixel_gradient_table_map(self, levels, end - y, out + (y - y0));
     }
 }

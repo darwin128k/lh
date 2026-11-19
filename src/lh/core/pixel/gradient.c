@@ -148,6 +148,13 @@ lh_pixel_gradient_get_frac_at(const lh_pixel_gradient_t *self, const lh_math_rec
     return lh_cast_static(lh_byte_t, lh_math_clamp(frac, 0, 255));
 }
 
+lh_bool_t
+lh_pixel_gradient_is_vertical(const lh_pixel_gradient_t *self)
+{
+    return lh_pixel_gradient_get_shape(self) == lh_pixel_gradient_shape_linear &&
+           lh_pixel_gradient_get_angle(self) % 180 == 0;
+}
+
 lh_s32_t
 lh_pixel_gradient_get_segment_at(const lh_pixel_gradient_t *self, lh_s32_t segment, lh_s32_t frac)
 {
@@ -161,6 +168,22 @@ lh_pixel_gradient_get_segment_at(const lh_pixel_gradient_t *self, lh_s32_t segme
         ++segment;
     }
     return segment;
+}
+
+lh_bool_t
+lh_pixel_gradient_is_opaque(const lh_pixel_gradient_t *self)
+{
+    const lh_pixel_gradient_stop_count_t count = lh_pixel_gradient_get_stops_count(self);
+
+    lh_return_if(count == 0U, lh_bool_false);
+    for (lh_pixel_gradient_stop_count_t i = 0; i < count; ++i)
+    {
+        lh_return_if(lh_pixel_argb_get_channel(
+                         lh_pixel_gradient_stop_get_color(lh_pixel_gradient_get_stop(self, i)),
+                         24) != LH_BYTE_T_MAX,
+                     lh_bool_false);
+    }
+    return lh_bool_true;
 }
 
 lh_void

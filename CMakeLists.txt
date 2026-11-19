@@ -695,6 +695,7 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gx/render.c
             ${LH_LIB_SRC_PATH}/gx/corners.c
             ${LH_LIB_SRC_PATH}/gx/style.c
+            ${LH_LIB_SRC_PATH}/gx/brush.c
             ${LH_LIB_SRC_PATH}/gx/box.c
             ${LH_LIB_SRC_PATH}/gx/glyph.c
             ${LH_LIB_SRC_PATH}/gx/font.c

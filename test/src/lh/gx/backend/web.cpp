@@ -15,6 +15,7 @@
 #include <lh/gx/box.h>
 #include <lh/gx/render.h>
 #include <lh/gx/style.h>
+#include <lh/test/gx/brush.h>
 
 #include <string>
 
@@ -95,8 +96,8 @@ TEST(gx_backend_web, a_frame_is_one_array_of_commands)
     EXPECT_EQ(out.str(), "[]");
 
     lh_gx_backend_web_begin(&out.web);
-    lh_gx_backend_web_fill_rect(&out.web, &clip, &first, 0xFFFFFFFFU);
-    lh_gx_backend_web_fill_rect(&out.web, &clip, &second, 0x80FF0000U);
+    lh_gx_backend_web_fill_rect(&out.web, &clip, &first, lh_test::gx_brush(0xFFFFFFFFU).get());
+    lh_gx_backend_web_fill_rect(&out.web, &clip, &second, lh_test::gx_brush(0x80FF0000U).get());
     lh_gx_backend_web_end(&out.web);
     EXPECT_EQ(out.str(), "[]"
                          "[[\"fill_rect\",[0,0,64,32],[0,0,64,32],4294967295],"
@@ -116,8 +117,9 @@ TEST(gx_backend_web, a_shape_outside_its_clip_is_not_written)
     lh_gx_pixmap_t mask;
     lh_gx_pixmap_init(&mask, &bits, 2U, 2U, lh_gx_pixmap_format_a8);
     lh_gx_backend_web_begin(&out.web);
-    lh_gx_backend_web_fill_rect(&out.web, &clip, &beside, 0xFFFFFFFFU);
-    lh_gx_backend_web_fill_mask(&out.web, &clip, &mask, point(-2, 3), 0xFFFFFFFFU);
+    lh_gx_backend_web_fill_rect(&out.web, &clip, &beside, lh_test::gx_brush(0xFFFFFFFFU).get());
+    lh_gx_backend_web_fill_mask(&out.web, &clip, &mask, point(-2, 3),
+                                lh_test::gx_brush(0xFFFFFFFFU).get());
     lh_gx_backend_web_end(&out.web);
     EXPECT_EQ(out.str(), "[]");
     EXPECT_EQ(lh_gx_backend_web_get_count(&out.web), 0U);
@@ -135,7 +137,8 @@ TEST(gx_backend_web, a_mask_goes_as_its_pixels_without_the_padding)
     lh_gx_pixmap_t mask;
     lh_gx_pixmap_init_stride(&mask, &bits, 3U, 2U, 4U, lh_gx_pixmap_format_a8);
     lh_gx_backend_web_begin(&out.web);
-    lh_gx_backend_web_fill_mask(&out.web, &clip, &mask, point(1, 2), 0xFF000000U);
+    lh_gx_backend_web_fill_mask(&out.web, &clip, &mask, point(1, 2),
+                                lh_test::gx_brush(0xFF000000U).get());
     lh_gx_backend_web_end(&out.web);
     EXPECT_EQ(out.str(), "[[\"fill_mask\",[0,0,10,10],[1,2,3,2],4278190080,\"0080ff010203\"]]");
 }
@@ -163,6 +166,30 @@ TEST(gx_backend_web, a_renderer_draws_through_it_as_through_any_backend)
     lh_gx_render_draw(&render, &drawn);
     lh_gx_backend_web_end(&out.web);
     EXPECT_EQ(out.str(), "[]");
+}
+
+TEST(gx_backend_web, a_gradient_goes_as_its_box_shape_angle_and_stops)
+{
+    Web out;
+    const lh_u32_t stops[2] = {0xFF000000U, 0xFFFFFFFFU};
+    const lh_gx_rect_t clip = rect(0, 0, 64, 32);
+    const lh_gx_rect_t part = rect(2, 3, 4, 5);
+    lh_pixel_gradient_t gradient;
+    lh_gx_brush_t brush;
+
+    lh_pixel_gradient_init(&gradient);
+    lh_pixel_gradient_init_stops(&gradient, stops, lh_null, 2);
+    lh_pixel_gradient_set_linear(&gradient, 135);
+    lh_gx_brush_init_gradient(&brush, &gradient, nullptr, rect(1, 2, 30, 20));
+    lh_gx_backend_web_begin(&out.web);
+    lh_gx_backend_web_fill_rect(&out.web, &clip, &part, &brush);
+    lh_pixel_gradient_set_radial(&gradient);
+    lh_gx_backend_web_fill_rect(&out.web, &clip, &part, &brush);
+    lh_gx_backend_web_end(&out.web);
+    EXPECT_EQ(out.str(), "[[\"fill_rect\",[0,0,64,32],[2,3,4,5],"
+                         "[\"gradient\",[1,2,30,20],0,135,0,4278190080,255,4294967295]],"
+                         "[\"fill_rect\",[0,0,64,32],[2,3,4,5],"
+                         "[\"gradient\",[1,2,30,20],1,135,0,4278190080,255,4294967295]]]");
 }
 
 } // namespace

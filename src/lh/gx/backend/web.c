@@ -100,12 +100,12 @@ lh_gx_backend_web_put_rect(lh_gx_backend_web_t *self, const lh_gx_rect_t *rect)
 }
 
 lh_void
-lh_gx_backend_web_put_color(lh_gx_backend_web_t *self, lh_gx_color_t color)
+lh_gx_backend_web_put_uint(lh_gx_backend_web_t *self, lh_u32_t value)
 {
     lh_web_json_writer_t *writer = lh_gx_backend_web_get_writer_mut(self);
 
     lh_web_json_writer_put_char(writer, lh_char_map_comma);
-    lh_web_json_writer_put_uint(writer, color);
+    lh_web_json_writer_put_uint(writer, value);
 }
 
 lh_void
@@ -124,8 +124,49 @@ lh_gx_backend_web_put_mask(lh_gx_backend_web_t *self, const lh_gx_pixmap_t *mask
 }
 
 lh_void
+lh_gx_backend_web_put_color(lh_gx_backend_web_t *self, lh_gx_color_t color)
+{
+    lh_gx_backend_web_put_uint(self, color);
+}
+
+lh_void
+lh_gx_backend_web_put_gradient(lh_gx_backend_web_t *self, const lh_gx_brush_t *brush)
+{
+    const lh_pixel_gradient_t *gradient = lh_gx_brush_get_gradient(brush);
+    lh_web_json_writer_t *writer = lh_gx_backend_web_get_writer_mut(self);
+
+    lh_web_json_writer_put_char(writer, lh_char_map_comma);
+    lh_web_json_writer_put_char(writer, lh_char_map_lbracket);
+    lh_web_json_writer_put_string(writer, lh_str_view_lit("gradient"));
+    lh_gx_backend_web_put_rect(self, lh_gx_brush_get_box(brush));
+    lh_gx_backend_web_put_uint(self,
+                               lh_cast_static(lh_u32_t, lh_pixel_gradient_get_shape(gradient)));
+    lh_gx_backend_web_put_uint(self,
+                               lh_cast_static(lh_u32_t, lh_pixel_gradient_get_angle(gradient)));
+    for (lh_pixel_gradient_stop_count_t i = 0; i < lh_pixel_gradient_get_stops_count(gradient); ++i)
+    {
+        const lh_pixel_gradient_stop_t *stop = lh_pixel_gradient_get_stop(gradient, i);
+
+        lh_gx_backend_web_put_uint(self, lh_pixel_gradient_stop_get_frac(stop));
+        lh_gx_backend_web_put_color(self, lh_pixel_gradient_stop_get_color(stop));
+    }
+    lh_web_json_writer_put_char(writer, lh_char_map_rbracket);
+}
+
+lh_void
+lh_gx_backend_web_put_brush(lh_gx_backend_web_t *self, const lh_gx_brush_t *brush)
+{
+    if (lh_gx_brush_is_gradient(brush))
+    {
+        lh_gx_backend_web_put_gradient(self, brush);
+        return;
+    }
+    lh_gx_backend_web_put_color(self, lh_gx_brush_get_color(brush));
+}
+
+lh_void
 lh_gx_backend_web_fill_rect(lh_ptr context, const lh_gx_rect_t *clip, const lh_gx_rect_t *rect,
-                            lh_gx_color_t color)
+                            const lh_gx_brush_t *brush)
 {
     lh_gx_backend_web_t *self = lh_ptr_rcast(lh_gx_backend_web_t, context);
 
@@ -133,13 +174,13 @@ lh_gx_backend_web_fill_rect(lh_ptr context, const lh_gx_rect_t *clip, const lh_g
     lh_gx_backend_web_begin_command(self, lh_str_view_lit("fill_rect"));
     lh_gx_backend_web_put_rect(self, clip);
     lh_gx_backend_web_put_rect(self, rect);
-    lh_gx_backend_web_put_color(self, color);
+    lh_gx_backend_web_put_brush(self, brush);
     lh_gx_backend_web_end_command(self);
 }
 
 lh_void
 lh_gx_backend_web_fill_mask(lh_ptr context, const lh_gx_rect_t *clip, const lh_gx_pixmap_t *mask,
-                            lh_gx_point_t at, lh_gx_color_t color)
+                            lh_gx_point_t at, const lh_gx_brush_t *brush)
 {
     lh_gx_backend_web_t *self = lh_ptr_rcast(lh_gx_backend_web_t, context);
     lh_gx_rect_t placed;
@@ -152,7 +193,7 @@ lh_gx_backend_web_fill_mask(lh_ptr context, const lh_gx_rect_t *clip, const lh_g
     lh_gx_backend_web_begin_command(self, lh_str_view_lit("fill_mask"));
     lh_gx_backend_web_put_rect(self, clip);
     lh_gx_backend_web_put_rect(self, lh_addr_of(placed));
-    lh_gx_backend_web_put_color(self, color);
+    lh_gx_backend_web_put_brush(self, brush);
     lh_gx_backend_web_put_mask(self, mask);
     lh_gx_backend_web_end_command(self);
 }

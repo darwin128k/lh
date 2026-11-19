@@ -3,7 +3,8 @@
  * @brief The card: ::lh_gx_box_class, a class that draws a rounded box with a border.
  *
  * The first class of gx, and the one most others are built on: a rectangle of
- * the entity's style — filled with `fill`, edged with `border` `border_width`
+ * the entity's style — filled with `fill` or its `gradient` (laid over the whole
+ * box, through the canvas's brush, `lh/gx/brush.h`), edged with `border` `border_width`
  * wide, each corner rounded to its own `radius` (::lh_gx_corners_t) and
  * anti-aliased. A button is a box that takes input; a card, a panel and a list
  * row are boxes; a tab is a box rounded on top only.
@@ -81,19 +82,33 @@ lh_s32_t
 lh_gx_box_get_border_px(const lh_gx_style_t *style, const lh_math_rect_t *outer);
 
 /**
- * @brief Fill the pixel box @p x, @p y, @p width by @p height with @p color through
- *        @p paint; nothing for an empty box or a clear colour.
+ * @brief Fill the pixel box @p x, @p y, @p width by @p height with @p brush through
+ *        @p paint; nothing for an empty box or a clear brush.
  *
  * @param paint  The paint; must not be null.
  * @param x      Left column.
  * @param y      Top row.
  * @param width  Columns.
  * @param height Rows.
- * @param color  `0xAARRGGBB`.
+ * @param brush  What to fill with; must not be null.
  */
 lh_void
 lh_gx_box_fill_px(const lh_gx_paint_t *paint, lh_s32_t x, lh_s32_t y, lh_s32_t width,
-                  lh_s32_t height, lh_gx_color_t color);
+                  lh_s32_t height, const lh_gx_brush_t *brush);
+
+/**
+ * @brief The brush the inside of the box is filled with: the style's gradient laid
+ *        over @p place, its colours worked out once into @p table for every piece
+ *        of the box; else the fill colour (@p table untouched).
+ *
+ * @param style The style; must not be null.
+ * @param place The whole box on the screen, which the gradient is laid over.
+ * @param table Room for the gradient's colours; must outlive the brush's use.
+ * @param out   The brush; must not be null.
+ */
+lh_void
+lh_gx_box_init_fill(const lh_gx_style_t *style, const lh_gx_rect_t *place,
+                    lh_pixel_gradient_table_t *table, lh_gx_brush_t *out);
 
 /**
  * @brief Draw one corner of the box: the @p radius by @p radius square from
@@ -112,13 +127,15 @@ lh_gx_box_fill_px(const lh_gx_paint_t *paint, lh_s32_t x, lh_s32_t y, lh_s32_t w
  * @param outer  The box, whole pixels.
  * @param radius Its radius, whole pixels; at most ::LH_GX_BOX_RADIUS_MAX.
  * @param border Its border width, whole pixels.
- * @param style  Its style: the colours.
+ * @param fill   What the inside is filled with (::lh_gx_box_init_fill).
+ * @param edge   What the border is filled with.
  * @param x      The corner's first column.
  * @param y      The corner's first row.
  */
 lh_void
 lh_gx_box_paint_corner(const lh_gx_paint_t *paint, const lh_math_rect_t *outer, lh_s32_t radius,
-                       lh_s32_t border, const lh_gx_style_t *style, lh_s32_t x, lh_s32_t y);
+                       lh_s32_t border, const lh_gx_brush_t *fill, const lh_gx_brush_t *edge,
+                       lh_s32_t x, lh_s32_t y);
 
 /**
  * @brief The first column of row @p y that is not a left corner's: past the top
@@ -183,14 +200,17 @@ lh_gx_box_is_clear_of_corners(const lh_gx_style_t *style, const lh_gx_rect_t *pl
  * (::lh_gx_box_paint_corner) and its strips.
  *
  * @param paint  The paint; must not be null.
- * @param style  The style: the colours, the radii, the border; must not be null.
+ * @param style  The style: the radii and the border; must not be null.
  * @param outer  The box, whole pixels; must not be null.
+ * @param fill   What the inside is filled with (::lh_gx_box_init_fill).
+ * @param edge   What the border is filled with.
  * @param top    The strip's first row.
  * @param bottom One past its last row.
  */
 lh_void
 lh_gx_box_paint_strip(const lh_gx_paint_t *paint, const lh_gx_style_t *style,
-                      const lh_math_rect_t *outer, lh_s32_t top, lh_s32_t bottom);
+                      const lh_math_rect_t *outer, const lh_gx_brush_t *fill,
+                      const lh_gx_brush_t *edge, lh_s32_t top, lh_s32_t bottom);
 
 /**
  * @brief `covers` of the box class (::lh_gx_class_covers_fn): true when the fill —

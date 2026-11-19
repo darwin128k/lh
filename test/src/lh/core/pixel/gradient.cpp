@@ -279,6 +279,70 @@ TEST(pixel_gradient_sampler, a_row_and_a_column_are_every_pixel_asked_alone)
     }
 }
 
+TEST(pixel_gradient_table, a_row_and_a_column_are_their_positions_looked_up)
+{
+    const lh_u32_t colors[2] = {0xFF000000U, 0x80FFFFFFU};
+    /* Wider than a run, so the row is done in pieces. */
+    constexpr int span = LH_PIXEL_GRADIENT_TABLE_RUN + 40;
+    const lh_math_rect_t rect = box(-5, 3, span - 10, 70);
+    lh_pixel_gradient_t gradient;
+    lh_pixel_gradient_table_t table;
+    lh_pixel_gradient_sampler_t sampler;
+    lh_u32_t out[span];
+
+    lh_pixel_gradient_init(&gradient);
+    lh_pixel_gradient_init_stops(&gradient, colors, lh_null, 2);
+    for (int shape = 0; shape < 3; ++shape)
+    {
+        if (shape == 2)
+        {
+            lh_pixel_gradient_set_radial(&gradient);
+        }
+        else
+        {
+            lh_pixel_gradient_set_linear(&gradient, shape == 0 ? 37 : 180);
+        }
+        lh_pixel_gradient_table_fill(&table, &gradient);
+        lh_pixel_gradient_sampler_init(&sampler, &gradient, &rect);
+        lh_pixel_gradient_table_get_row(&table, &sampler, -5, -5 + span, 20, out);
+        for (int x = -5; x < -5 + span; ++x)
+        {
+            ASSERT_EQ(out[x + 5],
+                      lh_pixel_gradient_get_color_at(
+                          &gradient, lh_pixel_gradient_get_frac_at(&gradient, &rect, x, 20)))
+                << "shape " << shape << " x " << x;
+        }
+        lh_pixel_gradient_table_get_column(&table, &sampler, 7, 0, span, out);
+        for (int y = 0; y < span; ++y)
+        {
+            ASSERT_EQ(out[y], lh_pixel_gradient_get_color_at(
+                                  &gradient, lh_pixel_gradient_get_frac_at(&gradient, &rect, 7, y)))
+                << "shape " << shape << " y " << y;
+        }
+    }
+}
+
+TEST(pixel_gradient, it_says_whether_it_runs_up_or_down_and_whether_it_is_opaque)
+{
+    const lh_u32_t opaque[2] = {0xFF000000U, 0xFFFFFFFFU};
+    const lh_u32_t half[2] = {0xFF000000U, 0x80FFFFFFU};
+    lh_pixel_gradient_t gradient;
+
+    lh_pixel_gradient_init(&gradient);
+    EXPECT_FALSE(lh_pixel_gradient_is_opaque(&gradient)) << "no stops";
+    EXPECT_TRUE(lh_pixel_gradient_is_vertical(&gradient)) << "180";
+    lh_pixel_gradient_init_stops(&gradient, opaque, lh_null, 2);
+    EXPECT_TRUE(lh_pixel_gradient_is_opaque(&gradient));
+    lh_pixel_gradient_init_stops(&gradient, half, lh_null, 2);
+    EXPECT_FALSE(lh_pixel_gradient_is_opaque(&gradient));
+    lh_pixel_gradient_set_linear(&gradient, 0);
+    EXPECT_TRUE(lh_pixel_gradient_is_vertical(&gradient));
+    lh_pixel_gradient_set_linear(&gradient, 90);
+    EXPECT_FALSE(lh_pixel_gradient_is_vertical(&gradient));
+    lh_pixel_gradient_set_radial(&gradient);
+    EXPECT_FALSE(lh_pixel_gradient_is_vertical(&gradient));
+}
+
 TEST(pixel_gradient_sampler, an_empty_box_is_flat_at_the_first_position)
 {
     const lh_math_rect_t empty = box(0, 0, 0, 4);

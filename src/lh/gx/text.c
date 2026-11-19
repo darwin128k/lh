@@ -58,7 +58,7 @@ lh_gx_text_paint_glyph(const lh_gx_paint_t *paint, const lh_gx_glyph_t *glyph, l
 
         lh_gx_point_init(lh_addr_of(at), lh_cast_static(lh_gx_scalar_t, x),
                          lh_cast_static(lh_gx_scalar_t, top + first));
-        lh_gx_paint_fill_mask(paint, lh_addr_of(block), at, color);
+        lh_gx_paint_fill_mask_color(paint, lh_addr_of(block), at, color);
     }
 }
 
