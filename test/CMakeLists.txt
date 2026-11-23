@@ -540,6 +540,10 @@ lh_add_test_core(lh_test_os_controller
         ${LH_TEST_SRC_PATH}/lh/os/controller.cpp
 )
 
+lh_add_test_core(lh_test_random
+        ${LH_TEST_SRC_PATH}/lh/core/random.cpp
+)
+
 lh_add_test_core(lh_test_timer
         ${LH_TEST_SRC_PATH}/lh/core/timer.cpp
         ${LH_TEST_SRC_PATH}/lh/core/timer/tick.cpp

@@ -236,6 +236,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/time/minute.c
         ${LH_LIB_SRC_PATH}/core/time/hour.c
         ${LH_LIB_SRC_PATH}/core/datetime.c
+        ${LH_LIB_SRC_PATH}/core/random.c
         ${LH_LIB_SRC_PATH}/core/timestamp.c
         ${LH_LIB_SRC_PATH}/core/timer.c
         ${LH_LIB_SRC_PATH}/core/timer/tick.c

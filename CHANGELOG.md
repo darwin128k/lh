@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- `lh_random_t` (`lh/core/random.h`): a deterministic pseudo-random generator, xorshift32 on one 32-bit state, seeded explicitly by the caller (`lh_random_init`; the seed 0 becomes `LH_RANDOM_ZERO_SEED_STATE`), with `lh_random_get_state` / `_set_state`, `lh_random_next` and the percent chance `lh_random_is_hit` (always one step). No heap, no clock, no global state; not for cryptography. Tested in `lh_test_random`.
+
 - The scene that stood beside the UI model is removed. That model is `lh/gl` now: `lh_ui_*` is `lh_gl_*`, and `LH_LIBRARY_OPTION_UI` is `LH_LIBRARY_OPTION_GL`.
 
 - A native window on macOS is AppKit (`NSWindow`), beside Win32 and X11. The off-screen surface is the same `0xAARRGGBB` words; a present draws them into the paint. This machine does not build the AppKit backend.
