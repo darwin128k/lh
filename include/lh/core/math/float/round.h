@@ -8,7 +8,7 @@
  * truncates toward zero; one comparison corrects it for the other side.
  * Valid while the value fits ::lh_int_t, as pixel coordinates do.
  *
- * Requires ::LH_LIBRARY_OPTION_MATH_FPU.
+ * Requires ::LH_LIBRARY_OPTION_MATH_FLOAT.
  */
 
 #ifndef LH_MATH_FLOAT_ROUND_H

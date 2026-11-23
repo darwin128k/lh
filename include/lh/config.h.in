@@ -109,8 +109,23 @@
  *        ::LH_LIBRARY_OPTION_ON).
  *
  * OFF: the scalar is ::lh_int_t. ON: the scalar is ::lh_float_t.
+ *
+ * ON implies ::LH_LIBRARY_OPTION_MATH_FLOAT: the vector geometry calls the
+ * scalar float math.
  */
 #define LH_LIBRARY_OPTION_MATH_FPU @ValMathFpu@
+
+/**
+ * @def LH_LIBRARY_OPTION_MATH_FLOAT
+ * @brief The scalar float math (::lh/core/math/float) is in the library when
+ *        ON (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).
+ *
+ * OFF: the square root, the trigonometry and the transcendentals are not in
+ * the library. ON: they are, and none of them needs libm.
+ *
+ * ::LH_LIBRARY_OPTION_MATH_FPU implies this option.
+ */
+#define LH_LIBRARY_OPTION_MATH_FLOAT @ValMathFloat@
 
 /**
  * @def LH_LIBRARY_OPTION_OS_WINDOW

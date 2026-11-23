@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- The scalar float math is its own option: `LH_LIBRARY_OPTION_MATH_FLOAT` builds
+  `lh/core/math/float` (the square root, the trigonometry, the transcendentals,
+  the rounding, the finiteness test) without the vector geometry the FPU option
+  carries. `LH_LIBRARY_OPTION_MATH_FPU` implies it: `vec*` and `quat` call
+  `lh_math_float_sqrt`. A host that computes in floating point but draws no
+  geometry no longer pulls in `fpoint` / `fsize` / `frect`, `vec2` / `vec3` /
+  `vec4`, `quat`, `mat4` and the software 3D renderer.
+- New bricks of the float math, none of them calling libm:
+  `lh_math_float_exp` (`lh/core/math/float/exp.h`), `lh_math_float_expm1`
+  (`expm1.h`), `lh_math_float_log` (`log.h`), `lh_math_float_tanh` (`tanh.h`)
+  and `lh_math_float_pow` (`pow.h`), with the constants of ln(2) in
+  `lh/core/math/float/ln2.h` and the IEEE 754 bits of a float in
+  `lh/core/math/float/bits.h` (`lh_math_float_to_bits` / `_from_bits`). The
+  exponent cuts its argument into whole turns of ln(2) and a remainder, the
+  logarithm takes the number apart into its exponent and its mantissa, and the
+  tangent keeps the digits of a small argument by taking the difference of the
+  exponential before the sum. Measured against libm on `[-20, 20]`: the worst
+  relative error is 9.1e-8 for `exp`, 1.2e-7 for `expm1`, 2.2e-7 for `log`,
+  1.6e-7 for `tanh` and 7.0e-7 for `pow` -- the float epsilon is 1.2e-7.
+  Tested in `lh_test_math`.
 - `lh_random_t` (`lh/core/random.h`): a deterministic pseudo-random generator, xorshift32 on one 32-bit state, seeded explicitly by the caller (`lh_random_init`; the seed 0 becomes `LH_RANDOM_ZERO_SEED_STATE`), with `lh_random_get_state` / `_set_state`, `lh_random_next` and the percent chance `lh_random_is_hit` (always one step). No heap, no clock, no global state; not for cryptography. Tested in `lh_test_random`.
 
 - The scene that stood beside the UI model is removed. That model is `lh/gl` now: `lh_ui_*` is `lh_gl_*`, and `LH_LIBRARY_OPTION_UI` is `LH_LIBRARY_OPTION_GL`.

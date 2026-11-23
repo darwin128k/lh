@@ -11,7 +11,8 @@ A lightweight C utility library (headers + a small static library) with portable
 lh is written in C11 and builds as one static library from CMake. Beyond the
 core utilities it has an optional OS layer (files, directories, sockets, clock,
 windows) and an optional UI model (`lh/gl/`). Float math is opt-in
-(`LH_LIBRARY_OPTION_MATH_FPU`, default `OFF`). The same code targets a
+(`LH_LIBRARY_OPTION_MATH_FLOAT` for the scalar math, `LH_LIBRARY_OPTION_MATH_FPU`
+for the vector geometry on top of it, default `OFF`). The same code targets a
 microcontroller with no OS (STM32F407 + ILI9341), a desktop window (Win32 GDI
 from Windows XP up, X11) and a browser — see [Usage](#usage).
 
@@ -124,6 +125,7 @@ Manual (no-CMake) builds set the same names directly in `config.h` or via `-D`.
 | `LH_LIBRARY_OPTION_THREAD_LOCAL` | `ON` | `LH_ATTRIBUTE_THREAD_LOCAL` uses real TLS in library sources |
 | `LH_LIBRARY_OPTION_OS` | `ON` | Compile the OS layer (files, directories, sockets, clock); `OFF` for freestanding / bare-metal builds |
 | `LH_LIBRARY_OPTION_OS_WERROR` | `ON` on Windows, else `OFF` | OS last-error slot uses `lh_werror_t` / `FormatMessageW` instead of `lh_error_t` / `FormatMessageA` |
+| `LH_LIBRARY_OPTION_MATH_FLOAT` | `OFF` | `ON`: compile the scalar float math (`lh/core/math/float`: `sqrt`, `sin_cos`, `tan`, `exp`, `expm1`, `log`, `tanh`, `pow`, `round`, `finite`) — without libm. Implied by `LH_LIBRARY_OPTION_MATH_FPU` |
 | `LH_LIBRARY_OPTION_MATH_FPU` | `OFF` | `ON`: compile float math (`fpoint` / `fsize` / `frect`, `vec` / `quat` / `mat4`) on `lh_math_fscalar_t`; UI aliases those. `OFF`: UI aliases `lh_math_scalar_t` / `point` / `size` / `rect` |
 | `LH_LIBRARY_OPTION_REAL` | `DOUBLE` | `lh_real_t` for `lh_value_t`: `DOUBLE`, `FLOAT`, or `NONE` (no real kind, no soft-float from values) |
 | `LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT` | `FULL` | What a failed runtime check reports (`lh_exception_origin_t`): `NONE` (error code only), `LOCATION` (+ file, line, message), `FULL` (+ function and condition text) |

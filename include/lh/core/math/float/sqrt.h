@@ -9,7 +9,7 @@
  * the caller's own flags do not matter, because the call goes through this
  * function. MSVC treats `sqrtf` as an intrinsic and always has its CRT.
  *
- * Requires ::LH_LIBRARY_OPTION_MATH_FPU.
+ * Requires ::LH_LIBRARY_OPTION_MATH_FLOAT.
  */
 
 #ifndef LH_MATH_FLOAT_SQRT_H

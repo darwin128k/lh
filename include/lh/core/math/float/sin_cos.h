@@ -15,7 +15,7 @@
  * 3. The quadrant `k mod 4` picks which of `sin r`, `cos r` and their
  *    negations is the answer.
  *
- * Requires ::LH_LIBRARY_OPTION_MATH_FPU.
+ * Requires ::LH_LIBRARY_OPTION_MATH_FLOAT.
  */
 
 #ifndef LH_MATH_FLOAT_SIN_COS_H

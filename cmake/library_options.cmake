@@ -96,18 +96,48 @@ option(LH_LIBRARY_OPTION_OS_WERROR
 unset(_LH_OS_WERROR_DEFAULT)
 
 # -----------------------------------------------------------------------------
+# Option: LH_LIBRARY_OPTION_MATH_FLOAT
+#
+# Whether the scalar float math sources are compiled: lh/core/math/float --
+# the square root, the trigonometry, the transcendentals (exp, expm1, log,
+# tanh, pow), the rounding and the finiteness test.
+#
+#   ON  — those sources are built. A host that computes in floating point has
+#         them, and none of them needs libm.
+#   OFF — those sources are left out; nothing in the library asks for a float
+#         operation.
+#
+# LH_LIBRARY_OPTION_MATH_FPU implies this option: the vector geometry calls
+# the scalar float math.
+# -----------------------------------------------------------------------------
+option(LH_LIBRARY_OPTION_MATH_FLOAT
+        "Compile the scalar float math (lh/core/math/float: sqrt, sin_cos, tan, exp, expm1, log, tanh, pow, round, finite)."
+        OFF)
+
+# -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_MATH_FPU
 #
-# Whether float (scalar) math sources are compiled, and what UI aliases.
+# Whether the float vector geometry is compiled, and what UI aliases.
 #
 #   ON  — build fpoint/fsize/frect, vec2/vec3/vec4, quat, mat4 on
 #         lh_math_fscalar_t. UI scalar / geometry alias those types.
 #   OFF — those sources are left out. UI scalar / geometry alias
 #         lh_math_scalar_t and lh_math_point_t / size / rect.
+#
+# ON implies LH_LIBRARY_OPTION_MATH_FLOAT: vec* and quat call
+# lh_math_float_sqrt.
 # -----------------------------------------------------------------------------
 option(LH_LIBRARY_OPTION_MATH_FPU
         "Compile float math (fpoint/fsize/frect, vec/quat/mat4). UI aliases fscalar when ON, scalar when OFF."
         OFF)
+
+if (LH_LIBRARY_OPTION_MATH_FPU)
+    # The vector geometry calls the scalar float math (vec* and quat use
+    # lh_math_float_sqrt), so the FPU option carries it.
+    set(LH_LIBRARY_OPTION_MATH_FLOAT ON CACHE BOOL
+        "Compile the scalar float math (lh/core/math/float: sqrt, sin_cos, tan, exp, expm1, log, tanh, pow, round, finite)."
+        FORCE)
+endif ()
 
 # -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT

@@ -5,7 +5,7 @@
  * Composed of ::lh_math_float_sin_cos: the sine over the cosine of the same
  * angle, so it shares that brick's accuracy and range.
  *
- * Requires ::LH_LIBRARY_OPTION_MATH_FPU.
+ * Requires ::LH_LIBRARY_OPTION_MATH_FLOAT.
  */
 
 #ifndef LH_MATH_FLOAT_TAN_H

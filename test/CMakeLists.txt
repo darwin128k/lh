@@ -246,6 +246,19 @@ lh_add_test_core(lh_test_io
         ${LH_TEST_SRC_PATH}/lh/core/io/writer.cpp
 )
 
+set(LH_TEST_MATH_FLOAT_SOURCES
+        ${LH_TEST_SRC_PATH}/lh/core/math/float/bits.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/float/exp.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/float/expm1.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/float/log.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/float/pow.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/float/sqrt.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/float/sin_cos.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/float/round.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/float/finite.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/float/tan.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/math/float/tanh.cpp
+)
 set(LH_TEST_MATH_FPU_SOURCES
         ${LH_TEST_SRC_PATH}/lh/core/math/fpoint.cpp
         ${LH_TEST_SRC_PATH}/lh/core/math/fsize.cpp
@@ -256,11 +269,6 @@ set(LH_TEST_MATH_FPU_SOURCES
         ${LH_TEST_SRC_PATH}/lh/core/math/quat.cpp
         ${LH_TEST_SRC_PATH}/lh/core/math/mat4.cpp
         ${LH_TEST_SRC_PATH}/lh/core/math/convert.cpp
-        ${LH_TEST_SRC_PATH}/lh/core/math/float/sqrt.cpp
-        ${LH_TEST_SRC_PATH}/lh/core/math/float/sin_cos.cpp
-        ${LH_TEST_SRC_PATH}/lh/core/math/float/round.cpp
-        ${LH_TEST_SRC_PATH}/lh/core/math/float/finite.cpp
-        ${LH_TEST_SRC_PATH}/lh/core/math/float/tan.cpp
         ${LH_TEST_SRC_PATH}/lh/core/math/slice.cpp
         ${LH_TEST_SRC_PATH}/lh/core/math/view.cpp
 )
@@ -277,6 +285,11 @@ set(LH_TEST_MATH_SOURCES
         ${LH_TEST_SRC_PATH}/lh/core/math/fit.cpp
         ${LH_TEST_SRC_PATH}/lh/core/math/scalar/centre.cpp
 )
+if (LH_LIBRARY_OPTION_MATH_FLOAT)
+    list(APPEND LH_TEST_MATH_SOURCES ${LH_TEST_MATH_FLOAT_SOURCES})
+else ()
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_MATH_FLOAT_SOURCES})
+endif ()
 if (LH_LIBRARY_OPTION_MATH_FPU)
     list(APPEND LH_TEST_MATH_SOURCES ${LH_TEST_MATH_FPU_SOURCES})
 else ()

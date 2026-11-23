@@ -7,7 +7,7 @@
  * `<math.h>`, a macro there too. Every finiteness test in the library goes
  * through this brick instead of including `<math.h>` itself.
  *
- * Requires ::LH_LIBRARY_OPTION_MATH_FPU.
+ * Requires ::LH_LIBRARY_OPTION_MATH_FLOAT.
  */
 
 #ifndef LH_MATH_FLOAT_FINITE_H

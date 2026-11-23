@@ -742,29 +742,22 @@ if (LH_LIBRARY_OPTION_GL_FONT_ROBOTO AND NOT LH_LIBRARY_OPTION_GL)
     )
 endif ()
 
-# Float math (vec, quat, mat4) is the FPU. OFF leaves it out of the library.
-#
-# lh/core/math/float (sqrt, sin_cos, tan, round, finite) is part of it: built only with the option ON,
-# like vec* and quat that call it, and point.c includes lh/core/math/float/round.h only
-# under the same option. With it OFF nothing in the library asks for a float
-# operation, so neither an FPU nor libm is needed.
-if (LH_LIBRARY_OPTION_MATH_FPU)
+# The scalar float math (lh/core/math/float) is its own option: the square root,
+# the trigonometry and the transcendentals a host computes with, without the
+# vector geometry the FPU option carries. OFF leaves it out of the library.
+if (LH_LIBRARY_OPTION_MATH_FLOAT)
     list(APPEND LH_LIB_SOURCES
-            ${LH_LIB_SRC_PATH}/core/math/float/sqrt.c
-            ${LH_LIB_SRC_PATH}/core/math/float/sin_cos.c
-            ${LH_LIB_SRC_PATH}/core/math/float/round.c
+            ${LH_LIB_SRC_PATH}/core/math/float/bits.c
+            ${LH_LIB_SRC_PATH}/core/math/float/exp.c
+            ${LH_LIB_SRC_PATH}/core/math/float/expm1.c
             ${LH_LIB_SRC_PATH}/core/math/float/finite.c
+            ${LH_LIB_SRC_PATH}/core/math/float/log.c
+            ${LH_LIB_SRC_PATH}/core/math/float/pow.c
+            ${LH_LIB_SRC_PATH}/core/math/float/round.c
+            ${LH_LIB_SRC_PATH}/core/math/float/sin_cos.c
+            ${LH_LIB_SRC_PATH}/core/math/float/sqrt.c
             ${LH_LIB_SRC_PATH}/core/math/float/tan.c
-            ${LH_LIB_SRC_PATH}/core/math/slice.c
-            ${LH_LIB_SRC_PATH}/core/math/view.c
-            ${LH_LIB_SRC_PATH}/core/math/fpoint.c
-            ${LH_LIB_SRC_PATH}/core/math/fsize.c
-            ${LH_LIB_SRC_PATH}/core/math/frect.c
-            ${LH_LIB_SRC_PATH}/core/math/vec2.c
-            ${LH_LIB_SRC_PATH}/core/math/vec3.c
-            ${LH_LIB_SRC_PATH}/core/math/vec4.c
-            ${LH_LIB_SRC_PATH}/core/math/quat.c
-            ${LH_LIB_SRC_PATH}/core/math/mat4.c
+            ${LH_LIB_SRC_PATH}/core/math/float/tanh.c
     )
     # Square roots go through __builtin_sqrtf (src/lh/core/math/float/sqrt.c). Without
     # -fno-math-errno GCC/Clang keep a call to libm's sqrtf next to the CPU
@@ -781,6 +774,26 @@ if (LH_LIBRARY_OPTION_MATH_FPU)
                 PROPERTIES COMPILE_OPTIONS -fno-math-errno
         )
     endif ()
+endif ()
+
+# Float math (vec, quat, mat4) is the FPU. OFF leaves it out of the library.
+#
+# The vector geometry calls the scalar float math (vec* and quat use
+# lh_math_float_sqrt), so the FPU option implies LH_LIBRARY_OPTION_MATH_FLOAT
+# (cmake/library_options.cmake).
+if (LH_LIBRARY_OPTION_MATH_FPU)
+    list(APPEND LH_LIB_SOURCES
+            ${LH_LIB_SRC_PATH}/core/math/slice.c
+            ${LH_LIB_SRC_PATH}/core/math/view.c
+            ${LH_LIB_SRC_PATH}/core/math/fpoint.c
+            ${LH_LIB_SRC_PATH}/core/math/fsize.c
+            ${LH_LIB_SRC_PATH}/core/math/frect.c
+            ${LH_LIB_SRC_PATH}/core/math/vec2.c
+            ${LH_LIB_SRC_PATH}/core/math/vec3.c
+            ${LH_LIB_SRC_PATH}/core/math/vec4.c
+            ${LH_LIB_SRC_PATH}/core/math/quat.c
+            ${LH_LIB_SRC_PATH}/core/math/mat4.c
+    )
 endif ()
 
 # lh is a static library only: it is linked into its host, never loaded as a
