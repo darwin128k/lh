@@ -76,7 +76,8 @@ TEST(ui_mask, rect_starts_at_the_origin)
     lh_gl_mask_init(lh_addr_of(mask), g_bits4, 3, 2, 2, 4);
     lh_gl_point_t origin;
     lh_gl_point_init(lh_addr_of(origin), 5, 6);
-    EXPECT_TRUE(rect_is(lh_test::out(lh_gl_mask_get_rect, lh_addr_of(mask), origin), rect_of(5, 6, 3, 2)));
+    EXPECT_TRUE(
+        rect_is(lh_test::out(lh_gl_mask_get_rect, lh_addr_of(mask), origin), rect_of(5, 6, 3, 2)));
 }
 
 /* The 4 bpp run has an SSE2 pass that unpacks eight nibbles at once, and every
@@ -158,43 +159,8 @@ TEST(ui_mask, coverage_run_of_a_glyph_row_stops_at_the_mask_and_the_run)
                     }
                     for (int i = count; i < 24; ++i)
                     {
-                        ASSERT_EQ(run[i], 0xA5u) << "width " << width << " x0 " << x0 << " wrote past the run at " << i;
-                    }
-                }
-            }
-        }
-    }
-}
-
-/* Eight coverages in a register: byte i is pixel x + i, 0 outside the mask, for
-   every start on and off it, odd widths (a padding nibble, set) and rows packed
-   back to back -- in every depth, the four-bit one read eight at a time. */
-TEST(ui_mask, coverage_8_is_eight_per_pixel_coverages)
-{
-    for (int bpp : {1, 2, 4, 8})
-    {
-        for (int width = 1; width <= 17; ++width)
-        {
-            const int row_bytes = (width * bpp + 7) / 8;
-            lh_byte_t bits[3 * 17];
-            lh_gl_mask_t mask;
-
-            for (int i = 0; i < 3 * 17; ++i)
-            {
-                bits[i] = static_cast<lh_byte_t>((i * 53 + 7) | 0x01);
-            }
-            lh_gl_mask_init(lh_addr_of(mask), bits, width, 3, row_bytes, static_cast<lh_byte_t>(bpp));
-            for (int y = -1; y <= 3; ++y)
-            {
-                for (int x = -9; x <= width + 1; ++x)
-                {
-                    const lh_u64_t cover = lh_gl_mask_get_coverage_8(lh_addr_of(mask), x, y);
-
-                    for (int i = 0; i < 8; ++i)
-                    {
-                        ASSERT_EQ(static_cast<lh_byte_t>(cover >> (8 * i)),
-                                  lh_gl_mask_get_coverage(lh_addr_of(mask), x + i, y))
-                            << "bpp " << bpp << " width " << width << " y " << y << " x " << x << " i " << i;
+                        ASSERT_EQ(run[i], 0xA5u)
+                            << "width " << width << " x0 " << x0 << " wrote past the run at " << i;
                     }
                 }
             }
@@ -213,36 +179,5 @@ TEST(ui_mask_initializer, fills_members_in_order)
     EXPECT_EQ(mask.row_bytes, 1);
     EXPECT_EQ(mask.bpp, 1);
 }
-
-TEST(ui_mask, unpack_4_words_rescales_each_nibble_in_pixel_order)
-{
-    /* Nibbles 1 2 3 4 5 6 7 8 9 A from the high nibble of the lowest byte up. */
-    const lh_u64_t bytes = 0x9A78563412ULL;
-    const lh_u64_t even = lh_gl_mask_unpack_4_words(bytes, lh_bool_false);
-    const lh_u64_t odd = lh_gl_mask_unpack_4_words(bytes, lh_bool_true);
-    for (unsigned i = 0; i < 8U; ++i)
-    {
-        EXPECT_EQ((even >> (8U * i)) & 0xFFU, (i + 1U) * 17U) << "pixel " << i;
-        EXPECT_EQ((odd >> (8U * i)) & 0xFFU, (i + 2U) * 17U) << "pixel " << i;
-    }
-}
-
-#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
-TEST(ui_mask, unpack_4_words_matches_the_sse2_unpack)
-{
-    lh_u64_t state = 0x243F6A8885A308D3ULL;
-    for (int round = 0; round < 4096; ++round)
-    {
-        state ^= state << 13;
-        state ^= state >> 7;
-        state ^= state << 17;
-        for (lh_bool_t odd : {lh_bool_false, lh_bool_true})
-        {
-            ASSERT_EQ(lh_gl_mask_unpack_4_words(state, odd), lh_gl_mask_unpack_4_sse2(state, odd))
-                << std::hex << state << " odd " << odd;
-        }
-    }
-}
-#endif
 
 } // namespace

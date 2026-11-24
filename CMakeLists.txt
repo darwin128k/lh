@@ -672,66 +672,6 @@ if (LH_LIBRARY_OPTION_GL)
     endif ()
 endif ()
 
-# gx: the graphics part being written beside gl and meant to replace it. Its
-# sources live under the GL option because gx is the future of that layer.
-if (LH_LIBRARY_OPTION_GL)
-    list(APPEND LH_LIB_SOURCES
-            ${LH_LIB_SRC_PATH}/gx/scalar.c
-            ${LH_LIB_SRC_PATH}/gx/point.c
-            ${LH_LIB_SRC_PATH}/gx/size.c
-            ${LH_LIB_SRC_PATH}/gx/rect.c
-            ${LH_LIB_SRC_PATH}/gx/damage.c
-            ${LH_LIB_SRC_PATH}/gx/pixmap.c
-            ${LH_LIB_SRC_PATH}/gx/node.c
-            ${LH_LIB_SRC_PATH}/gx/entity.c
-            ${LH_LIB_SRC_PATH}/gx/walk.c
-            ${LH_LIB_SRC_PATH}/gx/event.c
-            ${LH_LIB_SRC_PATH}/gx/hit.c
-            ${LH_LIB_SRC_PATH}/gx/pointer.c
-            ${LH_LIB_SRC_PATH}/gx/focus.c
-            ${LH_LIB_SRC_PATH}/gx/input.c
-            ${LH_LIB_SRC_PATH}/gx/present.c
-            ${LH_LIB_SRC_PATH}/gx/strip.c
-            ${LH_LIB_SRC_PATH}/gx/canvas.c
-            ${LH_LIB_SRC_PATH}/gx/class.c
-            ${LH_LIB_SRC_PATH}/gx/paint.c
-            ${LH_LIB_SRC_PATH}/gx/render.c
-            ${LH_LIB_SRC_PATH}/gx/corners.c
-            ${LH_LIB_SRC_PATH}/gx/shadow.c
-            ${LH_LIB_SRC_PATH}/gx/style.c
-            ${LH_LIB_SRC_PATH}/gx/brush.c
-            ${LH_LIB_SRC_PATH}/gx/box.c
-            ${LH_LIB_SRC_PATH}/gx/glyph.c
-            ${LH_LIB_SRC_PATH}/gx/font.c
-            ${LH_LIB_SRC_PATH}/gx/font/baked.c
-            ${LH_LIB_SRC_PATH}/gx/text.c
-            ${LH_LIB_SRC_PATH}/gx/tap.c
-            ${LH_LIB_SRC_PATH}/gx/drag.c
-            ${LH_LIB_SRC_PATH}/gx/button.c
-            ${LH_LIB_SRC_PATH}/gx/checkbox.c
-            ${LH_LIB_SRC_PATH}/gx/radio.c
-            ${LH_LIB_SRC_PATH}/gx/radio/group.c
-            ${LH_LIB_SRC_PATH}/gx/slider.c
-            ${LH_LIB_SRC_PATH}/gx/field.c
-            ${LH_LIB_SRC_PATH}/gx/backend/sw.c
-            ${LH_LIB_SRC_PATH}/gx/backend/sw/shadow.c
-            ${LH_LIB_SRC_PATH}/gx/backend/web.c
-            ${LH_LIB_SRC_PATH}/gx/backend/web/player.c
-            ${LH_LIB_SRC_PATH}/gx/web/input.c
-            ${LH_LIB_SRC_PATH}/gx/web/page.c
-    )
-    # A gx screen served to browsers: the composition over the web host.
-    if (LH_LIBRARY_OPTION_OS)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gx/web.c)
-    endif ()
-    # A gx screen in a desktop window: the system's window and surface.
-    if (LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW)
-        list(APPEND LH_LIB_SOURCES
-                ${LH_LIB_SRC_PATH}/gx/window.c
-                ${LH_LIB_SRC_PATH}/gx/window/input.c)
-    endif ()
-endif ()
-
 # Font-only: Roboto + mask/font without the widget/canvas tree (STM TFT, …).
 if (LH_LIBRARY_OPTION_GL_FONT_ROBOTO AND NOT LH_LIBRARY_OPTION_GL)
     list(APPEND LH_LIB_SOURCES

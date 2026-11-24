@@ -7,7 +7,7 @@
  * multiply, weighing two colours by their weights, and widening a 5- or 6-bit
  * channel to 8 bits. Nothing here knows a pixel format or a colour type: the
  * words are plain `lh_u32_t`, and every layer above — gl's colour and pixmap,
- * gx's software backend — calls these instead of carrying its own copy.
+ * the core's spans — calls these instead of carrying its own copy.
  *
  * Every function is ::LH_ATTRIBUTE_FORCE_INLINE: each is a few integer
  * operations run per pixel, and a real call would cost more than the work.

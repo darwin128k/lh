@@ -304,7 +304,7 @@ lh_gl_canvas_sw_cover_row(lh_gl_canvas_sw_t *self, const lh_gl_mask_t *mask, lh_
        calls, and on rows this short that was the cost of the text. */
     for (lh_s32_t x = lh_gl_canvas_sw_cut_x0(self, x0); x < x1; x += 8)
     {
-        lh_u64_t cover = lh_gl_mask_get_coverage_8(mask, x - x0, y - y0);
+        lh_u64_t cover = lh_pixel_mask_get_coverage_8(mask, x - x0, y - y0);
 
         /* Nothing covered is nothing to blend, and the edges of a glyph are. */
         if (cover == 0U)

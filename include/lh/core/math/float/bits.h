@@ -24,8 +24,6 @@
 #include <lh/core/numeric/fixed/types.h>
 #include <lh/core/numeric/float.h>
 
-LH_COMPILER_EXTERN_C_BEGIN
-
 /** @brief Stored fraction bits (the leading 1 is implicit): 23. */
 #define LH_MATH_FLOAT_MANTISSA_BITS 23
 /** @brief What is subtracted from the stored exponent: 127. */
@@ -38,6 +36,8 @@ LH_COMPILER_EXTERN_C_BEGIN
 #define LH_MATH_FLOAT_NAN_BITS 0x7FC00000U
 /** @brief The bits of a positive infinity: the exponent all ones, no fraction. */
 #define LH_MATH_FLOAT_INFINITY_BITS 0x7F800000U
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief The bits of @p value.

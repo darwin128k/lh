@@ -127,6 +127,37 @@ lh_void
 lh_pixel_mask_set_bpp(lh_pixel_mask_t *self, lh_byte_t bpp);
 
 /**
+ * @brief Eight coverages of a four-bit row: @p bytes is eight packed bytes,
+ *        lowest first, and the result is eight coverages, pixel `i` in byte `i`
+ *        (each sample times 17). The first pixel is the high nibble of the lowest
+ *        byte, or its low nibble when @p odd; five bytes are used at most.
+ *
+ * Plain integer code, for every target -- the text of a frame on a microcontroller
+ * is this call. ::lh_pixel_mask_unpack_4_sse2 gives the same eight from the same
+ * bytes.
+ *
+ * @param bytes The packed bytes, the first in the lowest byte.
+ * @param odd   True when the first pixel is the low nibble of its byte.
+ * @return Eight coverages, pixel `i` in byte `i`.
+ */
+lh_u64_t
+lh_pixel_mask_unpack_4_words(lh_u64_t bytes, lh_bool_t odd);
+
+/**
+ * @brief ::lh_pixel_mask_unpack_4_words in SSE2: one AND, one shift and one
+ *        interleave put the eight samples in pixel order, and one multiply by 17
+ *        makes them coverages.
+ *
+ * Only defined when `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2` is on.
+ *
+ * @param bytes The packed bytes, the first in the lowest byte.
+ * @param odd   True when the first pixel is the low nibble of its byte.
+ * @return Eight coverages, pixel `i` in byte `i`.
+ */
+lh_u64_t
+lh_pixel_mask_unpack_4_sse2(lh_u64_t bytes, lh_bool_t odd);
+
+/**
  * @brief Fill @p self over @p bits: @p height rows of @p row_bytes, @p width
  *        pixels of @p bpp each. The bytes are not copied.
  *
@@ -155,9 +186,56 @@ lh_u32_t
 lh_pixel_mask_get_sample(const lh_pixel_mask_t *self, lh_s32_t x, lh_s32_t y);
 
 /**
+ * @brief The coverage of @p count pixels of row @p y from column @p x, one sample
+ *        at a time, for any depth: what ::lh_pixel_mask_get_row_coverage does with
+ *        what its eight-pixel step does not take.
+ *
+ * A pixel outside the mask is `0`.
+ *
+ * @param self  The mask; must not be null.
+ * @param y     The row.
+ * @param x     The first column.
+ * @param count How many pixels.
+ * @param out   Room for @p count bytes; must not be null.
+ */
+lh_void
+lh_pixel_mask_get_row_coverage_by_samples(const lh_pixel_mask_t *self, lh_s32_t y, lh_s32_t x,
+                                          lh_s32_t count, lh_byte_t *out);
+
+/**
+ * @brief Coverage at (@p x, @p y) in `0..255` (the sample rescaled); `0` outside.
+ */
+lh_byte_t
+lh_pixel_mask_get_coverage(const lh_pixel_mask_t *self, lh_s32_t x, lh_s32_t y);
+
+/**
+ * @brief The coverage of pixels `x .. x + 7` of row @p y in one register, pixel
+ *        `x + i` in byte `i`, `0` outside the mask.
+ *
+ * A four-bit row from a column inside the mask is read as one word where the row
+ * has eight bytes left, its end gathered byte by byte otherwise -- never read past
+ * -- and unpacked by ::lh_pixel_mask_unpack_4_sse2, or
+ * ::lh_pixel_mask_unpack_4_words without SSE2. Every other depth and a start
+ * before the mask go through ::lh_pixel_mask_get_row_coverage_by_samples.
+ *
+ * @param self The mask; must not be null.
+ * @param x    The first column.
+ * @param y    The row.
+ * @return Eight coverages.
+ */
+lh_u64_t
+lh_pixel_mask_get_coverage_8(const lh_pixel_mask_t *self, lh_s32_t x, lh_s32_t y);
+
+/**
  * @brief Unpack @p count pixels of row @p y, from column @p x, as coverage
  *        `0..255` into @p out: what ::lh_pixel_mask_get_coverage answers for each,
  *        a row at a time.
+ *
+ * A four-bit mask -- what a glyph is -- goes eight pixels a step through
+ * ::lh_pixel_mask_get_coverage_8, every other depth and the columns before the
+ * mask through ::lh_pixel_mask_get_row_coverage_by_samples. Read pixel by pixel,
+ * the glyphs of the `text` scene of `bench/lvgl/` (154 a paragraph, i7-3770K)
+ * took 35 microseconds a paragraph to unpack.
  *
  * The depths a mask has (1, 2, 4 and 8 bits) all divide 255, so a sample is
  * scaled by one multiplication, exactly as the per-pixel read rounds it. A
@@ -176,12 +254,6 @@ lh_pixel_mask_get_sample(const lh_pixel_mask_t *self, lh_s32_t x, lh_s32_t y);
 lh_void
 lh_pixel_mask_get_row_coverage(const lh_pixel_mask_t *self, lh_s32_t y, lh_s32_t x, lh_s32_t count,
                                lh_byte_t *out);
-
-/**
- * @brief Coverage at (@p x, @p y) in `0..255` (the sample rescaled); `0` outside.
- */
-lh_byte_t
-lh_pixel_mask_get_coverage(const lh_pixel_mask_t *self, lh_s32_t x, lh_s32_t y);
 
 LH_COMPILER_EXTERN_C_END
 

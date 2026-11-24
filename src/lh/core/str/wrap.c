@@ -66,6 +66,12 @@ lh_str_wrap_set_width(lh_str_wrap_t *self, lh_s32_t width)
     self->width = width;
 }
 
+lh_bool_t
+lh_str_wrap_is_line_end(lh_u32_t code)
+{
+    return code == 0U || code == lh_cast_static(lh_u32_t, lh_char_map_lf);
+}
+
 lh_void
 lh_str_wrap_init(lh_str_wrap_t *self)
 {
@@ -73,12 +79,6 @@ lh_str_wrap_init(lh_str_wrap_t *self)
     lh_str_wrap_set_end(self, lh_null);
     lh_str_wrap_set_next(self, lh_null);
     lh_str_wrap_set_width(self, 0);
-}
-
-lh_bool_t
-lh_str_wrap_is_line_end(lh_u32_t code)
-{
-    return code == 0U || code == lh_cast_static(lh_u32_t, lh_char_map_lf);
 }
 
 const lh_char_t *

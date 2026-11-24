@@ -629,44 +629,10 @@ set(LH_TEST_GL_SOURCES
         # source has.
         ${LH_TEST_SRC_PATH}/lh/gl/surface.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/window.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/scalar.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/point.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/size.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/rect.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/damage.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/pixmap.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/node.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/entity.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/walk.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/pointer.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/focus.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/backend/sw.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/backend/web.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/render.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/brush.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/box.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/shadow.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/corners.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/text.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/tap.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/drag.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/button.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/checkbox.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/radio.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/slider.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/field.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/web/input.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/web/page.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/web.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/present.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/strip.cpp
-        ${LH_TEST_SRC_PATH}/lh/gx/window.cpp
 )
 # The player test reads the script with the JavaScript lexer.
 if (LH_LIBRARY_OPTION_GL AND LH_LIBRARY_OPTION_JS)
-    list(APPEND LH_TEST_GL_SOURCES ${LH_TEST_SRC_PATH}/lh/gx/backend/web/player.cpp)
 else ()
-    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/gx/backend/web/player.cpp)
 endif ()
 if (LH_LIBRARY_OPTION_GL AND LH_LIBRARY_OPTION_MATH_FPU)
     list(APPEND LH_TEST_GL_SOURCES ${LH_TEST_SRC_PATH}/lh/gl/renderer3d.cpp)

@@ -10,8 +10,8 @@
  * positions are bytes; the colour table (`lh/core/pixel/gradient/table.h`) turns
  * them into colours, so the sampler does not care what a colour is.
  *
- * Positions, not colours, so that one walk serves every colour type: gx draws
- * `0xAARRGGBB` words, gl its own ::lh_gl_color_t. The price is a second pass
+ * Positions, not colours, so that one walk serves every colour type: `0xAARRGGBB`
+ * words, gl's ::lh_gl_color_t. The price is a second pass
  * over the row, the look-up: against gl's walk that wrote its colours directly,
  * on `bench/lvgl/` (i7-3770K, 2026-11-19, run alternately with the old build)
  * a radial frame of 24 cards went from 1003–1051 to 1063–1123 microseconds and

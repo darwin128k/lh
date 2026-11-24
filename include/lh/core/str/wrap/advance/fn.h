@@ -7,7 +7,6 @@
 #define LH_CORE_STR_WRAP_ADVANCE_FN_H
 
 #include <lh/core/compiler/extern/c.h>
-#include <lh/core/numeric/fixed/types.h>
 #include <lh/core/ptr.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -18,8 +17,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *        code the font has no glyph for.
  *
  * The one thing breaking a text into lines needs from a font: the core knows no
- * font, so whoever breaks the text says how wide a code is — gl from its font, gx
- * through its font contract.
+ * font, so whoever breaks the text says how wide a code is — gl from its font.
  *
  * @param context The caller's: the font.
  * @param code    A Unicode code point.

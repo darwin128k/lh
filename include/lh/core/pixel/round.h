@@ -10,8 +10,8 @@
  * the pixels on the ramp take one (::lh_math_isqrt_u64).
  *
  * The rectangle is given by its edges in fixed point (`lo` and `hi` on each
- * axis), the radius likewise; every renderer of LH — gl's canvas, gx's box —
- * converts its own scalar once and asks here.
+ * axis), the radius likewise; a renderer — gl's canvas — converts its own scalar
+ * once and asks here.
  */
 
 #ifndef LH_PIXEL_ROUND_H

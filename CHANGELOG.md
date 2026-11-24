@@ -37,61 +37,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `lh_os_input_sample_t` is one contact a driver read: its own id and a position. `lh_os_input_touch_report` compares that list with the previous frame and emits pointer down, move and up. Fingers are pointer ids from 1; the mouse stays 0. A contact past the four remembered slots is skipped until one goes up. `lh_os_input_pad_report_axis` and `lh_os_input_pad_report_button` emit a controller event only when the value changed.
 
+- The core has the arithmetic of a flow (`lh/core/flow.h`): `lh_flow_get_share`
+  (a growing child's part of the room left), `lh_flow_get_lead` and
+  `lh_flow_get_spread` (where the room left goes, by `lh_flow_justify_t`,
+  `flow/justify.h`), `lh_flow_get_cross_depth` and `lh_flow_get_cross_start`
+  (where a child sits across, by `lh_flow_align_t`, `flow/align.h`), all in whole
+  pixels. Beside it the axis, `lh_axis_t` with `lh_axis_get_cross`
+  (`lh/core/axis.h`), and the geometry along it, `lh_math_point_get_along`,
+  `lh_math_size_get_along` and `lh_math_rect_init_along` (`lh/core/math/axis.h`).
+  Tested in `lh_test_math`. gl's layout keeps its own sums for now
+  (`docs/cleanup.md`).
+- The core breaks a text into lines: `lh_str_wrap_t` (`lh/core/str/wrap.h`,
+  `wrap/fields.h`; begin, end, next and the width of a line) and
+  `lh_str_wrap_measure`, which asks the width of each code through
+  `lh_str_wrap_advance_fn` (`wrap/advance/fn.h`) -- the core knows no font. It
+  breaks at the last space before the edge, at every line feed, cuts a word wider
+  than the width, and a first letter wider than the width still takes its line;
+  a width of 0 or less breaks only at line feeds. With it `lh_str_wrap_is_line_end`
+  and `lh_str_wrap_get_next_of`. Tested in `lh_test_str`.
+
 ### Changed
 
-- gl's SIMD alpha kernels moved to the core, so gx lays a mask four pixels at a
-  time too: `lh_pixel_span_blend_alphas_argb` (each pixel its own alpha: runs of
-  one alpha as one colour, short stretches through SSE2 or the scalar kernel),
-  `lh_pixel_span_blend_vary_argb`, `lh_pixel_span_over_opaque_argb` (two
-  channels at a time over one opaque word), and, with
-  `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2`, `lh_pixel_span_blend_alphas_sse2_argb`,
-  `_blend_alphas8_sse2_argb` and `_over_alphas_sse2_argb`, each the scalar word
-  bit for bit. `lh_pixel_span_cover_argb` lays through them. A row's clear ends
-  are skipped, and a row under 16 pixels goes to SSE2 whole. gl calls the core:
+- A four-bit mask is read eight pixels a step in the core: gl's
+  `lh_gl_mask_unpack_4_words`, `lh_gl_mask_unpack_4_sse2` and
+  `lh_gl_mask_get_coverage_8` moved to `lh/core/pixel/mask.h` as
+  `lh_pixel_mask_unpack_4_words`, `lh_pixel_mask_unpack_4_sse2` and
+  `lh_pixel_mask_get_coverage_8`, and `lh_pixel_mask_get_row_coverage` takes a
+  four-bit row through them, a whole step in one store; every other depth goes
+  through the new `lh_pixel_mask_get_row_coverage_by_samples`, the loop it had.
+  `lh_gl_mask_coverage_run` calls the core. Unpacking a paragraph's glyphs a row
+  at a time went from about 110 to about 70 microseconds a frame of the `text`
+  scene of `bench/lvgl/`. gl's text is unchanged, and every picture is the same
+  to the byte.
+- gl breaks its lines with the core: `lh_gl_text_line_measure` calls
+  `lh_str_wrap_measure` with the new `lh_gl_text_line_get_code_advance` and
+  `lh_gl_text_line_get_wrap_width`; `lh_gl_text_line_next_of` and
+  `lh_gl_text_is_line_end` are gone (`lh_str_wrap_get_next_of`,
+  `lh_str_wrap_is_line_end`). Every picture of `bench/lvgl/` is the same to the
+  byte, and gl's text frame is unchanged (281 / 284 microseconds against 297 / 265
+  before). `lh_gl_text_line_get_wrap_width` is not written as `max(width, 0)`:
+  GCC 16.1 with LTO derives wrong known bits for such an argument (IPA bit-CP marks
+  all its bits zero) and folded the breaking away in the bench; the comment at the
+  function says so.
+- gl's SIMD alpha kernels moved to the core: `lh_pixel_span_blend_alphas_argb`
+  (each pixel its own alpha: runs of one alpha as one colour, short stretches
+  through SSE2 or the scalar kernel), `lh_pixel_span_blend_vary_argb`,
+  `lh_pixel_span_over_opaque_argb` (two channels at a time over one opaque word),
+  and, with `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2`,
+  `lh_pixel_span_blend_alphas_sse2_argb`, `_blend_alphas8_sse2_argb` and
+  `_over_alphas_sse2_argb`, each the scalar word bit for bit.
+  `lh_pixel_span_cover_argb` lays through them. A row's clear ends are skipped,
+  and a row under 16 pixels goes to SSE2 whole. gl calls the core:
   `lh_gl_pixmap_blend_alpha_32`, `_blend_vary_32`, `_blend_alpha_32_sse2`,
   `_blend_alpha_32_quad_sse2`, `_blend_alpha_32_over_quad_sse2`,
   `_blend_alpha_32_over_sse2` and `lh_gl_color_argb_over_opaque_span` are gone,
   and `lh_gl_pixmap_blend_cover_32_sse2` is the core's eight-pixel form. On
-  `bench/lvgl/` gx's shadow frame went from 877 to 625 microseconds and its
-  cards from 202 to 190, gl's shadow from 690 to 537; gl's text is unchanged,
-  and every picture is the same to the byte. The RGB565 kernels stay in gl for
-  now (`docs/cleanup.md`).
-- gx boxes cast soft shadows. `lh_gx_shadow_t` (`lh/gx/shadow.h`,
-  `shadow/fields.h`, `shadow/initializer.h`: a colour, a spread and a shift;
-  `_get_bounds`, `_get_pixel_shadow`) hangs on a style (`lh_gx_style_get_shadow`,
-  `_set_shadow`; `lh_gx_style_fields` takes its type and
-  `lh_gx_style_initializer` a ninth argument), and the box draws it under
-  itself through a new optional canvas slot, `fill_shadow`
-  (`lh_gx_canvas_fill_shadow_fn`, `lh_gx_canvas_get_fill_shadow`,
-  `_set_fill_shadow`, `lh_gx_paint_fill_shadow`); a canvas without it draws no
-  shadow and links none of its code. A class says where it draws past its place
-  through a new optional `ink` slot (`lh_gx_class_ink_fn`,
-  `lh_gx_class_get_ink`, `_set_ink`; `lh_gx_class_fields` and
-  `lh_gx_class_initializer` take a seventh slot — `lh_null` for a class that
-  draws inside its place); the box's is its place and its shadow's bounds
-  (`lh_gx_box_get_ink`), and the button and the field share it. The renderer
-  paints an entity over its ink and its children inside its place, and a change
-  is reported over the ink (`lh_gx_entity_get_ink`), so a shadow is neither cut
-  nor left behind. The software backend lays a shadow a run at a time from the
-  core (`lh_gx_backend_sw_fill_shadow`, `_lay_shadow`), or from the alphas it
-  kept of the last shadow like it in a mask the application gives it
-  (`lh_gx_backend_sw_shadow_t`, `lh/gx/backend/sw/shadow.h`;
-  `lh_gx_backend_sw_set_shadow`, `_stamp_shadow`); its canvas that draws
-  colours only has no shadow. The web backend writes
-  `["fill_shadow", clip, box, radius, x, y, spread, color]`
-  (`lh_gx_backend_web_fill_shadow`, `_put_sint`), and the player works every
-  alpha out as the core does (`lhGxFillShadow`, the same on 9468 pixels).
-  On the `shadow` scene of `bench/lvgl/` gx draws the same shadows as gl; a
-  frame takes 917 microseconds with the mask (1368 without) against gl's 688
-  and LVGL's 1046.
+  `bench/lvgl/` gl's shadow frame went from 690 to 537 microseconds; gl's text is
+  unchanged, and every picture is the same to the byte. The RGB565 kernels stay
+  in gl for now (`docs/cleanup.md`).
 - `lh_pixel_shadow_is_equal` and `lh_pixel_round_box_is_equal` say whether two
   shadows or boxes are the same; `lh_pixel_shadow_ramp_init` carries its
   quotient down the levels instead of dividing at each (two divisions a ramp,
   not 255).
-- The gx entity test uses the real class and style tables in place of stand-ins
-  of its own, which no longer matched them.
-- The shadow moved from gl to the core, in sub-pixel whole numbers, so that gx
-  draws with the same one: `lh_pixel_round_box_t` (`lh/core/pixel/round/box.h`,
+- The shadow moved from gl to the core, in sub-pixel whole numbers:
+  `lh_pixel_round_box_t` (`lh/core/pixel/round/box.h`,
   `round/box/fields.h`: a rounded rectangle, its coverage, the whole pixels it
   touches, and the run of a row it covers wholly), `lh_pixel_shadow_t`
   (`lh/core/pixel/shadow.h`, `shadow/fields.h`: a soft shadow laid off one box,
@@ -107,35 +116,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   left one mirrored, taking pixels short of 255 for the box's, and a corner's
   reach stopped at `inner * inner` where a pixel is at 255 up to
   `(inner + 1)^2` less one. On whole pixels the run is the same as before.
-- The gx canvas fills with a brush: `fill_rect` and `fill_mask`
-  (`lh_gx_canvas_fill_rect_fn`, `lh_gx_canvas_fill_mask_fn`) take an
-  `lh_gx_brush_t` (`lh/gx/brush.h`, `lh/gx/brush/fields.h`) in place of a
-  colour — one colour, or a gradient laid over a box with its table of colours
-  (`lh_gx_brush_init_color`, `_init_gradient`, `_get_color_at`, `_prepare`,
-  `_is_gradient`, `_is_clear`). `lh_gx_paint_fill_rect` and
-  `lh_gx_paint_fill_mask` take a brush; `lh_gx_paint_fill_rect_color` and
-  `lh_gx_paint_fill_mask_color` fill with one colour; without a `fill_mask`
-  slot (`lh_gx_paint_fill_mask_by_rects`) a gradient brush draws its first
-  colour. A gx style has a `gradient` and the table of its colours, worked out
-  once by the theme (`lh_gx_style_get_gradient`, `_set_gradient`,
-  `_get_gradient_table`, `_set_gradient_table`, `_is_fill_opaque`;
-  `lh_gx_style_fields` takes their types and `lh_gx_style_initializer` two more
-  arguments), and a box fills its inside with it, laid over the whole box
-  (`lh_gx_box_init_fill`); `lh_gx_box_fill_px`, `_paint_corner` and
-  `_paint_strip` take brushes. The software backend draws a gradient a row at a
-  time through the core's table and sampler — a straight-down one as one colour
-  a row (`lh_gx_backend_sw_fill_box_gradient`, `_fill_mask_gradient`,
-  `_fill_box_color`, `_get_mask_box`, `_blend_row`, `_blend_row_each`,
-  `_cover_row`, `_cover_row_each`); `lh_gx_backend_sw_canvas_init_solid` is
-  its canvas that draws colours only (`_fill_rect_solid`, `_fill_mask_solid`),
-  for a board that links none of the gradient — a button screen on the
-  Cortex-M4 of `bench/mcu/` is 628 bytes over one with no brush at all. The
-  web backend writes a gradient as `["gradient", box, shape, angle, frac,
-  color, ...]` (`lh_gx_backend_web_put_brush`, `_put_gradient`, `_put_uint`),
-  and the player draws it as the browser's gradient (`lhGxFill`). On the
-  gradient scenes of `bench/lvgl/` gx draws the same shapes as gl, and a frame
-  in 254, 643 and 1119 microseconds (straight down, corner to corner, radial)
-  against gl's 309, 761 and 1082.
 - The core gradient gained what a drawer needs: `lh_pixel_gradient_is_vertical`,
   `lh_pixel_gradient_is_opaque`, and the colours of a row or a column
   (`lh_pixel_gradient_table_get_row`, `_get_column`, a run of
@@ -143,7 +123,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   pixel (`lh_pixel_span_blend_each_argb`, `_blend_each_rgb565`,
   `_cover_each_argb`, `_cover_each_rgb565`).
 - The gradient moved from gl to the core, in whole numbers and `0xAARRGGBB`
-  colours, so that gx draws with the same one: `lh_pixel_gradient_t`
+  colours: `lh_pixel_gradient_t`
   (`lh/core/pixel/gradient.h`, with `gradient/fields.h`, `shape.h`, `stop.h`,
   `stop/fields.h`, `stop/count.h`, `stop/initializer.h`), the sine it is laid
   along (`lh_pixel_gradient_sine`), the colour between two stops carried a step
@@ -163,41 +143,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   picture is the same to the byte; the walk now gives positions that are then
   looked up, which costs gl's radial frame 6 % and a diagonal one 3–5 % on
   `bench/lvgl/` — still ahead of LVGL.
-- A gx style rounds each corner on its own. Its `radius` is an
-  `lh_gx_corners_t` (`lh/gx/corners.h`, `lh/gx/corners/fields.h`,
-  `lh/gx/corners/initializer.h`: one length per corner, clockwise from the top
-  left, as CSS's `border-radius`): `lh_gx_style_get_radius` returns the
-  corners, `lh_gx_style_get_radius_mut` changes one in place,
-  `lh_gx_style_set_radius` copies four, and `lh_gx_style_set_radius_all` rounds
-  every corner alike — `lh_gx_style_init` still takes one radius and does that.
-  `lh_gx_style_fields` takes a corners type, and `lh_gx_style_initializer` takes
-  `lh_gx_corners_initializer(...)` or `lh_gx_corners_initializer_all(r)` in place
-  of a number. `lh_gx_box_get_radius_px` clamps one corner's radius. The box
-  draws each corner with its own radius and the rest a strip of rows at a time
-  (`lh_gx_box_get_left_px`, `_get_right_px`, `_get_strip_end_px`,
-  `_paint_strip`); it covers what is under it clear of its corners
-  (`lh_gx_box_is_clear_of_corners`). The `cards` picture is unchanged to the
-  byte; on the `corners` scene of `bench/lvgl/` — cards rounded on top only —
-  gx draws a frame in 212 microseconds against gl's 253, and the same shapes.
-- gx draws a box's corner and a glyph whole: `lh_gx_box_paint_corner` (which
-  replaces `lh_gx_box_paint_corner_row`) hands the canvas one mask per band of
-  rows (`LH_GX_BOX_CORNER_BYTES`) and works out the inner coverage only with a
-  border; `lh_gx_text_paint_glyph` unpacks a glyph a row at a time and hands it
-  over in bands of `LH_GX_TEXT_GLYPH_BYTES`. On the `cards` scene of the bench
-  a full frame went from 337 to 188 microseconds, the picture unchanged to the
-  byte — gx is now level with gl there and ahead of LVGL; the web backend sends
-  one command per corner and per glyph instead of one per row.
-- `lh_gx_class_initializer` and `lh_gx_class_fields` take a `key` slot
-  between `input` and `report`: every constant class table gains one
-  argument (`lh_null` for a class that takes no keys).
-- `lh_gx_event_fields` takes a key type and a code type; `lh_gx_event_init`
-  clears the key and the code.
-- The button keeps its gesture in an `lh_gx_tap_t`:
-  `lh_gx_button_fields` takes a `tap_type` in place of the `pressed` flag,
-  `lh_gx_button_set_pressed` is gone (`lh_gx_button_get_tap` / `_get_tap_mut`
-  instead; `lh_gx_button_is_pressed` reads the tap), and
-  `lh_gx_button_press` / `lh_gx_button_release` are only the reactions — the
-  look and the click — with the state left to the tap.
 - The web host left gl. It is transport, not interface, and it no longer
   needs `LH_LIBRARY_OPTION_GL` — only `LH_LIBRARY_OPTION_OS`; it is now built
   and tested wherever there is an operating system (MSVC and Linux included).
@@ -291,6 +236,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- The `lh/gx` part, written beside `lh/gl` to replace it, is gone with its
+  tests, the `bench/lvgl/` scene, the `example/gx_*` programs, `bench/mcu/` (which
+  measured it) and `docs/design/gx.md`. What it moved into the core stays there
+  and gl uses it: the spans, the gradient, the shadow, the rounded box, the
+  four-bit mask kernels, the line breaking (`lh/core/str/wrap.h`).
+
 - `lh_font_get_default` from `lh/core/font.h`: it was declared but never
   defined. The built-in font is `lh_gl_font_get_default` until it moves to the
   core with the swap (`docs/cleanup.md`).
@@ -310,11 +261,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- A gx box with rounded corners and a border painted its corners whole in the
-  border's colour: the corner row's mask kept a copy of the fill's coverage,
-  and the border was laid through it instead of through its own ring
-  (`src/lh/gx/box.c`). It showed first on a round radio, whose square is all
-  corner.
 - Gradient sampler preparation retains each stop interval while filling its 256
   colours. On i.MX RT105x, a two-stop sampler fell from 87?98 to 35?39 ?s and a
   full 480 ? 320 frame of 24 vertical-gradient cards from 27.55 to 25.10 ms.
@@ -347,195 +293,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `lh_gx_window_t` (`lh/gx/window.h`, `lh/gx/window/fields.h`): a gx screen in
-  a desktop window, with the OS and window options. The system's window is
-  opened through the installed window backend, the software backend draws into
-  a system surface the window's size, and a frame asks the system to repaint
-  only the rectangles drawn; a paint copies the surface, so an uncovered
-  window is repainted without drawing. A frame is drawn on the tick and right
-  after an input; a resize makes a new surface. `lh/gx/window/input.h`
-  translates the system's input (`lh_gx_window_input_try_get_event`,
-  `_try_get_key`): the primary button at whole pixels, the control keys, the
-  characters that type.
-- `lh_gx_present_t` (`lh/gx/present.h`, `lh/gx/present/fields.h`,
-  `lh/gx/present/show/fn.h`): the contract beside the canvas — the canvas draws,
-  the present shows the rectangles that changed, with where the pixels it gets
-  stand on the screen (`at`: a band's top). `lh_gx_present_draw` is a frame:
-  draw what changed, show it.
-- `lh_gx_strip_draw` (`lh/gx/strip.h`): a frame through a band smaller than the
-  screen, for a board with no frame buffer. The damage is cut into runs of the
-  band's rows; each run is drawn into the band and shown at once, so a panel
-  that keeps its own frame gets the screen pixel for pixel.
-- `cmake/toolchain/cortex-m4.cmake` and `bench/mcu/`: lh cross-built for a
-  Cortex-M4 with no operating system, and what a gx screen costs there. A
-  button on a 320x240 RGB565 panel through a band of 20 rows is 29 KB of flash
-  (17 KB of it the Roboto font, 11 KB the code) and 13 KB of RAM (12.5 KB of it
-  the band) — `bench/mcu/RESULTS.md`.
-- `example/gx_panel.c`: the controls of `example/gx_controls.c` on a display
-  panel the way a board shows them — a band of 20 rows, the panel's own frame
-  in memory, a script of taps, a drag and typing in place of a touch screen,
-  the pixels each frame sent, and the picture written to `gx_panel.ppm`. It
-  needs only gx and builds with the OS off. The same screen now runs on three
-  outputs: the panel, the browser and the window.
+- `cmake/toolchain/cortex-m4.cmake`: lh cross-built for a Cortex-M4 with no
+  operating system.
 - The examples build with the OS off: `example/window_stats.c` is built only
   with the OS and its window system.
-- `lh_gx_input_take` (`lh/gx/input.h`): where an event goes on a screen — the
-  pointer's to the pointer, a press also moving the focus, a key or a text to
-  the focus. The web application and the window both deliver through it.
-- `lh_gx_event_is_text_code`: a code point that types; a source reporting Enter
-  or Backspace as a character (`WM_CHAR`) drops it. The web input reads with
-  it.
 - `example/gx_window.c`: the controls of `example/gx_controls.c` in a desktop
   window. `example/gx_web_button.c` is now `example/gx_web.c` over the same
   screen.
-- `bench/lvgl/scene_gx.c`: gx in the bench against LVGL, on the scene it can
-  draw (`cards`). The bench builds lh with `LH_LIBRARY_OPTION_GL` and the
-  built-in font on, which its scenes need now that the option is off by
-  default.
 - `lh_pixel_mask_get_row_coverage`: a row of a mask as coverage `0..255`, the
   per-pixel read a row at a time, scaled by one multiplication.
-- `lh_gx_field_t` (`lh/gx/field.h`, `lh/gx/field/fields.h`,
-  `lh/gx/field/fn.h`): a one-line text field, the first control that takes
-  the focus — a box of `lh_gx_field_class` (the box's look, its own `input`
-  and `key`) holding a view that cuts and scrolls the text and the caret. The
-  text is UTF-8 in the application's buffer of fixed capacity: typing inserts
-  at the cursor by whole characters and a character that does not fit is
-  refused; Left, Right, Home, End move the cursor, Backspace and Delete remove
-  a character, Enter calls `on_submit`, a change calls `on_change`; a press
-  puts the cursor at the nearest boundary; the view scrolls to keep the
-  cursor in it; the focus shows the caret and the focus look.
 - `lh_str_utf8_is_continuation`, `lh_str_utf8_get_prev_size`: a step back over
   one UTF-8 character, never into the middle of one.
-- `lh_gx_text_get_code_width`, `lh_gx_text_get_width_n`: the advance of one
-  code point, and the width of the first bytes of a string — where a cursor
-  stands. `lh_gx_text_get_width` is now `_get_width_n` over the whole string.
-- The keyboard in gx. `lh_gx_focus_t` (`lh/gx/focus.h`,
-  `lh/gx/focus/fields.h`): which entity the keys go to — a press gives the
-  focus to the entity it landed on or its nearest owner that takes keys, a
-  press elsewhere takes it away, each move tells the old entity (blur) and the
-  new one (focus); `lh_gx_focus_take` hands a key or a text to the entity with
-  the focus. The class's `key` slot (`lh/gx/class/key/fn.h`,
-  `lh_gx_class_get_key` / `_set_key`) is what makes an entity take keys
-  (`lh_gx_entity_can_take_keys`, `lh_gx_entity_take_key`). The event gains
-  four kinds — `key`, `text`, `focus`, `blur` — a key (`lh_gx_key_t`,
-  `lh/gx/event/key.h`) and a code point (`lh_gx_event_get_key` / `_get_code`,
-  `lh_gx_event_init_key`, `_init_text`, `_init_kind`,
-  `lh_gx_event_is_pointer`).
-- The gx web application takes the keyboard: the page sends `k name` (the
-  browser's `KeyboardEvent.key`) and `t code` lines, read by
-  `lh_gx_web_input_try_get_key` and `lh_gx_web_input_try_parse_code`, and
-  `lh_gx_web_t` keeps an `lh_gx_focus_t` (`lh_gx_web_get_focus`) that a press
-  moves and the key lines go to.
-- `lh_gx_slider_t` (`lh/gx/slider.h`, `lh/gx/slider/fields.h`,
-  `lh/gx/slider/change/fn.h`): a whole value in `[min, max]` picked by
-  dragging a knob — a row of `lh_gx_slider_class` (no paint, its own `input`)
-  owning a rail, a fill up to the knob and the knob. A press puts the knob
-  under the pointer, a move follows it, a cancel puts back the value the drag
-  began from; every change by the user calls `lh_gx_slider_change_fn`,
-  `lh_gx_slider_slide` sets the value from the program without it. The knob
-  and the fill move with `lh_gx_entity_move`, so only where they were and
-  where they are is redrawn.
-- `lh_gx_drag_t` (`lh/gx/drag.h`, `lh/gx/drag/fields.h`, `lh/gx/drag/step.h`):
-  the drag gesture — begin, move, end anywhere, cancel — and where the pointer
-  is; the slider's, and any control's that follows the pointer.
-- `lh_gx_radio_t` (`lh/gx/radio.h`, `lh/gx/radio/fields.h`) and
-  `lh_gx_radio_group_t` (`lh/gx/radio/group.h`, `lh/gx/radio/group/fields.h`,
-  `lh/gx/radio/group/change/fn.h`): radios, one of a group chosen. A radio is
-  a checkbox whose row is of `lh_gx_radio_class`: a tap chooses it in its
-  group (`lh_gx_radio_group_choose`), which unmarks the one chosen before and
-  calls `lh_gx_radio_group_change_fn` when the choice changed;
-  `lh_gx_radio_group_select` chooses from the program without the reaction.
-  A round radio is a style with a radius of half the square.
-- `lh_gx_checkbox_t` (`lh/gx/checkbox.h`, `lh/gx/checkbox/fields.h`,
-  `lh/gx/checkbox/change/fn.h`): the second control made of entities — a row
-  of `lh_gx_checkbox_class` (no paint, its own `input`) owning a square, a tick
-  inside it shown only while checked, and a caption. A tap anywhere on the row
-  toggles it and calls `lh_gx_checkbox_change_fn`; `lh_gx_checkbox_check` sets
-  the state from the program without the reaction. Only the square is redrawn
-  when the tick changes.
-- `lh_gx_tap_t` (`lh/gx/tap.h`, `lh/gx/tap/fields.h`, `lh/gx/tap/step.h`): the
-  tap gesture shared by the controls. `lh_gx_tap_take` answers what an event
-  did — down, up (no tap), tap, or nothing — and the control reacts.
-- `lh_gx_web_t` (`lh/gx/web.h`, `lh/gx/web/fields.h`): a gx screen served to
-  browsers. The renderer draws through the web backend, so a frame is the
-  JSON of the canvas calls for what changed; the application answers `GET /`
-  with the page, takes the websocket on `LH_GX_WEB_PAGE_WS_PATH`, drives an
-  `lh_gx_pointer_t` with the browsers' lines and asks the host for a frame
-  when the screen changed (`lh_gx_web_bump_if_changed`). A browser that holds
-  nothing gets the whole screen. Runs on the host's thread; needs
-  `LH_LIBRARY_OPTION_OS`.
-- `lh/gx/web/page.h`: the page — a canvas, the player and a transport script
-  (`lh_gx_web_page_get_script`) that plays the frames, reconnects, and sends
-  the pointer in canvas pixels; `lh_gx_web_page_write`.
-- `lh/gx/web/input.h`: the pointer lines (`p x y`, `m x y`, `r x y`, `c`) read
-  into an `lh_gx_event_t` (`lh_gx_web_input_try_parse`, `_try_get_kind`,
-  `_try_parse_scalar`).
-- `lh_gx_pointer_take`: an event of any kind handed to the pointer's press,
-  move, release or cancel — one entry for every source of input.
 - `lh_str_append_uint`, `lh_str_append_sint`: a number's digits appended to a
   string. `lh_web_json_writer_put_uint` / `_put_sint` now delegate to them.
 - `example/gx_web_button.c` (`LH_BUILD_EXAMPLES`, with the GL and OS options):
   a button that counts its clicks, in the browser at http://127.0.0.1:8080/.
-- `lh_gx_backend_web_t` (`lh/gx/backend/web.h`, `lh/gx/backend/web/fields.h`):
-  the canvas as JSON for a browser. Each canvas call is written as one command
-  — `["fill_rect", clip, rect, color]`, `["fill_mask", clip, rect, color,
-  "coverage"]` — through an `lh_web_json_writer_t`, a frame being one array
-  (`lh_gx_backend_web_begin` / `_end`); the browser replays the commands
-  instead of repeating the renderer. A shape wholly outside its clip is not
-  written. The backend allocates nothing.
-- `lh_gx_backend_web_player_get_script` (`lh/gx/backend/web/player.h`): the
-  browser side of the web backend — a short script whose `lhGxPlay(ctx, frame)`
-  replays a frame on a 2D canvas, each command clipped to its clip, a mask
-  drawn through an `OffscreenCanvas` so the clip and the blending apply. It
-  knows only the canvas's calls; a command it does not know is skipped. The
-  transport is the host's.
 - `lh_web_json_writer_put_sint`, `lh_web_json_writer_put_uint`,
   `lh_web_json_writer_put_hex`: a number or hex digits appended with no node,
-  for a writer that writes values as it goes (the gx web backend).
-- `lh_gx_button_t` (`lh/gx/button.h`, `lh/gx/button/fields.h`,
-  `lh/gx/button/click/fn.h`): the first control made of entities — a box of
-  `lh_gx_button_class` (the box's `paint` and `covers`, its own `input`) owning
-  a caption of `lh_gx_text_class`, centred (`lh_gx_button_center_caption`). A
-  press presses it and puts on `pressed_style`, if it has one; a release on it
-  is a click (`lh_gx_button_click_fn`); a release elsewhere or a cancel only
-  releases it. Only the button's rectangle is reported for a change of look.
-
-- Input in gx. The class gains two slots: `hit` (`lh/gx/class/hit/fn.h`, where
-  inside its rectangle an entity is; without it, the whole rectangle) and
-  `input` (`lh/gx/class/input/fn.h`, what makes an entity take input at all —
-  there is no "clickable" flag). `lh_gx_class_initializer` takes them between
-  `covers` and `report`. `lh_gx_event_t` (`lh/gx/event.h`,
-  `lh/gx/event/fields.h`, `lh/gx/event/kind.h`): a press, a move, a release or
-  a cancel at a point of the screen. `lh_gx_hit_is_on` and `lh_gx_hit_find`
-  (`lh/gx/hit.h`): the front-most entity that shows, takes input and is hit.
-  `lh_gx_pointer_t` (`lh/gx/pointer.h`, `lh/gx/pointer/fields.h`): a press
-  captures its target, and the rest of the gesture goes to it wherever it ends.
-  `lh_gx_entity_can_take_input`, `lh_gx_entity_take_input`.
-
-- `lh_gx_walk_t` (`lh/gx/walk.h`, `lh/gx/walk/fields.h`, `lh/gx/walk/step.h`):
-  the walk of a tree in drawing order with every entity's place on the screen,
-  without a stack — once, for the renderer's cover search, its drawing and the
-  hit search, which walked the tree each by hand.
-
-- `lh_gx_style_t` gains `ink`, the colour of a text (`lh_gx_style_get_ink`;
-  `lh_gx_style_init` and `lh_gx_style_initializer` take it before `font`). A
-  text is drawn in `ink`, no longer in `fill`, so one style serves a box and
-  its caption.
-
-- `lh_gx_text_class` (`lh/gx/text.h`): a line of text — the UTF-8 string the
-  entity's content points at, in its style's font and `ink`, from the
-  top-left of its place on the font's baseline. Each glyph row is widened to 8
-  bits and laid through `fill_mask`. `lh_gx_text_get_width` measures a line.
-
-- `lh_gx_font_t` (`lh/gx/font.h`, `lh/gx/font/fields.h`,
-  `lh/gx/font/{get_glyph,get_ascent,get_line_height}/fn.h`): where a text takes
-  its glyphs from, as a contract — a code point in, a glyph out, and the two
-  metrics of a line; the font carries its own data beside its slots. The baked
-  font (`lh/gx/font/baked.h`, `lh_gx_font_baked_init`) fills it from the core's
-  `lh_font_t`, the way Roboto ships. `lh_gx_glyph_t` (`lh/gx/glyph.h`): a mask,
-  an advance and a top. `lh_gx_style_t` gains `font`
-  (`lh_gx_style_get_font`; `lh_gx_style_init` and `lh_gx_style_initializer`
-  take it last).
+  for a writer that writes values as it goes.
 
 - The packed coverage mask, the bitmap font and its runs of code points are the
   core's now, as data: `lh_pixel_mask_t` (`lh/core/pixel/mask.h`,
@@ -558,59 +333,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   character was 1.15–1.30 slower on measuring; that is why the fast path is in
   the header.
 
-- `lh_gx_box_class` (`lh/gx/box.h`): the card — a box of the entity's style,
-  filled, edged with a border and with rounded, anti-aliased corners. The
-  straight parts go to the canvas as a handful of rectangles whatever the size;
-  only the corner pixels are computed, a corner row at a time, and go through
-  `fill_mask`. It covers what is under it where it is opaque and clear of its
-  corners. Radius at most `LH_GX_BOX_RADIUS_MAX` (64).
-
-- `lh_gx_style_t` (`lh/gx/style.h`, `lh/gx/style/fields.h`,
-  `lh/gx/style/initializer.h`): how an entity looks — fill, border colour,
-  border width, radius. Flat data an entity points at; a theme is an array of
-  them in flash (`lh_gx_style_initializer`).
-
 - `lh/core/pixel/round.h`: the coverage of a rounded rectangle per pixel, in
   fixed point (`LH_PIXEL_ROUND_SUBPIXEL`), a square root only on the edge's
   ramp. gl's `lh_gl_radius_*` now call it instead of carrying their own copy;
   measured A/B in one session with `lh_bench`, `fill_round_rect` 0.92–1.03.
-
-- The renderer's walks are not recursive any more: `lh_gx_render_find_cover`
-  and `lh_gx_render_paint_from` walk in drawing order through the tree's owner
-  links (`lh_gx_node_get_next`, `lh_gx_node_get_next_skip`), carrying the clip
-  and the position down and across and finding them again from the owners on
-  the way up (`lh_gx_entity_get_owner_clip`, `lh_gx_entity_get_owner_origin`).
-  The stack a frame needs no longer grows with the depth of the tree; a chain
-  4096 deep is drawn. `lh_gx_render_paint_subtree` is gone;
-  `lh_gx_render_paint_entity` draws one entity.
-
-- `lh_gx_render_t` (`lh/gx/render.h`, `lh/gx/render/fields.h`): the part of gx
-  that knows what to draw. It embeds the screen — the root the application
-  attaches to — and keeps the damage, the only memory of the drawing. A frame
-  (`lh_gx_render_draw`) takes the damage and, for each rectangle, walks the tree
-  in drawing order: hidden entities and entities that miss the rectangle are
-  skipped with their subtree, every entity draws inside its owner, and the walk
-  starts from the front-most entity that covers the rectangle opaquely, so
-  nothing under it is drawn. The rectangles drawn come back for the present.
-  `lh_gx_render_paint_area` draws one area — a strip, with the backend's origin
-  moved to it.
-
-- `lh_gx_class_t` (`lh/gx/class.h`, `lh/gx/class/fields.h`,
-  `lh/gx/class/initializer.h`, `lh/gx/class/{paint,covers,report}/fn.h`): what
-  an entity is and how it behaves, as a constant table of slots — `paint`,
-  `covers` (opaque over an area), `report` (the root hears a change).
-  `lh_gx_class_initializer` makes one a constant in flash.
-
-- `lh_gx_paint_t` (`lh/gx/paint.h`, `lh/gx/paint/fields.h`): what a class draws
-  with — the canvas, the clip and the entity's rectangle on the screen. A class
-  draws through it and never sees the clip. `lh_gx_paint_fill_mask` falls back
-  to one-pixel rectangles on a canvas without `fill_mask`.
-
-- An entity reports its changes: `lh_gx_entity_invalidate`, `lh_gx_entity_move`,
-  `lh_gx_entity_set_shown`, and `lh_gx_entity_attach` / `_detach` report the
-  entity's rectangle on the screen up to the root, whose class hears it. Also
-  `lh_gx_entity_get_root`, `lh_gx_entity_is_shown`,
-  `lh_gx_entity_get_screen_rect`, `lh_gx_entity_report`.
 
 - `lh/core/pixel/`: the pixel arithmetic every renderer of LH shares, on plain
   words. `channel.h` — the rounding divide by 255, two channels mixed in one
@@ -623,79 +349,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `_mix_pair`, `_div255_round*`, `lh_gl_pixmap_blend_const_32`, the 565
   helpers); measured with `lh_bench` before and after, every case within the
   bench's noise (0.88–1.04).
-
-- `lh_gx_canvas_t` (`lh/gx/canvas.h`, `lh/gx/canvas/fields.h`,
-  `lh/gx/canvas/fill_rect/fn.h`, `lh/gx/canvas/fill_mask/fn.h`): what drawing
-  needs from below, as a contract with no memory — no clip stack, no damage, no
-  scene; the clip and the target come with every call. Required `fill_rect`,
-  optional `fill_mask`.
-
-- `lh_gx_backend_sw_t` (`lh/gx/backend/sw.h`): the software backend of the
-  canvas, into an `lh_gx_pixmap_t` (`argb8888`, `rgb565`, `rgb565_swapped`),
-  on the core's spans. Its origin is where the target sits on the screen, so a
-  strip buffer is the same backend moved down the screen.
-  `lh_gx_backend_sw_canvas_init` fills the canvas table.
-
-- `lh_gx_color_t` (`lh/gx/color.h`): a colour of gx, one word `0xAARRGGBB`.
-  `lh_gx_pixmap_format_a8`: a pixmap of coverage, the mask `fill_mask` lays a
-  colour through. `lh_gx_pixmap_get_address`: the first byte of a pixel.
-
-- `lh_gx_node_t` (`lh/gx/node.h`, `lh/gx/node/fields.h`): one place in the tree
-  of the screen. The tree is **intrusive** and built on `lh_list_t`: the owner,
-  the list of children and the node's own link live inside the entity, and the
-  entity lives wherever the application put it — a field of its struct, a
-  static array, an `lh_array_t` reserved once. gx never allocates, frees or
-  moves an entity, so nothing in it can fragment memory. Children are drawn in
-  the order they were attached; a detached node takes its subtree with it;
-  `lh_gx_node_attach_v` refuses anything that would stop the tree being a tree.
-
-- `lh_gx_entity_t` (`lh/gx/entity.h`, `lh/gx/entity/fields.h`): one thing on the
-  screen, and the only entity type gx has — a layer, a card, a label and an
-  effect differ by their **class** (a constant table of slots) and their
-  **style** (a constant record of a theme), which the entity points at. The
-  entity embeds its bricks by value: the node, the place, the visibility, and
-  the pointers to the class, the style and the content (the class's own data,
-  the application's). The class and the style are their own bricks, next.
-
-- `lh_gx_pixmap_t` (`lh/gx/pixmap.h`, `lh/gx/pixmap/fields.h`,
-  `lh/gx/pixmap/format.h`): the pixels a thing is drawn into. A pixmap is a
-  **view of memory**, not a picture of its own: the bytes belong to whoever
-  provided them, and gx neither allocates them nor frees them. It says how
-  wide and how high the picture is, how a row steps through the memory, and
-  how one pixel is stored (`argb8888`, `rgb565`, `rgb565_swapped`). This is
-  what makes the same drawing work with and without an operating system: on a
-  desktop the bytes are the surface behind a native window, on a board they
-  are the buffer the application owns.
-
-- `lh_gx_damage_t` (`lh/gx/damage.h`, `lh/gx/damage/fields.h`): the part of the screen
-  that changed, as up to `LH_GX_DAMAGE_MAX` (16) rects in a fixed table that is never
-  reallocated. Two rects merge only when their union is exactly a rectangle, so a
-  merge never covers a pixel that did not change: rects that meet edge to edge become
-  one, rects that overlap in an L stay two, because the hull of an L is bigger than
-  the L. When the table is full the new rect is merged into the stored one that
-  wastes the fewest pixels (`lh_gx_damage_squeeze`); no rect is ever dropped.
-
-- The `lh/gx` part: the new graphics part of lh, written beside `lh/gl` and meant to
-  replace it. It is built from the application down — the program an application writes
-  is the specification, and the engine below it is derived from that program. Its
-  rules: one entity, its facets are layers, nothing is allocated (every byte is memory
-  the application provided), and every header says who owns what. The plan is
-  `docs/design/gx.md`.
-
-- `lh_gx_scalar_t` (`lh/gx/scalar.h`): the unit of the `lh/gx` part — the number of
-  the gx plane, and the `x` and `y` of a point and the `width` and `height` of a
-  size. It is `lh_math_scalar_t` when `LH_LIBRARY_OPTION_MATH_FPU` is off and
-  `lh_math_fscalar_t` when it is on, with `lh_gx_scalar` for a literal,
-  `lh_gx_scalar_of` for an expression, `lh_gx_scalar_trunc` for the fraction dropped
-  toward zero, and the two layout numbers `lh_gx_scalar_slack` (the room left over)
-  and `lh_gx_scalar_centre` (the offset that centres a thing in a room).
-
-- `lh_gx_point_t` (`lh/gx/point.h`), `lh_gx_size_t` (`lh/gx/size.h`) and `lh_gx_rect_t`
-  (`lh/gx/rect.h`): the point (`x` right, `y` down), the size (`width`, `height`) and
-  the rectangle (a corner and an extent, half-open) of the `lh/gx` part. They are the
-  math bricks of `lh/core/math/` under the name of this part, and every function of
-  the part is a thin layer over the chosen math brick: it calls that brick and adds
-  nothing, so the contract of each one is the contract of the math brick it names.
 
 - `lh_gl_point_t` (`lh/gl/point.h`, `lh/gl/point/initializer.h`): the first brick of the
   `lh/gl` part, an integer point on the graphics plane (`x` right, `y` down). It reuses

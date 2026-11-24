@@ -33,7 +33,6 @@ LH_COMPILER_EXTERN_C_BEGIN
 lh_u32_t
 lh_gl_text_next_code(const lh_char_t **cursor);
 
-
 /**
  * @brief Where the line starting at @p line ends: its `'\n'` or the `'\0'`.
  *

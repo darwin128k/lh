@@ -8,8 +8,8 @@
  * by looking positions up: the sampler (`lh/core/pixel/gradient/sampler.h`)
  * gives the positions of a row, the table turns them into colours
  * (::lh_pixel_gradient_table_map). Each entry is what
- * ::lh_pixel_gradient_get_color_at gives for its position — "a table instead of
- * a computation" of `docs/design/gx.md`.
+ * ::lh_pixel_gradient_get_color_at gives for its position: a table instead of a
+ * computation.
  *
  * Carrying the current span until the position crosses its end, instead of
  * finding the span and dividing for every entry, took preparing a two-stop

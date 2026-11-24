@@ -332,7 +332,7 @@ lh_gl_pixmap_blend_alpha_16(const lh_gl_pixmap_t *self, lh_u16_t *at, const lh_b
 /**
  * @brief Blend @p src (`0xRRGGBB`) over the first @p count (1 .. 8) ARGB8888
  *        words at @p at, pixel `i` at byte `i` of @p cover: eight coverages in a
- *        register, as ::lh_gl_mask_get_coverage_8 reads them. A short count is
+ *        register, as ::lh_pixel_mask_get_coverage_8 reads them. A short count is
  *        read into the register and written back word by word; nothing past it is
  *        touched.
  */
@@ -418,7 +418,7 @@ lh_gl_pixmap_blend_alpha_span(lh_gl_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh
 /**
  * @brief Blend @p src (`0xRRGGBB`) over the @p count (1 .. 8) pixels of row @p y
  *        from @p x, pixel `x + i` at byte `i` of @p cover: the coverages a mask
- *        row hands over eight at a time (::lh_gl_mask_get_coverage_8), blended
+ *        row hands over eight at a time (::lh_pixel_mask_get_coverage_8), blended
  *        straight from the register in every format. What
  *        ::lh_gl_pixmap_blend_alpha_span does with the same coverages in a buffer.
  */

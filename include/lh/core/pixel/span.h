@@ -18,7 +18,7 @@
  *   edge): every pixel has its own coverage, which scales the colour's alpha.
  *
  * Both are what gl's pixmap ran before (`lh_gl_pixmap_blend_const_32` and its
- * neighbours); the code lives here now so that gl and gx share one copy.
+ * neighbours); the code lives here now, in the core, and gl calls it.
  */
 
 #ifndef LH_PIXEL_SPAN_H
@@ -169,9 +169,7 @@ lh_pixel_span_over_alphas_sse2_argb(lh_u32_t *at, const lh_byte_t *alpha, lh_usi
  * gl (where it was `lh_gl_pixmap_blend_alpha_32`), which calls it now.
  *
  * Measured on `bench/lvgl/` (i7-3770K, 2026-11-19), against the build before the
- * move, run alternately: gx's shadow frame went from 872–882 to 624–626
- * microseconds and its cards frame from 201–202 to 189–192 (gx laid its masks a
- * pixel at a time before); gl's shadow frame from 687–694 to 534–540 (the short
+ * move, run alternately: gl's shadow frame from 687–694 to 534–540 (the short
  * rows and the clear ends); gl's text frame stayed at 236–242. Every picture is the
  * same to the byte.
  *

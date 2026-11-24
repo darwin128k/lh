@@ -232,7 +232,7 @@ lh_gl_canvas_sw_mask_row(lh_gl_canvas_sw_t *self, const lh_gl_mask_t *mask, lh_s
 
 /**
  * @brief Row @p y of @p mask (top-left pixel at @p x0, @p y0) in @p color, eight
- *        pixels a step: ::lh_gl_mask_get_coverage_8 into
+ *        pixels a step: ::lh_pixel_mask_get_coverage_8 into
  *        ::lh_gl_pixmap_blend_cover_8, the coverages never in a buffer. What
  *        `fill_mask` draws with when the clip has no rounded cut (it asserts
  *        so); ::lh_gl_canvas_sw_mask_row is the row with one.

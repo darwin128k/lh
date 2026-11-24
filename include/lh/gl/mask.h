@@ -79,9 +79,9 @@ lh_gl_mask_get_coverage(const lh_gl_mask_t *self, lh_s32_t x, lh_s32_t y);
 
 /**
  * @brief Coverage of pixels `x0 .. x1 - 1` of row @p y, written to @p out
- *        `x1 - x0` bytes. The same values as calling
- *        ::lh_gl_mask_get_coverage per pixel, with the row pointer, the bits per
- *        pixel and the rescale taken once instead of once per pixel.
+ *        `x1 - x0` bytes: ::lh_pixel_mask_get_row_coverage, the core's, which
+ *        reads a four-bit row eight pixels a step (::lh_pixel_mask_get_coverage_8).
+ *        Nothing for an empty run.
  *
  * @param self Mask to read.
  * @param x0  First column.
@@ -92,45 +92,6 @@ lh_gl_mask_get_coverage(const lh_gl_mask_t *self, lh_s32_t x, lh_s32_t y);
 lh_void
 lh_gl_mask_coverage_run(const lh_gl_mask_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
                         lh_byte_ptr out);
-
-/**
- * @brief Coverage of pixels `x .. x + 7` of row @p y in one register, pixel
- *        `x + i` in byte `i` (`0` outside the mask): eight of
- *        ::lh_gl_mask_coverage_run without a buffer, which is how
- *        ::lh_gl_pixmap_blend_cover_8 takes them. A four-bit row is read with
- *        ::lh_gl_mask_unpack_4_sse2, or ::lh_gl_mask_unpack_4_words without SSE2.
- */
-lh_u64_t
-lh_gl_mask_get_coverage_8(const lh_gl_mask_t *self, lh_s32_t x, lh_s32_t y);
-
-/**
- * @brief Eight coverages of a four-bit row: @p bytes is eight packed bytes,
- *        lowest first, and the result is eight coverages, pixel `i` in byte `i`
- *        (each sample times 17). The first pixel is the high nibble of the lowest
- *        byte, or its low nibble when @p odd; five bytes are used at most.
- *        ::lh_gl_mask_get_coverage_8 runs it on a row, a zero-padded end included.
- *
- * Only defined when `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2` is on.
- */
-lh_u64_t
-lh_gl_mask_unpack_4_sse2(lh_u64_t bytes, lh_bool_t odd);
-
-/**
- * @brief ::lh_gl_mask_unpack_4_sse2 in plain integer code, for every target: the
- *        same eight coverages from the same bytes.
- *
- * The text of a frame on a microcontroller is this call: before it, a four-bit
- * row without SSE2 went pixel by pixel through ::lh_gl_mask_coverage_run into a
- * buffer and back into the register.
- */
-lh_u64_t
-lh_gl_mask_unpack_4_words(lh_u64_t bytes, lh_bool_t odd);
-
-/**
- * @brief The rect @p self covers when its top-left pixel is at @p origin.
- */
-lh_void
-lh_gl_mask_get_rect(const lh_gl_mask_t *self, lh_gl_point_t origin, lh_gl_rect_t *out);
 
 /**
  * @brief The coverage bits (level 1).
@@ -202,6 +163,12 @@ lh_gl_mask_set_row_bytes(lh_gl_mask_t *self, lh_s32_t row_bytes);
  */
 lh_void
 lh_gl_mask_set_bpp(lh_gl_mask_t *self, lh_byte_t bpp);
+
+/**
+ * @brief The rect @p self covers when its top-left pixel is at @p origin.
+ */
+lh_void
+lh_gl_mask_get_rect(const lh_gl_mask_t *self, lh_gl_point_t origin, lh_gl_rect_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

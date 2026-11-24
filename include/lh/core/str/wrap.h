@@ -8,11 +8,11 @@
  * word wider than the whole width takes a line of its own, as far as it fits —
  * and its first letter always does, so every line moves the text on. A space
  * may hang past the edge: it is where the line breaks, not ink. A width of `0`
- * breaks only at line feeds.
+ * or less breaks only at line feeds.
  *
  * How wide a code is, is the caller's to say (::lh_str_wrap_advance_fn): the
- * core knows no font. gl and gx measure with their own fonts and break the same
- * way (::lh_str_wrap_measure), so their lines are the same lines.
+ * core knows no font. gl measures with its own font and breaks through
+ * ::lh_str_wrap_measure.
  *
  * A value on the stack of whoever lays the text out; it points into the text,
  * which must outlive it.
@@ -22,7 +22,6 @@
 #define LH_CORE_STR_WRAP_H
 
 #include <lh/core/bool.h>
-#include <lh/core/char.h>
 #include <lh/core/str/wrap/advance/fn.h>
 #include <lh/core/str/wrap/fields.h>
 
@@ -110,14 +109,6 @@ lh_void
 lh_str_wrap_set_width(lh_str_wrap_t *self, lh_s32_t width);
 
 /**
- * @brief An empty line: no text, no width.
- *
- * @param self The line; checked by the setters.
- */
-lh_void
-lh_str_wrap_init(lh_str_wrap_t *self);
-
-/**
  * @brief Whether @p code ends a line wherever it is: the text's end (`0`) or a line
  *        feed.
  *
@@ -127,12 +118,20 @@ lh_bool_t
 lh_str_wrap_is_line_end(lh_u32_t code);
 
 /**
+ * @brief An empty line: no text, no width.
+ *
+ * @param self The line; checked by the setters.
+ */
+lh_void
+lh_str_wrap_init(lh_str_wrap_t *self);
+
+/**
  * @brief Where the line after one that ends at @p end begins: past a line feed; past
  *        the spaces it broke at when it was broken to a width; ::lh_null when the
  *        text ends there.
  *
  * @param end   One past the line's last drawn byte.
- * @param width The width it was broken to; `0` breaks only at line feeds.
+ * @param width The width it was broken to; `0` or less breaks only at line feeds.
  * @return The next line's first byte, or ::lh_null.
  */
 const lh_char_t *
@@ -144,8 +143,8 @@ lh_str_wrap_get_next_of(const lh_char_t *end, lh_s32_t width);
  *
  * @param self    The line; checked by the setters.
  * @param text    The line's first byte, UTF-8; ::lh_null for no line.
- * @param width   The width to break to, whole pixels; `0` breaks only at line
- *                feeds.
+ * @param width   The width to break to, whole pixels; `0` or less breaks only
+ *                at line feeds.
  * @param advance How wide a code is; must not be null.
  * @param context Handed to @p advance: the font.
  * @return False for no text (@p self an empty line); true otherwise.

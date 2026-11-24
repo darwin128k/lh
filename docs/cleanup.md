@@ -4,45 +4,25 @@ What the rules of `AGENTS.md` ask for that the code does not yet do, and what
 the owner has decided to do about it. A debt ends here when it is paid, and
 the entry is removed with it.
 
-## The `gl`/`gx` transition
-
-**The debt.** The `lh/gx` part is written beside `lh/gl` and replaces it. Until
-the swap, the tree holds both, and the names `lh_gl_point_t`, `lh_gl_size_t`
-and `lh_gl_rect_t` exist side by side with `lh_gx_point_t`, `lh_gx_size_t` and
-`lh_gx_rect_t` over one math brick of `lh/core/math/`. Rule 3 ("no parallel
-implementations, no detours") is bent here on purpose: the two sets of names
-are aliases of the same core bricks, not a second implementation, and only one
-of them survives.
-
-**The plan.** `docs/design/gx.md`, phase 7: delete `lh/gl/`, rename `lh/gx/`
-to `lh/gl/` and `lh_gx_*` to `lh_gl_*`, then rebuild every backend and run
-every test. When that is done, this entry goes away with the old names.
-
-**The date.** The owner decided on 2026-11-17 that `gx` replaces `gl`.
-
 ## The 3D renderer
 
 **The debt.** `src/lh/gl/renderer3d.c` is a 3D renderer, not a user
 interface, and does not belong under `lh/gl/` once that name means the
 interface layer.
 
-**The plan.** The 3D renderer gets its own part on the same draw list, moved
-while `gl` is still there to test against — `docs/design/gx.md`, section 6 and
-decision 4 of phase 1. (The web host, the other half of this debt, moved to
+**The plan.** The 3D renderer gets its own part beside `lh/gl/`. (The web host, the other half of this debt, moved to
 `lh/os/web/` on 2026-11-18, and the WebSocket frames to `lh/core/web/ws.h`.)
 
 ## The built-in font lives in gl
 
 **The debt.** The baked Roboto (`lh/gl/font/roboto.h`) and the call that hands
 it out (`lh_gl_font_get_default`) are gl's, though the table type is the
-core's (`lh_font_t`). gx takes the table through `lh_gx_font_baked_init`, so a
-gx program that wants the built-in font includes `lh/gl/font.h`
-(`example/gx_web_button.c`). A declaration `lh_font_get_default` in
+core's (`lh_font_t`), so a program that wants only the font and the core's
+mask still includes `lh/gl/font.h`. A declaration `lh_font_get_default` in
 `lh/core/font.h` promised the same from the core but had no definition; it was
 removed on 2026-11-18.
 
-**The plan.** The table and its getter move to the core's font with the swap
-(`docs/design/gx.md`, phase 8).
+**The plan.** The table and its getter move to the core's font.
 
 ## The window throws the damage away
 
@@ -67,10 +47,9 @@ there. That is the work of the part that owns the pixels, and it is why the
 first attempt at the fix was taken back: taking the damage at the invalidation
 loses whatever changed between the update and the paint.
 
-**The plan.** In gx the canvas owns the damage and the invalidation
-(`docs/design/gx.md`, section 5.1): the entity reports, the canvas remembers,
-and the canvas is what tells the platform what to repaint. The gl window is
-replaced by that same canvas in phase 7, so the fix arrives with it.
+**The plan.** The part that owns the pixels owns the damage and the
+invalidation: the entity reports, the canvas remembers, and the canvas is what
+tells the platform what to repaint. The window then takes the partial path.
 
 **The date.** The owner named it on 2026-11-17.
 
@@ -93,17 +72,15 @@ naming GDI in its own fields.
 but the number of stops it holds is still `LH_LIBRARY_OPTION_GL_GRADIENT_MAX_STOPS`:
 a core type sized by an option named after gl.
 
-**The plan.** Rename the option to `LH_LIBRARY_OPTION_GRADIENT_MAX_STOPS` at
-the swap (phase 8 of `docs/design/gx.md`), when gl's names change anyway, and
+**The plan.** Rename the option to `LH_LIBRARY_OPTION_GRADIENT_MAX_STOPS` and
 keep the old name as an alias for one release.
 
 ## gl's 16-bit SIMD kernels
 
 **The debt.** The 32-bit alpha kernels moved to the core
-(`lh_pixel_span_blend_alphas_argb`, 2026-11-19), where gx and gl both call
-them. The RGB565 ones (`lh_gl_pixmap_blend_alpha_16_sse2` and its octet) stay
-in gl with a copy of `gather_alpha`, and gx's RGB565 rows are scalar.
+(`lh_pixel_span_blend_alphas_argb`, 2026-11-19), and gl calls them there. The
+RGB565 ones (`lh_gl_pixmap_blend_alpha_16_sse2` and its octet) stay in gl with a
+copy of `gather_alpha`, and the core's RGB565 rows are scalar.
 
 **The plan.** Move them beside the 32-bit ones (`lh_pixel_span_cover_rgb565`
-choosing them as `cover_argb` does) when a gx target draws RGB565 on a CPU with
-SSE2 — or at the swap, whichever comes first.
+choosing them as `cover_argb` does), and gl calls the core.

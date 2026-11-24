@@ -47,14 +47,6 @@ void lh_micro_box(int paint, int radius);
    glyphs cost on their own. */
 void lh_micro_text(void);
 
-/* gx, the engine that replaces lh's gl: the scenes it has a class for. */
-int gx_scene_has(int scene);
-void gx_scene_setup(int scene);
-void gx_scene_frame(void);
-void gx_scene_frame_partial(void);
-const uint32_t *gx_scene_pixels(void);
-void gx_scene_teardown(void);
-
 int lvgl_scene_has(int scene);
 void lvgl_scene_setup(int scene);
 void lvgl_scene_frame(void);

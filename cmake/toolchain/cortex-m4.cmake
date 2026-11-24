@@ -12,7 +12,7 @@
 # THREAD_LOCAL and position-independent code OFF. The float ABI is soft, so
 # the library links with a firmware built either way. Programs link against
 # newlib-nano with no system calls (nano.specs, nosys.specs) and drop what they
-# do not reach (--gc-sections): what bench/mcu/ measures.
+# do not reach (--gc-sections).
 # Set LH_ARM_TOOLCHAIN_DIR when the compiler is not on PATH.
 
 set(CMAKE_SYSTEM_NAME Generic)

@@ -18,7 +18,6 @@
 
 #include <lh/core/bool.h>
 #include <lh/core/compiler/extern/c.h>
-#include <lh/core/numeric/fixed/types.h>
 #include <lh/core/random/fields.h>
 #include <lh/core/void.h>
 

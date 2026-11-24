@@ -100,20 +100,20 @@ new size, because nobody else will. The paint is the application calling its
 own paint callback with its own pixmap.
 
 Which means: **the pixels cannot belong to `lh/os/`.** A pixmap is the
-drawing part's type, so `lh/os/` would have to depend on gx to name the type
+drawing part's type, so `lh/os/` would have to depend on it to name the type
 of the pixels it shows — the wrong way round. So:
 
 - the **window** owns no pixels in either case — it is a place, a title, a
   set of children and a set of callbacks;
 - the **target** owns the pixels: on a desktop it is the operating system's
   surface behind the native window, on a board it is the application's own
-  buffer — and in gx both are the same thing, `lh_gx_pixmap_t`, a view of
-  memory the application provides;
+  buffer — both the same thing to the drawing part, a pixmap, a view of memory
+  the application provides;
 - the **application** hands the target to the drawing part, and the drawing
   part hands back the damage.
 
 The present sink takes the pixels and the damage, so it belongs to the drawing
-part (gx) — it is the thing that shows them, and it is portable as it is
+part — it is the thing that shows them, and it is portable as it is
 today.
 
 ## 7. The split, field by field
@@ -227,8 +227,8 @@ portable: `lh_os_window_on_native_paint`, `_on_native_resize`,
 `lh_os_window_zone_at`. They stop being under `#if`: a board's touch driver
 reports input through the same call as Win32 does. The paint up-call carries
 the damage (today the system's paint region, read back through
-`lh_os_system_window_get_paint_region`) and an opaque target; when gx is in,
-the target is a `lh_gx_pixmap_t`.
+`lh_os_system_window_get_paint_region`) and an opaque target, the drawing part's
+pixmap.
 
 **`lh_os_app_backend_t` — what an application's loop needs** (calls down):
 
@@ -313,17 +313,17 @@ flag and the step are the same on both sides.
 | A | The portable half: split `lh_os_window_t` into the window and its native half, make `lh_os_app_t` portable with a step, and settle where the target lives. | together |
 | A2 | The contracts (section 8): `lh_os_window_backend_t` and `lh_os_app_backend_t`, the system backend as one brick over `lh_os_system_window_*`, a fake backend for the tests, and every `#if LH_LIBRARY_OPTION_OS*` out of `window.c` and `app.c`. | together — done |
 | B | The window side: the native window, the caption, the resize, the frame — on Windows, X11 and AppKit. | owner |
-| C | The engine: gx draws into the target and says what changed. | together |
+| C | The engine draws into the target and says what changed. | together |
 
 A is done: the struct is split, the application has its step, and the target is
-`lh_gx_pixmap_t` — the application provides the memory, and the drawing part
+the drawing part's pixmap — the application provides the memory, and the drawing part
 draws into it. A2 is done too (2026-11-17): the line between the window and
 the system is a contract, and B is one backend among others, not the place the
 window lives. B and C are open.
 
-The order matters for one reason only: gx draws into the target, so the shape
-of the target has to be settled before the engine is written, and the native
-window does not have to be settled before gx starts.
+The order matters for one reason only: the engine draws into the target, so the
+shape of the target has to be settled before the engine is written, and the
+native window does not have to be settled before the engine starts.
 
 ## 10. The debt this page paid
 
