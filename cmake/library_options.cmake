@@ -257,7 +257,7 @@ option(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED
 #
 # Off by default: most users of lh want its bricks, not a widget toolkit, and
 # should not pay for it in build time and archive size. Turn it on to get the
-# canvas, the entity tree and the web host (gl/web).
+# canvas and the entity tree; the browser side of gl is LH_LIBRARY_OPTION_WEB.
 #
 # Needs no OS: a canvas backend is supplied by the host (GDI, GL, STM32 ...).
 # With LH_LIBRARY_OPTION_OS_WINDOW it also builds the window's screen
@@ -282,6 +282,26 @@ option(LH_LIBRARY_OPTION_GL
 # -----------------------------------------------------------------------------
 option(LH_LIBRARY_OPTION_SQL_SQLITE
         "Compile SQLite (src/lh/os/sql/sqlite/third_party) and the lh/sql SQLite backend into lh."
+        OFF)
+
+# -----------------------------------------------------------------------------
+# Option: LH_LIBRARY_OPTION_WEB
+#
+# lh on the web: the HTTP and WebSocket host (include/lh/os/web, with
+# LH_LIBRARY_OPTION_OS) and the browser side of gl (with LH_LIBRARY_OPTION_GL):
+# the canvas that records its calls as JSON (lh/gl/canvas/web.h), its glyph
+# atlas, the buffer and the player page (lh/gl/web/), and the player that serves
+# a view through the host (lh/gl/web/player.h, with the OS as well).
+#
+#   ON  — compile them.
+#   OFF — leave them out (default): a firmware or a desktop program that serves
+#         no browser should not carry an HTTP server and a player.
+#
+# The formats the web speaks -- JSON, XML, HTML, WebSocket frames
+# (include/lh/core/web) -- are data and stay in the core whatever this says.
+# -----------------------------------------------------------------------------
+option(LH_LIBRARY_OPTION_WEB
+        "Compile the web host (lh/os/web) and the browser side of gl (lh/gl/web, lh/gl/canvas/web)."
         OFF)
 
 # -----------------------------------------------------------------------------

@@ -195,6 +195,15 @@
 #define LH_LIBRARY_OPTION_JS @ValJs@
 
 /**
+ * @def LH_LIBRARY_OPTION_WEB
+ * @brief Compile the web host (`lh/os/web/host.h`, with ::LH_LIBRARY_OPTION_OS) and
+ *        the browser side of gl (`lh/gl/canvas/web.h`, `lh/gl/web/`, with
+ *        ::LH_LIBRARY_OPTION_GL) into lh (::LH_LIBRARY_OPTION_OFF /
+ *        ::LH_LIBRARY_OPTION_ON).
+ */
+#define LH_LIBRARY_OPTION_WEB @ValWeb@
+
+/**
  * @def LH_LIBRARY_OPTION_GL_FONT_ROBOTO
  * @brief `1` when Roboto 16 px is baked in (`lh/gl/font/roboto.h`) and is the
  *        font a new ::lh_gl_style_t starts with (::LH_LIBRARY_OPTION_ON).

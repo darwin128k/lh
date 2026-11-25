@@ -11,9 +11,10 @@
  *
  * Option-gated headers are included only when their option is on:
  * `lh/gl/font/roboto.h` (::LH_LIBRARY_OPTION_GL_FONT_ROBOTO),
- * `lh/gl/surface.h` (::LH_LIBRARY_OPTION_OS and ::LH_LIBRARY_OPTION_OS_WINDOW)
- * and `lh/gl/web/player.h` (::LH_LIBRARY_OPTION_OS). The web host the player
- * is served by is not gl's: it is `lh/os/web/host.h`.
+ * `lh/gl/surface.h` (::LH_LIBRARY_OPTION_OS and ::LH_LIBRARY_OPTION_OS_WINDOW),
+ * the web canvas and the player page (::LH_LIBRARY_OPTION_WEB), and
+ * `lh/gl/web/player.h` (::LH_LIBRARY_OPTION_WEB and ::LH_LIBRARY_OPTION_OS).
+ * The web host the player is served by is not gl's: it is `lh/os/web/host.h`.
  *
  * Requires ::LH_LIBRARY_OPTION_GL.
  */
@@ -32,7 +33,6 @@
 #include <lh/gl/canvas/box.h>
 #include <lh/gl/canvas/mask.h>
 #include <lh/gl/canvas/round.h>
-#include <lh/gl/canvas/web.h>
 #include <lh/gl/decl.h>
 #include <lh/gl/display.h>
 #include <lh/gl/frame/stats.h>
@@ -44,14 +44,17 @@
 #if LH_LIBRARY_OPTION_MATH_FPU
 #    include <lh/gl/renderer3d.h>
 #endif
-#include <lh/gl/web/player/page.h>
 #if LH_LIBRARY_OPTION_GL_FONT_ROBOTO
 #    include <lh/gl/font/roboto.h>
 #endif
 #if LH_LIBRARY_OPTION_OS && LH_LIBRARY_OPTION_OS_WINDOW
 #    include <lh/gl/surface.h>
 #endif
-#if LH_LIBRARY_OPTION_OS
+#if LH_LIBRARY_OPTION_WEB
+#    include <lh/gl/canvas/web.h>
+#    include <lh/gl/web/player/page.h>
+#endif
+#if LH_LIBRARY_OPTION_WEB && LH_LIBRARY_OPTION_OS
 #    include <lh/gl/web/player.h>
 #endif
 

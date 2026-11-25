@@ -58,6 +58,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The web is an option: `LH_LIBRARY_OPTION_WEB` (default `OFF`) builds the web
+  host (`lh/os/web/`, with the OS) and the browser side of gl
+  (`lh/gl/canvas/web.h` and its glyph atlas, `lh/gl/web/buf.h`,
+  `lh/gl/web/player/page.h`, and with the OS `lh/gl/web/player.h`). Before, the
+  host was built with every OS build and the browser side with every gl build.
+  `lh/gl.h` includes the web headers only with the option. The formats of the
+  web -- JSON, XML, HTML, WebSocket frames (`lh/core/web/`) -- stay in the core.
+  A program that serves a browser turns the option on
+  (`docs/guides/usage-web.md`).
 - The gl window paints only what changed. An update hands each rectangle of the
   view's damage to the window system (`lh_gl_window_invalidate_damage`, over
   `lh_os_window_invalidate_rect`) instead of invalidating the whole window, and

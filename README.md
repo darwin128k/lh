@@ -389,7 +389,9 @@ supplies where the pixels go.
 - **Canvas backends** — software, into a pixel buffer (`lh/gl/canvas/sw.h`);
   GDI, the same software renderer plus one `BitBlt` into a window
   (`lh/os/render/backend/gdi.h`); web, recording primitives as JSON
-  (`lh/gl/canvas/web.h`).
+  (`lh/gl/canvas/web.h`), with `LH_LIBRARY_OPTION_WEB` (default `OFF`), which also
+  builds the web host (`lh/os/web/host.h`) and the player that serves a view
+  to a browser.
 - **Present sink** (`lh/gl/present/sink.h`) — shows an already drawn buffer
   on a TFT, a log or a second screen.
 - **Scalar mode** — `LH_LIBRARY_OPTION_MATH_FPU` picks the UI coordinate type

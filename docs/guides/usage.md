@@ -80,6 +80,7 @@ directory comes **first**) and the system libraries of the OS layer
 | `LH_LIBRARY_OPTION_OS_WINDOW` | **OFF** | ON | not needed¹ |
 | `LH_LIBRARY_OPTION_GL` | **ON** | **ON** | **ON** |
 | `LH_LIBRARY_OPTION_GL_FONT_ROBOTO` | ON | ON | ON |
+| `LH_LIBRARY_OPTION_WEB` | OFF | OFF | **ON** |
 | `LH_LIBRARY_OPTION_THREAD_LOCAL` | **OFF** | ON | ON |
 | `LH_LIBRARY_OPTION_LTO` | **OFF** | FAT (default) | FAT |
 | `LH_POSITION_INDEPENDENT_CODE` | **OFF** | ON | ON |

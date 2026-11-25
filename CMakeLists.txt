@@ -429,21 +429,6 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/net.c
             ${LH_LIB_SRC_PATH}/os/net/socket.c
             ${LH_LIB_SRC_PATH}/os/net/interface.c
-            ${LH_LIB_SRC_PATH}/os/web/host.c
-            ${LH_LIB_SRC_PATH}/os/web/host/deadline.c
-            ${LH_LIB_SRC_PATH}/os/web/host/gzip/workspace.c
-            ${LH_LIB_SRC_PATH}/os/web/host/client.c
-            ${LH_LIB_SRC_PATH}/os/web/host/frame.c
-            ${LH_LIB_SRC_PATH}/os/web/host/hooks.c
-            ${LH_LIB_SRC_PATH}/os/web/host/stream.c
-            ${LH_LIB_SRC_PATH}/os/web/host/gate.c
-            ${LH_LIB_SRC_PATH}/os/web/host/tap.c
-            ${LH_LIB_SRC_PATH}/os/web/host/finish.c
-            ${LH_LIB_SRC_PATH}/os/web/host/pipe.c
-            ${LH_LIB_SRC_PATH}/os/web/host/conn.c
-            ${LH_LIB_SRC_PATH}/os/web/app.c
-            ${LH_LIB_SRC_PATH}/os/web/app/route.c
-            ${LH_LIB_SRC_PATH}/os/web/app/stream/route.c
             ${LH_LIB_SRC_PATH}/os/serial.c
             ${LH_LIB_SRC_PATH}/os/shared.c
             ${LH_LIB_SRC_PATH}/os/module.c
@@ -568,6 +553,27 @@ if (LH_LIBRARY_OPTION_SQL_SQLITE)
     )
 endif ()
 
+# The web host (LH_LIBRARY_OPTION_WEB): HTTP and WebSocket over the OS's sockets.
+if (LH_LIBRARY_OPTION_WEB AND LH_LIBRARY_OPTION_OS)
+    list(APPEND LH_LIB_SOURCES
+            ${LH_LIB_SRC_PATH}/os/web/host.c
+            ${LH_LIB_SRC_PATH}/os/web/host/deadline.c
+            ${LH_LIB_SRC_PATH}/os/web/host/gzip/workspace.c
+            ${LH_LIB_SRC_PATH}/os/web/host/client.c
+            ${LH_LIB_SRC_PATH}/os/web/host/frame.c
+            ${LH_LIB_SRC_PATH}/os/web/host/hooks.c
+            ${LH_LIB_SRC_PATH}/os/web/host/stream.c
+            ${LH_LIB_SRC_PATH}/os/web/host/gate.c
+            ${LH_LIB_SRC_PATH}/os/web/host/tap.c
+            ${LH_LIB_SRC_PATH}/os/web/host/finish.c
+            ${LH_LIB_SRC_PATH}/os/web/host/pipe.c
+            ${LH_LIB_SRC_PATH}/os/web/host/conn.c
+            ${LH_LIB_SRC_PATH}/os/web/app.c
+            ${LH_LIB_SRC_PATH}/os/web/app/route.c
+            ${LH_LIB_SRC_PATH}/os/web/app/stream/route.c
+    )
+endif ()
+
 # The JavaScript engine of lh/core/web/js (LH_LIBRARY_OPTION_JS). Our own code, on our
 # own bricks; the QuickJS implementation is the reference for the algorithms,
 # not a dependency.
@@ -642,23 +648,28 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gl/pixmap.c
             ${LH_LIB_SRC_PATH}/gl/canvas/sw.c
             ${LH_LIB_SRC_PATH}/gl/canvas/sw/shadow/pass.c
-            ${LH_LIB_SRC_PATH}/gl/canvas/web.c
-            ${LH_LIB_SRC_PATH}/gl/canvas/web/glyphs.c
-            ${LH_LIB_SRC_PATH}/gl/canvas/web/atlas.c
             ${LH_LIB_SRC_PATH}/gl/present.c
             ${LH_LIB_SRC_PATH}/gl/present/sink.c
             ${LH_LIB_SRC_PATH}/gl/display.c
             ${LH_LIB_SRC_PATH}/gl/display/backend.c
             ${LH_LIB_SRC_PATH}/gl/viewport3d.c
-            ${LH_LIB_SRC_PATH}/gl/web/buf.c
-            ${LH_LIB_SRC_PATH}/gl/web/player/page.c
     )
     if (LH_LIBRARY_OPTION_MATH_FPU)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/renderer3d.c
              ${LH_LIB_SRC_PATH}/gl/renderer3d/camera.c)
     endif ()
-    if (LH_LIBRARY_OPTION_OS)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/player.c)
+    # The browser side of gl: the canvas as JSON and the player page; the player
+    # itself serves through the web host, so it needs the OS as well.
+    if (LH_LIBRARY_OPTION_WEB)
+        list(APPEND LH_LIB_SOURCES
+                ${LH_LIB_SRC_PATH}/gl/canvas/web.c
+                ${LH_LIB_SRC_PATH}/gl/canvas/web/glyphs.c
+                ${LH_LIB_SRC_PATH}/gl/canvas/web/atlas.c
+                ${LH_LIB_SRC_PATH}/gl/web/buf.c
+                ${LH_LIB_SRC_PATH}/gl/web/player/page.c)
+        if (LH_LIBRARY_OPTION_OS)
+            list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/player.c)
+        endif ()
     endif ()
     # A window's screen: the UI's software canvas drawn into a surface the
     # window presents. Needs both the UI and a native window.

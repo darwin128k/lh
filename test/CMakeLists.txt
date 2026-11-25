@@ -355,10 +355,6 @@ set(LH_TEST_OS_SOURCES
         ${LH_TEST_SRC_PATH}/lh/os/input.cpp
         ${LH_TEST_SRC_PATH}/lh/os/memory.cpp
         ${LH_TEST_SRC_PATH}/lh/os/net/interface.cpp
-        ${LH_TEST_SRC_PATH}/lh/os/web/app.cpp
-        ${LH_TEST_SRC_PATH}/lh/os/web/app/route.cpp
-        ${LH_TEST_SRC_PATH}/lh/os/web/host.cpp
-        ${LH_TEST_SRC_PATH}/lh/os/web/host/serve.cpp
         ${LH_TEST_SRC_PATH}/lh/os/net/modbus_emu.cpp
         ${LH_TEST_SRC_PATH}/lh/os/net/modbus_tcp.cpp
         ${LH_TEST_SRC_PATH}/lh/os/net/socket.cpp
@@ -387,6 +383,18 @@ set(LH_TEST_OS_SOURCES
         ${LH_TEST_SRC_PATH}/lh/os/system/unix/input.cpp
         ${LH_TEST_SRC_PATH}/lh/os/system/win/input.cpp
 )
+# The web host's tests (LH_LIBRARY_OPTION_WEB, over the OS's sockets).
+set(LH_TEST_WEB_OS_SOURCES
+        ${LH_TEST_SRC_PATH}/lh/os/web/app.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/web/app/route.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/web/host.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/web/host/serve.cpp
+)
+if (LH_LIBRARY_OPTION_WEB)
+    list(APPEND LH_TEST_OS_SOURCES ${LH_TEST_WEB_OS_SOURCES})
+else ()
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_WEB_OS_SOURCES})
+endif ()
 set(LH_TEST_OS_PRIMITIVE_SOURCES
         ${LH_TEST_SRC_PATH}/lh/os/concurrency.cpp
         ${LH_TEST_SRC_PATH}/lh/os/rail/base.cpp
@@ -584,11 +592,6 @@ set(LH_TEST_GL_SOURCES
         ${LH_TEST_SRC_PATH}/lh/gl/display/backend.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/transition.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/canvas/sw.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/canvas/web.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/web/buf.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/web/page.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/web/player.cpp
-        ${LH_TEST_SRC_PATH}/lh/gl/web/player/host.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/viewport3d.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/color.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/decl.cpp
@@ -630,9 +633,26 @@ set(LH_TEST_GL_SOURCES
         ${LH_TEST_SRC_PATH}/lh/gl/surface.cpp
         ${LH_TEST_SRC_PATH}/lh/gl/window.cpp
 )
-# The player test reads the script with the JavaScript lexer.
-if (LH_LIBRARY_OPTION_GL AND LH_LIBRARY_OPTION_JS)
+# The browser side of gl (LH_LIBRARY_OPTION_WEB): the canvas and the page need gl,
+# the player gl and the OS.
+set(LH_TEST_WEB_GL_SOURCES
+        ${LH_TEST_SRC_PATH}/lh/gl/canvas/web.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/web/buf.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/web/page.cpp
+)
+set(LH_TEST_WEB_PLAYER_SOURCES
+        ${LH_TEST_SRC_PATH}/lh/gl/web/player.cpp
+        ${LH_TEST_SRC_PATH}/lh/gl/web/player/host.cpp
+)
+if (LH_LIBRARY_OPTION_WEB AND LH_LIBRARY_OPTION_GL)
+    list(APPEND LH_TEST_GL_SOURCES ${LH_TEST_WEB_GL_SOURCES})
 else ()
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_WEB_GL_SOURCES})
+endif ()
+if (LH_LIBRARY_OPTION_WEB AND LH_LIBRARY_OPTION_GL AND LH_LIBRARY_OPTION_OS)
+    list(APPEND LH_TEST_GL_SOURCES ${LH_TEST_WEB_PLAYER_SOURCES})
+else ()
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_WEB_PLAYER_SOURCES})
 endif ()
 if (LH_LIBRARY_OPTION_GL AND LH_LIBRARY_OPTION_MATH_FPU)
     list(APPEND LH_TEST_GL_SOURCES ${LH_TEST_SRC_PATH}/lh/gl/renderer3d.cpp)

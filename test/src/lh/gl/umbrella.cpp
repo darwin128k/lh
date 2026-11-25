@@ -20,6 +20,7 @@ TEST(ui_umbrella, reaches_the_gradient)
     EXPECT_LT(lh_gl_gradient_frac_at(&gradient, &box, 5, 0), 30) << "180: the top row first";
 }
 
+#if LH_LIBRARY_OPTION_WEB
 TEST(ui_umbrella, reaches_web_buf)
 {
     lh_byte_t mem[16];
@@ -28,6 +29,7 @@ TEST(ui_umbrella, reaches_web_buf)
     EXPECT_TRUE(lh_gl_web_buf_ok(&buf));
     EXPECT_EQ(lh_gl_web_buf_len(&buf), 0u);
 }
+#endif
 
 TEST(ui_umbrella, reaches_types_from_new_headers)
 {

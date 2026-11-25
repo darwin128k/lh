@@ -63,7 +63,8 @@ from that enum when the page is built, so the numbers cannot drift. A key
 that also types (Space) sends its `t` line after the `k` line, as the desktop
 does. A `k key` line without the flag (an older player) is a key going down.
 
-Requires `LH_LIBRARY_OPTION_GL=ON` and `LH_LIBRARY_OPTION_OS=ON` (sockets).
+Requires `LH_LIBRARY_OPTION_WEB=ON` (the host and the player, off by default),
+`LH_LIBRARY_OPTION_GL=ON` and `LH_LIBRARY_OPTION_OS=ON` (sockets).
 The host does not need a window (`OS_WINDOW`).
 
 ---
