@@ -369,7 +369,11 @@ lh_gl_pixmap_fill_colors_span(lh_gl_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh
                               const lh_gl_color_t *colors);
 
 /**
- * @brief ::lh_gl_pixmap_store_span on rows `y0 .. y1 - 1`.
+ * @brief What ::lh_gl_pixmap_store_span stores, on rows `y0 .. y1 - 1`.
+ *
+ * The address of the first row, the format and the length are worked out once;
+ * each next row is one stride (::lh_gl_pixmap_get_stride) further. An empty box
+ * (`x1 <= x0` or `y1 <= y0`) stores nothing.
  */
 lh_void
 lh_gl_pixmap_store_box(lh_gl_pixmap_t *self, lh_s32_t x0, lh_s32_t y0, lh_s32_t x1, lh_s32_t y1,

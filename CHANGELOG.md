@@ -140,6 +140,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   class. Nothing public changes. The places where a higher level came before a
   lower one go from 26 to 8, all of them the recursions of the walk, the hit
   test and the draw.
+- `lh_gl_pixmap_store_box` works out the first row's address, the format and
+  the length once and steps one stride a row, storing each row with
+  `lh_memory_set_u16` / `_u32`, instead of a `lh_gl_pixmap_store_span` per row
+  that found the address and the format again. The split of `pixmap.c` had
+  shown how much that cost: link-time optimisation had been hiding it in a
+  specialised clone of `store_span`, which the new layout of the files no
+  longer got. On the desktop (alternating runs, median of five medians):
+  `BM_ui_canvas_fill_rect` 16 px 99 -> 81 ns (32 bpp) and 98 -> 77 ns
+  (RGB565), 72 px 688 -> 600 ns and 675 -> 564 ns, 320 px RGB565 10.0 ->
+  8.1 us; `BM_ui_canvas_fill_round_rect/0/0` 630 -> 575 ns. Tests store a box
+  in both formats over a stride longer than the row and an empty box.
+- More of gl is split by subject, nothing public changing:
+  `src/lh/gl/web/player.c` into `src/lh/gl/web/player/` (`input.c`: the chain
+  and the event lines; `serve.c`: the page, its revision and a frame over
+  HTTP; `frame.c`: resize, draw, frame, tick), the player keeping its fields,
+  its route tables and init; `src/lh/gl/pixmap.c` into `src/lh/gl/pixmap/`
+  (`pixel.c`: packing, reading and writing one pixel; `mix.c`: a word over a
+  word in every format; `span.c`: runs and boxes and their kernels), the
+  pixmap keeping its fields, init, the format and the geometry; and
+  `src/lh/gl/scrollbar.c` into `src/lh/gl/scrollbar/` (`axis.c`, `thumb.c`,
+  `page.c`, `damage.c`, `event.c`), the bar keeping its fields, init and its
+  class. `container.c` and `layout.c` are ordered by level in place. The
+  places where a higher level came before a lower one: player 1 to 0, pixmap
+  11 to 2 (the two left are around the SSE2 kernel, which the sorter leaves
+  inside its `#if`), scrollbar 8 to 0, container 7 to 0, layout 4 to 0.
+  `player/input.c` and `player/serve.c` include the text parse and format
+  headers they use, which `player.c` had only through another include.
 - `src/lh/gl/canvas/sw.c` is split by subject into `src/lh/gl/canvas/sw/`:
   `row.c` (cutting to the limit, blending, covering and masking a run),
   `fill.c` (clear, rect, rounded rect, mask, a run of colours), `shadow.c`

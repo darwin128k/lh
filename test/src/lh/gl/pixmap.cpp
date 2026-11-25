@@ -200,6 +200,61 @@ TEST(ui_pixmap, cover_pixel_scales_alpha_skips_zero_and_stores_full)
     EXPECT_EQ(f.at(1, 0), 0xff090807u);
 }
 
+/* One stride a row: the box is stored on every row it covers, and the padding pixel past
+   the width of each row (the fixture's stride is one pixel longer) is left alone. */
+TEST(ui_pixmap, store_box_walks_the_stride_in_32_bits)
+{
+    pixmap_fixture f(0x11111111u);
+
+    lh_gl_pixmap_store_box(lh_addr_of(f.pixmap), 1, 0, 4, 3, 0xAABBCCDDu);
+    for (int y = 0; y < 3; ++y)
+    {
+        EXPECT_EQ(f.at(0, y), 0x11111111u) << y;
+        for (int x = 1; x < 4; ++x)
+        {
+            EXPECT_EQ(f.at(x, y), 0xAABBCCDDu) << x << "," << y;
+        }
+        EXPECT_EQ(f.spare(y), 0x11111111u) << "the padding of row " << y;
+    }
+}
+
+TEST(ui_pixmap, store_box_walks_the_stride_in_16_bits)
+{
+    pixmap_fixture f(0u, lh_gl_pixmap_format_rgb565, 8);
+
+    lh_gl_pixmap_store_box(lh_addr_of(f.pixmap), 2, 1, 5, 3, 0xF81Fu);
+    for (int x = 0; x < 8; ++x)
+    {
+        EXPECT_EQ(f.at(x, 0), 0u) << "row 0 is above the box";
+    }
+    for (int y = 1; y < 3; ++y)
+    {
+        EXPECT_EQ(f.at(1, y), 0u) << y;
+        for (int x = 2; x < 5; ++x)
+        {
+            EXPECT_EQ(f.at(x, y), 0xF81Fu) << x << "," << y;
+        }
+        EXPECT_EQ(f.at(5, y), 0u) << y;
+        EXPECT_EQ(f.spare(y), 0u) << "the padding of row " << y;
+    }
+}
+
+TEST(ui_pixmap, an_empty_store_box_stores_nothing)
+{
+    pixmap_fixture f(0x11111111u);
+
+    lh_gl_pixmap_store_box(lh_addr_of(f.pixmap), 3, 0, 3, 3, 0u);
+    lh_gl_pixmap_store_box(lh_addr_of(f.pixmap), 0, 2, 4, 2, 0u);
+    lh_gl_pixmap_store_box(lh_addr_of(f.pixmap), 4, 0, 2, 3, 0u);
+    for (int y = 0; y < 3; ++y)
+    {
+        for (int x = 0; x <= 4; ++x)
+        {
+            EXPECT_EQ(f.at(x, y), 0x11111111u) << x << "," << y;
+        }
+    }
+}
+
 TEST(ui_pixmap, fill_box_and_clear_stay_inside_the_width)
 {
     pixmap_fixture f(0x12345678u, lh_gl_pixmap_format_argb8888, 20);

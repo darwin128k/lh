@@ -659,6 +659,11 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gl/input/edit.c
             ${LH_LIB_SRC_PATH}/gl/input/event.c
             ${LH_LIB_SRC_PATH}/gl/scrollbar.c
+            ${LH_LIB_SRC_PATH}/gl/scrollbar/axis.c
+            ${LH_LIB_SRC_PATH}/gl/scrollbar/damage.c
+            ${LH_LIB_SRC_PATH}/gl/scrollbar/event.c
+            ${LH_LIB_SRC_PATH}/gl/scrollbar/page.c
+            ${LH_LIB_SRC_PATH}/gl/scrollbar/thumb.c
             ${LH_LIB_SRC_PATH}/gl/button.c
              ${LH_LIB_SRC_PATH}/gl/toggle.c
             ${LH_LIB_SRC_PATH}/gl/view.c
@@ -685,6 +690,9 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gl/text/block.c
             ${LH_LIB_SRC_PATH}/gl/canvas/mask.c
             ${LH_LIB_SRC_PATH}/gl/pixmap.c
+            ${LH_LIB_SRC_PATH}/gl/pixmap/mix.c
+            ${LH_LIB_SRC_PATH}/gl/pixmap/pixel.c
+            ${LH_LIB_SRC_PATH}/gl/pixmap/span.c
             ${LH_LIB_SRC_PATH}/gl/canvas/sw.c
             ${LH_LIB_SRC_PATH}/gl/canvas/sw/effect.c
             ${LH_LIB_SRC_PATH}/gl/canvas/sw/fill.c
@@ -712,7 +720,10 @@ if (LH_LIBRARY_OPTION_GL)
                 ${LH_LIB_SRC_PATH}/gl/web/buf.c
                 ${LH_LIB_SRC_PATH}/gl/web/player/page.c)
         if (LH_LIBRARY_OPTION_OS)
-            list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/player.c)
+            list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/player.c
+                ${LH_LIB_SRC_PATH}/gl/web/player/frame.c
+                ${LH_LIB_SRC_PATH}/gl/web/player/input.c
+                ${LH_LIB_SRC_PATH}/gl/web/player/serve.c)
         endif ()
     endif ()
     # A window's screen: the UI's software canvas drawn into a surface the
