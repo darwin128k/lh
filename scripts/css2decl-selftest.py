@@ -20,7 +20,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 CSS2DECL = os.path.join(HERE, "css2decl.py")
 # **A path on the command line, and nothing else.** This script used to reach up out of the
-# application it shipped with and read `ui/configurator.css` from two directories over --
+# application it shipped with and read that application's stylesheet two directories over --
 # which worked exactly as long as the file stayed where it was, and the day it moved was
 # the day the generator's own self-test stopped running. A generator that belongs to the
 # library has no stylesheet of its own to check, so the check that a **real** sheet still
@@ -338,11 +338,11 @@ ACCEPT = [
 #: themes that have to be edited together.
 CLAIMS = [
     ("every `:root` colour is handed to the application by name", OK,
-     "extern lh_gl_color_t lh_cfg_ui_colour_ink;"),
+     "extern lh_gl_color_t app_ui_colour_ink;"),
     ("a `--` in a name becomes a `_`, the other being no C identifier at all",
      OK.replace("--ink: #D2D8E2;", "--accent-dim: #D2D8E2;").replace("var(--ink)",
                                                                     "var(--accent-dim)"),
-     "extern lh_gl_color_t lh_cfg_ui_colour_accent_dim;"),
+     "extern lh_gl_color_t app_ui_colour_accent_dim;"),
 ]
 
 #: Claims about the generated **source**, for what only the table says: a caption is a C
@@ -517,7 +517,7 @@ EMITS = [
          "color: var(--ink);", "color: #ffffff;"), "ui_c_ffffff00"),
     ("a font is a resource the application defines, named by family, size and weight",
      OK.replace("height: 40;", "height: 40; font: bold 14px 'Roboto Mono', monospace;"),
-     "lh_gl_style_set_font(lh_addr_of(ui_s_title), lh_addr_of(lh_cfg_ui_font_roboto_mono_14_bold));"),
+     "lh_gl_style_set_font(lh_addr_of(ui_s_title), lh_addr_of(app_ui_font_roboto_mono_14_bold));"),
     ("`text-transform` is applied to the caption",
      OK.replace("height: 40;", "height: 40; text-transform: uppercase;"),
      '{.label = {"HI"}}'),

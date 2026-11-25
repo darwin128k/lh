@@ -14,9 +14,9 @@
 /**
  * @brief One register somebody wants.
  *
- * Address-ordered, which is what makes coalescing a single pass and what
- * ::lh_cfg_map_t already gives: a device map is sorted by address because a poll
- * reads it in order.
+ * Address-ordered, which is what makes coalescing a single pass and what a
+ * device map already gives: it is sorted by address because a poll reads it in
+ * order.
  */
 typedef struct lh_mb_want
 {

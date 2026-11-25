@@ -256,6 +256,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- The configurator project is dropped from lh's guides and scripts:
+  `docs/guides/usage.md`, `usage-desktop.md`, `usage-web.md` and
+  `docs/subsystems/gl.md` describe a desktop and a browser program on their own
+  instead of walking through it, and `scripts/gen-icons.py` and
+  `scripts/icons-preview.py`, which made and previewed that application's icons,
+  are gone.
+- `scripts/css2decl.py` names what it writes `app_ui_*` when no `--prefix` is
+  given (was `lh_cfg_ui_*`, that application's prefix), and the generated header's
+  guard is `APP_UI_GENERATED_H`. A program that passes `--prefix` gets the same
+  names as before.
 - The `lh/gx` part, written beside `lh/gl` to replace it, is gone with its
   tests, the `bench/lvgl/` scene, the `example/gx_*` programs, `bench/mcu/` (which
   measured it) and `docs/design/gx.md`. What it moved into the core stays there

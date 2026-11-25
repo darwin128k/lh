@@ -3,7 +3,7 @@
  * @brief One device on one line: a request in flight, and an answer when it comes.
  *
  * The protocol in `lh/core/net/modbus.h` knows how to build a request and read an
- * answer. This knows the third thing, which is the one a configurator lives or
+ * answer. This knows the third thing, which is the one a device tool lives or
  * dies by: **nothing here ever waits.**
  *
  * A poll over eight devices on a slow line is not eight round trips in a row and

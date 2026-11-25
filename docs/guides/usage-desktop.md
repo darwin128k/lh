@@ -1,8 +1,7 @@
 # lh in a desktop application
 
-A walk through `H:\Projects\configurator` (target `configurator`) — a Modbus
-configurator with a Win32 GDI window, a UI tree generated from CSS, and device
-polling on a timer. A minimal window without a UI tree is
+A desktop program on lh: a Win32 GDI (or X11) window, a UI tree written in C or
+generated from CSS, and work on a timer. A minimal window without a UI tree is
 [`example/window_stats.c`](../../example/window_stats.c).
 
 Overview and option matrix: [usage.md](usage.md).
@@ -37,7 +36,7 @@ if (WIN32)
 endif ()
 ```
 
-Worth copying from `configurator/CMakeLists.txt`:
+Worth adding:
 
 - **`-O2` for lh even in Debug** — a software-rendered UI at `-O0` is
   noticeably slower, and you usually debug the application, not the library:
@@ -108,10 +107,10 @@ on_close(lh_os_window_t *window, lh_os_window_close_reason_t reason, lh_ptr cont
 }
 ```
 
-Lessons from configurator:
+Lessons:
 
-- **The main struct is `static`.** configurator's holds a ~1 MB Modbus session;
-  on the stack that is an overflow, and it surfaces as an exception inside the
+- **The main struct is `static`.** One that holds a large session (a Modbus
+  poller's is ~1 MB) on the stack is an overflow, and it surfaces as an exception inside the
   window procedure — i.e. it looks like a drawing bug.
 - **Set the timer before `open`** — the period is kept and armed on open.
 - **`on_tick` is the only thing that comes back on a schedule.** Device
@@ -276,9 +275,9 @@ keeps the address. Everything the tree points at must outlive the tree
 `lh_gl_paint_init_color` copies the four channels, so the colour must be
 filled in **before** that call.
 
-### 4.2. From CSS (as configurator does)
+### 4.2. From CSS
 
-The screen is described by a stylesheet, `ui/configurator.css`, and
+The screen is described by a stylesheet, `ui/my.css`, and
 `lib/lh/scripts/css2decl.py` turns it into an `lh_gl_decl_t` table:
 
 ```sh
@@ -326,9 +325,9 @@ my_ui_build(struct my_main *self)
 }
 ```
 
-The generated files are **checked in** — a build needs no Python.
-configurator offers a target that regenerates them, and a dependency so an
-edited stylesheet is never silently ignored:
+The generated files are **checked in** — a build needs no Python. Offer a
+target that regenerates them, and a dependency so an edited stylesheet is never
+silently ignored:
 
 ```cmake
 set_source_files_properties(src/my/ui/ui_generated.c PROPERTIES OBJECT_DEPENDS "${CMAKE_SOURCE_DIR}/ui/my.css")
@@ -341,11 +340,8 @@ if (Python3_Interpreter_FOUND)
 endif ()
 ```
 
-What CSS cannot express (resize anchors, the pitch of repeated rows)
-configurator keeps in C (`include/cfg/ir.h`) and applies in `on_resize`.
-
-Icons come from an lh generator too: `lib/lh/scripts/gen-icons.py` (16×16,
-4bpp, `lh_gl_mask_t`).
+What CSS cannot express (resize anchors, the pitch of repeated rows) stays in
+C and is applied in `on_resize`.
 
 ---
 
@@ -495,8 +491,7 @@ into its sink through `lh_os_controller_sink` as well: it would be fed twice.
 thread drains it into the sink.
 
 The sink has no window parameter, so the same function plugs into the web host
-unchanged ([usage-web.md](usage-web.md)) — which is exactly what configurator
-does.
+unchanged ([usage-web.md](usage-web.md)).
 
 ---
 
@@ -505,11 +500,10 @@ does.
 - **Frame stats.** `lh_gl_frame_stats_t` + `lh_gl_frame_meter_attach` around
   the paint count frames, asked vs drawn pixels, and time. See
   `example/window_stats.c` (`-DLH_BUILD_EXAMPLES=ON`).
-- **Screenshot without a screen.** configurator swaps in a file canvas
-  (`shot.c`, `CFG_SHOT=<path>`) — the same `lh_gl_view_draw`, a different
-  backend. Swapping is save/restore: `set_canvas(tmp)` → `draw` →
-  `set_canvas(original)`.
-- **Scripted input.** `CFG_CLICK=x,y` and `CFG_ENTER=1` call the same
-  `on_press` / `on_release` / `on_key` the window does — reproducible bugs.
+- **Screenshot without a screen.** Swap in a canvas that draws into memory and
+  write the pixels to a file — the same `lh_gl_view_draw`, a different backend.
+  Swapping is save/restore: `set_canvas(tmp)` → `draw` → `set_canvas(original)`.
+- **Scripted input.** Call the same `on_press` / `on_release` / `on_key` the
+  window does from a script or an environment variable — reproducible bugs.
 - **Log.** `lh_logger_info(lh_runtime_logger_get_mut(), "...")` writes to stderr
   once the program has installed a logger over stderr (the README section "What the host must install before using lh").

@@ -80,7 +80,7 @@ import zlib
 The placeholder the generated text is **written** with, and what the default is, are the
 same word on purpose: an application that passes nothing gets the names this script was
 written with, and one that passes something gets its own. See ::main."""
-PREFIX_PLACEHOLDER = "lh_cfg_ui_"
+PREFIX_PLACEHOLDER = "app_ui_"
 PREFIX = PREFIX_PLACEHOLDER
 
 # -- The vocabulary ------------------------------------------------------------
@@ -3526,7 +3526,7 @@ def emit(nodes, variables, root, source=""):
             # caption that draws in some other face.
             fonts_used.add(font)
             body.append("lh_gl_style_set_font(lh_addr_of(ui_s_%s), "
-                        "lh_addr_of(lh_cfg_ui_font_%s));" % (sname, font))
+                        "lh_addr_of(app_ui_font_%s));" % (sname, font))
         sides = inner_sides(props, where)
         if sides is not None:
             if len(set(sides)) == 1:
@@ -3724,16 +3724,16 @@ def emit(nodes, variables, root, source=""):
     add("   caller swaps by swapping a stylesheet. */")
     add("")
     for name in sorted(variables):
-        add("lh_gl_color_t lh_cfg_ui_colour_%s;" % varname(name))
+        add("lh_gl_color_t app_ui_colour_%s;" % varname(name))
     add("")
     for name in sorted(variables):
         rgb = variables[name]
         r, g, b = rgb[0], rgb[1], rgb[2]
         alpha = rgb[3] if len(rgb) > 3 else 255
         add("/* --%s  #%02X%02X%02X%02X */" % (name, r, g, b, alpha))
-        add("static lh_void lh_cfg_ui_colour_%s_init(void)" % varname(name))
+        add("static lh_void app_ui_colour_%s_init(void)" % varname(name))
         add("{")
-        add("    lh_gl_color_init(lh_addr_of(lh_cfg_ui_colour_%s), %d, %d, %d, %d);"
+        add("    lh_gl_color_init(lh_addr_of(app_ui_colour_%s), %d, %d, %d, %d);"
             % (varname(name), r, g, b, alpha))
         add("}")
         add("")
@@ -3758,7 +3758,7 @@ def emit(nodes, variables, root, source=""):
     add("static lh_void ui_colours_init(void)")
     add("{")
     for name in sorted(variables):
-        add("    lh_cfg_ui_colour_%s_init();" % varname(name))
+        add("    app_ui_colour_%s_init();" % varname(name))
     for key in sorted(colours):
         add("    %s_init();" % key)
     add("}")
@@ -3882,7 +3882,7 @@ def emit(nodes, variables, root, source=""):
         for node in inputs:
             add("static lh_char_t ui_buf_%s[%d + 1];" % (node.cname(), input_capacity(node)))
         add("")
-    add("const lh_gl_decl_t lh_cfg_ui_decls[] = {")
+    add("const lh_gl_decl_t app_ui_decls[] = {")
     for node, kind, x, y, w, h, parent, text in rows:
         def style_of(sname):
             return ("lh_addr_of(ui_s_%s)" % canonical[sname]) if styled.get(sname) else "lh_null"
@@ -3921,7 +3921,7 @@ def emit(nodes, variables, root, source=""):
         elif node.tag == "button":
             # The click is the application's: a callback is C, and a stylesheet that
             # named one would be a second place a function's name has to be spelled.
-            # `on_click` stays null here and ::lh_cfg_ui_button is how the app sets it.
+            # `on_click` stays null here and ::app_ui_button is how the app sets it.
             add("     {.button = {%s, lh_null, lh_null}}}," % style_of(node.cname() + "__hover"))
         elif node.tag == "toggle":
             name = node.cname()
@@ -3963,16 +3963,16 @@ def emit(nodes, variables, root, source=""):
         out[last] = out[last][:-2] + (", lh_bool_true}," if node.hidden else ", lh_bool_false},")
     add("};")
     add("")
-    add("const lh_u32_t lh_cfg_ui_decl_count = %d;" % len(rows))
+    add("const lh_u32_t app_ui_decl_count = %d;" % len(rows))
     add("")
-    add("const char *const lh_cfg_ui_names[] = {")
+    add("const char *const app_ui_names[] = {")
     for node, _k, _x, _y, _w, _h, _p, _t in rows:
         add('    "%s",' % (node.name if node.name else ""))
     add("};")
     add("")
     FONTS_USED.extend(sorted(fonts_used))
     add("lh_bool_t")
-    add("lh_cfg_ui_init(void)")
+    add("app_ui_init(void)")
     add("{")
     add("    ui_colours_init();")
     add("    ui_styles_init();")
@@ -3998,7 +3998,7 @@ def index_rows(root):
 def varname(name):
     """The C name a `:root` variable is handed to the application under.
 
-    `--accent-dim` is a fine CSS name and `lh_cfg_ui_colour_accent-dim` is not a C one:
+    `--accent-dim` is a fine CSS name and `app_ui_colour_accent-dim` is not a C one:
     the dash reads as a minus, so the header would not compile at all. One place does the
     translation rather than two, because a header that declares one spelling and a source
     that defines another is a link error at best.
@@ -4010,28 +4010,28 @@ def header(count, variables, source=""):
     theme = []
     if variables:
         theme.append("/**")
-        theme.append(" * @brief The colours `:root` defines, by name -- `--ink` is `lh_cfg_ui_colour_ink`.")
+        theme.append(" * @brief The colours `:root` defines, by name -- `--ink` is `app_ui_colour_ink`.")
         theme.append(" *")
         theme.append(" * A stylesheet styles the widgets; these are for the parts of the window the")
         theme.append(" * application draws itself, so that one `:root` is the whole theme and a")
         theme.append(" * second set of literals in C is not a second theme. Valid after")
-        theme.append(" * ::lh_cfg_ui_init.")
+        theme.append(" * ::app_ui_init.")
         theme.append(" *")
-        theme.append(" * A `--` becomes `_`: `--accent-dim` is `lh_cfg_ui_colour_accent_dim`.")
+        theme.append(" * A `--` becomes `_`: `--accent-dim` is `app_ui_colour_accent_dim`.")
         theme.append(" */")
         for name in sorted(variables):
-            theme.append("extern lh_gl_color_t lh_cfg_ui_colour_%s;" % varname(name))
+            theme.append("extern lh_gl_color_t app_ui_colour_%s;" % varname(name))
         theme.append("")
     if FONTS_USED:
         theme.append("/**")
         theme.append(" * @brief The fonts the sheet names, which the **application** defines and")
-        theme.append(" *        loads before the first paint: `font: 14px body` is `lh_cfg_ui_font_body_14`.")
+        theme.append(" *        loads before the first paint: `font: 14px body` is `app_ui_font_body_14`.")
         theme.append(" *")
         theme.append(" * A font is baked at one size and weight, so each one the sheet asks for is")
         theme.append(" * its own. One that is not defined is a link error, which is the point.")
         theme.append(" */")
         for name in FONTS_USED:
-            theme.append("extern lh_gl_font_t lh_cfg_ui_font_%s;" % name)
+            theme.append("extern lh_gl_font_t app_ui_font_%s;" % name)
         theme.append("")
     return """/**
  * @file ui_generated.h
@@ -4039,21 +4039,21 @@ def header(count, variables, source=""):
  *        `scripts/css2decl.py` of `lh`. Do not edit.
  */
 
-#ifndef LH_CFG_UI_GENERATED_H
-#define LH_CFG_UI_GENERATED_H
+#ifndef APP_UI_GENERATED_H
+#define APP_UI_GENERATED_H
 
 #include <lh/gl/decl.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 
 """ + "\n".join(theme) + """/** Every row of the tree, in the order `parent` refers to. */
-extern const lh_gl_decl_t lh_cfg_ui_decls[];
+extern const lh_gl_decl_t app_ui_decls[];
 
 /** How many rows. */
-extern const lh_u32_t lh_cfg_ui_decl_count;
+extern const lh_u32_t app_ui_decl_count;
 
 /** The `#id` of each row, in the same order; "" for a row that has none. */
-extern const char *const lh_cfg_ui_names[];
+extern const char *const app_ui_names[];
 
 /**
  * @brief Fill in the colours, paints, styles, flows and places the table points at.
@@ -4063,7 +4063,7 @@ extern const char *const lh_cfg_ui_names[];
  * Calling this once, before `lh_gl_decl_build`, is that moment.
  */
 lh_bool_t
-lh_cfg_ui_init(void);
+app_ui_init(void);
 
 /**
  * @brief Row of the `#id`, or `LH_GL_DECL_ROOT` when there is no such row.
@@ -4073,13 +4073,13 @@ lh_cfg_ui_init(void);
  * answer here, so check what comes back.
  */
 lh_s32_t
-lh_cfg_ui_find(const char *id);
+app_ui_find(const char *id);
 
 /**
  * @brief Row of the `#id`, as one kind, or `lh_null` when it is another.
  *
  * The application asks for a row by name and uses it as the thing it knows it is:
- * `cfg_ui_label(self, "title")` is a `lh_gl_label_t *`. Nothing checks that
+ * `app_ui_label(self, "title")` is a `lh_gl_label_t *`. Nothing checks that
  * `#title` really is a label, so the first version of this did a plain cast and a
  * renamed row became a write of a label's fields into a scrollbar's memory -- with
  * no complaint from the compiler, because both are structs that begin with the same
@@ -4088,24 +4088,24 @@ lh_cfg_ui_find(const char *id);
  *
  * @param nodes The entities ::lh_gl_decl_build wrote, one per row, in row order.
  *
- * `lh_cfg_ui_entity` is the one that has **no** kind test, and that is not an oversight:
+ * `app_ui_entity` is the one that has **no** kind test, and that is not an oversight:
  * every widget begins with an entity, so every row can be read as one. The others do
  * compare, because reading a scrollbar as a label writes a label's fields into it.
  *
  * A click is set through these: a callback is C, and the stylesheet does not name one.
  */
-""" + "\n".join("%s *\nlh_cfg_ui_%s(lh_gl_entity_t **nodes, const char *id);\n" % (ctype, kind)
+""" + "\n".join("%s *\napp_ui_%s(lh_gl_entity_t **nodes, const char *id);\n" % (ctype, kind)
                 for kind, ctype in ACCESSORS) + """
 LH_COMPILER_EXTERN_C_END
 
-#endif /* LH_CFG_UI_GENERATED_H */
+#endif /* APP_UI_GENERATED_H */
 """
 
 
 def find_impl(nodes):
     out = []
     out.append("lh_s32_t")
-    out.append("lh_cfg_ui_find(const char *id)")
+    out.append("app_ui_find(const char *id)")
     out.append("{")
     out.append("    lh_s32_t found = LH_GL_DECL_ROOT;")
     out.append("")
@@ -4113,9 +4113,9 @@ def find_impl(nodes):
     out.append("    {")
     out.append("        return found;")
     out.append("    }")
-    out.append("    for (lh_u32_t i = 0; i < lh_cfg_ui_decl_count; ++i)")
+    out.append("    for (lh_u32_t i = 0; i < app_ui_decl_count; ++i)")
     out.append("    {")
-    out.append("        if (lh_cfg_ui_names[i][0] != '\\0' && strcmp(lh_cfg_ui_names[i], id) == 0)")
+    out.append("        if (app_ui_names[i][0] != '\\0' && strcmp(app_ui_names[i], id) == 0)")
     out.append("        {")
     out.append("            found = (lh_s32_t)i;")
     out.append("            break;")
@@ -4145,9 +4145,9 @@ def accessors():
     out = []
     for kind, ctype in ACCESSORS:
         out.append("%s *" % ctype)
-        out.append("lh_cfg_ui_%s(lh_gl_entity_t **nodes, const char *id)" % kind)
+        out.append("app_ui_%s(lh_gl_entity_t **nodes, const char *id)" % kind)
         out.append("{")
-        out.append("    lh_s32_t at = lh_cfg_ui_find(id);")
+        out.append("    lh_s32_t at = app_ui_find(id);")
         out.append("")
         if kind == "entity":
             # **Every** row begins with an entity, so an entity is what every row can be
@@ -4160,7 +4160,7 @@ def accessors():
             # with a size that mattered did.
             out.append("    if (at == LH_GL_DECL_ROOT)")
         else:
-            out.append("    if (at == LH_GL_DECL_ROOT || lh_cfg_ui_decls[at].kind != "
+            out.append("    if (at == LH_GL_DECL_ROOT || app_ui_decls[at].kind != "
                        "lh_gl_decl_kind_%s)" % kind)
         out.append("    {")
         # `lh_null` is `void *`, and a function returning `lh_gl_label_t *` will not take
@@ -4212,19 +4212,19 @@ main(int argc, char **argv)
     unsigned char *bits;
     FILE *out;
 
-    if (argc != 2 || lh_cfg_ui_decl_count > 256)
+    if (argc != 2 || app_ui_decl_count > 256)
     {
         return 2;
     }
 @FONT_INIT@
-    lh_cfg_ui_init();
-    if (!lh_gl_decl_build(lh_cfg_ui_decls, lh_cfg_ui_decl_count, nodes, pool, sizeof pool, &root, &fault))
+    app_ui_init();
+    if (!lh_gl_decl_build(app_ui_decls, app_ui_decl_count, nodes, pool, sizeof pool, &root, &fault))
     {
         fprintf(stderr, "preview: row %u refused, code %d\n", (unsigned)fault.index, (int)fault.code);
         return 1;
     }
-    width = (int)lh_cfg_ui_decls[0].w;
-    height = (int)lh_cfg_ui_decls[0].h;
+    width = (int)app_ui_decls[0].w;
+    height = (int)app_ui_decls[0].h;
     bits = (unsigned char *)calloc((size_t)width * (size_t)height, 4);
     lh_gl_pixmap_init(&pixmap, bits, width, height, width * 4, lh_gl_pixmap_format_argb8888);
     lh_gl_canvas_sw_init(&sw);
@@ -4290,8 +4290,8 @@ def preview(outdir, png, build, cc):
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     work = tempfile.mkdtemp(prefix="css2decl-preview-")
     try:
-        fonts = "\n".join("lh_gl_font_t lh_cfg_ui_font_%s;" % name for name in FONTS_USED)
-        font_init = "\n".join("    lh_cfg_ui_font_%s = *lh_gl_font_get_default();" % name
+        fonts = "\n".join("lh_gl_font_t app_ui_font_%s;" % name for name in FONTS_USED)
+        font_init = "\n".join("    app_ui_font_%s = *lh_gl_font_get_default();" % name
                               for name in FONTS_USED)
         main_c = os.path.join(work, "preview.c")
         with open(main_c, "w", encoding="utf-8", newline="\n") as fh:
@@ -4356,14 +4356,11 @@ def main(argv):
     """``css2decl.py <sheet.css> <output-dir> [--prefix <name>] [--preview <png> --build
     <lh-build-dir> [--cc <compiler>] [--watch]]``
 
-    ``--prefix`` is the C name every generated symbol hangs off -- ``lh_cfg_ui_decls``,
-    ``lh_cfg_ui_colour_ink``, ``lh_cfg_ui_init``. **It is an option and not a constant
-    because this script belongs to `lh` and not to the application that happens to call it
-    first.** Every one of those names is `lh_gl_*` machinery, but the `cfg` in them was
-    one application's prefix written into a generator that any application on this library
-    would otherwise have to copy. The generated text is written with
-    ::PREFIX_PLACEHOLDER and substituted here, once, on the way out -- so a second
-    application does not fork the generator, it passes a different word.
+    ``--prefix`` is the C name every generated symbol hangs off -- ``app_ui_decls``,
+    ``app_ui_colour_ink``, ``app_ui_init``. **It is an option and not a constant because
+    this script belongs to `lh` and not to any one application.** The generated text is
+    written with ::PREFIX_PLACEHOLDER and substituted here, once, on the way out -- so an
+    application does not fork the generator, it passes its own word.
 
     ``--preview`` paints the screen into a PNG with lh's own software canvas, so a sheet
     can be looked at without building the application; ``--watch`` does it again every
@@ -4393,9 +4390,9 @@ def main(argv):
     if options["--prefix"] is not None:
         PREFIX = options["--prefix"]
         # The prefix ends in `_` and **not** in a letter or a digit: every generated name
-        # is this word followed by a name that does not start with one, so `lh_cfg_ui_`
-        # gives `lh_cfg_ui_decls` and a prefix without the underscore would give
-        # `lh_cfguidecls`. The first version of this check demanded a trailing letter --
+        # is this word followed by a name that does not start with one, so `app_ui_`
+        # gives `app_ui_decls` and a prefix without the underscore would give
+        # `app_uidecls`. The first version of this check demanded a trailing letter --
         # which is the opposite of the rule -- and the flag's own first use said so.
         if not PREFIX.endswith("_") or len(PREFIX) < 2:
             sys.stderr.write("css: --prefix has to end in '_', got %r\n" % PREFIX)

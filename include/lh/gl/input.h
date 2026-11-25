@@ -2,7 +2,7 @@
  * @file input.h
  * @brief A line of text that can be typed into: ::lh_gl_input_t.
  *
- * The component the configurator was missing, and the one whose absence cost a day:
+ * The component an application was missing, and the one whose absence cost a day:
  * its add-device dialog had three fields, and each of them was a label, a second
  * label eight pixels wide for the caret, a focus index in the application's own
  * struct and about twenty lines of key handling. The caret was drawn with the

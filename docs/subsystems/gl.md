@@ -113,9 +113,8 @@ Input travels the other way:
                                          lh_gl_view_input --> entities
 ```
 
-The important idea: **your application code is the same on all targets**. The
-configurator project builds a desktop program and a browser program from one
-`main.c`.
+The important idea: **your application code is the same on all targets**: a
+desktop program and a browser program build from one `main.c`.
 
 ---
 
@@ -344,8 +343,7 @@ endif ()
 
 What CSS cannot say (how things stretch when the window is resized, the
 spacing of repeated rows) stays in C and is applied when the window size
-changes. Icons have a generator too: `lib/lh/scripts/gen-icons.py`
-(16x16 pixels, 4 bits per pixel, as `lh_gl_mask_t`).
+changes.
 
 ---
 

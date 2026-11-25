@@ -7,8 +7,8 @@ them is not the application code but **the set of `LH_LIBRARY_OPTION_*`** and
 | Target | Reference project | Guide |
 |---|---|---|
 | Microcontroller, no OS (STM32F407 + ILI9341) | `H:\Projects\f4ve-bare` | [usage-embedded.md](usage-embedded.md) |
-| Desktop window (Win32 GDI, X11) | `H:\Projects\configurator`, target `configurator` | [usage-desktop.md](usage-desktop.md) |
-| Web: the same UI tree in a browser | `H:\Projects\configurator`, target `cfg_web` | [usage-web.md](usage-web.md) |
+| Desktop window (Win32 GDI, X11) | [`example/window_stats.c`](../../example/window_stats.c) | [usage-desktop.md](usage-desktop.md) |
+| Web: the same UI tree in a browser | — | [usage-web.md](usage-web.md) |
 
 ---
 
@@ -41,8 +41,7 @@ them is not the application code but **the set of `LH_LIBRARY_OPTION_*`** and
   log, a second screen.
 
 The application code (tree, click handlers, timer) is **one** for all three
-targets — configurator builds both `configurator` and `cfg_web` from the same
-`main.c`.
+targets — a desktop program and a browser one build from the same `main.c`.
 
 ---
 
@@ -85,8 +84,8 @@ directory comes **first**) and the system libraries of the OS layer
 | `LH_LIBRARY_OPTION_LTO` | **OFF** | FAT (default) | FAT |
 | `LH_POSITION_INDEPENDENT_CODE` | **OFF** | ON | ON |
 
-¹ The web host (`lh/os/web/host.h`) does not need a window, but configurator
-builds both targets from one build tree, so the window is on there anyway.
+¹ The web host (`lh/os/web/host.h`) does not need a window; a build tree that
+makes the desktop and the browser program together has it on anyway.
 
 Everything turned off in the MCU column **must be wired by the host**: the
 fatal exit (`lh_runtime_terminate_get_mut`), output

@@ -1,8 +1,8 @@
 # lh in a browser: the web host
 
 The same UI tree as the desktop window — but the browser paints the pixels.
-A walk through the `cfg_web` target of `H:\Projects\configurator`: it is built
-from **the same `main.c`** as `configurator`, with one flag.
+A browser program is built from **the same `main.c`** as the desktop one, with
+one flag.
 
 Read [usage-desktop.md](usage-desktop.md) first — the tree, styles and input
 handlers are the same.
@@ -147,7 +147,7 @@ main(int argc, char **argv)
 
 #if MY_WEB_HOST
     {
-        /* One JSON frame. 4 MB is ample for configurator. */
+        /* One JSON frame. 4 MB is ample for a screen of controls. */
         static char json[4u * 1024u * 1024u];
         static char page[LH_GL_WEB_PLAYER_PAGE_CAP];
         lh_net_port_t port = (lh_net_port_t)8765;
@@ -220,7 +220,7 @@ In both modes clicks are mapped back into view pixels.
 ## 6. No server: a frame to memory or a file
 
 The web backend can be used on its own — e.g. to dump a frame for comparison
-against a wireframe (configurator's `CFG_DUMP_WEB`):
+against a wireframe:
 
 ```c
 #include <lh/gl/canvas/web.h>
@@ -283,8 +283,8 @@ request and decoded body must fit host scratch.
 
 - Listens on `127.0.0.1` only, no TLS — a local tool, not a public server.
   `wss` is supported by the codec, but no TLS stream is built into the host.
-- configurator does not wire `key` / `text` yet (`lh_null`) — keyboard input
-  in the web build is wired the same way as the mouse.
+- Keyboard input (`key` / `text`) is wired the same way as the mouse; a hook
+  left `lh_null` simply drops it.
 - The `json` buffer holds one frame; enlarge it for a big tree (an overflow
   does not write past the end: the frame fails and `lh_gl_canvas_web_close`
   returns `lh_bool_false`).

@@ -2,7 +2,7 @@
  * @file modbus.h
  * @brief Modbus RTU: the wire, and how to ask for a lot of it at once.
  *
- * A configurator does not read a handful of registers. A device card is a few
+ * A device configuration tool does not read a handful of registers. A device card is a few
  * hundred of them, several devices answer at once, and there is no real device on
  * the desk to develop against — so the two things worth getting right here are the
  * ones that do not need one:

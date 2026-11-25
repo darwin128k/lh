@@ -16,7 +16,7 @@
  * libX11 is **not linked**: ::lh_os_system_posix_x11_load opens `libX11.so.6`
  * the first time a window is opened, and a program that never opens one never
  * needs it. The same library serves a Modbus poller on a headless server and a
- * configurator on a desktop; linking X11 in would make the first one fail to
+ * device tool on a desktop; linking X11 in would make the first one fail to
  * start on the machine it is for.
  */
 

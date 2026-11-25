@@ -149,13 +149,13 @@ image's mask, click callbacks (set through the generated `<prefix>button` /
 a font nobody baked is a link error and not a caption in some other face.
 
 ```sh
-python3 scripts/css2decl.py ui/window.css src/ui --prefix cfg_ui_
+python3 scripts/css2decl.py ui/window.css src/ui --prefix my_ui_
 python3 scripts/css2decl.py ui/window.css src/ui --preview shot.png --build build --watch
 ```
 
 | Flag | Meaning |
 |------|---------|
-| `--prefix` | the C name every generated symbol hangs off: `cfg_ui_decls`, `cfg_ui_colour_ink`, `cfg_ui_init`, `cfg_ui_find`, `cfg_ui_label` |
+| `--prefix` | the C name every generated symbol hangs off: `my_ui_decls`, `my_ui_colour_ink`, `my_ui_init`, `my_ui_find`, `my_ui_label` |
 | `--preview` | also paint the screen into this PNG, with lh's own software canvas |
 | `--build` | the lh build directory the preview links against (`liblh.a`, `include/lh/config.h`) |
 | `--cc` | the compiler for the preview (default `$CC`, else `cc`) |
@@ -163,8 +163,8 @@ python3 scripts/css2decl.py ui/window.css src/ui --preview shot.png --build buil
 
 `--prefix` is an option and not a constant **because this script is not one
 application's**. It must end in `_` -- every generated name is the prefix followed by a
-name that does not start with one, so `cfg_ui_` gives `cfg_ui_decls` and a prefix without
-the underscore would give `cfg_uidecls`.
+name that does not start with one, so `my_ui_` gives `my_ui_decls` and a prefix without
+the underscore would give `my_uidecls`.
 
 Two checks keep it honest. `css2decl-selftest.py` runs a hundred-odd sheets that must be
 refused (with the word that says why), accepted, or written a particular way. And the
@@ -172,25 +172,6 @@ CTest target `lh_test_css2decl` generates three sheets under `test/src/lh/gl/` a
 time, compiles them as C, builds the trees and checks them -- including that the first
 `lh_gl_layout_apply` moves **no** row, because the generator works layouts out with the
 engine's own arithmetic.
-
-## Icons: `gen-icons.py`
-
-`lh/gl/mask.h` says it in one sentence: *"A font glyph is a mask; so is a baked icon or
-cursor."* So an icon here is not a drawing routine and not a font -- it is **coverage**,
-one 0..15 number per pixel, packed high bit first, 16 on a side at 4 bpp, and
-`::lh_gl_canvas_fill_mask` paints it.
-
-```sh
-python3 scripts/gen-icons.py --out src/ui/icons.c --header include/lh/gl/icons.h \
-    --prefix lh_gl_icon_
-python3 scripts/gen-icons.py --selftest        # 5 checks, prints the denominator first
-python3 scripts/icons-preview.py               # a PNG sheet, because packing is not shape
-```
-
-The shapes are lucide's proportions drawn with distance functions and supersampled 8x;
-`--prefix` is the application's, because "which icons and what to call them" is the
-application's answer and the mask layout is not. `icons-preview.py` exists because a
-self-test over packing says nothing about whether the thing looks like a gear.
 
 ## Checking the headers: `audit_headers.py`
 
