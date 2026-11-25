@@ -648,7 +648,16 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gl/decl.c
             ${LH_LIB_SRC_PATH}/gl/image.c
             ${LH_LIB_SRC_PATH}/gl/label.c
+            ${LH_LIB_SRC_PATH}/gl/label/draw.c
+            ${LH_LIB_SRC_PATH}/gl/label/event.c
+            ${LH_LIB_SRC_PATH}/gl/label/measure.c
+            ${LH_LIB_SRC_PATH}/gl/label/text.c
+            ${LH_LIB_SRC_PATH}/gl/label/metrics.c
+            ${LH_LIB_SRC_PATH}/gl/label/seen.c
             ${LH_LIB_SRC_PATH}/gl/input.c
+            ${LH_LIB_SRC_PATH}/gl/input/caret.c
+            ${LH_LIB_SRC_PATH}/gl/input/edit.c
+            ${LH_LIB_SRC_PATH}/gl/input/event.c
             ${LH_LIB_SRC_PATH}/gl/scrollbar.c
             ${LH_LIB_SRC_PATH}/gl/button.c
              ${LH_LIB_SRC_PATH}/gl/toggle.c
@@ -677,6 +686,11 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gl/canvas/mask.c
             ${LH_LIB_SRC_PATH}/gl/pixmap.c
             ${LH_LIB_SRC_PATH}/gl/canvas/sw.c
+            ${LH_LIB_SRC_PATH}/gl/canvas/sw/effect.c
+            ${LH_LIB_SRC_PATH}/gl/canvas/sw/fill.c
+            ${LH_LIB_SRC_PATH}/gl/canvas/sw/row.c
+            ${LH_LIB_SRC_PATH}/gl/canvas/sw/shadow.c
+            ${LH_LIB_SRC_PATH}/gl/canvas/sw/shadow/key.c
             ${LH_LIB_SRC_PATH}/gl/canvas/sw/shadow/pass.c
             ${LH_LIB_SRC_PATH}/gl/present.c
             ${LH_LIB_SRC_PATH}/gl/present/sink.c

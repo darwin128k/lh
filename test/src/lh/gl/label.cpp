@@ -644,3 +644,56 @@ TEST(ui_label, a_label_that_wraps_breaks_its_text_at_its_padded_width)
                   2 * lh_gl_scalar_of(lh_gl_font_get_line_height(font)));
     EXPECT_EQ(lh_gl_size_get_width(lh_gl_rect_get_size(&three)), lh_gl_scalar(6));
 }
+
+/* -- The parts ------------------------------------------------------------- */
+
+TEST(ui_label_metrics, setters_store_what_they_are_given)
+{
+    lh_gl_label_metrics_t metrics{};
+    lh_gl_rect_t rect;
+    lh_gl_point_t origin;
+
+    lh_gl_rect_init(&rect, 1, 2, 30, 40);
+    lh_gl_point_init(&origin, 5, 6);
+    lh_gl_label_metrics_set_rect(&metrics, rect);
+    lh_gl_label_metrics_set_origin(&metrics, origin);
+    lh_gl_label_metrics_set_ink_top(&metrics, lh_gl_scalar(3));
+    lh_gl_label_metrics_set_wrap(&metrics, lh_gl_scalar(70));
+    lh_gl_label_metrics_set_align_h(&metrics, lh_gl_text_align_h_right);
+    lh_gl_label_metrics_set_font(&metrics, nullptr);
+    EXPECT_EQ(lh_gl_point_get_x(lh_gl_rect_get_origin(lh_gl_label_metrics_get_rect(&metrics))),
+              lh_gl_scalar(1));
+    EXPECT_EQ(lh_gl_point_get_y(lh_gl_label_metrics_get_origin(&metrics)), lh_gl_scalar(6));
+    EXPECT_EQ(lh_gl_label_metrics_get_ink_top(&metrics), lh_gl_scalar(3));
+    EXPECT_EQ(lh_gl_label_metrics_get_wrap(&metrics), lh_gl_scalar(70));
+    EXPECT_EQ(lh_gl_label_metrics_get_align_h(&metrics), lh_gl_text_align_h_right);
+    EXPECT_EQ(lh_gl_label_metrics_get_font(&metrics), nullptr);
+    EXPECT_EQ(lh_gl_label_metrics_get_rect(&metrics), lh_gl_label_metrics_get_rect_mut(&metrics));
+}
+
+TEST(ui_label_seen, setters_store_what_they_are_given)
+{
+    lh_gl_label_seen_t seen{};
+
+    lh_gl_label_seen_set_hash(&seen, 0xABCDU);
+    lh_gl_label_seen_set_length(&seen, 7U);
+    lh_gl_label_seen_set_hashed(&seen, lh_bool_true);
+    EXPECT_EQ(lh_gl_label_seen_get_hash(&seen), 0xABCDU);
+    EXPECT_EQ(lh_gl_label_seen_get_length(&seen), 7U);
+    EXPECT_TRUE(lh_gl_label_seen_is_hashed(&seen));
+    EXPECT_EQ(lh_gl_label_seen_get_noted(&seen), lh_gl_label_seen_get_noted_mut(&seen));
+}
+
+/* Every old accessor of the label reaches its field through the part it lives in. */
+TEST(ui_label, the_old_accessors_reach_the_parts)
+{
+    lh_gl_label_t label;
+
+    lh_gl_label_init(&label, lh_test::rect_of(0, 0, 40, 20), "hi");
+    lh_gl_label_set_text_hash(&label, 42U);
+    lh_gl_label_set_metrics_wrap(&label, lh_gl_scalar(9));
+    EXPECT_EQ(lh_gl_label_seen_get_hash(lh_gl_label_get_seen(&label)), 42U);
+    EXPECT_EQ(lh_gl_label_metrics_get_wrap(lh_gl_label_get_metrics(&label)), lh_gl_scalar(9));
+    EXPECT_EQ(lh_gl_label_get_metrics(&label), lh_gl_label_get_metrics_mut(&label));
+    EXPECT_EQ(lh_gl_label_get_seen(&label), lh_gl_label_get_seen_mut(&label));
+}

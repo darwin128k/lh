@@ -2,6 +2,7 @@
 
 #include <lh/gl/canvas/mask.h>
 #include <lh/gl/canvas/sw.h>
+#include <lh/gl/canvas/sw/shadow/key.h>
 #include <lh/gl/container.h>
 #include <lh/gl/canvas/box.h>
 #include <lh/test/out.h>
@@ -940,4 +941,38 @@ TEST(ui_canvas_sw_bricks, shadow_rows_draw_what_the_backend_draws)
     {
         EXPECT_EQ(a.words[i], b.words[i]) << i;
     }
+}
+
+/* -- The shadow key -------------------------------------------------------- */
+
+TEST(ui_canvas_sw_shadow_key, init_stores_all_nine_numbers)
+{
+    lh_gl_canvas_sw_shadow_key_t key;
+
+    lh_gl_canvas_sw_shadow_key_init(&key, 40, 30, 4, 20, 10, 2, -3, 5, 200);
+    EXPECT_EQ(lh_gl_canvas_sw_shadow_key_get_width(&key), 40);
+    EXPECT_EQ(lh_gl_canvas_sw_shadow_key_get_height(&key), 30);
+    EXPECT_EQ(lh_gl_canvas_sw_shadow_key_get_corner(&key), 4);
+    EXPECT_EQ(lh_gl_canvas_sw_shadow_key_get_box_w(&key), 20);
+    EXPECT_EQ(lh_gl_canvas_sw_shadow_key_get_box_h(&key), 10);
+    EXPECT_EQ(lh_gl_canvas_sw_shadow_key_get_spread(&key), 2);
+    EXPECT_EQ(lh_gl_canvas_sw_shadow_key_get_offset_x(&key), -3);
+    EXPECT_EQ(lh_gl_canvas_sw_shadow_key_get_offset_y(&key), 5);
+    EXPECT_EQ(lh_gl_canvas_sw_shadow_key_get_peak(&key), 200);
+}
+
+/* Any one of the nine apart is another mask. */
+TEST(ui_canvas_sw_shadow_key, equal_keys_make_the_same_mask_and_one_number_apart_does_not)
+{
+    lh_gl_canvas_sw_shadow_key_t a;
+    lh_gl_canvas_sw_shadow_key_t b;
+
+    lh_gl_canvas_sw_shadow_key_init(&a, 40, 30, 4, 20, 10, 2, -3, 5, 200);
+    lh_gl_canvas_sw_shadow_key_init(&b, 40, 30, 4, 20, 10, 2, -3, 5, 200);
+    EXPECT_TRUE(lh_gl_canvas_sw_shadow_key_is_equal(&a, &b));
+    lh_gl_canvas_sw_shadow_key_set_peak(&b, 199);
+    EXPECT_FALSE(lh_gl_canvas_sw_shadow_key_is_equal(&a, &b));
+    lh_gl_canvas_sw_shadow_key_set_peak(&b, 200);
+    lh_gl_canvas_sw_shadow_key_set_offset_x(&b, 3);
+    EXPECT_FALSE(lh_gl_canvas_sw_shadow_key_is_equal(&a, &b));
 }

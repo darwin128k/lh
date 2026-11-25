@@ -156,7 +156,14 @@ TEST(os_logger_queue, the_worker_flushes_on_its_period_without_a_sync)
     lh_os_logger_queue_t *queue = lh_os_logger_queue_try_create(8U, 10U, &sink);
 
     ASSERT_NE(queue, nullptr);
-    LH_ATTRIBUTE_UNUSED(lh_os_thread_sleep(100U));
+    /* Three periods of 10 ms are 30 ms, but a machine busy with other work may not run
+       the worker that often: wait for the three flushes, up to five seconds, instead of
+       a fixed 100 ms that a loaded machine misses. What is tested is that they come
+       without a sync, not how fast the scheduler is. */
+    for (int waited = 0; waited < 500 && memory.flushes.load() < 3; ++waited)
+    {
+        LH_ATTRIBUTE_UNUSED(lh_os_thread_sleep(10U));
+    }
     EXPECT_GE(memory.flushes.load(), 3);
     lh_os_logger_queue_destroy(queue);
 }

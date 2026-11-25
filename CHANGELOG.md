@@ -140,6 +140,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   class. Nothing public changes. The places where a higher level came before a
   lower one go from 26 to 8, all of them the recursions of the walk, the hit
   test and the draw.
+- `src/lh/gl/canvas/sw.c` is split by subject into `src/lh/gl/canvas/sw/`:
+  `row.c` (cutting to the limit, blending, covering and masking a run),
+  `fill.c` (clear, rect, rounded rect, mask, a run of colours), `shadow.c`
+  (the shadow row by row or by its cached mask, with the mask and its key,
+  which only the shadow reads) and `effect.c` (soften, blur, glass); `sw.c`
+  keeps the fields, init, the pixmap, the limit, the clip and the backend
+  table. Nothing public changes; the places where a higher level came before a
+  lower one go from 11 to 0.
+- The software canvas's shadow cache keys its mask by one
+  `lh_gl_canvas_sw_shadow_key_t` (`lh/gl/canvas/sw/shadow/key.h`: the mask's
+  size, the corner, the box that casts it, the spread, the offset and the
+  peak alpha, with level-1 accessors, `init` and `is_equal`) instead of nine
+  file-local integers: "the same mask as last time" is one
+  `lh_gl_canvas_sw_shadow_key_is_equal` and keeping it one assignment.
+  `BM_ui_canvas_shadow` is unchanged or faster.
+- `lh_gl_label_t` keeps what it measured in `lh_gl_label_metrics_t`
+  (`lh/gl/label/metrics.h`: the rect, the ink, the padding, the origin, the
+  size, the font, the ink top, the wrap and the alignment it measured with)
+  and what it last saw of its text in `lh_gl_label_seen_t`
+  (`lh/gl/label/seen.h`: the hash, the length, whether they are set, and
+  where the ink was noted), each with its fields macro, level-1 accessors and
+  tests, reached through `lh_gl_label_get_metrics` / `_mut` and
+  `lh_gl_label_get_seen` / `_mut`. Every `lh_gl_label_*_metrics_*` and
+  `*_text_hash*` / `_length` / `_noted` accessor keeps its name and goes
+  through its part; `metrics_ready` stays the label's own, so the label is
+  still 288 bytes on x86-64. Three reads in the label that took a field
+  straight from the struct (`metrics_ink_top`, `metrics_origin`,
+  `metrics_ink`) go through their getters. `src/lh/gl/label.c` is split into
+  `src/lh/gl/label/`: `text.c`, `measure.c`, `draw.c` and `event.c`; and
+  `src/lh/gl/input.c` into `src/lh/gl/input/`: `edit.c`, `caret.c` and
+  `event.c`. Nothing public changes.
 - `src/lh/gl/canvas.c` is split by subject into `src/lh/gl/canvas/`:
   `damage.c`, `stack.c` (save, push, pop, the clip and its rounded corners),
   `frame.c` (begin, a frame of one area, end, clear), `send.c` (what reaches
@@ -441,6 +472,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `os_logger_queue.the_worker_flushes_on_its_period_without_a_sync` waits for the
+  worker's three flushes, up to five seconds, instead of sleeping a fixed 100 ms:
+  on a machine busy with a build the worker ran once in that time and the test
+  failed, though the queue was right. It still fails when the flushes never
+  come without a sync.
 - Gradient sampler preparation retains each stop interval while filling its 256
   colours. On i.MX RT105x, a two-stop sampler fell from 87?98 to 35?39 ?s and a
   full 480 ? 320 frame of 24 vertical-gradient cards from 27.55 to 25.10 ms.

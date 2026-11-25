@@ -1,123 +1,19 @@
 /**
  * @file label.c
- * @brief Implementation of `lh/gl/label.h`.
+ * @brief Implementation of `lh/gl/label.h`: the label itself: its fields (level 1), the parts they
+ * live in, init and its class.
  */
-#include <lh/core/assert.h>
-#include <lh/core/attribute/unused.h>
 
-#include <lh/core/hash/fnv.h>
-#include <lh/core/char/map.h>
-#include <lh/core/math.h>
-#include <lh/core/str/utf8.h>
 #include <lh/gl/label.h>
+
+#include <lh/core/assert.h>
 #include <lh/gl/text.h>
-#include <lh/core/util/return.h>
-#include <lh/core/util/str/ptr.h>
-
-/* -- Class ----------------------------------------------------------------- */
-
-const lh_gl_entity_class_t lh_gl_label_class = {lh_gl_label_event,
-                                                lh_addr_of(lh_gl_container_class)};
-
-lh_void
-lh_gl_label_on_children(const lh_gl_label_t *self, const lh_gl_entity_event_t *event)
-{
-    lh_gl_entity_transform_t *transform;
-
-    LH_ATTRIBUTE_UNUSED(self);
-    lh_return_if(lh_gl_entity_event_get_code(event) != lh_gl_entity_event_children);
-    /* The transform is the one thing an event carries that a class fills in, and
-       the getter takes it without the const every event handler is given. */
-    transform = lh_gl_entity_event_get_transform(lh_ptr_rcast(lh_gl_entity_event_t, event));
-    /* The container behind the label cut its children to its own rect, and that
-       is right for a button and wrong for a label: the label's rect is where the
-       text is *centred* (::lh_gl_text_get_size measures the cap line to the
-       baseline), so the tail of a 'p' hangs below it. Cutting there drew half a
-       letter — measured on the demo, "Hide panel" lost every pixel under row 199.
-       The offset and the placement the container just did stay; only the knife
-       goes. */
-    lh_gl_entity_transform_set_clip(transform, lh_bool_false);
-}
-
-lh_u32_t
-lh_gl_label_hash_text(const lh_char_t *text, lh_u32_t *length)
-{
-    const lh_usize_t size = lh_null_ne(text) ? lh_str_ptr_len(text) : 0U;
-
-    lh_ptr_deref(length) = lh_cast_static(lh_u32_t, size);
-    return lh_hash_fnv1a_32(text, size);
-}
-
-/* -- Accessors ------------------------------------------------------------- */
 
 const lh_char_t *
 lh_gl_label_get_text(const lh_gl_label_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->text;
-}
-
-lh_bool_t
-lh_gl_label_same_insets(const lh_gl_insets_t *a, const lh_gl_insets_t *b)
-{
-    return lh_gl_insets_get_left(a) == lh_gl_insets_get_left(b) &&
-                   lh_gl_insets_get_top(a) == lh_gl_insets_get_top(b) &&
-                   lh_gl_insets_get_right(a) == lh_gl_insets_get_right(b) &&
-                   lh_gl_insets_get_bottom(a) == lh_gl_insets_get_bottom(b)
-               ? lh_bool_true
-               : lh_bool_false;
-}
-
-lh_bool_t
-lh_gl_label_shorten(const lh_gl_font_t *font, const lh_char_t *text, lh_s32_t room, lh_char_t *out,
-                    lh_u32_t size)
-{
-    const lh_bool_t has_ellipsis = lh_gl_font_has_code(font, 0x2026U);
-    const lh_s32_t tail =
-        has_ellipsis
-            ? lh_gl_font_get_advance(font, 0x2026U)
-            : 3 * lh_gl_font_get_advance(font, lh_cast_static(lh_u32_t, lh_char_map_period));
-    /* `…` is three bytes of UTF-8, and so are three dots. */
-    const lh_u32_t tail_bytes = 3U;
-    const lh_char_t *cursor = text;
-    const lh_char_t *fits = text;
-    lh_s32_t width = 0;
-
-    /* A line that fits, or text of several lines, is drawn as it is. */
-    for (cursor = text; lh_ptr_deref(cursor) != lh_char_map_nul; ++cursor)
-    {
-        lh_return_if(lh_ptr_deref(cursor) == lh_char_map_lf, lh_bool_false);
-    }
-    lh_return_if(lh_gl_text_get_width(font, text) <= room, lh_bool_false);
-
-    cursor = text;
-    lh_u32_t code;
-    while ((code = lh_str_utf8_get_next_code(lh_addr_of(cursor))) != 0U)
-    {
-        width += lh_gl_font_get_advance(font, code);
-        if (width + tail > room || lh_cast_static(lh_u32_t, cursor - text) + tail_bytes + 1U > size)
-        {
-            break;
-        }
-        fits = cursor;
-    }
-    lh_u32_t used = lh_cast_static(lh_u32_t, fits - text);
-    for (cursor = text; cursor < fits; ++cursor)
-    {
-        out[cursor - text] = lh_ptr_deref(cursor);
-    }
-    if (has_ellipsis)
-    {
-        used += lh_str_utf8_encode(out + used, size - used, 0x2026U);
-    }
-    else
-    {
-        out[used++] = lh_char_map_period;
-        out[used++] = lh_char_map_period;
-        out[used++] = lh_char_map_period;
-    }
-    lh_str_ptr_erase(out, used);
-    return lh_bool_true;
 }
 
 const lh_gl_container_t *
@@ -133,6 +29,37 @@ lh_gl_label_get_container_mut(lh_gl_label_t *self)
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->container);
 }
+
+const lh_gl_label_metrics_t *
+lh_gl_label_get_metrics(const lh_gl_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->metrics);
+}
+
+lh_gl_label_metrics_t *
+lh_gl_label_get_metrics_mut(lh_gl_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->metrics);
+}
+
+const lh_gl_label_seen_t *
+lh_gl_label_get_seen(const lh_gl_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->seen);
+}
+
+lh_gl_label_seen_t *
+lh_gl_label_get_seen_mut(lh_gl_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->seen);
+}
+
+const lh_gl_entity_class_t lh_gl_label_class = {lh_gl_label_event,
+                                                lh_addr_of(lh_gl_container_class)};
 
 lh_void
 lh_gl_label_set_container(lh_gl_label_t *self, lh_gl_container_t container)
@@ -155,244 +82,6 @@ lh_gl_label_set_metrics_ready(lh_gl_label_t *self, lh_bool_t metrics_ready)
     self->metrics_ready = metrics_ready;
 }
 
-lh_bool_t
-lh_gl_label_is_text_hashed(const lh_gl_label_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->text_hashed;
-}
-
-lh_void
-lh_gl_label_set_text_hashed(lh_gl_label_t *self, lh_bool_t text_hashed)
-{
-    lh_assert_runtime_ref(self);
-    self->text_hashed = text_hashed;
-}
-
-lh_u32_t
-lh_gl_label_get_text_hash(const lh_gl_label_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->text_hash;
-}
-
-lh_void
-lh_gl_label_set_text_hash(lh_gl_label_t *self, lh_u32_t text_hash)
-{
-    lh_assert_runtime_ref(self);
-    self->text_hash = text_hash;
-}
-
-lh_u32_t
-lh_gl_label_get_text_length(const lh_gl_label_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->text_length;
-}
-
-lh_void
-lh_gl_label_set_text_length(lh_gl_label_t *self, lh_u32_t text_length)
-{
-    lh_assert_runtime_ref(self);
-    self->text_length = text_length;
-}
-
-const lh_gl_rect_t *
-lh_gl_label_get_text_noted(const lh_gl_label_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->text_noted);
-}
-
-lh_gl_rect_t *
-lh_gl_label_get_text_noted_mut(lh_gl_label_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->text_noted);
-}
-
-lh_void
-lh_gl_label_set_text_noted(lh_gl_label_t *self, lh_gl_rect_t text_noted)
-{
-    lh_assert_runtime_ref(self);
-    self->text_noted = text_noted;
-}
-
-const struct lh_font *
-lh_gl_label_get_metrics_font(const lh_gl_label_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->metrics_font;
-}
-
-lh_void
-lh_gl_label_set_metrics_font(lh_gl_label_t *self, const struct lh_font *metrics_font)
-{
-    lh_assert_runtime_ref(self);
-    self->metrics_font = metrics_font;
-}
-
-const lh_gl_rect_t *
-lh_gl_label_get_metrics_rect(const lh_gl_label_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->metrics_rect);
-}
-
-lh_gl_rect_t *
-lh_gl_label_get_metrics_rect_mut(lh_gl_label_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->metrics_rect);
-}
-
-lh_void
-lh_gl_label_set_metrics_rect(lh_gl_label_t *self, lh_gl_rect_t metrics_rect)
-{
-    lh_assert_runtime_ref(self);
-    self->metrics_rect = metrics_rect;
-}
-
-const lh_gl_insets_t *
-lh_gl_label_get_metrics_padding(const lh_gl_label_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->metrics_padding);
-}
-
-lh_gl_insets_t *
-lh_gl_label_get_metrics_padding_mut(lh_gl_label_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->metrics_padding);
-}
-
-lh_void
-lh_gl_label_set_metrics_padding(lh_gl_label_t *self, lh_gl_insets_t metrics_padding)
-{
-    lh_assert_runtime_ref(self);
-    self->metrics_padding = metrics_padding;
-}
-
-lh_gl_text_align_h_t
-lh_gl_label_get_metrics_align_h(const lh_gl_label_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->metrics_align_h;
-}
-
-lh_void
-lh_gl_label_set_metrics_align_h(lh_gl_label_t *self, lh_gl_text_align_h_t metrics_align_h)
-{
-    lh_assert_runtime_ref(self);
-    self->metrics_align_h = metrics_align_h;
-}
-
-lh_gl_text_align_v_t
-lh_gl_label_get_metrics_align_v(const lh_gl_label_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->metrics_align_v;
-}
-
-lh_void
-lh_gl_label_set_metrics_align_v(lh_gl_label_t *self, lh_gl_text_align_v_t metrics_align_v)
-{
-    lh_assert_runtime_ref(self);
-    self->metrics_align_v = metrics_align_v;
-}
-
-const lh_gl_point_t *
-lh_gl_label_get_metrics_origin(const lh_gl_label_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->metrics_origin);
-}
-
-lh_gl_point_t *
-lh_gl_label_get_metrics_origin_mut(lh_gl_label_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->metrics_origin);
-}
-
-lh_void
-lh_gl_label_set_metrics_origin(lh_gl_label_t *self, lh_gl_point_t metrics_origin)
-{
-    lh_assert_runtime_ref(self);
-    self->metrics_origin = metrics_origin;
-}
-
-lh_gl_scalar_t
-lh_gl_label_get_metrics_ink_top(const lh_gl_label_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->metrics_ink_top;
-}
-
-lh_void
-lh_gl_label_set_metrics_ink_top(lh_gl_label_t *self, lh_gl_scalar_t metrics_ink_top)
-{
-    lh_assert_runtime_ref(self);
-    self->metrics_ink_top = metrics_ink_top;
-}
-
-lh_gl_scalar_t
-lh_gl_label_get_metrics_wrap(const lh_gl_label_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->metrics_wrap;
-}
-
-lh_void
-lh_gl_label_set_metrics_wrap(lh_gl_label_t *self, lh_gl_scalar_t metrics_wrap)
-{
-    lh_assert_runtime_ref(self);
-    self->metrics_wrap = metrics_wrap;
-}
-
-const lh_gl_rect_t *
-lh_gl_label_get_metrics_ink(const lh_gl_label_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->metrics_ink);
-}
-
-lh_gl_rect_t *
-lh_gl_label_get_metrics_ink_mut(lh_gl_label_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->metrics_ink);
-}
-
-lh_void
-lh_gl_label_set_metrics_ink(lh_gl_label_t *self, lh_gl_rect_t metrics_ink)
-{
-    lh_assert_runtime_ref(self);
-    self->metrics_ink = metrics_ink;
-}
-
-const lh_gl_size_t *
-lh_gl_label_get_metrics_size(const lh_gl_label_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->metrics_size);
-}
-
-lh_gl_size_t *
-lh_gl_label_get_metrics_size_mut(lh_gl_label_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->metrics_size);
-}
-
-lh_void
-lh_gl_label_set_metrics_size(lh_gl_label_t *self, lh_gl_size_t metrics_size)
-{
-    lh_assert_runtime_ref(self);
-    self->metrics_size = metrics_size;
-}
-
 lh_void
 lh_gl_label_set_text(lh_gl_label_t *self, const lh_char_t *text)
 {
@@ -400,7 +89,209 @@ lh_gl_label_set_text(lh_gl_label_t *self, const lh_char_t *text)
     self->text = text;
 }
 
-/* -- Lifetime and fields --------------------------------------------------- */
+lh_bool_t
+lh_gl_label_is_text_hashed(const lh_gl_label_t *self)
+{
+    return lh_gl_label_seen_is_hashed(lh_gl_label_get_seen(self));
+}
+
+lh_void
+lh_gl_label_set_text_hashed(lh_gl_label_t *self, lh_bool_t text_hashed)
+{
+    lh_gl_label_seen_set_hashed(lh_gl_label_get_seen_mut(self), text_hashed);
+}
+
+lh_u32_t
+lh_gl_label_get_text_hash(const lh_gl_label_t *self)
+{
+    return lh_gl_label_seen_get_hash(lh_gl_label_get_seen(self));
+}
+
+lh_void
+lh_gl_label_set_text_hash(lh_gl_label_t *self, lh_u32_t text_hash)
+{
+    lh_gl_label_seen_set_hash(lh_gl_label_get_seen_mut(self), text_hash);
+}
+
+lh_u32_t
+lh_gl_label_get_text_length(const lh_gl_label_t *self)
+{
+    return lh_gl_label_seen_get_length(lh_gl_label_get_seen(self));
+}
+
+lh_void
+lh_gl_label_set_text_length(lh_gl_label_t *self, lh_u32_t text_length)
+{
+    lh_gl_label_seen_set_length(lh_gl_label_get_seen_mut(self), text_length);
+}
+
+const lh_gl_rect_t *
+lh_gl_label_get_text_noted(const lh_gl_label_t *self)
+{
+    return lh_gl_label_seen_get_noted(lh_gl_label_get_seen(self));
+}
+
+lh_gl_rect_t *
+lh_gl_label_get_text_noted_mut(lh_gl_label_t *self)
+{
+    return lh_gl_label_seen_get_noted_mut(lh_gl_label_get_seen_mut(self));
+}
+
+lh_void
+lh_gl_label_set_text_noted(lh_gl_label_t *self, lh_gl_rect_t text_noted)
+{
+    lh_gl_label_seen_set_noted(lh_gl_label_get_seen_mut(self), text_noted);
+}
+
+const struct lh_font *
+lh_gl_label_get_metrics_font(const lh_gl_label_t *self)
+{
+    return lh_gl_label_metrics_get_font(lh_gl_label_get_metrics(self));
+}
+
+lh_void
+lh_gl_label_set_metrics_font(lh_gl_label_t *self, const struct lh_font *metrics_font)
+{
+    lh_gl_label_metrics_set_font(lh_gl_label_get_metrics_mut(self), metrics_font);
+}
+
+const lh_gl_rect_t *
+lh_gl_label_get_metrics_rect(const lh_gl_label_t *self)
+{
+    return lh_gl_label_metrics_get_rect(lh_gl_label_get_metrics(self));
+}
+
+lh_gl_rect_t *
+lh_gl_label_get_metrics_rect_mut(lh_gl_label_t *self)
+{
+    return lh_gl_label_metrics_get_rect_mut(lh_gl_label_get_metrics_mut(self));
+}
+
+lh_void
+lh_gl_label_set_metrics_rect(lh_gl_label_t *self, lh_gl_rect_t metrics_rect)
+{
+    lh_gl_label_metrics_set_rect(lh_gl_label_get_metrics_mut(self), metrics_rect);
+}
+
+const lh_gl_insets_t *
+lh_gl_label_get_metrics_padding(const lh_gl_label_t *self)
+{
+    return lh_gl_label_metrics_get_padding(lh_gl_label_get_metrics(self));
+}
+
+lh_gl_insets_t *
+lh_gl_label_get_metrics_padding_mut(lh_gl_label_t *self)
+{
+    return lh_gl_label_metrics_get_padding_mut(lh_gl_label_get_metrics_mut(self));
+}
+
+lh_void
+lh_gl_label_set_metrics_padding(lh_gl_label_t *self, lh_gl_insets_t metrics_padding)
+{
+    lh_gl_label_metrics_set_padding(lh_gl_label_get_metrics_mut(self), metrics_padding);
+}
+
+lh_gl_text_align_h_t
+lh_gl_label_get_metrics_align_h(const lh_gl_label_t *self)
+{
+    return lh_gl_label_metrics_get_align_h(lh_gl_label_get_metrics(self));
+}
+
+lh_void
+lh_gl_label_set_metrics_align_h(lh_gl_label_t *self, lh_gl_text_align_h_t metrics_align_h)
+{
+    lh_gl_label_metrics_set_align_h(lh_gl_label_get_metrics_mut(self), metrics_align_h);
+}
+
+lh_gl_text_align_v_t
+lh_gl_label_get_metrics_align_v(const lh_gl_label_t *self)
+{
+    return lh_gl_label_metrics_get_align_v(lh_gl_label_get_metrics(self));
+}
+
+lh_void
+lh_gl_label_set_metrics_align_v(lh_gl_label_t *self, lh_gl_text_align_v_t metrics_align_v)
+{
+    lh_gl_label_metrics_set_align_v(lh_gl_label_get_metrics_mut(self), metrics_align_v);
+}
+
+const lh_gl_point_t *
+lh_gl_label_get_metrics_origin(const lh_gl_label_t *self)
+{
+    return lh_gl_label_metrics_get_origin(lh_gl_label_get_metrics(self));
+}
+
+lh_gl_point_t *
+lh_gl_label_get_metrics_origin_mut(lh_gl_label_t *self)
+{
+    return lh_gl_label_metrics_get_origin_mut(lh_gl_label_get_metrics_mut(self));
+}
+
+lh_void
+lh_gl_label_set_metrics_origin(lh_gl_label_t *self, lh_gl_point_t metrics_origin)
+{
+    lh_gl_label_metrics_set_origin(lh_gl_label_get_metrics_mut(self), metrics_origin);
+}
+
+lh_gl_scalar_t
+lh_gl_label_get_metrics_ink_top(const lh_gl_label_t *self)
+{
+    return lh_gl_label_metrics_get_ink_top(lh_gl_label_get_metrics(self));
+}
+
+lh_void
+lh_gl_label_set_metrics_ink_top(lh_gl_label_t *self, lh_gl_scalar_t metrics_ink_top)
+{
+    lh_gl_label_metrics_set_ink_top(lh_gl_label_get_metrics_mut(self), metrics_ink_top);
+}
+
+lh_gl_scalar_t
+lh_gl_label_get_metrics_wrap(const lh_gl_label_t *self)
+{
+    return lh_gl_label_metrics_get_wrap(lh_gl_label_get_metrics(self));
+}
+
+lh_void
+lh_gl_label_set_metrics_wrap(lh_gl_label_t *self, lh_gl_scalar_t metrics_wrap)
+{
+    lh_gl_label_metrics_set_wrap(lh_gl_label_get_metrics_mut(self), metrics_wrap);
+}
+
+const lh_gl_rect_t *
+lh_gl_label_get_metrics_ink(const lh_gl_label_t *self)
+{
+    return lh_gl_label_metrics_get_ink(lh_gl_label_get_metrics(self));
+}
+
+lh_gl_rect_t *
+lh_gl_label_get_metrics_ink_mut(lh_gl_label_t *self)
+{
+    return lh_gl_label_metrics_get_ink_mut(lh_gl_label_get_metrics_mut(self));
+}
+
+lh_void
+lh_gl_label_set_metrics_ink(lh_gl_label_t *self, lh_gl_rect_t metrics_ink)
+{
+    lh_gl_label_metrics_set_ink(lh_gl_label_get_metrics_mut(self), metrics_ink);
+}
+
+const lh_gl_size_t *
+lh_gl_label_get_metrics_size(const lh_gl_label_t *self)
+{
+    return lh_gl_label_metrics_get_size(lh_gl_label_get_metrics(self));
+}
+
+lh_gl_size_t *
+lh_gl_label_get_metrics_size_mut(lh_gl_label_t *self)
+{
+    return lh_gl_label_metrics_get_size_mut(lh_gl_label_get_metrics_mut(self));
+}
+
+lh_void
+lh_gl_label_set_metrics_size(lh_gl_label_t *self, lh_gl_size_t metrics_size)
+{
+    lh_gl_label_metrics_set_size(lh_gl_label_get_metrics_mut(self), metrics_size);
+}
 
 lh_gl_entity_t *
 lh_gl_label_as_entity(lh_gl_label_t *self)
@@ -412,62 +303,6 @@ lh_gl_container_t *
 lh_gl_label_as_container(lh_gl_label_t *self)
 {
     return lh_gl_label_get_container_mut(self);
-}
-
-lh_void
-lh_gl_label_drop_metrics(lh_gl_label_t *self)
-{
-    /* The bytes changed under the label: the next ::lh_gl_label_set_text_v must not
-       take them for the same ones. */
-    lh_gl_label_set_metrics_ready(self, lh_bool_false);
-    lh_gl_label_set_text_hashed(self, lh_bool_false);
-}
-
-const lh_gl_font_t *
-lh_gl_label_get_font(const lh_gl_label_t *self)
-{
-    const lh_gl_style_t *style =
-        lh_gl_entity_get_style(lh_gl_container_get_entity(lh_gl_label_get_container(self)));
-
-    return lh_null_eq(style) ? lh_null : lh_gl_style_get_font(style);
-}
-
-const lh_gl_color_t *
-lh_gl_label_get_text_color(const lh_gl_label_t *self)
-{
-    /* The paint of the text follows a press, its place does not: the origin
-       below reads the font, the padding and the alignment from the entity's own
-       style, so nothing moves under the pointer. */
-    const lh_gl_style_t *style =
-        lh_gl_entity_get_style_now(lh_gl_container_get_entity(lh_gl_label_get_container(self)));
-
-    return lh_null_eq(style) ? lh_null : lh_gl_style_get_text_color(style);
-}
-
-lh_gl_scalar_t
-lh_gl_label_get_wrap_width(const lh_gl_label_t *self)
-{
-    const lh_gl_entity_t *entity = lh_gl_container_get_entity(lh_gl_label_get_container(self));
-    const lh_gl_style_t *style = lh_gl_entity_get_style(entity);
-
-    lh_return_if(lh_null_eq(style) || lh_gl_style_get_wrap(style) != lh_gl_text_wrap_words,
-                 lh_gl_scalar(0));
-    lh_gl_insets_t padding;
-    lh_gl_entity_get_padding(entity, lh_addr_of(padding));
-    lh_gl_scalar_t width =
-        lh_gl_size_get_width(lh_gl_rect_get_size(lh_gl_entity_get_rect(entity))) -
-        lh_gl_insets_get_left(lh_addr_of(padding)) - lh_gl_insets_get_right(lh_addr_of(padding));
-    /* A box with no room still wraps, one letter a line, rather than not at all. */
-    return lh_math_max(width, lh_gl_scalar(1));
-}
-
-lh_gl_text_align_h_t
-lh_gl_label_get_line_align(const lh_gl_label_t *self)
-{
-    const lh_gl_style_t *style =
-        lh_gl_entity_get_style(lh_gl_container_get_entity(lh_gl_label_get_container(self)));
-
-    return lh_null_eq(style) ? lh_gl_text_align_h_left : lh_gl_style_get_align_h(style);
 }
 
 lh_void
@@ -484,302 +319,4 @@ lh_gl_label_init(lh_gl_label_t *self, lh_gl_rect_t rect, const lh_char_t *text)
     lh_gl_label_set_text_hashed(self, lh_bool_true);
     lh_gl_rect_init_empty(lh_gl_label_get_text_noted_mut(self));
     lh_gl_entity_set_class_v(lh_gl_label_as_entity(self), lh_addr_of(lh_gl_label_class));
-}
-
-const lh_gl_label_t *
-lh_gl_label_measured(const lh_gl_label_t *self)
-{
-    lh_gl_label_t *label = lh_ptr_rcast(lh_gl_label_t, self);
-    const lh_gl_entity_t *entity = lh_gl_container_get_entity(lh_gl_label_get_container(self));
-    const lh_gl_style_t *style = lh_gl_entity_get_style(entity);
-    const lh_gl_font_t *font = lh_gl_label_get_font(self);
-    lh_gl_insets_t padding;
-    lh_gl_entity_get_padding(entity, lh_addr_of(padding));
-    const lh_gl_text_align_h_t align_h =
-        lh_null_eq(style) ? lh_gl_text_align_h_left : lh_gl_style_get_align_h(style);
-    const lh_gl_text_align_v_t align_v =
-        lh_null_eq(style) ? lh_gl_text_align_v_top : lh_gl_style_get_align_v(style);
-    const lh_gl_scalar_t wrap = lh_gl_label_get_wrap_width(self);
-
-    if (lh_gl_label_is_metrics_ready(self) && lh_gl_label_get_metrics_font(self) == font &&
-        lh_gl_label_get_metrics_wrap(self) == wrap &&
-        lh_gl_label_get_metrics_align_h(self) == align_h &&
-        lh_gl_label_get_metrics_align_v(self) == align_v &&
-        lh_gl_rect_eq(lh_gl_label_get_metrics_rect(self), lh_gl_entity_get_rect(entity)) &&
-        lh_gl_label_same_insets(lh_gl_label_get_metrics_padding(self), lh_addr_of(padding)))
-    {
-        return self;
-    }
-    lh_gl_label_set_metrics_font(label, font);
-    lh_gl_label_set_metrics_wrap(label, wrap);
-    lh_gl_label_set_metrics_align_h(label, align_h);
-    lh_gl_label_set_metrics_align_v(label, align_v);
-    lh_gl_label_set_metrics_rect(label, lh_ptr_deref(lh_gl_entity_get_rect(entity)));
-    lh_gl_label_set_metrics_padding(label, padding);
-    lh_gl_size_init(lh_gl_label_get_metrics_size_mut(label), 0, 0);
-    lh_gl_label_set_metrics_ink_top(label, 0);
-    if (lh_null_ne(font) && lh_null_ne(lh_gl_label_get_text(self)))
-    {
-        lh_gl_text_block_t block;
-
-        /* One walk of the text for both: the size and the first ink row are two
-           questions about the same lines. */
-        lh_gl_text_block_measure(lh_addr_of(block), font, lh_gl_label_get_text(self), wrap);
-        lh_gl_text_block_get_size(lh_addr_of(block), font, lh_gl_label_get_metrics_size_mut(label));
-        lh_gl_label_set_metrics_ink_top(label, lh_gl_text_block_get_ink_top(lh_addr_of(block)));
-    }
-    /* The padding is what keeps the text off the edges, and the alignment is where
-       inside what the padding leaves it starts. Left and top are what this returned
-       before a style could say otherwise, so a style that never set one draws the
-       label exactly as it did. The size is the ink's
-       (::lh_gl_text_get_size), so what is aligned here is the pixels and every
-       v_* means what it says: a 22 px line box with 15 px of ink used to be what
-       got centred, and the caption sat five rows low. */
-    lh_gl_size_t aligned;
-    lh_gl_size_init(lh_addr_of(aligned), 0, 0);
-    if (lh_null_ne(style))
-    {
-        aligned = lh_ptr_deref(lh_gl_label_get_metrics_size(label));
-    }
-    lh_gl_text_align_get_origin(lh_gl_entity_get_rect(entity), lh_addr_of(padding), aligned,
-                                align_h, align_v, lh_gl_label_get_metrics_origin_mut(label));
-    lh_gl_rect_init_empty(lh_gl_label_get_metrics_ink_mut(label));
-    if (lh_null_ne(font) && lh_null_ne(lh_gl_label_get_text(self)))
-    {
-        lh_gl_text_get_ink_rect_wrapped(font, lh_gl_label_get_text(self),
-                                        lh_ptr_deref(lh_gl_label_get_metrics_origin(label)), wrap,
-                                        align_h, lh_gl_label_get_metrics_ink_mut(label));
-    }
-    lh_gl_label_set_metrics_ready(label, lh_bool_true);
-    return self;
-}
-
-lh_bool_t
-lh_gl_label_can_draw_text(const lh_gl_label_t *self, const lh_gl_canvas_t *canvas)
-{
-    return lh_null_ne(canvas) && lh_null_ne(lh_gl_label_get_text(self)) &&
-                   lh_null_ne(lh_gl_label_get_font(self)) &&
-                   lh_null_ne(lh_gl_label_get_text_color(self))
-               ? lh_bool_true
-               : lh_bool_false;
-}
-
-/* -- Text ------------------------------------------------------------------ */
-
-lh_gl_scalar_t
-lh_gl_label_get_ink_top(const lh_gl_label_t *self)
-{
-    return lh_gl_label_measured(self)->metrics_ink_top;
-}
-
-lh_void
-lh_gl_label_get_text_origin(const lh_gl_label_t *self, lh_gl_point_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_ptr_deref(out) = lh_gl_label_measured(self)->metrics_origin;
-}
-
-lh_gl_scalar_t
-lh_gl_label_get_baseline(const lh_gl_label_t *self)
-{
-    const lh_gl_entity_t *entity = lh_gl_container_get_entity(lh_gl_label_get_container(self));
-    const lh_gl_font_t *font = lh_gl_label_get_font(self);
-    const lh_gl_label_t *measured = lh_gl_label_measured(self);
-    const lh_gl_point_t origin = lh_ptr_deref(lh_gl_label_get_metrics_origin(measured));
-    const lh_gl_point_t *box = lh_gl_rect_get_origin(lh_gl_entity_get_rect(entity));
-
-    /* Nothing stands on a line that is not drawn. */
-    if (lh_null_eq(font) || lh_null_eq(lh_gl_label_get_text(self)))
-    {
-        return lh_gl_scalar(-1);
-    }
-    lh_return_if(lh_gl_size_get_height(lh_gl_label_get_metrics_size(measured)) == lh_gl_scalar(0),
-                 lh_gl_scalar(-1));
-    /* The line the letters stand on is where the **tallest letter of this run**
-       ends, and the origin is where the ink of the run goes, so the line is the
-       ascent down from where that tallest letter's ink begins — `ascent -
-       ink_top(run)`, because ::lh_gl_text_get_ink_top is the ascent plus the top of
-       the highest glyph and the two ascents cancel.
-
-       It is not the cap height, though those agree on most captions: a run with a
-       capital in it is exactly as tall as the cap line, and the demo's "Hide panel"
-       is one of them (measured: ink top 5, ascent 17, so 12 = the cap height, and
-       the line lands on row 200). A run whose letters rise above the cap line — a
-       'd', an 'h', a 't' — is taller than the cap block, the flow centres that
-       block, and taking the cap height would stand the icon a row below where the
-       letters stand. Measured on ::lh_test::cap_font (line 8, ascent 6, cap 4):
-       "H" gives 4 and "d" gives 5, and both letters' ink ends on row 6.
-
-       The first line's, which is what a row lines up on. */
-    lh_gl_scalar_t baseline = lh_gl_point_get_y(lh_addr_of(origin)) - lh_gl_point_get_y(box) +
-                              lh_cast_static(lh_gl_scalar_t, lh_gl_font_get_ascent(font)) -
-                              lh_gl_label_get_metrics_ink_top(measured);
-    return baseline;
-}
-
-lh_void
-lh_gl_label_get_text_rect(const lh_gl_label_t *self, lh_gl_rect_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_ptr_deref(out) = lh_gl_label_measured(self)->metrics_ink;
-}
-
-lh_void
-lh_gl_label_on_baseline(const lh_gl_label_t *self, const lh_gl_entity_event_t *event)
-{
-    lh_gl_scalar_t *answer;
-
-    LH_ATTRIBUTE_UNUSED(self);
-    lh_return_if(lh_gl_entity_event_get_code(event) != lh_gl_entity_event_baseline);
-    /* The one thing that stands on a line in this picture is the text, and where
-       that line is follows the alignment and the padding, not the box: a label
-       centred in 28 rows has its baseline in the middle of them. */
-    answer = lh_gl_entity_event_get_baseline(lh_ptr_rcast(lh_gl_entity_event_t, event));
-    lh_ptr_deref(answer) = lh_gl_label_get_baseline(self);
-}
-
-lh_void
-lh_gl_label_on_measure(const lh_gl_label_t *self, const lh_gl_entity_event_t *event)
-{
-    lh_return_if(lh_gl_entity_event_get_code(event) != lh_gl_entity_event_measure);
-    lh_gl_rect_t *bounds = lh_gl_entity_event_get_bounds(event);
-    lh_gl_rect_t text;
-    lh_gl_label_get_text_rect(self, lh_addr_of(text));
-    lh_gl_rect_union(bounds, lh_addr_of(text), bounds);
-}
-
-lh_void
-lh_gl_label_get_ink_reach(lh_gl_label_t *self, lh_gl_rect_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_gl_rect_t text;
-    lh_gl_label_get_text_rect(self, lh_addr_of(text));
-    lh_gl_rect_t box;
-    lh_gl_entity_copy_rect(lh_gl_label_as_entity(self), lh_addr_of(box));
-    const lh_gl_point_t *origin = lh_gl_rect_get_origin(lh_addr_of(box));
-
-    if (lh_gl_rect_is_empty(lh_addr_of(text)))
-    {
-        lh_ptr_deref(out) = text;
-        return;
-    }
-    lh_gl_rect_offset(lh_addr_of(text), lh_math_neg(lh_gl_point_get_x(origin)),
-                      lh_math_neg(lh_gl_point_get_y(origin)), out);
-}
-
-lh_void
-lh_gl_label_draw_text(const lh_gl_label_t *self, lh_gl_canvas_t *canvas)
-{
-    const lh_gl_entity_t *entity = lh_gl_container_get_entity(lh_gl_label_get_container(self));
-    const lh_gl_style_t *style = lh_gl_entity_get_style(entity);
-    const lh_char_t *text = lh_gl_label_get_text(self);
-
-    lh_return_if(!lh_gl_label_can_draw_text(self, canvas));
-    /* text may point into shortened, so shortened lives as long as text. */
-    lh_char_t shortened[256];
-    /* A text that wraps has no line that runs past the box to shorten. */
-    if (lh_null_ne(style) && lh_gl_style_get_overflow(style) == lh_gl_text_overflow_ellipsis &&
-        lh_gl_style_get_wrap(style) == lh_gl_text_wrap_none)
-    {
-        lh_gl_insets_t padding;
-        lh_gl_entity_get_padding(entity, lh_addr_of(padding));
-        lh_gl_rect_t rect;
-        lh_gl_entity_copy_rect(entity, lh_addr_of(rect));
-        const lh_s32_t room =
-            lh_gl_scalar_floor_s32(lh_gl_size_get_width(lh_gl_rect_get_size(lh_addr_of(rect))) -
-                                   lh_gl_insets_get_left(lh_addr_of(padding)) -
-                                   lh_gl_insets_get_right(lh_addr_of(padding)));
-        /* A line that does not fit is drawn from where it starts anyway -- a line wider
-           than its box starts at the left whatever the alignment -- so the shortened
-           one is drawn from the same place. */
-        if (lh_gl_label_shorten(lh_gl_label_get_font(self), lh_gl_label_get_text(self), room,
-                                shortened, lh_cast_static(lh_u32_t, sizeof(shortened))))
-        {
-            text = shortened;
-        }
-    }
-    lh_bool_t pushed = lh_gl_entity_push_children(entity, canvas);
-    if (text == lh_gl_label_get_text(self))
-    {
-        /* Wrapped or not: with no width to wrap at, these are the plain lines. */
-        lh_gl_point_t point;
-        lh_gl_label_get_text_origin(self, lh_addr_of(point));
-        lh_gl_text_draw_wrapped_from(
-            canvas, lh_gl_label_get_font(self), text, point, lh_gl_label_get_text_color(self),
-            lh_gl_label_get_ink_top(self), lh_gl_label_get_wrap_width(self),
-            lh_gl_label_get_line_align(self));
-    }
-    else
-    {
-        lh_gl_point_t point1;
-        lh_gl_label_get_text_origin(self, lh_addr_of(point1));
-        lh_gl_text_draw(canvas, lh_gl_label_get_font(self), text, point1,
-                        lh_gl_label_get_text_color(self));
-    }
-    lh_return_if(!pushed);
-    lh_gl_canvas_pop(canvas);
-}
-
-lh_void
-lh_gl_label_set_text_v(lh_gl_label_t *self, const lh_char_t *text)
-{
-    lh_u32_t length;
-
-    lh_u32_t hash = lh_gl_label_hash_text(text, lh_addr_of(length));
-    if (lh_gl_label_is_text_hashed(self) && hash == lh_gl_label_get_text_hash(self) &&
-        length == lh_gl_label_get_text_length(self))
-    {
-        /* The same bytes, perhaps at a new address: nothing on screen changes. */
-        lh_gl_label_set_text(self, text);
-        return;
-    }
-    lh_gl_entity_t *entity = lh_gl_label_as_entity(self);
-    lh_gl_rect_t box;
-    lh_gl_entity_copy_rect(entity, lh_addr_of(box));
-    /* Before: the box, and the old text where it was last recorded. Measuring the text
-       now would measure the **new** bytes whenever the caller rewrote the buffer first,
-       which is how a cell is usually updated -- so the remembered reach is what is
-       erased, and when there is none yet (the first change) the current measure is. */
-    if (lh_gl_rect_is_empty(lh_gl_label_get_text_noted_mut(self)))
-    {
-        lh_gl_label_get_ink_reach(self, lh_gl_label_get_text_noted_mut(self));
-    }
-    lh_gl_rect_t old_ink;
-    lh_gl_rect_offset(lh_gl_label_get_text_noted_mut(self),
-                      lh_gl_point_get_x(lh_gl_rect_get_origin(lh_addr_of(box))),
-                      lh_gl_point_get_y(lh_gl_rect_get_origin(lh_addr_of(box))),
-                      lh_addr_of(old_ink));
-    lh_gl_entity_note_rect(entity, lh_addr_of(box));
-    lh_gl_entity_note_rect(entity, lh_addr_of(old_ink));
-
-    lh_gl_label_set_text(self, text);
-    lh_gl_label_set_text_hashed(self, lh_bool_true);
-    lh_gl_label_set_text_hash(self, hash);
-    lh_gl_label_set_text_length(self, length);
-    lh_gl_label_set_metrics_ready(self, lh_bool_false);
-    lh_gl_label_get_ink_reach(self, lh_gl_label_get_text_noted_mut(self));
-    /* After: the box and the new text (a leaf's note includes what it measures). */
-    lh_gl_entity_note(entity);
-}
-
-/* -- Draw and events ------------------------------------------------------- */
-
-lh_void
-lh_gl_label_on_draw(const lh_gl_label_t *self, const lh_gl_entity_event_t *event)
-{
-    lh_return_if(lh_gl_entity_event_get_code(event) != lh_gl_entity_event_draw);
-    lh_gl_label_draw_text(self, lh_gl_entity_event_get_canvas(event));
-}
-
-lh_void
-lh_gl_label_event(const struct lh_gl_entity *self, const lh_gl_entity_event_t *event)
-{
-    /* The container (and its entity) is the first field: self is the label. */
-    const lh_gl_label_t *label = lh_ptr_rcast(const lh_gl_label_t, self);
-
-    lh_gl_entity_class_event_base(lh_addr_of(lh_gl_label_class), self, event);
-    lh_gl_label_on_children(label, event);
-    lh_gl_label_on_baseline(label, event);
-    lh_gl_label_on_draw(label, event);
-    lh_gl_label_on_measure(label, event);
 }
