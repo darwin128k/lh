@@ -10,8 +10,11 @@
  *
  * Input is routed by the standard window/controller/view path. Each timer turn
  * runs the optional application update hook, advances the view and requests a
- * repaint when needed. An OS paint draws a complete frame, including exposure
- * and resize; the existing screen backend presents it. Coordinates are native
+ * repaint of what changed. An OS paint draws the rectangle the system asks for
+ * -- the widgets that changed, an exposure, a resize -- and the existing screen
+ * backend presents it. A change is handed to the system as its own rectangle
+ * (::lh_gl_window_invalidate_damage), so the system's request is what changed
+ * and what was uncovered, and nothing else is drawn. Coordinates are native
  * pixels, without scaling. Closing follows the OS application's existing rules.
  *
  * The native window is accessible for caption/frame configuration. Its input
@@ -193,17 +196,6 @@ lh_void
 lh_gl_window_set_on_update(lh_gl_window_t *self, lh_os_window_on_tick_cb on_update, lh_ptr context);
 
 /**
- * @brief Initialize owned hosting parts and mount a borrowed root.
- * @param self Storage for a new composition; never null, not already initialized.
- * @param root Entity tree with no parent and no other owning view. May be null
- *             for an empty view; must outlive the composition while mounted.
- *
- * No native window is opened. Pairs with deinit even if try_open fails.
- */
-lh_void
-lh_gl_window_init(lh_gl_window_t *self, lh_gl_entity_t *root);
-
-/**
  * @brief Open the owned native window in an existing application.
  * @param self Initialized composition with no open native window.
  * @param app Borrowed initialized application; outlives the open window.
@@ -218,6 +210,56 @@ lh_gl_window_try_open(lh_gl_window_t *self, struct lh_os_app *app, const char *t
                       int height);
 
 /**
+ * @brief Whether widget changes or canvas operations require a paint.
+ * @param self Initialized composition; never null.
+ * @return True for pending view damage or accumulated canvas damage. Checking
+ *         does not consume either; scrolling records its damage on the canvas.
+ */
+lh_bool_t
+lh_gl_window_needs_paint(const lh_gl_window_t *self);
+
+/**
+ * @brief The rectangle the system asks this paint for, from the native paint cycle
+ *        (::lh_os_window_get_paint_rect).
+ *
+ * @param self Initialized composition; never null.
+ * @param out  The rectangle in client pixels; never null. Untouched on false.
+ * @return False outside a paint cycle, or when the system gave an empty rectangle:
+ *         then the paint does not know what was asked and draws everything.
+ */
+lh_bool_t
+lh_gl_window_try_get_paint_area(const lh_gl_window_t *self, lh_gl_rect_t *out);
+
+/**
+ * @brief Hand what changed to the system as rectangles to repaint, and forget it
+ *        here.
+ *
+ * The view's pending damage (in client pixels) goes out a rectangle at a time
+ * (::lh_os_window_invalidate_rect), each widened to whole pixels; one wholly
+ * inside @p painting is skipped, because the paint that is running draws it. The
+ * canvas's damage recorded between frames -- a scroll's -- is in the space of the
+ * rectangles that moved, not of the window, so it asks for the whole window
+ * (::lh_os_window_invalidate). Both are cleared: the system keeps the request
+ * until its paint, so nothing that changed is lost between the update and the
+ * paint.
+ *
+ * @param self     Initialized composition; never null.
+ * @param painting What the running paint draws, or ::lh_null outside a paint.
+ */
+lh_void
+lh_gl_window_invalidate_damage(lh_gl_window_t *self, const lh_gl_rect_t *painting);
+
+/**
+ * @brief Cancel in-progress input and request a full paint after resizing.
+ * @param window The owned native window.
+ * @param width New client width in native pixels.
+ * @param height New client height in native pixels.
+ * @param context Its initialized lh_gl_window_t; never null.
+ */
+lh_void
+lh_gl_window_on_resize(lh_os_window_t *window, int width, int height, lh_ptr context);
+
+/**
  * @brief Checked try_open; runtime failure if native creation fails.
  * @param self Initialized composition with no open native window.
  * @param app Initialized application, borrowed while the window is open.
@@ -228,15 +270,6 @@ lh_gl_window_try_open(lh_gl_window_t *self, struct lh_os_app *app, const char *t
 lh_void
 lh_gl_window_open(lh_gl_window_t *self, struct lh_os_app *app, const char *title, int width,
                   int height);
-
-/**
- * @brief Whether widget changes or canvas operations require a paint.
- * @param self Initialized composition; never null.
- * @return True for pending view damage or accumulated canvas damage. Checking
- *         does not consume either; scrolling records its damage on the canvas.
- */
-lh_bool_t
-lh_gl_window_needs_paint(const lh_gl_window_t *self);
 
 /**
  * @brief Run the optional update, view animation and repaint scheduling once.
@@ -251,11 +284,23 @@ lh_gl_window_update(lh_gl_window_t *self);
  * @brief Render the borrowed entity tree into the native paint target.
  * @param self Initialized composition, inside its native window's paint callback.
  *
- * Consumes pending view damage and draws a full frame because an OS exposure
- * can request pixels outside the most recent widget change.
+ * Draws the rectangle the system asks for (::lh_gl_window_try_get_paint_area) --
+ * the whole frame when it does not say. A change made since the last update is
+ * handed to the system first (::lh_gl_window_invalidate_damage) unless this paint
+ * covers it, so it is drawn by the next paint instead of being dropped.
  */
 lh_void
 lh_gl_window_paint(lh_gl_window_t *self);
+
+/**
+ * @brief Close the native window, release its surface and detach the entity tree.
+ * @param self Initialized composition; use exactly once before reinitializing.
+ *
+ * Cancels active input before detaching the root. Does not destroy the borrowed
+ * root or application. The root no longer points to this view afterwards.
+ */
+lh_void
+lh_gl_window_deinit(lh_gl_window_t *self);
 
 /**
  * @brief Native tick callback delegating to update.
@@ -274,24 +319,15 @@ lh_void
 lh_gl_window_on_paint(lh_os_window_t *window, lh_ptr context);
 
 /**
- * @brief Cancel in-progress input and request a full paint after resizing.
- * @param window The owned native window.
- * @param width New client width in native pixels.
- * @param height New client height in native pixels.
- * @param context Its initialized lh_gl_window_t; never null.
- */
-lh_void
-lh_gl_window_on_resize(lh_os_window_t *window, int width, int height, lh_ptr context);
-
-/**
- * @brief Close the native window, release its surface and detach the entity tree.
- * @param self Initialized composition; use exactly once before reinitializing.
+ * @brief Initialize owned hosting parts and mount a borrowed root.
+ * @param self Storage for a new composition; never null, not already initialized.
+ * @param root Entity tree with no parent and no other owning view. May be null
+ *             for an empty view; must outlive the composition while mounted.
  *
- * Cancels active input before detaching the root. Does not destroy the borrowed
- * root or application. The root no longer points to this view afterwards.
+ * No native window is opened. Pairs with deinit even if try_open fails.
  */
 lh_void
-lh_gl_window_deinit(lh_gl_window_t *self);
+lh_gl_window_init(lh_gl_window_t *self, lh_gl_entity_t *root);
 
 LH_COMPILER_EXTERN_C_END
 

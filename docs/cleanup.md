@@ -24,35 +24,6 @@ removed on 2026-11-18.
 
 **The plan.** The table and its getter move to the core's font.
 
-## The window throws the damage away
-
-**The debt.** `src/lh/gl/window.c`, the paint path of `lh_gl_window_t`: it
-takes the damage into a local variable and then calls `lh_gl_view_paint`,
-which draws the whole frame — the damage is computed and dropped. The
-partial path exists (`lh_gl_view_draw_strips`, and `lh_gl_view_draw` with a
-damage), but the window does not take it. So the desktop redraws everything
-on every paint.
-
-The bench hides this: `bench/lvgl/scene_lh.c` measures the partial path
-(`lh_gl_view_draw(&view, &partial)`), which the window never takes. The
-"partial" rows of `bench/lvgl/RESULTS.md` therefore describe a path the
-product does not use.
-
-**Why it is not a three-line fix.** The damage has to be invalidated at the
-moment it appears, and it has to stay pending until the part that changed has
-been painted. The window cannot do that with the view's damage alone: it also
-has to know what it has invalidated and not yet painted — a second list, in the
-window — and the view has no way to reach the OS window to invalidate from
-there. That is the work of the part that owns the pixels, and it is why the
-first attempt at the fix was taken back: taking the damage at the invalidation
-loses whatever changed between the update and the paint.
-
-**The plan.** The part that owns the pixels owns the damage and the
-invalidation: the entity reports, the canvas remembers, and the canvas is what
-tells the platform what to repaint. The window then takes the partial path.
-
-**The date.** The owner named it on 2026-11-17.
-
 ## The render backend named after GDI
 
 **The debt.** `lh/os/render/backend/gdi.h` describes itself as "the same

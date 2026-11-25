@@ -58,6 +58,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The gl window paints only what changed. An update hands each rectangle of the
+  view's damage to the window system (`lh_gl_window_invalidate_damage`, over
+  `lh_os_window_invalidate_rect`) instead of invalidating the whole window, and
+  the paint draws the rectangle the system asks for
+  (`lh_gl_window_try_get_paint_area`, `lh_gl_view_draw` with that damage) — the
+  changes and any exposure — instead of the whole frame. A change made between the
+  update and the paint is handed to the system too, unless this paint covers it,
+  so nothing is dropped. A scroll's damage on the canvas, and a running animation,
+  still ask for the whole window. In a real 800x600 window of 48 cards, one card
+  changing colour costs a paint of 53-90 microseconds (median) against 0.9-1.4
+  milliseconds before: 8 100 pixels drawn instead of 480 000.
 - A four-bit mask is read eight pixels a step in the core: gl's
   `lh_gl_mask_unpack_4_words`, `lh_gl_mask_unpack_4_sse2` and
   `lh_gl_mask_get_coverage_8` moved to `lh/core/pixel/mask.h` as

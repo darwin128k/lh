@@ -13,6 +13,7 @@
 #include <lh/test/gl/draw_log.h>
 #include <lh/expect/death.h>
 #include <cstdlib>
+#include <vector>
 
 namespace
 {
@@ -285,12 +286,163 @@ TEST_F(ui_window, update_hook_changes_widgets_and_can_be_disabled)
     lh_gl_window_set_on_update(&host, update_root, &log);
     lh_os_window_on_native_tick(lh_gl_window_get_window_mut(&host));
     EXPECT_EQ(log.calls, 1);
-    EXPECT_TRUE(lh_gl_window_needs_paint(&host));
+    /* The change is handed to the window system at once
+       (ui_window_damage tests what it asks for), so nothing waits here. */
+    EXPECT_FALSE(lh_gl_window_needs_paint(&host));
     lh_gl_window_set_on_update(&host, nullptr, nullptr);
     clear_damage();
     lh_gl_window_update(&host);
     EXPECT_EQ(log.calls, 1);
     EXPECT_FALSE(lh_gl_window_needs_paint(&host));
+}
+
+/* A window system that only remembers what it was asked to repaint: every
+   rectangle, and how many times the whole window. */
+struct asked_log
+{
+    lh_os_window_backend_t table;
+    std::vector<std::vector<int>> rects;
+    int wholes;
+};
+
+lh_bool_t
+asked_open(lh_ptr context, lh_os_window_t *window, const lh_char_t *, int, int, lh_os_window_t *)
+{
+    lh_os_window_set_native(window, context);
+    return lh_bool_true;
+}
+
+lh_void
+asked_close(lh_ptr, lh_os_window_t *window)
+{
+    lh_os_window_on_native_destroy(window);
+}
+
+lh_void
+asked_invalidate(lh_ptr context, lh_os_window_t *)
+{
+    ++static_cast<asked_log *>(context)->wholes;
+}
+
+lh_tick_t
+asked_now(lh_ptr)
+{
+    return 0U;
+}
+
+lh_void
+asked_invalidate_rect(lh_ptr context, lh_os_window_t *, int left, int top, int right, int bottom)
+{
+    static_cast<asked_log *>(context)->rects.push_back({left, top, right, bottom});
+}
+
+class ui_window_damage : public ::testing::Test
+{
+  protected:
+    asked_log asked{};
+    lh_gl_entity_t root;
+    lh_gl_window_t host;
+    lh_os_app_t app;
+
+    void
+    SetUp() override
+    {
+        lh_os_window_backend_init(&asked.table);
+        lh_os_window_backend_set_open(&asked.table, asked_open);
+        lh_os_window_backend_set_close(&asked.table, asked_close);
+        lh_os_window_backend_set_invalidate(&asked.table, asked_invalidate);
+        lh_os_window_backend_set_invalidate_rect(&asked.table, asked_invalidate_rect);
+        lh_os_window_backend_set_now(&asked.table, asked_now);
+        lh_gl_entity_init(&root, rect_of(0, 0, 160, 100));
+        lh_os_app_init(&app);
+        lh_os_app_install_window_backend(&app, &asked.table, &asked);
+        lh_gl_window_init(&host, &root);
+        ASSERT_TRUE(lh_gl_window_try_open(&host, &app, "damage", 160, 100));
+        lh_gl_rects_t ignored;
+        (void)lh_gl_view_take_damage(lh_gl_window_get_view_mut(&host), &ignored);
+        lh_gl_canvas_reset_damage(lh_gl_window_get_canvas_mut(&host));
+        asked.rects.clear();
+        asked.wholes = 0;
+    }
+
+    void
+    TearDown() override
+    {
+        lh_os_window_close(lh_gl_window_get_window_mut(&host));
+        lh_gl_window_deinit(&host);
+        lh_os_app_deinit(&app);
+    }
+
+    void
+    damage(lh_gl_rect_t rect)
+    {
+        lh_gl_view_add_damage(lh_gl_window_get_view_mut(&host), &rect);
+    }
+};
+
+TEST_F(ui_window_damage, an_update_asks_for_each_changed_rectangle_and_not_the_window)
+{
+    damage(rect_of(5, 5, 10, 10));
+    damage(rect_of(100, 60, 20, 30));
+    lh_gl_window_update(&host);
+    EXPECT_EQ(asked.wholes, 0) << "a change is not the whole window";
+    ASSERT_EQ(asked.rects.size(), 2U);
+    EXPECT_EQ(asked.rects[0], (std::vector<int>{5, 5, 15, 15}));
+    EXPECT_EQ(asked.rects[1], (std::vector<int>{100, 60, 120, 90}));
+    EXPECT_FALSE(lh_gl_window_needs_paint(&host)) << "handed to the system, kept there";
+    lh_gl_window_update(&host);
+    EXPECT_EQ(asked.rects.size(), 2U) << "nothing asked twice";
+}
+
+TEST_F(ui_window_damage, a_scroll_on_the_canvas_asks_for_the_whole_window)
+{
+    lh_gl_rect_t moved = rect_of(0, 0, 40, 40);
+    lh_gl_canvas_add_damage(lh_gl_window_get_canvas_mut(&host), &moved);
+    lh_gl_window_update(&host);
+    EXPECT_EQ(asked.wholes, 1);
+    EXPECT_TRUE(asked.rects.empty());
+    EXPECT_FALSE(lh_gl_window_needs_paint(&host));
+}
+
+TEST_F(ui_window_damage, what_the_running_paint_covers_is_not_asked_again)
+{
+    damage(rect_of(5, 5, 10, 10));
+    damage(rect_of(30, 0, 5, 5));
+    const lh_gl_rect_t painting = rect_of(0, 0, 20, 20);
+    lh_gl_window_invalidate_damage(&host, &painting);
+    ASSERT_EQ(asked.rects.size(), 1U) << "the first is inside the paint";
+    EXPECT_EQ(asked.rects[0], (std::vector<int>{30, 0, 35, 5}));
+    EXPECT_FALSE(lh_gl_view_has_damage(lh_gl_window_get_view(&host)));
+}
+
+struct paint_area_seen
+{
+    lh_gl_window_t *host;
+    bool asked;
+    lh_gl_rect_t area;
+};
+
+lh_void
+read_paint_area(lh_os_window_t *, lh_ptr context)
+{
+    auto *seen = static_cast<paint_area_seen *>(context);
+    seen->asked = lh_gl_window_try_get_paint_area(seen->host, &seen->area);
+}
+
+TEST_F(ui_window_damage, the_paint_area_is_the_systems_request)
+{
+    lh_gl_rect_t area;
+    EXPECT_FALSE(lh_gl_window_try_get_paint_area(&host, &area)) << "outside a paint";
+
+    paint_area_seen seen{&host, false, rect_of(0, 0, 0, 0)};
+    lh_os_window_t *window = lh_gl_window_get_window_mut(&host);
+    lh_os_window_set_on_paint_fn(window, read_paint_area);
+    lh_os_window_set_on_paint_context(window, &seen);
+    int target = 0;
+    lh_os_window_on_native_paint(window, &target, 10, 20, 50, 40);
+    ASSERT_TRUE(seen.asked);
+    const lh_gl_rect_t asked_for = rect_of(10, 20, 40, 20);
+    EXPECT_TRUE(lh_gl_rect_equals(&seen.area, &asked_for));
 }
 
 TEST(ui_window_scrolling, native_drag_records_damage_and_tick_advances_glide)
