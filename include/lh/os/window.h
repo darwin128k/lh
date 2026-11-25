@@ -76,12 +76,12 @@ lh_os_window_get_parent(const lh_os_window_t *self);
  *
  * - every event ::lh_os_window_on_native_input gets goes to
  *   ::lh_os_controller_feed, after the sink of ::lh_os_window_set_on_input, if any;
- * - a focus loss (::lh_os_input_kind_focus_out) is fed and then
+ * - a focus loss (::lh_input_kind_focus_out) is fed and then
  *   ::lh_os_controller_cancel'led, so every press and gesture is let go;
  * - every tick of the window calls ::lh_os_controller_update at ::lh_os_tick_ms,
  *   before `on_tick`. Without an `on_tick` period (::lh_os_window_set_on_tick) the
  *   window arms its timer by itself, for the recognizer's next deadline
- *   (::lh_os_input_recognizer_get_next_deadline) and for that only, so a long
+ *   (::lh_input_recognizer_get_next_deadline) and for that only, so a long
  *   press arrives on time and an idle window has no timer. With a period, the
  *   update rides on it: a deadline is then late by up to one period.
  *
@@ -124,7 +124,7 @@ lh_os_window_get_placement(const lh_os_window_t *self);
 
 /**
  * @brief The mouse buttons held over @p self as the last event of pointer `0`
- *        left them (::lh_os_input_button_to_mask); `0` after its cancel or a focus
+ *        left them (::lh_input_button_to_mask); `0` after its cancel or a focus
  *        loss. Touch and pen contacts (pointer `1` and up) leave it alone.
  */
 lh_u32_t
@@ -394,7 +394,7 @@ lh_os_window_set_on_paint_context(lh_os_window_t *self, lh_ptr on_paint_context)
  *
  * @param self The window; checked by ::lh_assert_runtime_ref.
  */
-lh_os_input_sink_cb
+lh_input_sink_cb
 lh_os_window_get_on_input_fn(const lh_os_window_t *self);
 
 /**
@@ -406,7 +406,7 @@ lh_os_window_get_on_input_fn(const lh_os_window_t *self);
  * @param on_input The new value.
  */
 lh_void
-lh_os_window_set_on_input_fn(lh_os_window_t *self, lh_os_input_sink_cb on_input);
+lh_os_window_set_on_input_fn(lh_os_window_t *self, lh_input_sink_cb on_input);
 
 /**
  * @brief The value passed to the input callback (level 1).
@@ -863,7 +863,7 @@ lh_os_window_set_on_resize(lh_os_window_t *self, lh_os_window_on_resize_cb on_re
  * The low-level input slot of a window: pointer down, up, move and cancel for
  * every mouse button and every touch or pen contact, the wheel in 1/120 notch,
  * keys down (with repeats) and up, typed text, focus in and out — each one
- * ::lh_os_input_event_t with its modifiers and a time on the ::lh_os_tick_ms
+ * ::lh_input_event_t with its modifiers and a time on the ::lh_os_tick_ms
  * clock, raw: no gestures. ::lh_null clears the slot.
  *
  * The sink sees each event before the controller of ::lh_os_window_set_controller
@@ -876,7 +876,7 @@ lh_os_window_set_on_resize(lh_os_window_t *self, lh_os_window_on_resize_cb on_re
  * Example usage:
  * @code{.c}
  * static lh_void
- * on_input(lh_self_ptr self, const lh_os_input_event_ptr event)
+ * on_input(lh_self_ptr self, const lh_input_event_ptr event)
  * {
  *     struct my_main *my = lh_ptr_rcast(struct my_main, self);
  *
@@ -890,7 +890,7 @@ lh_os_window_set_on_resize(lh_os_window_t *self, lh_os_window_on_resize_cb on_re
  * @endcode
  */
 lh_void
-lh_os_window_set_on_input(lh_os_window_t *self, lh_os_input_sink_cb on_input, lh_ptr context);
+lh_os_window_set_on_input(lh_os_window_t *self, lh_input_sink_cb on_input, lh_ptr context);
 
 /**
  * @brief Where @p self is and how big it is, into @p x, @p y, @p width and @p height.
@@ -984,7 +984,7 @@ lh_os_window_zone_at(lh_os_window_t *self, int x, int y);
    cancel or a focus loss lets go of all of them, anything else -- a touch contact
    included -- leaves them as they were. */
 lh_void
-lh_os_window_track_buttons(lh_os_window_t *self, const lh_os_input_event_ptr event);
+lh_os_window_track_buttons(lh_os_window_t *self, const lh_input_event_ptr event);
 
 /**
  * @brief Move @p self to @p x, @p y and make it @p width by @p height.
@@ -1221,7 +1221,7 @@ lh_os_window_update_controller(lh_os_window_t *self);
 /** @p event to @p self's controller, if any: fed, the whole controller cancelled after a
    focus loss, and its timer armed for a deadline the event may have set. */
 lh_void
-lh_os_window_feed_controller(lh_os_window_t *self, const lh_os_input_event_ptr event);
+lh_os_window_feed_controller(lh_os_window_t *self, const lh_input_event_ptr event);
 
 /**
  * @brief Close if needed and clear @p self.
@@ -1256,7 +1256,7 @@ lh_os_window_on_native_tick(lh_os_window_t *self);
  * or the controller's handler may close it.
  */
 lh_void
-lh_os_window_on_native_input(lh_os_window_t *self, const lh_os_input_event_ptr event);
+lh_os_window_on_native_input(lh_os_window_t *self, const lh_input_event_ptr event);
 
 LH_COMPILER_EXTERN_C_END
 

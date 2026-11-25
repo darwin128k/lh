@@ -317,25 +317,25 @@ for (y = 0; y < F4VE_TFT_HEIGHT; y += F4VE_FB_STRIP_H)
 }
 ```
 
-XPT2046 touch goes into the same tree as input events (`lh/os/input/`, no OS
+XPT2046 touch goes into the same tree as input events (`lh/core/input/`, no OS
 needed): the touch interrupt builds a `pointer_down` / `pointer_move` /
-`pointer_up` with `lh_os_input_event_init_pointer` (device kind `touch`,
-panel coordinates via `lh_os_input_coord_from_int`) and pushes it into an
-`lh_os_input_queue_t`; the main loop drains the queue into a sink that calls
+`pointer_up` with `lh_input_event_init_pointer` (device kind `touch`,
+panel coordinates via `lh_input_coord_from_int`) and pushes it into an
+`lh_input_queue_t`; the main loop drains the queue into a sink that calls
 `lh_gl_view_input`. A single-touch panel is pointer `0`; a multi-touch one
-gives each contact its own id below `LH_OS_INPUT_POINTER_MAX`, and the view
+gives each contact its own id below `LH_INPUT_POINTER_MAX`, and the view
 keeps a press session for each. `lh_gl_view_press` / `lh_gl_view_release`
 (pointer `0`) and `lh_gl_view_press_pointer` / `_release_pointer` still work
 directly. `lh_gl_view_tick` from a ~60 Hz timer drives kinetic scrolling;
 for long press or double tap, feed the events through an
-`lh_os_input_recognizer_t` and call `lh_os_input_recognizer_update` from the
+`lh_input_recognizer_t` and call `lh_input_recognizer_update` from the
 same timer.
 
 A wheel or rotary encoder sends `wheel` events in 1/120 notch
-(`LH_OS_INPUT_WHEEL_NOTCH` a detent). With `LH_LIBRARY_OPTION_OS=OFF` there
+(`LH_INPUT_WHEEL_NOTCH` a detent). With `LH_LIBRARY_OPTION_OS=OFF` there
 is no system to ask how far a notch goes, so `lh_gl_view_input` scrolls
 `LH_GL_VIEW_WHEEL_STEP` content units a notch: 40, the OS layer's own
-default `LH_OS_INPUT_WHEEL_STEP_DEFAULT`. Both are `#ifndef`; define
+default `LH_INPUT_WHEEL_STEP_DEFAULT`. Both are `#ifndef`; define
 `LH_GL_VIEW_WHEEL_STEP` for the build (e.g. `-DLH_GL_VIEW_WHEEL_STEP=20` in
 the compile definitions) to change it. A build with the OS layer on a
 platform without a kernel for it (STM32 and the like) gets the same 40 from

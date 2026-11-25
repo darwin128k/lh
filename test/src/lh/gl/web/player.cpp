@@ -33,7 +33,7 @@ struct player_world
 
 /* An input hook that does nothing: with it the player keeps no controller of its own. */
 void
-ignore_input(lh_ptr ctx, const lh_os_input_event_t *event)
+ignore_input(lh_ptr ctx, const lh_input_event_t *event)
 {
     (void)ctx;
     (void)event;

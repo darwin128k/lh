@@ -18,7 +18,7 @@
 #include <lh/core/memory.h>
 #include <lh/core/runtime/allocator.h>
 #include <lh/core/util/return.h>
-#include <lh/os/input/event.h>
+#include <lh/core/input/event.h>
 #include <lh/os/system/apple/paint.h>
 #include <lh/os/tick.h>
 #include <lh/os/window.h>
@@ -334,75 +334,74 @@ lh_os_system_apple_window_start(void)
     lh_os_system_apple_started = lh_bool_true;
 }
 
-lh_os_key_t
+lh_key_t
 lh_os_system_apple_key_from_code(unsigned short code)
 {
     switch (code)
     {
     case LH_OS_SYSTEM_APPLE_KEY_TAB:
-        return lh_os_key_tab;
+        return lh_key_tab;
     case LH_OS_SYSTEM_APPLE_KEY_RETURN:
-        return lh_os_key_enter;
+        return lh_key_enter;
     case LH_OS_SYSTEM_APPLE_KEY_ESCAPE:
-        return lh_os_key_escape;
+        return lh_key_escape;
     case LH_OS_SYSTEM_APPLE_KEY_DELETE:
-        return lh_os_key_backspace;
+        return lh_key_backspace;
     case LH_OS_SYSTEM_APPLE_KEY_FORWARD_DELETE:
-        return lh_os_key_delete;
+        return lh_key_delete;
     case LH_OS_SYSTEM_APPLE_KEY_SPACE:
-        return lh_os_key_space;
+        return lh_key_space;
     case LH_OS_SYSTEM_APPLE_KEY_LEFT:
-        return lh_os_key_left;
+        return lh_key_left;
     case LH_OS_SYSTEM_APPLE_KEY_RIGHT:
-        return lh_os_key_right;
+        return lh_key_right;
     case LH_OS_SYSTEM_APPLE_KEY_UP:
-        return lh_os_key_up;
+        return lh_key_up;
     case LH_OS_SYSTEM_APPLE_KEY_DOWN:
-        return lh_os_key_down;
+        return lh_key_down;
     case LH_OS_SYSTEM_APPLE_KEY_HOME:
-        return lh_os_key_home;
+        return lh_key_home;
     case LH_OS_SYSTEM_APPLE_KEY_END:
-        return lh_os_key_end;
+        return lh_key_end;
     case LH_OS_SYSTEM_APPLE_KEY_PAGE_UP:
-        return lh_os_key_page_up;
+        return lh_key_page_up;
     case LH_OS_SYSTEM_APPLE_KEY_PAGE_DOWN:
-        return lh_os_key_page_down;
+        return lh_key_page_down;
     case LH_OS_SYSTEM_APPLE_KEY_SHIFT:
     case LH_OS_SYSTEM_APPLE_KEY_RIGHT_SHIFT:
-        return lh_os_key_shift;
+        return lh_key_shift;
     case LH_OS_SYSTEM_APPLE_KEY_CONTROL:
     case LH_OS_SYSTEM_APPLE_KEY_RIGHT_CONTROL:
-        return lh_os_key_control;
+        return lh_key_control;
     case LH_OS_SYSTEM_APPLE_KEY_OPTION:
     case LH_OS_SYSTEM_APPLE_KEY_RIGHT_OPTION:
-        return lh_os_key_alt;
+        return lh_key_alt;
     default:
-        return lh_os_key_other;
+        return lh_key_other;
     }
 }
 
-lh_os_input_mods_t
+lh_input_mods_t
 lh_os_system_apple_mods(NSEvent *event)
 {
     NSEventModifierFlags flags = [event modifierFlags];
-    lh_os_input_mods_t mods = LH_OS_INPUT_MODS_NONE;
+    lh_input_mods_t mods = LH_INPUT_MODS_NONE;
 
-    mods = lh_cast_static(lh_os_input_mods_t,
-                          mods | lh_os_input_mods_if((flags & NSEventModifierFlagShift) != 0,
-                                                     LH_OS_INPUT_MODS_SHIFT));
     mods = lh_cast_static(
-        lh_os_input_mods_t,
-        mods | lh_os_input_mods_if((flags & NSEventModifierFlagControl) != 0,
-                                   LH_OS_INPUT_MODS_CONTROL));
-    mods = lh_cast_static(lh_os_input_mods_t,
-                          mods | lh_os_input_mods_if((flags & NSEventModifierFlagOption) != 0,
-                                                     LH_OS_INPUT_MODS_ALT));
-    mods = lh_cast_static(lh_os_input_mods_t,
-                          mods | lh_os_input_mods_if((flags & NSEventModifierFlagCommand) != 0,
-                                                     LH_OS_INPUT_MODS_META));
-    mods = lh_cast_static(lh_os_input_mods_t,
-                          mods | lh_os_input_mods_if((flags & NSEventModifierFlagCapsLock) != 0,
-                                                     LH_OS_INPUT_MODS_CAPS_LOCK));
+        lh_input_mods_t,
+        mods | lh_input_mods_if((flags & NSEventModifierFlagShift) != 0, LH_INPUT_MODS_SHIFT));
+    mods = lh_cast_static(
+        lh_input_mods_t,
+        mods | lh_input_mods_if((flags & NSEventModifierFlagControl) != 0, LH_INPUT_MODS_CONTROL));
+    mods = lh_cast_static(
+        lh_input_mods_t,
+        mods | lh_input_mods_if((flags & NSEventModifierFlagOption) != 0, LH_INPUT_MODS_ALT));
+    mods = lh_cast_static(
+        lh_input_mods_t,
+        mods | lh_input_mods_if((flags & NSEventModifierFlagCommand) != 0, LH_INPUT_MODS_META));
+    mods = lh_cast_static(lh_input_mods_t,
+                          mods | lh_input_mods_if((flags & NSEventModifierFlagCapsLock) != 0,
+                                                  LH_INPUT_MODS_CAPS_LOCK));
     return mods;
 }
 
@@ -412,18 +411,17 @@ lh_os_system_apple_buttons(void)
     NSUInteger held = [NSEvent pressedMouseButtons];
     lh_u32_t mask = 0U;
 
-    mask |= lh_os_input_button_mask_if((held & 1U) != 0U, lh_os_input_button_primary);
-    mask |= lh_os_input_button_mask_if((held & 2U) != 0U, lh_os_input_button_secondary);
-    mask |= lh_os_input_button_mask_if((held & 4U) != 0U, lh_os_input_button_middle);
+    mask |= lh_input_button_mask_if((held & 1U) != 0U, lh_input_button_primary);
+    mask |= lh_input_button_mask_if((held & 2U) != 0U, lh_input_button_secondary);
+    mask |= lh_input_button_mask_if((held & 4U) != 0U, lh_input_button_middle);
     return mask;
 }
 
 lh_void
-lh_os_system_apple_window_send(struct lh_os_window *user, lh_os_input_event_t *event,
-                               NSEvent *native)
+lh_os_system_apple_window_send(struct lh_os_window *user, lh_input_event_t *event, NSEvent *native)
 {
-    lh_os_input_event_set_mods(event, lh_os_system_apple_mods(native));
-    lh_os_input_event_set_buttons(event, lh_os_system_apple_buttons());
+    lh_input_event_set_mods(event, lh_os_system_apple_mods(native));
+    lh_input_event_set_buttons(event, lh_os_system_apple_buttons());
     lh_os_window_on_native_input(user, event);
 }
 
@@ -522,8 +520,8 @@ lh_os_system_apple_window_track(NSWindow *window, NSEvent *event, lh_os_window_z
 }
 
 lh_void
-lh_os_system_apple_window_pointer(NSWindow *window, NSEvent *event, lh_os_input_kind_t kind,
-                                  lh_os_input_button_t button)
+lh_os_system_apple_window_pointer(NSWindow *window, NSEvent *event, lh_input_kind_t kind,
+                                  lh_input_button_t button)
 {
     struct lh_os_system_apple_window *self =
         lh_os_system_apple_window_find((__bridge lh_ptr)window);
@@ -535,7 +533,7 @@ lh_os_system_apple_window_pointer(NSWindow *window, NSEvent *event, lh_os_input_
     }
     NSPoint point = [[window contentView] convertPoint:[event locationInWindow] fromView:nil];
 
-    if (kind == lh_os_input_kind_pointer_down && button == lh_os_input_button_primary)
+    if (kind == lh_input_kind_pointer_down && button == lh_input_button_primary)
     {
         lh_os_window_zone_t zone = lh_os_window_zone_at(
             lh_os_system_apple_window_get_user(self), lh_cast_static(int, point.x),
@@ -547,12 +545,12 @@ lh_os_system_apple_window_pointer(NSWindow *window, NSEvent *event, lh_os_input_
             return;
         }
     }
-    lh_os_input_event_t input;
+    lh_input_event_t input;
 
-    lh_os_input_event_init_pointer(
-        lh_addr_of(input), kind, lh_os_input_device_kind_mouse, 0U, button,
-        lh_os_input_coord_from_int(lh_cast_static(int, point.x)),
-        lh_os_input_coord_from_int(lh_cast_static(int, point.y)), lh_os_tick_ms());
+    lh_input_event_init_pointer(lh_addr_of(input), kind, lh_input_device_kind_mouse, 0U, button,
+                                lh_input_coord_from_int(lh_cast_static(int, point.x)),
+                                lh_input_coord_from_int(lh_cast_static(int, point.y)),
+                                lh_os_tick_ms());
     lh_os_system_apple_window_send(lh_os_system_apple_window_get_user(self), lh_addr_of(input),
                                    event);
 }
@@ -568,11 +566,11 @@ lh_os_system_apple_window_key(NSWindow *window, NSEvent *event, lh_bool_t down)
     {
         return;
     }
-    lh_os_input_event_t input;
+    lh_input_event_t input;
 
-    lh_os_input_event_init_key(lh_addr_of(input), lh_os_system_apple_key_from_code([event keyCode]),
-                               down, [event isARepeat] ? lh_bool_true : lh_bool_false,
-                               [event keyCode], lh_os_tick_ms());
+    lh_input_event_init_key(lh_addr_of(input), lh_os_system_apple_key_from_code([event keyCode]),
+                            down, [event isARepeat] ? lh_bool_true : lh_bool_false, [event keyCode],
+                            lh_os_tick_ms());
     lh_os_system_apple_window_send(lh_os_system_apple_window_get_user(self), lh_addr_of(input),
                                    event);
     if (!down)
@@ -599,7 +597,7 @@ lh_os_system_apple_window_key(NSWindow *window, NSEvent *event, lh_bool_t down)
     {
         return;
     }
-    lh_os_input_event_init_text(lh_addr_of(input), code, lh_os_tick_ms());
+    lh_input_event_init_text(lh_addr_of(input), code, lh_os_tick_ms());
     lh_os_system_apple_window_send(lh_os_system_apple_window_get_user(self), lh_addr_of(input),
                                    event);
 }
@@ -618,7 +616,7 @@ lh_os_system_apple_window_flags(NSWindow *window, NSEvent *event)
     {
         return;
     }
-    const lh_os_key_t keys[3] = {lh_os_key_shift, lh_os_key_control, lh_os_key_alt};
+    const lh_key_t keys[3] = {lh_key_shift, lh_key_control, lh_key_alt};
     const NSEventModifierFlags bits[3] = {NSEventModifierFlagShift, NSEventModifierFlagControl,
                                           NSEventModifierFlagOption};
 
@@ -628,11 +626,11 @@ lh_os_system_apple_window_flags(NSWindow *window, NSEvent *event)
         {
             continue;
         }
-        lh_os_input_event_t input;
+        lh_input_event_t input;
 
-        lh_os_input_event_init_key(lh_addr_of(input), keys[i],
-                                   (now & bits[i]) != 0 ? lh_bool_true : lh_bool_false,
-                                   lh_bool_false, 0U, lh_os_tick_ms());
+        lh_input_event_init_key(lh_addr_of(input), keys[i],
+                                (now & bits[i]) != 0 ? lh_bool_true : lh_bool_false, lh_bool_false,
+                                0U, lh_os_tick_ms());
         lh_os_system_apple_window_send(lh_os_system_apple_window_get_user(self), lh_addr_of(input),
                                        event);
     }
@@ -722,11 +720,11 @@ lh_os_system_apple_window_focus(NSWindow *window, lh_bool_t inside)
     {
         return;
     }
-    lh_os_input_event_t input;
+    lh_input_event_t input;
 
-    lh_os_input_event_init(lh_addr_of(input),
-                           inside ? lh_os_input_kind_focus_in : lh_os_input_kind_focus_out,
-                           lh_os_input_device_kind_keyboard, lh_os_tick_ms());
+    lh_input_event_init(lh_addr_of(input),
+                        inside ? lh_input_kind_focus_in : lh_input_kind_focus_out,
+                        lh_input_device_kind_keyboard, lh_os_tick_ms());
     lh_os_window_on_native_input(lh_os_system_apple_window_get_user(self), lh_addr_of(input));
 }
 
@@ -866,74 +864,74 @@ lh_os_system_apple_window_place(NSWindow *window, NSWindow *owner,
 
 - (void)mouseDown:(NSEvent *)event
 {
-    lh_os_system_apple_window_pointer([self window], event, lh_os_input_kind_pointer_down,
-                                      lh_os_input_button_primary);
+    lh_os_system_apple_window_pointer([self window], event, lh_input_kind_pointer_down,
+                                      lh_input_button_primary);
 }
 
 - (void)mouseUp:(NSEvent *)event
 {
-    lh_os_system_apple_window_pointer([self window], event, lh_os_input_kind_pointer_up,
-                                      lh_os_input_button_primary);
+    lh_os_system_apple_window_pointer([self window], event, lh_input_kind_pointer_up,
+                                      lh_input_button_primary);
 }
 
 - (void)mouseDragged:(NSEvent *)event
 {
-    lh_os_system_apple_window_pointer([self window], event, lh_os_input_kind_pointer_move,
-                                      lh_os_input_button_none);
+    lh_os_system_apple_window_pointer([self window], event, lh_input_kind_pointer_move,
+                                      lh_input_button_none);
 }
 
 - (void)rightMouseDown:(NSEvent *)event
 {
-    lh_os_system_apple_window_pointer([self window], event, lh_os_input_kind_pointer_down,
-                                      lh_os_input_button_secondary);
+    lh_os_system_apple_window_pointer([self window], event, lh_input_kind_pointer_down,
+                                      lh_input_button_secondary);
 }
 
 - (void)rightMouseUp:(NSEvent *)event
 {
-    lh_os_system_apple_window_pointer([self window], event, lh_os_input_kind_pointer_up,
-                                      lh_os_input_button_secondary);
+    lh_os_system_apple_window_pointer([self window], event, lh_input_kind_pointer_up,
+                                      lh_input_button_secondary);
 }
 
 - (void)rightMouseDragged:(NSEvent *)event
 {
-    lh_os_system_apple_window_pointer([self window], event, lh_os_input_kind_pointer_move,
-                                      lh_os_input_button_none);
+    lh_os_system_apple_window_pointer([self window], event, lh_input_kind_pointer_move,
+                                      lh_input_button_none);
 }
 
 - (void)otherMouseDown:(NSEvent *)event
 {
-    lh_os_system_apple_window_pointer([self window], event, lh_os_input_kind_pointer_down,
-                                      lh_os_input_button_middle);
+    lh_os_system_apple_window_pointer([self window], event, lh_input_kind_pointer_down,
+                                      lh_input_button_middle);
 }
 
 - (void)otherMouseUp:(NSEvent *)event
 {
-    lh_os_system_apple_window_pointer([self window], event, lh_os_input_kind_pointer_up,
-                                      lh_os_input_button_middle);
+    lh_os_system_apple_window_pointer([self window], event, lh_input_kind_pointer_up,
+                                      lh_input_button_middle);
 }
 
 - (void)otherMouseDragged:(NSEvent *)event
 {
-    lh_os_system_apple_window_pointer([self window], event, lh_os_input_kind_pointer_move,
-                                      lh_os_input_button_none);
+    lh_os_system_apple_window_pointer([self window], event, lh_input_kind_pointer_move,
+                                      lh_input_button_none);
 }
 
 - (void)mouseMoved:(NSEvent *)event
 {
-    lh_os_system_apple_window_pointer([self window], event, lh_os_input_kind_pointer_move,
-                                      lh_os_input_button_none);
+    lh_os_system_apple_window_pointer([self window], event, lh_input_kind_pointer_move,
+                                      lh_input_button_none);
 }
 
 - (void)mouseEntered:(NSEvent *)event
 {
-    lh_os_system_apple_window_pointer([self window], event, lh_os_input_kind_pointer_enter,
-                                      lh_os_input_button_none);
+    lh_os_system_apple_window_pointer([self window], event, lh_input_kind_pointer_enter,
+                                      lh_input_button_none);
 }
 
 - (void)mouseExited:(NSEvent *)event
 {
-    lh_os_system_apple_window_pointer([self window], event, lh_os_input_kind_pointer_leave,
-                                      lh_os_input_button_none);
+    lh_os_system_apple_window_pointer([self window], event, lh_input_kind_pointer_leave,
+                                      lh_input_button_none);
 }
 
 - (void)scrollWheel:(NSEvent *)event
@@ -952,13 +950,13 @@ lh_os_system_apple_window_place(NSWindow *window, NSWindow *owner,
                                                        : [event scrollingDeltaX];
     double lines_y = [event hasPreciseScrollingDeltas] ? [event scrollingDeltaY] / 10.0
                                                        : [event scrollingDeltaY];
-    lh_os_input_event_t input;
+    lh_input_event_t input;
 
-    lh_os_input_event_init_wheel(
-        lh_addr_of(input), lh_os_input_coord_from_int(lh_cast_static(int, point.x)),
-        lh_os_input_coord_from_int(lh_cast_static(int, point.y)),
-        lh_cast_static(lh_s32_t, -lines_x * LH_OS_INPUT_WHEEL_NOTCH),
-        lh_cast_static(lh_s32_t, lines_y * LH_OS_INPUT_WHEEL_NOTCH), lh_os_tick_ms());
+    lh_input_event_init_wheel(
+        lh_addr_of(input), lh_input_coord_from_int(lh_cast_static(int, point.x)),
+        lh_input_coord_from_int(lh_cast_static(int, point.y)),
+        lh_cast_static(lh_s32_t, -lines_x * LH_INPUT_WHEEL_NOTCH),
+        lh_cast_static(lh_s32_t, lines_y * LH_INPUT_WHEEL_NOTCH), lh_os_tick_ms());
     lh_os_system_apple_window_send(lh_os_system_apple_window_get_user(record), lh_addr_of(input),
                                    event);
 }

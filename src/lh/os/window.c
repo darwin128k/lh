@@ -220,7 +220,7 @@ lh_os_window_set_on_paint_context(lh_os_window_t *self, lh_ptr on_paint_context)
     self->on_paint_context = on_paint_context;
 }
 
-lh_os_input_sink_cb
+lh_input_sink_cb
 lh_os_window_get_on_input_fn(const lh_os_window_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -228,7 +228,7 @@ lh_os_window_get_on_input_fn(const lh_os_window_t *self)
 }
 
 lh_void
-lh_os_window_set_on_input_fn(lh_os_window_t *self, lh_os_input_sink_cb on_input)
+lh_os_window_set_on_input_fn(lh_os_window_t *self, lh_input_sink_cb on_input)
 {
     lh_assert_runtime_ref(self);
     self->on_input = on_input;
@@ -637,7 +637,7 @@ lh_os_window_set_on_resize(lh_os_window_t *self, lh_os_window_on_resize_cb on_re
 }
 
 lh_void
-lh_os_window_set_on_input(lh_os_window_t *self, lh_os_input_sink_cb on_input, lh_ptr context)
+lh_os_window_set_on_input(lh_os_window_t *self, lh_input_sink_cb on_input, lh_ptr context)
 {
     lh_os_window_set_on_input_fn(self, on_input);
     lh_os_window_set_on_input_context(self, context);
@@ -691,8 +691,7 @@ lh_os_window_get_controller_deadline(lh_os_window_t *self, lh_tick_t *out)
     lh_return_if(!lh_os_controller_is_enabled(controller), lh_bool_false);
     lh_return_if(!lh_os_controller_has_flag(controller, lh_os_controller_flags_gestures),
                  lh_bool_false);
-    return lh_os_input_recognizer_get_next_deadline(lh_os_controller_get_recognizer(controller),
-                                                    out);
+    return lh_input_recognizer_get_next_deadline(lh_os_controller_get_recognizer(controller), out);
 }
 
 lh_bool_t
@@ -754,18 +753,18 @@ lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr target, int left, int 
 }
 
 lh_void
-lh_os_window_track_buttons(lh_os_window_t *self, const lh_os_input_event_cptr event)
+lh_os_window_track_buttons(lh_os_window_t *self, const lh_input_event_cptr event)
 {
-    lh_return_if(lh_os_input_event_is_pointer(event) && lh_os_input_event_get_pointer(event) != 0U);
-    switch (lh_os_input_event_get_kind(event))
+    lh_return_if(lh_input_event_is_pointer(event) && lh_input_event_get_pointer(event) != 0U);
+    switch (lh_input_event_get_kind(event))
     {
-    case lh_os_input_kind_pointer_down:
-    case lh_os_input_kind_pointer_up:
-    case lh_os_input_kind_pointer_move:
-        lh_os_window_set_pressed_buttons(self, lh_os_input_event_get_buttons(event));
+    case lh_input_kind_pointer_down:
+    case lh_input_kind_pointer_up:
+    case lh_input_kind_pointer_move:
+        lh_os_window_set_pressed_buttons(self, lh_input_event_get_buttons(event));
         break;
-    case lh_os_input_kind_pointer_cancel:
-    case lh_os_input_kind_focus_out:
+    case lh_input_kind_pointer_cancel:
+    case lh_input_kind_focus_out:
         lh_os_window_set_pressed_buttons(self, 0U);
         break;
     default:
@@ -1135,21 +1134,20 @@ lh_os_window_update_controller(lh_os_window_t *self)
 }
 
 lh_void
-lh_os_window_feed_controller(lh_os_window_t *self, const lh_os_input_event_cptr event)
+lh_os_window_feed_controller(lh_os_window_t *self, const lh_input_event_cptr event)
 {
     lh_os_controller_t *controller = lh_os_window_get_controller(self);
-    const lh_os_input_kind_t kind = lh_os_input_event_get_kind(event);
+    const lh_input_kind_t kind = lh_input_event_get_kind(event);
 
     lh_return_if(lh_null_eq(controller));
     LH_ATTRIBUTE_UNUSED(lh_os_controller_feed(controller, event));
-    if (kind == lh_os_input_kind_focus_out)
+    if (kind == lh_input_kind_focus_out)
     {
         lh_os_controller_cancel(controller);
     }
     /* Only a press starts a new wait; anything else can only end one, so the timer that
        already runs is left alone instead of being set again on every move. */
-    lh_os_window_arm_controller(self,
-                                lh_type_cast(lh_bool_t, kind == lh_os_input_kind_pointer_down));
+    lh_os_window_arm_controller(self, lh_type_cast(lh_bool_t, kind == lh_input_kind_pointer_down));
 }
 
 lh_void
@@ -1177,7 +1175,7 @@ lh_os_window_on_native_tick(lh_os_window_t *self)
 }
 
 lh_void
-lh_os_window_on_native_input(lh_os_window_t *self, const lh_os_input_event_cptr event)
+lh_os_window_on_native_input(lh_os_window_t *self, const lh_input_event_cptr event)
 {
     lh_assert_runtime_ref(event);
     lh_os_window_track_buttons(self, event);

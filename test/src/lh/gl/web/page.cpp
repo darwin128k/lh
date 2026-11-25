@@ -7,7 +7,7 @@
 #include <gtest/gtest.h>
 
 #include <lh/expect/death.h>
-#include <lh/os/key.h>
+#include <lh/core/key.h>
 #include <lh/gl/web/player/page.h>
 #include <lh/core/web/html/reader.h>
 #include <lh/core/web/js/writer.h>
@@ -134,39 +134,37 @@ const part m_parts[] = {
 
 TEST(web_page, key_names_are_the_browsers)
 {
-    lh_str_view_t name = lh_gl_web_player_page_get_key_name(lh_os_key_space);
+    lh_str_view_t name = lh_gl_web_player_page_get_key_name(lh_key_space);
 
     EXPECT_EQ(std::string(lh_str_view_get_data(&name), lh_str_view_get_size(&name)), " ");
-    name = lh_gl_web_player_page_get_key_name(lh_os_key_page_down);
+    name = lh_gl_web_player_page_get_key_name(lh_key_page_down);
     EXPECT_EQ(std::string(lh_str_view_get_data(&name), lh_str_view_get_size(&name)), "PageDown");
-    name = lh_gl_web_player_page_get_key_name(lh_os_key_other);
+    name = lh_gl_web_player_page_get_key_name(lh_key_other);
     EXPECT_EQ(lh_str_view_get_size(&name), 0U);
-    EXPECT_TRUE(lh_gl_web_player_page_is_modifier(lh_os_key_shift));
-    EXPECT_TRUE(lh_gl_web_player_page_is_modifier(lh_os_key_alt));
-    EXPECT_FALSE(lh_gl_web_player_page_is_modifier(lh_os_key_tab));
-    EXPECT_FALSE(lh_gl_web_player_page_is_modifier(lh_os_key_other));
+    EXPECT_TRUE(lh_gl_web_player_page_is_modifier(lh_key_shift));
+    EXPECT_TRUE(lh_gl_web_player_page_is_modifier(lh_key_alt));
+    EXPECT_FALSE(lh_gl_web_player_page_is_modifier(lh_key_tab));
+    EXPECT_FALSE(lh_gl_web_player_page_is_modifier(lh_key_other));
 }
 
 TEST(web_page, key_table_carries_every_key_by_its_enum_value)
 {
     EXPECT_EQ(
         js_expression(lh_gl_web_player_page_create_key_table(lh_bool_false)),
-        "{Tab:" + std::to_string(lh_os_key_tab) + ",Enter:" + std::to_string(lh_os_key_enter) +
-            ",Escape:" + std::to_string(lh_os_key_escape) + ",Backspace:" +
-            std::to_string(lh_os_key_backspace) + ",Delete:" + std::to_string(lh_os_key_delete) +
-            ",[' ']:" + std::to_string(lh_os_key_space) + ",ArrowLeft:" +
-            std::to_string(lh_os_key_left) + ",ArrowRight:" + std::to_string(lh_os_key_right) +
-            ",ArrowUp:" + std::to_string(lh_os_key_up) +
-            ",ArrowDown:" + std::to_string(lh_os_key_down) +
-            ",Home:" + std::to_string(lh_os_key_home) + ",End:" + std::to_string(lh_os_key_end) +
-            ",PageUp:" + std::to_string(lh_os_key_page_up) + ",PageDown:" +
-            std::to_string(lh_os_key_page_down) + ",Shift:" + std::to_string(lh_os_key_shift) +
-            ",Control:" + std::to_string(lh_os_key_control) +
-            ",Alt:" + std::to_string(lh_os_key_alt) + "}");
+        "{Tab:" + std::to_string(lh_key_tab) + ",Enter:" + std::to_string(lh_key_enter) +
+            ",Escape:" + std::to_string(lh_key_escape) + ",Backspace:" +
+            std::to_string(lh_key_backspace) + ",Delete:" + std::to_string(lh_key_delete) +
+            ",[' ']:" + std::to_string(lh_key_space) + ",ArrowLeft:" + std::to_string(lh_key_left) +
+            ",ArrowRight:" + std::to_string(lh_key_right) +
+            ",ArrowUp:" + std::to_string(lh_key_up) + ",ArrowDown:" + std::to_string(lh_key_down) +
+            ",Home:" + std::to_string(lh_key_home) + ",End:" + std::to_string(lh_key_end) +
+            ",PageUp:" + std::to_string(lh_key_page_up) + ",PageDown:" +
+            std::to_string(lh_key_page_down) + ",Shift:" + std::to_string(lh_key_shift) +
+            ",Control:" + std::to_string(lh_key_control) + ",Alt:" + std::to_string(lh_key_alt) +
+            "}");
     EXPECT_EQ(js_expression(lh_gl_web_player_page_create_key_table(lh_bool_true)),
-              "{Shift:" + std::to_string(lh_os_key_shift) +
-                  ",Control:" + std::to_string(lh_os_key_control) +
-                  ",Alt:" + std::to_string(lh_os_key_alt) + "}");
+              "{Shift:" + std::to_string(lh_key_shift) + ",Control:" +
+                  std::to_string(lh_key_control) + ",Alt:" + std::to_string(lh_key_alt) + "}");
     EXPECT_EQ(js(lh_gl_web_player_page_create_keys()).rfind("var keys={Tab:", 0), 0U);
     EXPECT_EQ(js(lh_gl_web_player_page_create_mods()).rfind("var mods={Shift:", 0), 0U);
 }

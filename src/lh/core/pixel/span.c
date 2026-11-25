@@ -82,24 +82,6 @@ lh_pixel_span_blend_rgb565(lh_u16_t *at, lh_usize_t count, lh_u32_t src, lh_u32_
 }
 
 lh_void
-lh_pixel_span_cover_rgb565(lh_u16_t *at, const lh_byte_t *cover, lh_usize_t count, lh_u32_t src,
-                           lh_u32_t alpha, lh_bool_t swapped)
-{
-    for (lh_usize_t i = 0U; i < count; ++i)
-    {
-        const lh_u32_t a = lh_pixel_channel_div255_round(cover[i] * alpha);
-
-        if (a != 0U)
-        {
-            at[i] = lh_cast_static(
-                lh_u16_t,
-                lh_pixel_rgb565_order(
-                    lh_pixel_rgb565_mix(lh_pixel_rgb565_order(at[i], swapped), src, a), swapped));
-        }
-    }
-}
-
-lh_void
 lh_pixel_span_blend_each_argb(lh_u32_t *at, const lh_u32_t *src, lh_usize_t count)
 {
     for (lh_usize_t i = 0U; i < count; ++i)
@@ -200,6 +182,32 @@ lh_pixel_span_over_opaque_argb(lh_u32_t *at, const lh_byte_t *alpha, lh_usize_t 
             const lh_u32_t ga = lh_pixel_channel_mix_pair(dst_ga, src_ga, a);
 
             at[i] = lh_bit_or(lh_bit_or(0xFF000000U, rb), lh_bit_shl(lh_bit_and(ga, 0xFFU), 8));
+        }
+    }
+}
+
+lh_void
+lh_pixel_span_blend_vary_rgb565(lh_u16_t *at, const lh_byte_t *alpha, lh_usize_t count,
+                                lh_u32_t rgb, lh_bool_t swapped)
+{
+    const lh_u32_t solid = lh_pixel_rgb565_order(lh_pixel_rgb565_from_argb(rgb), swapped);
+
+    /* Each pixel through its own 16-bit access: the clear ones are left, the full
+       ones stored, only those between mixed -- the path a board without SIMD runs. */
+    for (lh_usize_t i = 0U; i < count; ++i)
+    {
+        const lh_u32_t a = alpha[i];
+
+        if (a == LH_BYTE_T_MAX)
+        {
+            at[i] = lh_cast_static(lh_u16_t, solid);
+        }
+        else if (a != 0U)
+        {
+            at[i] = lh_cast_static(
+                lh_u16_t,
+                lh_pixel_rgb565_order(
+                    lh_pixel_rgb565_mix(lh_pixel_rgb565_order(at[i], swapped), rgb, a), swapped));
         }
     }
 }
@@ -306,6 +314,140 @@ lh_pixel_span_load_alpha_4(const lh_byte_t *alpha)
 {
     return _mm_cvtsi32_si128(lh_cast_static(lh_s32_t, lh_memory_load_u32(alpha)));
 }
+
+/* The first @p count (1 .. 7) RGB565 words at @p at in the low lanes, 0 past them -- a
+   lane the blend never writes back. pinsrw takes its lane as an immediate, so the
+   lanes are spelled out. */
+LH_ATTRIBUTE_FORCE_INLINE __m128i
+lh_pixel_span_gather_16(const lh_u16_t *at, lh_usize_t count)
+{
+    __m128i v = _mm_cvtsi32_si128(at[0]);
+
+    if (count > 1U)
+    {
+        v = _mm_insert_epi16(v, at[1], 1);
+    }
+    if (count > 2U)
+    {
+        v = _mm_insert_epi16(v, at[2], 2);
+    }
+    if (count > 3U)
+    {
+        v = _mm_insert_epi16(v, at[3], 3);
+    }
+    if (count > 4U)
+    {
+        v = _mm_insert_epi16(v, at[4], 4);
+    }
+    if (count > 5U)
+    {
+        v = _mm_insert_epi16(v, at[5], 5);
+    }
+    if (count > 6U)
+    {
+        v = _mm_insert_epi16(v, at[6], 6);
+    }
+    return v;
+}
+
+/* The low @p count (1 .. 7) lanes of @p v back to @p at; the rest are not written. */
+LH_ATTRIBUTE_FORCE_INLINE lh_void
+lh_pixel_span_scatter_16(lh_u16_t *at, lh_usize_t count, __m128i v)
+{
+    at[0] = lh_cast_static(lh_u16_t, _mm_extract_epi16(v, 0));
+    if (count > 1U)
+    {
+        at[1] = lh_cast_static(lh_u16_t, _mm_extract_epi16(v, 1));
+    }
+    if (count > 2U)
+    {
+        at[2] = lh_cast_static(lh_u16_t, _mm_extract_epi16(v, 2));
+    }
+    if (count > 3U)
+    {
+        at[3] = lh_cast_static(lh_u16_t, _mm_extract_epi16(v, 3));
+    }
+    if (count > 4U)
+    {
+        at[4] = lh_cast_static(lh_u16_t, _mm_extract_epi16(v, 4));
+    }
+    if (count > 5U)
+    {
+        at[5] = lh_cast_static(lh_u16_t, _mm_extract_epi16(v, 5));
+    }
+    if (count > 6U)
+    {
+        at[6] = lh_cast_static(lh_u16_t, _mm_extract_epi16(v, 6));
+    }
+}
+
+/* (x + 127) / 255, in 16-bit lanes, for x <= 65535 -- the same value the scalar
+   kernel divides its way to, with no divide at all. 255 is odd, so x / 255 never
+   lands exactly on .5 and this round-to-nearest cannot disagree with it. */
+#    define LH_PIXEL_SPAN_DIV255_16(x)                                                             \
+        _mm_srli_epi16(_mm_add_epi16(_mm_add_epi16(x, _mm_srli_epi16(x, 8)), one), 8)
+
+/* One channel plane of eight RGB565 pixels: widen the stored bits to a byte, blend,
+   narrow back, and leave the result in that plane's own register. The three
+   channels sit at fixed bit positions inside each 16-bit word, so each plane can be
+   lifted out with a shift and a mask and put back the same way -- there is no
+   pixel-to-lane shuffle anywhere in this kernel, and pixel k of the alphas is lane
+   k of all three planes, which is what keeps them lined up.
+
+   The widening is spelled out as the shift pair rather than folded into a multiply.
+   (r5 * 33) >> 2 does happen to equal (r5 << 3) | (r5 >> 2), because the two halves
+   cannot overlap -- but the same trick on green does NOT hold: (g6 * 17) >> 2
+   spreads g6/4 into the low bits where the scalar spreads g6/16, so every green
+   value from 16 up came out a shade too light. Same two shifts, no cleverness,
+   exactly the value the scalar kernel computes. */
+#    define LH_PIXEL_SPAN_BLEND_PLANE_16(out8, bits, src8, up, down, narrow)                       \
+        do                                                                                         \
+        {                                                                                          \
+            const __m128i dst8 =                                                                   \
+                _mm_or_si128(_mm_slli_epi16(bits, up), _mm_srli_epi16(bits, down));                \
+            const __m128i t = _mm_add_epi16(                                                       \
+                _mm_add_epi16(_mm_mullo_epi16(src8, alpha16), _mm_mullo_epi16(dst8, inv)), round); \
+            out8 = _mm_srli_epi16(LH_PIXEL_SPAN_DIV255_16(t), narrow);                             \
+        } while (0)
+
+/* Eight RGB565 words blended in registers, pixel k at byte k of @p a8; @p swapped
+   when the memory holds each word's bytes swapped. */
+LH_ATTRIBUTE_FORCE_INLINE __m128i
+lh_pixel_span_blend_octet_m128(__m128i in, __m128i a8, lh_u32_t rgb, lh_bool_t swapped)
+{
+    const __m128i zero = _mm_setzero_si128();
+    const __m128i full = _mm_set1_epi16(255);
+    const __m128i round = _mm_set1_epi16(127);
+    const __m128i one = _mm_set1_epi16(1);
+    const __m128i m31 = _mm_set1_epi16(0x1F);
+    const __m128i m63 = _mm_set1_epi16(0x3F);
+    /* The source as three planes of eight 8-bit values, each widened to lanes. */
+    const __m128i src8r = _mm_set1_epi16(lh_cast_static(short, ((rgb >> 16) & 0xFF)));
+    const __m128i src8g = _mm_set1_epi16(lh_cast_static(short, ((rgb >> 8) & 0xFF)));
+    const __m128i src8b = _mm_set1_epi16(lh_cast_static(short, (rgb & 0xFF)));
+    const __m128i alpha16 = _mm_unpacklo_epi8(a8, zero);
+    const __m128i inv = _mm_sub_epi16(full, alpha16);
+
+    /* A swapped format keeps the low byte first; one 16-bit byte swap per block turns
+       it into the numeric RGB565 the planes below expect, and the same swap on the way
+       out puts it back. */
+    if (swapped)
+    {
+        in = _mm_or_si128(_mm_slli_epi16(in, 8), _mm_srli_epi16(in, 8));
+    }
+    __m128i r8;
+    LH_PIXEL_SPAN_BLEND_PLANE_16(r8, _mm_and_si128(_mm_srli_epi16(in, 11), m31), src8r, 3, 2, 3);
+    __m128i g8;
+    LH_PIXEL_SPAN_BLEND_PLANE_16(g8, _mm_and_si128(_mm_srli_epi16(in, 5), m63), src8g, 2, 4, 2);
+    __m128i b8;
+    LH_PIXEL_SPAN_BLEND_PLANE_16(b8, _mm_and_si128(in, m31), src8b, 3, 2, 3);
+    in = _mm_or_si128(_mm_slli_epi16(r8, 11), _mm_or_si128(_mm_slli_epi16(g8, 5), b8));
+    if (swapped)
+    {
+        in = _mm_or_si128(_mm_slli_epi16(in, 8), _mm_srli_epi16(in, 8));
+    }
+    return in;
+}
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
@@ -411,6 +553,24 @@ lh_pixel_span_blend_vary_argb(lh_u32_t *at, const lh_byte_t *alpha, lh_usize_t c
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
 lh_void
+lh_pixel_span_blend_alphas8_sse2_rgb565(lh_u16_t *at, lh_usize_t count, lh_u64_t alphas,
+                                        lh_u32_t rgb, lh_bool_t swapped)
+{
+    const __m128i a8 = _mm_loadl_epi64(lh_ptr_rcast(const __m128i, lh_addr_of(alphas)));
+
+    if (count == 8U)
+    {
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, at),
+                         lh_pixel_span_blend_octet_m128(
+                             _mm_loadu_si128(lh_ptr_rcast(const __m128i, at)), a8, rgb, swapped));
+        return;
+    }
+    lh_pixel_span_scatter_16(
+        at, count,
+        lh_pixel_span_blend_octet_m128(lh_pixel_span_gather_16(at, count), a8, rgb, swapped));
+}
+
+lh_void
 lh_pixel_span_blend_alphas_sse2_argb(lh_u32_t *at, const lh_byte_t *alpha, lh_usize_t count,
                                      lh_u32_t rgb)
 {
@@ -461,6 +621,29 @@ lh_pixel_span_blend_alphas8_sse2_argb(lh_u32_t *at, lh_usize_t count, lh_u64_t a
             lh_pixel_span_blend_quad_m128(lh_pixel_span_gather_32(at + 4, count - 4U), a8_hi, rgb));
     }
 }
+
+lh_void
+lh_pixel_span_blend_alphas_sse2_rgb565(lh_u16_t *at, const lh_byte_t *alpha, lh_usize_t count,
+                                       lh_u32_t rgb, lh_bool_t swapped)
+{
+    lh_usize_t i = 0U;
+
+    for (; i + 8U <= count; i += 8U)
+    {
+        _mm_storeu_si128(
+            lh_ptr_rcast(__m128i, at + i),
+            lh_pixel_span_blend_octet_m128(_mm_loadu_si128(lh_ptr_rcast(const __m128i, at + i)),
+                                           _mm_loadl_epi64(lh_ptr_rcast(const __m128i, alpha + i)),
+                                           rgb, swapped));
+    }
+    lh_return_if(i == count);
+    /* The tail is a block too, as in ::lh_pixel_span_blend_alphas_sse2_argb. */
+    lh_pixel_span_scatter_16(at + i, count - i,
+                             lh_pixel_span_blend_octet_m128(
+                                 lh_pixel_span_gather_16(at + i, count - i),
+                                 lh_pixel_span_gather_alpha(alpha + i, count - i), rgb, swapped));
+}
+
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
 
 lh_void
@@ -540,6 +723,20 @@ lh_pixel_span_blend_alphas_argb(lh_u32_t *at, const lh_byte_t *alpha, lh_usize_t
 }
 
 lh_void
+lh_pixel_span_blend_alphas_rgb565(lh_u16_t *at, const lh_byte_t *alpha, lh_usize_t count,
+                                  lh_u32_t rgb, lh_bool_t swapped)
+{
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+    if (lh_cpu_simd_has_sse2())
+    {
+        lh_pixel_span_blend_alphas_sse2_rgb565(at, alpha, count, rgb, swapped);
+        return;
+    }
+#endif
+    lh_pixel_span_blend_vary_rgb565(at, alpha, count, rgb, swapped);
+}
+
+lh_void
 lh_pixel_span_cover_argb(lh_u32_t *at, const lh_byte_t *cover, lh_usize_t count, lh_u32_t src,
                          lh_u32_t alpha)
 {
@@ -565,5 +762,35 @@ lh_pixel_span_cover_argb(lh_u32_t *at, const lh_byte_t *cover, lh_usize_t count,
                 lh_cast_static(lh_byte_t, lh_pixel_channel_div255_round(cover[done + i] * alpha));
         }
         lh_pixel_span_blend_alphas_argb(at + done, scaled, run, rgb);
+    }
+}
+
+lh_void
+lh_pixel_span_cover_rgb565(lh_u16_t *at, const lh_byte_t *cover, lh_usize_t count, lh_u32_t src,
+                           lh_u32_t alpha, lh_bool_t swapped)
+{
+    const lh_u32_t rgb = lh_bit_and(src, 0x00FFFFFFU);
+
+    /* As ::lh_pixel_span_cover_argb: an opaque colour lays the coverages as they are,
+       a translucent one scales them a run at a time on the stack. */
+    if (alpha == LH_BYTE_T_MAX)
+    {
+        lh_pixel_span_blend_alphas_rgb565(at, cover, count, rgb, swapped);
+        return;
+    }
+    lh_return_if(alpha == 0U);
+    lh_byte_t scaled[LH_PIXEL_SPAN_SCALE_RUN];
+
+    for (lh_usize_t done = 0U; done < count; done += LH_PIXEL_SPAN_SCALE_RUN)
+    {
+        const lh_usize_t run =
+            lh_math_min(count - done, lh_cast_static(lh_usize_t, LH_PIXEL_SPAN_SCALE_RUN));
+
+        for (lh_usize_t i = 0U; i < run; ++i)
+        {
+            scaled[i] =
+                lh_cast_static(lh_byte_t, lh_pixel_channel_div255_round(cover[done + i] * alpha));
+        }
+        lh_pixel_span_blend_alphas_rgb565(at + done, scaled, run, rgb, swapped);
     }
 }

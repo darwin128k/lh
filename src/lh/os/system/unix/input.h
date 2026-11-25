@@ -20,7 +20,7 @@
 
 /**
  * @brief Lines one wheel notch scrolls by the input driver:
- *        ::LH_OS_INPUT_WHEEL_LINES_DEFAULT, because the driver is not read (see the
+ *        ::LH_INPUT_WHEEL_LINES_DEFAULT, because the driver is not read (see the
  *        file comment).
  */
 lh_u32_t lh_os_system_unix_input_get_wheel_lines(lh_void);

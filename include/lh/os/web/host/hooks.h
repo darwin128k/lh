@@ -13,7 +13,7 @@
  * @brief What a window would call: the application, not the JSON player.
  *
  * Any function may be ::lh_null. Every input line of the player arrives as one
- * ::lh_os_input_event_t, the same event a desktop window gets, and takes the same
+ * ::lh_input_event_t, the same event a desktop window gets, and takes the same
  * two levels (::lh_os_window_set_on_input, ::lh_os_window_set_controller):
  *
  * - @p input, when set, sees it first, raw: the low-level tap;
@@ -44,7 +44,7 @@ struct lh_os_web_host_hooks
     /** About every 20 ms, and between requests. */
     lh_void (*tick)(lh_ptr ctx);
     /** One input event from the player; its `self` is ::ctx. */
-    lh_os_input_sink_cb input;
+    lh_input_sink_cb input;
     /** Layout-mode tab size; ::lh_null keeps the host's initial width/height. */
     lh_void (*resize)(lh_sint_t width, lh_sint_t height, lh_ptr ctx);
     /** Takes every input event after ::input and is updated every tick; the caller's,
@@ -81,7 +81,7 @@ lh_os_web_host_hooks_set_ctx(lh_os_web_host_hooks_t *self, lh_ptr ctx);
  *
  * @param self The hooks; checked by ::lh_assert_runtime_ref.
  */
-lh_os_input_sink_cb
+lh_input_sink_cb
 lh_os_web_host_hooks_get_input_fn(const lh_os_web_host_hooks_t *self);
 
 /**
@@ -93,7 +93,7 @@ lh_os_web_host_hooks_get_input_fn(const lh_os_web_host_hooks_t *self);
  * @param input The new value.
  */
 lh_void
-lh_os_web_host_hooks_set_input_fn(lh_os_web_host_hooks_t *self, lh_os_input_sink_cb input);
+lh_os_web_host_hooks_set_input_fn(lh_os_web_host_hooks_t *self, lh_input_sink_cb input);
 
 /**
  * @brief The callback that runs about every 20 ms (level 1).

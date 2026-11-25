@@ -7,9 +7,9 @@
 #define LH_GL_VIEW_FOCUS_WALK_H
 
 #include <lh/config.h>
-#include <lh/os/input/event.h>
-#include <lh/os/input/pointer/id.h>
-#include <lh/os/input/wheel.h>
+#include <lh/core/input/event.h>
+#include <lh/core/input/pointer/id.h>
+#include <lh/core/input/wheel.h>
 #include <lh/gl/button.h>
 #include <lh/gl/view/fields.h>
 #include <lh/gl/view/pointer.h>

@@ -118,7 +118,7 @@ Lessons:
 - **One pass per call.** A callback that loops "while there is work" stops
   the message pump: the window cannot paint, take a click, or be closed.
 - **All input is one event type.** Every mouse, touch, pen, wheel, key, text
-  and focus event is one `lh_os_input_event_t`; there are no per-event setters.
+  and focus event is one `lh_input_event_t`; there are no per-event setters.
   The standard consumer is a controller (`lh_os_window_set_controller`, section
   5), which the window feeds, cancels on a focus loss and ticks itself;
   `lh_os_window_set_on_input` is the low-level sink that sees every raw event
@@ -347,12 +347,12 @@ C and is applied in `on_resize`.
 
 ## 5. Input
 
-The window delivers every input as one event (`lh/os/input/event.h`) to one
+The window delivers every input as one event (`lh/core/input/event.h`) to one
 sink; the view dispatches it to entities:
 
 ```c
 static lh_void
-on_input(lh_self_ptr self, const lh_os_input_event_ptr event)
+on_input(lh_self_ptr self, const lh_input_event_ptr event)
 {
     struct my_main *my = lh_ptr_rcast(struct my_main, self);
 
@@ -378,7 +378,7 @@ callbacks: it is the context given to `lh_os_window_set_on_input`.
 
 `on_tick` still drives `lh_gl_view_tick` (~60 Hz: scroll glide, transitions).
 
-Every pointer id below `LH_OS_INPUT_POINTER_MAX` (the mouse is `0`, touch
+Every pointer id below `LH_INPUT_POINTER_MAX` (the mouse is `0`, touch
 contacts and pens `1` and up) has a press session of its own in the view
 (`lh_gl_view_pointer_t`, inside the view, no heap). Two fingers on two
 buttons press and click both; a click is a release over the entity that same
@@ -389,27 +389,27 @@ app's to drive, from the mouse.
 
 What an event carries:
 
-- **Coordinates** are client pixels in Q24.8 (`lh_os_input_coord_to_int`).
-- **Wheel** distances are 1/120 notch (`LH_OS_INPUT_WHEEL_NOTCH`), positive
+- **Coordinates** are client pixels in Q24.8 (`lh_input_coord_to_int`).
+- **Wheel** distances are 1/120 notch (`LH_INPUT_WHEEL_NOTCH`), positive
   up / left. The backends no longer turn Shift+wheel sideways; the gesture
   recognizer does, when asked to.
 - **Wheel step**: how far a notch scrolls is the system's, asked on every
   wheel event through `lh_os_input_get_wheel_step()` (`lh/os/input.h`). The
   system counts lines and the view content units; one line is 40 / 3 units
-  (`LH_OS_INPUT_WHEEL_STEP_DEFAULT` / `LH_OS_INPUT_WHEEL_LINES_DEFAULT`, both
+  (`LH_INPUT_WHEEL_STEP_DEFAULT` / `LH_INPUT_WHEEL_LINES_DEFAULT`, both
   `#ifndef`), so the default 3 lines stay 40. Windows reads
   `SystemParametersInfo(SPI_GETWHEELSCROLLLINES)`: 3 when the call fails, 0
   (scrolling off) as 0, "one screen at a time" as
-  `LH_OS_INPUT_WHEEL_LINES_PAGE` (20) lines, anything past
-  `LH_OS_INPUT_WHEEL_LINES_MAX` (100) as 100. Linux and macOS have no
+  `LH_INPUT_WHEEL_LINES_PAGE` (20) lines, anything past
+  `LH_INPUT_WHEEL_LINES_MAX` (100) as 100. Linux and macOS have no
   setting lh can read without libinput / evdev, so they scroll the default
   40; X11 itself sends a core wheel press as exactly one notch (no XInput2
   increment). Windows without the window backend scrolls 40 too.
 - **Buttons**: `button` is the one that changed, `buttons` what is held after
   the event; `lh_os_window_get_pressed_buttons` keeps the same mask. Windows
   delivers all five mouse buttons, X11 too.
-- **Keys** carry `lh_os_key_t`, the native code as `scancode`, the modifiers
-  and `LH_OS_INPUT_FLAG_REPEAT` for auto-repeat (X11 no longer drops it).
+- **Keys** carry `lh_key_t`, the native code as `scancode`, the modifiers
+  and `LH_INPUT_FLAG_REPEAT` for auto-repeat (X11 no longer drops it).
 - **Focus**: `focus_in` / `focus_out` when the window gains or loses the
   keyboard; a lost mouse capture on Windows is a `pointer_cancel`.
 - **Touch and pen on Windows**: from Windows 8 on the window takes
@@ -424,10 +424,10 @@ What an event carries:
   (`GetMessageExtraInfo`). `WM_TOUCH` (Windows 7 multi-touch) is not used.
 
 **Gestures** — click count, double click, long press, drag begin / drag / end —
-come from `lh_os_input_recognizer_t` (`lh/os/input/recognizer.h`): feed it
-the raw events, call `lh_os_input_recognizer_update` from `on_tick`, and it
+come from `lh_input_recognizer_t` (`lh/core/input/recognizer.h`): feed it
+the raw events, call `lh_input_recognizer_update` from `on_tick`, and it
 passes every raw event on to its own sink with the gestures among them, marked
-`LH_OS_INPUT_FLAG_SYNTHESIZED`. `lh_gl_view_input` ignores synthesized events,
+`LH_INPUT_FLAG_SYNTHESIZED`. `lh_gl_view_input` ignores synthesized events,
 so one sink can take both.
 
 **The controller** (`lh/os/controller.h`) does that wiring once, and it is the
@@ -467,7 +467,7 @@ that routes input itself), and with no controller it is the only consumer. The
 controller is the consumer on top of it. Do not plug the window's controller
 into its sink through `lh_os_controller_sink` as well: it would be fed twice.
 `lh_os_controller_sink` remains for sources that only have a sink
-(`lh_os_input_queue_drain`).
+(`lh_input_queue_drain`).
 
 - `lh_os_controller_feed` (what `lh_os_controller_sink` calls) passes each raw
   event to the handler and, with `lh_os_controller_flags_gestures`, the
@@ -487,7 +487,7 @@ into its sink through `lh_os_controller_sink` as well: it would be fed twice.
   clicks once; with the default config a Shift+wheel reaches it already sideways.
 
 **Events from somewhere else** (an interrupt, a thread) go through
-`lh_os_input_queue_t` (`lh/os/input/queue.h`): one producer pushes, the UI
+`lh_input_queue_t` (`lh/core/input/queue.h`): one producer pushes, the UI
 thread drains it into the sink.
 
 The sink has no window parameter, so the same function plugs into the web host

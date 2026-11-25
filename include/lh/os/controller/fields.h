@@ -23,7 +23,7 @@
  * @param context_type Type of `context`, the object the handlers work on, handed
  *                     to each of them as `self` (::lh_self_ptr).
  *
- * `recognizer` is an ::lh_os_input_recognizer_t and `flags` an
+ * `recognizer` is an ::lh_input_recognizer_t and `flags` an
  * ::lh_os_controller_flags_t; the file that expands the macro includes both.
  *
  * Example usage:
@@ -43,7 +43,7 @@
     update_type *update_cb;                                                                        \
     cancel_type *cancel_cb;                                                                        \
     context_type context;                                                                          \
-    lh_os_input_recognizer_t recognizer;                                                           \
+    lh_input_recognizer_t recognizer;                                                              \
     lh_os_controller_flags_t flags
 
 #endif /* LH_OS_CONTROLLER_FIELDS_H */

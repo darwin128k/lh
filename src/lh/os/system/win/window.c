@@ -6,8 +6,8 @@
 #include <lh/core/assert/runtime.h>
 #include <lh/core/attribute/unused.h>
 #include <lh/core/memory.h>
-#include <lh/os/input/contacts.h>
-#include <lh/os/input/contacts/initializer.h>
+#include <lh/core/input/contacts.h>
+#include <lh/core/input/contacts/initializer.h>
 #include <lh/os/system/win/gdi32.h>
 #include <lh/os/system/win/input.h>
 #include <lh/os/system/win/kernel32.h>
@@ -58,17 +58,17 @@ lh_os_system_win_window_hit(lh_os_window_zone_t zone)
     }
 }
 
-lh_os_input_coord_t
+lh_input_coord_t
 lh_os_system_win_window_coord_x(lh_os_system_win_lparam_t lparam)
 {
-    return lh_os_input_coord_from_int(
+    return lh_input_coord_from_int(
         lh_type_cast(int, lh_type_cast(lh_sshort_t, LH_OS_SYSTEM_WIN_LOWORD(lparam))));
 }
 
-lh_os_input_coord_t
+lh_input_coord_t
 lh_os_system_win_window_coord_y(lh_os_system_win_lparam_t lparam)
 {
-    return lh_os_input_coord_from_int(
+    return lh_input_coord_from_int(
         lh_type_cast(int, lh_type_cast(lh_sshort_t, LH_OS_SYSTEM_WIN_HIWORD(lparam))));
 }
 
@@ -77,18 +77,18 @@ lh_os_system_win_window_coord_y(lh_os_system_win_lparam_t lparam)
    a mouse message the system made out of a touch contact or a pen (Windows 7, or no
    pointer API) says so in its device kind. */
 lh_void
-lh_os_system_win_window_send_pointer(lh_os_window_t *window, lh_os_input_kind_t kind,
-                                     lh_os_input_button_t button, lh_os_system_win_wparam_t wparam,
+lh_os_system_win_window_send_pointer(lh_os_window_t *window, lh_input_kind_t kind,
+                                     lh_input_button_t button, lh_os_system_win_wparam_t wparam,
                                      lh_os_system_win_lparam_t lparam)
 {
-    lh_os_input_event_t event;
+    lh_input_event_t event;
 
-    lh_os_input_event_init_pointer(
-        lh_addr_of(event), kind, lh_os_system_win_input_device_kind_of_mouse(GetMessageExtraInfo()),
-        0U, button, lh_os_system_win_window_coord_x(lparam),
-        lh_os_system_win_window_coord_y(lparam), lh_os_tick_ms());
-    lh_os_input_event_set_buttons(lh_addr_of(event), lh_os_system_win_input_buttons_of(wparam));
-    lh_os_input_event_set_mods(lh_addr_of(event), lh_os_system_win_input_get_mods());
+    lh_input_event_init_pointer(lh_addr_of(event), kind,
+                                lh_os_system_win_input_device_kind_of_mouse(GetMessageExtraInfo()),
+                                0U, button, lh_os_system_win_window_coord_x(lparam),
+                                lh_os_system_win_window_coord_y(lparam), lh_os_tick_ms());
+    lh_input_event_set_buttons(lh_addr_of(event), lh_os_system_win_input_buttons_of(wparam));
+    lh_input_event_set_mods(lh_addr_of(event), lh_os_system_win_input_get_mods());
     lh_os_window_on_native_input(window, lh_addr_of(event));
 }
 
@@ -106,7 +106,7 @@ lh_os_system_win_window_send_button(lh_os_window_t *window, lh_os_system_win_hwn
         SetCapture(hwnd);
     }
     lh_os_system_win_window_send_pointer(
-        window, down ? lh_os_input_kind_pointer_down : lh_os_input_kind_pointer_up,
+        window, down ? lh_input_kind_pointer_down : lh_input_kind_pointer_up,
         lh_os_system_win_input_button_of(msg, wparam), wparam, lparam);
     if (!down && lh_os_system_win_input_buttons_of(wparam) == 0U && GetCapture() == hwnd)
     {
@@ -128,13 +128,13 @@ lh_os_system_win_window_send_wheel(lh_os_window_t *window, lh_os_system_win_hwnd
     {
         lh_s32_t dx;
         lh_s32_t dy;
-        lh_os_input_event_t event;
+        lh_input_event_t event;
 
         lh_os_system_win_input_wheel_of(msg, wparam, lh_addr_of(dx), lh_addr_of(dy));
-        lh_os_input_event_init_wheel(lh_addr_of(event), lh_os_input_coord_from_int(cursor.x),
-                                     lh_os_input_coord_from_int(cursor.y), dx, dy, lh_os_tick_ms());
-        lh_os_input_event_set_buttons(lh_addr_of(event), lh_os_system_win_input_buttons_of(wparam));
-        lh_os_input_event_set_mods(lh_addr_of(event), lh_os_system_win_input_get_mods());
+        lh_input_event_init_wheel(lh_addr_of(event), lh_input_coord_from_int(cursor.x),
+                                  lh_input_coord_from_int(cursor.y), dx, dy, lh_os_tick_ms());
+        lh_input_event_set_buttons(lh_addr_of(event), lh_os_system_win_input_buttons_of(wparam));
+        lh_input_event_set_mods(lh_addr_of(event), lh_os_system_win_input_get_mods());
         lh_os_window_on_native_input(window, lh_addr_of(event));
     }
 }
@@ -155,8 +155,7 @@ static lh_os_system_win_get_pointer_info_proc_t lh_os_system_win_window_get_poin
 /** The pointer id each live touch contact and pen goes by. One table for the process:
    the system's pointer ids are unique across its windows, and a contact belongs to the
    window it went down on until it goes up. */
-static lh_os_input_contacts_t lh_os_system_win_window_contacts =
-    lh_os_input_contacts_empty_initializer();
+static lh_input_contacts_t lh_os_system_win_window_contacts = lh_input_contacts_empty_initializer();
 
 lh_bool_t
 lh_os_system_win_window_has_pointer_api(lh_void)
@@ -189,7 +188,7 @@ lh_bool_t
 lh_os_system_win_window_read_pointer(lh_os_system_win_pointer_id_t pointer_id,
                                      lh_os_system_win_wparam_t wparam,
                                      lh_os_system_win_lparam_t lparam,
-                                     lh_os_input_device_kind_t *device_kind,
+                                     lh_input_device_kind_t *device_kind,
                                      lh_os_system_win_pointer_flags_t *flags,
                                      lh_os_system_win_point_t *at)
 {
@@ -216,15 +215,14 @@ lh_os_system_win_window_read_pointer(lh_os_system_win_pointer_id_t pointer_id,
 
 lh_bool_t
 lh_os_system_win_window_contact_pointer(lh_os_system_win_pointer_id_t pointer_id,
-                                        lh_os_input_kind_t kind,
-                                        lh_os_input_device_kind_t device_kind,
-                                        lh_os_input_pointer_id_t *pointer)
+                                        lh_input_kind_t kind, lh_input_device_kind_t device_kind,
+                                        lh_input_pointer_id_t *pointer)
 {
-    lh_return_if(kind == lh_os_input_kind_pointer_down,
-                 lh_os_input_contacts_take(lh_addr_of(lh_os_system_win_window_contacts), pointer_id,
-                                           device_kind, pointer));
-    return lh_os_input_contacts_find(lh_addr_of(lh_os_system_win_window_contacts), pointer_id,
-                                     pointer);
+    lh_return_if(kind == lh_input_kind_pointer_down,
+                 lh_input_contacts_take(lh_addr_of(lh_os_system_win_window_contacts), pointer_id,
+                                        device_kind, pointer));
+    return lh_input_contacts_find(lh_addr_of(lh_os_system_win_window_contacts), pointer_id,
+                                  pointer);
 }
 
 /** A pointer message about a touch contact or a pen, to @p window as an event of the
@@ -238,10 +236,10 @@ lh_os_system_win_window_send_contact(lh_os_window_t *window, lh_os_system_win_hw
                                      lh_os_system_win_lparam_t lparam)
 {
     const lh_os_system_win_pointer_id_t pointer_id = LH_OS_SYSTEM_WIN_GET_POINTERID_WPARAM(wparam);
-    lh_os_input_device_kind_t device_kind = lh_os_input_device_kind_none;
+    lh_input_device_kind_t device_kind = lh_input_device_kind_none;
     lh_os_system_win_pointer_flags_t flags = 0U;
     lh_os_system_win_point_t at = {0, 0};
-    lh_os_input_pointer_id_t pointer = 0U;
+    lh_input_pointer_id_t pointer = 0U;
 
     lh_return_if(!lh_os_system_win_window_has_pointer_api(), lh_bool_false);
     if (!lh_os_system_win_window_read_pointer(pointer_id, wparam, lparam, lh_addr_of(device_kind),
@@ -249,59 +247,58 @@ lh_os_system_win_window_send_contact(lh_os_window_t *window, lh_os_system_win_hw
     {
         /* Gone from the system before its message came (a capture change after the
            contact ended): only a contact still in the table is ours to cancel. */
-        lh_return_if(!lh_os_input_contacts_find(lh_addr_of(lh_os_system_win_window_contacts),
-                                                pointer_id, lh_addr_of(pointer)),
+        lh_return_if(!lh_input_contacts_find(lh_addr_of(lh_os_system_win_window_contacts),
+                                             pointer_id, lh_addr_of(pointer)),
                      lh_bool_false);
-        device_kind = lh_os_input_contacts_get_device_kind_v(
+        device_kind = lh_input_contacts_get_device_kind_v(
             lh_addr_of(lh_os_system_win_window_contacts), pointer);
         flags = LH_OS_SYSTEM_WIN_POINTER_FLAG_CANCELED;
     }
-    lh_return_if(device_kind != lh_os_input_device_kind_touch &&
-                     device_kind != lh_os_input_device_kind_pen,
+    lh_return_if(device_kind != lh_input_device_kind_touch &&
+                     device_kind != lh_input_device_kind_pen,
                  lh_bool_false);
 
-    lh_os_input_kind_t kind =
+    lh_input_kind_t kind =
         lh_os_system_win_input_pointer_kind_of(lh_type_cast(lh_u32_t, msg), flags);
     /* A contact with no id is not delivered at all, and not handed on either: its
        mouse echo would only be skipped. */
     lh_return_if(!lh_os_system_win_window_contact_pointer(pointer_id, kind, device_kind,
                                                           lh_addr_of(pointer)),
-                 lh_type_cast(lh_bool_t, kind == lh_os_input_kind_pointer_down));
-    if (kind != lh_os_input_kind_pointer_cancel)
+                 lh_type_cast(lh_bool_t, kind == lh_input_kind_pointer_down));
+    if (kind != lh_input_kind_pointer_cancel)
     {
         ScreenToClient(hwnd, lh_addr_of(at));
     }
-    lh_os_input_event_t event;
+    lh_input_event_t event;
 
-    lh_os_input_event_init_pointer(
+    lh_input_event_init_pointer(
         lh_addr_of(event), kind, device_kind, pointer,
-        kind == lh_os_input_kind_pointer_down || kind == lh_os_input_kind_pointer_up
-            ? lh_os_input_button_primary
-            : lh_os_input_button_none,
-        lh_os_input_coord_from_int(kind == lh_os_input_kind_pointer_cancel ? 0 : at.x),
-        lh_os_input_coord_from_int(kind == lh_os_input_kind_pointer_cancel ? 0 : at.y),
-        lh_os_tick_ms());
-    lh_os_input_event_set_buttons(lh_addr_of(event),
-                                  (flags & LH_OS_SYSTEM_WIN_POINTER_FLAG_INCONTACT) != 0U &&
-                                          kind != lh_os_input_kind_pointer_up &&
-                                          kind != lh_os_input_kind_pointer_cancel
-                                      ? lh_os_input_button_to_mask(lh_os_input_button_primary)
-                                      : 0U);
-    lh_os_input_event_set_mods(lh_addr_of(event), lh_os_system_win_input_get_mods());
+        kind == lh_input_kind_pointer_down || kind == lh_input_kind_pointer_up
+            ? lh_input_button_primary
+            : lh_input_button_none,
+        lh_input_coord_from_int(kind == lh_input_kind_pointer_cancel ? 0 : at.x),
+        lh_input_coord_from_int(kind == lh_input_kind_pointer_cancel ? 0 : at.y), lh_os_tick_ms());
+    lh_input_event_set_buttons(lh_addr_of(event),
+                               (flags & LH_OS_SYSTEM_WIN_POINTER_FLAG_INCONTACT) != 0U &&
+                                       kind != lh_input_kind_pointer_up &&
+                                       kind != lh_input_kind_pointer_cancel
+                                   ? lh_input_button_to_mask(lh_input_button_primary)
+                                   : 0U);
+    lh_input_event_set_mods(lh_addr_of(event), lh_os_system_win_input_get_mods());
     lh_os_window_on_native_input(window, lh_addr_of(event));
     /* After the event, not before it. The table is one for the process, and the handler
        may pump messages: a down that arrives while this up is still in its handler must
        not be given the pointer id this event already carries. The slot is freed once the
        handler returns, including when that handler closed the window. */
-    if (kind == lh_os_input_kind_pointer_up || kind == lh_os_input_kind_pointer_cancel)
+    if (kind == lh_input_kind_pointer_up || kind == lh_input_kind_pointer_cancel)
     {
-        lh_os_input_contacts_release(lh_addr_of(lh_os_system_win_window_contacts), pointer);
+        lh_input_contacts_release(lh_addr_of(lh_os_system_win_window_contacts), pointer);
     }
     return lh_bool_true;
 }
 
 /** A key message, plain or with Alt (`WM_SYS*`); the virtual key goes along as the
-   scancode, so a key ::lh_os_key_t has no name for can still be told apart. */
+   scancode, so a key ::lh_key_t has no name for can still be told apart. */
 lh_void
 lh_os_system_win_window_send_key(lh_os_window_t *window, lh_os_system_win_uint_t msg,
                                  lh_os_system_win_wparam_t wparam, lh_os_system_win_lparam_t lparam)
@@ -310,11 +307,11 @@ lh_os_system_win_window_send_key(lh_os_window_t *window, lh_os_system_win_uint_t
     const lh_bool_t down = lh_type_cast(lh_bool_t, msg == LH_OS_SYSTEM_WIN_WM_KEYDOWN ||
                                                        msg == LH_OS_SYSTEM_WIN_WM_SYSKEYDOWN);
 
-    lh_os_input_event_t event;
-    lh_os_input_event_init_key(lh_addr_of(event), lh_os_system_win_key_from_vk(vk), down,
-                               down ? lh_os_system_win_input_is_repeat(lparam) : lh_bool_false, vk,
-                               lh_os_tick_ms());
-    lh_os_input_event_set_mods(lh_addr_of(event), lh_os_system_win_input_get_mods());
+    lh_input_event_t event;
+    lh_input_event_init_key(lh_addr_of(event), lh_os_system_win_key_from_vk(vk), down,
+                            down ? lh_os_system_win_input_is_repeat(lparam) : lh_bool_false, vk,
+                            lh_os_tick_ms());
+    lh_input_event_set_mods(lh_addr_of(event), lh_os_system_win_input_get_mods());
     lh_os_window_on_native_input(window, lh_addr_of(event));
 }
 
@@ -521,8 +518,8 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
     case LH_OS_SYSTEM_WIN_WM_MOUSEMOVE:
         if (lh_null_ne(window) && !lh_os_system_win_window_is_contact_echo())
         {
-            lh_os_system_win_window_send_pointer(window, lh_os_input_kind_pointer_move,
-                                                 lh_os_input_button_none, wparam, lparam);
+            lh_os_system_win_window_send_pointer(window, lh_input_kind_pointer_move,
+                                                 lh_input_button_none, wparam, lparam);
         }
         return 0;
     case LH_OS_SYSTEM_WIN_WM_CAPTURECHANGED:
@@ -532,8 +529,8 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
         if (lh_null_ne(window) && lh_cast_reinterpret(lh_os_system_win_hwnd_t, lparam) != hwnd &&
             lh_os_window_get_pressed_buttons(window) != 0U)
         {
-            lh_os_system_win_window_send_pointer(window, lh_os_input_kind_pointer_cancel,
-                                                 lh_os_input_button_none, 0U, 0);
+            lh_os_system_win_window_send_pointer(window, lh_input_kind_pointer_cancel,
+                                                 lh_input_button_none, 0U, 0);
         }
         return 0;
     case LH_OS_SYSTEM_WIN_WM_POINTERDOWN:
@@ -575,10 +572,10 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
 
             if (lh_os_system_win_is_text(code))
             {
-                lh_os_input_event_t event;
+                lh_input_event_t event;
 
-                lh_os_input_event_init_text(lh_addr_of(event), code, lh_os_tick_ms());
-                lh_os_input_event_set_mods(lh_addr_of(event), lh_os_system_win_input_get_mods());
+                lh_input_event_init_text(lh_addr_of(event), code, lh_os_tick_ms());
+                lh_input_event_set_mods(lh_addr_of(event), lh_os_system_win_input_get_mods());
                 lh_os_window_on_native_input(window, lh_addr_of(event));
             }
         }
@@ -587,12 +584,12 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
     case LH_OS_SYSTEM_WIN_WM_KILLFOCUS:
         if (lh_null_ne(window))
         {
-            lh_os_input_event_t event;
+            lh_input_event_t event;
 
-            lh_os_input_event_init(lh_addr_of(event),
-                                   msg == LH_OS_SYSTEM_WIN_WM_SETFOCUS ? lh_os_input_kind_focus_in
-                                                                       : lh_os_input_kind_focus_out,
-                                   lh_os_input_device_kind_keyboard, lh_os_tick_ms());
+            lh_input_event_init(lh_addr_of(event),
+                                msg == LH_OS_SYSTEM_WIN_WM_SETFOCUS ? lh_input_kind_focus_in
+                                                                    : lh_input_kind_focus_out,
+                                lh_input_device_kind_keyboard, lh_os_tick_ms());
             lh_os_window_on_native_input(window, lh_addr_of(event));
         }
         return 0;

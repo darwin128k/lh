@@ -17,7 +17,7 @@
  * page click, key). ::lh_gl_view_wheel scrolls the container under the
  * cursor; ::lh_gl_view_key / ::lh_gl_view_text go to the focus, Tab moves it.
  *
- * Several pointers: every pointer id below ::LH_OS_INPUT_POINTER_MAX has a session
+ * Several pointers: every pointer id below ::LH_INPUT_POINTER_MAX has a session
  * of its own (::lh_gl_view_pointer_t, kept in the view, no heap) --
  * ::lh_gl_view_press_pointer / ::lh_gl_view_move_pointer /
  * ::lh_gl_view_release_pointer / ::lh_gl_view_cancel_pointer. Two fingers on two
@@ -29,7 +29,7 @@
  * Hover is not a session: ::lh_gl_view_set_hot is the app's, and the app decides
  * which pointer it follows (the mouse, as a rule -- a finger has no hover).
  *
- * Input events: ::lh_gl_view_input takes one ::lh_os_input_event_t, the event a
+ * Input events: ::lh_gl_view_input takes one ::lh_input_event_t, the event a
  * window's sink (::lh_os_window_set_on_input) or the web host hands over, and
  * calls the right one of the functions above. The view makes its own click from
  * press and release, so the gestures a recognizer synthesizes are not for it.
@@ -91,17 +91,17 @@ typedef struct lh_gl_view lh_gl_view_t;
 
 /**
  * @def LH_GL_VIEW_WHEEL_STEP
- * @brief How far one wheel notch (::LH_OS_INPUT_WHEEL_NOTCH) scrolls, in content
+ * @brief How far one wheel notch (::LH_INPUT_WHEEL_NOTCH) scrolls, in content
  *        units, when it comes in through ::lh_gl_view_input in a build without the OS
  *        layer (::LH_LIBRARY_OPTION_OS off).
  *
  * With the OS layer the view asks the system instead, ::lh_os_input_get_wheel_step on
  * each wheel event. The fallback is the OS layer's own default,
- * ::LH_OS_INPUT_WHEEL_STEP_DEFAULT (40), so a notch scrolls the same with and without
+ * ::LH_INPUT_WHEEL_STEP_DEFAULT (40), so a notch scrolls the same with and without
  * it while the system is at its default.
  */
 #ifndef LH_GL_VIEW_WHEEL_STEP
-#    define LH_GL_VIEW_WHEEL_STEP LH_OS_INPUT_WHEEL_STEP_DEFAULT
+#    define LH_GL_VIEW_WHEEL_STEP LH_INPUT_WHEEL_STEP_DEFAULT
 #endif /* LH_GL_VIEW_WHEEL_STEP */
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -491,10 +491,10 @@ lh_gl_view_reset_pointer(lh_gl_view_t *self);
 
 /**
  * @brief The session of pointer @p id, or ::lh_null for an id at or above
- *        ::LH_OS_INPUT_POINTER_MAX, which the view does not follow.
+ *        ::LH_INPUT_POINTER_MAX, which the view does not follow.
  */
 const lh_gl_view_pointer_t *
-lh_gl_view_get_pointer(const lh_gl_view_t *self, lh_os_input_pointer_id_t id);
+lh_gl_view_get_pointer(const lh_gl_view_t *self, lh_input_pointer_id_t id);
 
 /**
  * @brief ::lh_gl_scrollbar_get_thumb_start_at for @p point in the root
@@ -506,7 +506,7 @@ lh_gl_view_get_thumb_start_at(const lh_gl_scrollbar_t *bar, lh_gl_point_t point)
 /** The session of pointer @p id in @p self, or ::lh_null for an id the view does
    not follow. */
 lh_gl_view_pointer_t *
-lh_gl_view_get_slot(lh_gl_view_t *self, lh_os_input_pointer_id_t id);
+lh_gl_view_get_slot(lh_gl_view_t *self, lh_input_pointer_id_t id);
 
 /** True when a pointer of @p self other than @p pointer drives @p box: drags its
    content or holds the thumb of a bar that scrolls it. A box is one pointer's at a
@@ -648,18 +648,18 @@ lh_gl_view_finish_gesture(lh_gl_view_t *self, lh_gl_view_pointer_t *pointer);
  *        still open, press the entity that takes the pointer there, move the focus,
  *        grab a scrollbar thumb when hit, else mark pressed for a later click.
  *
- * Nothing for an @p id at or above ::LH_OS_INPUT_POINTER_MAX. The other pointers'
+ * Nothing for an @p id at or above ::LH_INPUT_POINTER_MAX. The other pointers'
  * presses stay as they are.
  */
 lh_void
-lh_gl_view_press_pointer(lh_gl_view_t *self, lh_os_input_pointer_id_t id, lh_gl_point_t point);
+lh_gl_view_press_pointer(lh_gl_view_t *self, lh_input_pointer_id_t id, lh_gl_point_t point);
 
 /**
  * @brief Pointer @p id moves to @p point: drag the thumb it holds, or the content
  *        it went down on once past the threshold. Returns true when scroll changed.
  */
 lh_bool_t
-lh_gl_view_move_pointer(lh_gl_view_t *self, lh_os_input_pointer_id_t id, lh_gl_point_t point);
+lh_gl_view_move_pointer(lh_gl_view_t *self, lh_input_pointer_id_t id, lh_gl_point_t point);
 
 /**
  * @brief Pointer @p id goes up at @p point: the entity it went down on hears the
@@ -670,7 +670,7 @@ lh_gl_view_move_pointer(lh_gl_view_t *self, lh_os_input_pointer_id_t id, lh_gl_p
  * Returns the clicked entity, or ::lh_null.
  */
 lh_gl_entity_t *
-lh_gl_view_release_pointer(lh_gl_view_t *self, lh_os_input_pointer_id_t id, lh_gl_point_t point);
+lh_gl_view_release_pointer(lh_gl_view_t *self, lh_input_pointer_id_t id, lh_gl_point_t point);
 
 /**
  * @brief Abandon the press of pointer @p id without a click (::lh_gl_view_cancel
@@ -679,7 +679,7 @@ lh_gl_view_release_pointer(lh_gl_view_t *self, lh_os_input_pointer_id_t id, lh_g
  *        thumb is dropped, its drag stops where it is. Nothing when it has no press.
  */
 lh_void
-lh_gl_view_cancel_pointer(lh_gl_view_t *self, lh_os_input_pointer_id_t id);
+lh_gl_view_cancel_pointer(lh_gl_view_t *self, lh_input_pointer_id_t id);
 
 /**
  * @brief ::lh_gl_view_press_pointer of pointer `0`, the mouse.
@@ -759,7 +759,7 @@ lh_gl_view_send_input(lh_gl_view_t *self, const lh_gl_key_input_t *input);
  *        goes to it. True when that scrolled something.
  */
 lh_bool_t
-lh_gl_view_key(lh_gl_view_t *self, lh_os_key_t key, lh_bool_t pressed);
+lh_gl_view_key(lh_gl_view_t *self, lh_key_t key, lh_bool_t pressed);
 
 /**
  * @brief One typed character (code point @p code) for the focus.
@@ -775,7 +775,7 @@ lh_gl_view_text(lh_gl_view_t *self, lh_u32_t code);
  *        let go, grabbed thumbs dropped, drags stopped where they are (no glide).
  *
  * For the window losing the focus mid-press; the one pointer the system took
- * away (::lh_os_input_kind_pointer_cancel) is ::lh_gl_view_cancel_pointer. Each
+ * away (::lh_input_kind_pointer_cancel) is ::lh_gl_view_cancel_pointer. Each
  * target still hears ::lh_gl_entity_event_release, at the last point its pointer
  * was seen, so a press is always paired; what it never gets is the click. Does
  * nothing when no press is open.
@@ -785,7 +785,7 @@ lh_gl_view_cancel(lh_gl_view_t *self);
 
 /** Where @p event happened, in whole view units. */
 lh_gl_point_t
-lh_gl_view_point_of(const lh_os_input_event_ptr event);
+lh_gl_view_point_of(const lh_input_event_ptr event);
 
 /** Content units one wheel notch scrolls: the system's step
    (::lh_os_input_get_wheel_step), or ::LH_GL_VIEW_WHEEL_STEP where there is no OS layer
@@ -799,16 +799,16 @@ lh_gl_view_wheel_distance(lh_s32_t notch_120, lh_s32_t step);
 
 /** The wheel case of ::lh_gl_view_input: both axes by one step, asked once. */
 lh_bool_t
-lh_gl_view_input_wheel(lh_gl_view_t *self, const lh_os_input_event_ptr event);
+lh_gl_view_input_wheel(lh_gl_view_t *self, const lh_input_event_ptr event);
 
 /** True when @p event is a button of the first pointer that the view presses with. */
 lh_bool_t
-lh_gl_view_is_primary_press(const lh_os_input_event_ptr event);
+lh_gl_view_is_primary_press(const lh_input_event_ptr event);
 
 /** The pointer half of ::lh_gl_view_input: each pointer the view follows to its own
    session. */
 lh_bool_t
-lh_gl_view_input_pointer(lh_gl_view_t *self, const lh_os_input_event_ptr event);
+lh_gl_view_input_pointer(lh_gl_view_t *self, const lh_input_event_ptr event);
 
 /**
  * @brief One input event, to the pointer session or the focus.
@@ -824,12 +824,12 @@ lh_gl_view_input_pointer(lh_gl_view_t *self, const lh_os_input_event_ptr event);
  * | `key_down` (a repeat too) / `key_up`    | ::lh_gl_view_key            |
  * | `text`                                  | ::lh_gl_view_text           |
  *
- * Each pointer below ::LH_OS_INPUT_POINTER_MAX is followed in a session of its own,
+ * Each pointer below ::LH_INPUT_POINTER_MAX is followed in a session of its own,
  * the event's `pointer` the id: the mouse `0`, touch contacts and pens from `1`. A
  * wheel notch up or left scrolls back toward the start by the system's step,
  * ::lh_os_input_get_wheel_step content units (::LH_GL_VIEW_WHEEL_STEP without
  * ::LH_LIBRARY_OPTION_OS). Other buttons, pointers at or above the limit,
- * controllers and every synthesized event (::lh_os_input_event_is_synthesized) are
+ * controllers and every synthesized event (::lh_input_event_is_synthesized) are
  * not for the view.
  *
  * @return True when the view acted on @p event; repaint what
@@ -839,7 +839,7 @@ lh_gl_view_input_pointer(lh_gl_view_t *self, const lh_os_input_event_ptr event);
  *
  * @code
  * lh_void
- * on_input(lh_self_ptr self, const lh_os_input_event_ptr event)
+ * on_input(lh_self_ptr self, const lh_input_event_ptr event)
  * {
  *     lh_gl_view_t *view = lh_ptr_rcast(lh_gl_view_t, self);
  *
@@ -851,7 +851,7 @@ lh_gl_view_input_pointer(lh_gl_view_t *self, const lh_os_input_event_ptr event);
  * @endcode
  */
 lh_bool_t
-lh_gl_view_input(lh_gl_view_t *self, const lh_os_input_event_ptr event);
+lh_gl_view_input(lh_gl_view_t *self, const lh_input_event_ptr event);
 
 /**
  * @brief The session of each pointer (level 1).

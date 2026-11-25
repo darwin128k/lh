@@ -1,0 +1,16 @@
+/**
+ * @file wheel.c
+ * @brief Implementation of `lh/core/input/wheel.h`.
+ */
+
+#include <lh/core/input/wheel.h>
+#include <lh/core/util/type.h>
+
+lh_s32_t
+lh_input_wheel_step_of(lh_u32_t lines)
+{
+    const lh_u32_t kept = lh_math_min(lines, lh_type_cast(lh_u32_t, LH_INPUT_WHEEL_LINES_MAX));
+
+    return lh_type_cast(lh_s32_t, kept) * LH_INPUT_WHEEL_STEP_DEFAULT /
+           LH_INPUT_WHEEL_LINES_DEFAULT;
+}

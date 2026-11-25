@@ -51,14 +51,13 @@ count_click(lh_gl_button_t *, lh_ptr context)
 }
 
 void
-feed(lh_gl_window_t *host, lh_os_input_kind_t kind, int x, int y, unsigned id = 0)
+feed(lh_gl_window_t *host, lh_input_kind_t kind, int x, int y, unsigned id = 0)
 {
-    lh_os_input_event_t event;
-    lh_os_input_event_init_pointer(
-        &event, kind, id == 0 ? lh_os_input_device_kind_mouse : lh_os_input_device_kind_touch, id,
-        kind == lh_os_input_kind_pointer_move ? lh_os_input_button_none
-                                              : lh_os_input_button_primary,
-        lh_os_input_coord_from_int(x), lh_os_input_coord_from_int(y), 100);
+    lh_input_event_t event;
+    lh_input_event_init_pointer(
+        &event, kind, id == 0 ? lh_input_device_kind_mouse : lh_input_device_kind_touch, id,
+        kind == lh_input_kind_pointer_move ? lh_input_button_none : lh_input_button_primary,
+        lh_input_coord_from_int(x), lh_input_coord_from_int(y), 100);
     lh_os_window_on_native_input(lh_gl_window_get_window_mut(host), &event);
 }
 
@@ -163,13 +162,13 @@ TEST_F(ui_window, native_window_input_clicks_button_once_and_rejects_outside_pre
     lh_gl_entity_add_child(&root, lh_gl_button_as_entity(&button));
     int clicks = 0;
     lh_gl_button_set_on_click(&button, count_click, &clicks);
-    feed(&host, lh_os_input_kind_pointer_down, 20, 20);
+    feed(&host, lh_input_kind_pointer_down, 20, 20);
     EXPECT_TRUE(lh_gl_entity_is_pressed(lh_gl_button_as_entity(&button)));
-    feed(&host, lh_os_input_kind_pointer_up, 20, 20);
+    feed(&host, lh_input_kind_pointer_up, 20, 20);
     EXPECT_EQ(clicks, 1);
     EXPECT_FALSE(lh_gl_entity_is_pressed(lh_gl_button_as_entity(&button)));
-    feed(&host, lh_os_input_kind_pointer_down, 9, 20);
-    feed(&host, lh_os_input_kind_pointer_up, 20, 20);
+    feed(&host, lh_input_kind_pointer_down, 9, 20);
+    feed(&host, lh_input_kind_pointer_up, 20, 20);
     EXPECT_EQ(clicks, 1);
 }
 
@@ -180,9 +179,9 @@ TEST_F(ui_window, dragging_a_standalone_fitting_button_does_not_click)
     lh_gl_entity_add_child(&root, lh_gl_button_as_entity(&button));
     int clicks = 0;
     lh_gl_button_set_on_click(&button, count_click, &clicks);
-    feed(&host, lh_os_input_kind_pointer_down, 100, 20);
-    feed(&host, lh_os_input_kind_pointer_move, 50, 20);
-    feed(&host, lh_os_input_kind_pointer_up, 50, 20);
+    feed(&host, lh_input_kind_pointer_down, 100, 20);
+    feed(&host, lh_input_kind_pointer_move, 50, 20);
+    feed(&host, lh_input_kind_pointer_up, 50, 20);
     EXPECT_EQ(clicks, 0);
     EXPECT_FALSE(lh_gl_entity_is_pressed(lh_gl_button_as_entity(&button)));
 }
@@ -199,13 +198,13 @@ TEST_F(ui_window, independent_touch_contacts_keep_their_targets)
     lh_gl_entity_add_child(&root, lh_gl_button_as_entity(&second));
     int second_clicks = 0;
     lh_gl_button_set_on_click(&second, count_click, &second_clicks);
-    feed(&host, lh_os_input_kind_pointer_down, 20, 20, 1);
-    feed(&host, lh_os_input_kind_pointer_down, 80, 20, 2);
-    feed(&host, lh_os_input_kind_pointer_up, 80, 20, 2);
+    feed(&host, lh_input_kind_pointer_down, 20, 20, 1);
+    feed(&host, lh_input_kind_pointer_down, 80, 20, 2);
+    feed(&host, lh_input_kind_pointer_up, 80, 20, 2);
     EXPECT_EQ(second_clicks, 1);
     EXPECT_EQ(first_clicks, 0);
     EXPECT_TRUE(lh_gl_entity_is_pressed(lh_gl_button_as_entity(&first)));
-    feed(&host, lh_os_input_kind_pointer_up, 20, 20, 1);
+    feed(&host, lh_input_kind_pointer_up, 20, 20, 1);
     EXPECT_EQ(first_clicks, 1);
 }
 
@@ -216,18 +215,18 @@ TEST_F(ui_window, resize_and_focus_loss_cancel_without_click)
     lh_gl_entity_add_child(&root, lh_gl_button_as_entity(&button));
     int clicks = 0;
     lh_gl_button_set_on_click(&button, count_click, &clicks);
-    feed(&host, lh_os_input_kind_pointer_down, 20, 20);
+    feed(&host, lh_input_kind_pointer_down, 20, 20);
     lh_os_window_on_native_resize(lh_gl_window_get_window_mut(&host), 180, 120, lh_bool_false);
     EXPECT_FALSE(lh_gl_entity_is_pressed(lh_gl_button_as_entity(&button)));
-    feed(&host, lh_os_input_kind_pointer_up, 20, 20);
+    feed(&host, lh_input_kind_pointer_up, 20, 20);
     EXPECT_EQ(clicks, 0);
-    feed(&host, lh_os_input_kind_pointer_down, 20, 20);
-    feed(&host, lh_os_input_kind_focus_out, 0, 0);
+    feed(&host, lh_input_kind_pointer_down, 20, 20);
+    feed(&host, lh_input_kind_focus_out, 0, 0);
     EXPECT_FALSE(lh_gl_entity_is_pressed(lh_gl_button_as_entity(&button)));
-    feed(&host, lh_os_input_kind_pointer_up, 20, 20);
+    feed(&host, lh_input_kind_pointer_up, 20, 20);
     EXPECT_EQ(clicks, 0);
-    feed(&host, lh_os_input_kind_pointer_down, 20, 20);
-    feed(&host, lh_os_input_kind_pointer_up, 20, 20);
+    feed(&host, lh_input_kind_pointer_down, 20, 20);
+    feed(&host, lh_input_kind_pointer_up, 20, 20);
     EXPECT_EQ(clicks, 1);
 }
 
@@ -239,7 +238,7 @@ TEST(ui_window_lifetime, deinit_cancels_press_and_detaches_borrowed_tree)
     lh_gl_button_set_on_click(&root, count_click, &clicks);
     lh_gl_window_t host;
     lh_gl_window_init(&host, lh_gl_button_as_entity(&root));
-    feed(&host, lh_os_input_kind_pointer_down, 20, 20);
+    feed(&host, lh_input_kind_pointer_down, 20, 20);
     ASSERT_TRUE(lh_gl_entity_is_pressed(lh_gl_button_as_entity(&root)));
     lh_gl_window_deinit(&host);
     EXPECT_FALSE(lh_gl_entity_is_pressed(lh_gl_button_as_entity(&root)));
@@ -457,12 +456,12 @@ TEST(ui_window_scrolling, native_drag_records_damage_and_tick_advances_glide)
     lh_gl_window_t host;
     lh_gl_window_init(&host, lh_gl_container_as_entity(&root));
     lh_gl_view_fit_canvas(lh_gl_window_get_view_mut(&host));
-    feed(&host, lh_os_input_kind_pointer_down, 80, 20);
-    feed(&host, lh_os_input_kind_pointer_move, 50, 20);
-    feed(&host, lh_os_input_kind_pointer_move, 20, 20);
+    feed(&host, lh_input_kind_pointer_down, 80, 20);
+    feed(&host, lh_input_kind_pointer_move, 50, 20);
+    feed(&host, lh_input_kind_pointer_move, 20, 20);
     EXPECT_GT(lh_gl_point_get_x(lh_gl_container_get_scroll(&root)), 0);
     EXPECT_TRUE(lh_gl_window_needs_paint(&host));
-    feed(&host, lh_os_input_kind_pointer_up, 20, 20);
+    feed(&host, lh_input_kind_pointer_up, 20, 20);
     EXPECT_EQ(clicks, 0);
     lh_gl_scalar_t before = lh_gl_point_get_x(lh_gl_container_get_scroll(&root));
     lh_gl_window_update(&host);
@@ -488,13 +487,13 @@ TEST(ui_window_scrolling, a_button_in_a_separate_overlay_never_drags_the_page_be
     lh_gl_button_set_on_click(&overlay, count_click, &clicks);
     lh_gl_window_t host;
     lh_gl_window_init(&host, &root);
-    feed(&host, lh_os_input_kind_pointer_down, 80, 20);
-    feed(&host, lh_os_input_kind_pointer_move, 20, 20);
-    feed(&host, lh_os_input_kind_pointer_up, 20, 20);
+    feed(&host, lh_input_kind_pointer_down, 80, 20);
+    feed(&host, lh_input_kind_pointer_move, 20, 20);
+    feed(&host, lh_input_kind_pointer_up, 20, 20);
     EXPECT_EQ(lh_gl_point_get_x(lh_gl_container_get_scroll(&page)), 0);
     EXPECT_EQ(clicks, 0);
-    feed(&host, lh_os_input_kind_pointer_down, 40, 20);
-    feed(&host, lh_os_input_kind_pointer_up, 40, 20);
+    feed(&host, lh_input_kind_pointer_down, 40, 20);
+    feed(&host, lh_input_kind_pointer_up, 40, 20);
     EXPECT_EQ(clicks, 1);
     lh_gl_window_deinit(&host);
 }
@@ -575,11 +574,11 @@ class ui_scroll_policy : public ::testing::Test
     void
     wheel()
     {
-        lh_os_input_event_t event;
-        lh_os_input_event_init(&event, lh_os_input_kind_wheel, lh_os_input_device_kind_mouse, 100);
-        lh_os_input_event_set_x(&event, lh_os_input_coord_from_int(80));
-        lh_os_input_event_set_y(&event, lh_os_input_coord_from_int(20));
-        lh_os_input_event_set_delta(&event, -120, 0);
+        lh_input_event_t event;
+        lh_input_event_init(&event, lh_input_kind_wheel, lh_input_device_kind_mouse, 100);
+        lh_input_event_set_x(&event, lh_input_coord_from_int(80));
+        lh_input_event_set_y(&event, lh_input_coord_from_int(20));
+        lh_input_event_set_delta(&event, -120, 0);
         lh_os_window_on_native_input(lh_gl_window_get_window_mut(&host), &event);
     }
 };
@@ -587,14 +586,14 @@ class ui_scroll_policy : public ::testing::Test
 TEST_F(ui_scroll_policy, allowed_drag_releases_button_at_takeover_without_later_click)
 {
     EXPECT_TRUE(lh_gl_entity_is_scroll_chain_enabled(button()));
-    feed(&host, lh_os_input_kind_pointer_down, 80, 20);
+    feed(&host, lh_input_kind_pointer_down, 80, 20);
     EXPECT_EQ(control.presses, 1);
     EXPECT_EQ(control.releases, 0);
-    feed(&host, lh_os_input_kind_pointer_move, 50, 20);
+    feed(&host, lh_input_kind_pointer_move, 50, 20);
     EXPECT_GT(scroll(), 0);
     EXPECT_EQ(control.releases, 1);
     EXPECT_FALSE(lh_gl_entity_is_pressed(button()));
-    feed(&host, lh_os_input_kind_pointer_up, 50, 20);
+    feed(&host, lh_input_kind_pointer_up, 50, 20);
     EXPECT_EQ(control.releases, 1);
     EXPECT_EQ(control.clicks, 0);
 }
@@ -602,14 +601,14 @@ TEST_F(ui_scroll_policy, allowed_drag_releases_button_at_takeover_without_later_
 TEST_F(ui_scroll_policy, blocked_drag_keeps_parent_still_and_regular_tap_still_clicks)
 {
     lh_gl_entity_set_scroll_chain(button(), lh_bool_false);
-    feed(&host, lh_os_input_kind_pointer_down, 80, 20);
-    feed(&host, lh_os_input_kind_pointer_move, 50, 20);
-    feed(&host, lh_os_input_kind_pointer_up, 50, 20);
+    feed(&host, lh_input_kind_pointer_down, 80, 20);
+    feed(&host, lh_input_kind_pointer_move, 50, 20);
+    feed(&host, lh_input_kind_pointer_up, 50, 20);
     EXPECT_EQ(scroll(), 0);
     EXPECT_EQ(control.clicks, 0);
     EXPECT_EQ(control.releases, 1);
-    feed(&host, lh_os_input_kind_pointer_down, 40, 20);
-    feed(&host, lh_os_input_kind_pointer_up, 40, 20);
+    feed(&host, lh_input_kind_pointer_down, 40, 20);
+    feed(&host, lh_input_kind_pointer_up, 40, 20);
     EXPECT_EQ(control.clicks, 1);
     EXPECT_EQ(control.releases, 2);
 }
@@ -617,13 +616,13 @@ TEST_F(ui_scroll_policy, blocked_drag_keeps_parent_still_and_regular_tap_still_c
 TEST_F(ui_scroll_policy, nonclickable_caption_can_stop_the_parent_path)
 {
     lh_gl_entity_set_scroll_chain(&caption, lh_bool_false);
-    feed(&host, lh_os_input_kind_pointer_down, 80, 20);
-    feed(&host, lh_os_input_kind_pointer_move, 50, 20);
-    feed(&host, lh_os_input_kind_pointer_up, 50, 20);
+    feed(&host, lh_input_kind_pointer_down, 80, 20);
+    feed(&host, lh_input_kind_pointer_move, 50, 20);
+    feed(&host, lh_input_kind_pointer_up, 50, 20);
     EXPECT_EQ(scroll(), 0);
     EXPECT_EQ(control.clicks, 0);
-    feed(&host, lh_os_input_kind_pointer_down, 40, 20);
-    feed(&host, lh_os_input_kind_pointer_up, 40, 20);
+    feed(&host, lh_input_kind_pointer_down, 40, 20);
+    feed(&host, lh_input_kind_pointer_up, 40, 20);
     EXPECT_EQ(control.clicks, 1);
 }
 
@@ -640,9 +639,9 @@ TEST_F(ui_scroll_policy, wheel_obeys_the_same_barrier)
 TEST_F(ui_scroll_policy, slight_caption_overflow_does_not_steal_horizontal_page_drag)
 {
     lh_gl_entity_set_rect_v(&caption, rect_of(0, 0, 500, 61));
-    feed(&host, lh_os_input_kind_pointer_down, 80, 20);
-    feed(&host, lh_os_input_kind_pointer_move, 50, 20);
-    feed(&host, lh_os_input_kind_pointer_up, 50, 20);
+    feed(&host, lh_input_kind_pointer_down, 80, 20);
+    feed(&host, lh_input_kind_pointer_move, 50, 20);
+    feed(&host, lh_input_kind_pointer_up, 50, 20);
     EXPECT_GT(scroll(), 0);
     EXPECT_EQ(
         lh_gl_point_get_y(lh_gl_container_get_scroll(lh_gl_button_get_container(&control.button))),
@@ -654,23 +653,23 @@ TEST_F(ui_scroll_policy, disabling_own_scroll_blocks_content_and_thumb_input)
 {
     lh_gl_container_set_scroll_enabled(&page, lh_bool_false);
     wheel();
-    feed(&host, lh_os_input_kind_pointer_down, 80, 20);
-    feed(&host, lh_os_input_kind_pointer_move, 50, 20);
-    feed(&host, lh_os_input_kind_pointer_up, 50, 20);
+    feed(&host, lh_input_kind_pointer_down, 80, 20);
+    feed(&host, lh_input_kind_pointer_move, 50, 20);
+    feed(&host, lh_input_kind_pointer_up, 50, 20);
     EXPECT_EQ(scroll(), 0);
     lh_gl_scrollbar_t bar;
     lh_gl_scrollbar_init(&bar, rect_of(0, 45, 100, 15), lh_gl_axis_horizontal, &page);
     lh_gl_scrollbar_set_mode(&bar, lh_gl_scrollbar_mode_always);
     lh_gl_entity_add_child(lh_gl_container_as_entity(&page), lh_gl_scrollbar_as_entity(&bar));
-    feed(&host, lh_os_input_kind_pointer_down, 5, 50);
-    feed(&host, lh_os_input_kind_pointer_move, 80, 50);
-    feed(&host, lh_os_input_kind_pointer_up, 80, 50);
+    feed(&host, lh_input_kind_pointer_down, 5, 50);
+    feed(&host, lh_input_kind_pointer_move, 80, 50);
+    feed(&host, lh_input_kind_pointer_up, 80, 50);
     EXPECT_EQ(scroll(), 0);
-    feed(&host, lh_os_input_kind_pointer_down, 90, 50);
-    feed(&host, lh_os_input_kind_pointer_up, 90, 50);
+    feed(&host, lh_input_kind_pointer_down, 90, 50);
+    feed(&host, lh_input_kind_pointer_up, 90, 50);
     EXPECT_EQ(scroll(), 0);
     lh_gl_view_set_focus_v(lh_gl_window_get_view_mut(&host), lh_gl_container_as_entity(&page));
-    (void)lh_gl_view_key(lh_gl_window_get_view_mut(&host), lh_os_key_right, lh_bool_true);
+    (void)lh_gl_view_key(lh_gl_window_get_view_mut(&host), lh_key_right, lh_bool_true);
     EXPECT_EQ(scroll(), 0);
     lh_gl_view_set_focus_v(lh_gl_window_get_view_mut(&host), nullptr);
     lh_gl_entity_remove_child(lh_gl_container_as_entity(&page), lh_gl_scrollbar_as_entity(&bar));
@@ -678,17 +677,17 @@ TEST_F(ui_scroll_policy, disabling_own_scroll_blocks_content_and_thumb_input)
 
 TEST_F(ui_scroll_policy, permission_change_applies_to_the_next_pointer_sequence)
 {
-    feed(&host, lh_os_input_kind_pointer_down, 80, 20);
+    feed(&host, lh_input_kind_pointer_down, 80, 20);
     lh_gl_entity_set_scroll_chain(button(), lh_bool_false);
-    feed(&host, lh_os_input_kind_pointer_move, 50, 20);
+    feed(&host, lh_input_kind_pointer_move, 50, 20);
     EXPECT_GT(scroll(), 0);
-    feed(&host, lh_os_input_kind_pointer_up, 50, 20);
+    feed(&host, lh_input_kind_pointer_up, 50, 20);
     lh_gl_point_t zero;
     lh_gl_point_init(&zero, 0, 0);
     lh_gl_container_set_scroll_v(&page, zero);
-    feed(&host, lh_os_input_kind_pointer_down, 80, 20);
-    feed(&host, lh_os_input_kind_pointer_move, 50, 20);
-    feed(&host, lh_os_input_kind_pointer_up, 50, 20);
+    feed(&host, lh_input_kind_pointer_down, 80, 20);
+    feed(&host, lh_input_kind_pointer_move, 50, 20);
+    feed(&host, lh_input_kind_pointer_up, 50, 20);
     EXPECT_EQ(scroll(), 0);
     EXPECT_EQ(control.clicks, 0);
 }

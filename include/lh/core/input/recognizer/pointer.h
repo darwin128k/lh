@@ -1,0 +1,360 @@
+/**
+ * @file pointer.h
+ * @brief One pointer's gesture inside the recognizer:
+ *        ::lh_input_recognizer_pointer_t.
+ *
+ * Part of ::lh_input_recognizer_t's storage. The recognizer drives it
+ * through the functions here; what a caller usually asks is on the
+ * recognizer (::lh_input_recognizer_get_phase).
+ */
+
+#ifndef LH_INPUT_RECOGNIZER_POINTER_H
+#define LH_INPUT_RECOGNIZER_POINTER_H
+
+#include <lh/core/input/event.h>
+#include <lh/core/input/recognizer/phase.h>
+#include <lh/core/input/recognizer/pointer/fields.h>
+#include <lh/core/input/recognizer/pointer/ptr.h>
+
+/**
+ * @struct lh_input_recognizer_pointer
+ * @brief The press, the drag and the last click of one pointer.
+ */
+struct lh_input_recognizer_pointer
+{
+    /** Members: ::lh_input_recognizer_pointer_fields. */
+    lh_input_recognizer_pointer_fields(lh_input_recognizer_phase_t, lh_input_device_kind_t,
+                                       lh_input_button_t, lh_input_mods_t, lh_input_coord_t,
+                                       lh_tick_t);
+};
+/** @copybrief lh_input_recognizer_pointer */
+typedef struct lh_input_recognizer_pointer lh_input_recognizer_pointer_t;
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+/** True when (@p x, @p y) is more than @p slop pixels from (@p from_x, @p from_y) on either
+   axis. */
+lh_bool_t
+lh_input_recognizer_is_beyond(lh_input_coord_t from_x, lh_input_coord_t from_y, lh_input_coord_t x,
+                              lh_input_coord_t y, lh_u16_t slop);
+
+/** Nothing held, no click series to continue. */
+lh_void
+lh_input_recognizer_pointer_clear(lh_input_recognizer_pointer_ptr self);
+
+/** Where the gesture of @p self is. */
+lh_input_recognizer_phase_t
+lh_input_recognizer_pointer_get_phase(const lh_input_recognizer_pointer_ptr self);
+
+/** Move the gesture of @p self to @p phase. */
+lh_void
+lh_input_recognizer_pointer_set_phase(lh_input_recognizer_pointer_ptr self,
+                                      lh_input_recognizer_phase_t phase);
+
+/** The button that started the press. */
+lh_input_button_t
+lh_input_recognizer_pointer_get_button(const lh_input_recognizer_pointer_ptr self);
+
+/** When the press went down. */
+lh_tick_t
+lh_input_recognizer_pointer_get_down_time(const lh_input_recognizer_pointer_ptr self);
+
+/** No click series to continue: a drag, a long press or a cancel came in between. */
+lh_void
+lh_input_recognizer_pointer_forget_click(lh_input_recognizer_pointer_ptr self);
+
+/** Start a press from @p event (a pointer down). */
+lh_void
+lh_input_recognizer_pointer_begin(lh_input_recognizer_pointer_ptr self,
+                                  const lh_input_event_ptr event);
+
+/** True when @p event has moved past @p slop pixels from where the press went down. */
+lh_bool_t
+lh_input_recognizer_pointer_is_past_slop(const lh_input_recognizer_pointer_ptr self,
+                                         const lh_input_event_ptr event, lh_u16_t slop);
+
+/** The distance from the last drag position to @p event, into @p dx and @p dy, and @p event
+   becomes the last drag position. */
+lh_void
+lh_input_recognizer_pointer_advance(lh_input_recognizer_pointer_ptr self,
+                                    const lh_input_event_ptr event, lh_s32_t *dx, lh_s32_t *dy);
+
+/** The click number the up @p event makes: one more than the last click when it was of the
+   same button, released no more than @p window_ms before this press went down and within
+   @p slop pixels; `1` otherwise. */
+lh_u8_t
+lh_input_recognizer_pointer_count_click(const lh_input_recognizer_pointer_ptr self,
+                                        const lh_input_event_ptr event, lh_u16_t window_ms,
+                                        lh_u16_t slop);
+
+/** Remember the click @p event ended as number @p count, for the next one to continue. */
+lh_void
+lh_input_recognizer_pointer_remember_click(lh_input_recognizer_pointer_ptr self,
+                                           const lh_input_event_ptr event, lh_u8_t count);
+
+/** A gesture event of @p kind for pointer @p pointer at (@p x, @p y) and @p time, from the
+   press @p self holds, into @p out. */
+lh_void
+lh_input_recognizer_pointer_make(const lh_input_recognizer_pointer_ptr self, lh_u8_t pointer,
+                                 lh_input_kind_t kind, lh_input_coord_t x, lh_input_coord_t y,
+                                 lh_tick_t time, lh_input_event_t *out);
+
+/** The gesture event of @p kind that @p event completes, into @p out: @p event's position,
+   time, buttons and mods, @p self's device and button. */
+lh_void
+lh_input_recognizer_pointer_make_from(const lh_input_recognizer_pointer_ptr self,
+                                      const lh_input_event_ptr event, lh_input_kind_t kind,
+                                      lh_input_event_t *out);
+
+/** The gesture event of @p kind at @p time where the press @p self holds last was, into
+   @p out: no event of the device's own to take it from (a timeout, a cancel). */
+lh_void
+lh_input_recognizer_pointer_make_at_last(const lh_input_recognizer_pointer_ptr self,
+                                         lh_u8_t pointer, lh_input_kind_t kind, lh_tick_t time,
+                                         lh_input_event_t *out);
+
+/**
+ * @brief The kind of device that pressed (level 1).
+ *
+ * @param self The pointer state; checked by ::lh_assert_runtime_ref.
+ */
+lh_input_device_kind_t
+lh_input_recognizer_pointer_get_device_kind(const lh_input_recognizer_pointer_t *self);
+
+/**
+ * @brief Store the kind of device that pressed (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pointer state; checked by ::lh_assert_runtime_ref.
+ * @param device_kind The new value.
+ */
+lh_void
+lh_input_recognizer_pointer_set_device_kind(lh_input_recognizer_pointer_t *self,
+                                            lh_input_device_kind_t device_kind);
+
+/**
+ * @brief Store the button held since the press (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pointer state; checked by ::lh_assert_runtime_ref.
+ * @param button The new value.
+ */
+lh_void
+lh_input_recognizer_pointer_set_button(lh_input_recognizer_pointer_t *self,
+                                       lh_input_button_t button);
+
+/**
+ * @brief The modifiers held at the press (level 1).
+ *
+ * @param self The pointer state; checked by ::lh_assert_runtime_ref.
+ */
+lh_input_mods_t
+lh_input_recognizer_pointer_get_mods(const lh_input_recognizer_pointer_t *self);
+
+/**
+ * @brief Store the modifiers held at the press (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pointer state; checked by ::lh_assert_runtime_ref.
+ * @param mods The new value.
+ */
+lh_void
+lh_input_recognizer_pointer_set_mods(lh_input_recognizer_pointer_t *self, lh_input_mods_t mods);
+
+/**
+ * @brief The horizontal position of the press (level 1).
+ *
+ * @param self The pointer state; checked by ::lh_assert_runtime_ref.
+ */
+lh_input_coord_t
+lh_input_recognizer_pointer_get_down_x(const lh_input_recognizer_pointer_t *self);
+
+/**
+ * @brief Store the horizontal position of the press (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pointer state; checked by ::lh_assert_runtime_ref.
+ * @param down_x The new value.
+ */
+lh_void
+lh_input_recognizer_pointer_set_down_x(lh_input_recognizer_pointer_t *self,
+                                       lh_input_coord_t down_x);
+
+/**
+ * @brief The vertical position of the press (level 1).
+ *
+ * @param self The pointer state; checked by ::lh_assert_runtime_ref.
+ */
+lh_input_coord_t
+lh_input_recognizer_pointer_get_down_y(const lh_input_recognizer_pointer_t *self);
+
+/**
+ * @brief Store the vertical position of the press (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pointer state; checked by ::lh_assert_runtime_ref.
+ * @param down_y The new value.
+ */
+lh_void
+lh_input_recognizer_pointer_set_down_y(lh_input_recognizer_pointer_t *self,
+                                       lh_input_coord_t down_y);
+
+/**
+ * @brief Store when the press happened (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pointer state; checked by ::lh_assert_runtime_ref.
+ * @param down_time The new value.
+ */
+lh_void
+lh_input_recognizer_pointer_set_down_time(lh_input_recognizer_pointer_t *self, lh_tick_t down_time);
+
+/**
+ * @brief The horizontal position last seen (level 1).
+ *
+ * @param self The pointer state; checked by ::lh_assert_runtime_ref.
+ */
+lh_input_coord_t
+lh_input_recognizer_pointer_get_last_x(const lh_input_recognizer_pointer_t *self);
+
+/**
+ * @brief Store the horizontal position last seen (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pointer state; checked by ::lh_assert_runtime_ref.
+ * @param last_x The new value.
+ */
+lh_void
+lh_input_recognizer_pointer_set_last_x(lh_input_recognizer_pointer_t *self,
+                                       lh_input_coord_t last_x);
+
+/**
+ * @brief The vertical position last seen (level 1).
+ *
+ * @param self The pointer state; checked by ::lh_assert_runtime_ref.
+ */
+lh_input_coord_t
+lh_input_recognizer_pointer_get_last_y(const lh_input_recognizer_pointer_t *self);
+
+/**
+ * @brief Store the vertical position last seen (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pointer state; checked by ::lh_assert_runtime_ref.
+ * @param last_y The new value.
+ */
+lh_void
+lh_input_recognizer_pointer_set_last_y(lh_input_recognizer_pointer_t *self,
+                                       lh_input_coord_t last_y);
+
+/**
+ * @brief The button of the last click (level 1).
+ *
+ * @param self The pointer state; checked by ::lh_assert_runtime_ref.
+ */
+lh_input_button_t
+lh_input_recognizer_pointer_get_click_button(const lh_input_recognizer_pointer_t *self);
+
+/**
+ * @brief Store the button of the last click (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pointer state; checked by ::lh_assert_runtime_ref.
+ * @param click_button The new value.
+ */
+lh_void
+lh_input_recognizer_pointer_set_click_button(lh_input_recognizer_pointer_t *self,
+                                             lh_input_button_t click_button);
+
+/**
+ * @brief The horizontal position of the last click (level 1).
+ *
+ * @param self The pointer state; checked by ::lh_assert_runtime_ref.
+ */
+lh_input_coord_t
+lh_input_recognizer_pointer_get_click_x(const lh_input_recognizer_pointer_t *self);
+
+/**
+ * @brief Store the horizontal position of the last click (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pointer state; checked by ::lh_assert_runtime_ref.
+ * @param click_x The new value.
+ */
+lh_void
+lh_input_recognizer_pointer_set_click_x(lh_input_recognizer_pointer_t *self,
+                                        lh_input_coord_t click_x);
+
+/**
+ * @brief The vertical position of the last click (level 1).
+ *
+ * @param self The pointer state; checked by ::lh_assert_runtime_ref.
+ */
+lh_input_coord_t
+lh_input_recognizer_pointer_get_click_y(const lh_input_recognizer_pointer_t *self);
+
+/**
+ * @brief Store the vertical position of the last click (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pointer state; checked by ::lh_assert_runtime_ref.
+ * @param click_y The new value.
+ */
+lh_void
+lh_input_recognizer_pointer_set_click_y(lh_input_recognizer_pointer_t *self,
+                                        lh_input_coord_t click_y);
+
+/**
+ * @brief When the last click happened (level 1).
+ *
+ * @param self The pointer state; checked by ::lh_assert_runtime_ref.
+ */
+lh_tick_t
+lh_input_recognizer_pointer_get_click_time(const lh_input_recognizer_pointer_t *self);
+
+/**
+ * @brief Store when the last click happened (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pointer state; checked by ::lh_assert_runtime_ref.
+ * @param click_time The new value.
+ */
+lh_void
+lh_input_recognizer_pointer_set_click_time(lh_input_recognizer_pointer_t *self,
+                                           lh_tick_t click_time);
+
+/**
+ * @brief How many clicks in a row so far (1 single, 2 double, ...) (level 1).
+ *
+ * @param self The pointer state; checked by ::lh_assert_runtime_ref.
+ */
+lh_u8_t
+lh_input_recognizer_pointer_get_click_count(const lh_input_recognizer_pointer_t *self);
+
+/**
+ * @brief Store how many clicks in a row so far (1 single, 2 double, ...) (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The pointer state; checked by ::lh_assert_runtime_ref.
+ * @param click_count The new value.
+ */
+lh_void
+lh_input_recognizer_pointer_set_click_count(lh_input_recognizer_pointer_t *self,
+                                            lh_u8_t click_count);
+
+LH_COMPILER_EXTERN_C_END
+
+#endif /* LH_INPUT_RECOGNIZER_POINTER_H */

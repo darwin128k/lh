@@ -6,7 +6,7 @@
 #ifndef LH_GL_VIEW_FIELDS_H
 #define LH_GL_VIEW_FIELDS_H
 
-#include <lh/os/input/pointer.h>
+#include <lh/core/input/pointer.h>
 #include <lh/gl/scrollbar.h>
 #include <lh/gl/transition.h>
 
@@ -43,7 +43,7 @@
  * None of the pointers are owned. `strip_height`: rows per buffer when the
  * frame is drawn strip by strip, `0` for one whole-target frame.
  * `pointers`: one press session per pointer id, `0 ..`
- * ::LH_OS_INPUT_POINTER_MAX `- 1` -- its pressed entity, thumb grab and content
+ * ::LH_INPUT_POINTER_MAX `- 1` -- its pressed entity, thumb grab and content
  * drag (::lh_gl_view_pointer_t). `velocity`: the speed of the glide a release
  * left (the releasing pointer's own drag speed). `scrolling`: the container
  * whose gesture began (scroll_begin sent, scroll_end pending); one for the
@@ -74,7 +74,7 @@
     entity_type *root;                                                                             \
     const color_type *clear;                                                                       \
     lh_gl_scalar_t strip_height;                                                                   \
-    pointer_type pointers[LH_OS_INPUT_POINTER_MAX];                                                \
+    pointer_type pointers[LH_INPUT_POINTER_MAX];                                                   \
     lh_gl_point_t velocity;                                                                        \
     lh_gl_container_t *scrolling;                                                                  \
     lh_gl_container_t *throwing;                                                                   \

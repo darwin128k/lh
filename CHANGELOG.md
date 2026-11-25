@@ -33,9 +33,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - A native window on macOS is AppKit (`NSWindow`), beside Win32 and X11. The off-screen surface is the same `0xAARRGGBB` words; a present draws them into the paint. This machine does not build the AppKit backend.
 
-- `lh_os_input_keys_report` emits a key down or key up only when that portable key changed. Shift, Control and Alt on the held mask are the event's modifiers. `lh_os_key_other` is not a key of that report.
+- `lh_input_keys_report` emits a key down or key up only when that portable key changed. Shift, Control and Alt on the held mask are the event's modifiers. `lh_key_other` is not a key of that report.
 
-- `lh_os_input_sample_t` is one contact a driver read: its own id and a position. `lh_os_input_touch_report` compares that list with the previous frame and emits pointer down, move and up. Fingers are pointer ids from 1; the mouse stays 0. A contact past the four remembered slots is skipped until one goes up. `lh_os_input_pad_report_axis` and `lh_os_input_pad_report_button` emit a controller event only when the value changed.
+- `lh_input_sample_t` is one contact a driver read: its own id and a position. `lh_input_touch_report` compares that list with the previous frame and emits pointer down, move and up. Fingers are pointer ids from 1; the mouse stays 0. A contact past the four remembered slots is skipped until one goes up. `lh_input_pad_report_axis` and `lh_input_pad_report_button` emit a controller event only when the value changed.
 
 - The core has the arithmetic of a flow (`lh/core/flow.h`): `lh_flow_get_share`
   (a growing child's part of the room left), `lh_flow_get_lead` and
@@ -58,6 +58,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Input is data, so it moved to the core: `lh/os/input/` is `lh/core/input/` and
+  `lh/os/key.h` is `lh/core/key.h`. Every name follows its new path:
+  `lh_os_input_*` is `lh_input_*` (`lh_input_event_t`, `lh_input_queue_t`,
+  `lh_input_recognizer_t`, `lh_input_sink_cb`, ...), `LH_OS_INPUT_*` is
+  `LH_INPUT_*`, `lh_os_key_*` is `lh_key_*` and `LH_OS_KEY_*` is `LH_KEY_*`. The
+  event, the queue, the recognizer, the key reports and the wheel arithmetic
+  never needed an operating system; now no header of theirs includes anything
+  outside `lh/core/`. What asks the system stays in the OS part:
+  `lh_os_input_get_wheel_step` (`lh/os/input.h`) keeps its name, and the
+  backends' key translation stays in `src/lh/os/system/<backend>/`. A caller
+  renames its includes and identifiers; nothing else changes.
+- gl's RGB565 kernels moved to the core beside the 32-bit ones:
+  `lh_pixel_span_blend_alphas_rgb565` (each pixel its own alpha; SSE2 when the CPU
+  has it), `lh_pixel_span_blend_vary_rgb565` (the portable kernel a board without
+  SIMD runs), and, with `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2`,
+  `lh_pixel_span_blend_alphas_sse2_rgb565` and
+  `lh_pixel_span_blend_alphas8_sse2_rgb565` (eight alphas from a register), each
+  the portable word bit for bit, in both byte orders. `lh_pixel_span_cover_rgb565`
+  lays through them as `cover_argb` does. gl calls the core:
+  `lh_gl_pixmap_blend_alpha_16_sse2`, `_blend_alpha_16_octet_sse2`,
+  `_blend_alpha_16_words`, `_blend_cover_16_sse2`, `_blend_cover_16_words`,
+  `_blend_16_one`, `_blend_16_pair` and `_blend_16_pair_at` are gone, and
+  `lh_gl_pixmap_mix_16` is the core's `lh_pixel_rgb565_mix` in the pixmap's byte
+  order. gl no longer carries SIMD code of its own. Measured on an RGB565 frame of
+  glyph-length rows (i7-3770K, release, run alternately with the build before):
+  alpha spans 44 against 44 microseconds, covers of eight 57 against 57 -- the
+  same kernels, now in one place.
 - The web is an option: `LH_LIBRARY_OPTION_WEB` (default `OFF`) builds the web
   host (`lh/os/web/`, with the OS) and the browser side of gl
   (`lh/gl/canvas/web.h` and its glyph atlas, `lh/gl/web/buf.h`,

@@ -246,30 +246,6 @@ lh_u32_t
 lh_gl_pixmap_565_of(lh_u32_t rb, lh_u32_t g);
 
 /**
- * @brief One 16-bit pixel @p dst under @p src at alpha @p a: unchanged at `0`,
- *        @p solid (the packed @p src) at `255`, ::lh_gl_pixmap_mix_16 between.
- */
-lh_u32_t
-lh_gl_pixmap_blend_16_one(const lh_gl_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t solid,
-                          lh_u32_t a);
-
-/**
- * @brief Two 16-bit pixels in one 32-bit word @p pair (the low half first in
- *        memory), each through ::lh_gl_pixmap_blend_16_one at its own alpha.
- */
-lh_u32_t
-lh_gl_pixmap_blend_16_pair(const lh_gl_pixmap_t *self, lh_u32_t pair, lh_u32_t src, lh_u32_t solid,
-                           lh_u32_t a_lo, lh_u32_t a_hi);
-
-/**
- * @brief The two pixels at @p at, each through ::lh_gl_pixmap_blend_16_one at its
- *        own alpha with its own 16-bit access (left alone when both alphas are 0).
- */
-lh_void
-lh_gl_pixmap_blend_16_pair_at(const lh_gl_pixmap_t *self, lh_u16_t *at, const lh_byte_ptr alpha,
-                              lh_u32_t src, lh_u32_t solid);
-
-/**
  * @brief Pixel word @p dst (format of @p self) with RGB @p src at alpha @p a
  *        over it: ::lh_gl_pixmap_mix_16 or ::lh_gl_pixmap_mix_argb, by format.
  */
@@ -323,7 +299,9 @@ lh_gl_pixmap_blend_const_32(const lh_gl_pixmap_t *self, lh_u32_t *at, lh_usize_t
                             lh_u32_t src, lh_u32_t alpha);
 
 /**
- * @brief ::lh_pixel_span_blend_alphas_argb for the 16-bit formats.
+ * @brief Blend @p src (`0xRRGGBB`) over @p count RGB565 words at @p at, pixel `i`
+ *        at `alpha[i]`, in this pixmap's byte order: the core's
+ *        ::lh_pixel_span_blend_alphas_rgb565 (SSE2 when the CPU has it).
  */
 lh_void
 lh_gl_pixmap_blend_alpha_16(const lh_gl_pixmap_t *self, lh_u16_t *at, const lh_byte_ptr alpha,
@@ -338,72 +316,6 @@ lh_gl_pixmap_blend_alpha_16(const lh_gl_pixmap_t *self, lh_u16_t *at, const lh_b
  */
 lh_void
 lh_gl_pixmap_blend_cover_32_sse2(lh_u32_t *at, lh_usize_t count, lh_u64_t cover, lh_u32_t src);
-
-/**
- * @brief SSE2 form of ::lh_gl_pixmap_blend_alpha_16, eight pixels at a time.
- *
- * Same three branches removed as in ::lh_pixel_span_blend_alphas_sse2_argb, and the
- * same branch-free formula covering every alpha including 0 and 255. RGB565 is
- * the MCU format, so this is the kernel that path actually runs.
- *
- * What makes it short is that the three channels sit at fixed bit positions
- * inside each 16-bit word: red is lifted out of all eight pixels with one shift
- * and one mask, green with another, blue with a third, giving three registers of
- * eight lanes each, one channel per register and one pixel per lane. Widening
- * the stored bits to a byte is the shift pair `(v << up) | (v >> down)` and
- * narrowing is a shift, so nothing ever has to be shuffled between lanes and pixel k of @p alpha is
- * lane k of all three planes. A swapped format (::lh_gl_pixmap_format_rgb565_swapped) costs one
- * 16-bit byte swap on the way in and one on the way out.
- *
- * Only meaningful when `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2` is on and the running
- * CPU reports SSE2 (::lh_cpu_simd_has_sse2); ::lh_gl_pixmap_blend_alpha_16 is
- * what to call, and it dispatches.
- */
-lh_void
-lh_gl_pixmap_blend_alpha_16_sse2(const lh_gl_pixmap_t *self, lh_u16_t *at, const lh_byte_ptr alpha,
-                                 lh_usize_t count, lh_u32_t src);
-
-/**
- * @brief The portable form of ::lh_gl_pixmap_blend_alpha_16: two pixels a 32-bit
- *        word where @p at is word-aligned (::lh_gl_pixmap_blend_16_pair_at), the
- *        unaligned first and odd last pixel alone. What runs without SSE2.
- */
-lh_void
-lh_gl_pixmap_blend_alpha_16_words(const lh_gl_pixmap_t *self, lh_u16_t *at, const lh_byte_ptr alpha,
-                                  lh_usize_t count, lh_u32_t src);
-
-/**
- * @brief One block of ::lh_gl_pixmap_blend_alpha_16_sse2: exactly eight RGB565
- *        words at @p at, pixel `i` at `alpha[i]`; @p swap for
- *        ::lh_gl_pixmap_format_rgb565_swapped.
- */
-lh_void
-lh_gl_pixmap_blend_alpha_16_octet_sse2(lh_u16_t *at, const lh_byte_ptr alpha, lh_u32_t src,
-                                       lh_bool_t swap);
-
-/**
- * @brief ::lh_gl_pixmap_blend_cover_32_sse2 for RGB565: the first @p count
- *        (1 .. 8) words at @p at, pixel `i` at byte `i` of @p cover; @p swap for
- *        ::lh_gl_pixmap_format_rgb565_swapped.
- */
-lh_void
-lh_gl_pixmap_blend_cover_16_sse2(lh_u16_t *at, lh_usize_t count, lh_u64_t cover, lh_u32_t src,
-                                 lh_bool_t swap);
-
-/**
- * @brief ::lh_gl_pixmap_blend_cover_16_sse2 in plain integer code, for every target:
- *        the first @p count (1 .. 8) RGB565 words at @p at, pixel `i` at byte `i` of
- *        @p cover, in the byte order of @p self's format. A coverage of 0 leaves the
- *        pixel, 255 stores @p src packed once, any other goes through
- *        ::lh_gl_pixmap_mix_16.
- *
- * What ::lh_gl_pixmap_blend_cover_8 runs on RGB565 without SSE2. Before it the
- * coverages went from the register to a buffer and through
- * ::lh_gl_pixmap_blend_alpha_span, a call chain per eight pixels of every glyph.
- */
-lh_void
-lh_gl_pixmap_blend_cover_16_words(const lh_gl_pixmap_t *self, lh_u16_t *at, lh_usize_t count,
-                                  lh_u64_t cover, lh_u32_t src);
 
 /**
  * @brief The row kernel: blend @p src (`0xRRGGBB`) over pixels `x0 .. x1 - 1`

@@ -11,7 +11,7 @@
 #include <lh/os/controller/handlers/cancel/cb.h>
 #include <lh/os/controller/handlers/handle/cb.h>
 #include <lh/os/controller/handlers/update/cb.h>
-#include <lh/os/input/recognizer/initializer.h>
+#include <lh/core/input/recognizer/initializer.h>
 
 /**
  * @def lh_os_controller_initializer(handle_fn, update_fn, cancel_fn, context, recognizer, flags)
@@ -21,7 +21,7 @@
  * ::lh_os_controller_fields. Each handler goes through ::lh_cast_static to its
  * pointer type, as in ::lh_memory_allocator_initializer, so a function of the
  * wrong shape is a compile error in C++; ::lh_null is allowed for each.
- * @p recognizer is an ::lh_os_input_recognizer_initializer.
+ * @p recognizer is an ::lh_input_recognizer_initializer.
  *
  * Example usage:
  * @code{.c}
@@ -30,9 +30,9 @@
  *     lh_null,                                                           // update_cb
  *     lh_null,                                                           // cancel_cb
  *     lh_addr_of(my_state),                                              // context
- *     lh_os_input_recognizer_initializer(
- *         lh_os_input_recognizer_config_default_initializer(),
- *         {lh_os_input_recognizer_pointer_idle_initializer()}),          // recognizer
+ *     lh_input_recognizer_initializer(
+ *         lh_input_recognizer_config_default_initializer(),
+ *         {lh_input_recognizer_pointer_idle_initializer()}),          // recognizer
  *     lh_os_controller_flags_enabled | lh_os_controller_flags_gestures); // flags
  * @endcode
  *
@@ -62,8 +62,8 @@
 #define lh_os_controller_default_initializer(handle_fn, context)                                   \
     lh_os_controller_initializer(                                                                  \
         handle_fn, lh_null, lh_null, context,                                                      \
-        lh_os_input_recognizer_initializer(lh_os_input_recognizer_config_default_initializer(),    \
-                                           {lh_os_input_recognizer_pointer_idle_initializer()}),   \
+        lh_input_recognizer_initializer(lh_input_recognizer_config_default_initializer(),          \
+                                        {lh_input_recognizer_pointer_idle_initializer()}),         \
         lh_os_controller_flags_enabled | lh_os_controller_flags_gestures)
 
 /**
@@ -78,8 +78,8 @@
 #define lh_os_controller_empty_initializer()                                                       \
     lh_os_controller_initializer(                                                                  \
         lh_null, lh_null, lh_null, lh_null,                                                        \
-        lh_os_input_recognizer_initializer(lh_os_input_recognizer_config_default_initializer(),    \
-                                           {lh_os_input_recognizer_pointer_idle_initializer()}),   \
+        lh_input_recognizer_initializer(lh_input_recognizer_config_default_initializer(),          \
+                                        {lh_input_recognizer_pointer_idle_initializer()}),         \
         lh_os_controller_flags_none)
 
 #endif /* LH_OS_CONTROLLER_INITIALIZER_H */

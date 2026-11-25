@@ -96,6 +96,25 @@ lh_pixel_span_over_opaque_argb(lh_u32_t *at, const lh_byte_t *alpha, lh_usize_t 
 lh_void
 lh_pixel_span_blend_vary_argb(lh_u32_t *at, const lh_byte_t *alpha, lh_usize_t count, lh_u32_t rgb);
 
+/**
+ * @brief Lay the opaque colour @p rgb over @p count RGB565 words at @p at, pixel
+ *        `i` at its own alpha `alpha[i]`, one pixel at a time: a clear pixel is
+ *        left, a full one stored, the rest mixed (::lh_pixel_rgb565_mix).
+ *
+ * Portable: what ::lh_pixel_span_blend_alphas_rgb565 runs without SSE2, and what a
+ * board without SIMD draws its text and corners with. Moved from gl
+ * (`lh_gl_pixmap_blend_alpha_16_words`), which calls the core now.
+ *
+ * @param at      The first word; @p count words must be writable.
+ * @param alpha   @p count alphas, 0..255.
+ * @param count   How many.
+ * @param rgb     The colour, `0x..RRGGBB`.
+ * @param swapped True when the memory holds each word's bytes swapped.
+ */
+lh_void
+lh_pixel_span_blend_vary_rgb565(lh_u16_t *at, const lh_byte_t *alpha, lh_usize_t count,
+                                lh_u32_t rgb, lh_bool_t swapped);
+
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
 /**
  * @brief SSE2 form of ::lh_pixel_span_blend_vary_argb, four pixels at a time, the
@@ -152,6 +171,48 @@ lh_pixel_span_blend_alphas8_sse2_argb(lh_u32_t *at, lh_usize_t count, lh_u64_t a
 lh_void
 lh_pixel_span_over_alphas_sse2_argb(lh_u32_t *at, const lh_byte_t *alpha, lh_usize_t count,
                                     lh_u32_t rgb);
+/**
+ * @brief ::lh_pixel_span_blend_vary_rgb565 eight pixels at a time with SSE2, bit
+ *        for bit the same words.
+ *
+ * Each channel is a plane of eight lanes lifted out of the words with a shift and
+ * a mask, widened to eight bits, blended and narrowed back; the last one to seven
+ * pixels are a block too. A swapped format costs one byte swap per block each
+ * way. Moved from gl (`lh_gl_pixmap_blend_alpha_16_sse2`), which calls the core
+ * now.
+ *
+ * Only defined when `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2` is on; call it only when
+ * the CPU reports SSE2 (::lh_cpu_simd_has_sse2).
+ *
+ * @param at      The first word; @p count words must be writable.
+ * @param alpha   @p count alphas, 0..255.
+ * @param count   How many.
+ * @param rgb     The colour, `0x..RRGGBB`.
+ * @param swapped True when the memory holds each word's bytes swapped.
+ */
+lh_void
+lh_pixel_span_blend_alphas_sse2_rgb565(lh_u16_t *at, const lh_byte_t *alpha, lh_usize_t count,
+                                       lh_u32_t rgb, lh_bool_t swapped);
+
+/**
+ * @brief One block of ::lh_pixel_span_blend_alphas_sse2_rgb565 with its alphas in
+ *        a register: @p count (1 .. 8) pixels, pixel `i` at byte `i` of @p alphas
+ *        -- how a glyph row read eight pixels a step
+ *        (::lh_pixel_mask_get_coverage_8) is laid without a buffer. Moved from gl
+ *        (`lh_gl_pixmap_blend_cover_16_sse2`).
+ *
+ * Only defined when `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2` is on.
+ *
+ * @param at      The first word; @p count words must be writable.
+ * @param count   How many, 1 to 8.
+ * @param alphas  Eight alphas, pixel `i` in byte `i`.
+ * @param rgb     The colour, `0x..RRGGBB`.
+ * @param swapped True when the memory holds each word's bytes swapped.
+ */
+lh_void
+lh_pixel_span_blend_alphas8_sse2_rgb565(lh_u16_t *at, lh_usize_t count, lh_u64_t alphas,
+                                        lh_u32_t rgb, lh_bool_t swapped);
+
 #endif
 
 /**
@@ -181,6 +242,22 @@ lh_pixel_span_over_alphas_sse2_argb(lh_u32_t *at, const lh_byte_t *alpha, lh_usi
 lh_void
 lh_pixel_span_blend_alphas_argb(lh_u32_t *at, const lh_byte_t *alpha, lh_usize_t count,
                                 lh_u32_t rgb);
+
+/**
+ * @brief Lay the opaque colour @p rgb over @p count RGB565 words at @p at, pixel
+ *        `i` at its own alpha: ::lh_pixel_span_blend_alphas_sse2_rgb565 when the
+ *        CPU has SSE2, ::lh_pixel_span_blend_vary_rgb565 otherwise -- the same words
+ *        either way.
+ *
+ * @param at      The first word; @p count words must be writable.
+ * @param alpha   @p count alphas, 0..255.
+ * @param count   How many.
+ * @param rgb     The colour, `0x..RRGGBB`.
+ * @param swapped True when the memory holds each word's bytes swapped.
+ */
+lh_void
+lh_pixel_span_blend_alphas_rgb565(lh_u16_t *at, const lh_byte_t *alpha, lh_usize_t count,
+                                  lh_u32_t rgb, lh_bool_t swapped);
 
 /**
  * @brief Lay @p src at @p alpha over @p count `0xAARRGGBB` words at @p at,

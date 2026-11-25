@@ -109,7 +109,7 @@ booleans — and not text.
 ## 4. The gamepad driver
 
 **Today.** Mouse, keyboard, touch and pen have real backends. The gamepad does
-not: `lh_os_input_kind_controller_button_down`, `_controller_axis` and the
+not: `lh_input_kind_controller_button_down`, `_controller_axis` and the
 device kind `controller` exist, and no backend produces them — there is no
 XInput on Windows, no evdev on Linux, no device enumeration and no hot-plug.
 

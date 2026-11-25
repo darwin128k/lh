@@ -79,7 +79,7 @@ lh_gl_container_on_key(lh_gl_container_t *self, const lh_gl_entity_event_t *even
  *        Home / End to the top / bottom; `0` for any other key.
  */
 lh_gl_scalar_t
-lh_gl_container_get_key_step(const lh_gl_container_t *self, lh_os_key_t key);
+lh_gl_container_get_key_step(const lh_gl_container_t *self, lh_key_t key);
 
 /**
  * @brief The scroll change @p input asks for: left / right across, every

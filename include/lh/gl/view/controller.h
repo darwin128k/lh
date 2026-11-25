@@ -31,7 +31,7 @@
 #include <lh/core/bool.h>
 #include <lh/core/compiler/extern/c.h>
 #include <lh/config.h>
-#include <lh/os/input/event/ptr.h>
+#include <lh/core/input/event/ptr.h>
 #include <lh/core/self.h>
 
 #if !LH_LIBRARY_OPTION_GL
@@ -48,7 +48,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *         @p event, so ::lh_gl_view_take_damage has something to repaint.
  */
 lh_bool_t
-lh_gl_view_controller_handle_event_is_handled(lh_self_ptr self, const lh_os_input_event_ptr event);
+lh_gl_view_controller_handle_event_is_handled(lh_self_ptr self, const lh_input_event_ptr event);
 
 /**
  * @brief An ::lh_os_controller_handlers_cancel_fn: ::lh_gl_view_cancel on

@@ -22,8 +22,8 @@ lh_os_system_win_atom_t
 lh_os_system_win_window_register_class(lh_os_system_win_hinstance_t instance);
 
 lh_void
-lh_os_system_win_window_send_pointer(lh_os_window_t *window, lh_os_input_kind_t kind,
-                                     lh_os_input_button_t button, lh_os_system_win_wparam_t wparam,
+lh_os_system_win_window_send_pointer(lh_os_window_t *window, lh_input_kind_t kind,
+                                     lh_input_button_t button, lh_os_system_win_wparam_t wparam,
                                      lh_os_system_win_lparam_t lparam);
 
 lh_void

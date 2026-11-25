@@ -36,7 +36,7 @@ handlers are the same.
   - `ws://…/ws` — pushes a frame **only when the tree changed**;
   - presses, releases, moves while a button is down, wheel, keys (down and
     up), text and the tab size come back: the input as one
-    `lh_os_input_event_t` each, the size through the `resize` hook.
+    `lh_input_event_t` each, the size through the `resize` hook.
 - A REST surface is a table of routes the caller writes
   (`lh_os_web_app_route_t`, `lh/os/web/app/route.h`) and attaches to its
   application. Nothing is built in: an application with no routes serves
@@ -58,7 +58,7 @@ down, the player sends the same numbers as an HTTP query instead):
 
 `/ui/click?x=&y=` is a `pointer_down` and a `pointer_up` at one point.
 
-`key` is an `lh_os_key_t` (`lh/os/key.h`); the player's key table is written
+`key` is an `lh_key_t` (`lh/core/key.h`); the player's key table is written
 from that enum when the page is built, so the numbers cannot drift. A key
 that also types (Space) sends its `t` line after the `k` line, as the desktop
 does. A `k key` line without the flag (an older player) is a key going down.
@@ -93,7 +93,7 @@ In `main.c`:
 ## 3. Hooks: the same handlers, `window = NULL`
 
 The web host knows nothing about `lh_os_window_t`. Its `input` hook has the
-signature of a window's sink (`lh_os_input_sink_cb`), so the desktop `on_input`
+signature of a window's sink (`lh_input_sink_cb`), so the desktop `on_input`
 plugs in as it is; only the tick and the resize need thin wrappers — **which is
 why they must survive `window == lh_null`**:
 

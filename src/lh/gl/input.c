@@ -373,22 +373,22 @@ lh_gl_input_on_key(const lh_gl_input_t *self, const lh_gl_entity_event_t *event)
         return lh_gl_input_insert(input, code);
     }
 
-    if (lh_gl_key_input_is_down(key, lh_os_key_backspace))
+    if (lh_gl_key_input_is_down(key, lh_key_backspace))
     {
         return lh_gl_input_backspace(input);
     }
-    if (lh_gl_key_input_is_down(key, lh_os_key_delete))
+    if (lh_gl_key_input_is_down(key, lh_key_delete))
     {
         return lh_gl_input_delete_forward(input);
     }
-    if (lh_gl_key_input_is_down(key, lh_os_key_left))
+    if (lh_gl_key_input_is_down(key, lh_key_left))
     {
         const lh_u16_t at = lh_gl_input_boundary_before(self, lh_gl_input_get_caret(self));
 
         return lh_gl_input_get_caret(self) == 0U ? lh_bool_false
                                                  : lh_gl_input_set_caret_v(input, at);
     }
-    if (lh_gl_key_input_is_down(key, lh_os_key_right))
+    if (lh_gl_key_input_is_down(key, lh_key_right))
     {
         const lh_u32_t size =
             lh_gl_input_get_caret(self) < lh_gl_input_get_used(self)
@@ -401,12 +401,12 @@ lh_gl_input_on_key(const lh_gl_input_t *self, const lh_gl_entity_event_t *event)
                    : lh_gl_input_set_caret_v(
                          input, lh_cast_static(lh_u16_t, lh_gl_input_get_caret(self) + size));
     }
-    if (lh_gl_key_input_is_down(key, lh_os_key_home))
+    if (lh_gl_key_input_is_down(key, lh_key_home))
     {
         lh_gl_input_home(input);
         return lh_bool_true;
     }
-    if (lh_gl_key_input_is_down(key, lh_os_key_end))
+    if (lh_gl_key_input_is_down(key, lh_key_end))
     {
         lh_gl_input_end(input);
         return lh_bool_true;

@@ -27,7 +27,7 @@
 #ifndef LH_GL_WEB_PLAYER_PAGE_H
 #define LH_GL_WEB_PLAYER_PAGE_H
 
-#include <lh/os/key.h>
+#include <lh/core/key.h>
 #include <lh/core/web/xml/node.h>
 #include <lh/core/web/js/node.h>
 
@@ -42,17 +42,17 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief The browser's `KeyboardEvent.key` for @p key (`"Tab"`, `" "`,
  *        `"ArrowLeft"`, ...): static text, not to be freed. Empty for
- *        ::lh_os_key_other and for a value outside ::lh_os_key_t.
+ *        ::lh_key_other and for a value outside ::lh_key_t.
  */
 lh_str_view_t
-lh_gl_web_player_page_get_key_name(lh_os_key_t key);
+lh_gl_web_player_page_get_key_name(lh_key_t key);
 
 /**
  * @brief Whether @p key is a modifier (Shift, Control, Alt): held with other
  *        keys, so the player leaves the browser's default action to it.
  */
 lh_bool_t
-lh_gl_web_player_page_is_modifier(lh_os_key_t key);
+lh_gl_web_player_page_is_modifier(lh_key_t key);
 
 /* ── document ────────────────────────────────────────────────────────────── */
 
@@ -70,7 +70,7 @@ lh_gl_web_player_page_create_body(lh_str_view_t script);
 
 /**
  * @brief A new object expression `{Tab:1,Enter:2,...}`: every key's browser
- *        name (::lh_gl_web_player_page_get_key_name) to its ::lh_os_key_t
+ *        name (::lh_gl_web_player_page_get_key_name) to its ::lh_key_t
  *        number, so the numbers on the wire are the enum's own. Only the
  *        modifiers when @p modifiers_only. The caller owns the result.
  */

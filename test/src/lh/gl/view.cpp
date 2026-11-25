@@ -851,28 +851,28 @@ TEST(view, a_press_on_a_caption_presses_the_button_it_is_in)
 
 namespace
 {
-lh_os_input_event_t
-pointer_event(lh_os_input_kind_t kind, lh_os_input_button_t button, int x, int y, lh_u8_t pointer = 0U)
+lh_input_event_t
+pointer_event(lh_input_kind_t kind, lh_input_button_t button, int x, int y, lh_u8_t pointer = 0U)
 {
-    lh_os_input_event_t event{};
+    lh_input_event_t event{};
 
-    lh_os_input_event_init_pointer(lh_addr_of(event), kind, lh_os_input_device_kind_mouse, pointer, button,
-                                   lh_os_input_coord_from_int(x), lh_os_input_coord_from_int(y), 0U);
+    lh_input_event_init_pointer(lh_addr_of(event), kind, lh_input_device_kind_mouse, pointer,
+                                button, lh_input_coord_from_int(x), lh_input_coord_from_int(y), 0U);
     return event;
 }
 
-lh_os_input_event_t
+lh_input_event_t
 wheel_event(int x, int y, lh_s32_t dx, lh_s32_t dy)
 {
-    lh_os_input_event_t event{};
+    lh_input_event_t event{};
 
-    lh_os_input_event_init_wheel(lh_addr_of(event), lh_os_input_coord_from_int(x), lh_os_input_coord_from_int(y),
-                                 dx, dy, 0U);
+    lh_input_event_init_wheel(lh_addr_of(event), lh_input_coord_from_int(x),
+                              lh_input_coord_from_int(y), dx, dy, 0U);
     return event;
 }
 
 lh_bool_t
-feed(view_fixture &f, lh_os_input_event_t event)
+feed(view_fixture &f, lh_input_event_t event)
 {
     return lh_gl_view_input(lh_addr_of(f.view), lh_addr_of(event));
 }
@@ -895,8 +895,10 @@ TEST(view, input_a_primary_press_and_release_click)
 {
     view_fixture f;
 
-    EXPECT_TRUE(feed(f, pointer_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, 105, 150)));
-    EXPECT_TRUE(feed(f, pointer_event(lh_os_input_kind_pointer_up, lh_os_input_button_primary, 105, 150)));
+    EXPECT_TRUE(
+        feed(f, pointer_event(lh_input_kind_pointer_down, lh_input_button_primary, 105, 150)));
+    EXPECT_TRUE(
+        feed(f, pointer_event(lh_input_kind_pointer_up, lh_input_button_primary, 105, 150)));
     EXPECT_EQ(scroll_y_of(f.box), 100);
 }
 
@@ -904,13 +906,15 @@ TEST(view, input_another_button_or_pointer_does_not_press)
 {
     view_fixture f;
 
-    EXPECT_FALSE(feed(f, pointer_event(lh_os_input_kind_pointer_down, lh_os_input_button_secondary, 105, 150)));
-    EXPECT_FALSE(feed(f, pointer_event(lh_os_input_kind_pointer_up, lh_os_input_button_secondary, 105, 150)));
-    EXPECT_FALSE(feed(f, pointer_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary,
-                                       105, 150, LH_OS_INPUT_POINTER_MAX)))
+    EXPECT_FALSE(
+        feed(f, pointer_event(lh_input_kind_pointer_down, lh_input_button_secondary, 105, 150)));
+    EXPECT_FALSE(
+        feed(f, pointer_event(lh_input_kind_pointer_up, lh_input_button_secondary, 105, 150)));
+    EXPECT_FALSE(feed(f, pointer_event(lh_input_kind_pointer_down, lh_input_button_primary, 105,
+                                       150, LH_INPUT_POINTER_MAX)))
         << "a pointer past the limit has no session to press in";
-    EXPECT_FALSE(feed(f, pointer_event(lh_os_input_kind_pointer_up, lh_os_input_button_primary, 105,
-                                       150, LH_OS_INPUT_POINTER_MAX)));
+    EXPECT_FALSE(feed(f, pointer_event(lh_input_kind_pointer_up, lh_input_button_primary, 105, 150,
+                                       LH_INPUT_POINTER_MAX)));
     EXPECT_EQ(scroll_y_of(f.box), 0);
 }
 
@@ -918,10 +922,11 @@ TEST(view, input_a_move_drags_the_thumb)
 {
     view_fixture f;
 
-    EXPECT_TRUE(feed(f, pointer_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, 105, 10)));
-    EXPECT_TRUE(feed(f, pointer_event(lh_os_input_kind_pointer_move, lh_os_input_button_none, 105, 85)));
+    EXPECT_TRUE(
+        feed(f, pointer_event(lh_input_kind_pointer_down, lh_input_button_primary, 105, 10)));
+    EXPECT_TRUE(feed(f, pointer_event(lh_input_kind_pointer_move, lh_input_button_none, 105, 85)));
     EXPECT_EQ(scroll_y_of(f.box), 150);
-    EXPECT_TRUE(feed(f, pointer_event(lh_os_input_kind_pointer_up, lh_os_input_button_primary, 105, 85)));
+    EXPECT_TRUE(feed(f, pointer_event(lh_input_kind_pointer_up, lh_input_button_primary, 105, 85)));
     EXPECT_EQ(scroll_y_of(f.box), 150);
 }
 
@@ -932,12 +937,12 @@ TEST(view, input_a_wheel_notch_scrolls_one_step)
     ASSERT_GT(wheel_step(), 0) << "the system is set not to scroll on the wheel";
     ASSERT_LE(wheel_step(), 300) << "the fixture scrolls 300 at most";
     view_fixture f;
-    EXPECT_TRUE(feed(f, wheel_event(50, 50, 0, -LH_OS_INPUT_WHEEL_NOTCH)));
+    EXPECT_TRUE(feed(f, wheel_event(50, 50, 0, -LH_INPUT_WHEEL_NOTCH)));
     EXPECT_EQ(scroll_y_of(f.box), wheel_step());
-    EXPECT_TRUE(feed(f, wheel_event(50, 50, 0, LH_OS_INPUT_WHEEL_NOTCH)));
+    EXPECT_TRUE(feed(f, wheel_event(50, 50, 0, LH_INPUT_WHEEL_NOTCH)));
     EXPECT_EQ(scroll_y_of(f.box), 0);
-    EXPECT_FALSE(feed(f, wheel_event(50, 50, 0, LH_OS_INPUT_WHEEL_NOTCH))) << "already at the top";
-    EXPECT_FALSE(feed(f, pointer_event(lh_os_input_kind_pointer_move, lh_os_input_button_none, 60, 60)))
+    EXPECT_FALSE(feed(f, wheel_event(50, 50, 0, LH_INPUT_WHEEL_NOTCH))) << "already at the top";
+    EXPECT_FALSE(feed(f, pointer_event(lh_input_kind_pointer_move, lh_input_button_none, 60, 60)))
         << "a move with nothing pressed scrolls nothing";
 }
 
@@ -945,7 +950,7 @@ TEST(view, input_a_wheel_notch_scrolls_one_step)
    before the view asked one: the OS layer's own default, 40. */
 TEST(view, input_the_fallback_wheel_step_is_the_os_default)
 {
-    EXPECT_EQ(LH_GL_VIEW_WHEEL_STEP, LH_OS_INPUT_WHEEL_STEP_DEFAULT);
+    EXPECT_EQ(LH_GL_VIEW_WHEEL_STEP, LH_INPUT_WHEEL_STEP_DEFAULT);
     EXPECT_EQ(LH_GL_VIEW_WHEEL_STEP, 40);
 }
 
@@ -953,16 +958,19 @@ TEST(view, input_a_cancel_ends_the_press_without_a_click)
 {
     view_fixture f;
 
-    EXPECT_TRUE(feed(f, pointer_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, 105, 150)));
-    EXPECT_TRUE(feed(f, pointer_event(lh_os_input_kind_pointer_cancel, lh_os_input_button_none, 0, 0)));
-    EXPECT_TRUE(feed(f, pointer_event(lh_os_input_kind_pointer_up, lh_os_input_button_primary, 105, 150)));
+    EXPECT_TRUE(
+        feed(f, pointer_event(lh_input_kind_pointer_down, lh_input_button_primary, 105, 150)));
+    EXPECT_TRUE(feed(f, pointer_event(lh_input_kind_pointer_cancel, lh_input_button_none, 0, 0)));
+    EXPECT_TRUE(
+        feed(f, pointer_event(lh_input_kind_pointer_up, lh_input_button_primary, 105, 150)));
     EXPECT_EQ(scroll_y_of(f.box), 0) << "the release after a cancel is no click";
 }
 
 TEST(view, input_losing_the_focus_lets_the_press_go)
 {
-    lh_os_input_event_t down = pointer_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, 140, 100);
-    lh_os_input_event_t focus_out{};
+    lh_input_event_t down =
+        pointer_event(lh_input_kind_pointer_down, lh_input_button_primary, 140, 100);
+    lh_input_event_t focus_out{};
 
     scene s;
     build_scene(s);
@@ -975,7 +983,8 @@ TEST(view, input_losing_the_focus_lets_the_press_go)
     lh_gl_view_init(lh_addr_of(view));
     lh_gl_view_set_canvas(lh_addr_of(view), lh_addr_of(canvas));
     lh_gl_view_set_root_v(lh_addr_of(view), lh_addr_of(s.panel));
-    lh_os_input_event_init(lh_addr_of(focus_out), lh_os_input_kind_focus_out, lh_os_input_device_kind_keyboard, 0U);
+    lh_input_event_init(lh_addr_of(focus_out), lh_input_kind_focus_out,
+                        lh_input_device_kind_keyboard, 0U);
 
     EXPECT_TRUE(lh_gl_view_input(lh_addr_of(view), lh_addr_of(down)));
     EXPECT_TRUE(lh_gl_entity_is_pressed(lh_addr_of(s.panel)));
@@ -995,11 +1004,12 @@ TEST(view, input_a_cancel_with_no_press_open_does_nothing)
    the click twice. */
 TEST(view, input_a_synthesized_event_is_not_for_the_view)
 {
-    lh_os_input_event_t click = pointer_event(lh_os_input_kind_click, lh_os_input_button_primary, 105, 150);
-    lh_os_input_event_t down = pointer_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, 105, 150);
+    lh_input_event_t click = pointer_event(lh_input_kind_click, lh_input_button_primary, 105, 150);
+    lh_input_event_t down =
+        pointer_event(lh_input_kind_pointer_down, lh_input_button_primary, 105, 150);
 
-    lh_os_input_event_set_flags(lh_addr_of(click), LH_OS_INPUT_FLAG_SYNTHESIZED);
-    lh_os_input_event_set_flags(lh_addr_of(down), LH_OS_INPUT_FLAG_SYNTHESIZED);
+    lh_input_event_set_flags(lh_addr_of(click), LH_INPUT_FLAG_SYNTHESIZED);
+    lh_input_event_set_flags(lh_addr_of(down), LH_INPUT_FLAG_SYNTHESIZED);
     view_fixture f;
     EXPECT_FALSE(feed(f, click));
     EXPECT_FALSE(feed(f, down));
@@ -1008,13 +1018,13 @@ TEST(view, input_a_synthesized_event_is_not_for_the_view)
 
 TEST(view, input_keys_and_text_go_to_the_view)
 {
-    lh_os_input_event_t key{};
-    lh_os_input_event_t text{};
-    lh_os_input_event_t axis{};
+    lh_input_event_t key{};
+    lh_input_event_t text{};
+    lh_input_event_t axis{};
 
-    lh_os_input_event_init_key(lh_addr_of(key), lh_os_key_tab, lh_bool_true, lh_bool_false, 0U, 0U);
-    lh_os_input_event_init_text(lh_addr_of(text), 0x0416U, 0U);
-    lh_os_input_event_init_controller_axis(lh_addr_of(axis), 0U, lh_os_input_axis_left_x, 100, 0U);
+    lh_input_event_init_key(lh_addr_of(key), lh_key_tab, lh_bool_true, lh_bool_false, 0U, 0U);
+    lh_input_event_init_text(lh_addr_of(text), 0x0416U, 0U);
+    lh_input_event_init_controller_axis(lh_addr_of(axis), 0U, lh_input_axis_left_x, 100, 0U);
     view_fixture f;
     EXPECT_TRUE(feed(f, key));
     EXPECT_TRUE(feed(f, text));
@@ -1027,10 +1037,10 @@ TEST(view, input_keys_and_text_go_to_the_view)
    the synthesized click after them is not a second page. */
 TEST(view, controller_handle_gives_the_view_the_raw_events)
 {
-    const lh_os_input_event_t down =
-        pointer_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, 105, 150);
-    const lh_os_input_event_t up =
-        pointer_event(lh_os_input_kind_pointer_up, lh_os_input_button_primary, 105, 150);
+    const lh_input_event_t down =
+        pointer_event(lh_input_kind_pointer_down, lh_input_button_primary, 105, 150);
+    const lh_input_event_t up =
+        pointer_event(lh_input_kind_pointer_up, lh_input_button_primary, 105, 150);
 
     lh_os_controller_t controller;
     view_fixture f;
@@ -1043,10 +1053,10 @@ TEST(view, controller_handle_gives_the_view_the_raw_events)
 
 TEST(view, controller_cancel_ends_the_press_without_a_click)
 {
-    const lh_os_input_event_t down =
-        pointer_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, 105, 150);
-    const lh_os_input_event_t up =
-        pointer_event(lh_os_input_kind_pointer_up, lh_os_input_button_primary, 105, 150);
+    const lh_input_event_t down =
+        pointer_event(lh_input_kind_pointer_down, lh_input_button_primary, 105, 150);
+    const lh_input_event_t up =
+        pointer_event(lh_input_kind_pointer_up, lh_input_button_primary, 105, 150);
 
     lh_os_controller_t controller;
     view_fixture f;
@@ -1111,29 +1121,28 @@ struct two_buttons
 };
 
 /* A touch contact: the primary button on a down or an up, none on a move or a cancel. */
-lh_os_input_event_t
-touch_event(lh_os_input_kind_t kind, int x, int y, lh_os_input_pointer_id_t pointer)
+lh_input_event_t
+touch_event(lh_input_kind_t kind, int x, int y, lh_input_pointer_id_t pointer)
 {
-    lh_os_input_event_t event{};
-    const lh_os_input_button_t button =
-        kind == lh_os_input_kind_pointer_down || kind == lh_os_input_kind_pointer_up
-            ? lh_os_input_button_primary
-            : lh_os_input_button_none;
+    lh_input_event_t event{};
+    const lh_input_button_t button =
+        kind == lh_input_kind_pointer_down || kind == lh_input_kind_pointer_up
+            ? lh_input_button_primary
+            : lh_input_button_none;
 
-    lh_os_input_event_init_pointer(lh_addr_of(event), kind, lh_os_input_device_kind_touch, pointer,
-                                   button, lh_os_input_coord_from_int(x),
-                                   lh_os_input_coord_from_int(y), 0U);
+    lh_input_event_init_pointer(lh_addr_of(event), kind, lh_input_device_kind_touch, pointer,
+                                button, lh_input_coord_from_int(x), lh_input_coord_from_int(y), 0U);
     return event;
 }
 
 lh_bool_t
-feed(two_buttons &f, lh_os_input_event_t event)
+feed(two_buttons &f, lh_input_event_t event)
 {
     return lh_gl_view_input(lh_addr_of(f.view), lh_addr_of(event));
 }
 
 lh_bool_t
-slot_is_active(const lh_gl_view_t &view, lh_os_input_pointer_id_t id)
+slot_is_active(const lh_gl_view_t &view, lh_input_pointer_id_t id)
 {
     return lh_gl_view_pointer_is_active(lh_gl_view_get_pointer(lh_addr_of(view), id));
 }
@@ -1143,17 +1152,17 @@ TEST(view, two_pointers_on_two_buttons_press_and_click_both)
 {
     two_buttons f;
 
-    EXPECT_TRUE(feed(f, touch_event(lh_os_input_kind_pointer_down, 40, 20, 1U)));
-    EXPECT_TRUE(feed(f, touch_event(lh_os_input_kind_pointer_down, 180, 20, 2U)));
+    EXPECT_TRUE(feed(f, touch_event(lh_input_kind_pointer_down, 40, 20, 1U)));
+    EXPECT_TRUE(feed(f, touch_event(lh_input_kind_pointer_down, 180, 20, 2U)));
     EXPECT_TRUE(f.left_pressed()) << "the second finger let go of the first one's button";
     EXPECT_TRUE(f.right_pressed());
 
-    EXPECT_TRUE(feed(f, touch_event(lh_os_input_kind_pointer_up, 40, 20, 1U)));
+    EXPECT_TRUE(feed(f, touch_event(lh_input_kind_pointer_up, 40, 20, 1U)));
     EXPECT_EQ(f.left_clicks, 1);
     EXPECT_FALSE(f.left_pressed());
     EXPECT_TRUE(f.right_pressed()) << "one finger up let go of the other finger's button";
 
-    EXPECT_TRUE(feed(f, touch_event(lh_os_input_kind_pointer_up, 180, 20, 2U)));
+    EXPECT_TRUE(feed(f, touch_event(lh_input_kind_pointer_up, 180, 20, 2U)));
     EXPECT_EQ(f.right_clicks, 1);
     EXPECT_FALSE(f.right_pressed());
     EXPECT_EQ(f.left_clicks, 1);
@@ -1163,11 +1172,11 @@ TEST(view, a_touch_pointer_clicks_a_button)
 {
     two_buttons f;
 
-    EXPECT_TRUE(feed(f, touch_event(lh_os_input_kind_pointer_down, 60, 25, 1U)));
+    EXPECT_TRUE(feed(f, touch_event(lh_input_kind_pointer_down, 60, 25, 1U)));
     EXPECT_TRUE(f.left_pressed());
     EXPECT_TRUE(slot_is_active(f.view, 1U));
     EXPECT_FALSE(slot_is_active(f.view, 0U)) << "a finger pressed in the mouse's session";
-    EXPECT_TRUE(feed(f, touch_event(lh_os_input_kind_pointer_up, 60, 25, 1U)));
+    EXPECT_TRUE(feed(f, touch_event(lh_input_kind_pointer_up, 60, 25, 1U)));
     EXPECT_EQ(f.left_clicks, 1);
     EXPECT_FALSE(slot_is_active(f.view, 1U));
 }
@@ -1204,19 +1213,19 @@ TEST(view, a_second_pointer_does_not_steal_the_scroll_of_the_first)
 {
     view_fixture f;
 
-    EXPECT_TRUE(feed(f, touch_event(lh_os_input_kind_pointer_down, 50, 80, 1U)));
-    EXPECT_TRUE(feed(f, touch_event(lh_os_input_kind_pointer_move, 50, 50, 1U)));
+    EXPECT_TRUE(feed(f, touch_event(lh_input_kind_pointer_down, 50, 80, 1U)));
+    EXPECT_TRUE(feed(f, touch_event(lh_input_kind_pointer_move, 50, 50, 1U)));
     EXPECT_EQ(scroll_y_of(f.box), 30);
 
-    EXPECT_TRUE(feed(f, touch_event(lh_os_input_kind_pointer_down, 20, 20, 2U)));
+    EXPECT_TRUE(feed(f, touch_event(lh_input_kind_pointer_down, 20, 20, 2U)));
     EXPECT_TRUE(
         lh_null_eq(lh_gl_view_pointer_get_drag(lh_gl_view_get_pointer(lh_addr_of(f.view), 2U))));
-    EXPECT_FALSE(feed(f, touch_event(lh_os_input_kind_pointer_move, 20, 90, 2U)))
+    EXPECT_FALSE(feed(f, touch_event(lh_input_kind_pointer_move, 20, 90, 2U)))
         << "the second finger moved the list the first one holds";
     EXPECT_EQ(scroll_y_of(f.box), 30);
-    EXPECT_TRUE(feed(f, touch_event(lh_os_input_kind_pointer_up, 20, 90, 2U)));
+    EXPECT_TRUE(feed(f, touch_event(lh_input_kind_pointer_up, 20, 90, 2U)));
 
-    EXPECT_TRUE(feed(f, touch_event(lh_os_input_kind_pointer_move, 50, 40, 1U)));
+    EXPECT_TRUE(feed(f, touch_event(lh_input_kind_pointer_move, 50, 40, 1U)));
     EXPECT_EQ(scroll_y_of(f.box), 40) << "the first finger lost its list";
 }
 
@@ -1238,41 +1247,41 @@ TEST(view, a_pointer_cancel_ends_that_pointer_only)
 {
     two_buttons f;
 
-    EXPECT_TRUE(feed(f, touch_event(lh_os_input_kind_pointer_down, 40, 20, 1U)));
-    EXPECT_TRUE(feed(f, touch_event(lh_os_input_kind_pointer_down, 180, 20, 2U)));
-    EXPECT_TRUE(feed(f, touch_event(lh_os_input_kind_pointer_cancel, 0, 0, 1U)));
+    EXPECT_TRUE(feed(f, touch_event(lh_input_kind_pointer_down, 40, 20, 1U)));
+    EXPECT_TRUE(feed(f, touch_event(lh_input_kind_pointer_down, 180, 20, 2U)));
+    EXPECT_TRUE(feed(f, touch_event(lh_input_kind_pointer_cancel, 0, 0, 1U)));
     EXPECT_FALSE(f.left_pressed());
     EXPECT_FALSE(slot_is_active(f.view, 1U));
     EXPECT_TRUE(f.right_pressed()) << "a cancel of one finger let go of another";
-    EXPECT_TRUE(feed(f, touch_event(lh_os_input_kind_pointer_up, 40, 20, 1U)));
-    EXPECT_TRUE(feed(f, touch_event(lh_os_input_kind_pointer_up, 180, 20, 2U)));
+    EXPECT_TRUE(feed(f, touch_event(lh_input_kind_pointer_up, 40, 20, 1U)));
+    EXPECT_TRUE(feed(f, touch_event(lh_input_kind_pointer_up, 180, 20, 2U)));
     EXPECT_EQ(f.left_clicks, 0) << "the release after a cancel is no click";
     EXPECT_EQ(f.right_clicks, 1);
 }
 
 TEST(view, a_cancel_resets_every_pointer)
 {
-    lh_os_input_event_t focus_out{};
-    lh_os_input_event_t mouse_down =
-        pointer_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, 40, 20);
-    lh_os_input_event_t mouse_up =
-        pointer_event(lh_os_input_kind_pointer_up, lh_os_input_button_primary, 40, 20);
+    lh_input_event_t focus_out{};
+    lh_input_event_t mouse_down =
+        pointer_event(lh_input_kind_pointer_down, lh_input_button_primary, 40, 20);
+    lh_input_event_t mouse_up =
+        pointer_event(lh_input_kind_pointer_up, lh_input_button_primary, 40, 20);
 
-    lh_os_input_event_init(lh_addr_of(focus_out), lh_os_input_kind_focus_out,
-                           lh_os_input_device_kind_keyboard, 0U);
+    lh_input_event_init(lh_addr_of(focus_out), lh_input_kind_focus_out,
+                        lh_input_device_kind_keyboard, 0U);
     two_buttons f;
     EXPECT_TRUE(lh_gl_view_input(lh_addr_of(f.view), lh_addr_of(mouse_down)));
-    EXPECT_TRUE(feed(f, touch_event(lh_os_input_kind_pointer_down, 180, 20, 2U)));
-    EXPECT_TRUE(feed(f, touch_event(lh_os_input_kind_pointer_down, 200, 30, 4U)));
+    EXPECT_TRUE(feed(f, touch_event(lh_input_kind_pointer_down, 180, 20, 2U)));
+    EXPECT_TRUE(feed(f, touch_event(lh_input_kind_pointer_down, 200, 30, 4U)));
     EXPECT_TRUE(lh_gl_view_input(lh_addr_of(f.view), lh_addr_of(focus_out)));
-    for (lh_os_input_pointer_id_t id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
+    for (lh_input_pointer_id_t id = 0U; id < LH_INPUT_POINTER_MAX; ++id)
     {
         EXPECT_FALSE(slot_is_active(f.view, id)) << "pointer " << static_cast<int>(id);
     }
     EXPECT_FALSE(f.left_pressed());
     EXPECT_FALSE(f.right_pressed());
     EXPECT_TRUE(lh_gl_view_input(lh_addr_of(f.view), lh_addr_of(mouse_up)));
-    EXPECT_TRUE(feed(f, touch_event(lh_os_input_kind_pointer_up, 180, 20, 2U)));
+    EXPECT_TRUE(feed(f, touch_event(lh_input_kind_pointer_up, 180, 20, 2U)));
     EXPECT_EQ(f.left_clicks, 0);
     EXPECT_EQ(f.right_clicks, 0);
 }

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <lh/os/input/wheel.h>
+#include <lh/core/input/wheel.h>
 
 /* Backend-private (src/lh/os/system/unix/input.h), so declared here: the test includes
    only the public tree. */
@@ -16,7 +16,7 @@ namespace
 TEST(os_system_unix_input, the_driver_is_not_read_so_a_notch_is_the_default_lines)
 {
     EXPECT_EQ(lh_os_system_unix_input_get_wheel_lines(),
-              static_cast<lh_u32_t>(LH_OS_INPUT_WHEEL_LINES_DEFAULT));
+              static_cast<lh_u32_t>(LH_INPUT_WHEEL_LINES_DEFAULT));
 }
 
 } // namespace

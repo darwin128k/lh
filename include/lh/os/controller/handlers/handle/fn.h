@@ -10,7 +10,7 @@
 #define LH_OS_CONTROLLER_HANDLERS_HANDLE_FN_H
 
 #include <lh/core/bool.h>
-#include <lh/os/input/event/ptr.h>
+#include <lh/core/input/event/ptr.h>
 #include <lh/core/self.h>
 
 /**
@@ -26,6 +26,6 @@
  *         false for an event it has no use for.
  */
 typedef lh_bool_t(lh_os_controller_handlers_handle_fn)(lh_self_ptr self,
-                                                       const lh_os_input_event_ptr event);
+                                                       const lh_input_event_ptr event);
 
 #endif /* LH_OS_CONTROLLER_HANDLERS_HANDLE_FN_H */

@@ -96,40 +96,6 @@ TEST(ui_pixmap, set_and_get_pixel_round_trip_through_argb)
     EXPECT_TRUE(lh_gl_color_equals(lh_addr_of(back), lh_addr_of(c)));
 }
 
-TEST(ui_pixmap, blend_cover_16_words_matches_the_alpha_span)
-{
-    /* Every kind of coverage: none, full, and the ones in between. */
-    const lh_byte_t alpha[8] = {0U, 255U, 17U, 128U, 200U, 1U, 254U, 99U};
-    lh_u64_t cover = 0U;
-    for (unsigned i = 0; i < 8U; ++i)
-    {
-        cover |= static_cast<lh_u64_t>(alpha[i]) << (8U * i);
-    }
-    for (lh_gl_pixmap_format_t format :
-         {lh_gl_pixmap_format_rgb565, lh_gl_pixmap_format_rgb565_swapped})
-    {
-        for (unsigned count = 1U; count <= 8U; ++count)
-        {
-            lh_u16_t words[8] = {0x0000U, 0xFFFFU, 0xF800U, 0x07E0U,
-                                 0x001FU, 0x1234U, 0xABCDU, 0x8410U};
-            lh_u16_t expected[8];
-            std::copy(std::begin(words), std::end(words), expected);
-            lh_gl_pixmap_t pixmap;
-            lh_gl_pixmap_init(lh_addr_of(pixmap), lh_ptr_rcast(lh_byte_t, words), 8, 1, 16, format);
-            lh_gl_pixmap_t reference;
-            lh_gl_pixmap_init(lh_addr_of(reference), lh_ptr_rcast(lh_byte_t, expected), 8, 1, 16,
-                              format);
-            lh_gl_pixmap_blend_alpha_16_words(lh_addr_of(reference), expected,
-                                              const_cast<lh_byte_ptr>(alpha), count, 0x3C78B4U);
-            lh_gl_pixmap_blend_cover_16_words(lh_addr_of(pixmap), words, count, cover, 0x3C78B4U);
-            for (unsigned i = 0; i < 8U; ++i)
-            {
-                EXPECT_EQ(words[i], expected[i]) << "count " << count << " pixel " << i;
-            }
-        }
-    }
-}
-
 TEST(ui_pixmap, rgb565_stores_16_bit_words_and_reads_opaque)
 {
     pixmap_fixture f(0u, lh_gl_pixmap_format_rgb565);
@@ -411,55 +377,6 @@ TEST(ui_pixmap, blend_const_32_repeats_one_mix_and_blends_a_different_word)
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
 
-/* The 16-bit kernel is the MCU path, and the format that most easily goes
-   quietly wrong is the swapped one: a missing byte swap still produces plausible
-   pixels, just the wrong ones. Both formats, every alpha, every run length up to
-   40 so the eight-pixel loop, its tail and both together are all covered. */
-TEST(ui_pixmap, blend_alpha_16_sse2_is_the_scalar_kernel_for_every_alpha_in_both_orders)
-{
-    if (!lh_cpu_simd_has_sse2())
-    {
-        GTEST_SKIP() << "SSE2 not available on this CPU";
-    }
-    const lh_u32_t src = 0x0033ccffu;
-    const lh_gl_pixmap_format_t formats[] = {lh_gl_pixmap_format_rgb565,
-                                             lh_gl_pixmap_format_rgb565_swapped};
-    for (lh_gl_pixmap_format_t format : formats)
-    {
-        for (int count = 1; count <= 40; ++count)
-        {
-            lh_u16_t at[40];
-            lh_u16_t want[40];
-            lh_byte_t alpha[40];
-            lh_gl_pixmap_t pixmap;
-            lh_u32_t solid;
-
-            lh_gl_pixmap_init(lh_addr_of(pixmap), lh_ptr_rcast(lh_byte_t, at), count, 1, count * 2,
-                              format);
-            solid = lh_gl_pixmap_order_16(lh_addr_of(pixmap),
-                                          lh_gl_pixmap_pack_rgb(lh_addr_of(pixmap), src));
-            for (int i = 0; i < count; ++i)
-            {
-                at[i] = static_cast<lh_u16_t>((i * 2654435761u) & 0xffffu);
-                alpha[i] = static_cast<lh_byte_t>(i);
-                want[i] = alpha[i] == 0u
-                              ? at[i]
-                              : (alpha[i] == 255u ? static_cast<lh_u16_t>(solid)
-                                                  : static_cast<lh_u16_t>(lh_gl_pixmap_mix_16(
-                                                        lh_addr_of(pixmap), at[i], src, alpha[i])));
-            }
-            lh_gl_pixmap_blend_alpha_16_sse2(lh_addr_of(pixmap), at, alpha,
-                                             static_cast<lh_usize_t>(count), src);
-            for (int i = 0; i < count; ++i)
-            {
-                ASSERT_EQ(at[i], want[i])
-                    << "format " << static_cast<int>(format) << " count " << count << " pixel " << i
-                    << " alpha " << static_cast<int>(alpha[i]);
-            }
-        }
-    }
-}
-
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
 
 /* Eight coverages from a register are the same blend as the same coverages from
@@ -585,78 +502,6 @@ TEST(ui_pixmap, mix_16_is_the_888_path_bit_for_bit_in_both_byte_orders)
                               format == lh_gl_pixmap_format_rgb565 ? want : swap16(want))
                         << "format " << static_cast<int>(format) << " word " << w << " src " << src
                         << " a " << a;
-                }
-            }
-        }
-    }
-}
-
-TEST(ui_pixmap, blend_16_one_keeps_the_ends_exact)
-{
-    lh_u16_t word = 0;
-    lh_gl_pixmap_t pixmap;
-
-    lh_gl_pixmap_init(lh_addr_of(pixmap), lh_ptr_rcast(lh_byte_t, &word), 1, 1, 2,
-                      lh_gl_pixmap_format_rgb565);
-    EXPECT_EQ(lh_gl_pixmap_blend_16_one(lh_addr_of(pixmap), 0x1234u, 0x0033CCFFu, 0xABCDu, 0u),
-              0x1234u);
-    EXPECT_EQ(lh_gl_pixmap_blend_16_one(lh_addr_of(pixmap), 0x1234u, 0x0033CCFFu, 0xABCDu, 255u),
-              0xABCDu);
-    for (lh_u32_t a : {1u, 127u, 128u, 254u})
-    {
-        EXPECT_EQ(lh_gl_pixmap_blend_16_one(lh_addr_of(pixmap), 0x1234u, 0x0033CCFFu, 0xABCDu, a),
-                  mix_16_reference(0x1234u, 0x0033CCFFu, a))
-            << a;
-    }
-}
-
-/* The portable row kernel against the reference, pixel for pixel: every length
-   from 0 to 9, from a word-aligned and from an unaligned start, in both byte
-   orders, with the ends (0, 255) and the middle alphas (1, 127, 128, 254) mixed
-   in; the pixels around the row are never written. */
-TEST(ui_pixmap, blend_alpha_16_words_is_the_reference_for_every_length_and_start)
-{
-    const lh_gl_pixmap_format_t formats[] = {lh_gl_pixmap_format_rgb565,
-                                             lh_gl_pixmap_format_rgb565_swapped};
-    const lh_byte_t alphas[] = {0u, 1u, 127u, 128u, 254u, 255u, 60u, 200u, 0u, 9u};
-    const lh_u32_t src = 0x0033CCFFu;
-
-    for (lh_gl_pixmap_format_t format : formats)
-    {
-        for (int start = 0; start < 2; ++start)
-        {
-            for (int count = 0; count <= 9; ++count)
-            {
-                alignas(4) lh_u16_t row[16];
-                lh_u16_t want[16];
-                lh_gl_pixmap_t pixmap;
-
-                for (int i = 0; i < 16; ++i)
-                {
-                    row[i] = want[i] = static_cast<lh_u16_t>((i * 2654435761u) >> 7);
-                }
-                lh_gl_pixmap_init(lh_addr_of(pixmap), lh_ptr_rcast(lh_byte_t, row), 16, 1, 32,
-                                  format);
-                for (int i = 0; i < count; ++i)
-                {
-                    const lh_u32_t a = alphas[i];
-                    const lh_u32_t w = format == lh_gl_pixmap_format_rgb565
-                                           ? want[start + 1 + i]
-                                           : swap16(want[start + 1 + i]);
-                    const lh_u32_t solid = lh_gl_pixmap_pack_rgb(lh_addr_of(pixmap), src);
-                    const lh_u32_t mixed =
-                        a == 0u ? w : (a == 255u ? solid : mix_16_reference(w, src, a));
-
-                    want[start + 1 + i] = static_cast<lh_u16_t>(
-                        format == lh_gl_pixmap_format_rgb565 ? mixed : swap16(mixed));
-                }
-                /* row + 1 is unaligned, row + 2 is aligned. */
-                lh_gl_pixmap_blend_alpha_16_words(lh_addr_of(pixmap), row + start + 1, alphas,
-                                                  static_cast<lh_usize_t>(count), src);
-                for (int i = 0; i < 16; ++i)
-                {
-                    ASSERT_EQ(row[i], want[i]) << "format " << static_cast<int>(format) << " start "
-                                               << start << " count " << count << " pixel " << i;
                 }
             }
         }

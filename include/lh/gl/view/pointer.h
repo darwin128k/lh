@@ -3,7 +3,7 @@
  * @brief One pointer's press in a view: ::lh_gl_view_pointer_t.
  *
  * A view keeps one of these for every pointer id it follows, `0 ..`
- * ::LH_OS_INPUT_POINTER_MAX `- 1`, inside itself: no heap. The mouse is `0`,
+ * ::LH_INPUT_POINTER_MAX `- 1`, inside itself: no heap. The mouse is `0`,
  * touch contacts and pens are `1` and up. Each slot has its own pressed entity,
  * its own thumb grab and its own content drag, so two fingers on two buttons press
  * both, and a finger that went down on a list keeps that list while another finger

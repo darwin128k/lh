@@ -11,7 +11,7 @@
 
 #include <lh/core/bool.h>
 #include <lh/core/compiler/extern/c.h>
-#include <lh/os/key.h>
+#include <lh/core/key.h>
 #include <lh/gl/key/fields.h>
 #include <lh/core/void.h>
 
@@ -22,7 +22,7 @@
 struct lh_gl_key_input
 {
     /** Members: ::lh_gl_key_input_fields. */
-    lh_gl_key_input_fields(lh_os_key_t, lh_bool_t, lh_u32_t);
+    lh_gl_key_input_fields(lh_key_t, lh_bool_t, lh_u32_t);
 };
 /** @copybrief lh_gl_key_input */
 typedef struct lh_gl_key_input lh_gl_key_input_t;
@@ -33,7 +33,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief @p key going down (@p pressed) or up.
  */
 lh_void
-lh_gl_key_input_init_key(lh_gl_key_input_t *self, lh_os_key_t key, lh_bool_t pressed);
+lh_gl_key_input_init_key(lh_gl_key_input_t *self, lh_key_t key, lh_bool_t pressed);
 
 /**
  * @brief One typed character, code point @p code (not 0).
@@ -42,9 +42,9 @@ lh_void
 lh_gl_key_input_init_text(lh_gl_key_input_t *self, lh_u32_t code);
 
 /**
- * @brief The key (::lh_os_key_other for text).
+ * @brief The key (::lh_key_other for text).
  */
-lh_os_key_t
+lh_key_t
 lh_gl_key_input_get_key(const lh_gl_key_input_t *self);
 
 /**
@@ -63,7 +63,7 @@ lh_gl_key_input_get_code(const lh_gl_key_input_t *self);
  * @brief True when @p key is going down (not text, not up).
  */
 lh_bool_t
-lh_gl_key_input_is_down(const lh_gl_key_input_t *self, lh_os_key_t key);
+lh_gl_key_input_is_down(const lh_gl_key_input_t *self, lh_key_t key);
 
 /**
  * @brief Store the key (level 1).
@@ -74,7 +74,7 @@ lh_gl_key_input_is_down(const lh_gl_key_input_t *self, lh_os_key_t key);
  * @param key The new value.
  */
 lh_void
-lh_gl_key_input_set_key(lh_gl_key_input_t *self, lh_os_key_t key);
+lh_gl_key_input_set_key(lh_gl_key_input_t *self, lh_key_t key);
 
 /**
  * @brief Store whether the key went down (level 1).

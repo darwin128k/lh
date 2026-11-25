@@ -346,7 +346,7 @@ lh_gl_web_player_get_routed_controller(const lh_gl_web_player_t *self);
  * @return True when the tree may have changed.
  */
 lh_bool_t
-lh_gl_web_player_input(lh_gl_web_player_t *self, const lh_os_input_event_t *event);
+lh_gl_web_player_input(lh_gl_web_player_t *self, const lh_input_event_t *event);
 
 /**
  * @brief Make the canvas @p w x @p h, clamped.
@@ -444,8 +444,7 @@ lh_gl_web_player_init(lh_gl_web_player_t *self, lh_gl_view_t *view, lh_uint_t wi
  * @return True when the tree may have changed.
  */
 lh_bool_t
-lh_gl_web_player_pointer(lh_gl_web_player_t *self, lh_os_input_kind_t kind, lh_sint_t x,
-                         lh_sint_t y);
+lh_gl_web_player_pointer(lh_gl_web_player_t *self, lh_input_kind_t kind, lh_sint_t x, lh_sint_t y);
 
 /**
  * @brief A wheel notch at (@p x, @p y).
@@ -466,7 +465,7 @@ lh_gl_web_player_wheel(lh_gl_web_player_t *self, lh_sint_t x, lh_sint_t y, lh_si
  * @brief A key going down or up.
  *
  * @param self     The player; checked by ::lh_assert_runtime_ref.
- * @param k        The key, as an ::lh_os_key_t.
+ * @param k        The key, as an ::lh_key_t.
  * @param pressed  True when the key goes down.
  *
  * @return True when the tree may have changed.

@@ -10,6 +10,9 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <iterator>
+
 #include <lh/core/cpu/simd.h>
 #include <lh/core/pixel/argb.h>
 #include <lh/core/pixel/rgb565.h>
@@ -367,6 +370,165 @@ TEST(pixel_round, a_corner_is_cut_and_its_edge_is_a_ramp)
     EXPECT_GT(edge, 0U);
     EXPECT_LT(edge, 255U);
     EXPECT_EQ(round_at(3, 3), 255U) << "inside the curve";
+}
+
+/* The RGB565 blend as it was before the word path: widen to 888, blend each channel
+   with the scalar formula, truncate back. The reference every RGB565 kernel is held to. */
+lh_u32_t
+mix_565_reference(lh_u32_t word, lh_u32_t src, lh_u32_t a)
+{
+    const lh_u32_t r5 = (word >> 11) & 0x1Fu;
+    const lh_u32_t g6 = (word >> 5) & 0x3Fu;
+    const lh_u32_t b5 = word & 0x1Fu;
+    const lh_u32_t r = ((src >> 16) & 0xFFu) * a + ((r5 << 3) | (r5 >> 2)) * (255u - a) + 127u;
+    const lh_u32_t g = ((src >> 8) & 0xFFu) * a + ((g6 << 2) | (g6 >> 4)) * (255u - a) + 127u;
+    const lh_u32_t b = (src & 0xFFu) * a + ((b5 << 3) | (b5 >> 2)) * (255u - a) + 127u;
+
+    return ((r / 255u) >> 3) << 11 | ((g / 255u) >> 2) << 5 | ((b / 255u) >> 3);
+}
+
+lh_u16_t
+swap_565(lh_u32_t w)
+{
+    return static_cast<lh_u16_t>(((w & 0xFFu) << 8) | ((w >> 8) & 0xFFu));
+}
+
+/* The portable kernel against the reference, pixel for pixel: every length from 0
+   to 9, from a word-aligned and an unaligned start, in both byte orders, with the
+   ends (0, 255) and the middle alphas mixed in; the pixels around the row are never
+   written. */
+TEST(pixel_span, the_rgb565_vary_kernel_is_the_reference_for_every_length_and_start)
+{
+    const lh_byte_t alphas[] = {0u, 1u, 127u, 128u, 254u, 255u, 60u, 200u, 0u, 9u};
+    const lh_u32_t src = 0x0033CCFFu;
+    const lh_u32_t solid = lh_pixel_rgb565_from_argb(src);
+
+    for (lh_bool_t swapped : {lh_bool_false, lh_bool_true})
+    {
+        for (int start = 0; start < 2; ++start)
+        {
+            for (int count = 0; count <= 9; ++count)
+            {
+                alignas(4) lh_u16_t row[16];
+                lh_u16_t want[16];
+
+                for (int i = 0; i < 16; ++i)
+                {
+                    row[i] = want[i] = static_cast<lh_u16_t>((i * 2654435761u) >> 7);
+                }
+                for (int i = 0; i < count; ++i)
+                {
+                    const lh_u32_t a = alphas[i];
+                    const lh_u32_t w =
+                        swapped ? swap_565(want[start + 1 + i]) : want[start + 1 + i];
+                    const lh_u32_t mixed =
+                        a == 0u ? w : (a == 255u ? solid : mix_565_reference(w, src, a));
+
+                    want[start + 1 + i] = swapped ? swap_565(mixed) : static_cast<lh_u16_t>(mixed);
+                }
+                lh_pixel_span_blend_vary_rgb565(row + start + 1, alphas,
+                                                static_cast<lh_usize_t>(count), src, swapped);
+                for (int i = 0; i < 16; ++i)
+                {
+                    ASSERT_EQ(row[i], want[i]) << "swapped " << swapped << " start " << start
+                                               << " count " << count << " pixel " << i;
+                }
+            }
+        }
+    }
+}
+
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+/* Eight pixels a step, and the tail, against the portable kernel: every length to 40,
+   every alpha from 0 to 255 somewhere, both byte orders. */
+TEST(pixel_span, the_rgb565_sse2_kernel_is_the_vary_kernel_for_every_alpha_and_length)
+{
+    if (!lh_cpu_simd_has_sse2())
+    {
+        GTEST_SKIP() << "SSE2 not available on this CPU";
+    }
+    for (lh_bool_t swapped : {lh_bool_false, lh_bool_true})
+    {
+        for (int round = 0; round < 8; ++round)
+        {
+            for (int count = 1; count <= 40; ++count)
+            {
+                lh_u16_t at[40];
+                lh_u16_t want[40];
+                lh_byte_t alpha[40];
+
+                for (int i = 0; i < count; ++i)
+                {
+                    at[i] = want[i] = static_cast<lh_u16_t>(((i + round) * 2654435761u) & 0xffffu);
+                    alpha[i] = static_cast<lh_byte_t>(i * 32 + round * 4 + (i == 3 ? 255 : 0));
+                }
+                lh_pixel_span_blend_vary_rgb565(want, alpha, static_cast<lh_usize_t>(count),
+                                                0x0033CCFFu, swapped);
+                lh_pixel_span_blend_alphas_sse2_rgb565(at, alpha, static_cast<lh_usize_t>(count),
+                                                       0x0033CCFFu, swapped);
+                for (int i = 0; i < count; ++i)
+                {
+                    ASSERT_EQ(at[i], want[i]) << "swapped " << swapped << " count " << count
+                                              << " pixel " << i << " alpha " << int(alpha[i]);
+                }
+            }
+        }
+    }
+}
+
+/* Eight alphas in a register are the same blend as the same alphas in a buffer, for
+   every count, and nothing past the count is written. */
+TEST(pixel_span, the_rgb565_eight_from_a_register_is_the_vary_kernel_for_every_count)
+{
+    if (!lh_cpu_simd_has_sse2())
+    {
+        GTEST_SKIP() << "SSE2 not available on this CPU";
+    }
+    const lh_byte_t alpha[8] = {0U, 255U, 17U, 128U, 200U, 1U, 254U, 99U};
+    lh_u64_t alphas = 0U;
+
+    for (unsigned i = 0; i < 8U; ++i)
+    {
+        alphas |= static_cast<lh_u64_t>(alpha[i]) << (8U * i);
+    }
+    for (lh_bool_t swapped : {lh_bool_false, lh_bool_true})
+    {
+        for (unsigned count = 1U; count <= 8U; ++count)
+        {
+            lh_u16_t words[8] = {0x0000U, 0xFFFFU, 0xF800U, 0x07E0U,
+                                 0x001FU, 0x1234U, 0xABCDU, 0x8410U};
+            lh_u16_t want[8];
+
+            std::copy(std::begin(words), std::end(words), want);
+            lh_pixel_span_blend_vary_rgb565(want, alpha, count, 0x3C78B4U, swapped);
+            lh_pixel_span_blend_alphas8_sse2_rgb565(words, count, alphas, 0x3C78B4U, swapped);
+            for (unsigned i = 0; i < 8U; ++i)
+            {
+                EXPECT_EQ(words[i], want[i])
+                    << "swapped " << swapped << " count " << count << " pixel " << i;
+            }
+        }
+    }
+}
+#endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
+
+/* The dispatcher picks a kernel and the words are the portable kernel's either way. */
+TEST(pixel_span, the_rgb565_alpha_row_is_the_vary_kernel)
+{
+    const lh_byte_t alpha[11] = {0U, 3U, 255U, 255U, 90U, 0U, 180U, 255U, 1U, 254U, 0U};
+    lh_u16_t at[11];
+    lh_u16_t want[11];
+
+    for (int i = 0; i < 11; ++i)
+    {
+        at[i] = want[i] = static_cast<lh_u16_t>(i * 5003u);
+    }
+    lh_pixel_span_blend_vary_rgb565(want, alpha, 11U, 0x00F08040U, lh_bool_true);
+    lh_pixel_span_blend_alphas_rgb565(at, alpha, 11U, 0x00F08040U, lh_bool_true);
+    for (int i = 0; i < 11; ++i)
+    {
+        EXPECT_EQ(at[i], want[i]) << i;
+    }
 }
 
 } // namespace

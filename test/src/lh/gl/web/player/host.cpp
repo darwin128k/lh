@@ -90,19 +90,19 @@ world_tick(lh_ptr ctx)
 /* Every line is one event: a key is logged, and everything goes on to the view, as an
    application's own sink would pass it. */
 lh_void
-world_input(lh_self_ptr self, const lh_os_input_event_ptr event)
+world_input(lh_self_ptr self, const lh_input_event_ptr event)
 {
     auto *world = static_cast<host_world *>(self);
-    const lh_os_input_kind_t kind = lh_os_input_event_get_kind(event);
+    const lh_input_kind_t kind = lh_input_event_get_kind(event);
 
-    if (kind == lh_os_input_kind_key_down || kind == lh_os_input_kind_key_up)
+    if (kind == lh_input_kind_key_down || kind == lh_input_kind_key_up)
     {
         const int at = world->keys.load();
 
         if (at < key_log_max)
         {
-            world->key[at] = static_cast<int>(lh_os_input_event_get_key(event));
-            world->pressed[at] = kind == lh_os_input_kind_key_down ? 1 : 0;
+            world->key[at] = static_cast<int>(lh_input_event_get_key(event));
+            world->pressed[at] = kind == lh_input_kind_key_down ? 1 : 0;
         }
         world->keys.store(at + 1);
     }
@@ -111,16 +111,16 @@ world_input(lh_self_ptr self, const lh_os_input_event_ptr event)
 
 /* The controller's handler: presses and the recognizer's clicks, counted. */
 lh_bool_t
-world_control(lh_self_ptr self, const lh_os_input_event_ptr event)
+world_control(lh_self_ptr self, const lh_input_event_ptr event)
 {
     auto *world = static_cast<host_world *>(self);
-    const lh_os_input_kind_t kind = lh_os_input_event_get_kind(event);
+    const lh_input_kind_t kind = lh_input_event_get_kind(event);
 
-    if (kind == lh_os_input_kind_pointer_down)
+    if (kind == lh_input_kind_pointer_down)
     {
         world->controlled_presses.fetch_add(1);
     }
-    if (kind == lh_os_input_kind_click)
+    if (kind == lh_input_kind_click)
     {
         world->controlled_clicks.fetch_add(1);
     }
@@ -387,11 +387,11 @@ TEST(web_host, ws_key_lines_carry_the_direction_and_the_old_line_is_a_key_down)
     ASSERT_TRUE(ws.line("k 3"));
     ASSERT_TRUE(wait_keys(base, 3));
     ASSERT_LE(base + 3, key_log_max);
-    EXPECT_EQ(s_world.key[base], static_cast<int>(lh_os_key_space));
+    EXPECT_EQ(s_world.key[base], static_cast<int>(lh_key_space));
     EXPECT_EQ(s_world.pressed[base], 1);
-    EXPECT_EQ(s_world.key[base + 1], static_cast<int>(lh_os_key_space));
+    EXPECT_EQ(s_world.key[base + 1], static_cast<int>(lh_key_space));
     EXPECT_EQ(s_world.pressed[base + 1], 0);
-    EXPECT_EQ(s_world.key[base + 2], static_cast<int>(lh_os_key_escape));
+    EXPECT_EQ(s_world.key[base + 2], static_cast<int>(lh_key_escape));
     EXPECT_EQ(s_world.pressed[base + 2], 1);
 }
 
@@ -405,9 +405,9 @@ TEST(web_host, http_key_takes_p_and_without_it_is_a_key_down)
     EXPECT_NE(http_get("/ui/key?k=5").find(" 200 "), std::string::npos);
     ASSERT_TRUE(wait_keys(base, 2));
     ASSERT_LE(base + 2, key_log_max);
-    EXPECT_EQ(s_world.key[base], static_cast<int>(lh_os_key_delete));
+    EXPECT_EQ(s_world.key[base], static_cast<int>(lh_key_delete));
     EXPECT_EQ(s_world.pressed[base], 0);
-    EXPECT_EQ(s_world.key[base + 1], static_cast<int>(lh_os_key_delete));
+    EXPECT_EQ(s_world.key[base + 1], static_cast<int>(lh_key_delete));
     EXPECT_EQ(s_world.pressed[base + 1], 1);
 }
 
@@ -423,7 +423,7 @@ TEST(web_host, query_parameters_are_not_read_from_headers)
     lh_os_net_socket_close(lh_addr_of(socket));
     ASSERT_TRUE(wait_keys(base, 1));
     ASSERT_LT(base, key_log_max);
-    EXPECT_EQ(s_world.key[base], static_cast<int>(lh_os_key_other));
+    EXPECT_EQ(s_world.key[base], static_cast<int>(lh_key_other));
 }
 
 /* Thumb 50 of a 200 track over scroll 0..300: dragging its top from 0 to 75 is scroll 150,

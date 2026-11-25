@@ -7,7 +7,7 @@
 #define LH_OS_WINDOW_FIELDS_H
 
 #include <lh/core/list.h>
-#include <lh/os/input/sink/cb.h>
+#include <lh/core/input/sink/cb.h>
 #include <lh/os/window/frame.h>
 #include <lh/os/window/on/close/cb.h>
 #include <lh/os/window/on/paint/cb.h>
@@ -87,7 +87,7 @@
     lh_ptr on_resize_context;                                                                      \
     lh_os_window_on_paint_cb on_paint;                                                             \
     lh_ptr on_paint_context;                                                                       \
-    lh_os_input_sink_cb on_input;                                                                  \
+    lh_input_sink_cb on_input;                                                                     \
     lh_ptr on_input_context;                                                                       \
     lh_os_window_on_close_cb on_close;                                                             \
     lh_ptr on_close_context;                                                                       \

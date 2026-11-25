@@ -4,8 +4,8 @@
  *        ::lh_os_controller_t.
  *
  * A source (a window backend, the web host, a queue, a microcontroller driver)
- * hands its ::lh_os_input_event_t to the controller, which runs the gesture
- * recognizer (::lh_os_input_recognizer_t) and gives the raw events and the
+ * hands its ::lh_input_event_t to the controller, which runs the gesture
+ * recognizer (::lh_input_recognizer_t) and gives the raw events and the
  * gestures to one handler, `handle_cb`, as functions of
  * ::lh_os_controller_handlers_handle_fn. For a screen the handler is the view's
  * (`lh_gl_view_controller_handle_event_is_handled` in `lh/gl/view/controller.h`), which calls
@@ -29,7 +29,7 @@
  * `lh_os_web_host_hooks_t`) drive a controller themselves: they feed it, cancel
  * it when the focus goes and call ::lh_os_controller_update on their own tick.
  * ::lh_os_controller_sink is for a source that has only a sink, such as
- * ::lh_os_input_queue_drain.
+ * ::lh_input_queue_drain.
  *
  * Without ::lh_os_controller_flags_enabled nothing reaches `handle_cb`, and
  * neither ::lh_os_controller_feed nor ::lh_os_controller_update moves the
@@ -59,7 +59,7 @@
 #include <lh/os/controller/handlers/handle/cb.h>
 #include <lh/os/controller/handlers/update/cb.h>
 #include <lh/os/controller/ptr.h>
-#include <lh/os/input/recognizer.h>
+#include <lh/core/input/recognizer.h>
 
 /**
  * @struct lh_os_controller
@@ -98,7 +98,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 lh_void
 lh_os_controller_init(lh_os_controller_t *self, lh_os_controller_handlers_handle_cb handle_cb,
-                      lh_self_ptr context, const lh_os_input_recognizer_config_ptr config);
+                      lh_self_ptr context, const lh_input_recognizer_config_ptr config);
 
 /** @brief Set the event handler (::lh_null for none: every event is dropped). */
 lh_void
@@ -137,9 +137,9 @@ lh_os_controller_get_context(const lh_os_controller_ptr self);
 
 /**
  * @brief The recognizer of @p self, to read its phase or deadline
- *        (::lh_os_input_recognizer_get_next_deadline).
+ *        (::lh_input_recognizer_get_next_deadline).
  */
-lh_os_input_recognizer_ptr
+lh_input_recognizer_ptr
 lh_os_controller_get_recognizer(lh_os_controller_t *self);
 
 /* -- Flags ----------------------------------------------------------------- */
@@ -173,27 +173,26 @@ lh_os_controller_set_enabled(lh_os_controller_t *self, lh_bool_t enabled);
  *         no `handle_cb`.
  */
 lh_bool_t
-lh_os_controller_handle_event_is_handled(lh_os_controller_t *self,
-                                         const lh_os_input_event_ptr event);
+lh_os_controller_handle_event_is_handled(lh_os_controller_t *self, const lh_input_event_ptr event);
 
-/** An ::lh_os_input_sink_fn for the recognizer: @p event to the controller's handler, and
+/** An ::lh_input_sink_fn for the recognizer: @p event to the controller's handler, and
    @p self (an ::lh_os_controller_dispatch_t) remembers when the handler acted. */
 lh_void
-lh_os_controller_dispatch_sink(lh_self_ptr self, const lh_os_input_event_ptr event);
+lh_os_controller_dispatch_sink(lh_self_ptr self, const lh_input_event_ptr event);
 
 /**
  * @brief One event from the source.
  *
  * With ::lh_os_controller_flags_gestures it goes through the recognizer
- * (::lh_os_input_recognizer_feed): `handle_cb` gets the raw event, then the
- * gestures it completes, marked ::LH_OS_INPUT_FLAG_SYNTHESIZED. Without it the
+ * (::lh_input_recognizer_feed): `handle_cb` gets the raw event, then the
+ * gestures it completes, marked ::LH_INPUT_FLAG_SYNTHESIZED. Without it the
  * event goes to `handle_cb` alone. Without ::lh_os_controller_flags_enabled
  * nothing happens, not even in the recognizer.
  *
  * @return True when `handle_cb` acted on any of the events this call sent.
  */
 lh_bool_t
-lh_os_controller_feed(lh_os_controller_t *self, const lh_os_input_event_ptr event);
+lh_os_controller_feed(lh_os_controller_t *self, const lh_input_event_ptr event);
 
 /**
  * @brief The recognizer's timers at @p now (a long press, say), with
@@ -226,16 +225,16 @@ lh_void
 lh_os_controller_cancel(lh_os_controller_t *self);
 
 /**
- * @brief An ::lh_os_input_sink_fn that feeds the controller @p self
+ * @brief An ::lh_input_sink_fn that feeds the controller @p self
  *        (an ::lh_os_controller_t) with @p event, as ::lh_os_controller_feed.
  *
  * Plugs a controller into a source that has only a sink, such as
- * ::lh_os_input_queue_drain. A window takes its controller directly
+ * ::lh_input_queue_drain. A window takes its controller directly
  * (::lh_os_window_set_controller), which also cancels and ticks it; plugging the
  * same controller into its ::lh_os_window_set_on_input as well feeds it twice.
  */
 lh_void
-lh_os_controller_sink(lh_self_ptr self, const lh_os_input_event_ptr event);
+lh_os_controller_sink(lh_self_ptr self, const lh_input_event_ptr event);
 
 LH_COMPILER_EXTERN_C_END
 

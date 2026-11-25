@@ -26,9 +26,9 @@ them is not the application code but **the set of `LH_LIBRARY_OPTION_*`** and
 
 - **`lh_gl_view_t`** (`lh/gl/view.h`) — an entity tree bound to a canvas. It
   draws (`lh_gl_view_draw`), takes input (`press` / `move` / `release` /
-  `wheel` / `key` / `text`, or one `lh_os_input_event_t` through
+  `wheel` / `key` / `text`, or one `lh_input_event_t` through
   `lh_gl_view_input`) and accumulates damage. It needs no OS.
-- **Input** (`lh/os/input/`) — one event type for every input, one sink, a
+- **Input** (`lh/core/input/`) — one event type for every input, one sink, a
   ring queue and a gesture recognizer; also no OS. A desktop window hands its
   input to one sink (`lh_os_window_set_on_input`), the web host to its `input`
   hook, an MCU's touch driver builds the same events itself.

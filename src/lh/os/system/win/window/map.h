@@ -10,10 +10,10 @@
 #define LH_SRC_OS_SYSTEM_WIN_WINDOW_MAP_H
 
 #include <lh/core/bool.h>
-#include <lh/os/input/coord.h>
-#include <lh/os/input/device/kind.h>
-#include <lh/os/input/kind.h>
-#include <lh/os/input/pointer/id.h>
+#include <lh/core/input/coord.h>
+#include <lh/core/input/device/kind.h>
+#include <lh/core/input/kind.h>
+#include <lh/core/input/pointer/id.h>
 #include <lh/os/system/win/user32.h>
 #include <lh/os/window/zone.h>
 #include <lh/core/compiler/extern/c.h>
@@ -29,11 +29,11 @@ lh_s32_t
 lh_os_system_win_window_hit(lh_os_window_zone_t zone);
 
 /** Client x packed in a mouse message's @p lparam, as an event coordinate. */
-lh_os_input_coord_t
+lh_input_coord_t
 lh_os_system_win_window_coord_x(lh_os_system_win_lparam_t lparam);
 
 /** Client y of ::lh_os_system_win_window_coord_x. */
-lh_os_input_coord_t
+lh_input_coord_t
 lh_os_system_win_window_coord_y(lh_os_system_win_lparam_t lparam);
 
 /** True when this system sends pointer messages (Windows 8+); looked up once. */
@@ -56,7 +56,7 @@ lh_bool_t
 lh_os_system_win_window_read_pointer(lh_os_system_win_pointer_id_t pointer_id,
                                      lh_os_system_win_wparam_t wparam,
                                      lh_os_system_win_lparam_t lparam,
-                                     lh_os_input_device_kind_t *device_kind,
+                                     lh_input_device_kind_t *device_kind,
                                      lh_os_system_win_pointer_flags_t *flags,
                                      lh_os_system_win_point_t *at);
 
@@ -67,9 +67,8 @@ lh_os_system_win_window_read_pointer(lh_os_system_win_pointer_id_t pointer_id,
  */
 lh_bool_t
 lh_os_system_win_window_contact_pointer(lh_os_system_win_pointer_id_t pointer_id,
-                                        lh_os_input_kind_t kind,
-                                        lh_os_input_device_kind_t device_kind,
-                                        lh_os_input_pointer_id_t *pointer);
+                                        lh_input_kind_t kind, lh_input_device_kind_t device_kind,
+                                        lh_input_pointer_id_t *pointer);
 
 /**
  * @brief Top-left of a centered open: work area of the monitor @p owner_hwnd is on

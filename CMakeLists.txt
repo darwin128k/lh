@@ -240,17 +240,17 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/timestamp.c
         ${LH_LIB_SRC_PATH}/core/timer.c
         ${LH_LIB_SRC_PATH}/core/timer/tick.c
-        ${LH_LIB_SRC_PATH}/os/input/contacts.c
-        ${LH_LIB_SRC_PATH}/os/input/sample.c
-        ${LH_LIB_SRC_PATH}/os/input/touch.c
-        ${LH_LIB_SRC_PATH}/os/input/pad.c
-        ${LH_LIB_SRC_PATH}/os/input/keys.c
-        ${LH_LIB_SRC_PATH}/os/input/event.c
-        ${LH_LIB_SRC_PATH}/os/input/queue.c
-        ${LH_LIB_SRC_PATH}/os/input/recognizer.c
-        ${LH_LIB_SRC_PATH}/os/input/recognizer/config.c
-        ${LH_LIB_SRC_PATH}/os/input/recognizer/pointer.c
-        ${LH_LIB_SRC_PATH}/os/input/wheel.c
+        ${LH_LIB_SRC_PATH}/core/input/contacts.c
+        ${LH_LIB_SRC_PATH}/core/input/sample.c
+        ${LH_LIB_SRC_PATH}/core/input/touch.c
+        ${LH_LIB_SRC_PATH}/core/input/pad.c
+        ${LH_LIB_SRC_PATH}/core/input/keys.c
+        ${LH_LIB_SRC_PATH}/core/input/event.c
+        ${LH_LIB_SRC_PATH}/core/input/queue.c
+        ${LH_LIB_SRC_PATH}/core/input/recognizer.c
+        ${LH_LIB_SRC_PATH}/core/input/recognizer/config.c
+        ${LH_LIB_SRC_PATH}/core/input/recognizer/pointer.c
+        ${LH_LIB_SRC_PATH}/core/input/wheel.c
         ${LH_LIB_SRC_PATH}/os/controller.c
         ${LH_LIB_SRC_PATH}/os/controller/dispatch.c
         ${LH_LIB_SRC_PATH}/core/error.c

@@ -452,16 +452,16 @@ lh_gl_view_slow_down(lh_gl_point_t velocity, lh_gl_point_t *out)
 lh_void
 lh_gl_view_reset_pointer(lh_gl_view_t *self)
 {
-    for (lh_os_input_pointer_id_t id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
+    for (lh_input_pointer_id_t id = 0U; id < LH_INPUT_POINTER_MAX; ++id)
     {
         lh_gl_view_pointer_reset(lh_addr_of(lh_gl_view_get_pointers_mut(self)[id]));
     }
 }
 
 const lh_gl_view_pointer_t *
-lh_gl_view_get_pointer(const lh_gl_view_t *self, lh_os_input_pointer_id_t id)
+lh_gl_view_get_pointer(const lh_gl_view_t *self, lh_input_pointer_id_t id)
 {
-    lh_return_if(id >= LH_OS_INPUT_POINTER_MAX, lh_null);
+    lh_return_if(id >= LH_INPUT_POINTER_MAX, lh_null);
     return lh_addr_of(lh_gl_view_get_pointers(self)[id]);
 }
 
@@ -480,7 +480,7 @@ lh_gl_view_init(lh_gl_view_t *self)
     lh_gl_view_set_whole_count(self, 0);
     lh_gl_rects_init(lh_gl_view_get_pending_mut(self));
     lh_gl_point_init(lh_gl_view_get_velocity_mut(self), lh_gl_scalar(0), lh_gl_scalar(0));
-    for (lh_os_input_pointer_id_t id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
+    for (lh_input_pointer_id_t id = 0U; id < LH_INPUT_POINTER_MAX; ++id)
     {
         lh_gl_view_pointer_init(lh_addr_of(lh_gl_view_get_pointers_mut(self)[id]));
     }
@@ -501,9 +501,9 @@ lh_gl_view_get_thumb_start_at(const lh_gl_scrollbar_t *bar, lh_gl_point_t point)
 }
 
 lh_gl_view_pointer_t *
-lh_gl_view_get_slot(lh_gl_view_t *self, lh_os_input_pointer_id_t id)
+lh_gl_view_get_slot(lh_gl_view_t *self, lh_input_pointer_id_t id)
 {
-    lh_return_if(id >= LH_OS_INPUT_POINTER_MAX, lh_null);
+    lh_return_if(id >= LH_INPUT_POINTER_MAX, lh_null);
     return lh_addr_of(lh_gl_view_get_pointers_mut(self)[id]);
 }
 
@@ -512,7 +512,7 @@ lh_gl_view_is_driven_by_other(const lh_gl_view_t *self, const lh_gl_view_pointer
                               const lh_gl_container_t *box)
 {
     lh_return_if(lh_null_eq(box), lh_bool_false);
-    for (lh_os_input_pointer_id_t id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
+    for (lh_input_pointer_id_t id = 0U; id < LH_INPUT_POINTER_MAX; ++id)
     {
         const lh_gl_view_pointer_t *other = lh_addr_of(lh_gl_view_get_pointers(self)[id]);
         const lh_gl_scrollbar_t *grab = lh_gl_view_pointer_get_grab(other);
@@ -531,7 +531,7 @@ lh_gl_view_is_held_by_other(const lh_gl_view_t *self, const lh_gl_view_pointer_t
                             const lh_gl_entity_t *entity)
 {
     lh_return_if(lh_null_eq(entity), lh_bool_false);
-    for (lh_os_input_pointer_id_t id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
+    for (lh_input_pointer_id_t id = 0U; id < LH_INPUT_POINTER_MAX; ++id)
     {
         const lh_gl_view_pointer_t *other = lh_addr_of(lh_gl_view_get_pointers(self)[id]);
 
@@ -736,7 +736,7 @@ lh_gl_view_drag_content(lh_gl_view_t *self, lh_gl_view_pointer_t *pointer, lh_gl
 }
 
 lh_bool_t
-lh_gl_view_move_pointer(lh_gl_view_t *self, lh_os_input_pointer_id_t id, lh_gl_point_t point)
+lh_gl_view_move_pointer(lh_gl_view_t *self, lh_input_pointer_id_t id, lh_gl_point_t point)
 {
     lh_gl_view_pointer_t *pointer = lh_gl_view_get_slot(self, id);
     lh_return_if(lh_null_eq(pointer), lh_bool_false);
@@ -772,7 +772,7 @@ lh_gl_view_finish_gesture(lh_gl_view_t *self, lh_gl_view_pointer_t *pointer)
 }
 
 lh_gl_entity_t *
-lh_gl_view_release_pointer(lh_gl_view_t *self, lh_os_input_pointer_id_t id, lh_gl_point_t point)
+lh_gl_view_release_pointer(lh_gl_view_t *self, lh_input_pointer_id_t id, lh_gl_point_t point)
 {
     lh_gl_view_pointer_t *pointer = lh_gl_view_get_slot(self, id);
     lh_return_if(lh_null_eq(pointer), lh_null);
@@ -839,7 +839,7 @@ lh_gl_view_press_on(lh_gl_view_t *self, lh_gl_view_pointer_t *pointer, lh_gl_ent
 }
 
 lh_void
-lh_gl_view_press_pointer(lh_gl_view_t *self, lh_os_input_pointer_id_t id, lh_gl_point_t point)
+lh_gl_view_press_pointer(lh_gl_view_t *self, lh_input_pointer_id_t id, lh_gl_point_t point)
 {
     lh_gl_view_pointer_t *pointer;
 
@@ -915,10 +915,10 @@ lh_gl_view_send_input(lh_gl_view_t *self, const lh_gl_key_input_t *input)
 }
 
 lh_bool_t
-lh_gl_view_key(lh_gl_view_t *self, lh_os_key_t key, lh_bool_t pressed)
+lh_gl_view_key(lh_gl_view_t *self, lh_key_t key, lh_bool_t pressed)
 {
     lh_assert_runtime_ref(self);
-    if (key == lh_os_key_tab && pressed)
+    if (key == lh_key_tab && pressed)
     {
         lh_gl_view_set_focus_v(self, lh_gl_view_get_next_focus(self));
         return lh_bool_false;
@@ -986,7 +986,7 @@ lh_gl_view_start_transition(lh_gl_view_t *self, lh_gl_entity_t *entity, const lh
 /* -- Input events ------------------------------------------------------------ */
 
 lh_void
-lh_gl_view_cancel_pointer(lh_gl_view_t *self, lh_os_input_pointer_id_t id)
+lh_gl_view_cancel_pointer(lh_gl_view_t *self, lh_input_pointer_id_t id)
 {
     lh_gl_view_pointer_t *pointer = lh_gl_view_get_slot(self, id);
     lh_return_if(lh_null_eq(pointer) || !lh_gl_view_pointer_is_active(pointer));
@@ -1000,21 +1000,21 @@ lh_gl_view_cancel_pointer(lh_gl_view_t *self, lh_os_input_pointer_id_t id)
 lh_void
 lh_gl_view_cancel(lh_gl_view_t *self)
 {
-    for (lh_os_input_pointer_id_t id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
+    for (lh_input_pointer_id_t id = 0U; id < LH_INPUT_POINTER_MAX; ++id)
     {
         lh_gl_view_cancel_pointer(self, id);
     }
 }
 
 lh_gl_point_t
-lh_gl_view_point_of(lh_os_input_event_cptr event)
+lh_gl_view_point_of(lh_input_event_cptr event)
 {
     lh_gl_point_t point;
 
     lh_gl_point_init(
         lh_addr_of(point),
-        lh_type_cast(lh_gl_scalar_t, lh_os_input_coord_to_int(lh_os_input_event_get_x(event))),
-        lh_type_cast(lh_gl_scalar_t, lh_os_input_coord_to_int(lh_os_input_event_get_y(event))));
+        lh_type_cast(lh_gl_scalar_t, lh_input_coord_to_int(lh_input_event_get_x(event))),
+        lh_type_cast(lh_gl_scalar_t, lh_input_coord_to_int(lh_input_event_get_y(event))));
     return point;
 }
 
@@ -1031,48 +1031,47 @@ lh_gl_view_wheel_step(lh_void)
 lh_gl_scalar_t
 lh_gl_view_wheel_distance(lh_s32_t notch_120, lh_s32_t step)
 {
-    return lh_type_cast(lh_gl_scalar_t, lh_math_neg(notch_120) * step / LH_OS_INPUT_WHEEL_NOTCH);
+    return lh_type_cast(lh_gl_scalar_t, lh_math_neg(notch_120) * step / LH_INPUT_WHEEL_NOTCH);
 }
 
 lh_bool_t
-lh_gl_view_input_wheel(lh_gl_view_t *self, lh_os_input_event_cptr event)
+lh_gl_view_input_wheel(lh_gl_view_t *self, lh_input_event_cptr event)
 {
     const lh_s32_t step = lh_gl_view_wheel_step();
 
     return lh_gl_view_wheel(self, lh_gl_view_point_of(event),
-                            lh_gl_view_wheel_distance(lh_os_input_event_get_dx(event), step),
-                            lh_gl_view_wheel_distance(lh_os_input_event_get_dy(event), step));
+                            lh_gl_view_wheel_distance(lh_input_event_get_dx(event), step),
+                            lh_gl_view_wheel_distance(lh_input_event_get_dy(event), step));
 }
 
 lh_bool_t
-lh_gl_view_is_primary_press(lh_os_input_event_cptr event)
+lh_gl_view_is_primary_press(lh_input_event_cptr event)
 {
-    return lh_type_cast(lh_bool_t,
-                        lh_os_input_event_get_button(event) == lh_os_input_button_primary);
+    return lh_type_cast(lh_bool_t, lh_input_event_get_button(event) == lh_input_button_primary);
 }
 
 lh_bool_t
-lh_gl_view_input_pointer(lh_gl_view_t *self, lh_os_input_event_cptr event)
+lh_gl_view_input_pointer(lh_gl_view_t *self, lh_input_event_cptr event)
 {
-    const lh_os_input_pointer_id_t id = lh_os_input_event_get_pointer(event);
+    const lh_input_pointer_id_t id = lh_input_event_get_pointer(event);
 
-    lh_return_if(id >= LH_OS_INPUT_POINTER_MAX, lh_bool_false);
-    switch (lh_os_input_event_get_kind(event))
+    lh_return_if(id >= LH_INPUT_POINTER_MAX, lh_bool_false);
+    switch (lh_input_event_get_kind(event))
     {
-    case lh_os_input_kind_pointer_down:
+    case lh_input_kind_pointer_down:
         lh_return_if(!lh_gl_view_is_primary_press(event), lh_bool_false);
         lh_gl_view_press_pointer(self, id, lh_gl_view_point_of(event));
         return lh_bool_true;
-    case lh_os_input_kind_pointer_move:
+    case lh_input_kind_pointer_move:
         return lh_gl_view_move_pointer(self, id, lh_gl_view_point_of(event));
-    case lh_os_input_kind_pointer_up:
+    case lh_input_kind_pointer_up:
         lh_return_if(!lh_gl_view_is_primary_press(event), lh_bool_false);
         LH_ATTRIBUTE_UNUSED(lh_gl_view_release_pointer(self, id, lh_gl_view_point_of(event)));
         return lh_bool_true;
-    case lh_os_input_kind_pointer_cancel:
+    case lh_input_kind_pointer_cancel:
         lh_gl_view_cancel_pointer(self, id);
         return lh_bool_true;
-    case lh_os_input_kind_wheel:
+    case lh_input_kind_wheel:
         return lh_gl_view_input_wheel(self, event);
     default:
         return lh_bool_false;
@@ -1080,23 +1079,22 @@ lh_gl_view_input_pointer(lh_gl_view_t *self, lh_os_input_event_cptr event)
 }
 
 lh_bool_t
-lh_gl_view_input(lh_gl_view_t *self, lh_os_input_event_cptr event)
+lh_gl_view_input(lh_gl_view_t *self, lh_input_event_cptr event)
 {
     lh_assert_runtime_ref(event);
-    lh_return_if(lh_os_input_event_is_synthesized(event), lh_bool_false);
-    switch (lh_os_input_event_get_kind(event))
+    lh_return_if(lh_input_event_is_synthesized(event), lh_bool_false);
+    switch (lh_input_event_get_kind(event))
     {
-    case lh_os_input_kind_key_down:
-    case lh_os_input_kind_key_up:
-        LH_ATTRIBUTE_UNUSED(
-            lh_gl_view_key(self, lh_os_input_event_get_key(event),
-                           lh_type_cast(lh_bool_t, lh_os_input_event_get_kind(event) ==
-                                                       lh_os_input_kind_key_down)));
+    case lh_input_kind_key_down:
+    case lh_input_kind_key_up:
+        LH_ATTRIBUTE_UNUSED(lh_gl_view_key(
+            self, lh_input_event_get_key(event),
+            lh_type_cast(lh_bool_t, lh_input_event_get_kind(event) == lh_input_kind_key_down)));
         return lh_bool_true;
-    case lh_os_input_kind_text:
-        LH_ATTRIBUTE_UNUSED(lh_gl_view_text(self, lh_os_input_event_get_code(event)));
+    case lh_input_kind_text:
+        LH_ATTRIBUTE_UNUSED(lh_gl_view_text(self, lh_input_event_get_code(event)));
         return lh_bool_true;
-    case lh_os_input_kind_focus_out:
+    case lh_input_kind_focus_out:
         lh_gl_view_cancel(self);
         return lh_bool_true;
     default:

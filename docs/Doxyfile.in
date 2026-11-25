@@ -65,9 +65,9 @@ EXPAND_ONLY_PREDEF     = YES
 # lh_assert_static(...) is a declaration-level check, not an API: hidden here.
 #
 # The pointer macros are the same problem, and it is bigger. A header may spell a
-# parameter `const lh_os_input_event_ptr` while its definition in the .c file
-# spells it `lh_os_input_event_cptr`. Both are the same type in C — the macros
-# expand to `struct lh_os_input_event *` and `const struct lh_os_input_event *`,
+# parameter `const lh_input_event_ptr` while its definition in the .c file
+# spells it `lh_input_event_cptr`. Both are the same type in C — the macros
+# expand to `struct lh_input_event *` and `const struct lh_input_event *`,
 # and the `const` in front of a `_ptr` macro binds to the struct, not to the
 # pointer. But Doxygen reads the two spellings as two different signatures, so it
 # never merges the declaration with its definition: the header's documentation
@@ -94,18 +94,18 @@ PREDEFINED             = LH_COMPILER_EXTERN_C_BEGIN= \
                          "lh_werror_desc_ptr=lh_wchar_t *" \
                          "lh_os_controller_ptr=struct lh_os_controller *" \
                          "lh_os_controller_cptr=const struct lh_os_controller *" \
-                         "lh_os_input_contacts_ptr=struct lh_os_input_contacts *" \
-                         "lh_os_input_contacts_cptr=const struct lh_os_input_contacts *" \
-                         "lh_os_input_event_ptr=struct lh_os_input_event *" \
-                         "lh_os_input_event_cptr=const struct lh_os_input_event *" \
-                         "lh_os_input_queue_ptr=struct lh_os_input_queue *" \
-                         "lh_os_input_queue_cptr=const struct lh_os_input_queue *" \
-                         "lh_os_input_recognizer_config_ptr=struct lh_os_input_recognizer_config *" \
-                         "lh_os_input_recognizer_config_cptr=const struct lh_os_input_recognizer_config *" \
-                         "lh_os_input_recognizer_ptr=struct lh_os_input_recognizer *" \
-                         "lh_os_input_recognizer_cptr=const struct lh_os_input_recognizer *" \
-                         "lh_os_input_recognizer_pointer_ptr=struct lh_os_input_recognizer_pointer *" \
-                         "lh_os_input_recognizer_pointer_cptr=const struct lh_os_input_recognizer_pointer *"
+                         "lh_input_contacts_ptr=struct lh_input_contacts *" \
+                         "lh_input_contacts_cptr=const struct lh_input_contacts *" \
+                         "lh_input_event_ptr=struct lh_input_event *" \
+                         "lh_input_event_cptr=const struct lh_input_event *" \
+                         "lh_input_queue_ptr=struct lh_input_queue *" \
+                         "lh_input_queue_cptr=const struct lh_input_queue *" \
+                         "lh_input_recognizer_config_ptr=struct lh_input_recognizer_config *" \
+                         "lh_input_recognizer_config_cptr=const struct lh_input_recognizer_config *" \
+                         "lh_input_recognizer_ptr=struct lh_input_recognizer *" \
+                         "lh_input_recognizer_cptr=const struct lh_input_recognizer *" \
+                         "lh_input_recognizer_pointer_ptr=struct lh_input_recognizer_pointer *" \
+                         "lh_input_recognizer_pointer_cptr=const struct lh_input_recognizer_pointer *"
 
 #---------------------------------------------------------------------------
 # Extraction

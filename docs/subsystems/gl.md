@@ -58,7 +58,7 @@ microcontroller called yet other functions.
 
 Today lh got its interpreter. Every backend (a "backend" is the part of lh
 that talks to one particular system: Win32, X11, the web host) now turns what
-the system says into **one form**, the event `lh_os_input_event_t`, and hands
+the system says into **one form**, the event `lh_input_event_t`, and hands
 it to **one door**, the sink. Behind the door, the application and the UI only
 ever read that one form. The old window callbacks (`on_press`, `on_move`,
 `on_release`, `on_wheel`, `on_key`, `on_text` and `on_click`) are gone.
@@ -104,7 +104,7 @@ Input travels the other way:
   system (Win32 / X11 / browser / touch chip)
         |
         v
-  lh_os_input_event_t --> sink (optional tap) --> lh_os_controller_t
+  lh_input_event_t --> sink (optional tap) --> lh_os_controller_t
                                                         |
                                                         v
                                          lh_gl_view_controller_handle_event_is_handled
@@ -394,23 +394,23 @@ The three targets differ only in the canvas:
 ## 6. Input: one event for everything
 
 Every mouse move, finger, pen, wheel turn, key, typed character, and every
-"the window lost the keyboard" is one `lh_os_input_event_t`
-(`lh/os/input/event.h`). It is a small plain struct, with no pointers and no
+"the window lost the keyboard" is one `lh_input_event_t`
+(`lh/core/input/event.h`). It is a small plain struct, with no pointers and no
 heap, so it can be copied and kept in a queue.
 
-The most useful fields (read them with the `lh_os_input_event_get_*`
+The most useful fields (read them with the `lh_input_event_get_*`
 functions):
 
 | Field | Meaning | Example |
 |---|---|---|
-| `kind` | what happened (`lh_os_input_kind_t`) | `lh_os_input_kind_pointer_down` |
-| `device_kind` | mouse, touch, pen, keyboard, controller | `lh_os_input_device_kind_touch` |
+| `kind` | what happened (`lh_input_kind_t`) | `lh_input_kind_pointer_down` |
+| `device_kind` | mouse, touch, pen, keyboard, controller | `lh_input_device_kind_touch` |
 | `pointer` | which pointer: `0` the mouse, `1` and up touch contacts and pens | `2` for the second finger |
-| `button` | the button that changed | `lh_os_input_button_primary` |
+| `button` | the button that changed | `lh_input_button_primary` |
 | `buttons` | all buttons held after the event, as bits | |
 | `x`, `y` | position in the window, in Q24.8 | `120 * 256` is pixel 120 |
 | `dx`, `dy` | wheel distance, in 1/120 of a notch | `120` is one notch up |
-| `key`, `scancode` | the key (`lh_os_key_t`) and the system's own code | |
+| `key`, `scancode` | the key (`lh_key_t`) and the system's own code | |
 | `code` | the typed character (Unicode) of a `text` event | `'a'` |
 | `mods` | Shift, Control, Alt, ... held | |
 | `time` | when, in milliseconds (`lh_tick_t`) | |
@@ -433,20 +433,20 @@ Some details, explained:
 - **Q24.8 coordinates.** A finger or a pen can be between two pixels. To keep
   that without floating-point numbers (many microcontrollers have no
   floating-point unit), a coordinate is a whole number where 256 means one
-  pixel: `lh_os_input_coord_from_int(3)` is 768, and
-  `lh_os_input_coord_to_int(768)` is 3 (`LH_OS_INPUT_COORD_ONE` is 256).
+  pixel: `lh_input_coord_from_int(3)` is 768, and
+  `lh_input_coord_to_int(768)` is 3 (`LH_INPUT_COORD_ONE` is 256).
 - **Wheel in 1/120 of a notch.** One click of a normal mouse wheel is
-  `LH_OS_INPUT_WHEEL_NOTCH`, 120, the same unit Windows uses. Smooth
+  `LH_INPUT_WHEEL_NOTCH`, 120, the same unit Windows uses. Smooth
   "high resolution" wheels send smaller steps, such as 30. Positive is up or
   left.
 - **How far a notch scrolls is the system's choice.** Windows lets the user
   set "scroll 3 lines a notch". lh asks with `lh_os_input_get_wheel_step()`
   (`lh/os/input.h`) on every wheel event. One line is 40/3 content units, so
-  the default 3 lines is exactly 40 (`LH_OS_INPUT_WHEEL_STEP_DEFAULT`).
+  the default 3 lines is exactly 40 (`LH_INPUT_WHEEL_STEP_DEFAULT`).
   Windows answers from `SPI_GETWHEELSCROLLLINES`: 3 when the call fails, 0
   means "do not scroll", "one screen at a time" counts as
-  `LH_OS_INPUT_WHEEL_LINES_PAGE` (20) lines, and anything above
-  `LH_OS_INPUT_WHEEL_LINES_MAX` (100) counts as 100. Linux, macOS and Windows
+  `LH_INPUT_WHEEL_LINES_PAGE` (20) lines, and anything above
+  `LH_INPUT_WHEEL_LINES_MAX` (100) counts as 100. Linux, macOS and Windows
   without the window part scroll 40. Without the OS layer at all, the view
   scrolls `LH_GL_VIEW_WHEEL_STEP` (also 40; change it with, for example,
   `-DLH_GL_VIEW_WHEEL_STEP=20`).
@@ -454,14 +454,14 @@ Some details, explained:
   The gesture recognizer does, when its settings say so (the default does).
 - **Buttons.** All five mouse buttons arrive, on Windows and on X11.
   `lh_os_window_get_pressed_buttons` keeps the same bit mask as `buttons`.
-- **Keys** carry `lh_os_key_t`, the system's code as `scancode`, the
-  modifiers, and `LH_OS_INPUT_FLAG_REPEAT` when the key repeats because it is
+- **Keys** carry `lh_key_t`, the system's code as `scancode`, the
+  modifiers, and `LH_INPUT_FLAG_REPEAT` when the key repeats because it is
   held down. X11 no longer drops repeats.
 - **Focus.** `focus_in` and `focus_out` arrive when the window gains or loses
   the keyboard. When another window takes the mouse away in the middle of a
   press on Windows, you get a `pointer_cancel`.
 - **Without an operating system** you build events yourself with
-  `lh_os_input_event_init_pointer(...)` and its siblings. The input part of lh
+  `lh_input_event_init_pointer(...)` and its siblings. The input part of lh
   needs no OS.
 
 ---
@@ -469,10 +469,10 @@ Some details, explained:
 ## 7. The sink: one door for all events
 
 A **sink** is a function that receives events. There is exactly one function
-type for it (`lh/os/input/sink/fn.h`):
+type for it (`lh/core/input/sink/fn.h`):
 
 ```c
-typedef lh_void(lh_os_input_sink_fn)(lh_self_ptr self, const lh_os_input_event_ptr event);
+typedef lh_void(lh_input_sink_fn)(lh_self_ptr self, const lh_input_event_ptr event);
 ```
 
 Read it as: "a function that returns nothing and takes *the object it works
@@ -482,7 +482,7 @@ on* and *one event*". Two words need explaining:
   says what it is for: it is the object the function belongs to, like `self`
   or `this` in other languages. You get back what you registered and cast it
   to your own struct.
-- `const lh_os_input_event_ptr` is a read-only pointer to the event. The
+- `const lh_input_event_ptr` is a read-only pointer to the event. The
   event lives only during the call: copy it if you want to keep it.
 
 Today the order of the parameters was flipped so that `self` comes first, the
@@ -493,19 +493,19 @@ lh always defines a function type with the ending `_fn` and its pointer type
 with the ending `_cb`, in two small headers `fn.h` and `cb.h`:
 
 ```c
-#define lh_os_input_sink_cb lh_ptr_of(lh_os_input_sink_fn)    /* sink/cb.h */
+#define lh_input_sink_cb lh_ptr_of(lh_input_sink_fn)    /* sink/cb.h */
 ```
 
 The same sink type is used everywhere an event is passed on: a window's tap
 (`lh_os_window_set_on_input`), a queue being emptied
-(`lh_os_input_queue_drain`), the recognizer handing on events and gestures,
+(`lh_input_queue_drain`), the recognizer handing on events and gestures,
 and the web host's `input` hook. So one function plugs into all of them.
 
 A sink that hands every event to the view:
 
 ```c
 static lh_void
-on_input(lh_self_ptr self, const lh_os_input_event_ptr event)
+on_input(lh_self_ptr self, const lh_input_event_ptr event)
 {
     struct my_main *my = lh_ptr_rcast(struct my_main, self);
 
@@ -535,10 +535,10 @@ driver) and the object the events are for (usually the view). It does three
 things:
 
 1. It passes every raw event to one **handler**.
-2. It runs a **gesture recognizer** (`lh_os_input_recognizer_t`), which
+2. It runs a **gesture recognizer** (`lh_input_recognizer_t`), which
    watches the raw events and notices *gestures*: a click, a double click, a
    long press (holding a finger still), a drag. It passes those to the
-   handler too, marked `LH_OS_INPUT_FLAG_SYNTHESIZED` ("made by lh, not by
+   handler too, marked `LH_INPUT_FLAG_SYNTHESIZED` ("made by lh, not by
    the system").
 3. It knows about time and about giving up: `update` lets the recognizer
    notice that a finger has been held long enough, and `cancel` makes
@@ -556,7 +556,7 @@ A controller holds three handlers. Each has a function type (`..._fn`, in
 
 | Handler | Function type | When it is called |
 |---|---|---|
-| handle | `lh_bool_t lh_os_controller_handlers_handle_fn(lh_self_ptr self, const lh_os_input_event_ptr event)` | for every event, raw or gesture; return true when you acted on it |
+| handle | `lh_bool_t lh_os_controller_handlers_handle_fn(lh_self_ptr self, const lh_input_event_ptr event)` | for every event, raw or gesture; return true when you acted on it |
 | update | `lh_void lh_os_controller_handlers_update_fn(lh_self_ptr self, lh_tick_t now)` | after each `lh_os_controller_update`; optional |
 | cancel | `lh_void lh_os_controller_handlers_cancel_fn(lh_self_ptr self)` | after each `lh_os_controller_cancel`; optional |
 
@@ -583,7 +583,7 @@ lh_os_window_set_controller(lh_addr_of(self->window), lh_addr_of(self->controlle
 ```
 
 The last argument of `lh_os_controller_init` is the recognizer's settings
-(`lh_os_input_recognizer_config_t`: drag distance, double-click time,
+(`lh_input_recognizer_config_t`: drag distance, double-click time,
 long-press time and so on). `lh_null` means the defaults.
 
 The view acts only on raw events and ignores the gestures, because it makes
@@ -637,14 +637,14 @@ shortcut, or an app that routes input itself. The controller is the normal
 consumer on top of it. Do not also plug the window's controller into that tap
 through `lh_os_controller_sink`: it would get every event twice.
 `lh_os_controller_sink` is for sources that only take a sink, such as
-`lh_os_input_queue_drain`.
+`lh_input_queue_drain`.
 
 ---
 
 ## 9. Several fingers at once
 
 Before today the view followed one pointer. Put two fingers on two buttons
-and it got confused. Now every pointer id below `LH_OS_INPUT_POINTER_MAX` (5)
+and it got confused. Now every pointer id below `LH_INPUT_POINTER_MAX` (5)
 has its own **press session**, `lh_gl_view_pointer_t`, kept inside the view
 (no heap). Pointer `0` is the mouse; touch contacts and pens get `1` to `4`.
 
@@ -695,8 +695,8 @@ From Windows 8 on, Windows reports fingers and pens with pointer messages:
   `1`; the mouse stays `0`. The device kind is `touch` or `pen`, the
   coordinates are inside the window, the button is `primary`.
 - Windows gives each contact its own number, which can be large and differs
-  every time. lh keeps a small table, `lh_os_input_contacts_t`
-  (`lh/os/input/contacts.h`), that hands out the lowest free id from `1` up
+  every time. lh keeps a small table, `lh_input_contacts_t`
+  (`lh/core/input/contacts.h`), that hands out the lowest free id from `1` up
   when a contact goes down, keeps it while the contact moves, and frees it
   when the contact goes up or is cancelled.
 - When the system cancels a contact, or the window loses it, you get a
@@ -1048,13 +1048,13 @@ The input part needs no OS, so a touch chip uses exactly the same path as a
 desktop window.
 
 A driver that already knows down, move and up builds one event and pushes it.
-A driver that polls a frame fills `lh_os_input_sample_t` (its own contact id,
-x, y) and calls `lh_os_input_touch_report`. That compares the list with the
+A driver that polls a frame fills `lh_input_sample_t` (its own contact id,
+x, y) and calls `lh_input_touch_report`. That compares the list with the
 previous frame: a new id is pointer down, a moved one is pointer move, a
 missing one is pointer up. Each finger keeps a pointer id from 1. A stick or
-pad calls `lh_os_input_pad_report_axis` and `lh_os_input_pad_report_button`;
+pad calls `lh_input_pad_report_axis` and `lh_input_pad_report_button`;
 an event goes out only when the value changed. A polled keyboard calls
-`lh_os_input_keys_report` the same way: a key event only when that key
+`lh_input_keys_report` the same way: a key event only when that key
 changed, and Shift, Control and Alt are the modifiers on it. The library
 does not read a gamepad from the system: the driver reports each button and
 axis. The recognizer then keeps a stick inside its dead zone (default 8000,
@@ -1065,22 +1065,22 @@ goes up is also a `swipe`. A character is
 still a text event the driver builds itself. The chip stays in the driver.
 
 1. In the touch interrupt, build an event:
-   `lh_os_input_event_init_pointer(&e, lh_os_input_kind_pointer_down,
-   lh_os_input_device_kind_touch, 0, lh_os_input_button_primary,
-   lh_os_input_coord_from_int(x), lh_os_input_coord_from_int(y), now)`.
-2. Push it into a queue: `lh_os_input_queue_push(&queue, &e)`. The queue
-   (`lh_os_input_queue_t`) is made for one producer (the interrupt) and one
+   `lh_input_event_init_pointer(&e, lh_input_kind_pointer_down,
+   lh_input_device_kind_touch, 0, lh_input_button_primary,
+   lh_input_coord_from_int(x), lh_input_coord_from_int(y), now)`.
+2. Push it into a queue: `lh_input_queue_push(&queue, &e)`. The queue
+   (`lh_input_queue_t`) is made for one producer (the interrupt) and one
    consumer (the main loop).
 3. In the main loop, empty the queue into the controller:
-   `lh_os_input_queue_drain(&queue, lh_os_controller_sink, &controller)`.
+   `lh_input_queue_drain(&queue, lh_os_controller_sink, &controller)`.
 4. From a timer of about 60 Hz call
    `lh_os_controller_update(&controller, now)` (long presses) and
    `lh_gl_view_tick(&view)` (gliding lists).
 
 A single-touch panel is pointer `0`. A multi-touch panel gives each contact
-its own id below `LH_OS_INPUT_POINTER_MAX`; the view keeps a session for
+its own id below `LH_INPUT_POINTER_MAX`; the view keeps a session for
 each. A rotary knob can send `wheel` events, one detent being
-`LH_OS_INPUT_WHEEL_NOTCH`. Calling `lh_gl_view_press` / `lh_gl_view_release`
+`LH_INPUT_WHEEL_NOTCH`. Calling `lh_gl_view_press` / `lh_gl_view_release`
 directly still works for very small programs.
 
 ### 12.8 Checklist
@@ -1113,7 +1113,7 @@ browser's Canvas2D.
   several tabs can watch it.
 
 Input comes back as one short text line per event (or as an HTTP query when
-the WebSocket is down), and each line becomes one `lh_os_input_event_t`:
+the WebSocket is down), and each line becomes one `lh_input_event_t`:
 
 | Line | HTTP fallback | Event |
 |---|---|---|
@@ -1125,7 +1125,7 @@ the WebSocket is down), and each line becomes one `lh_os_input_event_t`:
 | `z w h` | `/ui/size?w=&h=` | the `resize` hook, no event |
 
 `/ui/click?x=&y=` is a down and an up at one point. The key numbers are
-`lh_os_key_t`; the player's key table is written from that enum when the page
+`lh_key_t`; the player's key table is written from that enum when the page
 is built, so they cannot drift apart. Events carry `lh_os_tick_ms()` as their
 time and no modifiers.
 
@@ -1153,7 +1153,7 @@ The host knows nothing about windows. It takes a struct of hooks,
 | `ctx` | `lh_ptr` | your object, given to `tick` and `resize` |
 | `tick` | `lh_void (*)(lh_ptr ctx)` | about every 20 ms **and between requests** |
 | `resize` | `lh_void (*)(int width, int height, lh_ptr ctx)` | the tab size changed (layout mode) |
-| `input` | a sink (`lh_os_input_sink_cb`) | the low-level tap: sees every raw event first |
+| `input` | a sink (`lh_input_sink_cb`) | the low-level tap: sees every raw event first |
 | `controller` | `lh_os_controller_t *` | the normal consumer, updated by the host at every tick before `tick` |
 
 Any hook may be `lh_null`. If both `input` and `controller` are `lh_null`,
@@ -1262,7 +1262,7 @@ struct lh_os_controller
 `lh_os_controller_fields(handle_type, update_type, cancel_type, context_type)`
 expands, in this order, to: `handle_cb`, `update_cb`, `cancel_cb` (pointers
 to the three function types), `context`, the `recognizer`
-(`lh_os_input_recognizer_t`), and the `flags`.
+(`lh_input_recognizer_t`), and the `flags`.
 
 There is **no vtable**. A vtable is a separate table of functions that an
 object points to, the way C++ does virtual methods. The controller instead
@@ -1279,7 +1279,7 @@ data*.
 - `lh_os_controller_feed(c, event)`: if `enabled` is off, nothing happens,
   not even in the recognizer. If `gestures` is off, the event goes straight
   to `handle_cb(context, event)`. Otherwise the event goes into
-  `lh_os_input_recognizer_feed`, together with a small internal sink. The
+  `lh_input_recognizer_feed`, together with a small internal sink. The
   recognizer calls that sink first with the raw event, then with each gesture
   it completes. The internal sink calls `handle_cb(context, e)` each time and
   remembers whether any call returned true. That "was anything handled?"
@@ -1325,7 +1325,7 @@ its speed for gliding.
 - On **cancel**, the same as release but never a click: the target hears the
   release at the last point *n* was seen, the handle is dropped, the drag
   stops where it is (no glide).
-- Ids at or above `LH_OS_INPUT_POINTER_MAX` are ignored.
+- Ids at or above `LH_INPUT_POINTER_MAX` are ignored.
 
 ### 14.5 How a finger on Windows becomes an event
 
@@ -1339,12 +1339,12 @@ its speed for gliding.
 4. lh turns the message into a kind: down, move, up, or cancel (a
    `CAPTURECHANGED`, or any message with the "canceled" flag).
 5. The contacts table gives the pointer id: on down, the lowest free id from
-   `1` (`lh_os_input_contacts_take`); otherwise the id this contact already
-   has (`lh_os_input_contacts_find`). If all ids are taken (a fifth finger),
+   `1` (`lh_input_contacts_take`); otherwise the id this contact already
+   has (`lh_input_contacts_find`). If all ids are taken (a fifth finger),
    the contact gets nothing and is ignored.
 6. The screen position is turned into a window position (`ScreenToClient`)
-   and into Q24.8 (`lh_os_input_coord_from_int`).
-7. The event is filled in with `lh_os_input_event_init_pointer` (primary
+   and into Q24.8 (`lh_input_coord_from_int`).
+7. The event is filled in with `lh_input_event_init_pointer` (primary
    button on down and up), the held buttons, the modifiers and the time
    (`lh_os_tick_ms()`).
 8. On up or cancel, the id is freed **before** the event goes out, so a
@@ -1366,8 +1366,8 @@ the test runs exactly the steps above, not a shortcut.
 ```mermaid
 flowchart TD
     A["Finger touches the screen"] --> B["Windows: WM_POINTERDOWN"]
-    B --> C["lh Win32 backend: kind, pointer id from lh_os_input_contacts_t, Q24.8 point"]
-    C --> D["lh_os_input_event_t"]
+    B --> C["lh Win32 backend: kind, pointer id from lh_input_contacts_t, Q24.8 point"]
+    C --> D["lh_input_event_t"]
     D --> E["lh_os_window_on_native_input"]
     E --> F["on_input sink, if set (raw tap)"]
     E --> G["lh_os_controller_feed"]
@@ -1383,7 +1383,7 @@ flowchart TD
 The same walk in words:
 
 1. A finger touches the glass. Windows sends `WM_POINTERDOWN` to the window.
-2. The Win32 backend turns it into one `lh_os_input_event_t`: kind
+2. The Win32 backend turns it into one `lh_input_event_t`: kind
    `pointer_down`, device kind `touch`, pointer id `1` (the first free one),
    the position in Q24.8, the time.
 3. `lh_os_window_on_native_input` remembers the held buttons, then gives the
@@ -1528,7 +1528,7 @@ Common mistakes:
   later.
 - **A fifth finger is ignored.** There are 5 pointer ids and `0` belongs to
   the mouse, so touch gets `1` to `4`. A contact that finds no free id gets
-  no events at all. `LH_OS_INPUT_POINTER_MAX` decides this.
+  no events at all. `LH_INPUT_POINTER_MAX` decides this.
 - **Scrolling has one shared field.** Each pointer has its own press
   session, but a container's scroll position and glide are one per container.
   Two fingers cannot each scroll their own way inside one list, and pinch or

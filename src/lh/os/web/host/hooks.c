@@ -20,7 +20,7 @@ lh_os_web_host_hooks_set_ctx(lh_os_web_host_hooks_t *self, lh_ptr ctx)
     self->ctx = ctx;
 }
 
-lh_os_input_sink_cb
+lh_input_sink_cb
 lh_os_web_host_hooks_get_input_fn(const lh_os_web_host_hooks_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -28,7 +28,7 @@ lh_os_web_host_hooks_get_input_fn(const lh_os_web_host_hooks_t *self)
 }
 
 lh_void
-lh_os_web_host_hooks_set_input_fn(lh_os_web_host_hooks_t *self, lh_os_input_sink_cb input)
+lh_os_web_host_hooks_set_input_fn(lh_os_web_host_hooks_t *self, lh_input_sink_cb input)
 {
     lh_assert_runtime_ref(self);
     self->input = input;

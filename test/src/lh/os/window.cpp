@@ -207,10 +207,10 @@ on_close(lh_os_window_t * /*self*/, lh_os_window_close_reason_t reason, lh_ptr c
 struct InputLog
 {
     int count;
-    lh_os_input_kind_t kind;
-    lh_os_input_button_t button;
-    lh_os_input_coord_t x;
-    lh_os_input_coord_t y;
+    lh_input_kind_t kind;
+    lh_input_button_t button;
+    lh_input_coord_t x;
+    lh_input_coord_t y;
     lh_u32_t buttons_seen_by_window;
 };
 
@@ -223,7 +223,7 @@ struct InputSink
 };
 
 lh_void
-on_input(lh_self_ptr self, const lh_os_input_event_ptr event)
+on_input(lh_self_ptr self, const lh_input_event_ptr event)
 {
     auto *sink = static_cast<InputSink *>(self);
 
@@ -233,23 +233,22 @@ on_input(lh_self_ptr self, const lh_os_input_event_ptr event)
         return;
     }
     sink->log.count++;
-    sink->log.kind = lh_os_input_event_get_kind(event);
-    sink->log.button = lh_os_input_event_get_button(event);
-    sink->log.x = lh_os_input_event_get_x(event);
-    sink->log.y = lh_os_input_event_get_y(event);
+    sink->log.kind = lh_input_event_get_kind(event);
+    sink->log.button = lh_input_event_get_button(event);
+    sink->log.x = lh_input_event_get_x(event);
+    sink->log.y = lh_input_event_get_y(event);
     sink->log.buttons_seen_by_window = lh_os_window_get_pressed_buttons(sink->window);
 }
 
 /* One mouse event of @p kind about @p button, leaving @p buttons held, at (x, y). */
-lh_os_input_event_t
-mouse_event(lh_os_input_kind_t kind, lh_os_input_button_t button, lh_u32_t buttons, int x, int y)
+lh_input_event_t
+mouse_event(lh_input_kind_t kind, lh_input_button_t button, lh_u32_t buttons, int x, int y)
 {
-    lh_os_input_event_t event{};
+    lh_input_event_t event{};
 
-    lh_os_input_event_init_pointer(lh_addr_of(event), kind, lh_os_input_device_kind_mouse, 0U,
-                                   button, lh_os_input_coord_from_int(x),
-                                   lh_os_input_coord_from_int(y), 0U);
-    lh_os_input_event_set_buttons(lh_addr_of(event), buttons);
+    lh_input_event_init_pointer(lh_addr_of(event), kind, lh_input_device_kind_mouse, 0U, button,
+                                lh_input_coord_from_int(x), lh_input_coord_from_int(y), 0U);
+    lh_input_event_set_buttons(lh_addr_of(event), buttons);
     return event;
 }
 
@@ -773,29 +772,29 @@ TEST(os_window, on_native_input_reaches_the_sink_as_it_came)
 {
     lh_os_window_t window{};
     InputSink sink{};
-    const lh_u32_t primary = lh_os_input_button_to_mask(lh_os_input_button_primary);
-    lh_os_input_event_t down =
-        mouse_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, primary, 12, 34);
+    const lh_u32_t primary = lh_input_button_to_mask(lh_input_button_primary);
+    lh_input_event_t down =
+        mouse_event(lh_input_kind_pointer_down, lh_input_button_primary, primary, 12, 34);
 
     lh_os_window_init(lh_addr_of(window));
     sink.window = lh_addr_of(window);
     lh_os_window_set_on_input(lh_addr_of(window), on_input, lh_addr_of(sink));
     lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(down));
     EXPECT_EQ(sink.log.count, 1);
-    EXPECT_EQ(sink.log.kind, lh_os_input_kind_pointer_down);
-    EXPECT_EQ(sink.log.button, lh_os_input_button_primary);
-    EXPECT_EQ(sink.log.x, lh_os_input_coord_from_int(12));
-    EXPECT_EQ(sink.log.y, lh_os_input_coord_from_int(34));
+    EXPECT_EQ(sink.log.kind, lh_input_kind_pointer_down);
+    EXPECT_EQ(sink.log.button, lh_input_button_primary);
+    EXPECT_EQ(sink.log.x, lh_input_coord_from_int(12));
+    EXPECT_EQ(sink.log.y, lh_input_coord_from_int(34));
     lh_os_window_deinit(lh_addr_of(window));
 }
 
 TEST(os_window, an_event_with_no_sink_is_dropped)
 {
     lh_os_window_t window{};
-    lh_os_input_event_t key{};
+    lh_input_event_t key{};
 
     lh_os_window_init(lh_addr_of(window));
-    lh_os_input_event_init_key(lh_addr_of(key), lh_os_key_tab, lh_bool_true, lh_bool_false, 0U, 0U);
+    lh_input_event_init_key(lh_addr_of(key), lh_key_tab, lh_bool_true, lh_bool_false, 0U, 0U);
     lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(key));
     EXPECT_EQ(lh_os_window_get_pressed_buttons(lh_addr_of(window)), 0U);
     lh_os_window_deinit(lh_addr_of(window));
@@ -807,16 +806,16 @@ TEST(os_window, pressed_buttons_follow_the_pointer_events)
 {
     lh_os_window_t window{};
     InputSink sink{};
-    const lh_u32_t primary = lh_os_input_button_to_mask(lh_os_input_button_primary);
-    const lh_u32_t secondary = lh_os_input_button_to_mask(lh_os_input_button_secondary);
-    lh_os_input_event_t first =
-        mouse_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, primary, 1, 2);
-    lh_os_input_event_t second = mouse_event(
-        lh_os_input_kind_pointer_down, lh_os_input_button_secondary, primary | secondary, 1, 2);
-    lh_os_input_event_t move = mouse_event(lh_os_input_kind_pointer_move, lh_os_input_button_none,
-                                           primary | secondary, 3, 4);
-    lh_os_input_event_t up =
-        mouse_event(lh_os_input_kind_pointer_up, lh_os_input_button_primary, secondary, 3, 4);
+    const lh_u32_t primary = lh_input_button_to_mask(lh_input_button_primary);
+    const lh_u32_t secondary = lh_input_button_to_mask(lh_input_button_secondary);
+    lh_input_event_t first =
+        mouse_event(lh_input_kind_pointer_down, lh_input_button_primary, primary, 1, 2);
+    lh_input_event_t second = mouse_event(lh_input_kind_pointer_down, lh_input_button_secondary,
+                                          primary | secondary, 1, 2);
+    lh_input_event_t move =
+        mouse_event(lh_input_kind_pointer_move, lh_input_button_none, primary | secondary, 3, 4);
+    lh_input_event_t up =
+        mouse_event(lh_input_kind_pointer_up, lh_input_button_primary, secondary, 3, 4);
 
     lh_os_window_init(lh_addr_of(window));
     sink.window = lh_addr_of(window);
@@ -835,15 +834,15 @@ TEST(os_window, pressed_buttons_follow_the_pointer_events)
 TEST(os_window, a_cancel_or_a_focus_loss_lets_every_button_go)
 {
     lh_os_window_t window{};
-    const lh_u32_t primary = lh_os_input_button_to_mask(lh_os_input_button_primary);
-    lh_os_input_event_t down =
-        mouse_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, primary, 1, 2);
-    lh_os_input_event_t cancel =
-        mouse_event(lh_os_input_kind_pointer_cancel, lh_os_input_button_none, primary, 0, 0);
-    lh_os_input_event_t focus_out{};
+    const lh_u32_t primary = lh_input_button_to_mask(lh_input_button_primary);
+    lh_input_event_t down =
+        mouse_event(lh_input_kind_pointer_down, lh_input_button_primary, primary, 1, 2);
+    lh_input_event_t cancel =
+        mouse_event(lh_input_kind_pointer_cancel, lh_input_button_none, primary, 0, 0);
+    lh_input_event_t focus_out{};
 
-    lh_os_input_event_init(lh_addr_of(focus_out), lh_os_input_kind_focus_out,
-                           lh_os_input_device_kind_keyboard, 0U);
+    lh_input_event_init(lh_addr_of(focus_out), lh_input_kind_focus_out,
+                        lh_input_device_kind_keyboard, 0U);
     lh_os_window_init(lh_addr_of(window));
     lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(down));
     lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(cancel));
@@ -858,12 +857,12 @@ TEST(os_window, a_cancel_or_a_focus_loss_lets_every_button_go)
 TEST(os_window, a_key_event_leaves_the_buttons_alone)
 {
     lh_os_window_t window{};
-    const lh_u32_t primary = lh_os_input_button_to_mask(lh_os_input_button_primary);
-    lh_os_input_event_t down =
-        mouse_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, primary, 1, 2);
-    lh_os_input_event_t key{};
+    const lh_u32_t primary = lh_input_button_to_mask(lh_input_button_primary);
+    lh_input_event_t down =
+        mouse_event(lh_input_kind_pointer_down, lh_input_button_primary, primary, 1, 2);
+    lh_input_event_t key{};
 
-    lh_os_input_event_init_key(lh_addr_of(key), lh_os_key_tab, lh_bool_true, lh_bool_false, 0U, 0U);
+    lh_input_event_init_key(lh_addr_of(key), lh_key_tab, lh_bool_true, lh_bool_false, 0U, 0U);
     lh_os_window_init(lh_addr_of(window));
     lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(down));
     lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(key));
@@ -881,11 +880,11 @@ struct ControllerLog
     int sink_count_at_first;
     int updates;
     int cancels;
-    lh_os_input_kind_t last;
+    lh_input_kind_t last;
 };
 
 lh_bool_t
-controller_handle(lh_self_ptr self, const lh_os_input_event_ptr event)
+controller_handle(lh_self_ptr self, const lh_input_event_ptr event)
 {
     auto *log = static_cast<ControllerLog *>(self);
 
@@ -894,9 +893,9 @@ controller_handle(lh_self_ptr self, const lh_os_input_event_ptr event)
         log->sink_count_at_first = log->sink.log.count;
     }
     log->handled++;
-    log->raw += lh_os_input_event_is_synthesized(event) ? 0 : 1;
-    log->long_presses += lh_os_input_event_get_kind(event) == lh_os_input_kind_long_press ? 1 : 0;
-    log->last = lh_os_input_event_get_kind(event);
+    log->raw += lh_input_event_is_synthesized(event) ? 0 : 1;
+    log->long_presses += lh_input_event_get_kind(event) == lh_input_kind_long_press ? 1 : 0;
+    log->last = lh_input_event_get_kind(event);
     return lh_bool_true;
 }
 
@@ -919,11 +918,10 @@ TEST(os_window, the_controller_gets_every_event_after_the_sink)
     lh_os_window_t window{};
     lh_os_controller_t controller{};
     ControllerLog log{};
-    const lh_u32_t primary = lh_os_input_button_to_mask(lh_os_input_button_primary);
-    lh_os_input_event_t down =
-        mouse_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, primary, 5, 6);
-    lh_os_input_event_t up =
-        mouse_event(lh_os_input_kind_pointer_up, lh_os_input_button_primary, 0U, 5, 6);
+    const lh_u32_t primary = lh_input_button_to_mask(lh_input_button_primary);
+    lh_input_event_t down =
+        mouse_event(lh_input_kind_pointer_down, lh_input_button_primary, primary, 5, 6);
+    lh_input_event_t up = mouse_event(lh_input_kind_pointer_up, lh_input_button_primary, 0U, 5, 6);
 
     lh_os_window_init(lh_addr_of(window));
     lh_os_controller_init(lh_addr_of(controller), controller_handle, lh_addr_of(log), lh_null);
@@ -937,7 +935,7 @@ TEST(os_window, the_controller_gets_every_event_after_the_sink)
     EXPECT_EQ(log.sink.log.count, 2);
     EXPECT_EQ(log.sink_count_at_first, 1) << "the sink had the press before the controller";
     EXPECT_EQ(log.raw, 2);
-    EXPECT_EQ(log.last, lh_os_input_kind_click) << "the recognizer's click follows the release";
+    EXPECT_EQ(log.last, lh_input_kind_click) << "the recognizer's click follows the release";
     lh_os_window_set_controller(lh_addr_of(window), lh_null);
     lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(down));
     EXPECT_EQ(log.raw, 2) << "a cleared controller hears nothing";
@@ -950,10 +948,10 @@ TEST(os_window, a_focus_loss_cancels_the_controller)
     lh_os_window_t window{};
     lh_os_controller_t controller{};
     ControllerLog log{};
-    lh_os_input_event_t focus_out{};
+    lh_input_event_t focus_out{};
 
-    lh_os_input_event_init(lh_addr_of(focus_out), lh_os_input_kind_focus_out,
-                           lh_os_input_device_kind_keyboard, 0U);
+    lh_input_event_init(lh_addr_of(focus_out), lh_input_kind_focus_out,
+                        lh_input_device_kind_keyboard, 0U);
     lh_os_window_init(lh_addr_of(window));
     lh_os_controller_init(lh_addr_of(controller), controller_handle, lh_addr_of(log), lh_null);
     lh_os_controller_set_cancel_cb(lh_addr_of(controller), controller_cancel);
@@ -1010,23 +1008,22 @@ TEST(os_window, a_window_without_a_backend_does_not_update_its_controller)
 TEST(os_window, a_touch_contact_leaves_the_mouse_buttons_alone)
 {
     lh_os_window_t window{};
-    const lh_u32_t primary = lh_os_input_button_to_mask(lh_os_input_button_primary);
-    lh_os_input_event_t touch{};
-    lh_os_input_event_t cancel{};
+    const lh_u32_t primary = lh_input_button_to_mask(lh_input_button_primary);
+    lh_input_event_t touch{};
+    lh_input_event_t cancel{};
 
-    lh_os_input_event_init_pointer(lh_addr_of(touch), lh_os_input_kind_pointer_down,
-                                   lh_os_input_device_kind_touch, 1U, lh_os_input_button_primary,
-                                   lh_os_input_coord_from_int(1), lh_os_input_coord_from_int(2),
-                                   0U);
-    lh_os_input_event_set_buttons(lh_addr_of(touch), primary);
-    lh_os_input_event_init_pointer(
-        lh_addr_of(cancel), lh_os_input_kind_pointer_cancel, lh_os_input_device_kind_touch, 1U,
-        lh_os_input_button_none, lh_os_input_coord_from_int(1), lh_os_input_coord_from_int(2), 0U);
+    lh_input_event_init_pointer(lh_addr_of(touch), lh_input_kind_pointer_down,
+                                lh_input_device_kind_touch, 1U, lh_input_button_primary,
+                                lh_input_coord_from_int(1), lh_input_coord_from_int(2), 0U);
+    lh_input_event_set_buttons(lh_addr_of(touch), primary);
+    lh_input_event_init_pointer(lh_addr_of(cancel), lh_input_kind_pointer_cancel,
+                                lh_input_device_kind_touch, 1U, lh_input_button_none,
+                                lh_input_coord_from_int(1), lh_input_coord_from_int(2), 0U);
     lh_os_window_init(lh_addr_of(window));
     lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(touch));
     EXPECT_EQ(lh_os_window_get_pressed_buttons(lh_addr_of(window)), 0U);
-    lh_os_input_event_t mouse =
-        mouse_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, primary, 1, 2);
+    lh_input_event_t mouse =
+        mouse_event(lh_input_kind_pointer_down, lh_input_button_primary, primary, 1, 2);
     lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(mouse));
     lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(cancel));
     EXPECT_EQ(lh_os_window_get_pressed_buttons(lh_addr_of(window)), primary)
@@ -1044,7 +1041,7 @@ TEST(os_window, a_long_press_comes_due_on_the_window_timer_alone)
     lh_os_window_t window{};
     lh_os_controller_t controller{};
     ControllerLog log{};
-    lh_os_input_event_t down{};
+    lh_input_event_t down{};
 
     lh_os_app_init(lh_addr_of(app));
     lh_test_use_system(lh_addr_of(app));
@@ -1054,12 +1051,11 @@ TEST(os_window, a_long_press_comes_due_on_the_window_timer_alone)
     ASSERT_EQ(
         lh_os_window_open(lh_addr_of(app), lh_addr_of(window), "lh_test long press", 160, 120),
         lh_bool_true);
-    lh_os_input_event_init_pointer(lh_addr_of(down), lh_os_input_kind_pointer_down,
-                                   lh_os_input_device_kind_touch, 1U, lh_os_input_button_primary,
-                                   lh_os_input_coord_from_int(10), lh_os_input_coord_from_int(10),
-                                   lh_os_tick_ms());
-    lh_os_input_event_set_buttons(lh_addr_of(down),
-                                  lh_os_input_button_to_mask(lh_os_input_button_primary));
+    lh_input_event_init_pointer(lh_addr_of(down), lh_input_kind_pointer_down,
+                                lh_input_device_kind_touch, 1U, lh_input_button_primary,
+                                lh_input_coord_from_int(10), lh_input_coord_from_int(10),
+                                lh_os_tick_ms());
+    lh_input_event_set_buttons(lh_addr_of(down), lh_input_button_to_mask(lh_input_button_primary));
     lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(down));
     lh_tick_t started = lh_os_tick_ms();
     while (log.long_presses == 0 && lh_tick_elapsed(started, lh_os_tick_ms()) < 3000U)

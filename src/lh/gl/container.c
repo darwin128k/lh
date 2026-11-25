@@ -180,7 +180,7 @@ lh_gl_container_get_clamped_scroll(const lh_gl_container_t *self, lh_gl_point_t 
 }
 
 lh_gl_scalar_t
-lh_gl_container_get_key_step(const lh_gl_container_t *self, lh_os_key_t key)
+lh_gl_container_get_key_step(const lh_gl_container_t *self, lh_key_t key)
 {
     lh_gl_size_t page;
     lh_gl_container_get_viewport_size(self, lh_addr_of(page));
@@ -189,12 +189,12 @@ lh_gl_container_get_key_step(const lh_gl_container_t *self, lh_os_key_t key)
     lh_gl_point_t max;
     lh_gl_container_get_scroll_max(self, lh_addr_of(max));
 
-    lh_return_if(key == lh_os_key_up || key == lh_os_key_left, -LH_GL_CONTAINER_KEY_STEP);
-    lh_return_if(key == lh_os_key_down || key == lh_os_key_right, LH_GL_CONTAINER_KEY_STEP);
-    lh_return_if(key == lh_os_key_page_up, lh_math_neg(lh_gl_size_get_height(lh_addr_of(page))));
-    lh_return_if(key == lh_os_key_page_down, lh_gl_size_get_height(lh_addr_of(page)));
-    lh_return_if(key == lh_os_key_home, lh_math_neg(lh_gl_point_get_y(lh_addr_of(scroll))));
-    lh_return_if(key == lh_os_key_end,
+    lh_return_if(key == lh_key_up || key == lh_key_left, -LH_GL_CONTAINER_KEY_STEP);
+    lh_return_if(key == lh_key_down || key == lh_key_right, LH_GL_CONTAINER_KEY_STEP);
+    lh_return_if(key == lh_key_page_up, lh_math_neg(lh_gl_size_get_height(lh_addr_of(page))));
+    lh_return_if(key == lh_key_page_down, lh_gl_size_get_height(lh_addr_of(page)));
+    lh_return_if(key == lh_key_home, lh_math_neg(lh_gl_point_get_y(lh_addr_of(scroll))));
+    lh_return_if(key == lh_key_end,
                  lh_gl_point_get_y(lh_addr_of(max)) - lh_gl_point_get_y(lh_addr_of(scroll)));
     return lh_gl_scalar(0);
 }
@@ -204,9 +204,9 @@ lh_gl_container_get_key_delta(const lh_gl_container_t *self, const lh_gl_key_inp
                               lh_gl_point_t *out)
 {
     lh_assert_runtime_ref(out);
-    const lh_os_key_t key = lh_gl_key_input_get_key(input);
+    const lh_key_t key = lh_gl_key_input_get_key(input);
     const lh_bool_t across =
-        key == lh_os_key_left || key == lh_os_key_right ? lh_bool_true : lh_bool_false;
+        key == lh_key_left || key == lh_key_right ? lh_bool_true : lh_bool_false;
     const lh_gl_scalar_t step =
         lh_gl_key_input_get_code(input) == 0U && lh_gl_key_input_is_pressed(input)
             ? lh_gl_container_get_key_step(self, key)

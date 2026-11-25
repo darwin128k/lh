@@ -246,7 +246,7 @@ lh_gl_web_player_get_routed_controller(const lh_gl_web_player_t *self)
 }
 
 lh_bool_t
-lh_gl_web_player_input(lh_gl_web_player_t *self, const lh_os_input_event_t *event)
+lh_gl_web_player_input(lh_gl_web_player_t *self, const lh_input_event_t *event)
 {
     lh_bool_t changed = lh_bool_false;
     const lh_os_web_host_hooks_t *hooks = lh_gl_web_player_get_routed(self);
@@ -434,20 +434,18 @@ lh_gl_web_player_init(lh_gl_web_player_t *self, lh_gl_view_t *view, lh_uint_t wi
 }
 
 lh_bool_t
-lh_gl_web_player_pointer(lh_gl_web_player_t *self, lh_os_input_kind_t kind, lh_sint_t x,
-                         lh_sint_t y)
+lh_gl_web_player_pointer(lh_gl_web_player_t *self, lh_input_kind_t kind, lh_sint_t x, lh_sint_t y)
 {
-    const lh_bool_t up = lh_type_cast(lh_bool_t, kind == lh_os_input_kind_pointer_up);
-    const lh_os_input_button_t button = kind == lh_os_input_kind_pointer_move
-                                            ? lh_os_input_button_none
-                                            : lh_os_input_button_primary;
+    const lh_bool_t up = lh_type_cast(lh_bool_t, kind == lh_input_kind_pointer_up);
+    const lh_input_button_t button =
+        kind == lh_input_kind_pointer_move ? lh_input_button_none : lh_input_button_primary;
 
-    lh_os_input_event_t event;
-    lh_os_input_event_init_pointer(lh_addr_of(event), kind, lh_os_input_device_kind_mouse, 0U,
-                                   button, lh_os_input_coord_from_int(x),
-                                   lh_os_input_coord_from_int(y), lh_os_tick_ms());
-    lh_os_input_event_set_buttons(lh_addr_of(event),
-                                  up ? 0U : lh_os_input_button_to_mask(lh_os_input_button_primary));
+    lh_input_event_t event;
+    lh_input_event_init_pointer(lh_addr_of(event), kind, lh_input_device_kind_mouse, 0U, button,
+                                lh_input_coord_from_int(x), lh_input_coord_from_int(y),
+                                lh_os_tick_ms());
+    lh_input_event_set_buttons(lh_addr_of(event),
+                               up ? 0U : lh_input_button_to_mask(lh_input_button_primary));
     return lh_gl_web_player_input(self, lh_addr_of(event));
 }
 
@@ -455,26 +453,25 @@ lh_bool_t
 lh_gl_web_player_wheel(lh_gl_web_player_t *self, lh_sint_t x, lh_sint_t y, lh_sint_t dx,
                        lh_sint_t dy)
 {
-    lh_os_input_event_t event;
+    lh_input_event_t event;
 
-    lh_os_input_event_init_wheel(
-        lh_addr_of(event), lh_os_input_coord_from_int(x), lh_os_input_coord_from_int(y),
-        lh_type_cast(lh_s32_t, dx) * LH_OS_INPUT_WHEEL_NOTCH,
-        lh_type_cast(lh_s32_t, dy) * LH_OS_INPUT_WHEEL_NOTCH, lh_os_tick_ms());
+    lh_input_event_init_wheel(lh_addr_of(event), lh_input_coord_from_int(x),
+                              lh_input_coord_from_int(y),
+                              lh_type_cast(lh_s32_t, dx) * LH_INPUT_WHEEL_NOTCH,
+                              lh_type_cast(lh_s32_t, dy) * LH_INPUT_WHEEL_NOTCH, lh_os_tick_ms());
     return lh_gl_web_player_input(self, lh_addr_of(event));
 }
 
 lh_bool_t
 lh_gl_web_player_key(lh_gl_web_player_t *self, lh_sint_t k, lh_bool_t pressed)
 {
-    if (k < lh_cast_static(lh_sint_t, lh_os_key_other) ||
-        k > lh_cast_static(lh_sint_t, lh_os_key_alt))
+    if (k < lh_cast_static(lh_sint_t, lh_key_other) || k > lh_cast_static(lh_sint_t, lh_key_alt))
     {
-        k = lh_cast_static(lh_sint_t, lh_os_key_other);
+        k = lh_cast_static(lh_sint_t, lh_key_other);
     }
-    lh_os_input_event_t event;
-    lh_os_input_event_init_key(lh_addr_of(event), lh_type_cast(lh_os_key_t, k), pressed,
-                               lh_bool_false, 0U, lh_os_tick_ms());
+    lh_input_event_t event;
+    lh_input_event_init_key(lh_addr_of(event), lh_type_cast(lh_key_t, k), pressed, lh_bool_false,
+                            0U, lh_os_tick_ms());
     return lh_gl_web_player_input(self, lh_addr_of(event));
 }
 
@@ -482,8 +479,8 @@ lh_bool_t
 lh_gl_web_player_text(lh_gl_web_player_t *self, lh_u32_t code)
 {
     lh_return_if(code == 0U, lh_bool_false);
-    lh_os_input_event_t event;
-    lh_os_input_event_init_text(lh_addr_of(event), code, lh_os_tick_ms());
+    lh_input_event_t event;
+    lh_input_event_init_text(lh_addr_of(event), code, lh_os_tick_ms());
     return lh_gl_web_player_input(self, lh_addr_of(event));
 }
 
@@ -568,13 +565,13 @@ lh_gl_web_player_event_line(lh_gl_web_player_t *self, const lh_str_ptr line, lh_
 
     if (lh_str_ptr_parse_text(line, len, "p %d %d", lh_addr_of(x), lh_addr_of(y)) != 0u)
     {
-        LH_ATTRIBUTE_UNUSED(lh_gl_web_player_pointer(self, lh_os_input_kind_pointer_down,
+        LH_ATTRIBUTE_UNUSED(lh_gl_web_player_pointer(self, lh_input_kind_pointer_down,
                                                      lh_cast_static(lh_sint_t, x),
                                                      lh_cast_static(lh_sint_t, y)));
     }
     else if (lh_str_ptr_parse_text(line, len, "r %d %d", lh_addr_of(x), lh_addr_of(y)) != 0u)
     {
-        LH_ATTRIBUTE_UNUSED(lh_gl_web_player_pointer(self, lh_os_input_kind_pointer_up,
+        LH_ATTRIBUTE_UNUSED(lh_gl_web_player_pointer(self, lh_input_kind_pointer_up,
                                                      lh_cast_static(lh_sint_t, x),
                                                      lh_cast_static(lh_sint_t, y)));
     }
@@ -588,7 +585,7 @@ lh_gl_web_player_event_line(lh_gl_web_player_t *self, const lh_str_ptr line, lh_
     else if (lh_str_ptr_parse_text(line, len, "m %d %d", lh_addr_of(x), lh_addr_of(y)) != 0u)
     {
         /* A drag sends one every frame; one that changed nothing is not worth a draw. */
-        if (!lh_gl_web_player_pointer(self, lh_os_input_kind_pointer_move,
+        if (!lh_gl_web_player_pointer(self, lh_input_kind_pointer_move,
                                       lh_cast_static(lh_sint_t, x), lh_cast_static(lh_sint_t, y)))
         {
             return;
@@ -636,20 +633,20 @@ lh_gl_web_player_serve_input(lh_ptr ctx, const lh_http_request_t *request,
     lh_assert_runtime_ref(self);
     if (lh_os_web_host_is_route(request, lh_str_lit("/ui/click")))
     {
-        LH_ATTRIBUTE_UNUSED(lh_gl_web_player_pointer(self, lh_os_input_kind_pointer_down, x, y));
-        LH_ATTRIBUTE_UNUSED(lh_gl_web_player_pointer(self, lh_os_input_kind_pointer_up, x, y));
+        LH_ATTRIBUTE_UNUSED(lh_gl_web_player_pointer(self, lh_input_kind_pointer_down, x, y));
+        LH_ATTRIBUTE_UNUSED(lh_gl_web_player_pointer(self, lh_input_kind_pointer_up, x, y));
     }
     else if (lh_os_web_host_is_route(request, lh_str_lit("/ui/press")))
     {
-        LH_ATTRIBUTE_UNUSED(lh_gl_web_player_pointer(self, lh_os_input_kind_pointer_down, x, y));
+        LH_ATTRIBUTE_UNUSED(lh_gl_web_player_pointer(self, lh_input_kind_pointer_down, x, y));
     }
     else if (lh_os_web_host_is_route(request, lh_str_lit("/ui/release")))
     {
-        LH_ATTRIBUTE_UNUSED(lh_gl_web_player_pointer(self, lh_os_input_kind_pointer_up, x, y));
+        LH_ATTRIBUTE_UNUSED(lh_gl_web_player_pointer(self, lh_input_kind_pointer_up, x, y));
     }
     else if (lh_os_web_host_is_route(request, lh_str_lit("/ui/move")))
     {
-        LH_ATTRIBUTE_UNUSED(lh_gl_web_player_pointer(self, lh_os_input_kind_pointer_move, x, y));
+        LH_ATTRIBUTE_UNUSED(lh_gl_web_player_pointer(self, lh_input_kind_pointer_move, x, y));
     }
     else if (lh_os_web_host_is_route(request, lh_str_lit("/ui/wheel")))
     {
