@@ -1,14 +1,14 @@
 /**
  * @file controller.h
- * @brief ::lh_gl_view_t as the handler of an ::lh_os_controller_t:
+ * @brief ::lh_gl_view_t as the handler of an ::lh_controller_t:
  *        ::lh_gl_view_controller_handle_event_is_handled and ::lh_gl_view_controller_cancel.
  *
- * The controller (`lh/os/controller.h`) knows nothing of the UI. These two have
- * the shapes of its handlers (::lh_os_controller_handlers_handle_fn,
- * ::lh_os_controller_handlers_cancel_fn) and take the view as `self`, the
+ * The controller (`lh/core/controller.h`) knows nothing of the UI. These two have
+ * the shapes of its handlers (::lh_controller_handlers_handle_fn,
+ * ::lh_controller_handlers_cancel_fn) and take the view as `self`, the
  * controller's context.
  *
- * With ::lh_os_controller_flags_gestures the view gets every raw event and the
+ * With ::lh_controller_flags_gestures the view gets every raw event and the
  * gestures the recognizer makes of them. It acts on the raw ones and ignores the
  * synthesized ones (::lh_gl_view_input), because it makes its own click from
  * press and release: a click is never acted on twice. What the recognizer does
@@ -17,9 +17,9 @@
  *
  * Example usage:
  * @code{.c}
- * lh_os_controller_init(lh_addr_of(controller), lh_gl_view_controller_handle_event_is_handled, //
+ * lh_controller_init(lh_addr_of(controller), lh_gl_view_controller_handle_event_is_handled, //
  * events lh_addr_of(view), lh_null);                           // to the view
- * lh_os_controller_set_cancel_cb(lh_addr_of(controller), lh_gl_view_controller_cancel);
+ * lh_controller_set_cancel_cb(lh_addr_of(controller), lh_gl_view_controller_cancel);
  * @endcode
  *
  * Requires ::LH_LIBRARY_OPTION_GL.
@@ -41,7 +41,7 @@
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief An ::lh_os_controller_handlers_handle_fn: @p event to
+ * @brief An ::lh_controller_handlers_handle_fn: @p event to
  *        ::lh_gl_view_input on @p self, an ::lh_gl_view_t.
  *
  * @return What ::lh_gl_view_input returned: true when the view acted on
@@ -51,7 +51,7 @@ lh_bool_t
 lh_gl_view_controller_handle_event_is_handled(lh_self_ptr self, const lh_input_event_ptr event);
 
 /**
- * @brief An ::lh_os_controller_handlers_cancel_fn: ::lh_gl_view_cancel on
+ * @brief An ::lh_controller_handlers_cancel_fn: ::lh_gl_view_cancel on
  *        @p self, an ::lh_gl_view_t.
  */
 lh_void

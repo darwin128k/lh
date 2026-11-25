@@ -67,8 +67,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   never needed an operating system; now no header of theirs includes anything
   outside `lh/core/`. What asks the system stays in the OS part:
   `lh_os_input_get_wheel_step` (`lh/os/input.h`) keeps its name, and the
-  backends' key translation stays in `src/lh/os/system/<backend>/`. A caller
-  renames its includes and identifiers; nothing else changes.
+  backends' key translation stays in `src/lh/os/system/<backend>/`. The
+  controller between an input source and its handler went with them:
+  `lh/os/controller.h` is `lh/core/controller.h`, `lh_os_controller_*` is
+  `lh_controller_*` - it runs the recognizer and calls its handlers, and its
+  time is the events' and the caller's `now`. A caller renames its includes
+  and identifiers; nothing else changes.
+- How far a wheel notch scrolls is a contract now, not an `#if`. The core
+  states it: `lh_input_wheel_lines_fn` (`lh/core/input/wheel/lines/fn.h`),
+  the lines one notch scrolls, asked with the backend's context. A view holds
+  one (`lh_gl_view_install_wheel_lines`, level 1
+  `lh_gl_view_get_wheel_lines` / `_set_wheel_lines` /
+  `_get_wheel_lines_context` / `_set_wheel_lines_context`) and asks it on
+  each wheel event, `lh_gl_view_get_wheel_step(view)` (was
+  `lh_gl_view_wheel_step(void)`); with nothing installed it scrolls
+  `LH_GL_VIEW_WHEEL_STEP` (40). The OS fills the contract with
+  `lh_os_input_get_wheel_lines` (`lh/os/input.h`; was
+  `lh_os_input_get_wheel_step`), over one native kernel
+  `lh_os_system_input_get_wheel_lines` (`lh/os/system/input.h`) that the link
+  picks: Windows' with the window backend, the Unix one on Linux and macOS.
+  `lh/gl/view.c` no longer includes the OS under `#if LH_LIBRARY_OPTION_OS`,
+  and `lh/os/input.c` no longer picks its kernel by `#if`: it is built where a
+  kernel is. Nothing is installed by default, so a desktop host that wants the
+  system's setting installs it:
+  `lh_gl_view_install_wheel_lines(view, lh_os_input_get_wheel_lines, lh_null)`.
+  The web player installs nothing (the host machine's setting was never the
+  browser's), and scrolls 40 a notch.
 - gl's RGB565 kernels moved to the core beside the 32-bit ones:
   `lh_pixel_span_blend_alphas_rgb565` (each pixel its own alpha; SSE2 when the CPU
   has it), `lh_pixel_span_blend_vary_rgb565` (the portable kernel a board without

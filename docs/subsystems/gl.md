@@ -104,7 +104,7 @@ Input travels the other way:
   system (Win32 / X11 / browser / touch chip)
         |
         v
-  lh_input_event_t --> sink (optional tap) --> lh_os_controller_t
+  lh_input_event_t --> sink (optional tap) --> lh_controller_t
                                                         |
                                                         v
                                          lh_gl_view_controller_handle_event_is_handled
@@ -440,16 +440,18 @@ Some details, explained:
   "high resolution" wheels send smaller steps, such as 30. Positive is up or
   left.
 - **How far a notch scrolls is the system's choice.** Windows lets the user
-  set "scroll 3 lines a notch". lh asks with `lh_os_input_get_wheel_step()`
-  (`lh/os/input.h`) on every wheel event. One line is 40/3 content units, so
+  set "scroll 3 lines a notch". A view asks an `lh_input_wheel_lines_fn` on
+  every wheel event; the host installs the system's,
+  `lh_gl_view_install_wheel_lines(view, lh_os_input_get_wheel_lines, lh_null)`
+  (`lh/os/input.h`). One line is 40/3 content units, so
   the default 3 lines is exactly 40 (`LH_INPUT_WHEEL_STEP_DEFAULT`).
   Windows answers from `SPI_GETWHEELSCROLLLINES`: 3 when the call fails, 0
   means "do not scroll", "one screen at a time" counts as
   `LH_INPUT_WHEEL_LINES_PAGE` (20) lines, and anything above
-  `LH_INPUT_WHEEL_LINES_MAX` (100) counts as 100. Linux, macOS and Windows
-  without the window part scroll 40. Without the OS layer at all, the view
-  scrolls `LH_GL_VIEW_WHEEL_STEP` (also 40; change it with, for example,
-  `-DLH_GL_VIEW_WHEEL_STEP=20`).
+  `LH_INPUT_WHEEL_LINES_MAX` (100) counts as 100. Linux and macOS answer 3
+  lines, 40. A view with nothing installed (Windows without the window part,
+  a board, any host that installs nothing) scrolls `LH_GL_VIEW_WHEEL_STEP`
+  (also 40; change it with, for example, `-DLH_GL_VIEW_WHEEL_STEP=20`).
 - **Shift + wheel.** The backends no longer turn a Shift + wheel sideways.
   The gesture recognizer does, when its settings say so (the default does).
 - **Buttons.** All five mouse buttons arrive, on Windows and on X11.
@@ -529,7 +531,7 @@ does not drive. They listen, understand what each call means ("this is a
 cancellation", "this one has waited too long"), and pass the job to the right
 driver.
 
-`lh_os_controller_t` (`lh/os/controller.h`) is that dispatcher for input. It
+`lh_controller_t` (`lh/core/controller.h`) is that dispatcher for input. It
 stands between an input source (a window, the web host, a queue, a touch
 driver) and the object the events are for (usually the view). It does three
 things:
@@ -551,17 +553,17 @@ only knows events, time, and three function pointers.
 ### 8.2 The three handlers: fn/cb pairs with `self` first
 
 A controller holds three handlers. Each has a function type (`..._fn`, in
-`lh/os/controller/handlers/<name>/fn.h`) and a pointer type (`..._cb`, in
+`lh/core/controller/handlers/<name>/fn.h`) and a pointer type (`..._cb`, in
 `.../cb.h`):
 
 | Handler | Function type | When it is called |
 |---|---|---|
-| handle | `lh_bool_t lh_os_controller_handlers_handle_fn(lh_self_ptr self, const lh_input_event_ptr event)` | for every event, raw or gesture; return true when you acted on it |
-| update | `lh_void lh_os_controller_handlers_update_fn(lh_self_ptr self, lh_tick_t now)` | after each `lh_os_controller_update`; optional |
-| cancel | `lh_void lh_os_controller_handlers_cancel_fn(lh_self_ptr self)` | after each `lh_os_controller_cancel`; optional |
+| handle | `lh_bool_t lh_controller_handlers_handle_fn(lh_self_ptr self, const lh_input_event_ptr event)` | for every event, raw or gesture; return true when you acted on it |
+| update | `lh_void lh_controller_handlers_update_fn(lh_self_ptr self, lh_tick_t now)` | after each `lh_controller_update`; optional |
+| cancel | `lh_void lh_controller_handlers_cancel_fn(lh_self_ptr self)` | after each `lh_controller_cancel`; optional |
 
 All three get the same `self`: the controller's **context**, the object you
-gave it (`lh_os_controller_set_context` / `lh_os_controller_get_context`).
+gave it (`lh_controller_set_context` / `lh_controller_get_context`).
 
 For the view, lh already has the two handlers you need, in
 `lh/gl/view/controller.h`:
@@ -573,16 +575,16 @@ For the view, lh already has the two handlers you need, in
 So connecting a view is three lines:
 
 ```c
-#include <lh/os/controller.h>
+#include <lh/core/controller.h>
 #include <lh/gl/view/controller.h>
 
-lh_os_controller_init(lh_addr_of(self->controller), lh_gl_view_controller_handle_event_is_handled,
+lh_controller_init(lh_addr_of(self->controller), lh_gl_view_controller_handle_event_is_handled,
                       lh_addr_of(self->view), lh_null);       /* default thresholds */
-lh_os_controller_set_cancel_cb(lh_addr_of(self->controller), lh_gl_view_controller_cancel);
+lh_controller_set_cancel_cb(lh_addr_of(self->controller), lh_gl_view_controller_cancel);
 lh_os_window_set_controller(lh_addr_of(self->window), lh_addr_of(self->controller));
 ```
 
-The last argument of `lh_os_controller_init` is the recognizer's settings
+The last argument of `lh_controller_init` is the recognizer's settings
 (`lh_input_recognizer_config_t`: drag distance, double-click time,
 long-press time and so on). `lh_null` means the defaults.
 
@@ -596,47 +598,47 @@ exactly that: its handler logs every gesture and then calls
 
 | Call | What reaches the handlers |
 |---|---|
-| `lh_os_controller_feed(c, event)` | the event, then the gestures it completes (with the gestures flag), or only the event (without it); returns true when the handler acted |
-| `lh_os_controller_handle_event_is_handled(c, event)` | only the event, skipping the recognizer |
-| `lh_os_controller_update(c, now)` | the gestures due by `now` (a long press), then `update_cb` |
-| `lh_os_controller_cancel(c)` | nothing from the recognizer (it forgets silently), then `cancel_cb` |
-| `lh_os_controller_sink(self, event)` | a ready-made sink that feeds the controller `self` |
+| `lh_controller_feed(c, event)` | the event, then the gestures it completes (with the gestures flag), or only the event (without it); returns true when the handler acted |
+| `lh_controller_handle_event_is_handled(c, event)` | only the event, skipping the recognizer |
+| `lh_controller_update(c, now)` | the gestures due by `now` (a long press), then `update_cb` |
+| `lh_controller_cancel(c)` | nothing from the recognizer (it forgets silently), then `cancel_cb` |
+| `lh_controller_sink(self, event)` | a ready-made sink that feeds the controller `self` |
 
-Two flags (`lh_os_controller_flags_value_t`) switch it:
+Two flags (`lh_controller_flags_value_t`) switch it:
 
-- `lh_os_controller_flags_enabled`: the handler gets events. Clear it with
-  `lh_os_controller_set_enabled(c, lh_bool_false)` to mute a screen that is
+- `lh_controller_flags_enabled`: the handler gets events. Clear it with
+  `lh_controller_set_enabled(c, lh_bool_false)` to mute a screen that is
   hidden or covered by a dialog. While it is clear, `feed` and `update` leave
   the recognizer where it is; `update_cb` still runs. The next enabled
   `update` (or a `feed` whose event is already past a deadline) sends what
   came due in between.
-- `lh_os_controller_flags_gestures`: `feed` runs the recognizer.
+- `lh_controller_flags_gestures`: `feed` runs the recognizer.
 
-`lh_os_controller_init` sets both. For a `static` controller there is
-`lh_os_controller_default_initializer(handle_fn, context)`.
+`lh_controller_init` sets both. For a `static` controller there is
+`lh_controller_default_initializer(handle_fn, context)`.
 
 ### 8.4 What a window does with its controller
 
 After `lh_os_window_set_controller(window, controller)` the window drives the
 controller by itself, on Win32 and on X11:
 
-- **Every event** goes to `lh_os_controller_feed`, right after the window's
+- **Every event** goes to `lh_controller_feed`, right after the window's
   low-level sink (`lh_os_window_set_on_input`), if you set one.
 - **Losing focus**: a `focus_out` is fed and then the controller is
   cancelled, so every press and gesture is let go.
 - **Every tick**: before your `on_tick`, the window calls
-  `lh_os_controller_update(controller, lh_os_tick_ms())`. If you set no tick
+  `lh_controller_update(controller, lh_os_tick_ms())`. If you set no tick
   period, the window starts its timer only for the recognizer's next deadline
   (for example "a long press is due in half a second"), and an idle window
-  has no timer at all. Do not call `lh_os_controller_update` for this
+  has no timer at all. Do not call `lh_controller_update` for this
   controller from your `on_tick` as well.
 
 **Two levels, on purpose.** `lh_os_window_set_on_input` stays as the
 low-level tap that sees every raw event first: good for a log, a global
 shortcut, or an app that routes input itself. The controller is the normal
 consumer on top of it. Do not also plug the window's controller into that tap
-through `lh_os_controller_sink`: it would get every event twice.
-`lh_os_controller_sink` is for sources that only take a sink, such as
+through `lh_controller_sink`: it would get every event twice.
+`lh_controller_sink` is for sources that only take a sink, such as
 `lh_input_queue_drain`.
 
 ---
@@ -723,7 +725,7 @@ struct on the stack overflows and then looks like a drawing bug.
 
 ```c
 #include <lh/os/app.h>
-#include <lh/os/controller.h>
+#include <lh/core/controller.h>
 #include <lh/os/render/backend/gdi.h>
 #include <lh/os/tick.h>
 #include <lh/os/window.h>
@@ -737,7 +739,7 @@ struct my_main
     lh_os_render_backend_gdi_context_t gdi;
     lh_gl_canvas_t canvas;
     lh_gl_view_t view;
-    lh_os_controller_t controller;
+    lh_controller_t controller;
 };
 
 static lh_void
@@ -799,9 +801,9 @@ main(void)
     if (!my_ui_build(&self))                                  /* section 4              */
         return 1;
 
-    lh_os_controller_init(lh_addr_of(self.controller), lh_gl_view_controller_handle_event_is_handled,
+    lh_controller_init(lh_addr_of(self.controller), lh_gl_view_controller_handle_event_is_handled,
                           lh_addr_of(self.view), lh_null);
-    lh_os_controller_set_cancel_cb(lh_addr_of(self.controller), lh_gl_view_controller_cancel);
+    lh_controller_set_cancel_cb(lh_addr_of(self.controller), lh_gl_view_controller_cancel);
 
     lh_os_window_set_on_paint(lh_addr_of(window), on_paint, lh_addr_of(self));
     lh_os_window_set_on_close(lh_addr_of(window), on_close, lh_addr_of(self));
@@ -1072,9 +1074,9 @@ still a text event the driver builds itself. The chip stays in the driver.
    (`lh_input_queue_t`) is made for one producer (the interrupt) and one
    consumer (the main loop).
 3. In the main loop, empty the queue into the controller:
-   `lh_input_queue_drain(&queue, lh_os_controller_sink, &controller)`.
+   `lh_input_queue_drain(&queue, lh_controller_sink, &controller)`.
 4. From a timer of about 60 Hz call
-   `lh_os_controller_update(&controller, now)` (long presses) and
+   `lh_controller_update(&controller, now)` (long presses) and
    `lh_gl_view_tick(&view)` (gliding lists).
 
 A single-touch panel is pointer `0`. A multi-touch panel gives each contact
@@ -1154,7 +1156,7 @@ The host knows nothing about windows. It takes a struct of hooks,
 | `tick` | `lh_void (*)(lh_ptr ctx)` | about every 20 ms **and between requests** |
 | `resize` | `lh_void (*)(int width, int height, lh_ptr ctx)` | the tab size changed (layout mode) |
 | `input` | a sink (`lh_input_sink_cb`) | the low-level tap: sees every raw event first |
-| `controller` | `lh_os_controller_t *` | the normal consumer, updated by the host at every tick before `tick` |
+| `controller` | `lh_controller_t *` | the normal consumer, updated by the host at every tick before `tick` |
 
 Any hook may be `lh_null`. If both `input` and `controller` are `lh_null`,
 the host makes a controller of its own with `lh_gl_view_controller_handle_event_is_handled`
@@ -1251,15 +1253,15 @@ lh describes a struct's members with a **fields macro**: a macro that lists
 the members, so the same list can be reused. The controller is:
 
 ```c
-struct lh_os_controller
+struct lh_controller
 {
-    lh_os_controller_fields(lh_os_controller_handlers_handle_fn,
-                            lh_os_controller_handlers_update_fn,
-                            lh_os_controller_handlers_cancel_fn, lh_self_ptr);
+    lh_controller_fields(lh_controller_handlers_handle_fn,
+                            lh_controller_handlers_update_fn,
+                            lh_controller_handlers_cancel_fn, lh_self_ptr);
 };
 ```
 
-`lh_os_controller_fields(handle_type, update_type, cancel_type, context_type)`
+`lh_controller_fields(handle_type, update_type, cancel_type, context_type)`
 expands, in this order, to: `handle_cb`, `update_cb`, `cancel_cb` (pointers
 to the three function types), `context`, the `recognizer`
 (`lh_input_recognizer_t`), and the `flags`.
@@ -1276,7 +1278,7 @@ desktop and on a chip with a few kilobytes of RAM.
 Every call into a handler has the same shape: *the context first, then the
 data*.
 
-- `lh_os_controller_feed(c, event)`: if `enabled` is off, nothing happens,
+- `lh_controller_feed(c, event)`: if `enabled` is off, nothing happens,
   not even in the recognizer. If `gestures` is off, the event goes straight
   to `handle_cb(context, event)`. Otherwise the event goes into
   `lh_input_recognizer_feed`, together with a small internal sink. The
@@ -1284,14 +1286,14 @@ data*.
   it completes. The internal sink calls `handle_cb(context, e)` each time and
   remembers whether any call returned true. That "was anything handled?"
   answer is what `feed` returns.
-- `lh_os_controller_update(c, now)`: the recognizer sends what is due by
+- `lh_controller_update(c, now)`: the recognizer sends what is due by
   `now` (a long press) through the same internal sink, then
   `update_cb(context, now)` is called if it is set.
-- `lh_os_controller_cancel(c)`: the recognizer is reset with the same
+- `lh_controller_cancel(c)`: the recognizer is reset with the same
   settings it had, silently (no cancel events, no drag end), then
   `cancel_cb(context)` is called if it is set. It is the cancel handler's job
   to let go of what it holds; for the view that is `lh_gl_view_cancel`.
-- `lh_os_controller_sink(self, event)` casts `self` to the controller and
+- `lh_controller_sink(self, event)` casts `self` to the controller and
   calls `feed`. That is how a controller fits into anything that takes a sink.
 
 ### 14.3 How a sink receives `(self, event)`
@@ -1370,7 +1372,7 @@ flowchart TD
     C --> D["lh_input_event_t"]
     D --> E["lh_os_window_on_native_input"]
     E --> F["on_input sink, if set (raw tap)"]
-    E --> G["lh_os_controller_feed"]
+    E --> G["lh_controller_feed"]
     G --> H["recognizer: raw event, then gestures (synthesized)"]
     H --> I["handle_cb = lh_gl_view_controller_handle_event_is_handled"]
     I --> J["lh_gl_view_input: press / move / release / cancel of that pointer"]
@@ -1389,7 +1391,7 @@ The same walk in words:
 3. `lh_os_window_on_native_input` remembers the held buttons, then gives the
    event to the low-level sink (if you set one with
    `lh_os_window_set_on_input`) and then to the controller.
-4. The window feeds the controller (`lh_os_controller_feed`). Because the
+4. The window feeds the controller (`lh_controller_feed`). Because the
    event is a press, the window also makes sure its timer will fire when the
    recognizer next needs it.
 5. The recognizer passes the raw event on, and later the gestures it notices.
@@ -1400,7 +1402,7 @@ The same walk in words:
    gestures.
 7. The view finds the button under the finger, marks it pressed, tells it
    with an entity event, and adds the button's rectangle to its damage list.
-8. On the next tick the window first calls `lh_os_controller_update` (a long
+8. On the next tick the window first calls `lh_controller_update` (a long
    press may come due), then your `on_tick`. There you call
    `lh_gl_view_take_damage` and `lh_os_window_invalidate_rect` for each rect of
    the list it returns.
@@ -1416,7 +1418,7 @@ The same walk in words:
 
 `H:\Projects\lh-touch-lab` is a small Windows program for testing all of
 this, by hand and automatically. Everything goes through one
-`lh_os_controller_t` with gestures on (`src/main.c`):
+`lh_controller_t` with gestures on (`src/main.c`):
 
 ```
 window --lh_os_window_set_controller--> recognizer
@@ -1435,10 +1437,10 @@ What you see:
   **Multi-touch demo**, **Clear**, **Close**. A finger presses a button just
   as the mouse does.
 - **Multi-touch demo** feeds four scripted contacts into the same controller
-  at once (`lh_os_controller_feed`): #1 draws a circle (drag), #2 a line back
+  at once (`lh_controller_feed`): #1 draws a circle (drag), #2 a line back
   and forth (drag), #3 taps twice (click, then click and double click), #4 is
   held still (long press). Long presses come due from
-  `lh_os_controller_update`, which the window calls on its 16 ms tick.
+  `lh_controller_update`, which the window calls on its 16 ms tick.
 - Close it with **Close**, Escape, or the window's cross.
 
 ### 15.1 Build and run (MSYS2 mingw64)
@@ -1446,7 +1448,7 @@ What you see:
 The lab includes lh as a git submodule in `external/lh`. That pinned commit
 is older than the controller, so for now point the build at the lh working
 copy with `LH_SOURCE_DIR` (CMake stops with a hint if the folder has no
-`include/lh/os/controller.h`):
+`include/lh/core/controller.h`):
 
 ```powershell
 $env:PATH = "C:\msys64\mingw64\bin;$env:PATH"
@@ -1500,7 +1502,7 @@ Pictures, in the `--out` folder (default `.`):
   back: `lh_gl_view_set_canvas(tmp)`, `lh_gl_view_draw`,
   `lh_gl_view_set_canvas(original)`. The touch lab writes its PNGs this way.
 - **Scripted input.** Build events yourself and give them to the controller
-  with `lh_os_controller_feed`: exactly the path real input takes. Bugs
+  with `lh_controller_feed`: exactly the path real input takes. Bugs
   become repeatable.
 - **Log.** `lh_logger_info(lh_runtime_logger_get_mut(), "...")` writes to stderr by
   default.
@@ -1515,7 +1517,7 @@ Common mistakes:
 | The window freezes and stops repainting | a long loop inside `on_tick` or `on_paint` | one pass per call |
 | A colour paints nothing | colour without alpha (`0x1B2430`) | write `0xRRGGBBAA` (`0x1B2430FF`) |
 | A child shows up in the wrong place | its rectangle was given relative to the parent | rectangles are in root space |
-| Every event arrives twice | the window's controller is also plugged into `set_on_input` through `lh_os_controller_sink` | use `lh_os_window_set_controller` only |
+| Every event arrives twice | the window's controller is also plugged into `set_on_input` through `lh_controller_sink` | use `lh_os_window_set_controller` only |
 | Non-ASCII text cut short | `snprintf` cut UTF-8 in the middle of a character | size text buffers in bytes, about twice the letters for Cyrillic |
 
 ---

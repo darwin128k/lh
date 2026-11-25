@@ -48,7 +48,7 @@ struct lh_gl_web_player
     /** Members: ::lh_gl_web_player_fields. */
     lh_gl_web_player_fields(lh_gl_view_t *, lh_uint_t, lh_str_ptr, lh_usize_t,
                             const lh_os_web_host_hooks_t *, lh_os_web_app_t, lh_os_web_app_route_t,
-                            lh_os_controller_t, lh_gl_canvas_web_t, lh_os_web_host_hooks_t,
+                            lh_controller_t, lh_gl_canvas_web_t, lh_os_web_host_hooks_t,
                             lh_gl_canvas_web_glyphs_t);
 };
 /** @copybrief lh_gl_web_player */
@@ -267,7 +267,7 @@ lh_gl_web_player_get_routed_mut(lh_gl_web_player_t *self);
  * @param self The player; checked by ::lh_assert_runtime_ref.
  * @return The member itself, never ::lh_null.
  */
-const lh_os_controller_t *
+const lh_controller_t *
 lh_gl_web_player_get_controller(const lh_gl_web_player_t *self);
 
 /**
@@ -276,7 +276,7 @@ lh_gl_web_player_get_controller(const lh_gl_web_player_t *self);
  * @param self The player; checked by ::lh_assert_runtime_ref.
  * @return The member itself, never ::lh_null.
  */
-lh_os_controller_t *
+lh_controller_t *
 lh_gl_web_player_get_controller_mut(lh_gl_web_player_t *self);
 
 /**
@@ -331,7 +331,7 @@ lh_gl_web_player_get_glyphs_mut(lh_gl_web_player_t *self);
  *
  * @param self The player; checked by ::lh_assert_runtime_ref.
  */
-lh_os_controller_t *
+lh_controller_t *
 lh_gl_web_player_get_routed_controller(const lh_gl_web_player_t *self);
 
 /**

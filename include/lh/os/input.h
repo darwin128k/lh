@@ -1,17 +1,20 @@
 /**
  * @file input.h
- * @brief OS layer: how the system is set up for input - ::lh_os_input_get_wheel_step.
+ * @brief OS layer: how the system is set up for input - ::lh_os_input_get_wheel_lines.
  *
- * The events, the queue and the recognizer (`lh/core/input/`) need no OS; this is the
- * part that asks the system, through the kernel of the platform it is built for,
- * picked by `#if` (as `lh/os/tick.h` is):
+ * The events, the queue and the recognizer (`lh/core/input/`) need no OS. This is
+ * the brick that fills their contracts from the system: ::lh_os_input_get_wheel_lines
+ * is an ::lh_input_wheel_lines_fn over the platform's kernel
+ * (`lh/os/system/input.h`). Nothing installs it by default; a host hands it to
+ * whoever consumes wheel notches:
  *
- * - Windows with ::LH_LIBRARY_OPTION_OS_WINDOW: `src/lh/os/system/win/input.c`,
- *   `SystemParametersInfoA(SPI_GETWHEELSCROLLLINES)`.
- * - Linux, macOS: `src/lh/os/system/unix/input.c`, which reads nothing yet - the
- *   driver's increment needs libinput or evdev - so ::LH_INPUT_WHEEL_LINES_DEFAULT.
- * - Windows without the window backend (user32 is not linked), anything else (STM32,
- *   ...): no kernel, ::LH_INPUT_WHEEL_STEP_DEFAULT.
+ * @code{.c}
+ * lh_gl_view_install_wheel_lines(lh_addr_of(view), lh_os_input_get_wheel_lines, lh_null);
+ * @endcode
+ *
+ * Built where the system has a kernel: Windows with ::LH_LIBRARY_OPTION_OS_WINDOW
+ * (user32), Linux and macOS. Elsewhere (Windows without the window backend, a
+ * board) there is nothing to ask, and a host installs nothing or its own.
  *
  * Requires ::LH_LIBRARY_OPTION_OS.
  */
@@ -20,8 +23,7 @@
 #define LH_OS_INPUT_H
 
 #include <lh/config.h>
-#include <lh/core/input/wheel.h>
-#include <lh/core/void.h>
+#include <lh/core/input/wheel/lines/fn.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/input.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
@@ -30,21 +32,20 @@
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief How far one wheel notch (::LH_INPUT_WHEEL_NOTCH) scrolls, in content
- *        units, as the system is set up now.
+ * @brief An ::lh_input_wheel_lines_fn: the lines one wheel notch
+ *        (::LH_INPUT_WHEEL_NOTCH) scrolls, as the system is set up now.
  *
- * The kernel's lines a notch (see the table above) through ::lh_input_wheel_step_of,
- * so the default 3 lines are ::LH_INPUT_WHEEL_STEP_DEFAULT (40). On Windows a call
- * that fails reads as the default, "one screen at a time" as
- * ::LH_INPUT_WHEEL_LINES_PAGE lines, and `0` (wheel scrolling turned off) as `0`.
+ * ::lh_os_system_input_get_wheel_lines, asked again on each call, so a change in
+ * the Mouse control panel applies from the next notch. On Windows a call that
+ * fails reads as ::LH_INPUT_WHEEL_LINES_DEFAULT, "one screen at a time" as
+ * ::LH_INPUT_WHEEL_LINES_PAGE and `0` (wheel scrolling turned off) as `0`; Linux
+ * and macOS answer ::LH_INPUT_WHEEL_LINES_DEFAULT.
  *
- * Not cached: each call asks again, so a change in the Mouse control panel applies
- * from the next notch. ::lh_gl_view_input calls it once a wheel event.
- *
- * @return Content units a notch, from `0` to
- *         `lh_input_wheel_step_of(LH_INPUT_WHEEL_LINES_MAX)`.
+ * @param context Not used; install it with ::lh_null.
+ * @return Lines a notch.
  */
-lh_s32_t lh_os_input_get_wheel_step(lh_void);
+lh_u32_t
+lh_os_input_get_wheel_lines(lh_ptr context);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -45,8 +45,8 @@
  * application keeps it either way.
  *
  * `controller` is the standard consumer of the input: every event the sink saw
- * goes on to it (::lh_os_controller_feed), a focus loss also cancels it, and the
- * window keeps its recognizer's timers running (::lh_os_controller_update) on the
+ * goes on to it (::lh_controller_feed), a focus loss also cancels it, and the
+ * window keeps its recognizer's timers running (::lh_controller_update) on the
  * window timer; see ::lh_os_window_set_controller. `controller_armed` is true
  * while the window timer runs for the controller alone -- no `on_tick` asked for
  * one -- to bring the recognizer's next deadline (a long press) on time.
@@ -69,7 +69,7 @@
  *
  * @param app_type        Type of the owning app pointer (::lh_os_app_t).
  * @param window_type     Type of the parent / child window pointer.
- * @param controller_type Type of the controller pointer (::lh_os_controller_t).
+ * @param controller_type Type of the controller pointer (::lh_controller_t).
  * @param backend_type    Type of the backend table (::lh_os_window_backend_t).
  */
 #define lh_os_window_fields(app_type, window_type, controller_type, backend_type)                  \

@@ -332,14 +332,13 @@ for long press or double tap, feed the events through an
 same timer.
 
 A wheel or rotary encoder sends `wheel` events in 1/120 notch
-(`LH_INPUT_WHEEL_NOTCH` a detent). With `LH_LIBRARY_OPTION_OS=OFF` there
-is no system to ask how far a notch goes, so `lh_gl_view_input` scrolls
-`LH_GL_VIEW_WHEEL_STEP` content units a notch: 40, the OS layer's own
-default `LH_INPUT_WHEEL_STEP_DEFAULT`. Both are `#ifndef`; define
+(`LH_INPUT_WHEEL_NOTCH` a detent). How far a notch goes is a contract,
+`lh_input_wheel_lines_fn`: with nothing installed `lh_gl_view_input`
+scrolls `LH_GL_VIEW_WHEEL_STEP` content units a notch, 40, the core's
+default `LH_INPUT_WHEEL_STEP_DEFAULT`. A board with a setting of its own
+installs it with `lh_gl_view_install_wheel_lines`. Both are `#ifndef`; define
 `LH_GL_VIEW_WHEEL_STEP` for the build (e.g. `-DLH_GL_VIEW_WHEEL_STEP=20` in
-the compile definitions) to change it. A build with the OS layer on a
-platform without a kernel for it (STM32 and the like) gets the same 40 from
-`lh_os_input_get_wheel_step`.
+the compile definitions) to change it.
 
 ---
 

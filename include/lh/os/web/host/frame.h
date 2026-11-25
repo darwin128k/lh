@@ -7,7 +7,7 @@
 #define LH_OS_WEB_HOST_FRAME_H
 
 #include <lh/config.h>
-#include <lh/os/controller.h>
+#include <lh/core/controller.h>
 #include <lh/os/net/socket.h>
 #include <lh/os/web/host/client/fields.h>
 #include <lh/os/web/host/frame/fields.h>

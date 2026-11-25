@@ -124,11 +124,11 @@ TEST_F(ui_window, mounts_root_and_wires_existing_parts)
               lh_gl_window_get_screen(&host));
     EXPECT_EQ(lh_os_window_get_controller(lh_gl_window_get_window(&host)),
               lh_gl_window_get_controller(&host));
-    EXPECT_EQ(lh_os_controller_get_context(lh_gl_window_get_controller(&host)),
+    EXPECT_EQ(lh_controller_get_context(lh_gl_window_get_controller(&host)),
               lh_gl_window_get_view(&host));
-    EXPECT_EQ(lh_os_controller_get_handle_cb(lh_gl_window_get_controller(&host)),
+    EXPECT_EQ(lh_controller_get_handle_cb(lh_gl_window_get_controller(&host)),
               lh_gl_view_controller_handle_event_is_handled);
-    EXPECT_EQ(lh_os_controller_get_cancel_cb(lh_gl_window_get_controller(&host)),
+    EXPECT_EQ(lh_controller_get_cancel_cb(lh_gl_window_get_controller(&host)),
               lh_gl_view_controller_cancel);
     EXPECT_EQ(lh_os_window_get_tick_ms(lh_gl_window_get_window(&host)), LH_GL_VIEW_FRAME_MS);
     EXPECT_EQ(lh_gl_window_get_on_update_fn(&host), nullptr);

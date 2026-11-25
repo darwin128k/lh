@@ -64,7 +64,7 @@ lh_os_web_host_hooks_set_resize_fn(lh_os_web_host_hooks_t *self,
     self->resize = resize_fn;
 }
 
-lh_os_controller_t *
+lh_controller_t *
 lh_os_web_host_hooks_get_controller(const lh_os_web_host_hooks_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -72,7 +72,7 @@ lh_os_web_host_hooks_get_controller(const lh_os_web_host_hooks_t *self)
 }
 
 lh_void
-lh_os_web_host_hooks_set_controller(lh_os_web_host_hooks_t *self, lh_os_controller_t *controller)
+lh_os_web_host_hooks_set_controller(lh_os_web_host_hooks_t *self, lh_controller_t *controller)
 {
     lh_assert_runtime_ref(self);
     self->controller = controller;

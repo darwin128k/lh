@@ -916,7 +916,7 @@ controller_cancel(lh_self_ptr self)
 TEST(os_window, the_controller_gets_every_event_after_the_sink)
 {
     lh_os_window_t window{};
-    lh_os_controller_t controller{};
+    lh_controller_t controller{};
     ControllerLog log{};
     const lh_u32_t primary = lh_input_button_to_mask(lh_input_button_primary);
     lh_input_event_t down =
@@ -924,7 +924,7 @@ TEST(os_window, the_controller_gets_every_event_after_the_sink)
     lh_input_event_t up = mouse_event(lh_input_kind_pointer_up, lh_input_button_primary, 0U, 5, 6);
 
     lh_os_window_init(lh_addr_of(window));
-    lh_os_controller_init(lh_addr_of(controller), controller_handle, lh_addr_of(log), lh_null);
+    lh_controller_init(lh_addr_of(controller), controller_handle, lh_addr_of(log), lh_null);
     log.sink.window = lh_addr_of(window);
     lh_os_window_set_on_input(lh_addr_of(window), on_input, lh_addr_of(log.sink));
     EXPECT_EQ(lh_os_window_get_controller(lh_addr_of(window)), nullptr);
@@ -946,15 +946,15 @@ TEST(os_window, the_controller_gets_every_event_after_the_sink)
 TEST(os_window, a_focus_loss_cancels_the_controller)
 {
     lh_os_window_t window{};
-    lh_os_controller_t controller{};
+    lh_controller_t controller{};
     ControllerLog log{};
     lh_input_event_t focus_out{};
 
     lh_input_event_init(lh_addr_of(focus_out), lh_input_kind_focus_out,
                         lh_input_device_kind_keyboard, 0U);
     lh_os_window_init(lh_addr_of(window));
-    lh_os_controller_init(lh_addr_of(controller), controller_handle, lh_addr_of(log), lh_null);
-    lh_os_controller_set_cancel_cb(lh_addr_of(controller), controller_cancel);
+    lh_controller_init(lh_addr_of(controller), controller_handle, lh_addr_of(log), lh_null);
+    lh_controller_set_cancel_cb(lh_addr_of(controller), controller_cancel);
     lh_os_window_set_controller(lh_addr_of(window), lh_addr_of(controller));
     lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(focus_out));
     EXPECT_EQ(log.raw, 1) << "the handler hears the focus loss itself";
@@ -967,13 +967,13 @@ TEST(os_window, a_tick_updates_the_controller_before_on_tick)
     FakeBackend fake{};
     lh_os_app_t app{};
     lh_os_window_t window{};
-    lh_os_controller_t controller{};
+    lh_controller_t controller{};
     ControllerLog log{};
 
     fake_app(lh_addr_of(app), lh_addr_of(fake));
     lh_os_window_init(lh_addr_of(window));
-    lh_os_controller_init(lh_addr_of(controller), controller_handle, lh_addr_of(log), lh_null);
-    lh_os_controller_set_update_cb(lh_addr_of(controller), controller_update);
+    lh_controller_init(lh_addr_of(controller), controller_handle, lh_addr_of(log), lh_null);
+    lh_controller_set_update_cb(lh_addr_of(controller), controller_update);
     ASSERT_EQ(lh_os_window_open(lh_addr_of(app), lh_addr_of(window), "tick", 10, 10), lh_bool_true);
     lh_os_window_on_native_tick(lh_addr_of(window));
     EXPECT_EQ(log.updates, 0);
@@ -991,12 +991,12 @@ TEST(os_window, a_tick_updates_the_controller_before_on_tick)
 TEST(os_window, a_window_without_a_backend_does_not_update_its_controller)
 {
     lh_os_window_t window{};
-    lh_os_controller_t controller{};
+    lh_controller_t controller{};
     ControllerLog log{};
 
     lh_os_window_init(lh_addr_of(window));
-    lh_os_controller_init(lh_addr_of(controller), controller_handle, lh_addr_of(log), lh_null);
-    lh_os_controller_set_update_cb(lh_addr_of(controller), controller_update);
+    lh_controller_init(lh_addr_of(controller), controller_handle, lh_addr_of(log), lh_null);
+    lh_controller_set_update_cb(lh_addr_of(controller), controller_update);
     lh_os_window_set_controller(lh_addr_of(window), lh_addr_of(controller));
     lh_os_window_on_native_tick(lh_addr_of(window));
     EXPECT_EQ(log.updates, 0);
@@ -1039,14 +1039,14 @@ TEST(os_window, a_long_press_comes_due_on_the_window_timer_alone)
     LH_TEST_NEEDS_DISPLAY();
     lh_os_app_t app{};
     lh_os_window_t window{};
-    lh_os_controller_t controller{};
+    lh_controller_t controller{};
     ControllerLog log{};
     lh_input_event_t down{};
 
     lh_os_app_init(lh_addr_of(app));
     lh_test_use_system(lh_addr_of(app));
     lh_os_window_init(lh_addr_of(window));
-    lh_os_controller_init(lh_addr_of(controller), controller_handle, lh_addr_of(log), lh_null);
+    lh_controller_init(lh_addr_of(controller), controller_handle, lh_addr_of(log), lh_null);
     lh_os_window_set_controller(lh_addr_of(window), lh_addr_of(controller));
     ASSERT_EQ(
         lh_os_window_open(lh_addr_of(app), lh_addr_of(window), "lh_test long press", 160, 120),

@@ -17,8 +17,7 @@
 
 #if LH_LIBRARY_OPTION_OS
 
-#    include <lh/os/controller.h>
-#    include <lh/os/input.h>
+#    include <lh/core/controller.h>
 #    include <lh/os/net.h>
 #    include <lh/os/net/socket.h>
 #    include <lh/os/system/net/socket.h>
@@ -68,7 +67,7 @@ struct host_world
     int pressed[key_log_max];
     std::atomic<int> ticks;
     std::atomic<int> scroll_y;
-    lh_os_controller_t controller;
+    lh_controller_t controller;
     std::atomic<int> controlled_presses;
     std::atomic<int> controlled_clicks;
     std::atomic<int> controller_updates;
@@ -181,9 +180,8 @@ host_up()
     lh_os_web_host_hooks_set_ctx(lh_addr_of(s_world.hooks), lh_addr_of(s_world));
     lh_os_web_host_hooks_set_tick_fn(lh_addr_of(s_world.hooks), world_tick);
     lh_os_web_host_hooks_set_input_fn(lh_addr_of(s_world.hooks), world_input);
-    lh_os_controller_init(lh_addr_of(s_world.controller), world_control, lh_addr_of(s_world),
-                          lh_null);
-    lh_os_controller_set_update_cb(lh_addr_of(s_world.controller), world_update);
+    lh_controller_init(lh_addr_of(s_world.controller), world_control, lh_addr_of(s_world), lh_null);
+    lh_controller_set_update_cb(lh_addr_of(s_world.controller), world_update);
     lh_os_web_host_hooks_set_controller(lh_addr_of(s_world.hooks), lh_addr_of(s_world.controller));
     if (!lh_gl_web_player_init(lh_addr_of(s_world.player), lh_addr_of(s_world.view), 200u, 200u,
                                s_world.json, sizeof(s_world.json),
@@ -456,8 +454,8 @@ TEST(web_host, a_move_while_held_drags_the_thumb_and_one_not_held_does_nothing)
 }
 
 /* A `w` line is a notch, positive up: one down scrolls the view one step, one up brings it
-   back -- the same direction a desktop wheel scrolls. The step is the host machine's
-   (lh_os_input_get_wheel_step): the view asks the OS layer, not the browser. */
+   back -- the same direction a desktop wheel scrolls. The player installs no wheel
+   contract on its view, so the step is the view's fallback, LH_GL_VIEW_WHEEL_STEP. */
 TEST(web_host, a_wheel_line_scrolls_one_step_per_notch)
 {
     LH_TEST_NEEDS_HOST();
@@ -467,7 +465,7 @@ TEST(web_host, a_wheel_line_scrolls_one_step_per_notch)
     wait_passes();
     ASSERT_EQ(s_world.scroll_y.load(), 0);
     ASSERT_TRUE(ws.line("w 50 50 0 -1"));
-    EXPECT_TRUE(wait_for([] { return s_world.scroll_y.load() == lh_os_input_get_wheel_step(); }));
+    EXPECT_TRUE(wait_for([] { return s_world.scroll_y.load() == LH_GL_VIEW_WHEEL_STEP; }));
     ASSERT_TRUE(ws.line("w 50 50 0 1"));
     EXPECT_TRUE(wait_for([] { return s_world.scroll_y.load() == 0; }));
 }

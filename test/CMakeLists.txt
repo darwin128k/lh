@@ -458,6 +458,11 @@ if (NOT LH_LIBRARY_OPTION_OS)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/logger/capture.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/logger/capture.cpp)
 endif ()
+# lh/os/input.c is built where a kernel is: on Windows only with the window backend.
+if (WIN32 AND LH_LIBRARY_OPTION_OS AND NOT LH_LIBRARY_OPTION_OS_WINDOW)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/input.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/input.cpp)
+endif ()
 if (WIN32 OR NOT LH_LIBRARY_OPTION_OS)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/system/unix/input.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/system/unix/input.cpp)
@@ -555,10 +560,10 @@ lh_add_test_core(lh_test_os_input
         ${LH_TEST_SRC_PATH}/lh/core/input/wheel.cpp
 )
 
-# lh/os/controller: the controller between an input source and its handler needs no
+# lh/core/controller: the controller between an input source and its handler needs no
 # OS either, so it is tested in every build.
 lh_add_test_core(lh_test_os_controller
-        ${LH_TEST_SRC_PATH}/lh/os/controller.cpp
+        ${LH_TEST_SRC_PATH}/lh/core/controller.cpp
 )
 
 lh_add_test_core(lh_test_random

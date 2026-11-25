@@ -4,15 +4,11 @@
 
 #include <lh/gl/canvas/sw.h>
 #include <lh/gl/label.h>
-#include <lh/os/controller.h>
+#include <lh/core/controller.h>
 #include <lh/gl/view.h>
 #include <lh/gl/view/controller.h>
 #include <lh/gl/view/pointer/initializer.h>
 #include <lh/test/out.h>
-
-#if LH_LIBRARY_OPTION_OS
-#    include <lh/os/input.h>
-#endif
 
 namespace
 {
@@ -877,16 +873,12 @@ feed(view_fixture &f, lh_input_event_t event)
     return lh_gl_view_input(lh_addr_of(f.view), lh_addr_of(event));
 }
 
-/* What one notch scrolls in this build: the system's step with the OS layer (40 while
-   the system is at its default), the fallback without it. */
-int
-wheel_step()
+/* A wheel contract for the tests: the lines are whatever the context points at, so a
+   test changes them between notches and sees the view ask again. */
+lh_u32_t
+lines_of_context(lh_ptr context)
 {
-#if LH_LIBRARY_OPTION_OS
-    return static_cast<int>(lh_os_input_get_wheel_step());
-#else
-    return LH_GL_VIEW_WHEEL_STEP;
-#endif
+    return *static_cast<const lh_u32_t *>(context);
 }
 } // namespace
 
@@ -934,11 +926,9 @@ TEST(view, input_a_move_drags_the_thumb)
    the end, a notch up comes back. */
 TEST(view, input_a_wheel_notch_scrolls_one_step)
 {
-    ASSERT_GT(wheel_step(), 0) << "the system is set not to scroll on the wheel";
-    ASSERT_LE(wheel_step(), 300) << "the fixture scrolls 300 at most";
     view_fixture f;
     EXPECT_TRUE(feed(f, wheel_event(50, 50, 0, -LH_INPUT_WHEEL_NOTCH)));
-    EXPECT_EQ(scroll_y_of(f.box), wheel_step());
+    EXPECT_EQ(scroll_y_of(f.box), LH_GL_VIEW_WHEEL_STEP);
     EXPECT_TRUE(feed(f, wheel_event(50, 50, 0, LH_INPUT_WHEEL_NOTCH)));
     EXPECT_EQ(scroll_y_of(f.box), 0);
     EXPECT_FALSE(feed(f, wheel_event(50, 50, 0, LH_INPUT_WHEEL_NOTCH))) << "already at the top";
@@ -946,12 +936,65 @@ TEST(view, input_a_wheel_notch_scrolls_one_step)
         << "a move with nothing pressed scrolls nothing";
 }
 
-/* Without the OS layer there is no system to ask, and a notch has to scroll what it did
-   before the view asked one: the OS layer's own default, 40. */
-TEST(view, input_the_fallback_wheel_step_is_the_os_default)
+/* With no contract installed there is nobody to ask, and a notch has to scroll what it
+   did before the view asked one: the core's default, 40. */
+TEST(view, input_the_fallback_wheel_step_is_the_core_default)
 {
+    view_fixture f;
+
     EXPECT_EQ(LH_GL_VIEW_WHEEL_STEP, LH_INPUT_WHEEL_STEP_DEFAULT);
     EXPECT_EQ(LH_GL_VIEW_WHEEL_STEP, 40);
+    EXPECT_EQ(lh_gl_view_get_wheel_lines(lh_addr_of(f.view)), nullptr) << "nothing by default";
+    EXPECT_EQ(lh_gl_view_get_wheel_step(lh_addr_of(f.view)), LH_GL_VIEW_WHEEL_STEP);
+}
+
+/* An installed contract sizes every notch, asked again each time with its context; the
+   lines go through the core's conversion. */
+TEST(view, input_an_installed_wheel_contract_sizes_each_notch)
+{
+    view_fixture f;
+    lh_u32_t lines = 6U;
+
+    lh_gl_view_install_wheel_lines(lh_addr_of(f.view), lines_of_context, &lines);
+    EXPECT_EQ(lh_gl_view_get_wheel_lines(lh_addr_of(f.view)), lines_of_context);
+    EXPECT_EQ(lh_gl_view_get_wheel_lines_context(lh_addr_of(f.view)), &lines);
+    EXPECT_EQ(lh_gl_view_get_wheel_step(lh_addr_of(f.view)), lh_input_wheel_step_of(6U));
+    EXPECT_TRUE(feed(f, wheel_event(50, 50, 0, -LH_INPUT_WHEEL_NOTCH)));
+    EXPECT_EQ(scroll_y_of(f.box), lh_input_wheel_step_of(6U));
+
+    lines = 1U;
+    EXPECT_TRUE(feed(f, wheel_event(50, 50, 0, -LH_INPUT_WHEEL_NOTCH)));
+    EXPECT_EQ(scroll_y_of(f.box), lh_input_wheel_step_of(6U) + lh_input_wheel_step_of(1U))
+        << "the setting changed between notches";
+}
+
+/* Zero lines is a system set not to scroll on the wheel: the notch moves nothing, and
+   the view says it did not act. */
+TEST(view, input_zero_wheel_lines_scroll_nothing)
+{
+    view_fixture f;
+    lh_u32_t lines = 0U;
+
+    lh_gl_view_install_wheel_lines(lh_addr_of(f.view), lines_of_context, &lines);
+    EXPECT_EQ(lh_gl_view_get_wheel_step(lh_addr_of(f.view)), 0);
+    EXPECT_FALSE(feed(f, wheel_event(50, 50, 0, -LH_INPUT_WHEEL_NOTCH)));
+    EXPECT_EQ(scroll_y_of(f.box), 0);
+}
+
+/* Installing null goes back to the fallback, and init forgets what was installed. */
+TEST(view, input_the_wheel_contract_can_be_taken_back)
+{
+    view_fixture f;
+    lh_u32_t lines = 9U;
+
+    lh_gl_view_install_wheel_lines(lh_addr_of(f.view), lines_of_context, &lines);
+    lh_gl_view_install_wheel_lines(lh_addr_of(f.view), nullptr, nullptr);
+    EXPECT_EQ(lh_gl_view_get_wheel_step(lh_addr_of(f.view)), LH_GL_VIEW_WHEEL_STEP);
+
+    lh_gl_view_install_wheel_lines(lh_addr_of(f.view), lines_of_context, &lines);
+    lh_gl_view_init(lh_addr_of(f.view));
+    EXPECT_EQ(lh_gl_view_get_wheel_lines(lh_addr_of(f.view)), nullptr);
+    EXPECT_EQ(lh_gl_view_get_wheel_lines_context(lh_addr_of(f.view)), nullptr);
 }
 
 TEST(view, input_a_cancel_ends_the_press_without_a_click)
@@ -1042,12 +1085,12 @@ TEST(view, controller_handle_gives_the_view_the_raw_events)
     const lh_input_event_t up =
         pointer_event(lh_input_kind_pointer_up, lh_input_button_primary, 105, 150);
 
-    lh_os_controller_t controller;
+    lh_controller_t controller;
     view_fixture f;
-    lh_os_controller_init(lh_addr_of(controller), lh_gl_view_controller_handle_event_is_handled,
-                          lh_addr_of(f.view), lh_null);
-    EXPECT_TRUE(lh_os_controller_feed(lh_addr_of(controller), lh_addr_of(down)));
-    EXPECT_TRUE(lh_os_controller_feed(lh_addr_of(controller), lh_addr_of(up)));
+    lh_controller_init(lh_addr_of(controller), lh_gl_view_controller_handle_event_is_handled,
+                       lh_addr_of(f.view), lh_null);
+    EXPECT_TRUE(lh_controller_feed(lh_addr_of(controller), lh_addr_of(down)));
+    EXPECT_TRUE(lh_controller_feed(lh_addr_of(controller), lh_addr_of(up)));
     EXPECT_EQ(scroll_y_of(f.box), 100) << "the synthesized click paged a second time";
 }
 
@@ -1058,14 +1101,14 @@ TEST(view, controller_cancel_ends_the_press_without_a_click)
     const lh_input_event_t up =
         pointer_event(lh_input_kind_pointer_up, lh_input_button_primary, 105, 150);
 
-    lh_os_controller_t controller;
+    lh_controller_t controller;
     view_fixture f;
-    lh_os_controller_init(lh_addr_of(controller), lh_gl_view_controller_handle_event_is_handled,
-                          lh_addr_of(f.view), lh_null);
-    lh_os_controller_set_cancel_cb(lh_addr_of(controller), lh_gl_view_controller_cancel);
-    EXPECT_TRUE(lh_os_controller_feed(lh_addr_of(controller), lh_addr_of(down)));
-    lh_os_controller_cancel(lh_addr_of(controller));
-    EXPECT_TRUE(lh_os_controller_feed(lh_addr_of(controller), lh_addr_of(up)));
+    lh_controller_init(lh_addr_of(controller), lh_gl_view_controller_handle_event_is_handled,
+                       lh_addr_of(f.view), lh_null);
+    lh_controller_set_cancel_cb(lh_addr_of(controller), lh_gl_view_controller_cancel);
+    EXPECT_TRUE(lh_controller_feed(lh_addr_of(controller), lh_addr_of(down)));
+    lh_controller_cancel(lh_addr_of(controller));
+    EXPECT_TRUE(lh_controller_feed(lh_addr_of(controller), lh_addr_of(up)));
     EXPECT_EQ(scroll_y_of(f.box), 0) << "the release after a cancel is no click";
 }
 

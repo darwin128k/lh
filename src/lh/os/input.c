@@ -1,27 +1,16 @@
 /**
  * @file input.c
- * @brief Implementation of `lh/os/input.h`: the platform's kernel, picked by `#if`.
+ * @brief Implementation of `lh/os/input.h`: the contract's slot over the platform's
+ *        kernel, which the link picks.
  */
 
-#include <lh/core/compiler/os.h>
 #include <lh/os/input.h>
+#include <lh/os/system/input.h>
+#include <lh/core/attribute/unused.h>
 
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS && LH_LIBRARY_OPTION_OS_WINDOW
-#    include <lh/os/system/win/input.h>
-#elif LH_COMPILER_OS == LH_COMPILER_OS_LINUX || LH_COMPILER_OS == LH_COMPILER_OS_MAC
-#    include <lh/os/system/unix/input.h>
-#endif
-
-lh_s32_t
-lh_os_input_get_wheel_step(lh_void)
+lh_u32_t
+lh_os_input_get_wheel_lines(lh_ptr context)
 {
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS && LH_LIBRARY_OPTION_OS_WINDOW
-    return lh_input_wheel_step_of(lh_os_system_win_input_get_wheel_lines());
-#elif LH_COMPILER_OS == LH_COMPILER_OS_LINUX || LH_COMPILER_OS == LH_COMPILER_OS_MAC
-    return lh_input_wheel_step_of(lh_os_system_unix_input_get_wheel_lines());
-#else
-    /* No kernel to ask: Windows without user32 linked (no window backend), or a
-       platform with no system setting at all (STM32 and the like). */
-    return LH_INPUT_WHEEL_STEP_DEFAULT;
-#endif
+    LH_ATTRIBUTE_UNUSED(context);
+    return lh_os_system_input_get_wheel_lines();
 }

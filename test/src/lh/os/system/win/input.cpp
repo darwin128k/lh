@@ -3,6 +3,7 @@
 #include <lh/core/input/event.h>
 #include <lh/core/input/wheel.h>
 #include <lh/core/size.h>
+#include <lh/os/system/input.h>
 
 /* Backend-private (src/lh/os/system/win/input.h), so declared here: the test
    includes only the public tree. wParam is a UINT_PTR and lParam a LONG_PTR. */
@@ -19,8 +20,6 @@ lh_os_system_win_input_wheel_of(lh_u32_t msg, lh_usize_t wparam, lh_s32_t *dx, l
 /* BOOL is an int and UINT an unsigned int. */
 extern "C" lh_u32_t
 lh_os_system_win_input_wheel_lines_of(int got, unsigned int lines);
-extern "C" lh_u32_t
-lh_os_system_win_input_get_wheel_lines(void);
 /* POINTER_INPUT_TYPE is a DWORD, an unsigned long; POINTER_FLAGS a UINT32. */
 extern "C" lh_input_device_kind_t
 lh_os_system_win_input_device_kind_of_pointer_type(unsigned long type);
@@ -115,7 +114,7 @@ TEST(os_system_win_input, a_line_count_is_taken_as_it_is)
    lh_os_system_win_input_wheel_lines_of - no raw WHEEL_PAGESCROLL - is the kernel's. */
 TEST(os_system_win_input, the_system_answers_a_count_of_lines)
 {
-    EXPECT_NE(lh_os_system_win_input_get_wheel_lines(), 0xFFFFFFFFU);
+    EXPECT_NE(lh_os_system_input_get_wheel_lines(), 0xFFFFFFFFU);
 }
 
 /* PT_POINTER 1, PT_TOUCH 2, PT_PEN 3, PT_MOUSE 4, PT_TOUCHPAD 5. */

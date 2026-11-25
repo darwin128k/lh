@@ -9,10 +9,6 @@
 #include <lh/gl/view.h>
 #include <lh/core/util/return.h>
 
-#if LH_LIBRARY_OPTION_OS
-#    include <lh/os/input.h>
-#endif
-
 lh_void
 lh_gl_view_set_canvas(lh_gl_view_t *self, lh_gl_canvas_t *canvas)
 {
@@ -478,6 +474,7 @@ lh_gl_view_init(lh_gl_view_t *self)
     lh_gl_view_set_throwing(self, lh_null);
     lh_gl_view_set_focus(self, lh_null);
     lh_gl_view_set_whole_count(self, 0);
+    lh_gl_view_install_wheel_lines(self, lh_null, lh_null);
     lh_gl_rects_init(lh_gl_view_get_pending_mut(self));
     lh_gl_point_init(lh_gl_view_get_velocity_mut(self), lh_gl_scalar(0), lh_gl_scalar(0));
     for (lh_input_pointer_id_t id = 0U; id < LH_INPUT_POINTER_MAX; ++id)
@@ -1018,26 +1015,25 @@ lh_gl_view_point_of(lh_input_event_cptr event)
     return point;
 }
 
-lh_s32_t
-lh_gl_view_wheel_step(lh_void)
-{
-#if LH_LIBRARY_OPTION_OS
-    return lh_os_input_get_wheel_step();
-#else
-    return LH_GL_VIEW_WHEEL_STEP;
-#endif
-}
-
 lh_gl_scalar_t
 lh_gl_view_wheel_distance(lh_s32_t notch_120, lh_s32_t step)
 {
     return lh_type_cast(lh_gl_scalar_t, lh_math_neg(notch_120) * step / LH_INPUT_WHEEL_NOTCH);
 }
 
+lh_s32_t
+lh_gl_view_get_wheel_step(const lh_gl_view_t *self)
+{
+    lh_input_wheel_lines_fn *fn = lh_gl_view_get_wheel_lines(self);
+
+    lh_return_if(lh_null_eq(fn), LH_GL_VIEW_WHEEL_STEP);
+    return lh_input_wheel_step_of(fn(lh_gl_view_get_wheel_lines_context(self)));
+}
+
 lh_bool_t
 lh_gl_view_input_wheel(lh_gl_view_t *self, lh_input_event_cptr event)
 {
-    const lh_s32_t step = lh_gl_view_wheel_step();
+    const lh_s32_t step = lh_gl_view_get_wheel_step(self);
 
     return lh_gl_view_wheel(self, lh_gl_view_point_of(event),
                             lh_gl_view_wheel_distance(lh_input_event_get_dx(event), step),
@@ -1375,4 +1371,39 @@ lh_gl_view_set_focus(lh_gl_view_t *self, lh_gl_entity_t *focus)
 {
     lh_assert_runtime_ref(self);
     self->focus = focus;
+}
+
+lh_input_wheel_lines_fn *
+lh_gl_view_get_wheel_lines(const lh_gl_view_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->wheel_lines;
+}
+
+lh_void
+lh_gl_view_set_wheel_lines(lh_gl_view_t *self, lh_input_wheel_lines_fn *wheel_lines)
+{
+    lh_assert_runtime_ref(self);
+    self->wheel_lines = wheel_lines;
+}
+
+lh_ptr
+lh_gl_view_get_wheel_lines_context(const lh_gl_view_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->wheel_lines_context;
+}
+
+lh_void
+lh_gl_view_set_wheel_lines_context(lh_gl_view_t *self, lh_ptr context)
+{
+    lh_assert_runtime_ref(self);
+    self->wheel_lines_context = context;
+}
+
+lh_void
+lh_gl_view_install_wheel_lines(lh_gl_view_t *self, lh_input_wheel_lines_fn *fn, lh_ptr context)
+{
+    lh_gl_view_set_wheel_lines(self, fn);
+    lh_gl_view_set_wheel_lines_context(self, context);
 }

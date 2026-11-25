@@ -251,8 +251,8 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/input/recognizer/config.c
         ${LH_LIB_SRC_PATH}/core/input/recognizer/pointer.c
         ${LH_LIB_SRC_PATH}/core/input/wheel.c
-        ${LH_LIB_SRC_PATH}/os/controller.c
-        ${LH_LIB_SRC_PATH}/os/controller/dispatch.c
+        ${LH_LIB_SRC_PATH}/core/controller.c
+        ${LH_LIB_SRC_PATH}/core/controller/dispatch.c
         ${LH_LIB_SRC_PATH}/core/error.c
         ${LH_LIB_SRC_PATH}/core/werror.c
         ${LH_LIB_SRC_PATH}/core/runtime/error.c
@@ -421,7 +421,6 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/env.c
             ${LH_LIB_SRC_PATH}/os/debug.c
             ${LH_LIB_SRC_PATH}/os/memory.c
-            ${LH_LIB_SRC_PATH}/os/input.c
             ${LH_LIB_SRC_PATH}/os/fs/path.c
             ${LH_LIB_SRC_PATH}/os/fs/stat.c
             ${LH_LIB_SRC_PATH}/os/fs/file.c
@@ -489,11 +488,13 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/shared.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/str.c
     )
-    # Unix kernel: what the input driver says, apart from any window system (X11 is
-    # posix/). Built wherever the posix backend is; lh/os/input.c calls it on Linux
-    # and macOS.
+    # Unix kernel of lh/os/system/input.h: what the input driver says, apart from any
+    # window system (X11 is posix/). Built wherever the posix backend is, and with it
+    # lh/os/input.c, the brick over it. On Windows both come with the window backend.
     if (NOT WIN32)
-        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/unix/input.c)
+        list(APPEND LH_LIB_SOURCES
+                ${LH_LIB_SRC_PATH}/os/system/unix/input.c
+                ${LH_LIB_SRC_PATH}/os/input.c)
     endif ()
     if (LH_LIBRARY_OPTION_OS_WINDOW)
         list(APPEND LH_LIB_SOURCES
@@ -506,6 +507,7 @@ if (LH_LIBRARY_OPTION_OS)
             list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/window.c)
             list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/key.c)
             list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/input.c)
+            list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/input.c)
             list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/surface.c)
             list(APPEND LH_OS_SYSTEM_LINK_LIBS user32 gdi32)
         elseif (APPLE)

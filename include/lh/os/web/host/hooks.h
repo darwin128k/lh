@@ -17,8 +17,8 @@
  * two levels (::lh_os_window_set_on_input, ::lh_os_window_set_controller):
  *
  * - @p input, when set, sees it first, raw: the low-level tap;
- * - @p controller, when set, gets it next (::lh_os_controller_feed), and the host
- *   calls ::lh_os_controller_update on it at every tick, before @p tick;
+ * - @p controller, when set, gets it next (::lh_controller_feed), and the host
+ *   calls ::lh_controller_update on it at every tick, before @p tick;
  * - with neither, the event is the application's to route: the gl player, for
  *   one, then feeds a controller of its own on the view it serves, so the view
  *   gets every event as `lh_gl_view_input` would have.
@@ -50,7 +50,7 @@ struct lh_os_web_host_hooks
     /** Takes every input event after ::input and is updated every tick; the caller's,
         and must outlive the run. ::lh_null with no ::input: the host's own view
         controller. */
-    lh_os_controller_t *controller;
+    lh_controller_t *controller;
 };
 /** @copybrief lh_os_web_host_hooks */
 typedef struct lh_os_web_host_hooks lh_os_web_host_hooks_t;
@@ -140,7 +140,7 @@ lh_os_web_host_hooks_set_resize_fn(lh_os_web_host_hooks_t *self,
  *
  * @param self The hooks; checked by ::lh_assert_runtime_ref.
  */
-lh_os_controller_t *
+lh_controller_t *
 lh_os_web_host_hooks_get_controller(const lh_os_web_host_hooks_t *self);
 
 /**
@@ -152,7 +152,7 @@ lh_os_web_host_hooks_get_controller(const lh_os_web_host_hooks_t *self);
  * @param controller The new value.
  */
 lh_void
-lh_os_web_host_hooks_set_controller(lh_os_web_host_hooks_t *self, lh_os_controller_t *controller);
+lh_os_web_host_hooks_set_controller(lh_os_web_host_hooks_t *self, lh_controller_t *controller);
 
 LH_COMPILER_EXTERN_C_END
 

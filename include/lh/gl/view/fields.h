@@ -36,7 +36,8 @@
 #endif
 
 /**
- * @def lh_gl_view_fields(canvas_type, entity_type, color_type, rect_type, rects_type, pointer_type)
+ * @def lh_gl_view_fields(canvas_type, entity_type, color_type, rect_type, rects_type, pointer_type,
+ * wheel_lines_type)
  * @brief Canvas, root entity, optional clear color, partial strip height,
  *        pointer sessions, scroll gesture, throw, and keyboard focus.
  *
@@ -60,6 +61,9 @@
  * frame resets it.
  * `transitions`: the looks in flight (::lh_gl_view_advance), a slot with no entity
  * being free.
+ * `wheel_lines`: the contract a wheel notch is sized by (::lh_input_wheel_lines_fn),
+ * ::lh_null for ::LH_GL_VIEW_WHEEL_STEP; `wheel_lines_context` is handed to it.
+ * Neither is owned (::lh_gl_view_install_wheel_lines).
  *
  * @param canvas_type  Type of ::lh_gl_canvas_t.
  * @param entity_type  Pointer type of ::lh_gl_entity_t.
@@ -67,9 +71,10 @@
  * @param rect_type    Type of ::lh_gl_rect_t.
  * @param rects_type   Type of ::lh_gl_rects_t, the pending region.
  * @param pointer_type Type of ::lh_gl_view_pointer_t.
+ * @param wheel_lines_type Function type ::lh_input_wheel_lines_fn.
  */
 #define lh_gl_view_fields(canvas_type, entity_type, color_type, rect_type, rects_type,             \
-                          pointer_type)                                                            \
+                          pointer_type, wheel_lines_type)                                          \
     canvas_type *canvas;                                                                           \
     entity_type *root;                                                                             \
     const color_type *clear;                                                                       \
@@ -82,6 +87,8 @@
     rect_type whole[LH_GL_VIEW_WHOLE_MAX];                                                         \
     lh_u32_t whole_count;                                                                          \
     rects_type pending;                                                                            \
-    lh_gl_transition_t transitions[LH_GL_VIEW_TRANSITION_MAX]
+    lh_gl_transition_t transitions[LH_GL_VIEW_TRANSITION_MAX];                                     \
+    wheel_lines_type *wheel_lines;                                                                 \
+    lh_ptr wheel_lines_context
 
 #endif /* LH_GL_VIEW_FIELDS_H */

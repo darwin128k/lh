@@ -66,14 +66,14 @@ lh_gl_window_get_view_mut(lh_gl_window_t *self)
     return lh_addr_of(self->view);
 }
 
-const lh_os_controller_t *
+const lh_controller_t *
 lh_gl_window_get_controller(const lh_gl_window_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->controller);
 }
 
-lh_os_controller_t *
+lh_controller_t *
 lh_gl_window_get_controller_mut(lh_gl_window_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -187,7 +187,7 @@ lh_gl_window_on_resize(lh_os_window_t *window, int width, int height, lh_ptr con
     LH_ATTRIBUTE_UNUSED(width);
     LH_ATTRIBUTE_UNUSED(height);
     lh_gl_window_t *self = lh_ptr_rcast(lh_gl_window_t, context);
-    lh_os_controller_cancel(lh_gl_window_get_controller_mut(self));
+    lh_controller_cancel(lh_gl_window_get_controller_mut(self));
     lh_os_window_invalidate(window);
 }
 
@@ -247,7 +247,7 @@ lh_gl_window_paint(lh_gl_window_t *self)
 lh_void
 lh_gl_window_deinit(lh_gl_window_t *self)
 {
-    lh_os_controller_cancel(lh_gl_window_get_controller_mut(self));
+    lh_controller_cancel(lh_gl_window_get_controller_mut(self));
     lh_os_window_set_controller(lh_gl_window_get_window_mut(self), lh_null);
     lh_os_window_deinit(lh_gl_window_get_window_mut(self));
     lh_gl_view_set_root_v(lh_gl_window_get_view_mut(self), lh_null);
@@ -281,11 +281,11 @@ lh_gl_window_init(lh_gl_window_t *self, lh_gl_entity_t *root)
     lh_gl_view_init(lh_gl_window_get_view_mut(self));
     lh_gl_view_set_canvas(lh_gl_window_get_view_mut(self), lh_gl_window_get_canvas_mut(self));
     lh_gl_view_set_root_v(lh_gl_window_get_view_mut(self), root);
-    lh_os_controller_init(lh_gl_window_get_controller_mut(self),
-                          lh_gl_view_controller_handle_event_is_handled,
-                          lh_gl_window_get_view_mut(self), lh_null);
-    lh_os_controller_set_cancel_cb(lh_gl_window_get_controller_mut(self),
-                                   lh_gl_view_controller_cancel);
+    lh_controller_init(lh_gl_window_get_controller_mut(self),
+                       lh_gl_view_controller_handle_event_is_handled,
+                       lh_gl_window_get_view_mut(self), lh_null);
+    lh_controller_set_cancel_cb(lh_gl_window_get_controller_mut(self),
+                                lh_gl_view_controller_cancel);
     lh_os_window_set_controller(lh_gl_window_get_window_mut(self),
                                 lh_gl_window_get_controller_mut(self));
     lh_os_window_set_on_paint(lh_gl_window_get_window_mut(self), lh_gl_window_on_paint, self);

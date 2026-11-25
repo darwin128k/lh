@@ -112,7 +112,7 @@ Notes:
   `lh_os_window_invalidate` — damage on the view is enough for the next frame.
 - Any hook may be `lh_null`. Input takes the same two levels as a window:
   `input` (the low-level sink) sees every event first, raw, moves included;
-  `controller` (an `lh_os_controller_t *`, the standard path) gets it next and
+  `controller` (an `lh_controller_t *`, the standard path) gets it next and
   is updated by the host at every tick, before `tick`, so long presses come
   due. With neither, the host feeds a controller of its own made with
   `lh_gl_view_controller_handle_event_is_handled` / `lh_gl_view_controller_cancel` on the

@@ -25,13 +25,13 @@ lh_os_window_get_parent(const lh_os_window_t *self)
 }
 
 lh_void
-lh_os_window_set_controller(lh_os_window_t *self, lh_os_controller_t *controller)
+lh_os_window_set_controller(lh_os_window_t *self, lh_controller_t *controller)
 {
     lh_assert_runtime_ref(self);
     self->controller = controller;
 }
 
-lh_os_controller_t *
+lh_controller_t *
 lh_os_window_get_controller(const lh_os_window_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -685,13 +685,12 @@ lh_os_window_set_size(lh_os_window_t *self, int width, int height)
 lh_bool_t
 lh_os_window_get_controller_deadline(lh_os_window_t *self, lh_tick_t *out)
 {
-    lh_os_controller_t *controller = lh_os_window_get_controller(self);
+    lh_controller_t *controller = lh_os_window_get_controller(self);
 
     lh_return_if(lh_null_eq(controller), lh_bool_false);
-    lh_return_if(!lh_os_controller_is_enabled(controller), lh_bool_false);
-    lh_return_if(!lh_os_controller_has_flag(controller, lh_os_controller_flags_gestures),
-                 lh_bool_false);
-    return lh_input_recognizer_get_next_deadline(lh_os_controller_get_recognizer(controller), out);
+    lh_return_if(!lh_controller_is_enabled(controller), lh_bool_false);
+    lh_return_if(!lh_controller_has_flag(controller, lh_controller_flags_gestures), lh_bool_false);
+    return lh_input_recognizer_get_next_deadline(lh_controller_get_recognizer(controller), out);
 }
 
 lh_bool_t
@@ -1120,7 +1119,7 @@ lh_os_window_set_placement_v(lh_os_window_t *self, lh_os_window_placement_t plac
 lh_void
 lh_os_window_update_controller(lh_os_window_t *self)
 {
-    lh_os_controller_t *controller = lh_os_window_get_controller(self);
+    lh_controller_t *controller = lh_os_window_get_controller(self);
 
     lh_return_if(lh_null_eq(controller));
     const lh_os_window_backend_t *backend = lh_os_window_get_backend(self);
@@ -1128,7 +1127,7 @@ lh_os_window_update_controller(lh_os_window_t *self)
     /* The time is the backend's: a window that was never opened has no clock to update
        its controller by. */
     lh_return_if(lh_null_eq(backend));
-    LH_ATTRIBUTE_UNUSED(lh_os_controller_update(
+    LH_ATTRIBUTE_UNUSED(lh_controller_update(
         controller, lh_os_window_backend_get_now(backend)(lh_os_window_get_backend_context(self))));
     lh_os_window_arm_controller(self, lh_bool_true);
 }
@@ -1136,14 +1135,14 @@ lh_os_window_update_controller(lh_os_window_t *self)
 lh_void
 lh_os_window_feed_controller(lh_os_window_t *self, const lh_input_event_cptr event)
 {
-    lh_os_controller_t *controller = lh_os_window_get_controller(self);
+    lh_controller_t *controller = lh_os_window_get_controller(self);
     const lh_input_kind_t kind = lh_input_event_get_kind(event);
 
     lh_return_if(lh_null_eq(controller));
-    LH_ATTRIBUTE_UNUSED(lh_os_controller_feed(controller, event));
+    LH_ATTRIBUTE_UNUSED(lh_controller_feed(controller, event));
     if (kind == lh_input_kind_focus_out)
     {
-        lh_os_controller_cancel(controller);
+        lh_controller_cancel(controller);
     }
     /* Only a press starts a new wait; anything else can only end one, so the timer that
        already runs is left alone instead of being set again on every move. */

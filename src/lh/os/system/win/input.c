@@ -5,6 +5,7 @@
 
 #include <lh/core/input/wheel.h>
 #include <lh/os/system/win/input.h>
+#include <lh/os/system/input.h>
 #include <lh/core/util/return.h>
 
 lh_input_button_t
@@ -97,7 +98,7 @@ lh_os_system_win_input_wheel_lines_of(lh_os_system_win_bool_t got, lh_os_system_
 }
 
 lh_u32_t
-lh_os_system_win_input_get_wheel_lines(lh_void)
+lh_os_system_input_get_wheel_lines(lh_void)
 {
     lh_os_system_win_uint_t lines = 0U;
     const lh_os_system_win_bool_t got =

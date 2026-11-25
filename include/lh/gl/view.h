@@ -41,6 +41,7 @@
 #define LH_GL_VIEW_H
 
 #include <lh/config.h>
+#include <lh/core/input/wheel/lines/fn.h>
 #include <lh/gl/view/focus/walk.h>
 
 #if !LH_LIBRARY_OPTION_GL
@@ -55,7 +56,7 @@ struct lh_gl_view
 {
     /** Members: ::lh_gl_view_fields. */
     lh_gl_view_fields(lh_gl_canvas_t, lh_gl_entity_t, lh_gl_color_t, lh_gl_rect_t, lh_gl_rects_t,
-                      lh_gl_view_pointer_t);
+                      lh_gl_view_pointer_t, lh_input_wheel_lines_fn);
 };
 /** @copybrief lh_gl_view */
 typedef struct lh_gl_view lh_gl_view_t;
@@ -92,13 +93,13 @@ typedef struct lh_gl_view lh_gl_view_t;
 /**
  * @def LH_GL_VIEW_WHEEL_STEP
  * @brief How far one wheel notch (::LH_INPUT_WHEEL_NOTCH) scrolls, in content
- *        units, when it comes in through ::lh_gl_view_input in a build without the OS
- *        layer (::LH_LIBRARY_OPTION_OS off).
+ *        units, when it comes in through ::lh_gl_view_input to a view with no
+ *        ::lh_input_wheel_lines_fn installed.
  *
- * With the OS layer the view asks the system instead, ::lh_os_input_get_wheel_step on
- * each wheel event. The fallback is the OS layer's own default,
- * ::LH_INPUT_WHEEL_STEP_DEFAULT (40), so a notch scrolls the same with and without
- * it while the system is at its default.
+ * With one installed (::lh_gl_view_install_wheel_lines; the system's is
+ * ::lh_os_input_get_wheel_lines) the view asks it on each wheel event instead. The
+ * fallback is the core's default, ::LH_INPUT_WHEEL_STEP_DEFAULT (40), so a notch
+ * scrolls the same with and without the system's while it is at its default.
  */
 #ifndef LH_GL_VIEW_WHEEL_STEP
 #    define LH_GL_VIEW_WHEEL_STEP LH_INPUT_WHEEL_STEP_DEFAULT
@@ -787,15 +788,23 @@ lh_gl_view_cancel(lh_gl_view_t *self);
 lh_gl_point_t
 lh_gl_view_point_of(const lh_input_event_ptr event);
 
-/** Content units one wheel notch scrolls: the system's step
-   (::lh_os_input_get_wheel_step), or ::LH_GL_VIEW_WHEEL_STEP where there is no OS layer
-   to ask. */
-lh_s32_t lh_gl_view_wheel_step(lh_void);
-
 /** A wheel distance in 1/120 notch (positive up / left) as content units to
    scroll by (positive down / right), @p step units a notch. */
 lh_gl_scalar_t
 lh_gl_view_wheel_distance(lh_s32_t notch_120, lh_s32_t step);
+
+/**
+ * @brief Content units one wheel notch scrolls in @p self, asked now.
+ *
+ * The installed ::lh_input_wheel_lines_fn (::lh_gl_view_install_wheel_lines),
+ * called with its context, through ::lh_input_wheel_step_of; with none installed,
+ * ::LH_GL_VIEW_WHEEL_STEP. Not cached: each call asks again.
+ *
+ * @param self The view; checked by ::lh_gl_view_get_wheel_lines.
+ * @return Content units a notch, `0` when the answer is "do not scroll".
+ */
+lh_s32_t
+lh_gl_view_get_wheel_step(const lh_gl_view_t *self);
 
 /** The wheel case of ::lh_gl_view_input: both axes by one step, asked once. */
 lh_bool_t
@@ -826,9 +835,9 @@ lh_gl_view_input_pointer(lh_gl_view_t *self, const lh_input_event_ptr event);
  *
  * Each pointer below ::LH_INPUT_POINTER_MAX is followed in a session of its own,
  * the event's `pointer` the id: the mouse `0`, touch contacts and pens from `1`. A
- * wheel notch up or left scrolls back toward the start by the system's step,
- * ::lh_os_input_get_wheel_step content units (::LH_GL_VIEW_WHEEL_STEP without
- * ::LH_LIBRARY_OPTION_OS). Other buttons, pointers at or above the limit,
+ * wheel notch up or left scrolls back toward the start by
+ * ::lh_gl_view_get_wheel_step content units: the installed contract's lines, or
+ * ::LH_GL_VIEW_WHEEL_STEP without one. Other buttons, pointers at or above the limit,
  * controllers and every synthesized event (::lh_input_event_is_synthesized) are
  * not for the view.
  *
@@ -1038,6 +1047,66 @@ lh_gl_view_set_root(lh_gl_view_t *self, lh_gl_entity_t *root);
  */
 lh_void
 lh_gl_view_set_focus(lh_gl_view_t *self, lh_gl_entity_t *focus);
+
+/**
+ * @brief The contract a wheel notch is sized by, or ::lh_null (level 1).
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ */
+lh_input_wheel_lines_fn *
+lh_gl_view_get_wheel_lines(const lh_gl_view_t *self);
+
+/**
+ * @brief Store the contract a wheel notch is sized by (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ * @param wheel_lines The new value; ::lh_null for ::LH_GL_VIEW_WHEEL_STEP.
+ */
+lh_void
+lh_gl_view_set_wheel_lines(lh_gl_view_t *self, lh_input_wheel_lines_fn *wheel_lines);
+
+/**
+ * @brief The context handed to the wheel contract (level 1).
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ */
+lh_ptr
+lh_gl_view_get_wheel_lines_context(const lh_gl_view_t *self);
+
+/**
+ * @brief Store the context handed to the wheel contract (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self The view; checked by ::lh_assert_runtime_ref.
+ * @param context The new value, not owned.
+ */
+lh_void
+lh_gl_view_set_wheel_lines_context(lh_gl_view_t *self, lh_ptr context);
+
+/**
+ * @brief Install @p fn and @p context as what sizes a wheel notch in @p self.
+ *
+ * From the next wheel event ::lh_gl_view_input scrolls by
+ * `lh_input_wheel_step_of(fn(context))` content units a notch. The host chooses
+ * who answers: ::lh_os_input_get_wheel_lines for the system's setting, its own
+ * for a board or a test. ::lh_null for @p fn goes back to
+ * ::LH_GL_VIEW_WHEEL_STEP. Nothing is installed by ::lh_gl_view_init, and
+ * ::lh_gl_view_deinit forgets it.
+ *
+ * @param self    The view; checked by ::lh_gl_view_set_wheel_lines.
+ * @param fn      The contract, not owned; ::lh_null for none.
+ * @param context Handed to @p fn on each call, not owned.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_gl_view_install_wheel_lines(lh_addr_of(view), lh_os_input_get_wheel_lines, lh_null);
+ * @endcode
+ */
+lh_void
+lh_gl_view_install_wheel_lines(lh_gl_view_t *self, lh_input_wheel_lines_fn *fn, lh_ptr context);
 
 /**
  * @brief End the target's press once without ending its pointer session.

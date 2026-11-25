@@ -36,7 +36,7 @@
 #define LH_OS_WINDOW_H
 
 #include <lh/config.h>
-#include <lh/os/controller.h>
+#include <lh/core/controller.h>
 #include <lh/os/window/backend.h>
 #include <lh/os/window/fields.h>
 
@@ -49,7 +49,7 @@ struct lh_os_app;
 struct lh_os_window
 {
     /** Members: ::lh_os_window_fields. */
-    lh_os_window_fields(struct lh_os_app, struct lh_os_window, struct lh_os_controller,
+    lh_os_window_fields(struct lh_os_app, struct lh_os_window, struct lh_controller,
                         lh_os_window_backend_t);
 };
 /** @copybrief lh_os_window */
@@ -75,10 +75,10 @@ lh_os_window_get_parent(const lh_os_window_t *self);
  * The standard input path of a window, and all of it in one call:
  *
  * - every event ::lh_os_window_on_native_input gets goes to
- *   ::lh_os_controller_feed, after the sink of ::lh_os_window_set_on_input, if any;
+ *   ::lh_controller_feed, after the sink of ::lh_os_window_set_on_input, if any;
  * - a focus loss (::lh_input_kind_focus_out) is fed and then
- *   ::lh_os_controller_cancel'led, so every press and gesture is let go;
- * - every tick of the window calls ::lh_os_controller_update at ::lh_os_tick_ms,
+ *   ::lh_controller_cancel'led, so every press and gesture is let go;
+ * - every tick of the window calls ::lh_controller_update at ::lh_os_tick_ms,
  *   before `on_tick`. Without an `on_tick` period (::lh_os_window_set_on_tick) the
  *   window arms its timer by itself, for the recognizer's next deadline
  *   (::lh_input_recognizer_get_next_deadline) and for that only, so a long
@@ -87,7 +87,7 @@ lh_os_window_get_parent(const lh_os_window_t *self);
  *
  * The window does not repaint for the controller: its handler, or `on_tick`, asks
  * for the paint (`lh_gl_view_take_damage`, ::lh_os_window_invalidate_rect), as a
- * sink did. Do not call ::lh_os_controller_update for this controller from
+ * sink did. Do not call ::lh_controller_update for this controller from
  * `on_tick` too: the window already has. The controller is the caller's and must
  * outlive the window, or be cleared first. A focus that leaves while the
  * controller is replaced is not seen by the new one.
@@ -97,17 +97,17 @@ lh_os_window_get_parent(const lh_os_window_t *self);
  *
  * Example usage:
  * @code{.c}
- * lh_os_controller_init(lh_addr_of(controller), lh_gl_view_controller_handle_event_is_handled, //
+ * lh_controller_init(lh_addr_of(controller), lh_gl_view_controller_handle_event_is_handled, //
  * the view lh_addr_of(view), lh_null);                           // defaults
- * lh_os_controller_set_cancel_cb(lh_addr_of(controller), lh_gl_view_controller_cancel);
+ * lh_controller_set_cancel_cb(lh_addr_of(controller), lh_gl_view_controller_cancel);
  * lh_os_window_set_controller(lh_addr_of(window), lh_addr_of(controller));
  * @endcode
  */
 lh_void
-lh_os_window_set_controller(lh_os_window_t *self, lh_os_controller_t *controller);
+lh_os_window_set_controller(lh_os_window_t *self, lh_controller_t *controller);
 
 /** @brief The controller @p self feeds (::lh_os_window_set_controller), or ::lh_null. */
-lh_os_controller_t *
+lh_controller_t *
 lh_os_window_get_controller(const lh_os_window_t *self);
 
 /**
@@ -870,7 +870,7 @@ lh_os_window_set_on_resize(lh_os_window_t *self, lh_os_window_on_resize_cb on_re
  * does, and the controller sees it whatever the sink did with it: the sink is a
  * tap (a log, a shortcut, an app that routes input itself), the controller the
  * consumer. Without a controller the sink is the only one. Do not also plug the
- * window's own controller in here through ::lh_os_controller_sink: it would get
+ * window's own controller in here through ::lh_controller_sink: it would get
  * every event twice.
  *
  * Example usage:

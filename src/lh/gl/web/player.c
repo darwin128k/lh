@@ -14,7 +14,6 @@
 
 #include <lh/core/cast/const.h>
 #include <lh/core/memory.h>
-#include <lh/os/input.h>
 #include <lh/os/tick.h>
 #include <lh/core/util/return.h>
 
@@ -182,14 +181,14 @@ lh_gl_web_player_get_routed_mut(lh_gl_web_player_t *self)
     return lh_addr_of(self->routed);
 }
 
-const lh_os_controller_t *
+const lh_controller_t *
 lh_gl_web_player_get_controller(const lh_gl_web_player_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->controller);
 }
 
-lh_os_controller_t *
+lh_controller_t *
 lh_gl_web_player_get_controller_mut(lh_gl_web_player_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -238,7 +237,7 @@ lh_gl_web_player_get_routes(lh_gl_web_player_t *self)
     return self->routes;
 }
 
-lh_os_controller_t *
+lh_controller_t *
 lh_gl_web_player_get_routed_controller(const lh_gl_web_player_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -260,7 +259,7 @@ lh_gl_web_player_input(lh_gl_web_player_t *self, const lh_input_event_t *event)
         changed = lh_bool_true;
     }
     if (lh_os_web_host_hooks_get_controller(hooks) != lh_null &&
-        lh_os_controller_feed(lh_os_web_host_hooks_get_controller(hooks), event))
+        lh_controller_feed(lh_os_web_host_hooks_get_controller(hooks), event))
     {
         changed = lh_bool_true;
     }
@@ -401,11 +400,11 @@ lh_gl_web_player_init(lh_gl_web_player_t *self, lh_gl_view_t *view, lh_uint_t wi
     if (lh_os_web_host_hooks_get_input_fn(routed) == lh_null &&
         lh_gl_web_player_get_routed_controller(self) == lh_null)
     {
-        lh_os_controller_t *controller = lh_gl_web_player_get_controller_mut(self);
+        lh_controller_t *controller = lh_gl_web_player_get_controller_mut(self);
 
-        lh_os_controller_init(controller, lh_gl_view_controller_handle_event_is_handled, view,
-                              lh_null);
-        lh_os_controller_set_cancel_cb(controller, lh_gl_view_controller_cancel);
+        lh_controller_init(controller, lh_gl_view_controller_handle_event_is_handled, view,
+                           lh_null);
+        lh_controller_set_cancel_cb(controller, lh_gl_view_controller_cancel);
         lh_gl_web_player_set_owns_controller(self, lh_bool_true);
         lh_os_web_host_hooks_set_controller(routed, controller);
     }
@@ -538,7 +537,7 @@ lh_gl_web_player_tick(lh_ptr ctx)
     if (lh_gl_web_player_get_routed_controller(self) != lh_null)
     {
         LH_ATTRIBUTE_UNUSED(
-            lh_os_controller_update(lh_gl_web_player_get_routed_controller(self), lh_os_tick_ms()));
+            lh_controller_update(lh_gl_web_player_get_routed_controller(self), lh_os_tick_ms()));
     }
     if (lh_os_web_host_hooks_get_tick_fn(lh_gl_web_player_get_routed(self)) != lh_null)
     {

@@ -11,8 +11,7 @@
 
 #if LH_LIBRARY_OPTION_OS
 
-#    include <lh/os/controller.h>
-#    include <lh/os/input.h>
+#    include <lh/core/controller.h>
 #    include <lh/gl/view.h>
 #    include <lh/gl/web/player.h>
 

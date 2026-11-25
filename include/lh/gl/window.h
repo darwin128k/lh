@@ -63,7 +63,7 @@ struct lh_gl_window
 {
     /** Members: ::lh_gl_window_fields. */
     lh_gl_window_fields(lh_os_window_t, lh_os_render_backend_gdi_context_t, lh_gl_canvas_t,
-                        lh_gl_view_t, lh_os_controller_t, lh_os_window_on_tick_cb, lh_ptr);
+                        lh_gl_view_t, lh_controller_t, lh_os_window_on_tick_cb, lh_ptr);
 };
 /** @copybrief lh_gl_window */
 typedef struct lh_gl_window lh_gl_window_t;
@@ -139,7 +139,7 @@ lh_gl_window_get_view_mut(lh_gl_window_t *self);
  * @param self Initialized composition; never null.
  * @return Borrowed member address, never null; valid until deinitialization.
  */
-const lh_os_controller_t *
+const lh_controller_t *
 lh_gl_window_get_controller(const lh_gl_window_t *self);
 
 /**
@@ -147,7 +147,7 @@ lh_gl_window_get_controller(const lh_gl_window_t *self);
  * @param self Initialized composition; never null.
  * @return Borrowed mutable member address, never null. Do not destroy it separately.
  */
-lh_os_controller_t *
+lh_controller_t *
 lh_gl_window_get_controller_mut(lh_gl_window_t *self);
 
 /**

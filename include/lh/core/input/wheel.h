@@ -8,7 +8,8 @@
  * ::LH_INPUT_WHEEL_LINES_DEFAULT content units, 40 / 3. The line height is kept as
  * that ratio, not rounded to 13 or 14, so a system at its default scrolls exactly
  * ::LH_INPUT_WHEEL_STEP_DEFAULT a notch - what a view scrolled before it asked the
- * system. Asking it is ::lh_os_input_get_wheel_step (`lh/os/input.h`).
+ * system. Who is asked is a contract, ::lh_input_wheel_lines_fn; the system's
+ * answer is ::lh_os_input_get_wheel_lines (`lh/os/input.h`).
  *
  * Needs no ::LH_LIBRARY_OPTION_OS.
  */

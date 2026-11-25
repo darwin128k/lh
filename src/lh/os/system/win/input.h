@@ -4,9 +4,10 @@
  *        read into the pieces of an ::lh_input_event_t.
  *
  * Pure functions of the message, `wParam`, `lParam` and what the system says of a
- * pointer, apart from ::lh_os_system_win_input_get_mods and
- * ::lh_os_system_win_input_get_wheel_lines, so they can be tested without a window
- * and without a touch screen.
+ * pointer, apart from ::lh_os_system_win_input_get_mods, so they can be tested without a
+ * window and without a touch screen. The wheel setting itself is the platform's
+ * kernel of `lh/os/system/input.h`, ::lh_os_system_input_get_wheel_lines, defined
+ * in this backend's `input.c` too.
  */
 
 #ifndef LH_SRC_OS_SYSTEM_WIN_INPUT_H
@@ -69,13 +70,6 @@ lh_os_system_win_input_wheel_of(lh_u32_t msg, lh_os_system_win_wparam_t wparam, 
  */
 lh_u32_t
 lh_os_system_win_input_wheel_lines_of(lh_os_system_win_bool_t got, lh_os_system_win_uint_t lines);
-
-/**
- * @brief Lines one wheel notch scrolls as the system is set up now:
- *        `SystemParametersInfoA(SPI_GETWHEELSCROLLLINES)`, read by
- *        ::lh_os_system_win_input_wheel_lines_of.
- */
-lh_u32_t lh_os_system_win_input_get_wheel_lines(lh_void);
 
 /**
  * @brief The device a pointer of @p type is: ::LH_OS_SYSTEM_WIN_PT_TOUCH a touch
