@@ -4,9 +4,9 @@
 
 #include <lh/gl/canvas/sw.h>
 #include <lh/gl/label.h>
-#include <lh/core/controller.h>
+#include <lh/core/input/recognizer.h>
 #include <lh/gl/view.h>
-#include <lh/gl/view/controller.h>
+#include <lh/gl/view/sink.h>
 #include <lh/gl/view/pointer/initializer.h>
 #include <lh/test/out.h>
 
@@ -1074,42 +1074,66 @@ TEST(view, input_keys_and_text_go_to_the_view)
     EXPECT_FALSE(feed(f, axis)) << "a controller is not for the view";
 }
 
-/* -- lh_gl_view_controller_handle_event_is_handled ------------------------------------------ */
+/* -- lh_gl_view_sink ------------------------------------------------------- */
 
-/* The view behind a controller with gestures: the raw press and release page once,
-   the synthesized click after them is not a second page. */
-TEST(view, controller_handle_gives_the_view_the_raw_events)
+/* The view behind a recognizer: the raw press and release page once, the
+   synthesized click after them is not a second page. */
+TEST(view, sink_behind_a_recognizer_acts_on_the_raw_events_only)
 {
     const lh_input_event_t down =
         pointer_event(lh_input_kind_pointer_down, lh_input_button_primary, 105, 150);
     const lh_input_event_t up =
         pointer_event(lh_input_kind_pointer_up, lh_input_button_primary, 105, 150);
 
-    lh_controller_t controller;
+    lh_input_recognizer_t recognizer;
     view_fixture f;
-    lh_controller_init(lh_addr_of(controller), lh_gl_view_controller_handle_event_is_handled,
-                       lh_addr_of(f.view), lh_null);
-    EXPECT_TRUE(lh_controller_feed(lh_addr_of(controller), lh_addr_of(down)));
-    EXPECT_TRUE(lh_controller_feed(lh_addr_of(controller), lh_addr_of(up)));
+    lh_input_recognizer_init(lh_addr_of(recognizer), lh_null);
+    lh_input_recognizer_feed(lh_addr_of(recognizer), lh_addr_of(down), lh_gl_view_sink,
+                             lh_addr_of(f.view));
+    lh_input_recognizer_feed(lh_addr_of(recognizer), lh_addr_of(up), lh_gl_view_sink,
+                             lh_addr_of(f.view));
     EXPECT_EQ(scroll_y_of(f.box), 100) << "the synthesized click paged a second time";
 }
 
-TEST(view, controller_cancel_ends_the_press_without_a_click)
+/* A focus loss down the chain: the recognizer cancels the press, the view lets
+   go of it, and the release that follows is no click. */
+TEST(view, sink_a_focus_loss_ends_the_press_without_a_click)
+{
+    const lh_input_event_t down =
+        pointer_event(lh_input_kind_pointer_down, lh_input_button_primary, 105, 150);
+    const lh_input_event_t up =
+        pointer_event(lh_input_kind_pointer_up, lh_input_button_primary, 105, 150);
+    lh_input_event_t focus_out{};
+
+    lh_input_event_init(lh_addr_of(focus_out), lh_input_kind_focus_out, lh_input_device_kind_none,
+                        0U);
+    lh_input_recognizer_t recognizer;
+    view_fixture f;
+    lh_input_recognizer_init(lh_addr_of(recognizer), lh_null);
+    lh_input_recognizer_feed(lh_addr_of(recognizer), lh_addr_of(down), lh_gl_view_sink,
+                             lh_addr_of(f.view));
+    lh_input_recognizer_feed(lh_addr_of(recognizer), lh_addr_of(focus_out), lh_gl_view_sink,
+                             lh_addr_of(f.view));
+    lh_input_recognizer_feed(lh_addr_of(recognizer), lh_addr_of(up), lh_gl_view_sink,
+                             lh_addr_of(f.view));
+    EXPECT_EQ(scroll_y_of(f.box), 0) << "the release after a focus loss is no click";
+}
+
+/* What the sink changed is the damage, as it is for lh_gl_view_input. */
+TEST(view, sink_leaves_what_it_changed_in_the_damage)
 {
     const lh_input_event_t down =
         pointer_event(lh_input_kind_pointer_down, lh_input_button_primary, 105, 150);
     const lh_input_event_t up =
         pointer_event(lh_input_kind_pointer_up, lh_input_button_primary, 105, 150);
 
-    lh_controller_t controller;
     view_fixture f;
-    lh_controller_init(lh_addr_of(controller), lh_gl_view_controller_handle_event_is_handled,
-                       lh_addr_of(f.view), lh_null);
-    lh_controller_set_cancel_cb(lh_addr_of(controller), lh_gl_view_controller_cancel);
-    EXPECT_TRUE(lh_controller_feed(lh_addr_of(controller), lh_addr_of(down)));
-    lh_controller_cancel(lh_addr_of(controller));
-    EXPECT_TRUE(lh_controller_feed(lh_addr_of(controller), lh_addr_of(up)));
-    EXPECT_EQ(scroll_y_of(f.box), 0) << "the release after a cancel is no click";
+    lh_gl_rects_t damage;
+    lh_gl_view_take_damage(lh_addr_of(f.view), lh_addr_of(damage));
+    lh_gl_view_sink(lh_addr_of(f.view), lh_addr_of(down));
+    lh_gl_view_sink(lh_addr_of(f.view), lh_addr_of(up));
+    EXPECT_EQ(scroll_y_of(f.box), 100);
+    EXPECT_TRUE(lh_gl_view_has_damage(lh_addr_of(f.view))) << "the page scrolled";
 }
 
 /* -- Several pointers ------------------------------------------------------ */

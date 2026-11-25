@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <lh/core/input/event.h>
+#include <lh/core/input/recognizer/config/defaults.h>
 #include <lh/core/input/wheel.h>
 #include <lh/core/size.h>
 #include <lh/os/system/input.h>
@@ -20,6 +21,11 @@ lh_os_system_win_input_wheel_of(lh_u32_t msg, lh_usize_t wparam, lh_s32_t *dx, l
 /* BOOL is an int and UINT an unsigned int. */
 extern "C" lh_u32_t
 lh_os_system_win_input_wheel_lines_of(int got, unsigned int lines);
+/* int is lh_int_t. */
+extern "C" lh_u32_t
+lh_os_system_win_input_drag_slop_of(int cx, int cy);
+extern "C" lh_u32_t
+lh_os_system_win_input_double_click_slop_of(int cx, int cy);
 /* POINTER_INPUT_TYPE is a DWORD, an unsigned long; POINTER_FLAGS a UINT32. */
 extern "C" lh_input_device_kind_t
 lh_os_system_win_input_device_kind_of_pointer_type(unsigned long type);
@@ -115,6 +121,32 @@ TEST(os_system_win_input, a_line_count_is_taken_as_it_is)
 TEST(os_system_win_input, the_system_answers_a_count_of_lines)
 {
     EXPECT_NE(lh_os_system_input_get_wheel_lines(), 0xFFFFFFFFU);
+}
+
+/* SM_CXDRAG / SM_CYDRAG are pixels either side of the press: the larger is the slop. */
+TEST(os_system_win_input, the_drag_threshold_is_the_larger_side)
+{
+    EXPECT_EQ(lh_os_system_win_input_drag_slop_of(4, 4), 4U);
+    EXPECT_EQ(lh_os_system_win_input_drag_slop_of(3, 7), 7U);
+    EXPECT_EQ(lh_os_system_win_input_drag_slop_of(0, 0),
+              static_cast<lh_u32_t>(LH_INPUT_RECOGNIZER_SLOP_DEFAULT))
+        << "GetSystemMetrics answers 0 when it fails";
+}
+
+/* SM_CXDOUBLECLK x SM_CYDOUBLECLK is a rectangle centred on the first click: half its
+   larger side is how far the second may land. */
+TEST(os_system_win_input, the_double_click_distance_is_half_the_rectangle)
+{
+    EXPECT_EQ(lh_os_system_win_input_double_click_slop_of(4, 4), 2U);
+    EXPECT_EQ(lh_os_system_win_input_double_click_slop_of(10, 6), 5U);
+    EXPECT_EQ(lh_os_system_win_input_double_click_slop_of(0, 0),
+              static_cast<lh_u32_t>(LH_INPUT_RECOGNIZER_DOUBLE_CLICK_SLOP_DEFAULT));
+}
+
+TEST(os_system_win_input, the_system_answers_pointer_settings)
+{
+    EXPECT_GT(lh_os_system_input_get_drag_slop(), 0U);
+    EXPECT_GT(lh_os_system_input_get_double_click_ms(), 0U);
 }
 
 /* PT_POINTER 1, PT_TOUCH 2, PT_PEN 3, PT_MOUSE 4, PT_TOUCHPAD 5. */

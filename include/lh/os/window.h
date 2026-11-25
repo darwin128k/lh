@@ -16,12 +16,12 @@
  * — move it, resize it, or leave the press to the app. What that looks like is the
  * caller's, so a project draws and hit-tests its own title bar and its own buttons.
  *
- * Input has two levels. The standard one is a controller
- * (::lh_os_window_set_controller): the window feeds it every event, cancels it when
- * the focus goes and runs its gesture timers, so a view behind
- * `lh_gl_view_controller_handle_event_is_handled` needs nothing else wired. The low level is the
- * sink (::lh_os_window_set_on_input), which sees every raw event first; with no
- * controller it is the only consumer.
+ * Input is one chain of sinks (::lh_input_sink_fn). The window hands every event
+ * to its sink (::lh_os_window_set_on_input); a recognizer in front of the sink
+ * (::lh_os_window_set_recognizer) adds the gestures, and the window runs its
+ * timers. A view at the end of the chain is `lh_gl_view_sink`
+ * (`lh/gl/view/sink.h`), so a window, a recognizer and a view need nothing else
+ * wired.
  *
  * **The window is the application's; what is below it is a contract**
  * (::lh_os_window_backend_t). The window calls the table it took from its
@@ -36,7 +36,7 @@
 #define LH_OS_WINDOW_H
 
 #include <lh/config.h>
-#include <lh/core/controller.h>
+#include <lh/core/input/recognizer.h>
 #include <lh/os/window/backend.h>
 #include <lh/os/window/fields.h>
 
@@ -49,7 +49,7 @@ struct lh_os_app;
 struct lh_os_window
 {
     /** Members: ::lh_os_window_fields. */
-    lh_os_window_fields(struct lh_os_app, struct lh_os_window, struct lh_controller,
+    lh_os_window_fields(struct lh_os_app, struct lh_os_window, struct lh_input_recognizer,
                         lh_os_window_backend_t);
 };
 /** @copybrief lh_os_window */
@@ -70,45 +70,55 @@ lh_os_window_t *
 lh_os_window_get_parent(const lh_os_window_t *self);
 
 /**
- * @brief Make @p controller the consumer of @p self's input; ::lh_null for none.
+ * @brief Put @p recognizer in front of @p self's input sink; ::lh_null for none.
  *
- * The standard input path of a window, and all of it in one call:
+ * The gestures of a window, and all of it in one call:
  *
  * - every event ::lh_os_window_on_native_input gets goes to
- *   ::lh_controller_feed, after the sink of ::lh_os_window_set_on_input, if any;
- * - a focus loss (::lh_input_kind_focus_out) is fed and then
- *   ::lh_controller_cancel'led, so every press and gesture is let go;
- * - every tick of the window calls ::lh_controller_update at ::lh_os_tick_ms,
- *   before `on_tick`. Without an `on_tick` period (::lh_os_window_set_on_tick) the
- *   window arms its timer by itself, for the recognizer's next deadline
- *   (::lh_input_recognizer_get_next_deadline) and for that only, so a long
- *   press arrives on time and an idle window has no timer. With a period, the
- *   update rides on it: a deadline is then late by up to one period.
+ *   ::lh_input_recognizer_feed, which hands the sink of
+ *   ::lh_os_window_set_on_input the event and then the gestures it completes
+ *   (synthesized, ::lh_input_event_is_synthesized). Without a recognizer the
+ *   sink gets the raw events alone;
+ * - a focus loss (::lh_input_kind_focus_out) goes the same way, and the
+ *   recognizer cancels every pointer it held: a synthesized pointer cancel, a
+ *   cancelled drag end. Nothing else needs calling;
+ * - every tick of the window calls ::lh_input_recognizer_update at the
+ *   backend's `now`, before `on_tick`. Without an `on_tick` period
+ *   (::lh_os_window_set_on_tick) the window arms its timer by itself, for the
+ *   recognizer's next deadline (::lh_input_recognizer_get_next_deadline) and
+ *   for that only, so a long press arrives on time and an idle window has no
+ *   timer. With a period, the update rides on it: a deadline is then late by
+ *   up to one period.
  *
- * The window does not repaint for the controller: its handler, or `on_tick`, asks
- * for the paint (`lh_gl_view_take_damage`, ::lh_os_window_invalidate_rect), as a
- * sink did. Do not call ::lh_controller_update for this controller from
- * `on_tick` too: the window already has. The controller is the caller's and must
- * outlive the window, or be cleared first. A focus that leaves while the
- * controller is replaced is not seen by the new one.
- *
- * The OS layer knows nothing of the UI: a view becomes the handler through
- * `lh_gl_view_controller_handle_event_is_handled` (`lh/gl/view/controller.h`).
+ * Without a sink the recognizer is neither fed nor updated: there is nobody to
+ * send to. The window does not repaint for the recognizer: the sink, or
+ * `on_tick`, asks for the paint (`lh_gl_view_take_damage`,
+ * ::lh_os_window_invalidate_rect). Do not call ::lh_input_recognizer_update for
+ * this recognizer from `on_tick` too: the window already has. The recognizer is
+ * the caller's and must outlive the window, or be cleared first. A level-1
+ * setter: stored as given.
  *
  * Example usage:
  * @code{.c}
- * lh_controller_init(lh_addr_of(controller), lh_gl_view_controller_handle_event_is_handled, //
- * the view lh_addr_of(view), lh_null);                           // defaults
- * lh_controller_set_cancel_cb(lh_addr_of(controller), lh_gl_view_controller_cancel);
- * lh_os_window_set_controller(lh_addr_of(window), lh_addr_of(controller));
+ * lh_input_recognizer_init(lh_addr_of(recognizer), lh_null);              // defaults
+ * lh_os_window_set_on_input(lh_addr_of(window), lh_gl_view_sink, lh_addr_of(view));
+ * lh_os_window_set_recognizer(lh_addr_of(window), lh_addr_of(recognizer));
  * @endcode
+ *
+ * @param self       The window; checked by ::lh_assert_runtime_ref.
+ * @param recognizer The recognizer, or ::lh_null for raw events only.
  */
 lh_void
-lh_os_window_set_controller(lh_os_window_t *self, lh_controller_t *controller);
+lh_os_window_set_recognizer(lh_os_window_t *self, lh_input_recognizer_t *recognizer);
 
-/** @brief The controller @p self feeds (::lh_os_window_set_controller), or ::lh_null. */
-lh_controller_t *
-lh_os_window_get_controller(const lh_os_window_t *self);
+/**
+ * @brief The recognizer in front of @p self's sink
+ *        (::lh_os_window_set_recognizer), or ::lh_null (level 1).
+ *
+ * @param self The window; checked by ::lh_assert_runtime_ref.
+ */
+lh_input_recognizer_t *
+lh_os_window_get_recognizer(const lh_os_window_t *self);
 
 /**
  * @brief True while @p self is maximized.
@@ -524,23 +534,23 @@ lh_void
 lh_os_window_set_tick_ms(lh_os_window_t *self, lh_u32_t tick_ms);
 
 /**
- * @brief Whether the window's timer runs for the controller alone (level 1).
+ * @brief Whether the window's timer runs for the recognizer alone (level 1).
  *
  * @param self The window; checked by ::lh_assert_runtime_ref.
  */
 lh_bool_t
-lh_os_window_is_controller_armed(const lh_os_window_t *self);
+lh_os_window_is_recognizer_armed(const lh_os_window_t *self);
 
 /**
- * @brief Store whether the window's timer runs for the controller alone (level 1).
+ * @brief Store whether the window's timer runs for the recognizer alone (level 1).
  *
  * A level-1 setter: the value is stored as given and is not validated.
  *
  * @param self The window; checked by ::lh_assert_runtime_ref.
- * @param controller_armed The new value.
+ * @param recognizer_armed The new value.
  */
 lh_void
-lh_os_window_set_controller_armed(lh_os_window_t *self, lh_bool_t controller_armed);
+lh_os_window_set_recognizer_armed(lh_os_window_t *self, lh_bool_t recognizer_armed);
 
 /**
  * @brief The backend table @p self calls down through, or ::lh_null before it is
@@ -860,18 +870,17 @@ lh_os_window_set_on_resize(lh_os_window_t *self, lh_os_window_on_resize_cb on_re
  * @brief Hand every input event of @p self to @p on_input, with @p context as
  *        its `self`.
  *
- * The low-level input slot of a window: pointer down, up, move and cancel for
- * every mouse button and every touch or pen contact, the wheel in 1/120 notch,
- * keys down (with repeats) and up, typed text, focus in and out — each one
+ * The input slot of a window: pointer down, up, move and cancel for every
+ * mouse button and every touch or pen contact, the wheel in 1/120 notch, keys
+ * down (with repeats) and up, typed text, focus in and out — each one
  * ::lh_input_event_t with its modifiers and a time on the ::lh_os_tick_ms
- * clock, raw: no gestures. ::lh_null clears the slot.
+ * clock. ::lh_null clears the slot.
  *
- * The sink sees each event before the controller of ::lh_os_window_set_controller
- * does, and the controller sees it whatever the sink did with it: the sink is a
- * tap (a log, a shortcut, an app that routes input itself), the controller the
- * consumer. Without a controller the sink is the only one. Do not also plug the
- * window's own controller in here through ::lh_controller_sink: it would get
- * every event twice.
+ * With a recognizer (::lh_os_window_set_recognizer) the sink also gets the
+ * gestures it makes, each after the event that completed it and synthesized
+ * (::lh_input_event_is_synthesized); without one, the raw events only. A sink
+ * that wants both a tap and a consumer calls the second itself: the chain has
+ * one sink a link.
  *
  * Example usage:
  * @code{.c}
@@ -919,12 +928,11 @@ lh_os_window_get_size(const lh_os_window_t *self, int *width, int *height);
 lh_void
 lh_os_window_set_size(lh_os_window_t *self, int width, int height);
 
-/** When the recognizer of @p self's controller next has something to send, into @p out;
-   false, @p out untouched, with no controller, a disabled one, no gestures or nothing
-   waiting on time. A disabled controller does not advance on update, so a deadline it
-   cannot meet yet must not keep a 1 ms timer spinning. */
+/** When the recognizer of @p self next has something to send, into @p out; false, @p out
+   untouched, with no recognizer, no sink or nothing waiting on time. A recognizer with no
+   sink is not updated, so a deadline it cannot meet must not keep a 1 ms timer spinning. */
 lh_bool_t
-lh_os_window_get_controller_deadline(lh_os_window_t *self, lh_tick_t *out);
+lh_os_window_get_recognizer_deadline(lh_os_window_t *self, lh_tick_t *out);
 
 /**
  * @brief True while the backend holds a window for @p self
@@ -1128,11 +1136,11 @@ lh_os_window_set_frame_v(lh_os_window_t *self, lh_os_window_frame_t frame);
 lh_void
 lh_os_window_set_corner_radius(lh_os_window_t *self, int radius);
 
-/** The window timer of @p self for its controller, when no `on_tick` period runs it: armed
+/** The window timer of @p self for its recognizer, when no `on_tick` period runs it: armed
    for the recognizer's next deadline -- again when @p rearm, else only when it is not
    running yet -- and stopped once nothing waits on time. */
 lh_void
-lh_os_window_arm_controller(lh_os_window_t *self, lh_bool_t rearm);
+lh_os_window_arm_recognizer(lh_os_window_t *self, lh_bool_t rearm);
 
 /**
  * @brief Called from the backend when its window is gone.
@@ -1213,15 +1221,16 @@ lh_os_window_close(lh_os_window_t *self);
 lh_void
 lh_os_window_set_placement_v(lh_os_window_t *self, lh_os_window_placement_t placement);
 
-/** The controller's timers at @p self's tick: what is due by now, then the timer for the
-   next deadline. */
+/** The recognizer's timers at @p self's tick: what is due by now to the sink, then the timer
+   for the next deadline. Nothing without a recognizer, a sink or a backend clock. */
 lh_void
-lh_os_window_update_controller(lh_os_window_t *self);
+lh_os_window_update_recognizer(lh_os_window_t *self);
 
-/** @p event to @p self's controller, if any: fed, the whole controller cancelled after a
-   focus loss, and its timer armed for a deadline the event may have set. */
+/** @p event down @p self's chain: to the sink, through the recognizer when there is one,
+   whose timer is then armed for a deadline the event may have set. Nothing without a
+   sink. */
 lh_void
-lh_os_window_feed_controller(lh_os_window_t *self, const lh_input_event_ptr event);
+lh_os_window_send_input(lh_os_window_t *self, const lh_input_event_ptr event);
 
 /**
  * @brief Close if needed and clear @p self.
@@ -1235,7 +1244,7 @@ lh_os_window_deinit(lh_os_window_t *self);
 /**
  * @brief Called from the backend when the window's timer goes off.
  *
- * Updates the controller first (::lh_os_window_set_controller), then invokes the
+ * Updates the recognizer first (::lh_os_window_set_recognizer), then invokes the
  * on-tick callback if there is one. The native side owns the schedule; this
  * is only the delivery, and it is a no-op for a window with no callback rather than a
  * crash -- a window whose timer was stopped by the window system, or one that was never
@@ -1249,11 +1258,11 @@ lh_os_window_on_native_tick(lh_os_window_t *self);
  *
  * Records the buttons a mouse event leaves held
  * (::lh_os_window_get_pressed_buttons; a pointer cancel and a focus loss clear
- * them), then hands @p event to ::lh_os_window_set_on_input's sink, if any, and
- * then to the controller of ::lh_os_window_set_controller, if any (cancelled
- * after a focus loss, its timer rearmed). Every backend delivers through here —
- * Win32, X11, AppKit, a board's touch driver. The window may be closed when this returns: the sink
- * or the controller's handler may close it.
+ * them), then sends @p event down the chain (::lh_os_window_send_input): to
+ * ::lh_os_window_set_on_input's sink, through the recognizer of
+ * ::lh_os_window_set_recognizer when there is one. Every backend delivers
+ * through here — Win32, X11, AppKit, a board's touch driver. The window may be
+ * closed when this returns: the sink may close it.
  */
 lh_void
 lh_os_window_on_native_input(lh_os_window_t *self, const lh_input_event_ptr event);

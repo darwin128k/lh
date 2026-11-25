@@ -5,10 +5,10 @@
  *
  * The host is a loop that does not return, so one runs on a thread of its own for the whole
  * test program and the tests talk to it the way the player's page does: WebSocket lines, and
- * the HTTP fallback. What it did is read back through its hooks -- `input` logs every key and
- * hands every event on to the view, `controller` counts what reaches it after `input` and
- * how often the host updates it, and `tick`, which runs on the host's thread once a pass,
- * copies the scroll the view is at.
+ * the HTTP fallback. What it did is read back through its hooks -- `recognizer` stands in
+ * front of `input`, which logs every key, counts the presses and the gestures and hands every
+ * event on to the view, and `tick`, which runs on the host's thread once a pass, copies the
+ * scroll the view is at.
  */
 
 #include <gtest/gtest.h>
@@ -17,7 +17,6 @@
 
 #if LH_LIBRARY_OPTION_OS
 
-#    include <lh/core/controller.h>
 #    include <lh/os/net.h>
 #    include <lh/os/net/socket.h>
 #    include <lh/os/system/net/socket.h>
@@ -67,10 +66,10 @@ struct host_world
     int pressed[key_log_max];
     std::atomic<int> ticks;
     std::atomic<int> scroll_y;
-    lh_controller_t controller;
-    std::atomic<int> controlled_presses;
-    std::atomic<int> controlled_clicks;
-    std::atomic<int> controller_updates;
+    lh_input_recognizer_t recognizer;
+    std::atomic<int> presses;
+    std::atomic<int> clicks;
+    std::atomic<int> long_presses;
 };
 
 host_world s_world;
@@ -86,8 +85,9 @@ world_tick(lh_ptr ctx)
     world->ticks.fetch_add(1);
 }
 
-/* Every line is one event: a key is logged, and everything goes on to the view, as an
-   application's own sink would pass it. */
+/* Every line is one event, and after it the gestures the recognizer made of it: a key is
+   logged, a press, a click and a long press counted, and everything goes on to the view,
+   as an application's own sink would pass it. */
 lh_void
 world_input(lh_self_ptr self, const lh_input_event_ptr event)
 {
@@ -105,31 +105,19 @@ world_input(lh_self_ptr self, const lh_input_event_ptr event)
         }
         world->keys.store(at + 1);
     }
-    (void)lh_gl_view_input(lh_addr_of(world->view), event);
-}
-
-/* The controller's handler: presses and the recognizer's clicks, counted. */
-lh_bool_t
-world_control(lh_self_ptr self, const lh_input_event_ptr event)
-{
-    auto *world = static_cast<host_world *>(self);
-    const lh_input_kind_t kind = lh_input_event_get_kind(event);
-
     if (kind == lh_input_kind_pointer_down)
     {
-        world->controlled_presses.fetch_add(1);
+        world->presses.fetch_add(1);
     }
     if (kind == lh_input_kind_click)
     {
-        world->controlled_clicks.fetch_add(1);
+        world->clicks.fetch_add(1);
     }
-    return lh_bool_false;
-}
-
-lh_void
-world_update(lh_self_ptr self, lh_tick_t /*now*/)
-{
-    static_cast<host_world *>(self)->controller_updates.fetch_add(1);
+    if (kind == lh_input_kind_long_press)
+    {
+        world->long_presses.fetch_add(1);
+    }
+    (void)lh_gl_view_input(lh_addr_of(world->view), event);
 }
 
 /* A port nothing listens on right now: bind to 0, read what was given, let it go. */
@@ -180,9 +168,8 @@ host_up()
     lh_os_web_host_hooks_set_ctx(lh_addr_of(s_world.hooks), lh_addr_of(s_world));
     lh_os_web_host_hooks_set_tick_fn(lh_addr_of(s_world.hooks), world_tick);
     lh_os_web_host_hooks_set_input_fn(lh_addr_of(s_world.hooks), world_input);
-    lh_controller_init(lh_addr_of(s_world.controller), world_control, lh_addr_of(s_world), lh_null);
-    lh_controller_set_update_cb(lh_addr_of(s_world.controller), world_update);
-    lh_os_web_host_hooks_set_controller(lh_addr_of(s_world.hooks), lh_addr_of(s_world.controller));
+    lh_input_recognizer_init(lh_addr_of(s_world.recognizer), lh_null);
+    lh_os_web_host_hooks_set_recognizer(lh_addr_of(s_world.hooks), lh_addr_of(s_world.recognizer));
     if (!lh_gl_web_player_init(lh_addr_of(s_world.player), lh_addr_of(s_world.view), 200u, 200u,
                                s_world.json, sizeof(s_world.json),
                                lh_ptr_rcast(lh_byte_t, s_world.page), sizeof(s_world.page),
@@ -470,20 +457,31 @@ TEST(web_host, a_wheel_line_scrolls_one_step_per_notch)
     EXPECT_TRUE(wait_for([] { return s_world.scroll_y.load() == 0; }));
 }
 
-/* The hooks' controller takes every event after `input` and is updated at every pass:
-   a click over HTTP is a press to it, and the recognizer's click after the release. */
-TEST(web_host, the_controller_gets_the_events_after_input_and_is_updated_every_pass)
+/* The hooks' recognizer stands in front of `input`: a click over HTTP is a press to it, then
+   the recognizer's click after the release. */
+TEST(web_host, the_recognizer_hands_input_the_events_and_their_gestures)
 {
     LH_TEST_NEEDS_HOST();
-    const int presses = s_world.controlled_presses.load();
-    const int clicks = s_world.controlled_clicks.load();
-    const int updates = s_world.controller_updates.load();
+    const int presses = s_world.presses.load();
+    const int clicks = s_world.clicks.load();
 
     EXPECT_NE(http_get("/ui/click?x=150&y=150").find(" 200 "), std::string::npos);
-    EXPECT_TRUE(wait_for([&] { return s_world.controlled_clicks.load() == clicks + 1; }));
-    EXPECT_EQ(s_world.controlled_presses.load(), presses + 1);
-    wait_passes();
-    EXPECT_GE(s_world.controller_updates.load(), updates + 2);
+    EXPECT_TRUE(wait_for([&] { return s_world.clicks.load() == clicks + 1; }));
+    EXPECT_EQ(s_world.presses.load(), presses + 1);
+}
+
+/* The host updates the recognizer on its own pass: a press held still is a long press
+   with no event after it, from the timer alone. */
+TEST(web_host, the_host_updates_the_recognizer_every_pass)
+{
+    LH_TEST_NEEDS_HOST();
+    ws_client ws;
+    ASSERT_TRUE(ws.open);
+    const int long_presses = s_world.long_presses.load();
+
+    ASSERT_TRUE(ws.line("p 150 150"));
+    EXPECT_TRUE(wait_for([&] { return s_world.long_presses.load() == long_presses + 1; }));
+    ASSERT_TRUE(ws.line("r 150 150"));
 }
 
 #endif /* LH_LIBRARY_OPTION_OS */

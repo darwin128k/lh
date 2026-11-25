@@ -379,6 +379,19 @@ typedef struct lh_os_system_win_createstructa lh_os_system_win_createstructa_t;
    lines one wheel notch scrolls into a `UINT`. Present since Windows 98 / NT 4.0. */
 #define LH_OS_SYSTEM_WIN_SPI_GETWHEELSCROLLLINES 0x0068U
 
+/** @name `SM_*` indices of ::GetSystemMetrics that the input settings read
+    @{ */
+/** `SM_CXDOUBLECLK` / `SM_CYDOUBLECLK`: width and height of the rectangle around the
+   first click that the second one must land in to be a double click. Present since
+   Windows 95. */
+#define LH_OS_SYSTEM_WIN_SM_CXDOUBLECLK 36
+#define LH_OS_SYSTEM_WIN_SM_CYDOUBLECLK 37
+/** `SM_CXDRAG` / `SM_CYDRAG`: pixels on either side of a press the pointer may move
+   before a drag begins. Present since Windows 95. */
+#define LH_OS_SYSTEM_WIN_SM_CXDRAG 68
+#define LH_OS_SYSTEM_WIN_SM_CYDRAG 69
+/** @} */
+
 /** `WHEEL_PAGESCROLL`: the ::LH_OS_SYSTEM_WIN_SPI_GETWHEELSCROLLLINES answer that means a
    page a notch ("one screen at a time" in the Mouse control panel), not a count of
    lines. Present since Windows 98 / NT 4.0. */
@@ -623,6 +636,15 @@ DefWindowProcA(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_uint_t Msg,
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 SystemParametersInfoA(lh_os_system_win_uint_t uiAction, lh_os_system_win_uint_t uiParam,
                       lh_ptr pvParam, lh_os_system_win_uint_t fWinIni);
+
+/** A system metric by its `SM_*` index (::LH_OS_SYSTEM_WIN_SM_CXDRAG); `0` when the
+   index is unknown. Present since Windows 95. */
+LH_OS_SYSTEM_WIN_IMPORT lh_int_t LH_OS_SYSTEM_WIN_CALL
+GetSystemMetrics(lh_int_t nIndex);
+
+/** Milliseconds within which a second click is a double click, as set in the Mouse
+   control panel. Present since Windows 95. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_uint_t LH_OS_SYSTEM_WIN_CALL GetDoubleClickTime(lh_void);
 
 #if LH_COMPILER_ARCH == LH_COMPILER_ARCH_64
 

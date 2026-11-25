@@ -58,6 +58,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Input is one chain of sinks, and the controller is gone from it. A window
+  holds its sink (`lh_os_window_set_on_input`) and, if given one, a recognizer
+  in front of it: `lh_os_window_set_recognizer` / `_get_recognizer` replace
+  `lh_os_window_set_controller` / `_get_controller`. Every event goes through
+  `lh_input_recognizer_feed` to the sink, the event and then the gestures it
+  completed; a `focus_out` reaches the recognizer as one more event and
+  cancels its pointers, so nothing else is called on a focus loss; every tick
+  calls `lh_input_recognizer_update` before `on_tick`, and with no period the
+  window arms its timer for the recognizer's next deadline, as it did for the
+  controller. Without a sink the recognizer is neither fed nor updated. The
+  sink no longer sees the raw event before a second consumer: it is the one
+  consumer, and a sink that also wants to pass the event on calls the next
+  one itself. The window's internals follow: `lh_os_window_fields` takes the
+  recognizer type, `_is_recognizer_armed` / `_set_recognizer_armed`,
+  `_get_recognizer_deadline`, `_arm_recognizer`, `_update_recognizer` and
+  `lh_os_window_send_input` (the event down the chain) replace their
+  controller names. The view at the end of the chain is `lh_gl_view_sink`
+  (`lh/gl/view/sink.h`, an `lh_input_sink_fn` over `lh_gl_view_input`), in
+  place of `lh/gl/view/controller.h`. `lh_gl_window_t` owns an
+  `lh_input_recognizer_t` (`lh_gl_window_get_recognizer` / `_mut`) and wires
+  the view's sink; `lh_gl_window_cancel_input` drops what is in progress on a
+  resize and on deinitialization. The web host's hooks carry `recognizer`
+  (`lh_os_web_host_hooks_get_recognizer` / `_set_recognizer`) in front of
+  `input` in place of `controller`; without `input` the gl player sends to
+  its view, and with neither it puts its own recognizer
+  (`lh_gl_web_player_get_recognizer` / `_mut`) in front, as it did its own
+  controller. `lh_gl_web_player_get_routed_recognizer`,
+  `lh_gl_web_player_get_sink` and `_get_sink_context` say where an event
+  goes; `lh_gl_web_player_input` answers from the view's damage
+  (`lh_gl_view_has_damage`) instead of the controller's "handled". What the
+  controller muted (`lh_controller_set_enabled`) is not kept: a host that
+  wants a screen deaf clears the window's sink.
+- `lh_input_recognizer_init` is the config and `lh_input_recognizer_forget`:
+  the new brick drops every gesture without sending anything and keeps the
+  config, what the controller's cancel did by reinitializing it.
 - Input is data, so it moved to the core: `lh/os/input/` is `lh/core/input/` and
   `lh/os/key.h` is `lh/core/key.h`. Every name follows its new path:
   `lh_os_input_*` is `lh_input_*` (`lh_input_event_t`, `lh_input_queue_t`,
@@ -67,12 +102,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   never needed an operating system; now no header of theirs includes anything
   outside `lh/core/`. What asks the system stays in the OS part:
   `lh_os_input_get_wheel_step` (`lh/os/input.h`) keeps its name, and the
-  backends' key translation stays in `src/lh/os/system/<backend>/`. The
-  controller between an input source and its handler went with them:
-  `lh/os/controller.h` is `lh/core/controller.h`, `lh_os_controller_*` is
-  `lh_controller_*` - it runs the recognizer and calls its handlers, and its
-  time is the events' and the caller's `now`. A caller renames its includes
-  and identifiers; nothing else changes.
+  backends' key translation stays in `src/lh/os/system/<backend>/`. A caller
+  renames its includes and identifiers; nothing else changes.
 - How far a wheel notch scrolls is a contract now, not an `#if`. The core
   states it: `lh_input_wheel_lines_fn` (`lh/core/input/wheel/lines/fn.h`),
   the lines one notch scrolls, asked with the backend's context. A view holds
@@ -93,6 +124,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `lh_gl_view_install_wheel_lines(view, lh_os_input_get_wheel_lines, lh_null)`.
   The web player installs nothing (the host machine's setting was never the
   browser's), and scrolls 40 a notch.
+- `src/lh/gl/view.c` is split by subject into `src/lh/gl/view/`: `damage.c`,
+  `draw.c`, `hit.c`, `scroll.c`, `throw.c`, `wheel.c`, `press.c`, `hover.c`,
+  `focus.c`, `input.c` and `transition.c`; `view.c` keeps the fields (level 1),
+  init, deinit and the root. Each file is ordered by level on its own. Nothing
+  public changes: every function keeps its name and its declaration in
+  `lh/gl/view.h`. With LTO the parts inline across files as they did inside one:
+  `BM_ui_view_*` and `BM_ui_layout_apply_flex` stay within +-3% of the single
+  file, in both directions, on alternating runs.
+- `src/lh/gl/entity.c` is split the same way into `src/lh/gl/entity/`:
+  `tree.c` (parent, children, the walks), `look.c` (the style in effect, its
+  fill, radii and padding), `geometry.c` (bounds, the children's space,
+  moving), `damage.c`, `hit.c`, `shown.c`, `send.c` (entity events and the
+  click), `focus.c` and `draw.c`; `entity.c` keeps the fields, init and the
+  class. Nothing public changes. The places where a higher level came before a
+  lower one go from 26 to 8, all of them the recursions of the walk, the hit
+  test and the draw.
+- The system's pointer settings reach the recognizer. Three native kernels join
+  the wheel's in `lh/os/system/input.h`: `lh_os_system_input_get_drag_slop`,
+  `_get_double_click_slop` and `_get_double_click_ms` (Windows asks
+  `GetSystemMetrics(SM_CXDRAG / SM_CXDOUBLECLK)` and `GetDoubleClickTime`; Linux
+  and macOS answer lh's defaults, since X keeps neither setting). Over them,
+  `lh_os_input_read_recognizer_config(config)` (`lh/os/input.h`) writes the three
+  into an `lh_input_recognizer_config_t` and leaves the rest of it alone. The
+  config gains the level-1 setters it lacked for them,
+  `lh_input_recognizer_config_set_slop`, `_set_double_click_ms` and
+  `_set_double_click_slop`, and the three defaults have names,
+  `LH_INPUT_RECOGNIZER_SLOP_DEFAULT`, `_DOUBLE_CLICK_MS_DEFAULT` and
+  `_DOUBLE_CLICK_SLOP_DEFAULT` (`lh/core/input/recognizer/config/defaults.h`),
+  which the default config is built from. Nothing reads the system by default: a
+  desktop host that wants its user's double-click speed calls the brick and gives
+  the config to its recognizer.
 - gl's RGB565 kernels moved to the core beside the 32-bit ones:
   `lh_pixel_span_blend_alphas_rgb565` (each pixel its own alpha; SSE2 when the CPU
   has it), `lh_pixel_span_blend_vary_rgb565` (the portable kernel a board without
@@ -292,7 +354,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   runs its own loop (rail, a browser) calls the step and never `lh_os_app_run`.
 
 - `lh_os_window_t` holds what is the application's: the tree, the reactions,
-  the input controller, and **the place** (`lh_os_window_get_rect`,
+  the input recognizer, and **the place** (`lh_os_window_get_rect`,
   `lh_os_window_set_rect`, `lh_os_window_get_size`, `lh_os_window_set_size`).
   The frame, the corner and the placement are the application's asks, read by
   the backend in `open`; the maximized state, the zone callback, the pressed
@@ -307,6 +369,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- `lh_controller_t` (`lh/core/controller.h`, `lh/os/controller.h` in 0.4.0)
+  with its handlers, flags, initializers, dispatch and `lh_controller_sink`,
+  and `lh/gl/view/controller.h` (`lh_gl_view_controller_handle_event_is_handled`,
+  `lh_gl_view_controller_cancel`). It held a recognizer, an "enabled" flag and
+  three callbacks beside the window's own sink, so a window had two input
+  paths; one chain of sinks with the recognizer in front does the same
+  (see Changed). `lh_test_os_controller` goes with it; the recognizer, the
+  window, the view and the web player test the chain.
+- `lh_gl_web_player_get_owns_controller` / `_set_owns_controller`: the player's
+  own recognizer is in front of its view exactly when the hooks bring neither
+  an input nor a recognizer, which `lh_gl_web_player_get_routed_recognizer`
+  says.
 - The configurator project is dropped from lh's guides and scripts:
   `docs/guides/usage.md`, `usage-desktop.md`, `usage-web.md` and
   `docs/subsystems/gl.md` describe a desktop and a browser program on their own

@@ -119,10 +119,9 @@ Lessons:
   the message pump: the window cannot paint, take a click, or be closed.
 - **All input is one event type.** Every mouse, touch, pen, wheel, key, text
   and focus event is one `lh_input_event_t`; there are no per-event setters.
-  The standard consumer is a controller (`lh_os_window_set_controller`, section
-  5), which the window feeds, cancels on a focus loss and ticks itself;
-  `lh_os_window_set_on_input` is the low-level sink that sees every raw event
-  first. A click is not an event of the window: the view makes it from press
+  The window hands each one to its sink (`lh_os_window_set_on_input`); a
+  recognizer in front of it (`lh_os_window_set_recognizer`, section 5) adds
+  the gestures, and the window feeds it and ticks it itself. A click is not an event of the window: the view makes it from press
   and release (section 5).
 
 ---
@@ -434,61 +433,56 @@ passes every raw event on to its own sink with the gestures among them, marked
 `LH_INPUT_FLAG_SYNTHESIZED`. `lh_gl_view_input` ignores synthesized events,
 so one sink can take both.
 
-**The controller** (`lh/core/controller.h`) does that wiring once, and it is the
-standard input path of a window: an `lh_controller_t` holds the recognizer,
-a handler and the object the handler works on, and the window drives it:
+**The window does that wiring once**: give it the sink and a recognizer in
+front of it, and it drives the recognizer itself:
 
 ```c
-#include <lh/core/controller.h>
-#include <lh/gl/view/controller.h>
+#include <lh/core/input/recognizer.h>
+#include <lh/gl/view/sink.h>
 
-lh_controller_init(lh_addr_of(self->controller), lh_gl_view_controller_handle_event_is_handled,
-                      lh_addr_of(self->view), lh_null); /* default thresholds */
-lh_controller_set_cancel_cb(lh_addr_of(self->controller), lh_gl_view_controller_cancel);
-lh_os_window_set_controller(lh_addr_of(self->window), lh_addr_of(self->controller));
+lh_input_recognizer_init(lh_addr_of(self->recognizer), lh_null); /* default thresholds */
+lh_os_window_set_on_input(lh_addr_of(self->window), lh_gl_view_sink, lh_addr_of(self->view));
+lh_os_window_set_recognizer(lh_addr_of(self->window), lh_addr_of(self->recognizer));
 ```
 
 What the window then does with it, on Win32 and X11 alike (both backends
 deliver through `lh_os_window_on_native_input`):
 
-- every event goes to `lh_controller_feed`, after the sink of
-  `lh_os_window_set_on_input` if one is set;
-- a `focus_out` is fed and then `lh_controller_cancel`'led, so every press
-  and gesture is let go;
-- every window tick calls `lh_controller_update(controller,
-  lh_os_tick_ms())` before `on_tick`. Without an `on_tick` period the window
-  arms its timer by itself for the recognizer's next deadline only, so a long
-  press arrives on time and an idle window has no timer; with a period the
-  update rides on it (a deadline is late by up to one period). Do not call
-  `lh_controller_update` for this controller from `on_tick` as well.
+- every event goes through `lh_input_recognizer_feed` to the sink: the event,
+  then the gestures it completes. Without a recognizer the sink gets the raw
+  events alone;
+- a `focus_out` is one more event down the chain: the recognizer cancels
+  every pointer it held (a synthesized `pointer_cancel`, a cancelled
+  `drag_end`) and the view lets go of every press;
+- every window tick calls `lh_input_recognizer_update` at the backend's clock
+  before `on_tick`. Without an `on_tick` period the window arms its timer by
+  itself for the recognizer's next deadline only, so a long press arrives on
+  time and an idle window has no timer; with a period the update rides on it
+  (a deadline is late by up to one period). Do not call
+  `lh_input_recognizer_update` for this recognizer from `on_tick` as well.
 
-The window does not repaint for the controller: take the view's damage in
-`on_tick` (or in a handler of your own) and invalidate it, as before.
+The window does not repaint for the recognizer: take the view's damage in
+`on_tick` and invalidate it, as before.
 
-**Two levels, on purpose.** `lh_os_window_set_on_input` stays: it is the
-low-level tap that sees each raw event first (a log, a global shortcut, an app
-that routes input itself), and with no controller it is the only consumer. The
-controller is the consumer on top of it. Do not plug the window's controller
-into its sink through `lh_controller_sink` as well: it would be fed twice.
-`lh_controller_sink` remains for sources that only have a sink
-(`lh_input_queue_drain`).
+The thresholds are the recognizer's config. To use what the user set in the
+Mouse control panel (the drag threshold, the double-click speed and distance),
+read it into the config before giving it to the recognizer:
 
-- `lh_controller_feed` (what `lh_controller_sink` calls) passes each raw
-  event to the handler and, with `lh_controller_flags_gestures`, the
-  gestures after it; it returns true when the handler acted on any of them, the
-  moment to repaint. `lh_controller_handle_event_is_handled` skips the recognizer.
-- `lh_controller_update` sends what is due by `now` (a long press), then
-  calls the optional `update_cb`; `lh_controller_cancel` drops every gesture
-  silently, then calls the optional `cancel_cb` (`lh_gl_view_cancel` for the view).
-- `lh_controller_set_enabled(..., lh_bool_false)` mutes the handler (a modal
-  overlay, a screen not shown) and leaves the recognizer where it is, on
-  `feed` and on `update`; `update_cb` still runs. The flags are
-  `lh_controller_flags_enabled` and `lh_controller_flags_gestures`, both
-  set by `lh_controller_init`.
-- The handler is a plain function pointer with the object as `self`
-  (`lh_controller_handlers_handle_fn`), not a vtable; the controller needs no
-  OS and knows nothing of the UI. The view ignores the synthesized gestures, so it
-  clicks once; with the default config a Shift+wheel reaches it already sideways.
+```c
+lh_input_recognizer_config_t config;
+
+lh_input_recognizer_config_init_default(lh_addr_of(config));
+lh_os_input_read_recognizer_config(lh_addr_of(config));     /* lh/os/input.h */
+lh_input_recognizer_init(lh_addr_of(self->recognizer), lh_addr_of(config));
+```
+
+**One sink a link.** A sink that wants to see the events and still hand them
+to the view (a log, a global shortcut) calls `lh_gl_view_sink` itself. The
+view ignores the synthesized gestures, so it clicks once; with the default
+config a Shift+wheel reaches it already sideways. When the layout moves under
+a press (a resize), `lh_input_recognizer_forget` drops every gesture without
+a word, and `lh_gl_view_cancel` lets go of every press; `lh_gl_window_t`
+does both in `lh_gl_window_cancel_input`.
 
 **Events from somewhere else** (an interrupt, a thread) go through
 `lh_input_queue_t` (`lh/core/input/queue.h`): one producer pushes, the UI

@@ -10,7 +10,7 @@
 
 #include <lh/os/web/host.h>
 #include <lh/gl/web/player/page.h>
-#include <lh/gl/view/controller.h>
+#include <lh/gl/view/sink.h>
 
 #include <lh/core/cast/const.h>
 #include <lh/core/memory.h>
@@ -181,32 +181,18 @@ lh_gl_web_player_get_routed_mut(lh_gl_web_player_t *self)
     return lh_addr_of(self->routed);
 }
 
-const lh_controller_t *
-lh_gl_web_player_get_controller(const lh_gl_web_player_t *self)
+const lh_input_recognizer_t *
+lh_gl_web_player_get_recognizer(const lh_gl_web_player_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_addr_of(self->controller);
+    return lh_addr_of(self->recognizer);
 }
 
-lh_controller_t *
-lh_gl_web_player_get_controller_mut(lh_gl_web_player_t *self)
+lh_input_recognizer_t *
+lh_gl_web_player_get_recognizer_mut(lh_gl_web_player_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_addr_of(self->controller);
-}
-
-lh_bool_t
-lh_gl_web_player_get_owns_controller(const lh_gl_web_player_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->owns_controller;
-}
-
-lh_void
-lh_gl_web_player_set_owns_controller(lh_gl_web_player_t *self, lh_bool_t owns_controller)
-{
-    lh_assert_runtime_ref(self);
-    self->owns_controller = owns_controller;
+    return lh_addr_of(self->recognizer);
 }
 
 const lh_gl_canvas_web_t *
@@ -237,33 +223,28 @@ lh_gl_web_player_get_routes(lh_gl_web_player_t *self)
     return self->routes;
 }
 
-lh_controller_t *
-lh_gl_web_player_get_routed_controller(const lh_gl_web_player_t *self)
+lh_input_recognizer_t *
+lh_gl_web_player_get_routed_recognizer(const lh_gl_web_player_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return lh_os_web_host_hooks_get_controller(lh_gl_web_player_get_routed(self));
+    return lh_os_web_host_hooks_get_recognizer(lh_gl_web_player_get_routed(self));
 }
 
-lh_bool_t
-lh_gl_web_player_input(lh_gl_web_player_t *self, const lh_input_event_t *event)
+lh_input_sink_cb
+lh_gl_web_player_get_sink(const lh_gl_web_player_t *self)
 {
-    lh_bool_t changed = lh_bool_false;
+    lh_input_sink_cb input = lh_os_web_host_hooks_get_input_fn(lh_gl_web_player_get_routed(self));
+
+    return lh_null_eq(lh_ptr_rcast(lh_void, input)) ? lh_gl_view_sink : input;
+}
+
+lh_ptr
+lh_gl_web_player_get_sink_context(const lh_gl_web_player_t *self)
+{
     const lh_os_web_host_hooks_t *hooks = lh_gl_web_player_get_routed(self);
 
-    lh_return_if(lh_os_web_host_hooks_get_input_fn(hooks) == lh_null &&
-                     lh_os_web_host_hooks_get_controller(hooks) == lh_null,
-                 lh_gl_view_input(lh_gl_web_player_get_view(self), event));
-    if (lh_os_web_host_hooks_get_input_fn(hooks) != lh_null)
-    {
-        lh_os_web_host_hooks_get_input_fn(hooks)(lh_os_web_host_hooks_get_ctx(hooks), event);
-        changed = lh_bool_true;
-    }
-    if (lh_os_web_host_hooks_get_controller(hooks) != lh_null &&
-        lh_controller_feed(lh_os_web_host_hooks_get_controller(hooks), event))
-    {
-        changed = lh_bool_true;
-    }
-    return changed;
+    return lh_null_eq(lh_ptr_rcast(lh_void, lh_os_web_host_hooks_get_input_fn(hooks)))
+               ? lh_ptr_rcast(lh_void, lh_gl_web_player_get_view(self))
+               : lh_os_web_host_hooks_get_ctx(hooks);
 }
 
 lh_bool_t
@@ -368,6 +349,26 @@ lh_gl_web_player_draw(lh_gl_web_player_t *self, lh_gl_canvas_web_glyphs_t *glyph
 }
 
 lh_bool_t
+lh_gl_web_player_input(lh_gl_web_player_t *self, const lh_input_event_t *event)
+{
+    lh_input_sink_cb sink = lh_gl_web_player_get_sink(self);
+    lh_ptr context = lh_gl_web_player_get_sink_context(self);
+    lh_input_recognizer_t *recognizer = lh_gl_web_player_get_routed_recognizer(self);
+
+    if (lh_null_eq(recognizer))
+    {
+        sink(context, event);
+    }
+    else
+    {
+        lh_input_recognizer_feed(recognizer, event, sink, context);
+    }
+    /* The caller's hook does what it does out of sight; the player's own view says. */
+    return lh_type_cast(lh_bool_t, sink != lh_gl_view_sink ||
+                                       lh_gl_view_has_damage(lh_gl_web_player_get_view(self)));
+}
+
+lh_bool_t
 lh_gl_web_player_init(lh_gl_web_player_t *self, lh_gl_view_t *view, lh_uint_t width,
                       lh_uint_t height, lh_str_ptr json, lh_usize_t json_cap, lh_byte_ptr page,
                       lh_usize_t page_cap, const lh_os_web_host_hooks_t *hooks)
@@ -383,7 +384,6 @@ lh_gl_web_player_init(lh_gl_web_player_t *self, lh_gl_view_t *view, lh_uint_t wi
     lh_gl_web_player_set_page_cap(self, page_cap);
     lh_gl_web_player_set_page_len(self, 0u);
     lh_gl_web_player_set_hooks(self, hooks);
-    lh_gl_web_player_set_owns_controller(self, lh_bool_false);
     lh_gl_canvas_web_glyphs_reset(lh_gl_web_player_get_glyphs_mut(self));
     lh_os_web_host_hooks_t *routed = lh_gl_web_player_get_routed_mut(self);
     lh_memory_set(routed, sizeof(lh_os_web_host_hooks_t), 0);
@@ -393,20 +393,16 @@ lh_gl_web_player_init(lh_gl_web_player_t *self, lh_gl_view_t *view, lh_uint_t wi
         lh_os_web_host_hooks_set_tick_fn(routed, lh_os_web_host_hooks_get_tick_fn(hooks));
         lh_os_web_host_hooks_set_input_fn(routed, lh_os_web_host_hooks_get_input_fn(hooks));
         lh_os_web_host_hooks_set_resize_fn(routed, lh_os_web_host_hooks_get_resize_fn(hooks));
-        lh_os_web_host_hooks_set_controller(routed, lh_os_web_host_hooks_get_controller(hooks));
+        lh_os_web_host_hooks_set_recognizer(routed, lh_os_web_host_hooks_get_recognizer(hooks));
     }
-    /* With neither an input hook nor a controller, the view gets every event as
-       ::lh_gl_view_input would have, the gestures go along and are ignored by it. */
-    if (lh_os_web_host_hooks_get_input_fn(routed) == lh_null &&
-        lh_gl_web_player_get_routed_controller(self) == lh_null)
+    /* With neither an input hook nor a recognizer, the view gets every event as
+       ::lh_gl_view_input would have, behind a recognizer of the player's own: the
+       gestures go along and are ignored by it. */
+    lh_input_recognizer_init(lh_gl_web_player_get_recognizer_mut(self), lh_null);
+    if (lh_null_eq(lh_ptr_rcast(lh_void, lh_os_web_host_hooks_get_input_fn(routed))) &&
+        lh_null_eq(lh_gl_web_player_get_routed_recognizer(self)))
     {
-        lh_controller_t *controller = lh_gl_web_player_get_controller_mut(self);
-
-        lh_controller_init(controller, lh_gl_view_controller_handle_event_is_handled, view,
-                           lh_null);
-        lh_controller_set_cancel_cb(controller, lh_gl_view_controller_cancel);
-        lh_gl_web_player_set_owns_controller(self, lh_bool_true);
-        lh_os_web_host_hooks_set_controller(routed, controller);
+        lh_os_web_host_hooks_set_recognizer(routed, lh_gl_web_player_get_recognizer_mut(self));
     }
     const lh_str_view_t method = lh_http_method_get_name(lh_http_method_get);
     for (lh_usize_t i = 0u; i < LH_GL_WEB_PLAYER_ROUTES; i = lh_math_add_one(i))
@@ -430,57 +426,6 @@ lh_gl_web_player_init(lh_gl_web_player_t *self, lh_gl_view_t *view, lh_uint_t wi
         lh_gl_web_player_get_page(self), lh_gl_web_player_get_page_cap(self), lh_addr_of(page_len));
     lh_gl_web_player_set_page_len(self, page_len);
     return built;
-}
-
-lh_bool_t
-lh_gl_web_player_pointer(lh_gl_web_player_t *self, lh_input_kind_t kind, lh_sint_t x, lh_sint_t y)
-{
-    const lh_bool_t up = lh_type_cast(lh_bool_t, kind == lh_input_kind_pointer_up);
-    const lh_input_button_t button =
-        kind == lh_input_kind_pointer_move ? lh_input_button_none : lh_input_button_primary;
-
-    lh_input_event_t event;
-    lh_input_event_init_pointer(lh_addr_of(event), kind, lh_input_device_kind_mouse, 0U, button,
-                                lh_input_coord_from_int(x), lh_input_coord_from_int(y),
-                                lh_os_tick_ms());
-    lh_input_event_set_buttons(lh_addr_of(event),
-                               up ? 0U : lh_input_button_to_mask(lh_input_button_primary));
-    return lh_gl_web_player_input(self, lh_addr_of(event));
-}
-
-lh_bool_t
-lh_gl_web_player_wheel(lh_gl_web_player_t *self, lh_sint_t x, lh_sint_t y, lh_sint_t dx,
-                       lh_sint_t dy)
-{
-    lh_input_event_t event;
-
-    lh_input_event_init_wheel(lh_addr_of(event), lh_input_coord_from_int(x),
-                              lh_input_coord_from_int(y),
-                              lh_type_cast(lh_s32_t, dx) * LH_INPUT_WHEEL_NOTCH,
-                              lh_type_cast(lh_s32_t, dy) * LH_INPUT_WHEEL_NOTCH, lh_os_tick_ms());
-    return lh_gl_web_player_input(self, lh_addr_of(event));
-}
-
-lh_bool_t
-lh_gl_web_player_key(lh_gl_web_player_t *self, lh_sint_t k, lh_bool_t pressed)
-{
-    if (k < lh_cast_static(lh_sint_t, lh_key_other) || k > lh_cast_static(lh_sint_t, lh_key_alt))
-    {
-        k = lh_cast_static(lh_sint_t, lh_key_other);
-    }
-    lh_input_event_t event;
-    lh_input_event_init_key(lh_addr_of(event), lh_type_cast(lh_key_t, k), pressed, lh_bool_false,
-                            0U, lh_os_tick_ms());
-    return lh_gl_web_player_input(self, lh_addr_of(event));
-}
-
-lh_bool_t
-lh_gl_web_player_text(lh_gl_web_player_t *self, lh_u32_t code)
-{
-    lh_return_if(code == 0U, lh_bool_false);
-    lh_input_event_t event;
-    lh_input_event_init_text(lh_addr_of(event), code, lh_os_tick_ms());
-    return lh_gl_web_player_input(self, lh_addr_of(event));
 }
 
 lh_bool_t
@@ -532,12 +477,14 @@ lh_gl_web_player_tick(lh_ptr ctx)
 {
     lh_gl_web_player_t *self = lh_ptr_rcast(lh_gl_web_player_t, ctx);
 
-    /* The controller's timers before the app's tick, as a window does: a long
+    /* The recognizer's timers before the app's tick, as a window does: a long
        press that came due is in the view by the time the app looks. */
-    if (lh_gl_web_player_get_routed_controller(self) != lh_null)
+    lh_input_recognizer_t *recognizer = lh_gl_web_player_get_routed_recognizer(self);
+
+    if (lh_null_ne(recognizer))
     {
-        LH_ATTRIBUTE_UNUSED(
-            lh_controller_update(lh_gl_web_player_get_routed_controller(self), lh_os_tick_ms()));
+        lh_input_recognizer_update(recognizer, lh_os_tick_ms(), lh_gl_web_player_get_sink(self),
+                                   lh_gl_web_player_get_sink_context(self));
     }
     if (lh_os_web_host_hooks_get_tick_fn(lh_gl_web_player_get_routed(self)) != lh_null)
     {
@@ -549,6 +496,57 @@ lh_gl_web_player_tick(lh_ptr ctx)
     {
         lh_os_web_app_bump(lh_gl_web_player_get_app(self));
     }
+}
+
+lh_bool_t
+lh_gl_web_player_pointer(lh_gl_web_player_t *self, lh_input_kind_t kind, lh_sint_t x, lh_sint_t y)
+{
+    const lh_bool_t up = lh_type_cast(lh_bool_t, kind == lh_input_kind_pointer_up);
+    const lh_input_button_t button =
+        kind == lh_input_kind_pointer_move ? lh_input_button_none : lh_input_button_primary;
+
+    lh_input_event_t event;
+    lh_input_event_init_pointer(lh_addr_of(event), kind, lh_input_device_kind_mouse, 0U, button,
+                                lh_input_coord_from_int(x), lh_input_coord_from_int(y),
+                                lh_os_tick_ms());
+    lh_input_event_set_buttons(lh_addr_of(event),
+                               up ? 0U : lh_input_button_to_mask(lh_input_button_primary));
+    return lh_gl_web_player_input(self, lh_addr_of(event));
+}
+
+lh_bool_t
+lh_gl_web_player_wheel(lh_gl_web_player_t *self, lh_sint_t x, lh_sint_t y, lh_sint_t dx,
+                       lh_sint_t dy)
+{
+    lh_input_event_t event;
+
+    lh_input_event_init_wheel(lh_addr_of(event), lh_input_coord_from_int(x),
+                              lh_input_coord_from_int(y),
+                              lh_type_cast(lh_s32_t, dx) * LH_INPUT_WHEEL_NOTCH,
+                              lh_type_cast(lh_s32_t, dy) * LH_INPUT_WHEEL_NOTCH, lh_os_tick_ms());
+    return lh_gl_web_player_input(self, lh_addr_of(event));
+}
+
+lh_bool_t
+lh_gl_web_player_key(lh_gl_web_player_t *self, lh_sint_t k, lh_bool_t pressed)
+{
+    if (k < lh_cast_static(lh_sint_t, lh_key_other) || k > lh_cast_static(lh_sint_t, lh_key_alt))
+    {
+        k = lh_cast_static(lh_sint_t, lh_key_other);
+    }
+    lh_input_event_t event;
+    lh_input_event_init_key(lh_addr_of(event), lh_type_cast(lh_key_t, k), pressed, lh_bool_false,
+                            0U, lh_os_tick_ms());
+    return lh_gl_web_player_input(self, lh_addr_of(event));
+}
+
+lh_bool_t
+lh_gl_web_player_text(lh_gl_web_player_t *self, lh_u32_t code)
+{
+    lh_return_if(code == 0U, lh_bool_false);
+    lh_input_event_t event;
+    lh_input_event_init_text(lh_addr_of(event), code, lh_os_tick_ms());
+    return lh_gl_web_player_input(self, lh_addr_of(event));
 }
 
 lh_void

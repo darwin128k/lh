@@ -64,16 +64,16 @@ lh_os_web_host_hooks_set_resize_fn(lh_os_web_host_hooks_t *self,
     self->resize = resize_fn;
 }
 
-lh_controller_t *
-lh_os_web_host_hooks_get_controller(const lh_os_web_host_hooks_t *self)
+lh_input_recognizer_t *
+lh_os_web_host_hooks_get_recognizer(const lh_os_web_host_hooks_t *self)
 {
     lh_assert_runtime_ref(self);
-    return self->controller;
+    return self->recognizer;
 }
 
 lh_void
-lh_os_web_host_hooks_set_controller(lh_os_web_host_hooks_t *self, lh_controller_t *controller)
+lh_os_web_host_hooks_set_recognizer(lh_os_web_host_hooks_t *self, lh_input_recognizer_t *recognizer)
 {
     lh_assert_runtime_ref(self);
-    self->controller = controller;
+    self->recognizer = recognizer;
 }

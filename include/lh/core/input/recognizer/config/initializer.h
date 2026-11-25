@@ -8,6 +8,7 @@
 
 #include <lh/core/bool.h>
 #include <lh/core/initializer.h>
+#include <lh/core/input/recognizer/config/defaults.h>
 
 /**
  * @def lh_input_recognizer_config_initializer
@@ -57,7 +58,9 @@
  * @see lh_input_recognizer_config_initializer
  */
 #define lh_input_recognizer_config_default_initializer()                                           \
-    lh_input_recognizer_config_initializer(4U, 500U, 4U, 500U, 400U, 50U, 8000U, 2000U, 48U,       \
-                                           lh_bool_true)
+    lh_input_recognizer_config_initializer(LH_INPUT_RECOGNIZER_SLOP_DEFAULT,                       \
+                                           LH_INPUT_RECOGNIZER_DOUBLE_CLICK_MS_DEFAULT,            \
+                                           LH_INPUT_RECOGNIZER_DOUBLE_CLICK_SLOP_DEFAULT, 500U,    \
+                                           400U, 50U, 8000U, 2000U, 48U, lh_bool_true)
 
 #endif /* LH_INPUT_RECOGNIZER_CONFIG_INITIALIZER_H */

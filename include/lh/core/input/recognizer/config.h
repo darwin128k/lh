@@ -36,13 +36,50 @@ lh_input_recognizer_config_init_default(lh_input_recognizer_config_t *self);
 lh_u16_t
 lh_input_recognizer_config_get_slop(const lh_input_recognizer_config_ptr self);
 
+/**
+ * @brief Store the pixels a pointer may move while down and still click
+ *        (level 1).
+ *
+ * A level-1 setter: stored as given, not validated.
+ *
+ * @param self The config; checked by ::lh_assert_runtime_ref.
+ * @param slop The new value.
+ */
+lh_void
+lh_input_recognizer_config_set_slop(lh_input_recognizer_config_t *self, lh_u16_t slop);
+
 /** @brief Milliseconds within which a click continues a series. */
 lh_u16_t
 lh_input_recognizer_config_get_double_click_ms(const lh_input_recognizer_config_ptr self);
 
+/**
+ * @brief Store the milliseconds within which a click continues a series
+ *        (level 1).
+ *
+ * A level-1 setter: stored as given, not validated.
+ *
+ * @param self            The config; checked by ::lh_assert_runtime_ref.
+ * @param double_click_ms The new value.
+ */
+lh_void
+lh_input_recognizer_config_set_double_click_ms(lh_input_recognizer_config_t *self,
+                                               lh_u16_t double_click_ms);
+
 /** @brief Pixels within which a click continues a series. */
 lh_u16_t
 lh_input_recognizer_config_get_double_click_slop(const lh_input_recognizer_config_ptr self);
+
+/**
+ * @brief Store the pixels within which a click continues a series (level 1).
+ *
+ * A level-1 setter: stored as given, not validated.
+ *
+ * @param self              The config; checked by ::lh_assert_runtime_ref.
+ * @param double_click_slop The new value.
+ */
+lh_void
+lh_input_recognizer_config_set_double_click_slop(lh_input_recognizer_config_t *self,
+                                                 lh_u16_t double_click_slop);
 
 /** @brief Milliseconds a still press waits for a long press; `0` is never. */
 lh_u16_t

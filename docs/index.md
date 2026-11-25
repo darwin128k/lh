@@ -26,7 +26,7 @@ One guide per subsystem that has behaviour worth stating in prose.
 
 | Guide | Subsystem | What it covers |
 |---|---|---|
-| [gl.md](subsystems/gl.md) | UI model (`lh/gl/`) | The entity tree, canvas and view, input, sinks, controllers, recipes per target |
+| [gl.md](subsystems/gl.md) | UI model (`lh/gl/`) | The entity tree, canvas and view, input, sinks, the recognizer, recipes per target |
 | [module-loader.md](subsystems/module-loader.md) | Modules (`lh/os/module.h`) | The loader tree, loading and unloading, shared images, errors, writing a module |
 | [concurrency.md](subsystems/concurrency.md) | OS threads (`lh/os/thread.h`) | Threads, mutexes, conditions, monotonic time, backend notes |
 | [net-sockets.md](subsystems/net-sockets.md) | OS sockets (`lh/os/net/socket.h`) | Non-blocking servers, handle inheritance, pending I/O and backend guarantees |

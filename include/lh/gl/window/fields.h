@@ -11,22 +11,22 @@
 
 /**
  * @def lh_gl_window_fields
- * @brief Native window, software screen, canvas, view, controller and update hook.
+ * @brief Native window, software screen, canvas, view, input recognizer and update hook.
  * @param window_type Native window type.
  * @param screen_type Software screen context type.
  * @param canvas_type Canvas type.
  * @param view_type Entity-tree view type.
- * @param controller_type Input controller type.
+ * @param recognizer_type Input gesture recognizer type.
  * @param update_type Application update callback pointer type.
  * @param context_type Callback context pointer type.
  */
-#define lh_gl_window_fields(window_type, screen_type, canvas_type, view_type, controller_type,     \
+#define lh_gl_window_fields(window_type, screen_type, canvas_type, view_type, recognizer_type,     \
                             update_type, context_type)                                             \
     window_type window;                                                                            \
     screen_type screen;                                                                            \
     canvas_type canvas;                                                                            \
     view_type view;                                                                                \
-    controller_type controller;                                                                    \
+    recognizer_type recognizer;                                                                    \
     update_type on_update_fn;                                                                      \
     context_type on_update_context
 

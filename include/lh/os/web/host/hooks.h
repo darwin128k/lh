@@ -7,25 +7,29 @@
 #define LH_OS_WEB_HOST_HOOKS_H
 
 #include <lh/config.h>
+#include <lh/core/input/recognizer.h>
 #include <lh/os/web/host/stream.h>
 
 /**
  * @brief What a window would call: the application, not the JSON player.
  *
  * Any function may be ::lh_null. Every input line of the player arrives as one
- * ::lh_input_event_t, the same event a desktop window gets, and takes the same
- * two levels (::lh_os_window_set_on_input, ::lh_os_window_set_controller):
+ * ::lh_input_event_t, the same event a desktop window gets, and goes down the
+ * same chain (::lh_os_window_set_on_input, ::lh_os_window_set_recognizer):
  *
- * - @p input, when set, sees it first, raw: the low-level tap;
- * - @p controller, when set, gets it next (::lh_controller_feed), and the host
- *   calls ::lh_controller_update on it at every tick, before @p tick;
+ * - @p input is the sink at the end of the chain;
+ * - @p recognizer, when set, stands in front of it: every event goes through
+ *   ::lh_input_recognizer_feed, which hands @p input the event and the gestures
+ *   it completes, and the host calls ::lh_input_recognizer_update at every
+ *   tick, before @p tick;
  * - with neither, the event is the application's to route: the gl player, for
- *   one, then feeds a controller of its own on the view it serves, so the view
- *   gets every event as `lh_gl_view_input` would have.
+ *   one, then puts a recognizer of its own in front of the view it serves
+ *   (`lh_gl_view_sink`), so the view gets every event as `lh_gl_view_input`
+ *   would have.
  *
- * @p input alone is what it always was: the host hands the event to nothing else,
- * and a hook that wants the view to see it passes it on itself. The player has no
- * focus to lose, so the host never cancels a controller.
+ * @p input alone gets the raw events only, and a hook that wants the view to see
+ * them passes them on itself. The player has no focus to lose, so the host never
+ * cancels a recognizer.
  *
  * | Line           | Event                                              |
  * |----------------|----------------------------------------------------|
@@ -47,10 +51,10 @@ struct lh_os_web_host_hooks
     lh_input_sink_cb input;
     /** Layout-mode tab size; ::lh_null keeps the host's initial width/height. */
     lh_void (*resize)(lh_sint_t width, lh_sint_t height, lh_ptr ctx);
-    /** Takes every input event after ::input and is updated every tick; the caller's,
-        and must outlive the run. ::lh_null with no ::input: the host's own view
-        controller. */
-    lh_controller_t *controller;
+    /** Stands in front of ::input and is updated every tick; the caller's, and must
+        outlive the run. ::lh_null with no ::input: the player's own, in front of its
+        view. */
+    lh_input_recognizer_t *recognizer;
 };
 /** @copybrief lh_os_web_host_hooks */
 typedef struct lh_os_web_host_hooks lh_os_web_host_hooks_t;
@@ -136,23 +140,24 @@ lh_os_web_host_hooks_set_resize_fn(lh_os_web_host_hooks_t *self,
                                                         lh_ptr ctx));
 
 /**
- * @brief The controller the input events go to (level 1).
+ * @brief The recognizer in front of the input hook (level 1).
  *
  * @param self The hooks; checked by ::lh_assert_runtime_ref.
  */
-lh_controller_t *
-lh_os_web_host_hooks_get_controller(const lh_os_web_host_hooks_t *self);
+lh_input_recognizer_t *
+lh_os_web_host_hooks_get_recognizer(const lh_os_web_host_hooks_t *self);
 
 /**
- * @brief Store the controller the input events go to (level 1).
+ * @brief Store the recognizer in front of the input hook (level 1).
  *
  * A level-1 setter: the value is stored as given and is not validated.
  *
  * @param self The hooks; checked by ::lh_assert_runtime_ref.
- * @param controller The new value.
+ * @param recognizer The new value.
  */
 lh_void
-lh_os_web_host_hooks_set_controller(lh_os_web_host_hooks_t *self, lh_controller_t *controller);
+lh_os_web_host_hooks_set_recognizer(lh_os_web_host_hooks_t *self,
+                                    lh_input_recognizer_t *recognizer);
 
 LH_COMPILER_EXTERN_C_END
 

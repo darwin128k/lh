@@ -2,13 +2,14 @@
  * @file window.h
  * @brief A native window displaying an LH entity tree: ::lh_gl_window_t.
  *
- * Composes the existing OS window, software screen, canvas, view and controller.
+ * Composes the existing OS window, software screen, canvas, view and recognizer.
  * The caller owns the root and its children; this object owns the five hosting
  * parts. Initialize it with the root, open it in an ::lh_os_app_t and run that
  * application's message loop. Deinitialize it before destroying the entity tree
  * or the OS application. No platform calls or application state are needed here.
  *
- * Input is routed by the standard window/controller/view path. Each timer turn
+ * Input goes down the window's chain: the recognizer, then the view's sink
+ * (`lh/gl/view/sink.h`). Each timer turn
  * runs the optional application update hook, advances the view and requests a
  * repaint of what changed. An OS paint draws the rectangle the system asks for
  * -- the widgets that changed, an exposure, a resize -- and the existing screen
@@ -18,7 +19,7 @@
  * pixels, without scaling. Closing follows the OS application's existing rules.
  *
  * The native window is accessible for caption/frame configuration. Its input
- * controller, paint, resize and tick slots belong to this composition; replacing
+ * sink and recognizer, paint, resize and tick slots belong to this composition; replacing
  * them also replaces that part of the hosting contract. Use the update hook for
  * changing application values and widget properties.
  *
@@ -63,7 +64,7 @@ struct lh_gl_window
 {
     /** Members: ::lh_gl_window_fields. */
     lh_gl_window_fields(lh_os_window_t, lh_os_render_backend_gdi_context_t, lh_gl_canvas_t,
-                        lh_gl_view_t, lh_controller_t, lh_os_window_on_tick_cb, lh_ptr);
+                        lh_gl_view_t, lh_input_recognizer_t, lh_os_window_on_tick_cb, lh_ptr);
 };
 /** @copybrief lh_gl_window */
 typedef struct lh_gl_window lh_gl_window_t;
@@ -135,20 +136,21 @@ lh_gl_view_t *
 lh_gl_window_get_view_mut(lh_gl_window_t *self);
 
 /**
- * @brief Read the owned input controller (level 1).
+ * @brief Read the owned gesture recognizer (level 1).
  * @param self Initialized composition; never null.
  * @return Borrowed member address, never null; valid until deinitialization.
  */
-const lh_controller_t *
-lh_gl_window_get_controller(const lh_gl_window_t *self);
+const lh_input_recognizer_t *
+lh_gl_window_get_recognizer(const lh_gl_window_t *self);
 
 /**
- * @brief Access the owned input controller for configuration (level 1).
+ * @brief Access the owned gesture recognizer for configuration (level 1), for
+ *        example ::lh_input_recognizer_set_config.
  * @param self Initialized composition; never null.
  * @return Borrowed mutable member address, never null. Do not destroy it separately.
  */
-lh_controller_t *
-lh_gl_window_get_controller_mut(lh_gl_window_t *self);
+lh_input_recognizer_t *
+lh_gl_window_get_recognizer_mut(lh_gl_window_t *self);
 
 /**
  * @brief Read the optional application update callback (level 1).
@@ -250,7 +252,22 @@ lh_void
 lh_gl_window_invalidate_damage(lh_gl_window_t *self, const lh_gl_rect_t *painting);
 
 /**
- * @brief Cancel in-progress input and request a full paint after resizing.
+ * @brief Drop every input in progress, without a word: the recognizer forgets
+ *        its gestures (::lh_input_recognizer_forget) and the view lets go of
+ *        every press (::lh_gl_view_cancel).
+ *
+ * For a moment the layout under the pointer is no longer the one the press
+ * began on (a resize), or nobody is left to tell (deinitialization): nothing
+ * is sent down the chain.
+ *
+ * @param self Initialized composition; never null.
+ */
+lh_void
+lh_gl_window_cancel_input(lh_gl_window_t *self);
+
+/**
+ * @brief Cancel in-progress input (::lh_gl_window_cancel_input) and request a
+ *        full paint after resizing.
  * @param window The owned native window.
  * @param width New client width in native pixels.
  * @param height New client height in native pixels.

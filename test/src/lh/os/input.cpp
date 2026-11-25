@@ -38,4 +38,33 @@ TEST(os_input, the_wheel_lines_are_asked_again_and_answer_the_same)
     EXPECT_EQ(lh_os_input_get_wheel_lines(nullptr), lh_os_input_get_wheel_lines(nullptr));
 }
 
+/* The three settings the system has are the kernels'; everything else of the config is
+   the caller's and stays. */
+TEST(os_input, the_recognizer_config_takes_the_systems_pointer_settings)
+{
+    lh_input_recognizer_config_t config;
+
+    lh_input_recognizer_config_init_default(&config);
+    lh_input_recognizer_config_set_slop(&config, 0xFFFFU);
+    lh_input_recognizer_config_set_double_click_ms(&config, 0xFFFFU);
+    lh_input_recognizer_config_set_double_click_slop(&config, 0xFFFFU);
+    lh_os_input_read_recognizer_config(&config);
+    EXPECT_EQ(lh_input_recognizer_config_get_slop(&config), lh_os_system_input_get_drag_slop());
+    EXPECT_EQ(lh_input_recognizer_config_get_double_click_slop(&config),
+              lh_os_system_input_get_double_click_slop());
+    EXPECT_EQ(lh_input_recognizer_config_get_double_click_ms(&config),
+              lh_os_system_input_get_double_click_ms());
+    EXPECT_EQ(lh_input_recognizer_config_get_long_press_ms(&config), 500U) << "not the system's";
+    EXPECT_EQ(lh_input_recognizer_config_get_swipe_px(&config), 48U);
+}
+
+/* Whatever the machine is set to, a drag needs some distance and a double click some
+   time: the kernels never hand the recognizer a zero for "the call failed". */
+TEST(os_input, the_systems_pointer_settings_are_never_zero)
+{
+    EXPECT_GT(lh_os_system_input_get_drag_slop(), 0U);
+    EXPECT_GT(lh_os_system_input_get_double_click_slop(), 0U);
+    EXPECT_GT(lh_os_system_input_get_double_click_ms(), 0U);
+}
+
 } // namespace

@@ -72,8 +72,24 @@ lh_input_recognizer_send(lh_input_event_t *event, lh_input_flags_t flags, lh_inp
                          lh_ptr context);
 
 /**
+ * @brief Forget every gesture of @p self without a word: no pointer held, no
+ *        drag, no click series, no pad button repeating, no stick past its
+ *        threshold. The config stays.
+ *
+ * Unlike ::lh_input_recognizer_reset nothing is sent: for an owner whose
+ * receiver has already been told, or is being put away (a window resized under
+ * a drag, a view about to be torn down), so a cancel would reach nobody who
+ * still wants it.
+ *
+ * @param self The recognizer; checked by ::lh_assert_runtime_ref.
+ */
+lh_void
+lh_input_recognizer_forget(lh_input_recognizer_t *self);
+
+/**
  * @brief Make @p self a recognizer with nothing held, using a copy of
- *        @p config (::lh_null for the defaults).
+ *        @p config (::lh_null for the defaults): the config is set, then
+ *        ::lh_input_recognizer_forget.
  */
 lh_void
 lh_input_recognizer_init(lh_input_recognizer_t *self, const lh_input_recognizer_config_ptr config);

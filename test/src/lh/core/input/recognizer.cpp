@@ -148,6 +148,32 @@ TEST(input_recognizer, initializer_gives_the_state_init_gives)
     EXPECT_EQ(lh_input_recognizer_get_phase(&initialized, 0U), lh_input_recognizer_phase_idle);
 }
 
+TEST(input_recognizer, config_setters_store_what_they_are_given)
+{
+    lh_input_recognizer_config_t config;
+
+    lh_input_recognizer_config_init_default(&config);
+    lh_input_recognizer_config_set_slop(&config, 9U);
+    lh_input_recognizer_config_set_double_click_ms(&config, 700U);
+    lh_input_recognizer_config_set_double_click_slop(&config, 3U);
+    EXPECT_EQ(lh_input_recognizer_config_get_slop(&config), 9U);
+    EXPECT_EQ(lh_input_recognizer_config_get_double_click_ms(&config), 700U);
+    EXPECT_EQ(lh_input_recognizer_config_get_double_click_slop(&config), 3U);
+    EXPECT_EQ(lh_input_recognizer_config_get_long_press_ms(&config), 500U) << "the rest stays";
+}
+
+TEST(input_recognizer, the_named_defaults_are_the_default_config)
+{
+    lh_input_recognizer_config_t config;
+
+    lh_input_recognizer_config_init_default(&config);
+    EXPECT_EQ(lh_input_recognizer_config_get_slop(&config), LH_INPUT_RECOGNIZER_SLOP_DEFAULT);
+    EXPECT_EQ(lh_input_recognizer_config_get_double_click_ms(&config),
+              LH_INPUT_RECOGNIZER_DOUBLE_CLICK_MS_DEFAULT);
+    EXPECT_EQ(lh_input_recognizer_config_get_double_click_slop(&config),
+              LH_INPUT_RECOGNIZER_DOUBLE_CLICK_SLOP_DEFAULT);
+}
+
 TEST(input_recognizer, defaults)
 {
     lh_input_recognizer_config_t config;
@@ -434,6 +460,41 @@ TEST(input_recognizer, reset_cancels_and_forgets_the_series)
     EXPECT_EQ(f.seen.last(lh_input_kind_pointer_cancel) != nullptr, true);
     f.down(10, 10, 40U);
     f.up(10, 10, 50U);
+    EXPECT_EQ(lh_input_event_get_count(f.seen.last(lh_input_kind_click)), 1U);
+}
+
+TEST(input_recognizer, forget_drops_every_gesture_and_sends_nothing)
+{
+    lh_input_recognizer_config_t config = lh_input_recognizer_config_initializer(
+        4U, 500U, 4U, 123U, 400U, 50U, 8000U, 2000U, 48U, lh_bool_true);
+    fixture f(config);
+
+    f.down(10, 10, 0U);
+    f.move(40, 10, 10U);
+    const std::size_t before = f.seen.events.size();
+    lh_input_recognizer_forget(&f.recognizer);
+    EXPECT_EQ(f.seen.events.size(), before) << "no cancel, no drag end";
+    EXPECT_EQ(lh_input_recognizer_get_phase(&f.recognizer, 0U), lh_input_recognizer_phase_idle);
+    lh_tick_t deadline = 0U;
+    EXPECT_FALSE(lh_input_recognizer_get_next_deadline(&f.recognizer, &deadline));
+    EXPECT_EQ(
+        lh_input_recognizer_config_get_long_press_ms(lh_input_recognizer_get_config(&f.recognizer)),
+        123U)
+        << "the config stays";
+    f.up(40, 10, 20U);
+    EXPECT_EQ(f.seen.last(lh_input_kind_drag_end), nullptr) << "the drag was forgotten";
+    EXPECT_EQ(f.seen.last(lh_input_kind_click), nullptr);
+}
+
+TEST(input_recognizer, forget_ends_the_click_series)
+{
+    fixture f;
+
+    f.down(10, 10, 0U);
+    f.up(10, 10, 10U);
+    lh_input_recognizer_forget(&f.recognizer);
+    f.down(10, 10, 20U);
+    f.up(10, 10, 30U);
     EXPECT_EQ(lh_input_event_get_count(f.seen.last(lh_input_kind_click)), 1U);
 }
 

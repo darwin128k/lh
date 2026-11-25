@@ -560,12 +560,6 @@ lh_add_test_core(lh_test_os_input
         ${LH_TEST_SRC_PATH}/lh/core/input/wheel.cpp
 )
 
-# lh/core/controller: the controller between an input source and its handler needs no
-# OS either, so it is tested in every build.
-lh_add_test_core(lh_test_os_controller
-        ${LH_TEST_SRC_PATH}/lh/core/controller.cpp
-)
-
 lh_add_test_core(lh_test_random
         ${LH_TEST_SRC_PATH}/lh/core/random.cpp
 )

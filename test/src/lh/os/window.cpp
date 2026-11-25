@@ -870,136 +870,157 @@ TEST(os_window, a_key_event_leaves_the_buttons_alone)
     lh_os_window_deinit(lh_addr_of(window));
 }
 
-/* What a window's controller was handed, and what the window's sink had seen by then. */
-struct ControllerLog
+/* What reached the end of a window's chain, raw events and gestures alike. */
+struct ChainLog
 {
-    InputSink sink;
-    int handled;
+    int seen;
     int raw;
     int long_presses;
-    int sink_count_at_first;
-    int updates;
     int cancels;
     lh_input_kind_t last;
 };
 
-lh_bool_t
-controller_handle(lh_self_ptr self, const lh_input_event_ptr event)
+lh_void
+chain_sink(lh_self_ptr self, const lh_input_event_ptr event)
 {
-    auto *log = static_cast<ControllerLog *>(self);
+    auto *log = static_cast<ChainLog *>(self);
+    const lh_input_kind_t kind = lh_input_event_get_kind(event);
 
-    if (log->handled == 0)
-    {
-        log->sink_count_at_first = log->sink.log.count;
-    }
-    log->handled++;
+    log->seen++;
     log->raw += lh_input_event_is_synthesized(event) ? 0 : 1;
-    log->long_presses += lh_input_event_get_kind(event) == lh_input_kind_long_press ? 1 : 0;
-    log->last = lh_input_event_get_kind(event);
-    return lh_bool_true;
+    log->long_presses += kind == lh_input_kind_long_press ? 1 : 0;
+    log->cancels +=
+        (kind == lh_input_kind_pointer_cancel && lh_input_event_is_synthesized(event)) ? 1 : 0;
+    log->last = kind;
 }
 
-lh_void
-controller_update(lh_self_ptr self, lh_tick_t /*now*/)
-{
-    static_cast<ControllerLog *>(self)->updates++;
-}
-
-lh_void
-controller_cancel(lh_self_ptr self)
-{
-    static_cast<ControllerLog *>(self)->cancels++;
-}
-
-/* The sink keeps seeing every raw event, and first; the controller sees each one after
-   it, with the gestures it makes of them. */
-TEST(os_window, the_controller_gets_every_event_after_the_sink)
+/* With a recognizer in front, the sink gets every raw event and after each the gestures
+   it completes; cleared, the raw events alone. */
+TEST(os_window, a_recognizer_puts_the_gestures_after_each_event)
 {
     lh_os_window_t window{};
-    lh_controller_t controller{};
-    ControllerLog log{};
+    lh_input_recognizer_t recognizer{};
+    ChainLog log{};
     const lh_u32_t primary = lh_input_button_to_mask(lh_input_button_primary);
     lh_input_event_t down =
         mouse_event(lh_input_kind_pointer_down, lh_input_button_primary, primary, 5, 6);
     lh_input_event_t up = mouse_event(lh_input_kind_pointer_up, lh_input_button_primary, 0U, 5, 6);
 
     lh_os_window_init(lh_addr_of(window));
-    lh_controller_init(lh_addr_of(controller), controller_handle, lh_addr_of(log), lh_null);
-    log.sink.window = lh_addr_of(window);
-    lh_os_window_set_on_input(lh_addr_of(window), on_input, lh_addr_of(log.sink));
-    EXPECT_EQ(lh_os_window_get_controller(lh_addr_of(window)), nullptr);
-    lh_os_window_set_controller(lh_addr_of(window), lh_addr_of(controller));
-    EXPECT_EQ(lh_os_window_get_controller(lh_addr_of(window)), lh_addr_of(controller));
+    lh_input_recognizer_init(lh_addr_of(recognizer), lh_null);
+    lh_os_window_set_on_input(lh_addr_of(window), chain_sink, lh_addr_of(log));
+    EXPECT_EQ(lh_os_window_get_recognizer(lh_addr_of(window)), nullptr);
+    lh_os_window_set_recognizer(lh_addr_of(window), lh_addr_of(recognizer));
+    EXPECT_EQ(lh_os_window_get_recognizer(lh_addr_of(window)), lh_addr_of(recognizer));
     lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(down));
     lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(up));
-    EXPECT_EQ(log.sink.log.count, 2);
-    EXPECT_EQ(log.sink_count_at_first, 1) << "the sink had the press before the controller";
     EXPECT_EQ(log.raw, 2);
+    EXPECT_EQ(log.seen, 3);
     EXPECT_EQ(log.last, lh_input_kind_click) << "the recognizer's click follows the release";
-    lh_os_window_set_controller(lh_addr_of(window), lh_null);
+    lh_os_window_set_recognizer(lh_addr_of(window), lh_null);
     lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(down));
-    EXPECT_EQ(log.raw, 2) << "a cleared controller hears nothing";
-    EXPECT_EQ(log.sink.log.count, 3);
+    lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(up));
+    EXPECT_EQ(log.raw, 4);
+    EXPECT_EQ(log.seen, 5) << "no recognizer, no click";
     lh_os_window_deinit(lh_addr_of(window));
 }
 
-TEST(os_window, a_focus_loss_cancels_the_controller)
+/* A focus loss is one more event down the chain: the recognizer cancels the pointer it
+   held, and nothing else needs calling. */
+TEST(os_window, a_focus_loss_reaches_the_recognizer_and_cancels_its_pointers)
 {
     lh_os_window_t window{};
-    lh_controller_t controller{};
-    ControllerLog log{};
+    lh_input_recognizer_t recognizer{};
+    ChainLog log{};
+    const lh_u32_t primary = lh_input_button_to_mask(lh_input_button_primary);
+    lh_input_event_t down =
+        mouse_event(lh_input_kind_pointer_down, lh_input_button_primary, primary, 5, 6);
     lh_input_event_t focus_out{};
 
     lh_input_event_init(lh_addr_of(focus_out), lh_input_kind_focus_out,
                         lh_input_device_kind_keyboard, 0U);
     lh_os_window_init(lh_addr_of(window));
-    lh_controller_init(lh_addr_of(controller), controller_handle, lh_addr_of(log), lh_null);
-    lh_controller_set_cancel_cb(lh_addr_of(controller), controller_cancel);
-    lh_os_window_set_controller(lh_addr_of(window), lh_addr_of(controller));
+    lh_input_recognizer_init(lh_addr_of(recognizer), lh_null);
+    lh_os_window_set_on_input(lh_addr_of(window), chain_sink, lh_addr_of(log));
+    lh_os_window_set_recognizer(lh_addr_of(window), lh_addr_of(recognizer));
+    lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(down));
     lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(focus_out));
-    EXPECT_EQ(log.raw, 1) << "the handler hears the focus loss itself";
+    EXPECT_EQ(log.raw, 2) << "the sink hears the focus loss itself";
     EXPECT_EQ(log.cancels, 1);
     lh_os_window_deinit(lh_addr_of(window));
 }
 
-TEST(os_window, a_tick_updates_the_controller_before_on_tick)
+/* Without a sink there is nobody to send to: the recognizer is not fed, and has nothing
+   to wait for. */
+TEST(os_window, a_recognizer_without_a_sink_is_left_alone)
+{
+    lh_os_window_t window{};
+    lh_input_recognizer_t recognizer{};
+    const lh_u32_t primary = lh_input_button_to_mask(lh_input_button_primary);
+    lh_input_event_t down =
+        mouse_event(lh_input_kind_pointer_down, lh_input_button_primary, primary, 5, 6);
+    lh_tick_t deadline = 0U;
+
+    lh_os_window_init(lh_addr_of(window));
+    lh_input_recognizer_init(lh_addr_of(recognizer), lh_null);
+    lh_os_window_set_recognizer(lh_addr_of(window), lh_addr_of(recognizer));
+    lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(down));
+    EXPECT_EQ(lh_input_recognizer_get_phase(lh_addr_of(recognizer), 0U),
+              lh_input_recognizer_phase_idle);
+    EXPECT_FALSE(lh_os_window_get_recognizer_deadline(lh_addr_of(window), lh_addr_of(deadline)));
+    lh_os_window_deinit(lh_addr_of(window));
+}
+
+/* The tick updates the recognizer at the backend's time, before `on_tick`: a press held
+   past the long-press time is a long press with no event after it. */
+TEST(os_window, a_tick_updates_the_recognizer_at_the_backends_time)
 {
     FakeBackend fake{};
     lh_os_app_t app{};
     lh_os_window_t window{};
-    lh_controller_t controller{};
-    ControllerLog log{};
+    lh_input_recognizer_t recognizer{};
+    ChainLog log{};
+    const lh_u32_t primary = lh_input_button_to_mask(lh_input_button_primary);
+    lh_input_event_t down =
+        mouse_event(lh_input_kind_pointer_down, lh_input_button_primary, primary, 5, 6);
 
     fake_app(lh_addr_of(app), lh_addr_of(fake));
     lh_os_window_init(lh_addr_of(window));
-    lh_controller_init(lh_addr_of(controller), controller_handle, lh_addr_of(log), lh_null);
-    lh_controller_set_update_cb(lh_addr_of(controller), controller_update);
+    lh_input_recognizer_init(lh_addr_of(recognizer), lh_null);
+    lh_os_window_set_on_input(lh_addr_of(window), chain_sink, lh_addr_of(log));
     ASSERT_EQ(lh_os_window_open(lh_addr_of(app), lh_addr_of(window), "tick", 10, 10), lh_bool_true);
+    lh_os_window_set_recognizer(lh_addr_of(window), lh_addr_of(recognizer));
+    lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(down));
+    fake.now = 100U;
     lh_os_window_on_native_tick(lh_addr_of(window));
-    EXPECT_EQ(log.updates, 0);
-    lh_os_window_set_controller(lh_addr_of(window), lh_addr_of(controller));
+    EXPECT_EQ(log.long_presses, 0) << "not yet";
+    fake.now = 1000U;
     lh_os_window_on_native_tick(lh_addr_of(window));
-    lh_os_window_on_native_tick(lh_addr_of(window));
-    EXPECT_EQ(log.updates, 2);
+    EXPECT_EQ(log.long_presses, 1);
     EXPECT_GE(fake.clock_reads, 2) << "the time is the backend's";
     lh_os_window_deinit(lh_addr_of(window));
     lh_os_app_deinit(lh_addr_of(app));
 }
 
 /* A window that was never opened has no clock: a tick reaches `on_tick`, but the
-   controller is not updated against a time nobody gave. */
-TEST(os_window, a_window_without_a_backend_does_not_update_its_controller)
+   recognizer is not updated against a time nobody gave. */
+TEST(os_window, a_window_without_a_backend_does_not_update_its_recognizer)
 {
     lh_os_window_t window{};
-    lh_controller_t controller{};
-    ControllerLog log{};
+    lh_input_recognizer_t recognizer{};
+    ChainLog log{};
+    const lh_u32_t primary = lh_input_button_to_mask(lh_input_button_primary);
+    lh_input_event_t down =
+        mouse_event(lh_input_kind_pointer_down, lh_input_button_primary, primary, 5, 6);
 
     lh_os_window_init(lh_addr_of(window));
-    lh_controller_init(lh_addr_of(controller), controller_handle, lh_addr_of(log), lh_null);
-    lh_controller_set_update_cb(lh_addr_of(controller), controller_update);
-    lh_os_window_set_controller(lh_addr_of(window), lh_addr_of(controller));
+    lh_input_recognizer_init(lh_addr_of(recognizer), lh_null);
+    lh_os_window_set_on_input(lh_addr_of(window), chain_sink, lh_addr_of(log));
+    lh_os_window_set_recognizer(lh_addr_of(window), lh_addr_of(recognizer));
+    lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(down));
+    const int seen = log.seen;
     lh_os_window_on_native_tick(lh_addr_of(window));
-    EXPECT_EQ(log.updates, 0);
+    EXPECT_EQ(log.seen, seen);
     lh_os_window_deinit(lh_addr_of(window));
 }
 
@@ -1039,15 +1060,16 @@ TEST(os_window, a_long_press_comes_due_on_the_window_timer_alone)
     LH_TEST_NEEDS_DISPLAY();
     lh_os_app_t app{};
     lh_os_window_t window{};
-    lh_controller_t controller{};
-    ControllerLog log{};
+    lh_input_recognizer_t recognizer{};
+    ChainLog log{};
     lh_input_event_t down{};
 
     lh_os_app_init(lh_addr_of(app));
     lh_test_use_system(lh_addr_of(app));
     lh_os_window_init(lh_addr_of(window));
-    lh_controller_init(lh_addr_of(controller), controller_handle, lh_addr_of(log), lh_null);
-    lh_os_window_set_controller(lh_addr_of(window), lh_addr_of(controller));
+    lh_input_recognizer_init(lh_addr_of(recognizer), lh_null);
+    lh_os_window_set_on_input(lh_addr_of(window), chain_sink, lh_addr_of(log));
+    lh_os_window_set_recognizer(lh_addr_of(window), lh_addr_of(recognizer));
     ASSERT_EQ(
         lh_os_window_open(lh_addr_of(app), lh_addr_of(window), "lh_test long press", 160, 120),
         lh_bool_true);

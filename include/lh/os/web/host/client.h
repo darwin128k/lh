@@ -8,6 +8,7 @@
 #define LH_OS_WEB_HOST_CLIENT_H
 
 #include <lh/config.h>
+#include <lh/core/timer/tick.h>
 #include <lh/os/web/host/frame.h>
 
 /**

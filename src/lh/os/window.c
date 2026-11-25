@@ -25,17 +25,17 @@ lh_os_window_get_parent(const lh_os_window_t *self)
 }
 
 lh_void
-lh_os_window_set_controller(lh_os_window_t *self, lh_controller_t *controller)
+lh_os_window_set_recognizer(lh_os_window_t *self, lh_input_recognizer_t *recognizer)
 {
     lh_assert_runtime_ref(self);
-    self->controller = controller;
+    self->recognizer = recognizer;
 }
 
-lh_controller_t *
-lh_os_window_get_controller(const lh_os_window_t *self)
+lh_input_recognizer_t *
+lh_os_window_get_recognizer(const lh_os_window_t *self)
 {
     lh_assert_runtime_ref(self);
-    return self->controller;
+    return self->recognizer;
 }
 
 const lh_list_node_t *
@@ -319,17 +319,17 @@ lh_os_window_set_tick_ms(lh_os_window_t *self, lh_u32_t tick_ms)
 }
 
 lh_bool_t
-lh_os_window_is_controller_armed(const lh_os_window_t *self)
+lh_os_window_is_recognizer_armed(const lh_os_window_t *self)
 {
     lh_assert_runtime_ref(self);
-    return self->controller_armed;
+    return self->recognizer_armed;
 }
 
 lh_void
-lh_os_window_set_controller_armed(lh_os_window_t *self, lh_bool_t controller_armed)
+lh_os_window_set_recognizer_armed(lh_os_window_t *self, lh_bool_t recognizer_armed)
 {
     lh_assert_runtime_ref(self);
-    self->controller_armed = controller_armed;
+    self->recognizer_armed = recognizer_armed;
 }
 
 const lh_os_window_backend_t *
@@ -578,8 +578,8 @@ lh_os_window_init(lh_os_window_t *self)
     lh_os_window_set_on_tick_fn(self, lh_null);
     lh_os_window_set_on_tick_context(self, lh_null);
     lh_os_window_set_tick_ms(self, 0U);
-    lh_os_window_set_controller(self, lh_null);
-    lh_os_window_set_controller_armed(self, lh_bool_false);
+    lh_os_window_set_recognizer(self, lh_null);
+    lh_os_window_set_recognizer_armed(self, lh_bool_false);
     lh_os_window_set_backend(self, lh_null);
     lh_os_window_set_backend_context(self, lh_null);
     lh_os_window_set_native(self, lh_null);
@@ -683,14 +683,14 @@ lh_os_window_set_size(lh_os_window_t *self, int width, int height)
 }
 
 lh_bool_t
-lh_os_window_get_controller_deadline(lh_os_window_t *self, lh_tick_t *out)
+lh_os_window_get_recognizer_deadline(lh_os_window_t *self, lh_tick_t *out)
 {
-    lh_controller_t *controller = lh_os_window_get_controller(self);
+    lh_input_recognizer_t *recognizer = lh_os_window_get_recognizer(self);
 
-    lh_return_if(lh_null_eq(controller), lh_bool_false);
-    lh_return_if(!lh_controller_is_enabled(controller), lh_bool_false);
-    lh_return_if(!lh_controller_has_flag(controller, lh_controller_flags_gestures), lh_bool_false);
-    return lh_input_recognizer_get_next_deadline(lh_controller_get_recognizer(controller), out);
+    lh_return_if(lh_null_eq(recognizer), lh_bool_false);
+    lh_return_if(lh_null_eq(lh_ptr_rcast(lh_void, lh_os_window_get_on_input_fn(self))),
+                 lh_bool_false);
+    return lh_input_recognizer_get_next_deadline(recognizer, out);
 }
 
 lh_bool_t
@@ -944,25 +944,25 @@ lh_os_window_set_corner_radius(lh_os_window_t *self, int radius)
 }
 
 lh_void
-lh_os_window_arm_controller(lh_os_window_t *self, lh_bool_t rearm)
+lh_os_window_arm_recognizer(lh_os_window_t *self, lh_bool_t rearm)
 {
     lh_return_if(lh_os_window_get_tick_ms(self) != 0U || !lh_os_window_is_open(self));
     const lh_os_window_backend_t *backend = lh_os_window_get_backend(self);
     lh_os_window_backend_set_timer_fn *set_timer = lh_os_window_backend_get_set_timer(backend);
 
-    /* A backend without a timer leaves the controller's deadlines to whoever calls the
+    /* A backend without a timer leaves the recognizer's deadlines to whoever calls the
        tick; there is nothing to arm. */
     lh_return_if(lh_null_eq(lh_ptr_rcast(lh_void, set_timer)));
     lh_ptr context = lh_os_window_get_backend_context(self);
     lh_tick_t deadline = 0U;
-    lh_bool_t waits = lh_os_window_get_controller_deadline(self, lh_addr_of(deadline));
+    lh_bool_t waits = lh_os_window_get_recognizer_deadline(self, lh_addr_of(deadline));
 
-    if (!waits && lh_os_window_is_controller_armed(self))
+    if (!waits && lh_os_window_is_recognizer_armed(self))
     {
-        lh_os_window_set_controller_armed(self, lh_bool_false);
+        lh_os_window_set_recognizer_armed(self, lh_bool_false);
         set_timer(context, self, 0U);
     }
-    lh_return_if(!waits || (lh_os_window_is_controller_armed(self) && !rearm));
+    lh_return_if(!waits || (lh_os_window_is_recognizer_armed(self) && !rearm));
     lh_tick_t now = lh_os_window_backend_get_now(backend)(context);
 
     /* Due already is due at the next tick the backend can make, never a timer of 0 ms:
@@ -971,7 +971,7 @@ lh_os_window_arm_controller(lh_os_window_t *self, lh_bool_t rearm)
               lh_tick_is_after(deadline, now)
                   ? lh_type_cast(lh_u32_t, lh_tick_elapsed(now, deadline))
                   : 1U);
-    lh_os_window_set_controller_armed(self, lh_bool_true);
+    lh_os_window_set_recognizer_armed(self, lh_bool_true);
 }
 
 lh_void
@@ -991,7 +991,7 @@ lh_os_window_on_native_destroy(lh_os_window_t *self)
                                              : lh_os_window_close_reason_os;
 
     lh_os_window_set_closing(self, lh_bool_false);
-    lh_os_window_set_controller_armed(self, lh_bool_false);
+    lh_os_window_set_recognizer_armed(self, lh_bool_false);
     lh_os_window_set_native(self, lh_null);
     if (modal && lh_null_ne(parent) && lh_os_window_is_open(parent))
     {
@@ -1054,10 +1054,10 @@ lh_os_window_set_on_tick(lh_os_window_t *self, lh_os_window_on_tick_cb on_tick, 
     {
         set_timer(lh_os_window_get_backend_context(self), self, ms);
     }
-    /* The period, or none: either way the controller's own timer is over, and without
-       a period the controller may still have a deadline to be woken for. */
-    lh_os_window_set_controller_armed(self, lh_bool_false);
-    lh_os_window_arm_controller(self, lh_bool_true);
+    /* The period, or none: either way the recognizer's own timer is over, and without
+       a period the recognizer may still have a deadline to be woken for. */
+    lh_os_window_set_recognizer_armed(self, lh_bool_false);
+    lh_os_window_arm_recognizer(self, lh_bool_true);
 }
 
 lh_void
@@ -1081,7 +1081,7 @@ lh_os_window_close(lh_os_window_t *self)
         }
     }
     lh_os_window_set_tick_ms(self, 0U);
-    lh_os_window_set_controller_armed(self, lh_bool_false);
+    lh_os_window_set_recognizer_armed(self, lh_bool_false);
     for (;;)
     {
         lh_os_window_t *child = lh_os_window_get_first_child(self);
@@ -1117,36 +1117,43 @@ lh_os_window_set_placement_v(lh_os_window_t *self, lh_os_window_placement_t plac
 }
 
 lh_void
-lh_os_window_update_controller(lh_os_window_t *self)
+lh_os_window_update_recognizer(lh_os_window_t *self)
 {
-    lh_controller_t *controller = lh_os_window_get_controller(self);
+    lh_input_recognizer_t *recognizer = lh_os_window_get_recognizer(self);
+    lh_input_sink_cb on_input = lh_os_window_get_on_input_fn(self);
 
-    lh_return_if(lh_null_eq(controller));
+    lh_return_if(lh_null_eq(recognizer) || lh_null_eq(lh_ptr_rcast(lh_void, on_input)));
     const lh_os_window_backend_t *backend = lh_os_window_get_backend(self);
 
     /* The time is the backend's: a window that was never opened has no clock to update
-       its controller by. */
+       its recognizer by. */
     lh_return_if(lh_null_eq(backend));
-    LH_ATTRIBUTE_UNUSED(lh_controller_update(
-        controller, lh_os_window_backend_get_now(backend)(lh_os_window_get_backend_context(self))));
-    lh_os_window_arm_controller(self, lh_bool_true);
+    lh_input_recognizer_update(
+        recognizer, lh_os_window_backend_get_now(backend)(lh_os_window_get_backend_context(self)),
+        on_input, lh_os_window_get_on_input_context(self));
+    lh_os_window_arm_recognizer(self, lh_bool_true);
 }
 
 lh_void
-lh_os_window_feed_controller(lh_os_window_t *self, const lh_input_event_cptr event)
+lh_os_window_send_input(lh_os_window_t *self, const lh_input_event_cptr event)
 {
-    lh_controller_t *controller = lh_os_window_get_controller(self);
+    lh_input_sink_cb on_input = lh_os_window_get_on_input_fn(self);
+
+    lh_return_if(lh_null_eq(lh_ptr_rcast(lh_void, on_input)));
+    lh_ptr context = lh_os_window_get_on_input_context(self);
+    lh_input_recognizer_t *recognizer = lh_os_window_get_recognizer(self);
+
+    if (lh_null_eq(recognizer))
+    {
+        on_input(context, event);
+        return;
+    }
     const lh_input_kind_t kind = lh_input_event_get_kind(event);
 
-    lh_return_if(lh_null_eq(controller));
-    LH_ATTRIBUTE_UNUSED(lh_controller_feed(controller, event));
-    if (kind == lh_input_kind_focus_out)
-    {
-        lh_controller_cancel(controller);
-    }
+    lh_input_recognizer_feed(recognizer, event, on_input, context);
     /* Only a press starts a new wait; anything else can only end one, so the timer that
        already runs is left alone instead of being set again on every move. */
-    lh_os_window_arm_controller(self, lh_type_cast(lh_bool_t, kind == lh_input_kind_pointer_down));
+    lh_os_window_arm_recognizer(self, lh_type_cast(lh_bool_t, kind == lh_input_kind_pointer_down));
 }
 
 lh_void
@@ -1160,9 +1167,9 @@ lh_os_window_deinit(lh_os_window_t *self)
 lh_void
 lh_os_window_on_native_tick(lh_os_window_t *self)
 {
-    /* The controller first, so `on_tick` paints what a long press that just came due
+    /* The recognizer first, so `on_tick` paints what a long press that just came due
        did to the view. */
-    lh_os_window_update_controller(self);
+    lh_os_window_update_recognizer(self);
     lh_os_window_on_tick_cb on_tick = lh_os_window_get_on_tick_fn(self);
     /* Read the pair before the call and not after: a tick that stops its own timer -- or
        that stops it and starts it at another period -- would otherwise be talking about
@@ -1178,11 +1185,5 @@ lh_os_window_on_native_input(lh_os_window_t *self, const lh_input_event_cptr eve
 {
     lh_assert_runtime_ref(event);
     lh_os_window_track_buttons(self, event);
-    /* The raw tap first, then the consumer: the sink is the low level and sees the event
-       as the backend built it, whatever the controller's handler then does. */
-    if (lh_null_ne(lh_ptr_rcast(lh_void, lh_os_window_get_on_input_fn(self))))
-    {
-        lh_os_window_get_on_input_fn(self)(lh_os_window_get_on_input_context(self), event);
-    }
-    lh_os_window_feed_controller(self, event);
+    lh_os_window_send_input(self, event);
 }

@@ -72,6 +72,27 @@ lh_u32_t
 lh_os_system_win_input_wheel_lines_of(lh_os_system_win_bool_t got, lh_os_system_win_uint_t lines);
 
 /**
+ * @brief Pixels a press may move and still click, from the two `GetSystemMetrics`
+ *        answers @p cx (`SM_CXDRAG`) and @p cy (`SM_CYDRAG`).
+ *
+ * The recognizer keeps one distance, so the larger of the two. Both `0` or less
+ * (the call failed) reads as ::LH_INPUT_RECOGNIZER_SLOP_DEFAULT.
+ */
+lh_u32_t
+lh_os_system_win_input_drag_slop_of(lh_int_t cx, lh_int_t cy);
+
+/**
+ * @brief Pixels a second click may land from the first and still continue the
+ *        series, from @p cx (`SM_CXDOUBLECLK`) and @p cy (`SM_CYDOUBLECLK`).
+ *
+ * Windows gives the size of a rectangle centred on the first click, the
+ * recognizer a distance from it: half the larger side. Both `0` or less (the
+ * call failed) reads as ::LH_INPUT_RECOGNIZER_DOUBLE_CLICK_SLOP_DEFAULT.
+ */
+lh_u32_t
+lh_os_system_win_input_double_click_slop_of(lh_int_t cx, lh_int_t cy);
+
+/**
  * @brief The device a pointer of @p type is: ::LH_OS_SYSTEM_WIN_PT_TOUCH a touch
  *        contact, ::LH_OS_SYSTEM_WIN_PT_PEN a pen, ::LH_OS_SYSTEM_WIN_PT_MOUSE and
  *        ::LH_OS_SYSTEM_WIN_PT_TOUCHPAD the mouse; ::lh_input_device_kind_none for

@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 
 #include <lh/gl/window.h>
-#include <lh/gl/view/controller.h>
+#include <lh/gl/view/sink.h>
 #include <lh/os/app.h>
 #include <lh/os/app/backend/system.h>
 #include <lh/os/window/backend/system.h>
@@ -122,14 +122,11 @@ TEST_F(ui_window, mounts_root_and_wires_existing_parts)
     EXPECT_EQ(lh_gl_canvas_get_backend(lh_gl_window_get_canvas(&host)), &lh_os_render_backend_gdi);
     EXPECT_EQ(lh_gl_canvas_get_context(lh_gl_window_get_canvas(&host)),
               lh_gl_window_get_screen(&host));
-    EXPECT_EQ(lh_os_window_get_controller(lh_gl_window_get_window(&host)),
-              lh_gl_window_get_controller(&host));
-    EXPECT_EQ(lh_controller_get_context(lh_gl_window_get_controller(&host)),
+    EXPECT_EQ(lh_os_window_get_recognizer(lh_gl_window_get_window(&host)),
+              lh_gl_window_get_recognizer(&host));
+    EXPECT_EQ(lh_os_window_get_on_input_fn(lh_gl_window_get_window(&host)), lh_gl_view_sink);
+    EXPECT_EQ(lh_os_window_get_on_input_context(lh_gl_window_get_window(&host)),
               lh_gl_window_get_view(&host));
-    EXPECT_EQ(lh_controller_get_handle_cb(lh_gl_window_get_controller(&host)),
-              lh_gl_view_controller_handle_event_is_handled);
-    EXPECT_EQ(lh_controller_get_cancel_cb(lh_gl_window_get_controller(&host)),
-              lh_gl_view_controller_cancel);
     EXPECT_EQ(lh_os_window_get_tick_ms(lh_gl_window_get_window(&host)), LH_GL_VIEW_FRAME_MS);
     EXPECT_EQ(lh_gl_window_get_on_update_fn(&host), nullptr);
     EXPECT_EQ(lh_gl_window_get_on_update_context(&host), nullptr);
@@ -146,13 +143,37 @@ TEST(ui_window_lifetime, empty_root_and_reinitialization_release_members)
     lh_gl_window_deinit(&host);
     EXPECT_EQ(lh_gl_canvas_get_backend(lh_gl_window_get_canvas(&host)), nullptr);
     EXPECT_EQ(lh_gl_view_get_canvas(lh_gl_window_get_view(&host)), nullptr);
-    EXPECT_EQ(lh_os_window_get_controller(lh_gl_window_get_window(&host)), nullptr);
+    EXPECT_EQ(lh_os_window_get_recognizer(lh_gl_window_get_window(&host)), nullptr);
+    EXPECT_EQ(lh_os_window_get_on_input_fn(lh_gl_window_get_window(&host)), nullptr);
     lh_gl_entity_t root;
     lh_gl_entity_init(&root, rect_of(0, 0, 20, 20));
     lh_gl_window_init(&host, &root);
     EXPECT_EQ(lh_gl_entity_own_view(&root), lh_gl_window_get_view(&host));
     lh_gl_window_deinit(&host);
     EXPECT_EQ(lh_gl_entity_own_view(&root), nullptr);
+}
+
+/* A press down the window's chain, then dropped without a word: the recognizer holds no
+   gesture any more and nothing was sent for it. */
+TEST(ui_window_lifetime, cancel_input_forgets_the_gestures_without_a_word)
+{
+    lh_gl_window_t host;
+    lh_gl_entity_t root;
+    lh_input_event_t down{};
+
+    lh_gl_entity_init(&root, rect_of(0, 0, 20, 20));
+    lh_gl_window_init(&host, &root);
+    lh_input_event_init_pointer(&down, lh_input_kind_pointer_down, lh_input_device_kind_mouse, 0U,
+                                lh_input_button_primary, lh_input_coord_from_int(5),
+                                lh_input_coord_from_int(5), 0U);
+    lh_input_event_set_buttons(&down, lh_input_button_to_mask(lh_input_button_primary));
+    lh_os_window_on_native_input(lh_gl_window_get_window_mut(&host), &down);
+    EXPECT_NE(lh_input_recognizer_get_phase(lh_gl_window_get_recognizer(&host), 0U),
+              lh_input_recognizer_phase_idle);
+    lh_gl_window_cancel_input(&host);
+    EXPECT_EQ(lh_input_recognizer_get_phase(lh_gl_window_get_recognizer(&host), 0U),
+              lh_input_recognizer_phase_idle);
+    lh_gl_window_deinit(&host);
 }
 
 TEST_F(ui_window, native_window_input_clicks_button_once_and_rejects_outside_press)

@@ -39,7 +39,7 @@
 #include <lh/gl/pen.h>
 #include <lh/gl/range.h>
 #include <lh/gl/view.h>
-#include <lh/gl/view/controller.h>
+#include <lh/gl/view/sink.h>
 #include <lh/gl/viewport3d.h>
 #if LH_LIBRARY_OPTION_MATH_FPU
 #    include <lh/gl/renderer3d.h>

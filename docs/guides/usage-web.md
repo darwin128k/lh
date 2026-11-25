@@ -110,16 +110,16 @@ Notes:
 
 - In the web build `on_resize` lays the tree out again but does **not** call
   `lh_os_window_invalidate` — damage on the view is enough for the next frame.
-- Any hook may be `lh_null`. Input takes the same two levels as a window:
-  `input` (the low-level sink) sees every event first, raw, moves included;
-  `controller` (an `lh_controller_t *`, the standard path) gets it next and
-  is updated by the host at every tick, before `tick`, so long presses come
-  due. With neither, the host feeds a controller of its own made with
-  `lh_gl_view_controller_handle_event_is_handled` / `lh_gl_view_controller_cancel` on the
-  served view, which is `lh_gl_view_input` with the gestures alongside. With
-  `input` alone the hook is the only consumer, as before, and passes on to
-  `lh_gl_view_input` what the view should see. The player has no focus to
-  lose, so the host never cancels a controller.
+- Any hook may be `lh_null`. Input goes down the same chain as a window's:
+  `input` is the sink at its end, every event, moves included; `recognizer`
+  (an `lh_input_recognizer_t *`) stands in front of it and is updated by the
+  host at every tick, before `tick`, so long presses come due. Without
+  `input` the events go to the served view (`lh_gl_view_sink`); with neither,
+  the player puts a recognizer of its own in front of the view, which is
+  `lh_gl_view_input` with the gestures alongside. With `input` alone the hook
+  gets the raw events only and passes on to `lh_gl_view_input` what the view
+  should see. The player has no focus to lose, so the host never cancels a
+  recognizer.
 - The events carry `lh_os_tick_ms` as their time and no modifiers.
 - `tick` runs about every 20 ms **and between requests**, so device polling is
   not starved by HTTP.
@@ -186,7 +186,7 @@ main(int argc, char **argv)
     (void)argc; (void)argv;
 #endif
 
-    /* ... desktop branch: set_controller and the rest, lh_os_window_open, lh_os_app_run ... */
+    /* ... desktop branch: set_on_input, set_recognizer, lh_os_window_open, lh_os_app_run ... */
 }
 ```
 

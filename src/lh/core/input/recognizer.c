@@ -120,17 +120,8 @@ lh_input_recognizer_set_axis_out(lh_input_recognizer_t *self, lh_input_axis_t ax
 }
 
 lh_void
-lh_input_recognizer_init(lh_input_recognizer_t *self, lh_input_recognizer_config_cptr config)
+lh_input_recognizer_forget(lh_input_recognizer_t *self)
 {
-    lh_assert_runtime_ref(self);
-    if (lh_null_eq(config))
-    {
-        lh_input_recognizer_config_init_default(lh_input_recognizer_get_config_mut(self));
-    }
-    else
-    {
-        lh_input_recognizer_set_config(self, config);
-    }
     for (lh_u8_t i = 0U; i < LH_INPUT_POINTER_MAX; ++i)
     {
         lh_input_recognizer_pointer_clear(lh_input_recognizer_get_pointer_mut(self, i));
@@ -147,6 +138,20 @@ lh_input_recognizer_init(lh_input_recognizer_t *self, lh_input_recognizer_config
         lh_input_recognizer_set_axis_hot(self, which, lh_bool_false);
         lh_input_recognizer_set_axis_out(self, which, 0);
     }
+}
+
+lh_void
+lh_input_recognizer_init(lh_input_recognizer_t *self, lh_input_recognizer_config_cptr config)
+{
+    if (lh_null_eq(config))
+    {
+        lh_input_recognizer_config_init_default(lh_input_recognizer_get_config_mut(self));
+    }
+    else
+    {
+        lh_input_recognizer_set_config(self, config);
+    }
+    lh_input_recognizer_forget(self);
 }
 
 lh_input_recognizer_config_cptr

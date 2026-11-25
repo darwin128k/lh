@@ -3,6 +3,7 @@
  * @brief Implementation of `src/lh/os/system/win/input.h`.
  */
 
+#include <lh/core/input/recognizer/config/defaults.h>
 #include <lh/core/input/wheel.h>
 #include <lh/os/system/win/input.h>
 #include <lh/os/system/input.h>
@@ -105,6 +106,46 @@ lh_os_system_input_get_wheel_lines(lh_void)
         SystemParametersInfoA(LH_OS_SYSTEM_WIN_SPI_GETWHEELSCROLLLINES, 0U, lh_addr_of(lines), 0U);
 
     return lh_os_system_win_input_wheel_lines_of(got, lines);
+}
+
+lh_u32_t
+lh_os_system_win_input_drag_slop_of(lh_int_t cx, lh_int_t cy)
+{
+    const lh_int_t larger = lh_math_max(cx, cy);
+
+    lh_return_if(larger <= 0, lh_type_cast(lh_u32_t, LH_INPUT_RECOGNIZER_SLOP_DEFAULT));
+    return lh_type_cast(lh_u32_t, larger);
+}
+
+lh_u32_t
+lh_os_system_win_input_double_click_slop_of(lh_int_t cx, lh_int_t cy)
+{
+    const lh_int_t larger = lh_math_max(cx, cy);
+
+    lh_return_if(larger <= 0,
+                 lh_type_cast(lh_u32_t, LH_INPUT_RECOGNIZER_DOUBLE_CLICK_SLOP_DEFAULT));
+    return lh_type_cast(lh_u32_t, larger / 2);
+}
+
+lh_u32_t
+lh_os_system_input_get_drag_slop(lh_void)
+{
+    return lh_os_system_win_input_drag_slop_of(GetSystemMetrics(LH_OS_SYSTEM_WIN_SM_CXDRAG),
+                                               GetSystemMetrics(LH_OS_SYSTEM_WIN_SM_CYDRAG));
+}
+
+lh_u32_t
+lh_os_system_input_get_double_click_slop(lh_void)
+{
+    return lh_os_system_win_input_double_click_slop_of(
+        GetSystemMetrics(LH_OS_SYSTEM_WIN_SM_CXDOUBLECLK),
+        GetSystemMetrics(LH_OS_SYSTEM_WIN_SM_CYDOUBLECLK));
+}
+
+lh_u32_t
+lh_os_system_input_get_double_click_ms(lh_void)
+{
+    return lh_type_cast(lh_u32_t, GetDoubleClickTime());
 }
 
 lh_input_device_kind_t

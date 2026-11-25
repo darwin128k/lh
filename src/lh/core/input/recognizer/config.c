@@ -24,6 +24,13 @@ lh_input_recognizer_config_get_slop(lh_input_recognizer_config_cptr self)
     return self->slop;
 }
 
+lh_void
+lh_input_recognizer_config_set_slop(lh_input_recognizer_config_t *self, lh_u16_t slop)
+{
+    lh_assert_runtime_ref(self);
+    self->slop = slop;
+}
+
 lh_u16_t
 lh_input_recognizer_config_get_double_click_ms(lh_input_recognizer_config_cptr self)
 {
@@ -31,11 +38,27 @@ lh_input_recognizer_config_get_double_click_ms(lh_input_recognizer_config_cptr s
     return self->double_click_ms;
 }
 
+lh_void
+lh_input_recognizer_config_set_double_click_ms(lh_input_recognizer_config_t *self,
+                                               lh_u16_t double_click_ms)
+{
+    lh_assert_runtime_ref(self);
+    self->double_click_ms = double_click_ms;
+}
+
 lh_u16_t
 lh_input_recognizer_config_get_double_click_slop(lh_input_recognizer_config_cptr self)
 {
     lh_assert_runtime_ref(self);
     return self->double_click_slop;
+}
+
+lh_void
+lh_input_recognizer_config_set_double_click_slop(lh_input_recognizer_config_t *self,
+                                                 lh_u16_t double_click_slop)
+{
+    lh_assert_runtime_ref(self);
+    self->double_click_slop = double_click_slop;
 }
 
 lh_u16_t

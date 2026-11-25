@@ -139,7 +139,7 @@ moved with it.
 |---|---|
 | `app`, `parent`, `children`, `link`, `modal`, `closing` | the tree the application owns |
 | `on_resize`, `on_paint`, `on_input`, `on_close`, `on_tick` and their contexts | the application's reactions |
-| `controller`, `controller_armed` | the input recognizer, which is not the system's |
+| `recognizer`, `recognizer_armed` | the input recognizer, which is not the system's |
 | `tick_ms` | the period the **application** asked its timer for — the system's timer is the system's, the period is the ask |
 | **the place** (new): `x`, `y`, `width`, `height` | where the window is and how big it is — the size lived only in the system, and the application could not ask for one |
 
@@ -201,7 +201,7 @@ what `window.c` called before:
 | `close(context, window)` | `_close` | yes |
 | `invalidate(context, window)` | `_invalidate` | yes |
 | `invalidate_rect(context, window, l, t, r, b)` | `_invalidate_rect` | yes |
-| `now(context)` → tick (`lh_timer_clock_fn`) | `lh_os_tick_ms` | yes: the controller's deadlines are timed by it |
+| `now(context)` → tick (`lh_timer_clock_fn`) | `lh_os_tick_ms` | yes: the recognizer's deadlines are timed by it |
 | `set_timer(context, window, ms)` (`0` stops it) | `_set_timer` | no: the window has no timer of its own; whoever drives the backend calls `lh_os_window_on_native_tick` |
 | `set_enabled(context, window, enabled)` | `_set_enabled` | no: a modal child does not disable its parent |
 | `minimize`, `set_maximized` | `_minimize`, `_set_maximized` | no: the call does nothing |
@@ -300,7 +300,7 @@ as a rule for every part, not for the window alone:
 | the size | the system resizes and says so | the application says so |
 | the paint | the backend calls the paint up-call | the same |
 | the present | the system | the present sink |
-| the input | the controller, fed by the backend | the same |
+| the input | the sink and its recognizer, fed by the backend | the same |
 | the close | the backend says | the same |
 
 The window list, the main window, the modal children, the timers, the quit

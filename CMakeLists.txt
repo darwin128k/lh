@@ -251,8 +251,6 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/core/input/recognizer/config.c
         ${LH_LIB_SRC_PATH}/core/input/recognizer/pointer.c
         ${LH_LIB_SRC_PATH}/core/input/wheel.c
-        ${LH_LIB_SRC_PATH}/core/controller.c
-        ${LH_LIB_SRC_PATH}/core/controller/dispatch.c
         ${LH_LIB_SRC_PATH}/core/error.c
         ${LH_LIB_SRC_PATH}/core/werror.c
         ${LH_LIB_SRC_PATH}/core/runtime/error.c
@@ -624,6 +622,15 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gl/canvas/clip/round.c
             ${LH_LIB_SRC_PATH}/gl/pen.c
             ${LH_LIB_SRC_PATH}/gl/entity.c
+            ${LH_LIB_SRC_PATH}/gl/entity/damage.c
+            ${LH_LIB_SRC_PATH}/gl/entity/draw.c
+            ${LH_LIB_SRC_PATH}/gl/entity/focus.c
+            ${LH_LIB_SRC_PATH}/gl/entity/geometry.c
+            ${LH_LIB_SRC_PATH}/gl/entity/hit.c
+            ${LH_LIB_SRC_PATH}/gl/entity/look.c
+            ${LH_LIB_SRC_PATH}/gl/entity/send.c
+            ${LH_LIB_SRC_PATH}/gl/entity/shown.c
+            ${LH_LIB_SRC_PATH}/gl/entity/tree.c
             ${LH_LIB_SRC_PATH}/gl/entity/class.c
             ${LH_LIB_SRC_PATH}/gl/entity/event.c
             ${LH_LIB_SRC_PATH}/gl/entity/transform.c
@@ -636,7 +643,18 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gl/button.c
              ${LH_LIB_SRC_PATH}/gl/toggle.c
             ${LH_LIB_SRC_PATH}/gl/view.c
-            ${LH_LIB_SRC_PATH}/gl/view/controller.c
+            ${LH_LIB_SRC_PATH}/gl/view/damage.c
+            ${LH_LIB_SRC_PATH}/gl/view/draw.c
+            ${LH_LIB_SRC_PATH}/gl/view/focus.c
+            ${LH_LIB_SRC_PATH}/gl/view/hit.c
+            ${LH_LIB_SRC_PATH}/gl/view/hover.c
+            ${LH_LIB_SRC_PATH}/gl/view/input.c
+            ${LH_LIB_SRC_PATH}/gl/view/press.c
+            ${LH_LIB_SRC_PATH}/gl/view/scroll.c
+            ${LH_LIB_SRC_PATH}/gl/view/throw.c
+            ${LH_LIB_SRC_PATH}/gl/view/transition.c
+            ${LH_LIB_SRC_PATH}/gl/view/wheel.c
+            ${LH_LIB_SRC_PATH}/gl/view/sink.c
             ${LH_LIB_SRC_PATH}/gl/view/focus/walk.c
             ${LH_LIB_SRC_PATH}/gl/view/pointer.c
             ${LH_LIB_SRC_PATH}/gl/mask.c

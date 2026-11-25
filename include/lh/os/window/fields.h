@@ -17,8 +17,8 @@
 #include <lh/os/window/placement.h>
 
 /**
- * @def lh_os_window_fields(app_type, window_type, controller_type, backend_type)
- * @brief The tree, the place, the reactions, the input consumer, and the backend.
+ * @def lh_os_window_fields(app_type, window_type, recognizer_type, backend_type)
+ * @brief The tree, the place, the reactions, the input recognizer, and the backend.
  *
  * Everything here belongs to the **application**, not to the operating system:
  * the tree of windows, the place the window occupies, what the application does
@@ -44,12 +44,13 @@
  * The backend runs it when it has a timer (::lh_os_window_set_on_tick), and the
  * application keeps it either way.
  *
- * `controller` is the standard consumer of the input: every event the sink saw
- * goes on to it (::lh_controller_feed), a focus loss also cancels it, and the
- * window keeps its recognizer's timers running (::lh_controller_update) on the
- * window timer; see ::lh_os_window_set_controller. `controller_armed` is true
- * while the window timer runs for the controller alone -- no `on_tick` asked for
- * one -- to bring the recognizer's next deadline (a long press) on time.
+ * `recognizer` stands in front of `on_input`: every event goes through it
+ * (::lh_input_recognizer_feed), which hands the sink the event and the gestures
+ * it completes, and the window keeps its timers running
+ * (::lh_input_recognizer_update) on the window timer; see
+ * ::lh_os_window_set_recognizer. `recognizer_armed` is true while the window
+ * timer runs for the recognizer alone -- no `on_tick` asked for one -- to bring
+ * its next deadline (a long press) on time.
  *
  * `backend` and `backend_context` are the table the window calls down through
  * (::lh_os_window_backend_t) and its context, taken from the application when
@@ -69,10 +70,10 @@
  *
  * @param app_type        Type of the owning app pointer (::lh_os_app_t).
  * @param window_type     Type of the parent / child window pointer.
- * @param controller_type Type of the controller pointer (::lh_controller_t).
+ * @param recognizer_type Type of the recognizer pointer (::lh_input_recognizer_t).
  * @param backend_type    Type of the backend table (::lh_os_window_backend_t).
  */
-#define lh_os_window_fields(app_type, window_type, controller_type, backend_type)                  \
+#define lh_os_window_fields(app_type, window_type, recognizer_type, backend_type)                  \
     app_type *app;                                                                                 \
     window_type *parent;                                                                           \
     lh_list_t children;                                                                            \
@@ -94,8 +95,8 @@
     lh_os_window_on_tick_cb on_tick;                                                               \
     lh_ptr on_tick_context;                                                                        \
     lh_u32_t tick_ms;                                                                              \
-    controller_type *controller;                                                                   \
-    lh_bool_t controller_armed;                                                                    \
+    recognizer_type *recognizer;                                                                   \
+    lh_bool_t recognizer_armed;                                                                    \
     const backend_type *backend;                                                                   \
     lh_ptr backend_context;                                                                        \
     lh_ptr native;                                                                                 \

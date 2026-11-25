@@ -48,7 +48,7 @@ struct lh_gl_web_player
     /** Members: ::lh_gl_web_player_fields. */
     lh_gl_web_player_fields(lh_gl_view_t *, lh_uint_t, lh_str_ptr, lh_usize_t,
                             const lh_os_web_host_hooks_t *, lh_os_web_app_t, lh_os_web_app_route_t,
-                            lh_controller_t, lh_gl_canvas_web_t, lh_os_web_host_hooks_t,
+                            lh_input_recognizer_t, lh_gl_canvas_web_t, lh_os_web_host_hooks_t,
                             lh_gl_canvas_web_glyphs_t);
 };
 /** @copybrief lh_gl_web_player */
@@ -262,41 +262,23 @@ lh_os_web_host_hooks_t *
 lh_gl_web_player_get_routed_mut(lh_gl_web_player_t *self);
 
 /**
- * @brief The player's own view controller (level 1).
+ * @brief The player's own recognizer, in front of its view (level 1).
  *
  * @param self The player; checked by ::lh_assert_runtime_ref.
  * @return The member itself, never ::lh_null.
  */
-const lh_controller_t *
-lh_gl_web_player_get_controller(const lh_gl_web_player_t *self);
+const lh_input_recognizer_t *
+lh_gl_web_player_get_recognizer(const lh_gl_web_player_t *self);
 
 /**
- * @brief The player's own view controller, to change in place (level 1).
+ * @brief The player's own recognizer, to change in place (level 1), for
+ *        example ::lh_input_recognizer_set_config.
  *
  * @param self The player; checked by ::lh_assert_runtime_ref.
  * @return The member itself, never ::lh_null.
  */
-lh_controller_t *
-lh_gl_web_player_get_controller_mut(lh_gl_web_player_t *self);
-
-/**
- * @brief Whether the controller is the player's (level 1).
- *
- * @param self The player; checked by ::lh_assert_runtime_ref.
- */
-lh_bool_t
-lh_gl_web_player_get_owns_controller(const lh_gl_web_player_t *self);
-
-/**
- * @brief Store whether the controller is the player's (level 1).
- *
- * A level-1 setter: the value is stored as given.
- *
- * @param self             The player; checked by ::lh_assert_runtime_ref.
- * @param owns_controller  True when it is.
- */
-lh_void
-lh_gl_web_player_set_owns_controller(lh_gl_web_player_t *self, lh_bool_t owns_controller);
+lh_input_recognizer_t *
+lh_gl_web_player_get_recognizer_mut(lh_gl_web_player_t *self);
 
 /**
  * @brief The canvas the player draws a frame with (level 1).
@@ -327,23 +309,46 @@ lh_gl_canvas_web_glyphs_t *
 lh_gl_web_player_get_glyphs_mut(lh_gl_web_player_t *self);
 
 /**
- * @brief The controller the player works with (level 1).
+ * @brief The recognizer the player works with: the hooks', or its own when the
+ *        caller gave neither an input nor a recognizer; ::lh_null for raw
+ *        events only.
  *
  * @param self The player; checked by ::lh_assert_runtime_ref.
  */
-lh_controller_t *
-lh_gl_web_player_get_routed_controller(const lh_gl_web_player_t *self);
+lh_input_recognizer_t *
+lh_gl_web_player_get_routed_recognizer(const lh_gl_web_player_t *self);
+
+/**
+ * @brief The sink at the end of the player's chain: the hooks' input, or
+ *        `lh_gl_view_sink` when the caller gave none.
+ *
+ * @param self The player; checked by ::lh_assert_runtime_ref.
+ */
+lh_input_sink_cb
+lh_gl_web_player_get_sink(const lh_gl_web_player_t *self);
+
+/**
+ * @brief What ::lh_gl_web_player_get_sink gets as its `self`: the hooks'
+ *        context, or the view.
+ *
+ * @param self The player; checked by ::lh_assert_runtime_ref.
+ */
+lh_ptr
+lh_gl_web_player_get_sink_context(const lh_gl_web_player_t *self);
 
 /**
  * @brief Give one input event to the application.
  *
- * The event goes to the hooks' input first, then to the controller — the
- * player's own, when the caller gave none.
+ * The event goes down the player's chain: through the routed recognizer, when
+ * there is one (::lh_gl_web_player_get_routed_recognizer), to the sink
+ * (::lh_gl_web_player_get_sink).
  *
  * @param self  The player; checked by ::lh_assert_runtime_ref.
  * @param event The event.
  *
- * @return True when the tree may have changed.
+ * @return True when the tree may have changed: always for the caller's input
+ *         hook, whose effect the player cannot see; for its own view, whether
+ *         the view has damage to draw (::lh_gl_view_has_damage).
  */
 lh_bool_t
 lh_gl_web_player_input(lh_gl_web_player_t *self, const lh_input_event_t *event);
@@ -518,7 +523,7 @@ lh_void
 lh_gl_web_player_frame(lh_ptr ctx, lh_bool_t restart, const lh_str_ptr *bytes, lh_usize_t *len);
 
 /**
- * @brief The application's tick: the controller, the hooks and the damage.
+ * @brief The application's tick: the recognizer, the hooks and the damage.
  *
  * @param ctx The player's context.
  */

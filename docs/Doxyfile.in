@@ -92,8 +92,6 @@ PREDEFINED             = LH_COMPILER_EXTERN_C_BEGIN= \
                          "lh_self_ptr=void *" \
                          "lh_error_desc_ptr=lh_char_t *" \
                          "lh_werror_desc_ptr=lh_wchar_t *" \
-                         "lh_controller_ptr=struct lh_controller *" \
-                         "lh_controller_cptr=const struct lh_controller *" \
                          "lh_input_contacts_ptr=struct lh_input_contacts *" \
                          "lh_input_contacts_cptr=const struct lh_input_contacts *" \
                          "lh_input_event_ptr=struct lh_input_event *" \
@@ -123,7 +121,6 @@ OPTIMIZE_OUTPUT_FOR_C  = YES
 EXCLUDE_SYMBOLS        = lh_os_native_thread \
                          lh_os_native_condition \
                          lh_os_system_shared_search \
-                         lh_controller_dispatch \
                          lh_os_system_win_mib_ipaddrrow \
                          lh_os_system_win_mib_ipaddrtable \
                          lh_os_system_win_mib_ipaddrrow_t \
