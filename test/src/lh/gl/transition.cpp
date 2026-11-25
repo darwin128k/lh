@@ -155,9 +155,11 @@ TEST(ui_style_blend, a_shadow_cast_at_one_end_only_fades_in_from_nothing)
 
     lh_gl_style_t mid;
     lh_gl_style_init_blend(&mid, &from.style, &to.style, 0);
-    EXPECT_EQ(lh_gl_color_get_a(&mid.shadow.color), 0) << "nothing at the start";
+    EXPECT_EQ(lh_gl_color_get_a(lh_gl_shadow_get_color(lh_gl_style_get_shadow(&mid))), 0)
+        << "nothing at the start";
     lh_gl_style_init_blend(&mid, &from.style, &to.style, 128);
-    EXPECT_NEAR((int)lh_gl_color_get_a(&mid.shadow.color), 100, 2);
+    EXPECT_NEAR((int)lh_gl_color_get_a(lh_gl_shadow_get_color(lh_gl_style_get_shadow(&mid))), 100,
+                2);
 }
 
 /* -- Flight ---------------------------------------------------------------- */

@@ -10,20 +10,23 @@
  * may change how the entity looks — fill, radius, shadow, text paint — not its
  * geometry. `border` is painted after the children in `border_fill`; uniform widths
  * follow the fill's corner radii.
+ *
+ * The fields are kept in four parts, each a struct of its own: the box
+ * (`lh/gl/style/box.h`), the typography (`lh/gl/style/typography.h`), how the
+ * style answers a pointer (`lh/gl/style/pointer.h`) and how it is reached over
+ * time (`lh/gl/style/motion.h`). The accessors below read and write through
+ * them, so a caller who works with one field never needs the part it is in.
  */
 
 #ifndef LH_GL_STYLE_H
 #define LH_GL_STYLE_H
 
-#include <lh/gl/easing.h>
-#include <lh/gl/font.h>
-#include <lh/gl/paint.h>
-#include <lh/gl/radii.h>
 #include <lh/gl/radius.h>
-#include <lh/gl/shadow.h>
+#include <lh/gl/style/box.h>
 #include <lh/gl/style/fields.h>
-#include <lh/gl/text/align.h>
-#include <lh/gl/text/overflow.h>
+#include <lh/gl/style/motion.h>
+#include <lh/gl/style/pointer.h>
+#include <lh/gl/style/typography.h>
 
 /**
  * @struct lh_gl_style
@@ -32,13 +35,85 @@
 struct lh_gl_style
 {
     /** Members: ::lh_gl_style_fields. */
-    lh_gl_style_fields(lh_gl_paint_t, lh_gl_scalar_t, lh_gl_font_t, lh_gl_insets_t, lh_gl_shadow_t,
-                       lh_gl_radii_t);
+    lh_gl_style_fields(lh_gl_style_box_t, lh_gl_style_typography_t, lh_gl_style_pointer_t,
+                       lh_gl_style_motion_t);
 };
 /** @copybrief lh_gl_style */
 typedef struct lh_gl_style lh_gl_style_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief The box part of @p self, read in place (level 1).
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+const lh_gl_style_box_t *
+lh_gl_style_get_box(const lh_gl_style_t *self);
+
+/**
+ * @brief The box part of @p self, to change in place (level 1).
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_gl_style_box_t *
+lh_gl_style_get_box_mut(lh_gl_style_t *self);
+
+/**
+ * @brief The typography part of @p self, read in place (level 1).
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+const lh_gl_style_typography_t *
+lh_gl_style_get_typography(const lh_gl_style_t *self);
+
+/**
+ * @brief The typography part of @p self, to change in place (level 1).
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_gl_style_typography_t *
+lh_gl_style_get_typography_mut(lh_gl_style_t *self);
+
+/**
+ * @brief How @p self answers a pointer, read in place (level 1).
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+const lh_gl_style_pointer_t *
+lh_gl_style_get_pointer(const lh_gl_style_t *self);
+
+/**
+ * @brief How @p self answers a pointer, to change in place (level 1).
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_gl_style_pointer_t *
+lh_gl_style_get_pointer_mut(lh_gl_style_t *self);
+
+/**
+ * @brief How @p self is reached over time, read in place (level 1).
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+const lh_gl_style_motion_t *
+lh_gl_style_get_motion(const lh_gl_style_t *self);
+
+/**
+ * @brief How @p self is reached over time, to change in place (level 1).
+ *
+ * @param self The style; checked by ::lh_assert_runtime_ref.
+ * @return The member itself, never ::lh_null.
+ */
+lh_gl_style_motion_t *
+lh_gl_style_get_motion_mut(lh_gl_style_t *self);
 
 /**
  * @brief Fill @p self with the empty fill paint, square corners, the default
@@ -364,7 +439,7 @@ lh_gl_style_init_blend(lh_gl_style_t *self, const lh_gl_style_t *from, const lh_
                        lh_u32_t weight);
 
 /**
- * @brief The paint the background is filled with, to change in place (level 1).
+ * @brief The paint the background is filled with, to change in place (level 2).
  *
  * @param self The style; checked by ::lh_assert_runtime_ref.
  * @return The member itself, never ::lh_null.
@@ -373,7 +448,7 @@ lh_gl_paint_t *
 lh_gl_style_get_fill_mut(lh_gl_style_t *self);
 
 /**
- * @brief The corner radii, to change in place (level 1).
+ * @brief The corner radii, to change in place (level 2).
  *
  * @param self The style; checked by ::lh_assert_runtime_ref.
  * @return The member itself, never ::lh_null.
@@ -382,7 +457,7 @@ lh_gl_radii_t *
 lh_gl_style_get_radii_mut(lh_gl_style_t *self);
 
 /**
- * @brief The padding inside the border, to change in place (level 1).
+ * @brief The padding inside the border, to change in place (level 2).
  *
  * @param self The style; checked by ::lh_assert_runtime_ref.
  * @return The member itself, never ::lh_null.
@@ -391,7 +466,7 @@ lh_gl_insets_t *
 lh_gl_style_get_padding_mut(lh_gl_style_t *self);
 
 /**
- * @brief The paint the text is drawn with, to change in place (level 1).
+ * @brief The paint the text is drawn with, to change in place (level 2).
  *
  * @param self The style; checked by ::lh_assert_runtime_ref.
  * @return The member itself, never ::lh_null.
@@ -400,7 +475,7 @@ lh_gl_paint_t *
 lh_gl_style_get_text_mut(lh_gl_style_t *self);
 
 /**
- * @brief The shadow, to change in place (level 1).
+ * @brief The shadow, to change in place (level 2).
  *
  * @param self The style; checked by ::lh_assert_runtime_ref.
  * @return The member itself, never ::lh_null.
@@ -409,7 +484,7 @@ lh_gl_shadow_t *
 lh_gl_style_get_shadow_mut(lh_gl_style_t *self);
 
 /**
- * @brief The border widths, to change in place (level 1).
+ * @brief The border widths, to change in place (level 2).
  *
  * @param self The style; checked by ::lh_assert_runtime_ref.
  * @return The member itself, never ::lh_null.
@@ -418,7 +493,7 @@ lh_gl_insets_t *
 lh_gl_style_get_border_mut(lh_gl_style_t *self);
 
 /**
- * @brief The paint the border is drawn with, to change in place (level 1).
+ * @brief The paint the border is drawn with, to change in place (level 2).
  *
  * @param self The style; checked by ::lh_assert_runtime_ref.
  * @return The member itself, never ::lh_null.
@@ -427,9 +502,10 @@ lh_gl_paint_t *
 lh_gl_style_get_border_fill_mut(lh_gl_style_t *self);
 
 /**
- * @brief Store the paint the background is filled with (level 1).
+ * @brief Store the paint the background is filled with (level 2).
  *
- * A level-1 setter: the value is stored as given and is not validated.
+ * A setter through the style's part: the value is stored as given and is not
+ * validated.
  *
  * @param self The style; checked by ::lh_assert_runtime_ref.
  * @param fill The new value.
@@ -438,9 +514,10 @@ lh_void
 lh_gl_style_set_fill(lh_gl_style_t *self, lh_gl_paint_t fill);
 
 /**
- * @brief Store the corner radii (level 1).
+ * @brief Store the corner radii (level 2).
  *
- * A level-1 setter: the value is stored as given and is not validated.
+ * A setter through the style's part: the value is stored as given and is not
+ * validated.
  *
  * @param self The style; checked by ::lh_assert_runtime_ref.
  * @param radii The new value.
@@ -449,9 +526,10 @@ lh_void
 lh_gl_style_set_radii(lh_gl_style_t *self, lh_gl_radii_t radii);
 
 /**
- * @brief Store the padding inside the border (level 1).
+ * @brief Store the padding inside the border (level 2).
  *
- * A level-1 setter: the value is stored as given and is not validated.
+ * A setter through the style's part: the value is stored as given and is not
+ * validated.
  *
  * @param self The style; checked by ::lh_assert_runtime_ref.
  * @param padding The new value.
@@ -460,9 +538,10 @@ lh_void
 lh_gl_style_set_padding(lh_gl_style_t *self, lh_gl_insets_t padding);
 
 /**
- * @brief Store the paint the text is drawn with (level 1).
+ * @brief Store the paint the text is drawn with (level 2).
  *
- * A level-1 setter: the value is stored as given and is not validated.
+ * A setter through the style's part: the value is stored as given and is not
+ * validated.
  *
  * @param self The style; checked by ::lh_assert_runtime_ref.
  * @param text The new value.
@@ -471,9 +550,10 @@ lh_void
 lh_gl_style_set_text(lh_gl_style_t *self, lh_gl_paint_t text);
 
 /**
- * @brief Store the shadow (level 1).
+ * @brief Store the shadow (level 2).
  *
- * A level-1 setter: the value is stored as given and is not validated.
+ * A setter through the style's part: the value is stored as given and is not
+ * validated.
  *
  * @param self The style; checked by ::lh_assert_runtime_ref.
  * @param shadow The new value.
@@ -482,9 +562,10 @@ lh_void
 lh_gl_style_set_shadow(lh_gl_style_t *self, lh_gl_shadow_t shadow);
 
 /**
- * @brief Store the border widths (level 1).
+ * @brief Store the border widths (level 2).
  *
- * A level-1 setter: the value is stored as given and is not validated.
+ * A setter through the style's part: the value is stored as given and is not
+ * validated.
  *
  * @param self The style; checked by ::lh_assert_runtime_ref.
  * @param border The new value.
@@ -493,9 +574,10 @@ lh_void
 lh_gl_style_set_border(lh_gl_style_t *self, lh_gl_insets_t border);
 
 /**
- * @brief Store the paint the border is drawn with (level 1).
+ * @brief Store the paint the border is drawn with (level 2).
  *
- * A level-1 setter: the value is stored as given and is not validated.
+ * A setter through the style's part: the value is stored as given and is not
+ * validated.
  *
  * @param self The style; checked by ::lh_assert_runtime_ref.
  * @param border_fill The new value.
@@ -504,20 +586,10 @@ lh_void
 lh_gl_style_set_border_fill(lh_gl_style_t *self, lh_gl_paint_t border_fill);
 
 /**
- * @brief Store the smallest corner radius (level 1).
+ * @brief Store the corner radius hits are tested against (level 2).
  *
- * A level-1 setter: the value is stored as given and is not validated.
- *
- * @param self The style; checked by ::lh_assert_runtime_ref.
- * @param radius The new value.
- */
-lh_void
-lh_gl_style_set_radius(lh_gl_style_t *self, lh_gl_scalar_t radius);
-
-/**
- * @brief Store the corner radius hits are tested against (level 1).
- *
- * A level-1 setter: the value is stored as given and is not validated.
+ * A setter through the style's part: the value is stored as given and is not
+ * validated.
  *
  * @param self The style; checked by ::lh_assert_runtime_ref.
  * @param hit_radius The new value.

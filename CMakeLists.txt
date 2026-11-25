@@ -601,6 +601,10 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gl/gradient.c
             ${LH_LIB_SRC_PATH}/gl/gradient/sampler.c
             ${LH_LIB_SRC_PATH}/gl/style.c
+            ${LH_LIB_SRC_PATH}/gl/style/box.c
+            ${LH_LIB_SRC_PATH}/gl/style/motion.c
+            ${LH_LIB_SRC_PATH}/gl/style/pointer.c
+            ${LH_LIB_SRC_PATH}/gl/style/typography.c
             ${LH_LIB_SRC_PATH}/gl/easing.c
             ${LH_LIB_SRC_PATH}/gl/transition.c
             ${LH_LIB_SRC_PATH}/gl/radius.c
@@ -613,6 +617,12 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gl/blur/window.c
             ${LH_LIB_SRC_PATH}/gl/range.c
             ${LH_LIB_SRC_PATH}/gl/canvas.c
+            ${LH_LIB_SRC_PATH}/gl/canvas/damage.c
+            ${LH_LIB_SRC_PATH}/gl/canvas/effect.c
+            ${LH_LIB_SRC_PATH}/gl/canvas/fill.c
+            ${LH_LIB_SRC_PATH}/gl/canvas/frame.c
+            ${LH_LIB_SRC_PATH}/gl/canvas/send.c
+            ${LH_LIB_SRC_PATH}/gl/canvas/stack.c
             ${LH_LIB_SRC_PATH}/gl/canvas/backend.c
             ${LH_LIB_SRC_PATH}/gl/canvas/state.c
             ${LH_LIB_SRC_PATH}/gl/canvas/round.c

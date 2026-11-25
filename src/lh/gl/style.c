@@ -7,78 +7,60 @@
 #include <lh/gl/style.h>
 #include <lh/core/util/return.h>
 
-lh_void
-lh_gl_style_init(lh_gl_style_t *self)
-{
-    lh_gl_color_t black;
-
-    lh_gl_color_init(lh_addr_of(black), 0, 0, 0, 255);
-    lh_gl_paint_init(lh_gl_style_get_fill_mut(self));
-    lh_gl_style_set_radius(self, lh_gl_scalar(0));
-    lh_gl_radii_init_all(lh_gl_style_get_radii_mut(self), lh_gl_scalar(0));
-    lh_gl_style_set_hit_radius(self, lh_gl_scalar(0));
-    lh_gl_insets_init_all(lh_gl_style_get_padding_mut(self), lh_gl_scalar(0));
-    lh_gl_style_set_font(self, lh_gl_font_get_default());
-    lh_gl_paint_init_color(lh_gl_style_get_text_mut(self), lh_addr_of(black));
-    /* Text starts at the top left of the padded box, which is what it did before
-       alignment was a thing a style could say. */
-    lh_gl_style_set_align_h(self, lh_gl_text_align_h_left);
-    lh_gl_style_set_align_v(self, lh_gl_text_align_v_top);
-    /* Drawn whole and clipped, which is what a label did before it could say more. */
-    lh_gl_style_set_overflow(self, lh_gl_text_overflow_clip);
-    lh_gl_style_set_wrap(self, lh_gl_text_wrap_none);
-    lh_gl_shadow_init(lh_gl_style_get_shadow_mut(self));
-    /* No edge until a caller asks for one. A style that grew a border and
-       painted it on every existing widget would put a line on things that
-       were square on purpose. */
-    lh_gl_insets_init_all(lh_gl_style_get_border_mut(self), lh_gl_scalar(0));
-    lh_gl_paint_init(lh_gl_style_get_border_fill_mut(self));
-    lh_gl_style_set_pressed(self, lh_null);
-    /* Every style reached by a switch changes at once unless a caller asks for
-       a time of its own. */
-    lh_gl_style_set_transition(self, 0);
-    lh_gl_style_set_easing(self, lh_gl_easing_ease);
-}
-
-const lh_gl_paint_t *
-lh_gl_style_get_fill(const lh_gl_style_t *self)
+const lh_gl_style_box_t *
+lh_gl_style_get_box(const lh_gl_style_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_addr_of(self->fill);
+    return lh_addr_of(self->box);
 }
 
-lh_void
-lh_gl_style_assign_fill(lh_gl_style_t *self, const lh_gl_paint_t *fill)
-{
-    lh_gl_paint_init_copy(lh_gl_style_get_fill_mut(self), fill);
-}
-
-lh_u16_t
-lh_gl_style_get_transition(const lh_gl_style_t *self)
+lh_gl_style_box_t *
+lh_gl_style_get_box_mut(lh_gl_style_t *self)
 {
     lh_assert_runtime_ref(self);
-    return self->transition;
+    return lh_addr_of(self->box);
 }
 
-lh_void
-lh_gl_style_set_transition(lh_gl_style_t *self, lh_u16_t ms)
+const lh_gl_style_typography_t *
+lh_gl_style_get_typography(const lh_gl_style_t *self)
 {
     lh_assert_runtime_ref(self);
-    self->transition = ms;
+    return lh_addr_of(self->typography);
 }
 
-lh_gl_easing_t
-lh_gl_style_get_easing(const lh_gl_style_t *self)
+lh_gl_style_typography_t *
+lh_gl_style_get_typography_mut(lh_gl_style_t *self)
 {
     lh_assert_runtime_ref(self);
-    return self->easing;
+    return lh_addr_of(self->typography);
 }
 
-lh_void
-lh_gl_style_set_easing(lh_gl_style_t *self, lh_gl_easing_t easing)
+const lh_gl_style_pointer_t *
+lh_gl_style_get_pointer(const lh_gl_style_t *self)
 {
     lh_assert_runtime_ref(self);
-    self->easing = easing;
+    return lh_addr_of(self->pointer);
+}
+
+lh_gl_style_pointer_t *
+lh_gl_style_get_pointer_mut(lh_gl_style_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->pointer);
+}
+
+const lh_gl_style_motion_t *
+lh_gl_style_get_motion(const lh_gl_style_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->motion);
+}
+
+lh_gl_style_motion_t *
+lh_gl_style_get_motion_mut(lh_gl_style_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->motion);
 }
 
 lh_gl_scalar_t
@@ -120,6 +102,255 @@ lh_gl_style_mix_paint(lh_gl_paint_t *out, const lh_gl_paint_t *from, const lh_gl
     lh_gl_paint_init_color(out, lh_addr_of(mixed));
 }
 
+lh_void
+lh_gl_style_init(lh_gl_style_t *self)
+{
+    lh_gl_style_box_init(lh_gl_style_get_box_mut(self));
+    lh_gl_style_typography_init(lh_gl_style_get_typography_mut(self));
+    lh_gl_style_pointer_init(lh_gl_style_get_pointer_mut(self));
+    lh_gl_style_motion_init(lh_gl_style_get_motion_mut(self));
+}
+
+const lh_gl_paint_t *
+lh_gl_style_get_fill(const lh_gl_style_t *self)
+{
+    return lh_gl_style_box_get_fill(lh_gl_style_get_box(self));
+}
+
+lh_gl_paint_t *
+lh_gl_style_get_fill_mut(lh_gl_style_t *self)
+{
+    return lh_gl_style_box_get_fill_mut(lh_gl_style_get_box_mut(self));
+}
+
+lh_void
+lh_gl_style_set_fill(lh_gl_style_t *self, lh_gl_paint_t fill)
+{
+    lh_gl_style_box_set_fill(lh_gl_style_get_box_mut(self), fill);
+}
+
+const lh_gl_radii_t *
+lh_gl_style_get_radii(const lh_gl_style_t *self)
+{
+    return lh_gl_style_box_get_radii(lh_gl_style_get_box(self));
+}
+
+lh_gl_radii_t *
+lh_gl_style_get_radii_mut(lh_gl_style_t *self)
+{
+    return lh_gl_style_box_get_radii_mut(lh_gl_style_get_box_mut(self));
+}
+
+lh_void
+lh_gl_style_set_radii(lh_gl_style_t *self, lh_gl_radii_t radii)
+{
+    lh_gl_style_box_set_radii(lh_gl_style_get_box_mut(self), radii);
+}
+
+const lh_gl_insets_t *
+lh_gl_style_get_padding(const lh_gl_style_t *self)
+{
+    return lh_gl_style_box_get_padding(lh_gl_style_get_box(self));
+}
+
+lh_gl_insets_t *
+lh_gl_style_get_padding_mut(lh_gl_style_t *self)
+{
+    return lh_gl_style_box_get_padding_mut(lh_gl_style_get_box_mut(self));
+}
+
+lh_void
+lh_gl_style_set_padding(lh_gl_style_t *self, lh_gl_insets_t padding)
+{
+    lh_gl_style_box_set_padding(lh_gl_style_get_box_mut(self), padding);
+}
+
+const lh_gl_shadow_t *
+lh_gl_style_get_shadow(const lh_gl_style_t *self)
+{
+    return lh_gl_style_box_get_shadow(lh_gl_style_get_box(self));
+}
+
+lh_gl_shadow_t *
+lh_gl_style_get_shadow_mut(lh_gl_style_t *self)
+{
+    return lh_gl_style_box_get_shadow_mut(lh_gl_style_get_box_mut(self));
+}
+
+lh_void
+lh_gl_style_set_shadow(lh_gl_style_t *self, lh_gl_shadow_t shadow)
+{
+    lh_gl_style_box_set_shadow(lh_gl_style_get_box_mut(self), shadow);
+}
+
+const lh_gl_insets_t *
+lh_gl_style_get_border(const lh_gl_style_t *self)
+{
+    return lh_gl_style_box_get_border(lh_gl_style_get_box(self));
+}
+
+lh_gl_insets_t *
+lh_gl_style_get_border_mut(lh_gl_style_t *self)
+{
+    return lh_gl_style_box_get_border_mut(lh_gl_style_get_box_mut(self));
+}
+
+lh_void
+lh_gl_style_set_border(lh_gl_style_t *self, lh_gl_insets_t border)
+{
+    lh_gl_style_box_set_border(lh_gl_style_get_box_mut(self), border);
+}
+
+const lh_gl_paint_t *
+lh_gl_style_get_border_fill(const lh_gl_style_t *self)
+{
+    return lh_gl_style_box_get_border_fill(lh_gl_style_get_box(self));
+}
+
+lh_gl_paint_t *
+lh_gl_style_get_border_fill_mut(lh_gl_style_t *self)
+{
+    return lh_gl_style_box_get_border_fill_mut(lh_gl_style_get_box_mut(self));
+}
+
+lh_void
+lh_gl_style_set_border_fill(lh_gl_style_t *self, lh_gl_paint_t border_fill)
+{
+    lh_gl_style_box_set_border_fill(lh_gl_style_get_box_mut(self), border_fill);
+}
+
+const lh_gl_font_t *
+lh_gl_style_get_font(const lh_gl_style_t *self)
+{
+    return lh_gl_style_typography_get_font(lh_gl_style_get_typography(self));
+}
+
+lh_void
+lh_gl_style_set_font(lh_gl_style_t *self, const lh_gl_font_t *font)
+{
+    lh_gl_style_typography_set_font(lh_gl_style_get_typography_mut(self), font);
+}
+
+const lh_gl_paint_t *
+lh_gl_style_get_text(const lh_gl_style_t *self)
+{
+    return lh_gl_style_typography_get_paint(lh_gl_style_get_typography(self));
+}
+
+lh_gl_paint_t *
+lh_gl_style_get_text_mut(lh_gl_style_t *self)
+{
+    return lh_gl_style_typography_get_paint_mut(lh_gl_style_get_typography_mut(self));
+}
+
+lh_void
+lh_gl_style_set_text(lh_gl_style_t *self, lh_gl_paint_t text)
+{
+    lh_gl_style_typography_set_paint(lh_gl_style_get_typography_mut(self), text);
+}
+
+lh_gl_text_align_h_t
+lh_gl_style_get_align_h(const lh_gl_style_t *self)
+{
+    return lh_gl_style_typography_get_align_h(lh_gl_style_get_typography(self));
+}
+
+lh_void
+lh_gl_style_set_align_h(lh_gl_style_t *self, lh_gl_text_align_h_t align)
+{
+    lh_gl_style_typography_set_align_h(lh_gl_style_get_typography_mut(self), align);
+}
+
+lh_gl_text_align_v_t
+lh_gl_style_get_align_v(const lh_gl_style_t *self)
+{
+    return lh_gl_style_typography_get_align_v(lh_gl_style_get_typography(self));
+}
+
+lh_void
+lh_gl_style_set_align_v(lh_gl_style_t *self, lh_gl_text_align_v_t align)
+{
+    lh_gl_style_typography_set_align_v(lh_gl_style_get_typography_mut(self), align);
+}
+
+lh_gl_text_overflow_t
+lh_gl_style_get_overflow(const lh_gl_style_t *self)
+{
+    return lh_gl_style_typography_get_overflow(lh_gl_style_get_typography(self));
+}
+
+lh_void
+lh_gl_style_set_overflow(lh_gl_style_t *self, lh_gl_text_overflow_t overflow)
+{
+    lh_gl_style_typography_set_overflow(lh_gl_style_get_typography_mut(self), overflow);
+}
+
+lh_gl_text_wrap_t
+lh_gl_style_get_wrap(const lh_gl_style_t *self)
+{
+    return lh_gl_style_typography_get_wrap(lh_gl_style_get_typography(self));
+}
+
+lh_void
+lh_gl_style_set_wrap(lh_gl_style_t *self, lh_gl_text_wrap_t wrap)
+{
+    lh_gl_style_typography_set_wrap(lh_gl_style_get_typography_mut(self), wrap);
+}
+
+lh_gl_scalar_t
+lh_gl_style_get_hit_radius(const lh_gl_style_t *self)
+{
+    return lh_gl_style_pointer_get_hit_radius(lh_gl_style_get_pointer(self));
+}
+
+lh_void
+lh_gl_style_set_hit_radius(lh_gl_style_t *self, lh_gl_scalar_t hit_radius)
+{
+    lh_gl_style_pointer_set_hit_radius(lh_gl_style_get_pointer_mut(self), hit_radius);
+}
+
+const lh_gl_style_t *
+lh_gl_style_get_pressed(const lh_gl_style_t *self)
+{
+    return lh_gl_style_pointer_get_pressed(lh_gl_style_get_pointer(self));
+}
+
+lh_void
+lh_gl_style_set_pressed(lh_gl_style_t *self, const lh_gl_style_t *pressed)
+{
+    lh_gl_style_pointer_set_pressed(lh_gl_style_get_pointer_mut(self), pressed);
+}
+
+lh_u16_t
+lh_gl_style_get_transition(const lh_gl_style_t *self)
+{
+    return lh_gl_style_motion_get_transition(lh_gl_style_get_motion(self));
+}
+
+lh_void
+lh_gl_style_set_transition(lh_gl_style_t *self, lh_u16_t ms)
+{
+    lh_gl_style_motion_set_transition(lh_gl_style_get_motion_mut(self), ms);
+}
+
+lh_gl_easing_t
+lh_gl_style_get_easing(const lh_gl_style_t *self)
+{
+    return lh_gl_style_motion_get_easing(lh_gl_style_get_motion(self));
+}
+
+lh_void
+lh_gl_style_set_easing(lh_gl_style_t *self, lh_gl_easing_t easing)
+{
+    lh_gl_style_motion_set_easing(lh_gl_style_get_motion_mut(self), easing);
+}
+
+lh_void
+lh_gl_style_assign_fill(lh_gl_style_t *self, const lh_gl_paint_t *fill)
+{
+    lh_gl_paint_init_copy(lh_gl_style_get_fill_mut(self), fill);
+}
+
 const lh_gl_color_t *
 lh_gl_style_get_fill_color(const lh_gl_style_t *self)
 {
@@ -129,23 +360,14 @@ lh_gl_style_get_fill_color(const lh_gl_style_t *self)
 lh_gl_scalar_t
 lh_gl_style_get_radius(const lh_gl_style_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return self->radius;
+    return lh_gl_radii_get_min(lh_gl_style_get_radii(self));
 }
 
 lh_void
 lh_gl_style_set_radius_v(lh_gl_style_t *self, lh_gl_scalar_t radius)
 {
     lh_assert_runtime_if(radius < lh_gl_scalar(0), lh_runtime_error_code_invalid_argument);
-    lh_gl_style_set_radius(self, radius);
     lh_gl_radii_init_all(lh_gl_style_get_radii_mut(self), radius);
-}
-
-const lh_gl_radii_t *
-lh_gl_style_get_radii(const lh_gl_style_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->radii);
 }
 
 lh_void
@@ -155,7 +377,79 @@ lh_gl_style_set_radii_v(lh_gl_style_t *self, const lh_gl_radii_t *radii)
     lh_assert_runtime_if(lh_gl_radii_get_min(radii) < lh_gl_scalar(0),
                          lh_runtime_error_code_invalid_argument);
     lh_gl_style_set_radii(self, lh_ptr_deref(radii));
-    lh_gl_style_set_radius(self, lh_gl_radii_get_min(radii));
+}
+
+lh_void
+lh_gl_style_set_hit_radius_v(lh_gl_style_t *self, lh_gl_scalar_t radius)
+{
+    lh_assert_runtime_if(radius < lh_gl_scalar(0), lh_runtime_error_code_invalid_argument);
+    lh_gl_style_set_hit_radius(self, radius);
+}
+
+lh_void
+lh_gl_style_set_padding_v(lh_gl_style_t *self, const lh_gl_insets_t *padding)
+{
+    lh_assert_runtime_ref(padding);
+    lh_assert_runtime_if(lh_gl_insets_get_left(padding) < lh_gl_scalar(0) ||
+                             lh_gl_insets_get_top(padding) < lh_gl_scalar(0) ||
+                             lh_gl_insets_get_right(padding) < lh_gl_scalar(0) ||
+                             lh_gl_insets_get_bottom(padding) < lh_gl_scalar(0),
+                         lh_runtime_error_code_invalid_argument);
+    lh_gl_style_set_padding(self, lh_ptr_deref(padding));
+}
+
+lh_void
+lh_gl_style_assign_text(lh_gl_style_t *self, const lh_gl_paint_t *text)
+{
+    lh_gl_paint_init_copy(lh_gl_style_get_text_mut(self), text);
+}
+
+const lh_gl_color_t *
+lh_gl_style_get_text_color(const lh_gl_style_t *self)
+{
+    return lh_gl_paint_get_color_v(lh_gl_style_get_text(self));
+}
+
+lh_void
+lh_gl_style_set_shadow_v(lh_gl_style_t *self, const lh_gl_shadow_t *shadow)
+{
+    if (lh_null_eq(shadow))
+    {
+        lh_gl_shadow_init(lh_gl_style_get_shadow_mut(self));
+        return;
+    }
+    lh_gl_style_set_shadow(self, lh_ptr_deref(shadow));
+}
+
+lh_void
+lh_gl_style_set_border_v(lh_gl_style_t *self, const lh_gl_insets_t *border)
+{
+    if (lh_null_eq(border))
+    {
+        lh_gl_insets_init_all(lh_gl_style_get_border_mut(self), lh_gl_scalar(0));
+        return;
+    }
+    lh_assert_runtime_if(lh_gl_insets_get_left(border) < lh_gl_scalar(0) ||
+                             lh_gl_insets_get_top(border) < lh_gl_scalar(0) ||
+                             lh_gl_insets_get_right(border) < lh_gl_scalar(0) ||
+                             lh_gl_insets_get_bottom(border) < lh_gl_scalar(0),
+                         lh_runtime_error_code_invalid_argument);
+    lh_gl_style_set_border(self, lh_ptr_deref(border));
+}
+
+lh_void
+lh_gl_style_assign_border_fill(lh_gl_style_t *self, const lh_gl_paint_t *fill)
+{
+    lh_gl_paint_init_copy(lh_gl_style_get_border_fill_mut(self), fill);
+}
+
+lh_void
+lh_gl_style_set_padding_all(lh_gl_style_t *self, lh_gl_scalar_t padding)
+{
+    lh_gl_insets_t all;
+
+    lh_gl_insets_init_all(lh_addr_of(all), padding);
+    lh_gl_style_set_padding_v(self, lh_addr_of(all));
 }
 
 lh_void
@@ -230,315 +524,4 @@ lh_gl_style_init_blend(lh_gl_style_t *self, const lh_gl_style_t *from, const lh_
                                                     lh_gl_shadow_get_offset_y(fade_to), weight));
         }
     }
-}
-
-lh_gl_scalar_t
-lh_gl_style_get_hit_radius(const lh_gl_style_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->hit_radius;
-}
-
-lh_void
-lh_gl_style_set_hit_radius_v(lh_gl_style_t *self, lh_gl_scalar_t radius)
-{
-    lh_assert_runtime_if(radius < lh_gl_scalar(0), lh_runtime_error_code_invalid_argument);
-    lh_gl_style_set_hit_radius(self, radius);
-}
-
-const lh_gl_insets_t *
-lh_gl_style_get_padding(const lh_gl_style_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->padding);
-}
-
-lh_void
-lh_gl_style_set_padding_v(lh_gl_style_t *self, const lh_gl_insets_t *padding)
-{
-    lh_assert_runtime_ref(padding);
-    lh_assert_runtime_if(lh_gl_insets_get_left(padding) < lh_gl_scalar(0) ||
-                             lh_gl_insets_get_top(padding) < lh_gl_scalar(0) ||
-                             lh_gl_insets_get_right(padding) < lh_gl_scalar(0) ||
-                             lh_gl_insets_get_bottom(padding) < lh_gl_scalar(0),
-                         lh_runtime_error_code_invalid_argument);
-    lh_gl_style_set_padding(self, lh_ptr_deref(padding));
-}
-
-lh_void
-lh_gl_style_set_padding_all(lh_gl_style_t *self, lh_gl_scalar_t padding)
-{
-    lh_gl_insets_t all;
-
-    lh_gl_insets_init_all(lh_addr_of(all), padding);
-    lh_gl_style_set_padding_v(self, lh_addr_of(all));
-}
-
-const lh_gl_font_t *
-lh_gl_style_get_font(const lh_gl_style_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->font;
-}
-
-lh_void
-lh_gl_style_set_font(lh_gl_style_t *self, const lh_gl_font_t *font)
-{
-    lh_assert_runtime_ref(self);
-    self->font = font;
-}
-
-const lh_gl_paint_t *
-lh_gl_style_get_text(const lh_gl_style_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->text);
-}
-
-lh_void
-lh_gl_style_assign_text(lh_gl_style_t *self, const lh_gl_paint_t *text)
-{
-    lh_gl_paint_init_copy(lh_gl_style_get_text_mut(self), text);
-}
-
-const lh_gl_color_t *
-lh_gl_style_get_text_color(const lh_gl_style_t *self)
-{
-    return lh_gl_paint_get_color_v(lh_gl_style_get_text(self));
-}
-
-lh_gl_text_align_h_t
-lh_gl_style_get_align_h(const lh_gl_style_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->align_h;
-}
-
-lh_void
-lh_gl_style_set_align_h(lh_gl_style_t *self, lh_gl_text_align_h_t align)
-{
-    lh_assert_runtime_ref(self);
-    self->align_h = align;
-}
-
-lh_gl_text_align_v_t
-lh_gl_style_get_align_v(const lh_gl_style_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->align_v;
-}
-
-lh_void
-lh_gl_style_set_align_v(lh_gl_style_t *self, lh_gl_text_align_v_t align)
-{
-    lh_assert_runtime_ref(self);
-    self->align_v = align;
-}
-
-lh_gl_text_overflow_t
-lh_gl_style_get_overflow(const lh_gl_style_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->overflow;
-}
-
-lh_void
-lh_gl_style_set_overflow(lh_gl_style_t *self, lh_gl_text_overflow_t overflow)
-{
-    lh_assert_runtime_ref(self);
-    self->overflow = overflow;
-}
-
-lh_gl_text_wrap_t
-lh_gl_style_get_wrap(const lh_gl_style_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->wrap;
-}
-
-lh_void
-lh_gl_style_set_wrap(lh_gl_style_t *self, lh_gl_text_wrap_t wrap)
-{
-    lh_assert_runtime_ref(self);
-    self->wrap = wrap;
-}
-
-const lh_gl_shadow_t *
-lh_gl_style_get_shadow(const lh_gl_style_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->shadow);
-}
-
-lh_void
-lh_gl_style_set_shadow_v(lh_gl_style_t *self, const lh_gl_shadow_t *shadow)
-{
-    if (lh_null_eq(shadow))
-    {
-        lh_gl_shadow_init(lh_gl_style_get_shadow_mut(self));
-        return;
-    }
-    lh_gl_style_set_shadow(self, lh_ptr_deref(shadow));
-}
-
-const lh_gl_style_t *
-lh_gl_style_get_pressed(const lh_gl_style_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->pressed;
-}
-
-lh_void
-lh_gl_style_set_pressed(lh_gl_style_t *self, const lh_gl_style_t *pressed)
-{
-    lh_assert_runtime_ref(self);
-    self->pressed = pressed;
-}
-
-const lh_gl_insets_t *
-lh_gl_style_get_border(const lh_gl_style_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->border);
-}
-
-lh_void
-lh_gl_style_set_border_v(lh_gl_style_t *self, const lh_gl_insets_t *border)
-{
-    if (lh_null_eq(border))
-    {
-        lh_gl_insets_init_all(lh_gl_style_get_border_mut(self), lh_gl_scalar(0));
-        return;
-    }
-    lh_assert_runtime_if(lh_gl_insets_get_left(border) < lh_gl_scalar(0) ||
-                             lh_gl_insets_get_top(border) < lh_gl_scalar(0) ||
-                             lh_gl_insets_get_right(border) < lh_gl_scalar(0) ||
-                             lh_gl_insets_get_bottom(border) < lh_gl_scalar(0),
-                         lh_runtime_error_code_invalid_argument);
-    lh_gl_style_set_border(self, lh_ptr_deref(border));
-}
-
-const lh_gl_paint_t *
-lh_gl_style_get_border_fill(const lh_gl_style_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->border_fill);
-}
-
-lh_void
-lh_gl_style_assign_border_fill(lh_gl_style_t *self, const lh_gl_paint_t *fill)
-{
-    lh_gl_paint_init_copy(lh_gl_style_get_border_fill_mut(self), fill);
-}
-
-lh_gl_paint_t *
-lh_gl_style_get_fill_mut(lh_gl_style_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->fill);
-}
-
-lh_gl_radii_t *
-lh_gl_style_get_radii_mut(lh_gl_style_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->radii);
-}
-
-lh_gl_insets_t *
-lh_gl_style_get_padding_mut(lh_gl_style_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->padding);
-}
-
-lh_gl_paint_t *
-lh_gl_style_get_text_mut(lh_gl_style_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->text);
-}
-
-lh_gl_shadow_t *
-lh_gl_style_get_shadow_mut(lh_gl_style_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->shadow);
-}
-
-lh_gl_insets_t *
-lh_gl_style_get_border_mut(lh_gl_style_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->border);
-}
-
-lh_gl_paint_t *
-lh_gl_style_get_border_fill_mut(lh_gl_style_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->border_fill);
-}
-
-lh_void
-lh_gl_style_set_fill(lh_gl_style_t *self, lh_gl_paint_t fill)
-{
-    lh_assert_runtime_ref(self);
-    self->fill = fill;
-}
-
-lh_void
-lh_gl_style_set_radii(lh_gl_style_t *self, lh_gl_radii_t radii)
-{
-    lh_assert_runtime_ref(self);
-    self->radii = radii;
-}
-
-lh_void
-lh_gl_style_set_padding(lh_gl_style_t *self, lh_gl_insets_t padding)
-{
-    lh_assert_runtime_ref(self);
-    self->padding = padding;
-}
-
-lh_void
-lh_gl_style_set_text(lh_gl_style_t *self, lh_gl_paint_t text)
-{
-    lh_assert_runtime_ref(self);
-    self->text = text;
-}
-
-lh_void
-lh_gl_style_set_shadow(lh_gl_style_t *self, lh_gl_shadow_t shadow)
-{
-    lh_assert_runtime_ref(self);
-    self->shadow = shadow;
-}
-
-lh_void
-lh_gl_style_set_border(lh_gl_style_t *self, lh_gl_insets_t border)
-{
-    lh_assert_runtime_ref(self);
-    self->border = border;
-}
-
-lh_void
-lh_gl_style_set_border_fill(lh_gl_style_t *self, lh_gl_paint_t border_fill)
-{
-    lh_assert_runtime_ref(self);
-    self->border_fill = border_fill;
-}
-
-lh_void
-lh_gl_style_set_radius(lh_gl_style_t *self, lh_gl_scalar_t radius)
-{
-    lh_assert_runtime_ref(self);
-    self->radius = radius;
-}
-
-lh_void
-lh_gl_style_set_hit_radius(lh_gl_style_t *self, lh_gl_scalar_t hit_radius)
-{
-    lh_assert_runtime_ref(self);
-    self->hit_radius = hit_radius;
 }

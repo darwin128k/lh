@@ -140,6 +140,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   class. Nothing public changes. The places where a higher level came before a
   lower one go from 26 to 8, all of them the recursions of the walk, the hit
   test and the draw.
+- `src/lh/gl/canvas.c` is split by subject into `src/lh/gl/canvas/`:
+  `damage.c`, `stack.c` (save, push, pop, the clip and its rounded corners),
+  `frame.c` (begin, a frame of one area, end, clear), `send.c` (what reaches
+  the backend, whole or cut to the clip), `fill.c` (rects and rounded rects)
+  and `effect.c` (shadow, blur, glass); `canvas.c` keeps the fields, init,
+  deinit, the backend, the size, the scratch and the null backend. Nothing
+  public changes; the places where a higher level came before a lower one go
+  from 13 to 0.
+- `lh_gl_style_t` holds its fields in four parts, each a struct of its own with
+  its fields macro, level-1 accessors, `init` and tests: the box
+  (`lh_gl_style_box_t`, `lh/gl/style/box.h`: fill, radii, padding, shadow,
+  border and its paint), the typography (`lh_gl_style_typography_t`: font,
+  text paint, alignment, overflow, wrap), how the style answers a pointer
+  (`lh_gl_style_pointer_t`: hit radius, pressed look) and how it is reached
+  over time (`lh_gl_style_motion_t`: transition, easing). The style reaches
+  them through `lh_gl_style_get_box` / `_mut`, `_get_typography` / `_mut`,
+  `_get_pointer` / `_mut` and `_get_motion` / `_mut`, and every accessor it had
+  keeps its name and reads or writes through its part; `lh_gl_style_init` is
+  the four parts' `init`. The smallest corner radius is read from the radii
+  (`lh_gl_style_get_radius` is `lh_gl_radii_get_min`) instead of kept beside
+  them, so the style stays 160 bytes on x86-64.
 - The system's pointer settings reach the recognizer. Three native kernels join
   the wheel's in `lh/os/system/input.h`: `lh_os_system_input_get_drag_slop`,
   `_get_double_click_slop` and `_get_double_click_ms` (Windows asks
@@ -369,6 +390,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- `lh_gl_style_set_radius`: it wrote the cached smallest radius alone, which no
+  caller outside the style did, and the style no longer keeps that cache. The
+  radius is the radii's: `lh_gl_style_set_radius_v` (all four corners) and
+  `lh_gl_style_set_radii_v` set it.
 - `lh_controller_t` (`lh/core/controller.h`, `lh/os/controller.h` in 0.4.0)
   with its handlers, flags, initializers, dispatch and `lh_controller_sink`,
   and `lh/gl/view/controller.h` (`lh_gl_view_controller_handle_event_is_handled`,
