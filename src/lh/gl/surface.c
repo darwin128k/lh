@@ -8,19 +8,61 @@
 #include <lh/gl/surface.h>
 #include <lh/core/util/return.h>
 
+lh_gl_pixmap_format_t
+lh_gl_surface_get_format(const lh_gl_surface_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->format;
+}
+
+lh_os_system_surface_handle_t
+lh_gl_surface_get_handle(const lh_gl_surface_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->handle;
+}
+
+lh_void
+lh_gl_surface_set_handle(lh_gl_surface_t *self, lh_os_system_surface_handle_t handle)
+{
+    lh_assert_runtime_ref(self);
+    self->handle = handle;
+}
+
+lh_gl_size_t *
+lh_gl_surface_get_size_mut(lh_gl_surface_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->size);
+}
+
+const lh_gl_size_t *
+lh_gl_surface_get_size(const lh_gl_surface_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->size);
+}
+
+lh_void
+lh_gl_surface_set_size(lh_gl_surface_t *self, lh_gl_size_t size)
+{
+    lh_assert_runtime_ref(self);
+    self->size = size;
+}
+
+lh_void
+lh_gl_surface_set_format(lh_gl_surface_t *self, lh_gl_pixmap_format_t format)
+{
+    lh_assert_runtime_ref(self);
+    self->format = format;
+}
+
 lh_void
 lh_gl_surface_init(lh_gl_surface_t *self)
 {
     lh_gl_size_init(lh_gl_surface_get_size_mut(self), lh_gl_scalar(0), lh_gl_scalar(0));
     lh_gl_surface_set_format(self, lh_gl_pixmap_format_argb8888);
     lh_gl_surface_set_handle(self, LH_OS_SYSTEM_SURFACE_HANDLE_INVALID);
-}
-
-lh_void
-lh_gl_surface_deinit(lh_gl_surface_t *self)
-{
-    lh_os_system_surface_destroy(lh_gl_surface_get_handle(self));
-    lh_gl_surface_init(self);
 }
 
 lh_bool_t
@@ -34,51 +76,6 @@ lh_gl_surface_copy_size(const lh_gl_surface_t *self, lh_gl_size_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_ptr_deref(out) = lh_ptr_deref(lh_gl_surface_get_size(self));
-}
-
-lh_gl_pixmap_format_t
-lh_gl_surface_get_format(const lh_gl_surface_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->format;
-}
-
-lh_void
-lh_gl_surface_set_format_v(lh_gl_surface_t *self, lh_gl_pixmap_format_t format)
-{
-    /* Only while empty: a live buffer's format belongs to whatever is drawing into
-       it, and swapping it under that would be a frame drawn in two formats. */
-    lh_assert_runtime_if(lh_gl_surface_is_valid(self), lh_runtime_error_code_invalid_argument);
-    /* A byte-swapped format is for a display controller that wants the words the
-       other way round, not for a buffer this side draws into: the OS hands out words
-       in its own order, and a swapped pixmap over them would read every pixel
-       upside-down in colour. That format belongs to a frame on its way out. */
-    lh_assert_runtime_if(format == lh_gl_pixmap_format_rgb565_swapped,
-                         lh_runtime_error_code_invalid_argument);
-    lh_gl_surface_set_format(self, format);
-}
-
-lh_bool_t
-lh_gl_surface_set_size_v(lh_gl_surface_t *self, lh_gl_size_t size)
-{
-    int width = lh_cast_static(int, lh_gl_size_get_width(lh_addr_of(size)));
-    int height = lh_cast_static(int, lh_gl_size_get_height(lh_addr_of(size)));
-    if (lh_gl_surface_is_valid(self) &&
-        lh_gl_size_get_width(lh_gl_surface_get_size_mut(self)) ==
-            lh_gl_size_get_width(lh_addr_of(size)) &&
-        lh_gl_size_get_height(lh_gl_surface_get_size_mut(self)) ==
-            lh_gl_size_get_height(lh_addr_of(size)))
-    {
-        return lh_bool_true;
-    }
-    lh_os_system_surface_destroy(lh_gl_surface_get_handle(self));
-    lh_gl_surface_set_handle(self, LH_OS_SYSTEM_SURFACE_HANDLE_INVALID);
-    lh_gl_surface_set_size(self, size);
-    lh_return_if(width <= 0 || height <= 0, lh_bool_false);
-    lh_gl_surface_set_handle(
-        self, lh_os_system_surface_create(
-                  width, height, lh_gl_pixmap_format_get_bits(lh_gl_surface_get_format(self))));
-    return lh_gl_surface_is_valid(self);
 }
 
 lh_bool_t
@@ -128,6 +125,51 @@ lh_gl_surface_present_part(const lh_gl_surface_t *self, lh_ptr dest, const lh_gl
                                              lh_cast_static(int, lh_gl_size_get_height(size)));
 }
 
+lh_void
+lh_gl_surface_deinit(lh_gl_surface_t *self)
+{
+    lh_os_system_surface_destroy(lh_gl_surface_get_handle(self));
+    lh_gl_surface_init(self);
+}
+
+lh_void
+lh_gl_surface_set_format_v(lh_gl_surface_t *self, lh_gl_pixmap_format_t format)
+{
+    /* Only while empty: a live buffer's format belongs to whatever is drawing into
+       it, and swapping it under that would be a frame drawn in two formats. */
+    lh_assert_runtime_if(lh_gl_surface_is_valid(self), lh_runtime_error_code_invalid_argument);
+    /* A byte-swapped format is for a display controller that wants the words the
+       other way round, not for a buffer this side draws into: the OS hands out words
+       in its own order, and a swapped pixmap over them would read every pixel
+       upside-down in colour. That format belongs to a frame on its way out. */
+    lh_assert_runtime_if(format == lh_gl_pixmap_format_rgb565_swapped,
+                         lh_runtime_error_code_invalid_argument);
+    lh_gl_surface_set_format(self, format);
+}
+
+lh_bool_t
+lh_gl_surface_set_size_v(lh_gl_surface_t *self, lh_gl_size_t size)
+{
+    int width = lh_cast_static(int, lh_gl_size_get_width(lh_addr_of(size)));
+    int height = lh_cast_static(int, lh_gl_size_get_height(lh_addr_of(size)));
+    if (lh_gl_surface_is_valid(self) &&
+        lh_gl_size_get_width(lh_gl_surface_get_size_mut(self)) ==
+            lh_gl_size_get_width(lh_addr_of(size)) &&
+        lh_gl_size_get_height(lh_gl_surface_get_size_mut(self)) ==
+            lh_gl_size_get_height(lh_addr_of(size)))
+    {
+        return lh_bool_true;
+    }
+    lh_os_system_surface_destroy(lh_gl_surface_get_handle(self));
+    lh_gl_surface_set_handle(self, LH_OS_SYSTEM_SURFACE_HANDLE_INVALID);
+    lh_gl_surface_set_size(self, size);
+    lh_return_if(width <= 0 || height <= 0, lh_bool_false);
+    lh_gl_surface_set_handle(
+        self, lh_os_system_surface_create(
+                  width, height, lh_gl_pixmap_format_get_bits(lh_gl_surface_get_format(self))));
+    return lh_gl_surface_is_valid(self);
+}
+
 lh_bool_t
 lh_gl_surface_present_rects(const lh_gl_surface_t *self, lh_ptr dest, const lh_gl_rects_t *rects,
                             lh_gl_point_t at)
@@ -140,46 +182,4 @@ lh_gl_surface_present_rects(const lh_gl_surface_t *self, lh_ptr dest, const lh_g
                      lh_bool_false);
     }
     return lh_bool_true;
-}
-
-lh_os_system_surface_handle_t
-lh_gl_surface_get_handle(const lh_gl_surface_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->handle;
-}
-
-lh_void
-lh_gl_surface_set_handle(lh_gl_surface_t *self, lh_os_system_surface_handle_t handle)
-{
-    lh_assert_runtime_ref(self);
-    self->handle = handle;
-}
-
-lh_gl_size_t *
-lh_gl_surface_get_size_mut(lh_gl_surface_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->size);
-}
-
-const lh_gl_size_t *
-lh_gl_surface_get_size(const lh_gl_surface_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->size);
-}
-
-lh_void
-lh_gl_surface_set_size(lh_gl_surface_t *self, lh_gl_size_t size)
-{
-    lh_assert_runtime_ref(self);
-    self->size = size;
-}
-
-lh_void
-lh_gl_surface_set_format(lh_gl_surface_t *self, lh_gl_pixmap_format_t format)
-{
-    lh_assert_runtime_ref(self);
-    self->format = format;
 }

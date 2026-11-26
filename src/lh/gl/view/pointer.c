@@ -9,44 +9,6 @@
 #include <lh/gl/view/pointer.h>
 #include <lh/core/util/return.h>
 
-lh_void
-lh_gl_view_pointer_reset(lh_gl_view_pointer_t *self)
-{
-    lh_gl_view_pointer_set_target(self, lh_null);
-    lh_gl_view_pointer_set_drag(self, lh_null);
-    lh_gl_view_pointer_set_grab(self, lh_null);
-    lh_gl_view_pointer_set_grab_offset(self, lh_gl_scalar(0));
-    lh_gl_view_pointer_set_pressed(self, lh_bool_false);
-    lh_gl_view_pointer_set_dragged(self, lh_bool_false);
-}
-
-lh_void
-lh_gl_view_pointer_init(lh_gl_view_pointer_t *self)
-{
-    lh_gl_view_pointer_reset(self);
-    lh_gl_point_init(lh_gl_view_pointer_get_press_point_mut(self), lh_gl_scalar(0),
-                     lh_gl_scalar(0));
-    lh_gl_point_init(lh_gl_view_pointer_get_last_point_mut(self), lh_gl_scalar(0), lh_gl_scalar(0));
-    lh_gl_point_init(lh_gl_view_pointer_get_velocity_mut(self), lh_gl_scalar(0), lh_gl_scalar(0));
-}
-
-lh_void
-lh_gl_view_pointer_start(lh_gl_view_pointer_t *self, lh_gl_point_t point)
-{
-    lh_gl_view_pointer_reset(self);
-    lh_gl_view_pointer_set_pressed(self, lh_bool_true);
-    lh_gl_view_pointer_set_press_point(self, point);
-    lh_gl_view_pointer_set_last_point(self, point);
-    lh_gl_point_init(lh_gl_view_pointer_get_velocity_mut(self), lh_gl_scalar(0), lh_gl_scalar(0));
-}
-
-lh_bool_t
-lh_gl_view_pointer_is_active(const lh_gl_view_pointer_t *self)
-{
-    return lh_type_cast(lh_bool_t, lh_gl_view_pointer_is_pressed(self) ||
-                                       lh_null_ne(lh_gl_view_pointer_get_grab(self)));
-}
-
 lh_gl_entity_t *
 lh_gl_view_pointer_get_target(const lh_gl_view_pointer_t *self)
 {
@@ -89,13 +51,6 @@ lh_gl_view_pointer_get_grab_offset(const lh_gl_view_pointer_t *self)
     return self->grab_offset;
 }
 
-lh_void
-lh_gl_view_pointer_grab(lh_gl_view_pointer_t *self, lh_gl_scrollbar_t *grab, lh_gl_scalar_t offset)
-{
-    lh_gl_view_pointer_set_grab(self, grab);
-    lh_gl_view_pointer_set_grab_offset(self, offset);
-}
-
 lh_bool_t
 lh_gl_view_pointer_is_pressed(const lh_gl_view_pointer_t *self)
 {
@@ -115,53 +70,6 @@ lh_gl_view_pointer_set_dragged(lh_gl_view_pointer_t *self, lh_bool_t dragged)
 {
     lh_assert_runtime_ref(self);
     self->dragged = dragged;
-}
-
-lh_void
-lh_gl_view_pointer_copy_press_point(const lh_gl_view_pointer_t *self, lh_gl_point_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_ptr_deref(out) = lh_ptr_deref(lh_gl_view_pointer_get_press_point(self));
-}
-
-lh_void
-lh_gl_view_pointer_copy_last_point(const lh_gl_view_pointer_t *self, lh_gl_point_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_ptr_deref(out) = lh_ptr_deref(lh_gl_view_pointer_get_last_point(self));
-}
-
-lh_void
-lh_gl_view_pointer_copy_velocity(const lh_gl_view_pointer_t *self, lh_gl_point_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_ptr_deref(out) = lh_ptr_deref(lh_gl_view_pointer_get_velocity(self));
-}
-
-lh_void
-lh_gl_view_pointer_track(lh_gl_view_pointer_t *self, lh_gl_point_t point)
-{
-
-    lh_gl_scalar_t dx = lh_gl_point_get_x(lh_gl_view_pointer_get_last_point_mut(self)) -
-                        lh_gl_point_get_x(lh_addr_of(point));
-    lh_gl_scalar_t dy = lh_gl_point_get_y(lh_gl_view_pointer_get_last_point_mut(self)) -
-                        lh_gl_point_get_y(lh_addr_of(point));
-    lh_gl_point_init(lh_gl_view_pointer_get_velocity_mut(self),
-                     (lh_gl_point_get_x(lh_gl_view_pointer_get_velocity_mut(self)) + dx) / 2,
-                     (lh_gl_point_get_y(lh_gl_view_pointer_get_velocity_mut(self)) + dy) / 2);
-    lh_gl_view_pointer_set_last_point(self, point);
-}
-
-lh_bool_t
-lh_gl_view_pointer_is_past_threshold(const lh_gl_view_pointer_t *self, lh_gl_point_t point)
-{
-
-    lh_gl_scalar_t dx = lh_gl_point_get_x(lh_addr_of(point)) -
-                        lh_gl_point_get_x(lh_gl_view_pointer_get_press_point(self));
-    lh_gl_scalar_t dy = lh_gl_point_get_y(lh_addr_of(point)) -
-                        lh_gl_point_get_y(lh_gl_view_pointer_get_press_point(self));
-    return lh_type_cast(lh_bool_t, lh_math_abs(dx) >= LH_GL_VIEW_DRAG_THRESHOLD ||
-                                       lh_math_abs(dy) >= LH_GL_VIEW_DRAG_THRESHOLD);
 }
 
 lh_void
@@ -246,4 +154,96 @@ lh_gl_view_pointer_get_velocity(const lh_gl_view_pointer_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->velocity);
+}
+
+lh_void
+lh_gl_view_pointer_reset(lh_gl_view_pointer_t *self)
+{
+    lh_gl_view_pointer_set_target(self, lh_null);
+    lh_gl_view_pointer_set_drag(self, lh_null);
+    lh_gl_view_pointer_set_grab(self, lh_null);
+    lh_gl_view_pointer_set_grab_offset(self, lh_gl_scalar(0));
+    lh_gl_view_pointer_set_pressed(self, lh_bool_false);
+    lh_gl_view_pointer_set_dragged(self, lh_bool_false);
+}
+
+lh_bool_t
+lh_gl_view_pointer_is_active(const lh_gl_view_pointer_t *self)
+{
+    return lh_type_cast(lh_bool_t, lh_gl_view_pointer_is_pressed(self) ||
+                                       lh_null_ne(lh_gl_view_pointer_get_grab(self)));
+}
+
+lh_void
+lh_gl_view_pointer_grab(lh_gl_view_pointer_t *self, lh_gl_scrollbar_t *grab, lh_gl_scalar_t offset)
+{
+    lh_gl_view_pointer_set_grab(self, grab);
+    lh_gl_view_pointer_set_grab_offset(self, offset);
+}
+
+lh_void
+lh_gl_view_pointer_copy_press_point(const lh_gl_view_pointer_t *self, lh_gl_point_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_ptr_deref(out) = lh_ptr_deref(lh_gl_view_pointer_get_press_point(self));
+}
+
+lh_void
+lh_gl_view_pointer_copy_last_point(const lh_gl_view_pointer_t *self, lh_gl_point_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_ptr_deref(out) = lh_ptr_deref(lh_gl_view_pointer_get_last_point(self));
+}
+
+lh_void
+lh_gl_view_pointer_copy_velocity(const lh_gl_view_pointer_t *self, lh_gl_point_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_ptr_deref(out) = lh_ptr_deref(lh_gl_view_pointer_get_velocity(self));
+}
+
+lh_void
+lh_gl_view_pointer_track(lh_gl_view_pointer_t *self, lh_gl_point_t point)
+{
+
+    lh_gl_scalar_t dx = lh_gl_point_get_x(lh_gl_view_pointer_get_last_point_mut(self)) -
+                        lh_gl_point_get_x(lh_addr_of(point));
+    lh_gl_scalar_t dy = lh_gl_point_get_y(lh_gl_view_pointer_get_last_point_mut(self)) -
+                        lh_gl_point_get_y(lh_addr_of(point));
+    lh_gl_point_init(lh_gl_view_pointer_get_velocity_mut(self),
+                     (lh_gl_point_get_x(lh_gl_view_pointer_get_velocity_mut(self)) + dx) / 2,
+                     (lh_gl_point_get_y(lh_gl_view_pointer_get_velocity_mut(self)) + dy) / 2);
+    lh_gl_view_pointer_set_last_point(self, point);
+}
+
+lh_bool_t
+lh_gl_view_pointer_is_past_threshold(const lh_gl_view_pointer_t *self, lh_gl_point_t point)
+{
+
+    lh_gl_scalar_t dx = lh_gl_point_get_x(lh_addr_of(point)) -
+                        lh_gl_point_get_x(lh_gl_view_pointer_get_press_point(self));
+    lh_gl_scalar_t dy = lh_gl_point_get_y(lh_addr_of(point)) -
+                        lh_gl_point_get_y(lh_gl_view_pointer_get_press_point(self));
+    return lh_type_cast(lh_bool_t, lh_math_abs(dx) >= LH_GL_VIEW_DRAG_THRESHOLD ||
+                                       lh_math_abs(dy) >= LH_GL_VIEW_DRAG_THRESHOLD);
+}
+
+lh_void
+lh_gl_view_pointer_init(lh_gl_view_pointer_t *self)
+{
+    lh_gl_view_pointer_reset(self);
+    lh_gl_point_init(lh_gl_view_pointer_get_press_point_mut(self), lh_gl_scalar(0),
+                     lh_gl_scalar(0));
+    lh_gl_point_init(lh_gl_view_pointer_get_last_point_mut(self), lh_gl_scalar(0), lh_gl_scalar(0));
+    lh_gl_point_init(lh_gl_view_pointer_get_velocity_mut(self), lh_gl_scalar(0), lh_gl_scalar(0));
+}
+
+lh_void
+lh_gl_view_pointer_start(lh_gl_view_pointer_t *self, lh_gl_point_t point)
+{
+    lh_gl_view_pointer_reset(self);
+    lh_gl_view_pointer_set_pressed(self, lh_bool_true);
+    lh_gl_view_pointer_set_press_point(self, point);
+    lh_gl_view_pointer_set_last_point(self, point);
+    lh_gl_point_init(lh_gl_view_pointer_get_velocity_mut(self), lh_gl_scalar(0), lh_gl_scalar(0));
 }

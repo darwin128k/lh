@@ -9,6 +9,69 @@
 #include <lh/core/math.h>
 #include <lh/gl/text/line.h>
 
+lh_u32_t
+lh_gl_text_block_get_lines(const lh_gl_text_block_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->lines;
+}
+
+lh_gl_scalar_t
+lh_gl_text_block_get_width(const lh_gl_text_block_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->width;
+}
+
+lh_gl_scalar_t
+lh_gl_text_block_get_ink_top(const lh_gl_text_block_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->ink_top;
+}
+
+const lh_gl_rect_t *
+lh_gl_text_block_get_ink(const lh_gl_text_block_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->ink);
+}
+
+lh_gl_rect_t *
+lh_gl_text_block_get_ink_mut(lh_gl_text_block_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->ink);
+}
+
+lh_void
+lh_gl_text_block_set_ink(lh_gl_text_block_t *self, lh_gl_rect_t ink)
+{
+    lh_assert_runtime_ref(self);
+    self->ink = ink;
+}
+
+lh_void
+lh_gl_text_block_set_width(lh_gl_text_block_t *self, lh_gl_scalar_t width)
+{
+    lh_assert_runtime_ref(self);
+    self->width = width;
+}
+
+lh_void
+lh_gl_text_block_set_ink_top(lh_gl_text_block_t *self, lh_gl_scalar_t ink_top)
+{
+    lh_assert_runtime_ref(self);
+    self->ink_top = ink_top;
+}
+
+lh_void
+lh_gl_text_block_set_lines(lh_gl_text_block_t *self, lh_u32_t lines)
+{
+    lh_assert_runtime_ref(self);
+    self->lines = lines;
+}
+
 lh_void
 lh_gl_text_block_init(lh_gl_text_block_t *self)
 {
@@ -16,6 +79,17 @@ lh_gl_text_block_init(lh_gl_text_block_t *self)
     lh_gl_text_block_set_width(self, lh_gl_scalar(0));
     lh_gl_text_block_set_ink_top(self, lh_gl_scalar(0));
     lh_gl_text_block_set_lines(self, 0U);
+}
+
+lh_void
+lh_gl_text_block_get_ink_rect(const lh_gl_text_block_t *self, lh_gl_point_t origin,
+                              lh_gl_rect_t *out)
+{
+    /* The union skips empty rects, so moving the hull is the hull of the moved
+       lines -- including when nothing is inked and the hull is the last line's box. */
+    lh_gl_rect_offset(lh_gl_text_block_get_ink(self), lh_gl_point_get_x(lh_addr_of(origin)),
+                      lh_gl_point_get_y(lh_addr_of(origin)) - lh_gl_text_block_get_ink_top(self),
+                      out);
 }
 
 lh_void
@@ -70,38 +144,6 @@ lh_gl_text_block_measure(lh_gl_text_block_t *self, const lh_gl_font_t *font, con
     }
 }
 
-lh_u32_t
-lh_gl_text_block_get_lines(const lh_gl_text_block_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->lines;
-}
-
-lh_gl_scalar_t
-lh_gl_text_block_get_width(const lh_gl_text_block_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->width;
-}
-
-lh_gl_scalar_t
-lh_gl_text_block_get_ink_top(const lh_gl_text_block_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->ink_top;
-}
-
-lh_void
-lh_gl_text_block_get_ink_rect(const lh_gl_text_block_t *self, lh_gl_point_t origin,
-                              lh_gl_rect_t *out)
-{
-    /* The union skips empty rects, so moving the hull is the hull of the moved
-       lines -- including when nothing is inked and the hull is the last line's box. */
-    lh_gl_rect_offset(lh_gl_text_block_get_ink(self), lh_gl_point_get_x(lh_addr_of(origin)),
-                      lh_gl_point_get_y(lh_addr_of(origin)) - lh_gl_text_block_get_ink_top(self),
-                      out);
-}
-
 lh_void
 lh_gl_text_block_get_size(const lh_gl_text_block_t *self, const lh_gl_font_t *font,
                           lh_gl_size_t *out)
@@ -135,46 +177,4 @@ lh_gl_text_block_get_size(const lh_gl_text_block_t *self, const lh_gl_font_t *fo
                       lh_gl_scalar_of(lh_gl_font_get_line_height(font)) +
                   lh_gl_scalar_of(lh_gl_font_get_cap_height(font)));
     lh_ptr_deref(out) = size;
-}
-
-const lh_gl_rect_t *
-lh_gl_text_block_get_ink(const lh_gl_text_block_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->ink);
-}
-
-lh_gl_rect_t *
-lh_gl_text_block_get_ink_mut(lh_gl_text_block_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->ink);
-}
-
-lh_void
-lh_gl_text_block_set_ink(lh_gl_text_block_t *self, lh_gl_rect_t ink)
-{
-    lh_assert_runtime_ref(self);
-    self->ink = ink;
-}
-
-lh_void
-lh_gl_text_block_set_width(lh_gl_text_block_t *self, lh_gl_scalar_t width)
-{
-    lh_assert_runtime_ref(self);
-    self->width = width;
-}
-
-lh_void
-lh_gl_text_block_set_ink_top(lh_gl_text_block_t *self, lh_gl_scalar_t ink_top)
-{
-    lh_assert_runtime_ref(self);
-    self->ink_top = ink_top;
-}
-
-lh_void
-lh_gl_text_block_set_lines(lh_gl_text_block_t *self, lh_u32_t lines)
-{
-    lh_assert_runtime_ref(self);
-    self->lines = lines;
 }

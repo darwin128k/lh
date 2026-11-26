@@ -140,6 +140,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   class. Nothing public changes. The places where a higher level came before a
   lower one go from 26 to 8, all of them the recursions of the walk, the hit
   test and the draw.
+- `src/lh/gl/web/player/page.c` (3430 lines, the player's page built as a
+  script tree) is split into `src/lh/gl/web/player/page/`: `keys.c` (the
+  browser's key names with their table and its static check, the modifiers,
+  the key tables the script reads), `paint.c` (the script's colours, glyphs,
+  covers, rounded boxes, 3D pane and canvas), `frame.c` (its state, the scale,
+  fitting and playing a frame, the size), `net.c` (fetching, polling, the
+  socket, sending, starting) and `input.c` (the pointer, the mouse, the wheel,
+  the keys, the focus); `page.c` keeps the document and the script assembled
+  from them and writing them. Every split of gl in this release is checked by
+  its tokens: the parts together hold exactly the tokens of the file they came
+  from, includes and comments aside (`pixmap.c` differs by the rewritten
+  `store_box` alone).
+- `src/lh/gl/canvas/web.c` is split into `src/lh/gl/canvas/web/`: `put.c`
+  (writing a frame's JSON: numbers, hex, an op, a colour, a rect, the head, a
+  cover), `intern.c` (the process-wide cover atlas, which only `intern` reads,
+  and `intern`) and `draw.c` (the slots the backend table points at); the
+  canvas keeps its fields, opening and closing a frame, its length, the glyph
+  set and the backend table. `lh_gl_canvas_web_put_lit` reaches the buffer
+  through `lh_gl_canvas_web_get_buf_mut` instead of naming the field.
+  `text.c`, `toggle.c`, `display.c`, `canvas/box.c` and `color.c` are ordered
+  by level in place (7, 6, 4, 4 and 9 places to 0; `color.c` by a stable sort
+  that keeps its `#if LH_GL_COLOR_HAVE_SMLAD` blocks inside their functions),
+  and so is `pixmap/span.c` with its SSE2 kernel (2 to 0).
 - `lh_gl_pixmap_store_box` works out the first row's address, the format and
   the length once and steps one stride a row, storing each row with
   `lh_memory_set_u16` / `_u32`, instead of a `lh_gl_pixmap_store_span` per row
@@ -499,6 +522,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `lh_os_module_hook.an_overrunning_handler_is_dropped` gives each handler 50 ms
+  and its slow handler sleeps 200 ms, instead of 1 ms and 20 ms: on a machine
+  busy with a build the handler that does nothing ran past 1 ms too, both were
+  dropped, and the test failed though the chain was right.
 - `os_logger_queue.the_worker_flushes_on_its_period_without_a_sync` waits for the
   worker's three flushes, up to five seconds, instead of sleeping a fixed 100 ms:
   on a machine busy with a build the worker ran once in that time and the test

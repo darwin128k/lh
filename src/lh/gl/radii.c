@@ -8,6 +8,72 @@
 #include <lh/gl/radii.h>
 #include <lh/gl/radius.h>
 
+lh_gl_scalar_t
+lh_gl_radii_scale(lh_gl_scalar_t radius, lh_gl_scalar_t num, lh_gl_scalar_t den)
+{
+    if (den <= lh_gl_scalar(0) || num >= den)
+    {
+        return radius;
+    }
+    return radius * num / den;
+}
+
+lh_gl_scalar_t
+lh_gl_radii_get_top_left(const lh_gl_radii_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->top_left;
+}
+
+lh_void
+lh_gl_radii_set_top_left(lh_gl_radii_t *self, lh_gl_scalar_t top_left)
+{
+    lh_assert_runtime_ref(self);
+    self->top_left = top_left;
+}
+
+lh_gl_scalar_t
+lh_gl_radii_get_top_right(const lh_gl_radii_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->top_right;
+}
+
+lh_void
+lh_gl_radii_set_top_right(lh_gl_radii_t *self, lh_gl_scalar_t top_right)
+{
+    lh_assert_runtime_ref(self);
+    self->top_right = top_right;
+}
+
+lh_gl_scalar_t
+lh_gl_radii_get_bottom_right(const lh_gl_radii_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->bottom_right;
+}
+
+lh_void
+lh_gl_radii_set_bottom_right(lh_gl_radii_t *self, lh_gl_scalar_t bottom_right)
+{
+    lh_assert_runtime_ref(self);
+    self->bottom_right = bottom_right;
+}
+
+lh_gl_scalar_t
+lh_gl_radii_get_bottom_left(const lh_gl_radii_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->bottom_left;
+}
+
+lh_void
+lh_gl_radii_set_bottom_left(lh_gl_radii_t *self, lh_gl_scalar_t bottom_left)
+{
+    lh_assert_runtime_ref(self);
+    self->bottom_left = bottom_left;
+}
+
 lh_void
 lh_gl_radii_init(lh_gl_radii_t *self, lh_gl_scalar_t top_left, lh_gl_scalar_t top_right,
                  lh_gl_scalar_t bottom_right, lh_gl_scalar_t bottom_left)
@@ -16,12 +82,6 @@ lh_gl_radii_init(lh_gl_radii_t *self, lh_gl_scalar_t top_left, lh_gl_scalar_t to
     lh_gl_radii_set_top_right(self, top_right);
     lh_gl_radii_set_bottom_right(self, bottom_right);
     lh_gl_radii_set_bottom_left(self, bottom_left);
-}
-
-lh_void
-lh_gl_radii_init_all(lh_gl_radii_t *self, lh_gl_scalar_t radius)
-{
-    lh_gl_radii_init(self, radius, radius, radius, radius);
 }
 
 lh_bool_t
@@ -40,16 +100,6 @@ lh_gl_radii_get_min(const lh_gl_radii_t *self)
     return lh_math_min(
         lh_math_min(lh_gl_radii_get_top_left(self), lh_gl_radii_get_top_right(self)),
         lh_math_min(lh_gl_radii_get_bottom_right(self), lh_gl_radii_get_bottom_left(self)));
-}
-
-lh_gl_scalar_t
-lh_gl_radii_scale(lh_gl_scalar_t radius, lh_gl_scalar_t num, lh_gl_scalar_t den)
-{
-    if (den <= lh_gl_scalar(0) || num >= den)
-    {
-        return radius;
-    }
-    return radius * num / den;
 }
 
 lh_void
@@ -150,58 +200,8 @@ lh_gl_radii_get_at(const lh_gl_radii_t *self, const lh_gl_rect_t *rect, lh_s32_t
     return left ? lh_gl_radii_get_bottom_left(self) : lh_gl_radii_get_bottom_right(self);
 }
 
-lh_gl_scalar_t
-lh_gl_radii_get_top_left(const lh_gl_radii_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->top_left;
-}
-
 lh_void
-lh_gl_radii_set_top_left(lh_gl_radii_t *self, lh_gl_scalar_t top_left)
+lh_gl_radii_init_all(lh_gl_radii_t *self, lh_gl_scalar_t radius)
 {
-    lh_assert_runtime_ref(self);
-    self->top_left = top_left;
-}
-
-lh_gl_scalar_t
-lh_gl_radii_get_top_right(const lh_gl_radii_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->top_right;
-}
-
-lh_void
-lh_gl_radii_set_top_right(lh_gl_radii_t *self, lh_gl_scalar_t top_right)
-{
-    lh_assert_runtime_ref(self);
-    self->top_right = top_right;
-}
-
-lh_gl_scalar_t
-lh_gl_radii_get_bottom_right(const lh_gl_radii_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->bottom_right;
-}
-
-lh_void
-lh_gl_radii_set_bottom_right(lh_gl_radii_t *self, lh_gl_scalar_t bottom_right)
-{
-    lh_assert_runtime_ref(self);
-    self->bottom_right = bottom_right;
-}
-
-lh_gl_scalar_t
-lh_gl_radii_get_bottom_left(const lh_gl_radii_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->bottom_left;
-}
-
-lh_void
-lh_gl_radii_set_bottom_left(lh_gl_radii_t *self, lh_gl_scalar_t bottom_left)
-{
-    lh_assert_runtime_ref(self);
-    self->bottom_left = bottom_left;
+    lh_gl_radii_init(self, radius, radius, radius, radius);
 }

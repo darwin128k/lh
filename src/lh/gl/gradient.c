@@ -38,6 +38,12 @@ lh_gl_gradient_init_stops(lh_pixel_gradient_t *self, const lh_gl_color_t *colors
     lh_pixel_gradient_init_stops(self, argb, fracs, num_stops);
 }
 
+lh_void
+lh_gl_gradient_color_at(const lh_pixel_gradient_t *self, lh_byte_t frac, lh_gl_color_t *out)
+{
+    lh_gl_color_init_argb(out, lh_pixel_gradient_get_color_at(self, frac));
+}
+
 lh_byte_t
 lh_gl_gradient_frac_at(const lh_pixel_gradient_t *self, const lh_gl_rect_t *rect, lh_s32_t x,
                        lh_s32_t y)
@@ -46,10 +52,4 @@ lh_gl_gradient_frac_at(const lh_pixel_gradient_t *self, const lh_gl_rect_t *rect
 
     lh_gl_gradient_get_box_px(rect, lh_addr_of(box));
     return lh_pixel_gradient_get_frac_at(self, lh_addr_of(box), x, y);
-}
-
-lh_void
-lh_gl_gradient_color_at(const lh_pixel_gradient_t *self, lh_byte_t frac, lh_gl_color_t *out)
-{
-    lh_gl_color_init_argb(out, lh_pixel_gradient_get_color_at(self, frac));
 }

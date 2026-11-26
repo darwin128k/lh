@@ -10,21 +10,6 @@
 
 const lh_gl_entity_class_t lh_gl_image_class = {lh_gl_image_event, lh_addr_of(lh_gl_entity_class)};
 
-/* -- Events ---------------------------------------------------------------- */
-
-/**
- * @copydoc lh_gl_image_on_baseline(const struct lh_gl_image *, const struct lh_gl_entity_event *)
- */
-lh_void
-lh_gl_image_on_baseline(const lh_gl_image_t *self, const lh_gl_entity_event_t *event)
-{
-    lh_gl_scalar_t *answer;
-
-    lh_return_if(lh_gl_entity_event_get_code(event) != lh_gl_entity_event_baseline);
-    answer = lh_gl_entity_event_get_baseline(lh_ptr_rcast(lh_gl_entity_event_t, event));
-    lh_ptr_deref(answer) = lh_gl_image_get_baseline(self);
-}
-
 lh_void
 lh_gl_image_set_baseline(lh_gl_image_t *self, lh_gl_scalar_t baseline)
 {
@@ -37,20 +22,6 @@ lh_gl_image_get_baseline(const lh_gl_image_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->baseline;
-}
-
-/* -- Lifetime and fields --------------------------------------------------- */
-
-lh_void
-lh_gl_image_init(lh_gl_image_t *self, lh_gl_rect_t rect, const lh_gl_mask_t *mask)
-{
-    lh_gl_entity_init(lh_gl_image_get_entity_mut(self), rect);
-    lh_gl_entity_set_class_v(lh_gl_image_get_entity_mut(self), lh_addr_of(lh_gl_image_class));
-    lh_gl_image_set_mask(self, mask);
-    /* A mask is cropped to ink and knows nothing about the type it came out of,
-       so a picture has no line until somebody says where its is. */
-    lh_gl_image_set_baseline(self, lh_gl_scalar(-1));
-    lh_gl_color_init(lh_gl_image_get_tint_mut(self), 255, 255, 255, 255);
 }
 
 lh_gl_entity_t *
@@ -89,6 +60,70 @@ lh_gl_image_get_tint(const lh_gl_image_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->tint);
+}
+
+const lh_gl_entity_t *
+lh_gl_image_get_entity(const lh_gl_image_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->entity);
+}
+
+lh_gl_entity_t *
+lh_gl_image_get_entity_mut(lh_gl_image_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->entity);
+}
+
+lh_void
+lh_gl_image_set_entity(lh_gl_image_t *self, lh_gl_entity_t entity)
+{
+    lh_assert_runtime_ref(self);
+    self->entity = entity;
+}
+
+lh_gl_color_t *
+lh_gl_image_get_tint_mut(lh_gl_image_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->tint);
+}
+
+lh_void
+lh_gl_image_set_tint(lh_gl_image_t *self, lh_gl_color_t tint)
+{
+    lh_assert_runtime_ref(self);
+    self->tint = tint;
+}
+
+/* -- Events ---------------------------------------------------------------- */
+
+/**
+ * @copydoc lh_gl_image_on_baseline(const struct lh_gl_image *, const struct lh_gl_entity_event *)
+ */
+lh_void
+lh_gl_image_on_baseline(const lh_gl_image_t *self, const lh_gl_entity_event_t *event)
+{
+    lh_gl_scalar_t *answer;
+
+    lh_return_if(lh_gl_entity_event_get_code(event) != lh_gl_entity_event_baseline);
+    answer = lh_gl_entity_event_get_baseline(lh_ptr_rcast(lh_gl_entity_event_t, event));
+    lh_ptr_deref(answer) = lh_gl_image_get_baseline(self);
+}
+
+/* -- Lifetime and fields --------------------------------------------------- */
+
+lh_void
+lh_gl_image_init(lh_gl_image_t *self, lh_gl_rect_t rect, const lh_gl_mask_t *mask)
+{
+    lh_gl_entity_init(lh_gl_image_get_entity_mut(self), rect);
+    lh_gl_entity_set_class_v(lh_gl_image_get_entity_mut(self), lh_addr_of(lh_gl_image_class));
+    lh_gl_image_set_mask(self, mask);
+    /* A mask is cropped to ink and knows nothing about the type it came out of,
+       so a picture has no line until somebody says where its is. */
+    lh_gl_image_set_baseline(self, lh_gl_scalar(-1));
+    lh_gl_color_init(lh_gl_image_get_tint_mut(self), 255, 255, 255, 255);
 }
 
 /* -- Picture --------------------------------------------------------------- */
@@ -193,39 +228,4 @@ lh_gl_image_event(const lh_gl_entity_t *self, const lh_gl_entity_event_t *event)
     {
         lh_gl_image_on_baseline(image, event);
     }
-}
-
-const lh_gl_entity_t *
-lh_gl_image_get_entity(const lh_gl_image_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->entity);
-}
-
-lh_gl_entity_t *
-lh_gl_image_get_entity_mut(lh_gl_image_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->entity);
-}
-
-lh_void
-lh_gl_image_set_entity(lh_gl_image_t *self, lh_gl_entity_t entity)
-{
-    lh_assert_runtime_ref(self);
-    self->entity = entity;
-}
-
-lh_gl_color_t *
-lh_gl_image_get_tint_mut(lh_gl_image_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->tint);
-}
-
-lh_void
-lh_gl_image_set_tint(lh_gl_image_t *self, lh_gl_color_t tint)
-{
-    lh_assert_runtime_ref(self);
-    self->tint = tint;
 }

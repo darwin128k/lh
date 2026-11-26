@@ -7,17 +7,6 @@
 #include <lh/gl/transition.h>
 #include <lh/core/util/return.h>
 
-lh_void
-lh_gl_transition_init(lh_gl_transition_t *self)
-{
-    lh_gl_transition_set_entity(self, lh_null);
-    lh_gl_transition_set_to(self, lh_null);
-    lh_gl_style_init(lh_gl_transition_get_from_mut(self));
-    lh_gl_style_init(lh_gl_transition_get_look_mut(self));
-    lh_gl_transition_set_elapsed(self, 0);
-    lh_gl_transition_set_total(self, 0);
-}
-
 struct lh_gl_entity *
 lh_gl_transition_get_entity(const lh_gl_transition_t *self)
 {
@@ -37,50 +26,6 @@ lh_gl_transition_get_look(const lh_gl_transition_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->look);
-}
-
-lh_void
-lh_gl_transition_start(lh_gl_transition_t *self, struct lh_gl_entity *entity,
-                       const lh_gl_style_t *from, const lh_gl_style_t *to)
-{
-    lh_gl_style_t start;
-
-    lh_assert_runtime_ref(from);
-    lh_assert_runtime_ref(to);
-    /* Through a copy: @p from may be this slot's own look, and the look is about to
-       be written. */
-    start = lh_ptr_deref(from);
-    lh_gl_transition_set_from(self, start);
-    lh_gl_transition_set_entity(self, entity);
-    lh_gl_transition_set_to(self, to);
-    lh_gl_transition_set_elapsed(self, 0);
-    lh_gl_transition_set_total(self, lh_gl_style_get_transition(to));
-    lh_gl_style_init_blend(lh_gl_transition_get_look_mut(self), lh_gl_transition_get_from_mut(self),
-                           to, 0U);
-}
-
-lh_bool_t
-lh_gl_transition_advance(lh_gl_transition_t *self, lh_u16_t ms)
-{
-
-    lh_return_if(lh_null_eq(lh_gl_transition_get_entity(self)) ||
-                     lh_null_eq(lh_gl_transition_get_to(self)),
-                 lh_bool_false);
-    lh_u32_t spent =
-        lh_cast_static(lh_u32_t, lh_gl_transition_get_elapsed(self)) + lh_cast_static(lh_u32_t, ms);
-    if (spent >= lh_cast_static(lh_u32_t, lh_gl_transition_get_total(self)))
-    {
-        lh_gl_transition_set_elapsed(self, lh_gl_transition_get_total(self));
-        lh_gl_transition_set_look(self, lh_ptr_deref(lh_gl_transition_get_to(self)));
-        return lh_bool_false;
-    }
-    lh_gl_transition_set_elapsed(self, lh_cast_static(lh_u16_t, spent));
-    lh_u32_t time = spent * 255U / lh_cast_static(lh_u32_t, lh_gl_transition_get_total(self));
-    lh_gl_style_init_blend(
-        lh_gl_transition_get_look_mut(self), lh_gl_transition_get_from_mut(self),
-        lh_gl_transition_get_to(self),
-        lh_gl_easing_apply(lh_gl_style_get_easing(lh_gl_transition_get_to(self)), time));
-    return lh_bool_true;
 }
 
 lh_void
@@ -165,4 +110,59 @@ lh_gl_transition_set_total(lh_gl_transition_t *self, lh_u16_t total)
 {
     lh_assert_runtime_ref(self);
     self->total = total;
+}
+
+lh_void
+lh_gl_transition_init(lh_gl_transition_t *self)
+{
+    lh_gl_transition_set_entity(self, lh_null);
+    lh_gl_transition_set_to(self, lh_null);
+    lh_gl_style_init(lh_gl_transition_get_from_mut(self));
+    lh_gl_style_init(lh_gl_transition_get_look_mut(self));
+    lh_gl_transition_set_elapsed(self, 0);
+    lh_gl_transition_set_total(self, 0);
+}
+
+lh_void
+lh_gl_transition_start(lh_gl_transition_t *self, struct lh_gl_entity *entity,
+                       const lh_gl_style_t *from, const lh_gl_style_t *to)
+{
+    lh_gl_style_t start;
+
+    lh_assert_runtime_ref(from);
+    lh_assert_runtime_ref(to);
+    /* Through a copy: @p from may be this slot's own look, and the look is about to
+       be written. */
+    start = lh_ptr_deref(from);
+    lh_gl_transition_set_from(self, start);
+    lh_gl_transition_set_entity(self, entity);
+    lh_gl_transition_set_to(self, to);
+    lh_gl_transition_set_elapsed(self, 0);
+    lh_gl_transition_set_total(self, lh_gl_style_get_transition(to));
+    lh_gl_style_init_blend(lh_gl_transition_get_look_mut(self), lh_gl_transition_get_from_mut(self),
+                           to, 0U);
+}
+
+lh_bool_t
+lh_gl_transition_advance(lh_gl_transition_t *self, lh_u16_t ms)
+{
+
+    lh_return_if(lh_null_eq(lh_gl_transition_get_entity(self)) ||
+                     lh_null_eq(lh_gl_transition_get_to(self)),
+                 lh_bool_false);
+    lh_u32_t spent =
+        lh_cast_static(lh_u32_t, lh_gl_transition_get_elapsed(self)) + lh_cast_static(lh_u32_t, ms);
+    if (spent >= lh_cast_static(lh_u32_t, lh_gl_transition_get_total(self)))
+    {
+        lh_gl_transition_set_elapsed(self, lh_gl_transition_get_total(self));
+        lh_gl_transition_set_look(self, lh_ptr_deref(lh_gl_transition_get_to(self)));
+        return lh_bool_false;
+    }
+    lh_gl_transition_set_elapsed(self, lh_cast_static(lh_u16_t, spent));
+    lh_u32_t time = spent * 255U / lh_cast_static(lh_u32_t, lh_gl_transition_get_total(self));
+    lh_gl_style_init_blend(
+        lh_gl_transition_get_look_mut(self), lh_gl_transition_get_from_mut(self),
+        lh_gl_transition_get_to(self),
+        lh_gl_easing_apply(lh_gl_style_get_easing(lh_gl_transition_get_to(self)), time));
+    return lh_bool_true;
 }

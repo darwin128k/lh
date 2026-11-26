@@ -4,6 +4,62 @@
 #include <lh/core/util/return.h>
 #include <lh/core/assert.h>
 
+lh_gl_scalar_t
+lh_gl_layout_cross_get_start(const lh_gl_layout_cross_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->start;
+}
+
+lh_void
+lh_gl_layout_cross_set_start(lh_gl_layout_cross_t *self, lh_gl_scalar_t start)
+{
+    lh_assert_runtime_ref(self);
+    self->start = start;
+}
+
+lh_gl_scalar_t
+lh_gl_layout_cross_get_own(const lh_gl_layout_cross_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->own;
+}
+
+lh_void
+lh_gl_layout_cross_set_own(lh_gl_layout_cross_t *self, lh_gl_scalar_t own)
+{
+    lh_assert_runtime_ref(self);
+    self->own = own;
+}
+
+lh_gl_scalar_t
+lh_gl_layout_cross_get_room(const lh_gl_layout_cross_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->room;
+}
+
+lh_void
+lh_gl_layout_cross_set_room(lh_gl_layout_cross_t *self, lh_gl_scalar_t room)
+{
+    lh_assert_runtime_ref(self);
+    self->room = room;
+}
+
+lh_gl_scalar_t
+lh_gl_layout_cross_get_before(const lh_gl_layout_cross_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->before;
+}
+
+lh_void
+lh_gl_layout_cross_set_before(lh_gl_layout_cross_t *self, lh_gl_scalar_t before)
+{
+    lh_assert_runtime_ref(self);
+    self->before = before;
+}
+
 lh_void
 lh_gl_layout_cross_fit(const lh_gl_layout_t *self, lh_gl_entity_t *child,
                        const lh_gl_rect_t *content, lh_gl_layout_cross_t *out)
@@ -60,60 +116,4 @@ lh_gl_layout_cross_at(const lh_gl_layout_cross_t *fit, lh_gl_place_align_t align
                ? line - lh_gl_layout_cross_get_before(fit) - base
                : lh_gl_scalar_centre(lh_gl_layout_cross_get_room(fit),
                                      lh_gl_layout_cross_get_own(fit));
-}
-
-lh_gl_scalar_t
-lh_gl_layout_cross_get_start(const lh_gl_layout_cross_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->start;
-}
-
-lh_void
-lh_gl_layout_cross_set_start(lh_gl_layout_cross_t *self, lh_gl_scalar_t start)
-{
-    lh_assert_runtime_ref(self);
-    self->start = start;
-}
-
-lh_gl_scalar_t
-lh_gl_layout_cross_get_own(const lh_gl_layout_cross_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->own;
-}
-
-lh_void
-lh_gl_layout_cross_set_own(lh_gl_layout_cross_t *self, lh_gl_scalar_t own)
-{
-    lh_assert_runtime_ref(self);
-    self->own = own;
-}
-
-lh_gl_scalar_t
-lh_gl_layout_cross_get_room(const lh_gl_layout_cross_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->room;
-}
-
-lh_void
-lh_gl_layout_cross_set_room(lh_gl_layout_cross_t *self, lh_gl_scalar_t room)
-{
-    lh_assert_runtime_ref(self);
-    self->room = room;
-}
-
-lh_gl_scalar_t
-lh_gl_layout_cross_get_before(const lh_gl_layout_cross_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->before;
-}
-
-lh_void
-lh_gl_layout_cross_set_before(lh_gl_layout_cross_t *self, lh_gl_scalar_t before)
-{
-    lh_assert_runtime_ref(self);
-    self->before = before;
 }

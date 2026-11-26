@@ -9,13 +9,6 @@
 #include <lh/gl/entity/transform.h>
 #include <lh/gl/key.h>
 
-lh_void
-lh_gl_entity_event_init(lh_gl_entity_event_t *self, lh_gl_entity_event_code_t code, lh_ptr context)
-{
-    lh_gl_entity_event_set_code(self, code);
-    lh_gl_entity_event_set_context(self, context);
-}
-
 lh_gl_entity_event_code_t
 lh_gl_entity_event_get_code(const lh_gl_entity_event_t *self)
 {
@@ -28,6 +21,27 @@ lh_gl_entity_event_get_context(const lh_gl_entity_event_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->context;
+}
+
+lh_void
+lh_gl_entity_event_set_code(lh_gl_entity_event_t *self, lh_gl_entity_event_code_t code)
+{
+    lh_assert_runtime_ref(self);
+    self->code = code;
+}
+
+lh_void
+lh_gl_entity_event_set_context(lh_gl_entity_event_t *self, lh_ptr context)
+{
+    lh_assert_runtime_ref(self);
+    self->context = context;
+}
+
+lh_void
+lh_gl_entity_event_init(lh_gl_entity_event_t *self, lh_gl_entity_event_code_t code, lh_ptr context)
+{
+    lh_gl_entity_event_set_code(self, code);
+    lh_gl_entity_event_set_context(self, context);
 }
 
 struct lh_gl_canvas *
@@ -85,19 +99,6 @@ lh_gl_entity_event_get_key(const lh_gl_entity_event_t *self)
     return input;
 }
 
-lh_void
-lh_gl_entity_event_get_point(const lh_gl_entity_event_t *self, lh_gl_point_t *out)
-{
-    lh_assert_runtime_ref(out);
-    const lh_gl_point_t *point;
-
-    lh_assert_runtime_ifn(lh_gl_entity_event_is_pointer(self),
-                          lh_runtime_error_code_invalid_argument);
-    point = lh_ptr_rcast(const lh_gl_point_t, lh_gl_entity_event_get_context(self));
-    lh_assert_runtime_ref(point);
-    lh_ptr_deref(out) = lh_ptr_deref(point);
-}
-
 struct lh_gl_entity_transform *
 lh_gl_entity_event_get_transform(const lh_gl_entity_event_t *self)
 {
@@ -147,15 +148,14 @@ lh_gl_entity_event_get_baseline(const lh_gl_entity_event_t *self)
 }
 
 lh_void
-lh_gl_entity_event_set_code(lh_gl_entity_event_t *self, lh_gl_entity_event_code_t code)
+lh_gl_entity_event_get_point(const lh_gl_entity_event_t *self, lh_gl_point_t *out)
 {
-    lh_assert_runtime_ref(self);
-    self->code = code;
-}
+    lh_assert_runtime_ref(out);
+    const lh_gl_point_t *point;
 
-lh_void
-lh_gl_entity_event_set_context(lh_gl_entity_event_t *self, lh_ptr context)
-{
-    lh_assert_runtime_ref(self);
-    self->context = context;
+    lh_assert_runtime_ifn(lh_gl_entity_event_is_pointer(self),
+                          lh_runtime_error_code_invalid_argument);
+    point = lh_ptr_rcast(const lh_gl_point_t, lh_gl_entity_event_get_context(self));
+    lh_assert_runtime_ref(point);
+    lh_ptr_deref(out) = lh_ptr_deref(point);
 }

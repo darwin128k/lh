@@ -15,24 +15,11 @@ lh_gl_rects_init(lh_gl_rects_t *self)
     self->count = 0u;
 }
 
-lh_bool_t
-lh_gl_rects_is_empty(const lh_gl_rects_t *self)
-{
-    return lh_gl_rects_get_count(self) == 0u ? lh_bool_true : lh_bool_false;
-}
-
 lh_u32_t
 lh_gl_rects_get_count(const lh_gl_rects_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->count;
-}
-
-const lh_gl_rect_t *
-lh_gl_rects_get(const lh_gl_rects_t *self, lh_u32_t index)
-{
-    lh_return_if(index >= lh_gl_rects_get_count(self), lh_null);
-    return lh_addr_of(lh_gl_rects_get_rects(self)[index]);
 }
 
 lh_gl_scalar_t
@@ -56,6 +43,40 @@ lh_gl_rects_touch(const lh_gl_rect_t *a, const lh_gl_rect_t *b)
     lh_gl_rect_t reach;
     lh_gl_rect_inset(b, lh_gl_scalar(-1), lh_gl_scalar(-1), lh_addr_of(reach));
     return lh_gl_rect_intersects(a, lh_addr_of(reach));
+}
+
+const lh_gl_rect_t *
+lh_gl_rects_get_rects(const lh_gl_rects_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->rects;
+}
+
+lh_gl_rect_t *
+lh_gl_rects_get_rects_mut(lh_gl_rects_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->rects;
+}
+
+lh_void
+lh_gl_rects_set_count(lh_gl_rects_t *self, lh_u32_t count)
+{
+    lh_assert_runtime_ref(self);
+    self->count = count;
+}
+
+lh_bool_t
+lh_gl_rects_is_empty(const lh_gl_rects_t *self)
+{
+    return lh_gl_rects_get_count(self) == 0u ? lh_bool_true : lh_bool_false;
+}
+
+const lh_gl_rect_t *
+lh_gl_rects_get(const lh_gl_rects_t *self, lh_u32_t index)
+{
+    lh_return_if(index >= lh_gl_rects_get_count(self), lh_null);
+    return lh_addr_of(lh_gl_rects_get_rects(self)[index]);
 }
 
 lh_gl_scalar_t
@@ -141,25 +162,4 @@ lh_gl_rects_add(lh_gl_rects_t *self, const lh_gl_rect_t *rect)
     lh_gl_rects_get_rects_mut(self)[lh_gl_rects_get_count(self)] = lh_ptr_deref(rect);
     lh_gl_rects_set_count(self, lh_gl_rects_get_count(self) + 1);
     lh_gl_rects_close(self);
-}
-
-const lh_gl_rect_t *
-lh_gl_rects_get_rects(const lh_gl_rects_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->rects;
-}
-
-lh_gl_rect_t *
-lh_gl_rects_get_rects_mut(lh_gl_rects_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->rects;
-}
-
-lh_void
-lh_gl_rects_set_count(lh_gl_rects_t *self, lh_u32_t count)
-{
-    lh_assert_runtime_ref(self);
-    self->count = count;
 }

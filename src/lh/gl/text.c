@@ -32,26 +32,6 @@ lh_gl_text_get_line_end(const lh_char_t *line)
     return end;
 }
 
-const lh_char_t *
-lh_gl_text_get_next_line(const lh_char_t *line)
-{
-    const lh_char_t *cursor = lh_gl_text_get_line_end(line);
-
-    return lh_str_utf8_get_next_code(lh_addr_of(cursor)) == 0U ? lh_null : cursor;
-}
-
-lh_u32_t
-lh_gl_text_count_lines(const lh_char_t *text)
-{
-    lh_u32_t count = 0U;
-
-    for (; lh_null_ne(text); text = lh_gl_text_get_next_line(text))
-    {
-        ++count;
-    }
-    return count;
-}
-
 /* -- Lines a width breaks -------------------------------------------------- */
 
 lh_gl_scalar_t
@@ -70,12 +50,6 @@ lh_gl_text_get_wrapped_width(const lh_gl_font_t *font, const lh_char_t *text, lh
 
     lh_gl_text_block_measure_layout(lh_addr_of(block), font, text, width);
     return lh_gl_text_block_get_width(lh_addr_of(block));
-}
-
-lh_gl_scalar_t
-lh_gl_text_get_width(const lh_gl_font_t *font, const lh_char_t *text)
-{
-    return lh_gl_text_get_wrapped_width(font, text, lh_gl_scalar(0));
 }
 
 lh_u32_t
@@ -110,12 +84,6 @@ lh_gl_text_get_ink_top_wrapped(const lh_gl_font_t *font, const lh_char_t *text,
 
     lh_gl_text_block_measure(lh_addr_of(block), font, text, width);
     return lh_gl_text_block_get_ink_top(lh_addr_of(block));
-}
-
-lh_gl_scalar_t
-lh_gl_text_get_ink_top(const lh_gl_font_t *font, const lh_char_t *text)
-{
-    return lh_gl_text_get_ink_top_wrapped(font, text, lh_gl_scalar(0));
 }
 
 lh_void
@@ -166,14 +134,6 @@ lh_gl_text_get_ink_rect_wrapped(const lh_gl_font_t *font, const lh_char_t *text,
 }
 
 lh_void
-lh_gl_text_get_ink_rect(const lh_gl_font_t *font, const lh_char_t *text, lh_gl_point_t origin,
-                        lh_gl_rect_t *out)
-{
-    lh_gl_text_get_ink_rect_wrapped(font, text, origin, lh_gl_scalar(0), lh_gl_text_align_h_left,
-                                    out);
-}
-
-lh_void
 lh_gl_text_get_size_wrapped(const lh_gl_font_t *font, const lh_char_t *text, lh_gl_scalar_t width,
                             lh_gl_size_t *out)
 {
@@ -182,32 +142,6 @@ lh_gl_text_get_size_wrapped(const lh_gl_font_t *font, const lh_char_t *text, lh_
 
     lh_gl_text_block_measure(lh_addr_of(block), font, text, width);
     lh_gl_text_block_get_size(lh_addr_of(block), font, out);
-}
-
-lh_void
-lh_gl_text_get_size(const lh_gl_font_t *font, const lh_char_t *text, lh_gl_size_t *out)
-{
-    lh_gl_text_get_size_wrapped(font, text, lh_gl_scalar(0), out);
-}
-
-lh_void
-lh_gl_text_get_rect(const lh_gl_font_t *font, const lh_char_t *text, lh_gl_point_t origin,
-                    lh_gl_rect_t *out)
-{
-    lh_gl_text_get_ink_rect(font, text, origin, out);
-}
-
-lh_void
-lh_gl_text_get_line_rect(const lh_gl_font_t *font, const lh_char_t *line, lh_gl_point_t origin,
-                         lh_gl_rect_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_gl_rect_t rect;
-
-    lh_gl_rect_init(lh_addr_of(rect), lh_gl_point_get_x(lh_addr_of(origin)),
-                    lh_gl_point_get_y(lh_addr_of(origin)), lh_gl_text_get_line_width(font, line),
-                    lh_cast_static(lh_gl_scalar_t, lh_gl_font_get_line_height(font)));
-    lh_ptr_deref(out) = rect;
 }
 
 /* -- Drawing --------------------------------------------------------------- */
@@ -227,6 +161,53 @@ lh_gl_text_draw_glyph_at(lh_gl_canvas_t *canvas, const lh_gl_font_t *font, lh_u3
     return lh_cast_static(lh_gl_scalar_t, lh_gl_font_get_advance_at(font, index));
 }
 
+const lh_char_t *
+lh_gl_text_get_next_line(const lh_char_t *line)
+{
+    const lh_char_t *cursor = lh_gl_text_get_line_end(line);
+
+    return lh_str_utf8_get_next_code(lh_addr_of(cursor)) == 0U ? lh_null : cursor;
+}
+
+lh_gl_scalar_t
+lh_gl_text_get_width(const lh_gl_font_t *font, const lh_char_t *text)
+{
+    return lh_gl_text_get_wrapped_width(font, text, lh_gl_scalar(0));
+}
+
+lh_gl_scalar_t
+lh_gl_text_get_ink_top(const lh_gl_font_t *font, const lh_char_t *text)
+{
+    return lh_gl_text_get_ink_top_wrapped(font, text, lh_gl_scalar(0));
+}
+
+lh_void
+lh_gl_text_get_ink_rect(const lh_gl_font_t *font, const lh_char_t *text, lh_gl_point_t origin,
+                        lh_gl_rect_t *out)
+{
+    lh_gl_text_get_ink_rect_wrapped(font, text, origin, lh_gl_scalar(0), lh_gl_text_align_h_left,
+                                    out);
+}
+
+lh_void
+lh_gl_text_get_size(const lh_gl_font_t *font, const lh_char_t *text, lh_gl_size_t *out)
+{
+    lh_gl_text_get_size_wrapped(font, text, lh_gl_scalar(0), out);
+}
+
+lh_void
+lh_gl_text_get_line_rect(const lh_gl_font_t *font, const lh_char_t *line, lh_gl_point_t origin,
+                         lh_gl_rect_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_gl_rect_t rect;
+
+    lh_gl_rect_init(lh_addr_of(rect), lh_gl_point_get_x(lh_addr_of(origin)),
+                    lh_gl_point_get_y(lh_addr_of(origin)), lh_gl_text_get_line_width(font, line),
+                    lh_cast_static(lh_gl_scalar_t, lh_gl_font_get_line_height(font)));
+    lh_ptr_deref(out) = rect;
+}
+
 lh_gl_scalar_t
 lh_gl_text_draw_code(lh_gl_canvas_t *canvas, const lh_gl_font_t *font, lh_u32_t code,
                      lh_gl_point_t origin, const lh_gl_color_t *color)
@@ -235,6 +216,25 @@ lh_gl_text_draw_code(lh_gl_canvas_t *canvas, const lh_gl_font_t *font, lh_u32_t 
 
     lh_return_if(!lh_gl_font_find_index(font, code, lh_addr_of(index)), lh_gl_scalar(0));
     return lh_gl_text_draw_glyph_at(canvas, font, index, origin, color);
+}
+
+lh_u32_t
+lh_gl_text_count_lines(const lh_char_t *text)
+{
+    lh_u32_t count = 0U;
+
+    for (; lh_null_ne(text); text = lh_gl_text_get_next_line(text))
+    {
+        ++count;
+    }
+    return count;
+}
+
+lh_void
+lh_gl_text_get_rect(const lh_gl_font_t *font, const lh_char_t *text, lh_gl_point_t origin,
+                    lh_gl_rect_t *out)
+{
+    lh_gl_text_get_ink_rect(font, text, origin, out);
 }
 
 lh_void
@@ -323,13 +323,6 @@ lh_gl_text_draw_from(lh_gl_canvas_t *canvas, const lh_gl_font_t *font, const lh_
 }
 
 lh_void
-lh_gl_text_draw(lh_gl_canvas_t *canvas, const lh_gl_font_t *font, const lh_char_t *text,
-                lh_gl_point_t origin, const lh_gl_color_t *color)
-{
-    lh_gl_text_draw_from(canvas, font, text, origin, color, lh_gl_text_get_ink_top(font, text));
-}
-
-lh_void
 lh_gl_text_draw_wrapped(lh_gl_canvas_t *canvas, const lh_gl_font_t *font, const lh_char_t *text,
                         lh_gl_point_t origin, const lh_gl_color_t *color, lh_gl_scalar_t width,
                         lh_gl_text_align_h_t align)
@@ -339,4 +332,11 @@ lh_gl_text_draw_wrapped(lh_gl_canvas_t *canvas, const lh_gl_font_t *font, const 
     lh_gl_text_block_measure(lh_addr_of(block), font, text, width);
     lh_gl_text_draw_wrapped_from(canvas, font, text, origin, color,
                                  lh_gl_text_block_get_ink_top(lh_addr_of(block)), width, align);
+}
+
+lh_void
+lh_gl_text_draw(lh_gl_canvas_t *canvas, const lh_gl_font_t *font, const lh_char_t *text,
+                lh_gl_point_t origin, const lh_gl_color_t *color)
+{
+    lh_gl_text_draw_from(canvas, font, text, origin, color, lh_gl_text_get_ink_top(font, text));
 }

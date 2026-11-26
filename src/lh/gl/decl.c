@@ -7,16 +7,6 @@
 #include <lh/gl/decl.h>
 #include <lh/core/util/return.h>
 
-lh_void
-lh_gl_decl_fault(lh_gl_decl_fault_t *fault, lh_gl_decl_error_t code, lh_u32_t index)
-{
-    if (lh_null_ne(fault))
-    {
-        lh_gl_decl_fault_set_code(fault, code);
-        lh_gl_decl_fault_set_index(fault, index);
-    }
-}
-
 lh_u32_t
 lh_gl_decl_size_of(lh_gl_decl_kind_t kind)
 {
@@ -41,33 +31,6 @@ lh_gl_decl_size_of(lh_gl_decl_kind_t kind)
     default:
         return 0;
     }
-}
-
-lh_gl_decl_error_t
-lh_gl_decl_check(const lh_gl_decl_t *decls, lh_u32_t index)
-{
-    const lh_gl_decl_t *row = lh_addr_of(decls[index]);
-
-    if (lh_gl_decl_size_of(row->kind) == 0)
-    {
-        return lh_gl_decl_error_kind;
-    }
-    /* A child cannot exist before the thing that holds it, so a parent is a lower
-       index or nothing at all. */
-    if (row->parent != LH_GL_DECL_ROOT &&
-        (row->parent < 0 || lh_cast_static(lh_u32_t, row->parent) >= index))
-    {
-        return lh_gl_decl_error_parent;
-    }
-    /* A scrollbar names the container it scrolls. Whether that row really is one is
-       asked once the nodes are placed, because the answer is a property of the
-       component the row builds and not of the kind it wrote. */
-    if (row->kind == lh_gl_decl_kind_scrollbar &&
-        (row->as.scrollbar.box < 0 || lh_cast_static(lh_u32_t, row->as.scrollbar.box) >= index))
-    {
-        return lh_gl_decl_error_box;
-    }
-    return lh_gl_decl_error_none;
 }
 
 lh_gl_entity_t *
@@ -161,6 +124,71 @@ lh_gl_decl_place_row(const lh_gl_decl_t *row, lh_byte_ptr slot, lh_gl_entity_t *
     default:
         return lh_null;
     }
+}
+
+lh_gl_decl_error_t
+lh_gl_decl_fault_get_code(const lh_gl_decl_fault_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->code;
+}
+
+lh_void
+lh_gl_decl_fault_set_code(lh_gl_decl_fault_t *self, lh_gl_decl_error_t code)
+{
+    lh_assert_runtime_ref(self);
+    self->code = code;
+}
+
+lh_u32_t
+lh_gl_decl_fault_get_index(const lh_gl_decl_fault_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->index;
+}
+
+lh_void
+lh_gl_decl_fault_set_index(lh_gl_decl_fault_t *self, lh_u32_t index)
+{
+    lh_assert_runtime_ref(self);
+    self->index = index;
+}
+
+lh_void
+lh_gl_decl_fault(lh_gl_decl_fault_t *fault, lh_gl_decl_error_t code, lh_u32_t index)
+{
+    if (lh_null_ne(fault))
+    {
+        lh_gl_decl_fault_set_code(fault, code);
+        lh_gl_decl_fault_set_index(fault, index);
+    }
+}
+
+lh_gl_decl_error_t
+lh_gl_decl_check(const lh_gl_decl_t *decls, lh_u32_t index)
+{
+    const lh_gl_decl_t *row = lh_addr_of(decls[index]);
+
+    if (lh_gl_decl_size_of(row->kind) == 0)
+    {
+        return lh_gl_decl_error_kind;
+    }
+    /* A child cannot exist before the thing that holds it, so a parent is a lower
+       index or nothing at all. */
+    if (row->parent != LH_GL_DECL_ROOT &&
+        (row->parent < 0 || lh_cast_static(lh_u32_t, row->parent) >= index))
+    {
+        return lh_gl_decl_error_parent;
+    }
+    /* A scrollbar names the container it scrolls. Whether that row really is one is
+       asked once the nodes are placed, because the answer is a property of the
+       component the row builds and not of the kind it wrote. */
+    if (row->kind == lh_gl_decl_kind_scrollbar &&
+        (row->as.scrollbar.box < 0 || lh_cast_static(lh_u32_t, row->as.scrollbar.box) >= index))
+    {
+        return lh_gl_decl_error_box;
+    }
+    return lh_gl_decl_error_none;
 }
 
 lh_bool_t
@@ -280,32 +308,4 @@ lh_gl_decl_build(const lh_gl_decl_t *decls, lh_u32_t count, lh_gl_entity_t **nod
     }
     lh_ptr_deref(root) = tree;
     return lh_bool_true;
-}
-
-lh_gl_decl_error_t
-lh_gl_decl_fault_get_code(const lh_gl_decl_fault_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->code;
-}
-
-lh_void
-lh_gl_decl_fault_set_code(lh_gl_decl_fault_t *self, lh_gl_decl_error_t code)
-{
-    lh_assert_runtime_ref(self);
-    self->code = code;
-}
-
-lh_u32_t
-lh_gl_decl_fault_get_index(const lh_gl_decl_fault_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->index;
-}
-
-lh_void
-lh_gl_decl_fault_set_index(lh_gl_decl_fault_t *self, lh_u32_t index)
-{
-    lh_assert_runtime_ref(self);
-    self->index = index;
 }

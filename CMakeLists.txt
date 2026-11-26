@@ -715,10 +715,18 @@ if (LH_LIBRARY_OPTION_GL)
     if (LH_LIBRARY_OPTION_WEB)
         list(APPEND LH_LIB_SOURCES
                 ${LH_LIB_SRC_PATH}/gl/canvas/web.c
+                ${LH_LIB_SRC_PATH}/gl/canvas/web/draw.c
+                ${LH_LIB_SRC_PATH}/gl/canvas/web/intern.c
+                ${LH_LIB_SRC_PATH}/gl/canvas/web/put.c
                 ${LH_LIB_SRC_PATH}/gl/canvas/web/glyphs.c
                 ${LH_LIB_SRC_PATH}/gl/canvas/web/atlas.c
                 ${LH_LIB_SRC_PATH}/gl/web/buf.c
-                ${LH_LIB_SRC_PATH}/gl/web/player/page.c)
+                ${LH_LIB_SRC_PATH}/gl/web/player/page.c
+                ${LH_LIB_SRC_PATH}/gl/web/player/page/frame.c
+                ${LH_LIB_SRC_PATH}/gl/web/player/page/input.c
+                ${LH_LIB_SRC_PATH}/gl/web/player/page/keys.c
+                ${LH_LIB_SRC_PATH}/gl/web/player/page/net.c
+                ${LH_LIB_SRC_PATH}/gl/web/player/page/paint.c)
         if (LH_LIBRARY_OPTION_OS)
             list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/gl/web/player.c
                 ${LH_LIB_SRC_PATH}/gl/web/player/frame.c

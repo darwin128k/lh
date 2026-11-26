@@ -7,79 +7,6 @@
 #include <lh/gl/frame/stats.h>
 #include <lh/core/util/return.h>
 
-lh_void
-lh_gl_frame_stats_init(lh_gl_frame_stats_t *self)
-{
-    lh_gl_frame_stats_set_frames(self, 0U);
-    lh_gl_frame_stats_set_unknown(self, 0U);
-    lh_gl_frame_stats_set_wasteful(self, 0U);
-    lh_gl_frame_stats_set_drawn_px(self, 0U);
-    lh_gl_frame_stats_set_asked_px(self, 0U);
-    lh_gl_frame_stats_set_rects(self, 0U);
-    lh_gl_frame_stats_set_us(self, 0U);
-    lh_gl_frame_stats_set_worst_us(self, 0U);
-    lh_gl_frame_stats_set_on_frame_fn(self, lh_null);
-    lh_gl_frame_stats_set_on_frame_context(self, lh_null);
-}
-
-lh_void
-lh_gl_frame_stats_set_on_frame(lh_gl_frame_stats_t *self, lh_gl_frame_stats_on_frame_cb cb,
-                               lh_ptr context)
-{
-    lh_gl_frame_stats_set_on_frame_fn(self, cb);
-    lh_gl_frame_stats_set_on_frame_context(self, context);
-}
-
-lh_u64_t
-lh_gl_frame_area(const lh_gl_rect_t *rect)
-{
-
-    lh_assert_runtime_ref(rect);
-    const lh_gl_size_t *size = lh_gl_rect_get_size(rect);
-    lh_s64_t w = lh_cast_static(lh_s64_t, lh_gl_size_get_width(size));
-    lh_s64_t h = lh_cast_static(lh_s64_t, lh_gl_size_get_height(size));
-    lh_return_if(w <= 0 || h <= 0, 0U);
-    return lh_cast_static(lh_u64_t, w) * lh_cast_static(lh_u64_t, h);
-}
-
-lh_void
-lh_gl_frame_stats_record(lh_gl_frame_stats_t *self, const lh_gl_frame_t *frame)
-{
-    lh_assert_runtime_ref(frame);
-    lh_gl_frame_stats_set_frames(self, lh_gl_frame_stats_get_frames(self) + 1);
-    lh_gl_frame_stats_set_us(self, lh_gl_frame_stats_get_us(self) + (lh_gl_frame_get_us(frame)));
-    if (lh_gl_frame_get_us(frame) > lh_gl_frame_stats_get_worst_us(self))
-    {
-        lh_gl_frame_stats_set_worst_us(self, lh_gl_frame_get_us(frame));
-    }
-    if (!lh_gl_frame_is_asked_known(frame))
-    {
-        /* Not in the pixel totals: a frame whose request is unknown would count its
-           drawing against nothing and make every ratio worse by an amount nobody
-           measured. */
-        lh_gl_frame_stats_set_unknown(self, lh_gl_frame_stats_get_unknown(self) + 1);
-    }
-    else
-    {
-        const lh_u64_t drawn = lh_gl_frame_area(lh_gl_frame_get_drawn(frame));
-
-        lh_gl_frame_stats_set_drawn_px(self, lh_gl_frame_stats_get_drawn_px(self) + (drawn));
-        lh_gl_frame_stats_set_asked_px(self, lh_gl_frame_stats_get_asked_px(self) +
-                                                 (lh_gl_frame_get_asked_px(frame)));
-        lh_gl_frame_stats_set_rects(self, lh_gl_frame_stats_get_rects(self) +
-                                              (lh_gl_frame_get_rects(frame)));
-        if (drawn > 0U && drawn >= lh_gl_frame_get_asked_px(frame) * 2U)
-        {
-            lh_gl_frame_stats_set_wasteful(self, lh_gl_frame_stats_get_wasteful(self) + 1);
-        }
-    }
-    if (lh_null_ne(lh_gl_frame_stats_get_on_frame_fn(self)))
-    {
-        lh_gl_frame_stats_get_on_frame_fn(self)(frame,
-                                                lh_gl_frame_stats_get_on_frame_context(self));
-    }
-}
-
 lh_u32_t
 lh_gl_frame_stats_get_frames(const lh_gl_frame_stats_t *self)
 {
@@ -218,4 +145,77 @@ lh_gl_frame_stats_set_on_frame_context(lh_gl_frame_stats_t *self, lh_ptr on_fram
 {
     lh_assert_runtime_ref(self);
     self->on_frame_context = on_frame_context;
+}
+
+lh_void
+lh_gl_frame_stats_init(lh_gl_frame_stats_t *self)
+{
+    lh_gl_frame_stats_set_frames(self, 0U);
+    lh_gl_frame_stats_set_unknown(self, 0U);
+    lh_gl_frame_stats_set_wasteful(self, 0U);
+    lh_gl_frame_stats_set_drawn_px(self, 0U);
+    lh_gl_frame_stats_set_asked_px(self, 0U);
+    lh_gl_frame_stats_set_rects(self, 0U);
+    lh_gl_frame_stats_set_us(self, 0U);
+    lh_gl_frame_stats_set_worst_us(self, 0U);
+    lh_gl_frame_stats_set_on_frame_fn(self, lh_null);
+    lh_gl_frame_stats_set_on_frame_context(self, lh_null);
+}
+
+lh_void
+lh_gl_frame_stats_set_on_frame(lh_gl_frame_stats_t *self, lh_gl_frame_stats_on_frame_cb cb,
+                               lh_ptr context)
+{
+    lh_gl_frame_stats_set_on_frame_fn(self, cb);
+    lh_gl_frame_stats_set_on_frame_context(self, context);
+}
+
+lh_u64_t
+lh_gl_frame_area(const lh_gl_rect_t *rect)
+{
+
+    lh_assert_runtime_ref(rect);
+    const lh_gl_size_t *size = lh_gl_rect_get_size(rect);
+    lh_s64_t w = lh_cast_static(lh_s64_t, lh_gl_size_get_width(size));
+    lh_s64_t h = lh_cast_static(lh_s64_t, lh_gl_size_get_height(size));
+    lh_return_if(w <= 0 || h <= 0, 0U);
+    return lh_cast_static(lh_u64_t, w) * lh_cast_static(lh_u64_t, h);
+}
+
+lh_void
+lh_gl_frame_stats_record(lh_gl_frame_stats_t *self, const lh_gl_frame_t *frame)
+{
+    lh_assert_runtime_ref(frame);
+    lh_gl_frame_stats_set_frames(self, lh_gl_frame_stats_get_frames(self) + 1);
+    lh_gl_frame_stats_set_us(self, lh_gl_frame_stats_get_us(self) + (lh_gl_frame_get_us(frame)));
+    if (lh_gl_frame_get_us(frame) > lh_gl_frame_stats_get_worst_us(self))
+    {
+        lh_gl_frame_stats_set_worst_us(self, lh_gl_frame_get_us(frame));
+    }
+    if (!lh_gl_frame_is_asked_known(frame))
+    {
+        /* Not in the pixel totals: a frame whose request is unknown would count its
+           drawing against nothing and make every ratio worse by an amount nobody
+           measured. */
+        lh_gl_frame_stats_set_unknown(self, lh_gl_frame_stats_get_unknown(self) + 1);
+    }
+    else
+    {
+        const lh_u64_t drawn = lh_gl_frame_area(lh_gl_frame_get_drawn(frame));
+
+        lh_gl_frame_stats_set_drawn_px(self, lh_gl_frame_stats_get_drawn_px(self) + (drawn));
+        lh_gl_frame_stats_set_asked_px(self, lh_gl_frame_stats_get_asked_px(self) +
+                                                 (lh_gl_frame_get_asked_px(frame)));
+        lh_gl_frame_stats_set_rects(self, lh_gl_frame_stats_get_rects(self) +
+                                              (lh_gl_frame_get_rects(frame)));
+        if (drawn > 0U && drawn >= lh_gl_frame_get_asked_px(frame) * 2U)
+        {
+            lh_gl_frame_stats_set_wasteful(self, lh_gl_frame_stats_get_wasteful(self) + 1);
+        }
+    }
+    if (lh_null_ne(lh_gl_frame_stats_get_on_frame_fn(self)))
+    {
+        lh_gl_frame_stats_get_on_frame_fn(self)(frame,
+                                                lh_gl_frame_stats_get_on_frame_context(self));
+    }
 }

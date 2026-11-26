@@ -31,12 +31,12 @@ stop(lh_ptr context, lh_ptr call)
     return lh_bool_false;
 }
 
-/* A handler that overruns any budget of a millisecond, then stops. */
+/* A handler that overruns the test's budget of 50 ms four times over, then stops. */
 lh_bool_t
 slow(lh_ptr context, lh_ptr call)
 {
     static_cast<trace *>(call)->order += *static_cast<const char *>(context);
-    LH_ATTRIBUTE_UNUSED(lh_os_thread_sleep(20U));
+    LH_ATTRIBUTE_UNUSED(lh_os_thread_sleep(200U));
     return lh_bool_false;
 }
 
@@ -89,9 +89,11 @@ TEST(lh_os_module_hook, an_overrunning_handler_is_dropped)
     lh_os_module_hook_init(&hook);
     ASSERT_TRUE(lh_os_module_hook_try_add(&hook, &owner, "A", pass, &a));
     ASSERT_TRUE(lh_os_module_hook_try_add(&hook, &owner, "S", slow, &b));
-    /* The slow one stops the call, but it overran: it is dropped and does not count. */
+    /* The slow one stops the call, but it overran: it is dropped and does not count. The
+       budget is 50 ms, not 1: a machine busy with a build can hold back even the handler
+       that does nothing for a millisecond, and drop it too. */
     trace call;
-    EXPECT_TRUE(lh_os_module_hook_call(&hook, &call, 1000U, &stopped_by, &overran));
+    EXPECT_TRUE(lh_os_module_hook_call(&hook, &call, 50000U, &stopped_by, &overran));
     EXPECT_EQ(call.order, "ba");
     EXPECT_TRUE(overran);
     EXPECT_EQ(stopped_by, nullptr);

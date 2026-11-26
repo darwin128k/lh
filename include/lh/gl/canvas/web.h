@@ -21,7 +21,8 @@
 #endif
 
 /** Append string literal @p s to the ops of @p self, its length taken at compile time. */
-#define lh_gl_canvas_web_put_lit(self, s) lh_gl_web_buf_lit(lh_addr_of((self)->buf), lh_str_lit(s))
+#define lh_gl_canvas_web_put_lit(self, s)                                                          \
+    lh_gl_web_buf_lit(lh_gl_canvas_web_get_buf_mut(self), lh_str_lit(s))
 
 /**
  * @brief An open JSON array of canvas ops, in a buffer the caller owns.

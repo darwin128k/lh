@@ -7,22 +7,6 @@
 #include <lh/core/math.h>
 #include <lh/gl/insets.h>
 
-lh_void
-lh_gl_insets_init(lh_gl_insets_t *self, lh_gl_scalar_t left, lh_gl_scalar_t top,
-                  lh_gl_scalar_t right, lh_gl_scalar_t bottom)
-{
-    lh_gl_insets_set_left(self, left);
-    lh_gl_insets_set_top(self, top);
-    lh_gl_insets_set_right(self, right);
-    lh_gl_insets_set_bottom(self, bottom);
-}
-
-lh_void
-lh_gl_insets_init_all(lh_gl_insets_t *self, lh_gl_scalar_t value)
-{
-    lh_gl_insets_init(self, value, value, value, value);
-}
-
 lh_gl_scalar_t
 lh_gl_insets_get_left(const lh_gl_insets_t *self)
 {
@@ -49,6 +33,44 @@ lh_gl_insets_get_bottom(const lh_gl_insets_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->bottom;
+}
+
+lh_void
+lh_gl_insets_set_left(lh_gl_insets_t *self, lh_gl_scalar_t left)
+{
+    lh_assert_runtime_ref(self);
+    self->left = left;
+}
+
+lh_void
+lh_gl_insets_set_top(lh_gl_insets_t *self, lh_gl_scalar_t top)
+{
+    lh_assert_runtime_ref(self);
+    self->top = top;
+}
+
+lh_void
+lh_gl_insets_set_right(lh_gl_insets_t *self, lh_gl_scalar_t right)
+{
+    lh_assert_runtime_ref(self);
+    self->right = right;
+}
+
+lh_void
+lh_gl_insets_set_bottom(lh_gl_insets_t *self, lh_gl_scalar_t bottom)
+{
+    lh_assert_runtime_ref(self);
+    self->bottom = bottom;
+}
+
+lh_void
+lh_gl_insets_init(lh_gl_insets_t *self, lh_gl_scalar_t left, lh_gl_scalar_t top,
+                  lh_gl_scalar_t right, lh_gl_scalar_t bottom)
+{
+    lh_gl_insets_set_left(self, left);
+    lh_gl_insets_set_top(self, top);
+    lh_gl_insets_set_right(self, right);
+    lh_gl_insets_set_bottom(self, bottom);
 }
 
 lh_gl_scalar_t
@@ -93,29 +115,7 @@ lh_gl_insets_shrink(const lh_gl_insets_t *self, const lh_gl_rect_t *rect, lh_gl_
 }
 
 lh_void
-lh_gl_insets_set_left(lh_gl_insets_t *self, lh_gl_scalar_t left)
+lh_gl_insets_init_all(lh_gl_insets_t *self, lh_gl_scalar_t value)
 {
-    lh_assert_runtime_ref(self);
-    self->left = left;
-}
-
-lh_void
-lh_gl_insets_set_top(lh_gl_insets_t *self, lh_gl_scalar_t top)
-{
-    lh_assert_runtime_ref(self);
-    self->top = top;
-}
-
-lh_void
-lh_gl_insets_set_right(lh_gl_insets_t *self, lh_gl_scalar_t right)
-{
-    lh_assert_runtime_ref(self);
-    self->right = right;
-}
-
-lh_void
-lh_gl_insets_set_bottom(lh_gl_insets_t *self, lh_gl_scalar_t bottom)
-{
-    lh_assert_runtime_ref(self);
-    self->bottom = bottom;
+    lh_gl_insets_init(self, value, value, value, value);
 }

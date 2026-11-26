@@ -7,58 +7,6 @@
 #include <lh/core/assert.h>
 
 lh_void
-lh_gl_display_rebind_pixmap(lh_gl_display_t *self, lh_byte_ptr bits, lh_s32_t stride)
-{
-    lh_s32_t w = lh_cast_static(lh_s32_t, lh_gl_size_get_width(lh_gl_display_get_panel_mut(self)));
-    lh_s32_t h = lh_cast_static(lh_s32_t, lh_gl_size_get_height(lh_gl_display_get_panel_mut(self)));
-    lh_s32_t bh = h;
-
-    if (lh_math_gt(lh_gl_display_get_strip_height(self), lh_gl_scalar(0)))
-    {
-        const lh_s32_t sh = lh_cast_static(lh_s32_t, lh_gl_display_get_strip_height(self));
-        if (sh > 0 && sh < h)
-        {
-            bh = sh;
-        }
-    }
-    if (bits == lh_null || w <= 0 || bh <= 0 || stride <= 0)
-    {
-        lh_gl_pixmap_init_empty(lh_gl_display_get_pixmap_mut(self));
-    }
-    else
-    {
-        lh_gl_pixmap_init(lh_gl_display_get_pixmap_mut(self), bits, w, bh, stride, lh_gl_display_get_format(self));
-    }
-    lh_gl_canvas_sw_use_pixmap(lh_gl_display_get_sw_mut(self), lh_gl_display_get_pixmap_mut(self));
-}
-
-lh_void
-lh_gl_display_init(lh_gl_display_t *self)
-{
-    lh_gl_size_init(lh_gl_display_get_panel_mut(self), lh_gl_scalar(0), lh_gl_scalar(0));
-    lh_gl_display_set_strip_height(self, lh_gl_scalar(0));
-    lh_gl_display_set_strip_y(self, lh_gl_scalar(0));
-    lh_gl_display_set_format(self, lh_gl_pixmap_format_argb8888);
-    lh_gl_pixmap_init_empty(lh_gl_display_get_pixmap_mut(self));
-    lh_gl_canvas_sw_init(lh_gl_display_get_sw_mut(self));
-    lh_gl_canvas_init(lh_gl_display_get_canvas_mut(self), lh_addr_of(lh_gl_canvas_backend_sw),
-                      lh_gl_display_get_sw_mut(self));
-    for (lh_u32_t i = 0; i < lh_cast_static(lh_u32_t, LH_GL_PRESENT_SINKS_MAX); ++i)
-    {
-        lh_gl_present_sink_init(lh_addr_of(lh_gl_display_get_sinks_mut(self)[i]), lh_null, lh_null, lh_null);
-    }
-    lh_gl_display_set_sink_count(self, 0);
-    lh_gl_display_set_sink_enable(self, 0);
-}
-
-lh_void
-lh_gl_display_set_panel_v(lh_gl_display_t *self, lh_gl_size_t panel)
-{
-    lh_gl_display_set_panel(self, panel);
-    lh_gl_canvas_set_size(lh_gl_display_get_canvas_mut(self), panel);
-}
-
-lh_void
 lh_gl_display_set_format(lh_gl_display_t *self, lh_gl_pixmap_format_t format)
 {
     lh_assert_runtime_ref(self);
@@ -73,77 +21,16 @@ lh_gl_display_set_strip_height(lh_gl_display_t *self, lh_gl_scalar_t height)
 }
 
 lh_void
-lh_gl_display_set_buffer(lh_gl_display_t *self, lh_byte_ptr bits, lh_s32_t stride)
-{
-    lh_gl_display_rebind_pixmap(self, bits, stride);
-}
-
-lh_void
 lh_gl_display_set_strip_y(lh_gl_display_t *self, lh_gl_scalar_t y)
 {
     lh_assert_runtime_ref(self);
     self->strip_y = y;
 }
 
-lh_void
-lh_gl_display_set_sink(lh_gl_display_t *self, lh_u32_t index, const lh_gl_present_sink_t *sink)
-{
-    if (index >= lh_cast_static(lh_u32_t, LH_GL_PRESENT_SINKS_MAX) || sink == lh_null)
-    {
-        return;
-    }
-    lh_gl_display_get_sinks_mut(self)[index] = lh_ptr_deref(sink);
-    if (lh_gl_display_get_sink_count(self) <= index)
-    {
-        lh_gl_display_set_sink_count(self, index + 1u);
-    }
-    lh_gl_display_set_sink_enable(self, lh_gl_display_get_sink_enable(self) | ((1u << index)));
-}
-
-lh_void
-lh_gl_display_set_sink_enabled(lh_gl_display_t *self, lh_u32_t index, lh_bool_t enabled)
-{
-    if (index >= lh_cast_static(lh_u32_t, LH_GL_PRESENT_SINKS_MAX))
-    {
-        return;
-    }
-    if (enabled)
-    {
-        lh_gl_display_set_sink_enable(self, lh_gl_display_get_sink_enable(self) | ((1u << index)));
-    }
-    else
-    {
-        lh_gl_display_set_sink_enable(self, lh_gl_display_get_sink_enable(self) & (~(1u << index)));
-    }
-}
-
-lh_bool_t
-lh_gl_display_is_sink_enabled(const lh_gl_display_t *self, lh_u32_t index)
-{
-    if (index >= lh_gl_display_get_sink_count(self))
-    {
-        return lh_bool_false;
-    }
-    return ((lh_gl_display_get_sink_enable(self) & (1u << index)) != 0u) ? lh_bool_true : lh_bool_false;
-}
-
-lh_gl_canvas_t *
-lh_gl_display_get_canvas(lh_gl_display_t *self)
-{
-    return lh_gl_display_get_canvas_mut(self);
-}
-
 const lh_gl_pixmap_t *
 lh_gl_display_get_pixmap(const lh_gl_display_t *self)
 {
     return lh_addr_of(self->pixmap);
-}
-
-lh_void
-lh_gl_display_present(lh_gl_display_t *self, const lh_gl_rects_t *drawn)
-{
-    lh_gl_present_run(lh_gl_display_get_sinks(self), lh_gl_display_get_sink_count(self), lh_gl_display_get_sink_enable(self), lh_gl_display_get_pixmap_mut(self),
-                      drawn);
 }
 
 const lh_gl_size_t *
@@ -277,4 +164,121 @@ lh_gl_display_set_panel(lh_gl_display_t *self, lh_gl_size_t panel)
 {
     lh_assert_runtime_ref(self);
     self->panel = panel;
+}
+
+lh_void
+lh_gl_display_rebind_pixmap(lh_gl_display_t *self, lh_byte_ptr bits, lh_s32_t stride)
+{
+    lh_s32_t w = lh_cast_static(lh_s32_t, lh_gl_size_get_width(lh_gl_display_get_panel_mut(self)));
+    lh_s32_t h = lh_cast_static(lh_s32_t, lh_gl_size_get_height(lh_gl_display_get_panel_mut(self)));
+    lh_s32_t bh = h;
+
+    if (lh_math_gt(lh_gl_display_get_strip_height(self), lh_gl_scalar(0)))
+    {
+        const lh_s32_t sh = lh_cast_static(lh_s32_t, lh_gl_display_get_strip_height(self));
+        if (sh > 0 && sh < h)
+        {
+            bh = sh;
+        }
+    }
+    if (bits == lh_null || w <= 0 || bh <= 0 || stride <= 0)
+    {
+        lh_gl_pixmap_init_empty(lh_gl_display_get_pixmap_mut(self));
+    }
+    else
+    {
+        lh_gl_pixmap_init(lh_gl_display_get_pixmap_mut(self), bits, w, bh, stride,
+                          lh_gl_display_get_format(self));
+    }
+    lh_gl_canvas_sw_use_pixmap(lh_gl_display_get_sw_mut(self), lh_gl_display_get_pixmap_mut(self));
+}
+
+lh_void
+lh_gl_display_init(lh_gl_display_t *self)
+{
+    lh_gl_size_init(lh_gl_display_get_panel_mut(self), lh_gl_scalar(0), lh_gl_scalar(0));
+    lh_gl_display_set_strip_height(self, lh_gl_scalar(0));
+    lh_gl_display_set_strip_y(self, lh_gl_scalar(0));
+    lh_gl_display_set_format(self, lh_gl_pixmap_format_argb8888);
+    lh_gl_pixmap_init_empty(lh_gl_display_get_pixmap_mut(self));
+    lh_gl_canvas_sw_init(lh_gl_display_get_sw_mut(self));
+    lh_gl_canvas_init(lh_gl_display_get_canvas_mut(self), lh_addr_of(lh_gl_canvas_backend_sw),
+                      lh_gl_display_get_sw_mut(self));
+    for (lh_u32_t i = 0; i < lh_cast_static(lh_u32_t, LH_GL_PRESENT_SINKS_MAX); ++i)
+    {
+        lh_gl_present_sink_init(lh_addr_of(lh_gl_display_get_sinks_mut(self)[i]), lh_null, lh_null,
+                                lh_null);
+    }
+    lh_gl_display_set_sink_count(self, 0);
+    lh_gl_display_set_sink_enable(self, 0);
+}
+
+lh_void
+lh_gl_display_set_panel_v(lh_gl_display_t *self, lh_gl_size_t panel)
+{
+    lh_gl_display_set_panel(self, panel);
+    lh_gl_canvas_set_size(lh_gl_display_get_canvas_mut(self), panel);
+}
+
+lh_void
+lh_gl_display_set_sink(lh_gl_display_t *self, lh_u32_t index, const lh_gl_present_sink_t *sink)
+{
+    if (index >= lh_cast_static(lh_u32_t, LH_GL_PRESENT_SINKS_MAX) || sink == lh_null)
+    {
+        return;
+    }
+    lh_gl_display_get_sinks_mut(self)[index] = lh_ptr_deref(sink);
+    if (lh_gl_display_get_sink_count(self) <= index)
+    {
+        lh_gl_display_set_sink_count(self, index + 1u);
+    }
+    lh_gl_display_set_sink_enable(self, lh_gl_display_get_sink_enable(self) | ((1u << index)));
+}
+
+lh_void
+lh_gl_display_set_sink_enabled(lh_gl_display_t *self, lh_u32_t index, lh_bool_t enabled)
+{
+    if (index >= lh_cast_static(lh_u32_t, LH_GL_PRESENT_SINKS_MAX))
+    {
+        return;
+    }
+    if (enabled)
+    {
+        lh_gl_display_set_sink_enable(self, lh_gl_display_get_sink_enable(self) | ((1u << index)));
+    }
+    else
+    {
+        lh_gl_display_set_sink_enable(self, lh_gl_display_get_sink_enable(self) & (~(1u << index)));
+    }
+}
+
+lh_bool_t
+lh_gl_display_is_sink_enabled(const lh_gl_display_t *self, lh_u32_t index)
+{
+    if (index >= lh_gl_display_get_sink_count(self))
+    {
+        return lh_bool_false;
+    }
+    return ((lh_gl_display_get_sink_enable(self) & (1u << index)) != 0u) ? lh_bool_true
+                                                                         : lh_bool_false;
+}
+
+lh_gl_canvas_t *
+lh_gl_display_get_canvas(lh_gl_display_t *self)
+{
+    return lh_gl_display_get_canvas_mut(self);
+}
+
+lh_void
+lh_gl_display_present(lh_gl_display_t *self, const lh_gl_rects_t *drawn)
+{
+    lh_gl_present_run(lh_gl_display_get_sinks(self), lh_gl_display_get_sink_count(self),
+                      lh_gl_display_get_sink_enable(self), lh_gl_display_get_pixmap_mut(self),
+                      drawn);
+}
+
+lh_void
+lh_gl_display_set_buffer(lh_gl_display_t *self, lh_byte_ptr bits, lh_s32_t stride)
+{
+    lh_gl_display_rebind_pixmap(self, bits, stride);
 }

@@ -55,6 +55,61 @@ lh_gl_pixmap_blend_alpha_16(const lh_gl_pixmap_t *self, lh_u16_t *at, lh_byte_cp
 }
 
 lh_void
+lh_gl_pixmap_fill_colors_span(lh_gl_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                              const lh_gl_color_t *colors)
+{
+    const lh_usize_t count = x1 > x0 ? lh_cast_static(lh_usize_t, x1 - x0) : 0U;
+    lh_byte_ptr row = lh_gl_pixmap_get_address(self, x0, y);
+
+    if (lh_gl_pixmap_format_is_16(lh_gl_pixmap_get_format(self)))
+    {
+        lh_u16_t *at = lh_ptr_rcast(lh_u16_t, row);
+
+        for (lh_usize_t i = 0U; i < count; ++i)
+        {
+            at[i] = lh_cast_static(lh_u16_t, lh_gl_pixmap_over_16(self, at[i], colors + i));
+        }
+        return;
+    }
+    {
+        lh_u32_t *at = lh_ptr_rcast(lh_u32_t, row);
+
+        for (lh_usize_t i = 0U; i < count; ++i)
+        {
+            at[i] = lh_gl_pixmap_over_argb(self, at[i], colors + i);
+        }
+    }
+}
+
+lh_void
+lh_gl_pixmap_store_box(lh_gl_pixmap_t *self, lh_s32_t x0, lh_s32_t y0, lh_s32_t x1, lh_s32_t y1,
+                       lh_u32_t word)
+{
+    lh_return_if(x1 <= x0 || y1 <= y0);
+    /* The address, the format and the length are the same for every row: worked out
+       once, and each row is one stride further, instead of a store_span per row that
+       finds them again. */
+    const lh_usize_t count = lh_cast_static(lh_usize_t, x1 - x0);
+    const lh_s32_t stride = lh_gl_pixmap_get_stride(self);
+    lh_byte_ptr row = lh_gl_pixmap_get_address(self, x0, y0);
+
+    if (lh_gl_pixmap_format_is_16(lh_gl_pixmap_get_format(self)))
+    {
+        for (lh_s32_t y = y0; y < y1; ++y)
+        {
+            lh_memory_set_u16(lh_ptr_rcast(lh_u16_t, row), count, lh_cast_static(lh_u16_t, word));
+            row += stride;
+        }
+        return;
+    }
+    for (lh_s32_t y = y0; y < y1; ++y)
+    {
+        lh_memory_set_u32(lh_ptr_rcast(lh_u32_t, row), count, word);
+        row += stride;
+    }
+}
+
+lh_void
 lh_gl_pixmap_blend_alpha_span(lh_gl_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
                               lh_u32_t src, lh_byte_cptr alpha)
 {
@@ -69,6 +124,13 @@ lh_gl_pixmap_blend_alpha_span(lh_gl_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh
     }
     lh_pixel_span_blend_alphas_argb(lh_ptr_rcast(lh_u32_t, at), alpha,
                                     lh_cast_static(lh_usize_t, x1 - x0), src);
+}
+
+lh_void
+lh_gl_pixmap_clear(lh_gl_pixmap_t *self, const lh_gl_color_t *color)
+{
+    lh_gl_pixmap_store_box(self, 0, 0, lh_gl_pixmap_get_width(self), lh_gl_pixmap_get_height(self),
+                           lh_gl_pixmap_pack(self, color));
 }
 
 lh_void
@@ -142,61 +204,6 @@ lh_gl_pixmap_fill_span(lh_gl_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t 
 }
 
 lh_void
-lh_gl_pixmap_fill_colors_span(lh_gl_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
-                              const lh_gl_color_t *colors)
-{
-    const lh_usize_t count = x1 > x0 ? lh_cast_static(lh_usize_t, x1 - x0) : 0U;
-    lh_byte_ptr row = lh_gl_pixmap_get_address(self, x0, y);
-
-    if (lh_gl_pixmap_format_is_16(lh_gl_pixmap_get_format(self)))
-    {
-        lh_u16_t *at = lh_ptr_rcast(lh_u16_t, row);
-
-        for (lh_usize_t i = 0U; i < count; ++i)
-        {
-            at[i] = lh_cast_static(lh_u16_t, lh_gl_pixmap_over_16(self, at[i], colors + i));
-        }
-        return;
-    }
-    {
-        lh_u32_t *at = lh_ptr_rcast(lh_u32_t, row);
-
-        for (lh_usize_t i = 0U; i < count; ++i)
-        {
-            at[i] = lh_gl_pixmap_over_argb(self, at[i], colors + i);
-        }
-    }
-}
-
-lh_void
-lh_gl_pixmap_store_box(lh_gl_pixmap_t *self, lh_s32_t x0, lh_s32_t y0, lh_s32_t x1, lh_s32_t y1,
-                       lh_u32_t word)
-{
-    lh_return_if(x1 <= x0 || y1 <= y0);
-    /* The address, the format and the length are the same for every row: worked out
-       once, and each row is one stride further, instead of a store_span per row that
-       finds them again. */
-    const lh_usize_t count = lh_cast_static(lh_usize_t, x1 - x0);
-    const lh_s32_t stride = lh_gl_pixmap_get_stride(self);
-    lh_byte_ptr row = lh_gl_pixmap_get_address(self, x0, y0);
-
-    if (lh_gl_pixmap_format_is_16(lh_gl_pixmap_get_format(self)))
-    {
-        for (lh_s32_t y = y0; y < y1; ++y)
-        {
-            lh_memory_set_u16(lh_ptr_rcast(lh_u16_t, row), count, lh_cast_static(lh_u16_t, word));
-            row += stride;
-        }
-        return;
-    }
-    for (lh_s32_t y = y0; y < y1; ++y)
-    {
-        lh_memory_set_u32(lh_ptr_rcast(lh_u32_t, row), count, word);
-        row += stride;
-    }
-}
-
-lh_void
 lh_gl_pixmap_blend_box(lh_gl_pixmap_t *self, lh_s32_t x0, lh_s32_t y0, lh_s32_t x1, lh_s32_t y1,
                        const lh_gl_color_t *color)
 {
@@ -216,11 +223,4 @@ lh_gl_pixmap_fill_box(lh_gl_pixmap_t *self, lh_s32_t x0, lh_s32_t y0, lh_s32_t x
         return;
     }
     lh_gl_pixmap_blend_box(self, x0, y0, x1, y1, color);
-}
-
-lh_void
-lh_gl_pixmap_clear(lh_gl_pixmap_t *self, const lh_gl_color_t *color)
-{
-    lh_gl_pixmap_store_box(self, 0, 0, lh_gl_pixmap_get_width(self), lh_gl_pixmap_get_height(self),
-                           lh_gl_pixmap_pack(self, color));
 }

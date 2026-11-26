@@ -47,6 +47,34 @@ lh_gl_entity_class_shadow(const struct lh_gl_entity *self, lh_gl_canvas_t *canva
                                             lh_gl_style_get_shadow(style)));
 }
 
+lh_gl_entity_face_cb
+lh_gl_entity_class_get_event_fn(const lh_gl_entity_class_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->event;
+}
+
+lh_void
+lh_gl_entity_class_set_event_fn(lh_gl_entity_class_t *self, lh_gl_entity_face_cb event)
+{
+    lh_assert_runtime_ref(self);
+    self->event = event;
+}
+
+const struct lh_gl_entity_class *
+lh_gl_entity_class_get_base(const lh_gl_entity_class_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->base;
+}
+
+lh_void
+lh_gl_entity_class_set_base(lh_gl_entity_class_t *self, const struct lh_gl_entity_class *base)
+{
+    lh_assert_runtime_ref(self);
+    self->base = base;
+}
+
 lh_void
 lh_gl_entity_class_event(const struct lh_gl_entity *self, const lh_gl_entity_event_t *event)
 {
@@ -81,32 +109,4 @@ lh_gl_entity_class_event_base(const lh_gl_entity_class_t *class, const struct lh
     lh_return_if(base == lh_null);
     lh_assert_runtime_ref(lh_gl_entity_class_get_event_fn(base));
     lh_gl_entity_class_get_event_fn(base)(self, event);
-}
-
-lh_gl_entity_face_cb
-lh_gl_entity_class_get_event_fn(const lh_gl_entity_class_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->event;
-}
-
-lh_void
-lh_gl_entity_class_set_event_fn(lh_gl_entity_class_t *self, lh_gl_entity_face_cb event)
-{
-    lh_assert_runtime_ref(self);
-    self->event = event;
-}
-
-const struct lh_gl_entity_class *
-lh_gl_entity_class_get_base(const lh_gl_entity_class_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->base;
-}
-
-lh_void
-lh_gl_entity_class_set_base(lh_gl_entity_class_t *self, const struct lh_gl_entity_class *base)
-{
-    lh_assert_runtime_ref(self);
-    self->base = base;
 }

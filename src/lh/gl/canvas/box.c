@@ -98,130 +98,6 @@ lh_gl_canvas_box_corner(lh_gl_canvas_t *self, const lh_gl_color_t *colour,
 }
 
 lh_void
-lh_gl_canvas_box_row(lh_gl_canvas_t *self, const lh_gl_paint_t *paint,
-                     lh_gl_gradient_sampler_t *sampler, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
-                     lh_s32_t near_end, const struct lh_gl_radius_run *near, lh_s32_t far_start,
-                     const struct lh_gl_radius_run *far)
-{
-    near_end = lh_math_max(x0, lh_math_min(x1, near_end));
-    far_start = lh_math_min(x1, lh_math_max(near_end, far_start));
-    if (lh_gl_canvas_box_rows_are_one_colour(paint))
-    {
-        lh_gl_color_t colour;
-        lh_gl_canvas_box_row_colour(paint, sampler, x0, y, lh_addr_of(colour));
-
-        lh_gl_canvas_box_corner(self, lh_addr_of(colour), near, x0, near_end, y);
-        lh_gl_canvas_fill_pixels(self, near_end, y, far_start - near_end, 1, lh_addr_of(colour));
-        lh_gl_canvas_box_corner(self, lh_addr_of(colour), far, far_start, x1, y);
-        return;
-    }
-    while (x0 < x1)
-    {
-        lh_s32_t end = lh_math_min(x1, x0 + LH_GL_CANVAS_BOX_RUN);
-        lh_gl_color_t colours[LH_GL_CANVAS_BOX_RUN];
-
-        lh_gl_canvas_box_paint_row(paint, sampler, x0, end, y, colours);
-        lh_s32_t cut = lh_math_min(end, near_end);
-        lh_byte_t cover[LH_GL_CANVAS_BOX_RUN];
-        if (x0 < cut)
-        {
-            lh_gl_radius_run_row(near, x0, cut, y, cover);
-            for (lh_s32_t x = x0; x < cut; ++x)
-            {
-                lh_gl_color_with_coverage(colours + (x - x0), cover[x - x0],
-                                          lh_addr_of(colours[x - x0]));
-            }
-        }
-        cut = lh_math_max(x0, far_start);
-        if (cut < end)
-        {
-            lh_gl_radius_run_row(far, cut, end, y, cover);
-            for (lh_s32_t x = cut; x < end; ++x)
-            {
-                lh_gl_color_with_coverage(colours + (x - x0), cover[x - cut],
-                                          lh_addr_of(colours[x - x0]));
-            }
-        }
-        lh_gl_canvas_fill_colors(self, x0, y, end - x0, 1, colours, lh_gl_axis_horizontal);
-        x0 = end;
-    }
-}
-
-lh_void
-lh_gl_canvas_box_band(lh_gl_canvas_t *self, const lh_gl_paint_t *paint,
-                      lh_gl_gradient_sampler_t *sampler, lh_s32_t x0, lh_s32_t x1, lh_s32_t y0,
-                      lh_s32_t y1)
-{
-    lh_return_if(y1 <= y0 || x1 <= x0);
-    if (lh_null_eq(sampler))
-    {
-        lh_gl_canvas_fill_pixels(self, x0, y0, x1 - x0, y1 - y0, lh_gl_paint_get_color_v(paint));
-        return;
-    }
-    if (lh_gl_canvas_box_rows_are_one_colour(paint))
-    {
-        /* A colour a row, read down the first column, the rows sent together. */
-        lh_gl_color_t colours[LH_GL_CANVAS_BOX_RUN];
-        lh_s32_t y = y0;
-
-        while (y < y1)
-        {
-            lh_s32_t end = lh_math_min(y1, y + LH_GL_CANVAS_BOX_RUN);
-
-            lh_gl_gradient_sampler_column(sampler, x0, y, end, colours);
-            lh_gl_canvas_fill_colors(self, x0, y, x1 - x0, end - y, colours, lh_gl_axis_vertical);
-            y = end;
-        }
-        return;
-    }
-    if (lh_gl_canvas_box_columns_are_one_colour(paint))
-    {
-        /* A colour a column, the same all the way down: the row once, for every row. */
-        lh_gl_color_t colours[LH_GL_CANVAS_BOX_RUN];
-        lh_s32_t x = x0;
-
-        while (x < x1)
-        {
-            lh_s32_t end = lh_math_min(x1, x + LH_GL_CANVAS_BOX_RUN);
-
-            lh_gl_gradient_sampler_row(sampler, x, end, y0, colours);
-            lh_gl_canvas_fill_colors(self, x, y0, end - x, y1 - y0, colours, lh_gl_axis_horizontal);
-            x = end;
-        }
-        return;
-    }
-    for (lh_s32_t y = y0; y < y1; ++y)
-    {
-        lh_gl_canvas_box_row(self, paint, sampler, x0, x1, y, x0, lh_null, x1, lh_null);
-    }
-}
-
-lh_bool_t
-lh_gl_canvas_box_frame_init(const lh_gl_rect_t *box, const lh_gl_rect_t *cut,
-                            lh_gl_canvas_box_frame_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_gl_canvas_box_frame_set_left(out, lh_gl_canvas_round_left(box));
-    lh_gl_canvas_box_frame_set_right(out, lh_gl_canvas_round_right(box));
-    lh_gl_canvas_box_frame_set_top(out, lh_gl_canvas_round_top(box));
-    lh_gl_canvas_box_frame_set_bottom(out, lh_gl_canvas_round_bottom(box));
-    /* Only the rows and columns the clip shows: a long gradient list scrolled to its
-       end does not colour the rows above the window, nor a wide one the columns off
-       to the side. */
-    lh_gl_canvas_box_frame_set_first(
-        out, lh_math_max(lh_gl_canvas_box_frame_get_top(out), lh_gl_canvas_round_top(cut)));
-    lh_gl_canvas_box_frame_set_last(
-        out, lh_math_min(lh_gl_canvas_box_frame_get_bottom(out), lh_gl_canvas_round_bottom(cut)));
-    lh_gl_canvas_box_frame_set_shown_left(
-        out, lh_math_max(lh_gl_canvas_box_frame_get_left(out), lh_gl_canvas_round_left(cut)));
-    lh_gl_canvas_box_frame_set_shown_right(
-        out, lh_math_min(lh_gl_canvas_box_frame_get_right(out), lh_gl_canvas_round_right(cut)));
-    return lh_gl_canvas_box_frame_get_shown_right(out) > lh_gl_canvas_box_frame_get_shown_left(out)
-               ? lh_bool_true
-               : lh_bool_false;
-}
-
-lh_void
 lh_gl_canvas_box_corners_init(const lh_gl_rect_t *box, const lh_gl_radii_t *fit,
                               struct lh_gl_radius_run *out)
 {
@@ -235,76 +111,12 @@ lh_gl_canvas_box_corners_init(const lh_gl_rect_t *box, const lh_gl_radii_t *fit,
     lh_gl_radius_run_init(out + 3, box, lh_gl_radii_get_bottom_right(fit));
 }
 
-lh_bool_t
-lh_gl_canvas_box_row_is_upper(const lh_gl_canvas_box_frame_t *frame, lh_s32_t y)
-{
-    lh_assert_runtime_ref(frame);
-    return (2 * y + 1 <
-            lh_gl_canvas_box_frame_get_top(frame) + lh_gl_canvas_box_frame_get_bottom(frame))
-               ? lh_bool_true
-               : lh_bool_false;
-}
-
 lh_s32_t
 lh_gl_canvas_box_zone(lh_s32_t from_edge, lh_gl_scalar_t radius, lh_s32_t room)
 {
     return from_edge < lh_gl_scalar_ceil_s32(radius)
                ? lh_math_min(lh_gl_scalar_ceil_s32(radius), room)
                : 0;
-}
-
-lh_bool_t
-lh_gl_canvas_box_row_reach(const lh_gl_canvas_box_frame_t *frame, const lh_gl_radii_t *fit,
-                           lh_s32_t y, lh_s32_t *near_end, lh_s32_t *far_start)
-{
-    const lh_bool_t upper = lh_gl_canvas_box_row_is_upper(frame, y);
-    const lh_s32_t from_edge = upper ? y - lh_gl_canvas_box_frame_get_top(frame)
-                                     : lh_gl_canvas_box_frame_get_bottom(frame) - 1 - y;
-    const lh_s32_t zone_near = lh_gl_canvas_box_zone(
-        from_edge, upper ? lh_gl_radii_get_top_left(fit) : lh_gl_radii_get_bottom_left(fit),
-        lh_gl_canvas_box_frame_get_right(frame) - lh_gl_canvas_box_frame_get_left(frame));
-    const lh_s32_t zone_far = lh_gl_canvas_box_zone(
-        from_edge, upper ? lh_gl_radii_get_top_right(fit) : lh_gl_radii_get_bottom_right(fit),
-        lh_gl_canvas_box_frame_get_right(frame) - lh_gl_canvas_box_frame_get_left(frame) -
-            zone_near);
-
-    lh_assert_runtime_ref(near_end);
-    lh_assert_runtime_ref(far_start);
-    lh_ptr_deref(near_end) = lh_gl_canvas_box_frame_get_left(frame) + zone_near;
-    lh_ptr_deref(far_start) = lh_gl_canvas_box_frame_get_right(frame) - zone_far;
-    return (zone_near != 0 || zone_far != 0) ? lh_bool_true : lh_bool_false;
-}
-
-lh_void
-lh_gl_canvas_box_rows(lh_gl_canvas_t *self, const lh_gl_paint_t *paint,
-                      lh_gl_gradient_sampler_t *sampler, const lh_gl_canvas_box_frame_t *frame,
-                      const lh_gl_radii_t *fit, const struct lh_gl_radius_run *corners)
-{
-    lh_s32_t plain_from = lh_gl_canvas_box_frame_get_first(frame);
-
-    for (lh_s32_t y = lh_gl_canvas_box_frame_get_first(frame);
-         y < lh_gl_canvas_box_frame_get_last(frame); ++y)
-    {
-        const lh_s32_t pair = lh_gl_canvas_box_row_is_upper(frame, y) ? 0 : 2;
-        lh_s32_t near_end;
-        lh_s32_t far_start;
-
-        if (!lh_gl_canvas_box_row_reach(frame, fit, y, lh_addr_of(near_end), lh_addr_of(far_start)))
-        {
-            continue;
-        }
-        /* A row a corner reaches: the rows before it that none did go out as one
-           band, then this one whole, its corners at their coverage. */
-        lh_gl_canvas_box_band(self, paint, sampler, lh_gl_canvas_box_frame_get_shown_left(frame),
-                              lh_gl_canvas_box_frame_get_shown_right(frame), plain_from, y);
-        plain_from = y + 1;
-        lh_gl_canvas_box_row(self, paint, sampler, lh_gl_canvas_box_frame_get_shown_left(frame),
-                             lh_gl_canvas_box_frame_get_shown_right(frame), y, near_end,
-                             corners + pair, far_start, corners + pair + 1);
-    }
-    lh_gl_canvas_box_band(self, paint, sampler, lh_gl_canvas_box_frame_get_shown_left(frame),
-                          lh_gl_canvas_box_frame_get_shown_right(frame), plain_from,
-                          lh_gl_canvas_box_frame_get_last(frame));
 }
 
 lh_void
@@ -454,4 +266,192 @@ lh_gl_canvas_box_frame_set_last(lh_gl_canvas_box_frame_t *self, lh_s32_t last)
 {
     lh_assert_runtime_ref(self);
     self->last = last;
+}
+
+lh_void
+lh_gl_canvas_box_row(lh_gl_canvas_t *self, const lh_gl_paint_t *paint,
+                     lh_gl_gradient_sampler_t *sampler, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                     lh_s32_t near_end, const struct lh_gl_radius_run *near, lh_s32_t far_start,
+                     const struct lh_gl_radius_run *far)
+{
+    near_end = lh_math_max(x0, lh_math_min(x1, near_end));
+    far_start = lh_math_min(x1, lh_math_max(near_end, far_start));
+    if (lh_gl_canvas_box_rows_are_one_colour(paint))
+    {
+        lh_gl_color_t colour;
+        lh_gl_canvas_box_row_colour(paint, sampler, x0, y, lh_addr_of(colour));
+
+        lh_gl_canvas_box_corner(self, lh_addr_of(colour), near, x0, near_end, y);
+        lh_gl_canvas_fill_pixels(self, near_end, y, far_start - near_end, 1, lh_addr_of(colour));
+        lh_gl_canvas_box_corner(self, lh_addr_of(colour), far, far_start, x1, y);
+        return;
+    }
+    while (x0 < x1)
+    {
+        lh_s32_t end = lh_math_min(x1, x0 + LH_GL_CANVAS_BOX_RUN);
+        lh_gl_color_t colours[LH_GL_CANVAS_BOX_RUN];
+
+        lh_gl_canvas_box_paint_row(paint, sampler, x0, end, y, colours);
+        lh_s32_t cut = lh_math_min(end, near_end);
+        lh_byte_t cover[LH_GL_CANVAS_BOX_RUN];
+        if (x0 < cut)
+        {
+            lh_gl_radius_run_row(near, x0, cut, y, cover);
+            for (lh_s32_t x = x0; x < cut; ++x)
+            {
+                lh_gl_color_with_coverage(colours + (x - x0), cover[x - x0],
+                                          lh_addr_of(colours[x - x0]));
+            }
+        }
+        cut = lh_math_max(x0, far_start);
+        if (cut < end)
+        {
+            lh_gl_radius_run_row(far, cut, end, y, cover);
+            for (lh_s32_t x = cut; x < end; ++x)
+            {
+                lh_gl_color_with_coverage(colours + (x - x0), cover[x - cut],
+                                          lh_addr_of(colours[x - x0]));
+            }
+        }
+        lh_gl_canvas_fill_colors(self, x0, y, end - x0, 1, colours, lh_gl_axis_horizontal);
+        x0 = end;
+    }
+}
+
+lh_bool_t
+lh_gl_canvas_box_frame_init(const lh_gl_rect_t *box, const lh_gl_rect_t *cut,
+                            lh_gl_canvas_box_frame_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_gl_canvas_box_frame_set_left(out, lh_gl_canvas_round_left(box));
+    lh_gl_canvas_box_frame_set_right(out, lh_gl_canvas_round_right(box));
+    lh_gl_canvas_box_frame_set_top(out, lh_gl_canvas_round_top(box));
+    lh_gl_canvas_box_frame_set_bottom(out, lh_gl_canvas_round_bottom(box));
+    /* Only the rows and columns the clip shows: a long gradient list scrolled to its
+       end does not colour the rows above the window, nor a wide one the columns off
+       to the side. */
+    lh_gl_canvas_box_frame_set_first(
+        out, lh_math_max(lh_gl_canvas_box_frame_get_top(out), lh_gl_canvas_round_top(cut)));
+    lh_gl_canvas_box_frame_set_last(
+        out, lh_math_min(lh_gl_canvas_box_frame_get_bottom(out), lh_gl_canvas_round_bottom(cut)));
+    lh_gl_canvas_box_frame_set_shown_left(
+        out, lh_math_max(lh_gl_canvas_box_frame_get_left(out), lh_gl_canvas_round_left(cut)));
+    lh_gl_canvas_box_frame_set_shown_right(
+        out, lh_math_min(lh_gl_canvas_box_frame_get_right(out), lh_gl_canvas_round_right(cut)));
+    return lh_gl_canvas_box_frame_get_shown_right(out) > lh_gl_canvas_box_frame_get_shown_left(out)
+               ? lh_bool_true
+               : lh_bool_false;
+}
+
+lh_bool_t
+lh_gl_canvas_box_row_is_upper(const lh_gl_canvas_box_frame_t *frame, lh_s32_t y)
+{
+    lh_assert_runtime_ref(frame);
+    return (2 * y + 1 <
+            lh_gl_canvas_box_frame_get_top(frame) + lh_gl_canvas_box_frame_get_bottom(frame))
+               ? lh_bool_true
+               : lh_bool_false;
+}
+
+lh_void
+lh_gl_canvas_box_band(lh_gl_canvas_t *self, const lh_gl_paint_t *paint,
+                      lh_gl_gradient_sampler_t *sampler, lh_s32_t x0, lh_s32_t x1, lh_s32_t y0,
+                      lh_s32_t y1)
+{
+    lh_return_if(y1 <= y0 || x1 <= x0);
+    if (lh_null_eq(sampler))
+    {
+        lh_gl_canvas_fill_pixels(self, x0, y0, x1 - x0, y1 - y0, lh_gl_paint_get_color_v(paint));
+        return;
+    }
+    if (lh_gl_canvas_box_rows_are_one_colour(paint))
+    {
+        /* A colour a row, read down the first column, the rows sent together. */
+        lh_gl_color_t colours[LH_GL_CANVAS_BOX_RUN];
+        lh_s32_t y = y0;
+
+        while (y < y1)
+        {
+            lh_s32_t end = lh_math_min(y1, y + LH_GL_CANVAS_BOX_RUN);
+
+            lh_gl_gradient_sampler_column(sampler, x0, y, end, colours);
+            lh_gl_canvas_fill_colors(self, x0, y, x1 - x0, end - y, colours, lh_gl_axis_vertical);
+            y = end;
+        }
+        return;
+    }
+    if (lh_gl_canvas_box_columns_are_one_colour(paint))
+    {
+        /* A colour a column, the same all the way down: the row once, for every row. */
+        lh_gl_color_t colours[LH_GL_CANVAS_BOX_RUN];
+        lh_s32_t x = x0;
+
+        while (x < x1)
+        {
+            lh_s32_t end = lh_math_min(x1, x + LH_GL_CANVAS_BOX_RUN);
+
+            lh_gl_gradient_sampler_row(sampler, x, end, y0, colours);
+            lh_gl_canvas_fill_colors(self, x, y0, end - x, y1 - y0, colours, lh_gl_axis_horizontal);
+            x = end;
+        }
+        return;
+    }
+    for (lh_s32_t y = y0; y < y1; ++y)
+    {
+        lh_gl_canvas_box_row(self, paint, sampler, x0, x1, y, x0, lh_null, x1, lh_null);
+    }
+}
+
+lh_bool_t
+lh_gl_canvas_box_row_reach(const lh_gl_canvas_box_frame_t *frame, const lh_gl_radii_t *fit,
+                           lh_s32_t y, lh_s32_t *near_end, lh_s32_t *far_start)
+{
+    const lh_bool_t upper = lh_gl_canvas_box_row_is_upper(frame, y);
+    const lh_s32_t from_edge = upper ? y - lh_gl_canvas_box_frame_get_top(frame)
+                                     : lh_gl_canvas_box_frame_get_bottom(frame) - 1 - y;
+    const lh_s32_t zone_near = lh_gl_canvas_box_zone(
+        from_edge, upper ? lh_gl_radii_get_top_left(fit) : lh_gl_radii_get_bottom_left(fit),
+        lh_gl_canvas_box_frame_get_right(frame) - lh_gl_canvas_box_frame_get_left(frame));
+    const lh_s32_t zone_far = lh_gl_canvas_box_zone(
+        from_edge, upper ? lh_gl_radii_get_top_right(fit) : lh_gl_radii_get_bottom_right(fit),
+        lh_gl_canvas_box_frame_get_right(frame) - lh_gl_canvas_box_frame_get_left(frame) -
+            zone_near);
+
+    lh_assert_runtime_ref(near_end);
+    lh_assert_runtime_ref(far_start);
+    lh_ptr_deref(near_end) = lh_gl_canvas_box_frame_get_left(frame) + zone_near;
+    lh_ptr_deref(far_start) = lh_gl_canvas_box_frame_get_right(frame) - zone_far;
+    return (zone_near != 0 || zone_far != 0) ? lh_bool_true : lh_bool_false;
+}
+
+lh_void
+lh_gl_canvas_box_rows(lh_gl_canvas_t *self, const lh_gl_paint_t *paint,
+                      lh_gl_gradient_sampler_t *sampler, const lh_gl_canvas_box_frame_t *frame,
+                      const lh_gl_radii_t *fit, const struct lh_gl_radius_run *corners)
+{
+    lh_s32_t plain_from = lh_gl_canvas_box_frame_get_first(frame);
+
+    for (lh_s32_t y = lh_gl_canvas_box_frame_get_first(frame);
+         y < lh_gl_canvas_box_frame_get_last(frame); ++y)
+    {
+        const lh_s32_t pair = lh_gl_canvas_box_row_is_upper(frame, y) ? 0 : 2;
+        lh_s32_t near_end;
+        lh_s32_t far_start;
+
+        if (!lh_gl_canvas_box_row_reach(frame, fit, y, lh_addr_of(near_end), lh_addr_of(far_start)))
+        {
+            continue;
+        }
+        /* A row a corner reaches: the rows before it that none did go out as one
+           band, then this one whole, its corners at their coverage. */
+        lh_gl_canvas_box_band(self, paint, sampler, lh_gl_canvas_box_frame_get_shown_left(frame),
+                              lh_gl_canvas_box_frame_get_shown_right(frame), plain_from, y);
+        plain_from = y + 1;
+        lh_gl_canvas_box_row(self, paint, sampler, lh_gl_canvas_box_frame_get_shown_left(frame),
+                             lh_gl_canvas_box_frame_get_shown_right(frame), y, near_end,
+                             corners + pair, far_start, corners + pair + 1);
+    }
+    lh_gl_canvas_box_band(self, paint, sampler, lh_gl_canvas_box_frame_get_shown_left(frame),
+                          lh_gl_canvas_box_frame_get_shown_right(frame), plain_from,
+                          lh_gl_canvas_box_frame_get_last(frame));
 }

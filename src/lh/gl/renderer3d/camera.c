@@ -4,60 +4,6 @@
 #include <lh/core/math/float/tan.h>
 #include <lh/core/util/return.h>
 
-lh_bool_t
-lh_gl_renderer3d_camera_init(lh_gl_renderer3d_camera_t *self, lh_math_vec3_t position,
-                             lh_math_vec3_t forward, lh_math_vec3_t up,
-                             lh_math_fscalar_t vertical_fov, lh_math_fscalar_t near_plane,
-                             lh_math_fscalar_t far_plane)
-{
-    lh_return_if(
-        lh_null_eq(self) || !lh_math_vec3_is_finite(position) || !lh_math_vec3_is_finite(forward) ||
-            !lh_math_vec3_is_finite(up) || !lh_math_float_is_finite(vertical_fov) ||
-            vertical_fov < .1f || vertical_fov > 3.f || !lh_math_float_is_finite(near_plane) ||
-            !lh_math_float_is_finite(far_plane) || near_plane <= 0 || far_plane <= near_plane,
-        lh_bool_false);
-    lh_math_vec3_t unit_forward;
-    lh_return_ifn(lh_math_vec3_try_normalize(forward, 1e-6f, lh_addr_of(unit_forward)),
-                  lh_bool_false);
-    lh_math_vec3_t unit_right;
-    lh_math_vec3_cross(unit_forward, up, lh_addr_of(unit_right));
-    lh_return_ifn(lh_math_vec3_try_normalize(unit_right, 1e-6f, lh_addr_of(unit_right)),
-                  lh_bool_false);
-    lh_math_vec3_t unit_up;
-    lh_math_vec3_cross(unit_right, unit_forward, lh_addr_of(unit_up));
-    lh_gl_renderer3d_camera_set_position(self, position);
-    lh_gl_renderer3d_camera_set_forward(self, unit_forward);
-    lh_gl_renderer3d_camera_set_right(self, unit_right);
-    lh_gl_renderer3d_camera_set_up(self, unit_up);
-    lh_gl_renderer3d_camera_set_tangent(self, lh_math_float_tan(vertical_fov * .5f));
-    lh_gl_renderer3d_camera_set_near_plane(self, near_plane);
-    lh_gl_renderer3d_camera_set_far_plane(self, far_plane);
-    return lh_bool_true;
-}
-
-lh_bool_t
-lh_gl_renderer3d_camera_is_usable(const lh_gl_renderer3d_camera_t *self)
-{
-    return lh_math_float_is_finite(lh_gl_renderer3d_camera_get_tangent(self)) &&
-           lh_gl_renderer3d_camera_get_tangent(self) > 0 &&
-           lh_gl_renderer3d_camera_get_near_plane(self) > 0 &&
-           lh_gl_renderer3d_camera_get_far_plane(self) >
-               lh_gl_renderer3d_camera_get_near_plane(self);
-}
-
-lh_void
-lh_gl_renderer3d_camera_to_view(const lh_gl_renderer3d_camera_t *self, lh_math_vec3_t world,
-                                lh_math_vec3_t *out)
-{
-    lh_math_vec3_t offset;
-    lh_math_vec3_sub(world, lh_ptr_deref(lh_gl_renderer3d_camera_get_position(self)),
-                     lh_addr_of(offset));
-    lh_math_vec3_init(
-        out, lh_math_vec3_dot(offset, lh_ptr_deref(lh_gl_renderer3d_camera_get_right(self))),
-        lh_math_vec3_dot(offset, lh_ptr_deref(lh_gl_renderer3d_camera_get_up(self))),
-        lh_math_vec3_dot(offset, lh_ptr_deref(lh_gl_renderer3d_camera_get_forward(self))));
-}
-
 const lh_math_vec3_t *
 lh_gl_renderer3d_camera_get_position(const lh_gl_renderer3d_camera_t *self)
 {
@@ -183,4 +129,58 @@ lh_gl_renderer3d_camera_set_far_plane(lh_gl_renderer3d_camera_t *self, lh_math_f
 {
     lh_assert_runtime_ref(self);
     self->far_plane = far_plane;
+}
+
+lh_bool_t
+lh_gl_renderer3d_camera_init(lh_gl_renderer3d_camera_t *self, lh_math_vec3_t position,
+                             lh_math_vec3_t forward, lh_math_vec3_t up,
+                             lh_math_fscalar_t vertical_fov, lh_math_fscalar_t near_plane,
+                             lh_math_fscalar_t far_plane)
+{
+    lh_return_if(
+        lh_null_eq(self) || !lh_math_vec3_is_finite(position) || !lh_math_vec3_is_finite(forward) ||
+            !lh_math_vec3_is_finite(up) || !lh_math_float_is_finite(vertical_fov) ||
+            vertical_fov < .1f || vertical_fov > 3.f || !lh_math_float_is_finite(near_plane) ||
+            !lh_math_float_is_finite(far_plane) || near_plane <= 0 || far_plane <= near_plane,
+        lh_bool_false);
+    lh_math_vec3_t unit_forward;
+    lh_return_ifn(lh_math_vec3_try_normalize(forward, 1e-6f, lh_addr_of(unit_forward)),
+                  lh_bool_false);
+    lh_math_vec3_t unit_right;
+    lh_math_vec3_cross(unit_forward, up, lh_addr_of(unit_right));
+    lh_return_ifn(lh_math_vec3_try_normalize(unit_right, 1e-6f, lh_addr_of(unit_right)),
+                  lh_bool_false);
+    lh_math_vec3_t unit_up;
+    lh_math_vec3_cross(unit_right, unit_forward, lh_addr_of(unit_up));
+    lh_gl_renderer3d_camera_set_position(self, position);
+    lh_gl_renderer3d_camera_set_forward(self, unit_forward);
+    lh_gl_renderer3d_camera_set_right(self, unit_right);
+    lh_gl_renderer3d_camera_set_up(self, unit_up);
+    lh_gl_renderer3d_camera_set_tangent(self, lh_math_float_tan(vertical_fov * .5f));
+    lh_gl_renderer3d_camera_set_near_plane(self, near_plane);
+    lh_gl_renderer3d_camera_set_far_plane(self, far_plane);
+    return lh_bool_true;
+}
+
+lh_bool_t
+lh_gl_renderer3d_camera_is_usable(const lh_gl_renderer3d_camera_t *self)
+{
+    return lh_math_float_is_finite(lh_gl_renderer3d_camera_get_tangent(self)) &&
+           lh_gl_renderer3d_camera_get_tangent(self) > 0 &&
+           lh_gl_renderer3d_camera_get_near_plane(self) > 0 &&
+           lh_gl_renderer3d_camera_get_far_plane(self) >
+               lh_gl_renderer3d_camera_get_near_plane(self);
+}
+
+lh_void
+lh_gl_renderer3d_camera_to_view(const lh_gl_renderer3d_camera_t *self, lh_math_vec3_t world,
+                                lh_math_vec3_t *out)
+{
+    lh_math_vec3_t offset;
+    lh_math_vec3_sub(world, lh_ptr_deref(lh_gl_renderer3d_camera_get_position(self)),
+                     lh_addr_of(offset));
+    lh_math_vec3_init(
+        out, lh_math_vec3_dot(offset, lh_ptr_deref(lh_gl_renderer3d_camera_get_right(self))),
+        lh_math_vec3_dot(offset, lh_ptr_deref(lh_gl_renderer3d_camera_get_up(self))),
+        lh_math_vec3_dot(offset, lh_ptr_deref(lh_gl_renderer3d_camera_get_forward(self))));
 }

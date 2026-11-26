@@ -9,6 +9,55 @@
 #include <lh/gl/canvas/round.h>
 #include <lh/gl/radius.h>
 
+const lh_gl_rect_t *
+lh_gl_canvas_clip_get_rect(const lh_gl_canvas_clip_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->rect);
+}
+
+lh_u32_t
+lh_gl_canvas_clip_get_round_count(const lh_gl_canvas_clip_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->round_count;
+}
+
+lh_gl_rect_t *
+lh_gl_canvas_clip_get_rect_mut(lh_gl_canvas_clip_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->rect);
+}
+
+lh_void
+lh_gl_canvas_clip_set_rect(lh_gl_canvas_clip_t *self, lh_gl_rect_t rect)
+{
+    lh_assert_runtime_ref(self);
+    self->rect = rect;
+}
+
+const lh_gl_canvas_clip_round_t *
+lh_gl_canvas_clip_get_rounds(const lh_gl_canvas_clip_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->rounds;
+}
+
+lh_void
+lh_gl_canvas_clip_set_rounds(lh_gl_canvas_clip_t *self, const lh_gl_canvas_clip_round_t *rounds)
+{
+    lh_assert_runtime_ref(self);
+    self->rounds = rounds;
+}
+
+lh_void
+lh_gl_canvas_clip_set_round_count(lh_gl_canvas_clip_t *self, lh_u32_t round_count)
+{
+    lh_assert_runtime_ref(self);
+    self->round_count = round_count;
+}
+
 /* -- One rounded cut ------------------------------------------------------- */
 
 /* -- The clip -------------------------------------------------------------- */
@@ -23,29 +72,6 @@ lh_gl_canvas_clip_init(lh_gl_canvas_clip_t *self, const lh_gl_rect_t *rect,
     lh_gl_canvas_clip_set_rect(self, lh_ptr_deref(rect));
     lh_gl_canvas_clip_set_rounds(self, rounds);
     lh_gl_canvas_clip_set_round_count(self, count);
-}
-
-lh_void
-lh_gl_canvas_clip_init_empty(lh_gl_canvas_clip_t *self)
-{
-    lh_gl_rect_t empty;
-
-    lh_gl_rect_init_empty(lh_addr_of(empty));
-    lh_gl_canvas_clip_init(self, lh_addr_of(empty), lh_null, 0U);
-}
-
-const lh_gl_rect_t *
-lh_gl_canvas_clip_get_rect(const lh_gl_canvas_clip_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->rect);
-}
-
-lh_u32_t
-lh_gl_canvas_clip_get_round_count(const lh_gl_canvas_clip_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->round_count;
 }
 
 const lh_gl_canvas_clip_round_t *
@@ -85,37 +111,11 @@ lh_gl_canvas_clip_split_row(const lh_gl_canvas_clip_t *self, lh_s32_t x0, lh_s32
     lh_ptr_deref(mid1) = lh_math_clamp(hi, lh_ptr_deref(mid0), x1);
 }
 
-lh_gl_rect_t *
-lh_gl_canvas_clip_get_rect_mut(lh_gl_canvas_clip_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->rect);
-}
-
 lh_void
-lh_gl_canvas_clip_set_rect(lh_gl_canvas_clip_t *self, lh_gl_rect_t rect)
+lh_gl_canvas_clip_init_empty(lh_gl_canvas_clip_t *self)
 {
-    lh_assert_runtime_ref(self);
-    self->rect = rect;
-}
+    lh_gl_rect_t empty;
 
-const lh_gl_canvas_clip_round_t *
-lh_gl_canvas_clip_get_rounds(const lh_gl_canvas_clip_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->rounds;
-}
-
-lh_void
-lh_gl_canvas_clip_set_rounds(lh_gl_canvas_clip_t *self, const lh_gl_canvas_clip_round_t *rounds)
-{
-    lh_assert_runtime_ref(self);
-    self->rounds = rounds;
-}
-
-lh_void
-lh_gl_canvas_clip_set_round_count(lh_gl_canvas_clip_t *self, lh_u32_t round_count)
-{
-    lh_assert_runtime_ref(self);
-    self->round_count = round_count;
+    lh_gl_rect_init_empty(lh_addr_of(empty));
+    lh_gl_canvas_clip_init(self, lh_addr_of(empty), lh_null, 0U);
 }
