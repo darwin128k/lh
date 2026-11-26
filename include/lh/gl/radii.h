@@ -57,6 +57,23 @@ lh_gl_radii_is_uniform(const lh_gl_radii_t *self);
 lh_gl_scalar_t
 lh_gl_radii_get_min(const lh_gl_radii_t *self);
 
+/**
+ * @brief The largest of the four radii.
+ */
+lh_gl_scalar_t
+lh_gl_radii_get_max(const lh_gl_radii_t *self);
+
+/**
+ * @brief Every corner of @p self less @p by, none below `0`, into @p out: the
+ *        corners of the box a border @p by wide leaves inside.
+ *
+ * @param self The radii.
+ * @param by   How far inside.
+ * @param out  Receives the radii; checked by ::lh_assert_runtime_ref.
+ */
+lh_void
+lh_gl_radii_inset(const lh_gl_radii_t *self, lh_gl_scalar_t by, lh_gl_radii_t *out);
+
 /** @p radius times @p num / @p den when @p num < @p den, else @p radius: the CSS factor,
    kept in the scalar type so a build with no FPU rounds down rather than up. */
 lh_gl_scalar_t

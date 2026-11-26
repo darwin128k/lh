@@ -154,6 +154,52 @@ lh_gl_style_mix_paint(lh_gl_paint_t *out, const lh_gl_paint_t *from, const lh_gl
                       lh_u32_t weight);
 
 /**
+ * @brief Every corner of @p from moved @p weight of the way to the same corner of
+ *        @p to (::lh_gl_style_mix), into @p out.
+ *
+ * @param out    Receives the radii; checked by ::lh_assert_runtime_ref.
+ * @param from   Where the corners start.
+ * @param to     Where they end.
+ * @param weight How far, in weights of 255.
+ */
+lh_void
+lh_gl_style_mix_radii(lh_gl_radii_t *out, const lh_gl_radii_t *from, const lh_gl_radii_t *to,
+                      lh_u32_t weight);
+
+/**
+ * @brief The colour an end of a shadow transition stands for, into @p out: the
+ *        colour of @p end when it casts a shadow, else the colour of @p shape with
+ *        no alpha.
+ *
+ * A shadow at one end only grows out of, or melts into, the other end's
+ * nothing: the same shadow with no colour, so only the alpha moves.
+ *
+ * @param end   One end of the transition; may be the empty shadow.
+ * @param shape The end that casts a shadow.
+ * @param out   Receives the colour; checked by ::lh_assert_runtime_ref.
+ */
+lh_void
+lh_gl_style_get_shadow_fade_color(const lh_gl_shadow_t *end, const lh_gl_shadow_t *shape,
+                                  lh_gl_color_t *out);
+
+/**
+ * @brief The shadow @p weight of the way from @p from to @p to, into @p out.
+ *
+ * Both empty: @p out is @p to. One empty: @p out is the other one's shadow, its
+ * colour faded from or into nothing (::lh_gl_style_get_shadow_fade_color). Both
+ * cast: @p to's shadow with the colour, the spread and the offset mixed. What is
+ * not mixed is taken from the end that casts (@p to when both do).
+ *
+ * @param out    Receives the shadow; checked by ::lh_assert_runtime_ref.
+ * @param from   Where the shadow starts.
+ * @param to     Where it ends.
+ * @param weight How far, in weights of 255.
+ */
+lh_void
+lh_gl_style_mix_shadow(lh_gl_shadow_t *out, const lh_gl_shadow_t *from, const lh_gl_shadow_t *to,
+                       lh_u32_t weight);
+
+/**
  * @brief Solid fill color of @p self, or ::lh_null when the fill is not solid.
  */
 const lh_gl_color_t *

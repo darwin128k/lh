@@ -6,7 +6,6 @@
 
 #include <lh/gl/decl.h>
 #include <lh/core/util/return.h>
-
 lh_u32_t
 lh_gl_decl_size_of(lh_gl_decl_kind_t kind)
 {
@@ -155,6 +154,59 @@ lh_gl_decl_fault_set_index(lh_gl_decl_fault_t *self, lh_u32_t index)
 }
 
 lh_void
+lh_gl_decl_apply_row(lh_gl_entity_t *entity, const lh_gl_decl_t *row)
+{
+    if (lh_null_ne(row->style) && row->kind != lh_gl_decl_kind_button &&
+        row->kind != lh_gl_decl_kind_toggle)
+    {
+        /* A button and a toggle aim the entity at their style themselves, so a press
+           composes on top of whichever of the two is showing. */
+        lh_gl_entity_set_style_v(entity, row->style);
+    }
+    if (lh_null_ne(row->place))
+    {
+        lh_gl_entity_set_place_v(entity, row->place);
+    }
+    /* A flow belongs to a container, and the question "is this one?" is the
+       container's own answer: a button, a toggle and a caption are containers, and a
+       plain entity or a picture is not. One call, no table of kinds. */
+    if (lh_null_ne(row->layout))
+    {
+        lh_gl_container_t *box = lh_gl_entity_as_container(entity);
+
+        if (lh_null_ne(box))
+        {
+            lh_gl_container_set_layout(box, row->layout);
+        }
+    }
+    if (row->hidden)
+    {
+        lh_gl_entity_set_hidden_v(entity, lh_bool_true);
+    }
+}
+
+lh_gl_entity_t *
+lh_gl_decl_link(const lh_gl_decl_t *decls, lh_u32_t count, lh_gl_entity_t **nodes)
+{
+    lh_gl_entity_t *tree = lh_null;
+
+    for (lh_u32_t index = 0; index < count; ++index)
+    {
+        const lh_gl_decl_t *row = lh_addr_of(decls[index]);
+
+        if (row->parent == LH_GL_DECL_ROOT)
+        {
+            tree = nodes[index];
+        }
+        else
+        {
+            lh_gl_entity_add_child(nodes[row->parent], nodes[index]);
+        }
+    }
+    return tree;
+}
+
+lh_void
 lh_gl_decl_fault(lh_gl_decl_fault_t *fault, lh_gl_decl_error_t code, lh_u32_t index)
 {
     if (lh_null_ne(fault))
@@ -192,19 +244,13 @@ lh_gl_decl_check(const lh_gl_decl_t *decls, lh_u32_t index)
 }
 
 lh_bool_t
-lh_gl_decl_build(const lh_gl_decl_t *decls, lh_u32_t count, lh_gl_entity_t **nodes,
-                 lh_byte_ptr storage, lh_u32_t bytes, lh_gl_entity_t **root,
-                 lh_gl_decl_fault_t *fault)
+lh_gl_decl_try_measure(const lh_gl_decl_t *decls, lh_u32_t count, lh_u32_t *bytes,
+                       lh_gl_decl_fault_t *fault)
 {
-    lh_gl_entity_t *tree = lh_null;
     lh_u32_t roots = 0;
     lh_u32_t needed = 0;
 
-    lh_gl_decl_fault(fault, lh_gl_decl_error_none, count);
-    lh_return_if(lh_null_eq(decls) || lh_null_eq(nodes) || lh_null_eq(storage) ||
-                     lh_null_eq(root) || count == 0,
-                 lh_bool_false);
-
+    lh_assert_runtime_ref(bytes);
     for (lh_u32_t index = 0; index < count; ++index)
     {
         lh_gl_decl_error_t code = lh_gl_decl_check(decls, index);
@@ -228,6 +274,51 @@ lh_gl_decl_build(const lh_gl_decl_t *decls, lh_u32_t count, lh_gl_entity_t **nod
         lh_gl_decl_fault(fault, lh_gl_decl_error_roots, count);
         return lh_bool_false;
     }
+    lh_ptr_deref(bytes) = needed;
+    return lh_bool_true;
+}
+
+lh_bool_t
+lh_gl_decl_try_place(const lh_gl_decl_t *decls, lh_u32_t count, lh_gl_entity_t **nodes,
+                     lh_byte_ptr storage, lh_gl_decl_fault_t *fault)
+{
+    lh_u32_t used = 0;
+
+    for (lh_u32_t index = 0; index < count; ++index)
+    {
+        const lh_gl_decl_t *row = lh_addr_of(decls[index]);
+
+        /* A scrollbar is built around the container it scrolls, and
+           ::lh_gl_scrollbar_init will not take a null one. The row it names is lower,
+           so its node already exists: asked here, before the widget is touched at all,
+           and not after something has been written into it. */
+        if (row->kind == lh_gl_decl_kind_scrollbar &&
+            lh_null_eq(lh_gl_entity_as_container(nodes[row->as.scrollbar.box])))
+        {
+            lh_gl_decl_fault(fault, lh_gl_decl_error_box, index);
+            return lh_bool_false;
+        }
+        lh_gl_entity_t *entity = lh_gl_decl_place_row(row, storage + used, nodes);
+
+        lh_gl_decl_apply_row(entity, row);
+        nodes[index] = entity;
+        used += lh_gl_decl_size_of(row->kind);
+    }
+    return lh_bool_true;
+}
+
+lh_bool_t
+lh_gl_decl_build(const lh_gl_decl_t *decls, lh_u32_t count, lh_gl_entity_t **nodes,
+                 lh_byte_ptr storage, lh_u32_t bytes, lh_gl_entity_t **root,
+                 lh_gl_decl_fault_t *fault)
+{
+    lh_u32_t needed = 0;
+
+    lh_gl_decl_fault(fault, lh_gl_decl_error_none, count);
+    lh_return_if(lh_null_eq(decls) || lh_null_eq(nodes) || lh_null_eq(storage) ||
+                     lh_null_eq(root) || count == 0,
+                 lh_bool_false);
+    lh_return_if(!lh_gl_decl_try_measure(decls, count, lh_addr_of(needed), fault), lh_bool_false);
     /* Measured before anything is written, which is the whole point of asking: the
        alternative is a pool that is too small and a row that lands outside it. */
     if (bytes < needed)
@@ -235,77 +326,9 @@ lh_gl_decl_build(const lh_gl_decl_t *decls, lh_u32_t count, lh_gl_entity_t **nod
         lh_gl_decl_fault(fault, lh_gl_decl_error_storage, count);
         return lh_bool_false;
     }
-
-    /* Place every node first, then ask what a scrollbar needs of a row that is now
-       a real widget, then wire the tree: nothing is connected until all of it is
-       true, so a refused build is not a tree that looks finished. */
-    {
-        lh_u32_t used = 0;
-
-        for (lh_u32_t index = 0; index < count; ++index)
-        {
-            const lh_gl_decl_t *row = lh_addr_of(decls[index]);
-            lh_byte_ptr slot = storage + used;
-            lh_gl_entity_t *entity;
-
-            /* A scrollbar is built around the container it scrolls, and
-               ::lh_gl_scrollbar_init will not take a null one. The row it names is
-               lower, so its node already exists: asked here, before the widget is
-               touched at all, and not after something has been written into it. */
-            if (row->kind == lh_gl_decl_kind_scrollbar &&
-                lh_null_eq(lh_gl_entity_as_container(nodes[row->as.scrollbar.box])))
-            {
-                lh_gl_decl_fault(fault, lh_gl_decl_error_box, index);
-                return lh_bool_false;
-            }
-            entity = lh_gl_decl_place_row(row, slot, nodes);
-
-            if (lh_null_ne(row->style) && row->kind != lh_gl_decl_kind_button &&
-                row->kind != lh_gl_decl_kind_toggle)
-            {
-                /* A button and a toggle aim the entity at their style themselves,
-                   so a press composes on top of whichever of the two is showing. */
-                lh_gl_entity_set_style_v(entity, row->style);
-            }
-            if (lh_null_ne(row->place))
-            {
-                lh_gl_entity_set_place_v(entity, row->place);
-            }
-            /* A flow belongs to a container, and the question "is this one?" is the
-               container's own answer: a button, a toggle and a caption are
-               containers, and a plain entity or a picture is not. One call, no table
-               of kinds. */
-            if (lh_null_ne(row->layout))
-            {
-                lh_gl_container_t *box = lh_gl_entity_as_container(entity);
-
-                if (lh_null_ne(box))
-                {
-                    lh_gl_container_set_layout(box, row->layout);
-                }
-            }
-            if (row->hidden)
-            {
-                lh_gl_entity_set_hidden_v(entity, lh_bool_true);
-            }
-            nodes[index] = entity;
-            used += lh_gl_decl_size_of(row->kind);
-        }
-    }
-
-    for (lh_u32_t index = 0; index < count; ++index)
-    {
-        const lh_gl_decl_t *row = lh_addr_of(decls[index]);
-
-        if (row->parent == LH_GL_DECL_ROOT)
-        {
-            tree = nodes[index];
-        }
-        else
-        {
-            lh_gl_entity_add_child(nodes[row->parent], nodes[index]);
-        }
-    }
-    lh_ptr_deref(root) = tree;
+    /* Place every node first, then wire the tree: nothing is connected until all of
+       it is true, so a refused build is not a tree that looks finished. */
+    lh_return_if(!lh_gl_decl_try_place(decls, count, nodes, storage, fault), lh_bool_false);
+    lh_ptr_deref(root) = lh_gl_decl_link(decls, count, nodes);
     return lh_bool_true;
 }

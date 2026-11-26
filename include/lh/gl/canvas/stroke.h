@@ -27,6 +27,17 @@ lh_gl_canvas_stroke_run(struct lh_gl_canvas *self, const struct lh_gl_radius_run
                         const struct lh_gl_radius_run *inner, const lh_gl_color_t *color,
                         lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_s32_t middle);
 
+/** The part of row @p y a border leaves to its @p hole, cut to `x0..x1`, into
+ * @p inside0 and @p inside1. A row the hole does not reach leaves nothing (both
+ * @p x1). With @p exact edges (::lh_gl_canvas_round_is_exact) the span is the
+ * pixels the hole covers wholly at the corner radius @p maximum
+ * (::lh_gl_radius_full_span); without, the hole's sides less @p maximum.
+ */
+lh_void
+lh_gl_canvas_stroke_hole_span(const lh_gl_rect_t *hole, lh_gl_scalar_t maximum, lh_bool_t exact,
+                              lh_s32_t y, lh_s32_t x0, lh_s32_t x1, lh_s32_t *inside0,
+                              lh_s32_t *inside1);
+
 /** Paint a uniform inset border with independently rounded corners.
  * Width <= 0 or empty geometry paints nothing. Radii are clamped to the box;
  * the inner radii are max(outer-width,0). A width consuming the box fills its

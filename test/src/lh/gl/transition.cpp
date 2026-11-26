@@ -162,6 +162,69 @@ TEST(ui_style_blend, a_shadow_cast_at_one_end_only_fades_in_from_nothing)
                 2);
 }
 
+/* Each corner moves on its own, the whole way at 255 and not at all at 0. */
+TEST(ui_style_blend, mix_radii_moves_every_corner_on_its_own)
+{
+    lh_gl_radii_t from;
+    lh_gl_radii_t to;
+    lh_gl_radii_t out;
+
+    lh_gl_radii_init_all(&from, lh_gl_scalar(0));
+    lh_gl_radii_init(&to, lh_gl_scalar(10), lh_gl_scalar(20), lh_gl_scalar(30), lh_gl_scalar(40));
+    lh_gl_style_mix_radii(&out, &from, &to, 0U);
+    EXPECT_EQ(lh_gl_radii_get_bottom_left(&out), lh_gl_scalar(0));
+    lh_gl_style_mix_radii(&out, &from, &to, 255U);
+    EXPECT_EQ(lh_gl_radii_get_top_left(&out), lh_gl_scalar(10));
+    EXPECT_EQ(lh_gl_radii_get_top_right(&out), lh_gl_scalar(20));
+    EXPECT_EQ(lh_gl_radii_get_bottom_right(&out), lh_gl_scalar(30));
+    EXPECT_EQ(lh_gl_radii_get_bottom_left(&out), lh_gl_scalar(40));
+    lh_gl_style_mix_radii(&out, &from, &to, 128U);
+    EXPECT_GT(lh_gl_radii_get_bottom_left(&out), lh_gl_radii_get_top_left(&out))
+        << "the far corner is further along";
+}
+
+TEST(ui_style_blend, the_fade_colour_is_the_shadows_own_or_the_other_ends_with_no_alpha)
+{
+    lh_gl_shadow_t empty;
+    lh_gl_shadow_t cast;
+    lh_gl_color_t out;
+
+    lh_gl_shadow_init(&empty);
+    lh_gl_shadow_init(&cast);
+    lh_gl_shadow_set_color(&cast, color_of(10, 20, 30, 200));
+    lh_gl_shadow_set_spread_v(&cast, lh_gl_scalar(10));
+    lh_gl_style_get_shadow_fade_color(&cast, &cast, &out);
+    EXPECT_EQ(lh_gl_color_get_a(&out), 200);
+    lh_gl_style_get_shadow_fade_color(&empty, &cast, &out);
+    EXPECT_EQ(lh_gl_color_get_r(&out), 10);
+    EXPECT_EQ(lh_gl_color_get_b(&out), 30);
+    EXPECT_EQ(lh_gl_color_get_a(&out), 0) << "the same shadow with no colour";
+}
+
+TEST(ui_style_blend, mix_shadow_of_two_casts_mixes_the_spread_and_of_none_is_none)
+{
+    lh_gl_shadow_t a;
+    lh_gl_shadow_t b;
+    lh_gl_shadow_t empty;
+    lh_gl_shadow_t out;
+
+    lh_gl_shadow_init(&a);
+    lh_gl_shadow_init(&b);
+    lh_gl_shadow_init(&empty);
+    lh_gl_shadow_set_color(&a, color_of(0, 0, 0, 100));
+    lh_gl_shadow_set_color(&b, color_of(0, 0, 0, 100));
+    lh_gl_shadow_set_spread_v(&a, lh_gl_scalar(5));
+    lh_gl_shadow_set_spread_v(&b, lh_gl_scalar(20));
+    lh_gl_style_mix_shadow(&out, &a, &b, 0U);
+    EXPECT_EQ(lh_gl_shadow_get_spread(&out), lh_gl_scalar(5));
+    lh_gl_style_mix_shadow(&out, &a, &b, 255U);
+    EXPECT_EQ(lh_gl_shadow_get_spread(&out), lh_gl_scalar(20));
+    lh_gl_style_mix_shadow(&out, &empty, &empty, 128U);
+    EXPECT_TRUE(lh_gl_shadow_is_empty(&out));
+    lh_gl_style_mix_shadow(&out, &a, &empty, 255U);
+    EXPECT_EQ(lh_gl_color_get_a(lh_gl_shadow_get_color(&out)), 0) << "melted into nothing";
+}
+
 /* -- Flight ---------------------------------------------------------------- */
 
 TEST(ui_transition, a_style_with_no_time_is_taken_at_once)

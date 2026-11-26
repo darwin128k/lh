@@ -272,6 +272,31 @@ lh_gl_canvas_sw_shadow_pass_get_bottom(const lh_gl_canvas_sw_shadow_pass_t *self
 lh_void
 lh_gl_canvas_sw_shadow_pass_set_bottom(lh_gl_canvas_sw_shadow_pass_t *self, lh_s32_t bottom);
 
+/**
+ * @brief The width of the area the shadow covers: right minus left (level 2).
+ *
+ * @param self The shadow pass; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_gl_canvas_sw_shadow_pass_get_width(const lh_gl_canvas_sw_shadow_pass_t *self);
+
+/**
+ * @brief The height of the area the shadow covers: bottom minus top (level 2).
+ *
+ * @param self The shadow pass; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_gl_canvas_sw_shadow_pass_get_height(const lh_gl_canvas_sw_shadow_pass_t *self);
+
+/**
+ * @brief Whether a mask of the area fits the one the canvas keeps: neither side
+ *        empty, neither past ::LH_LIBRARY_OPTION_GL_SHADOW_MASK.
+ *
+ * @param self The shadow pass; checked by ::lh_assert_runtime_ref.
+ */
+lh_bool_t
+lh_gl_canvas_sw_shadow_pass_fits_mask(const lh_gl_canvas_sw_shadow_pass_t *self);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_GL_CANVAS_SW_SHADOW_PASS_H */

@@ -140,6 +140,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   class. Nothing public changes. The places where a higher level came before a
   lower one go from 26 to 8, all of them the recursions of the walk, the hit
   test and the draw.
+- `lh_gl_decl_build` (116 lines to 23) is its phases, each a brick of its own
+  with its tests: `lh_gl_decl_try_measure` (every row checked, one root, the
+  bytes the widgets take; nothing placed), `lh_gl_decl_try_place` (every row
+  into the pool, a scrollbar's container asked first; nothing wired),
+  `lh_gl_decl_apply_row` (the style, the place, a container's flow and hidden,
+  which every kind says the same way) and `lh_gl_decl_link` (parent to child,
+  the root given back). A build refuses and fills the fault exactly as before.
+- `lh_gl_canvas_stroke_box` (110 lines to 73) is built from new bricks:
+  `lh_gl_radii_get_max` (beside `_get_min`), `lh_gl_radii_inset` (every
+  corner less a width, none below 0: the radii inside a border),
+  `lh_gl_canvas_round_is_whole` and `lh_gl_canvas_round_is_exact` (a value, a
+  rect on whole pixels) and `lh_gl_canvas_stroke_hole_span` (the part of a row
+  a border leaves to its hole). The largest corner was worked out twice by
+  hand, and the whole-pixel test was five comparisons in a row; each brick has
+  its tests, and the border tests draw the same pixels.
+- `lh_gl_style_init_blend` (71 lines to 21) is built from three new bricks
+  beside `lh_gl_style_mix_paint`: `lh_gl_style_mix_radii` (every corner on its
+  own), `lh_gl_style_mix_shadow` (a shadow at one end only fades from or into
+  nothing, two shadows mix their colour, spread and offset) and
+  `lh_gl_style_get_shadow_fade_color` (an end's own colour, or the other end's
+  with no alpha). Each has its tests; the blend gives the same styles as before.
+- `lh_gl_canvas_sw_shadow` (73 lines to 32) is built from
+  `lh_gl_canvas_sw_shadow_make_key` (the mask's key from a pass),
+  `lh_gl_canvas_sw_shadow_prepare` (the shape and the ramp, which both paths
+  used to make each on its own) and `lh_gl_canvas_sw_shadow_rows` (the shadow
+  row by row), over three new bricks of the pass:
+  `lh_gl_canvas_sw_shadow_pass_get_width` / `_get_height` (level 2, from its
+  edges) and `lh_gl_canvas_sw_shadow_pass_fits_mask`. `lh/gl/canvas/sw.h`
+  includes `lh/gl/canvas/sw/shadow/key.h` for the key it now names.
+  `BM_ui_canvas_shadow` stays within its noise.
 - The three largest script parts of the player page are built from pieces of
   their own, each a public function with its declaration in
   `lh/gl/web/player/page.h`: `lh_gl_web_player_page_create_play` (448 lines to
@@ -535,6 +565,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `os_window.a_long_press_comes_due_on_the_window_timer_alone` opens a real
+  window, and another window opening on the desktop (a console, a parallel run
+  of the test) takes its focus: the focus loss rightly cancels the press before
+  its long press is due, and the test failed. It counts the focus losses now and
+  skips, saying why, when one came before the long press; with the focus kept it
+  still fails when the timer does not bring the long press. Eight copies run at
+  once: seven skip, the one that kept the focus passes.
 - `lh_os_module_hook.an_overrunning_handler_is_dropped` gives each handler 50 ms
   and its slow handler sleeps 200 ms, instead of 1 ms and 20 ms: on a machine
   busy with a build the handler that does nothing ran past 1 ms too, both were

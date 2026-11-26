@@ -11,7 +11,6 @@
 #include <lh/core/memory.h>
 #include <lh/gl/canvas/sw/shadow/key.h>
 #include <lh/core/util/return.h>
-
 lh_void
 lh_gl_canvas_sw_shadow_span(lh_gl_canvas_sw_t *self, const lh_gl_canvas_sw_shadow_pass_t *pass,
                             lh_s32_t x0, lh_s32_t x1, lh_s32_t y)
@@ -96,6 +95,34 @@ lh_gl_canvas_sw_shadow_mask_stamp(lh_gl_canvas_sw_t *self,
 }
 
 lh_void
+lh_gl_canvas_sw_shadow_make_key(const lh_gl_canvas_sw_shadow_pass_t *pass, const lh_gl_rect_t *rect,
+                                const lh_gl_shadow_t *shadow, lh_gl_canvas_sw_shadow_key_t *out)
+{
+    const lh_gl_size_t *box = lh_gl_rect_get_size(rect);
+
+    lh_gl_canvas_sw_shadow_key_init(
+        out, lh_gl_canvas_sw_shadow_pass_get_width(pass),
+        lh_gl_canvas_sw_shadow_pass_get_height(pass),
+        lh_gl_scalar_floor_s32(lh_gl_canvas_sw_shadow_pass_get_corner(pass)),
+        lh_gl_scalar_floor_s32(lh_gl_size_get_width(box)),
+        lh_gl_scalar_floor_s32(lh_gl_size_get_height(box)),
+        lh_gl_scalar_floor_s32(lh_gl_shadow_get_spread(shadow)),
+        lh_gl_scalar_floor_s32(lh_gl_shadow_get_offset_x(shadow)),
+        lh_gl_scalar_floor_s32(lh_gl_shadow_get_offset_y(shadow)),
+        lh_gl_color_get_a(lh_gl_shadow_get_color(shadow)));
+}
+
+lh_void
+lh_gl_canvas_sw_shadow_prepare(lh_gl_canvas_sw_shadow_pass_t *pass, const lh_gl_rect_t *rect,
+                               const lh_gl_shadow_t *shadow)
+{
+    lh_gl_shadow_get_pixel_shadow(shadow, rect, lh_gl_canvas_sw_shadow_pass_get_corner(pass),
+                                  lh_gl_canvas_sw_shadow_pass_get_shape_mut(pass));
+    lh_pixel_shadow_ramp_init(lh_gl_canvas_sw_shadow_pass_get_ramp_mut(pass),
+                              lh_gl_canvas_sw_shadow_pass_get_shape_mut(pass));
+}
+
+lh_void
 lh_gl_canvas_sw_shadow_mask_fill(const lh_gl_canvas_sw_shadow_pass_t *pass, lh_byte_t *mask,
                                  lh_s32_t width, lh_s32_t height)
 {
@@ -140,6 +167,18 @@ lh_gl_canvas_sw_shadow_row(lh_gl_canvas_sw_t *self, const lh_gl_canvas_sw_shadow
     }
 }
 
+lh_void
+lh_gl_canvas_sw_shadow_rows(lh_gl_canvas_sw_t *self, const lh_gl_canvas_sw_shadow_pass_t *pass)
+{
+    const lh_s32_t end = lh_gl_canvas_sw_cut_y1(self, lh_gl_canvas_sw_shadow_pass_get_bottom(pass));
+
+    for (lh_s32_t y = lh_gl_canvas_sw_cut_y0(self, lh_gl_canvas_sw_shadow_pass_get_top(pass));
+         y < end; ++y)
+    {
+        lh_gl_canvas_sw_shadow_row(self, pass, y);
+    }
+}
+
 lh_bool_t
 lh_gl_canvas_sw_shadow(lh_ptr context, const lh_gl_rect_t *rect, lh_gl_scalar_t radius,
                        const lh_gl_shadow_t *shadow)
@@ -150,68 +189,32 @@ lh_gl_canvas_sw_shadow(lh_ptr context, const lh_gl_rect_t *rect, lh_gl_scalar_t 
     lh_return_if(
         !lh_gl_canvas_sw_shadow_pass_init_bounds(self, rect, radius, shadow, lh_addr_of(pass)),
         lh_bool_false);
+    /* A rounded pass is cut by its corners and a large one has no room in the mask:
+       both are drawn row by row. Any other pass is a mask, made once and stamped
+       again for the next pass with the same key. */
+    const lh_bool_t masked =
+        lh_type_cast(lh_bool_t, lh_gl_canvas_sw_shadow_pass_fits_mask(lh_addr_of(pass)) &&
+                                    !lh_gl_canvas_sw_shadow_pass_is_rounded(lh_addr_of(pass)));
+    const lh_s32_t width = lh_gl_canvas_sw_shadow_pass_get_width(lh_addr_of(pass));
+    lh_gl_canvas_sw_shadow_key_t key;
+
+    lh_gl_canvas_sw_shadow_make_key(lh_addr_of(pass), rect, shadow, lh_addr_of(key));
+    if (masked && lh_gl_canvas_sw_shadow_key_is_equal(lh_addr_of(key),
+                                                      lh_addr_of(lh_gl_canvas_sw_shadow_kept)))
     {
-        const lh_gl_size_t *box = lh_gl_rect_get_size(rect);
-        const lh_s32_t width = lh_gl_canvas_sw_shadow_pass_get_right(lh_addr_of(pass)) -
-                               lh_gl_canvas_sw_shadow_pass_get_left(lh_addr_of(pass));
-        const lh_s32_t height = lh_gl_canvas_sw_shadow_pass_get_bottom(lh_addr_of(pass)) -
-                                lh_gl_canvas_sw_shadow_pass_get_top(lh_addr_of(pass));
-        const lh_s32_t corner =
-            lh_gl_scalar_floor_s32(lh_gl_canvas_sw_shadow_pass_get_corner(lh_addr_of(pass)));
-        const lh_s32_t box_w = lh_gl_scalar_floor_s32(lh_gl_size_get_width(box));
-        const lh_s32_t box_h = lh_gl_scalar_floor_s32(lh_gl_size_get_height(box));
-        const lh_s32_t spread = lh_gl_scalar_floor_s32(lh_gl_shadow_get_spread(shadow));
-        const lh_s32_t offset_x = lh_gl_scalar_floor_s32(lh_gl_shadow_get_offset_x(shadow));
-        const lh_s32_t offset_y = lh_gl_scalar_floor_s32(lh_gl_shadow_get_offset_y(shadow));
-        const lh_s32_t peak = lh_gl_color_get_a(lh_gl_shadow_get_color(shadow));
-        const lh_bool_t fits = width > 0 && height > 0 &&
-                                       width <= LH_LIBRARY_OPTION_GL_SHADOW_MASK &&
-                                       height <= LH_LIBRARY_OPTION_GL_SHADOW_MASK
-                                   ? lh_bool_true
-                                   : lh_bool_false;
-        lh_gl_canvas_sw_shadow_key_t key;
-
-        lh_gl_canvas_sw_shadow_key_init(lh_addr_of(key), width, height, corner, box_w, box_h,
-                                        spread, offset_x, offset_y, peak);
-        const lh_bool_t same = fits && !lh_gl_canvas_sw_shadow_pass_is_rounded(lh_addr_of(pass)) &&
-                                       lh_gl_canvas_sw_shadow_key_is_equal(
-                                           lh_addr_of(key), lh_addr_of(lh_gl_canvas_sw_shadow_kept))
-                                   ? lh_bool_true
-                                   : lh_bool_false;
-
-        if (same)
-        {
-            lh_gl_canvas_sw_shadow_mask_stamp(self, lh_addr_of(pass), lh_gl_canvas_sw_shadow_mask,
-                                              width);
-            return lh_bool_true;
-        }
-        if (!fits || lh_gl_canvas_sw_shadow_pass_is_rounded(lh_addr_of(pass)))
-        {
-            lh_gl_shadow_get_pixel_shadow(
-                shadow, rect, lh_gl_canvas_sw_shadow_pass_get_corner(lh_addr_of(pass)),
-                lh_gl_canvas_sw_shadow_pass_get_shape_mut(lh_addr_of(pass)));
-            lh_pixel_shadow_ramp_init(lh_gl_canvas_sw_shadow_pass_get_ramp_mut(lh_addr_of(pass)),
-                                      lh_gl_canvas_sw_shadow_pass_get_shape_mut(lh_addr_of(pass)));
-            for (lh_s32_t y = lh_gl_canvas_sw_cut_y0(
-                     self, lh_gl_canvas_sw_shadow_pass_get_top(lh_addr_of(pass)));
-                 y < lh_gl_canvas_sw_cut_y1(
-                         self, lh_gl_canvas_sw_shadow_pass_get_bottom(lh_addr_of(pass)));
-                 ++y)
-            {
-                lh_gl_canvas_sw_shadow_row(self, lh_addr_of(pass), y);
-            }
-            return lh_bool_true;
-        }
-        lh_gl_shadow_get_pixel_shadow(shadow, rect,
-                                      lh_gl_canvas_sw_shadow_pass_get_corner(lh_addr_of(pass)),
-                                      lh_gl_canvas_sw_shadow_pass_get_shape_mut(lh_addr_of(pass)));
-        lh_pixel_shadow_ramp_init(lh_gl_canvas_sw_shadow_pass_get_ramp_mut(lh_addr_of(pass)),
-                                  lh_gl_canvas_sw_shadow_pass_get_shape_mut(lh_addr_of(pass)));
-        lh_gl_canvas_sw_shadow_mask_fill(lh_addr_of(pass), lh_gl_canvas_sw_shadow_mask, width,
-                                         height);
-        lh_gl_canvas_sw_shadow_kept = key;
         lh_gl_canvas_sw_shadow_mask_stamp(self, lh_addr_of(pass), lh_gl_canvas_sw_shadow_mask,
                                           width);
+        return lh_bool_true;
     }
+    lh_gl_canvas_sw_shadow_prepare(lh_addr_of(pass), rect, shadow);
+    if (!masked)
+    {
+        lh_gl_canvas_sw_shadow_rows(self, lh_addr_of(pass));
+        return lh_bool_true;
+    }
+    lh_gl_canvas_sw_shadow_mask_fill(lh_addr_of(pass), lh_gl_canvas_sw_shadow_mask, width,
+                                     lh_gl_canvas_sw_shadow_pass_get_height(lh_addr_of(pass)));
+    lh_gl_canvas_sw_shadow_kept = key;
+    lh_gl_canvas_sw_shadow_mask_stamp(self, lh_addr_of(pass), lh_gl_canvas_sw_shadow_mask, width);
     return lh_bool_true;
 }

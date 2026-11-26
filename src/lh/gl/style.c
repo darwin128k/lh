@@ -6,7 +6,6 @@
 
 #include <lh/gl/style.h>
 #include <lh/core/util/return.h>
-
 const lh_gl_style_box_t *
 lh_gl_style_get_box(const lh_gl_style_t *self)
 {
@@ -89,6 +88,19 @@ lh_gl_style_mix_color(const lh_gl_color_t *from, const lh_gl_color_t *to, lh_u32
 }
 
 lh_void
+lh_gl_style_get_shadow_fade_color(const lh_gl_shadow_t *end, const lh_gl_shadow_t *shape,
+                                  lh_gl_color_t *out)
+{
+    if (!lh_gl_shadow_is_empty(end))
+    {
+        lh_gl_shadow_copy_color(end, out);
+        return;
+    }
+    lh_gl_shadow_copy_color(shape, out);
+    lh_gl_color_set_a(out, 0);
+}
+
+lh_void
 lh_gl_style_mix_paint(lh_gl_paint_t *out, const lh_gl_paint_t *from, const lh_gl_paint_t *to,
                       lh_u32_t weight)
 {
@@ -100,6 +112,50 @@ lh_gl_style_mix_paint(lh_gl_paint_t *out, const lh_gl_paint_t *from, const lh_gl
     lh_gl_color_t mixed;
     lh_gl_style_mix_color(a, b, weight, lh_addr_of(mixed));
     lh_gl_paint_init_color(out, lh_addr_of(mixed));
+}
+
+lh_void
+lh_gl_style_mix_radii(lh_gl_radii_t *out, const lh_gl_radii_t *from, const lh_gl_radii_t *to,
+                      lh_u32_t weight)
+{
+    lh_gl_radii_init(
+        out, lh_gl_style_mix(lh_gl_radii_get_top_left(from), lh_gl_radii_get_top_left(to), weight),
+        lh_gl_style_mix(lh_gl_radii_get_top_right(from), lh_gl_radii_get_top_right(to), weight),
+        lh_gl_style_mix(lh_gl_radii_get_bottom_right(from), lh_gl_radii_get_bottom_right(to),
+                        weight),
+        lh_gl_style_mix(lh_gl_radii_get_bottom_left(from), lh_gl_radii_get_bottom_left(to),
+                        weight));
+}
+
+lh_void
+lh_gl_style_mix_shadow(lh_gl_shadow_t *out, const lh_gl_shadow_t *from, const lh_gl_shadow_t *to,
+                       lh_u32_t weight)
+{
+    const lh_bool_t from_casts = lh_type_cast(lh_bool_t, !lh_gl_shadow_is_empty(from));
+    const lh_bool_t to_casts = lh_type_cast(lh_bool_t, !lh_gl_shadow_is_empty(to));
+    const lh_gl_shadow_t *shape = to_casts ? to : from;
+
+    if (!from_casts && !to_casts)
+    {
+        lh_ptr_deref(out) = lh_ptr_deref(to);
+        return;
+    }
+    lh_ptr_deref(out) = lh_ptr_deref(shape);
+    lh_gl_color_t a;
+    lh_gl_color_t b;
+    lh_gl_color_t color;
+
+    lh_gl_style_get_shadow_fade_color(from, shape, lh_addr_of(a));
+    lh_gl_style_get_shadow_fade_color(to, shape, lh_addr_of(b));
+    lh_gl_style_mix_color(lh_addr_of(a), lh_addr_of(b), weight, lh_addr_of(color));
+    lh_gl_shadow_set_color(out, color);
+    lh_return_if(!from_casts || !to_casts);
+    lh_gl_shadow_set_spread_v(
+        out, lh_gl_style_mix(lh_gl_shadow_get_spread(from), lh_gl_shadow_get_spread(to), weight));
+    lh_gl_shadow_set_offset(
+        out,
+        lh_gl_style_mix(lh_gl_shadow_get_offset_x(from), lh_gl_shadow_get_offset_x(to), weight),
+        lh_gl_style_mix(lh_gl_shadow_get_offset_y(from), lh_gl_shadow_get_offset_y(to), weight));
 }
 
 lh_void
@@ -468,60 +524,10 @@ lh_gl_style_init_blend(lh_gl_style_t *self, const lh_gl_style_t *from, const lh_
     lh_gl_style_mix_paint(lh_gl_style_get_border_fill_mut(self), lh_gl_style_get_border_fill(from),
                           lh_gl_style_get_border_fill(to), weight);
     lh_gl_radii_t radii;
-    lh_gl_radii_init(
-        lh_addr_of(radii),
-        lh_gl_style_mix(lh_gl_radii_get_top_left(lh_gl_style_get_radii(from)),
-                        lh_gl_radii_get_top_left(lh_gl_style_get_radii(to)), weight),
-        lh_gl_style_mix(lh_gl_radii_get_top_right(lh_gl_style_get_radii(from)),
-                        lh_gl_radii_get_top_right(lh_gl_style_get_radii(to)), weight),
-        lh_gl_style_mix(lh_gl_radii_get_bottom_right(lh_gl_style_get_radii(from)),
-                        lh_gl_radii_get_bottom_right(lh_gl_style_get_radii(to)), weight),
-        lh_gl_style_mix(lh_gl_radii_get_bottom_left(lh_gl_style_get_radii(from)),
-                        lh_gl_radii_get_bottom_left(lh_gl_style_get_radii(to)), weight));
-    lh_gl_style_set_radii_v(self, lh_addr_of(radii));
-    const lh_gl_shadow_t *fade_from = lh_gl_style_get_shadow(from);
-    const lh_gl_shadow_t *fade_to = lh_gl_style_get_shadow(to);
-    if (!lh_gl_shadow_is_empty(fade_from) || !lh_gl_shadow_is_empty(fade_to))
-    {
-        /* A shadow at one end only grows out of, or melts into, the other end's
-           nothing: the same shadow with no colour. */
-        const lh_gl_shadow_t *shape = lh_gl_shadow_is_empty(fade_to) ? fade_from : fade_to;
-        lh_gl_color_t clear;
-        lh_gl_shadow_copy_color(shape, lh_addr_of(clear));
-        lh_gl_color_t a;
-        lh_gl_color_t b;
 
-        lh_gl_color_set_a(lh_addr_of(clear), 0);
-        if (lh_gl_shadow_is_empty(fade_from))
-        {
-            a = clear;
-        }
-        else
-        {
-            lh_gl_shadow_copy_color(fade_from, lh_addr_of(a));
-        }
-        if (lh_gl_shadow_is_empty(fade_to))
-        {
-            b = clear;
-        }
-        else
-        {
-            lh_gl_shadow_copy_color(fade_to, lh_addr_of(b));
-        }
-        lh_gl_style_set_shadow(self, lh_ptr_deref(shape));
-        lh_gl_color_t color;
-        lh_gl_style_mix_color(lh_addr_of(a), lh_addr_of(b), weight, lh_addr_of(color));
-        lh_gl_shadow_set_color(lh_gl_style_get_shadow_mut(self), color);
-        if (!lh_gl_shadow_is_empty(fade_from) && !lh_gl_shadow_is_empty(fade_to))
-        {
-            lh_gl_shadow_set_spread_v(lh_gl_style_get_shadow_mut(self),
-                                      lh_gl_style_mix(lh_gl_shadow_get_spread(fade_from),
-                                                      lh_gl_shadow_get_spread(fade_to), weight));
-            lh_gl_shadow_set_offset(lh_gl_style_get_shadow_mut(self),
-                                    lh_gl_style_mix(lh_gl_shadow_get_offset_x(fade_from),
-                                                    lh_gl_shadow_get_offset_x(fade_to), weight),
-                                    lh_gl_style_mix(lh_gl_shadow_get_offset_y(fade_from),
-                                                    lh_gl_shadow_get_offset_y(fade_to), weight));
-        }
-    }
+    lh_gl_style_mix_radii(lh_addr_of(radii), lh_gl_style_get_radii(from), lh_gl_style_get_radii(to),
+                          weight);
+    lh_gl_style_set_radii_v(self, lh_addr_of(radii));
+    lh_gl_style_mix_shadow(lh_gl_style_get_shadow_mut(self), lh_gl_style_get_shadow(from),
+                           lh_gl_style_get_shadow(to), weight);
 }

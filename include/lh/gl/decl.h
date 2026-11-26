@@ -173,6 +173,68 @@ lh_gl_entity_t *
 lh_gl_decl_place_row(const lh_gl_decl_t *row, lh_byte_ptr slot, lh_gl_entity_t **nodes);
 
 /**
+ * @brief Check every row of @p decls on its own (::lh_gl_decl_check) and the
+ *        table as a whole, and say how many bytes its widgets take.
+ *
+ * Nothing is written but @p bytes and @p fault. The table is refused at its first
+ * row that is wrong, then when it has no root or more than one.
+ *
+ * @param decls The rows; checked by the caller.
+ * @param count How many.
+ * @param bytes Receives the bytes the widgets take, laid end to end
+ *              (::lh_gl_decl_size_of); checked by ::lh_assert_runtime_ref.
+ * @param fault Receives the row and the reason when the table is refused; may be
+ *              ::lh_null.
+ * @return ::lh_bool_true when every row and the table are right.
+ */
+lh_bool_t
+lh_gl_decl_try_measure(const lh_gl_decl_t *decls, lh_u32_t count, lh_u32_t *bytes,
+                       lh_gl_decl_fault_t *fault);
+
+/**
+ * @brief What every kind of row says the same way, onto the @p entity its widget
+ *        is: the style (but for a button and a toggle, which aim the entity at
+ *        their own style so a press composes on top of the one showing), the
+ *        place, the flow of a container, and hidden.
+ *
+ * @param entity The widget the row built.
+ * @param row    The row.
+ */
+lh_void
+lh_gl_decl_apply_row(lh_gl_entity_t *entity, const lh_gl_decl_t *row);
+
+/**
+ * @brief Place every row of @p decls in @p storage, end to end
+ *        (::lh_gl_decl_place_row, ::lh_gl_decl_apply_row), each into
+ *        `nodes[row]`. Nothing is wired.
+ *
+ * A scrollbar is built around the container it scrolls: one naming a row that is
+ * not a container is refused before its widget is touched.
+ *
+ * @param decls   The rows, measured (::lh_gl_decl_try_measure).
+ * @param count   How many.
+ * @param nodes   Receives the widget of every row.
+ * @param storage At least the bytes the measure gave.
+ * @param fault   Receives the row and the reason when one is refused; may be
+ *                ::lh_null.
+ * @return ::lh_bool_true when every row was placed.
+ */
+lh_bool_t
+lh_gl_decl_try_place(const lh_gl_decl_t *decls, lh_u32_t count, lh_gl_entity_t **nodes,
+                     lh_byte_ptr storage, lh_gl_decl_fault_t *fault);
+
+/**
+ * @brief Wire every placed row of @p decls to its parent, and give back the root.
+ *
+ * @param decls The rows.
+ * @param count How many.
+ * @param nodes The widget of every row (::lh_gl_decl_try_place).
+ * @return The widget of the row that is the root.
+ */
+lh_gl_entity_t *
+lh_gl_decl_link(const lh_gl_decl_t *decls, lh_u32_t count, lh_gl_entity_t **nodes);
+
+/**
  * @brief Build every row of @p decls into @p storage and wire parent to child.
  *
  * @param decls   Rows, in any kind. Not owned; may be a static table.

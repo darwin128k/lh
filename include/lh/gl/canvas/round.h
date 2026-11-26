@@ -70,6 +70,20 @@ lh_bool_t
 lh_gl_canvas_round_has_row(const lh_gl_rect_t *rect, lh_s32_t y);
 
 /**
+ * @brief True when @p v is a whole number of pixels: it rounds to itself.
+ */
+lh_bool_t
+lh_gl_canvas_round_is_whole(lh_gl_scalar_t v);
+
+/**
+ * @brief True when @p rect starts and ends on pixel edges: its origin and its size
+ *        are whole (::lh_gl_canvas_round_is_whole), so no pixel of it is partly
+ *        covered.
+ */
+lh_bool_t
+lh_gl_canvas_round_is_exact(const lh_gl_rect_t *rect);
+
+/**
  * @brief The pixels `*x0 .. *x1 - 1` of row @p y wholly inside the rounded
  *        @p rect: the whole row in the straight middle, between the corner
  *        zones in a corner band, none outside the rect's rows. Every pixel in

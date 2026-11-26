@@ -8,7 +8,6 @@
 #include <lh/gl/canvas/round.h>
 #include <lh/gl/radius.h>
 #include <lh/core/util/return.h>
-
 lh_s32_t
 lh_gl_canvas_round_left(const lh_gl_rect_t *rect)
 {
@@ -41,49 +40,6 @@ lh_s32_t
 lh_gl_canvas_round_near_end(lh_s32_t a, lh_s32_t b, lh_s32_t zone)
 {
     return lh_math_min(a + zone, b);
-}
-
-lh_s32_t
-lh_gl_canvas_round_far_start(lh_s32_t a, lh_s32_t b, lh_s32_t zone)
-{
-    return lh_math_max(b - zone, lh_gl_canvas_round_near_end(a, b, zone));
-}
-
-lh_bool_t
-lh_gl_canvas_round_is_corner_row(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_s32_t y)
-{
-    const lh_s32_t top = lh_gl_canvas_round_top(rect);
-    const lh_s32_t bottom = lh_gl_canvas_round_bottom(rect);
-    const lh_s32_t zone = lh_gl_scalar_ceil_s32(radius);
-
-    return y < lh_gl_canvas_round_near_end(top, bottom, zone) ||
-                   y >= lh_gl_canvas_round_far_start(top, bottom, zone)
-               ? lh_bool_true
-               : lh_bool_false;
-}
-
-lh_bool_t
-lh_gl_canvas_round_has_row(const lh_gl_rect_t *rect, lh_s32_t y)
-{
-    return y >= lh_gl_canvas_round_top(rect) && y < lh_gl_canvas_round_bottom(rect) ? lh_bool_true
-                                                                                    : lh_bool_false;
-}
-
-lh_void
-lh_gl_canvas_round_full_span(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_s32_t y,
-                             lh_s32_t *x0, lh_s32_t *x1)
-{
-    const lh_s32_t left = lh_gl_canvas_round_left(rect);
-    const lh_s32_t right = lh_gl_canvas_round_right(rect);
-
-    /* The span wholly inside the rounded rect is the arc's, not a radius-square
-       around the corner: lh_gl_radius_full_span finds it with one square root
-       for the row. Every pixel outside it has less than full coverage and goes
-       through the per-pixel path, which is where the savings are — the square
-       used to send the whole corner there, interior included. */
-    lh_gl_radius_full_span(rect, radius, y, x0, x1);
-    lh_ptr_deref(x0) = lh_math_max(lh_ptr_deref(x0), left);
-    lh_ptr_deref(x1) = lh_math_max(lh_math_min(lh_ptr_deref(x1), right), lh_ptr_deref(x0));
 }
 
 lh_void
@@ -206,4 +162,65 @@ lh_gl_canvas_fill_round_rect_by_rects(struct lh_gl_canvas *self, const lh_gl_rec
                              lh_gl_canvas_round_right(rect) - lh_gl_canvas_round_left(rect),
                              bottom_start - top_end, color);
     lh_gl_canvas_fill_round_band(self, rect, radius, bottom_start, bottom, color);
+}
+
+lh_bool_t
+lh_gl_canvas_round_is_whole(lh_gl_scalar_t v)
+{
+    return lh_type_cast(lh_bool_t, v == lh_gl_scalar_of(lh_gl_scalar_floor_s32(v)));
+}
+
+lh_s32_t
+lh_gl_canvas_round_far_start(lh_s32_t a, lh_s32_t b, lh_s32_t zone)
+{
+    return lh_math_max(b - zone, lh_gl_canvas_round_near_end(a, b, zone));
+}
+
+lh_bool_t
+lh_gl_canvas_round_has_row(const lh_gl_rect_t *rect, lh_s32_t y)
+{
+    return y >= lh_gl_canvas_round_top(rect) && y < lh_gl_canvas_round_bottom(rect) ? lh_bool_true
+                                                                                    : lh_bool_false;
+}
+
+lh_void
+lh_gl_canvas_round_full_span(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_s32_t y,
+                             lh_s32_t *x0, lh_s32_t *x1)
+{
+    const lh_s32_t left = lh_gl_canvas_round_left(rect);
+    const lh_s32_t right = lh_gl_canvas_round_right(rect);
+
+    /* The span wholly inside the rounded rect is the arc's, not a radius-square
+       around the corner: lh_gl_radius_full_span finds it with one square root
+       for the row. Every pixel outside it has less than full coverage and goes
+       through the per-pixel path, which is where the savings are — the square
+       used to send the whole corner there, interior included. */
+    lh_gl_radius_full_span(rect, radius, y, x0, x1);
+    lh_ptr_deref(x0) = lh_math_max(lh_ptr_deref(x0), left);
+    lh_ptr_deref(x1) = lh_math_max(lh_math_min(lh_ptr_deref(x1), right), lh_ptr_deref(x0));
+}
+
+lh_bool_t
+lh_gl_canvas_round_is_exact(const lh_gl_rect_t *rect)
+{
+    const lh_gl_point_t *origin = lh_gl_rect_get_origin(rect);
+    const lh_gl_size_t *size = lh_gl_rect_get_size(rect);
+
+    return lh_type_cast(lh_bool_t, lh_gl_canvas_round_is_whole(lh_gl_point_get_x(origin)) &&
+                                       lh_gl_canvas_round_is_whole(lh_gl_point_get_y(origin)) &&
+                                       lh_gl_canvas_round_is_whole(lh_gl_size_get_width(size)) &&
+                                       lh_gl_canvas_round_is_whole(lh_gl_size_get_height(size)));
+}
+
+lh_bool_t
+lh_gl_canvas_round_is_corner_row(const lh_gl_rect_t *rect, lh_gl_scalar_t radius, lh_s32_t y)
+{
+    const lh_s32_t top = lh_gl_canvas_round_top(rect);
+    const lh_s32_t bottom = lh_gl_canvas_round_bottom(rect);
+    const lh_s32_t zone = lh_gl_scalar_ceil_s32(radius);
+
+    return y < lh_gl_canvas_round_near_end(top, bottom, zone) ||
+                   y >= lh_gl_canvas_round_far_start(top, bottom, zone)
+               ? lh_bool_true
+               : lh_bool_false;
 }

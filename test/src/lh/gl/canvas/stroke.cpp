@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
+#include <lh/gl/canvas/round.h>
 #include <lh/gl/canvas/stroke.h>
+#include <lh/gl/radii.h>
 #include <lh/gl/canvas/sw.h>
 #include <lh/gl/entity.h>
 
@@ -148,4 +150,55 @@ TEST(ui_canvas_stroke, native_entity_gradient_and_border_share_the_rounded_shape
     EXPECT_NE(pixels[8 * 32 + 15], pixels[15 * 32 + 15]);
     EXPECT_NE(pixels[12 * 32 + 15], 0xffffffffU);
     lh_gl_canvas_deinit(&canvas);
+}
+
+/* -- The bricks a border is built from ------------------------------------- */
+
+TEST(ui_radii, the_largest_corner_and_every_corner_less_a_width)
+{
+    lh_gl_radii_t radii;
+    lh_gl_radii_t inner;
+
+    lh_gl_radii_init(&radii, lh_gl_scalar(2), lh_gl_scalar(9), lh_gl_scalar(5), lh_gl_scalar(0));
+    EXPECT_EQ(lh_gl_radii_get_max(&radii), lh_gl_scalar(9));
+    EXPECT_EQ(lh_gl_radii_get_min(&radii), lh_gl_scalar(0));
+    lh_gl_radii_inset(&radii, lh_gl_scalar(3), &inner);
+    EXPECT_EQ(lh_gl_radii_get_top_left(&inner), lh_gl_scalar(0)) << "never below 0";
+    EXPECT_EQ(lh_gl_radii_get_top_right(&inner), lh_gl_scalar(6));
+    EXPECT_EQ(lh_gl_radii_get_bottom_right(&inner), lh_gl_scalar(2));
+    EXPECT_EQ(lh_gl_radii_get_bottom_left(&inner), lh_gl_scalar(0));
+}
+
+TEST(ui_canvas_round, a_rect_is_exact_when_it_starts_and_ends_on_pixel_edges)
+{
+    lh_gl_rect_t rect;
+
+    EXPECT_TRUE(lh_gl_canvas_round_is_whole(lh_gl_scalar(4)));
+    lh_gl_rect_init(&rect, lh_gl_scalar(1), lh_gl_scalar(2), lh_gl_scalar(10), lh_gl_scalar(6));
+    EXPECT_TRUE(lh_gl_canvas_round_is_exact(&rect));
+#if LH_LIBRARY_OPTION_MATH_FPU
+    EXPECT_FALSE(lh_gl_canvas_round_is_whole(lh_gl_scalar(4.5)));
+    lh_gl_rect_init(&rect, lh_gl_scalar(1.5), lh_gl_scalar(2), lh_gl_scalar(10), lh_gl_scalar(6));
+    EXPECT_FALSE(lh_gl_canvas_round_is_exact(&rect)) << "half a pixel in";
+#endif
+}
+
+/* The part of a row a border leaves to its hole: nothing on a row past the hole, the
+   whole width between the sides on a straight row, cut to x0..x1. */
+TEST(ui_canvas_stroke, the_hole_span_is_the_row_inside_the_border)
+{
+    lh_gl_rect_t hole;
+    lh_s32_t in0 = -1;
+    lh_s32_t in1 = -1;
+
+    lh_gl_rect_init(&hole, lh_gl_scalar(4), lh_gl_scalar(4), lh_gl_scalar(12), lh_gl_scalar(8));
+    lh_gl_canvas_stroke_hole_span(&hole, lh_gl_scalar(0), lh_bool_true, 2, 0, 20, &in0, &in1);
+    EXPECT_EQ(in0, 20) << "a row above the hole leaves nothing";
+    EXPECT_EQ(in1, 20);
+    lh_gl_canvas_stroke_hole_span(&hole, lh_gl_scalar(0), lh_bool_true, 6, 0, 20, &in0, &in1);
+    EXPECT_EQ(in0, 4);
+    EXPECT_EQ(in1, 16);
+    lh_gl_canvas_stroke_hole_span(&hole, lh_gl_scalar(0), lh_bool_true, 6, 6, 10, &in0, &in1);
+    EXPECT_EQ(in0, 6) << "cut to x0";
+    EXPECT_EQ(in1, 10) << "cut to x1";
 }

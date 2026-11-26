@@ -7,7 +7,6 @@
 #include <lh/core/math.h>
 #include <lh/gl/radii.h>
 #include <lh/gl/radius.h>
-
 lh_gl_scalar_t
 lh_gl_radii_scale(lh_gl_scalar_t radius, lh_gl_scalar_t num, lh_gl_scalar_t den)
 {
@@ -100,6 +99,14 @@ lh_gl_radii_get_min(const lh_gl_radii_t *self)
     return lh_math_min(
         lh_math_min(lh_gl_radii_get_top_left(self), lh_gl_radii_get_top_right(self)),
         lh_math_min(lh_gl_radii_get_bottom_right(self), lh_gl_radii_get_bottom_left(self)));
+}
+
+lh_gl_scalar_t
+lh_gl_radii_get_max(const lh_gl_radii_t *self)
+{
+    return lh_math_max(
+        lh_math_max(lh_gl_radii_get_top_left(self), lh_gl_radii_get_top_right(self)),
+        lh_math_max(lh_gl_radii_get_bottom_right(self), lh_gl_radii_get_bottom_left(self)));
 }
 
 lh_void
@@ -198,6 +205,15 @@ lh_gl_radii_get_at(const lh_gl_radii_t *self, const lh_gl_rect_t *rect, lh_s32_t
         return left ? lh_gl_radii_get_top_left(self) : lh_gl_radii_get_top_right(self);
     }
     return left ? lh_gl_radii_get_bottom_left(self) : lh_gl_radii_get_bottom_right(self);
+}
+
+lh_void
+lh_gl_radii_inset(const lh_gl_radii_t *self, lh_gl_scalar_t by, lh_gl_radii_t *out)
+{
+    lh_gl_radii_init(out, lh_math_max(lh_gl_radii_get_top_left(self) - by, lh_gl_scalar(0)),
+                     lh_math_max(lh_gl_radii_get_top_right(self) - by, lh_gl_scalar(0)),
+                     lh_math_max(lh_gl_radii_get_bottom_right(self) - by, lh_gl_scalar(0)),
+                     lh_math_max(lh_gl_radii_get_bottom_left(self) - by, lh_gl_scalar(0)));
 }
 
 lh_void

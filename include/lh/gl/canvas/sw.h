@@ -23,6 +23,7 @@
 #ifndef LH_GL_CANVAS_SW_H
 #define LH_GL_CANVAS_SW_H
 
+#include <lh/gl/canvas/sw/shadow/key.h>
 #include <lh/gl/canvas/sw/shadow/pass.h>
 
 /**
@@ -326,6 +327,47 @@ lh_void
 lh_gl_canvas_sw_shadow_mask_stamp(lh_gl_canvas_sw_t *self,
                                   const lh_gl_canvas_sw_shadow_pass_t *pass, const lh_byte_t *mask,
                                   lh_s32_t width);
+
+/**
+ * @brief The key of the mask @p pass makes for @p rect and @p shadow, into
+ *        @p out: the pass's size and corner, the box, the spread, the offset and
+ *        the peak alpha, in whole pixels.
+ *
+ * Two passes with equal keys (::lh_gl_canvas_sw_shadow_key_is_equal) make the
+ * same mask, so the second stamps the first one's again.
+ *
+ * @param pass   The pass, its bounds set; checked by ::lh_assert_runtime_ref.
+ * @param rect   The box that casts the shadow.
+ * @param shadow The shadow.
+ * @param out    Receives the key; checked by ::lh_assert_runtime_ref.
+ */
+lh_void
+lh_gl_canvas_sw_shadow_make_key(const lh_gl_canvas_sw_shadow_pass_t *pass, const lh_gl_rect_t *rect,
+                                const lh_gl_shadow_t *shadow, lh_gl_canvas_sw_shadow_key_t *out);
+
+/**
+ * @brief Make the shape of @p shadow for @p rect at the pass's corner, and the
+ *        ramp of its edge, in @p pass: what drawing a shadow needs, whether row
+ *        by row (::lh_gl_canvas_sw_shadow_rows) or into a mask
+ *        (::lh_gl_canvas_sw_shadow_mask_fill).
+ *
+ * @param pass   The pass, its bounds set; checked by ::lh_assert_runtime_ref.
+ * @param rect   The box that casts the shadow.
+ * @param shadow The shadow.
+ */
+lh_void
+lh_gl_canvas_sw_shadow_prepare(lh_gl_canvas_sw_shadow_pass_t *pass, const lh_gl_rect_t *rect,
+                               const lh_gl_shadow_t *shadow);
+
+/**
+ * @brief Draw the shadow of @p pass row by row (::lh_gl_canvas_sw_shadow_row),
+ *        over the rows of its area the limit keeps.
+ *
+ * @param self The canvas.
+ * @param pass The pass, prepared (::lh_gl_canvas_sw_shadow_prepare).
+ */
+lh_void
+lh_gl_canvas_sw_shadow_rows(lh_gl_canvas_sw_t *self, const lh_gl_canvas_sw_shadow_pass_t *pass);
 
 /**
  * @brief Backend `shadow`: ::lh_gl_shadow_alpha_at_pixel over the box grown by

@@ -481,3 +481,80 @@ TEST(ui_decl, an_input_row_edits_the_buffer_it_names_and_starts_with_its_text)
     EXPECT_STREQ(buffer, "hello");
     EXPECT_STREQ(lh_gl_input_get_text(lh_ptr_rcast(lh_gl_input_t, nodes[1])), "hello");
 }
+
+/* -- The phases of a build ------------------------------------------------- */
+
+/* The measure is every row's widget laid end to end, and nothing is placed. */
+TEST(ui_decl, the_measure_is_the_widgets_end_to_end_and_places_nothing)
+{
+    lh_gl_entity_t *nodes[2] = {};
+    lh_gl_decl_t rows[2] = {};
+    lh_u32_t bytes = 0U;
+
+    rows[0].kind = lh_gl_decl_kind_container;
+    rows[0].parent = LH_GL_DECL_ROOT;
+    rows[1].kind = lh_gl_decl_kind_label;
+    rows[1].parent = 0;
+    ASSERT_TRUE(lh_gl_decl_try_measure(rows, 2, &bytes, nullptr) == lh_bool_true);
+    EXPECT_EQ(bytes, lh_gl_decl_size_of(lh_gl_decl_kind_container) +
+                         lh_gl_decl_size_of(lh_gl_decl_kind_label));
+    EXPECT_EQ(nodes[0], nullptr) << "measuring placed a widget";
+}
+
+TEST(ui_decl, the_measure_refuses_two_roots_and_names_no_row)
+{
+    lh_gl_decl_t rows[2] = {};
+    lh_u32_t bytes = 7U;
+    lh_gl_decl_fault_t fault;
+
+    rows[0].kind = lh_gl_decl_kind_entity;
+    rows[0].parent = LH_GL_DECL_ROOT;
+    rows[1].kind = lh_gl_decl_kind_entity;
+    rows[1].parent = LH_GL_DECL_ROOT;
+    EXPECT_FALSE(lh_gl_decl_try_measure(rows, 2, &bytes, &fault) == lh_bool_true);
+    EXPECT_EQ(fault.code, lh_gl_decl_error_roots);
+    EXPECT_EQ(bytes, 7U) << "a refused table leaves the count alone";
+}
+
+/* Placing builds every widget and wires nothing; the link is what makes it a tree. */
+TEST(ui_decl, place_builds_every_row_and_link_wires_them_into_one_tree)
+{
+    lh_gl_entity_t *nodes[2] = {};
+    lh_gl_decl_t rows[2] = {};
+
+    rows[0].kind = lh_gl_decl_kind_container;
+    rows[0].parent = LH_GL_DECL_ROOT;
+    rows[0].w = 100;
+    rows[0].h = 100;
+    rows[1].kind = lh_gl_decl_kind_entity;
+    rows[1].parent = 0;
+    ASSERT_TRUE(lh_gl_decl_try_place(rows, 2, nodes, g_storage, nullptr) == lh_bool_true);
+    ASSERT_NE(nodes[0], nullptr);
+    ASSERT_NE(nodes[1], nullptr);
+    EXPECT_EQ(lh_gl_entity_get_parent(nodes[1]), nullptr) << "placing wired the tree";
+    EXPECT_EQ(lh_gl_decl_link(rows, 2, nodes), nodes[0]);
+    EXPECT_EQ(lh_gl_entity_get_parent(nodes[1]), nodes[0]);
+}
+
+TEST(ui_decl, a_row_applies_its_hidden_and_its_style_but_a_button_aims_its_own)
+{
+    lh_gl_entity_t entity;
+    lh_gl_style_t style;
+    lh_gl_decl_t row = {};
+
+    lh_gl_entity_init(&entity, lh_test::rect_of(0, 0, 10, 10));
+    lh_gl_style_init(&style);
+    row.kind = lh_gl_decl_kind_entity;
+    row.style = &style;
+    row.hidden = lh_bool_true;
+    lh_gl_decl_apply_row(&entity, &row);
+    EXPECT_EQ(lh_gl_entity_get_style(&entity), &style);
+    EXPECT_EQ(lh_gl_entity_is_hidden(&entity), lh_bool_true);
+
+    lh_gl_entity_t other;
+    lh_gl_entity_init(&other, lh_test::rect_of(0, 0, 10, 10));
+    row.kind = lh_gl_decl_kind_button;
+    row.hidden = lh_bool_false;
+    lh_gl_decl_apply_row(&other, &row);
+    EXPECT_NE(lh_gl_entity_get_style(&other), &style) << "a button aims its entity itself";
+}
