@@ -81,13 +81,67 @@ TEST(ui_radii, corners_that_do_not_fit_are_scaled_down_together)
     lh_gl_radii_t radii;
     lh_gl_radii_init(&radii, lh_gl_scalar(30), lh_gl_scalar(30), lh_gl_scalar(0), lh_gl_scalar(0));
     lh_gl_radii_t fit = lh_test::out(lh_gl_radii_clamp, &radii, &rect);
-    EXPECT_EQ(fit.top_left, lh_gl_scalar(20));
-    EXPECT_EQ(fit.bottom_left, lh_gl_scalar(0));
+    EXPECT_EQ(lh_gl_radii_get_top_left(&fit), lh_gl_scalar(20));
+    EXPECT_EQ(lh_gl_radii_get_bottom_left(&fit), lh_gl_scalar(0));
 
     lh_gl_radii_init(&radii, lh_gl_scalar(30), lh_gl_scalar(30), lh_gl_scalar(30), lh_gl_scalar(30));
     fit = lh_test::out(lh_gl_radii_clamp, &radii, &rect);
-    EXPECT_EQ(fit.top_left, lh_gl_scalar(20));
-    EXPECT_EQ(fit.bottom_right, lh_gl_scalar(20));
+    EXPECT_EQ(lh_gl_radii_get_top_left(&fit), lh_gl_scalar(20));
+    EXPECT_EQ(lh_gl_radii_get_bottom_right(&fit), lh_gl_scalar(20));
+}
+
+/* A side tightens the factor only when it is over-full and more so than the sides
+   before it: 40 for 60 is two thirds, and a side of 50 for 60 after it changes
+   nothing. */
+TEST(ui_radii, a_side_tightens_the_factor_only_when_it_is_the_most_over_full)
+{
+    lh_gl_scalar_t num = lh_gl_scalar(1);
+    lh_gl_scalar_t den = lh_gl_scalar(1);
+
+    lh_gl_radii_tighten(lh_gl_scalar(100), lh_gl_scalar(60), &num, &den);
+    EXPECT_EQ(num, lh_gl_scalar(1)) << "a side that holds its corners";
+    lh_gl_radii_tighten(lh_gl_scalar(40), lh_gl_scalar(60), &num, &den);
+    EXPECT_EQ(num, lh_gl_scalar(40));
+    EXPECT_EQ(den, lh_gl_scalar(60));
+    lh_gl_radii_tighten(lh_gl_scalar(50), lh_gl_scalar(60), &num, &den);
+    EXPECT_EQ(num, lh_gl_scalar(40)) << "less over-full than the side before";
+}
+
+TEST(ui_radii, the_fit_is_the_factor_of_the_most_over_full_side)
+{
+    lh_gl_size_t size;
+
+    lh_gl_size_init(&size, lh_gl_scalar(100), lh_gl_scalar(40));
+    lh_gl_radii_t radii;
+    lh_gl_radii_init(&radii, lh_gl_scalar(30), lh_gl_scalar(30), lh_gl_scalar(30), lh_gl_scalar(0));
+    lh_gl_scalar_t num;
+    lh_gl_scalar_t den;
+    lh_gl_radii_get_fit(&radii, &size, &num, &den);
+    EXPECT_EQ(num, lh_gl_scalar(40)) << "the right side, 30 + 30 on 40";
+    EXPECT_EQ(den, lh_gl_scalar(60));
+
+    lh_gl_radii_init_all(&radii, lh_gl_scalar(10));
+    lh_gl_radii_get_fit(&radii, &size, &num, &den);
+    EXPECT_EQ(num, lh_gl_scalar(1)) << "every side holds its corners";
+    EXPECT_EQ(den, lh_gl_scalar(1));
+}
+
+TEST(ui_radii, scale_all_and_limit_touch_every_corner_and_may_write_in_place)
+{
+    lh_gl_radii_t radii;
+
+    lh_gl_radii_init(&radii, lh_gl_scalar(30), lh_gl_scalar(60), lh_gl_scalar(90), lh_gl_scalar(0));
+    lh_gl_radii_scale_all(&radii, lh_gl_scalar(1), lh_gl_scalar(3), &radii);
+    EXPECT_EQ(lh_gl_radii_get_top_left(&radii), lh_gl_scalar(10));
+    EXPECT_EQ(lh_gl_radii_get_top_right(&radii), lh_gl_scalar(20));
+    EXPECT_EQ(lh_gl_radii_get_bottom_right(&radii), lh_gl_scalar(30));
+    EXPECT_EQ(lh_gl_radii_get_bottom_left(&radii), lh_gl_scalar(0));
+
+    lh_gl_radii_limit(&radii, lh_gl_scalar(15), &radii);
+    EXPECT_EQ(lh_gl_radii_get_top_left(&radii), lh_gl_scalar(10));
+    EXPECT_EQ(lh_gl_radii_get_top_right(&radii), lh_gl_scalar(15));
+    EXPECT_EQ(lh_gl_radii_get_bottom_right(&radii), lh_gl_scalar(15));
+    EXPECT_EQ(lh_gl_radii_get_bottom_left(&radii), lh_gl_scalar(0));
 }
 
 TEST(ui_radii, a_pixel_takes_the_radius_of_the_corner_whose_quarter_it_is_in)

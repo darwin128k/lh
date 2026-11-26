@@ -11,6 +11,7 @@
 #include <lh/core/memory.h>
 #include <lh/gl/canvas/sw/shadow/key.h>
 #include <lh/core/util/return.h>
+
 lh_void
 lh_gl_canvas_sw_shadow_span(lh_gl_canvas_sw_t *self, const lh_gl_canvas_sw_shadow_pass_t *pass,
                             lh_s32_t x0, lh_s32_t x1, lh_s32_t y)

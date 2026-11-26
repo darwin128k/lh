@@ -2,11 +2,13 @@
  * @file radii.c
  * @brief Implementation of `lh/gl/radii.h`.
  */
-#include <lh/core/assert.h>
 
-#include <lh/core/math.h>
 #include <lh/gl/radii.h>
+
+#include <lh/core/assert.h>
+#include <lh/core/math.h>
 #include <lh/gl/radius.h>
+
 lh_gl_scalar_t
 lh_gl_radii_scale(lh_gl_scalar_t radius, lh_gl_scalar_t num, lh_gl_scalar_t den)
 {
@@ -74,6 +76,18 @@ lh_gl_radii_set_bottom_left(lh_gl_radii_t *self, lh_gl_scalar_t bottom_left)
 }
 
 lh_void
+lh_gl_radii_tighten(lh_gl_scalar_t side, lh_gl_scalar_t sum, lh_gl_scalar_t *num,
+                    lh_gl_scalar_t *den)
+{
+    /* side / sum < num / den, compared without dividing. */
+    if (sum > side && side * lh_ptr_deref(den) < lh_ptr_deref(num) * sum)
+    {
+        lh_ptr_deref(num) = side;
+        lh_ptr_deref(den) = sum;
+    }
+}
+
+lh_void
 lh_gl_radii_init(lh_gl_radii_t *self, lh_gl_scalar_t top_left, lh_gl_scalar_t top_right,
                  lh_gl_scalar_t bottom_right, lh_gl_scalar_t bottom_left)
 {
@@ -110,79 +124,22 @@ lh_gl_radii_get_max(const lh_gl_radii_t *self)
 }
 
 lh_void
-lh_gl_radii_clamp(const lh_gl_radii_t *self, const lh_gl_rect_t *rect, lh_gl_radii_t *out)
+lh_gl_radii_get_fit(const lh_gl_radii_t *self, const lh_gl_size_t *size, lh_gl_scalar_t *num,
+                    lh_gl_scalar_t *den)
 {
-    lh_assert_runtime_ref(out);
-    lh_gl_scalar_t num = lh_gl_scalar(1);
-    lh_gl_scalar_t den = lh_gl_scalar(1);
-
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(rect);
-    const lh_gl_size_t *size = lh_gl_rect_get_size(rect);
     lh_gl_scalar_t width = lh_gl_size_get_width(size);
     lh_gl_scalar_t height = lh_gl_size_get_height(size);
-    lh_gl_radii_t result = lh_ptr_deref(self);
-    lh_gl_radii_set_top_left(
-        lh_addr_of(result),
-        lh_math_max(lh_gl_radii_get_top_left(lh_addr_of(result)), lh_gl_scalar(0)));
-    lh_gl_radii_set_top_right(
-        lh_addr_of(result),
-        lh_math_max(lh_gl_radii_get_top_right(lh_addr_of(result)), lh_gl_scalar(0)));
-    lh_gl_radii_set_bottom_right(
-        lh_addr_of(result),
-        lh_math_max(lh_gl_radii_get_bottom_right(lh_addr_of(result)), lh_gl_scalar(0)));
-    lh_gl_radii_set_bottom_left(
-        lh_addr_of(result),
-        lh_math_max(lh_gl_radii_get_bottom_left(lh_addr_of(result)), lh_gl_scalar(0)));
-    lh_gl_scalar_t sums[4];
-    /* The side that is most over-full decides one factor for all four corners, so a
-       rounded tab stays the same shape, smaller, rather than turning into another. */
-    sums[0] = lh_gl_radii_get_top_left(lh_addr_of(result)) +
-              lh_gl_radii_get_top_right(lh_addr_of(result));
-    lh_gl_scalar_t sides[4];
-    sides[0] = width;
-    sums[1] = lh_gl_radii_get_bottom_left(lh_addr_of(result)) +
-              lh_gl_radii_get_bottom_right(lh_addr_of(result));
-    sides[1] = width;
-    sums[2] = lh_gl_radii_get_top_left(lh_addr_of(result)) +
-              lh_gl_radii_get_bottom_left(lh_addr_of(result));
-    sides[2] = height;
-    sums[3] = lh_gl_radii_get_top_right(lh_addr_of(result)) +
-              lh_gl_radii_get_bottom_right(lh_addr_of(result));
-    sides[3] = height;
-    for (int i = 0; i < 4; ++i)
-    {
-        /* sides[i] / sums[i] < num / den, compared without dividing. */
-        if (sums[i] > sides[i] && sides[i] * den < num * sums[i])
-        {
-            num = sides[i];
-            den = sums[i];
-        }
-    }
-    lh_gl_radii_set_top_left(
-        lh_addr_of(result),
-        lh_gl_radii_scale(lh_gl_radii_get_top_left(lh_addr_of(result)), num, den));
-    lh_gl_radii_set_top_right(
-        lh_addr_of(result),
-        lh_gl_radii_scale(lh_gl_radii_get_top_right(lh_addr_of(result)), num, den));
-    lh_gl_radii_set_bottom_right(
-        lh_addr_of(result),
-        lh_gl_radii_scale(lh_gl_radii_get_bottom_right(lh_addr_of(result)), num, den));
-    lh_gl_radii_set_bottom_left(
-        lh_addr_of(result),
-        lh_gl_radii_scale(lh_gl_radii_get_bottom_left(lh_addr_of(result)), num, den));
-    /* And none past half the shorter side, where a corner would reach into the
-       quarter of the box that belongs to its neighbour. */
-    lh_gl_scalar_t half = lh_gl_radius_get_max(rect);
-    lh_gl_radii_set_top_left(lh_addr_of(result),
-                             lh_math_min(lh_gl_radii_get_top_left(lh_addr_of(result)), half));
-    lh_gl_radii_set_top_right(lh_addr_of(result),
-                              lh_math_min(lh_gl_radii_get_top_right(lh_addr_of(result)), half));
-    lh_gl_radii_set_bottom_right(
-        lh_addr_of(result), lh_math_min(lh_gl_radii_get_bottom_right(lh_addr_of(result)), half));
-    lh_gl_radii_set_bottom_left(lh_addr_of(result),
-                                lh_math_min(lh_gl_radii_get_bottom_left(lh_addr_of(result)), half));
-    lh_ptr_deref(out) = result;
+    lh_gl_scalar_t top_left = lh_gl_radii_get_top_left(self);
+    lh_gl_scalar_t top_right = lh_gl_radii_get_top_right(self);
+    lh_gl_scalar_t bottom_right = lh_gl_radii_get_bottom_right(self);
+    lh_gl_scalar_t bottom_left = lh_gl_radii_get_bottom_left(self);
+
+    lh_ptr_deref(num) = lh_gl_scalar(1);
+    lh_ptr_deref(den) = lh_gl_scalar(1);
+    lh_gl_radii_tighten(width, top_left + top_right, num, den);
+    lh_gl_radii_tighten(width, bottom_left + bottom_right, num, den);
+    lh_gl_radii_tighten(height, top_left + bottom_left, num, den);
+    lh_gl_radii_tighten(height, top_right + bottom_right, num, den);
 }
 
 lh_gl_scalar_t
@@ -208,6 +165,25 @@ lh_gl_radii_get_at(const lh_gl_radii_t *self, const lh_gl_rect_t *rect, lh_s32_t
 }
 
 lh_void
+lh_gl_radii_scale_all(const lh_gl_radii_t *self, lh_gl_scalar_t num, lh_gl_scalar_t den,
+                      lh_gl_radii_t *out)
+{
+    lh_gl_radii_init(out, lh_gl_radii_scale(lh_gl_radii_get_top_left(self), num, den),
+                     lh_gl_radii_scale(lh_gl_radii_get_top_right(self), num, den),
+                     lh_gl_radii_scale(lh_gl_radii_get_bottom_right(self), num, den),
+                     lh_gl_radii_scale(lh_gl_radii_get_bottom_left(self), num, den));
+}
+
+lh_void
+lh_gl_radii_limit(const lh_gl_radii_t *self, lh_gl_scalar_t max, lh_gl_radii_t *out)
+{
+    lh_gl_radii_init(out, lh_math_min(lh_gl_radii_get_top_left(self), max),
+                     lh_math_min(lh_gl_radii_get_top_right(self), max),
+                     lh_math_min(lh_gl_radii_get_bottom_right(self), max),
+                     lh_math_min(lh_gl_radii_get_bottom_left(self), max));
+}
+
+lh_void
 lh_gl_radii_inset(const lh_gl_radii_t *self, lh_gl_scalar_t by, lh_gl_radii_t *out)
 {
     lh_gl_radii_init(out, lh_math_max(lh_gl_radii_get_top_left(self) - by, lh_gl_scalar(0)),
@@ -220,4 +196,23 @@ lh_void
 lh_gl_radii_init_all(lh_gl_radii_t *self, lh_gl_scalar_t radius)
 {
     lh_gl_radii_init(self, radius, radius, radius, radius);
+}
+
+lh_void
+lh_gl_radii_clamp(const lh_gl_radii_t *self, const lh_gl_rect_t *rect, lh_gl_radii_t *out)
+{
+    lh_gl_radii_t result;
+
+    /* None below 0 first: a negative corner would make a side look less full. */
+    lh_gl_radii_inset(self, lh_gl_scalar(0), lh_addr_of(result));
+    /* The side that is most over-full decides one factor for all four corners, so a
+       rounded tab stays the same shape, smaller, rather than turning into another. */
+    lh_gl_scalar_t num;
+    lh_gl_scalar_t den;
+    lh_gl_radii_get_fit(lh_addr_of(result), lh_gl_rect_get_size(rect), lh_addr_of(num),
+                        lh_addr_of(den));
+    lh_gl_radii_scale_all(lh_addr_of(result), num, den, lh_addr_of(result));
+    /* And none past half the shorter side, where a corner would reach into the
+       quarter of the box that belongs to its neighbour. */
+    lh_gl_radii_limit(lh_addr_of(result), lh_gl_radius_get_max(rect), out);
 }

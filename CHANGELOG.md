@@ -164,6 +164,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `_image`, `_scrollbar` (which reads the container it scrolls from `nodes`)
   and `_input`, each over the new `lh_gl_decl_get_rect` (the row's `x`, `y`,
   `w`, `h` as a rect).
+- `lh_gl_radii_clamp` (73 lines to 17) is composed of bricks:
+  `lh_gl_radii_inset` by 0 (none below 0), the new `lh_gl_radii_get_fit` (the
+  one CSS factor of the most over-full side, over the new scalar brick
+  `lh_gl_radii_tighten`), the new `lh_gl_radii_scale_all` (every corner by
+  `lh_gl_radii_scale`) and the new `lh_gl_radii_limit` (none past a maximum).
+  The result is the same to the bit; the round-rect and box benches are the
+  same or faster (`fill_round_rect/0/0` 690 to 597 ns).
 - `lh_gl_canvas_stroke_box` (110 lines to 73) is built from new bricks:
   `lh_gl_radii_get_max` (beside `_get_min`), `lh_gl_radii_inset` (every
   corner less a width, none below 0: the radii inside a border),

@@ -8,6 +8,7 @@
 #include <lh/gl/canvas/round.h>
 #include <lh/gl/radius.h>
 #include <lh/core/util/return.h>
+
 lh_s32_t
 lh_gl_canvas_round_left(const lh_gl_rect_t *rect)
 {

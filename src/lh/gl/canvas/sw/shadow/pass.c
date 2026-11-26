@@ -7,6 +7,7 @@
 #include <lh/gl/canvas/sw.h>
 #include <lh/core/util/return.h>
 #include <lh/core/assert.h>
+
 const lh_pixel_shadow_t *
 lh_gl_canvas_sw_shadow_pass_get_shape(const lh_gl_canvas_sw_shadow_pass_t *self)
 {
