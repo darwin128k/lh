@@ -130,6 +130,24 @@ const part m_parts[] = {
     {lh_gl_web_player_page_create_start, "if(scaleMode==='layout'){"},
 };
 
+/* The pieces a part is built from: a case of play's switch, a statement of emit or fit. */
+const part m_pieces[] = {
+    {lh_gl_web_player_page_create_play_fill_mask, "case 'fill_mask':"},
+    {lh_gl_web_player_page_create_play_fill_rect, "case 'fill_rect':"},
+    {lh_gl_web_player_page_create_play_fill_round_rect, "case 'fill_round_rect':"},
+    {lh_gl_web_player_page_create_play_clear, "case 'clear':"},
+    {lh_gl_web_player_page_create_play_shadow, "case 'shadow':"},
+    {lh_gl_web_player_page_create_emit_socket, "if(sock&&sock.readyState===1){"},
+    {lh_gl_web_player_page_create_emit_press, "if(p[0]==='p'){"},
+    {lh_gl_web_player_page_create_emit_release, "if(p[0]==='r'){"},
+    {lh_gl_web_player_page_create_emit_wheel, "if(p[0]==='w'){"},
+    {lh_gl_web_player_page_create_emit_move, "if(p[0]==='m'){"},
+    {lh_gl_web_player_page_create_emit_key, "if(p[0]==='k'){"},
+    {lh_gl_web_player_page_create_emit_text, "if(p[0]==='t'){"},
+    {lh_gl_web_player_page_create_emit_size, "if(p[0]==='z'){"},
+    {lh_gl_web_player_page_create_fit_layout, "if(scaleMode==='layout'){"},
+};
+
 } // namespace
 
 TEST(web_page, key_names_are_the_browsers)
@@ -177,6 +195,42 @@ TEST(web_page, every_part_writes_its_statement)
         const std::string first_line = item.first_line;
 
         EXPECT_EQ(text.substr(0, text.find('\n')), first_line);
+    }
+}
+
+/* Every piece writes the statement it stands for in its part, and the part writes it
+   too: a piece is the part's own text, moved into a function of its own. */
+TEST(web_page, every_piece_writes_its_statement_inside_its_part)
+{
+    const std::string play = js(lh_gl_web_player_page_create_play());
+    const std::string emit = js(lh_gl_web_player_page_create_emit());
+    const std::string fit = js(lh_gl_web_player_page_create_fit());
+
+    for (const part &item : m_pieces)
+    {
+        const std::string first_line = item.first_line;
+        const bool is_case = first_line.rfind("case ", 0) == 0;
+        lh_web_js_node_t *node = item.create();
+
+        /* A case is written only inside its switch. */
+        if (is_case)
+        {
+            node = lh_web_js_node_push_back(
+                lh_web_js_node_create_switch(lh_web_js_node_create_ident_lit("op")), node);
+        }
+        std::string text = js(node);
+        if (is_case)
+        {
+            text = text.substr(text.find('\n') + 1);
+        }
+        EXPECT_EQ(text.substr(0, text.find('\n')), first_line);
+        std::size_t head = 0;
+        for (int line = 0; line < 3 && head != std::string::npos; ++line)
+        {
+            head = text.find('\n', head + 1);
+        }
+        EXPECT_NE((play + emit + fit).find(text.substr(0, head)), std::string::npos)
+            << first_line << ": not the text of its part";
     }
 }
 

@@ -129,8 +129,32 @@ lh_web_js_node_t *lh_gl_web_player_page_create_round(lh_void);
 /** A new `function pane3d(d)`: place or hide the WebGL canvas over the 3D viewport. */
 lh_web_js_node_t *lh_gl_web_player_page_create_pane3d(lh_void);
 
+/** A new statement of `fit`: in layout mode the canvas is the frame's size - its backing store at
+ * the device pixel ratio, its CSS size, at the top left - and the 2D context is returned. */
+lh_web_js_node_t *lh_gl_web_player_page_create_fit_layout(lh_void);
+
 /** A new `function fit()`: size the canvas to the frame and the scale mode; the 2D context. */
 lh_web_js_node_t *lh_gl_web_player_page_create_fit(lh_void);
+
+/** The `case "clear":` of ::lh_gl_web_player_page_create_play's switch over the frame's ops: what
+ * the script does for that op. */
+lh_web_js_node_t *lh_gl_web_player_page_create_play_clear(lh_void);
+
+/** The `case "fill_mask":` of ::lh_gl_web_player_page_create_play's switch over the frame's ops:
+ * what the script does for that op. */
+lh_web_js_node_t *lh_gl_web_player_page_create_play_fill_mask(lh_void);
+
+/** The `case "fill_rect":` of ::lh_gl_web_player_page_create_play's switch over the frame's ops:
+ * what the script does for that op. */
+lh_web_js_node_t *lh_gl_web_player_page_create_play_fill_rect(lh_void);
+
+/** The `case "fill_round_rect":` of ::lh_gl_web_player_page_create_play's switch over the frame's
+ * ops: what the script does for that op. */
+lh_web_js_node_t *lh_gl_web_player_page_create_play_fill_round_rect(lh_void);
+
+/** The `case "shadow":` of ::lh_gl_web_player_page_create_play's switch over the frame's ops: what
+ * the script does for that op. */
+lh_web_js_node_t *lh_gl_web_player_page_create_play_shadow(lh_void);
 
 /** A new `function play(d)`: draw a frame's ops. */
 lh_web_js_node_t *lh_gl_web_player_page_create_play(lh_void);
@@ -161,6 +185,30 @@ lh_web_js_node_t *lh_gl_web_player_page_create_load(lh_void);
 
 /** A new `function poll()`: load the frame again when `/ui.rev` changes. */
 lh_web_js_node_t *lh_gl_web_player_page_create_poll(lh_void);
+
+/** A new statement of `emit`: a `k key pressed` line becomes `fetch("/ui/key?k=..&p=..")`. */
+lh_web_js_node_t *lh_gl_web_player_page_create_emit_key(lh_void);
+
+/** A new statement of `emit`: an `m x y` line becomes `fetch("/ui/move?x=..&y=..")`. */
+lh_web_js_node_t *lh_gl_web_player_page_create_emit_move(lh_void);
+
+/** A new statement of `emit`: a `p x y` line becomes `fetch("/ui/press?x=..&y=..")`. */
+lh_web_js_node_t *lh_gl_web_player_page_create_emit_press(lh_void);
+
+/** A new statement of `emit`: an `r x y` line becomes `fetch("/ui/release?x=..&y=..")`. */
+lh_web_js_node_t *lh_gl_web_player_page_create_emit_release(lh_void);
+
+/** A new statement of `emit`: a `z w h` line becomes `fetch("/ui/size?w=..&h=..")`. */
+lh_web_js_node_t *lh_gl_web_player_page_create_emit_size(lh_void);
+
+/** A new statement of `emit`: send the line over the WebSocket when it is open, and stop. */
+lh_web_js_node_t *lh_gl_web_player_page_create_emit_socket(lh_void);
+
+/** A new statement of `emit`: a `t code` line becomes `fetch("/ui/text?c=..")`. */
+lh_web_js_node_t *lh_gl_web_player_page_create_emit_text(lh_void);
+
+/** A new statement of `emit`: a `w x y dx dy` line becomes `fetch("/ui/wheel?...")`. */
+lh_web_js_node_t *lh_gl_web_player_page_create_emit_wheel(lh_void);
 
 /** A new `function emit(line)`: send an input line over the socket, or as an HTTP request. */
 lh_web_js_node_t *lh_gl_web_player_page_create_emit(lh_void);

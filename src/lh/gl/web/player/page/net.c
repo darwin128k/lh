@@ -118,126 +118,285 @@ lh_gl_web_player_page_create_poll(lh_void)
 }
 
 lh_web_js_node_t *
-lh_gl_web_player_page_create_emit(lh_void)
+lh_gl_web_player_page_create_emit_key(lh_void)
 {
-    lh_web_js_node_t *self = lh_web_js_node_create_function_declaration(lh_str_view_lit("emit"));
+    return lh_web_js_node_create_if(
+        lh_web_js_node_create_binary(
+            lh_web_js_op_strict_eq,
+            lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                        lh_web_js_node_create_number(0U)),
+            lh_web_js_node_create_string_lit("k")),
+        lh_web_js_node_push_statement(
+            lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+            lh_web_js_node_create_return(lh_web_js_node_push_back(
+                lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                    lh_web_js_node_push_back(
+                        lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("fetch")),
+                        lh_web_js_node_create_binary(
+                            lh_web_js_op_add,
+                            lh_web_js_node_create_binary(
+                                lh_web_js_op_add, lh_web_js_node_create_string_lit("/ui/key?k="),
+                                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                                            lh_web_js_node_create_number(1U))),
+                            lh_web_js_node_create_conditional(
+                                lh_web_js_node_create_binary(
+                                    lh_web_js_op_gt,
+                                    lh_web_js_node_create_member_lit(
+                                        lh_web_js_node_create_ident_lit("p"), "length"),
+                                    lh_web_js_node_create_number(2U)),
+                                lh_web_js_node_create_binary(
+                                    lh_web_js_op_add, lh_web_js_node_create_string_lit("&p="),
+                                    lh_web_js_node_create_index(
+                                        lh_web_js_node_create_ident_lit("p"),
+                                        lh_web_js_node_create_number(2U))),
+                                lh_web_js_node_create_string_lit("")))),
+                    "then")),
+                lh_web_js_node_push_statement(
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_create_function_expression(),
+                        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                            lh_web_js_op_assign, lh_web_js_node_create_ident_lit("rev"),
+                            lh_web_js_node_create_unary(lh_web_js_op_minus,
+                                                        lh_web_js_node_create_number(1U))))),
+                    lh_web_js_node_create_return(
+                        lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("load"))))))),
+        lh_null);
+}
 
-    lh_web_js_node_push_param(self, lh_str_view_lit("line"));
-    lh_web_js_node_push_statement(
-        self, lh_web_js_node_create_if(
-                  lh_web_js_node_create_binary(
-                      lh_web_js_op_and, lh_web_js_node_create_ident_lit("sock"),
-                      lh_web_js_node_create_binary(
-                          lh_web_js_op_strict_eq,
-                          lh_web_js_node_create_member_lit(lh_web_js_node_create_ident_lit("sock"),
-                                                           "readyState"),
-                          lh_web_js_node_create_number(1U))),
-                  lh_web_js_node_push_statement(
-                      lh_web_js_node_push_statement(
-                          lh_web_js_node_create_with_kind(lh_web_js_kind_block),
-                          lh_web_js_node_create_expression(lh_web_js_node_push_back(
-                              lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
-                                  lh_web_js_node_create_ident_lit("sock"), "send")),
-                              lh_web_js_node_create_ident_lit("line")))),
-                      lh_web_js_node_create_return(lh_null)),
-                  lh_null));
-    lh_web_js_node_push_statement(
-        self,
-        lh_web_js_node_create_var(
-            lh_str_view_lit("p"),
-            lh_web_js_node_push_back(lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
-                                         lh_web_js_node_create_ident_lit("line"), "split")),
-                                     lh_web_js_node_create_string_lit(" "))));
-    lh_web_js_node_push_statement(
-        self,
-        lh_web_js_node_create_if(
-            lh_web_js_node_create_binary(
-                lh_web_js_op_strict_eq,
-                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
-                                            lh_web_js_node_create_number(0U)),
-                lh_web_js_node_create_string_lit("p")),
-            lh_web_js_node_push_statement(
-                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
-                lh_web_js_node_create_return(lh_web_js_node_push_back(
-                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
-                        lh_web_js_node_push_back(
-                            lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("fetch")),
+lh_web_js_node_t *
+lh_gl_web_player_page_create_emit_move(lh_void)
+{
+    return lh_web_js_node_create_if(
+        lh_web_js_node_create_binary(
+            lh_web_js_op_strict_eq,
+            lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                        lh_web_js_node_create_number(0U)),
+            lh_web_js_node_create_string_lit("m")),
+        lh_web_js_node_push_statement(
+            lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+            lh_web_js_node_create_return(lh_web_js_node_push_back(
+                lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                    lh_web_js_node_push_back(
+                        lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("fetch")),
+                        lh_web_js_node_create_binary(
+                            lh_web_js_op_add,
                             lh_web_js_node_create_binary(
                                 lh_web_js_op_add,
                                 lh_web_js_node_create_binary(
                                     lh_web_js_op_add,
-                                    lh_web_js_node_create_binary(
-                                        lh_web_js_op_add,
-                                        lh_web_js_node_create_string_lit("/ui/press?x="),
-                                        lh_web_js_node_create_index(
-                                            lh_web_js_node_create_ident_lit("p"),
-                                            lh_web_js_node_create_number(1U))),
-                                    lh_web_js_node_create_string_lit("&y=")),
-                                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
-                                                            lh_web_js_node_create_number(2U)))),
-                        "then")),
+                                    lh_web_js_node_create_string_lit("/ui/move?x="),
+                                    lh_web_js_node_create_index(
+                                        lh_web_js_node_create_ident_lit("p"),
+                                        lh_web_js_node_create_number(1U))),
+                                lh_web_js_node_create_string_lit("&y=")),
+                            lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                                        lh_web_js_node_create_number(2U)))),
+                    "then")),
+                lh_web_js_node_push_statement(
                     lh_web_js_node_push_statement(
-                        lh_web_js_node_push_statement(
-                            lh_web_js_node_create_function_expression(),
-                            lh_web_js_node_create_expression(lh_web_js_node_create_assign(
-                                lh_web_js_op_assign, lh_web_js_node_create_ident_lit("rev"),
-                                lh_web_js_node_create_unary(lh_web_js_op_minus,
-                                                            lh_web_js_node_create_number(1U))))),
-                        lh_web_js_node_create_return(lh_web_js_node_create_call(
-                            lh_web_js_node_create_ident_lit("load"))))))),
-            lh_null));
-    lh_web_js_node_push_statement(
-        self,
-        lh_web_js_node_create_if(
-            lh_web_js_node_create_binary(
-                lh_web_js_op_strict_eq,
-                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
-                                            lh_web_js_node_create_number(0U)),
-                lh_web_js_node_create_string_lit("r")),
-            lh_web_js_node_push_statement(
-                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
-                lh_web_js_node_create_return(lh_web_js_node_push_back(
-                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
-                        lh_web_js_node_push_back(
-                            lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("fetch")),
+                        lh_web_js_node_create_function_expression(),
+                        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                            lh_web_js_op_assign, lh_web_js_node_create_ident_lit("rev"),
+                            lh_web_js_node_create_unary(lh_web_js_op_minus,
+                                                        lh_web_js_node_create_number(1U))))),
+                    lh_web_js_node_create_return(
+                        lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("load"))))))),
+        lh_null);
+}
+
+lh_web_js_node_t *
+lh_gl_web_player_page_create_emit_press(lh_void)
+{
+    return lh_web_js_node_create_if(
+        lh_web_js_node_create_binary(
+            lh_web_js_op_strict_eq,
+            lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                        lh_web_js_node_create_number(0U)),
+            lh_web_js_node_create_string_lit("p")),
+        lh_web_js_node_push_statement(
+            lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+            lh_web_js_node_create_return(lh_web_js_node_push_back(
+                lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                    lh_web_js_node_push_back(
+                        lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("fetch")),
+                        lh_web_js_node_create_binary(
+                            lh_web_js_op_add,
                             lh_web_js_node_create_binary(
                                 lh_web_js_op_add,
                                 lh_web_js_node_create_binary(
                                     lh_web_js_op_add,
-                                    lh_web_js_node_create_binary(
-                                        lh_web_js_op_add,
-                                        lh_web_js_node_create_string_lit("/ui/release?x="),
-                                        lh_web_js_node_create_index(
-                                            lh_web_js_node_create_ident_lit("p"),
-                                            lh_web_js_node_create_number(1U))),
-                                    lh_web_js_node_create_string_lit("&y=")),
-                                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
-                                                            lh_web_js_node_create_number(2U)))),
-                        "then")),
+                                    lh_web_js_node_create_string_lit("/ui/press?x="),
+                                    lh_web_js_node_create_index(
+                                        lh_web_js_node_create_ident_lit("p"),
+                                        lh_web_js_node_create_number(1U))),
+                                lh_web_js_node_create_string_lit("&y=")),
+                            lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                                        lh_web_js_node_create_number(2U)))),
+                    "then")),
+                lh_web_js_node_push_statement(
                     lh_web_js_node_push_statement(
-                        lh_web_js_node_push_statement(
-                            lh_web_js_node_create_function_expression(),
-                            lh_web_js_node_create_expression(lh_web_js_node_create_assign(
-                                lh_web_js_op_assign, lh_web_js_node_create_ident_lit("rev"),
-                                lh_web_js_node_create_unary(lh_web_js_op_minus,
-                                                            lh_web_js_node_create_number(1U))))),
-                        lh_web_js_node_create_return(lh_web_js_node_create_call(
-                            lh_web_js_node_create_ident_lit("load"))))))),
-            lh_null));
-    lh_web_js_node_push_statement(
-        self,
-        lh_web_js_node_create_if(
-            lh_web_js_node_create_binary(
-                lh_web_js_op_strict_eq,
-                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
-                                            lh_web_js_node_create_number(0U)),
-                lh_web_js_node_create_string_lit("w")),
+                        lh_web_js_node_create_function_expression(),
+                        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                            lh_web_js_op_assign, lh_web_js_node_create_ident_lit("rev"),
+                            lh_web_js_node_create_unary(lh_web_js_op_minus,
+                                                        lh_web_js_node_create_number(1U))))),
+                    lh_web_js_node_create_return(
+                        lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("load"))))))),
+        lh_null);
+}
+
+lh_web_js_node_t *
+lh_gl_web_player_page_create_emit_release(lh_void)
+{
+    return lh_web_js_node_create_if(
+        lh_web_js_node_create_binary(
+            lh_web_js_op_strict_eq,
+            lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                        lh_web_js_node_create_number(0U)),
+            lh_web_js_node_create_string_lit("r")),
+        lh_web_js_node_push_statement(
+            lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+            lh_web_js_node_create_return(lh_web_js_node_push_back(
+                lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                    lh_web_js_node_push_back(
+                        lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("fetch")),
+                        lh_web_js_node_create_binary(
+                            lh_web_js_op_add,
+                            lh_web_js_node_create_binary(
+                                lh_web_js_op_add,
+                                lh_web_js_node_create_binary(
+                                    lh_web_js_op_add,
+                                    lh_web_js_node_create_string_lit("/ui/release?x="),
+                                    lh_web_js_node_create_index(
+                                        lh_web_js_node_create_ident_lit("p"),
+                                        lh_web_js_node_create_number(1U))),
+                                lh_web_js_node_create_string_lit("&y=")),
+                            lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                                        lh_web_js_node_create_number(2U)))),
+                    "then")),
+                lh_web_js_node_push_statement(
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_create_function_expression(),
+                        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                            lh_web_js_op_assign, lh_web_js_node_create_ident_lit("rev"),
+                            lh_web_js_node_create_unary(lh_web_js_op_minus,
+                                                        lh_web_js_node_create_number(1U))))),
+                    lh_web_js_node_create_return(
+                        lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("load"))))))),
+        lh_null);
+}
+
+lh_web_js_node_t *
+lh_gl_web_player_page_create_emit_size(lh_void)
+{
+    return lh_web_js_node_create_if(
+        lh_web_js_node_create_binary(
+            lh_web_js_op_strict_eq,
+            lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                        lh_web_js_node_create_number(0U)),
+            lh_web_js_node_create_string_lit("z")),
+        lh_web_js_node_push_statement(
+            lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+            lh_web_js_node_create_return(lh_web_js_node_push_back(
+                lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                    lh_web_js_node_push_back(
+                        lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("fetch")),
+                        lh_web_js_node_create_binary(
+                            lh_web_js_op_add,
+                            lh_web_js_node_create_binary(
+                                lh_web_js_op_add,
+                                lh_web_js_node_create_binary(
+                                    lh_web_js_op_add,
+                                    lh_web_js_node_create_string_lit("/ui/size?w="),
+                                    lh_web_js_node_create_index(
+                                        lh_web_js_node_create_ident_lit("p"),
+                                        lh_web_js_node_create_number(1U))),
+                                lh_web_js_node_create_string_lit("&h=")),
+                            lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                                        lh_web_js_node_create_number(2U)))),
+                    "then")),
+                lh_web_js_node_push_statement(
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_create_function_expression(),
+                        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                            lh_web_js_op_assign, lh_web_js_node_create_ident_lit("rev"),
+                            lh_web_js_node_create_unary(lh_web_js_op_minus,
+                                                        lh_web_js_node_create_number(1U))))),
+                    lh_web_js_node_create_return(
+                        lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("load"))))))),
+        lh_null);
+}
+
+lh_web_js_node_t *
+lh_gl_web_player_page_create_emit_socket(lh_void)
+{
+    return lh_web_js_node_create_if(
+        lh_web_js_node_create_binary(
+            lh_web_js_op_and, lh_web_js_node_create_ident_lit("sock"),
+            lh_web_js_node_create_binary(lh_web_js_op_strict_eq,
+                                         lh_web_js_node_create_member_lit(
+                                             lh_web_js_node_create_ident_lit("sock"), "readyState"),
+                                         lh_web_js_node_create_number(1U))),
+        lh_web_js_node_push_statement(
             lh_web_js_node_push_statement(
                 lh_web_js_node_create_with_kind(lh_web_js_kind_block),
-                lh_web_js_node_create_return(lh_web_js_node_push_back(
+                lh_web_js_node_create_expression(lh_web_js_node_push_back(
                     lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
-                        lh_web_js_node_push_back(
-                            lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("fetch")),
+                        lh_web_js_node_create_ident_lit("sock"), "send")),
+                    lh_web_js_node_create_ident_lit("line")))),
+            lh_web_js_node_create_return(lh_null)),
+        lh_null);
+}
+
+lh_web_js_node_t *
+lh_gl_web_player_page_create_emit_text(lh_void)
+{
+    return lh_web_js_node_create_if(
+        lh_web_js_node_create_binary(
+            lh_web_js_op_strict_eq,
+            lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                        lh_web_js_node_create_number(0U)),
+            lh_web_js_node_create_string_lit("t")),
+        lh_web_js_node_push_statement(
+            lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+            lh_web_js_node_create_return(lh_web_js_node_push_back(
+                lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                    lh_web_js_node_push_back(
+                        lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("fetch")),
+                        lh_web_js_node_create_binary(
+                            lh_web_js_op_add, lh_web_js_node_create_string_lit("/ui/text?c="),
+                            lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                                        lh_web_js_node_create_number(1U)))),
+                    "then")),
+                lh_web_js_node_push_statement(
+                    lh_web_js_node_push_statement(
+                        lh_web_js_node_create_function_expression(),
+                        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                            lh_web_js_op_assign, lh_web_js_node_create_ident_lit("rev"),
+                            lh_web_js_node_create_unary(lh_web_js_op_minus,
+                                                        lh_web_js_node_create_number(1U))))),
+                    lh_web_js_node_create_return(
+                        lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("load"))))))),
+        lh_null);
+}
+
+lh_web_js_node_t *
+lh_gl_web_player_page_create_emit_wheel(lh_void)
+{
+    return lh_web_js_node_create_if(
+        lh_web_js_node_create_binary(
+            lh_web_js_op_strict_eq,
+            lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                        lh_web_js_node_create_number(0U)),
+            lh_web_js_node_create_string_lit("w")),
+        lh_web_js_node_push_statement(
+            lh_web_js_node_create_with_kind(lh_web_js_kind_block),
+            lh_web_js_node_create_return(lh_web_js_node_push_back(
+                lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                    lh_web_js_node_push_back(
+                        lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("fetch")),
+                        lh_web_js_node_create_binary(
+                            lh_web_js_op_add,
                             lh_web_js_node_create_binary(
                                 lh_web_js_op_add,
                                 lh_web_js_node_create_binary(
@@ -250,186 +409,33 @@ lh_gl_web_player_page_create_emit(lh_void)
                                                 lh_web_js_op_add,
                                                 lh_web_js_node_create_binary(
                                                     lh_web_js_op_add,
-                                                    lh_web_js_node_create_binary(
-                                                        lh_web_js_op_add,
-                                                        lh_web_js_node_create_string_lit(
-                                                            "/ui/wheel?x="),
-                                                        lh_web_js_node_create_index(
-                                                            lh_web_js_node_create_ident_lit("p"),
-                                                            lh_web_js_node_create_number(1U))),
-                                                    lh_web_js_node_create_string_lit("&y=")),
-                                                lh_web_js_node_create_index(
-                                                    lh_web_js_node_create_ident_lit("p"),
-                                                    lh_web_js_node_create_number(2U))),
-                                            lh_web_js_node_create_string_lit("&dx=")),
-                                        lh_web_js_node_create_index(
-                                            lh_web_js_node_create_ident_lit("p"),
-                                            lh_web_js_node_create_number(3U))),
-                                    lh_web_js_node_create_string_lit("&dy=")),
-                                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
-                                                            lh_web_js_node_create_number(4U)))),
-                        "then")),
-                    lh_web_js_node_push_statement(
-                        lh_web_js_node_push_statement(
-                            lh_web_js_node_create_function_expression(),
-                            lh_web_js_node_create_expression(lh_web_js_node_create_assign(
-                                lh_web_js_op_assign, lh_web_js_node_create_ident_lit("rev"),
-                                lh_web_js_node_create_unary(lh_web_js_op_minus,
-                                                            lh_web_js_node_create_number(1U))))),
-                        lh_web_js_node_create_return(lh_web_js_node_create_call(
-                            lh_web_js_node_create_ident_lit("load"))))))),
-            lh_null));
-    lh_web_js_node_push_statement(
-        self,
-        lh_web_js_node_create_if(
-            lh_web_js_node_create_binary(
-                lh_web_js_op_strict_eq,
-                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
-                                            lh_web_js_node_create_number(0U)),
-                lh_web_js_node_create_string_lit("m")),
-            lh_web_js_node_push_statement(
-                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
-                lh_web_js_node_create_return(lh_web_js_node_push_back(
-                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
-                        lh_web_js_node_push_back(
-                            lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("fetch")),
-                            lh_web_js_node_create_binary(
-                                lh_web_js_op_add,
-                                lh_web_js_node_create_binary(
-                                    lh_web_js_op_add,
-                                    lh_web_js_node_create_binary(
-                                        lh_web_js_op_add,
-                                        lh_web_js_node_create_string_lit("/ui/move?x="),
-                                        lh_web_js_node_create_index(
-                                            lh_web_js_node_create_ident_lit("p"),
-                                            lh_web_js_node_create_number(1U))),
-                                    lh_web_js_node_create_string_lit("&y=")),
-                                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
-                                                            lh_web_js_node_create_number(2U)))),
-                        "then")),
-                    lh_web_js_node_push_statement(
-                        lh_web_js_node_push_statement(
-                            lh_web_js_node_create_function_expression(),
-                            lh_web_js_node_create_expression(lh_web_js_node_create_assign(
-                                lh_web_js_op_assign, lh_web_js_node_create_ident_lit("rev"),
-                                lh_web_js_node_create_unary(lh_web_js_op_minus,
-                                                            lh_web_js_node_create_number(1U))))),
-                        lh_web_js_node_create_return(lh_web_js_node_create_call(
-                            lh_web_js_node_create_ident_lit("load"))))))),
-            lh_null));
-    lh_web_js_node_push_statement(
-        self,
-        lh_web_js_node_create_if(
-            lh_web_js_node_create_binary(
-                lh_web_js_op_strict_eq,
-                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
-                                            lh_web_js_node_create_number(0U)),
-                lh_web_js_node_create_string_lit("k")),
-            lh_web_js_node_push_statement(
-                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
-                lh_web_js_node_create_return(lh_web_js_node_push_back(
-                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
-                        lh_web_js_node_push_back(
-                            lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("fetch")),
-                            lh_web_js_node_create_binary(
-                                lh_web_js_op_add,
-                                lh_web_js_node_create_binary(
-                                    lh_web_js_op_add,
-                                    lh_web_js_node_create_string_lit("/ui/key?k="),
+                                                    lh_web_js_node_create_string_lit(
+                                                        "/ui/wheel?x="),
+                                                    lh_web_js_node_create_index(
+                                                        lh_web_js_node_create_ident_lit("p"),
+                                                        lh_web_js_node_create_number(1U))),
+                                                lh_web_js_node_create_string_lit("&y=")),
+                                            lh_web_js_node_create_index(
+                                                lh_web_js_node_create_ident_lit("p"),
+                                                lh_web_js_node_create_number(2U))),
+                                        lh_web_js_node_create_string_lit("&dx=")),
                                     lh_web_js_node_create_index(
                                         lh_web_js_node_create_ident_lit("p"),
-                                        lh_web_js_node_create_number(1U))),
-                                lh_web_js_node_create_conditional(
-                                    lh_web_js_node_create_binary(
-                                        lh_web_js_op_gt,
-                                        lh_web_js_node_create_member_lit(
-                                            lh_web_js_node_create_ident_lit("p"), "length"),
-                                        lh_web_js_node_create_number(2U)),
-                                    lh_web_js_node_create_binary(
-                                        lh_web_js_op_add, lh_web_js_node_create_string_lit("&p="),
-                                        lh_web_js_node_create_index(
-                                            lh_web_js_node_create_ident_lit("p"),
-                                            lh_web_js_node_create_number(2U))),
-                                    lh_web_js_node_create_string_lit("")))),
-                        "then")),
+                                        lh_web_js_node_create_number(3U))),
+                                lh_web_js_node_create_string_lit("&dy=")),
+                            lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
+                                                        lh_web_js_node_create_number(4U)))),
+                    "then")),
+                lh_web_js_node_push_statement(
                     lh_web_js_node_push_statement(
-                        lh_web_js_node_push_statement(
-                            lh_web_js_node_create_function_expression(),
-                            lh_web_js_node_create_expression(lh_web_js_node_create_assign(
-                                lh_web_js_op_assign, lh_web_js_node_create_ident_lit("rev"),
-                                lh_web_js_node_create_unary(lh_web_js_op_minus,
-                                                            lh_web_js_node_create_number(1U))))),
-                        lh_web_js_node_create_return(lh_web_js_node_create_call(
-                            lh_web_js_node_create_ident_lit("load"))))))),
-            lh_null));
-    lh_web_js_node_push_statement(
-        self,
-        lh_web_js_node_create_if(
-            lh_web_js_node_create_binary(
-                lh_web_js_op_strict_eq,
-                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
-                                            lh_web_js_node_create_number(0U)),
-                lh_web_js_node_create_string_lit("t")),
-            lh_web_js_node_push_statement(
-                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
-                lh_web_js_node_create_return(lh_web_js_node_push_back(
-                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
-                        lh_web_js_node_push_back(
-                            lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("fetch")),
-                            lh_web_js_node_create_binary(
-                                lh_web_js_op_add, lh_web_js_node_create_string_lit("/ui/text?c="),
-                                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
-                                                            lh_web_js_node_create_number(1U)))),
-                        "then")),
-                    lh_web_js_node_push_statement(
-                        lh_web_js_node_push_statement(
-                            lh_web_js_node_create_function_expression(),
-                            lh_web_js_node_create_expression(lh_web_js_node_create_assign(
-                                lh_web_js_op_assign, lh_web_js_node_create_ident_lit("rev"),
-                                lh_web_js_node_create_unary(lh_web_js_op_minus,
-                                                            lh_web_js_node_create_number(1U))))),
-                        lh_web_js_node_create_return(lh_web_js_node_create_call(
-                            lh_web_js_node_create_ident_lit("load"))))))),
-            lh_null));
-    lh_web_js_node_push_statement(
-        self,
-        lh_web_js_node_create_if(
-            lh_web_js_node_create_binary(
-                lh_web_js_op_strict_eq,
-                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
-                                            lh_web_js_node_create_number(0U)),
-                lh_web_js_node_create_string_lit("z")),
-            lh_web_js_node_push_statement(
-                lh_web_js_node_create_with_kind(lh_web_js_kind_block),
-                lh_web_js_node_create_return(lh_web_js_node_push_back(
-                    lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
-                        lh_web_js_node_push_back(
-                            lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("fetch")),
-                            lh_web_js_node_create_binary(
-                                lh_web_js_op_add,
-                                lh_web_js_node_create_binary(
-                                    lh_web_js_op_add,
-                                    lh_web_js_node_create_binary(
-                                        lh_web_js_op_add,
-                                        lh_web_js_node_create_string_lit("/ui/size?w="),
-                                        lh_web_js_node_create_index(
-                                            lh_web_js_node_create_ident_lit("p"),
-                                            lh_web_js_node_create_number(1U))),
-                                    lh_web_js_node_create_string_lit("&h=")),
-                                lh_web_js_node_create_index(lh_web_js_node_create_ident_lit("p"),
-                                                            lh_web_js_node_create_number(2U)))),
-                        "then")),
-                    lh_web_js_node_push_statement(
-                        lh_web_js_node_push_statement(
-                            lh_web_js_node_create_function_expression(),
-                            lh_web_js_node_create_expression(lh_web_js_node_create_assign(
-                                lh_web_js_op_assign, lh_web_js_node_create_ident_lit("rev"),
-                                lh_web_js_node_create_unary(lh_web_js_op_minus,
-                                                            lh_web_js_node_create_number(1U))))),
-                        lh_web_js_node_create_return(lh_web_js_node_create_call(
-                            lh_web_js_node_create_ident_lit("load"))))))),
-            lh_null));
-    return self;
+                        lh_web_js_node_create_function_expression(),
+                        lh_web_js_node_create_expression(lh_web_js_node_create_assign(
+                            lh_web_js_op_assign, lh_web_js_node_create_ident_lit("rev"),
+                            lh_web_js_node_create_unary(lh_web_js_op_minus,
+                                                        lh_web_js_node_create_number(1U))))),
+                    lh_web_js_node_create_return(
+                        lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("load"))))))),
+        lh_null);
 }
 
 lh_web_js_node_t *
@@ -739,4 +745,28 @@ lh_gl_web_player_page_create_start(lh_void)
                     lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("load")))),
             lh_web_js_node_create_expression(
                 lh_web_js_node_create_call(lh_web_js_node_create_ident_lit("openWs")))));
+}
+
+lh_web_js_node_t *
+lh_gl_web_player_page_create_emit(lh_void)
+{
+    lh_web_js_node_t *self = lh_web_js_node_create_function_declaration(lh_str_view_lit("emit"));
+
+    lh_web_js_node_push_param(self, lh_str_view_lit("line"));
+    lh_web_js_node_push_statement(self, lh_gl_web_player_page_create_emit_socket());
+    lh_web_js_node_push_statement(
+        self,
+        lh_web_js_node_create_var(
+            lh_str_view_lit("p"),
+            lh_web_js_node_push_back(lh_web_js_node_create_call(lh_web_js_node_create_member_lit(
+                                         lh_web_js_node_create_ident_lit("line"), "split")),
+                                     lh_web_js_node_create_string_lit(" "))));
+    lh_web_js_node_push_statement(self, lh_gl_web_player_page_create_emit_press());
+    lh_web_js_node_push_statement(self, lh_gl_web_player_page_create_emit_release());
+    lh_web_js_node_push_statement(self, lh_gl_web_player_page_create_emit_wheel());
+    lh_web_js_node_push_statement(self, lh_gl_web_player_page_create_emit_move());
+    lh_web_js_node_push_statement(self, lh_gl_web_player_page_create_emit_key());
+    lh_web_js_node_push_statement(self, lh_gl_web_player_page_create_emit_text());
+    lh_web_js_node_push_statement(self, lh_gl_web_player_page_create_emit_size());
+    return self;
 }

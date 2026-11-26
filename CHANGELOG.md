@@ -140,6 +140,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   class. Nothing public changes. The places where a higher level came before a
   lower one go from 26 to 8, all of them the recursions of the walk, the hit
   test and the draw.
+- The three largest script parts of the player page are built from pieces of
+  their own, each a public function with its declaration in
+  `lh/gl/web/player/page.h`: `lh_gl_web_player_page_create_play` (448 lines to
+  99) from one function per case of its switch over the frame's ops
+  (`_create_play_fill_mask`, `_fill_rect`, `_fill_round_rect`, `_clear`,
+  `_shadow`); `lh_gl_web_player_page_create_emit` (312 to 21) from one per line
+  it falls back to HTTP for (`_create_emit_press`, `_release`, `_wheel`,
+  `_move`, `_key`, `_text`, `_size`) and the WebSocket send
+  (`_create_emit_socket`); `lh_gl_web_player_page_create_fit` (352 to 212) with
+  its layout-mode branch in `_create_fit_layout`. The page they write is the
+  same byte for byte (9410 bytes, compared before and after); a test checks
+  that every piece writes its statement and that the statement is its part's
+  own text.
 - `src/lh/gl/web/player/page.c` (3430 lines, the player's page built as a
   script tree) is split into `src/lh/gl/web/player/page/`: `keys.c` (the
   browser's key names with their table and its static check, the modifiers,
