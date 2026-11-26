@@ -240,30 +240,30 @@ fill_rows(scene &s, lh_gl_decl_t *rows)
     {
         rows[i] = g_rows[i];
     }
-    rows[2].as.label.text = "row one";
-    rows[3].as.label.text = "row two";
-    rows[4].as.button.on_click = count_click;
-    rows[6].as.label.text = "Hide panel";
-    rows[7].as.scrollbar.box = 1;
-    rows[7].as.scrollbar.axis = lh_gl_axis_vertical;
-    rows[7].as.scrollbar.mode = lh_gl_scrollbar_mode_always;
-    rows[0].style = &s.root_style;
-    rows[1].style = &s.card_style;
-    rows[1].layout = &s.column;
-    rows[2].place = &s.fixed20;
-    rows[3].place = &s.fixed20;
-    rows[4].style = &s.action_style;
-    rows[4].layout = &s.button_flow;
-    rows[4].as.button.hot_style = &s.action_hot_style;
-    rows[5].place = &s.wrap_center;
-    rows[5].as.image.mask = &s.mask;
-    rows[5].as.image.tint = &s.ink;
-    rows[6].style = &s.text_style;
-    rows[6].place = &s.wrap_center;
-    rows[8].as.toggle.off_style = &s.card_style;
-    rows[8].as.toggle.off_hot_style = &s.action_style;
-    rows[8].as.toggle.on_style = &s.action_style;
-    rows[8].as.toggle.on_hot_style = &s.action_hot_style;
+    lh_gl_decl_set_label_text(&rows[2], "row one");
+    lh_gl_decl_set_label_text(&rows[3], "row two");
+    lh_gl_decl_set_button_on_click(&rows[4], count_click);
+    lh_gl_decl_set_label_text(&rows[6], "Hide panel");
+    lh_gl_decl_set_scrollbar_box(&rows[7], 1);
+    lh_gl_decl_set_scrollbar_axis(&rows[7], lh_gl_axis_vertical);
+    lh_gl_decl_set_scrollbar_mode(&rows[7], lh_gl_scrollbar_mode_always);
+    lh_gl_decl_set_style(&rows[0], &s.root_style);
+    lh_gl_decl_set_style(&rows[1], &s.card_style);
+    lh_gl_decl_set_layout(&rows[1], &s.column);
+    lh_gl_decl_set_place(&rows[2], &s.fixed20);
+    lh_gl_decl_set_place(&rows[3], &s.fixed20);
+    lh_gl_decl_set_style(&rows[4], &s.action_style);
+    lh_gl_decl_set_layout(&rows[4], &s.button_flow);
+    lh_gl_decl_set_button_hot_style(&rows[4], &s.action_hot_style);
+    lh_gl_decl_set_place(&rows[5], &s.wrap_center);
+    lh_gl_decl_set_image_mask(&rows[5], &s.mask);
+    lh_gl_decl_set_image_tint(&rows[5], &s.ink);
+    lh_gl_decl_set_style(&rows[6], &s.text_style);
+    lh_gl_decl_set_place(&rows[6], &s.wrap_center);
+    lh_gl_decl_set_toggle_off_style(&rows[8], &s.card_style);
+    lh_gl_decl_set_toggle_off_hot_style(&rows[8], &s.action_style);
+    lh_gl_decl_set_toggle_on_style(&rows[8], &s.action_style);
+    lh_gl_decl_set_toggle_on_hot_style(&rows[8], &s.action_hot_style);
 }
 
 lh_byte_t g_storage[k_rows * (int)LH_GL_DECL_NODE_MAX];
@@ -301,7 +301,8 @@ TEST(ui_decl, a_tree_from_a_table_is_the_tree_written_by_hand)
     scene decl_materials;
     ASSERT_TRUE(build_by_decl(decl_materials, decl_nodes, &decl_root, &decl_canvas, &fault) !=
                 lh_bool_false)
-        << "the declaration was refused: code " << (int)fault.code << " row " << (int)fault.index;
+        << "the declaration was refused: code " << (int)lh_gl_decl_fault_get_code(&fault) << " row "
+        << (int)lh_gl_decl_fault_get_index(&fault);
     built hand;
     snapshot(&hand, hand_nodes, hand_root, &tree.canvas);
     built from_decl;
@@ -359,13 +360,14 @@ TEST(ui_decl, a_child_cannot_be_declared_before_the_thing_that_holds_it)
 
     scene materials;
     fill_rows(materials, rows);
-    rows[2].parent = 4; /* row 2 claims a parent that is declared after it */
+    lh_gl_decl_set_parent(&rows[2], 4); /* row 2 claims a parent that is declared after it */
 
     lh_gl_decl_fault_t fault;
     EXPECT_FALSE(lh_gl_decl_build(rows, k_rows, nodes, g_storage, (lh_u32_t)sizeof(g_storage), &root,
                                   &fault) == lh_bool_true);
-    EXPECT_EQ(fault.code, lh_gl_decl_error_parent);
-    EXPECT_EQ(fault.index, 2u) << "the refusal did not name the row that is wrong";
+    EXPECT_EQ(lh_gl_decl_fault_get_code(&fault), lh_gl_decl_error_parent);
+    EXPECT_EQ(lh_gl_decl_fault_get_index(&fault), 2u)
+        << "the refusal did not name the row that is wrong";
 }
 
 TEST(ui_decl, a_table_with_no_root_is_not_a_tree)
@@ -374,15 +376,16 @@ TEST(ui_decl, a_table_with_no_root_is_not_a_tree)
     lh_gl_entity_t *root = nullptr;
     lh_gl_decl_t rows[2] = {};
 
-    rows[0].kind = lh_gl_decl_kind_entity;
-    rows[0].parent = LH_GL_DECL_ROOT;
-    rows[1].kind = lh_gl_decl_kind_label;
-    rows[1].parent = LH_GL_DECL_ROOT; /* two roots: not a mistake a build can guess at */
+    lh_gl_decl_set_kind(&rows[0], lh_gl_decl_kind_entity);
+    lh_gl_decl_set_parent(&rows[0], LH_GL_DECL_ROOT);
+    lh_gl_decl_set_kind(&rows[1], lh_gl_decl_kind_label);
+    lh_gl_decl_set_parent(&rows[1],
+                          LH_GL_DECL_ROOT); /* two roots: not a mistake a build can guess at */
 
     lh_gl_decl_fault_t fault;
     EXPECT_FALSE(lh_gl_decl_build(rows, 2, nodes, g_storage, (lh_u32_t)sizeof(g_storage), &root,
                                   &fault) == lh_bool_true);
-    EXPECT_EQ(fault.code, lh_gl_decl_error_roots);
+    EXPECT_EQ(lh_gl_decl_fault_get_code(&fault), lh_gl_decl_error_roots);
 }
 
 TEST(ui_decl, a_pool_too_small_for_the_rows_is_refused_not_overrun)
@@ -399,7 +402,8 @@ TEST(ui_decl, a_pool_too_small_for_the_rows_is_refused_not_overrun)
     lh_byte_t small[k_rows * 16];
     EXPECT_FALSE(lh_gl_decl_build(rows, k_rows, nodes, small, (lh_u32_t)sizeof(small), &root,
                                   &fault) == lh_bool_true);
-    EXPECT_EQ(fault.code, lh_gl_decl_error_storage) << "the pool was written past instead of refused";
+    EXPECT_EQ(lh_gl_decl_fault_get_code(&fault), lh_gl_decl_error_storage)
+        << "the pool was written past instead of refused";
 }
 
 TEST(ui_decl, a_scrollbar_naming_a_row_that_is_not_a_container_is_refused)
@@ -410,13 +414,13 @@ TEST(ui_decl, a_scrollbar_naming_a_row_that_is_not_a_container_is_refused)
 
     scene materials;
     fill_rows(materials, rows);
-    rows[7].as.scrollbar.box = 5; /* row 5 is a picture, not a container */
+    lh_gl_decl_set_scrollbar_box(&rows[7], 5); /* row 5 is a picture, not a container */
 
     lh_gl_decl_fault_t fault;
     EXPECT_FALSE(lh_gl_decl_build(rows, k_rows, nodes, g_storage, (lh_u32_t)sizeof(g_storage), &root,
                                   &fault) == lh_bool_true);
-    EXPECT_EQ(fault.code, lh_gl_decl_error_box);
-    EXPECT_EQ(fault.index, 7u);
+    EXPECT_EQ(lh_gl_decl_fault_get_code(&fault), lh_gl_decl_error_box);
+    EXPECT_EQ(lh_gl_decl_fault_get_index(&fault), 7u);
 }
 
 TEST(ui_decl, an_unknown_kind_is_refused_with_its_row)
@@ -425,14 +429,14 @@ TEST(ui_decl, an_unknown_kind_is_refused_with_its_row)
     lh_gl_entity_t *root = nullptr;
     lh_gl_decl_t rows[1] = {};
 
-    rows[0].kind = (lh_gl_decl_kind_t)42;
-    rows[0].parent = LH_GL_DECL_ROOT;
+    lh_gl_decl_set_kind(&rows[0], (lh_gl_decl_kind_t)42);
+    lh_gl_decl_set_parent(&rows[0], LH_GL_DECL_ROOT);
 
     lh_gl_decl_fault_t fault;
     EXPECT_FALSE(lh_gl_decl_build(rows, 1, nodes, g_storage, (lh_u32_t)sizeof(g_storage), &root,
                                   &fault) == lh_bool_true);
-    EXPECT_EQ(fault.code, lh_gl_decl_error_kind);
-    EXPECT_EQ(fault.index, 0u);
+    EXPECT_EQ(lh_gl_decl_fault_get_code(&fault), lh_gl_decl_error_kind);
+    EXPECT_EQ(lh_gl_decl_fault_get_index(&fault), 0u);
 }
 
 TEST(ui_decl, a_hidden_row_is_built_hidden_and_the_rest_are_not)
@@ -441,13 +445,13 @@ TEST(ui_decl, a_hidden_row_is_built_hidden_and_the_rest_are_not)
     lh_gl_entity_t *root = nullptr;
     lh_gl_decl_t rows[2] = {};
 
-    rows[0].kind = lh_gl_decl_kind_container;
-    rows[0].parent = LH_GL_DECL_ROOT;
-    rows[0].w = 100;
-    rows[0].h = 100;
-    rows[1].kind = lh_gl_decl_kind_entity;
-    rows[1].parent = 0;
-    rows[1].hidden = lh_bool_true;
+    lh_gl_decl_set_kind(&rows[0], lh_gl_decl_kind_container);
+    lh_gl_decl_set_parent(&rows[0], LH_GL_DECL_ROOT);
+    lh_gl_decl_set_w(&rows[0], 100);
+    lh_gl_decl_set_h(&rows[0], 100);
+    lh_gl_decl_set_kind(&rows[1], lh_gl_decl_kind_entity);
+    lh_gl_decl_set_parent(&rows[1], 0);
+    lh_gl_decl_set_hidden(&rows[1], lh_bool_true);
 
     lh_gl_decl_fault_t fault;
     ASSERT_TRUE(lh_gl_decl_build(rows, 2, nodes, g_storage, (lh_u32_t)sizeof(g_storage), &root, &fault) ==
@@ -463,17 +467,17 @@ TEST(ui_decl, an_input_row_edits_the_buffer_it_names_and_starts_with_its_text)
     lh_gl_decl_t rows[2] = {};
     static lh_char_t buffer[9];
 
-    rows[0].kind = lh_gl_decl_kind_container;
-    rows[0].parent = LH_GL_DECL_ROOT;
-    rows[0].w = 100;
-    rows[0].h = 100;
-    rows[1].kind = lh_gl_decl_kind_input;
-    rows[1].parent = 0;
-    rows[1].w = 80;
-    rows[1].h = 20;
-    rows[1].as.input.buffer = buffer;
-    rows[1].as.input.capacity = 8;
-    rows[1].as.input.text = "hello";
+    lh_gl_decl_set_kind(&rows[0], lh_gl_decl_kind_container);
+    lh_gl_decl_set_parent(&rows[0], LH_GL_DECL_ROOT);
+    lh_gl_decl_set_w(&rows[0], 100);
+    lh_gl_decl_set_h(&rows[0], 100);
+    lh_gl_decl_set_kind(&rows[1], lh_gl_decl_kind_input);
+    lh_gl_decl_set_parent(&rows[1], 0);
+    lh_gl_decl_set_w(&rows[1], 80);
+    lh_gl_decl_set_h(&rows[1], 20);
+    lh_gl_decl_set_input_buffer(&rows[1], buffer);
+    lh_gl_decl_set_input_capacity(&rows[1], 8);
+    lh_gl_decl_set_input_text(&rows[1], "hello");
 
     lh_gl_decl_fault_t fault;
     ASSERT_TRUE(lh_gl_decl_build(rows, 2, nodes, g_storage, (lh_u32_t)sizeof(g_storage), &root, &fault) ==
@@ -491,10 +495,10 @@ TEST(ui_decl, the_measure_is_the_widgets_end_to_end_and_places_nothing)
     lh_gl_decl_t rows[2] = {};
     lh_u32_t bytes = 0U;
 
-    rows[0].kind = lh_gl_decl_kind_container;
-    rows[0].parent = LH_GL_DECL_ROOT;
-    rows[1].kind = lh_gl_decl_kind_label;
-    rows[1].parent = 0;
+    lh_gl_decl_set_kind(&rows[0], lh_gl_decl_kind_container);
+    lh_gl_decl_set_parent(&rows[0], LH_GL_DECL_ROOT);
+    lh_gl_decl_set_kind(&rows[1], lh_gl_decl_kind_label);
+    lh_gl_decl_set_parent(&rows[1], 0);
     ASSERT_TRUE(lh_gl_decl_try_measure(rows, 2, &bytes, nullptr) == lh_bool_true);
     EXPECT_EQ(bytes, lh_gl_decl_size_of(lh_gl_decl_kind_container) +
                          lh_gl_decl_size_of(lh_gl_decl_kind_label));
@@ -505,14 +509,14 @@ TEST(ui_decl, the_measure_refuses_two_roots_and_names_no_row)
 {
     lh_gl_decl_t rows[2] = {};
     lh_u32_t bytes = 7U;
-    lh_gl_decl_fault_t fault;
 
-    rows[0].kind = lh_gl_decl_kind_entity;
-    rows[0].parent = LH_GL_DECL_ROOT;
-    rows[1].kind = lh_gl_decl_kind_entity;
-    rows[1].parent = LH_GL_DECL_ROOT;
+    lh_gl_decl_set_kind(&rows[0], lh_gl_decl_kind_entity);
+    lh_gl_decl_set_parent(&rows[0], LH_GL_DECL_ROOT);
+    lh_gl_decl_set_kind(&rows[1], lh_gl_decl_kind_entity);
+    lh_gl_decl_set_parent(&rows[1], LH_GL_DECL_ROOT);
+    lh_gl_decl_fault_t fault;
     EXPECT_FALSE(lh_gl_decl_try_measure(rows, 2, &bytes, &fault) == lh_bool_true);
-    EXPECT_EQ(fault.code, lh_gl_decl_error_roots);
+    EXPECT_EQ(lh_gl_decl_fault_get_code(&fault), lh_gl_decl_error_roots);
     EXPECT_EQ(bytes, 7U) << "a refused table leaves the count alone";
 }
 
@@ -522,12 +526,12 @@ TEST(ui_decl, place_builds_every_row_and_link_wires_them_into_one_tree)
     lh_gl_entity_t *nodes[2] = {};
     lh_gl_decl_t rows[2] = {};
 
-    rows[0].kind = lh_gl_decl_kind_container;
-    rows[0].parent = LH_GL_DECL_ROOT;
-    rows[0].w = 100;
-    rows[0].h = 100;
-    rows[1].kind = lh_gl_decl_kind_entity;
-    rows[1].parent = 0;
+    lh_gl_decl_set_kind(&rows[0], lh_gl_decl_kind_container);
+    lh_gl_decl_set_parent(&rows[0], LH_GL_DECL_ROOT);
+    lh_gl_decl_set_w(&rows[0], 100);
+    lh_gl_decl_set_h(&rows[0], 100);
+    lh_gl_decl_set_kind(&rows[1], lh_gl_decl_kind_entity);
+    lh_gl_decl_set_parent(&rows[1], 0);
     ASSERT_TRUE(lh_gl_decl_try_place(rows, 2, nodes, g_storage, nullptr) == lh_bool_true);
     ASSERT_NE(nodes[0], nullptr);
     ASSERT_NE(nodes[1], nullptr);
@@ -538,23 +542,93 @@ TEST(ui_decl, place_builds_every_row_and_link_wires_them_into_one_tree)
 
 TEST(ui_decl, a_row_applies_its_hidden_and_its_style_but_a_button_aims_its_own)
 {
-    lh_gl_entity_t entity;
-    lh_gl_style_t style;
     lh_gl_decl_t row = {};
 
+    lh_gl_entity_t entity;
     lh_gl_entity_init(&entity, lh_test::rect_of(0, 0, 10, 10));
+    lh_gl_style_t style;
     lh_gl_style_init(&style);
-    row.kind = lh_gl_decl_kind_entity;
-    row.style = &style;
-    row.hidden = lh_bool_true;
+    lh_gl_decl_set_kind(&row, lh_gl_decl_kind_entity);
+    lh_gl_decl_set_style(&row, &style);
+    lh_gl_decl_set_hidden(&row, lh_bool_true);
     lh_gl_decl_apply_row(&entity, &row);
     EXPECT_EQ(lh_gl_entity_get_style(&entity), &style);
     EXPECT_EQ(lh_gl_entity_is_hidden(&entity), lh_bool_true);
 
     lh_gl_entity_t other;
     lh_gl_entity_init(&other, lh_test::rect_of(0, 0, 10, 10));
-    row.kind = lh_gl_decl_kind_button;
-    row.hidden = lh_bool_false;
+    lh_gl_decl_set_kind(&row, lh_gl_decl_kind_button);
+    lh_gl_decl_set_hidden(&row, lh_bool_false);
     lh_gl_decl_apply_row(&other, &row);
     EXPECT_NE(lh_gl_entity_get_style(&other), &style) << "a button aims its entity itself";
+}
+
+TEST(ui_decl, every_field_reads_back_what_its_setter_stored)
+{
+    lh_gl_decl_t row = {};
+
+    lh_gl_decl_set_kind(&row, lh_gl_decl_kind_input);
+    lh_gl_decl_set_parent(&row, 3);
+    lh_gl_style_t style;
+    lh_gl_decl_set_style(&row, &style);
+    lh_gl_decl_set_hidden(&row, lh_bool_true);
+    char buffer[8];
+    lh_gl_decl_set_input_buffer(&row, buffer);
+    lh_gl_decl_set_input_capacity(&row, 7U);
+    EXPECT_EQ(lh_gl_decl_get_kind(&row), lh_gl_decl_kind_input);
+    EXPECT_EQ(lh_gl_decl_get_parent(&row), 3);
+    EXPECT_EQ(lh_gl_decl_get_style(&row), &style);
+    EXPECT_EQ(lh_gl_decl_is_hidden(&row), lh_bool_true);
+    EXPECT_EQ(lh_gl_decl_get_input_buffer(&row), buffer);
+    EXPECT_EQ(lh_gl_decl_get_input_capacity(&row), 7U);
+
+    lh_gl_decl_fault_t fault = {};
+    lh_gl_decl_fault_set_code(&fault, lh_gl_decl_error_kind);
+    lh_gl_decl_fault_set_index(&fault, 5U);
+    EXPECT_EQ(lh_gl_decl_fault_get_code(&fault), lh_gl_decl_error_kind);
+    EXPECT_EQ(lh_gl_decl_fault_get_index(&fault), 5U);
+}
+
+TEST(ui_decl, the_rect_of_a_row_is_its_four_fields)
+{
+    lh_gl_decl_t row = {};
+
+    lh_gl_decl_set_x(&row, lh_gl_scalar(1));
+    lh_gl_decl_set_y(&row, lh_gl_scalar(2));
+    lh_gl_decl_set_w(&row, lh_gl_scalar(30));
+    lh_gl_decl_set_h(&row, lh_gl_scalar(40));
+    lh_gl_rect_t rect;
+    lh_gl_decl_get_rect(&row, &rect);
+    EXPECT_TRUE(rect_is(rect, rect_of(1, 2, 30, 40)));
+}
+
+TEST(ui_decl, each_kind_places_its_own_block_and_leaves_the_rest)
+{
+    lh_gl_decl_t row = {};
+    lh_gl_decl_set_w(&row, lh_gl_scalar(10));
+    lh_gl_decl_set_h(&row, lh_gl_scalar(10));
+
+    lh_gl_decl_set_kind(&row, lh_gl_decl_kind_label);
+    lh_gl_decl_set_label_text(&row, "hi");
+    lh_gl_label_t label;
+    EXPECT_EQ(lh_gl_decl_place_label(&row, (lh_byte_ptr)&label), lh_gl_label_as_entity(&label));
+    EXPECT_STREQ(lh_gl_label_get_text(&label), "hi");
+
+    lh_gl_decl_set_kind(&row, lh_gl_decl_kind_toggle);
+    lh_gl_decl_set_toggle_checked(&row, lh_bool_true);
+    lh_gl_toggle_t toggle;
+    EXPECT_EQ(lh_gl_decl_place_toggle(&row, (lh_byte_ptr)&toggle),
+              lh_gl_toggle_as_entity(&toggle));
+    EXPECT_EQ(lh_gl_toggle_is_checked(&toggle), lh_bool_true);
+
+    lh_gl_color_t tint;
+    lh_gl_color_init(&tint, 1, 2, 3, 255);
+    lh_gl_decl_set_kind(&row, lh_gl_decl_kind_image);
+    lh_gl_decl_set_image_tint(&row, &tint);
+    lh_gl_image_t image;
+    EXPECT_EQ(lh_gl_decl_place_image(&row, (lh_byte_ptr)&image), lh_gl_image_as_entity(&image));
+    EXPECT_EQ(lh_gl_color_get_g(lh_gl_image_get_tint(&image)), 2);
+
+    lh_gl_decl_set_kind(&row, lh_cast_static(lh_gl_decl_kind_t, 99));
+    EXPECT_EQ(lh_gl_decl_place_row(&row, (lh_byte_ptr)&image, lh_null), lh_null);
 }

@@ -646,6 +646,7 @@ if (LH_LIBRARY_OPTION_GL)
             ${LH_LIB_SRC_PATH}/gl/entity/transform.c
             ${LH_LIB_SRC_PATH}/gl/container.c
             ${LH_LIB_SRC_PATH}/gl/decl.c
+            ${LH_LIB_SRC_PATH}/gl/decl/fault.c
             ${LH_LIB_SRC_PATH}/gl/image.c
             ${LH_LIB_SRC_PATH}/gl/label.c
             ${LH_LIB_SRC_PATH}/gl/label/draw.c

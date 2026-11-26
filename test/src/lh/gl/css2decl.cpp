@@ -105,7 +105,7 @@ TEST(ui_css2decl, the_generated_table_builds)
     sheet s;
 
     ASSERT_EQ(s.built, lh_bool_true);
-    EXPECT_EQ(s.fault.code, lh_gl_decl_error_none);
+    EXPECT_EQ(lh_gl_decl_fault_get_code(&s.fault), lh_gl_decl_error_none);
     EXPECT_EQ(lh_test_css_decl_count, 10u);
     EXPECT_EQ(s.root, s.nodes[0]);
 }
@@ -316,7 +316,9 @@ TEST(ui_css2decl_app, a_screen_in_html_names_builds)
 {
     app_screen s;
 
-    ASSERT_EQ(s.built, lh_bool_true) << "row " << s.fault.index << " refused, code " << (int)s.fault.code;
+    ASSERT_EQ(s.built, lh_bool_true)
+        << "row " << lh_gl_decl_fault_get_index(&s.fault) << " refused, code "
+        << (int)lh_gl_decl_fault_get_code(&s.fault);
     /* `div` is a box, `h1` a label, `checkbox` a toggle, `input` a field. */
     EXPECT_NE(lh_test_app_container(s.nodes, "app"), lh_null);
     EXPECT_NE(lh_test_app_label(s.nodes, "title"), lh_null);

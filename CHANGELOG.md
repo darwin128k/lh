@@ -147,6 +147,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `lh_gl_decl_apply_row` (the style, the place, a container's flow and hidden,
   which every kind says the same way) and `lh_gl_decl_link` (parent to child,
   the root given back). A build refuses and fills the fault exactly as before.
+- `lh_gl_decl_t` has its level-1 accessors, and nothing outside them names a
+  field: `lh_gl_decl_get_kind` / `_set_kind`, `_x`, `_y`, `_w`, `_h`,
+  `_parent`, `_style`, `_place`, `_layout`, `lh_gl_decl_is_hidden`, and one
+  pair for each field of a kind's block, named after the kind
+  (`lh_gl_decl_get_label_text`, `_get_button_on_click`,
+  `lh_gl_decl_is_toggle_checked`, `_get_scrollbar_box`, `_get_input_capacity`,
+  ...). Its members move to `lh_gl_decl_fields` (`lh/gl/decl/fields.h`) in the
+  same order, so a table written field after field -- every one
+  `scripts/css2decl.py` generates -- still compiles unchanged.
+  `lh_gl_decl_fault_t` moves to its own `lh/gl/decl/fault.h` (members in
+  `lh_gl_decl_fault_fields`, accessors in `decl/fault.c`); `lh/gl/decl.h` still
+  brings it in.
+- `lh_gl_decl_place_row` (90 lines to 24) is a switch over one brick per kind:
+  `lh_gl_decl_place_entity`, `_container`, `_label`, `_button`, `_toggle`,
+  `_image`, `_scrollbar` (which reads the container it scrolls from `nodes`)
+  and `_input`, each over the new `lh_gl_decl_get_rect` (the row's `x`, `y`,
+  `w`, `h` as a rect).
 - `lh_gl_canvas_stroke_box` (110 lines to 73) is built from new bricks:
   `lh_gl_radii_get_max` (beside `_get_min`), `lh_gl_radii_inset` (every
   corner less a width, none below 0: the radii inside a border),

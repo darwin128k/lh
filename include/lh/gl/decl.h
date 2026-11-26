@@ -35,7 +35,8 @@
 #include <lh/gl/scrollbar.h>
 #include <lh/gl/toggle.h>
 #include <lh/gl/decl/kind.h>
-#include <lh/gl/decl/error.h>
+#include <lh/gl/decl/fault.h>
+#include <lh/gl/decl/fields.h>
 
 /**
  * @brief @p parent of a row that is a root: no parent, and exactly one row of a
@@ -54,103 +55,529 @@
  * build places: styles, layouts, texts, masks, tints and callbacks all outlive it
  * by the app's own rules, exactly as they do when the tree is written by hand.
  */
-typedef struct lh_gl_decl
+struct lh_gl_decl
 {
-    lh_gl_decl_kind_t kind; /**< What this row builds. */
-    lh_gl_scalar_t x; /**< Left of the rect, in the parent's space (absolute, as everywhere). */
-    lh_gl_scalar_t y; /**< Top of the rect. */
-    lh_gl_scalar_t w; /**< Width of the rect. */
-    lh_gl_scalar_t h; /**< Height of the rect. */
-    lh_s32_t parent;  /**< Row that holds this one, or ::LH_GL_DECL_ROOT. Must be lower. */
-    const lh_gl_style_t *style; /**< Look of @p self (not owned, may be ::lh_null). */
-    const lh_gl_place_t
-        *place; /**< What this row wants a flow to give it (not owned, may be ::lh_null). */
-    /**
-     * @brief The flow that places this row's children (not owned, may be
-     *        ::lh_null: no flow, and its children stay where they were put).
-     *
-     * One field for every kind, because a flow belongs to a **container** and a
-     * button, a toggle and a caption all are one — that is what makes a captioned
-     * button three entities and still places them. A row whose widget is not a
-     * container ignores it.
-     */
-    const lh_gl_layout_t *layout;
-
-    /** What this row carries, by kind: only the block that matches @p kind is read. */
-    union
-    {
-        /** lh_gl_decl_kind_label */
-        struct
-        {
-            const lh_char_t *text; /**< Caption (not owned, may be ::lh_null for none). */
-        } label;
-
-        /** lh_gl_decl_kind_button */
-        struct
-        {
-            const lh_gl_style_t *hot_style;    /**< Look while the pointer is on it. */
-            lh_gl_button_on_click_cb on_click; /**< What a click means (may be ::lh_null). */
-            lh_ptr click_context;              /**< Handed to @p on_click untouched. */
-        } button;
-
-        /** lh_gl_decl_kind_toggle */
-        struct
-        {
-            const lh_gl_style_t *off_style;     /**< Resting look while off. */
-            const lh_gl_style_t *off_hot_style; /**< Pointer look while off. */
-            const lh_gl_style_t *on_style;      /**< Resting look while on. */
-            const lh_gl_style_t *on_hot_style;  /**< Pointer look while on. */
-            lh_bool_t checked;                  /**< The state it starts in. */
-        } toggle;
-
-        /** lh_gl_decl_kind_image */
-        struct
-        {
-            const lh_gl_mask_t *mask;  /**< What it shows (may be ::lh_null for none). */
-            const lh_gl_color_t *tint; /**< The colour it shows it in (may be ::lh_null: white). */
-        } image;
-
-        /** lh_gl_decl_kind_scrollbar */
-        struct
-        {
-            lh_s32_t box;      /**< Row of the container it scrolls (lower than this one). */
-            lh_gl_axis_t axis; /**< Axis it scrolls on. */
-            lh_gl_scrollbar_mode_t mode; /**< When it is shown (default auto). */
-        } scrollbar;
-
-        /** lh_gl_decl_kind_input */
-        struct
-        {
-            lh_char_t *buffer;     /**< At least @p capacity + 1 bytes; outlives the input. */
-            lh_u16_t capacity;     /**< Bytes that may be typed, terminator aside. */
-            const lh_char_t *text; /**< What it starts with (copied in; may be ::lh_null). */
-        } input;
-    } as;
-
-    /**
-     * @brief Built hidden: it takes no room in its parent's flow and is not drawn
-     *        until the app shows it (::lh_gl_entity_set_hidden_v). CSS's
-     *        `display: none`.
-     *
-     * Last, so that a table written before it was here -- every field in order, no
-     * names -- is still a table of rows that are shown.
-     */
-    lh_bool_t hidden;
-} lh_gl_decl_t; /**< One row of a declared tree. */
-
-/**
- * @struct lh_gl_decl_fault
- * @brief Which row, and what was wrong with it. A table is data, so a typo in one
- *        row has to say which row — that is the whole difference between a
- *        declaration and a call sequence.
- */
-typedef struct lh_gl_decl_fault
-{
-    lh_gl_decl_error_t code; /**< ::lh_gl_decl_error_none when the build worked. */
-    lh_u32_t index;          /**< Row that was refused; the last row for a whole-table fault. */
-} lh_gl_decl_fault_t;        /**< Which row a build refused, and why. */
+    /** Members: ::lh_gl_decl_fields. */
+    lh_gl_decl_fields(lh_gl_decl_kind_t, lh_gl_scalar_t, lh_gl_style_t, lh_gl_place_t,
+                      lh_gl_layout_t);
+};
+/** @copybrief lh_gl_decl */
+typedef struct lh_gl_decl lh_gl_decl_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief What this row builds (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+lh_gl_decl_kind_t
+lh_gl_decl_get_kind(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store what this row builds (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_kind(lh_gl_decl_t *self, lh_gl_decl_kind_t value);
+
+/**
+ * @brief The left of the rect, in the parent's space (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+lh_gl_scalar_t
+lh_gl_decl_get_x(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store the left of the rect, in the parent's space (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_x(lh_gl_decl_t *self, lh_gl_scalar_t value);
+
+/**
+ * @brief The top of the rect (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+lh_gl_scalar_t
+lh_gl_decl_get_y(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store the top of the rect (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_y(lh_gl_decl_t *self, lh_gl_scalar_t value);
+
+/**
+ * @brief The width of the rect (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+lh_gl_scalar_t
+lh_gl_decl_get_w(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store the width of the rect (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_w(lh_gl_decl_t *self, lh_gl_scalar_t value);
+
+/**
+ * @brief The height of the rect (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+lh_gl_scalar_t
+lh_gl_decl_get_h(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store the height of the rect (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_h(lh_gl_decl_t *self, lh_gl_scalar_t value);
+
+/**
+ * @brief The row that holds this one, or ::LH_GL_DECL_ROOT (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_gl_decl_get_parent(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store the row that holds this one, or ::LH_GL_DECL_ROOT (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_parent(lh_gl_decl_t *self, lh_s32_t value);
+
+/**
+ * @brief The look of the row (not owned, may be ::lh_null) (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gl_style_t *
+lh_gl_decl_get_style(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store the look of the row (not owned, may be ::lh_null) (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_style(lh_gl_decl_t *self, const lh_gl_style_t *value);
+
+/**
+ * @brief What the row wants a flow to give it (not owned, may be ::lh_null) (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gl_place_t *
+lh_gl_decl_get_place(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store what the row wants a flow to give it (not owned, may be ::lh_null) (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_place(lh_gl_decl_t *self, const lh_gl_place_t *value);
+
+/**
+ * @brief The flow that places the row's children (not owned, may be ::lh_null) (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gl_layout_t *
+lh_gl_decl_get_layout(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store the flow that places the row's children (not owned, may be ::lh_null) (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_layout(lh_gl_decl_t *self, const lh_gl_layout_t *value);
+
+/**
+ * @brief Whether the row is built hidden (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+lh_bool_t
+lh_gl_decl_is_hidden(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store whether the row is built hidden (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_hidden(lh_gl_decl_t *self, lh_bool_t value);
+
+/**
+ * @brief The caption of a label row (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+const lh_char_t *
+lh_gl_decl_get_label_text(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store the caption of a label row (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_label_text(lh_gl_decl_t *self, const lh_char_t *value);
+
+/**
+ * @brief The look of a button row while the pointer is on it (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gl_style_t *
+lh_gl_decl_get_button_hot_style(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store the look of a button row while the pointer is on it (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_button_hot_style(lh_gl_decl_t *self, const lh_gl_style_t *value);
+
+/**
+ * @brief What a click on a button row means (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+lh_gl_button_on_click_cb
+lh_gl_decl_get_button_on_click(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store what a click on a button row means (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_button_on_click(lh_gl_decl_t *self, lh_gl_button_on_click_cb value);
+
+/**
+ * @brief What a button row hands its click callback (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+lh_ptr
+lh_gl_decl_get_button_click_context(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store what a button row hands its click callback (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_button_click_context(lh_gl_decl_t *self, lh_ptr value);
+
+/**
+ * @brief The resting look of a toggle row while off (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gl_style_t *
+lh_gl_decl_get_toggle_off_style(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store the resting look of a toggle row while off (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_toggle_off_style(lh_gl_decl_t *self, const lh_gl_style_t *value);
+
+/**
+ * @brief The pointer look of a toggle row while off (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gl_style_t *
+lh_gl_decl_get_toggle_off_hot_style(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store the pointer look of a toggle row while off (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_toggle_off_hot_style(lh_gl_decl_t *self, const lh_gl_style_t *value);
+
+/**
+ * @brief The resting look of a toggle row while on (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gl_style_t *
+lh_gl_decl_get_toggle_on_style(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store the resting look of a toggle row while on (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_toggle_on_style(lh_gl_decl_t *self, const lh_gl_style_t *value);
+
+/**
+ * @brief The pointer look of a toggle row while on (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gl_style_t *
+lh_gl_decl_get_toggle_on_hot_style(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store the pointer look of a toggle row while on (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_toggle_on_hot_style(lh_gl_decl_t *self, const lh_gl_style_t *value);
+
+/**
+ * @brief Whether a toggle row starts on (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+lh_bool_t
+lh_gl_decl_is_toggle_checked(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store whether a toggle row starts on (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_toggle_checked(lh_gl_decl_t *self, lh_bool_t value);
+
+/**
+ * @brief What an image row shows (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gl_mask_t *
+lh_gl_decl_get_image_mask(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store what an image row shows (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_image_mask(lh_gl_decl_t *self, const lh_gl_mask_t *value);
+
+/**
+ * @brief The colour an image row shows it in (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+const lh_gl_color_t *
+lh_gl_decl_get_image_tint(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store the colour an image row shows it in (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_image_tint(lh_gl_decl_t *self, const lh_gl_color_t *value);
+
+/**
+ * @brief The row of the container a scrollbar row scrolls (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+lh_s32_t
+lh_gl_decl_get_scrollbar_box(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store the row of the container a scrollbar row scrolls (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_scrollbar_box(lh_gl_decl_t *self, lh_s32_t value);
+
+/**
+ * @brief The axis a scrollbar row scrolls on (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+lh_gl_axis_t
+lh_gl_decl_get_scrollbar_axis(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store the axis a scrollbar row scrolls on (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_scrollbar_axis(lh_gl_decl_t *self, lh_gl_axis_t value);
+
+/**
+ * @brief When a scrollbar row is shown (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+lh_gl_scrollbar_mode_t
+lh_gl_decl_get_scrollbar_mode(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store when a scrollbar row is shown (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_scrollbar_mode(lh_gl_decl_t *self, lh_gl_scrollbar_mode_t value);
+
+/**
+ * @brief The buffer an input row edits (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+lh_char_t *
+lh_gl_decl_get_input_buffer(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store the buffer an input row edits (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_input_buffer(lh_gl_decl_t *self, lh_char_t *value);
+
+/**
+ * @brief The bytes that may be typed into an input row (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+lh_u16_t
+lh_gl_decl_get_input_capacity(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store the bytes that may be typed into an input row (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_input_capacity(lh_gl_decl_t *self, lh_u16_t value);
+
+/**
+ * @brief What an input row starts with (level 1).
+ *
+ * @param self The row; checked by ::lh_assert_runtime_ref.
+ */
+const lh_char_t *
+lh_gl_decl_get_input_text(const lh_gl_decl_t *self);
+
+/**
+ * @brief Store what an input row starts with (level 1).
+ *
+ * A level-1 setter: the value is stored as given and is not validated.
+ *
+ * @param self  The row; checked by ::lh_assert_runtime_ref.
+ * @param value The new value.
+ */
+lh_void
+lh_gl_decl_set_input_text(lh_gl_decl_t *self, const lh_char_t *value);
 
 /** Record @p code at row @p index in @p fault, when the caller asked for one. */
 lh_void
@@ -166,11 +593,152 @@ lh_gl_decl_size_of(lh_gl_decl_kind_t kind);
 lh_gl_decl_error_t
 lh_gl_decl_check(const lh_gl_decl_t *decls, lh_u32_t index);
 
-/** One row into one slot: the component its kind names and that kind's own fields,
-   and nothing of any other kind. The style and the place are the caller's, because
-   they are the same whatever the widget is. */
+/**
+ * @brief The rect of @p self -- `x`, `y`, `w`, `h` -- into @p out (level 2).
+ *
+ * @param self The row; checked by its getters.
+ * @param out  Receives the rect.
+ */
+lh_void
+lh_gl_decl_get_rect(const lh_gl_decl_t *self, lh_gl_rect_t *out);
+
+/**
+ * @brief What every kind of row says the same way, onto the @p entity its widget
+ *        is: the style (but for a button and a toggle, which aim the entity at
+ *        their own style so a press composes on top of the one showing), the
+ *        place, the flow of a container, and hidden.
+ *
+ * @param entity The widget the row built.
+ * @param row    The row.
+ */
+lh_void
+lh_gl_decl_apply_row(lh_gl_entity_t *entity, const lh_gl_decl_t *row);
+
+/**
+ * @brief Wire every placed row of @p decls to its parent, and give back the root.
+ *
+ * @param decls The rows.
+ * @param count How many.
+ * @param nodes The widget of every row (::lh_gl_decl_try_place).
+ * @return The widget of the row that is the root.
+ */
 lh_gl_entity_t *
-lh_gl_decl_place_row(const lh_gl_decl_t *row, lh_byte_ptr slot, lh_gl_entity_t **nodes);
+lh_gl_decl_link(const lh_gl_decl_t *decls, lh_u32_t count, lh_gl_entity_t **nodes);
+
+/**
+ * @brief Place a bare entity: the rect and nothing else.
+ *
+ * Reads only the fields every row has and the block of `as` of its own kind; the
+ * style and the place of the entity are ::lh_gl_decl_apply_row's.
+ *
+ * @param row  The row; its kind is the one this places.
+ * @param slot Room for the widget, at least ::lh_gl_decl_size_of bytes, suitably
+ *             aligned; the widget is initialised in it.
+ * @return The entity of the widget in @p slot.
+ */
+lh_gl_entity_t *
+lh_gl_decl_place_entity(const lh_gl_decl_t *row, lh_byte_ptr slot);
+
+/**
+ * @brief Place a container: the rect; its flow is applied with the rest of the row.
+ *
+ * Reads only the fields every row has and the block of `as` of its own kind; the
+ * style and the place of the entity are ::lh_gl_decl_apply_row's.
+ *
+ * @param row  The row; its kind is the one this places.
+ * @param slot Room for the widget, at least ::lh_gl_decl_size_of bytes, suitably
+ *             aligned; the widget is initialised in it.
+ * @return The entity of the widget in @p slot.
+ */
+lh_gl_entity_t *
+lh_gl_decl_place_container(const lh_gl_decl_t *row, lh_byte_ptr slot);
+
+/**
+ * @brief Place a label: the rect and its caption.
+ *
+ * Reads only the fields every row has and the block of `as` of its own kind; the
+ * style and the place of the entity are ::lh_gl_decl_apply_row's.
+ *
+ * @param row  The row; its kind is the one this places.
+ * @param slot Room for the widget, at least ::lh_gl_decl_size_of bytes, suitably
+ *             aligned; the widget is initialised in it.
+ * @return The entity of the widget in @p slot.
+ */
+lh_gl_entity_t *
+lh_gl_decl_place_label(const lh_gl_decl_t *row, lh_byte_ptr slot);
+
+/**
+ * @brief Place a button: the rect, its resting and pointer looks, and its click.
+ *
+ * Reads only the fields every row has and the block of `as` of its own kind; the
+ * style and the place of the entity are ::lh_gl_decl_apply_row's.
+ *
+ * @param row  The row; its kind is the one this places.
+ * @param slot Room for the widget, at least ::lh_gl_decl_size_of bytes, suitably
+ *             aligned; the widget is initialised in it.
+ * @return The entity of the widget in @p slot.
+ */
+lh_gl_entity_t *
+lh_gl_decl_place_button(const lh_gl_decl_t *row, lh_byte_ptr slot);
+
+/**
+ * @brief Place a toggle: the rect, its four looks and the state it starts in.
+ *
+ * Reads only the fields every row has and the block of `as` of its own kind; the
+ * style and the place of the entity are ::lh_gl_decl_apply_row's.
+ *
+ * @param row  The row; its kind is the one this places.
+ * @param slot Room for the widget, at least ::lh_gl_decl_size_of bytes, suitably
+ *             aligned; the widget is initialised in it.
+ * @return The entity of the widget in @p slot.
+ */
+lh_gl_entity_t *
+lh_gl_decl_place_toggle(const lh_gl_decl_t *row, lh_byte_ptr slot);
+
+/**
+ * @brief Place an image: the rect, its mask, and its tint when the row names one.
+ *
+ * Reads only the fields every row has and the block of `as` of its own kind; the
+ * style and the place of the entity are ::lh_gl_decl_apply_row's.
+ *
+ * @param row  The row; its kind is the one this places.
+ * @param slot Room for the widget, at least ::lh_gl_decl_size_of bytes, suitably
+ *             aligned; the widget is initialised in it.
+ * @return The entity of the widget in @p slot.
+ */
+lh_gl_entity_t *
+lh_gl_decl_place_image(const lh_gl_decl_t *row, lh_byte_ptr slot);
+
+/**
+ * @brief Place a scrollbar: the rect, its axis and the container it scrolls (already placed in
+ * `nodes`), and its mode when the row names one.
+ *
+ * Reads only the fields every row has and the block of `as` of its own kind; the
+ * style and the place of the entity are ::lh_gl_decl_apply_row's.
+ *
+ * @param row  The row; its kind is the one this places.
+ * @param slot Room for the widget, at least ::lh_gl_decl_size_of bytes, suitably
+ *             aligned; the widget is initialised in it.
+ * @param nodes The rows placed so far, by row: the container the bar scrolls is one of them
+ *              (::lh_gl_decl_check put it lower).
+ * @return The entity of the widget in @p slot.
+ */
+lh_gl_entity_t *
+lh_gl_decl_place_scrollbar(const lh_gl_decl_t *row, lh_byte_ptr slot, lh_gl_entity_t **nodes);
+
+/**
+ * @brief Place an input: the rect, its buffer and capacity, and the text it starts with.
+ *
+ * Reads only the fields every row has and the block of `as` of its own kind; the
+ * style and the place of the entity are ::lh_gl_decl_apply_row's.
+ *
+ * @param row  The row; its kind is the one this places.
+ * @param slot Room for the widget, at least ::lh_gl_decl_size_of bytes, suitably
+ *             aligned; the widget is initialised in it.
+ * @return The entity of the widget in @p slot.
+ */
+lh_gl_entity_t *
+lh_gl_decl_place_input(const lh_gl_decl_t *row, lh_byte_ptr slot);
 
 /**
  * @brief Check every row of @p decls on its own (::lh_gl_decl_check) and the
@@ -192,16 +760,18 @@ lh_gl_decl_try_measure(const lh_gl_decl_t *decls, lh_u32_t count, lh_u32_t *byte
                        lh_gl_decl_fault_t *fault);
 
 /**
- * @brief What every kind of row says the same way, onto the @p entity its widget
- *        is: the style (but for a button and a toggle, which aim the entity at
- *        their own style so a press composes on top of the one showing), the
- *        place, the flow of a container, and hidden.
+ * @brief One row into one slot: the component its kind names and that kind's own
+ *        fields, and nothing of any other kind (::lh_gl_decl_place_entity ...
+ *        ::lh_gl_decl_place_input). The style and the place are the caller's,
+ *        because they are the same whatever the widget is.
  *
- * @param entity The widget the row built.
- * @param row    The row.
+ * @param row   The row.
+ * @param slot  Room for the widget (::lh_gl_decl_size_of bytes).
+ * @param nodes The rows placed so far, by row (a scrollbar reads its container).
+ * @return The entity of the widget, or ::lh_null for a kind that is not one.
  */
-lh_void
-lh_gl_decl_apply_row(lh_gl_entity_t *entity, const lh_gl_decl_t *row);
+lh_gl_entity_t *
+lh_gl_decl_place_row(const lh_gl_decl_t *row, lh_byte_ptr slot, lh_gl_entity_t **nodes);
 
 /**
  * @brief Place every row of @p decls in @p storage, end to end
@@ -222,17 +792,6 @@ lh_gl_decl_apply_row(lh_gl_entity_t *entity, const lh_gl_decl_t *row);
 lh_bool_t
 lh_gl_decl_try_place(const lh_gl_decl_t *decls, lh_u32_t count, lh_gl_entity_t **nodes,
                      lh_byte_ptr storage, lh_gl_decl_fault_t *fault);
-
-/**
- * @brief Wire every placed row of @p decls to its parent, and give back the root.
- *
- * @param decls The rows.
- * @param count How many.
- * @param nodes The widget of every row (::lh_gl_decl_try_place).
- * @return The widget of the row that is the root.
- */
-lh_gl_entity_t *
-lh_gl_decl_link(const lh_gl_decl_t *decls, lh_u32_t count, lh_gl_entity_t **nodes);
 
 /**
  * @brief Build every row of @p decls into @p storage and wire parent to child.
@@ -260,44 +819,6 @@ lh_bool_t
 lh_gl_decl_build(const lh_gl_decl_t *decls, lh_u32_t count, lh_gl_entity_t **nodes,
                  lh_byte_ptr storage, lh_u32_t bytes, lh_gl_entity_t **root,
                  lh_gl_decl_fault_t *fault);
-
-/**
- * @brief What went wrong (level 1).
- *
- * @param self The fault; checked by ::lh_assert_runtime_ref.
- */
-lh_gl_decl_error_t
-lh_gl_decl_fault_get_code(const lh_gl_decl_fault_t *self);
-
-/**
- * @brief Store what went wrong (level 1).
- *
- * A level-1 setter: the value is stored as given and is not validated.
- *
- * @param self The fault; checked by ::lh_assert_runtime_ref.
- * @param code The new value.
- */
-lh_void
-lh_gl_decl_fault_set_code(lh_gl_decl_fault_t *self, lh_gl_decl_error_t code);
-
-/**
- * @brief The row it went wrong at (level 1).
- *
- * @param self The fault; checked by ::lh_assert_runtime_ref.
- */
-lh_u32_t
-lh_gl_decl_fault_get_index(const lh_gl_decl_fault_t *self);
-
-/**
- * @brief Store the row it went wrong at (level 1).
- *
- * A level-1 setter: the value is stored as given and is not validated.
- *
- * @param self The fault; checked by ::lh_assert_runtime_ref.
- * @param index The new value.
- */
-lh_void
-lh_gl_decl_fault_set_index(lh_gl_decl_fault_t *self, lh_u32_t index);
 
 LH_COMPILER_EXTERN_C_END
 
